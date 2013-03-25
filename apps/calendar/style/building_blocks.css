@@ -2,306 +2,6 @@
 * web asset generated css file.
 * Do not directly the contents.
 */
-section[role="region"] > header:first-child {
-  position: relative;
-  z-index: 10;
-  padding: 0;
-  height: 5rem;
-  color: #fff;
-  background: url("building_blocks/headers/images/ui/header.png") repeat-x 0 0;
-  border: none;
-}
-
-section[role="region"] > header:first-child:after {
-  content: "";
-  display: block;
-  height: 0.3rem;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: url("building_blocks/headers/images/ui/shadow.png") repeat-x 0 0;
-  background-size: auto 100%;
-}
-
-section[role="region"] > header:first-child h1 {
-  font: 2.2rem/4.8rem "MozTT", Sans-serif;
-  text-align: left;
-  color: #fff;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  display: block;
-  overflow: hidden;
-  padding-left: 3rem;
-  margin: 0;
-  height: 100%;
-}
-
-section[role="region"] > header:first-child h1 em {
-  font: bold 1.5rem/1em "MozTT", Sans-serif;
-}
-
-section[role="region"] > header:first-child form {
-  display: block;
-  overflow: hidden;
-  position: relative;
-  padding: 1.1rem;
-  margin-left: 2.5rem;
-}
-
-section[role="region"] > header:first-child input[type=text] {
-  width: 100%;
-  height: 2.7rem;
-  -moz-box-sizing: border-box;
-  padding: 0 2.5rem 0 0.5rem;
-  border: solid 1px #9d4123;
-  border-top-color: #a6501e;
-  border-radius: 0.3rem;
-  background: #fff url("building_blocks/headers/images/ui/shadow.png") repeat-x left -1px;
-  font: 1.35rem/1em "MozTT", Sans-serif;
-  box-shadow: none;
-}
-
-section[role="region"] > header:first-child form button[type="reset"] {
-  font-size: 0px;
-  overflow: hidden;
-  position: absolute;
-  right: 1rem;
-  top: 0;
-  bottom: 0;
-  width: 3rem;
-  height: auto;
-  margin: 0;
-  display: none;
-  border: none;
-  background: url("building_blocks/headers/images/icons/clear.png") no-repeat center center;
-}
-
-section[role="region"] > header:first-child input[type=text]:valid + button[type="reset"] {
-  display: block;
-}
-
-section[role="region"] > header:first-child menu[type="toolbar"] {
-  height: 100%;
-  float: right;
-}
-
-section[role="region"] > header:first-child menu[type="toolbar"] a,
-section[role="region"] > header:first-child menu[type="toolbar"] button {
-  height: 5rem;
-  min-width: 5rem;
-  width: auto;
-  margin-bottom: 0;
-  border-radius: 0;
-  line-height: 5rem;
-  float: left;
-  background: none;
-  padding: 0 1.75rem;
-  -moz-box-sizing: border-box;
-  text-align: center;
-  text-shadow: none;
-  position: relative;
-  z-index: 5;
-}
-
-section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
-section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
-  background: url("building_blocks/headers/images/ui/separator.png") no-repeat left center;
-  margin-left: -2px;
-  z-index: 1;
-}
-
-section[role="region"] > header:first-child menu[type="toolbar"] {
-  padding: 0;
-  margin: 0;
-}
-
-section[role="region"] > header:first-child a,
-section[role="region"] > header:first-child button {
-  border: none;
-  background: none;
-  padding: 0;
-  overflow: hidden;
-  font: 600 1.4rem/1.1em "MozTT", Sans-serif;
-  color: #fff;
-  border-radius: 0;
-}
-
-section[role="region"] > header:first-child a::-moz-focus-inner,
-section[role="region"] > header:first-child button::-moz-focus-inner,
-section[role="region"] > header:first-child a:active,
-section[role="region"] > header:first-child button:active,
-section[role="region"] > header:first-child a:focus,
-section[role="region"] > header:first-child button:focus {
-  outline: none!important;
-  border: none!important;
-}
-
-section[role="region"] > header:first-child a:not([aria-disabled="true"]):active .icon:after,
-section[role="region"] > header:first-child button:not(:disabled):active .icon:after,
-section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
-section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active {
-  background: #008aaa!important;
-  transition: background 0.2s ease;
-  border-bottom: solid 1px rgba(0, 0, 0, 0.2)!important;
-}
-
-section[role="region"] > header:first-child menu[type="toolbar"] a[aria-disabled="true"],
-section[role="region"] > header:first-child menu[type="toolbar"] button[disabled] {
-  opacity: 0.5;
-}
-
-section[role="region"] > header:first-child a:first-letter,
-section[role="region"] > header:first-child button:first-letter {
-  text-transform: uppercase;
-}
-
-section[role="region"] > header:first-child .icon {
-  display: inline-block;
-  float: none;
-  width: 3rem;
-  height: 3rem;
-  margin: 0 -1rem;
-  background: transparent no-repeat center center;
-  font-size: 0;
-  overflow: hidden;
-  position: relative;
-  height: 4.9rem;
-}
-
-section[role="region"] > header:first-child .icon.icon-add {
-  background-image: url("building_blocks/headers/images/icons/add.png");
-}
-
-section[role="region"] > header:first-child .icon.icon-edit {
-  background-image: url("building_blocks/headers/images/icons/edit.png");
-}
-
-section[role="region"] > header:first-child .icon.icon-close {
-  background-image: url("building_blocks/headers/images/icons/close.png");
-}
-
-section[role="region"] > header:first-child .icon.icon-back {
-  background-image: url("building_blocks/headers/images/icons/back.png");
-}
-
-section[role="region"] > header:first-child .icon.icon-menu {
-  background-image: url("building_blocks/headers/images/icons/menu.png");
-}
-
-section[role="region"] > header:first-child > button,
-section[role="region"] > header:first-child > a {
-  position: absolute;
-  left: 0;
-  width: 4rem;
-  height: 5rem;
-  background: url("building_blocks/headers/images/ui/separator-large.png") no-repeat 2rem center;
-  overflow: hidden;
-  text-align: center;
-}
-
-section[role="region"] > header:first-child > button .icon,
-section[role="region"] > header:first-child > a .icon {
-  font-size: 0;
-  line-height: 3rem;
-  overflow: visible;
-  position: static;
-  margin-left: -3rem;
-  height: 4.9rem;
-}
-
-section[role="region"] > header:first-child > button .icon:after,
-section[role="region"] > header:first-child > a .icon:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: -1;
-  width: 2rem;
-  height: 4.9rem;
-  background: #9d3d26 url("building_blocks/headers/images/ui/negative.png") repeat-x 0 0;
-}
-
-section[role="region"] > header > a .icon.icon-menu,
-section[role="region"] > header > button .icon.icon-menu {
-  background-position: -1rem center;
-}
-
-section[role="region"] > header {
-  background: url("building_blocks/headers/images/ui/subheader.png") repeat left bottom;
-  border-bottom: solid 1px #e6e6e6;
-  z-index: 0;
-  padding: 0.4rem 0;
-  height: auto;
-  color: #424242;
-}
-
-section[role="region"] > header:after {
-  display: none;
-}
-
-section[role="region"] > header h2 {
-  font-family: "MozTT", Sans-serif;
-  font-weight: 600;
-  margin: 0;
-  padding: 0 3rem;
-  font-size: 1.3rem;
-  line-height: 1.8rem;
-}
-
-section[role="region"] > header + form.search {
-  height: 3rem;
-  background: url("building_blocks/headers/images/ui/search.png") repeat-x left bottom;
-  padding: 0.5rem 2.4rem 0 2.4rem;
-}
-
-section[role="region"] > header + form.search input[type="text"] {
-  width: 100%;
-  background: #fff;
-  border: 1px solid #b8b8b8;
-  border-radius: 0.3rem;
-  height: 2.2rem;
-  line-height: 2.2rem;
-  font-family: "MozTT", Sans-serif;
-  font-weight: 600;
-  color: #333;
-  text-indent: 0.5rem;
-  font-size: 1.3rem;
-}
-
-section[role="region"] > header + form.search input[type="text"]:-moz-placeholder {
-  color: #777;
-}
-
-section[role="region"].skin-organic > header:first-child,
-.skin-organic section[role="region"] > header:first-child {
-  background: url("building_blocks/headers/images/ui/organic/header.png") repeat-x 0 0,  url("building_blocks/headers/images/ui/organic/pattern.png") repeat 0 0;
-}
-
-section[role="region"].skin-organic > header:first-child:after,
-.skin-organic section[role="region"] > header:first-child:after {
-  margin-top: -1px;
-}
-
-section[role="region"].skin-organic > header:first-child > a .icon:after,
-.skin-organic section[role="region"] > header:first-child > a .icon:after,
-section[role="region"].skin-organic > header:first-child > button .icon:after,
-.skin-organic section[role="region"]> header > button .icon:after {
-  background: url("building_blocks/headers/images/ui/organic/negative.png") repeat-x 0 0;
-}
-
-section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:last-child,
-.skin-organic section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
-section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:last-child,
-.skin-organic section[role="region"]> header menu[type="toolbar"] button:last-child {
-  background-image: url("building_blocks/headers/images/ui/organic/separator.png");
-}
-
-section[role="region"].skin-organic > header,
-.skin-organic section[role="region"] > header {
-  background: #7f7f7f url("building_blocks/headers/images/ui/organic/subheader.png") repeat-x left bottom;
-  color: #fff;
-}
 /* ----------------------------------
  * INPUT AREAS
  * ---------------------------------- */
@@ -313,7 +13,7 @@ section[role="region"].skin-organic > header,
   display: block;
   -moz-box-sizing: border-box;
   padding: 0 0.5rem;
-  font: 1.4rem/4rem "MozTT", Sans-serif;
+  font: 1.4rem/4rem "Open Sans", Sans-serif;
   border: solid 1px #d1d1d1;
   border-radius: 0.3rem;
   background: #fff url("building_blocks/input_areas/images/ui/shadow.png") repeat-x left top;
@@ -356,7 +56,7 @@ body[role="application"] .fieldbox {
   border-radius: 0.3rem;
   border: 1px solid #C8C8C8;
   overflow: hidden;
-  font: 1.4rem/1em "MozTT", Sans-serif;
+  font: 1.4rem/1em "Open Sans", Sans-serif;
 }
 
 body[role="application"] .fieldbox dt {
@@ -413,48 +113,7 @@ body[role="application"] .fieldbox label {
 body[role="application"] .fieldbox label:last-child {
   border-bottom: medium none;
 }
-body[role="application"] [role="toolbar"] {
-  height: 4rem;
-  width: 100%;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  z-index: 100;
-  background: url("building_blocks/toolbars/images/ui/background.png") repeat left top;
-}
 
-body[role="application"] [role="toolbar"] ul {
-  float: left;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-body[role="application"] [role="toolbar"] ul.end {
-  float: right;
-}
-
-body[role="application"] [role="toolbar"] li {
-  float: left;
-}
-
-body[role="application"] [role="toolbar"] li button {
-  width: 5.5rem;
-  height: 4rem;
-  border: none;
-  font: 0/0 a;
-  background: transparent no-repeat center center;
-  padding: 0;
-  border-radius: 0;
-}
-
-body[role="application"] [role="toolbar"] li button:active {
-  background-color: #008aaa;
-}
-
-body[role="application"] [role="toolbar"] li button.update {
-  background-image: url("building_blocks/toolbars/images/icons/update.png");
-}
 body[role="application"] > nav {
   position: absolute;
   width: 80%;
@@ -463,7 +122,7 @@ body[role="application"] > nav {
   top: 0;
   left: 0;
   overflow: hidden;
-  font-family: 'MozTT', Sans-serif;
+  font-family: 'Open Sans', Sans-serif;
 }
 
 body[role="application"] > nav > header {
@@ -486,7 +145,7 @@ body[role="application"] > nav > header:after {
 }
 
 body[role="application"] > nav > header h1 {
-  font: 2.2rem/4.8rem "MozTT", Sans-serif;
+  font: 2.2rem/4.8rem "Open Sans", Sans-serif;
   text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -497,7 +156,7 @@ body[role="application"] > nav > header h1 {
 }
 
 body[role="application"] > nav > header h1 em {
-  font: bold 1.5rem/1em "MozTT", Sans-serif;
+  font: bold 1.5rem/1em "Open Sans", Sans-serif;
 }
 
 body[role="application"] > nav > header menu[type="toolbar"] {
@@ -533,7 +192,7 @@ body[role="application"] > nav > header button {
   background: none;
   padding: 0;
   overflow: hidden;
-  font: 600 1.4rem/1.1em "MozTT", Sans-serif;
+  font: 600 1.4rem/1.1em "Open Sans", Sans-serif;
   color: #fff;
 }
 
@@ -548,7 +207,8 @@ body[role="application"] > nav > header .icon {
   height: 3rem;
   margin: 0 -1rem;
   background: transparent no-repeat center center;
-  text-indent: -9999px;
+  text-indent: 100%;
+  white-space: nowrap;
   overflow: hidden;
   position: relative;
   height: 4.9rem;
@@ -577,18 +237,16 @@ body[role="application"] > nav > header .icon.icon-user {
 body[role="application"] > nav:after {
   content: '';
   width: 1rem;
-  background: url("building_blocks/drawer/images/ui/shadow.png") right top repeat-y;
   height: 100%;
   position: absolute;
-  top: 0;
+  bottom: 0;
   right: 0;
-  z-index: 5;
+  background: url("building_blocks/drawer/images/ui/shadow.png") right top repeat-y;
 }
 
 body[role="application"] > nav > .inner {
   overflow-y: auto;
   max-height: -moz-calc(100% - 9rem);
-  margin-right: -0.8rem;
 }
 
 body[role="application"] > nav .inner > h2 {
@@ -598,7 +256,7 @@ body[role="application"] > nav .inner > h2 {
   text-indent: 3rem;
   color: #fff;
   background: url("building_blocks/drawer/images/ui/pattern-subheader.png") repeat left top;
-  border-bottom: 1px solid #596068;
+  border-bottom: 0.1rem solid #596068;
   margin: 0;
   padding-right: 0.8rem;
 }
@@ -628,7 +286,7 @@ body[role="application"] > nav .inner > ul > li > a {
   color: #fff;
   font-size: 1.6rem;
   line-height: 4.35rem;
-  border-bottom: 1px solid #596068;
+  border-bottom: 0.1rem solid #596068;
   text-indent: 3rem;
   padding-right: 0.8rem;
   width: 100%;
