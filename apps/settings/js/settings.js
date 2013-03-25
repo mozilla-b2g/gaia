@@ -649,6 +649,10 @@ window.addEventListener('load', function loadSettings() {
   function showPanel() {
     var hash = window.location.hash;
 
+    if (hash === '#wifi') {
+      PerformanceTestingHelper.dispatch('start');
+    }
+
     var oldPanel = document.querySelector(oldHash);
     var newPanel = document.querySelector(hash);
 
@@ -694,10 +698,15 @@ window.addEventListener('load', function loadSettings() {
 
         oldPanel.addEventListener('transitionend', function onTransitionEnd() {
           oldPanel.removeEventListener('transitionend', onTransitionEnd);
-          // Workaround for bug 825622, remove when fixed
-          if (newPanel.id == 'about-licensing') {
-            var iframe = document.getElementById('os-license');
-            iframe.src = iframe.dataset.src;
+          switch (newPanel.id) {
+            case 'about-licensing':
+              // Workaround for bug 825622, remove when fixed
+              var iframe = document.getElementById('os-license');
+              iframe.src = iframe.dataset.src;
+              break;
+            case 'wifi':
+              PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
+              break;
           }
         });
       });
