@@ -755,8 +755,8 @@ var Browser = {
             //append url to button's dataset
             this.bookmarkMenuRemove.dataset.url = url;
             this.bookmarkMenuRemove.parentNode.classList.remove('hidden');
-            //XXX not implement yet: edit bookmark in bookmarktab #838041
-            this.bookmarkMenuEdit.parentNode.classList.add('hidden');
+            this.bookmarkMenuEdit.dataset.url = url;
+            this.bookmarkMenuEdit.parentNode.classList.remove('hidden');
             //XXX not implement yet: link to home in bookmarktab #850999
             this.bookmarkMenuAddHome.parentNode.classList.add('hidden');
 
@@ -810,11 +810,11 @@ var Browser = {
   },
 
   showBookmarkEntrySheet: function browser_showBookmarkEntrySheet() {
-    if (!this.currentTab.url)
+    if (!this.bookmarkMenuEdit.dataset.url)
       return;
     this.hideBookmarkMenu();
     this.bookmarkEntrySheet.classList.remove('hidden');
-    Places.getBookmark(this.currentTab.url, (function(bookmark) {
+    Places.getBookmark(this.bookmarkMenuEdit.dataset.url, (function(bookmark) {
       if (!bookmark) {
         this.hideBookmarkEntrySheet();
         return;
@@ -830,6 +830,8 @@ var Browser = {
     this.bookmarkTitle.value = '';
     this.bookmarkUrl.value = '';
     this.bookmarkPreviousUrl.value = '';
+    // refresh bookmark tab
+    this.showBookmarksTab();
   },
 
   saveBookmark: function browser_saveBookmark() {
