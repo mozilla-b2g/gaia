@@ -703,9 +703,9 @@ reset-gaia: purge install-gaia install-settings-defaults
 # remove the memories and apps on the phone
 purge:
 	$(ADB) shell stop b2g
-	@(for FILE in `$(ADB) shell ls $(MSYS_FIX)/data/local | tr -d '\r'`; \
+	(for FILE in `$(ADB) shell ls $(MSYS_FIX)/data/local | tr -d '\r'`; \
 	do \
-		[ $$FILE != 'tmp' ] && $(ADB) shell rm -r $(MSYS_FIX)/data/local/$$FILE; \
+		[ $$FILE = 'tmp' ] || $(ADB) shell rm -r $(MSYS_FIX)/data/local/$$FILE; \
 	done);
 	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
