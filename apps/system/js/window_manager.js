@@ -1078,6 +1078,21 @@ var WindowManager = (function() {
     isOutOfProcessDisabled = value;
   });
 
+  // update app name when language setting changes
+  SettingsListener.observe('language.current', null,
+    function(value) {
+      if (!value)
+          return;
+
+      for (var origin in runningApps) {
+        var app = runningApps[origin];
+        if (!app || !app.manifest)
+          continue;
+        var manifest = app.manifest;
+        app.name = new ManifestHelper(manifest).name;
+      }
+    });
+
   function createFrame(origFrame, origin, url, name, manifest, manifestURL) {
     var iframe = origFrame || document.createElement('iframe');
     iframe.setAttribute('mozallowfullscreen', 'true');
