@@ -587,7 +587,7 @@ var Camera = {
     var orientation = (e.beta > 45) ? 180 :
       (e.beta < -45) ? 0 :
       (e.gamma < -45) ? 90 :
-      (e.gamma > 45) ? 270 : 0;
+      (e.gamma > 45) ? 270 : this._phoneOrientation;
 
     if (orientation !== this._phoneOrientation) {
       var rule = this._styleSheet.cssRules[this._orientationRule];
