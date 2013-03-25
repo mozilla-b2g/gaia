@@ -286,14 +286,12 @@ input[type="image"] {
 #url-bar {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  padding: 0;
   margin: 1rem;
-  border: solid 0.1rem;
-  border-color: #c1c5ce;
+  border: 0.1rem solid #c1c5ce;
   border-radius: 0.5rem;
   height: 3.4rem;
   margin: 0.8rem 0 0.8rem 0.5rem;
-  padding: 0 0 0 1rem;
+  padding: 0 0 0 0.5rem;
   background-color: #fff;
   font-weight: 600;
   width: calc(100% - 1.5rem);
@@ -313,7 +311,7 @@ input[type="image"] {
   display: block;
   width: 2.4rem;
   height: 3.4rem;
-  margin-right: 0.5rem;
+  margin-right: 0.2rem;
   text-indent: -1000em;
   background-repeat: no-repeat;
   background-position: center center;
@@ -337,6 +335,7 @@ input[type="image"] {
   height: 3.4rem;
   -moz-box-flex: 1;
   margin: 0;
+  padding: 0;
   border: none;
   background-color: transparent;
   background: none;
