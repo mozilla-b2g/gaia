@@ -1,32 +1,8 @@
 {
   "css": [
     {
-      "src": "https://raw.github.com/lightsofapollo/Gaia-UI-Building-Blocks/header-frame-sizes/widgets/headers/style.css",
-      "prefix": "building_blocks/headers/",
-      "inverseGrep": [
-        "skin-dark",
-        ".icon-user",
-        "header + form"
-      ]
-    },
-
-    {
       "src": "http://telefonicaid.github.com/Gaia-UI-Building-Blocks/widgets/input_areas/style.css",
       "prefix": "building_blocks/input_areas/"
-    },
-
-    {
-      "src": "https://raw.github.com/mozilla-b2g/Gaia-UI-Building-Blocks/master/widgets/toolbars/style.css",
-      "prefix": "building_blocks/toolbars/",
-      "inverseGrep": [
-        "button.mark",
-        "button.share",
-        "button.send",
-        "button.search",
-        "button.move",
-        "button.delete",
-        "skin-dark"
-      ]
     },
 
     {
