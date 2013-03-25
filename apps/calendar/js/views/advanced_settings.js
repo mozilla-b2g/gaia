@@ -173,7 +173,7 @@
             layout: type,
             trigger: value
           });
-          self[element].appendChild(select);
+          self[element].querySelector('.button').appendChild(select);
 
           next();
         };
