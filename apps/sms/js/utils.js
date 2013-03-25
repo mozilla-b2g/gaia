@@ -1,12 +1,8 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-'use strict';
-var _ = navigator.mozL10n.get;
-var dtf = new navigator.mozL10n.DateTimeFormat();
-
 (function(exports) {
-  var sharedDate = new Date();
+  'use strict';
+  var rdashes = /-(.)/g;
   var regexps = {
     amp: /&/g,
     lt: /</g,
@@ -18,6 +14,16 @@ var dtf = new navigator.mozL10n.DateTimeFormat();
   };
 
   var Utils = {
+    date: {
+      shared: new Date(),
+      get format() {
+        // Remove the accessor
+        delete Utils.date.format;
+        // Late initialization allows us to safely mock the mozL10n object
+        // without creating race conditions or hard script dependencies
+        return Utils.date.format = new navigator.mozL10n.DateTimeFormat();
+      }
+    },
     updateTimeHeaders: function ut_updateTimeHeaders() {
       var headers = document.querySelectorAll('header[data-time-update]'),
           length = headers.length,
@@ -80,16 +86,19 @@ var dtf = new navigator.mozL10n.DateTimeFormat();
     },
 
     getFormattedHour: function ut_getFormattedHour(time) {
-      sharedDate.setTime(+time);
-      return dtf.localeFormat(sharedDate, _('shortTimeFormat'));
+      this.date.shared.setTime(+time);
+      return this.date.format.localeFormat(
+        this.date.shared, navigator.mozL10n.get('shortTimeFormat')
+      );
     },
     getDayDate: function re_getDayDate(time) {
-      sharedDate.setTime(+time);
-      sharedDate.setHours(0, 0, 0, 0);
-      return sharedDate.getTime();
+      this.date.shared.setTime(+time);
+      this.date.shared.setHours(0, 0, 0, 0);
+      return this.date.shared.getTime();
     },
     getHeaderDate: function ut_giveHeaderDate(time) {
-      sharedDate.setTime(+time);
+      this.date.shared.setTime(+time);
+      var _ = navigator.mozL10n.get;
       var today = Utils.getDayDate(Date.now());
       var otherDay = Utils.getDayDate(time);
       var dayDiff = (today - otherDay) / 86400000;
@@ -100,13 +109,15 @@ var dtf = new navigator.mozL10n.DateTimeFormat();
 
       if (dayDiff < 0) {
         // future time
-        return dtf.localeFormat(sharedDate, _('shortDateTimeFormat'));
+        return this.date.format.localeFormat(
+          this.date.shared, _('shortDateTimeFormat')
+        );
       }
 
       return dayDiff === 0 && _('today') ||
         dayDiff === 1 && _('yesterday') ||
-        dayDiff < 4 && dtf.localeFormat(sharedDate, '%A') ||
-        dtf.localeFormat(sharedDate, '%x');
+        dayDiff < 4 && this.date.format.localeFormat(this.date.shared, '%A') ||
+        this.date.format.localeFormat(this.date.shared, '%x');
     },
     getFontSize: function ut_getFontSize() {
       if (!this.rootFontSize) {
@@ -201,6 +212,11 @@ var dtf = new navigator.mozL10n.DateTimeFormat();
           canvas.toBlob(callback, blob.type);
         };
       }
+    },
+    camelCase: function(str) {
+      return str.replace(rdashes, function replacer(str, p1) {
+        return p1.toUpperCase();
+      });
     }
   };
 

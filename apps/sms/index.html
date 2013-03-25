@@ -38,7 +38,7 @@
     -->
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="js/startup.js"></script>
-    
+
   </head>
 
   <body role="application">
@@ -57,7 +57,16 @@
         </header>
         <article id="thread-list-container" class="view-body" data-type="list">
         </article>
-        <div id="threads-fixed-container" class="fixed-title"></div>
+        <div id="threads-container" class="fixed-title"></div>
+
+        <div id="no-messages" class="hide">
+          <div id="no-result-message">
+            <p data-l10n-id="noMessages-title">No messages</p>
+            <p data-l10n-id="noMessages-text">Start communicating now</p>
+          </div>
+        </div>
+
+
         <form id="threads-edit-form" role="dialog" data-type="edit">
           <section>
             <header>
@@ -104,6 +113,11 @@
           Carrier unknown
         </div>
         <article id="messages-container" class="view-body" data-type="list">
+        </article>
+        <article id="no-results-returned" class="view-body hide" data-type="list">
+          <ul>
+            <li><a><p data-l10n-id="no-results">No results returned</p></a></li>
+          </ul>
         </article>
         <form role="search" id="new-sms-form" class="bottom new-sms-form">
           <button id="send-message" disabled data-l10n-id="send" type="submit">Send</button>
