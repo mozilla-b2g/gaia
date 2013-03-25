@@ -3,14 +3,18 @@
 */
 'use strict';
 
+require('/shared/js/lazy_loader.js');
+require('/shared/js/l10n.js');
+require('/shared/js/l10n_date.js');
 
-// Import of all code needed
+requireApp('sms/test/unit/mock_contact.js');
+requireApp('sms/test/unit/mock_l10n.js');
+
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/contacts.js');
 requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/search_utils.js');
 requireApp('sms/js/utils.js');
-requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/messages_mockup.js');
 requireApp('sms/test/unit/sms_test_html_mockup.js');
@@ -25,18 +29,16 @@ requireApp('sms/js/startup.js');
 
 suite('SMS App Unit-Test', function() {
   var findByString;
+  var nativeMozL10n = navigator.mozL10n;
 
-  // Mockuping l10n
-  navigator.mozL10n = {
-    get: function get(key) {
-      return key;
-    },
-    DateTimeFormat: function() {
-      this.localeFormat = function(date, format) {
-        return date;
-      };
-    }
-  };
+  suiteSetup(function() {
+    navigator.mozL10n = MockL10n;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = nativeMozL10n;
+  });
+
   // Define some useful functions for the following tests
   function getElementsInContainerByTag(container, tagName) {
     return container.querySelectorAll(tagName);
@@ -82,7 +84,11 @@ suite('SMS App Unit-Test', function() {
 
     // Thread-list fixed-header
     var fixedHeader = document.createElement('div');
-    fixedHeader.id = 'threads-fixed-container';
+    fixedHeader.id = 'threads-container';
+
+    // no-messages
+    var noMessages = document.createElement('div');
+    noMessages.id = 'no-messages';
 
     // Thread-list Edit form
     var threadListEditForm = document.createElement('form');
@@ -94,6 +100,7 @@ suite('SMS App Unit-Test', function() {
     threadList.appendChild(threadListHeader);
     threadList.appendChild(threadListContainer);
     threadList.appendChild(fixedHeader);
+    threadList.appendChild(noMessages);
     threadList.appendChild(threadListEditForm);
 
     // Adding to DOM the Thread-list view

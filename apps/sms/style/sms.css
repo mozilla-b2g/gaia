@@ -513,13 +513,15 @@ form.bottom[role="search"].new-sms-form {
   No result container
 */
 
-#no-result-container {
+#no-messages {
   background-image: url('images/SMS_200x200_bubble.png');
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-position: center;
   background-size: 20rem;
-  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: -moz-calc(100% - 5rem);
   width: 100%;
 }
 
