@@ -32,6 +32,16 @@ var Calls = (function(window, document, undefined) {
   var settings = window.navigator.mozSettings;
   var _voiceServiceClassMask = mobileConnection.ICC_SERVICE_CLASS_VOICE;
 
+  function isPhoneNumberValid(number) {
+    if (number) {
+      var re = /^([\+]*[0-9])+$/;
+      if (re.test(number)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Stores settings into the database.
   function setToSettingsDB(settingKey, value, callback) {
     var done = function done() {
@@ -282,7 +292,15 @@ var Calls = (function(window, document, undefined) {
         mozMobileCFInfo['reason'] = _cfReasonMapping[key];
         mozMobileCFInfo['serviceClass'] =
           mobileConnection.ICC_SERVICE_CLASS_VOICE;
-        // TODO: Check number.
+
+        if (!isPhoneNumberValid(textInput.value)) {
+          document.getElementById('cf-confirm-message').textContent =
+            _('callForwardingInvalidNumberError');
+          var cfAlertPanel = document.querySelector('#call .cf-alert');
+          cfAlertPanel.hidden = false;
+          updateCallForwardingSubpanels();
+          return;
+        }
         mozMobileCFInfo['number'] = textInput.value;
         mozMobileCFInfo['timeSecond'] =
           mozMobileCFInfo['reason'] !=
@@ -331,6 +349,13 @@ var Calls = (function(window, document, undefined) {
         enableTapOnCallForwardingItems(false);
       }
       setTimeout(initCallForwardingObservers, 500);
+    });
+
+    // Initialize the call forwarding alert panel.
+    var cfAlertPanel = document.querySelector('#call .cf-alert');
+    var cfContinueBtn = cfAlertPanel.querySelector('.cf-alert-continue');
+    cfContinueBtn.addEventListener('click', function() {
+      cfAlertPanel.hidden = true;
     });
 
     window.addEventListener('hashchange', function() {
