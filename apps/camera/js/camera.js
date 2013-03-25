@@ -584,10 +584,12 @@ var Camera = {
   orientChange: function camera_orientChange(e) {
     // Orientation is 0 starting at 'natural portrait' increasing
     // going clockwise
-    var orientation = (e.beta > 45) ? 180 :
-      (e.beta < -45) ? 0 :
-      (e.gamma < -45) ? 90 :
-      (e.gamma > 45) ? 270 : this._phoneOrientation;
+      var orientation = 
+	  (e.beta  < -45 && e.beta  > -135) ?   0 :
+	  (e.beta  >  45 && e.beta  <  135) ? 180 :
+	  (e.gamma < -45 && e.gamma > -135) ?  90 :
+	  (e.gamma >  45 && e.gamma <  135) ? 270 :
+	  this._phoneOrientation;
 
     if (orientation !== this._phoneOrientation) {
       var rule = this._styleSheet.cssRules[this._orientationRule];
