@@ -25,9 +25,7 @@ html, body {
   right: 0;
   bottom: 0;
   overflow-x: auto;
-  background: url(images/bg_top.png) top left no-repeat,
-              url(images/bg_bottom.png) bottom left no-repeat,
-              url(images/bg_1px.png) repeat-y;
+  background: url(images/bg_light.png);
   background-size: 100% auto;
 }
 
@@ -431,7 +429,7 @@ aside.connecting {
   opacity: 0;
   z-index: 3010;
   transition: all 1s ease;
-  background: #3b4547;
+  background: url(images/bg_grey-noise.png);
 }
 
 #finish-screen.show, #tutorialFinish.show {
@@ -1034,7 +1032,7 @@ i.hack-first-child {
 */
 
 #tutorial-screen [role=main] > [role=region] {
-  background-color: #474747;
+  background: url(images/bg_grey-noise.png);
   color: white;
 }
 

@@ -493,13 +493,30 @@ button::-moz-focus-inner {
   text-shadow: none;
 }
 
+
 #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
-  font-size: 1.2rem;
+  padding: 0 1rem;
+  text-align: center;
+}
+
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func:after {
+  display: inline-block;
+  width: 0;
+  height: 100%;
+  overflow: hidden;
+  content: '';
+  vertical-align: middle;
+}
+
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > span {
+  display: inline-block;
+  padding: 0;
+  color: #fff;
+  font-size: 1.6rem;
   font-weight: 500;
   line-height: 1.6rem;
-  padding: 1rem;
-  text-align: center;
   text-transform: uppercase;
+  vertical-align: middle;
 }
 
 #lockscreen-panel-emergency-call {
