@@ -1,10 +1,20 @@
 'use strict';
 
 requireApp('sms/test/unit/mock_contact.js');
+requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/js/utils.js');
 
-
 suite('Utils', function() {
+  var nativeMozL10n = navigator.mozL10n;
+
+  suiteSetup(function() {
+    navigator.mozL10n = MockL10n;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = nativeMozL10n;
+  });
+
   suite('Utils.escapeHTML', function() {
 
     test('valid', function() {

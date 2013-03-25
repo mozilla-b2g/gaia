@@ -109,7 +109,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   opacity: 0;
   display: block;
   overflow: hidden;
-  right: 5rem; 
+  right: 5rem;
 }
 
 [data-type="list"] aside.icon-unread {
@@ -220,7 +220,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   display: none;
 }
 
-/* 
+/*
   Styles for Edit mode in Thread List
 */
 
@@ -343,7 +343,7 @@ section[role="region"].new > header:first-child form {
   height: 100%;
 }
 
-#messages-container[data-type="list"] li.bubble p {  
+#messages-container[data-type="list"] li.bubble p {
   text-align: right;
   overflow: visible;
   white-space: normal;
@@ -420,7 +420,7 @@ section[role="region"].new > header:first-child form {
   overflow: hidden;
 }
 
-/* 
+/*
   Styles for Edit mode in Messages Container
 */
 
@@ -534,18 +534,21 @@ form.bottom[role="search"].new-sms-form {
 #loading [role="status"] {
   text-align: center;
   height: 4rem;
-} 
+}
 
 /*
   No result container
 */
 
-#no-result-container {
+#no-messages {
   background-image: url('images/SMS_200x200_bubble.png');
-  background-repeat:no-repeat;
-  background-attachment:fixed;
-  background-position:center;
-  height: 100%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  background-size: 20rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: -moz-calc(100% - 5rem);
   width: 100%;
 }
 
