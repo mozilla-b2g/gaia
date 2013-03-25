@@ -33,12 +33,12 @@ if (typeof window.oauthFrame === 'undefined') {
     };
 
     window.addEventListener('message', function messageHandler(e) {
+      var CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
+      if (e.origin !== CONTACTS_APP_ORIGIN) {
+        return;
+      }
       var data = e.data;
-
       if (data && data.type === 'start') {
-        if (e.origin !== oauthParams[data.data.service].appOrigin) {
-          return;
-        }
         oauthFrame.start(data.data.from, data.data.service);
       }
     });

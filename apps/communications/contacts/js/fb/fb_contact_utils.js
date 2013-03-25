@@ -9,8 +9,7 @@ fb.LINKED = 'fb_linked';
 fb.PROFILE_PHOTO_URI = 'fb_profile_photo';
 fb.FRIEND_URI = 'fb_friend';
 
-fb.CONTACTS_APP_ORIGIN = document.location.protocol + '//' +
-    document.location.host;
+fb.CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
 
 // Some convenience functions follow
 
