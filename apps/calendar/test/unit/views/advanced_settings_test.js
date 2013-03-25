@@ -71,8 +71,8 @@ suiteGroup('Views.AdvancedSettings', function() {
         '<option value="30">30</option>',
         '<option selected value="60">60</option>',
       '</select>',
-      '<div id="default-event-alarm"><span class="button"></span></div>',
-      '<div id="default-allday-alarm"><span class="button"></span></div>'
+      '<div id="default-event-alarm"></div>',
+      '<div id="default-allday-alarm"></div>'
     ].join('');
 
     document.body.appendChild(div);
