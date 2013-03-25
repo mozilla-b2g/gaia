@@ -344,7 +344,7 @@ var Calls = (function(window, document, undefined) {
     });
   }
 
-  var callWaitingItemListener = function (evt) {
+  var callWaitingItemListener = function(evt) {
     var alertPanel = document.querySelector('#call .cw-alert');
     var confirmInput =
       alertPanel.querySelector('.cw-alert-checkbox-label input');
