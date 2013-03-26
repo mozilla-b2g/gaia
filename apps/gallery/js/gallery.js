@@ -134,7 +134,7 @@ function init() {
   };
 
   // In crop view, the done button finishes the pick
-  $('crop-done-button').onclick = finishPick;
+  $('crop-done-button').onclick = cropAndEndPick;
 
   // The camera buttons should both launch the camera app
   $('fullscreen-camera-button').onclick = launchCameraApp;
@@ -672,14 +672,14 @@ function thumbnailOffscreen(thumbnail) {
 var pendingPick;
 var pickType;
 var pickWidth, pickHeight;
+var pickedFile;
 var cropURL;
 var cropEditor;
-var isAttachment;
 
 function startPick(activityRequest) {
   pendingPick = activityRequest;
   pickType = activityRequest.source.data.type;
-  isAttachment = activityRequest.source.data.isAttachment;
+
   if (pendingPick.source.data.width && pendingPick.source.data.height) {
     pickWidth = pendingPick.source.data.width;
     pickHeight = pendingPick.source.data.height;
@@ -693,12 +693,36 @@ function startPick(activityRequest) {
   });
 }
 
+// Called when the user clicks on a thumbnail in pick mode
 function cropPickedImage(fileinfo) {
+  pickedFile = fileinfo;
+
+  // Do we actually want to allow the user to crop the image?
+  var nocrop = pendingPick.source.data.nocrop;
+
+  if (nocrop) {
+    // If we're not cropping we don't want the word "Crop" in the title bar
+    // XXX: UX will probably get rid of this title bar soon, anyway.
+    $('crop-header').textContent = '';
+  }
+
   setView(cropView);
 
-  photodb.getFile(fileinfo.name, function(file) {
+  photodb.getFile(pickedFile.name, function(file) {
     cropURL = URL.createObjectURL(file);
     cropEditor = new ImageEditor(cropURL, $('crop-frame'), {}, function() {
+      // If the initiating app doesn't want to allow the user to crop
+      // the image, we don't display the crop overlay. But we still use
+      // this image editor to preview the image.
+      if (nocrop) {
+        // Set a fake crop region even though we won't display it
+        // so that getCroppedRegionBlob() works.
+        cropEditor.cropRegion.left = cropEditor.cropRegion.top = 0;
+        cropEditor.cropRegion.right = cropEditor.dest.w;
+        cropEditor.cropRegion.bottom = cropEditor.dest.h;
+        return;
+      }
+
       cropEditor.showCropOverlay();
       if (pickWidth)
         cropEditor.setCropAspectRatio(pickWidth, pickHeight);
@@ -708,21 +732,43 @@ function cropPickedImage(fileinfo) {
   });
 }
 
-function finishPick(fileinfo) {
-  if (fileinfo.name) {
-    photodb.getFile(fileinfo.name, endPick);
+function cropAndEndPick() {
+  if (Array.isArray(pickType)) {
+    if (pickType.length === 0 ||
+        pickType.indexOf(pickedFile.type) !== -1 ||
+        pickType.indexOf('image/*') !== -1) {
+      pickType = pickedFile.type;
+    }
+    else if (pickType.indexOf('image/png') !== -1) {
+      pickType = 'image/png';
+    }
+    else {
+      pickType = 'image/jpeg';
+    }
+  }
+  else if (pickType === 'image/*') {
+    pickType = pickedFile.type;
+  }
+
+  // If we're not changing the file type or resizing the image and if
+  // we're not cropping, or if the user did not crop, then we can just
+  // use the file as it is.
+  if (pickType === pickedFile.type &&
+      !pickWidth && !pickHeight &&
+      (pendingPick.source.data.nocrop || !cropEditor.hasBeenCropped())) {
+    photodb.getFile(pickedFile.name, endPick);
   }
   else {
     cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight, endPick);
   }
+}
 
-  function endPick(blob) {
-    pendingPick.postResult({
-      type: pickType,
-      blob: blob
-    });
-    cleanupPick();
-  }
+function endPick(blob) {
+  pendingPick.postResult({
+    type: pickType,
+    blob: blob
+  });
+  cleanupPick();
 }
 
 function cancelPick() {
@@ -744,6 +790,7 @@ function cleanupCrop() {
 function cleanupPick() {
   cleanupCrop();
   pendingPick = null;
+  pickedFile = null;
   setView(thumbnailListView);
 }
 
@@ -780,11 +827,8 @@ function thumbnailClickHandler(evt) {
   else if (currentView === thumbnailSelectView) {
     updateSelection(target);
   }
-  else if (currentView === pickView && !isAttachment) {
+  else if (currentView === pickView) {
     cropPickedImage(files[parseInt(target.dataset.index)]);
-  }
-  else if (currentView === pickView && isAttachment) {
-    finishPick(files[parseInt(target.dataset.index)]);
   }
 }
 
