@@ -48,7 +48,7 @@ Calendar.ns('Views').TimeParent = (function() {
         return;
       }
 
-      var dir = data.direction;
+      var dir = this.dir = data.direction;
       var controller = this.app.timeController;
 
       // TODO: RTL
@@ -169,10 +169,6 @@ Calendar.ns('Views').TimeParent = (function() {
      * @param {Date} time center point to activate.
      */
     changeDate: function(time) {
-      // deactivate previous frame
-      if (this.currentFrame) {
-        this.currentFrame.deactivate();
-      }
 
       this.date = time;
 
@@ -184,11 +180,48 @@ Calendar.ns('Views').TimeParent = (function() {
       prev = this.addFrame(prev);
 
       // create & activate current frame
-      var cur = this.currentFrame = this.addFrame(time);
-      cur.activate();
+      var nextFrame = this.addFrame(time);
 
       // add next frame
       this.addFrame(next);
+      if (this.dir) {
+        var self = this;
+        nextFrame.activate();
+        var elementClass = 'transition-' + this.dir;
+        var nextTransitionClass = 'transition-next';
+        var nextTransitionState = 'going-to-' + this.dir;
+
+        // Set the transition style and flush
+        nextFrame.element.classList.add(nextTransitionState);
+        nextFrame.element.clientTop;
+
+        this.currentFrame.element.addEventListener('transitionend',
+          function onTransitionEnd() {
+            self.currentFrame.element.removeEventListener(
+              'transitionend',
+              onTransitionEnd
+            );
+
+            self.currentFrame.element.classList.remove(elementClass);
+            nextFrame.element.classList.remove(nextTransitionState);
+            nextFrame.element.classList.remove(nextTransitionClass);
+
+            self.currentFrame.deactivate();
+            self.currentFrame = nextFrame;
+          }
+        );
+
+        this.currentFrame.element.classList.add(elementClass);
+        nextFrame.element.classList.add(nextTransitionClass);
+
+        this.dir = false;
+      } else {
+        if (this.currentFrame) {
+          this.currentFrame.deactivate();
+        }
+        this.currentFrame = nextFrame;
+        this.currentFrame.activate();
+      }
 
       // ensure we don't have too many extra frames.
       this._trimFrames();

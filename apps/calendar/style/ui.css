@@ -584,3 +584,31 @@ section[role="status"].active {
 #settings {
   visibility: hidden;
 }
+
+/* Frame transition styles */
+section.going-to-left {
+  z-index: 400;
+  transform: translate(100%, 0);
+}
+
+section.going-to-right {
+  z-index: 400;
+  transform: translate(-100%, 0);
+}
+
+section.transition-next {
+  transition: transform .25s linear;
+  transform: translate(0, 0);
+}
+
+section.transition-left {
+  z-index: 300;
+  transition: transform .25s linear;
+  transform: translate(-100%, 0);
+}
+
+section.transition-right {
+  z-index: 300;
+  transition: transform .25s linear;
+  transform: translate(100%, 0);
+}

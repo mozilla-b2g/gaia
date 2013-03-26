@@ -209,6 +209,13 @@ suiteGroup('Views.TimeParent', function() {
       assert.ok(!prevFrame.active, 'has prev frame (should be inactive)');
     });
 
+    test('no animation on initial change', function() {
+      assert.ok(!subject.currentFrame.element.classList.contains(
+        'transition-next'
+      ),
+      'no transition class');
+    });
+
     test('sequentially activate second frame', function() {
       var curId = subject._getId(date);
       var curFrame = subject.frames.get(curId);
@@ -254,6 +261,21 @@ suiteGroup('Views.TimeParent', function() {
 
       // verify other children where removed
       assert.length(subject.frameContainer.children, 3);
+    });
+
+    test('switching dates transitions', function() {
+      var date = new Date(2012, 2, 2);
+      subject.changeDate(date);
+
+      subject.dir = 'left';
+      date = new Date(2012, 3, 2);
+      subject.changeDate(date);
+
+      assert.ok(subject.currentFrame.element.classList.contains(
+        'transition-left'
+      ),
+        'has transition class'
+      );
     });
   });
 
