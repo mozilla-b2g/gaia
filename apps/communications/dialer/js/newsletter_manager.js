@@ -35,17 +35,14 @@ var NewsletterManager = {
 
 
 // starting when we get a chance
-loader.load('/shared/js/l10n.js', function localized() {
+var idleObserver = {
+  time: 5,
+  onidle: function() {
+    navigator.removeIdleObserver(idleObserver);
 
-  navigator.mozL10n.ready(function loadWhenIdle() {
-    var idleObserver = {
-      time: 5,
-      onidle: function() {
-        NewsletterManager.load();
-        navigator.removeIdleObserver(idleObserver);
-      }
-    };
-    navigator.addIdleObserver(idleObserver);
-  });
-
-});
+    LazyL10n.get(function localized() {
+      NewsletterManager.load();
+    });
+  }
+};
+navigator.addIdleObserver(idleObserver);
