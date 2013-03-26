@@ -49,7 +49,7 @@
 }
 
 #trustedui-throbber.loading {
-  height: 0.4rem;
+  height: 0.3rem;
   background-image: url('../shared/progress.gif');
 }
 
