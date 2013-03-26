@@ -13,20 +13,15 @@ var TelephonyHelper = (function() {
       var settingsLock = settings.createLock();
       req = settingsLock.get('ril.radio.disabled');
       req.addEventListener('success', function onsuccess() {
-        var status = req.result['ril.radio.disabled'];
-        if (!status) {
-          var conn = window.navigator.mozMobileConnection;
-          if (!conn || !conn.voice.network) {
-            // No voice connection, the call won't make it
-            displayMessage('NoNetwork');
-            return;
-          }
+      var conn = window.navigator.mozMobileConnection;
+      if (!conn || !conn.voice.network) {
+        // No voice connection, the call won't make it
+        displayMessage('NoNetwork');
+        return;
+      }
 
-          startDial(sanitizedNumber, oncall, onconnected, ondisconnected,
-            onerror);
-        } else {
-          displayMessage('FlightMode');
-        }
+      startDial(sanitizedNumber, oncall, onconnected, ondisconnected,
+        onerror);
       });
     } else {
       startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
@@ -69,6 +64,8 @@ var TelephonyHelper = (function() {
             displayMessage(emergencyOnly ? 'NoNetwork' : 'BadNumber');
           } else if (errorName === 'DeviceNotAcceptedError') {
             displayMessage('DeviceNotAccepted');
+          } else if (errorName === 'RadioNotAvailable') {
+            displayMessage('FlightMode');
           } else {
             // If the call failed for some other reason we should still
             // display something to the user. See bug 846403.
