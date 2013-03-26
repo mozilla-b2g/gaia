@@ -96,15 +96,14 @@ function iconDescriptor(directory, app_name, entry_point) {
   };
 }
 
-function getCustomize(name) {
-  var content;
-  if (Gaia.customizeFolder) {
-    let customize = getFile(Gaia.customizeFolder, name + '.json');
-    if (customize.exists()) {
-      content = getJSON(customize);
+function getDistributionFileContent(name, defaultContent) {
+  if (Gaia.distributionDir) {
+    let distributionFile = getFile(Gaia.distributionDir, name + '.json');
+    if (distributionFile.exists()) {
+      return getFileContent(distributionFile);
     }
   }
-  return content;
+  return JSON.stringify(defaultContent);
 }
 
 // zeroth grid page is the dock
@@ -134,11 +133,7 @@ if (DOGFOOD == 1) {
   customize.homescreens[0].push(["dogfood_apps", "feedback"]);
 }
 
-let homescreens = getCustomize('homescreens');
-if (homescreens) {
-  customize = homescreens;
-}
-
+customize = JSON.parse(getDistributionFileContent('homescreens', customize));
 let content = {
   search_page: {
     provider: 'EverythingME',
@@ -211,23 +206,13 @@ content = {
   default_low_limit_threshold: 3
 };
 
-let costcontrol = getCustomize('costcontrol');
-if (costcontrol) {
-  content = costcontrol;
-}
-
-writeContent(init, JSON.stringify(content));
+writeContent(init, getDistributionFileContent('costcontrol', content));
 
 // SMS
 init = getFile(GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
 content = ["1515", "7000"];
 
-let blacklist = getCustomize('sms-blacklist');
-if (blacklist) {
-  content = blacklist;
-}
-
-writeContent(init, JSON.stringify(content));
+writeContent(init, getDistributionFileContent('sms-blacklist', content));
 
 // Browser
 init = getFile(GAIA_DIR, 'apps', 'browser', 'js', 'init.json');
@@ -250,12 +235,7 @@ content = {
   ]
 }
 
-let browser = getCustomize('browser');
-if (browser) {
-  content = browser;
-}
-
-writeContent(init, JSON.stringify(content));
+writeContent(init, getDistributionFileContent('browser', content));
 
 // Support
 init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'support.json');
@@ -276,12 +256,7 @@ content = {
   ]
 }
 
-let support = getCustomize('support');
-if (support) {
-  content = support;
-}
-
-writeContent(init, JSON.stringify(content));
+writeContent(init, getDistributionFileContent('support', content));
 
 // ICC / STK
 init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'icc.json');
@@ -289,9 +264,4 @@ content = {
   "defaultURL": "http://www.mozilla.org/en-US/firefoxos/"
 }
 
-let icc = getCustomize('icc');
-if (icc) {
-  content = icc;
-}
-
-writeContent(init, JSON.stringify(content));
+writeContent(init, getDistributionFileContent('icc', content));
