@@ -15,17 +15,21 @@
     var serviceConnector = pConnector;
 
     function contactSaved(e) {
+      var cfdata = this;
       if (typeof self.oncontactimported === 'function') {
-        window.setTimeout(self.oncontactimported, 0);
+        window.setTimeout(function() {
+          self.oncontactimported(cfdata);
+        }, 0);
       }
       continueCb();
     }
 
     function contactSaveError(e) {
-      window.console.error('Error while importing contact: ', req.error.name);
+      window.console.error('Error while importing contact: ',
+                           e.target.error.name);
 
       if (typeof self.onerror === 'function') {
-        window.setTimeout(self.onerror.bind(null, req.error), 0);
+        window.setTimeout(self.onerror.bind(null, e.target.error), 0);
       }
       continueCb();
     }
@@ -48,19 +52,20 @@
       }
       var deviceContact = self.adapt(this);
 
-      self.persist(deviceContact, contactSaved, contactSaveError);
+      self.persist(deviceContact, contactSaved.bind(this), contactSaveError);
     }
 
     function pictureError() {
       window.console.error('Error while getting picture for contact: ',
                            this.user_id);
-      self.persist(self.adapt(this), contactSaved, contactSaveError);
+      self.persist(self.adapt(this), contactSaved.bind(this), contactSaveError);
     }
 
     function pictureTimeout() {
       window.console.warn('Timeout while getting picture for contact: ',
                            this.user_id);
-      self.persist(self.adapt(this), contactSaved, contactSaveError);
+      self.persist(self.adapt(this), contactSaved.bind(this),
+                   contactSaveError);
     }
 
     this.start = function() {
