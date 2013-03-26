@@ -73,7 +73,7 @@
 
 #install-manager-notification-container progress {
   width: 100%;
-  height: 4px;
+  height: 0.3rem;
 
   border: none;
 }
