@@ -4277,7 +4277,7 @@ var extractTZFromHeaders = exports._extractTZFromHeaders =
     var hpair = allHeaders[i];
     if (hpair.key !== 'received')
       continue;
-    var tzMatch = /([+-]\d{4})/.exec(hpair.value);
+    var tzMatch = / ([+-]\d{4})/.exec(hpair.value);
     if (tzMatch) {
       var tz =
         parseInt(tzMatch[1].substring(1, 3), 10) * 60 * 60 * 1000 +

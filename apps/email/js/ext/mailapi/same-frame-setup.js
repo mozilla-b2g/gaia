@@ -14067,11 +14067,17 @@ FolderStorage.prototype = {
    * Retrieve multiple message headers.
    */
   getMessageHeaders: function ifs_getMessageHeaders(namers, callback) {
+    var pending = namers.length;
+
     var headers = [];
     var gotHeader = function gotHeader(header) {
-      headers.push(header);
-      if (headers.length === namers.length)
+      if (header) {
+        headers.push(header);
+      }
+
+      if (!--pending) {
         callback(headers);
+      }
     };
     for (var i = 0; i < namers.length; i++) {
       var namer = namers[i];
@@ -15481,7 +15487,7 @@ exports.local_do_modtags = function(op, doneCallback, undo) {
     false,
     function perFolder(ignoredConn, storage, headers, namers, callWhenDone) {
       var waitingOn = headers.length;
-      function headerUpdated() {
+      function next() {
         if (--waitingOn === 0)
           callWhenDone();
       }
@@ -15512,7 +15518,7 @@ exports.local_do_modtags = function(op, doneCallback, undo) {
           }
         }
         storage.updateMessageHeader(header.date, header.id, false,
-                                    header, headerUpdated);
+                                    header, next);
       }
     },
     function() {
@@ -15836,6 +15842,10 @@ exports.allJobsDone =  function() {
  * once per folder, passing in the loaded message header objects for each
  * folder.
  *
+ * This method will filter out removed headers (which would otherwise be null).
+ * Its possible that entire folders will be skipped if no headers requested are
+ * now present.
+ *
  * @args[
  *   @param[messageNamers @listof[MessageNamer]]
  *   @param[needConn Boolean]{
@@ -15968,6 +15978,14 @@ exports._partitionAndAccessFoldersSequentially = function(
       }
       iNextServerId = serverIds.indexOf(null, iNextServerId + 1);
     }
+
+    // its entirely possible that we need headers but there are none so we can
+    // skip entering this folder as the job cannot do anything with an empty
+    // header.
+    if (!serverIds.length) {
+      return openNextFolder();
+    }
+
     try {
       callInFolder(folderConn, storage, serverIds, folderMessageNamers,
                    openNextFolder);
@@ -15977,6 +15995,12 @@ exports._partitionAndAccessFoldersSequentially = function(
     }
   };
   var gotHeaders = function gotHeaders(headers) {
+    // its unlikely but entirely possible that all pending headers have been
+    // removed somehow between when the job was queued and now.
+    if (!headers.length) {
+      return openNextFolder();
+    }
+
     // Sort the headers in ascending-by-date order so that slices hear about
     // changes from oldest to newest. That way, they won't get upset about being
     // asked to expand into the past.
