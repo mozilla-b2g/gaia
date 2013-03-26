@@ -697,7 +697,7 @@ contacts.List = (function() {
               contact.givenName[0].trim()) ||
             (Array.isArray(contact.familyName) && contact.familyName[0] &&
               contact.familyName[0].trim());
-  }
+  };
 
   // Fills the contact data to display if no givenName and familyName
   var refillContactData = function refillContactData(contact) {
