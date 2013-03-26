@@ -45,7 +45,7 @@
     }
   };
 
-  function handleLongPressPhoneEvent(phoneNumber) {
+  function createOptionMenuOnLongPress(param, title) {
     var options = new OptionMenu({
       'items': [
       {
@@ -53,14 +53,14 @@
         method: function optionMethod(param) {
           createNewContact(param);
         },
-        params: [{'tel': phoneNumber}]
+        params: param
       },
       {
         name: _('addToExistingContact'),
         method: function optionMethod(param) {
           addToExistingContact(param);
         },
-        params: [{'tel': phoneNumber}]
+        params: param
       },
       {
         name: _('cancel'),
@@ -69,7 +69,7 @@
         }
       }
       ],
-      'title': phoneNumber
+      'title': title
     });
     options.show();
   };
@@ -134,7 +134,12 @@
       if (action) {
         switch (action) {
           case 'phone-link':
-            handleLongPressPhoneEvent(dataset.phonenumber);
+            createOptionMenuOnLongPress(
+              [{'tel': dataset.phonenumber}], dataset.phonenumber);
+            break;
+          case 'email-link':
+            createOptionMenuOnLongPress(
+              [{'email': dataset.email}], dataset.email);
             break;
         }
       }
