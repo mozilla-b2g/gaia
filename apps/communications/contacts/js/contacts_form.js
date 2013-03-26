@@ -141,6 +141,16 @@ contacts.Form = (function() {
       if (event.target.tagName == 'BUTTON')
         saveButton.removeAttribute('disabled');
     });
+
+    formView.addEventListener('ValueModified', function onValueModified(event) {
+      if (!event.detail) {
+        return;
+      }
+
+      if (event.detail.prevValue !== event.detail.newValue) {
+        saveButton.removeAttribute('disabled');
+      }
+    });
   };
 
   var render = function cf_render(contact, callback, pFbContactData,
