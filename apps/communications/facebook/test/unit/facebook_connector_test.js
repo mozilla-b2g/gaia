@@ -1,6 +1,7 @@
 'use strict';
 
 requireApp('communications/contacts/js/fb/fb_contact_utils.js');
+requireApp('communications/contacts/js/fb/fb_contact.js');
 requireApp('communications/facebook/js/facebook_connector.js');
 requireApp('communications/facebook/test/unit/mock_fb_graph_data.js');
 requireApp('communications/facebook/test/unit/mock_fb_query.js');
