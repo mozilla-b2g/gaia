@@ -2329,6 +2329,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
 
   this.enabled = true;
   this.problems = [];
+  this._alive = true;
 
   this.identities = accountDef.identities;
 
@@ -2459,6 +2460,11 @@ ActiveSyncAccount.prototype = {
 
   saveAccountState: function asa_saveAccountState(reuseTrans, callback,
                                                   reason) {
+    if (!this._alive) {
+      this._LOG.accountDeleted('saveAccountState');
+      return;
+    }
+
     var account = this;
     var perFolderStuff = [];
     for (var iter in Iterator(this.folders)) {
@@ -2490,6 +2496,11 @@ ActiveSyncAccount.prototype = {
 
   shutdown: function asa_shutdown() {
     this._LOG.__die();
+  },
+
+  accountDeleted: function asa_accountDeleted() {
+    this._alive = false;
+    this.shutdown();
   },
 
   sliceFolderMessages: function asa_sliceFolderMessages(folderId,
@@ -3009,6 +3020,11 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       deleteFolder: {},
       recreateFolder: { id: false },
       saveAccountState: { reason: false },
+      /**
+       * XXX: this is really an error/warning, but to make the logging less
+       * confusing, treat it as an event.
+       */
+      accountDeleted: { where: false },
     },
     asyncJobs: {
       runOp: { mode: true, type: true, error: false, op: false },
