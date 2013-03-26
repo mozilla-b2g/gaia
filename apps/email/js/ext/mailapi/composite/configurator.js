@@ -2656,6 +2656,7 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
   this.accountDef = compositeAccount.accountDef;
 
   this.enabled = true;
+  this._alive = true;
 
   this._LOG = LOGFAB.ImapAccount(this, _parentLog, this.id);
 
@@ -2878,6 +2879,11 @@ ImapAccount.prototype = {
    * operations to defer until after that snapshot has occurred.
    */
   saveAccountState: function(reuseTrans, callback) {
+    if (!this._alive) {
+      this._LOG.accountDeleted('saveAccountState');
+      return;
+    }
+
     var perFolderStuff = [], self = this;
     for (var iFolder = 0; iFolder < this.folders.length; iFolder++) {
       var folderPub = this.folders[iFolder],
@@ -3000,6 +3006,11 @@ ImapAccount.prototype = {
     }
 
     this._LOG.__die();
+  },
+
+  accountDeleted: function() {
+    this._alive = false;
+    this.shutdown();
   },
 
   checkAccount: function(listener) {
@@ -3556,6 +3567,11 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       connectionMismatch: {},
 
       saveAccountState: {},
+      /**
+       * XXX: this is really an error/warning, but to make the logging less
+       * confusing, treat it as an event.
+       */
+      accountDeleted: { where: false },
 
       /**
        * The maximum connection limit has been reached, we are intentionally
@@ -3633,6 +3649,10 @@ SmtpAccount.prototype = {
     // (there should be no live connections during a unit-test initiated
     // shutdown.)
     this._LOG.__die();
+  },
+
+  accountDeleted: function() {
+    this.shutdown();
   },
 
   /**
@@ -3976,6 +3996,11 @@ CompositeAccount.prototype = {
     this._receivePiece.shutdown();
   },
 
+  accountDeleted: function() {
+    this._sendPiece.accountDeleted();
+    this._receivePiece.accountDeleted();
+  },
+
   deleteFolder: function(folderId, callback) {
     return this._receivePiece.deleteFolder(folderId, callback);
   },
@@ -4039,7 +4064,8 @@ CompositeAccount.prototype = {
   getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
 };
 
-}); // end define;
+}); // end define
+;
 /**
  * Configurator for imap+smtp
  **/
@@ -4167,7 +4193,7 @@ exports.configurator = {
     };
 
     this._loadAccount(universe, accountDef,
-                      oldAccountInfo.folderInfo, function (account) {
+                      oldAccountInfo.folderInfo, null, function (account) {
       callback(null, account, null);
     });
   },
