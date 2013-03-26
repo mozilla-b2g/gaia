@@ -9041,7 +9041,7 @@ MailUniverse.prototype = {
     var savedEx = null;
     var account = this._accountsById[accountId];
     try {
-      account.shutdown();
+      account.accountDeleted();
     }
     catch (ex) {
       // save the failure until after we have done other cleanup.
