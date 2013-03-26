@@ -299,8 +299,11 @@ const DragDropManager = (function() {
   function sendDragLeaveEvent(page, reflow) {
     // For some reason, moving a node re-triggers the blob URI to be validated
     // after inserting this one in other position of the DOM
-    draggableIcon.displayRenderedIcon();
-    page.onDragLeave(reflow);
+    draggableIcon.loadRenderedIcon(function loaded(url) {
+      page.onDragLeave(function revoke() {
+        window.URL.revokeObjectURL(url);
+      }, reflow);
+    });
   }
 
   function onEnd(evt) {
