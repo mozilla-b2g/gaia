@@ -166,9 +166,11 @@ contacts.Form = (function() {
     formView.classList.add('skin-organic');
     if (!fromUpdateActivity)
       saveButton.setAttribute('disabled', 'disabled');
+    saveButton.setAttribute('data-l10n-id', 'update');
     saveButton.textContent = _('update');
     currentContact = contact;
     deleteContactButton.parentNode.classList.remove('hide');
+    formTitle.setAttribute('data-l10n-id', 'editContact');
     formTitle.textContent = _('editContact');
     currentContactId.value = contact.id;
     givenName.value = contact.givenName || '';
@@ -226,8 +228,10 @@ contacts.Form = (function() {
       currentContact = {};
     }
     saveButton.setAttribute('disabled', 'disabled');
+    saveButton.setAttribute('data-l10n-id', 'done');
     saveButton.textContent = _('done');
     deleteContactButton.parentNode.classList.add('hide');
+    formTitle.setAttribute('data-l10n-id', 'addContact');
     formTitle.textContent = _('addContact');
 
     params = params || {};
