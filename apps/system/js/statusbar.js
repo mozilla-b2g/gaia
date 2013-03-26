@@ -102,6 +102,7 @@ var StatusBar = {
   recordingActive: false,
   recordingTimer: null,
 
+  notificationActive: false,
   umsActive: false,
 
   headphonesActive: false,
@@ -195,6 +196,8 @@ var StatusBar = {
     switch (evt.type) {
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
+        this.notificationActive = evt.detail.screenEnabled;
+        this.update.notification.call(this);
         break;
 
       case 'chargingchange':
@@ -621,6 +624,11 @@ var StatusBar = {
     callForwarding: function sb_updateCallForwarding() {
       var icon = this.icons.callForwarding;
       icon.hidden = !this.settingValues['ril.cf.enabled'];
+    },
+
+    notification: function sb_updateNotificationIcon() {
+      var icon = this.icons.notification;
+      icon.hidden = !this.notificationActive || !(icon.dataset.num > 0);
     }
   },
 
@@ -647,13 +655,12 @@ var StatusBar = {
 
   updateNotification: function sb_updateNotification(count) {
     var icon = this.icons.notification;
+    icon.dataset.num = count;
     if (!count) {
       icon.hidden = true;
       return;
     }
-
     icon.hidden = false;
-    icon.dataset.num = count;
   },
 
   updateNotificationUnread: function sb_updateNotificationUnread(unread) {
