@@ -443,11 +443,20 @@ var Contacts = (function() {
   * tag selected or use the predefined ones
   */
   var doneTag = function doneTag() {
+    var prevValue = contactTag.textContent;
     if (selectedTag) {
       contactTag.textContent = selectedTag.textContent;
     } else if (customTag.value.length > 0) {
       contactTag.textContent = customTag.value;
     }
+    var valueModifiedEvent = new CustomEvent('ValueModified', {
+      bubbles: true,
+      detail: {
+        prevValue: prevValue,
+        newValue: contactTag.textContent
+      }
+    });
+    contactTag.dispatchEvent(valueModifiedEvent);
     contactTag = null;
     Contacts.goBack();
   };
