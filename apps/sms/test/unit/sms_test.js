@@ -384,15 +384,15 @@ suite('SMS App Unit-Test', function() {
 
 suite('URL Links in SMS', function() {
     var Message = {
-        id: '987',
-        body: 'Hello URL'
+      id: '987',
+      body: 'Hello URL'
     };
 
     //test
     test('#Test URL in message', function() {
-        var messageBody = 'For more details visit' +
-        ' Yahoo.com, http://www.df.com' +
-        ' or visit faq mail.google.com/mail/help/intl/en/about.html';
+      var messageBody = 'For more details visit' +
+      ' Yahoo.com, http://www.df.com' +
+      ' or visit faq mail.google.com/mail/help/intl/en/about.html';
       var id = '123456';
       Message.id = id;
       Message.body = messageBody;
@@ -411,7 +411,7 @@ suite('URL Links in SMS', function() {
     });
 
     test('#Test URL with phone, email in message', function() {
-        var messageBody = 'Email at cs@yahoo.com, For more details' +
+      var messageBody = 'Email at cs@yahoo.com, For more details' +
         ' visit http://www.mozilla.org/en-US/firefox/fx/, www.gmail.com' +
         ' or call 897-890-8907';
       var id = '123457';
@@ -428,15 +428,62 @@ suite('URL Links in SMS', function() {
         'http://www.gmail.com', 'Second url is http://www.gmail.com');
     });
   });
+
+suite('EmailAddress Links in SMS', function() {
+    var Message = {
+      id: '1234',
+      body: 'Hello n Welcome'
+    };
+
+    //test
+    test('#Test EmailAddress in message', function() {
+      var messageBody = 'Email abc@gmail.com or myself@my.com,rs@1 ' +
+                      'from yahoo.com';
+      var id = '123456';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-email]');
+      assert.equal(anchors.length, 2,
+        '2 Email Addresses are tappable in message');
+      assert.equal(anchors[0].dataset.email,
+        'abc@gmail.com', 'First email is abc@gmail.com');
+      assert.equal(anchors[1].dataset.email,
+        'myself@my.com', 'Second email is myself@my.com');
+    });
+
+    test('#Test with phone numbers, url and email in a message', function() {
+      var messageBody = 'Send a text to 729725 (PAYPAL).' +
+      ' money@paypal.com hi-there@mail.com,sup.port@efg.com and 35622.00' +
+      ' the cs@yahoo.co.in email. www.yahoo.com,payapal.com are urls.' +
+      ' You can even enter 995-345-5678 6787897890.';
+      var id = '123457';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-email]');
+      assert.equal(anchors.length, 4,
+        '4 links are attached for  email in DOM');
+      assert.equal(anchors[0].dataset.email,
+        'money@paypal.com', 'First email is money@paypal.com');
+      assert.equal(anchors[1].dataset.email,
+        'hi-there@mail.com', 'Second email is hi-there@mail.com');
+      assert.equal(anchors[2].dataset.email,
+        'sup.port@efg.com', 'Third email is sup.port@efg.com');
+      assert.equal(anchors[3].dataset.email,
+        'cs@yahoo.co.in', 'Fourth email is cs@yahoo.co.in');
+    });
+  });
+
 suite('Phone Links in SMS', function() {
     var Message = {
-        id: '123',
-        body: 'Hello there'
+      id: '123',
+      body: 'Hello there'
     };
 
     //test
     test('#numberWithDash', function() {
-        var messageBody = 'Hello there, here are numbers with ' +
+      var messageBody = 'Hello there, here are numbers with ' +
                       'dashes 408-746-9721, 4087469721, 7469721';
       var id = '12345';
       Message.id = id;
@@ -455,10 +502,10 @@ suite('Phone Links in SMS', function() {
 
     test('#complexTest with 7 digit numbers, ip, decimals', function() {
       var messageBody = '995-382-7369 futures to a 4458901 slight' +
-          ' 789-7890 rebound +1-556-667-7789 on Wall Street 9953827369' +
-          ' on Wednesday, +12343454567 with 55.55.55 futures +919810137553' +
-          ' for the S&P 500 up 0.34 percent, Dow Jones futures up 0.12' +
-          ' percent100 futures up 0.51 percent at 0921 GMT.';
+        ' 789-7890 rebound +1-556-667-7789 on Wall Street 9953827369' +
+        ' on Wednesday, +12343454567 with 55.55.55 futures +919810137553' +
+        ' for the S&P 500 up 0.34 percent, Dow Jones futures up 0.12' +
+        ' percent100 futures up 0.51 percent at 0921 GMT.';
       var id = '12346';
       Message.id = id;
       Message.body = messageBody;
@@ -483,3 +530,4 @@ suite('Phone Links in SMS', function() {
     });
   });
 });
+
