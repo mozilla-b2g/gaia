@@ -29,7 +29,7 @@ if (!window.FacebookConnector) {
         successWrapperCb = function onsuccess() {
           reusedFbContact.ready = true;
           successCb();
-        }
+        };
       } else {
         fbContact = new fb.Contact();
         successWrapperCb = successCb;
