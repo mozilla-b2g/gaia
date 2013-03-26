@@ -361,6 +361,20 @@ var getMobileConnection = function() {
   };
 };
 
+var getBluetooth = function() {
+  var navigator = window.navigator;
+  if ('mozBluetooth' in navigator)
+    return navigator.mozBluetooth;
+  return {
+    enabled: false,
+    addEventListener: function(type, callback, bubble) {},
+    onenabled: function(event) {},
+    onadapteradded: function(event) {},
+    ondisabled: function(event) {},
+    getDefaultAdapter: function() {}
+  };
+};
+
 // create a fake mozWifiManager if required (e.g. desktop browser)
 var getWifiManager = function() {
   var navigator = window.navigator;
