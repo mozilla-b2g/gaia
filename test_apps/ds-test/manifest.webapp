@@ -1,0 +1,33 @@
+{
+  "name": "Device Storage Test",
+  "launch_path": "/index.html",
+  "description": "Test app for Device Storage",
+  "type": "certified",
+  "fullscreen": "false",
+  "developer": {
+    "name": "dhylands",
+    "url": "https://github.com/dhylands/ds-test"
+  },
+  "permissions": {
+    "systemXHR":{},
+    "device-storage:apps":{ "access": "readwrite" },
+    "device-storage:sdcard":{ "access": "readwrite" },
+    "device-storage:music":{ "access": "readwrite" },
+    "device-storage:pictures":{ "access": "readwrite" },
+    "device-storage:videos":{ "access": "readwrite" },
+    "webapps-manage":{}
+  },
+  "activities": {
+    "share": {
+      "filters": {
+        "type": "image/*"
+       },
+      "href": "/index.html",
+      "returnValue": true,
+      "disposition": "window"
+    }
+  },
+  "icons": {
+    "128": "/style/icons/ds-test.png"
+  }
+}
