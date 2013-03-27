@@ -3,6 +3,8 @@
   Code below is for desktop testing!
 
 *********************************************************** */
+'use strict';
+
 (function(window) {
 
   var MockNavigatormozSms = window.MockNavigatormozSms = {};

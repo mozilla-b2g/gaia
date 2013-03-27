@@ -73,7 +73,6 @@ var MessageManager = {
 
     var currentThread = this.currentThread;
     var threadId = message.threadId;
-    
     if (currentThread != null && currentThread === threadId) {
       // Append message and mark as read
       this.markMessagesRead([message.id], true, function() {
@@ -123,7 +122,7 @@ var MessageManager = {
     LinkActionHandler.resetActivityInProgress();
     ThreadListUI.updateContactsInfo();
     Utils.updateTimeHeaders();
-    if (window.location.hash.substr(0, 5) === '#num=') {
+    if (MessageManager.currentThread) {
       ThreadUI.updateHeaderData();
     }
   },
@@ -232,7 +231,6 @@ var MessageManager = {
             }
             // Update the currentThread
             MessageManager.currentThread = threadRead.dataset.threadId;
-            
             var self = this;
             // Update Header
             ThreadUI.updateHeaderData(function headerReady() {
