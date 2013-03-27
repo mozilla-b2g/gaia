@@ -824,6 +824,7 @@
       debug('Tone stop in (ms): ', timeout);
       setTimeout(function() {
         closeToneAlert();
+        iccLastCommandProcessed = true;
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
       }, timeout);
     }
