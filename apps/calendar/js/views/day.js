@@ -15,6 +15,8 @@ Calendar.ns('Views').Day = (function() {
 
     childClass: Calendar.Views.DayChild,
 
+    enableChildAnimation: true,
+
     selectors: {
       element: '#day-view'
     },

@@ -29,6 +29,10 @@ Calendar.ns('Views').TimeParent = (function() {
      */
     maxFrames: 5,
 
+    dir: null,
+    _temporaryCurrentFrame: null,
+    enableChildAnimation: false,
+
     get frameContainer() {
       return this.element;
     },
@@ -48,11 +52,11 @@ Calendar.ns('Views').TimeParent = (function() {
         return;
       }
 
-      var dir = data.direction;
+      this.dir = data.direction;
       var controller = this.app.timeController;
 
       // TODO: RTL
-      if (dir === 'left') {
+      if (this.dir === 'left') {
         controller.move(this._nextTime(this.date));
       } else {
         controller.move(this._previousTime(this.date));
@@ -67,6 +71,8 @@ Calendar.ns('Views').TimeParent = (function() {
         case 'purge':
           this.purgeFrames(e.data[0]);
           break;
+        case 'animationend':
+          this._onanimationend();
       }
     },
 
@@ -169,26 +175,65 @@ Calendar.ns('Views').TimeParent = (function() {
      * @param {Date} time center point to activate.
      */
     changeDate: function(time) {
-      // deactivate previous frame
-      if (this.currentFrame) {
-        this.currentFrame.deactivate();
-      }
 
       this.date = time;
 
       // setup & find all ids
-      var next = this._nextTime(time);
-      var prev = this._previousTime(time);
+      this.nextFrame = this._nextTime(this.date);
+      this.prevFrame = this._previousTime(this.date);
 
       // add previous frame
-      prev = this.addFrame(prev);
+      this.prevFrame = this.addFrame(this.prevFrame);
 
-      // create & activate current frame
-      var cur = this.currentFrame = this.addFrame(time);
-      cur.activate();
+      // create current frame
+      this._temporaryCurrentFrame = this.addFrame(this.date);
+
 
       // add next frame
-      this.addFrame(next);
+      this.nextFrame = this.addFrame(this.nextFrame);
+
+      if (this.enableChildAnimation) {
+        this._temporaryCurrentFrame.activate();
+        this._temporaryCurrentFrame.element.classList.add(
+          'transition-in-' + this.dir
+        );
+      }
+
+      if (this.currentFrame && this.enableChildAnimation) {
+        this.currentFrame.element.classList.add(
+          'transition-out-' + this.dir
+        );
+        this.currentFrame.element.addEventListener(
+          'animationend',
+          this,
+          false
+        );
+      } else {
+        //first run
+        this._onanimationend();
+      }
+
+    },
+
+    _onanimationend: function() {
+      if (this.currentFrame) {
+        if (this.enableChildAnimation) {
+          this.currentFrame.element.removeEventListener(
+            'animationend',
+            this,
+            false
+          );
+          this.currentFrame.element.classList.remove(
+            'transition-out-' + this.dir
+          );
+          this._temporaryCurrentFrame.element.classList.remove(
+            'transition-in-' + this.dir
+          );
+        }
+        this.currentFrame.deactivate();
+      }
+      this.currentFrame = this._temporaryCurrentFrame;
+      this.currentFrame.activate();
 
       // ensure we don't have too many extra frames.
       this._trimFrames();

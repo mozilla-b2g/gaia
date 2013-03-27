@@ -81,6 +81,69 @@ ol.link-list a {
 }
 
 
+/* swiping animations */
+@-moz-keyframes out-right {
+  from { margin-left:0%; }
+  to { margin-left:100%; }
+  /*
+  from { transform: translate(0%); }
+  to { transform: translateX(100%); }
+  */
+}
+
+@-moz-keyframes in-right {
+  from { margin-left:-100%; }
+  to { margin-left:0%; }
+  /*
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0%); }
+  */
+}
+
+@-moz-keyframes out-left {
+  from { margin-left:0%; }
+  to { margin-left:-100%; }
+  /*
+  from { transform: translateX(0%); }
+  to { transform: translateX(-100%); }
+  */
+}
+
+@-moz-keyframes in-left {
+  from { margin-left:100%; }
+  to { margin-left:0%; }
+  /*
+  from { transform: translateX(100%); }
+  to { transform: translateX(0%); }
+  */
+}
+
+.transition-out-left,
+.transition-out-right, 
+.transition-in-left,
+.transition-in-right {
+  animation-duration: 0.3s;
+  animation-timing-function: linear;
+  animation-delay: 0s;
+  animation-iteration-count: 1;
+}
+
+.transition-out-left {
+  animation-name: out-left;
+}
+
+.transition-out-right {
+  animation-name: out-right;
+}
+
+.transition-in-left {
+  animation-name: in-left;
+}
+
+.transition-in-right {
+  animation-name: in-right;
+}
+
 /* view heights */
 
 #time-views > #month-view {
