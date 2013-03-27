@@ -216,25 +216,25 @@ function makeWebappsObject(dirs) {
   };
 }
 
-let externalAppsDirs = ['external-apps'];
+let additionalSrcDirNames = ['external-apps'];
 
 if (DOGFOOD === '0' && PRODUCTION === '0') {
-  externalAppsDirs.push('test_external_apps');
+  additionalSrcDirNames.push('test_external_apps');
 }
 
 if (GAIA_DISTRIBUTION_DIR) {
   let externalAppsDir = new FileUtils.File(GAIA_DISTRIBUTION_DIR);
   externalAppsDir.append('external-apps');
   if (externalAppsDir.exists()) {
-      externalAppsDirs.push(externalAppsDir.path);
+      additionalSrcDirNames.push(externalAppsDir.path);
   }
 }
 
 const Gaia = {
   engine: GAIA_ENGINE,
   sharedFolder: getFile(GAIA_DIR, 'shared'),
-  webapps: makeWebappsObject(GAIA_APP_SRCDIRS),
-  externalWebapps: makeWebappsObject(externalAppsDirs.join(' ')),
+  webapps: makeWebappsObject(GAIA_APP_SRCDIRS + ' ' +
+                             additionalSrcDirNames.join(' ')),
   aggregatePrefix: 'gaia_build_',
   distributionDir: GAIA_DISTRIBUTION_DIR
 };
