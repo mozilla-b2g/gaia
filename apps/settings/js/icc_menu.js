@@ -20,7 +20,7 @@
         detail: { 'command': iccCommand }
       });
       window.dispatchEvent(event);
-    }, 500);
+    }, 1000);
   }
 
   setTimeout(function updateStkMenu() {
