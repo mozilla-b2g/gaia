@@ -288,7 +288,7 @@ suite('Render contacts list', function() {
     window.Contacts = MockContactsApp;
     realFb = window.fb;
     window.fb = MockFb;
-    window.Contacts.extFb = MockExtFb;
+    window.Contacts.extServices = MockExtFb;
     realFixedHeader = window.FixedHeader;
     window.FixedHeader = MockFixedHeader;
     realActivities = window.ActivityHandler;
@@ -902,4 +902,3 @@ suite('Render contacts list', function() {
     });
   });
 });
-

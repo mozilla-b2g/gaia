@@ -308,7 +308,7 @@ contacts.Details = (function() {
       linkButton.classList.add('hide');
     }
 
-    Contacts.extFb.initEventHandlers(social, contact, linked);
+    Contacts.extServices.initEventHandlers(social, contact, linked);
 
     listContainer.appendChild(social);
   };

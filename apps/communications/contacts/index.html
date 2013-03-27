@@ -456,19 +456,29 @@
               </li>
             </ul>
             <header>
-              <h2>SIM</h2>
+              <h2 data-l10n-id="importContactsTitle">Import Contacts</h2>
             </header>
-            <ul data-type="list">
+            <ul data-type="list" id="importSources">
               <li id="settingsSIM">
-                <button class="icon icon-sim" data-l10n-id="importSim">
-                  Import from SIM
+                <button class="icon icon-sim" data-l10n-id="importSim2">
+                  SIM card
                 </button>
                 <p id="no-sim" data-l10n-id="noSimMsg"></p>
+              </li>
+              <li class="importService">
+                <button class="icon icon-gmail" data-l10n-id="importGmail">
+                  Gmail
+                </button>
+              </li>
+              <li class="importService">
+                <button class="icon icon-live" data-l10n-id="importLive">
+                  Windows Live
+                </button>
               </li>
             </ul>
 
             <header id="fb-header">
-              <h2 data-l10n-id="otherAccount">Other accounts</h2>
+              <h2 data-l10n-id="facebook">Facebook</h2>
             </header>
             <ul id="settingsFb" data-type="list" data-state="logged-out">
               <li class="fb-item">
@@ -478,7 +488,7 @@
                       <span id="span-check-fb"></span>
                   </label>
                 </aside>
-                <p data-l10n-id="facebook">Facebook</p>
+                <p data-l10n-id="facebookSwitchMsg">Sync friends</p>
                 <p id="fb-totals"></p>
               </li>
               <li id="fb-update-option">

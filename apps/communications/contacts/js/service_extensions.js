@@ -2,9 +2,9 @@
 
 var Contacts = window.Contacts || {};
 
-if (typeof Contacts.extFb === 'undefined') {
+if (typeof Contacts.extServices === 'undefined') {
   (function(document) {
-    var extFb = Contacts.extFb = {};
+    var extServices = Contacts.extServices = {};
     var contactId;
 
     var extensionFrame = document.querySelector('#fb-extensions');
@@ -14,7 +14,7 @@ if (typeof Contacts.extFb === 'undefined') {
     var canClose = true;
     var closeRequested = false;
 
-    extFb.startLink = function(cid, linked) {
+    extServices.startLink = function(cid, linked) {
       canClose = true;
       contactId = cid;
       if (!linked) {
@@ -24,19 +24,31 @@ if (typeof Contacts.extFb === 'undefined') {
       }
     };
 
-    extFb.importFB = function(evt) {
-      closeRequested = false;
-      canClose = false;
-      load('import.html?service=facebook', 'friends');
+    extServices.importFB = function(evt) {
+      loadService('facebook');
     };
 
-    function load(uri, from) {
+    extServices.importGmail = function(evt) {
+      loadService('gmail');
+    };
+
+    extServices.importLive = function(evt) {
+      loadService('live');
+    };
+
+    function loadService(serviceName) {
+      closeRequested = false;
+      canClose = false;
+      load('import.html?service=' + serviceName, 'friends', serviceName);
+    }
+
+    function load(uri, from, serviceName) {
       window.addEventListener('message', messageHandler);
       oauthFrame.contentWindow.postMessage({
         type: 'start',
         data: {
           from: from,
-          service: 'facebook'
+          service: serviceName
         }
       }, fb.CONTACTS_APP_ORIGIN);
       currentURI = uri;
@@ -69,7 +81,7 @@ if (typeof Contacts.extFb === 'undefined') {
       window.open(url);
     }
 
-    extFb.showProfile = function(cid) {
+    extServices.showProfile = function(cid) {
       var req = fb.utils.getContactData(cid);
 
       req.onsuccess = function() {
@@ -86,17 +98,17 @@ if (typeof Contacts.extFb === 'undefined') {
       };
     };
 
-    extFb.wallPost = function(cid) {
+    extServices.wallPost = function(cid) {
       contactId = cid;
       fb.msg.ui.wallPost(contactId);
     };
 
-    extFb.sendPrivateMsg = function(cid) {
+    extServices.sendPrivateMsg = function(cid) {
       contactId = cid;
       fb.msg.ui.sendPrivateMsg(contactId);
     };
 
-    extFb.initEventHandlers = function(socialNode, contact, linked) {
+    extServices.initEventHandlers = function(socialNode, contact, linked) {
       var elements = {
         '#msg_button': {
           'elems': ['id'],
@@ -142,15 +154,15 @@ if (typeof Contacts.extFb === 'undefined') {
       and future different handling
     */
     function onPrivateMsgClick(evt) {
-      onClickWithId(evt, extFb.sendPrivateMsg);
+      onClickWithId(evt, extServices.sendPrivateMsg);
     }
 
     function onWallClick(evt) {
-      onClickWithId(evt, extFb.wallPost);
+      onClickWithId(evt, extServices.wallPost);
     }
 
     function onProfileClick(evt) {
-      onClickWithId(evt, extFb.showProfile);
+      onClickWithId(evt, extServices.showProfile);
     }
 
     // Note this is slightly different
@@ -159,7 +171,7 @@ if (typeof Contacts.extFb === 'undefined') {
       var linked = evt.target.dataset['fb_is_linked'];
 
       linked = (linked === 'true');
-      extFb.startLink(contactId, linked);
+      extServices.startLink(contactId, linked);
     }
 
     function doLink(fData) {
