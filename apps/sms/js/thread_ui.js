@@ -372,6 +372,9 @@ var ThreadUI = {
   },
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData(callback) {
+    if (MessageManager.currentThread === null) {
+      return;
+    }
     // Retrieve phone number from Hash
     var number = MessageManager.getNumFromHash();
     // Add data to contact activity interaction

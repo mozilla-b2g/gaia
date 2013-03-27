@@ -122,9 +122,7 @@ var MessageManager = {
     LinkActionHandler.resetActivityInProgress();
     ThreadListUI.updateContactsInfo();
     Utils.updateTimeHeaders();
-    if (MessageManager.currentThread) {
-      ThreadUI.updateHeaderData();
-    }
+    ThreadUI.updateHeaderData();
   },
 
   slide: function mm_slide(callback) {
