@@ -46,7 +46,7 @@ var RecentsDBManager = {
         callback('DB_REQUEST_BLOCKED', null);
       };
 
-      request.onupgradeneeded = (function(event) {
+      request.onupgradended = (function(event) {
         var db = event.target.result;
         var currentVersion = event.oldVersion;
         while (currentVersion != event.newVersion) {
@@ -680,5 +680,24 @@ var RecentsDBManager = {
         console.log('recents_db get failure: ', e.message);
       };
     });
+
+  getBeginWith: function rdbm_getBeginWith(str, callback) {
+    var objectStore = this.db.transaction(RecentsDBManager._dbStore).
+                        objectStore(RecentsDBManager._dbStore).
+                        index('number');
+    var cursor = objectStore.openCursor(IDBKeyRange.bound(str, str + '\ufff0'),
+      'prev');
+    cursor.onsuccess = function(event) {
+      var item = event.target.result;
+      if (item) {
+        if (callback(item.value))
+          item.continue();
+      } else {
+        callback();
+      }
+    };
+    cursor.onerror = function(e) {
+      console.log('recents_db get failure: ', e.message);
+    };
   }
 };

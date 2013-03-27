@@ -17,7 +17,7 @@
 
 #phone-number-view-container {
   width: 100%;
-  height: -moz-calc(100% - 34.5rem);
+  height: -moz-calc(100% - 31.6rem - 4.9rem);
   background: #2C3743;
   text-align: center;
   display: table;
@@ -25,10 +25,12 @@
   border-spacing: 1.5rem 0rem;
   font-family: 'MozTT';
   font-weight: 300;
+  overflow: hidden;
+  padding-bottom: 4.9rem;
 }
 
 #phone-number-view-container.keypad-visible {
-  height: -moz-calc(100% - 34.5rem);
+  height: -moz-calc(100% - 31.6rem - 4.9rem);
   visibility: hidden;
 }
 
@@ -65,7 +67,7 @@ article:not(:target) #keypad-delete {
 
 #keyboard-container {
   width: 100%;
-  height: 34.5rem;
+  height: 31.6rem;
 }
 
 #keypad {
@@ -94,7 +96,7 @@ article:not(:target) #keypad-delete {
   border-bottom-color: rgba(0, 0, 0, 0.4);
   padding:0.2rem 0 0 1.5rem;
   -moz-box-sizing: border-box;
-  height: 7rem;
+  height: 6.3rem;
   vertical-align: middle;
   color: white;
   font-family: 'MozTT';
@@ -180,7 +182,7 @@ article:not(:target) #keypad-delete {
 
 #keypad-callbar {
   background: rgba(24,24,24,.92);
-  height: 6.5rem;
+  height: 6.4rem;
   width: 100%;
   display: table;
   table-layout: fixed;
@@ -333,4 +335,72 @@ article:not(:target) #keypad-delete {
   font-size: 4rem;
   color: white;
   font-family:'MozTT';
+}
+
+#suggestion-bar {
+  margin-top: -4.9rem;
+  padding: 0.2rem 0.2rem 0.2rem 0.2rem;
+  width: 100%;
+  border: 1px solid black;
+  font-size: 1.8rem;
+  background-color: white;
+  height: 4.9rem;
+  overflow: hidden;
+  -moz-box-sizing: border-box;
+}
+
+#suggestion-bar.hidden {
+  visibility: hidden;
+}
+
+#suggestion-bar:active {
+  background-color: #B2F2FF;
+}
+
+#suggestion-bar > .name,
+#suggestion-bar.call-log > .tel-type {
+  display: block;
+  color: black;
+  font-weight: bold;
+}
+
+#suggestion-bar > .tel-type {
+  font-weight: normal;
+  display: inline;
+  color: gray;
+}
+
+#suggestion-bar.contact > .tel-type:after {
+  content: '|';
+  padding: 0 0.5rem;
+}
+
+#suggestion-bar > .tel {
+  display: inline;
+  color: black;
+}
+#suggestion-bar > .tel > span {
+  color: #FF4E00;
+}
+
+#suggestion-bar > .match-count {
+  float: left;
+  width: 4.3rem;
+  height: 4.3rem;
+  padding: 0;
+  text-align: center;
+  line-height: 4.3rem;
+  margin-right: 0.5rem;
+  border-right: solid 1px #858585;
+  color: #858585;
+  font-weight: bold;
+  font-size: 2.2rem;
+}
+
+#suggestion-bar > .avatar {
+  float: right;
+  width: 4.3rem;
+  height: 4.3rem;
+  background-size: cover;
+  background-image: url(images/plus_sign.png);
 }
