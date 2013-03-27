@@ -2233,6 +2233,7 @@ ImapConnection.prototype.connect = function(loginCb) {
         type = type[1];
         curReq._desc = desc;
         curReq._msg = msg;
+        msg.size = self._state.curExpected;
 
         curReq._fetcher.emit('message', msg);
 

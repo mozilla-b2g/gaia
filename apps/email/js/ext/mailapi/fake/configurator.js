@@ -414,7 +414,9 @@ MessageGenerator.prototype = {
         '3: ...\n' +
         '\nIt is a tiny screen we target, thank goodness!';
     }
-    bodyInfo.bodyReps = ['plain', [0x1, bodyText]];
+    bodyInfo.bodyReps = [
+      { type: 'plain', content: [0x1, bodyText] }
+    ];
 
     if (this._mode === 'info') {
       return {
