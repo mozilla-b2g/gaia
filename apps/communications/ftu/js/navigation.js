@@ -101,16 +101,22 @@ var Navigation = {
     }
   },
 
-
   forward: function n_forward(event) {
     var self = this;
     var goToStepForward = function() {
       self.previousStep = self.currentStep;
       self.currentStep++;
       if (self.currentStep > numSteps) {
-        UIManager.activationScreen.classList.remove('show');
-        UIManager.finishScreen.classList.add('show');
-        Tutorial.init();
+        // Try to send Newsletter here
+        UIManager.sendNewsletter(function newsletterSent(result) {
+          if (result) { // sending process ok, we advance
+            UIManager.activationScreen.classList.remove('show');
+            UIManager.finishScreen.classList.add('show');
+            Tutorial.init();
+          } else { // error on sending, we stay where we are
+            self.currentStep--;
+          }
+        });
         return;
       }
       self.manageStep();
@@ -185,8 +191,7 @@ var Navigation = {
           fbOption.classList.remove('disabled');
           return;
         }
-        if (WifiManager.api.connection.status === 'connected' ||
-            DataMobile.isDataAvailable) {
+        if (window.navigator.onLine) {
           fbOption.classList.remove('disabled');
         } else {
           fbOption.classList.add('disabled');

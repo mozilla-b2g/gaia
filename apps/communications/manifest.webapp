@@ -80,7 +80,8 @@
     "time": {},
     "audio-channel-telephony":{},
     "audio-channel-ringer":{},
-    "browser":{}
+    "browser":{},
+    "idle":{}
   },
   "orientation": "portrait-primary",
   "activities": {
