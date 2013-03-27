@@ -81,6 +81,7 @@ var Calls = (function(window, document, undefined) {
     }
 
     element.textContent = _('callForwardingNotForwarding');
+    element.dataset.l10nId = 'callForwardingNotForwarding';
     document.getElementById('cf-' + settingKey + '-number').disabled = false;
   };
 
