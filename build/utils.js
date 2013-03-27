@@ -12,7 +12,10 @@ function isSubjectToBranding(path) {
 
 function getSubDirectories(directory) {
   let appsDir = new FileUtils.File(GAIA_DIR);
-  appsDir.append(directory);
+  let subDirs = directory.split('/');
+  for (var i=0; i<subDirs.length;i++) {
+    appsDir.append(subDirs[i]);
+  }
 
   let dirs = [];
   let files = appsDir.directoryEntries;
@@ -94,7 +97,10 @@ function getFile() {
     let file = new FileUtils.File(arguments[0]);
     if (arguments.length > 1) {
       for (let i = 1; i < arguments.length; i++) {
-        file.append(arguments[i]);
+        let filearg = arguments[i].split('/');
+        for (let j = 0; j < filearg.length; j++) { 
+          file.append(filearg[j]);
+        }
       }
     }
     return file;
@@ -128,22 +134,20 @@ function getJSON(file) {
 function makeWebappsObject(dirs) {
   return {
     forEach: function(fun) {
-      let appSrcDirs = dirs.split(' ');
-      appSrcDirs.forEach(function parseDirectory(directoryName) {
+      let appDirs = dirs.split(' ');
+      appDirs.forEach(function parseDirectory(directoryName) {
         let directories = getSubDirectories(directoryName);
         directories.forEach(function readManifests(dir) {
           let manifestFile = getFile(GAIA_DIR, directoryName, dir,
-              'manifest.webapp');
-          let updateFile = getFile(GAIA_DIR, directoryName, dir,
-              'update.webapp');
+                        'manifest.webapp');
+          let updateFile = getFile(GAIA_DIR, directoryName, dir, 
+                        'update.webapp');
           // Ignore directories without manifest
           if (!manifestFile.exists() && !updateFile.exists()) {
             return;
           }
-
           let manifest = manifestFile.exists() ? manifestFile : updateFile;
           let domain = dir + '.' + GAIA_DOMAIN;
-
           let webapp = {
             manifest: getJSON(manifest),
             manifestFile: manifest,
@@ -160,7 +164,6 @@ function makeWebappsObject(dirs) {
           if (metaData.exists()) {
             webapp.metaData = getJSON(metaData);
           }
-
           fun(webapp);
         });
       });
@@ -168,19 +171,13 @@ function makeWebappsObject(dirs) {
   };
 }
 
-let externalAppsDirs = ['external-apps'];
+let externalAppsDirs = [ GAIA_MAKE_DIR + '/external'];
 
 // External apps are built differently from other apps by webapp-manifests.js,
 // and we need apps that are both external and dogfood to be treated like
 // external apps (to properly test external apps on dogfood devices), so we
 // segregate them into their own directory that we add to the list of external
 // apps dirs here when building a dogfood profile.
-if (DOGFOOD === '1') {
-  externalAppsDirs.push('external-dogfood-apps');
-}
-if (DOGFOOD === '0' && PRODUCTION === '0') {
-  externalAppsDirs.push('test_external_apps');
-}
 
 const Gaia = {
   engine: GAIA_ENGINE,
