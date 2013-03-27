@@ -67,11 +67,7 @@ function checkOrigin(origin) {
   }
 }
 
-Gaia.webapps.forEach(function (webapp) {
-  // If BUILD_APP_NAME isn't `*`, we only accept one webapp
-  if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
-    return;
-
+function fillAppManifest(webapp) {
   // Compute webapp folder name in profile
   let webappTargetDirName = webapp.domain;
 
@@ -105,21 +101,12 @@ Gaia.webapps.forEach(function (webapp) {
     appStatus:     getAppStatus(webapp.manifest.type),
     localId:       localId
   };
+}
 
-});
 
 let errors = [];
 
-// Process external webapps from /gaia/external-app/ folder
-Gaia.externalWebapps.forEach(function (webapp) {
-  // If BUILD_APP_NAME isn't `*`, we only accept one webapp
-  if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
-    return;
-
-  if (!webapp.metaData) {
-    return;
-  }
-
+function fillExternalAppManifest(webapp) {
   // Compute webapp folder name in profile
   let webappTargetDirName = webapp.sourceDirectoryName;
 
@@ -231,7 +218,19 @@ Gaia.externalWebapps.forEach(function (webapp) {
     packageEtag:   packageEtag,
     appStatus:     getAppStatus(webapp.metaData.type || "web"),
   };
+}
 
+Gaia.webapps.forEach(function (webapp) {
+  // If BUILD_APP_NAME isn't `*`, we only accept one webapp
+  if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME) {
+    return;
+  }
+
+  if (webapp.metaData) {
+    fillExternalAppManifest(webapp);
+  } else {
+    fillAppManifest(webapp);
+  }
 });
 
 if (errors.length) {
@@ -248,4 +247,3 @@ manifestFile.append('webapps.json');
 
 // stringify json with 2 spaces indentation
 writeContent(manifestFile, JSON.stringify(manifests, null, 2) + '\n');
-
