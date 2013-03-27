@@ -290,10 +290,13 @@
 
       case icc.STK_CMD_SET_UP_CALL:
         debug(' STK:Setup Phone Call. Number: ' + options.address);
-        var confirmed = true;
-        if (options.confirmMessage) {
-          confirmed = confirm(options.confirmMessage);
+        if (!options.confirmMessage) {
+          options.confirmMessage = _(
+            'operatorService-confirmCall-defaultmessage', {
+              'number': options.address
+            });
         }
+        var confirmed = confirm(options.confirmMessage);
         iccLastCommandProcessed = true;
         responseSTKCommand({
           hasConfirmed: confirmed,
