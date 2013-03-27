@@ -107,6 +107,40 @@ var Calls = (function(window, document, undefined) {
             what;
   };
 
+  // Display information relevant to the SIM card state
+  function displaySimCardStateInfo() {
+    var simCardState = mobileConnection.cardState;
+    /**
+     * Check SIM card state
+     * Possible values: null, 'unknown', 'absent', 'pinRequired',
+     * 'pukRequired', 'networkLocked', 'ready'.
+     */
+    switch(simCardState) {
+      case 'absent':
+        displayInfoForAll(_('noSimCard'));
+        break;
+      case 'pinRequired':
+        displayInfoForAll(_('simCardLockedMsg'));
+        break;
+      case 'pukRequired':
+        displayInfoForAll(_('simCardLockedMsg'));
+        break;
+      case 'networkLocked':
+        displayInfoForAll(_('simLockedPhone'));
+        break;
+      case 'unknown':
+        displayInfoForAll(_('unknownSimCardState'));
+        break;
+      case null:
+        displayInfoForAll(_('simCardNotReady'));
+        break;
+      default:
+        // For any other case (including 'ready') display
+        // the call forwarding network request message
+        displayInfoForAll(_('callForwardingRequesting'));
+    }
+  };
+
   // Stores current states (enabler or not) of the call forwaring reason.
   var _cfReasonStates = [0, 0, 0, 0];
   var ignoreSettingChanges = false;
@@ -244,7 +278,7 @@ var Calls = (function(window, document, undefined) {
   function updateCallForwardingSubpanels() {
     updatingInProgress = true;
 
-    displayInfoForAll(_('callForwardingRequesting'));
+    displaySimCardStateInfo();
     enableTapOnCallForwardingItems(false);
     getCallForwardingOption(function got_cfOption(cfOptions) {
       if (cfOptions) {
@@ -254,7 +288,7 @@ var Calls = (function(window, document, undefined) {
         displayRule(cfOptions['notreachable'], 'cfnrea-desc', 'notreachable');
         enableTapOnCallForwardingItems(true);
       } else {
-        displayInfoForAll(_('callForwardingQueryError'));
+        displaySimCardStateInfo();
         enableTapOnCallForwardingItems(false);
       }
       updatingInProgress = false;
@@ -335,7 +369,7 @@ var Calls = (function(window, document, undefined) {
     });
 
     // Init call forwarding option.
-    displayInfoForAll(_('callForwardingRequesting'));
+    displaySimCardStateInfo();
     getCallForwardingOption(function call_gotCFOption(cfOptions) {
       if (cfOptions) {
         displayRule(cfOptions['unconditional'], 'cfu-desc', 'unconditional');
