@@ -262,6 +262,15 @@ define('mailapi/imap/folder',
     require,
     exports
   ) {
+
+/**
+ * Lazily evaluated modules
+ */
+var $imaptextparser = null;
+var $imapsnippetparser = null;
+var $imapbodyfetcher = null;
+var $imapsync = null;
+
 var allbackMaker = $allback.allbackMaker,
     bsearchForInsert = $util.bsearchForInsert,
     bsearchMaybeExists = $util.bsearchMaybeExists,
@@ -310,40 +319,14 @@ function compactArray(arr) {
 var BASELINE_SEARCH_OPTIONS = ['!DELETED'];
 
 /**
- * Fetch parameters to get the headers / bodystructure; exists to reuse the
- * object since every fetch is the same.  Note that imap.js always gives us
- * FLAGS and INTERNALDATE so we don't need to ask for that.
- *
- * We are intentionally not using ENVELOPE because Thunderbird intentionally
- * defaults to to not using ENVELOPE.  Per bienvenu in
- * https://bugzilla.mozilla.org/show_bug.cgi?id=402594#c33 "We stopped using it
- * by default because servers often had issues with it so it was more trouble
- * than it was worth."
- *
- * Of course, imap.js doesn't really support ENVELOPE outside of bodystructure
- * right now either, but that's a lesser issue.  We probably don't want to trust
- * that data, however, if we don't want to trust normal ENVELOPE.
+ * Number of bytes to fetch from the server for snippets.
  */
-var INITIAL_FETCH_PARAMS = {
-  request: {
-    headers: ['FROM', 'TO', 'CC', 'BCC', 'SUBJECT', 'REPLY-TO', 'MESSAGE-ID',
-              'REFERENCES'],
-    struct: true,
-    body: false
-  },
-};
+var NUMBER_OF_SNIPPET_BYTES = 256;
 
 /**
- * Fetch parameters to just get the flags, which is no parameters because
- * imap.js always fetches them right now.
+ * Maximum bytes to request from server in a fetch request (max uint32)
  */
-var FLAG_FETCH_PARAMS = {
-  request: {
-    struct: false,
-    headers: false,
-    body: false
-  },
-};
+var MAX_FETCH_BYTES = (Math.pow(2, 32) - 1);
 
 /**
  * Folder connections do the actual synchronization logic.  They are associated
@@ -492,6 +475,16 @@ ImapFolderConn.prototype = {
       });
   },
 
+  syncDateRange: function() {
+    var args = Array.slice(arguments);
+    var self = this;
+
+    require(['./protocol/sync'], function(_sync) {
+      $imapsync = _sync;
+      (self.syncDateRange = self._lazySyncDateRange).apply(self, args);
+    });
+  },
+
   /**
    * Perform a search to find all the messages in the given date range.
    * Meanwhile, load the set of messages from storage.  Infer deletion of the
@@ -523,7 +516,7 @@ ImapFolderConn.prototype = {
    *   }
    * ]
    */
-  syncDateRange: function(startTS, endTS, accuracyStamp,
+  _lazySyncDateRange: function(startTS, endTS, accuracyStamp,
                           doneCallback, progressCallback) {
     if (startTS && endTS && SINCE(startTS, endTS)) {
       this._LOG.illegalSync(startTS, endTS);
@@ -605,20 +598,31 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
         if (numDeleted)
           compactArray(headers);
 
-        return self._commonSync(
-          newUIDs, knownUIDs, headers,
-          function(newCount, knownCount) {
+        var uidSync = new $imapsync.Sync({
+          connection: self._conn,
+          storage: self._storage,
+          newUIDs: newUIDs,
+          knownUIDs: knownUIDs,
+          knownHeaders: headers
+        });
+
+        uidSync.onprogress = progressCallback;
+
+        uidSync.oncomplete = function(newCount, knownCount) {
             self._LOG.syncDateRange_end(newCount, knownCount, numDeleted,
                                         startTS, endTS, null, null);
+
             self._storage.markSyncRange(startTS, endTS, modseq,
                                         accuracyStamp);
             if (completed)
               return;
+
             completed = true;
             doneCallback(null, null, newCount + knownCount,
                          skewedStartTS, skewedEndTS);
-          },
-          progressCallback);
+        };
+
+        return;
       });
 
     // - Adjust DB time range for server skew on INTERNALDATE
@@ -664,281 +668,233 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
       searchOptions.push(['BEFORE', endTS]);
   },
 
+  downloadBodyReps: function() {
+    var args = Array.slice(arguments);
+    var self = this;
+
+    require(
+      ['./imapchew', './protocol/bodyfetcher', './protocol/textparser'],
+      function(
+        _imapchew,
+        _bodyfetcher,
+        _textparser
+      ) {
+
+        $imapchew =_imapchew;
+        $imapbodyfetcher = _bodyfetcher;
+        $imaptextparser = _textparser;
+
+        (self.downloadBodyReps = self._lazyDownloadBodyReps).apply(self, args);
+    });
+  },
+
   /**
-   * Given a list of new-to-us UIDs and known-to-us UIDs and their corresponding
-   * headers, synchronize the flags for the known UIDs' headers and fetch and
-   * create the header and body objects for the new UIDS.
-   *
-   * First we fetch the headers/bodystructures for the new UIDs all in one go;
-   * all of these headers are going to end up in-memory at the same time, so
-   * batching won't let us reduce the overhead right now.  We process them
-   * to determine the body parts we should fetch as the results come in.  Once
-   * we have them all, we sort them by date, endTS-to-startTS for the third
-   * step and start issuing/pipelining the requests.
-   *
-   * Second, we issue the flag update requests for the known-to-us UIDs.  This
-   * is done second so it can help avoid wasting the latency of the round-trip
-   * that would otherwise result between steps one and three.  (Although we
-   * could also mitigate that by issuing some step three requests even as
-   * the step one requests are coming in; our sorting doesn't have to be
-   * perfect and may already be reasonably well ordered if UIDs correlate
-   * with internal date well.)
-   *
-   * Third, we fetch the body parts in our newest-to-startTS order, adding
-   * finalized headers and bodies as we go.
+   * Initiates a request to download all body reps. If a snippet has not yet
+   * been generated this will also generate the snippet...
    */
-  _commonSync: function(newUIDs, knownUIDs, knownHeaders, doneCallback,
-                        progressCallback) {
-    require(['./imapchew'], function ($imapchew) {
-    var conn = this._conn, storage = this._storage, self = this;
-console.log("_commonSync", 'newUIDs', newUIDs.length, 'knownUIDs',
-            knownUIDs.length, 'knownHeaders', knownHeaders.length);
-    // See the `ImapFolderConn` block comment for rationale.
-    var KNOWN_HEADERS_AGGR_COST = 20,
-        KNOWN_HEADERS_PER_COST = 1,
-        NEW_HEADERS_AGGR_COST = 20,
-        NEW_HEADERS_PER_COST = 5,
-        NEW_BODIES_PER_COST = 30;
-    var progressCost =
-          (knownUIDs.length ? KNOWN_HEADERS_AGGR_COST : 0) +
-          KNOWN_HEADERS_PER_COST * knownUIDs.length +
-          (newUIDs.length ? NEW_HEADERS_AGGR_COST : 0) +
-          NEW_HEADERS_PER_COST * newUIDs.length +
-          NEW_BODIES_PER_COST * newUIDs.length,
-        progressSoFar = 0;
+  _lazyDownloadBodyReps: function(suid, date, callback) {
+    var bodyInfo;
+    var header;
 
-    function updateProgress(newProgress) {
-      progressSoFar += newProgress;
-      if (progressCallback)
-        progressCallback(0.25 + 0.75 * (progressSoFar / progressCost));
-    }
+    var requests = [];
+    var self = this;
 
-    var callbacks = allbackMaker(
-      ['newMsgs', 'knownMsgs'],
-      function() {
-        // It is possible that async I/O will be required to add a header or a
-        // body, so we need to defer declaring the synchronization done until
-        // after all of the storage's deferred calls have run because the
-        // header/body affecting calls will have been deferred.
-        storage.runAfterDeferredCalls(
-          doneCallback.bind(null, newUIDs.length, knownUIDs.length));
+    var gotHeader = function gotHeader(_header) {
+      // header may have been deleted by the time we get here...
+      if (!_header) {
+        return callback();
+      }
+
+      header = _header;
+      self._storage.getMessageBody(suid, date, gotBody);
+    };
+
+    var gotBody = function gotBody(bodyInfo) {
+      if (!bodyInfo)
+        return callback();
+
+      // target for snippet generation
+      var bodyRepIdx = $imapchew.selectSnippetBodyRep(header, bodyInfo);
+
+      // build the list of requests based on downloading required.
+      bodyInfo.bodyReps.forEach(function(rep, idx) {
+
+        // attempt to be idempotent by only requesting the bytes we need if we
+        // actually need them...
+        if (rep.isDownloaded)
+          return;
+
+        var request = {
+          uid: header.srvid,
+          partInfo: rep._partInfo,
+          bodyRepIndex: idx,
+          createSnippet: idx === bodyRepIdx
+        };
+
+        // we may only need a subset of the total number of bytes.
+        if (rep.amountDownloaded) {
+          // request the remainder
+          request.bytes = [
+            rep.amountDownloaded,
+            Math.min(rep.sizeEstimate * 5, MAX_FETCH_BYTES)
+          ];
+        }
+
+        requests.push(request);
       });
 
-    // -- Fetch headers/bodystructures for new UIDs
-    var newChewReps = [];
-    if (newUIDs.length) {
-      var newFetcher = this._conn.fetch(newUIDs, INITIAL_FETCH_PARAMS);
-      newFetcher.on('message', function onNewMessage(msg) {
-          msg.on('end', function onNewMsgEnd() {
-console.log('  new fetched, header processing, INTERNALDATE: ', msg.rawDate);
-            newChewReps.push($imapchew.chewHeaderAndBodyStructure(msg));
-console.log('   header processed');
-          });
-        });
-      newFetcher.on('error', function onNewFetchError(err) {
-          // XXX the UID might have disappeared already?  we might need to have
-          // our initiating command re-do whatever it's up to.  Alternatively,
-          // we could drop back from a bulk fetch to a one-by-one fetch.
-          console.warn('New UIDs fetch error, ideally harmless:', err);
-        });
-      newFetcher.on('end', function onNewFetchEnd() {
-        require(['mailparser/mailparser'], function($mailparser) {
-          // the fetch results will be bursty, so just update all at once
-          updateProgress(NEW_HEADERS_AGGR_COST +
-                         NEW_HEADERS_PER_COST * newUIDs.length);
+      // we may not have any requests bail early if so.
+      if (!requests.length)
+        callback(); // no requests === success
 
-          // sort the messages, endTS to startTS (aka numerically descending)
-          newChewReps.sort(function(a, b) {
-              return b.msg.date - a.msg.date;
-            });
+      var fetch = new $imapbodyfetcher.BodyFetcher(
+        self._conn,
+        $imaptextparser.TextParser,
+        requests
+      );
 
-          // - issue the bodypart fetches.
-          // Use mailparser's body parsing capabilities, albeit not entirely in
-          // the way it was intended to be used since it wants to parse full
-          // messages.
-          var mparser = new $mailparser.MailParser();
-          function setupBodyParser(partDef) {
-            mparser._state = 0x2; // body
-            mparser._remainder = '';
-            mparser._currentNode = null;
-            mparser._currentNode = mparser._createMimeNode(null);
-            // nb: mparser._multipartTree is an empty list (always)
-            mparser._currentNode.meta.contentType =
-              partDef.type.toLowerCase() + '/' +
-              partDef.subtype.toLowerCase();
-            mparser._currentNode.meta.charset =
-              partDef.params && partDef.params.charset &&
-              partDef.params.charset.toLowerCase();
-            mparser._currentNode.meta.transferEncoding =
-              partDef.encoding && partDef.encoding.toLowerCase();
-            mparser._currentNode.meta.textFormat =
-              partDef.params && partDef.params.format &&
-              partDef.params.format.toLowerCase();
-          }
-          function bodyParseBuffer(buffer) {
-            process.immediate = true;
-            mparser.write(buffer);
-            process.immediate = false;
-          }
-          function finishBodyParsing() {
-            process.immediate = true;
-            mparser._process(true);
-            process.immediate = false;
-            // We end up having provided an extra newline that we don't
-            // want, so let's cut it off if it exists.
-            var content = mparser._currentNode.content;
-            if (content.charCodeAt(content.length - 1) === 10)
-              content = content.substring(0, content.length - 1);
-            return content;
-          }
-
-          // XXX imap.js is currently not capable of issuing/parsing multiple
-          // literal results from a single fetch result line.  It's not a
-          // fundamentally hard problem, but I'd rather defer messing with its
-          // parse loop (and internal state tracking) until a future time when
-          // I can do some other cleanup at the same time.  (The subsequent
-          // literals are just on their own lines with an initial space and then
-          // the named literal.  Ex: " BODY[1.2] {2463}".)
-          //
-          // So let's issue one fetch per body part and then be happy when we've
-          // got them all.
-          var pendingFetches = 0;
-          newChewReps.forEach(function(chewRep, iChewRep) {
-            var partsReceived = [];
-            // If there are no parts to process, consume it now.
-            if (chewRep.bodyParts.length === 0) {
-              if ($imapchew.chewBodyParts(chewRep, partsReceived,
-                                          storage.folderId,
-                                          storage._issueNewHeaderId())) {
-                storage.addMessageHeader(chewRep.header);
-                storage.addMessageBody(chewRep.header, chewRep.bodyInfo);
-              }
-            }
-
-            chewRep.bodyParts.forEach(function(bodyPart) {
-              var opts = {
-                request: {
-                  struct: false,
-                  headers: false,
-                  body: bodyPart.partID
-                }
-              };
-              pendingFetches++;
-
-console.log('  fetching body for', chewRep.msg.id, bodyPart.partID);
-              var fetcher;
-try {
-              fetcher = conn.fetch(chewRep.msg.id, opts);
-} catch (ex) {
-  console.warn('!failure fetching body', ex);
-  return;
-}
-              setupBodyParser(bodyPart);
-              fetcher.on('error', function(err) {
-                console.warn('body fetch error', err);
-                if (--pendingFetches === 0)
-                  callbacks.newMsgs();
-              });
-              fetcher.on('message', function(msg) {
-                setupBodyParser(bodyPart);
-                msg.on('data', bodyParseBuffer);
-                msg.on('end', function() {
-                  updateProgress(NEW_BODIES_PER_COST);
-                  partsReceived.push(finishBodyParsing());
-console.log('  !fetched body part for', chewRep.msg.id, bodyPart.partID,
-            partsReceived.length, chewRep.bodyParts.length);
-
-                  // -- Process
-                  if (partsReceived.length === chewRep.bodyParts.length) {
-                    try {
-                      if ($imapchew.chewBodyParts(
-                            chewRep, partsReceived, storage.folderId,
-                            storage._issueNewHeaderId())) {
-                        storage.addMessageHeader(chewRep.header);
-                        storage.addMessageBody(chewRep.header,
-                                               chewRep.bodyInfo);
-                      }
-                      else {
-                        self._LOG.bodyChewError(false);
-                        console.error('Failed to process body!');
-                      }
-                    }
-                    catch (ex) {
-                      self._LOG.bodyChewError(ex);
-                      console.error('Failure processing body:', ex, '\n',
-                                    ex.stack);
-                    }
-                  }
-                  // If this is the last chew rep, then use its completion
-                  // to report our completion.
-                  if (--pendingFetches === 0)
-                    callbacks.newMsgs();
-                });
-              });
-            });
-          });
-          if (pendingFetches === 0)
-            callbacks.newMsgs();
-        }.bind(this));
+      self._handleBodyFetcher(fetch, header, bodyInfo, function(err) {
+        callback(err, bodyInfo);
       });
-    }
-    else {
-      callbacks.newMsgs();
+    };
+
+    self._storage.getMessageHeader(suid, date, gotHeader);
+  },
+
+  /**
+   * Download a snippet and a portion of the bodyRep to go along with it... In
+   * all cases we expect the bodyReps to be completely empty as we also will
+   * generate the snippet in the case of completely downloading a snippet.
+   */
+  _downloadSnippet: function(header, callback) {
+    var self = this;
+    this._storage.getMessageBody(header.suid, header.date, function(body) {
+      // attempt to find a rep
+      var bodyRepIndex = $imapchew.selectSnippetBodyRep(header, body);
+
+      // no suitable snippet we are done.
+      if (bodyRepIndex === -1)
+        return callback();
+
+      var rep = body.bodyReps[bodyRepIndex];
+      var requests = [{
+        uid: header.srvid,
+        bodyRepIndex: bodyRepIndex,
+        partInfo: rep._partInfo,
+        bytes: [0, NUMBER_OF_SNIPPET_BYTES],
+        createSnippet: true
+      }];
+
+      var fetch = new $imapbodyfetcher.BodyFetcher(
+        self._conn,
+        $imapsnippetparser.SnippetParser,
+        requests
+      );
+
+      self._handleBodyFetcher(
+        fetch,
+        header,
+        body,
+        callback
+      );
+    });
+  },
+
+  /**
+   * Wrapper around common bodyRep updates...
+   */
+  _handleBodyFetcher: function(fetcher, header, body, callback) {
+    var event = {
+      changeType: 'bodyReps',
+      indexes: []
+    };
+
+    var self = this;
+
+    fetcher.onparsed = function(req, resp) {
+      $imapchew.updateMessageWithFetch(header, body, req, resp);
+
+      if (req.createSnippet) {
+        self._storage.updateMessageHeader(
+          header.date,
+          header.id,
+          false,
+          header
+        );
+      }
+
+      event.indexes.push(req.bodyRepIndex);
+    };
+
+    fetcher.onerror = function(e) {
+      callback(e);
+    };
+
+    fetcher.onend = function() {
+      self._storage.updateMessageBody(
+        header,
+        body,
+        event
+      );
+
+      self._storage.runAfterDeferredCalls(callback);
+    };
+  },
+
+  /**
+   * Download snippets for a set of headers.
+   */
+  _lazyDownloadSnippets: function(headers, callback) {
+    var i = 0;
+    var len = headers.length;
+    var pending = 1;
+
+    var self = this;
+    var anyErr;
+    function next(err) {
+      if (err && !anyErr)
+        anyErr = err;
+
+      if (!--pending) {
+        self._storage.runAfterDeferredCalls(function() {
+          callback(anyErr);
+        });
+      }
     }
 
-    // -- Fetch updated flags for known UIDs
-    if (knownUIDs.length) {
-      var knownFetcher = this._conn.fetch(knownUIDs, FLAG_FETCH_PARAMS);
-      var numFetched = 0;
-      knownFetcher.on('message', function onKnownMessage(msg) {
-          // (Since we aren't requesting headers, we should be able to get
-          // away without registering this next event handler and just process
-          // msg right now, but let's wait on an optimization pass.)
-          msg.on('end', function onKnownMsgEnd() {
-            var i = numFetched++;
-console.log('FETCHED', i, 'known id', knownHeaders[i].id,
-            'known srvid', knownHeaders[i].srvid, 'actual id', msg.id);
-            // RFC 3501 doesn't require that we get results in the order we
-            // request them, so use indexOf if things don't line up.  (In fact,
-            // dovecot sorts them, so we might just want to sort ours too.)
-            if (knownHeaders[i].srvid !== msg.id) {
-              i = knownUIDs.indexOf(msg.id);
-              // If it's telling us about a message we don't know about, run away.
-              if (i === -1) {
-                console.warn("Server fetch reports unexpected message:", msg.id);
-                return;
-              }
-            }
-            var header = knownHeaders[i];
-            // (msg.flags comes sorted and we maintain that invariant)
-            if (header.flags.toString() !== msg.flags.toString()) {
-console.warn('  FLAGS: "' + header.flags.toString() + '" VS "' +
-             msg.flags.toString() + '"');
-              header.flags = msg.flags;
-              storage.updateMessageHeader(header.date, header.id, true, header);
-            }
-            else {
-              storage.unchangedMessageHeader(header);
-            }
-          });
-        });
-      knownFetcher.on('error', function onKnownFetchError(err) {
-          // XXX the UID might have disappeared already?  we might need to have
-          // our initiating command re-do whatever it's up to.  Alternatively,
-          // we could drop back from a bulk fetch to a one-by-one fetch.
-          console.warn('Known UIDs fetch error, ideally harmless:', err);
-        });
-      knownFetcher.on('end', function() {
-        // the fetch results will be bursty, so just update all at once
-        updateProgress(KNOWN_HEADERS_AGGR_COST +
-                       KNOWN_HEADERS_PER_COST * knownUIDs.length);
-        callbacks.knownMsgs();
-      });
+    for (; i < len; i++) {
+      if (!headers[i] || headers[i].snippet) {
+        continue;
+      }
+
+      pending++;
+      this._downloadSnippet(headers[i], next);
     }
-    else {
-      callbacks.knownMsgs();
-    }
-  }.bind(this));
+
+    // by having one pending item always this handles the case of not having any
+    // snippets needing a download and also returning in the next tick of the
+    // event loop.
+    window.setZeroTimeout(next);
+  },
+
+  downloadSnippets: function() {
+    var args = Array.slice(arguments);
+    var self = this;
+
+    require(
+      ['./imapchew', './protocol/bodyfetcher', './protocol/snippetparser'],
+      function(
+        _imapchew,
+        _bodyfetcher,
+        _snippetparser
+      ) {
+
+        $imapchew =_imapchew;
+        $imapbodyfetcher = _bodyfetcher;
+        $imapsnippetparser = _snippetparser;
+
+        (self.downloadSnippets = self._lazyDownloadSnippets).apply(self, args);
+    });
   },
 
   downloadMessageAttachments: function(uid, partInfos, callback, progress) {
@@ -1833,6 +1789,84 @@ ImapJobDriver.prototype = {
 
   allJobsDone: $jobmixins.allJobsDone,
 
+  // snippet downloading
+
+  local_do_downloadSnippets: function(op, doneCallback) {
+    doneCallback(null);
+  },
+
+  do_downloadSnippets: function(op, doneCallback) {
+    var aggrErr;
+    this._partitionAndAccessFoldersSequentially(
+      op.messages,
+      true,
+      function perFolder(folderConn, storage, headers, namers, callWhenDone) {
+        folderConn.downloadSnippets(headers, function(err) {
+          if (err && !aggrErr) {
+            aggrErr = err;
+          }
+          callWhenDone();
+        });
+      },
+      function allDone() {
+        doneCallback(aggrErr);
+      },
+      function deadConn() {
+        aggrErr = 'aborted-retry';
+      },
+      false, // reverse?
+      'downloadSnippets',
+      true // require headers
+    );
+  },
+
+  // body rep downloading
+
+  local_do_downloadBodyReps: function(op, doneCallback) {
+    doneCallback(null);
+  },
+
+  do_downloadBodyReps: function(op, doneCallback) {
+    var self = this;
+
+    var idxLastSlash = op.messageSuid.lastIndexOf('/'),
+        folderId = op.messageSuid.substring(0, idxLastSlash);
+
+    var folderConn, folderStorage;
+    // Once we have the connection, get the current state of the body rep.
+    var gotConn = function gotConn(_folderConn, _folderStorage) {
+      folderConn = _folderConn;
+      folderStorage = _folderStorage;
+
+      folderConn.downloadBodyReps(
+        op.messageSuid, op.messageDate, onDownloadReps
+      );
+    };
+
+    var onDownloadReps = function onDownloadReps(err, bodyInfo) {
+      if (err) {
+        console.error('Error downloading reps', err);
+        // fail we cannot download for some reason?
+        return doneCallback('unknown');
+      }
+
+      // success
+      doneCallback(null, bodyInfo, true);
+    };
+
+    var deadConn = function deadConn() {
+      doneCallback('aborted-retry');
+    };
+
+    self._accessFolderForMutation(
+      folderId,
+      true,
+      gotConn,
+      deadConn,
+      'downloadBodyReps'
+    );
+  },
+
   //////////////////////////////////////////////////////////////////////////////
   // download: Download one or more attachments from a single message
 
@@ -2167,8 +2201,8 @@ ImapJobDriver.prototype = {
               namer.date, newId, false,
               function(header) {
                 // If the header isn't there because it got moved, then null
-                // will be returned and it's up to the next move operation
-                // to fix this up.
+                // will be returned and it's up to the next move operation to
+                // fix this up.
                 if (header)
                   header.srvid = msg.id;
                 else
@@ -2656,6 +2690,7 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
   this.accountDef = compositeAccount.accountDef;
 
   this.enabled = true;
+  this._alive = true;
 
   this._LOG = LOGFAB.ImapAccount(this, _parentLog, this.id);
 
@@ -2878,6 +2913,11 @@ ImapAccount.prototype = {
    * operations to defer until after that snapshot has occurred.
    */
   saveAccountState: function(reuseTrans, callback) {
+    if (!this._alive) {
+      this._LOG.accountDeleted('saveAccountState');
+      return;
+    }
+
     var perFolderStuff = [], self = this;
     for (var iFolder = 0; iFolder < this.folders.length; iFolder++) {
       var folderPub = this.folders[iFolder],
@@ -3000,6 +3040,11 @@ ImapAccount.prototype = {
     }
 
     this._LOG.__die();
+  },
+
+  accountDeleted: function() {
+    this._alive = false;
+    this.shutdown();
   },
 
   checkAccount: function(listener) {
@@ -3561,6 +3606,11 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       connectionMismatch: {},
 
       saveAccountState: {},
+      /**
+       * XXX: this is really an error/warning, but to make the logging less
+       * confusing, treat it as an event.
+       */
+      accountDeleted: { where: false },
 
       /**
        * The maximum connection limit has been reached, we are intentionally
@@ -3638,6 +3688,10 @@ SmtpAccount.prototype = {
     // (there should be no live connections during a unit-test initiated
     // shutdown.)
     this._LOG.__die();
+  },
+
+  accountDeleted: function() {
+    this.shutdown();
   },
 
   /**
@@ -3981,6 +4035,11 @@ CompositeAccount.prototype = {
     this._receivePiece.shutdown();
   },
 
+  accountDeleted: function() {
+    this._sendPiece.accountDeleted();
+    this._receivePiece.accountDeleted();
+  },
+
   deleteFolder: function(folderId, callback) {
     return this._receivePiece.deleteFolder(folderId, callback);
   },
@@ -4044,7 +4103,8 @@ CompositeAccount.prototype = {
   getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
 };
 
-}); // end define;
+}); // end define
+;
 /**
  * Configurator for imap+smtp
  **/
@@ -4172,7 +4232,7 @@ exports.configurator = {
     };
 
     this._loadAccount(universe, accountDef,
-                      oldAccountInfo.folderInfo, function (account) {
+                      oldAccountInfo.folderInfo, null, function (account) {
       callback(null, account, null);
     });
   },

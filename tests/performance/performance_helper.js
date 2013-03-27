@@ -56,7 +56,7 @@ require('/tests/js/integration_helper.js');
         '  w.removeEventListener("apploadtime", w.onapplicationloaded);' +
         '}' +
         'w.onapplicationloaded = function(e) {' +
-        '  w.loadTimes.push(e.detail.time);' +
+        '  w.loadTimes.push(e.detail);' +
         '};' +
         'w.addEventListener("apploadtime", w.onapplicationloaded);';
 

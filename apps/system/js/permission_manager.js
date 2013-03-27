@@ -200,5 +200,20 @@ var PermissionManager = (function() {
     remember.checked = !remember.checked;
   });
 
+  function discardPermissionRequest() {
+    if (currentRequestId == undefined)
+      return;
+
+    dispatchResponse(currentRequestId, 'permission-deny', false);
+    hidePermissionPrompt();
+  };
+
+  // On home/holdhome pressed, discard permission request.
+  // XXX: We should make permission dialog be embededd in appWindow
+  // Gaia bug is https://bugzilla.mozilla.org/show_bug.cgi?id=853711
+  // Gecko bug is https://bugzilla.mozilla.org/show_bug.cgi?id=852013
+  window.addEventListener('home', discardPermissionRequest);
+  window.addEventListener('holdhome', discardPermissionRequest);
+
 }());
 

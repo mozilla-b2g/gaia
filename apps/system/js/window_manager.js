@@ -990,7 +990,8 @@ var WindowManager = (function() {
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('apploadtime', true, false, {
           time: parseInt(Date.now() - iframe.dataset.start),
-          type: (e.type == 'appopen') ? 'w' : 'c'
+          type: (e.type == 'appopen') ? 'w' : 'c',
+          src: iframe.src
         });
         iframe.dispatchEvent(evt);
       }, true);
@@ -1199,6 +1200,9 @@ var WindowManager = (function() {
       }
     }
 
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('activitywillopen', true, true, { origin: origin });
+
     // Create the <iframe mozbrowser mozapp> that hosts the app
     var frame = createFrame(null, origin, url, name, manifest, manifestURL);
     var iframe = frame.firstChild;
@@ -1213,12 +1217,25 @@ var WindowManager = (function() {
     // inline frame. With the name we can get frames of the same app using the
     // window.open method.
     iframe.name = 'inline';
+    iframe.dataset.start = Date.now();
 
     // Save the reference
     inlineActivityFrames.push(frame);
 
     // Set the size
     setInlineActivityFrameSize();
+
+    frame.addEventListener('mozbrowserloadend', function activityloaded(e) {
+      e.target.removeEventListener(e.type, activityloaded, true);
+
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('activityloadtime', true, false, {
+        time: parseInt(Date.now() - iframe.dataset.start),
+        type: 'c', // Activity is always cold booted now.
+        src: iframe.src
+      });
+      iframe.dispatchEvent(evt);
+    }, true);
 
     // Add the iframe to the document
     windows.appendChild(frame);

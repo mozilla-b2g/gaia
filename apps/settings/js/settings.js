@@ -82,7 +82,9 @@ var Settings = {
           if (input.value == value)
             return;
           input.value = value;
-          input.refresh(); // XXX to be removed when bug344618 lands
+          if (input.refresh) {
+            input.refresh(); // XXX to be removed when bug344618 lands
+          }
           break;
         case 'select':
           for (var i = 0; i < input.options.length; i++) {
@@ -291,7 +293,9 @@ var Settings = {
         var key = ranges[i].name;
         if (key && result[key] != undefined) {
           ranges[i].value = parseFloat(result[key]);
-          ranges[i].refresh(); // XXX to be removed when bug344618 lands
+          if (ranges[i].refresh) {
+            ranges[i].refresh(); // XXX to be removed when bug344618 lands
+          }
         }
       }
 
@@ -624,7 +628,7 @@ window.addEventListener('load', function loadSettings() {
             langSel.appendChild(option);
           }
         });
-        Settings.updateLanguagePanel();
+        setTimeout(Settings.updateLanguagePanel);
         break;
       case 'mediaStorage':        // full media storage status + panel startup
         MediaStorage.initUI();
@@ -648,6 +652,10 @@ window.addEventListener('load', function loadSettings() {
   var oldHash = window.location.hash || '#root';
   function showPanel() {
     var hash = window.location.hash;
+
+    if (hash === '#wifi') {
+      PerformanceTestingHelper.dispatch('start');
+    }
 
     var oldPanel = document.querySelector(oldHash);
     var newPanel = document.querySelector(hash);
@@ -694,10 +702,15 @@ window.addEventListener('load', function loadSettings() {
 
         oldPanel.addEventListener('transitionend', function onTransitionEnd() {
           oldPanel.removeEventListener('transitionend', onTransitionEnd);
-          // Workaround for bug 825622, remove when fixed
-          if (newPanel.id == 'about-licensing') {
-            var iframe = document.getElementById('os-license');
-            iframe.src = iframe.dataset.src;
+          switch (newPanel.id) {
+            case 'about-licensing':
+              // Workaround for bug 825622, remove when fixed
+              var iframe = document.getElementById('os-license');
+              iframe.src = iframe.dataset.src;
+              break;
+            case 'wifi':
+              PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
+              break;
           }
         });
       });
@@ -810,3 +823,4 @@ window.addEventListener('localized', function showLanguages() {
 Settings.preInit();
 
 MouseEventShim.trackMouseMoves = false;
+

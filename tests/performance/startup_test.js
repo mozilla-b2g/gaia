@@ -50,6 +50,17 @@ suite(window.mozTestInfo.appPath + ' >', function() {
     });
 
     var results = yield PerformanceHelper.getLoadTimes(device);
+    results = results.filter(function (element) {
+      if (element.src.indexOf('app://' + manifestPath) !== 0) {
+        return false;
+      }
+      if (entryPoint && element.src.indexOf(entryPoint) === -1) {
+        return false;
+      }
+      return true;
+    }).map(function (element) {
+      return element.time;
+    });
 
     PerformanceHelper.reportDuration(results);
   });

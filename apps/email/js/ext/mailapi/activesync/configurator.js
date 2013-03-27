@@ -1190,7 +1190,7 @@ ActiveSyncFolderConn.prototype = {
         attachments: [],
         relatedParts: [],
         references: null,
-        bodyReps: null,
+        bodyReps: null
       };
 
       flagHeader = function(flag, state) {
@@ -1257,13 +1257,13 @@ ActiveSyncFolderConn.prototype = {
         header.author = $mimelib.parseAddresses(childText)[0] || null;
         break;
       case em.To:
-        body.to = $mimelib.parseAddresses(childText);
+        header.to = $mimelib.parseAddresses(childText);
         break;
       case em.Cc:
-        body.cc = $mimelib.parseAddresses(childText);
+        header.cc = $mimelib.parseAddresses(childText);
         break;
       case em.ReplyTo:
-        body.replyTo = $mimelib.parseAddresses(childText);
+        header.replyTo = $mimelib.parseAddresses(childText);
         break;
       case em.DateReceived:
         body.date = header.date = new Date(childText).valueOf();
@@ -1368,13 +1368,31 @@ ActiveSyncFolderConn.prototype = {
       var bodyRep = $quotechew.quoteProcessTextBody(bodyText);
       header.snippet = $quotechew.generateSnippet(bodyRep,
                                                   DESIRED_SNIPPET_LENGTH);
-      body.bodyReps = ['plain', bodyRep];
+      var content = bodyRep[1];
+      var len = content.length;
+
+      body.bodyReps = [{
+        type: 'plain',
+        content: bodyRep,
+        sizeEstimate: len,
+        amountDownloaded: len,
+        isDownloaded: true
+      }];
     }
     else if (bodyType === asbEnum.Type.HTML) {
       var htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
       header.snippet = $htmlchew.generateSnippet(htmlNode,
                                                  DESIRED_SNIPPET_LENGTH);
-      body.bodyReps = ['html', htmlNode.innerHTML];
+      var content = htmlNode.innerHTML;
+      var len = content.length;
+
+      body.bodyReps = [{
+        type: 'html',
+        content: content,
+        sizeEstimate: len,
+        amountDownloaded: len,
+        isDownloaded: true
+      }];
     }
 
     return { header: header, body: body };
@@ -2329,6 +2347,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
 
   this.enabled = true;
   this.problems = [];
+  this._alive = true;
 
   this.identities = accountDef.identities;
 
@@ -2459,6 +2478,11 @@ ActiveSyncAccount.prototype = {
 
   saveAccountState: function asa_saveAccountState(reuseTrans, callback,
                                                   reason) {
+    if (!this._alive) {
+      this._LOG.accountDeleted('saveAccountState');
+      return;
+    }
+
     var account = this;
     var perFolderStuff = [];
     for (var iter in Iterator(this.folders)) {
@@ -2490,6 +2514,11 @@ ActiveSyncAccount.prototype = {
 
   shutdown: function asa_shutdown() {
     this._LOG.__die();
+  },
+
+  accountDeleted: function asa_accountDeleted() {
+    this._alive = false;
+    this.shutdown();
   },
 
   sliceFolderMessages: function asa_sliceFolderMessages(folderId,
@@ -3009,6 +3038,11 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       deleteFolder: {},
       recreateFolder: { id: false },
       saveAccountState: { reason: false },
+      /**
+       * XXX: this is really an error/warning, but to make the logging less
+       * confusing, treat it as an event.
+       */
+      accountDeleted: { where: false },
     },
     asyncJobs: {
       runOp: { mode: true, type: true, error: false, op: false },

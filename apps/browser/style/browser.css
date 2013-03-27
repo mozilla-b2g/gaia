@@ -631,19 +631,19 @@ li[role="tab"] {
 }
 
 li[role="tab"] a {
-  display: block;
   float: left;
+  max-width: calc(33% - 3.9rem);
   height: 3.6rem;
+  margin-left: -3rem;
+  padding: 0 3rem;
   text-decoration: none;
   color: #000;
+  font-size: 1.3rem;
   line-height: 3.6rem;
+  letter-spacing: -0.02rem;
   text-align: center;
-  padding: 0 3rem;
-  font-size: 1.4rem;
-  outline: none;
-  margin-left: -3rem;
   text-overflow: ellipsis;
-  max-width: calc(33% - 3.9rem);
+  outline: none;
   overflow: hidden;
 }
 
@@ -730,6 +730,7 @@ li[role="listitem"] h5 {
   font-weight: normal;
   margin: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   pointer-events: none;
   font-size: 1.4rem;
@@ -739,6 +740,7 @@ li[role="listitem"] small {
   display: block;
   color: #666;
   overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   pointer-events: none;
 }
