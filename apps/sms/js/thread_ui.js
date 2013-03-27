@@ -387,6 +387,7 @@ var ThreadUI = {
       return;
     }
 
+
     Contacts.findByString(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
       /** If we have more than one contact sharing the same phone number
