@@ -646,6 +646,9 @@
     if (options.isYesNoRequired) {
       input.type = 'checkbox';
     }
+    if (options.hideInput) {
+      input.type = 'password';
+    }
     if (options.hidden) {
       input.type = 'hidden';
     }
