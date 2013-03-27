@@ -100,6 +100,7 @@ var MediaStorage = {
       switch (state) {
         case 'shared':
           mediaSubtitle.textContent = '';
+          mediaSubtitle.dataset.l10nId = '';
           // Keep the media storage enabled,
           // so that the user goes inside to toggle USB Mass storage.
           self.setEnabledState(true);
@@ -108,6 +109,7 @@ var MediaStorage = {
 
         case 'unavailable':
           mediaSubtitle.textContent = _('no-storage');
+          mediaSubtitle.dataset.l10nId = 'no-storage';
           self.setEnabledState(false);
           self.setInfoInvalid();
           break;
