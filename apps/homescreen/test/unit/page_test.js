@@ -1,5 +1,6 @@
 'use strict';
 
+requireApp('homescreen/test/unit/mock_home_state.js');
 requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_xmlhttprequest.js');
 requireApp('homescreen/test/unit/mock_grid_manager.js');
@@ -7,6 +8,7 @@ requireApp('homescreen/test/unit/mock_grid_manager.js');
 requireApp('homescreen/js/page.js');
 
 var mocksHelperForPage = new MocksHelper([
+  'HomeState',
   'XMLHttpRequest',
   'GridManager'
 ]);
