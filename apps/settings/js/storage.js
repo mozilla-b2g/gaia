@@ -133,7 +133,7 @@ var Storage = {
       // if the default storage is unavailable, and it's not the
       // internal storage, we show the internal storage status instead.
       if (state === 'unavailable' &&
-          self.defaultMediaVolume.volumeName !== firstVolume.volumeName) {
+          self.defaultMediaVolume.storageName !== firstVolume.storageName) {
         firstVolume.available().onsuccess = function(e) {
           self.updateVolumeState(firstVolume, e.target.result);
         };
@@ -194,7 +194,7 @@ var Storage = {
       return volumes[0];
     }
     for (var i = 0; i < volumes.length; ++i) {
-      if (volumes[i].volumeName === name) {
+      if (volumes[i].storageName === name) {
         return volumes[i];
       }
     }
