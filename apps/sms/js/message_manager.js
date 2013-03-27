@@ -74,7 +74,7 @@ var MessageManager = {
     var currentThread = this.currentThread;
     var threadId = message.threadId;
     
-    if (currentThread && currentThread === threadId) {
+    if (currentThread != null && currentThread === threadId) {
       // Append message and mark as unread
       this.markMessagesRead([message.id], true, function() {
         MessageManager.getThreads(ThreadListUI.renderThreads);
