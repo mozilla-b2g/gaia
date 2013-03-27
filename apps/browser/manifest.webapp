@@ -13,7 +13,9 @@
     "settings":{ "access": "readonly" },
     "geolocation" : {},
     "desktop-notification" : {},
-    "device-storage:pictures" : { "access": "readwrite" }
+    "device-storage:pictures" : { "access": "readwrite" },
+    "device-storage:videos" : { "access": "readwrite" },
+    "device-storage:music" : { "access": "readwrite" }
   },
   "locales": {
     "ar": {

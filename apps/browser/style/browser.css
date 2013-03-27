@@ -1010,10 +1010,10 @@ li[role="listitem"] small {
   .page-screen #frames { bottom: 0; }
 }
 
-#save-image-status {
+#save-media-status {
   display: none;
 }
 
-#save-image-status.visible {
+#save-media-status.visible {
   display: block;
 }
