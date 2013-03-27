@@ -11,7 +11,8 @@ label:not([for])  {
   background: none;
 }
 
-label:not([for]) input {
+label:not([for]) input[type="checkbox"],
+label:not([for]) input[type="radio"] {
   margin: 0;
   opacity: 0;
   position: absolute;
