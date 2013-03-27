@@ -1584,6 +1584,7 @@ define('mailapi/imap/imapchew',
     exports
   ) {
 
+
 /**
  * Process the headers and bodystructure of a message to build preliminary state
  * and determine what body parts to fetch.  The list of body parts will be used
@@ -1616,15 +1617,13 @@ define('mailapi/imap/imapchew',
  *  attachments.
  *
  * @typedef[ChewRep @dict[
- *   @key[msg ImapJsMsg]
- *   @key[bodyParts @listof[ImapJsPart]]
+ *   @key[bodyReps @listof[ImapJsPart]]
  *   @key[attachments @listof[AttachmentInfo]]
- *   @key[header HeaderInfo]
- *   @key[bodyInfo BodyInfo]
+ *   @key[relatedParts @listof[RelatedPartInfo]]
  * ]]
  * @return[ChewRep]
  */
-exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
+function chewStructure(msg) {
   // imap.js builds a bodystructure tree using lists.  All nodes get wrapped
   //  in a list so they are element zero.  Children (which get wrapped in
   //  their own list) follow.
@@ -1636,7 +1635,7 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
   //     [{alternative} [{text/plain}] [{text/html}]]
   //   multipart/mixed text w/attachment =>
   //     [{mixed} [{text/plain}] [{application/pdf}]]
-  var attachments = [], bodyParts = [], unnamedPartCounter = 0,
+  var attachments = [], bodyReps = [], unnamedPartCounter = 0,
       relatedParts = [];
 
   /**
@@ -1728,6 +1727,23 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
       };
     }
 
+    function makeTextPart(partInfo) {
+      return {
+        type: partInfo.subtype,
+        part: partInfo.partID,
+        sizeEstimate: partInfo.size,
+        amountDownloaded: 0,
+        // its important to know that sizeEstimate and amountDownloaded
+        // do _not_ determine if the bodyRep is fully downloaded the
+        // estimated amount is not reliable
+        isDownloaded: false,
+        // full internal IMAP representation
+        // it would also be entirely appropriate to move
+        // the information on the bodyRep directly?
+        _partInfo: partInfo
+      };
+    }
+
     if (disposition === 'attachment') {
       attachments.push(makePart(partInfo, filename));
       return true;
@@ -1744,7 +1760,7 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
       case 'text':
         if (partInfo.subtype === 'plain' ||
             partInfo.subtype === 'html') {
-          bodyParts.push(partInfo);
+          bodyReps.push(makeTextPart(partInfo));
           return true;
         }
         break;
@@ -1813,107 +1829,177 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
     chewLeaf(msg.structure);
 
   return {
-    msg: msg,
-    bodyParts: bodyParts,
+    bodyReps: bodyReps,
     attachments: attachments,
     relatedParts: relatedParts,
-    header: null,
-    bodyInfo: null,
   };
 };
 
-var DESIRED_SNIPPET_LENGTH = 100;
-
-/**
- * Call once the body parts requested by `chewHeaderAndBodyStructure` have been
- * fetched in order to finish processing of the message to produce the header
- * and body data-structures for the message.
- *
- * This method is currently synchronous because quote-chewing and HTML
- * sanitization can be performed synchronously.  This may need to become
- * asynchronous if we still end up with this happening on the same thread as the
- * UI so we can time slice of something like that.
- *
- * @args[
- *   @param[rep ChewRep]
- *   @param[bodyPartContents @listof[String]]{
- *     The fetched body parts matching the list of requested parts in
- *     `rep.bodyParts`.
- *   }
- * ]
- * @return[success Boolean]{
- *   True if we were able to process the message and have updated `rep.header`
- *   and `rep.bodyInfo` with populated objects.
- * }
- */
-exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
-                                               folderId, newMsgId) {
-  var snippet = null, bodyReps = [];
-
-  // Mailing lists can result in a text/html body part followed by a text/plain
-  // body part.  Can't rule out multiple HTML parts at this point either, so we
-  // just process everything independently and have the UI do likewise.
-  for (var i = 0; i < rep.bodyParts.length; i++) {
-    var partInfo = rep.bodyParts[i],
-        contents = bodyPartContents[i];
-
-    // HTML parts currently can be synchronously sanitized...
-    switch (partInfo.subtype) {
-      case 'plain':
-        var bodyRep = $quotechew.quoteProcessTextBody(contents);
-        if (!snippet)
-          snippet = $quotechew.generateSnippet(bodyRep,
-                                               DESIRED_SNIPPET_LENGTH);
-        bodyReps.push('plain', bodyRep);
-        break;
-
-      case 'html':
-        var htmlNode = $htmlchew.sanitizeAndNormalizeHtml(contents);
-        if (!snippet)
-          snippet = $htmlchew.generateSnippet(htmlNode, DESIRED_SNIPPET_LENGTH);
-        bodyReps.push('html', htmlNode.innerHTML);
-        break;
-    }
-  }
-
+exports.chewHeaderAndBodyStructure =
+  function(msg, folderId, newMsgId) {
+  // begin by splitting up the raw imap message
+  var parts = chewStructure(msg);
+  var rep = {};
 
   rep.header = {
     // the FolderStorage issued id for this message (which differs from the
     // IMAP-server-issued UID so we can do speculative offline operations like
     // moves).
     id: newMsgId,
-    srvid: rep.msg.id,
+    srvid: msg.id,
     // The sufficiently unique id is a concatenation of the UID onto the
     // folder id.
     suid: folderId + '/' + newMsgId,
     // The message-id header value; as GUID as get for now; on gmail we can
     // use their unique value, or if we could convince dovecot to tell us, etc.
-    guid: rep.msg.msg.meta.messageId,
+    guid: msg.msg.meta.messageId,
     // mailparser models from as an array; we do not.
-    author: rep.msg.msg.from[0] || null,
-    date: rep.msg.date,
-    flags: rep.msg.flags,
-    hasAttachments: rep.attachments.length > 0,
-    subject: rep.msg.msg.subject || null,
-    snippet: snippet,
+    author: msg.msg.from[0] || null,
+    to: ('to' in msg.msg) ? msg.msg.to : null,
+    cc: ('cc' in msg.msg) ? msg.msg.cc : null,
+    bcc: ('bcc' in msg.msg) ? msg.msg.bcc : null,
+
+    replyTo: ('reply-to' in msg.msg.parsedHeaders) ?
+               msg.msg.parsedHeaders['reply-to'] : null,
+
+    date: msg.date,
+    flags: msg.flags,
+    hasAttachments: parts.attachments.length > 0,
+    subject: msg.msg.subject || null,
+
+    // we lazily fetch the snippet later on
+    snippet: null
   };
 
 
   rep.bodyInfo = {
-    date: rep.msg.date,
+    date: msg.date,
     size: 0,
-    to: ('to' in rep.msg.msg) ? rep.msg.msg.to : null,
-    cc: ('cc' in rep.msg.msg) ? rep.msg.msg.cc : null,
-    bcc: ('bcc' in rep.msg.msg) ? rep.msg.msg.bcc : null,
-    replyTo: ('reply-to' in rep.msg.msg.parsedHeaders) ?
-               rep.msg.msg.parsedHeaders['reply-to'] : null,
-    attachments: rep.attachments,
-    relatedParts: rep.relatedParts,
-    references: rep.msg.msg.meta.references,
-    bodyReps: bodyReps,
+    attachments: parts.attachments,
+    relatedParts: parts.relatedParts,
+    references: msg.msg.meta.references,
+    bodyReps: parts.bodyReps
   };
 
-  return true;
+  return rep;
+};
+
+var DESIRED_SNIPPET_LENGTH = 100;
+
+/**
+ * Fill a given body rep with the content from fetching
+ * part or the entire body of the message...
+ *
+ *    var body = ...;
+ *    var header = ...;
+ *    var content = (some fetched content)..
+ *
+ *    $imapchew.updateMessageWithBodyRep(
+ *      header,
+ *      bodyInfo,
+ *      {
+ *        bodyRepIndex: 0,
+ *        text: '',
+ *        buffer: Uint8Array|Null,
+ *        bytesFetched: n,
+ *        bytesRequested: n
+ *      }
+ *    );
+ *
+ *    // what just happend?
+ *    // 1. the body.bodyReps[n].content is now the value of content.
+ *    //
+ *    // 2. we update .downloadedAmount with the second argument
+ *    //    (number of bytes downloaded).
+ *    //
+ *    // 3. if snippet has not bee set on the header we create the snippet
+ *    //    and set its value.
+ *
+ */
+exports.updateMessageWithFetch =
+  function(header, body, req, res) {
+
+  var bodyRep = body.bodyReps[req.bodyRepIndex];
+
+  // check if the request was unbounded or we got back less bytes then we
+  // requested in which case the download of this bodyRep is complete.
+  if (!req.bytes || res.bytesFetched < req.bytes[1]) {
+    bodyRep.isDownloaded = true;
+
+    // clear private space for maintaining parser state.
+    delete bodyRep._partInfo;
+  }
+
+  if (!bodyRep.isDownloaded && res.buffer) {
+    bodyRep._partInfo.pendingBuffer = res.buffer;
+  }
+
+  var parsedContent;
+  var snippet;
+  switch (bodyRep.type) {
+    case 'plain':
+      parsedContent = $quotechew.quoteProcessTextBody(res.text);
+      if (req.createSnippet) {
+        header.snippet = $quotechew.generateSnippet(
+          parsedContent, DESIRED_SNIPPET_LENGTH
+        );
+      }
+      break;
+    case 'html':
+      var internalRep = $htmlchew.sanitizeAndNormalizeHtml(res.text);
+      if (req.createSnippet) {
+        header.snippet = $htmlchew.generateSnippet(
+          internalRep, DESIRED_SNIPPET_LENGTH
+        );
+      }
+      parsedContent = internalRep.innerHTML;
+      break;
+  }
+
+  bodyRep.amountDownloaded += res.bytesFetched;
+
+  // if the body rep is fully downloaded then we should set the content as text
+  // otherwise the message is likely garbled and the snippet is the best we can
+  // do.
+  if (bodyRep.isDownloaded) {
+    bodyRep.content = parsedContent;
+  }
+};
+
+/**
+ * Selects a desirable snippet body rep if the given header has no snippet.
+ */
+exports.selectSnippetBodyRep = function(header, body) {
+  if (header.snippet)
+    return -1;
+
+  var bodyReps = body.bodyReps;
+  var len = bodyReps.length;
+
+  for (var i = 0; i < len; i++) {
+    if (exports.canBodyRepFillSnippet(bodyReps[i])) {
+      return i;
+    }
+  }
+
+  return -1;
+};
+
+/**
+ * Determines if a given body rep can be converted into a snippet. Useful for
+ * determining which body rep to use when downloading partial bodies.
+ *
+ *
+ *    var bodyInfo;
+ *    $imapchew.canBodyRepFillSnippet(bodyInfo.bodyReps[0]) // true/false
+ *
+ */
+exports.canBodyRepFillSnippet = function(bodyRep) {
+  return (
+    bodyRep &&
+    bodyRep.type === 'plain' ||
+    bodyRep.type === 'html'
+  );
 };
 
 }); // end define
