@@ -81,7 +81,8 @@
     "audio-channel-telephony":{},
     "audio-channel-ringer":{},
     "browser":{},
-    "idle":{}
+    "idle":{},
+    "keyboard": {}
   },
   "orientation": "portrait-primary",
   "activities": {
