@@ -3,7 +3,8 @@
 if (!window.ImageLoader) {
   var ImageLoader = function ImageLoader(pContainer, pItems) {
     var container, items, itemsSelector, scrollLatency = 100, scrollTimer,
-        lastViewTop = 0, itemHeight, total, imgsLoading = 0;
+        lastViewTop = 0, itemHeight, total, imgsLoading = 0,
+        loadImage = defaultLoadImage, self = this;
 
     var forEach = Array.prototype.forEach;
 
@@ -36,6 +37,10 @@ if (!window.ImageLoader) {
       window.setTimeout(update, 0);
     }
 
+    function setResolver(pResolver) {
+      loadImage = pResolver;
+    }
+
     function onScroll() {
       window.clearTimeout(scrollTimer);
       if (imgsLoading > 0) {
@@ -49,7 +54,7 @@ if (!window.ImageLoader) {
     /**
      *  Loads the image contained in a DOM Element.
      */
-    function loadImage(item) {
+    function defaultLoadImage(item) {
       var image = item.querySelector('img[data-src]');
       if (!image) {
         return;
@@ -97,7 +102,7 @@ if (!window.ImageLoader) {
 
           if (item.dataset.visited !== 'true' &&
               item.offsetTop <= viewTop + containerHeight) {
-            loadImage(item); // Inside
+            loadImage(item, self); // Inside
           }
         }
       }
@@ -115,11 +120,13 @@ if (!window.ImageLoader) {
         }
 
         if (item.dataset.visited !== 'true') {
-          loadImage(item);
+          loadImage(item, self);
         }
       }
     } // update
 
     this.reload = load;
+    this.setResolver = setResolver;
+    this.defaultLoad = defaultLoadImage;
   };
 }

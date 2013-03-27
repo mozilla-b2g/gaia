@@ -685,8 +685,6 @@ suite('Render contacts list', function() {
         var tContacts = assertGroup(groupT, containerT, 1);
         assert.isTrue(tContacts[0].innerHTML.indexOf('Taylor') > -1);
 
-        assertFbMark(containerT);
-
         // Two instances as this contact is a favorite one also
         assertTotal(2, 2);
         done();

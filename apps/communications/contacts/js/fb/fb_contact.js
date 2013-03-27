@@ -72,6 +72,14 @@ fb.Contact = function(deviceContact, cid) {
     if (idx != -1) {
       dcontact.category[idx] = fb.LINKED;
     }
+
+    var req = new fb.utils.Request();
+
+    window.setTimeout(function do_save_linkednames() {
+      saveLinkedName(req, getFacebookUid(), dcontact);
+    }, 0);
+
+    return req;
   }
 
   // Sets the data for an imported FB Contact
@@ -497,6 +505,43 @@ fb.Contact = function(deviceContact, cid) {
     return out;
   };
 
+  function saveLinkedName(outReq, fbUid, contactdata) {
+    var req1 = fb.contacts.get(fbUid);
+    req1.onsuccess = function(e) {
+      var fbData = req1.result;
+      fbData['linked_' + contactdata.id] = getLinkedNames(
+                                                      fbData, contactdata);
+      var req = fb.contacts.save(fbData);
+      req.onsuccess = function(e) {
+        outReq.done(e.target.result);
+      };
+      req.onerror = function(e) {
+        outReq.failed(e.target.error);
+      };
+    };
+    req1.onerror = function(e) {
+      outReq.failed(e.target.error);
+    };
+  }
+
+  function getLinkedNames(fbData, contactData) {
+    var out = {
+      givenName: [contactData.givenName && contactData.givenName[0] || null],
+      familyName: [contactData.familyName &&
+                   contactData.familyName[0] || null]
+    };
+
+    if (!out.givenName || !out.givenName[0] || !out.givenName[0].trim()) {
+      out.givenName = [(fbData.givenName && fbData.givenName[0]) || ''];
+    }
+
+    if (!out.familyName || !out.familyName[0] || !out.familyName[0].trim()) {
+      out.familyName = [(fbData.familyName && fbData.familyName[0]) || ''];
+    }
+
+    return out;
+  }
+
   function doLink(contactdata, fbFriend, out) {
     if (contactdata) {
       if (fbFriend.uid) {
@@ -523,7 +568,7 @@ fb.Contact = function(deviceContact, cid) {
           var deleteReq = navigator.mozContacts.remove(fbFriend.mozContact);
 
           deleteReq.onsuccess = function(e) {
-            out.done(e.target.result);
+            saveLinkedName(out, fbFriend.uid, contactdata);
           };
 
           deleteReq.onerror = function(e) {
@@ -532,8 +577,9 @@ fb.Contact = function(deviceContact, cid) {
           };
         }
         else {
-          out.done(e.target.result);
+          saveLinkedName(out, fbFriend.uid, contactdata);
         }
+
       }; // mozContactsReq.onsuccess
 
       mozContactsReq.onerror = function(e) {
