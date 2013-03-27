@@ -307,6 +307,18 @@ var WindowManager = (function() {
     });
   }
 
+  // XXX: We couldn't avoid to stop inline activities
+  // when screen is turned off and lockscreen is enabled
+  // to avoid two cameras iframes are competing resources
+  // if the user opens a app to call camera activity and
+  // at the same time open camera app from lockscreen.
+
+  window.addEventListener('lock', function onScreenLocked() {
+    if (inlineActivityFrames.length) {
+      stopInlineActivity(true);
+    }
+  });
+
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
     var prop = evt.propertyName;
     var frame = evt.target;
