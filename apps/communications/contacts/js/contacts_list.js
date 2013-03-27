@@ -56,6 +56,9 @@ contacts.List = (function() {
   };
 
   var initSearch = function initSearch(callback) {
+    contacts.Search.init(conctactsListView, favoriteGroup, function(e) {
+      onClickHandler(e);
+    });
     if (!loaded) {
       window.addEventListener('listRendered', function onRendered() {
         window.removeEventListener('listRendered', onRendered);
@@ -64,9 +67,6 @@ contacts.List = (function() {
     } else if (!searchLoaded) {
       lazyLoadSearch();
     }
-    contacts.Search.init(conctactsListView, favoriteGroup, function(e) {
-      onClickHandler(e);
-    });
     if (callback)
       callback();
   };
