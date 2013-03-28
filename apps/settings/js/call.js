@@ -115,7 +115,7 @@ var Calls = (function(window, document, undefined) {
      * Possible values: null, 'unknown', 'absent', 'pinRequired',
      * 'pukRequired', 'networkLocked', 'ready'.
      */
-    switch(simCardState) {
+    switch (simCardState) {
       case 'absent':
         displayInfoForAll(_('noSimCard'));
         break;
