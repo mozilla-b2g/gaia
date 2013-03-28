@@ -112,7 +112,7 @@ Calendar.ns('Store').Setting = (function() {
         record = cached;
       } else {
         var created = new Date();
-        record = {
+        this._cached[key] = record = {
           _id: key,
           createdAt: created,
           updatedAt: created,
