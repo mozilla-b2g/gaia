@@ -460,6 +460,7 @@ MessageListCard.prototype = {
         // Fall through...
       case 'synced':
         this.syncingNode.classList.add('collapsed');
+        this.progressNode.classList.remove('pack-activity');
         this.progressNode.classList.add('hidden');
         if (this.progressCandybarTimer) {
           window.clearTimeout(this.progressCandybarTimer);
