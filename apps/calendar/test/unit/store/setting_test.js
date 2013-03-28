@@ -114,4 +114,30 @@ suite('store/setting', function() {
     });
   });
 
+  suite('Bug #855782 - Settings were not being cached', function() {
+
+    test('getting, then seting a value will overwrite cache', function(done) {
+      var key = 'someFooBar';
+
+      // The cache needs to be empty to test this case
+      assert.ok(!subject._cached[key]);
+
+      subject.defaults[key] = 'bbq';
+      subject.getValue(key, function(err, value) {
+
+        assert.equal(value, subject.defaults[key]);
+
+        subject.set(key, 'ketchup', null, function(err, value) {
+          assert.notEqual(value, subject.defaults[key]);
+
+          subject.getValue(key, function(err, value) {
+            assert.equal(value, 'ketchup');
+            assert.notEqual(value, subject.defaults[key]);
+            done();
+          });
+        });
+      });
+    });
+  });
+
 });
