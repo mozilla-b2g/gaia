@@ -70,10 +70,11 @@ suite('interval_tree', function() {
     result = subject.query(span);
     assert.deepEqual(result, []);
 
-    var added = factory(30, 400, 1200);
+    var one = factory(30, 400, 1200);
+    subject.add(one);
+    var two = factory(31, 1100, 1200);
+    subject.add(two);
 
-    subject.add(added);
-    subject.add(factory(31, 1100, 1200));
     assert.isFalse(subject.synced);
 
     span.end = 1100;
@@ -81,7 +82,8 @@ suite('interval_tree', function() {
     assert.deepEqual(
       subject.query(span),
       [
-        added,
+        one,
+        two,
         items.overlapBefore
       ]
     );
