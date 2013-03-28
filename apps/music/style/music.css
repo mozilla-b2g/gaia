@@ -61,19 +61,19 @@ body {
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
-  padding: 110px 25px 0px 25px;
+  padding: 11rem 2.5rem 0 2.5rem;
 }
 
 #overlay-title {
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
-  margin: 0 5px -10px 5px;
+  margin: 0 0.5rem -1rem 0.5rem;
 }
 
 #overlay-text {
-  padding: 10px 5px 0 5px;
-  border-top: 1px solid #686868;	
+  padding: 1rem 0.5rem 0 0.5rem;
+  border-top: 0.1rem solid #686868;
   font-weight: 300;
   font-size: 2.5rem;
   color: #ebebeb;
@@ -90,16 +90,17 @@ body {
 }
 
 /*
- * spinner animation styles copied from 
- * shared/style_unstable/progress_activity.css 
+ * spinner animation styles copied from
+ * shared/style_unstable/progress_activity.css
  */
 #spinner {
   position: absolute;
-  top: calc(50% - 15px);
-  left: calc(50% - 15px);
-  width: 29px;
-  height: 29px;
+  top: calc(50% - 1.5rem);
+  left: calc(50% - 1.5rem);
+  width: 2.9rem;
+  height: 2.9rem;
   background: url(images/spinner.png) no-repeat center center;
+  background-size: 2.9rem;
   animation: 0.9s spinner-animation infinite steps(30);
   border: none;
 }
@@ -130,10 +131,11 @@ body {
 #scan-spinner {
   position: absolute;
   top: 1rem;
-  left: 1rem; 
-  width: 29px;
-  height: 29px;
+  left: 1rem;
+  width: 2.9rem;
+  height: 2.9rem;
   background: url(images/spinner.png) no-repeat center center;
+  background-size: 2.9rem;
   animation: 0.9s spinner-animation infinite steps(30);
   border: none;
 }
@@ -299,7 +301,7 @@ body.player-mode #title-player {
   position: relative;
   float: left;
   left: 3rem;
-  border-bottom: solid 1px rgba(255, 255, 255, 0.1);
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
 }
 
 #views-sublist-header-default {
@@ -341,6 +343,7 @@ body.player-mode #title-player {
   height: 4rem;
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 3rem;
 }
 
 #views-sublist-controls-play {
@@ -353,7 +356,7 @@ body.player-mode #title-player {
 
 .album-controls-button {
   border: none;
-  border-radius: 0px;
+  border-radius: 0;
   background: transparent;
   transition: background 200ms ease;
 }
@@ -381,17 +384,17 @@ body.player-mode #title-player {
 }
 
 .main-tile {
-  width: 318px;
-  height: 318px;
-  border: 1px solid rgba(0, 0, 0, 1);
+  width: 31.8rem;
+  height: 31.8rem;
+  border: 0.1rem solid rgba(0, 0, 0, 1);
   background-color: black;
   overflow: hidden;
 }
 
 .sub-tile {
-  width: 158px;
-  height: 158px;
-  border: 1px solid rgba(0, 0, 0, 1);
+  width: 15.8rem;
+  height: 15.8rem;
+  border: 0.1rem solid rgba(0, 0, 0, 1);
   font-weight: lighter;
   background-color: #303030;
   overflow: hidden;
@@ -431,7 +434,7 @@ body.player-mode #title-player {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: black 1px 1px;
+  text-shadow: black 0.1rem 0.1rem;
   background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -549,6 +552,21 @@ body.player-mode #title-player {
   }
 }
 
+/* 960x540 phones */
+@media (orientation: portrait) and (width: 540px),
+       (orientation: landscape) and (width: 960px) {
+
+  .main-tile {
+    width: 358px;
+    height: 358px;
+  }
+
+  .sub-tile {
+    width: 178px;
+    height: 178px;
+  }
+}
+
 #player-cover {
   position: relative;
   width: 100%;
@@ -566,7 +584,7 @@ body.player-mode #title-player {
   }
 }
 
-.fadeIn {  
+.fadeIn {
   animation-name: fadeIn;
   animation-duration: 1500ms;
   animation-timing-function: ease-in-out;
@@ -608,7 +626,7 @@ body.player-mode #title-player {
   overflow: hidden;
   text-overflow: ellipsis;
   text-indent: 3rem;
-  text-shadow: black 1px 1px;
+  text-shadow: black 0.1rem 0.1rem;
   line-height: 2.5rem;
 }
 
@@ -630,24 +648,25 @@ body.player-mode #title-player {
   bottom: calc(-100% + 5rem);
 }
 
-#player-album-shuffle, 
-#player-album-rating, 
+#player-album-shuffle,
+#player-album-rating,
 #player-album-repeat {
   position: relative;
   float: left;
 }
 
-#player-album-shuffle, 
+#player-album-shuffle,
 #player-album-repeat {
   top: 10%;
-  width: calc(25% - 20px);
+  width: calc(25% - 2rem);
   height: 80%;
-  padding: 0px;
-  border-radius: 35px;
-  margin: 0 10px;
+  padding: 0;
+  border-radius: 3.5rem;
+  margin: 0 1rem;
   font-weight: 500;
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 3rem;
 }
 
 #player-album-shuffle {
@@ -698,6 +717,7 @@ button::-moz-focus-inner {
   background-position: center center;
   background-repeat: no-repeat;
   background-color: transparent;
+  background-size: 2.4rem;
 }
 
 .star-on {
@@ -713,18 +733,19 @@ button::-moz-focus-inner {
   background-repeat: no-repeat;
   background-size: 100% 2.1rem;
   background-color: #151515;
+  background-size: 26.3rem;
   overflow: hidden;
 }
 
-#player-seek-elapsed, 
-#player-seek-bar, 
+#player-seek-elapsed,
+#player-seek-bar,
 #player-seek-remaining {
   position: relative;
   float: left;
 }
 
-#player-seek-elapsed, 
-#player-seek-remaining {  
+#player-seek-elapsed,
+#player-seek-remaining {
   top: calc(50% - 0.69rem);
   width: 18%;
   line-height: 1.38rem;
@@ -748,9 +769,9 @@ button::-moz-focus-inner {
   left: 2.5%;
   width: 95%;
   height: 0.3rem;
-  border-radius: 5px;
-  border-width: 0px;
-  box-shadow: 1px 1px rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  border-width: 0;
+  box-shadow: 0.1rem 0.1rem rgba(255, 255, 255, 0.2);
   background: url("./images/timeline.png");
   background-position: center center;
   background-repeat: no-repeat;
@@ -758,7 +779,7 @@ button::-moz-focus-inner {
 }
 
 #player-seek-bar-progress::-moz-progress-bar {
-  border-radius: 5px;
+  border-radius: 0.5rem;
   background: url("./images/timeline_filled.png");
   background-position: center center;
   background-repeat: no-repeat;
@@ -801,21 +822,22 @@ button::-moz-focus-inner {
   background: rgba(0, 0, 0, 1);
 }
 
-#player-controls-previous, 
-#player-controls-play, 
+#player-controls-previous,
+#player-controls-play,
 #player-controls-next {
   position: relative;
   float: left;
   height: 100%;
-  padding: 0px;
-  border-width: 0px;
+  padding: 0;
+  border-width: 0;
   font-weight: 500;
   overflow: hidden;
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 3rem;
 }
 
-#player-controls-previous, 
+#player-controls-previous,
 #player-controls-next {
   width: 30%;
 }
@@ -843,7 +865,7 @@ button::-moz-focus-inner {
 .player-controls-button {
   color: #FFFFFF;
   border: none;
-  border-radius: 0px;
+  border-radius: 0;
   background: transparent;
   transition: background 200ms ease;
 }
@@ -878,10 +900,11 @@ button::-moz-focus-inner {
   float: left;
   width: 25%;
   height: 100%;
-  padding: 0px;
+  padding: 0;
   font-size: 1.7rem;
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 3rem;
 }
 
 #tabs-mix {
@@ -902,7 +925,7 @@ button::-moz-focus-inner {
 
 .tabs-button {
   border: none;
-  border-radius: 0px;
+  border-radius: 0;
   background: transparent;
   transition: background 200ms ease;
 }
@@ -913,12 +936,12 @@ button::-moz-focus-inner {
   background: rgb(0, 138, 170);
 }
 .tabs-button:disabled {
-  
+
 }
 
 .player-cover-button {
   border: none;
-  border-radius: 0px;
+  border-radius: 0;
   background: transparent;
   transition: background 200ms ease;
 }
@@ -952,7 +975,7 @@ li.list-header {
   line-height: 2.5rem;
   font-size: 1.9rem;
   color: rgb(0, 138, 170);
-  border-bottom: solid 1px rgba(255, 255, 255, 0.1);
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
   pointer-events: none;
 }
 
@@ -968,7 +991,7 @@ li.list-item a {
   text-decoration: none;
   outline: none;
   margin: 0;
-  text-shadow: black 1px 1px;
+  text-shadow: black 0.1rem 0.1rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -980,7 +1003,7 @@ li.list-item a {
 
 li.list-item a:active {
   color: black;
-  text-shadow: rgba(255, 255, 255, 0.5) 1px 1px;
+  text-shadow: rgba(255, 255, 255, 0.5) 0.1rem 0.1rem;
   background: rgb(0, 138, 170);
 }
 
@@ -1031,7 +1054,7 @@ li.list-item a:active {
   line-height: 6rem;
   font-size: 1.9rem;
   color: white;
-  border-bottom: solid 1px rgba(255, 255, 255, 0.1);
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
 }
 
 .list-playlist-icon {
@@ -1071,25 +1094,25 @@ li.list-item a:active {
   padding-right: 0.5rem;
   font-size: 1.9rem;
   color: white;
-  border-bottom: solid 1px rgba(255, 255, 255, 0.1);
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
 }
 
 .list-song-length {
   right: 0;
   width: 5rem;
   padding-right: 0.5rem;
-  border-bottom: solid 1px rgba(255, 255, 255, 0.1);
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
 }
 
 .list-image-parent {
   position: absolute;
   right: 2.5rem;
-  top: 0px;
+  top: 0;
   height: 6rem;
   width: 6rem;
   overflow: hidden;
   background-color: #8a9699;
-  box-shadow: 0 0 1px black;
+  box-shadow: 0 0 0.1rem black;
   pointer-events: none;
 }
 
