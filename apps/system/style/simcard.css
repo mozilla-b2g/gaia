@@ -10,9 +10,14 @@
   bottom: 0;
   right: 0;
 }
+
 #simpin-dialog .container {
   padding-left: 2rem;
   font-size: 1.5rem;
+}
+
+#simpin-dialog .container div {
+  white-space: normal;
 }
 
 #simpin-dialog .container > div {
