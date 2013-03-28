@@ -11,15 +11,21 @@ function isSubjectToBranding(path) {
 }
 
 function getSubDirectories(directory) {
-  let appsDir = new FileUtils.File(GAIA_DIR);
-  appsDir.append(directory);
+  let appsDir;
+
+  if (directory[0] !== '/') {
+    appsDir = new FileUtils.File(GAIA_DIR);
+    appsDir.append(directory);
+  } else {
+    appsDir = new FileUtils.File(directory);
+  }
 
   let dirs = [];
   let files = appsDir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
     if (file.isDirectory()) {
-      dirs.push(file.leafName);
+      dirs.push(file.path);
     }
   }
   return dirs;
@@ -132,17 +138,16 @@ function makeWebappsObject(dirs) {
       appSrcDirs.forEach(function parseDirectory(directoryName) {
         let directories = getSubDirectories(directoryName);
         directories.forEach(function readManifests(dir) {
-          let manifestFile = getFile(GAIA_DIR, directoryName, dir,
-              'manifest.webapp');
-          let updateFile = getFile(GAIA_DIR, directoryName, dir,
-              'update.webapp');
+          let appname = getFile(dir).leafName;
+          let manifestFile = getFile(dir, 'manifest.webapp');
+          let updateFile = getFile(dir, 'update.webapp');
           // Ignore directories without manifest
           if (!manifestFile.exists() && !updateFile.exists()) {
             return;
           }
 
           let manifest = manifestFile.exists() ? manifestFile : updateFile;
-          let domain = dir + '.' + GAIA_DOMAIN;
+          let domain = appname + '.' + GAIA_DOMAIN;
 
           let webapp = {
             manifest: getJSON(manifest),
@@ -150,7 +155,7 @@ function makeWebappsObject(dirs) {
             url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
             domain: domain,
             sourceDirectoryFile: manifestFile.parent,
-            sourceDirectoryName: dir,
+            sourceDirectoryName: appname,
             sourceAppDirectoryName: directoryName
           };
 
@@ -172,6 +177,13 @@ let externalAppsDirs = ['external-apps'];
 
 if (DOGFOOD === '0' && PRODUCTION === '0') {
   externalAppsDirs.push('test_external_apps');
+}
+
+if (CUSTOMIZE) {
+  let customizeApps = getFile(CUSTOMIZE, 'external-apps');
+  if (customizeApps.exists()) {
+    externalAppsDirs.push(customizeApps.path);
+  }
 }
 
 const Gaia = {
