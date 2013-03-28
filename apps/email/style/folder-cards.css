@@ -73,7 +73,7 @@
   border-bottom: none;
 }
 .fld-folder-item.fld-folder-selected {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: #008caa;
   font-weight: bold;
 }
 .fld-folder-unselectable {
