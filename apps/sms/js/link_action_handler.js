@@ -6,59 +6,21 @@
   */
   var activityInProgress = false;
 
-  function createNewContact(param) {
-    try {
-      var activity = new MozActivity({
-        name: 'new',
-        data: {
-          type: 'webcontacts/contact',
-          params: param
-        }
-      });
-    } catch (e) {
-      console.log('WebActivities unavailable? : ' + e);
-    }
-  };
-
-  function addToExistingContact(param, 
-    onSuccess, onFailure) {
-    try {
-      var activity = new MozActivity({
-        name: 'update',
-        data: {
-          type: 'webcontacts/contact',
-          params: param
-        }
-      });
-      activity.onsuccess = function contactUpdateSuccess() {
-        if (onSuccess && typeof onSuccess === 'function') {
-          onSuccess();
-        }
-      };
-      activity.onerror = function contactUpdateFailure() {
-        if (onFailure && typeof onFailure === 'function') {
-          onFailure();
-        }
-      };
-    } catch (e) {
-        console.log('WebActivities unavailable? : ' + e);
-    }
-  };
-
   function createOptionMenuOnLongPress(param, title) {
+    var _ = navigator.mozL10n.get;
     var options = new OptionMenu({
       'items': [
       {
         name: _('createNewContact'),
         method: function optionMethod(param) {
-          createNewContact(param);
+          ActivityPicker.createNewContact(param);
         },
         params: param
       },
       {
         name: _('addToExistingContact'),
         method: function optionMethod(param) {
-          addToExistingContact(param);
+          ActivityPicker.addToExistingContact(param);
         },
         params: param
       },
