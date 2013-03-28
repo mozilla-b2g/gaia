@@ -44,5 +44,5 @@ Browse to http://localhost:8080/.
 
 ### Next Steps
 
-+ Running the unit tests: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Testing/Gaia_unit_tests?redirectlocale=en-US&redirectslug=Mozilla%2FFirefox_OS%2FGaia_Unit_Tests
++ Running the unit tests: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Testing/Gaia_unit_tests
 + Helpful command line utilities: https://npmjs.org/package/b2g-scripts
