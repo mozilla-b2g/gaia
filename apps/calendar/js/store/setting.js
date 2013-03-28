@@ -60,7 +60,10 @@ Calendar.ns('Store').Setting = (function() {
         }
 
         if (value === undefined && self.defaults[key] !== undefined) {
-          value = { value: self.defaults[key] };
+          value = {
+            _id: key,
+            value: self.defaults[key]
+          };
         }
 
         self._cached[key] = value;
