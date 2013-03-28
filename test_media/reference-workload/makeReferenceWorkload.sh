@@ -2,7 +2,7 @@
 
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
-if [ -z "$1" ]; then 
+if [ -z "$1" ]; then
   echo "Must provide size parameter (light/medium/heavy/x-heavy)"
   exit
 fi
@@ -59,7 +59,7 @@ DIALER_INFO=$(python $SCRIPT_DIR/readJSON.py $SCRIPT_DIR/webapps.json "communica
 IFS='/' read -a DIALER_PARTS <<< "$DIALER_INFO"
 DIALER_DOMAIN=${DIALER_PARTS[0]}
 DIALER_ID=${DIALER_PARTS[1]}
-DIALER_DIR="$DIALER_ID+f+app+++communications.$DIALER_DOMAIN"
+DIALER_DIR="$DIALER_ID+f+app+++$DIALER_DOMAIN"
 rm $SCRIPT_DIR/webapps.json
 
 adb shell stop b2g
