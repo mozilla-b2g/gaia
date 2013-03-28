@@ -1,4 +1,3 @@
-###############################################################################
 # Global configurations.  Protip: set your own overrides in a local.mk file.  #
 #                                                                             #
 # GAIA_DOMAIN : change that if you plan to use a different domain to update   #
@@ -31,9 +30,9 @@ PRODUCTION?=0
 GAIA_OPTIMIZE?=0
 HIDPI?=*
 DOGFOOD?=0
-
 LOCAL_DOMAINS?=1
-
+CONFIG_DIR?=$(CURDIR)/configs
+MAKE_APPS_DIR?=_mkapps
 ADB?=adb
 
 ifeq ($(DEBUG),1)
@@ -51,15 +50,15 @@ endif
 
 REPORTER?=Spec
 
-GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
+GAIA_APP_SRCDIRS=$(MAKE_APPS_DIR)/internal
+GAIA_APP_CONFIG?=$(CONFIG_DIR)/engineering.json
+
 GAIA_INSTALL_PARENT?=/data/local
 ADB_REMOUNT?=0
 
-GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
-
 ifeq ($(MAKECMDGOALS), demo)
+GAIA_APP_CONFIG=$(CONFIG_DIR)/demo.json
 GAIA_DOMAIN=thisdomaindoesnotexist.org
-GAIA_APP_SRCDIRS=apps showcase_apps
 else ifeq ($(MAKECMDGOALS), dogfood)
 DOGFOOD=1
 else ifeq ($(MAKECMDGOALS), production)
@@ -205,7 +204,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json
+profile: app-organize multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -246,6 +245,30 @@ ifneq ($(DEBUG),1)
 	@echo "Done"
 endif
 endif
+
+app-organize:
+	@echo "Using Configuration File: $(GAIA_APP_CONFIG)"
+	@ALLAPPS="$(shell python $(CURDIR)/build/read-configs.py $(GAIA_APP_CONFIG))"; \
+	rm -rf $(CURDIR)/$(MAKE_APPS_DIR) ;\
+	mkdir -p $(MAKE_APPS_DIR)/internal ;\
+	mkdir -p $(MAKE_APPS_DIR)/external ;\
+	for apps in $$ALLAPPS ;\
+	do \
+		IFS=': ' read -a A <<< "$$apps" ;                    \
+		type=$${A[0]};                                       \
+		app_name=$${A[1]};                                   \
+		if [ "$${type}" == "external-url" ]; then            \
+			type='external';                         \
+			mv $$app_name $(MAKE_APPS_DIR)/$$type/ ; \
+		else	                                             \
+			cp -rf $$app_name $(MAKE_APPS_DIR)/$$type/ ; \
+		fi                                                   \
+	done; \
+	for apps in $(GAIA_OUTOFTREE_APP_SRCDIRS) ;\
+	do \
+		ln -sf $$apps $(MAKE_APPS_DIR)/internal ;\
+	done; \
+	ln -s $(CURDIR)/shared $(MAKE_APPS_DIR)/
 
 app-makefiles:
 	@for d in ${GAIA_APP_SRCDIRS}; \
@@ -380,6 +403,7 @@ define run-js-command
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
+	const GAIA_MAKE_DIR = "$(MAKE_APPS_DIR)";                                   \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
 	const LOCALES_FILE = "$(LOCALES_FILE)";                                     \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
@@ -770,6 +794,7 @@ install-settings-defaults: profile/settings.json
 # clean out build products
 clean:
 	rm -rf profile
+	rm -rf _mkapps
 
 # clean out build products
 really-clean: clean
