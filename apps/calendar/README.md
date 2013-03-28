@@ -10,7 +10,7 @@ desktop? Yes, you would.
 
 We need to authorize the host you will be running the calendar app  
 from to be able to establish XHR connections. This is necessary  
-in order to issue cross-origin reyquests and avoid reusing credentials  
+in order to issue cross-origin requests and avoid reusing credentials  
 from other connections.  
 
 Bring up the error console in firefox by hitting `CTRL-SHIFT-J`.  
