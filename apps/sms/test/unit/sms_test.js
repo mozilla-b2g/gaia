@@ -373,7 +373,7 @@ suite('SMS App Unit-Test', function() {
     });
   });
 
-suite('URL Links in SMS', function() {
+  suite('URL Links in SMS', function() {
     var Message = {
       id: '987',
       body: 'Hello URL'
@@ -420,7 +420,7 @@ suite('URL Links in SMS', function() {
     });
   });
 
-suite('EmailAddress Links in SMS', function() {
+  suite('EmailAddress Links in SMS', function() {
     var Message = {
       id: '1234',
       body: 'Hello n Welcome'
@@ -466,7 +466,7 @@ suite('EmailAddress Links in SMS', function() {
     });
   });
 
-suite('Phone Links in SMS', function() {
+  suite('Phone Links in SMS', function() {
     var Message = {
       id: '123',
       body: 'Hello there'

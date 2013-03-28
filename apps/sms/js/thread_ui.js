@@ -1022,33 +1022,47 @@ var ThreadUI = {
   },
 
   activateContact: function thui_activateContact() {
-    var options = {};
-    // Call to 'new' or 'view' depending on existence of contact
+    var _ = navigator.mozL10n.get;
+    var phoneNumber = this.title.dataset.phoneNumber;
+    // Call to 'option menu' or 'dialer' depending on existence of contact
     if (this.title.dataset.isContact == 'true') {
-      //TODO modify this when 'view' activity is available on contacts
-      // options = {
-      //   name: 'view',
-      //   data: {
-      //     type: 'webcontacts/contact'
-      //   }
-      // };
+      ActivityPicker.call(phoneNumber);
     } else {
-      options = {
-        name: 'new',
-        data: {
-          type: 'webcontacts/contact',
-          params: {
-            'tel': this.title.dataset.phoneNumber
+      var options = new OptionMenu({
+        'items': [
+        {
+          name: _('call'),
+          method: function optionMethod(param) {
+            ActivityPicker.call(param);
+          },
+          params: [phoneNumber]
+        },
+        {
+          name: _('createNewContact'),
+          method: function optionMethod(param) {
+            ActivityPicker.createNewContact(
+              param, ThreadUI.onCreateContact);
+          },
+          params: [{'tel': phoneNumber}]
+        },
+        {
+          name: _('addToExistingContact'),
+          method: function optionMethod(param) {
+            ActivityPicker.addToExistingContact(
+              param, ThreadUI.onCreateContact);
+        },
+          params: [{'tel': phoneNumber}]
+        },
+        {
+          name: _('cancel'),
+          method: function optionMethod(param) {
+          // TODO Add functionality if needed
           }
         }
-      };
-    }
-
-    try {
-      var activity = new MozActivity(options);
-      activity.onsuccess = ThreadUI.onCreateContact;
-    } catch (e) {
-      console.log('WebActivities unavailable? : ' + e);
+        ],
+        'title': phoneNumber
+      });
+      options.show();
     }
   },
   onCreateContact: function thui_onCreateContact() {
