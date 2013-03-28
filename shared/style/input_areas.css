@@ -15,7 +15,7 @@ textarea {
   width: 100%;
   height: 4rem;
   resize: none;
-  padding: 0 0.8rem;
+  padding: 0 1.2rem;
   font: 1.8rem/4rem "MozTT", Sans-serif;
   border: 0.1rem solid #ccc;
   border-radius: 0.3rem;
@@ -87,7 +87,7 @@ form p textarea + button[type="reset"] {
 }
 
 textarea {
-  padding: 0.8rem;
+  padding: 1.2rem;
 }
 
 form p input:focus {
@@ -289,12 +289,12 @@ form p button[type="reset"]::-moz-focus-inner {
 
 html[dir="rtl"] form p input:valid,
 html[dir="rtl"] form p input:valid:focus {
-  padding: 0 0.8rem 0 3.5rem;
+  padding: 0 1.2rem 0 3.5rem;
 }
 
 html[dir="rtl"] form p textarea:valid,
 html[dir="rtl"] form p textarea:valid:focus {
-  padding: 0.8rem 0.8rem 0.8rem 3.5rem;
+  padding: 0.8rem 1.2rem 0.8rem 3.5rem;
 }
 
 html[dir="rtl"] form p input + button[type="reset"],
@@ -312,7 +312,7 @@ html[dir="rtl"] fieldset legend {
 }
 
 html[dir="rtl"] form[role="search"] button[type="submit"] + p > textarea {
-  padding: 0.5rem 0.8rem 0.5rem 3rem;
+  padding: 0.5rem 1.2rem 0.5rem 3rem;
 }
 
 html[dir="rtl"] form[role="search"] button[type="submit"] + p > button {
