@@ -71,14 +71,8 @@
                 apps.forEach(function appIterator(app) {
                   if (app.origin != application)
                     return;
-
-                  var reqIccData = navigator.mozSettings.createLock().set({
-                    'icc.data': JSON.stringify(command)
-                  });
-                  reqIccData.onsuccess = function icc_getIccData() {
-                    debug('Launching ', app.origin);
-                    app.launch();
-                  };
+                  debug('Launching ', app.origin);
+                  app.launch();
                 }, this);
               };
             }
