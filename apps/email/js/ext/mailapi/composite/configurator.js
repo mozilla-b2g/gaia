@@ -385,6 +385,8 @@ function ImapFolderConn(account, storage, _parentLog) {
 
   this._conn = null;
   this.box = null;
+
+  this._deathback = null;
 }
 ImapFolderConn.prototype = {
   /**
@@ -412,6 +414,7 @@ ImapFolderConn.prototype = {
    */
   acquireConn: function(callback, deathback, label, dieOnConnectFailure) {
     var self = this;
+    this._deathback = deathback;
     this._account.__folderDemandsConnection(
       this._storage.folderId, label,
       function gotconn(conn) {
@@ -428,8 +431,11 @@ ImapFolderConn.prototype = {
               // hand the connection back, noting a resource problem
               self._account.__folderDoneWithConnection(
                 self._conn, false, true);
-              if (deathback)
+              if (self._deathback) {
+                var deathback = self._deathback;
+                self.clearErrorHandler();
                 deathback();
+              }
               return;
             }
             self.box = box;
@@ -438,8 +444,11 @@ ImapFolderConn.prototype = {
       },
       function deadconn() {
         self._conn = null;
-        if (deathback)
+        if (self._deathback) {
+          var deathback = self._deathback;
+          self.clearErrorHandler();
           deathback();
+        }
       },
       dieOnConnectFailure);
   },
@@ -448,8 +457,33 @@ ImapFolderConn.prototype = {
     if (!this._conn)
       return;
 
+    this.clearErrorHandler();
     this._account.__folderDoneWithConnection(this._conn, true, false);
     this._conn = null;
+  },
+
+  /**
+   * If no connection, acquires one and also sets up
+   * deathback if connection is lost.
+   */
+  withConnection: function (callback, deathback, label) {
+    if (!this._conn) {
+      this.acquireConn(function () {
+        this.withConnection(callback, deathback, label);
+      }.bind(this), deathback, label);
+      return;
+    }
+
+    this._deathback = deathback;
+    callback(this);
+  },
+
+  /**
+   * Resets error handling that may be triggered during
+   * loss of connection.
+   */
+  clearErrorHandler: function () {
+    this._deathback = null;
   },
 
   reselectBox: function(callback) {
@@ -477,6 +511,10 @@ ImapFolderConn.prototype = {
                                     abortedCallback, progressCallback),
         abortedCallback, 'sync', true);
       return;
+    }
+    // We do have a connection, hook-up our abortedCallback
+    else {
+      this._deathback = abortedCallback;
     }
 
     // Having a connection is 10% of the battle
@@ -570,6 +608,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
             // If we were being used for a refresh, they may want us to stop
             // and change their sync strategy.
             if (doneCallback('bisect', bisectInfo, null) === 'abort') {
+              self.clearErrorHandler();
               doneCallback('bisect-aborted', null);
               return null;
             }
@@ -615,6 +654,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
             if (completed)
               return;
             completed = true;
+            self.clearErrorHandler();
             doneCallback(null, null, newCount + knownCount,
                          skewedStartTS, skewedEndTS);
           },
@@ -1781,18 +1821,35 @@ ImapJobDriver.prototype = {
     var storage = this.account.getFolderStorageForFolderId(folderId),
         self = this;
     storage.runMutexed(label, function(releaseMutex) {
-      self._heldMutexReleasers.push(releaseMutex);
       var syncer = storage.folderSyncer;
-      if (needConn && !syncer.folderConn._conn) {
-        syncer.folderConn.acquireConn(callback, deathback, label);
-      }
-      else {
+      var action = function () {
+        self._heldMutexReleasers.push(releaseMutex);
         try {
           callback(syncer.folderConn, storage);
         }
         catch (ex) {
           self._LOG.callbackErr(ex);
         }
+      };
+
+      if (needConn) {
+        syncer.folderConn.withConnection(function () {
+          // When we release the mutex, the folder may not
+          // release its connection, so be sure to reset
+          // error handling (deathback).  We are slightly
+          // abusing the mutex releasing mutex mechanism
+          // here. And we do want to do this before calling
+          // the actual mutex releaser since we might
+          // otherwise interact with someone else who just
+          // acquired the mutex, (only) theoretically.
+          self._heldMutexReleasers.push(function() {
+            syncer.folderConn.clearErrorHandler();
+          });
+
+          action();
+        }, deathback, label);
+      } else {
+        action();
       }
     });
   },
