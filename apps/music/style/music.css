@@ -182,12 +182,16 @@ body {
   text-overflow: ellipsis;
 }
 
-body.tiles-mode #title-back {
+body.tiles-mode #title-back,
+body.list-mode #title-back,
+body.search-from-tiles-mode #title-back,
+body.search-from-list-mode #title-back {
   display: none;
 }
 
-body.list-mode #title-back {
-  display: none;
+body.search-from-tiles-mode #title,
+body.search-from-list-mode #title {
+  transform: translateY(-5rem);
 }
 
 body.player-mode #tabs {
@@ -198,17 +202,36 @@ body.tiles-mode #views {
   transform: translateX(0%);
 }
 
+body.search-from-tiles-mode #views {
+  transform: translateX(0%) translateY(-5rem);
+}
+
 body.list-mode #views {
   transform: translateX(-100%);
 }
 
+body.search-from-list-mode #views {
+  transform: translateX(-100%) translateY(-5rem);
+}
+
+body.search-from-tiles-mode #search,
+body.search-from-list-mode #search {
+  transform: translateY( calc(-100%) );
+}
+
+body.search-from-tiles-mode #views-tiles,
+body.search-from-list-mode #views-list {
+  overflow-y: hidden;
+}
+
 body.sublist-mode #views {
   transform: translateX(-200%);
+  z-index: 20;
 }
 
 body.player-mode #views {
   transform: translateX(-300%);
-  z-index: 30
+  z-index: 30;
 }
 
 body.player-mode #title-player {
@@ -219,9 +242,8 @@ body.player-mode #title-player {
   background-image: url("./images/now_playing.png");
 }
 
-#search {
-  width: 100%;
-  height: 10%;
+#title {
+  transition: transform 300ms ease;
 }
 
 #views {
@@ -229,6 +251,17 @@ body.player-mode #title-player {
   width: 100%;
   height: calc(100% - 5rem);
   background-color: rgba(255, 255, 255, 0.2);
+  transition: transform 300ms ease;
+}
+
+#search {
+  position: absolute;
+  width: 100%;
+  height: calc(100% - 3.6rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
+  z-index: 10;
   transition: transform 300ms ease;
 }
 
@@ -274,6 +307,13 @@ body.player-mode #title-player {
 
 #views-player.open-mode {
   left: 0%;
+}
+
+/* Make sure the tiles and list views are tall enough that we can scroll the
+ * search box off-screen. */
+#views-tiles-anchor,
+#views-list-anchor {
+  min-height: 100%;
 }
 
 #views-sublist-header,
@@ -1095,4 +1135,27 @@ li.list-item a:active {
 
 .list-image {
   position: absolute;
+}
+
+form[role="search"] {
+  background: url(/shared/style/headers/images/ui/dark/subheader.png);
+}
+
+form[role="search"] button {
+  background: url(/shared/style/headers/images/ui/dark/separator.png) no-repeat scroll 2rem center transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  float: left;
+  width: calc(2rem + 2px);
+}
+
+form[role="search"] .icon.icon-close {
+  background: url(/shared/style/headers/images/icons/close.png) no-repeat scroll center center transparent;
+  display: block;
+  width: 2rem;
+  height: 3.7rem;
+  margin: 0px;
+  overflow: visible;
+  font-size: 0px;
 }

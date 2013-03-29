@@ -4,9 +4,10 @@
     <meta charset="utf-8" />
     <meta http-equiv="pragma" content="no-cache" />
     <title>Music</title>
-    <link rel="stylesheet" href="style/music.css" type="text/css" />
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
+    <link rel="stylesheet" type="text/css" href="style/music.css"/>
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
@@ -31,8 +32,28 @@
       </header>
     </section>
     <div id="views">
-      <div id="views-tiles" class="view hidden"></div>
-      <div id="views-list" class="view hidden"></div>
+      <div id="views-tiles" class="view hidden">
+        <form id="views-tiles-search" role="search">
+          <button id="views-tiles-search-close"><span class="icon icon-close">close</span></button>
+          <p>
+            <input id="views-tiles-search-input" type="search"
+                   data-l10n-id="search-music" placeholder="SearcH MusiC">
+            <button type="reset">Clear</button>
+          </p>
+        </form>
+        <div id="views-tiles-anchor"></div>
+      </div>
+      <div id="views-list" class="view hidden">
+        <form id="views-list-search" role="search">
+          <button id="views-list-search-close"><span class="icon icon-close">close</span></button>
+          <p>
+            <input id="views-list-search-input" type="search"
+                   data-l10n-id="search-music" placeholder="SearcH MusiC">
+            <button type="reset">Clear</button>
+          </p>
+        </form>
+        <div id="views-list-anchor"></div>
+      </div>
       <div id="views-sublist" class="view hidden">
         <div id="views-sublist-header">
           <div id="views-sublist-header-default">
@@ -80,6 +101,31 @@
         </div>
         <audio id="player-audio" class="hidden"></audio>
       </div>
+    </div>
+    <div id="search" class="hidden">
+      <section role="region" class="skin-dark">
+        <div id="views-search-artists" class="search-category hidden">
+          <header>
+            <h2><span data-l10n-id="search-artists">ArtistS</span>
+              (<span class="search-result-count"></span>)</h2>
+          </header>
+          <div class="search-results"></div>
+        </div>
+        <div id="views-search-albums" class="search-category hidden">
+          <header>
+            <h2><span data-l10n-id="search-albums">AlbumS</span>
+              (<span class="search-result-count"></span>)</h2>
+          </header>
+          <div class="search-results"></div>
+        </div>
+        <div id="views-search-titles" class="search-category hidden">
+          <header>
+            <h2><span data-l10n-id="search-titles">TrackS</span>
+              (<span class="search-result-count"></span>)</h2>
+          </header>
+          <div class="search-results"></div>
+        </div>
+      </section>
     </div>
     <div id="tabs">
       <button class="tabs-button" id="tabs-mix" data-option="mix"></button>
