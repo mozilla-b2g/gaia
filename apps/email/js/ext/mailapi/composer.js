@@ -330,7 +330,6 @@ module.exports = function(address){
     });
 };
 });
-
 define('mailcomposer/lib/dkim',['require','exports','module','crypto','mimelib','./punycode'],function (require, exports, module) {
 var crypto = require('crypto'),
     mimelib = require('mimelib'),
@@ -550,7 +549,6 @@ function hasUTFChars(str){
     return !!rforeign.test(str);
 }
 });
-
 define('http',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -633,7 +631,6 @@ function openUrlStream(url, options){
     return stream; 
 }
 });
-
 define('fs',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -1879,7 +1876,6 @@ MailComposer.prototype._getMimeType = function(filename){
     return extension && mimelib.contentTypes[extension] || defaultMime;
 };
 });
-
 define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
