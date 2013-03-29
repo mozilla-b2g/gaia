@@ -120,7 +120,7 @@ suite('overlap', function() {
     test('2 non-conflicting', function() {
       var records = addRecords([
         [1, 0, 2, 0],
-        [2, 0, 3, 0]
+        [3, 0, 4, 0]
       ]);
       assert.deepEqual(
         subject.tree.query(forever),
@@ -165,8 +165,8 @@ suite('overlap', function() {
       var cs0 = cs[0];
       assert.deepEqual(cs, [cs0, cs0, cs0],
                        'records share the same conflict span');
-      assert.equal(cs0.columns.length, 2,
-                   'staggered conflict results in 2 columns');
+      assert.equal(cs0.columns.length, 3,
+                   'staggered conflict results in 3 columns');
     });
 
     test('event add crossing spans should trigger merge', function() {
