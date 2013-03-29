@@ -16,7 +16,7 @@ deps = ['marionette_client', 'mozdevice']
 
 # copy atoms directory over
 setupdir = os.path.dirname(__file__)
-jsdir = os.path.join(setupdir, os.pardir, 'atoms')
+jsdir = os.path.join(setupdir, os.pardir, os.pardir, 'atoms')
 pythondir = os.path.join(setupdir, 'gaiatest', 'atoms')
 
 if os.path.isdir(jsdir):
