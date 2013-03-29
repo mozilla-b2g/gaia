@@ -34,6 +34,8 @@ var MockMozMobileConnection = {
   ICC_SERVICE_CLASS_PAD: (1 << 7),
   ICC_SERVICE_CLASS_MAX: (1 << 7),
 
+  cardState: 'ready',
+
   voice: {
     network: 'Fake voice network'
   },
