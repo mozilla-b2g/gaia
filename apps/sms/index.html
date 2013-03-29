@@ -49,17 +49,17 @@
             <a href="#new" id="icon-add">
               <span class="icon icon-compose"></span>
             </a>
-            <a href="#edit" id="icon-edit-threads">
+            <a href="#edit" id="threads-edit-icon">
               <span class="icon icon-edit"></span>
             </a>
           </menu>
           <h1 data-l10n-id="messages">Messages</h1>
         </header>
-        <article id="thread-list-container" class="view-body" data-type="list">
+        <article id="threads-container" class="view-body" data-type="list">
         </article>
-        <div id="threads-container" class="fixed-title"></div>
+        <div id="threads-header-container" class="fixed-title"></div>
 
-        <div id="no-messages" class="hide">
+        <div id="threads-no-messages" class="hide">
           <div id="no-result-message">
             <p data-l10n-id="noMessages-title">No messages</p>
             <p data-l10n-id="noMessages-text">Start communicating now</p>
@@ -76,14 +76,14 @@
               <menu type="toolbar">
                 <button id="threads-delete-button" data-l10n-id="delete">delete</button>
               </menu>
-              <h1 id="list-edit-title" data-l10n-id="editMode">Edit mode</h1>
+              <h1 id="threads-edit-mode" data-l10n-id="editMode">Edit mode</h1>
             </header>
           </section>
           <menu>
-            <button id="deselect-all-threads" class="edit-button disabled" data-l10n-id="deselect-all">
+            <button id="threads-uncheck-all-button" class="edit-button disabled" data-l10n-id="deselect-all">
               None
             </button>
-            <button id="select-all-threads" class="edit-button" data-l10n-id="select-all">
+            <button id="threads-check-all-button" class="edit-button" data-l10n-id="select-all">
               All
             </button>
           </menu>
@@ -92,21 +92,21 @@
 
       <section id="thread-messages" class="panel" role="region">
         <header class="view-header regular-header">
-          <a role="link" id="go-to-threadlist">
+          <a role="link" id="messages-back-button">
             <span class="icon icon-back"></span>
           </a>
           <menu type="toolbar">
-            <a id="icon-contact">
+            <a id="messages-contact-pick-button">
               <span class="icon icon-user"></span>
             </a>
             <a href="#edit" id="icon-edit">
               <span class="icon icon-edit"></span>
             </a>
           </menu>
-          <h1 id="header-text" data-l10n-id="messages" aria-hidden="true">Messages</h1>
+          <h1 id="messages-header-text" data-l10n-id="messages" aria-hidden="true">Messages</h1>
           <form id="messages-tel-form">
-            <input id="receiver-input" type="text" name="tel" class="tel" />
-            <span id="clear-search" role="button" class="icon icon-clear"></span>
+            <input id="messages-recipient" type="text" name="tel" class="tel" />
+            <span id="messages-clear-button" role="button" class="icon icon-clear"></span>
           </form>
         </header>
         <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
@@ -114,15 +114,15 @@
         </div>
         <article id="messages-container" class="view-body" data-type="list">
         </article>
-        <article id="no-results-returned" class="view-body hide" data-type="list">
+        <article id="messages-no-results" class="view-body hide" data-type="list">
           <ul>
             <li><a><p data-l10n-id="no-results">No results returned</p></a></li>
           </ul>
         </article>
-        <form role="search" id="new-sms-form" class="bottom new-sms-form">
-          <button id="send-message" disabled data-l10n-id="send" type="submit">Send</button>
+        <form role="search" id="messages-compose-form" class="bottom messages-compose-form">
+          <button id="messages-send-button" disabled data-l10n-id="send" type="submit">Send</button>
           <p>
-            <textarea type="text" id="message-to-send" name="message-to-send" placeholder="Message" data-l10n-id="composeMessage"></textarea>
+            <textarea type="text" id="messages-input" name="messages-input" placeholder="Message" data-l10n-id="composeMessage"></textarea>
           </p>
         </form>
         <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit" >
@@ -132,16 +132,16 @@
                 <span data-l10n-id="cancel" class="icon icon-close">close</span>
               </button>
               <menu type="toolbar">
-                <button id="messages-delete-button"  data-l10n-id="delete">delete</button>
+                <button id="messages-delete-button" data-l10n-id="delete">delete</button>
               </menu>
-              <h1 id="messages-edit-title" data-l10n-id="editMode">Edit mode</h1>
+              <h1 id="messages-edit-mode" data-l10n-id="editMode">Edit mode</h1>
             </header>
           </section>
           <menu>
-            <button id="deselect-all-messages" class="edit-button disabled" data-l10n-id="deselect-all">
+            <button id="messages-uncheck-all-button" class="edit-button disabled" data-l10n-id="deselect-all">
               None
             </button>
-            <button id="select-all-messages" class="edit-button" data-l10n-id="select-all">
+            <button id="messages-check-all-button" class="edit-button" data-l10n-id="select-all">
               All
             </button>
           </menu>
