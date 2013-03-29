@@ -313,6 +313,9 @@ var SimPinDialog = {
   show: function spl_show(action, onclose) {
     var _ = navigator.mozL10n.get;
 
+    // Hide the utility tray to avoid overlapping the SIM Pin dialog
+    UtilityTray.hide(true);
+
     this.systemDialog.show();
     this.dialogDone.disabled = true;
     this.action = action;
