@@ -119,7 +119,7 @@ Icon.prototype = {
 
     container.appendChild(icon);
 
-    if (descriptor.removable) {
+    if (descriptor.removable && !this.downloading) {
       // Menu button to delete the app
       var options = document.createElement('span');
       options.className = 'options';
@@ -210,6 +210,13 @@ Icon.prototype = {
 
     if (this.icon && !this.downloading) {
       this.icon.classList.remove('loading');
+      // Add the delete button if the app is removable
+      if (this.descriptor.removable) {
+        var options = document.createElement('span');
+        options.className = 'options';
+        options.dataset.isIcon = true;
+        this.container.appendChild(options);
+      }
     }
 
     img.onload = function icon_loadSuccess() {
