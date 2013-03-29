@@ -56,6 +56,11 @@ suiteGroup('Templates.Week', function() {
     assert.include(result, 'foo');
   });
 
+  test('#frame', function() {
+    var result = subject.frame.render();
+    assert.ok(result);
+  });
+
 });
 
 
