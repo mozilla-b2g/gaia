@@ -315,8 +315,8 @@ var PlayerView = {
     if (arguments.length > 0) {
       var songData = this.dataSource[targetIndex];
 
-      playerTitle = songData.metadata.title || unknownTitle;
-      TitleBar.changeTitleText(playerTitle);
+      ModeManager.playerTitle = songData.metadata.title || unknownTitle;
+      TitleBar.changeTitleText(ModeManager.playerTitle);
       this.artist.textContent = songData.metadata.artist || unknownArtist;
       this.album.textContent = songData.metadata.album || unknownAlbum;
       this.currentIndex = targetIndex;
@@ -419,12 +419,15 @@ var PlayerView = {
         // When reaches the end, stop and back to the previous mode
         this.stop();
         this.clean();
-        playerTitle = null;
+        ModeManager.playerTitle = null;
 
         // To leave player mode and set the correct title to the TitleBar
         // we have to decide which mode we should back to when the player stops
-        var stopToMode = (currentMode != MODE_PLAYER) ? currentMode : fromMode;
-        changeMode(stopToMode);
+        if (ModeManager.currentMode === MODE_PLAYER) {
+          ModeManager.pop();
+        } else {
+          ModeManager.updateTitle();
+        }
         return;
       }
     } else {
