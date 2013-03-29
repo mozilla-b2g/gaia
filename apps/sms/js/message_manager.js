@@ -21,7 +21,7 @@ var MessageManager = {
     window.addEventListener('hashchange', this.onHashChange.bind(this));
     document.addEventListener('mozvisibilitychange',
                               this.onVisibilityChange.bind(this));
-    this.fullHeight = ThreadListUI.view.offsetHeight;
+
     // Callback if needed
     if (callback && typeof callback === 'function') {
       callback();
@@ -82,7 +82,7 @@ var MessageManager = {
       Utils.updateTimeHeaders();
     } else {
       var threadMockup = this.createThreadMockup(message);
-      if (ThreadListUI.view.getElementsByTagName('ul').length === 0) {
+      if (ThreadListUI.container.getElementsByTagName('ul').length === 0) {
         ThreadListUI.renderThreads([threadMockup]);
       } else {
         var num = threadMockup.senderOrReceiver;
@@ -102,8 +102,8 @@ var MessageManager = {
             // If it's the last one we should remove the container
             var oldThreadContainer = previousThread.parentNode;
             var oldHeaderContainer = oldThreadContainer.previousSibling;
-            ThreadListUI.view.removeChild(oldThreadContainer);
-            ThreadListUI.view.removeChild(oldHeaderContainer);
+            ThreadListUI.container.removeChild(oldThreadContainer);
+            ThreadListUI.container.removeChild(oldHeaderContainer);
           } else {
             var threadsContainerID = 'threadsContainer_' +
                               Utils.getDayDate(threadMockup.timestamp);
@@ -155,10 +155,12 @@ var MessageManager = {
     var threadMessages = document.getElementById('thread-messages');
     switch (window.location.hash) {
       case '#new':
-        var messageInput = document.getElementById('message-to-send');
-        var receiverInput = document.getElementById('receiver-input');
+        var input = document.getElementById('messages-input');
+        var receiverInput = document.getElementById('messages-recipient');
         //Keep the  visible button the :last-child
-        var contactButton = document.getElementById('icon-contact');
+        var contactButton = document.getElementById(
+            'messages-contact-pick-button'
+        );
         contactButton.parentNode.appendChild(contactButton);
         document.getElementById('messages-container').innerHTML = '';
         ThreadUI.cleanFields();
@@ -190,7 +192,7 @@ var MessageManager = {
           });
         } else {
           MessageManager.slide(function() {
-            ThreadUI.view.innerHTML = '';
+            ThreadUI.container.innerHTML = '';
             if (MessageManager.activityTarget) {
               window.location.hash =
                 '#num=' + MessageManager.activityTarget;
@@ -209,7 +211,7 @@ var MessageManager = {
         var num = this.getNumFromHash();
         if (num) {
           var filter = this.createFilter(num);
-          var messageInput = document.getElementById('message-to-send');
+          var input = document.getElementById('messages-input');
           MessageManager.currentNum = num;
           if (mainWrapper.classList.contains('edit')) {
             mainWrapper.classList.remove('edit');
@@ -358,5 +360,3 @@ var MessageManager = {
     };
   }
 };
-
-
