@@ -1,0 +1,16 @@
+{
+  "onlinesupport": {
+    "href": "http://support.mozilla.org/",
+    "title": "Mozilla Support"
+  },
+  "callsupport": [
+    {
+      "href": "tel:123",
+      "title": "test123"
+    },
+    {
+      "href": "tel:321",
+      "title": "test321"
+    }
+  ]
+}

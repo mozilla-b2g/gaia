@@ -1,0 +1,22 @@
+[
+  {
+    "givenName": [
+      "test 1"
+    ],
+    "tel": [
+      {
+        "value": "123456"
+      }
+    ]
+  },
+  {
+    "givenName": [
+      "test 2"
+    ],
+    "tel": [
+      {
+        "value": "654321"
+      }
+    ]
+  }
+]
