@@ -127,6 +127,7 @@ body[data-path^='/settings'] #time-views {
 
 body[role="application"] [role="toolbar"] li button:active {
   background-color: #008aaa;
+  background-size: 3rem auto;
 }
 
 body[role="application"] [role="toolbar"] li button.update {
