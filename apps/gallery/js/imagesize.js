@@ -1,6 +1,6 @@
 /*
  * Determine the pixel dimensions of an image without actually
- * decoding the image. Pass an object of metadata to the callback
+ * decoding the image. Passes an object of metadata to the callback
  * function on success or an error message to the error function on
  * failure. The metadata object will include type, width and height
  * properties. Supported image types are GIF, PNG and JPEG. JPEG
