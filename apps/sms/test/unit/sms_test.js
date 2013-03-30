@@ -79,16 +79,16 @@ suite('SMS App Unit-Test', function() {
     threadListHeader.innerHTML = renderThreadListHeader();
 
     // Thread-list container
-    var threadListContainer = document.createElement('article');
-    threadListContainer.id = 'thread-list-container';
+    var threadsContainer = document.createElement('article');
+    threadsContainer.id = 'threads-container';
 
     // Thread-list fixed-header
-    var fixedHeader = document.createElement('div');
-    fixedHeader.id = 'threads-container';
+    var threadsHeaderContainer = document.createElement('div');
+    threadsHeaderContainer.id = 'threads-header-container';
 
-    // no-messages
+    // threads-no-messages
     var noMessages = document.createElement('div');
-    noMessages.id = 'no-messages';
+    noMessages.id = 'threads-no-messages';
 
     // Thread-list Edit form
     var threadListEditForm = document.createElement('form');
@@ -98,8 +98,8 @@ suite('SMS App Unit-Test', function() {
     threadListEditForm.innerHTML = renderThreadListEdit();
     // Append all elemnts to thread-list view
     threadList.appendChild(threadListHeader);
-    threadList.appendChild(threadListContainer);
-    threadList.appendChild(fixedHeader);
+    threadList.appendChild(threadsContainer);
+    threadList.appendChild(threadsHeaderContainer);
     threadList.appendChild(noMessages);
     threadList.appendChild(threadListEditForm);
 
@@ -129,7 +129,7 @@ suite('SMS App Unit-Test', function() {
 
     // Thread-messages input form
     var threadMsgInputForm = document.createElement('form');
-    threadMsgInputForm.id = 'new-sms-form';
+    threadMsgInputForm.id = 'messages-compose-form';
     threadMsgInputForm.innerHTML = renderThreadMsgInputBar();
 
     threadMessages.appendChild(threadMsgHeader);
@@ -187,12 +187,17 @@ suite('SMS App Unit-Test', function() {
     // Create DOM structure
     createDOM();
 
-    // We render all elements
-    ThreadUI.view.innerHTML = '';
+    // Clear if necessary...
+    if (ThreadUI.container) {
+      ThreadUI.container.innerHTML = '';
+    }
+
+    // ...And render
     ThreadUI.init();
     ThreadListUI.init();
-    window.addEventListener('hashchange',
-      MessageManager.onHashChange.bind(MessageManager));
+    window.addEventListener(
+      'hashchange', MessageManager.onHashChange.bind(MessageManager)
+    );
   });
 
   suiteTeardown(function() {
@@ -216,12 +221,12 @@ suite('SMS App Unit-Test', function() {
         // Check the HTML structure, and if it fits with Building Blocks
 
         // Given our mockup, we should have 4 grous UL/HEADER
-        assertNumberOfElementsInContainerByTag(ThreadListUI.view, 3, 'ul');
-        assertNumberOfElementsInContainerByTag(ThreadListUI.view, 3, 'header');
+        assertNumberOfElementsInContainerByTag(ThreadListUI.container, 3, 'ul');
+        assertNumberOfElementsInContainerByTag(ThreadListUI.container, 3, 'header');
 
         // We know as well that we have, in total, 5 threads
-        assertNumberOfElementsInContainerByTag(ThreadListUI.view, 4, 'li');
-        assertNumberOfElementsInContainerByTag(ThreadListUI.view, 4, 'a');
+        assertNumberOfElementsInContainerByTag(ThreadListUI.container, 4, 'li');
+        assertNumberOfElementsInContainerByTag(ThreadListUI.container, 4, 'a');
 
         // In our mockup we shoul group the threads following day criteria
         // In the second group, we should have 2 threads
@@ -234,7 +239,7 @@ suite('SMS App Unit-Test', function() {
 
       test('Render unread style properly', function() {
         // We know that only one thread is unread
-        assertNumOfElementsByClass(ThreadListUI.view, 1, 'unread');
+        assertNumOfElementsByClass(ThreadListUI.container, 1, 'unread');
       });
 
       test('Update thread with contact info', function() {
@@ -251,21 +256,21 @@ suite('SMS App Unit-Test', function() {
 
       test('Check edit mode form', function() {
         // Do we have all inputs ready?
-        assertNumberOfElementsInContainerByTag(ThreadListUI.view, 4, 'input');
+        assertNumberOfElementsInContainerByTag(ThreadListUI.container, 4, 'input');
       });
 
       test('Select all/Deselect All buttons', function() {
         // Retrieve all inputs
-        var inputs = ThreadListUI.view.getElementsByTagName('input');
+        var inputs = ThreadListUI.container.getElementsByTagName('input');
         // Activate all inputs
         for (var i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
           ThreadListUI.clickInput(inputs[i]);
         }
         ThreadListUI.checkInputs();
-        assert.isTrue(document.getElementById('select-all-threads')
+        assert.isTrue(document.getElementById('threads-check-all-button')
           .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('deselect-all-threads')
+        assert.isFalse(document.getElementById('threads-uncheck-all-button')
           .classList.contains('disabled'));
         // Deactivate all inputs
         for (var i = inputs.length - 1; i >= 0; i--) {
@@ -273,23 +278,23 @@ suite('SMS App Unit-Test', function() {
           ThreadListUI.clickInput(inputs[i]);
         }
         ThreadListUI.checkInputs();
-        assert.isFalse(document.getElementById('select-all-threads')
+        assert.isFalse(document.getElementById('threads-check-all-button')
           .classList.contains('disabled'));
-        assert.isTrue(document.getElementById('deselect-all-threads')
+        assert.isTrue(document.getElementById('threads-uncheck-all-button')
           .classList.contains('disabled'));
         // Activate only one
         inputs[0].checked = true;
         ThreadListUI.clickInput(inputs[0]);
         ThreadListUI.checkInputs();
-        assert.isFalse(document.getElementById('select-all-threads')
+        assert.isFalse(document.getElementById('threads-check-all-button')
           .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('deselect-all-threads')
+        assert.isFalse(document.getElementById('threads-uncheck-all-button')
           .classList.contains('disabled'));
       });
     });
 
     teardown(function() {
-      ThreadListUI.view.innerHTML = '';
+      ThreadListUI.container.innerHTML = '';
     });
   });
 
@@ -303,17 +308,17 @@ suite('SMS App Unit-Test', function() {
     suite('Thread-messages rendering (bubbles view)', function() {
       test('Check HTML structure', function() {
         // It should have 3 bubbles
-        assertNumberOfElementsInContainerByTag(ThreadUI.view, 5, 'li');
+        assertNumberOfElementsInContainerByTag(ThreadUI.container, 5, 'li');
         // Grouped in 2 sets
-        assertNumberOfElementsInContainerByTag(ThreadUI.view, 3, 'header');
-        assertNumberOfElementsInContainerByTag(ThreadUI.view, 3, 'ul');
+        assertNumberOfElementsInContainerByTag(ThreadUI.container, 3, 'header');
+        assertNumberOfElementsInContainerByTag(ThreadUI.container, 3, 'ul');
       });
 
       test('Check message status & styles', function() {
-        assertNumOfElementsByClass(ThreadUI.view, 1, 'sending');
-        assertNumOfElementsByClass(ThreadUI.view, 1, 'sent');
-        assertNumOfElementsByClass(ThreadUI.view, 1, 'received');
-        assertNumOfElementsByClass(ThreadUI.view, 2, 'error');
+        assertNumOfElementsByClass(ThreadUI.container, 1, 'sending');
+        assertNumOfElementsByClass(ThreadUI.container, 1, 'sent');
+        assertNumOfElementsByClass(ThreadUI.container, 1, 'received');
+        assertNumOfElementsByClass(ThreadUI.container, 2, 'error');
       });
 
       test('Check input form & send button', function() {
@@ -330,7 +335,7 @@ suite('SMS App Unit-Test', function() {
         // In '#new' I need the contact as well, so it should be disabled
         assert.isTrue(ThreadUI.sendButton.disabled);
         // Adding a contact should enable the button
-        ThreadUI.contactInput.value = '123123123';
+        ThreadUI.recipient.value = '123123123';
         ThreadUI.enableSend();
         assert.isFalse(ThreadUI.sendButton.disabled);
         // Finally we clean the form
@@ -348,20 +353,20 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Check edit mode form', function() {
-        assertNumberOfElementsInContainerByTag(ThreadUI.view, 5, 'input');
+        assertNumberOfElementsInContainerByTag(ThreadUI.container, 5, 'input');
       });
 
       test('Select/Deselect all', function() {
-        var inputs = ThreadUI.view.getElementsByTagName('input');
+        var inputs = ThreadUI.container.getElementsByTagName('input');
         // Activate all inputs
         for (var i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
           ThreadUI.chooseMessage(inputs[i]);
         }
         ThreadUI.checkInputs();
-        assert.isTrue(document.getElementById('select-all-messages')
+        assert.isTrue(document.getElementById('messages-check-all-button')
           .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('deselect-all-messages')
+        assert.isFalse(document.getElementById('messages-uncheck-all-button')
           .classList.contains('disabled'));
         // Deactivate all inputs
         for (var i = inputs.length - 1; i >= 0; i--) {
@@ -369,23 +374,23 @@ suite('SMS App Unit-Test', function() {
           ThreadUI.chooseMessage(inputs[i]);
         }
         ThreadUI.checkInputs();
-        assert.isFalse(document.getElementById('select-all-messages')
+        assert.isFalse(document.getElementById('messages-check-all-button')
           .classList.contains('disabled'));
-        assert.isTrue(document.getElementById('deselect-all-messages')
+        assert.isTrue(document.getElementById('messages-uncheck-all-button')
           .classList.contains('disabled'));
         // Activate only one
         inputs[0].checked = true;
         ThreadUI.chooseMessage(inputs[0]);
         ThreadUI.checkInputs();
-        assert.isFalse(document.getElementById('select-all-messages')
+        assert.isFalse(document.getElementById('messages-check-all-button')
           .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('deselect-all-messages')
+        assert.isFalse(document.getElementById('messages-uncheck-all-button')
           .classList.contains('disabled'));
       });
     });
 
     teardown(function() {
-      ThreadUI.view.innerHTML = '';
+      ThreadUI.container.innerHTML = '';
     });
   });
 
@@ -537,4 +542,3 @@ suite('SMS App Unit-Test', function() {
     });
   });
 });
-
