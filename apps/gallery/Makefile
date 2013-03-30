@@ -8,6 +8,7 @@ METADATA_SCRIPTS = \
  ../../shared/js/blobview.js \
  ../../shared/js/media/jpeg_metadata_parser.js \
  ../../shared/js/media/get_video_rotation.js \
+ js/imagesize.js \
  js/MetadataParser.js
 
 concatenated_scripts: js/frame_scripts.js js/metadata_scripts.js
