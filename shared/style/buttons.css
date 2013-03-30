@@ -186,6 +186,13 @@ li a[role="button"][aria-disabled="true"].icon-view:before {
   background-position: 1.6rem -6rem;
 }
 
+li button.icon-dialog,
+li a[role="button"].icon-dialog,
+li .button.icon-dialog {
+  font-size: 1.7rem;
+  text-align: center;
+}
+
 li button.icon-dialog:before,
 li a[role="button"].icon-dialog:before,
 li .button.icon-dialog:before {

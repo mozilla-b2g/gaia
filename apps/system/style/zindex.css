@@ -8,7 +8,7 @@
 
 /* Level 1 */
 /**
- * Topest layer, covers all of the screen no matter what's the height
+ * Top layer, covers all of the screen no matter what's the height
  * of the status bar.
  * System overlay > Sleep menu > Card view
  */
@@ -40,8 +40,8 @@
   z-index: 65536;
 }
 
-/* Promote the transitioning appWindow to this level as the entry and exiting transition
-  of the cards view. */
+/* Promote the transitioning appWindow to this level as the entry and exiting
+ * transition of the cards view. */
 #screen.cards-view > [data-z-index-level="app"] > .appWindow.active,
 #screen.cards-view > [data-z-index-level="app"] > .appWindow.opening,
 #screen.cards-view > [data-z-index-level="app"] > .appWindow.closing {
@@ -80,13 +80,13 @@
 }
 
 /* Demote level 5 elements to homescreen level if there is an active
-   full screen app frame */
+ * full screen app frame */
 #screen.fullscreen-app:not(.locked):not(.attention) > [data-z-index-level="statusbar"],
 #screen.fullscreen-app:not(.locked):not(.attention) > [data-z-index-level="utility-tray"] {
   z-index: 0;
 }
 
-/* Prompote level 5 elements to attention screen level when
+/* Promote level 5 elements to attention screen level when
  * there is an active attention screen not minimized in
  * the status bar */
 #screen.attention:not(.active-statusbar) > [data-z-index-level="statusbar"] {
@@ -140,12 +140,9 @@
    */
 }
 
-/*
-  Styles during FTU. In this case lockscreen & homescreen should be behind FTU.
-  Once FTU is done, we will remove this styles in order to get the structure
-  of z-index as usual.
-*/
-
+/* Styles during FTU. In this case lockscreen & homescreen should be behind FTU.
+ * Once FTU is done, we will remove this styles in order to get the structure
+ * of z-index as usual. */
 #screen.ftu > [data-z-index-level="statusbar"]{
   z-index: 1;
 }
@@ -159,14 +156,12 @@
   z-index: 0;
 }
 
-/*
- * The below z-index numbers is used to met the following conditions:
- * - active ones must be on top of the inactive ones
- * - keyboard frame must be below the active ones
- * - keyboard frame must be above the inactive ones
+/* The below z-index numbers are used to meet the following conditions:
+ * - active ones must be on top of inactive ones
+ * - keyboard frame must be below active ones
+ * - keyboard frame must be above inactive ones
  * - app frame must be on top of homescreen frame, inactive or active.
- * - finally, everything else need to be on top of them (hence the lowest nums)
- *
+ * - finally, everything else needs to be on top of them (hence the lowest nums)
  */
 #screen > [data-z-index-level="app"] > #wrapper-footer,
 #screen > [data-z-index-level="app"] > #wrapper-activity-indicator {
@@ -191,8 +186,7 @@
   z-index: 0;
 }
 
-/* We promotes the following overlays on top of the fullscreen web content. */
-
+/* We promote the following overlays on top of the fullscreen web content. */
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.inlineActivity,
 #screen:-moz-full-screen-ancestor > [data-z-index-level="sleep-menu"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="list-menu"],

@@ -290,10 +290,13 @@
 
       case icc.STK_CMD_SET_UP_CALL:
         debug(' STK:Setup Phone Call. Number: ' + options.address);
-        var confirmed = true;
-        if (options.confirmMessage) {
-          confirmed = confirm(options.confirmMessage);
+        if (!options.confirmMessage) {
+          options.confirmMessage = _(
+            'operatorService-confirmCall-defaultmessage', {
+              'number': options.address
+            });
         }
+        var confirmed = confirm(options.confirmMessage);
         iccLastCommandProcessed = true;
         responseSTKCommand({
           hasConfirmed: confirmed,
@@ -646,6 +649,9 @@
     if (options.isYesNoRequired) {
       input.type = 'checkbox';
     }
+    if (options.hideInput) {
+      input.type = 'password';
+    }
     if (options.hidden) {
       input.type = 'hidden';
     }
@@ -685,6 +691,13 @@
         clearTimeout(inputTimeOutID);
         inputTimeOutID = null;
       }
+      if (input.type === 'tel') {
+        // Removing unauthorized characters
+        console.log('TEL keypad. Remove unauthorized characters: ' +
+          input.value);
+        input.value = input.value.replace(/[()-]/g, '');
+        console.log('TEL keypad. Final entry: ' + input.value);
+      }
       button.disabled = !checkInputLengthValid(input.value.length,
                                               options.minLength,
                                               options.maxLength);
@@ -693,6 +706,7 @@
     label.appendChild(button);
     li.appendChild(label);
     iccStkList.appendChild(li);
+    input.focus();
 
     // Help
     if (options.isHelpAvailable) {
@@ -824,6 +838,7 @@
       debug('Tone stop in (ms): ', timeout);
       setTimeout(function() {
         closeToneAlert();
+        iccLastCommandProcessed = true;
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
       }, timeout);
     }
