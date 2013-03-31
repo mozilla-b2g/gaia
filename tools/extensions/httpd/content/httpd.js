@@ -1440,9 +1440,9 @@ RequestReader.prototype =
             if (oldPath.indexOf("/shared/") === 0) {
               filePath += "/../..";
               if (oldPath.indexOf('/branding/') != -1) {
-                oldPath = oldPath.replace('branding',
-                                          GAIA_OFFICIAL ? 'branding/official' 
-                                                        : 'branding/unofficial');
+                oldPath = oldPath.replace('branding', GAIA_OFFICIAL ?
+                                                      'branding/official' :
+                                                      'branding/unofficial');
               }
             }
             request._path = filePath + oldPath;
