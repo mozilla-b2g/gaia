@@ -589,7 +589,8 @@ var StatusBar = {
       icon.dataset.active = this.geolocationActive;
       icon.dataset.fix = this.geolocationFix;
 
-      if (this.geolocationActive || this.geolocationFix) {
+      // geolocationFix is always true when geolocationActive is
+      if (this.geolocationActive) {
         // Geolocation is currently active, show the active icon.
         icon.hidden = false;
         return;
