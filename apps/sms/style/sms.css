@@ -32,7 +32,7 @@ form.bottom[role="search"] {
   z-index: 3;
 }
 
-#receiver-input {
+#messages-recipient {
   padding-right: 3rem;
   font-size: 1.8rem;
 }
@@ -126,16 +126,16 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   transition: all 0.3s ease;
 }
 
-.edit #thread-list-container[data-type="list"] aside.pack-end {
+.edit #threads-container[data-type="list"] aside.pack-end {
   margin: 0 0 0 -3rem;
 }
 
-.edit #thread-list-container[data-type="list"] aside.pack-end img {
+.edit #threads-container[data-type="list"] aside.pack-end img {
   transform: translateX(7.5rem);
   transition: all 0.3s ease;
 }
 
-.edit #thread-list-container[data-type="list"] aside.pack-end img[src=""] {
+.edit #threads-container[data-type="list"] aside.pack-end img[src=""] {
   width: 6.5rem;
 }
 
@@ -186,12 +186,12 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   transform: translateX(0%);
 }
 
-#thread-list,#thread-messages {
+#threads-container,#thread-messages {
   z-index: 10;
   background: white;
 }
 
-#icon-contact {
+#messages-contact-pick-button {
   display: none;
 }
 
@@ -203,7 +203,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   transform: translateY(0);
 }
 
-.edit .new-sms-form {
+.edit .messages-compose-form {
   transform: translateY(3.6rem);
 }
 
@@ -211,16 +211,16 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   transform: translateY(0);
 }
 
-.edit #thread-list-container .item > a {
+.edit #threads-container .item > a {
   transform: translateX(3rem);
   pointer-events: none;
 }
 
-.edit #thread-list-container .item > a.unread .unread-tag {
+.edit #threads-container .item > a.unread .unread-tag {
   opacity: 0;
 }
 
-.edit #thread-list-container .checkbox-container {
+.edit #threads-container .checkbox-container {
   pointer-events:auto;
   opacity: 1;
   transform: translateX(0);
@@ -259,7 +259,7 @@ section[role="region"].new > header:first-child form {
   display: none;
 }
 
-.new #icon-contact {
+.new #messages-contact-pick-button {
   display: block;
 }
 
@@ -451,22 +451,22 @@ section[role="region"].new > header:first-child form {
   Bottom bar for sending SMS
 */
 
-.new-sms-form {
+.messages-compose-form {
   transition: transform .2s ease-in;
 }
 
-form.bottom[role="search"].new-sms-form {
+form.bottom[role="search"].messages-compose-form {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
 }
 
-#send-message.active {
+#messages-send-button.active {
   background: #008aaa;
 }
 
-#send-message:before {
+#messages-send-button:before {
   content: attr(data-counter);
   color: #666;
   font-weight: normal;
@@ -476,7 +476,7 @@ form.bottom[role="search"].new-sms-form {
   top: -0.2rem;
 }
 
-#message-to-send {
+#messages-input {
   padding: 0.4rem 0.2rem 0.2rem 0.6rem;
   line-height: 1.8rem !important;
   font-size: 1.8rem;
@@ -513,7 +513,7 @@ form.bottom[role="search"].new-sms-form {
   No result container
 */
 
-#no-messages {
+#threads-no-messages {
   background-image: url('images/SMS_200x200_bubble.png');
   background-repeat: no-repeat;
   background-attachment: fixed;
