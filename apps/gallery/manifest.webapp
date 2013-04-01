@@ -9,6 +9,7 @@
   },
   "fullscreen": true,
   "permissions": {
+    "storage":{},
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
     "deprecated-hwvideo":{},
