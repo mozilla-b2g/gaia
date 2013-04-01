@@ -198,16 +198,16 @@ var Navigation = {
         ImportIntegration.checkImport(fbState);
         break;
       case '#welcome_browser':
-        UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
+        UIManager.mainTitle.innerHTML = _('aboutBrowser');
         break;
       case '#browser_privacy':
         UIManager.progressBar.className = 'step-state step-7';
-        UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
+        UIManager.mainTitle.innerHTML = _('aboutBrowser');
         break;
       case '#about-your-rights':
       case '#about-your-privacy':
       case '#sharing-performance-data':
-        UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
+        UIManager.mainTitle.innerHTML = _('aboutBrowser');
       case this.externalUrlLoaderSelector:
         UIManager.progressBar.className = 'hidden';
         UIManager.navBar.classList.add('back-only');
