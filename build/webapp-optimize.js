@@ -169,7 +169,7 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
 
   // find the absolute root of the app's html file.
   let rootUrl = htmlFile.parent.path;
-  rootUrl = rootUrl.replace(webapp.manifestFile.parent.path, '');
+  rootUrl = rootUrl.replace(webapp.manifestFile.parent.path, '') || '.';
   // the above will yield something like: '', '/facebook/', '/contacts/', etc...
 
   function writeAggregatedScript(config) {
