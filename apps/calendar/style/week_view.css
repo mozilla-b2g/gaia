@@ -21,6 +21,91 @@
   position: static;
 }
 
+#week-view > section {
+  height: calc(100% - 8.33rem);
+  display: none;
+  position: absolute;
+}
+
+#week-view > section.active {
+  display: block;
+}
+
+/* sticky all-day styles */
+#week-view .sticky ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0 0 0 2rem;
+  height: 2rem;
+  background: #2A2A2A;
+}
+
+#week-view .week-events > ol,
+#week-view .sticky .week-events {
+  border-bottom: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  text-align: center;
+  color: white;
+  font-size: 120%;
+  height: 6rem;
+  position: relative;
+}
+
+#week-view .sticky li {
+  float: left;
+}
+
+#week-view .sticky ul > li {
+  height: 6rem;
+}
+
+#week-view .sticky .week-events {
+  border-bottom: 0;
+  height: 100%;
+  overflow-y: scroll;
+}
+
+#week-view .sticky .week-events li.event {
+  position: static;
+}
+
+#week-view .days-3 .sticky li {
+  width: 33%;
+}
+
+#week-view .days-4 .sticky li {
+  width: 25%;
+}
+
+#week-view .sticky {
+  border-bottom: 1px solid #2A2A2A;
+  height: 8rem;
+  overflow: hidden;
+  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
+  position: relative;
+  z-index: 11;
+}
+
+#week-view .sticky .all-day {
+  transform: rotate(-90deg);
+  line-height: 120%;
+  float: left;
+  position: absolute;
+  top: 4rem;
+  left: -1rem;
+  font-size: 1.3rem;
+}
+
+#week-view .sticky .children {
+  width: 100%;
+}
+
+#week-view .sticky .children ol {
+  border-bottom: 0;
+  border-left: 0;
+}
+
+/* sidebar styles */
 #week-view .sidebar {
    min-height: 6rem;
    width: 2rem;
@@ -50,59 +135,35 @@
   overflow: hidden;
 }
 
-#week-view > .scroll {
+#week-view .scroll {
   height: calc(100% - 8.1rem);
   overflow-y: scroll;
 }
 
-#week-view > .scroll > .children {
+#week-view .scroll > .children {
   position: relative;
   height: 100%;
   float: left;
   width: calc(100% - 2rem);
 }
 
-#week-view .children > section {
-  display: none;
-  width: 100%;
-  height: 100%;
-}
 
-#week-view .children section.active {
-  display: block !important;
-}
-
-
-#week-view .children > .weekday.days-3 > section {
-  width: 33%;
-}
-
-#week-view .children > .weekday > section {
-  display: none;
+#week-view .weekday .children > section {
   height: 100%;
   width: 25%;
   float: left;
 }
 
-#week-view .week-events.active {
-  display: block;
+#week-view .weekday.days-3 .children > section {
+  width: 33%;
 }
 
-#week-view .week-events > ol,
-#week-view .sticky .week-events {
-  border-bottom: 1px solid #ccc;
-  border-left: 1px solid #ccc;
-  text-align: center;
-  color: white;
-  font-size: 120%;
-  height: 6rem;
-  position: relative;
-}
-
+#week-view .week-events,
 #week-view .week-events > ol {
   width: 100%;
 }
 
+/* week view event styles */
 #week-view .week-events > ol li.event {
   position: absolute;
   width: 100%;
@@ -127,7 +188,6 @@
   )
 }
 
-/* overlap */
 .weekday .event[data-overlaps="1"] { padding: 3px; }
 .weekday .event[data-overlaps="2"] { padding: 6px; }
 .weekday .event[data-overlaps="3"] { padding: 9px; }
@@ -138,75 +198,3 @@
 .weekday .event[data-overlaps="8"] { padding: 24px; }
 .weekday .event[data-overlaps="9"] { padding: 27px; }
 .weekday .event[data-overlaps="10"] { padding: 30px; }
-
-/* Sticky All Day Events */
-#week-view .sticky {
-  border-bottom: 1px solid #2A2A2A;
-  height: 8rem;
-  overflow: hidden;
-  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
-  position: relative;
-  z-index: 11;
-}
-
-#week-view .all-day {
-  transform: rotate(-90deg);
-  line-height: 120%;
-  float: left;
-  position: absolute;
-  top: 4rem;
-  left: -1rem;
-  font-size: 1.3rem;
-}
-
-#week-view .sticky .children {
-  width: 100%;
-}
-
-#week-view .sticky ul {
-  display: none;
-  list-style-type: none;
-  margin: 0;
-  padding: 0 0 0 2rem;
-  height: 2rem;
-  background: #2A2A2A;
-}
-
-#week-view .sticky ul.active {
-  display:block;
-}
-
-#week-view .sticky li {
-  float: left;
-}
-
-#week-view .sticky ul > li {
-  height: 6rem;
-}
-
-#week-view .sticky .week-events {
-  border-bottom: 0;
-  height: 100%;
-  overflow-y: scroll;
-}
-
-#week-view .sticky .week-events li.event {
-  position: static;
-}
-
-#week-view .sticky .days-3 li {
-  width: 33%;
-}
-
-#week-view .sticky .days-4 li {
-  width: 25%;
-}
-
-#week-view .week-events {
-  height: 6rem;
-}
-
-#week-view .sticky ol {
-  border-bottom: 0;
-  border-left: 0;
-}
