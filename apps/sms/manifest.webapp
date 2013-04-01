@@ -9,6 +9,7 @@
   },
   "permissions": {
     "sms":{},
+    "storage":{},
     "contacts":{ "access": "readonly" },
     "mobileconnection":{},
     "settings":{ "access": "readonly" },
