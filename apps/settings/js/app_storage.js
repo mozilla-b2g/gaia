@@ -23,10 +23,12 @@ var AppStorage = (function AppStorage() {
 
   function attachListeners() {
     _appStorage.addEventListener('change', handleEvent);
+    window.addEventListener('localized', handleEvent);
   }
 
   function detachListeners() {
     _appStorage.removeEventListener('change', handleEvent);
+    window.removeEventListener('localized', handleEvent);
   }
 
   function handleEvent(evt) {

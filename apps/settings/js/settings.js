@@ -306,12 +306,15 @@ var Settings = {
         // link the button with the select element
         var index = select.selectedIndex;
         if (index >= 0) {
-          button.textContent = select.options[index].textContent;
+          var selection = select.options[index];
+          button.textContent = selection.textContent;
+          button.dataset.l10nId = selection.dataset.l10nId;
         }
         if (parent.classList.contains('fake-select')) {
           select.addEventListener('change', function() {
-            var newSelect = this.options[this.selectedIndex].textContent;
-            button.textContent = newSelect;
+            var newSelection = this.options[this.selectedIndex];
+            button.textContent = newSelection.textContent;
+            button.dataset.l10nId = newSelection.dataset.l10nId;
           });
         }
       };
