@@ -95,8 +95,7 @@ if (typeof fb.oauth === 'undefined') {
       if (!parameters || !parameters.access_token) {
         return;
       }
-      var location = getLocation(oauthflow.params[accessTokenCbData.service].
-        redirectURI);
+      var location = getLocation(fb.oauthflow.params.redirectURI);
       var allowedOrigin = location.protocol + '//' + location.host;
       if (e.origin !== allowedOrigin) {
         return;
