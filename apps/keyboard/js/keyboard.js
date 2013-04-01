@@ -1062,8 +1062,8 @@ function startPress(target, coords, touchId) {
     return;
 
   // Feedback
-  IMERender.highlightKey(target);
   triggerFeedback();
+  IMERender.highlightKey(target);
 
   setMenuTimeout(target, coords, touchId);
 
