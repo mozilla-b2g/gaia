@@ -13,21 +13,18 @@ var gDeviceList = null;
 // handle Bluetooth settings
 navigator.mozL10n.ready(function bluetoothSettings() {
   var _ = navigator.mozL10n.get;
-  var settings = window.navigator.mozSettings;
-  var bluetooth = window.navigator.mozBluetooth;
+  var settings = Settings.mozSettings;
+  var bluetooth = getBluetooth();
   var defaultAdapter = null;
 
   if (!settings || !bluetooth) {
     return;
   }
 
-  var gBluetoothInfoBlock = document.getElementById('bluetooth-desc');
   var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');
 
   // display Bluetooth power state
   function updateBluetoothState(value) {
-    gBluetoothInfoBlock.textContent =
-      value ? _('bt-status-nopaired') : _('bt-status-turnoff');
     gBluetoothCheckBox.checked = value;
   }
 
@@ -343,6 +340,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
       navigator.mozSetMessageHandler('bluetooth-pairedstatuschanged',
         function bt_getPairedMessage(message) {
+          dispatchEvent(new CustomEvent('bluetooth-pairedstatuschanged'));
           showDevicePaired(message.paired, 'Authentication Failed');
         }
       );
@@ -377,7 +375,6 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         var paired = req.result.slice();
         var length = paired.length;
         if (length == 0) {
-          gBluetoothInfoBlock.textContent = _('bt-status-nopaired');
           pairList.show(false);
           return;
         }
@@ -408,11 +405,6 @@ navigator.mozL10n.ready(function bluetoothSettings() {
             }
           })(paired[i]);
         }
-        var text = _('bt-status-paired', {
-          name: paired[0].name,
-          n: length - 1
-        });
-        gBluetoothInfoBlock.textContent = text;
         pairList.show(true);
         // the callback function now is for restoring the connected device
         // when the bluetooth is turned on.
@@ -714,16 +706,16 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     gMyDeviceInfo.update(lastMozSettingValue);
   };
 
-  bluetooth.onadapteradded = function bt_adapterAdded() {
+  bluetooth.addEventListener('adapteradded', function() {
     // enable UI toggle
     gBluetoothCheckBox.disabled = false;
     initialDefaultAdapter();
     dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
-  };
-  bluetooth.ondisabled = function bt_onDisabled() {
+  });
+  bluetooth.addEventListener('disabled', function() {
     gBluetoothCheckBox.disabled = false;  // enable UI toggle
     defaultAdapter = null;  // clear defaultAdapter
     dispatchEvent(new CustomEvent('bluetooth-disabled'));
-  };
+  });
 });
 
