@@ -19,6 +19,11 @@ if (navigator.mozSetMessageHandler) {
             oncancelled: addBookmarkCancelled
           };
           BookmarkEditor.init(options);
+          document.addEventListener('mozvisibilitychange', function changed() {
+            if (document.mozHidden) {
+              BookmarkEditor.close();
+            }
+          });
         }
         break;
     }
