@@ -35,12 +35,15 @@ var Security = {
     switch (mobileConnection.cardState) {
       case null:
         simSecurityDesc.textContent = _('simCardNotReady');
+        simSecurityDesc.dataset.l10nId = 'simCardNotReady';
         return;
       case 'unknown':
         simSecurityDesc.textContent = _('unknownSimCardState');
+        simSecurityDesc.dataset.l10nId = 'unknownSimCardState';
         return;
       case 'absent':
         simSecurityDesc.textContent = _('noSimCard');
+        simSecurityDesc.dataset.l10nId = 'noSimCard';
         return;
     }
 
@@ -50,6 +53,8 @@ var Security = {
       var enabled = req.result.enabled;
       simSecurityDesc.textContent = (enabled) ?
         _('enabled') : _('disabled');
+      simSecurityDesc.dataset.l10nId = (enabled) ?
+        'enabled' : 'disabled';
     };
   }
 };
