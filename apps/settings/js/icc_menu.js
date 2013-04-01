@@ -8,6 +8,14 @@
     if (!iccCommand)
       return;
 
+    // Clear cache
+    var reqIccData = window.navigator.mozSettings.createLock().set({
+      'icc.data': null
+    });
+    reqIccData.onsuccess = function icc_getIccData() {
+      debug('ICC Cache cleared');
+    }
+
     // Open ICC section
     debug('ICC command to execute: ', iccCommand);
     var page = document.location.protocol + '//' +
