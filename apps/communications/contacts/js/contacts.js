@@ -343,7 +343,6 @@ var Contacts = (function() {
           'type': TAG_OPTIONS['email-type'][0].value
         }];
       }
-
       var hash = '#view-contact-form?extras=' +
         encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
       if (fromUpdateActivity)
@@ -514,15 +513,20 @@ var Contacts = (function() {
   };
 
   var handleDetailsBack = function handleDetailsBack() {
-    var hasParams = window.location.hash.split('?');
-    var params = hasParams.length > 1 ?
-      extractParams(hasParams[1]) : -1;
+    if (ActivityHandler.currentlyHandling) {
+      ActivityHandler.postCancel();
+      navigation.home();
+    } else {
+      var hasParams = window.location.hash.split('?');
+      var params = hasParams.length > 1 ?
+        extractParams(hasParams[1]) : -1;
 
-    navigation.back();
-    // post message to parent page included Contacts app.
-    if (params['back_to_previous_tab'] === '1') {
-      window.parent.postMessage({
-          'type': 'contactsiframe', 'message': 'back' }, '*');
+      navigation.back();
+      // post message to parent page included Contacts app.
+      if (params['back_to_previous_tab'] === '1') {
+        window.parent.postMessage({
+            'type': 'contactsiframe', 'message': 'back' }, '*');
+      }
     }
   };
 

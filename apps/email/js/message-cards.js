@@ -931,7 +931,16 @@ function MessageReaderCard(domNode, mode, args) {
     domNode.getElementsByClassName('msg-star-btn')[0].classList
            .add('msg-btn-active');
 }
+
 MessageReaderCard.prototype = {
+  _contextMenuType: {
+    VIEW_CONTACT: 1,
+    CREATE_CONTACT: 2,
+    ADD_TO_CONTACT: 4,
+    REPLY: 8,
+    NEW_MESSAGE: 16
+  },
+
   postInsert: function() {
     // iframes need to be linked into the DOM tree before their contentDocument
     // can be instantiated.
@@ -1023,29 +1032,119 @@ MessageReaderCard.prototype = {
 
   onPeepClick: function(target) {
     var contents = msgNodes['contact-menu'].cloneNode(true);
-    var email = target.getAttribute('data-email');
+    var email = target.dataset.address;
+    var contact = null;
     contents.getElementsByTagName('header')[0].textContent = email;
     document.body.appendChild(contents);
+
+    /*
+     * Show menu items based on the options which consists of values of
+     * the type "_contextMenuType".
+     */
+    var showContextMenuItems = (function(options) {
+      if (options & this._contextMenuType.VIEW_CONTACT)
+        contents.querySelector('.msg-contact-menu-view')
+          .classList.remove('collapsed');
+      if (options & this._contextMenuType.CREATE_CONTACT)
+        contents.querySelector('.msg-contact-menu-create-contact')
+          .classList.remove('collapsed');
+      if (options & this._contextMenuType.ADD_TO_CONTACT)
+        contents.querySelector('.msg-contact-menu-add-to-existing-contact')
+          .classList.remove('collapsed');
+      if (options & this._contextMenuType.REPLY)
+        contents.querySelector('.msg-contact-menu-reply')
+          .classList.remove('collapsed');
+      if (options & this._contextMenuType.NEW_MESSAGE)
+        contents.querySelector('.msg-contact-menu-new')
+          .classList.remove('collapsed');
+    }).bind(this);
+
+    var updateName = (function(targetMail, name) {
+      if (!name || name === '')
+        return;
+
+      // update UI
+      var selector = '.msg-peep-bubble[data-address="' +
+        targetMail + '"]';
+      var nodes = Array.prototype.slice
+        .call(this.domNode.querySelectorAll(selector));
+
+      for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i];
+        var content = node.querySelector('.msg-peep-content');
+        node.dataset.name = name;
+        content.textContent = name;
+      }
+    }).bind(this);
+
     var formSubmit = (function(evt) {
       document.body.removeChild(contents);
       switch (evt.explicitOriginalTarget.className) {
         // All of these mutations are immediately reflected, easily observed
         // and easily undone, so we don't show them as toaster actions.
+        case 'msg-contact-menu-new':
+          var composer =
+            MailAPI.beginMessageComposition(this.header, null, null,
+            function composerReady() {
+              composer.to = [{
+                address: target.dataset.address,
+                name: target.dataset.name
+              }];
+              Cards.pushCard('compose', 'default', 'animate',
+                             { composer: composer });
+            });
+          break;
         case 'msg-contact-menu-view':
-          try {
-            //TODO: Provide correct params for contact activiy handler.
+          if (contact) {
             var activity = new MozActivity({
-              name: 'new',
+              name: 'open',
               data: {
                 type: 'webcontacts/contact',
                 params: {
-                  'email': email
+                  'id': contact.id
                 }
               }
             });
-          } catch (e) {
-            console.log('WebActivities unavailable? : ' + e);
           }
+          break;
+        case 'msg-contact-menu-create-contact':
+          var params = {
+            'email': email
+          };
+
+          if (name)
+            params['givenName'] = target.dataset.name;
+
+          var activity = new MozActivity({
+            name: 'new',
+            data: {
+              type: 'webcontacts/contact',
+              params: params
+            }
+          });
+
+          activity.onsuccess = function() {
+            var contact = activity.result.contact;
+            if (contact)
+              updateName(email, contact.name);
+          };
+          break;
+        case 'msg-contact-menu-add-to-existing-contact':
+          var activity = new MozActivity({
+            name: 'update',
+            data: {
+              type: 'webcontacts/contact',
+              params: {
+                'email': email
+              }
+            }
+          });
+
+          activity.onsuccess = function() {
+            var contact = activity.result.contact;
+            if (contact)
+              updateName(email, contact.name);
+          };
           break;
         case 'msg-contact-menu-reply':
           //TODO: We need to enter compose view with specific email address.
@@ -1058,6 +1157,24 @@ MessageReaderCard.prototype = {
       return false;
     }).bind(this);
     contents.addEventListener('submit', formSubmit);
+
+    ContactDataManager.searchContactData(email, function(contacts) {
+      var contextMenuOptions = this._contextMenuType.NEW_MESSAGE;
+      var messageType = target.dataset.type;
+
+      if (messageType === 'from')
+        contextMenuOptions |= this._contextMenuType.REPLY;
+
+      if (contacts && contacts.length > 0) {
+        contact = contacts[0];
+        contextMenuOptions |= this._contextMenuType.VIEW_CONTACT;
+      } else {
+        contact = null;
+        contextMenuOptions |= this._contextMenuType.CREATE_CONTACT;
+        contextMenuOptions |= this._contextMenuType.ADD_TO_CONTACT;
+      }
+      showContextMenuItems(contextMenuOptions);
+    }.bind(this));
   },
 
   onLoadBarClick: function(event) {
@@ -1208,7 +1325,9 @@ MessageReaderCard.prototype = {
   buildHeaderDom: function(domNode) {
     var header = this.header, body = this.body;
 
-    function addHeaderEmails(lineClass, peeps) {
+    // -- Header
+    function addHeaderEmails(type, peeps) {
+      var lineClass = 'msg-envelope-' + type + '-line';
       var lineNode = domNode.getElementsByClassName(lineClass)[0];
 
       if (!peeps || !peeps.length) {
@@ -1228,8 +1347,10 @@ MessageReaderCard.prototype = {
         var peep = peeps[0];
         // TODO: Display peep name if the address is not exist.
         //       Do we nee to deal with that scenario?
-        contentTemplate.textContent = peep.address || peep.name;
-        peepTemplate.setAttribute('data-email', peep.address);
+        contentTemplate.textContent = peep.name || peep.address;
+        peepTemplate.dataset.address = peep.address;
+        peepTemplate.dataset.name = peep.name;
+        peepTemplate.dataset.type = type;
         if (peep.address) {
           contentTemplate.classList.add('msg-peep-address');
         }
@@ -1241,7 +1362,9 @@ MessageReaderCard.prototype = {
       for (var i = 0; i < peeps.length; i++) {
         var peep = peeps[i];
         contentTemplate.textContent = peep.name || peep.address;
-        peepTemplate.setAttribute('data-email', peep.address);
+        peepTemplate.dataset.address = peep.address;
+        peepTemplate.dataset.name = peep.name;
+        peepTemplate.dataset.type = type;
         if (!peep.name && peep.address) {
           contentTemplate.classList.add('msg-peep-address');
         } else {
@@ -1251,10 +1374,10 @@ MessageReaderCard.prototype = {
       }
     }
 
-    addHeaderEmails('msg-envelope-from-line', [header.author]);
-    addHeaderEmails('msg-envelope-to-line', body.to);
-    addHeaderEmails('msg-envelope-cc-line', body.cc);
-    addHeaderEmails('msg-envelope-bcc-line', body.bcc);
+    addHeaderEmails('from', [header.author]);
+    addHeaderEmails('to', body.to);
+    addHeaderEmails('cc', body.cc);
+    addHeaderEmails('bcc', body.bcc);
 
     var dateNode = domNode.getElementsByClassName('msg-envelope-date')[0];
     dateNode.dataset.time = header.date.valueOf();
