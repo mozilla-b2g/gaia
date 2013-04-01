@@ -23,8 +23,6 @@ suiteGroup('Views.Week', function() {
     testEl.id = 'test';
     testEl.innerHTML = [
       '<div id="week-view">',
-        '<section class="sidebar">a</section>',
-        '<section class="children">a</section>',
       '</div>'
     ].join('');
 
@@ -74,7 +72,7 @@ suiteGroup('Views.Week', function() {
 
     test('initializer', function() {
       assert.ok(subject.element);
-      assert.length(subject.element.children, 3);
+      assert.length(subject.element.children, 2);
     });
 
     test('.id', function() {
@@ -267,10 +265,6 @@ suiteGroup('Views.Week', function() {
     assert.ok(subject.frameContainer);
   });
 
-  test('#sidebar', function() {
-    assert.ok(subject.sidebar);
-  });
-
   test('#onfirstseen', function() {
     assert.equal(subject.onfirstseen, subject.render);
   });
@@ -286,7 +280,7 @@ suiteGroup('Views.Week', function() {
     });
 
     test('#_appendSidebarHours', function() {
-      var html = subject.sidebar.outerHTML;
+      var html = subject.element.querySelector('.sidebar').outerHTML;
       assert.ok(html, 'has contents');
 
       assert.include(html, Calendar.Calc.ALLDAY);
