@@ -524,7 +524,11 @@ var PlayerView = {
     this.seekIndicator.style.transform = 'translateX(' + x + ')';
 
     this.seekElapsed.textContent = formatTime(currentTime);
-    this.seekRemaining.textContent = '-' + formatTime(endTime - currentTime);
+    var remainingTime = endTime - currentTime;
+    // Check if there is remaining time to show, avoiding to display "-00:00"
+    // while song is loading (Bug 833710)
+    this.seekRemaining.textContent =
+        (remainingTime > 0) ? '-' + formatTime(remainingTime) : '---:--';
   },
 
   handleEvent: function pv_handleEvent(evt) {
