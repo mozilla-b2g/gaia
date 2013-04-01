@@ -570,7 +570,8 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function toggleCalls() {
-    if (handledCalls.length < 2) {
+    if (handledCalls.length < 2 || 
+          CallScreen.incomingContainer.classList.contains('displayed')) {
       return;
     }
 
