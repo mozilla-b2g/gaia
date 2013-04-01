@@ -14,7 +14,8 @@
     "settings":{ "access": "readonly" },
     "networkstats-manage":{},
     "alarms": {},
-    "telephony": {}
+    "telephony": {},
+    "storage": {}
   },
   "activities": {
     "costcontrol/balance": {
