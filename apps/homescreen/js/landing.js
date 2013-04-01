@@ -37,10 +37,6 @@ const LandingPage = (function() {
   });
 
   document.addEventListener('mozvisibilitychange', function mozVisChange() {
-    if (!page.dataset.currentPage) {
-      return;
-    }
-
     document.mozHidden ? window.clearInterval(updateInterval) : initTime();
   });
 
@@ -66,4 +62,3 @@ const LandingPage = (function() {
   }
 
 }());
-
