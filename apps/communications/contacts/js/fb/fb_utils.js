@@ -317,14 +317,12 @@ if (!fb.utils) {
 
             xhr.onload = function(e) {
               if (xhr.status === 200 || xhr.status === 0) {
-                if (xhr.response.success) {
-                  window.asyncStorage.removeItem(STORAGE_KEY);
-                  outReq.done();
+                if (!xhr.response || !xhr.response.success) {
+                  window.console.error('FB: Logout unexpected redirect or ' +
+                                       'token expired');
                 }
-                else {
-                  window.console.error('FB: Logout unexpected redirect');
-                  outReq.failed('Unexpected redirect');
-                }
+                window.asyncStorage.removeItem(STORAGE_KEY);
+                outReq.done();
               }
               else {
                 window.console.error('FB: Error executing logout. Status: ',
