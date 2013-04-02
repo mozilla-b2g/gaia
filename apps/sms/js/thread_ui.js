@@ -378,8 +378,8 @@ var ThreadUI = {
     // Retrieve phone number from Hash
     var number = MessageManager.getNumFromHash();
     // Add data to contact activity interaction
-    this.title.dataset.phoneNumber = number;
-    this.title.textContent = number;
+    this.headerText.dataset.phoneNumber = number;
+    this.headerText.textContent = number;
 
     // For Desktop Testing, mozContacts it's mockuped but it's not working
     // completely. So in the case of Desktop testing we are going to execute
