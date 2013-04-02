@@ -7,6 +7,7 @@
 'use strict';
 
 var kFontStep = 4;
+var kKeyToneFrames = 1200;
 
 // Frequencies coming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
@@ -98,27 +99,38 @@ var TonePlayer = {
     }
 
     this._audio.mozSetup(1, this._sampleRate);
-    this._audio.volume = 1;
 
     // Writing 150ms of sound (duration for a short press)
-    var initialSoundData = new Float32Array(1200);
+    var initialSoundData = new Float32Array(kKeyToneFrames);
     this.generateFrames(initialSoundData, shortPress);
-    this._audio.mozWriteAudio(initialSoundData);
 
-    if (shortPress)
-      return;
+    var wrote = this._audio.mozWriteAudio(initialSoundData);
+    var start = 0;
 
-    // Long press support
-    // Continuing playing until .stop() is called
     this._intervalID = setInterval((function audioLoop() {
-      if (this._stopping)
-        return;
+      start = start + wrote;
+      // Continuing playing until .stop() is called for long press in calling
+      // state. Or just play one round of data in non calling state.
+      if (this._stopping || (start == kKeyToneFrames && shortPress == true)) {
+       if (this._intervalID == null)
+         return;
 
-      var soundData = new Float32Array(1200);
-      this.generateFrames(soundData);
+        clearInterval(this._intervalID);
+        this._intervalID = null;
+        return;
+      }
+
+      // If shortPress is false then we repeat the tone in call state.
+      if (start == kKeyToneFrames) {
+        start = 0;
+        // Re-generateFrames with sustaining sound.
+        this.generateFrames(initialSoundData);
+      }
+
       if (this._audio != null)
-        this._audio.mozWriteAudio(soundData);
-    }).bind(this), 60); // Avoiding under-run issues by keeping this low
+        wrote = this._audio.mozWriteAudio(
+          initialSoundData.subarray(start,kKeyToneFrames));
+    }).bind(this), 30); // Avoiding under-run issues by keeping this low
   },
 
   stop: function tp_stop() {
@@ -544,11 +556,10 @@ var KeypadManager = {
       // or right away if this is a long press
 
       var delay = this._longPress ? 0 : 100;
+      if (keypadSoundIsEnabled) {
+        TonePlayer.stop();
+      }
       if (this._onCall) {
-        if (keypadSoundIsEnabled) {
-          TonePlayer.stop();
-        }
-
         window.setTimeout(function ch_stopTone() {
           telephony.stopTone();
         }, delay);
