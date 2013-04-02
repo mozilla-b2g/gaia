@@ -45,6 +45,10 @@ input.msg-search-text-tease {
   border-radius: 0.3rem;
 }
 
+.msg-search-text {
+  font-size: 1.7rem !important;
+}
+
 .msg-no-subject {
   font-style: italic;
 }
