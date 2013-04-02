@@ -730,7 +730,7 @@ navigator.mozL10n.ready(function wifiSettings() {
        */
       gWifiInfoBlock.textContent = _('fullStatus-initializing');
       gNetworkList.clear(true);
-
+      document.querySelector('#wps-column').hidden = false;
     } else {
       gWifiInfoBlock.textContent = _('disabled');
       if (gWpsInProgress) {
@@ -738,6 +738,7 @@ navigator.mozL10n.ready(function wifiSettings() {
       }
       gNetworkList.clear(false);
       gNetworkList.autoscan = false;
+      document.querySelector('#wps-column').hidden = true;
     }
   }
 
