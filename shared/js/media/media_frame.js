@@ -75,7 +75,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
   if (preview && (preview.start || preview.filename)) {
     this.displayingPreview = true;
     if (preview.start) {
-      this.previewblob = blob.slice(preview.start, preview.end, 'image/jpeg')
+      this.previewblob = blob.slice(preview.start, preview.end, 'image/jpeg');
       this._displayImage(this.previewblob, preview.width, preview.height);
     }
     else {
@@ -90,7 +90,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
         self.displayingPreview = false;
         self.preview = null;
         self._displayImage(blob, width, height);
-      }
+      };
     }
   }
   else {

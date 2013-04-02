@@ -25,7 +25,7 @@
     },
     "pick": {
       "filters": {
-        "type": ["image/jpeg", "image/png"]
+        "type": ["image/*", "image/jpeg", "image/png"]
        },
       "disposition": "inline",
       "returnValue": true,
