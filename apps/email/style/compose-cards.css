@@ -140,3 +140,18 @@ input.cmp-subject-text {
   position: absolute;
   right: 1rem;
 }
+.cmp-messages-sending {
+  margin-top: 2.4rem;
+  padding: 0 1.5rem !important;
+}
+
+.cmp-messages-sending p {
+  font-size: 2.4rem;
+  font-weight: lighter;
+  border-color: #bdbdbd !important;
+}
+
+.cmp-messages-sending progress {
+  margin: 0 1rem 0 1.5rem;
+}
+
