@@ -8,7 +8,6 @@ fb.resolver = function(item, loader) {
 
   var status = item.dataset.status;
   var isFbContact = 'fbUid' in item.dataset;
-  var LINKED_PREFIX = 'linked_';
   var EMPTY_OBJ = {};
 
   if (isFbContact && status !== 'pending' && status !== 'loaded') {
@@ -27,13 +26,6 @@ fb.resolver = function(item, loader) {
           }
           else {
             item.dataset.status = 'loaded';
-          }
-
-          var linkedData = fbData[LINKED_PREFIX + item.dataset.uuid];
-          if (linkedData) {
-            var p = item.querySelector('p');
-            p.innerHTML = '';
-            contacts.List.getHighlightedName(linkedData, p);
           }
 
           // The organization is also loaded
