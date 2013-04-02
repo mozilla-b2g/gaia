@@ -371,7 +371,7 @@ var ModeManager = {
       TitleBar.changeTitleText(title);
   },
 
-  _updateMode: function() {
+  _updateMode: function(callback) {
     var mode = this.currentMode;
     var playerLoaded = (typeof PlayerView != 'undefined');
 
