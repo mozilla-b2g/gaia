@@ -176,20 +176,28 @@ Sync.prototype = {
       msg.on('end', function onNewMsgEnd() {
   console.log('  new fetched, header processing, INTERNALDATE: ', msg.rawDate);
 
-          // at this point we can build the first batch of header/body
-          // information.
-          var chewRep = $imapchew.chewHeaderAndBodyStructure(
-            msg,
-            self.storage.folderId,
-            self.storage._issueNewHeaderId()
-          );
+          try {
+            // at this point we can build the first batch of header/body
+            // information.
+            var chewRep = $imapchew.chewHeaderAndBodyStructure(
+              msg,
+              self.storage.folderId,
+              self.storage._issueNewHeaderId()
+            );
 
-          pendingSnippets.push(chewRep);
+            pendingSnippets.push(chewRep);
 
-          // flush our body/header information ? should we do some sorting,
-          // etc.. here or just let the UI update ASAP?
-          self.storage.addMessageHeader(chewRep.header);
-          self.storage.addMessageBody(chewRep.header, chewRep.bodyInfo);
+            // flush our body/header information ? should we do some sorting,
+            // etc.. here or just let the UI update ASAP?
+            self.storage.addMessageHeader(chewRep.header);
+            self.storage.addMessageBody(chewRep.header, chewRep.bodyInfo);
+          }
+          catch (ex) {
+            // it's fine for us to not add bad messages to the database
+            // XXX do plumb the logger through here eventually
+            console.warn('message problem, skipping message', ex, '\n',
+                         ex.stack);
+          }
       });
     });
 

@@ -81,6 +81,9 @@ function displaySubject(subjectNode, message) {
  *
  * See `onScroll` for more details.
  *
+ * XXX this class wants to be cleaned up, badly.  A lot of this may want to
+ * happen via pushing more of the hiding/showing logic out onto CSS, taking
+ * care to use efficient selectors.
  */
 function MessageListCard(domNode, mode, args) {
   this.domNode = domNode;
@@ -138,7 +141,9 @@ function MessageListCard(domNode, mode, args) {
   this.toolbar.editBtn = domNode.getElementsByClassName('msg-edit-btn')[0];
   this.toolbar.editBtn
     .addEventListener('click', this.setEditMode.bind(this, true), false);
-  domNode.getElementsByClassName('msg-refresh-btn')[0]
+  this.toolbar.refreshBtn =
+    domNode.getElementsByClassName('msg-refresh-btn')[0];
+  this.toolbar.refreshBtn
     .addEventListener('click', this.onRefresh.bind(this), false);
 
   // - header buttons: edit mode
@@ -152,7 +157,8 @@ function MessageListCard(domNode, mode, args) {
     .addEventListener('click', this.onMarkMessagesRead.bind(this, true), false);
   domNode.getElementsByClassName('msg-delete-btn')[0]
     .addEventListener('click', this.onDeleteMessages.bind(this, true), false);
-  domNode.getElementsByClassName('msg-move-btn')[0]
+  this.toolbar.moveBtn = domNode.getElementsByClassName('msg-move-btn')[0];
+  this.toolbar.moveBtn
     .addEventListener('click', this.onMoveMessages.bind(this, true), false);
 
   // -- non-search mode
@@ -184,6 +190,7 @@ function MessageListCard(domNode, mode, args) {
 
   this.curFolder = null;
   this.messagesSlice = null;
+  this.isIncomingFolder = true;
   this._boundSliceRequestComplete = this.onSliceRequestComplete.bind(this);
   if (mode == 'nonsearch')
     this.showFolder(args.folder);
@@ -349,12 +356,34 @@ MessageListCard.prototype = {
       this.messagesContainer.innerHTML = '';
     }
     this.curFolder = folder;
+    switch (folder.type) {
+      case 'drafts':
+      case 'localdrafts':
+      case 'sent':
+        this.isIncomingFolder = false;
+        break;
+      default:
+        this.isIncomingFolder = true;
+        break;
+    }
 
     this.domNode.getElementsByClassName('msg-list-header-folder-label')[0]
       .textContent = folder.name;
 
     this.hideEmptyLayout();
 
+    // you can't refresh the localdrafts folder or move messages out of it.
+    if (folder.type === 'localdrafts') {
+      this.toolbar.refreshBtn.classList.add('collapsed');
+      this.toolbar.moveBtn.classList.add('collapsed');
+    }
+    else {
+      this.toolbar.refreshBtn.classList.remove('collapsed');
+      this.toolbar.moveBtn.classList.remove('collapsed');
+    }
+
+    // We are creating a new slice, so any pending snippet requests are moot.
+    this._snippetRequestPending = false;
     this.messagesSlice = MailAPI.viewFolderMessages(folder);
     this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
     this.messagesSlice.onchange = this.updateMessageDom.bind(this, false);
@@ -386,6 +415,8 @@ MessageListCard.prototype = {
     if (phrase.length < 1)
       return false;
 
+    // We are creating a new slice, so any pending snippet requests are moot.
+    this._snippetRequestPending = false;
     this.messagesSlice = MailAPI.searchFolderMessages(
       folder, phrase,
       {
@@ -471,9 +502,16 @@ MessageListCard.prototype = {
   },
 
   onCandybarTimeout: function() {
-    this.progressNode.classList.add('pack-activity');
+    if (this.progressCandybarTimer) {
+      this.progressNode.classList.add('pack-activity');
+      this.progressCandybarTimer = null;
+    }
   },
 
+  /**
+   * Hide buttons that are not appropriate if we have no messages and display
+   * the appropriate l10n string in the message list proper.
+   */
   showEmptyLayout: function() {
     var text = this.domNode.
       getElementsByClassName('msg-list-empty-message-text')[0];
@@ -485,6 +523,10 @@ MessageListCard.prototype = {
     this.toolbar.searchBtn.classList.add('disabled');
     this._hideSearchBoxByScrolling();
   },
+  /**
+   * Show buttons we hid in `showEmptyLayout` and hide the "empty folder"
+   * message.
+   */
   hideEmptyLayout: function() {
     this.messageEmptyContainer.classList.add('collapsed');
     this.toolbar.editBtn.classList.remove('disabled');
@@ -757,9 +799,23 @@ MessageListCard.prototype = {
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
     if (firstTime) {
+      var listPerson;
+      if (this.isIncomingFolder)
+        listPerson = message.author;
+      // XXX This is not to UX spec, but this is a stop-gap and that would
+      // require adding strings which we cannot justify as a slipstream fix.
+      else if (message.to && message.to.length)
+        listPerson = message.to[0];
+      else if (message.cc && message.cc.length)
+        listPerson = message.cc[0];
+      else if (message.bcc && message.bcc.length)
+        listPerson = message.bcc[0];
+      else
+        listPerson = message.author;
+
       // author
       msgNode.getElementsByClassName('msg-header-author')[0]
-        .textContent = message.author.name || message.author.address;
+        .textContent = listPerson.name || listPerson.address;
       // date
       dateNode.dataset.time = message.date.valueOf();
       dateNode.textContent = prettyDate(message.date);
@@ -869,6 +925,14 @@ MessageListCard.prototype = {
         cb.checked = true;
       }
       this.selectedMessagesUpdated();
+      return;
+    }
+
+    if (this.curFolder.type === 'localdrafts') {
+      var composer = header.editAsDraft(function() {
+        Cards.pushCard('compose', 'default', 'animate',
+                       { composer: composer });
+      });
       return;
     }
 
