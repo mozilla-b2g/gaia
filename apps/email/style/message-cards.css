@@ -30,19 +30,19 @@
 }
 
 .msg-search-tease-bar {
-  height: 4.8rem;
   background-color: #eee;
-  border-radius: 4px;
   text-align: center;
+  border-bottom: 0.1rem solid #bdbdbd;
 }
 
 input.msg-search-text-tease {
-  width: 90%;
-  height: calc(100% - 1rem - 2px);
-  border: 1px solid;
-  border-radius: 3px;
-  margin: 0.5rem 0;
   display: inline-block;
+  width: calc(100% - 3rem);
+  height: 3rem;
+  margin: 0.1rem 0 0.4rem;
+  font-size: 1.7rem;
+  border: 0.1rem solid #c2c2c2;
+  border-radius: 0.3rem;
 }
 
 .msg-no-subject {
