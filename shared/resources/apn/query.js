@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
           var localApns =
             localAndroidDB.documentElement.getElementsByTagName('apn');
           for (var i = 0; i < localApns.length; ++i) {
-            gAndroidDB.documentElement.appendChild(localApns[i]);
+            gAndroidDB.documentElement.appendChild(localApns[i].cloneNode(true));
           }
           // Then the Gnome DB
           gGnomeDB = loadXML(GNOME_DB_FILE);
