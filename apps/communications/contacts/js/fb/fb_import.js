@@ -781,7 +781,7 @@ if (typeof fb.importer === 'undefined') {
       // Release objects for improving memory management
       function releaseObjs(cfdata) {
         // Once a Friend has been persisted the data is no longer needed
-        if (cfdata) {
+        if (cfdata && myFriendsByUid) {
           mcontacts[cfdata.uid] = null;
           myFriendsByUid[cfdata.uid] = null;
           selectableFriends[cfdata.uid] = null;
