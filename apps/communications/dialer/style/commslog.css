@@ -189,6 +189,10 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
 }
 
 /* Edit mode state */
+.recents-edit #recents-container {
+  height: -moz-calc(100% - 2.5rem);
+}
+
 .recents-edit form[role="dialog"][data-type="edit"] header,
 .recents-edit form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(0);
