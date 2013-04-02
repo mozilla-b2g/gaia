@@ -41,9 +41,16 @@ function MediaFrame(container, includeVideo) {
   this.displayingVideo = false;
   this.displayingImage = false;
   this.imageblob = null;
+  this.previewblob = null;
   this.videoblob = null;
   this.posterblob = null;
   this.url = null;
+
+  var self = this;
+  this.image.onerror = function(e) {
+    if (self.onerror)
+      self.onerror(e);
+  };
 }
 
 MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
@@ -65,12 +72,26 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
 
   // If the preview is at least as big as the screen, display that.
   // Otherwise, display the full-size image.
-  if (preview &&
-      (preview.width >= window.innerWidth ||
-       preview.height >= window.innerHeight)) {
+  if (preview && (preview.start || preview.filename)) {
     this.displayingPreview = true;
-    this._displayImage(blob.slice(preview.start, preview.end, 'image/jpeg'),
-                       preview.width, preview.height);
+    if (preview.start) {
+      this.previewblob = blob.slice(preview.start, preview.end, 'image/jpeg');
+      this._displayImage(this.previewblob, preview.width, preview.height);
+    }
+    else {
+      var storage = navigator.getDeviceStorage('pictures');
+      var getreq = storage.get(preview.filename);
+      var self = this;
+      getreq.onsuccess = function() {
+        self.previewblob = getreq.result;
+        self._displayImage(self.previewblob, preview.width, preview.height);
+      };
+      getreq.onerror = function() {
+        self.displayingPreview = false;
+        self.preview = null;
+        self._displayImage(blob, width, height);
+      };
+    }
   }
   else {
     this._displayImage(blob, width, height);
@@ -81,7 +102,6 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
 MediaFrame.prototype._displayImage = function _displayImage(blob, width, height)
 {
   var self = this;
-  var oldImage;
 
   // Create a URL for the blob (or preview blob)
   if (this.url)
@@ -166,9 +186,7 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
 MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
   if (this.displayingImage && this.preview && !this.displayingPreview) {
     this.displayingPreview = true;
-    this._displayImage(this.imageblob.slice(this.preview.start,
-                                            this.preview.end,
-                                            'image/jpeg'),
+    this._displayImage(this.previewblob,
                        this.preview.width,
                        this.preview.height);
   }
@@ -211,6 +229,7 @@ MediaFrame.prototype.clear = function clear() {
   this.displayingVideo = false;
   this.itemWidth = this.itemHeight = null;
   this.imageblob = null;
+  this.previewblob = null;
   this.videoblob = null;
   this.posterblob = null;
   this.fullsizeWidth = this.fullsizeHeight = null;
@@ -279,20 +298,8 @@ MediaFrame.prototype.computeFit = function computeFit() {
 MediaFrame.prototype.reset = function reset() {
   // If we're not displaying the preview image, but we have one,
   // and it is the right size, then switch to it
-  if (this.displayingImage && !this.displayingPreview && this.preview &&
-      (this.preview.width >= window.innerWidth ||
-       this.preview.height >= window.innerHeight)) {
+  if (this.displayingImage && !this.displayingPreview && this.preview) {
     this._switchToPreviewImage(); // resets image size and position
-    return;
-  }
-
-  // Otherwise, if we are displaying the preview image but it is no
-  // longer big enough for the screen (such as after a resize event)
-  // then switch to full size. This case should be rare.
-  if (this.displayingImage && this.displayingPreview &&
-      this.preview.width < window.innerWidth &&
-      this.preview.height < window.innerHeight) {
-    this._switchToFullSizeImage(); // resets image size and position
     return;
   }
 

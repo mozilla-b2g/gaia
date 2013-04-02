@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 var contacts = window.contacts || {};
 contacts.List = (function() {
@@ -29,6 +29,8 @@ contacts.List = (function() {
   // config.json file (see bug 841693)
   var ORDER_BY_FAMILY_NAME = 'familyName';
   var ORDER_BY_GIVEN_NAME = 'givenName';
+
+  var NOP_FUNCTION = function() {};
 
   var init = function load(element) {
     _ = navigator.mozL10n.get;
@@ -101,6 +103,18 @@ contacts.List = (function() {
     });
   };
 
+  function getFbUid(devContact) {
+    var out;
+
+    if (Array.isArray(devContact.category)) {
+      var idx = devContact.category.indexOf('facebook');
+      if (idx !== -1) {
+        out = devContact.category[idx + 2];
+      }
+    }
+
+    return out;
+  }
 
   var initOrder = function initOrder(callback) {
     if (orderByLastName === null) {
@@ -147,8 +161,12 @@ contacts.List = (function() {
     var title = document.createElement('header');
     title.id = 'group-' + group;
     title.className = 'hide';
-    title.innerHTML = '<abbr title="Contacts listed ' + group + '">';
-    title.innerHTML += letter + '</abbr>';
+
+    var letterAbbr = document.createElement('abbr');
+    letterAbbr.setAttribute('title', 'Contacts listed ' + group);
+    letterAbbr.textContent = letter;
+    title.appendChild(letterAbbr);
+
     var contactsContainer = document.createElement('ol');
     contactsContainer.id = 'contacts-list-' + group;
     contactsContainer.dataset.group = group;
@@ -204,14 +222,16 @@ contacts.List = (function() {
     contact = refillContactData(contact);
     var contactContainer = document.createElement('li');
     contactContainer.dataset.uuid = contact.id;
+    var fbUid = getFbUid(contact);
+    if (fbUid) {
+      contactContainer.dataset.fbUid = fbUid;
+    }
     contactContainer.className = 'contact-item';
     var timestampDate = contact.updated || contact.published || new Date();
     contactContainer.dataset.updated = timestampDate.getTime();
     // contactInner is a link with 3 p elements:
     // name, socaial marks and org
-    var contactInner = '<p>' + getHighlightedName(contact);
-    contactInner += '</p>';
-    contactContainer.innerHTML = contactInner;
+    contactContainer.appendChild(getHighlightedName(contact));
     contactsCache[contact.id] = {
       contact: contact,
       container: contactContainer
@@ -246,20 +266,28 @@ contacts.List = (function() {
     return utils.text.normalize(escapedValue);
   };
 
-  var getHighlightedName = function getHighlightedName(contact) {
-    var givenName = '';
-    var familyName = '';
-    if (contact.givenName && contact.givenName.length)
-      givenName = utils.text.escapeHTML(contact.givenName[0]);
-    if (contact.familyName && contact.familyName.length)
-      familyName = utils.text.escapeHTML(contact.familyName[0]);
+  function getHighlightedName(contact, ele) {
+    if (!ele) {
+      ele = document.createElement('p');
+    }
+    var givenName = (contact.givenName && contact.givenName[0]) || '';
+    var familyName = (contact.familyName && contact.familyName[0]) || '';
+
+    function createStrongTag(content) {
+      var fs = document.createElement('strong');
+      fs.textContent = content;
+      return fs;
+    }
 
     if (orderByLastName) {
-      return givenName + ' <strong>' + familyName + '</strong>';
+      ele.appendChild(document.createTextNode(givenName + ' '));
+      ele.appendChild(createStrongTag(familyName));
     } else {
-      return '<strong>' + givenName + '</strong> ' + familyName;
+      ele.appendChild(createStrongTag(givenName));
+      ele.appendChild(document.createTextNode(' ' + familyName));
     }
-  };
+    return ele;
+  }
 
   function buildSocialMarks(category) {
     var marks = [];
@@ -328,7 +356,7 @@ contacts.List = (function() {
     // Performance testing
     function renderChunks(index) {
       if (index === 0) {
-        PerformanceTestingHelper.dispatch('contacts-first-chunk');
+        PerformanceTestingHelper.dispatch('above-the-fold-ready');
       }
 
       if (numberOfChunks === index) {
@@ -375,8 +403,13 @@ contacts.List = (function() {
     lazyLoadOrder();
     FixedHeader.refresh();
     lazyLoadImages();
+
+    PerformanceTestingHelper.dispatch('startup-path-done');
+
+    if (fb.isEnabled) {
+      Contacts.loadFacebook(NOP_FUNCTION);
+    }
     loaded = true;
-    PerformanceTestingHelper.dispatch('contacts-last-chunk');
   };
 
   // Method that fills non-visible datasets
@@ -416,10 +449,6 @@ contacts.List = (function() {
   };
 
   var lazyLoadImages = function lazyLoadImages() {
-    if (fb.isEnabled) {
-      lazyLoadFacebookData();
-      return;
-    }
     if (!contactsPhoto || !Array.isArray(contactsPhoto)) {
       return;
     }
@@ -438,58 +467,13 @@ contacts.List = (function() {
     if (favs)
       showGroup('favorites', true);
     contactsPhoto = [];
-    imgLoader.reload();
+    LazyLoader.load(['/contacts/js/fb_resolver.js'], function() {
+      imgLoader.setResolver(fb.resolver);
+      imgLoader.reload();
+    });
+
     imagesLoaded = true;
     dispatchCustomEvent('finishLazyLoading');
-  };
-
-  var lazyLoadFacebookData = function lazyLoadFacebookData() {
-    Contacts.loadFacebook(function() {
-      var fbReq = fb.contacts.getAll();
-      var favs = false;
-      fbReq.onsuccess = function() {
-        for (var i = 0; i < contactsPhoto.length; i++) {
-          var id = contactsPhoto[i];
-          var current = contactsCache[id];
-          var contact = current.contact;
-          var link = current.container;
-          if (fb.isFbContact(contact)) {
-            var meta;
-            var elements = link.querySelectorAll('p');
-            if (elements.length == 1) {
-              meta = addOrgMarkup(link);
-            } else {
-              meta = elements[1];
-            }
-            var fbContact = new fb.Contact(contact);
-            contact = fbContact.merge(fbReq.result[fbContact.uid]);
-            elements[0].innerHTML = getHighlightedName(contact);
-            var mark = markAsFb(createSocialMark());
-            var org = meta.querySelector('span.org');
-            meta.insertBefore(mark, org);
-            if (!contact.org || !contact.org.length) {
-              mark.classList.add('notorg');
-            } else {
-              renderOrg(contact, link);
-            }
-          }
-          renderPhoto(contact, link);
-          if (isFavorite(contact)) {
-            favs = true;
-            addToFavoriteList(link.cloneNode(true));
-          }
-        }
-        contactsPhoto = [];
-        if (favs)
-          showGroup('favorites', true);
-        imgLoader.reload();
-        imagesLoaded = true;
-        dispatchCustomEvent('finishLazyLoading');
-      };
-      fbReq.onerror = function() {
-        console.log('Error getting fb');
-      };
-    });
   };
 
   var dispatchCustomEvent = function dispatchCustomEvent(eventName) {
@@ -540,6 +524,25 @@ contacts.List = (function() {
     org.textContent = contact.org[0];
   };
 
+  function renderFbData(contact, link) {
+    var meta;
+    var elements = link.getElementsByTagName('p');
+    if (elements.length == 1) {
+      meta = addOrgMarkup(link);
+    } else {
+      meta = elements[1];
+    }
+    var mark = markAsFb(createSocialMark());
+    var org = meta.querySelector('span.org');
+    meta.insertBefore(mark, org);
+    if (!contact.org || !contact.org.length) {
+      mark.classList.add('notorg');
+    } else {
+      renderOrg(contact, link);
+    }
+  }
+
+
   var addOrgMarkup = function addOrgMarkup(link) {
     var meta = document.createElement('p');
     meta.innerHTML = '<span class="org"></span>';
@@ -548,11 +551,32 @@ contacts.List = (function() {
   };
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
+    if (show && ActivityHandler.currentlyHandling) {
+      var actName = ActivityHandler.activityName;
+      if (actName == 'pick' || actName == 'update') {
+        showNoContactsAlert();
+        return;
+      }
+    }
     if (show && !ActivityHandler.currentlyHandling) {
       noContacts.classList.remove('hide');
       return;
     }
     noContacts.classList.add('hide');
+  };
+
+  var showNoContactsAlert = function showNoContactsAlert() {
+    var msg = _('noContactsActivity');
+    var noObject = {
+      title: _('ok'),
+      isDanger: false,
+      callback: function onNoClicked() {
+        ConfirmDialog.hide();
+        ActivityHandler.postCancel();
+      }
+    };
+
+    ConfirmDialog.show(null, msg, noObject);
   };
 
   function addToFavoriteList(favorite) {
@@ -668,9 +692,16 @@ contacts.List = (function() {
     imgLoader.reload();
   };
 
+  var hasName = function hasName(contact) {
+    return (Array.isArray(contact.givenName) && contact.givenName[0] &&
+              contact.givenName[0].trim()) ||
+            (Array.isArray(contact.familyName) && contact.familyName[0] &&
+              contact.familyName[0].trim());
+  };
+
   // Fills the contact data to display if no givenName and familyName
   var refillContactData = function refillContactData(contact) {
-    if (!contact.givenName && !contact.familyName) {
+    if (!hasName(contact)) {
       contact.givenName = [];
       if (contact.org && contact.org.length > 0) {
         contact.givenName.push(contact.org);
@@ -706,6 +737,9 @@ contacts.List = (function() {
       newLi = renderFullContact(contact);
       list.appendChild(newLi);
     }
+
+    // Mark as loaded to avoid data duplication by the resolver
+    newLi.dataset.status = 'loaded';
 
     return list.children.length;
   };
@@ -747,9 +781,9 @@ contacts.List = (function() {
     var familyName, givenName;
 
     familyName = contact.familyName && contact.familyName.length > 0 ?
-      contact.familyName[0] : '';
+      contact.familyName[0].trim() : '';
     givenName = contact.givenName && contact.givenName.length > 0 ?
-      contact.givenName[0] : '';
+      contact.givenName[0].trim() : '';
 
     var first = givenName, second = familyName;
     if (orderByLastName) {
@@ -764,9 +798,9 @@ contacts.List = (function() {
       return utils.text.normalize(ret.join('')).trim();
     ret.push(contact.org);
     ret.push(contact.tel && contact.tel.length > 0 ?
-      contact.tel[0].value : '');
+      contact.tel[0].value.trim() : '');
     ret.push(contact.email && contact.email.length > 0 ?
-      contact.email[0].value : '');
+      contact.email[0].value.trim() : '');
     ret.push('#');
 
     return utils.text.normalize(ret.join('')).trim();
@@ -834,7 +868,8 @@ contacts.List = (function() {
 
   // Reset the content of the list to 0
   var resetDom = function resetDom() {
-    groupsList.innerHTML = '';
+    contactsPhoto = [];
+    utils.dom.removeChildNodes(groupsList);
     loaded = false;
 
     initHeaders();
@@ -869,6 +904,9 @@ contacts.List = (function() {
     'remove': remove,
     'loaded': loaded,
     'clearClickHandlers': clearClickHandlers,
-    'setOrderByLastName': setOrderByLastName
+    'setOrderByLastName': setOrderByLastName,
+    'renderPhoto': renderPhoto,
+    'renderFbData': renderFbData,
+    'getHighlightedName': getHighlightedName
   };
 })();

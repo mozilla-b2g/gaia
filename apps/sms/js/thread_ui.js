@@ -7,141 +7,123 @@ var ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
-  get view() {
-    delete this.view;
-    return this.view = document.getElementById('messages-container');
-  },
-
-  get contactInput() {
-    delete this.contactInput;
-    return this.contactInput = document.getElementById('receiver-input');
-  },
-
-  get backButton() {
-    delete this.backButton;
-    return this.backButton = document.getElementById('go-to-threadlist');
-  },
-
-  get clearButton() {
-    delete this.clearButton;
-    return this.clearButton = document.getElementById('clear-search');
-  },
-
-  get title() {
-    delete this.title;
-    return this.title = document.getElementById('header-text');
-  },
-
-  get input() {
-    delete this.input;
-    return this.input = document.getElementById('message-to-send');
-  },
-
-  get sendButton() {
-    delete this.sendButton;
-    return this.sendButton = document.getElementById('send-message');
-  },
-
-  get pickButton() {
-    delete this.pickButton;
-    return this.pickButton = document.getElementById('icon-contact');
-  },
-
-  get selectAllButton() {
-    delete this.deleteAllButton;
-    return this.deleteAllButton =
-                                document.getElementById('select-all-messages');
-  },
-
-  get deselectAllButton() {
-    delete this.deselectAllButton;
-    return this.deselectAllButton =
-                              document.getElementById('deselect-all-messages');
-  },
-
-  get deleteButton() {
-    delete this.doneButton;
-    return this.doneButton = document.getElementById('messages-delete-button');
-  },
-
-  get cancelButton() {
-    delete this.cancelButton;
-    return this.cancelButton =
-                              document.getElementById('messages-cancel-button');
-  },
-
-  get pageHeader() {
-    delete this.pageHeader;
-    return this.pageHeader = document.getElementById('messages-edit-title');
-  },
-
-  get editForm() {
-    delete this.editForm;
-    return this.editForm = document.getElementById('messages-edit-form');
-  },
-
-  get telForm() {
-    delete this.telForm;
-    return this.telForm = document.getElementById('messages-tel-form');
-  },
-
-  get sendForm() {
-    delete this.sendForm;
-    return this.sendForm = document.getElementById('new-sms-form');
-  },
 
   init: function thui_init() {
-    this.sendButton.addEventListener('click', this.sendMessage.bind(this));
+    var _ = navigator.mozL10n.get;
+
+    [
+      'container', 'no-results',
+      'header-text', 'recipient', 'input', 'compose-form',
+      'check-all-button', 'uncheck-all-button',
+      'contact-pick-button', 'back-button', 'clear-button', 'send-button',
+      'delete-button', 'cancel-button',
+      'edit-mode', 'edit-form', 'tel-form'
+    ].forEach(function(id) {
+      this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
+    }, this);
+
     // Allow for stubbing in environments that do not implement the
     // `navigator.mozSms` API
     this._mozSms = navigator.mozSms || window.MockNavigatormozSms;
 
     // Prevent sendbutton to hide the keyboard:
-    this.sendButton.addEventListener('mousedown',
-      function btnDown(event) {
+    this.sendButton.addEventListener(
+      'mousedown', function mouseDown(event) {
         event.preventDefault();
         event.target.classList.add('active');
       }
     );
-    this.sendButton.addEventListener('mouseup',
-      function btnUp(event) {
+
+    this.sendButton.addEventListener(
+      'mouseup', function mouseUp(event) {
         event.target.classList.remove('active');
       }
     );
-    this.sendButton.addEventListener('mouseout',
-      function mouseOut(event) {
+
+    this.sendButton.addEventListener(
+      'mouseout', function mouseOut(event) {
         event.target.classList.remove('active');
       }
     );
-    this.backButton.addEventListener('click',
-      this.onBackAction.bind(this));
-    this.pickButton.addEventListener('click', this.pickContact.bind(this));
-    this.selectAllButton.addEventListener('click',
-      this.selectAllMessages.bind(this));
-    this.deselectAllButton.addEventListener('click',
-      this.deselectAllMessages.bind(this));
-    this.cancelButton.addEventListener('click', this.cancelEditMode.bind(this));
-    this.input.addEventListener('input', this.updateInputHeight.bind(this));
-    this.input.addEventListener('input', this.enableSend.bind(this));
-    this.contactInput.addEventListener('input', this.searchContact.bind(this));
-    this.contactInput.addEventListener('input', this.enableSend.bind(this));
-    this.deleteButton.addEventListener('click',
-                                       this.executeDeletion.bind(this));
-    this.title.addEventListener('click', this.activateContact.bind(this));
-    this.clearButton.addEventListener('click', this.clearContact.bind(this));
-    this.view.addEventListener('click', this);
-    this.editForm.addEventListener('submit', this);
-    this.telForm.addEventListener('submit', this);
-    this.sendForm.addEventListener('submit', this);
+
+    this.sendButton.addEventListener(
+      'click', this.sendMessage.bind(this)
+    );
+
+    this.container.addEventListener(
+      'scroll', this.manageScroll.bind(this)
+    );
+
+    this.backButton.addEventListener(
+      'click', this.back.bind(this)
+    );
+
+    this.contactPickButton.addEventListener(
+      'click', this.pick.bind(this)
+    );
+
+    this.checkAllButton.addEventListener(
+      'click', this.toggleCheckedAll.bind(this, true)
+    );
+
+    this.uncheckAllButton.addEventListener(
+      'click', this.toggleCheckedAll.bind(this, false)
+    );
+
+    this.cancelButton.addEventListener(
+      'click', this.cancelEdit.bind(this)
+    );
+
+    this.deleteButton.addEventListener(
+      'click', this.delete.bind(this)
+    );
+
+    this.headerText.addEventListener(
+      'click', this.activateContact.bind(this)
+    );
+
+    this.clearButton.addEventListener(
+      'click', this.clear.bind(this)
+    );
+
+    this.input.addEventListener(
+      'input', function() {
+        this.updateInputHeight();
+        this.enableSend();
+      }.bind(this)
+    );
+
+    this.recipient.addEventListener(
+      'input', function() {
+        this.searchContact();
+        this.enableSend();
+      }.bind(this)
+    );
+
+    // Delegate to |this.handleEvent|
+    this.container.addEventListener(
+      'click', this
+    );
+    this.container.addEventListener(
+      'contextmenu', this
+    );
+    this.editForm.addEventListener(
+      'submit', this
+    );
+    this.telForm.addEventListener(
+      'submit', this
+    );
+    this.composeForm.addEventListener(
+      'submit', this
+    );
+
 
     Utils.startTimeHeaderScheduler();
 
     // Initialized here, but used in ThreadUI.cleanFields
     this.previousHash = null;
-
-    // We add the infinite scroll effect for increasing performance
-    this.view.addEventListener('scroll', this.manageScroll.bind(this));
   },
+
   initSentAudio: function() {
     if (this.sentAudio)
       return;
@@ -168,44 +150,45 @@ var ThreadUI = {
   manageScroll: function thui_manageScroll(oEvent) {
     // kEdge will be the limit (in pixels) for showing the next chunk
     var kEdge = 30;
-    var currentScroll = this.view.scrollTop;
+    var currentScroll = this.container.scrollTop;
     if (currentScroll < kEdge) {
-      var previous = this.view.scrollHeight;
+      var previous = this.container.scrollHeight;
       this.showChunkOfMessages(this.CHUNK_SIZE);
       // We update the scroll to the previous position
       // taking into account the previous offset to top
       // and the current height due to we have added a new
       // chunk of visible messages
-      this.view.scrollTop =
-        (this.view.scrollHeight - previous) + currentScroll;
+      this.container.scrollTop =
+        (this.container.scrollHeight - previous) + currentScroll;
     }
   },
   setInputMaxHeight: function thui_setInputMaxHeight() {
     // Method for initializing the maximum height
     var fontSize = Utils.getFontSize();
-    var viewHeight = this.view.offsetHeight / fontSize;
+    var viewHeight = this.container.offsetHeight / fontSize;
     var inputHeight = this.input.offsetHeight / fontSize;
     var barHeight =
-      document.getElementById('new-sms-form').offsetHeight / fontSize;
+      document.getElementById('messages-compose-form').offsetHeight / fontSize;
     var adjustment = barHeight - inputHeight;
     this.input.style.maxHeight = (viewHeight - adjustment) + 'rem';
   },
-  onBackAction: function thui_onBackAction() {
+  back: function thui_back() {
     var goBack = function() {
       ThreadUI.stopRendering();
       if (ThreadUI.input.value.length == 0) {
         window.location.hash = '#thread-list';
         return;
       }
-      var response = window.confirm(_('discard-sms'));
-      if (response) {
+      if (confirm(navigator.mozL10n.get('discard-sms'))) {
         ThreadUI.cleanFields(true);
         window.location.hash = '#thread-list';
       }
     };
 
     // We're waiting for the keyboard to disappear before animating back
-    if (MessageManager.fullHeight !== this.view.offsetHeight) {
+    if (ThreadListUI.fullHeight !==
+        this.container.offsetHeight) {
+
       window.addEventListener('resize', function keyboardHidden() {
         window.removeEventListener('resize', keyboardHidden);
         goBack();
@@ -217,19 +200,19 @@ var ThreadUI = {
 
   enableSend: function thui_enableSend() {
     this.initSentAudio();
-    if (this.input.value.length > 0) {
+    if (this.input.value.length) {
       this.updateCounter();
     }
-    if (window.location.hash == '#new' && this.contactInput.value.length == 0) {
+    if (window.location.hash == '#new' && !this.recipient.value.length) {
       this.sendButton.disabled = true;
       return;
     }
 
-    this.sendButton.disabled = !(this.input.value.length > 0);
+    this.sendButton.disabled = !this.input.value.length;
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom() {
-    this.view.scrollTop = this.view.scrollHeight;
+    this.container.scrollTop = this.container.scrollHeight;
   },
 
   updateCounter: function thui_updateCount(evt) {
@@ -265,7 +248,7 @@ var ThreadUI = {
     var buttonHeight = 30;
 
     // Retrieve elements useful in growing method
-    var bottomBar = document.getElementById('new-sms-form');
+    var bottomBar = document.getElementById('messages-compose-form');
 
     // Updating the height if scroll is bigger that height
     // This is when we have reached the header (UX requirement)
@@ -305,7 +288,7 @@ var ThreadUI = {
     this.sendButton.style.marginTop = buttonOffset;
 
     // Last adjustment to view taking into account the new height of the bar
-    this.view.style.bottom = bottomBarHeight;
+    this.container.style.bottom = bottomBarHeight;
     this.scrollViewToBottom();
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
@@ -357,14 +340,14 @@ var ThreadUI = {
     // Where do I have to append the Container?
     // If is the first block or is the 'last-messages' one should be the
     // most recent one.
-    if (isLastMessagesBlock || !ThreadUI.view.firstElementChild) {
-      ThreadUI.view.appendChild(header);
-      ThreadUI.view.appendChild(messageContainer);
+    if (isLastMessagesBlock || !ThreadUI.container.firstElementChild) {
+      ThreadUI.container.appendChild(header);
+      ThreadUI.container.appendChild(messageContainer);
       return messageContainer;
     }
     // In other case we have to look for the right place for appending
     // the message
-    var messageContainers = ThreadUI.view.getElementsByTagName('ul');
+    var messageContainers = ThreadUI.container.getElementsByTagName('ul');
     var insertBeforeContainer;
     for (var i = 0, l = messageContainers.length; i < l; i++) {
       if (normalizedTimestamp < messageContainers[i].dataset.timestamp) {
@@ -378,12 +361,12 @@ var ThreadUI = {
     }
     // Finally we append the container & header in the right position
     if (insertBeforeContainer) {
-      ThreadUI.view.insertBefore(messageContainer,
+      ThreadUI.container.insertBefore(messageContainer,
         insertBeforeContainer.previousSibling);
-      ThreadUI.view.insertBefore(header, messageContainer);
+      ThreadUI.container.insertBefore(header, messageContainer);
     } else {
-      ThreadUI.view.appendChild(header);
-      ThreadUI.view.appendChild(messageContainer);
+      ThreadUI.container.appendChild(header);
+      ThreadUI.container.appendChild(messageContainer);
     }
     return messageContainer;
   },
@@ -403,11 +386,10 @@ var ThreadUI = {
       return;
     }
 
-    var self = this;
     // Add data to contact activity interaction
-    this.title.dataset.phoneNumber = number;
+    this.headerText.dataset.phoneNumber = number;
 
-    ContactDataManager.getContactData(number, function gotContact(contacts) {
+    Contacts.findByString(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
       /** If we have more than one contact sharing the same phone number
        *  we show the name of the first contact and how many other contacts
@@ -415,10 +397,10 @@ var ThreadUI = {
        *  this mess with the agenda.
        */
       if (contacts.length > 1) {
-        self.title.dataset.isContact = true;
+        this.headerText.dataset.isContact = true;
         var contactName = contacts[0].name[0];
         var numOthers = contacts.length - 1;
-        self.title.textContent = _('others', {
+        this.headerText.textContent = navigator.mozL10n.get('others', {
           name: contactName,
           n: numOthers
         });
@@ -428,24 +410,24 @@ var ThreadUI = {
                               contacts[0],
                               function returnedDetails(details) {
           if (details.isContact) {
-            self.title.dataset.isContact = true;
+            this.headerText.dataset.isContact = true;
           } else {
-            delete self.title.dataset.isContact;
+            delete this.headerText.dataset.isContact;
           }
-          self.title.textContent = details.title || number;
+          this.headerText.textContent = details.title || number;
           if (details.carrier) {
             carrierTag.textContent = details.carrier;
             carrierTag.classList.remove('hide');
           } else {
             carrierTag.classList.add('hide');
           }
-        });
+        }.bind(this));
       }
 
       if (callback) {
         callback();
       }
-    });
+    }.bind(this));
   },
 
   initializeRendering: function thui_initializeRendering(messages, callback) {
@@ -453,7 +435,7 @@ var ThreadUI = {
     this.cleanFields();
     this.checkInputs();
     // Clean list of messages
-    this.view.innerHTML = '';
+    this.container.innerHTML = '';
     // Update header index
     this.dayHeaderIndex = 0;
     this.timeHeaderIndex = 0;
@@ -530,10 +512,10 @@ var ThreadUI = {
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     // Retrieve all data from message
     var id = message.id;
-    var bodyText = message.body;
-    var messageClass = message.delivery;
-
+    var bodyText = Utils.escapeHTML(message.body);
+    var delivery = message.delivery;
     var messageDOM = document.createElement('li');
+
     messageDOM.classList.add('bubble');
 
     if (hidden) {
@@ -543,26 +525,30 @@ var ThreadUI = {
     var inputValue = id;
     var asideHTML = '';
     // Do we have to add some error/sending icon?
-    switch (message.delivery) {
-      case 'error':
-        asideHTML = '<aside class="pack-end"></aside>';
-        break;
-      case 'sending':
-        asideHTML = '<aside class="pack-end">' +
-                    '<progress></progress></aside>';
-        break;
+    if (delivery) {
+      switch (delivery) {
+        case 'error':
+          asideHTML = '<aside class="pack-end"></aside>';
+          break;
+        case 'sending':
+          asideHTML = '<aside class="pack-end">' +
+                      '<progress></progress></aside>';
+          break;
+      }
     }
     // Create HTML content
     var messageHTML = '<label class="danger">' +
                       '<input type="checkbox" value="' + inputValue + '">' +
                       '<span></span>' +
                       '</label>' +
-                    '<a class="' + messageClass + '">';
+                    '<a class="' + delivery + '">';
     messageHTML += asideHTML;
     messageHTML += '<p></p></a>';
     messageDOM.innerHTML = messageHTML;
-    if (message.delivery === 'error')
+    if (delivery === 'error') {
       ThreadUI.addResendHandler(message, messageDOM);
+    }
+
 
     var bodyHTML = LinkHelper.searchAndLinkClickableData(bodyText);
     // check for messageDOM paragraph element to assign linked message html
@@ -602,9 +588,9 @@ var ThreadUI = {
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
-    var hiddenElements = ThreadUI.view.getElementsByClassName('hidden');
-    for (var i = hiddenElements.length - 1; i >= 0; i--) {
-      hiddenElements[i].classList.remove('hidden');
+    var elements = ThreadUI.container.getElementsByClassName('hidden');
+    for (var i = elements.length - 1; i >= 0; i--) {
+      elements[i].classList.remove('hidden');
     }
   },
 
@@ -613,9 +599,7 @@ var ThreadUI = {
     aElement.addEventListener('click', function resend(e) {
       var hash = window.location.hash;
       if (hash != '#edit') {
-        var resendConfirmStr = _('resend-confirmation');
-        var result = confirm(resendConfirmStr);
-        if (result) {
+        if (confirm(navigator.mozL10n.get('resend-confirmation'))) {
           messageDOM.removeEventListener('click', resend);
           ThreadUI.resendMessage(message, messageDOM);
         }
@@ -625,7 +609,7 @@ var ThreadUI = {
 
   cleanForm: function thui_cleanForm() {
     // Reset all inputs
-    var inputs = this.view.querySelectorAll('input[type="checkbox"]');
+    var inputs = this.container.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].checked = false;
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
@@ -634,40 +618,37 @@ var ThreadUI = {
     this.checkInputs();
   },
 
-  clearContact: function thui_clearContact() {
-    this.contactInput.value = '';
-    this.view.innerHTML = '';
+  clear: function thui_clear() {
+    this.recipient.value = '';
+    this.container.innerHTML = '';
   },
 
-  selectAllMessages: function thui_selectAllMessages() {
-    var inputs =
-            this.view.querySelectorAll('input[type="checkbox"]:not(:checked)');
-    for (var i = 0; i < inputs.length; i++) {
-      inputs[i].checked = true;
-      ThreadUI.chooseMessage(inputs[i]);
+  toggleCheckedAll: function thui_select(value) {
+    var inputs = this.container.querySelectorAll(
+      'input[type="checkbox"]' +
+      // value ?
+      //   true : query for currently unselected threads
+      //   false: query for currently selected threads
+      (value ? ':not(:checked)' : ':checked')
+    );
+    var length = inputs.length;
+    for (var i = 0; i < length; i++) {
+      inputs[i].checked = value;
+      this.chooseMessage(inputs[i]);
     }
-    ThreadUI.checkInputs();
+    this.checkInputs();
   },
 
-  deselectAllMessages: function thui_deselectAllMessages() {
-    var inputs =
-            this.view.querySelectorAll('input[type="checkbox"]:checked');
-    for (var i = 0; i < inputs.length; i++) {
-      inputs[i].checked = false;
-      ThreadUI.chooseMessage(inputs[i]);
-    }
-    ThreadUI.checkInputs();
-  },
-
-  executeDeletion: function thui_executeDeletion() {
-    var response = window.confirm(_('deleteMessages-confirmation'));
-    if (response) {
+  delete: function thui_delete() {
+    var question = navigator.mozL10n.get('deleteMessages-confirmation');
+    if (confirm(question)) {
       WaitingScreen.show();
       var delNumList = [];
-      var inputs =
-        ThreadUI.view.querySelectorAll('input[type="checkbox"]:checked');
+      var inputs = ThreadUI.container.querySelectorAll(
+        'input[type="checkbox"]:checked'
+      );
       for (var i = 0; i < inputs.length; i++) {
-        delNumList.push(parseInt(inputs[i].value, 10));
+        delNumList.push(+inputs[i].value);
       }
 
       // Method for deleting all inputs selected
@@ -682,9 +663,9 @@ var ThreadUI = {
             // Is the last message in the container?
             if (messagesContainer.childNodes.length == 1) {
               var header = messagesContainer.previousSibling;
-              ThreadUI.view.removeChild(header);
-              ThreadUI.view.removeChild(messagesContainer);
-              if (!ThreadUI.view.childNodes.length) {
+              ThreadUI.container.removeChild(header);
+              ThreadUI.container.removeChild(messagesContainer);
+              if (!ThreadUI.container.childNodes.length) {
                 var mainWrapper = document.getElementById('main-wrapper');
                 mainWrapper.classList.remove('edit');
                 window.location.hash = '#thread-list';
@@ -707,7 +688,7 @@ var ThreadUI = {
     }
   },
 
-  cancelEditMode: function thlui_cancelEditMode() {
+  cancelEdit: function thlui_cancelEdit() {
     window.history.go(-1);
   },
 
@@ -722,39 +703,46 @@ var ThreadUI = {
   },
 
   checkInputs: function thui_checkInputs() {
-    var selected = this.view.querySelectorAll('input[type="checkbox"]:checked');
-    var allInputs = this.view.querySelectorAll('input[type="checkbox"]');
-
+    var _ = navigator.mozL10n.get;
+    var selected = this.container.querySelectorAll(
+      'input[type="checkbox"]:checked'
+    );
+    var allInputs = this.container.querySelectorAll(
+      'input[type="checkbox"]'
+    );
     if (selected.length == allInputs.length) {
-      ThreadUI.selectAllButton.classList.add('disabled');
+      this.checkAllButton.classList.add('disabled');
     } else {
-      ThreadUI.selectAllButton.classList.remove('disabled');
+      this.checkAllButton.classList.remove('disabled');
     }
     if (selected.length > 0) {
-      ThreadUI.deselectAllButton.classList.remove('disabled');
-      ThreadUI.deleteButton.classList.remove('disabled');
-      this.pageHeader.innerHTML = _('selected', {n: selected.length});
+      this.uncheckAllButton.classList.remove('disabled');
+      this.deleteButton.classList.remove('disabled');
+      this.editMode.innerHTML = _('selected', {n: selected.length});
     } else {
-      ThreadUI.deselectAllButton.classList.add('disabled');
-      ThreadUI.deleteButton.classList.add('disabled');
-      this.pageHeader.innerHTML = _('editMode');
+      this.uncheckAllButton.classList.add('disabled');
+      this.deleteButton.classList.add('disabled');
+      this.editMode.innerHTML = _('editMode');
     }
   },
 
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
-        if (window.location.hash != '#edit') {
-           //Handle events on links in a message
-           LinkActionHandler.handleEvent(evt);
+        if (window.location.hash !== '#edit') {
+           // Handle events on links in a message
+           LinkActionHandler.handleTapEvent(evt);
           return;
         }
 
-        var inputs = evt.target.parentNode.getElementsByTagName('input');
-        if (inputs && inputs.length > 0) {
-          ThreadUI.chooseMessage(inputs[0]);
+        var input = evt.target.parentNode.querySelector('input');
+        if (input) {
+          ThreadUI.chooseMessage(input);
           ThreadUI.checkInputs();
         }
+        break;
+      case 'contextmenu':
+        LinkActionHandler.handleLongPressEvent(evt);
         break;
       case 'submit':
         evt.preventDefault();
@@ -768,7 +756,7 @@ var ThreadUI = {
       self.input.value = '';
       self.sendButton.disabled = true;
       self.sendButton.dataset.counter = '';
-      self.contactInput.value = '';
+      self.recipient.value = '';
       self.updateInputHeight();
     };
 
@@ -787,7 +775,10 @@ var ThreadUI = {
   sendMessage: function thui_sendMessage(resendText) {
     var num, text;
 
-    if (resendText && (typeof(resendText) === 'string') && resendText !== '') {
+    this.noResults.classList.add('hide');
+    this.container.classList.remove('hide');
+
+    if (resendText && typeof resendText === 'string') {
       num = MessageManager.currentNum;
       text = resendText;
     } else {
@@ -795,7 +786,7 @@ var ThreadUI = {
       var hash = window.location.hash;
       // Depending where we are, we get different num
       if (hash == '#new') {
-        num = this.contactInput.value;
+        num = this.recipient.value;
         if (!num) {
           return;
         }
@@ -874,6 +865,7 @@ var ThreadUI = {
   },
 
   showAirplaneModeError: function thui_showAirplaneModeError() {
+    var _ = navigator.mozL10n.get;
     CustomDialog.show(
       _('sendAirplaneModeTitle'),
       _('sendAirplaneModeBody'),
@@ -892,15 +884,15 @@ var ThreadUI = {
     if (messagesContainer.childNodes.length == 1) {
       // If it is, we remove header & container
       var header = messagesContainer.previousSibling;
-      ThreadUI.view.removeChild(header);
-      ThreadUI.view.removeChild(messagesContainer);
+      ThreadUI.container.removeChild(header);
+      ThreadUI.container.removeChild(messagesContainer);
     } else {
       // If not we only have to remove the message
       messageDOM.parentNode.removeChild(messageDOM);
     }
 
     // Have we more elements in the view?
-    if (!ThreadUI.view.childNodes.length) {
+    if (!ThreadUI.container.childNodes.length) {
       // Update header index
       ThreadUI.dayHeaderIndex = 0;
       ThreadUI.timeHeaderIndex = 0;
@@ -922,14 +914,15 @@ var ThreadUI = {
     var contactsContainer = document.createElement('ul');
     contactsContainer.classList.add('contactList');
     for (var i = 0; i < tels.length; i++) {
-      Utils.getPhoneDetails(tels[i].value,
-                            contact,
-                            function gotDetails(details) {
+      Utils.getPhoneDetails(
+        tels[i].value, contact, function gotDetails(details) {
+
         var name = Utils.escapeHTML((contact.name[0] || details.title));
         //TODO ask UX if we should use type+carrier or just number
         var number = tels[i].value.toString();
-        var input = self.contactInput.value;
-        // For name, as long as we do a startsWith on API, we want only to show
+        var input = self.recipient.value;
+        // For name, as long as we do a startsWith on API,
+        // we want only to show
         // highlight of the startsWith also
         var regName = new RegExp('\\b' + input, 'ig');
         // For number we search in any position to avoid country code issues
@@ -969,39 +962,45 @@ var ThreadUI = {
       });
     }
 
-    ThreadUI.view.appendChild(contactsContainer);
+    ThreadUI.container.appendChild(contactsContainer);
   },
 
   searchContact: function thui_searchContact() {
-    var input = this.contactInput;
+    var input = this.recipient;
     var string = input.value;
-    var self = this;
-    self.view.innerHTML = '';
+
+    // TODO: Investigate why view.innerHTML is cleared
+    // here and later in the results callback
+    this.container.innerHTML = '';
     if (!string) {
       return;
     }
-    var contactsContainer = document.createElement('ul');
 
-    ContactDataManager.searchContactData(string, function gotContact(contacts) {
-      self.view.innerHTML = '';
-      if (!contacts || contacts.length == 0) {
-
-
-
-        var contactDOM = document.createElement('li');
-        var noResultHTML = '<a><p data-l10n-id="no-results">' +
-                           _('no-results') +
-                           '</p></a>';
-        contactDOM.innerHTML = noResultHTML;
-        contactsContainer.appendChild(contactDOM);
-        self.view.appendChild(contactsContainer);
+    Contacts.findByString(string, function gotContact(contacts) {
+      // !contacts matches null results from errors
+      // !contacts.length matches empty arrays from unmatches filters
+      if (!contacts || !contacts.length) {
+        // There are no contacts that match the input.
+        //  1. Remove the "hide" class from messages-no-results display
+        //  2. Add the "hide" class to the view
+        //
+        this.noResults.classList.remove('hide');
+        this.container.classList.add('hide');
         return;
       }
-      contacts.forEach(self.renderContactData.bind(self));
-    });
+
+      // There are contacts that match the input.
+      //  1. Add the "hide" class to the messages-no-results display
+      //  2. Remove the "hide" class from the view
+      //
+      this.noResults.classList.add('hide');
+      this.container.classList.remove('hide');
+
+      contacts.forEach(this.renderContactData.bind(this));
+    }.bind(this));
   },
 
-  pickContact: function thui_pickContact() {
+  pick: function thui_pick() {
     try {
       var activity = new MozActivity({
         name: 'pick',
@@ -1021,33 +1020,47 @@ var ThreadUI = {
   },
 
   activateContact: function thui_activateContact() {
-    var options = {};
-    // Call to 'new' or 'view' depending on existence of contact
-    if (this.title.dataset.isContact == 'true') {
-      //TODO modify this when 'view' activity is available on contacts
-      // options = {
-      //   name: 'view',
-      //   data: {
-      //     type: 'webcontacts/contact'
-      //   }
-      // };
+    var _ = navigator.mozL10n.get;
+    var phoneNumber = this.headerText.dataset.phoneNumber;
+    // Call to 'option menu' or 'dialer' depending on existence of contact
+    if (this.headerText.dataset.isContact == 'true') {
+      ActivityPicker.call(phoneNumber);
     } else {
-      options = {
-        name: 'new',
-        data: {
-          type: 'webcontacts/contact',
-          params: {
-            'tel': this.title.dataset.phoneNumber
+      var options = new OptionMenu({
+        'items': [
+        {
+          name: _('call'),
+          method: function optionMethod(param) {
+            ActivityPicker.call(param);
+          },
+          params: [phoneNumber]
+        },
+        {
+          name: _('createNewContact'),
+          method: function optionMethod(param) {
+            ActivityPicker.createNewContact(
+              param, ThreadUI.onCreateContact);
+          },
+          params: [{'tel': phoneNumber}]
+        },
+        {
+          name: _('addToExistingContact'),
+          method: function optionMethod(param) {
+            ActivityPicker.addToExistingContact(
+              param, ThreadUI.onCreateContact);
+        },
+          params: [{'tel': phoneNumber}]
+        },
+        {
+          name: _('cancel'),
+          method: function optionMethod(param) {
+          // TODO Add functionality if needed
           }
         }
-      };
-    }
-
-    try {
-      var activity = new MozActivity(options);
-      activity.onsuccess = ThreadUI.onCreateContact;
-    } catch (e) {
-      console.log('WebActivities unavailable? : ' + e);
+        ],
+        'title': phoneNumber
+      });
+      options.show();
     }
   },
   onCreateContact: function thui_onCreateContact() {

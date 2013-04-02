@@ -73,7 +73,7 @@ a.button.right {
 }
 
 a.button.right.plus {
-  background: url(images/add_alarm.png) no-repeat center;
+  background: url(images/add_alarm.png) no-repeat center / 3.2rem;
   padding: 2.2rem 1.5rem;
   height: 2.5rem;
   width: 3.2rem;
@@ -328,13 +328,13 @@ ul li > small {
 }
 
 #alarms label input[type="checkbox"] + span {
-  background: url(images/alarm_off.png) no-repeat center top;
+  background: url(images/alarm_off.png) no-repeat center top / 3.4rem;
   width: 3.4rem;
   height: 3.4rem;
 }
 #alarms label input[type="checkbox"]:checked + span {
   border-color: #00acce;
-  background: url(images/alarm_on.png) no-repeat center top;;
+  background: url(images/alarm_on.png) no-repeat center top / 3.4rem;
 }
 
 #alarms label span {
@@ -342,6 +342,11 @@ ul li > small {
   right: 0.5rem;
   top: 1.2rem;
   margin: 0;
+}
+
+#alarms a {
+  padding-bottom: 0;
+  height: 100%;
 }
 
 /* fake input boxes for checkboxes & radio buttons */
@@ -466,7 +471,7 @@ input ~ *:empty {
 }
 
 #alarms li {
-  background: url(images/alarm_sep.png) top no-repeat;
+  background: url(images/alarm_sep.png) no-repeat top / 29rem;
   padding-top: 0.2rem;
   padding-left: 0.8rem;
 }
@@ -485,7 +490,7 @@ input ~ *:empty {
 li img {
   position: absolute;
   vertical-align: middle;
-  margin-right:0.63rem;
+  margin-right: 0.63rem;
 }
 
 .description {
@@ -551,7 +556,7 @@ li img {
   margin-left: auto;
   margin-right: auto;
   border-bottom: solid 0.13rem;
-  -moz-border-bottom-colors: #CBCBCC #FFFFFF; 
+  -moz-border-bottom-colors: #CBCBCC #FFFFFF;
 }
 
 #picker-bar.format12h {}
@@ -589,7 +594,7 @@ li img {
 }
 
 #value-indicator-wrapper {
-  background: url(/style/images/picker_label.png) no-repeat -6px 0;
+  background: url(/style/images/picker_label.png) no-repeat -0.6rem 0 / 28.2rem;
   position: absolute;
   top: 5.6rem;
   height: 6rem;
@@ -599,7 +604,7 @@ li img {
 
 #value-indicator-left,
 #value-indicator-right {
-  background: url(/style/images/picker_label.png) no-repeat 0 0;
+  background: url(/style/images/picker_label.png) no-repeat 0 0 / 28.2rem;
   position: absolute;
   width: 0.6rem;
   height: 6rem;
@@ -766,32 +771,4 @@ div.animation-on {
   display: none;
 }
 
-/* 320x480 phones */
-@media screen and (width: 320px) {
-  html {
-    font-size: 10px;
-  }
-}
 
-/* 480x800 phones */
-@media screen and (width: 480px) {
-  html {
-    font-size: 10px;
-  }
-  .alarmList-detail {
-    margin-left: 0.31rem; 
-  }
-  .alarmList-time span.time {
-    font: 2.25rem/2.25rem 'MozTT', sans-serif;
-  }
-  .alarmList-time span.hour24-state {
-    font: 1rem/1rem 'MozTT', sans-serif;
-    margin-left: -0.19rem;
-  }
-  .alarmList-detail .label {
-    font: 1.25rem/1.25rem 'MozTT', sans-serif;
-  }
-  .alarmList-detail .repeat {
-    font: 1.13rem/1.13rem 'MozTT', sans-serif;
-  }
-}

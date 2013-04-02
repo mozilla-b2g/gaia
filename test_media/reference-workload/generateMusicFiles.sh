@@ -4,6 +4,7 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
 if [ -z "$1" ]; then 
   echo "Must provide number of iterations"
+  exit
 fi
 
 if ! type mid3v2 > /dev/null 2>&1; then

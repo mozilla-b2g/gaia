@@ -1,29 +1,3 @@
-/* change display of header - this css needs improvement in BB */
-
-body[data-path^="/settings/"] section[role="region"] > header > button,
-body[data-path^="/settings/"] section[role="region"] > header > a {
-  width: 6rem;
-}
-
-body[data-path^="/settings/"] section[role="region"] > header > a .icon.icon-menu,
-body[data-path^="/settings/"] section[role="region"] > header > button .icon.icon-menu {
-  background-position: center center;
-}
-
-body[data-path^="/settings/"] section[role="region"] > header > button .icon:after,
-body[data-path^="/settings/"] section[role="region"] > header > a .icon:after {
-  width: 4rem;
-}
-
-body[data-path^="/settings/"] section[role="region"] > header > button,
-body[data-path^="/settings/"] section[role="region"] > header > a {
-  background-position: 4rem center;
-}
-
-body[data-path^="/settings/"] section[role="region"] > header h1 {
-  padding-left: 5rem;
-}
-
 body[data-path^='/event'] #time-views,
 body[data-path^='/month'] #time-views,
 body[data-path^='/day'] #time-views,
@@ -149,4 +123,15 @@ body[data-path^='/settings'] #time-views {
   left: inherit;
   top: inherit;
   margin: 0;
+}
+
+body[role="application"] [role="toolbar"] li button:active {
+  background-color: #008aaa;
+  background-size: 3rem auto;
+}
+
+body[role="application"] [role="toolbar"] li button.update {
+  background-image: url("icons/update.png");
+  background-repeat: no-repeat;
+  background-position: center center;
 }

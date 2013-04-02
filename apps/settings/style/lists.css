@@ -32,6 +32,7 @@ ul li > span {
 }
 
 ul li.active,
+ul li:not(.explanation):active,
 ul li:not(.disabled) > small + a:active,
 ul li:not(.disabled) > a[href]:active {
   background-color: #b2f2ff;
@@ -130,7 +131,7 @@ ul li p {
   font-size: 1.9rem;
   font-weight: 400;
   margin: 0;
-  padding: 1rem 3rem;
+  padding: 1rem 3rem 1.2rem;
 }
 
 ul li p + label:not([for]) {
@@ -320,7 +321,7 @@ ul li progress, ul li meter {
  */
 
 dl > * {
-  font-size: 1.7em;
+  font-size: 1.7rem;
 }
 
 dl dt {

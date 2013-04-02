@@ -1,3 +1,6 @@
+html {
+  font: 10px/2em "MozTT", Sans-serif;
+}
 #pair-view div {
   font-size: 1.7rem;
 }
@@ -21,21 +24,7 @@
 }
 
 #pair-view .pair-method input {
-  font-size: 1.9rem;
-}
-
-#pair-view menu {
-  padding: 0.7rem;
-  position: relative;
-}
-
-#pair-view menu button {
-  height: 2.8rem;
-  line-height: 2.8rem;
-}
-
-#pair-view {
-  padding-bottom: 4.2rem;
+  font-size: 1.5rem;
 }
 
 #device-info {
@@ -45,6 +34,7 @@
 }
 
 .bluetooth-default {
-  background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 150, 30, 120);
+  /* https://bugzilla.mozilla.org/show_bug.cgi?id=853693 */
+  /* need a transparent background of icons_sprite.gif */
 }
 

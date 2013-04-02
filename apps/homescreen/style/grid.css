@@ -25,7 +25,7 @@
 }
 
 .apps ol {
-  width: -moz-calc(4 * 8rem);
+  width: 100%;
   padding: 0;
   list-style-type: none;
   display: block;
@@ -35,7 +35,7 @@
 
 .apps ol > li {
   position: relative;
-  width: 8rem;
+  width: 25%;
   display: inline-block;
   float: left;
   text-align: center;

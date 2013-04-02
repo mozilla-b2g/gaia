@@ -92,6 +92,7 @@ navigator.mozL10n.ready(function wifiSettings() {
     // Re-enable UI toggle
     gWifiCheckBox.disabled = false;
     gWifiInfoBlock.textContent = _('disabled');
+    gWifiInfoBlock.dataset.l10nId = 'disabled';
     gNetworkList.clear(false);
     gNetworkList.autoscan = false;
   };
@@ -106,7 +107,9 @@ navigator.mozL10n.ready(function wifiSettings() {
       req.onsuccess = function() {
         gWpsInProgress = false;
         gWpsPbcLabelBlock.textContent = _('wpsMessage');
+        gWpsPbcLabelBlock.dataset.l10nId = 'wpsMessage';
         gWpsInfoBlock.textContent = _('fullStatus-wps-canceled');
+        gWpsInfoBlock.dataset.l10nId = 'fullStatus-wps-canceled';
       };
       req.onerror = function() {
         gWpsInfoBlock.textContent = _('wpsCancelFailedMessage') +
@@ -138,7 +141,9 @@ navigator.mozL10n.ready(function wifiSettings() {
         }
         gWpsInProgress = true;
         gWpsPbcLabelBlock.textContent = _('wpsCancelMessage');
+        gWpsPbcLabelBlock.dataset.l10nId = 'wpsCancelMessage';
         gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
+        gWpsInfoBlock.dataset.l10nId = 'fullStatus-wps-inprogress';
       };
       req.onerror = function() {
         gWpsInfoBlock.textContent = _('fullStatus-wps-failed') +
@@ -229,6 +234,7 @@ navigator.mozL10n.ready(function wifiSettings() {
       ssid.classList.add('wifi-secure');
     } else {
       small.textContent = _('securityOpen');
+      small.dataset.l10nId = 'securityOpen';
     }
 
     // create list item
@@ -350,6 +356,8 @@ navigator.mozL10n.ready(function wifiSettings() {
         // display the "Search Again" button
         list.dataset.state = 'ready';
 
+        PerformanceTestingHelper.dispatch('settings-panel-wifi-ready');
+
         // auto-rescan if requested
         if (autoscan) {
           window.setTimeout(scan, scanRate);
@@ -361,6 +369,9 @@ navigator.mozL10n.ready(function wifiSettings() {
       req.onerror = function onScanError(error) {
         // always try again.
         scanning = false;
+
+        PerformanceTestingHelper.dispatch('settings-panel-wifi-ready');
+
         window.setTimeout(scan, scanRate);
       };
     }
@@ -704,6 +715,7 @@ navigator.mozL10n.ready(function wifiSettings() {
           networkStatus === 'wps-overlapped') {
         gWpsInProgress = false;
         gWpsPbcLabelBlock.textContent = _('wpsMessage');
+        gWpsPbcLabelBlock.dataset.l10nId = 'wpsMessage';
       }
     }
   }

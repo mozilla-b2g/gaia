@@ -56,7 +56,6 @@ section[role="region"].previous.peek {
 
 section[role="region"].current {
   transform: translateX(0);
-  overflow-y: scroll;
 }
 section[role="region"].current.peek.forward {
   transform: translateX(99.9%);
@@ -68,13 +67,19 @@ section[role="region"].current.peek {
 /**
  * Headers should not scroll with the rest of the page, except for #root.
  */
-section[role="region"] > header:first-child {
-  position: fixed;
-  width: 100%;
+section[role="region"] > header {
+  position: absolute;
 }
 
-section[role="region"] > header:first-child + * {
-  margin-top: 5rem;
+section[role="region"] > div {
+  position: absolute;
+  top: 5rem;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 5rem);
+  overflow-y: scroll;
 }
 
 
@@ -90,8 +95,17 @@ section[role="region"] > header:first-child + * {
 }
 
 .description {
-  padding: 1rem 3rem;
-  font-size: 1.4rem;
+  padding: 1rem 2rem 1rem 3rem;
+  font-size: 1.7rem;
+  line-height: 23px;
+  white-space: normal;
+  -moz-hyphens: auto;
+}
+
+.description p {
+  padding: 0 0 1rem;
+  font-size: 1.9rem;
+  text-overflow: none;
   white-space: normal;
 }
 
@@ -99,6 +113,20 @@ section[role="region"] > header:first-child + * {
   font-size: 1.4rem;
   color: #336699;
   text-decoration: underline;
+}
+
+.hint label span {
+  top: 2.9rem !important;
+}
+.hint .explanation {
+  font-style: normal;
+  position: relative;
+  margin-top: -2rem;
+  padding: 0.5rem 10rem 1.3rem 3.1rem;
+  white-space: normal;
+}
+.hint .explanation[hidden] {
+  display: none;
 }
 
 
@@ -221,6 +249,11 @@ section li.password > p {
  * Call settings
  */
 
+.call-settings-disabled a {
+  opacity: 0.6;
+  color: #797e80;
+}
+
 /* three-state items: on|off|unknown */
 #menuItem-callWaiting .checkbox-label,
 #menuItem-callWaiting[data-state="on"] .checkbox-label,
@@ -306,7 +339,7 @@ section li.password > p {
 }
 
 #wallpaper-button {
-  background: url(images/wallpaper_edit.png) no-repeat 25rem 11.5rem;
+  background: url(images/wallpaper_edit.png) no-repeat 25rem 11.5rem / 4.5rem;
   position: absolute;
   border: none;
   height: 100%;
@@ -356,12 +389,14 @@ ul li > label .range-icons.volume {
   background:
     url(images/range_icons_volume_min.png) no-repeat 0 50%,
     url(images/range_icons_volume_max.png) no-repeat 100% 50%;
+    background-size: 3rem;
 }
 
 ul li > label .range-icons.brightness {
   background:
     url(images/range_icons_brightness_min.png) no-repeat 0 50%,
     url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
+  background-size: 3rem;
   left: 2.5rem;
   right: auto;
 }

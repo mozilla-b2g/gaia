@@ -9,6 +9,10 @@ var LinkHelper = {
   _urlRegex: new RegExp(['(^|\\s|,|;)[-\\w:%\\+.~#?&//=]{2,256}',
     '\\.[a-z]{2,6}(?:\\/[-\\w:%\\+.~#?&//=]*)?'].
     join(''), 'mgi'),
+  _emailRegex: /([\w\.-]+)@([\w\.-]+)\.([a-z\.]{2,6})/mgi,
+  _phoneRegex: new RegExp(['(\\+?1?[-.]?\\(?([0-9]{3})\\)?',
+    '[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?'].
+    join(''), 'mg'),
 
   searchAndLinkUrl:
   function lh_searchAndLinkUrl(urltext) {
@@ -31,11 +35,34 @@ var LinkHelper = {
     });
     return result;
   },
-
+  searchAndLinkEmail:
+  function lh_searchAndLinkEmail(body) {
+    return body.replace(this._emailRegex,
+      function lh_processedEmail(email) {
+        return [
+          '<a href="#" data-email="',
+          '" data-action="email-link">',
+          '</a>'
+        ].join(email);
+      });
+  },
+  searchAndLinkPhone:
+  function lh_searchAndLinkPhone(phonetext) {
+    return phonetext.replace(this._phoneRegex,
+    function lh_processedPhone(phone) {
+      return [
+        '<a href="#" data-phonenumber="',
+        '" data-action="phone-link">',
+        '</a>'
+      ].join(phone);
+     });
+  },
   //Invokes resepective functions to change URL
-  // (to do: phone and email) strings and make them active links
+  //phone and email strings and make them active links
   searchAndLinkClickableData:
    function lh_searchAndLinkClickableData(inputText) {
+    inputText = this.searchAndLinkPhone(inputText);
+    inputText = this.searchAndLinkEmail(inputText);
     return this.searchAndLinkUrl(inputText);
   }
 };

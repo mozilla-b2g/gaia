@@ -63,6 +63,14 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected {
   color: #000;
 }
 
+ul[role="tablist"][data-type="filter"] > [role="tab"]:first-child.selected {
+  border-left: none;
+}
+
+ul[role="tablist"][data-type="filter"] > [role="tab"]:last-child.selected {
+  border-right: none;
+}
+
 ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   color: #000;
 }

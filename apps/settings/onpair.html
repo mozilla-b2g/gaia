@@ -19,6 +19,8 @@
 
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/onpair.js"></script>
+
+    <link rel="stylesheet" href="shared/style/responsive.css">
   </head>
   <body role="application">
     <form role="dialog" data-type="confirm" id="pair-view">
@@ -35,7 +37,7 @@
           <strong id="passkey"></strong>
         </div>
         <div id="pin-input-method" class="pair-method" hidden>
-          <input type="number" id="pin-input" size="4" maxlength="4" />
+          <input id="pin-input" size="16" maxlength="16" />
         </div>
         <div id="passkey-input-method" class="pair-method" hidden>
           <input type="number" id="passkey-input" size="6" maxlength="6" />

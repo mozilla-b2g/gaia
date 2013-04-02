@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 var contacts = window.contacts || {};
 
@@ -86,7 +86,6 @@ contacts.Search = (function() {
       searchBox.value = '';
       // Resetting state
       contactNodes = null;
-      searchList.innerHTML = '';
       searchTextCache = {};
       resetState();
 
@@ -104,7 +103,7 @@ contacts.Search = (function() {
     currentSet = {};
     // We don't know if the user will launch a new search later
     theClones = {};
-    searchList.innerHTML = '';
+    utils.dom.removeChildNodes(searchList);
     emptySearch = true;
     remainingPending = true;
   }
@@ -367,7 +366,7 @@ contacts.Search = (function() {
         prevText.length > 0 && newText.indexOf(prevText) === 0) {
       out = searchableNodes || getContactsDom();
     } else {
-      searchList.innerHTML = '';
+      utils.dom.removeChildNodes(searchList);
       currentSet = {};
       out = getContactsDom();
       canReuseSearchables = false;

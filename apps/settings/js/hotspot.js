@@ -134,20 +134,31 @@ var Hotspot = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
-        var ignorePassword = (securityTypeSelector.value == 'open');
+        var tethering_ssid_element = '[data-setting="tethering.wifi.ssid"]';
+        var tethering_password = 'tethering.wifi.security.password';
+        var tethering_ssid = dialog.querySelector(tethering_ssid_element);
 
-        // mozSettings does not support multiple keys in the cset object
-        // with one set() call,
-        // see https://bugzilla.mozilla.org/show_bug.cgi?id=779381
-        var lock = settings.createLock();
-        for (var i = 0; i < fields.length; i++) {
-          var input = fields[i];
-          var cset = {};
-          var key = input.dataset.setting;
+        // ensure SSID is set
+        if (/^\s*$/.test(tethering_ssid.value)) {
+          var _ = navigator.mozL10n.get;
+          alert(_('SSIDCannotBeEmpty'));
+          reset(); // Reset to original values if ssid is null.
+        } else {
+          var ignorePassword = (securityTypeSelector.value == 'open');
 
-          if (!(ignorePassword && key == 'tethering.wifi.security.password')) {
-            cset[key] = input.value;
-            lock.set(cset);
+          // mozSettings does not support multiple keys in the cset object
+          // with one set() call,
+          // see https://bugzilla.mozilla.org/show_bug.cgi?id=779381
+          var lock = settings.createLock();
+          for (var i = 0; i < fields.length; i++) {
+            var input = fields[i];
+            var cset = {};
+            var key = input.dataset.setting;
+
+            if (!(ignorePassword && key == tethering_password)) {
+              cset[key] = input.value;
+              lock.set(cset);
+            }
           }
         }
       }

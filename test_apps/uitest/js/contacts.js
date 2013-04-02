@@ -37,6 +37,16 @@ var ContactsTest = {
     return this.updateExistingActivityButton = document.getElementById('activities-update');
   },
 
+  get updateExistingActivityEmailButton() {
+    delete this.updateExistingActivityEmailButton;
+    return this.updateExistingActivityEmailButton = document.getElementById('activities-update-email');
+  },
+
+  get updateExistingActivityEmailPhoneButton() {
+    delete this.updateExistingActivityEmailPhoneButton;
+    return this.updateExistingActivityEmailPhoneButton = document.getElementById('activities-update-email-phone');
+  },
+
   get newWithDataActivityButton() {
     delete this.newWithDataActivityButton;
     return this.newWithDataActivityButton =
@@ -60,6 +70,11 @@ var ContactsTest = {
                                             this.newActivity.bind(this));
     this.updateExistingActivityButton.addEventListener('click',
                                             this.updateExistingActivity.bind(this));
+    this.updateExistingActivityEmailButton.addEventListener('click',
+                                            this.updateExistingActivityEmail.bind(this));
+
+    this.updateExistingActivityEmailPhoneButton.addEventListener('click',
+                                            this.updateExistingActivityEmailPhone.bind(this));
 
     this.newWithDataActivityButton.addEventListener('click',
                                         this.newWithDataActivity.bind(this));
@@ -162,6 +177,58 @@ var ContactsTest = {
     };
 
   },
+
+  updateExistingActivityEmail: function ct_updateExistingActivityEmail() {
+    var activity = new MozActivity({
+        name: 'update',
+        data: {
+          type: 'webcontacts/contact',
+          params: {
+            'email': 'test@test.com'
+          }
+        }
+      });
+
+    var self = this;
+    activity.onsuccess = function() {
+      var contact = this.result.contact;
+      document.getElementById('activities-result').innerHTML =
+                            'updated contact' + ' update with id: ' + contact.id;
+      self.setContactId(contact.id);
+    };
+
+    activity.onerror = function() {
+      document.getElementById('activities-result').innerHTML =
+                                                          'Activity canceled';
+    };
+  },
+
+  updateExistingActivityEmailPhone: function ct_updateExistingActivityEmailPhone() {
+    var activity = new MozActivity({
+        name: 'update',
+        data: {
+          type: 'webcontacts/contact',
+          params: {
+            'email': 'test@test.com',
+            'tel': '21312132'
+          }
+        }
+      });
+
+    var self = this;
+    activity.onsuccess = function() {
+      var contact = this.result.contact;
+      document.getElementById('activities-result').innerHTML =
+                            'updated contact' + ' update with id: ' + contact.id;
+      self.setContactId(contact.id);
+    };
+
+    activity.onerror = function() {
+      document.getElementById('activities-result').innerHTML =
+                                                          'Activity canceled';
+    };
+  },
+
   updateExistingActivity: function ct_updateExistingActivity() {
     var activity = new MozActivity({
         name: 'update',

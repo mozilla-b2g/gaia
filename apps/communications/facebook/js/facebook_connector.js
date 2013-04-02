@@ -6,6 +6,12 @@ if (!window.FacebookConnector) {
     fb.operationsTimeout = parent.config ?
                                         parent.config.operationsTimeout : null;
 
+    // Only one instance in order to reuse it for saving friends in the
+    // database. If the instance is not released between transactions, new
+    // objects will be created.
+    var reusedFbContact = new fb.Contact();
+    reusedFbContact.ready = true;
+
     function createFbImporter(clist, access_token) {
       var out = new window.ContactsImporter(clist, access_token, this);
 
@@ -15,11 +21,24 @@ if (!window.FacebookConnector) {
     }
 
     function persistFbData(data, successCb, errorCb) {
-      var fbContact = new fb.Contact();
+      var fbContact, successWrapperCb;
+
+      if (reusedFbContact.ready) {
+        reusedFbContact.ready = null;
+        fbContact = reusedFbContact;
+        successWrapperCb = function onsuccess() {
+          reusedFbContact.ready = true;
+          successCb();
+        };
+      } else {
+        fbContact = new fb.Contact();
+        successWrapperCb = successCb;
+      }
+
       fbContact.setData(data);
 
       var req = fbContact.save();
-      req.onsuccess = successCb;
+      req.onsuccess = successWrapperCb;
       req.onerror = errorCb;
     }
 

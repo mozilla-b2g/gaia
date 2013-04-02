@@ -283,7 +283,7 @@ const DragDropManager = (function() {
       clearTimeout(overlapingTimeout);
       if (classList.contains('page')) {
         var lastIcon = page.getLastIcon();
-        if (y > lastIcon.getTop() && draggableIcon !== lastIcon) {
+        if (lastIcon && y > lastIcon.getTop() && draggableIcon !== lastIcon) {
           overlapingTimeout = setTimeout(function() {
             page.drop(draggableIcon, lastIcon);
           }, REARRANGE_DELAY);
@@ -299,8 +299,11 @@ const DragDropManager = (function() {
   function sendDragLeaveEvent(page, reflow) {
     // For some reason, moving a node re-triggers the blob URI to be validated
     // after inserting this one in other position of the DOM
-    draggableIcon.displayRenderedIcon();
-    page.onDragLeave(reflow);
+    draggableIcon.loadRenderedIcon(function loaded(url) {
+      page.onDragLeave(function revoke() {
+        window.URL.revokeObjectURL(url);
+      }, reflow);
+    });
   }
 
   function onEnd(evt) {

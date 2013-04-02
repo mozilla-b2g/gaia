@@ -296,6 +296,9 @@ if (!fb.utils) {
             var logoutUrl = logoutService + logoutParams;
 
             var m_listen = function(e) {
+              if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
+                return;
+              }
               if (e.data === 'closed') {
                 window.asyncStorage.removeItem(STORAGE_KEY);
                 outReq.done();
@@ -317,14 +320,12 @@ if (!fb.utils) {
 
             xhr.onload = function(e) {
               if (xhr.status === 200 || xhr.status === 0) {
-                if (xhr.response.success) {
-                  window.asyncStorage.removeItem(STORAGE_KEY);
-                  outReq.done();
+                if (!xhr.response || !xhr.response.success) {
+                  window.console.error('FB: Logout unexpected redirect or ' +
+                                       'token expired');
                 }
-                else {
-                  window.console.error('FB: Logout unexpected redirect');
-                  outReq.failed('Unexpected redirect');
-                }
+                window.asyncStorage.removeItem(STORAGE_KEY);
+                outReq.done();
               }
               else {
                 window.console.error('FB: Error executing logout. Status: ',

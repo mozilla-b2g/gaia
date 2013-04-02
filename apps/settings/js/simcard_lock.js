@@ -23,6 +23,7 @@ var SimPinLock = {
     var textContent = cardStateMapping[cardState ? cardState : 'null'];
     if (textContent) {
       this.simSecurityDesc.textContent = _(textContent);
+      this.simSecurityDesc.dataset.l10nId = textContent;
       this.simPinCheckBox.disabled = true;
       this.changeSimPinItem.hidden = true;
       return;
@@ -35,6 +36,8 @@ var SimPinLock = {
       var enabled = req.result.enabled;
       self.simSecurityDesc.textContent = (enabled) ?
         _('enabled') : _('disabled');
+      self.simSecurityDesc.dataset.l10nId = (enabled) ?
+        'enabled' : 'disabled';
       self.simPinCheckBox.disabled = false;
       self.simPinCheckBox.checked = enabled;
       self.changeSimPinItem.hidden = !enabled;

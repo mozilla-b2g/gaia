@@ -5,7 +5,7 @@ function renderThreadListHeader() {
             '<a href="#new" id="icon-add">' +
               '<span class="icon icon-compose"></span>' +
             '</a>' +
-            '<a href="#edit" id="icon-edit-threads">' +
+            '<a href="#edit" id="threads-edit-icon">' +
               '<span class="icon icon-edit"></span>' +
             '</a>' +
           '</menu>';
@@ -22,16 +22,17 @@ function renderThreadListEdit() {
                 '<button id="threads-delete-button" data-l10n-id="delete">' +
                   'delete</button>' +
               '</menu>' +
-              '<h1 id="list-edit-title" data-l10n-id="editMode">' +
+              '<h1 id="threads-edit-mode" data-l10n-id="editMode">' +
                   'Edit mode</h1>' +
             '</header>' +
           '</section>' +
           '<menu>' +
-            '<button id="deselect-all-threads" class="edit-button disabled" ' +
+            '<button id="threads-uncheck-all-button" ' +
+              'class="edit-button disabled" ' +
               'data-l10n-id="deselect-all">' +
               'None' +
             '</button>' +
-            '<button id="select-all-threads" class="edit-button" ' +
+            '<button id="threads-check-all-button" class="edit-button" ' +
               'data-l10n-id="select-all">' +
               'All' +
             '</button>' +
@@ -39,22 +40,25 @@ function renderThreadListEdit() {
 }
 
 function renderThreadMsgHeader() {
-  return '<a role="link" id="go-to-threadlist">' +
+  return '<a role="link" id="messages-back-button">' +
             '<span class="icon icon-back"></span>' +
           '</a>' +
           '<menu type="toolbar">' +
-            '<a id="icon-contact">' +
+            '<a id="messages-contact-pick-button">' +
               '<span class="icon icon-user"></span>' +
             '</a>' +
             '<a href="#edit" id="icon-edit">' +
               '<span class="icon icon-edit"></span>' +
             '</a>' +
           '</menu>' +
-          '<h1 id="header-text" data-l10n-id="messages" aria-hidden="true">' +
+          '<h1 id="messages-header-text" ' +
+            'data-l10n-id="messages" aria-hidden="true">' +
             'Messages</h1>' +
           '<form id="messages-tel-form">' +
-            '<input id="receiver-input" type="text" name="tel" class="tel" />' +
-            '<span id="clear-search" role="button" class="icon icon-clear">' +
+            '<input id="messages-recipient" type="text" ' +
+              'name="tel" class="tel" />' +
+            '<span id="messages-clear-button" ' +
+              'role="button" class="icon icon-clear">' +
               '</span>' +
           '</form>';
 }
@@ -70,16 +74,17 @@ function renderThreadMsgEdit() {
                 '<button id="messages-delete-button"  data-l10n-id="delete">' +
                   'delete</button>' +
               '</menu>' +
-              '<h1 id="messages-edit-title" data-l10n-id="editMode">' +
+              '<h1 id="messages-edit-mode" data-l10n-id="editMode">' +
                 'Edit mode</h1>' +
             '</header>' +
           '</section>' +
           '<menu>' +
-            '<button id="deselect-all-messages" class="edit-button disabled"' +
+            '<button id="messages-uncheck-all-button" ' +
+              'class="edit-button disabled"' +
               ' data-l10n-id="deselect-all">' +
               'None' +
             '</button>' +
-            '<button id="select-all-messages" class="edit-button"' +
+            '<button id="messages-check-all-button" class="edit-button"' +
               ' data-l10n-id="select-all">' +
               'All' +
             '</button>' +
@@ -87,11 +92,11 @@ function renderThreadMsgEdit() {
 }
 
 function renderThreadMsgInputBar() {
-  return '<button id="send-message" disabled data-l10n-id="send"' +
+  return '<button id="messages-send-button" disabled data-l10n-id="send"' +
             ' type="submit">Send</button>' +
           '<p>' +
-            '<textarea type="text" id="message-to-send"' +
-              ' name="message-to-send" placeholder="Message"' +
+            '<textarea type="text" id="messages-input"' +
+              ' name="messages-input" placeholder="Message"' +
               ' data-l10n-id="composeMessage"></textarea>' +
           '</p>';
 }

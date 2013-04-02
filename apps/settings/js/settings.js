@@ -82,7 +82,9 @@ var Settings = {
           if (input.value == value)
             return;
           input.value = value;
-          input.refresh(); // XXX to be removed when bug344618 lands
+          if (input.refresh) {
+            input.refresh(); // XXX to be removed when bug344618 lands
+          }
           break;
         case 'select':
           for (var i = 0; i < input.options.length; i++) {
@@ -291,7 +293,9 @@ var Settings = {
         var key = ranges[i].name;
         if (key && result[key] != undefined) {
           ranges[i].value = parseFloat(result[key]);
-          ranges[i].refresh(); // XXX to be removed when bug344618 lands
+          if (ranges[i].refresh) {
+            ranges[i].refresh(); // XXX to be removed when bug344618 lands
+          }
         }
       }
 
@@ -302,12 +306,15 @@ var Settings = {
         // link the button with the select element
         var index = select.selectedIndex;
         if (index >= 0) {
-          button.textContent = select.options[index].textContent;
+          var selection = select.options[index];
+          button.textContent = selection.textContent;
+          button.dataset.l10nId = selection.dataset.l10nId;
         }
         if (parent.classList.contains('fake-select')) {
           select.addEventListener('change', function() {
-            var newSelect = this.options[this.selectedIndex].textContent;
-            button.textContent = newSelect;
+            var newSelection = this.options[this.selectedIndex];
+            button.textContent = newSelection.textContent;
+            button.dataset.l10nId = newSelection.dataset.l10nId;
           });
         }
       };
@@ -556,7 +563,7 @@ window.addEventListener('load', function loadSettings() {
   window.addEventListener('change', Settings);
 
   Settings.init();
-  handleDataConnectivity();
+  handleRadioAndCardState();
 
   setTimeout(function() {
     var scripts = [
@@ -619,12 +626,24 @@ window.addEventListener('load', function loadSettings() {
           for (var lang in languages) {
             var option = document.createElement('option');
             option.value = lang;
-            option.textContent = languages[lang];
+            // Right-to-Left (RTL) languages:
+            // (http://www.w3.org/International/questions/qa-scripts)
+            // Arabic, Hebrew, Farsi, Pashto, Urdu
+            var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+            // Use script direction control-characters to wrap the text labels
+            // since markup (i.e. <bdo>) does not work inside <option> tags
+            // http://www.w3.org/International/tutorials/bidi-xhtml/#nomarkup
+            var lEmbedBegin =
+                (rtlList.indexOf(lang) >= 0) ? '&#x202B;' : '&#x202A;';
+            var lEmbedEnd = '&#x202C;';
+            // The control-characters enforce the language-specific script
+            // direction to correctly display the text label (Bug #851457)
+            option.innerHTML = lEmbedBegin + languages[lang] + lEmbedEnd;
             option.selected = (lang == document.documentElement.lang);
             langSel.appendChild(option);
           }
         });
-        Settings.updateLanguagePanel();
+        setTimeout(Settings.updateLanguagePanel);
         break;
       case 'mediaStorage':        // full media storage status + panel startup
         MediaStorage.initUI();
@@ -648,6 +667,10 @@ window.addEventListener('load', function loadSettings() {
   var oldHash = window.location.hash || '#root';
   function showPanel() {
     var hash = window.location.hash;
+
+    if (hash === '#wifi') {
+      PerformanceTestingHelper.dispatch('start');
+    }
 
     var oldPanel = document.querySelector(oldHash);
     var newPanel = document.querySelector(hash);
@@ -694,20 +717,25 @@ window.addEventListener('load', function loadSettings() {
 
         oldPanel.addEventListener('transitionend', function onTransitionEnd() {
           oldPanel.removeEventListener('transitionend', onTransitionEnd);
-          // Workaround for bug 825622, remove when fixed
-          if (newPanel.id == 'about-licensing') {
-            var iframe = document.getElementById('os-license');
-            iframe.src = iframe.dataset.src;
+          switch (newPanel.id) {
+            case 'about-licensing':
+              // Workaround for bug 825622, remove when fixed
+              var iframe = document.getElementById('os-license');
+              iframe.src = iframe.dataset.src;
+              break;
+            case 'wifi':
+              PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
+              break;
           }
         });
       });
     });
   }
 
-  function handleDataConnectivity() {
-    function updateDataConnectivity(disabled) {
-      var item = document.querySelector('#data-connectivity');
-      var link = document.querySelector('#menuItem-cellularAndData');
+  function handleRadioAndCardState() {
+    function updateDataSubpanelItem(disabled) {
+      var item = document.getElementById('data-connectivity');
+      var link = document.getElementById('menuItem-cellularAndData');
       if (!item || !link)
         return;
 
@@ -720,6 +748,21 @@ window.addEventListener('load', function loadSettings() {
       }
     }
 
+    function updateCallSubpanelItem(disabled) {
+      var item = document.getElementById('call-settings');
+      var link = document.getElementById('menuItem-callSettings');
+      if (!item || !link)
+        return;
+
+      if (disabled) {
+        item.classList.add('call-settings-disabled');
+        link.onclick = function() { return false; };
+      } else {
+        item.classList.remove('call-settings-disabled');
+        link.onclick = null;
+      }
+    }
+
     var key = 'ril.radio.disabled';
 
     var settings = Settings.mozSettings;
@@ -728,10 +771,13 @@ window.addEventListener('load', function loadSettings() {
 
     var req = settings.createLock().get(key);
     req.onsuccess = function() {
-      updateDataConnectivity(req.result[key]);
+      var value = req.result[key];
+      updateDataSubpanelItem(value);
+      updateCallSubpanelItem(value);
     };
     settings.addObserver(key, function(evt) {
-      updateDataConnectivity(evt.settingValue);
+      updateDataSubpanelItem(evt.settingValue);
+      updateCallSubpanelItem(evt.settingValue);
     });
   }
 
@@ -792,3 +838,4 @@ window.addEventListener('localized', function showLanguages() {
 Settings.preInit();
 
 MouseEventShim.trackMouseMoves = false;
+

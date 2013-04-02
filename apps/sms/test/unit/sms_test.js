@@ -3,14 +3,18 @@
 */
 'use strict';
 
+require('/shared/js/lazy_loader.js');
+require('/shared/js/l10n.js');
+require('/shared/js/l10n_date.js');
 
-// Import of all code needed
+requireApp('sms/test/unit/mock_contact.js');
+requireApp('sms/test/unit/mock_l10n.js');
+
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/contacts.js');
 requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/search_utils.js');
 requireApp('sms/js/utils.js');
-requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/messages_mockup.js');
 requireApp('sms/test/unit/sms_test_html_mockup.js');
@@ -24,17 +28,17 @@ requireApp('sms/js/startup.js');
 
 
 suite('SMS App Unit-Test', function() {
-  // Mockuping l10n
-  navigator.mozL10n = {
-    get: function get(key) {
-      return key;
-    },
-    DateTimeFormat: function() {
-      this.localeFormat = function(date, format) {
-        return date;
-      };
-    }
-  };
+  var findByString;
+  var nativeMozL10n = navigator.mozL10n;
+
+  suiteSetup(function() {
+    navigator.mozL10n = MockL10n;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = nativeMozL10n;
+  });
+
   // Define some useful functions for the following tests
   function getElementsInContainerByTag(container, tagName) {
     return container.querySelectorAll(tagName);
@@ -75,12 +79,16 @@ suite('SMS App Unit-Test', function() {
     threadListHeader.innerHTML = renderThreadListHeader();
 
     // Thread-list container
-    var threadListContainer = document.createElement('article');
-    threadListContainer.id = 'thread-list-container';
+    var threadsContainer = document.createElement('article');
+    threadsContainer.id = 'threads-container';
 
     // Thread-list fixed-header
-    var fixedHeader = document.createElement('div');
-    fixedHeader.id = 'threads-fixed-container';
+    var threadsHeaderContainer = document.createElement('div');
+    threadsHeaderContainer.id = 'threads-header-container';
+
+    // threads-no-messages
+    var noMessages = document.createElement('div');
+    noMessages.id = 'threads-no-messages';
 
     // Thread-list Edit form
     var threadListEditForm = document.createElement('form');
@@ -90,8 +98,9 @@ suite('SMS App Unit-Test', function() {
     threadListEditForm.innerHTML = renderThreadListEdit();
     // Append all elemnts to thread-list view
     threadList.appendChild(threadListHeader);
-    threadList.appendChild(threadListContainer);
-    threadList.appendChild(fixedHeader);
+    threadList.appendChild(threadsContainer);
+    threadList.appendChild(threadsHeaderContainer);
+    threadList.appendChild(noMessages);
     threadList.appendChild(threadListEditForm);
 
     // Adding to DOM the Thread-list view
@@ -120,7 +129,7 @@ suite('SMS App Unit-Test', function() {
 
     // Thread-messages input form
     var threadMsgInputForm = document.createElement('form');
-    threadMsgInputForm.id = 'new-sms-form';
+    threadMsgInputForm.id = 'messages-compose-form';
     threadMsgInputForm.innerHTML = renderThreadMsgInputBar();
 
     threadMessages.appendChild(threadMsgHeader);
@@ -143,6 +152,8 @@ suite('SMS App Unit-Test', function() {
 
   // Previous setup
   suiteSetup(function() {
+    findByString = Contacts.findByString;
+
     // We mockup the method for retrieving the threads
     MessageManager.getThreads = function(callback, extraArg) {
       var threadsMockup = new MockThreadList();
@@ -166,9 +177,9 @@ suite('SMS App Unit-Test', function() {
 
     // We mockup the method for retrieving the info
     // of a contact given a number
-    ContactDataManager.getContactData = function(number, callback) {
+    Contacts.findByString = function(tel, callback) {
       // Get the contact
-      if (number === '1977') {
+      if (tel === '1977') {
         callback(MockContact.list());
       }
     };
@@ -176,13 +187,23 @@ suite('SMS App Unit-Test', function() {
     // Create DOM structure
     createDOM();
 
-    // We render all elements
-    ThreadUI.view.innerHTML = '';
+    // Clear if necessary...
+    if (ThreadUI.container) {
+      ThreadUI.container.innerHTML = '';
+    }
+
+    // ...And render
     ThreadUI.init();
     ThreadListUI.init();
-    window.addEventListener('hashchange',
-      MessageManager.onHashChange.bind(MessageManager));
+    window.addEventListener(
+      'hashchange', MessageManager.onHashChange.bind(MessageManager)
+    );
   });
+
+  suiteTeardown(function() {
+    Contacts.findByString = findByString;
+  });
+
 
   // Let's go with tests!
 
@@ -199,13 +220,15 @@ suite('SMS App Unit-Test', function() {
       test('Check HTML structure', function() {
         // Check the HTML structure, and if it fits with Building Blocks
 
+        var container = ThreadListUI.container;
+
         // Given our mockup, we should have 4 grous UL/HEADER
-        assertNumberOfElementsInContainerByTag(ThreadListUI.view, 3, 'ul');
-        assertNumberOfElementsInContainerByTag(ThreadListUI.view, 3, 'header');
+        assertNumberOfElementsInContainerByTag(container, 3, 'ul');
+        assertNumberOfElementsInContainerByTag(container, 3, 'header');
 
         // We know as well that we have, in total, 5 threads
-        assertNumberOfElementsInContainerByTag(ThreadListUI.view, 4, 'li');
-        assertNumberOfElementsInContainerByTag(ThreadListUI.view, 4, 'a');
+        assertNumberOfElementsInContainerByTag(container, 4, 'li');
+        assertNumberOfElementsInContainerByTag(container, 4, 'a');
 
         // In our mockup we shoul group the threads following day criteria
         // In the second group, we should have 2 threads
@@ -218,7 +241,7 @@ suite('SMS App Unit-Test', function() {
 
       test('Render unread style properly', function() {
         // We know that only one thread is unread
-        assertNumOfElementsByClass(ThreadListUI.view, 1, 'unread');
+        assertNumOfElementsByClass(ThreadListUI.container, 1, 'unread');
       });
 
       test('Update thread with contact info', function() {
@@ -234,22 +257,23 @@ suite('SMS App Unit-Test', function() {
     suite('Threads-list edit mode', function() {
 
       test('Check edit mode form', function() {
+        var container = ThreadListUI.container;
         // Do we have all inputs ready?
-        assertNumberOfElementsInContainerByTag(ThreadListUI.view, 4, 'input');
+        assertNumberOfElementsInContainerByTag(container, 4, 'input');
       });
 
       test('Select all/Deselect All buttons', function() {
         // Retrieve all inputs
-        var inputs = ThreadListUI.view.getElementsByTagName('input');
+        var inputs = ThreadListUI.container.getElementsByTagName('input');
         // Activate all inputs
         for (var i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
           ThreadListUI.clickInput(inputs[i]);
         }
         ThreadListUI.checkInputs();
-        assert.isTrue(document.getElementById('select-all-threads')
+        assert.isTrue(document.getElementById('threads-check-all-button')
           .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('deselect-all-threads')
+        assert.isFalse(document.getElementById('threads-uncheck-all-button')
           .classList.contains('disabled'));
         // Deactivate all inputs
         for (var i = inputs.length - 1; i >= 0; i--) {
@@ -257,23 +281,23 @@ suite('SMS App Unit-Test', function() {
           ThreadListUI.clickInput(inputs[i]);
         }
         ThreadListUI.checkInputs();
-        assert.isFalse(document.getElementById('select-all-threads')
+        assert.isFalse(document.getElementById('threads-check-all-button')
           .classList.contains('disabled'));
-        assert.isTrue(document.getElementById('deselect-all-threads')
+        assert.isTrue(document.getElementById('threads-uncheck-all-button')
           .classList.contains('disabled'));
         // Activate only one
         inputs[0].checked = true;
         ThreadListUI.clickInput(inputs[0]);
         ThreadListUI.checkInputs();
-        assert.isFalse(document.getElementById('select-all-threads')
+        assert.isFalse(document.getElementById('threads-check-all-button')
           .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('deselect-all-threads')
+        assert.isFalse(document.getElementById('threads-uncheck-all-button')
           .classList.contains('disabled'));
       });
     });
 
     teardown(function() {
-      ThreadListUI.view.innerHTML = '';
+      ThreadListUI.container.innerHTML = '';
     });
   });
 
@@ -287,17 +311,17 @@ suite('SMS App Unit-Test', function() {
     suite('Thread-messages rendering (bubbles view)', function() {
       test('Check HTML structure', function() {
         // It should have 3 bubbles
-        assertNumberOfElementsInContainerByTag(ThreadUI.view, 5, 'li');
+        assertNumberOfElementsInContainerByTag(ThreadUI.container, 5, 'li');
         // Grouped in 2 sets
-        assertNumberOfElementsInContainerByTag(ThreadUI.view, 3, 'header');
-        assertNumberOfElementsInContainerByTag(ThreadUI.view, 3, 'ul');
+        assertNumberOfElementsInContainerByTag(ThreadUI.container, 3, 'header');
+        assertNumberOfElementsInContainerByTag(ThreadUI.container, 3, 'ul');
       });
 
       test('Check message status & styles', function() {
-        assertNumOfElementsByClass(ThreadUI.view, 1, 'sending');
-        assertNumOfElementsByClass(ThreadUI.view, 1, 'sent');
-        assertNumOfElementsByClass(ThreadUI.view, 1, 'received');
-        assertNumOfElementsByClass(ThreadUI.view, 2, 'error');
+        assertNumOfElementsByClass(ThreadUI.container, 1, 'sending');
+        assertNumOfElementsByClass(ThreadUI.container, 1, 'sent');
+        assertNumOfElementsByClass(ThreadUI.container, 1, 'received');
+        assertNumOfElementsByClass(ThreadUI.container, 2, 'error');
       });
 
       test('Check input form & send button', function() {
@@ -314,7 +338,7 @@ suite('SMS App Unit-Test', function() {
         // In '#new' I need the contact as well, so it should be disabled
         assert.isTrue(ThreadUI.sendButton.disabled);
         // Adding a contact should enable the button
-        ThreadUI.contactInput.value = '123123123';
+        ThreadUI.recipient.value = '123123123';
         ThreadUI.enableSend();
         assert.isFalse(ThreadUI.sendButton.disabled);
         // Finally we clean the form
@@ -332,20 +356,20 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Check edit mode form', function() {
-        assertNumberOfElementsInContainerByTag(ThreadUI.view, 5, 'input');
+        assertNumberOfElementsInContainerByTag(ThreadUI.container, 5, 'input');
       });
 
       test('Select/Deselect all', function() {
-        var inputs = ThreadUI.view.getElementsByTagName('input');
+        var inputs = ThreadUI.container.getElementsByTagName('input');
         // Activate all inputs
         for (var i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
           ThreadUI.chooseMessage(inputs[i]);
         }
         ThreadUI.checkInputs();
-        assert.isTrue(document.getElementById('select-all-messages')
+        assert.isTrue(document.getElementById('messages-check-all-button')
           .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('deselect-all-messages')
+        assert.isFalse(document.getElementById('messages-uncheck-all-button')
           .classList.contains('disabled'));
         // Deactivate all inputs
         for (var i = inputs.length - 1; i >= 0; i--) {
@@ -353,37 +377,37 @@ suite('SMS App Unit-Test', function() {
           ThreadUI.chooseMessage(inputs[i]);
         }
         ThreadUI.checkInputs();
-        assert.isFalse(document.getElementById('select-all-messages')
+        assert.isFalse(document.getElementById('messages-check-all-button')
           .classList.contains('disabled'));
-        assert.isTrue(document.getElementById('deselect-all-messages')
+        assert.isTrue(document.getElementById('messages-uncheck-all-button')
           .classList.contains('disabled'));
         // Activate only one
         inputs[0].checked = true;
         ThreadUI.chooseMessage(inputs[0]);
         ThreadUI.checkInputs();
-        assert.isFalse(document.getElementById('select-all-messages')
+        assert.isFalse(document.getElementById('messages-check-all-button')
           .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('deselect-all-messages')
+        assert.isFalse(document.getElementById('messages-uncheck-all-button')
           .classList.contains('disabled'));
       });
     });
 
     teardown(function() {
-      ThreadUI.view.innerHTML = '';
+      ThreadUI.container.innerHTML = '';
     });
   });
 
-suite('URL Links in SMS', function() {
+  suite('URL Links in SMS', function() {
     var Message = {
-        id: '987',
-        body: 'Hello URL'
+      id: '987',
+      body: 'Hello URL'
     };
 
     //test
     test('#Test URL in message', function() {
-        var messageBody = 'For more details visit' +
-        ' Yahoo.com, http://www.df.com' +
-        ' or visit faq mail.google.com/mail/help/intl/en/about.html';
+      var messageBody = 'For more details visit' +
+      ' Yahoo.com, http://www.df.com' +
+      ' or visit faq mail.google.com/mail/help/intl/en/about.html';
       var id = '123456';
       Message.id = id;
       Message.body = messageBody;
@@ -402,7 +426,7 @@ suite('URL Links in SMS', function() {
     });
 
     test('#Test URL with phone, email in message', function() {
-        var messageBody = 'Email at cs@yahoo.com, For more details' +
+      var messageBody = 'Email at cs@yahoo.com, For more details' +
         ' visit http://www.mozilla.org/en-US/firefox/fx/, www.gmail.com' +
         ' or call 897-890-8907';
       var id = '123457';
@@ -417,6 +441,107 @@ suite('URL Links in SMS', function() {
          'First url is http://www.mozilla.org/en-US/firefox/fx/');
       assert.equal(anchors[1].dataset.url,
         'http://www.gmail.com', 'Second url is http://www.gmail.com');
+    });
+  });
+
+  suite('EmailAddress Links in SMS', function() {
+    var Message = {
+      id: '1234',
+      body: 'Hello n Welcome'
+    };
+
+    //test
+    test('#Test EmailAddress in message', function() {
+      var messageBody = 'Email abc@gmail.com or myself@my.com,rs@1 ' +
+                      'from yahoo.com';
+      var id = '123456';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-email]');
+      assert.equal(anchors.length, 2,
+        '2 Email Addresses are tappable in message');
+      assert.equal(anchors[0].dataset.email,
+        'abc@gmail.com', 'First email is abc@gmail.com');
+      assert.equal(anchors[1].dataset.email,
+        'myself@my.com', 'Second email is myself@my.com');
+    });
+
+    test('#Test with phone numbers, url and email in a message', function() {
+      var messageBody = 'Send a text to 729725 (PAYPAL).' +
+      ' money@paypal.com hi-there@mail.com,sup.port@efg.com and 35622.00' +
+      ' the cs@yahoo.co.in email. www.yahoo.com,payapal.com are urls.' +
+      ' You can even enter 995-345-5678 6787897890.';
+      var id = '123457';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-email]');
+      assert.equal(anchors.length, 4,
+        '4 links are attached for  email in DOM');
+      assert.equal(anchors[0].dataset.email,
+        'money@paypal.com', 'First email is money@paypal.com');
+      assert.equal(anchors[1].dataset.email,
+        'hi-there@mail.com', 'Second email is hi-there@mail.com');
+      assert.equal(anchors[2].dataset.email,
+        'sup.port@efg.com', 'Third email is sup.port@efg.com');
+      assert.equal(anchors[3].dataset.email,
+        'cs@yahoo.co.in', 'Fourth email is cs@yahoo.co.in');
+    });
+  });
+
+  suite('Phone Links in SMS', function() {
+    var Message = {
+      id: '123',
+      body: 'Hello there'
+    };
+
+    //test
+    test('#numberWithDash', function() {
+      var messageBody = 'Hello there, here are numbers with ' +
+                      'dashes 408-746-9721, 4087469721, 7469721';
+      var id = '12345';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-phonenumber]');
+      assert.equal(anchors.length, 3,
+        '3 Contact handlers are attached for 3 phone numbers in DOM');
+      assert.equal(anchors[0].dataset.phonenumber,
+        '408-746-9721', 'First number is 408-746-9721');
+      assert.equal(anchors[1].dataset.phonenumber,
+        '4087469721', 'Second number is 4087469721');
+      assert.equal(anchors[2].dataset.phonenumber,
+        '7469721', 'Third number is 7469721');
+    });
+
+    test('#complexTest with 7 digit numbers, ip, decimals', function() {
+      var messageBody = '995-382-7369 futures to a 4458901 slight' +
+        ' 789-7890 rebound +1-556-667-7789 on Wall Street 9953827369' +
+        ' on Wednesday, +12343454567 with 55.55.55 futures +919810137553' +
+        ' for the S&P 500 up 0.34 percent, Dow Jones futures up 0.12' +
+        ' percent100 futures up 0.51 percent at 0921 GMT.';
+      var id = '12346';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-phonenumber]');
+      assert.equal(anchors.length, 7,
+        '7 Contact handlers are attached for 7 phone numbers in DOM');
+      assert.equal(anchors[0].dataset.phonenumber,
+        '995-382-7369', 'First number is 995-382-7369');
+      assert.equal(anchors[1].dataset.phonenumber,
+        '4458901', 'Second number is 4458901');
+      assert.equal(anchors[2].dataset.phonenumber,
+        '789-7890', 'Third number is 789-7890');
+      assert.equal(anchors[3].dataset.phonenumber,
+        '+1-556-667-7789', 'Fourth number is +1-556-667-7789');
+      assert.equal(anchors[4].dataset.phonenumber,
+        '9953827369', 'Fourth number is 9953827369');
+      assert.equal(anchors[5].dataset.phonenumber,
+        '+12343454567', 'Fifth number is +12343454567');
+      assert.equal(anchors[6].dataset.phonenumber,
+        '+919810137553', 'Sixth number is +919810137553');
     });
   });
 });

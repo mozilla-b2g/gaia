@@ -290,24 +290,31 @@ Icon.prototype = {
     canvas.toBlob(this.renderBlob.bind(this));
   },
 
+  // The url that is passed as a parameter to the callback must be revoked
+  loadRenderedIcon: function icon_loadRenderedIcon(callback) {
+    var img = this.img;
+    img.src = window.URL.createObjectURL(this.descriptor.renderedIcon);
+    if (callback) {
+      img.onload = img.onerror = function done() {
+        callback(this.src);
+      };
+    }
+  },
+
   renderBlob: function icon_renderBlob(blob) {
     this.descriptor.renderedIcon = blob;
     GridManager.markDirtyState();
     this.displayRenderedIcon();
   },
 
-  displayRenderedIcon: function icon_displayRenderedIcon(img, skipRevoke) {
-    img = img || this.img;
-    var url = window.URL.createObjectURL(this.descriptor.renderedIcon);
-    img.src = url;
+  displayRenderedIcon: function icon_displayRenderedIcon() {
     var self = this;
-    img.onload = img.onerror = function cleanup() {
-      img.style.visibility = 'visible';
-      if (!skipRevoke)
-        window.URL.revokeObjectURL(url);
+    this.loadRenderedIcon(function cleanup(url) {
+      self.img.style.visibility = 'visible';
+      window.URL.revokeObjectURL(url);
       if (self.needsShow)
         self.show();
-    };
+    });
   },
 
   show: function icon_show() {
@@ -422,8 +429,7 @@ Icon.prototype = {
     // For some reason, cloning and moving a node re-triggers the blob
     // URI to be validated. So we assign a new blob URI to the image
     // and don't revoke it until we're finished with the animation.
-    var skipRevoke = true;
-    this.displayRenderedIcon(this.img, skipRevoke);
+    this.loadRenderedIcon();
 
     var icon = this.icon.cloneNode();
     var img = icon.querySelector('img');
@@ -613,7 +619,7 @@ Page.prototype = {
     }
   },
 
-  doDragLeave: function pg_doReArrange(reflow) {
+  doDragLeave: function pg_doReArrange(callback, reflow) {
     this.iconsWhileDragging.forEach(function reset(node) {
       node.style.MozTransform = node.style.MozTransition = '';
       delete node.dataset.posX;
@@ -624,24 +630,28 @@ Page.prototype = {
 
     if (reflow)
       this.olist.insertBefore(this.draggableNode, this.beforeNode);
+
+    callback();
   },
 
-  onDragLeave: function pg_onDragLeave(reflow) {
-    if (this.iconsWhileDragging.length === 0)
+  onDragLeave: function pg_onDragLeave(callback, reflow) {
+    if (this.iconsWhileDragging.length === 0) {
+      setTimeout(callback);
       return;
+    }
 
     if (!this.ready) {
       var self = this;
 
       self.container.addEventListener('onpageready', function onPageReady() {
-        self.doDragLeave(reflow);
+        self.doDragLeave(callback, reflow);
         self.container.removeEventListener('onpageready', onPageReady);
       });
 
       return;
     }
 
-    this.doDragLeave(reflow);
+    this.doDragLeave(callback, reflow);
   },
 
   placeIcon: function pg_placeIcon(node, from, to, transition) {
@@ -864,8 +874,17 @@ dockProto.getLeft = function dk_getLeft() {
   return this.olist.getBoundingClientRect().left;
 };
 
+/**
+ * Returns the right position of the last icon in the dock
+ */
 dockProto.getRight = function dk_getRight() {
-  return this.getLeft() + this.getWidth();
+  var children = this.olist.children;
+  var lastChild = children[children.length - 1];
+  if (!lastChild) {
+    return 0;
+  }
+
+  return lastChild.getBoundingClientRect().right;
 };
 
 dockProto.getWidth = function dk_getWidth() {

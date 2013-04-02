@@ -63,6 +63,10 @@ if (typeof window.importer === 'undefined') {
 
     var imgLoader;
 
+    // More than this number will not trigger sync when clicking
+    // on "Update Facebook Friends"
+    var HARD_LIMIT_SYNC = 300;
+
     var tokenKey;
 
     function getTokenKey() {
@@ -195,7 +199,9 @@ if (typeof window.importer === 'undefined') {
 
     // Starts a synchronization
     function startSync() {
-      if (existingContacts.length > 0 && !syncOngoing) {
+      var totalExisting = existingContacts.length;
+      if (totalExisting > 0 && totalExisting < HARD_LIMIT_SYNC &&
+          !syncOngoing) {
         syncOngoing = true;
 
         serviceConnector.startSync(existingContacts, myFriendsByUid,
@@ -219,6 +225,9 @@ if (typeof window.importer === 'undefined') {
 
       if (contactsLoaded) {
         window.addEventListener('message', function importOnViewPort(e) {
+          if (e.origin !== targetApp) {
+            return;
+          }
           var data = e.data;
           if (data && data.type === 'dom_transition_end') {
             window.removeEventListener('message', importOnViewPort);
@@ -341,12 +350,15 @@ if (typeof window.importer === 'undefined') {
         myFriendsByUid = {};
         myFriends = [];
 
-        lmyFriends.forEach(function(f) {
-          myFriends.push(serviceConnector.adaptDataForShowing(f));
+        var totalMyFriends = lmyFriends.length;
+        for (var i = 0; i < totalMyFriends; i++) {
+          var aFriend = lmyFriends[i];
+          aFriend._idxFriendsArray = i;
+          myFriends.push(serviceConnector.adaptDataForShowing(aFriend));
 
-          myFriendsByUid[f.uid] = f;
-          selectableFriends[f.uid] = f;
-        });
+          myFriendsByUid[aFriend.uid] = aFriend;
+          selectableFriends[aFriend.uid] = aFriend;
+        }
 
         asyncStorage.getItem('order.lastname', function orderValue(lastName) {
           var options = {
@@ -360,7 +372,7 @@ if (typeof window.importer === 'undefined') {
       else {
         window.console.error('Error, while retrieving friends',
                                                     response.error.message);
-        if (!tokenExpired(error)) {
+        if (!tokenExpired(response.error)) {
           setCurtainHandlersErrorFriends();
           Curtain.show('error', 'friends');
         }
@@ -369,7 +381,10 @@ if (typeof window.importer === 'undefined') {
           Curtain.hide();
           window.asyncStorage.removeItem(tokenKey,
             function token_removed() {
-              Importer.start();
+              oauth2.getAccessToken(function(new_acc_tk) {
+                access_token = new_acc_tk;
+                Importer.getFriends(new_acc_tk);
+              }, 'friends', serviceConnector.name);
               parent.postMessage({
                 type: 'token_error',
                 data: ''
@@ -489,6 +504,9 @@ if (typeof window.importer === 'undefined') {
         }, targetApp);
 
         window.addEventListener('message', function finished(e) {
+          if (e.origin !== targetApp) {
+            return;
+          }
           if (e.data.type === 'contacts_loaded') {
             // When the list of contacts is loaded and it's the current view
             Curtain.hide(function onhide() {
@@ -627,7 +645,7 @@ if (typeof window.importer === 'undefined') {
     function clearList() {
       var template = contactList.querySelector('[data-template]');
 
-      contactList.innerHTML = '';
+      utils.dom.removeChildNodes(contactList);
       contactList.appendChild(template);
     }
 
@@ -692,6 +710,22 @@ if (typeof window.importer === 'undefined') {
       return out;
     };
 
+    // Release objects for improving memory management
+    function releaseObjs(cfdata) {
+      if (!cfdata) {
+        return;
+      }
+
+      // Once a Friend has been persisted the data is no longer needed
+      selectedContacts[cfdata.uid] = null;
+      myFriendsByUid[cfdata.uid] = null;
+      selectableFriends[cfdata.uid] = null;
+      myFriends[cfdata._idxFriendsArray] = null;
+      if (cfdata.fbInfo && Array.isArray(cfdata.fbInfo.photo)) {
+        cfdata.fbInfo.photo = null;
+      }
+    }
+
     /**
      *  Imports all the selected contacts on the address book
      *
@@ -702,14 +736,29 @@ if (typeof window.importer === 'undefined') {
 
       var cImporter = serviceConnector.getImporter(selectedContacts,
                                                    access_token);
+      var cpuLock, screenLock;
 
-      cImporter.oncontactimported = function() {
+      cImporter.oncontactimported = function(cfdata) {
+        releaseObjs(cfdata);
         progress.update();
       };
 
       cImporter.onsuccess = function() {
-        importedCB();
+        window.setTimeout(importedCB, 0);
+
+        if (cpuLock) {
+          cpuLock.unlock();
+        }
+
+        if (screenLock) {
+          screenLock.unlock();
+        }
       };
+
+      cpuLock = navigator.requestWakeLock('cpu');
+      screenLock = navigator.requestWakeLock('screen');
+      // Release the DOM these objects will no longer be needed
+      document.querySelector('#groups-list').innerHTML = '';
 
       cImporter.start();
     };

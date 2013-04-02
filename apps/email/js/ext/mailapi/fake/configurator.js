@@ -414,7 +414,9 @@ MessageGenerator.prototype = {
         '3: ...\n' +
         '\nIt is a tiny screen we target, thank goodness!';
     }
-    bodyInfo.bodyReps = ['plain', [0x1, bodyText]];
+    bodyInfo.bodyReps = [
+      { type: 'plain', content: [0x1, bodyText] }
+    ];
 
     if (this._mode === 'info') {
       return {
@@ -730,6 +732,11 @@ FakeAccount.prototype = {
 
   deleteFolder: function() {
     throw new Error('XXX not implemented');
+  },
+
+  getFolderMetaForFolderId: function(folderId) {
+    // Just always return null
+    return null;
   },
 
   sliceFolderMessages: function fa_sliceFolderMessages(folderId, bridgeHandle) {

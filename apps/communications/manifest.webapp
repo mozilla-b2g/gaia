@@ -80,7 +80,10 @@
     "time": {},
     "audio-channel-telephony":{},
     "audio-channel-ringer":{},
-    "browser":{}
+    "browser":{},
+    "idle":{},
+    "keyboard": {},
+    "storage": {}
   },
   "orientation": "portrait-primary",
   "activities": {
@@ -90,6 +93,14 @@
        },
       "disposition": "inline",
       "href": "/contacts/index.html?pick",
+      "returnValue": true
+    },
+    "open": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
+      "disposition": "inline",
+      "href": "/contacts/index.html?open",
       "returnValue": true
     },
     "new": {

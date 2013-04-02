@@ -28,7 +28,7 @@ if (!window.LiveConnector) {
     }
 
     function getURI(liveContact) {
-      return 'urn:uuid:' + liveContact.user_id;
+      return 'urn:uuid:' + (liveContact.user_id || liveContact.id);
     }
 
     function resolveURI(uri) {
@@ -77,7 +77,7 @@ if (!window.LiveConnector) {
       adaptDataForShowing: function(source) {
         var out = source;
 
-        out.uid = source.user_id;
+        out.uid = source.user_id || source.id;
         out.givenName = [source.first_name || ''];
         out.familyName = [source.last_name || ''];
         out.email1 = source.emails.account || '';
@@ -177,12 +177,17 @@ if (!window.LiveConnector) {
       },
 
       downloadContactPicture: function(contact, access_token, callbacks) {
-        var uriElements = [LIVE_ENDPOINT, contact.user_id, PICTURE_RESOURCE,
-                           '?', 'access_token', '=', access_token];
+        if (contact.user_id) {
+          var uriElements = [LIVE_ENDPOINT, contact.user_id, PICTURE_RESOURCE,
+                             '?', 'access_token', '=', access_token];
 
-        return Rest.get(uriElements.join(''), callbacks, {
-          responseType: 'blob'
-        });
+          return Rest.get(uriElements.join(''), callbacks, {
+            responseType: 'blob'
+          });
+        }
+        else {
+          callbacks.success(null);
+        }
       },
 
       startSync: function() {

@@ -88,5 +88,20 @@ suite('identity', function() {
       assert.equal('test-close-event-id', lastDispatchedEvent.id);
     });
   });
+
+  suite('close iframe', function() {
+    setup(function() {
+      var event = new MockChromeEvent({
+        type: 'id-dialog-close-iframe',
+          id: 'test-close-iframe-id'
+      });
+      subject.handleEvent(event);
+    });
+
+    test('close iframe', function() {
+      assert.equal(false, MockTrustedUIManager.mOpened);
+      assert.equal('test-close-event-id', lastDispatchedEvent.id);
+    });
+  });
 });
 

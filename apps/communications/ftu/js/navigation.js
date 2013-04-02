@@ -101,16 +101,22 @@ var Navigation = {
     }
   },
 
-
   forward: function n_forward(event) {
     var self = this;
     var goToStepForward = function() {
       self.previousStep = self.currentStep;
       self.currentStep++;
       if (self.currentStep > numSteps) {
-        UIManager.activationScreen.classList.remove('show');
-        UIManager.finishScreen.classList.add('show');
-        Tutorial.init();
+        // Try to send Newsletter here
+        UIManager.sendNewsletter(function newsletterSent(result) {
+          if (result) { // sending process ok, we advance
+            UIManager.activationScreen.classList.remove('show');
+            UIManager.finishScreen.classList.add('show');
+            Tutorial.init();
+          } else { // error on sending, we stay where we are
+            self.currentStep--;
+          }
+        });
         return;
       }
       self.manageStep();
@@ -184,8 +190,7 @@ var Navigation = {
           ImportIntegration.checkImport('enabled');
           return;
         }
-        if (WifiManager.api.connection.status === 'connected' ||
-            DataMobile.isDataAvailable) {
+        if (window.navigator.onLine) {
           fbState = 'enabled';
         } else {
           fbState = 'disabled';
@@ -193,16 +198,16 @@ var Navigation = {
         ImportIntegration.checkImport(fbState);
         break;
       case '#welcome_browser':
-        UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
+        UIManager.mainTitle.innerHTML = _('aboutBrowser');
         break;
       case '#browser_privacy':
         UIManager.progressBar.className = 'step-state step-7';
-        UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
+        UIManager.mainTitle.innerHTML = _('aboutBrowser');
         break;
       case '#about-your-rights':
       case '#about-your-privacy':
       case '#sharing-performance-data':
-        UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
+        UIManager.mainTitle.innerHTML = _('aboutBrowser');
       case this.externalUrlLoaderSelector:
         UIManager.progressBar.className = 'hidden';
         UIManager.navBar.classList.add('back-only');

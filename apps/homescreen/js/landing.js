@@ -29,6 +29,12 @@ const LandingPage = (function() {
     evt.stopImmediatePropagation();
   });
 
+  document.addEventListener('mozvisibilitychange', function mozVisChange() {
+    if (document.mozHidden === false) {
+      initTime();
+    }
+  });
+
   function initTime() {
     var date = updateUI();
     setTimeout(function setUpdateInterval() {

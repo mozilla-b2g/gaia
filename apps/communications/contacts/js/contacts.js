@@ -2,6 +2,8 @@
 
 var _;
 var TAG_OPTIONS;
+var COMMS_APP_ORIGIN = document.location.protocol + '//' +
+  document.location.host;
 
 var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
@@ -30,6 +32,7 @@ var Contacts = (function() {
   var detailsReady = false;
   var formReady = false;
   var scriptsLoaded = 0;
+  var displayed = false;
 
   var currentContact = {},
       currentFbContact;
@@ -48,6 +51,7 @@ var Contacts = (function() {
 
     switch (sectionId) {
       case 'view-contact-details':
+        initContactsList();
         initDetails(function onInitDetails() {
           if (params == -1 || !('id' in params)) {
             console.log('Param missing');
@@ -60,6 +64,7 @@ var Contacts = (function() {
             if (params['tel'])
               contactsDetails.reMark('tel', params['tel']);
             navigation.go(sectionId, 'right-left');
+            showApp();
           }, function onError() {
             console.error('Error retrieving contact');
           });
@@ -69,6 +74,7 @@ var Contacts = (function() {
         initForm(function onInitForm() {
           if (params == -1 || !('id' in params)) {
             contactsForm.render(params, goToForm);
+            showApp();
           } else {
             // Editing existing contact
             if ('id' in params) {
@@ -81,9 +87,11 @@ var Contacts = (function() {
                 }
                 contactsForm.render(currentContact, goToForm,
                                     null, params['fromUpdateActivity']);
+                showApp();
               }, function onError() {
                 console.log('Error retrieving contact to be edited');
                 contactsForm.render(null, goToForm);
+                showApp();
               });
             }
           }
@@ -91,15 +99,28 @@ var Contacts = (function() {
         break;
 
       case 'add-parameters':
+        initContactsList();
         initForm(function onInitForm() {
           navigation.home();
-          if ('tel' in params) {
-            selectList(params['tel'], true);
+          if (ActivityHandler.currentlyHandling) {
+            selectList(params, true);
           }
+          showApp();
         });
-        return;
+        break;
+
+      default:
+        showApp();
     }
 
+  };
+
+  var showApp = function showApp() {
+    if (displayed) {
+      return;
+    }
+    document.body.classList.remove('hide');
+    displayed = true;
   };
 
   var addExtrasToContact = function addExtrasToContact(extrasString) {
@@ -176,28 +197,26 @@ var Contacts = (function() {
       window.removeEventListener('asyncScriptsLoaded', onAsyncLoad);
       contactsList.initAlphaScroll();
       checkUrl();
-      PerformanceTestingHelper.dispatch('contacts-init-finished');
+      PerformanceTestingHelper.dispatch('init-finished');
     });
-  };
-
-  var onDOMContentLoaded = function onDOMContentLoaded() {
-    getFirstContacts();
   };
 
   var init = function init() {
     _ = navigator.mozL10n.get;
-    document.body.classList.remove('hide');
     initLanguages();
     initContainers();
-    initContactsList();
     initEventListeners();
     window.addEventListener('hashchange', checkUrl);
   };
 
   var initContactsList = function initContactsList() {
+    if (contactsList)
+      return;
+    getFirstContacts();
     contactsList = contactsList || contacts.List;
     var list = document.getElementById('groups-list');
     contactsList.init(list);
+    contactsList.initAlphaScroll();
     checkCancelableActivity();
   };
 
@@ -306,18 +325,26 @@ var Contacts = (function() {
     contactsList.handleClick(contactListClickHandler);
   };
 
-  var selectList = function selectList(phoneNumber, fromUpdateActivity) {
+  var selectList = function selectList(params, fromUpdateActivity) {
     addButton.classList.add('hide');
     contactsList.clearClickHandlers();
     contactsList.handleClick(function addToContactHandler(id) {
-      var data = {
-        'tel': [{
-            'value': phoneNumber,
-            'carrier': null,
-            'type': TAG_OPTIONS['phone-type'][0].value
-          }
-        ]
-      };
+      var data = {};
+      if (params.hasOwnProperty('tel')) {
+        var phoneNumber = params['tel'];
+        data['tel'] = [{
+          'value': phoneNumber,
+          'carrier': null,
+          'type': TAG_OPTIONS['phone-type'][0].value
+        }];
+      }
+      if (params.hasOwnProperty('email')) {
+        var email = params['email'];
+        data['email'] = [{
+          'value': email,
+          'type': TAG_OPTIONS['email-type'][0].value
+        }];
+      }
       var hash = '#view-contact-form?extras=' +
         encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
       if (fromUpdateActivity)
@@ -325,7 +352,6 @@ var Contacts = (function() {
       window.location.hash = hash;
       contactsList.clearClickHandlers();
       contactsList.handleClick(contactListClickHandler);
-      addButton.classList.remove('hide');
     });
   };
 
@@ -379,7 +405,7 @@ var Contacts = (function() {
 
   var fillTagOptions = function fillTagOptions(options, tagList, update) {
     var container = document.getElementById('tags-list');
-    container.innerHTML = '';
+    utils.dom.removeChildNodes(container);
     contactTag = update;
 
     var selectedLink;
@@ -443,11 +469,20 @@ var Contacts = (function() {
   * tag selected or use the predefined ones
   */
   var doneTag = function doneTag() {
+    var prevValue = contactTag.textContent;
     if (selectedTag) {
       contactTag.textContent = selectedTag.textContent;
     } else if (customTag.value.length > 0) {
       contactTag.textContent = customTag.value;
     }
+    var valueModifiedEvent = new CustomEvent('ValueModified', {
+      bubbles: true,
+      detail: {
+        prevValue: prevValue,
+        newValue: contactTag.textContent
+      }
+    });
+    contactTag.dispatchEvent(valueModifiedEvent);
     contactTag = null;
     Contacts.goBack();
   };
@@ -480,15 +515,20 @@ var Contacts = (function() {
   };
 
   var handleDetailsBack = function handleDetailsBack() {
-    var hasParams = window.location.hash.split('?');
-    var params = hasParams.length > 1 ?
-      extractParams(hasParams[1]) : -1;
+    if (ActivityHandler.currentlyHandling) {
+      ActivityHandler.postCancel();
+      navigation.home();
+    } else {
+      var hasParams = window.location.hash.split('?');
+      var params = hasParams.length > 1 ?
+        extractParams(hasParams[1]) : -1;
 
-    navigation.back();
-    // post message to parent page included Contacts app.
-    if (params['back_to_previous_tab'] === '1') {
-      var message = { 'type': 'contactsiframe', 'message': 'back' };
-      window.parent.postMessage(message, '*');
+      navigation.back();
+      // post message to parent page included Contacts app.
+      if (params['back_to_previous_tab'] === '1') {
+        var message = { 'type': 'contactsiframe', 'message': 'back' };
+        window.parent.postMessage(message, COMMS_APP_ORIGIN);
+      }
     }
   };
 
@@ -729,6 +769,7 @@ var Contacts = (function() {
       '/contacts/js/utilities/normalizer.js',
       '/contacts/js/utilities/status.js',
       '/contacts/js/utilities/overlay.js',
+      '/contacts/js/utilities/dom.js',
       '/contacts/js/search.js',
       '/shared/style_unstable/progress_activity.css',
       '/shared/style/status.css',
@@ -745,6 +786,11 @@ var Contacts = (function() {
     LazyLoader.load(lazyLoadFiles, function() {
       var event = new CustomEvent('asyncScriptsLoaded');
       window.dispatchEvent(event);
+      var handling = ActivityHandler.currentlyHandling;
+      if (!handling || ActivityHandler.activityName === 'pick') {
+        initContactsList();
+        checkUrl();
+      }
     });
   };
 
@@ -790,6 +836,7 @@ var Contacts = (function() {
   };
 
   var performOnContactChange = function performOnContactChange(event) {
+    initContactsList();
     var currView = navigation.currentView();
     switch (event.reason) {
       case 'update':
@@ -843,7 +890,6 @@ var Contacts = (function() {
     'setCurrent': setCurrent,
     'getTags': TAG_OPTIONS,
     'onLocalized': onLocalized,
-    'onDOMContentLoaded': onDOMContentLoaded,
     'init': init,
     'showOverlay': showOverlay,
     'hideOverlay': hideOverlay,
@@ -856,13 +902,13 @@ var Contacts = (function() {
   };
 })();
 
-window.addEventListener('DOMContentLoaded', function onDOMContentLoaded() {
-  Contacts.onDOMContentLoaded();
-});
-
 window.addEventListener('localized', function initContacts(evt) {
   window.removeEventListener('localized', initContacts);
   fb.init(function contacts_init() {
+    if (window.navigator.mozSetMessageHandler && window.self == window.top) {
+      var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+      window.navigator.mozSetMessageHandler('activity', actHandler);
+    }
     Contacts.onLocalized();
 
     window.addEventListener('online', Contacts.onLineChanged);
@@ -872,10 +918,6 @@ window.addEventListener('localized', function initContacts(evt) {
     var mobileConn = navigator.mozMobileConnection;
     mobileConn.oncardstatechange = Contacts.cardStateChanged;
 
-    if (window.navigator.mozSetMessageHandler && window.self == window.top) {
-      var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-      window.navigator.mozSetMessageHandler('activity', actHandler);
-    }
     document.addEventListener('mozvisibilitychange', function visibility(e) {
       if (ActivityHandler.currentlyHandling && document.mozHidden) {
         ActivityHandler.postCancel();
