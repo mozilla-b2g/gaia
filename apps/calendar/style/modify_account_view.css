@@ -28,6 +28,20 @@
   display: none;
 }
 
+#modify-account-view form ol {
+  margin-top: 1.5rem;
+}
+
+#modify-account-view form li {
+  margin: 0;
+  padding: 0 1.5rem 1rem;
+}
+
+#modify-account-view form li input {
+  font-size: 1.7rem;
+}
+
+
 #remove-account-dialog {
   display: none;
 }

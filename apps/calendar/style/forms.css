@@ -28,15 +28,7 @@ form ol {
 
 /* for calendar */
 
-form ol {
-  margin-top: 1.5rem;
-}
-
 form li {
-  padding: 0 1.5rem 1rem;
+  margin: 1rem 2rem; 
+  padding: 0.25rem; 
 }
-
-form li input {
-  font-size: 1.7rem !important;
-}
-
