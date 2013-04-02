@@ -5,26 +5,19 @@
     <title>Pick Photo test</title>
     <style>
     button {
-      font-size: 40px;
+      font-size: 24px;
     }
     </style>
-    <script>
-    var go = function _go() {
-      var a = new MozActivity({ name: 'pick', data: {type: 'image/jpeg'}});
-      a.onsuccess = function(e) {
-        var url = URL.createObjectURL(a.result.blob);
-        var img = document.getElementById('result');
-        img.src = url;
-        img.onload = function() { URL.revokeObjectURL(url); };
-      };
-      a.onerror = function() { alert('Failure picking photo'); };
-    };
-    </script>
+    <script defer src="../js/pickphoto.js"></script>
   </head>
   <body>
     <h1>Pick Photo Test</h1>
-    <h2>Go to:</h2>
-    <button onclick="go()">Go</button></p>
-    Result is: <img id="result"></img>
+    <button id="b1">Pick image/jpeg</button></p>
+    <button id="b2">Pick image/png</button></p>
+    <button id="b3">Pick either</button></p>
+    <button id="b4">Pick any</button></p>
+    <button id="b5">Pick without crop</button></p>
+    <button id="b6">Pick small</button></p>
+    Result: <img id="result"></img>
   </body>
 </html>
