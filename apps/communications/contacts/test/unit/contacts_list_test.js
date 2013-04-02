@@ -3,7 +3,7 @@ requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/js/search.js');
 requireApp('communications/contacts/js/contacts_list.js');
 requireApp('communications/contacts/js/utilities/normalizer.js');
-requireApp('communications/contacts/js/utilities/dom.js');
+requireApp('shared/js/dom.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contact_all_fields.js');
