@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
 
      if (result && result.length) {
         result.sort(function(a, b) {
-          return parseInt(result.mnc, 10) < parseInt(result.mnc, 10);
+          return parseInt(a.mnc, 10) < parseInt(b.mnc, 10);
         });
         for (var i = 0; i < result.length; i++) {
           var mnc = parseInt(result[i].mnc, 10);
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
           var localApns =
             localAndroidDB.documentElement.getElementsByTagName('apn');
           for (var i = 0; i < localApns.length; ++i) {
-            gAndroidDB.documentElement.appendChild(localApns[i]);
+            gAndroidDB.documentElement.appendChild(localApns[i].cloneNode(true));
           }
           // Then the Gnome DB
           gGnomeDB = loadXML(GNOME_DB_FILE);
