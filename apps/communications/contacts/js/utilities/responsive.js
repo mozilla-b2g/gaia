@@ -21,4 +21,3 @@
   scale();
   window.addEventListener('resize', scale);
 })();
-

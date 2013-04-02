@@ -216,14 +216,27 @@ if (!fb.link) {
         var data = response.data;
         currentRecommendation = data;
 
+        // Scale ratio for different devices
+        var SCALE_RATIO = parseInt(window.getComputedStyle(
+          document.documentElement, null).getPropertyValue('font-size')) / 10;
+
+        // FB import profile picture size
+        var picwidth = 120 * SCALE_RATIO;
+        var picheight = 120 * SCALE_RATIO;
+
         var sortedByName = [];
         var numFriendsProposed = data.length;
         var searchAccentsArrays = {};
         var index = 0;
+
         data.forEach(function(item) {
           if (!item.email) {
             item.email = '';
           }
+
+          item.picwidth = picwidth;
+          item.picheight = picheight;
+
           // Only do this if we need to prepare the search accents phase
           if (numQueries === 2) {
             // Saving the original order

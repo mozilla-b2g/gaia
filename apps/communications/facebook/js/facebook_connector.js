@@ -193,9 +193,18 @@ if (!window.FacebookConnector) {
       },
 
       adaptDataForShowing: function(source) {
+        // Scale ratio for different devices
+        var SCALE_RATIO = parseInt(window.getComputedStyle(
+          document.documentElement, null).getPropertyValue('font-size')) / 10;
+
+        var picWidth = Math.round(120 * SCALE_RATIO);
+        var picHeight = Math.round(120 * SCALE_RATIO);
+
         var out = fb.friend2mozContact(source);
         out.contactPictureUri = 'https://graph.facebook.com/' +
-                                          source.uid + '/picture?type=square';
+                                  source.uid + '/picture?type=square' +
+                                  '&width=' + picWidth +
+                                  '&height=' + picHeight;
         return out;
       },
 
