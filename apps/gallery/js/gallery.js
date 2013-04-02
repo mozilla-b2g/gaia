@@ -671,12 +671,11 @@ var pickWidth, pickHeight;
 var pickedFile;
 var cropURL;
 var cropEditor;
-var isAttachment;
 
 function startPick(activityRequest) {
   pendingPick = activityRequest;
   pickType = activityRequest.source.data.type;
-  isAttachment = activityRequest.source.data.isAttachment;
+
   if (pendingPick.source.data.width && pendingPick.source.data.height) {
     pickWidth = pendingPick.source.data.width;
     pickHeight = pendingPick.source.data.height;
@@ -824,11 +823,8 @@ function thumbnailClickHandler(evt) {
   else if (currentView === thumbnailSelectView) {
     updateSelection(target);
   }
-  else if (currentView === pickView && !isAttachment) {
+  else if (currentView === pickView) {
     cropPickedImage(files[parseInt(target.dataset.index)]);
-  }
-  else if (currentView === pickView && isAttachment) {
-    finishPick(files[parseInt(target.dataset.index)]);
   }
 }
 
