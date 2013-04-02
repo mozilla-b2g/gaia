@@ -518,7 +518,7 @@ def end_element(name):
     global tstRoot, _WordCounter
     if name != 'w' or lastName != 'w' or \
         lastFlags == "abbreviation" or \
-        lastFreq <= 1 or len(lastWord) <= 1:
+        lastFreq <= 1:
         return
     tstRoot = tree.insert(tstRoot, lastWord + _EndOfWord, lastFreq)
     _WordCounter += 1
