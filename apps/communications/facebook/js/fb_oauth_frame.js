@@ -36,9 +36,6 @@ if (typeof fb.oauthFrame === 'undefined') {
       var data = e.data;
 
       if (data && data.type === 'start') {
-        if (e.origin !== contactsAppOrigin) {
-          return;
-        }
         oauthFrame.start(data.data.from);
       }
     });

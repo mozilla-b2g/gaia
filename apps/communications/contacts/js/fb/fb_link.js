@@ -274,9 +274,6 @@ if (!fb.link) {
         Curtain.hide(function onCurtainHide() {
           sendReadyEvent();
           window.addEventListener('message', function linkOnViewPort(e) {
-            if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
-              return;
-            }
             var data = e.data;
             if (data && data.type === 'dom_transition_end') {
               window.removeEventListener('message', linkOnViewPort);
