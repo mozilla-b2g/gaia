@@ -830,7 +830,7 @@ var ListView = {
                   SubListView.setAlbumDefault(index);
                   SubListView.dataSource = dataArray;
 
-                  if (data.metadata.thumbnail)
+                  if (data.metadata.picture)
                     SubListView.setAlbumSrc(data);
 
                   dataArray.forEach(function(songData) {
