@@ -28,7 +28,7 @@ if (!window.LiveConnector) {
     }
 
     function getURI(liveContact) {
-      return 'urn:uuid:' + liveContact.user_id;
+      return 'urn:uuid:' + (liveContact.user_id || liveContact.id);
     }
 
     function resolveURI(uri) {
