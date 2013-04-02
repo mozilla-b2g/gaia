@@ -156,7 +156,7 @@ def add_locale_manifest(source, locales, manifest_file):
             manifest["locales"][locale].update(strings["default"])
     f.close()
     with open(manifest_file, 'w') as o:
-        json.dump(manifest, o, encoding="utf-8", indent=2)
+        json.dump(manifest, o, encoding="utf-8", indent=2, separators=(',', ': '))
     log.debug("updated %s saved" % manifest_file)
 
 
