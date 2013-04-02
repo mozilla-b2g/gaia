@@ -12,8 +12,6 @@ settings = {
  "accessibility.invert": False,
  "accessibility.screenreader": False,
  "alarm.enabled": False,
- "alert-sound.enabled": True,
- "alert-vibration.enabled": True,
  "app.reportCrashes": "ask",
  "app.update.interval": 86400,
  "audio.volume.alarm": 15,
