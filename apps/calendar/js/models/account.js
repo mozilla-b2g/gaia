@@ -59,6 +59,18 @@ Calendar.ns('Models').Account = (function() {
      */
     password: '',
 
+    /**
+     * Whether or not we have an account creation request in progress.
+     * @type {boolean}
+     */
+    activeRequest: false,
+
+    /**
+     * Callback fired after an account creation transaction completes.
+     * @type {Function}
+     */
+    callback: null,
+
     get fullUrl() {
       return this.domain + this.entrypoint;
     },

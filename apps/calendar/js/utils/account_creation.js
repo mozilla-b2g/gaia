@@ -36,6 +36,12 @@ Calendar.ns('Utils').AccountCreation = (function() {
       var accountStore = this.app.store('Account');
       var calendarStore = this.app.store('Calendar');
 
+      model.activeRequest = true;
+      model.callback = function() {
+        model.activeRequest = false;
+        callback.apply(null, arguments);
+      }.bind(this);
+
       // begin by persisting the account
       accountStore.verifyAndPersist(model, function(accErr, id, result) {
 
@@ -43,7 +49,7 @@ Calendar.ns('Utils').AccountCreation = (function() {
           // we bail when we cannot create the account
           // but also give custom error events.
           self.emit('authorizeError', accErr);
-          callback(accErr);
+          model.callback(accErr);
           return;
         }
 
@@ -57,14 +63,14 @@ Calendar.ns('Utils').AccountCreation = (function() {
         accountStore.sync(result, function(syncErr) {
           if (syncErr) {
             self.emit('calendarSyncError', syncErr);
-            callback(syncErr);
+            model.callback(syncErr);
             return;
           }
 
           function syncCalendars(err, calendars) {
             if (err) {
               console.log('Error fetch calendar list in account creation');
-              return callback(err);
+              return model.callback(err);
             }
 
             self.emit('calendarSync');
@@ -79,7 +85,7 @@ Calendar.ns('Utils').AccountCreation = (function() {
               );
             }
 
-            callback(null, result);
+            model.callback(null, result);
           }
 
           // begin sync of calendars

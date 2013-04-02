@@ -7,10 +7,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
     this.deleteRecord = this.deleteRecord.bind(this);
     this.cancel = this.cancel.bind(this);
 
-    this.accountHandler = new Calendar.Utils.AccountCreation(
-      this.app
-    );
-
+    this.accountHandler = new Calendar.Utils.AccountCreation(this.app);
     this.accountHandler.on('authorizeError', this);
   }
 
@@ -136,6 +133,30 @@ Calendar.ns('Views').ModifyAccount = (function() {
       }
 
       window.back();
+
+      // We have to get rid of this data
+      var app = this.app;
+      var store = app.store('Account');
+      var model = this.model;
+
+      if (!model.activeRequest) {
+        if (model._id !== undefined) {
+          store.remove(model._id);
+        }
+
+        return;
+      }
+
+      // Tell the account creation to purge calendar data
+      // once the transaction completes.
+      var previous = model.callback;
+      model.callback = function() {
+        previous.apply(null, arguments);
+
+        // We're guaranteed to have a model._id since the transaction
+        // just completed.
+        store.remove(model._id);
+      };
     },
 
     save: function() {
@@ -186,8 +207,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
       if (this.model._id) {
         this.type = 'update';
         this.deleteButton.addEventListener('click', this.deleteRecord);
-        this.cancelDeleteButton.addEventListener('click',
-                                                 this.cancel);
+        this.cancelDeleteButton.addEventListener('click', this.cancel);
       } else {
         this.type = 'create';
       }
@@ -213,10 +233,8 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
       this.saveButton.removeEventListener('click', this.save);
       this.deleteButton.removeEventListener('click', this.deleteRecord);
-      this.cancelDeleteButton.removeEventListener('click',
-                                                  this.cancel);
-      this.backButton.removeEventListener('click',
-                                                this.cancel);
+      this.cancelDeleteButton.removeEventListener('click', this.cancel);
+      this.backButton.removeEventListener('click', this.cancel);
     },
 
     dispatch: function(data) {
