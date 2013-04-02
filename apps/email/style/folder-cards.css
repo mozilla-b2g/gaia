@@ -4,6 +4,7 @@
 .fld-accounts-header {
 }
 .fld-accounts-header-label {
+  color: red;
 }
 
 .fld-account-item, .fld-folder-item, .fld-folder-list-header {
@@ -20,7 +21,8 @@
   font-weight: bold;
 }
 .fld-account-name {
-  font-size: 2rem;
+  font-size: 1.7rem;
+  padding: 0 1rem;
 }
 .fld-account-problem {
   color: red;
