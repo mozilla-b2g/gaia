@@ -269,6 +269,7 @@ var ThreadListUI = {
     var threadDOM = document.createElement('li');
     threadDOM.id = 'thread_' + num;
     threadDOM.dataset.time = timestamp;
+    threadDOM.dataset.threadId = thread.id;
 
     // Retrieving params from thread
     var bodyText = (thread.body || '').split('\n')[0];

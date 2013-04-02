@@ -104,9 +104,8 @@ if (!window.location.hash.length) {
 
       // The SMS app is already displayed
       if (!document.mozHidden) {
-        var currentThread = MessageManager.currentNum;
         // If we are in the same thread, only we need to vibrate
-        if (number == currentThread) {
+        if (message.threadId === MessageManager.currentThread) {
           navigator.vibrate([200, 200, 200]);
           return;
         }

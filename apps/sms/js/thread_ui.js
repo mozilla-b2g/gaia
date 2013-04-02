@@ -372,6 +372,15 @@ var ThreadUI = {
   },
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData(callback) {
+    if (MessageManager.currentThread === null) {
+      return;
+    }
+    // Retrieve phone number from Hash
+    var number = MessageManager.getNumFromHash();
+    // Add data to contact activity interaction
+    this.headerText.dataset.phoneNumber = number;
+    this.headerText.textContent = number;
+
     // For Desktop Testing, mozContacts it's mockuped but it's not working
     // completely. So in the case of Desktop testing we are going to execute
     // the callback directly in order to make it works!
@@ -381,13 +390,6 @@ var ThreadUI = {
       return;
     }
 
-    var number = MessageManager.currentNum;
-    if (!number) {
-      return;
-    }
-
-    // Add data to contact activity interaction
-    this.headerText.dataset.phoneNumber = number;
 
     Contacts.findByString(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
@@ -778,8 +780,8 @@ var ThreadUI = {
     this.noResults.classList.add('hide');
     this.container.classList.remove('hide');
 
-    if (resendText && typeof resendText === 'string') {
-      num = MessageManager.currentNum;
+    if (resendText && (typeof(resendText) === 'string') && resendText !== '') {
+      num = MessageManager.getNumFromHash();
       text = resendText;
     } else {
       // Retrieve num depending on hash
@@ -791,7 +793,7 @@ var ThreadUI = {
           return;
         }
       } else {
-        num = MessageManager.currentNum;
+        num = MessageManager.getNumFromHash();
       }
 
       // Retrieve text
@@ -802,10 +804,6 @@ var ThreadUI = {
     }
     // Clean fields (this lock any repeated click in 'send' button)
     this.cleanFields(true);
-    // Remove when
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=825604 landed
-    MessageManager.currentNum = num;
-    this.updateHeaderData();
     // Send the SMS
     MessageManager.send(num, text);
   },
