@@ -27,6 +27,7 @@ contacts.Form = (function() {
       formView,
       nonEditableValues,
       deviceContact,
+      fbContact,
       currentPhoto;
 
   var REMOVED_CLASS = 'removed';
@@ -157,6 +158,7 @@ contacts.Form = (function() {
                                   fromUpdateActivity) {
     var fbContactData = pFbContactData || [];
 
+    fbContact = fbContactData[2] || {};
     nonEditableValues = fbContactData[1] || {};
     deviceContact = contact;
     var renderedContact = fbContactData[0] || deviceContact;
@@ -385,6 +387,8 @@ contacts.Form = (function() {
   var saveContact = function saveContact() {
     currentContact = currentContact || {};
     currentContact = deviceContact || currentContact;
+    var deviceGivenName = currentContact.givenName;
+    var deviceFamilyName = currentContact.familyName;
 
     saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
@@ -418,14 +422,7 @@ contacts.Form = (function() {
     myContact['photo'] = currentContact['photo'] || [];
     myContact['photo'][0] = getCurrentPhoto();
 
-    if (myContact.givenName || myContact.familyName) {
-      var name = myContact.givenName || '';
-      name += ' ';
-      if (myContact.familyName) {
-        name += myContact.familyName;
-      }
-      myContact.name = [name];
-    }
+    createName(myContact);
 
     getPhones(myContact);
     getEmails(myContact);
@@ -455,12 +452,18 @@ contacts.Form = (function() {
       }
       contact = currentContact;
 
-      // If it is a FB Contact not linked it will be automatically linked
-      // As now there is additional contact data entered by the user
       if (fb.isFbContact(contact)) {
-        var fbContact = new fb.Contact(contact);
-        // Here the contact has been promoted to linked but not saved yet
-        fbContact.promoteToLinked();
+        // If it is a FB Contact not linked it will be automatically linked
+        // As now there is additional contact data entered by the user
+        if (!fb.isFbLinked(contact)) {
+          var fbContact = new fb.Contact(contact);
+          // Here the contact has been promoted to linked but not saved yet
+          fbContact.promoteToLinked();
+        } else {
+          setPropagatedFlag('givenName', deviceGivenName[0], contact);
+          setPropagatedFlag('familyName', deviceFamilyName[0], contact);
+          createName(contact);
+        }
       }
 
     } else {
@@ -482,6 +485,31 @@ contacts.Form = (function() {
     request.onerror = function onerror() {
       console.error('Error saving contact', request.error.name);
     };
+  };
+
+  var createName = function createName(myContact) {
+    if (myContact.givenName || myContact.familyName) {
+      var name = myContact.givenName || '';
+      name += ' ';
+      if (myContact.familyName) {
+        name += myContact.familyName;
+      }
+      myContact.name = [name];
+    }
+  };
+
+  var setPropagatedFlag = function setPropagatedFlag(field, value, contact) {
+    if (!Array.isArray(contact[field]) || !contact[field][0] ||
+        !contact[field][0].trim()) {
+      // Here the user is deleting completely the field then we get the
+      // original facebook field value
+      fb.setPropagatedFlag(field, contact);
+      contact[field] = fbContact[field];
+    } else if (contact[field][0] !== value) {
+      // The user is changing the value of the field then we have a local field.
+      // It implies not propagation
+      fb.removePropagatedFlag(field, contact);
+    }
   };
 
   var getPhones = function getPhones(contact) {
