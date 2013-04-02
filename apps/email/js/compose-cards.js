@@ -541,8 +541,10 @@ ComposeCard.prototype = {
       var activity = new MozActivity({
         name: 'pick',
         data: {
-          type: 'image/jpeg',
-          isAttachment: true
+          // image/* allows gallery to return any kind of image
+          // image/jpeg is here so that the camera app is offered
+          type: ['image/*', 'image/jpeg'],
+          nocrop: true
         }
       });
       activity.onsuccess = (function success() {
