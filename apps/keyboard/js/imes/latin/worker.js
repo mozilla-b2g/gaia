@@ -5,7 +5,7 @@
 // predictions.js. This file defines the code that interfaces predictions.js
 // with latin.js.
 //
-// This worker uses the convention that all messages send or received have
+// This worker uses the convention that all messages received have
 // "cmd" and "args" fields. cmd is the message name or command. args is
 // an array of arguments required by the command, in a form suitable for
 // passing to Function.apply().
@@ -38,7 +38,7 @@ self.onmessage = function(e) {
 
 // Send console messages back to the main thread with this method
 function log(msg) {
-  postMessage({cmd: 'log', args: [msg]});
+  postMessage({cmd: 'log', msg: msg});
 }
 
 // Track our current language so we don't load dictionaries more often
@@ -66,7 +66,7 @@ var Commands = {
       //
       if (!xhr.response || xhr.response.byteLength === 0) {
         log('error loading dictionary');
-        postMessage({ cmd: 'unknownLanguage', args: [language] });
+        postMessage({ cmd: 'unknownLanguage', language: language });
       }
       else {
         Predictions.setDictionary(xhr.response);
@@ -81,11 +81,11 @@ var Commands = {
   predict: function predict(prefix) {
     try {
       var words = Predictions.predict(prefix);
-      postMessage({ cmd: 'predictions', args: words });
+      postMessage({ cmd: 'predictions', prefix: prefix, words: words });
     }
     catch (e) {
       log('Exception in predictions.js: ' + JSON.stringify(e));
-      postMessage({cmd: 'predictions', args: [] });
+      postMessage({cmd: 'predictions', prefix: prefix, words: [] });
     }
   }
 };
