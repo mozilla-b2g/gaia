@@ -151,9 +151,9 @@ function init() {
   window.onresize = resizeHandler;
 
   // If we were not invoked by an activity, then start off in thumbnail
-  // list mode, and fire up the image and video mediadb objects.
+  // list mode, and fire up the MediaDB object.
   if (!navigator.mozHasPendingMessage('activity')) {
-    initDB(true);
+    initDB();
     setView(thumbnailListView);
   }
 
@@ -166,7 +166,7 @@ function init() {
       // The 'browse' activity is the way we launch Gallery from Camera.
       // If this was a cold start, then the db needs to be initialized.
       if (!photodb) {
-        initDB(true);  // Initialize both the photo and video databases
+        initDB();  // Initialize the media database
         setView(thumbnailListView);
       }
       else {
@@ -186,9 +186,10 @@ function init() {
     case 'pick':
       if (pendingPick) // I don't think this can really happen anymore
         cancelPick();
+      pendingPick = a; // We need pendingPick set before calling initDB()
       if (!photodb)
-        initDB(false); // Don't include videos when picking photos!
-      startPick(a);
+        initDB();
+      startPick();
       break;
     }
   });
@@ -196,7 +197,7 @@ function init() {
 
 // Initialize MediaDB objects for photos and videos, and set up their
 // event handlers.
-function initDB(include_videos) {
+function initDB() {
   photodb = new MediaDB('pictures', metadataParserWrapper, {
     mimeTypes: ['image/jpeg', 'image/png'],
     version: 2,
@@ -205,9 +206,12 @@ function initDB(include_videos) {
     batchSize: PAGE_SIZE // Max batch size: one screenful
   });
 
-  if (include_videos) {
-    videostorage = navigator.getDeviceStorage('videos');
-  }
+  // This is where we find videos once the photodb notifies us that a
+  // new video poster image has been detected. Note that we need this
+  // even during a pick activity when we're not displaying videos
+  // because we might still might find and parse metadata for new
+  // videos during the scanning process.
+  videostorage = navigator.getDeviceStorage('videos');
 
   var loaded = false;
   function metadataParserWrapper(file, onsuccess, onerror) {
@@ -240,7 +244,7 @@ function initDB(include_videos) {
     if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
       showOverlay(null);
 
-    initThumbnails(include_videos);
+    initThumbnails();
   };
 
   photodb.onscanstart = function onscanstart() {
@@ -301,7 +305,7 @@ function compareFilesByDate(a, b) {
 // when the sdcard becomes available again after a USB mass storage
 // session or an sdcard replacement.
 //
-function initThumbnails(include_videos) {
+function initThumbnails() {
   // If we've already been called once, then we've already got thumbnails
   // displayed. There is no need to re-enumerate them, so we just go
   // straight to scanning for new files
@@ -354,7 +358,7 @@ function initThumbnails(include_videos) {
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
     if (fileinfo) {
       // For a pick activity, don't display videos
-      if (!include_videos && fileinfo.metadata.video)
+      if (pendingPick && fileinfo.metadata.video)
         return;
 
       batch.push(fileinfo);
@@ -470,6 +474,11 @@ function deleteFile(n) {
 
 function fileCreated(fileinfo) {
   var insertPosition;
+
+  // If the new file is a video and we're handling an image pick activity
+  // then we won't display the new file.
+  if (pendingPick && fileinfo.metadata.video)
+    return;
 
   // If we were showing the 'no pictures' overlay, hide it
   if (currentOverlay === 'emptygallery' || currentOverlay === 'scanning')
@@ -676,9 +685,8 @@ var pickedFile;
 var cropURL;
 var cropEditor;
 
-function startPick(activityRequest) {
-  pendingPick = activityRequest;
-  pickType = activityRequest.source.data.type;
+function startPick() {
+  pickType = pendingPick.source.data.type;
 
   if (pendingPick.source.data.width && pendingPick.source.data.height) {
     pickWidth = pendingPick.source.data.width;
