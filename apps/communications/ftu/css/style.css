@@ -276,7 +276,7 @@ html, body {
 */
 
 #languages [data-type="list"] {
-  background: url(images/bg_bubbles.png) 0 -4.5rem no-repeat;
+  background: url(images/bg_bubbles.png) 0 0 no-repeat;
   background-size: 100% auto;
   padding-top: 14rem;
 }
