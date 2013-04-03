@@ -52,6 +52,10 @@
   var layoutParams;       // Parameters passed to setLayoutParams
   var idleTimer;          // Used by deactivate
   var suggestionsTimer;   // Used by updateSuggestions;
+  var inhibitAutoCorrect; // Was auto-correct disabled by backspace?
+
+  // Avoid generating needless garbage.
+  const EmptyArray = [];
 
   // Terminate the worker when the keyboard is inactive for this long.
   const workerTimeout = 30000;  // 30 seconds of idle time
@@ -137,6 +141,9 @@
     // Reset the double space flag
     lastKeyWasSpace = 0;
 
+    // Reset auto-correct surpression.
+    inhibitAutoCorrect = false;
+
     // Start off with the correct capitalization and suggestions
     updateCapitalization();
     updateSuggestions();
@@ -157,6 +164,18 @@
     return suggesting;
   }
 
+  function bestFit(oldword, words) {
+    oldword = oldword.toLowerCase();
+    // Prefer exact matches even if not highest ranked.
+    for (var n = 0; n < words.length; ++n) {
+      var candidate = words[n];
+      if (candidate.toLowerCase() == oldword)
+        return candidate;
+    }
+    // Otherwise return the best suggestion.
+    return words[0];
+  }
+
   function setupSuggestionsWorker() {
     if (idleTimer) {
       clearTimeout(idleTimer);
@@ -172,13 +191,59 @@
       worker.onmessage = function(e) {
         switch (e.data.cmd) {
         case 'log':
-          console.log.apply(console, e.data.args);
+          console.log(e.data.msg);
           break;
         case 'unknownLanguage':
-          console.error('No dictionary for language', e.data.args[0]);
+          console.error('No dictionary for language', e.data.language);
           break;
         case 'predictions':
-          keyboard.sendCandidates(e.data.args);
+          var candidates = EmptyArray;
+          var line = inputText, pos = cursor;
+          console.log("line=" + line);
+          console.log("pos=" + pos);
+          console.log(JSON.stringify(e.data.words));
+          if (e.data.words.length > 0) {
+            // If we are still at the end of the right word, send the
+            // candidates. Otherwise clear the suggestion list.
+            if (atWordEnd(line, pos) && lastWord(line, pos) == e.data.prefix) {
+              console.log("here1");
+              candidates = e.data.words;
+            }
+            // If we are at the end of the line, and the line is not empty,
+            // check for a matching word to auto-correct.
+            else if (pos > 0 && pos == line.length) {
+              console.log("here2");
+              // If there is a whitespace at the end of the line, ignore it.
+              if (WS.test(line[pos - 1])) {
+                console.log("here3");
+                line = line.substr(0, line.length - 1);
+                --pos;
+              }
+              // If there is a single punctuation, ignore that as well.
+              if (/[\.\?!,]/.test(line[pos - 1])) {
+                console.log("here4");
+                line = line.substr(0, line.length - 1);
+                --pos;
+              }
+              // Ok, now if we are at the end of a matching word, then
+              // we auto-correct.
+              var oldword;
+              if (atWordEnd(line, pos) &&
+                  (oldword = lastWord(line, pos)) == e.data.prefix) {
+                var newword = bestFit(oldword, e.data.words);
+                console.log("oldword=" + oldword + " newword=" + newword);
+                if (oldword != newword) {
+                  console.log("here5");
+                  // Take into account and preserve the current punctuation
+                  // (and space).
+                  var punctuation = inputText.substr(pos);
+                  console.log("punctuation=X" + punctuation + "X");
+                  replace(oldword + punctuation, newword + punctuation);
+                }
+              }
+            }
+          }
+          keyboard.sendCandidates(candidates);
           break;
         }
       };
@@ -189,7 +254,41 @@
     worker.postMessage({ cmd: 'setLanguage', args: [language]});
   }
 
+  function handleAutoCorrect(keycode, repeat) {
+    // No auto-correct while we are selecting something or in repeat mode.
+    if (selection || repeat)
+      return;
+
+    switch (keycode) {
+    case SPACE:
+    case RETURN:
+    case PERIOD:
+    case QUESTION:
+    case EXCLAMATION:
+      // If auto-correct is disabled because we saw a backspace, re-arm it
+      // but don't actually auto-correct.
+      if (inhibitAutoCorrect) {
+        inhibitAutoCorrect = false;
+        return;
+      }
+      // If we are at the end of a word *before* we add keycode to the input,
+      // and the keycode triggers auto-correct, ask for suggestions right now.
+      if (atWordEnd(inputText, cursor)) {
+        requestSuggestions();
+        return;
+      }
+      break;
+    case BACKSPACE:
+      // Inhibit auto-correct until we move past the end of the word.
+      inhibitAutoCorrect = cursor > 0;
+      break;
+    }
+  }
+
   function click(keycode, x, y, repeat) {
+    // Possibly trigger auto-correct.
+    handleAutoCorrect(keycode, repeat);
+
     if (punctuating && handlePunctuation(keycode)) {
       // nothing to do here: handlePunctuation did it for us
     }
@@ -212,40 +311,43 @@
     }
   }
 
-  // If the user selections one of the suggestions offered by this input method
-  // the keyboard calls this method to tell us it has been selected.
-  // We have to backspace over the current word, insert this new word, and
-  // update our internal state to match.
-  function select(word) {
-    // Find the position of the first letter of the current word
-    for (var firstletter = cursor - 1; firstletter >= 0; firstletter--) {
-      if (!LETTER.test(inputText[firstletter])) {
-        break;
-      }
-    }
-    firstletter++;
+  function replace(oldword, newword) {
+    console.log("replace=X" + oldword + "X with X" + newword + "X");
+    var firstletter = cursor - oldword.length;
 
     // Send backspaces
-    for (var i = 0, n = cursor - firstletter; i < n; i++)
+    for (var n = 0; n < oldword.length; ++n)
       keyboard.sendKey(BACKSPACE);
 
-    // Send the word
-    keyboard.sendString(word);
-
-    // Send a space
-    keyboard.sendKey(SPACE);
+    // Send the new word
+    keyboard.sendString(newword);
 
     // Update internal state
     inputText =
       inputText.substring(0, firstletter) +
-      word +
-      ' ' +
+      newword +
       inputText.substring(cursor);
 
-    cursor = firstletter + word.length + 1;
+    cursor = firstletter + newword.length;
+  }
+
+  // If the user selections one of the suggestions offered by this input method
+  // the keyboard calls this method to tell us it has been selected.
+  // We have to backspace over the current word, insert this new word, and
+  // update our internal state to match.
+  function select(newword) {
+    // Avoid race conditions where we are no longer at the end of the word.
+    if (!atWordEnd(inputText, cursor)) {
+      keyboard.sendCandidates(EmptyArray);
+      return;
+    }
+
+    // Replace the current word we are at the end of with the new word and
+    // a space.
+    replace(lastWord(inputText, cursor), newword + " ");
 
     // Clear the suggestions
-    keyboard.sendCandidates([]);
+    keyboard.sendCandidates(EmptyArray);
 
     // And update the keyboard capitalization state, if necessary
     updateCapitalization();
@@ -255,6 +357,11 @@
     layoutParams = params;
     if (worker)
       worker.postMessage({ cmd: 'setLayout', args: [params]});
+  }
+
+  // Ask for suggestions for the word we are at the end of.
+  function requestSuggestions() {
+    worker.postMessage({cmd: 'predict', args: [lastWord(inputText, cursor)]});
   }
 
   function updateSuggestions(repeat) {
@@ -274,26 +381,16 @@
       return;
     }
 
-    // If we're not at the end of a word, we want to clear any suggestions
-    // that might already be there
-    if (!atWordEnd()) {
-      keyboard.sendCandidates([]);
+    // If we are not at the end of the word, clear any pending candidates
+    // instead of requesting the worker to send us new suggestions. We also
+    // never offer suggestions while selecting.
+    if (selection || !atWordEnd(inputText, cursor)) {
+      keyboard.sendCandidates(EmptyArray);
       return;
     }
 
-    // Otherwise, find the word we're at the end of and ask for completions
-    for (var firstletter = cursor - 1; firstletter >= 0; firstletter--) {
-      if (!LETTER.test(inputText[firstletter])) {
-        break;
-      }
-    }
-    firstletter++;
-
-    // firstletter is now the position of the start of the word and cursor is
-    // the end of the word
-    var word = inputText.substring(firstletter, cursor);
-
-    worker.postMessage({cmd: 'predict', args: [word]});
+    // Request that the worker sends us an updated set of suggestions.
+    requestSuggestions();
   }
 
   // This function handles two special punctuation cases. If the user
@@ -419,7 +516,7 @@
     else if (!isWhiteSpace(inputText.substring(cursor - 1, cursor))) {
       keyboard.setUpperCase(false);
     }
-    else if (atSentenceStart()) {
+    else if (atSentenceStart(inputText, cursor)) {
       keyboard.setUpperCase(true);
     }
     else {
@@ -438,39 +535,49 @@
   // We only offer suggestions if the cursor is at the end of a word
   // The character before the cursor must be a word character and
   // the cursor must be at the end of the input or the character after
-  // must be whitespace.  If there is a selection we never return true.
-  function atWordEnd() {
-    // If there is a selection we never want suggestions
-    if (selection)
-      return false;
-
+  // must be whitespace.
+  function atWordEnd(line, pos) {
     // If we're not at the end of the line and the character after the
     // cursor is not whitespace, don't offer a suggestion
-    if (cursor < inputText.length && !WS.test(inputText[cursor]))
+    if (pos < line.length && !WS.test(line[pos]))
       return false;
 
     // We're at the end of a word if the cursor is not at the start and
     // the character before the cursor is a letter
-    return cursor > 0 && LETTER.test(inputText[cursor - 1]);
+    return pos > 0 && LETTER.test(line[pos - 1]);
   }
 
-  function atSentenceStart() {
-    var i = cursor - 1;
+  // Find the word we are at the end of.
+  function lastWord(line, pos) {
+    for (var firstletter = pos - 1; firstletter >= 0; firstletter--) {
+      if (!LETTER.test(line[firstletter])) {
+        break;
+      }
+    }
+    firstletter++;
+
+    // firstletter is now the position of the start of the word and cursor is
+    // the end of the word
+    return line.substring(firstletter, pos);
+  }
+
+  function atSentenceStart(line, pos) {
+    var i = pos - 1;
 
     if (i === -1)    // This is the empty string case
       return true;
 
     // Verify that the position before the cursor is whitespace
-    if (!isWhiteSpace(inputText[i--]))
+    if (!isWhiteSpace(line[i--]))
       return false;
     // Now skip any additional whitespace before that
-    while (i >= 0 && isWhiteSpace(inputText[i]))
+    while (i >= 0 && isWhiteSpace(line[i]))
       i--;
 
     if (i < 0)     // whitespace all the way back to the end of the string
       return true;
 
-    var c = inputText[i];
+    var c = line[i];
     return c === '.' || c === '?' || c === '!';
   }
 }());
