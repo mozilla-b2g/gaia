@@ -12,7 +12,7 @@
   "activities": {
     "pick": {
       "filters": {
-        "type": ["image/jpeg", "image/png"],
+        "type": ["image/*", "image/jpeg"],
         "width": 320,
         "height": 480
        },
