@@ -208,10 +208,10 @@
             if (atWordEnd(line, pos) && lastWord(line, pos) == e.data.prefix) {
               console.log("here1");
               candidates = e.data.words;
-            } else
+            }
             // If we are at the end of the line, and the line is not empty,
             // check for a matching word to auto-correct.
-            if (pos > 0 && pos == line.length) {
+            else if (pos > 0 && pos == line.length) {
               console.log("here2");
               // If there is a whitespace at the end of the line, ignore it.
               if (WS.test(line[pos - 1])) {
@@ -228,12 +228,14 @@
               // Ok, now if we are at the end of a matching word, then
               // we auto-correct.
               var oldword;
-              if (atWordEnd(line, pos) && (oldword = lastWord(line, pos)) == e.data.prefix) {
+              if (atWordEnd(line, pos) &&
+                  (oldword = lastWord(line, pos)) == e.data.prefix) {
                 var newword = bestFit(oldword, e.data.words);
                 console.log("oldword=" + oldword + " newword=" + newword);
                 if (oldword != newword) {
                   console.log("here5");
-                  // Take into account and preserve the current punctuation (and space).
+                  // Take into account and preserve the current punctuation
+                  // (and space).
                   var punctuation = inputText.substr(pos);
                   console.log("punctuation=X" + punctuation + "X");
                   replace(oldword + punctuation, newword + punctuation);
@@ -269,8 +271,8 @@
         inhibitAutoCorrect = false;
         return;
       }
-      // If we are at the end of a word *before* we add keycode to the input, and
-      // the keycode triggers auto-correct, ask for suggestions right now.
+      // If we are at the end of a word *before* we add keycode to the input,
+      // and the keycode triggers auto-correct, ask for suggestions right now.
       if (atWordEnd(inputText, cursor)) {
         requestSuggestions();
         return;
