@@ -1385,7 +1385,7 @@ var Browser = {
   createTab: function browser_createTab(url, iframe, tab) {
     if (!iframe) {
       iframe = document.createElement('iframe');
-      iframe.mozbrowser = true;
+      iframe.setAttribute('mozbrowser', true);
       iframe.setAttribute('mozallowfullscreen', true);
       iframe.classList.add('browser-tab');
 
