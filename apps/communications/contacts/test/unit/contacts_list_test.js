@@ -1,4 +1,4 @@
-requireApp('/shared/lazy_loader.js');
+require('/shared/js/lazy_loader.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/js/search.js');
 requireApp('communications/contacts/js/contacts_list.js');
