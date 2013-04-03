@@ -192,7 +192,7 @@ if (typeof fb.importer === 'undefined') {
 
       if (contactsLoaded) {
         window.addEventListener('message', function importOnViewPort(e) {
-          if (e.origin !== targetApp) {
+          if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
             return;
           }
           var data = e.data;
@@ -553,7 +553,7 @@ if (typeof fb.importer === 'undefined') {
         }, fb.CONTACTS_APP_ORIGIN);
 
         window.addEventListener('message', function finished(e) {
-          if (e.origin !== targetApp) {
+          if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
             return;
           }
           if (e.data.type === 'contacts_loaded') {
