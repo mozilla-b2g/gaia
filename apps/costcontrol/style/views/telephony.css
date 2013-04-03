@@ -4,8 +4,30 @@
   color: black;
 }
 
+#telephony-tab li {
+  border-bottom: solid 1px #e0e0dd;
+  font-size: 1.6rem;
+  line-height: 1.6rem;
+  padding: 1.2rem 0 1.2rem 1.5rem;
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  min-height: 3.6rem;
+}
+
+#billing-cycle time,
+#telephony-tab li .meta {
+  font-size: 1.4rem;
+  color: #505859;
+}
+
+#telephony-tab li:last-child {
+  border: none;
+}
+
 #reset-date,
-#telephony-tab .settings li dd {
+#telephony-tab li dd {
   float: right;
   font-size: 1.6rem;
   font-weight: 600;
@@ -13,18 +35,17 @@
 }
 
 #reset-date,
-#telephony-tab .settings li dd sub {
-  text-transform: uppercase;
+#telephony-tab li dd sub {
   font-size: 1.4rem;
   vertical-align: baseline;
 }
 
-#telephony-tab .settings li dt {
+#telephony-tab li dt {
   float: left;
   color: #505859;
 }
 
-#telephony-tab .settings li dd {
+#telephony-tab li dd {
   float: none;
   display: block;
   overflow: hidden;
