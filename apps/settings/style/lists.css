@@ -153,8 +153,8 @@ ul li p + input[type="password"] {
 
 ul li > label input[type="range"] {
   width: 80%;
-  width: calc(100% - 6rem);
-  margin-left: 3rem;
+  width: calc(100% - 13rem);
+  margin-left: 6.5rem;
   margin-top: 2rem;
 }
 
