@@ -927,13 +927,15 @@ var ThreadUI = {
         var regName = new RegExp('\\b' + input, 'ig');
         // For number we search in any position to avoid country code issues
         var regNumber = new RegExp(input, 'ig');
-        if (!(name.match(regName) || number.match(regNumber))) {
-          return;
-        }
-        var nameHTML =
-            SearchUtils.createHighlightHTML(name, regName, 'highlight');
-        var numHTML =
-            SearchUtils.createHighlightHTML(number, regNumber, 'highlight');
+
+        var nameHTML = name.match(regName) ?
+              SearchUtils.createHighlightHTML(name, regName, 'highlight') :
+              name;
+
+        var numHTML = number.match(regNumber) ?
+              SearchUtils.createHighlightHTML(number, regNumber, 'highlight') :
+              number;
+
         // Create DOM element
         var contactDOM = document.createElement('li');
 
@@ -966,17 +968,19 @@ var ThreadUI = {
   },
 
   searchContact: function thui_searchContact() {
-    var input = this.recipient;
-    var string = input.value;
+    var filterValue = this.recipient.value;
 
-    // TODO: Investigate why view.innerHTML is cleared
-    // here and later in the results callback
-    this.container.innerHTML = '';
-    if (!string) {
+    if (!filterValue.trim()) {
+      // In cases where searchContact was invoked for "input"
+      // that was actually a "delete" that removed the last
+      // character in the recipient input field,
+      // eg. type "a", then delete it.
+      // Always remove the the existing results.
+      this.container.innerHTML = '';
       return;
     }
 
-    Contacts.findByString(string, function gotContact(contacts) {
+    Contacts.findByString(filterValue, function gotContact(contacts) {
       // !contacts matches null results from errors
       // !contacts.length matches empty arrays from unmatches filters
       if (!contacts || !contacts.length) {
@@ -990,9 +994,11 @@ var ThreadUI = {
       }
 
       // There are contacts that match the input.
-      //  1. Add the "hide" class to the messages-no-results display
-      //  2. Remove the "hide" class from the view
+      //  1. Clear the existing container html
+      //  2. Add the "hide" class to the messages-no-results display
+      //  3. Remove the "hide" class from the container
       //
+      this.container.innerHTML = '';
       this.noResults.classList.add('hide');
       this.container.classList.remove('hide');
 
