@@ -693,10 +693,7 @@
       }
       if (input.type === 'tel') {
         // Removing unauthorized characters
-        console.log('TEL keypad. Remove unauthorized characters: ' +
-          input.value);
         input.value = input.value.replace(/[()-]/g, '');
-        console.log('TEL keypad. Final entry: ' + input.value);
       }
       button.disabled = !checkInputLengthValid(input.value.length,
                                               options.minLength,
