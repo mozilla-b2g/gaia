@@ -317,7 +317,7 @@
             <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
             <a data-l10n-id="networkNotification">Network notification</a>
           </li>
-          <li id="wps-column" hidden>
+          <li id="wps-column">
             <small data-l10n-id="wpsDescription">Automatic wireless network configuration</small>
             <a data-l10n-id="wpsMessage">Connect with WPS</a>
           </li>
@@ -330,8 +330,8 @@
           <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
             Turn Wi-Fi on to view available networks.
           </li>
-          <li class="explanation" data-state="on" data-l10n-id="scanning">
-            Searching…
+          <li data-state="on">
+            <progress></progress><span data-l10n-id="scanning">Searching…</span>
           </li>
           <li data-state="ready">
             <label>
@@ -354,6 +354,7 @@
 
       <script src="js/wifi.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
       -->
     </section>
 
