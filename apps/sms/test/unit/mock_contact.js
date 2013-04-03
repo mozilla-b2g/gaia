@@ -1,37 +1,20 @@
 'use strict';
 
-function MockContact() {
+
+function MockContact(name) {
+  name = typeof name !== 'undefined' ? name : {
+    familyName: ['Grillo'],
+    givenName: ['Pepito']
+  };
   if (!(this instanceof MockContact)) {
-    return new MockContact();
+    return new MockContact(name);
   }
   this.id = '1';
-  this.updated = Date.now();
 
-  this.familyName = ['Grillo'];
-  this.givenName = ['Pepito'];
-  this.additionalName = [''];
+  this.familyName = name.familyName;
+  this.givenName = name.givenName;
   this.name = [
     [this.givenName, this.familyName].join(' ')
-  ];
-
-  this.bday = '1978-12-20';
-  this.jobTitle = [''];
-  this.org = ['Test'],
-
-  this.adr = [
-    {
-      countryName: 'Germany',
-      locality: 'Chemnitz',
-      postalCode: '09034',
-      streetAddress: 'Gotthardstrasse 22'
-    }
-  ];
-
-  this.email = [
-    {
-      'type': 'Personal',
-      'value': 'test@test.com'
-    }
   ];
 
   this.tel = [
@@ -52,6 +35,26 @@ function MockContact() {
   ];
 }
 
-MockContact.list = function() {
-  return [new MockContact()];
+/*
+
+  MockContact.list([names])
+
+  Create contacts lists
+
+  MockContact.list();
+
+  MockContact.list([
+    { givenName: ['Jane'], familyName: ['Doozer'] },
+    { givenName: ['doug'], familyName: ['dooley'] }
+  ]);
+ */
+
+MockContact.list = function(names) {
+  if (names && names.length) {
+    return names.map(function(name) {
+      return new MockContact(name);
+    });
+  } else {
+    return [new MockContact()];
+  }
 };
