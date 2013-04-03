@@ -386,13 +386,6 @@ ul li > label .range-icons {
   height: 3rem;
 }
 
-ul li > label .range-icons.volume {
-  background:
-    url(images/range_icons_volume_min.png) no-repeat 0 50%,
-    url(images/range_icons_volume_max.png) no-repeat 100% 50%;
-    background-size: 3rem;
-}
-
 ul li > label .range-icons.brightness {
   background:
     url(images/range_icons_brightness_min.png) no-repeat 0 50%,
