@@ -7,6 +7,39 @@ html, body {
   height: 100%;
 }
 
+body {
+  background-color: black;
+  color: #fff;
+  font-family: "MozTT", sans-serif;
+  font-size: 10px;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  padding-bottom: 50px;
+}
+
+section {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-size: 1.4rem;
+}
+
+.hidden {
+  display: none;
+}
+
+/*
+ * while videoControls is hidden,
+ * it should be stay on screen for mousedown event
+ */
+#videoControls.hidden {
+  display: block;
+  visibility: visible;
+}
+
 ul {
   background: url(images/background.png);
   height: 45.9rem;
@@ -66,12 +99,17 @@ li .after span:last-child {
   color: #95a3a6;
 }
 
-/* fullscreen video player */
-#videoFrame {
-  display: block;
-  position: relative;
+/* All of the main views fill the screen */
+#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view {
+  position: absolute;
+  top: 0px;
+  left: 0px;
   width: 100%;
   height: 100%;
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
+  font-size: 2.1rem;
 }
 
 #delete-video-button span {
@@ -82,9 +120,47 @@ li .after span:last-child {
   background-color: #21a6b9;
 }
 
-#videoFrame.hidden, #novideos.hidden, #overlay.hidden,
-#thumbnails.hidden, #delete-video-button.hidden {
-  display: none;
+/*
+ * Thumbnails are implemented as <li> elements in a <ul> with background-image
+ * set to display the image. We use background-size: cover to automatically
+ * resize the image as needed.
+ * The thumbnail list appears in regular browsing mode, in selection mode,
+ * and in pick mode.
+ */
+
+#thumbnails {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* top and bottom are set depending on view below */
+  padding: 0;
+  margin: 0;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  /*
+   * the body background is black, but remind the UA of that here to
+   * keep the thumbnail view opaque if possible.
+   */
+  background-color: black;
+}
+
+/* thumbnails in thumbnail select view where there is a top bar */
+#thumbnails.select {
+  top: 50px;
+  bottom: 0;
+}
+
+.thumbnail.selected {
+  outline: solid #00aacc 3px;
+  outline-offset: -3px;
+}
+
+/*
+ * give the very last thumbnail a large bottom margin so that it doesn't
+ * get stuck hidden behind the overlaid toolbar.
+ */
+.thumbnail:last-child {
+  margin-bottom: 40px;
 }
 
 #player {
@@ -222,6 +298,91 @@ header h1 {
   }
 }
 
+/* buttons */
+a.button {
+  display: block;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+
+  /* for buttons that display text */
+  font-size: 1.4rem;
+  text-align: center;
+  line-height: 40px;
+}
+
+a.button:active, a.button:focus {
+  outline: none;
+}
+
+a.button.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+footer {
+  background: rgba(0, 0, 0, 0.75);
+  height: 40px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  box-shadow: 0px -2px 5px rgba(50, 50, 50, 0.75);
+}
+
+#thumbnails-video-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 0%;
+  background-image: url('images/iconaction_video_30x30.png');
+}
+
+#thumbnails-select-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 50%;
+  background-image: url('images/iconaction_select_30x30.png');
+}
+
+#thumbnails-delete-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/iconaction_delete_30x30.png');
+  border-right: 1px solid #000;
+}
+
+#thumbnails-share-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 50%;
+  background-image: url('images/iconaction_share_30x30.png');
+}
+
+#thumbnails-single-delete-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/iconaction_delete_30x30.png');
+  border-right: 1px solid #000;
+}
+
+#thumbnails-single-share-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 50%;
+  background-image: url('images/iconaction_share_30x30.png');
+}
+
 header .icon:after {
   background: none !important;
 }
@@ -250,7 +411,7 @@ header .icon:after {
   overflow: hidden;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 4.5rem;
   height: 4.5rem;
   margin: 0;
   padding: 0;
