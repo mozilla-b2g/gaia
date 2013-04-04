@@ -852,7 +852,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
     var self = this;
 
     fetcher.onparsed = function(req, resp) {
-      $imapchew.updateMessageWithFetch(header, body, req, resp);
+      $imapchew.updateMessageWithFetch(header, body, req, resp, self._LOG);
 
       if (req.createSnippet) {
         self._storage.updateMessageHeader(
@@ -1537,7 +1537,10 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     errors: {
       callbackErr: { ex: $log.EXCEPTION },
 
-      bodyChewError: { ex: $log.EXCEPTION },
+      htmlParseError: { ex: $log.EXCEPTION },
+      htmlSnippetError: { ex: $log.EXCEPTION },
+      textChewError: { ex: $log.EXCEPTION },
+      textSnippetError: { ex: $log.EXCEPTION },
 
       // Attempted to sync with an empty or inverted range.
       illegalSync: { startTS: false, endTS: false },
@@ -2676,6 +2679,13 @@ HighLevelJobDriver.prototype = {
 var LOGFAB = exports.LOGFAB = $log.register($module, {
   ImapJobDriver: {
     type: $log.DAEMON,
+    events: {
+      savedAttachment: { storage: true, mimeType: true, size: true },
+      saveFailure: { storage: false, mimeType: false, error: false },
+    },
+    TEST_ONLY_events: {
+      saveFailure: { filename: false },
+    },
     asyncJobs: {
       acquireConnWithoutFolder: { label: false },
     },
@@ -3080,7 +3090,7 @@ ImapAccount.prototype = {
     // the slice is self-starting, we don't need to call anything on storage
   },
 
-  shutdown: function() {
+  shutdown: function(callback) {
     // - kill all folder storages (for their loggers)
     for (var iFolder = 0; iFolder < this.folders.length; iFolder++) {
       var folderPub = this.folders[iFolder],
@@ -3091,12 +3101,30 @@ ImapAccount.prototype = {
     this._backoffEndpoint.shutdown();
 
     // - close all connections
+    var liveConns = this._ownedConns.length;
+    function connDead() {
+      if (--liveConns === 0)
+        callback();
+    }
     for (var i = 0; i < this._ownedConns.length; i++) {
       var connInfo = this._ownedConns[i];
-      connInfo.conn.die();
+      if (callback) {
+        connInfo.inUseBy = { deathback: connDead };
+        try {
+          connInfo.conn.logout();
+        }
+        catch (ex) {
+          liveConns--;
+        }
+      }
+      else {
+        connInfo.conn.die();
+      }
     }
 
     this._LOG.__die();
+    if (!liveConns && callback)
+      callback();
   },
 
   accountDeleted: function() {
@@ -3262,6 +3290,9 @@ ImapAccount.prototype = {
   },
 
   _makeConnection: function(listener, whyFolderId, whyLabel) {
+    // Mark a pending connection synchronously; the require call will not return
+    // until at least the next turn of the event loop.
+    this._pendingConn = true;
     // Dynamically load the probe/imap code to speed up startup.
     require(['imap', './probe'], function ($imap, $imapprobe) {
       this._LOG.createConnection(whyFolderId, whyLabel);
@@ -4082,9 +4113,9 @@ CompositeAccount.prototype = {
   /**
    * Shutdown the account; see `MailUniverse.shutdown` for semantics.
    */
-  shutdown: function() {
+  shutdown: function(callback) {
     this._sendPiece.shutdown();
-    this._receivePiece.shutdown();
+    this._receivePiece.shutdown(callback);
   },
 
   accountDeleted: function() {
