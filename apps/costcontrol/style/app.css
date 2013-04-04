@@ -157,25 +157,6 @@ li button.icon-topupcode:before  {
   background-image: url(images/app/icons/topupcode.png);
 }
 
-
-/* BB PROGRESS */
-body[role="application"] progress:not([value]) {
-  background: url(images/app/icons/loader.png) no-repeat center center;
-  width: 3rem;
-  height: 3rem;
-  animation: loader 0.8s linear infinite;
-}
-
-@keyframes loader {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-
 /* CONTENT */
 section.content {
   padding: 2.5rem 2rem;

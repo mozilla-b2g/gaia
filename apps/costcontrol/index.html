@@ -6,21 +6,24 @@
     <title data-l10n-id="usage">
       Usage
     </title>
-    
+
     <!-- Building blocks Temporal -->
     <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/progress-activity/style.css">
 
     <!-- Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/lists.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
 
     <!-- App and Views -->
     <link rel="stylesheet" type="text/css" href="style/app.css">
     <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
+
+    <!-- Multiresolution support -->
+    <link rel="stylesheet" type="text/css" href="shared/style/responsive.css">
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -44,7 +47,7 @@
 
   </head>
   <body role="application">
-    
+
     <section role="region" class="window skin-organic">
       <!-- XXX: The order of sections is important (tabs should be place above
 the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
@@ -54,7 +57,7 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
         </menu>
         <h1 data-l10n-id="usage">Usage</h1>
       </header>
-      
+
       <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
       <ul id="tabs" role="tablist" class="filter" data-items="2" data-position="bottom">
         <li id="balance-tab-filter" aria-selected="true">
@@ -73,7 +76,7 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
           </a>
         </li>
       </ul>
-      
+
       <!-- BALANCE TAB -->
       <section role="region" id="balance-tab" class="view" data-viewport="left" hidden>
         <!--
@@ -136,7 +139,7 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
         </section>
         -->
       </section>
-    
+
     <!-- TELEPHONY TAB -->
     <section role="region" id="telephony-tab" class="view" data-viewport="left" hidden>
       <!--
@@ -176,7 +179,7 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
       </section>
       -->
     </section>
-    
+
     <!-- The top up input -->
     <section role="region" id="topup-dialog" class="view" data-viewport="bottom" hidden>
       <!--
@@ -221,14 +224,14 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
       <form>
         <input id="topup-code-input" type="number" />
       </form>
-      
+
       <link rel="stylesheet" type="text/css" href="style/views/topup.css">
       -->
-    </section>    
-    
+    </section>
+
     <!-- DATA USAGE TAB -->
     <section id="datausage-tab" role="region" class="view" data-viewport="right" hidden>
-      <!-- 
+      <!--
       <div class="view-scroll">
         <section class="content">
           <section id="graphic-area" class="graph">
@@ -272,12 +275,12 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
       <script type="text/javascript" defer src="js/views/datausage.js"></script>
       -->
     </section>
-  
+
     <!-- Settings view -->
     <section id="settings-view" class="view" data-viewport="bottom">
       <iframe id="settings-view-placeholder"></iframe>
     </section>
-    
+
   </section>
   <iframe id="message-handler" src="message_handler.html">
   </iframe>
