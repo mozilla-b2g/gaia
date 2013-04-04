@@ -135,7 +135,7 @@
   overflow: hidden;
 }
 
-#week-view > .scroll {
+#week-view .scroll {
   height: calc(100% - 7.9rem);
   overflow-y: scroll;
 }
