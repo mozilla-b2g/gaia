@@ -953,7 +953,7 @@ var WindowManager = (function() {
 
       var app = runningApps[newApp];
       // Allows listeners to cancel app opening and so stay on homescreen
-      if (!app.frame.dispatchEvent(evt)) {
+      if (!app.iframe.dispatchEvent(evt)) {
         if (typeof(callback) == 'function')
           callback();
         return;
