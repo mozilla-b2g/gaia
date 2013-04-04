@@ -70,6 +70,7 @@ contacts.Search = (function() {
     });
 
     imgLoader = new ImageLoader('#groups-list-search', 'li');
+    imgLoader.setResolver(fb.resolver);
 
     if (defaultEnabled)
       searchEnabled = true;
