@@ -28,6 +28,23 @@ requireApp('sms/js/startup.js');
 
 
 suite('SMS App Unit-Test', function() {
+  function stub(additionalCode, ret) {
+    if (additionalCode && typeof additionalCode !== 'function')
+      ret = additionalCode;
+
+    var nfn = function() {
+      nfn.callCount++;
+      nfn.calledWith = [].slice.call(arguments);
+
+      if (typeof additionalCode === 'function')
+        additionalCode.apply(this, arguments);
+
+      return ret;
+    };
+    nfn.callCount = 0;
+    return nfn;
+  }
+
   var findByString;
   var nativeMozL10n = navigator.mozL10n;
 
@@ -298,6 +315,33 @@ suite('SMS App Unit-Test', function() {
 
     teardown(function() {
       ThreadListUI.container.innerHTML = '';
+    });
+  });
+
+  suite('Threads-list rendering behavior', function() {
+    test('Calling without threads should not append', function(done) {
+      ThreadListUI.appendThread = stub();
+
+      ThreadListUI.renderThreads([], function() {
+        assert.equal(ThreadListUI.appendThread.callCount, 0);
+        done();
+      });
+    });
+
+    test('Calling renderThreads twice should stop one', function(done) {
+      ThreadListUI.appendThread = stub();
+
+      var first = stub(), second = stub();
+      ThreadListUI.renderThreads([{}, {}], first);
+      ThreadListUI.renderThreads([{}, {}], second);
+
+      setTimeout(function() {
+        assert.equal(first.callCount, 0);
+        assert.equal(second.callCount, 1);
+        assert.equal(ThreadListUI.appendThread.callCount, 2);
+
+        done();
+      }, 20);
     });
   });
 

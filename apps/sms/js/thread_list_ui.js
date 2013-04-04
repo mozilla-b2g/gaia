@@ -198,7 +198,14 @@ var ThreadListUI = {
     window.location.hash = '#thread-list';
   },
 
+  renderCounter: 0,
   renderThreads: function thlui_renderThreads(threads, renderCallback) {
+    // Rendering happens with setTimeout()'s. So when calling this method twice
+    // we have double entry's. So we need to stop our current action if a new
+    // one is there already.
+    var self = ThreadListUI; // sorry, dirty hack
+    var renderId = ++self.renderCounter;
+
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854417
     // Refactor the rendering method: do not empty the entire
     // list on every render.
@@ -231,6 +238,9 @@ var ThreadListUI = {
         }
         var thread = threads.pop();
         setTimeout(function() {
+          // a new render action was started? cancel this one.
+          if (renderId !== self.renderCounter)
+            return;
           ThreadListUI.appendThread(thread);
           appendThreads(threads, callback);
         });
