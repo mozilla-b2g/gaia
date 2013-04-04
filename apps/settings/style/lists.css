@@ -44,6 +44,21 @@ ul li.disabled > a {
   pointer-events: none;
 }
 
+ul > li > progress {
+  display: inline-block;
+  margin: 0 0 0 3rem;
+  padding: 0;
+}
+
+ul > li > progress + span {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0;
+  padding: 0 0 0 1rem;
+  color: #505b5b;
+  font-size: 1.4rem;
+}
+
 /* description + value on the same line */
 ul li > a span {
   position: absolute;
@@ -308,7 +323,7 @@ section[role="region"] > ul > li > p + .fake-select {
  * Progress, Meter
  */
 
-ul li progress, ul li meter {
+li progress, li meter {
   display: block;
   width: calc(100% - 6rem);
   height: 3rem;
