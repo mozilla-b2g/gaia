@@ -63,22 +63,27 @@ suite('lockscreen', function() {
         setTimeout(checkCanvas, 10);
         return;
       }
-      var ctx = canvas.getContext('2d');
-      var top_pixel = ctx.getImageData(0, 0, 1, 1).data;
 
-      assert.equal(top_pixel[0], 77);
-      assert.equal(top_pixel[1], 0);
-      assert.equal(top_pixel[2], 0);
+      try {
+        var ctx = canvas.getContext('2d');
+        var top_pixel = ctx.getImageData(0, 0, 1, 1).data;
 
-      var center_width = Math.floor(canvas.width / 2);
-      var center_height = Math.floor(canvas.height / 2);
-      var center_pixel = ctx.getImageData(center_width, center_height,
-                                          1 , 1).data;
-      assert.equal(center_pixel[0], 251);
-      assert.equal(center_pixel[1], 0);
-      assert.equal(center_pixel[2], 0);
+        assert.equal(top_pixel[0], 77);
+        assert.equal(top_pixel[1], 0);
+        assert.equal(top_pixel[2], 0);
 
-      done();
+        var center_width = Math.floor(canvas.width / 2);
+        var center_height = Math.floor(canvas.height / 2);
+        var center_pixel = ctx.getImageData(center_width, center_height,
+                                            1 , 1).data;
+        assert.ok(center_pixel[0] <= 251 || center_pixel[0] >= 250);
+        assert.equal(center_pixel[1], 0);
+        assert.equal(center_pixel[2], 0);
+
+        done();
+      } catch (e) {
+        done(e);
+      }
     })();
 
   });
