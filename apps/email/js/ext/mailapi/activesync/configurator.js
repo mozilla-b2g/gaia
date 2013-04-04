@@ -1365,9 +1365,23 @@ ActiveSyncFolderConn.prototype = {
 
     // Process the body as needed.
     if (bodyType === asbEnum.Type.PlainText) {
-      var bodyRep = $quotechew.quoteProcessTextBody(bodyText);
-      header.snippet = $quotechew.generateSnippet(bodyRep,
-                                                  DESIRED_SNIPPET_LENGTH);
+      try {
+        var bodyRep = $quotechew.quoteProcessTextBody(bodyText);
+      }
+      catch (ex) {
+        this._LOG.textChewError(ex);
+        // an empty content rep is better than nothing.
+        bodyRep = [];
+      }
+      try {
+        header.snippet = $quotechew.generateSnippet(bodyRep,
+                                                    DESIRED_SNIPPET_LENGTH);
+      }
+      catch (ex) {
+        this._LOG.textSnippetError(ex);
+        header.snippet = '';
+      }
+
       var content = bodyRep[1];
       var len = content.length;
 
@@ -1380,15 +1394,25 @@ ActiveSyncFolderConn.prototype = {
       }];
     }
     else if (bodyType === asbEnum.Type.HTML) {
-      var htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
-      header.snippet = $htmlchew.generateSnippet(htmlNode,
-                                                 DESIRED_SNIPPET_LENGTH);
-      var content = htmlNode.innerHTML;
-      var len = content.length;
+      try {
+        var html = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
+      }
+      catch (ex) {
+        this._LOG.htmlParseError(ex);
+        html = '';
+      }
+      try {
+        header.snippet = $htmlchew.generateSnippet(html);
+      }
+      catch (ex) {
+        this._LOG.htmlSnippetError(ex);
+        header.snippet = '';
+      }
+      var len = html.length;
 
       body.bodyReps = [{
         type: 'html',
-        content: content,
+        content: html,
         sizeEstimate: len,
         amountDownloaded: len,
         isDownloaded: true
@@ -1764,6 +1788,12 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       sync: {
         newMessages: true, changedMessages: true, deletedMessages: true,
       },
+    },
+    errors: {
+      htmlParseError: { ex: $log.EXCEPTION },
+      htmlSnippetError: { ex: $log.EXCEPTION },
+      textChewError: { ex: $log.EXCEPTION },
+      textSnippetError: { ex: $log.EXCEPTION },
     },
   },
   ActiveSyncFolderSyncer: {
@@ -2260,9 +2290,17 @@ ActiveSyncJobDriver.prototype = {
 var LOGFAB = exports.LOGFAB = $log.register($module, {
   ActiveSyncJobDriver: {
     type: $log.DAEMON,
+    events: {
+      savedAttachment: { storage: true, mimeType: true, size: true },
+      saveFailure: { storage: false, mimeType: false, error: false },
+    },
+    TEST_ONLY_events: {
+      saveFailure: { filename: false },
+    },
     errors: {
       callbackErr: { ex: $log.EXCEPTION },
     },
+
   },
 });
 
@@ -2512,8 +2550,10 @@ ActiveSyncAccount.prototype = {
     this.saveAccountState(null, null, 'checkpointSync');
   },
 
-  shutdown: function asa_shutdown() {
+  shutdown: function asa_shutdown(callback) {
     this._LOG.__die();
+    if (callback)
+      callback();
   },
 
   accountDeleted: function asa_accountDeleted() {
