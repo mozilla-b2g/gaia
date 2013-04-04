@@ -497,8 +497,6 @@ function mapInputType(type) {
     return 'number';
     break;
   }
-
-  return null;
 }
 
 //
@@ -812,8 +810,7 @@ function getUpperCaseValue(key) {
     return key.value;
 
   var upperCase = currentLayout.upperCase || {};
-  var v = upperCase[key.value] || key.value.toUpperCase();
-  return v;
+  return upperCase[key.value] || key.value.toUpperCase();
 }
 
 function setMenuTimeout(target, coords, touchId) {
