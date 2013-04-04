@@ -48,7 +48,7 @@ window.addEventListener('load', function() {
 
   navigator.mozL10n.ready(function waitLocalizedForLoading() {
     LazyLoader.load(lazyLoadFiles, function() {
-      if (!navigator.mozSms) {
+      if (!navigator.mozMobileMessage) {
         LazyLoader.load(['js/sms_mock.js'], function() {
           MessageManager.init(initUIApp);
         });
