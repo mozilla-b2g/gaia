@@ -781,19 +781,18 @@ suite('Render contacts list', function() {
       var contact = mockContacts[contactIndex];
 
       subject.load(mockContacts);
-      window.setTimeout(function() {
-        contacts.List.initSearch(function onInit() {
-          searchBox.value = contact.familyName[0];
-          contacts.Search.search(function search_finished() {
-            assertContactFound(contact);
-            done();
-          });
-        });
-      }, 100);
+
+      contacts.Search.load();
+      contacts.List.initSearch(function onInit() {
+        searchBox.value = contact.familyName[0];
+        contacts.Search.enterSearchMode({preventDefault: function() {}});
+        done();
+      });
     });
 
     test('check empty search', function(done) {
       mockContacts = new MockContactsList();
+      subject.resetSearch();
       subject.load(mockContacts);
       searchBox.value = 'YYY';
       contacts.Search.search(function search_finished() {
@@ -829,6 +828,7 @@ suite('Render contacts list', function() {
       var contactIndex = Math.floor(Math.random() * mockContacts.length);
       var contact = mockContacts[contactIndex];
 
+      subject.resetSearch();
       subject.load(mockContacts);
 
       searchBox.value = '(';
@@ -845,6 +845,7 @@ suite('Render contacts list', function() {
       var contact = mockContacts[contactIndex];
       mockContacts[contactIndex].givenName[0] = '(' + contact.givenName[0] + ')';
 
+      subject.resetSearch();
       subject.load(mockContacts);
 
       window.setTimeout(function() {
