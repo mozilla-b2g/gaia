@@ -56,7 +56,9 @@ var CallHandler = (function callHandler() {
 
     activity.postResult({ status: 'accepted' });
   }
-  window.navigator.mozSetMessageHandler('activity', handleActivity);
+  if (window.navigator.mozSetMessageHandler) {
+    window.navigator.mozSetMessageHandler('activity', handleActivity);
+  }
 
   /* === Notifications support === */
   function handleNotification(evt) {
@@ -70,7 +72,9 @@ var CallHandler = (function callHandler() {
       window.location.hash = '#recents-view';
     };
   }
-  window.navigator.mozSetMessageHandler('notification', handleNotification);
+  if (window.navigator.mozSetMessageHandler) {
+    window.navigator.mozSetMessageHandler('notification', handleNotification);
+  }
 
   function handleNotificationRequest(number) {
     Contacts.findByNumber(number, function lookup(contact, matchingTel) {
@@ -141,7 +145,9 @@ var CallHandler = (function callHandler() {
 
     openCallScreen();
   }
-  window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
+  if (window.navigator.mozSetMessageHandler) {
+    window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
+  }
 
   /* === Bluetooth Support === */
   function btCommandHandler(message) {
@@ -165,15 +171,19 @@ var CallHandler = (function callHandler() {
     // Other commands needs to be handled from the call screen
     sendCommandToCallScreen('BT', command);
   }
-  window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
-                                         btCommandHandler);
+  if (window.navigator.mozSetMessageHandler) {
+    window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
+                                           btCommandHandler);
+  }
 
   /* === Headset Support === */
   function headsetCommandHandler(message) {
     sendCommandToCallScreen('HS', message);
   }
-  window.navigator.mozSetMessageHandler('headset-button',
-                                        headsetCommandHandler);
+  if (window.navigator.mozSetMessageHandler) {
+    window.navigator.mozSetMessageHandler('headset-button',
+                                          headsetCommandHandler);
+  }
 
   /*
     Send commands to the callScreen via post message.
@@ -228,6 +238,9 @@ var CallHandler = (function callHandler() {
   function call(number) {
     if (UssdManager.isUSSD(number)) {
       UssdManager.send(number);
+      // Clearing the code from the dialer screen gives the user immediate
+      // feedback.
+      KeypadManager.updatePhoneNumber('', 'begin', true);
       return;
     }
 
@@ -329,8 +342,10 @@ var CallHandler = (function callHandler() {
   function init() {
     loader.load(['/shared/js/mobile_operator.js',
                  '/dialer/js/ussd.js'], function() {
-      window.navigator.mozSetMessageHandler('ussd-received',
-          UssdManager.openUI.bind(UssdManager));
+      if (window.navigator.mozSetMessageHandler) {
+        window.navigator.mozSetMessageHandler('ussd-received',
+            UssdManager.openUI.bind(UssdManager));
+      }
     });
   }
 

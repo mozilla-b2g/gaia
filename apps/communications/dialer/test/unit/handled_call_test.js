@@ -4,7 +4,7 @@ requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
-requireApp('communications/dialer/test/unit/mock_call_handler.js');
+requireApp('communications/dialer/test/unit/mock_on_call.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 
 // We're going to swap those with mock objects
