@@ -250,6 +250,26 @@ suiteGroup('Views.EventBase', function() {
     var controller;
     var date = new Date(2012, 0, 1);
 
+    test('time is less then now', function() {
+      var now = new Date();
+      var start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        now.getHours() + 1
+      );
+
+      var end = new Date(start.valueOf());
+      end.setHours(end.getHours() + 1);
+
+      var model = subject._createModel(date);
+
+      assert.hasProperties(
+        model,
+        { startDate: start, endDate: end }
+      );
+    });
+
     test('time is greater then now', function() {
       var now = new Date();
       var start = new Date(
