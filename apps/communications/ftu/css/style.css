@@ -275,10 +275,19 @@ html, body {
   Languages Styles
 */
 
-#languages [data-type="list"] {
-  background: url(images/bg_bubbles.png) 0 0 no-repeat;
+#languages {
+  background: url(images/bg_bubbles.png) fixed no-repeat;
   background-size: 100% auto;
-  padding-top: 14rem;
+  overflow: hidden;
+}
+
+#languages [data-type="list"] {
+  position: relative;
+  top: 12.5rem;
+  height: 24rem;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding-top: 0;
 }
 
 /*
@@ -923,10 +932,6 @@ i.hack-first-child {
 /* .pack-value-selector should be part of "BB lists" */
 [data-type="list"] li {
   transition: none;
-}
-
-[data-type="list"].pack-value-selector li:first-child {
-  border-top: 0.1rem solid rgb(219, 217, 217);
 }
 
 [data-type="list"].pack-value-selector li:after {
