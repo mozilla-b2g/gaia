@@ -266,35 +266,73 @@ body {
   visibility: hidden;
 }
 
-#screen.cards-view > #windows > .appWindow.closing {
-  transform: scale(0.8);
+#windows > .appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening):not(.closing) {
+  opacity: 0;
 }
 
-#windows > .appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening) {
+#screen.switch-app > #windows > .appWindow.closing {
   opacity: 0;
   transform: scale(0.6);
 }
 
 #windows > .appWindow.opening {
-  transition: transform 0.25s ease;
+  animation: openApp 0.3s forwards ease;
+  pointer-events: auto;
 }
 
 #windows.slow-transition > .appWindow.opening {
-  transition: transform 5s ease;
+  animation: openApp 3s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.opening,
-#screen.cards-view > #windows > .appWindow.closing,
+#screen.cards-view > #windows > .appWindow.opening {
+  animation: openAppFromCardView 0.15s forwards ease;
+}
+
+#screen.cards-view > #windows.slow-transition > .appWindow.opening {
+  animation: openAppFromCardView 1.5s forwards ease;
+}
+
+/* Opacity increases start up time then we don't use it anymore for opening */
+@keyframes openApp {
+  0%   { transform: scale(0.1) }
+  100% { transform: scale(1.0) }
+}
+
+#windows > .appWindow.homescreen.zoom-in > iframe {
+  animation: zoom-in 0.3s forwards ease;
+}
+
+#windows.slow-transition > .appWindow.homescreen.zoom-in > iframe {
+  animation: zoom-in 3s forwards ease;
+}
+
+#screen.switch-app > #windows > .appWindow.homescreen.zoom-in > iframe,
+#screen.cards-view > #windows > .appWindow.homescreen.zoom-in > iframe {
+  animation: none;
+}
+
+@keyframes zoom-in {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.8); }
+}
+
+@keyframes openAppFromCardView {
+  0%   { transform: scale(0.8); }
+  100% { transform: scale(1.0); }
+}
+
 #screen.switch-app > #windows > .appWindow.opening,
 #screen.switch-app > #windows > .appWindow.closing {
   transition: transform 0.25s ease;
   visibility: inherit;
   opacity: 1;
+  animation: none;
 }
 
 #screen.switch-app > #windows.slow-transition > .appWindow.opening,
 #screen.switch-app > #windows.slow-transition > .appWindow.closing {
   transition: transform 5s ease;
+  animation: none;
 }
 
 #screen.switch-app > #windows > .appWindow.opening-card {
@@ -326,11 +364,50 @@ body {
 }
 
 #windows > .appWindow.closing {
-  transition: transform 0.25s ease, opacity 0.15s ease 0.1s;
+  animation: closeApp 0.3s forwards ease;
+  /* The animation takes .3 seconds so users cannot touch the app while the
+   * closing animation is performing */
+  pointer-events: none;
 }
 
 #windows.slow-transition > .appWindow.closing {
-  transition: transform 5s ease, opacity 3s ease 2s;
+  animation: closeApp 3s forwards ease;
+}
+
+#windows > .appWindow.homescreen.zoom-out > iframe {
+  animation: zoom-out 0.3s forwards ease;
+}
+
+#windows.slow-transition > .appWindow.homescreen.zoom-out > iframe {
+  animation: zoom-out 3s forwards ease;
+}
+
+#screen.switch-app > #windows > .appWindow.homescreen.zoom-out > iframe ,
+#screen.cards-view > #windows > .appWindow.homescreen.zoom-out > iframe {
+  animation: none;
+}
+
+@keyframes zoom-out {
+  0%   { transform: scale(1.8) }
+  100% { transform: scale(1) }
+}
+
+#screen.cards-view > #windows > .appWindow.closing {
+  animation: closeAppTowardsCardView 0.15s forwards ease;
+}
+
+#screen.cards-view > #windows.slow-transition > .appWindow.closing {
+  animation: closeAppTowardsCardView 1.5s forwards ease;
+}
+
+@keyframes closeApp {
+  0%   { transform: scale(1.0); opacity: 1; }
+  100% { transform: scale(0.1); opacity: 0; }
+}
+
+@keyframes closeAppTowardsCardView {
+  0%   { transform: scale(1.0); }
+  100% { transform: scale(0.8); }
 }
 
 #windows > .appWindow.inlineActivity,
