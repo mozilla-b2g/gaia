@@ -488,6 +488,14 @@ var KeypadManager = {
       return;
     }
 
+    // Per certification requirement, we need to send an MMI request to
+    // get the device's IMEI as soon as the user enters the last # key from
+    // the "*#06#" MMI string. See bug 857944.
+    if (key === '#' && this._phoneNumber === '*#06#') {
+      this.makeCall(event);
+      return;
+    }
+
     var telephony = navigator.mozTelephony;
 
     event.stopPropagation();
