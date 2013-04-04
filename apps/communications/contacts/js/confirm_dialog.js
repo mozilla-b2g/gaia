@@ -12,6 +12,7 @@ var ConfirmDialog = (function() {
   var action1Callback;
   var action2Node = screen.querySelector('button:nth-of-type(2)');
   var action2Callback;
+  var oldzIndex;
 
   var callBackAndPreventDefault = function callBackAndPreventDefault(ev) {
     if (ev.target === action1Node) {
@@ -62,7 +63,14 @@ var ConfirmDialog = (function() {
     * @param  {Object} action1 {title, isDanger, callback} object.
     * @param  {Object} action2 {title, isDanger, callback} object.
     */
-  var _show = function _show(title, msg, action1, action2) {
+  var _show = function _show(title, msg, action1, action2, options) {
+    if (options && options.zIndex) {
+      oldzIndex = screen.style.zIndex;
+      screen.style.zIndex = options.zIndex;
+    }
+    else {
+      oldzIndex = null;
+    }
     if (title) {
       titleNode.textContent = title;
     } else {
@@ -131,6 +139,11 @@ var ConfirmDialog = (function() {
     hide: function dialog_hide() {
       // Reset the 'confirmation-message' element and its children to their
       // initial values and hide it.
+      if (oldzIndex) {
+        screen.style.zIndex = oldzIndex;
+        oldzIndex = null;
+      }
+
       if (!isAnimationPlaying) {
         _hide();
         return;
@@ -152,16 +165,17 @@ var ConfirmDialog = (function() {
     * @param  {Object} action1 {title, isDanger, callback} object.
     * @param  {Object} action2 {title, isDanger, callback} object.
     */
-    show: function dialog_show(title, msg, action1, action2) {
+    show: function dialog_show(title, msg, action1, action2, options) {
       if (!isAnimationPlaying) {
-        _show(title, msg, action1, action2);
+        _show(title, msg, action1, action2, options);
+
         return;
       }
 
       screen.addEventListener('animationend',
         function cd_showWhenFinished(ev) {
           screen.removeEventListener('animationend', cd_showWhenFinished);
-          _show(title, msg, action1, action2);
+          _show(title, msg, action1, action2, options);
         }
       );
     }
