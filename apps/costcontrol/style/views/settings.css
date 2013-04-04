@@ -33,7 +33,7 @@
 
 /* SETTINGS LISTS */
 .settings li {
-  border-bottom: solid 1px #e0e0dd;
+  border-bottom: solid 0.1rem #e0e0dd;
   font-size: 1.6rem;
   padding: 1.2rem 0 1.2rem 1.5rem;
   margin-left: 1.5rem;
@@ -79,16 +79,16 @@
 }
 
 .settings li > .end.switch {
-  right: 5px;
+  right: 0.5rem;
 }
 
 .settings li > .end:before {
   content: "";
   display: inline-block;
   vertical-align: middle;
-  width: 1px;
+  width: 0.1rem;
   height: 100%;
-  margin-left: -8px;
+  margin-left: -0.8rem;
 }
 
 .settings li > .end button,
