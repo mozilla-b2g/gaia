@@ -308,18 +308,6 @@ var WindowManager = (function() {
     setDisplayedApp(homescreen);
   });
 
-  // XXX: We couldn't avoid to stop inline activities
-  // when screen is turned off and lockscreen is enabled
-  // to avoid two cameras iframes are competing resources
-  // if the user opens a app to call camera activity and
-  // at the same time open camera app from lockscreen.
-
-  window.addEventListener('lock', function onScreenLocked() {
-    if (inlineActivityFrames.length) {
-      stopInlineActivity(true);
-    }
-  });
-
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
     var prop = evt.propertyName;
     var frame = evt.target;
@@ -1309,6 +1297,9 @@ var WindowManager = (function() {
     if (openFrame == frame)
       setOpenFrame(null);
 
+    // Bug 856692: force the close of the keyboard in closing inline activities
+    dispatchEvent(new CustomEvent('activitywillclose'));
+
     // If frame is never set visible, we can remove the frame directly
     // without closing transition
     if (!frame.classList.contains('active')) {
@@ -1563,6 +1554,15 @@ var WindowManager = (function() {
         resetDeviceLockedTimer();
         break;
       case 'lock':
+        // XXX: We couldn't avoid to stop inline activities
+        // when screen is turned off and lockscreen is enabled
+        // to avoid two cameras iframes are competing resources
+        // if the user opens a app to call camera activity and
+        // at the same time open camera app from lockscreen.
+        if (inlineActivityFrames.length) {
+          stopInlineActivity(true);
+        }
+
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         if (!normalAudioChannelActive) {
