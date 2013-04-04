@@ -2541,83 +2541,32 @@
       if (xhr.status < 200 || xhr.status >= 300)
         return aCallback(new HttpError(xhr.statusText, xhr.status));
 
-      var doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
+      var uid = Math.random();
+      self.postMessage({
+        uid: uid,
+        type: 'configparser',
+        cmd: 'accountactivesync',
+        args: [xhr.responseText]
+      });
 
-      function getNode(xpath, rel) {
-        return doc.evaluate(xpath, rel, nsResolver,
-                            XPathResult.FIRST_ORDERED_NODE_TYPE, null)
-                  .singleNodeValue;
-      }
-      function getNodes(xpath, rel) {
-        return doc.evaluate(xpath, rel, nsResolver,
-                            XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-      }
-      function getString(xpath, rel) {
-        return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
-                            null).stringValue;
-      }
-
-      if (doc.documentElement.tagName === 'parsererror')
-        return aCallback(new AutodiscoverDomainError(
-          'Error parsing autodiscover response'));
-
-      var responseNode = getNode('/ad:Autodiscover/ms:Response', doc);
-      if (!responseNode)
-        return aCallback(new AutodiscoverDomainError(
-          'Missing Autodiscover Response node'));
-
-      var error = getNode('ms:Error', responseNode) ||
-                  getNode('ms:Action/ms:Error', responseNode);
-      if (error)
-        return aCallback(new AutodiscoverError(
-          getString('ms:Message/text()', error)));
-
-      var redirect = getNode('ms:Action/ms:Redirect', responseNode);
-      if (redirect) {
-        if (aNoRedirect)
-          return aCallback(new AutodiscoverError(
-            'Multiple redirects occurred during autodiscovery'));
-
-        var redirectedEmail = getString('text()', redirect);
-        return autodiscover(redirectedEmail, aPassword, aTimeout, aCallback,
-                            true);
-      }
-
-      var user = getNode('ms:User', responseNode);
-      var config = {
-        culture: getString('ms:Culture/text()', responseNode),
-        user: {
-          name:  getString('ms:DisplayName/text()',  user),
-          email: getString('ms:EMailAddress/text()', user),
-        },
-        servers: [],
-      };
-
-      var servers = getNodes('ms:Action/ms:Settings/ms:Server', responseNode);
-      var server;
-      while ((server = servers.iterateNext())) {
-        config.servers.push({
-          type:       getString('ms:Type/text()',       server),
-          url:        getString('ms:Url/text()',        server),
-          name:       getString('ms:Name/text()',       server),
-          serverData: getString('ms:ServerData/text()', server),
-        });
-      }
-
-      // Try to find a MobileSync server from Autodiscovery.
-      for (var iter in Iterator(config.servers)) {
-        var server = iter[1];
-        if (server.type === 'MobileSync') {
-          config.mobileSyncServer = server;
-          break;
+      self.addEventListener('message', function onworkerresponse(evt) {
+        var data = evt.data;
+        if (data.type != 'configparser' || data.cmd != 'accountactivesync' ||
+            data.uid != uid) {
+          return;
         }
-      }
-      if (!config.mobileSyncServer) {
-        return aCallback(new AutodiscoverError('No MobileSync server found'),
-                         config);
-      }
+        self.removeEventListener(evt.type, onworkerresponse);
 
-      aCallback(null, config);
+        var args = data.args;
+        var config = args[0], error = args[1], redirectedEmail = args[2];
+        if (error) {
+          aCallback(new AutodiscoverDomainError(error), config);
+        } else if (redirectedEmail) {
+          autodiscover(redirectedEmail, aPassword, aTimeout, aCallback, true);
+        } else {
+          aCallback(null, config);
+        }
+      });
     };
 
     xhr.ontimeout = xhr.onerror = function() {

@@ -224,6 +224,11 @@ input.msg-search-text-tease {
   margin: 1rem 1.5rem;
 }
 
+.card-message-reader .msg-body-container > progress {
+  display: block;
+  margin: 0 auto;
+}
+
 .msg-attachments-container {
   padding: 0 1.5rem;
   font-size: 1.2rem;

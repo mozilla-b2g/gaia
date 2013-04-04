@@ -104,9 +104,9 @@ var requirejs, require, define;
         var waitingId,
             waiting = [];
 
-        function check(p, v) {
+        function check(p) {
             if (hasProp(p, 'e') || hasProp(p, 'v')) {
-                throw new Error('already resolved, discarding: ' + v);
+                throw new Error('nope');
             }
             return true;
         }
@@ -174,14 +174,14 @@ var requirejs, require, define;
                 },
 
                 resolve: function (v) {
-                    if (check(p, v)) {
+                    if (check(p)) {
                         p.v = v;
                         notify(ok, v);
                     }
                     return p;
                 },
                 reject: function (e) {
-                    if (check(p, e)) {
+                    if (check(p)) {
                         p.e = e;
                         notify(fail, e);
                     }
@@ -1050,7 +1050,7 @@ var requirejs, require, define;
                 });
                 err = new Error('Timeout for modules: ' + noLoads);
                 err.requireModules = noLoads;
-                throw err;
+                req.onError(err);
             } else if (loadCount || reqDefs.length) {
                 //Something is still waiting to load. Wait for it, but only
                 //if a timeout is not already in effect.

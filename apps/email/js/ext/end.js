@@ -1,55 +1,51 @@
 // set location of dynamically loaded layers.
 require.config({
+  baseUrl: '..',
   paths: {
-    mailapi: 'js/ext/mailapi',
-    mimelib: 'js/ext/mimelib',
-
     // mailcomposer is in the mailapi/composer layer.
-    mailcomposer: 'js/ext/mailapi/composer',
-
-    'mailparser/mailparser': 'js/ext/mailparser/mailparser',
+    mailcomposer: 'mailapi/composer',
 
     // Point activesync protocol modules to their layer
-    'wbxml': 'js/ext/mailapi/activesync/protocollayer',
-    'activesync/codepages': 'js/ext/mailapi/activesync/protocollayer',
-    'activesync/protocol': 'js/ext/mailapi/activesync/protocollayer',
+    'wbxml': 'mailapi/activesync/protocollayer',
+    'activesync/codepages': 'mailapi/activesync/protocollayer',
+    'activesync/protocol': 'mailapi/activesync/protocollayer',
 
     // activesync/codepages is split across two layers. If
     // activesync/protocol loads first (for autoconfig work on account setup),
     // then indicate the parts of codepages that are in activesync/configurator
     'activesync/codepages/FolderHierarchy':
-                                      'js/ext/mailapi/activesync/configurator',
+                                      'mailapi/activesync/configurator',
     'activesync/codepages/ComposeMail':
-                                      'js/ext/mailapi/activesync/configurator',
+                                      'mailapi/activesync/configurator',
     'activesync/codepages/AirSync':
-                                      'js/ext/mailapi/activesync/configurator',
+                                      'mailapi/activesync/configurator',
     'activesync/codepages/AirSyncBase':
-                                      'js/ext/mailapi/activesync/configurator',
+                                      'mailapi/activesync/configurator',
     'activesync/codepages/ItemEstimate':
-                                      'js/ext/mailapi/activesync/configurator',
+                                      'mailapi/activesync/configurator',
     'activesync/codepages/Email':
-                                      'js/ext/mailapi/activesync/configurator',
+                                      'mailapi/activesync/configurator',
     'activesync/codepages/ItemOperations':
-                                      'js/ext/mailapi/activesync/configurator',
+                                      'mailapi/activesync/configurator',
     'activesync/codepages/Move':
-                                      'js/ext/mailapi/activesync/configurator',
+                                      'mailapi/activesync/configurator',
 
     // Point chew methods to the chew layer
-    'mailapi/htmlchew': 'js/ext/mailapi/chewlayer',
-    'mailapi/quotechew': 'js/ext/mailapi/chewlayer',
-    'mailapi/imap/imapchew': 'js/ext/mailapi/chewlayer',
+    'mailapi/htmlchew': 'mailapi/chewlayer',
+    'mailapi/quotechew': 'mailapi/chewlayer',
+    'mailapi/imap/imapchew': 'mailapi/chewlayer',
 
     // Imap body fetching / parsing / sync
-    'mailapi/imap/protocol/sync': 'js/ext/mailapi/imap/protocollayer',
-    'mailapi/imap/protocol/textparser': 'js/ext/mailapi/imap/protocollayer',
-    'mailapi/imap/protocol/snippetparser': 'js/ext/mailapi/imap/protocollayer',
-    'mailapi/imap/protocol/bodyfetcher': 'js/ext/mailapi/imap/protocollayer',
+    'mailapi/imap/protocol/sync': 'mailapi/imap/protocollayer',
+    'mailapi/imap/protocol/textparser': 'mailapi/imap/protocollayer',
+    'mailapi/imap/protocol/snippetparser': 'mailapi/imap/protocollayer',
+    'mailapi/imap/protocol/bodyfetcher': 'mailapi/imap/protocollayer',
 
     // The imap probe layer also contains the imap module
-    'imap': 'js/ext/mailapi/imap/probe',
+    'imap': 'mailapi/imap/probe',
 
     // The smtp probe layer also contains the simpleclient
-    'simplesmtp/lib/client': 'js/ext/mailapi/smtp/probe'
+    'simplesmtp/lib/client': 'mailapi/smtp/probe'
   },
   scriptType: 'application/javascript;version=1.8',
   definePrim: 'prim'
@@ -61,6 +57,13 @@ define('q', ['prim'], function (prim) {
   return {
     defer: prim
   };
+});
+
+// config.js will be injected above this comment
+
+// baseUrl is different for front end
+require.config({
+  baseUrl: 'js/ext'
 });
 
 (function () {
@@ -85,7 +88,7 @@ define('q', ['prim'], function (prim) {
           if (acctSlice.oncomplete) {
               acctSlice.oncomplete();
           }
-          require(['mailapi/same-frame-setup']);
+          require(['mailapi/main-frame-setup']);
       }, 0);
       return acctSlice;
     }
