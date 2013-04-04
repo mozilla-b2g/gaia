@@ -33,8 +33,16 @@ var SuggestionBar = {
       event.stopPropagation();
       var telTag = node.querySelector('.tel');
       KeypadManager.updatePhoneNumber(telTag.textContent, 'begin', false);
-      // If we are tapping from overlay, hide it
       KeypadManager.makeCall();
+
+      // If we are tapping from overlay, hide it
+      var self = this;
+      window.addEventListener('message', function closeOverlay(evt) {
+        if (evt.data === 'closing' || evt.data === 'animated') {
+          self.hideOverlay();
+          window.removeEventListener('message', closeOverlay);
+        }
+      });
     }
   },
 
