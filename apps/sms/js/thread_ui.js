@@ -23,8 +23,9 @@ var ThreadUI = {
     }, this);
 
     // Allow for stubbing in environments that do not implement the
-    // `navigator.mozSms` API
-    this._mozSms = navigator.mozSms || window.DesktopMockNavigatormozSms;
+    // `navigator.mozMobileMessage` API
+    this._mozMobileMessage = navigator.mozMobileMessage ||
+                              window.DesktopMockNavigatormozMobileMessage;
 
     // Prevent sendbutton to hide the keyboard:
     this.sendButton.addEventListener(
@@ -226,7 +227,7 @@ var ThreadUI = {
   },
 
   updateCounter: function thui_updateCount() {
-    if (!this._mozSms.getSegmentInfoForText) {
+    if (!this._mozMobileMessage.getSegmentInfoForText) {
       return;
     }
     var value = this.input.value;
@@ -235,7 +236,7 @@ var ThreadUI = {
     var kMaxConcatenatedMessages = 10;
 
     // Use backend api for precise sms segmetation information.
-    var smsInfo = this._mozSms.getSegmentInfoForText(value);
+    var smsInfo = this._mozMobileMessage.getSegmentInfoForText(value);
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
     var counter = '';
@@ -399,7 +400,7 @@ var ThreadUI = {
     // completely. So in the case of Desktop testing we are going to execute
     // the callback directly in order to make it works!
     // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
-    if (!navigator.mozSms && callback) {
+    if (!navigator.mozMobileMessage && callback) {
       this.headerText.textContent = MessageManager.currentNum;
       setTimeout(callback);
       return;

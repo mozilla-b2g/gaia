@@ -9,6 +9,7 @@ requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/js/thread_ui.js');
+requireApp('sms/js/sms_mock.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Utils',
@@ -25,7 +26,7 @@ suite('thread_ui.js >', function() {
   var recipient;
 
   var realMozL10n;
-  var realMozSms;
+  var realMozMobileMessage;
 
   var mocksHelper = mocksHelperForThreadUI;
 
@@ -97,17 +98,17 @@ suite('thread_ui.js >', function() {
     document.body.appendChild(container);
 
     ThreadUI.init();
-    realMozSms = ThreadUI._mozSms;
-    ThreadUI._mozSms = MockNavigatormozSms;
+    realMozMobileMessage = ThreadUI._mozMobileMessage;
+    ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
   });
 
   teardown(function() {
     container.parentNode.removeChild(container);
     container = null;
 
-    MockNavigatormozSms.mTeardown();
+    MockNavigatormozMobileMessage.mTeardown();
     mocksHelper.teardown();
-    ThreadUI._mozSms = realMozSms;
+    ThreadUI._mozMobileMessage = realMozMobileMessage;
   });
 
   suite('enableSend() >', function() {
@@ -180,7 +181,7 @@ suite('thread_ui.js >', function() {
   suite('updateCounter() >', function() {
     suite('in first segment >', function() {
       setup(function() {
-        MockNavigatormozSms.mNextSegmentInfo = {
+        MockNavigatormozMobileMessage.mNextSegmentInfo = {
           segments: 1,
           charsAvailableInLastSegment: 20
         };
@@ -206,7 +207,7 @@ suite('thread_ui.js >', function() {
           availableChars = 10;
 
       setup(function() {
-        MockNavigatormozSms.mNextSegmentInfo = {
+        MockNavigatormozMobileMessage.mNextSegmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
@@ -233,7 +234,7 @@ suite('thread_ui.js >', function() {
           availableChars = 20;
 
       setup(function() {
-        MockNavigatormozSms.mNextSegmentInfo = {
+        MockNavigatormozMobileMessage.mNextSegmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
@@ -260,7 +261,7 @@ suite('thread_ui.js >', function() {
           availableChars = 20;
 
       setup(function() {
-        MockNavigatormozSms.mNextSegmentInfo = {
+        MockNavigatormozMobileMessage.mNextSegmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
@@ -287,7 +288,7 @@ suite('thread_ui.js >', function() {
           availableChars = 0;
 
       setup(function() {
-        MockNavigatormozSms.mNextSegmentInfo = {
+        MockNavigatormozMobileMessage.mNextSegmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
