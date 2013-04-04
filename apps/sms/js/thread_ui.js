@@ -12,7 +12,7 @@ var ThreadUI = {
     var _ = navigator.mozL10n.get;
 
     [
-      'container', 'no-results',
+      'container',
       'header-text', 'recipient', 'input', 'compose-form',
       'check-all-button', 'uncheck-all-button',
       'contact-pick-button', 'back-button', 'clear-button', 'send-button',
@@ -778,7 +778,6 @@ var ThreadUI = {
   sendMessage: function thui_sendMessage(resendText) {
     var num, text;
 
-    this.noResults.classList.add('hide');
     this.container.classList.remove('hide');
 
     if (resendText && typeof resendText === 'string') {
@@ -983,20 +982,12 @@ var ThreadUI = {
       // !contacts matches null results from errors
       // !contacts.length matches empty arrays from unmatches filters
       if (!contacts || !contacts.length) {
-        // There are no contacts that match the input.
-        //  1. Remove the "hide" class from messages-no-results display
-        //  2. Add the "hide" class to the view
-        //
-        this.noResults.classList.remove('hide');
         this.container.classList.add('hide');
         return;
       }
 
       // There are contacts that match the input.
-      //  1. Add the "hide" class to the messages-no-results display
-      //  2. Remove the "hide" class from the view
-      //
-      this.noResults.classList.add('hide');
+      this.container.innerHTML = '';
       this.container.classList.remove('hide');
 
       contacts.forEach(this.renderContactData.bind(this));
