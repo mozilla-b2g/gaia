@@ -20,22 +20,35 @@
  * - "data"
  * - "error"
  **/
-define('net',['require','exports','module','util','events'],function(require, exports, module) {
+define('net',['require','exports','module','util','events','mailapi/worker-router'],function(require, exports, module) {
+
+function debug(str) {
+  //dump("NetSocket: (" + Date.now() + ") :" + str + "\n");
+}
 
 var util = require('util'),
-    EventEmitter = require('events').EventEmitter;
+    EventEmitter = require('events').EventEmitter,
+    router = require('mailapi/worker-router');
+
+var routerMaker = router.registerInstanceType('netsocket');
 
 function NetSocket(port, host, crypto) {
-  this._host = host;
-  this._port = port;
-  this._actualSock = navigator.mozTCPSocket.open(
-    host, port, { useSSL: crypto, binaryType: 'arraybuffer' });
-  EventEmitter.call(this);
+  var cmdMap = {
+    onopen: this._onconnect.bind(this),
+    onerror: this._onerror.bind(this),
+    ondata: this._ondata.bind(this),
+    onclose: this._onclose.bind(this)
+  };
+  var routerInfo = routerMaker.register(function(data) {
+    cmdMap[data.cmd](data.args);
+  });
+  this._sendMessage = routerInfo.sendMessage;
+  this._unregisterWithRouter = routerInfo.unregister;
 
-  this._actualSock.onopen = this._onconnect.bind(this);
-  this._actualSock.onerror = this._onerror.bind(this);
-  this._actualSock.ondata = this._ondata.bind(this);
-  this._actualSock.onclose = this._onclose.bind(this);
+  var args = [host, port, { useSSL: crypto, binaryType: 'arraybuffer' }];
+  this._sendMessage('open', args);
+
+  EventEmitter.call(this);
 
   this.destroyed = false;
 }
@@ -46,28 +59,30 @@ NetSocket.prototype.setTimeout = function() {
 NetSocket.prototype.setKeepAlive = function(shouldKeepAlive) {
 };
 NetSocket.prototype.write = function(buffer) {
-  this._actualSock.send(buffer);
+  this._sendMessage('write', [buffer]);
 };
 NetSocket.prototype.end = function() {
-  this._actualSock.close();
+  if (this.destroyed)
+    return;
+  this._sendMessage('end');
   this.destroyed = true;
+  this._unregisterWithRouter();
 };
 
-NetSocket.prototype._onconnect = function(event) {
-  this.emit('connect', event.data);
+NetSocket.prototype._onconnect = function() {
+  this.emit('connect');
 };
-NetSocket.prototype._onerror = function(event) {
-  this.emit('error', event.data);
+NetSocket.prototype._onerror = function(err) {
+  this.emit('error', err);
 };
-NetSocket.prototype._ondata = function(event) {
-  var buffer = Buffer(event.data);
+NetSocket.prototype._ondata = function(data) {
+  var buffer = Buffer(data);
   this.emit('data', buffer);
 };
-NetSocket.prototype._onclose = function(event) {
-  this.emit('close', event.data);
-  this.emit('end', event.data);
+NetSocket.prototype._onclose = function() {
+  this.emit('close');
+  this.emit('end');
 };
-
 
 exports.connect = function(port, host) {
   return new NetSocket(port, host, false);
@@ -1174,7 +1189,7 @@ SmtpProber.prototype = {
 
     this.error = err;
     if (err)
-      console.warn('PROBE:SMTP sad. error: |' + err + '|');
+      console.warn('PROBE:SMTP sad. error: |' + (err && err.message) + '|');
     else
       console.log('PROBE:SMTP happy');
 
