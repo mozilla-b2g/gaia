@@ -1,6 +1,6 @@
 'use strict';
 
-var MockNavigatormozSms = {
+var MockNavigatormozMobileMessage = {
   getSegmentInfoForText: function() {
     return this.mNextSegmentInfo || this.mDefaultSegmentInfo;
   },
