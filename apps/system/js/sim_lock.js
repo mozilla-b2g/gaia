@@ -29,8 +29,9 @@ var SimLock = {
         this.showIfLocked();
         break;
       case 'appwillopen':
-        // if an app needs telephony or sms permission,
-        // we will launch the unlock screen if needed.
+        // If an app needs 'telephony' or 'sms' permissions (i.e. mobile
+        // connection) and the SIM card is locked, the SIM PIN unlock screen
+        // should be launched
 
         var app = Applications.getByManifestURL(
           evt.target.getAttribute('mozapp'));
@@ -42,12 +43,13 @@ var SimLock = {
         if (evt.target.classList.contains('ftu'))
           return;
 
+        // Ignore apps that don't require a mobile connection
         if (!('telephony' in app.manifest.permissions ||
               'sms' in app.manifest.permissions))
           return;
 
-        // Ignore second `appwillopen` event when showIfLocked ends up
-        // eventually opening the app on valid pin code
+        // Ignore second 'appwillopen' event when showIfLocked eventually opens
+        // the app on valid PIN code
         var origin = evt.target.dataset.frameOrigin;
         if (origin == this._lastOrigin) {
           delete this._lastOrigin;
@@ -55,8 +57,8 @@ var SimLock = {
         }
         this._lastOrigin = origin;
 
-        // if sim is locked, cancel app opening in order to display
-        // it after PIN dialog
+        // If SIM is locked, cancel app opening in order to display
+        // it after the SIM PIN dialog is shown
         if (this.showIfLocked())
           evt.preventDefault();
 
