@@ -3,7 +3,6 @@
 */
 'use strict';
 
-require('/shared/js/lazy_loader.js');
 require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 
@@ -25,9 +24,24 @@ requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/waiting_screen.js');
 requireApp('sms/js/startup.js');
 
-
-
 suite('SMS App Unit-Test', function() {
+  function stub(additionalCode, ret) {
+    if (additionalCode && typeof additionalCode !== 'function')
+      ret = additionalCode;
+
+    var nfn = function() {
+      nfn.callCount++;
+      nfn.calledWith = [].slice.call(arguments);
+
+      if (typeof additionalCode === 'function')
+        additionalCode.apply(this, arguments);
+
+      return ret;
+    };
+    nfn.callCount = 0;
+    return nfn;
+  }
+
   var findByString;
   var nativeMozL10n = navigator.mozL10n;
 
@@ -132,11 +146,16 @@ suite('SMS App Unit-Test', function() {
     threadMsgInputForm.id = 'messages-compose-form';
     threadMsgInputForm.innerHTML = renderThreadMsgInputBar();
 
+    // Thread-messages no results
+    var threadNoResults = document.createElement('div');
+    threadNoResults.id = 'messages-no-results';
+
     threadMessages.appendChild(threadMsgHeader);
     threadMessages.appendChild(threadMsgSubHeader);
     threadMessages.appendChild(threadMsgContainer);
     threadMessages.appendChild(threadMsgEditForm);
     threadMessages.appendChild(threadMsgInputForm);
+    threadMessages.appendChild(threadNoResults);
 
     // Adding to DOM the Thread-messages view
     mainWrapper.appendChild(threadMessages);
@@ -151,7 +170,7 @@ suite('SMS App Unit-Test', function() {
   }
 
   // Previous setup
-  suiteSetup(function() {
+  setup(function() {
     findByString = Contacts.findByString;
 
     // We mockup the method for retrieving the threads
@@ -200,7 +219,7 @@ suite('SMS App Unit-Test', function() {
     );
   });
 
-  suiteTeardown(function() {
+  teardown(function() {
     Contacts.findByString = findByString;
   });
 
@@ -542,6 +561,110 @@ suite('SMS App Unit-Test', function() {
         '+12343454567', 'Fifth number is +12343454567');
       assert.equal(anchors[6].dataset.phonenumber,
         '+919810137553', 'Sixth number is +919810137553');
+    });
+  });
+
+  suite('Search', function() {
+    test('renderContactData input contains +', function(done) {
+      Utils.getPhoneDetails = stub(function(tel, contact, cb) {
+        cb({});
+      });
+
+      ThreadUI.recipient = {
+        value: '+31'
+      };
+
+      ThreadUI.renderContactData({ name: 'jan', tel: [{value: '987'}] });
+
+      assert.equal(Utils.getPhoneDetails.callCount, 1);
+      assert.equal(Utils.getPhoneDetails.calledWith[0], '987');
+      // shouldn't throw, so we can just safely continue
+      done();
+    });
+
+    test('renderContactData search by name', function(done) {
+      Utils.getPhoneDetails = stub(function(tel, contact, cb) {
+        cb({});
+      });
+
+      ThreadUI.recipient = {
+        value: 'ja' // what we're looking for
+      };
+
+      ThreadUI.renderContactData({ name: ['jan'], tel: [{value: '061'}] });
+
+      var contactList = document.querySelector('.contactList');
+
+      assert.notEqual(contactList, null);
+      assert.equal(contactList.querySelector('a').getAttribute('href'),
+        '#num=061');
+      assert.equal(contactList.querySelector('.name').textContent.trim(),
+        'jan');
+      assert.equal(contactList.querySelector('.highlight').textContent, 'ja');
+      done();
+    });
+
+    test('renderContactData search by phone', function(done) {
+      Utils.getPhoneDetails = stub(function(tel, contact, cb) {
+        cb({});
+      });
+
+      ThreadUI.recipient = {
+        value: '06' // what we're looking for
+      };
+
+      ThreadUI.renderContactData({ name: ['jan'], tel: [{value: '061'}] });
+
+      var contactList = document.querySelector('.contactList');
+
+      assert.notEqual(contactList, null);
+      assert.equal(contactList.querySelector('a').getAttribute('href'),
+        '#num=061');
+      assert.equal(contactList.querySelector('.name').textContent.trim(),
+        'jan');
+      assert.equal(contactList.querySelector('.highlight').textContent, '06');
+      done();
+    });
+
+    test('No results should show no-results message', function(done) {
+      ThreadUI.recipient = {
+        value: 'c9'
+      };
+
+      Contacts.findByString = stub(function(s, cb) {
+        cb([]); // no results
+      });
+
+      ThreadUI.searchContact();
+
+      assert.equal(Contacts.findByString.callCount, 1);
+      assert.equal(Contacts.findByString.calledWith[0], 'c9');
+      assert.equal(ThreadUI.noResults.classList.contains('hide'), false);
+      assert.equal(ThreadUI.container.classList.contains('hide'), true);
+
+      done();
+    });
+
+    test('Results should not show no-results message', function(done) {
+      ThreadUI.recipient = {
+        value: 'c9'
+      };
+      ThreadUI.renderContactData = stub();
+
+      Contacts.findByString = stub(function(s, cb) {
+        cb([{ id: 1 }, { id: 2 }]); // results
+      });
+
+      ThreadUI.searchContact();
+
+      assert.equal(Contacts.findByString.callCount, 1);
+      assert.equal(Contacts.findByString.calledWith[0], 'c9');
+      assert.equal(ThreadUI.noResults.classList.contains('hide'), true);
+      assert.equal(ThreadUI.container.classList.contains('hide'), false);
+      assert.equal(ThreadUI.renderContactData.callCount, 2);
+      assert.equal(ThreadUI.renderContactData.calledWith[0].id, 2);
+
+      done();
     });
   });
 });

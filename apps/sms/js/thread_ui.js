@@ -920,13 +920,14 @@ var ThreadUI = {
         var name = Utils.escapeHTML((contact.name[0] || details.title));
         //TODO ask UX if we should use type+carrier or just number
         var number = tels[i].value.toString();
-        var input = self.recipient.value;
+        var escaped = self.recipient.value.replace(
+          /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
         // For name, as long as we do a startsWith on API,
         // we want only to show
         // highlight of the startsWith also
-        var regName = new RegExp('\\b' + input, 'ig');
+        var regName = new RegExp('\\b' + escaped, 'ig');
         // For number we search in any position to avoid country code issues
-        var regNumber = new RegExp(input, 'ig');
+        var regNumber = new RegExp(escaped, 'ig');
         if (!(name.match(regName) || number.match(regNumber))) {
           return;
         }
