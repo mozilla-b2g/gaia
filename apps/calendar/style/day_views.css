@@ -9,13 +9,14 @@
 
 .day-events {
   display: block;
+  box-shadow: none;
 }
 
 .day-events > .hour {
   height: 6rem;
-  padding-left: 0.7rem;
+  padding-left: 1.5rem;
   position: relative;
-  border-bottom: 1px solid #D0D0D0;
+  border-bottom: 0.1rem solid #D0D0D0;
 }
 
 .day-events > .hour.hour-allday {
@@ -29,11 +30,12 @@
 }
 
 .day-events > .hour h4 {
-  top: 0.5rem;
-  width: 6rem;
-  line-height: 3rem;
   position: absolute;
-  text-align: center;
+  width: 6rem;
+  padding-top: 1.4rem;
+  color: #000;
+  font-size: 1.4rem;
+  font-weight: 400;
 }
 
 /** events */
@@ -82,24 +84,25 @@
 .day-events .event h5 {
   width: calc(100% - 1rem - 6px);
   min-height: 2rem;
-  padding-top: 0.25rem;
-  font-size: 1.6rem;
+  padding-top: 0.6rem;
+  font-size: 1.9rem;
+  font-weight: 500;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .day-events .event .details {
+  display: block;
+  top: 2.8rem;
   width: calc(100% - 1rem - 6px);
   min-height: 2rem;
+  padding-top: 0.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  display: block;
-  padding-top: 0.6rem;
-  color: #535353;
-  font-size: 1.1rem;
-  top: 3rem;
+  color: #5b5b5b;
+  font-size: 1.5rem;
 }
 
 .day-events .event.partial-hour .details {
@@ -136,7 +139,7 @@
 #day-view > section {
   top: 4.9rem;
   overflow: hidden;
-  height: calc(100% - 8.33rem);
+  height: calc(100% - 6.9rem);
   position: absolute;
   width: 100%;
   border-left: 1px solid #AAA;
