@@ -27,22 +27,22 @@ menu[type="toolbar"] a {
 ol.link-list label,
 ol.link-list a {
   display: block;
-  width: 100%;
-  line-height: 150%;
-  font-size: 1.8rem;
-  padding: 1.5rem 1rem;
-  border-bottom: 1px solid #C5C5C5;
+  width: calc(100% - 3rem;)
+  min-height: 5.5rem;
+  line-height: 5.5rem;
+  font-size: 1.7rem;
+  padding: 0 1.5rem;
+  border-bottom: 0.1rem solid #C5C5C5;
   text-decoration: none;
-  color: #333;
-  margin: 0 1.5rem 1rem;
+  color: #000;
+  margin: 0 1.5rem;
 }
 
-ol.link-list li:last-child label {
+ol.link-list li:last-child label,
+ol.link-list li:only-child label,
+ol.link-list li:last-child a,
+ol.link-list li:only-child a {
   border-bottom: 0;
-}
-
-ol.link-list a {
-  background: transparent url('icons/ActionIcons_30x30_forward_nav.png') no-repeat right;
 }
 
 /* view management */
@@ -113,10 +113,10 @@ ol.link-list a {
 
 @keyframes throb {
   from {
-    transform: translate(0px, 0);
+    transform: translate(0, 0);
   }
   to {
-    transform: translate(0px, -48px);
+    transform: translate(0, -4.8rem);
   }
 }
 
@@ -128,22 +128,38 @@ ol.link-list a {
 #advanced-settings-view .settings-list label {
   height: auto;
   margin: 0 1.5rem;
-  padding: 1.5rem 0 1rem;
+  padding: 0.5rem 0 1.5rem;
   line-height: 100%;
 }
 
 #advanced-settings-view .settings-list label span {
   display: block;
-  margin-bottom: 0.5rem;
+  position: relative;
+  margin-bottom: 0;
+  font-size: 1.9rem;
+  line-height: 3.3rem;
+}
+
+#advanced-settings-view .settings-list label .button {
+  height: 4rem;
+}
+
+#advanced-settings-view .settings-list label select {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(100% + 3rem);
+  padding-top: 0.8rem;
+  font-size: 1.7rem;
+  font-weight: 500;
+  text-indent: -1.5rem;
+  text-align: center;
 }
 
 #advanced-settings-view .settings-list label span:first-child {
   padding-left: 1.5rem;
-}
-
-#advanced-settings-view .account-list {
-  height: calc(50% - 2.5rem);
-  overflow-y: scroll;
 }
 
 #advanced-settings-view .settings-list label,
@@ -228,8 +244,8 @@ ol.link-list a {
   text-transform: uppercase;
   font-size: 1.3rem;
   padding: 0.185rem 0;
-  border-right: 1px solid #131314;
-  border-left: 1px solid #515051;
+  border-right: 0.1rem solid #131314;
+  border-left: 0.1rem solid #515051;
 }
 
 #month-days li:first-child {
@@ -252,8 +268,8 @@ section.month {
   position: absolute;
   color: #484848;
   width: 100%;
-  border-left: 1px solid #AAA;
-  border-right: 1px solid #AAA;
+  border-left: 0.1rem solid #AAA;
+  border-right: 0.1rem solid #AAA;
   display: none;
 }
 
@@ -307,10 +323,10 @@ section.month li:last-child {
 section.month li {
   padding-top: 0.3%;
 
-  border-right: 1px solid #A4A4A4;
-  border-left: 1px solid #FDFDFD;
-  border-top: 1px solid white;
-  border-bottom: 1px solid #9D9D9D;
+  border-right: 0.1rem solid #A4A4A4;
+  border-left: 0.1rem solid #FDFDFD;
+  border-top: 0.1rem solid white;
+  border-bottom: 0.1rem solid #9D9D9D;
   height: 100%;
   position: relative;
   background-color: white;
@@ -327,7 +343,7 @@ section.month li.past {
 
 section.month li.present {
   background-color: #525963;
-  box-shadow: inset 1px 2px 3px 0 #333;
+  box-shadow: inset 0.1rem 0.2rem 0.3rem 0 #333;
   color: white;
   border-left: none;
   border-top: none;
@@ -554,7 +570,7 @@ section[role="status"].active {
 
 @media screen and (min-width: 481px) {
   html, body {
-    font-size: 12px;
+    font-size: 1.2rem;
   }
 }
 
