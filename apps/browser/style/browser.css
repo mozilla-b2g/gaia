@@ -702,7 +702,7 @@ ul[role="listbox"] {
 
 li[role="listitem"] {
   list-style-type: none;
-  margin: 0 1rem;
+  margin: 0 1.5rem;
 }
 
 li[role="listitem"]:last-child a {
@@ -710,17 +710,19 @@ li[role="listitem"]:last-child a {
 }
 
 li[role="listitem"] a {
+  position: relative;
   display: block;
   padding: 0.8rem;
   text-decoration: none;
   color: #000;
   border-bottom: solid 0.1rem #ccc;
-  padding-left: 3.2rem;
-  background-repeat: no-repeat;
-  background-position: 0.8rem 2rem;
-  background-size: 1.6rem;
+  padding-left: 4rem;
+  background-repeat: no-repeat, no-repeat;
+  background-position: 1rem 1.9rem, 0 .8rem;
+  background-size: 1.6rem, 3.6rem;
   outline: none;
 }
+
 li[role="listitem"] a:hover, li[role="listitem"] a:active {
   background-color: #EEE;
 }
@@ -738,7 +740,7 @@ li[role="listitem"] h5 {
 
 li[role="listitem"] small {
   display: block;
-  color: #666;
+  color: #575e66;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
