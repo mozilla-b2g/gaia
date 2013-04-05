@@ -918,10 +918,11 @@ button::-moz-focus-inner {
 #tabs-mix,
 #tabs-playlists,
 #tabs-artists,
-#tabs-albums {
+#tabs-albums,
+#tabs-songs {
   position: relative;
   float: left;
-  width: 25%;
+  width: 20%;
   height: 100%;
   padding: 0px;
   font-size: 1.7rem;
@@ -943,6 +944,10 @@ button::-moz-focus-inner {
 
 #tabs-albums {
   background-image: url("./images/IconAction_Media_AlbumFilter_30x30.png");
+}
+
+#tabs-songs {
+  background-image: url("./images/IconAction_Media_Songs_30x30.png");
 }
 
 .tabs-button {
