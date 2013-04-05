@@ -277,14 +277,12 @@ input[type="image"] {
 #url-bar {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  padding: 0;
-  margin: 10px;
-  border: solid 1px;
-  border-color: #c1c5ce;
-  border-radius: 5px;
-  height: 34px;
-  margin: 8px 0px 8px 5px;
-  padding: 0 0 0 10px;
+  margin: 1rem;
+  border: 0.1rem solid #c1c5ce;
+  border-radius: 0.5rem;
+  height: 3.4rem;
+  margin: 0.8rem 0 0.8rem 0.5rem;
+  padding: 0 0 0 0.5rem;
   background-color: #fff;
   font-weight: 600;
   width: calc(100% - 15px);
@@ -301,9 +299,9 @@ input[type="image"] {
 
 #ssl-indicator {
   display: block;
-  width: 24px;
-  height: 34px;
-  margin-right: 5px;
+  width: 2.4rem;
+  height: 3.4rem;
+  margin-right: 0.2rem;
   text-indent: -1000em;
   background-repeat: no-repeat;
   background-position: center center;
@@ -327,6 +325,7 @@ input[type="image"] {
   height: 34px;
   -moz-box-flex: 1;
   margin: 0;
+  padding: 0;
   border: none;
   background-color: transparent;
   background: none;
