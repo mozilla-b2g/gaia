@@ -122,6 +122,12 @@ var MessageManager = {
     ThreadListUI.updateContactsInfo();
     ThreadUI.updateHeaderData();
     Utils.updateTimeHeaders();
+
+    // If we receive a message with screen off, the height is
+    // set to 0 and future checks will fail. So we update if needed
+    if (!ThreadListUI.fullHeight || ThreadListUI.fullHeight === 0) {
+      ThreadListUI.fullHeight = ThreadListUI.container.offsetHeight;
+    }
   },
 
   slide: function mm_slide(callback) {
