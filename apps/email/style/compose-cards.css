@@ -1,6 +1,11 @@
 .card-compose {
 }
 
+.card-compose .scrollregion-below-header {
+  display: -moz-box;
+  -moz-box-orient: vertical;
+}
+
 .cmp-addr-label, .cmp-subject-label {
   color: #888888;
   display: table-cell;
@@ -88,12 +93,16 @@ input.cmp-subject-text {
 }
 
 .cmp-body-text {
+  display: -moz-box;
+  -moz-box-flex: 1;
+  height: auto;
+  max-height: 100%;
+  min-height: 10rem;
   -moz-box-sizing: border-box;
   width: calc(100% - 4rem);
-  min-height: 10rem;
   margin: 1.5rem 1.5rem;
   display: block;
-  overflow: hidden;
+  overflow-y: scroll;
   padding: 0rem;
   font: 1.4rem/2rem "MozTT", Sans-serif;
   font-weight: normal;

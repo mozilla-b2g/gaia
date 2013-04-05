@@ -23,10 +23,6 @@ function ComposeCard(domNode, mode, args) {
   this.bccNode = domNode.getElementsByClassName('cmp-bcc-text')[0];
   this.subjectNode = domNode.getElementsByClassName('cmp-subject-text')[0];
   this.textBodyNode = domNode.getElementsByClassName('cmp-body-text')[0];
-  this.textBodyNode.addEventListener('input',
-                                     this.onTextBodyDelta.bind(this));
-  this.textBodyNode.addEventListener('change',
-                                     this.onTextBodyDelta.bind(this));
   this.htmlBodyContainer = domNode.getElementsByClassName('cmp-body-html')[0];
   this.htmlIframeNode = null;
 
@@ -123,8 +119,6 @@ ComposeCard.prototype = {
     }
     this.subjectNode.value = this.composer.subject;
     this.textBodyNode.value = this.composer.body.text;
-    // force the textarea to be sized.
-    this.onTextBodyDelta();
 
     if (this.composer.body.html) {
       // Although (still) sanitized, this is still HTML we did not create and so
@@ -324,23 +318,6 @@ ComposeCard.prototype = {
     // the keyboard.
     var input = evt.currentTarget.getElementsByClassName('cmp-addr-text')[0];
     input.focus();
-  },
-
-  /**
-   * Make our textarea grow as new lines are added...
-   */
-  onTextBodyDelta: function() {
-    var value = this.textBodyNode.value, newlines = 0, idx = -1;
-    while (true) {
-      idx = value.indexOf('\n', idx + 1);
-      if (idx === -1)
-        break;
-      newlines++;
-    }
-    // the last line won't have a newline
-    var neededRows = newlines + 1;
-    if (this.textBodyNode.rows !== neededRows)
-      this.textBodyNode.rows = neededRows;
   },
 
   insertAttachments: function() {
