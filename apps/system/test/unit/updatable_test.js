@@ -410,6 +410,18 @@ suite('system/Updatable', function() {
         });
       });
 
+      suite('ondownloaderror, downloadAvailable = false', function() {
+        setup(function() {
+          mockApp.mTriggerDownloadAvailable();
+          mockApp.downloadAvailable = false;
+          mockApp.mTriggerDownloadError();
+        });
+
+        test('should remove self from available updates', function() {
+          assert.equal(MockUpdateManager.mLastUpdatesRemoval, subject);
+        });
+      });
+
       suite('onprogress', function() {
         setup(function() {
           mockApp.mTriggerDownloadAvailable();
