@@ -246,7 +246,7 @@ suite('SMS App Unit-Test', function() {
 
       test('Update thread with contact info', function() {
         // Given a number, we should retrieve the contact and update the info
-        var threadWithContact = document.getElementById('thread_1977');
+        var threadWithContact = document.getElementById('thread_1');
         var contactName =
           threadWithContact.getElementsByClassName('name')[0].innerHTML;
         assert.equal(contactName, 'Pepito Grillo');
