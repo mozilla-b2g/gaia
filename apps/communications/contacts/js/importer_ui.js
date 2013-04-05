@@ -423,6 +423,7 @@ if (typeof window.importer === 'undefined') {
         }
         else {
           // There was a problem with the access token
+          window.console.warn('Access Token expired or revoked');
           Curtain.hide();
           window.asyncStorage.removeItem(tokenKey,
             function token_removed() {

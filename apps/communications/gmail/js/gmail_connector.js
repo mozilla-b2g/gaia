@@ -79,7 +79,21 @@ var GmailConnector = (function GmailConnector() {
            callbacks.error();
         }
       },
-      error: callbacks.error,
+      error: function(e) {
+        if(e && e.status === 401) {
+          // This is a token expired / invalid token problem
+          window.console.warn('GMail Access token expired or invalid. ',
+                              'restarting flow!');
+          callbacks.success({
+            error: {
+              code: 190
+            }
+          });
+        }
+        else {
+          callbacks.error();
+        }
+      },
       timeout: callbacks.timeout
     };
 
