@@ -190,7 +190,6 @@ li button.icon-dialog,
 li a[role="button"].icon-dialog,
 li .button.icon-dialog {
   font-size: 1.7rem;
-  text-align: center;
 }
 
 li button.icon-dialog:before,
