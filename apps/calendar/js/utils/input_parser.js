@@ -10,10 +10,10 @@ Calendar.ns('Utils').InputParser = (function() {
     _timeParts: ['hours', 'minutes', 'seconds'],
 
     /**
-     * Import HTML5 input[type="time"] string value
+     * Import HTML5 input[type="time"] string value with seconds == 0
      *
      * @param {String} value 23:20:50.52, 17:39:57.
-     * @return {Object} { hours: 23, minutes: 20, seconds: 50 }.
+     * @return {Object} { hours: 23, minutes: 20 }.
      */
     importTime: function(value) {
       var result = {
@@ -31,7 +31,7 @@ Calendar.ns('Utils').InputParser = (function() {
       var partName;
 
       var i = 0;
-      var len = InputParser._timeParts.length;
+      var len = Math.min(2, InputParser._timeParts.length);
 
       for (; i < len; i++) {
         partName = InputParser._timeParts[i];
@@ -53,15 +53,8 @@ Calendar.ns('Utils').InputParser = (function() {
     exportTime: function(value) {
       var hour = value.getHours();
       var minute = value.getMinutes();
-      var second = value.getSeconds();
-
-      var result = '';
-
-      result += InputParser.padNumber(hour) + ':';
-      result += InputParser.padNumber(minute) + ':';
-      result += InputParser.padNumber(second);
-
-      return result;
+      return InputParser.padNumber(hour) + ':' +
+             InputParser.padNumber(minute);
     },
 
     /**

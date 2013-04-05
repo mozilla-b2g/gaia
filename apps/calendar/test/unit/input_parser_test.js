@@ -18,12 +18,12 @@ suite('input_parser', function() {
     ];
 
     var expected = [
-      { hours: 23, minutes: 20, seconds: 0 },
-      { hours: 23, minutes: 20, seconds: 15 },
-      { hours: 17, minutes: 39, seconds: 57 },
-      { hours: 1, minutes: 1, seconds: 1 },
-      { hours: 0, minutes: 0, seconds: 0 },
-      { hours: 0, minutes: 0, seconds: 0 }
+      { hours: 23, minutes: 20 },
+      { hours: 23, minutes: 20 },
+      { hours: 17, minutes: 39 },
+      { hours: 1, minutes: 1 },
+      { hours: 0, minutes: 0 },
+      { hours: 0, minutes: 0 }
     ];
 
     input.forEach(function(item, idx) {
@@ -44,8 +44,8 @@ suite('input_parser', function() {
     ];
 
     var expected = [
-      '07:30:45',
-      '00:00:00'
+      '07:30',
+      '00:00'
     ];
 
     input.forEach(function(item, idx) {
@@ -122,7 +122,7 @@ suite('input_parser', function() {
 
   test('#formatInputDate', function() {
     var expected = new Date(
-      2012, 0, 31, 7, 30, 45
+      2012, 0, 31, 7, 30, 0
     );
 
     var actual = subject.formatInputDate(
