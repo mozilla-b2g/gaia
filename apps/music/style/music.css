@@ -224,6 +224,11 @@ body.search-from-list-mode #views-list {
   overflow-y: hidden;
 }
 
+body.search-from-tiles-mode #tabs,
+body.search-from-list-mode #tabs {
+  display: none;
+}
+
 body.sublist-mode #views {
   transform: translateX(-200%);
   z-index: 20;
@@ -1158,4 +1163,8 @@ form[role="search"] .icon.icon-close {
   margin: 0px;
   overflow: visible;
   font-size: 0px;
+}
+
+.search-highlight {
+  background-color: rgb(0, 138, 170);
 }

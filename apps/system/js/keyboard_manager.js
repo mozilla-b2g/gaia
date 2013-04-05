@@ -78,9 +78,17 @@ var KeyboardManager = (function() {
 
   // For Bug 812115: hide the keyboard when the app is closed here,
   // since it would take a longer round-trip to receive focuschange
-  window.addEventListener('appwillclose', function closeKeyboard() {
+  // Also in Bug 856692 we realise that we need to close the keyboard
+  // when an inline activity goes away.
+  var closeKeyboardEvents = [
+    'appwillclose',
+    'activitywillclose'
+  ];
+  closeKeyboardEvents.forEach(function onEvent(eventType) {
+    window.addEventListener(eventType, function closeKeyboard() {
       dispatchEvent(new CustomEvent('keyboardhide'));
       container.classList.add('hide');
+    });
   });
 })();
 

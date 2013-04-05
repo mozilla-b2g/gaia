@@ -555,6 +555,12 @@ var TilesView = {
 
       // Display the TilesView after when finished updating the UI
       document.getElementById('views-tiles').classList.remove('hidden');
+      // After the hidden class is removed, hideSearch can be effected
+      // because the computed styles are applied to the search elements
+      // And ux wants the search bar to retain its position for about
+      // a half second, but half second seems to short for notifying users
+      // so we use one second instead of a half second
+      window.setTimeout(this.hideSearch.bind(this), 1000);
       return;
     }
 
@@ -639,6 +645,11 @@ var TilesView = {
         if (!target)
           return;
 
+        if (target.id === 'views-tiles-search-clear') {
+          SearchView.clearSearch();
+          return;
+        }
+
         if (target.id === 'views-tiles-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_TILES) {
             ModeManager.pop();
@@ -714,7 +725,7 @@ var TilesView = {
 
 // In Music, visually we have three styles of list
 // Here we use one function to create different style lists
-function createListElement(option, data, index) {
+function createListElement(option, data, index, highlight) {
   var li = document.createElement('li');
   li.className = 'list-item';
 
@@ -724,6 +735,21 @@ function createListElement(option, data, index) {
   a.dataset.option = option;
 
   li.appendChild(a);
+
+  function highlightText(result, text) {
+    var textContent = result.textContent;
+    var index = textContent.toLocaleLowerCase().indexOf(text);
+
+    if (index >= 0) {
+      var innerHTML = textContent.substring(0, index) +
+                      '<span class="search-highlight">' +
+                      textContent.substring(index, index + text.length) +
+                      '</span>' +
+                      textContent.substring(index + text.length);
+
+      result.innerHTML = innerHTML;
+    }
+  }
 
   switch (option) {
     case 'playlist':
@@ -762,6 +788,12 @@ function createListElement(option, data, index) {
         var artistSpan = document.createElement('span');
         artistSpan.className = 'list-single-title';
         artistSpan.textContent = data.metadata.artist || unknownArtist;
+
+        // Highlight the text when the highlight argument is passed
+        // This should only happens when we are creating searched results
+        if (highlight)
+          highlightText(artistSpan, highlight);
+
         li.appendChild(artistSpan);
       } else {
         var albumOrTitleSpan = document.createElement('span');
@@ -774,6 +806,12 @@ function createListElement(option, data, index) {
           albumOrTitleSpan.textContent = data.metadata.title || unknownTitle;
         }
         artistSpan.textContent = data.metadata.artist || unknownArtist;
+
+        // Highlight the text when the highlight argument is passed
+        // This should only happens when we are creating searched results
+        if (highlight)
+          highlightText(albumOrTitleSpan, highlight);
+
         li.appendChild(albumOrTitleSpan);
         li.appendChild(artistSpan);
       }
@@ -902,6 +940,11 @@ var ListView = {
       case 'click':
         if (!target)
           return;
+
+        if (target.id === 'views-list-search-clear') {
+          SearchView.clearSearch();
+          return;
+        }
 
         if (target.id === 'views-list-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_LIST) {
@@ -1064,7 +1107,7 @@ var SubListView = {
       SubListView.setAlbumDefault(index);
       SubListView.dataSource = dataArray;
 
-      if (data.metadata.thumbnail)
+      if (data.metadata.picture)
         SubListView.setAlbumSrc(data);
 
       dataArray.forEach(function(songData) {
@@ -1212,7 +1255,7 @@ var SearchView = {
         lists[option].getElementsByClassName('search-result-count')[0]
                      .textContent = numResults[option];
         lists[option].getElementsByClassName('search-results')[0].appendChild(
-          createListElement(option, result, this.dataSource.length - 1)
+          createListElement(option, result, this.dataSource.length - 1, query)
         );
       }
     }

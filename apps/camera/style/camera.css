@@ -19,7 +19,7 @@ html, body {
   bottom: 0;
   right: 0;
   left: 0;
-  height: 45px;
+  height: 4.5rem;
   z-index: 50;
   background-color: rgba(0, 0, 0, 0.8);
   overflow: hidden;
@@ -30,7 +30,7 @@ html, body {
 }
 
 #switch-button, #misc-button {
-  height: 45px;
+  height: 4.5rem;
   width: 33%;
 }
 
@@ -43,14 +43,15 @@ html, body {
   pointer-events: none;
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 3rem;
   display: block;
   position: absolute;
   top: 50%;
   left: 50%;
-  margin-left: -15px;
-  margin-top: -15px;
-  width: 30px;
-  height: 30px;
+  margin-left: -1.5rem;
+  margin-top: -1.5rem;
+  width: 3rem;
+  height: 3rem;
 }
 
 #switch-button {
@@ -110,16 +111,17 @@ html, body {
 
 #capture-button {
   background-color: #03a2b4;
-  border-radius: 100px;
+  border-radius: 10rem;
   left: 33%;
-  height: 100px;
+  height: 10rem;
   width: 33%;
-  top: -28px;
+  top: -2.8rem;
 }
 
 #video-timer {
   display: none;
   color: white;
+  font-size: 1.8rem;
 }
 
 /* Specific to when we are capturing video */
@@ -160,27 +162,27 @@ html, body {
   position: absolute;
   z-index: 100;
   display: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 50px;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 5rem;
   top: 50%;
   left: 50%;
-  margin-top: -30px;
-  margin-left: -30px;
+  margin-top: -3rem;
+  margin-left: -3rem;
 }
 
 #focus-ring[data-state=focused] {
-  border: 4px solid rgba(0, 255, 0, 0.3);
+  border: 0.4rem solid rgba(0, 255, 0, 0.3);
   display: block;
 }
 
 #focus-ring[data-state=focusing] {
-  border: 4px solid rgba(0, 0, 0, 0.8);
+  border: 0.4rem solid rgba(0, 0, 0, 0.8);
   display: block;
 }
 
 #focus-ring[data-state=fail] {
-  border: 4px solid rgba(255, 0, 0, 0.3);
+  border: 0.4rem solid rgba(255, 0, 0, 0.3);
   display: block;
 }
 
@@ -227,19 +229,19 @@ html, body {
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
-  padding: 110px 25px 0px 25px;
+  padding: 11rem 2.5rem 0 2.5rem;
 }
 
 #overlay-title {
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
-  margin: 0 5px -10px 5px;
+  margin: 0 0.5rem -1rem 0.5rem;
 }
 
 #overlay-text {
-  padding: 10px 5px 0 5px;
-  border-top: 1px solid #686868;
+  padding: 1rem 0.5rem 0 0.5rem;
+  border-top: 0.1rem solid #686868;
   font-weight: 300;
   font-size: 2.5rem;
   color: #ebebeb;
@@ -251,8 +253,8 @@ html, body {
 
 #hud {
   position: absolute;
-  top: 20px;
-  height: 75px;
+  top: 2rem;
+  height: 7.5rem;
   left: 0;
   right: 0;
   z-index: 50;
@@ -261,12 +263,13 @@ html, body {
 #hud a {
   position: absolute;
   z-index: 50;
-  height: 75px;
-  width: 75px;
+  height: 7.5rem;
+  width: 7.5rem;
   border: 0;
   background-position: center center;
   background-repeat: no-repeat;
   background-image: url(images/hud_button_underlay.png);
+  background-size: 4.5rem;
 }
 
 #hud a:after {
@@ -274,11 +277,12 @@ html, body {
   display: block;
   position: relative;
   z-index: 60;
-  height: 75px;
-  width: 75px;
+  height: 7.5rem;
+  width: 7.5rem;
   background: transparent;
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 3rem;
 }
 
 #hud a:active {
@@ -286,11 +290,11 @@ html, body {
 }
 
 #toggle-camera {
-  right: 20px;
+  right: 2rem;
 }
 
 #toggle-flash {
-  left: 20px;
+  left: 2rem;
 }
 
 #toggle-camera[data-mode=back]:after {
@@ -314,7 +318,7 @@ html, body {
 }
 
 #filmstrip.hidden {
-  transform: translateY(-50px);
+  transform: translateY(-5rem);
 }
 
 #preview.offscreen {

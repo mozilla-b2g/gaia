@@ -30,19 +30,23 @@
 }
 
 .msg-search-tease-bar {
-  height: 4.8rem;
   background-color: #eee;
-  border-radius: 4px;
   text-align: center;
+  border-bottom: 0.1rem solid #bdbdbd;
 }
 
 input.msg-search-text-tease {
-  width: 90%;
-  height: calc(100% - 1rem - 2px);
-  border: 1px solid;
-  border-radius: 3px;
-  margin: 0.5rem 0;
   display: inline-block;
+  width: calc(100% - 3rem);
+  height: 3rem;
+  margin: 0.1rem 0 0.4rem;
+  font-size: 1.7rem;
+  border: 0.1rem solid #c2c2c2;
+  border-radius: 0.3rem;
+}
+
+.msg-search-text {
+  font-size: 1.7rem !important;
 }
 
 .msg-no-subject {
@@ -56,16 +60,16 @@ input.msg-search-text-tease {
   display: block;
   position: relative;
   height: 8rem;
-  border-bottom: 1px solid lightgray;
-  vertical-align: 0%;
+  overflow: hidden;
+  border-bottom: 0.1rem solid #bdbdbb;
 }
 .msg-header-item:active {
   background-color: #b1f1ff;
 }
 .msg-header-unread-section {
   position: absolute;
-  left: 1.5rem;
   top: 50%;
+  left: 1rem;
   display: inline-block;
   height: .9rem;
   width: .9rem;
@@ -73,15 +77,15 @@ input.msg-search-text-tease {
   border-radius: 50%;
 }
 .msg-header-unread-section-unread {
-  background-color: #52B6CC;
+  background-color: #53b8cc;
 }
 .msg-header-details-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 3.8rem;
-  /* 100% - (unread-section) - (icons-section) - (avatar-section) */
-  width: -moz-calc(100% - 4rem - 2rem - 2.8rem);
+  left: 2.8rem;
+  /* 100% - (unread-section) - (icons-section) */
+  width: -moz-calc(100% - 2.8rem - 3rem);
   height: 100%;
   font-size: 1.6rem;
   line-height: 2.0rem;
@@ -111,8 +115,9 @@ input.msg-search-text-tease {
   width: -moz-available;
 }
 .msg-header-author {
-  font-size: 110%;
-  color: black;
+  font-size: 1.9rem;
+  font-weight: 500;
+  color: #000;
   display: table-cell;
   width: -moz-available;
   white-space: nowrap;
@@ -120,7 +125,9 @@ input.msg-search-text-tease {
   text-overflow: ellipsis;
 }
 .msg-header-date {
-  color: gray;
+  color: #808080;
+  font-size: 1.5rem;
+  font-weight: 400;
   display: table-cell;
   width: -moz-min-content;
   white-space: nowrap;
@@ -131,15 +138,18 @@ input.msg-search-text-tease {
 }
 .msg-header-subject {
   display: block;
-  color: black;
-  font-weight: 600;
+  color: #000;
+  font-size: 1.5rem;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .msg-header-snippet {
   display: block;
-  color: gray;
+  color: #808080;
+  font-size: 1.5rem;
+  font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -151,8 +161,9 @@ input.msg-search-text-tease {
   font-size: 150%;
 }
 .msg-header-star-starred {
-  background: url("images/icons/message-list-star.png") no-repeat scroll center transparent;
+  background: url("images/icons/message-list-star.png") no-repeat 50% 50%;
   position: absolute;
+  right: -2rem;
   width: 2rem;
   height: 2rem;
   top: 3rem;
@@ -161,8 +172,9 @@ input.msg-search-text-tease {
   display: block;
 }
 .msg-header-attachments-yes {
-  background: url("images/icons/message-list-attachment.png") no-repeat scroll center transparent;
+  background: url("images/icons/message-list-attachment.png") no-repeat 50% 50%;
   position: absolute;
+  right: -2rem;
   width: 2rem;
   height: 2rem;
   top: 5rem;
@@ -210,6 +222,11 @@ input.msg-search-text-tease {
   font-size: 1.9rem;
   line-height: 2.6rem;
   margin: 1rem 1.5rem;
+}
+
+.card-message-reader .msg-body-container > progress {
+  display: block;
+  margin: 0 auto;
 }
 
 .msg-attachments-container {
@@ -431,27 +448,23 @@ input.msg-search-text-tease {
   Empty message-list container
 */
 .msg-list-empty-container {
-  background-image: url('images/mail_watermark.png');
-  background-repeat:no-repeat;
-  background-position: 50% 40%;
-  height: 20rem;
-  width: 100%;
   position: absolute;
-  top: 10rem;
-  left: 0;
+  top: 9rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  width: calc(100% - 3rem);
+  height: 20rem;
 }
 
-.msg-list-empty-message {
-  text-align: center;
-  line-height: 3rem;
+.msg-list-empty-message-text {
   position: relative;
-  top: 12rem;
-  border-top: .1rem solid rgba(96,96,96,.5);
-  width: 27rem;
-  margin: -7rem auto;
-  color: #606060;
-  font-weight: 300;
-  font-size: 2.26rem;
+  top: 2.8rem;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  color: #010101;
+  font-weight: lighter;
+  font-size: 2.4rem;
+  border-top: 0.1rem solid #bebebe;
 }
 
 /* PROGRESS LABEL BUILDING BLOCKS EXTENSION */

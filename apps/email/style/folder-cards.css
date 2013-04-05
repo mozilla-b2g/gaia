@@ -4,6 +4,7 @@
 .fld-accounts-header {
 }
 .fld-accounts-header-label {
+  color: red;
 }
 
 .fld-account-item, .fld-folder-item, .fld-folder-list-header {
@@ -20,7 +21,8 @@
   font-weight: bold;
 }
 .fld-account-name {
-  font-size: 2rem;
+  font-size: 1.7rem;
+  padding: 0 1rem;
 }
 .fld-account-problem {
   color: red;
@@ -83,25 +85,26 @@
   background: #008aaa;
 }
 .fld-folder-name {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
 }
 .fld-folder-unread {
   display: none;
 }
 
 .fld-folder-depth0 {
+  padding-left: 1.5rem;
 }
 .fld-folder-depth1 {
-  padding-left: 3.5rem;
+  padding-left: 3rem;
 }
 .fld-folder-depth2 {
-  padding-left: 5rem;
+  padding-left: 4.5rem;
 }
 .fld-folder-depth3 {
-  padding-left: 6.5rem;
+  padding-left: 6rem;
 }
 .fld-folder-depth4 {
-  padding-left: 8rem;
+  padding-left: 6.5rem;
 }
 .fld-folder-depth5 {
   padding-left: 9.5rem;

@@ -69,6 +69,51 @@ if (typeof window.importer === 'undefined') {
 
     var tokenKey;
 
+    var isOnLine = navigator.onLine;
+    var ongoingImport = false;
+    var theImporter;
+
+    window.addEventListener('online', onLineChanged);
+    window.addEventListener('offline', onLineChanged);
+
+    function showOfflineDialog(yesCb, noCb) {
+      var recommend = serviceConnector.name === 'facebook';
+      ConfirmDialog.show(_('connectionLost'), _('connectionLostMsg'),
+        {
+          title: _('noOption'),
+          isRecommend: !recommend,
+          callback: function() {
+            ConfirmDialog.hide();
+            noCb();
+          }
+        },
+        {
+          title: _('yesOption'),
+          // FB friends can later resync data
+          isRecommend: recommend,
+          callback: function() {
+            ConfirmDialog.hide();
+            yesCb();
+          }
+      }, {
+        zIndex: '10000'
+    });
+    }
+
+    function onLineChanged() {
+      isOnLine = navigator.onLine;
+      if (isOnLine === false && ongoingImport) {
+        theImporter.hold();
+
+        showOfflineDialog(function() {
+          theImporter.resume();
+        }, function() {
+            // Finish the import process consistently
+            theImporter.finish();
+        });
+      }
+    }
+
     function getTokenKey() {
       var key = 'tokenData';
       var serviceName = serviceConnector.name;
@@ -378,6 +423,7 @@ if (typeof window.importer === 'undefined') {
         }
         else {
           // There was a problem with the access token
+          window.console.warn('Access Token expired or revoked');
           Curtain.hide();
           window.asyncStorage.removeItem(tokenKey,
             function token_removed() {
@@ -520,8 +566,6 @@ if (typeof window.importer === 'undefined') {
     }
 
     function cleanContacts(onsuccess, progress) {
-      window.console.log('On clean contacts');
-
       var contacts = [];
       var unSelectedKeys = Object.keys(unSelectedContacts);
       // ContactsCleaner expects an Array object
@@ -573,7 +617,7 @@ if (typeof window.importer === 'undefined') {
         var progress = Curtain.show('progress', 'import');
         progress.setTotal(total);
 
-        Importer.importAll(function on_all_imported() {
+        Importer.importAll(function on_all_imported(totalImported) {
           if (typeof serviceConnector.oncontactsimported === 'function') {
             // Check whether we need to set the last update and schedule next
             // sync. Only in that case otherwise that will be done by the sync
@@ -586,10 +630,10 @@ if (typeof window.importer === 'undefined') {
           if (unSelected > 0) {
             progress.setFrom('update');
             cleanContacts(function callback() {
-              onUpdate(total);
+              onUpdate(totalImported + unSelected);
             }, progress);
           } else {
-            onUpdate(total);
+            onUpdate(totalImported);
           }
         }, progress);
       } else if (unSelected > 0) {
@@ -726,25 +770,24 @@ if (typeof window.importer === 'undefined') {
       }
     }
 
-    /**
-     *  Imports all the selected contacts on the address book
-     *
-     */
-    Importer.importAll = function(importedCB, progress) {
+    function doImportAll(importedCB, progress) {
       var toBeImported = Object.keys(selectedContacts);
       var numFriends = toBeImported.length;
 
-      var cImporter = serviceConnector.getImporter(selectedContacts,
+      theImporter = serviceConnector.getImporter(selectedContacts,
                                                    access_token);
       var cpuLock, screenLock;
 
-      cImporter.oncontactimported = function(cfdata) {
+      theImporter.oncontactimported = function(cfdata) {
         releaseObjs(cfdata);
         progress.update();
       };
 
-      cImporter.onsuccess = function() {
-        window.setTimeout(importedCB, 0);
+      theImporter.onsuccess = function(totalImported) {
+        ongoingImport = false;
+        window.setTimeout(function imported() {
+          importedCB(totalImported);
+        }, 0);
 
         if (cpuLock) {
           cpuLock.unlock();
@@ -760,7 +803,27 @@ if (typeof window.importer === 'undefined') {
       // Release the DOM these objects will no longer be needed
       document.querySelector('#groups-list').innerHTML = '';
 
-      cImporter.start();
+      ongoingImport = true;
+      theImporter.start();
+    }
+
+    /**
+     *  Imports all the selected contacts on the address book
+     *
+     */
+    Importer.importAll = function(importedCB, progress) {
+      if (isOnLine === true) {
+        doImportAll(importedCB, progress);
+      }
+      else {
+        window.console.warn('User is not online!!');
+        showOfflineDialog(function() {
+          doImportAll(importedCB, progress);
+        }, function() {
+          Curtain.hide();
+          UI.end();
+        });
+      }
     };
 
   })(document);

@@ -19,7 +19,7 @@ body[data-path^='/settings'] #time-views {
 }
 
 #settings {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   color: white;
   width: 80%;
   z-index: 0;
@@ -42,23 +42,24 @@ body[data-path^='/settings'] #time-views {
 }
 
 #settings .calendars label > span {
-  line-height: 100%;
   display: block;
   float: left;
 }
 
 #settings .calendars label {
   display: block;
-  padding: 1.6rem;
-  border-bottom: 1px solid #7E8C91;
+  height: 100%;
+  width: 100%;
+  padding: 0 3rem;
+  border-bottom: 0.1rem solid #7E8C91;
   -moz-user-select: none;
   user-select: none;
-  width: 100%;
 }
 
 #settings .calendars li {
   width: 100%;
-  height: 4.9rem;
+  height: 3.9rem;
+  line-height: 3.9rem;
 }
 
 #settings .calendars .calendar-color {
@@ -100,7 +101,6 @@ body[data-path^='/settings'] #time-views {
 
 #settings .calendars > li label {
   text-transform: none;
-  font: inherit;
 }
 
 #settings .calendars input[type="checkbox"] {
@@ -108,20 +108,16 @@ body[data-path^='/settings'] #time-views {
 }
 
 #settings .calendars input[type="checkbox"]:checked + span {
-  width: 14px;
-  height: 14px;
+  width: 2.2rem;
+  height: 1.9rem;
   background: transparent url('/style/icons/checkmark.png') no-repeat;
 }
 
-#settings .calendars input[type="checkbox"]+span {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  float: right;
-  position: static;
-  background: transparent;
-  left: inherit;
-  top: inherit;
+#settings .calendars input[type="checkbox"] + span {
+  left: auto;
+  top: 0.9rem;
+  right: 1.3rem;
+  background: none;
   margin: 0;
 }
 

@@ -308,18 +308,6 @@ var WindowManager = (function() {
     setDisplayedApp(homescreen);
   });
 
-  // XXX: We couldn't avoid to stop inline activities
-  // when screen is turned off and lockscreen is enabled
-  // to avoid two cameras iframes are competing resources
-  // if the user opens a app to call camera activity and
-  // at the same time open camera app from lockscreen.
-
-  window.addEventListener('lock', function onScreenLocked() {
-    if (inlineActivityFrames.length) {
-      stopInlineActivity(true);
-    }
-  });
-
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
     var prop = evt.propertyName;
     var frame = evt.target;
@@ -373,6 +361,7 @@ var WindowManager = (function() {
         classList.remove('opening-switching');
         classList.add('opening');
       } else if (classList.contains('opening')) {
+        windowScaled(frame);
         windowOpened(frame);
 
         setTimeout(openCallback);
@@ -387,12 +376,30 @@ var WindowManager = (function() {
     }
 
     if (classList.contains('opening')) {
-      windowOpened(frame);
+      windowScaled(frame);
 
-      setTimeout(openCallback);
-      openCallback = null;
+      var onWindowReady = function() {
+        windowOpened(frame);
 
-      setOpenFrame(null);
+        setTimeout(openCallback);
+        openCallback = null;
+        setOpenFrame(null);
+      };
+
+      // If this is a cold launch let's wait for the app to load first
+      var iframe = openFrame.firstChild;
+      if ('unpainted' in iframe.dataset) {
+
+        if ('wrapper' in frame.dataset)
+          wrapperFooter.classList.add('visible');
+
+        iframe.addEventListener('mozbrowserloadend', function on(e) {
+          iframe.removeEventListener('mozbrowserloadend', on);
+          onWindowReady();
+        });
+      } else {
+        onWindowReady();
+      }
     } else if (classList.contains('closing')) {
       windowClosed(frame);
 
@@ -405,34 +412,41 @@ var WindowManager = (function() {
 
   // Executes when the opening transition scale the app
   // to full size.
-  function windowOpened(frame) {
+  function windowScaled(frame) {
     var iframe = frame.firstChild;
-
-    frame.classList.add('active');
-    windows.classList.add('active');
-
-    if ('wrapper' in frame.dataset) {
-      wrapperFooter.classList.add('visible');
-    }
-
-    // Take the focus away from the currently displayed app
-    var app = runningApps[displayedApp];
-    if (app && app.iframe)
-      app.iframe.blur();
-
-    // Give the focus to the frame
-    iframe.focus();
-
-    if (!TrustedUIManager.isVisible() && !FtuLauncher.isFtuRunning()) {
-      // Set homescreen visibility to false
-      toggleHomescreen(false);
-    }
 
     // Set displayedApp to the new value
     displayedApp = iframe.dataset.frameOrigin;
 
     // Set orientation for the new app
     setOrientationForApp(displayedApp);
+  }
+
+  // Execute when the application is actually loaded
+  function windowOpened(frame) {
+    var iframe = frame.firstChild;
+
+    if (displayedApp == iframe.dataset.frameOrigin) {
+      frame.classList.add('active');
+      windows.classList.add('active');
+
+      if ('wrapper' in frame.dataset) {
+        wrapperFooter.classList.add('visible');
+      }
+
+      // Take the focus away from the currently displayed app
+      var app = runningApps[displayedApp];
+      if (app && app.iframe)
+        app.iframe.blur();
+
+      if (!TrustedUIManager.isVisible() && !FtuLauncher.isFtuRunning()) {
+        // Set homescreen visibility to false
+        toggleHomescreen(false);
+      }
+
+      // Give the focus to the frame
+      iframe.focus();
+    }
 
     // Dispatch an 'appopen' event.
     var manifestURL = runningApps[displayedApp].manifestURL;
@@ -733,7 +747,7 @@ var WindowManager = (function() {
     };
 
     if ('unpainted' in openFrame.firstChild.dataset) {
-      waitForNextPaintOrBackground(openFrame, transitionOpenCallback);
+      setFrameBackground(openFrame, transitionOpenCallback);
     } else {
       waitForNextPaint(openFrame, transitionOpenCallback);
     }
@@ -953,7 +967,7 @@ var WindowManager = (function() {
 
       var app = runningApps[newApp];
       // Allows listeners to cancel app opening and so stay on homescreen
-      if (!app.frame.dispatchEvent(evt)) {
+      if (!app.iframe.dispatchEvent(evt)) {
         if (typeof(callback) == 'function')
           callback();
         return;
@@ -1309,6 +1323,9 @@ var WindowManager = (function() {
     if (openFrame == frame)
       setOpenFrame(null);
 
+    // Bug 856692: force the close of the keyboard in closing inline activities
+    dispatchEvent(new CustomEvent('activitywillclose'));
+
     // If frame is never set visible, we can remove the frame directly
     // without closing transition
     if (!frame.classList.contains('active')) {
@@ -1563,6 +1580,15 @@ var WindowManager = (function() {
         resetDeviceLockedTimer();
         break;
       case 'lock':
+        // XXX: We couldn't avoid to stop inline activities
+        // when screen is turned off and lockscreen is enabled
+        // to avoid two cameras iframes are competing resources
+        // if the user opens a app to call camera activity and
+        // at the same time open camera app from lockscreen.
+        if (inlineActivityFrames.length) {
+          stopInlineActivity(true);
+        }
+
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         if (!normalAudioChannelActive) {
