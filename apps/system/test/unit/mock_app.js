@@ -58,7 +58,6 @@ MockApp.prototype.mTriggerDownloadSuccess = function() {
 };
 
 MockApp.prototype.mTriggerDownloadError = function(error) {
-  this.downloadAvailable = true;
   this.downloadSize = null;
 
   this.downloadError = {
