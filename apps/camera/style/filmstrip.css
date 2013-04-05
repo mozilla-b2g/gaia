@@ -4,7 +4,7 @@
   z-index: 100;
   left: 0;
   right: 0;
-  height: 50px;
+  height: 5rem;
   /*
    * the background must be solid for preview mode because otherwise some
    * of the frozen viewfinder shows through. If it really need to be translucent
@@ -15,17 +15,17 @@
 
 img.thumbnail {
   position: relative;
-  width: 46px;
-  height: 46px;
-  border: 2px solid white;
-  margin-right: 4px;
+  width: 4.6rem;
+  height: 4.6rem;
+  border: 0.2rem solid white;
+  margin-right: 0.4rem;
   float: left; /* XXX: do we need this? */
   -moz-user-select: none;
   transition: 0.2s ease-in-out;
 }
 
 img.thumbnail.previewed {  /* if the thumbnail is being previewed */
-  border: 2px solid #0ac;
+  border: 0.2rem solid #0ac;
 }
 
 /*
@@ -46,8 +46,8 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   position: absolute;
   left: 0;
   width: 100%;
-  top: 50px;
-  bottom: 0px;
+  top: 5rem;
+  bottom: 0;
   padding: 0;
   margin: 0;
   border-width: 0;
@@ -63,9 +63,9 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   left: 0;
   top: 0;
   width: 100%;
-  bottom: 40px;
-  padding: 0px;
-  margin: 0px;
+  bottom: 4rem;
+  padding: 0;
+  margin: 0;
   overflow: hidden;
   -moz-user-select: none;
 }
@@ -76,13 +76,13 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
 }
 
 #media-frame > img {
-  top: 0px;  /* javascript modifies this position with a transform */
-  left: 0px;
+  top: 0;  /* javascript modifies this position with a transform */
+  left: 0;
   position: absolute;
-  border-width: 0px;
-  padding: 0px;
-  margin: 0px;
-  transform-origin: 0px 0px;
+  border-width: 0;
+  padding: 0;
+  margin: 0;
+  transform-origin: 0 0;
   pointer-events: none;
   -moz-user-select: none;
 }
@@ -96,20 +96,20 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
  */
 #media-frame > img.swapping {
   opacity: 0.8;
-  outline: dashed #0ac 4px;
-  outline-offset: -4px;
+  outline: dashed #0ac 0.4rem;
+  outline-offset: -0.4rem;
 }
 
 #media-frame > video {
-  transform-origin: 0px 0px;
+  transform-origin: 0 0;
 }
 
 #preview-controls {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0px;
-  height: 40px;
+  bottom: 0;
+  height: 4rem;
   background-color: rgba(0, 0, 0, 0.8);
   z-index: 100; /* above the dynamically inserted frame elements */
 }
@@ -138,6 +138,7 @@ a.button.hidden {
  width: 33%;
  height: 100%;
  background-image: url(images/camera.png);
+ background-size: 3rem;
 }
 
 #share-button {
@@ -146,6 +147,7 @@ a.button.hidden {
  width: 33%;
  height: 100%;
  background-image: url(images/share.png);
+ background-size: 3rem;
 }
 
 #delete-button {
@@ -154,6 +156,7 @@ a.button.hidden {
  width: 33%;
  height: 100%;
  background-image: url(images/delete.png);
+ background-size: 3rem;
 }
 
 /*
