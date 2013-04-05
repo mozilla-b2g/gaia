@@ -700,11 +700,12 @@
           <header class="tng-main-accounts-label">
             <h2 data-l10n-id="settings-account-section">AccountS</h2>
           </header>
-          <div class="tng-accounts-container"></div>
-            <li class="align-center">
+          <ul class="tng-accounts-container">
+            <li>
               <button href="#" data-l10n-id="settings-account-add"
                 class="tng-account-add">AdD AccounT</button>
             </li>
+          </ul>
           <!-- Hide for v1: Hide general setting section to reduce effort-->
           <header class="tng-main-about-label collapsed">
             <h2 data-l10n-id="settings-general-section">GeneraL SettingS</h2>
@@ -796,10 +797,8 @@
               <span class="tng-account-type list-value">AccounT TypE</span>
             </em>
           </li>
-          <li>
-            <span data-l10n-id="settings-account-synchronize" class="list-text">SynchronizE</span>
-          </li>
           <li class="synchronize-setting">
+            <label data-l10n-id="settings-account-synchronize" class="list-text">SynchronizE</label>
             <span class="button icon icon-dialog">
               <select class="mail-select tng-account-synchronize">
                 <option value="auto" data-l10n-id="settings-synchronize-auto">
