@@ -358,17 +358,7 @@ ComposeCard.prototype = {
    * Make our textarea grow as new lines are added...
    */
   onTextBodyDelta: function() {
-    var value = this.textBodyNode.value, newlines = 0, idx = -1;
-    while (true) {
-      idx = value.indexOf('\n', idx + 1);
-      if (idx === -1)
-        break;
-      newlines++;
-    }
-    // the last line won't have a newline
-    var neededRows = newlines + 1;
-    if (this.textBodyNode.rows !== neededRows)
-      this.textBodyNode.rows = neededRows;
+    this.textBodyNode.style.height = this.textBodyNode.scrollHeight + 'px';
   },
 
   insertAttachments: function() {
