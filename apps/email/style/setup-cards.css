@@ -216,3 +216,31 @@ li.settings-input-list {
 .tng-email-lib-version {
   opacity: 0;
 }
+
+section.card-settings-account li {
+  border-bottom: none;
+  margin: 0 auto;
+  overflow: hidden;
+  width: 100%;
+}
+
+section.card-settings-account li.synchronize-setting {
+  border: none;
+}
+
+section.card-settings-account li span.button {
+  left: 3rem;
+  width: calc(100% - 6rem);
+}
+
+section.card-settings-account li span.button select {
+  /** Need to push the little select arrow off the page */
+  width: 150% !important;
+}
+
+.tng-account-synchronize {
+  background: none;
+  border: transparent;
+  font-size: 1.7rem;
+  font-weight: bold;
+}
