@@ -460,7 +460,6 @@ MessageListCard.prototype = {
         // Fall through...
       case 'synced':
         this.syncingNode.classList.add('collapsed');
-        this.progressNode.classList.remove('pack-activity');
         this.progressNode.classList.add('hidden');
         if (this.progressCandybarTimer) {
           window.clearTimeout(this.progressCandybarTimer);
@@ -869,6 +868,14 @@ MessageListCard.prototype = {
         cb.checked = true;
       }
       this.selectedMessagesUpdated();
+      return;
+    }
+
+    if (this.curFolder.type === 'localdrafts') {
+      var composer = header.editAsDraft(function() {
+        Cards.pushCard('compose', 'default', 'animate',
+                       { composer: composer });
+      });
       return;
     }
 
