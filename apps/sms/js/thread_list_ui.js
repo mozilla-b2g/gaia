@@ -116,17 +116,17 @@ var ThreadListUI = {
     var selected = ThreadListUI.selectedInputs.length;
 
     if (selected === ThreadListUI.count) {
-      this.checkAllButton.classList.add('disabled');
+      this.checkAllButton.disabled = true;
     } else {
-      this.checkAllButton.classList.remove('disabled');
+      this.checkAllButton.disabled = false;
     }
     if (selected) {
-      this.uncheckAllButton.classList.remove('disabled');
-      this.deleteButton.classList.remove('disabled');
+      this.uncheckAllButton.disabled = false;
+      this.deleteButton.disabled = false;
       this.editMode.innerHTML = _('selected', {n: selected});
     } else {
-      this.uncheckAllButton.classList.add('disabled');
-      this.deleteButton.classList.add('disabled');
+      this.uncheckAllButton.disabled = true;
+      this.deleteButton.disabled = true;
       this.editMode.innerHTML = _('editMode');
     }
   },
