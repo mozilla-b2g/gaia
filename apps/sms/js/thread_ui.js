@@ -450,6 +450,9 @@ var ThreadUI = {
           // stop the iteration
           return false;
         }
+        if (MessageManager.currentThread === null) {
+          MessageManager.currentThread = message.threadId;
+        }
         self.appendMessage(message,/*hidden*/ true);
         self.messageIndex++;
         if (self.messageIndex === self.CHUNK_SIZE) {
