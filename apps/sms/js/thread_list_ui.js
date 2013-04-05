@@ -267,9 +267,8 @@ var ThreadListUI = {
     var num = thread.senderOrReceiver;
     var timestamp = thread.timestamp.getTime();
     var threadDOM = document.createElement('li');
-    threadDOM.id = 'thread_' + thread.id;
+    threadDOM.id = 'thread_' + num;
     threadDOM.dataset.time = timestamp;
-    threadDOM.dataset.phoneNumber = num;
 
     // Retrieving params from thread
     var bodyText = (thread.body || '').split('\n')[0];
@@ -378,7 +377,7 @@ var ThreadListUI = {
     var threads = ThreadListUI.container.getElementsByTagName('li');
     for (var i = 0; i < threads.length; i++) {
       var thread = threads[i];
-      var num = thread.dataset.phoneNumber;
+      var num = thread.id.replace('thread_', '');
       // Update info of the contact given a number
       ThreadListUI.updateThreadWithContact(num, thread);
     }
