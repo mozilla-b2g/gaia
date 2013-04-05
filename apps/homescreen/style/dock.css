@@ -26,8 +26,7 @@
 #footer li {
   height: 100%;
   position: relative;
-  /* 100% width / 7 icons = ~14.25% */
-  width: 14.25%;
+  width: calc(100% / 7);
   float: left;
   text-align: center;
 }
