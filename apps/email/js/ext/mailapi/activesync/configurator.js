@@ -1689,7 +1689,8 @@ function ActiveSyncFolderSyncer(account, folderStorage, _parentLog) {
 exports.ActiveSyncFolderSyncer = ActiveSyncFolderSyncer;
 ActiveSyncFolderSyncer.prototype = {
   /**
-   * Can we synchronize?  Not if we don't have a server id!
+   * Can we synchronize?  Not if we don't have a server id!  (This happens for
+   * the inbox when it is speculative before our first syncFolderList.)
    */
   get syncable() {
     return this.folderConn.serverId !== null;
@@ -2262,6 +2263,32 @@ ActiveSyncJobDriver.prototype = {
   undo_download: $jobmixins.undo_download,
 
   //////////////////////////////////////////////////////////////////////////////
+  // saveDraft
+
+  local_do_saveDraft: $jobmixins.local_do_saveDraft,
+
+  do_saveDraft: $jobmixins.do_saveDraft,
+
+  check_saveDraft: $jobmixins.check_saveDraft,
+
+  local_undo_saveDraft: $jobmixins.local_undo_saveDraft,
+
+  undo_saveDraft: $jobmixins.undo_saveDraft,
+
+  //////////////////////////////////////////////////////////////////////////////
+  // deleteDraft
+
+  local_do_deleteDraft: $jobmixins.local_do_deleteDraft,
+
+  do_deleteDraft: $jobmixins.do_deleteDraft,
+
+  check_deleteDraft: $jobmixins.check_deleteDraft,
+
+  local_undo_deleteDraft: $jobmixins.local_undo_deleteDraft,
+
+  undo_deleteDraft: $jobmixins.undo_deleteDraft,
+
+  //////////////////////////////////////////////////////////////////////////////
   // purgeExcessMessages is a NOP for activesync
 
   local_do_purgeExcessMessages: function(op, doneCallback) {
@@ -2432,7 +2459,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   if (!inboxFolder) {
     // XXX localized Inbox string (bug 805834)
     this._addedFolder(null, '0', 'Inbox',
-                      $FolderHierarchy.Enums.Type.DefaultInbox, true);
+                      $FolderHierarchy.Enums.Type.DefaultInbox, null, true);
   }
 }
 exports.Account = exports.ActiveSyncAccount = ActiveSyncAccount;
@@ -2641,6 +2668,21 @@ ActiveSyncAccount.prototype = {
         deferredAddedFolders = moreDeferredAddedFolders;
       }
 
+      // - create local drafts folder (if needed)
+      var localDrafts = this.getFirstFolderWithType('localdrafts');
+      if (!localDrafts) {
+        // Try and add the folder next to the existing drafts folder, or the
+        // sent folder if there is no drafts folder.  Otherwise we must have an
+        // inbox and we want to live under that.
+        var sibling = this.getFirstFolderWithType('drafts') ||
+                      this.getFirstFolderWithType('sent');
+        var parentId = sibling ? sibling.parentId
+                               : this.getFirstFolderWithType('inbox').serverId;
+        // Since this is a synthetic folder; we just directly choose the name
+        // that our l10n mapping will transform.
+        this._addedFolder(null, parentId, 'localdrafts', null, 'localdrafts');
+      }
+
       console.log('Synced folder list');
       if (callback)
         callback(null);
@@ -2668,6 +2710,8 @@ ActiveSyncAccount.prototype = {
    * @param {string} displayName The display name for the new folder
    * @param {string} typeNum A numeric value representing the new folder's type,
    *   corresponding to the mapping in _folderTypes above
+   * @param {string} forceType Force a string folder type for this folder.
+   *   Used for synthetic folders like localdrafts.
    * @param {boolean} suppressNotification (optional) if true, don't notify any
    *   listeners of this addition
    * @return {object} the folderMeta if we added the folder, true if we don't
@@ -2675,8 +2719,9 @@ ActiveSyncAccount.prototype = {
    *   (e.g. if we haven't added the folder's parent yet)
    */
   _addedFolder: function asa__addedFolder(serverId, parentServerId, displayName,
-                                          typeNum, suppressNotification) {
-    if (!(typeNum in this._folderTypes))
+                                          typeNum, forceType,
+                                          suppressNotification) {
+    if (!forceType && !(typeNum in this._folderTypes))
       return true; // Not a folder type we care about.
 
     var folderType = $FolderHierarchy.Enums.Type;
@@ -2718,7 +2763,7 @@ ActiveSyncAccount.prototype = {
         id: folderId,
         serverId: serverId,
         name: displayName,
-        type: this._folderTypes[typeNum],
+        type: forceType || this._folderTypes[typeNum],
         path: path,
         parentId: parentFolderId,
         depth: depth,

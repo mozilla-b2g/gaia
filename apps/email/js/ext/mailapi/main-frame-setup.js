@@ -188,6 +188,9 @@ function MailFolder(api, wireRep) {
    *   }
    *   @case['inbox']
    *   @case['drafts']
+   *   @case['localdrafts']{
+   *     Local-only folder that stores drafts composed on this device.
+   *   }
    *   @case['queue']
    *   @case['sent']
    *   @case['trash']
@@ -1086,6 +1089,13 @@ MessageComposition.prototype = {
     };
   },
 
+  die: function() {
+    if (this._handle) {
+      this._api._composeDone(this._handle, 'die', null, null);
+      this._handle = null;
+    }
+  },
+
   /**
    * Add custom headers; don't use this for built-in headers.
    */
@@ -1099,7 +1109,7 @@ MessageComposition.prototype = {
   /**
    * @args[
    *   @param[attachmentDef @dict[
-   *     @key[fileName String]
+   *     @key[name String]
    *     @key[blob Blob]
    *   ]]
    * ]
@@ -1169,11 +1179,11 @@ MessageComposition.prototype = {
   },
 
   /**
-   * The user is done writing the message for now; save it to the drafts folder
-   * and close out this handle.
+   * Save the state of this composition.
    */
-  saveDraftEndComposition: function() {
-    this._api._composeDone(this._handle, 'save', this._buildWireRep());
+  saveDraft: function(callback) {
+    this._api._composeDone(this._handle, 'save', this._buildWireRep(),
+                           callback);
   },
 
   /**
@@ -1184,8 +1194,8 @@ MessageComposition.prototype = {
    * functionality, possibly on the UI side of the house.  This is not a secure
    * delete.
    */
-  abortCompositionDeleteDraft: function() {
-    this._api._composeDone(this._handle, 'delete', null);
+  abortCompositionDeleteDraft: function(callback) {
+    this._api._composeDone(this._handle, 'delete', null, callback);
   },
 
 };
@@ -2294,7 +2304,26 @@ MailAPI.prototype = {
    * move may be performed instead.)
    */
   resumeMessageComposition: function(message, callback) {
-    throw new Error('XXX No resuming composition right now.  Sorry!');
+    if (!callback)
+      throw new Error('A callback must be provided; you are using the API ' +
+                      'wrong if you do not.');
+
+    var handle = this._nextHandle++,
+        composer = new MessageComposition(this, handle);
+
+    this._pendingRequests[handle] = {
+      type: 'compose',
+      composer: composer,
+      callback: callback,
+    };
+
+    this.__bridgeSend({
+      type: 'resumeCompose',
+      handle: handle,
+      messageNamer: serializeMessageName(message)
+    });
+
+    return composer;
   },
 
   _recv_composeBegun: function(msg) {
@@ -2326,18 +2355,9 @@ MailAPI.prototype = {
       unexpectedBridgeDataError('Bad handle for compose done:', handle);
       return;
     }
-    switch (command) {
-      case 'send':
-        req.type = 'send';
-        req.callback = callback;
-        break;
-      case 'save':
-      case 'delete':
-        delete this._pendingRequests[handle];
-        break;
-      default:
-        throw new Error('Illegal composeDone command: ' + command);
-    }
+    req.type = command;
+    if (callback)
+      req.callback = callback;
     this.__bridgeSend({
       type: 'doneCompose',
       handle: handle,
@@ -2346,14 +2366,15 @@ MailAPI.prototype = {
     });
   },
 
-  _recv_sent: function(msg) {
+  _recv_doneCompose: function(msg) {
     var req = this._pendingRequests[msg.handle];
     if (!req) {
-      unexpectedBridgeDataError('Bad handle for sent:', msg.handle);
+      unexpectedBridgeDataError('Bad handle for doneCompose:', msg.handle);
       return;
     }
-    // Only delete the request if the send succeeded.
-    if (!msg.err)
+    req.active = null;
+    // Do not cleanup on saves. Do cleanup on successful send, delete, die.
+    if (req.type === 'die' || (!msg.err && (req.type !== 'save')))
       delete this._pendingRequests[msg.handle];
     if (req.callback) {
       req.callback.call(null, msg.err, msg.badAddresses, msg.sentDate);

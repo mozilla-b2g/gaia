@@ -621,7 +621,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
           var idxUid = serverUIDs.indexOf(header.srvid);
           // deleted!
           if (idxUid === -1) {
-            storage.deleteMessageHeaderAndBody(header);
+            storage.deleteMessageHeaderAndBodyUsingHeader(header);
             numDeleted++;
             headers[iMsg] = null;
             continue;
@@ -1941,6 +1941,32 @@ ImapJobDriver.prototype = {
   undo_download: $jobmixins.undo_download,
 
   //////////////////////////////////////////////////////////////////////////////
+  // saveDraft
+
+  local_do_saveDraft: $jobmixins.local_do_saveDraft,
+
+  do_saveDraft: $jobmixins.do_saveDraft,
+
+  check_saveDraft: $jobmixins.check_saveDraft,
+
+  local_undo_saveDraft: $jobmixins.local_undo_saveDraft,
+
+  undo_saveDraft: $jobmixins.undo_saveDraft,
+
+  //////////////////////////////////////////////////////////////////////////////
+  // deleteDraft
+
+  local_do_deleteDraft: $jobmixins.local_do_deleteDraft,
+
+  do_deleteDraft: $jobmixins.do_deleteDraft,
+
+  check_deleteDraft: $jobmixins.check_deleteDraft,
+
+  local_undo_deleteDraft: $jobmixins.local_undo_deleteDraft,
+
+  undo_deleteDraft: $jobmixins.undo_deleteDraft,
+
+  //////////////////////////////////////////////////////////////////////////////
   // modtags: Modify tags on messages
 
   local_do_modtags: $jobmixins.local_do_modtags,
@@ -2561,7 +2587,7 @@ ImapJobDriver.prototype = {
             walkBoxes(box.children, boxPath + box.delim, pathDepth + 1);
           }
           else {
-            var type = self.account._determineFolderType(box, boxPath);
+            var type = self.account._determineFolderType(box, boxPath, rawConn);
             folderMeta = self.account._learnAboutFolder(
               boxName, boxPath, parentFolderId, type, box.delim, pathDepth);
           }
@@ -3452,7 +3478,7 @@ ImapAccount.prototype = {
   _syncFolderList: function(conn, callback) {
     conn.getBoxes(this._syncFolderComputeDeltas.bind(this, conn, callback));
   },
-  _determineFolderType: function(box, path) {
+  _determineFolderType: function(box, path, conn) {
     var type = null;
     // NoSelect trumps everything.
     if (box.attribs.indexOf('NOSELECT') !== -1) {
@@ -3519,32 +3545,42 @@ ImapAccount.prototype = {
 
       // heuristic based type assignment based on the name
       if (!type) {
-        switch (box.displayName.toUpperCase()) {
-          case 'DRAFT':
-          case 'DRAFTS':
-            type = 'drafts';
-            break;
-          case 'INBOX':
-            type = 'inbox';
-            break;
-          // Yahoo provides "Bulk Mail" for yahoo.fr.
-          case 'BULK MAIL':
-          case 'JUNK':
-          case 'SPAM':
-            type = 'junk';
-            break;
-          case 'SENT':
-            type = 'sent';
-            break;
-          case 'TRASH':
-            type = 'trash';
-            break;
-          // This currently only exists for consistency with Thunderbird, but
-          // may become useful in the future when we need an outbox.
-          case 'UNSENT MESSAGES':
-            type = 'queue';
-            break;
-        }
+        // ensure that we treat folders at the root, see bug 854128
+        var personalNS = conn.namespaces.personal;
+        var prefix = personalNS.length ? personalNS[0].prefix : '';
+        var isAtNamespaceRoot = path === (prefix + box.displayName);
+        // If our name is our path, we are at the absolute root of the tree.
+        // This will be the case for INBOX even if there is a namespace.
+        if (isAtNamespaceRoot || path === box.displayName) {
+          switch (box.displayName.toUpperCase()) {
+            case 'DRAFT':
+            case 'DRAFTS':
+              type = 'drafts';
+              break;
+            case 'INBOX':
+              // Inbox is special; the path needs to case-insensitively match.
+              if (path.toUpperCase() === 'INBOX')
+                type = 'inbox';
+              break;
+            // Yahoo provides "Bulk Mail" for yahoo.fr.
+            case 'BULK MAIL':
+            case 'JUNK':
+            case 'SPAM':
+              type = 'junk';
+              break;
+            case 'SENT':
+              type = 'sent';
+              break;
+            case 'TRASH':
+              type = 'trash';
+              break;
+            // This currently only exists for consistency with Thunderbird, but
+            // may become useful in the future when we need an outbox.
+            case 'UNSENT MESSAGES':
+              type = 'queue';
+              break;
+          }
+	}
       }
 
       if (!type)
@@ -3575,7 +3611,7 @@ ImapAccount.prototype = {
             folderId;
 
         // - normalize jerk-moves
-        var type = self._determineFolderType(box, path);
+        var type = self._determineFolderType(box, path, conn);
         // gmail finds it amusing to give us the localized name/path of its
         // inbox, but still expects us to ask for it as INBOX.
         if (type === 'inbox')
@@ -3613,8 +3649,40 @@ ImapAccount.prototype = {
       // (skip those we found above)
       if (folderPub === true)
         continue;
+      // Never delete our localdrafts folder.
+      if (folderPub.type === 'localdrafts')
+        continue;
       // It must have gotten deleted!
       this._forgetFolder(folderPub.id);
+    }
+
+    // Add a localdrafts folder if we don't have one.
+    var localDrafts = this.getFirstFolderWithType('localdrafts');
+    if (!localDrafts) {
+      // Try and add the folder next to the existing drafts folder, or the
+      // sent folder if there is no drafts folder.  Otherwise we must have an
+      // inbox and we want to live under that.
+      var sibling = this.getFirstFolderWithType('drafts') ||
+                    this.getFirstFolderWithType('sent');
+      var parentId = sibling ? sibling.parentId
+                             : this.getFirstFolderWithType('inbox').id;
+      // parentId will be null if we are already top-level
+      var parentFolder;
+      if (parentId) {
+        parentFolder = this._folderInfos[parentId].$meta;
+      }
+      else {
+        parentFolder = {
+          path: '', delim: '', depth: -1
+        };
+      }
+      var localDraftPath = parentFolder.path + parentFolder.delim +
+            'localdrafts';
+      // Since this is a synthetic folder; we just directly choose the name
+      // that our l10n mapping will transform.
+      this._learnAboutFolder('localdrafts', localDraftPath,  parentId,
+                             'localdrafts', parentFolder.delim,
+                             parentFolder.depth + 1);
     }
 
     callback(null);
