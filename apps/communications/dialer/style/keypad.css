@@ -25,6 +25,8 @@
   border-spacing: 1.5rem 0rem;
   font-family: 'MozTT';
   font-weight: 300;
+  overflow: hidden;
+  padding-bottom: 4.5rem;
 }
 
 #phone-number-view-container.keypad-visible {
@@ -65,7 +67,7 @@ article:not(:target) #keypad-delete {
 
 #keyboard-container {
   width: 100%;
-  height: 34.5rem;
+  height: 30rem;
 }
 
 #keypad {
@@ -94,7 +96,7 @@ article:not(:target) #keypad-delete {
   border-bottom-color: rgba(0, 0, 0, 0.4);
   padding:0.2rem 0 0 1.5rem;
   -moz-box-sizing: border-box;
-  height: 7rem;
+  height: 6rem;
   vertical-align: middle;
   color: white;
   font-family: 'MozTT';
@@ -180,11 +182,11 @@ article:not(:target) #keypad-delete {
 
 #keypad-callbar {
   background: rgba(24,24,24,.92);
-  height: 6.5rem;
+  height: 5.8rem;
   width: 100%;
   display: table;
   table-layout: fixed;
-  border-spacing: 1rem 1rem;
+  border-spacing: 0.8rem 0.8rem;
   border: solid 0.1rem rgba(255, 255, 255, 0.2);
   border-right-color: rgba(0, 0, 0, 0.4);
   border-bottom-color: rgba(0, 0, 0, 0.4);
@@ -331,6 +333,136 @@ article:not(:target) #keypad-delete {
 
 .phone-number-font {
   font-size: 4rem;
-  color: white;
+  color: #8CD629;
   font-family:'MozTT';
+}
+
+
+/* Suggestion bar */
+#suggestion-bar {
+  margin-top: -4.5rem;
+  padding: 0;
+  width: 100%;
+  font-size: 1.7rem;
+  background-color: #3A414A;
+  height: 4.5rem;
+  overflow: hidden;
+  -moz-box-sizing: border-box;
+  position: absolute;
+  font-family:'MozTT';
+}
+
+#suggestion-bar:before {
+  box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, 0.5);
+  content: ' ';
+  display: block;
+  width: 100%;
+}
+
+#suggestion-count {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 5.3rem;
+  text-align: center;
+  line-height: 4.3rem;
+  margin: 0.2rem 0.2rem 0.2rem 0.2rem;
+  color: white;
+  font-weight: bold;
+}
+
+#suggestion-count.more {
+  background: url(images/icon_arrow_white.png) no-repeat right 0.5rem bottom / 1rem;
+}
+
+#suggestion-bar > .suggestion-item {
+  background: url(images/ui/dark/separator.png) no-repeat left center / auto 3.1rem;
+  height: 4.5rem;
+  padding: 0.2rem;
+  margin-left: 5.3rem;
+  padding-left: 1rem;
+  color: white;
+}
+
+#suggestion-bar > .suggestion-item:active,
+#suggestion-overlay .suggestion-item:active,
+#suggestion-count:active {
+  background-color: #00ABCC;
+  transition: background-color 0.2s ease;
+}
+
+/* Matched item inside suggestion bar and suggestion overlay */
+.suggestion-item > .name {
+  display: block;
+  font-weight: bold;
+}
+
+.suggestion-item > .tel-type {
+  font-weight: normal;
+  display: inline;
+  font-size: 1.5rem;
+}
+
+.suggestion-item > .tel-type:not(:empty):after {
+  content: '|';
+  padding: 0 0 0 0.6rem;
+}
+
+.suggestion-item > .tel {
+  display: inline;
+  font-size: 1.5rem;
+}
+.suggestion-item > .tel > span {
+  color: #8CD629;
+  font-size: 1.5rem;
+}
+
+.suggestion-item > div {
+  pointer-events: none;
+}
+
+.suggestion-item > .avatar {
+  float: right;
+  width: 4.5rem;
+  height: 4.5rem;
+  background-size: cover;
+  opacity: 1;
+  transition: opacity 0.3s linear;
+}
+
+.suggestion-item > .avatar.hidden {
+  opacity: 0;
+}
+
+#suggestion-overlay {
+  opacity: 1;
+  transform: translateY(-100%);
+  transition: transform 0.4s ease-in-out;
+}
+
+#suggestion-overlay.display {
+  transform: translateY(0%);
+}
+
+#suggestion-overlay .suggestion-item {
+  height: 4.5rem;
+  padding: 1rem 0;
+  font-size: 1.7rem;
+  border-bottom: 0.1rem solid #000;
+}
+
+#suggestion-overlay .suggestion-item:after {
+  content: ' ';
+  width: 100%;
+  border-bottom: 0.1rem solid #666;
+  display: block;
+  position: relative;
+  bottom: -1.2rem;
+}
+
+#suggestion-list {
+  height: 33rem;
+  overflow: auto;
+  padding: 0 2rem 0 2rem;
+  list-style: none outside none;
 }

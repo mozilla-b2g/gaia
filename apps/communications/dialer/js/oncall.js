@@ -425,6 +425,7 @@ var OnCallHandler = (function onCallHandler() {
       callScreen.removeEventListener('transitionend', trWait);
 
       animating = false;
+      postToMainWindow('animated');
 
       // We did animate the call screen off the viewport
       // now closing the window.

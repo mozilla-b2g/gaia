@@ -1,9 +1,3 @@
-/**
- *  This code is shared between system/emergency-call/js/keypad.js
- *  and communications/dialer/js/keypad.js.
- *  Be sure to update both files when you commit!
- */
-
 'use strict';
 
 var kFontStep = 4;
@@ -171,6 +165,8 @@ var KeypadManager = {
   _phoneNumber: '',
   _onCall: false,
 
+  onValueChanged: null,
+
   get phoneNumberView() {
     delete this.phoneNumberView;
     return this.phoneNumberView = document.getElementById('phone-number-view');
@@ -302,6 +298,8 @@ var KeypadManager = {
     TonePlayer.init();
 
     this.render();
+    loader.load(['/shared/style/action_menu.css',
+                 '/dialer/js/suggestion_bar.js']);
   },
 
   moveCaretToEnd: function hk_util_moveCaretToEnd(el) {
@@ -350,7 +348,8 @@ var KeypadManager = {
   },
 
   makeCall: function hk_makeCall(event) {
-    event.stopPropagation();
+    if (event)
+      event.stopPropagation();
 
     if (this._phoneNumber != '') {
       CallHandler.call(KeypadManager._phoneNumber);
@@ -615,6 +614,8 @@ var KeypadManager = {
     }
 
     this.formatPhoneNumber(ellipsisSide, maxFontSize);
+    if (this.onValueChanged)
+      this.onValueChanged(this._phoneNumber);
   },
 
   restorePhoneNumber: function kh_restorePhoneNumber(ellipsisSide,
@@ -670,4 +671,3 @@ var KeypadManager = {
      request.onerror = function() {};
   }
 };
-
