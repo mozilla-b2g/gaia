@@ -6,7 +6,7 @@ const DockManager = (function() {
   var container, dock;
 
   var MAX_NUM_ICONS = 7;
-  var maxNumAppInViewPort = 4, numAppsBeforeDrag, maxOffsetLeft;
+  var maxNumAppInViewPort = 4, maxOffsetLeft;
 
   var windowWidth = window.innerWidth;
   var duration = 300;
@@ -172,15 +172,16 @@ const DockManager = (function() {
     window.addEventListener(touchend, handleEvent);
   }
 
-  function placeAfterRemovingApp(numApps, centering) {
-    document.body.dataset.transitioning = 'true';
-
-    if (centering || numApps <= maxNumAppInViewPort) {
-      dock.moveByWithDuration(maxOffsetLeft / 2, .5);
-    } else {
-      dock.moveByWithDuration(dock.getLeft() + cellWidth, .5);
+  function rePosition(numApps) {
+    if (numApps > maxNumAppInViewPort && dock.getLeft() < 0 &&
+          dock.getRight() > windowWidth) {
+      // The dock takes up the screen width.
+      return;
     }
 
+    // We are going to place the dock in the middle of the screen
+    document.body.dataset.transitioning = 'true';
+    dock.moveByWithDuration(maxOffsetLeft / 2, .5);
     container.addEventListener('transitionend', function transEnd(e) {
       container.removeEventListener('transitionend', transEnd);
       delete document.body.dataset.transitioning;
@@ -230,22 +231,12 @@ const DockManager = (function() {
       container.addEventListener(touchstart, handleEvent);
       var numApps = dock.getNumIcons();
       calculateDimentions(numApps);
-
-      if (numApps === numAppsBeforeDrag ||
-          numApps > maxNumAppInViewPort &&
-          (numApps < numAppsBeforeDrag && dock.getRight() >= windowWidth ||
-           numApps > numAppsBeforeDrag && dock.getLeft() < 0)
-         ) {
-        return;
-      }
-
-      placeAfterRemovingApp(numApps, numApps > numAppsBeforeDrag);
+      rePosition(numApps);
     },
 
     onDragStart: function dm_onDragStart() {
       releaseEvents();
       container.removeEventListener(touchstart, handleEvent);
-      numAppsBeforeDrag = dock.getNumIcons();
     },
 
     /*
@@ -262,7 +253,9 @@ const DockManager = (function() {
       if (numApps > maxNumAppInViewPort && dock.getRight() >= windowWidth) {
         return;
       }
-      placeAfterRemovingApp(numApps);
+
+      calculateDimentions(numApps);
+      rePosition(numApps);
     },
 
     isFull: function dm_isFull() {
