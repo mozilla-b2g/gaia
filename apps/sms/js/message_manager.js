@@ -4,8 +4,6 @@
 'use strict';
 
 var MessageManager = {
-  currentNum: null,
-  currentThread: null,
   init: function mm_init(callback) {
     if (this.initialized) {
       return;
@@ -56,7 +54,6 @@ var MessageManager = {
     // thread without requesting Gecko, so we increase the performance and we
     // reduce Gecko requests.
     return {
-        id: message.threadId,
         senderOrReceiver: message.sender,
         body: message.body,
         timestamp: message.timestamp,
@@ -67,9 +64,13 @@ var MessageManager = {
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
 
+    var num;
+    if (this.currentNum) {
+      num = this.currentNum;
+    }
+
     var sender = message.sender;
-    var threadId = message.threadId;
-    if (threadId && threadId === this.currentThread) {
+    if (num && num === sender) {
       //Append message and mark as unread
       this.markMessagesRead([message.id], true, function() {
         MessageManager.getThreads(ThreadListUI.renderThreads);
@@ -82,8 +83,9 @@ var MessageManager = {
       if (ThreadListUI.view.getElementsByTagName('ul').length === 0) {
         ThreadListUI.renderThreads([threadMockup]);
       } else {
+        var num = threadMockup.senderOrReceiver;
         var timestamp = threadMockup.timestamp.getTime();
-        var previousThread = document.getElementById('thread_' + threadId);
+        var previousThread = document.getElementById('thread_' + num);
         if (previousThread && previousThread.dataset.time > timestamp) {
           // If the received SMS it's older that the latest one
           // We need only to update the 'unread status'
@@ -158,9 +160,7 @@ var MessageManager = {
         contactButton.parentNode.appendChild(contactButton);
         document.getElementById('messages-container').innerHTML = '';
         ThreadUI.cleanFields();
-        // Cleaning global params related with the previous thread
         MessageManager.currentNum = null;
-        MessageManager.currentThread = null;
         threadMessages.classList.add('new');
         MessageManager.slide(function() {
           receiverInput.focus();
@@ -170,9 +170,7 @@ var MessageManager = {
         //Keep the  visible button the :last-child
         var editButton = document.getElementById('icon-edit');
         editButton.parentNode.appendChild(editButton);
-        // Cleaning global params related with the previous thread
         MessageManager.currentNum = null;
-        MessageManager.currentThread = null;
         if (mainWrapper.classList.contains('edit')) {
           mainWrapper.classList.remove('edit');
           if (ThreadListUI.editDone) {
@@ -220,8 +218,7 @@ var MessageManager = {
           } else {
             // As soon as we click in the thread, we visually mark it
             // as read.
-            var threadRead =
-              document.querySelector('li[data-phone-number="' + num + '"]');
+            var threadRead = document.getElementById('thread_' + num);
             if (threadRead) {
               threadRead.getElementsByTagName('a')[0].classList
                     .remove('unread');
