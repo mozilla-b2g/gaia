@@ -29,7 +29,7 @@
 #permission-remember-section {
   height: 6rem;
   border-top: 0.1rem solid #686868;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   width: 100%;
   position: relative;
 }
@@ -39,11 +39,14 @@
 }
 
 #permission-message {
-  background-image: none;
-  background-repeat: no-repeat no-repeat;
-  min-height: 6.4rem;
+  margin: 0;
+  padding-top: 1.2rem;
+  padding-bottom: 0.8rem;
+  min-height: 4.4rem;
   font-size: 1.6rem;
-  background-size: 6.4rem
+  background-repeat: no-repeat;
+  background-size: 6.4rem;
+  background-position: 0 50%;
 }
 
 #permission-screen[data-type] #permission-remember-section,
@@ -52,12 +55,12 @@
 }
 
 #permission-screen[data-type] #permission-message {
-  padding-left: 6.4rem;
+  padding-left: 7.2rem;
 }
 
 #permission-remember-section label {
   position: absolute;
-  right: 1rem;
+  right: 0.4rem;
 }
 
 #permission-remember-label {
