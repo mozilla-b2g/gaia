@@ -82,7 +82,7 @@ body[role="application"] .fieldbox a:after {
   width: 0;
   height: 0;
   border: solid 0.4rem transparent;
-  border-top-color: #333; 
+  border-top-color: #333;
   position: absolute;
   top: 1.8rem;
   margin-left: 0.5rem;
@@ -251,7 +251,7 @@ body[role="application"] > nav > .inner {
 
 body[role="application"] > nav .inner > h2 {
   font-weight: bold;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   line-height: 3.3rem;
   text-indent: 3rem;
   color: #fff;
