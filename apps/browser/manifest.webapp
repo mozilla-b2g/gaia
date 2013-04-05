@@ -12,6 +12,7 @@
     "systemXHR":{},
     "settings":{ "access": "readonly" },
     "geolocation" : {},
+    "storage": {},
     "desktop-notification" : {}
   },
   "locales": {
