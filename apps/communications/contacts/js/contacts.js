@@ -148,23 +148,23 @@ var Contacts = (function() {
 
     TAG_OPTIONS = {
       'phone-type' : [
-        {value: _('mobile')},
-        {value: _('home')},
-        {value: _('work')},
-        {value: _('personal')},
-        {value: _('faxHome')},
-        {value: _('faxOffice')},
-        {value: _('faxOther')},
-        {value: _('another')}
+        {type: 'mobile', value: _('mobile')},
+        {type: 'home', value: _('home')},
+        {type: 'work', value: _('work')},
+        {type: 'personal', value: _('personal')},
+        {type: 'faxHome', value: _('faxHome')},
+        {type: 'faxOffice', value: _('faxOffice')},
+        {type: 'faxOther', value: _('faxOther')},
+        {type: 'another', value: _('another')}
       ],
       'email-type' : [
-        {value: _('personal')},
-        {value: _('home')},
-        {value: _('work')}
+        {type: 'personal', value: _('personal')},
+        {type: 'home', value: _('home')},
+        {type: 'work', value: _('work')}
       ],
       'address-type' : [
-        {value: _('home')},
-        {value: _('work')}
+        {type: 'home', value: _('home')},
+        {type: 'work', value: _('work')}
       ]
     };
   };

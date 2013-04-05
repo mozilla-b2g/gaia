@@ -289,14 +289,18 @@ contacts.Form = (function() {
     var fields = config['fields'];
     var container = config['container'];
 
-    var default_type = tags[0].value || '';
+    var default_type = tags[0].type || '';
     var currField = {};
     var infoFromFB = false;
+
     for (var j = 0; j < fields.length; j++) {
       var currentElem = fields[j];
       var def = (currentElem === 'type') ? default_type : '';
       var defObj = (typeof(obj) === 'string') ? obj : obj[currentElem];
       var value = currField[currentElem] = defObj || def;
+      if (currentElem === 'type') {
+        value = _(value) || value;
+      }
       currField[currentElem] = utils.text.escapeHTML(value, true);
       if (!infoFromFB && value && nonEditableValues[value]) {
         infoFromFB = true;
@@ -494,6 +498,19 @@ contacts.Form = (function() {
     }
   };
 
+  function getNormalizedType(tag, tagList) {
+    // By default is the tag itself
+    var out = tag;
+
+    for (var j = 0; j < tagList.length; j++) {
+      if (tagList[j].value === tag) {
+        out = tagList[j].type;
+      }
+    }
+
+    return out;
+  }
+
   var getPhones = function getPhones(contact) {
     var selector = '#view-contact-form form div.phone-template:not(.removed)';
     var phones = dom.querySelectorAll(selector);
@@ -506,7 +523,9 @@ contacts.Form = (function() {
         continue;
 
       var selector = 'tel_type_' + arrayIndex;
-      var typeField = dom.getElementById(selector).textContent || '';
+      var typeField = getNormalizedType(
+                                dom.getElementById(selector).textContent || '',
+                                TAG_OPTIONS['phone-type']);
       var carrierSelector = 'carrier_' + arrayIndex;
       var carrierField = dom.getElementById(carrierSelector).value || '';
       contact['tel'] = contact['tel'] || [];
@@ -527,7 +546,9 @@ contacts.Form = (function() {
       var emailField = dom.getElementById('email_' + arrayIndex);
       var emailValue = emailField.value;
       var selector = 'email_type_' + arrayIndex;
-      var typeField = dom.getElementById(selector).textContent || '';
+      var typeField = getNormalizedType(
+                                dom.getElementById(selector).textContent || '',
+                                TAG_OPTIONS['email-type']);
       if (!emailValue)
         continue;
 
@@ -549,7 +570,9 @@ contacts.Form = (function() {
       var addressValue = addressField.value || '';
 
       var selector = 'address_type_' + arrayIndex;
-      var typeField = dom.getElementById(selector).textContent || '';
+      var typeField = getNormalizedType(
+                                dom.getElementById(selector).textContent || '',
+                                TAG_OPTIONS['address-type']);
       selector = 'locality_' + arrayIndex;
       var locality = dom.getElementById(selector).value || '';
       selector = 'postalCode_' + arrayIndex;
