@@ -134,7 +134,7 @@ function init() {
   };
 
   // In crop view, the done button finishes the pick
-  $('crop-done-button').onclick = finishPick;
+  $('crop-done-button').onclick = cropAndEndPick;
 
   // The camera buttons should both launch the camera app
   $('fullscreen-camera-button').onclick = launchCameraApp;
@@ -151,9 +151,9 @@ function init() {
   window.onresize = resizeHandler;
 
   // If we were not invoked by an activity, then start off in thumbnail
-  // list mode, and fire up the image and video mediadb objects.
+  // list mode, and fire up the MediaDB object.
   if (!navigator.mozHasPendingMessage('activity')) {
-    initDB(true);
+    initDB();
     setView(thumbnailListView);
   }
 
@@ -166,7 +166,7 @@ function init() {
       // The 'browse' activity is the way we launch Gallery from Camera.
       // If this was a cold start, then the db needs to be initialized.
       if (!photodb) {
-        initDB(true);  // Initialize both the photo and video databases
+        initDB();  // Initialize the media database
         setView(thumbnailListView);
       }
       else {
@@ -186,9 +186,10 @@ function init() {
     case 'pick':
       if (pendingPick) // I don't think this can really happen anymore
         cancelPick();
+      pendingPick = a; // We need pendingPick set before calling initDB()
       if (!photodb)
-        initDB(false); // Don't include videos when picking photos!
-      startPick(a);
+        initDB();
+      startPick();
       break;
     }
   });
@@ -196,7 +197,7 @@ function init() {
 
 // Initialize MediaDB objects for photos and videos, and set up their
 // event handlers.
-function initDB(include_videos) {
+function initDB() {
   photodb = new MediaDB('pictures', metadataParserWrapper, {
     mimeTypes: ['image/jpeg', 'image/png'],
     version: 2,
@@ -205,9 +206,12 @@ function initDB(include_videos) {
     batchSize: PAGE_SIZE // Max batch size: one screenful
   });
 
-  if (include_videos) {
-    videostorage = navigator.getDeviceStorage('videos');
-  }
+  // This is where we find videos once the photodb notifies us that a
+  // new video poster image has been detected. Note that we need this
+  // even during a pick activity when we're not displaying videos
+  // because we might still might find and parse metadata for new
+  // videos during the scanning process.
+  videostorage = navigator.getDeviceStorage('videos');
 
   var loaded = false;
   function metadataParserWrapper(file, onsuccess, onerror) {
@@ -240,7 +244,7 @@ function initDB(include_videos) {
     if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
       showOverlay(null);
 
-    initThumbnails(include_videos);
+    initThumbnails();
   };
 
   photodb.onscanstart = function onscanstart() {
@@ -301,7 +305,7 @@ function compareFilesByDate(a, b) {
 // when the sdcard becomes available again after a USB mass storage
 // session or an sdcard replacement.
 //
-function initThumbnails(include_videos) {
+function initThumbnails() {
   // If we've already been called once, then we've already got thumbnails
   // displayed. There is no need to re-enumerate them, so we just go
   // straight to scanning for new files
@@ -354,7 +358,7 @@ function initThumbnails(include_videos) {
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
     if (fileinfo) {
       // For a pick activity, don't display videos
-      if (!include_videos && fileinfo.metadata.video)
+      if (pendingPick && fileinfo.metadata.video)
         return;
 
       batch.push(fileinfo);
@@ -470,6 +474,11 @@ function deleteFile(n) {
 
 function fileCreated(fileinfo) {
   var insertPosition;
+
+  // If the new file is a video and we're handling an image pick activity
+  // then we won't display the new file.
+  if (pendingPick && fileinfo.metadata.video)
+    return;
 
   // If we were showing the 'no pictures' overlay, hide it
   if (currentOverlay === 'emptygallery' || currentOverlay === 'scanning')
@@ -672,14 +681,13 @@ function thumbnailOffscreen(thumbnail) {
 var pendingPick;
 var pickType;
 var pickWidth, pickHeight;
+var pickedFile;
 var cropURL;
 var cropEditor;
-var isAttachment;
 
-function startPick(activityRequest) {
-  pendingPick = activityRequest;
-  pickType = activityRequest.source.data.type;
-  isAttachment = activityRequest.source.data.isAttachment;
+function startPick() {
+  pickType = pendingPick.source.data.type;
+
   if (pendingPick.source.data.width && pendingPick.source.data.height) {
     pickWidth = pendingPick.source.data.width;
     pickHeight = pendingPick.source.data.height;
@@ -693,12 +701,36 @@ function startPick(activityRequest) {
   });
 }
 
+// Called when the user clicks on a thumbnail in pick mode
 function cropPickedImage(fileinfo) {
+  pickedFile = fileinfo;
+
+  // Do we actually want to allow the user to crop the image?
+  var nocrop = pendingPick.source.data.nocrop;
+
+  if (nocrop) {
+    // If we're not cropping we don't want the word "Crop" in the title bar
+    // XXX: UX will probably get rid of this title bar soon, anyway.
+    $('crop-header').textContent = '';
+  }
+
   setView(cropView);
 
-  photodb.getFile(fileinfo.name, function(file) {
+  photodb.getFile(pickedFile.name, function(file) {
     cropURL = URL.createObjectURL(file);
     cropEditor = new ImageEditor(cropURL, $('crop-frame'), {}, function() {
+      // If the initiating app doesn't want to allow the user to crop
+      // the image, we don't display the crop overlay. But we still use
+      // this image editor to preview the image.
+      if (nocrop) {
+        // Set a fake crop region even though we won't display it
+        // so that getCroppedRegionBlob() works.
+        cropEditor.cropRegion.left = cropEditor.cropRegion.top = 0;
+        cropEditor.cropRegion.right = cropEditor.dest.w;
+        cropEditor.cropRegion.bottom = cropEditor.dest.h;
+        return;
+      }
+
       cropEditor.showCropOverlay();
       if (pickWidth)
         cropEditor.setCropAspectRatio(pickWidth, pickHeight);
@@ -708,21 +740,43 @@ function cropPickedImage(fileinfo) {
   });
 }
 
-function finishPick(fileinfo) {
-  if (fileinfo.name) {
-    photodb.getFile(fileinfo.name, endPick);
+function cropAndEndPick() {
+  if (Array.isArray(pickType)) {
+    if (pickType.length === 0 ||
+        pickType.indexOf(pickedFile.type) !== -1 ||
+        pickType.indexOf('image/*') !== -1) {
+      pickType = pickedFile.type;
+    }
+    else if (pickType.indexOf('image/png') !== -1) {
+      pickType = 'image/png';
+    }
+    else {
+      pickType = 'image/jpeg';
+    }
+  }
+  else if (pickType === 'image/*') {
+    pickType = pickedFile.type;
+  }
+
+  // If we're not changing the file type or resizing the image and if
+  // we're not cropping, or if the user did not crop, then we can just
+  // use the file as it is.
+  if (pickType === pickedFile.type &&
+      !pickWidth && !pickHeight &&
+      (pendingPick.source.data.nocrop || !cropEditor.hasBeenCropped())) {
+    photodb.getFile(pickedFile.name, endPick);
   }
   else {
     cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight, endPick);
   }
+}
 
-  function endPick(blob) {
-    pendingPick.postResult({
-      type: pickType,
-      blob: blob
-    });
-    cleanupPick();
-  }
+function endPick(blob) {
+  pendingPick.postResult({
+    type: pickType,
+    blob: blob
+  });
+  cleanupPick();
 }
 
 function cancelPick() {
@@ -744,6 +798,7 @@ function cleanupCrop() {
 function cleanupPick() {
   cleanupCrop();
   pendingPick = null;
+  pickedFile = null;
   setView(thumbnailListView);
 }
 
@@ -780,11 +835,8 @@ function thumbnailClickHandler(evt) {
   else if (currentView === thumbnailSelectView) {
     updateSelection(target);
   }
-  else if (currentView === pickView && !isAttachment) {
+  else if (currentView === pickView) {
     cropPickedImage(files[parseInt(target.dataset.index)]);
-  }
-  else if (currentView === pickView && isAttachment) {
-    finishPick(files[parseInt(target.dataset.index)]);
   }
 }
 

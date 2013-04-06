@@ -1,10 +1,10 @@
 /* generic stuff that will probably live in the building blocks */
 
 form, fieldset, input, textarea {
-  border: 0px;
+  border: 0;
   background-color: transparent;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
 
 input, textarea {
@@ -22,16 +22,14 @@ input[type="checkbox"] {
 
 form,
 form ol {
-  margin: 0px;
-  padding: 0px;
+  margin: 0;
+  padding: 0;
 }
 
 /* for calendar */
 
 form li {
+  margin: 1rem 2rem;
   padding: 0.25rem;
 }
 
-form li {
-  margin: 1rem 2rem;
-}

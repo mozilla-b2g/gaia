@@ -174,18 +174,8 @@
 
   <section id="day-view">
   </section>
-
   <div class="delay"><!--
   <section id="week-view">
-    <section class="sticky">
-      <section class="children">
-        <span class="all-day" data-l10n-id="hour-allday">All Day</span>
-      </section>
-    </section>
-    <div class="scroll">
-      <ol class="sidebar"></ol>
-      <section class="children"></section>
-    </div>
   </section>
   --></div>
 
@@ -242,22 +232,22 @@
 
   <section class="content">
     <div class="errors"></div>
-  
+
     <header>
       <h2 data-l10n-id="account-list-header">
         Accounts
       </h2>
     </header>
-  
+
     <ol class="account-list link-list">
     </ol>
-  
+
     <header>
       <h2 data-l10n-id="advanced-settings-personalization">
         Personalization
       </h2>
     </header>
-  
+
     <ol class="settings-list link-list">
       <li>
         <label>
@@ -272,13 +262,13 @@
         </label>
       </li>
     </ol>
-  
+
     <header>
       <h2 data-l10n-id="advanced-settings-reminders">
         Reminders
       </h2>
     </header>
-  
+
     <ol class="settings-list link-list">
       <li>
         <label id="default-event-alarm">
@@ -468,8 +458,10 @@
   </header>
 
   <section class="during-progress">
-    <p data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</p>
-    <progress class="small"></progress>
+    <div>
+      <progress class="small"></progress>
+      <span data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</span>
+    </div>
   </section>
 
   <form>
@@ -488,6 +480,11 @@
             placeholder="URL" />
 
         </li>
+        <li>
+          <a data-l10n-id="remove-account-data" role="button" href="#remove-account-dialog" class="danger delete-record">
+            Remove Local Data
+          </a>
+        </li>
       </ol>
     </fieldset>
   </form>
@@ -495,11 +492,6 @@
   <section role="status">
     <p class="errors"></p>
   </section>
-
-
-  <a data-l10n-id="remove-account-data" role="button" href="#remove-account-dialog" class="danger delete-record">
-    Remove Local Data
-  </a>
 
   <form role="dialog" data-type="confirm" id="remove-account-dialog">
     <section>

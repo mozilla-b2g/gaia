@@ -593,6 +593,16 @@ ImageEditor.prototype.isCropOverlayShown = function() {
   return this.cropCanvas;
 };
 
+// Returns true if the crop region is anything different than the
+// entire dest rectangle. If this method returns false, there is no
+// need to call getCroppedRegionBlob().
+ImageEditor.prototype.hasBeenCropped = function() {
+  return (this.cropRegion.left !== 0 ||
+          this.cropRegion.top !== 0 ||
+          this.cropRegion.right !== this.dest.w ||
+          this.cropRegion.bottom !== this.dest.h);
+};
+
 // Display cropping controls
 // XXX: have to handle rotate/resize
 ImageEditor.prototype.showCropOverlay = function showCropOverlay(newRegion) {

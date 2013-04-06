@@ -14,6 +14,7 @@
     "systemXHR":{},
     "settings":{ "access": "readonly" },
     "alarms":{},
+    "storage":{},
     "desktop-notification":{}
   },
   "locales": {

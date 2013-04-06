@@ -68,7 +68,7 @@ const DragDropManager = (function() {
   var transitioning = false;
 
   function onNavigationEnd() {
-    transitioning = false;
+    transitioning = isDisabledDrop = false;
   }
 
   function overDock() {
@@ -88,7 +88,6 @@ const DragDropManager = (function() {
       draggableIcon.addClassToDragElement('overDock');
       DockManager.page.appendIcon(draggableIcon);
       drop(DockManager.page);
-      previousOverlapIcon = overlapElem;
     }
 
     if (dirCtrl.limitNext(cx)) {
@@ -101,11 +100,6 @@ const DragDropManager = (function() {
   }
 
   function overIconGrid() {
-    if (transitioning) {
-      isDisabledDrop = true;
-      return;
-    }
-
     isDisabledDrop = false;
     var curPageObj = pageHelper.getCurrent();
 
@@ -154,8 +148,12 @@ const DragDropManager = (function() {
    * it's needed
    */
   function checkLimits() {
+    if (transitioning) {
+      return;
+    }
+
     if (cy >= limitY) {
-      overDock(overlapElem);
+      overDock();
     } else {
       overIconGrid();
     }

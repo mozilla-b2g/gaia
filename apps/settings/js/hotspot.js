@@ -134,19 +134,14 @@ var Hotspot = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
-
         var tethering_ssid_element = '[data-setting="tethering.wifi.ssid"]';
         var tethering_password = 'tethering.wifi.security.password';
-
         var tethering_ssid = dialog.querySelector(tethering_ssid_element);
 
-        // Check if SSID is set
-        // if (tethering_ssid.value == '') {
-          if (/^\s*$/.test(tethering_ssid.value)) {
-
+        // ensure SSID is set
+        if (/^\s*$/.test(tethering_ssid.value)) {
           var _ = navigator.mozL10n.get;
-          var error_msg = _('SSIDCannotBeEmpty');
-          alert(error_msg);
+          alert(_('SSIDCannotBeEmpty'));
           reset(); // Reset to original values if ssid is null.
         } else {
           var ignorePassword = (securityTypeSelector.value == 'open');

@@ -70,6 +70,7 @@ if (typeof window.oauth2 === 'undefined') {
         var token_ts = tokenData.token_ts;
 
         if (expires !== 0 && Date.now() - token_ts >= expires) {
+          window.console.warn('Access token has expired, restarting flow');
           startOAuth(state, service);
           return;
         }

@@ -56,19 +56,13 @@ contacts.List = (function() {
   };
 
   var initSearch = function initSearch(callback) {
-    if (!loaded) {
-      window.addEventListener('listRendered', function onRendered() {
-        window.removeEventListener('listRendered', onRendered);
-        lazyLoadSearch();
-      });
-    } else if (!searchLoaded) {
-      lazyLoadSearch();
-    }
-    contacts.Search.init(conctactsListView, favoriteGroup, function(e) {
-      onClickHandler(e);
-    });
-    if (callback)
+    contacts.Search.init(conctactsListView, favoriteGroup, onClickHandler);
+
+    if (callback) {
       callback();
+    }
+
+    lazyLoadSearch();
   };
 
   var initAlphaScroll = function initAlphaScroll() {
@@ -231,10 +225,12 @@ contacts.List = (function() {
     contactContainer.dataset.updated = timestampDate.getTime();
     // contactInner is a link with 3 p elements:
     // name, socaial marks and org
-    contactContainer.appendChild(getHighlightedName(contact));
+    var nameElement = getHighlightedName(contact);
+    contactContainer.appendChild(nameElement);
     contactsCache[contact.id] = {
       contact: contact,
-      container: contactContainer
+      container: contactContainer,
+      nameElement: nameElement
     };
     renderOrg(contact, contactContainer, true);
 
@@ -412,16 +408,34 @@ contacts.List = (function() {
     loaded = true;
   };
 
+  var searchLoading = false;
+
+  var lazyLoadSearch = function lazyLoadSearch() {
+    if (searchLoading || searchLoaded) {
+      return;
+    }
+
+    searchLoading = true;
+
+    if (!loaded) {
+      window.addEventListener('listRendered', function onRendered() {
+        window.removeEventListener('listRendered', onRendered);
+        doLazyLoadSearch();
+      });
+    } else if (!searchLoaded) {
+      doLazyLoadSearch();
+    }
+  };
+
   // Method that fills non-visible datasets
   // needed for searching and adding new elements
-  var lazyLoadSearch = function lazyLoadSearch() {
+  var doLazyLoadSearch = function doLazyLoadSearch() {
     for (var id in contactsCache) {
       var current = contactsCache[id];
-      var contact = current.contact;
-      var name = current.container.querySelector('p');
-      addSearchOptions(name, contact);
+      addSearchOptions(current.nameElement, current.contact);
     }
     searchLoaded = true;
+    searchLoading = false;
     contacts.Search.enableSearch();
     dispatchCustomEvent('finishLazyLoading');
   };
@@ -429,9 +443,7 @@ contacts.List = (function() {
   var lazyLoadOrder = function lazyLoadOrder() {
     for (var id in contactsCache) {
       var current = contactsCache[id];
-      var contact = current.contact;
-      var name = current.container.querySelector('p');
-      addOrderOptions(name, contact);
+      addOrderOptions(current.nameElement, current.contact);
     }
   };
 
@@ -456,12 +468,14 @@ contacts.List = (function() {
     for (var i = 0; i < contactsPhoto.length; i++) {
       var id = contactsPhoto[i];
       var current = contactsCache[id];
-      var contact = current.contact;
-      var link = current.container;
-      renderPhoto(contact, link);
-      if (isFavorite(contact)) {
-        favs = true;
-        addToFavoriteList(link.cloneNode(true));
+      if (current) {
+        var contact = current.contact;
+        var link = current.container;
+        renderPhoto(contact, link);
+        if (isFavorite(contact)) {
+          favs = true;
+          addToFavoriteList(link.cloneNode(true));
+        }
       }
     }
     if (favs)
@@ -692,9 +706,16 @@ contacts.List = (function() {
     imgLoader.reload();
   };
 
+  var hasName = function hasName(contact) {
+    return (Array.isArray(contact.givenName) && contact.givenName[0] &&
+              contact.givenName[0].trim()) ||
+            (Array.isArray(contact.familyName) && contact.familyName[0] &&
+              contact.familyName[0].trim());
+  };
+
   // Fills the contact data to display if no givenName and familyName
   var refillContactData = function refillContactData(contact) {
-    if (!contact.givenName && !contact.familyName) {
+    if (!hasName(contact)) {
       contact.givenName = [];
       if (contact.org && contact.org.length > 0) {
         contact.givenName.push(contact.org);
@@ -774,9 +795,9 @@ contacts.List = (function() {
     var familyName, givenName;
 
     familyName = contact.familyName && contact.familyName.length > 0 ?
-      contact.familyName[0] : '';
+      contact.familyName[0].trim() : '';
     givenName = contact.givenName && contact.givenName.length > 0 ?
-      contact.givenName[0] : '';
+      contact.givenName[0].trim() : '';
 
     var first = givenName, second = familyName;
     if (orderByLastName) {
@@ -791,9 +812,9 @@ contacts.List = (function() {
       return utils.text.normalize(ret.join('')).trim();
     ret.push(contact.org);
     ret.push(contact.tel && contact.tel.length > 0 ?
-      contact.tel[0].value : '');
+      contact.tel[0].value.trim() : '');
     ret.push(contact.email && contact.email.length > 0 ?
-      contact.email[0].value : '');
+      contact.email[0].value.trim() : '');
     ret.push('#');
 
     return utils.text.normalize(ret.join('')).trim();
@@ -900,6 +921,10 @@ contacts.List = (function() {
     'setOrderByLastName': setOrderByLastName,
     'renderPhoto': renderPhoto,
     'renderFbData': renderFbData,
-    'getHighlightedName': getHighlightedName
+    'getHighlightedName': getHighlightedName,
+    // The purpose of this method is only for unit tests
+    'resetSearch': function resetSearch() {
+      searchLoaded = false;
+    }
   };
 })();

@@ -8,21 +8,23 @@
  * requiring the full `wifi.js' + `carrier.js' + `bluetooth.js' libraries.
  */
 
-var gBluetooth = (function(window) {
-  var navigator = window.navigator;
-  if ('mozBluetooth' in navigator)
-    return navigator.mozBluetooth;
-  return null;
-})(this);
-
-
 // TODO: handle hotspot status
 
 // display connectivity status on the main panel
 var Connectivity = (function(window, document, undefined) {
   var _initialized = false;
   var _ = navigator.mozL10n.get;
+
+  // in util.js, we fake these device interfaces if they are not exist.
   var wifiManager = getWifiManager();
+  var bluetooth = getBluetooth();
+  var mobileConnection = getMobileConnection();
+
+  mobileConnection.addEventListener('datachange', updateCarrier);
+  mobileConnection.addEventListener('cardstatechange', updateCallSettings);
+
+  // XXX if wifiManager implements addEventListener function
+  // we can remove these listener lists.
   var wifiEnabledListeners = [updateWifi];
   var wifiDisabledListeners = [updateWifi];
   var wifiStatusChangeListeners = [updateWifi];
@@ -48,16 +50,25 @@ var Connectivity = (function(window, document, undefined) {
   };
   wifiManager.onstatuschange = wifiStatusChange;
 
+  // Register callbacks to track the state of the bluetooth hardware
+  bluetooth.addEventListener('adapteradded', function() {
+    dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
+    updateBluetooth();
+  });
+  bluetooth.addEventListener('disabled', function() {
+    dispatchEvent(new CustomEvent('bluetooth-disabled'));
+    updateBluetooth();
+  });
+
+  window.addEventListener('bluetooth-pairedstatuschanged', updateBluetooth);
+
+  // called when localization is done
   function init() {
     if (_initialized) {
       return;
     }
     _initialized = true;
 
-    var mobileConnection = getMobileConnection();
-    updateWifi();
-
-    // this event listener is not cleared by carrier.js
     kCardState = {
       'pinRequired' : _('simCardLockedMsg'),
       'pukRequired' : _('simCardLockedMsg'),
@@ -66,21 +77,12 @@ var Connectivity = (function(window, document, undefined) {
       'absent' : _('noSimCard'),
       'null' : _('simCardNotReady')
     };
-    mobileConnection.addEventListener('datachange', updateCarrier);
-    updateCarrier();
-    mobileConnection.addEventListener('cardstatechange', updateCallSettings);
-    updateCallSettings();
 
-    // these listeners are replaced when bluetooth.js is loaded
-    gBluetooth.onadapteradded = function() {
-      dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
-      updateBluetooth();
-    };
-    gBluetooth.ondisabled = function() {
-      dispatchEvent(new CustomEvent('bluetooth-disabled'));
-      updateBluetooth();
-    };
+    updateCarrier();
+    updateCallSettings();
+    updateWifi();
     updateBluetooth();
+    // register blutooth system message handler
     initSystemMessageHandler();
   }
 
@@ -96,11 +98,15 @@ var Connectivity = (function(window, document, undefined) {
       return; // init will call updateWifi()
     }
 
-    // network.connection.status has one of the following values:
-    // connecting, associated, connected, connectingfailed, disconnected.
-    wifiDesc.textContent = _('fullStatus-' +
-        wifiManager.connection.status,
-        wifiManager.connection.network);
+    if (wifiManager.enabled) {
+      // network.connection.status has one of the following values:
+      // connecting, associated, connected, connectingfailed, disconnected.
+      wifiDesc.textContent = _('fullStatus-' +
+          wifiManager.connection.status,
+          wifiManager.connection.network);
+    } else {
+      wifiDesc.textContent = _('disabled');
+    }
 
     // record the MAC address here because the "Device Information" panel
     // has to display it as well
@@ -153,6 +159,7 @@ var Connectivity = (function(window, document, undefined) {
   var dataDesc = document.getElementById('data-desc');
 
   function updateCarrier() {
+    // if 'datachange' event happens before init
     if (!_initialized) {
       init();
       return; // init will call updateCarrier()
@@ -260,15 +267,20 @@ var Connectivity = (function(window, document, undefined) {
    * Bluetooth Manager
    */
 
-  var bluetoothDesc = document.getElementById('bluetooth-desc');
 
   function updateBluetooth() {
-    bluetoothDesc.textContent = gBluetooth.enabled ?
+    var bluetoothDesc = document.getElementById('bluetooth-desc');
+    // if 'adapteradd' or 'disabled' event happens before init
+    if (!_initialized) {
+      init();
+      return; // init will call updateBluetooth()
+    }
+    bluetoothDesc.textContent = bluetooth.enabled ?
       _('bt-status-nopaired') : _('bt-status-turnoff');
-    if (!gBluetooth.enabled) {
+    if (!bluetooth.enabled) {
       return;
     }
-    var req = gBluetooth.getDefaultAdapter();
+    var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_getAdapterSuccess() {
       var defaultAdapter = req.result;
       var reqPaired = defaultAdapter.getPairedDevices();
@@ -292,6 +304,7 @@ var Connectivity = (function(window, document, undefined) {
   }
 
   function initSystemMessageHandler() {
+    // XXX this is not a good way to interact with bluetooth.js
     var handlePairingRequest = function(message, method) {
       window.location.hash = '#bluetooth';
       setTimeout(function() {
@@ -328,14 +341,6 @@ var Connectivity = (function(window, document, undefined) {
     updateWifi: updateWifi,
     updateCarrier: updateCarrier,
     updateBluetooth: updateBluetooth,
-    get statusText() {
-      return {
-        wifi: document.getElementById('wifi-desc').textContent,
-        carrier: document.getElementById('data-desc').textContent,
-        hotspot: document.getElementById('hotspot-desc').textContent,
-        bluetooth: document.getElementById('bluetooth-desc').textContent
-      };
-    },
     set wifiEnabled(listener) { wifiEnabledListeners.push(listener) },
     set wifiDisabled(listener) { wifiDisabledListeners.push(listener); },
     set wifiStatusChange(listener) { wifiStatusChangeListeners.push(listener); }

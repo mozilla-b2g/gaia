@@ -1365,9 +1365,23 @@ ActiveSyncFolderConn.prototype = {
 
     // Process the body as needed.
     if (bodyType === asbEnum.Type.PlainText) {
-      var bodyRep = $quotechew.quoteProcessTextBody(bodyText);
-      header.snippet = $quotechew.generateSnippet(bodyRep,
-                                                  DESIRED_SNIPPET_LENGTH);
+      try {
+        var bodyRep = $quotechew.quoteProcessTextBody(bodyText);
+      }
+      catch (ex) {
+        this._LOG.textChewError(ex);
+        // an empty content rep is better than nothing.
+        bodyRep = [];
+      }
+      try {
+        header.snippet = $quotechew.generateSnippet(bodyRep,
+                                                    DESIRED_SNIPPET_LENGTH);
+      }
+      catch (ex) {
+        this._LOG.textSnippetError(ex);
+        header.snippet = '';
+      }
+
       var content = bodyRep[1];
       var len = content.length;
 
@@ -1380,15 +1394,25 @@ ActiveSyncFolderConn.prototype = {
       }];
     }
     else if (bodyType === asbEnum.Type.HTML) {
-      var htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
-      header.snippet = $htmlchew.generateSnippet(htmlNode,
-                                                 DESIRED_SNIPPET_LENGTH);
-      var content = htmlNode.innerHTML;
-      var len = content.length;
+      try {
+        var html = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
+      }
+      catch (ex) {
+        this._LOG.htmlParseError(ex);
+        html = '';
+      }
+      try {
+        header.snippet = $htmlchew.generateSnippet(html);
+      }
+      catch (ex) {
+        this._LOG.htmlSnippetError(ex);
+        header.snippet = '';
+      }
+      var len = html.length;
 
       body.bodyReps = [{
         type: 'html',
-        content: content,
+        content: html,
         sizeEstimate: len,
         amountDownloaded: len,
         isDownloaded: true
@@ -1665,7 +1689,8 @@ function ActiveSyncFolderSyncer(account, folderStorage, _parentLog) {
 exports.ActiveSyncFolderSyncer = ActiveSyncFolderSyncer;
 ActiveSyncFolderSyncer.prototype = {
   /**
-   * Can we synchronize?  Not if we don't have a server id!
+   * Can we synchronize?  Not if we don't have a server id!  (This happens for
+   * the inbox when it is speculative before our first syncFolderList.)
    */
   get syncable() {
     return this.folderConn.serverId !== null;
@@ -1764,6 +1789,12 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       sync: {
         newMessages: true, changedMessages: true, deletedMessages: true,
       },
+    },
+    errors: {
+      htmlParseError: { ex: $log.EXCEPTION },
+      htmlSnippetError: { ex: $log.EXCEPTION },
+      textChewError: { ex: $log.EXCEPTION },
+      textSnippetError: { ex: $log.EXCEPTION },
     },
   },
   ActiveSyncFolderSyncer: {
@@ -2232,6 +2263,32 @@ ActiveSyncJobDriver.prototype = {
   undo_download: $jobmixins.undo_download,
 
   //////////////////////////////////////////////////////////////////////////////
+  // saveDraft
+
+  local_do_saveDraft: $jobmixins.local_do_saveDraft,
+
+  do_saveDraft: $jobmixins.do_saveDraft,
+
+  check_saveDraft: $jobmixins.check_saveDraft,
+
+  local_undo_saveDraft: $jobmixins.local_undo_saveDraft,
+
+  undo_saveDraft: $jobmixins.undo_saveDraft,
+
+  //////////////////////////////////////////////////////////////////////////////
+  // deleteDraft
+
+  local_do_deleteDraft: $jobmixins.local_do_deleteDraft,
+
+  do_deleteDraft: $jobmixins.do_deleteDraft,
+
+  check_deleteDraft: $jobmixins.check_deleteDraft,
+
+  local_undo_deleteDraft: $jobmixins.local_undo_deleteDraft,
+
+  undo_deleteDraft: $jobmixins.undo_deleteDraft,
+
+  //////////////////////////////////////////////////////////////////////////////
   // purgeExcessMessages is a NOP for activesync
 
   local_do_purgeExcessMessages: function(op, doneCallback) {
@@ -2260,9 +2317,17 @@ ActiveSyncJobDriver.prototype = {
 var LOGFAB = exports.LOGFAB = $log.register($module, {
   ActiveSyncJobDriver: {
     type: $log.DAEMON,
+    events: {
+      savedAttachment: { storage: true, mimeType: true, size: true },
+      saveFailure: { storage: false, mimeType: false, error: false },
+    },
+    TEST_ONLY_events: {
+      saveFailure: { filename: false },
+    },
     errors: {
       callbackErr: { ex: $log.EXCEPTION },
     },
+
   },
 });
 
@@ -2394,7 +2459,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   if (!inboxFolder) {
     // XXX localized Inbox string (bug 805834)
     this._addedFolder(null, '0', 'Inbox',
-                      $FolderHierarchy.Enums.Type.DefaultInbox, true);
+                      $FolderHierarchy.Enums.Type.DefaultInbox, null, true);
   }
 }
 exports.Account = exports.ActiveSyncAccount = ActiveSyncAccount;
@@ -2512,8 +2577,10 @@ ActiveSyncAccount.prototype = {
     this.saveAccountState(null, null, 'checkpointSync');
   },
 
-  shutdown: function asa_shutdown() {
+  shutdown: function asa_shutdown(callback) {
     this._LOG.__die();
+    if (callback)
+      callback();
   },
 
   accountDeleted: function asa_accountDeleted() {
@@ -2601,6 +2668,36 @@ ActiveSyncAccount.prototype = {
         deferredAddedFolders = moreDeferredAddedFolders;
       }
 
+      // - create local drafts folder (if needed)
+      var localDrafts = account.getFirstFolderWithType('localdrafts');
+      if (!localDrafts) {
+        // Try and add the folder next to the existing drafts folder, or the
+        // sent folder if there is no drafts folder.  Otherwise we must have an
+        // inbox and we want to live under that.
+        var sibling = account.getFirstFolderWithType('drafts') ||
+                      account.getFirstFolderWithType('sent');
+        // If we have a sibling, it can tell us our gelam parent folder id
+        // which is different from our parent server id.  From there, we can
+        // map to the serverId.  Note that top-level folders will not have a
+        // parentId, in which case we want to just go with the top level.
+        var parentServerId;
+        if (sibling) {
+          if (sibling.parentId)
+            parentServerId =
+              account._folderInfos[sibling.parentId].$meta.serverId;
+          else
+            parentServerId = '0';
+        }
+        // Otherwise try and make the Inbox our parent.
+        else {
+          parentServerId = account.getFirstFolderWithType('inbox').serverId;
+        }
+        // Since this is a synthetic folder; we just directly choose the name
+        // that our l10n mapping will transform.
+        account._addedFolder(null, parentServerId, 'localdrafts', null,
+                             'localdrafts');
+      }
+
       console.log('Synced folder list');
       if (callback)
         callback(null);
@@ -2628,6 +2725,8 @@ ActiveSyncAccount.prototype = {
    * @param {string} displayName The display name for the new folder
    * @param {string} typeNum A numeric value representing the new folder's type,
    *   corresponding to the mapping in _folderTypes above
+   * @param {string} forceType Force a string folder type for this folder.
+   *   Used for synthetic folders like localdrafts.
    * @param {boolean} suppressNotification (optional) if true, don't notify any
    *   listeners of this addition
    * @return {object} the folderMeta if we added the folder, true if we don't
@@ -2635,8 +2734,9 @@ ActiveSyncAccount.prototype = {
    *   (e.g. if we haven't added the folder's parent yet)
    */
   _addedFolder: function asa__addedFolder(serverId, parentServerId, displayName,
-                                          typeNum, suppressNotification) {
-    if (!(typeNum in this._folderTypes))
+                                          typeNum, forceType,
+                                          suppressNotification) {
+    if (!forceType && !(typeNum in this._folderTypes))
       return true; // Not a folder type we care about.
 
     var folderType = $FolderHierarchy.Enums.Type;
@@ -2678,7 +2778,7 @@ ActiveSyncAccount.prototype = {
         id: folderId,
         serverId: serverId,
         name: displayName,
-        type: this._folderTypes[typeNum],
+        type: forceType || this._folderTypes[typeNum],
         path: path,
         parentId: parentFolderId,
         depth: depth,

@@ -35,12 +35,13 @@
 }
 
 input.cmp-addr-text, input.cmp-subject-text {
-  border: 0 !important;
-  background: none;
-  padding: 0;
   height: 3rem;
   margin-left: 0.5rem;
+  padding: 0 0 0.2rem;
   font-size: 1.5rem;
+  line-height: 2.2rem;
+  border: 0 !important;
+  background: none;
 }
 
 input.cmp-addr-text, input.cmp-dot-text {
@@ -49,8 +50,14 @@ input.cmp-addr-text, input.cmp-dot-text {
   max-width: 100%;
 }
 
+input.cmp-bcc-text {
+  font-size: 1.6rem;
+  padding-bottom: 0.4rem;
+}
+
 input.cmp-subject-text {
   display: table-cell;
+  font-size: 1.6rem;
   text-overflow: ellipsis;
 }
 
@@ -91,11 +98,11 @@ input.cmp-subject-text {
   -moz-box-sizing: border-box;
   width: calc(100% - 4rem);
   min-height: 10rem;
-  margin: 1.5rem 1.5rem;
+  margin: 1rem 1.5rem;
   display: block;
   overflow: hidden;
   padding: 0rem;
-  font: 1.4rem/2rem "MozTT", Sans-serif;
+  font: 1.7rem/1.9rem "MozTT", Sans-serif;
   font-weight: normal;
   border: none;
   box-shadow: none;
@@ -140,3 +147,18 @@ input.cmp-subject-text {
   position: absolute;
   right: 1rem;
 }
+.cmp-messages-sending {
+  margin-top: 2.4rem;
+  padding: 0 1.5rem !important;
+}
+
+.cmp-messages-sending p {
+  font-size: 2.4rem;
+  font-weight: lighter;
+  border-color: #bdbdbd !important;
+}
+
+.cmp-messages-sending progress {
+  margin: 0 1rem 0 1.5rem;
+}
+

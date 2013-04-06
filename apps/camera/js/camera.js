@@ -862,6 +862,11 @@ var Camera = {
     case 'shared':
       this.updateStorageState(e.reason);
       break;
+
+    // Remove filmstrip item if its correspondent file is deleted
+    case 'deleted':
+      Filmstrip.deleteItem(e.path);
+      break;
     }
     this.checkStorageSpace();
   },

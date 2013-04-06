@@ -6,6 +6,7 @@
 // handle carrier settings
 var Carrier = (function newCarrier(window, document, undefined) {
   var APN_FILE = '/shared/resources/apn.json';
+  var _ = window.navigator.mozL10n.get;
 
   /**
    * gCompatibleAPN holds all compatible APNs matching the current iccInfo
@@ -185,7 +186,6 @@ var Carrier = (function newCarrier(window, document, undefined) {
     var initWarnings =
       function initWarnings(settingKey, dialogID, explanationItemID) {
         if (settings) {
-          var _ = window.navigator.mozL10n.get;
           var warningDialogEnabledKey = settingKey + '.warningDialog.enabled';
           var explanationItem = document.getElementById(explanationItemID);
 
@@ -278,10 +278,13 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
   // XXX for some reason, networkSelectionMode is (almost?) always null
   // so we're assuming the auto-selection is ON by default.
-  function updateSelectionMode() {
+  function updateSelectionMode(scan) {
     var mode = mobileConnection.networkSelectionMode;
     opAutoSelectState.textContent = mode || '';
-    opAutoSelectInput.checked = !mode || (mode == 'automatic');
+    opAutoSelectInput.checked = !mode || (mode === 'automatic');
+    if (!opAutoSelectInput.checked && scan) {
+      gOperatorNetworkList.scan();
+    }
   }
 
   // create a network operator list item
@@ -296,7 +299,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // name
     var name = document.createElement('a');
-    name.textContent = network.longName;
+    name.textContent = network.shortName || network.longName;
 
     // state
     var state = document.createElement('small');
@@ -334,23 +337,27 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // select operator
     function selectOperator(network, messageElement) {
+      var _ = window.navigator.mozL10n.get;
       var req = mobileConnection.selectNetwork(network);
       messageElement.textContent = _('operator-status-connecting');
+      messageElement.dataset.l10nId = 'operator-status-connecting';
       req.onsuccess = function onsuccess() {
         messageElement.textContent = _('operator-status-connected');
+        messageElement.dataset.l10nId = 'operator-status-connected';
+        updateSelectionMode(false);
       };
       req.onerror = function onsuccess() {
         messageElement.textContent = _('operator-status-connectingfailed');
+        messageElement.dataset.l10nId = 'operator-status-connectingfailed';
       };
     }
 
     // scan available operators
     function scan() {
+      clear();
       list.dataset.state = 'on'; // "Searching..."
       var req = mobileConnection.getNetworks();
-
       req.onsuccess = function onsuccess() {
-        clear();
         var networks = req.result;
         for (var i = 0; i < networks.length; i++) {
           var listItem = newListItem(networks[i], selectOperator);
@@ -379,7 +386,10 @@ var Carrier = (function newCarrier(window, document, undefined) {
     if (opAutoSelectInput.checked) {
       gOperatorNetworkList.state = 'off';
       gOperatorNetworkList.clear();
-      mobileConnection.selectNetworkAutomatically();
+      var req = mobileConnection.selectNetworkAutomatically();
+      req.onsuccess = function() {
+        updateSelectionMode(false);
+      };
     } else {
       gOperatorNetworkList.scan();
     }
@@ -395,12 +405,13 @@ var Carrier = (function newCarrier(window, document, undefined) {
     // startup
     init: function carrier_init() {
       Connectivity.updateCarrier(); // see connectivity.js
-      updateSelectionMode();
+      updateSelectionMode(true);
       initDataConnectionAndRoamingWarnings();
 
       // XXX this should be done later -- not during init()
       this.fillAPNList('data');
-      this.fillAPNList('mms');
+      // XXX commented this line because MMS Settings is hidden
+      // this.fillAPNList('mms');
       this.fillAPNList('supl');
     }
   };
