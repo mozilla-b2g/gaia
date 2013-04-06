@@ -3692,7 +3692,7 @@ exports.chewHeaderAndBodyStructure =
     // use their unique value, or if we could convince dovecot to tell us, etc.
     guid: msg.msg.meta.messageId,
     // mailparser models from as an array; we do not.
-    author: msg.msg.from[0] || null,
+    author: msg.msg.from && msg.msg.from[0] || null,
     to: ('to' in msg.msg) ? msg.msg.to : null,
     cc: ('cc' in msg.msg) ? msg.msg.cc : null,
     bcc: ('bcc' in msg.msg) ? msg.msg.bcc : null,
