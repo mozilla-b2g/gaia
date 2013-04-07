@@ -1,3 +1,6 @@
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 (function(window) {
@@ -11,9 +14,9 @@
     }
   }
 
-  function mns_mLockGet() {
+  function mns_mLockGet(key) {
     var settingsRequest = {
-      result: {}
+      result: settings
     };
 
     setTimeout(function() {
