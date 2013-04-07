@@ -1139,8 +1139,12 @@ var WindowManager = (function() {
     // These apps currently have bugs preventing them from being
     // run out of process. All other apps will be run OOP.
     //
+    var host = document.location.host;
+    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+    var protocol = document.location.protocol + '//';
+    var browserManifestUrl = protocol + 'browser.' + domain + '/manifest.webapp';
     var outOfProcessBlackList = [
-      'app://browser.gaiamobile.org/manifest.webapp'
+      browserManifestUrl
       // Requires nested content processes (bug 761935).  This is not
       // on the schedule for v1.
     ];
