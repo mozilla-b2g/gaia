@@ -42,3 +42,5 @@ manifest.appcache
 /tools/xpcwindow/vendor/
 
 /outoftree_apps/
+
+/backups/

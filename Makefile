@@ -54,7 +54,7 @@ REPORTER?=Spec
 GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
 GAIA_INSTALL_PARENT?=/data/local
 ADB_REMOUNT?=0
-BACKUP_DIR?=$(PWD)/device-backup/
+BACKUP_DIR?=$(PWD)/backups/
 # activities and/or settings resetting when restoring during 'reinstall'
 RESTORE_CLEAN?=activities
 BACKUP_DATABASES?=/data/local/indexedDB/
