@@ -19,7 +19,9 @@ contacts.List = (function() {
       headers = {},
       contactsCache = {},
       searchLoaded = false,
-      imagesLoaded = false;
+      imagesLoaded = false,
+      contactsLoadFinished = false,
+      globalContacts = [];
 
   // Key on the async Storage
   var ORDER_KEY = 'order.lastname';
@@ -52,6 +54,11 @@ contacts.List = (function() {
     imgLoader = new ImageLoader('#groups-container', 'li');
 
     initOrder();
+
+    window.addEventListener('onContactsReceived', function onContacts() {
+      window.removeEventListener('onContactsReceived', onContacts);
+      buildContactsWithCursor();
+    });
   };
 
   var initSearch = function initSearch(callback) {
@@ -668,13 +675,101 @@ contacts.List = (function() {
         sortOrder: 'ascending'
       };
 
-      var request = navigator.mozContacts.find(options);
-      request.onsuccess = function findCallback() {
-        successCb(request.result);
-      };
+      var cursor = navigator.mozContacts.getAll(options);
+      globalContacts = [];
+      cursor.onsuccess = function onsuccess(evt) {
+        var contact = evt.target.result;
+        if (contact) {
+          globalContacts.push(contact);
+          cursor.continue();
 
-      request.onerror = errorCb;
+          // Start painting when we have a chunk
+          if (globalContacts.length == 20) {
+            dispatchCustomEvent('onContactsReceived');
+          }
+        } else {
+          contactsLoadFinished = true;
+        }
+      };
+      cursor.onerror = errorCb;
     });
+  };
+
+  // Copy of the method buildContacts but working with the cursor instead
+  // of a whole array of contacts. In this case we expect to have a global
+  // array that will being filled while we perform the painting ops as well
+  var buildContactsWithCursor = function buildContactsWithCursor() {
+    var counter = {};
+    var contactsCache = {};
+    var favorites = [];
+    var length = contacts.length;
+    var CHUNK_SIZE = 20;
+
+    counter['favorites'] = 0;
+    var showNoContacs = length === 0;
+    toggleNoContactsScreen(showNoContacs);
+
+    //Adds each contact to its group container
+    function appendToList(contact, renderedContact) {
+      var group = getGroupName(contact);
+
+      var list = headers[group];
+      counter[group] = counter[group] + 1 || 1;
+      list.appendChild(renderedContact);
+
+      if (counter[group] === 1) {
+        // template + new record
+        showGroup(group, group == 'A');
+      }
+    }
+
+
+    function appendContact(contact) {
+      var renderedContact = renderContact(contact);
+      appendToList(contact, renderedContact);
+    }
+
+    // Performance testing
+    function renderChunks(index) {
+      PerformanceTestingHelper.dispatch('contacts-first-chunk-' + index);
+      // If we know that we are not going to get more contacts
+      // from the cursor, just increase the chunk to finish ASAP
+      /*
+      if (contactsLoadFinished) {
+        CHUNK_SIZE = 100;
+      }
+      */
+
+      var length = globalContacts.length;
+      if (globalContacts.length / CHUNK_SIZE == index && contactsLoadFinished) {
+        // Last round. Rendering remaining
+        var remaining = globalContacts.length % CHUNK_SIZE;
+        if (remaining > 0) {
+          for (var i = 0; i < remaining; i++) {
+            var current = (index * CHUNK_SIZE) + i;
+            var contact = globalContacts[current];
+            appendContact(contact);
+          }
+
+        }
+        window.setTimeout(onListRendered);
+        dispatchCustomEvent('listRendered');
+        globalContacts = [];
+        return;
+      }
+
+      for (var i = 0; i < CHUNK_SIZE; i++) {
+        var current = (index * CHUNK_SIZE) + i;
+        var contact = globalContacts[current];
+        appendContact(contact);
+      }
+
+      window.setTimeout(function() {
+        renderChunks(index + 1);
+      }, 0);
+    }
+
+    renderChunks(0);
   };
 
   /*
