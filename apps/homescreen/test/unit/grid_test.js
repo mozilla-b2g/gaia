@@ -23,7 +23,6 @@ mocksHelperForGrid.init();
 suite('grid.js >', function() {
   var TAP_THRESHOLD = 10;
   var SWIPE_THRESHOLD = 0.5;
-  var PANNING_DELAY = 200;
 
   var wrapperNode, containerNode;
   var realMozApps;
@@ -101,12 +100,12 @@ suite('grid.js >', function() {
         containerNode.dispatchEvent(evt);
 
         assert.equal(document.body.dataset.transitioning, 'true');
-        setTimeout(function() {
+        mozRequestAnimationFrame(function() {
           done(function() {
             var currentPage = document.getElementById('landing-page');
             assert.include(currentPage.style.MozTransform, 'translateX');
           });
-        }, PANNING_DELAY);
+        });
       });
     });
   }
