@@ -1162,7 +1162,8 @@ var WindowManager = (function() {
     var host = document.location.host;
     var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
     var protocol = document.location.protocol + '//';
-    var browserManifestUrl = protocol + 'browser.' + domain + '/manifest.webapp';
+    var browserManifestUrl =
+      protocol + 'browser.' + domain + '/manifest.webapp';
     var outOfProcessBlackList = [
       browserManifestUrl
       // Requires nested content processes (bug 761935).  This is not
