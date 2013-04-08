@@ -146,6 +146,7 @@
   border-left: 1px solid #AAA;
   border-right: 1px solid #AAA;
   display: none;
+  background: #FFF;
 }
 
 #day-view h4 {
