@@ -1,9 +1,19 @@
+'use strict';
+
 var MocksHelper = function(mocks) {
   this.mocks = mocks;
   this.realWindowObjects = {};
 };
 
 MocksHelper.prototype = {
+
+  init: function mh_init() {
+    this.mocks.forEach(function(objName) {
+      if (! window[objName]) {
+        window[objName] = null;
+      }
+    });
+  },
 
   setup: function mh_setup() {
     this._forEachMock('mSetup');
@@ -13,7 +23,8 @@ MocksHelper.prototype = {
     this.mocks.forEach(function(objName) {
       var mockName = 'Mock' + objName;
       if (!window[mockName]) {
-        throw 'Mock ' + mockName + ' has not been loaded into the test';
+        var errMsg = 'Mock ' + mockName + ' has not been loaded into the test';
+        throw new Error(errMsg);
       }
 
       this.realWindowObjects[objName] = window[objName];

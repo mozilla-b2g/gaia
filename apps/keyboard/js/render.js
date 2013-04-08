@@ -505,6 +505,7 @@ const IMERender = (function() {
     var altNoteNode;
     if (altNote) {
       altNoteNode = document.createElement('div');
+      altNoteNode.className = 'alt-note';
       altNoteNode.textContent = altNote;
     }
 
