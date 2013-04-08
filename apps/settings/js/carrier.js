@@ -60,6 +60,12 @@ var Carrier = (function newCarrier(window, document, undefined) {
     xhr.send();
   }
 
+  // helper
+  function rilData(usage, name) {
+    var selector = 'input[data-setting="ril.' + usage + '.' + name + '"]';
+    return document.querySelector(selector);
+  }
+
   // update APN fields
   function updateAPNList(apnItems, usage) {
     var apnPanel = document.getElementById('carrier-' + usage + 'Settings');
@@ -70,12 +76,6 @@ var Carrier = (function newCarrier(window, document, undefined) {
     var advForm = apnPanel.querySelector('.apnSettings-advanced');
     var lastItem = apnList.querySelector('.apnSettings-custom');
 
-    // helper
-    function rilData(name) {
-      var selector = 'input[data-setting="ril.' + usage + '.' + name + '"]';
-      return document.querySelector(selector);
-    }
-
     // create a button to apply <apn> data to the current fields
     function createAPNItem(item) {
       // create an <input type="radio"> element
@@ -85,15 +85,15 @@ var Carrier = (function newCarrier(window, document, undefined) {
       input.dataset.setting = 'ril.' + usage + '.carrier';
       input.value = item.carrier || item.apn;
       input.onclick = function fillAPNData() {
-        rilData('apn').value = item.apn || '';
-        rilData('user').value = item.user || '';
-        rilData('passwd').value = item.password || '';
-        rilData('httpProxyHost').value = item.proxy || '';
-        rilData('httpProxyPort').value = item.port || '';
+        rilData(usage, 'apn').value = item.apn || '';
+        rilData(usage, 'user').value = item.user || '';
+        rilData(usage, 'passwd').value = item.password || '';
+        rilData(usage, 'httpProxyHost').value = item.proxy || '';
+        rilData(usage, 'httpProxyPort').value = item.port || '';
         if (usage == 'mms') {
-          rilData('mmsc').value = item.mmsc || '';
-          rilData('mmsproxy').value = item.mmsproxy || '';
-          rilData('mmsport').value = item.mmsport || '';
+          rilData(usage, 'mmsc').value = item.mmsc || '';
+          rilData(usage, 'mmsproxy').value = item.mmsproxy || '';
+          rilData(usage, 'mmsport').value = item.mmsport || '';
         }
       };
 
@@ -121,6 +121,34 @@ var Carrier = (function newCarrier(window, document, undefined) {
       apnList.insertBefore(createAPNItem(apnItems[i]), lastItem);
     }
 
+    // helper
+    function fillCustomAPNSettingFields() {
+      var keys = ['apn', 'user', 'passwd', 'httpProxyHost', 'httpProxyPort'];
+      if (usage === 'mms') {
+        keys.push('mmsc', 'mmsproxy', 'mmsport');
+      }
+
+      keys.forEach(function(key) {
+        asyncStorage.getItem(
+          'ril.' + usage + '.custom.' + key, function(value) {
+            rilData(usage, key).value = value || '';
+        });
+      });
+    }
+
+    //helper
+    function storeCustomAPNSettingFields() {
+      var keys = ['apn', 'user', 'passwd', 'httpProxyHost', 'httpProxyPort'];
+      if (usage === 'mms') {
+        keys.push('mmsc', 'mmsproxy', 'mmsport');
+      }
+
+      keys.forEach(function(key) {
+        asyncStorage.setItem('ril.' + usage + '.custom.' + key,
+                             rilData(usage, key).value);
+      });
+    }
+
     // find the current APN, relying on the carrier name
     var settings = Settings.mozSettings;
     if (settings) {
@@ -134,8 +162,13 @@ var Carrier = (function newCarrier(window, document, undefined) {
             radios[i].checked = (request.result[key] === radios[i].value);
             found = found || radios[i].checked;
           }
+          // load custom APN settings when the user clicks on the input
+          lastItem.querySelector('input').addEventListener('click', function() {
+              fillCustomAPNSettingFields();
+          });
           if (!found) {
             lastItem.querySelector('input').checked = true;
+            fillCustomAPNSettingFields();
           }
         }
       };
@@ -144,6 +177,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
     // set current APN to 'custom' on user modification
     advForm.onchange = function onCustomInput(event) {
       lastItem.querySelector('input').checked = true;
+      storeCustomAPNSettingFields();
     };
 
     // force data connection to restart if changes are validated
