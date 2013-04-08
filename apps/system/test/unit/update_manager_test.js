@@ -38,13 +38,6 @@ mocksForUpdateManager.forEach(function(mockName) {
   }
 });
 
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840500.
-// Please also note: the outcome of this test suite is non-deterministic.
-// Failures occur inconsistently, so potential fixes should be thoroughly
-// vetted.
 suite('system/UpdateManager', function() {
   var realL10n;
   var realWifiManager;
@@ -1479,4 +1472,3 @@ suite('system/UpdateManager', function() {
     });
   });
 });
-*/
