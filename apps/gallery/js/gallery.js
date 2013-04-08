@@ -912,18 +912,75 @@ function deleteSelectedItems() {
   if (selected.length === 0)
     return;
 
-  var msg = navigator.mozL10n.get('delete-n-items?', {n: selected.length});
-  if (confirm(msg)) {
-    // XXX
+  showConfirmDialog({
+    message: navigator.mozL10n.get('delete-n-items?', {n: selected.length}),
+    cancelText: navigator.mozL10n.get('cancel'),
+    confirmText: navigator.mozL10n.get('delete'),
+    danger: true
+  }, function() { // onSuccess
     // deleteFile is O(n), so this loop is O(n*n). If used with really large
     // selections, it might have noticably bad performance.  If so, we
     // can write a more efficient deleteFiles() function.
     for (var i = 0; i < selected.length; i++) {
       selected[i].classList.toggle('selected');
-      deleteFile(parseInt(selected[i].dataset.index));
+      deleteFile(parseInt(selected[i].dataset.index, 10));
     }
     clearSelection();
-  }
+  });
+}
+
+// show a confirm dialog
+function showConfirmDialog(options, onConfirm, onCancel) {
+  LazyLoader.load('shared/style/confirm.css', function() {
+    var dialog = $('confirm-dialog');
+    var msgEle = $('confirm-msg');
+    var cancelButton = $('confirm-cancel');
+    var confirmButton = $('confirm-ok');
+
+    // set up the dialog based on the options
+    msgEle.textContent = options.message;
+    cancelButton.textContent = options.cancelText ||
+      navigator.mozL10n.get('cancel');
+    confirmButton.textContent = options.confirmText ||
+      navigator.mozL10n.get('ok');
+
+    if (options.danger) {
+      confirmButton.classList.add('danger');
+    }
+    else {
+      confirmButton.classList.remove('danger');
+    }
+
+    // show the confirm dialog
+    dialog.classList.remove('hidden');
+
+    // attach event handlers
+    var onCancelClick = function(ev) {
+      close(ev);
+      if (onCancel) {
+        onCancel();
+      }
+      return false;
+    };
+    var onConfirmClick = function(ev) {
+      close(ev);
+      if (onConfirm) {
+        onConfirm();
+      }
+      return false;
+    };
+    cancelButton.addEventListener('click', onCancelClick);
+    confirmButton.addEventListener('click', onConfirmClick);
+
+    function close(ev) {
+      dialog.classList.add('hidden');
+      cancelButton.removeEventListener('click', onCancelClick);
+      confirmButton.removeEventListener('click', onConfirmClick);
+      ev.preventDefault();
+      ev.stopPropagation();
+      return false;
+    }
+  });
 }
 
 
