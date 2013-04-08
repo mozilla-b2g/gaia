@@ -189,7 +189,7 @@
     worker.postMessage({ cmd: 'setLanguage', args: [language]});
   }
 
-  function click(keycode, x, y, repeat) {
+  function click(keycode, repeat) {
     if (punctuating && handlePunctuation(keycode)) {
       // nothing to do here: handlePunctuation did it for us
     }
