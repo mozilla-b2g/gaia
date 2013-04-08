@@ -272,11 +272,11 @@ body {
 }
 
 #windows > .appWindow.opening {
-  transition: transform 0.25s ease, opacity 0.15s ease;
+  transition: transform 0.25s ease;
 }
 
 #windows.slow-transition > .appWindow.opening {
-  transition: transform 5s ease, opacity 3s ease;
+  transition: transform 5s ease;
 }
 
 #screen.cards-view > #windows > .appWindow.opening,
