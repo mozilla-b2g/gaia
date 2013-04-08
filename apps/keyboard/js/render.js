@@ -261,6 +261,10 @@ const IMERender = (function() {
         var span = document.createElement('span');
         span.dataset.selection = true;
         if (typeof candidate === 'string') {
+          if (candidate[0] === '*') { // it is an autocorrection candidate
+            candidate = candidate.substring(1);
+            span.classList.add('autocorrect');
+          }
           span.dataset.data = span.textContent = candidate;
         }
         else {

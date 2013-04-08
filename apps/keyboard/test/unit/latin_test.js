@@ -270,13 +270,13 @@ suite('latin input method capitalization and punctuation', function() {
       // reset the output state
       reset();
       // activate the IM
-      im.activate('en', false, {
+      im.activate('en', {
         type: type,
         inputmode: mode,
         value: state.value,
         selectionStart: state.cursor,
         selectionEnd: state.cursor
-      });
+      },{suggest: false, correct: false});
 
       // Send the input one character at a time, converting
       // the input to uppercase if the IM has set uppercase
@@ -357,13 +357,13 @@ suite("latin input method word suggestions", function() {
       suggestionsExpected = expected;
 
       reset();
-      im.activate(language, enabled, {
+      im.activate(language, {
         type: type,
         inputmode: mode,
         value: state.value,
         selectionStart: state.cursor,
         selectionEnd: state.se || state.cursor
-      });
+      }, { suggest: enabled, correct: false});
       // Send some input and see if we get completions
       im.click('t'.charCodeAt(0));
 
