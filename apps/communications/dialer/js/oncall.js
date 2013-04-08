@@ -575,6 +575,10 @@ var OnCallHandler = (function onCallHandler() {
     }
 
     telephony.active.hold();
+
+    // If a second call is waiting holding the active one
+    // will pick it up.
+    CallScreen.hideIncoming();
   }
 
   function ignore() {
