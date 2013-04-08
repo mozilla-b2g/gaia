@@ -1,4 +1,6 @@
-const InputMethods = {}; // latin.js expects this to be defined
+// latin.js expects these constants to be defined
+const LAYOUT_PAGE_DEFAULT = 'Default';
+const InputMethods = {};
 var im; // this will hold the input method we're testing
 
 requireApp('keyboard/js/imes/latin/latin.js', function() {
@@ -24,6 +26,9 @@ function init() {
   // Initialize the input method with the object it will use to send
   // its output back to us
   im.init({
+    resetUpperCase: function() {
+      isUpperCase = false;
+    },
     sendKey: function(keycode) {
       if (keycode === 8) { // backspace
         output = output.substring(0, output.length - 1);
@@ -39,6 +44,8 @@ function init() {
     },
     setUpperCase: function(uc) {
       isUpperCase = uc;
+    },
+    setLayoutPage: function() {
     }
   });
 }
@@ -145,7 +152,7 @@ var inputs = {
   ' ?': expectedPunctuation,      // Does it get transposed?
   ' ,': expectedPunctuation,      // Does it get transposed?
   ' ;': expectedPunctuation,      // Does it get transposed?
-  ' :': expectedPunctuation      // Does it get transposed?
+  ' :': expectedPunctuation       // Does it get transposed?
 };
 
 // Does space punc get transposed to punc space?
@@ -164,9 +171,13 @@ function expectedPunctuation(input, type, mode, value, cursor) {
   // same as latin mode, so do nothing
   if (!mode && type !== 'textarea')
     return input;
+  // If input is a space followed by a colon or semicolon, do not transpose.
+  // This facilitates the entry of emoticons such as :O
+  if (input === ' :' || input === ' ;')
+    return input;
 
   // If the previous character is a letter, transpose otherwise don't
-  if (cursor > 0 && /[a-zA-Z]/.test(value[cursor - 1]))
+  if (cursor > 0 && /[a-zA-Z]/.test(value.charAt(cursor - 1)))
     return input[1] + input[0];
   return input;
 }
@@ -231,19 +242,15 @@ function expectedCapitalization(input, type, mode, value, cursor) {
 // There are lots of possible initial states, and we may have different
 // output in each case.
 
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840495.
-suite("latin input method capitalization and punctuation", function() {
-  for(var t = 0; t < types.length; t++) {
+suite('latin input method capitalization and punctuation', function() {
+  for (var t = 0; t < types.length; t++) {
     var type = types[t];
-    for(var m = 0; m < modes.length; m++) {
+    for (var m = 0; m < modes.length; m++) {
       var mode = modes[m];
-      for(var statename in contentStates) {
+      for (var statename in contentStates) {
         var state = contentStates[statename];
-        for(var input in inputs) {
-          runtest(input, type, mode, statename)
+        for (var input in inputs) {
+          runtest(input, type, mode, statename);
         }
       }
     }
@@ -273,7 +280,7 @@ suite("latin input method capitalization and punctuation", function() {
 
       // Send the input one character at a time, converting
       // the input to uppercase if the IM has set uppercase
-      for(var i = 0; i < input.length; i++) {
+      for (var i = 0; i < input.length; i++) {
         if (isUpperCase)
           im.click(input[i].toUpperCase().charCodeAt(0));
         else
@@ -289,7 +296,6 @@ suite("latin input method capitalization and punctuation", function() {
     });
   }
 });
-*/
 
 /*
  * This code is an attempt to test whether word suggestions are offered when
