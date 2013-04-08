@@ -3,26 +3,28 @@
 var contacts = window.contacts || {};
 
 /***
-  This class handles all the activity regarding
-  the settings screen for contacts
-**/
+ This class handles all the activity regarding
+ the settings screen for contacts
+ **/
 contacts.Settings = (function() {
 
   var orderCheckBox,
-      orderByLastName,
-      simImportLink,
-      importLiveButton,
-      importGmailButton,
-      fbImportOption,
-      fbImportCheck,
-      fbUpdateButton,
-      fbOfflineMsg,
-      noSimMsg,
-      fbTotalsMsg,
-      fbPwdRenewMsg,
-      fbImportedValue,
-      newOrderByLastName = null,
-      ORDER_KEY = 'order.lastname';
+    orderByLastName,
+    simImportLink,
+    sdImportLink,
+    importLiveButton,
+    importGmailButton,
+    fbImportOption,
+    fbImportCheck,
+    fbUpdateButton,
+    fbOfflineMsg,
+    noSimMsg,
+    noSdMsg,
+    fbTotalsMsg,
+    fbPwdRenewMsg,
+    fbImportedValue,
+    newOrderByLastName = null,
+    ORDER_KEY = 'order.lastname';
 
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
@@ -39,7 +41,7 @@ contacts.Settings = (function() {
     }).bind(this));
 
     if (fb.isEnabled) {
-      fb.utils.getImportChecked(checkFbImported);
+      //fb.utils.getImportChecked(checkFbImported);
     }
   };
 
@@ -61,6 +63,12 @@ contacts.Settings = (function() {
     });
 
     noSimMsg = document.querySelector('#no-sim');
+
+    sdImportLink = document.querySelector('[data-l10n-id="importSd"]');
+    sdImportLink.addEventListener('click', function onSimImportHandler() {
+      window.setTimeout(onSdImport, 0);
+    });
+    noSdMsg = document.querySelector('#no-sd');
 
     // Gmail & Hotmail import
     importLiveButton = document.querySelector('[data-l10n-id="importLive"]');
@@ -123,6 +131,39 @@ contacts.Settings = (function() {
     else {
       importSim.setAttribute('disabled', 'disabled');
       noSimMsg.classList.remove('hide');
+    }
+  };
+
+  /**
+   * Check whether there is a SD card inserted in the device.
+   * @return {Boolean}
+   */
+  var checkStorageCard = function checkStorageCard() {
+    var storage = navigator.getDeviceStorage('sdcard');
+    if (!storage) {
+      enableStorageImport(false);
+      return false;
+    }
+
+    enableStorageImport(true);
+    return true;
+  };
+
+  /**
+   * Disables/Enables the actions over the sdcard import functionality
+   * @param {Boolean} cardState Whether storage import should be enabled or not.
+   */
+  var enableStorageImport = function enableStorageImport(cardState) {
+    var importStorage =
+      document.getElementById('settingsStorage').firstElementChild;
+
+    if (cardState) {
+      importStorage.removeAttribute('disabled');
+      noSdMsg.classList.add('hide');
+    }
+    else {
+      importStorage.setAttribute('disabled', 'disabled');
+      noSdMsg.classList.remove('hide');
     }
   };
 
@@ -234,7 +275,7 @@ contacts.Settings = (function() {
           // without logging in (we don't have any mechanism to know that fact)
           window.setTimeout(function() {
             fbImportCheck.checked = false;
-          },WAIT_UNCHECK);
+          }, WAIT_UNCHECK);
         }
       });
     }
@@ -307,7 +348,7 @@ contacts.Settings = (function() {
         logoutReq.onerror = function(e) {
           resetWait(wakeLock);
           window.console.error('Contacts: Error while FB logout: ',
-                              e.target.error);
+            e.target.error);
         };
       };
 
@@ -317,14 +358,14 @@ contacts.Settings = (function() {
 
       cleaner.onerror = function(contactid, error) {
         window.console.error('Contacts: Error while FB cleaning contact: ',
-                             contactid, 'Error: ', error.name);
+          contactid, 'Error: ', error.name);
         // Wait state is not resetted because the cleaning process will continue
       };
     };
 
     req.onerror = function(e) {
       window.console.error('Error while starting the cleaning operations',
-                           req.error.name);
+        req.error.name);
       resetWait(wakeLock);
     };
   }
@@ -339,7 +380,7 @@ contacts.Settings = (function() {
   // Import contacts from SIM card and updates ui
   var onSimImport = function onSimImport(evt) {
     var progress = Contacts.showOverlay(_('simContacts-reading'),
-                                        'activityBar');
+      'activityBar');
 
     var wakeLock = navigator.requestWakeLock('cpu');
 
@@ -361,7 +402,7 @@ contacts.Settings = (function() {
         resetWait(wakeLock);
         Contacts.navigation.home();
         Contacts.showStatus(_('simContacts-imported3',
-                              {n: importedContacts}));
+          {n: importedContacts}));
       }, DELAY_FEEDBACK);
     };
 
@@ -372,31 +413,146 @@ contacts.Settings = (function() {
 
     importer.onerror = function import_error() {
       var cancel = {
-          title: _('cancel'),
-          callback: function() {
-            ConfirmDialog.hide();
-          }
-        };
-        var retry = {
-          title: _('retry'),
-          isRecommend: true,
-          callback: function() {
-            ConfirmDialog.hide();
-            // And now the action is reproduced one more time
-            simImportLink.click();
-          }
-        };
-        ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
-        Contacts.hideOverlay();
+        title: _('cancel'),
+        callback: function() {
+          ConfirmDialog.hide();
+        }
+      };
+      var retry = {
+        title: _('retry'),
+        isRecommend: true,
+        callback: function() {
+          ConfirmDialog.hide();
+          // And now the action is reproduced one more time
+          simImportLink.click();
+        }
+      };
+      ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
+      Contacts.hideOverlay();
     };
 
     importer.start();
   };
 
+  /**
+   * Retrieves the content of the files that adjust to the kind specified in the
+   * parameters from the SD card inserted in the device. The files have to
+   * contain text, and the contents will be given in a single string, separated
+   * by newlines.
+   *
+   * @param {String[]} mimes Possible mime types of the files to be found.
+   * @param {String[]} exts Possible file extensions of the files to be found.
+   * @return {Future}
+   */
+  var retrieveFilesFromSd = function(mimes, exts) {
+    var storage = navigator.getDeviceStorage('sdcard');
+    var contents = '';
+
+    return new Future(function(resolver) {
+      var cursor = storage.enumerate();
+      cursor.onsuccess = function(e) {
+        var file = e.target.result;
+        if (!file) {
+          resolver.resolve(contents);
+        } else {
+          if ((mimes.indexOf(file.type) === -1) &&
+            file.name.search(new RegExp('.(' + exts.join('|') + ')$')) === -1) {
+            cursor.continue();
+          } else {
+            var reader = new FileReader();
+            reader.onload = function onloaded() {
+              contents += reader.result + '\n';
+              cursor.continue();
+            };
+
+            try {
+              reader.readAsText(file);
+            }
+            catch (ex) {
+              window.console.error('Problem reading file: ',
+                file.name, '\n', ex.stack);
+              cursor.continue();
+            }
+          }
+        }
+      };
+
+      cursor.onerror = function() {
+        resolver.reject(this.error.name);
+      };
+    });
+  };
+
+  var onSdImport = function() {
+    var progress = Contacts.showOverlay(_('sdContacts-reading'), 'activityBar');
+    var wakeLock = navigator.requestWakeLock('cpu');
+
+    var importedContacts = 0;
+    // Delay for showing feedback to the user after importing
+    var DELAY_FEEDBACK = 200;
+
+    var sdContents = retrieveFilesFromSd([
+      'text/vcard',
+      'text/x-vcard',
+      'text/directory;profile=vCard',
+      'text/directory'
+    ], ['vcf', 'vcard']);
+
+    sdContents.then(function(text) {
+      var importer = new VCFReader(text);
+
+      importer.onread = import_read;
+      importer.onimported = imported_contact;
+      importer.onerror = import_error;
+
+      importer.process().then(function import_finish() {
+        window.setTimeout(function onfinish_import() {
+          resetWait(wakeLock);
+          Contacts.navigation.home();
+          Contacts.showStatus(_('sdContacts-imported3', {
+            n: importedContacts
+          }));
+        }, DELAY_FEEDBACK);
+      });
+    }, import_error).done();
+
+    function import_read(n) {
+      progress.setClass('progressBar');
+      progress.setHeaderMsg(_('sdContacts-importing'));
+      progress.setTotal(n);
+    }
+
+    function imported_contact() {
+      importedContacts++;
+      progress.update();
+    }
+
+    function import_error(e) {
+      var cancel = {
+        title: _('cancel'),
+        callback: function() {
+          ConfirmDialog.hide();
+        }
+      };
+
+      var retry = {
+        title: _('retry'),
+        isRecommend: true,
+        callback: function() {
+          ConfirmDialog.hide();
+          // And now the action is reproduced one more time
+          sdImportLink.click();
+        }
+      };
+      ConfirmDialog.show(null, _('sdContacts-error'), cancel, retry);
+      Contacts.hideOverlay();
+    }
+  };
+
   // Dismiss settings window and execute operations if values got modified
   var close = function close() {
     if (newOrderByLastName != null &&
-        newOrderByLastName != orderByLastName && contacts.List) {
+      newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
       orderByLastName = newOrderByLastName;
     }
@@ -413,7 +569,7 @@ contacts.Settings = (function() {
         fbOfflineMsg.classList.add('hide');
       } else {
         fbImportOption.querySelector('li.fb-item').setAttribute('aria-disabled',
-                                                              'true');
+          'true');
         fbUpdateButton.classList.add('hide');
         fbOfflineMsg.classList.remove('hide');
       }
@@ -434,6 +590,7 @@ contacts.Settings = (function() {
     getData();
     checkOnline();
     checkSIMCard();
+    checkStorageCard();
   };
 
   return {

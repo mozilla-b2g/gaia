@@ -12,16 +12,9 @@ var Contacts = (function() {
     navigation.go('view-contact-form', 'popup');
   };
 
-  var currentContactId,
-      detailsName,
-      givenName,
-      company,
-      familyName,
-      selectedTag,
+  var selectedTag,
       customTag,
       contactTag,
-      saveButton,
-      editContactButton,
       settings,
       settingsButton,
       cancelButton,
@@ -31,7 +24,6 @@ var Contacts = (function() {
   var settingsReady = false;
   var detailsReady = false;
   var formReady = false;
-  var scriptsLoaded = 0;
   var displayed = false;
 
   var currentContact = {},
@@ -262,6 +254,7 @@ var Contacts = (function() {
     var numOfData = hasData ? dataSet.length : 0;
 
     var result = {};
+    var data;
     result.name = theContact.name;
     switch (numOfData) {
       case 0:
@@ -274,7 +267,7 @@ var Contacts = (function() {
         break;
       case 1:
         // if one required type of data
-        var data = dataSet[0].value;
+        data = dataSet[0].value;
         result[type] = data;
         ActivityHandler.postPickSuccess(result);
         break;
@@ -282,8 +275,8 @@ var Contacts = (function() {
         // if more than one required type of data
         var prompt1 = new ValueSelector();
         for (var i = 0; i < dataSet.length; i++) {
-          var data = dataSet[i].value,
-              carrier = dataSet[i].carrier || '';
+          data = dataSet[i].value;
+          var carrier = dataSet[i].carrier || '';
           prompt1.addToList(data + ' ' + carrier, data);
         }
 
@@ -378,7 +371,6 @@ var Contacts = (function() {
       return true;
     }
     var attr;
-    var isArray;
     for (var i = 0; i < fields.length; i++) {
       attr = fields[i];
       if (obj.hasOwnProperty(attr) && obj[attr]) {
@@ -415,7 +407,6 @@ var Contacts = (function() {
       link.textContent = options[option].value;
 
       link.onclick = function(event) {
-        var index = event.target.dataset.index;
         selectTag(event.target, tagList);
         event.preventDefault();
       };
@@ -453,8 +444,6 @@ var Contacts = (function() {
 
     //Clean any trace of the custom tag
     customTag.value = '';
-
-    var index = link.dataset.index;
 
     if (selectedTag) {
       selectedTag.removeAttribute('class');
@@ -765,6 +754,8 @@ var Contacts = (function() {
       '/contacts/js/contacts_form.js',
       '/dialer/js/telephony_helper.js',
       '/contacts/js/sms_integration.js',
+      '/contacts/js/utilities/future.js',
+      '/contacts/js/utilities/vcard_parser.js',
       '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/normalizer.js',
       '/contacts/js/utilities/status.js',

@@ -83,7 +83,8 @@
     "browser":{},
     "idle":{},
     "keyboard": {},
-    "storage": {}
+    "storage": {},
+    "device-storage:sdcard": { "access": "readonly" }
   },
   "orientation": "portrait-primary",
   "activities": {
