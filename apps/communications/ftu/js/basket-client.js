@@ -46,7 +46,6 @@ var Basket = {
   },
 
   store: function b_store(email, callback) {
-    var self = this;
     window.asyncStorage.setItem(this.itemId, email, function stored() {
       if (callback)
         callback();

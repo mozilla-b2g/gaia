@@ -52,7 +52,6 @@ if (typeof window.importer === 'undefined') {
 
     // For synchronization
     var syncOngoing = false;
-    var nextUpdateTime;
 
     var updateButton,
         selectAllButton,
@@ -178,7 +177,6 @@ if (typeof window.importer === 'undefined') {
 
       var realNode = contactList.querySelector(
                           '[data-uuid=' + '"' + uid + '"' + ']');
-      var realCheckbox = realNode.querySelector('input[type="checkbox"]');
 
       UI.selection({
         target: realNode

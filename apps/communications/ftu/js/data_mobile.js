@@ -28,7 +28,6 @@ var DataMobile = {
     options[this.key] = status;
     if (!this.apnRetrieved) {
       // I need to retrieve APN
-      var self = this;
       this.getAPN(function() {
         DataMobile.settings.createLock().set(options);
         DataMobile.apnRetrieved = true;

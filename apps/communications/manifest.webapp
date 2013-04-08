@@ -82,7 +82,8 @@
     "audio-channel-ringer":{},
     "browser":{},
     "idle":{},
-    "storage": {}
+    "storage": {},
+    "device-storage:sdcard": { "access": "readonly" }
   },
   "orientation": "portrait-primary",
   "activities": {
