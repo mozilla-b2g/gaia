@@ -1649,6 +1649,20 @@ var WindowManager = (function() {
         break;
 
       case 'mozChromeEvent':
+        // XXX: Patch of bug 828283 tries to introduce
+        // "Don't bring iframe to background even when device is locked
+        // if the content is playing audio/video."
+        // The logic is checking LockScreen.Locked
+        // before it changes the visibility state,
+        // but FTU is just implemented as running upon lockscreen
+        // so it mistakenly thinks the device is now locked
+        // and then brings the current active app to background,
+        // which is just FTU.
+        // The quick workaround should be checking `isRunningFirstRunApp`
+        // in top of the `active-audio-channel-changed` mozChromeEvent handler.'
+        if (isRunningFirstRunApp)
+          return;
+
         if (evt.detail.type == 'visible-audio-channel-changed') {
           resetDeviceLockedTimer();
 
