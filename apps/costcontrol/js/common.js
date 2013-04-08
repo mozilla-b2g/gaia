@@ -31,7 +31,12 @@ function checkDataUsageNotification(settings, usage, callback) {
 
 // Waits for DOMContentLoaded and messagehandlerready, then call the callback
 function waitForDOMAndMessageHandler(window, callback) {
-  var remainingSteps = 2;
+  var docState = document.readyState;
+  var DOMAlreadyLoaded = docState === 'complete' || docState === 'interactive';
+  var remainingSteps = DOMAlreadyLoaded ? 1 : 2;
+  debug('DOMAlreadyLoaded:', DOMAlreadyLoaded);
+  debug('Waiting for', remainingSteps, 'events to start!');
+
   function checkReady(evt) {
     debug(evt.type, 'event received!');
     remainingSteps--;
