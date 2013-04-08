@@ -5,8 +5,13 @@ body[role="application"] [role="dialog"] {
   position: fixed;
 }
 
-#firsttime-view, #firsttime-view .view{
+#firsttime-view, #firsttime-view .view {
   top: 0;
+  transform: translate(0, 0);
+}
+
+#firsttime-view .view[data-viewport="right"] {
+  transform: translateX(100%);
 }
 
 /* Steps state */
