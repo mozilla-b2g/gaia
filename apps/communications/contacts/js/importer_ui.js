@@ -33,6 +33,7 @@ if (typeof window.importer === 'undefined') {
 
     // Counter for checked list items
     var checked = 0;
+    var checkNodeList;
 
     // Existing service contacts
     var existingContacts = [];
@@ -266,6 +267,10 @@ if (typeof window.importer === 'undefined') {
       imgLoader = new ImageLoader('#mainContent',
                                 ".block-item:not([data-uuid='#uid#'])");
 
+      var s = '.block-item:not([data-uuid="#uid#"]) input[type="checkbox"]';
+      checkNodeList = contactList.querySelectorAll(s);
+      Array.prototype.slice.call(checkNodeList, 0, checkNodeList.length);
+
       friendsLoaded = true;
 
       if (contactsLoaded) {
@@ -472,7 +477,7 @@ if (typeof window.importer === 'undefined') {
       };
     }
 
-    function checkDisabledButtons() {
+    function checkUpdateButton() {
       // Update button
       if (Object.keys(selectedContacts).length > 0 ||
           Object.keys(unSelectedContacts).length > 0) {
@@ -481,6 +486,10 @@ if (typeof window.importer === 'undefined') {
         // Empty arrays implies to disable update button
         updateButton.disabled = true;
       }
+    }
+
+    function checkDisabledButtons() {
+      checkUpdateButton();
 
       switch (checked) {
         case 0:
@@ -651,15 +660,21 @@ if (typeof window.importer === 'undefined') {
      *
      */
     UI.selectAll = function(e) {
-      bulkSelection(true);
+      deSelectAllButton.disabled = false;
+      selectAllButton.disabled = true;
 
-      unSelectedContacts = {};
-      selectedContacts = {};
-      for (var uid in selectableFriends) {
-        selectedContacts[uid] = selectableFriends[uid];
-      }
+      window.setTimeout(function doSelectAll() {
+        bulkSelection(true);
 
-      checkDisabledButtons();
+        unSelectedContacts = {};
+        selectedContacts = {};
+
+        for (var uid in selectableFriends) {
+          selectedContacts[uid] = selectableFriends[uid];
+        }
+
+        checkUpdateButton();
+      }, 0);
 
       return false;
     };
@@ -669,15 +684,20 @@ if (typeof window.importer === 'undefined') {
      *
      */
     UI.unSelectAll = function(e)  {
-      bulkSelection(false);
+      deSelectAllButton.disabled = true;
+      selectAllButton.disabled = false;
 
-      selectedContacts = {};
-      unSelectedContacts = {};
-      for (var uid in existingContactsByUid) {
-        unSelectedContacts[uid] = existingContactsByUid[uid];
-      }
+      window.setTimeout(function doUnSelectAll() {
+        bulkSelection(false);
 
-      checkDisabledButtons();
+        selectedContacts = {};
+        unSelectedContacts = {};
+        for (var uid in existingContactsByUid) {
+          unSelectedContacts[uid] = existingContactsByUid[uid];
+        }
+
+        checkUpdateButton();
+      }, 0);
 
       return false;
     };
@@ -699,13 +719,25 @@ if (typeof window.importer === 'undefined') {
      *
      */
     function bulkSelection(value) {
-      var list = contactList.
-                  querySelectorAll('.block-item:not([data-uuid="#uid#"]');
+      window.setTimeout(function() {
+        doSelect(value, checkNodeList, 0, 10);
+      }, 0);
+    }
 
+    function doSelect(value, list, from, chunkSize) {
       var total = list.length;
-      for (var c = 0; c < total; c++) {
-        setChecked(list[c].querySelector('input[type="checkbox"]'), value);
+
+      for (var j = from; j < from + chunkSize && j < total; j++) {
+        setChecked(list[j], value);
       }
+
+      var leftInterval = from + chunkSize;
+      var rightInterval = leftInterval + chunkSize < total ?
+                                              leftInterval + chunkSize : total;
+
+      window.setTimeout(function() {
+        doSelect(value, list, leftInterval, rightInterval);
+      }, 0);
     }
 
     /**
@@ -771,6 +803,7 @@ if (typeof window.importer === 'undefined') {
     }
 
     function doImportAll(importedCB, progress) {
+      checkNodeList = null;
       var toBeImported = Object.keys(selectedContacts);
       var numFriends = toBeImported.length;
 
