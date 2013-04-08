@@ -84,7 +84,7 @@
 
 .day-events .event h5 {
   width: calc(100% - 1rem - 6px);
-  min-height: 2rem;
+  min-height: 2.2rem;
   padding-top: 0.6rem;
   font-size: 1.9rem;
   font-weight: 500;
@@ -97,7 +97,7 @@
   display: block;
   top: 2.8rem;
   width: calc(100% - 1rem - 6px);
-  min-height: 2rem;
+  min-height: 2.1rem;
   padding-top: 0.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
