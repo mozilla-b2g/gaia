@@ -8,13 +8,32 @@ var TelephonyHelper = (function() {
       displayMessage('BadNumber');
       return;
     }
+
     var conn = window.navigator.mozMobileConnection;
-    if (!conn || !conn.voice || !conn.voice.network) {
-      // No voice connection, the call won't make it
-      displayMessage('NoNetwork');
-      return;
+    var settings = window.navigator.mozSettings;
+    var airplaneMode = false;
+
+    function tryToDial() {
+      if (!conn || !conn.voice || !conn.voice.network  ||
+          (!airplaneMode && conn.cardState !== 'ready')) {
+
+        // We know the call won't make it
+        displayMessage('NoNetwork');
+        return;
+      }
+      startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
     }
-    startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
+
+    if (settings) {
+      var settingsLock = settings.createLock();
+      var req = settingsLock.get('ril.radio.disabled');
+      req.addEventListener('success', function onsuccess() {
+        airplaneMode = req.result['ril.radio.disabled'];
+        tryToDial();
+      });
+    } else {
+      tryToDial();
+    }
   };
 
   function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
