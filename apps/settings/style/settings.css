@@ -154,6 +154,7 @@ ul[data-state="ready"] li[data-state="ready"] {
  */
 
 section li.password,
+section li.password[hidden],
 section li.identity {
   display: none;
 }
