@@ -923,7 +923,6 @@ function playerEnded() {
     endedTimer = null;
   }
 
-  dom.player.currentTime = 0;
   hidePlayer();
 }
 
