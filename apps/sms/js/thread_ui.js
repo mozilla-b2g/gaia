@@ -183,7 +183,7 @@ var ThreadUI = {
         window.location.hash = '#thread-list';
         return;
       }
-      if (confirm(navigator.mozL10n.get('discard-sms'))) {
+      if (window.confirm(navigator.mozL10n.get('discard-sms'))) {
         ThreadUI.cleanFields(true);
         window.location.hash = '#thread-list';
       }
@@ -591,6 +591,9 @@ var ThreadUI = {
         messageContainer.appendChild(messageDOM);
       }
     }
+
+    if (document.getElementById('main-wrapper').classList.contains('edit'))
+      this.checkInputs();
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
@@ -605,7 +608,7 @@ var ThreadUI = {
     aElement.addEventListener('click', function resend(e) {
       var hash = window.location.hash;
       if (hash != '#edit') {
-        if (confirm(navigator.mozL10n.get('resend-confirmation'))) {
+        if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
           messageDOM.removeEventListener('click', resend);
           ThreadUI.resendMessage(message, messageDOM);
         }
@@ -647,7 +650,7 @@ var ThreadUI = {
 
   delete: function thui_delete() {
     var question = navigator.mozL10n.get('deleteMessages-confirmation');
-    if (confirm(question)) {
+    if (window.confirm(question)) {
       WaitingScreen.show();
       var delNumList = [];
       var inputs = ThreadUI.container.querySelectorAll(
@@ -1069,6 +1072,8 @@ var ThreadUI = {
     }
   }
 };
+
+window.confirm = window.confirm; // allow override in unit tests
 
 window.addEventListener('resize', function resize() {
   ThreadUI.setInputMaxHeight();
