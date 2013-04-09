@@ -27,6 +27,61 @@
 //   predict: given an input string, return the most likely
 //      completions or corrections for it.
 //
+//
+// Description of the algorithm:
+//
+// We use a precompiled dictionary that is loaded into a typed Array (_dict).
+// The underlying data structure is a ternary search tree (TST) which also uses
+// a direct acyclic graph to compress suffixes (we call this Ternary DAGs).
+// see http://www.strchr.com/ternary_dags for further details on TDAGs.
+//
+// Every Node in the tree uses this format:
+//
+//   Node {
+//     int16 ch;        // character
+//     int16 lPtr;      // left child
+//     int16 cPtr;      // center child
+//     int16 rPtr;      // right child
+//     int16 nPtr;      // next child, holds a pointer to the node
+//                      // with the next highest frequency
+//     int16 high;      // holds an overflow byte for lPtr, cPtr, rPtr, nPtr
+//                      // which keeps nodes as small as possible.
+//     int16 frequency; // frequency from the XML file
+//   };
+//
+// The algorithm operates in two stages:
+//
+// First, we permutate the user input (prefix) by
+//   - adding a character
+//   - deleting a character
+//   - replacing characters with surrounding key-characters
+//   - transposing characters.
+//
+// We then traverse the TST trying to find possible candidates.
+// For example, the user taps 's' on the keyboard.
+// Amongst others, we add words starting with 's' to the array of
+// candidates (e.g. she, such, some,...).
+// In this case, for example, we would also add 'a' to this array of
+// candidates because 'a' is a surrounding key of 's' and there is a
+// word that starts with that prefix in the TDAG (e.g. 'and').
+// This array is sorted, so that the highest ranked node is found
+// at index 0.
+//
+// Second, the function 'predictSuffixes' iterates that array of candidates
+// and follows the next pointers (nPtr). Again, this pointer
+// points to the node with the next highest frequency starting with
+// that prefix. We can see this nPtr as a kind of linked list.
+// Using this linked list we can prune whole subtress which favors
+// lookup speed.
+//
+// So the next pointer of 's' points to 'h' ('she' ranked 170)
+// The nPtr in the node of that 'h' (prefix 's') points to
+// 'u' ('such' ranked also 170), and so an.
+//
+// Once we the algorithm reaches the maximum number of requested
+// suggestions (_maxSuggestions), we return that array of possible
+// alternatives which are displayed for the user.
+
 'use strict';
 
 var Predictions = function() {
