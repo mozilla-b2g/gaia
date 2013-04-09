@@ -36,23 +36,23 @@ const kScriptsPerDomain = {
   ],
 
   // App specific includes
-  '.communications.gaiamobile.org': [
+  'communications.gaiamobile.org': [
     'workloads/contacts.js'
   ],
 
-  '.sms.gaiamobile.org': [
+  'sms.gaiamobile.org': [
     'workloads/contacts.js'
   ],
 
-  '.fm.gaiamobile.org': [
+  'fm.gaiamobile.org': [
     'apps/fm.js'
   ],
 
-  '.homescreen.gaiamobile.org' :[
+  'homescreen.gaiamobile.org' :[
     'apps/homescreen.js'
   ],
 
-  '.calendar.gaiamobile.org': [
+  'calendar.gaiamobile.org': [
     'lib/alarm.js'
   ]
 };
