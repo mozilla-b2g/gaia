@@ -53,6 +53,17 @@ function startup(data, reason) {
       .getService(Ci.nsIMessageBroadcaster)
       .loadFrameScript("chrome://desktop-helper.js/content/content.js", true);
 
+    // Start the responsive UI
+    Services.obs.addObserver(function() {
+      let browserWindow = Services.wm.getMostRecentWindow('navigator:browser');
+      let args = {'width': 320, 'height': 480};
+      let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
+      mgr.handleGcliCommand(browserWindow,
+                            browserWindow.gBrowser.selectedTab,
+                            'resize to',
+                            args);
+    }, 'sessionstore-windows-restored', false)
+
   } catch(e) {
     debug("Something went wrong while trying to start desktop-helper: " + e);
   }
