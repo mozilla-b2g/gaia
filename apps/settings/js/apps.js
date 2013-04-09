@@ -9,7 +9,7 @@ var ApplicationsList = {
 
   _permissionsTable: null,
 
-  container: document.querySelector('#appPermissions > ul'),
+  container: document.querySelector('#appPermissions > div > ul'),
   detailTitle: document.querySelector('#appPermissions-details > header > h1'),
   developerHeader: document.getElementById('developer-header'),
   developerInfos: document.getElementById('developer-infos'),
