@@ -21,7 +21,7 @@ var mocksHelperForGrid = new MocksHelper([
 mocksHelperForGrid.init();
 
 suite('grid.js >', function() {
-  var PANNING_DELAY = 200;
+  var TAP_THRESHOLD = 10;
 
   var wrapperNode, containerNode;
   var realMozApps;
@@ -60,7 +60,7 @@ suite('grid.js >', function() {
 
     containerNode = document.getElementById('icongrid');
 
-    GridManager.init('.apps', '.dockWrapper', done);
+    GridManager.init('.apps', '.dockWrapper', TAP_THRESHOLD, done);
   });
 
   teardown(function() {
@@ -90,12 +90,12 @@ suite('grid.js >', function() {
         containerNode.dispatchEvent(evt);
 
         assert.equal(document.body.dataset.transitioning, 'true');
-        setTimeout(function() {
+        mozRequestAnimationFrame(function() {
           done(function() {
             var currentPage = document.getElementById('landing-page');
             assert.include(currentPage.style.MozTransform, 'translateX');
           });
-        }, PANNING_DELAY);
+        });
       });
     });
   }
