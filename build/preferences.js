@@ -45,12 +45,20 @@ if (DEBUG) {
 
   prefs.push(["dom.mozBrowserFramesEnabled", true]);
   prefs.push(["b2g.ignoreXFrameOptions", true]);
+  prefs.push(["network.disable.ipc.security", true]);
   prefs.push(["dom.sms.enabled", true]);
   prefs.push(["dom.mozContacts.enabled", true]);
   prefs.push(["dom.mozSettings.enabled", true]);
+  prefs.push(["dom.mozTCPSocket.enabled", true]);
   prefs.push(["device.storage.enabled", true]);
   prefs.push(["devtools.chrome.enabled", true]);
   prefs.push(["webgl.verbose", true]);
+  prefs.push(["ui.click_hold_context_menus", true]);
+
+  // Disable HTTP caching for now
+  // This makes working with the system app much easier, due to the iframe
+  // caching issue.
+  prefs.push(['network.http.use-cache', false]);
 
   // Preferences for httpd
   // (Use JSON.stringify in order to avoid taking care of `\` escaping)
