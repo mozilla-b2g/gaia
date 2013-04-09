@@ -161,6 +161,8 @@ var ListMenu = {
           return;
         }
 
+        value = parseInt(value);
+
         this.hide();
         this.onreturn(value);
         break;

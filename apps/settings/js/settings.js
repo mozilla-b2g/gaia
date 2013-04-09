@@ -581,7 +581,6 @@ window.addEventListener('load', function loadSettings() {
     ];
     scripts.forEach(function attachScripts(src) {
       var script = document.createElement('script');
-      script.type = 'application/javascript';
       script.src = src;
       document.head.appendChild(script);
     });

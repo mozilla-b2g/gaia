@@ -19,7 +19,8 @@ var KeyboardLayout = {
   init: function kl_init() {
     this.getAllElements();
     KeyboardHelper.getAllLayouts(this.makeLayoutList.bind(this));
-    //Settings.mozSettings.addObserver('keyboard.enabled-layouts', this.updateList.bind(this));
+    Settings.mozSettings.addObserver('keyboard.enabled-layouts',
+        this.updateList.bind(this));
   },
 
   getAllElements: function kl_getAllElements() {
@@ -33,20 +34,28 @@ var KeyboardLayout = {
     this.keyboardLayouts = allLayouts;
     // make lists
     for (var type in TYPE_GROUP) {
-      var listElement = this[type + 'LayoutList'];
-      if (!listElement)
-        continue;
+      var listElement = this[type + 'LayoutList'].querySelector('ul');
       var layouts = this.keyboardLayouts[type];
-      for(var i in layouts) {
+
+      this.clearLayoutList(listElement);
+      for (var i in layouts) {
         var aItem = this.newLayoutItem(type, i, layouts[i]);
         listElement.appendChild(aItem);
       }
+      // all lists are default hidden, we will show the list only when
+      // there are more than one layouts for the user configure.
+      this[type + 'LayoutList'].hidden = (layouts.length <= 1);
     }
+  },
+
+  updateList: function kl_updateList(evt) {
+    this.makeLayoutList(JSON.parse(evt.settingValue));
   },
 
   newLayoutItem: function kl_appendLayout(type, index, layout) {
     var layoutName = document.createElement('a');
-    layoutName.textContent = layout.appName + " " + layout.name;
+    //XXX we should display an unique name here, not just layout name.
+    layoutName.textContent = layout.name;
 
     var label = document.createElement('label');
     var checkbox = document.createElement('input');
@@ -64,6 +73,12 @@ var KeyboardLayout = {
     li.appendChild(label);
     li.appendChild(layoutName);
     return li;
+  },
+
+  clearLayoutList: function kl_clearLayoutList(list) {
+    while (list.hasChildNodes()) {
+      list.removeChild(list.lastChild);
+    }
   },
 
   handleEvent: function kl_handleEvent(evt) {

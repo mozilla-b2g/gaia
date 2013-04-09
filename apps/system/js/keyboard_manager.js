@@ -62,7 +62,12 @@ var KeyboardManager = {
   showingLayout: {
     frame: null,
     type: 'text',
-    index: 0
+    index: 0,
+    reset: function() {
+      this.frame = null;
+      this.type = 'text';
+      this.index = 0;
+    }
   },
 
   focusChangeTimeout: 0,
@@ -107,6 +112,7 @@ var KeyboardManager = {
             self.keyboardLayouts[type].push(allLayouts[type][i]);
         }
       }
+      self.showingLayout.reset();
       var initType = self.showingLayout.type;
       var initIndex = self.showingLayout.index;
       self.launchLayoutFrame(self.keyboardLayouts[initType][initIndex]);
@@ -123,7 +129,7 @@ var KeyboardManager = {
 
   inputFocusChange: function km_inputFocusChange(evt) {
     // let value selector notice the event
-    dispatchEvent(new CustomEvent('inputfocuschange', evt));
+    window.dispatchEvent(new CustomEvent('inputfocuschange', evt));
 
     var state = evt.detail;
     var type = state.type;
@@ -255,10 +261,11 @@ var KeyboardManager = {
             });
           });
           self.hideKeyboard();
+          //XXX the menu is not scrollable now, and it will take focus away
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=859708
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=859713
           ListMenu.request(items, 'Layout selection', function(selectedIndex) {
-            //XXX the type of selectedIndex is string
-            var index = parseInt(selectedIndex);
-            self.setKeyboardToShow(showed.type, index);
+            self.setKeyboardToShow(showed.type, selectedIndex);
             self.showKeyboard();
           }, null);
         }, FOCUS_CHANGE_DELAY);
@@ -279,7 +286,7 @@ var KeyboardManager = {
               'height': parseInt(keyword)
             }
           };
-          dispatchEvent(new CustomEvent('keyboardchange', detail));
+          window.dispatchEvent(new CustomEvent('keyboardchange', detail));
         };
 
         if (this.keyboardFrameContainer.classList.contains('hide')) {
@@ -300,12 +307,12 @@ var KeyboardManager = {
         break;
       case 'activitywillclose':
       case 'appwillclose':
-        dispatchEvent(new CustomEvent('keyboardhide'));
+        window.dispatchEvent(new CustomEvent('keyboardhide'));
         this.keyboardFrameContainer.classList.add('hide');
         break;
-      //XXX the following three cases haven't tested.
+      //XXX the following three cases haven't been tested.
       case 'mozbrowsererror': // OOM
-        var origing = evt.target.dataset.frameOrigin;
+        var origin = evt.target.dataset.frameOrigin;
         this.removeKeyboard(origin);
         break;
       case 'applicationinstall': //app installed
@@ -320,15 +327,20 @@ var KeyboardManager = {
   },
 
   removeKeyboard: function km_removeKeyboard(origin) {
+    if (!this.runningLayouts.hasOwnProperty(origin)) 
+      return;
+
+    if (this.showingLayout.frame.dataset.frameOrigin === origin) {
+      this.hideKeyboard();
+    }
+
     for (var name in this.runningLayouts[origin]) {
       var frame = this.runningLayouts[origin][name];
       windows.removeChild(frame);
       delete this.runningLayouts[origin][name];
     }
 
-    if (this.runningLayouts.hasOwnProperty(origin)) {
-      delete this.runningLayouts[origin];
-    }
+    delete this.runningLayouts[origin];
   },
 
   updateLayoutSettings: function km_updateLayoutSettings() {
@@ -377,12 +389,12 @@ var KeyboardManager = {
     this.showingLayout.frame.setVisible(false);
     this.showingLayout.frame.removeEventListener(
         'mozbrowseropenwindow', this, true);
-    this.showingLayout.frame = null;
+    this.showingLayout.reset();
   },
 
   hideKeyboard: function km_hideKeyboard() {
     this.resetShowingKeyboard();
-    dispatchEvent(new CustomEvent('keyboardhide'));
+    window.dispatchEvent(new CustomEvent('keyboardhide'));
     this.keyboardFrameContainer.classList.add('hide');
   }
 };
