@@ -266,22 +266,7 @@ writeContent(init, getDistributionFileContent('browser', content));
 
 // Support
 init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'support.json');
-content = {
-  "onlinesupport": {
-    "href": "http://www.vivo.com.br/portalweb/appmanager/env/web?_nfls=false&_nfpb=true&_pageLabel=vcAtendMovelBook&WT.ac=portal.atendimento.movel",
-    "title": "Vivo"
-  },
-  "callsupport": [
-    {
-      "href": "tel:*8486",
-      "title": "*8486"
-    },
-    {
-      "href": "tel:1058",
-      "title": "1058"
-    }
-  ]
-}
+content = null;
 
 writeContent(init, getDistributionFileContent('support', content));
 

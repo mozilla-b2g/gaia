@@ -1010,9 +1010,14 @@
             <p data-l10n-id="ssid-name">SSID Network Name</p>
             <input type="text" data-setting="tethering.wifi.ssid" />
           </li>
-          <li class="password-item">
+          <li class="password">
+            <label>
+              <input type="checkbox" data-ignore name="show_password" />
+              <span></span>
+            </label>
+            <span data-l10n-id="showPassword">Show password</span>
             <p data-l10n-id="wifi-password">Password</p>
-            <input type="text" data-setting="tethering.wifi.security.password" />
+            <input type="password" name="password" x-inputmode="verbatim" data-setting="tethering.wifi.security.password" />
           </li>
           <li>
             <p data-l10n-id="wifi-security">Security</p>
