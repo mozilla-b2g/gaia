@@ -270,26 +270,101 @@ function showCurrentView(callback) {
 
   tilesHandle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
                                      function(songs) {
-                                       // Add null to the array of songs
-                                       // this is a flag that tells update()
-                                       // to show or hide the 'empy' overlay
-                                       songs.push(null);
-                                       TilesView.clean();
+                                       sortResults(songs, function(albums) {
+                                         songs = albums;
+                                         // Add null to the array of songs
+                                         // this is a flag that tells update()
+                                         // to show or hide the 'empty' overlay
+                                         songs.push(null);
+                                         TilesView.clean();
 
-                                       // We will need getThumbnailURL()
-                                       // to display thumbnails in TilesView
-                                       // it's possibly not loaded so load it
-                                       LazyLoader.load('js/metadata_scripts.js',
-                                         function() {
-                                           songs.forEach(function(song) {
-                                             TilesView.update(song);
-                                           });
-                                           if (callback)
-                                             callback();
-                                         }
-                                       );
+                                         // We will need getThumbnailURL()
+                                         // to display thumbnails in TilesView
+                                         // it's possibly not loaded so load it
+                                         LazyLoader.load('js/metadata_scripts.js',
+                                           function() {
+                                             songs.forEach(function(song) {
+                                               TilesView.update(song);
+                                             });
+                                             if (callback)
+                                               callback();
+                                           }
+                                         );
+                                       });
                                     });
 
+}
+
+// Key for storing recently listened song
+var RECENTLY_LISTENED_SONG_KEY = 'recently_listened_song_key';
+
+function sortResults(songs, callback) {
+  // songs.sort(compareFilesByDate);
+  var albums = [];
+  var insertPosition;
+
+  songs.forEach(function(song) {
+    // If this new song is newer than the first one, it goes first
+    if (albums.length === 0 || song.date > albums[0].date) {
+      insertPosition = 0;
+    }
+    else {
+      // Otherwise we have to search for the right insertion spot
+      insertPosition = binarysearch(albums, song, compareFilesByDate);
+    }
+
+    // Insert the song info into the array
+    albums.splice(insertPosition, 0, song);
+  });
+
+  asyncStorage.getItem(RECENTLY_LISTENED_SONG_KEY, function(latestSongs) {
+    if (latestSongs) {
+      // Reverse the array because the latest song in the last
+      latestSongs.reverse();
+      albums = latestSongs.concat(albums);
+    }
+
+    var array = albums.slice(0, 18);
+
+    callback(array);
+  });
+}
+
+// This comparison function is used for sorting arrays and doing binary
+// search on the resulting sorted arrays.
+function compareFilesByDate(a, b) {
+  if (a.date < b.date)
+    return 1;  // larger (newer) dates come first
+  else if (a.date > b.date)
+    return -1;
+  return 0;
+}
+
+// Assuming that array is sorted according to comparator, return the
+// array index at which element should be inserted to maintain sort order
+function binarysearch(array, element, comparator, from, to) {
+  if (comparator === undefined)
+    comparator = function(a, b) {
+      if (a < b)
+        return -1;
+      if (a > b)
+        return 1;
+      return 0;
+    };
+
+  if (from === undefined)
+    return binarysearch(array, element, comparator, 0, array.length);
+
+  if (from === to)
+    return from;
+
+  var mid = Math.floor((from + to) / 2);
+
+  var result = comparator(element, array[mid]);
+  if (result < 0)
+    return binarysearch(array, element, comparator, from, mid);
+  else
+    return binarysearch(array, element, comparator, mid + 1, to);
 }
 
 // This Application has five modes: TILES, SEARCH, LIST, SUBLIST, and PLAYER

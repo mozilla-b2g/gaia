@@ -14,7 +14,7 @@ var REPEAT_OFF = 0;
 var REPEAT_LIST = 1;
 var REPEAT_SONG = 2;
 
-// Key for store options of repeat and shuffle
+// Key for storing options of repeat and shuffle
 var SETTINGS_OPTION_KEY = 'settings_option_key';
 
 // We get headphoneschange event when the headphones is plugged or unplugged
@@ -274,6 +274,23 @@ var PlayerView = {
     }
   },
 
+  saveLatestPlayedSong: function pv_saveLatestPlayedSong(song) {
+    asyncStorage.getItem(RECENTLY_LISTENED_SONG_KEY, function(latestSongs) {
+      var newLatestSongs = [];
+
+      if (latestSongs) {
+        if (latestSongs.length >= 6)
+          latestSongs.shift();
+
+        newLatestSongs = latestSongs;
+      }
+
+      newLatestSongs.push(song);
+
+      asyncStorage.setItem(RECENTLY_LISTENED_SONG_KEY, newLatestSongs);
+    });
+  },
+
   setAudioSrc: function pv_setAudioSrc(file, playAfterSet) {
     var url = URL.createObjectURL(file);
 
@@ -340,6 +357,10 @@ var PlayerView = {
       // update the metadata of the current song
       songData.metadata.played++;
       musicdb.updateMetadata(songData.name, songData.metadata);
+
+      // Store the playing song as the recently listened song
+      // for next time launch to show up in mix page
+      this.saveLatestPlayedSong(songData);
 
       musicdb.getFile(songData.name, function(file) {
         this.setAudioSrc(file, true);
