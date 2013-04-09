@@ -121,7 +121,7 @@ var AirplaneMode = {
       self._ops = 0;
       self._doNotify = true;
 
-      if (value) {
+      if (value.settingValue) {
 
         if (mobileConnection) {
           restoreMobileData = mobileDataEnabled;
