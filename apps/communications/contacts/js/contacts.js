@@ -581,10 +581,12 @@ var Contacts = (function() {
 
   var loadFacebook = function loadFacebook(callback) {
     if (!fbLoader.loaded) {
-      fbLoader.load();
-      window.addEventListener('facebookLoaded', function onFbLoaded() {
-        window.removeEventListener('facebookLoaded', onFbLoaded);
-        callback();
+      fb.init(function onInitFb() {
+        fbLoader.load();
+        window.addEventListener('facebookLoaded', function onFbLoaded() {
+          window.removeEventListener('facebookLoaded', onFbLoaded);
+          callback();
+        });
       });
     } else {
       callback();
@@ -909,26 +911,19 @@ var Contacts = (function() {
 
 window.addEventListener('localized', function initContacts(evt) {
   window.removeEventListener('localized', initContacts);
-  fb.init(function contacts_init() {
-    if (window.navigator.mozSetMessageHandler && window.self == window.top) {
-      var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-      window.navigator.mozSetMessageHandler('activity', actHandler);
+  if (window.navigator.mozSetMessageHandler && window.self == window.top) {
+    var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+    window.navigator.mozSetMessageHandler('activity', actHandler);
+  }
+  window.addEventListener('online', Contacts.onLineChanged);
+  window.addEventListener('offline', Contacts.onLineChanged);
+
+  document.addEventListener('mozvisibilitychange', function visibility(e) {
+    if (ActivityHandler.currentlyHandling && document.mozHidden) {
+      ActivityHandler.postCancel();
+      return;
     }
-    Contacts.onLocalized();
-
-    window.addEventListener('online', Contacts.onLineChanged);
-    window.addEventListener('offline', Contacts.onLineChanged);
-
-    // To listen to card state changes is needed for enabling import from SIM
-    var mobileConn = navigator.mozMobileConnection;
-    mobileConn.oncardstatechange = Contacts.cardStateChanged;
-
-    document.addEventListener('mozvisibilitychange', function visibility(e) {
-      if (ActivityHandler.currentlyHandling && document.mozHidden) {
-        ActivityHandler.postCancel();
-        return;
-      }
-      Contacts.checkCancelableActivity();
-    });
-  }); // fb.init
+    Contacts.checkCancelableActivity();
+  });
+  window.setTimeout(Contacts.onLocalized);
 }); // addEventListener

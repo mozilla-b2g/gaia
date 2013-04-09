@@ -26,17 +26,20 @@ contacts.Settings = (function() {
 
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
-    initContainers();
+    // To listen to card state changes is needed for enabling import from SIM
+    var mobileConn = navigator.mozMobileConnection;
+    mobileConn.oncardstatechange = Contacts.cardStateChanged;
+    fb.init(function onFbInit() {
+      initContainers();
+    });
   };
 
   // Get the different values that we will show in the app
   var getData = function getData() {
-    // Ordering
-    asyncStorage.getItem(ORDER_KEY, (function orderValue(value) {
-      orderByLastName = value || false;
-      newOrderByLastName = null;
-      updateOrderingUI();
-    }).bind(this));
+    var order = document.cookie ? JSON.parse(document.cookie).order : false;
+    orderByLastName = order;
+    newOrderByLastName = null;
+    updateOrderingUI();
 
     if (fb.isEnabled) {
       fb.utils.getImportChecked(checkFbImported);
@@ -332,8 +335,8 @@ contacts.Settings = (function() {
   // Listens for any change in the ordering preferences
   var onOrderingChange = function onOrderingChange(evt) {
     newOrderByLastName = !orderCheckBox.checked;
+    document.cookie = JSON.stringify({order: newOrderByLastName});
     updateOrderingUI();
-    asyncStorage.setItem(ORDER_KEY, newOrderByLastName);
   };
 
   // Import contacts from SIM card and updates ui
