@@ -72,14 +72,8 @@ var TelephonyHelper = (function() {
   }
 
   var isValid = function t_isValid(sanitizedNumber) {
-    if (sanitizedNumber) {
-      var matches = sanitizedNumber.match(/[0-9#+*]{1,50}/);
-      if (matches.length === 1 &&
-          matches[0].length === sanitizedNumber.length) {
-        return true;
-      }
-    }
-    return false;
+    var validExp = /^[0-9#+*]{1,50}$/;
+    return validExp.test(sanitizedNumber);
   };
 
   var displayMessage = function t_displayMessage(message) {
