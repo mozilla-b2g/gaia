@@ -186,8 +186,7 @@ var ThreadUI = {
     };
 
     // We're waiting for the keyboard to disappear before animating back
-    if (ThreadListUI.fullHeight !==
-        this.container.offsetHeight) {
+    if (ThreadListUI.fullHeight !== this.container.offsetHeight) {
 
       window.addEventListener('resize', function keyboardHidden() {
         window.removeEventListener('resize', keyboardHidden);
