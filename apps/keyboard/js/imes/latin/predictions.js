@@ -35,7 +35,7 @@
 // a direct acyclic graph to compress suffixes (we call this Ternary DAGs).
 // see http://www.strchr.com/ternary_dags for further details on TDAGs.
 //
-// Every Node in the tree uses this format:
+// Every Node in the TDAG uses this format:
 //
 //   Node {
 //     int16 ch;        // character
@@ -46,37 +46,75 @@
 //                      // with the next highest frequency
 //     int16 high;      // holds an overflow byte for lPtr, cPtr, rPtr, nPtr
 //                      // which keeps nodes as small as possible.
-//     int16 frequency; // frequency from the XML file
+//     int16 frequency; // frequency from the XML file, or
+//                      // average of compressed/combined nodes. 
 //   };
 //
 // The algorithm operates in two stages:
 //
 // First, we permutate the user input (prefix) by
-//   - adding a character
-//   - deleting a character
-//   - replacing characters with surrounding key-characters
-//   - transposing characters.
+//   * inserting a character;
+//     following direct successors of the current node.
+//   * deleting a character;
+//     we skip one character in the prefix and try to
+//     find direct successor nodes with the next character
+//     following the skipped one.
+//   * replacing characters with surrounding key-characters;
+//     if the character in the successor is a neighbouring
+//     key of the current key, we also follow this path.
+//   * transposing characters.
+//     we swap neighboring characters in the prefix and try to
+//     find successor nodes in the TST.
 //
-// We then traverse the TST trying to find possible candidates.
+// This user input permutation is done while traversing the TDAG trying
+// to find possible candidates. Note, that we multiply the frequency
+// only for exact matches in TDAG. In other words, if there is a word
+// in the TDAG that starts with that prefix, the user most probably
+// has not mistapped it. Therefore we need to boost this candidate.
+// All other permutations are treated equally. We do not rank
+// candidates differently based on the detected error.
+//
 // For example, the user taps 's' on the keyboard.
-// Amongst others, we add words starting with 's' to the array of
-// candidates (e.g. she, such, some,...).
+// Therfore, we add the root node for 's' to the array of
+// candidates (which will later predict she, such, some,...).
 // In this case, for example, we would also add 'a' to this array of
 // candidates because 'a' is a surrounding key of 's' and there is a
 // word that starts with that prefix in the TDAG (e.g. 'and').
 // This array is sorted, so that the highest ranked node is found
 // at index 0.
 //
-// Second, the function 'predictSuffixes' iterates that array of candidates
-// and follows the next pointers (nPtr). Again, this pointer
-// points to the node with the next highest frequency starting with
-// that prefix. We can see this nPtr as a kind of linked list.
+// Second, the function 'predictSuffixes' iterates that array of
+// candidates and follows the center pointers (cPtr).
+// The TST is a balanced binary search tree with one exception.
+// The node with the highest frequency is assigned to the center
+// pointer (cPtr). This means, that following the cPtr we always
+// find the word with the highest frequency starting with that
+// prefix.
+// So the center pointer of 's' points to 'h' ('she' ranked 170)
+// The nPtr in the node of that 'h' (prefix 's') points to
+// 'u' ('such' ranked also 170), and so an. While following
+// the cPtr we keep adding candidates to the candidates array.
+// Once we reach the end of a word (node.ch == 0) we take out
+// the next best candidate from the sorted candidates array.
+// Since we add candidates while following the cPtr we now
+// might find a new, better ranked candidate at index 0 in
+// the sorted array. We can see this nPtr as a kind of linked list.
 // Using this linked list we can prune whole subtress which favors
 // lookup speed.
 //
-// So the next pointer of 's' points to 'h' ('she' ranked 170)
-// The nPtr in the node of that 'h' (prefix 's') points to
-// 'u' ('such' ranked also 170), and so an.
+// Again, a character euqals to 0 (node.ch == 0) indicates we have
+// reached the end of a word in the tree. The frequency associated
+// with this node is the frequency of that word. Note that, we
+// compress suffixes where the character in the node machtes, but
+// not necessarily the frequency, therefore we average the frequency
+// of all compressed suffix nodes which are combined into such a
+// suffix node. Even though this seems to be not accurate and might
+// cause mispredictions, we highlight the fact that commonly shorter
+// input words (prefixes) are not compressed, which means that the
+// correct frequency is still stored in that node. Once the input
+// words get longer and longer, we have allready narrowed the search
+// space for that prefix, so that the averaging of frequencies
+// in compressed nodes does not cause mispredictions.
 //
 // Once we the algorithm reaches the maximum number of requested
 // suggestions (_maxSuggestions), we return that array of possible
