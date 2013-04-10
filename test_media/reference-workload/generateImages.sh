@@ -7,13 +7,12 @@ if [ -z "$1" ]; then
   exit
 fi
 
-adb push ${SCRIPT_DIR}/MasterGalleryImage.jpg /mnt/sdcard/DCIM/100MZLLA/IMG_0001.jpg
+if [ "$1" != "0" ]; then
+  REMOTE_DIR="/sdcard/DCIM/100MZLLA"
+  adb push ${SCRIPT_DIR}/MasterGalleryImage.jpg ${REMOTE_DIR}/IMG_0001.jpg
 
-COUNT=1
-while [ ${COUNT} -lt $1 ]; do
-  let INDEX=COUNT+1
-  FILENAME=IMG_$(printf "%04d" $INDEX).jpg
-  adb shell 'cat /sdcard/DCIM/100MZLLA/IMG_0001.jpg > '/sdcard/DCIM/100MZLLA/${FILENAME}
-  let COUNT=COUNT+1
-done
-
+  for i in `seq -f '%04g' 2 $1` ; do
+    FILENAME=IMG_$i.jpg
+    adb shell "cat ${REMOTE_DIR}/IMG_0001.jpg > ${REMOTE_DIR}/${FILENAME}"
+  done
+fi
