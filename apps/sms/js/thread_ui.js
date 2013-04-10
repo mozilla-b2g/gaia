@@ -1246,8 +1246,16 @@ var ThreadUI = {
     }
 
     Contacts.findByString(filterValue, function gotContact(contacts) {
+      if (recipient.textContent === '') {
+        return;
+      }
       // There are contacts that match the input.
       this.container.innerHTML = '';
+      if (this.recipient.value === '') {
+        return;
+      }
+      // !contacts matches null results from errors
+      // !contacts.length matches empty arrays from unmatches filters
       if (!contacts || !contacts.length) {
         return;
       }
