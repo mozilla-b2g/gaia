@@ -499,6 +499,12 @@ var OnCallHandler = (function onCallHandler() {
       case 'CHLD+ATA':
         holdAndAnswer();
         break;
+      default:
+        var partialCommand = message.substring(0, 3);
+        if (partialCommand === 'VTS') {
+          KeypadManager.press(message.substring(4));
+        }
+        break;
     }
   }
 
