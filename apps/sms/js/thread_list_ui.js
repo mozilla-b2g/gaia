@@ -50,6 +50,7 @@ var ThreadListUI = {
     this.cancelButton.addEventListener('click', this.cancelEditMode.bind(this));
     this.view.addEventListener('click', this);
     this.editForm.addEventListener('submit', this);
+    this.fullHeight = this.view.offsetHeight;
    },
 
   updateThreadWithContact:
