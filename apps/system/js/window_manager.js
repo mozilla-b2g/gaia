@@ -1575,7 +1575,7 @@ var WindowManager = (function() {
   }
 
   function overlayEventHandler(evt) {
-    if (attentionScreenTimer)
+    if (attentionScreenTimer && 'mozChromeEvent' != evt.type)
       clearTimeout(attentionScreenTimer);
     switch (evt.type) {
       case 'status-active':
