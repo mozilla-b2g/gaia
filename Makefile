@@ -746,6 +746,12 @@ ifeq ($(REMOTE_DEBUGGER), 1)
 SETTINGS_ARG += --enable-debugger
 endif
 
+ifeq ($(DEBUG),1)
+SETTINGS_ARG += --homescreen=http://homescreen.$(GAIA_DOMAIN):$(GAIA_PORT)/manifest.webapp
+SETTINGS_ARG += --noftu
+endif
+
+
 # We want the console to be disabled for device builds using the user variant.
 ifneq ($(TARGET_BUILD_VARIANT),user)
 SETTINGS_ARG += --console
