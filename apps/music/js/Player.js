@@ -213,7 +213,7 @@ var PlayerView = {
     }
   },
 
-  setRatings: function pv_setRatings(rated) {
+  setRatings: function pv_setRatings(rated, songRate) {
     for (var i = 0; i < 5; i++) {
       var rating = this.ratings[i];
 
@@ -600,10 +600,13 @@ var PlayerView = {
           this.showInfo();
 
           var songData = this.dataSource[this.currentIndex];
-          songData.metadata.rated = parseInt(target.dataset.rating);
+          var newSongRate = this.checkRatings(parseInt(target.dataset.rating),
+            songData.metadata.rated);
+          var oldSongRate = songData.metadata.rated;
+          songData.metadata.rated = newSongRate;
 
           musicdb.updateMetadata(songData.name, songData.metadata,
-            this.setRatings.bind(this, parseInt(target.dataset.rating)));
+            this.setRatings.bind(this, newSongRate, oldSongRate));
         }
 
         break;
@@ -674,5 +677,15 @@ var PlayerView = {
       default:
         return;
     }
+  },
+
+  checkRatings: function pv_checkRatings(userRate, dbRate) {
+    var favIndx = 0;
+    if (userRate == dbRate) {
+      favIndx = userRate - 1;
+    } else {
+      favIndx = userRate;
+    }
+    return favIndx;
   }
 };
