@@ -490,6 +490,11 @@ var Cards = {
 
       this._showCard(cardIndex, showMethod, 'forward');
     }
+
+    if (Cards._sendPerfCardDone) {
+      Cards._sendPerfCardDone = false;
+      PerformanceTestingHelper.dispatch('startup-path-done');
+    }
   },
 
   _findCardUsingTypeAndMode: function(type, mode) {

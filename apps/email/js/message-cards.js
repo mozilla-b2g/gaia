@@ -827,6 +827,11 @@ MessageListCard.prototype = {
       this.scrollContainer.scrollTop +=
         (this.messagesContainer.clientHeight - prevHeight);
     }
+
+    if (!this._sentPerf) {
+      this._sentPerf = true;
+      PerformanceTestingHelper.dispatch('startup-path-done');
+    }
   },
 
   updateMessageDom: function(firstTime, message) {

@@ -4,7 +4,7 @@ require('/tests/js/app_integration.js');
 require('/tests/js/integration_helper.js');
 require('/tests/performance/performance_helper.js');
 
-const whitelistedApps = ['communications/contacts'];
+const whitelistedApps = ['communications/contacts', 'email'];
 
 function GenericIntegration(device) {
   AppIntegration.apply(this, arguments);

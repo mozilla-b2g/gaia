@@ -171,6 +171,8 @@ var App = {
           // did not have the fast path cookies set up.
           Cards.removeAllCards();
 
+          Cards._sendPerfCardDone = true;
+
           Cards.pushCard(
             'setup-account-info', 'default', 'immediate',
             {
