@@ -1,8 +1,3 @@
-/* Device Layouts */
-
-@media screen and (max-width: 480px) {
-}
-
 /* loading */
 
 body.loading {
@@ -93,7 +88,7 @@ ol.link-list li:only-child a {
 
 #progress-indicator {
   position: absolute;
-  top: 10%;
+  top: 6.9rem;
   left: 0;
   width: 100%;
   height: 0.3rem;
@@ -108,6 +103,8 @@ ol.link-list li:only-child a {
 }
 
 #throbber {
+  height: 5.2rem;
+  background: url('ui/progress.png') repeat-x left bottom / 32rem !important;
   animation: .5s throb infinite steps(12);
 }
 
@@ -566,18 +563,6 @@ section[role="status"].active {
   animation-name: fade-status;
   animation-delay: 2.5s;
   animation-duration: 1.5s;
-}
-
-@media screen and (min-width: 481px) {
-  html, body {
-    font-size: 1.2rem;
-  }
-}
-
-@media screen and (max-width: 480px) {
-  html, body {
-    font-size: 10px;
-  }
 }
 
 /* Hide on initial render to prevent flashing */
