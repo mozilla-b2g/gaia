@@ -41,7 +41,10 @@
               if (activityKey != self.config.name) { continue }
 
               // Verify we match a filter
-              if (app.manifest.activities[activityKey].filters.type.indexOf(self.config.data.type) === -1) { continue }
+              if (app.manifest.activities[activityKey].filters.type
+                .indexOf(self.config.data.type) === -1) {
+                  continue;
+              }
 
               // We found the activity
               activityFound = true;

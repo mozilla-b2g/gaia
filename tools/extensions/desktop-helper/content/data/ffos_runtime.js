@@ -23,7 +23,8 @@ FFOS_RUNTIME = {
    * Creates a navigator shim on the window
    * @param {String} property name.
    * @param {Object} property definition.
-   * @param {Boolean} if true, makes a navigator setter for this object. Useful for testing.
+   * @param {Boolean} if true, makes a navigator setter for this object.
+   *                  Useful for testing.
    */
   makeNavigatorShim: function(property, definition, makeSetter) {
     try {
@@ -104,7 +105,8 @@ FFOS_RUNTIME.getAppWindow(function(win) {
   /**
    * Remove the nextPaintListener
    **/
-  win.HTMLIFrameElement.prototype.removeNextPaintListener = function(callback) {
+  win.HTMLIFrameElement.prototype.removeNextPaintListener =
+        function(callback) {
 
   };
 });

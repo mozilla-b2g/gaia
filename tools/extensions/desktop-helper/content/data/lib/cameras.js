@@ -60,7 +60,8 @@
       cnvs.width = config.pictureSize.width;
       cnvs.height = config.pictureSize.height;
       var ctx = cnvs.getContext('2d');
-      ctx.drawImage(window.document.querySelector('video'), 0, 0, cnvs.width, cnvs.height);
+      ctx.drawImage(window.document.querySelector('video'), 0, 0,
+                      cnvs.width, cnvs.height);
       cnvs.toBlob(function(blob) {
           onSuccess(blob);
       }, 'image/jpeg');
