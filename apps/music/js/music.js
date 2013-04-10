@@ -9,6 +9,7 @@ var musicTitle;
 var playlistTitle;
 var artistTitle;
 var albumTitle;
+var songTitle;
 var unknownAlbum;
 var unknownArtist;
 var unknownTitle;
@@ -34,6 +35,7 @@ window.addEventListener('localized', function onlocalized() {
   playlistTitle = navigator.mozL10n.get('playlists');
   artistTitle = navigator.mozL10n.get('artists');
   albumTitle = navigator.mozL10n.get('albums');
+  songTitle = navigator.mozL10n.get('songs');
   unknownAlbum = navigator.mozL10n.get('unknownAlbum');
   unknownArtist = navigator.mozL10n.get('unknownArtist');
   unknownTitle = navigator.mozL10n.get('unknownTitle');
@@ -349,6 +351,9 @@ var ModeManager = {
             break;
           case 'album':
             title = albumTitle;
+            break;
+          case 'title':
+            title = songTitle;
             break;
         }
 
@@ -914,7 +919,7 @@ var ListView = {
 
     this.dataSource.push(result);
 
-    if (option === 'artist' || option === 'album') {
+    if (option !== 'playlist') {
       var firstLetter = result.metadata[option].charAt(0);
 
       if (this.lastFirstLetter != firstLetter) {
@@ -957,7 +962,7 @@ var ListView = {
           // When an user select "Shuffle all"
           // We just play all songs with shuffle order
           // or change mode to subList view and list songs
-          if (option === 'title') {
+          if (option === 'shuffleAll') {
             musicdb.getAll(function lv_getAll(dataArray) {
               ModeManager.push(MODE_PLAYER, function() {
                 PlayerView.setSourceType(TYPE_MIX);
@@ -966,6 +971,14 @@ var ListView = {
                 PlayerView.play(PlayerView.shuffledList[0]);
               });
             });
+          } else if (option === 'title') {
+            ModeManager.push(MODE_PLAYER, function() {
+              var targetIndex = parseInt(target.dataset.index);
+
+              PlayerView.setSourceType(TYPE_MIX);
+              PlayerView.dataSource = this.dataSource;
+              PlayerView.play(targetIndex);
+            }.bind(this));
           } else if (option) {
             var index = target.dataset.index;
             var data = this.dataSource[index];
@@ -1378,7 +1391,7 @@ var TabBar = {
 
             // this array is for automated playlists
             var playlistArray = [
-              {metadata: {title: shuffleAllTitle}, option: 'title'},
+              {metadata: {title: shuffleAllTitle}, option: 'shuffleAll'},
               {metadata: {title: highestRatedTitle}, option: 'rated'},
               {metadata: {title: recentlyAddedTitle}, option: 'date'},
               {metadata: {title: mostPlayedTitle}, option: 'played'},
@@ -1394,6 +1407,7 @@ var TabBar = {
             break;
           case 'tabs-artists':
           case 'tabs-albums':
+          case 'tabs-songs':
             ModeManager.start(MODE_LIST);
             ListView.clean();
 
