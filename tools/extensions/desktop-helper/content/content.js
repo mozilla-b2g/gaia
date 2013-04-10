@@ -84,9 +84,7 @@ var LoadListener = {
     currentWindow.alreadyMocked = true;
 
     try {
-      let currentDomain = currentWindow.location.toString();
-      if (currentDomain == 'about:blank')
-        return;
+      let currentDomain = currentWindow.document.domain;
 
       debug('loading scripts for app: ' + currentDomain);
       for (let domain in kScriptsPerDomain) {
