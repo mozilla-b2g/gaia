@@ -108,8 +108,10 @@ if (!window.location.hash.length) {
         // If we are in the same thread, only we need to vibrate
         if (number == currentThread) {
           navigator.vibrate([200, 200, 200]);
+          ThreadUI.checkInputs();
           return;
         }
+        ThreadListUI.checkInputs();
       }
 
       navigator.mozApps.getSelf().onsuccess = function(evt) {
