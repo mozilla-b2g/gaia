@@ -23,16 +23,18 @@ var AppStorage = (function AppStorage() {
 
   function attachListeners() {
     _appStorage.addEventListener('change', handleEvent);
+    window.addEventListener('localized', handleEvent);
   }
 
   function detachListeners() {
     _appStorage.removeEventListener('change', handleEvent);
+    window.removeEventListener('localized', handleEvent);
   }
 
   function handleEvent(evt) {
     debug('event handler: ' + evt.type + ' - ' + evt.reason);
     if (_callback)
-      _callback();
+      getSpaceInfo(_callback);
   }
 
   //XXX we really don't need this callback because nobody invoke this method

@@ -28,11 +28,13 @@ var Battery = (function Battery() {
   function attachListeners() {
     _battery.addEventListener('chargingchange', handleEvent);
     _battery.addEventListener('levelchange', handleEvent);
+    window.addEventListener('localized', handleEvent);
   }
 
   function detachListeners() {
     _battery.removeEventListener('chargingchange', handleEvent);
     _battery.removeEventListener('levelchange', handleEvent);
+    window.removeEventListener('localized', handleEvent);
   }
 
   function handleEvent(evt) {

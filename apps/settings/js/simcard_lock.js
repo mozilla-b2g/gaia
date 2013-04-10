@@ -16,6 +16,7 @@ var SimPinLock = {
 
     if (this.mobileConnection.cardState === 'absent') {
       this.simSecurityDesc.textContent = _('noSimCard');
+      this.simSecurityDesc.dataset.l10nId = 'noSimCard';
       this.simPinCheckBox.disabled = true;
       this.changeSimPinItem.hidden = true;
       return;
@@ -27,6 +28,8 @@ var SimPinLock = {
       var enabled = req.result.enabled;
       self.simSecurityDesc.textContent = (enabled) ?
         _('enabled') : _('disabled');
+      self.simSecurityDesc.dataset.l10nId = (enabled) ?
+        'enabled' : 'disabled';
       self.simPinCheckBox.disabled = false;
       self.simPinCheckBox.checked = enabled;
       self.changeSimPinItem.hidden = !enabled;

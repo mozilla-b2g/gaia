@@ -31,9 +31,9 @@ var Security = {
       return;
 
     var simSecurityDesc = document.getElementById('simCardLock-desc');
-
     if (mobileConnection.cardState === 'absent') {
       simSecurityDesc.textContent = _('noSimCard');
+      simSecurityDesc.dataset.l10nId = 'noSimCard';
       return;
     }
     // with SIM card, query its status
@@ -42,6 +42,8 @@ var Security = {
       var enabled = req.result.enabled;
       simSecurityDesc.textContent = (enabled) ?
         _('enabled') : _('disabled');
+      simSecurityDesc.dataset.l10nId = (enabled) ?
+        'enabled' : 'disabled';
     };
   }
 };

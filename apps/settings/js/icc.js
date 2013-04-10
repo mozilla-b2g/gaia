@@ -715,6 +715,7 @@
       var buttonHelp = document.createElement('button');
       buttonHelp.id = 'stk-item-help';
       buttonHelp.textContent = _('operatorServices-help');
+      buttonHelp.dataset.l10nId = 'operatorServices-help';
       buttonHelp.onclick = function(event) {
         responseSTKCommand({
           resultCode: icc.STK_RESULT_HELP_INFO_REQUIRED

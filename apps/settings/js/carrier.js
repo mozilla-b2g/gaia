@@ -336,11 +336,14 @@ var Carrier = (function newCarrier(window, document, undefined) {
     function selectOperator(network, messageElement) {
       var req = mobileConnection.selectNetwork(network);
       messageElement.textContent = _('operator-status-connecting');
+      messageElement.dataset.l10nId = 'operator-status-connecting';
       req.onsuccess = function onsuccess() {
         messageElement.textContent = _('operator-status-connected');
+        messageElement.dataset.l10nId = 'operator-status-connected';
       };
       req.onerror = function onsuccess() {
         messageElement.textContent = _('operator-status-connectingfailed');
+        messageElement.dataset.l10nId = 'operator-status-connectingfailed';
       };
     }
 
