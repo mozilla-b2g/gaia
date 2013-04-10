@@ -9,6 +9,7 @@ var musicTitle;
 var playlistTitle;
 var artistTitle;
 var albumTitle;
+var songTitle;
 var unknownAlbum;
 var unknownArtist;
 var unknownTitle;
@@ -43,6 +44,7 @@ window.addEventListener('localized', function onlocalized() {
   playlistTitle = navigator.mozL10n.get('playlists');
   artistTitle = navigator.mozL10n.get('artists');
   albumTitle = navigator.mozL10n.get('albums');
+  songTitle = navigator.mozL10n.get('songs');
   unknownAlbum = navigator.mozL10n.get(unknownAlbumL10nId);
   unknownArtist = navigator.mozL10n.get(unknownArtistL10nId);
   unknownTitle = navigator.mozL10n.get(unknownTitleL10nId);
@@ -368,6 +370,9 @@ var ModeManager = {
             break;
           case 'album':
             title = albumTitle;
+            break;
+          case 'title':
+            title = songTitle;
             break;
         }
         break;
@@ -947,7 +952,7 @@ var ListView = {
 
     this.dataSource.push(result);
 
-    if (option === 'artist' || option === 'album') {
+    if (option !== 'playlist') {
       var firstLetter = result.metadata[option].charAt(0);
 
       if (this.lastFirstLetter != firstLetter) {
@@ -999,6 +1004,14 @@ var ListView = {
                 PlayerView.play(PlayerView.shuffledList[0]);
               });
             });
+          } else if (option === 'title') {
+            ModeManager.push(MODE_PLAYER, function() {
+              var targetIndex = parseInt(target.dataset.index);
+
+              PlayerView.setSourceType(TYPE_MIX);
+              PlayerView.dataSource = this.dataSource;
+              PlayerView.play(targetIndex);
+            }.bind(this));
           } else if (option) {
             var index = target.dataset.index;
             var data = this.dataSource[index];
@@ -1452,6 +1465,7 @@ var TabBar = {
             break;
           case 'tabs-artists':
           case 'tabs-albums':
+          case 'tabs-songs':
             ModeManager.start(MODE_LIST);
             ListView.clean();
 
