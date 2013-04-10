@@ -1013,6 +1013,7 @@ const Keyboards = {
     label: 'Polish',
     imEngine: 'latin',
     menuLabel: 'polski',
+    needsCandidatePanel: true,
     alt: {
       a: 'ąáàâäåãāæ',
       c: 'ćčç',
