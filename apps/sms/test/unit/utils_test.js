@@ -188,7 +188,7 @@ suite('Utils', function() {
   });
 
   suite('Utils for MMS user story test', function() {
-    test('Image rescaling to 300kB', function() {
+    test('Image rescaling to 300kB', function(done) {
       // Open test image for testing image resize ability
       function resizeTest(name) {
         var req = new XMLHttpRequest();
@@ -201,6 +201,7 @@ suite('Utils', function() {
             var limit = 300 * 1024;
             Utils.getResizedImgBlob(blob, function(resizedBlob) {
               assert.isTrue(resizedBlob.size < limit);
+              done();
             }, limit);
           }
         };
