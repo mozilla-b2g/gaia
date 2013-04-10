@@ -3,8 +3,19 @@
 
 'use strict';
 
-function showThreadFromSystemMessage(number) {
+function showThreadFromSystemMessage(number, body) {
   var showAction = function act_action(number) {
+    // If we only have a body, just trigger a new message.
+    if (!number && body) {
+      var escapedBody = Utils.escapeHTML(body);
+      if (escapedBody === '') {
+        return;
+      }
+      MessageManager.activityBody = escapedBody;
+      window.location.hash = '#new';
+      return;
+    }
+
     var currentLocation = window.location.hash;
     switch (currentLocation) {
       case '#thread-list':
@@ -58,8 +69,8 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
     return;
   MessageManager.lockActivity = true;
   activity.postResult({ status: 'accepted' });
-  var number = activity.source.data.number;
-  showThreadFromSystemMessage(number);
+  showThreadFromSystemMessage(activity.source.data.number,
+                              activity.source.data.body);
 });
 
 /* === Incoming SMS support === */
