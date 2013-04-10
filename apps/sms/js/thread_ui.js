@@ -176,7 +176,7 @@ var ThreadUI = {
     };
 
     // We're waiting for the keyboard to disappear before animating back
-    if (MessageManager.fullHeight !== this.view.offsetHeight) {
+    if (ThreadListUI.fullHeight !== this.view.offsetHeight) {
       window.addEventListener('resize', function keyboardHidden() {
         window.removeEventListener('resize', keyboardHidden);
         goBack();
