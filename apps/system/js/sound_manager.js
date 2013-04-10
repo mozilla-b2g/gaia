@@ -139,7 +139,10 @@
   }
 
   function getVolumeState(currentVolume, delta, channel) {
-    if (channel == 'notification') {
+    if (channel == 'telephony') {
+      return 'OFF';
+    }
+    else if (channel == 'notification') {
       if (currentVolume + delta <= 0) {
         if (currentVolume == 0 && vibrationEnabled) {
           vibrationEnabled = false;
@@ -165,6 +168,10 @@
     muteState = getVolumeState(currentVolume[channel], delta, channel);
 
     var volume = currentVolume[channel] + delta;
+
+    if (channel == 'telephony' && volume <= 0) {
+      volume = 1;
+    }
 
     currentVolume[channel] = volume =
       Math.max(0, Math.min(MAX_VOLUME[channel], volume));
