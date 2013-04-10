@@ -255,17 +255,23 @@ section.card-settings-account li {
 }
 
 section.card-settings-account li.synchronize-setting label {
+  height: 3.5rem;
+  line-height: 3.5rem;
   width: auto;
 }
 
 section.card-settings-account li span.button {
-  left: 3rem;
-  width: calc(100% - 6rem);
+  display: block;
+  margin: 0 auto 1rem auto;
+  width: calc(100% - 3rem);
 }
 
 section.card-settings-account li span.button select {
+  padding-left: 0;
+  text-align: left;
+  text-indent: -0.22rem;
   /** Need to push the little select arrow off the page */
-  width: 150% !important;
+  width: calc(100% + 10rem) !important;
 }
 
 .tng-account-synchronize {
