@@ -982,10 +982,9 @@ var ThreadUI = {
     }
 
     Contacts.findByString(filterValue, function gotContact(contacts) {
-    var string = this.recipient.value;
-    if (!string) {
+    if (this.recipient.value === '') {
       return;
-      }
+    }
       // !contacts matches null results from errors
       // !contacts.length matches empty arrays from unmatches filters
       if (!contacts || !contacts.length) {
