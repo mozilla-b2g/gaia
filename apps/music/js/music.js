@@ -10,6 +10,7 @@ var playlistTitle;
 var artistTitle;
 var albumTitle;
 var songTitle;
+var pickerTitle;
 var unknownAlbum;
 var unknownArtist;
 var unknownTitle;
@@ -31,6 +32,8 @@ var leastPlayedTitleL10nId = 'playlists-least-played';
 // The MediaDB object that manages the filesystem and the database of metadata
 // See init()
 var musicdb;
+// Pick activity
+var pendingPick;
 
 // We get a localized event when the application is launched and when
 // the user switches languages.
@@ -45,6 +48,7 @@ window.addEventListener('localized', function onlocalized() {
   artistTitle = navigator.mozL10n.get('artists');
   albumTitle = navigator.mozL10n.get('albums');
   songTitle = navigator.mozL10n.get('songs');
+  pickerTitle = navigator.mozL10n.get('picker-title');
   unknownAlbum = navigator.mozL10n.get(unknownAlbumL10nId);
   unknownArtist = navigator.mozL10n.get(unknownArtistL10nId);
   unknownTitle = navigator.mozL10n.get(unknownTitleL10nId);
@@ -54,17 +58,45 @@ window.addEventListener('localized', function onlocalized() {
   mostPlayedTitle = navigator.mozL10n.get(mostPlayedTitleL10nId);
   leastPlayedTitle = navigator.mozL10n.get(leastPlayedTitleL10nId);
 
-  TabBar.playlistArray.localize();
-
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('invisible');
-
   // The first time we get this event we start running the application.
   // But don't re-initialize if the user switches languages while we're running.
-  if (!musicdb)
+  if (!musicdb) {
     init();
-  else
+
+    TitleBar.init();
+    TilesView.init();
+    ListView.init();
+    SubListView.init();
+    SearchView.init();
+    TabBar.init();
+
+    // If the URL contains '#pick', we will handle the pick activity
+    // or just start the Music app from Mix page
+    if (document.URL.indexOf('#pick') !== -1) {
+      navigator.mozSetMessageHandler('activity', function activityHandler(a) {
+        var activityName = a.source.name;
+
+        if (activityName === 'pick') {
+          pendingPick = a;
+        }
+      });
+
+      TabBar.option = 'title';
+      ModeManager.start(MODE_PICKER);
+    } else {
+      TabBar.option = 'mix';
+      ModeManager.start(MODE_TILES);
+
+      // The done button must be removed when we are not in picker mode
+      // because the rules of the header building blocks
+      var doneButton = document.getElementById('title-done');
+      doneButton.parentNode.removeChild(doneButton);
+    }
+  } else {
     ModeManager.updateTitle();
+  }
+
+  TabBar.playlistArray.localize();
 });
 
 // We use this flag when switching views. We want to hide the scan progress
@@ -164,7 +196,9 @@ function init() {
   musicdb.oncreated = function(event) {
     var currentMode = ModeManager.currentMode;
     if (scanning && !displayingScanProgress &&
-        (currentMode === MODE_TILES || currentMode === MODE_LIST))
+        (currentMode === MODE_TILES ||
+         currentMode === MODE_LIST ||
+         currentMode === MODE_PICKER))
     {
       displayingScanProgress = true;
       scanProgress.classList.remove('hidden');
@@ -264,6 +298,21 @@ function showOverlay(id) {
   document.getElementById('overlay').classList.remove('hidden');
 }
 
+// To display a correct overlay, we need to record the known songs from musicdb
+var knownSongs = [];
+
+function showCorrectOverlay() {
+  // If we don't know about any songs, display the 'empty' overlay.
+  // If we do know about songs and the 'empty overlay is being displayed
+  // then hide it.
+  if (knownSongs.length > 0) {
+    if (currentOverlay === 'empty')
+      showOverlay(null);
+  } else {
+    showOverlay('empty');
+  }
+}
+
 // We need handles here to cancel enumerations for
 // tilesView, listView, sublistView and playerView
 var tilesHandle = null;
@@ -272,45 +321,73 @@ var sublistHandle = null;
 var playerHandle = null;
 
 function showCurrentView(callback) {
-  // Enumerate existing song entries in the database
-  // List them all, and sort them in ascending order by album.
-  // Use enumerateAll() here so that we get all the results we want
-  // and then pass them synchronously to the update() functions.
-  // If we do it asynchronously, then we'll get one redraw for
-  // every song.
-  if (ModeManager.currentMode === MODE_LIST) {
-    listHandle =
-      musicdb.enumerateAll('metadata.' + TabBar.option, null, 'nextunique',
-                           function(songs) {
-                             ListView.clean();
-                             songs.forEach(function(song) {
-                               ListView.update(TabBar.option, song);
-                             });
-                           });
-  }
+  // We will need getThumbnailURL()
+  // to display thumbnails in TilesView
+  // it's possibly not loaded so load it
+  LazyLoader.load('js/metadata_scripts.js', function() {
+    // If it's in picking mode we will just enumerate all the songs
+    // and don't need to enumerate data for TilesView
+    // because mix page is not needed in picker mode
+    if (pendingPick) {
+      ListView.clean();
 
-  tilesHandle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
-                                     function(songs) {
-                                       // Add null to the array of songs
-                                       // this is a flag that tells update()
-                                       // to show or hide the 'empy' overlay
-                                       songs.push(null);
-                                       TilesView.clean();
+      listHandle =
+        musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
+                          function(song) {
+                            ListView.update(TabBar.option, song);
+                            // Push the song to knownSongs then
+                            // we can display a correct overlay
+                            knownSongs.push(song);
+                          });
 
-                                       // We will need getThumbnailURL()
-                                       // to display thumbnails in TilesView
-                                       // it's possibly not loaded so load it
-                                       LazyLoader.load('js/metadata_scripts.js',
-                                         function() {
-                                           songs.forEach(function(song) {
-                                             TilesView.update(song);
-                                           });
-                                           if (callback)
-                                             callback();
-                                         }
-                                       );
-                                    });
+      if (callback)
+        callback();
 
+      return;
+    }
+
+    // If music is not in tiles mode and showCurrentView is called
+    // that might be an user has mount/unmount his sd card
+    // and modified the songs so musicdb will be updated
+    // then we should update the list view if music app is in list mode
+    if (ModeManager.currentMode === MODE_LIST && TabBar.option !== 'playlist')
+    {
+      ListView.clean();
+
+      listHandle =
+        musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
+                          function(song) {
+                            ListView.update(TabBar.option, song);
+                          });
+    }
+
+    // Enumerate existing song entries in the database
+    // List them all, and sort them in ascending order by album.
+    // Use enumerateAll() here so that we get all the results we want
+    // and then pass them synchronously to the update() functions.
+    // If we do it asynchronously, then we'll get one redraw for
+    // every song.
+    // * Note that we need to update tiles view every time this happens
+    // because it's the top level page and an independent view
+    tilesHandle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
+                                       function(songs) {
+                                         // Add null to the array of songs
+                                         // this is a flag that tells update()
+                                         // to show or hide the 'empty' overlay
+                                         songs.push(null);
+                                         TilesView.clean();
+
+                                         songs.forEach(function(song) {
+                                           TilesView.update(song);
+                                           // Push the song to knownSongs then
+                                           // we can display a correct overlay
+                                           knownSongs.push(song);
+                                         });
+
+                                         if (callback)
+                                            callback();
+                                      });
+  });
 }
 
 // This Application has five modes: TILES, SEARCH, LIST, SUBLIST, and PLAYER
@@ -326,6 +403,7 @@ var MODE_SUBLIST = 3;
 var MODE_PLAYER = 4;
 var MODE_SEARCH_FROM_TILES = 5;
 var MODE_SEARCH_FROM_LIST = 6;
+var MODE_PICKER = 7;
 
 var ModeManager = {
   _modeStack: [],
@@ -379,6 +457,9 @@ var ModeManager = {
       case MODE_PLAYER:
         title = this.playerTitle || unknownTitle;
         break;
+      case MODE_PICKER:
+        title = pickerTitle;
+        break;
     }
 
     // if title doesn't exist, that should be the first time launch
@@ -408,7 +489,7 @@ var ModeManager = {
           callback();
       });
     } else {
-      if (mode === MODE_LIST)
+      if (mode === MODE_LIST || mode === MODE_PICKER)
         document.getElementById('views-list').classList.remove('hidden');
       else if (mode === MODE_SUBLIST)
         document.getElementById('views-sublist').classList.remove('hidden');
@@ -420,9 +501,15 @@ var ModeManager = {
         callback();
     }
 
+    // We have to show the done button when we are in picker mode
+    // and previewing the selecting song
+    if (pendingPick)
+      document.getElementById('title-done').hidden = (mode !== MODE_PLAYER);
+
     // Remove all mode classes before applying a new one
     var modeClasses = ['tiles-mode', 'list-mode', 'sublist-mode', 'player-mode',
-                       'search-from-tiles-mode', 'search-from-list-mode'];
+                       'search-from-tiles-mode', 'search-from-list-mode',
+                       'picker-mode'];
 
     modeClasses.forEach(function resetMode(targetClass) {
       document.body.classList.remove(targetClass);
@@ -469,6 +556,13 @@ var TitleBar = {
 
   handleEvent: function tb_handleEvent(evt) {
     var target = evt.target;
+
+    function cleanupPick() {
+      PlayerView.stop();
+      PlayerView.clean();
+      ModeManager.playerTitle = null;
+    }
+
     switch (evt.type) {
       case 'click':
         if (!target)
@@ -476,6 +570,15 @@ var TitleBar = {
 
         switch (target.id) {
           case 'title-back':
+            if (pendingPick) {
+              if (ModeManager.currentMode === MODE_PICKER) {
+                pendingPick.postError('pick cancelled');
+                return;
+              }
+
+              cleanupPick();
+            }
+
             ModeManager.pop();
 
             break;
@@ -485,6 +588,14 @@ var TitleBar = {
             if (PlayerView.dataSource.length != 0)
               ModeManager.push(MODE_PLAYER);
 
+            break;
+          case 'title-done':
+            pendingPick.postResult({
+              type: PlayerView.playingBlob.type,
+              blob: PlayerView.playingBlob
+            });
+
+            cleanupPick();
             break;
         }
 
@@ -561,17 +672,7 @@ var TilesView = {
     TabBar.setDisabled(!this.dataSource.length);
 
     if (result === null) {
-      // If we don't know about any songs, display the 'empty' overlay.
-      // If we do know about songs and the 'empty overlay is being displayed
-      // then hide it.
-      if (this.dataSource.length > 0) {
-        if (currentOverlay === 'empty')
-          showOverlay(null);
-      }
-      else {
-        showOverlay('empty');
-      }
-
+      showCorrectOverlay();
       // Display the TilesView after when finished updating the UI
       document.getElementById('views-tiles').classList.remove('hidden');
       // After the hidden class is removed, hideSearch can be effected
@@ -947,8 +1048,10 @@ var ListView = {
   },
 
   update: function lv_update(option, result) {
-    if (result === null)
+    if (result === null) {
+      showCorrectOverlay();
       return;
+    }
 
     this.dataSource.push(result);
 
@@ -1315,14 +1418,18 @@ var SearchView = {
       }
     }
 
-    this.searchHandles.artist = musicdb.enumerate(
-      'metadata.artist', null, 'nextunique',
-      sv_showResult.bind(this, 'artist')
-    );
-    this.searchHandles.album = musicdb.enumerate(
-      'metadata.album', null, 'nextunique',
-      sv_showResult.bind(this, 'album')
-    );
+    // Only shows the search results of tracks when it's in picker mode
+    if (!pendingPick) {
+      this.searchHandles.artist = musicdb.enumerate(
+        'metadata.artist', null, 'nextunique',
+        sv_showResult.bind(this, 'artist')
+      );
+      this.searchHandles.album = musicdb.enumerate(
+        'metadata.album', null, 'nextunique',
+        sv_showResult.bind(this, 'album')
+      );
+    }
+
     this.searchHandles.title = musicdb.enumerate(
       'metadata.title',
       sv_showResult.bind(this, 'title')
@@ -1484,16 +1591,3 @@ var TabBar = {
     }
   }
 };
-
-// Application start from here after 'DOMContentLoaded' event is fired.
-// Initialize the view objects and default mode is TILES.
-window.addEventListener('DOMContentLoaded', function() {
-  TitleBar.init();
-  TilesView.init();
-  ListView.init();
-  SubListView.init();
-  SearchView.init();
-  TabBar.init();
-
-  ModeManager.start(MODE_TILES);
-});

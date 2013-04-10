@@ -15,6 +15,14 @@
     "audio-channel-content":{}
   },
   "activities": {
+    "pick": {
+      "filters": {
+        "type": ["audio/*", "audio/mpeg", "audio/ogg", "audio/mp4"]
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/index.html#pick"
+    },
     "open": {
       "filters": {
         "type": ["audio/mpeg", "audio/ogg", "audio/mp4"]
