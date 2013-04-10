@@ -52,6 +52,7 @@ var Calls = (function(window, document, undefined) {
 
   // Display rule info.
   function displayRule(rules, elementId, settingKey) {
+    var element = document.getElementById(elementId);
     var textSelector = 'input[data-setting="ril.cf.' + settingKey + '.number"]';
     var textInput = document.querySelector(textSelector);
     var switchSelector =
@@ -61,7 +62,7 @@ var Calls = (function(window, document, undefined) {
     for (var i = 0; i < rules.length; i++) {
       if (rules[i].active &&
           ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
-        document.getElementById(elementId).textContent =
+        element.textContent =
           _('callForwardingForwardingVoiceTo') + ' ' + rules[i].number;
         textInput.value = rules[i].number;
         switchInput.checked = true;
@@ -70,8 +71,8 @@ var Calls = (function(window, document, undefined) {
       }
     }
 
-    document.getElementById(elementId).textContent =
-      _('callForwardingNotForwarding');
+    element.textContent = _('callForwardingNotForwarding');
+    element.dataset.l10nId = 'callForwardingNotForwarding';
     textInput.value = '';
     switchInput.checked = false;
     document.getElementById('cf-' + settingKey + '-number').disabled = false;
