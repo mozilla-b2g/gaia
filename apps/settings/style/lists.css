@@ -167,11 +167,47 @@ ul li p + input[type="password"] {
  * Range inputs
  */
 
+input[type=range] {
+  -moz-appearance: none;
+  border: none;
+  background: none;
+}
+
+input[type=range]:-moz-focusring {
+  outline: none;
+}
+
 ul li > label input[type="range"] {
-  width: 80%;
-  width: calc(100% - 13rem);
-  margin-left: 6.5rem;
-  margin-top: 2rem;
+  position: relative;
+  top: calc(50% - 1.5rem);
+  left: 6.5rem;
+  right: 8.5rem;
+  height: 3rem;
+  width: calc(100% - 15rem);
+}
+
+input[type=range]::-moz-range-track {
+  height: 0.1rem;
+  background-color: #7e7e7e;
+}
+
+input[type=range]::-moz-range-progress {
+  height: 0.3rem;
+  background-color: #01c5ed;
+}
+
+input[type=range]::-moz-range-thumb {
+  width: 2.8rem;
+  height: 2.8rem;
+  border: solid 0.1rem transparent;
+  border-radius: 3rem;
+  transition: border 0.15s ease;
+  -moz-box-sizing: border-box;
+  background: url(images/range_thumb.png) no-repeat 50% 50%;
+}
+
+input[type=range]:active::-moz-range-thumb {
+  border: solid 0.4rem #01c5ed;
 }
 
 /**
