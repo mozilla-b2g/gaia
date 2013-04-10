@@ -6,6 +6,7 @@
 var MessageManager = {
   currentNum: null,
   currentThread: null,
+  activityBody: null, // Used when getting a sms:?body=... activity.
   init: function mm_init(callback) {
     if (this.initialized) {
       return;
@@ -162,6 +163,11 @@ var MessageManager = {
         contactButton.parentNode.appendChild(contactButton);
         document.getElementById('messages-container').innerHTML = '';
         ThreadUI.cleanFields();
+        // If the message has a body, use it to popuplate the input field.
+        if (MessageManager.activityBody) {
+          input.value = MessageManager.activityBody;
+          MessageManager.activityBody = null;
+        }
         // Cleaning global params related with the previous thread
         MessageManager.currentNum = null;
         MessageManager.currentThread = null;
