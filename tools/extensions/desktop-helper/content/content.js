@@ -31,7 +31,6 @@ const kScriptsPerDomain = {
     'lib/mobile_connection.js',
     'lib/power.js',
     'lib/set_message_handler.js',
-    'lib/settings.js',
     'lib/wifi.js'
   ],
 
