@@ -26,7 +26,7 @@
 /* Have enough space at the bottom for the last message to not be under the
    action bar. */
 .msg-list-scroll-padding-bottom {
-  height: 8rem;
+  height: 4rem;
 }
 
 .msg-search-tease-bar {
@@ -241,7 +241,7 @@ input.msg-search-text-tease {
   background: #f2f2f2;
   border: 0.1rem solid #ddd;
   border-radius: 1rem;
-  margin: 0.1rem 0;
+  margin: 0.3rem 0 0;
   padding: 0.2rem 0.8rem;
   font-weight: 500;
   font-size: 1.3rem;
@@ -469,7 +469,7 @@ input.msg-search-text-tease {
 
 /* PROGRESS LABEL BUILDING BLOCKS EXTENSION */
 .msg-messages-sync-container {
-  margin-bottom: 2rem;
+  margin-bottom: 1.2rem;
 }
 
 

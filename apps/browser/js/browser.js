@@ -1160,10 +1160,10 @@ var Browser = {
     this.updateTabsCount();
   },
 
-  // Saves an image to device storage.
-  saveImage: function browser_saveImage(url) {
+  // Saves a media file to device storage.
+  saveMedia: function browser_saveMedia(url, type) {
     function displayMessage(message) {
-      var status = document.getElementById('save-image-status');
+      var status = document.getElementById('save-media-status');
       status.firstElementChild.textContent = message;
       status.classList.add('visible');
       window.setTimeout(function() {
@@ -1172,10 +1172,30 @@ var Browser = {
     }
 
     function storeBlob(blob, name, retryCount) {
-      var pictureStorage = navigator.getDeviceStorage('pictures');
-      var addreq = pictureStorage.addNamed(blob, name);
+      /*
+       * XXX: Bug 852864 - DeviceStorage addNamed failed with TypeMismatchError
+       * 3gp and ogg types of audio files are returned as blobs of video type.
+       * The workaround here is saving the blob to corresponding storage based
+       * on the type of it instead of the type specified by users. Which allows
+       * users able to save those types of audio files.
+       */
+      var storageTypeMap = {
+        'image': 'pictures',
+        'video': 'videos',
+        'audio': 'music'
+      };
+      var blobType = blob.type.split('/')[0];
+      var storageType = storageTypeMap[blobType];
+      if (!storageType) {
+        displayMessage(_('error-saving-' + type));
+        return;
+      }
+
+      var storage = navigator.getDeviceStorage(storageType);
+      var addreq = storage.addNamed(blob, name);
+
       addreq.onsuccess = function() {
-        displayMessage(_('image-saved'));
+        displayMessage(_(type + '-saved'));
       };
       addreq.onerror = function() {
         // Prepend some always changing id and try to store again, but give up
@@ -1185,7 +1205,7 @@ var Browser = {
           name = Date.now() + '-' + name;
           storeBlob(blob, name, retryCount + 1);
         } else {
-          displayMessage(_('error-saving-image'));
+          displayMessage(_('error-saving-' + type));
         }
       };
     }
@@ -1193,9 +1213,9 @@ var Browser = {
     var xhr = new XMLHttpRequest({mozSystem: true});
     xhr.open('GET', url, true);
     xhr.responseType = 'blob';
-    xhr.onload = function browser_imageDataListener() {
+    xhr.onload = function browser_mediaDataListener() {
       if (xhr.status !== 200 || !xhr.response) {
-        displayMessage(_('error-saving-image'));
+        displayMessage(_('error-saving-' + type));
         return;
       }
 
@@ -1215,7 +1235,7 @@ var Browser = {
     };
 
     xhr.onerror = function getDefaultDataError() {
-      displayMessage(_('error-saving-image'));
+      displayMessage(_('error-saving-' + type));
     };
     xhr.send();
   },
@@ -1224,22 +1244,33 @@ var Browser = {
   // default actions attached
   generateSystemMenuItem: function browser_generateSystemMenuItem(item) {
     var self = this;
-    if (item.nodeName === 'A') {
-      return {
-        label: _('open-in-new-tab'),
-        callback: function() {
-          self.openInNewTab(item.data);
-        }
-      };
-    } else if (item.nodeName === 'IMG') {
-      return {
-        label: _('save-image'),
-        callback: function() {
-          self.saveImage(item.data);
-        }
-      };
+    switch (item.nodeName) {
+      case 'A':
+        return {
+          label: _('open-in-new-tab'),
+          callback: function() {
+            self.openInNewTab(item.data);
+          }
+        };
+      case 'IMG':
+      case 'VIDEO':
+      case 'AUDIO':
+        var typeMap = {
+          'IMG': 'image',
+          'VIDEO': 'video',
+          'AUDIO': 'audio'
+        };
+        var type = typeMap[item.nodeName];
+
+        return {
+          label: _('save-' + type),
+          callback: function() {
+            self.saveMedia(item.data, type);
+          }
+        };
+      default:
+        return false;
     }
-    return false;
   },
 
   showContextMenu: function browser_showContextMenu(evt) {

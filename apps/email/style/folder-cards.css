@@ -41,13 +41,16 @@
   color: white;
 }
 
-.folder-scroller-region,
+.fld-folders-container,
 .acct-scroller-region {
-  background-color: white;
-  background: url(images/pattern.png) repeat left top #3a4446;
+  background: #3a4446 url(images/pattern.png);
   background-size: auto auto, 100% 100%;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+.fld-folders-container {
+  padding-bottom: 9.6rem;
 }
 
 .folder-scroller-region.scrollregion-below-header,
