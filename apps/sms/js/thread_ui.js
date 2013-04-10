@@ -485,23 +485,30 @@ var ThreadUI = {
     ThreadUI.scrollViewToBottom();
   },
   createMmsContent: function thui_createMmsContent(dataArray) {
-    // TODO: Contruct MMS bubble HTML content with attachment data.
-    //       Currently, we are only able to display image.
-    var body = '';
-    for (var i = 0; i < dataArray.length; i++) {
-      var mediaString = '';
-      var textString = '';
-      if (dataArray[i].name && dataArray[i].blob) {
-        mediaString = '<img src="' + URL.createObjectURL(dataArray[i].blob) +
-                      '"/>';
+    var container = document.createElement('div');
+    container.classList.add('mmsContainer');
+    dataArray.forEach(function(attachment) {
+      var mediaElement, textElement;
+      if (attachment.name && attachment.blob) {
+        var type = attachment.blob.type.split('/')[0];
+        var url = URL.createObjectURL(attachment.blob);
+        if (type == 'image') {
+          mediaElement = document.createElement('img');
+          mediaElement.src = url;
+        } else {
+          mediaElement = document.createElement(type);
+          var sourceTag = document.createElement('source');
+          sourceTag.src = url;
+          mediaElement.appendChild(sourceTag);
+        }
       }
-      if (dataArray[i].text) {
-        textString =
-          LinkHelper.searchAndLinkClickableData(dataArray[i].text);
+      if (attachment.text) {
+        textElement = document.createElement('span');
+        textElement.innerHTML = LinkHelper.searchAndLinkClickableData(attachment.text);
+        container.appendChild(textElement);
       }
-      body += (mediaString + textString);
-    }
-    return body;
+    });
+    return container;
   },
   // Method for rendering the list of messages using infinite scroll
   renderMessages: function thui_renderMessages(filter, callback) {
@@ -605,7 +612,7 @@ var ThreadUI = {
       } else {
         pElement.classList.add('mms-bubble-content');
         SMIL.parse(message, function(slideArray) {
-          pElement.innerHTML = ThreadUI.createMmsContent(slideArray);
+          pElement.appendChild(ThreadUI.createMmsContent(slideArray));
         });
       }
     } else { // SMS
