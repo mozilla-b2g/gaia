@@ -16,24 +16,59 @@ window.onload = function() {
   function startShare(request) {
     activity = request;
     blob = activity.source.data.blobs[0];
-    //console.log('--------- eidth: ', document.documentElement.clientWidth);
-    
-    //scale image
+    scaleImage(blob, function(resized_blob) {
+      preview.style.backgroundImage = 'url(' +
+        URL.createObjectURL(resized_blob); + ')';
+      setButton.addEventListener('click', setWallpaper);
+      cancelButton.addEventListener('click', cancelShare);
+    });
+  }
+
+  function scaleImage(blobToResize, callback) {
     var temporaryImage = new Image();
+
     temporaryImage.onload = function resizeWallpaper() {
+      var documentElement = document.documentElement;
+      var sourceX = 0;
+      var sourceY = 0;
+      var destX = 0;
+      var destY = 0;
+      var stretchRatio;
+      var sourceWidth;
+      var sourceHeight;
       var canvas = document.createElement('canvas');
-      canvas.width = document.documentElement.clientWidth;
-      canvas.height = document.documentElement.clientHeight;
+      canvas.width = documentElement.clientWidth;
+      canvas.height = documentElement.clientHeight;
       var ctx = canvas.getContext('2d');
-      ctx.drawImage(temporaryImage, 0, 0, temporaryImage.width, temporaryImage.height, 0, 0, document.documentElement.clientWidth, document.documentElement.clientHeight);
-      canvas.toBlob(function toBlobSuccess(resized_blob) {
-        console.log('--------jobs done!');
-        preview.style.backgroundImage = 'url(' + URL.createObjectURL(resized_blob); + ')';
-        setButton.addEventListener('click', setWallpaper);
-        cancelButton.addEventListener('click', cancelShare);
-      }, 'image/jpeg');
+
+      // crop the image in the center
+      if (canvas.width > canvas.height) {
+        stretchRatio = (temporaryImage.width / canvas.width);
+        sourceWidth = Math.floor(temporaryImage.width);
+        sourceHeight = Math.floor(canvas.height * stretchRatio);
+        sourceY = Math.floor((temporaryImage.height - sourceHeight) / 2);
+      } else {
+        stretchRatio = (temporaryImage.height / canvas.height);
+        sourceWidth = Math.floor(canvas.width * stretchRatio);
+        sourceHeight = Math.floor(temporaryImage.height);
+        sourceX = Math.floor((temporaryImage.width - sourceWidth) / 2);
+      }
+
+      ctx.drawImage(
+        temporaryImage,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        destX,
+        destY,
+        canvas.width,
+        canvas.height
+      );
+
+      canvas.toBlob(callback, 'image/jpeg');
     }
-    temporaryImage.src = window.URL.createObjectURL(blob);
+    temporaryImage.src = window.URL.createObjectURL(blobToResize);
   }
 
   function setWallpaper() {
