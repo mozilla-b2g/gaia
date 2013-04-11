@@ -310,11 +310,10 @@ var Carrier = (function newCarrier(window, document, undefined) {
   var opAutoSelectInput = opAutoSelect.querySelector('input');
   var opAutoSelectState = opAutoSelect.querySelector('small');
 
-  // XXX for some reason, networkSelectionMode is (almost?) always null
-  // so we're assuming the auto-selection is ON by default.
   function updateSelectionMode(scan) {
     var mode = mobileConnection.networkSelectionMode;
     opAutoSelectState.textContent = mode || '';
+    // we're assuming the auto-selection is ON by default.
     opAutoSelectInput.checked = !mode || (mode === 'automatic');
     if (!opAutoSelectInput.checked && scan) {
       gOperatorNetworkList.scan();
@@ -337,6 +336,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // state
     var state = document.createElement('small');
+    // XXX do we need l10n here?
     state.textContent = network.state;
 
     // create list item
@@ -359,6 +359,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
     var infoItem = list.querySelector('li[data-state="on"]');
     var scanItem = list.querySelector('li[data-state="ready"]');
     scanItem.onclick = scan;
+    var currentStateElement = null;
 
     // clear the list
     function clear() {
@@ -372,6 +373,11 @@ var Carrier = (function newCarrier(window, document, undefined) {
     // select operator
     function selectOperator(network, messageElement) {
       var req = mobileConnection.selectNetwork(network);
+      // update current network state as 'available' (the string display
+      // on the network to connect)
+      currentStateElement.textContent = messageElement.textContent;
+      currentStateElement.dataset.l10nId = messageElement.dataset.l10nId;
+      currentStateElement = messageElement;
       messageElement.textContent = _('operator-status-connecting');
       messageElement.dataset.l10nId = 'operator-status-connecting';
       req.onsuccess = function onsuccess() {
@@ -394,6 +400,9 @@ var Carrier = (function newCarrier(window, document, undefined) {
         var networks = req.result;
         for (var i = 0; i < networks.length; i++) {
           var listItem = newListItem(networks[i], selectOperator);
+          if (networks[i].state === 'current') {
+            currentStateElement = listItem.querySelector('small');
+          }
           list.insertBefore(listItem, scanItem);
         }
         list.dataset.state = 'ready'; // "Search Again" button
