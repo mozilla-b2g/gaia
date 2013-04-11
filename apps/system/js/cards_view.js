@@ -266,31 +266,34 @@ var CardsView = (function() {
         card.style.backgroundImage = 'url(' + cachedLayer + ')';
       }
 
-      // rect is the final size (considering CSS transform) of the card.
-      var rect = card.getBoundingClientRect();
-
       // And then switch it with screenshots when one will be ready
       // (instead of -moz-element backgrounds)
-      frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
-        function gotScreenshot(screenshot) {
-          if (screenshot.target.result) {
-            var objectURL = URL.createObjectURL(screenshot.target.result);
+      // Only take a new screenshot if is the active app
+      if (typeof frameForScreenshot.getScreenshot === 'function' &&
+        origin === displayedApp) {
+        // rect is the final size (considering CSS transform) of the card.
+        var rect = card.getBoundingClientRect();
+        frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
+          function gotScreenshot(screenshot) {
+            if (screenshot.target.result) {
+              var objectURL = URL.createObjectURL(screenshot.target.result);
 
-            // Overwrite the cached image to prevent flickering
-            card.style.backgroundImage =
-              'url(' + objectURL + '), url(' + cachedLayer + ')';
+              // Overwrite the cached image to prevent flickering
+              card.style.backgroundImage =
+                'url(' + objectURL + '), url(' + cachedLayer + ')';
 
-            // setTimeout is needed to ensure that the image is fully drawn
-            // before we remove it. Otherwise the rendering is not smooth.
-            // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
-            setTimeout(function() {
+              // setTimeout is needed to ensure that the image is fully drawn
+              // before we remove it. Otherwise the rendering is not smooth.
+              // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
+              setTimeout(function() {
 
-              // Override the cached image
-              URL.revokeObjectURL(cachedLayer);
-              WindowManager.screenshots[origin] = objectURL;
-            }, 200);
-          }
-        };
+                // Override the cached image
+                URL.revokeObjectURL(cachedLayer);
+                WindowManager.screenshots[origin] = objectURL;
+              }, 200);
+            }
+          };
+      }
 
       // Set up event handling
       // A click elsewhere in the card switches to that task
