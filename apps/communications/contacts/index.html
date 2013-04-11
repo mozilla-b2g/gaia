@@ -251,9 +251,17 @@
         <!-- PHONE TEMPLATE -->
         <div id='add-phone-#i#' data-template class='phone-template' data-index="#i#">
           <fieldset class="fillflow-row">
-            <legend class="action">
-              <span data-taglist="phone-type" name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</span>
-            </legend>
+            <span class="button icon icon-dialog">
+              <select>
+                <option value="mobile" data-l10n-id="mobile">MoBiLe</option>
+                <option value="home" data-l10n-id="home">HoMe</option>
+                <option value="work" data-l10n-id="work">WoRk</option>
+                <option value="personal" data-l10n-id="personal">PeRsOnAl</option>
+                <option value="faxHome" data-l10n-id="faxHome">FaXhOmE</option>
+                <option value="faxOther" data-l10n-id="faxOther">FaXoThEr</option>
+                <option value="another" data-l10n-id="another">AnOtHeR</option>
+              </select>
+            </span>
             <section>
               <p class="setbox-item">
                 <input placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel[#i#][value]" class="textfield" type="tel" value="#value#" id="number_#i#">
@@ -270,9 +278,13 @@
         <!-- EMAIL TEMPLATE -->
         <div id='add-email-#i#' data-template class='email-template' data-index="#i#">
           <fieldset class="fillflow-row">
-            <legend class="action">
-              <span data-taglist="email-type" name="email[#i#][type]" value="#type#" id="email_type_#i#" data-field="type">#type#</span>
-            </legend>
+            <span class="button icon icon-dialog">
+              <select>
+                <option value="personal" data-l10n-id="personal">PeRsOnAl</option>
+                <option value="home" data-l10n-id="home">HoMe</option>
+                <option value="work"data-l10n-id="work">WoRk</option>
+              </select>
+            </span>
             <section>
               <p class="setbox-item">
                 <input placeholder="Email" data-l10n-id="email" name="email[#i#][value]" class="textfield" type="email" value="#value#" id="email_#i#">
@@ -285,9 +297,12 @@
         <!-- ADDRESS TEMPLATE -->
         <div id='add-address-#i#' data-template class='address-template' data-index="#i#">
           <fieldset class="fillflow-row">
-            <legend class="action">
-              <span data-taglist="address-type" name="adr[#i#][type]" value="#type#" id="address_type_#i#" data-field="type">#type#</span>
-            </legend>
+            <span class="button icon icon-dialog">
+              <select>
+                <option value="home" data-l10n-id="home">HoMe</option>
+                <option value="work"data-l10n-id="work">WoRk</option>
+              <select>
+            </span>
             <section>
               <p class="setbox-item">
                 <input placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="adr[#i#][streetAddress]" class="textfield" type="text" x-inputmode="latin-prose" value="#streetAddress#" id="streetAddress_#i#">

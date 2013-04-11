@@ -243,6 +243,28 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   border-bottom-color: #255c95;
 }
 
+section.view-edit-contact div fieldset span {
+  -moz-box-sizing: border-box;
+  color: #333;
+  height: 100%;
+  line-height: 4rem;
+  overflow: hidden;
+  position: absolute;
+  text-transform: uppercase;
+  width: 9.5rem;
+}
+
+section.view-edit-contact div fieldset span:active {
+  background-color: #008CAA;
+}
+
+section.view-edit-contact div fieldset span select {
+  background: none;
+  border: transparent;
+  height: 100%;
+  text-overflow: ellipsis;
+}
+
 hr {
   background-color: #BCBCBC;
   border: 0;
