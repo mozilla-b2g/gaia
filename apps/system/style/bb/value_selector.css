@@ -179,7 +179,7 @@ form[role="dialog"] [role="listbox"] li {
   font-size: 2.2rem;
   line-height: 5.9rem;
   color: #fff;
-  transition: background 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
 form[role="dialog"] [role="listbox"] li span {

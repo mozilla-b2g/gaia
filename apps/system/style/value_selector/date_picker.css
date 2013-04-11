@@ -125,7 +125,7 @@
   display: block;
   font-weight: 200;
   text-align: center;
-  transition: background 0.2s ease;
+  transition: background-color 0.2s ease;
   border: solid 0.1rem #555;
   border-left: none;
   border-bottom: none;
