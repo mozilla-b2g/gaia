@@ -983,21 +983,12 @@ var ThreadUI = {
     }
 
     Contacts.findByString(filterValue, function gotContact(contacts) {
-      // !contacts matches null results from errors
-      // !contacts.length matches empty arrays from unmatches filters
-      if (!contacts || !contacts.length) {
-        this.container.classList.add('hide');
-        return;
-      }
-
       // There are contacts that match the input.
       //  1. Clear the existing container html
       //  2. Add the "hide" class to the messages-no-results display
       //  3. Remove the "hide" class from the container
       //
       this.container.innerHTML = '';
-      this.container.classList.remove('hide');
-
       contacts.forEach(this.renderContactData.bind(this));
     }.bind(this));
   },
