@@ -43,7 +43,8 @@
 //     int16 cPtr;      // center child
 //     int16 rPtr;      // right child
 //     int16 nPtr;      // next child, holds a pointer to the node
-//                      // with the next highest frequency
+//                      // with the next highest frequency after the
+//                      // the frequency in the current node.
 //     int16 high;      // holds an overflow byte for lPtr, cPtr, rPtr, nPtr
 //                      // which keeps nodes as small as possible.
 //     int16 frequency; // frequency from the XML file, or
@@ -52,7 +53,7 @@
 //
 // The algorithm operates in two stages:
 //
-// First, we permutate the user input (prefix) by
+// First, we permute the user input (prefix) by
 //   * inserting a character;
 //     following direct successors of the current node.
 //   * deleting a character;
@@ -75,8 +76,11 @@
 // candidates differently based on the detected error.
 //
 // For example, the user taps 's' on the keyboard.
-// Therfore, we add the root node for 's' to the array of
-// candidates (which will later predict she, such, some,...).
+// Therfore, we add the prefix for 's', with a pointer to the next
+// best candidate ('h' following the 's') to the array of
+// candidates (which will later predict 'she', and then 'such',
+// 'some', ...). This insertion into the sorted candidates array is
+// based on the frequency of the this node.
 // In this case, for example, we would also add 'a' to this array of
 // candidates because 'a' is a surrounding key of 's' and there is a
 // word that starts with that prefix in the TDAG (e.g. 'and').
@@ -114,11 +118,66 @@
 // correct frequency is still stored in that node. Once the input
 // words get longer and longer, we have allready narrowed the search
 // space for that prefix, so that the averaging of frequencies
-// in compressed nodes does not cause mispredictions.
+// in compressed nodes hopefully does not cause mispredictions.
 //
-// Once we the algorithm reaches the maximum number of requested
+// Once the algorithm reaches the maximum number of requested
 // suggestions (_maxSuggestions), we return that array of possible
 // alternatives which are displayed for the user.
+//
+// A simplyfied example to demonstrate the use of the nPtr:
+//
+//
+//                               -------------
+//                               |   ch: 't' |
+//                               | cPtr: 'h' |
+//                               | nPtr: 's' | <-!!!
+//                               | freq: 222 |
+//                               -------------
+//                              /      |      \
+//                             /       |       \
+//                            /        |        \
+//               -------------   -------------   -------------
+//               |   ch: 'k' |   |   ch: 'h' |   |   ch: 'u' |
+//               | cPtr: *** |   | cPtr: *** |   | cPtr: *** |
+//               | nPtr: *** |   | nPtr: *** |   | nPtr: *** |
+//               | freq: 160 |   | freq: 222 |   | freq: *** |
+//               -------------   -------------   -------------
+//                  / |       \      / | \           / | \
+//                 *  *        \    *  *  *         *  *  *
+//                              \
+//                               -------------
+//                               |   ch: 's' |
+//                               | cPtr: 'h' |
+//                               | nPtr: *** |
+//                               | freq: 170 |
+//                               -------------
+//                                   / | \
+//                                  *  |  *   
+//                                     |
+//                               ------------- 
+//                               |   ch: 'h' |
+//                               | cPtr: 'e' |
+//                               | nPtr: 'u' | <-!!!
+//                               | freq: 170 |
+//                               -------------
+//                                   / |      \                   
+//                                             |*|
+//                                               \
+//                                                ------------- 
+//                                                |   ch: 'u' |
+//                                                | cPtr: 'c' |
+//                                                | nPtr: *** |
+//                                                | freq: 170 |
+//                                                -------------
+//
+// The root node is 't' which cPtr points to 'h' which cPtr points
+// to 'e' ('the'). The lPtr of 't' points to 'k' (binary tree), but
+// the nPtr of 't' points to 's'. The cPtr of 's' points to 'h'
+// which cPtr points to 'e' ('she'). The nPtr of the node with ch 'h'
+// points to 'u', because the next highest word in the dictionary
+// is 'such'. This way, we can prune whole subtrees and take 
+// shortcuts in the tree to the candidate with the next best frequency
+// after the current frequency.
 
 'use strict';
 
