@@ -713,17 +713,17 @@ var ThreadUI = {
       'input[type="checkbox"]'
     );
     if (selected.length == allInputs.length) {
-      this.checkAllButton.classList.add('disabled');
+      this.checkAllButton.disabled = true;
     } else {
-      this.checkAllButton.classList.remove('disabled');
+      this.checkAllButton.disabled = false;
     }
     if (selected.length > 0) {
-      this.uncheckAllButton.classList.remove('disabled');
-      this.deleteButton.classList.remove('disabled');
+      this.uncheckAllButton.disabled = false;
+      this.deleteButton.disabled = false;
       this.editMode.innerHTML = _('selected', {n: selected.length});
     } else {
-      this.uncheckAllButton.classList.add('disabled');
-      this.deleteButton.classList.add('disabled');
+      this.uncheckAllButton.disabled = true;
+      this.deleteButton.disabled = true;
       this.editMode.innerHTML = _('editMode');
     }
   },
