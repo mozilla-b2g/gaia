@@ -2,20 +2,20 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
+const CC = Components.Constructor;
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cu = Components.utils;
 
 function debug(data) {
   dump('desktop-helper: ' + data + '\n');
 }
 
 function startup(data, reason) {
-  const CC = Components.Constructor;
-  const Cc = Components.classes;
-  const Ci = Components.interfaces;
-  const Cu = Components.utils;
-
   Cu.import('resource://gre/modules/Services.jsm');
   Cu.import('resource://gre/modules/PermissionPromptHelper.jsm');
   Cu.import('resource://gre/modules/ContactService.jsm');
+  Cu.import("resource:///modules/devtools/gDevTools.jsm");
 
   /**
    * Mappings of permissions we need to add to the chrome
@@ -63,6 +63,23 @@ function startup(data, reason) {
                             'resize to',
                             args);
     }, 'sessionstore-windows-restored', false)
+
+    // Register a new devtool panel with various OS controls
+    gDevTools.registerTool({
+      id: "firefox-os-controls",
+      key: "F",
+      modifiers: "accel,shift",
+      icon: "chrome://desktop-helper.js/content/panel/icon.gif",
+      url: "chrome://desktop-helper.js/content/panel/index.html",
+      label: "FFOS Control",
+      tooltip: "Set of controls to tune FirefoxOS apps in Desktop browser",
+      isTargetSupported: function(target) {
+        return target.isLocalTab;
+      },
+      build: function (iframeWindow, toolbox) {
+        iframeWindow.wrappedJSObject.tab = toolbox.target.window
+      }
+    });
 
   } catch(e) {
     debug("Something went wrong while trying to start desktop-helper: " + e);
