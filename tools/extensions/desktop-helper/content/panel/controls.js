@@ -1,16 +1,5 @@
 !function() {
 
-function sendChromeEvent(detail) {
-    var contentDetail = Components.utils.createObjectIn(tab);
-    for (var i in detail) {
-        contentDetail[i] = detail[i];
-    }
-    Components.utils.makeObjectPropsNormal(contentDetail);
-    var customEvt = tab.document.createEvent('CustomEvent');
-    customEvt.initCustomEvent('mozChromeEvent', true, true, contentDetail);
-    tab.dispatchEvent(customEvt);
-}
-
 function HardwareButtons() {
 
 }
@@ -52,15 +41,25 @@ function Emulation() {
 }
 
 Emulation.prototype = {
-    notification: function() {
-        sendChromeEvent({
-            type: 'desktop-notification',
-            id: 123,
-            title: 'Some Notification',
-            text: 'I love notifications.',
-            manifestURL: 'http://sytem.gaiamobile.org:8080/manifest.webapp'
-         });
-    }
+  nid: 0,
+  notification: function() {
+    var id = ++this.nid;
+    var n = tab.wrappedJSObject.navigator.mozNotification.createNotification(
+      'Some Notification',
+      'I love notifications. #' + id);
+
+    n.onclick = function() {
+      document.querySelector('#log').textContent =
+        'You clicked notification #' + id + '!';
+    };
+
+    n.onclose = function() {
+      document.querySelector('#log').textContent =
+        'You closed notification #' + id + '!';
+    };
+
+    n.show();
+  }
 };
 window.emulation = new Emulation();
 }();
