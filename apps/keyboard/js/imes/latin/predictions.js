@@ -277,7 +277,7 @@ var Predictions = function() {
       }
       // Record the suggestion and move to the next best candidate
       if (!(prefix in _suggestions_index)) {
-        _suggestions.push(prefix);
+        _suggestions.push([prefix, cand.freq]);
         _suggestions_index[prefix] = true;
       }
     }
