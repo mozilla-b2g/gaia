@@ -21,7 +21,6 @@ const kScriptsPerDomain = {
   '.gaiamobile.org': [
     'ffos_runtime.js',
     'lib/activity.js',
-    'lib/apps.js',
     'lib/bluetooth.js',
     'lib/cameras.js',
     'lib/getdevicestorage.js',
