@@ -48,7 +48,7 @@
 //     int16 high;      // holds an overflow byte for lPtr, cPtr, rPtr, nPtr
 //                      // which keeps nodes as small as possible.
 //     int16 frequency; // frequency from the XML file, or
-//                      // average of compressed/combined nodes. 
+//                      // average of compressed/combined nodes.
 //   };
 //
 // The algorithm operates in two stages:
@@ -152,18 +152,18 @@
 //                               | freq: 170 |
 //                               -------------
 //                                   / | \
-//                                  *  |  *   
+//                                  *  |  * 
 //                                     |
-//                               ------------- 
+//                               -------------
 //                               |   ch: 'h' |
 //                               | cPtr: 'e' |
 //                               | nPtr: 'u' | <-!!!
 //                               | freq: 170 |
 //                               -------------
-//                                   / |      \                   
+//                                   / |      \
 //                                             |*|
 //                                               \
-//                                                ------------- 
+//                                                -------------
 //                                                |   ch: 'u' |
 //                                                | cPtr: 'c' |
 //                                                | nPtr: *** |
@@ -175,7 +175,7 @@
 // the nPtr of 't' points to 's'. The cPtr of 's' points to 'h'
 // which cPtr points to 'e' ('she'). The nPtr of the node with ch 'h'
 // points to 'u', because the next highest word in the dictionary
-// is 'such'. This way, we can prune whole subtrees and take 
+// is 'such'. This way, we can prune whole subtrees and take
 // shortcuts in the tree to the candidate with the next best frequency
 // after the current frequency.
 
