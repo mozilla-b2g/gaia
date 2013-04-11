@@ -144,7 +144,7 @@ END:VCARD\n'), 'text/vcard']
                     if (!blob) {
                         this.results[ix] = null;
                         setTimeout(function() {
-                            self.onsuccess();
+                            self.onsuccess({ target: { result: null }});
                         });
                         return;
                     }
@@ -156,7 +156,7 @@ END:VCARD\n'), 'text/vcard']
                     this.results[ix] = decoded;
 
                     setTimeout(function() {
-                        self.onsuccess();
+                        self.onsuccess({ target: { result: self.result }});
                     }); // if you need to simulate sd card speed, add a timeout here
                 };
             })();
