@@ -982,17 +982,8 @@ var ThreadUI = {
     }
 
     Contacts.findByString(filterValue, function gotContact(contacts) {
-      // !contacts matches null results from errors
-      // !contacts.length matches empty arrays from unmatches filters
-      if (!contacts || !contacts.length) {
-        this.container.classList.add('hide');
-        return;
-      }
-
       // There are contacts that match the input.
       this.container.innerHTML = '';
-      this.container.classList.remove('hide');
-
       contacts.forEach(this.renderContactData.bind(this));
     }.bind(this));
   },
