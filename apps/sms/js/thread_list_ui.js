@@ -54,14 +54,18 @@ var ThreadListUI = {
     function thlui_updateThreadWithContact(number, thread) {
 
     Contacts.findByString(number, function gotContact(contacts) {
+      var nameContainer = thread.getElementsByClassName('name')[0];
+      var photo = thread.getElementsByTagName('img')[0];
       // !contacts matches null results from errors
       // !contacts.length matches empty arrays from unmatches filters
       if (!contacts || !contacts.length) {
+        // if no contacts, we show the number
+        nameContainer.textContent = number;
+        photo.src = '';
         return;
       }
       // If there is contact with the phone number requested, we
       // update the info in the thread
-      var nameContainer = thread.getElementsByClassName('name')[0];
       var contact = contacts[0];
 
       // Update contact phone number
@@ -78,7 +82,6 @@ var ThreadListUI = {
       }
       // Do we have to update photo?
       if (contact.photo && contact.photo[0]) {
-        var photo = thread.getElementsByTagName('img')[0];
         var photoURL = URL.createObjectURL(contact.photo[0]);
         photo.src = photoURL;
       }
@@ -267,8 +270,9 @@ var ThreadListUI = {
     var num = thread.senderOrReceiver;
     var timestamp = thread.timestamp.getTime();
     var threadDOM = document.createElement('li');
-    threadDOM.id = 'thread_' + num;
+    threadDOM.id = 'thread_' + thread.id;
     threadDOM.dataset.time = timestamp;
+    threadDOM.dataset.phoneNumber = num;
 
     // Retrieving params from thread
     var bodyText = (thread.body || '').split('\n')[0];
@@ -377,7 +381,7 @@ var ThreadListUI = {
     var threads = ThreadListUI.container.getElementsByTagName('li');
     for (var i = 0; i < threads.length; i++) {
       var thread = threads[i];
-      var num = thread.id.replace('thread_', '');
+      var num = thread.dataset.phoneNumber;
       // Update info of the contact given a number
       ThreadListUI.updateThreadWithContact(num, thread);
     }

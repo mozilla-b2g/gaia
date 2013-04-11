@@ -9,6 +9,7 @@ var musicTitle;
 var playlistTitle;
 var artistTitle;
 var albumTitle;
+var songTitle;
 var unknownAlbum;
 var unknownArtist;
 var unknownTitle;
@@ -34,6 +35,7 @@ window.addEventListener('localized', function onlocalized() {
   playlistTitle = navigator.mozL10n.get('playlists');
   artistTitle = navigator.mozL10n.get('artists');
   albumTitle = navigator.mozL10n.get('albums');
+  songTitle = navigator.mozL10n.get('songs');
   unknownAlbum = navigator.mozL10n.get('unknownAlbum');
   unknownArtist = navigator.mozL10n.get('unknownArtist');
   unknownTitle = navigator.mozL10n.get('unknownTitle');
@@ -350,6 +352,9 @@ var ModeManager = {
           case 'album':
             title = albumTitle;
             break;
+          case 'title':
+            title = songTitle;
+            break;
         }
 
         this.sublistTitle = title;
@@ -555,6 +560,12 @@ var TilesView = {
 
       // Display the TilesView after when finished updating the UI
       document.getElementById('views-tiles').classList.remove('hidden');
+      // After the hidden class is removed, hideSearch can be effected
+      // because the computed styles are applied to the search elements
+      // And ux wants the search bar to retain its position for about
+      // a half second, but half second seems to short for notifying users
+      // so we use one second instead of a half second
+      window.setTimeout(this.hideSearch.bind(this), 1000);
       return;
     }
 
@@ -639,6 +650,11 @@ var TilesView = {
         if (!target)
           return;
 
+        if (target.id === 'views-tiles-search-clear') {
+          SearchView.clearSearch();
+          return;
+        }
+
         if (target.id === 'views-tiles-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_TILES) {
             ModeManager.pop();
@@ -714,7 +730,7 @@ var TilesView = {
 
 // In Music, visually we have three styles of list
 // Here we use one function to create different style lists
-function createListElement(option, data, index) {
+function createListElement(option, data, index, highlight) {
   var li = document.createElement('li');
   li.className = 'list-item';
 
@@ -724,6 +740,21 @@ function createListElement(option, data, index) {
   a.dataset.option = option;
 
   li.appendChild(a);
+
+  function highlightText(result, text) {
+    var textContent = result.textContent;
+    var index = textContent.toLocaleLowerCase().indexOf(text);
+
+    if (index >= 0) {
+      var innerHTML = textContent.substring(0, index) +
+                      '<span class="search-highlight">' +
+                      textContent.substring(index, index + text.length) +
+                      '</span>' +
+                      textContent.substring(index + text.length);
+
+      result.innerHTML = innerHTML;
+    }
+  }
 
   switch (option) {
     case 'playlist':
@@ -762,6 +793,12 @@ function createListElement(option, data, index) {
         var artistSpan = document.createElement('span');
         artistSpan.className = 'list-single-title';
         artistSpan.textContent = data.metadata.artist || unknownArtist;
+
+        // Highlight the text when the highlight argument is passed
+        // This should only happens when we are creating searched results
+        if (highlight)
+          highlightText(artistSpan, highlight);
+
         li.appendChild(artistSpan);
       } else {
         var albumOrTitleSpan = document.createElement('span');
@@ -774,6 +811,12 @@ function createListElement(option, data, index) {
           albumOrTitleSpan.textContent = data.metadata.title || unknownTitle;
         }
         artistSpan.textContent = data.metadata.artist || unknownArtist;
+
+        // Highlight the text when the highlight argument is passed
+        // This should only happens when we are creating searched results
+        if (highlight)
+          highlightText(albumOrTitleSpan, highlight);
+
         li.appendChild(albumOrTitleSpan);
         li.appendChild(artistSpan);
       }
@@ -876,7 +919,7 @@ var ListView = {
 
     this.dataSource.push(result);
 
-    if (option === 'artist' || option === 'album') {
+    if (option !== 'playlist') {
       var firstLetter = result.metadata[option].charAt(0);
 
       if (this.lastFirstLetter != firstLetter) {
@@ -903,6 +946,11 @@ var ListView = {
         if (!target)
           return;
 
+        if (target.id === 'views-list-search-clear') {
+          SearchView.clearSearch();
+          return;
+        }
+
         if (target.id === 'views-list-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_LIST) {
             ModeManager.pop();
@@ -914,7 +962,7 @@ var ListView = {
           // When an user select "Shuffle all"
           // We just play all songs with shuffle order
           // or change mode to subList view and list songs
-          if (option === 'title') {
+          if (option === 'shuffleAll') {
             musicdb.getAll(function lv_getAll(dataArray) {
               ModeManager.push(MODE_PLAYER, function() {
                 PlayerView.setSourceType(TYPE_MIX);
@@ -923,6 +971,14 @@ var ListView = {
                 PlayerView.play(PlayerView.shuffledList[0]);
               });
             });
+          } else if (option === 'title') {
+            ModeManager.push(MODE_PLAYER, function() {
+              var targetIndex = parseInt(target.dataset.index);
+
+              PlayerView.setSourceType(TYPE_MIX);
+              PlayerView.dataSource = this.dataSource;
+              PlayerView.play(targetIndex);
+            }.bind(this));
           } else if (option) {
             var index = target.dataset.index;
             var data = this.dataSource[index];
@@ -1064,7 +1120,7 @@ var SubListView = {
       SubListView.setAlbumDefault(index);
       SubListView.dataSource = dataArray;
 
-      if (data.metadata.thumbnail)
+      if (data.metadata.picture)
         SubListView.setAlbumSrc(data);
 
       dataArray.forEach(function(songData) {
@@ -1212,7 +1268,7 @@ var SearchView = {
         lists[option].getElementsByClassName('search-result-count')[0]
                      .textContent = numResults[option];
         lists[option].getElementsByClassName('search-results')[0].appendChild(
-          createListElement(option, result, this.dataSource.length - 1)
+          createListElement(option, result, this.dataSource.length - 1, query)
         );
       }
     }
@@ -1335,7 +1391,7 @@ var TabBar = {
 
             // this array is for automated playlists
             var playlistArray = [
-              {metadata: {title: shuffleAllTitle}, option: 'title'},
+              {metadata: {title: shuffleAllTitle}, option: 'shuffleAll'},
               {metadata: {title: highestRatedTitle}, option: 'rated'},
               {metadata: {title: recentlyAddedTitle}, option: 'date'},
               {metadata: {title: mostPlayedTitle}, option: 'played'},
@@ -1351,6 +1407,7 @@ var TabBar = {
             break;
           case 'tabs-artists':
           case 'tabs-albums':
+          case 'tabs-songs':
             ModeManager.start(MODE_LIST);
             ListView.clean();
 

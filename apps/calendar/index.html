@@ -10,6 +10,7 @@
   <link rel="stylesheet" type="text/css" href="/style/building_blocks.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style/headers.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style_unstable/toolbars.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style/responsive.css" >
 
   <!-- localization -->
   <link rel="resource" type="application/l10n" href="/locales/locales.ini">
@@ -154,7 +155,7 @@
   </header>
 
   <div id="progress-indicator">
-    <img id="throbber" src="/style/ui/progress.png">
+    <div id="throbber"></div>
   </div>
 
 
@@ -174,7 +175,6 @@
 
   <section id="day-view">
   </section>
-
   <div class="delay"><!--
   <section id="week-view">
   </section>
@@ -233,22 +233,22 @@
 
   <section class="content">
     <div class="errors"></div>
-  
+
     <header>
       <h2 data-l10n-id="account-list-header">
         Accounts
       </h2>
     </header>
-  
+
     <ol class="account-list link-list">
     </ol>
-  
+
     <header>
       <h2 data-l10n-id="advanced-settings-personalization">
         Personalization
       </h2>
     </header>
-  
+
     <ol class="settings-list link-list">
       <li>
         <label>
@@ -263,13 +263,13 @@
         </label>
       </li>
     </ol>
-  
+
     <header>
       <h2 data-l10n-id="advanced-settings-reminders">
         Reminders
       </h2>
     </header>
-  
+
     <ol class="settings-list link-list">
       <li>
         <label id="default-event-alarm">
@@ -459,8 +459,10 @@
   </header>
 
   <section class="during-progress">
-    <p data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</p>
-    <progress class="small"></progress>
+    <div>
+      <progress class="small"></progress>
+      <span data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</span>
+    </div>
   </section>
 
   <form>
@@ -479,6 +481,11 @@
             placeholder="URL" />
 
         </li>
+        <li>
+          <a data-l10n-id="remove-account-data" role="button" href="#remove-account-dialog" class="danger delete-record">
+            Remove Local Data
+          </a>
+        </li>
       </ol>
     </fieldset>
   </form>
@@ -486,11 +493,6 @@
   <section role="status">
     <p class="errors"></p>
   </section>
-
-
-  <a data-l10n-id="remove-account-data" role="button" href="#remove-account-dialog" class="danger delete-record">
-    Remove Local Data
-  </a>
 
   <form role="dialog" data-type="confirm" id="remove-account-dialog">
     <section>

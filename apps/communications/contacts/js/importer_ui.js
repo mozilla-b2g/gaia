@@ -33,6 +33,7 @@ if (typeof window.importer === 'undefined') {
 
     // Counter for checked list items
     var checked = 0;
+    var checkNodeList;
 
     // Existing service contacts
     var existingContacts = [];
@@ -67,6 +68,51 @@ if (typeof window.importer === 'undefined') {
     var HARD_LIMIT_SYNC = 300;
 
     var tokenKey;
+
+    var isOnLine = navigator.onLine;
+    var ongoingImport = false;
+    var theImporter;
+
+    window.addEventListener('online', onLineChanged);
+    window.addEventListener('offline', onLineChanged);
+
+    function showOfflineDialog(yesCb, noCb) {
+      var recommend = serviceConnector.name === 'facebook';
+      ConfirmDialog.show(_('connectionLost'), _('connectionLostMsg'),
+        {
+          title: _('noOption'),
+          isRecommend: !recommend,
+          callback: function() {
+            ConfirmDialog.hide();
+            noCb();
+          }
+        },
+        {
+          title: _('yesOption'),
+          // FB friends can later resync data
+          isRecommend: recommend,
+          callback: function() {
+            ConfirmDialog.hide();
+            yesCb();
+          }
+      }, {
+        zIndex: '10000'
+    });
+    }
+
+    function onLineChanged() {
+      isOnLine = navigator.onLine;
+      if (isOnLine === false && ongoingImport) {
+        theImporter.hold();
+
+        showOfflineDialog(function() {
+          theImporter.resume();
+        }, function() {
+            // Finish the import process consistently
+            theImporter.finish();
+        });
+      }
+    }
 
     function getTokenKey() {
       var key = 'tokenData';
@@ -218,6 +264,10 @@ if (typeof window.importer === 'undefined') {
 
       imgLoader = new ImageLoader('#mainContent',
                                 ".block-item:not([data-uuid='#uid#'])");
+
+      var s = '.block-item:not([data-uuid="#uid#"]) input[type="checkbox"]';
+      checkNodeList = contactList.querySelectorAll(s);
+      Array.prototype.slice.call(checkNodeList, 0, checkNodeList.length);
 
       friendsLoaded = true;
 
@@ -376,6 +426,7 @@ if (typeof window.importer === 'undefined') {
         }
         else {
           // There was a problem with the access token
+          window.console.warn('Access Token expired or revoked');
           Curtain.hide();
           window.asyncStorage.removeItem(tokenKey,
             function token_removed() {
@@ -424,7 +475,7 @@ if (typeof window.importer === 'undefined') {
       };
     }
 
-    function checkDisabledButtons() {
+    function checkUpdateButton() {
       // Update button
       if (Object.keys(selectedContacts).length > 0 ||
           Object.keys(unSelectedContacts).length > 0) {
@@ -433,6 +484,10 @@ if (typeof window.importer === 'undefined') {
         // Empty arrays implies to disable update button
         updateButton.disabled = true;
       }
+    }
+
+    function checkDisabledButtons() {
+      checkUpdateButton();
 
       switch (checked) {
         case 0:
@@ -518,8 +573,6 @@ if (typeof window.importer === 'undefined') {
     }
 
     function cleanContacts(onsuccess, progress) {
-      window.console.log('On clean contacts');
-
       var contacts = [];
       var unSelectedKeys = Object.keys(unSelectedContacts);
       // ContactsCleaner expects an Array object
@@ -571,7 +624,7 @@ if (typeof window.importer === 'undefined') {
         var progress = Curtain.show('progress', 'import');
         progress.setTotal(total);
 
-        Importer.importAll(function on_all_imported() {
+        Importer.importAll(function on_all_imported(totalImported) {
           if (typeof serviceConnector.oncontactsimported === 'function') {
             // Check whether we need to set the last update and schedule next
             // sync. Only in that case otherwise that will be done by the sync
@@ -584,10 +637,10 @@ if (typeof window.importer === 'undefined') {
           if (unSelected > 0) {
             progress.setFrom('update');
             cleanContacts(function callback() {
-              onUpdate(total);
+              onUpdate(totalImported + unSelected);
             }, progress);
           } else {
-            onUpdate(total);
+            onUpdate(totalImported);
           }
         }, progress);
       } else if (unSelected > 0) {
@@ -605,15 +658,21 @@ if (typeof window.importer === 'undefined') {
      *
      */
     UI.selectAll = function(e) {
-      bulkSelection(true);
+      deSelectAllButton.disabled = false;
+      selectAllButton.disabled = true;
 
-      unSelectedContacts = {};
-      selectedContacts = {};
-      for (var uid in selectableFriends) {
-        selectedContacts[uid] = selectableFriends[uid];
-      }
+      window.setTimeout(function doSelectAll() {
+        bulkSelection(true);
 
-      checkDisabledButtons();
+        unSelectedContacts = {};
+        selectedContacts = {};
+
+        for (var uid in selectableFriends) {
+          selectedContacts[uid] = selectableFriends[uid];
+        }
+
+        checkUpdateButton();
+      }, 0);
 
       return false;
     };
@@ -623,15 +682,20 @@ if (typeof window.importer === 'undefined') {
      *
      */
     UI.unSelectAll = function(e)  {
-      bulkSelection(false);
+      deSelectAllButton.disabled = true;
+      selectAllButton.disabled = false;
 
-      selectedContacts = {};
-      unSelectedContacts = {};
-      for (var uid in existingContactsByUid) {
-        unSelectedContacts[uid] = existingContactsByUid[uid];
-      }
+      window.setTimeout(function doUnSelectAll() {
+        bulkSelection(false);
 
-      checkDisabledButtons();
+        selectedContacts = {};
+        unSelectedContacts = {};
+        for (var uid in existingContactsByUid) {
+          unSelectedContacts[uid] = existingContactsByUid[uid];
+        }
+
+        checkUpdateButton();
+      }, 0);
 
       return false;
     };
@@ -653,13 +717,25 @@ if (typeof window.importer === 'undefined') {
      *
      */
     function bulkSelection(value) {
-      var list = contactList.
-                  querySelectorAll('.block-item:not([data-uuid="#uid#"]');
+      window.setTimeout(function() {
+        doSelect(value, checkNodeList, 0, 10);
+      }, 0);
+    }
 
+    function doSelect(value, list, from, chunkSize) {
       var total = list.length;
-      for (var c = 0; c < total; c++) {
-        setChecked(list[c].querySelector('input[type="checkbox"]'), value);
+
+      for (var j = from; j < from + chunkSize && j < total; j++) {
+        setChecked(list[j], value);
       }
+
+      var leftInterval = from + chunkSize;
+      var rightInterval = leftInterval + chunkSize < total ?
+                                              leftInterval + chunkSize : total;
+
+      window.setTimeout(function() {
+        doSelect(value, list, leftInterval, rightInterval);
+      }, 0);
     }
 
     /**
@@ -724,22 +800,25 @@ if (typeof window.importer === 'undefined') {
       }
     }
 
-    /**
-     *  Imports all the selected contacts on the address book
-     *
-     */
-    Importer.importAll = function(importedCB, progress) {
-      var cImporter = serviceConnector.getImporter(selectedContacts,
+    function doImportAll(importedCB, progress) {
+      checkNodeList = null;
+      var toBeImported = Object.keys(selectedContacts);
+      var numFriends = toBeImported.length;
+
+      theImporter = serviceConnector.getImporter(selectedContacts,
                                                    access_token);
       var cpuLock, screenLock;
 
-      cImporter.oncontactimported = function(cfdata) {
+      theImporter.oncontactimported = function(cfdata) {
         releaseObjs(cfdata);
         progress.update();
       };
 
-      cImporter.onsuccess = function() {
-        window.setTimeout(importedCB, 0);
+      theImporter.onsuccess = function(totalImported) {
+        ongoingImport = false;
+        window.setTimeout(function imported() {
+          importedCB(totalImported);
+        }, 0);
 
         if (cpuLock) {
           cpuLock.unlock();
@@ -755,7 +834,27 @@ if (typeof window.importer === 'undefined') {
       // Release the DOM these objects will no longer be needed
       document.querySelector('#groups-list').innerHTML = '';
 
-      cImporter.start();
+      ongoingImport = true;
+      theImporter.start();
+    }
+
+    /**
+     *  Imports all the selected contacts on the address book
+     *
+     */
+    Importer.importAll = function(importedCB, progress) {
+      if (isOnLine === true) {
+        doImportAll(importedCB, progress);
+      }
+      else {
+        window.console.warn('User is not online!!');
+        showOfflineDialog(function() {
+          doImportAll(importedCB, progress);
+        }, function() {
+          Curtain.hide();
+          UI.end();
+        });
+      }
     };
 
   })(document);

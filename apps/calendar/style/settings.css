@@ -14,12 +14,12 @@ body[data-path^='/create-account'] #time-views,
 body[data-path^='/settings'] #time-views {
   position: relative;
   transform: translateX(80%);
-  box-shadow: 1px 1px 5px 5px #222;
+  box-shadow: 0.1rem 0.1rem 0.5rem 0.5rem #222;
   transition: transform 0.5s ease-in-out;
 }
 
 #settings {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   color: white;
   width: 80%;
   z-index: 0;
@@ -37,28 +37,29 @@ body[data-path^='/settings'] #time-views {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 20px);
+  width: -moz-calc(100% - 2rem);
   height: 100%;
 }
 
 #settings .calendars label > span {
-  line-height: 100%;
   display: block;
   float: left;
 }
 
 #settings .calendars label {
   display: block;
-  padding: 1.6rem;
-  border-bottom: 1px solid #7E8C91;
+  height: 100%;
+  width: 100%;
+  padding: 0 3rem;
+  border-bottom: 0.1rem solid #7E8C91;
   -moz-user-select: none;
   user-select: none;
-  width: 100%;
 }
 
 #settings .calendars li {
   width: 100%;
-  height: 4.9rem;
+  height: 3.9rem;
+  line-height: 3.9rem;
 }
 
 #settings .calendars .calendar-color {
@@ -76,9 +77,9 @@ body[data-path^='/settings'] #time-views {
 
 #settings > menu {
   position: absolute;
-  bottom: 0px;
-  height: 40px;
-  padding: 5px 0px;
+  bottom: 0;
+  height: 4rem;
+  padding: 0.5rem 0;
   background-color: rgba(0, 0, 0, 0.3);
 }
 
@@ -89,7 +90,7 @@ body[data-path^='/settings'] #time-views {
 #settings .settings {
   width: 5.5rem;
   height: 4rem;
-  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat center;
+  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat center / 3rem;
   font-size: 0;
   display: block;
 }
@@ -100,7 +101,6 @@ body[data-path^='/settings'] #time-views {
 
 #settings .calendars > li label {
   text-transform: none;
-  font: inherit;
 }
 
 #settings .calendars input[type="checkbox"] {
@@ -108,20 +108,16 @@ body[data-path^='/settings'] #time-views {
 }
 
 #settings .calendars input[type="checkbox"]:checked + span {
-  width: 14px;
-  height: 14px;
-  background: transparent url('/style/icons/checkmark.png') no-repeat;
+  width: 2.2rem;
+  height: 1.9rem;
+  background: transparent url('/style/icons/checkmark.png') no-repeat center / 1.4rem;
 }
 
-#settings .calendars input[type="checkbox"]+span {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  float: right;
-  position: static;
-  background: transparent;
-  left: inherit;
-  top: inherit;
+#settings .calendars input[type="checkbox"] + span {
+  left: auto;
+  top: 0.9rem;
+  right: 1.3rem;
+  background: none;
   margin: 0;
 }
 

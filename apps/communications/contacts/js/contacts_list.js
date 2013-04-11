@@ -17,7 +17,6 @@ contacts.List = (function() {
       contactsPhoto = [],
       photoTemplate,
       headers = {},
-      updating = {},
       contactsCache = {},
       searchLoaded = false,
       imagesLoaded = false;
@@ -56,19 +55,13 @@ contacts.List = (function() {
   };
 
   var initSearch = function initSearch(callback) {
-    if (!loaded) {
-      window.addEventListener('listRendered', function onRendered() {
-        window.removeEventListener('listRendered', onRendered);
-        lazyLoadSearch();
-      });
-    } else if (!searchLoaded) {
-      lazyLoadSearch();
-    }
-    contacts.Search.init(conctactsListView, favoriteGroup, function(e) {
-      onClickHandler(e);
-    });
-    if (callback)
+    contacts.Search.init(conctactsListView, favoriteGroup, onClickHandler);
+
+    if (callback) {
       callback();
+    }
+
+    lazyLoadSearch();
   };
 
   var initAlphaScroll = function initAlphaScroll() {
@@ -180,7 +173,6 @@ contacts.List = (function() {
   var renderFullContact = function renderFullContact(contact, fbContacts) {
     var contactContainer = renderContact(contact);
     var name = contactContainer.children[0];
-    var orderedString = getStringToBeOrdered(contact);
 
     addSearchOptions(name, contact);
     addOrderOptions(name, contact);
@@ -231,10 +223,12 @@ contacts.List = (function() {
     contactContainer.dataset.updated = timestampDate.getTime();
     // contactInner is a link with 3 p elements:
     // name, socaial marks and org
-    contactContainer.appendChild(getHighlightedName(contact));
+    var nameElement = getHighlightedName(contact);
+    contactContainer.appendChild(nameElement);
     contactsCache[contact.id] = {
       contact: contact,
-      container: contactContainer
+      container: contactContainer,
+      nameElement: nameElement
     };
     renderOrg(contact, contactContainer, true);
 
@@ -322,9 +316,19 @@ contacts.List = (function() {
   }
 
   var buildContacts = function buildContacts(contacts, fbContacts) {
+    // we need the async scripts to be here at this moment
+    // to f.e. access the utils.text features
+    if (!asyncScriptsLoaded) {
+      // delay loading if they're not there yet
+      window.addEventListener('asyncScriptsLoaded', function listener() {
+        window.removeEventListener('asyncScriptsLoaded', listener);
+
+        buildContacts(contacts, fbContacts);
+      });
+      return;
+    }
+
     var counter = {};
-    var contactsCache = {};
-    var favorites = [];
     var length = contacts.length;
     var CHUNK_SIZE = 20;
 
@@ -337,7 +341,7 @@ contacts.List = (function() {
       var group = getGroupName(contact);
 
       var list = headers[group];
-      counter[group] = counter[group] + 1 || 1;
+      counter[group] = (counter[group] || 0) + 1;
       list.appendChild(renderedContact);
 
       if (counter[group] === 1) {
@@ -412,16 +416,34 @@ contacts.List = (function() {
     loaded = true;
   };
 
+  var searchLoading = false;
+
+  var lazyLoadSearch = function lazyLoadSearch() {
+    if (searchLoading || searchLoaded) {
+      return;
+    }
+
+    searchLoading = true;
+
+    if (!loaded) {
+      window.addEventListener('listRendered', function onRendered() {
+        window.removeEventListener('listRendered', onRendered);
+        doLazyLoadSearch();
+      });
+    } else if (!searchLoaded) {
+      doLazyLoadSearch();
+    }
+  };
+
   // Method that fills non-visible datasets
   // needed for searching and adding new elements
-  var lazyLoadSearch = function lazyLoadSearch() {
+  var doLazyLoadSearch = function doLazyLoadSearch() {
     for (var id in contactsCache) {
       var current = contactsCache[id];
-      var contact = current.contact;
-      var name = current.container.querySelector('p');
-      addSearchOptions(name, contact);
+      addSearchOptions(current.nameElement, current.contact);
     }
     searchLoaded = true;
+    searchLoading = false;
     contacts.Search.enableSearch();
     dispatchCustomEvent('finishLazyLoading');
   };
@@ -429,9 +451,7 @@ contacts.List = (function() {
   var lazyLoadOrder = function lazyLoadOrder() {
     for (var id in contactsCache) {
       var current = contactsCache[id];
-      var contact = current.contact;
-      var name = current.container.querySelector('p');
-      addOrderOptions(name, contact);
+      addOrderOptions(current.nameElement, current.contact);
     }
   };
 
@@ -456,12 +476,14 @@ contacts.List = (function() {
     for (var i = 0; i < contactsPhoto.length; i++) {
       var id = contactsPhoto[i];
       var current = contactsCache[id];
-      var contact = current.contact;
-      var link = current.container;
-      renderPhoto(contact, link);
-      if (isFavorite(contact)) {
-        favs = true;
-        addToFavoriteList(link.cloneNode(true));
+      if (current) {
+        var contact = current.contact;
+        var link = current.container;
+        renderPhoto(contact, link);
+        if (isFavorite(contact)) {
+          favs = true;
+          addToFavoriteList(link.cloneNode(true));
+        }
       }
     }
     if (favs)
@@ -907,6 +929,10 @@ contacts.List = (function() {
     'setOrderByLastName': setOrderByLastName,
     'renderPhoto': renderPhoto,
     'renderFbData': renderFbData,
-    'getHighlightedName': getHighlightedName
+    'getHighlightedName': getHighlightedName,
+    // The purpose of this method is only for unit tests
+    'resetSearch': function resetSearch() {
+      searchLoaded = false;
+    }
   };
 })();

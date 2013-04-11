@@ -21,13 +21,13 @@
   "activities": {
     "record": {
       "filters": {
-        "type": "photos"
+        "type": ["photos", "videos"]
        },
       "disposition": "window"
     },
     "pick": {
       "filters": {
-        "type": ["image/jpeg"]
+        "type": ["image/*", "image/jpeg"]
        },
       "returnValue": true,
       "disposition": "inline",

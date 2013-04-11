@@ -17,6 +17,9 @@ function ComposeCard(domNode, mode, args) {
     .addEventListener('click', this.onBack.bind(this), false);
   this.sendButton = domNode.getElementsByClassName('cmp-send-btn')[0];
   this.sendButton.addEventListener('click', this.onSend.bind(this), false);
+  this._bound_onVisibilityChange = this.onVisibilityChange.bind(this);
+  document.addEventListener('mozvisibilitychange',
+                            this._bound_onVisibilityChange);
 
   this.toNode = domNode.getElementsByClassName('cmp-to-text')[0];
   this.ccNode = domNode.getElementsByClassName('cmp-cc-text')[0];
@@ -64,9 +67,6 @@ function ComposeCard(domNode, mode, args) {
   subjectContainer.addEventListener('click', function subjectFocus() {
     subjectContainer.querySelector('input').focus();
   });
-
-  // Add attachments
-  this.insertAttachments();
 
   // Sent sound init
   this.sentAudioKey = 'mail.sent-sound.enabled';
@@ -121,6 +121,10 @@ ComposeCard.prototype = {
     if (this.isEmptyAddress()) {
       this.sendButton.setAttribute('aria-disabled', 'true');
     }
+
+    // Add attachments
+    this.insertAttachments();
+
     this.subjectNode.value = this.composer.subject;
     this.textBodyNode.value = this.composer.body.text;
     // force the textarea to be sized.
@@ -165,6 +169,30 @@ ComposeCard.prototype = {
     // need to save it.  However, what we send to the back-end is what gets
     // sent, so if you want to implement editing UI and change this here,
     // go crazy.
+  },
+
+  _closeCard: function() {
+    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+  },
+
+  _saveNeeded: function() {
+    var self = this;
+    var checkAddressEmpty = function() {
+      var bubbles = self.domNode.querySelectorAll('.cmp-peep-bubble');
+      if (bubbles.length == 0 && !self.toNode.value && !self.ccNode.value &&
+          !self.bccNode.value)
+        return true;
+      else
+        return false;
+    };
+
+    return (this.subjectNode.value || this.textBodyNode.value ||
+        !checkAddressEmpty());
+  },
+
+  _saveDraft: function() {
+    this._saveStateToComposer();
+    this.composer.saveDraft();
   },
 
   createBubbleNode: function(name, address) {
@@ -230,7 +258,7 @@ ComposeCard.prototype = {
 
     if (evt.keyCode == 8 && node.value == '') {
       //delete bubble
-      var previousBubble = node.previousSibling;
+      var previousBubble = node.previousElementSibling;
       this.deleteBubble(previousBubble);
       if (this.isEmptyAddress()) {
         this.sendButton.setAttribute('aria-disabled', 'true');
@@ -419,10 +447,7 @@ ComposeCard.prototype = {
    * Save the draft if there's anything to it, close the card.
    */
   onBack: function() {
-    // Since we will discard all the content while exit, there is no need to
-    // save draft for now.
-    //this.composer.saveDraftEndComposition();
-    var discardHandler = (function() {
+    var goBack = (function() {
       if (this.activity) {
         // We need more testing here to make sure the behavior that back
         // to originated activity works perfectly without any crash or
@@ -430,37 +455,44 @@ ComposeCard.prototype = {
 
         this.activity.postError('cancelled');
         this.activity = null;
-
-        Cards.removeCardAndSuccessors(this.domNode, 'animate');
-      } else {
-        Cards.removeCardAndSuccessors(this.domNode, 'animate');
       }
+
+      this._closeCard();
     }).bind(this);
-    var self = this;
-    var checkAddressEmpty = function() {
-      var bubbles = self.domNode.querySelectorAll('.cmp-peep-bubble');
-      if (bubbles.length == 0 && !self.toNode.value && !self.ccNode.value &&
-          !self.bccNode.value)
-        return true;
-      else
-        return false;
-    };
-    if (!this.subjectNode.value && !this.textBodyNode.value &&
-        checkAddressEmpty()) {
-      discardHandler();
+
+    if (!this._saveNeeded()) {
+      goBack();
       return;
     }
-    var dialog = cmpNodes['discard-confirm'].cloneNode(true);
-    ConfirmDialog.show(dialog,
-      { // Confirm
-        id: 'cmp-discard-ok',
-        handler: discardHandler
-      },
-      { // Cancel
-        id: 'cmp-discard-cancel',
-        handler: null
+
+    var menu = cmpNodes['draft-menu'].cloneNode(true);
+    document.body.appendChild(menu);
+    var formSubmit = (function(evt) {
+      document.body.removeChild(menu);
+      switch (evt.explicitOriginalTarget.id) {
+        case 'cmp-draft-save':
+          this._saveDraft();
+          goBack();
+          break;
+        case 'cmp-draft-discard':
+          this.composer.abortCompositionDeleteDraft();
+          goBack();
+          break;
+        case 'cmp-draft-cancel':
+          break;
       }
-    );
+      return false;
+    }).bind(this);
+    menu.addEventListener('submit', formSubmit);
+  },
+
+  /**
+   * Save the draft if there's anything to it, close the card.
+   */
+  onVisibilityChange: function() {
+    if (document.mozHidden && this._saveNeeded()) {
+      this._saveDraft();
+    }
   },
 
   onSend: function() {
@@ -505,8 +537,8 @@ ComposeCard.prototype = {
           return;
         }
         activityHandler();
-        Cards.removeCardAndSuccessors(domNode, 'animate');
-      }
+        this._closeCard();
+      }.bind(this)
     );
   },
 
@@ -541,9 +573,7 @@ ComposeCard.prototype = {
       var activity = new MozActivity({
         name: 'pick',
         data: {
-          // image/* allows gallery to return any kind of image
-          // image/jpeg is here so that the camera app is offered
-          type: ['image/*', 'image/jpeg'],
+          type: 'image/*', // any kind of image
           nocrop: true
         }
       });
@@ -569,6 +599,10 @@ ComposeCard.prototype = {
   },
 
   die: function() {
+    document.removeEventListener('mozvisibilitychange',
+                                 this._bound_onVisibilityChange);
+    this.composer.die();
+    this.composer = null;
   }
 };
 Cards.defineCardWithDefaultMode('compose', {}, ComposeCard);

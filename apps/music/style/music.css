@@ -224,6 +224,11 @@ body.search-from-list-mode #views-list {
   overflow-y: hidden;
 }
 
+body.search-from-tiles-mode #tabs,
+body.search-from-list-mode #tabs {
+  display: none;
+}
+
 body.sublist-mode #views {
   transform: translateX(-200%);
   z-index: 20;
@@ -913,10 +918,11 @@ button::-moz-focus-inner {
 #tabs-mix,
 #tabs-playlists,
 #tabs-artists,
-#tabs-albums {
+#tabs-albums,
+#tabs-songs {
   position: relative;
   float: left;
-  width: 25%;
+  width: 20%;
   height: 100%;
   padding: 0px;
   font-size: 1.7rem;
@@ -938,6 +944,10 @@ button::-moz-focus-inner {
 
 #tabs-albums {
   background-image: url("./images/IconAction_Media_AlbumFilter_30x30.png");
+}
+
+#tabs-songs {
+  background-image: url("./images/IconAction_Media_Songs_30x30.png");
 }
 
 .tabs-button {
@@ -1158,4 +1168,8 @@ form[role="search"] .icon.icon-close {
   margin: 0px;
   overflow: visible;
   font-size: 0px;
+}
+
+.search-highlight {
+  background-color: rgb(0, 138, 170);
 }

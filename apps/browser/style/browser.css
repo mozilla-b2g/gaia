@@ -286,14 +286,12 @@ input[type="image"] {
 #url-bar {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  padding: 0;
   margin: 1rem;
-  border: solid 0.1rem;
-  border-color: #c1c5ce;
+  border: 0.1rem solid #c1c5ce;
   border-radius: 0.5rem;
   height: 3.4rem;
   margin: 0.8rem 0 0.8rem 0.5rem;
-  padding: 0 0 0 1rem;
+  padding: 0 0 0 0.5rem;
   background-color: #fff;
   font-weight: 600;
   width: calc(100% - 1.5rem);
@@ -313,7 +311,7 @@ input[type="image"] {
   display: block;
   width: 2.4rem;
   height: 3.4rem;
-  margin-right: 0.5rem;
+  margin-right: 0.2rem;
   text-indent: -1000em;
   background-repeat: no-repeat;
   background-position: center center;
@@ -337,6 +335,7 @@ input[type="image"] {
   height: 3.4rem;
   -moz-box-flex: 1;
   margin: 0;
+  padding: 0;
   border: none;
   background-color: transparent;
   background: none;
@@ -702,7 +701,7 @@ ul[role="listbox"] {
 
 li[role="listitem"] {
   list-style-type: none;
-  margin: 0 1rem;
+  margin: 0 1.5rem;
 }
 
 li[role="listitem"]:last-child a {
@@ -710,17 +709,19 @@ li[role="listitem"]:last-child a {
 }
 
 li[role="listitem"] a {
+  position: relative;
   display: block;
   padding: 0.8rem;
   text-decoration: none;
   color: #000;
   border-bottom: solid 0.1rem #ccc;
-  padding-left: 3.2rem;
-  background-repeat: no-repeat;
-  background-position: 0.8rem 2rem;
-  background-size: 1.6rem;
+  padding-left: 4rem;
+  background-repeat: no-repeat, no-repeat;
+  background-position: 1rem 1.9rem, 0 .8rem;
+  background-size: 1.6rem, 3.6rem;
   outline: none;
 }
+
 li[role="listitem"] a:hover, li[role="listitem"] a:active {
   background-color: #EEE;
 }
@@ -738,7 +739,7 @@ li[role="listitem"] h5 {
 
 li[role="listitem"] small {
   display: block;
-  color: #666;
+  color: #575e66;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1009,10 +1010,10 @@ li[role="listitem"] small {
   .page-screen #frames { bottom: 0; }
 }
 
-#save-image-status {
+#save-media-status {
   display: none;
 }
 
-#save-image-status.visible {
+#save-media-status.visible {
   display: block;
 }

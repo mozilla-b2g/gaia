@@ -73,7 +73,8 @@ var App = {
           trash: mozL10n.get('folder-trash'),
           queue: mozL10n.get('folder-queue'),
           junk: mozL10n.get('folder-junk'),
-          archives: mozL10n.get('folder-archives')
+          archives: mozL10n.get('folder-archives'),
+          localdrafts: mozL10n.get('folder-localdrafts')
         }
       });
     }

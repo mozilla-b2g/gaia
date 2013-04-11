@@ -30,12 +30,11 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         PARAM_TO_PASS_BETWEEN_REQUESTS_NAME = "originatingRequestId",
         
         // client info- saved in cookie and sent to API
-        currentClientInfo = {
+        clientInfo = {
             'lc': navigator.language,
             'tz': (new Date().getTimezoneOffset()/-60).toString(),
             'kb': ''
         },
-        CLIENT_INFO_COOKIE_NAME = 'clientInfo',
         
         requestsToCache = {
             "Search.apps": true,
@@ -89,7 +88,6 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                 self.setKeyboardLanguage(e.settingValue);
             });
         }
-        setClientInfoCookie();
         
         self.Session.init();
     };
@@ -742,29 +740,26 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     };
     
     this.setClientInfoLocale = function setClientInfoLocale(newLocale) {
-        currentClientInfo.lc = newLocale || navigator.language || '';
-        setClientInfoCookie();
+        clientInfo.lc = newLocale || navigator.language || '';
     };
     this.setClientInfoTimeZone = function setClientInfoTimeZone(newTimeZone) {
-        currentClientInfo.tz = newTimeZone || (new Date().getTimezoneOffset()/-60).toString();
-        setClientInfoCookie();
+        clientInfo.tz = newTimeZone || (new Date().getTimezoneOffset()/-60).toString();
     };
     this.setKeyboardLanguage = function setKeyboardLanguage(newKeyboardLanguage) {
-        currentClientInfo.kb = newKeyboardLanguage || '';
-        setClientInfoCookie();
+        clientInfo.kb = newKeyboardLanguage || '';
     };
     
-    // save the current client info in a cookie, for the server to read
-    // format: lc=<locale code>,tz=<timezone offset>,kb=<keyboard language>
-    function setClientInfoCookie() {
-        var cookieVal = [];
-        for (var key in currentClientInfo) {
-            cookieVal.push(key + '=' + encodeURIComponent(currentClientInfo[key]));
+    // go over the clientInfo object and construct a param from it
+    // clientInfo=key=value,key=value,...
+    this.getClientInfo = function getClientInfo() {
+        var value = [];
+        for (var key in clientInfo) {
+            value.push(key + '=' + clientInfo[key]);
         }
-        cookieVal = cookieVal.join(',');
+        value = value.join(',');
         
-        Evme.Utils.Cookies.set(CLIENT_INFO_COOKIE_NAME, cookieVal, null, '.everything.me');  
-    }
+        return value;
+    };
     
     function request(options, ignoreCache, dontRetryIfNoSession) {
         var methodNamespace = options.methodNamespace,
@@ -784,10 +779,11 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             return false;
         }
         
-        // add the lat,lon to the cache key (DUH)
+        // the following params will be added to the cache key
         if (userLat && userLon && typeof params["latlon"] == "undefined") {
             params["latlon"] = userLat + "," + userLon;
         }
+        params["clientInfo"] = self.getClientInfo();
         
         if (useCache) {
             cacheKey = getCacheKey(methodNamespace, methodName, params);

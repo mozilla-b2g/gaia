@@ -598,6 +598,8 @@ contacts.Settings = (function() {
     'close': close,
     'refresh': refresh,
     'onLineChanged': checkOnline,
-    'cardStateChanged': checkSIMCard
+    'cardStateChanged': checkSIMCard,
+
+    'checkStorageCard': checkStorageCard
   };
 })();

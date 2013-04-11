@@ -497,8 +497,6 @@ function mapInputType(type) {
     return 'number';
     break;
   }
-
-  return null;
 }
 
 //
@@ -801,8 +799,7 @@ function sendDelete(isRepeat) {
   // Pass the isRepeat argument to the input method. It may not want
   // to compute suggestions, for example, if this is just one in a series
   // of repeating events.
-  inputMethod.click(KeyboardEvent.DOM_VK_BACK_SPACE,
-                    undefined, undefined, isRepeat);
+  inputMethod.click(KeyboardEvent.DOM_VK_BACK_SPACE, isRepeat);
 }
 
 // Return the upper value for a key object
@@ -812,8 +809,7 @@ function getUpperCaseValue(key) {
     return key.value;
 
   var upperCase = currentLayout.upperCase || {};
-  var v = upperCase[key.value] || key.value.toUpperCase();
-  return v;
+  return upperCase[key.value] || key.value.toUpperCase();
 }
 
 function setMenuTimeout(target, coords, touchId) {
@@ -1062,8 +1058,8 @@ function startPress(target, coords, touchId) {
     return;
 
   // Feedback
-  IMERender.highlightKey(target);
   triggerFeedback();
+  IMERender.highlightKey(target);
 
   setMenuTimeout(target, coords, touchId);
 
@@ -1331,8 +1327,7 @@ function endPress(target, coords, touchId) {
 
     // Normal key
   default:
-    var offset = getOffset(target, coords);
-    inputMethod.click(keyCode, offset.x, getKeyCoordinateY(offset.y));
+    inputMethod.click(keyCode);
     break;
   }
 }
@@ -1345,22 +1340,6 @@ function getKeyCoordinateY(y) {
     yBias = candidatePanel.clientHeight;
 
   return y - yBias;
-}
-
-function getOffset(el, coords) {
-  var x = 0;
-  var y = 0;
-
-  while (el) {
-    x += el.offsetLeft - el.scrollLeft;
-    y += el.offsetTop - el.scrollTop;
-    el = el.offsetParent;
-  }
-
-  x = coords.clientX - x;
-  y = coords.clientY - y;
-
-  return { x: x, y: y };
 }
 
 // Turn to default values

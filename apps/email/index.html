@@ -93,7 +93,6 @@
         <div class="scrollregion-below-header folder-scroller-region">
           <div class="fld-folders-container">
           </div>
-          <div class="bottom-toolbar-spacer"></div>
         </div>
         <div class="fld-nav-toolbar bottom-toolbar">
           <button class="fld-nav-settings-btn bottom-btn"></button>
@@ -237,9 +236,7 @@
           <button class="msg-move-btn bottom-btn"></button>
         </div>
         <div class="msg-list-empty-container collapsed">
-          <div class="msg-list-empty-message">
-            <p class="msg-list-empty-message-text" data-l10n-id="messages-folder-empty">No messagE</p>
-          </div>
+          <p class="msg-list-empty-message-text" data-l10n-id="messages-folder-empty">No messagE</p>
         </div>
       </div>
 
@@ -290,9 +287,7 @@
           </div>
           <ul class="msg-attachments-container">
           </ul>
-          <div class="msg-body-container">
-            <progress></progress>
-          </div>
+          <div class="msg-body-container"><progress></progress></div>
           <div class="bottom-toolbar-spacer"></div>
         </div>
         <!-- Tells us about remote/not downloaded images, asks to show -->
@@ -475,10 +470,13 @@
           <h1 class="sup-account-header-label"
               data-l10n-id="setup-completed-header">MaiL AccounT SetuP</h1>
         </header>
-        <h2 class="sup-account-done-label sup-form-label"
-            data-l10n-id="setup-completed-label">AlL DonE!</h2>
+        <div class="sup-progress-region">
+          <span class="sup-progress-label" data-l10n-id="setup-completed-label">
+            AlL DonE!
+          </span>
+        </div>
         <button class="sup-add-another-account-btn sup-form-btn"
-                data-l10n-id="setup-add-another-account">
+              data-l10n-id="setup-add-another-account">
           AdD AnotheR AccounT
         </button>
         <button class="sup-show-mail-btn sup-form-btn recommend"
@@ -702,11 +700,12 @@
           <header class="tng-main-accounts-label">
             <h2 data-l10n-id="settings-account-section">AccountS</h2>
           </header>
-          <div class="tng-accounts-container"></div>
-            <li class="align-center">
+          <ul class="tng-accounts-container">
+            <li>
               <button href="#" data-l10n-id="settings-account-add"
                 class="tng-account-add">AdD AccounT</button>
             </li>
+          </ul>
           <!-- Hide for v1: Hide general setting section to reduce effort-->
           <header class="tng-main-about-label collapsed">
             <h2 data-l10n-id="settings-general-section">GeneraL SettingS</h2>
@@ -798,10 +797,9 @@
               <span class="tng-account-type list-value">AccounT TypE</span>
             </em>
           </li>
-          <li>
-            <span data-l10n-id="settings-account-synchronize" class="list-text">
-              SynchronizE</span>
-            <em class="aside end">
+          <li class="synchronize-setting">
+            <label data-l10n-id="settings-account-synchronize" class="list-text">SynchronizE</label>
+            <span class="button icon icon-dialog">
               <select class="mail-select tng-account-synchronize">
                 <option value="auto" data-l10n-id="settings-synchronize-auto">
                   AutomatiC</option>
@@ -818,7 +816,7 @@
                 <option value="all" data-l10n-id="settings-synchronize-all">
                   AlL MessageS</option>
               </select>
-            </em>
+            </span>
           </li>
           <li>
             <a href="#" data-l10n-id="settings-account-credentials"
@@ -828,7 +826,7 @@
           <div class="tng-account-server-container"></div>
           <li class="align-center">
             <button href="#" data-l10n-id="settings-account-delete"
-              class="tng-account-delete">DeletE AccounT</button>
+              class="tng-account-delete danger">DeletE AccounT</button>
           </li>
         </section>
       </section>
@@ -1045,14 +1043,11 @@
           </button>
         </menu>
       </form>
-      <form role="dialog" class="cmp-discard-confirm" data-type="confirm">
-        <section>
-          <h1 data-l10n-id="confirm-dialog-title">ConfirmatioN</h1>
-          <p><span data-l10n-id="compose-discard-message"></span></p>
-        </section>
+      <form role="dialog" class="cmp-draft-menu" data-type="action">
         <menu>
-          <button id="cmp-discard-cancel" data-l10n-id="message-multiedit-cancel">CanceL</button>
-          <button id="cmp-discard-ok" class="danger" data-l10n-id="compose-discard-confirm">OK</button>
+          <button id="cmp-draft-save" data-l10n-id="compose-draft-save">SaVe DrAft</button>
+          <button id="cmp-draft-discard" class="danger" data-l10n-id="compose-discard-confirm">DisCarD</button>
+          <button id="cmp-draft-cancel" data-l10n-id="message-multiedit-cancel">CanCeL</button>
         </menu>
       </form>
       <form role="dialog" class="cmp-send-failed-confirm" data-type="confirm">
@@ -1073,9 +1068,9 @@
       </li>
       <form role="dialog" data-type="confirm" class="cmp-sending-container">
         <section class="cmp-messages-sending">
-          <h1 data-l10n-id="compose-sending-message">Sending messagE</h1>
-          <p style="text-align: center">
+          <p data-l10n-id="compose-sending-message">
             <progress></progress>
+            Sending messagE
           </p>
         </section>
       </form>
@@ -1105,6 +1100,7 @@
       </form>
     </div>
   </div>
+
 </body>
 </html>
 

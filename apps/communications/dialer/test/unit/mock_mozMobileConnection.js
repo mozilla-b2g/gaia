@@ -34,6 +34,10 @@ var MockMozMobileConnection = {
   ICC_SERVICE_CLASS_PAD: (1 << 7),
   ICC_SERVICE_CLASS_MAX: (1 << 7),
 
+  voice: {
+    network: 'Fake voice network'
+  },
+
   addEventListener: function mmmc_addEventListener(event_name, listener) {
   },
 

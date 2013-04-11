@@ -60,6 +60,7 @@ form.search button[type="submit"] {
 #search-view.insearchmode {
   opacity: 1;
   pointer-events: auto;
+  overflow: hidden;
 }
 
 #search-view form.search label {
@@ -67,13 +68,13 @@ form.search button[type="submit"] {
 }
 
 #no-result {
-  color: black;
-  margin-top: 7.2rem;
-  text-align: center;
-  margin-left: -0.8rem;
-  font-size: 1.8rem;
-  color: #666;
-  line-height: 6rem;
+  margin: 9.5rem 1.5rem 0;
+  padding-top: 1.5rem;
+  color: #000;
+  font-size: 2.4rem;
+  font-weight: 300;
+  text-align: left;
+  border-top: 0.1rem solid #bdbdbd;
 }
 
 #search-progress {

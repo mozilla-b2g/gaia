@@ -8,29 +8,13 @@ var TelephonyHelper = (function() {
       displayMessage('BadNumber');
       return;
     }
-    var settings = window.navigator.mozSettings, req;
-    if (settings) {
-      var settingsLock = settings.createLock();
-      req = settingsLock.get('ril.radio.disabled');
-      req.addEventListener('success', function onsuccess() {
-        var status = req.result['ril.radio.disabled'];
-        if (!status) {
-          var conn = window.navigator.mozMobileConnection;
-          if (!conn || !conn.voice.network) {
-            // No voice connection, the call won't make it
-            displayMessage('NoNetwork');
-            return;
-          }
-
-          startDial(sanitizedNumber, oncall, onconnected, ondisconnected,
-            onerror);
-        } else {
-          displayMessage('FlightMode');
-        }
-      });
-    } else {
-      startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
+    var conn = window.navigator.mozMobileConnection;
+    if (!conn || !conn.voice || !conn.voice.network) {
+      // No voice connection, the call won't make it
+      displayMessage('NoNetwork');
+      return;
     }
+    startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
   };
 
   function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
@@ -69,6 +53,8 @@ var TelephonyHelper = (function() {
             displayMessage(emergencyOnly ? 'NoNetwork' : 'BadNumber');
           } else if (errorName === 'DeviceNotAcceptedError') {
             displayMessage('DeviceNotAccepted');
+          } else if (errorName === 'RadioNotAvailable') {
+            displayMessage('FlightMode');
           } else {
             // If the call failed for some other reason we should still
             // display something to the user. See bug 846403.
@@ -86,14 +72,8 @@ var TelephonyHelper = (function() {
   }
 
   var isValid = function t_isValid(sanitizedNumber) {
-    if (sanitizedNumber) {
-      var matches = sanitizedNumber.match(/[0-9#+*]{1,50}/);
-      if (matches.length === 1 &&
-          matches[0].length === sanitizedNumber.length) {
-        return true;
-      }
-    }
-    return false;
+    var validExp = /^[0-9#+*]{1,50}$/;
+    return validExp.test(sanitizedNumber);
   };
 
   var displayMessage = function t_displayMessage(message) {

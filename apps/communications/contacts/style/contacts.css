@@ -207,8 +207,8 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 .view-edit-contact .fillflow-row-action {
   width: 5rem;
-  height: 5rem;
-  margin: -2.5rem 0 0 0;
+  height: 4.5rem;
+  margin: -2.25rem 0 0 0;
 }
 
 .view-edit-contact .fillflow-row-action:after {

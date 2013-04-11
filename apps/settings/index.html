@@ -330,8 +330,8 @@
           <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
             Turn Wi-Fi on to view available networks.
           </li>
-          <li class="explanation" data-state="on" data-l10n-id="scanning">
-            Searching…
+          <li data-state="on">
+            <progress></progress><span data-l10n-id="scanning">Searching…</span>
           </li>
           <li data-state="ready">
             <label>
@@ -354,6 +354,7 @@
 
       <script src="js/wifi.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
       -->
     </section>
 
@@ -997,9 +998,14 @@
             <p data-l10n-id="ssid-name">SSID Network Name</p>
             <input type="text" data-setting="tethering.wifi.ssid" />
           </li>
-          <li class="password-item">
+          <li class="password">
+            <label>
+              <input type="checkbox" data-ignore name="show_password" />
+              <span></span>
+            </label>
+            <span data-l10n-id="showPassword">Show password</span>
             <p data-l10n-id="wifi-password">Password</p>
-            <input type="text" data-setting="tethering.wifi.security.password" />
+            <input type="password" name="password" x-inputmode="verbatim" data-setting="tethering.wifi.security.password" />
           </li>
           <li>
             <p data-l10n-id="wifi-security">Security</p>
@@ -1541,27 +1547,25 @@
         <h1 data-l10n-id="enter-passcode"   data-mode="confirm"> Enter Passcode    </h1>
       </header>
 
-      <div>
-        <div class="passcode-overlay">
-          <input type="number" x-inputmode="digits" id="passcode-input" />
-          <div class="passcode-container" id="passcode-container">
-            <div class="passcode-error" data-l10n-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
-            <div class="passcode-error" data-l10n-id="passcode-doesnt-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
-            <p data-l10n-id="passcode">Passcode</p>
-            <div class="passcode" id="passcode-pseudo-input">
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-            </div>
-            <p data-l10n-id="confirm-passcode" data-mode="new,create">Confirm Passcode</p>
-            <div class="passcode" data-mode="new,create" id="passcode-pseudo-confirm-input">
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-            </div>
+      <div class="passcode-overlay">
+        <input type="number" x-inputmode="digits" id="passcode-input" />
+        <div class="passcode-container" id="passcode-container">
+          <div class="passcode" id="passcode-pseudo-input">
+            <label data-l10n-id="passcode">Passcode</label>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
           </div>
+          <div class="passcode" data-mode="new,create" id="passcode-pseudo-confirm-input">
+            <label data-l10n-id="confirm-passcode" data-mode="new,create">Confirm Passcode</label>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+          </div>
+          <div class="passcode-error" data-l10n-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
+          <div class="passcode-error" data-l10n-id="passcode-doesnt-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
         </div>
       </div>
 
@@ -2364,7 +2368,7 @@
         </header>
         <ul>
           <li>
-            <meter id="apps-space-bar" min="0" value="0" max="100"></meter>
+            <progress id="apps-space-bar" min="0" value="0" max="100"></progress>
           </li>
 
           <li>

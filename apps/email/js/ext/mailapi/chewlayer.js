@@ -735,22 +735,1131 @@ exports.generateForwardBodyText = function generateForwardBodyText(rep) {
 
 }); // end define
 ;
-// UMD boilerplate to work across node/AMD/naked browser:
-// https://github.com/umdjs/umd
 (function (root, factory) {
-    if (typeof exports === 'object') {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like enviroments that support module.exports,
-        // like Node.
-        module.exports = factory();
-    } else if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define('bleach',factory);
+    // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js,
+    // Rhino, and plain browser loading.
+    if (typeof define === 'function' && define.amd) {
+        define('bleach/css-parser/tokenizer',['exports'], factory);
+    } else if (typeof exports !== 'undefined') {
+        factory(exports);
     } else {
-        // Browser globals
-        root.Bleach = factory();
+        factory(root);
     }
-}(this, function () {
+}(this, function (exports) {
+
+var between = function (num, first, last) { return num >= first && num <= last; }
+function digit(code) { return between(code, 0x30,0x39); }
+function hexdigit(code) { return digit(code) || between(code, 0x41,0x46) || between(code, 0x61,0x66); }
+function uppercaseletter(code) { return between(code, 0x41,0x5a); }
+function lowercaseletter(code) { return between(code, 0x61,0x7a); }
+function letter(code) { return uppercaseletter(code) || lowercaseletter(code); }
+function nonascii(code) { return code >= 0xa0; }
+function namestartchar(code) { return letter(code) || nonascii(code) || code == 0x5f; }
+function namechar(code) { return namestartchar(code) || digit(code) || code == 0x2d; }
+function nonprintable(code) { return between(code, 0,8) || between(code, 0xe,0x1f) || between(code, 0x7f,0x9f); }
+function newline(code) { return code == 0xa || code == 0xc; }
+function whitespace(code) { return newline(code) || code == 9 || code == 0x20; }
+function badescape(code) { return newline(code) || isNaN(code); }
+
+// Note: I'm not yet acting smart enough to actually handle astral characters.
+var maximumallowedcodepoint = 0x10ffff;
+
+function tokenize(str, options) {
+	if(options == undefined) options = {transformFunctionWhitespace:false, scientificNotation:false};
+	var i = -1;
+	var tokens = [];
+	var state = "data";
+	var code;
+	var currtoken;
+
+	// Line number information.
+	var line = 0;
+	var column = 0;
+	// The only use of lastLineLength is in reconsume().
+	var lastLineLength = 0;
+	var incrLineno = function() {
+		line += 1;
+		lastLineLength = column;
+		column = 0;
+	};
+	var locStart = {line:line, column:column};
+
+	var next = function(num) { if(num === undefined) num = 1; return str.charCodeAt(i+num); };
+	var consume = function(num) {
+		if(num === undefined)
+			num = 1;
+		i += num;
+		code = str.charCodeAt(i);
+		if (newline(code)) incrLineno();
+		else column += num;
+		//console.log('Consume '+i+' '+String.fromCharCode(code) + ' 0x' + code.toString(16));
+		return true;
+	};
+	var reconsume = function() {
+		i -= 1;
+		if (newline(code)) {
+			line -= 1;
+			column = lastLineLength;
+		} else {
+			column -= 1;
+		}
+		locStart.line = line;
+		locStart.column = column;
+		return true;
+	};
+	var eof = function() { return i >= str.length; };
+	var donothing = function() {};
+	var emit = function(token) {
+		if(token) {
+			token.finish();
+		} else {
+			token = currtoken.finish();
+		}
+		if (options.loc === true) {
+			token.loc = {};
+			token.loc.start = {line:locStart.line, column:locStart.column, idx: locStart.idx};
+			locStart = {line: line, column: column, idx: i};
+			token.loc.end = locStart;
+		}
+		tokens.push(token);
+		//console.log('Emitting ' + token);
+		currtoken = undefined;
+		return true;
+	};
+	var create = function(token) { currtoken = token; return true; };
+	var parseerror = function() { console.log("Parse error at index " + i + ", processing codepoint 0x" + code.toString(16) + " in state " + state + ".");return true; };
+	var catchfire = function(msg) { console.log("MAJOR SPEC ERROR: " + msg); return true;}
+	var switchto = function(newstate) {
+		state = newstate;
+		//console.log('Switching to ' + state);
+		return true;
+	};
+	var consumeEscape = function() {
+		// Assume the the current character is the \
+		consume();
+		if(hexdigit(code)) {
+			// Consume 1-6 hex digits
+			var digits = [];
+			for(var total = 0; total < 6; total++) {
+				if(hexdigit(code)) {
+					digits.push(code);
+					consume();
+				} else { break; }
+			}
+			var value = parseInt(digits.map(String.fromCharCode).join(''), 16);
+			if( value > maximumallowedcodepoint ) value = 0xfffd;
+			// If the current char is whitespace, cool, we'll just eat it.
+			// Otherwise, put it back.
+			if(!whitespace(code)) reconsume();
+			return value;
+		} else {
+			return code;
+		}
+	};
+
+	for(;;) {
+		if(i > str.length*2) return "I'm infinite-looping!";
+		consume();
+		switch(state) {
+		case "data":
+			if(whitespace(code)) {
+				emit(new WhitespaceToken);
+				while(whitespace(next())) consume();
+			}
+			else if(code == 0x22) switchto("double-quote-string");
+			else if(code == 0x23) switchto("hash");
+			else if(code == 0x27) switchto("single-quote-string");
+			else if(code == 0x28) emit(new OpenParenToken);
+			else if(code == 0x29) emit(new CloseParenToken);
+			else if(code == 0x2b) {
+				if(digit(next()) || (next() == 0x2e && digit(next(2)))) switchto("number") && reconsume();
+				else emit(new DelimToken(code));
+			}
+			else if(code == 0x2d) {
+				if(next(1) == 0x2d && next(2) == 0x3e) consume(2) && emit(new CDCToken);
+				else if(digit(next()) || (next(1) == 0x2e && digit(next(2)))) switchto("number") && reconsume();
+				else switchto('ident') && reconsume();
+			}
+			else if(code == 0x2e) {
+				if(digit(next())) switchto("number") && reconsume();
+				else emit(new DelimToken(code));
+			}
+			else if(code == 0x2f) {
+				if(next() == 0x2a) consume() && switchto("comment");
+				else emit(new DelimToken(code));
+			}
+			else if(code == 0x3a) emit(new ColonToken);
+			else if(code == 0x3b) emit(new SemicolonToken);
+			else if(code == 0x3c) {
+				if(next(1) == 0x21 && next(2) == 0x2d && next(3) == 0x2d) consume(3) && emit(new CDOToken);
+				else emit(new DelimToken(code));
+			}
+			else if(code == 0x40) switchto("at-keyword");
+			else if(code == 0x5b) emit(new OpenSquareToken);
+			else if(code == 0x5c) {
+				if(badescape(next())) parseerror() && emit(new DelimToken(code));
+				else switchto('ident') && reconsume();
+			}
+			else if(code == 0x5d) emit(new CloseSquareToken);
+			else if(code == 0x7b) emit(new OpenCurlyToken);
+			else if(code == 0x7d) emit(new CloseCurlyToken);
+			else if(digit(code)) switchto("number") && reconsume();
+			else if(code == 0x55 || code == 0x75) {
+				if(next(1) == 0x2b && hexdigit(next(2))) consume() && switchto("unicode-range");
+				else switchto('ident') && reconsume();
+			}
+			else if(namestartchar(code)) switchto('ident') && reconsume();
+			else if(eof()) { emit(new EOFToken); return tokens; }
+			else emit(new DelimToken(code));
+			break;
+
+		case "double-quote-string":
+			if(currtoken == undefined) create(new StringToken);
+
+			if(code == 0x22) emit() && switchto("data");
+			else if(eof()) parseerror() && emit() && switchto("data") && reconsume();
+			else if(newline(code)) parseerror() && emit(new BadStringToken) && switchto("data") && reconsume();
+			else if(code == 0x5c) {
+				if(badescape(next())) parseerror() && emit(new BadStringToken) && switchto("data");
+				else if(newline(next())) consume();
+				else currtoken.append(consumeEscape());
+			}
+			else currtoken.append(code);
+			break;
+
+		case "single-quote-string":
+			if(currtoken == undefined) create(new StringToken);
+
+			if(code == 0x27) emit() && switchto("data");
+			else if(eof()) parseerror() && emit() && switchto("data");
+			else if(newline(code)) parseerror() && emit(new BadStringToken) && switchto("data") && reconsume();
+			else if(code == 0x5c) {
+				if(badescape(next())) parseerror() && emit(new BadStringToken) && switchto("data");
+				else if(newline(next())) consume();
+				else currtoken.append(consumeEscape());
+			}
+			else currtoken.append(code);
+			break;
+
+		case "hash":
+			if(namechar(code)) create(new HashToken(code)) && switchto("hash-rest");
+			else if(code == 0x5c) {
+				if(badescape(next())) parseerror() && emit(new DelimToken(0x23)) && switchto("data") && reconsume();
+				else create(new HashToken(consumeEscape())) && switchto('hash-rest');
+			}
+			else emit(new DelimToken(0x23)) && switchto('data') && reconsume();
+			break;
+
+		case "hash-rest":
+			if(namechar(code)) currtoken.append(code);
+			else if(code == 0x5c) {
+				if(badescape(next())) parseerror() && emit() && switchto("data") && reconsume();
+				else currtoken.append(consumeEscape());
+			}
+			else emit() && switchto('data') && reconsume();
+			break;
+
+		case "comment":
+			if(code == 0x2a) {
+				if(next() == 0x2f) consume() && switchto('data');
+				else donothing();
+			}
+			else if(eof()) parseerror() && switchto('data') && reconsume();
+			else donothing();
+			break;
+
+		case "at-keyword":
+			if(code == 0x2d) {
+				if(namestartchar(next())) create(new AtKeywordToken(0x2d)) && switchto('at-keyword-rest');
+				else if(next(1) == 0x5c && !badescape(next(2))) create(new AtKeywordtoken(0x2d)) && switchto('at-keyword-rest');
+				else parseerror() && emit(new DelimToken(0x40)) && switchto('data') && reconsume();
+			}
+			else if(namestartchar(code)) create(new AtKeywordToken(code)) && switchto('at-keyword-rest');
+			else if(code == 0x5c) {
+				if(badescape(next())) parseerror() && emit(new DelimToken(0x23)) && switchto("data") && reconsume();
+				else create(new AtKeywordToken(consumeEscape())) && switchto('at-keyword-rest');
+			}
+			else emit(new DelimToken(0x40)) && switchto('data') && reconsume();
+			break;
+
+		case "at-keyword-rest":
+			if(namechar(code)) currtoken.append(code);
+			else if(code == 0x5c) {
+				if(badescape(next())) parseerror() && emit() && switchto("data") && reconsume();
+				else currtoken.append(consumeEscape());
+			}
+			else emit() && switchto('data') && reconsume();
+			break;
+
+		case "ident":
+			if(code == 0x2d) {
+				if(namestartchar(next())) create(new IdentifierToken(code)) && switchto('ident-rest');
+				else if(next(1) == 0x5c && !badescape(next(2))) create(new IdentifierToken(code)) && switchto('ident-rest');
+				else emit(new DelimToken(0x2d)) && switchto('data');
+			}
+			else if(namestartchar(code)) create(new IdentifierToken(code)) && switchto('ident-rest');
+			else if(code == 0x5c) {
+				if(badescape(next())) parseerror() && switchto("data") && reconsume();
+				else create(new IdentifierToken(consumeEscape())) && switchto('ident-rest');
+			}
+			else catchfire("Hit the generic 'else' clause in ident state.") && switchto('data') && reconsume();
+			break;
+
+		case "ident-rest":
+			if(namechar(code)) currtoken.append(code);
+			else if(code == 0x5c) {
+				if(badescape(next())) parseerror() && emit() && switchto("data") && reconsume();
+				else currtoken.append(consumeEscape());
+			}
+			else if(code == 0x28) {
+				if(currtoken.ASCIImatch('url')) switchto('url');
+				else emit(new FunctionToken(currtoken)) && switchto('data');
+			}
+			else if(whitespace(code) && options.transformFunctionWhitespace) switchto('transform-function-whitespace') && reconsume();
+			else emit() && switchto('data') && reconsume();
+			break;
+
+		case "transform-function-whitespace":
+			if(whitespace(next())) donothing();
+			else if(code == 0x28) emit(new FunctionToken(currtoken)) && switchto('data');
+			else emit() && switchto('data') && reconsume();
+			break;
+
+		case "number":
+			create(new NumberToken());
+
+			if(code == 0x2d) {
+				if(digit(next())) consume() && currtoken.append([0x2d,code]) && switchto('number-rest');
+				else if(next(1) == 0x2e && digit(next(2))) consume(2) && currtoken.append([0x2d,0x2e,code]) && switchto('number-fraction');
+				else switchto('data') && reconsume();
+			}
+			else if(code == 0x2b) {
+				if(digit(next())) consume() && currtoken.append([0x2b,code]) && switchto('number-rest');
+				else if(next(1) == 0x2e && digit(next(2))) consume(2) && currtoken.append([0x2b,0x2e,code]) && switchto('number-fraction');
+				else switchto('data') && reconsume();
+			}
+			else if(digit(code)) currtoken.append(code) && switchto('number-rest');
+			else if(code == 0x2e) {
+				if(digit(next())) consume() && currtoken.append([0x2e,code]) && switchto('number-fraction');
+				else switchto('data') && reconsume();
+			}
+			else switchto('data') && reconsume();
+			break;
+
+		case "number-rest":
+			if(digit(code)) currtoken.append(code);
+			else if(code == 0x2e) {
+				if(digit(next())) consume() && currtoken.append([0x2e,code]) && switchto('number-fraction');
+				else emit() && switchto('data') && reconsume();
+			}
+			else if(code == 0x25) emit(new PercentageToken(currtoken)) && switchto('data');
+			else if(code == 0x45 || code == 0x65) {
+				if(digit(next())) consume() && currtoken.append([0x25,code]) && switchto('sci-notation');
+				else if((next(1) == 0x2b || next(1) == 0x2d) && digit(next(2))) currtoken.append([0x25,next(1),next(2)]) && consume(2) && switchto('sci-notation');
+				else create(new DimensionToken(currtoken,code)) && switchto('dimension');
+			}
+			else if(code == 0x2d) {
+				if(namestartchar(next())) consume() && create(new DimensionToken(currtoken,[0x2d,code])) && switchto('dimension');
+				else if(next(1) == 0x5c && badescape(next(2))) parseerror() && emit() && switchto('data') && reconsume();
+				else if(next(1) == 0x5c) consume() && create(new DimensionToken(currtoken, [0x2d,consumeEscape()])) && switchto('dimension');
+				else emit() && switchto('data') && reconsume();
+			}
+			else if(namestartchar(code)) create(new DimensionToken(currtoken, code)) && switchto('dimension');
+			else if(code == 0x5c) {
+				if(badescape(next)) parseerror() && emit() && switchto('data') && reconsume();
+				else create(new DimensionToken(currtoken,consumeEscape)) && switchto('dimension');
+			}
+			else emit() && switchto('data') && reconsume();
+			break;
+
+		case "number-fraction":
+			currtoken.type = "number";
+
+			if(digit(code)) currtoken.append(code);
+			else if(code == 0x25) emit(new PercentageToken(currtoken)) && switchto('data');
+			else if(code == 0x45 || code == 0x65) {
+				if(digit(next())) consume() && currtoken.append([0x65,code]) && switchto('sci-notation');
+				else if((next(1) == 0x2b || next(1) == 0x2d) && digit(next(2))) currtoken.append([0x65,next(1),next(2)]) && consume(2) && switchto('sci-notation');
+				else create(new DimensionToken(currtoken,code)) && switchto('dimension');
+			}
+			else if(code == 0x2d) {
+				if(namestartchar(next())) consume() && create(new DimensionToken(currtoken,[0x2d,code])) && switchto('dimension');
+				else if(next(1) == 0x5c && badescape(next(2))) parseerror() && emit() && switchto('data') && reconsume();
+				else if(next(1) == 0x5c) consume() && create(new DimensionToken(currtoken, [0x2d,consumeEscape()])) && switchto('dimension');
+				else emit() && switchto('data') && reconsume();
+			}
+			else if(namestartchar(code)) create(new DimensionToken(currtoken, code)) && switchto('dimension');
+			else if(code == 0x5c) {
+				if(badescape(next)) parseerror() && emit() && switchto('data') && reconsume();
+				else create(new DimensionToken(currtoken,consumeEscape())) && switchto('dimension');
+			}
+			else emit() && switchto('data') && reconsume();
+			break;
+
+		case "dimension":
+			if(namechar(code)) currtoken.append(code);
+			else if(code == 0x5c) {
+				if(badescape(next())) parseerror() && emit() && switchto('data') && reconsume();
+				else currtoken.append(consumeEscape());
+			}
+			else emit() && switchto('data') && reconsume();
+			break;
+
+		case "sci-notation":
+			currtoken.type = "number";
+
+			if(digit(code)) currtoken.append(code);
+			else emit() && switchto('data') && reconsume();
+			break;
+
+		case "url":
+			if(eof()) parseerror() && emit(new BadURLToken) && switchto('data');
+			else if(code == 0x22) switchto('url-double-quote');
+			else if(code == 0x27) switchto('url-single-quote');
+			else if(code == 0x29) emit(new URLToken) && switchto('data');
+			else if(whitespace(code)) donothing();
+			else switchto('url-unquoted') && reconsume();
+			break;
+
+		case "url-double-quote":
+			if(! (currtoken instanceof URLToken)) create(new URLToken);
+
+			if(eof()) parseerror() && emit(new BadURLToken) && switchto('data');
+			else if(code == 0x22) switchto('url-end');
+			else if(newline(code)) parseerror() && switchto('bad-url');
+			else if(code == 0x5c) {
+				if(newline(next())) consume();
+				else if(badescape(next())) parseerror() && emit(new BadURLToken) && switchto('data') && reconsume();
+				else currtoken.append(consumeEscape());
+			}
+			else currtoken.append(code);
+			break;
+
+		case "url-single-quote":
+			if(! (currtoken instanceof URLToken)) create(new URLToken);
+
+			if(eof()) parseerror() && emit(new BadURLToken) && switchto('data');
+			else if(code == 0x27) switchto('url-end');
+			else if(newline(code)) parseerror() && switchto('bad-url');
+			else if(code == 0x5c) {
+				if(newline(next())) consume();
+				else if(badescape(next())) parseerror() && emit(new BadURLToken) && switchto('data') && reconsume();
+				else currtoken.append(consumeEscape());
+			}
+			else currtoken.append(code);
+			break;
+
+		case "url-end":
+			if(eof()) parseerror() && emit(new BadURLToken) && switchto('data');
+			else if(whitespace(code)) donothing();
+			else if(code == 0x29) emit() && switchto('data');
+			else parseerror() && switchto('bad-url') && reconsume();
+			break;
+
+		case "url-unquoted":
+			if(! (currtoken instanceof URLToken)) create(new URLToken);
+
+			if(eof()) parseerror() && emit(new BadURLToken) && switchto('data');
+			else if(whitespace(code)) switchto('url-end');
+			else if(code == 0x29) emit() && switchto('data');
+			else if(code == 0x22 || code == 0x27 || code == 0x28 || nonprintable(code)) parseerror() && switchto('bad-url');
+			else if(code == 0x5c) {
+				if(badescape(next())) parseerror() && switchto('bad-url');
+				else currtoken.append(consumeEscape());
+			}
+			else currtoken.append(code);
+			break;
+
+		case "bad-url":
+			if(eof()) parseerror() && emit(new BadURLToken) && switchto('data');
+			else if(code == 0x29) emit(new BadURLToken) && switchto('data');
+			else if(code == 0x5c) {
+				if(badescape(next())) donothing();
+				else consumeEscape();
+			}
+			else donothing();
+			break;
+
+		case "unicode-range":
+			// We already know that the current code is a hexdigit.
+
+			var start = [code], end = [code];
+
+			for(var total = 1; total < 6; total++) {
+				if(hexdigit(next())) {
+					consume();
+					start.push(code);
+					end.push(code);
+				}
+				else break;
+			}
+
+			if(next() == 0x3f) {
+				for(;total < 6; total++) {
+					if(next() == 0x3f) {
+						consume();
+						start.push("0".charCodeAt(0));
+						end.push("f".charCodeAt(0));
+					}
+					else break;
+				}
+				emit(new UnicodeRangeToken(start,end)) && switchto('data');
+			}
+			else if(next(1) == 0x2d && hexdigit(next(2))) {
+				consume();
+				consume();
+				end = [code];
+				for(var total = 1; total < 6; total++) {
+					if(hexdigit(next())) {
+						consume();
+						end.push(code);
+					}
+					else break;
+				}
+				emit(new UnicodeRangeToken(start,end)) && switchto('data');
+			}
+			else emit(new UnicodeRangeToken(start)) && switchto('data');
+			break;
+
+		default:
+			catchfire("Unknown state '" + state + "'");
+		}
+	}
+}
+
+function stringFromCodeArray(arr) {
+	return String.fromCharCode.apply(null,arr.filter(function(e){return e;}));
+}
+
+function CSSParserToken(options) { return this; }
+CSSParserToken.prototype.finish = function() { return this; }
+CSSParserToken.prototype.toString = function() { return this.tokenType; }
+CSSParserToken.prototype.toJSON = function() { return this.toString(); }
+
+function BadStringToken() { return this; }
+BadStringToken.prototype = new CSSParserToken;
+BadStringToken.prototype.tokenType = "BADSTRING";
+
+function BadURLToken() { return this; }
+BadURLToken.prototype = new CSSParserToken;
+BadURLToken.prototype.tokenType = "BADURL";
+
+function WhitespaceToken() { return this; }
+WhitespaceToken.prototype = new CSSParserToken;
+WhitespaceToken.prototype.tokenType = "WHITESPACE";
+WhitespaceToken.prototype.toString = function() { return "WS"; }
+
+function CDOToken() { return this; }
+CDOToken.prototype = new CSSParserToken;
+CDOToken.prototype.tokenType = "CDO";
+
+function CDCToken() { return this; }
+CDCToken.prototype = new CSSParserToken;
+CDCToken.prototype.tokenType = "CDC";
+
+function ColonToken() { return this; }
+ColonToken.prototype = new CSSParserToken;
+ColonToken.prototype.tokenType = ":";
+
+function SemicolonToken() { return this; }
+SemicolonToken.prototype = new CSSParserToken;
+SemicolonToken.prototype.tokenType = ";";
+
+function OpenCurlyToken() { return this; }
+OpenCurlyToken.prototype = new CSSParserToken;
+OpenCurlyToken.prototype.tokenType = "{";
+
+function CloseCurlyToken() { return this; }
+CloseCurlyToken.prototype = new CSSParserToken;
+CloseCurlyToken.prototype.tokenType = "}";
+
+function OpenSquareToken() { return this; }
+OpenSquareToken.prototype = new CSSParserToken;
+OpenSquareToken.prototype.tokenType = "[";
+
+function CloseSquareToken() { return this; }
+CloseSquareToken.prototype = new CSSParserToken;
+CloseSquareToken.prototype.tokenType = "]";
+
+function OpenParenToken() { return this; }
+OpenParenToken.prototype = new CSSParserToken;
+OpenParenToken.prototype.tokenType = "(";
+
+function CloseParenToken() { return this; }
+CloseParenToken.prototype = new CSSParserToken;
+CloseParenToken.prototype.tokenType = ")";
+
+function EOFToken() { return this; }
+EOFToken.prototype = new CSSParserToken;
+EOFToken.prototype.tokenType = "EOF";
+
+function DelimToken(code) {
+	this.value = String.fromCharCode(code);
+	return this;
+}
+DelimToken.prototype = new CSSParserToken;
+DelimToken.prototype.tokenType = "DELIM";
+DelimToken.prototype.toString = function() { return "DELIM("+this.value+")"; }
+
+function StringValuedToken() { return this; }
+StringValuedToken.prototype = new CSSParserToken;
+StringValuedToken.prototype.append = function(val) {
+	if(val instanceof Array) {
+		for(var i = 0; i < val.length; i++) {
+			this.value.push(val[i]);
+		}
+	} else {
+		this.value.push(val);
+	}
+	return true;
+}
+StringValuedToken.prototype.finish = function() {
+	this.value = this.valueAsString();
+	return this;
+}
+StringValuedToken.prototype.ASCIImatch = function(str) {
+	return this.valueAsString().toLowerCase() == str.toLowerCase();
+}
+StringValuedToken.prototype.valueAsString = function() {
+	if(typeof this.value == 'string') return this.value;
+	return stringFromCodeArray(this.value);
+}
+StringValuedToken.prototype.valueAsCodes = function() {
+	if(typeof this.value == 'string') {
+		var ret = [];
+		for(var i = 0; i < this.value.length; i++)
+			ret.push(this.value.charCodeAt(i));
+		return ret;
+	}
+	return this.value.filter(function(e){return e;});
+}
+
+function IdentifierToken(val) {
+	this.value = [];
+	this.append(val);
+}
+IdentifierToken.prototype = new StringValuedToken;
+IdentifierToken.prototype.tokenType = "IDENT";
+IdentifierToken.prototype.toString = function() { return "IDENT("+this.value+")"; }
+
+function FunctionToken(val) {
+	// These are always constructed by passing an IdentifierToken
+	this.value = val.finish().value;
+}
+FunctionToken.prototype = new StringValuedToken;
+FunctionToken.prototype.tokenType = "FUNCTION";
+FunctionToken.prototype.toString = function() { return "FUNCTION("+this.value+")"; }
+
+function AtKeywordToken(val) {
+	this.value = [];
+	this.append(val);
+}
+AtKeywordToken.prototype = new StringValuedToken;
+AtKeywordToken.prototype.tokenType = "AT-KEYWORD";
+AtKeywordToken.prototype.toString = function() { return "AT("+this.value+")"; }
+
+function HashToken(val) {
+	this.value = [];
+	this.append(val);
+}
+HashToken.prototype = new StringValuedToken;
+HashToken.prototype.tokenType = "HASH";
+HashToken.prototype.toString = function() { return "HASH("+this.value+")"; }
+
+function StringToken(val) {
+	this.value = [];
+	this.append(val);
+}
+StringToken.prototype = new StringValuedToken;
+StringToken.prototype.tokenType = "STRING";
+StringToken.prototype.toString = function() { return "\""+this.value+"\""; }
+
+function URLToken(val) {
+	this.value = [];
+	this.append(val);
+}
+URLToken.prototype = new StringValuedToken;
+URLToken.prototype.tokenType = "URL";
+URLToken.prototype.toString = function() { return "URL("+this.value+")"; }
+
+function NumberToken(val) {
+	this.value = [];
+	this.append(val);
+	this.type = "integer";
+}
+NumberToken.prototype = new StringValuedToken;
+NumberToken.prototype.tokenType = "NUMBER";
+NumberToken.prototype.toString = function() {
+	if(this.type == "integer")
+		return "INT("+this.value+")";
+	return "NUMBER("+this.value+")";
+}
+NumberToken.prototype.finish = function() {
+	this.repr = this.valueAsString();
+	this.value = this.repr * 1;
+	if(Math.abs(this.value) % 1 != 0) this.type = "number";
+	return this;
+}
+
+function PercentageToken(val) {
+	// These are always created by passing a NumberToken as val
+	val.finish();
+	this.value = val.value;
+	this.repr = val.repr;
+}
+PercentageToken.prototype = new CSSParserToken;
+PercentageToken.prototype.tokenType = "PERCENTAGE";
+PercentageToken.prototype.toString = function() { return "PERCENTAGE("+this.value+")"; }
+
+function DimensionToken(val,unit) {
+	// These are always created by passing a NumberToken as the val
+	val.finish();
+	this.num = val.value;
+	this.unit = [];
+	this.repr = val.repr;
+	this.append(unit);
+}
+DimensionToken.prototype = new CSSParserToken;
+DimensionToken.prototype.tokenType = "DIMENSION";
+DimensionToken.prototype.toString = function() { return "DIM("+this.num+","+this.unit+")"; }
+DimensionToken.prototype.append = function(val) {
+	if(val instanceof Array) {
+		for(var i = 0; i < val.length; i++) {
+			this.unit.push(val[i]);
+		}
+	} else {
+		this.unit.push(val);
+	}
+	return true;
+}
+DimensionToken.prototype.finish = function() {
+	this.unit = stringFromCodeArray(this.unit);
+	this.repr += this.unit;
+	return this;
+}
+
+function UnicodeRangeToken(start,end) {
+	// start and end are array of char codes, completely finished
+	start = parseInt(stringFromCodeArray(start),16);
+	if(end === undefined) end = start + 1;
+	else end = parseInt(stringFromCodeArray(end),16);
+
+	if(start > maximumallowedcodepoint) end = start;
+	if(end < start) end = start;
+	if(end > maximumallowedcodepoint) end = maximumallowedcodepoint;
+
+	this.start = start;
+	this.end = end;
+	return this;
+}
+UnicodeRangeToken.prototype = new CSSParserToken;
+UnicodeRangeToken.prototype.tokenType = "UNICODE-RANGE";
+UnicodeRangeToken.prototype.toString = function() {
+	if(this.start+1 == this.end)
+		return "UNICODE-RANGE("+this.start.toString(16).toUpperCase()+")";
+	if(this.start < this.end)
+		return "UNICODE-RANGE("+this.start.toString(16).toUpperCase()+"-"+this.end.toString(16).toUpperCase()+")";
+	return "UNICODE-RANGE()";
+}
+UnicodeRangeToken.prototype.contains = function(code) {
+	return code >= this.start && code < this.end;
+}
+
+
+// Exportation.
+// TODO: also export the various tokens objects?
+exports.tokenize = tokenize;
+exports.EOFToken = EOFToken;
+
+}));
+
+(function (root, factory) {
+    // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js,
+    // Rhino, and plain browser loading.
+    if (typeof define === 'function' && define.amd) {
+        define('bleach/css-parser/parser',['require', 'exports'], factory);
+    } else if (typeof exports !== 'undefined') {
+        factory(require, exports);
+    } else {
+        factory(root);
+    }
+}(this, function (require, exports) {
+var tokenizer = require('./tokenizer');
+
+function parse(tokens, initialMode) {
+	var mode = initialMode || 'top-level';
+	var i = -1;
+	var token;
+
+	var stylesheet;
+        switch (mode) {
+          case 'top-level':
+             stylesheet = new Stylesheet;
+             break;
+          // (Used for style attributes; start out parsing declarations which
+          // means that our container must be a StyleRule.)
+          case 'declaration':
+             stylesheet = new StyleRule;
+             break;
+        }
+        stylesheet.startTok = tokens[0];
+        //console.log('  initial tok', JSON.stringify(tokens[0]), JSON.stringify(stylesheet));
+	var stack = [stylesheet];
+	var rule = stack[0];
+
+	var consume = function(advance) {
+		if(advance === undefined) advance = 1;
+		i += advance;
+		if(i < tokens.length)
+			token = tokens[i];
+		else
+			token = new EOFToken;
+		return true;
+	};
+	var reprocess = function() {
+		i--;
+		return true;
+	}
+	var next = function() {
+		return tokens[i+1];
+	};
+	var switchto = function(newmode) {
+		if(newmode === undefined) {
+			if(rule.fillType !== '')
+				mode = rule.fillType;
+			else if(rule.type == 'STYLESHEET')
+				mode = 'top-level'
+			else { console.log("Unknown rule-type while switching to current rule's content mode: ",rule); mode = ''; }
+		} else {
+			mode = newmode;
+		}
+		return true;
+	}
+	var push = function(newRule) {
+		rule = newRule;
+                rule.startTok = token;
+                //console.log('  startTok', JSON.stringify(token), JSON.stringify(rule));
+		stack.push(rule);
+		return true;
+	}
+	var parseerror = function(msg) {
+		console.log("Parse error at token " + i + ": " + token + ".\n" + msg);
+		return true;
+	}
+	var pop = function() {
+		var oldrule = stack.pop();
+                oldrule.endTok = token;
+                //console.log('  endTok', JSON.stringify(token), JSON.stringify(oldrule));
+		rule = stack[stack.length - 1];
+		rule.append(oldrule);
+		return true;
+	}
+	var discard = function() {
+		stack.pop();
+		rule = stack[stack.length - 1];
+		return true;
+	}
+	var finish = function() {
+		while(stack.length > 1) {
+			pop();
+		}
+                rule.endTok = token;
+                //console.log('  endTok', JSON.stringify(token), JSON.stringify(rule));
+	}
+
+	for(;;) {
+		consume();
+
+		switch(mode) {
+		case "top-level":
+			switch(token.tokenType) {
+			case "CDO":
+			case "CDC":
+			case "WHITESPACE": break;
+			case "AT-KEYWORD": push(new AtRule(token.value)) && switchto('at-rule'); break;
+			case "{": parseerror("Attempt to open a curly-block at top-level.") && consumeAPrimitive(); break;
+			case "EOF": finish(); return stylesheet;
+			default: push(new StyleRule) && switchto('selector') && reprocess();
+			}
+			break;
+
+		case "at-rule":
+			switch(token.tokenType) {
+			case ";": pop() && switchto(); break;
+			case "{":
+				if(rule.fillType !== '') switchto(rule.fillType);
+				else parseerror("Attempt to open a curly-block in a statement-type at-rule.") && discard() && switchto('next-block') && reprocess();
+				break;
+			case "EOF": finish(); return stylesheet;
+			default: rule.appendPrelude(consumeAPrimitive());
+			}
+			break;
+
+		case "rule":
+			switch(token.tokenType) {
+			case "WHITESPACE": break;
+			case "}": pop() && switchto(); break;
+			case "AT-KEYWORD": push(new AtRule(token.value)) && switchto('at-rule'); break;
+			case "EOF": finish(); return stylesheet;
+			default: push(new StyleRule) && switchto('selector') && reprocess();
+			}
+			break;
+
+		case "selector":
+			switch(token.tokenType) {
+			case "{": switchto('declaration'); break;
+			case "EOF": discard() && finish(); return stylesheet;
+			default: rule.appendSelector(consumeAPrimitive());
+			}
+			break;
+
+		case "declaration":
+			switch(token.tokenType) {
+			case "WHITESPACE":
+			case ";": break;
+			case "}": pop() && switchto(); break;
+			case "AT-RULE": push(new AtRule(token.value)) && switchto('at-rule'); break;
+			case "IDENT": push(new Declaration(token.value)) && switchto('after-declaration-name'); break;
+			case "EOF": finish(); return stylesheet;
+			default: parseerror() && discard() && switchto('next-declaration');
+			}
+			break;
+
+		case "after-declaration-name":
+			switch(token.tokenType) {
+			case "WHITESPACE": break;
+			case ":": switchto('declaration-value'); break;
+			case ";": parseerror("Incomplete declaration - semicolon after property name.") && discard() && switchto(); break;
+			case "EOF": discard() && finish(); return stylesheet;
+			default: parseerror("Invalid declaration - additional token after property name") && discard() && switchto('next-declaration');
+			}
+			break;
+
+		case "declaration-value":
+			switch(token.tokenType) {
+			case "DELIM":
+				if(token.value == "!" && next().tokenType == 'IDENTIFIER' && next().value.toLowerCase() == "important") {
+					consume();
+					rule.important = true;
+					switchto('declaration-end');
+				} else {
+					rule.append(token);
+				}
+				break;
+			case ";": pop() && switchto(); break;
+			case "}": pop() && pop() && switchto(); break;
+			case "EOF": finish(); return stylesheet;
+			default: rule.append(consumeAPrimitive());
+			}
+			break;
+
+		case "declaration-end":
+			switch(token.tokenType) {
+			case "WHITESPACE": break;
+			case ";": pop() && switchto(); break;
+			case "}": pop() && pop() && switchto(); break;
+			case "EOF": finish(); return stylesheet;
+			default: parseerror("Invalid declaration - additional token after !important.") && discard() && switchto('next-declaration');
+			}
+			break;
+
+		case "next-block":
+			switch(token.tokenType) {
+			case "{": consumeAPrimitive() && switchto(); break;
+			case "EOF": finish(); return stylesheet;
+			default: consumeAPrimitive(); break;
+			}
+			break;
+
+		case "next-declaration":
+			switch(token.tokenType) {
+			case ";": switchto('declaration'); break;
+			case "}": switchto('declaration') && reprocess(); break;
+			case "EOF": finish(); return stylesheet;
+			default: consumeAPrimitive(); break;
+			}
+			break;
+
+		default:
+			// If you hit this, it's because one of the switchto() calls is typo'd.
+			console.log('Unknown parsing mode: ' + mode);
+			return;
+		}
+	}
+
+	function consumeAPrimitive() {
+		switch(token.tokenType) {
+		case "(":
+		case "[":
+		case "{": return consumeASimpleBlock();
+		case "FUNCTION": return consumeAFunc();
+		default: return token;
+		}
+	}
+
+	function consumeASimpleBlock() {
+		var endingTokenType = {"(":")", "[":"]", "{":"}"}[token.tokenType];
+		var block = new SimpleBlock(token.tokenType);
+
+		for(;;) {
+			consume();
+			switch(token.tokenType) {
+			case "EOF":
+			case endingTokenType: return block;
+			default: block.append(consumeAPrimitive());
+			}
+		}
+	}
+
+	function consumeAFunc() {
+		var func = new Func(token.value);
+		var arg = new FuncArg();
+
+		for(;;) {
+			consume();
+			switch(token.tokenType) {
+			case "EOF":
+			case ")": func.append(arg); return func;
+			case "DELIM":
+				if(token.value == ",") {
+					func.append(arg);
+					arg = new FuncArg();
+				} else {
+					arg.append(token);
+				}
+				break;
+			default: arg.append(consumeAPrimitive());
+			}
+		}
+	}
+}
+
+function CSSParserRule() { return this; }
+CSSParserRule.prototype.fillType = '';
+CSSParserRule.prototype.toString = function(indent) {
+	return JSON.stringify(this.toJSON(),null,indent);
+}
+CSSParserRule.prototype.append = function(val) {
+	this.value.push(val);
+	return this;
+}
+
+function Stylesheet() {
+	this.value = [];
+	return this;
+}
+Stylesheet.prototype = new CSSParserRule;
+Stylesheet.prototype.type = "STYLESHEET";
+Stylesheet.prototype.toJSON = function() {
+	return {type:'stylesheet', value: this.value.map(function(e){return e.toJSON();})};
+}
+
+function AtRule(name) {
+	this.name = name;
+	this.prelude = [];
+	this.value = [];
+	if(name in AtRule.registry)
+		this.fillType = AtRule.registry[name];
+	return this;
+}
+AtRule.prototype = new CSSParserRule;
+AtRule.prototype.type = "AT-RULE";
+AtRule.prototype.appendPrelude = function(val) {
+	this.prelude.push(val);
+	return this;
+}
+AtRule.prototype.toJSON = function() {
+	return {type:'at', name:this.name, prelude:this.prelude.map(function(e){return e.toJSON();}), value:this.value.map(function(e){return e.toJSON();})};
+}
+AtRule.registry = {
+	'import': '',
+	'media': 'rule',
+	'font-face': 'declaration',
+	'page': 'declaration',
+	'keyframes': 'rule',
+	'namespace': '',
+	'counter-style': 'declaration',
+	'supports': 'rule',
+	'document': 'rule',
+	'font-feature-values': 'declaration',
+	'viewport': '',
+	'region-style': 'rule'
+};
+
+function StyleRule() {
+	this.selector = [];
+	this.value = [];
+	return this;
+}
+StyleRule.prototype = new CSSParserRule;
+StyleRule.prototype.type = "STYLE-RULE";
+StyleRule.prototype.fillType = 'declaration';
+StyleRule.prototype.appendSelector = function(val) {
+	this.selector.push(val);
+	return this;
+}
+StyleRule.prototype.toJSON = function() {
+	return {type:'selector', selector:this.selector.map(function(e){return e.toJSON();}), value:this.value.map(function(e){return e.toJSON();})};
+}
+
+function Declaration(name) {
+	this.name = name;
+	this.value = [];
+	return this;
+}
+Declaration.prototype = new CSSParserRule;
+Declaration.prototype.type = "DECLARATION";
+Declaration.prototype.toJSON = function() {
+	return {type:'declaration', name:this.name, value:this.value.map(function(e){return e.toJSON();})};
+}
+
+function SimpleBlock(type) {
+	this.name = type;
+	this.value = [];
+	return this;
+}
+SimpleBlock.prototype = new CSSParserRule;
+SimpleBlock.prototype.type = "BLOCK";
+SimpleBlock.prototype.toJSON = function() {
+	return {type:'block', name:this.name, value:this.value.map(function(e){return e.toJSON();})};
+}
+
+function Func(name) {
+	this.name = name;
+	this.value = [];
+	return this;
+}
+Func.prototype = new CSSParserRule;
+Func.prototype.type = "FUNCTION";
+Func.prototype.toJSON = function() {
+	return {type:'func', name:this.name, value:this.value.map(function(e){return e.toJSON();})};
+}
+
+function FuncArg() {
+	this.value = [];
+	return this;
+}
+FuncArg.prototype = new CSSParserRule;
+FuncArg.prototype.type = "FUNCTION-ARG";
+FuncArg.prototype.toJSON = function() {
+	return this.value.map(function(e){return e.toJSON();});
+}
+
+// Exportation.
+// TODO: also export the various rule objects?
+exports.parse = parse;
+
+}));
+
+if (typeof exports === 'object' && typeof define !== 'function') {
+    define = function (factory) {
+        factory(require, exports, module);
+    };
+}
+
+define('bleach',['require','exports','module','./bleach/css-parser/tokenizer','./bleach/css-parser/parser'],function (require, exports, module) {
+var tokenizer = require('./bleach/css-parser/tokenizer');
+var parser = require('./bleach/css-parser/parser');
 
 var ALLOWED_TAGS = [
     'a',
@@ -797,197 +1906,931 @@ var DEFAULTS = {
   stripComments: true
 };
 
-var bleach = {};
-
-bleach._preCleanNodeHack = null;
-
-// This is for web purposes; node will clobber this with 'jsdom'.
-bleach.documentConstructor = function() {
-  // Per hsivonen, this creates a document flagged as "loaded as data" which is
-  // desirable for safety reasons as it avoids pre-fetches, etc.
-  return document.implementation.createHTMLDocument('');
-};
-
 /**
  * Clean a string.
  */
-bleach.clean = function (html, opts) {
+exports.clean = function (html, opts) {
   if (!html) return '';
 
-  var document = bleach.documentConstructor(),
-      dirty = document.createElement('dirty');
+  // This is poor's man doctype/meta cleanup. I wish DOMParser works in a
+  // worker but it sounds like a dream, see bug 677123.
+  // Someone needs to come with a better approach but I'm running out of
+  // time...
+  // Prevoiusly, only removed DOCTYPE at start of string, but some HTML
+  // senders are so bad they just leave them in the middle of email
+  // content, as if they just dump from their CMS. So removing all of them
+  // now
+  html = html.replace(/<!DOCTYPE\s+[^>]*>/g, '');
 
-  // To get stylesheets parsed by Gecko, we need to put the node in a document.
-  document.body.appendChild(dirty);
-  dirty.innerHTML = html;
-
-  if (bleach._preCleanNodeHack)
-    bleach._preCleanNodeHack(dirty, html);
-  bleach.cleanNode(dirty, opts);
-
-  var asNode = opts && opts.hasOwnProperty("asNode") && opts.asNode;
-  if (asNode)
-    return dirty;
-  return dirty.innerHTML;
+  return exports.cleanNode(html, opts);
 };
 
+
 /**
- * Clean the children of a node, but not the node itself.  Maybe this is
- * a bad idea.
  */
-bleach.cleanNode = function(dirtyNode, opts) {
-  var document = dirtyNode.ownerDocument;
+exports.cleanNode = function(html, opts) {
+try {
+  function debug(str) {
+    console.log("Bleach: " + str + "\n");
+  }
+
   opts = opts || DEFAULTS;
-  var doStrip = opts.hasOwnProperty('strip') ? opts.strip : DEFAULTS.strip,
-      doStripComments = opts.hasOwnProperty('stripComments') ?
-                          opts.stripComments : DEFAULTS.stripComments,
-      allowedTags = opts.hasOwnProperty('tags') ? opts.tags : DEFAULTS.tags,
-      pruneTags = opts.hasOwnProperty('prune') ? opts.prune : DEFAULTS.prune,
-      attrsByTag = opts.hasOwnProperty('attributes') ? opts.attributes
-                                                     : DEFAULTS.attributes,
-      allowedStyles = opts.hasOwnProperty('styles') ? opts.styles
-                                                    : DEFAULTS.styles,
-      reCallbackOnTag = opts.hasOwnProperty('callbackRegexp') ? opts.callbackRegexp
-                                                              : null,
-      reCallback = reCallbackOnTag && opts.callback,
-      wildAttrs;
+
+  var attrsByTag = opts.hasOwnProperty('attributes') ?
+                    opts.attributes : DEFAULTS.attributes;
+  var wildAttrs;
   if (Array.isArray(attrsByTag)) {
     wildAttrs = attrsByTag;
     attrsByTag = {};
-  }
-  else if (attrsByTag.hasOwnProperty('*')) {
+  } else if (attrsByTag.hasOwnProperty('*')) {
     wildAttrs = attrsByTag['*'];
-  }
-  else {
+  } else {
     wildAttrs = [];
   }
+  var sanitizeOptions = {
+    ignoreComment: ('stripComments' in opts) ? opts.stripComments
+                                             : DEFAULTS.stripComments,
+    allowedStyles: opts.styles || DEFAULTS.styles,
+    allowedTags: opts.tags || DEFAULTS.tags,
+    stripMode: ('strip' in opts) ? opts.strip : DEFAULTS.strip,
+    pruneTags: opts.prune || DEFAULTS.prune,
+    allowedAttributesByTag: attrsByTag,
+    wildAttributes: wildAttrs,
+    callbackRegexp: opts.callbackRegexp || null,
+    callback: opts.callbackRegexp && opts.callback || null,
+    maxLength: opts.maxLength || 0
+  };
 
-  function slashAndBurn(root, callback) {
-    var child, i = 0;
-    // console.log('slashing');
-    // console.log('type ', root.nodeType);
-    // console.log('value', root.nodeValue||['<',root.tagName,'>'].join(''));
-    // console.log('innerHTML', root.innerHTML);
-    // console.log('--------');
+  var sanitizer = new HTMLSanitizer(sanitizeOptions);
+  HTMLParser.HTMLParser(html, sanitizer);
+  return sanitizer.output;
+} catch(e) {
+  console.error(e, '\n', e.stack);
+  throw e;
+}
 
-    // TODO: investigate whether .nextSibling is faster/more GC friendly
-    while ((child = root.childNodes[i++])) {
-      if (child.nodeType === 8 && doStripComments) {
-        root.removeChild(child);
-        continue;
-      }
-      if (child.nodeType === 1) {
-        var tag = child.tagName.toLowerCase();
-        if (allowedTags.indexOf(tag) === -1) {
-          // The tag is not in the whitelist.
-
-          // Strip?
-          if (doStrip) {
-            // Should this tag and its children be pruned?
-            // (This is not the default because new HTML tags with semantic
-            // meaning can be added and should not cause content to disappear.)
-            if (pruneTags.indexOf(tag) !== -1) {
-              root.removeChild(child);
-              // This will have shifted the sibling down, so decrement so we hit
-              // it next.
-              i--;
-            }
-            // Not pruning, so move the children up.
-            else {
-              while (child.firstChild) {
-                root.insertBefore(child.firstChild, child);
-              }
-              root.removeChild(child);
-              // We want to make sure we process all of the children, so
-              // decrement.  Alternately, we could have called slashAndBurn
-              // on 'child' before splicing in the contents.
-              i--;
-            }
-          }
-          // Otherwise, quote the child.
-          // Unit tests do not indicate if this should be recursive or not,
-          // so it's not.
-          else {
-            var textNode = document.createTextNode(child.outerHTML);
-            // jsdom bug? creating a text node always adds a linebreak;
-            textNode.nodeValue = textNode.nodeValue.replace(/\n$/, '');
-            root.replaceChild(textNode, child);
-          }
-          continue;
-        }
-
-        // If a callback was specified and it matches the tag name, then invoke
-        // the callback.  This happens before the attribute filtering so that
-        // the function can observe dangerous attributes, but in the event of
-        // the (silent) failure of this function, they will still be safely
-        // removed.
-        if (reCallbackOnTag && reCallbackOnTag.test(tag)) {
-          reCallback(child, tag);
-        }
-
-        var styles, iStyle, decl;
-        // Style tags are special.  Their parsed state gets represented on
-        // "sheet" iff the node is linked into a document (on gecko).  We can
-        // manipulate the representation but it does *not* automatically
-        // reflect into the textContent of the style tag.  Accordingly, we
-        //
-        if (tag === 'style') {
-          var sheet = child.sheet,
-              rules = sheet.cssRules,
-              keepRulesCssTexts = [];
-
-          for (var iRule = 0; iRule < rules.length; iRule++) {
-            var rule = rules[iRule];
-            if (rule.type !== 1) { // STYLE_RULE
-              // we could do "sheet.deleteRule(iRule);" but there is no benefit
-              // since we will just clobber the textContent without this skipped
-              // rule.
-              continue;
-            }
-            styles = rule.style;
-            for (iStyle = styles.length - 1; iStyle >= 0; iStyle--) {
-              decl = styles[iStyle];
-              if (allowedStyles.indexOf(decl) === -1) {
-                styles.removeProperty(decl);
-              }
-            }
-            keepRulesCssTexts.push(rule.cssText);
-          }
-          child.textContent = keepRulesCssTexts.join('\n');
-        }
-
-        if (child.style.length) {
-          styles = child.style;
-          for (iStyle = styles.length - 1; iStyle >= 0; iStyle--) {
-            decl = styles[iStyle];
-            if (allowedStyles.indexOf(decl) === -1) {
-              styles.removeProperty(decl);
-            }
-          }
-        }
-
-        if (child.attributes.length) {
-          var attrs = child.attributes;
-          for (var iAttr = attrs.length - 1; iAttr >= 0; iAttr--) {
-            var attr = attrs[iAttr];
-            var whitelist = attrsByTag[tag];
-            attr = attr.nodeName;
-            if (wildAttrs.indexOf(attr) === -1 &&
-                (!whitelist || whitelist.indexOf(attr) === -1)) {
-              attrs.removeNamedItem(attr);
-            }
-          }
-        }
-      }
-      slashAndBurn(child, callback);
-    }
-  }
-  slashAndBurn(dirtyNode);
 };
 
-return bleach;
+var RE_NORMALIZE_WHITESPACE = /\s+/g;
 
-})); // close out UMD boilerplate
+var HTMLSanitizer = function(options) {
+  this.output = '';
+
+  this.ignoreComment = options.ignoreComment;
+  this.allowedStyles = options.allowedStyles;
+  this.allowedTags = options.allowedTags;
+  this.stripMode = options.stripMode;
+  this.pruneTags = options.pruneTags;
+  this.allowedAttributesByTag = options.allowedAttributesByTag;
+  this.wildAttributes = options.wildAttributes;
+
+  this.callbackRegexp = options.callbackRegexp;
+  this.callback = options.callback;
+
+  this.isInsideStyleTag = false;
+  // How many pruned tag types are on the stack; we require them to be fully
+  // balanced, but don't care if what's inside them is balanced or not.
+  this.isInsidePrunedTag = 0;
+  // Similar; not clear why we need to bother counting for these. debug?
+  this.isInsideStrippedTag = 0;
+
+  // Added to allow snippet generation. Pass in
+  // maxLength to get snippet work.
+  this.maxLength = options.maxLength || 0;
+
+  // Flag to indicate parsing should not
+  // continue because maxLength has been hit.
+  this.complete = false;
+
+  // If just getting a snippet, the input
+  // may also just be an HTML snippet, so
+  // if parsing cannot continue, signal
+  // just to stop at that point.
+  this.ignoreFragments = this.maxLength > 0;
+};
+
+HTMLSanitizer.prototype = {
+  start: function(tag, attrs, unary) {
+    // - prune (trumps all else)
+    if (this.pruneTags.indexOf(tag) !== -1) {
+      if (!unary)
+        this.isInsidePrunedTag++;
+      return;
+    }
+    else if (this.isInsidePrunedTag) {
+      return;
+    }
+    // - strip
+    if (this.allowedTags.indexOf(tag) === -1) {
+      // In strip mode we discard the tag rather than escaping it.
+      if (this.stripMode) {
+        if (!unary) {
+          this.isInsideStrippedTag++;
+        }
+        return;
+      }
+
+      // The tag is not in the whitelist
+      this.output += "&lt;" + (unary ? "/" : "") + tag + "&gt;";
+      return;
+    }
+
+    this.isInsideStyleTag = (tag == "style" && !unary);
+
+    // If a callback was specified and it matches the tag name, then invoke
+    // the callback.  This happens before the attribute filtering so that
+    // the function can observe dangerous attributes, but in the event of
+    // the (silent) failure of this function, they will still be safely
+    // removed.
+    var callbackRegexp = this.callbackRegexp;
+    if (callbackRegexp && callbackRegexp.test(tag)) {
+      attrs = this.callback(tag, attrs);
+    }
+
+    var whitelist = this.allowedAttributesByTag[tag];
+    var wildAttrs = this.wildAttributes;
+    var result = "<" + tag;
+    for (var i = 0; i < attrs.length; i++) {
+      var attr = attrs[i];
+      var attrName = attr.name.toLowerCase();
+
+      if (wildAttrs.indexOf(attrName) !== -1 ||
+          (whitelist && whitelist.indexOf(attrName) !== -1)) {
+        if (attrName == "style") {
+          var attrValue = '';
+          try {
+            attrValue = CSSParser.parseAttribute(attr.escaped,
+                                                   this.allowedStyles);
+          } catch (e) {
+            console.log('CSSParser.parseAttribute failed for: "' +
+                         attr.escaped + '", skipping. Error: ' + e);
+          }
+          result += " " + attrName + '="' + attrValue + '"';
+        } else {
+          result += " " + attrName + '="' + attr.escaped + '"';
+        }
+      }
+    }
+    result += (unary ? "/" : "") + ">";
+
+    this.output += result;
+  },
+
+  end: function(tag) {
+    if (this.pruneTags.indexOf(tag) !== -1) {
+      this.isInsidePrunedTag--;
+      return;
+    }
+    else if (this.isInsidePrunedTag) {
+      return;
+    }
+
+    if (this.allowedTags.indexOf(tag) === -1) {
+      if (this.isInsideStrippedTag) {
+        this.isInsideStrippedTag--;
+        return;
+      }
+
+      this.output += "&lt;/" + tag + "&gt;";
+      return;
+    }
+
+    if (this.isInsideStyleTag) {
+      this.isInsideStyleTag = false;
+    }
+
+    this.output += "</" + tag + ">";
+  },
+
+  chars: function(text) {
+    if (this.isInsidePrunedTag || this.complete)
+      return;
+    if (this.isInsideStyleTag) {
+      this.output += CSSParser.parseBody(text, this.allowedStyles);
+      return;
+    }
+
+    //console.log('HTML SANITIZER CHARS GIVEN: ' + text);
+    if (this.maxLength) {
+      if (this.insideTagForSnippet) {
+        if (text.indexOf('>') !== -1) {
+          // All clear now, for the next chars call
+          this.insideTagForSnippet = false;
+        }
+        return;
+      } else {
+        // Skip chars that are for a tag, not wanted for a snippet.
+        if (text.charAt(0) === '<') {
+          this.insideTagForSnippet = true;
+          return;
+        }
+      }
+
+      // the whitespace down to one whitespace character.
+      var normalizedText = text.replace(RE_NORMALIZE_WHITESPACE, ' ');
+
+      // If the join would create two adjacents spaces, then skip the one
+      // on the thing we are concatenating.
+      var length = this.output.length;
+      if (length && normalizedText[0] === ' ' &&
+          this.output[length - 1] === ' ') {
+        normalizedText = normalizedText.substring(1);
+      }
+
+      this.output += normalizedText;
+      if (this.output.length >= this.maxLength) {
+        this.output = this.output.substring(0, this.maxLength);
+        // XXX We got the right numbers of chars
+        // Do not process anymore, and also set state
+        // the parser can use to know to stop doing work.
+        this.complete = true;
+      }
+    } else {
+      this.output += escapeHTMLEntities(text);
+    }
+  },
+
+  comment: function(comment) {
+    if (this.isInsidePrunedTag)
+      return;
+    if (this.ignoreComment)
+      return;
+    this.output += '<!--' + comment + '-->';
+  }
+};
+
+/*
+ * HTML Parser By John Resig (ejohn.org)
+ * Although the file only calls out MPL as a valid license, the upstream is
+ * available under Apache 2.0 and John Resig has indicated by e-mail to
+ * asuth@mozilla.com on 2013-03-13 that Apache 2.0 is fine.  So we are using
+ * it under Apache 2.0.
+ * http://ejohn.org/blog/pure-javascript-html-parser/
+ *
+ * Original code by Erik Arvidsson, tri-licensed under Apache 2.0, MPL 1.1
+ * (probably implicitly 1.1+), or GPL 2.0+ (as visible in the file):
+ * http://erik.eae.net/simplehtmlparser/simplehtmlparser.js
+ *
+ * // Use like so:
+ * HTMLParser(htmlString, {
+ *     start: function(tag, attrs, unary) {},
+ *     end: function(tag) {},
+ *     chars: function(text) {},
+ *     comment: function(text) {}
+ * });
+ *
+ */
+
+
+var HTMLParser = (function(){
+  // Important syntax notes from the WHATWG HTML spec and observations.
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/syntax.html
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/common-microsyntaxes.html#common-parser-idioms
+  //
+  // The spec says _html_ tag names are [A-Za-z0-9]; we also include '-' and '_'
+  // because that's what the code already did, but also since Gecko seems to be
+  // very happy to parse those characters.
+  //
+  // The spec defines attributes by what they must not include, which is:
+  // [\0\s"'>/=] plus also no control characters, or non-unicode characters.
+  // But we currently use the same regexp as we use for tags because that's what
+  // the code was using already.
+  //
+  // CDATA *is not a thing* in the HTML namespace.  <![CDATA[ just gets treated
+  // as a "bogus comment".  See:
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/tokenization.html#markup-declaration-open-state
+
+  // NOTE: tag and attr regexps changed to ignore name spaces prefixes!  via
+  // - Regular Expressions for parsing tags and attributes
+  // ^<                     anchored tag open character
+  // (?:[-A-Za-z0-9_]+:)?   eat the namespace
+  // ([-A-Za-z0-9_]+)       the tag name
+  // (                      repeated attributes:
+  //  (?:
+  //   \s+                  Mandatory whitespace between attribute names
+  //   (?:[-A-Za-z0-9_]+:)? optional attribute prefix
+  //   [-A-Za-z0-9_]+       attribute name
+  //   (?:                  The attribute doesn't need a value
+  //    \s*=\s*             whitespace, = to indicate value, whitespace
+  //    (?:                 attribute values:
+  //     (?:"[^"]*")|       double-quoted
+  //     (?:'[^']*')|       single-quoted
+  //     [^>\s]+            unquoted
+  //    )
+  //   )?                   (the attribute does't need a value)
+  //  )*                    (there can be multiple attributes)
+  // )                      (capture the list of attributes)
+  // \s*                    optional whitespace before the tag closer
+  // (\/?)                  optional self-closing character
+  // >                      tag close character
+  var startTag = /^<(?:[-A-Za-z0-9_]+:)?([-A-Za-z0-9_]+)((?:\s+(?:[-A-Za-z0-9_]+:)?[-A-Za-z0-9_]+(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,
+  // ^<\/                   close tag lead-in
+  // (?:[-A-Za-z0-9_]+:)?   optional tag prefix
+  // ([-A-Za-z0-9_]+)       tag name
+  // [^>]*                  The spec says this should be whitespace, we forgive.
+  // >
+    endTag = /^<\/(?:[-A-Za-z0-9_]+:)?([-A-Za-z0-9_]+)[^>]*>/,
+  // NOTE: This regexp was doing something freaky with the value quotings
+  // before. (?:"((?:\\.|[^"])*)") instead of (?:"[^"]*") from the tag part,
+  // which is deeply confusing.  Since the period thing seems meaningless, I am
+  // replacing it from the bits from startTag
+  //
+  // (?:[-A-Za-z0-9_]+:)?   attribute prefix
+  // ([-A-Za-z0-9_]+)       attribute name
+  // (?:                    The attribute doesn't need a value
+  //  \s*=\s*               whitespace, = to indicate value, whitespace
+  //  (?:                   attribute values:
+  //   (?:"([^"]*)")|       capture double-quoted
+  //   (?:'([^']*)')|       capture single-quoted
+  //   ([^>\s]+)            capture unquoted
+  //  )
+  // )?                    (the attribute does't need a value)
+    attr = /(?:[-A-Za-z0-9_]+:)?([-A-Za-z0-9_]+)(?:\s*=\s*(?:(?:"([^"]*)")|(?:'([^']*)')|([^>\s]+)))?/g;
+
+  // - Empty Elements - HTML 4.01
+  var empty = makeMap("area,base,basefont,br,col,frame,hr,img,input,isindex,link,meta,param,embed");
+
+  // - Block Elements - HTML 4.01
+  var block = makeMap("address,applet,blockquote,button,center,dd,del,dir,div,dl,dt,fieldset,form,frameset,hr,iframe,ins,isindex,li,map,menu,noframes,noscript,object,ol,p,pre,script,table,tbody,td,tfoot,th,thead,tr,ul");
+
+  // - Inline Elements - HTML 4.01
+  var inline = makeMap("a,abbr,acronym,applet,b,basefont,bdo,big,br,button,cite,code,del,dfn,em,font,i,iframe,img,input,ins,kbd,label,map,object,q,s,samp,script,select,small,span,strike,strong,sub,sup,textarea,tt,u,var");
+
+  // - Elements that you can, intentionally, leave open (and close themselves)
+  var closeSelf = makeMap("colgroup,dd,dt,li,options,p,td,tfoot,th,thead,tr");
+
+  // - Attributes that have their values filled in disabled="disabled"
+  var fillAttrs = makeMap("checked,compact,declare,defer,disabled,ismap,multiple,nohref,noresize,noshade,nowrap,readonly,selected");
+
+  // - Special Elements (can contain anything)
+  var special = makeMap("script,style");
+
+  var HTMLParser = this.HTMLParser = function( html, handler ) {
+    var index, chars, match, stack = [], last = html;
+    stack.last = function(){
+      return this[ this.length - 1 ];
+    };
+
+    while ( html ) {
+      chars = true;
+
+      // Make sure we're not in a script or style element
+      if ( !stack.last() || !special[ stack.last() ] ) {
+
+        // Comment
+        if ( html.lastIndexOf("<!--", 0) == 0 ) {
+          index = html.indexOf("-->");
+
+                                        // WHATWG spec says the text can't start
+                                        // with the closing tag.
+          if ( index >= 5 ) {
+            if ( handler.comment )
+              handler.comment( html.substring( 4, index ) );
+            html = html.substring( index + 3 );
+            chars = false;
+          } else {
+            // The comment does not have a end. Let's return the whole string as a comment then.
+            if ( handler.comment )
+              handler.comment( html.substring( 4, -1 ) );
+            html = '';
+            chars = false;
+          }
+
+        // end tag
+        } else if ( html.lastIndexOf("</", 0) == 0 ) {
+          match = html.match( endTag );
+
+          if ( match ) {
+            html = html.substring( match[0].length );
+            match[0].replace( endTag, parseEndTag );
+            chars = false;
+          }
+
+        // start tag
+        } else if ( html.lastIndexOf("<", 0) == 0 ) {
+          match = html.match( startTag );
+
+          if ( match ) {
+            html = html.substring( match[0].length );
+            match[0].replace( startTag, parseStartTag );
+            chars = false;
+          }
+        }
+
+        if ( chars ) {
+          index = html.indexOf("<");
+
+          if (index === 0) {
+            // This is not a valid tag in regards of the parser.
+            var text = html.substring(0, 1);
+            html = html.substring(1);
+          } else {
+            var text = index < 0 ? html : html.substring( 0, index );
+            html = index < 0 ? "" : html.substring( index );
+          }
+
+          if ( handler.chars ) {
+            handler.chars( text );
+            if ( handler.complete )
+              return this;
+          }
+        }
+
+      } else { // specials: script or style
+        var skipWork = false;
+        html = html.replace(
+          // we use "[^]" instead of "." because it matches newlines too
+          new RegExp("^([^]*?)<\/" + stack.last() + "[^>]*>", "i"),
+          function(all, text){
+            if (!skipWork) {
+              text = text.replace(/<!--([^]*?)-->/g, "$1")
+                .replace(/<!\[CDATA\[([^]*?)]]>/g, "$1");
+
+              if ( handler.chars ) {
+                handler.chars( text );
+                skipWork = handler.complete;
+              }
+            }
+
+            return "";
+          });
+
+        if ( handler.complete )
+          return this;
+
+        parseEndTag( "", stack.last() );
+      }
+
+      if ( html == last ) {
+        // May just have a fragment of HTML, to
+        // generate a snippet. If that is the case
+        // just end parsing now.
+        if ( handler.ignoreFragments ) {
+          return;
+        } else {
+          console.log(html);
+          console.log(last);
+          throw "Parse Error: " + html;
+        }
+      }
+      last = html;
+    }
+
+    // Clean up any remaining tags
+    parseEndTag();
+
+    function parseStartTag( tag, tagName, rest, unary ) {
+      tagName = tagName.toLowerCase();
+      if ( block[ tagName ] ) {
+        while ( stack.last() && inline[ stack.last() ] ) {
+          parseEndTag( "", stack.last() );
+        }
+      }
+
+      if ( closeSelf[ tagName ] && stack.last() == tagName ) {
+        parseEndTag( "", tagName );
+      }
+
+      unary = empty[ tagName ] || !!unary;
+
+      if ( !unary )
+        stack.push( tagName );
+
+      if ( handler.start ) {
+        var attrs = [];
+
+        rest.replace(attr, function(match, name) {
+          // The attr regexp capture groups:
+          // 1: attribute name
+          // 2: double-quoted attribute value (whitespace allowed inside)
+          // 3: single-quoted attribute value (whitespace allowed inside)
+          // 4: un-quoted attribute value (whitespace forbidden)
+          // We need to escape double-quotes because of the risks in there.
+          var value = arguments[2] ? arguments[2] :
+            arguments[3] ? arguments[3] :
+            arguments[4] ? arguments[4] :
+            fillAttrs[name] ? name : "";
+
+          attrs.push({
+            name: name,
+            value: value,
+            escaped: value.replace(/"/g, '&quot;')
+          });
+        });
+
+        if ( handler.start )
+          handler.start( tagName, attrs, unary );
+      }
+    }
+
+    function parseEndTag( tag, tagName ) {
+      // If no tag name is provided, clean shop
+      if ( !tagName )
+        var pos = 0;
+
+      // Find the closest opened tag of the same type
+      else
+        for ( var pos = stack.length - 1; pos >= 0; pos-- )
+          if ( stack[ pos ] == tagName )
+            break;
+
+      if ( pos >= 0 ) {
+        // Close all the open elements, up the stack
+        for ( var i = stack.length - 1; i >= pos; i-- )
+          if ( handler.end )
+            handler.end( stack[ i ] );
+
+        // Remove the open elements from the stack
+        stack.length = pos;
+      }
+    }
+  };
+
+  function makeMap(str){
+    var obj = {}, items = str.split(",");
+    for ( var i = 0; i < items.length; i++ )
+      obj[ items[i] ] = true;
+    return obj;
+  }
+
+  return this;
+})();
+
+var CSSParser = {
+  parseAttribute: function (data, allowedStyles) {
+    var tokens = tokenizer.tokenize(data, { loc: true });
+    var rule = parser.parse(tokens, 'declaration');
+
+    var keepText = [];
+    this._filterDeclarations(null, rule.value, allowedStyles, data, keepText);
+    var oot = keepText.join('');
+    //console.log('IN:', data, '\n OUT:', oot);
+    return oot;
+  },
+
+  _filterDeclarations: function(parent, decls, allowedStyles, fullText,
+                                textOut) {
+    for (var i = 0; i < decls.length; i++) {
+      var decl = decls[i];
+      if (decl.type !== 'DECLARATION') {
+        continue;
+      }
+      if (allowedStyles.indexOf(decl.name) !== -1) {
+        textOut.push(fullText.substring(
+          decl.startTok.loc.start.idx,
+          // If we have a parent and our parent ends on the same token as us,
+          // then don't emit our ending token (ex: '}'), otherwise do emit it
+          // (ex: ';').  We don't want a parent when it's synthetic like for
+          // parseAttribute.
+          (parent && parent.endTok === decl.endTok) ?
+            decl.endTok.loc.start.idx :
+            decl.endTok.loc.end.idx + 1));
+      }
+    }
+  },
+
+  parseBody: function (data, allowedStyles) {
+    var body = "";
+    var oot = "";
+
+    try {
+      var tokens = tokenizer.tokenize(data, { loc: true });
+      var stylesheet = parser.parse(tokens);
+
+      var keepText = [];
+
+      for (var i = 0; i < stylesheet.value.length; i++) {
+        var sub = stylesheet.value[i];
+        if (sub.type === 'STYLE-RULE') {
+          // We want our tokens up to the start of our first child.  If we have
+          // no children, just go up to the start of our ending token.
+          keepText.push(data.substring(
+            sub.startTok.loc.start.idx,
+            sub.value.length ? sub.value[0].startTok.loc.start.idx
+                             : sub.endTok.loc.start.idx));
+          this._filterDeclarations(sub, sub.value, allowedStyles, data, keepText);
+          // we want all of our terminating token.
+          keepText.push(data.substring(
+            sub.endTok.loc.start.idx, sub.endTok.loc.end.idx + 1));
+        }
+      }
+
+      oot = keepText.join('');
+    } catch (e) {
+      console.log('bleach CSS parsing failed, skipping. Error: ' + e);
+      oot = '';
+    }
+
+    //console.log('IN:', data, '\n OUT:', oot);
+    return oot;
+  }
+};
+
+
+var entities = {
+  34 : 'quot',
+  38 : 'amp',
+  39 : 'apos',
+  60 : 'lt',
+  62 : 'gt',
+  160 : 'nbsp',
+  161 : 'iexcl',
+  162 : 'cent',
+  163 : 'pound',
+  164 : 'curren',
+  165 : 'yen',
+  166 : 'brvbar',
+  167 : 'sect',
+  168 : 'uml',
+  169 : 'copy',
+  170 : 'ordf',
+  171 : 'laquo',
+  172 : 'not',
+  173 : 'shy',
+  174 : 'reg',
+  175 : 'macr',
+  176 : 'deg',
+  177 : 'plusmn',
+  178 : 'sup2',
+  179 : 'sup3',
+  180 : 'acute',
+  181 : 'micro',
+  182 : 'para',
+  183 : 'middot',
+  184 : 'cedil',
+  185 : 'sup1',
+  186 : 'ordm',
+  187 : 'raquo',
+  188 : 'frac14',
+  189 : 'frac12',
+  190 : 'frac34',
+  191 : 'iquest',
+  192 : 'Agrave',
+  193 : 'Aacute',
+  194 : 'Acirc',
+  195 : 'Atilde',
+  196 : 'Auml',
+  197 : 'Aring',
+  198 : 'AElig',
+  199 : 'Ccedil',
+  200 : 'Egrave',
+  201 : 'Eacute',
+  202 : 'Ecirc',
+  203 : 'Euml',
+  204 : 'Igrave',
+  205 : 'Iacute',
+  206 : 'Icirc',
+  207 : 'Iuml',
+  208 : 'ETH',
+  209 : 'Ntilde',
+  210 : 'Ograve',
+  211 : 'Oacute',
+  212 : 'Ocirc',
+  213 : 'Otilde',
+  214 : 'Ouml',
+  215 : 'times',
+  216 : 'Oslash',
+  217 : 'Ugrave',
+  218 : 'Uacute',
+  219 : 'Ucirc',
+  220 : 'Uuml',
+  221 : 'Yacute',
+  222 : 'THORN',
+  223 : 'szlig',
+  224 : 'agrave',
+  225 : 'aacute',
+  226 : 'acirc',
+  227 : 'atilde',
+  228 : 'auml',
+  229 : 'aring',
+  230 : 'aelig',
+  231 : 'ccedil',
+  232 : 'egrave',
+  233 : 'eacute',
+  234 : 'ecirc',
+  235 : 'euml',
+  236 : 'igrave',
+  237 : 'iacute',
+  238 : 'icirc',
+  239 : 'iuml',
+  240 : 'eth',
+  241 : 'ntilde',
+  242 : 'ograve',
+  243 : 'oacute',
+  244 : 'ocirc',
+  245 : 'otilde',
+  246 : 'ouml',
+  247 : 'divide',
+  248 : 'oslash',
+  249 : 'ugrave',
+  250 : 'uacute',
+  251 : 'ucirc',
+  252 : 'uuml',
+  253 : 'yacute',
+  254 : 'thorn',
+  255 : 'yuml',
+  402 : 'fnof',
+  913 : 'Alpha',
+  914 : 'Beta',
+  915 : 'Gamma',
+  916 : 'Delta',
+  917 : 'Epsilon',
+  918 : 'Zeta',
+  919 : 'Eta',
+  920 : 'Theta',
+  921 : 'Iota',
+  922 : 'Kappa',
+  923 : 'Lambda',
+  924 : 'Mu',
+  925 : 'Nu',
+  926 : 'Xi',
+  927 : 'Omicron',
+  928 : 'Pi',
+  929 : 'Rho',
+  931 : 'Sigma',
+  932 : 'Tau',
+  933 : 'Upsilon',
+  934 : 'Phi',
+  935 : 'Chi',
+  936 : 'Psi',
+  937 : 'Omega',
+  945 : 'alpha',
+  946 : 'beta',
+  947 : 'gamma',
+  948 : 'delta',
+  949 : 'epsilon',
+  950 : 'zeta',
+  951 : 'eta',
+  952 : 'theta',
+  953 : 'iota',
+  954 : 'kappa',
+  955 : 'lambda',
+  956 : 'mu',
+  957 : 'nu',
+  958 : 'xi',
+  959 : 'omicron',
+  960 : 'pi',
+  961 : 'rho',
+  962 : 'sigmaf',
+  963 : 'sigma',
+  964 : 'tau',
+  965 : 'upsilon',
+  966 : 'phi',
+  967 : 'chi',
+  968 : 'psi',
+  969 : 'omega',
+  977 : 'thetasym',
+  978 : 'upsih',
+  982 : 'piv',
+  8226 : 'bull',
+  8230 : 'hellip',
+  8242 : 'prime',
+  8243 : 'Prime',
+  8254 : 'oline',
+  8260 : 'frasl',
+  8472 : 'weierp',
+  8465 : 'image',
+  8476 : 'real',
+  8482 : 'trade',
+  8501 : 'alefsym',
+  8592 : 'larr',
+  8593 : 'uarr',
+  8594 : 'rarr',
+  8595 : 'darr',
+  8596 : 'harr',
+  8629 : 'crarr',
+  8656 : 'lArr',
+  8657 : 'uArr',
+  8658 : 'rArr',
+  8659 : 'dArr',
+  8660 : 'hArr',
+  8704 : 'forall',
+  8706 : 'part',
+  8707 : 'exist',
+  8709 : 'empty',
+  8711 : 'nabla',
+  8712 : 'isin',
+  8713 : 'notin',
+  8715 : 'ni',
+  8719 : 'prod',
+  8721 : 'sum',
+  8722 : 'minus',
+  8727 : 'lowast',
+  8730 : 'radic',
+  8733 : 'prop',
+  8734 : 'infin',
+  8736 : 'ang',
+  8743 : 'and',
+  8744 : 'or',
+  8745 : 'cap',
+  8746 : 'cup',
+  8747 : 'int',
+  8756 : 'there4',
+  8764 : 'sim',
+  8773 : 'cong',
+  8776 : 'asymp',
+  8800 : 'ne',
+  8801 : 'equiv',
+  8804 : 'le',
+  8805 : 'ge',
+  8834 : 'sub',
+  8835 : 'sup',
+  8836 : 'nsub',
+  8838 : 'sube',
+  8839 : 'supe',
+  8853 : 'oplus',
+  8855 : 'otimes',
+  8869 : 'perp',
+  8901 : 'sdot',
+  8968 : 'lceil',
+  8969 : 'rceil',
+  8970 : 'lfloor',
+  8971 : 'rfloor',
+  9001 : 'lang',
+  9002 : 'rang',
+  9674 : 'loz',
+  9824 : 'spades',
+  9827 : 'clubs',
+  9829 : 'hearts',
+  9830 : 'diams',
+  338 : 'OElig',
+  339 : 'oelig',
+  352 : 'Scaron',
+  353 : 'scaron',
+  376 : 'Yuml',
+  710 : 'circ',
+  732 : 'tilde',
+  8194 : 'ensp',
+  8195 : 'emsp',
+  8201 : 'thinsp',
+  8204 : 'zwnj',
+  8205 : 'zwj',
+  8206 : 'lrm',
+  8207 : 'rlm',
+  8211 : 'ndash',
+  8212 : 'mdash',
+  8216 : 'lsquo',
+  8217 : 'rsquo',
+  8218 : 'sbquo',
+  8220 : 'ldquo',
+  8221 : 'rdquo',
+  8222 : 'bdquo',
+  8224 : 'dagger',
+  8225 : 'Dagger',
+  8240 : 'permil',
+  8249 : 'lsaquo',
+  8250 : 'rsaquo',
+  8364 : 'euro'
+};
+
+var reverseEntities;
+// Match on named entities as well as numeric/hex entities as well,
+// covering range from &something; &Another; &#1234; &#x22; &#X2F;
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/syntax.html#character-references
+var entityRegExp = /\&([#a-zA-Z0-9]+);/g;
+
+function makeReverseEntities () {
+  reverseEntities = {};
+  Object.keys(entities).forEach(function (key) {
+    reverseEntities[entities[key]] = key;
+  });
+}
+
+function escapeHTMLEntities(text) {
+  text = text.replace(/&([a-z]+);/gi, "__IGNORE_ENTITIES_HACK__$1;");
+
+  text = text.replace(/[\u00A0-\u2666<>]|&(?![#a-zA-Z0-9]+;)/g, function(c) {
+    return '&' + entities[c.charCodeAt(0)] + ';';
+  });
+  return text.replace(/__IGNORE_ENTITIES_HACK__([a-z]+);/gi, "&$1;");
+}
+
+exports.unescapeHTMLEntities = function unescapeHTMLEntities(text) {
+  return text.replace(entityRegExp, function (match, ref) {
+    var converted = '';
+    if (ref.charAt(0) === '#') {
+      var secondChar = ref.charAt(1);
+      if (secondChar === 'x' || secondChar === 'X') {
+        // hex
+        converted = String.fromCharCode(parseInt(ref.substring(2), 16));
+      } else {
+        // base 10 reference
+        converted = String.fromCharCode(parseInt(ref.substring(1), 10));
+      }
+    } else {
+      // a named character reference
+      // build up reverse entities on first use.
+      if (!reverseEntities)
+        makeReverseEntities();
+
+      if (reverseEntities.hasOwnProperty(ref))
+        converted = String.fromCharCode(reverseEntities[ref]);
+    }
+    return converted;
+  });
+};
+
+}); // end define
 ;
 /**
  * Process text/html for message body purposes.  Specifically:
@@ -1041,14 +2884,12 @@ define('mailapi/htmlchew',
  *   help, but it's something.  Because forms are largely unsupported or just
  *   broken in many places, they are rarely used, so we are turning them off
  *   entirely.
- * - implicitly-nuked: killed as part of the parse process because we assign
- *   to innerHTML rather than creating a document with the string in it.
- * - inline-style-only: Styles have to be included in the document itself,
- *   and for now, on the elements themselves.  We now support <style> tags
- *   (although src will be sanitized off), but not <link> tags because they want
- *   to reference external stuff.
+ * - non-body: previously killed as part of the parse process because we were
+ *   assigning to innerHTML rather than creating a document with the string in
+ *   it.  We could change this up in a future bug now.
  * - dangerous: The semantics of the tag are intentionally at odds with our
- *   goals and/or are extensible.  (ex: link tag.)
+ *   goals and/or are extensible.  (ex: link tag.)  Our callbacks could be
+ *   used to only let through okay things.
  * - interactive-ui: A cross between scripty and forms, things like (HTML5)
  *   menu and command imply some type of mutation that requires scripting.
  *   They also are frequently very attribute-heavy.
@@ -1077,15 +2918,15 @@ var LEGAL_TAGS = [
   'footer',
   // forms: 'form',
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-  // implicitly-nuked: head
+  // non-body: 'head'
   'header', 'hgroup', 'hr',
-  // implicitly-nuked: html
+  // non-body: 'html'
   'i', 'img',
   // forms: 'input',
   'ins', // ("represents a range of text that has been inserted to a document")
   'kbd', // ("The kbd element represents user input")
   'label', 'legend', 'li',
-  // dangerous, inline-style-only: link
+  // dangerous: link (for CSS styles
   /* link supports many types, none of which we want, some of which are
    * risky: http://dev.w3.org/html5/spec/links.html#linkTypes. Specifics:
    * - "stylesheet": This would be okay for cid links, but there's no clear
@@ -1143,16 +2984,20 @@ var LEGAL_TAGS = [
  *   'datalist', so we need not include them.  This means that if the tags
  *   are used in nonsensical positions, they will have their contents
  *   merged into the document text, but that's not a major concern.
+ * - non-body: don't have stuff from the header show up like it's part of the
+ *   body!  For now we do want <style> tags to fall out, but we want <title>
+ *   to not show up, etc.
  * - 'script': no one wants to read the ignored JS code!
- * - 'style': no one wants to read the CSS we are (currently) ignoring
+ * Note that bleach.js now is aware of the special nature of 'script' and
+ * 'style' tags, so putting them in prune is not strictly required.
  */
 var PRUNE_TAGS = [
   'button', // (forms)
   'datalist', // (forms)
   'script', // (script)
   'select', // (forms)
-  'style', // (style)
   'svg', // (svg)
+  'title', // (non-body)
 ];
 
 /**
@@ -1214,7 +3059,7 @@ var LEGAL_ATTR_MAP = {
     'hspace', // (pres)
     // dangerous: 'http-equiv' (meta refresh, maybe other trickiness)
     // interactive-ui: 'icon',
-    // inline-style-only: 'id',
+    'id', // (pres; white-listed for style targets)
     // specific: 'ismap', (area image map)
     // microformat: 'itemid', 'itemprop', 'itemref', 'itemscope', 'itemtype',
     // annoying: 'kind', (media)
@@ -1257,7 +3102,7 @@ var LEGAL_ATTR_MAP = {
     // sanitized: 'src',
     'size', // (pres)
     'scope', // (tables)
-    // inline-style-only: 'scoped', (on "style" elem)
+    'scoped', // (pres; on "style" elem)
     // forms: 'selected',
     'shape', // (image maps)
     'span', // (tables)
@@ -1372,58 +3217,122 @@ var RE_MAILTO_URL = /^mailto:/i;
 
 var RE_IMG_TAG = /^img$/;
 
+function getAttributeFromList(attrs, name) {
+  var len = attrs.length;
+  for (var i = 0; i < len; i++) {
+    var attr = attrs[i];
+    if (attr.name.toLowerCase() === name) {
+      return attr;
+    }
+  }
+  return null;
+}
+
 /**
  * Transforms src tags, ensure that links are http and transform them too so
  * that they don't actually navigate when clicked on but we can hook them.  (The
  * HTML display iframe is not intended to navigate; we just want to trigger the
  * browser.
  */
-function stashLinks(node, lowerTag) {
+function stashLinks(lowerTag, attrs) {
+  var classAttr;
   // - img: src
   if (RE_IMG_TAG.test(lowerTag)) {
-    var src = node.getAttribute('src');
-    if (RE_CID_URL.test(src)) {
-      node.classList.add('moz-embedded-image');
-      // strip the cid: bit, it is necessarily there and therefore redundant.
-      node.setAttribute('cid-src', src.substring(4));
-      // 'src' attribute will be removed by whitelist
-    }
-    else if (RE_HTTP_URL.test(src)) {
-      node.classList.add('moz-external-image');
-      node.setAttribute('ext-src', src);
-      // 'src' attribute will be removed by whitelist
-    }
-    else {
-      // paranoia; no known benefit if this got through
-      node.removeAttribute('cid-src');
-      node.removeAttribute('ext-src');
+    // filter out things we might write to, also find the 'class attr'
+    attrs = attrs.filter(function(attr) {
+      switch (attr.name.toLowerCase()) {
+        case 'cid-src':
+        case 'ext-src':
+          return false;
+        case 'class':
+          classAttr = attr;
+        default:
+          return true;
+      }
+    });
+
+    var srcAttr = getAttributeFromList(attrs, 'src');
+    if (srcAttr) {
+      if (RE_CID_URL.test(srcAttr.escaped)) {
+        srcAttr.name = 'cid-src';
+        if (classAttr)
+          classAttr.escaped += ' moz-embedded-image';
+        else
+          attrs.push({ name: 'class', escaped: 'moz-embedded-image' });
+        // strip the cid: bit, it is necessarily there and therefore redundant.
+        srcAttr.escaped = srcAttr.escaped.substring(4);
+      }
+      else if (RE_HTTP_URL.test(srcAttr.escaped)) {
+        srcAttr.name = 'ext-src';
+        if (classAttr)
+          classAttr.escaped += ' moz-external-image';
+        else
+          attrs.push({ name: 'class', escaped: 'moz-external-image' });
+      }
     }
   }
   // - a, area: href
   else {
-    var link = node.getAttribute('href');
-    if (RE_HTTP_URL.test(link) ||
-        RE_MAILTO_URL.test(link)) {
-      node.classList.add('moz-external-link');
-      node.setAttribute('ext-href', link);
-      // 'href' attribute will be removed by whitelist
-    }
-    else {
-      // paranoia; no known benefit if this got through
-      node.removeAttribute('ext-href');
+    // filter out things we might write to, also find the 'class attr'
+    attrs = attrs.filter(function(attr) {
+      switch (attr.name.toLowerCase()) {
+        case 'cid-src':
+        case 'ext-src':
+          return false;
+        case 'class':
+          classAttr = attr;
+        default:
+          return true;
+      }
+    });
+    var linkAttr = getAttributeFromList(attrs, 'href');
+    if (linkAttr) {
+      var link = linkAttr.escaped;
+      if (RE_HTTP_URL.test(link) ||
+          RE_MAILTO_URL.test(link)) {
+
+        linkAttr.name = 'ext-href';
+        if (classAttr)
+          classAttr.escaped += ' moz-external-link';
+        else
+          attrs.push({ name: 'class', escaped: 'moz-external-link' });
+      }
+      else {
+        // paranoia; no known benefit if this got through
+        attrs.splice(attrs.indexOf(linkAttr), 1);
+      }
     }
   }
+  return attrs;
 }
 
 var BLEACH_SETTINGS = {
   tags: LEGAL_TAGS,
   strip: true,
+  stripComments: true,
   prune: PRUNE_TAGS,
   attributes: LEGAL_ATTR_MAP,
   styles: LEGAL_STYLES,
   asNode: true,
   callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
   callback: stashLinks
+};
+
+var BLEACH_SNIPPET_SETTINGS = {
+  tags: [],
+  strip: true,
+  stripComments: true,
+  prune: [
+    'style',
+    'button', // (forms)
+    'datalist', // (forms)
+    'script', // (script)
+    'select', // (forms)
+    'svg', // (svg)
+    'title' // (non-body)
+  ],
+  asNode: true,
+  maxLength: 100
 };
 
 /**
@@ -1438,80 +3347,22 @@ var BLEACH_SETTINGS = {
  *     style tags in the head, etc.
  *   }
  * ]
- * @return[HtmlElement]{
- *   The sanitized HTML content wrapped in a div container.
+ * @return[HtmlString]{
+ *   The sanitized HTML string wrapped into a div container.
  * }
  */
 exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString) {
-  var sanitizedNode = $bleach.clean(htmlString, BLEACH_SETTINGS);
-  return sanitizedNode;
+  return $bleach.clean(htmlString, BLEACH_SETTINGS);
 };
 
-var ELEMENT_NODE = 1, TEXT_NODE = 3;
-
-var RE_NORMALIZE_WHITESPACE = /\s+/g;
-
 /**
- * Derive snippet text from the already-sanitized HTML representation.
+ * Derive snippet text from the an HTML string. It will also sanitize it.
+ * Note that it unescapes HTML enttities, so best to only use this output
+ * in textContent cases.
  */
-exports.generateSnippet = function generateSnippet(sanitizedHtmlNode,
-                                                   desiredLength) {
-  var snippet = '';
-
-  // Perform a traversal of the DOM tree skipping over things we don't care
-  // about.  Whenever we see an element we can descend into, we do so.
-  // Whenever we finish processing a node, we move to our next sibling.
-  // If there is no next sibling, we move up the tree until there is a next
-  // sibling or we hit the top.
-  var node = sanitizedHtmlNode.firstChild, done = false;
-  if (!node)
-    return snippet;
-  while (!done) {
-    if (node.nodeType === ELEMENT_NODE) {
-      switch (node.tagName.toLowerCase()) {
-        // - Things that can't contain useful text.
-        // Avoid including block-quotes in the snippet.
-        case 'blockquote':
-        // The style does not belong in the snippet!
-        case 'style':
-          break;
-
-        default:
-          if (node.firstChild) {
-            node = node.firstChild;
-            continue;
-          }
-          break;
-      }
-    }
-    else if (node.nodeType === TEXT_NODE) {
-      // these text nodes can be ridiculously full of whitespace.  Normalize
-      // the whitespace down to one whitespace character.
-      var normalizedText =
-            node.data.replace(RE_NORMALIZE_WHITESPACE, ' ');
-      // If the join would create two adjacents spaces, then skip the one
-      // on the thing we are concatenating.
-      if (snippet.length && normalizedText[0] === ' ' &&
-          snippet[snippet.length - 1] === ' ')
-        normalizedText = normalizedText.substring(1);
-      snippet += normalizedText;
-      if (snippet.length >= desiredLength)
-        break; // (exits the loop)
-    }
-
-    while (!node.nextSibling) {
-      node = node.parentNode;
-      if (node === sanitizedHtmlNode) {
-        // yeah, a goto or embedding this in a function might have been cleaner
-        done = true;
-        break;
-      }
-    }
-    if (!done)
-      node = node.nextSibling;
-  }
-
-  return snippet.substring(0, desiredLength);
+exports.generateSnippet = function generateSnippet(htmlString) {
+  return $bleach.unescapeHTMLEntities($bleach.clean(htmlString,
+                                                    BLEACH_SNIPPET_SETTINGS));
 };
 
 /**
@@ -1523,38 +3374,25 @@ exports.generateSnippet = function generateSnippet(sanitizedHtmlNode,
  * about recipients having sufficient CSS support and our own desire to have
  * things resemble text/plain.
  *
- * NB: simple escaping should also be fine, but this is unlikely to be a
- * performance hotspot.
  */
 exports.wrapTextIntoSafeHTMLString = function(text, wrapTag,
                                               transformNewlines, attrs) {
   if (transformNewlines === undefined)
     transformNewlines = true;
 
-  var doc = document.implementation.createHTMLDocument(''),
-      wrapNode = doc.createElement(wrapTag || 'div');
+  wrapTag = wrapTag || 'div';
 
-  if (transformNewlines) {
-    var lines = text.split('\n');
-    for (var i = 0; i < lines.length; i++) {
-      var lineText = lines[i];
-      if (i)
-        wrapNode.appendChild(doc.createElement('br'));
-      if (lineText.length)
-        wrapNode.appendChild(doc.createTextNode(lineText));
-    }
-  }
-  else {
-    wrapNode.textContent = text;
-  }
+  text = transformNewlines ? text.replace(/\n/g, '<br/>') : text;
 
+  var attributes = '';
   if (attrs) {
-    for (var iAttr = 0; iAttr < attrs.length; iAttr += 2) {
-      wrapNode.setAttribute(attrs[iAttr], attrs[iAttr + 1]);
+    var len = attrs.length;
+    for (var i = 0; i < len; i += 2) {
+      attributes += ' ' + attrs[i] + '="' + attrs[i + 1] +'"';
     }
   }
 
-  return wrapNode.outerHTML;
+  return '<' + wrapTag + attributes + '>' + text + '</' + wrapTag + '>';
 };
 
 var RE_QUOTE_CHAR = /"/g;
@@ -1854,7 +3692,10 @@ exports.chewHeaderAndBodyStructure =
     // use their unique value, or if we could convince dovecot to tell us, etc.
     guid: msg.msg.meta.messageId,
     // mailparser models from as an array; we do not.
-    author: msg.msg.from[0] || null,
+    author: msg.msg.from && msg.msg.from[0] ||
+              // we require a sender e-mail; let's choose an illegal default as
+              // a stopgap so we don't die.
+              { address: 'missing-address@example.com' },
     to: ('to' in msg.msg) ? msg.msg.to : null,
     cc: ('cc' in msg.msg) ? msg.msg.cc : null,
     bcc: ('bcc' in msg.msg) ? msg.msg.bcc : null,
@@ -1917,7 +3758,7 @@ var DESIRED_SNIPPET_LENGTH = 100;
  *
  */
 exports.updateMessageWithFetch =
-  function(header, body, req, res) {
+  function(header, body, req, res, _LOG) {
 
   var bodyRep = body.bodyReps[req.bodyRepIndex];
 
@@ -1938,21 +3779,50 @@ exports.updateMessageWithFetch =
   var snippet;
   switch (bodyRep.type) {
     case 'plain':
-      parsedContent = $quotechew.quoteProcessTextBody(res.text);
+      try {
+        parsedContent = $quotechew.quoteProcessTextBody(res.text);
+      }
+      catch (ex) {
+        _LOG.textChewError(ex);
+        // an empty content rep is better than nothing.
+        parsedContent = [];
+      }
       if (req.createSnippet) {
-        header.snippet = $quotechew.generateSnippet(
-          parsedContent, DESIRED_SNIPPET_LENGTH
-        );
+        try {
+          header.snippet = $quotechew.generateSnippet(
+            parsedContent, DESIRED_SNIPPET_LENGTH
+          );
+        }
+        catch (ex) {
+          _LOG.textSnippetError(ex);
+          header.snippet = '';
+        }
       }
       break;
     case 'html':
-      var internalRep = $htmlchew.sanitizeAndNormalizeHtml(res.text);
+      var htmlStr = '';
+      var text = res.text;
       if (req.createSnippet) {
-        header.snippet = $htmlchew.generateSnippet(
-          internalRep, DESIRED_SNIPPET_LENGTH
-        );
+        try {
+          header.snippet = $htmlchew.generateSnippet(text);
+        }
+        catch (ex) {
+          _LOG.htmlSnippetError(ex);
+          header.snippet = '';
+        }
       }
-      parsedContent = internalRep.innerHTML;
+
+      if (bodyRep.isDownloaded) {
+        try {
+          htmlStr = $htmlchew.sanitizeAndNormalizeHtml(text);
+        }
+        catch (ex) {
+          _LOG.htmlParseError(ex);
+          htmlStr = '';
+        }
+      }
+
+      parsedContent = htmlStr;
       break;
   }
 

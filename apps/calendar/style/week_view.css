@@ -109,10 +109,10 @@
 #week-view .sidebar {
    min-height: 6rem;
    width: 2rem;
-   color: black;
+   color: #000;
    text-align: center;
    text-transform: uppercase;
-   font-size: 1.3rem;
+   font-size: 1.4rem;
    border-left: none;
    border-top: none;
    float: left;
@@ -129,14 +129,14 @@
   padding: 0.4rem 0.3rem 0 0;
   float: left;
   height: 6rem;
-  text-align: right;
+  text-align: center;
   border-left: 1px solid #CCC;
   padding: 0.2rem;
   overflow: hidden;
 }
 
 #week-view .scroll {
-  height: calc(100% - 8.1rem);
+  height: calc(100% - 7.9rem);
   overflow-y: scroll;
 }
 
@@ -173,28 +173,22 @@
 #week-view .week-events .container {
   height: 100%;
   margin: 1px;
-  line-height: 120%;
+  line-height: 1.4rem;
   font-size: 120%;
   padding: 0.2rem;
   overflow: hidden;
   text-overflow: ellipsis;
   position: relative;
-
-  background-image: linear-gradient(
-    to bottom,
-    rgba(255,255,255,0.5) 0%,
-    rgba(255,255,255,0) 60%,
-    rgba(0, 0, 0, 0.2) 100%
-  )
 }
 
-.weekday .event[data-overlaps="1"] { padding: 3px; }
-.weekday .event[data-overlaps="2"] { padding: 6px; }
-.weekday .event[data-overlaps="3"] { padding: 9px; }
-.weekday .event[data-overlaps="4"] { padding: 12px; }
-.weekday .event[data-overlaps="5"] { padding: 15px; }
-.weekday .event[data-overlaps="6"] { padding: 18px; }
-.weekday .event[data-overlaps="7"] { padding: 21px; }
-.weekday .event[data-overlaps="8"] { padding: 24px; }
-.weekday .event[data-overlaps="9"] { padding: 27px; }
-.weekday .event[data-overlaps="10"] { padding: 30px; }
+/* overlap */
+.weekday .event[data-overlaps="1"] { padding: 0.3rem; }
+.weekday .event[data-overlaps="2"] { padding: 0.6rem; }
+.weekday .event[data-overlaps="3"] { padding: 0.9rem; }
+.weekday .event[data-overlaps="4"] { padding: 1.2rem; }
+.weekday .event[data-overlaps="5"] { padding: 1.5rem; }
+.weekday .event[data-overlaps="6"] { padding: 1.8rem; }
+.weekday .event[data-overlaps="7"] { padding: 2.1rem; }
+.weekday .event[data-overlaps="8"] { padding: 2.4rem; }
+.weekday .event[data-overlaps="9"] { padding: 2.7rem; }
+.weekday .event[data-overlaps="10"] { padding: 3rem; }
