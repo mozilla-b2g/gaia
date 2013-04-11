@@ -42,6 +42,7 @@ if (DEBUG) {
   prefs.push(["nglayout.debug.disable_xul_fastload", true]);
   prefs.push(["extensions.autoDisableScopes", 0]);
   prefs.push(["browser.startup.homepage", homescreen]);
+  prefs.push(["browser.shell.checkDefaultBrowser", false]);
 
   prefs.push(["dom.mozBrowserFramesEnabled", true]);
   prefs.push(["b2g.ignoreXFrameOptions", true]);
