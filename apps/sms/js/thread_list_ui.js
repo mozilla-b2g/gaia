@@ -267,7 +267,7 @@ var ThreadListUI = {
 
   createThread: function thlui_createThread(thread) {
     // Create DOM element
-    var num = thread.senderOrReceiver;
+    var num = thread.participants[0];
     var timestamp = thread.timestamp.getTime();
     var threadDOM = document.createElement('li');
     threadDOM.id = 'thread_' + thread.id;
@@ -317,7 +317,7 @@ var ThreadListUI = {
     }
   },
   appendThread: function thlui_appendThread(thread) {
-    var num = thread.senderOrReceiver;
+    var num = thread.participants[0];
     var timestamp = thread.timestamp.getTime();
     // We create the DOM element of the thread
     var threadDOM = this.createThread(thread);
