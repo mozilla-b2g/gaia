@@ -1473,10 +1473,30 @@ MessageReaderCard.prototype = {
           if (!blob) {
             throw new Error('Blob does not exist');
           }
+
+          // To delegate a correct activity, we should try to avoid the unsure
+          // mimetype because types like "application/octet-stream" which told
+          // by the e-mail client are not supported.
+          // But it doesn't mean we really don't support that attachment
+          // what we can do here is:
+          // 1. Check blob.type, most of the time it will not be empty
+          //    because it's reported by deviceStorage, it should be a
+          //    correct mimetype, or
+          // 2. Use the original mimetype from the attachment,
+          //    but it's possibly an unsupported mimetype, like
+          //    "application/octet-stream" which cannot be used correctly, or
+          // 3. Use MimeMapper to help us, if it's still an unsure mimetype,
+          //    MimeMapper can guess the possible mimetype from extension,
+          //    then we can delegate a right activity.
+          var extension = attachment.filename.split('.').pop();
+          var originalType = blob.type || attachment.mimetype;
+          var mappedType = (MimeMapper.isSupportedType(originalType)) ?
+            originalType : MimeMapper.guessTypeFromExtension(extension);
+
           var activity = new MozActivity({
             name: 'open',
             data: {
-              type: attachment.mimetype,
+              type: mappedType,
               blob: blob
             }
           });
@@ -1677,36 +1697,42 @@ MessageReaderCard.prototype = {
     var attachmentsContainer =
       domNode.getElementsByClassName('msg-attachments-container')[0];
     if (body.attachments && body.attachments.length) {
-      var attTemplate = msgNodes['attachment-item'],
-          filenameTemplate =
-            attTemplate.getElementsByClassName('msg-attachment-filename')[0],
-          filesizeTemplate =
-            attTemplate.getElementsByClassName('msg-attachment-filesize')[0];
-      for (var iAttach = 0; iAttach < body.attachments.length; iAttach++) {
-        var attachment = body.attachments[iAttach], state;
-        if (attachment.isDownloaded)
-          state = 'downloaded';
-        else if (/^image\//.test(attachment.mimetype) ||
-                 /^audio\//.test(attachment.mimetype))
-          state = 'downloadable';
-        else
-          state = 'nodownload';
-        attTemplate.setAttribute('state', state);
-        filenameTemplate.textContent = attachment.filename;
-        filesizeTemplate.textContent = prettyFileSize(
-          attachment.sizeEstimateInBytes);
+      // We need MimeMapper to help us determining the downloadable attachments
+      // but it might not be loaded yet, so load before use it
+      App.loader.load('shared/js/mime_mapper.js', function() {
+        var attTemplate = msgNodes['attachment-item'],
+            filenameTemplate =
+              attTemplate.getElementsByClassName('msg-attachment-filename')[0],
+            filesizeTemplate =
+              attTemplate.getElementsByClassName('msg-attachment-filesize')[0];
+        for (var iAttach = 0; iAttach < body.attachments.length; iAttach++) {
+          var attachment = body.attachments[iAttach], state;
+          var extension = attachment.filename.split('.').pop();
 
-        var attachmentNode = attTemplate.cloneNode(true);
-        attachmentsContainer.appendChild(attachmentNode);
-        attachmentNode.getElementsByClassName('msg-attachment-download')[0]
-          .addEventListener('click',
-                            this.onDownloadAttachmentClick.bind(
-                              this, attachmentNode, attachment));
-        attachmentNode.getElementsByClassName('msg-attachment-view')[0]
-          .addEventListener('click',
-                            this.onViewAttachmentClick.bind(
-                              this, attachmentNode, attachment));
-      }
+          if (attachment.isDownloaded)
+            state = 'downloaded';
+          else if (MimeMapper.isSupportedType(attachment.mimetype) ||
+                   MimeMapper.isSupportedExtension(extension))
+            state = 'downloadable';
+          else
+            state = 'nodownload';
+          attTemplate.setAttribute('state', state);
+          filenameTemplate.textContent = attachment.filename;
+          filesizeTemplate.textContent = prettyFileSize(
+            attachment.sizeEstimateInBytes);
+
+          var attachmentNode = attTemplate.cloneNode(true);
+          attachmentsContainer.appendChild(attachmentNode);
+          attachmentNode.getElementsByClassName('msg-attachment-download')[0]
+            .addEventListener('click',
+                              this.onDownloadAttachmentClick.bind(
+                                this, attachmentNode, attachment));
+          attachmentNode.getElementsByClassName('msg-attachment-view')[0]
+            .addEventListener('click',
+                              this.onViewAttachmentClick.bind(
+                                this, attachmentNode, attachment));
+        }
+      }.bind(this));
     }
     else {
       attachmentsContainer.classList.add('collapsed');
