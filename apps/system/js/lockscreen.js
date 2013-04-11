@@ -843,6 +843,14 @@ var LockScreen = {
           updateConnstateLine2('emergencyCallsOnly-networkLocked');
           break;
 
+        case 'serviceProviderLocked':
+          updateConnstateLine2('emergencyCallsOnly-serviceProviderLocked');
+          break;
+
+        case 'corporateLocked':
+          updateConnstateLine2('emergencyCallsOnly-corporateLocked');
+          break;
+
         default:
           updateConnstateLine2();
           break;
