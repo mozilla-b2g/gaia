@@ -38,6 +38,23 @@ var AttentionScreen = {
     window.addEventListener('home', this.hide.bind(this));
     window.addEventListener('holdhome', this.hide.bind(this));
     window.addEventListener('appwillopen', this.hide.bind(this));
+
+    var telephony = window.navigator.mozTelephony;
+    telephony.addEventListener('callschanged', this.controlCall.bind(this));
+  },
+
+  controlCall: function as_controlCall() {
+    var telephony = window.navigator.mozTelephony;
+    var CALLS_LIMIT = 2;
+    if(telephony.calls.length <= 1 || telephony.calls.length > CALLS_LIMIT) {
+      return;
+    }
+    var self = this;
+    telephony.calls.forEach(function callIterator(call) {
+      if(call.state == 'incoming') {
+        self.show();
+      }
+    });
   },
 
   resize: function as_resize(evt) {
