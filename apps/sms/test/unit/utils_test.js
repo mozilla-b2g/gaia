@@ -15,19 +15,48 @@ suite('Utils', function() {
     navigator.mozL10n = nativeMozL10n;
   });
 
+  suite('Utils.escapeRegex', function() {
+
+    test('functional', function() {
+      assert.equal(
+        Utils.escapeRegex('\\^$*+?.[]{}-'),
+        '\\\\\\^\\$\\*\\+\\?\\.\\[\\]\\{\\}\\-'
+      );
+    });
+
+    test('+99', function() {
+      assert.equal(Utils.escapeRegex('+99'), '\\+99');
+    });
+
+    test('1-800-555-1212', function() {
+      assert.equal(Utils.escapeRegex('1-800-555-1212'), '1\\-800\\-555\\-1212');
+    });
+
+    test('First Last', function() {
+      assert.equal(Utils.escapeRegex('First Last'), 'First Last');
+    });
+
+    test('invalid', function() {
+      var expect = '';
+
+      assert.equal(Utils.escapeRegex(0), expect);
+      assert.equal(Utils.escapeRegex(false), expect);
+      assert.equal(Utils.escapeRegex(true), expect);
+      assert.equal(Utils.escapeRegex(null), expect);
+      assert.equal(Utils.escapeRegex({}), expect);
+      assert.equal(Utils.escapeRegex([]), expect);
+    });
+  });
+
+
   suite('Utils.escapeHTML', function() {
 
     test('valid', function() {
-      var fixture = '<div>"Hello!"&  \' </div>\r\n';
+      var fixture = '<div>"Hello!"&  \' </div>';
 
       assert.equal(
         Utils.escapeHTML(fixture),
-        '&lt;div&gt;"Hello!"&amp; &nbsp;\' &lt;/div&gt;<br/>'
-      );
-      // There are zero uses of this optional signature, testing anyway.
-      assert.equal(
-        Utils.escapeHTML(fixture, true),
-        '&lt;div&gt;&quot;Hello!&quot;&amp; &nbsp;&apos; &lt;/div&gt;<br/>'
+        '&lt;div&gt;&quot;Hello!&quot;&amp;  &apos; &lt;/div&gt;'
       );
     });
 
@@ -184,6 +213,163 @@ suite('Utils', function() {
         // Restore the name
         contact.name[0] = name;
       });
+    });
+  });
+});
+
+suite('Utils.Message', function() {
+  suite('format', function() {
+    test('escapes HTML; converts spaces and newlines', function() {
+      var fixture = [
+        '<p>"Hello!"&  \' </p>',
+        'world'
+      ].join('\r\n');
+
+      assert.equal(
+        Utils.Message.format(fixture),
+        '&lt;p&gt;&quot;Hello!&quot;&amp; &nbsp;&apos; &lt;/p&gt;<br>world'
+      );
+    });
+  });
+});
+
+suite('Utils.Template', function() {
+
+  suite('extracted template strings', function() {
+    test('extract(node)', function() {
+      var node = document.createElement('div');
+      var comment = document.createComment('<span>${str}</span>');
+
+      node.appendChild(document.createTextNode('  '));
+      node.appendChild(comment);
+
+      assert.equal(
+        Utils.Template(node).toString(), '<span>${str}</span>'
+      );
+
+      node.textContent = '';
+      assert.equal(
+        Utils.Template(node).toString(), ''
+      );
+    });
+    test('extract(null)', function() {
+      assert.equal(Utils.Template(null), '');
+    });
+    test('extract(non-element)', function() {
+      assert.equal(Utils.Template(document), '');
+      assert.equal(Utils.Template(window), '');
+      assert.equal(Utils.Template(document.createComment('')), '');
+    });
+  });
+
+  suite('interpolate', function() {
+    var node = document.createElement('div');
+    node.appendChild(document.createComment('<span>${str}</span>'));
+
+    test('interpolate(data)', function() {
+      var tmpl = Utils.Template(node);
+      var interpolated = tmpl.interpolate({
+        str: 'test'
+      });
+      assert.equal(typeof interpolated, 'string');
+      assert.equal(interpolated, '<span>test</span>');
+    });
+  });
+
+  suite('interpolate: escape', function() {
+    var node = document.createElement('div');
+    node.appendChild(document.createComment('${str}'));
+
+    test('escape: & => &amp;', function() {
+      var tmpl = Utils.Template(node);
+      var interpolated = tmpl.interpolate({
+        str: '&'
+      });
+      assert.equal(interpolated, '&amp;');
+    });
+
+    test('escape: < => &lt;', function() {
+      var tmpl = Utils.Template(node);
+      var interpolated = tmpl.interpolate({
+        str: '<'
+      });
+      assert.equal(interpolated, '&lt;');
+    });
+
+    test('escape: > => &gt;', function() {
+      var tmpl = Utils.Template(node);
+      var interpolated = tmpl.interpolate({
+        str: '>'
+      });
+      assert.equal(interpolated, '&gt;');
+    });
+  });
+
+  suite('interpolate: sanitize', function() {
+    test('HTML removal with escaping', function() {
+      var node, interpolated;
+
+      node = document.createElement('div');
+      node.appendChild(document.createComment('${str}'));
+
+      interpolated = Utils.Template(node).interpolate({
+        str: '<textarea><p>George & Lenny</p>'
+      });
+      assert.equal(
+        interpolated,
+        '&lt;textarea&gt;&lt;p&gt;George &amp; Lenny&lt;/p&gt;'
+      );
+
+      node = document.createElement('div');
+      node.appendChild(document.createComment('<p>${str}</p>'));
+
+      interpolated = Utils.Template(node).interpolate({
+        str: '<textarea><div>George & Lenny</div>'
+      });
+      assert.equal(
+        interpolated,
+        '<p>&lt;textarea&gt;&lt;div&gt;George &amp; Lenny&lt;/div&gt;</p>'
+      );
+    });
+
+    test('HTML removal (script)', function() {
+      var node = document.createElement('div');
+      node.appendChild(document.createComment('${str}'));
+
+      var interpolated = Utils.Template(node).interpolate({
+        str: '<script>alert("hi!")' + '</script>'
+      });
+      assert.equal(
+        interpolated,
+        '&lt;script&gt;alert(&quot;hi!&quot;)&lt;/script&gt;'
+      );
+    });
+
+    test('HTML removal (any)', function() {
+      var node = document.createElement('div');
+      node.appendChild(document.createComment('${str}'));
+
+      var interpolated = Utils.Template(node).interpolate({
+        str: '<textarea><div>hi!</div>'
+      });
+      assert.equal(
+        interpolated,
+        '&lt;textarea&gt;&lt;div&gt;hi!&lt;/div&gt;'
+      );
+    });
+
+    test('HTML safe list', function() {
+      var node = document.createElement('div');
+      node.appendChild(document.createComment('${foo}${bar}'));
+
+      var interpolated = Utils.Template(node).interpolate({
+        foo: '<script>alert("hi!")' + '</script>',
+        bar: '<p>this is ok</p>'
+      }, { safe: ['bar'] });
+      assert.equal(
+        interpolated,
+        '&lt;script&gt;alert(&quot;hi!&quot;)&lt;/script&gt;<p>this is ok</p>'
+      );
     });
   });
 });

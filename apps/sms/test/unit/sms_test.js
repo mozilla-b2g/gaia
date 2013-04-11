@@ -13,7 +13,6 @@ requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/contacts.js');
 requireApp('sms/js/fixed_header.js');
-requireApp('sms/js/search_utils.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/messages_mockup.js');
@@ -145,9 +144,19 @@ suite('SMS App Unit-Test', function() {
     var loadingScreen = document.createElement('article');
     loadingScreen.id = 'loading';
 
+    // Contact template
+    var contactTmpl = document.createElement('div');
+    contactTmpl.id = 'messages-contact-tmpl';
+
+    var highlightTmpl = document.createElement('div');
+    highlightTmpl.id = 'messages-highlight-tmpl';
+
+
     // At the end we add all elements to document
     window.document.body.appendChild(mainWrapper);
     window.document.body.appendChild(loadingScreen);
+    window.document.body.appendChild(contactTmpl);
+    window.document.body.appendChild(highlightTmpl);
   }
 
   // Previous setup
@@ -542,6 +551,76 @@ suite('SMS App Unit-Test', function() {
         '+12343454567', 'Fifth number is +12343454567');
       assert.equal(anchors[6].dataset.phonenumber,
         '+919810137553', 'Sixth number is +919810137553');
+    });
+  });
+
+  suite('Secure User Input', function() {
+    function mock(definition) {
+      return function mock() {
+        mock.called = true;
+        mock.args = [].slice.call(arguments);
+        definition.apply(this, mock.args);
+      };
+    }
+
+    test('+99', function(done) {
+      var getPhoneDetails = Utils.getPhoneDetails;
+      Utils.getPhoneDetails = mock(function(number, contact, handler) {
+        handler({});
+      });
+
+      ThreadUI.recipient.value = '+99';
+      assert.doesNotThrow(function() {
+        ThreadUI.renderContact({
+          name: 'Spider Monkey',
+          tel: [{ value: '...' }]
+        });
+      });
+      assert.ok(Utils.getPhoneDetails.called);
+      assert.equal(Utils.getPhoneDetails.args[0], '...');
+
+      done();
+      Utils.getPhoneDetails = getPhoneDetails;
+    });
+
+    test('*67 [800]-555-1212', function(done) {
+      var getPhoneDetails = Utils.getPhoneDetails;
+      Utils.getPhoneDetails = mock(function(number, contact, handler) {
+        handler({});
+      });
+
+      ThreadUI.recipient.value = '*67 [800]-555-1212';
+      assert.doesNotThrow(function() {
+        ThreadUI.renderContact({
+          name: 'Spider Monkey',
+          tel: [{ value: '...' }]
+        });
+      });
+      assert.ok(Utils.getPhoneDetails.called);
+      assert.equal(Utils.getPhoneDetails.args[0], '...');
+
+      done();
+      Utils.getPhoneDetails = getPhoneDetails;
+    });
+
+    test('\\^$*+?.', function(done) {
+      var getPhoneDetails = Utils.getPhoneDetails;
+      Utils.getPhoneDetails = mock(function(number, contact, handler) {
+        handler({});
+      });
+
+      ThreadUI.recipient.value = '\\^$*+?.';
+      assert.doesNotThrow(function() {
+        ThreadUI.renderContact({
+          name: 'Spider Monkey',
+          tel: [{ value: '...' }]
+        });
+      });
+      assert.ok(Utils.getPhoneDetails.called);
+      assert.equal(Utils.getPhoneDetails.args[0], '...');
+
+      done();
+      Utils.getPhoneDetails = getPhoneDetails;
     });
   });
 });
