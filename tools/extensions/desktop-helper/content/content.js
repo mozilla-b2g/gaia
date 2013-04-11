@@ -29,6 +29,7 @@ const kScriptsPerDomain = {
     'lib/idle.js',
     'lib/keyboard.js',
     'lib/mobile_connection.js',
+    'lib/notification.js',
     'lib/power.js',
     'lib/set_message_handler.js',
     'lib/wifi.js'

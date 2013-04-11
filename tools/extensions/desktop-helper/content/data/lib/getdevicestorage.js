@@ -62,7 +62,9 @@
                 });
                 return proxy;
             }
-            var decoded = new Blob([convertBase64ToBinary(blob)], { type: 'image/png' });
+            var decoded = new Blob([convertBase64ToBinary(blob)], {
+              type: 'image/png'
+            });
             decoded.name = name;
             decoded.lastModifiedDate = new Date();
 
@@ -110,7 +112,8 @@
                 this.results = {};
 
                 this.__defineGetter__('result', function() {
-                    console.log('DeviceStorage.enumerate.result', typeof self.results[self.ix]);
+                    console.log('DeviceStorage.enumerate.result',
+                      typeof self.results[self.ix]);
                     return self.results[self.ix];
                 });
 
@@ -128,14 +131,17 @@
                     }
 
                     // decode the base64 blob to a normal Blob thingy
-                    var decoded = new Blob([convertBase64ToBinary(blob)], { type: 'image/png' });
+                    var decoded = new Blob([convertBase64ToBinary(blob)], {
+                      type: 'image/png'
+                    });
                     decoded.name = 'file' + ix + '.png';
                     decoded.lastModifiedDate = new Date();
                     this.results[ix] = decoded;
 
+                    // if you need to simulate sd card speed, add timeout here
                     setTimeout(function() {
                         self.onsuccess();
-                    }); // if you need to simulate sd card speed, add a timeout here
+                    });
                 };
             })();
 

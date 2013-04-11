@@ -47,7 +47,11 @@
         scope.onsuccess({
           target: {
             result: {
-              installOrigin: 'http://' + app + '.gaiamobile.org:8080'
+              installOrigin: 'http://' + app + '.gaiamobile.org:8080',
+              manifest: {},
+              launch: function() {
+                // todo!
+              }
             }
           }
         });

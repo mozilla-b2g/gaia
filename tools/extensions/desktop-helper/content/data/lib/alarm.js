@@ -35,7 +35,8 @@
   var realMsgHandler = navigator.mozSetMessageHandler;
 
   // do the override
-  FFOS_RUNTIME.makeNavigatorShim('mozSetMessageHandler', function(type, callback) {
+  FFOS_RUNTIME.makeNavigatorShim('mozSetMessageHandler', function(type,
+                                                                  callback) {
     if (type === 'alarm') {
       messageHandler = callback;
     } else if (realMsgHandler) {
