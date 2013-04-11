@@ -3,14 +3,19 @@
 (function(exports) {
   'use strict';
   var rdashes = /-(.)/g;
-  var regexps = {
-    amp: /&/g,
-    lt: /</g,
-    gt: />/g,
+  var rmatcher = /\$\{([^{]+)\}/g;
+  var rescape = /[.?*+^$[\]\\(){}|-]/g;
+  var rentity = /[&<>"']/g;
+  var rentities = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    '\'': '&apos;'
+  };
+  var rformatting = {
     br: /(\r\n|\n|\r)/gm,
-    nbsp: /\s\s/g,
-    quot: /"/g,
-    apos: /'/g
+    nbsp: /\s\s/g
   };
 
   var Utils = {
@@ -64,27 +69,20 @@
         self.updateTimeHeaders();
       }, 50000, this);
     },
-    escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
+    escapeRegex: function ut_escapeRegex(str) {
       if (typeof str !== 'string') {
         return '';
       }
-      // Order is vitally important: ampersands must be converted first
-      // to avoid converting the ampersands that prefix an entity later.
-      var escaped = str.replace(regexps.amp, '&amp;')
-        .replace(regexps.lt, '&lt;')
-        .replace(regexps.gt, '&gt;')
-        .replace(regexps.br, '<br/>')
-        .replace(regexps.nbsp, ' &nbsp;');
-
-      if (escapeQuotes) {
-        return escaped
-          .replace(regexps.quot, '&quot;')
-          .replace(regexps.apos, '&apos;');
-      }
-
-      return escaped;
+      return str.replace(rescape, '\\$&');
     },
-
+    escapeHTML: function ut_escapeHTML(str) {
+      if (typeof str !== 'string') {
+        return '';
+      }
+      return str.replace(rentity, function(s) {
+        return rentities[s];
+      });
+    },
     getFormattedHour: function ut_getFormattedHour(time) {
       this.date.shared.setTime(+time);
       return this.date.format.localeFormat(
@@ -218,6 +216,115 @@
         return p1.toUpperCase();
       });
     }
+  };
+
+  Utils.Message = {
+    format: function(str) {
+      var escaped = Utils.escapeHTML(str);
+      return escaped.replace(rformatting.br, '<br>')
+            .replace(rformatting.nbsp, ' &nbsp;');
+    }
+  };
+
+  var dummy = document.createElement('div');
+  var priv = new WeakMap();
+
+  function extract(node) {
+    if (!node) {
+      return '';
+    }
+
+    // Received an ID string? Find the appropriate node to continue
+    if (typeof node === 'string') {
+      node = document.getElementById(node);
+    }
+
+    // No firstChild means no comment node.
+    if (!node.firstChild) {
+      return '';
+    }
+
+    // Starting with the container node's firstChild...
+    node = node.firstChild;
+
+    do {
+      // Check if it's the comment node that we're looking for...
+      if (node.nodeType === Node.COMMENT_NODE) {
+        return (node.nodeValue || '').trim();
+      }
+      // If the current child of the container node isn't
+      // a comment node, it's likely a text node, so hop to
+      // the nextSibling and repeat the operation.
+    } while ((node = node.nextSibling));
+    return '';
+  }
+
+
+  /**
+   * Utils.Template
+   *
+   * Initialize a template instance from a string or node
+   *
+   * @param {String} idOrNode id string of existing node.
+   *        {Object} idOrNode existing node.
+   *
+   */
+  Utils.Template = function(idOrNode) {
+    if (!(this instanceof Utils.Template)) {
+      return new Utils.Template(idOrNode);
+    }
+    // Storing the extracted template string as a private
+    // instance property prevents direct access to the
+    // template once it's been initialized.
+    priv.set(this, {
+      tmpl: extract(idOrNode)
+    });
+  };
+
+  /**
+   * template.toString()
+   *
+   * Safe, read-only access to the template string
+   *
+   */
+  Utils.Template.prototype.toString = function() {
+    // Return a copy of the stored template string.
+    return priv.get(this).tmpl.slice();
+  };
+
+  /**
+   * template.interpolate
+   *
+   * Interpolate template string with values provided by
+   * data object. Optionally allow properties to retain
+   * HTML that is known to be safe.
+   *
+   * @param {Object} data     properties correspond to substitution.
+   *                          - identifiers in template string.
+   * @param {Object} options  optional.
+   *                          - safe, a list of properties that contain
+   *                          HTML that is known and are
+   *                          "known" to ignore.
+   */
+  Utils.Template.prototype.interpolate = function(data, options) {
+    // This _should_ be rewritten to use Firefox's support for ES6
+    // default parameters:
+    // ... = function(data, options = { safe: [] }) {
+    //
+    options = options || {};
+    options.safe = options.safe || [];
+
+    return priv.get(this).tmpl.replace(rmatcher, function(match, property) {
+      property = property.trim();
+      // options.safe is an array of properties that can be ignored
+      // by the "suspicious" html strategy.
+      return options.safe.indexOf(property) === -1 ?
+        // Any field that is not explicitly listed as "safe" is
+        // to be treated as suspicious
+        Utils.escapeHTML(data[property]) :
+        // Otherwise, return the string of rendered markup
+        data[property];
+    });
   };
 
   exports.Utils = Utils;
