@@ -151,8 +151,6 @@ var Navigation = {
     }
   },
 
-
-
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
 
@@ -183,6 +181,9 @@ var Navigation = {
         // Enabling or disabling SIM import depending on card status
         SimManager.checkSIMButton();
 
+        // Enabling or disabling SD import depending on card status
+        SdManager.checkSDButton();
+
         // If we have 3G or Wifi activate FB import
         var fbState;
         if (!WifiManager.api) {
@@ -190,11 +191,8 @@ var Navigation = {
           ImportIntegration.checkImport('enabled');
           return;
         }
-        if (window.navigator.onLine) {
-          fbState = 'enabled';
-        } else {
-          fbState = 'disabled';
-        }
+
+        fbState = window.navigator.onLine ? 'enabled' : 'disabled';
         ImportIntegration.checkImport(fbState);
         break;
       case '#welcome_browser':

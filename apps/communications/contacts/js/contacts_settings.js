@@ -135,21 +135,6 @@ contacts.Settings = (function() {
   };
 
   /**
-   * Check whether there is a SD card inserted in the device.
-   * @return {Boolean}
-   */
-  var checkStorageCard = function checkStorageCard() {
-    var storage = navigator.getDeviceStorage('sdcard');
-    if (!storage) {
-      enableStorageImport(false);
-      return false;
-    }
-
-    enableStorageImport(true);
-    return true;
-  };
-
-  /**
    * Disables/Enables the actions over the sdcard import functionality
    * @param {Boolean} cardState Whether storage import should be enabled or not.
    */
@@ -434,55 +419,6 @@ contacts.Settings = (function() {
     importer.start();
   };
 
-  /**
-   * Retrieves the content of the files that adjust to the kind specified in the
-   * parameters from the SD card inserted in the device. The files have to
-   * contain text, and the contents will be given in a single string, separated
-   * by newlines.
-   *
-   * @param {String[]} mimes Possible mime types of the files to be found.
-   * @param {String[]} exts Possible file extensions of the files to be found.
-   * @return {Future}
-   */
-  var retrieveFilesFromSd = function(mimes, exts) {
-    var storage = navigator.getDeviceStorage('sdcard');
-    var contents = '';
-
-    return new Future(function(resolver) {
-      var cursor = storage.enumerate();
-      cursor.onsuccess = function(e) {
-        var file = e.target.result;
-        if (!file) {
-          resolver.resolve(contents);
-        } else {
-          if ((mimes.indexOf(file.type) === -1) &&
-            file.name.search(new RegExp('.(' + exts.join('|') + ')$')) === -1) {
-            cursor.continue();
-          } else {
-            var reader = new FileReader();
-            reader.onload = function onloaded() {
-              contents += reader.result + '\n';
-              cursor.continue();
-            };
-
-            try {
-              reader.readAsText(file);
-            }
-            catch (ex) {
-              window.console.error('Problem reading file: ',
-                file.name, '\n', ex.stack);
-              cursor.continue();
-            }
-          }
-        }
-      };
-
-      cursor.onerror = function() {
-        resolver.reject(this.error.name);
-      };
-    });
-  };
-
   var onSdImport = function() {
     var progress = Contacts.showOverlay(_('sdContacts-reading'), 'activityBar');
     var wakeLock = navigator.requestWakeLock('cpu');
@@ -491,21 +427,29 @@ contacts.Settings = (function() {
     // Delay for showing feedback to the user after importing
     var DELAY_FEEDBACK = 200;
 
-    var sdContents = retrieveFilesFromSd([
+    utils.sdcard.retrieveFiles([
       'text/vcard',
       'text/x-vcard',
       'text/directory;profile=vCard',
       'text/directory'
-    ], ['vcf', 'vcard']);
+    ], ['vcf', 'vcard'], function(err, fileArray) {
+      if (err)
+        return import_error(err);
 
-    sdContents.then(function(text) {
+      utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
+    });
+
+    function onFiles(err, text) {
+      if (err)
+        return import_error(err);
+
       var importer = new VCFReader(text);
 
       importer.onread = import_read;
       importer.onimported = imported_contact;
       importer.onerror = import_error;
 
-      importer.process().then(function import_finish() {
+      importer.process(function import_finish() {
         window.setTimeout(function onfinish_import() {
           resetWait(wakeLock);
           Contacts.navigation.home();
@@ -514,7 +458,7 @@ contacts.Settings = (function() {
           }));
         }, DELAY_FEEDBACK);
       });
-    }, import_error).done();
+    }
 
     function import_read(n) {
       progress.setClass('progressBar');
@@ -590,7 +534,7 @@ contacts.Settings = (function() {
     getData();
     checkOnline();
     checkSIMCard();
-    checkStorageCard();
+    enableStorageImport(utils.sdcard.checkStorageCard());
   };
 
   return {
@@ -598,8 +542,6 @@ contacts.Settings = (function() {
     'close': close,
     'refresh': refresh,
     'onLineChanged': checkOnline,
-    'cardStateChanged': checkSIMCard,
-
-    'checkStorageCard': checkStorageCard
+    'cardStateChanged': checkSIMCard
   };
 })();
