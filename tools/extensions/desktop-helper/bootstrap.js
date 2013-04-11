@@ -53,16 +53,25 @@ function startup(data, reason) {
       .getService(Ci.nsIMessageBroadcaster)
       .loadFrameScript("chrome://desktop-helper.js/content/content.js", true);
 
-    // Start the responsive UI
     Services.obs.addObserver(function() {
       let browserWindow = Services.wm.getMostRecentWindow('navigator:browser');
+
+      // Automatically toggle responsive design mode
       let args = {'width': 320, 'height': 480};
       let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
       mgr.handleGcliCommand(browserWindow,
                             browserWindow.gBrowser.selectedTab,
                             'resize to',
                             args);
-    }, 'sessionstore-windows-restored', false)
+
+      // And open ff os devtool panel while maximizing its size according to
+      // screen size
+      Services.prefs.setIntPref("devtools.toolbox.sidebar.width",
+                                browserWindow.screen.width - 550);
+      browserWindow.resizeTo(browserWindow.screen.width, browserWindow.outerHeight);
+      gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser,
+                                         "firefox-os-controls");
+    }, 'sessionstore-windows-restored', false);
 
     // Register a new devtool panel with various OS controls
     gDevTools.registerTool({

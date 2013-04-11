@@ -1,12 +1,13 @@
 !function() {
 
 function sendChromeEvent(detail) {
-    detail.__exposedProps__ = {};
+    var contentDetail = Components.utils.createObjectIn(tab);
     for (var i in detail) {
-        detail.__exposedProps__[i] = 'r';
+        contentDetail[i] = detail[i];
     }
+    Components.utils.makeObjectPropsNormal(contentDetail);
     var customEvt = tab.document.createEvent('CustomEvent');
-    customEvt.initCustomEvent('mozChromeEvent', true, true, detail);
+    customEvt.initCustomEvent('mozChromeEvent', true, true, contentDetail);
     tab.dispatchEvent(customEvt);
 }
 

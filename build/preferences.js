@@ -42,7 +42,14 @@ if (DEBUG) {
   prefs.push(["nglayout.debug.disable_xul_fastload", true]);
   prefs.push(["extensions.autoDisableScopes", 0]);
   prefs.push(["browser.startup.homepage", homescreen]);
+  prefs.push(["startup.homepage_welcome_url", ""]);
   prefs.push(["browser.shell.checkDefaultBrowser", false]);
+  prefs.push(["devtools.toolbox.host", "side"]);
+  prefs.push(["devtools.toolbox.sidebar.width", 800]);
+  prefs.push(["browser.sessionstore.max_tabs_undo", 0]);
+  prefs.push(["browser.sessionstore.max_windows_undo", 0]);
+  prefs.push(["browser.sessionstore.restore_on_demand", false]);
+  prefs.push(["browser.sessionstore.resume_from_crash", false]);
 
   prefs.push(["dom.mozBrowserFramesEnabled", true]);
   prefs.push(["b2g.ignoreXFrameOptions", true]);
