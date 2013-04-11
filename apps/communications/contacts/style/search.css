@@ -28,7 +28,8 @@ form.search p {
 
 form.search label {
   display: block;
-  padding: 0.5rem 3.3rem 0.5rem 2.5rem;
+  padding: 0.5rem 3.5rem 0.5rem 3rem;
+  background: none;
 }
 
 form.search input {
