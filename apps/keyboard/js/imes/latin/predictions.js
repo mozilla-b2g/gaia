@@ -29,6 +29,29 @@
 //
 'use strict';
 
+const DEBUG = false;
+
+function debug(s) {
+  dump("-pt- " + s + "\n");
+}
+
+function debugSuggestion(prefix, freq) {
+  dump("-pt- suggesting: " + prefix + " (" + freq + ")\n");
+}
+
+function debugCandidates(s, candArr) {
+  dump("-pt- " + candArr.length + " " + s + " candidates:\n      ");
+  var cand, nextChar;
+  for (var i = 0; i < candArr.length; i++) {
+    cand = candArr[i];
+    nextChar = cand.node.active ? String.fromCharCode(cand.node.ch) : '';
+    dump(cand.prefix + "[" + nextChar + "](" + cand.freq + "), ");
+    if ((i + 1) % 3 == 0)
+      dump("\n      ");
+  }
+  dump("\n\n");
+}
+
 var Predictions = function() {
   var _dict;
   var _nearbyKeys; // nearby keys for any given key
@@ -277,6 +300,10 @@ var Predictions = function() {
       }
       // Record the suggestion and move to the next best candidate
       if (!(prefix in _suggestions_index)) {
+        if (DEBUG) {
+          debugSuggestion(prefix, cand.freq);
+          debugCandidates("next best candidates", _candidates);
+        }
         _suggestions.push(prefix);
         _suggestions_index[prefix] = true;
       }
@@ -290,8 +317,24 @@ var Predictions = function() {
     _suggestions = [];
     _candidates = [];
     _suggestions_index = Object.create(null);
+
+    if (DEBUG) {
+      debug("------------------------");
+      debug("user input: " + prefix);
+    }
+
     findFuzzy(1, '', prefix);
+
+    if (DEBUG) {
+      debugCandidates("initial", _candidates);
+    }
+
     predictSuffixes();
+
+    if (DEBUG) {
+      debugCandidates("unused", _candidates);
+    }
+
     return _suggestions;
   }
 
