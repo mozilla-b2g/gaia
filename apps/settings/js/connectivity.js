@@ -73,6 +73,8 @@ var Connectivity = (function(window, document, undefined) {
       'pinRequired' : _('simCardLockedMsg'),
       'pukRequired' : _('simCardLockedMsg'),
       'networkLocked' : _('simLockedPhone'),
+      'serviceProviderLocked' : _('simLockedPhone'),
+      'corporateLocked' : _('simLockedPhone'),
       'unknown' : _('unknownSimCardState'),
       'absent' : _('noSimCard'),
       'null' : _('simCardNotReady')
