@@ -70,9 +70,9 @@ function iconDescriptor(directory, app_name, entry_point) {
   let manifestFile = dir.clone();
   manifestFile.append("manifest.webapp");
   let manifest;
-  try {
+  if (manifestFile.exists()) {
     manifest = getJSON(manifestFile);
-  } catch (e) {
+  } else {
     manifestFile = dir.clone();
     manifestFile.append("update.webapp");
     dump('Looking for packaged app: ' + manifestFile.path + '\n');
@@ -118,7 +118,7 @@ let customize = {"homescreens": [
     ["apps", "gallery"],
     ["apps", "fm"],
     ["apps", "settings"],
-    ["external-apps", "marketplace"]
+    [GAIA_EXTERNAL_APP_SRCDIR, "marketplace.firefox.com"]
   ], [
     ["apps", "calendar"],
     ["apps", "clock"],
