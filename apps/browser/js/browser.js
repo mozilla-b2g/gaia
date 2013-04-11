@@ -106,7 +106,7 @@ var Browser = {
       return;
 
     console.log('----------loadink!');
-    var filesToLoad = [
+    var elementsToLoad = [
       // DOM Nodes with commented content to load
       this.awesomescreen,
       this.crashscreen,
@@ -118,8 +118,10 @@ var Browser = {
       document.getElementById('modal-dialog-prompt'),
       document.getElementById('modal-dialog-confirm'),
       document.getElementById('modal-dialog-custom-prompt'),
-      document.getElementById('http-authentication-dialog'),
+      document.getElementById('http-authentication-dialog')
+    ];
 
+    var filesToLoad = [
       // css files
       'shared/style/headers.css',
       'shared/style/buttons.css',
@@ -155,6 +157,13 @@ var Browser = {
 
     var loadBrowserFiles = function() {
       LazyLoader.load(jsFiles, function() {
+        var mozL10n = navigator.mozL10n;
+        mozL10n.ready(function browser_localizeElements() {
+          elementsToLoad.forEach(function l10nElement(element) {
+            mozL10n.translate(element);
+          });
+        });
+
         domElements.forEach(function createElementRef(name) {
           this[this.toCamelCase(name)] = document.getElementById(name);
         }, this);
@@ -167,7 +176,8 @@ var Browser = {
       }.bind(this));
     }
 
-    LazyLoader.load(filesToLoad, loadBrowserFiles.bind(this));
+    LazyLoader.load(elementsToLoad.concat(filesToLoad),
+      loadBrowserFiles.bind(this));
   },
 
   initRemainingListeners: function browser_initRemainingListeners() {
