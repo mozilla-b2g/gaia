@@ -10325,7 +10325,7 @@ exports.postJobCleanup = function(passed) {
       deltaMap = this._stateDelta.moveMap;
       fullMap = this._state.moveMap;
       for (var oldSuid in deltaMap) {
-        var newSuid = deltaMap[suid];
+        var newSuid = deltaMap[oldSuid];
         fullMap[oldSuid] = newSuid;
       }
     }

@@ -31,7 +31,6 @@ const kScriptsPerDomain = {
     'lib/mobile_connection.js',
     'lib/power.js',
     'lib/set_message_handler.js',
-    'lib/settings.js',
     'lib/wifi.js'
   ],
 
@@ -85,9 +84,7 @@ var LoadListener = {
     currentWindow.alreadyMocked = true;
 
     try {
-      let currentDomain = currentWindow.location.toString();
-      if (currentDomain == 'about:blank')
-        return;
+      let currentDomain = currentWindow.document.domain;
 
       debug('loading scripts for app: ' + currentDomain);
       for (let domain in kScriptsPerDomain) {
