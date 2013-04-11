@@ -793,6 +793,9 @@ var Contacts = (function() {
       if (!handling || ActivityHandler.activityName === 'pick') {
         initContactsList();
         checkUrl();
+      } else {
+        // Unregister here to avoid un-necessary list operations.
+        navigator.mozContacts.oncontactchange = null;
       }
       window.dispatchEvent(new CustomEvent('asyncScriptsLoaded'));
     });
