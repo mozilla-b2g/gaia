@@ -174,8 +174,6 @@ const IMERender = (function() {
   }
 
   var hideIME = function km_hideIME() {
-    this.ime.classList.add('hide');
-    this.ime.classList.remove('candidate-panel');
     this.ime.dataset.hidden = 'true';
   };
 

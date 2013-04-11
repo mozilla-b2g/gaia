@@ -160,6 +160,8 @@ var touchedKeys = {};
 var touchCount = 0;
 var currentInputType = null;
 var menuLockedArea = null;
+var candidatePanelEnabled = false;
+const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
 const ACCENT_CHAR_MENU_TIMEOUT = 700;
@@ -421,9 +423,6 @@ function setKeyboardName(name) {
   if (!inputMethod)
     inputMethod = defaultInputMethod;
 
-  // Tell the renderer what input method we're using. This will set a CSS
-  // classname that can be used to style the keyboards differently
-  IMERender.setInputMethodName(keyboard.imEngine || 'default');
 }
 
 // Support function for render
@@ -690,21 +689,43 @@ function renderKeyboard(keyboardName) {
   // update settings with keyboard layout, e.me uses this to improve searches
   updateSettings('current', keyboardName);
 
-  // And draw the layout
-  IMERender.draw(currentLayout, {
-    uppercase: isUpperCase,
-    inputType: currentInputType,
-    showCandidatePanel: Keyboards[keyboardName].needsCandidatePanel
-  });
 
-  IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+  function drawKeyboard() {
+    // Tell the renderer what input method we're using. This will set a CSS
+    // classname that can be used to style the keyboards differently
+    var keyboard = Keyboards[keyboardName];
+    IMERender.setInputMethodName(keyboard.imEngine || 'default');
 
-  // If needed, empty the candidate panel
-  if (inputMethod.empty)
-    inputMethod.empty();
+    // And draw the layout
+    IMERender.draw(currentLayout, {
+      uppercase: isUpperCase,
+      inputType: currentInputType,
+      showCandidatePanel: Keyboards[keyboardName].needsCandidatePanel
+    });
 
-  // Tell the input method about the new keyboard layout
-  updateLayoutParams();
+    IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+
+    // If needed, empty the candidate panel
+    if (inputMethod.empty)
+      inputMethod.empty();
+
+    // Tell the input method about the new keyboard layout
+    updateLayoutParams();
+  }
+
+  // XXX: if we are going to hide the candidatePanel, notify keyboard manager
+  // first to update the app window size
+  if (!Keyboards[keyboardName].needsCandidatePanel && candidatePanelEnabled) {
+    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    document.location.hash = 'show=' +
+      (IMERender.ime.scrollHeight - candidatePanel.scrollHeight);
+
+    window.setTimeout(drawKeyboard, CANDIDATE_PANEL_SWITCH_TIMEOUT);
+  } else {
+    drawKeyboard();
+  }
+
+  candidatePanelEnabled = Keyboards[keyboardName].needsCandidatePanel;
 }
 
 function setUpperCase(upperCase, upperCaseLocked) {
@@ -771,10 +792,6 @@ function updateTargetWindowHeight(hide) {
   } else {
     document.location.hash = 'show=' + IMERender.ime.scrollHeight;
   }
-}
-
-function notifyShowKeyboard(show) {
-  updateTargetWindowHeight(!show);
 }
 
 // Sends a delete code to remove last character
@@ -1386,6 +1403,10 @@ function showKeyboard(state) {
   IMERender.showIME();
 
   currentInputType = mapInputType(state.type);
+
+  // reset the flag for candidate show/hide workaround
+  candidatePanelEnabled = false;
+
   resetKeyboard();
 
   if (inputMethod.activate) {
