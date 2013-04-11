@@ -63,15 +63,14 @@ form p textarea + button[type="reset"] {
   position: absolute;
   top: 50%;
   right: 0;
-  width: 3.5rem;
+  width: 3rem;
   height: 4rem;
-  margin: -2rem 0 0;
   padding: 0;
   border: none;
   font-size: 0;
   opacity: 0;
   pointer-events: none;
-  background: url(input_areas/images/icons/clear.png) no-repeat 50% 50% / 1.7rem auto;
+  background: transparent url(input_areas/images/icons/clear.png) no-repeat 50% 50% / 1.7rem auto;
 }
 
 /* To avoid colission with BB butons */
@@ -91,10 +90,6 @@ textarea {
 }
 
 form p input:focus {
-  padding-right: 3.5rem;
-}
-
-form p textarea:focus {
   padding-right: 3rem;
 }
 
@@ -177,7 +172,7 @@ fieldset section p:last-child {
 form[role="search"] {
   position: relative;
   height: 3.7rem;
-  background: #e8e8e8 url(input_areas/images/ui/background.png) repeat-x left bottom / 100%;
+  background: #fff;
 }
 
 section[role="region"] > header:first-child + form[role="search"] {
@@ -217,22 +212,54 @@ form[role="search"] p {
 }
 
 form[role="search"].full p {
-  padding: 0.3rem 2.5rem;
+  padding: 0.3rem 1rem;
 }
 
-form[role="search"] p input {
+form[role="search"] p input,
+form[role="search"] p textarea {
   height: 3rem;
-  border: 0.1rem solid #ababab;
-  background: #fff url(input_areas/images/ui/shadow-search.png) repeat-x left top;
+  border: none;
+  background: #fff;
   font-size: 1.8rem;
+  padding: 0;
+}
+
+form[role="search"] p input:focus {
+  padding: 0 2rem 0 0;
+}
+
+form[role="search"] p input:invalid, 
+form[role="search"] p textarea:invalid {
+  border: none;
+}
+
+form[role="search"] button.icon {
+  float: left;
+  height: 3.7rem;
+  width: 3rem;
+  border: none;
+  font-size: 0;
+  background: url(input_areas/images/ui/separator.png) no-repeat 100% 50%,
+              url(input_areas/images/ui/background.png) repeat-x 0 100%;
+  background-size: auto 100%;
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  margin: 0;
+  position: relative;
+}
+form[role="search"] button.icon:before {
+  content: "";
+  position: absolute;
+  width: 3rem;
+  height: 3.7rem;
+  background: transparent center no-repeat;
+  top: 0;
+  left: 0;
 }
 
 form[role="search"] p button[type="reset"] {
-  right: 1rem;
-}
-
-form[role="search"].full p button[type="reset"] {
-  right: 2.3rem;
+  right: 0;
 }
 
 form[role="search"] button[type="submit"] {
@@ -254,7 +281,6 @@ form[role="search"] button[type="submit"] {
 
 form[role="search"] button[type="submit"] + p > textarea {
   height: 3rem;
-  padding: 0.4rem 0.2rem 0.2rem 0.6rem;
   line-height: 2rem;
   font-size: 1.8rem;
 }
@@ -267,6 +293,7 @@ form[role="search"].full button[type="submit"] {
   display: none;
 }
 
+form[role="search"] button.icon:active,
 form[role="search"] button[type="submit"]:active {
   background: #008caa;
   text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,.3);
@@ -274,7 +301,8 @@ form[role="search"] button[type="submit"]:active {
 
 form[role="search"] button[type="submit"][disabled] {
   color: #adadad;
-  background: url(input_areas/images/ui/separator.png) no-repeat 0 50%;
+  background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
+              url(input_areas/images/ui/background.png) repeat-x 0 100%;
 }
 
 form p button[type="reset"]:focus,
@@ -289,12 +317,7 @@ form p button[type="reset"]::-moz-focus-inner {
 
 html[dir="rtl"] form p input:valid,
 html[dir="rtl"] form p input:valid:focus {
-  padding: 0 1.2rem 0 3.5rem;
-}
-
-html[dir="rtl"] form p textarea:valid,
-html[dir="rtl"] form p textarea:valid:focus {
-  padding: 0.8rem 1.2rem 0.8rem 3.5rem;
+  padding: 0 1.2rem 0 3rem;
 }
 
 html[dir="rtl"] form p input + button[type="reset"],
@@ -311,10 +334,14 @@ html[dir="rtl"] fieldset legend {
   padding: 0 1.5rem 0 0.5rem;
 }
 
-html[dir="rtl"] form[role="search"] button[type="submit"] + p > textarea {
-  padding: 0.5rem 1.2rem 0.5rem 3rem;
+html[dir="rtl"] form[role="search"] p input {
+  padding: 0;
+}
+
+html[dir="rtl"] form[role="search"] p input:focus {
+  padding: 0 0 0 2rem;
 }
 
 html[dir="rtl"] form[role="search"] button[type="submit"] + p > button {
-  left: 1rem;
+  left: 0;
 }
