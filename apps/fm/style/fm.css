@@ -45,8 +45,14 @@ a:active {
   height: 10rem;
   width: 100%;
   text-align: center;
-  background: -moz-linear-gradient(center top , #33373C, #43464B) repeat scroll 0 0 transparent;
-  overflow: hidden;
+	background-color:	#43464B;
+	background-image: -moz-linear-gradient(#33373C, rgba(0, 0, 0, 0));
+	overflow: hidden;
+	-moz-transition: background-color 680ms ease;
+}
+
+#frequency-bar.dim{
+	background-color: #232323;
 }
 
 #frequency-bar > div {
@@ -64,6 +70,15 @@ a:active {
   display: inline-block;
   margin-top: 3rem;
   box-shadow: 0 -1px 1px #111;
+}
+
+#frequency-display{
+	position:relative;
+	-moz-transition: opacity 680ms ease;
+}
+
+.dim #frequency-display{
+	opacity: 0.1;
 }
 
 #bookmark-button {
@@ -291,9 +306,9 @@ div#fav-list-container div.fav-list-frequency::after {
 #action-bar a {
   display: inline-block;
   border: none;
+  font-size: 2.5rem;
   width: 7rem;
   height: 7rem;
-  font-size: 2.5rem;
   border-radius: 50%;
   text-align: center;
   box-shadow: 0 1px 1px #A8A8A8 inset, 0 2px 0 #1e2226;
@@ -305,7 +320,7 @@ div#fav-list-container div.fav-list-frequency::after {
   box-shadow: 0 1px 1px #3F6978 inset, 0 2px 0 #1e2226;
 }
 
-#power-switch {
+#power-switch{
   background-image: url(images/play.png), url(images/reflection-72.png);
   background-repeat: no-repeat, no-repeat;
   background-color: transparent;
@@ -322,6 +337,34 @@ div#fav-list-container div.fav-list-frequency::after {
 
 #power-switch[data-enabled="true"]:active {
   background-image: url(images/stop.png);
+}
+
+#power-switch.loading{
+  background-image: url();
+}
+
+#power-switch span{
+	display:none;
+	height: 29px;
+  left: calc(50% - 15px);
+	position:absolute;
+  top: calc(50% - 15px);
+	width:29px;
+}
+
+#power-switch.loading span {
+  background-image: url(images/spinner.png);
+	display:block;
+	animation: 0.9s spinner-animation infinite steps(30);
+}
+
+@keyframes spinner-animation {
+  from {
+    transform: rotate(1deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 a#frequency-op-seekdown {

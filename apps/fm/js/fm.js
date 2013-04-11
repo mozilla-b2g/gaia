@@ -141,11 +141,33 @@ function updateFreqUI() {
 
 function updatePowerUI() {
   console.log('Power status: ' + (mozFMRadio.enabled ? 'on' : 'off'));
-  $('power-switch').setAttribute('data-enabled', mozFMRadio.enabled);
+	var powerSwitch = $('power-switch')
+  powerSwitch.setAttribute('data-enabled', mozFMRadio.enabled);
+	if(enabling){
+		powerSwitch.classList.add('loading');
+	}else{
+		powerSwitch.classList.remove('loading');
+	}
 }
 
 function updateAntennaUI() {
   $('antenna-warning').hidden = mozFMRadio.antennaAvailable;
+}
+
+var enabling = false;
+function updateFrequencyBarUI(){
+	var frequencyBar =$('frequency-bar')
+	if(enabling){
+		frequencyBar.classList.add('dim');
+	}else{
+		frequencyBar.classList.remove('dim');
+	}
+}
+
+function updateEnableUI(enablingState){
+	enabling = enablingState
+	updatePowerUI();
+	updateFrequencyBarUI();
 }
 
 /**
@@ -502,6 +524,7 @@ var favoritesList = {
         } else {
           // If fm is disabled, turn the radio on.
           mozFMRadio.enable(frequency);
+					updateEnableUI(true);
         }
       }
     });
@@ -680,6 +703,7 @@ function init() {
       mozFMRadio.disable();
     } else {
       mozFMRadio.enable(frequencyDialer.getFrequency());
+			updateEnableUI(true);
     }
   }, false);
 
@@ -694,8 +718,8 @@ function init() {
   }, false);
 
   mozFMRadio.onfrequencychange = updateFreqUI;
-  mozFMRadio.onenabled = updatePowerUI;
-  mozFMRadio.ondisabled = updatePowerUI;
+  mozFMRadio.onenabled = function(){updateEnableUI(false)};
+  mozFMRadio.ondisabled = function(){updateEnableUI(false)};
 
   mozFMRadio.onantennaavailablechange = function onAntennaChange() {
     updateAntennaUI();
@@ -704,6 +728,7 @@ function init() {
       // radio on again.
       if (!!window._previousFMRadioState) {
         mozFMRadio.enable(frequencyDialer.getFrequency());
+				updateEnableUI(true);
       }
     } else {
       // Remember the current state of the FM radio
@@ -719,6 +744,7 @@ function init() {
       else
         mozFMRadio.enable(mozFMRadio.frequencyLowerBound);
       favoritesList.init(updateFreqUI);
+			updateEnableUI(!mozFMRadio.enabled);
     } else {
       // Mark the previous state as True,
       // so the FM radio be enabled automatically
