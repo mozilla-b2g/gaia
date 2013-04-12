@@ -287,7 +287,7 @@
         idx += 1;
         request.continue = continueCursor;
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(null);
+          request.onsuccess.call(request);
         }
       }
 
@@ -356,10 +356,11 @@
         }
       } else {
         request.result = msgs[idx];
+        request.done = !request.result;
         idx += 1;
         request.continue = continueCursor;
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(null);
+          request.onsuccess.call(request);
         }
       }
 
@@ -409,11 +410,43 @@
       }
 
       if (typeof request.onsuccess === 'function') {
-        request.onsuccess.call(null);
+        request.onsuccess.call(request);
       }
     }, simulation.delay());
 
     return request;
+  };
+
+  MockNavigatormozSms.addMessageToDb = function(number, body) {
+    var thread = messagesDb.threads.filter(function(t) {
+      return t.participants[0] === number;
+    })[0];
+    if (thread) {
+      thread.unreadCount++;
+      thread.body = body;
+      thread.timestamp = new Date();
+    }
+    else {
+      thread = {
+        id: messagesDb.id++,
+        participants: [number],
+        body: body,
+        timestamp: new Date(),
+        unreadCount: 1
+      };
+      messagesDb.threads.push(thread);
+    }
+
+    var message = {
+      sender: number,
+      receiver: null,
+      delivery: 'received',
+      body: body,
+      id: messagesDb.id++,
+      timestamp: new Date(),
+      threadId: thread.id
+    };
+    messagesDb.messages.push(message);
   };
 
 }(this));

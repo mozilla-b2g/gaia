@@ -144,6 +144,12 @@ if (!window.location.hash.length) {
             sender = message.sender;
           }
 
+          if (MessageManager._mozSms === window.MockNavigatormozSms) {
+            MessageManager._mozSms.addMessageToDb(
+              message.sender, message.body);
+            MessageManager.getThreads(ThreadListUI.renderThreads);
+          }
+
           NotificationHelper.send(sender, message.body, iconURL, goToMessage);
         });
       };

@@ -49,23 +49,19 @@ FFOS_RUNTIME = {
    * @param {Object} The e.detail object passed to the event.
    */
   sendFrameEvent: function(data) {
-
     var eventDetail = {
       detail: data
     };
 
-    var targetFrame;
     if (/system.gaiamobile.org/.test(location.href)) {
-      targetFrame = window;
       var evtObject = new CustomEvent('mozChromeEvent', eventDetail);
+      evtObject.source = window;
       window.dispatchEvent(evtObject);
 
       return;
     }
 
-    targetFrame = parent;
-
-    targetFrame.postMessage({
+    parent.postMessage({
       action: 'dispatchMessage',
       payload: eventDetail
     }, 'http://system.gaiamobile.org:8080');
@@ -87,6 +83,7 @@ var debug = FFOS_RUNTIME.debug;
     if (e.data.action == 'dispatchMessage') {
       FFOS_RUNTIME.getAppWindow(function(win) {
         var evtObject = new CustomEvent('mozChromeEvent', e.data.payload);
+        evtObject.source = e.source;
         win.dispatchEvent(evtObject);
       });
     }

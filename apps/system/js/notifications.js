@@ -99,7 +99,10 @@ var NotificationScreen = {
         this.addNotification(detail);
         break;
       case 'tap':
-        var target = evt.target;
+        var target = evt.target.dataset.notificationID
+          ? evt.target
+          : evt.currentTarget;
+
         this.tap(target);
         break;
       case 'mousedown':

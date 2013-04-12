@@ -59,6 +59,20 @@ Emulation.prototype = {
     };
 
     n.show();
+  },
+  receiveSMS: function() {
+    try {
+      // execute this on the context of the window because that has CORS
+      // acceptance to send stuff to the consuming party
+      tab.wrappedJSObject.eval("navigator.mozTriggerMessageHandler('sms-received', {\
+          sender: '52656642666',\
+          body: 'Hola supermercado!'\
+        });");
+    }
+    catch(ex) {
+      document.querySelector('#log').textContent =
+        'receive sms ' + ex;
+    }
   }
 };
 window.emulation = new Emulation();
