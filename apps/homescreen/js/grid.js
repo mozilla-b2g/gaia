@@ -616,13 +616,13 @@ var GridManager = (function() {
    */
 
   // Map 'bookmarkURL' -> Icon object.
-  var bookmarkIcons = Object.create(null);
+  var bookmarkIcons;
   // Map 'manifestURL' + 'entry_point' to Icon object.
-  var appIcons = Object.create(null);
+  var appIcons;
   // Map 'origin' -> app object.
-  var appsByOrigin = Object.create(null);
+  var appsByOrigin;
   // Map 'origin' for bookmarks -> bookmark object.
-  var bookmarksByOrigin = Object.create(null);
+  var bookmarksByOrigin;
 
   function rememberIcon(icon) {
     var descriptor = icon.descriptor;
@@ -858,6 +858,7 @@ var GridManager = (function() {
     var existingIcon = getIcon(descriptor);
     if (existingIcon) {
       existingIcon.update(descriptor, app);
+      markDirtyState();
       return;
     }
 
@@ -966,7 +967,6 @@ var GridManager = (function() {
     return app.origin + url;
   }
 
-
   return {
     /*
      * Initializes the grid manager
@@ -978,6 +978,11 @@ var GridManager = (function() {
     init: function gm_init(gridSelector, dockSelector, pTapThreshold, callback)
     {
       pages = [];
+      bookmarkIcons = Object.create(null);
+      appIcons = Object.create(null);
+      appsByOrigin = Object.create(null);
+      bookmarksByOrigin = Object.create(null);
+
       initUI(gridSelector);
 
       tapThreshold = pTapThreshold;
