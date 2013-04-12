@@ -138,8 +138,8 @@
   ],
   "redirects": [
     {"from": "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/flow.html",
-    "to": "/contacts/oauth2/flow.html"},
+    "to": "/redirect.html"},
     {"from": "https://serene-cove-3587.herokuapp.com/liveowd/oauth2_new/flow_live.html",
-    "to": "/contacts/oauth2/flow.html"}
+    "to": "/redirect.html"}
   ]
 }
