@@ -339,8 +339,6 @@ var Browser = {
   },
 
   handleCloseTab: function browser_handleCloseTab() {
-    if (Object.keys(this.tabs).length == 1)
-      return;
     this.hideCrashScreen();
     this.deleteTab(this.currentTab.id);
     this.setTabVisibility(this.currentTab, true);
@@ -359,7 +357,6 @@ var Browser = {
     if (this.previousScreen === this.PAGE_SCREEN) {
       this.showPageScreen();
     } else {
-      this.deleteTab(this.currentTab.id);
       this.showTabScreen();
     }
     this.updateSecurityIcon();
@@ -1481,7 +1478,12 @@ var Browser = {
       if (newTab === tabIds.length - 1) {
         newTab -= 1;
       }
-      this.selectTab(Object.keys(this.tabs)[newTab]);
+      var nextTab = Object.keys(this.tabs)[newTab];
+      if (!nextTab) {
+        this.handleNewTab();
+        return;
+      }
+      this.selectTab(nextTab);
     }
   },
 
@@ -1660,7 +1662,6 @@ var Browser = {
     this.hideCurrentTab();
     this.tabsBadge.innerHTML = '';
 
-    var multipleTabs = Object.keys(this.tabs).length > 1;
     var ul = document.createElement('ul');
 
     this.tabsList.innerHTML = '';
@@ -1672,7 +1673,7 @@ var Browser = {
     this._tabScreenObjectURLs = [];
 
     for (var tab in this.tabs) {
-      var li = this.generateTabLi(this.tabs[tab], multipleTabs);
+      var li = this.generateTabLi(this.tabs[tab]);
       ul.appendChild(li);
     }
 
@@ -1683,7 +1684,7 @@ var Browser = {
     this.inTransition = false;
   },
 
-  generateTabLi: function browser_generateTabLi(tab, multipleTabs) {
+  generateTabLi: function browser_generateTabLi(tab) {
     var title = tab.title || tab.url || _('new-tab');
     var a = document.createElement('a');
     var li = document.createElement('li');
@@ -1691,13 +1692,11 @@ var Browser = {
     var preview = document.createElement('div');
     var text = document.createTextNode(title);
 
-    if (multipleTabs) {
-      var close = document.createElement('button');
-      close.appendChild(document.createTextNode('✕'));
-      close.classList.add('close');
-      close.setAttribute('data-id', tab.id);
-      a.appendChild(close);
-    }
+    var close = document.createElement('button');
+    close.appendChild(document.createTextNode('✕'));
+    close.classList.add('close');
+    close.setAttribute('data-id', tab.id);
+    a.appendChild(close);
 
     a.setAttribute('data-id', tab.id);
     preview.classList.add('preview');
@@ -1927,13 +1926,6 @@ var Browser = {
           // Then delete everything
           browser.deleteTab(id);
           li.parentNode.removeChild(li);
-
-          if (Object.keys(self.browser.tabs).length === 1) {
-            var closeButtons = document.getElementsByClassName('close');
-            Array.forEach(closeButtons, function(el) {
-              el.parentNode.removeChild(el);
-            });
-          }
 
         }, true);
         li.style.MozTransition = 'height ' + 100 + 'ms linear';
