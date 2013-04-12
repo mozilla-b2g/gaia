@@ -15,38 +15,12 @@ function startup(data, reason) {
   Cu.import('resource://gre/modules/Services.jsm');
   Cu.import('resource://gre/modules/PermissionPromptHelper.jsm');
   Cu.import('resource://gre/modules/ContactService.jsm');
-  Cu.import("resource:///modules/devtools/gDevTools.jsm");
-
-  /**
-   * Mappings of permissions we need to add to the chrome
-   * XXX This should be replaced by a manifest parser
-  */
-  const kPermissions = {
-    browser: ['browser', 'systemXHR', 'settings-read', 'geolocation', 'desktop-notification'],
-    calendar: ['systemXHR', 'tcp-socket'],
-    camera: ['camera'],
-    communications: ['contacts-read', 'contacts-write', 'contacts-create', 'settings-read', 'settings-write'],
-    email: ['contacts-read', 'contacts-write', 'desktop-notification', 'settings-read', 'settings-write', 'systemXHR', 'tcp-socket'],
-    homescreen: ['settings-read', 'settings-write', 'systemXHR', 'tcp-socket', 'webapps-manage'],
-    gallery: ['settings-read', 'device-storage:pictures-read', 'device-storage:pictures-write'],
-    keyboard: ['settings-read', 'settings-write', 'keyboard'],
-    system: ['settings-read', 'settings-write', 'webapps-manage', 'browser', 'embed-apps', 'permissions'],
-    sms: ['contacts-read', 'contacts-write', 'contacts-create']
-  };
+  Cu.import('resource:///modules/devtools/gDevTools.jsm');
 
   try {
-    // Add permissions
-    for (var app in kPermissions) {
-      // XXX The domain name should be generic to not be tied to gaiamobile.org
-      // and the random port number.
-      var host = 'http://' + app + '.gaiamobile.org:8080';
-      var uri = Services.io.newURI(host, null, null);
-
-      var perms = kPermissions[app];
-      for (var i = 0, eachPerm; eachPerm = perms[i]; i++) {
-        Services.perms.add(uri, eachPerm, 1);
-      }
-    }
+    var loader = Cc['@mozilla.org/moz/jssubscript-loader;1']
+                  .getService(Ci.mozIJSSubScriptLoader);
+    loader.loadSubScript('chrome://desktop-helper.js/content/permissions.js');
 
     // Then inject the missing contents inside apps.
     Cc['@mozilla.org/globalmessagemanager;1']
@@ -66,32 +40,35 @@ function startup(data, reason) {
 
       // And open ff os devtool panel while maximizing its size according to
       // screen size
-      Services.prefs.setIntPref("devtools.toolbox.sidebar.width",
+      Services.prefs.setIntPref('devtools.toolbox.sidebar.width',
                                 browserWindow.screen.width - 550);
-      browserWindow.resizeTo(browserWindow.screen.width, browserWindow.outerHeight);
+      browserWindow.resizeTo(
+        browserWindow.screen.width,
+        browserWindow.outerHeight
+      );
       gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser,
-                                         "firefox-os-controls");
+                                         'firefox-os-controls');
     }, 'sessionstore-windows-restored', false);
 
     // Register a new devtool panel with various OS controls
     gDevTools.registerTool({
-      id: "firefox-os-controls",
-      key: "F",
-      modifiers: "accel,shift",
-      icon: "chrome://desktop-helper.js/content/panel/icon.gif",
-      url: "chrome://desktop-helper.js/content/panel/index.html",
-      label: "FFOS Control",
-      tooltip: "Set of controls to tune FirefoxOS apps in Desktop browser",
+      id: 'firefox-os-controls',
+      key: 'F',
+      modifiers: 'accel,shift',
+      icon: 'chrome://desktop-helper.js/content/panel/icon.gif',
+      url: 'chrome://desktop-helper.js/content/panel/index.html',
+      label: 'FFOS Control',
+      tooltip: 'Set of controls to tune FirefoxOS apps in Desktop browser',
       isTargetSupported: function(target) {
         return target.isLocalTab;
       },
-      build: function (iframeWindow, toolbox) {
-        iframeWindow.wrappedJSObject.tab = toolbox.target.window
+      build: function(iframeWindow, toolbox) {
+        iframeWindow.wrappedJSObject.tab = toolbox.target.window;
       }
     });
 
-  } catch(e) {
-    debug("Something went wrong while trying to start desktop-helper: " + e);
+  } catch (e) {
+    debug('Something went wrong while trying to start desktop-helper: ' + e);
   }
 }
 
