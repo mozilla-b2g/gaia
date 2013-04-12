@@ -298,6 +298,11 @@ contacts: install-xulrunner-sdk
 # Create webapps
 offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
 
+# Create an empty reference workload
+.PHONY: reference-workload-empty
+reference-workload-empty:
+	test_media/reference-workload/makeReferenceWorkload.sh empty
+
 # Create a light reference workload
 .PHONY: reference-workload-light
 reference-workload-light:
