@@ -127,6 +127,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     // initial this device information and do default actions
     // when DefaultAdapter is ready.
     function initial() {
+      visibleCheckBox.checked = defaultAdapter.discoverable;
       setDiscoverable(visibleCheckBox.checked);
       // we can't get device name immediately, wait a while
       setTimeout(function() {
