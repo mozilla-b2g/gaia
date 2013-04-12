@@ -525,7 +525,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       }
 
       // disconnect current connected device first
-      if (connectedAddress) {
+      if (connectedAddress && pairList.index[connectedAddress]) {
         setDeviceDisconnect(pairList.index[connectedAddress][0]);
       }
 
@@ -533,11 +533,17 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
       var req = defaultAdapter.connect(device.address, 0x111E);
       req.onerror = function() {
-        window.alert(_('error-connect-msg'));
-        showDeviceConnected(connectingAddress, false);
-        connectingAddress = null;
+        // Connection state might be changed before DOM request response.
+        if (connectingAddress) {
+          showDeviceConnected(connectingAddress, false);
+          connectingAddress = null;
+          window.alert(_('error-connect-msg'));
+        }
       };
       connectingAddress = device.address;
+      if (!pairList.index[connectingAddress]) {
+        return;
+      }
       var item = pairList.index[connectingAddress][1];
       item.querySelector('small').textContent = _('device-status-connecting');
     }
@@ -545,6 +551,8 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     function showDeviceConnected(deviceAddress, connected) {
       if (connected) {
         connectedAddress = deviceAddress;
+        // clear it because we are not in a connecting status now.
+        connectingAddress = null;
         // record connected device so if Bluetooth is turned off and then on
         // we can restore the connection
         window.asyncStorage.setItem('device.connected', connectedAddress);
@@ -553,6 +561,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           connectedAddress = null;
           window.asyncStorage.removeItem('device.connected');
         }
+      }
+      if (!pairList.index[deviceAddress]) {
+        return;
       }
       var item = pairList.index[deviceAddress][1];
       item.querySelector('small').textContent = (connected) ?
