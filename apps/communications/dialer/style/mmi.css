@@ -1,25 +1,17 @@
-html, body {
-  position: relative;
+#mmi-screen {
+  position: absolute;
   width: 100%;
   height: 100%;
-  overflow: hidden;
-  margin: 0;
-  font-family: 'MozTT', sans-serif;
-  font-size: 10px;
   background: white;
   color: black;
+  z-index: 1;
 }
 
-#message-screen {
-  width: 100%;
-  height: 100%;
-}
-
-#message-screen.responseForm #response {
+#mmi-screen.responseForm #response {
   display: block;
 }
 
-#message-container {
+#mmi-container {
   height: -moz-calc(100% - 5rem - 5rem);
 }
 

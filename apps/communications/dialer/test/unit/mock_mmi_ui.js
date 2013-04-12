@@ -1,24 +1,28 @@
 'use strict';
 
-var MockUssdUI = {
+var MockMmiUI = {
 
   COMMS_APP_ORIGIN: 'http://communications.gaiamobile.org:8080',
   ready: true,
   _messageReceived: null,
   _sessionEnded: null,
 
-  postMessage: function muui_postMessage(message, origin) {
-    switch (message.type) {
-      case 'ussdreceived':
-        this._messageReceived = message.message;
-        this._sessionEnded = message.sessionEnded;
+  postMessage: function muui_postMessage(evt) {
+    if (!evt.data) {
+      return;
+    }
+
+    switch (evt.data.type) {
+      case 'mmi-received-ui':
+        this._messageReceived = evt.data.message;
+        this._sessionEnded = evt.data.sessionEnded;
         break;
-      case 'success':
-        this._messageReceived = message.result;
+      case 'mmi-success':
+        this._messageReceived = evt.data.result;
         this._sessionEnded = null;
         break;
-      case 'error':
-        this._messageReceived = message.error;
+      case 'mmi-error':
+        this._messageReceived = evt.data.error;
         this._sessionEnded = null;
         break;
     }
@@ -28,34 +32,34 @@ var MockUssdUI = {
     var evt = {
       type: 'message',
       data: {
-        type: 'reply',
+        type: 'mmi-reply',
         message: message
       },
       origin: this.COMMS_APP_ORIGIN
     };
-    UssdManager.handleEvent(evt);
+    MmiManager.handleEvent(evt);
   },
 
   closeWindow: function muui_closeWindow() {
     var evt = {
       type: 'message',
       data: {
-        type: 'close'
+        type: 'mmi-cancel'
       },
       origin: this.COMMS_APP_ORIGIN
     };
-    UssdManager.handleEvent(evt);
+    MmiManager.handleEvent(evt);
   },
 
   cancel: function muui_cancel() {
     var evt = {
       type: 'message',
       data: {
-        type: 'cancel'
+        type: 'mmi-cancel'
       },
       origin: this.COMMS_APP_ORIGIN
     };
-    UssdManager.handleEvent(evt);
+    MmiManager.handleEvent(evt);
   },
 
   close: function muui_close() {
