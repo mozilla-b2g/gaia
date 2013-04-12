@@ -129,6 +129,7 @@ if (typeof window.oauth2 === 'undefined') {
           expires: end * 1000,
           token_ts: Date.now()
         }, function notify_parent() {
+              console.log('------------------------------>>>> Sending message to parent');
               parent.postMessage({
                 type: 'token_stored',
                 data: ''

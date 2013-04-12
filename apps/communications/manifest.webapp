@@ -135,5 +135,11 @@
      { "notification": "/dialer/index.html#keyboard-view" },
      { "telephony-new-call": "/dialer/index.html#keyboard-view" },
      { "ussd-received": "/dialer/index.html#keyboard-view" }
+  ],
+  "redirects": [
+    {"from": "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/flow.html",
+    "to": "/contacts/oauth2/flow.html"},
+    {"from": "https://serene-cove-3587.herokuapp.com/liveowd/oauth2_new/flow_live.html",
+    "to": "/contacts/oauth2/flow.html"}
   ]
 }
