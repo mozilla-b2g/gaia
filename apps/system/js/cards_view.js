@@ -272,8 +272,9 @@ var CardsView = (function() {
         // And then switch it with screenshots when one will be ready
         // (instead of -moz-element backgrounds)
         // Only take a new screenshot if is the active app
-        if (typeof frameForScreenshot.getScreenshot === 'function' &&
-          origin === displayedApp) {
+        if (!cachedLayer || (
+          typeof frameForScreenshot.getScreenshot === 'function' &&
+          origin === displayedApp)) {
           // rect is the final size (considering CSS transform) of the card.
           var rect = card.getBoundingClientRect();
           frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
