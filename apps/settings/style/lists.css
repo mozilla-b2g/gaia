@@ -335,7 +335,7 @@ ul li p + select {
 .fake-select {
   position: relative;
   display: block;
-  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  padding: 1.1rem 3rem;
   margin: 0;
   height: 3.8rem;
 }
