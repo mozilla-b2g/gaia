@@ -1,8 +1,8 @@
 
-dump("======== desktop-helper: content.js loaded ========\n")
+dump('======== desktop-helper: content.js loaded ========\n')
 
 function debug(str) {
-  dump("desktop-helper (frame-script): " + str + "\n");
+  dump('desktop-helper (frame-script): ' + str + '\n');
 }
 
 const CC = Components.Constructor;
@@ -20,7 +20,6 @@ const kChromeRootPath = 'chrome://desktop-helper.js/content/data/';
 const kScriptsPerDomain = {
   '.gaiamobile.org': [
     'ffos_runtime.js',
-    'hardware.js',
     'lib/activity.js',
     'lib/apps.js',
     'lib/bluetooth.js',
@@ -56,20 +55,14 @@ const kScriptsPerDomain = {
   ]
 };
 
+var systemWindow = null;
 
 var LoadListener = {
   init: function ll_init() {
-    let flags = Ci.nsIWebProgress.NOTIFY_LOCATION |
-                Ci.nsIWebProgress.NOTIFY_STATE_WINDOW |
-                Ci.nsIWebProgress.NOTIFY_STATE_DOCUMENT |
-                Ci.nsIWebProgress.NOTIFY_STATE_ALL;
+    let flags = Ci.nsIWebProgress.NOTIFY_LOCATION;
     let webProgress = docShell.QueryInterface(Ci.nsIInterfaceRequestor)
                               .getInterface(Ci.nsIWebProgress);
     webProgress.addProgressListener(this, flags);
-  },
-
-  onStateChange: function ll_onStateChange(webProgress, request, stateFlags, status) {
-    this.onPageLoad(webProgress.DOMWindow);
   },
 
   onLocationChange: function ll_locationChange(webProgress, request, locationURI, flags) {
@@ -77,14 +70,14 @@ var LoadListener = {
   },
 
   onPageLoad: function ll_onPageLoad(currentWindow) {
-    // XXX Right now the progress listener is really agressive and try to inject
-    // mocks/content/whatever on way too many operations.
-    if (currentWindow.alreadyMocked)
-      return;
-    currentWindow.alreadyMocked = true;
-
     try {
-      let currentDomain = currentWindow.document.domain;
+      let currentDomain = currentWindow.document.location.toString();
+
+      // XXX Let's decide the main window is the one with system.* in it.
+      if (currentDomain.indexOf('system.gaiamobile.org') != -1) {
+        systemWindow = currentWindow;
+        systemWindow.wrappedJSObject.sessionStorage.setItem('webapps-registry-ready', true);
+      }
 
       debug('loading scripts for app: ' + currentDomain);
       for (let domain in kScriptsPerDomain) {
@@ -115,3 +108,44 @@ var LoadListener = {
 };
 
 LoadListener.init();
+
+
+
+// Listen for app.launch calls and forward them to the content script
+// that knows who is the system app.
+Cu.import('resource://gre/modules/Webapps.jsm');
+Cu.import('resource://gre/modules/AppsUtils.jsm');
+Cu.import('resource://gre/modules/ObjectWrapper.jsm');
+DOMApplicationRegistry.allAppsLaunchable = true;
+
+function getContentWindow() {
+  return systemWindow;
+}
+
+function sendChromeEvent(details) {
+  let content = getContentWindow();
+  details = details || {};
+
+  let event = content.document.createEvent('CustomEvent');
+  event.initCustomEvent('mozChromeEvent', true, true,
+                        ObjectWrapper.wrap(details, content));
+  content.dispatchEvent(event);
+}
+
+Services.obs.addObserver(function onLaunch(subject, topic, data) {
+  let json = JSON.parse(data);
+  DOMApplicationRegistry.getManifestFor(json.origin, function(aManifest) {
+    if (!aManifest)
+      return;
+
+    let manifest = new ManifestHelper(aManifest, json.origin);
+    let data = {
+      'type': 'webapps-launch',
+      'timestamp': json.timestamp,
+      'url': manifest.fullLaunchPath(json.startPoint),
+      'manifestURL': json.manifestURL
+    };
+    sendChromeEvent(data);
+  });
+}, 'webapps-launch', false);
+

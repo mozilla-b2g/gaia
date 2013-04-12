@@ -30,7 +30,7 @@ function startup(data, reason) {
     homescreen: ['settings-read', 'settings-write', 'systemXHR', 'tcp-socket', 'webapps-manage'],
     gallery: ['settings-read', 'device-storage:pictures-read', 'device-storage:pictures-write'],
     keyboard: ['settings-read', 'settings-write', 'keyboard'],
-    system: ['settings-read', 'settings-write', 'webapps-manage'],
+    system: ['settings-read', 'settings-write', 'webapps-manage', 'browser', 'embed-apps', 'permissions'],
     sms: ['contacts-read', 'contacts-write', 'contacts-create']
   };
 
@@ -49,9 +49,9 @@ function startup(data, reason) {
     }
 
     // Then inject the missing contents inside apps.
-    Cc["@mozilla.org/globalmessagemanager;1"]
+    Cc['@mozilla.org/globalmessagemanager;1']
       .getService(Ci.nsIMessageBroadcaster)
-      .loadFrameScript("chrome://desktop-helper.js/content/content.js", true);
+      .loadFrameScript('chrome://desktop-helper.js/content/content.js', true);
 
     Services.obs.addObserver(function() {
       let browserWindow = Services.wm.getMostRecentWindow('navigator:browser');
