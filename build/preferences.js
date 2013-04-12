@@ -63,6 +63,8 @@ if (DEBUG) {
   prefs.push(["webgl.verbose", true]);
   prefs.push(["ui.click_hold_context_menus", true]);
 
+  prefs.push(["dom.ipc.tabs.disabled", true]);
+
   // Disable HTTP caching for now
   // This makes working with the system app much easier, due to the iframe
   // caching issue.
