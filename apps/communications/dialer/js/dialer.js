@@ -479,13 +479,16 @@ window.addEventListener('load', function startup(evt) {
     var delayed = document.getElementById('delay');
     delayed.innerHTML = delayed.childNodes[0].nodeValue;
 
-    var parent = delayed.parentNode;
-    var child;
-    while (child = delayed.children[0]) {
-      parent.insertBefore(child, delayed);
-    }
-
-    parent.removeChild(delayed);
+    // Translate content.
+    LazyL10n.get(function localized() {
+      navigator.mozL10n.translate(delayed);
+      var parent = delayed.parentNode;
+      var child;
+      while (child = delayed.children[0]) {
+        parent.insertBefore(child, delayed);
+      }
+      parent.removeChild(delayed);
+    });
 
     CallHandler.init();
 
