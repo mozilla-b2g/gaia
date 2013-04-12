@@ -25,7 +25,6 @@ const kScriptsPerDomain = {
     'lib/cameras.js',
     'lib/keyboard.js',
     'lib/mobile_connection.js',
-    'lib/power.js',
     'lib/set_message_handler.js',
     'lib/wifi.js'
   ],
