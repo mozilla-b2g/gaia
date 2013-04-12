@@ -196,6 +196,7 @@ Calendar.LoadConfig = (function() {
           'view',
           'presets',
           'models/account',
+          'utils/uri',
           'views/modify_account'
         ],
 
