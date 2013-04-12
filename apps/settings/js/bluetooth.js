@@ -268,13 +268,16 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     };
 
     // private DOM helper: create a device list item
-    function newListItem(device, desc) {
+    function newListItem(device, descL10nId) {
       var deviceName = document.createElement('a');
       var aName = (device.name === '') ? _('unnamed-device') : device.name;
+      var aL10nId = (device.name === '') ? 'unnamed-device' : '';
       deviceName.textContent = aName;
+      deviceName.dataset.l10nId = aL10nId;
 
       var deviceDesc = document.createElement('small');
-      deviceDesc.textContent = desc;
+      deviceDesc.textContent = (descL10nId === '') ? '' : _(descL10nId);
+      deviceDesc.dataset.l10nId = descL10nId;
 
       var li = document.createElement('li');
       li.classList.add('bluetooth-device');
@@ -385,9 +388,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         });
         for (var i = 0; i < length; i++) {
           (function(device) {
-            var state = (device.address === connectedAddress) ?
-              _('device-status-connected') : '';
-            var aItem = newListItem(device, state);
+            var stateL10nId = (device.address === connectedAddress) ?
+              'device-status-connected' : '';
+            var aItem = newListItem(device, stateL10nId);
             aItem.onclick = function() {
               optionMenu.show(device);
             };
@@ -398,8 +401,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
             // their connection protocol
             if (device.address === connectingAddress &&
                 device.icon === 'audio-card') {
-              aItem.querySelector('small').textContent =
-                _('device-status-connecting');
+              var small = aItem.querySelector('small');
+              small.textContent = _('device-status-connecting');
+              small.dataset.l10nId = 'device-status-connecting';
               setTimeout(function() {
                 setDeviceConnect(device);
               }, 5000);
@@ -421,11 +425,13 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       if (openList.index[device.address] || pairList.index[device.address])
         return;
 
-      var aItem = newListItem(device, _('device-status-tap-connect'));
+      var aItem = newListItem(device, 'device-status-tap-connect');
 
       // bind paired callback
       aItem.onclick = function() {
-        aItem.querySelector('small').textContent = _('device-status-pairing');
+        var small = aItem.querySelector('small');
+        small.textContent = _('device-status-pairing');
+        small.dataset.l10nId = 'device-status-pairing';
         var req = defaultAdapter.pair(device);
         pairingMode = 'active';
         pairingAddress = device.address;
@@ -479,9 +485,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         userCanceledPairing = false;
         // rollback device status
         if (openList.index[workingAddress]) {
-          var item = openList.index[workingAddress][1];
-          item.querySelector('small').textContent =
-            _('device-status-tap-connect');
+          var small = openList.index[workingAddress][1].querySelector('small');
+          small.textContent = _('device-status-tap-connect');
+          small.dataset.l10nId = 'device-status-tap-connect';
         }
       }
       // acquire a new paired list no matter paired or unpaired
@@ -544,8 +550,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       if (!pairList.index[connectingAddress]) {
         return;
       }
-      var item = pairList.index[connectingAddress][1];
-      item.querySelector('small').textContent = _('device-status-connecting');
+      var small = pairList.index[connectingAddress][1].querySelector('small');
+      small.textContent = _('device-status-connecting');
+      small.dataset.l10nId = 'device-status-connecting';
     }
 
     function showDeviceConnected(deviceAddress, connected) {
@@ -565,9 +572,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       if (!pairList.index[deviceAddress]) {
         return;
       }
-      var item = pairList.index[deviceAddress][1];
-      item.querySelector('small').textContent = (connected) ?
-        _('device-status-connected') : '';
+      var small = pairList.index[deviceAddress][1].querySelector('small');
+      small.textContent = (connected) ? _('device-status-connected') : '';
+      small.dataset.l10nId = (connected) ? 'device-status-connected' : '';
     }
 
     function onRequestPairing(evt, method) {

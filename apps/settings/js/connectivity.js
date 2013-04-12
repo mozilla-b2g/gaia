@@ -86,6 +86,11 @@ var Connectivity = (function(window, document, undefined) {
     updateBluetooth();
     // register blutooth system message handler
     initSystemMessageHandler();
+
+    window.addEventListener('localized', function() {
+      updateWifi();
+      updateBluetooth();
+    });
   }
 
   /**
@@ -100,11 +105,16 @@ var Connectivity = (function(window, document, undefined) {
       return; // init will call updateWifi()
     }
 
-    // network.connection.status has one of the following values:
-    // connecting, associated, connected, connectingfailed, disconnected.
-    wifiDesc.textContent = _('fullStatus-' +
+    if (wifiManager.enabled) {
+      // network.connection.status has one of the following values:
+      // connecting, associated, connected, connectingfailed, disconnected.
+      wifiDesc.textContent = _('fullStatus-' +
         wifiManager.connection.status,
         wifiManager.connection.network);
+    } else {
+      wifiDesc.textContent = _('disabled');
+      wifiDesc.dataset.l10nId = 'disabled';
+    }
 
     // record the MAC address here because the "Device Information" panel
     // has to display it as well
