@@ -5,11 +5,11 @@ function debug(str) {
   dump('desktop-helper (frame-script): ' + str + '\n');
 }
 
-const CC = Components.Constructor;
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cu = Components.utils;
-const Cr = Components.results;
+let CC = Components.Constructor;
+let Cc = Components.classes;
+let Ci = Components.interfaces;
+let Cu = Components.utils;
+let Cr = Components.results;
 
 Cu.import('resource://gre/modules/Services.jsm');
 
@@ -23,7 +23,6 @@ const kScriptsPerDomain = {
     'lib/activity.js',
     'lib/bluetooth.js',
     'lib/cameras.js',
-    'lib/keyboard.js',
     'lib/mobile_connection.js',
     'lib/set_message_handler.js',
     'lib/wifi.js'
