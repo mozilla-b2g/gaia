@@ -23,9 +23,9 @@ function startup(data, reason) {
     loader.loadSubScript('chrome://desktop-helper.js/content/permissions.js');
 
     // Then inject the missing contents inside apps.
-    Cc['@mozilla.org/globalmessagemanager;1']
-      .getService(Ci.nsIMessageBroadcaster)
-      .loadFrameScript('chrome://desktop-helper.js/content/content.js', true);
+    var mm = Cc['@mozilla.org/globalmessagemanager;1']
+               .getService(Ci.nsIMessageBroadcaster);
+    mm.loadFrameScript('chrome://desktop-helper.js/content/content.js', true);
 
     Services.obs.addObserver(function() {
       let browserWindow = Services.wm.getMostRecentWindow('navigator:browser');
@@ -48,6 +48,15 @@ function startup(data, reason) {
       );
       gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser,
                                          'firefox-os-controls');
+
+      try {
+        // Try to load a the keyboard if there is a keyboard addon.
+        Cu.import('resource://keyboard.js/Keyboard.jsm');
+        mm.addMessageListener('Forms:Input', Keyboard);
+        mm.loadFrameScript('chrome://keyboard.js/content/forms.js', true);
+      } catch(e) {
+        debug("Can't load Keyboard.jsm. Likely because the keyboard addon is not here.");
+      }
     }, 'sessionstore-windows-restored', false);
 
     // Register a new devtool panel with various OS controls
