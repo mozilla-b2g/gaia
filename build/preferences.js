@@ -58,12 +58,14 @@ if (DEBUG) {
   prefs.push(["dom.mozContacts.enabled", true]);
   prefs.push(["dom.mozSettings.enabled", true]);
   prefs.push(["dom.mozTCPSocket.enabled", true]);
-  prefs.push(["device.storage.enabled", true]);
   prefs.push(["devtools.chrome.enabled", true]);
   prefs.push(["webgl.verbose", true]);
   prefs.push(["ui.click_hold_context_menus", true]);
 
   prefs.push(["dom.ipc.tabs.disabled", true]);
+
+  prefs.push(["device.storage.enabled", true]);
+  prefs.push(["device.storage.prompt.testing", true]);
 
   // Disable HTTP caching for now
   // This makes working with the system app much easier, due to the iframe
