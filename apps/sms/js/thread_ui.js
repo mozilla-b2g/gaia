@@ -225,8 +225,8 @@ var ThreadUI = {
     this.container.scrollTop = this.container.scrollHeight;
   },
 
-  updateCounter: function thui_updateCount(evt) {
-    if (!navigator.mozSms) {
+  updateCounter: function thui_updateCount() {
+    if (!this._mozSms.getSegmentInfoForText) {
       return;
     }
     var value = this.input.value;
@@ -243,7 +243,19 @@ var ThreadUI = {
       counter = availableChars + '/' + segments;
     }
     this.sendButton.dataset.counter = counter;
-    this.sendButton.disabled = (segments > kMaxConcatenatedMessages);
+    var hasMaxLength = (segments === kMaxConcatenatedMessages &&
+        !availableChars);
+
+    // note: when we'll have the MMS feature, we'll want to use an MMS instead
+    // of forbidding this.
+    if (hasMaxLength) {
+      var message = navigator.mozL10n.get('messages-max-length-notice');
+      window.alert(message);
+
+      this.input.setAttribute('maxlength', value.length);
+    } else {
+      this.input.removeAttribute('maxlength');
+    }
   },
 
   updateInputHeight: function thui_updateInputHeight() {
