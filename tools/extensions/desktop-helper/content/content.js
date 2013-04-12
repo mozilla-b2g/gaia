@@ -23,8 +23,6 @@ const kScriptsPerDomain = {
     'lib/activity.js',
     'lib/bluetooth.js',
     'lib/cameras.js',
-    'lib/getdevicestorage.js',
-    'lib/idle.js',
     'lib/keyboard.js',
     'lib/mobile_connection.js',
     'lib/power.js',
@@ -39,14 +37,6 @@ const kScriptsPerDomain = {
 
   'sms.gaiamobile.org': [
     'workloads/contacts.js'
-  ],
-
-  'fm.gaiamobile.org': [
-    'apps/fm.js'
-  ],
-
-  'homescreen.gaiamobile.org' :[
-    'apps/homescreen.js'
   ],
 
   'calendar.gaiamobile.org': [
