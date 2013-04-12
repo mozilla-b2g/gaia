@@ -91,6 +91,10 @@ var ThreadUI = {
   },
 
   init: function thui_init() {
+    // Allow for stubbing in environments that do not implement the
+    // `navigator.mozSms` API
+    this._mozSms = navigator.mozSms || window.MockNavigatormozSms;
+
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
 
     // Prevent sendbutton to hide the keyboard:
@@ -209,8 +213,8 @@ var ThreadUI = {
     this.view.scrollTop = this.view.scrollHeight;
   },
 
-  updateCounter: function thui_updateCount(evt) {
-    if (!navigator.mozSms) {
+  updateCounter: function thui_updateCount() {
+    if (!this._mozSms.getSegmentInfoForText) {
       return;
     }
     var value = this.input.value;
@@ -219,7 +223,7 @@ var ThreadUI = {
     var kMaxConcatenatedMessages = 10;
 
     // Use backend api for precise sms segmetation information.
-    var smsInfo = navigator.mozSms.getSegmentInfoForText(value);
+    var smsInfo = this._mozSms.getSegmentInfoForText(value);
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
     var counter = '';
@@ -227,7 +231,19 @@ var ThreadUI = {
       counter = availableChars + '/' + segments;
     }
     this.sendButton.dataset.counter = counter;
-    this.sendButton.disabled = (segments > kMaxConcatenatedMessages);
+    var hasMaxLength = (segments === kMaxConcatenatedMessages &&
+        !availableChars);
+
+    // note: when we'll have the MMS feature, we'll want to use an MMS instead
+    // of forbidding this.
+    if (hasMaxLength) {
+      var message = navigator.mozL10n.get('messages-max-length-notice');
+      window.alert(message);
+
+      this.input.setAttribute('maxlength', value.length);
+    } else {
+      this.input.removeAttribute('maxlength');
+    }
   },
 
   updateInputHeight: function thui_updateInputHeight() {
