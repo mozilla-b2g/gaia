@@ -533,7 +533,7 @@ var LockScreen = {
     this.locked = false;
 
     var repaintTimeout = 0;
-    var nextPaint = (function() {
+    var nextPaint= function() {
       clearTimeout(repaintTimeout);
 
       if (currentFrame)
@@ -563,7 +563,7 @@ var LockScreen = {
           unlockAudio.play();
         }
       }
-    }).bind(this);
+    }.bind(this);
 
     if (currentFrame)
       currentFrame.addNextPaintListener(nextPaint);
@@ -926,86 +926,11 @@ var LockScreen = {
     }
   },
 
-  updateBackground: function ls_updateBackground(background_datauri) {
-    this._imgPreload([background_datauri, 'style/lockscreen/images/mask.png'],
-                     function(images) {
-
-      // Bug 829075 : We need a <canvas> in the DOM to prevent banding on
-      // Otoro-like devices
-      var viewportWidth = window.innerWidth;
-      var viewportHeight = window.innerHeight;
-      var viewportRatio = viewportWidth / viewportHeight;
-      var canvas = document.createElement('canvas');
-      canvas.classList.add('lockscreen-wallpaper');
-      canvas.width = viewportWidth;
-      canvas.height = viewportHeight;
-
-      var ctx = canvas.getContext('2d');
-
-      var image = images[0];
-      var mask = images[1];
-
-      var ratio = image.width / image.height;
-      var scale = 1;
-      var sWidth, sHeight, sx, sy;
-
-      if (ratio < viewportRatio) {
-        scale = viewportWidth / image.width;
-        sWidth = image.width;
-        sHeight = viewportHeight / scale | 0;
-      } else {
-        scale = viewportHeight / image.height;
-        sWidth = viewportWidth / scale | 0;
-        sHeight = image.height;
-      }
-
-      sx = (image.width - sWidth) * 0.5;
-      sy = (image.height - sHeight) * 0.5;
-
-      ctx.drawImage(image, sx, sy, sWidth, sHeight,
-        0, 0, viewportWidth, viewportHeight);
-      ctx.drawImage(mask, 0, 0, viewportWidth, viewportHeight);
-
-      var panels_selector = '.lockscreen-panel[data-wallpaper]';
-      var panels = document.querySelectorAll(panels_selector);
-      for (var i = 0, il = panels.length; i < il; i++) {
-        var copied_canvas;
-        var panel = panels[i];
-
-        // Remove previous <canvas> if they exist
-        var old_canvas = panel.querySelector('canvas');
-        if (old_canvas) {
-          old_canvas.parentNode.removeChild(old_canvas);
-        }
-
-        // For the first panel, we can use the existing <canvas>
-        if (!copied_canvas) {
-          copied_canvas = canvas;
-        } else {
-          // Otherwise, copy the node and content
-          copied_canvas = canvas.cloneNode();
-          copied_canvas.getContext('2d').drawImage(canvas, 0, 0);
-        }
-
-        panel.insertBefore(copied_canvas, panel.firstChild);
-      }
-    });
-  },
-
-  _imgPreload: function ls_imgPreload(img_paths, callback) {
-    var loaded = 0;
-    var images = [];
-    var il = img_paths.length;
-    var inc = function() {
-      loaded += 1;
-      if (loaded === il && callback) {
-        callback(images);
-      }
-    };
-    for (var i = 0; i < il; i++) {
-      images[i] = new Image();
-      images[i].onload = inc;
-      images[i].src = img_paths[i];
+  updateBackground: function ls_updateBackground(value) {
+    var panels = document.querySelectorAll('.lockscreen-panel');
+    var url = 'url(' + value + ')';
+    for (var i = 0; i < panels.length; i++) {
+      panels[i].style.backgroundImage = url;
     }
   },
 
