@@ -8,8 +8,8 @@
   transition: opacity 0.5s ease, visibility 0.5s ease;
   opacity: 0;
   -moz-user-select: none;
-  overflow: hidden;
-  background-color: rgba(0, 0, 0, 1);
+  overflow: scroll;
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
 #cards-view.active {
@@ -32,26 +32,26 @@
 }
 
 #cards-view .card {
-  display: none;
+  display: inline-block;
   width: 100%;
   height: calc(100% - 2rem);
   margin: 0;
   margin-top: 2rem;
-  position: absolute;
+  margin-left: -25%;
+  position: relative;
   background-size: contain;
   background-position: center center;
   background-repeat: no-repeat;
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.8);
+  transform: scale(0.6);
 }
 
 #cards-view .card h1 {
   position: absolute;
+  top: 1.5rem;
   left: 1rem;
   z-index: 99999;
   text-align: left;
-  font-size: 2.2rem;
+  font-size: 3.5rem;
   font-weight: 300;
   text-overflow: ellipsis;
   overflow-x: hidden;
@@ -61,19 +61,39 @@
   top: 1.5rem;
 }
 
+#cards-view .card[data-edit='true'] {
+  position: relative;
+  opacity: 0.8;
+  z-index: 99999;
+}
+
+#cards-view .card:first-child {
+  position: absolute;
+  margin-left: 0;
+}
+
+#cards-view .card:only-child {
+  margin-left: -50%;
+}
+
+#cards-view .card:nth-child(2) {
+  margin-left: 75%;
+}
+
 #cards-view .card > *:not(.close-card) {
   pointer-events: none;
 }
 
 #cards-view .card > h1 {
   position: absolute;
-  top: -moz-calc(100% - 1.5rem);
+  top: 100%;
   width: 100%;
+  line-height: 4rem;
 }
 
 #cards-view .card > p {
   position: absolute;
-  top: -moz-calc(100% + 1rem);
+  top: -moz-calc(100% + 4rem);
   width: 100%;
   font-size: 2rem;
 }
@@ -95,5 +115,5 @@
   height: 2.6rem;
   width: 2.6rem;
   background: url(close.png) no-repeat center / 2.6rem;
-  transform: scale(1.3);
+  transform: scale(1.7);
 }
