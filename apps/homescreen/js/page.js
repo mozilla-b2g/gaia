@@ -168,7 +168,7 @@ Icon.prototype = {
       xhr.send(null);
     } catch (e) {
       console.error('Got an exception when trying to load icon "' + icon +
-          '", falling back to default icon. Exception is:', e);
+          '", falling back to cached icon. Exception is:', e);
       this.loadCachedIcon();
       return;
     }
@@ -178,6 +178,9 @@ Icon.prototype = {
         return;
 
       if (xhr.status != 0 && xhr.status != 200) {
+        console.error('Got HTTP status', xhr.status,
+            'when trying to load icon "' + icon +
+            '", falling back to cached icon.');
         self.loadCachedIcon();
         return;
       }
@@ -185,6 +188,8 @@ Icon.prototype = {
     };
 
     xhr.onerror = function saveIcon_onerror() {
+      console.error('Got an error event when trying to load icon "' + icon +
+          '", falling back to cached icon.');
       self.loadCachedIcon();
     };
   },
@@ -220,8 +225,18 @@ Icon.prototype = {
     };
 
     img.onerror = function icon_loadError() {
+      console.error('error while loading the icon', img.src, '. Falling back ' +
+          'to default icon.');
       if (blob)
         window.URL.revokeObjectURL(img.src);
+
+      if (self.img && self.img.src) {
+        // If we have a problem loading a new icon and there is one already
+        // loaded, do not continue...
+        img.onload = img.onerror = null;
+        return;
+      }
+
       img.src = getDefaultIcon(self.app);
       img.onload = function icon_errorIconLoadSucess() {
         img.onload = null;

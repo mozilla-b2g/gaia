@@ -9,10 +9,15 @@ MockPage.prototype = {
     // at least 1 or it will be removed
     return 1;
   },
+
   getIconDescriptors: function() {
   },
+
   moveByWithEffect: function mp_moveByWithEffect() {
     MockPage.mMoveByWithEffectCalled = true;
+  },
+
+  appendIcon: function mp_appendIcon() {
   }
 };
 
@@ -21,3 +26,4 @@ MockPage.mTeardown = function mp_mTeardown() {
 };
 
 var MockDock = MockPage;
+
