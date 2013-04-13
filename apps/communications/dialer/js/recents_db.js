@@ -176,7 +176,7 @@ var RecentsDBManager = {
       }
 
       var record = cursor.value;
-      var id = this._generateGroupKey(record.number, record.date);
+      var id = this._generateGroupKey(record.number, record.date, record.type);
 
       if (id in groups) {
         var group = groups[id];
@@ -201,10 +201,10 @@ var RecentsDBManager = {
       cursor.continue();
     }).bind(this);
   },
-  _generateGroupKey: function rdbm_generateGroupKey(number, timestamp) {
+  _generateGroupKey: function rdbm_generateGroupKey(number, timestamp, type) {
     var date = new Date(timestamp);
     return number.toString() + date.getDay().toString() +
-           date.getMonth().toString() + date.getFullYear().toString();
+           date.getMonth().toString() + date.getFullYear().toString() + type;
   },
   /**
    * Stores a new call in the database.
@@ -235,7 +235,7 @@ var RecentsDBManager = {
       var recentsStore = stores[0];
       var groupsStore = stores[1];
 
-      var groupId = this._generateGroupKey(recentCall.number, recentCall.date);
+      var groupId = this._generateGroupKey(recentCall.number, recentCall.date, recentCall.type);
 
       // For adding a call to the database we first create or update its
       // corresponding group and then we store the actual call adding the id
