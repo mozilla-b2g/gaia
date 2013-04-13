@@ -46,6 +46,7 @@ if (DEBUG) {
   prefs.push(["browser.shell.checkDefaultBrowser", false]);
   prefs.push(["devtools.toolbox.host", "side"]);
   prefs.push(["devtools.toolbox.sidebar.width", 800]);
+  prefs.push(["devtools.chrome.enabled", true]);
   prefs.push(["browser.sessionstore.max_tabs_undo", 0]);
   prefs.push(["browser.sessionstore.max_windows_undo", 0]);
   prefs.push(["browser.sessionstore.restore_on_demand", false]);
@@ -54,18 +55,21 @@ if (DEBUG) {
   prefs.push(["dom.mozBrowserFramesEnabled", true]);
   prefs.push(["b2g.ignoreXFrameOptions", true]);
   prefs.push(["network.disable.ipc.security", true]);
-  prefs.push(["dom.sms.enabled", true]);
-  prefs.push(["dom.mozContacts.enabled", true]);
-  prefs.push(["dom.mozSettings.enabled", true]);
-  prefs.push(["dom.mozTCPSocket.enabled", true]);
-  prefs.push(["devtools.chrome.enabled", true]);
   prefs.push(["webgl.verbose", true]);
   prefs.push(["ui.click_hold_context_menus", true]);
 
   prefs.push(["dom.ipc.tabs.disabled", true]);
 
+  // Enable apis use on the device
+  prefs.push(["dom.sms.enabled", true]);
+  prefs.push(["dom.mozContacts.enabled", true]);
+  prefs.push(["dom.mozSettings.enabled", true]);
+  prefs.push(["dom.mozTCPSocket.enabled", true]);
+  prefs.push(["dom.sysmsg.enabled", true]);
+  prefs.push(["dom.mozAlarms.enabled", true]);
   prefs.push(["device.storage.enabled", true]);
   prefs.push(["device.storage.prompt.testing", true]);
+
 
   // Disable HTTP caching for now
   // This makes working with the system app much easier, due to the iframe
