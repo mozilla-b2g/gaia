@@ -95,7 +95,7 @@ ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
 endif
 
 GAIA_LOCALES_PATH?=locales
-LOCALES_FILE?=shared/resources/languages.json
+LOCALES_FILE?=shared$(SEP)resources$(SEP)languages.json
 GAIA_LOCALE_SRCDIRS=shared $(GAIA_APP_SRCDIRS)
 GAIA_DEFAULT_LOCALE?=en-US
 GAIA_INLINE_LOCALES?=1
@@ -220,12 +220,12 @@ ifneq ($(LOCALE_BASEDIR),)
 		targets="$$targets --target $$appdir"; \
 	done; \
 	python $(CURDIR)/build/multilocale.py \
-		--config $(LOCALES_FILE) \
-		--source $(LOCALE_BASEDIR) \
+		--config '$(LOCALES_FILE)' \
+		--source '$(LOCALE_BASEDIR)' \
 		$$targets;
 	@echo "Done"
-ifneq ($(LOCALES_FILE),shared/resources/languages.json)
-	cp $(LOCALES_FILE) shared/resources/languages.json
+ifneq ($(LOCALES_FILE),shared$(SEP)resources$(SEP)languages.json)
+	cp '$(LOCALES_FILE)' shared$(SEP)resources$(SEP)languages.json
 endif
 endif
 
@@ -386,7 +386,7 @@ define run-js-command
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
-	const LOCALES_FILE = "$(LOCALES_FILE)";                                     \
+	const LOCALES_FILE = "$(subst \,\\,$(LOCALES_FILE))";                       \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
 	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
