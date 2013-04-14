@@ -29,7 +29,7 @@ function MockThreadList() {
             id: 4,
             participants: ['1977436979'],
             body: 'Nothing :)',
-            timestamp: getMockupedDate(2),
+            timestamp: new Date(getMockupedDate(2) - 1),
             unreadCount: 2
           }
         ];

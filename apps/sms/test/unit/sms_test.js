@@ -623,4 +623,140 @@ suite('SMS App Unit-Test', function() {
       Utils.getPhoneDetails = getPhoneDetails;
     });
   });
+
+  suite('Thread list UI redraw', function() {
+    var verify = function(threads, container) {
+      threads = threads.sort(function(a, b) {
+        return b.timestamp - a.timestamp;
+      });
+
+      var lis = container.querySelectorAll('li');
+
+      threads.forEach(function(t, ix) {
+        // assert right order
+        assert.equal(lis[ix].id, 'thread_' + t.id, 'Right order');
+        assert.equal(lis[ix].querySelector('a').classList.contains('unread'),
+          t.unreadCount > 0, 'Unread class');
+
+        var allPs = lis[ix].querySelectorAll('p');
+        assert.equal(allPs[allPs.length - 1].childNodes[1].textContent,
+          t.body, 'Body');
+
+        assert.equal(lis[ix].parentNode.id,
+          'threadsContainer_' + Utils.getDayDate(t.timestamp), 'Container');
+      });
+    };
+
+    test('No change', function(done) {
+      ThreadListUI.container.innerHTML = '';
+
+      var t = MockThreadList();
+        ThreadListUI.renderThreads([].slice.call(t), function() {
+          verify(t, ThreadListUI.container);
+          ThreadListUI.renderThreads([].slice.call(t), function() {
+            verify(t, ThreadListUI.container);
+            done();
+          });
+        });
+    });
+
+    test('New received message', function(done) {
+      ThreadListUI.container.innerHTML = '';
+
+      var t = MockThreadList();
+        ThreadListUI.renderThreads([].slice.call(t), function() {
+          verify(t, ThreadListUI.container);
+
+          t[2].body = 'Hallo!';
+          t[2].unreadCount++;
+          t[2].timestamp = new Date();
+
+          ThreadListUI.renderThreads([].slice.call(t), function() {
+            verify(t, ThreadListUI.container);
+            done();
+          });
+        });
+    });
+
+    test('Delete message', function(done) {
+      ThreadListUI.container.innerHTML = '';
+
+      var t = MockThreadList();
+        ThreadListUI.renderThreads([].slice.call(t), function() {
+          verify(t, ThreadListUI.container);
+
+          t.splice(1, 1);
+          assert.equal(t.length, 3);
+
+          ThreadListUI.renderThreads([].slice.call(t), function() {
+            verify(t, ThreadListUI.container);
+            done();
+          });
+        });
+    });
+
+    test('New message added', function(done) {
+      ThreadListUI.container.innerHTML = '';
+
+      var t = MockThreadList();
+        ThreadListUI.renderThreads([].slice.call(t), function() {
+          verify(t, ThreadListUI.container);
+
+          t.push({
+            id: 9,
+            participants: ['2387123712'],
+            body: 'Here we go',
+            timestamp: new Date(getMockupedDate(1) + 1),
+            unreadCount: 1
+          })
+
+          ThreadListUI.renderThreads([].slice.call(t), function() {
+            verify(t, ThreadListUI.container);
+            done();
+          });
+        });
+    });
+
+    test('Timing test initial draw', function(done) {
+      ThreadListUI.container.innerHTML = '';
+
+      var t = [];
+      for (var i = 0; i < 1000; i++) {
+        t.push({
+          id: t.length,
+          participants: [ '' + (Math.random() * 1000000 | 0) ],
+          body: 'Message ' + t.length,
+          timestamp: getMockupedDate(t.length),
+          unreadCount: Math.random() * 10 | 0
+        });
+      }
+
+      ThreadListUI.renderThreads([].slice.call(t), function() {
+        //verify(t, ThreadListUI.container);
+        done();
+      });
+    });
+
+    test('Timing test two draws', function(done) {
+      ThreadListUI.container.innerHTML = '';
+
+      var t = [];
+      for (var i = 0; i < 1000; i++) {
+        t.push({
+          id: t.length,
+          participants: [ '' + (Math.random() * 1000000 | 0) ],
+          body: 'Message ' + t.length,
+          timestamp: getMockupedDate(t.length),
+          unreadCount: Math.random() * 10 | 0
+        });
+      }
+
+      ThreadListUI.renderThreads([].slice.call(t), function() {
+        ThreadListUI.renderThreads([].slice.call(t), function() {
+          //verify(t, ThreadListUI.container);
+          done();
+        });
+      });
+    });
+  });
 });

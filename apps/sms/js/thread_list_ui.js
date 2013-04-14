@@ -201,18 +201,26 @@ var ThreadListUI = {
     window.location.hash = '#thread-list';
   },
 
+  threadHashes: {},
   renderThreads: function thlui_renderThreads(threads, renderCallback) {
-    // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854417
-    // Refactor the rendering method: do not empty the entire
-    // list on every render.
-    ThreadListUI.container.innerHTML = '';
+    var getThreadHash = function(t) {
+      return t.participants[0] + '|' +
+        (0+t.timestamp) +
+        '|' + t.body + '|'
+        + t.unreadCount;
+    };
+
     ThreadListUI.count = threads.length;
 
-    if (threads.length) {
-      // There are messages to display.
-      //  1. Add the "hide" class to the threads-no-messages display
-      //  2. Remove the "hide" class from the view
-      //
+    if (threads.length === 0) {
+      ThreadListUI.noMessages.classList.remove('hide');
+      ThreadListUI.container.classList.add('hide');
+      ThreadListUI.editIcon.classList.add('disabled');
+
+      renderCallback && renderCallback();
+      return;
+    }
+    else {
       ThreadListUI.noMessages.classList.add('hide');
       ThreadListUI.container.classList.remove('hide');
       ThreadListUI.editIcon.classList.remove('disabled');
@@ -220,48 +228,153 @@ var ThreadListUI = {
       FixedHeader.init('#threads-container',
                        '#threads-header-container',
                        'header');
-      // Edit mode available
+    }
 
-      var appendThreads = function(threads, callback) {
-        if (!threads.length) {
-          // Refresh fixed header logic
-          FixedHeader.refresh();
+    threads = threads.sort(function(a, b) {
+      return b.timestamp - a.timestamp;
+    });
 
-          if (callback) {
-            callback();
-          }
-          return;
+    // Two scenario's:
+    //  1. Empty thread list, initial drawing
+    if (ThreadListUI.container.querySelectorAll('li').length === 0) {
+      var lastHeader;
+      var fragments = [];
+      // we're already in the right order so we can go go go!
+      threads.forEach(function(t) {
+        var dayDate = Utils.getDayDate(t.timestamp);
+        if (dayDate !== lastHeader) {
+          lastHeader = dayDate;
+
+          // and add the thread container
+          fragments.push(ThreadListUI.createThreadContainer(dayDate));
         }
-        var thread = threads.pop();
-        setTimeout(function() {
-          ThreadListUI.appendThread(thread);
-          appendThreads(threads, callback);
-        });
-      };
 
-      appendThreads(threads, function at_callback() {
-        // Boot update of headers
-        Utils.updateTimeHeaders();
-        // Once the rendering it's done, callback if needed
-        if (renderCallback) {
-          renderCallback();
+        // create thread element
+        var threadFragment = ThreadListUI.createThread(t);
+
+        // Update info given a number
+        var num = t.participants[0];
+        ThreadListUI.updateThreadWithContact(num, threadFragment);
+        // And append...
+        var ul = fragments[fragments.length - 1].childNodes[1];
+        ul.appendChild(threadFragment);
+
+        ThreadListUI.threadHashes[t.id] = getThreadHash(t);
+      });
+
+      // and voila!
+      fragments.forEach(function(f) {
+        ThreadListUI.container.appendChild(f);
+      });
+
+      renderCallback && renderCallback();
+    }
+    // Redraw!
+    else {
+
+      var redrawList = threads.filter(function(t) {
+        return !ThreadListUI.threadHashes[t.id] ||
+          getThreadHash(t) !== ThreadListUI.threadHashes[t.id];
+      });
+
+      var tids = threads.map(function(t) {
+        return t.id + '';
+      });
+      var deleteList = Object.keys(ThreadListUI.threadHashes).filter(function(id) {
+        return tids.indexOf('' + id) === -1;
+      });
+
+      deleteList.forEach(function(tid) {
+        ThreadListUI.deleteThreadFromUi(tid);
+        delete ThreadListUI.threadHashes[tid];
+      });
+
+      // redrawlist is in order, so we can just do iterate over
+      // until we found one that is older than us
+      redrawList.forEach(function(thread) {
+        var li = document.getElementById('thread_' + thread.id);
+        if (!li) {
+          // create thread element
+          li = ThreadListUI.createThread(thread);
+
+          // Update info given a number
+          ThreadListUI.updateThreadWithContact(thread.participants[0], li);
+
+          ThreadListUI.insertThreadInUi(li, thread, threads, tids);
+        }
+        else {
+          // update thread
+          var allPs = li.querySelectorAll('p');
+          allPs[allPs.length - 1].childNodes[1].textContent = thread.body;
+
+          if (thread.unreadCount > 0)
+            li.querySelector('a').classList.add('unread');
+          else
+            li.querySelector('a').classList.remove('unread');
+
+          li.querySelector('time').textContent = Utils.getFormattedHour(thread.timestamp);
+
+          var oldParent = li.parentNode;
+
+          ThreadListUI.insertThreadInUi(li, thread, threads, tids);
+
+          // if the old container is now empty...
+          if (oldParent.childNodes.length === 0) {
+            // delete header and ul elements
+            oldParent.parentNode.removeChild(oldParent.previousSibling);
+            oldParent.parentNode.removeChild(oldParent);
+          }
         }
       });
-    } else {
-      // There are no messages to display.
-      //  1. Remove the "hide" class from threads-no-messages display
-      //  2. Add the "hide" class to the view
-      //
-      ThreadListUI.noMessages.classList.remove('hide');
-      ThreadListUI.container.classList.add('hide');
-      ThreadListUI.editIcon.classList.add('disabled');
 
-      // Callback if exist
-      if (renderCallback) {
-        setTimeout(function executeCB() {
-          renderCallback();
-        });
+      renderCallback && renderCallback();
+    }
+  },
+
+  insertThreadInUi: function(li, thread, allThreads, tids) {
+    // Get the container
+    // threadsContainer_
+    var dayDate = Utils.getDayDate(thread.timestamp);
+    var container = document.getElementById(
+      'threadsContainer_' + dayDate);
+    if (!container) {
+      container = ThreadListUI.createThreadContainer(dayDate);
+      container.childNodes[1].appendChild(li);
+
+      // find previous node and then add it
+      var daydate = Utils.getDayDate((allThreads[tids.indexOf('' + thread.id) - 1] || {}).timestamp);
+      var previousNode = document.getElementById('threadsContainer_' + daydate);
+
+      if (previousNode) {
+        previousNode.parentNode.insertBefore(container, previousNode.nextSibling);
       }
+      else {
+        ThreadListUI.container.insertBefore(container, ThreadListUI.container.querySelectorAll('header')[0]);
+      }
+    }
+    else {
+      // find previous node and then add it
+      var previousNode = document.getElementById(
+          'thread_' + (allThreads[tids.indexOf('' + thread.id) - 1] || {}).id
+        );
+
+      if (previousNode && previousNode.parentNode === container)
+        previousNode.parentNode.insertBefore(li, previousNode.nextSibling);
+      else
+        container.insertBefore(li, container.querySelectorAll('li')[0]);
+    }
+  },
+
+  deleteThreadFromUi: function(tid) {
+    var li = document.getElementById('thread_' + tid);
+    // remove this node
+    var parent = li.parentNode;
+    parent.removeChild(li);
+    if (parent.childNodes.length === 0) {
+      // no more children? remove ul and header
+      var header = parent.previousSibling;
+      parent.parentNode.removeChild(header);
+      parent.parentNode.removeChild(parent);
     }
   },
 
@@ -300,59 +413,7 @@ var ThreadListUI = {
 
     return threadDOM;
   },
-  insertThreadContainer:
-    function thlui_insertThreadContainer(fragment, timestamp) {
-    // We look for placing the group in the right place.
-    var headers = ThreadListUI.container.getElementsByTagName('header');
-    var groupFound = false;
-    for (var i = 0; i < headers.length; i++) {
-      if (timestamp >= headers[i].dataset.time) {
-        groupFound = true;
-        ThreadListUI.container.insertBefore(fragment, headers[i]);
-        break;
-      }
-    }
-    if (!groupFound) {
-      ThreadListUI.container.appendChild(fragment);
-    }
-  },
-  appendThread: function thlui_appendThread(thread) {
-    var num = thread.participants[0];
-    var timestamp = thread.timestamp.getTime();
-    // We create the DOM element of the thread
-    var threadDOM = this.createThread(thread);
-    // Update info given a number
-    ThreadListUI.updateThreadWithContact(num, threadDOM);
 
-    // Is there any container already?
-    var threadsContainerID = 'threadsContainer_' +
-                              Utils.getDayDate(thread.timestamp);
-    var threadsContainer = document.getElementById(threadsContainerID);
-    // If there is no container we create & insert it to the DOM
-    if (!threadsContainer) {
-      // We create the fragment with groul 'header' & 'ul'
-      var threadsContainerFragment =
-        ThreadListUI.createThreadContainer(timestamp);
-      // Update threadsContainer with the new value
-      threadsContainer = threadsContainerFragment.childNodes[1];
-      // Place our new fragment in the DOM
-      ThreadListUI.insertThreadContainer(threadsContainerFragment, timestamp);
-    }
-
-    // Where have I to place the new thread?
-    var threads = threadsContainer.getElementsByTagName('li');
-    var threadFound = false;
-    for (var i = 0, l = threads.length; i < l; i++) {
-      if (timestamp > threads[i].dataset.time) {
-        threadFound = true;
-        threadsContainer.insertBefore(threadDOM, threads[i]);
-        break;
-      }
-    }
-    if (!threadFound) {
-      threadsContainer.appendChild(threadDOM);
-    }
-  },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createThreadContainer: function thlui_createThreadContainer(timestamp) {
     var threadContainer = document.createDocumentFragment();
