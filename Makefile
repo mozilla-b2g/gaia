@@ -736,10 +736,15 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
 	$(ADB) shell rm -r $(MSYS_FIX)/data/local/webapps
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
+	rm profile/settings.json
 
 # Build the settings.json file from settings.py
 ifeq ($(NOFTU), 1)
 SETTINGS_ARG += --noftu
+endif
+
+ifeq ($(MARIONETTE), 1)
+SETTINGS_ARG += --enable-marionette
 endif
 
 ifeq ($(REMOTE_DEBUGGER), 1)

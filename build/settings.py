@@ -154,6 +154,7 @@ def main():
     parser.add_option(      "--locale", help="specify the default locale to use")
     parser.add_option(      "--hidpi", help="specify if the target device has hidpi screen")
     parser.add_option(      "--enable-debugger", help="enable remote debugger (and ADB for VARIANT=user builds)", action="store_true")
+    parser.add_option(      "--enable-marionette", help="enable marionette disables remove debugger", action="store_true")
     (options, args) = parser.parse_args(sys.argv[1:])
 
     verbose = options.verbose
@@ -182,6 +183,11 @@ def main():
             wallpaper_filename = "build/wallpaper.jpg"
 
     enable_debugger = (options.enable_debugger == True)
+    enable_marionette = (options.enable_marionette == True)
+
+    if enable_marionette:
+        enable_debugger = False;
+
 
     if verbose:
         print "Console:", options.console
@@ -190,6 +196,7 @@ def main():
         print "Setting Filename:",settings_filename
         print "Wallpaper Filename:", wallpaper_filename
         print "Enable Debugger:", enable_debugger
+        print "Enable Marionette:", enable_marionette
 
     # Set the default console output
     if options.console:
@@ -213,6 +220,7 @@ def main():
             settings["keyboard.layouts.{0}".format(default_layout)] = True
 
     settings["devtools.debugger.remote-enabled"] = enable_debugger
+    settings["marionette.defaultPrefs.enabled"] = enable_marionette
 
     # Grab wallpaper.jpg and convert it into a base64 string
     wallpaper_file = open(wallpaper_filename, "rb")
