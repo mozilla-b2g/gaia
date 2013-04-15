@@ -117,6 +117,10 @@ var ThreadUI = {
       'submit', this
     );
 
+    this.tmpl = ['contact', 'highlight'].reduce(function(tmpls, name) {
+      tmpls[name] = Utils.Template('messages-' + name + '-tmpl');
+      return tmpls;
+    }, {});
 
     Utils.startTimeHeaderScheduler();
 
@@ -186,8 +190,7 @@ var ThreadUI = {
     };
 
     // We're waiting for the keyboard to disappear before animating back
-    if (ThreadListUI.fullHeight !==
-        this.container.offsetHeight) {
+    if (ThreadListUI.fullHeight !== this.container.offsetHeight) {
 
       window.addEventListener('resize', function keyboardHidden() {
         window.removeEventListener('resize', keyboardHidden);
@@ -495,6 +498,9 @@ var ThreadUI = {
           // stop the iteration
           return false;
         }
+        if (MessageManager.currentThread === null) {
+          MessageManager.currentThread = message.threadId;
+        }
         self.appendMessage(message,/*hidden*/ true);
         self.messageIndex++;
         if (self.messageIndex === self.CHUNK_SIZE) {
@@ -512,7 +518,7 @@ var ThreadUI = {
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     // Retrieve all data from message
     var id = message.id;
-    var bodyText = Utils.escapeHTML(message.body);
+    var bodyText = Utils.Message.format(message.body);
     var delivery = message.delivery;
     var messageDOM = document.createElement('li');
 
@@ -711,17 +717,17 @@ var ThreadUI = {
       'input[type="checkbox"]'
     );
     if (selected.length == allInputs.length) {
-      this.checkAllButton.classList.add('disabled');
+      this.checkAllButton.disabled = true;
     } else {
-      this.checkAllButton.classList.remove('disabled');
+      this.checkAllButton.disabled = false;
     }
     if (selected.length > 0) {
-      this.uncheckAllButton.classList.remove('disabled');
-      this.deleteButton.classList.remove('disabled');
+      this.uncheckAllButton.disabled = false;
+      this.deleteButton.disabled = false;
       this.editMode.innerHTML = _('selected', {n: selected.length});
     } else {
-      this.uncheckAllButton.classList.add('disabled');
-      this.deleteButton.classList.add('disabled');
+      this.uncheckAllButton.disabled = true;
+      this.deleteButton.disabled = true;
       this.editMode.innerHTML = _('editMode');
     }
   },
@@ -906,64 +912,58 @@ var ThreadUI = {
     ThreadUI.sendMessage(message.body);
   },
 
-  renderContactData: function thui_renderContactData(contact) {
-    // Retrieve info from thread
-    var self = this;
+  renderContact: function thui_renderContact(contact) {
+    var input = this.recipient.value.trim();
+    var escaped = Utils.escapeRegex(input);
+    var escsubs = escaped.split(/\s+/);
     var tels = contact.tel;
-    var contactsContainer = document.createElement('ul');
-    contactsContainer.classList.add('contactList');
+    var name = contact.name[0];
+    var regexps = {
+      name: new RegExp('(\\b' + escsubs.join(')|(\\b') + ')', 'gi'),
+      number: new RegExp(escaped, 'ig')
+    };
+
+    var contactsUl = document.createElement('ul');
+    contactsUl.classList.add('contactList');
+
     for (var i = 0; i < tels.length; i++) {
-      Utils.getPhoneDetails(
-        tels[i].value, contact, function gotDetails(details) {
+      var current = tels[i];
+      var number = current.value;
 
-        var name = Utils.escapeHTML((contact.name[0] || details.title));
-        //TODO ask UX if we should use type+carrier or just number
-        var number = tels[i].value.toString();
-        var input = self.recipient.value;
-        // For name, as long as we do a startsWith on API,
-        // we want only to show
-        // highlight of the startsWith also
-        var regName = new RegExp('\\b' + input, 'ig');
-        // For number we search in any position to avoid country code issues
-        var regNumber = new RegExp(input, 'ig');
+      Utils.getPhoneDetails(number, contact, function(details) {
+        var contactLi = document.createElement('li');
+        var data = {
+          name: Utils.escapeHTML(name || details.title),
+          number: Utils.escapeHTML(number),
+          type: current.type || '',
+          carrier: current.carrier || '',
+          srcAttr: details.photoURL ?
+            'src="' + Utils.escapeHTML(details.photoURL) + '"' : '',
+          nameHTML: '',
+          numberHTML: ''
+        };
 
-        var nameHTML = name.match(regName) ?
-              SearchUtils.createHighlightHTML(name, regName, 'highlight') :
-              name;
+        ['name', 'number'].forEach(function(key) {
+          data[key + 'HTML'] = data[key].replace(
+            regexps[key], function(match) {
+              return this.tmpl.highlight.interpolate({
+                str: match
+              });
+            }.bind(this)
+          );
+        }, this);
 
-        var numHTML = number.match(regNumber) ?
-              SearchUtils.createHighlightHTML(number, regNumber, 'highlight') :
-              number;
+        // Interpolate HTML template with data and inject.
+        // Known "safe" HTML values will not be re-sanitized.
+        contactLi.innerHTML = this.tmpl.contact.interpolate(data, {
+          safe: ['nameHTML', 'numberHTML', 'srcAttr']
+        });
+        contactsUl.appendChild(contactLi);
 
-        // Create DOM element
-        var contactDOM = document.createElement('li');
-
-        // Do we have to update with photo?
-        if (contact.photo && contact.photo[0]) {
-          var photoURL = URL.createObjectURL(contact.photo[0]);
-        }
-
-        // Create HTML structure
-        var structureHTML =
-                '  <a href="#num=' + number + '">' +
-                '<aside class="pack-end">' +
-                  '<img ' + (photoURL ? 'src="' + photoURL + '"' : '') + '>' +
-                '</aside>' +
-                '    <p class="name">' + nameHTML + '</div>' +
-                '    <p>' +
-                      tels[i].type +
-                      ' ' + numHTML +
-                      ' ' + (tels[i].carrier ? tels[i].carrier : '') +
-                '    </p>' +
-                '  </a>';
-        // Update HTML and append
-        contactDOM.innerHTML = structureHTML;
-
-        contactsContainer.appendChild(contactDOM);
-      });
+      }.bind(this));
     }
 
-    ThreadUI.container.appendChild(contactsContainer);
+    ThreadUI.container.appendChild(contactsUl);
   },
 
   searchContact: function thui_searchContact() {
@@ -980,18 +980,9 @@ var ThreadUI = {
     }
 
     Contacts.findByString(filterValue, function gotContact(contacts) {
-      // !contacts matches null results from errors
-      // !contacts.length matches empty arrays from unmatches filters
-      if (!contacts || !contacts.length) {
-        this.container.classList.add('hide');
-        return;
-      }
-
       // There are contacts that match the input.
       this.container.innerHTML = '';
-      this.container.classList.remove('hide');
-
-      contacts.forEach(this.renderContactData.bind(this));
+      contacts.forEach(this.renderContact, this);
     }.bind(this));
   },
 

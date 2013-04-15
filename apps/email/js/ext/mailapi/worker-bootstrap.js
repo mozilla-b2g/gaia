@@ -6392,7 +6392,8 @@ FolderStorage.prototype = {
         deleteTriggered = false;
         callActive = true;
         deletionCount++;
-        this.deleteMessageHeaderAndBody(lastHeader, deleteNextHeader);
+        this.deleteMessageHeaderAndBodyUsingHeader(lastHeader,
+                                                   deleteNextHeader);
         callActive = false;
         if (!deleteTriggered)
           return;
@@ -7035,12 +7036,14 @@ FolderStorage.prototype = {
     }.bind(this);
 
     // -- grab from database if we have ever synchronized this folder
-    if (this._accuracyRanges.length) {
+    // OR if it's synthetic
+    if (this._accuracyRanges.length || this.folderMeta.type === 'localdrafts') {
       // We can only trigger a refresh if we are online.  Our caller may want to
       // force the refresh, ignoring recency data.  (This logic was too ugly as
       // a straight-up boolean/ternarny combo.)
       var triggerRefresh;
-      if (this._account.universe.online && this.folderSyncer.syncable) {
+      if (this._account.universe.online && this.folderSyncer.syncable &&
+          this.folderMeta.type !== 'localdrafts') {
         if (forceRefresh)
           triggerRefresh = 'force';
         else
@@ -7062,9 +7065,9 @@ FolderStorage.prototype = {
     }
     // (we have never synchronized this folder)
 
-    // -- issue a failure if we/the folder are offline
+    // -- no work to do if we are offline or synthetic folder
     if (!this._account.universe.online ||
-        !this.folderSyncer.syncable) {
+        this.folderMeta.type === 'localdrafts') {
       doneCallback();
       return;
     }
@@ -8509,7 +8512,7 @@ FolderStorage.prototype = {
       if (headerOrMutationFunc instanceof Function)
         headerOrMutationFunc(null);
       else
-        throw new Error('Failed to block containing header with date: ' +
+        throw new Error('Failed to find block containing header with date: ' +
                         date + ' id: ' + id);
     }
     else if (!this._headerBlocks.hasOwnProperty(info.blockId))
@@ -8584,10 +8587,19 @@ FolderStorage.prototype = {
     return !!blockId;
   },
 
-  deleteMessageHeaderAndBody: function(header, callback) {
+  deleteMessageHeaderAndBody: function(suid, date, callback) {
+    this.getMessageHeader(suid, date, function(header) {
+      if (header)
+        this.deleteMessageHeaderAndBodyUsingHeader(header, callback);
+      else
+        callback();
+    }.bind(this));
+  },
+
+  deleteMessageHeaderAndBodyUsingHeader: function(header, callback) {
     if (this._pendingLoads.length) {
-      this._deferredCalls.push(this.deleteMessageHeaderAndBody.bind(
-                                 this, header, callback));
+      this._deferredCalls.push(this.deleteMessageHeaderAndBodyUsingHeader.bind(
+                               this, header, callback));
       return;
     }
 
@@ -8644,7 +8656,7 @@ FolderStorage.prototype = {
       for (var i = 0; i < headers.length; i++) {
         var header = headers[i];
         if (header.srvid === srvid) {
-          this.deleteMessageHeaderAndBody(header);
+          this.deleteMessageHeaderAndBodyUsingHeader(header);
           return;
         }
       }
@@ -8724,7 +8736,7 @@ FolderStorage.prototype = {
 
       sizeEst += STR_OVERHEAD_EST * (reps.length / 2);
       for (var i = 0; i < reps.length; i++) {
-        rep = reps[i];
+        var rep = reps[i];
         if (rep.type === 'html') {
           sizeEst += STR_OVERHEAD_EST + rep.amountDownloaded;
         } else {
@@ -9975,7 +9987,10 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
         if (header.srvid)
           stateDelta.serverIdMap[header.suid] = header.srvid;
 
-        if (sourceStorage === targetStorage) {
+        if (sourceStorage === targetStorage ||
+            // localdraft messages aren't real, and so must not be moved and
+            // are only eligible for nuke deletion.
+            sourceStorage.folderMeta.type === 'localdrafts') {
           if (op.type === 'move') {
             // A move from a folder to itself is a no-op.
             processNext();
@@ -9983,11 +9998,12 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
           else { // op.type === 'delete'
             // If the op is a delete and the source and destination folders
             // match, we're deleting from trash, so just perma-delete it.
-            sourceStorage.deleteMessageHeaderAndBody(header, processNext);
+            sourceStorage.deleteMessageHeaderAndBodyUsingHeader(
+              header, processNext);
           }
         }
         else {
-          sourceStorage.deleteMessageHeaderAndBody(
+          sourceStorage.deleteMessageHeaderAndBodyUsingHeader(
             header, deleted_nowAdd);
         }
       }
@@ -10198,6 +10214,97 @@ exports.undo_download = function(op, callback) {
   callback(null);
 };
 
+
+exports.local_do_saveDraft = function(op, callback) {
+  var localDraftsFolder = this.account.getFirstFolderWithType('localdrafts');
+  if (!localDraftsFolder) {
+    callback('moot');
+    return;
+  }
+  var self = this;
+  this._accessFolderForMutation(
+    localDraftsFolder.id, /* needConn*/ false,
+    function(nullFolderConn, folderStorage) {
+      function next() {
+        if (--waitingFor === 0) {
+          callback(
+            null,
+            { suid: header.suid, date: header.date },
+            /* save account */ true);
+        }
+      }
+      var waitingFor = 2;
+
+      var header = op.header, body = op.body;
+      // fill-in header id's
+      header.id = folderStorage._issueNewHeaderId();
+      header.suid = folderStorage.folderId + '/' + header.id;
+
+      // If there already was a draft saved, delete it.
+      // Note that ordering of the removal and the addition doesn't really
+      // matter here because of our use of transactions.
+      if (op.existingNamer) {
+        waitingFor++;
+        folderStorage.deleteMessageHeaderAndBody(
+          op.existingNamer.suid, op.existingNamer.date, next);
+      }
+
+      folderStorage.addMessageHeader(header, next);
+      folderStorage.addMessageBody(header, body, next);
+    },
+    /* no conn => no deathback required */ null,
+    'saveDraft');
+};
+
+exports.do_saveDraft = function(op, callback) {
+  // there is no server component for this
+  callback(null);
+};
+exports.check_saveDraft = function(op, callback) {
+  callback(null, 'moot');
+};
+exports.local_undo_saveDraft = function(op, callback) {
+  callback(null);
+};
+exports.undo_saveDraft = function(op, callback) {
+  callback(null);
+};
+
+exports.local_do_deleteDraft = function(op, callback) {
+  var localDraftsFolder = this.account.getFirstFolderWithType('localdrafts');
+  if (!localDraftsFolder) {
+    callback('moot');
+    return;
+  }
+  var self = this;
+  this._accessFolderForMutation(
+    localDraftsFolder.id, /* needConn*/ false,
+    function(nullFolderConn, folderStorage) {
+      folderStorage.deleteMessageHeaderAndBody(
+        op.messageNamer.suid, op.messageNamer.date,
+        function() {
+          callback(null, null, /* save account */ true);
+        });
+    },
+    /* no conn => no deathback required */ null,
+    'deleteDraft');
+};
+
+exports.do_deleteDraft = function(op, callback) {
+  // there is no server component for this
+  callback(null);
+};
+exports.check_deleteDraft = function(op, callback) {
+  callback(null, 'moot');
+};
+exports.local_undo_deleteDraft = function(op, callback) {
+  callback(null);
+};
+exports.undo_deleteDraft = function(op, callback) {
+  callback(null);
+};
+
+
 exports.postJobCleanup = function(passed) {
   if (passed) {
     var deltaMap, fullMap;
@@ -10218,7 +10325,7 @@ exports.postJobCleanup = function(passed) {
       deltaMap = this._stateDelta.moveMap;
       fullMap = this._state.moveMap;
       for (var oldSuid in deltaMap) {
-        var newSuid = deltaMap[suid];
+        var newSuid = deltaMap[oldSuid];
         fullMap[oldSuid] = newSuid;
       }
     }
@@ -11352,8 +11459,9 @@ var FOLDER_TYPE_TO_SORT_PRIORITY = {
   starred: 'e',
   important: 'f',
   drafts: 'g',
-  queue: 'h',
-  sent: 'i',
+  localdrafts: 'h',
+  queue: 'i',
+  sent: 'j',
   junk: 'k',
   trash: 'm',
   archive: 'o',
@@ -12051,9 +12159,9 @@ MailBridge.prototype = {
     require(['./composer'], function ($composer) {
       var req = this._pendingRequests[msg.handle] = {
         type: 'compose',
-        // XXX draft persistence/saving to-do/etc.
-        persistedFolder: null,
-        persistedUID: null,
+        active: 'begin',
+        persistedNamer: null,
+        die: false
       };
 
       // - figure out the identity to use
@@ -12070,6 +12178,7 @@ MailBridge.prototype = {
         return this.__sendMessage({
           type: 'composeBegun',
           handle: msg.handle,
+          error: null,
           identity: identity,
           subject: '',
           body: { text: '', html: null },
@@ -12151,9 +12260,11 @@ MailBridge.prototype = {
           else {
             referencesStr = '<' + msg.refGuid + '>';
           }
+          req.active = null;
           self.__sendMessage({
             type: 'composeBegun',
             handle: msg.handle,
+            error: null,
             identity: identity,
             subject: $composer.mailchew
                        .generateReplySubject(msg.refSubject),
@@ -12169,9 +12280,11 @@ MailBridge.prototype = {
           });
         }
         else {
+          req.active = null;
           self.__sendMessage({
             type: 'composeBegun',
             handle: msg.handle,
+            error: null,
             identity: identity,
             subject: 'Fwd: ' + msg.refSubject,
             // blank lines at the top are baked in by the func
@@ -12194,25 +12307,147 @@ MailBridge.prototype = {
     }.bind(this));
   },
 
+  _cmd_resumeCompose: function mb__cmd_resumeCompose(msg) {
+    var req = this._pendingRequests[msg.handle] = {
+      type: 'compose',
+      active: 'resume',
+      persistedNamer: msg.messageNamer,
+      die: false
+    };
+
+    // NB: We are not acquiring the folder mutex here because
+    var account = this.universe.getAccountForMessageSuid(msg.messageNamer.suid);
+    var folderStorage = this.universe.getFolderStorageForMessageSuid(
+                          msg.messageNamer.suid);
+    var self = this;
+    folderStorage.runMutexed('resumeCompose', function(callWhenDone) {
+      function fail() {
+        self.__sendMessage({
+          type: 'composeBegun',
+          handle: msg.handle,
+          error: 'no-message'
+        });
+        callWhenDone();
+      }
+      folderStorage.getMessage(msg.messageNamer.suid, msg.messageNamer.date,
+                               function(res) {
+        try {
+          if (!res.header || !res.body) {
+            fail();
+            return;
+          }
+          var header = res.header, body = res.body;
+
+          // -- convert from header/body rep to compose rep
+
+          var composeBody = {
+            text: '',
+            html: null,
+          };
+
+          // Body structure should be guaranteed, but add some checks.
+          if (body.bodyReps.length >= 1 &&
+              body.bodyReps[0].type === 'plain' &&
+              body.bodyReps[0].content.length === 2 &&
+              body.bodyReps[0].content[0] === 0x1) {
+            composeBody.text = body.bodyReps[0].content[1];
+          }
+          // HTML is optional, but if present, should satisfy our guard
+          if (body.bodyReps.length == 2 &&
+              body.bodyReps[1].type === 'html') {
+            composeBody.html = body.bodyReps[1].content;
+          }
+
+          var attachments = [];
+          body.attachments.forEach(function(att) {
+            attachments.push({
+              name: att.name,
+              blob: att.file
+            });
+          });
+
+          req.active = null;
+          self.__sendMessage({
+            type: 'composeBegun',
+            handle: msg.handle,
+            error: null,
+            identity: account.identities[0],
+            subject: header.subject,
+            body: composeBody,
+            to: header.to,
+            cc: header.cc,
+            bcc: header.bcc,
+            // we abuse guid to serve as the references list...
+            referencesStr: header.guid,
+            attachments: attachments
+          });
+          callWhenDone();
+        }
+        catch (ex) {
+          fail(); // calls callWhenDone
+        }
+      });
+    });
+  },
+
   _cmd_doneCompose: function mb__cmd_doneCompose(msg) {
     require(['./composer'], function ($composer) {
+      var req = this._pendingRequests[msg.handle], self = this;
+      if (!req)
+        return;
+      if (msg.command === 'die') {
+        if (req.active)
+          req.die = true;
+        else
+          delete this._pendingRequests[msg.handle];
+        return;
+      }
+      var account;
       if (msg.command === 'delete') {
+        function sendDeleted() {
+          self.__sendMessage({
+            type: 'doneCompose',
+            handle: msg.handle,
+            err: null,
+            badAddresses: null,
+            messageId: null,
+            sentDate: null
+          });
+        }
+        if (req.persistedNamer) {
+          account = this.universe.getAccountForMessageSuid(
+                      req.persistedNamer.suid);
+          this.universe.deleteDraft(account, req.persistedNamer, sendDeleted);
+        }
+        else {
+          sendDeleted();
+        }
+        delete this._pendingRequests[msg.handle];
         // XXX if we have persistedFolder/persistedUID, enqueue a delete of that
         // message and try and execute it.
         return;
       }
+
+
       var wireRep = msg.state,
           identity = this.universe.getIdentityForSenderIdentityId(
-                       wireRep.senderId),
-          account = this.universe.getAccountForSenderIdentityId(
-                      wireRep.senderId),
-          composer = new $composer.Composer(msg.command, wireRep,
-                                            account, identity);
+                       wireRep.senderId);
+      account = this.universe.getAccountForSenderIdentityId(wireRep.senderId);
 
       if (msg.command === 'send') {
+        var composer = new $composer.Composer(msg.command, wireRep,
+                                              account, identity);
+
+        req.active = null;
+        if (req.die)
+          delete this._pendingRequests[msg.handle];
         account.sendMessage(composer, function(err, badAddresses) {
+          // If there was an associated/saved draft, clear it out, but there's
+          // no need to wait for that to complete.
+          if (req.persistedNamer)
+            this.universe.deleteDraft(account, req.persistedNamer);
           this.__sendMessage({
-            type: 'sent',
+            type: 'doneCompose',
             handle: msg.handle,
             err: err,
             badAddresses: badAddresses,
@@ -12221,8 +12456,81 @@ MailBridge.prototype = {
           });
         }.bind(this));
       }
-      else { // (msg.command === draft)
-        // XXX save drafts!
+      else if (msg.command === 'save') {
+        // -- convert from compose rep to header/body rep
+        var msgTimestamp = Date.now();
+        var header = {
+          id: null, // filled in by the job
+          srvid: null, // stays null
+          suid: null, // filled in by the job
+          guid: null, // unused
+          author: { name: identity.name, address: identity.address},
+          to: wireRep.to,
+          cc: wireRep.cc,
+          bcc: wireRep.bcc,
+          replyTo: null,
+          date: msgTimestamp,
+          flags: [],
+          hasAttachments: !!wireRep.attachments.length,
+          subject: wireRep.subject,
+          snippet: wireRep.body.text.substring(0, 100),
+        };
+        var body = {
+          date: msgTimestamp,
+          size: 0,
+          attachments: [],
+          relatedParts: [],
+          references: wireRep.referencesStr,
+          bodyReps: []
+        };
+        wireRep.attachments.forEach(function(wireAtt) {
+          body.attachments.push({
+            name: wireAtt.name,
+            contentId: null,
+            type: wireAtt.blob.type,
+            part: null,
+            encoding: null,
+            sizeEstimate: wireAtt.blob.size,
+            file: wireAtt.blob
+          });
+        });
+        body.bodyReps.push({
+          type: 'plain',
+          part: null,
+          sizeEstimate: wireRep.body.text.length,
+          amountDownloaded: wireRep.body.text.length,
+          isDownloaded: true,
+          _partInfo: {},
+          content: [0x1, wireRep.body.text]
+        });
+        if (wireRep.body.html) {
+          body.bodyReps.push({
+            type: 'html',
+            part: null,
+            sizeEstimate: wireRep.body.html.length,
+            amountDownloaded: wireRep.body.html.length,
+            isDownloaded: true,
+            _partInfo: {},
+            content: wireRep.body.html
+          });
+        }
+
+        this.universe.saveDraft(
+          account, req.persistedNamer, header, body,
+          function(err, messageNamer) {
+            req.active = null;
+            req.persistedNamer = messageNamer;
+            if (req.die)
+              delete self._pendingRequests[msg.handle];
+            self.__sendMessage({
+              type: 'doneCompose',
+              handle: msg.handle,
+              err: null,
+              badAddresses: null,
+              messageId: null,
+              sentDate: null,
+            });
+          });
       }
     }.bind(this));
   },
@@ -13740,6 +14048,9 @@ var MAX_LOG_BACKLOG = 30;
  *     }
  *     @case['undone']{
  *     }
+ *     @case['moot']{
+ *       Either the local or server operation failed and mooted the operation.
+ *     }
  *   ]]{
  *     Tracks the overall desired state and completion state of the operation.
  *     Operations currently cannot be redone after they are undone.  This field
@@ -13812,6 +14123,9 @@ var MAX_LOG_BACKLOG = 30;
  *       assume something is fundamentally wrong and the request simply cannot
  *       be executed.
  *     }
+ *     @case['n/a']{
+ *       The op does not need to be run online.
+ *     }
  *   ]]{
  *     The state of the operation on the server.  This is tracked separately
  *     from the `localStatus` to reduce the number of possible states.
@@ -13874,8 +14188,6 @@ function MailUniverse(callAfterBigBang, testOptions) {
   this._opCompletionListenersByAccount = {};
   // maps longtermId to a callback that cares. non-persisted.
   this._opCallbacks = {};
-  // counter for session only jobs
-  this._sessionOnlyJobId = 1;
 
   this._bridges = [];
 
@@ -14292,7 +14604,7 @@ MailUniverse.prototype = {
     $acctcommon.accountTypeToClass(accountDef.type, function (constructor) {
       if (!constructor) {
         this._LOG.badAccountType(accountDef.type);
-        return null;
+        return;
       }
       var account = new constructor(this, accountDef, folderInfo, this._db,
                                     receiveProtoConn, this._LOG);
@@ -14325,7 +14637,8 @@ MailUniverse.prototype = {
       // maintained in this list.
       for (var i = 0; i < account.mutations.length; i++) {
         var op = account.mutations[i];
-        if (op.lifecycle !== 'done' && op.lifecycle !== 'undone') {
+        if (op.lifecycle !== 'done' && op.lifecycle !== 'undone' &&
+            op.lifecycle !== 'moot') {
           // For localStatus, we currently expect it to be consistent with the
           // state of the folder's database.  We expect this to be true going
           // forward and as we make changes because when we save the account's
@@ -14338,7 +14651,6 @@ MailUniverse.prototype = {
           this._queueAccountOp(account, op);
         }
       }
-
       callback(account);
     }.bind(this));
   },
@@ -14619,7 +14931,8 @@ MailUniverse.prototype = {
         localQueue = queues.local;
     queues.active = false;
 
-    var removeFromServerQueue = false;
+    var removeFromServerQueue = false,
+        completeOp = false;
     if (err) {
       switch (err) {
         // Only defer is currently supported as a recoverable local failure
@@ -14634,9 +14947,11 @@ MailUniverse.prototype = {
           // fall-through to an error
         default:
           this._LOG.opGaveUp(op.type, op.longtermId);
+          op.lifecycle = 'moot';
           op.localStatus = 'unknown';
           op.serverStatus = 'moot';
           removeFromServerQueue = true;
+          completeOp = true;
           break;
       }
     }
@@ -14644,9 +14959,17 @@ MailUniverse.prototype = {
       switch (op.localStatus) {
         case 'doing':
           op.localStatus = 'done';
+          if (op.serverStatus === 'n/a') {
+            op.lifecycle = 'done';
+            completeOp = true;
+          }
           break;
         case 'undoing':
           op.localStatus = 'undone';
+          if (op.serverStatus === 'n/a') {
+            op.lifecycle = 'undone';
+            completeOp = true;
+          }
           break;
       }
 
@@ -14655,12 +14978,27 @@ MailUniverse.prototype = {
       if (accountSaveSuggested)
         account.saveAccountState();
     }
+
     if (removeFromServerQueue) {
       var idx = serverQueue.indexOf(op);
       if (idx !== -1)
         serverQueue.splice(idx, 1);
     }
     localQueue.shift();
+
+    if (completeOp) {
+      if (this._opCallbacks.hasOwnProperty(op.longtermId)) {
+        var callback = this._opCallbacks[op.longtermId];
+        delete this._opCallbacks[op.longtermId];
+        try {
+          callback(err, resultIfAny, account, op);
+        }
+        catch(ex) {
+          console.log(ex.message, ex.stack);
+          this._LOG.opCallbackErr(op.type);
+        }
+      }
+    }
 
     if (localQueue.length) {
       op = localQueue[0];
@@ -14758,6 +15096,7 @@ MailUniverse.prototype = {
             completeOp = false;
           }
           else {
+            op.lifecycle = 'moot';
             op.serverStatus = 'moot';
           }
           break;
@@ -14772,11 +15111,13 @@ MailUniverse.prototype = {
         case 'failure-give-up':
           this._LOG.opGaveUp(op.type, op.longtermId);
           // we complete the op, but the error flag is propagated
+          op.lifecycle = 'moot';
           op.serverStatus = 'moot';
           break;
         case 'moot':
           this._LOG.opMooted(op.type, op.longtermId);
           // we complete the op, but the error flag is propagated
+          op.lifecycle = 'moot';
           op.serverStatus = 'moot';
           break;
       }
@@ -14801,6 +15142,7 @@ MailUniverse.prototype = {
               op.serverStatus = 'done';
               break;
             case 'moot':
+              op.lifecycle = 'moot';
               op.serverStatus = 'moot';
               break;
             // this is the same thing as defer.
@@ -14839,6 +15181,7 @@ MailUniverse.prototype = {
       else {
         this._LOG.opTryLimitReached(op.type, op.longtermId);
         // we complete the op, but the error flag is propagated
+        op.lifecycle = 'moot';
         op.serverStatus = 'moot';
       }
     }
@@ -14885,14 +15228,14 @@ MailUniverse.prototype = {
    *
    * @args[
    *   @param[account]
-   *   @param[op]
+   *   @param[op SerializedMutation]{
+   *     Note that a `null` longtermId should be passed in if the operation
+   *     should be persisted, and a 'session' string if the operation should
+   *     not be persisted.  In both cases, a longtermId will be allocated,
+   *   }
    *   @param[optionalCallback #:optional Function]{
    *     A callback to invoke when the operation completes.  Callbacks are
    *     obviously not capable of being persisted and are merely best effort.
-   *   }
-   *   @param[justRequeue #:optional Boolean]{
-   *     If true, we are just re-enqueueing the operation and have no desire
-   *     or need to run the local operations.
    *   }
    * ]
    */
@@ -14904,15 +15247,18 @@ MailUniverse.prototype = {
       op.longtermId = account.id + '/' +
                         $a64.encodeInt(account.meta.nextMutationNum++);
       account.mutations.push(op);
+      // Clear out any completed/dead operations that put us over the undo
+      // threshold.
       while (account.mutations.length > MAX_MUTATIONS_FOR_UNDO &&
              (account.mutations[0].lifecycle === 'done') ||
-             (account.mutations[0].lifecycle === 'undone')) {
+             (account.mutations[0].lifecycle === 'undone') ||
+             (account.mutations[0].lifecycle === 'moot')) {
         account.mutations.shift();
       }
     }
-
-    if (op.sessionOnly) {
-      op.longtermId = op.type + '/' + this._sessionOnlyJobId++;
+    else if (op.longtermId === 'session') {
+      op.longtermId = account.id + '/' +
+                        $a64.encodeInt(account.meta.nextMutationNum++);
     }
 
     if (optionalCallback)
@@ -14926,8 +15272,8 @@ MailUniverse.prototype = {
          (op.lifecycle === 'undo' && op.localStatus !== 'undone' &&
           op.localStatus !== 'unknown')))
       queues.local.push(op);
-    // Server processing is always needed
-    queues.server.push(op);
+    if (op.serverStatus !== 'n/a' && op.serverStatus !== 'moot')
+      queues.server.push(op);
 
     // If there is already something active, don't do anything!
     if (queues.active) {
@@ -14936,11 +15282,10 @@ MailUniverse.prototype = {
       // Only actually dispatch if there is only the op we just (maybe).
       if (queues.local.length === 1 && queues.local[0] === op)
         this._dispatchLocalOpForAccount(account, op);
-      else
-        console.log('local active! not running!');
       // else: we grabbed control flow to avoid the server queue running
     }
-    else if (queues.server.length === 1 && this.online && account.enabled) {
+    else if (queues.server.length === 1 && queues.server[0] === op &&
+             this.online && account.enabled) {
       this._dispatchServerOpForAccount(account, op);
     }
 
@@ -14961,8 +15306,7 @@ MailUniverse.prototype = {
       account,
       {
         type: 'syncFolderList',
-        // no need to track this in the mutations list
-        longtermId: 'internal',
+        longtermId: 'session',
         lifecycle: 'do',
         localStatus: 'done',
         serverStatus: null,
@@ -14983,11 +15327,10 @@ MailUniverse.prototype = {
       account,
       {
         type: 'purgeExcessMessages',
-        // no need to track this in the mutations list
-        longtermId: 'internal',
+        longtermId: 'session',
         lifecycle: 'do',
         localStatus: null,
-        serverStatus: null,
+        serverStatus: 'n/a',
         tryCount: 0,
         humanOp: 'purgeExcessMessages',
         folderId: folderId
@@ -15004,9 +15347,9 @@ MailUniverse.prototype = {
       account,
       {
         type: 'downloadBodyReps',
-        sessionOnly: true,
+        longtermId: 'session',
         lifecycle: 'do',
-        localStatus: null,
+        localStatus: 'done',
         serverStatus: null,
         tryCount: 0,
         humanOp: 'downloadBodyReps',
@@ -15033,7 +15376,7 @@ MailUniverse.prototype = {
         x.account,
         {
           type: 'downloadSnippets',
-          sessionOnly: true, // don't persist this job.
+          longtermId: 'session', // don't persist this job.
           lifecycle: 'do',
           localStatus: null,
           serverStatus: null,
@@ -15155,7 +15498,7 @@ MailUniverse.prototype = {
         type: 'append',
         longtermId: null,
         lifecycle: 'do',
-        localStatus: null,
+        localStatus: 'done',
         serverStatus: null,
         tryCount: 0,
         humanOp: 'append',
@@ -15163,6 +15506,46 @@ MailUniverse.prototype = {
         folderId: folderId,
       });
     return [longtermId];
+  },
+
+  /**
+   * Save a new draft or update an existing draft.
+   */
+  saveDraft: function(account, existingNamer, header, body, callback) {
+    this._queueAccountOp(
+      account,
+      {
+        type: 'saveDraft',
+        longtermId: null,
+        lifecycle: 'do',
+        localStatus: null,
+        serverStatus: 'n/a', // local-only currently
+        tryCount: 0,
+        humanOp: 'saveDraft',
+        existingNamer: existingNamer,
+        header: header,
+        body: body
+      },
+      callback
+    );
+  },
+
+  deleteDraft: function(account, messageNamer, callback) {
+    this._queueAccountOp(
+      account,
+      {
+        type: 'deleteDraft',
+        longtermId: null,
+        lifecycle: 'do',
+        localStatus: null,
+        serverStatus: 'n/a', // local-only currently
+        tryCount: 0,
+        humanOp: 'deleteDraft',
+        messageNamer: messageNamer
+      },
+      callback
+    );
+
   },
 
   /**

@@ -583,7 +583,7 @@ bubble above the key when you tap and hold. */
   border-right: 0.1rem solid #808098;
   font-size: 3.2rem;
   line-height: 6rem;
-  min-width: 6rem;
+  min-width: 5rem;
   display: inline-block;
   height: 6.4rem;
   padding: 0 1rem;
@@ -601,6 +601,11 @@ bubble above the key when you tap and hold. */
   border-radius: 0.4rem;
   margin: 0.3rem;
 }
+
+#keyboard-candidate-panel.latin span.autocorrect {
+  background: #0ac;   /* XXX: gradient like above? */
+}
+
 
 #keyboard-candidate-panel-toggle-button {
   border-left: 0.1rem solid #e8e8ff;

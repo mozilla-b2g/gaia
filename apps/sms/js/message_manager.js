@@ -4,6 +4,9 @@
 'use strict';
 
 var MessageManager = {
+  currentNum: null,
+  currentThread: null,
+  activityBody: null, // Used when getting a sms:?body=... activity.
   init: function mm_init(callback) {
     if (this.initialized) {
       return;
@@ -49,14 +52,15 @@ var MessageManager = {
   onMessageSent: function mm_onMessageSent(e) {
     ThreadUI.onMessageSent(e.message);
   },
-  // This method fills the gap while we wait for next 'getThreadList' request,
+  // This method fills the gap while we wait for next 'getThreads' request,
   // letting us rendering the new thread with a better performance.
   createThreadMockup: function mm_createThreadMockup(message) {
     // Given a message we create a thread as a mockup. This let us render the
     // thread without requesting Gecko, so we increase the performance and we
     // reduce Gecko requests.
     return {
-        senderOrReceiver: message.sender,
+        id: message.threadId,
+        participants: [message.sender],
         body: message.body,
         timestamp: message.timestamp,
         unreadCount: 1
@@ -66,13 +70,9 @@ var MessageManager = {
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
 
-    var num;
-    if (this.currentNum) {
-      num = this.currentNum;
-    }
-
     var sender = message.sender;
-    if (num && num === sender) {
+    var threadId = message.threadId;
+    if (threadId && threadId === this.currentThread) {
       //Append message and mark as unread
       this.markMessagesRead([message.id], true, function() {
         MessageManager.getThreads(ThreadListUI.renderThreads);
@@ -85,9 +85,8 @@ var MessageManager = {
       if (ThreadListUI.container.getElementsByTagName('ul').length === 0) {
         ThreadListUI.renderThreads([threadMockup]);
       } else {
-        var num = threadMockup.senderOrReceiver;
         var timestamp = threadMockup.timestamp.getTime();
-        var previousThread = document.getElementById('thread_' + num);
+        var previousThread = document.getElementById('thread_' + threadId);
         if (previousThread && previousThread.dataset.time > timestamp) {
           // If the received SMS it's older that the latest one
           // We need only to update the 'unread status'
@@ -122,6 +121,12 @@ var MessageManager = {
     ThreadListUI.updateContactsInfo();
     ThreadUI.updateHeaderData();
     Utils.updateTimeHeaders();
+
+    // If we receive a message with screen off, the height is
+    // set to 0 and future checks will fail. So we update if needed
+    if (!ThreadListUI.fullHeight || ThreadListUI.fullHeight === 0) {
+      ThreadListUI.fullHeight = ThreadListUI.container.offsetHeight;
+    }
   },
 
   slide: function mm_slide(callback) {
@@ -164,7 +169,14 @@ var MessageManager = {
         contactButton.parentNode.appendChild(contactButton);
         document.getElementById('messages-container').innerHTML = '';
         ThreadUI.cleanFields();
+        // If the message has a body, use it to popuplate the input field.
+        if (MessageManager.activityBody) {
+          input.value = MessageManager.activityBody;
+          MessageManager.activityBody = null;
+        }
+        // Cleaning global params related with the previous thread
         MessageManager.currentNum = null;
+        MessageManager.currentThread = null;
         threadMessages.classList.add('new');
         MessageManager.slide(function() {
           receiverInput.focus();
@@ -174,7 +186,9 @@ var MessageManager = {
         //Keep the  visible button the :last-child
         var editButton = document.getElementById('icon-edit');
         editButton.parentNode.appendChild(editButton);
+        // Cleaning global params related with the previous thread
         MessageManager.currentNum = null;
+        MessageManager.currentThread = null;
         if (mainWrapper.classList.contains('edit')) {
           mainWrapper.classList.remove('edit');
           if (ThreadListUI.editDone) {
@@ -222,7 +236,8 @@ var MessageManager = {
           } else {
             // As soon as we click in the thread, we visually mark it
             // as read.
-            var threadRead = document.getElementById('thread_' + num);
+            var threadRead =
+              document.querySelector('li[data-phone-number="' + num + '"]');
             if (threadRead) {
               threadRead.getElementsByTagName('a')[0].classList
                     .remove('unread');
@@ -253,16 +268,21 @@ var MessageManager = {
   },
 
   getThreads: function mm_getThreads(callback, extraArg) {
-    var request = this._mozSms.getThreadList();
-    request.onsuccess = function onsuccess(evt) {
-      var threads = evt.target.result;
+    var cursor = this._mozSms.getThreads(),
+        threads = [];
+    cursor.onsuccess = function onsuccess() {
+      if (this.result) {
+        threads.push(this.result);
+        this.continue();
+        return;
+      }
       if (callback) {
         callback(threads, extraArg);
       }
     };
 
-    request.onerror = function onerror() {
-      var msg = 'Reading the database. Error: ' + request.error.name;
+    cursor.onerror = function onerror() {
+      var msg = 'Reading the database. Error: ' + this.error.name;
       console.log(msg);
     };
   },
@@ -272,18 +292,16 @@ var MessageManager = {
         invert = options.invert, // invert selection
         endCB = options.endCB,   // CB when all messages retrieved
         endCBArgs = options.endCBArgs; //Args for endCB
-    var self = this;
-    var request = this._mozSms.getMessages(filter, !invert);
-    request.onsuccess = function onsuccess() {
-      var cursor = request.result;
-      if (cursor.message) {
+    var cursor = this._mozSms.getMessages(filter, !invert);
+    cursor.onsuccess = function onsuccess() {
+      if (!this.done) {
         var shouldContinue = true;
         if (stepCB) {
-          shouldContinue = stepCB(cursor.message);
+          shouldContinue = stepCB(this.result);
         }
         // if stepCB returns false the iteration stops
         if (shouldContinue !== false) { // if this is undefined this is fine
-          cursor.continue();
+          this.continue();
         }
       } else {
         if (endCB) {
@@ -291,8 +309,8 @@ var MessageManager = {
         }
       }
     };
-    request.onerror = function onerror() {
-      var msg = 'Reading the database. Error: ' + request.error.name;
+    cursor.onerror = function onerror() {
+      var msg = 'Reading the database. Error: ' + this.error.name;
       console.log(msg);
     };
   },

@@ -14,20 +14,16 @@ requireApp('system/test/unit/mock_manifest_helper.js');
 requireApp('system/test/unit/mocks_helper.js');
 
 
-var mocksForUpdatable = [
+var mocksHelperForUpdatable = new MocksHelper([
   'CustomDialog',
   'UpdateManager',
   'WindowManager',
   'UtilityTray',
   'ManifestHelper',
   'asyncStorage'
-];
+]);
 
-mocksForUpdatable.forEach(function(mockName) {
-  if (!window[mockName]) {
-    window[mockName] = null;
-  }
-});
+mocksHelperForUpdatable.init();
 
 suite('system/Updatable', function() {
   var subject;
@@ -35,8 +31,9 @@ suite('system/Updatable', function() {
 
   var realDispatchEvent;
   var realL10n;
+  var realMozApps;
 
-  var mocksHelper;
+  var mocksHelper = mocksHelperForUpdatable;
 
   var lastDispatchedEvent = null;
   var fakeDispatchEvent;
@@ -49,19 +46,23 @@ suite('system/Updatable', function() {
       }
     };
 
-    mocksHelper = new MocksHelper(mocksForUpdatable);
+    // we used to set subject._mgmt in setup
+    // but now, this seems to work and feels cleaner
+    realMozApps = navigator.mozApps;
+    navigator.mozApps = { mgmt: MockAppsMgmt };
+
     mocksHelper.suiteSetup();
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
+    navigator.mozApps = realMozApps;
     mocksHelper.suiteTeardown();
   });
 
   setup(function() {
     mockApp = new MockApp();
     subject = new AppUpdatable(mockApp);
-    subject._mgmt = MockAppsMgmt;
 
     fakeDispatchEvent = function(type, value) {
       lastDispatchedEvent = {
@@ -137,19 +138,21 @@ suite('system/Updatable', function() {
       subject = new AppUpdatable(mockApp);
     });
 
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840500.
-    test('should apply update if downloaded', function() {
-      mockApp.readyToApplyDownload = true;
-      subject = new AppUpdatable(mockApp);
-      // We cannot test for this._mgmt methods because it's created in
-      // a constructor, so we check if the window is killed because
-      // WindowManager.kill() is also called in applyUpdate() method
-      assert.equal(MockWindowManager.mLastKilledOrigin, subject.app.origin);
+    suite('applyDownload', function() {
+      setup(function() {
+        mockApp.readyToApplyDownload = true;
+        subject = new AppUpdatable(mockApp);
+      });
+
+      test('should apply update if downloaded', function() {
+        assert.equal(MockAppsMgmt.mLastAppApplied, mockApp);
+      });
+
+      test('should kill the app if downloaded', function() {
+        assert.equal(MockWindowManager.mLastKilledOrigin, mockApp.origin);
+      });
     });
-*/
+
   });
 
   suite('infos', function() {
@@ -401,6 +404,18 @@ suite('system/Updatable', function() {
         test('should still answer to progress events', function() {
           mockApp.mTriggerDownloadProgress(42);
           assert.equal(42, subject.progress);
+        });
+      });
+
+      suite('ondownloaderror, downloadAvailable = false', function() {
+        setup(function() {
+          mockApp.mTriggerDownloadAvailable();
+          mockApp.downloadAvailable = false;
+          mockApp.mTriggerDownloadError();
+        });
+
+        test('should remove self from available updates', function() {
+          assert.equal(MockUpdateManager.mLastUpdatesRemoval, subject);
         });
       });
 

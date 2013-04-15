@@ -22,19 +22,14 @@
   display: block;
 }
 
-#phoneLock-passcode div.passcode-error {
+#phoneLock-passcode .passcode-error {
+  clear: both;
   display: none;
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: calc(100% - 6rem);
+  height: 4.2rem;
+  padding-left: 3rem;
   color: red;
-  font-size: 1.9rem;
-  padding: 1rem 3rem;
-  background: url(images/document_bg.png);
-  z-index: 10;
+  font-size: 1.5rem;
+  line-height: 4.2rem;
 }
 
 #phoneLock-passcode[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
@@ -55,11 +50,15 @@
   position: relative;
 }
 
-#phoneLock-passcode .passcode-container > p {
+#phoneLock-passcode .passcode > label {
   -moz-box-sizing: border-box;
-  font-size: 1.9rem;
-  margin: 0;
-  padding: 1rem 3rem;
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 1.6rem 0 0.4rem;
+  padding: 0 2rem;
+  color: #000;
+  font-size: 1.8rem;
 }
 
 #phoneLock-passcode [data-mode] {
@@ -84,7 +83,7 @@
 #passcode-input {
   z-index: -1;
   position: absolute;
-  top: 0;
+  top: -5rem;
   left: 0;
 }
 
@@ -92,28 +91,28 @@
   position: absolute;
   z-index: 1;
   width: 100%;
-  top: 5rem;
+  top: 0;
   left: 0;
   background: url(images/document-bg.png);
 }
 
 .passcode {
   width: calc(100% - 2rem);
-  margin: 0 auto  1rem;
+  margin: 0 auto;
   overflow: hidden;
 }
 
 .passcode-digit {
   -moz-box-sizing: border-box;
+  position: relative;
   float: left;
   width: calc(25% - 1rem);
-  margin: 0 0.5rem;
   height: 4rem;
+  margin: 0 0.5rem;
+  border: 0.1rem solid #c2c2c2;
   text-align: center;
   background-color: #fff;
-  border: 0.1rem solid #ccc;
-  border-radius: 0.5rem;
-  position: relative;
+  border-radius: 0.3rem;
 }
 
 span.passcode-digit[data-dot]::before {

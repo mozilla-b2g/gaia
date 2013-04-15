@@ -298,6 +298,11 @@ contacts: install-xulrunner-sdk
 # Create webapps
 offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
 
+# Create an empty reference workload
+.PHONY: reference-workload-empty
+reference-workload-empty:
+	test_media/reference-workload/makeReferenceWorkload.sh empty
+
 # Create a light reference workload
 .PHONY: reference-workload-light
 reference-workload-light:
@@ -745,6 +750,12 @@ endif
 ifeq ($(REMOTE_DEBUGGER), 1)
 SETTINGS_ARG += --enable-debugger
 endif
+
+ifeq ($(DEBUG),1)
+SETTINGS_ARG += --homescreen=http://homescreen.$(GAIA_DOMAIN):$(GAIA_PORT)/manifest.webapp
+SETTINGS_ARG += --noftu
+endif
+
 
 # We want the console to be disabled for device builds using the user variant.
 ifneq ($(TARGET_BUILD_VARIANT),user)

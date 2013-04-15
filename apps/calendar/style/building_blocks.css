@@ -82,7 +82,7 @@ body[role="application"] .fieldbox a:after {
   width: 0;
   height: 0;
   border: solid 0.4rem transparent;
-  border-top-color: #333; 
+  border-top-color: #333;
   position: absolute;
   top: 1.8rem;
   margin-left: 0.5rem;
@@ -130,7 +130,7 @@ body[role="application"] > nav > header {
   z-index: 10;
   height: 5rem;
   color: #fff;
-  background: url("building_blocks/drawer/images/ui/header.png") repeat-x left top;
+  background: url("building_blocks/drawer/images/ui/header.png") repeat-x left top / auto 100%;
 }
 
 body[role="application"] > nav > header:after {
@@ -206,9 +206,9 @@ body[role="application"] > nav > header .icon {
   width: 3rem;
   height: 3rem;
   margin: 0 -1rem;
-  background: transparent no-repeat center center;
   text-indent: 100%;
   white-space: nowrap;
+  background: transparent no-repeat center center / 3rem;
   overflow: hidden;
   position: relative;
   height: 4.9rem;
@@ -251,7 +251,7 @@ body[role="application"] > nav > .inner {
 
 body[role="application"] > nav .inner > h2 {
   font-weight: bold;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   line-height: 3.3rem;
   text-indent: 3rem;
   color: #fff;

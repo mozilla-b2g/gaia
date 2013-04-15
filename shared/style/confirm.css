@@ -36,7 +36,7 @@ form[role="dialog"][data-type="confirm"] > section {
   font-weight: lighter;
   font-size: 2.2rem;
   color: #FAFAFA;
-  padding: 0 2.5rem 0 2rem;
+  padding: 0 1.5rem;
   -moz-box-sizing: padding-box;
   width: 100%;
   display: inline-block;

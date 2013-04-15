@@ -14,6 +14,7 @@ input, textarea {
 select {
   border: none;
   background: transparent;
+  font-size: 1.2rem;
 }
 
 input[type="checkbox"] {

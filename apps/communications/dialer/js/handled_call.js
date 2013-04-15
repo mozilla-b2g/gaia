@@ -99,7 +99,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
   if (!number.length) {
     LazyL10n.get(function localized(_) {
-      node.textContent = _('unknown');
+      node.textContent = _('withheld-number');
     });
     return;
   }
@@ -121,7 +121,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
         node.textContent = primaryInfo;
       } else {
         LazyL10n.get(function gotL10n(_) {
-          node.textContent = _('unknown');
+          node.textContent = _('withheld-number');
         });
       }
       KeypadManager.formatPhoneNumber('end', true);

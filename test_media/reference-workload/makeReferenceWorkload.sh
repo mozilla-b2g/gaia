@@ -18,6 +18,15 @@ echo "Device connected"
 
 case $1 in
 
+  empty)
+    IMAGE_COUNT=0
+    MUSIC_COUNT=0
+    VIDEO_COUNT=0
+    CONTACT_COUNT=0
+    SMS_COUNT=0
+    DIALER_COUNT=0
+  ;;
+
   light)
     IMAGE_COUNT=20
     MUSIC_COUNT=20
@@ -55,7 +64,7 @@ case $1 in
   ;;
 
   *)
-    echo "Size parameter must be one of (light/medium/heavy/x-heavy)"
+    echo "Size parameter must be one of (empty/light/medium/heavy/x-heavy)"
     exit
 
 esac
@@ -64,6 +73,15 @@ echo "Populate Databases - $1 Workload"
 
 adb shell stop b2g
 APPS=${APPS:-${APP}}
+
+IDB_PRESENT=$(adb shell 'ls -l /data/local/indexedDB/chrome/' | grep '^d.*idb')
+if [ -z "$IDB_PRESENT" ]; then
+  echo "idb directory not present"
+  IDB_PATH=""
+else
+  echo "idb directory present"
+  IDB_PATH="/idb"
+fi
 
 if [ -z "$APPS" ]; then
   APPS="gallery music video communications/contacts sms communications/dialer"
@@ -87,7 +105,7 @@ for app in $APPS; do
         echo "Unable to determine communications application ID - skipping dialer history..."
         LINE=" Dialer History: skipped"
       else
-        adb push  $SCRIPT_DIR/dialerDb-$DIALER_COUNT.sqlite /data/local/indexedDB/$DIALER_DIR/2584670174dsitanleecreR.sqlite
+        adb push  $SCRIPT_DIR/dialerDb-$DIALER_COUNT.sqlite /data/local/indexedDB/$DIALER_DIR$IDB_PATH/2584670174dsitanleecreR.sqlite
         LINE=" Dialer History: $(printf "%4d" $DIALER_COUNT)"
       fi
       ;;
@@ -108,12 +126,12 @@ for app in $APPS; do
       ;;
 
     communications/contacts)
-      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
+      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT.sqlite /data/local/indexedDB/chrome$IDB_PATH/3406066227csotncta.sqlite
       LINE=" Contacts:       $(printf "%4d" $CONTACT_COUNT)"
       ;;
 
     sms)
-      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT.sqlite /data/local/indexedDB/chrome$IDB_PATH/226660312ssm.sqlite
       LINE=" Sms Messages:   $(printf "%4d" $SMS_COUNT)"
       ;;
 

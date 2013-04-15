@@ -70,9 +70,9 @@ function iconDescriptor(directory, app_name, entry_point) {
   let manifestFile = dir.clone();
   manifestFile.append("manifest.webapp");
   let manifest;
-  try {
+  if (manifestFile.exists()) {
     manifest = getJSON(manifestFile);
-  } catch (e) {
+  } else {
     manifestFile = dir.clone();
     manifestFile.append("update.webapp");
     dump('Looking for packaged app: ' + manifestFile.path + '\n');
@@ -118,7 +118,7 @@ let customize = {"homescreens": [
     ["apps", "gallery"],
     ["apps", "fm"],
     ["apps", "settings"],
-    ["external-apps", "marketplace"]
+    [GAIA_EXTERNAL_APP_SRCDIR, "marketplace.firefox.com"]
   ], [
     ["apps", "calendar"],
     ["apps", "clock"],
@@ -266,22 +266,7 @@ writeContent(init, getDistributionFileContent('browser', content));
 
 // Support
 init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'support.json');
-content = {
-  "onlinesupport": {
-    "href": "http://www.vivo.com.br/portalweb/appmanager/env/web?_nfls=false&_nfpb=true&_pageLabel=vcAtendMovelBook&WT.ac=portal.atendimento.movel",
-    "title": "Vivo"
-  },
-  "callsupport": [
-    {
-      "href": "tel:*8486",
-      "title": "*8486"
-    },
-    {
-      "href": "tel:1058",
-      "title": "1058"
-    }
-  ]
-}
+content = null;
 
 writeContent(init, getDistributionFileContent('support', content));
 

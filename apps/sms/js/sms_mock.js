@@ -1,3 +1,8 @@
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
+
 /* ***********************************************************
 
   Code below is for desktop testing!
@@ -12,6 +17,7 @@
     id: 0,
     messages: [
       {
+        threadId: 1,
         sender: null,
         receiver: '1977',
         body: 'Alo, how are you today, my friend? :)',
@@ -20,6 +26,7 @@
         timestamp: new Date(Date.now())
       },
       {
+        threadId: 1,
         sender: null,
         receiver: '1977',
         body: 'arr :)',
@@ -28,6 +35,7 @@
         timestamp: new Date(Date.now() - 8400000000)
       },
       {
+        threadId: 2,
         sender: null,
         receiver: '436797',
         body: 'Sending :)',
@@ -35,6 +43,7 @@
         timestamp: new Date(Date.now() - 172800000)
       },
       {
+        threadId: 3,
         sender: null,
         receiver: '197743697',
         body: 'Nothing :)',
@@ -42,6 +51,7 @@
         timestamp: new Date(Date.now() - 652800000)
       },
       {
+        threadId: 4,
         sender: null,
         receiver: '197746797',
         body: 'Error message:)',
@@ -50,6 +60,7 @@
         timestamp: new Date(Date.now() - 822800000)
       },
       {
+        threadId: 4,
         sender: null,
         receiver: '197746797',
         body: 'Nothing :)',
@@ -57,6 +68,7 @@
         timestamp: new Date(Date.now() - 1002800000)
       },
       {
+        threadId: 4,
         sender: null,
         receiver: '197746797',
         body: 'Nothing :)',
@@ -64,6 +76,7 @@
         timestamp: new Date(Date.now() - 1002800000)
       },
       {
+        threadId: 4,
         sender: '197746797',
         body: 'Recibido!',
         delivery: 'received',
@@ -72,31 +85,36 @@
     ],
     threads: [
       {
-        senderOrReceiver: '1977',
+        id: 1,
+        participants: ['1977'],
         body: 'Alo, how are you today, my friend? :)',
         timestamp: new Date(Date.now()),
         unreadCount: 0
       },
       {
-        senderOrReceiver: '436797',
+        id: 2,
+        participants: ['436797'],
         body: 'Sending :)',
         timestamp: new Date(Date.now() - 172800000),
         unreadCount: 0
       },
       {
-        senderOrReceiver: '197743697',
+        id: 3,
+        participants: ['197743697'],
         body: 'Nothing :)',
         timestamp: new Date(Date.now() - 652800000),
         unreadCount: 0
       },
       {
-        senderOrReceiver: '197746797',
+        id: 4,
+        participants: ['197746797'],
         body: 'Recibido!',
         timestamp: new Date(Date.now() - 50000000),
         unreadCount: 0
       },
       {
-        senderOrReceiver: '14886783487',
+        id: 5,
+        participants: ['14886783487'],
         body: 'Hello world!',
         timestamp: new Date(Date.now() - 60000000),
         unreadCount: 2
@@ -112,6 +130,7 @@
   // Procedurally generate a large amount of messages for a single thread
   for (var i = 0; i < 150; i++) {
     messagesDb.messages.push({
+      threadId: 5,
       sender: '14886783487',
       body: 'Hello world!',
       delivery: 'received',
@@ -237,39 +256,47 @@
     return request;
   };
 
-  // getThreadList
+  // getThreads
   // Parameters: none
   // Returns: request object
   //  - error: Error information, if any (null otherwise)
   //  - onerror: Function that may be set by the suer. If set, will be invoked
   //    in the event of a failure
-  MockNavigatormozSms.getThreadList = function() {
+  MockNavigatormozSms.getThreads = function() {
     var request = {
       error: null
     };
-    var result;
+    var threads = messagesDb.threads.slice();
+    var idx = 0;
+    var len, continueCursor;
 
-    setTimeout(function() {
-      var result;
+    len = threads.length;
+
+    var returnThread = function() {
 
       if (simulation.failState()) {
         request.error = {
-          name: 'mock getThreadList error'
+          name: 'mock getThreads error'
         };
+
         if (typeof request.onerror === 'function') {
           request.onerror();
         }
       } else {
-        result = {
-          target: {
-            result: messagesDb.threads.slice()
-          }
-        };
+        request.result = threads[idx];
+        idx += 1;
+        request.continue = continueCursor;
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(null, result);
+          request.onsuccess.call(null);
         }
       }
-    }, simulation.delay());
+
+    };
+    continueCursor = function() {
+      setTimeout(returnThread, simulation.delay());
+    };
+
+    continueCursor();
 
     return request;
   };
@@ -292,7 +319,7 @@
     // Copy the messages array
     var msgs = messagesDb.messages.slice();
     var idx = 0;
-    var len, cursor, continueCursor;
+    var len, continueCursor;
 
     if (filter) {
       if (filter.numbers) {
@@ -328,10 +355,9 @@
           request.onerror();
         }
       } else {
-        cursor = request.result = {};
-        cursor.message = msgs[idx];
+        request.result = msgs[idx];
         idx += 1;
-        cursor.continue = continueCursor;
+        request.continue = continueCursor;
         if (typeof request.onsuccess === 'function') {
           request.onsuccess.call(null);
         }
@@ -342,7 +368,7 @@
       setTimeout(returnMessage, simulation.delay());
     };
 
-    setTimeout(returnMessage, simulation.delay());
+    continueCursor();
 
     return request;
   };

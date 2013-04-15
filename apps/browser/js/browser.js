@@ -105,7 +105,7 @@ var Browser = {
       return;
 
     console.log('----------loadink!');
-    var filesToLoad = [
+    var elementsToLoad = [
       // DOM Nodes with commented content to load
       this.awesomescreen,
       this.crashscreen,
@@ -117,8 +117,10 @@ var Browser = {
       document.getElementById('modal-dialog-prompt'),
       document.getElementById('modal-dialog-confirm'),
       document.getElementById('modal-dialog-custom-prompt'),
-      document.getElementById('http-authentication-dialog'),
+      document.getElementById('http-authentication-dialog')
+    ];
 
+    var filesToLoad = [
       // css files
       'shared/style/headers.css',
       'shared/style/buttons.css',
@@ -154,6 +156,13 @@ var Browser = {
 
     var loadBrowserFiles = function() {
       LazyLoader.load(jsFiles, function() {
+        var mozL10n = navigator.mozL10n;
+        mozL10n.ready(function browser_localizeElements() {
+          elementsToLoad.forEach(function l10nElement(element) {
+            mozL10n.translate(element);
+          });
+        });
+
         domElements.forEach(function createElementRef(name) {
           this[this.toCamelCase(name)] = document.getElementById(name);
         }, this);
@@ -166,7 +175,8 @@ var Browser = {
       }.bind(this));
     };
 
-    LazyLoader.load(filesToLoad, loadBrowserFiles.bind(this));
+    LazyLoader.load(elementsToLoad.concat(filesToLoad),
+      loadBrowserFiles.bind(this));
   },
 
   initRemainingListeners: function browser_initRemainingListeners() {
@@ -1084,17 +1094,22 @@ var Browser = {
       });
     }
 
+    var underlay = ',url(./style/images/favicon-underlay.png)';
+
     if (!data.iconUri) {
-      link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
+      link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')' +
+        underlay;
       return;
     }
 
     Places.db.getIcon(data.iconUri, (function(icon) {
       if (icon && icon.failed != true && icon.data) {
         var imgUrl = window.URL.createObjectURL(icon.data);
-        link.style.backgroundImage = 'url(' + imgUrl + ')';
+        link.style.backgroundImage = 'url(' + imgUrl + ')' +
+          underlay;
       } else {
-        link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
+        link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')' +
+          underlay;
       }
     }).bind(this));
   },
@@ -1155,10 +1170,10 @@ var Browser = {
     this.updateTabsCount();
   },
 
-  // Saves an image to device storage.
-  saveImage: function browser_saveImage(url) {
+  // Saves a media file to device storage.
+  saveMedia: function browser_saveMedia(url, type) {
     function displayMessage(message) {
-      var status = document.getElementById('save-image-status');
+      var status = document.getElementById('save-media-status');
       status.firstElementChild.textContent = message;
       status.classList.add('visible');
       window.setTimeout(function() {
@@ -1167,10 +1182,30 @@ var Browser = {
     }
 
     function storeBlob(blob, name, retryCount) {
-      var pictureStorage = navigator.getDeviceStorage('pictures');
-      var addreq = pictureStorage.addNamed(blob, name);
+      /*
+       * XXX: Bug 852864 - DeviceStorage addNamed failed with TypeMismatchError
+       * 3gp and ogg types of audio files are returned as blobs of video type.
+       * The workaround here is saving the blob to corresponding storage based
+       * on the type of it instead of the type specified by users. Which allows
+       * users able to save those types of audio files.
+       */
+      var storageTypeMap = {
+        'image': 'pictures',
+        'video': 'videos',
+        'audio': 'music'
+      };
+      var blobType = blob.type.split('/')[0];
+      var storageType = storageTypeMap[blobType];
+      if (!storageType) {
+        displayMessage(_('error-saving-' + type));
+        return;
+      }
+
+      var storage = navigator.getDeviceStorage(storageType);
+      var addreq = storage.addNamed(blob, name);
+
       addreq.onsuccess = function() {
-        displayMessage(_('image-saved'));
+        displayMessage(_(type + '-saved'));
       };
       addreq.onerror = function() {
         // Prepend some always changing id and try to store again, but give up
@@ -1180,7 +1215,7 @@ var Browser = {
           name = Date.now() + '-' + name;
           storeBlob(blob, name, retryCount + 1);
         } else {
-          displayMessage(_('error-saving-image'));
+          displayMessage(_('error-saving-' + type));
         }
       };
     }
@@ -1188,9 +1223,9 @@ var Browser = {
     var xhr = new XMLHttpRequest({mozSystem: true});
     xhr.open('GET', url, true);
     xhr.responseType = 'blob';
-    xhr.onload = function browser_imageDataListener() {
+    xhr.onload = function browser_mediaDataListener() {
       if (xhr.status !== 200 || !xhr.response) {
-        displayMessage(_('error-saving-image'));
+        displayMessage(_('error-saving-' + type));
         return;
       }
 
@@ -1210,7 +1245,7 @@ var Browser = {
     };
 
     xhr.onerror = function getDefaultDataError() {
-      displayMessage(_('error-saving-image'));
+      displayMessage(_('error-saving-' + type));
     };
     xhr.send();
   },
@@ -1219,22 +1254,33 @@ var Browser = {
   // default actions attached
   generateSystemMenuItem: function browser_generateSystemMenuItem(item) {
     var self = this;
-    if (item.nodeName === 'A') {
-      return {
-        label: _('open-in-new-tab'),
-        callback: function() {
-          self.openInNewTab(item.data);
-        }
-      };
-    } else if (item.nodeName === 'IMG') {
-      return {
-        label: _('save-image'),
-        callback: function() {
-          self.saveImage(item.data);
-        }
-      };
+    switch (item.nodeName) {
+      case 'A':
+        return {
+          label: _('open-in-new-tab'),
+          callback: function() {
+            self.openInNewTab(item.data);
+          }
+        };
+      case 'IMG':
+      case 'VIDEO':
+      case 'AUDIO':
+        var typeMap = {
+          'IMG': 'image',
+          'VIDEO': 'video',
+          'AUDIO': 'audio'
+        };
+        var type = typeMap[item.nodeName];
+
+        return {
+          label: _('save-' + type),
+          callback: function() {
+            self.saveMedia(item.data, type);
+          }
+        };
+      default:
+        return false;
     }
-    return false;
   },
 
   showContextMenu: function browser_showContextMenu(evt) {

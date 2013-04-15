@@ -15,7 +15,6 @@ var lazyLoadFiles = [
   'js/thread_ui.js',
   'js/waiting_screen.js',
   'js/utils.js',
-  'js/search_utils.js',
   'js/fixed_header.js',
   'js/activity_picker.js',
   'js/link_helper.js',

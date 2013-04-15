@@ -4,7 +4,7 @@ requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
-requireApp('communications/dialer/test/unit/mock_call_handler.js');
+requireApp('communications/dialer/test/unit/mock_on_call.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 
 // We're going to swap those with mock objects
@@ -363,12 +363,12 @@ suite('dialer/handled_call', function() {
     });
   });
 
-  test('should display unknown l10n key', function() {
+  test('should display withheld-number l10n key', function() {
     mockCall = new MockCall('', 'incoming');
     subject = new HandledCall(mockCall, fakeNode);
 
     var numberNode = fakeNode.querySelector('.numberWrapper .number');
-    assert.equal(numberNode.textContent, 'unknown');
+    assert.equal(numberNode.textContent, 'withheld-number');
   });
 
   suite('additional information', function() {

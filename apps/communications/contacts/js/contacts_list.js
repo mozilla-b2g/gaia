@@ -17,7 +17,6 @@ contacts.List = (function() {
       contactsPhoto = [],
       photoTemplate,
       headers = {},
-      updating = {},
       contactsCache = {},
       searchLoaded = false,
       imagesLoaded = false;
@@ -112,41 +111,33 @@ contacts.List = (function() {
 
   var initOrder = function initOrder(callback) {
     if (orderByLastName === null) {
-      asyncStorage.getItem(ORDER_KEY, function valueReady(value) {
-        if (typeof value !== 'boolean') {
-        // This code only will be executed first time contacts app is opened
-          var req = utils.config.load('/contacts/config.json');
-          req.onload = function configReady(configData) {
-            orderByLastName = (configData.defaultContactsOrder ===
+      if (document.cookie) {
+        var cookie = JSON.parse(document.cookie);
+        orderByLastName = cookie.order;
+        if (callback)
+          callback();
+      } else {
+        var req = utils.config.load('/contacts/config.json');
+        req.onload = function configReady(configData) {
+          orderByLastName = (configData.defaultContactsOrder ===
                     ORDER_BY_FAMILY_NAME ? true : false);
-            if (callback) {
-              callback();
-            }
-            // The default value got in config is stored
-            asyncStorage.setItem(ORDER_KEY, orderByLastName);
-          };
-          req.onerror = function configError() {
-            window.console.error('Error while reading configuration file');
-            orderByLastName = false;
-            if (callback) {
-              callback();
-            }
-            // The default value got in config is stored
-            asyncStorage.setItem(ORDER_KEY, orderByLastName);
-          };
-        }
-        else {
-          orderByLastName = value;
+          document.cookie = JSON.stringify({order: orderByLastName});
+          if (callback)
+            callback();
+        };
+
+        req.onerror = function configError() {
+          window.console.error('Error while reading configuration file');
+          orderByLastName = false;
+          document.cookie = JSON.stringify({order: false});
           if (callback) {
             callback();
           }
-        }
-      });
-    }
-    else {
-      if (callback) {
-        callback();
+        };
       }
+    } else {
+      if (callback)
+        callback();
     }
   };
 
@@ -174,7 +165,6 @@ contacts.List = (function() {
   var renderFullContact = function renderFullContact(contact, fbContacts) {
     var contactContainer = renderContact(contact);
     var name = contactContainer.children[0];
-    var orderedString = getStringToBeOrdered(contact);
 
     addSearchOptions(name, contact);
     addOrderOptions(name, contact);
@@ -318,9 +308,19 @@ contacts.List = (function() {
   }
 
   var buildContacts = function buildContacts(contacts, fbContacts) {
+    // we need the async scripts to be here at this moment
+    // to f.e. access the utils.text features
+    if (!asyncScriptsLoaded) {
+      // delay loading if they're not there yet
+      window.addEventListener('asyncScriptsLoaded', function listener() {
+        window.removeEventListener('asyncScriptsLoaded', listener);
+
+        buildContacts(contacts, fbContacts);
+      });
+      return;
+    }
+
     var counter = {};
-    var contactsCache = {};
-    var favorites = [];
     var length = contacts.length;
     var CHUNK_SIZE = 20;
 
@@ -333,7 +333,7 @@ contacts.List = (function() {
       var group = getGroupName(contact);
 
       var list = headers[group];
-      counter[group] = counter[group] + 1 || 1;
+      counter[group] = (counter[group] || 0) + 1;
       list.appendChild(renderedContact);
 
       if (counter[group] === 1) {
@@ -401,11 +401,12 @@ contacts.List = (function() {
     lazyLoadImages();
 
     PerformanceTestingHelper.dispatch('startup-path-done');
-
-    if (fb.isEnabled) {
-      Contacts.loadFacebook(NOP_FUNCTION);
-    }
-    loaded = true;
+    fb.init(function contacts_init() {
+      if (fb.isEnabled) {
+        Contacts.loadFacebook(NOP_FUNCTION);
+      }
+      loaded = true;
+    });
   };
 
   var searchLoading = false;

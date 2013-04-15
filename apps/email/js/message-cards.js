@@ -81,6 +81,9 @@ function displaySubject(subjectNode, message) {
  *
  * See `onScroll` for more details.
  *
+ * XXX this class wants to be cleaned up, badly.  A lot of this may want to
+ * happen via pushing more of the hiding/showing logic out onto CSS, taking
+ * care to use efficient selectors.
  */
 function MessageListCard(domNode, mode, args) {
   this.domNode = domNode;
@@ -138,7 +141,9 @@ function MessageListCard(domNode, mode, args) {
   this.toolbar.editBtn = domNode.getElementsByClassName('msg-edit-btn')[0];
   this.toolbar.editBtn
     .addEventListener('click', this.setEditMode.bind(this, true), false);
-  domNode.getElementsByClassName('msg-refresh-btn')[0]
+  this.toolbar.refreshBtn =
+    domNode.getElementsByClassName('msg-refresh-btn')[0];
+  this.toolbar.refreshBtn
     .addEventListener('click', this.onRefresh.bind(this), false);
 
   // - header buttons: edit mode
@@ -152,7 +157,8 @@ function MessageListCard(domNode, mode, args) {
     .addEventListener('click', this.onMarkMessagesRead.bind(this, true), false);
   domNode.getElementsByClassName('msg-delete-btn')[0]
     .addEventListener('click', this.onDeleteMessages.bind(this, true), false);
-  domNode.getElementsByClassName('msg-move-btn')[0]
+  this.toolbar.moveBtn = domNode.getElementsByClassName('msg-move-btn')[0];
+  this.toolbar.moveBtn
     .addEventListener('click', this.onMoveMessages.bind(this, true), false);
 
   // -- non-search mode
@@ -184,6 +190,7 @@ function MessageListCard(domNode, mode, args) {
 
   this.curFolder = null;
   this.messagesSlice = null;
+  this.isIncomingFolder = true;
   this._boundSliceRequestComplete = this.onSliceRequestComplete.bind(this);
   if (mode == 'nonsearch')
     this.showFolder(args.folder);
@@ -349,12 +356,34 @@ MessageListCard.prototype = {
       this.messagesContainer.innerHTML = '';
     }
     this.curFolder = folder;
+    switch (folder.type) {
+      case 'drafts':
+      case 'localdrafts':
+      case 'sent':
+        this.isIncomingFolder = false;
+        break;
+      default:
+        this.isIncomingFolder = true;
+        break;
+    }
 
     this.domNode.getElementsByClassName('msg-list-header-folder-label')[0]
       .textContent = folder.name;
 
     this.hideEmptyLayout();
 
+    // you can't refresh the localdrafts folder or move messages out of it.
+    if (folder.type === 'localdrafts') {
+      this.toolbar.refreshBtn.classList.add('collapsed');
+      this.toolbar.moveBtn.classList.add('collapsed');
+    }
+    else {
+      this.toolbar.refreshBtn.classList.remove('collapsed');
+      this.toolbar.moveBtn.classList.remove('collapsed');
+    }
+
+    // We are creating a new slice, so any pending snippet requests are moot.
+    this._snippetRequestPending = false;
     this.messagesSlice = MailAPI.viewFolderMessages(folder);
     this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
     this.messagesSlice.onchange = this.updateMessageDom.bind(this, false);
@@ -386,6 +415,8 @@ MessageListCard.prototype = {
     if (phrase.length < 1)
       return false;
 
+    // We are creating a new slice, so any pending snippet requests are moot.
+    this._snippetRequestPending = false;
     this.messagesSlice = MailAPI.searchFolderMessages(
       folder, phrase,
       {
@@ -471,9 +502,16 @@ MessageListCard.prototype = {
   },
 
   onCandybarTimeout: function() {
-    this.progressNode.classList.add('pack-activity');
+    if (this.progressCandybarTimer) {
+      this.progressNode.classList.add('pack-activity');
+      this.progressCandybarTimer = null;
+    }
   },
 
+  /**
+   * Hide buttons that are not appropriate if we have no messages and display
+   * the appropriate l10n string in the message list proper.
+   */
   showEmptyLayout: function() {
     var text = this.domNode.
       getElementsByClassName('msg-list-empty-message-text')[0];
@@ -485,6 +523,10 @@ MessageListCard.prototype = {
     this.toolbar.searchBtn.classList.add('disabled');
     this._hideSearchBoxByScrolling();
   },
+  /**
+   * Show buttons we hid in `showEmptyLayout` and hide the "empty folder"
+   * message.
+   */
   hideEmptyLayout: function() {
     this.messageEmptyContainer.classList.add('collapsed');
     this.toolbar.editBtn.classList.remove('disabled');
@@ -757,9 +799,23 @@ MessageListCard.prototype = {
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
     if (firstTime) {
+      var listPerson;
+      if (this.isIncomingFolder)
+        listPerson = message.author;
+      // XXX This is not to UX spec, but this is a stop-gap and that would
+      // require adding strings which we cannot justify as a slipstream fix.
+      else if (message.to && message.to.length)
+        listPerson = message.to[0];
+      else if (message.cc && message.cc.length)
+        listPerson = message.cc[0];
+      else if (message.bcc && message.bcc.length)
+        listPerson = message.bcc[0];
+      else
+        listPerson = message.author;
+
       // author
       msgNode.getElementsByClassName('msg-header-author')[0]
-        .textContent = message.author.name || message.author.address;
+        .textContent = listPerson.name || listPerson.address;
       // date
       dateNode.dataset.time = message.date.valueOf();
       dateNode.textContent = prettyDate(message.date);
@@ -869,6 +925,14 @@ MessageListCard.prototype = {
         cb.checked = true;
       }
       this.selectedMessagesUpdated();
+      return;
+    }
+
+    if (this.curFolder.type === 'localdrafts') {
+      var composer = header.editAsDraft(function() {
+        Cards.pushCard('compose', 'default', 'animate',
+                       { composer: composer });
+      });
       return;
     }
 
@@ -1407,10 +1471,30 @@ MessageReaderCard.prototype = {
           if (!blob) {
             throw new Error('Blob does not exist');
           }
+
+          // To delegate a correct activity, we should try to avoid the unsure
+          // mimetype because types like "application/octet-stream" which told
+          // by the e-mail client are not supported.
+          // But it doesn't mean we really don't support that attachment
+          // what we can do here is:
+          // 1. Check blob.type, most of the time it will not be empty
+          //    because it's reported by deviceStorage, it should be a
+          //    correct mimetype, or
+          // 2. Use the original mimetype from the attachment,
+          //    but it's possibly an unsupported mimetype, like
+          //    "application/octet-stream" which cannot be used correctly, or
+          // 3. Use MimeMapper to help us, if it's still an unsure mimetype,
+          //    MimeMapper can guess the possible mimetype from extension,
+          //    then we can delegate a right activity.
+          var extension = attachment.filename.split('.').pop();
+          var originalType = blob.type || attachment.mimetype;
+          var mappedType = (MimeMapper.isSupportedType(originalType)) ?
+            originalType : MimeMapper.guessTypeFromExtension(extension);
+
           var activity = new MozActivity({
             name: 'open',
             data: {
-              type: attachment.mimetype,
+              type: mappedType,
               blob: blob
             }
           });
@@ -1611,36 +1695,42 @@ MessageReaderCard.prototype = {
     var attachmentsContainer =
       domNode.getElementsByClassName('msg-attachments-container')[0];
     if (body.attachments && body.attachments.length) {
-      var attTemplate = msgNodes['attachment-item'],
-          filenameTemplate =
-            attTemplate.getElementsByClassName('msg-attachment-filename')[0],
-          filesizeTemplate =
-            attTemplate.getElementsByClassName('msg-attachment-filesize')[0];
-      for (var iAttach = 0; iAttach < body.attachments.length; iAttach++) {
-        var attachment = body.attachments[iAttach], state;
-        if (attachment.isDownloaded)
-          state = 'downloaded';
-        else if (/^image\//.test(attachment.mimetype) ||
-                 /^audio\//.test(attachment.mimetype))
-          state = 'downloadable';
-        else
-          state = 'nodownload';
-        attTemplate.setAttribute('state', state);
-        filenameTemplate.textContent = attachment.filename;
-        filesizeTemplate.textContent = prettyFileSize(
-          attachment.sizeEstimateInBytes);
+      // We need MimeMapper to help us determining the downloadable attachments
+      // but it might not be loaded yet, so load before use it
+      App.loader.load('shared/js/mime_mapper.js', function() {
+        var attTemplate = msgNodes['attachment-item'],
+            filenameTemplate =
+              attTemplate.getElementsByClassName('msg-attachment-filename')[0],
+            filesizeTemplate =
+              attTemplate.getElementsByClassName('msg-attachment-filesize')[0];
+        for (var iAttach = 0; iAttach < body.attachments.length; iAttach++) {
+          var attachment = body.attachments[iAttach], state;
+          var extension = attachment.filename.split('.').pop();
 
-        var attachmentNode = attTemplate.cloneNode(true);
-        attachmentsContainer.appendChild(attachmentNode);
-        attachmentNode.getElementsByClassName('msg-attachment-download')[0]
-          .addEventListener('click',
-                            this.onDownloadAttachmentClick.bind(
-                              this, attachmentNode, attachment));
-        attachmentNode.getElementsByClassName('msg-attachment-view')[0]
-          .addEventListener('click',
-                            this.onViewAttachmentClick.bind(
-                              this, attachmentNode, attachment));
-      }
+          if (attachment.isDownloaded)
+            state = 'downloaded';
+          else if (MimeMapper.isSupportedType(attachment.mimetype) ||
+                   MimeMapper.isSupportedExtension(extension))
+            state = 'downloadable';
+          else
+            state = 'nodownload';
+          attTemplate.setAttribute('state', state);
+          filenameTemplate.textContent = attachment.filename;
+          filesizeTemplate.textContent = prettyFileSize(
+            attachment.sizeEstimateInBytes);
+
+          var attachmentNode = attTemplate.cloneNode(true);
+          attachmentsContainer.appendChild(attachmentNode);
+          attachmentNode.getElementsByClassName('msg-attachment-download')[0]
+            .addEventListener('click',
+                              this.onDownloadAttachmentClick.bind(
+                                this, attachmentNode, attachment));
+          attachmentNode.getElementsByClassName('msg-attachment-view')[0]
+            .addEventListener('click',
+                              this.onViewAttachmentClick.bind(
+                                this, attachmentNode, attachment));
+        }
+      }.bind(this));
     }
     else {
       attachmentsContainer.classList.add('collapsed');

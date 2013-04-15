@@ -7,14 +7,13 @@ if [ -z "$1" ]; then
   exit
 fi
 
-adb push ${SCRIPT_DIR}/MasterVideo.3gp /mnt/sdcard/Movies/VID_0001.3gp
+if [ "$1" != "0" ]; then
+  REMOTE_DIR="/sdcard/Movies"
+  adb push ${SCRIPT_DIR}/MasterVideo.3gp ${REMOTE_DIR}/VID_0001.3gp
 
-COUNT=1
-while [ ${COUNT} -lt $1 ]; do
-  let INDEX=COUNT+1
-  FILENAME=VID_$(printf "%04d" $INDEX).3gp
-  adb shell 'cat /sdcard/Movies/VID_0001.3gp > '/sdcard/Movies/${FILENAME}
-  let COUNT=COUNT+1
-done
+  for i in `seq -f '%04g' 2 $1` ; do
+    FILENAME=VID_$i.3gp
+    adb shell "cat ${REMOTE_DIR}/VID_0001.3gp > ${REMOTE_DIR}/${FILENAME}"
+  done
 
-
+fi

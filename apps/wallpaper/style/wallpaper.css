@@ -3,18 +3,21 @@ html, body {
   padding: 0;
   font-size: 10px;
   background-color: #26272c;
+  overflow: hidden;
+  height: 100%;
 }
 
 /* for the pick activity */
 #wallpapers {
-  overflow: hidden;
+  overflow: auto;
+  height: calc(100% - 5rem);
 }
 
 .wallpaper {
   background-size:cover;
   background-repeat: no-repeat;
-  border-bottom: 1px solid #000000;
-  border-right: 1px solid #000000;
+  border-bottom: 0.1rem solid #000000;
+  border-right: 0.1rem solid #000000;
   position: relative;
   overflow: hidden;
   height: 15.9rem;
@@ -41,7 +44,7 @@ html, body {
   left: 0;
   width: 100%;
   bottom: 0;
-  height: 50px;
+  height: 5rem;
 }
 
 #buttons > #set-wallpaper {

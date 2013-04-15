@@ -929,7 +929,7 @@
           </li>
           <li hidden id="device-visible">
             <label>
-              <input type="checkbox" data-type="switch" data-ignore checked />
+              <input type="checkbox" data-type="switch" data-ignore />
               <span></span>
             </label>
             <small id="bluetooth-device-name"></small>
@@ -998,9 +998,14 @@
             <p data-l10n-id="ssid-name">SSID Network Name</p>
             <input type="text" data-setting="tethering.wifi.ssid" />
           </li>
-          <li class="password-item">
+          <li class="password">
+            <label>
+              <input type="checkbox" data-ignore name="show_password" />
+              <span></span>
+            </label>
+            <span data-l10n-id="showPassword">Show password</span>
             <p data-l10n-id="wifi-password">Password</p>
-            <input type="text" data-setting="tethering.wifi.security.password" />
+            <input type="password" name="password" x-inputmode="verbatim" data-setting="tethering.wifi.security.password" />
           </li>
           <li>
             <p data-l10n-id="wifi-security">Security</p>
@@ -1143,14 +1148,14 @@
           <h2 data-l10n-id="volume">Volume</h2>
         </header>
         <ul>
-          <li>
+          <li class="sound-setting">
             <p data-l10n-id="ringer-and-notification-sound">Ringer & Notifications</p>
             <label>
               <input type="range" name="audio.volume.notification" step="1" min="0" value="15" max="15">
               <span class="range-icons volume"></span>
             </label>
           </li>
-          <li>
+          <li class="sound-setting">
             <p data-l10n-id="alarm-sound">Alarm</p>
             <label>
               <input type="range" name="audio.volume.alarm" step="1" min="0" value="15" max="15">
@@ -1437,6 +1442,13 @@
           </li>
           <li>
             <label>
+              <input type="checkbox" name="keyboard.autocorrect"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="autoCorrect">Auto correction</a>
+          </li>
+          <li>
+            <label>
               <input type="checkbox" name="keyboard.wordsuggestion"/>
               <span></span>
             </label>
@@ -1542,27 +1554,25 @@
         <h1 data-l10n-id="enter-passcode"   data-mode="confirm"> Enter Passcode    </h1>
       </header>
 
-      <div>
-        <div class="passcode-overlay">
-          <input type="number" x-inputmode="digits" id="passcode-input" />
-          <div class="passcode-container" id="passcode-container">
-            <div class="passcode-error" data-l10n-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
-            <div class="passcode-error" data-l10n-id="passcode-doesnt-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
-            <p data-l10n-id="passcode">Passcode</p>
-            <div class="passcode" id="passcode-pseudo-input">
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-            </div>
-            <p data-l10n-id="confirm-passcode" data-mode="new,create">Confirm Passcode</p>
-            <div class="passcode" data-mode="new,create" id="passcode-pseudo-confirm-input">
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-              <span class="passcode-digit"></span>
-            </div>
+      <div class="passcode-overlay">
+        <input type="number" x-inputmode="digits" id="passcode-input" />
+        <div class="passcode-container" id="passcode-container">
+          <div class="passcode" id="passcode-pseudo-input">
+            <label data-l10n-id="passcode">Passcode</label>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
           </div>
+          <div class="passcode" data-mode="new,create" id="passcode-pseudo-confirm-input">
+            <label data-l10n-id="confirm-passcode" data-mode="new,create">Confirm Passcode</label>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+          </div>
+          <div class="passcode-error" data-l10n-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
+          <div class="passcode-error" data-l10n-id="passcode-doesnt-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
         </div>
       </div>
 
@@ -1752,7 +1762,7 @@
 
       <div>
         <header id="developer-header">
-          <h2 data-l10n-id="developer">Developer</h2>
+          <h2 data-l10n-id="author">Author</h2>
         </header>
         <ul>
           <li id="developer-infos">
@@ -2365,7 +2375,7 @@
         </header>
         <ul>
           <li>
-            <meter id="apps-space-bar" min="0" value="0" max="100"></meter>
+            <progress id="apps-space-bar" min="0" value="0" max="100"></progress>
           </li>
 
           <li>

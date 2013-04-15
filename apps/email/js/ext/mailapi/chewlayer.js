@@ -3412,11 +3412,13 @@ exports.escapeAttrValue = function(s) {
 
 define('mailapi/imap/imapchew',
   [
+    'mimelib',
     '../quotechew',
     '../htmlchew',
     'exports'
   ],
   function(
+    $mimelib,
     $quotechew,
     $htmlchew,
     exports
@@ -3548,8 +3550,10 @@ function chewStructure(msg) {
     }
 
     function makePart(partInfo, filename) {
+
       return {
-        name: filename || 'unnamed-' + (++unnamedPartCounter),
+        name: $mimelib.parseMimeWords(filename) ||
+              'unnamed-' + (++unnamedPartCounter),
         contentId: partInfo.id ? stripArrows(partInfo.id) : null,
         type: (partInfo.type + '/' + partInfo.subtype).toLowerCase(),
         part: partInfo.partID,
@@ -3692,7 +3696,10 @@ exports.chewHeaderAndBodyStructure =
     // use their unique value, or if we could convince dovecot to tell us, etc.
     guid: msg.msg.meta.messageId,
     // mailparser models from as an array; we do not.
-    author: msg.msg.from[0] || null,
+    author: msg.msg.from && msg.msg.from[0] ||
+              // we require a sender e-mail; let's choose an illegal default as
+              // a stopgap so we don't die.
+              { address: 'missing-address@example.com' },
     to: ('to' in msg.msg) ? msg.msg.to : null,
     cc: ('cc' in msg.msg) ? msg.msg.cc : null,
     bcc: ('bcc' in msg.msg) ? msg.msg.bcc : null,

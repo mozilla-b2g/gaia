@@ -488,6 +488,14 @@ var KeypadManager = {
       return;
     }
 
+    // Per certification requirement, we need to send an MMI request to
+    // get the device's IMEI as soon as the user enters the last # key from
+    // the "*#06#" MMI string. See bug 857944.
+    if (key === '#' && this._phoneNumber === '*#06#') {
+      this.makeCall(event);
+      return;
+    }
+
     var telephony = navigator.mozTelephony;
 
     event.stopPropagation();
@@ -586,6 +594,18 @@ var KeypadManager = {
     number = this.sanitizePhoneNumber(number);
     this._phoneNumber = number;
     this._updatePhoneNumberView(ellipsisSide, maxFontSize);
+  },
+
+  press: function(value) {
+    var telephony = navigator.mozTelephony;
+
+    telephony.stopTone();
+    telephony.startTone(value);
+    TonePlayer.start(gTonesFrequencies[value], true);
+    setTimeout(function nextTick() {
+      telephony.stopTone();
+      TonePlayer.stop();
+    });
   },
 
   _updatePhoneNumberView: function kh_updatePhoneNumberview(ellipsisSide,

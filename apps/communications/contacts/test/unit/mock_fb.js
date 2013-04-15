@@ -18,6 +18,10 @@ var MockFb = {
   savedData: []
 };
 
+MockFb.init = function(callback) {
+  callback();
+};
+
 MockFb.setIsFbContact = function(isFB) {
   this.fbContact = isFB;
 };

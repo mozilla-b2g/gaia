@@ -55,6 +55,7 @@ article:not(:target) #keypad-delete {
   width: 3.3rem;
   height: 2.4rem;
   background: url('images/dialer_icon_delete.png');
+  background-size: 3.3rem;
   background-repeat: no-repeat;
 }
 
@@ -66,6 +67,7 @@ article:not(:target) #keypad-delete {
 #keyboard-container {
   width: 100%;
   height: 34.5rem;
+  background-color: #fff;
 }
 
 #keypad {
@@ -154,6 +156,7 @@ article:not(:target) #keypad-delete {
 
 .voicemail {
   background-image: url('images/voicemail.png');
+  background-size: 2.2rem;
 }
 
 .asterisk {
