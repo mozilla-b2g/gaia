@@ -2,6 +2,10 @@ requireApp('communications/dialer/js/keypad.js');
 requireApp('communications/dialer/js/dialer.js');
 requireApp('communications/dialer/test/unit/mock_call_handler.js');
 
+if (!this.SettingsListener) {
+  this.SettingsListener = null;
+}
+
 suite('dialer/keypad', function() {
   var subject;
   var realCallHandler;
