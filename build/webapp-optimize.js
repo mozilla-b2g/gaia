@@ -362,9 +362,8 @@ if (GAIA_INLINE_LOCALES === '1') {
 
   // LOCALES_FILE is a relative path by default: shared/resources/languages.json
   // -- but it can be an absolute path when doing a multilocale build.
-  let os = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS;
-  let separator = os == "WINNT" ? "\\" : "/";
-  let abs_path_chunks = [GAIA_DIR].concat(LOCALES_FILE.split(separator));
+  // LOCALES_FILE is using unix separator, ensure working fine on win32
+  let abs_path_chunks = [GAIA_DIR].concat(LOCALES_FILE.split('/'));
   let file = getFile.apply(null, abs_path_chunks);
   if (!file.exists()) {
     file = getFile(LOCALES_FILE);

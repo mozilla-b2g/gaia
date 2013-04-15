@@ -115,7 +115,7 @@ def copy_properties(source, locales, ini_file):
             target_path = os.path.join(ini_dirname, path)
             # apps/browser/locales/browser.fr.properties becomes
             # apps/browser/browser.properties
-            source_path = target_path.replace(os.sep + 'locales', '') \
+            source_path = target_path.replace('/locales', '') \
                                      .replace('.%s' % locale, '')
             source_path = os.path.join(source, locale, source_path)
             if not os.path.exists(source_path):
