@@ -101,15 +101,15 @@ if (!utils.alphaScroll) {
       }
 
       anch = current.anchor;
-      querySelector = '#' + ((anch == 'group-#') ? 'group-und' : anch);
-
+      var selector = ((anch == 'group-#') ? 'group-und' : anch);
+      querySelector = '#' + selector;
       domTarget = doc.querySelector(querySelector);
-      if (!domTarget || domTarget.clientHeight <= 0)
+      if (!domTarget)
         return;
 
       previous = current;
-
-      scrollToCallback(domTarget);
+      var group = selector.replace('group-', '');
+      scrollToCallback(domTarget, group);
     }
 
     // Cache images refered in 'data-img'es

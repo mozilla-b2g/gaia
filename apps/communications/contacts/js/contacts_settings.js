@@ -384,6 +384,7 @@ contacts.Settings = (function() {
     if (newOrderByLastName != null &&
         newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
+      contacts.List.load();
       orderByLastName = newOrderByLastName;
     }
 

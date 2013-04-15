@@ -211,11 +211,12 @@ var Contacts = (function() {
   var initContactsList = function initContactsList() {
     if (contactsList)
       return;
-    getFirstContacts();
     contactsList = contactsList || contacts.List;
     var list = document.getElementById('groups-list');
     contactsList.init(list);
+    getFirstContacts();
     contactsList.initAlphaScroll();
+    contactsList.handleClick(contactListClickHandler);
     checkCancelableActivity();
   };
 
@@ -319,12 +320,7 @@ var Contacts = (function() {
     });
   };
 
-  var loadList = function loadList(contacts) {
-    contactsList.load(contacts);
-    contactsList.handleClick(contactListClickHandler);
-  };
-
-  var selectList = function selectList(phoneNumber, fromUpdateActivity) {
+  var selectList = function selectList(params, fromUpdateActivity) {
     addButton.classList.add('hide');
     contactsList.clearClickHandlers();
     contactsList.load();
@@ -735,9 +731,7 @@ var Contacts = (function() {
       console.error('Error getting first contacts');
     };
     contactsList = contactsList || contacts.List;
-    contactsList.getAllContacts(onerror, function(contacts) {
-      loadList(contacts);
-    });
+    contactsList.getAllContacts(onerror);
   };
 
   var addAsyncScripts = function addAsyncScripts() {
