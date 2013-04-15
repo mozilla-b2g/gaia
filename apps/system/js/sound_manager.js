@@ -4,12 +4,226 @@
 'use strict';
 
 (function() {
+
+  var DEBUG = false;
+
+  if (DEBUG)
+    var _debug = function(s) {
+      console.log('-*- SoundManagerEx -*-: ' + s + '\n');
+    };
+  else
+    var _debug = function(s) {};
+
+  var soundManagerEx = {
+    _volComfortLvl: 8, //xx db, the comfortable level of sound via headset
+    _volWarningLvl: 10,//85 db, the warning level for sound via headset.
+    _totalTicking: 0,
+    _intervalId: null,
+    _headphonesActive: false,
+
+    TIME_TWENTY_HOURS: 72000000,
+    TIME_FIVE_MINUTES: 300000,//For test.
+    TIME_ONE_MINUTE: 60000,
+
+    init: function sm_init() {
+      var self = this;
+      //When the headset  is plugged out ,we will recieve the
+      //mozChromeEvent twice.here we save the prev state
+      // to avoid change volume twice.
+      var prevStates = 'off';
+      var headsetActive = false;
+
+      //Now, there is an issue that when we reboot the device with the
+      // headset pluged in, we can't get the right status of the earphone.
+      //So here we handle the mozChromeEvent and get the the
+      // status of earphone instead of navigator.mozAudioChannelManager.
+      window.addEventListener('mozChromeEvent', function(e) {
+        var type = e.detail.type;
+        if (type === 'headphones-status-changed') {
+          if (prevStates != e.detail.state) {
+            prevStates = e.detail.state;
+            //We handle the handset plugged out.
+            headsetActive = (e.detail.state != 'off');
+            self._headphonesActive = headsetActive;
+            self.handleHeadsetStatusChange(headsetActive);
+          }
+        }
+        else if (type == 'audio-channel-changed') {
+          self.handleAudioChannelChanged(headsetActive);
+        }
+      });
+    },
+
+    handleHeadsetStatusChange: function sm_handleHeadsetChange(headsetActive) {
+      var settings = window.navigator.mozSettings;
+      //self._headphonesActive = headsetActive;
+      if (headsetActive) {
+        var volume = this._volComfortLvl;
+        if (currentVolume['content.headset'] < this._volWarningLvl) {
+          volume = currentVolume['content.headset'];
+        }
+        settings.createLock().set({'audio.volume.content': volume});
+        settings.createLock().set({'audio.volume.content.headset': volume});
+      }else {
+        this.stopCumulativeTicking();
+        settings.createLock().set(
+          {'audio.volume.content': currentVolume['content.loudspeaker']});
+      }
+
+      var currentChannel = getChannel();
+      if (currentChannel === 'content') {
+        changeVolume(0);
+      }
+    },
+
+    handleAudioChannelChanged: function handleChanged(headsetActive) {
+      var currentChannel = getChannel();
+      if (currentChannel != 'content') {
+        this.stopCumulativeTicking();
+      }else {
+        if (headsetActive) {
+          if (currentVolume['content.headset'] > this._volWarningLvl) {
+            this.startCumulativeTicking();
+          }
+        }
+      }
+    },
+
+    stopCumulativeTicking: function sm_stopContTicking() {
+      if (this._intervalId != 0) {
+        window.clearInterval(this._intervalId);
+        this._intervalId = 0;
+        this._totalTicking = 0;
+      }
+    },
+
+    //Maybe we can use alarm instead of this.
+    startCumulativeTicking: function sm_startCumulativeTicking() {
+      var self = this;
+      this._intervalId = window.setInterval(function() {
+        self._totalTicking += self.TIME_ONE_MINUTE;
+        _debug('startCumulativeTicking: ' + self._totalTicking);
+        if (self._totalTicking >= self.TIME_TWENTY_HOURS) {
+          self.showLongtimeWarning();
+        }
+      },self.TIME_ONE_MINUTE);
+    },
+
+    showWarningConfirm: function sm_showWarningConfirm(delta, volume) {
+      if (!this._headphonesActive) {
+        changeVolume(delta);
+        return;
+      }else {
+        var cancel = {};
+        var confirm = {};
+        var self = this;
+        cancel.title = navigator.mozL10n.get('cancel');
+        cancel.callback = function() {
+          CustomDialog.hide();
+        };
+        confirm.title = navigator.mozL10n.get('ok');
+        confirm.callback = function() {
+          var settings = window.navigator.mozSettings;
+          var value = volume + delta;
+          CustomDialog.hide();
+          self.startCumulativeTicking();
+
+          settings.createLock().set({'audio.volume.content.headset': value});
+          changeVolume(1);
+        };
+        var msg = navigator.mozL10n.get('incVolumeConfirm');
+        CustomDialog.show(
+          navigator.mozL10n.get('attention'), msg, cancel, confirm);
+      }
+    },
+    showLongtimeWarning: function sm_showConfirm() {
+
+      var value = this._volComfortLvl - currentVolume['content'];
+      
+      if (!this._headphonesActive) {
+        changeVolume(value);
+        return;
+      }else {
+        var cancel = {};
+        var confirm = {};
+        var self = this;
+        var settings = window.navigator.mozSettings;
+        cancel.title = navigator.mozL10n.get('cancel');
+        cancel.callback = function() {
+          CustomDialog.hide();
+          self._totalTicking = 0;
+        };
+        confirm.title = navigator.mozL10n.get('ok');
+        confirm.callback = function() {
+          //Show the action.
+          CustomDialog.hide();
+          self._totalTicking = 0;
+          changeVolume(value, 'content');
+          settings.createLock().set(
+            {'audio.volume.content.headset': self._volComfortLvl});
+        };
+        var msg = _('decVolumeConfirm');
+        CustomDialog.show(
+          navigator.mozL10n.get('attention'), msg, cancel, confirm);
+        window.setTimeout(function() {
+          CustomDialog.hide();
+          changeVolume(value, 'content');
+          settings.createLock().set(
+            {'audio.volume.content.headset': self._volComfortLvl});
+        },self.TIME_ONE_MINUTE);
+      }
+    },
+    changeVolume: function sm_changeVolume(delta, volume) {
+      var channel = getChannel();
+      var settings = window.navigator.mozSettings;
+      if (this._headphonesActive === true &&
+        !LockScreen.locked && //Not to annoy in lockscreen case
+        channel === 'content') {
+        if (volume === this._volWarningLvl) {
+          if (delta > 0) {
+            this.showWarningConfirm(delta, volume);
+            return;
+          }
+          CustomDialog.hide();
+          this.stopCumulativeTicking();
+        }
+      }
+      if (channel === 'content') {
+        var value = volume + delta;
+        if (this._headphonesActive) {
+          settings.createLock().set({'audio.volume.content.headset': value});
+        }else {
+          settings.createLock().set(
+            {'audio.volume.content.loudspeaker': value});
+        }
+      }
+      changeVolume(delta);
+    }
+  };
+
+
+
+  function handleVolumeChange(delta, channel) {
+    var volume = currentVolume['content'];
+    soundManagerEx.changeVolume(delta, volume);
+  }
+
+ if (navigator.mozL10n.readyState == 'complete' ||
+    navigator.mozL10n.readyState == 'interactive') {
+    soundManagerEx.init();
+  } else {
+    window.addEventListener('localized',
+      soundManagerEx.init.bind(soundManagerEx));
+  }
+
+
   window.addEventListener('volumeup', function() {
     if (ScreenManager.screenEnabled || currentChannel !== 'none') {
       if (onBTEarphoneConnected() && onCall()) {
         changeVolume(1, 'bt_sco');
       } else {
-        changeVolume(1);
+        //changeVolume(1);
+        handleVolumeChange(1);
       }
     }
   });
@@ -18,7 +232,8 @@
       if (onBTEarphoneConnected() && onCall()) {
         changeVolume(-1, 'bt_sco');
       } else {
-        changeVolume(-1);
+        //changeVolume(-1);
+        handleVolumeChange(-1);
       }
     }
   });
@@ -73,7 +288,9 @@
     'notification': 15,
     'telephony': 5,
     'content': 15,
-    'bt_sco': 15
+    'bt_sco': 15,
+    'content.headset': 15,
+    'content.loudspeaker': 15
   };
 
   // Please refer https://wiki.mozilla.org/WebAPI/AudioChannels > Settings
@@ -82,7 +299,9 @@
     'notification': 15,
     'telephony': 5,
     'content': 15,
-    'bt_sco': 15
+    'bt_sco': 15,
+    'content.headset': 15,
+    'content.loudspeaker': 15
   };
   var pendingRequestCount = 0;
 
