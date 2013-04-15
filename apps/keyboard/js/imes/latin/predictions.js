@@ -239,6 +239,8 @@ var Predictions = function() {
       var list = {};
       for (var m = 0; m < keyArray.length; ++m) {
         var key2 = keyArray[m];
+        if (key1.code == key2.code)
+          continue;
         if (SpecialKey(key2))
           continue;
         if (SquaredDistanceToEdge(/* key dimensions */
