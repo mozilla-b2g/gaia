@@ -774,8 +774,8 @@ var Browser = {
             this.bookmarkMenuRemove.parentNode.classList.remove('hidden');
             //XXX not implement yet: edit bookmark in bookmarktab #838041
             this.bookmarkMenuEdit.parentNode.classList.add('hidden');
-            //XXX not implement yet: link to home in bookmarktab #850999
-            this.bookmarkMenuAddHome.parentNode.classList.add('hidden');
+            this.bookmarkMenuAddHome.dataset.url = url;
+            this.bookmarkMenuAddHome.parentNode.classList.remove('hidden');
 
           } else { //show actions in browser page
 
@@ -784,7 +784,7 @@ var Browser = {
             this.bookmarkMenuRemove.parentNode.classList.remove('hidden');
             this.bookmarkMenuEdit.dataset.url = url;
             this.bookmarkMenuEdit.parentNode.classList.remove('hidden');
-            //XXX not implement yet: link to home in bookmarktab #850999
+            this.bookmarkMenuAddHome.dataset.url = url;
             this.bookmarkMenuAddHome.parentNode.classList.remove('hidden');
 
           }
@@ -793,8 +793,7 @@ var Browser = {
           this.bookmarkMenuAdd.parentNode.classList.remove('hidden');
           this.bookmarkMenuRemove.parentNode.classList.add('hidden');
           this.bookmarkMenuEdit.parentNode.classList.add('hidden');
-          //XXX not implement yet: link to home in bookmarktab #850999
-          this.bookmarkMenuAddHome.parentNode.classList.remove('hidden');
+          this.bookmarkMenuAddHome.parentNode.classList.add('hidden');
 
         }
       }).bind(this));
@@ -863,17 +862,16 @@ var Browser = {
   },
 
   addLinkToHome: function browser_addLinkToHome() {
-    if (!this.currentTab.url)
+    if (!this.bookmarkMenuAddHome.dataset.url)
       return;
-
-    Places.getPlace(this.currentTab.url, (function(place) {
+    Places.getPlace(this.bookmarkMenuAddHome.dataset.url, (function(bookmark) {
       new MozActivity({
         name: 'save-bookmark',
         data: {
           type: 'url',
-          url: this.currentTab.url,
-          name: this.currentTab.title,
-          icon: place.iconUri,
+          url: bookmark.uri,
+          name: bookmark.title,
+          icon: bookmark.iconUri,
           useAsyncPanZoom: true
         }
       });
