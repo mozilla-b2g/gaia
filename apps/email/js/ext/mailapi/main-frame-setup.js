@@ -2922,13 +2922,17 @@ if (("indexedDB" in window) && window.indexedDB) {
  *
  * Explanation of most recent bump:
  *
+ * Bumping to 19 because of change from uids to ids, but mainly because we are
+ * now doing parallel IMAP fetching and we want to see the results of using it
+ * immediately.
+ *
  * Bumping to 18 because of massive change for lazily fetching snippets and
  * message bodies.
  *
  * Bumping to 17 because we changed the folder representation to store
  * hierarchy.
  */
-var CUR_VERSION = 18;
+var CUR_VERSION = 19;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -3093,6 +3097,7 @@ function MailDB(testOptions, successCb, errorCb, upgradeCb) {
     successCb();
   };
   openRequest.onupgradeneeded = function(event) {
+    console.log('MailDB in onupgradeneeded');
     var db = openRequest.result;
 
     // - reset to clean slate
@@ -3144,8 +3149,9 @@ MailDB.prototype = {
     }
   },
 
-  getConfig: function(callback) {
-    var transaction = this._db.transaction([TBL_CONFIG, TBL_FOLDER_INFO],
+  getConfig: function(callback, trans) {
+    var transaction = trans ||
+                      this._db.transaction([TBL_CONFIG, TBL_FOLDER_INFO],
                                            'readonly');
     var configStore = transaction.objectStore(TBL_CONFIG),
         folderInfoStore = transaction.objectStore(TBL_FOLDER_INFO);

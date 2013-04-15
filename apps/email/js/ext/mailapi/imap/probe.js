@@ -131,6 +131,8 @@ var emptyFn = function() {}, CRLF = '\r\n',
     MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
               'Oct', 'Nov', 'Dec'],
     reFetch = /^\* (\d+) FETCH [\s\S]+? \{(\d+)\}$/,
+    reUid = /UID (\d+)/,
+    reBodyPart = /BODY/,
     reDate = /^(\d{2})-(.{3})-(\d{4})$/,
     reDateTime = /^(\d{2})-(.{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}) ([+-]\d{4})$/,
     HOUR_MILLIS = 60 * 60 * 1000, MINUTE_MILLIS = 60 * 1000;
@@ -274,6 +276,8 @@ function ImapConnection (options) {
     conn: null,
     curId: 0,
     requests: [],
+    unsentRequests: [],
+    activeRequests: 0,
     numCapRecvs: 0,
     isReady: false,
     isIdle: true,
@@ -307,6 +311,7 @@ function ImapConnection (options) {
       }
     }
   };
+  this._unprocessed = [];
   this._options = extend(this._options, options);
   // The Date.now thing is to assign a random/unique value as a logging stop-gap
   this._LOG = (this._options._logParent ? LOGFAB.ImapProtoConn(this, this._options._logParent, Date.now() % 1000) : null);
@@ -321,6 +326,52 @@ exports.ImapConnection = ImapConnection;
 
 ImapConnection.prototype.hasCapability = function(name) {
   return this.capabilities.indexOf(name) !== -1;
+};
+
+ImapConnection.prototype._findAndShiftRequestByPrefix = function(prefix) {
+  var len = this._state.requests.length;
+  prefix = prefix.trim();
+
+  var request, i;
+  for (i = 0; i < len; i++) {
+    request = this._state.requests[i];
+    if (!request || !request.prefix) {
+      continue;
+    }
+
+    if (request.prefix.lastIndexOf(prefix, 0) === 0) {
+      return this._state.requests.splice(i, 1)[0];
+    }
+  }
+
+  // if we didn't find anything, assume it was the first request, but issue a
+  // warning if there was more than one outstanding request
+  if (this._state.requests.length > 1) {
+    var skipped = [];
+    for (i = 0; i < len; i++) {
+      request = this._state.requests[i];
+      skipped.push(request.prefix);
+    }
+  }
+  return this._state.requests.shift();
+};
+
+ImapConnection.prototype._findFetchRequest = function(uid, bodyPart) {
+  var requests = this._state.requests;
+  var len = requests.length;
+
+  var currentReq;
+  for (var i = 0; i < len; i++) {
+    currentReq = requests[i].fetchParams;
+
+    if (
+      currentReq &&
+      currentReq.uids[uid] &&
+      currentReq.bodyPart === bodyPart
+    ) {
+      return requests[i];
+    }
+  }
 };
 
 ImapConnection.prototype.connect = function(loginCb) {
@@ -385,9 +436,13 @@ ImapConnection.prototype.connect = function(loginCb) {
     */
     fnInit();
   });
+
   this._state.conn.on('data', function(buffer) {
     try {
-      processData(buffer);
+      self._unprocessed.push(buffer);
+      while (self._unprocessed.length) {
+        processData(self._unprocessed.shift());
+      }
     }
     catch (ex) {
       console.error('Explosion while processing data', ex);
@@ -396,160 +451,9 @@ ImapConnection.prototype.connect = function(loginCb) {
       throw ex;
     }
   });
-  /**
-   * Process up to one thing.  Generally:
-   * - If we are processing a literal, we make sure we have the data for the
-   *   whole literal, then we process it.
-   * - If we are not in a literal, we buffer until we have one newline.
-   * - If we have leftover data, we invoke ourselves in a quasi-tail-recursive
-   *   fashion or in subsequent ticks.  It's not clear that the logic that
-   *   defers to future ticks is sound.
-   */
-  function processData(data) {
-    if (data.length === 0) return;
-    var idxCRLF = null, literalInfo;
 
-    // - Accumulate data until newlines when not in a literal
-    if (self._state.curExpected === null) {
-      // no newline, append and bail
-      if ((idxCRLF = bufferIndexOfCRLF(data, 0)) === -1) {
-        if (self._state.curData)
-          self._state.curData = bufferAppend(self._state.curData, data);
-        else
-          self._state.curData = data;
-        return;
-      }
-      // yes newline, use the buffered up data and new data
-      // (note: data may now contain more than one line's worth of data!)
-      if (self._state.curData && self._state.curData.length) {
-        data = bufferAppend(self._state.curData, data);
-        self._state.curData = null;
-      }
-    }
-
-    // -- Literal
-    // Don't mess with incoming data if it's part of a literal
-    if (self._state.curExpected !== null) {
-      var curReq = self._state.requests[0];
-      if (!curReq._done) {
-        var chunk = data;
-        self._state.curXferred += data.length;
-        if (self._state.curXferred > self._state.curExpected) {
-          var pos = data.length
-                    - (self._state.curXferred - self._state.curExpected),
-              extra = data.slice(pos);
-          if (pos > 0)
-            chunk = data.slice(0, pos);
-          else
-            chunk = undefined;
-          data = extra;
-          curReq._done = 1;
-        }
-
-        if (chunk && chunk.length) {
-          if (self._LOG) self._LOG.data(chunk.length, chunk);
-          if (curReq._msgtype === 'headers') {
-            chunk.copy(self._state.curData, curReq.curPos, 0);
-            curReq.curPos += chunk.length;
-          }
-          else
-            curReq._msg.emit('data', chunk);
-        }
-      }
-
-      if (curReq._done) {
-        var restDesc;
-        if (curReq._done === 1) {
-          if (curReq._msgtype === 'headers')
-            curReq._headers = self._state.curData.toString('ascii');
-          self._state.curData = null;
-          curReq._done = true;
-        }
-
-        if (self._state.curData)
-          self._state.curData = bufferAppend(self._state.curData, data);
-        else
-          self._state.curData = data;
-
-        idxCRLF = bufferIndexOfCRLF(self._state.curData);
-        if (idxCRLF && self._state.curData[idxCRLF - 1] === CHARCODE_RPAREN) {
-          if (idxCRLF > 1) {
-            // eat up to, but not including, the right paren
-            restDesc = self._state.curData.toString('ascii', 0, idxCRLF - 1)
-                         .trim();
-            if (restDesc.length)
-              curReq._desc += ' ' + restDesc;
-          }
-          parseFetch(curReq._desc, curReq._headers, curReq._msg);
-          data = self._state.curData.slice(idxCRLF + 2);
-          curReq._done = false;
-          self._state.curXferred = 0;
-          self._state.curExpected = null;
-          self._state.curData = null;
-          curReq._msg.emit('end', curReq._msg);
-          // XXX we could just change the next else to not be an else, and then
-          // this conditional is not required and we can just fall out.  (The
-          // expected check === 0 may need to be reinstated, however.)
-          if (data.length && data[0] === CHARCODE_ASTERISK) {
-            processData(data);
-            return;
-          }
-        } else // ??? no right-paren, keep accumulating data? this seems wrong.
-          return;
-      } else // not done, keep accumulating data
-        return;
-    }
-    // -- Fetch w/literal
-    // (More specifically, we were not in a literal, let's see if this line is
-    // a fetch result line that starts a literal.  We want to minimize
-    // conversion to a string, as there used to be a naive conversion here that
-    // chewed up a lot of processor by converting all of data rather than
-    // just the current line.)
-    else if (data[0] === CHARCODE_ASTERISK) {
-      var strdata;
-      idxCRLF = bufferIndexOfCRLF(data, 0);
-      if (data[idxCRLF - 1] === CHARCODE_RBRACE &&
-          (literalInfo =
-             (strdata = data.toString('ascii', 0, idxCRLF)).match(reFetch))) {
-        self._state.curExpected = parseInt(literalInfo[2], 10);
-
-        var curReq = self._state.requests[0],
-            type = /BODY\[(.*)\](?:\<\d+\>)?/.exec(strdata),
-            msg = new ImapMessage(),
-            desc = strdata.substring(strdata.indexOf('(')+1).trim();
-        msg.seqno = parseInt(literalInfo[1], 10);
-        type = type[1];
-        curReq._desc = desc;
-        curReq._msg = msg;
-        msg.size = self._state.curExpected;
-
-        curReq._fetcher.emit('message', msg);
-
-        curReq._msgtype = (type.indexOf('HEADER') === 0 ? 'headers' : 'body');
-        // This library buffers headers, so allocate a buffer to hold the literal.
-        if (curReq._msgtype === 'headers') {
-          self._state.curData = new Buffer(self._state.curExpected);
-          curReq.curPos = 0;
-        }
-        if (self._LOG) self._LOG.data(strdata.length, strdata);
-        // (If it's not headers, then it's body, and we generate 'data' events.)
-        processData(data.slice(idxCRLF + 2));
-        return;
-      }
-    }
-
-    if (data.length === 0)
-      return;
-    data = customBufferSplitCRLF(data);
-    // Defer any extra server responses found in the incoming data
-    for (var i=1,len=data.length; i<len; ++i) {
-      process.nextTick(processData.bind(null, data[i]));
-    }
-
-    data = data[0].toString('ascii');
-    if (self._LOG) self._LOG.data(data.length, data);
-    data = stringExplode(data, ' ', 3);
-
+  function processResponse(data) {
+    var curReq = null;
     // -- Untagged server responses
     if (data[0] === '*') {
       if (self._state.status === STATES.NOAUTH) {
@@ -736,9 +640,11 @@ ImapConnection.prototype.connect = function(loginCb) {
                                                data[2].lastIndexOf(")")),
                              "", msg);
                   msg.seqno = parseInt(data[1], 10);
+                  // we don't need/want to use _findFetchRequest because that only
+                  // applies for body fetches, which this is definitely not.
                   if (self._state.requests.length &&
                       self._state.requests[0].command.indexOf('FETCH') > -1) {
-                    var curReq = self._state.requests[0];
+                    curReq = self._state.requests[0];
                     curReq._fetcher.emit('message', msg);
                     msg.emit('end');
                   } else if (isUnsolicited)
@@ -752,7 +658,8 @@ ImapConnection.prototype.connect = function(loginCb) {
 
       if (data[0] === '+' && self._state.ext.idle.state === IDLE_WAIT) {
         self._state.ext.idle.state = IDLE_READY;
-        return process.nextTick(function() { self._send(); });
+        process.nextTick(function() { self._send(); });
+        return;
       }
 
       var sendBox = false;
@@ -776,24 +683,31 @@ ImapConnection.prototype.connect = function(loginCb) {
         return;
       }
 
-      if (self._state.requests[0].command.indexOf('RENAME') > -1) {
+      var recentReq = (data[0] !== '+') ?
+        self._findAndShiftRequestByPrefix(data[0]) :
+        self._state.requests.shift();
+
+      if (recentReq.command.indexOf('RENAME') > -1) {
         self._state.box.name = self._state.box._newName;
         delete self._state.box._newName;
         sendBox = true;
       }
 
-      if (typeof self._state.requests[0].callback === 'function') {
+
+      if (typeof recentReq.callback === 'function') {
         var err = null;
-        var args = self._state.requests[0].args,
-            cmd = self._state.requests[0].command;
+        var args = recentReq.args,
+            cmd = recentReq.command;
         if (data[0] === '+') {
+          // continuation, put request back-on
+          self._state.requests.unshift(recentReq);
           if (cmd.indexOf('APPEND') !== 0) {
             err = new Error('Unexpected continuation');
             err.type = 'continuation';
             err.serverResponse = '';
             err.request = cmd;
           } else
-            return self._state.requests[0].callback();
+            return recentReq.callback();
         } else if (data[1] !== 'OK') {
           err = new Error('Error while executing request: ' + data[2]);
           err.type = data[1];
@@ -811,12 +725,14 @@ ImapConnection.prototype.connect = function(loginCb) {
             args.unshift([]);
         }
         args.unshift(err);
-        self._state.requests[0].callback.apply({}, args);
+        recentReq.callback.apply(recentReq, args);
       }
 
-
-      var recentReq = self._state.requests.shift();
-      if (!recentReq) {
+      if (recentReq) {
+        if (recentReq.active)
+          self._state.activeRequests--;
+      }
+      else {
         // We expect this to happen in the case where our callback above
         // resulted in our connection being killed.  So just bail in that case.
         if (self._state.status === STATES.NOCONNECT)
@@ -825,6 +741,7 @@ ImapConnection.prototype.connect = function(loginCb) {
         console.error('IMAP: Somehow no recentReq for data:', data);
         return;
       }
+
       var recentCmd = recentReq.command;
       if (self._LOG) self._LOG.cmd_end(recentReq.prefix, recentCmd, /^LOGIN$/.test(recentCmd) ? '***BLEEPING OUT LOGON***' : recentReq.cmddata);
       if (self._state.requests.length === 0
@@ -861,6 +778,172 @@ ImapConnection.prototype.connect = function(loginCb) {
         self._LOG.unknownResponse(data[0], data[1], data[2]);
       // unknown response
     }
+  }
+
+  /**
+   * Process up to one thing.  Generally:
+   * - If we are processing a literal, we make sure we have the data for the
+   *   whole literal, then we process it.
+   * - If we are not in a literal, we buffer until we have one newline.
+   */
+  function processData(data) {
+    if (data.length === 0) return;
+    var idxCRLF = null, literalInfo, curReq;
+
+    // - Accumulate data until newlines when not in a literal
+    if (self._state.curExpected === null) {
+      // no newline, append and bail
+      if ((idxCRLF = bufferIndexOfCRLF(data, 0)) === -1) {
+        if (self._state.curData)
+          self._state.curData = bufferAppend(self._state.curData, data);
+        else
+          self._state.curData = data;
+        return;
+      }
+      // yes newline, use the buffered up data and new data
+      // (note: data may now contain more than one line's worth of data!)
+      if (self._state.curData && self._state.curData.length) {
+        data = bufferAppend(self._state.curData, data);
+        self._state.curData = null;
+      }
+    }
+
+    // -- Literal
+    // Don't mess with incoming data if it's part of a literal
+    if (self._state.curExpected !== null) {
+      curReq = curReq || self._state.requests[0];
+
+      if (!curReq._done) {
+        var chunk = data;
+        self._state.curXferred += data.length;
+        if (self._state.curXferred > self._state.curExpected) {
+          var pos = data.length
+                    - (self._state.curXferred - self._state.curExpected),
+              extra = data.slice(pos);
+          if (pos > 0)
+            chunk = data.slice(0, pos);
+          else
+            chunk = undefined;
+          data = extra;
+          curReq._done = 1;
+        }
+
+        if (chunk && chunk.length) {
+          if (self._LOG) self._LOG.data(chunk.length, chunk);
+          if (curReq._msgtype === 'headers') {
+            chunk.copy(self._state.curData, curReq.curPos, 0);
+            curReq.curPos += chunk.length;
+          }
+          else
+            curReq._msg.emit('data', chunk);
+        }
+      }
+
+      if (curReq._done) {
+        var restDesc;
+        if (curReq._done === 1) {
+          if (curReq._msgtype === 'headers')
+            curReq._headers = self._state.curData.toString('ascii');
+          self._state.curData = null;
+          curReq._done = true;
+        }
+
+        if (self._state.curData)
+          self._state.curData = bufferAppend(self._state.curData, data);
+        else
+          self._state.curData = data;
+
+        idxCRLF = bufferIndexOfCRLF(self._state.curData);
+        if (idxCRLF && self._state.curData[idxCRLF - 1] === CHARCODE_RPAREN) {
+          if (idxCRLF > 1) {
+            // eat up to, but not including, the right paren
+            restDesc = self._state.curData.toString('ascii', 0, idxCRLF - 1)
+                         .trim();
+            if (restDesc.length)
+              curReq._desc += ' ' + restDesc;
+          }
+          parseFetch(curReq._desc, curReq._headers, curReq._msg);
+          data = self._state.curData.slice(idxCRLF + 2);
+          curReq._done = false;
+          self._state.curXferred = 0;
+          self._state.curExpected = null;
+          self._state.curData = null;
+          curReq._msg.emit('end', curReq._msg);
+          // XXX we could just change the next else to not be an else, and then
+          // this conditional is not required and we can just fall out.  (The
+          // expected check === 0 may need to be reinstated, however.)
+          if (data.length && data[0] === CHARCODE_ASTERISK) {
+            self._unprocessed.unshift(data);
+            return;
+          }
+        } else // ??? no right-paren, keep accumulating data? this seems wrong.
+          return;
+      } else // not done, keep accumulating data
+        return;
+    }
+    // -- Fetch w/literal
+    // (More specifically, we were not in a literal, let's see if this line is
+    // a fetch result line that starts a literal.  We want to minimize
+    // conversion to a string, as there used to be a naive conversion here that
+    // chewed up a lot of processor by converting all of data rather than
+    // just the current line.)
+    else if (data[0] === CHARCODE_ASTERISK) {
+      var strdata;
+      idxCRLF = bufferIndexOfCRLF(data, 0);
+      if (data[idxCRLF - 1] === CHARCODE_RBRACE &&
+          (literalInfo =
+             (strdata = data.toString('ascii', 0, idxCRLF)).match(reFetch))) {
+        self._state.curExpected = parseInt(literalInfo[2], 10);
+
+        var desc = strdata.substring(strdata.indexOf('(')+1).trim();
+        var type = /BODY\[(.*)\](?:\<\d+\>)?/.exec(strdata)[1];
+        var uid = reUid.exec(desc)[1];
+
+        // figure out which request this belongs to. If its not assigned to a
+        // specific uid then send it to the first pending request...
+        curReq = self._findFetchRequest(uid, type) || self._state.requests[0];
+        var msg = new ImapMessage();
+
+        // because we push data onto the unprocessed queue for any literals and
+        // processData lacks any context, we need to reorder the request to be
+        // first if it is not already first.  (Storing the request along-side
+        // the data in insufficient because if the literal data is fragmented
+        // at all, the context will be lost.)
+        if (self._state.requests[0] !== curReq) {
+          self._state.requests.splice(self._state.requests.indexOf(curReq), 1);
+          self._state.requests.unshift(curReq);
+        }
+
+        msg.seqno = parseInt(literalInfo[1], 10);
+        curReq._desc = desc;
+        curReq._msg = msg;
+        msg.size = self._state.curExpected;
+
+        curReq._fetcher.emit('message', msg);
+
+        curReq._msgtype = (type.indexOf('HEADER') === 0 ? 'headers' : 'body');
+        // This library buffers headers, so allocate a buffer to hold the literal.
+        if (curReq._msgtype === 'headers') {
+          self._state.curData = new Buffer(self._state.curExpected);
+          curReq.curPos = 0;
+        }
+        if (self._LOG) self._LOG.data(strdata.length, strdata);
+        // (If it's not headers, then it's body, and we generate 'data' events.)
+        self._unprocessed.unshift(data.slice(idxCRLF + 2));
+        return;
+      }
+    }
+
+    if (data.length === 0)
+      return;
+
+    data = customBufferSplitCRLF(data);
+    var response = data.shift().toString('ascii');
+    // queue the remaining buffer chunks up for processing at the head of the queue
+    self._unprocessed = data.concat(self._unprocessed);
+
+    if (self._LOG) self._LOG.data(response.length, response);
+    processResponse(stringExplode(response, ' ', 3));
   };
 
   this._state.conn.on('close', function onClose() {
@@ -1242,6 +1325,20 @@ ImapConnection.prototype._fetch = function(which, uids, options) {
               + ')';
   }
 
+  var fetchParams;
+  // we only run fetches in parallel when fetching for one UID per request.
+  // (Otherwise, you are asking for data from multiple UIDs at the same time and
+  // a parallel fetch is not needed since your request is basically already issuing
+  // one.)
+  if (uids.length === 1 && opts.request.body) {
+    var uidMap = {};
+    uids.forEach(function(id) {
+      uidMap[id] = toFetch;
+    });
+
+    fetchParams = { uids: uidMap, bodyPart: opts.request.body };
+  }
+
   var extensions = '';
   if (this.capabilities.indexOf('X-GM-EXT-1') > -1)
     extensions = 'X-GM-THRID X-GM-MSGID X-GM-LABELS ';
@@ -1249,21 +1346,28 @@ ImapConnection.prototype._fetch = function(which, uids, options) {
   else if (this.enabledCapabilities.indexOf('QRESYNC') > -1)
     extensions = 'MODSEQ ';
 
-  this._send(which + 'FETCH', ' ' + uids.join(',') + ' (' + extensions
+  var cmd = ' ' + uids.join(',') + ' (' + extensions
              + 'UID FLAGS INTERNALDATE'
              + (opts.request.struct ? ' BODYSTRUCTURE' : '')
              + (typeof toFetch === 'string' ? ' BODY'
              + (!opts.markSeen ? '.PEEK' : '')
-             + '[' + toFetch + ']' + bodyRange : '') + ')', function(e) {
-               var fetcher = self._state.requests[0]._fetcher;
-               if (e && fetcher)
-                 fetcher.emit('error', e);
-               else if (e && !fetcher)
-                 self.emit('error', e);
-               else if (fetcher)
-                 fetcher.emit('end');
-             }
-  );
+             + '[' + toFetch + ']' + bodyRange : '') + ')';
+
+  var onFetch = function onFetch(e) {
+    var fetcher = this._fetcher;
+    if (e && fetcher) {
+      fetcher.emit('error', e);
+    }
+    else if (e && !fetcher) {
+      self.emit('error', e);
+    }
+    else if (fetcher) {
+      fetcher.emit('end');
+    }
+  };
+
+  this._send(which + 'FETCH', cmd, onFetch, null, null, fetchParams);
+
   var imapFetcher = new ImapFetch();
   this._state.requests[this._state.requests.length-1]._fetcher = imapFetcher;
   return imapFetcher;
@@ -1448,6 +1552,7 @@ ImapConnection.prototype._reset = function() {
   this._state.status = STATES.NOCONNECT;
   this._state.numCapRecvs = 0;
   this._state.requests = [];
+  this._state.unsentRequests = [];
   this._state.isIdle = true;
   this._state.isReady = false;
   this._state.ext.idle.state = IDLE_NONE;
@@ -1481,97 +1586,158 @@ ImapConnection.prototype._noop = function() {
 // dispatchFunc is a function to invoke when the command is actually dispatched;
 // there was at least a potential state maintenance inconsistency with opening
 // folders prior to this.
-ImapConnection.prototype._send = function(cmdstr, cmddata, cb, dispatchFunc,
-                                          bypass) {
-  if (cmdstr !== undefined && !bypass)
-    this._state.requests.push(
-      {
-        prefix: null,
-        command: cmdstr,
-        cmddata: cmddata,
-        callback: cb,
-        dispatch: dispatchFunc,
-        args: []
-      });
+ImapConnection.prototype._send = function(
+  cmdstr,
+  cmddata,
+  cb,
+  dispatchFunc,
+  bypass,
+  fetchParams
+) {
+
+  var request;
+
+  if (cmdstr !== undefined) {
+    request = {
+      prefix: null,
+      command: cmdstr,
+      cmddata: cmddata,
+      callback: cb,
+      dispatch: dispatchFunc,
+      args: [],
+      fetchParams: fetchParams,
+      active: false
+    };
+
+    // don't queue bypassed requests
+    if (!bypass) {
+      this._state.requests.push(request);
+      this._state.unsentRequests.push(request);
+    }
+  }
+
   // If we are currently transitioning to/from idle, then wait around for the
   // server's response before doing anything more.
   if (this._state.ext.idle.state === IDLE_WAIT ||
-      this._state.ext.idle.state === DONE_WAIT)
-    return;
-  // only do something if this was 1) an attempt to kick us to run the next
-  // command, 2) the first/only command (none are pending), or 3) a bypass.
-  if ((cmdstr === undefined && this._state.requests.length) ||
-      this._state.requests.length === 1 || bypass) {
-    var prefix = '', cmd = (bypass ? cmdstr : this._state.requests[0].command),
-        data = (bypass ? null : this._state.requests[0].cmddata),
-        dispatch = (bypass ? null : this._state.requests[0].dispatch);
-    clearTimeoutFunc(this._state.tmrKeepalive);
-    // If we are currently in IDLE, we need to exit it before we send the
-    // actual command.  We mark it as a bypass so it does't mess with the
-    // list of requests.
-    if (this._state.ext.idle.state === IDLE_READY && cmd !== 'DONE')
-      return this._send('DONE', null, undefined, undefined, true);
-    else if (cmd === 'IDLE') {
-       // we use a different prefix to differentiate and disregard the tagged
-       // response the server will send us when we issue DONE
-      prefix = 'IDLE ';
-      this._state.ext.idle.state = IDLE_WAIT;
-    }
-    else if (cmd === 'DONE') {
-      this._state.ext.idle.state = DONE_WAIT;
-    }
-    if (cmd !== 'IDLE' && cmd !== 'DONE') {
-      prefix = 'A' + ++this._state.curId + ' ';
-      if (!bypass)
-        this._state.requests[0].prefix = prefix;
-    }
+      this._state.ext.idle.state === DONE_WAIT) {
+    return request;
+  }
 
-    if (dispatch)
-      dispatch();
+  if (bypass) {
+    this._writeRequest(request);
+    return request;
+  }
 
-    // We want our send to happen in a single packet; nagle is disabled by
-    // default and at least on desktop-class machines, we are sending out one
-    // packet per send call.
-    var iWrite = 0, iSrc;
-    for (iSrc = 0; iSrc < prefix.length; iSrc++) {
-      gSendBuf[iWrite++] = prefix.charCodeAt(iSrc);
+  var unsentRequests = this._state.unsentRequests;
+
+  // bail if nothing unsent
+  if (unsentRequests.length === 0)
+    return null;
+
+  // If there are no active requests, dispatch immediately.
+  if (this._state.activeRequests === 0) {
+    this._writeRequest(unsentRequests.shift(), true);
+  }
+  // We can issue fetches in parallel, so if our last request was a fetch, then
+  // try and issue all the fetches we can.
+  if (
+    this._state.lastRequest &&
+    this._state.lastRequest.fetchParams
+  ) {
+    while (unsentRequests.length &&
+           unsentRequests[0].fetchParams) {
+      this._writeRequest(unsentRequests.shift(), true);
     }
-    for (iSrc = 0; iSrc < cmd.length; iSrc++) {
-      gSendBuf[iWrite++] = cmd.charCodeAt(iSrc);
-    }
-    if (data) {
-      // fits in buffer
-      if (data.length < gSendBuf.length - 2) {
-        if (typeof(data) === 'string') {
-          for (iSrc = 0; iSrc < data.length; iSrc++) {
-            gSendBuf[iWrite++] = data.charCodeAt(iSrc);
-          }
-        }
-        else {
-          gSendBuf.set(data, iWrite);
-          iWrite += data.length;
+  }
+
+  return request;
+};
+
+ImapConnection.prototype._writeRequest = function(request, realRequest) {
+  var prefix = '',
+      cmd = request.command,
+      data = request.cmddata,
+      dispatch = request.dispatch;
+
+  clearTimeoutFunc(this._state.tmrKeepalive);
+
+  // If we are currently in IDLE, we need to exit it before we send the
+  // actual command.  We mark it as a bypass so it does't mess with the
+  // list of requests.
+  if (this._state.ext.idle.state === IDLE_READY && cmd !== 'DONE') {
+    this._send('DONE', null, undefined, undefined, true);
+  }
+  else if (cmd === 'IDLE') {
+     // we use a different prefix to differentiate and disregard the tagged
+     // response the server will send us when we issue DONE
+    prefix = 'IDLE ';
+    this._state.ext.idle.state = IDLE_WAIT;
+  }
+  else if (cmd === 'DONE') {
+    this._state.ext.idle.state = DONE_WAIT;
+  }
+  if (cmd !== 'IDLE' && cmd !== 'DONE') {
+    prefix = 'A' + ++this._state.curId + ' ';
+    request.prefix = prefix;
+
+    // just to infer what we can send next... FETCH/SEARCH can be sent in
+    // parallel but nothing else should be send while that is ongoing and FETCH
+    // should not be sent while other operations are ongoing (for now anyway)
+    this._state.lastRequest = request;
+  }
+
+  if (dispatch)
+    dispatch();
+
+  // We want our send to happen in a single packet; nagle is disabled by
+  // default and at least on desktop-class machines, we are sending out one
+  // packet per send call.
+  var iWrite = 0, iSrc;
+  for (iSrc = 0; iSrc < prefix.length; iSrc++) {
+    gSendBuf[iWrite++] = prefix.charCodeAt(iSrc);
+  }
+  for (iSrc = 0; iSrc < cmd.length; iSrc++) {
+    gSendBuf[iWrite++] = cmd.charCodeAt(iSrc);
+  }
+
+  if (data) {
+    // fits in buffer
+    if (data.length < gSendBuf.length - 2) {
+      if (typeof(data) === 'string') {
+        for (iSrc = 0; iSrc < data.length; iSrc++) {
+          gSendBuf[iWrite++] = data.charCodeAt(iSrc);
         }
       }
-      // does not fit in buffer, just do separate writes...
       else {
-        this._state.conn.write(gSendBuf.subarray(0, iWrite));
-        if (typeof(data) === 'string')
-          this._state.conn.write(Buffer(data));
-        else
-          this._state.conn.write(data);
-        this._state.conn.write(CRLF_BUFFER);
-        // set to zero to tell ourselves we don't need to send...
-        iWrite = 0;
+        gSendBuf.set(data, iWrite);
+        iWrite += data.length;
       }
     }
-    if (iWrite) {
-      gSendBuf[iWrite++] = 13;
-      gSendBuf[iWrite++] = 10;
+    // does not fit in buffer, just do separate writes...
+    else {
       this._state.conn.write(gSendBuf.subarray(0, iWrite));
+      if (typeof(data) === 'string')
+        this._state.conn.write(Buffer(data));
+      else
+        this._state.conn.write(data);
+      this._state.conn.write(CRLF_BUFFER);
+      // set to zero to tell ourselves we don't need to send...
+      iWrite = 0;
     }
+  }
+  if (iWrite) {
+    gSendBuf[iWrite++] = 13;
+    gSendBuf[iWrite++] = 10;
+    this._state.conn.write(gSendBuf.subarray(0, iWrite));
+  }
 
-    if (this._LOG) { if (!bypass) this._LOG.cmd_begin(prefix, cmd, /^LOGIN$/.test(cmd) ? '***BLEEPING OUT LOGON***' : data); else this._LOG.bypassCmd(prefix, cmd);}
+  if (realRequest) {
+    request.active = true;
+    this._state.activeRequests++;
+  }
 
+  if (this._LOG) {
+    this._LOG.cmd_begin(prefix, cmd, /^LOGIN$/.test(cmd) ? '***BLEEPING OUT LOGON***' : data);
   }
 };
 
