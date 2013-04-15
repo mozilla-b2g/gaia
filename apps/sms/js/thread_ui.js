@@ -1002,8 +1002,10 @@ var ThreadUI = {
       // that was actually a "delete" that removed the last
       // character in the recipient input field,
       // eg. type "a", then delete it.
-      // Always remove the the existing results.
+      // Always remove the the existing results and hide
+      // the recipient results container
       this.recipientResults.innerHTML = '';
+      this.recipientResults.classList.add('hide');
       return;
     }
 
