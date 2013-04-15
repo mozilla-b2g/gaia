@@ -72,28 +72,30 @@
         <h1 data-ssid> Network Status </h1>
       </header>
 
-      <ul>
-        <li>
-          <a data-l10n-id="security">security
-            <span data-security>WPA-PSK</span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="signalStrength">signal strength
-            <span data-signal>good</span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="ipAddress">IP Adddress
-            <span data-ip></span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="linkSpeed">link speed
-            <span data-speed></span>
-          </a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <a data-l10n-id="security">security
+              <span data-security>WPA-PSK</span>
+            </a>
+          </li>
+          <li>
+            <a data-l10n-id="signalStrength">signal strength
+              <span data-signal>good</span>
+            </a>
+          </li>
+          <li>
+            <a data-l10n-id="ipAddress">IP Adddress
+              <span data-ip></span>
+            </a>
+          </li>
+          <li>
+            <a data-l10n-id="linkSpeed">link speed
+              <span data-speed></span>
+            </a>
+          </li>
+        </ul>
+      </div>
       -->
     </section>
 
@@ -108,31 +110,34 @@
         <h1 data-ssid> Network Authentication </h1>
       </header>
 
-      <ul>
-        <li>
-          <a data-l10n-id="security">security
-            <span data-security>WPA-PSK</span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="signalStrength">signal strength
-            <span data-signal>good</span>
-          </a>
-        </li>
-        <li class="identity">
-          <p data-l10n-id="identity">identity</p>
-          <input type="text" data-ignore name="identity" />
-        </li>
-        <li class="password">
-          <label>
-            <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth" />
-            <span></span>
-          </label>
-          <span data-l10n-id="showPassword">show password</span>
-          <p data-l10n-id="password">password</p>
-          <input type="password" data-ignore name="password" maxlength="63" x-inputmode="verbatim" />
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <a data-l10n-id="security">security
+              <span data-security>WPA-PSK</span>
+            </a>
+          </li>
+          <li>
+            <a data-l10n-id="signalStrength">signal strength
+              <span data-signal>good</span>
+            </a>
+          </li>
+          <li class="identity">
+            <p data-l10n-id="identity">identity</p>
+            <input type="text" data-ignore name="identity" />
+          </li>
+          <li class="password">
+            <label>
+              <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth" />
+              <span></span>
+            </label>
+            <span data-l10n-id="showPassword">show password</span>
+            <p data-l10n-id="password">password</p>
+            <input type="password" data-ignore name="password" maxlength="63" x-inputmode="verbatim" />
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
@@ -148,37 +153,40 @@
         <h1 data-l10n-id="authentication"> Authentication </h1>
       </header>
 
-      <ul>
-        <li>
-          <p data-l10n-id="ssid-name">SSID Network Name</p>
-          <input type="text" data-ignore name="ssid" />
-        </li>
-        <li>
-          <p data-l10n-id="security">Security</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">empty</button>
-            <select>
-              <option data-l10n-id="securityNone">none</option>
-              <option>WEP</option>
-              <option selected>WPA-PSK</option>
-              <option>WPA-EAP</option>
-            </select>
-          </p>
-        </li>
-        <li class="identity">
-          <p data-l10n-id="identity">identity</p>
-          <input type="text" data-ignore name="identity" />
-        </li>
-        <li class="password">
-          <label>
-            <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden" />
-            <span></span>
-          </label>
-          <span data-l10n-id="showPassword">show password</span>
-          <p data-l10n-id="password">password</p>
-          <input type="password" data-ignore name="password" maxlength="63" />
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <p data-l10n-id="ssid-name">SSID Network Name</p>
+            <input type="text" data-ignore name="ssid" />
+          </li>
+          <li>
+            <p data-l10n-id="security">Security</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select>
+                <option data-l10n-id="securityNone">none</option>
+                <option>WEP</option>
+                <option selected>WPA-PSK</option>
+                <option>WPA-EAP</option>
+              </select>
+            </p>
+          </li>
+          <li class="identity">
+            <p data-l10n-id="identity">identity</p>
+            <input type="text" data-ignore name="identity" />
+          </li>
+          <li class="password">
+            <label>
+              <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden" />
+              <span></span>
+            </label>
+            <span data-l10n-id="showPassword">show password</span>
+            <p data-l10n-id="password">password</p>
+            <input type="password" data-ignore name="password" maxlength="63" />
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
@@ -195,36 +203,39 @@
         <h1 data-l10n-id="wps"> Wi-Fi Protected Setup </h1>
       </header>
 
-      <header>
-        <h2 data-l10n-id="wpsMethodSelection">Select WPS method:</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="pbc" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="wpsPbcLabel">Button connection</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="myPin" />
-            <span></span>
-          </label>
-          <a data-l10n-id="wpsMyPinLabel">My PIN connection</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="apPin" />
-            <span></span>
-          </label>
-          <a data-l10n-id="wpsApPinLabel">AP PIN connection</a>
-        </li>
-        <li id="wifi-wps-pin-area">
-          <p data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</p>
-          <input type="text" />
-        </li>
-      </ul>
+      <div>
+        <header>
+          <h2 data-l10n-id="wpsMethodSelection">Select WPS method:</h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="pbc" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="wpsPbcLabel">Button connection</a>
+          </li>
+          <li>
+            <label>
+              <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="myPin" />
+              <span></span>
+            </label>
+            <a data-l10n-id="wpsMyPinLabel">My PIN connection</a>
+          </li>
+          <li>
+            <label>
+              <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="apPin" />
+              <span></span>
+            </label>
+            <a data-l10n-id="wpsApPinLabel">AP PIN connection</a>
+          </li>
+          <li id="wifi-wps-pin-area">
+            <p data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</p>
+            <input type="text" />
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
@@ -237,30 +248,32 @@
         <h1 data-l10n-id="manageNetworks"> Manage Networks </h1>
       </header>
 
-      <ul>
-        <li>
-          <a data-l10n-id="macAddress"> MAC address
-            <span data-name="deviceinfo.mac"></span>
-          </a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <a data-l10n-id="macAddress"> MAC address
+              <span data-name="deviceinfo.mac"></span>
+            </a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="knownNetworks"> Known Networks </h2>
-      </header>
-      <ul id="wifi-knownNetworks">
-      </ul>
+        <header>
+          <h2 data-l10n-id="knownNetworks"> Known Networks </h2>
+        </header>
+        <ul id="wifi-knownNetworks">
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="hiddenNetworks"> Hidden Networks </h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <button id="joinHidden" data-l10n-id="joinHiddenNetwork">Join Hidden Networks</button>
-          </label>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="hiddenNetworks"> Hidden Networks </h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <button id="joinHidden" data-l10n-id="joinHiddenNetwork">Join Hidden Networks</button>
+            </label>
+          </li>
+        </ul>
+      <div>
 
       <form role="dialog" data-type="action" hidden>
         <menu>
@@ -268,6 +281,7 @@
           <button data-l10n-id="cancel" type="reset">Cancel</button>
         </menu>
       </form>
+
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
       -->
@@ -281,55 +295,57 @@
         <h1 data-l10n-id="wifi"> Wi-Fi </h1>
       </header>
 
-      <ul>
-        <li id="wifi-enabled">
-          <label>
-            <input type="checkbox" data-type="switch" data-ignore/>
-            <span></span>
-          </label>
-          <a data-l10n-id="wifi">Wi-Fi</a>
-        </li>
-        <li hidden>
-          <label>
-            <input type="checkbox" name="wifi.notification"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
-          <a data-l10n-id="networkNotification">Network notification</a>
-        </li>
-        <li id="wps-column">
-          <small data-l10n-id="wpsDescription">Automatic wireless network configuration</small>
-          <a data-l10n-id="wpsMessage">Connect with WPS</a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li id="wifi-enabled">
+            <label>
+              <input type="checkbox" data-type="switch" data-ignore/>
+              <span></span>
+            </label>
+            <a data-l10n-id="wifi">Wi-Fi</a>
+          </li>
+          <li hidden>
+            <label>
+              <input type="checkbox" name="wifi.notification"/>
+              <span></span>
+            </label>
+            <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
+            <a data-l10n-id="networkNotification">Network notification</a>
+          </li>
+          <li id="wps-column">
+            <small data-l10n-id="wpsDescription">Automatic wireless network configuration</small>
+            <a data-l10n-id="wpsMessage">Connect with WPS</a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
-      </header>
-      <ul id="wifi-availableNetworks" data-state="off">
-        <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
-          Turn Wi-Fi on to view available networks.
-        </li>
-        <li class="explanation" data-state="on" data-l10n-id="scanning">
-          Searching…
-        </li>
-        <li data-state="ready">
-          <label>
-            <button data-l10n-id="scanNetworks">Search Again</button>
-          </label>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
+        </header>
+        <ul id="wifi-availableNetworks" data-state="off">
+          <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
+            Turn Wi-Fi on to view available networks.
+          </li>
+          <li class="explanation" data-state="on" data-l10n-id="scanning">
+            Searching…
+          </li>
+          <li data-state="ready">
+            <label>
+              <button data-l10n-id="scanNetworks">Search Again</button>
+            </label>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <button id="manageNetworks" data-l10n-id="manageNetworks">Manage Networks</button>
-          </label>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <button id="manageNetworks" data-l10n-id="manageNetworks">Manage Networks</button>
+            </label>
+          </li>
+        </ul>
+      </div>
 
       <script src="js/wifi.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -347,20 +363,23 @@
         <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
       </header>
 
-      <ul id="cf-notreachable-advanced">
-        <li>
-          <p data-l10n-id="cf-numberWhenUnreachable">Number when unreachable</p>
-          <input type="tel" id="cf-notreachable-number" data-setting="ril.cf.notreachable.number" disabled/>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" data-setting="ril.cf.notreachable.enabled"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="callForwardingNotReachableShort">When unreachable</small>
-          <a data-l10n-id="callForwardingForward">Forward</a>
-        </li>
-      </ul>
+      <div>
+        <ul id="cf-notreachable-advanced">
+          <li>
+            <p data-l10n-id="cf-numberWhenUnreachable">Number when unreachable</p>
+            <input type="tel" id="cf-notreachable-number" data-setting="ril.cf.notreachable.number" disabled/>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" data-setting="ril.cf.notreachable.enabled"/>
+              <span></span>
+            </label>
+            <small data-l10n-id="callForwardingNotReachableShort">When unreachable</small>
+            <a data-l10n-id="callForwardingForward">Forward</a>
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
@@ -376,20 +395,23 @@
         <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
       </header>
 
-      <ul id="cf-noreply-advanced">
-        <li>
-          <p data-l10n-id="cf-numberWhenUnanswered">Number when unanswered</p>
-          <input type="tel" id="cf-noreply-number" data-setting="ril.cf.noreply.number" disabled/>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" data-setting="ril.cf.noreply.enabled"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="callForwardingNoReplyShort">When unanswered</small>
-          <a data-l10n-id="callForwardingForward">Forward</a>
-        </li>
-      </ul>
+      <div>
+        <ul id="cf-noreply-advanced">
+          <li>
+            <p data-l10n-id="cf-numberWhenUnanswered">Number when unanswered</p>
+            <input type="tel" id="cf-noreply-number" data-setting="ril.cf.noreply.number" disabled/>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" data-setting="ril.cf.noreply.enabled"/>
+              <span></span>
+            </label>
+            <small data-l10n-id="callForwardingNoReplyShort">When unanswered</small>
+            <a data-l10n-id="callForwardingForward">Forward</a>
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
@@ -405,20 +427,23 @@
         <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
       </header>
 
-      <ul id="cf-mobilebusy-advanced">
-        <li>
-          <p data-l10n-id="cf-numberWhenBusy">Number when busy</p>
-          <input type="tel" id="cf-mobilebusy-number" data-setting="ril.cf.mobilebusy.number" disabled/>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" data-setting="ril.cf.mobilebusy.enabled"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="callForwardingMobileBusyShort">When busy</small>
-          <a data-l10n-id="callForwardingForward">Forward</a>
-        </li>
-      </ul>
+      <div>
+        <ul id="cf-mobilebusy-advanced">
+          <li>
+            <p data-l10n-id="cf-numberWhenBusy">Number when busy</p>
+            <input type="tel" id="cf-mobilebusy-number" data-setting="ril.cf.mobilebusy.number" disabled/>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" data-setting="ril.cf.mobilebusy.enabled"/>
+              <span></span>
+            </label>
+            <small data-l10n-id="callForwardingMobileBusyShort">When busy</small>
+            <a data-l10n-id="callForwardingForward">Forward</a>
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
@@ -434,20 +459,23 @@
         <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
       </header>
 
-      <ul id="cf-unconditional-advanced">
-        <li>
-          <p data-l10n-id="cf-alwaysUseThisNumber">Always use this number</p>
-          <input type="tel" id="cf-unconditional-number" data-setting="ril.cf.unconditional.number" disabled/>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" data-setting="ril.cf.unconditional.enabled"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="callForwardingUnconditionalShort">Always</small>
-          <a data-l10n-id="callForwardingForward">Forward</a>
-        </li>
-      </ul>
+      <div>
+        <ul id="cf-unconditional-advanced">
+          <li>
+            <p data-l10n-id="cf-alwaysUseThisNumber">Always use this number</p>
+            <input type="tel" id="cf-unconditional-number" data-setting="ril.cf.unconditional.number" disabled/>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" data-setting="ril.cf.unconditional.enabled"/>
+              <span></span>
+            </label>
+            <small data-l10n-id="callForwardingUnconditionalShort">Always</small>
+            <a data-l10n-id="callForwardingForward">Forward</a>
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
@@ -460,40 +488,42 @@
         <h1 data-l10n-id="callSettings"> Call Settings </h1>
       </header>
 
-      <ul>
-        <li id="menuItem-callWaiting" data-state="off">
-          <label class="checkbox-label">
-            <input type="checkbox" data-type="switch" data-ignore/>
-            <span></span>
-          </label>
-          <label class="alert-label" hidden>
-            <span></span>
-          </label>
-          <a data-l10n-id="callWaiting">Call Waiting</a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li id="menuItem-callWaiting" data-state="off">
+            <label class="checkbox-label">
+              <input type="checkbox" data-type="switch" data-ignore/>
+              <span></span>
+            </label>
+            <label class="alert-label" hidden>
+              <span></span>
+            </label>
+            <a data-l10n-id="callWaiting">Call Waiting</a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="callForwarding"> Call Forwarding </h2>
-      </header>
-      <ul>
-        <li id="li-cfu-desc" class="disabled">
-          <small id="cfu-desc"></small>
-          <a id="menuItem-callForwardingUnconditional" data-href="#call-cf-unconditionalSettings" data-l10n-id="callForwardingUnconditional">Always forward</a>
-        </li>
-        <li id="li-cfmb-desc" class="disabled">
-          <small id="cfmb-desc"></small>
-          <a id="menuItem-callForwardingMobileBusy" data-href="#call-cf-mobileBusySettings" data-l10n-id="callForwardingMobileBusy">Forward when busy</a>
-        </li>
-        <li id="li-cfnrep-desc" class="disabled">
-          <small id="cfnrep-desc"></small>
-          <a id="menuItem-callForwardingNoReply" data-href="#call-cf-noReplySettings" data-l10n-id="callForwardingNoReply">Forward when unanswered</a>
-        </li>
-        <li id="li-cfnrea-desc" class="disabled">
-          <small id="cfnrea-desc"></small>
-          <a id="menuItem-callForwardingNotReachable" data-href="#call-cf-notReachableSettings" data-l10n-id="callForwardingNotReachable">Forward when unreachable</a>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="callForwarding"> Call Forwarding </h2>
+        </header>
+        <ul>
+          <li id="li-cfu-desc" class="disabled">
+            <small id="cfu-desc"></small>
+            <a id="menuItem-callForwardingUnconditional" data-href="#call-cf-unconditionalSettings" data-l10n-id="callForwardingUnconditional">Always forward</a>
+          </li>
+          <li id="li-cfmb-desc" class="disabled">
+            <small id="cfmb-desc"></small>
+            <a id="menuItem-callForwardingMobileBusy" data-href="#call-cf-mobileBusySettings" data-l10n-id="callForwardingMobileBusy">Forward when busy</a>
+          </li>
+          <li id="li-cfnrep-desc" class="disabled">
+            <small id="cfnrep-desc"></small>
+            <a id="menuItem-callForwardingNoReply" data-href="#call-cf-noReplySettings" data-l10n-id="callForwardingNoReply">Forward when unanswered</a>
+          </li>
+          <li id="li-cfnrea-desc" class="disabled">
+            <small id="cfnrea-desc"></small>
+            <a id="menuItem-callForwardingNotReachable" data-href="#call-cf-notReachableSettings" data-l10n-id="callForwardingNotReachable">Forward when unreachable</a>
+          </li>
+        </ul>
+      </div>
 
       <form role="dialog" data-type="confirm" hidden class="cw-alert">
         <section>
@@ -529,44 +559,47 @@
         <h1 data-l10n-id="networkOperator"> Network Operator </h1>
       </header>
 
-      <ul>
-        <li>
-          <p data-l10n-id="operator-networkType">Network Type</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">empty</button>
-            <select name="ril.radio.preferredNetworkType" id="preferredNetworkType">
-              <option data-l10n-id="operator-networkType-auto" value="wcdma/gsm">Automatic</option>
-              <option data-l10n-id="operator-networkType-2G" value="gsm">2G only</option>
-              <option data-l10n-id="operator-networkType-3G" value="wcdma">3G only</option>
-            </select>
-          </p>
-        </li>
-        <li id="operator-autoSelect">
-          <label>
-            <input type="checkbox" data-type="switch" data-ignore/>
-            <span></span>
-          </label>
-          <small></small>
-          <a data-l10n-id="operator-autoSelect">Automatic Selection</a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <p data-l10n-id="operator-networkType">Network Type</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select name="ril.radio.preferredNetworkType" id="preferredNetworkType">
+                <option data-l10n-id="operator-networkType-auto" value="wcdma/gsm">Automatic</option>
+                <option data-l10n-id="operator-networkType-2G" value="gsm">2G only</option>
+                <option data-l10n-id="operator-networkType-3G" value="wcdma">3G only</option>
+              </select>
+            </p>
+          </li>
+          <li id="operator-autoSelect">
+            <label>
+              <input type="checkbox" data-type="switch" data-ignore/>
+              <span></span>
+            </label>
+            <small></small>
+            <a data-l10n-id="operator-autoSelect">Automatic Selection</a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="availableOperators"> Network Operators in the Area </h2>
-      </header>
-      <ul id="availableOperators" data-state="off">
-        <li class="explanation" data-state="off" data-l10n-id="operator-turnAutoSelectOff">
-          Turn Automatic Selection off to view available network operators.
-        </li>
-        <li class="explanation" data-state="on" data-l10n-id="scanning">
-          Searching…
-        </li>
-        <li data-state="ready">
-          <label>
-            <button data-l10n-id="scanNetworks">Search Again</button>
-          </label>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="availableOperators"> Network Operators in the Area </h2>
+        </header>
+        <ul id="availableOperators" data-state="off">
+          <li class="explanation" data-state="off" data-l10n-id="operator-turnAutoSelectOff">
+            Turn Automatic Selection off to view available network operators.
+          </li>
+          <li class="explanation" data-state="on" data-l10n-id="scanning">
+            Searching…
+          </li>
+          <li data-state="ready">
+            <label>
+              <button data-l10n-id="scanNetworks">Search Again</button>
+            </label>
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
@@ -582,41 +615,44 @@
         <h1 data-l10n-id="dataSettings"> Data Settings </h1>
       </header>
 
-      <ul class="apnSettings-list">
-        <li class="apnSettings-custom">
-          <label>
-            <input type="radio" data-setting="ril.data.carrier" name="dataApnSettingsCarrier" value="_custom_" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="custom">(custom settings)</a>
-        </li>
-      </ul>
+      <div>
+        <ul class="apnSettings-list">
+          <li class="apnSettings-custom">
+            <label>
+              <input type="radio" data-setting="ril.data.carrier" name="dataApnSettingsCarrier" value="_custom_" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="custom">(custom settings)</a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
-      </header>
-      <ul class="apnSettings-advanced">
-        <li>
-          <p data-l10n-id="apn">APN</p>
-          <input type="text" data-setting="ril.data.apn" />
-        </li>
-        <li>
-          <p data-l10n-id="identity">identity</p>
-          <input type="text" data-setting="ril.data.user" />
-        </li>
-        <li>
-          <p data-l10n-id="password">password</p>
-          <input type="text" data-setting="ril.data.passwd" />
-        </li>
-        <li>
-          <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
-          <input type="text" data-setting="ril.data.httpProxyHost" />
-        </li>
-        <li>
-          <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
-          <input type="text" data-setting="ril.data.httpProxyPort" />
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+        </header>
+        <ul class="apnSettings-advanced">
+          <li>
+            <p data-l10n-id="apn">APN</p>
+            <input type="text" data-setting="ril.data.apn" />
+          </li>
+          <li>
+            <p data-l10n-id="identity">identity</p>
+            <input type="text" data-setting="ril.data.user" />
+          </li>
+          <li>
+            <p data-l10n-id="password">password</p>
+            <input type="text" data-setting="ril.data.passwd" />
+          </li>
+          <li>
+            <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
+            <input type="text" data-setting="ril.data.httpProxyHost" />
+          </li>
+          <li>
+            <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
+            <input type="text" data-setting="ril.data.httpProxyPort" />
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
@@ -632,53 +668,46 @@
         <h1 data-l10n-id="mmsSettings"> MMS Settings </h1>
       </header>
 
-      <ul class="apnSettings-list">
-        <li class="apnSettings-custom">
-          <label>
-            <input type="radio" data-setting="ril.mms.carrier" name="mmsApnSettingsCarrier" value="_custom_" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="custom">(custom settings)</a>
-        </li>
-      </ul>
+      <div>
+        <header>
+          <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+        </header>
+        <ul class="apnSettings-advanced">
+          <li>
+            <p data-l10n-id="apn">APN</p>
+            <input type="text" data-setting="ril.data.apn" />
+          </li>
+          <li>
+            <p data-l10n-id="identity">identity</p>
+            <input type="text" data-setting="ril.data.user" />
+          </li>
+          <li>
+            <p data-l10n-id="password">password</p>
+            <input type="text" data-setting="ril.data.passwd" />
+          </li>
+          <li>
+            <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
+            <input type="text" data-setting="ril.data.httpProxyHost" />
+          </li>
+          <li>
+            <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
+            <input type="text" data-setting="ril.data.httpProxyPort" />
+          </li>
+          <li>
+            <p data-l10n-id="mmsproxy">MMS Proxy</p>
+            <input type="text" data-setting="ril.mms.mmsproxy" />
+          </li>
+          <li>
+            <p data-l10n-id="mmsport">MMS Port</p>
+            <input type="text" data-setting="ril.mms.mmsport" />
+          </li>
+          <li>
+            <p data-l10n-id="mmsc">MMSC</p>
+            <input type="text" data-setting="ril.mms.mmsc" />
+          </li>
+        </ul>
+      </div>
 
-      <header>
-        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
-      </header>
-      <ul class="apnSettings-advanced">
-        <li>
-          <p data-l10n-id="apn">APN</p>
-          <input type="text" data-setting="ril.data.apn" />
-        </li>
-        <li>
-          <p data-l10n-id="identity">identity</p>
-          <input type="text" data-setting="ril.data.user" />
-        </li>
-        <li>
-          <p data-l10n-id="password">password</p>
-          <input type="text" data-setting="ril.data.passwd" />
-        </li>
-        <li>
-          <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
-          <input type="text" data-setting="ril.data.httpProxyHost" />
-        </li>
-        <li>
-          <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
-          <input type="text" data-setting="ril.data.httpProxyPort" />
-        </li>
-        <li>
-          <p data-l10n-id="mmsproxy">MMS Proxy</p>
-          <input type="text" data-setting="ril.mms.mmsproxy" />
-        </li>
-        <li>
-          <p data-l10n-id="mmsport">MMS Port</p>
-          <input type="text" data-setting="ril.mms.mmsport" />
-        </li>
-        <li>
-          <p data-l10n-id="mmsc">MMSC</p>
-          <input type="text" data-setting="ril.mms.mmsc" />
-        </li>
-      </ul>
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
@@ -694,41 +723,44 @@
         <h1 data-l10n-id="suplSettings"> A-GPS Settings </h1>
       </header>
 
-      <ul class="apnSettings-list">
-        <li class="apnSettings-custom">
-          <label>
-            <input type="radio" data-setting="ril.supl.carrier" name="suplApnSettingsCarrier" value="_custom_" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="custom">(custom settings)</a>
-        </li>
-      </ul>
+      <div>
+        <ul class="apnSettings-list">
+          <li class="apnSettings-custom">
+            <label>
+              <input type="radio" data-setting="ril.supl.carrier" name="suplApnSettingsCarrier" value="_custom_" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="custom">(custom settings)</a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
-      </header>
-      <ul class="apnSettings-advanced">
-        <li>
-          <p data-l10n-id="apn">APN</p>
-          <input type="text" data-setting="ril.supl.apn" />
-        </li>
-        <li>
-          <p data-l10n-id="identity">identity</p>
-          <input type="text" data-setting="ril.supl.user" />
-        </li>
-        <li>
-          <p data-l10n-id="password">password</p>
-          <input type="text" data-setting="ril.supl.passwd" />
-        </li>
-        <li>
-          <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
-          <input type="text" data-setting="ril.supl.httpProxyHost" />
-        </li>
-        <li>
-          <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
-          <input type="text" data-setting="ril.supl.httpProxyPort" />
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+        </header>
+        <ul class="apnSettings-advanced">
+          <li>
+            <p data-l10n-id="apn">APN</p>
+            <input type="text" data-setting="ril.supl.apn" />
+          </li>
+          <li>
+            <p data-l10n-id="identity">identity</p>
+            <input type="text" data-setting="ril.supl.user" />
+          </li>
+          <li>
+            <p data-l10n-id="password">password</p>
+            <input type="text" data-setting="ril.supl.passwd" />
+          </li>
+          <li>
+            <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
+            <input type="text" data-setting="ril.supl.httpProxyHost" />
+          </li>
+          <li>
+            <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
+            <input type="text" data-setting="ril.supl.httpProxyPort" />
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
@@ -789,67 +821,69 @@
         <h1 data-l10n-id="cellularAndData"> Cellular &amp; Data </h1>
       </header>
 
-      <ul>
-        <li>
-          <small id="dataNetwork-desc"></small>
-          <a data-l10n-id="dataNetwork">Carrier</a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <small id="dataNetwork-desc"></small>
+            <span data-l10n-id="dataNetwork">Carrier</span>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="dataConnectivity"> Data Connectivity </h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="ril.data.enabled" class="uninit"/>
-            <span></span>
-          </label>
-          <small id="dataConnection-desc"></small>
-          <a data-l10n-id="dataConnection">Data Connection</a>
-        </li>
-        <li id="dataConnection-expl" class="explanation" data-l10n-id="dataConnection-warning-message" hidden>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled" class="uninit"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="dataRoaming">Data Roaming</a>
-        </li>
-        <li id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="dataConnectivity"> Data Connectivity </h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" name="ril.data.enabled" class="uninit"/>
+              <span></span>
+            </label>
+            <small id="dataConnection-desc"></small>
+            <a data-l10n-id="dataConnection">Data Connection</a>
+          </li>
+          <li id="dataConnection-expl" class="explanation" data-l10n-id="dataConnection-warning-message" hidden>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled" class="uninit"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="dataRoaming">Data Roaming</a>
+          </li>
+          <li id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <button data-href="#carrier-operatorSettings"
-              data-l10n-id="networkOperator"> Network Operator </button>
-          </label>
-        </li>
-        <li>
-          <label>
-            <button data-href="#carrier-dataSettings"
-              data-l10n-id="dataSettings">Data Settings</button>
-          </label>
-        </li>
-        <li hidden>
-          <label>
-            <button data-href="#carrier-mmsSettings"
-              data-l10n-id="mmsSettings">MMS Settings</button>
-          </label>
-        </li>
-        <li>
-          <label>
-            <button data-href="#carrier-suplSettings"
-              data-l10n-id="suplSettings">A-GPS Settings</button>
-          </label>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <button data-href="#carrier-operatorSettings"
+                data-l10n-id="networkOperator"> Network Operator </button>
+            </label>
+          </li>
+          <li>
+            <label>
+              <button data-href="#carrier-dataSettings"
+                data-l10n-id="dataSettings">Data Settings</button>
+            </label>
+          </li>
+          <li hidden>
+            <label>
+              <button data-href="#carrier-mmsSettings"
+                data-l10n-id="mmsSettings">MMS Settings</button>
+            </label>
+          </li>
+          <li>
+            <label>
+              <button data-href="#carrier-suplSettings"
+                data-l10n-id="suplSettings">A-GPS Settings</button>
+            </label>
+          </li>
+        </ul>
+      </div>
 
       <script src="shared/js/async_storage.js"></script>
       <script defer src="js/carrier.js"></script>
@@ -865,54 +899,56 @@
         <h1 data-l10n-id="bluetooth"> Bluetooth </h1>
       </header>
 
-      <ul>
-        <li id="bluetooth-status">
-          <label>
-            <input type="checkbox" data-type="switch" data-ignore/>
-            <span></span>
-          </label>
-          <a data-l10n-id="bluetooth">Bluetooth</a>
-        </li>
-        <li hidden id="device-visible">
-          <label>
-            <input type="checkbox" data-type="switch" data-ignore />
-            <span></span>
-          </label>
-          <small id="bluetooth-device-name"></small>
-          <a data-l10n-id="bluetooth-visible-to-all">Visible to all</a>
-        </li>
-        <li hidden id="bluetooth-rename">
-          <label>
-            <button id="rename-device" data-l10n-id="rename-device" disabled>Rename My Device</button>
-          </label>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li id="bluetooth-status">
+            <label>
+              <input type="checkbox" data-type="switch" data-ignore/>
+              <span></span>
+            </label>
+            <a data-l10n-id="bluetooth">Bluetooth</a>
+          </li>
+          <li hidden id="device-visible">
+            <label>
+              <input type="checkbox" data-type="switch" data-ignore />
+              <span></span>
+            </label>
+            <small id="bluetooth-device-name"></small>
+            <a data-l10n-id="bluetooth-visible-to-all">Visible to all</a>
+          </li>
+          <li hidden id="bluetooth-rename">
+            <label>
+              <button id="rename-device" data-l10n-id="rename-device" disabled>Rename My Device</button>
+            </label>
+          </li>
+        </ul>
 
-      <div data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg" class="explanation">
-        Turn Bluetooth on to view devices in the area.
+        <div data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg" class="explanation">
+          Turn Bluetooth on to view devices in the area.
+        </div>
+
+        <header id="bluetooth-paired-title">
+          <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
+        </header>
+        <ul id="bluetooth-paired-devices" class="devices">
+        </ul>
+
+        <header id="bluetooth-found-title">
+          <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
+        </header>
+        <ul id="bluetooth-devices" class="devices">
+        </ul>
+        <div id="bluetooth-searching" data-l10n-id="search-for-device" class="explanation">
+          Searching for devices…
+        </div>
+        <ul hidden id="bluetooth-search">
+          <li>
+            <label>
+              <button id="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
+            </label>
+          </li>
+        </ul>
       </div>
-
-      <header id="bluetooth-paired-title">
-        <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
-      </header>
-      <ul id="bluetooth-paired-devices" class="devices">
-      </ul>
-
-      <header id="bluetooth-found-title">
-        <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
-      </header>
-      <ul id="bluetooth-devices" class="devices">
-      </ul>
-      <div id="bluetooth-searching" data-l10n-id="search-for-device" class="explanation">
-        Searching for devices…
-      </div>
-      <ul hidden id="bluetooth-search">
-        <li>
-          <label>
-            <button id="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
-          </label>
-        </li>
-      </ul>
 
       <form role="dialog" data-type="action" id="paired-device-option" hidden>
         <menu>
@@ -941,27 +977,30 @@
         <h1 data-l10n-id="hotspotSettings"> Hotspot Settings </h1>
       </header>
 
-      <ul>
-        <li>
-          <p data-l10n-id="ssid-name">SSID Network Name</p>
-          <input type="text" data-setting="tethering.wifi.ssid" />
-        </li>
-        <li class="password-item">
-          <p data-l10n-id="wifi-password">Password</p>
-          <input type="text" data-setting="tethering.wifi.security.password" />
-        </li>
-        <li>
-          <p data-l10n-id="wifi-security">Security</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">Security</button>
-            <select class="security-selector" data-setting="tethering.wifi.security.type">
-              <option value="open" data-l10n-id="hotspot-open">open</option>
-              <option value="wpa-psk" data-l10n-id="hotspot-wpa-psk">WPA (TKIP)</option>
-              <option value="wpa2-psk" data-l10n-id="hotspot-wpa2-psk">WPA2 (AES)</option>
-            </select>
-          </p>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <p data-l10n-id="ssid-name">SSID Network Name</p>
+            <input type="text" data-setting="tethering.wifi.ssid" />
+          </li>
+          <li class="password-item">
+            <p data-l10n-id="wifi-password">Password</p>
+            <input type="text" data-setting="tethering.wifi.security.password" />
+          </li>
+          <li>
+            <p data-l10n-id="wifi-security">Security</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">Security</button>
+              <select class="security-selector" data-setting="tethering.wifi.security.type">
+                <option value="open" data-l10n-id="hotspot-open">open</option>
+                <option value="wpa-psk" data-l10n-id="hotspot-wpa-psk">WPA (TKIP)</option>
+                <option value="wpa2-psk" data-l10n-id="hotspot-wpa2-psk">WPA2 (AES)</option>
+              </select>
+            </p>
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
@@ -975,58 +1014,60 @@
         <h1 data-l10n-id="internetSharing"> Internet Sharing </h1>
       </header>
 
-      <header>
-        <h2 data-l10n-id="internetSharing-wifi"> Wi-Fi </h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="tethering.wifi.enabled" class="uninit"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="wifi-hotspot">Wi-Fi Hotspot</a>
-        </li>
-        <li class="description" data-l10n-id="internetSharing-wifi-desc">
-          Allow other devices to share my phone’s Internet connection by connecting via Wi-Fi.
-        </li>
-        <li>
-          <a data-l10n-id="wifi-name">Name
-            <span data-name="tethering.wifi.ssid"></span>
-          </a>
-        </li>
-        <li class="password-item" hidden>
-          <a data-l10n-id="wifi-password">Password
-            <span data-name="tethering.wifi.security.password"></span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="wifi-security">Security
-            <span data-name="tethering.wifi.security.type"></span>
-          </a>
-        </li>
-        <li id="hotspot-settings-section">
-          <label>
-            <button class="hotspot-wifiSettings-btn"
-              data-l10n-id="hotspotSettings">Hotspot Settings</button>
-          </label>
-        </li>
-      </ul>
+      <div>
+        <header>
+          <h2 data-l10n-id="internetSharing-wifi"> Wi-Fi </h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" name="tethering.wifi.enabled" class="uninit"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="wifi-hotspot">Wi-Fi Hotspot</a>
+          </li>
+          <li class="description" data-l10n-id="internetSharing-wifi-desc">
+            Allow other devices to share my phone’s Internet connection by connecting via Wi-Fi.
+          </li>
+          <li>
+            <a data-l10n-id="wifi-name">Name
+              <span data-name="tethering.wifi.ssid"></span>
+            </a>
+          </li>
+          <li class="password-item" hidden>
+            <a data-l10n-id="wifi-password">Password
+              <span data-name="tethering.wifi.security.password"></span>
+            </a>
+          </li>
+          <li>
+            <a data-l10n-id="wifi-security">Security
+              <span data-name="tethering.wifi.security.type"></span>
+            </a>
+          </li>
+          <li id="hotspot-settings-section">
+            <label>
+              <button class="hotspot-wifiSettings-btn"
+                data-l10n-id="hotspotSettings">Hotspot Settings</button>
+            </label>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="internetSharing-usb"> USB </h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="tethering.usb.enabled" class="uninit"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="usb-tethering">USB Tethering</a>
-        </li>
-        <li class="description" data-l10n-id="internetSharing-usb-desc">
-          Share my phone’s Internet connection with a USB-connected device.
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="internetSharing-usb"> USB </h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" name="tethering.usb.enabled" class="uninit"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="usb-tethering">USB Tethering</a>
+          </li>
+          <li class="description" data-l10n-id="internetSharing-usb-desc">
+            Share my phone’s Internet connection with a USB-connected device.
+          </li>
+        </ul>
+      </div>
 
       <script src="js/hotspot.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -1046,19 +1087,21 @@
         <h1 data-l10n-id="select-tone"> Select a Tone </h1>
       </header>
 
-      <header>
-        <h2 data-l10n-id="ring-tones">Ringtones</h2>
-      </header>
-      <ul id="ringtones-list">
-      </ul>
+      <div>
+        <header>
+          <h2 data-l10n-id="ring-tones">Ringtones</h2>
+        </header>
+        <ul id="ringtones-list">
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="alert-tones">Alert Tones</h2>
-      </header>
-      <ul id="notifications-list">
-      </ul>
+        <header>
+          <h2 data-l10n-id="alert-tones">Alert Tones</h2>
+        </header>
+        <ul id="notifications-list">
+        </ul>
 
-      <audio style="display: none;" src=""></audio>
+        <audio style="display: none;" src=""></audio>
+      </div>
       -->
     </section>
 
@@ -1070,74 +1113,76 @@
         <h1 data-l10n-id="sound"> Sound </h1>
       </header>
 
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="vibration.enabled" checked class="uninit"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="vibrate">Vibrate</a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" name="vibration.enabled" checked class="uninit"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="vibrate">Vibrate</a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="volume">Volume</h2>
-      </header>
-      <ul>
-        <li>
-          <p data-l10n-id="ringer-and-notification-sound">Ringer & Notifications</p>
-          <label>
-            <input type="range" name="audio.volume.notification" step="1" min="0" value="15" max="15">
-            <span class="range-icons volume"></span>
-          </label>
-        </li>
-        <li>
-          <p data-l10n-id="alarm-sound">Alarm</p>
-          <label>
-            <input type="range" name="audio.volume.alarm" step="1" min="0" value="15" max="15">
-            <span class="range-icons volume"></span>
-          </label>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="volume">Volume</h2>
+        </header>
+        <ul>
+          <li>
+            <p data-l10n-id="ringer-and-notification-sound">Ringer & Notifications</p>
+            <label>
+              <input type="range" name="audio.volume.notification" step="1" min="0" value="15" max="15">
+              <span class="range-icons volume"></span>
+            </label>
+          </li>
+          <li>
+            <p data-l10n-id="alarm-sound">Alarm</p>
+            <label>
+              <input type="range" name="audio.volume.alarm" step="1" min="0" value="15" max="15">
+              <span class="range-icons volume"></span>
+            </label>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="tones">Tones</h2>
-      </header>
-      <ul>
-        <li>
-          <p data-l10n-id="ringer">Ringer</p>
-          <p class="fake-select">
-            <button id="call-tone-selection" class="tone-select" data-l10n-id="change"></button>
-          </p>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="tones">Tones</h2>
+        </header>
+        <ul>
+          <li>
+            <p data-l10n-id="ringer">Ringer</p>
+            <p class="fake-select">
+              <button id="call-tone-selection" class="tone-select" data-l10n-id="change"></button>
+            </p>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="other-sounds">Other Sounds</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="phone.ring.keypad" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="keypad">Keypad</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="camera.shutter.enabled" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="camera-shutter">Camera Shutter</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="lockscreen.unlock-sound.enabled" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="unlock-screen">Unlock Screen</a>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="other-sounds">Other Sounds</h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" name="phone.ring.keypad" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="keypad">Keypad</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="camera.shutter.enabled" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="camera-shutter">Camera Shutter</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="lockscreen.unlock-sound.enabled" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="unlock-screen">Unlock Screen</a>
+          </li>
+        </ul>
+      </div>
 
       <script src="js/sound.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -1152,44 +1197,46 @@
         <h1 data-l10n-id="display"> Display </h1>
       </header>
 
-      <header id="wallpaper-header">
-        <h2 data-l10n-id="wallpaper">Wallpaper</h2>
-      </header>
-      <div id="wallpaper">
-        <img id="wallpaper-preview" alt="wallpaper preview"/>
-        <button id="wallpaper-button"></button>
+      <div>
+        <header id="wallpaper-header">
+          <h2 data-l10n-id="wallpaper">Wallpaper</h2>
+        </header>
+        <div id="wallpaper">
+          <img id="wallpaper-preview" alt="wallpaper preview"/>
+          <button id="wallpaper-button"></button>
+        </div>
+        <header>
+          <h2 data-l10n-id="brightness">Brightness</h2>
+        </header>
+        <ul>
+          <li id="brightness-auto">
+            <label>
+              <input type="checkbox" name="screen.automatic-brightness" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="brightness-autoAdjust">Adjust Automatically</a>
+          </li>
+          <li id="brightness-manual">
+            <label>
+              <input type="range" name="screen.brightness" min="0.1" value="0.5" max="1" />
+              <span class="range-icons brightness"></span>
+            </label>
+          </li>
+          <li id="screen-timeout">
+            <p data-l10n-id="screen-timeout">Screen Timeout</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select name="screen.timeout" data-value-type="integer">
+                <option value="60"  data-l10n-id="one-minute" selected>1 minute</option>
+                <option value="120" data-l10n-id="two-minutes"> 2 minutes</option>
+                <option value="300" data-l10n-id="five-minutes">5 minutes</option>
+                <option value="600" data-l10n-id="ten-minutes">10 minutes</option>
+                <option value="0"   data-l10n-id="never">Never</option>
+              </select>
+            </p>
+          </li>
+        </ul>
       </div>
-      <header>
-        <h2 data-l10n-id="brightness">Brightness</h2>
-      </header>
-      <ul>
-        <li id="brightness-auto">
-          <label>
-            <input type="checkbox" name="screen.automatic-brightness" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="brightness-autoAdjust">Adjust Automatically</a>
-        </li>
-        <li id="brightness-manual">
-          <label>
-            <input type="range" name="screen.brightness" min="0.1" value="0.5" max="1" />
-            <span class="range-icons brightness"></span>
-          </label>
-        </li>
-        <li id="screen-timeout">
-          <p data-l10n-id="screen-timeout">Screen Timeout</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">empty</button>
-            <select name="screen.timeout" data-value-type="integer">
-              <option value="60"  data-l10n-id="one-minute" selected>1 minute</option>
-              <option value="120" data-l10n-id="two-minutes"> 2 minutes</option>
-              <option value="300" data-l10n-id="five-minutes">5 minutes</option>
-              <option value="600" data-l10n-id="ten-minutes">10 minutes</option>
-              <option value="0"   data-l10n-id="never">Never</option>
-            </select>
-          </p>
-        </li>
-      </ul>
 
       <script src="js/wallpaper.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -1226,53 +1273,55 @@
         <h1 data-l10n-id="dateAndTime"> Date &amp; Time </h1>
       </header>
 
-      <ul id="time-auto" data-state="auto" hidden>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="time.nitz.automatic-update.enabled" class="uninit"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="setTimeAutomatically">Set Automatically</a>
-        </li>
-      </ul>
+      <div>
+        <ul id="time-auto" data-state="auto" hidden>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" name="time.nitz.automatic-update.enabled" class="uninit"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="setTimeAutomatically">Set Automatically</a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="setTimeManually">Set Manually</h2>
-      </header>
-      <ul id="time-manual">
-        <li>
-          <label>
-            <input type="date" id="date-picker" />
-          </label>
-          <a data-l10n-id="dateMessage">Date <span id="clock-date"></span> </a>
-        </li>
-        <li>
-          <label>
-            <input type="time" id="time-picker" />
-          </label>
-          <a data-l10n-id="timeMessage">Time <span id="clock-time"></span> </a>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="setTimeManually">Set Manually</h2>
+        </header>
+        <ul id="time-manual">
+          <li>
+            <label>
+              <input type="date" id="date-picker" min="1970-1-1" max="2037-12-31"/>
+            </label>
+            <a data-l10n-id="dateMessage">Date <span id="clock-date"></span> </a>
+          </li>
+          <li>
+            <label>
+              <input type="time" id="time-picker" />
+            </label>
+            <a data-l10n-id="timeMessage">Time <span id="clock-time"></span> </a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="timezoneMessage">Time zone</h2>
-      </header>
-      <ul id="timezone">
-        <li>
-          <p data-l10n-id="tz-region">Region</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">empty</button>
-            <select id="timezone-region"></select>
-          </p>
-        </li>
-        <li>
-          <p data-l10n-id="tz-city">City</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">empty</button>
-            <select id="timezone-city"></select>
-          </p>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="timezoneMessage">Time zone</h2>
+        </header>
+        <ul id="timezone">
+          <li>
+            <p data-l10n-id="tz-region">Region</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select id="timezone-region"></select>
+            </p>
+          </li>
+          <li>
+            <p data-l10n-id="tz-city">City</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select id="timezone-city"></select>
+            </p>
+          </li>
+        </ul>
+      </div>
 
       <script src="shared/js/tz_select.js"></script>
       <script src="js/date_time.js"></script>
@@ -1291,38 +1340,42 @@
         <h1 data-l10n-id="language"> Language </h1>
       </header>
 
-      <ul>
-        <li>
-          <p data-l10n-id="language">Language</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">Language</button>
-            <select name="language.current"></select>
-          </p>
-        </li>
-        <li hidden>
-          <p data-l10n-id="region">Region</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">empty</button>
-            <select name="region.current">
-              <option value="BR">Brasil</option>
-              <option value="CO">Columbia</option>
-              <option value="ES">España</option>
-              <option value="FR">France</option>
-              <option value="PT">Portugal</option>
-              <option value="TW">Taiwan</option>
-              <option value="UK">United Kingdom</option>
-              <option value="US">United States</option>
-              <option value="VZ">Venezuela</option>
-            </select>
-          </p>
-        </li>
-      </ul>
+      <div>
+        <header>
+          <h2 data-l10n-id="sample-format">Sample Format</h2>
+        </header>
+        <ul>
+          <li class="description">
+            <p id="region-date">Friday, September 28 2012</p>
+            <p id="region-time">06:54 PM</p>
+          </li>
+          <li>
+            <p data-l10n-id="language">Language</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">Language</button>
+              <select name="language.current"></select>
+            </p>
+          </li>
+          <li hidden>
+            <p data-l10n-id="region">Region</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select name="region.current">
+                <option value="BR">Brasil</option>
+                <option value="CO">Columbia</option>
+                <option value="ES">España</option>
+                <option value="FR">France</option>
+                <option value="PT">Portugal</option>
+                <option value="TW">Taiwan</option>
+                <option value="UK">United Kingdom</option>
+                <option value="US">United States</option>
+                <option value="VZ">Venezuela</option>
+              </select>
+            </p>
+          </li>
+        </ul>
+      </div>
 
-      <dl>
-        <dt data-l10n-id="sample-format"> Sample Format </dt>
-        <dd id="region-date">Friday, September 28 2012</dd>
-        <dd id="region-time">06:54 PM</dd>
-      </dl>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
@@ -1335,107 +1388,109 @@
         <h1 data-l10n-id="keyboard"> Keyboard </h1>
       </header>
 
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.vibration"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="vibration">Vibration</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.clicksound" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="clickSound">Click sound</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.wordsuggestion"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="wordSuggestion">Word Suggestion</a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.vibration"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="vibration">Vibration</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.clicksound" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="clickSound">Click sound</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.wordsuggestion"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="wordSuggestion">Word Suggestion</a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="keyboardLayouts">Layouts</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.english" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="english">English</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.dvorak"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="dvorak">English (Dvorak)</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.spanish"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="spanish">Spanish</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.portuguese"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="portuguese">Portuguese (Brazilian)</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.polish"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="polish">Polish</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.otherlatins"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="latin-desc">French, German, Norwegian Bokmal, Slovak, Turkish</small>
-          <a data-l10n-id="latin">Other Latin scripts</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.cyrillic"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="cyrillic-desc">Russian, Serbian (Cyrillic)</small>
-          <a data-l10n-id="cyrillic">Cyrillic scripts</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.arabic"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="arabic">Arabic</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.hebrew"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="hebrew">Hebrew</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.greek"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="greek">Greek</a>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="keyboardLayouts">Layouts</h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.english" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="english">English</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.dvorak"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="dvorak">English (Dvorak)</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.spanish"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="spanish">Spanish</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.portuguese"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="portuguese">Portuguese (Brazilian)</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.polish"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="polish">Polish</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.otherlatins"/>
+              <span></span>
+            </label>
+            <small data-l10n-id="latin-desc">French, German, Norwegian Bokmal, Slovak, Turkish</small>
+            <a data-l10n-id="latin">Other Latin scripts</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.cyrillic"/>
+              <span></span>
+            </label>
+            <small data-l10n-id="cyrillic-desc">Russian, Serbian (Cyrillic)</small>
+            <a data-l10n-id="cyrillic">Cyrillic scripts</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.arabic"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="arabic">Arabic</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.hebrew"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="hebrew">Hebrew</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.greek"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="greek">Greek</a>
+          </li>
+        </ul>
+      </div>
       -->
     </section>
 
@@ -1456,27 +1511,30 @@
         <h1 data-l10n-id="enter-passcode"   data-mode="confirm"> Enter Passcode    </h1>
       </header>
 
-      <div class="passcode-overlay">
-        <input type="number" id="passcode-input" />
-        <div class="passcode-container" id="passcode-container">
-          <div class="passcode-error" data-l10n-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
-          <div class="passcode-error" data-l10n-id="passcode-doesnt-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
-          <span data-l10n-id="passcode">Passcode</span>
-          <div class="passcode" id="passcode-pseudo-input">
-            <span class="passcode-digit"></span>
-            <span class="passcode-digit"></span>
-            <span class="passcode-digit"></span>
-            <span class="passcode-digit"></span>
-          </div>
-          <span data-l10n-id="confirm-passcode" data-mode="new,create">Confirm Passcode</span>
-          <div class="passcode" data-mode="new,create" id="passcode-pseudo-confirm-input">
-            <span class="passcode-digit"></span>
-            <span class="passcode-digit"></span>
-            <span class="passcode-digit"></span>
-            <span class="passcode-digit"></span>
+      <div>
+        <div class="passcode-overlay">
+          <input type="number" id="passcode-input" />
+          <div class="passcode-container" id="passcode-container">
+            <div class="passcode-error" data-l10n-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
+            <div class="passcode-error" data-l10n-id="passcode-doesnt-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
+            <p data-l10n-id="passcode">Passcode</p>
+            <div class="passcode" id="passcode-pseudo-input">
+              <span class="passcode-digit"></span>
+              <span class="passcode-digit"></span>
+              <span class="passcode-digit"></span>
+              <span class="passcode-digit"></span>
+            </div>
+            <p data-l10n-id="confirm-passcode" data-mode="new,create">Confirm Passcode</p>
+            <div class="passcode" data-mode="new,create" id="passcode-pseudo-confirm-input">
+              <span class="passcode-digit"></span>
+              <span class="passcode-digit"></span>
+              <span class="passcode-digit"></span>
+              <span class="passcode-digit"></span>
+            </div>
           </div>
         </div>
       </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
@@ -1491,41 +1549,43 @@
         <h1 data-l10n-id="phoneLock"> Phone Lock </h1>
       </header>
 
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="lockscreen.enabled" id="lockscreen-enable" class="uninit"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="lockScreen">Lock Screen</a>
-        </li>
-        <li class="lockscreen-enabled">
-          <label>
-            <input type="checkbox" data-type="switch" name="lockscreen.passcode-lock.enabled" id="passcode-enable" class="uninit"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="passcode-lock">Passcode Lock</a>
-        </li>
-        <li class="passcode-enabled" id="passcode-timeout-row">
-          <p data-l10n-id="require-passcode">Require passcode</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">empty</button>
-            <select name="lockscreen.passcode-lock.timeout">
-              <option value="0" data-l10n-id="immediately" selected>Immediately</option>
-              <option value="60" data-l10n-id="after-one-minute">After 1 minute</option>
-              <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
-              <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
-              <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
-              <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
-            </select>
-          </p>
-        </li>
-        <li class="passcode-enabled">
-          <label>
-            <button data-l10n-id="change-passcode" id="passcode-edit">Change Passcode</button>
-          </label>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" name="lockscreen.enabled" id="lockscreen-enable" class="uninit"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="lockScreen">Lock Screen</a>
+          </li>
+          <li class="lockscreen-enabled">
+            <label>
+              <input type="checkbox" data-type="switch" name="lockscreen.passcode-lock.enabled" id="passcode-enable" class="uninit"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="passcode-lock">Passcode Lock</a>
+          </li>
+          <li class="passcode-enabled" id="passcode-timeout-row">
+            <p data-l10n-id="require-passcode">Require passcode</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select name="lockscreen.passcode-lock.timeout">
+                <option value="0" data-l10n-id="immediately" selected>Immediately</option>
+                <option value="60" data-l10n-id="after-one-minute">After 1 minute</option>
+                <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
+                <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
+                <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
+                <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
+              </select>
+            </p>
+          </li>
+          <li class="passcode-enabled">
+            <label>
+              <button data-l10n-id="change-passcode" id="passcode-edit">Change Passcode</button>
+            </label>
+          </li>
+        </ul>
+      </div>
 
       <script src="js/phone_lock.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -1545,50 +1605,52 @@
         <h1></h1>
       </header>
 
-      <div class="container">
-        <div id="errorMsg" class="error" hidden>
-          <div id="messageHeader">The PIN was incorrect.</div>
-          <span id="messageBody">3 tries left.</span>
-        </div>
-
-        <div id="pinArea">
-          <div data-l10n-id="simPin">SIM PIN</div>
-          <div class="input-wrapper">
-            <input type="number" name="simpin" size="8" maxlength="8" />
-            <input type="text" name="simpinVis" size="8" maxlength="8" />
+      <div>
+        <div class="container">
+          <div id="errorMsg" class="error" hidden>
+            <div id="messageHeader">The PIN was incorrect.</div>
+            <span id="messageBody">3 tries left.</span>
           </div>
-        </div>
 
-        <div id="pukArea">
-          <div data-l10n-id="pukCode">PUK Code</div>
-          <div class="input-wrapper">
-            <input type="number" name="simpuk" size="8" maxlength="8" />
-            <input type="text" name="simpukVis" size="8" maxlength="8" />
+          <div id="pinArea" class="sim-code-area">
+            <div data-l10n-id="simPin">SIM PIN</div>
+            <div class="input-wrapper">
+              <input type="number" name="simpin" size="8" maxlength="8" />
+              <input type="text" name="simpinVis" size="8" maxlength="8" />
+            </div>
           </div>
-        </div>
 
-        <div id="newPinArea">
-          <div data-l10n-id="newSimPinMsg">
-            Create PIN (must contain 4 to 8 digits)
+          <div id="pukArea" class="sim-code-area">
+            <div data-l10n-id="pukCode">PUK Code</div>
+            <div class="input-wrapper">
+              <input type="number" name="simpuk" size="8" maxlength="8" />
+              <input type="text" name="simpukVis" size="8" maxlength="8" />
+            </div>
           </div>
-          <div class="input-wrapper">
-            <input type="number" name="newSimpin" size="8" maxlength="8" />
-            <input type="text" name="newSimpinVis" size="8" maxlength="8" />
-          </div>
-        </div>
 
-        <div id="confirmPinArea">
-          <div>Confirm New PIN</div>
-          <div class="input-wrapper">
-            <input type="number" name="confirmNewSimpin" size="8" maxlength="8" />
-            <input type="text" name="confirmNewSimpinVis" size="8" maxlength="8" />
+          <div id="newPinArea" class="sim-code-area">
+            <div data-l10n-id="newSimPinMsg">
+              Create PIN (must contain 4 to 8 digits)
+            </div>
+            <div class="input-wrapper">
+              <input type="number" name="newSimpin" size="8" maxlength="8" />
+              <input type="text" name="newSimpinVis" size="8" maxlength="8" />
+            </div>
+          </div>
+
+          <div id="confirmPinArea" class="sim-code-area">
+            <div>Confirm New PIN</div>
+            <div class="input-wrapper">
+              <input type="number" name="confirmNewSimpin" size="8" maxlength="8" />
+              <input type="text" name="confirmNewSimpinVis" size="8" maxlength="8" />
+            </div>
           </div>
         </div>
       </div>
 
       <script src="js/simcard_dialog.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
-     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
+      <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
       -->
     </section>
 
@@ -1600,35 +1662,40 @@
         <h1 data-l10n-id="simSecurity"> SIM Security </h1>
       </header>
 
-      <ul>
-        <li id="simpin-enabled">
-          <label>
-            <input type="checkbox" data-type="switch" data-ignore/>
-            <span></span>
-          </label>
-          <a data-l10n-id="simPin">SIM PIN</a>
-        </li>
-      </ul>
+      <div>
+        <header>
+          <h2 data-l10n-id="whatIsSimPin">What is a SIM PIN?</h2>
+        </header>
+        <ul>
+          <li class="description">
+            <p data-l10n-id="simPinIntro1">
+            A SIM PIN prevents access to the SIM card cellular data networks. When
+            it’s on, any device containing the SIM card will request the PIN upon
+            restart.
+            </p>
 
-      <dl>
-        <dt data-l10n-id="whatIsSimPin">What is a SIM PIN?</dt>
-        <dd data-l10n-id="simPinIntro1">
-          A SIM PIN prevents access to the SIM card cellular data networks. When
-          it’s on, any device containing the SIM card will request the PIN upon
-          restart.
-        </dd>
-        <dd data-l10n-id="simPinIntro2">
-          A SIM PIN is not the same as the Passcode used to unlock the device.
-        </dd>
-      </dl>
-
-      <ul>
-        <li id="simpin-change">
-          <label>
-            <button data-l10n-id="changeSimPin" name="changeSimPin">Change PIN</button>
-          </label>
-        </li>
-      </ul>
+            <p data-l10n-id="simPinIntro2">
+              A SIM PIN is not the same as the Passcode used to unlock the device.
+            </p>
+          </li>
+        </ul>
+        <ul>
+          <li id="simpin-enabled">
+            <label>
+              <input type="checkbox" data-type="switch" data-ignore/>
+              <span></span>
+            </label>
+            <a data-l10n-id="simPin">SIM PIN</a>
+          </li>
+        </ul>
+        <ul>
+          <li id="simpin-change">
+            <label>
+              <button data-l10n-id="changeSimPin" name="changeSimPin">Change PIN</button>
+            </label>
+          </li>
+        </ul>
+      </div>
 
       <script src="js/simcard_lock.js"></script>
       <script src="js/simcard_dialog.js"></script>
@@ -1644,26 +1711,29 @@
         <h1> </h1>
       </header>
 
-      <header id="developer-header">
-        <h2 data-l10n-id="developer">Developer</h2>
-      </header>
-      <ul>
-        <li id="developer-infos">
-          <small><a target="_blank" href="http://github.com/mozilla-b2g/gaia/" data-href="http://github.com/mozilla-b2g/gaia/">http://github.com/mozilla-b2g/gaia/</a></small>
-          <a target="_blank" data-href="http://github.com/mozilla-b2g/gaia/"> The Gaia Team </a>
-        </li>
-      </ul>
+      <div>
+        <header id="developer-header">
+          <h2 data-l10n-id="developer">Developer</h2>
+        </header>
+        <ul>
+          <li id="developer-infos">
+            <small><a target="_blank" href="http://github.com/mozilla-b2g/gaia/" data-href="http://github.com/mozilla-b2g/gaia/">http://github.com/mozilla-b2g/gaia/</a></small>
+            <a target="_blank" data-href="http://github.com/mozilla-b2g/gaia/"> The Gaia Team </a>
+          </li>
+        </ul>
 
-      <header id="permissionsListHeader">
-        <h2 data-l10n-id="permissions">Permissions</h2>
-      </header>
-      <ul>
-      </ul>
+        <header id="permissionsListHeader">
+          <h2 data-l10n-id="permissions">Permissions</h2>
+        </header>
+        <ul>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="uninstallApp">Uninstall App</h2>
-      </header>
-      <button id="uninstall-app" data-l10n-id="uninstallApp" class="danger">Uninstall App</button>
+        <header>
+          <h2 data-l10n-id="uninstallApp">Uninstall App</h2>
+        </header>
+        <button id="uninstall-app" data-l10n-id="uninstallApp" class="danger">Uninstall App</button>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
@@ -1678,17 +1748,19 @@
         </h1>
       </header>
 
-      <ul></ul>
+      <div>
+        <ul></ul>
 
-      <ul>
-        <li>
-          <button id="clear-bookmarks-app" class="icon icon-dialog"
-                  style="visibility: hidden"
-                  data-l10n-id="clearBookmarkAppsData">
-            Clear bookmarks data
-          </button>
-        </li>
-      </ul>
+        <ul>
+          <li>
+            <button id="clear-bookmarks-app" class="icon icon-dialog"
+                    style="visibility: hidden"
+                    data-l10n-id="clearBookmarkAppsData">
+              Clear bookmarks data
+            </button>
+          </li>
+        </ul>
+      </div>
 
       <form role="dialog" data-type="confirm" hidden class="cb-alert">
         <section>
@@ -1720,32 +1792,34 @@
         <h1 data-l10n-id="doNotTrack"> Do Not Track </h1>
       </header>
 
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="privacy.donottrackheader.enabled" />
-            <span></span>
-          </label>
-          <a data-l10n-id="doNotTrack">Do Not Track</a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" name="privacy.donottrackheader.enabled" />
+              <span></span>
+            </label>
+            <a data-l10n-id="doNotTrack">Do Not Track</a>
+          </li>
+        </ul>
 
-      <dl>
-        <dt data-l10n-id="doNotTrack-dt">
-          How does Do Not Track work?
-        </dt>
-        <dd data-l10n-id="doNotTrack-dd1">
-          When you turn on the Do Not Track feature, your device tells every
-          website and app (as well as advertisers and other content providers)
-          that you don’t want your behavior tracked.
-        </dd>
-        <dd data-l10n-id="doNotTrack-dd2">
-          Turning on Do Not Track won’t affect your ability to log into
-          websites, nor cause your device to forget your private information —
-          such as the contents of shopping carts, location information, or
-          log-in information.
-        </dd>
-      </dl>
+        <dl>
+          <dt data-l10n-id="doNotTrack-dt">
+            How does Do Not Track work?
+          </dt>
+          <dd data-l10n-id="doNotTrack-dd1">
+            When you turn on the Do Not Track feature, your device tells every
+            website and app (as well as advertisers and other content providers)
+            that you don’t want your behavior tracked.
+          </dd>
+          <dd data-l10n-id="doNotTrack-dd2">
+            Turning on Do Not Track won’t affect your ability to log into
+            websites, nor cause your device to forget your private information —
+            such as the contents of shopping carts, location information, or
+            log-in information.
+          </dd>
+        </dl>
+      </div>
       -->
     </section>
 
@@ -1759,94 +1833,97 @@
         <h1 data-l10n-id="developer"> Developer </h1>
       </header>
 
-      <header>
-        <h2 data-l10n-id="debug">Debug</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.grid.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="grid">Grid</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.fps.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="fps-monitor">Show frames per second</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.paint-flashing.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="paint-flashing">Flash repainted area</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.log-animations.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="log-animations">Log slow animations</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.ttl.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="ttl-monitor">Show time to load</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="devtools.debugger.remote-enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="remote-debugging">Remote Debugging</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="wifi.debugging.enabled" />
-            <span></span>
-          </label>
-          <a data-l10n-id="wifi-debugging">Wi-Fi output in adb</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.console.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="console-enabled">Console enabled</a>
-        </li>
-        <li>
-          <label>
-            <button id="ftuLauncher" data-l10n-id="launch-ftu">Launch FTU</button>
-          </label>
-        </li>
-      </ul>
+      <div>
+        <header>
+          <h2 data-l10n-id="debug">Debug</h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" name="debug.grid.enabled"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="grid">Grid</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="debug.fps.enabled"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="fps-monitor">Show frames per second</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="debug.paint-flashing.enabled"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="paint-flashing">Flash repainted area</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="debug.log-animations.enabled"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="log-animations">Log slow animations</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="debug.ttl.enabled"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="ttl-monitor">Show time to load</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="devtools.debugger.remote-enabled"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="remote-debugging">Remote Debugging</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="wifi.debugging.enabled" />
+              <span></span>
+            </label>
+            <a data-l10n-id="wifi-debugging">Wi-Fi output in adb</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="debug.console.enabled"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="console-enabled">Console enabled</a>
+          </li>
+          <li>
+            <label>
+              <button id="ftuLauncher" data-l10n-id="launch-ftu">Launch FTU</button>
+            </label>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="keyboardLayouts">Keyboard Layouts</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.zhuyin"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="traditionalChinese-desc">Zhuyin</small>
-          <a data-l10n-id="traditionalChinese">Traditional Chinese</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.pinyin"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="simplifiedChinese-desc">Pinyin</small>
-          <a data-l10n-id="simplifiedChinese">Simplified Chinese</a>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="keyboardLayouts">Keyboard Layouts</h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.zhuyin"/>
+              <span></span>
+            </label>
+            <small data-l10n-id="traditionalChinese-desc">Zhuyin</small>
+            <a data-l10n-id="traditionalChinese">Traditional Chinese</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.pinyin"/>
+              <span></span>
+            </label>
+            <small data-l10n-id="simplifiedChinese-desc">Pinyin</small>
+            <a data-l10n-id="simplifiedChinese">Simplified Chinese</a>
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
@@ -1861,71 +1938,73 @@
         <h1 data-l10n-id="more-info"> More Information </h1>
       </header>
 
-      <ul>
-        <li>
-          <small data-name="deviceinfo.os"></small>
-          <a data-l10n-id="os-version"> OS Version </a>
-        </li>
-        <li>
-          <small data-name="deviceinfo.firmware_revision"></small>
-          <a data-l10n-id="firmware_revision"> Firmware Revision </a>
-        </li>
-        <li>
-          <small data-name="deviceinfo.hardware"></small>
-          <a data-l10n-id="hardware_revision"> Hardware Revision </a>
-        </li>
-        <li>
-          <small data-name="deviceinfo.mac"></small>
-          <a data-l10n-id="macAddress"> MAC address </a>
-        </li>
-        <li>
-          <small id="deviceInfo-imei"></small>
-          <a data-l10n-id="deviceInfo-IMEI"> IMEI </a>
-        </li>
-        <li>
-          <small id="deviceInfo-iccid"></small>
-          <a data-l10n-id="deviceInfo-ICCID"> ICCID </a>
-        </li>
-        <li>
-          <small data-name="deviceinfo.platform_version"></small>
-          <a data-l10n-id="platform_version"> Platform Version </a>
-        </li>
-        <li>
-          <small data-name="deviceinfo.platform_build_id"></small>
-          <a data-l10n-id="build-id"> Build Identifier </a>
-        </li>
-        <li>
-          <small data-name="deviceinfo.update_channel"></small>
-          <a data-l10n-id="update-channel"> Update Channel </a>
-        </li>
-        <li>
-          <label>
-            <button id="reset-phone" data-l10n-id="reset-phone">Reset Phone</button>
-          </label>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <small data-name="deviceinfo.os"></small>
+            <span data-l10n-id="os-version"> OS Version </span>
+          </li>
+          <li>
+            <small data-name="deviceinfo.firmware_revision"></small>
+            <span data-l10n-id="firmware_revision"> Firmware Revision </span>
+          </li>
+          <li>
+            <small data-name="deviceinfo.hardware"></small>
+            <span data-l10n-id="hardware_revision"> Hardware Revision </span>
+          </li>
+          <li>
+            <small data-name="deviceinfo.mac"></small>
+            <span data-l10n-id="macAddress"> MAC address </span>
+          </li>
+          <li>
+            <small id="deviceInfo-imei"></small>
+            <span data-l10n-id="deviceInfo-IMEI"> IMEI </span>
+          </li>
+          <li>
+            <small id="deviceInfo-iccid"></small>
+            <span data-l10n-id="deviceInfo-ICCID"> ICCID </span>
+          </li>
+          <li>
+            <small data-name="deviceinfo.platform_version"></small>
+            <span data-l10n-id="platform_version"> Platform Version </span>
+          </li>
+          <li>
+            <small data-name="deviceinfo.platform_build_id"></small>
+            <span data-l10n-id="build-id"> Build Identifier </span>
+          </li>
+          <li>
+            <small data-name="deviceinfo.update_channel"></small>
+            <span data-l10n-id="update-channel"> Update Channel </span>
+          </li>
+          <li>
+            <label>
+              <button id="reset-phone" data-l10n-id="reset-phone">Reset Phone</button>
+            </label>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
-      </header>
-      <ul>
-        <li>
-          <small id="gaia-commit-hash"></small>
-          <a id="gaia-commit-date"></a>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="gitInfo"> Git commit info </h2>
+        </header>
+        <ul>
+          <li>
+            <small id="gaia-commit-hash"></small>
+            <span id="gaia-commit-date"></span>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="devSettings"> Developer Settings </h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <button data-href="#about-moreInfo-developer"
-              data-l10n-id="developer">Developer</button>
-          </label>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="devSettings"> Developer Settings </h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <button data-href="#about-moreInfo-developer"
+                data-l10n-id="developer">Developer</button>
+            </label>
+          </li>
+        </ul>
+      </div>
 
       <script src="js/factory_reset.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -1942,33 +2021,35 @@
         <h1 data-l10n-id="your-rights"> Your Rights </h1>
       </header>
 
-      <ul>
-        <li class="description" data-l10n-id="about-your-rights-0">
-          Browser OS is built on free and open source software by a community
-          of thousands from all over the world. There are a few things you
-          should know:
-        </li>
-        <li class="description" data-l10n-id="about-your-rights-1">
-          Browser OS is made available to you under the terms of several open
-          source licenses including the Mozilla Public License. A device
-          running Browser OS may also contain proprietary software from third
-          parties. Any code provided under open licenses give you the right
-          to modify the source code and distribute your modified versions as
-          long as you comply with their terms.
-        </li>
-        <li class="description" data-l10n-id="about-your-rights-2">
-          You are not granted any trademark rights or licenses to the
-          trademarks of the Mozilla Foundation or any party, including
-          without limitation the Browser name or logo.
-        </li>
-        <li class="description" data-l10n-id="about-your-rights-3">
-          Some features in Browser OS, such as the Crash Reporter, give you
-          the option to provide feedback to Mozilla. By choosing to submit
-          feedback, you give Mozilla permission to use the feedback to improve
-          its products, to publish the feedback on its websites, and to
-          distribute the feedback.
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li class="description" data-l10n-id="about-your-rights-0">
+            Browser OS is built on free and open source software by a community
+            of thousands from all over the world. There are a few things you
+            should know:
+          </li>
+          <li class="description" data-l10n-id="about-your-rights-1">
+            Browser OS is made available to you under the terms of several open
+            source licenses including the Mozilla Public License. A device
+            running Browser OS may also contain proprietary software from third
+            parties. Any code provided under open licenses give you the right
+            to modify the source code and distribute your modified versions as
+            long as you comply with their terms.
+          </li>
+          <li class="description" data-l10n-id="about-your-rights-2">
+            You are not granted any trademark rights or licenses to the
+            trademarks of the Mozilla Foundation or any party, including
+            without limitation the Browser name or logo.
+          </li>
+          <li class="description" data-l10n-id="about-your-rights-3">
+            Some features in Browser OS, such as the Crash Reporter, give you
+            the option to provide feedback to Mozilla. By choosing to submit
+            feedback, you give Mozilla permission to use the feedback to improve
+            its products, to publish the feedback on its websites, and to
+            distribute the feedback.
+          </li>
+        </ul>
+      </div>
       -->
     </section>
 
@@ -1982,25 +2063,27 @@
         <h1 data-l10n-id="your-privacy"> Your Privacy </h1>
       </header>
 
-      <header>
-        <h2> Mozilla </h2>
-      </header>
-      <ul>
-        <li>
-          <a class="privacy-menuitem privacy-browserOS" href="https://www.mozilla.org/privacy/firefox-os/" data-l10n-id="brandShortName">B2G OS</a>
-        </li>
-        <li>
-          <a class="privacy-menuitem privacy-marketPlace" href="https://marketplace.firefox.com/privacy-policy">Marketplace</a>
-        </li>
-      </ul>
-      <header>
-        <h2 data-l10n-id="about-other"> Other </h2>
-      </header>
-      <ul>
-        <li>
-          <a class="privacy-menuitem privacy-everythingME" href="http://corp.everything.me/privacy">everything.me</a>
-        </li>
-      </ul>
+      <div>
+        <header>
+          <h2> Mozilla </h2>
+        </header>
+        <ul>
+          <li>
+            <a class="privacy-menuitem privacy-browserOS" href="https://www.mozilla.org/privacy/firefox-os/" data-l10n-id="brandShortName">B2G OS</a>
+          </li>
+          <li>
+            <a class="privacy-menuitem privacy-marketPlace" href="https://marketplace.firefox.com/privacy-policy">Marketplace</a>
+          </li>
+        </ul>
+        <header>
+          <h2 data-l10n-id="about-other"> Other </h2>
+        </header>
+        <ul>
+          <li>
+            <a class="privacy-menuitem privacy-everythingME" href="http://corp.everything.me/privacy">everything.me</a>
+          </li>
+        </ul>
+      </div>
       -->
     </section>
 
@@ -2015,7 +2098,10 @@
           Open Source Notices
         </h1>
       </header>
-      <iframe data-src="resources/open_source_license.html" id="os-license"></iframe>
+
+      <div>
+        <iframe data-src="resources/open_source_license.html" id="os-license"></iframe>
+      </div>
       -->
     </section>
 
@@ -2044,25 +2130,27 @@
         <h1 data-l10n-id="about-legal-info"> Legal Information </h1>
       </header>
 
-      <header>
-        <h2 data-l10n-id="about-mozilla"> Mozilla </h2>
-      </header>
-      <ul>
-        <li>
-          <a href="#about-licensing" data-l10n-id="open-source-notices">
-            Open Source Notices
-          </a>
-        </li>
-        <li>
-          <a href="#about-source-code" data-l10n-id="obtaining-source-code">
-            Obtaining Source Code
-          </a>
-        </li>
-      </ul>
+      <div>
+        <header>
+          <h2 data-l10n-id="about-mozilla"> Mozilla </h2>
+        </header>
+        <ul>
+          <li>
+            <a href="#about-licensing" data-l10n-id="open-source-notices">
+              Open Source Notices
+            </a>
+          </li>
+          <li>
+            <a href="#about-source-code" data-l10n-id="obtaining-source-code">
+              Obtaining Source Code
+            </a>
+          </li>
+        </ul>
 
-      <header hidden>
-        <h2 data-l10n-id="about-other"> Other </h2>
-      </header>
+        <header hidden>
+          <h2 data-l10n-id="about-other"> Other </h2>
+        </header>
+      </div>
       -->
     </section>
 
@@ -2073,87 +2161,90 @@
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="deviceInfo"> Device Information </h1>
       </header>
-      <ul>
-        <li>
-          <small id="deviceInfo-msisdn"></small>
-          <a data-l10n-id="deviceInfo-MSISDN"> Phone number </a>
-        </li>
-        <li>
-          <small data-name="deviceinfo.hardware"></small>
-          <a id="model-name" data-l10n-id="model-name"> Model </a>
-        </li>
-        <li>
-          <small data-name="deviceinfo.software"></small>
-          <a id="os-version" data-l10n-id="software"> Software </a>
-        </li>
-        <li>
-          <small id="last-update-date"></small>
-          <a data-l10n-id="last-updated"> Last Updated </a>
-        </li>
-        <li>
-          <label>
-            <button data-href="#about-moreInfo"
-              data-l10n-id="more-info"> More Information </button>
-          </label>
-        </li>
-      </ul>
 
-      <header>
-        <h2 data-l10n-id="softwareUpdates"> Software Updates </h2>
-      </header>
-      <ul>
-        <li>
-          <p data-l10n-id="check-for-updates">Check for Updates</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">empty</button>
-            <select name="app.update.interval">
-              <option value="86400"   data-l10n-id="check-update-daily" selected>Daily</option>
-              <option value="604800"  data-l10n-id="check-update-weekly">Weekly</option>
-              <option value="2592000" data-l10n-id="check-update-monthly">Monthly</option>
-            </select>
-          </p>
-        </li>
-        <li>
-          <label>
-            <button id="check-update-now"
-              data-l10n-id="check-update-now"> Check Now </button>
-          </label>
-        </li>
-        <li id="update-status" class="description update-status">
-          <p class="description general-information"
-              data-l10n-id="checking-for-update">Checking for updates…</p>
-          <p class="description system-update-status"></p>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <small id="deviceInfo-msisdn"></small>
+            <span data-l10n-id="deviceInfo-MSISDN"> Phone number </span>
+          </li>
+          <li>
+            <small data-name="deviceinfo.hardware"></small>
+            <span id="model-name" data-l10n-id="model-name"> Model </span>
+          </li>
+          <li>
+            <small data-name="deviceinfo.software"></small>
+            <span id="os-version" data-l10n-id="software"> Software </span>
+          </li>
+          <li>
+            <small id="last-update-date"></small>
+            <span data-l10n-id="last-updated"> Last Updated </span>
+          </li>
+          <li>
+            <label>
+              <button data-href="#about-moreInfo"
+                data-l10n-id="more-info"> More Information </button>
+            </label>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="aboutBrowserOS"> About Browser OS </h2>
-      </header>
-      <ul>
-        <li class="description" data-l10n-id="browser-os-desc">
-          Browser OS is the free and open source operating system from Mozilla.
-          Our mission is to promote openness, innovation and opportunity by
-          keeping the power of the Web in your hands.
-        </li>
-        <li>
-          <label>
-            <button data-href="#about-yourRights"
-              data-l10n-id="your-rights"> Your Rights </button>
-          </label>
-        </li>
-        <li>
-          <label>
-            <button data-href="#about-yourPrivacy"
-              data-l10n-id="your-privacy"> Your Privacy </button>
-          </label>
-        </li>
-        <li>
-          <label>
-            <button data-href="#about-legal"
-              data-l10n-id="about-legal-info"> Legal Information </button>
-          </label>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="softwareUpdates"> Software Updates </h2>
+        </header>
+        <ul>
+          <li>
+            <p data-l10n-id="check-for-updates">Check for Updates</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select name="app.update.interval">
+                <option value="86400"   data-l10n-id="check-update-daily" selected>Daily</option>
+                <option value="604800"  data-l10n-id="check-update-weekly">Weekly</option>
+                <option value="2592000" data-l10n-id="check-update-monthly">Monthly</option>
+              </select>
+            </p>
+          </li>
+          <li>
+            <label>
+              <button id="check-update-now"
+                data-l10n-id="check-update-now"> Check Now </button>
+            </label>
+          </li>
+          <li id="update-status" class="description update-status">
+            <p class="description general-information"
+                data-l10n-id="checking-for-update">Checking for updates…</p>
+            <p class="description system-update-status"></p>
+          </li>
+        </ul>
+
+        <header>
+          <h2 data-l10n-id="aboutBrowserOS"> About Browser OS </h2>
+        </header>
+        <ul>
+          <li class="description" data-l10n-id="browser-os-desc">
+            Browser OS is the free and open source operating system from Mozilla.
+            Our mission is to promote openness, innovation and opportunity by
+            keeping the power of the Web in your hands.
+          </li>
+          <li>
+            <label>
+              <button data-href="#about-yourRights"
+                data-l10n-id="your-rights"> Your Rights </button>
+            </label>
+          </li>
+          <li>
+            <label>
+              <button data-href="#about-yourPrivacy"
+                data-l10n-id="your-privacy"> Your Privacy </button>
+            </label>
+          </li>
+          <li>
+            <label>
+              <button data-href="#about-legal"
+                data-l10n-id="about-legal-info"> Legal Information </button>
+            </label>
+          </li>
+        </ul>
+      </div>
 
       <script src="js/about.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -2169,43 +2260,46 @@
         <h1 data-l10n-id="battery"> Battery </h1>
       </header>
 
-      <ul>
-        <li>
-          <a id="battery-level" data-l10n-id="batteryLevel">Current Battery Life
-            <span></span>
-          </a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <a id="battery-level" data-l10n-id="batteryLevel">Current Battery Life
+              <span></span>
+            </a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="powerSaveMode">Power Save Mode</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="powersave.enabled" class="uninit"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="powerSaveMode">Power Save Mode</a>
-        </li>
-        <li>
-          <p data-l10n-id="turnOnAuto">Turn on automatically</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">empty</button>
-            <select name="powersave.threshold">
-              <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
-              <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
-              <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
-              <option value="0" data-l10n-id="never">Never</option>
-            </select>
-          </p>
-        </li>
-        <li class="description" data-l10n-id="powerSave-expl">
-          Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and
-          GPS connections to extend battery life. You can still turn these
-          services back on manually.
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="powerSaveMode">Power Save Mode</h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" name="powersave.enabled" class="uninit"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="powerSaveMode">Power Save Mode</a>
+          </li>
+          <li>
+            <p data-l10n-id="turnOnAuto">Turn on automatically</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select name="powersave.threshold">
+                <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
+                <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
+                <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
+                <option value="0" data-l10n-id="never">Never</option>
+              </select>
+            </p>
+          </li>
+          <li class="description" data-l10n-id="powerSave-expl">
+            Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and
+            GPS connections to extend battery life. You can still turn these
+            services back on manually.
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
@@ -2218,34 +2312,36 @@
         <h1 data-l10n-id="deviceStorage"> Device Storage </h1>
       </header>
 
-      <header>
-        <h2 data-l10n-id="appStorage">Application Storage</h2>
-      </header>
-      <ul>
-        <li>
-          <meter id="apps-space-bar" min="0" value="0" max="100"></meter>
-        </li>
+      <div>
+        <header>
+          <h2 data-l10n-id="appStorage">Application Storage</h2>
+        </header>
+        <ul>
+          <li>
+            <meter id="apps-space-bar" min="0" value="0" max="100"></meter>
+          </li>
 
-        <li>
-          <a data-l10n-id="apps-total-space"> Total Space
-            <span id="apps-total-space"></span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="apps-used-space"> Used
-            <span id="apps-used-space"></span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="apps-free-space"> Left
-            <span id="apps-free-space"></span>
-          </a>
-        </li>
-        <li class="description" data-l10n-id="media-storage-details">
-          Photos, videos, and music are stored in the SD Card.
-          See Media Storage for details.
-        </li>
-      </ul>
+          <li>
+            <a data-l10n-id="apps-total-space"> Total Space
+              <span id="apps-total-space"></span>
+            </a>
+          </li>
+          <li>
+            <a data-l10n-id="apps-used-space"> Used
+              <span id="apps-used-space"></span>
+            </a>
+          </li>
+          <li>
+            <a data-l10n-id="apps-free-space"> Left
+              <span id="apps-free-space"></span>
+            </a>
+          </li>
+          <li class="description" data-l10n-id="media-storage-details">
+            Photos, videos, and music are stored in the SD Card.
+            See Media Storage for details.
+          </li>
+        </ul>
+      </div>
       -->
     </section>
 
@@ -2256,49 +2352,52 @@
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="mediaStorage"> Media Storage </h1>
       </header>
-      <ul>
-        <li>
-          <div id="space-stackedbar"></div>
-        </li>
-        <li id="music-space">
-          <span class="stackedbar-color"></span>
-          <a data-l10n-id="music-space"> Music
-            <span class="size"></span>
-          </a>
-        </li>
-        <li id="pictures-space">
-          <span class="stackedbar-color"></span>
-          <a data-l10n-id="pictures-space"> Pictures
-            <span class="size"></span>
-          </a>
-        </li>
-        <li id="videos-space">
-          <span class="stackedbar-color"></span>
-          <a data-l10n-id="videos-space"> Movies
-            <span class="size"></span>
-          </a>
-        </li>
-        <li id="media-free-space">
-          <span class="stackedbar-color"></span>
-          <a data-l10n-id="left-space"> Space Left
-            <span class="size"></span>
-          </a>
-        </li>
-      </ul>
 
-      <header>
-        <h2 data-l10n-id="advanced">Advanced</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="ums.enabled"/>
-            <span></span>
-          </label>
-          <small id="ums-desc"> </small>
-          <a data-l10n-id="usbMassStorage">USB mass storage</a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <div id="space-stackedbar"></div>
+          </li>
+          <li id="music-space">
+            <span class="stackedbar-color"></span>
+            <a data-l10n-id="music-space"> Music
+              <span class="size"></span>
+            </a>
+          </li>
+          <li id="pictures-space">
+            <span class="stackedbar-color"></span>
+            <a data-l10n-id="pictures-space"> Pictures
+              <span class="size"></span>
+            </a>
+          </li>
+          <li id="videos-space">
+            <span class="stackedbar-color"></span>
+            <a data-l10n-id="videos-space"> Movies
+              <span class="size"></span>
+            </a>
+          </li>
+          <li id="media-free-space">
+            <span class="stackedbar-color"></span>
+            <a data-l10n-id="left-space"> Space Left
+              <span class="size"></span>
+            </a>
+          </li>
+        </ul>
+
+        <header>
+          <h2 data-l10n-id="advanced">Advanced</h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" name="ums.enabled"/>
+              <span></span>
+            </label>
+            <small id="ums-desc"> </small>
+            <a data-l10n-id="usbMassStorage">USB mass storage</a>
+          </li>
+        </ul>
+      </div>
       -->
     </section>
 
@@ -2310,22 +2409,24 @@
         <h1 data-l10n-id="accessibility"> Accessibility </h1>
       </header>
 
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="accessibility.invert"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="invertColors">Invert Colors</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="accessibility.screenreader"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="screenReader">Screen Reader</a>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" name="accessibility.invert"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="invertColors">Invert Colors</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="accessibility.screenreader"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="screenReader">Screen Reader</a>
+          </li>
+        </ul>
+      </div>
       -->
     </section>
 
@@ -2337,15 +2438,17 @@
         <h1 data-l10n-id="crashReports"> Crash Reports </h1>
       </header>
 
-      <ul>
-        <li class="description" data-l10n-id="crash-reports-description-1"></li>
-        <li class="description" data-l10n-id="crash-reports-description-2"></li>
-        <li>
-          <label for="" class="description">
-            <span data-l10n-id="crash-reports-description-3-start"></span><a href="https://www.mozilla.org/privacy/" data-l10n-id="crash-reports-description-3-privacy" class="link-text"></a><span data-l10n-id="crash-reports-description-3-end"></span>
-          </label>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li class="description" data-l10n-id="crash-reports-description-1"></li>
+          <li class="description" data-l10n-id="crash-reports-description-2"></li>
+          <li>
+            <label for="" class="description">
+              <span data-l10n-id="crash-reports-description-3-start"></span><a href="https://www.mozilla.org/privacy/" data-l10n-id="crash-reports-description-3-privacy" class="link-text"></a><span data-l10n-id="crash-reports-description-3-end"></span>
+            </label>
+          </li>
+        </ul>
+      </div>
       -->
     </section>
 
@@ -2357,70 +2460,73 @@
         <h1 data-l10n-id="improveBrowserOS">Improve Browser OS</h1>
       </header>
 
-      <ul>
-        <li>
-          <label>
-            <button data-href="http://input.mozilla.org/feedback" data-l10n-id="sendMozillaFeedback"></button>
-          </label>
-        </li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <label>
+              <button data-href="http://input.mozilla.org/feedback" data-l10n-id="sendMozillaFeedback"></button>
+            </label>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="performanceData">Performance Data</h2>
-      </header>
-      <ul>
-        <li>
-          <label for="" class="description">
-            <span data-l10n-id="performanceDataInfo">
-              Help us improve Browser OS by sharing data about your phone.
-            </span>
-            <a href="http://mozilla.org/telemetry" data-l10n-id="learn-more" class="link-text">Learn More</a>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.performance_data.shared" />
-            <span></span>
-          </label>
-          <a data-l10n-id="sharePerformanceData">Submit performance data</a>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="performanceData">Performance Data</h2>
+        </header>
+        <ul>
+          <li>
+            <label for="" class="description">
+              <span data-l10n-id="performanceDataInfo">
+                Help us improve Browser OS by sharing data about your phone.
+              </span>
+              <a href="http://mozilla.org/telemetry" data-l10n-id="learn-more" class="link-text">Learn More</a>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="debug.performance_data.shared" />
+              <span></span>
+            </label>
+            <a data-l10n-id="sharePerformanceData">Submit performance data</a>
+          </li>
+        </ul>
 
-      <header>
-        <h2 data-l10n-id="crashReports">Crash Reports</h2>
-      </header>
-      <ul>
-        <li>
-          <label for="" class="description">
-            <span data-l10n-id="crashReportInfo">
-              Sending Mozilla a report when a crash occurs helps us fix the problem
-              for everyone. Reports are sent over Wi-Fi only.
-            </span>
-            <a href="#crashReports" data-l10n-id="learn-more" class="link-text">Learn More</a>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="app.reportCrashes" value="always"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="alwaysSendReport">Always send a report</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="app.reportCrashes" value="never" />
-            <span></span>
-          </label>
-          <a data-l10n-id="neverSendReport">Never send a report</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="app.reportCrashes" value="ask" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="askToSendReport">Ask me when a crash occurs</a>
-        </li>
-      </ul>
+        <header>
+          <h2 data-l10n-id="crashReports">Crash Reports</h2>
+        </header>
+        <ul>
+          <li>
+            <label for="" class="description">
+              <span data-l10n-id="crashReportInfo">
+                Sending Mozilla a report when a crash occurs helps us fix the problem
+                for everyone. Reports are sent over Wi-Fi only.
+              </span>
+              <a href="#crashReports" data-l10n-id="learn-more" class="link-text">Learn More</a>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="radio" name="app.reportCrashes" value="always"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="alwaysSendReport">Always send a report</a>
+          </li>
+          <li>
+            <label>
+              <input type="radio" name="app.reportCrashes" value="never" />
+              <span></span>
+            </label>
+            <a data-l10n-id="neverSendReport">Never send a report</a>
+          </li>
+          <li>
+            <label>
+              <input type="radio" name="app.reportCrashes" value="ask" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="askToSendReport">Ask each time</a>
+          </li>
+        </ul>
+      </div>
+
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
@@ -2433,30 +2539,33 @@
         <h1 data-l10n-id="help"></h1>
       </header>
 
-      <ul>
-        <li class="support-info">
-          <a data-l10n-id="online-support" id="online-support-link"> Online Support:
-            <span class="link-text" id="online-support-text"></span>
-          </a>
-        </li>
-        <li class="support-info">
-          <span data-l10n-id="call-support"> Call Support:
-            <span class="tel-text" id="call-support-numbers"></span>
-          </span>
-        </li>
-        <li>
-          <label>
-            <button data-l10n-id="user-guide"> User Guide </button>
-          </label>
-        </li>
-        <li class="no-support-info">
-          <label for="" class="description">
-            <span data-l10n-id="default-support">
-              Please contact your local provider for support.
+      <div>
+        <ul>
+          <li class="support-info">
+            <a data-l10n-id="online-support" id="online-support-link"> Online Support:
+              <span class="link-text" id="online-support-text"></span>
+            </a>
+          </li>
+          <li class="support-info">
+            <span data-l10n-id="call-support"> Call Support:
+              <span class="tel-text" id="call-support-numbers"></span>
             </span>
-          </label>
-        </li>
-      </ul>
+          </li>
+          <li>
+            <label>
+              <button data-l10n-id="user-guide"> User Guide </button>
+            </label>
+          </li>
+          <li class="no-support-info">
+            <label for="" class="description">
+              <span data-l10n-id="default-support">
+                Please contact your local provider for support.
+              </span>
+            </label>
+          </li>
+        </ul>
+      </div>
+
       <script src="js/support.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
@@ -2475,12 +2584,15 @@
         <a href="#root" id="icc-stk-exit"><span data-l10n-id="back" class="icon icon-back">Back</span></a>
         <h1 id="icc-stk-header"> SIM Toolkit </h1>
       </header>
-      <header>
-        <h2 id="icc-stk-subheader"></h2>
-      </header>
 
-      <ul id="icc-stk-list">
-      </ul>
+      <div>
+        <header>
+          <h2 id="icc-stk-subheader"></h2>
+        </header>
+
+        <ul id="icc-stk-list">
+        </ul>
+      </div>
 
       <form role="dialog" data-type="confirm" id="icc-stk-alert" class="hidden">
         <section>
@@ -2509,153 +2621,154 @@
       </header>
 
       <!-- Main :: Network & Connectivity -->
-      <header>
-        <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="ril.radio.disabled" class="uninit"/>
-            <span></span>
-          </label>
-          <a id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="geolocation.enabled" class="uninit"/>
-            <span></span>
-          </label>
-          <a id="menuItem-gps" class="menu-item" data-l10n-id="gps">GPS</a>
-        </li>
-        <li>
-          <small id="wifi-desc" class="menu-item-desc" data-l10n-id="fullStatus-disconnected">offline</small>
-          <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
-        </li>
-        <li>
-          <small id="call-desc" class="menu-item-desc"></small>
-          <a id="menuItem-callSettings" class="menu-item" href="#call"
-            data-l10n-id="callSettings">Call Settings</a>
-        </li>
-        <li id="data-connectivity">
-          <small id="data-desc" class="menu-item-desc"></small>
-          <a id="menuItem-cellularAndData" class="menu-item" href="#carrier" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
-        </li>
-        <li>
-          <small id="bluetooth-desc" class="menu-item-desc"></small>
-          <a id="menuItem-bluetooth" class="menu-item" href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
-        </li>
-        <li>
-          <small id="internetSharing-desc" class="menu-item-desc"></small>
-          <a id="menuItem-internetSharing" class="menu-item" href="#hotspot" data-l10n-id="internetSharing">Internet Sharing</a>
-        </li>
-      </ul>
+      <div>
+        <header>
+          <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" name="ril.radio.disabled" class="uninit"/>
+              <span></span>
+            </label>
+            <a id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" data-type="switch" name="geolocation.enabled" class="uninit"/>
+              <span></span>
+            </label>
+            <a id="menuItem-gps" class="menu-item" data-l10n-id="gps">GPS</a>
+          </li>
+          <li>
+            <small id="wifi-desc" class="menu-item-desc" data-l10n-id="fullStatus-disconnected">offline</small>
+            <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
+          </li>
+          <li id="call-settings">
+            <small id="call-desc" class="menu-item-desc"></small>
+            <a id="menuItem-callSettings" class="menu-item" href="#call"
+              data-l10n-id="callSettings">Call Settings</a>
+          </li>
+          <li id="data-connectivity">
+            <small id="data-desc" class="menu-item-desc"></small>
+            <a id="menuItem-cellularAndData" class="menu-item" href="#carrier" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
+          </li>
+          <li>
+            <small id="bluetooth-desc" class="menu-item-desc"></small>
+            <a id="menuItem-bluetooth" class="menu-item" href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
+          </li>
+          <li>
+            <small id="internetSharing-desc" class="menu-item-desc"></small>
+            <a id="menuItem-internetSharing" class="menu-item" href="#hotspot" data-l10n-id="internetSharing">Internet Sharing</a>
+          </li>
+        </ul>
 
-      <!-- Main :: Personalization -->
-      <header>
-        <h2 data-l10n-id="personalization">Personalization</h2>
-      </header>
-      <ul>
-        <li>
-          <a id="menuItem-sound" class="menu-item" href="#sound" data-l10n-id="sound">Sound</a>
-        </li>
-        <li>
-          <a id="menuItem-display" class="menu-item" href="#display" data-l10n-id="display">Display</a>
-        </li>
-        <li>
-          <a id="menuItem-notifications" class="menu-item" href="#notifications" data-l10n-id="notifications">Notifications</a>
-        </li>
-        <li>
-          <small id="time-desc" class="menu-item-desc"></small>
-          <a id="menuItem-dateAndTime" class="menu-item" href="#dateTime" data-l10n-id="dateAndTime">Date &amp; Time</a>
-        </li>
-        <li>
-          <small id="language-desc" class="menu-item-desc"></small>
-          <!-- The data-l10n-id and title should be changed from language to languageAndRegion in V2. -->
-          <a id="menuItem-languageAndRegion" class="menu-item" href="#languages" data-l10n-id="language">Language</a>
-        </li>
-        <li>
-          <small id="keyboard-desc" class="menu-item-desc"></small>
-          <a id="menuItem-keyboard" class="menu-item" href="#keyboard" data-l10n-id="keyboard">Keyboard</a>
-        </li>
-      </ul>
+        <!-- Main :: Personalization -->
+        <header>
+          <h2 data-l10n-id="personalization">Personalization</h2>
+        </header>
+        <ul>
+          <li>
+            <a id="menuItem-sound" class="menu-item" href="#sound" data-l10n-id="sound">Sound</a>
+          </li>
+          <li>
+            <a id="menuItem-display" class="menu-item" href="#display" data-l10n-id="display">Display</a>
+          </li>
+          <li>
+            <a id="menuItem-notifications" class="menu-item" href="#notifications" data-l10n-id="notifications">Notifications</a>
+          </li>
+          <li>
+            <small id="time-desc" class="menu-item-desc"></small>
+            <a id="menuItem-dateAndTime" class="menu-item" href="#dateTime" data-l10n-id="dateAndTime">Date &amp; Time</a>
+          </li>
+          <li>
+            <small id="language-desc" class="menu-item-desc"></small>
+            <!-- The data-l10n-id and title should be changed from language to languageAndRegion in V2. -->
+            <a id="menuItem-languageAndRegion" class="menu-item" href="#languages" data-l10n-id="language">Language</a>
+          </li>
+          <li>
+            <small id="keyboard-desc" class="menu-item-desc"></small>
+            <a id="menuItem-keyboard" class="menu-item" href="#keyboard" data-l10n-id="keyboard">Keyboard</a>
+          </li>
+        </ul>
 
-      <!-- Main :: Accounts -->
-      <header hidden>
-        <h2 data-l10n-id="accounts">Accounts</h2>
-      </header>
-      <ul hidden>
-        <li>
-          <a id="menuItem-persona" class="menu-item" href="#persona" data-l10n-id="persona">Persona</a>
-        </li>
-        <li>
-          <a id="menuItem-mail" class="menu-item" href="#mail" data-l10n-id="mail">Mail</a>
-        </li>
-      </ul>
+        <!-- Main :: Accounts -->
+        <header hidden>
+          <h2 data-l10n-id="accounts">Accounts</h2>
+        </header>
+        <ul hidden>
+          <li>
+            <a id="menuItem-persona" class="menu-item" href="#persona" data-l10n-id="persona">Persona</a>
+          </li>
+          <li>
+            <a id="menuItem-mail" class="menu-item" href="#mail" data-l10n-id="mail">Mail</a>
+          </li>
+        </ul>
 
-      <!-- Main :: Security & Privacy -->
-      <header>
-        <h2 data-l10n-id="privacyAndSecurity">Privacy &amp; Security</h2>
-      </header>
-      <ul>
-        <li>
-          <small id="phoneLock-desc" class="menu-item-desc"></small>
-          <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
-        </li>
-        <li>
-          <small id="simCardLock-desc" class="menu-item-desc"></small>
-          <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM Security</a>
-        </li>
-        <li>
-          <a id="menuItem-appPermissions" class="menu-item" href="#appPermissions" data-l10n-id="appPermissions">App permissions</a>
-        </li>
-        <li>
-          <small id="doNotTrack-desc" class="menu-item-desc"></small>
-          <a id="menuItem-doNotTrack" class="menu-item" href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
-        </li>
-      </ul>
+        <!-- Main :: Security & Privacy -->
+        <header>
+          <h2 data-l10n-id="privacyAndSecurity">Privacy &amp; Security</h2>
+        </header>
+        <ul>
+          <li>
+            <small id="phoneLock-desc" class="menu-item-desc"></small>
+            <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
+          </li>
+          <li>
+            <small id="simCardLock-desc" class="menu-item-desc"></small>
+            <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM Security</a>
+          </li>
+          <li>
+            <a id="menuItem-appPermissions" class="menu-item" href="#appPermissions" data-l10n-id="appPermissions">App permissions</a>
+          </li>
+          <li>
+            <small id="doNotTrack-desc" class="menu-item-desc"></small>
+            <a id="menuItem-doNotTrack" class="menu-item" href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
+          </li>
+        </ul>
 
-      <!-- Main :: Device -->
-      <header>
-        <h2 data-l10n-id="device">Device</h2>
-      </header>
-      <ul>
-        <li>
-          <a id="menuItem-deviceInfo" class="menu-item" href="#about" data-l10n-id="deviceInfo">Device Information</a>
-        </li>
-        <li>
-          <small id="battery-desc" class="menu-item-desc"></small>
-          <a id="menuItem-battery" class="menu-item" href="#battery" data-l10n-id="battery">Battery</a>
-        </li>
-        <li>
-          <small id="device-storage-desc" class="menu-item-desc"></small>
-          <a id="menuItem-deviceStorage" class="menu-item" href="#deviceStorage" data-l10n-id="deviceStorage">Device Storage</a>
-        </li>
-        <li id="media-storage-section">
-          <small id="media-storage-desc" class="menu-item-desc"></small>
-          <a id="menuItem-mediaStorage" class="menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
-        </li>
-        <li hidden>
-          <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
-        </li>
-        <li>
-          <a id="menuItem-improveBrowserOS" class="menu-item" href="#improveBrowserOS" data-l10n-id="improveBrowserOS">Improve Browser OS</a>
-        </li>
-        <li>
-          <a id="menuItem-help" class="menu-item" href="#help" data-l10n-id="help">Help</a>
-        </li>
-      </ul>
+        <!-- Main :: Device -->
+        <header>
+          <h2 data-l10n-id="device">Device</h2>
+        </header>
+        <ul>
+          <li>
+            <a id="menuItem-deviceInfo" class="menu-item" href="#about" data-l10n-id="deviceInfo">Device Information</a>
+          </li>
+          <li>
+            <small id="battery-desc" class="menu-item-desc"></small>
+            <a id="menuItem-battery" class="menu-item" href="#battery" data-l10n-id="battery">Battery</a>
+          </li>
+          <li>
+            <small id="device-storage-desc" class="menu-item-desc"></small>
+            <a id="menuItem-deviceStorage" class="menu-item" href="#deviceStorage" data-l10n-id="deviceStorage">Device Storage</a>
+          </li>
+          <li id="media-storage-section">
+            <small id="media-storage-desc" class="menu-item-desc"></small>
+            <a id="menuItem-mediaStorage" class="menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
+          </li>
+          <li hidden>
+            <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
+          </li>
+          <li>
+            <a id="menuItem-improveBrowserOS" class="menu-item" href="#improveBrowserOS" data-l10n-id="improveBrowserOS">Improve Browser OS</a>
+          </li>
+          <li>
+            <a id="menuItem-help" class="menu-item" href="#help" data-l10n-id="help">Help</a>
+          </li>
+        </ul>
 
-      <!-- Main :: SIM Toolkit -->
-      <header id="icc-mainheader">
-        <h2 data-l10n-id="operatorServices">Operator Services</h2>
-      </header>
-      <ul id="icc-mainentry">
-        <li>
-          <small id="icc-desc" class="menu-item-desc"></small>
-          <a id="menuItem-icc" class="menu-item" href="#icc">SIM Toolkit</a>
-        </li>
-      </ul>
+        <!-- Main :: SIM Toolkit -->
+        <header id="icc-mainheader">
+          <h2 data-l10n-id="operatorServices">Operator Services</h2>
+        </header>
+        <ul id="icc-mainentry">
+          <li>
+            <small id="icc-desc" class="menu-item-desc"></small>
+            <a id="menuItem-icc" class="menu-item" href="#icc">SIM Toolkit</a>
+          </li>
+        </ul>
+      </div>
     </section>
   </body>
 </html>
-
