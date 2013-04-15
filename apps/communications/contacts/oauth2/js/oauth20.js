@@ -105,7 +105,7 @@ if (typeof window.oauth2 === 'undefined') {
       }
       var location = getLocation(oauthflow.params[accessTokenCbData.service].
         redirectURI);
-      var allowedOrigin = location.protocol + '//' + location.host;
+      var allowedOrigin = oauthflow.params[accessTokenCbData.service].appOrigin;
       if (e.origin !== allowedOrigin) {
         return;
       }
@@ -129,7 +129,6 @@ if (typeof window.oauth2 === 'undefined') {
           expires: end * 1000,
           token_ts: Date.now()
         }, function notify_parent() {
-              console.log('------------------------------>>>> Sending message to parent');
               parent.postMessage({
                 type: 'token_stored',
                 data: ''
