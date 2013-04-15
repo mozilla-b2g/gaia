@@ -627,7 +627,7 @@ window.addEventListener('load', function loadSettings() {
             langSel.appendChild(option);
           }
         });
-        Settings.updateLanguagePanel();
+        setTimeout(Settings.updateLanguagePanel);
         break;
       case 'mediaStorage':        // full media storage status + panel startup
         MediaStorage.initUI();
@@ -813,3 +813,4 @@ window.addEventListener('localized', function showLanguages() {
 Settings.preInit();
 
 MouseEventShim.trackMouseMoves = false;
+

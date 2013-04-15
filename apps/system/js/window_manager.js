@@ -372,6 +372,7 @@ var WindowManager = (function() {
         classList.remove('opening-switching');
         classList.add('opening');
       } else if (classList.contains('opening')) {
+        windowScaled(frame);
         windowOpened(frame);
 
         setTimeout(openCallback);
@@ -386,12 +387,30 @@ var WindowManager = (function() {
     }
 
     if (classList.contains('opening')) {
-      windowOpened(frame);
+      windowScaled(frame);
 
-      setTimeout(openCallback);
-      openCallback = null;
+      var onWindowReady = function() {
+        windowOpened(frame);
 
-      setOpenFrame(null);
+        setTimeout(openCallback);
+        openCallback = null;
+        setOpenFrame(null);
+      };
+
+      // If this is a cold launch let's wait for the app to load first
+      var iframe = openFrame.firstChild;
+      if ('unpainted' in iframe.dataset) {
+
+        if ('wrapper' in frame.dataset)
+          wrapperFooter.classList.add('visible');
+
+        iframe.addEventListener('mozbrowserloadend', function on(e) {
+          iframe.removeEventListener('mozbrowserloadend', on);
+          onWindowReady();
+        });
+      } else {
+        onWindowReady();
+      }
     } else if (classList.contains('closing')) {
       windowClosed(frame);
 
@@ -404,34 +423,41 @@ var WindowManager = (function() {
 
   // Executes when the opening transition scale the app
   // to full size.
-  function windowOpened(frame) {
+  function windowScaled(frame) {
     var iframe = frame.firstChild;
-
-    frame.classList.add('active');
-    windows.classList.add('active');
-
-    if ('wrapper' in frame.dataset) {
-      wrapperFooter.classList.add('visible');
-    }
-
-    // Take the focus away from the currently displayed app
-    var app = runningApps[displayedApp];
-    if (app && app.iframe)
-      app.iframe.blur();
-
-    // Give the focus to the frame
-    iframe.focus();
-
-    if (!TrustedUIManager.isVisible() && !isRunningFirstRunApp) {
-      // Set homescreen visibility to false
-      toggleHomescreen(false);
-    }
 
     // Set displayedApp to the new value
     displayedApp = iframe.dataset.frameOrigin;
 
     // Set orientation for the new app
     setOrientationForApp(displayedApp);
+  }
+
+  // Execute when the application is actually loaded
+  function windowOpened(frame) {
+    var iframe = frame.firstChild;
+
+    if (displayedApp == iframe.dataset.frameOrigin) {
+      frame.classList.add('active');
+      windows.classList.add('active');
+
+      if ('wrapper' in frame.dataset) {
+        wrapperFooter.classList.add('visible');
+      }
+
+      // Take the focus away from the currently displayed app
+      var app = runningApps[displayedApp];
+      if (app && app.iframe)
+        app.iframe.blur();
+
+      if (!TrustedUIManager.isVisible() && !isRunningFirstRunApp) {
+        // Set homescreen visibility to false
+        toggleHomescreen(false);
+      }
+
+      // Give the focus to the frame
+      iframe.focus();
+    }
 
     // Dispatch an 'appopen' event.
     var manifestURL = runningApps[displayedApp].manifestURL;
@@ -463,7 +489,14 @@ var WindowManager = (function() {
     windows.classList.remove('active');
 
     // set the closed frame visibility to false
-    if ('setVisible' in iframe) {
+
+    // XXX: After bug 822325 is fixed in gecko,
+    // we don't need to check trusted ui state here anymore.
+    // We do this because we don't want the trustedUI opener
+    // is killed in background due to OOM.
+
+    if ('setVisible' in iframe &&
+        !TrustedUIManager.hasTrustedUI(iframe.dataset.frameOrigin)) {
       // When we setVisible(false) the app frame, it throws out its
       // layer tree, which results in it not being renderable by the
       // compositor.  If that happens before we repaint our tree
@@ -743,7 +776,7 @@ var WindowManager = (function() {
     };
 
     if ('unpainted' in openFrame.firstChild.dataset) {
-      waitForNextPaintOrBackground(openFrame, transitionOpenCallback);
+      setFrameBackground(openFrame, transitionOpenCallback);
     } else {
       waitForNextPaint(openFrame, transitionOpenCallback);
     }
@@ -756,7 +789,14 @@ var WindowManager = (function() {
         // If attention screen is fully visible now,
         // don't give the open frame visible.
         // This is the case that homescreen is restarted behind attention screen
-        openFrame.firstChild.setVisible(false);
+
+        // XXX: After bug 822325 is fixed in gecko,
+        // we don't need to check trusted ui state here anymore.
+        // We do this because we don't want the trustedUI opener
+        // is killed in background due to OOM.
+        if (!TrustedUIManager.hasTrustedUI(
+            openFrame.firstChild.dataset.frameOrigin))
+          openFrame.firstChild.setVisible(false);
       }
     }
   }
@@ -981,10 +1021,24 @@ var WindowManager = (function() {
     // Before starting a new transition, let's make sure current transitions
     // are stopped and the state classes are cleaned up.
     // visibility status should also be reset.
-    if (openFrame && 'setVisible' in openFrame.firstChild)
-      openFrame.firstChild.setVisible(false);
-    if (closeFrame && 'setVisible' in closeFrame.firstChild)
-      closeFrame.firstChild.setVisible(false);
+    if (openFrame && 'setVisible' in openFrame.firstChild) {
+      // XXX: After bug 822325 is fixed in gecko,
+      // we don't need to check trusted ui state here anymore.
+      // We do this because we don't want the trustedUI opener
+      // is killed in background due to OOM.
+      if (!TrustedUIManager.hasTrustedUI(
+            openFrame.firstChild.dataset.frameOrigin))
+        openFrame.firstChild.setVisible(false);
+    }
+    if (closeFrame && 'setVisible' in closeFrame.firstChild) {
+      // XXX: After bug 822325 is fixed in gecko,
+      // we don't need to check trusted ui state here anymore.
+      // We do this because we don't want the trustedUI opener
+      // is killed in background due to OOM.
+      if (!TrustedUIManager.hasTrustedUI(
+            closeFrame.firstChild.dataset.frameOrigin))
+        closeFrame.firstChild.setVisible(false);
+    }
 
     if (!isFirstRunApplication && newApp == homescreen &&
       !AttentionScreen.isFullyVisible()) {
