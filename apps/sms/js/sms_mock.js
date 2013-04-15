@@ -192,6 +192,25 @@
     var request = {
       error: null
     };
+
+    var thread = messagesDb.threads.filter(function(t) {
+      return t.participants[0] === number;
+    })[0];
+    if (!thread) {
+      thread = {
+        id: messagesDb.id++,
+        participants: [number],
+        body: text,
+        timestamp: new Date(),
+        unreadCount: 0
+      };
+      messagesDb.threads.push(thread);
+    }
+    else {
+      thread.body = text;
+      thread.timestamp = new Date();
+    }
+
     var sendInfo = {
       type: 'sent',
       message: {
@@ -200,7 +219,8 @@
         delivery: 'sending',
         body: text,
         id: sendId,
-        timestamp: new Date()
+        timestamp: new Date(),
+        threadId: thread.id
       }
     };
 
@@ -244,7 +264,8 @@
           delivery: 'received',
           body: 'Hi back! ' + text,
           id: messagesDb.id++,
-          timestamp: new Date()
+          timestamp: new Date(),
+          threadId: thread.id
         }
       };
       messagesDb.messages.push(receivedInfo.message);
@@ -287,7 +308,7 @@
         idx += 1;
         request.continue = continueCursor;
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(null);
+          request.onsuccess.call(request);
         }
       }
 
@@ -356,10 +377,11 @@
         }
       } else {
         request.result = msgs[idx];
+        request.done = !request.result;
         idx += 1;
         request.continue = continueCursor;
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(null);
+          request.onsuccess.call(request);
         }
       }
 
@@ -409,7 +431,7 @@
       }
 
       if (typeof request.onsuccess === 'function') {
-        request.onsuccess.call(null);
+        request.onsuccess.call(request);
       }
     }, simulation.delay());
 
