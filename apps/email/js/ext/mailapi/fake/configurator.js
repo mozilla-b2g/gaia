@@ -432,6 +432,7 @@ MessageGenerator.prototype = {
         body: bodyText,
         to: this._formatAddresses(bodyInfo.to),
       };
+
       if (bodyInfo.cc)
         messageOpts.cc = this._formatAddresses(bodyInfo.cc);
 
