@@ -795,9 +795,11 @@ contacts.List = (function() {
 
     var familyName, givenName;
 
-    familyName = contact.familyName && contact.familyName.length > 0 ?
+    familyName = Array.isArray(contact.familyName) &&
+                                    typeof contact.familyName[0] === 'string' ?
       contact.familyName[0].trim() : '';
-    givenName = contact.givenName && contact.givenName.length > 0 ?
+    givenName = Array.isArray(contact.givenName) &&
+                                    typeof contact.givenName[0] === 'string' ?
       contact.givenName[0].trim() : '';
 
     var first = givenName, second = familyName;
