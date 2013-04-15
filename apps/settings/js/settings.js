@@ -568,6 +568,7 @@ window.addEventListener('load', function loadSettings() {
   setTimeout(function() {
     var scripts = [
       'js/utils.js',
+      'shared/js/keyboard_helper.js',
       'shared/js/mouse_event_shim.js',
       'js/airplane_mode.js',
       'js/battery.js',

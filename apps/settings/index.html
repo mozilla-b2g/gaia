@@ -40,6 +40,7 @@
     <script defer src="js/settings.js"></script>
 
     <!-- shared helper library -->
+    <!--<script defer src="shared/js/keyboard_helper.js"></script>-->
     <!--<script defer src="shared/js/mouse_event_shim.js"></script>-->
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
 
@@ -1456,84 +1457,28 @@
           </li>
         </ul>
 
-        <header>
-          <h2 data-l10n-id="keyboardLayouts">Layouts</h2>
-        </header>
-        <ul>
-          <li>
-            <label>
-              <input type="checkbox" name="keyboard.layouts.english" checked />
-              <span></span>
-            </label>
-            <a data-l10n-id="english">English</a>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" name="keyboard.layouts.dvorak"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="dvorak">English (Dvorak)</a>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" name="keyboard.layouts.spanish"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="spanish">Spanish</a>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" name="keyboard.layouts.portuguese"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="portuguese">Portuguese (Brazilian)</a>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" name="keyboard.layouts.polish"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="polish">Polish</a>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" name="keyboard.layouts.otherlatins"/>
-              <span></span>
-            </label>
-            <small data-l10n-id="latin-desc">French, German, Norwegian Bokmal, Slovak, Turkish</small>
-            <a data-l10n-id="latin">Other Latin scripts</a>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" name="keyboard.layouts.cyrillic"/>
-              <span></span>
-            </label>
-            <small data-l10n-id="cyrillic-desc">Russian, Serbian (Cyrillic)</small>
-            <a data-l10n-id="cyrillic">Cyrillic scripts</a>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" name="keyboard.layouts.arabic"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="arabic">Arabic</a>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" name="keyboard.layouts.hebrew"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="hebrew">Hebrew</a>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" name="keyboard.layouts.greek"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="greek">Greek</a>
-          </li>
-        </ul>
+        <div id="textLayoutList" hidden>
+          <header>
+            <h2 data-l10n-id="keyboardlayouts">layouts</h2>
+          </header>
+          <ul></ul>
+        </div>
+
+        <div id="numberLayoutList" hidden>
+          <header>
+            <h2 data-l10n-id="numberKeyboardLayouts">Number Layouts</h2>
+          </header>
+          <ul></ul>
+        </div>
+
+        <div id="optionLayoutList" hidden>
+          <header>
+            <h2 data-l10n-id="optionKeyboardLayouts">Option Layouts</h2>
+          </header>
+          <ul></ul>
+        </div>
       </div>
+      <script src="js/keyboard.js"></script>
       -->
     </section>
 
