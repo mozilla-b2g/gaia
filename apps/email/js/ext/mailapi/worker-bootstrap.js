@@ -9222,12 +9222,12 @@ RecipientFilter.prototype = {
       }
     }
 
-    if (this.checkTo && body.to)
-      checkRecipList(body.to);
-    if (this.checkCc && body.cc && matches.length < stopAfter)
-      checkRecipList(body.cc);
-    if (this.checkBcc && body.bcc && matches.length < stopAfter)
-      checkRecipList(body.bcc);
+    if (this.checkTo && header.to)
+      checkRecipList(header.to);
+    if (this.checkCc && header.cc && matches.length < stopAfter)
+      checkRecipList(header.cc);
+    if (this.checkBcc && header.bcc && matches.length < stopAfter)
+      checkRecipList(header.bcc);
 
     if (matches.length) {
       match.recipients = matches;
