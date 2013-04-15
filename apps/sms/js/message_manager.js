@@ -170,7 +170,7 @@ var MessageManager = {
         );
         contactButton.parentNode.appendChild(contactButton);
         ThreadUI.container.innerHTML = '';
-        ThreadUI.innerHTML = '';
+        ThreadUI.recipientResults.innerHTML = '';
         ThreadUI.recipientResults.classList.add('hide');
 
         ThreadUI.cleanFields();
