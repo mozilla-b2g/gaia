@@ -627,6 +627,13 @@ var Browser = {
   handleVisibilityChange: function browser_handleVisibilityChange() {
     if (!document.mozHidden && this.currentTab.crashed)
       this.reviveCrashedTab(this.currentTab);
+
+    // Bug 845661 - Attention screen does not appears when
+    // the url bar input is focused.
+    if (document.mozHidden) {
+      this.urlInput.blur();
+      this.currentTab.dom.blur();
+    }
   },
 
   reviveCrashedTab: function browser_reviveCrashedTab(tab) {
