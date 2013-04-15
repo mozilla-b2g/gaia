@@ -219,9 +219,13 @@ li.singleline.field:active {
 }
 
 li.multiline {
-  height: 22.19rem;
+  height: auto;
   border-top: none;
   border-bottom: 0.06rem solid #cbcbcc;
+  padding-left: 1.2rem;
+  padding-right: 1.2rem;
+  overflow: hidden;
+  -moz-box-sizing: border-box;
 }
 
 li.multiline:active {
@@ -292,7 +296,7 @@ ul li > a, ul li > span, ul li > small { /* text ellipsis */
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
   width: -moz-calc(100% - 8.13rem);
 }
 
