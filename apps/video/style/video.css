@@ -145,7 +145,8 @@ li .after span:last-child {
 }
 
 /* thumbnails in thumbnail select view where there is a top bar */
-#thumbnails.select {
+#thumbnails.select,
+#thumbnails.pick {
   top: 50px;
   bottom: 0;
 }
@@ -255,6 +256,10 @@ body.hidden *[data-l10n-id] {
 .icon-back {
   pointer-events: none;
   width: 2.3rem !important;
+}
+
+.icon.icon-done {
+  background-image: url('images/iconaction_done_30x30.png') !important;
 }
 
 header {
@@ -416,6 +421,10 @@ header .icon:after {
   height: 4.5rem;
   margin: 0;
   padding: 0;
+}
+
+#videoBar:last-child {
+  bottom: 0;
 }
 
 #play, #play:after {

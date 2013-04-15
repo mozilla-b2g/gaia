@@ -41,6 +41,14 @@
     "60": "/style/icons/60/Video.png"
   },
   "activities": {
+    "pick": {
+      "filters": {
+        "type": ["video/*", "video/webm", "video/mp4", "video/3gpp"]
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/index.html#pick"
+    },
     "view" : {
       "filters": {
         "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube"]

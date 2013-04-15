@@ -18,6 +18,11 @@
   <body role="application" class="skin-dark">
 
     <section role="region" id="thumbnail-list-view">
+      <header id="picker-header" class="hidden">
+        <a href="#" id="picker-close"><span class="icon icon-back">back</span></a>
+        <h1 id="picker-title" data-l10n-id="pick-title"></h1>
+      </header>
+
       <footer id="thumbnails-bottom">
         <a id="thumbnails-video-button" class="button"></a>
         <a id="thumbnails-select-button" class="button"></a>
@@ -46,6 +51,9 @@
 
           <header>
             <a href="#" id="close"><span class="icon icon-back">back</span></a>
+            <menu type="toolbar">
+              <button id="picker-done" class="hidden"><span class="icon icon-done"></span></button>
+            </menu>
             <h1 id="video-title"></h1>
           </header>
 
@@ -62,7 +70,7 @@
               <span id="duration-text"></span>
             </div>
           </footer>
-          <footer>
+          <footer id="videoActionBar">
             <a id="thumbnails-single-delete-button" class="button"></a>
             <a id="thumbnails-single-share-button" class="button"></a>
           </footer>
