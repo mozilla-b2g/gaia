@@ -10,6 +10,93 @@
     "settings":{ "access": "readwrite" },
     "keyboard":{}
   },
+  "entry_points": {
+    "English": {
+      "launch_path": "/index.html#en",
+      "description": "English layout",
+      "type_group": ["text"]
+    },
+    "English (Dvorak)": {
+      "launch_path": "/index.html#en-Dvorak",
+      "description": "Dvorak layout",
+      "type_group": ["text"]
+    },
+    "Spanish": {
+      "launch_path": "/index.html#es",
+      "description": "Spanish layout",
+      "type_group": ["text"]
+    },
+    "Portuguese Brazilian": {
+      "launch_path": "/index.html#pt-BR",
+      "description": "Portuguese Brazilian layout",
+      "type_group": ["text"]
+    },
+    "Polish": {
+      "launch_path": "/index.html#pl",
+      "description": "Polish layout",
+      "type_group": ["text"]
+    },
+    "Czech": {
+      "launch_path": "/index.html#cz",
+      "description": "Czech layout",
+      "type_group": ["text"]
+    },
+    "French": {
+      "launch_path": "/index.html#fr",
+      "description": "French layout",
+      "type_group": ["text"]
+    },
+    "German": {
+      "launch_path": "/index.html#de",
+      "description": "German layout",
+      "type_group": ["text"]
+    },
+    "Norwegian Bokmal": {
+      "launch_path": "/index.html#nb",
+      "description": "Norwegian Bokmal layout",
+      "type_group": ["text"]
+    },
+    "Slovak": {
+      "launch_path": "/index.html#sk",
+      "description": "Slovak layout",
+      "type_group": ["text"]
+    },
+    "Turkish": {
+      "launch_path": "/index.html#tr",
+      "description": "Turkish layout",
+      "type_group": ["text"]
+    },
+    "Russian": {
+      "launch_path": "/index.html#ru",
+      "description": "Russian layout",
+      "type_group": ["text"]
+    },
+    "Serbian (Cyrillic)": {
+      "launch_path": "/index.html#sr-Cyrl",
+      "description": "Serbian (Cyrillic) layout",
+      "type_group": ["text"]
+    },
+    "Arabic": {
+      "launch_path": "/index.html#ar",
+      "description": "Arabic layout",
+      "type_group": ["text"]
+    },
+    "Hebrew": {
+      "launch_path": "/index.html#he",
+      "description": "Hebrew layout",
+      "type_group": ["text"]
+    },
+    "Greek": {
+      "launch_path": "/index.html#el",
+      "description": "Greek layout",
+      "type_group": ["text"]
+    },
+    "number": {
+      "launch_path": "/index.html#numberLayout",
+      "description": "Number layout",
+      "type_group": ["number"]
+    }
+  },
   "locales": {
     "en-US": {
       "name": "Keyboard",

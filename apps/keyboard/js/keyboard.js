@@ -183,28 +183,16 @@ var deleteTimeout = 0;
 var deleteInterval = 0;
 var menuTimeout = 0;
 
-// This object has one property for each keyboard layout setting.
-// If the user turns on that setting in the settings app, the value of
-// the property specifies the keyboard layouts that are enabled.
-const keyboardGroups = {
-  'english': ['en'],
-  'dvorak': ['en-Dvorak'],
-  'spanish' : ['es'],
-  'portuguese' : ['pt_BR'],
-  'polish' : ['pl'],
-  'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr'],
-  'cyrillic': ['ru', 'sr-Cyrl'],
-  'hebrew': ['he'],
-  'zhuyin': ['zh-Hant-Zhuyin'],
-  'pinyin': ['zh-Hans-Pinyin'],
-  'arabic': ['ar'],
-  'greek': ['el'],
-  'japanese': ['jp-kanji']
-};
+const keyboardHashKey = [
+  'en', 'en-Dvorak', 'es', 'pt-BR', 'pl',
+  'cz', 'fr', 'de', 'nb', 'sk', 
+  'tr', 'ru', 'sr-Cyrl', 'ar', 'he',
+  'el',
+  'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji',
+  'numberLayout'
+];
 
-// This is the default keyboard if none is selected in settings
-// XXX: switch this to pt-BR?
-const defaultKeyboardNames = ['en'];
+const defaultKeyboardName = 'en';
 
 // If we get a focuschange event from mozKeyboard for an element with
 // one of these types, we'll just ignore it.
@@ -237,8 +225,6 @@ var suggestionsEnabled;
 var correctionsEnabled;
 var clickEnabled;
 var vibrationEnabled;
-var enabledKeyboardGroups;
-var enabledKeyboardNames;
 var isSoundEnabled;
 
 // data URL for keyboard click sound
@@ -293,13 +279,8 @@ function getKeyboardSettings() {
     'ring.enabled': true
   };
 
-  // Add the keyboard group settings to our query, too.
-  for (var group in keyboardGroups)
-    settingsQuery['keyboard.layouts.' + group] = false;
-
   // Now query the settings
   getSettings(settingsQuery, function gotSettings(values) {
-
     // Copy settings values to the corresponding global variables.
     userLanguage = values['language.current'];
     suggestionsEnabled = values['keyboard.wordsuggestion'];
@@ -310,11 +291,17 @@ function getKeyboardSettings() {
 
     handleKeyboardSound();
 
-    // Copy the keyboard group settings too
-    enabledKeyboardGroups = {};
-    for (var group in keyboardGroups) {
-      var settingName = 'keyboard.layouts.' + group;
-      enabledKeyboardGroups[settingName] = values[settingName];
+    // set default input method with hash value
+    if (window.location.hash !== '') {
+      var hashKey = window.location.hash.substring(1);
+
+      if(keyboardHashKey.indexOf(hashKey) !== -1) {
+        keyboardName = hashKey;
+      } else {
+        keyboardName = defaultKeyboardName;
+      }
+    } else {
+      keyboardName = defaultKeyboardName;
     }
 
     // And create an array of all enabled keyboard layouts from the set
@@ -363,21 +350,6 @@ function initKeyboard() {
     handleKeyboardSound();
   });
 
-  for (var group in keyboardGroups) {
-
-    var settingName = 'keyboard.layouts.' + group;
-
-    var createLayoutCallback = function createLayoutCallback(name) {
-      return function layoutCallback(e) {
-        enabledKeyboardGroups[name] = e.settingValue;
-        handleNewKeyboards();
-      }
-    };
-
-    navigator.mozSettings.addObserver(settingName,
-                                      createLayoutCallback(settingName));
-  }
-
   // Initialize the rendering module
   IMERender.init(getUpperCaseValue, isSpecialKeyObj);
 
@@ -396,29 +368,30 @@ function initKeyboard() {
     attributes: true, attributeFilter: ['class', 'style', 'data-hidden']
   });
 
-  // Show or hide the keyboard when we get an focuschange event
-  // from the keyboard
-  var focusChangeTimeout = 0;
-  navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
-    var state = evt.detail;
-    var type = state.type;
+  window.addEventListener('mozvisibilitychange', function renderKeyboard() {
+    var inputType = window.navigator.mozKeyboard.inputType;
 
-    // Skip the <select> element and inputs with type of date/time,
-    // handled in system app for now
-    if (!type || type in ignoredFormElementTypes)
-      return;
+    var state = {
+      type: inputType,
+      choices: null,
+      value: '',
+      inputmode: '',
+      selectionStart: 0,
+      selectionEnd: 0
+    };
 
-    // We can get multiple focuschange events in rapid succession
-    // so wait a bit before responding to see if we get another.
-    clearTimeout(focusChangeTimeout);
-    focusChangeTimeout = setTimeout(function switchKeyboard() {
-      if (type === 'blur') {
-        hideKeyboard();
-      } else {
-        showKeyboard(state);
-      }
-    }, FOCUS_CHANGE_DELAY);
-  };
+    if (!document.mozHidden) {
+      showKeyboard(state);
+    } else {
+      hideKeyboard();
+    }
+  });
+
+  window.addEventListener('hashchange', function() {
+    var inputMethodName = window.location.hash.substring(1);
+    setKeyboardName(inputMethodName);
+    resetKeyboard();
+  }, false);
 
   // Handle resize events
   window.addEventListener('resize', onResize);
@@ -460,27 +433,7 @@ function isSpecialKeyObj(key) {
 // Settings app. So no keyboard is displayed when it happens and we don't
 // have to change anything on the screen.
 function handleNewKeyboards() {
-  enabledKeyboardNames = [];
-  for (var group in keyboardGroups) {
-    if (enabledKeyboardGroups['keyboard.layouts.' + group])
-      Array.prototype.push.apply(enabledKeyboardNames,
-                                 keyboardGroups[group]);
-  }
-
-  // If no keyboards were selected, use a default
-  if (enabledKeyboardNames.length === 0)
-    Array.prototype.push.apply(enabledKeyboardNames,
-                               defaultKeyboardNames);
-
-
-  // Now load each of these keyboards and their input methods
-  for (var i = 0; i < enabledKeyboardNames.length; i++)
-    loadKeyboard(enabledKeyboardNames[i]);
-
-  // Set the current keyboard to null. Later, when the input methods have
-  // loaded, and the user tries to display a keyboard we'll
-  // initialize the first enabled keyboard and its input method.
-  keyboardName = null;
+  loadKeyboard(keyboardName);
 }
 
 // Map the input type to another type
@@ -572,7 +525,7 @@ function modifyLayout(keyboardName) {
     row[c] = space;
 
     // switch languages button
-    if (enabledKeyboardNames.length > 1 && !layout['hidesSwitchKey']) {
+    if (!layout['hidesSwitchKey']) {
       space.ratio -= 1;
       row.splice(c, 0, {
         value: '&#x1f310;',
@@ -811,11 +764,8 @@ function setLayoutPage(newpage) {
 // Inform about a change in the displayed application via mutation observer
 // http://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
 function updateTargetWindowHeight(hide) {
-  if (IMERender.ime.dataset.hidden || hide) {
-    document.location.hash = 'hide';
-  } else {
-    document.location.hash = 'show=' + IMERender.ime.scrollHeight;
-  }
+  var url = document.location.href + "#keyboard-test=" + IMERender.ime.scrollHeight;
+  window.open(url);
 }
 
 // Sends a delete code to remove last character
@@ -892,18 +842,6 @@ function showAlternatives(key) {
   if (r < 0 || c < 0 || r === undefined || c === undefined)
     return;
   keyObj = currentLayout.keys[r][c];
-
-  // Handle languages alternatives
-  if (keyObj.keyCode === SWITCH_KEYBOARD) {
-    IMERender.showKeyboardAlternatives(
-      key,
-      enabledKeyboardNames,
-      keyboardName,
-      SWITCH_KEYBOARD
-    );
-    isShowingAlternativesMenu = true;
-    return;
-  }
 
   // Handle key alternatives
   altMap = currentLayout.alt || {};
@@ -1110,6 +1048,13 @@ function startPress(target, coords, touchId) {
 
     }, REPEAT_TIMEOUT);
   }
+
+  if (keyCode === SWITCH_KEYBOARD) {
+    deleteTimeout = setTimeout(function() {
+      var url = document.location.href + "#keyboard-test=showlayoutlist";
+      window.open(url);
+    }, REPEAT_TIMEOUT);
+  }  
 }
 
 
@@ -1278,26 +1223,8 @@ function endPress(target, coords, touchId) {
 
     // Switch language (keyboard)
   case SWITCH_KEYBOARD:
-
-    // If the user has specify a keyboard in the menu,
-    // switch to that keyboard.
-    if (target.dataset.keyboard) {
-      setKeyboardName(target.dataset.keyboard);
-
-      // If the user is releasing the switch keyboard key while
-      // showing the alternatives, do nothing.
-    } else if (isShowingAlternativesMenu) {
-      break;
-
-      // Cycle between languages (keyboard)
-    } else {
-      var keyboards = enabledKeyboardNames;
-      var index = keyboards.indexOf(keyboardName);
-      index = (index + 1) % keyboards.length;
-      setKeyboardName(enabledKeyboardNames[index]);
-    }
-
-    resetKeyboard();
+    var url = document.location.href + "#keyboard-test=switchlayout";
+    window.open(url);
 
     /*
      * XXX
@@ -1405,8 +1332,9 @@ function sendKey(keyCode) {
 function showKeyboard(state) {
   // If no keyboard has been selected yet, choose the first enabled one.
   // This will also set the inputMethod
-  if (!keyboardName)
-    setKeyboardName(enabledKeyboardNames[0]);
+  if (!keyboardName) {
+    setKeyboardName(defaultKeyboardName);
+  }
 
   IMERender.showIME();
 
