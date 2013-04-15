@@ -288,6 +288,7 @@ function bug344618_polyfill() {
     var isDragging = false;
     var onDragStart = function onDragStart(event) {
       updatePosition(event);
+      document.addEventListener('mouseup', onDragStop);
       isDragging = true;
     };
     var onDragMove = function onDragMove(event) {
@@ -298,6 +299,7 @@ function bug344618_polyfill() {
     var onDragStop = function onDragStop(event) {
       if (isDragging) {
         updatePosition(event);
+        document.removeEventListener('mouseup', onDragStop);
         notify();
       }
       isDragging = false;
@@ -309,7 +311,6 @@ function bug344618_polyfill() {
     slider.onmousedown = onClick;
     thumb.onmousedown = onDragStart;
     label.onmousemove = onDragMove;
-    label.onmouseup = onDragStop;
 
     // expose the 'refresh' method on <input>
     // XXX remember to call it after setting input.value manually...
