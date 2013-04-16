@@ -51,6 +51,18 @@ var CallScreen = {
 
     this.calls.addEventListener('click',
                                 OnCallHandler.toggleCalls);
+
+    // If the phone is locked, show as an locked-style at very first.
+    if (window.location.hash === '#locked') {
+      CallScreen.render('incoming-locked');
+    }
+    if (navigator.mozSettings) {
+      var req = navigator.mozSettings.createLock().get('wallpaper.image');
+      req.onsuccess = function cs_wi_onsuccess() {
+        CallScreen.setCallerContactImage(
+          req.result['wallpaper.image'], false, true);
+      };
+    }
   },
 
   setCallerContactImage: function cs_setContactImage(image_url, force, mask) {
@@ -659,11 +671,4 @@ window.addEventListener('load', function callSetup(evt) {
   CallScreen.syncSpeakerEnabled();
   KeypadManager.init(true);
 
-  if (navigator.mozSettings) {
-    var req = navigator.mozSettings.createLock().get('wallpaper.image');
-    req.onsuccess = function cs_wi_onsuccess() {
-      CallScreen.setCallerContactImage(
-        req.result['wallpaper.image'], false, true);
-    };
-  }
 });
