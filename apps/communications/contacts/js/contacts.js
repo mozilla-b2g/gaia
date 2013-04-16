@@ -578,11 +578,11 @@ var Contacts = (function() {
   var loadFacebook = function loadFacebook(callback) {
     if (!fbLoader.loaded) {
       fb.init(function onInitFb() {
-        fbLoader.load();
         window.addEventListener('facebookLoaded', function onFbLoaded() {
           window.removeEventListener('facebookLoaded', onFbLoaded);
           callback();
         });
+        fbLoader.load();
       });
     } else {
       callback();
