@@ -773,7 +773,7 @@ MessageListCard.prototype = {
 
     addedItems.forEach(function(message) {
       var domMessage;
-      domMessage = message.element = msgNodes['header-item'].cloneNode(true);
+      domMessage = message.element = App.Template.get('msg', 'header-item').cloneNode(true);
 
       if (self.mode === 'nonsearch') {
         domMessage.message = message;
@@ -990,7 +990,7 @@ MessageListCard.prototype = {
     if (this.selectedMessages.length === 0)
       return;
 
-    var dialog = msgNodes['delete-confirm'].cloneNode(true);
+    var dialog = App.Template.get('msg', 'delete-confirm').cloneNode(true);
     var content = dialog.getElementsByTagName('p')[0];
     content.textContent = mozL10n.get('message-multiedit-delete-confirm',
                                       { n: this.selectedMessages.length });
@@ -1197,7 +1197,7 @@ MessageReaderCard.prototype = {
   },
 
   onDelete: function() {
-    var dialog = msgNodes['delete-confirm'].cloneNode(true);
+    var dialog = App.Template.get('msg', 'delete-confirm').cloneNode(true);
     ConfirmDialog.show(dialog,
       { // Confirm
         id: 'msg-delete-ok',
@@ -1246,7 +1246,7 @@ MessageReaderCard.prototype = {
   },
 
   onPeepClick: function(target) {
-    var contents = msgNodes['contact-menu'].cloneNode(true);
+    var contents = App.Template.get('msg', 'contact-menu').cloneNode(true);
     var email = target.dataset.address;
     var contact = null;
     contents.getElementsByTagName('header')[0].textContent = email;
@@ -1513,7 +1513,7 @@ MessageReaderCard.prototype = {
   },
 
   onHyperlinkClick: function(event, linkNode, linkUrl, linkText) {
-    var dialog = msgNodes['browse-confirm'].cloneNode(true);
+    var dialog = App.Template.get('msg', 'browse-confirm').cloneNode(true);
     var content = dialog.getElementsByTagName('p')[0];
     content.textContent = mozL10n.get('browse-to-url-prompt', { url: linkUrl });
     ConfirmDialog.show(dialog,
@@ -1572,7 +1572,7 @@ MessageReaderCard.prototype = {
 
       // Because we can avoid having to do multiple selector lookups, we just
       // mutate the template in-place...
-      var peepTemplate = msgNodes['peep-bubble'],
+      var peepTemplate = App.Template.get('msg', 'peep-bubble'),
           contentTemplate =
             peepTemplate.getElementsByClassName('msg-peep-content')[0];
 
@@ -1698,7 +1698,7 @@ MessageReaderCard.prototype = {
       // We need MimeMapper to help us determining the downloadable attachments
       // but it might not be loaded yet, so load before use it
       App.loader.load('shared/js/mime_mapper.js', function() {
-        var attTemplate = msgNodes['attachment-item'],
+        var attTemplate = App.Template.get('msg', 'attachment-item'),
             filenameTemplate =
               attTemplate.getElementsByClassName('msg-attachment-filename')[0],
             filesizeTemplate =
