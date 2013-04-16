@@ -54,6 +54,13 @@ var SimLock = {
               'sms' in app.manifest.permissions))
           return;
 
+        // If the Settings app will open, don't prompt for SIM PIN entry
+        // although it has 'telephony' permission (Bug 861206)
+        var settingsManifestURL =
+          'app://settings.gaiamobile.org/manifest.webapp';
+        if (app.manifestURL == settingsManifestURL)
+          return;
+
         // Ignore second 'appwillopen' event when showIfLocked eventually opens
         // the app on valid PIN code
         var origin = evt.target.dataset.frameOrigin;
