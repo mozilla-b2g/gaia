@@ -234,6 +234,19 @@ var metadataParser = (function() {
       var iw = metadata.width = offscreenImage.width;
       var ih = metadata.height = offscreenImage.height;
 
+      // If this is a big image, then decoding it takes a lot of memory.
+      // We set this flag to prevent the user from zooming in on other
+      // images at the same time because that also takes a lot of memory
+      // and we don't want to crash with an OOM. If we find one big image
+      // we assume that there may be others, so the flag remains set until
+      // the current scan is complete.
+      //
+      // XXX: When bug 854795 is fixed, we'll be able to create previews
+      // for large images without using so much memory, and we can remove
+      // this flag then.
+      if (iw * ih > 2 * 1024 * 1024)
+        scanningBigImages = true;
+
       // If the image was already thumbnail size, it is its own thumbnail
       // and it does not need a preview
       if (metadata.width <= THUMBNAIL_WIDTH &&
@@ -283,8 +296,8 @@ var metadataParser = (function() {
         canvas.height = ph;
         var context = canvas.getContext('2d');
         context.drawImage(offscreenImage, 0, 0, iw, ih, 0, 0, pw, ph);
-        offscreenImage.src = '';
         canvas.toBlob(function(blob) {
+          offscreenImage.src = '';
           canvas.width = canvas.height = 0;
           savePreview(blob);
         }, 'image/jpeg');
@@ -301,35 +314,16 @@ var metadataParser = (function() {
             var savereq = storage.addNamed(previewblob, filename);
             savereq.onerror = function() {
               console.error('Could not save preview image', filename);
-              done();
             };
-            savereq.onsuccess = function() {
-              metadata.preview = {
-                filename: filename,
-                width: pw,
-                height: ph
-              };
-              done();
-            };
-          }
 
-          function done() {
-            //
-            // We just decoded a big image and gecko apparently needs time to
-            // release the memory. See Bug 792139, e.g.  So wait before
-            // calling the callback.  Sadly this is just idle time and
-            // makes scaning images without previews extra slow. But the
-            // alternative is crashing with an OOM.  And if we don't
-            // decode the image and generate the preview now then we
-            // might crash with the OOM later when we display the
-            // image. With ~5mp images, I need a > 3000ms timeout to
-            // avoid a crash.  With ~2mp images I found that 500ms worked.
-            //
-            var mp = iw * ih / (1024 * 1024);
-            var idletime = mp * mp * 150;
-            setTimeout(function() {
-              callback(metadata);
-            }, idletime);
+            // Don't actually wait for the save to complete. Go start
+            // scanning the next one.
+            metadata.preview = {
+              filename: filename,
+              width: pw,
+              height: ph
+            };
+            callback(metadata);
           }
         }
       }
