@@ -285,7 +285,8 @@ var ScreenManager = {
 
       case 'mozChromeEvent':
         if (evt.detail.type == 'audio-channel-changed') {
-          var audioActive = (evt.detail.channel !== 'none');
+          var audioActive = (evt.detail.channel !== 'none' &&
+                             evt.detail.channel !== 'telephony');
 
           if (this._audioCpuSleepTimerId) {
             clearTimeout(this._audioCpuSleepTimerId);
