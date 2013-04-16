@@ -20,11 +20,9 @@ const kChromeRootPath = 'chrome://desktop-helper.js/content/data/';
 const kScriptsPerDomain = {
   '.gaiamobile.org': [
     'ffos_runtime.js',
-    'lib/activity.js',
     'lib/bluetooth.js',
     'lib/cameras.js',
     'lib/mobile_connection.js',
-    'lib/set_message_handler.js',
     'lib/wifi.js'
   ],
 
@@ -100,6 +98,8 @@ LoadListener.init();
 
 // Listen for app.launch calls and forward them to the content script
 // that knows who is the system app.
+// XXX This code should not be loaded in b2g-desktop to not change it's
+// behavior.
 Cu.import('resource://gre/modules/Webapps.jsm');
 Cu.import('resource://gre/modules/AppsUtils.jsm');
 Cu.import('resource://gre/modules/ObjectWrapper.jsm');
@@ -135,4 +135,33 @@ Services.obs.addObserver(function onLaunch(subject, topic, data) {
     sendChromeEvent(data);
   });
 }, 'webapps-launch', false);
+
+
+// Listen for system messages and relay them to Gaia.
+// XXX This code should be loaded in the activities/ extension so it won't
+// affect b2g-desktop.
+Services.obs.addObserver(function onSystemMessage(subject, topic, data) {
+  let msg = JSON.parse(data);
+
+  let origin = Services.io.newURI(msg.manifest, null, null).prePath;
+  sendChromeEvent({
+    type: 'open-app',
+    url: msg.uri,
+    manifestURL: msg.manifest,
+    isActivity: (msg.type == 'activity'),
+    target: msg.target,
+    expectingSystemMessage: true
+  });
+}, 'system-messages-open-app', false);
+
+
+Services.obs.addObserver(function(aSubject, aTopic, aData) {
+  let data = JSON.parse(aData);
+  sendChromeEvent({
+    type: 'activity-done',
+    success: data.success,
+    manifestURL: data.manifestURL,
+    pageURL: data.pageURL
+  });
+}, 'activity-done', false);
 

@@ -279,29 +279,29 @@ suite('SMS App Unit-Test', function() {
           inputs[i].checked = true;
           ThreadListUI.clickInput(inputs[i]);
         }
+
+        var checkAllButton =
+          document.getElementById('threads-check-all-button');
+        var uncheckAllButton =
+          document.getElementById('threads-uncheck-all-button');
+
         ThreadListUI.checkInputs();
-        assert.isTrue(document.getElementById('threads-check-all-button')
-          .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('threads-uncheck-all-button')
-          .classList.contains('disabled'));
+        assert.isTrue(checkAllButton.disabled);
+        assert.isFalse(uncheckAllButton.disabled);
         // Deactivate all inputs
         for (var i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = false;
           ThreadListUI.clickInput(inputs[i]);
         }
         ThreadListUI.checkInputs();
-        assert.isFalse(document.getElementById('threads-check-all-button')
-          .classList.contains('disabled'));
-        assert.isTrue(document.getElementById('threads-uncheck-all-button')
-          .classList.contains('disabled'));
+        assert.isFalse(checkAllButton.disabled);
+        assert.isTrue(uncheckAllButton.disabled);
         // Activate only one
         inputs[0].checked = true;
         ThreadListUI.clickInput(inputs[0]);
         ThreadListUI.checkInputs();
-        assert.isFalse(document.getElementById('threads-check-all-button')
-          .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('threads-uncheck-all-button')
-          .classList.contains('disabled'));
+        assert.isFalse(checkAllButton.disabled);
+        assert.isFalse(uncheckAllButton.disabled);
       });
     });
 
@@ -375,29 +375,31 @@ suite('SMS App Unit-Test', function() {
           inputs[i].checked = true;
           ThreadUI.chooseMessage(inputs[i]);
         }
+
+        var checkAllButton =
+          document.getElementById('messages-check-all-button');
+        var uncheckAllButton =
+          document.getElementById('messages-uncheck-all-button');
+
         ThreadUI.checkInputs();
-        assert.isTrue(document.getElementById('messages-check-all-button')
-          .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('messages-uncheck-all-button')
-          .classList.contains('disabled'));
+        assert.isTrue(checkAllButton.disabled);
+        assert.isFalse(uncheckAllButton.disabled);
+
         // Deactivate all inputs
         for (var i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = false;
           ThreadUI.chooseMessage(inputs[i]);
         }
         ThreadUI.checkInputs();
-        assert.isFalse(document.getElementById('messages-check-all-button')
-          .classList.contains('disabled'));
-        assert.isTrue(document.getElementById('messages-uncheck-all-button')
-          .classList.contains('disabled'));
+        assert.isFalse(checkAllButton.disabled);
+        assert.isTrue(uncheckAllButton.disabled);
+
         // Activate only one
         inputs[0].checked = true;
         ThreadUI.chooseMessage(inputs[0]);
         ThreadUI.checkInputs();
-        assert.isFalse(document.getElementById('messages-check-all-button')
-          .classList.contains('disabled'));
-        assert.isFalse(document.getElementById('messages-uncheck-all-button')
-          .classList.contains('disabled'));
+        assert.isFalse(checkAllButton.disabled);
+        assert.isFalse(uncheckAllButton.disabled);
       });
     });
 

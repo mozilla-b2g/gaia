@@ -2,7 +2,7 @@
 
 var dom = {};
 
-var ids = ['thumbnail-list-view',
+var ids = ['thumbnail-list-view', 'thumbnails-bottom',
            'thumbnails', 'thumbnails-video-button', 'thumbnails-select-button',
            'thumbnail-select-view',
            'thumbnails-delete-button', 'thumbnails-share-button',
@@ -10,10 +10,11 @@ var ids = ['thumbnail-list-view',
            'fullscreen-view',
            'thumbnails-single-delete-button', 'thumbnails-single-share-button',
            'player', 'overlay', 'overlay-title',
-           'overlay-text', 'videoControls', 'videoBar',
+           'overlay-text', 'videoControls', 'videoBar', 'videoActionBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-           'slider-wrapper', 'throbber', 'delete-video-button'];
+           'slider-wrapper', 'throbber', 'delete-video-button',
+           'picker-header', 'picker-close', 'picker-title', 'picker-done'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -45,6 +46,7 @@ var selectedFileNamesToBlobs = {};
 
 var videodb;
 var currentVideo;  // The data for the currently playing video
+var currentVideoBlob; // The blob for the currently playing video
 var videos = [];
 var firstScanEnded = false;
 
@@ -711,6 +713,14 @@ function playerMousedown(event) {
     hidePlayer();
   } else if (event.target == dom.sliderWrapper) {
     dragSlider(event);
+  } else if (event.target == dom.pickerDone && pendingPick) {
+    pendingPick.postResult({
+      type: currentVideoBlob.type,
+      blob: currentVideoBlob
+    });
+    cleanupPick();
+  } else if (pendingPick) {
+    showVideoControls(true);
   } else {
     showVideoControls(false);
   }
@@ -787,6 +797,9 @@ function setVideoUrl(player, video, callback) {
       var url = URL.createObjectURL(file);
       player.onloadedmetadata = callback;
       player.src = url;
+
+      if (pendingPick)
+        currentVideoBlob = file;
     });
   } else if ('url' in video) {
     player.onloadedmetadata = callback;
@@ -811,9 +824,13 @@ function showPlayer(videonum, autoPlay) {
   function doneSeeking() {
     dom.player.onseeked = null;
     showVideoControls(true);
-    controlFadeTimeout = setTimeout(function() {
-      showVideoControls(false);
-    }, 250);
+
+    // We don't auto hide the video controls in picker mode
+    if (!pendingPick) {
+      controlFadeTimeout = setTimeout(function() {
+        showVideoControls(false);
+      }, 250);
+    }
 
     if (autoPlay) {
       play();
@@ -1269,3 +1286,37 @@ if (acm) {
     }
   });
 }
+
+//
+// Pick activity
+//
+
+var pendingPick;
+
+function showPickView() {
+  dom.thumbnails.classList.add('pick');
+  dom.pickerHeader.classList.remove('hidden');
+  dom.pickerDone.classList.remove('hidden');
+  dom.thumbnailsBottom.classList.add('hidden');
+  dom.videoActionBar.parentNode.removeChild(dom.videoActionBar);
+
+  dom.pickerClose.addEventListener('click', function() {
+    pendingPick.postError('pick cancelled');
+  });
+}
+
+function cleanupPick() {
+  pendingPick = null;
+  currentVideoBlob = null;
+  hidePlayer();
+}
+
+navigator.mozSetMessageHandler('activity', function activityHandler(a) {
+  var activityName = a.source.name;
+
+  if (activityName === 'pick') {
+    pendingPick = a;
+
+    showPickView();
+  }
+});

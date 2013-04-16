@@ -1,0 +1,33 @@
+# Activities
+component {70a83123-7467-4389-a309-3e81c74ad002} components/ActivitiesGlue.js
+contract @mozilla.org/dom/activities/ui-glue;1 {70a83123-7467-4389-a309-3e81c74ad002}
+
+component {ba9bd5cb-76a0-4ecf-a7b3-d2f7c43c5949} components/ActivityProxy.js
+contract @mozilla.org/dom/activities/proxy;1 {ba9bd5cb-76a0-4ecf-a7b3-d2f7c43c5949}
+
+component {5430d6f9-32d6-4924-ba39-6b6d1b093cd6} components/ActivityWrapper.js
+contract @mozilla.org/dom/system-messages/wrapper/activity;1 {5430d6f9-32d6-4924-ba39-6b6d1b093cd6}
+
+component {9326952a-dbe3-4d81-a51f-d9c160d96d6b} components/ActivityRequestHandler.js
+contract @mozilla.org/dom/activities/request-handler;1 {9326952a-dbe3-4d81-a51f-d9c160d96d6b}
+
+component {ee983dbb-d5ea-4c5b-be98-10a13cac9f9d} components/ActivityOptions.js
+contract @mozilla.org/dom/activities/options;1 {ee983dbb-d5ea-4c5b-be98-10a13cac9f9d}
+
+
+# System Messages
+component {bc076ea0-609b-4d8f-83d7-5af7cbdc3bb2} components/SystemMessageManager.js
+contract @mozilla.org/system-message-manager;1 {bc076ea0-609b-4d8f-83d7-5af7cbdc3bb2}
+
+component {70589ca5-91ac-4b9e-b839-d6a88167d714} components/SystemMessageInternal.js
+contract @mozilla.org/system-message-internal;1 {70589ca5-91ac-4b9e-b839-d6a88167d714}
+
+interfaces components/activity_glue.xpt
+interfaces components/activity_handler_description.xpt
+interfaces components/activity_options.xpt
+interfaces components/activity_proxy.xpt
+interfaces components/activity_request_handler.xpt
+interfaces components/navigator_activities.xpt
+interfaces components/navigator_system_messages.xpt
+interfaces components/system_messages.xpt
+
