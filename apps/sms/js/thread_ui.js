@@ -913,7 +913,17 @@ var ThreadUI = {
     ThreadUI.sendMessage(message.body);
   },
 
+
+  // Returns true when a contact has been rendered
+  // Returns false when no contact has been rendered
   renderContact: function thui_renderContact(contact) {
+    // Contact records that don't have phone numbers
+    // cannot be sent SMS or MMS messages
+    // TODO: Add email checking support for MMS
+    if (contact.tel === null) {
+      return false;
+    }
+
     var input = this.recipient.value.trim();
     var escaped = Utils.escapeRegex(input);
     var escsubs = escaped.split(/\s+/);
@@ -965,6 +975,8 @@ var ThreadUI = {
     }
 
     ThreadUI.container.appendChild(contactsUl);
+
+    return true;
   },
 
   searchContact: function thui_searchContact() {

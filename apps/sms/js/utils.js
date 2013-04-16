@@ -131,9 +131,13 @@
 
       if (contact) {
         name = contact.name[0];
-        phone = contact.tel[0],
+        length = contact.tel ? contact.tel.length : 0;
+        phone = length && contact.tel[0].value ? contact.tel[0] : {
+          value: '',
+          type: '',
+          carrier: ''
+        };
         carrier = phone.carrier;
-        length = contact.tel.length;
         subscriber = number.length > 7 ? number.substr(-8) : number;
 
         // Check which of the contacts phone number are we using
