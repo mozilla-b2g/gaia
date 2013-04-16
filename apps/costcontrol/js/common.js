@@ -200,9 +200,18 @@ function getDataLimit(settings) {
 }
 
 function formatTimeHTML(timestampA, timestampB) {
+  function timeElement(content) {
+    var time = document.createElement('time');
+    time.textContent = content;
+    return time;
+  }
+
+  var fragment = document.createDocumentFragment();
+
   // No interval
   if (typeof timestampB === 'undefined') {
-    return '<time>' + formatTime(timestampA) + '</time>';
+    fragment.appendChild(timeElement(formatTime(timestampA)));
+    return fragment;
   }
 
   // Same day case
@@ -216,8 +225,12 @@ function formatTimeHTML(timestampA, timestampB) {
   }
 
   // Interval
-  return '<time>' + formatTime(timestampA, _('short-date-format')) + '</time>' +
-         ' – <time>' + formatTime(timestampB) + '</time>';
+  fragment.appendChild(
+    timeElement(formatTime(timestampA, _('short-date-format')))
+  );
+  fragment.appendChild(document.createTextNode(' – '));
+  fragment.appendChild(timeElement(formatTime(timestampB)));
+  return fragment;
 }
 
 function localizeWeekdaySelector(selector) {
