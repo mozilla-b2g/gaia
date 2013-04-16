@@ -86,7 +86,14 @@ var About = {
 
     var info = mobileConnection.iccInfo;
     document.getElementById('deviceInfo-iccid').textContent = info.iccid;
-    document.getElementById('deviceInfo-msisdn').textContent = info.msisdn;
+    var phoneNumber = info.msisdn;
+    if (!phoneNumber) {
+      // Bug 861820 - Some SIM cards don't have the phone number.
+      // It is optional.
+      var _ = navigator.mozL10n.get;
+      phoneNumber = _('unknown-phonenumber');
+    }
+    document.getElementById('deviceInfo-msisdn').textContent = phoneNumber;
 
     var req = mobileConnection.sendMMI('*#06#');
     req.onsuccess = function getIMEI() {
