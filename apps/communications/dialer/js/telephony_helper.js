@@ -57,11 +57,16 @@ var TelephonyHelper = (function() {
       }
 
       if (call) {
-        if (oncall)
+        if (oncall) {
           oncall();
+        }
         call.onconnected = connected;
         call.ondisconnected = disconnected;
         call.onerror = function errorCB(evt) {
+          if (error) {
+            error();
+          }
+
           var errorName = evt.call.error.name;
           if (errorName === 'BadNumberError') {
             // If the call is rejected for a bad number and we're in emergency
@@ -74,10 +79,6 @@ var TelephonyHelper = (function() {
             // If the call failed for some other reason we should still
             // display something to the user. See bug 846403.
             console.error('Unexpected error: ', errorName);
-          }
-
-          if (error) {
-            error();
           }
         };
       }

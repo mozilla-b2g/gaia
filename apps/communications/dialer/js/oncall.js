@@ -194,14 +194,20 @@ var OnCallHandler = (function onCallHandler() {
 
   /* === Setup === */
   function setup() {
-    // Animating the screen in the viewport.
-    toggleScreen();
-
     if (telephony) {
       // Somehow the muted property appears to true after initialization.
       // Set it to false.
       telephony.muted = false;
     }
+
+    // Animating the screen in the viewport.
+    // We wait for the next tick because we may receive an exitCallScreen
+    // as soon as we're loaded.
+    setTimeout(function nextTick() {
+      if (!closing) {
+        toggleScreen();
+      }
+    });
   }
 
   function postToMainWindow(data) {
@@ -441,7 +447,8 @@ var OnCallHandler = (function onCallHandler() {
       Swiper.setElasticEnabled(false);
     }
 
-    if (animate && !animating) {
+    // If the screen is not displayed yet we close the window directly
+    if (animate && !animating && displayed) {
       toggleScreen();
     } else {
       closeWindow();
