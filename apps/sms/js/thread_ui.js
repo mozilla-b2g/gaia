@@ -643,7 +643,7 @@ var ThreadUI = {
 
   clear: function thui_clear() {
     this.recipient.value = '';
-    ThreadUI.recipientSearch.discard();
+    this.recipientSearch.discard();
   },
 
   toggleCheckedAll: function thui_select(value) {
@@ -1003,7 +1003,7 @@ var ThreadUI = {
       // eg. type "a", then delete it.
       // Always remove the the existing results and hide
       // the recipient results container
-      ThreadUI.recipientSearch.discard();
+      this.recipientSearch.discard();
       return;
     }
 
@@ -1011,7 +1011,7 @@ var ThreadUI = {
       // !contacts matches null results from errors
       // !contacts.length matches empty arrays from unmatches filters
       if (!contacts || !contacts.length) {
-        ThreadUI.recipientSearch.discard();
+        this.recipientSearch.discard();
         return;
       }
 
