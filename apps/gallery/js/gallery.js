@@ -94,6 +94,14 @@ var visibilityMonitor;
 
 var loader = LazyLoader;
 
+// This flag is set in MetadataParser.js if we encounter images larger
+// than 2 megapixels that do not have big enough embedded
+// previews. The flag is read in frames.js where it is used to prevent
+// the user from zooming in on images at the same time (to prevent OOM
+// crashes). And it is cleared below when the scanning process ends
+// XXX: When bug 854795 is fixed, we'll be able to remove this flag
+var scanningBigImages = false;
+
 // The localized event is the main entry point for the app.
 // We don't do anything until we receive it.
 window.addEventListener('localized', function showBody() {
@@ -261,6 +269,9 @@ function initDB() {
     // Hide the scanning indicator
     $('progress').classList.add('hidden');
     $('throbber').classList.remove('throb');
+
+    // It is safe to zoom in now
+    scanningBigImages = false;
   };
 
   // One or more files was created (or was just discovered by a scan)
