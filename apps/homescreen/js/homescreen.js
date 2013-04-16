@@ -17,13 +17,13 @@ const Homescreen = (function() {
   // Initialize the various components.
   PaginationBar.init('.paginationScroller');
 
-  function initialize(lPage) {
+  function initialize() {
     if (initialized) {
       return;
     }
 
     initialized = true;
-    landingPage = lPage;
+    landingPage = 0;
 
     window.addEventListener('hashchange', function() {
       if (document.location.hash != '#root')

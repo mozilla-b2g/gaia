@@ -1,13 +1,12 @@
 #evmeBanner {
   z-index: -1;
   opacity: 0;
-  -moz-transition: all 600ms ease;
+  transition: all 600ms ease;
 }
 #evmeBanner.visible {
   z-index: 10001;
   opacity: 1;
-  -moz-transition: all 600ms ease;
 }
-#evmeBanner > p > strong {
-  white-space: nowrap;
-}
+    #evmeBanner > p > strong {
+      white-space: nowrap;
+    }

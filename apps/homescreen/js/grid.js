@@ -27,7 +27,7 @@ var GridManager = (function() {
 
   var numberOfSpecialPages = 0, landingPage, prevLandingPage, nextLandingPage;
   var pages = [];
-  var currentPage = 1;
+  var currentPage = 0;
 
   var saveStateTimeout = null;
 
@@ -51,6 +51,17 @@ var GridManager = (function() {
   })();
 
   var panningResolver;
+  
+  var hadTouchend = false;
+  // if hashchange was triggered by goToPage the was triggered by touchend
+  // (as opposed to homebutton click)
+  // add attribute to event
+  window.addEventListener('hashchange', function onHashChange(e) {
+    if (hadTouchend) {
+      e.triggeredByPanning = true;
+      hadTouchend = false;
+    }
+  });
 
   function createPanningResolver() {
     // Get our configuration data from build/applications-data.js
@@ -169,8 +180,8 @@ var GridManager = (function() {
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
-        if (currentPage || numberOfSpecialPages === 1)
-          evt.stopPropagation();
+        //if (currentPage && !landingPage || numberOfSpecialPages === 1)
+          //evt.stopPropagation();
         touchStartTimestamp = evt.timeStamp;
         startEvent = isTouch ? evt.touches[0] : evt;
         deltaX = 0;
@@ -182,6 +193,7 @@ var GridManager = (function() {
         break;
 
       case touchmove:
+        // Don't pan if noted in event object
         if (evt.preventPanning === true) {
           return;
         }
@@ -390,7 +402,7 @@ var GridManager = (function() {
       releaseEvents();
       pageHelper.getCurrent().tap(evt.target);
     }
-
+    hadTouchend = true;
     goToPage(page);
   }
 
@@ -476,6 +488,7 @@ var GridManager = (function() {
 
   function goToPage(index, callback) {
     document.location.hash = (index === landingPage ? 'root' : '');
+
     if (index < 0 || index >= pages.length)
       return;
 

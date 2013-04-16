@@ -136,7 +136,7 @@ if (DOGFOOD == 1) {
 customize = JSON.parse(getDistributionFileContent('homescreens', customize));
 let content = {
   search_page: {
-    provider: 'EverythingME',
+    provider: 'EvmeManager',
     enabled: true
   },
 

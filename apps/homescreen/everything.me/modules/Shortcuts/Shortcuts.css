@@ -1,25 +1,56 @@
-#evmeContainer #page-categories {
-    color: #fff;
-    text-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.3),
-                 0 0.1rem 0.1rem rgba(0, 0, 0, 0.6),
-                 0 0.1rem 0.2rem rgba(0, 0, 0, 0.7);
+#evmeContainer #evme-shortcuts {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 200;
+    opacity: 0;
+    background: rgba(0, 0, 0, .25);
+    pointer-events: none;
+}
+.evme-shortcuts-visible #evmeContainer #evme-shortcuts {
+    pointer-events: inherit;
+    opacity: 0.01;
+    animation: shortcuts-visible 300ms linear 1;
+    animation-fill-mode: forwards;
 }
 
+@-moz-keyframes shortcuts-visible {
+    from {
+        opacity: 0.01;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
 #evmeContainer #shortcuts {
-    background: transparent;
     position: absolute;
-    top: 8rem;
+    top: 5rem;
     left: 0;
     right: -2rem;
     bottom: 0;
     z-index: 100;
-    opacity: 0;
-    pointer-events: none;
     overflow: hidden;
-    -moz-transition: opacity .2s linear;
     transition: opacity .2s linear;
 }
-
+#evmeContainer #shortcuts-actionbar {
+    transition: opacity .2s linear;
+    background: transparent;
+}
+.evme-smart-folder-visible #evmeContainer #shortcuts-actionbar {
+    opacity: 0;
+}
+.evme-shortcuts-customizing #evmeContainer #shortcuts-actionbar .separator,
+.evme-shortcuts-customizing #evmeContainer #shortcuts-actionbar .rightbutton {
+    opacity: 0;
+    pointer-events: none;
+} 
+.evme-smart-folder-visible #evmeContainer #shortcuts {
+    opacity: 0;
+}
     #evmeContainer #shortcuts-loading {
         position: absolute;
         top: 50%;
@@ -38,12 +69,10 @@
         top: 0;
         bottom: 0;
         left: 0;
-        right: 0rem;
         padding: 0 2rem 0 0;
     }
     #evmeContainer #shortcuts #shortcuts-list ul {
-        padding: 0.5rem 0 0 0;
-        overflow: hidden;
+        padding: 0.8rem 0;
     }
     #evmeContainer .shortcut {
         position: relative;
@@ -58,37 +87,18 @@
         #evmeContainer .shortcut .remove {
             position: absolute;
             top: -0.5rem;
-            left: .5rem;
+            left: 0;
             right: 0;
-            height: 2.5rem;
+            height: 3rem;
             z-index: 100;
             display: none;
             cursor: pointer;
-            background: transparent url('/resources/images/delete.png') no-repeat left top;
+            background: transparent url('/resources/images/delete.png') no-repeat 0.5rem 0;
+            background-size: 2.4rem 2.4rem;
         }
-    #evmeContainer .shortcut.disabled {
-        opacity: 0;
-        -moz-transition: none;
-        transition: none;
-    }
     #evmeContainer .shortcut.remove {
         opacity: 0;
     }
-    #evmeContainer .shortcut.placeholder {
-        position: absolute;
-        top: 0;
-        left: 0.2rem;
-        right: 0.2rem;
-        height: 5.5rem;
-        z-index: 15;
-        background: rgba(66, 192, 230, .4);
-        border: 0.1rem solid #4abcd9;
-        -moz-transition: none;
-        transition: none;
-    }
-        #evmeContainer .shortcut .remove {
-            display: none;
-        }
         #evmeContainer .shortcut .thumb {
             display: block;
             position: relative;
@@ -96,15 +106,9 @@
             z-index: 10;
             -moz-transform-origin: 50% 50%;
         }
-        #evmeContainer .shortcut.add .thumb:before {
-            content: "";
-            background-position: -5.8rem -17rem;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 3.1rem;
-            height: 3.2rem;
-            margin: -1.4rem 0 0 -1.6rem;
+        #evmeContainer .shortcut.add .thumb {
+            background: url(/everything.me/images/add.png) 50% no-repeat;
+            background-size: 3rem 3.1rem;
             opacity: .7;
         }
         #evmeContainer .shortcut b {
@@ -116,48 +120,41 @@
             font-weight: 600;
             text-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, .6);
         }
-        #evmeContainer.shortcuts-customize #shortcuts .shortcut.add {
+        .evme-shortcuts-customizing #shortcuts .shortcut.add {
             opacity: 0;
             pointer-events: none;
             display: none;
         }
-        #evmeContainer.shortcuts-customize #shortcuts .apps-group span {
-            -moz-transform: scale(.7) !important;
-            transform: scale(.7) !important;
-        }
-
-#evmeContainer.empty-query:not(.keyboard-visible) #shortcuts {
-    opacity: 1;
-    pointer-events: inherit;
-}
 
 #evmeContainer #shortcuts-customize {
     display: none;
 }
+    .evme-shortcuts-customizing  #evmeContainer #shortcuts canvas {
+    }
 
 
-#evmeContainer.shortcuts-customizing #shortcuts #shortcuts-list:not([data-scrolling^=true]):not([data-touched^=true]) .shortcut .thumb{
-    -moz-animation: shake 800ms infinite ease-out;
+.evme-shortcuts-customizing #evmeContainer #shortcuts #shortcuts-list:not([data-scrolling^=true]):not([data-touched^=true]) .shortcut .thumb {
+    animation: shake 800ms infinite ease-out;
 }
-#evmeContainer.shortcuts-customizing .shortcut .remove {
+.evme-shortcuts-customizing #evmeContainer .shortcut {
+    overflow: visible;
+}
+.evme-shortcuts-customizing #evmeContainer .shortcut .remove {
     display: block;
 }
-#evmeContainer.shortcuts-customizing .shortcut.add {
-    display: none;
-}
 
-#evmeContainer.shortcuts-customizing .shortcut.remove .thumb {
-    -moz-animation: remove 150ms 1;
+.evme-shortcuts-customizing #evmeContainer .shortcut.remove .thumb {
+    animation: remove 150ms 1;
 }
 
 @-moz-keyframes shake {
-  0%   { -moz-transform: scale(1) translateZ(0); }
-  25%  { -moz-transform: scale(1.05) translateZ(0); }
-  50%  { -moz-transform: scale(1) translateZ(0); }
-  75%  { -moz-transform: scale(0.95) translateZ(0); }
-  100% { -moz-transform: scale(1) translateZ(0); }
+  0%   { transform: scale(1) translateZ(0); }
+  25%  { transform: scale(1.05) translateZ(0); }
+  50%  { transform: scale(1) translateZ(0); }
+  75%  { transform: scale(0.95) translateZ(0); }
+  100% { transform: scale(1) translateZ(0); }
 }
 @-moz-keyframes remove {
-  0%   { -moz-transform: scale(1) translateZ(0); opacity: 1; }
-  100% { -moz-transform: scale(1.1) translateZ(0); opacity: 0; }
+  0%   { transform: scale(1) translateZ(0); opacity: 1; }
+  100% { transform: scale(1.1) translateZ(0); opacity: 0; }
 }

@@ -9,12 +9,6 @@
     border: 0;
 }
 
-#evmeContainer.shortcuts-customizing #search {
-    pointer-events: none;
-    -moz-animation: fadeout .2s linear;
-    -moz-animation-fill-mode: forwards;
-}
-
 @-moz-keyframes fadeout {
     from {
         opacity: 1;

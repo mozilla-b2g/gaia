@@ -174,29 +174,39 @@ Evme.Analytics = new function Evme_Analytics() {
             }
             str+= JSON.stringify(item);
         });
-        Evme.Storage.add("analyticsQueue", str);
-        Evme.Storage.add("analyticsQueueTimestamp", new Date().getTime());
+        Evme.Storage.set('analyticsQueue', str);
+        Evme.Storage.set('analyticsQueueTimestamp', new Date().getTime());
     }
     
     // Restore queueArr from localStorage
     function restoreQueue(){
-        // leave if queue already populated or localStorage is empty
-        if (queueArr.length || !Evme.Storage.get("analyticsQueue") || Evme.Storage.get("analyticsQueue") == "null"){ return false; }
-        
-        // determine time elapsed since queue storage
-        var elapsed = new Date().getTime() - parseInt(Evme.Storage.get("analyticsQueueTimestamp"), 10);
-        
-        // if elapsed time hadn't exceeded ttl
-        if (elapsed < options.localStorageTTL){
-            // restore queue
-            var tempArr = (Evme.Storage.get("analyticsQueue") || "").split("|");
-            tempArr.forEach(function itemIterator(item){
-                queueArr.push(JSON.parse(item));
-            });
+      if (queueArr.length) {
+        return;
+      }
+      
+      Evme.Storage.get('analyticsQueue', function storageGotQueue(queueFromStorage) {
+        if (!queueFromStorage) {
+          return;
         }
         
-        Evme.Storage.add("analyticsQueue", null);
-        Evme.Storage.add("analyticsQueueTimestamp", null);
+        Evme.Storage.get('analyticsQueueTimestamp', function storageGotTS(tsFromStorage) {
+          // determine time elapsed since queue storage
+          var elapsed = Date.now() - parseInt(tsFromStorage, 10);
+          
+          // if elapsed time hadn't exceeded ttl
+          if (elapsed < options.localStorageTTL) {
+              // restore queue
+              var tempArr = (queueFromStorage || '').split('|');
+              tempArr.forEach(function itemIterator(item){
+                  queueArr.push(JSON.parse(item));
+              });
+          }
+          
+          Evme.Storage.set('analyticsQueue', null);
+          Evme.Storage.set('analyticsQueueTimestamp', null);
+        });
+        
+      });
     }
     
     function loadGAScript(){
@@ -304,16 +314,6 @@ Evme.Analytics = new function Evme_Analytics() {
             this.info = function info(params){
                 options.DoATAPI.Logger.info(params);
             };
-        };
-        
-        this.isNewSearchQuery = function isNewSearchQuery(newQuery){
-            var lastSearchQuery = Evme.Storage.get(STORAGE_QUERY),
-                newQuery = newQuery.toLowerCase();
-            if (newQuery !== lastSearchQuery){
-                Evme.Storage.set(STORAGE_QUERY, newQuery);
-                return true;
-            }
-            return false;
         };
     };
     
@@ -690,31 +690,6 @@ Evme.Analytics = new function Evme_Analytics() {
         };
     };
     
-    
-    this.Tips = new function Tips() {
-        this.show = function show(data) {
-            queue({
-                "class": "Tips",
-                "event": "show",
-                "data": data
-            });
-        };
-        this.hide = function hide(data) {
-            queue({
-                "class": "Tips",
-                "event": "hide",
-                "data": data
-            });
-        };
-        this.click = function click(data) {
-            queue({
-                "class": "Tips",
-                "event": "click",
-                "data": data
-            });
-        };
-    };
-
     this.App = new function App() {
         this.addToHomeScreen = function addToHomeScreen(data) {
             queue({
