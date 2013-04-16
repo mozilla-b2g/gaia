@@ -625,4 +625,17 @@ suite('SMS App Unit-Test', function() {
       Utils.getPhoneDetails = getPhoneDetails;
     });
   });
+
+  suite('Defensive Contact Rendering', function() {
+    test('has tel number', function() {
+      var contact = new MockContact();
+      assert.isTrue(ThreadUI.renderContact(contact));
+    });
+
+    test('no tel number', function() {
+      var contact = new MockContact();
+      contact.tel = null;
+      assert.isFalse(ThreadUI.renderContact(contact));
+    });
+  });
 });
