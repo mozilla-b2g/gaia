@@ -55,9 +55,9 @@ var CallLog = {
       // Im gonna get l10n if it's not loaded
       LazyL10n.get(function localized(_) {
         self._ = _;
-        // var headerSelector = '#calllog-container header';
-        // FixedHeader.init('#calllog-container',
-        //                  '#fixed-container', headerSelector);
+        var headerSelector = '#calllog-container header';
+        FixedHeader.init('#calllog-container',
+                         '#fixed-container', headerSelector);
         // Render the list of logs
         self.render();
         // Adding Listeners 
@@ -122,7 +122,7 @@ var CallLog = {
         if (phoneNumbers.length === 0) {
           self.renderEmptyCallLog();
         } else {
-          // FixedHeader.refresh();
+          FixedHeader.refresh();
           self.updateHeadersContinuosly();
           self.updateListWithContactInfo(phoneNumbers);
         }
@@ -211,7 +211,7 @@ var CallLog = {
       // We update with contact
       updateWithContact.bind(this);
       // Refresh fixed header
-      // FixedHeader.refresh();
+      FixedHeader.refresh();
       return;
     }
     // If there are previous sections, which is the right one?
@@ -239,7 +239,7 @@ var CallLog = {
       // We update with contact
       updateWithContact.bind(this);
       // Refresh fixed header
-      // FixedHeader.refresh();
+      FixedHeader.refresh();
       return;
     } else if (!referenceSection && !calllogSection) {
       // We have to append at the end
@@ -250,7 +250,7 @@ var CallLog = {
       // We update with contact
       updateWithContact.bind(this);
       // Refresh fixed header
-      // FixedHeader.refresh();
+      FixedHeader.refresh();
       return;
     }
     
@@ -345,6 +345,7 @@ var CallLog = {
     var header = document.createElement('header');
     header.textContent = Utils.headerDate(referenceTimestamp);
     header.dataset.timestamp = referenceTimestamp;
+    header.id = 'header-' + referenceTimestamp;
     header.dataset.update = true;
     // Create the OL where all logs will be into
     var ol = document.createElement('ol');
