@@ -136,6 +136,7 @@
           navigator.mozL10n.get('attention'), msg, cancel, confirm);
       }
     },
+    
     showLongtimeWarning: function sm_showConfirm() {
 
       var value = this._volComfortLvl - currentVolume['content'];
