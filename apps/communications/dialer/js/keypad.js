@@ -540,7 +540,7 @@ var KeypadManager = {
         this._holdTimer = setTimeout(function vm_call(self) {
           self._longPress = true;
           self._callVoicemail();
-        }, 3000, this);
+        }, 1500, this);
       }
 
       if (key == 'delete') {
