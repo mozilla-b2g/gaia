@@ -145,8 +145,11 @@ var CallHandler = (function callHandler() {
     // We need to query mozTelephony a first time here
     // see bug 823958
     var telephony = navigator.mozTelephony;
-
-    openCallScreen();
+    telephony.oncallschanged = function dialer_oncallschanged(evt) {
+      if (telephony.calls.length !== 0) {
+        openCallScreen();
+      }
+    };
   }
 
   /* === Bluetooth Support === */
@@ -300,17 +303,6 @@ var CallHandler = (function callHandler() {
           openCallback();
         }
       };
-
-      var telephony = navigator.mozTelephony;
-      telephony.oncallschanged = function dialer_oncallschanged(evt) {
-        if (callScreenWindowLoaded && telephony.calls.length === 0) {
-          // Calls might be ended before callscreen is comletedly loaded,
-          // so that callscreen will miss call-related events. We send a
-          // message to notify callscreen of exiting when we got notified
-          // there are no calls.
-          sendCommandToCallScreen('*', 'exitCallScreen');
-        }
-      };
     };
 
     // if screenState was initialized, use this value directly to openWindow()
@@ -351,6 +343,13 @@ var CallHandler = (function callHandler() {
       sendCommandToCallScreen('BT', command);
     });
     btCommandsToForward = [];
+
+    // Calls might be ended before callscreen is comletedly loaded,
+    // so that callscreen will miss call-related events. We check if there is
+    // any calls here when the call screen is ready.
+    var telephony = navigator.mozTelephony;
+    if (telephony.calls.length == 0)
+      sendCommandToCallScreen('*', 'exitCallScreen');
   }
 
   /* === MMI === */
