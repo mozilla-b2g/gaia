@@ -9,6 +9,7 @@ IDBTransaction.READ = IDBTransaction.READ || 'readonly';
 
 var Places = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
+  MAX_ICON_SIZE: 102400, // 100kB
   TOP_SITE_SCREENSHOTS: 4, // Number of top sites to keep screenshots for
 
   init: function places_init(callback) {
@@ -126,13 +127,42 @@ var Places = {
       xhr.open('GET', iconUri, true);
       xhr.responseType = 'blob';
       xhr.addEventListener('load', (function() {
+        // Check icon was successfully downloded
         // 0 is due to https://bugzilla.mozilla.org/show_bug.cgi?id=716491
-        if (xhr.status === 200 || xhr.status === 0) {
-          this.setIconData(iconUri, xhr.response, callback);
-        } else {
+        if (!(xhr.status === 200 || xhr.status === 0)) {
           this.setIconData(iconUri, null, callback, true);
-          console.log('error fetching icon: ' + xhr.status);
+          console.log('error downloading icon: ' + xhr.status);
+          return;
         }
+
+        var blob = xhr.response;
+        // Check the file is served as an image and isn't too big
+        if (blob.type.split('/')[0] != 'image' ||
+        blob.size > this.MAX_ICON_SIZE) {
+          this.setIconData(iconUri, null, callback, true);
+          console.log('Icon was not an image or was too big');
+          return;
+        }
+
+        // Only save the icon if it can be loaded as an image bigger than 0px
+        var img = document.createElement('img');
+        var src = window.URL.createObjectURL(blob);
+        img.src = src;
+        img.onload = (function() {
+          if (img.naturalWidth > 0) {
+            this.setIconData(iconUri, blob, callback);
+          } else {
+           this.setIconData(iconUri, null, callback, true);
+           console.log('Icon not saved because less than 1px wide');
+          }
+          window.URL.revokeObjectURL(src);
+        }).bind(this);
+        img.onerror = (function() {
+          this.setIconData(iconUri, null, callback, true);
+          console.log('Icon not saved because can not be decoded');
+          window.URL.revokeObjectURL(src);
+        }).bind(this);
+
       }).bind(this), false);
       xhr.onerror = function getIconError() {
         console.log('Error fetching icon');
