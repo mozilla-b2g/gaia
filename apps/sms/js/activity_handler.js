@@ -83,7 +83,7 @@ if (!window.location.hash.length) {
       // progress to the user. Se blackllist.js for more information.
       var number = message.sender;
       // Class 0 handler:
-      if (message.messageClass == 'class-0') {
+      if (message.messageClass === 'class-0') {
         // XXX: Hack hiding the message class in the icon URL
         // Should use the tag element of the notification once the final spec
         // lands:
@@ -95,16 +95,11 @@ if (!window.location.hash.length) {
           // XXX: Add params to Icon URL.
           iconURL += '?class0';
           var messageBody = number + '\n' + message.body;
-          var showMessage = function() {
-            app.launch();
-            alert(messageBody);
-          };
 
           // We have to remove the SMS due to it does not have to be shown.
           MessageManager.deleteMessage(message.id, function() {
-            // Once we remove the sms from DB we launch the notification
-            NotificationHelper.send(message.sender, message.body,
-                                      iconURL, showMessage);
+            app.launch();
+            alert(messageBody);
           });
 
         };
