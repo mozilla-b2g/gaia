@@ -251,12 +251,6 @@ var CallHandler = (function callHandler() {
       return;
     }
 
-    var oncall = function t_oncall() {
-      if (!callScreenWindow) {
-        openCallScreen(opened);
-      }
-    };
-
     var connected, disconnected = function clearPhoneView() {
       KeypadManager.updatePhoneNumber('', 'begin', true);
     };
@@ -265,6 +259,12 @@ var CallHandler = (function callHandler() {
 
     var error = function() {
       shouldCloseCallScreen = true;
+    };
+
+    var oncall = function() {
+      if (!callScreenWindow) {
+        openCallScreen(opened);
+      }
     };
 
     var opened = function() {
