@@ -399,16 +399,20 @@ var Predictions = function() {
     var node = Object.create(null);
     readNode(offset, node);
     var i = _candidates.length - 1;
+    
     // Find the insertion point
     var freq = node.freq * multiplier;
     while (i >= 0 && freq > _candidates[i].freq)
       i--;
-    // Don't insert a candidate that is worse than already found candidates
-    // if we already have the required number of candidates
-    if (i == _candidates.length - 1 && _candidates.length >= _maxSuggestions)
-      return;
+
+    // Insert the new candidate
     _candidates.splice(i + 1, 0, { node: node, prefix: prefix,
       multiplier: multiplier, freq: node.freq * multiplier });
+    
+    // If we already have the required number of candidates,
+    // delete the candidate that is worse than others
+    if (_candidates.length > _maxSuggestions)
+      _candidates.pop();
   }
 
   function predictSuffixes() {
