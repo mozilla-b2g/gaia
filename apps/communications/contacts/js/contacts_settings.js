@@ -436,7 +436,8 @@ contacts.Settings = (function() {
       if (err)
         return import_error(err);
 
-      utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
+      if (fileArray.length)
+        utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
     });
 
     function onFiles(err, text) {
@@ -444,6 +445,8 @@ contacts.Settings = (function() {
         return import_error(err);
 
       var importer = new VCFReader(text);
+      if (!importer)
+        return import_error('No contacts were found.');
 
       importer.onread = import_read;
       importer.onimported = imported_contact;
