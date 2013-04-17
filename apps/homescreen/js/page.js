@@ -132,7 +132,7 @@ Icon.prototype = {
     if (this.downloading) {
       //XXX: Bug 816043 We need to force the repaint to show the span
       // with the label and the animation (associated to the span)
-      container.style.visibility = 'visible';
+      container.style.visibility = '';
       icon.classList.add('loading');
     }
   },
@@ -310,7 +310,7 @@ Icon.prototype = {
   displayRenderedIcon: function icon_displayRenderedIcon() {
     var self = this;
     this.loadRenderedIcon(function cleanup(url) {
-      self.img.style.visibility = 'visible';
+      self.img.style.visibility = '';
       window.URL.revokeObjectURL(url);
       if (self.needsShow)
         self.show();
@@ -365,13 +365,13 @@ Icon.prototype = {
 
   showDownloading: function icon_showDownloading() {
     this.img.src = this.DOWNLOAD_ICON_URL;
-    this.container.style.visibility = 'visible';
+    this.container.style.visibility = '';
     this.icon.classList.add('loading');
   },
 
   showCancelled: function icon_showCancelled() {
     this.img.src = this.CANCELED_ICON_URL;
-    this.container.style.visibility = 'visible';
+    this.container.style.visibility = '';
     this.icon.classList.remove('loading');
     this.fetchImageData();
   },
@@ -435,7 +435,7 @@ Icon.prototype = {
     var img = icon.querySelector('img');
     img.style.visibility = 'hidden';
     img.onload = img.onerror = function unhide() {
-      img.style.visibility = 'visible';
+      img.style.visibility = '';
     };
     draggableElem.appendChild(icon);
 

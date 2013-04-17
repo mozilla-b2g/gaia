@@ -17,6 +17,9 @@
    * painted.
    */
   border-bottom: 0.01px solid rgba(0,0,0,0.01);
+  font-family: 'MozTT', sans-serif;
+  font-weight: 500;
+  font-size: 1.2rem; /* was 5pt */
 }
 
 /* Here users can view the clock while grid is loading -> better experience */
@@ -30,7 +33,11 @@
   list-style-type: none;
   display: block;
   margin: 0 auto;
-	margin-top: .3rem;
+  margin-top: .3rem;
+  text-align: center;
+  letter-spacing: -0.025rem;
+  white-space: nowrap; /* NO new lines */
+  word-wrap: break-word;
 }
 
 .apps ol > li {
@@ -38,7 +45,6 @@
   width: 25%;
   display: inline-block;
   float: left;
-  text-align: center;
 }
 
 /* Maximum 16 icons for page */
@@ -89,7 +95,6 @@
 /* label wrapper */
 .apps ol > li > div > span {
   overflow: hidden; /* We cut the text to avoid messing up the grid */
-  word-wrap: break-word;
 }
 
 .apps ol > li > div > span.mask {
@@ -103,7 +108,6 @@ li.active > div > img {
 
 /* text label */
 .apps ol > li > div > span > span {
-  font-size: 1.2rem; /* was 5pt */
   text-shadow: 0.1rem 0.1rem 0.3rem rgba(0,0,0,0.6);
 }
 
@@ -122,15 +126,11 @@ li.active > div > img {
 
 .labelWrapper {
   color: #fff; /* App label color */
-  white-space: nowrap; /* NO new lines */
   display: block;
   width: 94%; /* At least 6% of margin between labels of different apps */
   position: relative;
   height: 1.6rem; /* 15px in otoro */
   margin: 0 auto;
-  font-family: 'MozTT', sans-serif;
-  font-weight: 500;
-  letter-spacing: -0.025rem;
 }
 
 /* Alternative icons when an app is being installed */
