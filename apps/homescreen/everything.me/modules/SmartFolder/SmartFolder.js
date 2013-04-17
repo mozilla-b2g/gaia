@@ -2,11 +2,12 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
     var self = this, NAME = "SmartFolder",
         experienceId = '', query = '', image = '', scroll = null, shouldFadeImage = false, bgImage = null,
         el = null, elScreen = null, elTitle = null, elClose = null,
-        elAppsContainer = null, elApps = null,
+        elAppsContainer = null, elApps = null, elLoading,
         elImage = null, elImageOverlay = null, elImageFullscreen = null,
         reportedScrollMove = false, onScrollEnd = null,
         fadeBy = 1,
         
+        CLASS_WHEN_LOADING = 'show-loading-apps',
         CLASS_WHEN_VISIBLE = 'visible',
         CLASS_WHEN_IMAGE_FULLSCREEN = 'full-image',
         CLASS_WHEN_ANIMATING = 'animate',
@@ -36,6 +37,14 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         self.MoreIndicator.init({
             "elParent": elApps
         });
+
+
+      
+        elLoading = Evme.$create('div',
+                    { 'class': 'loading-apps' },
+                    '<progress class="small skin-dark"></progress>');
+          
+        elAppsContainer.appendChild(elLoading);
         
         Evme.EventHandler.trigger(NAME, "init");
         
@@ -117,9 +126,20 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
                 }
             });
         
+        self.hideLoading();
+        
         Evme.EventHandler.trigger(NAME, "load");
         
         return iconsResult;
+    };
+    
+    this.showLoading = function showLoading() {
+      elLoading.style.transform = 'translateY(' + self.getInstalledHeight()/2 + 'px)';
+      elAppsContainer.classList.add(CLASS_WHEN_LOADING);
+    };
+    
+    this.hideLoading = function hideLoading() {
+      elAppsContainer.classList.remove(CLASS_WHEN_LOADING);
     };
     
     this.appendTo = function appendTo(elParent) {
@@ -247,10 +267,18 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         elApps.appendChild(Evme.$create('li', {'class': "installed-separator"}));
     };
     
+    this.getInstalledHeight = function getInstalledHeight() {
+      var elSeparator = (Evme.$('.installed-separator', elApps) || [])[0],
+          top = elSeparator? elSeparator.getBoundingClientRect().top : 0,
+          parentTop = elSeparator? elSeparator.parentNode.getBoundingClientRect().top : 0;
+      
+      return (top - parentTop);
+    };
+    
     this.refreshScroll = function refreshScroll() {
         scroll.refresh();
     };
-    
+
     this.MoreIndicator = new function MoreIndicator() {
         var self = this,
             el = null, elParent = null,

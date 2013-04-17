@@ -1,6 +1,6 @@
 Evme.Apps = new function Evme_Apps() {
     var NAME = "Apps", self = this,
-        el = null, elList = null,
+        el = null, elList = null, elLoading = null,
         appsArray = {}, appsDataArray = [], numberOfApps = 0,
         scroll = null, defaultIconToUse = 0,
         reportedScrollMove = false, shouldFadeBG = false,
@@ -20,6 +20,7 @@ Evme.Apps = new function Evme_Apps() {
         MIN_HEIGHT_FOR_MORE_BUTTON = "FROM CONFIG",
         DEFAULT_ICON_URL = "FROM CONFIG",
         TIMEOUT_BEFORE_REPORTING_APP_HOLD = 800,
+        CLASS_WHEN_LOADING = 'show-loading-apps',
         ftr = {};
         
     this.APPS_SHADOW_OFFSET = 2 * Evme.Utils.devicePixelRatio;
@@ -68,6 +69,12 @@ Evme.Apps = new function Evme_Apps() {
         }, hasFixedPositioning);
         
         self.calcAppsPositions();
+
+        elLoading = Evme.$create('div',
+                    { 'class': 'loading-apps' },
+                    '<progress class="small skin-dark"></progress>');
+          
+        el.appendChild(elLoading);
         
         Evme.EventHandler.trigger(NAME, "init");
     };
@@ -91,6 +98,8 @@ Evme.Apps = new function Evme_Apps() {
         if (options.clear) {
             self.clear();
         }
+        
+        self.hideLoading();
         
         var missingIcons = drawApps(apps, isMore, iconsFormat, function onAppsDrawn(){
             if (options.installed && apps.length > 0) {
@@ -167,6 +176,14 @@ Evme.Apps = new function Evme_Apps() {
         elList.appendChild(Evme.$create('li', {'class': 'installed-separator'}));
     };
     
+    this.getInstalledHeight = function getInstalledHeight() {
+      var elSeparator = (Evme.$('.installed-separator', elList) || [])[0],
+          top = elSeparator? elSeparator.getBoundingClientRect().top : 0,
+          parentTop = elSeparator? elSeparator.parentNode.getBoundingClientRect().top : 0;
+      
+      return (top - parentTop);
+    };
+    
     this.disableScroll = function disableScroll() {
         scroll.disable();
     };    
@@ -224,6 +241,15 @@ Evme.Apps = new function Evme_Apps() {
         }
         
         return defaultIcon;
+    };
+    
+    this.showLoading = function showLoading() {
+      elLoading.style.transform = 'translateY(' + self.getInstalledHeight()/2 + 'px)';      
+      el.classList.add(CLASS_WHEN_LOADING);
+    };
+    
+    this.hideLoading = function hideLoading() {
+      el.classList.remove(CLASS_WHEN_LOADING);
     };
     
     this.removeApp = function removeApp(id) {

@@ -1156,7 +1156,7 @@ Evme.Request = function Evme_Request() {
     }
     
     function requestTimeoutCallback() {
-        if (!request) {
+        if (!httpRequest) {
             return;
         }
         
