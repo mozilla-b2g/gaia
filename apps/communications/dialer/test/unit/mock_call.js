@@ -27,6 +27,13 @@ function MockCall(aNumber, aState) {
     }
   }).bind(this);
 
+  this._busy = (function() {
+    if (this._handler) {
+      this.state = 'busy';
+      this._handler.handleEvent({call: this});
+    }
+  }).bind(this);
+
   this._disconnect = (function() {
     if (this._handler) {
       this.state = 'disconnected';

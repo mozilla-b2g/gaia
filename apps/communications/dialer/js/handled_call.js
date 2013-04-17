@@ -65,6 +65,9 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
     case 'held':
       this.node.classList.add('held');
       break;
+    case 'busy':
+      this.busy();
+      break;
   }
 };
 
@@ -175,6 +178,10 @@ HandledCall.prototype.connected = function hc_connected() {
   this.updateDirection();
   CallScreen.enableKeypad();
   CallScreen.syncSpeakerEnabled();
+};
+
+HandledCall.prototype.busy = function hc_busy() {
+  OnCallHandler.notifyBusyLine();
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {
