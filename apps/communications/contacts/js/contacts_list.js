@@ -592,7 +592,7 @@ contacts.List = (function() {
   }
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
-    if (!asyncScriptsLoaded) {
+    if (!Contacts.asyncScriptsLoaded) {
       // delay loading if they're not there yet
       window.addEventListener('asyncScriptsLoaded', function listener() {
         window.removeEventListener('asyncScriptsLoaded', listener);

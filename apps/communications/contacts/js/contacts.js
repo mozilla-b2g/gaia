@@ -27,7 +27,8 @@ var Contacts = (function() {
       settingsButton,
       cancelButton,
       addButton,
-      appTitleElement;
+      appTitleElement,
+      asyncScriptsLoaded = false;
 
   var settingsReady = false;
   var detailsReady = false;
@@ -195,6 +196,7 @@ var Contacts = (function() {
 
     addAsyncScripts();
     window.addEventListener('asyncScriptsLoaded', function onAsyncLoad() {
+      asyncScriptsLoaded = true;
       window.removeEventListener('asyncScriptsLoaded', onAsyncLoad);
       contactsList.initAlphaScroll();
       checkUrl();
@@ -925,6 +927,9 @@ var Contacts = (function() {
     'showStatus': showStatus,
     'cardStateChanged': cardStateChanged,
     'loadFacebook': loadFacebook,
-    'close': close
+    'close': close,
+    get asyncScriptsLoaded() {
+      return asyncScriptsLoaded;
+    }
   };
 })();
