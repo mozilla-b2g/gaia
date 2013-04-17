@@ -307,14 +307,15 @@ var Predictions = function() {
   }
 
   // Find the end of the prefix (exact match)
-  function findExactly(offset, result, prefix) {
+  function findExactly(offset, result, prefix, maxFreq) {
     var i = 0, prefixLen = prefix.length;
     var node = Object.create(null);
     readNode(offset, node);
     while (node.active) {
+      maxFreq = Math.max(maxFreq, node.freq);
       if (prefixLen == i) {
         // The prefix was found; add the node to candidates
-        addNextCandidate(offset, result + prefix, 1);
+        addNextCandidate(offset, result + prefix, 1, maxFreq);
         return;
       }
       var ch = prefix.charCodeAt(i);
@@ -338,7 +339,7 @@ var Predictions = function() {
     return ch;
   }
 
-  function findFuzzy(offset, result, prefix) {
+  function findFuzzy(offset, result, prefix, maxFreq) {
     var node = Object.create(null);
     readNode(offset, node);
     if (prefix.length == 0) {
@@ -347,14 +348,14 @@ var Predictions = function() {
         // If the word is short, increase it greatly to filter out fuzzy
         // matches (e.g., "or" and "of" when typing "on"). If the word is long,
         // assume that user can mistype it (and allow fuzzy matches).
-        addNextCandidate(offset, result, 1 + 3 / result.length);
+        addNextCandidate(offset, result, 1 + 3 / result.length, Math.max(maxFreq, node.freq));
       return;
     }
-
+	
     if (!node.active)
       return;
     if (prefix.length == 1) // try to delete the last character
-      addNextCandidate(offset, result, 1);
+      addNextCandidate(offset, result, 1, maxFreq);
 
     // Try the fuzzy matches that are better (earlier in nPtr list)
     // that the exact match.
@@ -362,7 +363,7 @@ var Predictions = function() {
       var nodeChar = String.fromCharCode(node.ch);
       if (normalize(nodeChar) == normalize(prefix[0])) {
         do {
-          findFuzzy(node.cPtr, result + nodeChar, prefix.substr(1));
+          findFuzzy(node.cPtr, result + nodeChar, prefix.substr(1), Math.max(maxFreq, node.freq));
           readNode(node.nPtr, node);
           if (!node.active)
             return;
@@ -376,39 +377,46 @@ var Predictions = function() {
       }
       if (node.cPtr) {
         var res = result + nodeChar;
+        var freq = Math.max(maxFreq, node.freq);
 
-        findExactly(node.cPtr, res, prefix); // insert a character
+        findExactly(node.cPtr, res, prefix, freq); // insert a character
 
         // replace a character
         if (prefix[0] in _nearbyKeys && nodeChar in _nearbyKeys[prefix[0]]) {
-          findExactly(node.cPtr, res, prefix.substr(1));
+          findExactly(node.cPtr, res, prefix.substr(1), freq);
         }
 
         if (prefix.length > 1 && nodeChar == prefix[1]) {
           // transpose
-          findExactly(node.cPtr, res, prefix[0] + prefix.substr(2));
+          findExactly(node.cPtr, res, prefix[0] + prefix.substr(2), freq);
           // delete
-          findExactly(node.cPtr, res, prefix.substr(2));
+          findExactly(node.cPtr, res, prefix.substr(2), freq);
         }
       }
       readNode(node.nPtr, node);
     }
   }
 
-  function addNextCandidate(offset, prefix, multiplier) {
+  function addNextCandidate(offset, prefix, multiplier, maxFreq) {
     var node = Object.create(null);
     readNode(offset, node);
     var i = _candidates.length - 1;
+    
     // Find the insertion point
     var freq = node.freq * multiplier;
-    while (i >= 0 && freq > _candidates[i].freq)
+    var maxFreqM = maxFreq * multiplier;
+    while (i >= 0 && (maxFreqM > _candidates[i].maxFreq ||
+           maxFreqM == _candidates[i].maxFreq && freq > _candidates[i].freq))
       i--;
-    // Don't insert a candidate that is worse than already found candidates
-    // if we already have the required number of candidates
-    if (i == _candidates.length - 1 && _candidates.length >= _maxSuggestions)
-      return;
+
+    // Insert the new candidate
     _candidates.splice(i + 1, 0, { node: node, prefix: prefix,
-      multiplier: multiplier, freq: node.freq * multiplier });
+      multiplier: multiplier, freq: freq, maxFreq:maxFreqM });
+    
+    // If we already have the required number of candidates,
+    // delete the candidate that is worse than others
+    if (_candidates.length > _maxSuggestions)
+      _candidates.pop();
   }
 
   function predictSuffixes() {
@@ -416,9 +424,11 @@ var Predictions = function() {
       var cand = _candidates.shift();
       var node = cand.node;
       var prefix = cand.prefix;
+      var maxFreq = cand.maxFreq;
       for (;;) {
+        maxFreq = Math.max(maxFreq, node.freq);
         if (node.nPtr) // Add the next best candidate
-          addNextCandidate(node.nPtr, prefix, cand.multiplier);
+          addNextCandidate(node.nPtr, prefix, cand.multiplier, maxFreq);
 
         if (node.ch == 0) // If the word ends here
           break;
@@ -442,7 +452,7 @@ var Predictions = function() {
     _suggestions = [];
     _candidates = [];
     _suggestions_index = Object.create(null);
-    findFuzzy(1, '', prefix);
+    findFuzzy(1, '', prefix, 0);
     predictSuffixes();
     return _suggestions;
   }
