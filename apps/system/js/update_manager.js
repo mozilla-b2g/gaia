@@ -267,6 +267,7 @@ var UpdateManager = {
     }, this);
 
     this.downloadDialog.classList.add('visible');
+    this.updateDownloadButton();
   },
 
   updateDownloadButton: function() {
