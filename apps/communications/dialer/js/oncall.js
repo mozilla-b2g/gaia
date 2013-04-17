@@ -221,6 +221,8 @@ var OnCallHandler = (function onCallHandler() {
         toggleScreen();
       }
     });
+
+    postToMainWindow('ready');
   }
 
   function postToMainWindow(data) {
