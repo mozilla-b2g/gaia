@@ -260,6 +260,17 @@ suite('dialer/handled_call', function() {
     });
   });
 
+  suite('busy', function() {
+    setup(function() {
+      mockCall._busy();
+    });
+
+    test('playing busy tone', function() {
+      assert.isTrue(MockOnCallHandler.mNotifyBusyLineCalled);
+    });
+  });
+
+
   suite('holding', function() {
     setup(function() {
       mockCall._hold();
