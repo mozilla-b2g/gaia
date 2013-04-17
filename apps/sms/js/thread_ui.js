@@ -864,6 +864,10 @@ var ThreadUI = {
   },
 
   renderContactData: function thui_renderContactData(contact) {
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=862061
+    if (contact.tel === null) {
+      return;
+    }
     // Retrieve info from thread
     var self = this;
     var tels = contact.tel;
