@@ -1225,6 +1225,10 @@ Evme.Brain = new function Evme_Brain() {
                     requestSuggest = Evme.DoATAPI.Shortcuts.suggest({
                         "existing": arrCurrentShortcuts
                     }, function onSuccess(data) {
+                    	if(!isRequesting) {
+                    		return;
+                    	}
+                    	
                         var suggestedShortcuts = data.response.shortcuts,
                             icons = data.response.icons;
     
