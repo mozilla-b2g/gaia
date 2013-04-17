@@ -974,7 +974,9 @@ suite('system/UpdateManager', function() {
             });
 
             test('should check all checkboxes', function() {
-              var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+              var checkboxes = dialog.querySelectorAll(
+                'input[type="checkbox"]'
+              );
               for (var i = 0; i < checkboxes.length; i++) {
                 var checkbox = checkboxes[i];
                 assert.isTrue(checkbox.checked);
