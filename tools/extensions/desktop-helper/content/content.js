@@ -33,10 +33,6 @@ const kScriptsPerDomain = {
 
   'sms.gaiamobile.org': [
     'workloads/contacts.js'
-  ],
-
-  'calendar.gaiamobile.org': [
-    'lib/alarm.js'
   ]
 };
 
