@@ -48,6 +48,7 @@ suite('SMS App Unit-Test', function() {
   var findByString;
   var nativeMozL10n = navigator.mozL10n;
   var boundOnHashChange;
+  var getContactDetails;
 
   suiteSetup(function() {
     navigator.mozL10n = MockL10n;
@@ -188,7 +189,8 @@ suite('SMS App Unit-Test', function() {
         var threadWithContact = document.getElementById('thread_1');
         var contactName =
           threadWithContact.getElementsByClassName('name')[0].innerHTML;
-        assert.equal(contactName, 'Pepito Grillo');
+        assert.equal(contactName,
+                     'contact-title-text{"name":"Pepito Grillo","n":0}');
       });
     });
 
@@ -711,15 +713,24 @@ suite('SMS App Unit-Test', function() {
       return function mock() {
         mock.called = true;
         mock.args = [].slice.call(arguments);
-        definition.apply(this, mock.args);
+        return definition.apply(this, mock.args);
       };
     }
+    suiteSetup(function() {
+      getContactDetails = Utils.getContactDetails;
+      Utils.getContactDetails = mock(function(number, contacts) {
+        return {
+          isContact: !!contacts,
+          title: number
+        };
+      });
+    });
+
+    suiteTeardown(function() {
+      Utils.getContactDetails = getContactDetails;
+    });
 
     test('+99', function(done) {
-      var getPhoneDetails = Utils.getPhoneDetails;
-      Utils.getPhoneDetails = mock(function(number, contact, handler) {
-        handler({});
-      });
       var ul = document.createElement('ul');
 
       ThreadUI.recipients.value = '+99';
@@ -729,18 +740,13 @@ suite('SMS App Unit-Test', function() {
           tel: [{ value: '...' }]
         }, '+99', ul);
       });
-      assert.ok(Utils.getPhoneDetails.called);
-      assert.equal(Utils.getPhoneDetails.args[0], '...');
+      assert.ok(Utils.getContactDetails.called);
+      assert.equal(Utils.getContactDetails.args[0], '...');
 
-      Utils.getPhoneDetails = getPhoneDetails;
       done();
     });
 
     test('*67 [800]-555-1212', function(done) {
-      var getPhoneDetails = Utils.getPhoneDetails;
-      Utils.getPhoneDetails = mock(function(number, contact, handler) {
-        handler({});
-      });
       var ul = document.createElement('ul');
 
       assert.doesNotThrow(function() {
@@ -749,18 +755,13 @@ suite('SMS App Unit-Test', function() {
           tel: [{ value: '...' }]
         }, '*67 [800]-555-1212', ul);
       });
-      assert.ok(Utils.getPhoneDetails.called);
-      assert.equal(Utils.getPhoneDetails.args[0], '...');
+      assert.ok(Utils.getContactDetails.called);
+      assert.equal(Utils.getContactDetails.args[0], '...');
 
-      Utils.getPhoneDetails = getPhoneDetails;
       done();
     });
 
     test('\\^$*+?.', function(done) {
-      var getPhoneDetails = Utils.getPhoneDetails;
-      Utils.getPhoneDetails = mock(function(number, contact, handler) {
-        handler({});
-      });
       var ul = document.createElement('ul');
       assert.doesNotThrow(function() {
         ThreadUI.renderContact({
@@ -768,10 +769,9 @@ suite('SMS App Unit-Test', function() {
           tel: [{ value: '...' }]
         }, '\\^$*+?.', ul);
       });
-      assert.ok(Utils.getPhoneDetails.called);
-      assert.equal(Utils.getPhoneDetails.args[0], '...');
+      assert.ok(Utils.getContactDetails.called);
+      assert.equal(Utils.getContactDetails.args[0], '...');
 
-      Utils.getPhoneDetails = getPhoneDetails;
       done();
     });
   });
