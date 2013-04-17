@@ -44,7 +44,7 @@ contacts.Settings = (function() {
     updateOrderingUI();
 
     if (fb.isEnabled) {
-      //fb.utils.getImportChecked(checkFbImported);
+      fb.utils.getImportChecked(checkFbImported);
     }
   };
 
