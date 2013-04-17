@@ -603,6 +603,53 @@ var Settings = {
     function callback() {
       self._panelStylesheetsLoaded = true;
     });
+  },
+
+  updateKeyboardPanel: function settings_updateKeyboardPanel() {
+    var panel = document.getElementById('keyboard');
+    // Update the keyboard layouts list from the Keyboard panel
+    if (panel) {
+      this.getSupportedKbLayouts(function updateKbList(keyboards) {
+        var kbLayoutsList = document.getElementById('keyboard-layouts');
+        // Get pointers to the top list entry and its labels which are used to
+        // pin the language associated keyboard at the top of the keyboards list
+        var pinnedKb = document.getElementById('language-keyboard');
+        var pinnedKbLabel = pinnedKb.querySelector('a');
+        var pinnedKbSubLabel = pinnedKb.querySelector('small');
+        pinnedKbSubLabel.textContent = '';
+
+        // Get the current language and its associate keyboard layout
+        var currentLang = document.documentElement.lang;
+        var langKeyboard = keyboards[currentLang];
+
+        var kbSelector = 'input[name="keyboard.layouts.' + langKeyboard + '"]';
+        var kbListQuery = kbLayoutsList.querySelector(kbSelector);
+
+        if (kbListQuery) {
+          // Remove the entry from the list since it will be pinned on top
+          // of the Keyboard Layouts list
+          var kbListEntry = kbListQuery.parentNode.parentNode;
+          kbListEntry.hidden = true;
+
+          var label = kbListEntry.querySelector('a');
+          var sub = kbListEntry.querySelector('small');
+          pinnedKbLabel.dataset.l10nId = label.dataset.l10nId;
+          pinnedKbLabel.textContent = label.textContent;
+          if (sub) {
+            pinnedKbSubLabel.dataset.l10nId = sub.dataset.l10nId;
+            pinnedKbSubLabel.textContent = sub.textContent;
+          }
+        } else {
+          // If the current language does not have an associated keyboard,
+          // fallback to the default keyboard: 'en'
+          // XXX update this if the list order in index.html changes
+          var englishEntry = kbLayoutsList.children[1];
+          englishEntry.hidden = true;
+          pinnedKbLabel.dataset.l10nId = 'english';
+          pinnedKbSubLabel.textContent = '';
+        }
+      });
+    }
   }
 };
 
@@ -692,6 +739,9 @@ window.addEventListener('load', function loadSettings() {
           }
         });
         setTimeout(Settings.updateLanguagePanel);
+        break;
+      case 'keyboard':
+        Settings.updateKeyboardPanel();
         break;
       case 'battery':             // full battery status
         Battery.update();
@@ -895,6 +945,15 @@ window.addEventListener('localized', function updateLocalized() {
     }
   });
 
+  // update the keyboard layouts list by resetting the top pinned element,
+  // since it displays the previous language setting
+  var kbLayoutsList = document.getElementById('keyboard-layouts');
+  if (kbLayoutsList) {
+    var prevKbLayout = kbLayoutsList.querySelector('li[hidden]');
+    prevKbLayout.hidden = false;
+
+    Settings.updateKeyboardPanel();
+  }
 });
 
 // Do initialization work that doesn't depend on the DOM, as early as
