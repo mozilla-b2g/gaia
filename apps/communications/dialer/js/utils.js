@@ -46,7 +46,11 @@ var Utils = {
     }
     return null;
   },
-
+  toCamelCase: function ut_toCamelCase(str) {
+    return str.replace(/\-(.)/g, function replacer(str, p1) {
+      return p1.toUpperCase();
+    });
+  },
   // XXX: this is way too complex for the task accomplished
   getPhoneNumberAdditionalInfo: function ut_getPhoneNumberAdditionalInfo(
     matchingTel, associatedContact) {
