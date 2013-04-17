@@ -293,10 +293,12 @@ contacts.List = (function() {
     var contactInner = '<p>' + nameElement;
     contactInner += '</p>';
     contactContainer.innerHTML = contactInner;
+    var nameNode = contactContainer.firstElementChild;
+    addOrderOptions(nameNode, contact);
     contactsCache[contact.id] = {
       contact: contact,
       container: contactContainer,
-      nameElement: contactContainer.firstElementChild
+      nameElement: nameNode
     };
     renderOrg(contact, contactContainer, true);
 
@@ -386,8 +388,10 @@ contacts.List = (function() {
   function appendToList(contact, show) {
     var group = getGroupName(contact);
     if (!counter[group]) {
-      toRender.push(group);
       counter[group] = 0;
+      if (!show) {
+        toRender.push(group);
+      }
     }
 
     counter[group]++;
@@ -410,7 +414,6 @@ contacts.List = (function() {
         contactsCache = {};
       }
     });
-    lazyLoadOrder();
     FixedHeader.refresh();
 
     fb.init(function contacts_init() {
@@ -452,13 +455,6 @@ contacts.List = (function() {
     searchLoading = false;
     contacts.Search.enableSearch();
     dispatchCustomEvent('finishLazyLoading');
-  };
-
-  var lazyLoadOrder = function lazyLoadOrder() {
-    for (var id in contactsCache) {
-      var current = contactsCache[id];
-      addOrderOptions(current.nameElement, current.contact);
-    }
   };
 
   var addOrderOptions = function addOrderOptions(name, contact) {
@@ -705,8 +701,12 @@ contacts.List = (function() {
     addToGroup(theContact, list);
 
     if (list.children.length === 1) {
-      // template + new record
-      showGroup(group);
+      if (contactsLoadFinished && toRender.length === 0) {
+        showGroup(group);
+      } else {
+        recentlyAdded.push(group);
+        showNextGroup();
+      }
     }
 
     // If is favorite add as well to the favorite group
