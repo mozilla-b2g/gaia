@@ -946,6 +946,29 @@ suite('system/UpdateManager', function() {
               assert.isFalse(downloadButton.disabled);
             });
           });
+
+          // Bug 830901 - Disabling all checkboxes in the update prompt...
+          suite('cancel and reopen', function() {
+            setup(function() {
+              // cancel
+              UpdateManager.cancelPrompt();
+
+              // reopen
+              UpdateManager.containerClicked();
+            });
+
+            test('should check all checkboxes', function() {
+              var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+              for (var i = 0; i < checkboxes.length; i++) {
+                var checkbox = checkboxes[i];
+                assert.isTrue(checkbox.checked);
+              }
+            });
+
+            test('should enable the download button', function() {
+              assert.isFalse(downloadButton.disabled);
+            });
+          });
         });
       });
     });
