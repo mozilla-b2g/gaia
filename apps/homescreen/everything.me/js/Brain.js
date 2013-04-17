@@ -20,6 +20,15 @@ Evme.Brain = new function Evme_Brain() {
         TIPS = {},
         ICON_SIZE = null,
 
+        TIMEOUT_BEFORE_REQUESTING_APPS_AGAIN = 500,
+        TIMEOUT_BEFORE_SHOWING_DEFAULT_IMAGE = 3000,
+        TIMEOUT_BEFORE_SHOWING_HELPER = 3000,
+        TIMEOUT_BEFORE_RENDERING_AC = 300,
+        TIMEOUT_BEFORE_RUNNING_APPS_SEARCH = 600,
+        TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH = 800,
+        TIMEOUT_BEFORE_AUTO_RENDERING_MORE_APPS = 200,
+        TIMEOUT_BEFORE_SHOWING_APPS_LOADING = 800,
+
         L10N_SYSTEM_ALERT="alert",
 
         // whether to show shortcuts customize on startup or not
@@ -842,7 +851,8 @@ Evme.Brain = new function Evme_Brain() {
         var self = this,
             currentFolder = null,
             requestSmartFolderApps = null,
-            requestSmartFolderImage = null;
+            requestSmartFolderImage = null,
+            timeoutShowAppsLoading = null;
         
         // a folder is shown
         this.show = function show(data) {
@@ -886,6 +896,8 @@ Evme.Brain = new function Evme_Brain() {
         
         // cancel the current outgoing smart folder requests
         this.cancelRequests = function cancelRequests() {
+            window.clearTimeout(timeoutShowAppsLoading);
+            currentFolder && currentFolder.hideLoading();
             requestSmartFolderApps && requestSmartFolderApps.abort && requestSmartFolderApps.abort();
             requestSmartFolderImage && requestSmartFolderImage.abort && requestSmartFolderImage.abort();
         };
@@ -939,6 +951,13 @@ Evme.Brain = new function Evme_Brain() {
                 "offset": 0,
                 "installed": true
             }, function onDone() {
+                Evme.Utils.isOnline(function isOnlineCallback(isOnline){
+                  if (isOnline && currentFolder) {
+                    timeoutShowAppsLoading = window.setTimeout(currentFolder.showLoading,
+                                                TIMEOUT_BEFORE_SHOWING_APPS_LOADING);
+                  }
+                });
+                  
                 requestSmartFolderApps = Evme.DoATAPI.search({
                     "query": experienceId? '' : query,
                     "experienceId": experienceId,
@@ -962,6 +981,9 @@ Evme.Brain = new function Evme_Brain() {
                     
                     // remove the already installed apps from the cloud apps
                     apps = Evme.Utils.dedupInstalledApps(apps, installedApps);
+                    
+                    window.clearTimeout(timeoutShowAppsLoading);
+                    currentFolder.hideLoading();
                     
                     currentFolder.loadApps({
                         "apps": apps,
@@ -1432,14 +1454,7 @@ Evme.Brain = new function Evme_Brain() {
             timeoutSearch = null,
             timeoutSearchWhileTyping = null,
             timeoutAutocomplete = null,
-
-            TIMEOUT_BEFORE_REQUESTING_APPS_AGAIN = 500,
-            TIMEOUT_BEFORE_SHOWING_DEFAULT_IMAGE = 3000,
-            TIMEOUT_BEFORE_SHOWING_HELPER = 3000,
-            TIMEOUT_BEFORE_RENDERING_AC = 200,
-            TIMEOUT_BEFORE_RUNNING_APPS_SEARCH = 200,
-            TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH = 500,
-            TIMEOUT_BEFORE_AUTO_RENDERING_MORE_APPS = 200;
+            timeoutShowAppsLoading = null;
 
         function resetLastSearch(bKeepImageQuery) {
             lastSearch = {
@@ -1524,6 +1539,16 @@ Evme.Brain = new function Evme_Brain() {
                         return;
                     }
                     
+                    
+                    if (appsCurrentOffset === 0) {
+                      Evme.Utils.isOnline(function isOnlineCallback(isOnline){
+                        if (isOnline) {
+                          timeoutShowAppsLoading = window.setTimeout(Evme.Apps.showLoading,
+                                                      TIMEOUT_BEFORE_SHOWING_APPS_LOADING);
+                        }
+                      });
+                    }
+                    
                     requestSearch = Evme.DoATAPI.search({
                         "query": query,
                         "typeHint": type,
@@ -1539,6 +1564,9 @@ Evme.Brain = new function Evme_Brain() {
                         "prevQuery": prevQuery,
                         "_NOCACHE": _NOCACHE
                     }, function onSuccess(data) {
+                        window.clearTimeout(timeoutShowAppsLoading);
+                        Evme.Apps.hideLoading();
+                        
                         getAppsComplete(data, options, installedApps);
                         requestSearch = null;
                         NUMBER_OF_APPS_TO_LOAD = DEFAULT_NUMBER_OF_APPS_TO_LOAD;
@@ -2018,10 +2046,12 @@ Evme.Brain = new function Evme_Brain() {
         };
 
         function cancelSearch() {
+            window.clearTimeout(timeoutShowAppsLoading);
             window.clearTimeout(timeoutSearchWhileTyping);
             window.clearTimeout(timeoutSearch);
             requestSearch && requestSearch.abort && requestSearch.abort();
             requestSearch = null;
+            Evme.Apps.hideLoading();
         };
 
         function cancelAutocomplete() {
