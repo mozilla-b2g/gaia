@@ -369,7 +369,7 @@
       }
     };
 
-    this.activate = function ime_activate(language, suggestions, state) {
+    this.activate = function ime_activate(language, state, options) {
       var inputType = state.type;
       debug('Activate. Input type: ' + inputType);
       var layout = IMELayouts.JP;

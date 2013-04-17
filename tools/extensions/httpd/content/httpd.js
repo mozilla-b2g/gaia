@@ -45,6 +45,7 @@ Components.utils.import('resource://gre/modules/Services.jsm');
 const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
 const GAIA_APP_RELATIVEPATH = Services.prefs.getCharPref("extensions.gaia.app_relative_path");
 const GAIA_LOCALES_PATH = Services.prefs.getCharPref("extensions.gaia.locales_debug_path");
+const GAIA_OFFICIAL = Services.prefs.getBoolPref("extensions.gaia.official");
 // -GAIA
 
 /*
@@ -1439,8 +1440,9 @@ RequestReader.prototype =
             if (oldPath.indexOf("/shared/") === 0) {
               filePath += "/../..";
               if (oldPath.indexOf('/branding/') != -1) {
-                oldPath = oldPath.replace('branding',
-                                          'branding/unofficial');
+                oldPath = oldPath.replace('branding', GAIA_OFFICIAL ?
+                                                      'branding/official' :
+                                                      'branding/unofficial');
               }
             }
             request._path = filePath + oldPath;

@@ -53,7 +53,7 @@
 }
 
 #sleep-menu-container li {
-  -moz-transition: background 0.2s ease 0s;
+  transition: background-color 0.2s ease 0s;
   border-bottom: 0.1rem solid #666666;
   color: #FFFFFF;
   font-family: 'MozTT',Sans-serif;

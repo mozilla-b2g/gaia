@@ -596,6 +596,18 @@ var KeypadManager = {
     this._updatePhoneNumberView(ellipsisSide, maxFontSize);
   },
 
+  press: function(value) {
+    var telephony = navigator.mozTelephony;
+
+    telephony.stopTone();
+    telephony.startTone(value);
+    TonePlayer.start(gTonesFrequencies[value], true);
+    setTimeout(function nextTick() {
+      telephony.stopTone();
+      TonePlayer.stop();
+    });
+  },
+
   _updatePhoneNumberView: function kh_updatePhoneNumberview(ellipsisSide,
     maxFontSize) {
     var phoneNumber = this._phoneNumber;

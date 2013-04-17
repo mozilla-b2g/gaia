@@ -2,70 +2,82 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
+const CC = Components.Constructor;
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cu = Components.utils;
 
 function debug(data) {
   dump('desktop-helper: ' + data + '\n');
 }
 
 function startup(data, reason) {
-  const CC = Components.Constructor;
-  const Cc = Components.classes;
-  const Ci = Components.interfaces;
-  const Cu = Components.utils;
-
   Cu.import('resource://gre/modules/Services.jsm');
   Cu.import('resource://gre/modules/PermissionPromptHelper.jsm');
   Cu.import('resource://gre/modules/ContactService.jsm');
-
-  /**
-   * Mappings of permissions we need to add to the chrome
-   * XXX This should be replaced by a manifest parser
-  */
-  const kPermissions = {
-    browser: ['browser', 'systemXHR', 'settings-read', 'geolocation', 'desktop-notification'],
-    calendar: ['systemXHR', 'tcp-socket'],
-    camera: ['camera'],
-    communications: ['contacts-read', 'contacts-write', 'contacts-create', 'settings-read', 'settings-write'],
-    email: ['contacts-read', 'contacts-write', 'desktop-notification', 'settings-read', 'settings-write', 'systemXHR', 'tcp-socket'],
-    homescreen: ['settings-read', 'settings-write', 'systemXHR', 'tcp-socket', 'webapps-manage'],
-    gallery: ['settings-read', 'device-storage:pictures-read', 'device-storage:pictures-write'],
-    keyboard: ['settings-read', 'settings-write', 'keyboard'],
-    system: ['settings-read', 'settings-write', 'webapps-manage'],
-    sms: ['contacts-read', 'contacts-write', 'contacts-create']
-  };
+  Cu.import('resource:///modules/devtools/gDevTools.jsm');
 
   try {
-    // Add permissions
-    for (var app in kPermissions) {
-      // XXX The domain name should be generic to not be tied to gaiamobile.org
-      // and the random port number.
-      var host = 'http://' + app + '.gaiamobile.org:8080';
-      var uri = Services.io.newURI(host, null, null);
-
-      var perms = kPermissions[app];
-      for (var i = 0, eachPerm; eachPerm = perms[i]; i++) {
-        Services.perms.add(uri, eachPerm, 1);
-      }
-    }
+    var loader = Cc['@mozilla.org/moz/jssubscript-loader;1']
+                  .getService(Ci.mozIJSSubScriptLoader);
+    loader.loadSubScript('chrome://desktop-helper.js/content/permissions.js');
 
     // Then inject the missing contents inside apps.
-    Cc["@mozilla.org/globalmessagemanager;1"]
-      .getService(Ci.nsIMessageBroadcaster)
-      .loadFrameScript("chrome://desktop-helper.js/content/content.js", true);
+    var mm = Cc['@mozilla.org/globalmessagemanager;1']
+               .getService(Ci.nsIMessageBroadcaster);
+    mm.loadFrameScript('chrome://desktop-helper.js/content/content.js', true);
 
-    // Start the responsive UI
     Services.obs.addObserver(function() {
       let browserWindow = Services.wm.getMostRecentWindow('navigator:browser');
+
+      // Automatically toggle responsive design mode
       let args = {'width': 320, 'height': 480};
       let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
       mgr.handleGcliCommand(browserWindow,
                             browserWindow.gBrowser.selectedTab,
                             'resize to',
                             args);
-    }, 'sessionstore-windows-restored', false)
 
-  } catch(e) {
-    debug("Something went wrong while trying to start desktop-helper: " + e);
+      // And open ff os devtool panel while maximizing its size according to
+      // screen size
+      Services.prefs.setIntPref('devtools.toolbox.sidebar.width',
+                                browserWindow.screen.width - 550);
+      browserWindow.resizeTo(
+        browserWindow.screen.width,
+        browserWindow.outerHeight
+      );
+      gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser,
+                                         'firefox-os-controls');
+
+      try {
+        // Try to load a the keyboard if there is a keyboard addon.
+        Cu.import('resource://keyboard.js/Keyboard.jsm');
+        mm.addMessageListener('Forms:Input', Keyboard);
+        mm.loadFrameScript('chrome://keyboard.js/content/forms.js', true);
+      } catch(e) {
+        debug("Can't load Keyboard.jsm. Likely because the keyboard addon is not here.");
+      }
+    }, 'sessionstore-windows-restored', false);
+
+    // Register a new devtool panel with various OS controls
+    gDevTools.registerTool({
+      id: 'firefox-os-controls',
+      key: 'F',
+      modifiers: 'accel,shift',
+      icon: 'chrome://desktop-helper.js/content/panel/icon.gif',
+      url: 'chrome://desktop-helper.js/content/panel/index.html',
+      label: 'FFOS Control',
+      tooltip: 'Set of controls to tune FirefoxOS apps in Desktop browser',
+      isTargetSupported: function(target) {
+        return target.isLocalTab;
+      },
+      build: function(iframeWindow, toolbox) {
+        iframeWindow.wrappedJSObject.tab = toolbox.target.window;
+      }
+    });
+
+  } catch (e) {
+    debug('Something went wrong while trying to start desktop-helper: ' + e);
   }
 }
 

@@ -119,17 +119,17 @@ var ThreadListUI = {
     var selected = ThreadListUI.selectedInputs.length;
 
     if (selected === ThreadListUI.count) {
-      this.checkAllButton.classList.add('disabled');
+      this.checkAllButton.disabled = true;
     } else {
-      this.checkAllButton.classList.remove('disabled');
+      this.checkAllButton.disabled = false;
     }
     if (selected) {
-      this.uncheckAllButton.classList.remove('disabled');
-      this.deleteButton.classList.remove('disabled');
+      this.uncheckAllButton.disabled = false;
+      this.deleteButton.disabled = false;
       this.editMode.innerHTML = _('selected', {n: selected});
     } else {
-      this.uncheckAllButton.classList.add('disabled');
-      this.deleteButton.classList.add('disabled');
+      this.uncheckAllButton.disabled = true;
+      this.deleteButton.disabled = true;
       this.editMode.innerHTML = _('editMode');
     }
   },
@@ -267,7 +267,7 @@ var ThreadListUI = {
 
   createThread: function thlui_createThread(thread) {
     // Create DOM element
-    var num = thread.senderOrReceiver;
+    var num = thread.participants[0];
     var timestamp = thread.timestamp.getTime();
     var threadDOM = document.createElement('li');
     threadDOM.id = 'thread_' + thread.id;
@@ -276,7 +276,7 @@ var ThreadListUI = {
 
     // Retrieving params from thread
     var bodyText = (thread.body || '').split('\n')[0];
-    var bodyHTML = Utils.escapeHTML(bodyText);
+    var bodyHTML = Utils.Message.format(bodyText);
     var formattedDate = Utils.getFormattedHour(timestamp);
     // Create HTML Structure
     var structureHTML = '<label class="danger">' +
@@ -317,7 +317,7 @@ var ThreadListUI = {
     }
   },
   appendThread: function thlui_appendThread(thread) {
-    var num = thread.senderOrReceiver;
+    var num = thread.participants[0];
     var timestamp = thread.timestamp.getTime();
     // We create the DOM element of the thread
     var threadDOM = this.createThread(thread);

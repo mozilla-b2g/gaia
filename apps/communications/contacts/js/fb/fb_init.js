@@ -5,8 +5,14 @@ if (typeof fb.init === 'undefined') {
   (function() {
 
     fb.isEnabled = false;
+    var initialized = false;
 
     fb.init = function(callback) {
+      if (initialized) {
+        callback();
+        return;
+      }
+      initialized = true;
       var req = utils.config.load('/contacts/config.json');
 
       req.onload = function(configData) {

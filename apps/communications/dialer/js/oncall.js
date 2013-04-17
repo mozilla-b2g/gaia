@@ -388,7 +388,7 @@ var OnCallHandler = (function onCallHandler() {
 
   function handleCallWaiting(call) {
     LazyL10n.get(function localized(_) {
-      var number = call.number || _('unknown');
+      var number = call.number || _('withheld-number');
       Contacts.findByNumber(number, function lookupContact(contact) {
         if (contact && contact.name) {
           CallScreen.incomingNumber.textContent = contact.name;
@@ -498,6 +498,12 @@ var OnCallHandler = (function onCallHandler() {
         break;
       case 'CHLD+ATA':
         holdAndAnswer();
+        break;
+      default:
+        var partialCommand = message.substring(0, 3);
+        if (partialCommand === 'VTS') {
+          KeypadManager.press(message.substring(4));
+        }
         break;
     }
   }
