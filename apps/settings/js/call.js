@@ -241,14 +241,44 @@ var Calls = (function(window, document, undefined) {
     unconditional.onerror = onerror;
   };
 
+  // Get the message to show after setting up call forwarding.
+  function getSetCallForwardingOptionResult(rules, action) {
+    for (var i = 0; i < rules.length; i++) {
+      if (rules[i].active &&
+          ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
+        var disableAction = action == _cfAction.CALL_FORWARD_ACTION_DISABLE;
+        var message = disableAction ?
+          _('callForwardingSetForbidden') : _('callForwardingSetSuccess');
+        return message;
+      }
+    }
+    var registrationAction =
+      action == _cfAction.CALL_FORWARD_ACTION_REGISTRATION;
+    var message = registrationAction ?
+      _('callForwardingSetError') : _('callForwardingSetSuccess');
+    return message;
+  };
+
   var updatingInProgress = false;
-  function updateCallForwardingSubpanels() {
+  function updateCallForwardingSubpanels(checkSetCallForwardingOptionResult,
+                                         reason,
+                                         action) {
     updatingInProgress = true;
 
     displayInfoForAll(_('callForwardingRequesting'));
     enableTapOnCallForwardingItems(false);
     getCallForwardingOption(function got_cfOption(cfOptions) {
       if (cfOptions) {
+        // Need to check wether we enabled/disabled forwarding calls properly,
+        // e.g. the carrier might not support disabling call forwarding for some
+        // reasons such as phone is busy, unreachable, etc.
+        if (checkSetCallForwardingOptionResult) {
+          var rules = cfOptions[reason];
+          var message = getSetCallForwardingOptionResult(rules, action);
+          document.getElementById('cf-confirm-message').textContent = message;
+          var cfAlertPanel = document.querySelector('#call .cf-alert');
+          cfAlertPanel.hidden = false;
+        }
         displayRule(cfOptions['unconditional'], 'cfu-desc', 'unconditional');
         displayRule(cfOptions['mobilebusy'], 'cfmb-desc', 'mobilebusy');
         displayRule(cfOptions['noreply'], 'cfnrep-desc', 'noreply');
@@ -307,10 +337,20 @@ var Calls = (function(window, document, undefined) {
             _cfReason.CALL_FORWARD_REASON_NO_REPLY ? 0 : 20;
 
         var req = mobileConnection.setCallForwardingOption(mozMobileCFInfo);
+
+        enableTapOnCallForwardingItems(false);
+        displayInfoForAll(_('callForwardingRequesting'));
+
         req.onsuccess = function() {
-          updateCallForwardingSubpanels();
+          updateCallForwardingSubpanels(true,
+                                        key,
+                                        mozMobileCFInfo['action']);
         };
         req.onerror = function() {
+          document.getElementById('cf-confirm-message').textContent =
+            _('callForwardingSetError');
+          var cfAlertPanel = document.querySelector('#call .cf-alert');
+          cfAlertPanel.hidden = false;
           updateCallForwardingSubpanels();
         };
       });
