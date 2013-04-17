@@ -17,15 +17,16 @@ function startup(data, reason) {
 
   Cu.import('resource://gre/modules/ContactService.jsm');
   Cu.import('resource://gre/modules/SettingsChangeNotifier.jsm');
-  Cu.import('resource://gre/modules/AlarmService.jsm');
   Cu.import('resource://gre/modules/ActivitiesService.jsm');
   Cu.import('resource://gre/modules/PermissionPromptHelper.jsm');
 
   try {
-    // XXX This code is useless in b2g-desktop. Should not be loaded there.
-    var loader = Cc['@mozilla.org/moz/jssubscript-loader;1']
-                  .getService(Ci.mozIJSSubScriptLoader);
-    loader.loadSubScript('chrome://desktop-helper.js/content/permissions.js');
+    // Sigh. Seems like there is a registration issue between all the addons.
+    // This is dirty but delaying this seems to make it.
+    var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    timer.initWithCallback(function() {
+      Services.scriptloader.loadSubScript('chrome://desktop-helper.js/content/alarms.js', {});
+    }, 1000, Ci.nsITimer.TYPE_ONE_SHOT);
 
     // Then inject the missing contents inside apps.
     // XXX This code is the only things that should affect both Firefox and

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>alarms@gaiamobile.org</em:id>
+    <em:name>alarms.js</em:name>
+    <em:version>0.1</em:version>
+	  <em:iconURL>chrome://alarms.js/skin/logo.png</em:iconURL>
+    <em:targetApplication>
+      <Description>
+       <em:id>toolkit@mozilla.org</em:id>
+       <em:minVersion>6.0</em:minVersion>
+       <em:maxVersion>22.0.*</em:maxVersion>
+     </Description>
+    </em:targetApplication>
+    <em:unpack>true</em:unpack>
+    <em:bootstrap>false</em:bootstrap>
+    <em:creator>Vivien Nicolas</em:creator>
+    <em:description>alarms.js</em:description>
+    <em:homepageURL>https://github.com/mozilla-b2g/gaia/</em:homepageURL>
+  </Description>
+</RDF>
