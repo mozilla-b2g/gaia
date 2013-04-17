@@ -36,6 +36,18 @@ Calendar.ns('Utils').AccountCreation = (function() {
       var accountStore = this.app.store('Account');
       var calendarStore = this.app.store('Calendar');
 
+      // check if this account is already registered
+      for (var key in accountStore.cached) {
+        if (accountStore.cached[key].user === model.user
+             && accountStore.cached[key].fullUrl === model.fullUrl) {
+          var error = new Error();
+          error.name = 'account-exist';
+          self.emit('authorizeError', error);
+          callback(error);
+          return;
+        }
+      }
+
       // begin by persisting the account
       accountStore.verifyAndPersist(model, function(accErr, id, result) {
 
