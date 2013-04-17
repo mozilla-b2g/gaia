@@ -1,5 +1,8 @@
 var Redirect = function Redirect() {
 
+  var COMMS_APP_ORIGIN = document.location.protocol + '//' +
+  document.location.host;
+
   var init = function init() {
     var hash = document.location.hash.substring(1);
     var parameters = {};
@@ -15,7 +18,7 @@ var Redirect = function Redirect() {
         parameters[values[0]] = values[1];
       });
 
-      window.opener.postMessage(parameters, '*');
+      window.opener.postMessage(parameters, COMMS_APP_ORIGIN);
       window.close();
     }
 
