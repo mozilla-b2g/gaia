@@ -14,30 +14,49 @@
 
     verifyAndPersist: function(model, callback) {
       var self = this;
-      var provider = Calendar.App.provider(
-        model.providerType
-      );
 
-      provider.getAccount(model.toJSON(), function(err, data) {
-        if (err) {
-          callback(err);
+      this.all(function(error, allAccounts) {
+        if (error) {
+          callback(error);
           return;
         }
 
-        // if this works we always will get a calendar home.
-        // This is used to find calendars.
-        model.calendarHome = data.calendarHome;
-
-        // entrypoint is used to re-authenticate.
-        if ('entrypoint' in data) {
-          model.entrypoint = data.entrypoint;
+        // check if this account is already registered
+        for (var index in allAccounts) {
+          if (allAccounts[index].user == model.user &&
+              allAccounts[index].fullUrl == model.fullUrl) {
+            var dupErr = new Error('Cannot add two accounts with the same url / entry point');
+            dupErr.name = 'account-exist';
+            callback(dupErr);
+            return;
+          }
         }
 
-        if ('domain' in data) {
-          model.domain = data.domain;
-        }
+        var provider = Calendar.App.provider(
+          model.providerType
+        );
 
-        self.persist(model, callback);
+        provider.getAccount(model.toJSON(), function(err, data) {
+          if (err) {
+            callback(err);
+            return;
+          }
+
+          // if this works we always will get a calendar home.
+          // This is used to find calendars.
+          model.calendarHome = data.calendarHome;
+
+          // entrypoint is used to re-authenticate.
+          if ('entrypoint' in data) {
+            model.entrypoint = data.entrypoint;
+          }
+
+          if ('domain' in data) {
+            model.domain = data.domain;
+          }
+
+          self.persist(model, callback);
+        });
       });
     },
 
