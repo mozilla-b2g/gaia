@@ -28,10 +28,10 @@ suiteGroup('Templates.Alarm', function() {
       );
     });
 
-    test('weeks', function() {
+    test('years', function() {
       // Large differences are specified in weeks
       assert.ok(
-        /weeks/.test(renderDescription(-6000000))
+        /months/.test(renderDescription(-6000000))
       );
     });
 
