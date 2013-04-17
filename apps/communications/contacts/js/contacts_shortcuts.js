@@ -11,6 +11,7 @@ if (!utils.alphaScroll) {
         overlayStyle, groupSelector;
 
     var isScrolling = false;
+    var alreadyRendered = false;
 
     // Callback invoked when scrolling is neded
     var P_SCROLLTO_CB = 'scrollToCb';
@@ -53,6 +54,9 @@ if (!utils.alphaScroll) {
     })();
 
     alphaScroll.init = function(params) {
+      if (alreadyRendered) {
+        return;
+      }
       scrollToCallback = params[P_SCROLLTO_CB];
       jumper = params[P_JUMPER];
       overlay = params[P_OVERLAY];
@@ -73,6 +77,7 @@ if (!utils.alphaScroll) {
         anchor: '#'
       });
       utils.templates.append(jumper, alphabet);
+      alreadyRendered = true;
     };
 
     function scrollStart(evt) {
