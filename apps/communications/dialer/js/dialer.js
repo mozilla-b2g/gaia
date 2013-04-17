@@ -524,3 +524,21 @@ window.onresize = function(e) {
     document.body.classList.remove('with-keyboard');
   }
 };
+
+// If the app loses focus, close the audio stream. This works around an
+// issue in Gecko where the Audio Data API causes gfx performance problems,
+// in particular when scrolling the homescreen.
+// See: https://bugzilla.mozilla.org/show_bug.cgi?id=779914
+document.addEventListener('mozvisibilitychange', function visibilitychanged() {
+  if (!document.mozHidden) {
+    TonePlayer.ensureAudio();
+  } else {
+    // Reset the audio stream. This ensures that the stream is shutdown
+    // *immediately*.
+    TonePlayer.trashAudio();
+    // Just in case stop any dtmf tone
+    if (navigator.mozTelephony) {
+      navigator.mozTelephony.stopTone();
+    }
+  }
+});
