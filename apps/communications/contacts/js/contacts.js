@@ -6,6 +6,9 @@ var COMMS_APP_ORIGIN = document.location.protocol + '//' +
   document.location.host;
 var asyncScriptsLoaded;
 
+// Scale ratio for different devices
+var SCALE_RATIO = window.innerWidth / 320;
+
 var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
 
@@ -757,7 +760,6 @@ var Contacts = (function() {
     var lazyLoadFiles = [
       '/contacts/js/utilities/templates.js',
       '/contacts/js/contacts_shortcuts.js',
-      '/contacts/js/utilities/responsive.js',
       '/contacts/js/confirm_dialog.js',
       '/contacts/js/contacts_settings.js',
       '/contacts/js/contacts_details.js',
