@@ -603,6 +603,14 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       req.onsuccess = function bt_onGetLocksuccess() {
         if (!req.result['lockscreen.locked']) {
           showPairView();
+        } else {
+          var bticon = 'system/style/bluetooth_transfer/images/icon_bluetooth.png';
+		  NotificationHelper.send(_('notification-pair-title'),
+								  _('notification-pair-description'),
+						  		  bticon,
+								  function() {
+								    showPairView();
+			});
         }
       };
       req.onerror = function bt_onGetLockError() {
