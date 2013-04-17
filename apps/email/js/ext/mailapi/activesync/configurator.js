@@ -601,7 +601,11 @@ define('mailapi/activesync/folder',
   ) {
 'use strict';
 
-var DESIRED_SNIPPET_LENGTH = 100;
+/**
+ * The desired number of bytes to fetch when downloading bodies, but the body's
+ * size exceeds the maximum requested size.
+ */
+var DESIRED_TEXT_SNIPPET_BYTES = 512;
 
 /**
  * This is minimum number of messages we'd like to get for a folder for a given
@@ -647,7 +651,7 @@ function initFilterTypes() {
   };
 }
 
-var $wbxml, $mimelib, $quotechew, $htmlchew;
+var $wbxml, $mimelib, $mailchew;
 
 function lazyConnection(cbIndex, fn, failString) {
   return function lazyRun() {
@@ -655,13 +659,12 @@ function lazyConnection(cbIndex, fn, failString) {
         errback = args[cbIndex],
         self = this;
 
-    require(['wbxml', 'mimelib', '../quotechew', '../htmlchew'],
-    function (wbxml, mimelib, quotechew, htmlchew) {
+    require(['wbxml', 'mimelib', '../mailchew'],
+    function (wbxml, mimelib, mailchew) {
       if (!$wbxml) {
         $wbxml = wbxml;
         $mimelib = mimelib;
-        $quotechew = quotechew;
-        $htmlchew = htmlchew;
+        $mailchew = mailchew;
         initFilterTypes();
       }
 
@@ -815,8 +818,8 @@ ActiveSyncFolderConn.prototype = {
     }
     else {
           w.tag(ie.Class, 'Email')
-           .tag(ie.CollectionId, this.serverId)
            .tag(as.SyncKey, this.syncKey)
+           .tag(ie.CollectionId, this.serverId)
            .tag(as.FilterType, filterType);
     }
 
@@ -883,7 +886,9 @@ ActiveSyncFolderConn.prototype = {
 
         folderConn._getItemEstimate(filterType, function(error, estimate) {
           if (error) {
-            callback('unknown');
+            // If we couldn't get an estimate, just tell the main callback that
+            // we want three days back.
+            callback(null, Type.ThreeDaysBack);
             return;
           }
 
@@ -1004,17 +1009,14 @@ ActiveSyncFolderConn.prototype = {
              .stag(as.Options)
                .tag(as.FilterType, this.filterType)
 
-      // XXX: For some servers (e.g. Hotmail), we could be smart and get the
-      // native body type (plain text or HTML), but Gmail doesn't seem to let us
-      // do this. For now, let's keep it simple and always get HTML.
-      if (this._account.conn.currentVersion.gte('12.0'))
-              w.stag(asb.BodyPreference)
-                 .tag(asb.Type, asbEnum.Type.HTML)
-               .etag();
-
+      // Older versions of ActiveSync give us the body by default. Ensure they
+      // omit it.
+      if (this._account.conn.currentVersion.lte('12.0')) {
               w.tag(as.MIMESupport, asEnum.MIMESupport.Never)
-               .tag(as.MIMETruncation, asEnum.MIMETruncation.NoTruncate)
-             .etag()
+               .tag(as.Truncation, asEnum.MIMETruncation.TruncateAll);
+      }
+
+            w.etag()
            .etag()
          .etag()
        .etag();
@@ -1242,7 +1244,7 @@ ActiveSyncFolderConn.prototype = {
       }
     }
 
-    var bodyType, bodyText;
+    var bodyType, bodySize;
 
     for (var iter in Iterator(node.children)) {
       var child = iter[1];
@@ -1283,17 +1285,26 @@ ActiveSyncFolderConn.prototype = {
           var grandchild = iter2[1];
           switch (grandchild.tag) {
           case asb.Type:
-            bodyType = grandchild.children[0].textContent;
+            var type = grandchild.children[0].textContent;
+            if (type === asbEnum.Type.HTML)
+              bodyType = 'html';
+            else {
+              // I've seen a handful of extra-weird messages with body types
+              // that aren't plain or html. Let's assume they're plain, though.
+              if (type !== asbEnum.Type.PlainText)
+                console.warn('A message had a strange body type:', type)
+              bodyType = 'plain';
+            }
             break;
-          case asb.Data:
-            bodyText = grandchild.children[0].textContent;
+          case asb.EstimatedDataSize:
+            bodySize = grandchild.children[0].textContent;
             break;
           }
         }
         break;
-      case em.Body: // pre-ActiveSync 12.0
-        bodyType = asbEnum.Type.PlainText;
-        bodyText = childText;
+      case em.BodySize: // pre-ActiveSync 12.0
+        bodyType = 'plain';
+        bodySize = childText;
         break;
       case asb.Attachments: // ActiveSync 12.0+
       case em.Attachments:  // pre-ActiveSync 12.0
@@ -1363,63 +1374,246 @@ ActiveSyncFolderConn.prototype = {
       }
     }
 
-    // Process the body as needed.
-    if (bodyType === asbEnum.Type.PlainText) {
-      try {
-        var bodyRep = $quotechew.quoteProcessTextBody(bodyText);
-      }
-      catch (ex) {
-        this._LOG.textChewError(ex);
-        // an empty content rep is better than nothing.
-        bodyRep = [];
-      }
-      try {
-        header.snippet = $quotechew.generateSnippet(bodyRep,
-                                                    DESIRED_SNIPPET_LENGTH);
-      }
-      catch (ex) {
-        this._LOG.textSnippetError(ex);
-        header.snippet = '';
-      }
-
-      var content = bodyRep[1];
-      var len = content.length;
-
-      body.bodyReps = [{
-        type: 'plain',
-        content: bodyRep,
-        sizeEstimate: len,
-        amountDownloaded: len,
-        isDownloaded: true
-      }];
-    }
-    else if (bodyType === asbEnum.Type.HTML) {
-      try {
-        var html = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
-      }
-      catch (ex) {
-        this._LOG.htmlParseError(ex);
-        html = '';
-      }
-      try {
-        header.snippet = $htmlchew.generateSnippet(html);
-      }
-      catch (ex) {
-        this._LOG.htmlSnippetError(ex);
-        header.snippet = '';
-      }
-      var len = html.length;
-
-      body.bodyReps = [{
-        type: 'html',
-        content: html,
-        sizeEstimate: len,
-        amountDownloaded: len,
-        isDownloaded: true
-      }];
-    }
+    body.bodyReps = [{
+      type: bodyType,
+      sizeEstimate: bodySize,
+      amountDownloaded: 0,
+      isDownloaded: false
+    }];
 
     return { header: header, body: body };
+  },
+
+  /**
+   * Download the bodies for a set of headers.
+   */
+  downloadBodies: function(headers, options, callback) {
+    if (this._account.conn.currentVersion.lt('12.0'))
+      return this._syncBodies(headers, callback);
+
+    var anyErr,
+        pending = 1,
+        folderConn = this;
+
+    function next(err) {
+      if (err && !anyErr)
+        anyErr = err;
+
+      if (!--pending) {
+        folderConn._storage.runAfterDeferredCalls(function() {
+          callback(anyErr);
+        });
+      }
+    }
+
+    for (var i = 0; i < headers.length; i++) {
+      if (!headers[i] || headers[i].snippet)
+        continue;
+
+      pending++;
+      this.downloadBodyReps(headers[i], options, next);
+    }
+
+    // by having one pending item always this handles the case of not having any
+    // snippets needing a download and also returning in the next tick of the
+    // event loop.
+    window.setZeroTimeout(next);
+  },
+
+  downloadBodyReps: lazyConnection(1, function(header, options, callback) {
+    var folderConn = this;
+    var account = this._account;
+
+    if (account.conn.currentVersion.lt('12.0'))
+      return this._syncBodies([header], callback);
+
+    if (typeof(options) === 'function') {
+      callback = options;
+      options = null;
+    }
+    options = options || {};
+
+    var io = $ItemOperations.Tags;
+    var ioEnum = $ItemOperations.Enums;
+    var as = $AirSync.Tags;
+    var asEnum = $AirSync.Enums;
+    var asb = $AirSyncBase.Tags;
+    var Type = $AirSyncBase.Enums.Type;
+
+    var gotBody = function gotBody(bodyInfo) {
+      // ActiveSync only stores one body rep, no matter how many body parts the
+      // MIME message actually has.
+      var bodyRep = bodyInfo.bodyReps[0];
+      var bodyType = bodyRep.type === 'html' ? Type.HTML : Type.PlainText;
+      var truncationSize;
+
+      // If the body is bigger than the max size, grab a small bit of plain text
+      // to show as the snippet.
+      if (options.maximumBytesToFetch < bodyRep.sizeEstimate) {
+        bodyType = Type.PlainText;
+        truncationSize = DESIRED_TEXT_SNIPPET_BYTES;
+      }
+
+      var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+      w.stag(io.ItemOperations)
+         .stag(io.Fetch)
+           .tag(io.Store, 'Mailbox')
+           .tag(as.CollectionId, folderConn.serverId)
+           .tag(as.ServerId, header.srvid)
+           .stag(io.Options)
+             // Only get the AirSyncBase:Body element to minimize bandwidth.
+             .stag(io.Schema)
+               .tag(asb.Body)
+             .etag()
+             .stag(asb.BodyPreference)
+               .tag(asb.Type, bodyType);
+
+      if (truncationSize)
+              w.tag(asb.TruncationSize, truncationSize);
+
+            w.etag()
+           .etag()
+         .etag()
+       .etag();
+
+      account.conn.postCommand(w, function(aError, aResponse) {
+        if (aError) {
+          console.error(aError);
+          callback('unknown');
+          return;
+        }
+
+        var status, bodyContent,
+            e = new $wbxml.EventParser();
+        e.addEventListener([io.ItemOperations, io.Status], function(node) {
+          status = node.children[0].textContent;
+        });
+        e.addEventListener([io.ItemOperations, io.Response, io.Fetch,
+                            io.Properties, asb.Body, asb.Data], function(node) {
+          bodyContent = node.children[0].textContent;
+        });
+        e.run(aResponse);
+
+        if (status !== ioEnum.Status.Success)
+          return callback('unknown');
+
+        folderConn._updateBody(header, bodyInfo, bodyContent, !!truncationSize,
+                               callback);
+      });
+    };
+
+    this._storage.getMessageBody(header.suid, header.date, gotBody);
+  }),
+
+  /**
+   * Sync message bodies. This function should only be used against ActiveSync
+   * 2.5! XXX: This *always* downloads the bodies for all the messages, even if
+   * it exceeds the maximum requested size.
+   */
+  _syncBodies: function(headers, callback) {
+    var as = $AirSync.Tags;
+    var asEnum = $AirSync.Enums;
+    var em = $Email.Tags;
+
+    var folderConn = this;
+    var account = this._account;
+
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(as.Sync)
+       .stag(as.Collections)
+         .stag(as.Collection)
+           .tag(as.Class, 'Email')
+           .tag(as.SyncKey, this.syncKey)
+           .tag(as.CollectionId, this.serverId)
+           .stag(as.Options)
+             .tag(as.MIMESupport, asEnum.MIMESupport.Never)
+           .etag()
+           .stag(as.Commands);
+
+    for (var i = 0; i < headers.length; i++) {
+            w.stag(as.Fetch)
+               .tag(as.ServerId, headers[i].srvid)
+             .etag();
+    }
+
+          w.etag()
+         .etag()
+       .etag()
+     .etag();
+
+    account.conn.postCommand(w, function(aError, aResponse) {
+      if (aError) {
+        console.error(aError);
+        callback('unknown');
+        return;
+      }
+
+      var status, anyErr,
+          i = 0,
+          pending = 1;
+
+      function next(err) {
+        if (err && !anyErr)
+          anyErr = err;
+
+        if (!--pending) {
+          folderConn._storage.runAfterDeferredCalls(function() {
+            callback(anyErr);
+          });
+        }
+      }
+
+      var e = new $wbxml.EventParser();
+      var base = [as.Sync, as.Collections, as.Collection];
+      e.addEventListener(base.concat(as.SyncKey), function(node) {
+        folderConn.syncKey = node.children[0].textContent;
+      });
+      e.addEventListener(base.concat(as.Status), function(node) {
+        status = node.children[0].textContent;
+      });
+      e.addEventListener(base.concat(as.Responses, as.Fetch,
+                                     as.ApplicationData, em.Body),
+                         function(node) {
+        // We assume the response is in the same order as the request!
+        var header = headers[i++];
+        var bodyContent = node.children[0].textContent;
+
+        pending++;
+        folderConn._storage.getMessageBody(header.suid, header.date,
+                                           function(body) {
+          folderConn._updateBody(header, body, bodyContent, false, next);
+        });
+      });
+      e.run(aResponse);
+
+      if (status !== asEnum.Status.Success)
+        return next('unknown');
+
+      next(null);
+    });
+  },
+
+  _updateBody: function(header, bodyInfo, bodyContent, snippetOnly, callback) {
+    var bodyRep = bodyInfo.bodyReps[0];
+
+    var type = snippetOnly ? 'plain' : bodyRep.type;
+    var data = $mailchew.processMessageContent(bodyContent, type, !snippetOnly,
+                                               true, this._LOG);
+
+    header.snippet = data.snippet;
+    bodyRep.isDownloaded = !snippetOnly;
+    bodyRep.amountDownloaded = bodyContent.length;
+    if (!snippetOnly)
+      bodyRep.content = data.content;
+
+    var event = {
+      changeType: 'bodyReps',
+      indexes: [0]
+    };
+
+    this._storage.updateMessageHeader(header.date, header.id, false, header);
+    this._storage.updateMessageBody(header, bodyInfo, event);
+    this._storage.runAfterDeferredCalls(callback);
   },
 
   sync: lazyConnection(1, function asfc_sync(accuracyStamp, doneCallback,
@@ -2250,7 +2444,21 @@ ActiveSyncJobDriver.prototype = {
   },
 
   //////////////////////////////////////////////////////////////////////////////
-  // download
+  // downloadBodies: Download the bodies from a list of messages
+
+  local_do_downloadBodies: $jobmixins.local_do_downloadBodies,
+
+  do_downloadBodies: $jobmixins.do_downloadBodies,
+
+  //////////////////////////////////////////////////////////////////////////////
+  // downloadBodyReps: Download the bodies from a single message
+
+  local_do_downloadBodyReps: $jobmixins.local_do_downloadBodyReps,
+
+  do_downloadBodyReps: $jobmixins.do_downloadBodyReps,
+
+  //////////////////////////////////////////////////////////////////////////////
+  // download: Download one or more attachments from a single message
 
   local_do_download: $jobmixins.local_do_download,
 
