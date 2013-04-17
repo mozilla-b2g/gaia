@@ -20,6 +20,8 @@ var SimPinDialog = {
   newPinInput: null,
   confirmPinInput: null,
 
+  triesLeftMsg: document.getElementById('triesLeft'),
+
   errorMsg: document.getElementById('errorMsg'),
   errorMsgHeader: document.getElementById('messageHeader'),
   errorMsgBody: document.getElementById('messageBody'),
@@ -100,6 +102,19 @@ var SimPinDialog = {
 
     var cardState = this.mobileConnection.cardState;
     var lockType = this.lockTypeMap[cardState];
+
+    var triesLeft = this.mobileConnection.retryCount ?
+                    this.mobileConnection.retryCount : -1;
+    if (triesLeft !== -1) {
+      this.triesLeftMsg.hidden = false;
+      var l10nArgs = { n: triesLeft };
+      this.triesLeftMsg.textContent = _('attemptMsg', l10nArgs);
+      this.triesLeftMsg.dataset.l10nId = 'attemptMsg';
+      this.errorMsgBody.dataset.l10nArgs = JSON.stringify(l10nArgs);
+    } else {
+      this.triesLeftMsg.hidden = true;
+    }
+
     switch (lockType) {
       case 'pin':
         this.lockType = lockType;
@@ -155,14 +170,15 @@ var SimPinDialog = {
 
   showErrorMsg: function spl_showErrorMsg(retry, type) {
     var _ = navigator.mozL10n.get;
+    var l10nArgs = { n: retry };
+    this.triesLeftMsg.dataset.l10nId = 'attemptMsg';
+    this.triesLeftMsg.dataset.l10nArgs = JSON.stringify(l10nArgs);
+    this.triesLeftMsg.textContent = _('attemptMsg', l10nArgs);
 
     this.errorMsgHeader.textContent = _(type + 'ErrorMsg');
     this.errorMsgHeader.dataset.l10nId = type + 'ErrorMsg';
-
     if (retry !== 1) {
-      var l10nArgs = { n: retry };
       this.errorMsgBody.dataset.l10nId = type + 'AttemptMsg';
-      this.errorMsgBody.dataset.l10nArgs = JSON.stringify(l10nArgs);
       this.errorMsgBody.textContent = _(type + 'AttemptMsg', l10nArgs);
     } else {
       this.errorMsgBody.dataset.l10nId = type + 'LastChanceMsg';
