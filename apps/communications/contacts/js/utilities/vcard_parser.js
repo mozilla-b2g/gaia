@@ -97,8 +97,9 @@ VCFReader.vcardToContact = function(vcard) {
     });
 
     contactObj.name = contactObj.name || nameStruct.join(' ');
-    contactObj.givenName = contactObj.givenName || contactObj.name;
   }
+  contactObj.givenName = contactObj.givenName || contactObj.name;
+
 
   (['org', 'photo', 'title']).forEach(function(field) {
     if (vcard[field]) {

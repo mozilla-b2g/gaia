@@ -55,7 +55,6 @@ if (!utils.sdcard) {
    */
   SdCard.getTextFromFiles = function(fileArray, contents, cb) {
     contents = contents || '';
-    console.log(fileArray.length);
     if (!fileArray || !fileArray.length)
       return cb && cb(null, contents);
 

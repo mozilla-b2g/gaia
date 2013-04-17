@@ -760,7 +760,6 @@ var Contacts = (function() {
       '/dialer/js/telephony_helper.js',
       '/contacts/js/sms_integration.js',
       '/contacts/js/utilities/sdcard.js',
-      '/contacts/js/utilities/future.js',
       '/contacts/js/utilities/vcard_parser.js',
       '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/normalizer.js',

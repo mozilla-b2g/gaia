@@ -37,7 +37,8 @@ var SdManager = {
       if (err)
         return import_error(err);
 
-      utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
+      if (fileArray.length)
+        utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
     });
 
     function onFiles(err, text) {
@@ -45,6 +46,8 @@ var SdManager = {
         return import_error(err);
 
       var importer = new VCFReader(text);
+      if (!text || !importer)
+        return import_error('No contacts were found.');
 
       importer.onread = import_read;
       importer.onimported = imported_contact;
