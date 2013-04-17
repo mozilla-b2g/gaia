@@ -69,6 +69,7 @@ if (DEBUG) {
   prefs.push(["dom.mozAlarms.enabled", true]);
   prefs.push(["device.storage.enabled", true]);
   prefs.push(["device.storage.prompt.testing", true]);
+  prefs.push(["dom.mozPermissionSettings.enabled", true]);
 
 
   // Disable HTTP caching for now
