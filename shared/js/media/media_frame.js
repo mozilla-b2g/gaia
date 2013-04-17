@@ -67,16 +67,12 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
   // Keep track of what kind of content we have
   this.displayingImage = true;
 
-  // Make the image element visible
-  this.image.style.display = 'block';
-
   // If the preview is at least as big as the screen, display that.
   // Otherwise, display the full-size image.
   if (preview && (preview.start || preview.filename)) {
     this.displayingPreview = true;
     if (preview.start) {
-      this.previewblob = blob.slice(preview.start, preview.end, 'image/jpeg');
-      this._displayImage(this.previewblob, preview.width, preview.height);
+      this._displayImage(blob.slice(preview.start, preview.end, 'image/jpeg'));
     }
     else {
       var storage = navigator.getDeviceStorage('pictures');
@@ -84,23 +80,22 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
       var self = this;
       getreq.onsuccess = function() {
         self.previewblob = getreq.result;
-        self._displayImage(self.previewblob, preview.width, preview.height);
+        self._displayImage(self.previewblob);
       };
       getreq.onerror = function() {
         self.displayingPreview = false;
         self.preview = null;
-        self._displayImage(blob, width, height);
+        self._displayImage(blob);
       };
     }
   }
   else {
-    this._displayImage(blob, width, height);
+    this._displayImage(blob);
   }
 };
 
 // A utility function we use to display the full-size image or the preview.
-MediaFrame.prototype._displayImage = function _displayImage(blob, width, height)
-{
+MediaFrame.prototype._displayImage = function _displayImage(blob) {
   var self = this;
 
   // Create a URL for the blob (or preview blob)
@@ -108,28 +103,20 @@ MediaFrame.prototype._displayImage = function _displayImage(blob, width, height)
     URL.revokeObjectURL(this.url);
   this.url = URL.createObjectURL(blob);
 
-  // If we don't know the width or the height yet, then set up an event
-  // handler to set the image size and position once it is loaded.
-  // This happens for the open activity.
-  if (!width || !height) {
-    this.image.src = this.url;
-    this.image.addEventListener('load', function onload() {
-      this.removeEventListener('load', onload);
-      self.itemWidth = this.width = this.naturalWidth;
-      self.itemHeight = this.height = this.naturalHeight;
-      self.computeFit();
-      self.setPosition();
-    });
-    return;
-  }
+  var preload = new Image();
 
-  // Start loading the new image
-  this.image.src = this.url;
-  // Update image size and position
-  this.itemWidth = width;
-  this.itemHeight = height;
-  this.computeFit();
-  this.setPosition();
+  preload.addEventListener('load', function onload() {
+    preload.removeEventListener('load', onload);
+
+    self.image.src = preload.src;
+    self.itemWidth = preload.width;
+    self.itemHeight = preload.height;
+    self.computeFit();
+    self.setPosition();
+    self.image.style.display = 'block';
+  });
+
+  preload.src = this.url;
 };
 
 MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
@@ -391,8 +378,8 @@ MediaFrame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
 
   // After zooming, these are the new photo coordinates.
   // Note we just use the relative scale amount here, not this.fit.scale
-  var photoX = Math.floor(photoX * scale);
-  var photoY = Math.floor(photoY * scale);
+  photoX = Math.floor(photoX * scale);
+  photoY = Math.floor(photoY * scale);
 
   // To keep that point still, here are the new left and top values we need
   this.fit.left = centerX - photoX;
@@ -438,7 +425,7 @@ MediaFrame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
     if (this.oldimage)
       this.oldimage.style.transition = transition;
     var self = this;
-    this.image.addEventListener('transitionend', function done(e) {
+    this.image.addEventListener('transitionend', function done() {
       self.image.removeEventListener('transitionend', done);
       self.image.style.transition = null;
     });
