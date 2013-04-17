@@ -351,22 +351,9 @@
                 <div class="cmp-bcc-add cmp-contact-add"></div>
               </div>
             </div>
-            <div class="cmp-envelope-line cmp-combo">
-              <span class="cmp-attachment-label cmp-addr-label"
-                     data-l10n-id="compose-attachments[zero]">AttachmentS:</span>
-              <div class="cmp-attachment-container cmp-addr-container">
-                <div class="cmp-attachments-size">
-                </div>
-                <!-- commenting instead of removing to make the life of future
-                uplifters easier by providing more context: we don't want this
-                in v1.0.1 -->
-                <!--
-                <div class="cmp-attachment-add cmp-file-add"></div>
-                -->
-              </div>
-            </div>
-            <ul class="cmp-attachments-container">
-            </ul>
+            <!-- v1.0.1 can only handle a single attachment.
+            v1.1 uses a list for cmp-attachments-container -->
+            <div class="cmp-attachments-container"></div>
             <div class="cmp-envelope-line cmp-subject">
               <span class="cmp-subject-label"
                      data-l10n-id="compose-subject">SubjecT:</span>
@@ -1062,12 +1049,12 @@
           <button id="cmp-send-failed-ok" class="recommend" data-l10n-id="dialog-button-ok">OK</button>
         </menu>
       </form>
-      <li class="cmp-attachment-item">
+      <div class="cmp-attachment-item">
         <span class="cmp-attachment-icon"></span>
         <span class="cmp-attachment-filename"></span>
         <span class="cmp-attachment-filesize"></span>
         <button class="cmp-attachment-remove">X</span>
-      </li>
+      </div>
       <form role="dialog" data-type="confirm" class="cmp-sending-container">
         <section class="cmp-messages-sending">
           <h1 data-l10n-id="compose-sending-message">Sending messagE</h1>

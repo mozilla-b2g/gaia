@@ -375,7 +375,8 @@ ComposeCard.prototype = {
                               this, attachmentNode, attachment));
       }
 
-      this.updateAttachmentsSize();
+      // Only one attachment for v1.0.1 so we should't update header information
+      // this.updateAttachmentsSize();
 
       attachmentsContainer.classList.remove('collapsed');
     }
@@ -418,7 +419,8 @@ ComposeCard.prototype = {
     node.parentNode.removeChild(node);
     this.composer.removeAttachment(attachment);
 
-    this.updateAttachmentsSize();
+    // Only one attachment for v1.0.1 so we should't update header information
+    // this.updateAttachmentsSize();
   },
 
   /**
