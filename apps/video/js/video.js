@@ -60,6 +60,8 @@ var storageState;
 var currentOverlay;
 
 var dragging = false;
+// ignore timeUpdated during capture the thumbnail
+var seekedToCaptureFrame = false;
 
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /^DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
@@ -603,7 +605,6 @@ function metaDataParser(videofile, callback, metadataError, delayed) {
 }
 
 function captureFrame(player, metadata, callback) {
-  var skipped = false;
   var image = null;
   function doneSeeking() {
     player.onseeked = null;
@@ -638,8 +639,9 @@ function captureFrame(player, metadata, callback) {
     } catch (e) {
       console.error('Failed to create a poster image:', e);
     }
-    if (skipped) {
+    if (seekedToCaptureFrame) {
       player.currentTime = 0;
+      seekedToCaptureFrame = false;
     }
     callback(image);
   }
@@ -647,8 +649,8 @@ function captureFrame(player, metadata, callback) {
   // If we are on the first frame, lets skip into the video since some
   // videos just start with a black screen
   if (player.currentTime === 0) {
+    seekedToCaptureFrame = true;
     player.currentTime = Math.floor(player.duration / 4);
-    skipped = true;
   }
 
   if (player.seeking) {
@@ -978,7 +980,10 @@ function timeUpdated() {
     // We can't update a progress bar if we don't know how long
     // the video is. It is kind of a bug that the <video> element
     // can't figure this out for ogv videos.
-    if (dom.player.duration === Infinity || dom.player.duration === 0) {
+    //
+    // check seekedToCaptureFrame to ignore update while CaptureFrame
+    if (dom.player.duration === Infinity || dom.player.duration === 0 ||
+      seekedToCaptureFrame) {
       return;
     }
 
