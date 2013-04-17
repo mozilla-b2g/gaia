@@ -169,7 +169,12 @@ VCFReader.parseSingleEntry = function(input) {
   }
 
   var fields = {};
-  input.split(/\r\n|\r|\n/).forEach(function(line) {
+  // When a line starts with a whitespace it means it is a continuation of the
+  // previous line. We join them here.
+  input = input.replace(/(\r\n|\r|\n)[^\S\n\r]+/g, '');
+
+  var lines = input.split(/\r\n|\r|\n/);
+  lines.forEach(function(line) {
     var results, key;
 
     if (VCFReader.Re1.test(line)) {
