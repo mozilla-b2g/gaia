@@ -4,7 +4,7 @@ Calendar.ns('Utils').URI = (function() {
     /**
      * Get the port of the url.
      * @param {string} url full url.
-     * @return {number|null} port number, null if none found.
+     * @return {?number} port number, null if none found.
      */
     getPort: function(url) {
       var parts = url.split(':');
@@ -28,7 +28,7 @@ Calendar.ns('Utils').URI = (function() {
     /**
      * Get the scheme of the url. Note that this only detects http and https.
      * @param {string} url full url.
-     * @return {string|null} uri scheme (ie http), null if none found.
+     * @return {?string} uri scheme (ie http), null if none found.
      */
     getScheme: function(url) {
       var parts = url.split(':');

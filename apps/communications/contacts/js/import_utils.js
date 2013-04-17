@@ -18,15 +18,15 @@
 
   importUtils.getPreferredPictureBox = function() {
     var out = {
-      width: scale(IMG_THUMB_SIZE),
-    }
+      width: scale(IMG_THUMB_SIZE)
+    };
 
     out.height = out.width;
 
     return out;
-  }
+  };
 
   importUtils.getPreferredPictureDetail = function() {
     return scale(IMG_DETAIL_WIDTH);
-  }
+  };
 })();
