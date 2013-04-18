@@ -67,8 +67,10 @@ var MessageManager = {
 
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
+    if (message.messageClass === 'class-0') {
+      return;
+    }
 
-    var sender = message.sender;
     var threadId = message.threadId;
     if (threadId && threadId === this.currentThread) {
       //Append message and mark as unread
