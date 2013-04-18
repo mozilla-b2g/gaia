@@ -31,6 +31,11 @@ section[role="region"] > header:first-child form {
 form.bottom[role="search"] {
   z-index: 3;
 }
+/* recipient search results must appear over the input message form */
+#messages-recipient-results {
+  position: absolute;
+  z-index: 4;
+}
 
 #messages-recipient {
   padding-right: 3rem;
@@ -267,17 +272,17 @@ section[role="region"].new > header:first-child form {
   Messages Style as 'bubbles'
 */
 
-#messages-container {
+.article-list  {
   -moz-box-sizing: border-box;
   background: none repeat scroll 0 0 #F4F4F4;
   text-align: left;
 }
 
-#messages-container header:first-child {
+.article-list header:first-child {
   margin-top: 2rem;
 }
 
-#messages-container header {
+.article-list header {
   border-bottom: 0.1rem solid #A6A6A6;
   color: #606060;
   font-size: 1.3rem;
@@ -287,11 +292,11 @@ section[role="region"].new > header:first-child form {
   text-transform: uppercase;
 }
 
-#messages-container[data-type="list"] > ul:last-child {
+.article-list[data-type="list"] > ul:last-child {
   margin-bottom: 7rem;
 }
 
-#messages-container[data-type="list"] li.bubble {
+.article-list[data-type="list"] li.bubble {
   border-bottom: 0.1rem solid transparent;
   display: block;
   overflow: hidden;
@@ -302,23 +307,23 @@ section[role="region"].new > header:first-child form {
   height: auto;
 }
 
-#messages-container[data-type="list"] li.hidden {
+.article-list[data-type="list"] li.hidden {
   display: none;
 }
 
-#messages-container[data-type="list"] header.hidden {
+.article-list[data-type="list"] header.hidden {
   display: none;
 }
 
-#messages-container[data-type="list"] li.bubble:first-child {
+.article-list[data-type="list"] li.bubble:first-child {
   padding: 0 0 0.5rem 0;
 }
 
-#messages-container[data-type="list"] li.bubble a {
+.article-list[data-type="list"] li.bubble a {
   height: 100%;
 }
 
-#messages-container[data-type="list"] li.bubble p {
+.article-list[data-type="list"] li.bubble p {
   text-align: right;
   overflow: visible;
   white-space: normal;
@@ -336,7 +341,7 @@ section[role="region"].new > header:first-child form {
   float: right;
 }
 
-#messages-container[data-type="list"] li.bubble p:after {
+.article-list[data-type="list"] li.bubble p:after {
   content: '';
   width: 1.1rem;
   height: 1rem;
@@ -348,7 +353,7 @@ section[role="region"].new > header:first-child form {
   top: 1rem;
 }
 
-#messages-container[data-type="list"] li.bubble .received p {
+.article-list[data-type="list"] li.bubble .received p {
   float: left;
   background: #FBEAE0;
   border: 0.2rem solid #FF4E00;
@@ -356,41 +361,41 @@ section[role="region"].new > header:first-child form {
   float: left;
 }
 
-#messages-container[data-type="list"] li.bubble .received p:after {
+.article-list[data-type="list"] li.bubble .received p:after {
   background-position: 0 0;
   left: -1.1rem;
   margin-top: 0;
 }
 
-#messages-container[data-type="list"] li.bubble .sending p {
+.article-list[data-type="list"] li.bubble .sending p {
   border: 0.2rem solid #5f5f5f;
   color: #5f5f5f;
 }
 
-#messages-container[data-type="list"] li.bubble .sending p:after {
+.article-list[data-type="list"] li.bubble .sending p:after {
   background-position: -3.3rem 0;
   right: -1.1rem;
 }
 
-#messages-container[data-type="list"] li.bubble .error p {
+.article-list[data-type="list"] li.bubble .error p {
   border: 0.2rem solid #B90000;
 }
-#messages-container[data-type="list"] li.bubble .error p:after {
+.article-list[data-type="list"] li.bubble .error p:after {
   background-position: -4.4rem 0;
   right: -1.1rem;
 }
 
-#messages-container[data-type="list"] li.bubble .error aside.pack-end {
+.article-list[data-type="list"] li.bubble .error aside.pack-end {
   background: url('images/icons/exclamation.png') no-repeat center center;
   background-size: 2.2rem;
   width: 3.2rem;
   height: 4.5rem;
 }
-#messages-container[data-type="list"] li.bubble aside progress {
+.article-list[data-type="list"] li.bubble aside progress {
   margin-top: 0.4rem;
 }
 
-#messages-container[data-type="list"] li.bubble aside {
+.article-list[data-type="list"] li.bubble aside {
   overflow: hidden;
 }
 
@@ -398,11 +403,11 @@ section[role="region"].new > header:first-child form {
   Styles for Edit mode in Messages Container
 */
 
-.edit #messages-container[data-type="list"] li {
+.edit .article-list[data-type="list"] li {
   border-color: #e7e7e7;
 }
 
-.edit #messages-container[data-type="list"] li:last-child {
+.edit .article-list[data-type="list"] li:last-child {
   border-color: transparent;
 }
 
@@ -410,24 +415,24 @@ section[role="region"].new > header:first-child form {
   pointer-events: none;
 }
 
-.edit #messages-container[data-type="list"] li p {
+.edit .article-list[data-type="list"] li p {
   transform: translateX(0);
 }
 
-.edit #messages-container[data-type="list"] li .received p {
+.edit .article-list[data-type="list"] li .received p {
   transform: translateX(4rem);
   transition: all 0.3s ease 0s;
 }
 
-.edit #messages-container[data-type="list"] li.selected p {
+.edit .article-list[data-type="list"] li.selected p {
   border: 0.2rem solid #B90000;
 }
 
-.edit #messages-container[data-type="list"] li.selected p:after {
+.edit .article-list[data-type="list"] li.selected p:after {
   background-position: -4.4rem 0;
 }
 
-.edit #messages-container[data-type="list"] li.selected .received p:after {
+.edit .article-list[data-type="list"] li.selected .received p:after {
   background-position: -1.1rem 0;
 }
 

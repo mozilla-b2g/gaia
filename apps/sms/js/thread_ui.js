@@ -13,7 +13,7 @@ var ThreadUI = {
 
     [
       'container',
-      'header-text', 'recipient', 'input', 'compose-form',
+      'header-text', 'recipient', 'recipient-results', 'input', 'compose-form',
       'check-all-button', 'uncheck-all-button',
       'contact-pick-button', 'back-button', 'clear-button', 'send-button',
       'delete-button', 'cancel-button',
@@ -51,6 +51,10 @@ var ThreadUI = {
     );
 
     this.container.addEventListener(
+      'scroll', this.manageScroll.bind(this)
+    );
+
+    this.recipientResults.addEventListener(
       'scroll', this.manageScroll.bind(this)
     );
 
@@ -95,7 +99,7 @@ var ThreadUI = {
 
     this.recipient.addEventListener(
       'input', function() {
-        this.searchContact();
+        this.recipientSearch();
         this.enableSend();
       }.bind(this)
     );
@@ -105,6 +109,12 @@ var ThreadUI = {
       'click', this
     );
     this.container.addEventListener(
+      'contextmenu', this
+    );
+    this.recipientResults.addEventListener(
+      'click', this
+    );
+    this.recipientResults.addEventListener(
       'contextmenu', this
     );
     this.editForm.addEventListener(
@@ -440,7 +450,9 @@ var ThreadUI = {
     this.cleanFields();
     this.checkInputs();
     // Clean list of messages
-    this.container.innerHTML = '';
+    this.container.textContent = '';
+    // Clean list of recipient results
+    this.recipientResults.textContent = '';
     // Update header index
     this.dayHeaderIndex = 0;
     this.timeHeaderIndex = 0;
@@ -631,7 +643,7 @@ var ThreadUI = {
 
   clear: function thui_clear() {
     this.recipient.value = '';
-    this.container.innerHTML = '';
+    this.recipientSearch.discard();
   },
 
   toggleCheckedAll: function thui_select(value) {
@@ -854,7 +866,7 @@ var ThreadUI = {
 
     // Remove only the spinner
     var spinnerContainer = aElement.querySelector('aside');
-    spinnerContainer.innerHTML = '';
+    spinnerContainer.textContent = '';
 
     ThreadUI.addResendHandler(message, messageDOM);
 
@@ -978,27 +990,36 @@ var ThreadUI = {
       }.bind(this));
     }
 
-    ThreadUI.container.appendChild(contactsUl);
-
-    return true;
+    ThreadUI.recipientResults.appendChild(contactsUl);
   },
 
-  searchContact: function thui_searchContact() {
+  recipientSearch: function thui_recipientSearch() {
     var filterValue = this.recipient.value;
 
     if (!filterValue.trim()) {
-      // In cases where searchContact was invoked for "input"
+      // In cases where recipientSearch was invoked for "input"
       // that was actually a "delete" that removed the last
       // character in the recipient input field,
       // eg. type "a", then delete it.
-      // Always remove the the existing results.
-      this.container.innerHTML = '';
+      // Always remove the the existing results and hide
+      // the recipient results container
+      this.recipientSearch.discard();
       return;
     }
 
     Contacts.findByString(filterValue, function gotContact(contacts) {
+      // !contacts matches null results from errors
+      // !contacts.length matches empty arrays from unmatches filters
+      if (!contacts || !contacts.length) {
+        this.recipientSearch.discard();
+        return;
+      }
+
       // There are contacts that match the input.
-      this.container.innerHTML = '';
+      this.recipientResults.textContent = '';
+      this.recipientResults.classList.remove('hide');
+
+      // There are contacts that match the input.
       contacts.forEach(this.renderContact, this);
     }.bind(this));
   },
@@ -1073,6 +1094,11 @@ var ThreadUI = {
       ThreadUI.updateHeaderData();
     }
   }
+};
+
+ThreadUI.recipientSearch.discard = function() {
+  ThreadUI.recipientResults.textContent = '';
+  ThreadUI.recipientResults.classList.add('hide');
 };
 
 window.confirm = window.confirm; // allow override in unit tests

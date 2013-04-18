@@ -169,7 +169,9 @@ var MessageManager = {
             'messages-contact-pick-button'
         );
         contactButton.parentNode.appendChild(contactButton);
-        document.getElementById('messages-container').innerHTML = '';
+        ThreadUI.container.textContent = '';
+        ThreadUI.recipientSearch.discard();
+
         ThreadUI.cleanFields();
         // If the message has a body, use it to popuplate the input field.
         if (MessageManager.activityBody) {
@@ -208,7 +210,9 @@ var MessageManager = {
           });
         } else {
           MessageManager.slide(function() {
-            ThreadUI.container.innerHTML = '';
+            ThreadUI.container.textContent = '';
+            ThreadUI.recipientSearch.discard();
+
             if (MessageManager.activityTarget) {
               window.location.hash =
                 '#num=' + MessageManager.activityTarget;
