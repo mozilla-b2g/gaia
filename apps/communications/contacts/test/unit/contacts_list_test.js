@@ -14,6 +14,7 @@ requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
+requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp(
         'communications/contacts/test/unit/mock_performance_testing_helper.js');
 
@@ -21,6 +22,10 @@ requireApp(
 // so we need to make sure they are defined.
 if (!this.Contacts) {
   this.Contacts = null;
+}
+
+if (!navigator.mozContacts) {
+  navigator.mozContacts = null;
 }
 
 if (!this.contacts) {
@@ -59,7 +64,6 @@ if (!window.asyncScriptsLoaded) {
 }
 
 var URL = null;
-
 
 suite('Render contacts list', function() {
   var subject,
@@ -105,7 +109,8 @@ suite('Render contacts list', function() {
       settings,
       searchSection,
       noContacts,
-      asyncStorage;
+      asyncStorage,
+      realMozContacts;
 
   function assertNoGroup(title, container) {
     assert.isTrue(title.classList.contains('hide'));
@@ -310,6 +315,8 @@ suite('Render contacts list', function() {
     window.URL = MockURL;
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
+    realMozContacts = navigator.mozContacts;
+    navigator.mozContacts = MockMozContacts;
     subject = contacts.List;
 
     realAsyncStorage = window.asyncStorage;
@@ -332,6 +339,46 @@ suite('Render contacts list', function() {
     window.ImageLoader = realActivities;
     window.PerformanceTestingHelper = realPerformanceTestingHelper;
     window.asyncStorage = realAsyncStorage;
+    navigator.mozContacts = realMozContacts;
+  });
+
+  suite('Render contacts with cursors', function() {
+    suiteSetup(function() {
+      window.fb.isEnabled = false;
+    });
+
+    test('get less than 1 chunk contacts', function() {
+      var limit = subject.chunkSize - 1;
+      MockMozContacts.limit = limit;
+      subject.getAllContacts();
+      assert.isTrue(noContacts.classList.contains('hide'));
+      for (var i = 0; i <= limit; i++) {
+        var toCheck = container.innerHTML.contains('givenName ' + i);
+        assert.isTrue(toCheck, 'contains ' + i);
+      }
+    });
+
+    test('get exactly 1 chunk contacts', function() {
+      var limit = subject.chunkSize;
+      MockMozContacts.limit = limit;
+      subject.getAllContacts();
+      assert.isTrue(noContacts.classList.contains('hide'));
+      for (var i = 0; i <= limit; i++) {
+        var toCheck = container.innerHTML.contains('givenName ' + i);
+        assert.isTrue(toCheck, 'contains ' + i);
+      }
+    });
+
+    test('get more than 1 chunk contacts', function() {
+      var limit = subject.chunkSize + 1;
+      MockMozContacts.limit = limit;
+      subject.getAllContacts();
+      assert.isTrue(noContacts.classList.contains('hide'));
+      for (var i = 0; i <= limit; i++) {
+        var toCheck = container.innerHTML.contains('givenName ' + i);
+        assert.isTrue(toCheck, 'contains ' + i);
+      }
+    });
   });
 
   suite('Render list', function() {
