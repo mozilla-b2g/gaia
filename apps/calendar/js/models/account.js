@@ -60,16 +60,28 @@ Calendar.ns('Models').Account = (function() {
     password: '',
 
     /**
-     * Whether or not we have an account creation request in progress.
-     * @type {boolean}
+     * Xhr requests made on behalf of this account.
+     * @type {Array.<Caldav.Xhr>}
      */
-    activeRequest: false,
+    xhrRequests: [],
 
     /**
-     * Callback fired after an account creation transaction completes.
-     * @type {Function}
+     * Whether or not we've cancelled this account.
+     * @type {boolean}
      */
-    callback: null,
+    cancelled: false,
+
+    abort: function() {
+      this.cancelled = true;
+
+      // Cancel any and all xhr requests.
+      for (var i = 0; i < this.xhrRequests.length; i++) {
+        var req = this.xhrRequests[i];
+        if (req !== undefined) {
+          req.abort();
+        }
+      }
+    },
 
     get fullUrl() {
       return this.domain + this.entrypoint;

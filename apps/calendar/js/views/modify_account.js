@@ -134,29 +134,18 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
       window.back();
 
-      // We have to get rid of this data
       var app = this.app;
       var store = app.store('Account');
       var model = this.model;
 
-      if (!model.activeRequest) {
-        if (model._id !== undefined) {
-          store.remove(model._id);
-        }
-
-        return;
+      if (model.xhrRequests.length > 0) {
+        model.abort();
       }
 
-      // Tell the account creation to purge calendar data
-      // once the transaction completes.
-      var previous = model.callback;
-      model.callback = function() {
-        previous.apply(null, arguments);
-
-        // We're guaranteed to have a model._id since the transaction
-        // just completed.
+      if (model._id !== undefined) {
+        // Delete any data from this request.
         store.remove(model._id);
-      };
+      }
     },
 
     save: function() {

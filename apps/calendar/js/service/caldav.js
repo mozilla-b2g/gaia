@@ -109,6 +109,9 @@ Calendar.ns('Service').Caldav = (function() {
       callback({ ready: true });
     },
 
+    /**
+     * @return {Caldav.Xhr} Wrapper around xhr request.
+     */
     getAccount: function(account, callback) {
       var url = account.entrypoint;
       var connection = new Caldav.Connection(account);
@@ -140,6 +143,9 @@ Calendar.ns('Service').Caldav = (function() {
       return result;
     },
 
+    /**
+     * @return {Caldav.Xhr} Wrapper around xhr request.
+     */
     findCalendars: function(account, callback) {
       var self = this;
       var url = account.calendarHome;
@@ -152,7 +158,7 @@ Calendar.ns('Service').Caldav = (function() {
         url
       );
 
-      request.send(function(err, data) {
+      return request.send(function(err, data) {
         if (err) {
           callback(err);
           return;

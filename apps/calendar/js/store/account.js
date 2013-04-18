@@ -11,14 +11,21 @@
 
     _parseId: Calendar.Store.Abstract.prototype.probablyParseInt,
 
-
     verifyAndPersist: function(model, callback) {
-      var self = this;
-      var provider = Calendar.App.provider(
-        model.providerType
-      );
+      if (model.cancelled) {
+        // Don't do anything if we've aborted.
+        return;
+      }
 
-      provider.getAccount(model.toJSON(), function(err, data) {
+      var self = this;
+      var provider = Calendar.App.provider(model.providerType);
+
+      function onAccount(err, data) {
+        if (model.cancelled) {
+          // Don't do anything if we've aborted.
+          return;
+        }
+
         if (err) {
           callback(err);
           return;
@@ -38,7 +45,10 @@
         }
 
         self.persist(model, callback);
-      });
+      }
+
+      var req = provider.getAccount(model.toJSON(), onAccount);
+      model.xhrRequests.push(req);
     },
 
     /**
@@ -70,11 +80,17 @@
      *
      * @param {Calendar.Models.Account} account sync target.
      * @param {Function} callback node style.
+     * @param {Calendar.Models.Account=} model optional account details.
      */
-    sync: function(account, callback) {
+    sync: function(account, callback, model) {
       //TODO: We need to block removal when syncing
       //OR after removal ensure everything created here
       //is purged.
+
+      if (model !== undefined && model.cancelled) {
+        // Don't sync.
+        callback(null);
+      }
 
       var self = this;
       var provider = Calendar.App.provider(account.providerType);
@@ -96,7 +112,10 @@
         calendars = results;
         originalIds = Object.keys(calendars);
 
-        provider.findCalendars(account.toJSON(), persistCalendars);
+        var req = provider.findCalendars(account.toJSON(), persistCalendars);
+        if (model !== undefined) {
+          model.xhrRequests.push(req);
+        }
       }
 
       function persistCalendars(err, remoteCals) {
@@ -165,10 +184,7 @@
         }
       }
 
-      calendarStore.remotesByAccount(
-        account._id,
-        fetchExistingCalendars
-      );
+      calendarStore.remotesByAccount(account._id, fetchExistingCalendars);
     },
 
     _createModel: function(obj, id) {
