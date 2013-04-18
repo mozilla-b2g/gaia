@@ -28,9 +28,9 @@ var Browser = {
   previousScreen: null,
   currentScreen: 'page-screen',
 
-  DEFAULT_SEARCH_PROVIDER_URL: 'm.bing.com',
-  DEFAULT_SEARCH_PROVIDER_TITLE: 'Bing',
-  DEFAULT_SEARCH_PROVIDER_ICON: 'http://bing.com/favicon.ico',
+  DEFAULT_SEARCH_PROVIDER_URL: 'www.google.com',
+  DEFAULT_SEARCH_PROVIDER_TITLE: 'Google',
+  DEFAULT_SEARCH_PROVIDER_ICON: 'http://www.google.com/favicon.ico',
   DEFAULT_FAVICON: 'style/images/favicon.png',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
