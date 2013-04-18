@@ -826,7 +826,6 @@ suite('SMS App Unit-Test', function() {
     });
   });
 
-<<<<<<< HEAD
   suite('Defensive Contact Rendering', function() {
     test('has tel number', function() {
       var contact = new MockContact();
