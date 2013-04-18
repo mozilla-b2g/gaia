@@ -12,9 +12,6 @@ if (!utils.alphaScroll) {
 
     var isScrolling = false;
 
-    var overlayTimeout = 0, scrollToTimeout = 0;
-    var previous = null;
-
     // Callback invoked when scrolling is neded
     var P_SCROLLTO_CB = 'scrollToCb';
     // Element that represents the alpha scroll bar
@@ -30,6 +27,31 @@ if (!utils.alphaScroll) {
 
     var RESET_TRANSITION = '0s';
 
+    var offset = 0, lastY = 0;
+
+    var isTouch = 'ontouchstart' in window;
+    var touchstart = isTouch ? 'touchstart' : 'mousedown';
+    var touchmove = isTouch ? 'touchmove' : 'mousemove';
+    var touchend = isTouch ? 'touchend' : 'mouseup';
+
+    var getY = (function getYWrapper() {
+      return isTouch ? function(e) { return e.touches[0].pageY } :
+                       function(e) { return e.pageY };
+    })();
+
+    var getTarget = (function getTargetWrapper() {
+      if (isTouch) {
+        return function(e) {
+          var touch = e.touches[0];
+          return document.elementFromPoint(touch.pageX, touch.pageY);
+        }
+      } else {
+        return function(e) {
+          return e.target;
+        }
+      }
+    })();
+
     alphaScroll.init = function(params) {
       scrollToCallback = params[P_SCROLLTO_CB];
       jumper = params[P_JUMPER];
@@ -39,10 +61,9 @@ if (!utils.alphaScroll) {
       overlay.textContent = '';
       overlayStyle = overlay.style;
 
-      jumper.addEventListener('mousedown', scrollStart);
-      jumper.addEventListener('mousemove', scrollTo);
-      jumper.addEventListener('mouseleave', scrollEnd);
-      jumper.addEventListener('mouseup', scrollEnd);
+      jumper.addEventListener(touchstart, scrollStart);
+      jumper.addEventListener(touchmove, scrollTo);
+      jumper.addEventListener(touchend, scrollEnd);
 
       var alphabet = [];
       for (var i = 65; i <= 90; i++) {
@@ -55,6 +76,9 @@ if (!utils.alphaScroll) {
     };
 
     function scrollStart(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      offset = offset || jumper.querySelector('[data-anchor]').offsetHeight;
       overlayStyle.MozTransitionDelay = RESET_TRANSITION;
       overlayStyle.MozTransitionDuration = RESET_TRANSITION;
       overlayStyle.opacity = '1';
@@ -68,13 +92,11 @@ if (!utils.alphaScroll) {
       overlayStyle.MozTransitionDelay = TRANSITION_DELAY;
       overlayStyle.MozTransitionDuration = TRANSITION_DURATION;
       overlayStyle.opacity = '0';
-      overlay.textContent = previous = null;
+      overlay.textContent = null;
       isScrolling = false;
     }
 
     function scrollTo(evt) {
-      var current, querySelector, domTarget, anch;
-
       evt.preventDefault();
       evt.stopPropagation();
 
@@ -82,34 +104,32 @@ if (!utils.alphaScroll) {
         return;
       }
 
-      current = evt.target.dataset;
-
-      if (previous === current) {
+      var currentY = getY(evt);
+      if (Math.abs(lastY - currentY) < offset) {
         return;
       }
 
+      lastY = currentY;
+
+      var dataset = getTarget(evt).dataset;
+
       // Render
-      if (evt.target.dataset.letter) {
-        overlay.textContent = evt.target.dataset.letter;
-      } else if (evt.target.dataset.img) {
+      if (dataset.letter) {
+        overlay.textContent = dataset.letter;
+      } else if (dataset.img) {
         overlay.textContent = '';
         var img = new Image();
-        img.src = 'style/images/' + evt.target.dataset.img;
+        img.src = 'style/images/' + dataset.img;
         overlay.appendChild(img);
-      } else {
-        overlay.textContent = '';
       }
 
-      anch = current.anchor;
-      var selector = ((anch == 'group-#') ? 'group-und' : anch);
-      querySelector = '#' + selector;
-      domTarget = doc.querySelector(querySelector);
+      var anch = dataset.anchor;
+      var selector = anch === 'group-#' ? 'group-und' : anch;
+      var domTarget = doc.querySelector('#' + selector);
       if (!domTarget)
         return;
 
-      previous = current;
-      var group = selector.replace('group-', '');
-      scrollToCallback(domTarget, group);
+      scrollToCallback(domTarget, selector.replace('group-', ''));
     }
 
     // Cache images refered in 'data-img'es
