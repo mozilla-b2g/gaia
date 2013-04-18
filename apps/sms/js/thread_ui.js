@@ -393,11 +393,13 @@ var ThreadUI = {
   },
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData(callback) {
+
     // For Desktop Testing, mozContacts it's mockuped but it's not working
     // completely. So in the case of Desktop testing we are going to execute
     // the callback directly in order to make it works!
     // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
     if (!navigator.mozSms && callback) {
+      this.headerText.textContent = MessageManager.currentNum;
       setTimeout(callback);
       return;
     }
@@ -410,7 +412,7 @@ var ThreadUI = {
     // Add data to contact activity interaction
     this.headerText.dataset.phoneNumber = number;
 
-    Contacts.findByString(number, function gotContact(contacts) {
+    Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
       /** If we have more than one contact sharing the same phone number
        *  we show the name of the first contact and how many other contacts

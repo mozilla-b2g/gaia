@@ -193,6 +193,13 @@ suite('SMS App Unit-Test', function() {
       }
     };
 
+    Contacts.findByPhoneNumber = function(tel, callback) {
+      // Get the contact
+      if (tel === '1977') {
+        callback(MockContact.list());
+      }
+    };
+
     // Create DOM structure
     createDOM();
 
@@ -634,6 +641,92 @@ suite('SMS App Unit-Test', function() {
       var contact = new MockContact();
       contact.tel = null;
       assert.isFalse(ThreadUI.renderContact(contact));
+    });
+  });
+
+  suite('Sending SMS from new screen', function() {
+    test('Sending to contact should put in right thread', function(done) {
+      var mock = [
+          {
+            id: 111,
+            name: ['Pietje'],
+            tel: [{
+              value: '0624710190',
+              type: 'Mobile'
+            }]
+          }
+        ];
+      Contacts.findByString = stub(function(str, callback) {
+        callback(mock);
+      });
+      Contacts.findByPhoneNumber = stub(function(str, callback) {
+        callback(mock);
+      });
+
+      MessageManager.onHashChange = stub();
+      MessageManager.send = stub();
+
+      window.location.hash = '#new';
+      ThreadUI.recipient = {
+        value: '0624710190'
+      };
+      ThreadUI.input.value = 'Jo quiro';
+      ThreadUI.sendMessage();
+
+      setTimeout(function() {
+        assert.equal(Contacts.findByString.callCount, 0);
+        assert.equal(Contacts.findByPhoneNumber.callCount, 1);
+        assert.equal(MessageManager.send.callCount, 1);
+        assert.equal(MessageManager.send.calledWith[0], '0624710190');
+        assert.equal(MessageManager.send.calledWith[1], 'Jo quiro');
+
+        assert.equal(ThreadUI.headerText.textContent, 'Pietje');
+        assert.equal(ThreadUI.headerText.dataset.isContact, 'true');
+
+        done();
+      }, 30);
+    });
+
+    test('Sending to short nr should not link to contact', function(done) {
+      // findByString does a substring find
+      Contacts.findByString = stub(function(str, callback) {
+        callback([
+          {
+            id: 111,
+            name: ['Pietje'],
+            tel: [{
+              value: '0624710190',
+              type: 'Mobile'
+            }]
+          }
+        ]);
+      });
+      Contacts.findByPhoneNumber = stub(function(str, callback) {
+        callback([]);
+      });
+
+      MessageManager.onHashChange = stub();
+      MessageManager.send = stub();
+
+      window.location.hash = '#new';
+      ThreadUI.recipient = {
+        value: '2471'
+      };
+      ThreadUI.input.value = 'Short';
+      ThreadUI.sendMessage();
+
+      setTimeout(function() {
+        assert.equal(Contacts.findByString.callCount, 0);
+        assert.equal(Contacts.findByPhoneNumber.callCount, 1);
+        assert.equal(MessageManager.send.callCount, 1);
+        assert.equal(MessageManager.send.calledWith[0], '2471');
+        assert.equal(MessageManager.send.calledWith[1], 'Short');
+
+        assert.equal(ThreadUI.headerText.textContent, '2471');
+        assert.equal(ThreadUI.headerText.dataset.isContact, undefined);
+
+        done();
+      }, 30);
     });
   });
 });
