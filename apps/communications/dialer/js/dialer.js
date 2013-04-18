@@ -236,8 +236,8 @@ var CallHandler = (function callHandler() {
 
   /* === Calls === */
   function call(number) {
-    if (UssdManager.isUSSD(number)) {
-      UssdManager.send(number);
+    if (MmiManager.isMMI(number)) {
+      MmiManager.send(number);
       // Clearing the code from the dialer screen gives the user immediate
       // feedback.
       KeypadManager.updatePhoneNumber('', 'begin', true);
@@ -338,19 +338,33 @@ var CallHandler = (function callHandler() {
     callScreenWindowLoaded = false;
   }
 
-  /* === USSD === */
-  function init() {
+  /* === MMI === */
+  function initMMI() {
     loader.load(['/shared/js/mobile_operator.js',
-                 '/dialer/js/ussd.js'], function() {
+                 '/dialer/js/mmi.js',
+                 '/dialer/js/mmi_ui.js',
+                 '/shared/style/headers.css',
+                 '/shared/style/input_areas.css',
+                 '/shared/style_unstable/progress_activity.css',
+                 '/dialer/style/mmi.css'], function() {
       if (window.navigator.mozSetMessageHandler) {
-        window.navigator.mozSetMessageHandler('ussd-received',
-            UssdManager.openUI.bind(UssdManager));
+        window.navigator.mozSetMessageHandler('ussd-received', function(evt) {
+          if (document.hidden) {
+            var request = window.navigator.mozApps.getSelf();
+            request.onsuccess = function() {
+              request.result.launch('dialer');
+            };
+          }
+
+          MmiManager.handleMMIReceived(evt.message, evt.sessionEnded);
+        });
       }
+
     });
   }
 
   return {
-    init: init,
+    initMMI: initMMI,
     call: call
   };
 })();
@@ -474,7 +488,7 @@ window.addEventListener('load', function startup(evt) {
       parent.removeChild(delayed);
     });
 
-    CallHandler.init();
+    CallHandler.initMMI();
 
     // Load delayed scripts
     loader.load(['/contacts/js/fb/fb_data.js',

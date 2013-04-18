@@ -1,6 +1,6 @@
 'use strict';
 
-var UssdUI = {
+var MmiUI = {
 
   COMMS_APP_ORIGIN: document.location.protocol + '//' +
     document.location.host,
@@ -14,7 +14,12 @@ var UssdUI = {
 
   get closeNode() {
     delete this.closeNode;
-    return this.closeNode = document.getElementById('close');
+    return this.closeNode = document.getElementById('mmi-close');
+  },
+
+  get cancelNode() {
+    delete this.cancelNode;
+    return this.cancelNode = document.getElementById('cancel');
   },
 
   get sendNode() {
@@ -38,21 +43,24 @@ var UssdUI = {
       document.getElementById('response-text-reset');
   },
 
-  get messageScreen() {
-    delete this.messageScreen;
-    return this.messageScreen = document.getElementById('message-screen');
+  get mmiScreen() {
+    delete this.mmiScreen;
+    return this.mmiScreen = document.getElementById('mmi-screen');
   },
 
-  init: function uui_init() {
-    if (window.location.hash != '#send') {
-      this.hideLoading();
-    }
+  get loadingOverlay() {
+    delete this.loadingOverlay;
+    return this.loadingOverlay = document.getElementById('loading-overlay');
+  },
+
+  init: function mui_init() {
     LazyL10n.get((function localized(_) {
       window.addEventListener('message', this);
-      window.dispatchEvent(new CustomEvent('ready'));
+
       this._ = _;
-      this.updateHeader(window.name);
+
       this.closeNode.addEventListener('click', this.closeWindow.bind(this));
+      this.cancelNode.addEventListener('click', this.cancel.bind(this));
       this.sendNode.addEventListener('click', this.reply.bind(this));
       this.responseTextResetNode.addEventListener('click',
         this.resetResponse.bind(this));
@@ -61,59 +69,72 @@ var UssdUI = {
     }).bind(this));
   },
 
-  closeWindow: function uui_closeWindow() {
-    window.opener.postMessage({
-      type: 'close'
-    }, this.COMMS_APP_ORIGIN);
-
-    window.close();
+  showWindow: function mui_showWindow() {
+    this.mmiScreen.hidden = false;
   },
 
-  showMessage: function uui_showMessage(message) {
+  closeWindow: function mui_closeWindow() {
+    window.postMessage({
+      type: 'mmi-cancel'
+    }, this.COMMS_APP_ORIGIN);
+    this.mmiScreen.hidden = true;
+  },
+
+  cancel: function mui_cancel() {
+    this.hideLoading();
+    this.closeWindow();
+  },
+
+  showMessage: function mui_showMessage(message) {
+    this.showWindow();
     this.hideLoading();
     this.responseTextNode.removeAttribute('disabled');
     this.messageNode.textContent = message;
   },
 
-  showLoading: function uui_showLoading() {
-    document.body.classList.add('loading');
+  showLoading: function mui_showLoading() {
+    this.loadingOverlay.classList.remove('hide');
+    this.loadingOverlay.classList.remove('fadeOut');
+    this.loadingOverlay.classList.add('fadeIn');
     this.responseTextNode.setAttribute('disabled', 'disabled');
     this.sendNode.setAttribute('disabled', 'disabled');
   },
 
-  hideLoading: function uui_hideLoading() {
-    document.body.classList.remove('loading');
+  hideLoading: function mui_hideLoading() {
+    this.loadingOverlay.classList.remove('fadeIn');
+    this.loadingOverlay.classList.add('fadeOut');
+    this.loadingOverlay.classList.add('hide');
   },
 
-  showResponseForm: function uui_showForm() {
-    this.messageScreen.classList.add('responseForm');
+  showResponseForm: function mui_showForm() {
+    this.mmiScreen.classList.add('responseForm');
   },
 
-  hideResponseForm: function uui_hideForm() {
-    this.messageScreen.classList.remove('responseForm');
+  hideResponseForm: function mui_hideForm() {
+    this.mmiScreen.classList.remove('responseForm');
   },
 
-  resetResponse: function uui_resetResponse() {
+  resetResponse: function mui_resetResponse() {
     this.responseTextNode.value = '';
     this.sendNode.setAttribute('disabled', 'disabled');
   },
 
-  responseUpdated: function uui_responseUpdated() {
+  responseUpdated: function mui_responseUpdated() {
     this.sendNode.disabled =
       (this.responseTextNode.value.length <= 0);
   },
 
-  reply: function uui_reply() {
+  reply: function mui_reply() {
     this.showLoading();
     var response = this.responseTextNode.value;
-    window.opener.postMessage({
-      type: 'reply',
+    window.postMessage({
+      type: 'mmi-reply',
       message: response
     }, this.COMMS_APP_ORIGIN);
     this.resetResponse();
   },
 
-  updateHeader: function uui_updateHeader(operator) {
+  updateHeader: function mui_updateHeader(operator) {
     this.headerTitleNode.textContent =
       this._('ussd-services', {
         operator: operator !== 'Unknown' ? operator : this._('USSD')
@@ -127,16 +148,16 @@ var UssdUI = {
     }
 
     switch (evt.data.type) {
-      case 'success':
+      case 'mmi-success':
         this.hideResponseForm();
         this.showMessage(evt.data.result ?
           evt.data.result : this._('mmi-successfully-sent'));
         break;
-      case 'error':
+      case 'mmi-error':
         this.showMessage(evt.data.error ?
           evt.data.error : this._('mmi-error'));
         break;
-      case 'ussdreceived':
+      case 'mmi-received-ui':
         if (evt.data.sessionEnded) {
           this.hideResponseForm();
           if (evt.data.message == null) {
@@ -147,18 +168,14 @@ var UssdUI = {
         }
         this.showMessage(evt.data.message);
         break;
-      case 'voicechange':
+      case 'mmi-networkchange':
         this.updateHeader(evt.data.operator);
         break;
-      case 'close':
-        this.closeWindow();
+      case 'mmi-loading':
+        this.showLoading();
         break;
     }
   }
 };
 
-window.addEventListener('load', function usui_startup(evt) {
-  window.removeEventListener('load', usui_startup);
-  UssdUI.init();
-});
-
+MmiUI.init();

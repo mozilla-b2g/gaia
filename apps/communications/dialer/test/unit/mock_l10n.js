@@ -14,9 +14,11 @@ var MockMozL10n = {
 };
 
 var MockLazyL10n = {
+  keys: {},
   get: function get(callback) {
     if (callback) {
-      callback(function _(key) {
+      callback(function _(key, params) {
+        MockLazyL10n.keys[key] = params;
         return key;
       });
     }
