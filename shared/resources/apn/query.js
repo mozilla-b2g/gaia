@@ -260,8 +260,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
 
   function update() {
     var selection = document.getElementById('selection');
-    var mcc = document.querySelector('input[name=mcc]');
-    var mnc = document.querySelector('input[name=mnc]');
+    var mcc = document.querySelector('input[name=mcc]').value;
+    var mnc = document.querySelector('input[name=mnc]').value;
     var res = gAPN[mcc] ? (gAPN[mcc][mnc] || []) : [];
     selection.textContent = JSON.stringify(res, true, 2);
 
