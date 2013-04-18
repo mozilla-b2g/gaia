@@ -331,6 +331,8 @@ MessageListCard.prototype = {
   },
 
   onShowFolders: function() {
+    //Showing path to /folders/ to adjust Message box header
+    document.body.dataset.path = "/folders/";
     Cards.moveToCard(['folder-picker', 'navigation']);
   },
 
