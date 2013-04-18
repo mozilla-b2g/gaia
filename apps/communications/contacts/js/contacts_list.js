@@ -265,7 +265,7 @@ contacts.List = (function() {
     contactsCache[contact.id] = {
       contact: contact,
       container: contactContainer,
-      nameElement: contactContainer
+      nameElement: contactContainer.firstElementChild
     };
     renderOrg(contact, contactContainer, true);
 
