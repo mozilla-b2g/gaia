@@ -19,7 +19,7 @@ html {
 }
 
 body {
-  background: url(images/app/ui/pattern.png) repeat left top;
+  background: url('/shared/resources/branding/splash_screen_generic.png') 0 0 no-repeat;
 }
 
 form {
@@ -50,6 +50,16 @@ input.error {
   bottom: 0;
   z-index: 10;
   overflow: hidden;
+}
+
+.window {
+  opacity: 1.0;
+  background: url(images/app/ui/pattern.png) repeat left top;
+  transition: opacity ease 0.2s;
+}
+
+.window.non-ready {
+  opacity: 0.0;
 }
 
 .view {
