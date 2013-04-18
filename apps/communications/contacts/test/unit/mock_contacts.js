@@ -37,5 +37,6 @@ var MockContactsApp = {
   },
   loadFacebook: function(cb) {
     cb();
-  }
+  },
+  asyncScriptsLoaded: true
 };

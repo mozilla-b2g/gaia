@@ -633,11 +633,10 @@ contacts.List = (function() {
       cursor.onsuccess = function onsuccess(evt) {
         var contact = evt.target.result;
         if (contact) {
+          chunk.push(contact);
           if (num && (num % CHUNK_SIZE == 0)) {
             successCb(chunk);
             chunk = [];
-          } else {
-            chunk.push(contact);
           }
           num++;
           cursor.continue();
@@ -908,6 +907,9 @@ contacts.List = (function() {
     'renderPhoto': renderPhoto,
     'renderFbData': renderFbData,
     'getHighlightedName': getHighlightedName,
+    get chunkSize() {
+      return CHUNK_SIZE;
+    },
     // The purpose of this method is only for unit tests
     'resetSearch': function resetSearch() {
       searchLoaded = false;
