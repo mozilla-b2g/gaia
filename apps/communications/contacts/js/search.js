@@ -65,7 +65,8 @@ contacts.Search = (function() {
     initialized = true;
     searchBox = document.getElementById('search-contact');
     var resetButton = searchBox.nextElementSibling;
-    resetButton.addEventListener('mousedown', function() {
+    resetButton.addEventListener('ontouchstart' in window ? 'touchstart' :
+                                 'mousedown', function() {
       searchBox.value = '';
       searchBox.focus();
       resetState();
