@@ -169,9 +169,8 @@ var MessageManager = {
             'messages-contact-pick-button'
         );
         contactButton.parentNode.appendChild(contactButton);
-        ThreadUI.container.innerHTML = '';
-        ThreadUI.recipientResults.innerHTML = '';
-        ThreadUI.recipientResults.classList.add('hide');
+        ThreadUI.container.textContent = '';
+        ThreadUI.recipientSearch.discard();
 
         ThreadUI.cleanFields();
         // If the message has a body, use it to popuplate the input field.
@@ -211,9 +210,8 @@ var MessageManager = {
           });
         } else {
           MessageManager.slide(function() {
-            ThreadUI.container.innerHTML = '';
-            ThreadUI.recipientResults.innerHTML = '';
-            ThreadUI.recipientResults.classList.add('hide');
+            ThreadUI.container.textContent = '';
+            ThreadUI.recipientSearch.discard();
 
             if (MessageManager.activityTarget) {
               window.location.hash =

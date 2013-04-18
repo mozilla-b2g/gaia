@@ -962,7 +962,7 @@ suite('SMS App Unit-Test', function() {
       // textContent should not be cleared and container not hidden.
       ThreadUI.recipientResults.textContent = 'hello';
       ThreadUI.recipient.value = 'foo';
-      ThreadUI.searchContact();
+      ThreadUI.recipientSearch();
     });
 
     test('no value, is cleared and hidden', function(done) {
@@ -970,14 +970,29 @@ suite('SMS App Unit-Test', function() {
       // textContent should be cleared.
       ThreadUI.recipientResults.textContent = 'hello';
       ThreadUI.recipient.value = '';
-      ThreadUI.searchContact();
+      ThreadUI.recipientSearch();
 
-      // ThreadUI.searchContact is optimized to avoid calling
+      // ThreadUI.recipientSearch is optimized to avoid calling
       // Contacts.findByString if there is no value to search for;
       // check the state of recipientResults immediately.
       assert.equal(ThreadUI.recipientResults.textContent, '');
       assert.isTrue(ThreadUI.recipientResults.classList.contains('hide'));
       done();
+    });
+
+    test('ThreadUI.recipientSearch.discard', function() {
+      ThreadUI.recipientResults.classList.remove('hide');
+      ThreadUI.recipientResults.textContent = 'hello';
+      ThreadUI.recipient.value = 'foo';
+
+      ThreadUI.recipientSearch.discard();
+
+      assert.isTrue(
+        ThreadUI.recipientResults.classList.contains('hide')
+      );
+      assert.equal(
+        ThreadUI.recipientResults.textContent, ''
+      );
     });
   });
 });
