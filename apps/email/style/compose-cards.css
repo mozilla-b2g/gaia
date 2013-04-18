@@ -15,7 +15,7 @@
   content: ':';
 }
 
-.cmp-addr-container, .cmp-subject-text {
+.cmp-addr-container, input.cmp-subject-text {
   display: table-cell;
   width: -moz-available;
 }
@@ -97,12 +97,13 @@ input.cmp-subject-text {
 
 /* Attachment */
 .cmp-attachments-container {
-  padding: 0 1rem;
+  position: relative;
+  margin: 0 2rem;
+  padding: 0.4rem 0;
   font-size: 1.2rem;
   line-height: 4rem;
 }
 .cmp-attachment-item {
-  list-style-type: none;
   height: 4rem;
 }
 .cmp-attachment-icon {
