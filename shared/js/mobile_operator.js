@@ -11,7 +11,7 @@ var MobileOperator = {
 
     if (iccInfo.isDisplaySpnRequired && iccInfo.spn &&
         !mobileConnection.voice.roaming) {
-      if (iccInfo.isDisplayNetworkNameRequired) {
+      if (iccInfo.isDisplayNetworkNameRequired && operator !== iccInfo.spn) {
         operator = operator + ' ' + iccInfo.spn;
       } else {
         operator = iccInfo.spn;
