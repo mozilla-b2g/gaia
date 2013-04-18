@@ -242,7 +242,7 @@ var SleepMenu = {
       div.appendChild(elem);
       div.className = 'step1';
 
-      if (elem.tagName == 'VIDEO' && !elem.ended) {
+      if (elem.tagName.toLowerCase() == 'video' && !elem.ended) {
         elem.onended = function() {
           elem.classList.add('hide');
           // XXX workaround of bug 831747
@@ -254,11 +254,13 @@ var SleepMenu = {
       } else {
         div.addEventListener('animationend', function() {
           elem.classList.add('hide');
-          // XXX workaround of bug 831747
-          // Unload the video. This releases the video decoding hardware
-          // so other apps can use it.
-          elem.removeAttribute('src');
-          elem.load();
+          if (elem.tagName.toLowerCase() == 'video') {
+              // XXX workaround of bug 831747
+              // Unload the video. This releases the video decoding hardware
+              // so other apps can use it.
+              elem.removeAttribute('src');
+              elem.load();
+          }
         });
       }
 

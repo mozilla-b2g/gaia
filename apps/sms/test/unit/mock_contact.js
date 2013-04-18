@@ -30,6 +30,12 @@ function MockContact(name) {
     }
   ];
 
+  this.email = [
+    {
+      'value': 'a@b.com'
+    }
+  ];
+
   this.category = [
     'favorite'
   ];

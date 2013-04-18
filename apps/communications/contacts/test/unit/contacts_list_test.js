@@ -925,7 +925,7 @@ suite('Render contacts list', function() {
           assert.isTrue(printed.innerHTML.indexOf(highlight) == 0);
         }
         done();
-      }, 100);
+      }, 500);
     });
 
     test('NOT order by lastname', function(done) {

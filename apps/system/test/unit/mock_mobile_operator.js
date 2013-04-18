@@ -11,5 +11,9 @@ var MockMobileOperator = {
 
   mOperator: '',
   mCarrier: '',
-  mRegion: ''
+  mRegion: '',
+
+  mTeardown: function() {
+    this.mOperator = this.mCarrier = this.mRegion = '';
+  }
 };

@@ -33,10 +33,6 @@ const kScriptsPerDomain = {
 
   'sms.gaiamobile.org': [
     'workloads/contacts.js'
-  ],
-
-  'calendar.gaiamobile.org': [
-    'lib/alarm.js'
   ]
 };
 
@@ -57,6 +53,12 @@ var LoadListener = {
   onPageLoad: function ll_onPageLoad(currentWindow) {
     try {
       let currentDomain = currentWindow.document.location.toString();
+
+      // Do not include frame scripts for unit test sandboxes
+      if (currentWindow.wrappedJSObject.mocha &&
+          currentDomain.indexOf('_sandbox.html') !== -1) {
+        return;
+      }
 
       // XXX Let's decide the main window is the one with system.* in it.
       if (currentDomain.indexOf('system.gaiamobile.org') != -1) {

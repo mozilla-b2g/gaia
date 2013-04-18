@@ -11,6 +11,7 @@ if (!utils.alphaScroll) {
         overlayStyle, groupSelector;
 
     var isScrolling = false;
+    var alreadyRendered = false;
 
     var overlayTimeout = 0, scrollToTimeout = 0;
     var previous = null;
@@ -31,6 +32,9 @@ if (!utils.alphaScroll) {
     var RESET_TRANSITION = '0s';
 
     alphaScroll.init = function(params) {
+      if (alreadyRendered) {
+        return;
+      }
       scrollToCallback = params[P_SCROLLTO_CB];
       jumper = params[P_JUMPER];
       overlay = params[P_OVERLAY];
@@ -52,6 +56,7 @@ if (!utils.alphaScroll) {
         anchor: '#'
       });
       utils.templates.append(jumper, alphabet);
+      alreadyRendered = true;
     };
 
     function scrollStart(evt) {

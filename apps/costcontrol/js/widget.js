@@ -169,9 +169,9 @@
     rightPanel.setAttribute('aria-hidden', true);
 
     var className = 'widget-' + status;
-    document.getElementById('fte-icon').className = 'icon ' + className;
-    fte.querySelector('p:first-child').innerHTML = _(className + '-heading');
-    fte.querySelector('p:last-child').innerHTML = _(className + '-meta');
+    document.getElementById('fte-icon').textContent = 'icon ' + className;
+    fte.querySelector('p:first-child').textContent = _(className + '-heading');
+    fte.querySelector('p:last-child').textContent = _(className + '-meta');
   }
 
   function setupFte(provider, mode) {
@@ -193,9 +193,9 @@
     var simKey = keyLookup[mode];
 
     document.getElementById('fte-icon').className = 'icon ' + simKey;
-    fte.querySelector('p:first-child').innerHTML = _(simKey + '-heading',
+    fte.querySelector('p:first-child').textContent = _(simKey + '-heading',
                                                      { provider: provider });
-    fte.querySelector('p:last-child').innerHTML = _(simKey + '-meta');
+    fte.querySelector('p:last-child').textContent = _(simKey + '-meta');
   }
 
   var hashMark = 0;
@@ -283,17 +283,18 @@
             value: limitText[0],
             unit: limitText[1]
           });
-          leftTag.innerHTML = limitTresspased ? _('limit-passed') : _('used');
-          leftValue.innerHTML = limitTresspased ? limitText : currentText;
-          rightTag.innerHTML = limitTresspased ? _('used') : _('limit');
-          rightValue.innerHTML = limitTresspased ? currentText : limitText;
+          leftTag.textContent = limitTresspased ? _('limit-passed') : _('used');
+          leftValue.textContent = limitTresspased ? limitText : currentText;
+          rightTag.textContent = limitTresspased ? _('used') : _('limit');
+          rightValue.textContent = limitTresspased ? currentText : limitText;
 
         } else {
           // Texts
-          document.getElementById('mobile-usage-value').innerHTML =
+          document.getElementById('mobile-usage-value').textContent =
             _('magnitude', { value: data[0], unit: data[1] });
-          views.dataUsage.querySelector('.meta').innerHTML =
-            formatTimeHTML(stats.timestamp);
+          var meta = views.dataUsage.querySelector('.meta');
+          meta.innerHTML = '';
+          meta.appendChild(formatTimeHTML(stats.timestamp));
         }
         checkDataUsageNotification(settings, stats.mobile.total,
           // inform driver in system we are finished to update the widget
@@ -325,20 +326,21 @@
           requestObj = { type: 'telephony' };
           costcontrol.request(requestObj, function _onRequest(result) {
             var activity = result.data;
-            document.getElementById('telephony-calltime').innerHTML =
+            document.getElementById('telephony-calltime').textContent =
               _('magnitude', {
                 value: computeTelephonyMinutes(activity),
                 unit: 'min'
               }
             );
-            document.getElementById('telephony-smscount').innerHTML =
+            document.getElementById('telephony-smscount').textContent =
               _('magnitude', {
                 value: activity.smscount,
                 unit: 'SMS'
               }
             );
-            views.telephony.querySelector('.meta').innerHTML =
-              formatTimeHTML(activity.timestamp);
+            var meta = views.telephony.querySelector('.meta');
+            meta.innerHTML = '';
+            meta.appendChild(formatTimeHTML(activity.timestamp));
           });
         }
       }
@@ -351,23 +353,26 @@
     // Balance not available
     if (balance === null) {
       debug('Balance not available.');
-      document.getElementById('balance-credit').innerHTML = _('not-available');
+      document.getElementById('balance-credit')
+        .textContent = _('not-available');
       views.balance.querySelector('.meta').innerHTML = '';
       return;
     }
 
     // Balance available
-    document.getElementById('balance-credit').innerHTML = _('currency', {
+    document.getElementById('balance-credit').textContent = _('currency', {
       value: balance.balance,
       currency: ConfigManager.configuration.credit.currency
     });
 
     // Timestamp
-    var timeContent = formatTimeHTML(balance.timestamp);
+    var meta = views.balance.querySelector('.meta');
     if (views.balance.classList.contains('updating')) {
-      timeContent = _('updating') + '...';
+      meta.textContent = _('updating') + '…';
+    } else {
+      meta.innerHTML = '';
+      meta.appendChild(formatTimeHTML(balance.timestamp));
     }
-    views.balance.querySelector('.meta').innerHTML = timeContent;
 
     // Limits: reaching zero / low limit
     if (balance.balance === 0) {

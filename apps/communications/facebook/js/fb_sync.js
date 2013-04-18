@@ -300,7 +300,8 @@ if (!fb.sync) {
                 imgNeedsUpdate: forceUpdate,
                 timestamp: ts,
                 access_token: access_token,
-                operationsTimeout: fb.operationsTimeout
+                operationsTimeout: fb.operationsTimeout,
+                targetPictureSize: importUtils.getPreferredPictureDetail()
               }
             });
           });
@@ -448,7 +449,8 @@ if (!fb.sync) {
               data: {
                 access_token: access_token,
                 uids: toBeUpdated,
-                operationsTimeout: fb.operationsTimeout
+                operationsTimeout: fb.operationsTimeout,
+                targetPictureSize: importUtils.getPreferredPictureDetail()
               }
             });
           });

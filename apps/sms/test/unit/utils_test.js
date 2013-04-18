@@ -214,6 +214,61 @@ suite('Utils', function() {
         contact.name[0] = name;
       });
     });
+
+    suite('Defensive', function() {
+
+      test('tel is null', function() {
+        var contact = new MockContact();
+        contact.tel = null;
+
+        Utils.getPhoneDetails('0', contact, function(details) {
+          assert.deepEqual(details, {
+            isContact: true,
+            title: 'Pepito Grillo',
+            carrier: ''
+          });
+        });
+      });
+
+      test('tel length is 0', function() {
+        var contact = new MockContact();
+        contact.tel.length = 0;
+
+        Utils.getPhoneDetails('0', contact, function(details) {
+          assert.deepEqual(details, {
+            isContact: true,
+            title: 'Pepito Grillo',
+            carrier: ''
+          });
+        });
+      });
+
+      test('first tel object value is empty', function() {
+        var contact = new MockContact();
+        contact.tel[0].value = '';
+
+        Utils.getPhoneDetails('0', contact, function(details) {
+          assert.deepEqual(details, {
+            isContact: true,
+            title: 'Pepito Grillo',
+            carrier: ''
+          });
+        });
+      });
+
+      test('tel first is empty, uses number to find alt', function() {
+        var contact = new MockContact();
+        contact.tel[0].value = '';
+
+        Utils.getPhoneDetails('+12125559999', contact, function(details) {
+          assert.deepEqual(details, {
+            isContact: true,
+            title: 'Pepito Grillo',
+            carrier: 'Batphone | XXX'
+          });
+        });
+      });
+    });
   });
 
   suite('Utils for MMS user story test', function() {

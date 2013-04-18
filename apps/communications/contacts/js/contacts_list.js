@@ -77,7 +77,16 @@ contacts.List = (function() {
   };
 
   var toRender = [];
+  var recentlyAdded = [];
   function showNextGroup() {
+    var recent = recentlyAdded.length ? recentlyAdded[0] : null;
+    var nextLetter = toRender.length ? toRender[0] : null;
+    if (recent && (!nextLetter || recent <= nextLetter)) {
+      var next = recentlyAdded.shift();
+      showGroup(next);
+      return;
+    }
+
     if (toRender.length) {
       var next = toRender.shift();
       showGroup(next, true);
@@ -253,6 +262,7 @@ contacts.List = (function() {
     // contactInner is a link with 3 p elements:
     // name, socaial marks and org
     var nameElement = getHighlightedName(contact);
+    addOrderOptions(nameElement, contact);
     contactContainer.appendChild(nameElement);
     contactsCache[contact.id] = {
       contact: contact,
@@ -365,8 +375,10 @@ contacts.List = (function() {
   function appendToList(contact, show) {
     var group = getGroupName(contact);
     if (!counter[group]) {
-      toRender.push(group);
       counter[group] = 0;
+      if (!show) {
+        toRender.push(group);
+      }
     }
 
     counter[group]++;
@@ -388,7 +400,6 @@ contacts.List = (function() {
         contactsCache = {};
       }
     });
-    lazyLoadOrder();
     FixedHeader.refresh();
 
     PerformanceTestingHelper.dispatch('startup-path-done');
@@ -431,13 +442,6 @@ contacts.List = (function() {
     searchLoading = false;
     contacts.Search.enableSearch();
     dispatchCustomEvent('finishLazyLoading');
-  };
-
-  var lazyLoadOrder = function lazyLoadOrder() {
-    for (var id in contactsCache) {
-      var current = contactsCache[id];
-      addOrderOptions(current.nameElement, current.contact);
-    }
   };
 
   var addOrderOptions = function addOrderOptions(name, contact) {
@@ -706,8 +710,12 @@ contacts.List = (function() {
     addToGroup(theContact, list);
 
     if (list.children.length === 1) {
-      // template + new record
-      showGroup(group);
+      if (contactsLoadFinished && toRender.length === 0) {
+        showGroup(group);
+      } else {
+        recentlyAdded.push(group);
+        showNextGroup();
+      }
     }
 
     // If is favorite add as well to the favorite group
@@ -814,9 +822,11 @@ contacts.List = (function() {
 
     var familyName, givenName;
 
-    familyName = contact.familyName && contact.familyName.length > 0 ?
+    familyName = Array.isArray(contact.familyName) &&
+                                    typeof contact.familyName[0] === 'string' ?
       contact.familyName[0].trim() : '';
-    givenName = contact.givenName && contact.givenName.length > 0 ?
+    givenName = Array.isArray(contact.givenName) &&
+                                    typeof contact.givenName[0] === 'string' ?
       contact.givenName[0].trim() : '';
 
     var first = givenName, second = familyName;
