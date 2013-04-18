@@ -26,6 +26,12 @@ var SimLock = {
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
       case 'unlock':
+        // Check whether the lock screen was unlocked from the camera or not.
+        // If the former is true, the SIM PIN dialog should not displayed after
+        // unlock, because the camera will be opened (Bug 849718)
+        if (evt.detail && evt.detail.areaCamera)
+          return;
+
         this.showIfLocked();
         break;
       case 'appwillopen':
