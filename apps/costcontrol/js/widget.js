@@ -368,7 +368,7 @@
     // Timestamp
     var meta = views.balance.querySelector('.meta');
     if (views.balance.classList.contains('updating')) {
-      meta.textContent = _('updating') + '…';
+      meta.textContent = _('updating-ellipsis');
     } else {
       meta.innerHTML = '';
       meta.appendChild(formatTimeHTML(balance.timestamp));
