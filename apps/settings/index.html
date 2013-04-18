@@ -1634,7 +1634,7 @@
             <span id="messageBody">3 tries left.</span>
           </div>
 
-          <div id="pinArea" class="sim-code-area">
+          <div id="pinArea">
             <div data-l10n-id="simPin">SIM PIN</div>
             <div class="input-wrapper">
               <input type="number" name="simpin" size="8" maxlength="8" />
@@ -1642,7 +1642,15 @@
             </div>
           </div>
 
-          <div id="newPinArea" class="sim-code-area">
+          <div id="pukArea">
+            <div data-l10n-id="pukCode">PUK Code</div>
+            <div class="input-wrapper">
+              <input type="number" name="simpuk" size="8" maxlength="8" />
+              <input type="text" name="simpukVis" size="8" maxlength="8" />
+            </div>
+          </div>
+
+          <div id="newPinArea">
             <div data-l10n-id="newSimPinMsg">
               Create PIN (must contain 4 to 8 digits)
             </div>
@@ -1652,7 +1660,7 @@
             </div>
           </div>
 
-          <div id="confirmPinArea" class="sim-code-area">
+          <div id="confirmPinArea">
             <div data-l10n-id="confirmNewSimPinMsg">
               Confirm New PIN
             </div>
@@ -1715,6 +1723,7 @@
       <script src="js/simcard_lock.js"></script>
       <script src="js/simcard_dialog.js"></script>
       <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
       -->
     </section>
 

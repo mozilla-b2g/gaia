@@ -1,6 +1,14 @@
+#simpin ul li > p {
+  line-height: 2.2rem;
+  text-overflow: inherit;
+  white-space: normal;
+  padding: 0 0 1rem;
+  font-size: 1.5rem;
+}
+
 #simpin-dialog .container {
   padding-left: 2rem;
-  font-size: 1.4em;
+  font-size: 1.6em;
 }
 
 #simpin-dialog .container > div {
@@ -18,6 +26,7 @@
 #simpin-dialog .input-wrapper input {
   font-size: 2.1rem;
   display: block;
+  width: auto;
 }
 
 #simpin-dialog .input-wrapper input[type="text"] {

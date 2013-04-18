@@ -296,10 +296,14 @@ var SimPinDialog = {
     this.origin = origin;
     document.location.hash = '#simpin-dialog';
 
-    if (action === 'unlock' && this.lockType === 'puk')
-      this.pukInput.focus();
-    else
-      this.pinInput.focus();
+    var self = this;
+    window.addEventListener('transitionend', function focusInput() {
+      window.removeEventListener('transitionend', focusInput);
+      if (action === 'unlock' && this.lockType === 'puk')
+        self.pukInput.focus();
+      else
+        self.pinInput.focus();
+    });
 
   },
 
