@@ -13,7 +13,7 @@ var ThreadUI = {
 
     [
       'container',
-      'header-text', 'recipient', 'input', 'compose-form',
+      'header-text', 'recipient', 'recipient-results', 'input', 'compose-form',
       'check-all-button', 'uncheck-all-button',
       'contact-pick-button', 'back-button', 'clear-button', 'send-button',
       'delete-button', 'cancel-button',
@@ -51,6 +51,10 @@ var ThreadUI = {
     );
 
     this.container.addEventListener(
+      'scroll', this.manageScroll.bind(this)
+    );
+
+    this.recipientResults.addEventListener(
       'scroll', this.manageScroll.bind(this)
     );
 
@@ -105,6 +109,12 @@ var ThreadUI = {
       'click', this
     );
     this.container.addEventListener(
+      'contextmenu', this
+    );
+    this.recipientResults.addEventListener(
+      'click', this
+    );
+    this.recipientResults.addEventListener(
       'contextmenu', this
     );
     this.editForm.addEventListener(
@@ -441,6 +451,8 @@ var ThreadUI = {
     this.checkInputs();
     // Clean list of messages
     this.container.innerHTML = '';
+    // Clean list of recipient results
+    this.recipientResults.innerHTML = '';
     // Update header index
     this.dayHeaderIndex = 0;
     this.timeHeaderIndex = 0;
@@ -631,7 +643,8 @@ var ThreadUI = {
 
   clear: function thui_clear() {
     this.recipient.value = '';
-    this.container.innerHTML = '';
+    this.recipientResults.innerHTML = '';
+    this.recipientResults.classList.add('hide');
   },
 
   toggleCheckedAll: function thui_select(value) {
@@ -978,9 +991,7 @@ var ThreadUI = {
       }.bind(this));
     }
 
-    ThreadUI.container.appendChild(contactsUl);
-
-    return true;
+    ThreadUI.recipientResults.appendChild(contactsUl);
   },
 
   searchContact: function thui_searchContact() {
@@ -992,13 +1003,23 @@ var ThreadUI = {
       // character in the recipient input field,
       // eg. type "a", then delete it.
       // Always remove the the existing results.
-      this.container.innerHTML = '';
+      this.recipientResults.innerHTML = '';
       return;
     }
 
     Contacts.findByString(filterValue, function gotContact(contacts) {
+      // !contacts matches null results from errors
+      // !contacts.length matches empty arrays from unmatches filters
+      if (!contacts || !contacts.length) {
+        this.recipientResults.classList.add('hide');
+        return;
+      }
+
       // There are contacts that match the input.
-      this.container.innerHTML = '';
+      this.recipientResults.innerHTML = '';
+      this.recipientResults.classList.remove('hide');
+
+      // There are contacts that match the input.
       contacts.forEach(this.renderContact, this);
     }.bind(this));
   },

@@ -138,6 +138,10 @@ suite('SMS App Unit-Test', function() {
     var threadMsgContainer = document.createElement('article');
     threadMsgContainer.id = 'messages-container';
 
+    var recipientResults = document.createElement('article');
+    recipientResults.id = 'messages-recipient-results';
+
+
     // Thread-messages edit form
     var threadMsgEditForm = document.createElement('form');
     threadMsgEditForm.id = 'messages-edit-form';
@@ -151,6 +155,7 @@ suite('SMS App Unit-Test', function() {
     threadMessages.appendChild(threadMsgHeader);
     threadMessages.appendChild(threadMsgSubHeader);
     threadMessages.appendChild(threadMsgContainer);
+    threadMessages.appendChild(recipientResults);
     threadMessages.appendChild(threadMsgEditForm);
     threadMessages.appendChild(threadMsgInputForm);
 
