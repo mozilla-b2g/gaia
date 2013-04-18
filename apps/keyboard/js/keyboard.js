@@ -171,7 +171,7 @@ const REPEAT_RATE = 100;
 const REPEAT_TIMEOUT = 700;
 
 // How long to wait for more focuschange events before processing
-const FOCUS_CHANGE_DELAY = 20;
+const FOCUS_CHANGE_DELAY = 100;
 
 // Taps the shift key twice within CAPS_LOCK_TIMEOUT
 // to lock the keyboard at upper case state.
@@ -401,13 +401,13 @@ function initKeyboard() {
     // We can get multiple focuschange events in rapid succession
     // so wait a bit before responding to see if we get another.
     clearTimeout(focusChangeTimeout);
-    focusChangeTimeout = setTimeout(function switchKeyboard() {
-      if (type === 'blur') {
+    if (type === 'blur') {
+      focusChangeTimeout = setTimeout(function switchKeyboard() {
         hideKeyboard();
-      } else {
-        showKeyboard(state);
-      }
-    }, FOCUS_CHANGE_DELAY);
+      }, FOCUS_CHANGE_DELAY);
+    } else {
+      showKeyboard(state);
+    }
   };
 
   // Handle resize events
