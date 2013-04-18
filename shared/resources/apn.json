@@ -1010,7 +1010,7 @@
   ],
   "30": [
     {"carrier":"movistar Internet","apn":"internet.movistar.mx","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.mx","user":"movistar","password":"movistar","mmsc":"http://mms.movistar.mx","mmsproxy":"10.2.20.1","mmsport":"80","authtype":"1","type":["mms"]}
   ],
   "50": [
@@ -2805,12 +2805,12 @@
   ],
   "3": [
     {"carrier":"Internet GT","apn":"internet.movistar.gt","user":"movistargt","password":"movistargt","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS2 GPRS","apn":"mms.movistar.gt","user":"movistargt","password":"movistargt","mmsproxy":"10.12.22.1","mmsport":"80","mmsc":"http://mms.movistar.gt","authtype":"1","type":["mms"]}
   ],
   "30": [
     {"carrier":"Internet GT","apn":"internet.movistar.gt","user":"movistargt","password":"movistargt","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS2 GPRS","apn":"mms.movistar.gt","user":"movistargt","password":"movistargt","mmsproxy":"10.12.22.1","mmsport":"80","mmsc":"http://mms.movistar.gt","authtype":"1","type":["mms"]}
   ]
 },
@@ -2832,12 +2832,12 @@
   ],
   "4": [
     {"carrier":"Internet SV","apn":"internet.movistar.sv","user":"movistarsv","password":"movistarsv","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS2 GPRS","apn":"mms.movistar.sv","user":"movistarsv","password":"movistarsv","mmsproxy":"10.12.20.1","mmsport":"80","mmsc":"http://mms.movistar.sv","authtype":"1","type":["mms"]}
   ],
   "40": [
     {"carrier":"Internet SV","apn":"internet.movistar.sv","user":"movistarsv","password":"movistarsv","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS2 GPRS","apn":"mms.movistar.sv","user":"movistarsv","password":"movistarsv","mmsproxy":"10.12.20.1","mmsport":"80","mmsc":"http://mms.movistar.sv","authtype":"1","type":["mms"]}
   ]
 },
@@ -2863,7 +2863,7 @@
   ],
   "300": [
     {"carrier":"Internet GPRS","apn":"internet.movistar.ni","user":"movistarni","password":"movistarni","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.ni","user":"movistarni","password":"movistarni","mmsproxy":"10.12.23.1","mmsport":"80","mmsc":"http://mms.movistar.ni","authtype":"1","type":["mms"]}
   ],
   "730": [
@@ -2888,6 +2888,7 @@
   ],
   "4": [
     {"carrier":"movistar INTERNET","apn":"internet.movistar.cr","user":"movistarcr","password":"movistarcr","authtype":"1","type":["default","supl","dun"]},
+    {"voicemail":"*1960","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.cr","user":"movistarcr","password":"movistarcr","mmsproxy":"10.221.79.83","mmsport":"80","mmsc":"http://mms.movistar.cr","authtype":"1","type":["mms"]}
   ]
 },
@@ -2909,14 +2910,14 @@
   ],
   "20": [
     {"carrier":"movistar INTERNET","apn":"internet.movistar.pa","user":"movistarpa","password":"movistarpa","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.pa","user":"movistarpamms","password":"movistarpa","mmsproxy":"10.12.21.1","mmsport":"80","mmsc":"http://mms.movistar.pa","authtype":"1","type":["mms"]}
   ]
 },
 "716": {
   "6": [
     {"carrier":"movistar Internet","apn":"movistar.pe","user":"movistar@datos","password":"movistar","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*169","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.pe","user":"movistar@mms","password":"movistar","mmsproxy":"200.4.196.118","mmsport":"8080","mmsc":"http://mmsc.telefonicamovistar.com.pe:8088/mms/","authtype":"1","type":["mms"]}
   ],
   "10": [
@@ -2928,7 +2929,7 @@
 "722": {
   "7": [
     {"carrier":"Movistar Emoción","apn":"wap.gprs.unifon.com.ar","user":"wap","password":"wap","proxy":"200.5.68.10","port":"8080","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"555","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Movistar MMS","apn":"mms.gprs.unifon.com.ar","user":"mms","password":"mms","mmsproxy":"200.68.32.239","mmsport":"8080","mmsc":"http://mms.movistar.com.ar","authtype":"1","type":["mms"]}
   ],
   "31": [
@@ -3024,7 +3025,7 @@
   ],
   "2": [
     {"carrier":"NEM","apn":"wap.tmovil.cl","proxy":"172.17.8.11","port":"8080","user":"wap","password":"wap","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"500","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS","apn":"mms.tmovil.cl","user":"mms","password":"mms","mmsproxy":"172.17.8.10","mmsport":"8080","mmsc":"http://mms.movistar.cl","authtype":"1","type":["mms"]}
   ],
   "3": [
@@ -3069,7 +3070,7 @@
   ],
   "123": [
     {"carrier":"movistar INTERNET","apn":"internet.movistar.com.co","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*123","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.com.co","user":"movistar","password":"movistar","mmsproxy":"192.168.222.7","mmsport":"9001","mmsc":"http://mms.movistar.com.co","authtype":"1","type":["mms"]}
   ]
 },
@@ -3091,7 +3092,7 @@
   ],
   "4": [
     {"carrier":"movistar INTERNET","apn":"internet.movistar.ve","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*2","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.ve","mmsproxy":"200.35.64.73","mmsport":"9001","mmsc":"http://mms.movistar.com.ve:8088/mms","authtype":"1","type":["mms"]},
     {"carrier":"movistar WAP","apn":"wap.movistar.ve","mmsproxy":"200.35.64.73","mmsport":"9001","authtype":"1","type":["default","supl","dun"]}
   ],
@@ -3118,7 +3119,7 @@
 "740": {
   "0": [
     {"carrier":"movistar INTERNET","apn":"internet.movistar.com.ec","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*82","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.com.ec","user":"movistar","password":"movistar","mmsproxy":"10.3.5.50","mmsport":"9001","mmsc":"http://mms.movistar.com.ec:8088/mms/","authtype":"1","type":["mms"]}
   ],
   "1": [
@@ -3164,7 +3165,7 @@
   ],
   "7": [
     {"carrier":"Movistar Emoción","apn":"webapn.movistar.com.uy","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"6684","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"FOTOS MMS","apn":"apnmms.movistar.com.uy","user":"mmsuy","password":"mmsuy","mmsproxy":"10.0.2.29","mmsport":"8080","mmsc":"http://mmsc.movistar.com.uy","authtype":"1","type":["mms"]}
   ],
   "10": [
