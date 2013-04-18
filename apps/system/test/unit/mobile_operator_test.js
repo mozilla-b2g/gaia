@@ -78,7 +78,7 @@ suite('shared/MobileOperator', function() {
     });
     test('Connection with unknown mnc', function() {
       MockMobileConnection.voice.network.mcc = BRAZIL_MCC;
-      MockMobileConnection.voice.network.mnc = 42;
+      MockMobileConnection.voice.network.mnc = '42';
       var infos = MobileOperator.userFacingInfo(MockMobileConnection);
       assert.equal(infos.operator, 'Fake short');
       assert.equal(infos.carrier, '72442');
