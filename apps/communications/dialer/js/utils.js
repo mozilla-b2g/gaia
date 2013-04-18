@@ -49,14 +49,14 @@ var Utils = {
 
   // XXX: this is way too complex for the task accomplished
   getPhoneNumberAdditionalInfo: function ut_getPhoneNumberAdditionalInfo(
-    matchingTel, associatedContact) {
+    matchingTel, associatedContact, inputNumber) {
     var additionalInfo, phoneType, phoneCarrier,
         contactPhoneEntry, contactPhoneNumber, contactPhoneType,
         contactPhoneCarrier, multipleNumbersSameCarrier,
         length = associatedContact.tel.length;
 
     // Phone type is a mandatory field.
-    contactPhoneNumber = matchingTel.value;
+    contactPhoneNumber = inputNumber;
     additionalInfo = matchingTel.type;
     phoneType = matchingTel.type;
     if (matchingTel.carrier) {
