@@ -441,6 +441,8 @@ contacts.Settings = (function() {
 
       if (fileArray.length)
         utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
+      else
+        import_error('No contacts were found.');
     });
 
     function onFiles(err, text) {
