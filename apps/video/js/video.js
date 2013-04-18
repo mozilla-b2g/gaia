@@ -1254,11 +1254,6 @@ window.addEventListener('resize', function() {
     setPlayerSize();
   }
 
-  // reTruncate text
-  var texts = document.querySelectorAll('.details');
-  for (var i = 0; i < texts.length; i++) {
-    textTruncate(texts[i]);
-  }
 });
 
 dom.player.addEventListener('timeupdate', timeUpdated);
