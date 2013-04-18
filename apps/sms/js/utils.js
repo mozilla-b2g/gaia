@@ -106,7 +106,12 @@ var Utils = {
     var details = {};
     if (contact) { // we have a contact
       var name = contact.name[0],
-          phone = contact.tel[0],
+          length = contact.tel ? contact.tel.length : 0,
+          phone = length && contact.tel[0].value ? contact.tel[0] : {
+            value: '',
+            type: '',
+            carrier: ''
+          };
           carrierToShow = phone.carrier;
 
       // Check which of the contacts phone number are we using
