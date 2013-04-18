@@ -84,10 +84,6 @@ body, html {
   font-size: 1rem;
 }
 
-#screen.locked #statusbar-time {
-  display: none;
-}
-
 .sb-icon {
   width: 1.6rem;
   height: 1.6rem;
