@@ -23,7 +23,8 @@ contacts.List = (function() {
       imagesLoaded = false,
       contactsLoadFinished = false,
       cachedContacts = [],
-      viewHeight;
+      viewHeight,
+      noScrollTimer;
 
   // Key on the async Storage
   var ORDER_KEY = 'order.lastname';
@@ -33,7 +34,11 @@ contacts.List = (function() {
   var ORDER_BY_FAMILY_NAME = 'familyName';
   var ORDER_BY_GIVEN_NAME = 'givenName';
 
+  // Time to wait for detecting that the user is not scrolling
+  var NO_SCROLL_TIME = 200;
+
   var NOP_FUNCTION = function() {};
+  var scrolling = false;
 
   var init = function load(element) {
     _ = navigator.mozL10n.get;
@@ -42,7 +47,7 @@ contacts.List = (function() {
     conctactsListView = document.getElementById('view-contacts-list'),
     fastScroll = document.querySelector('nav[data-type="scrollbar"]'),
     scrollable = document.querySelector('#groups-container');
-    scrollable.onscroll = onScroll;
+    scrollable.addEventListener('scroll', onScroll);
     settingsView = document.querySelector('#view-settings .view-body-inner');
     noContacts = document.querySelector('#no-contacts');
 
@@ -59,11 +64,27 @@ contacts.List = (function() {
     initOrder();
   };
 
-  function onScroll(e) {
-    if (contactsLoadFinished && toRender.length === 0) {
-      scrollable.removeEventListener('scroll', onScroll);
+  var onNoScroll = function() {
+    scrolling = false;
+    if (toRender.length === 0) {
+      clearInterval(noScrollTimer);
       return;
     }
+    showNextGroup(false);
+  };
+
+  function onScroll(e) {
+    if (!scrolling)
+      FixedHeader.refresh();
+    clearInterval(noScrollTimer);
+    if (contactsLoadFinished) {
+      noScrollTimer = window.setInterval(onNoScroll, NO_SCROLL_TIME);
+      if (toRender.length === 0) {
+        scrollable.removeEventListener('scroll', onScroll);
+        return;
+      }
+    }
+
     viewHeight = viewHeight || conctactsListView.clientHeight;
     var totalHeight = scrollable.scrollHeight;
     var currentScroll = scrollable.scrollTop;
@@ -73,15 +94,25 @@ contacts.List = (function() {
     // the end of the shown list, we show
     // the next element
     if (diff < (viewHeight + (viewHeight * 0.2))) {
-      showNextGroup();
+      showNextGroup(true);
     }
+    scrolling = true;
   };
 
   var toRender = [];
-  function showNextGroup() {
+  var recentlyAdded = [];
+  function showNextGroup(forceShow) {
+    var recent = recentlyAdded.length ? recentlyAdded[0] : null;
+    var nextLetter = toRender.length ? toRender[0] : null;
+    if (recent && (!nextLetter || recent <= nextLetter)) {
+      var next = recentlyAdded.shift();
+      showGroup(next);
+      return;
+    }
+
     if (toRender.length) {
       var next = toRender.shift();
-      showGroup(next, true);
+      showGroup(next, forceShow);
     }
   }
 
@@ -112,7 +143,7 @@ contacts.List = (function() {
   var scrollToCb = function scrollCb(domTarget, group) {
     if (toRender.indexOf(group) != -1) {
       while (toRender.indexOf(group) != -1) {
-        showNextGroup();
+        showNextGroup(true);
       }
     }
     if (domTarget.offsetTop > 0)
@@ -370,6 +401,7 @@ contacts.List = (function() {
   // Methods executed after rendering the list
   // by first time
   var onListRendered = function onListRendered() {
+    noScrollTimer = window.setInterval(onNoScroll, NO_SCROLL_TIME);
     window.addEventListener('finishLazyLoading', function finishLazyLoading() {
       if (searchLoaded && imagesLoaded) {
         searchLoaded = false;

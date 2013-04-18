@@ -40,6 +40,8 @@ contacts.Form = (function() {
   var PHOTO_WIDTH = 320;
   var PHOTO_HEIGHT = 320;
 
+  var touchstart = 'ontouchstart' in window ? 'touchstart' : 'mousedown';
+
   var textFieldsCache = {
     _textFields: null,
 
@@ -127,7 +129,7 @@ contacts.Form = (function() {
     });
 
     var form = dom.getElementById('contact-form');
-    form.addEventListener('mousedown', function click(event) {
+    form.addEventListener(touchstart, function click(event) {
       var tgt = event.target;
       if (tgt.tagName == 'BUTTON' && tgt.getAttribute('type') == 'reset') {
         event.preventDefault();
@@ -137,7 +139,7 @@ contacts.Form = (function() {
       }
     });
 
-    thumbAction.addEventListener('mousedown', function click(event) {
+    thumbAction.addEventListener(touchstart, function click(event) {
       // Removing current photo
       if (event.target.tagName == 'BUTTON')
         saveButton.removeAttribute('disabled');
@@ -324,7 +326,7 @@ contacts.Form = (function() {
     // Add event listeners
     var boxTitle = rendered.querySelector('legend.action');
     if (boxTitle) {
-      boxTitle.addEventListener('mousedown', onGoToSelectTag);
+      boxTitle.addEventListener(touchstart, onGoToSelectTag);
     }
 
     container.appendChild(rendered);
