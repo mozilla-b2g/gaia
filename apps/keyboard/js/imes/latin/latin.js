@@ -72,7 +72,6 @@
 
   const WS = /^\s+$/;                    // all whitespace characters
   const UC = /^[A-ZÀ-ÖØ-Þ]+$/;           // all uppercase latin characters
-  const LETTER = /^[a-zA-ZÀ-ÖØ-öø-ÿ]+$/; // all latin letters
 
   const DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
 
@@ -218,12 +217,7 @@
   // update our internal state to match.
   function select(word) {
     // Find the position of the first letter of the current word
-    for (var firstletter = cursor - 1; firstletter >= 0; firstletter--) {
-      if (!LETTER.test(inputText[firstletter])) {
-        break;
-      }
-    }
-    firstletter++;
+    var firstletter = wordStartBeforeCursor();
 
     // Send backspaces
     for (var i = 0, n = cursor - firstletter; i < n; i++)
@@ -282,15 +276,7 @@
     }
 
     // Otherwise, find the word we're at the end of and ask for completions
-    for (var firstletter = cursor - 1; firstletter >= 0; firstletter--) {
-      if (!LETTER.test(inputText[firstletter])) {
-        break;
-      }
-    }
-    firstletter++;
-
-    // firstletter is now the position of the start of the word and cursor is
-    // the end of the word
+    var firstletter = wordStartBeforeCursor();
     var word = inputText.substring(firstletter, cursor);
 
     worker.postMessage({cmd: 'predict', args: [word]});
@@ -435,6 +421,21 @@
     return WS.test(s);
   }
 
+  // Get start position of the word before the cursor
+  function wordStartBeforeCursor() {
+    // Otherwise, find the word we're at the end of and ask for completions
+    for (var firstletter = cursor - 1; firstletter >= 0; firstletter--) {
+      if (isWhiteSpace(inputText[firstletter])) {
+        break;
+      }
+    }
+    firstletter++;
+
+    // firstletter is now the position of the start of the word and cursor is
+    // the end of the word
+    return firstletter;
+  } 
+
   // We only offer suggestions if the cursor is at the end of a word
   // The character before the cursor must be a word character and
   // the cursor must be at the end of the input or the character after
@@ -446,12 +447,12 @@
 
     // If we're not at the end of the line and the character after the
     // cursor is not whitespace, don't offer a suggestion
-    if (cursor < inputText.length && !WS.test(inputText[cursor]))
+    if (cursor < inputText.length && !isWhiteSpace(inputText[cursor]))
       return false;
 
     // We're at the end of a word if the cursor is not at the start and
     // the character before the cursor is a letter
-    return cursor > 0 && LETTER.test(inputText[cursor - 1]);
+    return cursor > 0 && !isWhiteSpace(inputText[cursor - 1]);
   }
 
   function atSentenceStart() {
