@@ -287,7 +287,7 @@ var BalanceTab = (function() {
     // Timestamp
     var balanceTabTime = document.getElementById('balance-tab-time');
     if (view.classList.contains('updating')) {
-      balanceTabTime.textContent = _('updating') + '…';
+      balanceTabTime.textContent = _('updating-ellipsis');
     } else {
       balanceTabTime.innerHTML = '';
       balanceTabTime.appendChild(formatTimeHTML(balance.timestamp));
