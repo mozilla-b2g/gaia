@@ -182,12 +182,8 @@ def main():
         else:
             wallpaper_filename = "build/wallpaper.jpg"
 
-    enable_debugger = (options.enable_debugger == True)
     enable_marionette = (options.enable_marionette == True)
-
-    if enable_marionette:
-        enable_debugger = False;
-
+    enable_debugger = (not enable_marionette) and (options.enable_debugger == True)
 
     if verbose:
         print "Console:", options.console
