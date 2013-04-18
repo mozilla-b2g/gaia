@@ -7,7 +7,10 @@ var MockL10n = {
     }
     return key;
   },
-  DateTimeFormat: function() {}
+  DateTimeFormat: function() {},
+  ready: function(callback) {
+    callback();
+  }
 };
 
 MockL10n.DateTimeFormat.prototype = {

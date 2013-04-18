@@ -999,9 +999,10 @@
     // this can be used to prevent race conditions
     get readyState() { return gReadyState; },
     ready: function l10n_ready(callback) {
-      if (!callback) {
+      if (!callback)
         return;
-      } else if (gReadyState == 'complete' || gReadyState == 'interactive') {
+
+      if (gReadyState == 'complete') {
         window.setTimeout(callback);
       } else {
         window.addEventListener('localized', callback);
