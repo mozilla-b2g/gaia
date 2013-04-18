@@ -741,12 +741,11 @@ function init() {
     if (mozFMRadio.antennaAvailable) {
       // Enable FM immediately
       if (historyList.last() && historyList.last().frequency)
-        mozFMRadio.enable(historyList.last().frequency);
+        enableFMRadio(historyList.last().frequency);
       else
-        mozFMRadio.enable(mozFMRadio.frequencyLowerBound);
+        enableFMRadio(mozFMRadio.frequencyLowerBound);
 
       favoritesList.init(updateFreqUI);
-      updateEnablingState(!mozFMRadio.enabled);
     } else {
       // Mark the previous state as True,
       // so the FM radio be enabled automatically
