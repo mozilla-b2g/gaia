@@ -171,24 +171,15 @@ fieldset section p:last-child {
 /* Tidy (search/submit) */
 form[role="search"] {
   position: relative;
-  height: 3.7rem;
-  background: #fff;
+  height: 3.9rem;
+  background-image: linear-gradient(to bottom, #ebebeb, #fafafa);
+  border-bottom: 0.1rem solid #bdbdbd;
 }
 
 section[role="region"] > header:first-child + form[role="search"] {
   /* increase height when underneath a header because of header's shadow */
   padding-top: 0.3rem;
   border-bottom: 0.1rem solid #c8c8c8;
-}
-
-form[role="search"]:after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  right: 0;
-  left: 0;
-  height: 0.3rem;
-  background: url(input_areas/images/ui/shadow-search.png) repeat-x left top;
 }
 
 form[role="search"].bottom:after {
@@ -218,17 +209,16 @@ form[role="search"].full p {
 form[role="search"] p input,
 form[role="search"] p textarea {
   height: 3rem;
-  border: none;
-  background: #fff;
+  border: 0.1rem solid #c1c1c1;
+  background: #fff url(input_areas/images/ui/shadow-search.png) repeat-x;
   font-size: 1.8rem;
-  padding: 0;
 }
 
 form[role="search"] p input:focus {
   padding: 0 2rem 0 0;
 }
 
-form[role="search"] p input:invalid, 
+form[role="search"] p input:invalid,
 form[role="search"] p textarea:invalid {
   border: none;
 }
@@ -265,7 +255,7 @@ form[role="search"] p button[type="reset"] {
 form[role="search"] button[type="submit"] {
   float: right;
   min-width: 6rem;
-  height: 3.7rem;
+  height: 3.8rem;
   padding: 0 1rem;
   border: none;
   color: #333;
