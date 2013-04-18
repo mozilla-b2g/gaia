@@ -8,6 +8,7 @@ require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 
 requireApp('sms/test/unit/mock_contact.js');
+requireApp('sms/test/unit/mock_mozcontacts.js');
 requireApp('sms/test/unit/mock_l10n.js');
 
 requireApp('sms/js/link_helper.js');
@@ -825,6 +826,7 @@ suite('SMS App Unit-Test', function() {
     });
   });
 
+<<<<<<< HEAD
   suite('Defensive Contact Rendering', function() {
     test('has tel number', function() {
       var contact = new MockContact();
@@ -921,6 +923,62 @@ suite('SMS App Unit-Test', function() {
 
         done();
       }, 30);
+    });
+  });
+
+  suite('Recipient Results', function() {
+    var nativeMozContacts = navigator.mozContacts;
+    var findByString;
+
+    suiteSetup(function() {
+      findByString = Contacts.findByString;
+      navigator.mozContacts = MockMozContacts;
+    });
+
+    teardown(function() {
+      navigator.mozContacts.mHistory.length = 0;
+      ThreadUI.recipient.value = '';
+    });
+
+    suiteTeardown(function() {
+      Contacts.findByString = findByString;
+      navigator.mozContacts = nativeMozContacts;
+    });
+
+    test('has value, is not cleared or hidden', function(done) {
+      Contacts.findByString = function(value, callback) {
+        assert.equal(value, 'foo');
+        assert.equal(ThreadUI.recipientResults.textContent, 'hello');
+
+        callback(MockContact.list());
+
+        setTimeout(function() {
+          assert.isFalse(
+            ThreadUI.recipientResults.classList.contains('hide')
+          );
+          done();
+        });
+      };
+      // If there is any value in ThreadUI.recipient, this
+      // textContent should not be cleared and container not hidden.
+      ThreadUI.recipientResults.textContent = 'hello';
+      ThreadUI.recipient.value = 'foo';
+      ThreadUI.searchContact();
+    });
+
+    test('no value, is cleared and hidden', function(done) {
+      // Since there is no value in ThreadUI.recipient, this
+      // textContent should be cleared.
+      ThreadUI.recipientResults.textContent = 'hello';
+      ThreadUI.recipient.value = '';
+      ThreadUI.searchContact();
+
+      // ThreadUI.searchContact is optimized to avoid calling
+      // Contacts.findByString if there is no value to search for;
+      // check the state of recipientResults immediately.
+      assert.equal(ThreadUI.recipientResults.textContent, '');
+      assert.isTrue(ThreadUI.recipientResults.classList.contains('hide'));
+      done();
     });
   });
 });
