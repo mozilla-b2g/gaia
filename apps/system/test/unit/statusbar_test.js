@@ -398,7 +398,7 @@ suite('system/Statusbar', function() {
         network: {
           shortName: 'Fake short',
           longName: 'Fake long',
-          mnc: 10 // VIVO
+          mnc: '10' // VIVO
         },
         cell: {
           gsmLocationAreaCode: 71 // BA
