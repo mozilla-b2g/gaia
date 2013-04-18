@@ -28,6 +28,8 @@ var App = {
     );
   },
 
+  Template: EmailTemplate,
+
   /**
    * Bind any global notifications, relay localizations to the back-end.
    */
@@ -251,7 +253,6 @@ function hookStartup() {
         }
       } else {
         inited = true;
-        populateTemplateNodes();
         Cards._init();
         App._init();
         App.showMessageViewOrSetup();
