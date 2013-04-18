@@ -50,7 +50,7 @@ var MessageManager = {
   onMessageSent: function mm_onMessageSent(e) {
     ThreadUI.onMessageSent(e.message);
   },
-  // This method fills the gap while we wait for next 'getThreadList' request,
+  // This method fills the gap while we wait for next 'getThreads' request,
   // letting us rendering the new thread with a better performance.
   createThreadMockup: function mm_createThreadMockup(message) {
     // Given a message we create a thread as a mockup. This let us render the
@@ -58,7 +58,7 @@ var MessageManager = {
     // reduce Gecko requests.
     return {
         id: message.threadId,
-        senderOrReceiver: message.sender,
+        participants: [message.sender],
         body: message.body,
         timestamp: message.timestamp,
         unreadCount: 1
@@ -266,16 +266,21 @@ var MessageManager = {
   },
 
   getThreads: function mm_getThreads(callback, extraArg) {
-    var request = navigator.mozSms.getThreadList();
-    request.onsuccess = function onsuccess(evt) {
-      var threads = evt.target.result;
+    var cursor = navigator.mozSms.getThreads(),
+        threads = [];
+    cursor.onsuccess = function onsuccess(evt) {
+      if (!this.done) {
+        threads.push(this.result);
+        this.continue();
+        return;
+      }
       if (callback) {
         callback(threads, extraArg);
       }
     };
 
-    request.onerror = function onerror() {
-      var msg = 'Reading the database. Error: ' + request.errorCode;
+    cursor.onerror = function onerror() {
+      var msg = 'Reading the database. Error: ' + cursor.errorCode;
       console.log(msg);
     };
   },
