@@ -256,9 +256,8 @@
       <div>
         <ul>
           <li>
-            <a data-l10n-id="macAddress"> MAC address
-              <span data-name="deviceinfo.mac"></span>
-            </a>
+            <small data-name="deviceinfo.mac"></small>
+            <a data-l10n-id="macAddress"> MAC address </a>
           </li>
         </ul>
 
@@ -941,7 +940,7 @@
           </li>
           <li hidden id="device-visible">
             <label>
-              <input type="checkbox" data-type="switch" data-ignore checked />
+              <input type="checkbox" data-type="switch" data-ignore />
               <span></span>
             </label>
             <small id="bluetooth-device-name"></small>
@@ -1160,14 +1159,14 @@
           <h2 data-l10n-id="volume">Volume</h2>
         </header>
         <ul>
-          <li>
+          <li class="sound-setting">
             <p data-l10n-id="ringer-and-notification-sound">Ringer & Notifications</p>
             <label>
               <input type="range" name="audio.volume.notification" step="1" min="0" value="15" max="15">
               <span class="range-icons volume"></span>
             </label>
           </li>
-          <li>
+          <li class="sound-setting">
             <p data-l10n-id="alarm-sound">Alarm</p>
             <label>
               <input type="range" name="audio.volume.alarm" step="1" min="0" value="15" max="15">
@@ -1451,6 +1450,13 @@
               <span></span>
             </label>
             <a data-l10n-id="clickSound">Click sound</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.autocorrect"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="autoCorrect">Auto correction</a>
           </li>
           <li>
             <label>
@@ -1767,7 +1773,7 @@
 
       <div>
         <header id="developer-header">
-          <h2 data-l10n-id="developer">Developer</h2>
+          <h2 data-l10n-id="author">Author</h2>
         </header>
         <ul>
           <li id="developer-infos">

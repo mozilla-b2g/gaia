@@ -73,6 +73,8 @@ var Connectivity = (function(window, document, undefined) {
       'pinRequired' : _('simCardLockedMsg'),
       'pukRequired' : _('simCardLockedMsg'),
       'networkLocked' : _('simLockedPhone'),
+      'serviceProviderLocked' : _('simLockedPhone'),
+      'corporateLocked' : _('simLockedPhone'),
       'unknown' : _('unknownSimCardState'),
       'absent' : _('noSimCard'),
       'null' : _('simCardNotReady')
@@ -84,6 +86,11 @@ var Connectivity = (function(window, document, undefined) {
     updateBluetooth();
     // register blutooth system message handler
     initSystemMessageHandler();
+
+    window.addEventListener('localized', function() {
+      updateWifi();
+      updateBluetooth();
+    });
   }
 
   /**
@@ -102,10 +109,11 @@ var Connectivity = (function(window, document, undefined) {
       // network.connection.status has one of the following values:
       // connecting, associated, connected, connectingfailed, disconnected.
       wifiDesc.textContent = _('fullStatus-' +
-          wifiManager.connection.status,
-          wifiManager.connection.network);
+        wifiManager.connection.status,
+        wifiManager.connection.network);
     } else {
       wifiDesc.textContent = _('disabled');
+      wifiDesc.dataset.l10nId = 'disabled';
     }
 
     // record the MAC address here because the "Device Information" panel

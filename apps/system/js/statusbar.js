@@ -510,6 +510,9 @@ var StatusBar = {
         case 'connected':
           icon.hidden = false;
 
+          if (icon.dataset.connecting) {
+            delete icon.dataset.connecting;
+          }
           var relSignalStrength =
             wifiManager.connectionInformation.relSignalStrength;
           icon.dataset.level = Math.floor(relSignalStrength / 25);

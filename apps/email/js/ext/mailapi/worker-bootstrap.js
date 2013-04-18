@@ -5561,7 +5561,7 @@ MailSlice.prototype = {
  *   @key[snippet String]
  * ]]
  * @typedef[HeaderBlock @dict[
- *   @key[uids @listof[ID]]{
+ *   @key[ids @listof[ID]]{
  *     The issued-by-us-id's of the headers in the same order (not the IMAP
  *     UID).  This is intended as a fast parallel search mechanism.  It can be
  *     discarded if it doesn't prove useful.
@@ -5667,12 +5667,12 @@ MailSlice.prototype = {
  *   but our driving UI doesn't need it right now.
  * }
  * @typedef[BodyBlock @dict[
- *   @key[uids @listof[ID]]}
+ *   @key[ids @listof[ID]]}
  *     The issued-by-us id's of the messages; the order is parallel to the order
  *     of `bodies.`
  *   }
  *   @key[bodies @dictof[
- *     @key["unique identifier" UID]
+ *     @key["unique identifier" ID]
  *     @value[BodyInfo]
  *   ]]
  * ]]
@@ -5699,7 +5699,7 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this._accuracyRanges = persistedFolderInfo.accuracy;
   /**
    * @listof[FolderBlockInfo]{
-   *   Newest-to-oldest (numerically decreasing time and UID) sorted list of
+   *   Newest-to-oldest (numerically decreasing time and ID) sorted list of
    *   header folder block infos.  They are keyed by a composite key consisting
    *   of messages' "date" and "id" fields.
    * }
@@ -5707,7 +5707,7 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this._headerBlockInfos = persistedFolderInfo.headerBlocks;
   /**
    * @listof[FolderBlockInfo]{
-   *   Newest-to-oldest (numerically decreasing time and UID) sorted list of
+   *   Newest-to-oldest (numerically decreasing time and ID) sorted list of
    *   body folder block infos.  They are keyed by a composite key consisting
    *   of messages' "date" and "id" fields.
    * }
@@ -5959,7 +5959,7 @@ FolderStorage.prototype = {
    * caller to insert the returned `FolderBlockInfo` in the right place.
    */
   _makeHeaderBlock: function ifs__makeHeaderBlock(
-      startTS, startUID, endTS, endUID, estSize, uids, headers) {
+      startTS, startUID, endTS, endUID, estSize, ids, headers) {
     var blockId = $a64.encodeInt(this._folderImpl.nextHeaderBlock++),
         blockInfo = {
           blockId: blockId,
@@ -5967,11 +5967,11 @@ FolderStorage.prototype = {
           startUID: startUID,
           endTS: endTS,
           endUID: endUID,
-          count: uids ? uids.length : 0,
+          count: ids ? ids.length : 0,
           estSize: estSize || 0,
         },
         block = {
-          uids: uids || [],
+          ids: ids || [],
           headers: headers || [],
         };
     this._dirty = true;
@@ -5994,7 +5994,7 @@ FolderStorage.prototype = {
   _insertHeaderInBlock: function ifs__insertHeaderInBlock(header, uid, info,
                                                           block) {
     var idx = bsearchForInsert(block.headers, header, cmpHeaderYoungToOld);
-    block.uids.splice(idx, 0, header.id);
+    block.ids.splice(idx, 0, header.id);
     block.headers.splice(idx, 0, header);
     this._dirty = true;
     this._dirtyHeaderBlocks[info.blockId] = block;
@@ -6003,9 +6003,9 @@ FolderStorage.prototype = {
   },
 
   _deleteHeaderFromBlock: function ifs__deleteHeaderFromBlock(uid, info, block) {
-    var idx = block.uids.indexOf(uid), header;
+    var idx = block.ids.indexOf(uid), header;
     // - remove, update counts
-    block.uids.splice(idx, 1);
+    block.ids.splice(idx, 1);
     block.headers.splice(idx, 1);
     info.estSize -= $sync.HEADER_EST_SIZE_IN_BYTES;
     info.count--;
@@ -6052,7 +6052,7 @@ FolderStorage.prototype = {
                       splinfo.startTS, splinfo.startUID,
                       olderEndHeader.date, olderEndHeader.id,
                       olderNumHeaders * $sync.HEADER_EST_SIZE_IN_BYTES,
-                      splock.uids.splice(numHeaders, olderNumHeaders),
+                      splock.ids.splice(numHeaders, olderNumHeaders),
                       splock.headers.splice(numHeaders, olderNumHeaders));
 
     var newerStartHeader = splock.headers[numHeaders - 1];
@@ -6073,7 +6073,7 @@ FolderStorage.prototype = {
    * caller to insert the returned `FolderBlockInfo` in the right place.
    */
   _makeBodyBlock: function ifs__makeBodyBlock(
-      startTS, startUID, endTS, endUID, size, uids, bodies) {
+      startTS, startUID, endTS, endUID, size, ids, bodies) {
     var blockId = $a64.encodeInt(this._folderImpl.nextBodyBlock++),
         blockInfo = {
           blockId: blockId,
@@ -6081,11 +6081,11 @@ FolderStorage.prototype = {
           startUID: startUID,
           endTS: endTS,
           endUID: endUID,
-          count: uids ? uids.length : 0,
+          count: ids ? ids.length : 0,
           estSize: size || 0,
         },
         block = {
-          uids: uids || [],
+          ids: ids || [],
           bodies: bodies || {},
         };
     this._dirty = true;
@@ -6102,36 +6102,36 @@ FolderStorage.prototype = {
     return blockInfo;
   },
 
-  _insertBodyInBlock: function ifs__insertBodyInBlock(body, uid, info, block) {
-    function cmpBodyByUID(aUID, bUID) {
-      var aDate = (aUID === uid) ? body.date : block.bodies[aUID].date,
-          bDate = (bUID === uid) ? body.date : block.bodies[bUID].date,
+  _insertBodyInBlock: function ifs__insertBodyInBlock(body, id, info, block) {
+    function cmpBodyByID(aID, bID) {
+      var aDate = (aID === id) ? body.date : block.bodies[aID].date,
+          bDate = (bID === id) ? body.date : block.bodies[bID].date,
           d = bDate - aDate;
       if (d)
         return d;
-      d = bUID - aUID;
+      d = bID - aID;
       return d;
     }
 
-    var idx = bsearchForInsert(block.uids, uid, cmpBodyByUID);
-    block.uids.splice(idx, 0, uid);
-    block.bodies[uid] = body;
+    var idx = bsearchForInsert(block.ids, id, cmpBodyByID);
+    block.ids.splice(idx, 0, id);
+    block.bodies[id] = body;
     this._dirty = true;
     this._dirtyBodyBlocks[info.blockId] = block;
     // Insertion does not need to update start/end TS/UID because the calling
     // logic is able to handle it.
   },
 
-  _deleteBodyFromBlock: function ifs__deleteBodyFromBlock(uid, info, block) {
+  _deleteBodyFromBlock: function ifs__deleteBodyFromBlock(id, info, block) {
     // - delete
-    var idx = block.uids.indexOf(uid);
-    var body = block.bodies[uid];
+    var idx = block.ids.indexOf(id);
+    var body = block.bodies[id];
     if (idx === -1 || !body) {
-      this._LOG.bodyBlockMissing(uid, idx, !!body);
+      this._LOG.bodyBlockMissing(id, idx, !!body);
       return;
     }
-    block.uids.splice(idx, 1);
-    delete block.bodies[uid];
+    block.ids.splice(idx, 1);
+    delete block.bodies[id];
     info.estSize -= body.size;
     info.count--;
 
@@ -6140,13 +6140,13 @@ FolderStorage.prototype = {
 
     // - update endTS/endUID if necessary
     if (idx === 0 && info.count) {
-      info.endUID = uid = block.uids[0];
-      info.endTS = block.bodies[uid].date;
+      info.endUID = id = block.ids[0];
+      info.endTS = block.bodies[id].date;
     }
     // - update startTS/startUID if necessary
     if (idx === info.count && idx > 0) {
-      info.startUID = uid = block.uids[idx - 1];
-      info.startTS = block.bodies[uid].date;
+      info.startUID = id = block.ids[idx - 1];
+      info.startTS = block.bodies[id].date;
     }
   },
 
@@ -6164,16 +6164,16 @@ FolderStorage.prototype = {
     // least if we start inserting after splitting again in the future.)
     var savedStartTS = splinfo.startTS, savedStartUID = splinfo.startUID;
 
-    var newerBytes = 0, uids = splock.uids, newDict = {}, oldDict = {},
-        inNew = true, numHeaders = null, i, uid, body,
-        idxLast = uids.length - 1;
+    var newerBytes = 0, ids = splock.ids, newDict = {}, oldDict = {},
+        inNew = true, numHeaders = null, i, id, body,
+        idxLast = ids.length - 1;
     // loop for new traversal; picking a split-point so that there is at least
     // one item in each block.
     for (i = 0; i < idxLast; i++) {
-      uid = uids[i],
-      body = splock.bodies[uid];
+      id = ids[i],
+      body = splock.bodies[id];
       newerBytes += body.size;
-      newDict[uid] = body;
+      newDict[id] = body;
       if (newerBytes >= newerTargetBytes) {
         i++;
         break;
@@ -6183,21 +6183,21 @@ FolderStorage.prototype = {
     splinfo.count = numHeaders = i;
     // and these values are from the last processed new-block message
     splinfo.startTS = body.date;
-    splinfo.startUID = uid;
+    splinfo.startUID = id;
     // loop for old traversal
-    for (; i < uids.length; i++) {
-      uid = uids[i];
-      oldDict[uid] = splock.bodies[uid];
+    for (; i < ids.length; i++) {
+      id = ids[i];
+      oldDict[id] = splock.bodies[id];
     }
 
-    var oldEndUID = uids[numHeaders];
+    var oldEndUID = ids[numHeaders];
     var olderInfo = this._makeBodyBlock(
       savedStartTS, savedStartUID,
       oldDict[oldEndUID].date, oldEndUID,
       splinfo.estSize - newerBytes,
       // (the older block gets the uids the new/existing block does not want,
       //  leaving `uids` containing only the d
-      uids.splice(numHeaders, uids.length - numHeaders),
+      ids.splice(numHeaders, ids.length - numHeaders),
       oldDict);
     splinfo.estSize = newerBytes;
     splock.bodies = newDict;
@@ -6490,7 +6490,7 @@ FolderStorage.prototype = {
    *   @param[inside Object]
    * ]]
    */
-  _findRangeObjIndexForDateAndUID: function ifs__findRangeObjIndexForDateAndUID(
+  _findRangeObjIndexForDateAndID: function ifs__findRangeObjIndexForDateAndID(
       list, date, uid) {
     var i;
     // linear scan for now; binary search later
@@ -6501,7 +6501,7 @@ FolderStorage.prototype = {
       // inside any subsequent ranges, because they are all chronologically
       // earlier than this range.
       // If our date is the same and our UID is higher, then likewise we
-      // shouldn't go further because UIDs decrease too.
+      // shouldn't go further because IDs decrease too.
       if (STRICTLY_AFTER(date, info.endTS) ||
           (date === info.endTS && uid > info.endUID))
         return [i, null];
@@ -6694,8 +6694,8 @@ FolderStorage.prototype = {
     }
 
     // -- find the current containing block / insertion point
-    var infoTuple = this._findRangeObjIndexForDateAndUID(blockInfoList,
-                                                         date, uid),
+    var infoTuple = this._findRangeObjIndexForDateAndID(blockInfoList,
+                                                        date, uid),
         iInfo = infoTuple[0], info = infoTuple[1];
 
     // -- not in a block, find or create one
@@ -6915,9 +6915,9 @@ FolderStorage.prototype = {
       this._imapDb.loadBodyBlock(this.folderId, blockId, onLoaded);
   },
 
-  _deleteFromBlock: function ifs__deleteFromBlock(type, date, uid, callback) {
+  _deleteFromBlock: function ifs__deleteFromBlock(type, date, id, callback) {
     var blockInfoList, loadedBlockInfoList, blockMap, deleteFromBlock;
-    this._LOG.deleteFromBlock(type, date, uid);
+    this._LOG.deleteFromBlock(type, date, id);
     if (type === 'header') {
       blockInfoList = this._headerBlockInfos;
       loadedBlockInfoList = this._loadedHeaderBlockInfos;
@@ -6931,20 +6931,20 @@ FolderStorage.prototype = {
       deleteFromBlock = this._bound_deleteBodyFromBlock;
     }
 
-    var infoTuple = this._findRangeObjIndexForDateAndUID(blockInfoList,
-                                                         date, uid),
+    var infoTuple = this._findRangeObjIndexForDateAndID(blockInfoList,
+                                                        date, id),
         iInfo = infoTuple[0], info = infoTuple[1];
     // If someone is asking for us to delete something, there should definitely
     // be a block that includes it!
     if (!info) {
-      this._LOG.badDeletionRequest(type, date, uid);
+      this._LOG.badDeletionRequest(type, date, id);
       return;
     }
 
     function processBlock(block) {
-      // The delete function is in charge of updating the start/end TS/UID info
+      // The delete function is in charge of updating the start/end TS/ID info
       // because it knows about the internal block structure to do so.
-      deleteFromBlock(uid, info, block);
+      deleteFromBlock(id, info, block);
 
       // - Nuke the block if it's empty
       if (info.count === 0) {
@@ -7844,16 +7844,16 @@ FolderStorage.prototype = {
    * Fetch up to `limit` messages chronologically before the given message
    * (in the direction of 'start').
    *
-   * If date/uid are null, it as if the date/uid of the most recent message
+   * If date/id are null, it as if the date/id of the most recent message
    * are passed.
    */
-  getMessagesBeforeMessage: function(date, uid, limit, messageCallback) {
+  getMessagesBeforeMessage: function(date, id, limit, messageCallback) {
     var toFill = (limit != null) ? limit : $sync.TOO_MANY_MESSAGES, self = this;
 
     var headerPair, iHeadBlockInfo, headBlockInfo;
     if (date) {
-      headerPair = this._findRangeObjIndexForDateAndUID(
-                     this._headerBlockInfos, date, uid);
+      headerPair = this._findRangeObjIndexForDateAndID(
+                     this._headerBlockInfos, date, id);
       iHeadBlockInfo = headerPair[0];
       headBlockInfo = headerPair[1];
     }
@@ -7865,7 +7865,7 @@ FolderStorage.prototype = {
     if (!headBlockInfo) {
       // The iteration request is somehow not current; log an error and return
       // an empty result set.
-      this._LOG.badIterationStart(date, uid);
+      this._LOG.badIterationStart(date, id);
       messageCallback([], false);
       return;
     }
@@ -7880,14 +7880,14 @@ FolderStorage.prototype = {
         }
         var headerBlock = self._headerBlocks[headBlockInfo.blockId];
 
-        // Null means find it by uid...
+        // Null means find it by id...
         if (iHeader === null) {
-          if (uid !== null)
-            iHeader = headerBlock.uids.indexOf(uid);
+          if (id !== null)
+            iHeader = headerBlock.ids.indexOf(id);
           else
             iHeader = 0;
           if (iHeader === -1) {
-            self._LOG.badIterationStart(date, uid);
+            self._LOG.badIterationStart(date, id);
             toFill = 0;
           }
           iHeader++;
@@ -7932,18 +7932,18 @@ FolderStorage.prototype = {
    * Fetch up to `limit` messages chronologically after the given message (in
    * the direction of 'end').
    */
-  getMessagesAfterMessage: function(date, uid, limit, messageCallback) {
+  getMessagesAfterMessage: function(date, id, limit, messageCallback) {
     var toFill = (limit != null) ? limit : $sync.TOO_MANY_MESSAGES, self = this;
 
-    var headerPair = this._findRangeObjIndexForDateAndUID(
-                       this._headerBlockInfos, date, uid);
+    var headerPair = this._findRangeObjIndexForDateAndID(
+                       this._headerBlockInfos, date, id);
     var iHeadBlockInfo = headerPair[0];
     var headBlockInfo = headerPair[1];
 
     if (!headBlockInfo) {
       // The iteration request is somehow not current; log an error and return
       // an empty result set.
-      this._LOG.badIterationStart(date, uid);
+      this._LOG.badIterationStart(date, id);
       messageCallback([], false);
       return;
     }
@@ -7958,11 +7958,11 @@ FolderStorage.prototype = {
         }
         var headerBlock = self._headerBlocks[headBlockInfo.blockId];
 
-        // Null means find it by uid...
+        // Null means find it by id...
         if (iHeader === null) {
-          iHeader = headerBlock.uids.indexOf(uid);
+          iHeader = headerBlock.ids.indexOf(id);
           if (iHeader === -1) {
-            self._LOG.badIterationStart(date, uid);
+            self._LOG.badIterationStart(date, id);
             toFill = 0;
           }
           iHeader--;
@@ -8308,8 +8308,8 @@ FolderStorage.prototype = {
    */
   getMessageHeader: function ifs_getMessageHeader(suid, date, callback) {
     var id = parseInt(suid.substring(suid.lastIndexOf('/') + 1)),
-        posInfo = this._findRangeObjIndexForDateAndUID(this._headerBlockInfos,
-                                                       date, id);
+        posInfo = this._findRangeObjIndexForDateAndID(this._headerBlockInfos,
+                                                      date, id);
     if (posInfo[1] === null) {
       this._LOG.headerNotFound();
       try {
@@ -8323,7 +8323,7 @@ FolderStorage.prototype = {
     var headerBlockInfo = posInfo[1], self = this;
     if (!(this._headerBlocks.hasOwnProperty(headerBlockInfo.blockId))) {
       this._loadBlock('header', headerBlockInfo, function(headerBlock) {
-          var idx = headerBlock.uids.indexOf(id);
+          var idx = headerBlock.ids.indexOf(id);
           var headerInfo = headerBlock.headers[idx] || null;
           if (!headerInfo)
             self._LOG.headerNotFound();
@@ -8337,7 +8337,7 @@ FolderStorage.prototype = {
       return;
     }
     var block = this._headerBlocks[headerBlockInfo.blockId],
-        idx = block.uids.indexOf(id),
+        idx = block.ids.indexOf(id),
         headerInfo = block.headers[idx] || null;
     if (!headerInfo)
       this._LOG.headerNotFound();
@@ -8458,11 +8458,11 @@ FolderStorage.prototype = {
     // We need to deal with the potential for the block having been discarded
     // from memory thanks to the potential asynchrony due to pending loads or
     // on the part of the caller.
-    var infoTuple = this._findRangeObjIndexForDateAndUID(
+    var infoTuple = this._findRangeObjIndexForDateAndID(
                       this._headerBlockInfos, date, id),
         iInfo = infoTuple[0], info = infoTuple[1], self = this;
     function doUpdateHeader(block) {
-      var idx = block.uids.indexOf(id), header;
+      var idx = block.ids.indexOf(id), header;
       if (idx === -1) {
         // Call the mutation func with null to let it know we couldn't find the
         // header.
@@ -8812,8 +8812,8 @@ FolderStorage.prototype = {
 
   getMessageBody: function ifs_getMessageBody(suid, date, callback) {
     var id = parseInt(suid.substring(suid.lastIndexOf('/') + 1)),
-        posInfo = this._findRangeObjIndexForDateAndUID(this._bodyBlockInfos,
-                                                       date, id);
+        posInfo = this._findRangeObjIndexForDateAndID(this._bodyBlockInfos,
+                                                      date, id);
     if (posInfo[1] === null) {
       this._LOG.bodyNotFound();
       try {
@@ -8964,7 +8964,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       // on their own.  (The danger is in correlation with known messages,
       // but that is likely to be useful in the debugging situations where logs
       // will be sufaced.)
-      deleteFromBlock: { type: false, date: false, uid: false },
+      deleteFromBlock: { type: false, date: false, id: false },
 
       // This was an error but the test results viewer UI is not quite smart
       // enough to understand the difference between expected errors and
@@ -8991,9 +8991,9 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       // Exposing date/uid at a general level is deemed okay because they are
       // opaque identifiers and the most likely failure models involve the
       // values being ridiculous (and therefore not legal).
-      badIterationStart: { date: false, uid: false },
-      badDeletionRequest: { type: false, date: false, uid: false },
-      bodyBlockMissing: { uid: false, idx: false, dict: false },
+      badIterationStart: { date: false, id: false },
+      badDeletionRequest: { type: false, date: false, id: false },
+      bodyBlockMissing: { id: false, idx: false, dict: false },
       serverIdMappingMissing: { srvid: false },
 
       accuracyRangeSuspect: { arange: false },
@@ -9222,12 +9222,12 @@ RecipientFilter.prototype = {
       }
     }
 
-    if (this.checkTo && body.to)
-      checkRecipList(body.to);
-    if (this.checkCc && body.cc && matches.length < stopAfter)
-      checkRecipList(body.cc);
-    if (this.checkBcc && body.bcc && matches.length < stopAfter)
-      checkRecipList(body.bcc);
+    if (this.checkTo && header.to)
+      checkRecipList(header.to);
+    if (this.checkCc && header.cc && matches.length < stopAfter)
+      checkRecipList(header.cc);
+    if (this.checkBcc && header.bcc && matches.length < stopAfter)
+      checkRecipList(header.bcc);
 
     if (matches.length) {
       match.recipients = matches;
@@ -10325,7 +10325,7 @@ exports.postJobCleanup = function(passed) {
       deltaMap = this._stateDelta.moveMap;
       fullMap = this._state.moveMap;
       for (var oldSuid in deltaMap) {
-        var newSuid = deltaMap[suid];
+        var newSuid = deltaMap[oldSuid];
         fullMap[oldSuid] = newSuid;
       }
     }
@@ -12829,6 +12829,7 @@ var sendMessage = $router.registerCallbackType('maildb');
 function MailDB(testOptions) {
   this._callbacksQueue = [];
   function processQueue() {
+    console.log('main thread reports DB ready');
     this._ready = true;
 
     this._callbacksQueue.forEach(function executeCallback(cb) {
@@ -12847,10 +12848,12 @@ MailDB.prototype = {
 
   getConfig: function(callback) {
     if (!this._ready) {
+      console.log('deferring getConfig call until ready');
       this._callbacksQueue.push(this.getConfig.bind(this, callback));
-       return;
-     }
+      return;
+    }
 
+    console.log('issuing getConfig call to main thread');
     sendMessage('getConfig', null, callback);
   },
 

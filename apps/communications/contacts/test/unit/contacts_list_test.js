@@ -54,6 +54,10 @@ if (!this.asyncStorage) {
   this.asyncStorage = null;
 }
 
+if (!window.asyncScriptsLoaded) {
+  window.asyncScriptsLoaded = null;
+}
+
 var URL = null;
 
 
@@ -313,8 +317,8 @@ suite('Render contacts list', function() {
 
     resetDom(window.document);
 
-    subject.init(list);
     subject.setOrderByLastName(true);
+    subject.init(list);
 
     contacts.Search.init(document.getElementById('view-contacts-list'));
   });
@@ -785,9 +789,7 @@ suite('Render contacts list', function() {
         done();
       }, 100);
     }); // test ends
-  });  // suite ends
 
-  suite('Contact search', function() {
     test('check search', function(done) {
       mockContacts = new MockContactsList();
       var contactIndex = Math.floor(Math.random() * mockContacts.length);
@@ -895,9 +897,7 @@ suite('Render contacts list', function() {
         });
       }, 100);
     });
-  });
 
-  suite('Contacts order', function() {
     test('Order by lastname', function(done) {
       resetDom(document);
       subject.init(list);
@@ -925,8 +925,9 @@ suite('Render contacts list', function() {
           assert.isTrue(printed.innerHTML.indexOf(highlight) == 0);
         }
         done();
-      }, 100);
+      }, 500);
     });
+
     test('NOT order by lastname', function(done) {
       subject.setOrderByLastName(false);
       subject.load(mockContacts);

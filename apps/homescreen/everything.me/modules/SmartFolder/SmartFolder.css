@@ -118,7 +118,8 @@
         width: auto;
         height: auto;
     }
-        #evmeContainer .smart-folder .evme-apps ul {
+        #evmeContainer .smart-folder .evme-apps ul,
+        #evmeContainer .smart-folder .evme-apps .loading-apps {
             right: 2.5rem;
         }
         #evmeContainer .smart-folder .evme-apps ul.has-more:not(.connection-error) {

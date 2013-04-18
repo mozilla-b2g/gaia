@@ -65,6 +65,9 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
     case 'held':
       this.node.classList.add('held');
       break;
+    case 'busy':
+      this.busy();
+      break;
   }
 };
 
@@ -99,7 +102,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
   if (!number.length) {
     LazyL10n.get(function localized(_) {
-      node.textContent = _('unknown');
+      node.textContent = _('withheld-number');
     });
     return;
   }
@@ -121,12 +124,12 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
         node.textContent = primaryInfo;
       } else {
         LazyL10n.get(function gotL10n(_) {
-          node.textContent = _('unknown');
+          node.textContent = _('withheld-number');
         });
       }
       KeypadManager.formatPhoneNumber('end', true);
       var additionalInfo = Utils.getPhoneNumberAdditionalInfo(matchingTel,
-                                                              contact);
+                                                              contact, number);
       KeypadManager.updateAdditionalContactInfo(additionalInfo);
       if (contact.photo && contact.photo.length > 0) {
         self.photo = contact.photo[0];
@@ -175,6 +178,10 @@ HandledCall.prototype.connected = function hc_connected() {
   this.updateDirection();
   CallScreen.enableKeypad();
   CallScreen.syncSpeakerEnabled();
+};
+
+HandledCall.prototype.busy = function hc_busy() {
+  OnCallHandler.notifyBusyLine();
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {

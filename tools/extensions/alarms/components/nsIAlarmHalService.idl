@@ -1,0 +1,14 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "domstubs.idl"
+
+[scriptable, uuid(157b1ee4-f696-486d-bd55-205e21e88fab)]
+interface nsIAlarmHalService : nsISupports
+{
+  bool setAlarm(in long aSeconds, in long aNanoseconds);
+  void setAlarmFiredCb(in jsval aAlarmFiredCb);
+  void setTimezoneChangedCb(in jsval aTimezoneChangedCb);
+};
+

@@ -1,6 +1,4 @@
 'use strict';
-// Ignore leak, otherwise an error would occur when using MockMozActivity.
-mocha.setup({ignoreLeaks: true});
 
 requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mock_l10n.js');
@@ -15,7 +13,7 @@ requireApp('system/js/lockscreen.js');
 var mocksForStatusBar = ['SettingsListener', 'MobileOperator'];
 
 mocksForStatusBar.forEach(function(mockName) {
-  if (window[mockName]) {
+  if (!window[mockName]) {
     window[mockName] = null;
   }
 });
@@ -38,8 +36,6 @@ suite('system/Statusbar', function() {
     navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
-    realMobileOperator = window.MobileOperator;
-    window.MobileOperator = MockMobileOperator;
   });
 
   suiteTeardown(function() {
@@ -47,8 +43,6 @@ suite('system/Statusbar', function() {
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnection = realMozMobileConnection;
     navigator.mozTelephony = realMozTelephony;
-    window.SettingsListener = realSettingsListener;
-    window.MobileOperator = realMobileOperator;
   });
 
   setup(function() {
@@ -407,7 +401,7 @@ suite('system/Statusbar', function() {
         network: {
           shortName: 'Fake short',
           longName: 'Fake long',
-          mnc: 10 // VIVO
+          mnc: '10' // VIVO
         },
         cell: {
           gsmLocationAreaCode: 71 // BA
@@ -437,5 +431,3 @@ suite('system/Statusbar', function() {
     });
   });
 });
-
-mocha.setup({ignoreLeaks: false});

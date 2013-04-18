@@ -225,12 +225,12 @@ ifneq ($(LOCALE_BASEDIR),)
 		targets="$$targets --target $$appdir"; \
 	done; \
 	python $(CURDIR)/build/multilocale.py \
-		--config $(LOCALES_FILE) \
-		--source $(LOCALE_BASEDIR) \
+		--config '$(LOCALES_FILE)' \
+		--source '$(LOCALE_BASEDIR)' \
 		$$targets;
 	@echo "Done"
 ifneq ($(LOCALES_FILE),shared/resources/languages.json)
-	cp $(LOCALES_FILE) shared/resources/languages.json
+	cp '$(LOCALES_FILE)' shared/resources/languages.json
 endif
 endif
 
@@ -302,6 +302,11 @@ contacts: install-xulrunner-sdk
 
 # Create webapps
 offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
+
+# Create an empty reference workload
+.PHONY: reference-workload-empty
+reference-workload-empty:
+	test_media/reference-workload/makeReferenceWorkload.sh empty
 
 # Create a light reference workload
 .PHONY: reference-workload-light
@@ -386,7 +391,7 @@ define run-js-command
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
-	const LOCALES_FILE = "$(LOCALES_FILE)";                                     \
+	const LOCALES_FILE = "$(subst \,\\,$(LOCALES_FILE))";                       \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
 	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
@@ -733,13 +738,14 @@ reset-gaia: purge install-gaia install-settings-defaults
 # remove the memories and apps on the phone
 purge:
 	$(ADB) shell stop b2g
-	(for FILE in `$(ADB) shell ls $(MSYS_FIX)/data/local | tr -d '\r'`; \
+	@(for FILE in `$(ADB) shell ls $(MSYS_FIX)/data/local | tr -d '\r'`; \
 	do \
 		[ $$FILE = 'tmp' ] || $(ADB) shell rm -r $(MSYS_FIX)/data/local/$$FILE; \
 	done);
 	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
 	$(ADB) shell rm -r $(MSYS_FIX)/data/local/webapps
+	$(ADB) remount
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 
 # Build the settings.json file from settings.py
@@ -750,6 +756,12 @@ endif
 ifeq ($(REMOTE_DEBUGGER), 1)
 SETTINGS_ARG += --enable-debugger
 endif
+
+ifeq ($(DEBUG),1)
+SETTINGS_ARG += --homescreen=http://homescreen.$(GAIA_DOMAIN):$(GAIA_PORT)/manifest.webapp
+SETTINGS_ARG += --noftu
+endif
+
 
 # We want the console to be disabled for device builds using the user variant.
 ifneq ($(TARGET_BUILD_VARIANT),user)

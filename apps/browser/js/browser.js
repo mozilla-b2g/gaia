@@ -50,6 +50,10 @@ var Browser = {
   waitingActivities: [],
   hasLoaded: false,
 
+  // store the current scroll position, so we can re-calculate whether
+  // we need to show the addressbar when loading the page is complete
+  lastScrollOffset: 0,
+
   init: function browser_init() {
     this.getAllElements();
 
@@ -105,7 +109,7 @@ var Browser = {
       return;
 
     console.log('----------loadink!');
-    var filesToLoad = [
+    var elementsToLoad = [
       // DOM Nodes with commented content to load
       this.awesomescreen,
       this.crashscreen,
@@ -117,8 +121,10 @@ var Browser = {
       document.getElementById('modal-dialog-prompt'),
       document.getElementById('modal-dialog-confirm'),
       document.getElementById('modal-dialog-custom-prompt'),
-      document.getElementById('http-authentication-dialog'),
+      document.getElementById('http-authentication-dialog')
+    ];
 
+    var filesToLoad = [
       // css files
       'shared/style/headers.css',
       'shared/style/buttons.css',
@@ -154,6 +160,13 @@ var Browser = {
 
     var loadBrowserFiles = function() {
       LazyLoader.load(jsFiles, function() {
+        var mozL10n = navigator.mozL10n;
+        mozL10n.ready(function browser_localizeElements() {
+          elementsToLoad.forEach(function l10nElement(element) {
+            mozL10n.translate(element);
+          });
+        });
+
         domElements.forEach(function createElementRef(name) {
           this[this.toCamelCase(name)] = document.getElementById(name);
         }, this);
@@ -166,7 +179,8 @@ var Browser = {
       }.bind(this));
     };
 
-    LazyLoader.load(filesToLoad, loadBrowserFiles.bind(this));
+    LazyLoader.load(elementsToLoad.concat(filesToLoad),
+      loadBrowserFiles.bind(this));
   },
 
   initRemainingListeners: function browser_initRemainingListeners() {
@@ -238,7 +252,7 @@ var Browser = {
     console.log('Populating default data.');
 
     var DEFAULT_BOOKMARK = '000000';
-    var iccSettings = { mcc: -1, mnc: -1 };
+    var iccSettings = { mcc: '-1', mnc: '-1' };
 
     // Read the mcc/mnc settings, then trigger callback.
     // pattern from system/js/operator_variant/operator_variant.js
@@ -249,10 +263,10 @@ var Browser = {
 
       var mccRequest = transaction.get(mccKey);
       mccRequest.onsuccess = function() {
-        iccSettings.mcc = parseInt(mccRequest.result[mccKey], 10) || 0;
+        iccSettings.mcc = mccRequest.result[mccKey] || '0';
         var mncRequest = transaction.get(mncKey);
         mncRequest.onsuccess = function() {
-          iccSettings.mnc = parseInt(mncRequest.result[mncKey], 10) || 0;
+          iccSettings.mnc = mncRequest.result[mncKey] || '0';
           callback(data);
         };
       };
@@ -268,10 +282,10 @@ var Browser = {
     }
 
     // pad leading zeros
-    function zfill(num, len) {
-      var n = num + '';
-      while (n.length < len) n = '0' + n;
-      return n;
+    function zfill(code, len) {
+      var c = code;
+      while (c.length < len) c = '0' + c;
+      return c;
     }
 
     /* Match best bookmark setting by
@@ -367,7 +381,6 @@ var Browser = {
   // Each browser gets their own listener
   handleBrowserEvent: function browser_handleBrowserEvent(tab) {
     return (function(evt) {
-
       var isCurrentTab = this.currentTab.id === tab.id;
       switch (evt.type) {
 
@@ -420,9 +433,14 @@ var Browser = {
           Places.setAndLoadIconForPage(tab.url, iconUrl);
         }
 
+        // We always show the address bar when loading
+        // After loading we might need to hide it
+        this.handleScroll({ detail: { top: this.lastScrollOffset } });
+
         break;
 
       case 'mozbrowserlocationchange':
+        this.lastScrollOffset = 0;
         if (evt.detail === 'about:blank') {
           return;
         }
@@ -519,22 +537,25 @@ var Browser = {
   },
 
   handleScroll: function browser_handleScroll(evt) {
+    this.lastScrollOffset = evt.detail.top;
+
     if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD) {
-      if (this.addressBarState === this.VISIBLE ||
-          this.addressBarState === this.TRANSITIONING) {
-        return;
-      }
       this.showAddressBar();
     } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
-      if (this.addressBarState === this.HIDDEN ||
-          this.addressBarState === this.TRANSITIONING) {
-        return;
-      }
       this.hideAddressBar();
     }
   },
 
   hideAddressBar: function browser_hideAddressBar() {
+    if (this.addressBarState === this.HIDDEN ||
+        this.addressBarState === this.TRANSITIONING) {
+      return;
+    }
+
+    // don't hide the address bar when loading
+    if (this.currentTab.loading)
+      return;
+
     var addressBarHidden = (function browser_addressBarHidden() {
       this.addressBarState = this.HIDDEN;
       this.mainScreen.removeEventListener('transitionend', addressBarHidden);
@@ -547,6 +568,11 @@ var Browser = {
   },
 
   showAddressBar: function browser_showAddressBar() {
+    if (this.addressBarState === this.VISIBLE ||
+        this.addressBarState === this.TRANSITIONING) {
+      return;
+    }
+
     var addressBarVisible = (function browser_addressBarVisible() {
       this.mainScreen.classList.remove('expanded');
       this.addressBarState = this.VISIBLE;
@@ -600,6 +626,13 @@ var Browser = {
   handleVisibilityChange: function browser_handleVisibilityChange() {
     if (!document.mozHidden && this.currentTab.crashed)
       this.reviveCrashedTab(this.currentTab);
+
+    // Bug 845661 - Attention screen does not appears when
+    // the url bar input is focused.
+    if (document.mozHidden) {
+      this.urlInput.blur();
+      this.currentTab.dom.blur();
+    }
   },
 
   reviveCrashedTab: function browser_reviveCrashedTab(tab) {

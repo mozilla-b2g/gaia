@@ -81,17 +81,24 @@ var CallHandler = (function callHandler() {
       LazyL10n.get(function localized(_) {
         var title = _('missedCall');
 
-        var sender;
+        var body;
         if (!number) {
-          sender = _('unknown');
+          body = _('from-withheld-number');
         } else if (contact) {
-          sender = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact) ||
-              _('unknown');
+          var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
+            contact);
+          if (primaryInfo) {
+            if (primaryInfo !== matchingTel.value) {
+              body = _('from-contact', {contact: primaryInfo});
+            } else {
+              body = _('from-number', {number: primaryInfo});
+            }
+          } else {
+            body = _('from-withheld-number');
+          }
         } else {
-          sender = number;
+          body = _('from-number', {number: number});
         }
-
-        var body = _('from', {sender: sender});
 
         navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
           var app = evt.target.result;
@@ -236,19 +243,13 @@ var CallHandler = (function callHandler() {
 
   /* === Calls === */
   function call(number) {
-    if (UssdManager.isUSSD(number)) {
-      UssdManager.send(number);
+    if (MmiManager.isMMI(number)) {
+      MmiManager.send(number);
       // Clearing the code from the dialer screen gives the user immediate
       // feedback.
       KeypadManager.updatePhoneNumber('', 'begin', true);
       return;
     }
-
-    var oncall = function t_oncall() {
-      if (!callScreenWindow) {
-        openCallScreen(opened);
-      }
-    };
 
     var connected, disconnected = function clearPhoneView() {
       KeypadManager.updatePhoneNumber('', 'begin', true);
@@ -258,6 +259,12 @@ var CallHandler = (function callHandler() {
 
     var error = function() {
       shouldCloseCallScreen = true;
+    };
+
+    var oncall = function() {
+      if (!callScreenWindow) {
+        openCallScreen(opened);
+      }
     };
 
     var opened = function() {
@@ -338,19 +345,33 @@ var CallHandler = (function callHandler() {
     callScreenWindowLoaded = false;
   }
 
-  /* === USSD === */
-  function init() {
+  /* === MMI === */
+  function initMMI() {
     loader.load(['/shared/js/mobile_operator.js',
-                 '/dialer/js/ussd.js'], function() {
+                 '/dialer/js/mmi.js',
+                 '/dialer/js/mmi_ui.js',
+                 '/shared/style/headers.css',
+                 '/shared/style/input_areas.css',
+                 '/shared/style_unstable/progress_activity.css',
+                 '/dialer/style/mmi.css'], function() {
       if (window.navigator.mozSetMessageHandler) {
-        window.navigator.mozSetMessageHandler('ussd-received',
-            UssdManager.openUI.bind(UssdManager));
+        window.navigator.mozSetMessageHandler('ussd-received', function(evt) {
+          if (document.hidden) {
+            var request = window.navigator.mozApps.getSelf();
+            request.onsuccess = function() {
+              request.result.launch('dialer');
+            };
+          }
+
+          MmiManager.handleMMIReceived(evt.message, evt.sessionEnded);
+        });
       }
+
     });
   }
 
   return {
-    init: init,
+    initMMI: initMMI,
     call: call
   };
 })();
@@ -472,15 +493,18 @@ window.addEventListener('load', function startup(evt) {
     var delayed = document.getElementById('delay');
     delayed.innerHTML = delayed.childNodes[0].nodeValue;
 
-    var parent = delayed.parentNode;
-    var child;
-    while (child = delayed.children[0]) {
-      parent.insertBefore(child, delayed);
-    }
+    // Translate content.
+    LazyL10n.get(function localized() {
+      navigator.mozL10n.translate(delayed);
+      var parent = delayed.parentNode;
+      var child;
+      while (child = delayed.children[0]) {
+        parent.insertBefore(child, delayed);
+      }
+      parent.removeChild(delayed);
+    });
 
-    parent.removeChild(delayed);
-
-    CallHandler.init();
+    CallHandler.initMMI();
 
     // Load delayed scripts
     loader.load(['/contacts/js/fb/fb_data.js',
@@ -500,3 +524,21 @@ window.onresize = function(e) {
     document.body.classList.remove('with-keyboard');
   }
 };
+
+// If the app loses focus, close the audio stream. This works around an
+// issue in Gecko where the Audio Data API causes gfx performance problems,
+// in particular when scrolling the homescreen.
+// See: https://bugzilla.mozilla.org/show_bug.cgi?id=779914
+document.addEventListener('mozvisibilitychange', function visibilitychanged() {
+  if (!document.mozHidden) {
+    TonePlayer.ensureAudio();
+  } else {
+    // Reset the audio stream. This ensures that the stream is shutdown
+    // *immediately*.
+    TonePlayer.trashAudio();
+    // Just in case stop any dtmf tone
+    if (navigator.mozTelephony) {
+      navigator.mozTelephony.stopTone();
+    }
+  }
+});

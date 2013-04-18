@@ -49,6 +49,13 @@ var SimLock = {
               'sms' in app.manifest.permissions))
           return;
 
+        // If the Settings app will open, don't prompt for SIM PIN entry
+        // although it has 'telephony' permission (Bug 861206)
+        var settingsManifestURL =
+          'app://settings.gaiamobile.org/manifest.webapp';
+        if (app.manifestURL == settingsManifestURL)
+          return;
+
         // Ignore second 'appwillopen' event when showIfLocked eventually opens
         // the app on valid PIN code
         var origin = evt.target.dataset.frameOrigin;
@@ -90,17 +97,10 @@ var SimLock = {
         SimPinDialog.show('unlock', this.onClose);
         return true;
       case 'networkLocked':
-        // XXXX: After unlocking the SIM the cardState is
-        //       'networkLocked' but it changes inmediately to 'ready'
-        //       if the phone is not SIM-locked. If the cardState
-        //       is still 'networkLocked' after 20 seconds we unlock
-        //       the network control key lock (network personalization).
-        setTimeout(function checkState() {
-          if (conn.cardState == 'networkLocked') {
-            SimPinDialog.show('unlock', SimLock.onClose);
-          }
-        }, 20000);
-        break;
+      case 'corporateLocked':
+      case 'serviceProviderLocked':
+        SimPinDialog.show('unlock', SimLock.onClose);
+        return true;
     }
     return false;
   },

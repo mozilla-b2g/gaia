@@ -185,8 +185,6 @@ const IMERender = (function() {
   };
 
   var hideIME = function km_hideIME() {
-    this.ime.classList.add('hide');
-    this.ime.classList.remove('candidate-panel');
     this.ime.dataset.hidden = 'true';
   };
 
@@ -261,6 +259,10 @@ const IMERender = (function() {
         var span = document.createElement('span');
         span.dataset.selection = true;
         if (typeof candidate === 'string') {
+          if (candidate[0] === '*') { // it is an autocorrection candidate
+            candidate = candidate.substring(1);
+            span.classList.add('autocorrect');
+          }
           span.dataset.data = span.textContent = candidate;
         }
         else {

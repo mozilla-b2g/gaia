@@ -467,7 +467,14 @@ var WindowManager = (function() {
     windows.classList.remove('active');
 
     // set the closed frame visibility to false
-    if ('setVisible' in iframe) {
+
+    // XXX: After bug 822325 is fixed in gecko,
+    // we don't need to check trusted ui state here anymore.
+    // We do this because we don't want the trustedUI opener
+    // is killed in background due to OOM.
+
+    if ('setVisible' in iframe &&
+        !TrustedUIManager.hasTrustedUI(iframe.dataset.frameOrigin)) {
       // When we setVisible(false) the app frame, it throws out its
       // layer tree, which results in it not being renderable by the
       // compositor.  If that happens before we repaint our tree
@@ -760,7 +767,14 @@ var WindowManager = (function() {
         // If attention screen is fully visible now,
         // don't give the open frame visible.
         // This is the case that homescreen is restarted behind attention screen
-        openFrame.firstChild.setVisible(false);
+
+        // XXX: After bug 822325 is fixed in gecko,
+        // we don't need to check trusted ui state here anymore.
+        // We do this because we don't want the trustedUI opener
+        // is killed in background due to OOM.
+        if (!TrustedUIManager.hasTrustedUI(
+            openFrame.firstChild.dataset.frameOrigin))
+          openFrame.firstChild.setVisible(false);
       }
     }
   }
@@ -946,10 +960,24 @@ var WindowManager = (function() {
     // Before starting a new transition, let's make sure current transitions
     // are stopped and the state classes are cleaned up.
     // visibility status should also be reset.
-    if (openFrame && 'setVisible' in openFrame.firstChild)
-      openFrame.firstChild.setVisible(false);
-    if (closeFrame && 'setVisible' in closeFrame.firstChild)
-      closeFrame.firstChild.setVisible(false);
+    if (openFrame && 'setVisible' in openFrame.firstChild) {
+      // XXX: After bug 822325 is fixed in gecko,
+      // we don't need to check trusted ui state here anymore.
+      // We do this because we don't want the trustedUI opener
+      // is killed in background due to OOM.
+      if (!TrustedUIManager.hasTrustedUI(
+            openFrame.firstChild.dataset.frameOrigin))
+        openFrame.firstChild.setVisible(false);
+    }
+    if (closeFrame && 'setVisible' in closeFrame.firstChild) {
+      // XXX: After bug 822325 is fixed in gecko,
+      // we don't need to check trusted ui state here anymore.
+      // We do this because we don't want the trustedUI opener
+      // is killed in background due to OOM.
+      if (!TrustedUIManager.hasTrustedUI(
+            closeFrame.firstChild.dataset.frameOrigin))
+        closeFrame.firstChild.setVisible(false);
+    }
 
     if (newApp == homescreen && !AttentionScreen.isFullyVisible()) {
       toggleHomescreen(true);
@@ -1610,20 +1638,36 @@ var WindowManager = (function() {
         if (!AttentionScreen.isVisible())
           return;
       case 'attentionscreenshow':
-        if (evt.detail && evt.detail.origin &&
-          evt.detail.origin != displayedApp) {
-            attentionScreenTimer = setTimeout(function setVisibility() {
-              if (inlineActivityFrames.length) {
-                setVisibilityForInlineActivity(false);
-              } else {
-                setVisibilityForCurrentApp(false);
-              }
-            }, 3000);
+        var detail = evt.detail;
+        if (detail && detail.origin && detail.origin != displayedApp) {
+          attentionScreenTimer = setTimeout(function setVisibility() {
+            if (inlineActivityFrames.length) {
+              setVisibilityForInlineActivity(false);
+            } else {
+              setVisibilityForCurrentApp(false);
+            }
+          }, 3000);
 
-            // Immediatly blur the frame in order to ensure hiding the keyboard
-            var app = runningApps[displayedApp];
-            if (app)
+          // Instantly blur the frame in order to ensure hiding the keyboard
+          var app = runningApps[displayedApp];
+          if (app) {
+            if ('contentWindow' in app.iframe) {
+              // Bug 845661 - Attention screen does not appears when
+              // the url bar input is focused.
+              // Calling app.iframe.blur() on an in-process window
+              // seems to triggers heavy tasks that froze the main
+              // process for a while and seems to expose a gecko
+              // repaint issue.
+              // So since the only in-process frame is the browser app
+              // let's switch it's visibility as soon as possible when
+              // there is an attention screen and delegate the
+              // responsibility to blur the possible focused elements
+              // itself.
+              app.iframe.setVisible(false);
+            } else {
               app.iframe.blur();
+            }
+          }
         }
         break;
 

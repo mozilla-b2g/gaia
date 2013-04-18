@@ -6,6 +6,9 @@ var COMMS_APP_ORIGIN = document.location.protocol + '//' +
   document.location.host;
 var asyncScriptsLoaded;
 
+// Scale ratio for different devices
+var SCALE_RATIO = window.innerWidth / 320;
+
 var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
 
@@ -216,11 +219,12 @@ var Contacts = (function() {
   var initContactsList = function initContactsList() {
     if (contactsList)
       return;
-    getFirstContacts();
     contactsList = contactsList || contacts.List;
     var list = document.getElementById('groups-list');
     contactsList.init(list);
+    getFirstContacts();
     contactsList.initAlphaScroll();
+    contactsList.handleClick(contactListClickHandler);
     checkCancelableActivity();
   };
 
@@ -322,11 +326,6 @@ var Contacts = (function() {
       currentContact = contact;
       contactsDetails.render(currentContact, TAG_OPTIONS);
     });
-  };
-
-  var loadList = function loadList(contacts) {
-    contactsList.load(contacts);
-    contactsList.handleClick(contactListClickHandler);
   };
 
   var selectList = function selectList(params, fromUpdateActivity) {
@@ -581,10 +580,12 @@ var Contacts = (function() {
 
   var loadFacebook = function loadFacebook(callback) {
     if (!fbLoader.loaded) {
-      fbLoader.load();
-      window.addEventListener('facebookLoaded', function onFbLoaded() {
-        window.removeEventListener('facebookLoaded', onFbLoaded);
-        callback();
+      fb.init(function onInitFb() {
+        window.addEventListener('facebookLoaded', function onFbLoaded() {
+          window.removeEventListener('facebookLoaded', onFbLoaded);
+          callback();
+        });
+        fbLoader.load();
       });
     } else {
       callback();
@@ -752,16 +753,13 @@ var Contacts = (function() {
     };
     contactsList = contactsList || contacts.List;
 
-    contactsList.getAllContacts(onerror, function(contacts) {
-      loadList(contacts);
-    });
+    contactsList.getAllContacts(onerror);
   };
 
   var addAsyncScripts = function addAsyncScripts() {
     var lazyLoadFiles = [
       '/contacts/js/utilities/templates.js',
       '/contacts/js/contacts_shortcuts.js',
-      '/contacts/js/utilities/responsive.js',
       '/contacts/js/confirm_dialog.js',
       '/contacts/js/contacts_settings.js',
       '/contacts/js/contacts_details.js',
@@ -791,6 +789,9 @@ var Contacts = (function() {
       if (!handling || ActivityHandler.activityName === 'pick') {
         initContactsList();
         checkUrl();
+      } else {
+        // Unregister here to avoid un-necessary list operations.
+        navigator.mozContacts.oncontactchange = null;
       }
       window.dispatchEvent(new CustomEvent('asyncScriptsLoaded'));
     });
@@ -875,6 +876,31 @@ var Contacts = (function() {
     }
   };
 
+  var close = function close() {
+    window.removeEventListener('localized', initContacts);
+  };
+
+  var initContacts = function initContacts(evt) {
+    window.setTimeout(Contacts.onLocalized);
+    window.removeEventListener('localized', initContacts);
+    if (window.navigator.mozSetMessageHandler && window.self == window.top) {
+      var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+      window.navigator.mozSetMessageHandler('activity', actHandler);
+    }
+    window.addEventListener('online', Contacts.onLineChanged);
+    window.addEventListener('offline', Contacts.onLineChanged);
+
+    document.addEventListener('mozvisibilitychange', function visibility(e) {
+      if (ActivityHandler.currentlyHandling && document.mozHidden) {
+        ActivityHandler.postCancel();
+        return;
+      }
+      Contacts.checkCancelableActivity();
+    });
+  };
+
+  window.addEventListener('localized', initContacts); // addEventListener
+
   return {
     'doneTag': doneTag,
     'goBack' : handleBack,
@@ -900,32 +926,7 @@ var Contacts = (function() {
     'onLineChanged': onLineChanged,
     'showStatus': showStatus,
     'cardStateChanged': cardStateChanged,
-    'loadFacebook': loadFacebook
+    'loadFacebook': loadFacebook,
+    'close': close
   };
 })();
-
-window.addEventListener('localized', function initContacts(evt) {
-  window.removeEventListener('localized', initContacts);
-  fb.init(function contacts_init() {
-    if (window.navigator.mozSetMessageHandler && window.self == window.top) {
-      var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-      window.navigator.mozSetMessageHandler('activity', actHandler);
-    }
-    Contacts.onLocalized();
-
-    window.addEventListener('online', Contacts.onLineChanged);
-    window.addEventListener('offline', Contacts.onLineChanged);
-
-    // To listen to card state changes is needed for enabling import from SIM
-    var mobileConn = navigator.mozMobileConnection;
-    mobileConn.oncardstatechange = Contacts.cardStateChanged;
-
-    document.addEventListener('mozvisibilitychange', function visibility(e) {
-      if (ActivityHandler.currentlyHandling && document.mozHidden) {
-        ActivityHandler.postCancel();
-        return;
-      }
-      Contacts.checkCancelableActivity();
-    });
-  }); // fb.init
-}); // addEventListener

@@ -17,9 +17,11 @@
     <link rel="stylesheet" type="text/css" href="/dialer/style/dialer.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
     <link rel="stylesheet" type="text/css" href="/shared/style_unstable/tabs.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/responsive.css">
 
     <!-- JS -->
     <script defer src="/shared/js/mouse_event_shim.js"></script>
+    <script defer src="/dialer/js/tone_player.js"></script>
     <script defer src="/dialer/js/keypad.js"></script>
     <script defer src="/dialer/js/dialer.js"></script>
     <script defer src="/dialer/js/recents_db.js"></script>
@@ -34,6 +36,9 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="/shared/style_unstable/lists.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css">
+    <link rel="stylesheet" type="text/css" href="/dialer/style/mmi.css">
     <script defer src="/shared/js/async_storage.js"></script>
     <script defer src="/shared/js/l10n.js"></script>
     <script defer src="/shared/js/l10n_date.js"></script>
@@ -47,7 +52,8 @@
     <script defer src="/dialer/js/contacts.js"></script>
     <script defer src="/dialer/js/recents.js"></script>
     <script defer src="/dialer/js/telephony_helper.js"></script>
-    <script defer src="/dialer/js/ussd.js"></script>
+    <script defer src="/dialer/js/mmi.js"></script>
+    <script defer src="/dialer/js/mmi_ui.js"></script>
     <script defer src="/dialer/js/newsletter_manager.js"></script>
     -->
   </head>
@@ -196,6 +202,40 @@
       <menu>
         <button>Action 1</button>
         <button>Action 2</button>
+      </menu>
+    </form>
+
+    <article id="mmi-screen" role="region" hidden>
+      <section role="region">
+        <header>
+          <button id="mmi-close"><span class="icon icon-close"> close </span></button>
+          <menu type="toolbar">
+            <button id="send" data-l10n-id="send" disabled> Send </button>
+          </menu>
+          <h1 id="header-title">USSD</h1>
+        </header>
+      </section>
+      <section id="mmi-container" role="region">
+        <div id="message">
+        </div>
+      </section>
+      <form id="response" role="region">
+        <p>
+          <input id="response-text" type="text" data-l10n-id="type-your-response" placeholder="Type your selection..." required disabled>
+          <button id="response-text-reset" type="reset" data-l10n-id="clear-all-text"> Clear-all-text </button>
+        </p>
+      </form>
+    </article>
+
+    <form data-type="confirm" role="dialog" id="loading-overlay" class="hide">
+      <section>
+        <h1 data-l10n-id="sending">Sending</h1>
+        <p role="status">
+          <progress class="pack-activity" value="0" max="100"></progress>
+        </p>
+      </section>
+      <menu>
+        <button class="full" id="cancel">Cancel</button>
       </menu>
     </form>
     --></div>

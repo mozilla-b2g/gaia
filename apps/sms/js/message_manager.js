@@ -6,6 +6,7 @@
 var MessageManager = {
   currentNum: null,
   currentThread: null,
+  activityBody: null, // Used when getting a sms:?body=... activity.
   init: function mm_init(callback) {
     if (this.initialized) {
       return;
@@ -51,7 +52,7 @@ var MessageManager = {
   onMessageSent: function mm_onMessageSent(e) {
     ThreadUI.onMessageSent(e.message);
   },
-  // This method fills the gap while we wait for next 'getThreadList' request,
+  // This method fills the gap while we wait for next 'getThreads' request,
   // letting us rendering the new thread with a better performance.
   createThreadMockup: function mm_createThreadMockup(message) {
     // Given a message we create a thread as a mockup. This let us render the
@@ -59,7 +60,7 @@ var MessageManager = {
     // reduce Gecko requests.
     return {
         id: message.threadId,
-        senderOrReceiver: message.sender,
+        participants: [message.sender],
         body: message.body,
         timestamp: message.timestamp,
         unreadCount: 1
@@ -168,6 +169,11 @@ var MessageManager = {
         contactButton.parentNode.appendChild(contactButton);
         document.getElementById('messages-container').innerHTML = '';
         ThreadUI.cleanFields();
+        // If the message has a body, use it to popuplate the input field.
+        if (MessageManager.activityBody) {
+          input.value = MessageManager.activityBody;
+          MessageManager.activityBody = null;
+        }
         // Cleaning global params related with the previous thread
         MessageManager.currentNum = null;
         MessageManager.currentThread = null;
@@ -262,16 +268,21 @@ var MessageManager = {
   },
 
   getThreads: function mm_getThreads(callback, extraArg) {
-    var request = this._mozSms.getThreadList();
-    request.onsuccess = function onsuccess(evt) {
-      var threads = evt.target.result;
+    var cursor = this._mozSms.getThreads(),
+        threads = [];
+    cursor.onsuccess = function onsuccess() {
+      if (this.result) {
+        threads.push(this.result);
+        this.continue();
+        return;
+      }
       if (callback) {
         callback(threads, extraArg);
       }
     };
 
-    request.onerror = function onerror() {
-      var msg = 'Reading the database. Error: ' + request.error.name;
+    cursor.onerror = function onerror() {
+      var msg = 'Reading the database. Error: ' + this.error.name;
       console.log(msg);
     };
   },
@@ -281,18 +292,16 @@ var MessageManager = {
         invert = options.invert, // invert selection
         endCB = options.endCB,   // CB when all messages retrieved
         endCBArgs = options.endCBArgs; //Args for endCB
-    var self = this;
-    var request = this._mozSms.getMessages(filter, !invert);
-    request.onsuccess = function onsuccess() {
-      var cursor = request.result;
-      if (cursor.message) {
+    var cursor = this._mozSms.getMessages(filter, !invert);
+    cursor.onsuccess = function onsuccess() {
+      if (!this.done) {
         var shouldContinue = true;
         if (stepCB) {
-          shouldContinue = stepCB(cursor.message);
+          shouldContinue = stepCB(this.result);
         }
         // if stepCB returns false the iteration stops
         if (shouldContinue !== false) { // if this is undefined this is fine
-          cursor.continue();
+          this.continue();
         }
       } else {
         if (endCB) {
@@ -300,8 +309,8 @@ var MessageManager = {
         }
       }
     };
-    request.onerror = function onerror() {
-      var msg = 'Reading the database. Error: ' + request.error.name;
+    cursor.onerror = function onerror() {
+      var msg = 'Reading the database. Error: ' + this.error.name;
       console.log(msg);
     };
   },

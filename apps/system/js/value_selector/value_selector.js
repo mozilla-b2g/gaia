@@ -66,7 +66,6 @@ var ValueSelector = {
     this._containers['select'] =
       document.getElementById('value-selector-container');
     this._containers['select'].addEventListener('click', this);
-    ActiveEffectHelper.enableActive(this._containers['select']);
 
     this._popups['select'] =
       document.getElementById('select-option-popup');
@@ -87,10 +86,6 @@ var ValueSelector = {
 
     this._containers['time'] = document.getElementById('picker-bar');
     this._containers['date'] = document.getElementById('spin-date-picker');
-
-    ActiveEffectHelper.enableActive(this._buttons['select']);
-    ActiveEffectHelper.enableActive(this._buttons['time']);
-    ActiveEffectHelper.enableActive(this._buttons['date']);
 
     // Prevent focus being taken away by us for time picker.
     // The event listener on outer box will not be triggered cause
@@ -487,62 +482,5 @@ var TimePicker = {
     return hour + ':' + minute;
   }
 };
-
-var ActiveEffectHelper = (function() {
-
-  var lastActiveElement = null;
-
-  function _setActive(element, isActive) {
-    if (isActive) {
-      element.classList.add('active');
-      lastActiveElement = element;
-    } else {
-      element.classList.remove('active');
-      if (lastActiveElement) {
-        lastActiveElement.classList.remove('active');
-        lastActiveElement = null;
-      }
-    }
-  }
-
-  function _onMouseDown(evt) {
-    var target = evt.target;
-
-    _setActive(target, true);
-    target.addEventListener('mouseleave', _onMouseLeave);
-  }
-
-  function _onMouseUp(evt) {
-    var target = evt.target;
-
-    _setActive(target, false);
-    target.removeEventListener('mouseleave', _onMouseLeave);
-  }
-
-  function _onMouseLeave(evt) {
-    var target = evt.target;
-    _setActive(target, false);
-    target.removeEventListener('mouseleave', _onMouseLeave);
-  }
-
-  var _events = {
-    'mousedown': _onMouseDown,
-    'mouseup': _onMouseUp
-  };
-
-  function _enableActive(element) {
-    // Attach event listeners
-    for (var event in _events) {
-      var callback = _events[event] || null;
-      if (callback)
-        element.addEventListener(event, callback);
-    }
-  }
-
-  return {
-    enableActive: _enableActive
-  };
-
-})();
 
 ValueSelector.init();
