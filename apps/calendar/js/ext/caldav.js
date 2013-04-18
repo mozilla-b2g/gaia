@@ -2025,6 +2025,7 @@ function write (chunk) {
   Xhr.prototype = {
     globalXhrOptions: null,
     xhrClass: Native,
+    xhr: null,
     method: 'GET',
     async: true,
     waiting: false,
@@ -2035,7 +2036,7 @@ function write (chunk) {
     headers: {},
     data: null,
 
-    _seralize: function _seralize() {
+    _serialize: function _serialize() {
       return this.data;
     },
 
@@ -2052,31 +2053,45 @@ function write (chunk) {
     },
 
     /**
+     * Aborts the request if it has already been sent.
+     * @param {Function=} cb An optional callback function.
+     */
+    abort: function(cb) {
+      if (this.waiting) {
+        this.xhr.abort();
+        this.waiting = false;
+      }
+
+      if (cb !== undefined) {
+        cb();
+      }
+    },
+
+    /**
      * Sends request to server.
      *
      * @param {Function} callback success/failure handler.
      */
     send: function send(callback) {
-      var header, xhr;
+      var header;
 
       if (typeof(callback) === 'undefined') {
         callback = this.callback;
       }
 
-      if (this.globalXhrOptions) {
-        xhr = new this.xhrClass(this.globalXhrOptions);
-      } else {
-        xhr = new this.xhrClass();
-      }
+      this.xhr = new this.xhrClass(
+          this.globalXhrOptions ? this.globalXhrOptions : undefined);
+
       // This hack is in place due to some platform
       // bug in gecko when using mozSystem xhr
       // the credentials only seem to work as expected
       // when constructing them manually.
       if (!this.globalXhrOptions || !this.globalXhrOptions.mozSystem) {
-        xhr.open(this.method, this.url, this.async, this.user, this.password);
+        this.xhr.open(
+            this.method, this.url, this.async, this.user, this.password);
       } else {
-        xhr.open(this.method, this.url, this.async);
-        xhr.setRequestHeader('Authorization', this._credentials(
+        this.xhr.open(this.method, this.url, this.async);
+        this.xhr.setRequestHeader('Authorization', this._credentials(
           this.user,
           this.password
         ));
@@ -2085,12 +2100,12 @@ function write (chunk) {
       var useMozChunkedText = false;
       if (this.globalXhrOptions && this.globalXhrOptions.useMozChunkedText) {
         useMozChunkedText = true;
-        xhr.responseType = 'moz-chunked-text';
+        this.xhr.responseType = 'moz-chunked-text';
       }
 
       for (header in this.headers) {
         if (Object.hasOwnProperty.call(this.headers, header)) {
-          xhr.setRequestHeader(header, this.headers[header]);
+          this.xhr.setRequestHeader(header, this.headers[header]);
         }
       }
 
@@ -2098,19 +2113,19 @@ function write (chunk) {
       var hasProgressEvents = false;
 
       // check for progress event support.
-      if ('onprogress' in xhr) {
+      if ('onprogress' in this.xhr) {
         hasProgressEvents = true;
         var last = 0;
 
         if (useMozChunkedText) {
-          xhr.onprogress = (function onChunkedProgress(event) {
+          this.xhr.onprogress = (function onChunkedProgress(event) {
             if (this.ondata) {
-              this.ondata(xhr.responseText);
+              this.ondata(this.xhr.responseText);
             }
           }.bind(this));
         } else {
-          xhr.onprogress = (function onProgress(event) {
-            var chunk = xhr.responseText.substr(last, event.loaded);
+          this.xhr.onprogress = (function onProgress(event) {
+            var chunk = this.xhr.responseText.substr(last, event.loaded);
             last = event.loaded;
             if (this.ondata) {
               this.ondata(chunk);
@@ -2119,10 +2134,10 @@ function write (chunk) {
         }
       }
 
-      xhr.onreadystatechange = (function onReadyStateChange() {
+      this.xhr.onreadystatechange = (function onReadyStateChange() {
         var data;
-        if (xhr.readyState === 4) {
-          data = xhr.responseText;
+        if (this.xhr.readyState === 4) {
+          data = this.xhr.responseText;
 
           // emulate progress events for node...
           // this really lame we should probably just
@@ -2133,14 +2148,14 @@ function write (chunk) {
           }
 
           this.waiting = false;
-          callback(null, xhr);
+          callback(null, this.xhr);
         }
       }.bind(this));
 
       this.waiting = true;
-      xhr.send(this._seralize());
+      this.xhr.send(this._serialize());
 
-      return xhr;
+      return this.xhr;
     }
   };
 
@@ -2694,6 +2709,8 @@ function write (chunk) {
      * @param {Function} callback node style callback.
      *                            Receives three arguments
      *                            error, parsedData, xhr.
+     * @return {Caldav.Xhr} The xhr request so that the caller
+     *                      has a chance to abort the request.
      */
     send: function(callback) {
       var self = this;
@@ -2715,6 +2732,8 @@ function write (chunk) {
           callback(new Errors.CaldavHttpError(xhr.status));
         }
       });
+
+      return req;
     }
   };
 
@@ -2799,6 +2818,8 @@ function write (chunk) {
      *
      * @param {Object} [options] calendar options.
      * @param {Function} callback node style [err, data, xhr].
+     * @return {Caldav.Xhr} The underlying xhr request so that the caller
+     *                      has a chance to abort the request.
      */
     get: function(options, callback) {
       if (typeof(options) === 'function') {
@@ -2808,7 +2829,7 @@ function write (chunk) {
 
       var req = this._buildRequest('GET', options);
 
-      req.send(function(err, xhr) {
+      return req.send(function(err, xhr) {
         callback(err, xhr.responseText, xhr);
       });
     },
@@ -2819,6 +2840,8 @@ function write (chunk) {
      * @param {Object} [options] see get.
      * @param {String} data post content.
      * @param {Function} callback node style [err, data, xhr].
+     * @return {Caldav.Xhr} The underlying xhr request so that the caller
+     *                      has a chance to abort the request.
      */
     put: function(options, data, callback) {
       if (typeof(options) === 'string') {
@@ -2834,7 +2857,7 @@ function write (chunk) {
       var req = this._buildRequest('PUT', options);
       req.data = data;
 
-      req.send(function(err, xhr) {
+      return req.send(function(err, xhr) {
         callback(err, xhr.responseText, xhr);
       });
     },
@@ -2844,6 +2867,8 @@ function write (chunk) {
      *
      * @param {Object} [options] see get.
      * @param {Function} callback node style [err, data, xhr].
+     * @return {Caldav.Xhr} The underlying xhr request so that the caller
+     *                      has a chance to abort the request.
      */
     delete: function(options, callback) {
       if (typeof(options) === 'function') {
@@ -2853,7 +2878,7 @@ function write (chunk) {
 
       var req = this._buildRequest('DELETE', options);
 
-      req.send(function(err, xhr) {
+      return req.send(function(err, xhr) {
         callback(err, xhr.responseText, xhr);
       });
     }
@@ -3092,6 +3117,10 @@ function write (chunk) {
 
     Propfind: ns.require('request/propfind'),
 
+    /**
+     * @return {Caldav.Xhr} The underlying xhr request so that the caller
+     *                      has a chance to abort the request.
+     */
     _findPrincipal: function(url, callback) {
       var find = new this.Propfind(this.connection, {
         url: url
@@ -3100,7 +3129,7 @@ function write (chunk) {
       find.prop('current-user-principal');
       find.prop('principal-URL');
 
-      find.send(function(err, data) {
+      return find.send(function(err, data) {
         var principal;
 
         if (err) {
@@ -3121,7 +3150,6 @@ function write (chunk) {
         } else {
           callback(new Errors.CaldavHttpError(404));
         }
-     
       });
     },
 
@@ -3133,7 +3161,7 @@ function write (chunk) {
 
       find.prop(['caldav', 'calendar-home-set']);
 
-      find.send(function(err, data) {
+      return find.send(function(err, data) {
         if (err) {
           callback(err);
           return;
@@ -3152,10 +3180,12 @@ function write (chunk) {
      *
      * @param {Function} callback node style where second argument
      *                            are the details of the home calendar.
+     * @return {Caldav.Xhr} The underlying xhr request so that the caller
+     *                      has a chance to abort the request.
      */
     send: function(callback) {
       var self = this;
-      self._findPrincipal(self.url, function(err, url) {
+      return self._findPrincipal(self.url, function(err, url) {
 
         if (!url) {
           callback(err);
@@ -3475,4 +3505,3 @@ function write (chunk) {
     [Caldav, Caldav] :
     [module, require('./caldav')]
 ));
-
