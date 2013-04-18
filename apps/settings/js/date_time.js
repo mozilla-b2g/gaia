@@ -100,6 +100,18 @@ navigator.mozL10n.ready(function SettingsDateAndTime() {
 
   function setTimeAutoEnabled(enabled) {
     gTimeAutoSwitch.dataset.state = enabled ? 'auto' : 'manual';
+
+    if (enabled)
+      return;
+
+    // Reset the timezone to the preview user selected value
+    var reqUserTZ = settings.createLock().get('time.timezone.user-selected');
+    reqUserTZ.onsuccess = function dt_getUserTimezoneSuccess() {
+      var userSelTimezone = reqUserTZ.result['time.timezone.user-selected'];
+      if (userSelTimezone) {
+        settings.createLock().set({'time.timezone': userSelTimezone});
+      }
+    }
   }
 
   settings.addObserver(kTimeAutoEnabled, function(event) {
