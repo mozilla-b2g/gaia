@@ -217,6 +217,7 @@ input[type=range]:active::-moz-range-thumb {
 ul li.sound-setting > label input[type="range"] {
   margin: 0 auto;
   width: calc(100% - 6rem);
+  left: 3rem;
 }
 
 ul li#brightness-manual > label input[type="range"] {
