@@ -87,7 +87,6 @@ pref("general.useragent.override.meridiano.com.ve", "Mozilla/5.0 (Linux; Android
 pref("general.useragent.override.espn.go.com", "\(Mobile#(Android; Mobile"); // bug 828431
 pref("general.useragent.override.olx.com.ve", "\(Mobile#(Android; Mobile"); // bug 828433
 pref("general.useragent.override.rincondelvago.com", "\(Mobile#(Android; Mobile"); // bug 828435
-pref("general.useragent.override.avn.info.ve", "\(Mobile#(Android; Mobile"); // bug 828437
 pref("general.useragent.override.movistar.com.ve", "\(Mobile#(Android; Mobile"); // bug 828439
 pref("general.useragent.override.laverdad.com", "\(Mobile#(Android; Mobile"); // bug 828441
 pref("general.useragent.override.despegar.com.ve", "\(Mobile#(Android; Mobile"); // bug 828443
