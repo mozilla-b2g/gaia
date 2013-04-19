@@ -83,7 +83,6 @@ pref("general.useragent.override.booking.com", "\(Mobile#(Android; Mobile"); // 
 pref("general.useragent.override.publico.es", "\(Mobile#(Android; Mobile"); // bug 828422
 pref("general.useragent.override.mercadolibre.com.ve", "\(Mobile#(Android; Mobile"); // bug 828425
 pref("general.useragent.override.lapatilla.com", "\(Mobile#(Android; Mobile"); // bug 828428
-pref("general.useragent.override.meridiano.com.ve", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 828430
 pref("general.useragent.override.espn.go.com", "\(Mobile#(Android; Mobile"); // bug 828431
 pref("general.useragent.override.olx.com.ve", "\(Mobile#(Android; Mobile"); // bug 828433
 pref("general.useragent.override.rincondelvago.com", "\(Mobile#(Android; Mobile"); // bug 828435
