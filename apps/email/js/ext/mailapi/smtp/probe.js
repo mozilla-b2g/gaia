@@ -59,7 +59,7 @@ NetSocket.prototype.setTimeout = function() {
 NetSocket.prototype.setKeepAlive = function(shouldKeepAlive) {
 };
 NetSocket.prototype.write = function(buffer) {
-  this._sendMessage('write', [buffer]);
+  this._sendMessage('write', [buffer.buffer, buffer.byteOffset, buffer.length]);
 };
 NetSocket.prototype.end = function() {
   if (this.destroyed)
