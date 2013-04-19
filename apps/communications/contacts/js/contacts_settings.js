@@ -422,7 +422,7 @@ contacts.Settings = (function() {
     importer.start();
   };
 
-  var onSdImport = function() {
+  var onSdImport = function onSdImport() {
     var progress = Contacts.showOverlay(_('sdContacts-reading'), 'activityBar');
     var wakeLock = navigator.requestWakeLock('cpu');
 
