@@ -2525,7 +2525,7 @@ define('mailapi/worker-support/main-router',[],function() {
       module.process(msg.uid, msg.cmd, msg.args);
     };
 
-    module.sendMessage = function(uid, cmd, args) {
+    module.sendMessage = function(uid, cmd, args, transferArgs) {
     //dump('\x1b[34mM => w: send: ' + name + ' ' + uid + ' ' + cmd + '\x1b[0m\n');
       //debug('onmessage: ' + name + ": " + uid + " - " + cmd);
       worker.postMessage({
@@ -2533,7 +2533,7 @@ define('mailapi/worker-support/main-router',[],function() {
         uid: uid,
         cmd: cmd,
         args: args
-      });
+      }, transferArgs);
     };
   }
 
@@ -3424,18 +3424,8 @@ define('mailapi/worker-support/net-main',[],function() {
     };
 
     sock.ondata = function(evt) {
-      /*
-      try {
-        var str = '';
-        for (var i = 0; i < evt.data.byteLength; i++) {
-          str += String.fromCharCode(evt.data[i]);
-        }
-        debug(str + '\n');
-      } catch(e) {}
-      debug('ondata ' + uid + ": " + new Uint8Array(evt.data));
-      */
-      // XXX why are we doing this? ask Vivien or try to remove...
-      self.sendMessage(uid, 'ondata', new Uint8Array(evt.data));
+      var buf = evt.data;
+      self.sendMessage(uid, 'ondata', buf, [buf]);
     };
 
     sock.onclose = function(evt) {
@@ -3456,9 +3446,9 @@ define('mailapi/worker-support/net-main',[],function() {
     delete socks[uid];
   }
 
-  function write(uid, data) {
+  function write(uid, data, offset, length) {
     // XXX why are we doing this? ask Vivien or try to remove...
-    socks[uid].send(new Uint8Array(data));
+    socks[uid].send(data, offset, length);
   }
 
   var self = {
@@ -3474,7 +3464,7 @@ define('mailapi/worker-support/net-main',[],function() {
           close(uid);
           break;
         case 'write':
-          write(uid, args[0]);
+          write(uid, args[0], args[1], args[2]);
           break;
       }
     }
