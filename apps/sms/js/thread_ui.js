@@ -176,14 +176,21 @@ var ThreadUI = {
     };
 
     // We're waiting for the keyboard to disappear before animating back
-    if (ThreadListUI.fullHeight !== this.view.offsetHeight) {
-      window.addEventListener('resize', function keyboardHidden() {
+    if (this.isKeyboardDisplayed()) {
+        window.addEventListener('resize', function keyboardHidden() {
         window.removeEventListener('resize', keyboardHidden);
+        window.clearTimeout(setTimer);
         goBack();
       });
+      var setTimer = window.setTimeout(goBack, 400);
     } else {
       goBack();
     }
+  },
+
+  isKeyboardDisplayed: function thui_isKeyboardDisplayed() {
+    // minimal keyboard height is 150px
+    return (this.view.offsetHeight < ThreadListUI.fullHeight - 150);
   },
 
   enableSend: function thui_enableSend() {
