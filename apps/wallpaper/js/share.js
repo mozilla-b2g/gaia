@@ -65,7 +65,7 @@ window.onload = function() {
       );
 
       canvas.toBlob(callback, 'image/jpeg');
-    }
+    };
     tmpImage.src = window.URL.createObjectURL(blobToResize);
   }
 
