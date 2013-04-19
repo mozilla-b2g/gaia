@@ -439,7 +439,9 @@ var LockScreen = {
     switch (target) {
       case this.areaCamera:
         var panelOrFullApp = function panelOrFullApp() {
-          if (self.passCodeEnabled) {
+          // If the passcode is enabled and it has a timeout which has passed
+          // switch to secure camera
+          if (self.passCodeEnabled && self._passCodeTimeoutCheck) {
             // Go to secure camera panel
             self.switchPanel('camera');
             return;
