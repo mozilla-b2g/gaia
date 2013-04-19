@@ -56,6 +56,10 @@
     if ((mcc === '0') || (mnc === '0'))
       return;
 
+    // avoid setting APN (and operator variant) settings if mcc/mnc codes
+    // changes.
+    mobileConnection.removeEventListener('iccinfochange', checkICCInfo);
+
     // same SIM card => do nothing
     if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc))
       return;
