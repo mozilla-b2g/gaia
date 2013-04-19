@@ -2,7 +2,7 @@
 
 // remove this when https://github.com/visionmedia/mocha/issues/819 is merged in
 // mocha and when we have that new mocha in test agent
-mocha.setup({ globals: [ 'alert' ] });
+mocha.setup({ globals: ['alert'] });
 
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_alert.js');
@@ -22,8 +22,10 @@ suite('thread_ui.js >', function() {
   var sendButton;
   var input;
   var composeForm;
+  var recipient;
 
   var realMozL10n;
+  var realMozSms;
 
   var mocksHelper = mocksHelperForThreadUI;
 
@@ -90,12 +92,13 @@ suite('thread_ui.js >', function() {
     sendButton = container.querySelector('#messages-send-button');
     input = container.querySelector('#messages-input');
     composeForm = container.querySelector('#messages-compose-form');
+    recipient = container.querySelector('#messages-recipient');
 
     document.body.appendChild(container);
 
-    ThreadUI._mozSms = MockNavigatormozSms;
-
     ThreadUI.init();
+    realMozSms = ThreadUI._mozSms;
+    ThreadUI._mozSms = MockNavigatormozSms;
   });
 
   teardown(function() {
@@ -104,6 +107,74 @@ suite('thread_ui.js >', function() {
 
     MockNavigatormozSms.mTeardown();
     mocksHelper.teardown();
+    ThreadUI._mozSms = realMozSms;
+  });
+
+  suite('enableSend() >', function() {
+    setup(function() {
+      ThreadUI.updateCounter();
+    });
+
+    test('button should be disabled at the beginning', function() {
+      ThreadUI.enableSend();
+      assert.isTrue(sendButton.disabled);
+    });
+
+    test('button should be enabled when there is some text', function() {
+      input.value = 'Hola';
+      ThreadUI.enableSend();
+      assert.isFalse(sendButton.disabled);
+    });
+
+    suite('#new mode >', function() {
+      setup(function() {
+        window.location.hash = '#new';
+      });
+
+      teardown(function() {
+        window.location.hash = '';
+      });
+
+      test('button should be disabled when there is neither contact or input',
+        function() {
+
+        ThreadUI.enableSend();
+        assert.isTrue(sendButton.disabled);
+      });
+
+      test('button should be disabled when there is no contact', function() {
+        input.value = 'Hola';
+        ThreadUI.enableSend();
+        assert.isTrue(sendButton.disabled);
+      });
+
+      test('button should be enabled when there is both contact and input',
+        function() {
+
+        input.value = 'Hola';
+        recipient.value = '123123123';
+        ThreadUI.enableSend();
+        assert.isFalse(sendButton.disabled);
+      });
+    });
+  });
+
+  suite('cleanFields >', function() {
+    setup(function() {
+      window.location.hash = '#new';
+      input.value = 'Hola';
+      recipient.value = '123123123';
+      ThreadUI.enableSend();
+      ThreadUI.cleanFields();
+    });
+
+    teardown(function() {
+      window.location.hash = '';
+    });
+
+    test('should disable the button', function() {
+      assert.isTrue(sendButton.disabled);
+    });
   });
 
   suite('updateCounter() >', function() {

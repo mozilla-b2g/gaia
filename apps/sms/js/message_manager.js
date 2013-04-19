@@ -14,7 +14,7 @@ var MessageManager = {
     this.initialized = true;
     // Allow for stubbing in environments that do not implement the
     // `navigator.mozSms` API
-    this._mozSms = navigator.mozSms || window.MockNavigatormozSms;
+    this._mozSms = navigator.mozSms || window.DesktopMockNavigatormozSms;
 
     this._mozSms.addEventListener('received',
         this.onMessageReceived.bind(this));
