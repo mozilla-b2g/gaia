@@ -10,9 +10,10 @@ var Wifi = {
 
   wifiDisabledByWakelock: false,
 
-  // Without wake lock, wait for kOffTime milliseconds and turn wifi off
-  // after the conditions are met.
-  kOffTime: 60 * 1000,
+  // Without an wifi wake lock, wait for screenOffTimeout milliseconds
+  // to turn wifi off after the conditions are met.
+  // If it's set to 0, wifi will never be turn off.
+  screenOffTimeout: 0,
 
   // if Wifi is enabled but disconnected, try to scan for networks every
   // kScanInterval ms.
@@ -72,6 +73,11 @@ var Wifi = {
       window.dispatchEvent(evt);
     };
 
+    SettingsListener.observe(
+      'wifi.screen_off_timeout', 600000, function(value) {
+        self.screenOffTimeout = value;
+      });
+
     // Track the wifi.enabled mozSettings value
     SettingsListener.observe('wifi.enabled', true, function(value) {
       if (!wifiManager && value) {
@@ -122,6 +128,10 @@ var Wifi = {
   // Check the status of screen, wifi wake lock and power source
   // and turn on/off wifi accordingly
   maybeToggleWifi: function wifi_maybeToggleWifi() {
+    // Do nothing if we are being disabled.
+    if (!this.screenOffTimeout)
+      return;
+
     var battery = window.navigator.battery;
     var wifiManager = window.navigator.mozWifiManager;
     if (!battery || !wifiManager ||
@@ -150,7 +160,7 @@ var Wifi = {
       this.setSystemMessageHandler();
 
       // Start with a timer, only turn off wifi till timeout.
-      var date = new Date(Date.now() + this.kOffTime);
+      var date = new Date(Date.now() + this.screenOffTimeout);
       var self = this;
       var req = navigator.mozAlarms.add(date, 'ignoreTimezone', 'wifi-off');
       req.onsuccess = function wifi_offAlarmSet() {

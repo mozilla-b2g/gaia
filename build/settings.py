@@ -135,6 +135,7 @@ settings = {
  "ums.mode": 0,
  "vibration.enabled": True,
  "wifi.enabled": True,
+ "wifi.screen_off_timeout": 600000,
  "wifi.disabled_by_wakelock": False,
  "wifi.notification": False,
  "wifi.connect_via_settings": False,
