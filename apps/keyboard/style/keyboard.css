@@ -67,6 +67,7 @@ button::-moz-focus-inner {
   display: inline-block;
   border: none;
   border-bottom: 0.5rem solid transparent; /* enlarge click area */
+  text-transform: uppercase;
 }
 
 /* Visible keys */
