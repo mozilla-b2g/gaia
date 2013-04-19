@@ -46,6 +46,7 @@ suite('SMS App Unit-Test', function() {
 
   var findByString;
   var nativeMozL10n = navigator.mozL10n;
+  var boundOnHashChange;
 
   suiteSetup(function() {
     navigator.mozL10n = MockL10n;
@@ -228,15 +229,18 @@ suite('SMS App Unit-Test', function() {
     // ...And render
     ThreadUI.init();
     ThreadListUI.init();
+    boundOnHashChange = MessageManager.onHashChange.bind(MessageManager);
     window.addEventListener(
-      'hashchange', MessageManager.onHashChange.bind(MessageManager)
+      'hashchange', boundOnHashChange
     );
   });
 
   suiteTeardown(function() {
     Contacts.findByString = findByString;
+    // cleanup
+    window.document.body.innerHTML = '';
+    window.removeEventListener('hashchange', boundOnHashChange);
   });
-
 
   // Let's go with tests!
 
@@ -433,28 +437,6 @@ suite('SMS App Unit-Test', function() {
         assertNumOfElementsByClass(ThreadUI.container, 1, 'received');
         assertNumOfElementsByClass(ThreadUI.container, 2, 'error');
       });
-
-      test('Check input form & send button', function() {
-        ThreadUI.enableSend();
-        // At the begginning it should be disabled
-        assert.isTrue(ThreadUI.sendButton.disabled);
-        // If we type some text in a thread
-        ThreadUI.input.value = 'Hola';
-        ThreadUI.enableSend();
-        assert.isFalse(ThreadUI.sendButton.disabled);
-        // We change to 'new'
-        window.location.hash = '#new';
-        ThreadUI.enableSend();
-        // In '#new' I need the contact as well, so it should be disabled
-        assert.isTrue(ThreadUI.sendButton.disabled);
-        // Adding a contact should enable the button
-        ThreadUI.recipient.value = '123123123';
-        ThreadUI.enableSend();
-        assert.isFalse(ThreadUI.sendButton.disabled);
-        // Finally we clean the form
-        ThreadUI.cleanFields();
-        assert.isTrue(ThreadUI.sendButton.disabled);
-      });
     });
 
     suite('Thread-messages Edit mode (bubbles view)', function() {
@@ -554,6 +536,7 @@ suite('SMS App Unit-Test', function() {
           done();
         }, 1500); // only the last one is slow. What is blocking?
 
+        window.history.back = stub();
         ThreadUI.delete();
       });
 
@@ -870,6 +853,7 @@ suite('SMS App Unit-Test', function() {
         assert.equal(ThreadUI.headerText.textContent, 'Pietje');
         assert.equal(ThreadUI.headerText.dataset.isContact, 'true');
 
+        window.location.hash = '';
         done();
       }, 30);
     });
@@ -912,6 +896,7 @@ suite('SMS App Unit-Test', function() {
         assert.equal(ThreadUI.headerText.textContent, '2471');
         assert.equal(ThreadUI.headerText.dataset.isContact, undefined);
 
+        window.location.hash = '';
         done();
       }, 30);
     });
