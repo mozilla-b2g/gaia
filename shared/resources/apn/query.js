@@ -106,11 +106,9 @@ document.addEventListener('DOMContentLoaded', function onload() {
       var result = queryAndroidDB(mcc);
 
      if (result && result.length) {
-        result.sort(function(a, b) {
-          return parseInt(result.mnc, 10) < parseInt(result.mnc, 10);
-        });
+        result.sort();
         for (var i = 0; i < result.length; i++) {
-          var mnc = parseInt(result[i].mnc, 10);
+          var mnc = result[i].mnc;
 
           var operatorVariantSettings = {};
           var voicemail = queryGnomeDB(mcc, mnc, 'voicemail');
