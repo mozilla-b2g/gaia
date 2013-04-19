@@ -1635,7 +1635,7 @@ MessageReaderCard.prototype = {
                              body.embeddedImagesDownloaded;
 
     bindSanitizedClickHandler(rootBodyNode, this.onHyperlinkClick.bind(this),
-                              rootBodyNode);
+                              rootBodyNode, null);
 
     for (var iRep = 0; iRep < reps.length; iRep++) {
       var rep = reps[iRep];
