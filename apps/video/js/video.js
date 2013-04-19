@@ -1255,9 +1255,11 @@ window.addEventListener('resize', function() {
   }
 
   // reTruncate text
-  var texts = document.querySelectorAll('.details');
-  for (var i = 0; i < texts.length; i++) {
-    textTruncate(texts[i]);
+  if (!playing) {
+    var texts = document.querySelectorAll('.details');
+    for (var i = 0; i < texts.length; i++) {
+      textTruncate(texts[i]);
+    }
   }
 });
 
