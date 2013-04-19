@@ -93,7 +93,7 @@ var ThreadUI = {
   init: function thui_init() {
     // Allow for stubbing in environments that do not implement the
     // `navigator.mozSms` API
-    this._mozSms = navigator.mozSms || window.MockNavigatormozSms;
+    this._mozSms = navigator.mozSms || window.DesktopMockNavigatormozSms;
 
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
 

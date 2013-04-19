@@ -34,6 +34,9 @@ suite('SMS App Unit-Test', function() {
       };
     }
   };
+
+  var boundOnHashChange;
+  
   // Define some useful functions for the following tests
   function getElementsInContainerByTag(container, tagName) {
     return container.querySelectorAll(tagName);
@@ -179,8 +182,17 @@ suite('SMS App Unit-Test', function() {
     ThreadUI.view.innerHTML = '';
     ThreadUI.init();
     ThreadListUI.init();
-    window.addEventListener('hashchange',
-      MessageManager.onHashChange.bind(MessageManager));
+    
+    boundOnHashChange = MessageManager.onHashChange.bind(MessageManager);
+    window.addEventListener(
+      'hashchange', boundOnHashChange
+    );
+  });
+
+  suiteTeardown(function() {
+    // cleanup
+    window.document.body.innerHTML = '';
+    window.removeEventListener('hashchange', boundOnHashChange);
   });
 
   // Let's go with tests!
@@ -297,28 +309,6 @@ suite('SMS App Unit-Test', function() {
         assertNumOfElementsByClass(ThreadUI.view, 1, 'sent');
         assertNumOfElementsByClass(ThreadUI.view, 1, 'received');
         assertNumOfElementsByClass(ThreadUI.view, 2, 'error');
-      });
-
-      test('Check input form & send button', function() {
-        ThreadUI.enableSend();
-        // At the begginning it should be disabled
-        assert.isTrue(ThreadUI.sendButton.disabled);
-        // If we type some text in a thread
-        ThreadUI.input.value = 'Hola';
-        ThreadUI.enableSend();
-        assert.isFalse(ThreadUI.sendButton.disabled);
-        // We change to 'new'
-        window.location.hash = '#new';
-        ThreadUI.enableSend();
-        // In '#new' I need the contact as well, so it should be disabled
-        assert.isTrue(ThreadUI.sendButton.disabled);
-        // Adding a contact should enable the button
-        ThreadUI.contactInput.value = '123123123';
-        ThreadUI.enableSend();
-        assert.isFalse(ThreadUI.sendButton.disabled);
-        // Finally we clean the form
-        ThreadUI.cleanFields();
-        assert.isTrue(ThreadUI.sendButton.disabled);
       });
     });
 

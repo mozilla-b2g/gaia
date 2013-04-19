@@ -9,5 +9,8 @@ var MockUtils = {
     });
   },
   startTimeHeaderScheduler: function() {},
-  Template: function() {}
+  Template: function() {},
+  getFontSize: function() {
+    return 12;
+  }
 };

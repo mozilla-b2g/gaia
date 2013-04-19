@@ -2,7 +2,7 @@
 
 // remove this when https://github.com/visionmedia/mocha/issues/819 is merged in
 // mocha and when we have that new mocha in test agent
-mocha.setup({ globals: [ 'alert' ] });
+mocha.setup({ globals: ['alert'] });
 
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_alert.js');
@@ -22,8 +22,10 @@ suite('thread_ui.js >', function() {
   var sendButton;
   var input;
   var composeForm;
+  var recipient;
 
   var realMozL10n;
+  var realMozSms;
 
   var mocksHelper = mocksHelperForThreadUI;
 
@@ -47,29 +49,30 @@ suite('thread_ui.js >', function() {
     container.className = 'panel';
 
     var additionalMarkup =
-      '<a role="link" id="messages-back-button">' +
+      '<a role="link" id="go-to-threadlist">' +
       '  <span class="icon icon-back"></span>' +
       '</a>' +
-      '<a id="messages-contact-pick-button">' +
+      '<a id="icon-contact">' +
       '  <span class="icon icon-user"></span>' +
       '</a>' +
       '<a href="#edit" id="icon-edit">' +
       '  <span class="icon icon-edit"></span>' +
       '</a>' +
-      '<h1 id="messages-header-text">Messages</h1>' +
+      '<h1 id="header-text">Messages</h1>' +
       '<form id="messages-tel-form">' +
-      '  <input id="messages-recipient" type="text" name="tel" class="tel" />' +
-      '  <span id="messages-clear-button" role="button"' +
+      '  <input id="receiver-input" type="text" name="tel" class="tel" />' +
+      '  <span id="clear-search"' +
       '    class="icon icon-clear"></span>' +
       '</form>' +
       '<article id="messages-container" class="view-body" data-type="list">' +
       '</article>' +
-      '<form role="search" id="messages-compose-form" ' +
-      '  class="bottom messages-compose-form">' +
-      '  <button id="messages-send-button" disabled' +
+      '<form role="search" id="new-sms-form" ' +
+      '  class="bottom new-sms-form">' +
+      '  <button id="send-message" disabled' +
       '    type="submit">Send</button>' +
       '  <p>' +
-      '    <textarea type="text" id="messages-input" name="messages-input" ' +
+      '    <textarea type="text" id="message-to-send" ' +
+      '      name="message-to-send" ' +
       '      placeholder="Message"></textarea>' +
       '  </p>' +
       '</form>' +
@@ -78,24 +81,30 @@ suite('thread_ui.js >', function() {
       '    <span class="icon icon-close">close</span>' +
       '  </button>' +
       '  <button id="messages-delete-button">delete</button>' +
-      '  <button id="messages-uncheck-all-button" disabled' +
+      '  <button id="deselect-all-messages" disabled' +
       '    class="edit-button">' +
       '  </button>' +
-      '  <button id="messages-check-all-button" class="edit-button">' +
+      '  <button id="select-all-messages" class="edit-button">' +
       '  </button>' +
       '</form>';
 
     container.insertAdjacentHTML('beforeend', additionalMarkup);
 
-    sendButton = container.querySelector('#messages-send-button');
-    input = container.querySelector('#messages-input');
-    composeForm = container.querySelector('#messages-compose-form');
+    sendButton = container.querySelector('#send-message');
+    input = container.querySelector('#message-to-send');
+    composeForm = container.querySelector('#new-sms-form');
+    recipient = container.querySelector('#receiver-input');
 
     document.body.appendChild(container);
 
-    ThreadUI._mozSms = MockNavigatormozSms;
-
     ThreadUI.init();
+    ThreadUI.sendButton = sendButton;
+    ThreadUI.input = input;
+    ThreadUI.sendForm = composeForm;
+    ThreadUI.contactInput = recipient;
+
+    realMozSms = ThreadUI._mozSms;
+    ThreadUI._mozSms = MockNavigatormozSms;
   });
 
   teardown(function() {
@@ -104,6 +113,74 @@ suite('thread_ui.js >', function() {
 
     MockNavigatormozSms.mTeardown();
     mocksHelper.teardown();
+    ThreadUI._mozSms = realMozSms;
+  });
+
+  suite('enableSend() >', function() {
+    setup(function() {
+      ThreadUI.updateCounter();
+    });
+
+    test('button should be disabled at the beginning', function() {
+      ThreadUI.enableSend();
+      assert.isTrue(sendButton.disabled);
+    });
+
+    test('button should be enabled when there is some text', function() {
+      input.value = 'Hola';
+      ThreadUI.enableSend();
+      assert.isFalse(sendButton.disabled);
+    });
+
+    suite('#new mode >', function() {
+      setup(function() {
+        window.location.hash = '#new';
+      });
+
+      teardown(function() {
+        window.location.hash = '';
+      });
+
+      test('button should be disabled when there is neither contact or input',
+        function() {
+
+        ThreadUI.enableSend();
+        assert.isTrue(sendButton.disabled);
+      });
+
+      test('button should be disabled when there is no contact', function() {
+        input.value = 'Hola';
+        ThreadUI.enableSend();
+        assert.isTrue(sendButton.disabled);
+      });
+
+      test('button should be enabled when there is both contact and input',
+        function() {
+
+        input.value = 'Hola';
+        recipient.value = '123123123';
+        ThreadUI.enableSend();
+        assert.isFalse(sendButton.disabled);
+      });
+    });
+  });
+
+  suite('cleanFields >', function() {
+    setup(function() {
+      window.location.hash = '#new';
+      input.value = 'Hola';
+      recipient.value = '123123123';
+      ThreadUI.enableSend();
+      ThreadUI.cleanFields();
+    });
+
+    teardown(function() {
+      window.location.hash = '';
+    });
+
+    test('should disable the button', function() {
+      assert.isTrue(sendButton.disabled);
+    });
   });
 
   suite('updateCounter() >', function() {
