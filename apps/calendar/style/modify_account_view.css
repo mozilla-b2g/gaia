@@ -45,7 +45,7 @@
   margin-right: 0.5rem;
 }
 
-#modify-account-view.in-progress button,
+#modify-account-view.in-progress .save,
 #modify-account-view.in-progress form {
   display: none;
 }

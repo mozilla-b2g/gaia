@@ -36,25 +36,34 @@ Calendar.ns('Utils').AccountCreation = (function() {
       var accountStore = this.app.store('Account');
       var calendarStore = this.app.store('Calendar');
 
-      // begin by persisting the account
       accountStore.verifyAndPersist(model, function(accErr, id, result) {
+        if (model.cancelled) {
+          // Purge any data we've already persisted.
+          accountStore.remove(model._id);
+          return;
+        }
 
         if (accErr) {
-          // we bail when we cannot create the account
+          // We bail when we cannot create the account
           // but also give custom error events.
           self.emit('authorizeError', accErr);
           callback(accErr);
           return;
         }
 
-
         self.emit('authorize', result);
 
-        // finally sync the account so when
+        // Finally sync the account so when
         // we exit the request the user actually
         // has some calendars. This should not take
         // too long (compared to event sync).
         accountStore.sync(result, function(syncErr) {
+          if (model.cancelled) {
+            // Purge any data we've already persisted.
+            accountStore.remove(model._id);
+            return;
+          }
+
           if (syncErr) {
             self.emit('calendarSyncError', syncErr);
             callback(syncErr);
@@ -62,6 +71,12 @@ Calendar.ns('Utils').AccountCreation = (function() {
           }
 
           function syncCalendars(err, calendars) {
+            if (model.cancelled) {
+              // Purge any data we've already persisted.
+              accountStore.remove(model._id);
+              return;
+            }
+
             if (err) {
               console.log('Error fetch calendar list in account creation');
               return callback(err);
@@ -69,25 +84,21 @@ Calendar.ns('Utils').AccountCreation = (function() {
 
             self.emit('calendarSync');
 
-            // note we don't wait for any of this to complete
+            // TODO(gareth): Could we run into an issue here if the user
+            //               deletes the account while we're syncing?
+            // Note we don't wait for any of this to complete
             // we just begin the sync and let the event handlers
             // on the sync controller do the work.
             for (var key in calendars) {
-              self.app.syncController.calendar(
-                result,
-                calendars[key]
-              );
+              self.app.syncController.calendar(result, calendars[key]);
             }
 
             callback(null, result);
           }
 
-          // begin sync of calendars
-          var calendars = calendarStore.remotesByAccount(
-            result._id,
-            syncCalendars
-          );
-        });
+          // Begin syncing calendars.
+          calendarStore.remotesByAccount(result._id, syncCalendars);
+        }, model);
       });
     }
   };

@@ -59,6 +59,30 @@ Calendar.ns('Models').Account = (function() {
      */
     password: '',
 
+    /**
+     * Xhr requests made on behalf of this account.
+     * @type {Array.<Caldav.Xhr>}
+     */
+    xhrRequests: [],
+
+    /**
+     * Whether or not we've cancelled this account.
+     * @type {boolean}
+     */
+    cancelled: false,
+
+    abort: function() {
+      this.cancelled = true;
+
+      // Cancel any and all xhr requests.
+      for (var i = 0; i < this.xhrRequests.length; i++) {
+        var req = this.xhrRequests[i];
+        if (req !== undefined) {
+          req.abort();
+        }
+      }
+    },
+
     get fullUrl() {
       return this.domain + this.entrypoint;
     },

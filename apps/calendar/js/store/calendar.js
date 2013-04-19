@@ -103,9 +103,7 @@
     sync: function(account, calendar, callback) {
       var self = this;
       var store = this.db.getStore('Event');
-      var provider = Calendar.App.provider(
-        account.providerType
-      );
+      var provider = Calendar.App.provider(account.providerType);
       provider.syncEvents(account, calendar, callback);
     },
 
