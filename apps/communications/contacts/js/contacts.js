@@ -398,7 +398,9 @@ var Contacts = (function() {
     var options = TAG_OPTIONS[tagList];
     fillTagOptions(options, tagList, target);
     navigation.go('view-select-tag', 'right-left');
-    window.navigator.mozKeyboard.removeFocus();
+    if (document.activeElement) {
+      document.activeElement.blur();
+    }
   };
 
   var fillTagOptions = function fillTagOptions(options, tagList, update) {
