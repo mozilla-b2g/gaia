@@ -16,6 +16,29 @@ var Carrier = (function newCarrier(window, document, undefined) {
   var mobileConnection = getMobileConnection();
   var gCompatibleAPN = null;
 
+  var mccMncCodes = { mcc: '-1', mnc: '-1' };
+
+  // Read the mcc/mnc codes from the setting database, then trigger callback.
+  function getMccMncCodes(callback) {
+    var settings = Settings.mozSettings;
+    if (!settings) {
+      callback();
+    }
+    var transaction = settings.createLock();
+    var mccKey = 'operatorvariant.mcc';
+    var mncKey = 'operatorvariant.mnc';
+
+    var mccRequest = transaction.get(mccKey);
+    mccRequest.onsuccess = function() {
+      mccMncCodes.mcc = mccRequest.result[mccKey] || '0';
+      var mncRequest = transaction.get(mncKey);
+      mncRequest.onsuccess = function() {
+        mccMncCodes.mnc = mncRequest.result[mncKey] || '0';
+        callback();
+      };
+    };
+  }
+
   // query <apn> elements matching the mcc/mnc arguments
   function queryAPN(callback, usage) {
     if (!callback)
@@ -50,8 +73,8 @@ var Carrier = (function newCarrier(window, document, undefined) {
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
         var apn = xhr.response;
-        var mcc = mobileConnection.iccInfo.mcc;
-        var mnc = mobileConnection.iccInfo.mnc;
+        var mcc = mccMncCodes.mcc;
+        var mnc = mccMncCodes.mnc;
         // get a list of matching APNs
         gCompatibleAPN = apn[mcc] ? (apn[mcc][mnc] || []) : [];
         callback(filter(gCompatibleAPN), usage);
@@ -450,11 +473,13 @@ var Carrier = (function newCarrier(window, document, undefined) {
       updateSelectionMode(true);
       initDataConnectionAndRoamingWarnings();
 
-      // XXX this should be done later -- not during init()
-      this.fillAPNList('data');
-      // XXX commented this line because MMS Settings is hidden
-      // this.fillAPNList('mms');
-      this.fillAPNList('supl');
+      getMccMncCodes(function() {
+        // XXX this should be done later -- not during init()
+        Carrier.fillAPNList('data');
+        // XXX commented this line because MMS Settings is hidden
+        // Carrier.fillAPNList('mms');
+        Carrier.fillAPNList('supl');
+      });
     }
   };
 })(this, document);
