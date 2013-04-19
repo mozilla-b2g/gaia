@@ -31,6 +31,11 @@ var MINIMUM_ITEMS_FOR_SCROLL_CALC = 10;
 var MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST = 6000;
 
 /**
+ * Fetch up to 4kb while scrolling
+ */
+var MAXIMUM_BYTES_PER_MESSAGE_DURING_SCROLL = 4 * 1024;
+
+/**
  * Format the message subject appropriately.  This means ensuring that if the
  * subject is empty, we use a placeholder string instead.
  *
@@ -631,10 +636,14 @@ MessageListCard.prototype = {
       return;
 
     var clearSnippets = this._clearSnippetRequest.bind(this);
+    var options = {
+      // this is per message
+      maximumBytesToFetch: MAXIMUM_BYTES_PER_MESSAGE_DURING_SCROLL
+    };
 
     if (len < MINIMUM_ITEMS_FOR_SCROLL_CALC) {
       this._pendingSnippetRequest();
-      this.messagesSlice.maybeRequestSnippets(0, 9, clearSnippets);
+      this.messagesSlice.maybeRequestBodies(0, 9, options, clearSnippets);
       return;
     }
 
@@ -672,9 +681,10 @@ MessageListCard.prototype = {
 
 
     this._pendingSnippetRequest();
-    this.messagesSlice.maybeRequestSnippets(
+    this.messagesSlice.maybeRequestBodies(
       startOffset,
       startOffset + this._snippetsPerScrollTick,
+      options,
       clearSnippets
     );
 
