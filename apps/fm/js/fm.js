@@ -165,8 +165,13 @@ function updateEnablingState(enablingState) {
   updateFrequencyBarUI();
 }
 
-function enableFMRadio(frequency){
-  mozFMRadio.enable(frequency);
+function enableFMRadio(frequency) {
+  var request = mozFMRadio.enable(frequency);
+  // Request might fail, see bug862672
+  request.onerror = function onerror_enableFMRadio(event) {
+    updateEnablingState(false);
+  };
+
   updateEnablingState(true);
 }
 
@@ -726,17 +731,19 @@ function init() {
   mozFMRadio.onantennaavailablechange = function onAntennaChange() {
     updateAntennaUI();
     if (mozFMRadio.antennaAvailable) {
-      // If the FM radio is enabled when the antenna is unplugged, turn the FM
-      // radio on again.
-      if (!!window._previousFMRadioState) {
+      // If the FM radio is enabled or enabling when the antenna is unplugged,
+      // turn the FM radio on again.
+      if (!!window._previousFMRadioState || !!window._previousEnablingState) {
         enableFMRadio(frequencyDialer.getFrequency());
       }
     } else {
       // Remember the current state of the FM radio
       window._previousFMRadioState = mozFMRadio.enabled;
+      window._previousEnablingState = enabling;
       mozFMRadio.disable();
     }
   };
+
   historyList.init(function hl_ready() {
     if (mozFMRadio.antennaAvailable) {
       // Enable FM immediately
@@ -774,3 +781,4 @@ window.addEventListener('localized', function showBody() {
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });
+
