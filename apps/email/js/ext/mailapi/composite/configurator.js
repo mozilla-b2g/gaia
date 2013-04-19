@@ -708,6 +708,20 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
       searchOptions.push(['BEFORE', endTS]);
   },
 
+  /**
+   * Downloads all the body representations for a given message.
+   *
+   *
+   *    folder.downloadBodyReps(
+   *      header,
+   *      {
+   *        // maximum number of bytes to fetch total (across all bodyReps)
+   *        maximumBytesToFetch: N
+   *      }
+   *      callback
+   *    );
+   *
+   */
   downloadBodyReps: function() {
     var args = Array.slice(arguments);
     var self = this;
@@ -732,31 +746,25 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
    * Initiates a request to download all body reps. If a snippet has not yet
    * been generated this will also generate the snippet...
    */
-  _lazyDownloadBodyReps: function(suid, date, callback) {
-    var bodyInfo;
-    var header;
+  _lazyDownloadBodyReps: function(header, options, callback) {
+    if (typeof(options) === 'function') {
+      callback = options;
+      options = null;
+    }
 
-    var requests = [];
+    options = options || {};
+
     var self = this;
 
-    var gotHeader = function gotHeader(_header) {
-      // header may have been deleted by the time we get here...
-      if (!_header) {
-        return callback();
-      }
-
-      header = _header;
-      self._storage.getMessageBody(suid, date, gotBody);
-    };
-
     var gotBody = function gotBody(bodyInfo) {
-      if (!bodyInfo)
-        return callback();
-
       // target for snippet generation
       var bodyRepIdx = $imapchew.selectSnippetBodyRep(header, bodyInfo);
 
+      // assume user always wants entire email unless option is given...
+      var overallMaximumBytes = options.maximumBytesToFetch;
+
       // build the list of requests based on downloading required.
+      var requests = [];
       bodyInfo.bodyReps.forEach(function(rep, idx) {
 
         // attempt to be idempotent by only requesting the bytes we need if we
@@ -771,12 +779,34 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
           createSnippet: idx === bodyRepIdx
         };
 
+        // default to the entire remaining email. We use the estimate * largish
+        // multiplier so even if the size estimate is wrong we should fetch more
+        // then the requested number of bytes which if truncated indicates the
+        // end of the bodies content.
+        var bytesToFetch = Math.min(rep.sizeEstimate * 5, MAX_FETCH_BYTES);
+
+        if (overallMaximumBytes !== undefined) {
+          // issued enough downloads
+          if (overallMaximumBytes <= 0) {
+            return;
+          }
+
+          // if our estimate is greater then expected number of bytes request the
+          // maximum allowed.
+          if (rep.sizeEstimate > overallMaximumBytes) {
+            bytesToFetch = overallMaximumBytes;
+          }
+
+          // subtract the estimated byte size
+          overallMaximumBytes -= rep.sizeEstimate;
+        }
+
         // we may only need a subset of the total number of bytes.
-        if (rep.amountDownloaded) {
+        if (overallMaximumBytes !== undefined || rep.amountDownloaded) {
           // request the remainder
           request.bytes = [
             rep.amountDownloaded,
-            Math.min(rep.sizeEstimate * 5, MAX_FETCH_BYTES)
+            bytesToFetch
           ];
         }
 
@@ -798,7 +828,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
       });
     };
 
-    self._storage.getMessageHeader(suid, date, gotHeader);
+    this._storage.getMessageBody(header.suid, header.date, gotBody);
   },
 
   /**
@@ -884,9 +914,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
   /**
    * Download snippets for a set of headers.
    */
-  _lazyDownloadSnippets: function(headers, callback) {
-    var i = 0;
-    var len = headers.length;
+  _lazyDownloadBodies: function(headers, options, callback) {
     var pending = 1;
 
     var self = this;
@@ -902,13 +930,13 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
       }
     }
 
-    for (; i < len; i++) {
+    for (var i = 0; i < headers.length; i++) {
       if (!headers[i] || headers[i].snippet) {
         continue;
       }
 
       pending++;
-      this._downloadSnippet(headers[i], next);
+      this.downloadBodyReps(headers[i], options, next);
     }
 
     // by having one pending item always this handles the case of not having any
@@ -917,7 +945,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
     window.setZeroTimeout(next);
   },
 
-  downloadSnippets: function() {
+  downloadBodies: function() {
     var args = Array.slice(arguments);
     var self = this;
 
@@ -933,7 +961,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
         $imapbodyfetcher = _bodyfetcher;
         $imapsnippetparser = _snippetparser;
 
-        (self.downloadSnippets = self._lazyDownloadSnippets).apply(self, args);
+        (self.downloadBodies = self._lazyDownloadBodies).apply(self, args);
     });
   },
 
@@ -1853,83 +1881,19 @@ ImapJobDriver.prototype = {
 
   allJobsDone: $jobmixins.allJobsDone,
 
-  // snippet downloading
+  //////////////////////////////////////////////////////////////////////////////
+  // downloadBodies: Download the bodies from a list of messages
 
-  local_do_downloadSnippets: function(op, doneCallback) {
-    doneCallback(null);
-  },
+  local_do_downloadBodies: $jobmixins.local_do_downloadBodies,
 
-  do_downloadSnippets: function(op, doneCallback) {
-    var aggrErr;
-    this._partitionAndAccessFoldersSequentially(
-      op.messages,
-      true,
-      function perFolder(folderConn, storage, headers, namers, callWhenDone) {
-        folderConn.downloadSnippets(headers, function(err) {
-          if (err && !aggrErr) {
-            aggrErr = err;
-          }
-          callWhenDone();
-        });
-      },
-      function allDone() {
-        doneCallback(aggrErr);
-      },
-      function deadConn() {
-        aggrErr = 'aborted-retry';
-      },
-      false, // reverse?
-      'downloadSnippets',
-      true // require headers
-    );
-  },
+  do_downloadBodies: $jobmixins.do_downloadBodies,
 
-  // body rep downloading
+  //////////////////////////////////////////////////////////////////////////////
+  // downloadBodyReps: Download the bodies from a single message
 
-  local_do_downloadBodyReps: function(op, doneCallback) {
-    doneCallback(null);
-  },
+  local_do_downloadBodyReps: $jobmixins.local_do_downloadBodyReps,
 
-  do_downloadBodyReps: function(op, doneCallback) {
-    var self = this;
-
-    var idxLastSlash = op.messageSuid.lastIndexOf('/'),
-        folderId = op.messageSuid.substring(0, idxLastSlash);
-
-    var folderConn, folderStorage;
-    // Once we have the connection, get the current state of the body rep.
-    var gotConn = function gotConn(_folderConn, _folderStorage) {
-      folderConn = _folderConn;
-      folderStorage = _folderStorage;
-
-      folderConn.downloadBodyReps(
-        op.messageSuid, op.messageDate, onDownloadReps
-      );
-    };
-
-    var onDownloadReps = function onDownloadReps(err, bodyInfo) {
-      if (err) {
-        console.error('Error downloading reps', err);
-        // fail we cannot download for some reason?
-        return doneCallback('unknown');
-      }
-
-      // success
-      doneCallback(null, bodyInfo, true);
-    };
-
-    var deadConn = function deadConn() {
-      doneCallback('aborted-retry');
-    };
-
-    self._accessFolderForMutation(
-      folderId,
-      true,
-      gotConn,
-      deadConn,
-      'downloadBodyReps'
-    );
-  },
+  do_downloadBodyReps: $jobmixins.do_downloadBodyReps,
 
   //////////////////////////////////////////////////////////////////////////////
   // download: Download one or more attachments from a single message
