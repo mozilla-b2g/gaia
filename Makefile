@@ -162,8 +162,12 @@ endif
 SETTINGS_PATH := build/custom-settings.json
 ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)settings.json
+	DISTRIBUTION_CONTACTS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)contacts.json
 	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
 		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
+	endif
+	ifneq ($(wildcard $(DISTRIBUTION_CONTACTS)),)
+		CONTACTS_PATH := $(DISTRIBUTION_CONTACTS)
 	endif
 endif
 
@@ -287,12 +291,14 @@ offline-cache: webapp-manifests install-xulrunner-sdk
 	@$(call run-js-command, offline-cache)
 	@echo "Done"
 
-# Create contacts DB
-contacts: install-xulrunner-sdk
-	@echo "Generate contacts database"
-	@rm -rf profile/indexedDB
-	@$(call run-js-command, contacts)
-	@echo "Done"
+# Copy preload contacts to profile
+contacts:
+ifdef CONTACTS_PATH
+	@echo "Copying preload contacts to profile"
+	@cp $(CONTACTS_PATH) profile
+else
+	@rm -f profile/contacts.json
+endif
 
 # Create webapps
 offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
@@ -698,7 +704,7 @@ production: reset-gaia
 dogfood: reset-gaia
 
 # Remove everything and install a clean profile
-reset-gaia: purge install-gaia install-settings-defaults
+reset-gaia: purge install-gaia install-default-data
 
 # remove the memories and apps on the phone
 purge:
@@ -730,11 +736,16 @@ endif
 profile/settings.json: build/settings.py build/wallpaper.jpg
 	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override $(SETTINGS_PATH) --output $@
 
-# push profile/settings.json to the phone
-install-settings-defaults: profile/settings.json
+# push profile/settings.json and profile/contacts.json (if CONTACTS_PATH defined) to the phone
+install-default-data: profile/settings.json contacts
 	$(ADB) shell stop b2g
 	$(ADB) remount
 	$(ADB) push profile/settings.json /system/b2g/defaults/settings.json
+ifdef CONTACTS_PATH
+	$(ADB) push profile/contacts.json /system/b2g/defaults/contacts.json
+else
+	$(ADB) shell rm /system/b2g/defaults/contacts.json
+endif
 	$(ADB) shell start b2g
 
 
