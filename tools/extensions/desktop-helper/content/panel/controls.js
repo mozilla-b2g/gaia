@@ -17,6 +17,7 @@ function HardwareButtons() {
 
 HardwareButtons.prototype = {
     home: function() {
+        hardware.wake();
         var event = tab.CustomEvent('home');
         tab.dispatchEvent(event);
     },
@@ -63,4 +64,18 @@ Emulation.prototype = {
     }
 };
 window.emulation = new Emulation();
+
+function Workflow() {
+
+}
+
+Workflow.prototype = {
+  reload: function() {
+
+    var app = tab.wrappedJSObject.WindowManager
+      .getRunningApps()[tab.wrappedJSObject.WindowManager.getDisplayedApp()];
+    app.reload();
+  }
+}
+window.worflow = new Workflow();
 }();

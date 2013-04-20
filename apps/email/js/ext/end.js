@@ -33,6 +33,7 @@ require.config({
     // Point chew methods to the chew layer
     'mailapi/htmlchew': 'mailapi/chewlayer',
     'mailapi/quotechew': 'mailapi/chewlayer',
+    'mailapi/mailchew': 'mailapi/chewlayer',
     'mailapi/imap/imapchew': 'mailapi/chewlayer',
 
     // Imap body fetching / parsing / sync

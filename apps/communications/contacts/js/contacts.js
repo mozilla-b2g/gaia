@@ -30,7 +30,8 @@ var Contacts = (function() {
       settingsButton,
       cancelButton,
       addButton,
-      appTitleElement;
+      appTitleElement,
+      asyncScriptsLoaded = false;
 
   var settingsReady = false;
   var detailsReady = false;
@@ -198,6 +199,7 @@ var Contacts = (function() {
 
     addAsyncScripts();
     window.addEventListener('asyncScriptsLoaded', function onAsyncLoad() {
+      asyncScriptsLoaded = true;
       window.removeEventListener('asyncScriptsLoaded', onAsyncLoad);
       contactsList.initAlphaScroll();
       checkUrl();
@@ -403,7 +405,9 @@ var Contacts = (function() {
     var options = TAG_OPTIONS[tagList];
     fillTagOptions(options, tagList, target);
     navigation.go('view-select-tag', 'right-left');
-    window.navigator.mozKeyboard.removeFocus();
+    if (document.activeElement) {
+      document.activeElement.blur();
+    }
   };
 
   var fillTagOptions = function fillTagOptions(options, tagList, update) {
@@ -927,6 +931,9 @@ var Contacts = (function() {
     'showStatus': showStatus,
     'cardStateChanged': cardStateChanged,
     'loadFacebook': loadFacebook,
-    'close': close
+    'close': close,
+    get asyncScriptsLoaded() {
+      return asyncScriptsLoaded;
+    }
   };
 })();

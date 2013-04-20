@@ -308,6 +308,50 @@ var WindowManager = (function() {
     setDisplayedApp(homescreen);
   });
 
+  // Open and close app animations
+  windows.addEventListener('animationend', function frameAnimationend(evt) {
+    var animationName = evt.animationName;
+    var frame = evt.target;
+
+    if (animationName.indexOf('openApp') !== -1) {
+      windowScaled(frame);
+
+      var onWindowReady = function() {
+        windowOpened(frame);
+
+        setTimeout(openCallback);
+        openCallback = null;
+        setOpenFrame(null);
+
+        ensureHomescreen().classList.remove('zoom-in');
+      };
+
+      // If this is a cold launch let's wait for the app to load first
+      var iframe = openFrame.firstChild;
+      if ('unpainted' in iframe.dataset) {
+
+        if ('wrapper' in frame.dataset)
+          wrapperFooter.classList.add('visible');
+
+        iframe.addEventListener('mozbrowserloadend', function on(e) {
+          iframe.removeEventListener('mozbrowserloadend', on);
+          onWindowReady();
+        });
+      } else {
+        onWindowReady();
+      }
+    } else if (animationName.indexOf('closeApp') !== -1) {
+      windowClosed(frame);
+
+      setTimeout(closeCallback);
+      closeCallback = null;
+
+      setCloseFrame(null);
+
+      ensureHomescreen().classList.remove('zoom-out');
+    }
+  });
+
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
     var prop = evt.propertyName;
     var frame = evt.target;
@@ -371,42 +415,6 @@ var WindowManager = (function() {
         setOpenFrame(null);
         screenElement.classList.remove('switch-app');
       }
-
-      return;
-    }
-
-    if (classList.contains('opening')) {
-      windowScaled(frame);
-
-      var onWindowReady = function() {
-        windowOpened(frame);
-
-        setTimeout(openCallback);
-        openCallback = null;
-        setOpenFrame(null);
-      };
-
-      // If this is a cold launch let's wait for the app to load first
-      var iframe = openFrame.firstChild;
-      if ('unpainted' in iframe.dataset) {
-
-        if ('wrapper' in frame.dataset)
-          wrapperFooter.classList.add('visible');
-
-        iframe.addEventListener('mozbrowserloadend', function on(e) {
-          iframe.removeEventListener('mozbrowserloadend', on);
-          onWindowReady();
-        });
-      } else {
-        onWindowReady();
-      }
-    } else if (classList.contains('closing')) {
-      windowClosed(frame);
-
-      setTimeout(closeCallback);
-      closeCallback = null;
-
-      setCloseFrame(null);
     }
   });
 
@@ -747,6 +755,7 @@ var WindowManager = (function() {
       transitionOpenCallback = null;
 
       if (!screenElement.classList.contains('switch-app')) {
+        ensureHomescreen().classList.add('zoom-in');
         openFrame.classList.add('opening');
       } else if (!openFrame.classList.contains('opening')) {
         openFrame.classList.add('opening-card');
@@ -852,6 +861,7 @@ var WindowManager = (function() {
       transitionCloseCallback = null;
 
       // Start the transition
+      ensureHomescreen().classList.add('zoom-out');
       closeFrame.classList.add('closing');
       closeFrame.classList.remove('active');
 
@@ -2082,6 +2092,7 @@ var WindowManager = (function() {
       // to relaunch to activity caller, and this is the only way to
       // determine if we are going to homescreen or the original app.
       activityCallerOrigin = '';
+      ensureHomescreen().classList.remove('zoom-in');
       setDisplayedApp(homescreen);
     } else {
       stopInlineActivity(true);

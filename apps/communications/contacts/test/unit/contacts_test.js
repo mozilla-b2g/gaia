@@ -14,7 +14,6 @@ requireApp('communications/contacts/test/unit/mock_search.js');
 requireApp('communications/contacts/test/unit/mock_contact_list_dom.js.html');
 requireApp('communications/contacts/test/unit/mock_selection_dom.js.html');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
-requireApp('communications/contacts/test/unit/mock_mozkeyboard.js');
 requireApp('communications/contacts/test/unit/mock_fb_loader.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 
@@ -47,7 +46,6 @@ suite('Fill tag options', function() {
       realActivityHandler,
       subject,
       realL10n,
-      realMozKeyboard,
       realPerformanceTestingHelper,
       realFb,
       realFbLoader;
@@ -78,8 +76,6 @@ suite('Fill tag options', function() {
     window.contacts = contacts;
     realActivityHandler = window.ActivityHandler;
     window.ActivityHandler = MockActivities;
-    realMozKeyboard = window.navigator.mozKeyboard;
-    window.navigator.mozKeyboard = MockMozKeyboard;
     realFbLoader = window.fbLoader;
     window.fbLoader = MockFbLoader;
     realFb = window.fb;
@@ -97,7 +93,6 @@ suite('Fill tag options', function() {
     navigator.mozL10n = realL10n;
     window.contacts = realContacts;
     window.ActivityHandler = realActivityHandler;
-    window.navigator.mozKeyboard = realMozKeyboard;
     window.fbLoader = realFbLoader;
     window.fb = realFb;
     window.PerformanceTestingHelper = realPerformanceTestingHelper;

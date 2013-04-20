@@ -190,15 +190,22 @@ var ThreadUI = {
     };
 
     // We're waiting for the keyboard to disappear before animating back
-    if (ThreadListUI.fullHeight !== this.container.offsetHeight) {
+    if (this.isKeyboardDisplayed()) {
 
       window.addEventListener('resize', function keyboardHidden() {
         window.removeEventListener('resize', keyboardHidden);
+        window.clearTimeout(setTimer);
         goBack();
       });
+      var setTimer = window.setTimeout(goBack, 400);
     } else {
       goBack();
     }
+  },
+
+  isKeyboardDisplayed: function thui_isKeyboardDisplayed() {
+    // minimal keyboard height is 150px
+    return (this.container.offsetHeight < ThreadListUI.fullHeight - 150);
   },
 
   enableSend: function thui_enableSend() {
@@ -218,8 +225,8 @@ var ThreadUI = {
     this.container.scrollTop = this.container.scrollHeight;
   },
 
-  updateCounter: function thui_updateCount(evt) {
-    if (!navigator.mozSms) {
+  updateCounter: function thui_updateCount() {
+    if (!this._mozSms.getSegmentInfoForText) {
       return;
     }
     var value = this.input.value;
@@ -236,7 +243,19 @@ var ThreadUI = {
       counter = availableChars + '/' + segments;
     }
     this.sendButton.dataset.counter = counter;
-    this.sendButton.disabled = (segments > kMaxConcatenatedMessages);
+    var hasMaxLength = (segments === kMaxConcatenatedMessages &&
+        !availableChars);
+
+    // note: when we'll have the MMS feature, we'll want to use an MMS instead
+    // of forbidding this.
+    if (hasMaxLength) {
+      var message = navigator.mozL10n.get('messages-max-length-notice');
+      window.alert(message);
+
+      this.input.setAttribute('maxlength', value.length);
+    } else {
+      this.input.removeAttribute('maxlength');
+    }
   },
 
   updateInputHeight: function thui_updateInputHeight() {
@@ -375,11 +394,13 @@ var ThreadUI = {
   },
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData(callback) {
+
     // For Desktop Testing, mozContacts it's mockuped but it's not working
     // completely. So in the case of Desktop testing we are going to execute
     // the callback directly in order to make it works!
     // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
     if (!navigator.mozSms && callback) {
+      this.headerText.textContent = MessageManager.currentNum;
       setTimeout(callback);
       return;
     }
@@ -392,7 +413,7 @@ var ThreadUI = {
     // Add data to contact activity interaction
     this.headerText.dataset.phoneNumber = number;
 
-    Contacts.findByString(number, function gotContact(contacts) {
+    Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
       /** If we have more than one contact sharing the same phone number
        *  we show the name of the first contact and how many other contacts

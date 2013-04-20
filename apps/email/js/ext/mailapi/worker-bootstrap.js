@@ -1384,6 +1384,7 @@ require.config({
     // Point chew methods to the chew layer
     'mailapi/htmlchew': 'mailapi/chewlayer',
     'mailapi/quotechew': 'mailapi/chewlayer',
+    'mailapi/mailchew': 'mailapi/chewlayer',
     'mailapi/imap/imapchew': 'mailapi/chewlayer',
 
     // Imap body fetching / parsing / sync
@@ -4912,23 +4913,25 @@ var tupleRangeIntersectsTupleRange = exports.tupleRangeIntersectsTupleRange =
   return true;
 };
 
+var EXPECTED_BLOCK_SIZE = 8;
+
 /**
  * What is the maximum number of bytes a block should store before we split
  * it?
  */
-var MAX_BLOCK_SIZE = 96 * 1024,
+var MAX_BLOCK_SIZE = EXPECTED_BLOCK_SIZE * 1024,
 /**
  * How many bytes should we target for the small part when splitting 1:2?
  */
-      BLOCK_SPLIT_SMALL_PART = 32 * 1024,
+      BLOCK_SPLIT_SMALL_PART = (EXPECTED_BLOCK_SIZE / 3) * 1024,
 /**
  * How many bytes should we target for equal parts when splitting 1:1?
  */
-      BLOCK_SPLIT_EQUAL_PART = 48 * 1024,
+      BLOCK_SPLIT_EQUAL_PART = (EXPECTED_BLOCK_SIZE / 2) * 1024,
 /**
  * How many bytes should we target for the large part when splitting 1:2?
  */
-      BLOCK_SPLIT_LARGE_PART = 64 * 1024;
+      BLOCK_SPLIT_LARGE_PART = (EXPECTED_BLOCK_SIZE / 1.5) * 1024;
 
 /**
  * How much progress in the range [0.0, 1.0] should we report for just having
@@ -8820,7 +8823,7 @@ FolderStorage.prototype = {
         callback(null);
       }
       catch (ex) {
-        this._log.callbackErr(ex);
+        this._LOG.callbackErr(ex);
       }
       return;
     }
@@ -10211,6 +10214,81 @@ exports.local_undo_download = function(op, callback) {
   callback(null);
 };
 exports.undo_download = function(op, callback) {
+  callback(null);
+};
+
+
+exports.local_do_downloadBodies = function(op, callback) {
+  callback(null);
+};
+
+exports.do_downloadBodies = function(op, callback) {
+  var aggrErr;
+  this._partitionAndAccessFoldersSequentially(
+    op.messages,
+    true,
+    function perFolder(folderConn, storage, headers, namers, callWhenDone) {
+      folderConn.downloadBodies(headers, op.options, function(err) {
+        if (err && !aggrErr) {
+          aggrErr = err;
+        }
+        callWhenDone();
+      });
+    },
+    function allDone() {
+      callback(aggrErr, null, true);
+    },
+    function deadConn() {
+      aggrErr = 'aborted-retry';
+    },
+    false, // reverse?
+    'downloadBodies',
+    true // require headers
+  );
+};
+
+
+exports.do_downloadBodyReps = function(op, callback) {
+  var self = this;
+  var idxLastSlash = op.messageSuid.lastIndexOf('/'),
+      folderId = op.messageSuid.substring(0, idxLastSlash);
+
+  var folderConn, folderStorage;
+  // Once we have the connection, get the current state of the body rep.
+  var gotConn = function gotConn(_folderConn, _folderStorage) {
+    folderConn = _folderConn;
+    folderStorage = _folderStorage;
+
+    folderStorage.getMessageHeader(op.messageSuid, op.messageDate, gotHeader);
+  };
+  var deadConn = function deadConn() {
+    callback('aborted-retry');
+  };
+
+  var gotHeader = function gotHeader(header) {
+    // header may have been deleted by the time we get here...
+    if (!header)
+      return callback();
+
+    folderConn.downloadBodyReps(header, onDownloadReps);
+  };
+
+  var onDownloadReps = function onDownloadReps(err, bodyInfo) {
+    if (err) {
+      console.error('Error downloading reps', err);
+      // fail we cannot download for some reason?
+      return callback('unknown');
+    }
+
+    // success
+    callback(null, bodyInfo, true);
+  };
+
+  self._accessFolderForMutation(folderId, true, gotConn, deadConn,
+                                'downloadBodyReps');
+};
+
+exports.local_do_downloadBodyReps = function(op, callback) {
   callback(null);
 };
 
@@ -11810,11 +11888,11 @@ MailBridge.prototype = {
     proxy.sendSplice(0, 0, wireReps, true, false);
   },
 
-  _cmd_requestSnippets: function(msg) {
+  _cmd_requestBodies: function(msg) {
     var self = this;
-    this.universe.downloadSnippets(msg.messages, function() {
+    this.universe.downloadBodies(msg.messages, msg.options, function() {
       self.__sendMessage({
-        type: 'requestSnippetsComplete',
+        type: 'requestBodiesComplete',
         handle: msg.handle,
         requestId: msg.requestId
       });
@@ -15363,7 +15441,12 @@ MailUniverse.prototype = {
     );
   },
 
-  downloadSnippets: function(messages, callback) {
+  downloadBodies: function(messages, options, callback) {
+    if (typeof(options) === 'function') {
+      callback = options;
+      options = null;
+    }
+
     var self = this;
     var pending = 0;
 
@@ -15372,20 +15455,20 @@ MailUniverse.prototype = {
         callback();
       }
     }
-
     this._partitionMessagesByAccount(messages, null).forEach(function(x) {
       pending++;
       self._queueAccountOp(
         x.account,
         {
-          type: 'downloadSnippets',
+          type: 'downloadBodies',
           longtermId: 'session', // don't persist this job.
           lifecycle: 'do',
           localStatus: null,
           serverStatus: null,
           tryCount: 0,
-          humanOp: 'downloadSnippets',
-          messages: x.messages
+          humanOp: 'downloadBodies',
+          messages: x.messages,
+          options: options
         },
         next
       );

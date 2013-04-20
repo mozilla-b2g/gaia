@@ -1,17 +1,29 @@
 /* Search */
 #groups-list {
-  padding-top: 2.5rem;
+  padding: 2.5rem 0 0;
+  width: calc(100% - 0.3rem - 1.5rem);
 }
 
 /* Common search styles */
 form.search {
   position: absolute;
-  width: 100%;
+  width: calc(100% - 0.8rem);
   -moz-box-sizing: border-box;
   top: 0;
   left: 0;
   text-align: left;
   z-index: 1;
+}
+
+.insearchmode form.search {
+  width: 100%;
+}
+
+form.search[role="search"] input,
+form.search[role="search"] input:focus {
+  font-size: 1.7rem;
+  padding-left: 1.3rem;
+  background: #fff;
 }
 
 #search-view:not(.insearchmode) form.search * {
@@ -22,14 +34,17 @@ form.search {
   pointer-events: auto;
 }
 
+#search-view.insearchmode form.search button {
+  right: 1.3rem;
+}
+
 form.search p {
   padding: 0;
 }
 
 form.search label {
   display: block;
-  padding: 0.5rem 3.5rem 0.5rem 3rem;
-  background: none;
+  padding: 0.4rem 2.5rem 0.4rem 1.5rem;
 }
 
 form.search input {
@@ -65,7 +80,7 @@ form.search button[type="submit"] {
 }
 
 #search-view form.search label {
-  padding: 0.3rem 1.2rem;
+  padding: 0.4rem 1.5rem;
 }
 
 #no-result {
@@ -96,10 +111,10 @@ form.search button[type="submit"] {
 
 #search-view > section {
   position: absolute;
-  top: 3.7rem;
+  top: 3.9rem;
   left: 0;
   right: 0;
-  height: calc(100% - 3.7rem);
+  height: calc(100% - 3.9rem);
   background: #f3f3f3;
 }
 
@@ -111,6 +126,7 @@ form.search button[type="submit"] {
 
 #search-list {
   height: 100%;
+  padding: 0;
 }
 
 #search-list > li[data-uuid] > a *,

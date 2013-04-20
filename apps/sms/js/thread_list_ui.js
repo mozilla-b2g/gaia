@@ -58,7 +58,7 @@ var ThreadListUI = {
   updateThreadWithContact:
     function thlui_updateThreadWithContact(number, thread) {
 
-    Contacts.findByString(number, function gotContact(contacts) {
+    Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var nameContainer = thread.getElementsByClassName('name')[0];
       var photo = thread.getElementsByTagName('img')[0];
       // !contacts matches null results from errors
