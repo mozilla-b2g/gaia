@@ -8,13 +8,17 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "sms":{},
-    "storage":{},
-    "contacts":{ "access": "readonly" },
-    "mobileconnection":{},
-    "settings":{ "access": "readonly" },
-    "audio-channel-notification":{},
-    "desktop-notification":{}
+    "sms": {},
+    "contacts": {
+      "access": "readonly",
+      "description": "Read Contacts from the Device"
+    },
+    "mobileconnection": {},
+    "settings": {
+      "access": "readonly",
+      "description": "Read Messages Settings"
+    },
+    "desktop-notification": {}
   },
   "locales": {
     "ar": {
@@ -44,8 +48,7 @@
   "activities": {
     "new": {
       "filters": {
-        "type": "websms/sms",
-        "number": { "regexp":"/^[\\w\\s+#*().-]{0,50}$/" }
+        "type": "websms/sms"
        },
       "disposition": "window"
     }

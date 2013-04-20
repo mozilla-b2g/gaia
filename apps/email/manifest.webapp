@@ -11,15 +11,30 @@
      { "alarm": "/index.html" }
   ],
   "permissions": {
-    "alarms":{},
-    "audio-channel-notification":{},
-    "contacts":{ "access": "readcreate" },
-    "desktop-notification":{},
-    "storage":{},
-    "device-storage:sdcard":{ "access": "readcreate" },
-    "systemXHR":{},
-    "settings":{ "access": "readonly" },
-    "tcp-socket":{}
+    "alarms": {},
+    "contacts": {
+      "access": "readcreate",
+      "description": "Modify Contact Information"
+    },
+    "desktop-notification": {},
+    "device-storage:music": {
+      "access": "readcreate",
+      "description": "Read and Store Music on the Device"
+    },
+    "device-storage:pictures": {
+      "access": "readcreate",
+      "description": "Read and Store Pictures on the Device"
+    },
+    "device-storage:videos": {
+      "access": "readcreate",
+      "description": "Read and Store Videos on the Device"
+    },
+    "systemXHR": {},
+    "settings": {
+      "access": "readonly",
+      "description": "Read E-Mail Settings"
+    },
+    "tcp-socket": {}
   },
   "locales": {
     "ar": {
@@ -54,7 +69,7 @@
     "share": {
       "filters": {
         "type": "image/*"
-       },
+       },          
       "disposition": "window",
       "returnValue": true
     },
