@@ -31,6 +31,7 @@ PRODUCTION?=0
 GAIA_OPTIMIZE?=0
 HIDPI?=*
 DOGFOOD?=0
+DESKTOP?=0
 
 LOCAL_DOMAINS?=1
 
@@ -175,7 +176,7 @@ endif
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
-DOWNLOAD_CMD = /usr/bin/curl -O
+DOWNLOAD_CMD = /usr/bin/curl -LO
 else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
@@ -442,6 +443,10 @@ extensions:
 	@rm -rf $(EXT_DIR)
 ifeq ($(DEBUG),1)
 	cp -r tools/extensions $(EXT_DIR)
+ifeq ($(strip $(DESKTOP)),1)
+	$(DOWNLOAD_CMD) https://github.com/KevinGrandon/Firefox-OS-Runtime/raw/release/build/firefox-os-runtime%40jetpack.xpi
+	mv firefox-os-runtime%40jetpack.xpi profile/extensions/firefox-os-runtime@jetpack.xpi
+endif #NO_PLUGIN
 endif
 	@echo "Finished: Generating extensions"
 
