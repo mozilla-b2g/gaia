@@ -9,33 +9,47 @@
   },
   "permissions": {
     "alarms": {},
-    "browser":{},
-    "power":{},
-    "fmradio":{},
-    "webapps-manage":{},
-    "mobileconnection":{},
-    "bluetooth":{},
-    "telephony":{},
-    "voicemail":{},
-    "device-storage:sdcard":{ "access": "readonly" },
-    "device-storage:pictures":{ "access": "readwrite" },
-    "device-storage:videos":{ "access": "readwrite" },
-    "device-storage:music":{ "access": "readcreate" },
-    "settings":{ "access": "readwrite" },
-    "storage":{},
-    "camera":{},
-    "geolocation":{},
-    "wifi-manage":{},
-    "desktop-notification":{},
-    "idle":{},
-    "network-events":{},
-    "embed-apps":{},
-    "background-sensors":{},
-    "permissions":{},
-    "audio-channel-notification":{},
-    "audio-channel-content":{},
-    "cellbroadcast":{},
-    "keyboard":{}
+    "browser": {},
+    "power": {},
+    "fmradio": {},
+    "webapps-manage": {},
+    "mobileconnection": {},
+    "bluetooth": {},
+    "telephony": {},
+    "voicemail": {},
+    "device-storage:sdcard": {
+      "access": "readonly",
+      "description": "Read and Store Data on the SD-Card"
+    },
+    "device-storage:pictures": {
+      "access": "readwrite",
+      "description": "Read and Store Pictures on the Device"
+    },
+    "device-storage:videos": {
+      "access": "readwrite",
+      "description": "Read and Store Videos on the Device"
+    },
+    "device-storage:music": {
+      "access": "readcreate",
+      "description": "Read and Store Music on the Device"
+    },
+    "settings": {
+      "access": "readwrite",
+      "description": "Remember System Settings"
+    },
+    "storage": {},
+    "camera": {},
+    "geolocation": {},
+    "wifi-manage": {},
+    "desktop-notification": {},
+    "idle": {},
+    "network-events": {},
+    "embed-apps": {},
+    "background-sensors": {},
+    "permissions": {},
+    "audio-channel-publicnotification": {},
+    "audio-channel-notification": {},
+    "cellbroadcast": {}
   },
   "locales": {
     "ar": {
@@ -56,9 +70,6 @@
     }
   },
   "default_locale": "en-US",
-  "icons": {
-    "30": "/style/icons/System.png"
-  },
   "messages": [
      { "alarm": "/index.html" },
      { "bluetooth-opp-transfer-complete": "/index.html" },

@@ -7,6 +7,28 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "permissions": {
+    "telephony": {},
+    "voicemail": {},
+    "contacts": {
+      "access": "readwrite",
+      "description": "Modify Contact Information"
+    },
+    "mobileconnection": {},
+    "attention": {},
+    "settings": {
+      "access": "readwrite",
+      "description": "Remember Communications Settings"
+    },
+    "desktop-notification": {},
+    "alarms": {},
+    "systemXHR": {},
+    "wifi-manage": {},
+    "time": {},
+    "audio-channel-telephony": {},
+    "audio-channel-ringer": {},
+    "browser":{}
+  },
   "entry_points": {
     "dialer": {
       "launch_path": "/dialer/index.html#keyboard-view",
@@ -66,24 +88,6 @@
       "fullscreen": "true"
     }
   },
-  "permissions": {
-    "telephony":{},
-    "voicemail":{},
-    "contacts":{ "access": "readwrite" },
-    "mobileconnection":{},
-    "attention":{},
-    "settings":{ "access": "readwrite" },
-    "desktop-notification":{},
-    "alarms": {},
-    "systemXHR": {},
-    "wifi-manage":{},
-    "time": {},
-    "audio-channel-telephony":{},
-    "audio-channel-ringer":{},
-    "browser":{},
-    "idle":{},
-    "storage": {}
-  },
   "orientation": "portrait-primary",
   "activities": {
     "pick": {
@@ -94,14 +98,6 @@
       "href": "/contacts/index.html?pick",
       "returnValue": true
     },
-    "open": {
-      "filters": {
-        "type": "webcontacts/contact"
-      },
-      "disposition": "inline",
-      "href": "/contacts/index.html?open",
-      "returnValue": true
-    },
     "new": {
       "filters": {
         "type": "webcontacts/contact"
@@ -110,18 +106,9 @@
       "href": "/contacts/index.html?new",
       "returnValue": true
     },
-    "update": {
-      "filters": {
-        "type": "webcontacts/contact"
-      },
-      "disposition": "inline",
-      "href": "/contacts/index.html?update",
-      "returnValue": true
-    },
     "dial": {
       "filters": {
-        "type": "webtelephony/number",
-        "number": { "regexp":"/^[\\d\\s+#*().-]{0,50}$/" }
+        "type": "webtelephony/number"
       },
       "href": "/dialer/index.html#keyboard-view",
       "disposition": "window"

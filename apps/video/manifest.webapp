@@ -7,15 +7,18 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "fullscreen": true,
   "permissions": {
-    "storage":{},
-    "device-storage:pictures":{ "access": "readwrite" },
-    "device-storage:videos":{ "access": "readwrite" },
-    "settings":{ "access": "readonly" },
-    "deprecated-hwvideo":{},
-    "audio-channel-content":{},
-    "systemXHR":{}
+    "device-storage:videos": {
+      "access": "readwrite",
+      "description": "Read and Store Videos on the Device"
+    },
+    "settings": {
+      "access": "readonly",
+      "description": "Read Video Settings"
+    },
+    "deprecated-hwvideo": {},
+    "audio-channel-content": {},
+    "systemXHR": {}
   },
   "locales": {
     "ar": {
@@ -41,23 +44,7 @@
     "60": "/style/icons/60/Video.png"
   },
   "activities": {
-    "pick": {
-      "filters": {
-        "type": ["video/*", "video/webm", "video/mp4", "video/3gpp"]
-       },
-      "disposition": "inline",
-      "returnValue": true,
-      "href": "/index.html#pick"
-    },
     "view" : {
-      "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube"]
-      },
-      "href": "view.html",
-      "disposition": "inline",
-      "returnValue": true
-    },
-    "open" : {
       "filters": {
         "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube"]
       },

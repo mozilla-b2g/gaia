@@ -8,12 +8,17 @@
     "url": "https://github.com/andreasgal/gaia"
   },
   "permissions": {
-    "webapps-manage":{},
-    "systemXHR":{},
-    "settings":{ "access": "readwrite" },
-    "device-storage:pictures":{ "access": "readonly" },
-    "open-remote-window":{},
-    "storage":{},
+    "webapps-manage": {},
+    "systemXHR": {},
+    "settings": {
+      "access": "readwrite",
+      "description": "Remember Homescreen Settings"
+    },
+    "device-storage:pictures": {
+      "access": "readonly",
+      "description": "Read and Store Pictures on the Device"
+    },
+    "open-remote-window": {},
     "geolocation": {}
   },
   "locales": {
@@ -35,9 +40,6 @@
     }
   },
   "default_locale": "en-US",
-  "icons": {
-    "30": "/style/icons/HomeScreen.png"
-  },
   "orientation": "portrait-primary",
   "activities": {
     "save-bookmark": {
