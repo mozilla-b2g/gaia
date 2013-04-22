@@ -36,7 +36,7 @@ form[role="dialog"][data-type="confirm"] > section {
   font-weight: lighter;
   font-size: 2.2rem;
   color: #FAFAFA;
-  padding: 0 1.5rem;
+  padding: 0 2.5rem;
   -moz-box-sizing: padding-box;
   width: 100%;
   display: inline-block;
@@ -48,11 +48,11 @@ form[role="dialog"][data-type="confirm"] > section {
 
 form[role="dialog"][data-type="confirm"] h1 {
   font-weight: normal;
-  font-size: 1.6rem;
+  font-size: 2.2rem;
   line-height: 1em;
   color: #fff;
   margin: 0;
-  padding: 0;
+  padding: 0 0.5rem;
 }
 
 /* Menu & buttons setup */
@@ -158,9 +158,9 @@ form[role="dialog"][data-type="confirm"] menu button.full {
 form[role="dialog"][data-type="confirm"] p {
   word-wrap: break-word;
   margin: 1rem 0 0;
-  padding-top: 1rem;
-  padding-left: 1rem;
+  padding: 1rem 0.5rem 0;
   border-top: 0.1rem solid #686868;
+  line-height: 3rem;
 }
 
 form[role="dialog"][data-type="confirm"] p img {
