@@ -18,16 +18,12 @@ var DataUsageTab = (function() {
   var wifiOverview, mobileOverview;
   var wifiToggle, mobileToggle;
   var wifiItem, mobileItem;
-  var dateFormat, dateFormatter;
 
   var costcontrol, initialized, model;
   function setupTab() {
     if (initialized) {
       return;
     }
-
-    dateFormat = _('chart-date-format') || '%b %e';
-    dateFormatter = new navigator.mozL10n.DateTimeFormat();
 
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
@@ -401,7 +397,7 @@ var DataUsageTab = (function() {
     // Configure Centered today text
     var marginTop = 10;
 
-    var todayTag = dateFormatter.localeFormat(model.axis.X.today, dateFormat);
+    var todayTag = formatChartDate(model.axis.X.today);
 
     // Render the text
     ctx.font = '600 ' + TODAY_FONTSIZE + 'px MozTT';
@@ -418,6 +414,13 @@ var DataUsageTab = (function() {
 
     ctx.fillStyle = 'black';
     ctx.fillText(todayTag, offsetX, model.originY + marginTop);
+  }
+
+  function formatChartDate(date) {
+    return _('verbose-chart-date-format', {
+      'monthday-number': date.getDate(),
+      'em-month': _('em-month-' + date.getMonth())
+    });
   }
 
   function drawAxisLayer(model) {
@@ -469,7 +472,7 @@ var DataUsageTab = (function() {
     var marginTop = 10;
 
     // Left tag
-    var leftTag = dateFormatter.localeFormat(model.axis.X.lower, dateFormat);
+    var leftTag = formatChartDate(model.axis.X.lower);
     ctx.font = '600 ' + FONTSIZE + 'px MozTT';
     ctx.textBaseline = 'top';
     ctx.textAlign = 'start';
@@ -481,7 +484,7 @@ var DataUsageTab = (function() {
     }
 
     // Right tag
-    var rightTag = dateFormatter.localeFormat(model.axis.X.upper, dateFormat);
+    var rightTag = formatChartDate(model.axis.X.upper);
     ctx.textAlign = 'end';
 
     isBelowToday = todayLabel.x1 >=
