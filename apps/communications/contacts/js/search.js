@@ -88,7 +88,9 @@ contacts.Search = (function() {
     });
 
     imgLoader = new ImageLoader('#groups-list-search', 'li');
-    imgLoader.setResolver(fb.resolver);
+    LazyLoader.load(['/contacts/js/fb_resolver.js'], function() {
+      imgLoader.setResolver(fb.resolver);
+    });
   };
 
   //Search mode instructions
