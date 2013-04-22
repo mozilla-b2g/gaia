@@ -8,11 +8,14 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "storage":{},
-    "alarms":{},
-    "settings":{ "access": "readwrite" },
-    "attention":{},
-    "audio-channel-alarm":{}
+    "storage": {},
+    "alarms": {},
+    "settings": {
+      "access": "readwrite",
+      "description": "Remember Clock Settings"
+    },
+    "attention": {},
+    "audio-channel-alarm": {}
   },
   "locales": {
     "ar": {

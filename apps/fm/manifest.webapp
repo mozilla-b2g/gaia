@@ -8,9 +8,12 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "storage":{},
-    "fmradio":{},
-    "settings":{ "access": "readonly" }
+    "storage": {},
+    "fmradio": {},
+    "settings": {
+      "access": "readonly",
+      "description": "Read FM Radio Settings"
+    }
   },
   "locales": {
     "ar": {

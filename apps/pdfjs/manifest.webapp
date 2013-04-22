@@ -6,6 +6,13 @@
     "name": "The pdf.js Team",
     "url": "https://github.com/mozilla/pdf.js"
   },
+  "permissions": {
+    "systemXHR": {},
+    "settings": {
+      "access": "readonly",
+      "description": "Read PDF Viewer Settings"
+    }
+  },
   "locales": {
     "en-US": {
       "name": "PDF Viewer",
@@ -27,9 +34,5 @@
       "href": "/content/web/viewer.html",
       "returnValue": true
     }
-  },
-  "permissions": {
-    "systemXHR":{},
-    "settings":{ "access": "readonly" }
   }
 }

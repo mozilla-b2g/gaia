@@ -8,11 +8,14 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "sms":{},
-    "mobileconnection":{},
-    "desktop-notification":{},
-    "settings":{ "access": "readonly" },
-    "networkstats-manage":{},
+    "sms": {},
+    "mobileconnection": {},
+    "desktop-notification": {},
+    "settings": {
+      "access": "readonly",
+      "description": "Read Cost Control Settings"
+    },
+    "networkstats-manage": {},
     "alarms": {},
     "telephony": {},
     "storage": {}

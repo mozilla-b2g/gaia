@@ -7,6 +7,30 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "permissions": {
+    "telephony": {},
+    "voicemail": {},
+    "contacts": {
+      "access": "readwrite",
+      "description": "Modify Contact Information"
+    },
+    "mobileconnection": {},
+    "attention": {},
+    "settings": {
+      "access": "readwrite",
+      "description": "Remember Communications Settings"
+    },
+    "desktop-notification": {},
+    "alarms": {},
+    "systemXHR": {},
+    "wifi-manage": {},
+    "time": {},
+    "audio-channel-telephony": {},
+    "audio-channel-ringer": {},
+    "browser": {},
+    "idle": {},
+    "storage": {}
+  },
   "entry_points": {
     "dialer": {
       "launch_path": "/dialer/index.html#keyboard-view",
@@ -65,24 +89,6 @@
       "name": "FTU",
       "fullscreen": "true"
     }
-  },
-  "permissions": {
-    "telephony":{},
-    "voicemail":{},
-    "contacts":{ "access": "readwrite" },
-    "mobileconnection":{},
-    "attention":{},
-    "settings":{ "access": "readwrite" },
-    "desktop-notification":{},
-    "alarms": {},
-    "systemXHR": {},
-    "wifi-manage":{},
-    "time": {},
-    "audio-channel-telephony":{},
-    "audio-channel-ringer":{},
-    "browser":{},
-    "idle":{},
-    "storage": {}
   },
   "orientation": "portrait-primary",
   "activities": {

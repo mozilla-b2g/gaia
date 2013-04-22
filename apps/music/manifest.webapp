@@ -8,11 +8,17 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "storage":{},
-    "device-storage:music":{ "access": "readwrite" },
-    "settings":{ "access": "readonly" },
-    "deprecated-hwvideo":{},
-    "audio-channel-content":{}
+    "storage": {},
+    "device-storage:music": {
+      "access": "readwrite",
+      "description": "Read and Store Music on the Device"
+    },
+    "settings": {
+      "access": "readonly",
+      "description": "Remember Music Settings"
+    },
+    "deprecated-hwvideo": {},
+    "audio-channel-content": {}
   },
   "activities": {
     "open": {

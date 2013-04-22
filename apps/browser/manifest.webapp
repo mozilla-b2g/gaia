@@ -8,15 +8,27 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "browser":{},
-    "systemXHR":{},
-    "settings":{ "access": "readonly" },
-    "geolocation" : {},
+    "browser": {},
+    "systemXHR": {},
+    "settings": {
+      "access": "readonly",
+      "description": "Read Browser Settings"
+    },
+    "geolocation": {},
     "storage": {},
     "desktop-notification" : {},
-    "device-storage:pictures" : { "access": "readwrite" },
-    "device-storage:videos" : { "access": "readwrite" },
-    "device-storage:music" : { "access": "readwrite" }
+    "device-storage:pictures": {
+      "access": "readwrite",
+      "description": "Read and Store Pictures on the Device"
+    },
+    "device-storage:videos": {
+      "access": "readwrite",
+      "description": "Read and Store Videos on the Device"
+    },
+    "device-storage:music": {
+      "access": "readwrite",
+      "description": "Read and Store Music on the Device"
+    }
   },
   "locales": {
     "ar": {

@@ -9,12 +9,21 @@
   },
   "fullscreen": true,
   "permissions": {
-    "storage":{},
-    "device-storage:pictures":{ "access": "readwrite" },
-    "device-storage:videos":{ "access": "readwrite" },
-    "deprecated-hwvideo":{},
-    "audio-channel-content":{},
-    "settings":{ "access": "readonly" }
+    "storage": {},
+    "device-storage:pictures": {
+      "access": "readwrite",
+      "description": "Read and Store Pictures on the Device"
+    },
+    "device-storage:videos": {
+      "access": "readwrite",
+      "description": "Read and Store Videos on the Device"
+    },
+    "deprecated-hwvideo": {},
+    "audio-channel-content": {},
+    "settings": {
+      "access": "readonly",
+      "description": "Read Gallery Settings"
+    }
   },
   "activities": {
     "browse": {
