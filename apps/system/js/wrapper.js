@@ -3,7 +3,9 @@
 
 'use strict';
 
-var Launcher = (function() {
+window.addEventListener('load', function onload_launcher_init() {
+  window.removeEventListener('load', onload_launcher_init);
+
   function log(str) {
     dump(' -+- Launcher -+-: ' + str + '\n');
   }
@@ -202,4 +204,4 @@ var Launcher = (function() {
 
     ModalDialog.selectOne(data, selected);
   });
-}());
+});

@@ -260,7 +260,7 @@ var StatusBar = {
         break;
 
       case 'moztimechange':
-        this.update.time.call(this);
+        navigator.mozL10n.ready(this.update.time.bind(this));
         break;
 
       case 'mozChromeEvent':
@@ -298,7 +298,7 @@ var StatusBar = {
   setActive: function sb_setActive(active) {
     this.active = active;
     if (active) {
-      this.update.time.call(this);
+      navigator.mozL10n.ready(this.update.time.bind(this));
 
       var battery = window.navigator.battery;
       if (battery) {

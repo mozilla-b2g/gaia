@@ -1,5 +1,9 @@
 !function() {
 
+  function debug(str) {
+    //dump('mozMobileConnection: ' + str + '\n');
+  }
+
   FFOS_RUNTIME.makeNavigatorShim('mozMobileConnection', {
     iccInfo: {
       iccid: true
@@ -9,10 +13,10 @@
     },
     cardState: 'absent',
     addEventListener: function() {
-      console.log('mozMobileConnection.addEventListener');
+      debug('addEventListener');
     },
     removeEventListener: function() {
-      console.log('mozMobileConnection.removeEventListener');
+      debug('removeEventListener');
     }
   }, true);
 }();
