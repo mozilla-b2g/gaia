@@ -2,6 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
+var _ = navigator.mozL10n.get;
+
 var RingView = {
 
   _ringtonePlayer: null,
@@ -88,7 +90,8 @@ var RingView = {
   },
 
   setAlarmLabel: function rv_setAlarmLabel() {
-    this.alarmLabel.textContent = this.getAlarmLabel();
+    var label = this.getAlarmLabel();
+    this.alarmLabel.textContent = (label === '') ? _('alarm') : label;
   },
 
   ring: function rv_ring() {
