@@ -20,6 +20,8 @@ var SimPinDialog = {
   newPinInput: null,
   confirmPinInput: null,
 
+  triesLeftMsg: document.getElementById('triesLeft'),
+
   errorMsg: document.getElementById('errorMsg'),
   errorMsgHeader: document.getElementById('messageHeader'),
   errorMsgBody: document.getElementById('messageBody'),
@@ -91,6 +93,15 @@ var SimPinDialog = {
     var _ = navigator.mozL10n.get;
 
     var cardState = this.mobileConnection.cardState;
+    var retryCount = this.mobileConnection.retryCount;
+
+    if (!retryCount) {
+      this.triesLeftMsg.hidden = true;
+    } else {
+      var l10nArgs = { n: triesLeft };
+      this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
+      this.triesLeftMsg.hidden = false;
+    }
     switch (cardState) {
       case 'pinRequired':
         this.lockType = 'pin';
@@ -101,9 +112,7 @@ var SimPinDialog = {
       case 'pukRequired':
         this.lockType = 'puk';
         this.errorMsgHeader.textContent = _('simCardLockedMsg') || '';
-        this.errorMsgHeader.dataset.l10nId = 'simCardLockedMsg';
         this.errorMsgBody.textContent = _('enterPukMsg') || '';
-        this.errorMsgBody.dataset.l10nId = 'enterPukMsg';
         this.errorMsg.hidden = false;
         this.inputFieldControl(false, true, false, true);
         this.pukInput.focus();
@@ -119,7 +128,6 @@ var SimPinDialog = {
         break;
     }
     this.dialogTitle.textContent = _(this.lockType + 'Title') || '';
-    this.dialogTitle.dataset.l10nId = this.lockType + 'Title';
   },
 
   handleError: function spl_handleLockError(evt) {
@@ -140,17 +148,13 @@ var SimPinDialog = {
 
   showErrorMsg: function spl_showErrorMsg(retry, type) {
     var _ = navigator.mozL10n.get;
+    var l10nArgs = { n: retry };
 
+    this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
     this.errorMsgHeader.textContent = _(type + 'ErrorMsg');
-    this.errorMsgHeader.dataset.l10nId = type + 'ErrorMsg';
-
     if (retry !== 1) {
-      var l10nArgs = { n: retry };
-      this.errorMsgBody.dataset.l10nId = type + 'AttemptMsg';
-      this.errorMsgBody.dataset.l10nArgs = JSON.stringify(l10nArgs);
-      this.errorMsgBody.textContent = _(type + 'AttemptMsg', l10nArgs);
+      this.errorMsgBody.textContent = _(type + 'AttemptMsg2', l10nArgs);
     } else {
-      this.errorMsgBody.dataset.l10nId = type + 'LastChanceMsg';
       this.errorMsgBody.textContent = _(type + 'LastChanceMsg');
     }
 
@@ -178,7 +182,6 @@ var SimPinDialog = {
 
     if (newPin !== confirmPin) {
       this.errorMsgHeader.textContent = _('newPinErrorMsg');
-      this.errorMsgHeader.dataset.l10nId = 'newPinErrorMsg';
       this.errorMsgBody.textContent = '';
       this.errorMsg.hidden = false;
       return;
@@ -225,7 +228,6 @@ var SimPinDialog = {
 
     if (newPin !== confirmPin) {
       this.errorMsgHeader.textContent = _('newPinErrorMsg');
-      this.errorMsgHeader.dataset.l10nId = 'newPinErrorMsg';
       this.errorMsgBody.textContent = '';
       this.errorMsg.hidden = false;
       return;
@@ -307,12 +309,10 @@ var SimPinDialog = {
       case 'enable':
         this.inputFieldControl(true, false, false, false);
         this.dialogTitle.textContent = _('pinTitle') || '';
-        this.dialogTitle.dataset.l10nId = 'pinTitle';
         break;
       case 'changePin':
         this.inputFieldControl(true, false, false, true);
         this.dialogTitle.textContent = _('newpinTitle') || '';
-        this.dialogTitle.dataset.l10nId = 'newpinTitle';
         break;
     }
 
