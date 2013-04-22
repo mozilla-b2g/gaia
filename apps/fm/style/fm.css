@@ -105,15 +105,6 @@ a:active {
   padding-left: 0.3rem;
 }
 
-#frequency[data-seek-dir="up"] {
-  background: url("images/spinner-right.png") no-repeat center 8.5rem transparent;
-}
-
-
-#frequency[data-seek-dir="down"] {
-  background: url("images/spinner-left.png") no-repeat center 8.5rem transparent;
-}
-
 #bookmark-button {
   background: url("images/toggle-fav-star-off.png") no-repeat center center / 4rem;
 }
@@ -343,7 +334,7 @@ div#fav-list-container div.fav-list-frequency::after {
 }
 
 #power-switch span {
-  background-image: url(images/spinner-FMRadio.png); 
+  background-image: url(images/spinner-FMRadio.png);
   background-size: 6.6rem;
   display: none;
   height: 6.6rem;
@@ -353,7 +344,8 @@ div#fav-list-container div.fav-list-frequency::after {
   width: 6.6rem;
 }
 
-#power-switch[data-enabling="true"] span {
+#power-switch[data-enabling="true"] span,
+#power-switch[data-seeking="true"] span {
   animation: 0.9s spinner-animation infinite steps(30);
   display: block;
 }
