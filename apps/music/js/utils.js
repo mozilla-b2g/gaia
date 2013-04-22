@@ -15,8 +15,8 @@ function formatTime(secs) {
 
   var formatedTime;
   var seconds = parseInt(secs % 60, 10);
-  var minutes = parseInt(secs / 60) % 60;
-  var hours = parseInt(secs / 3600) % 24;
+  var minutes = parseInt(secs / 60, 10) % 60;
+  var hours = parseInt(secs / 3600, 10) % 24;
 
   if (hours === 0) {
     formatedTime =
