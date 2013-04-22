@@ -40,11 +40,23 @@
 
   // Display a screenshot success or failure notification.
   // Localize the first argument, and localize the third if the second is null
-  function notify(titleid, body, bodyid) {
+  function notify(titleid, body, bodyid, icon, clickCB, closeCB) {
     var title = navigator.mozL10n.get(titleid) || titleid;
     body = body || navigator.mozL10n.get(bodyid);
-    navigator.mozNotification.createNotification(
-      title, body, '../camera/style/icons/60/Camera.png').show();
+    var icon = icon || "";
+    var notification = navigator.mozNotification.createNotification(title, body, icon);
+
+    notification.onclick = (function() {
+      if (clickCB)
+        clickCB();
+    }).bind(this);
+
+    notification.onclose = (function() {
+      if (closeCB)
+        closeCB();
+    }).bind(this);
+
+    notification.show();
   }
 
   // Get a DeviceStorage object and pass it to the callback.
@@ -93,12 +105,53 @@
 
           var saveRequest = storage.addNamed(e.detail.file, filename);
 
+          var openScreenshot = function () {
+            // Launch the gallery with an open activity to view this specific photo
+            // XXX: The prefix file path should be refined when API is ready to provide
+            var filePath = filename;
+            var storageType = 'sdcard';
+            var storage = navigator.getDeviceStorage(storageType);
+            var getreq = storage.get(filePath);
+
+            getreq.onerror = function() {
+              var msg = 'failed to get file:' +
+                filePath + getreq.error.name;
+              console.log(msg);
+            };
+
+            getreq.onsuccess = function() {
+              var file = getreq.result;
+              var fileType = 'image/png';
+
+              var a = new MozActivity({
+                name: 'open',
+                data: {
+                  type: fileType,
+                  blob: file,
+                  filename: filename
+                }
+              });
+
+              a.onerror = function(e) {
+                var msg = 'open activity error:' + a.error.name;
+                console.log(msg);
+
+                UtilityTray.hide();
+              };
+              a.onsuccess = function(e) {
+                var msg = 'open activity onsuccess';
+                console.log(msg);
+              };
+            };
+          };
+
           saveRequest.onsuccess = function ss_onsuccess() {
             // Vibrate again when the screenshot is saved
             navigator.vibrate(100);
 
             // Display filename in a notification
-            notify('screenshotSaved', filename);
+            notify('screenshotSaved', filename, null,
+              '../camera/style/icons/60/Camera.png', openScreenshot);
           };
 
           saveRequest.onerror = function ss_onerror() {
