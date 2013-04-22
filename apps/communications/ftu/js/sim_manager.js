@@ -16,30 +16,61 @@ var SimManager = {
                                   this.handleCardState.bind(this));
 
     this.alreadyImported = false;
+
+    Object.defineProperty(this,
+                          'retryCount', {
+                            get: function() {
+                              return this.mobConn.retryCount;
+                            }
+                          });
   },
 
   handleUnlockError: function sm_handleUnlockError(data) {
+    var l10nArgs = {n: data.retryCount};
     switch (data.lockType) {
       case 'pin':
         UIManager.pinInput.value = '';
         UIManager.fakePinInput.value = '';
         UIManager.pinInput.classList.add('onerror');
-        UIManager.pinError.innerHTML = _('pinErrorMsg');
+        UIManager.pinError.textContent = _('pinError');
         UIManager.pinError.classList.remove('hidden');
-        UIManager.pinLabel.innerHTML = _('pinAttemptMsg2',
-                                         {n: data.retryCount});
-        if (data.retryCount == 1)
-          UIManager.pinError.innerHTML += _('pinLastChanceMsg');
+        UIManager.pinError.textContent = _('pinAttemptMsg2', l10nArgs);
+        UIManager.pinRetriesLeft.textContent = _('inputCodeRetriesLeft',
+                                                 l10nArgs);
+        if (data.retryCount == 1) {
+          UIManager.pinError.textContent += ' ' + _('pinLastChanceMsg');
+        }
         break;
       case 'puk':
         UIManager.pukInput.value = '';
         UIManager.fakePukInput.value = '';
         UIManager.pukInput.classList.add('onerror');
-        UIManager.pukError.innerHTML = _('pukErrorMsg');
+        UIManager.pukError.textContent = _('pukError');
         UIManager.pukError.classList.remove('hidden');
         UIManager.pukInfo.classList.add('hidden');
-        UIManager.pukLabel.innerHTML = _('pukAttemptMsg', {n: data.retryCount});
+        UIManager.pukError.textContent = _('pukAttemptMsg2', l10nArgs);
+        UIManager.pukRetriesLeft.textContent = _('inputCodeRetriesLeft',
+                                                 l10nArgs);
+        if (data.retryCount == 1) {
+          UIManager.pukError.textContent += _('pukLastChanceMsg');
+        }
         // TODO what if counter gets to 0 ??
+        break;
+      case 'nck':
+      case 'cck':
+      case 'spck':
+        UIManager.xckInput.value = '';
+        UIManager.fakeXckInput.value = '';
+        UIManager.xckInput.classList.add('onerror');
+        UIManager.xckError.textContent = _('nckError');
+        UIManager.xckError.classList.remove('hidden');
+        UIManager.xckInfo.classList.add('hidden');
+        UIManager.xckError.textContent = _('nckAttemptMsg2', l10nArgs);
+        UIManager.xckRetriesLeft.textContent = _('inputCodeRetriesLeft',
+                                                 l10nArgs);
+        if (data.retryCount == 1) {
+          UIManager.xckError.textContent += _('nckLastChanceMsg');
+        }
         break;
     }
   },
@@ -103,6 +134,14 @@ var SimManager = {
     if (this._unlocked)
       return;
 
+    if (!this.retryCount || this.retryCount === 'undefined') {
+      UIManager.pinRetriesLeft.classList.add('hidden');
+    } else {
+      var l10nArgs = {n: retries};
+      UIManager.pinRetriesLeft.textContent = _('inputCodeRetriesLeft',
+                                               l10nArgs);
+      UIManager.pinRetriesLeft.classList.remove('hidden');
+    }
     UIManager.activationScreen.classList.remove('show');
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.pincodeScreen.classList.add('show');
@@ -114,12 +153,20 @@ var SimManager = {
     if (this._unlocked)
       return;
 
+    if (!this.retryCount) {
+      UIManager.pukRetriesLeft.classList.add('hidden');
+    } else {
+      var l10nArgs = {n: retries};
+      UIManager.pukRetriesLeft.textContent = _('inputCodeRetriesLeft',
+                                               l10nArgs);
+      UIManager.pukRetriesLeft.classList.remove('hidden');
+    }
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.activationScreen.classList.remove('show');
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.add('show');
     UIManager.xckcodeScreen.classList.remove('show');
-    UIManager.unlockSimHeader.innerHTML = _('pukcode');
+    UIManager.unlockSimHeader.textContent = _('pukcode');
     UIManager.fakePukInput.focus();
   },
 
@@ -127,6 +174,14 @@ var SimManager = {
     if (this._unlocked)
       return;
 
+    if (!this.retryCount) {
+      UIManager.xckRetriesLeft.classList.add('hidden');
+    } else {
+      var l10nArgs = {n: retries};
+      UIManager.xckRetriesLeft.textContent = _('inputCodeRetriesLeft',
+                                               l10nArgs);
+      UIManager.xckRetriesLeft.classList.remove('hidden');
+    }
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.activationScreen.classList.remove('show');
     UIManager.pincodeScreen.classList.remove('show');
@@ -135,19 +190,16 @@ var SimManager = {
 
     switch (this.mobConn.cardState) {
       case 'networkLocked':
-        UIManager.unlockSimHeader.innerHTML = _('nckcode');
+        UIManager.unlockSimHeader.textContent = _('nckcode');
         UIManager.xckLabel.textContent = _('type_nck');
-        UIManager.xckLabel.dataset.l10nId = 'type_nck';
         break;
       case 'corporateLocked':
-        UIManager.unlockSimHeader.innerHTML = _('cckcode');
+        UIManager.unlockSimHeader.textContent = _('cckcode');
         UIManager.xckLabel.textContent = _('type_cck');
-        UIManager.xckLabel.dataset.l10nId = 'type_cck';
         break;
       case 'serviceProviderLocked':
-        UIManager.unlockSimHeader.innerHTML = _('spckcode');
+        UIManager.unlockSimHeader.textContent = _('spckcode');
         UIManager.xckLabel.textContent = _('type_spck');
-        UIManager.xckLabel.dataset.l10nId = 'type_spck';
         break;
     }
     UIManager.fakeXckInput.focus();
@@ -189,7 +241,7 @@ var SimManager = {
   unlockPin: function sm_unlockPin() {
     var pin = UIManager.pinInput.value;
     if (pin.length < 4 || pin.length > 8) {
-      UIManager.pinError.innerHTML = _('pinValidation');
+      UIManager.pinError.textContent = _('pinValidation');
       UIManager.pinInput.classList.add('onerror');
       UIManager.pinError.classList.remove('hidden');
       return;
@@ -209,22 +261,20 @@ var SimManager = {
 
   clearFields: function sm_clearFields() {
     UIManager.pukInput.classList.remove('onerror');
-    UIManager.pukError.innerHTML = '';
     UIManager.pukError.classList.add('hidden');
 
     UIManager.newpinInput.classList.remove('onerror');
-    UIManager.newpinError.innerHTML = '';
     UIManager.newpinError.classList.add('hidden');
 
     UIManager.confirmNewpinInput.classList.remove('onerror');
-    UIManager.confirmNewpinError.innerHTML = '';
     UIManager.confirmNewpinError.classList.add('hidden');
   },
+
   unlockPuk: function sm_unlockPuk() {
     this.clearFields();
     var pukCode = UIManager.pukInput.value;
     if (pukCode.length !== 8) {
-      UIManager.pukError.innerHTML = _('pukValidation');
+      UIManager.pukError.textContent = _('pukValidation');
       UIManager.pukError.classList.remove('hidden');
       UIManager.pukInfo.classList.add('hidden');
       UIManager.pukInput.classList.add('onerror');
@@ -234,14 +284,14 @@ var SimManager = {
     var newpinCode = UIManager.newpinInput.value;
     var confirmNewpin = UIManager.confirmNewpinInput.value;
     if (newpinCode.length < 4 || newpinCode.length > 8) {
-      UIManager.newpinError.innerHTML = _('pinValidation');
+      UIManager.newpinError.textContent = _('pinValidation');
       UIManager.newpinError.classList.remove('hidden');
       UIManager.newpinInput.classList.add('onerror');
       UIManager.newpinError.focus();
       return;
     }
     if (newpinCode != confirmNewpin) {
-      UIManager.confirmNewpinError.innerHTML = _('newpinConfirmation');
+      UIManager.confirmNewpinError.textContent = _('newpinConfirmation');
       UIManager.confirmNewpinError.classList.remove('hidden');
       UIManager.newpinInput.classList.add('onerror');
       UIManager.confirmNewpinInput.classList.add('onerror');
@@ -275,7 +325,7 @@ var SimManager = {
     if (xck.length < 8 || xck.length > 16) {
       UIManager.xckInput.classList.add('onerror');
       UIManager.xckError.classList.remove('hidden');
-      UIManager.xckError.innerHTML = _(lockType + 'Validation');
+      UIManager.xckError.textContent = _(lockType + 'Validation');
       return;
     } else {
       UIManager.pinInput.classList.remove('onerror');
