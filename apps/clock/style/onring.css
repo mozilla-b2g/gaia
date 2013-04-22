@@ -30,11 +30,10 @@ html, body {
   height: 100%;
   color: #fbfbfb;
   text-align: center;
-  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 #ring-clock-display {
-  width: 86%;
+  width: 95%;
   margin-top: 44%;
   border-bottom: 0.13rem solid rgba(122, 122, 122, 0.65);
   margin-left: auto;
@@ -55,9 +54,13 @@ html, body {
 
 #ring-alarm-label {
   font: lighter 2.50rem 'MozTT',sans-serif;
-  line-height: 6.25rem;
-  white-space: nowrap; 
+  line-height: 3.25rem;
   text-overflow: ellipsis;
+  overflow: hidden;
+  height: 6.5rem; /* span 2 lines, twice the line-height */
+  margin-top: 1.2rem;
+  margin-left: 0.7rem;
+  margin-right: 0.7rem;
 }
 
 #footer-button-container {
