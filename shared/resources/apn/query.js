@@ -11,11 +11,12 @@ document.addEventListener('DOMContentLoaded', function onload() {
   var ANDROID_DB_FILE = 'apns_conf.xml';
   var LOCAL_ANDROID_DB_FILE = 'apns_conf_local.xml';
   var OPERATOR_VARIANT_DB_FILE = 'operator_variant.xml';
+  var CARRIER_NAMES_DB_FILE = 'apns_carrier_names.xml';
 
   var gGnomeDB = null;
   var gAndroidDB = null;
   var gOperatorVariantDB = null;
-
+  var gCarrierNamesDB = null;
 
   /**
    * XML helpers: load & query XML databases
@@ -98,6 +99,46 @@ document.addEventListener('DOMContentLoaded', function onload() {
     return found.length ? found[0] : null;
   }
 
+  // Overwrite the name for the carrier in the Android DB if the name is not
+  // the correct one (see bug 863126).
+  // Note: This function will disapear once we get them (the names) updated in
+  // the upstream database.
+  function overwriteCarrierName(apn) {
+    var query = '//apn' +
+                '[@mcc=' + apn.mcc + ']' +
+                '[@mnc=' + apn.mnc + ']';
+    // We could query for carrier name also here but the query results in
+    // errors if the name contains characters like ', "
+    var result = queryXML(gCarrierNamesDB, query);
+    var iterator = result.iterateNext();
+    var correctNameApns = [];
+    var found = false;
+
+    while (iterator) {
+      found = true;
+      var correctNameApn = {};
+      for (var i = 0; i < iterator.attributes.length; i++) {
+        var name = iterator.attributes[i].name;
+        var value = iterator.attributes[i].value;
+        correctNameApn[name] = value;
+      }
+      correctNameApns.push(correctNameApn);
+      iterator = result.iterateNext();
+    }
+
+    // Overwrite the name found in the carrier names DB.
+    if (found) {
+      for (var i = 0; i < correctNameApns.length; i++) {
+        if (correctNameApns[i].carrier === apn.carrier) {
+          apn.carrier = correctNameApns[i].name;
+          break;
+        }
+      }
+    }
+
+    return apn;
+  }
+
   function mergeDBs() {
     var apn = {};
 
@@ -109,6 +150,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
         result.sort();
         for (var i = 0; i < result.length; i++) {
           var mnc = result[i].mnc;
+
+          result[i] = overwriteCarrierName(result[i]);
 
           var operatorVariantSettings = {};
           var voicemail = queryGnomeDB(mcc, mnc, 'voicemail');
@@ -240,6 +283,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
           // Then the Gnome DB
           gGnomeDB = loadXML(GNOME_DB_FILE);
           gOperatorVariantDB = loadXML(OPERATOR_VARIANT_DB_FILE);
+          gCarrierNamesDB = loadXML(CARRIER_NAMES_DB_FILE);
           gAPN = mergeDBs();
         }
         output.textContent = DEBUG ?
