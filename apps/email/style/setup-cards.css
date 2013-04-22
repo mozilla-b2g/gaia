@@ -139,6 +139,7 @@ input:focus:invalid {
 }
 
 .tng-account-item-label {
+  white-space: nowrap;
   margin: 0;
 }
 

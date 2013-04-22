@@ -83,12 +83,14 @@
        mcc="334"
        mnc="03"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*86"
    />
    <operator
        name="movistar Internet"
        mcc="334"
        mnc="030"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*86"
    />
    <operator
        name="Iusacell Internet"
@@ -113,12 +115,14 @@
        mcc="704"
        mnc="03"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*86"
    />
    <operator
        name="Internet GT"
        mcc="704"
        mnc="030"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*86"
    />
    <operator
        name="INTERNET CLARO"
@@ -143,12 +147,14 @@
        mcc="706"
        mnc="04"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*86"
    />
    <operator
        name="Internet SV"
        mcc="706"
        mnc="040"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*86"
    />
    <operator
        name="INTERNET"
@@ -161,12 +167,20 @@
        mcc="710"
        mnc="300"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*86"
    />
    <operator
        name="INTERNET"
        mcc="710"
        mnc="730"
        enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="movistar INTERNET"
+       mcc="712"
+       mnc="04"
+       enableStrict7BitEncodingForSms="true"
+       voicemail="*1960"
    />
    <operator
        name="Wap"
@@ -179,6 +193,7 @@
        mcc="714"
        mnc="020"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*86"
    />
    <operator
        name="WEB Claro"
@@ -197,6 +212,7 @@
        mcc="716"
        mnc="06"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*169"
    />
    <operator
        name="CLARO DATOS"
@@ -209,6 +225,7 @@
        mcc="722"
        mnc="07"
        enableStrict7BitEncodingForSms="true"
+       voicemail="555"
    />
    <operator
        name="Claro AR"
@@ -339,6 +356,7 @@
        mcc="730"
        mnc="02"
        enableStrict7BitEncodingForSms="true"
+       voicemail="500"
    />
    <operator
        name="BAM Claro"
@@ -411,6 +429,7 @@
        mcc="732"
        mnc="123"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*123"
    />
    <operator
        name="Digitel GSM"
@@ -435,12 +454,14 @@
        mcc="734"
        mnc="04"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*2"
    />
    <operator
        name="movistar WAP"
        mcc="734"
        mnc="04"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*2"
    />
    <operator
        name="MODEM"
@@ -453,6 +474,7 @@
        mcc="740"
        mnc="00"
        enableStrict7BitEncodingForSms="true"
+       voicemail="*82"
    />
    <operator
        name="Claro Internet"
@@ -489,6 +511,7 @@
        mcc="748"
        mnc="07"
        enableStrict7BitEncodingForSms="true"
+       voicemail="6684"
    />
    <operator
        name="Claro UY"

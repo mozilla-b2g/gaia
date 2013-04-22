@@ -185,6 +185,13 @@
         filterOp: 'contains',
         filterValue: filterValue
       }, callback);
+    },
+    findByPhoneNumber: function contacts_findByPhone(filterValue, callback) {
+      return this.findBy({
+        filterBy: ['tel'],
+        filterOp: 'equals',
+        filterValue: filterValue
+      }, callback);
     }
   };
 

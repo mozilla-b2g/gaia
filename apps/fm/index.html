@@ -17,8 +17,10 @@
   <body class='hidden'>
     <div id="container">
       <div id="frequency-bar">
+				<div id="frequency-display">
           <a id="bookmark-button" href="#bookmark" data-bookmarked="false"></a>
           <div id="frequency">0</div>
+				</div>
       </div>
       <div id="dialer-bar">
         <div id="dialer-container">
@@ -31,7 +33,9 @@
       </div>
       <div id="action-bar">
         <div><a id="frequency-op-seekdown" href="#seekdown"></a></div>
-        <div><a id="power-switch" href="#power-switch" data-enabled="false"></a></div>
+        <div>
+          <a id="power-switch" href="#power-switch" data-enabled="false" data-enabling="false"><span></span></a>
+				</div>
         <div><a id="frequency-op-seekup" href="#seekup"></a></div>
       </div>
     </div>

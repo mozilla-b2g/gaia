@@ -978,8 +978,8 @@ FoldersViewSlice.prototype.getFirstFolderWithName = function(name, items) {
 function HeadersViewSlice(api, handle, ns) {
   BridgedViewSlice.call(this, api, ns || 'headers', handle);
 
-  this._snippetRequestId = 1;
-  this._snippetRequests = {};
+  this._bodiesRequestId = 1;
+  this._bodiesRequest = {};
 }
 HeadersViewSlice.prototype = Object.create(BridgedViewSlice.prototype);
 /**
@@ -997,23 +997,30 @@ HeadersViewSlice.prototype.refresh = function() {
     });
 };
 
-HeadersViewSlice.prototype._notifyRequestSnippetsComplete = function(reqId) {
-  var callback = this._snippetRequests[reqId];
+HeadersViewSlice.prototype._notifyRequestBodiesComplete = function(reqId) {
+  var callback = this._bodiesRequest[reqId];
   if (reqId && callback) {
     callback(true);
-    delete this._snippetRequests[reqId];
+    delete this._bodiesRequest[reqId];
   }
 };
 
 /**
- * Request snippets for range of headers in the slice.
+ * Requests bodies (if of a reasonable size) given a start/end position.
  *
  *    // start/end inclusive
- *    slice.maybeRequestSnippets(5, 10);
+ *    slice.maybeRequestBodies(5, 10);
  *
  * The results will be sent through the standard slice/header events.
  */
-HeadersViewSlice.prototype.maybeRequestSnippets = function(idxStart, idxEnd, callback) {
+HeadersViewSlice.prototype.maybeRequestBodies =
+  function(idxStart, idxEnd, options, callback) {
+
+  if (typeof(options) === 'function') {
+    callback = options;
+    options = null;
+  }
+
   var messages = [];
 
   idxEnd = Math.min(idxEnd, this.items.length - 1);
@@ -1038,14 +1045,15 @@ HeadersViewSlice.prototype.maybeRequestSnippets = function(idxStart, idxEnd, cal
   if (!messages.length)
     return callback && window.setZeroTimeout(callback, false);
 
-  var reqId = this._snippetRequestId++;
-  this._snippetRequests[reqId] = callback;
+  var reqId = this._bodiesRequestId++;
+  this._bodiesRequest[reqId] = callback;
 
   this._api.__bridgeSend({
-    type: 'requestSnippets',
+    type: 'requestBodies',
     handle: this._handle,
     requestId: reqId,
-    messages: messages
+    messages: messages,
+    options: options
   });
 };
 
@@ -1683,11 +1691,11 @@ MailAPI.prototype = {
     req.callback.call(null, body);
   },
 
-  _recv_requestSnippetsComplete: function(msg) {
+  _recv_requestBodiesComplete: function(msg) {
     var slice = this._slices[msg.handle];
     // The slice may be dead now!
     if (slice)
-      slice._notifyRequestSnippetsComplete(msg.requestId);
+      slice._notifyRequestBodiesComplete(msg.requestId);
   },
 
   _recv_bodyModified: function(msg) {
@@ -2517,7 +2525,7 @@ define('mailapi/worker-support/main-router',[],function() {
       module.process(msg.uid, msg.cmd, msg.args);
     };
 
-    module.sendMessage = function(uid, cmd, args) {
+    module.sendMessage = function(uid, cmd, args, transferArgs) {
     //dump('\x1b[34mM => w: send: ' + name + ' ' + uid + ' ' + cmd + '\x1b[0m\n');
       //debug('onmessage: ' + name + ": " + uid + " - " + cmd);
       worker.postMessage({
@@ -2525,7 +2533,7 @@ define('mailapi/worker-support/main-router',[],function() {
         uid: uid,
         cmd: cmd,
         args: args
-      });
+      }, transferArgs);
     };
   }
 
@@ -2922,6 +2930,8 @@ if (("indexedDB" in window) && window.indexedDB) {
  *
  * Explanation of most recent bump:
  *
+ * Bumping to 20 because of block sizing changes.
+ *
  * Bumping to 19 because of change from uids to ids, but mainly because we are
  * now doing parallel IMAP fetching and we want to see the results of using it
  * immediately.
@@ -2932,7 +2942,7 @@ if (("indexedDB" in window) && window.indexedDB) {
  * Bumping to 17 because we changed the folder representation to store
  * hierarchy.
  */
-var CUR_VERSION = 19;
+var CUR_VERSION = 20;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -3268,8 +3278,45 @@ MailDB.prototype = {
                                       TBL_BODY_BLOCKS], 'readwrite');
     trans.onerror = this._fatalError;
     trans.objectStore(TBL_FOLDER_INFO).put(folderInfo, accountId);
+
     var headerStore = trans.objectStore(TBL_HEADER_BLOCKS),
-        bodyStore = trans.objectStore(TBL_BODY_BLOCKS), i;
+        bodyStore = trans.objectStore(TBL_BODY_BLOCKS), 
+        i;
+
+    /**
+     * Calling put/delete on operations can be fairly expensive for these blocks
+     * (4-10ms+) which can cause major jerk while scrolling to we send block
+     * operations individually (but inside of a single block) to improve
+     * responsiveness at the cost of throughput.
+     */
+    var operationQueue = [];
+
+    function addToQueue() {
+      var args = Array.slice(arguments);
+      var store = args.shift();
+      var type = args.shift();
+
+      operationQueue.push({
+        store: store,
+        type: type,
+        args: args
+      });
+    }
+
+    function workQueue() {
+      var pendingRequest = operationQueue.shift();
+
+      // no more the transition complete handles the callback
+      if (!pendingRequest)
+        return;
+
+      var store = pendingRequest.store;
+      var type = pendingRequest.type;
+
+      var request = store[type].apply(store, pendingRequest.args);
+
+      request.onsuccess = request.onerror = workQueue;
+    }
 
     for (i = 0; i < perFolderStuff.length; i++) {
       var pfs = perFolderStuff[i], block;
@@ -3277,17 +3324,17 @@ MailDB.prototype = {
       for (var headerBlockId in pfs.headerBlocks) {
         block = pfs.headerBlocks[headerBlockId];
         if (block)
-          headerStore.put(block, pfs.id + ':' + headerBlockId);
+          addToQueue(headerStore, 'put', block, pfs.id + ':' + headerBlockId);
         else
-          headerStore.delete(pfs.id + ':' + headerBlockId);
+          addToQueue(headerStore, 'delete', pfs.id + ':' + headerBlockId);
       }
 
       for (var bodyBlockId in pfs.bodyBlocks) {
         block = pfs.bodyBlocks[bodyBlockId];
         if (block)
-          bodyStore.put(block, pfs.id + ':' + bodyBlockId);
+          addToQueue(bodyStore, 'put', block, pfs.id + ':' + bodyBlockId);
         else
-          bodyStore.delete(pfs.id + ':' + bodyBlockId);
+          addToQueue(bodyStore, 'delete', pfs.id + ':' + bodyBlockId);
       }
     }
 
@@ -3297,8 +3344,8 @@ MailDB.prototype = {
             range = IDBKeyRange.bound(folderId + ':',
                                       folderId + ':\ufff0',
                                       false, false);
-        headerStore.delete(range);
-        bodyStore.delete(range);
+        addToQueue(headerStore, 'delete', range);
+        addToQueue(bodyStore, 'delete', range);
       }
     }
 
@@ -3307,6 +3354,8 @@ MailDB.prototype = {
         callback();
       });
     }
+
+    workQueue();
 
     return trans;
   },
@@ -3375,18 +3424,8 @@ define('mailapi/worker-support/net-main',[],function() {
     };
 
     sock.ondata = function(evt) {
-      /*
-      try {
-        var str = '';
-        for (var i = 0; i < evt.data.byteLength; i++) {
-          str += String.fromCharCode(evt.data[i]);
-        }
-        debug(str + '\n');
-      } catch(e) {}
-      debug('ondata ' + uid + ": " + new Uint8Array(evt.data));
-      */
-      // XXX why are we doing this? ask Vivien or try to remove...
-      self.sendMessage(uid, 'ondata', new Uint8Array(evt.data));
+      var buf = evt.data;
+      self.sendMessage(uid, 'ondata', buf, [buf]);
     };
 
     sock.onclose = function(evt) {
@@ -3407,9 +3446,9 @@ define('mailapi/worker-support/net-main',[],function() {
     delete socks[uid];
   }
 
-  function write(uid, data) {
+  function write(uid, data, offset, length) {
     // XXX why are we doing this? ask Vivien or try to remove...
-    socks[uid].send(new Uint8Array(data));
+    socks[uid].send(data, offset, length);
   }
 
   var self = {
@@ -3425,7 +3464,7 @@ define('mailapi/worker-support/net-main',[],function() {
           close(uid);
           break;
         case 'write':
-          write(uid, args[0]);
+          write(uid, args[0], args[1], args[2]);
           break;
       }
     }

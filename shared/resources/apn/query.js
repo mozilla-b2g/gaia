@@ -106,11 +106,9 @@ document.addEventListener('DOMContentLoaded', function onload() {
       var result = queryAndroidDB(mcc);
 
      if (result && result.length) {
-        result.sort(function(a, b) {
-          return parseInt(result.mnc, 10) < parseInt(result.mnc, 10);
-        });
+        result.sort();
         for (var i = 0; i < result.length; i++) {
-          var mnc = parseInt(result[i].mnc, 10);
+          var mnc = result[i].mnc;
 
           var operatorVariantSettings = {};
           var voicemail = queryGnomeDB(mcc, mnc, 'voicemail');
@@ -262,8 +260,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
 
   function update() {
     var selection = document.getElementById('selection');
-    var mcc = parseInt(document.querySelector('input[name=mcc]').value, 10);
-    var mnc = parseInt(document.querySelector('input[name=mnc]').value, 10);
+    var mcc = document.querySelector('input[name=mcc]').value;
+    var mnc = document.querySelector('input[name=mnc]').value;
     var res = gAPN[mcc] ? (gAPN[mcc][mnc] || []) : [];
     selection.textContent = JSON.stringify(res, true, 2);
 

@@ -52,6 +52,15 @@ suite('shared/MobileOperator', function() {
       assert.isUndefined(infos.carrier);
       assert.isUndefined(infos.region);
     });
+    test('Connection with same SPN and network name', function() {
+      MockMobileConnection.iccInfo.isDisplaySpnRequired = true;
+      MockMobileConnection.iccInfo.spn = 'Fake short';
+      MockMobileConnection.iccInfo.isDisplayNetworkNameRequired = true;
+      var infos = MobileOperator.userFacingInfo(MockMobileConnection);
+      assert.equal(infos.operator, 'Fake short');
+      assert.isUndefined(infos.carrier);
+      assert.isUndefined(infos.region);
+    });
     test('Connection with roaming', function() {
       MockMobileConnection.voice.roaming = true;
       var infos = MobileOperator.userFacingInfo(MockMobileConnection);
@@ -78,7 +87,7 @@ suite('shared/MobileOperator', function() {
     });
     test('Connection with unknown mnc', function() {
       MockMobileConnection.voice.network.mcc = BRAZIL_MCC;
-      MockMobileConnection.voice.network.mnc = 42;
+      MockMobileConnection.voice.network.mnc = '42';
       var infos = MobileOperator.userFacingInfo(MockMobileConnection);
       assert.equal(infos.operator, 'Fake short');
       assert.equal(infos.carrier, '72442');

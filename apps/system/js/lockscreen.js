@@ -439,13 +439,15 @@ var LockScreen = {
     switch (target) {
       case this.areaCamera:
         var panelOrFullApp = function panelOrFullApp() {
-          if (self.passCodeEnabled) {
+          // If the passcode is enabled and it has a timeout which has passed
+          // switch to secure camera
+          if (self.passCodeEnabled && self._passCodeTimeoutCheck) {
             // Go to secure camera panel
             self.switchPanel('camera');
             return;
           }
 
-          self.unlock();
+          self.unlock(/* instant */ null, /* detail */ { areaCamera: true });
 
           var a = new MozActivity({
             name: 'record',
@@ -519,7 +521,7 @@ var LockScreen = {
     }
   },
 
-  unlock: function ls_unlock(instant) {
+  unlock: function ls_unlock(instant, detail) {
     var currentApp = WindowManager.getDisplayedApp();
 
     var currentFrame = null;
@@ -552,7 +554,7 @@ var LockScreen = {
       if (!wasAlreadyUnlocked) {
         // Any changes made to this,
         // also need to be reflected in apps/system/js/storage.js
-        this.dispatchEvent('unlock');
+        this.dispatchEvent('unlock', detail);
         this.writeSetting(false);
 
         if (instant)
@@ -735,7 +737,7 @@ var LockScreen = {
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
-          self.dispatchEvent('lockpanelchange');
+          self.dispatchEvent('lockpanelchange', { 'panel': panel });
 
           overlay.dataset.panel = panel;
           self._switchingPanel = false;
@@ -956,9 +958,15 @@ var LockScreen = {
     this.mainScreen = document.getElementById('screen');
   },
 
-  dispatchEvent: function ls_dispatchEvent(name) {
+  dispatchEvent: function ls_dispatchEvent(name, detail) {
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(name, true, true, null);
+    var evt = new CustomEvent(name, {
+      'bubbles': true,
+      'cancelable': true,
+      // Set event detail if needed for the specific event 'name' (relevant for
+      // passing which button triggered the event)
+      'detail': detail
+    });
     window.dispatchEvent(evt);
   },
 
