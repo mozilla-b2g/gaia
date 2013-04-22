@@ -317,8 +317,9 @@ var Contacts = (function() {
           }
           return;
         }
-        contactsDetails.render(currentContact, TAG_OPTIONS);
-        navigation.go('view-contact-details', 'right-left');
+        contactsDetails.render(currentContact, TAG_OPTIONS, null, function go() {
+          navigation.go('view-contact-details', 'right-left');
+        });
       });
     });
   };
