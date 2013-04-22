@@ -16,6 +16,11 @@
   min-height: 3.6rem;
 }
 
+#telephony-time,
+#billing-cycle {
+  font-weight: bold;
+}
+
 #billing-cycle time,
 #telephony-tab li .meta {
   font-size: 1.4rem;
