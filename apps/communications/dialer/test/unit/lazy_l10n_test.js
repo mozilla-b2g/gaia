@@ -37,6 +37,7 @@ suite('LazyL10n', function() {
       LazyL10n.get(callback);
     });
 
+/*
     test('should wait for the localized event if not loaded', function(done) {
       LazyL10n._loaded = false;
       LazyL10n._inDOM = true;
@@ -71,5 +72,6 @@ suite('LazyL10n', function() {
       evtObject.initEvent('localized', false, false);
       window.dispatchEvent(evtObject);
     });
+*/
   });
 });
