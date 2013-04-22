@@ -19,6 +19,7 @@ var UIManager = {
     // PIN Screen
     'pincode-screen',
     'pin-label',
+    'pin-retries-left',
     'pin-input',
     'fake-pin-input',
     'pin-error',
@@ -27,9 +28,10 @@ var UIManager = {
     // PUK Screen
     'pukcode-screen',
     'puk-label',
+    'puk-retries-left',
     'puk-input',
-    'puk-info',
     'fake-puk-input',
+    'puk-info',
     'puk-error',
     'newpin-input',
     'fake-newpin-input',
