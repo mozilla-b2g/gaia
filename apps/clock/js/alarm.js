@@ -407,6 +407,7 @@ var AlarmList = {
     d.setHours(alarm.hour);
     d.setMinutes(alarm.minute);
     var time = getLocaleTime(d);
+    var label = (alarm.label === '') ? _('alarm') : escapeHTML(alarm.label);
     content = '<label class="alarmList">' +
               '  <input id="input-enable"' +
                    '" data-id="' + alarm.id +
@@ -421,10 +422,8 @@ var AlarmList = {
               '      <span class="hour24-state">' + time.p + '</span>' +
               '    </div>' +
               '    <div class="alarmList-detail">' +
-              '      <div class="label">' +
-                       escapeHTML(alarm.label) + '</div>' +
-              '      <div class="repeat">' +
-                       summaryRepeat + '</div>' +
+              '      <div class="label">' + label + '</div>' +
+              '      <div class="repeat">' + summaryRepeat + '</div>' +
               '    </div>' +
               '  </div>' +
               '</a>';
@@ -447,6 +446,7 @@ var AlarmList = {
       d.setHours(alarm.hour);
       d.setMinutes(alarm.minute);
       var time = getLocaleTime(d);
+      var label = (alarm.label === '') ? _('alarm') : escapeHTML(alarm.label);
       content += '<li>' +
                  '  <label class="alarmList">' +
                  '    <input id="input-enable"' +
@@ -462,10 +462,8 @@ var AlarmList = {
                  '        <span class="hour24-state">' + time.p + '</span>' +
                  '      </div>' +
                  '      <div class="alarmList-detail">' +
-                 '        <div class="label">' +
-                            escapeHTML(alarm.label) + '</div>' +
-                 '        <div class="repeat">' +
-                            summaryRepeat + '</div>' +
+                 '        <div class="label">' + label + '</div>' +
+                 '        <div class="repeat">' + summaryRepeat + '</div>' +
                  '      </div>' +
                  '    </div>' +
                  '  </a>' +
@@ -1011,8 +1009,7 @@ var AlarmEditView = {
     }
     var error = false;
 
-    var label = this.labelInput.value;
-    this.alarm.label = (label) ? label : 'Alarm';
+    this.alarm.label = this.labelInput.value;
     this.alarm.enabled = true;
     // Get alarm time from time picker.
     if (this.timePicker.is12hFormat) {
