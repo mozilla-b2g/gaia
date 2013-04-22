@@ -11,11 +11,14 @@
      { "alarm": "/index.html" }
   ],
   "permissions": {
-    "systemXHR":{},
-    "settings":{ "access": "readonly" },
-    "alarms":{},
-    "storage":{},
-    "desktop-notification":{}
+    "systemXHR": {},
+    "settings": {
+      "access": "readonly",
+      "description": "Read Calendar Settings"
+    },
+    "alarms": {},
+    "storage": {},
+    "desktop-notification": {}
   },
   "locales": {
     "ar": {

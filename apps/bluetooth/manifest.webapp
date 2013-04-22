@@ -7,6 +7,17 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "permissions": {
+    "bluetooth": {},
+    "device-storage:sdcard": {
+      "access": "readonly",
+      "description": "Storing recieved Files on the SD-Card"
+    },
+    "settings": {
+      "access": "readwrite",
+      "description": "Remember Bluetooth Settings"
+    }
+  },
   "locales": {
     "en-US": {
       "name": "Bluetooth Transfer",
@@ -27,10 +38,5 @@
       "returnValue": true,
       "href": "/transfer.html"
     }   
-  },
-  "permissions": {
-    "bluetooth":{},
-    "device-storage:sdcard":{ "access": "readonly" },
-    "settings":{ "access": "readwrite" }
   }
 }

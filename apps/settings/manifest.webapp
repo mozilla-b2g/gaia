@@ -8,25 +8,43 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "storage":{},
-    "mobileconnection":{},
-    "bluetooth":{},
-    "device-storage:pictures":{ "access": "readonly" },
-    "device-storage:music":{ "access": "readonly" },
-    "device-storage:videos":{ "access": "readonly" },
-    "device-storage:sdcard":{ "access": "readonly" },
-    "device-storage:apps":{ "access": "readonly" },
-    "webapps-manage":{},
-    "permissions":{},
-    "settings":{ "access": "readwrite" },
-    "wifi-manage":{},
-    "attention":{},
-    "time":{},
-    "desktop-notification":{},
-    "power":{},
-    "idle":{},
-    "telephony":{},
-    "audio-channel-notification":{}
+    "mobileconnection": {},
+    "bluetooth": {},
+    "storage": {},
+    "device-storage:pictures": {
+      "access": "readonly",
+      "description": "Read Pictures from the Device"
+    },
+    "device-storage:music": {
+      "access": "readonly",
+      "description": "Read Music from the Device"
+    },
+    "device-storage:videos": {
+      "access": "readonly",
+      "description": "Read Videos from the Device"
+    },
+    "device-storage:sdcard": {
+      "access": "readonly",
+      "description": "Read Data from the SD-Card"
+    },
+    "device-storage:apps": {
+      "access": "readonly",
+      "description": "Read Apps Data from the Device"
+    },
+    "webapps-manage": {},
+    "permissions": {},
+    "settings": {
+      "access": "readwrite",
+      "description": "Remember Settings"
+    },
+    "wifi-manage": {},
+    "attention": {},
+    "time": {},
+    "desktop-notification": {},
+    "power": {},
+    "idle": {},
+    "telephony": {},
+    "audio-channel-notification": {}
   },
   "activities": {
     "configure": {

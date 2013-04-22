@@ -11,15 +11,24 @@
      { "alarm": "/index.html" }
   ],
   "permissions": {
-    "alarms":{},
+    "alarms": {},
     "audio-channel-notification":{},
-    "contacts":{ "access": "readcreate" },
-    "desktop-notification":{},
-    "storage":{},
-    "device-storage:sdcard":{ "access": "readcreate" },
-    "systemXHR":{},
-    "settings":{ "access": "readonly" },
-    "tcp-socket":{}
+    "contacts": {
+      "access": "readcreate",
+      "description": "Modify Contact Information"
+    },
+    "desktop-notification": {},
+    "storage": {},
+    "device-storage:sdcard": {
+      "access": "readcreate",
+      "description": "Read and Store Data on the SD-Card"
+    },
+    "systemXHR": {},
+    "settings": {
+      "access": "readonly",
+      "description": "Read E-Mail Settings"
+    },
+    "tcp-socket": {}
   },
   "locales": {
     "ar": {
