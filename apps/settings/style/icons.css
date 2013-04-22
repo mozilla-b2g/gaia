@@ -316,21 +316,21 @@
   background-position: -24rem -3rem;
 }
 
-.bluetooth-type-pda,
-.bluetooth-type-phone {
-  background-position: -27rem -3rem;
+.bluetooth-type-pda:before,
+.bluetooth-type-phone:before {
+  background-position: -27.2rem -3rem;
 }
 
 .bluetooth-type-printer:before {
-  background-position: -30rem -30rem;
+  background-position: -29.8rem -3rem;
 }
 
 .bluetooth-type-scanner:before {
-  background-position: -33rem -30rem;
+  background-position: -33rem -3rem;
 }
 
 .bluetooth-type-video-display:before {
-  background-position: -36rem -30rem;
+  background-position: -36rem -3rem;
 }
 
 
