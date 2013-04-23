@@ -5,6 +5,9 @@ suite('LazyL10n', function() {
   var realL10n;
 
   suiteSetup(function() {
+    if (window.Contacts && window.Contacts.close) {
+      window.Contacts.close();
+    }
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
       get: function get(key) {
@@ -37,7 +40,7 @@ suite('LazyL10n', function() {
       LazyL10n.get(callback);
     });
 
-/*
+
     test('should wait for the localized event if not loaded', function(done) {
       LazyL10n._loaded = false;
       LazyL10n._inDOM = true;
@@ -72,6 +75,6 @@ suite('LazyL10n', function() {
       evtObject.initEvent('localized', false, false);
       window.dispatchEvent(evtObject);
     });
-*/
+
   });
 });
