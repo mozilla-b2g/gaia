@@ -6,6 +6,7 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
@@ -77,106 +78,6 @@ suite('SMS App Unit-Test', function() {
     return elements;
   }
 
-  function createDOM() {
-    // We clean previouos stuff at the beginning
-    window.document.body.innerHTML = '';
-
-    // Add main wrapper
-    var mainWrapper = document.createElement('article');
-    mainWrapper.id = 'main-wrapper';
-
-    // ------- Add thread-list view ---------
-    var threadList = document.createElement('section');
-    threadList.id = 'thread-list';
-
-    // Add elements inside thread-list view
-
-    // Thread-list header
-    var threadListHeader = document.createElement('header');
-    threadListHeader.innerHTML = renderThreadListHeader();
-
-    // Thread-list container
-    var threadsContainer = document.createElement('article');
-    threadsContainer.id = 'threads-container';
-
-    // Thread-list fixed-header
-    var threadsHeaderContainer = document.createElement('div');
-    threadsHeaderContainer.id = 'threads-header-container';
-
-    // threads-no-messages
-    var noMessages = document.createElement('div');
-    noMessages.id = 'threads-no-messages';
-
-    // Thread-list Edit form
-    var threadListEditForm = document.createElement('form');
-    threadListEditForm.id = 'threads-edit-form';
-    threadListEditForm.setAttribute('role', 'dialog');
-    threadListEditForm.dataset.type = 'edit';
-    threadListEditForm.innerHTML = renderThreadListEdit();
-    // Append all elemnts to thread-list view
-    threadList.appendChild(threadListHeader);
-    threadList.appendChild(threadsContainer);
-    threadList.appendChild(threadsHeaderContainer);
-    threadList.appendChild(noMessages);
-    threadList.appendChild(threadListEditForm);
-
-    // Adding to DOM the Thread-list view
-    mainWrapper.appendChild(threadList);
-
-    // --------- Add thread-messages (bubbles) view ---------
-    var threadMessages = document.createElement('section');
-    threadMessages.id = 'thread-messages';
-
-    // Thread-messages main header
-    var threadMsgHeader = document.createElement('header');
-    threadMsgHeader.innerHTML = renderThreadMsgHeader();
-
-    // Thread-messages sub-header
-    var threadMsgSubHeader = document.createElement('div');
-    threadMsgSubHeader.id = 'contact-carrier';
-
-    // Thread-messages container
-    var threadMsgContainer = document.createElement('article');
-    threadMsgContainer.id = 'messages-container';
-
-    // Thread-messages edit form
-    var threadMsgEditForm = document.createElement('form');
-    threadMsgEditForm.id = 'messages-edit-form';
-    threadMsgEditForm.innerHTML = renderThreadMsgEdit();
-
-    // Thread-messages input form
-    var threadMsgInputForm = document.createElement('form');
-    threadMsgInputForm.id = 'messages-compose-form';
-    threadMsgInputForm.innerHTML = renderThreadMsgInputBar();
-
-    threadMessages.appendChild(threadMsgHeader);
-    threadMessages.appendChild(threadMsgSubHeader);
-    threadMessages.appendChild(threadMsgContainer);
-    threadMessages.appendChild(threadMsgEditForm);
-    threadMessages.appendChild(threadMsgInputForm);
-
-    // Adding to DOM the Thread-messages view
-    mainWrapper.appendChild(threadMessages);
-
-    // --------- Loading screen ---------
-    var loadingScreen = document.createElement('article');
-    loadingScreen.id = 'loading';
-
-    // Contact template
-    var contactTmpl = document.createElement('div');
-    contactTmpl.id = 'messages-contact-tmpl';
-
-    var highlightTmpl = document.createElement('div');
-    highlightTmpl.id = 'messages-highlight-tmpl';
-
-
-    // At the end we add all elements to document
-    window.document.body.appendChild(mainWrapper);
-    window.document.body.appendChild(loadingScreen);
-    window.document.body.appendChild(contactTmpl);
-    window.document.body.appendChild(highlightTmpl);
-  }
-
   // Previous setup
   suiteSetup(function() {
     findByString = Contacts.findByString;
@@ -219,8 +120,7 @@ suite('SMS App Unit-Test', function() {
     };
 
     // Create DOM structure
-    createDOM();
-
+    loadBodyHTML('/index.html');
     // Clear if necessary...
     if (ThreadUI.container) {
       ThreadUI.container.innerHTML = '';
