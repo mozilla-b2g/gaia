@@ -26,7 +26,7 @@
     },
 
     get accountListHeader() {
-      return this._findElement('accountListHeader')
+      return this._findElement('accountListHeader');
     },
 
     get syncFrequency() {
