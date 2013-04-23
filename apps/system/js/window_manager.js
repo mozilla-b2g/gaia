@@ -1718,6 +1718,10 @@ var WindowManager = (function() {
           if (normalAudioChannelActive && evt.detail.channel !== 'normal' &&
               LockScreen.locked) {
             deviceLockedTimer = setTimeout(function setVisibility() {
+              // XXX: Check FTU status again to avoid the power-on video
+              // is too short.
+              if (isRunningFirstRunApp)
+                return;
               setVisibilityForCurrentApp(false);
             }, 3000);
           }
