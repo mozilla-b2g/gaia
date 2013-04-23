@@ -564,10 +564,13 @@ suite('system/UpdateManager', function() {
       });
 
       teardown(function(done) {
-        // wait for all actions to happen in UpdateManager before reseting
+        /* We wait for all actions to happen in UpdateManager before reseting.
+           To prevent intermittent oranges from timeout inaccuracies due
+           to slow CI hardware we let an extra "tinyTimeout" (so 3 it is) go
+           by. */
         setTimeout(function() {
           done();
-        }, tinyTimeout * 2);
+        }, tinyTimeout * 3);
       });
 
       suite('notification behavior after addToDownloadsQueue', function() {
