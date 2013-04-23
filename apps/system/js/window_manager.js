@@ -903,7 +903,7 @@ var WindowManager = (function() {
       runningApps[homescreen].iframe.dataset.start = Date.now();
       setAppSize(homescreen);
       if (displayedApp != homescreen &&
-        'setVsibile' in runningApps[homescreen].iframe)
+        'setVisible' in runningApps[homescreen].iframe)
         runningApps[homescreen].iframe.setVisible(false);
     } else if (reset) {
       runningApps[homescreen].iframe.src = homescreenURL;
