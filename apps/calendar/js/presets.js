@@ -4,20 +4,23 @@
       providerType: 'Caldav',
       group: 'remote',
       options: {
-        providerType: 'Caldav',
         domain: 'https://calendar.google.com',
         entrypoint: '/calendar/dav/',
-        user: '@gmail.com'
+        providerType: 'Caldav',
+        user: '@gmail.com',
+        usernameType: 'email'
       }
     },
+
     'yahoo': {
       providerType: 'Caldav',
       group: 'remote',
       options: {
         domain: 'https://caldav.calendar.yahoo.com',
-        providerType: 'Caldav',
         entrypoint: '/',
-        user: '@yahoo.com'
+        providerType: 'Caldav',
+        user: '@yahoo.com',
+        usernameType: 'email'
       }
     },
 
@@ -26,8 +29,8 @@
       group: 'remote',
       options: {
         domain: '',
-        providerType: 'Caldav',
-        entrypoint: ''
+        entrypoint: '',
+        providerType: 'Caldav'
       }
     },
 
