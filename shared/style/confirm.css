@@ -158,8 +158,7 @@ form[role="dialog"][data-type="confirm"] menu button.full {
 form[role="dialog"][data-type="confirm"] p {
   word-wrap: break-word;
   margin: 1rem 0 0;
-  padding-top: 1rem;
-  padding-left: 1rem;
+  padding: 1rem;
   border-top: 0.1rem solid #686868;
 }
 
