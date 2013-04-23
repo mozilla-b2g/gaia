@@ -46,6 +46,11 @@ make test-agent-server &> /dev/null &
 waiting_port 8789
 
 echo 'Starting Firefox'
+
+ps -aef | grep firefox
+
+# Ensure no other firefox instances are running at this point...
+killall firefox
 firefox/firefox -profile `pwd`/profile "$TESTAGENT_URL" &> /dev/null &
 waiting_port 8080
 sleep 5
@@ -64,4 +69,5 @@ echo
 [ $LINT_RESULT_STATUS -ne 0 ] &&\
 echo ${RED_COLOR}Lint error. Scroll up to see the output.${NORMAL_COLOR}
 
+ps -aef | grep firefox
 exit `expr $LINT_RESULT_STATUS + $TEST_RESULT_STATUS`;
