@@ -49,6 +49,8 @@
     <script defer src="/contacts/js/fb/fb_data.js"></script>
     <script defer src="/contacts/js/fb/fb_contact_utils.js"></script>
     <script defer src="/dialer/js/contacts.js"></script>
+    <script defer src="/dialer/js/contact_data_manager.js"></script>
+    <script defer src="/dialer/js/suggestion_bar.js"></script>
     <script defer src="/dialer/js/recents.js"></script>
     <script defer src="/dialer/js/telephony_helper.js"></script>
     <script defer src="/dialer/js/mmi.js"></script>
@@ -105,6 +107,34 @@
               </div>
             </div>
           </div>
+          <section id="suggestion-bar" hidden>
+            <div id="suggestion-count" class="more"></div>
+            <div class="suggestion-item">
+              <div class="name"></div>
+              <div>
+                <span class="tel-type"></span>
+                <span class="tel"><span class="matched"></span></span>
+              </div>
+            </div>
+          </section>
+          <form id="suggestion-overlay" role="dialog" data-type="action" hidden>
+            <header></header>
+            <menu>
+              <ul id="suggestion-list" role="listbox">
+              </ul>
+              <button id="suggestion-overlay-cancel" data-l10n-id='cancel'>Cancel</button>
+            </menu>
+          </form>
+          <!-- Template for cloning suggestion bar item. Will never be shown directly. -->
+          <ul hidden>
+            <li class="suggestion-item" id="suggestion-item-template" hidden>
+              <div class="name"></div>
+              <div>
+                <span class="tel-type"></span>
+                <span class="tel"><span class="matched"></span></span>
+              </div>
+            </li>
+          </ul>
           <article id="keyboard-container">
             <section id="keypad">
               <div class="keypad-cell">

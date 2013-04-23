@@ -12,5 +12,15 @@ var MockKeypadManager = {
   mTearDown: function khm_tearDown() {
     this.mFormatPhoneNumberCalled = false;
     this.mUpdateAdditionalContactInfo = false;
+  },
+
+  mOnMakeCall: null,
+  updatePhoneNumber: function khm_updatePhoneNumber(number) {
+    this._phoneNumber = number;
+  },
+  makeCall: function makeCall() {
+    if (this.mOnMakeCall) {
+      this.mOnMakeCall(this._phoneNumber);
+    }
   }
 };
