@@ -40,6 +40,7 @@ html, body {
 }
 
 #toaster-title {
+  pointer-events: none;
   position: absolute;
   top: 0.3rem;
   color: #52b8cc;
@@ -48,6 +49,7 @@ html, body {
 }
 
 #toaster-detail {
+  pointer-events: none;
   position: absolute;
   top: 2.2rem;
   color: white;
