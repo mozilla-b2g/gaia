@@ -234,17 +234,24 @@
   var priv = new WeakMap();
 
   function extract(node) {
-    if (!node) {
-      return '';
-    }
-
+    var nodeId;
     // Received an ID string? Find the appropriate node to continue
     if (typeof node === 'string') {
+      nodeId = node;
       node = document.getElementById(node);
+    } else if (node) {
+      nodeId = node.id;
+    }
+
+    if (!node) {
+      console.error('Can not find the node passed to Utils.Template', nodeId);
+      return '';
     }
 
     // No firstChild means no comment node.
     if (!node.firstChild) {
+      console.error(
+        'Node passed to Utils.Template should have a comment node', nodeId);
       return '';
     }
 
@@ -260,6 +267,9 @@
       // a comment node, it's likely a text node, so hop to
       // the nextSibling and repeat the operation.
     } while ((node = node.nextSibling));
+
+    console.error(
+      'Nodes passed to Utils.Template should have a comment node', nodeId);
     return '';
   }
 
