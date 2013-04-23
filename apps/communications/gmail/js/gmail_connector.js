@@ -194,9 +194,7 @@ var GmailConnector = (function GmailConnector() {
 
     output.uid = contact.uid;
 
-    if (contact.givenName) {
-      output.givenName = contact.givenName;
-    }
+    output.givenName = contact.givenName || contact.org || null;
 
     if (contact.familyName) {
       output.familyName = contact.familyName;
