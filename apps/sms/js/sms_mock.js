@@ -10,7 +10,7 @@
 *********************************************************** */
 (function(window) {
 
-  var MockNavigatormozSms = window.MockNavigatormozSms = {};
+  var MockNavigatormozSms = window.DesktopMockNavigatormozSms = {};
 
   // Fake in-memory message database
   var messagesDb = {

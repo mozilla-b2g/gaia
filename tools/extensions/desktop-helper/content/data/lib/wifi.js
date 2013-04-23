@@ -1,23 +1,27 @@
 !function() {
+  function debug(str) {
+    //dump('wifi: ' + str + '\n');
+  }
+
   FFOS_RUNTIME.makeNavigatorShim('mozWifiManager', {
     connection: {
       status: 'disconnected',
       network: null
     },
     onenabled: function() {
-      console.log('wifi onenabled');
+      debug('onenabled');
     },
     ondisabled: function() {
-      console.log('wifi onenabled');
+      debug('onenabled');
     },
     onstatuschange: function() {
-      console.log('wifi onenabled');
+      debug('onenabled');
     },
     forget: function() {
-      console.log('wifi forget');
+      debug('forget');
     },
     getNetworks: function() {
-      console.log('wifi getNetworks');
+      debug('getNetworks');
     }
   }, true);
 }();

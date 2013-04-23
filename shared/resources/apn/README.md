@@ -10,9 +10,9 @@ These files are only used to test and merge these APN databases.
 
 The `/shared/resources/apn.json` file is a JSON version of the Android database, with a few additional informations from the Gnome APN database (e.g.  voicemail number).
 
-To regenerate the .json file, start from the parent directory a webserver. Like this:
+To regenerate the .json file, delete the apn.json first, then start a webserver from gaia/shared/resource folder. Like this:
 
- cd .. ; python -m SimpleHTTPServer 4104
+  python -m SimpleHTTPServer 4104
 
 Then load http://0.0.0.0:4104/apn
 This should regenerate the .json file into the left part of the page, and you can cut & paste this to your editor.
