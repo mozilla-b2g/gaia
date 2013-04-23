@@ -176,6 +176,24 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
+       name="Kolbi"
+       mcc="712"
+       mnc="01"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Kolbi"
+       mcc="712"
+       mnc="02"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="INTERNET CLARO"
+       mcc="712"
+       mnc="03"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
        name="movistar INTERNET"
        mcc="712"
        mnc="04"
