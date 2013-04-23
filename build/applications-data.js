@@ -204,7 +204,7 @@ init = getFile(GAIA_DIR, 'apps', 'costcontrol', 'js', 'config.json');
 
 content = {
   provider: 'Free',
-  enable_on: { 208: [1, 15] }, // { MCC: [ MNC1, MNC2, ...] }
+  enable_on: { "208": ["1", "15"] }, // { MCC: [ MNC1, MNC2, ...] }
   is_free: false,
   is_roaming_free: true,
   credit: { currency : '€' },
