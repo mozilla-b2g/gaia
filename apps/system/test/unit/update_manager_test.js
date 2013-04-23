@@ -280,6 +280,33 @@ suite('system/UpdateManager', function() {
       assert.equal(UpdateManager.requestDownloads.name,
                    UpdateManager.downloadViaDataConnectionButton.onclick.name);
     });
+
+    suite('should get the warning disalbed from asyncStorage', function() {
+      teardown(function() {
+        MockasyncStorage.mTeardown();
+      });
+
+      test('warning disabled is true', function() {
+        MockasyncStorage.setItem('gaia.system.isDataConnectionWarningDialogEnabled',
+          true);
+
+        UpdateManager.init();
+        assert.isTrue(UpdateManager._isDataConnectionWarningDialogEnabled);
+      });
+
+      test('warning disabled is false', function() {
+        MockasyncStorage.setItem('gaia.system.isDataConnectionWarningDialogEnabled',
+          false);
+
+        UpdateManager.init();
+        assert.isFalse(UpdateManager._isDataConnectionWarningDialogEnabled);
+      });
+
+      test('warning disabled is null', function() {
+        UpdateManager.init();
+        assert.isTrue(UpdateManager._isDataConnectionWarningDialogEnabled);
+      });
+    });
   });
 
   suite('events', function() {

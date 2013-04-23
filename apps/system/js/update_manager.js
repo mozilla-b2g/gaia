@@ -105,8 +105,10 @@ var UpdateManager = {
     window.asyncStorage.
       getItem('gaia.system.isDataConnectionWarningDialogEnabled',
       (function(value) {
-        value = value || true;
-        this._isDataConnectionWarningDialogEnabled = true;
+        if (value === null) {
+          value = true;
+        }
+        this._isDataConnectionWarningDialogEnabled = value;
         this.downloadDialog.dataset.dataConnectionInlineWarning = !value;
     }).bind(this));
   },
