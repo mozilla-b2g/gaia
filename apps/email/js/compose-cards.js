@@ -103,10 +103,10 @@ ComposeCard.prototype = {
       var normed = addresses.map(function(aval) {
         var name, address;
         if (typeof(aval) === 'string') {
-          // TODO: We will apply email address parser for showing bubble
-          //       properly. We set both name and address same as aval string
-          //       before parser is ready.
-          name = address = aval;
+          var regExp = new RegExp('\<([^>]*)\>');
+          var match = regExp.exec(aval);
+          address = match && match[1].length ? match[1] : aval;
+          name = match && match.index ? aval.slice(0, match.index) : address;
         } else {
           name = aval.name;
           address = aval.address;

@@ -405,7 +405,9 @@ contacts.Details = (function() {
 
       // Add event listeners to the phone template components
       var emailButton = template.querySelector('#email-or-pick-' + email);
-      emailButton.dataset['email'] = emailField.value;
+      var mailTo = contact.name ? contact.name : '';
+      mailTo += '<' + emailField.value + '>';
+      emailButton.dataset['email'] = mailTo;
       emailButton.addEventListener('click', onEmailOrPickClick);
 
       listContainer.appendChild(template);
