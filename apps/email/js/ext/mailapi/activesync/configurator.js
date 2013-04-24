@@ -1175,20 +1175,20 @@ ActiveSyncFolderConn.prototype = {
         suid: null,
         guid: null,
         author: null,
+        to: null,
+        cc: null,
+        bcc: null,
+        replyTo: null,
         date: null,
         flags: [],
         hasAttachments: false,
         subject: null,
-        snippet: null,
+        snippet: null
       };
 
       body = {
         date: null,
         size: 0,
-        to: null,
-        cc: null,
-        bcc: null,
-        replyTo: null,
         attachments: [],
         relatedParts: [],
         references: null,
