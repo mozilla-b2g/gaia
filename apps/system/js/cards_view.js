@@ -205,6 +205,12 @@ var CardsView = (function() {
       card.classList.add('card');
       card.dataset.origin = origin;
 
+      var landscape = WindowManager.getOrientationForApp(origin) ===
+                                                          'landscape-primary';
+      if (landscape) {
+        card.classList.add('landscape');
+      }
+
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
         var iconURI = getIconURI(origin);
@@ -265,6 +271,16 @@ var CardsView = (function() {
         card.style.backgroundImage = 'url(' + cachedLayer + ')';
       }
 
+      // Set up event handling
+      // A click elsewhere in the card switches to that task
+      card.addEventListener('tap', runApp);
+
+      // We cannot take a screenshot here for landscape apps because the mobile
+      // is on portrait
+      if (landscape) {
+        return;
+      }
+
       // rect is the final size (considering CSS transform) of the card.
       var rect = card.getBoundingClientRect();
 
@@ -289,10 +305,6 @@ var CardsView = (function() {
             }, 200);
           }
         };
-
-      // Set up event handling
-      // A click elsewhere in the card switches to that task
-      card.addEventListener('tap', runApp);
     }
   }
 
