@@ -147,7 +147,7 @@
 
     /**
      * Adds a modifier route
-     * Modifiers are eseentially views, without the currentPath updating
+     * Modifiers are essentially views, without the currentPath updating
      */
     modifier: function(path, view, options) {
       options = options || {};
