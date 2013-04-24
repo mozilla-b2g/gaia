@@ -321,6 +321,12 @@ Calendar.LoadConfig = (function() {
         ]
       },
 
+      'Utils.HourlyUpdater': {
+        js: [
+          'utils/hourly_updater'
+        ]
+      },
+
       'Provider.Local': {
         group: ['Provider.Abstract'],
 

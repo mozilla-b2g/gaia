@@ -15,6 +15,9 @@ Calendar.ns('Views').MonthsDay = (function() {
       header: '.day-title'
     },
 
+    /** @type {Calendar.Utils.HourlyUpdater} */
+    _hourlyUpdater: null,
+
     get element() {
       return this._findElement('element');
     },
@@ -73,6 +76,24 @@ Calendar.ns('Views').MonthsDay = (function() {
       var date = Calendar.Calc.createDay(new Date());
       this.changeDate(date);
       this._updateHeader();
+    },
+
+    onactive: function() {
+      this.app.loadObject('Utils.HourlyUpdater', function() {
+        this._hourlyUpdater = new Calendar.Utils.HourlyUpdater(this);
+        this._hourlyUpdater.start(function() {
+          if (this.seen) {
+            this.render();
+          }
+        }, this);
+      }.bind(this));
+    },
+
+    oninactive: function() {
+      if (this._hourlyUpdater) {
+        this._hourlyUpdater.stop();
+        delete this._hourlyUpdater;
+      }
     }
   };
 

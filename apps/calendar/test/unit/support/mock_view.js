@@ -17,6 +17,11 @@ Calendar.ns('Test').MockView = (function() {
     this.called = 1;
     this.args = arguments;
 
+    this.rendered = false;
+    this.render = function() {
+      self.rendered = true;
+    };
+
     this.onactive = function() {
       self.activeWith = arguments;
       self.active = true;
