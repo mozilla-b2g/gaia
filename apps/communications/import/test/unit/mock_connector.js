@@ -23,7 +23,7 @@ var MockConnector = {
   },
 
   getContactUid: function(deviceContact) {
-    return '-1';
+    return deviceContact.uid || '-1';
   },
 
   get name() {
