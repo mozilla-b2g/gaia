@@ -163,12 +163,12 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
 
 .log-item.hasPhoto .primary-info,
 .log-item.hasPhoto .secondary-info {
-  width: 19rem;
+  width: 17.5rem;
 }
 
 .log-item:not(.hasPhoto) .primary-info,
 .log-item:not(.hasPhoto) .secondary-info {
-  width: 25rem;
+  width: 24rem;
 }
 
 .log-item .primary-info span {
