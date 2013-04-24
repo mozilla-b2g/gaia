@@ -32,7 +32,6 @@ var AppManager = {
     setTimeout(function() {
       // TODO Include VIVO SIM Card management
       // https://bugzilla.mozilla.org/show_bug.cgi?id=801269#c6
-      var self = this;
       Navigation.manageStep();
       UIManager.activationScreen.classList.add('show');
       // Remove the splash
