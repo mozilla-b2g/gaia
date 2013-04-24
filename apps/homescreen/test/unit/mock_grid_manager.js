@@ -1,4 +1,5 @@
 'use strict';
 var MockGridManager = {
-  markDirtyState: function() {}
+  markDirtyState: function() {},
+  localize: function() {}
 };
