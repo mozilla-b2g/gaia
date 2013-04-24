@@ -11,6 +11,8 @@ requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/facebook/test/unit/mock_curtain.js');
 requireApp('communications/import/test/unit/mock_connector.js');
 requireApp('communications/import/test/unit/mock_imported_contacts.js');
+requireApp('communications/contacts/js/utilities/dom.js');
+requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/importer_ui.js');
 
 var realContacts,
@@ -63,9 +65,6 @@ suite('Import Friends Test Suite', function() {
     importer.ui.init();
   });
 
-  /*
-  //TEST DISABLED DUE TO CAUSING  CI FAILURE.
-  //SEE BUG #862719
   test('Import first time. items created. not already present', function(done) {
     var contactsLoadedCalled = false;
     MockConnector.oncontactsloaded = function() {
@@ -88,12 +87,12 @@ suite('Import Friends Test Suite', function() {
         done();
       }
       else {
-        // assert.fail('contactsLoaded not Called','contactsLoadedCalled');
+        assert.fail('contactsLoaded not Called','contactsLoadedCalled');
         done();
       }
     });
   });
-  */
+
 
   suiteTeardown(function() {
     utils.alphaScroll = realAlphaScroll;
