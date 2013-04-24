@@ -3853,6 +3853,7 @@ Runner.prototype.grepTotal = function(suite) {
  */
 
 Runner.prototype.globalProps = function() {
+  return [];
   var props = utils.keys(global);
 
   // non-enumerables
@@ -3888,6 +3889,7 @@ Runner.prototype.globals = function(arr){
  */
 
 Runner.prototype.checkGlobals = function(test){
+  return;
   if (this.ignoreLeaks) return;
   var ok = this._globals;
   var globals = this.globalProps();
