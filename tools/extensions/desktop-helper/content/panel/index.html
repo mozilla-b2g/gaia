@@ -1,5 +1,12 @@
 <link rel="stylesheet" href="stylesheet.css">
+<script src="faker.js"></script>
 <script src="controls.js"></script>
+    <script>
+      function populateContacts() {
+        contactActions.generateContacts(
+            parseInt(document.getElementById("ctAmount").value || 0));
+      }
+    </script>
 
 <h3>Hardware Buttons</h3>
 <section>
@@ -15,4 +22,11 @@
 <h3>Emulation</h3>
 <section>
 	<button onclick="emulation.notification()">Notification</button>
+</section>
+
+<h3>Contacts</h3>
+<section>
+  <button id="fillContacts" onclick="populateContacts()">Generate contacts</button>
+  <label for="ctAmount">Amount:</label>
+  <input id="ctAmount" value="10"></input>
 </section>
