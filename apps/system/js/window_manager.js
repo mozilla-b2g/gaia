@@ -2188,6 +2188,14 @@ var WindowManager = (function() {
     getCurrentDisplayedApp: function() {
       return runningApps[displayedApp];
     },
+    getOrientationForApp: function(origin) {
+      var app = runningApps[origin];
+
+      if (!app || !app.manifest)
+        return;
+
+      return app.manifest.orientation;
+    },
     toggleHomescreen: toggleHomescreen,
     retrieveHomescreen: retrieveHomescreen,
     retrieveFTU: retrieveFTU,

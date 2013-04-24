@@ -201,6 +201,12 @@ var CardsView = (function() {
       card.classList.add('card');
       card.dataset.origin = origin;
 
+      var landscape = WindowManager.getOrientationForApp(origin) ===
+                                                            'landscape-primary';
+      if (landscape) {
+        card.classList.add('landscape');
+      }
+
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
         var iconURI = getIconURI(origin);
@@ -271,6 +277,12 @@ var CardsView = (function() {
         var cachedLayer = WindowManager.screenshots[origin];
         if (cachedLayer) {
           card.style.backgroundImage = 'url(' + cachedLayer + ')';
+        }
+
+        // We cannot take a screenshot here for landscape apps because the
+        // mobile is on portrait
+        if (landscape) {
+          return;
         }
 
         // And then switch it with screenshots when one will be ready

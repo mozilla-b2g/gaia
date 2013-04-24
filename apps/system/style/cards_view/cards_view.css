@@ -28,6 +28,7 @@
 }
 
 #cards-view .card {
+  vertical-align: top;
   display: none;
   width: 100%;
   height: -moz-calc(100% - 20px);
@@ -40,6 +41,11 @@
   opacity: 0;
   pointer-events: none;
   transform: scale(0.8);
+}
+
+#cards-view .card.landscape {
+  height: 43%;
+  margin-top: calc(43% + 2rem);
 }
 
 #cards-view .card h1 {
