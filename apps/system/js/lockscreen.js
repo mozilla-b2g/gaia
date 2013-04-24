@@ -59,6 +59,26 @@ var LockScreen = {
   */
   _passCodeTimeoutCheck: false,
 
+  /**
+   * Localized time format, the default is overridden by L10N
+   */
+  timeFormat: '%H:%M',
+
+  /**
+   * Localized date format, the default is overridden by L10N
+   */
+  dateFormat: '%A %e %B',
+
+  /**
+   * Timer used to refresh the clock
+   */
+  updateInterval: null,
+
+  /**
+   * One-shot timer used to refresh the clock
+   */
+  updateTimeout: null,
+
   /*
   * Current passcode entered by the user
   */
@@ -107,7 +127,12 @@ var LockScreen = {
   /* init */
   init: function ls_init() {
     if (this.ready) { // already initialized: just trigger a translation
-      this.updateTime();
+      var _ = navigator.mozL10n.get;
+
+      this.timeFormat = _('shortTimeFormat');
+      this.dateFormat = _('longDateFormat');
+      this.initTime();
+
       this.updateConnState();
       return;
     }
@@ -262,6 +287,8 @@ var LockScreen = {
           if (this.camera.firstElementChild)
             this.camera.removeChild(this.camera.firstElementChild);
 
+          // Stop refreshing the clock when the screen is turned off.
+          this.clearTime();
         } else {
           var _screenOffInterval = new Date().getTime() - this._screenOffTime;
           if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
@@ -269,6 +296,9 @@ var LockScreen = {
           } else {
             this._passCodeTimeoutCheck = false;
           }
+
+          // Resume refreshing the clock when the screen is turned on.
+          this.initTime();
         }
 
         this.lockIfEnabled(true);
@@ -577,13 +607,15 @@ var LockScreen = {
     this.setElasticEnabled(false);
     this.mainScreen.focus();
     this.dispatchEvent('will-unlock');
+
+    // The lockscreen will be hidden, stop refreshing the clock.
+    this.clearTime();
   },
 
   lock: function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
 
-    navigator.mozL10n.ready(this.updateTime.bind(this));
     this.switchPanel();
 
     this.setElasticEnabled(ScreenManager.screenEnabled);
@@ -744,25 +776,55 @@ var LockScreen = {
     });
   },
 
+  /**
+   * Starts the timers used to refresh the clock on the lockscreen if they
+   * weren't started already.
+   */
+  initTime: function ls_initTime() {
+    var date = this.updateTime();
+    var self = this;
+
+    if (this.updateTimeout == null) {
+      this.updateTimeout = window.setTimeout(function ls_setClockInterval() {
+        self.updateTime();
+
+        if (self.updateInterval == null) {
+          self.updateInterval = window.setInterval(function ls_clockInterval() {
+            self.updateTime();
+          }, 60000);
+        }
+      }, (60 - date.getSeconds()) * 1000);
+    }
+  },
+
+  /**
+   *  Clears the timers used to refresh the clock.
+   */
+  clearTime: function ls_clearTime() {
+    if (this.updateTimeout != null) {
+      window.clearTimeout(this.updateTimeout);
+      this.updateTimeout = null;
+    }
+
+    if (this.updateInterval != null) {
+      window.clearInterval(this.updateInterval);
+      this.updateInterval = null;
+    }
+  },
+
   updateTime: function ls_updateTime() {
     if (!this.locked)
       return;
 
     var d = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
-    var _ = navigator.mozL10n.get;
+    var time = f.localeFormat(d, this.timeFormat);
 
-    var timeFormat = _('shortTimeFormat');
-    var dateFormat = _('longDateFormat');
-    var time = f.localeFormat(d, timeFormat);
     this.clockNumbers.textContent = time.match(/([012]?\d).[0-5]\d/g);
     this.clockMeridiem.textContent = (time.match(/AM|PM/i) || []).join('');
-    this.date.textContent = f.localeFormat(d, dateFormat);
+    this.date.textContent = f.localeFormat(d, this.dateFormat);
 
-    var self = this;
-    window.setTimeout(function ls_clockTimeout() {
-      self.updateTime();
-    }, (59 - d.getSeconds()) * 1000);
+    return d;
   },
 
   updateConnState: function ls_updateConnState() {
@@ -1008,4 +1070,3 @@ var LockScreen = {
 LockScreen.init();
 
 navigator.mozL10n.ready(LockScreen.init.bind(LockScreen));
-
