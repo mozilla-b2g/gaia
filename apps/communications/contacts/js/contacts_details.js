@@ -359,6 +359,7 @@ contacts.Details = (function() {
         value: utils.text.escapeHTML(currentTel.value, true) || '',
         type: _(escapedType) || escapedType ||
                                         TAG_OPTIONS['phone-type'][0].value,
+        'type_l10n_id': currentTel.type,
         carrier: utils.text.escapeHTML(currentTel.carrier || '', true) || '',
         i: tel
       };
@@ -399,6 +400,7 @@ contacts.Details = (function() {
         value: utils.text.escapeHTML(currentEmail['value'], true) || '',
         type: _(escapedType) || escapedType ||
                                           TAG_OPTIONS['email-type'][0].value,
+        'type_l10n_id': currentEmail['type'],
         i: email
       };
       var template = utils.templates.render(emailsTemplate, emailField);
@@ -447,6 +449,7 @@ contacts.Details = (function() {
         countryName: escapedCountry,
         type: _(escapedType) || escapedType ||
                                         TAG_OPTIONS['address-type'][0].value,
+        'type_l10n_id': currentAddress['type'],
         i: i
       };
       var template = utils.templates.render(addressesTemplate, addressField);
