@@ -1339,7 +1339,8 @@ ActiveSyncFolderConn.prototype = {
               // Get the file's extension to look up a mimetype, but ignore it
               // if the filename is of the form '.bashrc'.
               dot = attachment.name.lastIndexOf('.');
-              ext = dot > 0 ? attachment.name.substring(dot + 1) : '';
+              ext = dot > 0 ? attachment.name.substring(dot + 1).toLowerCase() :
+                              '';
               attachment.type = $mimelib.contentTypes[ext] ||
                                 'application/octet-stream';
               break;
