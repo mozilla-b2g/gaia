@@ -435,10 +435,13 @@ var ThreadUI = {
     // note: when we'll have the MMS feature, we'll want to use an MMS instead
     // of forbidding this.
     if (hasMaxLength) {
+      // set maxlength before calling alert, to disable entering more characters
+      this.input.setAttribute('maxlength', value.length);
+      // this will make the keyboard disappear
+      this.input.blur();
+
       var message = navigator.mozL10n.get('messages-max-length-notice');
       window.alert(message);
-
-      this.input.setAttribute('maxlength', value.length);
     } else {
       this.input.removeAttribute('maxlength');
     }
