@@ -116,8 +116,8 @@ html, body {
 
 #updates-viaDataConnection-dialog,
 #updates-download-dialog {
-  padding-bottom: 4.9rem;
-  padding-top: 0;
+  /* Increasing padding size form 1.5 to 3.5rem for confirm dialogs with statusbar active */
+  padding-top: 3.5rem;
   display: none;
 }
 
@@ -125,32 +125,6 @@ html, body {
 #updates-download-dialog.visible {
   display: inline-block;
   pointer-events: auto;
-}
-
-#updates-viaDataConnection-dialog h1,
-#updates-download-dialog h1 {
-  font-size: 1.9rem;
-  color: #fff;
-  padding: 1.5rem 1rem 1.1rem 1rem;
-  background: rgba(255, 255, 255, 0.0);
-}
-
-#updates-viaDataConnection-dialog h1 {
-  padding-left: 2.8rem;
-  height: 2.4rem;
-  line-height: 2.4rem;
-  background: url('images/iconindicator_download_24x24.png') no-repeat scroll 0 50% transparent;
-  border: none;
-}
-
-#updates-viaDataConnection-dialog section,
-#updates-download-dialog section {
-  height: auto;
-  line-height: 3.5rem;
-  overflow-y: scroll;
-  max-height: -moz-calc(100% - 3.8rem);
-  color: #ebebeb;
-  font-size: 2.5rem;
 }
 
 #updates-download-dialog ul {

@@ -14,9 +14,9 @@
 }
 
 [role="dialog"] p:last-child {
-  display: -moz-box;
-  -moz-box-flex: 1;
-  -moz-box-orient: vertical;
+  overflow-x: hidden;
+  overflow-y: auto;
+  word-wrap: break-word;
 }
 
 [role="dialog"] .content {

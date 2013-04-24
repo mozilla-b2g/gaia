@@ -3,7 +3,7 @@
  * ---------------------------------- */
 
 /* Main dialog setup */
-form[role="dialog"] {
+form[role="dialog"][data-type="value-selector"] {
   background: url(value_selector/images/ui/pattern.png) repeat left top, url(value_selector/images/ui/gradient.png) no-repeat left top;
   background-size: auto auto, 100% 100%;
   /* We can't use shortand with background size because is not implemented yet:
@@ -23,7 +23,7 @@ form[role="dialog"] {
   color: #fff;
 }
 
-form[role="dialog"]:before {
+form[role="dialog"][data-type="value-selector"]:before {
   content: "";
   display: inline-block;
   vertical-align: top;
@@ -32,7 +32,7 @@ form[role="dialog"]:before {
   margin-left: -1px;
 }
 
-form[role="dialog"] > section {
+form[role="dialog"][data-type="value-selector"] > section {
   padding: 0 1.5rem 0;
   -moz-box-sizing: padding-box;
   width: 100%;
@@ -42,7 +42,7 @@ form[role="dialog"] > section {
   white-space: normal;
 }
 
-form[role="dialog"] h1 {
+form[role="dialog"][data-type="value-selector"] h1 {
   font: 1.6rem/1em 'MozTT', Sans-serif;
   color: #fff;
   border-bottom: 0.1rem solid #616262;
@@ -52,7 +52,7 @@ form[role="dialog"] h1 {
 }
 
 /* Menu & buttons setup */
-form[role="dialog"] menu {
+form[role="dialog"][data-type="value-selector"] menu {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
@@ -66,7 +66,7 @@ form[role="dialog"] menu {
   bottom: 0;
 }
 
-form[role="dialog"] menu button {
+form[role="dialog"][data-type="value-selector"] menu button {
   width: 100%;
   height: 3.8rem;
   margin: 0 0 1rem;
@@ -91,37 +91,37 @@ form[role="dialog"] menu button {
 }
 
 /* Reset & submit defaults */
-form[role="dialog"] menu button[type="reset"],
-form[role="dialog"] menu button[type="submit"] {
+form[role="dialog"][data-type="value-selector"] menu button[type="reset"],
+form[role="dialog"][data-type="value-selector"] menu button[type="submit"] {
   text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
   color: #333;
 }
 
 /* Reset */
-form[role="dialog"] menu button[type="reset"] {
+form[role="dialog"][data-type="value-selector"] menu button[type="reset"] {
   background-image: url(value_selector/images/ui/button_reset.png);
   background-color: #fafafa;
   border: solid 1px #9f9f9f;
 }
 
 /* Submit */
-form[role="dialog"] menu button[type="submit"] {
+form[role="dialog"][data-type="value-selector"] menu button[type="submit"] {
   background-image: url(value_selector/images/ui/button_submit.png) ;
   background-color: #00caf2;
   border: 1px solid #00acce;
 }
 
 /* Pressed state, reset & submit */
-form[role="dialog"] menu button[type="reset"]:active,
-form[role="dialog"] menu button[type="submit"]:active {
+form[role="dialog"][data-type="value-selector"] menu button[type="reset"]:active,
+form[role="dialog"][data-type="value-selector"] menu button[type="submit"]:active {
   border: solid 1px #008aaa;
   background: #008aaa;
   color: #333;
 }
 
 /* Disabled, reset & submit) */
-form[role="dialog"] menu button[type="reset"][disabled],
-form[role="dialog"] menu button[type="submit"][disabled] {
+form[role="dialog"][data-type="value-selector"] menu button[type="reset"][disabled],
+form[role="dialog"][data-type="value-selector"] menu button[type="submit"][disabled] {
   background-image: url(value_selector/images/ui/button_special_disabled.png);
   background-color: transparent;
   border: none;
@@ -129,25 +129,25 @@ form[role="dialog"] menu button[type="submit"][disabled] {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-form[role="dialog"] menu button:last-child {
+form[role="dialog"][data-type="value-selector"] menu button:last-child {
   margin-left: 1rem;
 }
 
-form[role="dialog"] menu button,
-form[role="dialog"] menu button:first-child {
+form[role="dialog"][data-type="value-selector"] menu button,
+form[role="dialog"][data-type="value-selector"] menu button:first-child {
   margin: 0;
 }
 
-form[role="dialog"] menu button {
+form[role="dialog"][data-type="value-selector"] menu button {
   width: -moz-calc((100% - 1rem) / 2);
 }
 
-form[role="dialog"] menu button.full {
+form[role="dialog"][data-type="value-selector"] menu button.full {
   width: 100%;
 }
 
 /* Specific component code */
-form[role="dialog"] [role="listbox"] {
+form[role="dialog"][data-type="value-selector"] [role="listbox"] {
   position: relative;
   padding: 0 1.5rem;
   margin: 0 -1.5rem;
@@ -156,7 +156,7 @@ form[role="dialog"] [role="listbox"] {
   border-top: solid 0.1rem #222323;
 }
 
-form[role="dialog"] .scrollable:before {
+form[role="dialog"][data-type="value-selector"] .scrollable:before {
   content: "";
   display: block;
   position: absolute;
@@ -168,7 +168,7 @@ form[role="dialog"] .scrollable:before {
   background: url(value_selector/images/ui/shadow.png) repeat-x left top, url(value_selector/images/ui/shadow-invert.png) repeat-x left bottom;
 }
 
-form[role="dialog"] [role="listbox"] li {
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li {
   margin: 0;
   padding-bottom: 1px;
   height: 5.9rem;
@@ -182,17 +182,17 @@ form[role="dialog"] [role="listbox"] li {
   transition: background 0.2s ease;
 }
 
-form[role="dialog"] [role="listbox"] li span {
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li span {
   padding: 0 1.5rem;
 }
 
-form[role="dialog"] [role="listbox"] li:active,
-form[role="dialog"] [role="listbox"] li:active label span {
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active,
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active label span {
   background: #00ABCC;
   color: #fff!important;
 }
 
-form[role="dialog"] [role="listbox"] li input {
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li input {
   position: absolute;
   left: 0;
   top: 0;
@@ -200,21 +200,21 @@ form[role="dialog"] [role="listbox"] li input {
   pointer-events: none;
 }
 
-form[role="dialog"] [role="listbox"] li input:checked + span,
-form[role="dialog"] [role="listbox"] li[aria-checked="true"] span {
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li input:checked + span,
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-checked="true"] span {
   color: #00abcd;
   background: url(value_selector/images/icons/checked.png) content-box right center no-repeat;
 }
 
-form[role="dialog"] [role="listbox"] li a,
-form[role="dialog"] [role="listbox"] li label {
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li a,
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li label {
   border-bottom: 1px solid #000;
   outline: none;
 }
 
-form[role="dialog"] [role="listbox"] li a,
-form[role="dialog"] [role="listbox"] li label,
-form[role="dialog"] [role="listbox"] li label span {
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li a,
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li label,
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li label span {
   text-decoration: none;
   display: block;
   color: #fff;
