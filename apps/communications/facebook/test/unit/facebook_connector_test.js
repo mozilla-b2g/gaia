@@ -5,6 +5,7 @@ requireApp('communications/contacts/js/fb/fb_contact.js');
 requireApp('communications/facebook/js/facebook_connector.js');
 requireApp('communications/facebook/test/unit/mock_fb_graph_data.js');
 requireApp('communications/facebook/test/unit/mock_fb_query.js');
+requireApp('communications/contacts/js/import_utils.js');
 
 var realFbUtils,
     subject;
@@ -24,9 +25,7 @@ suite('Facebook Connector Tests', function() {
     subject = window.FacebookConnector;
   });
 
-  /*
-  //TEST DISABLED DUE TO CAUSING  CI FAILURE.
-  //SEE BUG #862719
+
   test('List all friends. Adapt data for showing', function(done) {
     subject.listAllContacts('fake_token', {
       success: function(data) {
@@ -44,11 +43,8 @@ suite('Facebook Connector Tests', function() {
       }
     });
   });
-  */
 
-  /*
-  //TEST DISABLED DUE TO CAUSING  CI FAILURE.
-  //SEE BUG #862719
+
   test('List all friends. Adapt Data for Saving', function(done) {
     subject.listAllContacts('fake_token', {
       success: function(data) {
@@ -80,7 +76,7 @@ suite('Facebook Connector Tests', function() {
       }
     });
   });
-  */
+
 
   suiteTeardown(function() {
     window.fb.utils = realFbUtils;
