@@ -79,6 +79,28 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 if (!window.location.hash.length) {
   window.navigator.mozSetMessageHandler('sms-received',
     function smsReceived(message) {
+      // Acquire the "high-priority" wake lock when we receive an SMS.  This
+      // raises the priority of this process above vanilla background apps,
+      // making it less likely to be killed on OOM.
+      //
+      // We'll release it once we display a notification to the user.  We also
+      // release the lock after 30s, in case we never run the notification code
+      // for some reason.
+      var wakeLock = navigator.requestWakeLock('high-priority');
+      var wakeLockReleased = false;
+      var timeoutID = null;
+      function releaseWakeLock() {
+        if (timeoutID !== null) {
+          clearTimeout(timeoutID);
+          timeoutID = null;
+        }
+        if (!wakeLockReleased) {
+          wakeLockReleased = true;
+          wakeLock.unlock();
+        }
+      }
+      timeoutID = setTimeout(releaseWakeLock, 30 * 1000);
+
       // The black list includes numbers for which notifications should not
       // progress to the user. Se blackllist.js for more information.
       var number = message.sender;
@@ -100,13 +122,16 @@ if (!window.location.hash.length) {
           MessageManager.deleteMessage(message.id, function() {
             app.launch();
             alert(messageBody);
+            releaseWakeLock();
           });
 
         };
         return;
       }
-      if (BlackList.has(message.sender))
+      if (BlackList.has(message.sender)) {
+        releaseWakeLock();
         return;
+      }
 
       // The SMS app is already displayed
       if (!document.mozHidden) {
@@ -114,6 +139,7 @@ if (!window.location.hash.length) {
         // If we are in the same thread, only we need to vibrate
         if (number == currentThread) {
           navigator.vibrate([200, 200, 200]);
+          releaseWakeLock();
           return;
         }
       }
@@ -141,6 +167,7 @@ if (!window.location.hash.length) {
           }
 
           NotificationHelper.send(sender, message.body, iconURL, goToMessage);
+          releaseWakeLock();
         });
       };
   });
