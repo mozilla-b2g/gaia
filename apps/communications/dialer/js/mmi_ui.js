@@ -146,7 +146,6 @@ var MmiUI = {
       !evt.data) {
       return;
     }
-
     switch (evt.data.type) {
       case 'mmi-success':
         this.hideResponseForm();
@@ -154,8 +153,7 @@ var MmiUI = {
           evt.data.result : this._('mmi-successfully-sent'));
         break;
       case 'mmi-error':
-        this.showMessage(evt.data.error ?
-          evt.data.error : this._('mmi-error'));
+        this.handleError(evt.data);
         break;
       case 'mmi-received-ui':
         if (evt.data.sessionEnded) {
@@ -175,6 +173,23 @@ var MmiUI = {
         this.showLoading();
         break;
     }
+  },
+
+  handleError: function ph_handleError(data) {
+    if (!this._conn)
+      this._conn = window.navigator.mozMobileConnection;
+    var error = data.error ? data.error : this._('mmi-error');
+    switch (error) {
+      case 'IncorrectPassword':
+        var retries = this._conn.retryCount;
+        error = this._('pinError');
+        if (retries)
+          error += this._('inputCodeRetriesLeft', {n: retries});
+        break;
+      default:
+        break;
+    }
+    this.showMessage(error);
   }
 };
 
