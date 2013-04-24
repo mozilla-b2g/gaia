@@ -504,7 +504,8 @@ var ThreadUI = {
       }
       if (attachment.text) {
         textElement = document.createElement('span');
-        textElement.innerHTML = LinkHelper.searchAndLinkClickableData(attachment.text);
+        textElement.innerHTML =
+          LinkHelper.searchAndLinkClickableData(attachment.text);
         container.appendChild(textElement);
       }
     });

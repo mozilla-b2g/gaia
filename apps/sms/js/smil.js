@@ -44,7 +44,7 @@ var SMIL = {
     // handle mms messages without smil
     // aggregate all text attachments into last slide
     if (!smil) {
-      attachments.forEach(function(attachment, index) {
+      attachments.forEach(function(attachment) {
         var textIndex = workingText.length;
         var blob = attachment.content;
         if (!blob) {
@@ -55,16 +55,19 @@ var SMIL = {
         // handle text blobs by reading them and converting to text on the
         // last slide
         if (type === 'text') {
-          workingText[textIndex] = '';
-          readTextBlob(blob, function(event, text) {
+          workingText.push('');
+          readTextBlob(blob, function smil_parse_attachment_read(event, text) {
             workingText[textIndex] = text;
+
+            // when the last reader finishs, we will join the text together
             if (!activeReaders) {
-              if (!slides.length) {
-                slides.push({
-                  text: workingText.join(' ')
-                });
+              var text = workingText.join(' ');
+              if (slides.length) {
+                slides[slides.length - 1].text = text;
               } else {
-                slides[slides.length - 1].text = workingText.join(' ');
+                slides.push({
+                  text: text
+                });
               }
               exitPoint();
             }
@@ -83,8 +86,10 @@ var SMIL = {
       Array.prototype.forEach.call(parTags, function(par, index) {
         var mediaElement = par.querySelector('img, video, audio');
         var textElement = par.querySelector('text');
-        var slide = slides[index] = {};
+        var slide = {};
         var textLocation;
+
+        slides.push(slide);
         if (mediaElement) {
           // some MMS use 'cid:' as a prefix, remove it
           slide.name = mediaElement.getAttribute('src').replace(/^cid:/, '');
@@ -93,7 +98,7 @@ var SMIL = {
         if (textElement) {
           textLocation = textElement.getAttribute('src').replace(/^cid:/, '');
           readTextBlob(findAttachment(textLocation).content,
-            function(event, text) {
+            function smil_parse_smil_attachment_read(event, text) {
               slide.text = text;
               exitPoint();
             }
@@ -105,7 +110,7 @@ var SMIL = {
   },
   generate: function SMIL_generate(slides) {
     var attachments = [];
-    var header = '<head><layout>' +
+    const HEADER = '<head><layout>' +
                  '<root-layout width="320px" height="480px"/>' +
                  '<region id="Image" left="0px" top="0px"' +
                  ' width="320px" height="320px" fit="meet"/>' +
@@ -113,11 +118,12 @@ var SMIL = {
                  ' width="320px" height="160px" fit="meet"/>' +
                  '</layout></head>';
     var parts = slides.map(function(slide, slideIndex) {
+      // default duration to 5 seconds per slide
+      const DURATION = 5000;
+
       var id;
       var blobType;
-      // default duration to 5 seconds per slide
-      var duration = 5000;
-      // each slide can have a peice of media and/or text
+      // each slide can have a piece of media and/or text
       var media = '';
       var text = '';
       if (slide.blob) {
@@ -143,10 +149,10 @@ var SMIL = {
           content: new Blob([slide.text], {type: 'text/plain'})
         });
       }
-      return '<par dur="' + duration + 'ms">' + media + text + '</par>';
+      return '<par dur="' + DURATION + 'ms">' + media + text + '</par>';
     });
     return {
-      smil: '<smil>' + header + '<body>' + parts.join('') + '</body></smil>',
+      smil: '<smil>' + HEADER + '<body>' + parts.join('') + '</body></smil>',
       attachments: attachments
     };
   }
