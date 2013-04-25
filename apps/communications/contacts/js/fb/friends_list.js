@@ -55,7 +55,9 @@ var FriendListRenderer = (function() {
     // contact's name from template...
     var notRenderedParagraph = groupsList.querySelector('[data-order-by="' +
                    (orderBy === 'firstName' ? 'lastName' : 'firstName') + '"]');
-    notRenderedParagraph.parentNode.removeChild(notRenderedParagraph);
+    if (notRenderedParagraph) {
+      notRenderedParagraph.parentNode.removeChild(notRenderedParagraph);
+    }
 
     // A..Z groups
     for (var i = 65; i <= 90; i++) {
