@@ -394,7 +394,7 @@ section[role="region"].new > header:first-child form {
   overflow: hidden;
 }
 
-#messages-container[data-type="list"] li.bubble .mms-bubble-content > img {
+.mms-bubble-content > img {
   display: block;
 }
 

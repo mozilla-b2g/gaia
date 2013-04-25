@@ -22,6 +22,43 @@ function getTypeFromMimeType(mime) {
 
 var SMIL = window.SMIL = {
 
+  // For utilizing sending/receiving DOM API, we need to handle 2 basic object
+  // first: SMIL document and attachment. SMIL document is used for
+  // representing the layout of the mms message, and attachment contains media
+  // source and text. In mms message layout, one message could be split into
+  // one or more slides. One slide could contain at most one media with/without
+  // a text string. For example:
+
+  /*
+  Layout of a mms message with 3 slides
+  ===================
+   ---------
+   | img 1 |
+   ---------   <- Slide 1
+   string 1
+
+   ===================
+   ---------
+   | img 2 |
+   ---------   <- Slide 2
+
+
+   ===================
+   -----------
+   | video 1 |
+   ----------- <- Slide 3
+   string 2
+
+   ===================
+
+  */
+
+  // In this case, all the media files(img1/img2/video1) and text string
+  // (string1/string2) will be converted into 5 attachments, and SMIL should
+  // illustrate that this mms message contains 3 slides and the attachment's
+  // name/layout... in each slide. Here we provide parse and generate utils
+  // for developers to focus on the necessary information in slides.
+
   // SMIL.parse - takes a message from the DOM API's and converts to a
   // simple array format:
 
@@ -146,6 +183,9 @@ var SMIL = window.SMIL = {
     }
     exitPoint();
   },
+
+  // SMIL.generate - takes a array with slides and return smil string and
+  // attachment array.
   generate: function SMIL_generate(slides) {
     var attachments = [];
     const HEADER = '<head><layout>' +

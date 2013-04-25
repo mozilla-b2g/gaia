@@ -501,6 +501,7 @@ var ThreadUI = {
           sourceTag.src = url;
           mediaElement.appendChild(sourceTag);
         }
+        container.appendChild(mediaElement);
       }
       if (attachment.text) {
         textElement = document.createElement('span');
