@@ -3,7 +3,39 @@
 
 'use strict';
 
-var SMIL = {
+(function() {
+
+function getTypeFromMimeType(mime) {
+  var index = mime.indexOf('/');
+  var mainPart = mime.slice(0, index);
+  switch (mainPart) {
+    case 'image':
+      return 'img';
+    case 'video':
+    case 'audio':
+    case 'text':
+      return mainPart;
+    default:
+      return null;
+  }
+}
+
+var SMIL = window.SMIL = {
+
+  // SMIL.parse - takes a message from the DOM API's and converts to a
+  // simple array format:
+
+  // message.smil = valid SMIL string, or falsey
+  // message.attachments = []
+  // message.attachments[].content = blob
+  // message.attachments[].location = src attr in smil
+
+  // callback(parsedArray):
+  // parsedArray = []
+  // parsedArray[].text = 'plain text'
+  // parsedArray[].name = name of key
+  // parsedArray[].blob = data blob
+
   parse: function SMIL_parse(message, callback) {
     var smil = message.smil;
     var attachments = message.attachments;
@@ -49,7 +81,7 @@ var SMIL = {
       if (!blob) {
         return;
       }
-      var type = blob.type.split('/')[0];
+      var type = getTypeFromMimeType(blob.type);
 
       // handle text blobs by reading them and converting to text on the
       // last slide
@@ -71,7 +103,9 @@ var SMIL = {
             exitPoint();
           }
         });
-      } else {
+
+      // make sure the type was something we want, otherwise ignore it
+      } else if (type) {
         slides.push({
           name: attachment.location,
           blob: attachment.content
@@ -131,17 +165,16 @@ var SMIL = {
       var media = '';
       var text = '';
       if (slide.blob) {
-        blobType = slide.blob.type.split('/')[0];
-        if (blobType === 'image') {
-          blobType = 'img';
+        blobType = getTypeFromMimeType(slide.blob.type);
+        if (blobType) {
+          id = slide.name;
+          media = '<' + blobType + ' src="' + id + '"/>';
+          attachments.push({
+            id: '<' + id + '>',
+            location: id,
+            content: slide.blob
+          });
         }
-        id = slide.name;
-        media = '<' + blobType + ' src="' + id + '"/>';
-        attachments.push({
-          id: '<' + id + '>',
-          location: id,
-          content: slide.blob
-        });
       }
       if (slide.text) {
         // Set text region.
@@ -161,3 +194,5 @@ var SMIL = {
     };
   }
 };
+
+})();
