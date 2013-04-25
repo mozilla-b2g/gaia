@@ -5,6 +5,8 @@ var CallHandler = (function callHandler() {
     document.location.host;
   var callScreenWindow = null;
   var callScreenWindowLoaded = false;
+  var callScreenWindowReady = false;
+  var btCommandsToForward = [];
   var currentActivity = null;
 
   /* === Settings === */
@@ -176,7 +178,12 @@ var CallHandler = (function callHandler() {
     }
 
     // Other commands needs to be handled from the call screen
-    sendCommandToCallScreen('BT', command);
+    if (callScreenWindowReady) {
+      sendCommandToCallScreen('BT', command);
+    } else {
+      // We queue the commands while the call screen is loading
+      btCommandsToForward.push(command);
+    }
   }
   if (window.navigator.mozSetMessageHandler) {
     window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
@@ -216,7 +223,9 @@ var CallHandler = (function callHandler() {
 
   // Receiving messages from the callscreen via post message
   //   - when the call screen is closing
+  //   - when the call screen is ready to receive messages
   //   - when we need to send a missed call notification
+  //   - when we need to add an entry to the recents database
   function handleMessage(evt) {
     if (evt.origin !== COMMS_APP_ORIGIN) {
       return;
@@ -226,6 +235,8 @@ var CallHandler = (function callHandler() {
 
     if (data === 'closing') {
       handleCallScreenClosing();
+    } else if (data === 'ready') {
+      handleCallScreenReady();
     } else if (data.type && data.type === 'notification') {
       // We're being asked to send a missed call notification
       NavbarManager.ensureResources(function() {
@@ -346,6 +357,17 @@ var CallHandler = (function callHandler() {
   function handleCallScreenClosing() {
     callScreenWindow = null;
     callScreenWindowLoaded = false;
+    callScreenWindowReady = false;
+  }
+
+  function handleCallScreenReady() {
+    callScreenWindowReady = true;
+
+    // Have any BT commands queued?
+    btCommandsToForward.forEach(function btIterator(command) {
+      sendCommandToCallScreen('BT', command);
+    });
+    btCommandsToForward = [];
   }
 
   /* === MMI === */
