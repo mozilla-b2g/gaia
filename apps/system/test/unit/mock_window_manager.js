@@ -11,15 +11,6 @@ var MockWindowManager = {
     this.mDisplayedApp = app;
   },
 
-  getOrientationForApp: function(origin) {
-    var app = this.mRunningApps[origin];
-
-    if (!app || !app.manifest)
-      return;
-
-    return app.manifest.orientation;
-  },
-
   launch: function mwm_launch(origin) {
     this.mDisplayedApp[origin] = {
       origin: origin
