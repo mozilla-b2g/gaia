@@ -42,6 +42,7 @@ var steps = {
 
 // Retrieve number of steps for navigation
 var numSteps = Object.keys(steps).length;
+var _;
 
 var Navigation = {
   currentStep: 1,
@@ -49,6 +50,7 @@ var Navigation = {
   externalUrlLoaderSelector: '#external-url-loader',
 
   init: function n_init() {
+    _ = navigator.mozL10n.get;
     var forward = document.getElementById('forward');
     var back = document.getElementById('back');
     forward.addEventListener('click', this.forward.bind(this));
@@ -165,7 +167,6 @@ var Navigation = {
 
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
-
     var className = this.getProgressBarClassName();
 
     switch (actualHash) {
@@ -195,6 +196,9 @@ var Navigation = {
         // Enabling or disabling SIM import depending on card status
         SimManager.checkSIMButton();
 
+        // Enabling or disabling SD import depending on card status
+        SdManager.checkSDButton();
+
         // If we have 3G or Wifi activate FB import
         var fbState;
         if (!WifiManager.api) {
@@ -202,11 +206,8 @@ var Navigation = {
           ImportIntegration.checkImport('enabled');
           return;
         }
-        if (window.navigator.onLine) {
-          fbState = 'enabled';
-        } else {
-          fbState = 'disabled';
-        }
+
+        fbState = window.navigator.onLine ? 'enabled' : 'disabled';
         ImportIntegration.checkImport(fbState);
         break;
       case '#welcome_browser':
@@ -269,15 +270,11 @@ var Navigation = {
     }
     // Substitute button content on last step
     var nextButton = document.getElementById('forward');
-    var innerNode = nextButton.childNodes[1];
-    if (this.currentStep == numSteps) {
-      nextButton.dataset.l10nId = 'done';
-      nextButton.textContent = _('done');
+    if (this.currentStep === numSteps) {
+      nextButton.firstChild.textContent = _('done');
     } else {
-      nextButton.dataset.l10nId = 'navbar-next';
-      nextButton.textContent = _('navbar-next');
+      nextButton.firstChild.textContent = _('navbar-next');
     }
-    nextButton.appendChild(innerNode);
     // Change hash to the right location
     window.location.hash = futureLocation.hash;
     // SIM card management
@@ -291,3 +288,4 @@ var Navigation = {
     }
   }
 };
+
