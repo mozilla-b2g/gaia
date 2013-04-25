@@ -77,8 +77,8 @@ suite('Fill tag options', function() {
         customTag;
     var testTagOptions = {
       'test-type' : [
-        {value: 'value1'},
-        {value: 'value2'}
+        {type: 'value1', value: 'value1'},
+        {type: 'value2', value: 'value2'}
       ]
     };
 
