@@ -49,6 +49,8 @@ var UIManager = {
     // Import contacts
     'sim-import-button',
     'no-sim',
+    'sd-import-button',
+    'no-sd',
     // Wifi
     'networks',
     'wifi-refresh-button',
@@ -102,6 +104,7 @@ var UIManager = {
                                        this.fakeInputValues.bind(this));
 
     this.simImportButton.addEventListener('click', this);
+    this.sdImportButton.addEventListener('click', this);
     this.skipPinButton.addEventListener('click', this);
     this.unlockSimButton.addEventListener('click', this);
 
@@ -272,6 +275,11 @@ var UIManager = {
         // Needed to give the browser the opportunity to properly refresh the UI
         // Particularly the button toggling cycle (from inactive to active)
         window.setTimeout(SimManager.importContacts, 0);
+        break;
+      case 'sd-import-button':
+        // Needed to give the browser the opportunity to properly refresh the UI
+        // Particularly the button toggling cycle (from inactive to active)
+        window.setTimeout(SdManager.importContacts, 0);
         break;
       // 3G
       case 'data-connection-switch':
