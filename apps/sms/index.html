@@ -103,11 +103,14 @@
               <span class="icon icon-edit"></span>
             </a>
           </menu>
-          <h1 id="messages-header-text" data-l10n-id="messages" aria-hidden="true">Messages</h1>
-          <form id="messages-tel-form">
-            <input id="messages-recipient" type="text" name="tel" class="tel" />
-            <span id="messages-clear-button" role="button" class="icon icon-clear"></span>
-          </form>
+          <h1 id="messages-header-text" aria-hidden="true"></h1>
+          <section id="messages-to-field">
+            <section data-l10n-id="to" id="to-label">
+              To:
+            </section>
+            <section id="messages-recipients-container">
+            </section>
+          </section>
         </header>
         <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
           Carrier unknown
@@ -155,7 +158,7 @@
     </article>
     <div id="messages-contact-tmpl" class="hide">
       <!--
-      <a href="#num=${number}">
+      <a data-phone-number="${number}" data-name="${name}" class="suggestion">
         <aside class="pack-end">
           <img ${srcAttr}>
         </aside>

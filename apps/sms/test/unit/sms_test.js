@@ -731,6 +731,81 @@ suite('SMS App Unit-Test', function() {
     });
   });
 
+  suite('New layout', function() {
+
+    setup(function() {
+      window.location.hash = '#new';
+    });
+
+    test('Create editable recipient', function() {
+      // Create editable recipient
+      ThreadUI.appendEditableRecipient();
+      // Is the editable recipient created?
+      var editableRecipientsBefore =
+        ThreadUI.recipientsContainer.
+          querySelectorAll('span[contenteditable=true]');
+      assert.equal(editableRecipientsBefore.length, 1);
+      // Pick the recipient
+      var recipient = editableRecipientsBefore[0];
+      // Update the content
+      recipient.textContent = '+34612123123;';
+      // Launch an input
+      recipient.dispatchEvent(new CustomEvent('input'));
+      // Check if recipient now it's a box
+      var editableRecipientsAfter =
+        ThreadUI.recipientsContainer.
+          querySelectorAll('span[contenteditable=true]');
+      assert.equal(editableRecipientsAfter.length, 0);
+      // Convert again in editable recipient
+      var nonEditableRecipients =
+        ThreadUI.recipientsContainer.
+          querySelectorAll('span[contenteditable=false]');
+      assert.equal(nonEditableRecipients.length, 1);
+      // Convert in editable
+      var justCreatedRecipient = nonEditableRecipients[0];
+      justCreatedRecipient.
+        dispatchEvent(new CustomEvent('click', {'bubbles' : true}));
+      // Is editable again?
+      var recipientsEditableAgain =
+        ThreadUI.recipientsContainer.
+          querySelectorAll('span[contenteditable=true]');
+      assert.equal(recipientsEditableAgain.length, 1);
+      // Clean the content
+      recipientsEditableAgain[0].textContent = '';
+      ThreadUI.cleanRecipients();
+      var recipientsAtTheEnd =
+        ThreadUI.recipientsContainer.
+          querySelectorAll('span[contenteditable=true]');
+      assert.equal(recipientsAtTheEnd.length, 0);
+
+    });
+
+    test('Create recipient live-search', function() {
+      var contact = {
+            id: 111,
+            name: ['Alejandro'],
+            tel: [{
+              value: '0624710190',
+              type: 'Mobile'
+            }]
+          };
+      // Create editable recipient
+      ThreadUI.appendEditableRecipient(contact);
+      // Retrieve the element
+      var recipientsCreated =
+        ThreadUI.recipientsContainer.getElementsByClassName('recipient');
+      assert.equal(recipientsCreated.length, 1);
+      // Pick the recipient
+      var recipient = recipientsCreated[0];
+      assert.equal(recipient.textContent, 'Alejandro');
+    });
+
+    teardown(function() {
+      window.location.hash = '';
+      ThreadUI.recipientsContainer.textContent = '';
+    });
+  });
+
   suite('Secure User Input', function() {
     function mock(definition) {
       return function mock() {
@@ -745,19 +820,20 @@ suite('SMS App Unit-Test', function() {
       Utils.getPhoneDetails = mock(function(number, contact, handler) {
         handler({});
       });
+      var ul = document.createElement('ul');
 
-      ThreadUI.recipient.value = '+99';
+      ThreadUI.recipients.value = '+99';
       assert.doesNotThrow(function() {
         ThreadUI.renderContact({
           name: 'Spider Monkey',
           tel: [{ value: '...' }]
-        });
+        }, '+99', ul);
       });
       assert.ok(Utils.getPhoneDetails.called);
       assert.equal(Utils.getPhoneDetails.args[0], '...');
 
-      done();
       Utils.getPhoneDetails = getPhoneDetails;
+      done();
     });
 
     test('*67 [800]-555-1212', function(done) {
@@ -765,19 +841,19 @@ suite('SMS App Unit-Test', function() {
       Utils.getPhoneDetails = mock(function(number, contact, handler) {
         handler({});
       });
+      var ul = document.createElement('ul');
 
-      ThreadUI.recipient.value = '*67 [800]-555-1212';
       assert.doesNotThrow(function() {
         ThreadUI.renderContact({
           name: 'Spider Monkey',
           tel: [{ value: '...' }]
-        });
+        }, '*67 [800]-555-1212', ul);
       });
       assert.ok(Utils.getPhoneDetails.called);
       assert.equal(Utils.getPhoneDetails.args[0], '...');
 
-      done();
       Utils.getPhoneDetails = getPhoneDetails;
+      done();
     });
 
     test('\\^$*+?.', function(done) {
@@ -785,32 +861,34 @@ suite('SMS App Unit-Test', function() {
       Utils.getPhoneDetails = mock(function(number, contact, handler) {
         handler({});
       });
-
-      ThreadUI.recipient.value = '\\^$*+?.';
+      var ul = document.createElement('ul');
       assert.doesNotThrow(function() {
         ThreadUI.renderContact({
           name: 'Spider Monkey',
           tel: [{ value: '...' }]
-        });
+        }, '\\^$*+?.', ul);
       });
       assert.ok(Utils.getPhoneDetails.called);
       assert.equal(Utils.getPhoneDetails.args[0], '...');
 
-      done();
       Utils.getPhoneDetails = getPhoneDetails;
+      done();
     });
   });
 
   suite('Defensive Contact Rendering', function() {
     test('has tel number', function() {
+      var contactsUl = document.createElement('ul');
       var contact = new MockContact();
-      assert.isTrue(ThreadUI.renderContact(contact));
+      assert.isTrue(ThreadUI.renderContact(contact,
+        contact.tel[0].value, contactsUl));
     });
 
     test('no tel number', function() {
+      var contactsUl = document.createElement('ul');
       var contact = new MockContact();
       contact.tel = null;
-      assert.isFalse(ThreadUI.renderContact(contact));
+      assert.isFalse(ThreadUI.renderContact(contact, null, contactsUl));
     });
   });
 
@@ -818,12 +896,8 @@ suite('SMS App Unit-Test', function() {
     test('Sending to contact should put in right thread', function(done) {
       var mock = [
           {
-            id: 111,
-            name: ['Pietje'],
-            tel: [{
-              value: '0624710190',
-              type: 'Mobile'
-            }]
+            name: 'Pietje',
+            number: '0624710190'
           }
         ];
       Contacts.findByString = stub(function(str, callback) {
@@ -837,9 +911,9 @@ suite('SMS App Unit-Test', function() {
       MessageManager.send = stub();
 
       window.location.hash = '#new';
-      ThreadUI.recipient = {
-        value: '0624710190'
-      };
+      var recipient = ThreadUI.appendEditableRecipient(mock[0]);
+      ThreadUI.createRecipient(recipient);
+      // Launch an input
       ThreadUI.input.value = 'Jo quiro';
       ThreadUI.sendMessage();
 
@@ -849,9 +923,6 @@ suite('SMS App Unit-Test', function() {
         assert.equal(MessageManager.send.callCount, 1);
         assert.equal(MessageManager.send.calledWith[0], '0624710190');
         assert.equal(MessageManager.send.calledWith[1], 'Jo quiro');
-
-        assert.equal(ThreadUI.headerText.textContent, 'Pietje');
-        assert.equal(ThreadUI.headerText.dataset.isContact, 'true');
 
         window.location.hash = '';
         done();
@@ -880,9 +951,10 @@ suite('SMS App Unit-Test', function() {
       MessageManager.send = stub();
 
       window.location.hash = '#new';
-      ThreadUI.recipient = {
-        value: '2471'
-      };
+      var recipient = ThreadUI.appendEditableRecipient();
+      recipient.textContent = '2471';
+      // Launch an input
+      ThreadUI.createRecipient(recipient);
       ThreadUI.input.value = 'Short';
       ThreadUI.sendMessage();
 
@@ -892,9 +964,6 @@ suite('SMS App Unit-Test', function() {
         assert.equal(MessageManager.send.callCount, 1);
         assert.equal(MessageManager.send.calledWith[0], '2471');
         assert.equal(MessageManager.send.calledWith[1], 'Short');
-
-        assert.equal(ThreadUI.headerText.textContent, '2471');
-        assert.equal(ThreadUI.headerText.dataset.isContact, undefined);
 
         window.location.hash = '';
         done();

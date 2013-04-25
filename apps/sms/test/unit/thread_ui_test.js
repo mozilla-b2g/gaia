@@ -59,11 +59,13 @@ suite('thread_ui.js >', function() {
       '  <span class="icon icon-edit"></span>' +
       '</a>' +
       '<h1 id="messages-header-text">Messages</h1>' +
-      '<form id="messages-tel-form">' +
-      '  <input id="messages-recipient" type="text" name="tel" class="tel" />' +
-      '  <span id="messages-clear-button" role="button"' +
-      '    class="icon icon-clear"></span>' +
-      '</form>' +
+      '<section id="messages-to-field">' +
+        '<section data-l10n-id="to" id="to-label">' +
+          'To:' +
+        '</section>' +
+        '<section id="messages-recipients-container">' +
+        '</section>' +
+      '</section>' +
       '<article id="messages-container" class="view-body" data-type="list">' +
       '</article>' +
       '<form role="search" id="messages-compose-form" ' +
@@ -151,29 +153,12 @@ suite('thread_ui.js >', function() {
       test('button should be enabled when there is both contact and input',
         function() {
 
-        input.value = 'Hola';
-        recipient.value = '123123123';
+        ThreadUI.input.value = 'Hola';
+        var recipient = ThreadUI.appendEditableRecipient();
+        ThreadUI.createRecipient(recipient);
         ThreadUI.enableSend();
         assert.isFalse(sendButton.disabled);
       });
-    });
-  });
-
-  suite('cleanFields >', function() {
-    setup(function() {
-      window.location.hash = '#new';
-      input.value = 'Hola';
-      recipient.value = '123123123';
-      ThreadUI.enableSend();
-      ThreadUI.cleanFields();
-    });
-
-    teardown(function() {
-      window.location.hash = '';
-    });
-
-    test('should disable the button', function() {
-      assert.isTrue(sendButton.disabled);
     });
   });
 

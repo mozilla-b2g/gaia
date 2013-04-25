@@ -265,7 +265,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 */
 
 section[role="region"].new > header:first-child h1 {
-  display: none;
+  pointer-events: none;
 }
 
 section[role="region"].new > header:first-child form {
@@ -294,7 +294,7 @@ section[role="region"].new > header:first-child form {
 
 #messages-container {
   -moz-box-sizing: border-box;
-  background: none repeat scroll 0 0 #F4F4F4;
+  background: none repeat scroll 0 0 #E4E4E4;
   text-align: left;
 }
 
@@ -587,4 +587,119 @@ form.bottom[role="search"].messages-compose-form {
   line-height: 1.8rem;
   color: #FF4E00;
   z-index: 4;
+}
+
+/*
+  Styles related to the new layout of the composer
+*/
+
+#messages-to-field {
+  display: none;
+  text-align: left;
+  min-height: 3.7rem;
+  overflow: hidden;
+  border-bottom: .1rem solid #949494;
+  color: black;
+  position: relative;
+  margin: 0 1.5rem;
+  margin-top: .3rem;
+  padding: .8rem 0;
+  width: -moz-calc(100% - 3rem);
+  z-index: 10;
+  background: #E4E4E4;
+  font-size: 1.465rem;
+}
+
+section[role="region"].new #messages-to-field {
+  display: block;
+}
+
+#to-label {
+  display: inline-block;
+  width: 2.5rem;
+  position: absolute;
+  top: 1.9rem;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  color: black;
+  font-size: 1.465rem;
+}
+
+#add-contact {
+  display: inline-block;
+  text-align: center;
+  width: 3rem;
+  position: absolute;
+  right: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 3rem;
+  font-weight: bold;
+  color: black;
+  height: 4rem;
+  line-height: 4rem;
+}
+
+#messages-recipients-container {
+  top: .9rem;
+  left: 3rem;
+  position: relative;
+  width: 10rem;
+  display: inline-block;
+  width: -moz-calc(100% - 6.8rem);
+}
+
+.recipient {
+  background: white;
+  padding: .2rem 0.8rem;
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: -moz-calc(100% - 1rem);
+  border: .1rem solid #949494;
+  color: #333333;
+  height: 2rem;
+  margin-right: .5rem;
+  border-radius: .2rem;
+}
+
+.recipient[contenteditable=true] {
+  background: none;
+  border: none;
+  overflow: hidden;
+  white-space: normal;
+  text-overflow: normal;
+  color: black;
+  font-size: 1.8rem;
+}
+
+section[role="region"].new #messages-container[data-type="list"] > ul.contactList {
+  position: absolute;
+  width: 100%;
+  z-index: 5;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: -moz-calc(100% - 5rem)  ;
+  padding: 0;
+}
+
+section[role="region"].new #messages-container[data-type="list"] {
+  margin-top: .3rem;
+}
+
+section[role="region"].new #messages-container[data-type="list"]  li:first-child {
+  margin-top: 5.6rem;
+}
+
+section[role="region"].new #messages-container[data-type="list"]  li{
+  background: #E4E4E4;
+  padding: 0 1.5rem;
+  pointer-events: normal;
+}
+
+.suggestion * {
+  pointer-events : none;
 }
