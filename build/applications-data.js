@@ -185,7 +185,7 @@ init = getFile(GAIA_DIR, 'apps', 'costcontrol', 'js', 'config.json');
 
 content = {
   provider: 'Vivo',
-  enable_on: { 724: [6, 10, 11, 23] }, // { MCC: [ MNC1, MNC2, ...] }
+  enable_on: { "724": ["6", "10", "11", "23"] }, // { MCC: [ MNC1, MNC2, ...] }
   is_free: true,
   is_roaming_free: true,
   credit: { currency : 'R$' },
