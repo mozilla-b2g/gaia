@@ -552,6 +552,27 @@ var TitleBar = {
 
   changeTitleText: function tb_changeTitleText(content) {
     this.titleText.textContent = content;
+    // Check if the title text overflows, and if so, add the marquee class
+    var headerWrapper = this.titleText.parentNode;
+    var headerNode = headerWrapper.parentNode;
+    if (headerNode.offsetWidth < headerWrapper.scrollWidth) {
+      // Start the marquee animation
+      this.titleText.classList.add('marquee-start');
+      var self = this.titleText;
+      this.titleText.addEventListener('animationend', function() {
+        self.classList.remove('marquee-start');
+        // Correctly calculate the width of the marquee
+        var visibleWidth = headerNode.offsetWidth + 'px';
+        self.style.transform = 'translateX(' + visibleWidth + ')';
+        // Enable the continuous marquee
+        self.classList.add('marquee');
+      });
+    } else {
+      // Remove the marquee if it was enabled and reset the style for transform
+      this.titleText.classList.remove('marquee-start');
+      this.titleText.classList.remove('marquee');
+      this.titleText.style.transform = '';
+    }
   },
 
   handleEvent: function tb_handleEvent(evt) {

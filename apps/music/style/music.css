@@ -100,6 +100,31 @@ body {
 }
 
 
+/* Song title marquee (right to left) style rules */
+#title h1 {
+  position: relative;
+}
+
+#title-wrapper {
+  position: absolute;
+}
+
+.marquee-start {
+  width: 100%;
+  animation: left-marquee 12s steps(84) 3s 1;
+}
+
+.marquee {
+  width: 100%;
+  animation: left-marquee 20s steps(140) 0s infinite;
+}
+
+@keyframes left-marquee {
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
 /* Display the names of the songs we scan here */
 #scan-progress {
   position: absolute;

@@ -324,10 +324,11 @@ var PlayerView = {
 
     if (arguments.length > 0) {
       var songData = this.dataSource[targetIndex];
+      var artistName = songData.metadata.artist || unknownArtist;
 
-      ModeManager.playerTitle = songData.metadata.title;
+      ModeManager.playerTitle = songData.metadata.title + ' - ' + artistName;
       ModeManager.updateTitle();
-      this.artist.textContent = songData.metadata.artist || unknownArtist;
+      this.artist.textContent = artistName;
       this.artist.dataset.l10nId =
         songData.metadata.artist ? '' : unknownArtistL10nId;
       this.album.textContent = songData.metadata.album || unknownAlbum;
