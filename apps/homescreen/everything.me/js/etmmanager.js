@@ -1,10 +1,47 @@
-
 "use strict";
 
 var EvmeManager = (function EvmeManager() {
     var currentWindow = null,
-        currentURL = null;
+        currentURL = null,
+        EverythingME,
+        currentFrame;
+    
+    function onInit(evmeInstance) {
 
+      document.body.classList.add('evme-visible');
+
+      EverythingME = evmeInstance;
+
+      var elEvme = document.getElementById('landing-page');
+
+      elEvme.addEventListener('gridpageshowstart', function pageshowstart() {
+        EverythingME.onShowStart();
+      });
+      elEvme.addEventListener('gridpageshowend', function gridpageshowend() {
+        EverythingME.onShowEnd();
+      });
+      elEvme.addEventListener('gridpagehidestart', function gridpagehidestart() {
+        EverythingME.onHideStart();
+      });
+      elEvme.addEventListener('gridpagehideend', function gridpagehideend() {
+        EverythingME.onHideEnd();
+      });
+
+      // context- long tap, should sometimes be canceled
+      elEvme.addEventListener('contextmenu', function longPress(evt) {
+        if (!EverythingME.allowContext()) {
+          evt.stopImmediatePropagation();
+        }
+      });
+
+      // hash change- mainly for Home Button click
+      window.addEventListener('hashchange', function hashChange(e) {
+        if (!EverythingME.allowHomeButtonClick(e)) {
+          e.stopImmediatePropagation();
+        }
+      });
+    }
+    
     function openApp(params) {
         var evmeApp = new EvmeApp({
             bookmarkURL: params.originUrl,
@@ -36,16 +73,16 @@ var EvmeManager = (function EvmeManager() {
         });
     }
 
+    var footerStyle = document.getElementById("footer").style;
+    footerStyle.transition = 'transform .3s ease';
+    
     function menuShow() {
-        footerStyle.MozTransform = "translateY(0)";
+        footerStyle.transform = "translateY(0)";
     }
 
     function menuHide() {
-        footerStyle.MozTransform = "translateY(100%)";
+        footerStyle.transform = "translateY(100%)";
     }
-
-    var footerStyle = document.getElementById("footer").style;
-    footerStyle.MozTransition = "-moz-transform .3s ease";
 
     function getMenuHeight() {
         return document.getElementById("footer").offsetHeight;
@@ -81,10 +118,103 @@ var EvmeManager = (function EvmeManager() {
     }
 
     function getIconSize() {
-        return Icon.prototype.MAX_ICON_SIZE;
+      return Icon.prototype.MAX_ICON_SIZE;
+    }
+    
+    function setWallpaper(image) {
+      navigator.mozSettings.createLock().set({
+        'wallpaper.image': image
+      });
+    }
+
+    function load() {
+
+      var CB = !('ontouchstart' in window),
+          js_files = ['js/Core.js',
+                      'js/helpers/Utils.js',
+                      'config/config.js',
+                      'config/shortcuts.js',
+                      'js/Brain.js',
+                      'modules/Apps/Apps.js',
+                      'modules/BackgroundImage/BackgroundImage.js',
+                      'modules/Banner/Banner.js',
+                      'modules/Location/Location.js',
+                      'modules/Shortcuts/Shortcuts.js',
+                      'modules/ShortcutsCustomize/ShortcutsCustomize.js',
+                      'modules/Searchbar/Searchbar.js',
+                      'modules/SearchHistory/SearchHistory.js',
+                      'modules/Helper/Helper.js',
+                      'modules/ConnectionMessage/ConnectionMessage.js',
+                      'modules/SmartFolder/SmartFolder.js',
+                      'js/helpers/Storage.js',
+                      'js/plugins/Scroll.js',
+                      'js/external/uuid.js',
+                      'js/api/apiv2.js',
+                      'js/api/DoATAPI.js',
+                      'js/helpers/EventHandler.js',
+                      'js/helpers/Idle.js',
+                      'js/plugins/Analytics.js',
+                      'js/plugins/APIStatsEvents.js'];
+      var css_files = ['css/common.css',
+                       'modules/Apps/Apps.css',
+                       'modules/BackgroundImage/BackgroundImage.css',
+                       'modules/Banner/Banner.css',
+                       'modules/Shortcuts/Shortcuts.css',
+                       'modules/ShortcutsCustomize/ShortcutsCustomize.css',
+                       'modules/Searchbar/Searchbar.css',
+                       'modules/SearchHistory/SearchHistory.css',
+                       'modules/Helper/Helper.css',
+                       'modules/ConnectionMessage/ConnectionMessage.css',
+                       'modules/SmartFolder/SmartFolder.css'];
+
+      var head = document.head,
+          filesLoadProgress = 0,
+          filesLoadCount = js_files.length + css_files.length;
+
+      function onFileLoad(e) {
+        e.target.removeEventListener('load', onFileLoad);
+        
+        filesLoadProgress++;
+        if (filesLoadProgress >= filesLoadCount) {
+          Evme.init();
+        }
+      }
+
+      function loadCSS(file) {
+        var link = document.createElement('link');
+        link.type = 'text/css';
+        link.rel = 'stylesheet';
+        link.href = 'everything.me/' + file + (CB ? '?' + Date.now() : '');
+        link.addEventListener('load', onFileLoad);
+        head.appendChild(link);
+      }
+
+      function loadScript(file) {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'everything.me/' + file + (CB ? '?' + Date.now() : '');
+        script.defer = true;
+        script.addEventListener('load', onFileLoad);
+        head.appendChild(script);
+      }
+      
+      function loadAssets() {
+        for (var i=0,js; js=js_files[i++];) {
+          loadScript(js);
+        }
+        for (var i=0,css; css=css_files[i++];) {
+          loadCSS(css);
+        }
+      }
+      
+      loadAssets();
     }
 
     return {
+        init: load,
+
+        onInit: onInit,
+
         openApp: openApp,
 
         addBookmark: addBookmark,
@@ -103,7 +233,9 @@ var EvmeManager = (function EvmeManager() {
         menuHide: menuHide,
         getMenuHeight: getMenuHeight,
 
-        getIconSize: getIconSize
+        getIconSize: getIconSize,
+        
+        setWallpaper: setWallpaper
     };
 }());
 

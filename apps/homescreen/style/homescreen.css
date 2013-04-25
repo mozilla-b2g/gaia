@@ -47,6 +47,8 @@ section,footer,nav,a,img {
   position: fixed;
   top: 0;
   left: 0;
+  background-image: url('../resources/images/page_underlay.png');
+  background-size: cover;
 }
 
 button:focus::-moz-focus-inner {
@@ -76,7 +78,7 @@ li:active {
   position: fixed;
   top: 0;
   left: 0;
-  background-color: #182026;
+  background-color: #000000;
   opacity: 0;
 }
 

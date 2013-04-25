@@ -28,16 +28,16 @@ const Configurator = (function() {
         var provider = window[searchPage.provider] || dummyProvider;
         if (searchPage.enabled) {
           provider.init();
-          Homescreen.init(1);
+          Homescreen.init();
         } else {
-          startHomescreenByDefault();
+          Homescreen.init();
           setTimeout(provider.destroy, 0);
         }
       }
     } catch (e) {
       conf = {};
       console.error('Failed parsing homescreen configuration file: ' + e);
-      startHomescreenByDefault();
+      Homescreen.init();
     }
   };
 

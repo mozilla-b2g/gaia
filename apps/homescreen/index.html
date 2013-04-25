@@ -8,13 +8,13 @@
     <link rel="stylesheet" type="text/css" href="style/dragdrop.css">
     <link rel="stylesheet" type="text/css" href="style/dock.css">
     <link rel="stylesheet" type="text/css" href="style/landing.css">
-    <link rel="stylesheet" type="text/css" href="everything.me/css/everything.me.css">
 
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" src="shared/js/l10n_date.js"></script>
     <script type="text/javascript" defer src="shared/js/manifest_helper.js"></script>
     <script type="text/javascript" src="shared/js/settings_listener.js"></script>
+    <script type="text/javascript" src="shared/js/async_storage.js"></script>
 
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
@@ -34,9 +34,6 @@
     <script type="text/javascript" defer src="js/dock.js"></script>
     <script type="text/javascript" defer src="js/grid.js"></script>
     <script type="text/javascript" defer src="js/dragdrop.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/everything.me.js"></script>
-    <script type="text/javascript" defer src="js/homescreen.js"></script>
-    <script type="text/javascript" defer src="js/configurator.js"></script>
     <script type="text/javascript" defer src="js/wallpaper.js"></script>
     <script type="text/javascript" defer src="js/hiddenapps.js"></script>
 
@@ -45,6 +42,12 @@
 
     <!-- Shared responsive -->
     <link rel="stylesheet" type="text/css" href="shared/style/responsive.css">
+    
+    
+    <!-- Homescreen and Everything.me -->
+    <script type="text/javascript" defer src="everything.me/js/etmmanager.js"></script>
+    <script type="text/javascript" defer src="js/homescreen.js"></script>
+    <script type="text/javascript" defer src="js/configurator.js"></script>
   </head>
 
   <body data-mode="normal">
@@ -76,54 +79,6 @@
     </header>
 
     <div id="icongrid" class="apps" role="main">
-      <div class="page" id="evmePage" role="search-page">
-          <form id="loading-overlay" role="dialog" data-type="confirm">
-            <section>
-              <h1 data-l10n-id="loadingEvme2">Loading&hellip;</h1>
-              <p role="status">
-                <span>0%</span>
-                <progress value="0" max="100"></progress>
-              </p>
-            </section>
-          </form>
-          <div id="evmeContainer">
-            <div id="search" class="active">
-                <div id="search-header">
-                    <form action="/#!/search" id="search-rapper">
-                        <fieldset>
-                            <div id="search-q-bg">
-                                <input type="text" id="search-q" name="search-q" maxlength="128" autocorrect="off" autocapitalize="off" />
-                                <span id="default-text" data-l10n-id="evme-searchbar-default"></span>
-                            </div>
-                            <div id="helper-tip"><b></b></div>
-                        </fieldset>
-                    </form>
-                    <b id="button-clear" data-l10n-id="evme-searchbar-clear"></b>
-                </div>
-                <div id="header">
-                    <div id="helper-header">
-                        <h1 id="search-title"></h1>
-                        <div id="helper-rapper">
-                            <div id="helper">
-                                <ul></ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="evmeApps" class="evme-apps">
-                    <ul id="evmeAppsList"></ul>
-                </div>
-            </div>
-
-            <div id="shortcuts">
-                <div id="shortcuts-list">
-                    <ul id="shortcuts-items"></ul>
-                </div>
-                <div id="shortcuts-loading"></div>
-            </div>
-            <section id="evmeBanner" role="status"></section>
-          </div>
-      </div>
       <div id="landing-page" data-current-page="true">
         <div id="landing-time">
           <p id="landing-clock">
@@ -131,6 +86,38 @@
             <span class="meridiem"></span>
           </p>
           <p id="landing-date"></p>
+        </div>
+        <div id="evmeContainer" style="display: none">
+            <div id="evme-shortcuts">
+                <div class="actionbar" id="shortcuts-actionbar">
+                  <b class="close"></b>
+                  <h2 data-l10n-id="evme-smart-folders"></h2>                  
+                </div>
+                <div id="shortcuts">
+                    <div id="shortcuts-list">
+                        <ul id="shortcuts-items"></ul>
+                    </div>
+                    <div id="shortcuts-loading"></div>
+                </div>
+            </div>
+            <div id="evme-search">
+              <div class="header">
+                <b class="shortcuts"></b>
+                <b class="clear"></b>
+                <b class="save"></b>
+                <span class="cursor"></span>
+                <div class="title" data-l10n-id="evme-searchbar-title"></div>
+                <input type="text" id="evme-searchbar" data-l10n-id="evme-searchbar-default" maxlength="128" autocorrect="off" autocapitalize="off" />
+              </div>
+              <div class="helper">
+                <div class="inner">
+                  <ul></ul>
+                </div>
+              </div>
+              <div id="evmeApps" class="evme-apps">
+                <ul id="evmeAppsList"></ul>
+              </div>
+            </div>
         </div>
       </div>
     </div>

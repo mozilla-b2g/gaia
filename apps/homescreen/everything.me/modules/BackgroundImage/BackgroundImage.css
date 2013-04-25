@@ -5,11 +5,8 @@
     right: 0;
     bottom: 0;
     z-index: 1;
-    opacity: 0;
-    transition: opacity .3s linear;
-}
-.evme-displayed #search-overlay {
     opacity: 1;
+    transition: opacity .3s linear;
 }
 #evmeContainer #search-header.animate,
 #evmeContainer #header.animate,
@@ -29,19 +26,9 @@
     }
     #search-overlay .img {
         transition: opacity .3s linear;
-        -moz-transform: translate3d(0px, 0px, 0px) rotate(0deg) scale(1);
     }
     #search-overlay .img.visible {
-        opacity: 0.4;
-    }
-    #search-overlay .img.default-image {
-        background: #000;
-    }
-    #search-overlay .img.default-image.visible {
         opacity: 1;
-    }
-    #search-overlay.default .img.default-image.visible {
-        opacity: .4;
     }
 
 #bgimage-overlay {
@@ -70,64 +57,47 @@
         background-position: 50% 0;
         background-size: cover;
     }
-    #bgimage-overlay .content {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 42px;
-        line-height: 42px;
-        padding: 0 40px 0 10px;
-        z-index: 20;
-        cursor: pointer;
-        background: rgba(0, 0, 0, .8);
-     }
-        #bgimage-overlay .content h2 {
+    
+        #bgimage-overlay .actionbar h2 {
             font-weight: 600;
             color: #b4dae7;
-            font-size: 15px;
-            height: 17px;
-            margin-top: 5px;
+            font-size: 1.3rem;
+            height: 1.7rem;
+            margin: 0.9rem 0 0;
             line-height: 100%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            display: none;
+            text-indent: 0;
+            position: absolute;
+            left: 3.2rem;
+            top: 0;
+            right: 5.4rem;
         }
-        #bgimage-overlay.nosource .content h2 {
+        #bgimage-overlay.nosource .actionbar h2 {
             margin-top: 0;
-            height: 43px;
-            line-height: 43px;
+            height: 5rem;
+            line-height: 5rem;
         }
-        #bgimage-overlay .content .source {
-            font-weight: 600;
+        #bgimage-overlay .actionbar .source {
             color: #fff;
-            font-size: 13px;
+            font-size: 1.3rem;
+            line-height: 1.7rem;
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis;
+            text-overflow: ellipsis;position: absolute;
+            left: 3.2rem;
+            top: 2.5rem;
+            right: 5.4rem;
         }
             #bgimage-overlay .content .source span {
                 text-decoration: underline;
             }
-        #bgimage-overlay .content .close {
-            background: transparent url('../../images/imageclose.png') 50% 50% no-repeat;
-            position: absolute;
-            top: 50%;
-            right: 5px;
-            z-index: 2;
-            width: 32px;
-            height: 32px;
-            margin-top: -16px;
-            cursor: pointer;
+        
+        #bgimage-overlay .actionbar .rightbutton {
+            background-image: url('../../images/icon-wallpaper.png');
+            background-size: 2.7rem;
         }
-.fullscreen-bgimage #search-header {
+.evme-fullscreen-bgimage #search-header {
     display: none;
-}
-
-#evmeContainer #search-overlay .default-image.visible {
-    opacity: 0;
-}
-#evmeContainer #search-overlay.default .default-image.visible {
-    opacity: 1;
 }

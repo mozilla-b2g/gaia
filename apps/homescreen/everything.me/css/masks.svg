@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <mask id="searchbar" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
+    <rect x="0" y="0" width="0.97" height="0.9" fill="white"></rect>
+    
+    <linearGradient id="searchbar-mask-gradient-bottomleft" gradientUnits="objectBoundingBox" x1="0" x2="1" y1="0" y2="0">
+      <stop stop-color="white" stop-opacity="0" offset="0"></stop>
+      <stop stop-color="white" stop-opacity="1" offset="0.25"></stop>
+    </linearGradient>
+    <rect x="0" y="0" width="1" height="1" fill="url(#searchbar-mask-gradient-bottomleft)"></rect>
+    
+    <linearGradient id="searchbar-mask-gradient-topright" gradientUnits="objectBoundingBox" x1="0" x2="0" y1="0" y2="1">
+      <stop stop-color="white" stop-opacity="0" offset="0"></stop>
+      <stop stop-color="white" stop-opacity="1" offset="0.4"></stop>
+    </linearGradient>
+    <rect x="0.97" y="0" width="0.03" height="1" fill="url(#searchbar-mask-gradient-topright)"></rect>
+  </mask>
+  
+  <mask id="helper" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
+    <linearGradient id="helper-mask-gradient" gradientUnits="objectBoundingBox" x1="0" x2="1" y1="0" y2="0">
+      <stop stop-color="white" stop-opacity="1" offset="0"></stop>
+      <stop stop-color="white" stop-opacity="1" offset="0.9"></stop>
+      <stop stop-color="white" stop-opacity="0" offset="1"></stop>
+    </linearGradient>
+    <rect x="0" y="0" width="1" height="1" fill="url(#helper-mask-gradient)"></rect>
+  </mask>
+  
+  <mask id="apps" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
+    <linearGradient id="apps-mask-gradient" gradientUnits="objectBoundingBox" x1="0" x2="0" y1="0" y2="1">
+      <stop stop-color="white" stop-opacity="0" offset="0"></stop>
+      <stop stop-color="white" stop-opacity="1" offset="0.1"></stop>
+      <stop stop-color="white" stop-opacity="1" offset="0.9"></stop>
+      <stop stop-color="white" stop-opacity="0" offset="1"></stop>
+    </linearGradient>
+    <rect x="0" y="0" width="1" height="1" fill="url(#apps-mask-gradient)"></rect>
+  </mask>
+  
+  <mask id="clearButton" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
+    <linearGradient id="clearButton-mask-gradient" gradientUnits="objectBoundingBox" x1="0" x2="0" y1="0" y2="1">
+      <stop stop-color="white" stop-opacity="1" offset="0"></stop>
+      <stop stop-color="white" stop-opacity="1" offset="0.6"></stop>
+      <stop stop-color="white" stop-opacity="0" offset="1"></stop>
+    </linearGradient>
+    <rect x="0" y="0" width="1" height="1" fill="url(#clearButton-mask-gradient)"></rect>
+  </mask>
+</svg>
