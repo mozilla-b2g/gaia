@@ -40,27 +40,32 @@ function renderThreadListEdit() {
 }
 
 function renderThreadMsgHeader() {
-  return '<a role="link" id="messages-back-button">' +
-            '<span class="icon icon-back"></span>' +
-          '</a>' +
-          '<menu type="toolbar">' +
-            '<a id="messages-contact-pick-button">' +
-              '<span class="icon icon-user"></span>' +
+  return '<header>' +
+            '<a role="link" id="messages-back-button">' +
+              '<span class="icon icon-back"></span>' +
             '</a>' +
-            '<a href="#edit" id="icon-edit">' +
-              '<span class="icon icon-edit"></span>' +
-            '</a>' +
-          '</menu>' +
-          '<h1 id="messages-header-text" ' +
-            'data-l10n-id="messages" aria-hidden="true">' +
-            'Messages</h1>' +
-          '<form id="messages-tel-form">' +
-            '<input id="messages-recipient" type="text" ' +
-              'name="tel" class="tel" />' +
-            '<span id="messages-clear-button" ' +
-              'role="button" class="icon icon-clear">' +
-              '</span>' +
-          '</form>';
+            '<menu type="toolbar">' +
+              '<a id="messages-contact-pick-button">' +
+                '<span class="icon icon-user"></span>' +
+              '</a>' +
+              '<a href="#edit" id="icon-edit">' +
+                '<span class="icon icon-edit"></span>' +
+              '</a>' +
+            '</menu>' +
+            '<h1 id="messages-header-text" ' +
+              'data-l10n-id="messages" aria-hidden="true">' +
+              'Messages</h1>' +
+            '<section id="messages-to-field">' +
+              '<section id="to-label">' +
+                'To:' +
+              '</section>' +
+              '<section id="messages-recipients-container">' +
+              '</section>' +
+            '</section>' +
+          '</header>' +
+          '<article id="messages-container" ' +
+          'class="view-body" data-type="list">' +
+          '</article>';
 }
 
 function renderThreadMsgEdit() {
