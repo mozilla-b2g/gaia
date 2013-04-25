@@ -48,6 +48,7 @@ var BalanceTab = (function() {
       document.addEventListener('mozvisibilitychange', updateWhenVisible);
       updateButton.addEventListener('click', lockAndUpdateUI);
       ConfigManager.observe('lowLimit', toogleLimits, true);
+      ConfigManager.observe('lowLimitThreshold', resetNotification, true);
       ConfigManager.observe('lastBalance', onBalance, true);
       ConfigManager.observe('errors', onBalanceTimeout, true);
 
@@ -79,6 +80,7 @@ var BalanceTab = (function() {
     document.removeEventListener('mozvisibilitychange', updateWhenVisible);
     updateButton.removeEventListener('click', lockAndUpdateUI);
     ConfigManager.removeObserver('lowLimit', toogleLimits);
+    ConfigManager.removeObserver('lowLimitThreshold', resetNotification);
     ConfigManager.removeObserver('lastBalance', onBalance);
     ConfigManager.removeObserver('errors', onBalanceTimeout);
 
@@ -113,6 +115,11 @@ var BalanceTab = (function() {
   function toogleLimits(isEnabled, old, key, settings) {
     updateBalance(settings.lastBalance,
                   isEnabled && settings.lowLimitThreshold);
+  }
+
+  // On changing the threshold for low limit
+  function resetNotification() {
+    ConfigManager.setOption({ 'lowLimitNotified': false });
   }
 
   // On balance update received
