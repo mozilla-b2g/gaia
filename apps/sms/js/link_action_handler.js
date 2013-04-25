@@ -79,7 +79,9 @@
         }
         if (activity && MozActivity) {
           try {
-            new MozActivity(activity);
+            var activityRequest = new MozActivity(activity);
+            activityRequest.onsuccess = activityRequest.onerror =
+              LinkActionHandler.resetActivityInProgress;
           }
           catch (e) {
             console.log('WebActivities unavailable? : ' + e);
