@@ -564,10 +564,13 @@ suite('system/UpdateManager', function() {
       });
 
       teardown(function(done) {
-        // wait for all actions to happen in UpdateManager before reseting
+        /* We wait for all actions to happen in UpdateManager before reseting.
+           To prevent intermittent oranges from timeout inaccuracies due
+           to slow CI hardware we let an extra "tinyTimeout" (so 3 it is) go
+           by. */
         setTimeout(function() {
           done();
-        }, tinyTimeout * 2);
+        }, tinyTimeout * 3);
       });
 
       suite('notification behavior after addToDownloadsQueue', function() {
@@ -959,6 +962,31 @@ suite('system/UpdateManager', function() {
             });
 
             test('should enable the download button back', function() {
+              assert.isFalse(downloadButton.disabled);
+            });
+          });
+
+          // Bug 830901 - Disabling all checkboxes in the update prompt...
+          suite('cancel and reopen', function() {
+            setup(function() {
+              // cancel
+              UpdateManager.cancelPrompt();
+
+              // reopen
+              UpdateManager.containerClicked();
+            });
+
+            test('should check all checkboxes', function() {
+              var checkboxes = dialog.querySelectorAll(
+                'input[type="checkbox"]'
+              );
+              for (var i = 0; i < checkboxes.length; i++) {
+                var checkbox = checkboxes[i];
+                assert.isTrue(checkbox.checked);
+              }
+            });
+
+            test('should enable the download button', function() {
               assert.isFalse(downloadButton.disabled);
             });
           });

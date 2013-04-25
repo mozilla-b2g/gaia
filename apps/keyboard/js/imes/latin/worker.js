@@ -38,7 +38,7 @@ self.onmessage = function(e) {
 
 // Send console messages back to the main thread with this method
 function log(msg) {
-  postMessage({cmd: 'log', args: [msg]});
+  postMessage({cmd: 'log', message: msg});
 }
 
 // Track our current language so we don't load dictionaries more often
@@ -66,7 +66,7 @@ var Commands = {
       //
       if (!xhr.response || xhr.response.byteLength === 0) {
         log('error loading dictionary');
-        postMessage({ cmd: 'unknownLanguage', args: [language] });
+        postMessage({ cmd: 'unknownLanguage', language: language });
       }
       else {
         Predictions.setDictionary(xhr.response);
@@ -81,11 +81,11 @@ var Commands = {
   predict: function predict(prefix) {
     try {
       var words = Predictions.predict(prefix);
-      postMessage({ cmd: 'predictions', args: words });
+      postMessage({ cmd: 'predictions', input: prefix, suggestions: words });
     }
     catch (e) {
       log('Exception in predictions.js: ' + JSON.stringify(e));
-      postMessage({cmd: 'predictions', args: [] });
+      postMessage({cmd: 'predictions', input: prefix, suggestions: [] });
     }
   }
 };

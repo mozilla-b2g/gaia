@@ -40,6 +40,8 @@ contacts.Form = (function() {
   var PHOTO_WIDTH = 320;
   var PHOTO_HEIGHT = 320;
 
+  var touchstart = 'ontouchstart' in window ? 'touchstart' : 'mousedown';
+
   var textFieldsCache = {
     _textFields: null,
 
@@ -127,7 +129,7 @@ contacts.Form = (function() {
     });
 
     var form = dom.getElementById('contact-form');
-    form.addEventListener('mousedown', function click(event) {
+    form.addEventListener(touchstart, function click(event) {
       var tgt = event.target;
       if (tgt.tagName == 'BUTTON' && tgt.getAttribute('type') == 'reset') {
         event.preventDefault();
@@ -137,7 +139,7 @@ contacts.Form = (function() {
       }
     });
 
-    thumbAction.addEventListener('mousedown', function click(event) {
+    thumbAction.addEventListener(touchstart, function click(event) {
       // Removing current photo
       if (event.target.tagName == 'BUTTON')
         saveButton.removeAttribute('disabled');
@@ -178,9 +180,11 @@ contacts.Form = (function() {
     formView.classList.add('skin-organic');
     if (!fromUpdateActivity)
       saveButton.setAttribute('disabled', 'disabled');
+    saveButton.setAttribute('data-l10n-id', 'update');
     saveButton.textContent = _('update');
     currentContact = contact;
     deleteContactButton.parentNode.classList.remove('hide');
+    formTitle.setAttribute('data-l10n-id', 'editContact');
     formTitle.textContent = _('editContact');
     currentContactId.value = contact.id;
     givenName.value = contact.givenName || '';
@@ -238,8 +242,10 @@ contacts.Form = (function() {
       currentContact = {};
     }
     saveButton.setAttribute('disabled', 'disabled');
+    saveButton.setAttribute('data-l10n-id', 'done');
     saveButton.textContent = _('done');
     deleteContactButton.parentNode.classList.add('hide');
+    formTitle.setAttribute('data-l10n-id', 'addContact');
     formTitle.textContent = _('addContact');
 
     params = params || {};
@@ -299,7 +305,13 @@ contacts.Form = (function() {
       var defObj = (typeof(obj) === 'string') ? obj : obj[currentElem];
       var value = currField[currentElem] = defObj || def;
       if (currentElem === 'type') {
-        value = _(value) || value;
+        currField['type_value'] = value;
+
+        // Do localizatiion for built-in types
+        if (isBuiltInType(value, tags)) {
+          currField['type_l10n_id'] = value;
+          value = _(value) || value;
+        }
       }
       currField[currentElem] = utils.text.escapeHTML(value, true);
       if (!infoFromFB && value && nonEditableValues[value]) {
@@ -324,7 +336,7 @@ contacts.Form = (function() {
     // Add event listeners
     var boxTitle = rendered.querySelector('legend.action');
     if (boxTitle) {
-      boxTitle.addEventListener('mousedown', onGoToSelectTag);
+      boxTitle.addEventListener(touchstart, onGoToSelectTag);
     }
 
     container.appendChild(rendered);
@@ -529,6 +541,16 @@ contacts.Form = (function() {
     return out;
   }
 
+  function isBuiltInType(type, tagList) {
+    for (var j = 0; j < tagList.length; j++) {
+      if (tagList[j].type === type) {
+          return true;
+      }
+    }
+
+    return false;
+  }
+
   var getPhones = function getPhones(contact) {
     var selector = '#view-contact-form form div.phone-template:not(.removed)';
     var phones = dom.querySelectorAll(selector);
@@ -541,9 +563,7 @@ contacts.Form = (function() {
         continue;
 
       var selector = 'tel_type_' + arrayIndex;
-      var typeField = getNormalizedType(
-                                dom.getElementById(selector).textContent || '',
-                                TAG_OPTIONS['phone-type']);
+      var typeField = dom.getElementById(selector).dataset.value || '';
       var carrierSelector = 'carrier_' + arrayIndex;
       var carrierField = dom.getElementById(carrierSelector).value || '';
       contact['tel'] = contact['tel'] || [];
@@ -564,9 +584,7 @@ contacts.Form = (function() {
       var emailField = dom.getElementById('email_' + arrayIndex);
       var emailValue = emailField.value;
       var selector = 'email_type_' + arrayIndex;
-      var typeField = getNormalizedType(
-                                dom.getElementById(selector).textContent || '',
-                                TAG_OPTIONS['email-type']);
+      var typeField = dom.getElementById(selector).dataset.value || '';
       if (!emailValue)
         continue;
 
@@ -588,9 +606,8 @@ contacts.Form = (function() {
       var addressValue = addressField.value || '';
 
       var selector = 'address_type_' + arrayIndex;
-      var typeField = getNormalizedType(
-                                dom.getElementById(selector).textContent || '',
-                                TAG_OPTIONS['address-type']);
+      var typeField = dom.getElementById(selector).dataset.value || '';
+
       selector = 'locality_' + arrayIndex;
       var locality = dom.getElementById(selector).value || '';
       selector = 'postalCode_' + arrayIndex;

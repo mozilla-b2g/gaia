@@ -185,6 +185,35 @@ if (typeof window.importer === 'undefined') {
       });
     }
 
+    // Function used by unit tests to reset the state of the module
+    Importer.reset = function() {
+      selectedContacts = {};
+      unSelectedContacts = {};
+      selectableFriends = {};
+
+      myFriends = []; myFriendsByUid = {};
+
+      checked = 0;
+
+      // Existing service contacts
+      existingContacts = [];
+      existingContactsByUid = {};
+
+      contactsLoaded = false;
+      friendsLoaded = false;
+
+      currentRequest = null;
+      currentNetworkRequest = null;
+
+      friendsImported = false;
+      syncOngoing = false;
+
+      ongoingImport = false;
+
+      selectAllButton = document.getElementById('select-all');
+      deSelectAllButton = document.getElementById('deselect-all');
+    };
+
     /**
      *  This function is invoked when a token is ready to be used
      *

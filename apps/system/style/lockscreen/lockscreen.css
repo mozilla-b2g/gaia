@@ -86,16 +86,29 @@
   opacity: 0.99;
 }
 
-.lockscreen-wallpaper {
-  position: absolute;
-}
-
 .lockscreen-panel {
   position: absolute;
   width: 100%;
   height: 100%;
+  background-color: #000;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
   visibility: hidden;
   transition: visibility 0.5s ease, transform 0.5s ease;
+}
+
+.lockscreen-panel::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Replace this with radical gradient */
+  background: transparent url('./images/mask.png') 50% 50% no-repeat;
+  background-size: cover;
 }
 
 [data-panel="main"] #lockscreen-panel-main,

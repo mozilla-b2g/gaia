@@ -15,11 +15,14 @@
     <link href="/contacts/style/contacts.css" rel="stylesheet">
     <link href="/contacts/style/overlay.css" rel="stylesheet">
     <link href="/contacts/style/search.css" rel="stylesheet">
+    <!-- multi-resolution support -->
+    <link href="/shared/style/responsive.css" rel="stylesheet">
 
     <script defer src="/contacts/js/activities.js"></script>
     <script defer src="/shared/js/lazy_loader.js"></script>
 
     <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
+    <script defer src="/contacts/js/utilities/config.js"></script>
 
     <!-- For initializing FB integration -->
     <script defer src="/contacts/js/fb/fb_init.js"></script>
@@ -37,10 +40,8 @@
     <script type="text/javascript" src="/shared/js/l10n.js"></script>
     <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
     <script defer type="text/javascript" src="/contacts/js/fb_loader.js"></script>
-    <script defer type="text/javascript" src="/shared/js/mouse_event_shim.js"></script>
 
     <!-- Loading FB indexedDB related stuff -->
-    <script defer src="/contacts/js/utilities/config.js"></script>
     <script defer type="text/javascript" src="/contacts/js/fixed_header.js"></script>
 
   </head>
@@ -146,7 +147,7 @@
             <section id="contact-detail" class="view-body-inner">
               <!-- Phone Template -->
               <li data-phone id='phone-details-template-#i#' data-template>
-                <h2>#type#</h2>
+                <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
                 <div class="item">
                   <div class="item-media pull-right">
                     <button id="send-sms-button-#i#" class="activity send-sms icon icon-message"></button>
@@ -169,7 +170,7 @@
 
               <!-- Email Template -->
               <li data-mail id='email-details-template-#i#' data-template>
-                <h2>#type#</h2>
+                <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
                 <div class="item">
                   <div class="item-body-exp">
                     <button id="email-or-pick-#i#" class="activity icon icon-email">
@@ -202,7 +203,7 @@
 
               <!-- Address Template -->
               <li data-address id='address-details-template-#i#' data-template>
-                <h2>#type#</h2>
+                <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
                 <div class="item">
                   <div class="item-body-exp">
                     <a href="#" class="action action-block">
@@ -243,16 +244,16 @@
         <header>
           <button id='cancel-edit' class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
           <menu type="toolbar" id='contact-form-actions'>
-            <button id="save-button" role="menuitem"></button>
+            <button id="save-button" role="menuitem" data-l10n-id="done">Done</button>
           </menu>
-          <h1 id='contact-form-title'></h1>
+          <h1 id='contact-form-title' data-l10n-id="addContact">Add contact</h1>
         </header>
 
         <!-- PHONE TEMPLATE -->
         <div id='add-phone-#i#' data-template class='phone-template' data-index="#i#">
           <fieldset class="fillflow-row">
             <legend class="action">
-              <span data-taglist="phone-type" name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</span>
+              <span data-taglist="phone-type" name="tel" data-value="#type_value#" id="tel_type_#i#" data-field="type" data-l10n-id=#type_l10n_id#>#type#</span>
             </legend>
             <section>
               <p class="setbox-item">
@@ -271,7 +272,7 @@
         <div id='add-email-#i#' data-template class='email-template' data-index="#i#">
           <fieldset class="fillflow-row">
             <legend class="action">
-              <span data-taglist="email-type" name="email[#i#][type]" value="#type#" id="email_type_#i#" data-field="type">#type#</span>
+              <span data-taglist="email-type" name="email[#i#][type]" data-value="#type_value#" id="email_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>
             </legend>
             <section>
               <p class="setbox-item">
@@ -286,7 +287,7 @@
         <div id='add-address-#i#' data-template class='address-template' data-index="#i#">
           <fieldset class="fillflow-row">
             <legend class="action">
-              <span data-taglist="address-type" name="adr[#i#][type]" value="#type#" id="address_type_#i#" data-field="type">#type#</span>
+              <span data-taglist="address-type" name="adr[#i#][type]" data-value="#type_value#" id="address_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>
             </legend>
             <section>
               <p class="setbox-item">
@@ -473,7 +474,7 @@
               </li>
               <li class="importService">
                 <button class="icon icon-live" data-l10n-id="importLive">
-                  Windows Live
+                  Outlook
                 </button>
               </li>
             </ul>

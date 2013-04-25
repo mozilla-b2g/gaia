@@ -81,41 +81,44 @@
     <article role="main">
       <section id="pincode-screen" role="region">
         <label id="pin-label" data-l10n-id="type_pin">Type your PIN code</label>
+        <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="pin-input" name="simpin" type="password" size="8" maxlength="8" />
           <input id="fake-pin-input" class="fake-input" name="fake-simpin" type="number" size="8" maxlength="8" />
-          <div id="pin-error" class="hidden error"></div>
+          <label id="pin-error" data-l10n-id="pinError" class="hidden error">The PIN was incorrect.</label>
         </section>
       </section>
 
       <section id="pukcode-screen" role="region">
         <label id="puk-label" data-l10n-id="simLocked">The SIM card is locked</label>
+        <label id="puk-retries-left" data-l10n-id="inputCodeRetriesLeft">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="puk-input" name="simpuk" type="password" size="8" maxlength="8" />
           <input id="fake-puk-input" class="fake-input" name="fake-simpuk" type="number" size="8" maxlength="8" />
-          <div id="puk-info" class="info" data-l10n-id="pukError">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
-          <div id="puk-error" class="hidden error"></div>
+          <div id="puk-info" data-l10n-id="pukInfo" class="info">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
+          <div id="puk-error" data-l10n-id="pukError" class="hidden error">The PUK was incorrect.</div>
         </section>
         <label id="newpin" data-l10n-id="create_newpin">Create new PIN (4 to 8 digits)</label>
         <section class="input-wrapper">
           <input id="newpin-input" name="newpin" type="password" size="8" maxlength="8" />
           <input id="fake-newpin-input" class="fake-input" name="fake-newpin" type="number" size="8" maxlength="8" />
-          <div id="newpin-error" class="hidden error"></div>
+          <label id="newpin-error" data-l10n-id="pinValidation" class="hidden error">PIN must have between 4 and 8 characters.</label>
         </section>
         <label id="confirm-newpin" data-l10n-id="confirm_newpin">Confirm new PIN</label>
         <section class="input-wrapper">
           <input id="confirm-newpin-input" name="confirm-newpin" type="password" size="8" maxlength="8" />
           <input id="fake-confirm-newpin-input" class="fake-input" name="fake-confirm-newpin" type="number" size="8" maxlength="8" />
-          <div id="confirm-newpin-error" class="hidden error"></div>
+          <label id="confirm-newpin-error" data-l10n-id="confirm_newpin" class="hidden error">Confirm new PIN</label>
         </section>
       </section>
 
       <section id="xckcode-screen" role="region">
         <label id="xck-label" data-l10n-id="type_nck">Type your NCK code</label>
+        <label id="xkc-retries-left" data-l10n-id="inputCodeRetriesLeft">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="xck-input" name="simxck" type="password" size="16" maxlength="16" />
           <input id="fake-xck-input" class="fake-input" name="fake-simxck" type="number" size="16" maxlength="16" />
-          <div id="xck-error" class="hidden error"></div>
+          <label id="xck-error" data-l10n-id="confirm_newpin" class="hidden error"></label>
         </section>
       </section>
     </article>
@@ -254,7 +257,7 @@
             </li>
             <li id="live_import" class="importOption">
               <button id="live-import-button" class="icon icon-wlive" data-l10n-id="importLive">
-                  Windows Live
+                Outlook
               </button>
             </li>
           </ul>

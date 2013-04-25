@@ -26,6 +26,12 @@ var SimLock = {
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
       case 'unlock':
+        // Check whether the lock screen was unlocked from the camera or not.
+        // If the former is true, the SIM PIN dialog should not displayed after
+        // unlock, because the camera will be opened (Bug 849718)
+        if (evt.detail && evt.detail.areaCamera)
+          return;
+
         this.showIfLocked();
         break;
       case 'appwillopen':
@@ -47,6 +53,13 @@ var SimLock = {
         // Ignore apps that don't require a mobile connection
         if (!('telephony' in app.manifest.permissions ||
               'sms' in app.manifest.permissions))
+          return;
+
+        // If the Settings app will open, don't prompt for SIM PIN entry
+        // although it has 'telephony' permission (Bug 861206)
+        var settingsManifestURL =
+          'app://settings.gaiamobile.org/manifest.webapp';
+        if (app.manifestURL == settingsManifestURL)
           return;
 
         // Ignore second 'appwillopen' event when showIfLocked eventually opens
@@ -92,19 +105,8 @@ var SimLock = {
       case 'networkLocked':
       case 'corporateLocked':
       case 'serviceProviderLocked':
-        // XXXX: After unlocking the SIM the cardState is
-        //       'networkLocked' but it changes inmediately to 'ready'
-        //       if the phone is not SIM-locked. If the cardState
-        //       is still 'networkLocked' after 20 seconds we unlock
-        //       the network control key lock (network personalization).
-        setTimeout(function checkState() {
-          if (conn.cardState == 'networkLocked' ||
-              conn.cardState === 'serviceProviderLocked' ||
-              conn.cardState === 'corporateLocked') {
-            SimPinDialog.show('unlock', SimLock.onClose);
-          }
-        }, 20000);
-        break;
+        SimPinDialog.show('unlock', SimLock.onClose);
+        return true;
     }
     return false;
   },

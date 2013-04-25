@@ -106,11 +106,9 @@ document.addEventListener('DOMContentLoaded', function onload() {
       var result = queryAndroidDB(mcc);
 
      if (result && result.length) {
-        result.sort(function(a, b) {
-          return parseInt(result.mnc, 10) < parseInt(result.mnc, 10);
-        });
+        result.sort();
         for (var i = 0; i < result.length; i++) {
-          var mnc = parseInt(result[i].mnc, 10);
+          var mnc = result[i].mnc;
 
           var operatorVariantSettings = {};
           var voicemail = queryGnomeDB(mcc, mnc, 'voicemail');
@@ -237,7 +235,29 @@ document.addEventListener('DOMContentLoaded', function onload() {
           var localApns =
             localAndroidDB.documentElement.getElementsByTagName('apn');
           for (var i = 0; i < localApns.length; ++i) {
-            gAndroidDB.documentElement.appendChild(localApns[i]);
+            // use local apn to patch origin carrier name in the Android DB
+            // if the name is not the correct one (see bug 863126).
+            // Note: This patch will not function once we get
+            // the correct names updated in the upstream database.
+            if (localApns[i].getAttribute('name')) {
+              var pattern = 'apn' +
+                            '[mcc="' + localApns[i].getAttribute('mcc') + '"]' +
+                            '[mnc="' + localApns[i].getAttribute('mnc') + '"]';
+              var elems = gAndroidDB.documentElement.querySelectorAll(pattern);
+              for(var j = 0; j < elems.length; ++j) {
+                if (elems[j] && elems[j].getAttribute('carrier') ===
+                                         localApns[i].getAttribute('carrier')) {
+                  if (DEBUG) {
+                    console.log('replace "' + elems[j].getAttribute('carrier') +
+                      '" to "' + localApns[i].getAttribute('name') + '"');
+                  }
+                  elems[j].setAttribute('carrier',
+                    localApns[i].getAttribute('name'));
+                }
+              }
+            } else { // append local APN
+              gAndroidDB.documentElement.appendChild(localApns[i]);
+            }
           }
           // Then the Gnome DB
           gGnomeDB = loadXML(GNOME_DB_FILE);
@@ -262,8 +282,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
 
   function update() {
     var selection = document.getElementById('selection');
-    var mcc = parseInt(document.querySelector('input[name=mcc]').value, 10);
-    var mnc = parseInt(document.querySelector('input[name=mnc]').value, 10);
+    var mcc = document.querySelector('input[name=mcc]').value;
+    var mnc = document.querySelector('input[name=mnc]').value;
     var res = gAPN[mcc] ? (gAPN[mcc][mnc] || []) : [];
     selection.textContent = JSON.stringify(res, true, 2);
 

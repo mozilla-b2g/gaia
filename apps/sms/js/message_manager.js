@@ -13,14 +13,15 @@ var MessageManager = {
     }
     this.initialized = true;
     // Allow for stubbing in environments that do not implement the
-    // `navigator.mozSms` API
-    this._mozSms = navigator.mozSms || window.MockNavigatormozSms;
+    // `navigator.mozMobileMessage` API
+    this._mozMobileMessage = navigator.mozMobileMessage ||
+                    window.DesktopMockNavigatormozMobileMessage;
 
-    this._mozSms.addEventListener('received',
+    this._mozMobileMessage.addEventListener('received',
         this.onMessageReceived.bind(this));
-    this._mozSms.addEventListener('sending', this.onMessageSending);
-    this._mozSms.addEventListener('sent', this.onMessageSent);
-    this._mozSms.addEventListener('failed', this.onMessageFailed);
+    this._mozMobileMessage.addEventListener('sending', this.onMessageSending);
+    this._mozMobileMessage.addEventListener('sent', this.onMessageSent);
+    this._mozMobileMessage.addEventListener('failed', this.onMessageFailed);
     window.addEventListener('hashchange', this.onHashChange.bind(this));
     document.addEventListener('mozvisibilitychange',
                               this.onVisibilityChange.bind(this));
@@ -69,8 +70,10 @@ var MessageManager = {
 
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
+    if (message.messageClass === 'class-0') {
+      return;
+    }
 
-    var sender = message.sender;
     var threadId = message.threadId;
     if (threadId && threadId === this.currentThread) {
       //Append message and mark as unread
@@ -268,7 +271,7 @@ var MessageManager = {
   },
 
   getThreads: function mm_getThreads(callback, extraArg) {
-    var cursor = this._mozSms.getThreads(),
+    var cursor = this._mozMobileMessage.getThreads(),
         threads = [];
     cursor.onsuccess = function onsuccess() {
       if (this.result) {
@@ -292,7 +295,7 @@ var MessageManager = {
         invert = options.invert, // invert selection
         endCB = options.endCB,   // CB when all messages retrieved
         endCBArgs = options.endCBArgs; //Args for endCB
-    var cursor = this._mozSms.getMessages(filter, !invert);
+    var cursor = this._mozMobileMessage.getMessages(filter, !invert);
     cursor.onsuccess = function onsuccess() {
       if (!this.done) {
         var shouldContinue = true;
@@ -315,7 +318,7 @@ var MessageManager = {
     };
   },
   send: function mm_send(number, text, callback, errorHandler) {
-    var req = this._mozSms.send(number, text);
+    var req = this._mozMobileMessage.send(number, text);
     req.onsuccess = function onsuccess(e) {
       callback && callback(req.result);
     };
@@ -326,7 +329,7 @@ var MessageManager = {
   },
 
   deleteMessage: function mm_deleteMessage(id, callback) {
-    var req = this._mozSms.delete(id);
+    var req = this._mozMobileMessage.delete(id);
     req.onsuccess = function onsuccess() {
       callback && callback(req.result);
     };
@@ -354,7 +357,7 @@ var MessageManager = {
   },
 
   markMessagesRead: function mm_markMessagesRead(list, value, callback) {
-    if (!navigator.mozSms || !list.length) {
+    if (!navigator.mozMobileMessage || !list.length) {
       return;
     }
 
@@ -362,7 +365,7 @@ var MessageManager = {
     // 'markMessageRead' until a previous call is completed. This way any
     // other potential call to the API, like the one for getting a message
     // list, could be done within the calls to mark the messages as read.
-    var req = this._mozSms.markMessageRead(list.pop(), value);
+    var req = this._mozMobileMessage.markMessageRead(list.pop(), value);
     req.onsuccess = (function onsuccess() {
       if (!list.length && callback) {
         callback(req.result);

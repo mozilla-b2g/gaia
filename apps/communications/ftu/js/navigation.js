@@ -151,10 +151,22 @@ var Navigation = {
     }
   },
 
+  getProgressBarClassName: function n_getProgressBarClassName() {
+    // Manage step state (dynamically change)
+    var className = 'step-state step-';
+    if (this.skipped && this.currentStep > 2) {
+      className += (this.currentStep - 1) + ' less-steps';
+    } else {
+      className += this.currentStep;
+    }
 
+    return className;
+  },
 
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
+
+    var className = this.getProgressBarClassName();
 
     switch (actualHash) {
       case '#languages':
@@ -201,7 +213,6 @@ var Navigation = {
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
         break;
       case '#browser_privacy':
-        UIManager.progressBar.className = 'step-state step-7';
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
         break;
       case '#about-your-rights':
@@ -209,17 +220,12 @@ var Navigation = {
       case '#sharing-performance-data':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
       case this.externalUrlLoaderSelector:
-        UIManager.progressBar.className = 'hidden';
+        // override the className here
+        className = 'hidden';
         UIManager.navBar.classList.add('back-only');
         break;
     }
-    // Manage step state (dinamically change)
-    var className = 'step-state step-';
-    if (this.skipped && this.currentStep > 2) {
-      className += (this.currentStep - 1) + ' less-steps';
-    } else {
-      className += this.currentStep;
-    }
+
     UIManager.progressBar.className = className;
 
     // Managing options button

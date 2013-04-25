@@ -276,11 +276,6 @@ li a[role="button"].activity > b{
   bottom: 0;
 }
 
-/* BB Lists extending */
-[data-type="list"] header {
-  margin-left: -1rem;
-}
-
 /* JS helper */
 [data-type="list"] li p,
 [data-type="list"] li aside {
@@ -323,7 +318,7 @@ form p + p {
   z-index: 5;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 1.4rem 2rem;
+  padding: 1.4rem 1.5rem;
   background: #f4f4f4;
   color: #333;
   text-align: left;
@@ -433,6 +428,7 @@ span[role="button"].icon-delete {
 
 span[role="button"].icon-addimage {
   background-image: url(/contacts/style/gphx/bitmap/default/forms/add.png);
+  background-size: 3rem;
   width: 3rem;
   height: 2.9rem;
 }
@@ -475,7 +471,8 @@ li button.icon-fb-profile:before {
 }
 
 li button.icon-add:before {
-  background: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png) no-repeat center center;
+  background-image: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png);
+  background-size: 2.8rem;
 }
 
 

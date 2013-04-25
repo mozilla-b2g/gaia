@@ -22,7 +22,12 @@ var ThreadListUI = {
     }, this);
 
     this.delNumList = [];
-    this.selectedInputs = [];
+    Object.defineProperty(this, 'selectedInputs', {
+      get: function() {
+          return [].slice.call(this.container.querySelectorAll(
+                        'input[type=checkbox]:checked'));
+        }
+    });
     this.fullHeight = this.container.offsetHeight;
 
     this.checkAllButton.addEventListener(
@@ -53,7 +58,7 @@ var ThreadListUI = {
   updateThreadWithContact:
     function thlui_updateThreadWithContact(number, thread) {
 
-    Contacts.findByString(number, function gotContact(contacts) {
+    Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var nameContainer = thread.getElementsByClassName('name')[0];
       var photo = thread.getElementsByTagName('img')[0];
       // !contacts matches null results from errors
@@ -95,7 +100,6 @@ var ThreadListUI = {
         // a target with a |type| property, then assume it could've
         // been a checkbox and proceed w/ validation condition
         if (evt.target.type && evt.target.type === 'checkbox') {
-          ThreadListUI.clickInput(evt.target);
           ThreadListUI.checkInputs();
         }
         break;
@@ -105,31 +109,22 @@ var ThreadListUI = {
     }
   },
 
-  clickInput: function thlui_clickInput(target) {
-    if (target.checked) {
-      ThreadListUI.selectedInputs.push(target);
-    } else {
-      ThreadListUI.selectedInputs.splice(
-        ThreadListUI.selectedInputs.indexOf(target), 1);
-    }
-  },
-
   checkInputs: function thlui_checkInputs() {
     var _ = navigator.mozL10n.get;
     var selected = ThreadListUI.selectedInputs.length;
 
     if (selected === ThreadListUI.count) {
-      this.checkAllButton.classList.add('disabled');
+      this.checkAllButton.disabled = true;
     } else {
-      this.checkAllButton.classList.remove('disabled');
+      this.checkAllButton.disabled = false;
     }
     if (selected) {
-      this.uncheckAllButton.classList.remove('disabled');
-      this.deleteButton.classList.remove('disabled');
+      this.uncheckAllButton.disabled = false;
+      this.deleteButton.disabled = false;
       this.editMode.innerHTML = _('selected', {n: selected});
     } else {
-      this.uncheckAllButton.classList.add('disabled');
-      this.deleteButton.classList.add('disabled');
+      this.uncheckAllButton.disabled = true;
+      this.deleteButton.disabled = true;
       this.editMode.innerHTML = _('editMode');
     }
   },
@@ -144,7 +139,6 @@ var ThreadListUI = {
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
     this.delNumList = [];
-    this.selectedInputs = [];
     this.editMode.textContent = navigator.mozL10n.get('editMode');
     this.checkInputs();
   },
@@ -160,7 +154,6 @@ var ThreadListUI = {
     var length = inputs.length;
     for (var i = 0; i < length; i++) {
       inputs[i].checked = value;
-      this.clickInput(inputs[i]);
     }
     this.checkInputs();
   },
@@ -276,7 +269,7 @@ var ThreadListUI = {
 
     // Retrieving params from thread
     var bodyText = (thread.body || '').split('\n')[0];
-    var bodyHTML = Utils.escapeHTML(bodyText);
+    var bodyHTML = Utils.Message.format(bodyText);
     var formattedDate = Utils.getFormattedHour(timestamp);
     // Create HTML Structure
     var structureHTML = '<label class="danger">' +
@@ -352,6 +345,9 @@ var ThreadListUI = {
     if (!threadFound) {
       threadsContainer.appendChild(threadDOM);
     }
+
+    if (document.getElementById('main-wrapper').classList.contains('edit'))
+      this.checkInputs();
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createThreadContainer: function thlui_createThreadContainer(timestamp) {

@@ -265,24 +265,26 @@ var BalanceTab = (function() {
     if (!balance) {
       debug('Balance not available');
       document.getElementById('balance-tab-credit')
-        .innerHTML = _('not-available');
+        .textContent = _('not-available');
       document.getElementById('balance-tab-time').innerHTML = '';
       return;
     }
 
     // Balance available
-    document.getElementById('balance-tab-credit').innerHTML =
+    document.getElementById('balance-tab-credit').textContent =
       _('currency', {
         value: balance.balance,
         currency: ConfigManager.configuration.credit.currency
       });
 
     // Timestamp
-    var timeContent = formatTimeHTML(balance.timestamp);
+    var balanceTabTime = document.getElementById('balance-tab-time');
     if (view.classList.contains('updating')) {
-      timeContent = _('updating') + '...';
+      balanceTabTime.textContent = _('updating-ellipsis');
+    } else {
+      balanceTabTime.innerHTML = '';
+      balanceTabTime.appendChild(formatTimeHTML(balance.timestamp));
     }
-    document.getElementById('balance-tab-time').innerHTML = timeContent;
 
     // Limits: reaching zero / low limit
     if (balance.balance === 0) {

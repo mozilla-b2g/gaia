@@ -317,7 +317,7 @@ suiteGroup('Views.ViewEvent', function() {
         );
         assert.equal(
           alarmChildren[1].textContent,
-          navigator.mozL10n.get('alarm-minute-before')
+          navigator.mozL10n.get('minutes-before', {value: 1})
         );
 
         done();

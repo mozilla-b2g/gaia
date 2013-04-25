@@ -2,6 +2,7 @@
 
 requireApp('communications/contacts/js/navigation.js');
 requireApp('communications/contacts/js/utilities/status.js');
+requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/utilities/event_listeners.js');
 requireApp('communications/contacts/js/contacts.js');
 
@@ -13,12 +14,31 @@ requireApp('communications/contacts/test/unit/mock_search.js');
 requireApp('communications/contacts/test/unit/mock_contact_list_dom.js.html');
 requireApp('communications/contacts/test/unit/mock_selection_dom.js.html');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
-requireApp('communications/contacts/test/unit/mock_mozkeyboard.js');
+requireApp('communications/contacts/test/unit/mock_fb_loader.js');
+requireApp('communications/contacts/test/unit/mock_fb.js');
 
 requireApp('communications/contacts/test/unit/helper.js');
+requireApp(
+        'communications/contacts/test/unit/mock_performance_testing_helper.js');
 
 var contacts,
     ActivityHandler;
+
+if (!this.PerformanceTestingHelper) {
+  this.PerformanceTestingHelper = null;
+}
+
+if (!window.ActivityHandler) {
+  window.ActivityHandler = null;
+}
+
+if (!this.fb) {
+  this.fb = null;
+}
+
+if (!this.fbLoader) {
+  this.fbLoader = null;
+}
 
 suite('Fill tag options', function() {
   var contacts,
@@ -26,7 +46,9 @@ suite('Fill tag options', function() {
       realActivityHandler,
       subject,
       realL10n,
-      realMozKeyboard;
+      realPerformanceTestingHelper,
+      realFb,
+      realFbLoader;
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -54,8 +76,12 @@ suite('Fill tag options', function() {
     window.contacts = contacts;
     realActivityHandler = window.ActivityHandler;
     window.ActivityHandler = MockActivities;
-    realMozKeyboard = window.navigator.mozKeyboard;
-    window.navigator.mozKeyboard = MockMozKeyboard;
+    realFbLoader = window.fbLoader;
+    window.fbLoader = MockFbLoader;
+    realFb = window.fb;
+    window.fb = MockFb;
+    realPerformanceTestingHelper = window.PerformanceTestingHelper;
+    window.PerformanceTestingHelper = MockPerformanceTestingHelper;
     document.body.innerHTML = ContactListDom + MockSelectionDom;
     subject = window.Contacts;
     subject.init();
@@ -63,10 +89,13 @@ suite('Fill tag options', function() {
   });
 
   suiteTeardown(function() {
+    subject.close();
     navigator.mozL10n = realL10n;
     window.contacts = realContacts;
     window.ActivityHandler = realActivityHandler;
-    window.navigator.mozKeyboard = realMozKeyboard;
+    window.fbLoader = realFbLoader;
+    window.fb = realFb;
+    window.PerformanceTestingHelper = realPerformanceTestingHelper;
     document.body.innerHTML = '';
   });
 
@@ -77,8 +106,8 @@ suite('Fill tag options', function() {
         customTag;
     var testTagOptions = {
       'test-type' : [
-        {value: 'value1'},
-        {value: 'value2'}
+        {type: 'value1', value: 'value1'},
+        {type: 'value2', value: 'value2'}
       ]
     };
 

@@ -10,7 +10,8 @@
 *********************************************************** */
 (function(window) {
 
-  var MockNavigatormozSms = window.MockNavigatormozSms = {};
+  var MockNavigatormozMobileMessage =
+        window.DesktopMockNavigatormozMobileMessage = {};
 
   // Fake in-memory message database
   var messagesDb = {
@@ -178,8 +179,9 @@
     }
   };
 
-  // mozSms API
-  MockNavigatormozSms.addEventListener = function(eventName, handler) {
+  MockNavigatormozMobileMessage.addEventListener =
+    function(eventName, handler) {
+
     var handlers = allHandlers[eventName];
     if (!handlers) {
       handlers = allHandlers[eventName] = [];
@@ -187,11 +189,30 @@
     handlers.push(handler);
   };
 
-  MockNavigatormozSms.send = function(number, text, success, error) {
+  MockNavigatormozMobileMessage.send = function(number, text, success, error) {
     var sendId = messagesDb.id++;
     var request = {
       error: null
     };
+
+    var thread = messagesDb.threads.filter(function(t) {
+      return t.participants[0] === number;
+    })[0];
+    if (!thread) {
+      thread = {
+        id: messagesDb.id++,
+        participants: [number],
+        body: text,
+        timestamp: new Date(),
+        unreadCount: 0
+      };
+      messagesDb.threads.push(thread);
+    }
+    else {
+      thread.body = text;
+      thread.timestamp = new Date();
+    }
+
     var sendInfo = {
       type: 'sent',
       message: {
@@ -200,7 +221,8 @@
         delivery: 'sending',
         body: text,
         id: sendId,
-        timestamp: new Date()
+        timestamp: new Date(),
+        threadId: thread.id
       }
     };
 
@@ -244,7 +266,8 @@
           delivery: 'received',
           body: 'Hi back! ' + text,
           id: messagesDb.id++,
-          timestamp: new Date()
+          timestamp: new Date(),
+          threadId: thread.id
         }
       };
       messagesDb.messages.push(receivedInfo.message);
@@ -262,7 +285,7 @@
   //  - error: Error information, if any (null otherwise)
   //  - onerror: Function that may be set by the suer. If set, will be invoked
   //    in the event of a failure
-  MockNavigatormozSms.getThreads = function() {
+  MockNavigatormozMobileMessage.getThreads = function() {
     var request = {
       error: null
     };
@@ -287,7 +310,7 @@
         idx += 1;
         request.continue = continueCursor;
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(null);
+          request.onsuccess.call(request);
         }
       }
 
@@ -312,7 +335,7 @@
   //    invoked in the event of a success
   //  - onerror: Function that may be set by the suer. If set, will be invoked
   //    in the event of a failure
-  MockNavigatormozSms.getMessages = function(filter, reverse) {
+  MockNavigatormozMobileMessage.getMessages = function(filter, reverse) {
     var request = {
       error: null
     };
@@ -356,10 +379,11 @@
         }
       } else {
         request.result = msgs[idx];
+        request.done = !request.result;
         idx += 1;
         request.continue = continueCursor;
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(null);
+          request.onsuccess.call(request);
         }
       }
 
@@ -382,7 +406,7 @@
   //    invoked in the event of a success
   //  - onerror: Function that may be set by the suer. If set, will be invoked
   //    in the event of a failure
-  MockNavigatormozSms.delete = function(id) {
+  MockNavigatormozMobileMessage.delete = function(id) {
     var request = {
       error: null
     };
@@ -409,7 +433,7 @@
       }
 
       if (typeof request.onsuccess === 'function') {
-        request.onsuccess.call(null);
+        request.onsuccess.call(request);
       }
     }, simulation.delay());
 

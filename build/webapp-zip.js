@@ -21,6 +21,8 @@ const PR_EXCL = 0x80;
  * @param {nsIFile}      file      file xpcom to add.
  */
 function addToZip(zip, pathInZip, file) {
+    if (file.isHidden())
+	return;
 
   // Check @2x files
   if ( HIDPI != '*' && file.path.search('@2x') == -1 ) {

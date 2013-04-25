@@ -65,6 +65,14 @@
   display: none;
 }
 
+#phoneLock-passcode menu[type="toolbar"] {
+  width: 9rem;
+}
+
+#phoneLock-passcode menu[type="toolbar"] button {
+  width: 100%;
+}
+
 #phoneLock-passcode[data-mode="create"]  [data-mode*="create"],
 #phoneLock-passcode[data-mode="confirm"] [data-mode*="confirm"],
 #phoneLock-passcode[data-mode="edit"]    [data-mode*="edit"],

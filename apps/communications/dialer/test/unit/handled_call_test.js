@@ -260,6 +260,17 @@ suite('dialer/handled_call', function() {
     });
   });
 
+  suite('busy', function() {
+    setup(function() {
+      mockCall._busy();
+    });
+
+    test('playing busy tone', function() {
+      assert.isTrue(MockOnCallHandler.mNotifyBusyLineCalled);
+    });
+  });
+
+
   suite('holding', function() {
     setup(function() {
       mockCall._hold();
@@ -363,12 +374,12 @@ suite('dialer/handled_call', function() {
     });
   });
 
-  test('should display unknown l10n key', function() {
+  test('should display withheld-number l10n key', function() {
     mockCall = new MockCall('', 'incoming');
     subject = new HandledCall(mockCall, fakeNode);
 
     var numberNode = fakeNode.querySelector('.numberWrapper .number');
-    assert.equal(numberNode.textContent, 'unknown');
+    assert.equal(numberNode.textContent, 'withheld-number');
   });
 
   suite('additional information', function() {

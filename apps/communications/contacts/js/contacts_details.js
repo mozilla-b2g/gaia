@@ -84,10 +84,12 @@ contacts.Details = (function() {
       contactDetails.classList.add('up');
       cover.classList.add('up');
 
+      var max_margin = Math.round(150 * SCALE_RATIO);
+
       var onMouseMove = function onMouseMove(event) {
         var event = event.changedTouches[0];
         var newMargin = event.clientY - startPosition;
-        if (newMargin > 0 && newMargin < 150) {
+        if (newMargin > 0 && newMargin < max_margin) {
           contactDetails.classList.remove('up');
           cover.classList.remove('up');
           var calc = 'calc(' + initMargin + 'rem + ' + newMargin + 'px)';
@@ -357,6 +359,7 @@ contacts.Details = (function() {
         value: utils.text.escapeHTML(currentTel.value, true) || '',
         type: _(escapedType) || escapedType ||
                                         TAG_OPTIONS['phone-type'][0].value,
+        'type_l10n_id': currentTel.type,
         carrier: utils.text.escapeHTML(currentTel.carrier || '', true) || '',
         i: tel
       };
@@ -397,6 +400,7 @@ contacts.Details = (function() {
         value: utils.text.escapeHTML(currentEmail['value'], true) || '',
         type: _(escapedType) || escapedType ||
                                           TAG_OPTIONS['email-type'][0].value,
+        'type_l10n_id': currentEmail['type'],
         i: email
       };
       var template = utils.templates.render(emailsTemplate, emailField);
@@ -445,6 +449,7 @@ contacts.Details = (function() {
         countryName: escapedCountry,
         type: _(escapedType) || escapedType ||
                                         TAG_OPTIONS['address-type'][0].value,
+        'type_l10n_id': currentAddress['type'],
         i: i
       };
       var template = utils.templates.render(addressesTemplate, addressField);
@@ -479,7 +484,8 @@ contacts.Details = (function() {
     }
     if (contact.photo && contact.photo.length > 0) {
       contactDetails.classList.add('up');
-      var clientHeight = contactDetails.clientHeight - (initMargin * 10);
+      var clientHeight = contactDetails.clientHeight -
+          (initMargin * 10 * SCALE_RATIO);
       if (detailsInner.offsetHeight < clientHeight) {
         cover.style.overflow = 'hidden';
       } else {

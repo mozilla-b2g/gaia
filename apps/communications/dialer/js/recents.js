@@ -577,7 +577,7 @@ var Recents = {
       '    <aside class="icon call-type-icon ' + classes + '"></aside>' +
       '    <p class="primary-info">' +
       '      <span class="primary-info-main">' +
-               (recent.number || this._('unknown')) +
+               (recent.number || this._('withheld-number')) +
       '      </span>' + '<span class="many-contacts">' +
       '      </span>' + '<span class="entry-count">' +
       '      </span>' +
@@ -692,7 +692,7 @@ var Recents = {
         primaryInfoMainNode.textContent = primaryInfo;
       } else {
         LazyL10n.get(function gotL10n(_) {
-          primaryInfoMainNode.textContent = _('unknown');
+          primaryInfoMainNode.textContent = _('withheld-number');
         });
       }
       manyContactsNode.innerHTML = contactsWithSameNumber ?
@@ -707,7 +707,7 @@ var Recents = {
         logItem.classList.remove('hasPhoto');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
-        matchingTel, contact);
+        matchingTel, contact, phoneNumber);
       phoneNumberAdditionalInfoNode.textContent = phoneNumberAdditionalInfo;
       logItem.classList.add('isContact');
       logItem.dataset['contactId'] = contact.id;

@@ -256,9 +256,8 @@
       <div>
         <ul>
           <li>
-            <a data-l10n-id="macAddress"> MAC address
-              <span data-name="deviceinfo.mac"></span>
-            </a>
+            <small data-name="deviceinfo.mac"></small>
+            <a data-l10n-id="macAddress"> MAC address </a>
           </li>
         </ul>
 
@@ -1148,14 +1147,14 @@
           <h2 data-l10n-id="volume">Volume</h2>
         </header>
         <ul>
-          <li>
+          <li class="sound-setting">
             <p data-l10n-id="ringer-and-notification-sound">Ringer & Notifications</p>
             <label>
               <input type="range" name="audio.volume.notification" step="1" min="0" value="15" max="15">
               <span class="range-icons volume"></span>
             </label>
           </li>
-          <li>
+          <li class="sound-setting">
             <p data-l10n-id="alarm-sound">Alarm</p>
             <label>
               <input type="range" name="audio.volume.alarm" step="1" min="0" value="15" max="15">
@@ -1442,6 +1441,13 @@
           </li>
           <li>
             <label>
+              <input type="checkbox" name="keyboard.autocorrect"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="autoCorrect">Auto correction</a>
+          </li>
+          <li>
+            <label>
               <input type="checkbox" name="keyboard.wordsuggestion"/>
               <span></span>
             </label>
@@ -1503,6 +1509,13 @@
             </label>
             <small data-l10n-id="cyrillic-desc">Russian, Serbian (Cyrillic)</small>
             <a data-l10n-id="cyrillic">Cyrillic scripts</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.serbian-latin"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="serbian-latin">Serbian (Latin)</a>
           </li>
           <li>
             <label>
@@ -1652,6 +1665,10 @@
             <span id="messageBody">3 tries left.</span>
           </div>
 
+          <div id="inputCodeRetriesLeft" data-l10-id="inputCodeRetriesLeft">
+            3 tries left
+          </div>
+
           <div id="pinArea" class="sim-code-area">
             <div data-l10n-id="simPin">SIM PIN</div>
             <div class="input-wrapper">
@@ -1755,7 +1772,7 @@
 
       <div>
         <header id="developer-header">
-          <h2 data-l10n-id="developer">Developer</h2>
+          <h2 data-l10n-id="author">Author</h2>
         </header>
         <ul>
           <li id="developer-infos">

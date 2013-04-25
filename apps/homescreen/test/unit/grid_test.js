@@ -1,11 +1,17 @@
 'use strict';
 
+mocha.globals(['mozRequestAnimationFrame']);
+
 requireApp('homescreen/test/unit/mock_page.js');
+requireApp('homescreen/test/unit/mock_icon.js');
 requireApp('homescreen/test/unit/mock_dock_manager.js');
 requireApp('homescreen/test/unit/mock_home_state.js');
 requireApp('homescreen/test/unit/mock_pagination_bar.js');
+requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_apps_mgmt.js');
 requireApp('homescreen/test/unit/mock_configurator.js');
+requireApp('homescreen/test/unit/mock_hidden_apps.js');
+requireApp('homescreen/test/unit/mock_manifest_helper.js');
 
 requireApp('homescreen/js/grid.js');
 
@@ -14,8 +20,12 @@ var mocksHelperForGrid = new MocksHelper([
   'HomeState',
   'Page',
   'Dock',
+  'Icon',
   'PaginationBar',
-  'Configurator'
+  'Configurator',
+  'HIDDEN_APPS',
+  'ManifestHelper',
+  'getDefaultIcon'
 ]);
 
 mocksHelperForGrid.init();
@@ -23,6 +33,8 @@ mocksHelperForGrid.init();
 suite('grid.js >', function() {
   var TAP_THRESHOLD = 10;
   var SWIPE_THRESHOLD = 0.5;
+  var TINY_TIMEOUT = 50;
+  var SAVE_STATE_WAIT_TIMEOUT = 200;
 
   var wrapperNode, containerNode;
   var realMozApps;
@@ -81,9 +93,23 @@ suite('grid.js >', function() {
 
   function ensurePanningSuite() {
     suite('ensurePanning >', function() {
+      var realRequestAnimationFrame;
+
       setup(function() {
         GridManager.ensurePanning();
         MockPage.mTeardown();
+
+        realRequestAnimationFrame = window.mozRequestAnimationFrame;
+        window.mozRequestAnimationFrame = function(func) {
+          setTimeout(function() {
+            func();
+          });
+        };
+      });
+
+      teardown(function() {
+        window.mozRequestAnimationFrame = realRequestAnimationFrame;
+        realRequestAnimationFrame = null;
       });
 
       test('should be able to pan', function(done) {
@@ -100,12 +126,13 @@ suite('grid.js >', function() {
         containerNode.dispatchEvent(evt);
 
         assert.equal(document.body.dataset.transitioning, 'true');
-        mozRequestAnimationFrame(function() {
+
+        setTimeout(function() {
           done(function() {
             var currentPage = document.getElementById('landing-page');
             assert.include(currentPage.style.MozTransform, 'translateX');
           });
-        });
+        }, TINY_TIMEOUT);
       });
     });
   }
@@ -118,6 +145,35 @@ suite('grid.js >', function() {
     });
 
     ensurePanningSuite();
+  });
+
+  suite('install app >', function() {
+    var mockApp;
+
+    setup(function(done) {
+      // we want to test only this call
+      MockHomeState.mLastSavedGrid = null;
+      mockApp = new MockApp();
+      MockAppsMgmt.mTriggerOninstall(mockApp);
+      setTimeout(done.bind(null, undefined), SAVE_STATE_WAIT_TIMEOUT);
+    });
+
+    test('should save the state', function() {
+      assert.ok(MockHomeState.mLastSavedGrid);
+    });
+
+    suite('updating app >', function() {
+      setup(function(done) {
+        // we want to test only this call
+        MockHomeState.mLastSavedGrid = null;
+        mockApp.mTriggerDownloadApplied();
+        setTimeout(done.bind(null, undefined), SAVE_STATE_WAIT_TIMEOUT);
+      });
+
+      test('should save the state', function() {
+        assert.ok(MockHomeState.mLastSavedGrid);
+      });
+    });
   });
 
 });

@@ -219,6 +219,13 @@ var ScreenManager = {
         break;
 
       case 'userproximity':
+        var bluetooth = navigator.mozBluetooth;
+        var telephony = window.navigator.mozTelephony;
+        // 0x111E is for querying earphone type.
+        if ((bluetooth && bluetooth.isConnected(0x111E)) ||
+            telephony.speakerEnabled)
+          break;
+
         this._screenOffByProximity = evt.near;
         if (evt.near) {
           this.turnScreenOff(true);
@@ -279,7 +286,8 @@ var ScreenManager = {
 
       case 'mozChromeEvent':
         if (evt.detail.type == 'audio-channel-changed') {
-          var audioActive = (evt.detail.channel !== 'none');
+          var audioActive = (evt.detail.channel !== 'none' &&
+                             evt.detail.channel !== 'telephony');
 
           if (this._audioCpuSleepTimerId) {
             clearTimeout(this._audioCpuSleepTimerId);

@@ -89,7 +89,7 @@ function getVideoRotation(blob, rotationCallback) {
         return;
       }
       else {
-        data.getMore(offset, 8, parseAtom);
+        data.getMore(offset, 16, parseAtom);
       }
     }
   }

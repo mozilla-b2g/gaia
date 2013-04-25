@@ -23,8 +23,9 @@ var ThreadUI = {
     }, this);
 
     // Allow for stubbing in environments that do not implement the
-    // `navigator.mozSms` API
-    this._mozSms = navigator.mozSms || window.MockNavigatormozSms;
+    // `navigator.mozMobileMessage` API
+    this._mozMobileMessage = navigator.mozMobileMessage ||
+                              window.DesktopMockNavigatormozMobileMessage;
 
     // Prevent sendbutton to hide the keyboard:
     this.sendButton.addEventListener(
@@ -117,6 +118,10 @@ var ThreadUI = {
       'submit', this
     );
 
+    this.tmpl = ['contact', 'highlight'].reduce(function(tmpls, name) {
+      tmpls[name] = Utils.Template('messages-' + name + '-tmpl');
+      return tmpls;
+    }, {});
 
     Utils.startTimeHeaderScheduler();
 
@@ -179,22 +184,29 @@ var ThreadUI = {
         window.location.hash = '#thread-list';
         return;
       }
-      if (confirm(navigator.mozL10n.get('discard-sms'))) {
+      if (window.confirm(navigator.mozL10n.get('discard-sms'))) {
         ThreadUI.cleanFields(true);
         window.location.hash = '#thread-list';
       }
     };
 
     // We're waiting for the keyboard to disappear before animating back
-    if (ThreadListUI.fullHeight !== this.container.offsetHeight) {
+    if (this.isKeyboardDisplayed()) {
 
       window.addEventListener('resize', function keyboardHidden() {
         window.removeEventListener('resize', keyboardHidden);
+        window.clearTimeout(setTimer);
         goBack();
       });
+      var setTimer = window.setTimeout(goBack, 400);
     } else {
       goBack();
     }
+  },
+
+  isKeyboardDisplayed: function thui_isKeyboardDisplayed() {
+    // minimal keyboard height is 150px
+    return (this.container.offsetHeight < ThreadListUI.fullHeight - 150);
   },
 
   enableSend: function thui_enableSend() {
@@ -214,8 +226,8 @@ var ThreadUI = {
     this.container.scrollTop = this.container.scrollHeight;
   },
 
-  updateCounter: function thui_updateCount(evt) {
-    if (!navigator.mozSms) {
+  updateCounter: function thui_updateCount() {
+    if (!this._mozMobileMessage.getSegmentInfoForText) {
       return;
     }
     var value = this.input.value;
@@ -224,7 +236,7 @@ var ThreadUI = {
     var kMaxConcatenatedMessages = 10;
 
     // Use backend api for precise sms segmetation information.
-    var smsInfo = this._mozSms.getSegmentInfoForText(value);
+    var smsInfo = this._mozMobileMessage.getSegmentInfoForText(value);
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
     var counter = '';
@@ -232,7 +244,19 @@ var ThreadUI = {
       counter = availableChars + '/' + segments;
     }
     this.sendButton.dataset.counter = counter;
-    this.sendButton.disabled = (segments > kMaxConcatenatedMessages);
+    var hasMaxLength = (segments === kMaxConcatenatedMessages &&
+        !availableChars);
+
+    // note: when we'll have the MMS feature, we'll want to use an MMS instead
+    // of forbidding this.
+    if (hasMaxLength) {
+      var message = navigator.mozL10n.get('messages-max-length-notice');
+      window.alert(message);
+
+      this.input.setAttribute('maxlength', value.length);
+    } else {
+      this.input.removeAttribute('maxlength');
+    }
   },
 
   updateInputHeight: function thui_updateInputHeight() {
@@ -371,11 +395,13 @@ var ThreadUI = {
   },
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData(callback) {
+
     // For Desktop Testing, mozContacts it's mockuped but it's not working
     // completely. So in the case of Desktop testing we are going to execute
     // the callback directly in order to make it works!
     // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
-    if (!navigator.mozSms && callback) {
+    if (!navigator.mozMobileMessage && callback) {
+      this.headerText.textContent = MessageManager.currentNum;
       setTimeout(callback);
       return;
     }
@@ -388,7 +414,7 @@ var ThreadUI = {
     // Add data to contact activity interaction
     this.headerText.dataset.phoneNumber = number;
 
-    Contacts.findByString(number, function gotContact(contacts) {
+    Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
       /** If we have more than one contact sharing the same phone number
        *  we show the name of the first contact and how many other contacts
@@ -514,7 +540,7 @@ var ThreadUI = {
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     // Retrieve all data from message
     var id = message.id;
-    var bodyText = Utils.escapeHTML(message.body);
+    var bodyText = Utils.Message.format(message.body);
     var delivery = message.delivery;
     var messageDOM = document.createElement('li');
 
@@ -587,6 +613,9 @@ var ThreadUI = {
         messageContainer.appendChild(messageDOM);
       }
     }
+
+    if (document.getElementById('main-wrapper').classList.contains('edit'))
+      this.checkInputs();
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
@@ -601,7 +630,7 @@ var ThreadUI = {
     aElement.addEventListener('click', function resend(e) {
       var hash = window.location.hash;
       if (hash != '#edit') {
-        if (confirm(navigator.mozL10n.get('resend-confirmation'))) {
+        if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
           messageDOM.removeEventListener('click', resend);
           ThreadUI.resendMessage(message, messageDOM);
         }
@@ -643,7 +672,7 @@ var ThreadUI = {
 
   delete: function thui_delete() {
     var question = navigator.mozL10n.get('deleteMessages-confirmation');
-    if (confirm(question)) {
+    if (window.confirm(question)) {
       WaitingScreen.show();
       var delNumList = [];
       var inputs = ThreadUI.container.querySelectorAll(
@@ -713,17 +742,17 @@ var ThreadUI = {
       'input[type="checkbox"]'
     );
     if (selected.length == allInputs.length) {
-      this.checkAllButton.classList.add('disabled');
+      this.checkAllButton.disabled = true;
     } else {
-      this.checkAllButton.classList.remove('disabled');
+      this.checkAllButton.disabled = false;
     }
     if (selected.length > 0) {
-      this.uncheckAllButton.classList.remove('disabled');
-      this.deleteButton.classList.remove('disabled');
+      this.uncheckAllButton.disabled = false;
+      this.deleteButton.disabled = false;
       this.editMode.innerHTML = _('selected', {n: selected.length});
     } else {
-      this.uncheckAllButton.classList.add('disabled');
-      this.deleteButton.classList.add('disabled');
+      this.uncheckAllButton.disabled = true;
+      this.deleteButton.disabled = true;
       this.editMode.innerHTML = _('editMode');
     }
   },
@@ -908,64 +937,70 @@ var ThreadUI = {
     ThreadUI.sendMessage(message.body);
   },
 
-  renderContactData: function thui_renderContactData(contact) {
-    // Retrieve info from thread
-    var self = this;
-    var tels = contact.tel;
-    var contactsContainer = document.createElement('ul');
-    contactsContainer.classList.add('contactList');
-    for (var i = 0; i < tels.length; i++) {
-      Utils.getPhoneDetails(
-        tels[i].value, contact, function gotDetails(details) {
 
-        var name = Utils.escapeHTML((contact.name[0] || details.title));
-        //TODO ask UX if we should use type+carrier or just number
-        var number = tels[i].value.toString();
-        var input = self.recipient.value;
-        // For name, as long as we do a startsWith on API,
-        // we want only to show
-        // highlight of the startsWith also
-        var regName = new RegExp('\\b' + input, 'ig');
-        // For number we search in any position to avoid country code issues
-        var regNumber = new RegExp(input, 'ig');
-
-        var nameHTML = name.match(regName) ?
-              SearchUtils.createHighlightHTML(name, regName, 'highlight') :
-              name;
-
-        var numHTML = number.match(regNumber) ?
-              SearchUtils.createHighlightHTML(number, regNumber, 'highlight') :
-              number;
-
-        // Create DOM element
-        var contactDOM = document.createElement('li');
-
-        // Do we have to update with photo?
-        if (contact.photo && contact.photo[0]) {
-          var photoURL = URL.createObjectURL(contact.photo[0]);
-        }
-
-        // Create HTML structure
-        var structureHTML =
-                '  <a href="#num=' + number + '">' +
-                '<aside class="pack-end">' +
-                  '<img ' + (photoURL ? 'src="' + photoURL + '"' : '') + '>' +
-                '</aside>' +
-                '    <p class="name">' + nameHTML + '</div>' +
-                '    <p>' +
-                      tels[i].type +
-                      ' ' + numHTML +
-                      ' ' + (tels[i].carrier ? tels[i].carrier : '') +
-                '    </p>' +
-                '  </a>';
-        // Update HTML and append
-        contactDOM.innerHTML = structureHTML;
-
-        contactsContainer.appendChild(contactDOM);
-      });
+  // Returns true when a contact has been rendered
+  // Returns false when no contact has been rendered
+  renderContact: function thui_renderContact(contact) {
+    // Contact records that don't have phone numbers
+    // cannot be sent SMS or MMS messages
+    // TODO: Add email checking support for MMS
+    if (contact.tel === null) {
+      return false;
     }
 
-    ThreadUI.container.appendChild(contactsContainer);
+    var input = this.recipient.value.trim();
+    var escaped = Utils.escapeRegex(input);
+    var escsubs = escaped.split(/\s+/);
+    var tels = contact.tel;
+    var name = contact.name[0];
+    var regexps = {
+      name: new RegExp('(\\b' + escsubs.join(')|(\\b') + ')', 'gi'),
+      number: new RegExp(escaped, 'ig')
+    };
+
+    var contactsUl = document.createElement('ul');
+    contactsUl.classList.add('contactList');
+
+    for (var i = 0; i < tels.length; i++) {
+      var current = tels[i];
+      var number = current.value;
+
+      Utils.getPhoneDetails(number, contact, function(details) {
+        var contactLi = document.createElement('li');
+        var data = {
+          name: Utils.escapeHTML(name || details.title),
+          number: Utils.escapeHTML(number),
+          type: current.type || '',
+          carrier: current.carrier || '',
+          srcAttr: details.photoURL ?
+            'src="' + Utils.escapeHTML(details.photoURL) + '"' : '',
+          nameHTML: '',
+          numberHTML: ''
+        };
+
+        ['name', 'number'].forEach(function(key) {
+          data[key + 'HTML'] = data[key].replace(
+            regexps[key], function(match) {
+              return this.tmpl.highlight.interpolate({
+                str: match
+              });
+            }.bind(this)
+          );
+        }, this);
+
+        // Interpolate HTML template with data and inject.
+        // Known "safe" HTML values will not be re-sanitized.
+        contactLi.innerHTML = this.tmpl.contact.interpolate(data, {
+          safe: ['nameHTML', 'numberHTML', 'srcAttr']
+        });
+        contactsUl.appendChild(contactLi);
+
+      }.bind(this));
+    }
+
+    ThreadUI.container.appendChild(contactsUl);
+
+    return true;
   },
 
   searchContact: function thui_searchContact() {
@@ -984,7 +1019,7 @@ var ThreadUI = {
     Contacts.findByString(filterValue, function gotContact(contacts) {
       // There are contacts that match the input.
       this.container.innerHTML = '';
-      contacts.forEach(this.renderContactData.bind(this));
+      contacts.forEach(this.renderContact, this);
     }.bind(this));
   },
 
@@ -1059,6 +1094,8 @@ var ThreadUI = {
     }
   }
 };
+
+window.confirm = window.confirm; // allow override in unit tests
 
 window.addEventListener('resize', function resize() {
   ThreadUI.setInputMaxHeight();

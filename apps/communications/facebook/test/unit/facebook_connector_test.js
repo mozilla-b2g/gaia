@@ -5,6 +5,7 @@ requireApp('communications/contacts/js/fb/fb_contact.js');
 requireApp('communications/facebook/js/facebook_connector.js');
 requireApp('communications/facebook/test/unit/mock_fb_graph_data.js');
 requireApp('communications/facebook/test/unit/mock_fb_query.js');
+requireApp('communications/contacts/js/import_utils.js');
 
 var realFbUtils,
     subject;
@@ -23,6 +24,7 @@ suite('Facebook Connector Tests', function() {
     window.fb.utils = MockFbQuery;
     subject = window.FacebookConnector;
   });
+
 
   test('List all friends. Adapt data for showing', function(done) {
     subject.listAllContacts('fake_token', {

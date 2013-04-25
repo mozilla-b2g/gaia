@@ -1,0 +1,49 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "domstubs.idl"
+
+interface nsIURI;
+interface nsIDOMWindow;
+
+// Implemented by the contract id @mozilla.org/system-message-internal;1
+
+[scriptable, uuid(d8de761a-94fe-44d5-80eb-3c8bd8cd7d0b)]
+interface nsISystemMessagesInternal : nsISupports
+{
+  /*
+   * Allow any internal user to broadcast a message of a given type.
+   * @param type        The type of the message to be sent.
+   * @param message     The message payload.
+   * @param pageURI     The URI of the page that will be opened.
+   * @param manifestURI The webapp's manifest URI.
+   */
+  void sendMessage(in DOMString type, in jsval message, in nsIURI pageURI, in nsIURI manifestURI);
+
+  /*
+   * Allow any internal user to broadcast a message of a given type.
+   * The application that registers the message will be launched.
+   * @param type        The type of the message to be sent.
+   * @param message     The message payload.
+   */
+  void broadcastMessage(in DOMString type, in jsval message);
+
+  /*
+   * Registration of a page that wants to be notified of a message type.
+   * @param type          The message type.
+   * @param pageURI       The URI of the page that will be opened.
+   * @param manifestURI   The webapp's manifest URI.
+   */
+  void registerPage(in DOMString type, in nsIURI pageURI, in nsIURI manifestURI);
+};
+
+[scriptable, uuid(002f0e82-91f0-41de-ad43-569a2b9d12df)]
+interface nsISystemMessagesWrapper: nsISupports
+{
+  /*
+   * Wrap a message and gives back any kind of object.
+   * @param message  The json blob to wrap.
+   */
+  jsval wrapMessage(in jsval message, in nsIDOMWindow window);
+};

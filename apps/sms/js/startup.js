@@ -15,7 +15,6 @@ var lazyLoadFiles = [
   'js/thread_ui.js',
   'js/waiting_screen.js',
   'js/utils.js',
-  'js/search_utils.js',
   'js/fixed_header.js',
   'js/activity_picker.js',
   'js/link_helper.js',
@@ -49,7 +48,7 @@ window.addEventListener('load', function() {
 
   navigator.mozL10n.ready(function waitLocalizedForLoading() {
     LazyLoader.load(lazyLoadFiles, function() {
-      if (!navigator.mozSms) {
+      if (!navigator.mozMobileMessage) {
         LazyLoader.load(['js/sms_mock.js'], function() {
           MessageManager.init(initUIApp);
         });

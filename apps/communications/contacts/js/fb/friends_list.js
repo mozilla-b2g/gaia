@@ -55,7 +55,9 @@ var FriendListRenderer = (function() {
     // contact's name from template...
     var notRenderedParagraph = groupsList.querySelector('[data-order-by="' +
                    (orderBy === 'firstName' ? 'lastName' : 'firstName') + '"]');
-    notRenderedParagraph.parentNode.removeChild(notRenderedParagraph);
+    if (notRenderedParagraph) {
+      notRenderedParagraph.parentNode.removeChild(notRenderedParagraph);
+    }
 
     // A..Z groups
     for (var i = 65; i <= 90; i++) {
@@ -92,6 +94,11 @@ var FriendListRenderer = (function() {
     friends.forEach(function(friend) {
       if (!friend.search || friend.search.length === 0)
         return;
+
+      // Set the picture size
+      var box = importUtils.getPreferredPictureBox();
+      friend.picwidth = box.width;
+      friend.picheight = box.height;
 
       friend.search = utils.text.normalize(friend.search);
 

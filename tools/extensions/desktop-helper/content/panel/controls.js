@@ -1,12 +1,13 @@
 !function() {
 
 function sendChromeEvent(detail) {
-    detail.__exposedProps__ = {};
+    var contentDetail = Components.utils.createObjectIn(tab);
     for (var i in detail) {
-        detail.__exposedProps__[i] = 'r';
+        contentDetail[i] = detail[i];
     }
+    Components.utils.makeObjectPropsNormal(contentDetail);
     var customEvt = tab.document.createEvent('CustomEvent');
-    customEvt.initCustomEvent('mozChromeEvent', true, true, detail);
+    customEvt.initCustomEvent('mozChromeEvent', true, true, contentDetail);
     tab.dispatchEvent(customEvt);
 }
 
@@ -16,6 +17,7 @@ function HardwareButtons() {
 
 HardwareButtons.prototype = {
     home: function() {
+        hardware.wake();
         var event = tab.CustomEvent('home');
         tab.dispatchEvent(event);
     },
@@ -62,4 +64,18 @@ Emulation.prototype = {
     }
 };
 window.emulation = new Emulation();
+
+function Workflow() {
+
+}
+
+Workflow.prototype = {
+  reload: function() {
+
+    var app = tab.wrappedJSObject.WindowManager
+      .getRunningApps()[tab.wrappedJSObject.WindowManager.getDisplayedApp()];
+    app.reload();
+  }
+}
+window.worflow = new Workflow();
 }();

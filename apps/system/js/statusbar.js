@@ -135,6 +135,10 @@ var StatusBar = {
   init: function sb_init() {
     this.getAllElements();
 
+    // Hide clock when initializing since this is handled by the event
+    // listeners for 'lock', 'unlock', and 'lockpanelchange'
+    this.icons.time.hidden = true;
+
     var settings = {
       'ril.radio.disabled': ['signal', 'data'],
       'ril.data.enabled': ['data'],
@@ -179,6 +183,13 @@ var StatusBar = {
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
 
+    // Listen to 'lock', 'unlock', and 'lockpanelchange' from lockscreen.js in
+    // order to correctly set the visibility of the statusbar clock depending
+    // on the active lockscreen panel
+    window.addEventListener('lock', this);
+    window.addEventListener('unlock', this);
+    window.addEventListener('lockpanelchange', this);
+
     this.systemDownloadsCount = 0;
 
     // Create the objects used to animate the statusbar-network-activity and
@@ -195,6 +206,24 @@ var StatusBar = {
     switch (evt.type) {
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
+        break;
+
+      case 'lock':
+        // Hide the clock in the statusbar when screen is locked
+        this.icons.time.hidden = true;
+        break;
+
+      case 'unlock':
+        // Display the clock in the statusbar when screen is unlocked
+        this.icons.time.hidden = false;
+        break;
+
+      case 'lockpanelchange':
+        if (this.screen.classList.contains('locked')) {
+          // Display the clock in the statusbar if on Emergency Call screen
+          var isHidden = (evt.detail.panel == 'emergency-call') ? false : true;
+          this.icons.time.hidden = isHidden;
+        }
         break;
 
       case 'chargingchange':
@@ -231,7 +260,7 @@ var StatusBar = {
         break;
 
       case 'moztimechange':
-        this.update.time.call(this);
+        navigator.mozL10n.ready(this.update.time.bind(this));
         break;
 
       case 'mozChromeEvent':
@@ -269,7 +298,7 @@ var StatusBar = {
   setActive: function sb_setActive(active) {
     this.active = active;
     if (active) {
-      this.update.time.call(this);
+      navigator.mozL10n.ready(this.update.time.bind(this));
 
       var battery = window.navigator.battery;
       if (battery) {
@@ -504,6 +533,9 @@ var StatusBar = {
         case 'connected':
           icon.hidden = false;
 
+          if (icon.dataset.connecting) {
+            delete icon.dataset.connecting;
+          }
           var relSignalStrength =
             wifiManager.connectionInformation.relSignalStrength;
           icon.dataset.level = Math.floor(relSignalStrength / 25);

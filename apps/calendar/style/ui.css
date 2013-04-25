@@ -180,6 +180,14 @@ ol.link-list li:only-child a {
   width: 50%;
 }
 
+#advanced-settings-view header.account-list-header.active {
+  display: block;
+}
+
+#advanced-settings-view header.account-list-header {
+  display: none;
+}
+
 /* create account view */
 
 #create-account-view > ol,

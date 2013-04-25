@@ -1,4 +1,4 @@
-(function(window) {
+Calendar.ns('Views').ModifyAccount = (function() {
 
   function ModifyAccount(options) {
     Calendar.View.apply(this, arguments);
@@ -98,7 +98,17 @@
 
       update.forEach(function(name) {
         var field = this.fields[name];
-        this.model[name] = field.value;
+        var value = field.value;
+        if (name === 'fullUrl') {
+          // Prepend a scheme if url has neither port nor scheme
+          var port = Calendar.Utils.URI.getPort(value);
+          var scheme = Calendar.Utils.URI.getScheme(value);
+          if (!port && !scheme) {
+            value = 'https://' + value;
+          }
+        }
+
+        this.model[name] = value;
       }, this);
     },
 
@@ -176,14 +186,17 @@
       if (this.model._id) {
         this.type = 'update';
         this.deleteButton.addEventListener('click', this.deleteRecord);
-        this.cancelDeleteButton.addEventListener('click',
-                                                 this.cancel);
+        this.cancelDeleteButton.addEventListener('click', this.cancel);
       } else {
         this.type = 'create';
       }
 
       this.form.reset();
       this.updateForm();
+
+      var usernameType = this.model.usernameType;
+      this.fields['user'].type = (usernameType === undefined) ?
+          'text' : usernameType;
 
       list.add(this.type);
       list.add('preset-' + this.model.preset);
@@ -247,9 +260,8 @@
         displayModel(null, this._createModel(params.preset));
       }
     }
-
   };
 
-  Calendar.ns('Views').ModifyAccount = ModifyAccount;
+  return ModifyAccount;
 
-}(this));
+}());
