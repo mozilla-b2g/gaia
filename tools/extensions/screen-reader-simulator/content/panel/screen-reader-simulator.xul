@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/content/devtools/widgets.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/content/devtools/inspector/inspector.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/devtools/common.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/devtools/widgets.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/devtools/inspector.css" type="text/css"?>
+<?xml-stylesheet href="screen-reader-simulator.css" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://screen-reader-simulator/locale/screen-reader-simulator.dtd">
+
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script src="screen-reader-simulator.js"></script>
+
+  <box flex="1" class="devtools-responsive-container">
+    <vbox flex="1">
+      <toolbar class="devtools-toolbar">
+        <toolbarbutton class="devtools-toolbarbutton" type="checkbox"
+                       oncommand="screenReader.toggle(this.checked)"
+                       label="&screenReaderEnable;" tabindex="0"/>
+        <toolbarspacer/>
+        <toolbaritem>
+          <label value="&screenReaderNavigationLabel;"/>
+        </toolbaritem>
+        <hbox class="sr-controls">
+          <toolbarbutton class="devtools-toolbarbutton"
+                         aria-label="&screenReaderPreviousItem;"
+                         tooltiptext="&screenReaderPreviousItem;"
+                         oncommand="screenReader.previous('Simple')"
+                         id="previous-item" tabindex="0"/>
+          <toolbarbutton class="devtools-toolbarbutton"
+                         aria-label="&screenReaderActivateItem;"
+                         tooltiptext="&screenReaderActivateItem;"
+                         oncommand="screenReader.activate()"
+                         id="activate-item" tabindex="0"/>
+          <toolbarbutton class="devtools-toolbarbutton"
+                         aria-label="&screenReaderNextItem;"
+                         tooltiptext="&screenReaderNextItem;"
+                         oncommand="screenReader.next('Simple')"
+                         id="next-item" tabindex="0"/>
+        </hbox>
+        <toolbarspacer/>
+        <toolbaritem>
+          <label value="&screenReaderScrollLabel;"/>
+        </toolbaritem>
+        <hbox class="sr-controls">
+          <toolbarbutton class="devtools-toolbarbutton"
+                         aria-label="&screenReaderScrollLeft;"
+                         tooltiptext="&screenReaderScrollLeft;"
+                         onclick="screenReader.scrollLeft()"
+                         id="scroll-left" tabindex="0"/>
+          <toolbarbutton class="devtools-toolbarbutton"
+                         aria-label="&screenReaderScrollRight;"
+                         tooltiptext="&screenReaderScrollRight;"
+                         onclick="screenReader.scrollRight()"
+                         id="scroll-right" tabindex="0"/>
+        </hbox>
+          <toolbarseparator/>
+        <hbox class="sr-controls">
+          <toolbarbutton class="devtools-toolbarbutton"
+                         aria-label="&screenReaderScrollUp;"
+                         tooltiptext="&screenReaderScrollUp;"
+                         onclick="screenReader.scrollUp()"
+                         id="scroll-up" tabindex="0"/>
+          <toolbarbutton class="devtools-toolbarbutton"
+                         aria-label="&screenReaderScrollDown;"
+                         tooltiptext="&screenReaderScrollDown;"
+                         onclick="screenReader.scrollDown()"
+                         id="scroll-down" tabindex="0"/>
+        </hbox>
+      </toolbar>
+      <richlistbox id="sr-output" orient="vertical" flex="1"
+                   seltype="multiple" context="output-contextmenu"
+                   style="direction:ltr;"/>
+    </vbox>
+  </box>
+</window>
