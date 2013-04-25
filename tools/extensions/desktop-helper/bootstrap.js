@@ -48,16 +48,14 @@ function startup(data, reason) {
                             'resize to',
                             args);
 
-      // And open ff os devtool panel while maximizing its size according to
-      // screen size
+      // And devtool panel while maximizing its size according to screen size
       Services.prefs.setIntPref('devtools.toolbox.sidebar.width',
                                 browserWindow.screen.width - 550);
       browserWindow.resizeTo(
         browserWindow.screen.width,
         browserWindow.outerHeight
       );
-      gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser,
-                                         'firefox-os-controls');
+      gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser);
 
       // XXX This code should be loaded by the keyboard/ extension
       // to not change the behavior of b2g-desktop.
@@ -88,6 +86,9 @@ function startup(data, reason) {
         },
         build: function(iframeWindow, toolbox) {
           iframeWindow.wrappedJSObject.tab = toolbox.target.window;
+          return {
+            destroy: function () {}
+          };
         }
       });
     } catch(e) {

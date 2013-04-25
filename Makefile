@@ -33,6 +33,20 @@ HIDPI?=*
 DOGFOOD?=0
 TEST_AGENT_PORT?=8789
 
+# Enable compatibility to run in Firefox Desktop
+BROWSER?=$(DEBUG)
+# Disable first time experience screen
+NOFTU?=0
+# Automatically enable remote debugger
+REMOTE_DEBUGGER?=0
+
+# We also disable FTU when running in Firefox or in debug mode
+ifeq ($(DEBUG),1)
+NOFTU=1
+else ifeq ($(BROWSER),1)
+NOFTU=1
+endif
+
 LOCAL_DOMAINS?=1
 
 ADB?=adb
@@ -390,6 +404,7 @@ define run-js-command
 	const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)$(SEP)profile"; \
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
+	const BROWSER = $(BROWSER);                                           \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
@@ -439,10 +454,13 @@ applications-data: install-xulrunner-sdk
 # Generate profile/extensions
 EXT_DIR=profile/extensions
 extensions:
-	@mkdir -p profile
 	@rm -rf $(EXT_DIR)
-ifeq ($(DEBUG),1)
-	cp -r tools/extensions $(EXT_DIR)
+	@mkdir -p $(EXT_DIR)
+ifeq ($(BROWSER),1)
+	cp -r tools/extensions/* $(EXT_DIR)/
+else ifeq ($(DEBUG),1)
+	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
+	cp -r tools/extensions/httpd $(EXT_DIR)/
 endif
 	@echo "Finished: Generating extensions"
 
@@ -761,9 +779,7 @@ endif
 
 ifeq ($(DEBUG),1)
 SETTINGS_ARG += --homescreen=http://homescreen.$(GAIA_DOMAIN):$(GAIA_PORT)/manifest.webapp
-SETTINGS_ARG += --noftu
 endif
-
 
 # We want the console to be disabled for device builds using the user variant.
 ifneq ($(TARGET_BUILD_VARIANT),user)
