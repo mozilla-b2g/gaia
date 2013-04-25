@@ -118,6 +118,8 @@ var Settings = {
     if (!panel)
       return;
 
+    this.loadPanelStylesheetsIfNeeded();
+
     // apply the HTML markup stored in the first comment node
     for (var i = 0; i < panel.childNodes.length; i++) {
       if (panel.childNodes[i].nodeType == document.COMMENT_NODE) {
@@ -141,20 +143,6 @@ var Settings = {
       script.type = 'application/javascript';
       script.src = src;
       document.head.appendChild(script);
-    }
-
-    // activate all stylesheets
-    var stylesheets = panel.querySelectorAll('link');
-    for (var i = 0; i < stylesheets.length; i++) {
-      var href = stylesheets[i].getAttribute('href');
-      if (document.head.querySelector('link[href="' + href + '"]'))
-        continue;
-
-      var stylesheet = document.createElement('link');
-      stylesheet.type = 'text/css';
-      stylesheet.rel = 'stylesheet';
-      stylesheet.href = href;
-      document.head.appendChild(stylesheet);
     }
 
     // activate all links
@@ -554,6 +542,26 @@ var Settings = {
       panel.querySelector('#region-time').textContent =
           f.localeFormat(d, _('shortTimeFormat'));
     }
+  },
+
+  loadPanelStylesheetsIfNeeded: function settings_loadPanelStylesheetsIN() {
+    var self = this;
+    if (self._panelStylesheetsLoaded) {
+      return;
+    }
+
+    LazyLoader.load(['shared/style/action_menu.css',
+                     'shared/style/buttons.css',
+                     'shared/style/confirm.css',
+                     'shared/style/input_areas.css',
+                     'shared/style_unstable/progress_activity.css',
+                     'style/apps.css',
+                     'style/phone_lock.css',
+                     'style/simcard.css',
+                     'style/updates.css'],
+    function callback() {
+      self._panelStylesheetsLoaded = true;
+    });
   }
 };
 
@@ -561,6 +569,11 @@ var Settings = {
 window.addEventListener('load', function loadSettings() {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
+
+  navigator.addIdleObserver({
+    time: 3,
+    onidle: Settings.loadPanelStylesheetsIfNeeded.bind(Settings)
+  });
 
   Settings.init();
   handleRadioAndCardState();
@@ -838,4 +851,3 @@ window.addEventListener('localized', function showLanguages() {
 Settings.preInit();
 
 MouseEventShim.trackMouseMoves = false;
-
