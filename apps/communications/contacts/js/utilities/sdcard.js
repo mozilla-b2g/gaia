@@ -38,7 +38,7 @@ if (!utils.sdcard) {
 
   /**
    * Check whether there is a SD card inserted in the device.
-   * @return {Boolean}
+   * @return {Boolean} true if sdcard available, false otherwise.
    */
   SdCard.checkStorageCard = function sd_checkStorageCard() {
     return SdCard.status === SdCard.AVAILABLE;
