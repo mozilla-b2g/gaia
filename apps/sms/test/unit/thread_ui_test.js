@@ -9,6 +9,7 @@ requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/js/thread_ui.js');
+requireApp('sms/js/sms_mock.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Utils',
