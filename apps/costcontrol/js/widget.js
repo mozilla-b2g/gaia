@@ -8,12 +8,9 @@
  * a balance update or timeout.
  */
 
-(function() {
+var Widget = (function() {
 
   'use strict';
-
-  // XXX: This is the point of entry, check common.js for more info
-  waitForDOMAndMessageHandler(window, onReady);
 
   var costcontrol;
   function onReady() {
@@ -27,7 +24,7 @@
       mobileConnection.oncardstatechange = onReady;
 
     // SIM is ready, but ICC info is not ready yet
-    } else if (!isValidICCID(iccid)) {
+    } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
       mobileConnection.oniccinfochange = onReady;
 
@@ -71,7 +68,7 @@
       showSimError('no-sim2');
     }
 
-    checkSIMChange(function _onSIMChecked() {
+    Common.checkSIMChange(function _onSIMChecked() {
       CostControl.getInstance(function _onCostControlReady(instance) {
         costcontrol = instance;
         setupWidget();
@@ -423,4 +420,12 @@
     }
   }
 
+  return {
+    init: function() {
+      Common.waitForDOMAndMessageHandler(window, onReady);
+    }
+  };
+
 }());
+
+Widget.init();

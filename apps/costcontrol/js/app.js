@@ -25,7 +25,7 @@
  *
  * If you want to preserve a layer but changing the other, use the empty string
  * as the id of the layer you want to preserve.
- * For intance, you want to only close the overlay layer but not affecting the
+ * For instance, you want to only close the overlay layer but not affecting the
  * tab layer:
  * #
  *
@@ -39,9 +39,6 @@ var CostControlApp = (function() {
 
   'use strict';
 
-  // XXX: This is the point of entry, check common.js for more info
-  waitForDOMAndMessageHandler(window, onReady);
-
   var costcontrol, initialized = false;
   function onReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
@@ -54,7 +51,7 @@ var CostControlApp = (function() {
       mobileConnection.oncardstatechange = onReady;
 
     // SIM is ready, but ICC info is not ready yet
-    } else if (!isValidICCID(iccid)) {
+    } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
       mobileConnection.oniccinfochange = onReady;
 
@@ -92,12 +89,11 @@ var CostControlApp = (function() {
   }
 
   function showSimErrorDialog(status) {
-
     function realShowSimError(status) {
       var header = _('widget-' + status + '-heading');
       var msg = _('widget-' + status + '-meta');
-      alert(header + '\n' + msg);
-      setTimeout(window.close);
+      Common.modalAlert(header + '\n' + msg);
+      Common.closeApplication();
     }
 
     if (isApplicationLocalized) {
@@ -176,10 +172,10 @@ var CostControlApp = (function() {
       showSimErrorDialog('no-sim2');
     }
 
-    checkSIMChange(function _onSIMChecked() {
+    Common.checkSIMChange(function _onSIMChecked() {
       CostControl.getInstance(function _onCostControlReady(instance) {
         if (ConfigManager.option('fte')) {
-          window.location = '/fte.html';
+          Common.startFTE();
           return;
         }
         costcontrol = instance;
@@ -349,6 +345,19 @@ var CostControlApp = (function() {
   }
 
   return {
+    init: function() {
+      Common.waitForDOMAndMessageHandler(window, onReady);
+    },
+    reset: function() {
+      costcontrol = null;
+      initialized = false;
+      vmanager = null;
+      tabmanager = null;
+      settingsVManager = null;
+      currentMode = null;
+      isApplicationLocalized = false;
+      window.location.hash = '';
+    },
     showBalanceTab: function _showBalanceTab() {
       window.location.hash = '#balance-tab';
     },
