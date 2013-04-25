@@ -180,7 +180,7 @@ function cancelSeekAndSetFreq(frequency) {
     mozFMRadio.setFrequency(frequency);
   }
 
-  var seeking = !!$('frequency').getAttribute('data-seek-dir');
+  var seeking = !!$('power-switch').getAttribute('data-seeking');
   if (!seeking) {
     setFreq();
   } else {
@@ -665,20 +665,21 @@ function init() {
   var seeking = false;
   function onclick_seekbutton(event) {
     var seekButton = this;
-    var freqElement = $('frequency');
-    var seeking = !!freqElement.getAttribute('data-seek-dir');
+    var powerSwitch = $('power-switch');
+    var seeking = !!powerSwitch.getAttribute('data-seeking');
     var up = seekButton.id == 'frequency-op-seekup';
 
     function seek() {
-      freqElement.dataset.seekDir = up ? 'up' : 'down';
+      powerSwitch.dataset.seeking = true;
+
       var request = up ? mozFMRadio.seekUp() : mozFMRadio.seekDown();
 
       request.onsuccess = function seek_onsuccess() {
-        freqElement.removeAttribute('data-seek-dir');
+        powerSwitch.removeAttribute('data-seeking');
       };
 
       request.onerror = function seek_onerror() {
-        freqElement.removeAttribute('data-seek-dir');
+        powerSwitch.removeAttribute('data-seeking');
       };
     }
 
