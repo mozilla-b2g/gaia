@@ -39,9 +39,6 @@ var CostControlApp = (function() {
 
   'use strict';
 
-  // XXX: This is the point of entry, check common.js for more info
-  waitForDOMAndMessageHandler(window, onReady);
-
   var costcontrol, initialized = false;
   function onReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
@@ -163,6 +160,8 @@ var CostControlApp = (function() {
   }
 
   window.addEventListener('localized', function _onLocalize() {
+    // XXX: This is the point of entry, check common.js for more info
+    waitForDOMAndMessageHandler(window, onReady);
     if (initialized) {
       updateUI();
     }
