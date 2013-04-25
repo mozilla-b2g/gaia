@@ -84,10 +84,22 @@ var CostControlApp = (function() {
   }
 
   function showSimErrorDialog(status) {
-    var header = _('widget-' + status + '-heading');
-    var msg = _('widget-' + status + '-meta');
-    alert(header + '\n' + msg);
-    window.close();
+
+    function realShowSimError(status) {
+      var header = _('widget-' + status + '-heading');
+      var msg = _('widget-' + status + '-meta');
+      alert(header + '\n' + msg);
+      setTimeout(window.close);
+    }
+
+    if (isApplicationLocalized) {
+      realShowSimError(status);
+    } else {
+      window.addEventListener('localized', function _onlocalized() {
+        window.removeEventListener('localized', _onlocalized);
+        realShowSimError(status);
+      });
+    }
   }
 
   // XXX: See the module documentation for details about URL schema
@@ -162,7 +174,9 @@ var CostControlApp = (function() {
     });
   }
 
+  var isApplicationLocalized = false;
   window.addEventListener('localized', function _onLocalize() {
+    isApplicationLocalized = true;
     if (initialized) {
       updateUI();
     }
