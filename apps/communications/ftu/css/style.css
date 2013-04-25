@@ -662,6 +662,9 @@ aside.connecting {
 #import_contacts [data-type="list"] li button.icon-sim:before {
   background-image: url('/contacts/style/images/import_SIM.png');
 }
+#import_contacts [data-type="list"] li button.icon-sd:before {
+  background-image: url('/contacts/style/images/import_sd.png');
+}
 
 #import_contacts [data-type="list"] li button.icon-wlive:before {
   background-image: url('/contacts/style/images/outlook_icon.png');
