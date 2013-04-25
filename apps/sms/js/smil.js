@@ -43,68 +43,72 @@ var SMIL = {
 
     // handle mms messages without smil
     // aggregate all text attachments into last slide
-    if (!smil) {
-      attachments.forEach(function(attachment) {
-        var textIndex = workingText.length;
-        var blob = attachment.content;
-        if (!blob) {
-          return;
-        }
-        var type = blob.type.split('/')[0];
+    function smil_parse_attachment_no_smil(attachment) {
+      var textIndex = workingText.length;
+      var blob = attachment.content;
+      if (!blob) {
+        return;
+      }
+      var type = blob.type.split('/')[0];
 
-        // handle text blobs by reading them and converting to text on the
-        // last slide
-        if (type === 'text') {
-          workingText.push('');
-          readTextBlob(blob, function smil_parse_attachment_read(event, text) {
-            workingText[textIndex] = text;
+      // handle text blobs by reading them and converting to text on the
+      // last slide
+      if (type === 'text') {
+        workingText.push('');
+        readTextBlob(blob, function smil_parse_attachment_read(event, text) {
+          workingText[textIndex] = text;
 
-            // when the last reader finishs, we will join the text together
-            if (!activeReaders) {
-              var text = workingText.join(' ');
-              if (slides.length) {
-                slides[slides.length - 1].text = text;
-              } else {
-                slides.push({
-                  text: text
-                });
-              }
-              exitPoint();
+          // when the last reader finishs, we will join the text together
+          if (!activeReaders) {
+            var text = workingText.join(' ');
+            if (slides.length) {
+              slides[slides.length - 1].text = text;
+            } else {
+              slides.push({
+                text: text
+              });
             }
-          });
-        } else {
-          slides.push({
-            name: attachment.location,
-            blob: attachment.content
-          });
-        }
-      });
+            exitPoint();
+          }
+        });
+      } else {
+        slides.push({
+          name: attachment.location,
+          blob: attachment.content
+        });
+      }
+    }
+
+    function smil_parse_handle_par_tag(par, index) {
+      var mediaElement = par.querySelector('img, video, audio');
+      var textElement = par.querySelector('text');
+      var slide = {};
+      var textLocation;
+
+      slides.push(slide);
+      if (mediaElement) {
+        // some MMS use 'cid:' as a prefix, remove it
+        slide.name = mediaElement.getAttribute('src').replace(/^cid:/, '');
+        slide.blob = findAttachment(slide.name).content;
+      }
+      if (textElement) {
+        textLocation = textElement.getAttribute('src').replace(/^cid:/, '');
+        readTextBlob(findAttachment(textLocation).content,
+          function smil_parse_smil_attachment_read(event, text) {
+            slide.text = text;
+            exitPoint();
+          }
+        );
+      }
+    }
+
     // handle MMS messages with SMIL
-    } else {
+    if (smil) {
       doc = (new DOMParser()).parseFromString(smil, 'application/xml');
       parTags = doc.documentElement.getElementsByTagName('par');
-      Array.prototype.forEach.call(parTags, function(par, index) {
-        var mediaElement = par.querySelector('img, video, audio');
-        var textElement = par.querySelector('text');
-        var slide = {};
-        var textLocation;
-
-        slides.push(slide);
-        if (mediaElement) {
-          // some MMS use 'cid:' as a prefix, remove it
-          slide.name = mediaElement.getAttribute('src').replace(/^cid:/, '');
-          slide.blob = findAttachment(slide.name).content;
-        }
-        if (textElement) {
-          textLocation = textElement.getAttribute('src').replace(/^cid:/, '');
-          readTextBlob(findAttachment(textLocation).content,
-            function smil_parse_smil_attachment_read(event, text) {
-              slide.text = text;
-              exitPoint();
-            }
-          );
-        }
-      });
+      Array.prototype.forEach.call(parTags, smil_parse_handle_par_tag);
+    } else {
+      attachments.forEach(smil_parse_attachment_no_smil);
     }
     exitPoint();
   },
