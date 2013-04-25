@@ -14,7 +14,7 @@ var ContactDataManager = {
     // Get contacts given a number
     var options = {
       filterBy: ['tel'],
-      filterOp: 'contains',
+      filterOp: 'equals',
       filterValue: number
     };
     var self = this;
