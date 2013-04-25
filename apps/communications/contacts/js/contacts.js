@@ -412,7 +412,9 @@ var Contacts = (function() {
     for (var option in options) {
       var link = document.createElement('button');
       link.dataset.index = option;
-      link.textContent = options[option].value;
+      link.textContent = _(options[option].type);
+      link.setAttribute('data-l10n-id', options[option].type);
+      link.setAttribute('data-value', options[option].type);
 
       link.onclick = function(event) {
         var index = event.target.dataset.index;
@@ -420,7 +422,7 @@ var Contacts = (function() {
         event.preventDefault();
       };
 
-      if (update.textContent == TAG_OPTIONS[tagList][option].value) {
+      if (update.dataset.value == TAG_OPTIONS[tagList][option].type) {
         selectedLink = link;
       }
 
@@ -472,8 +474,11 @@ var Contacts = (function() {
     var prevValue = contactTag.textContent;
     if (selectedTag) {
       contactTag.textContent = selectedTag.textContent;
+      contactTag.dataset.l10nId = selectedTag.dataset.l10nId;
+      contactTag.dataset.value = selectedTag.dataset.value;
     } else if (customTag.value.length > 0) {
       contactTag.textContent = customTag.value;
+      contactTag.dataset.value = customTag.value;
     }
     var valueModifiedEvent = new CustomEvent('ValueModified', {
       bubbles: true,
