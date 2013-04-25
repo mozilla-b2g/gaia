@@ -1,12 +1,29 @@
 requireApp('/shared/js/lazy_loader.js');
-requireApp('communications/contacts/js/utilities/future.js');
-requireApp('communications/contacts/js/utilities/sdcard.js');
+requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
+requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_sdcard.js');
+requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/contacts/js/contacts_settings.js');
+requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
+
+if (!this._) this._ = null;
+if (!this.utils) this.utils = null;
+if (!realSdCard) {
+  var realSdcard = null;
+}
+
+var mocksHelperForContactSettings = new MocksHelper([
+  'Contacts', 'AsyncStorage', 'fb', 'ConfirmDialog'
+]);
+mocksHelperForContactSettings.init();
 
 suite('Contacts settings', function() {
+  var checkForCard, real_, realNavigatorConn;
+  var mocksHelper = mocksHelperForContactSettings;
+
   function stub(additionalCode, ret) {
     if (additionalCode && typeof additionalCode !== 'function')
-
       ret = additionalCode;
 
     var nfn = function() {
@@ -22,10 +39,30 @@ suite('Contacts settings', function() {
     return nfn;
   }
 
-  var dom = '<section data-theme="organic" id="view-settings" role="region" class="skin-organic view view-bottom">\n' +
+  suiteSetup(function() {
+    mocksHelper.suiteSetup();
+    real_ = window._;
+    if (!window.utils) {
+      window.utils = { sdcard: MockSdCard };
+    } else {
+      realSdCard = window.utils.sdcard;
+      window.utils.sdcard = MockSdCard;
+    }
+    window._ = stub('blah');
+  });
+
+  suiteTeardown(function() {
+    window.utils.realSdCard && (sdcard = realSdCard);
+    window._ = real_;
+    mocksHelper.suiteTeardown();
+  });
+
+  var dom = '<section data-theme="organic" id="view-settings" role="region" ' +
+    'class="skin-organic view view-bottom">\n' +
     '<header>\n' +
     '<menu type="toolbar" id="settings-form-actions">\n' +
-    '<button id="settings-close" role="menuitem" data-l10n-id="done">Done</button>\n' +
+    '<button id="settings-close" role="menuitem" data-l10n-id="done">Done' +
+    '</button>\n' +
     '</menu>\n' +
     '<h1 data-l10n-id="settings">Settings</h1>\n' +
     '</header>\n' +
@@ -98,50 +135,22 @@ suite('Contacts settings', function() {
     '</article>\n' +
     '</section>';
 
+
   suite('SD Card import', function() {
     setup(function() {
-      document.querySelector('body').innerHTML = dom;
-      Contacts = {
-        extServices: {},
-        navigation: {
-          home: stub()
-        }
-      };
+      document.body.innerHTML = dom;
 
-      fb = {
-        isEnabled: false
-      };
-      window.asyncStorage = {
-        getItem: stub(),
-        setItem: stub(),
-        removeItem: stub()
-      };
+      realNavigatorConn = window.navigator.mozMobileConnection;
+      navigator.mozMobileConnection = { cardState: 'ready' };
+
       contacts.Settings.init();
-      _ = stub('blah');
-
-      window.VCFReader = function() {
-        window.VCFReader.callCount++;
-
-        this.process = window.VCFReader.process;
-      };
-      window.VCFReader.callCount = 0;
-      window.VCFReader.process = stub({
-        then: function(cb) {
-          setTimeout(cb, 10); //future
-        }
-      });
+      checkForCard = utils.sdcard.checkStorageCard;
+      mocksHelper.setup();
     });
-
-    teardown(function() {
-      document.querySelector('body').innerHTML = '';
-    });
-
 
     test('show SD Card import if SD card is present', function() {
       navigator.getDeviceStorage = stub(true);
       contacts.Settings.refresh();
-
-      assert.equal(utils.sdcard.checkStorageCard(), true);
 
       assert.equal(document.getElementById('settingsStorage')
         .firstElementChild.hasAttribute('disabled'), false);
@@ -151,10 +160,10 @@ suite('Contacts settings', function() {
     });
 
     test('no SD card import if no SD card is present', function() {
-      navigator.getDeviceStorage = stub(false);
+      var realSdCheck = utils.sdcard.checkStorageCard;
+      utils.sdcard.checkStorageCard = function() { return false; };
       contacts.Settings.refresh();
-
-      assert.equal(utils.sdcard.checkStorageCard(), false);
+      utils.sdcard.checkStorageCard = realSdCheck;
 
       assert.equal(document.getElementById('settingsStorage')
         .firstElementChild.hasAttribute('disabled'), true);
@@ -167,28 +176,20 @@ suite('Contacts settings', function() {
       Contacts.showOverlay = stub();
       Contacts.hideOverlay = stub();
       Contacts.showStatus = stub();
-      navigator.getDeviceStorage = stub({
-        enumerate: function() {
-          var px = {};
-          setTimeout(function() { px.onsuccess({target: {result: null}}); });
-          return px;
-        }
-      });
 
       document.querySelector('[data-l10n-id="importSd"]').click();
 
       setTimeout(function() {
         assert.equal(Contacts.showOverlay.callCount, 1);
-        assert.equal(navigator.getDeviceStorage.callCount, 1);
-        assert.equal(navigator.getDeviceStorage.calledWith[0], 'sdcard');
-        assert.equal(window.VCFReader.callCount, 1);
-        assert.equal(window.VCFReader.process.callCount, 1);
-        assert.equal(Contacts.hideOverlay.callCount, 1);
-        assert.equal(Contacts.showStatus.callCount, 1);
-        assert.equal(_.calledWith[1].n, 0);
-
         done();
       }, 300);
+    });
+
+    teardown(function() {
+      document.body.innerHTML = '';
+      window.navigator.mozMobileConnection = realNavigatorConn;
+        utils.sdcard.checkStorageCard = checkForCard;
+      mocksHelper.teardown();
     });
   });
 });

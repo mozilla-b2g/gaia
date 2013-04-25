@@ -2,7 +2,7 @@
 
 var FB_ID = 220439;
 
-var MockFb = {
+var Mockfb = {
   fbContact: false,
   fbLinked: false,
   isEnabled: true,
@@ -15,26 +15,29 @@ var MockFb = {
   operationsTimeout: 20000,
 
   // mocks the saved data
-  savedData: []
+  savedData: [],
+  utils: {
+    getImportChecked: function() {}
+  }
 };
 
-MockFb.init = function(callback) {
+Mockfb.init = function(callback) {
   callback();
 };
 
-MockFb.setIsFbContact = function(isFB) {
+Mockfb.setIsFbContact = function(isFB) {
   this.fbContact = isFB;
 };
 
-MockFb.setIsFbLinked = function(isLinked) {
+Mockfb.setIsFbLinked = function(isLinked) {
   this.fbLinked = isLinked;
 };
 
-MockFb.setIsEnabled = function(isEnabled) {
+Mockfb.setIsEnabled = function(isEnabled) {
   this.isEnabled = isEnabled;
 };
 
-MockFb.contacts = function() {
+Mockfb.contacts = function() {
   var getAll = function getAll() {
     return {
       set onsuccess(callback) {
@@ -48,7 +51,7 @@ MockFb.contacts = function() {
         this.result[FB_ID].name = [this.result[FB_ID].givenName + ' ' +
                               this.result[FB_ID].familyName];
         this.result[FB_ID].org[0] = 'FB';
-        this.result[FB_ID].adr[0] = MockFb.getAddress();
+        this.result[FB_ID].adr[0] = Mockfb.getAddress();
 
         callback.call(this);
       },
@@ -64,7 +67,7 @@ MockFb.contacts = function() {
 
 }();
 
-MockFb.Contact = function(devContact, mozCid) {
+Mockfb.Contact = function(devContact, mozCid) {
   var deviceContact = devContact;
   var cid = mozCid;
   var contactData;
@@ -77,9 +80,9 @@ MockFb.Contact = function(devContact, mozCid) {
       deviceContact.category = [];
     }
 
-    if (deviceContact.category.indexOf(MockFb.CATEGORY) === -1) {
-      deviceContact.category.push(MockFb.CATEGORY);
-      deviceContact.category.push(MockFb.NOT_LINKED);
+    if (deviceContact.category.indexOf(Mockfb.CATEGORY) === -1) {
+      deviceContact.category.push(Mockfb.CATEGORY);
+      deviceContact.category.push(Mockfb.NOT_LINKED);
     }
 
     return deviceContact;
@@ -88,7 +91,7 @@ MockFb.Contact = function(devContact, mozCid) {
   function doGetFacebookUid(data) {
     var out = data.uid;
     if (!out) {
-      if (MockFb.isFbLinked(data)) {
+      if (Mockfb.isFbLinked(data)) {
         out = getLinkedTo(data);
       }
       else if (data.category) {
@@ -149,7 +152,7 @@ MockFb.Contact = function(devContact, mozCid) {
         this.result.name = [this.result.givenName + ' ' +
                               this.result.familyName];
         this.result.org[0] = 'FB';
-        this.result.adr[0] = MockFb.getAddress();
+        this.result.adr[0] = Mockfb.getAddress();
 
         callback.call(this);
       },
@@ -166,7 +169,7 @@ MockFb.Contact = function(devContact, mozCid) {
   this.save = function() {
     return {
       set onsuccess(callback) {
-        MockFb.savedData.push(contactData);
+        Mockfb.savedData.push(contactData);
         callback.call(this);
       },
       set onerror(callback) {
@@ -182,7 +185,7 @@ MockFb.Contact = function(devContact, mozCid) {
     deviceContact.name = [deviceContact.givenName + ' ' +
                           deviceContact.familyName];
     deviceContact.org[0] = 'FB';
-    deviceContact.adr[0] = MockFb.getAddress();
+    deviceContact.adr[0] = Mockfb.getAddress();
 
     return deviceContact;
   };
@@ -193,7 +196,7 @@ MockFb.Contact = function(devContact, mozCid) {
         // Fetch FB data, that is returning a contact info
         this.result = [];
         this.result[0] = new MockContactAllFields();
-        this.result[0].adr[0] = MockFb.getAddress();
+        this.result[0].adr[0] = Mockfb.getAddress();
         this.result[1] = {
           '+346578888888': true,
           'test@test.com': true,
@@ -223,23 +226,23 @@ MockFb.Contact = function(devContact, mozCid) {
 
 };
 
-MockFb.isFbContact = function(contact) {
+Mockfb.isFbContact = function(contact) {
   return this.fbContact;
 };
 
-MockFb.isFbLinked = function(contact) {
+Mockfb.isFbLinked = function(contact) {
   return this.fbLinked;
 };
 
-MockFb.isEnabled = function() {
+Mockfb.isEnabled = function() {
   return this.isEnabled;
 };
 
-MockFb.getWorksAt = function(fbData) {
+Mockfb.getWorksAt = function(fbData) {
   return 'Telefónica';
 };
 
-MockFb.getAddress = function(fbData) {
+Mockfb.getAddress = function(fbData) {
   var out = {};
   out.type = ['home'];
   out.locality = 'Palencia';
