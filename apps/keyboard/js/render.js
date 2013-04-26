@@ -330,12 +330,8 @@ const IMERender = (function() {
     var left = (window.innerWidth / 2 > key.offsetLeft);
 
     // Place the menu to the left
-    if (left) {
+    if (!left) {
       this.menu.classList.add('kbr-menu-left');
-    // Place menu on the right and reverse key order
-    } else {
-      this.menu.classList.add('kbr-menu-right');
-      altChars = altChars.reverse();
     }
 
     // How wide (in characters) is the key that we're displaying
@@ -423,13 +419,9 @@ const IMERender = (function() {
     // Font size recalc
     var ime = document.getElementById('keyboard');
     if (window.innerWidth <= window.innerHeight) {
-      changeScale = window.innerWidth / 32;
-      document.documentElement.style.fontSize = changeScale + 'px';
       ime.classList.remove('landscape');
       ime.classList.add('portrait');
     } else {
-      changeScale = window.innerWidth / 64;
-      document.documentElement.style.fontSize = changeScale + 'px';
       ime.classList.remove('portrait');
       ime.classList.add('landscape');
     }
@@ -441,14 +433,16 @@ const IMERender = (function() {
     if (layout) {
       layoutWidth = layout.width || 10;
       var totalWidth = document.getElementById('keyboard').clientWidth;
-      var placeHolderWidth = totalWidth / layoutWidth;
+      // substract by 2px to have more space before/after first and last keys
+      var placeHolderWidth = (totalWidth - 2) / layoutWidth;
 
       var ratio, keys, rows = document.querySelectorAll('.keyboard-row');
       for (var r = 0, row; row = rows[r]; r += 1) {
         keys = row.childNodes;
         for (var k = 0, key; key = keys[k]; k += 1) {
           ratio = layout.keys[r][k].ratio || 1;
-          key.style.width = (placeHolderWidth * ratio) + 'px';
+          // divide by 10 to convert the unit from px to rem
+          key.style.width = Math.floor(placeHolderWidth * ratio) / 10 + 'rem';
 
           // to get the visual width/height of the key
           // for better proximity info
