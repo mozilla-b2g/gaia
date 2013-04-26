@@ -438,7 +438,7 @@ suite('Render contacts list', function() {
       newContact.givenName = null;
       newContact.name = null;
       newContact.category = null;
-      newContact.org = 'AD';
+      newContact.org = ['AD'];
       subject.refresh(newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
