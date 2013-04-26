@@ -84,6 +84,7 @@ AppUpdatable.prototype.successCallBack = function() {
     });
   }
 
+  UpdateManager.downloaded(this);
   UpdateManager.removeFromDownloadsQueue(this);
   UpdateManager.removeFromUpdatesQueue(this);
 };
@@ -196,6 +197,7 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
       break;
     case 'update-downloaded':
       this.downloading = false;
+      UpdateManager.downloaded(this);
       this.showApplyPrompt();
       break;
     case 'update-prompt-apply':
