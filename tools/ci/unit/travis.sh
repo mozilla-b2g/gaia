@@ -61,7 +61,13 @@ make test-agent-test REPORTER=Min
 TEST_RESULT_STATUS=$?
 echo
 
+section_echo 'make test-integration'
+make test-integration
+TEST_RESULT_STATUS=$?
+echo
+
 [ $LINT_RESULT_STATUS -ne 0 ] &&\
 echo ${RED_COLOR}Lint error. Scroll up to see the output.${NORMAL_COLOR}
 
 exit `expr $LINT_RESULT_STATUS + $TEST_RESULT_STATUS`;
+
