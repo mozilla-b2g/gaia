@@ -70,31 +70,6 @@ ul li > a span {
   color: #505859;
 }
 
-/* text ellipsis */
-ul li > * {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* sublines */
-ul li > small {
-  position: absolute;
-  left: 3rem;
-  right: 3rem;
-  top: 50%;
-  padding-top: 0.4rem;
-  font-size: 1.4rem;
-  color: #505859;
-  /* click/tap events should be caught by the <a> element below the <small> */
-  pointer-events: none;
-}
-
-ul li > label:not([for]) + small {
-  right: 6rem;
-}
-
 /* required for empty elements like Bluetooth */
 ul li > small:not(:empty) + a,
 ul li > small:not(:empty) + span {
