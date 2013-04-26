@@ -70,14 +70,6 @@ ul li > a span {
   color: #505859;
 }
 
-/* text ellipsis */
-ul li > * {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* required for empty elements like Bluetooth */
 ul li > small:not(:empty) + a,
 ul li > small:not(:empty) + span {
