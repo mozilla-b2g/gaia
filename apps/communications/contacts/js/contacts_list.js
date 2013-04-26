@@ -306,7 +306,7 @@ contacts.List = (function() {
     var searchable = ['givenName', 'familyName', 'org'];
     searchable.forEach(function(field) {
       if (contact[field] && contact[field][0]) {
-        var value = contact[field][0].trim();
+        var value = String(contact[field][0]).trim();
         if (value.length > 0) {
           searchInfo.push(value);
         }
@@ -759,7 +759,7 @@ contacts.List = (function() {
     if (!hasName(contact)) {
       contact.givenName = [];
       if (contact.org && contact.org.length > 0) {
-        contact.givenName.push(contact.org);
+        contact.givenName.push(contact.org[0]);
       } else if (contact.tel && contact.tel.length > 0) {
         contact.givenName.push(contact.tel[0].value);
       } else if (contact.email && contact.email.length > 0) {
