@@ -95,6 +95,8 @@ var DCFApi = (function() {
 
 })();
 
+var screenLock = null;
+var returnToCamera = true;
 var Camera = {
   _cameras: null,
   _camera: 0,
@@ -269,10 +271,7 @@ var Camera = {
 
     // Dont let the phone go to sleep while the camera is
     // active, user must manually close it
-    if (navigator.requestWakeLock) {
-      navigator.requestWakeLock('screen');
-    }
-
+    this.screenWakeLock();
     this.setToggleCameraStyle();
 
     // We lock the screen orientation and deal with rotating
@@ -342,6 +341,24 @@ var Camera = {
 
     this.previewEnabled();
     DCFApi.init();
+  },
+
+  screenTimeout: function camera_screenTimeout() {
+    if (screenLock) {
+      screenLock.unlock();
+      screenLock = null;
+    }
+  },
+  screenWakeLock: function camera_screenWakeLock() {
+    if ((!screenLock) && (returnToCamera === true)) {
+      screenLock = navigator.requestWakeLock('screen');
+    }
+  },
+  setReturnToCamera: function camera_setReturnToCamera() {
+    returnToCamera = true;
+  },
+  resetReturnToCamera: function camera_resetReturnToCamera() {
+    returnToCamera = false;
   },
 
   enableButtons: function camera_enableButtons() {
@@ -725,6 +742,7 @@ var Camera = {
   },
 
   startPreview: function camera_startPreview() {
+    this.screenWakeLock();
     this.viewfinder.play();
     this.loadCameraPreview(this._camera, this.previewEnabled.bind(this));
     this._previewActive = true;
@@ -736,6 +754,7 @@ var Camera = {
   },
 
   stopPreview: function camera_stopPreview() {
+    this.screenTimeout();
     if (this._recording) {
       this.stopRecording();
     }
