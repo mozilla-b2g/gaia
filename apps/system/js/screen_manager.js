@@ -87,10 +87,9 @@ var ScreenManager = {
   _idleTimerId: 0,
 
   /*
-   * If the screen off is triggered by promixity during phon call then
-   * we need wake it up while phone is ended.
+   * To track the reason caused screen off?
    */
-  _screenOffByProximity: false,
+  _screenOffBy: null,
 
   /*
    * Request wakelock during in_call state.
@@ -211,6 +210,7 @@ var ScreenManager = {
         break;
 
       case 'sleep':
+        this._screenOffBy = 'powerkey';
         this.turnScreenOff(true);
         break;
 
@@ -226,7 +226,7 @@ var ScreenManager = {
             telephony.speakerEnabled)
           break;
 
-        this._screenOffByProximity = evt.near;
+        this._screenOffBy = evt.near ? 'proximity' : '';
         if (evt.near) {
           this.turnScreenOff(true);
         } else {
@@ -237,12 +237,11 @@ var ScreenManager = {
       case 'callschanged':
         var telephony = window.navigator.mozTelephony;
         if (!telephony.calls.length) {
-          if (this._screenOffByProximity) {
+          if (this._screenOffBy == 'proximity') {
             this.turnScreenOn();
           }
 
           window.removeEventListener('userproximity', this);
-          this._screenOffByProximity = false;
 
           if (this._cpuWakeLock) {
            this._cpuWakeLock.unlock();
@@ -314,6 +313,9 @@ var ScreenManager = {
 
   toggleScreen: function scm_toggleScreen() {
     if (this.screenEnabled) {
+      // Currently there is no one used toggleScreen, so just set reason as
+      // toggle. If it is used by someone in the future, we can rename it.
+      this._screenOffBy = 'toggle';
       this.turnScreenOff();
     } else {
       this.turnScreenOn();
@@ -330,9 +332,9 @@ var ScreenManager = {
     // we turn the screen back on.
     self._savedBrightness = navigator.mozPower.screenBrightness;
 
-    // Remove the cpuWakeLock if screen is not turned off by
-    // userproximity event.
-    if (!this._screenOffByProximity && this._cpuWakeLock) {
+    // Remove the cpuWakeLock and listening of proximity event, if screen is
+    // turned off by power key.
+    if (this._cpuWakeLock != null && this._screenOffBy == 'powerkey') {
       window.removeEventListener('userproximity', this);
       this._cpuWakeLock.unlock();
       this._cpuWakeLock = null;
@@ -380,6 +382,7 @@ var ScreenManager = {
   },
 
   turnScreenOn: function scm_turnScreenOn(instant) {
+    this._screenOffBy = '';
     if (this.screenEnabled) {
       if (this._inTransition) {
         // Cancel the dim out
@@ -529,6 +532,7 @@ var ScreenManager = {
 
     var self = this;
     var idleCallback = function idle_proxy() {
+      self._screenOffBy = 'idle_timeout';
       self.turnScreenOff(instant);
     };
     var activeCallback = function active_proxy() {
