@@ -60,6 +60,7 @@ var storageState;
 var currentOverlay;
 
 var dragging = false;
+var playEnded = false; // bug 859281 skip thumbnail capture when playend
 
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /^DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
@@ -649,6 +650,7 @@ function captureFrame(player, metadata, callback) {
   if (player.currentTime === 0) {
     player.currentTime = Math.floor(player.duration / 4);
     skipped = true;
+    playEnded = true;
   }
 
   if (player.seeking) {
@@ -981,7 +983,10 @@ function timeUpdated() {
     if (dom.player.duration === Infinity || dom.player.duration === 0) {
       return;
     }
-
+    if (playEnded === true) {
+      dom.player.currentTime = 0;
+      playEnded = 0;
+    }
     var percent = (dom.player.currentTime / dom.player.duration) * 100 + '%';
 
     dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
