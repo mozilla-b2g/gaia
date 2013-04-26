@@ -23,7 +23,7 @@ function startup(data, reason) {
   try {
     // Sigh. Seems like there is a registration issue between all the addons.
     // This is dirty but delaying this seems to make it.
-    var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    var timer = Cc['@mozilla.org/timer;1'].createInstance(Ci.nsITimer);
     timer.initWithCallback(function() {
       Services.scriptloader.loadSubScript('chrome://desktop-helper.js/content/alarms.js', {});
     }, 1000, Ci.nsITimer.TYPE_ONE_SHOT);
@@ -34,6 +34,7 @@ function startup(data, reason) {
     var mm = Cc['@mozilla.org/globalmessagemanager;1']
                .getService(Ci.nsIMessageBroadcaster);
     mm.loadFrameScript('chrome://desktop-helper.js/content/content.js', true);
+   mm.loadFrameScript('chrome://global/content/BrowserElementPanning.js', true);
 
     // XXX This code is Firefox only and should not be loaded in b2g-desktop.
     Services.obs.addObserver(function() {
@@ -66,7 +67,7 @@ function startup(data, reason) {
         mm.addMessageListener('Forms:Input', Keyboard);
         mm.loadFrameScript('chrome://keyboard.js/content/forms.js', true);
       } catch(e) {
-        debug("Can't load Keyboard.jsm. Likely because the keyboard addon is not here.");
+        debug('Can\'t load Keyboard.jsm. Likely because the keyboard addon is not here.');
       }
     }, 'sessionstore-windows-restored', false);
 

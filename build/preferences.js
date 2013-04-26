@@ -56,9 +56,11 @@ if (DEBUG) {
   prefs.push(["b2g.ignoreXFrameOptions", true]);
   prefs.push(["network.disable.ipc.security", true]);
   prefs.push(["webgl.verbose", true]);
-  prefs.push(["ui.click_hold_context_menus", true]);
 
   prefs.push(["dom.ipc.tabs.disabled", true]);
+  prefs.push(["browser.ignoreNativeFrameTextSelection", true]);
+  prefs.push(["ui.dragThresholdX", 25]);
+  prefs.push(["dom.w3c_touch_events.enabled", 1]);
 
   // Enable apis use on the device
   prefs.push(["dom.sms.enabled", true]);
