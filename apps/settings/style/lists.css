@@ -91,9 +91,6 @@ ul li > small {
   pointer-events: none;
 }
 
-ul li > label:not([for]) + small {
-  right: 6rem;
-}
 
 /* required for empty elements like Bluetooth */
 ul li > small:not(:empty) + a,
