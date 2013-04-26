@@ -69,7 +69,7 @@ input.cmp-subject-text {
 .cmp-file-add {
   position: relative;
   left: 0.5rem;
-  background: url("images/add-contact.png") no-repeat scroll center transparent;
+  background: url("images/add-contact.png") no-repeat center / 1.8rem;
   width: 1.8rem;
   height: 1.8rem;
   border: 0.6rem solid transparent;

@@ -117,7 +117,7 @@
 }
 
 .fld-nav-settings-btn {
-  background: url("images/icons/settings.png") no-repeat scroll center transparent;
+  background-image: url("images/icons/settings.png") !important;
 }
 
 .fld-nav-last-synced {

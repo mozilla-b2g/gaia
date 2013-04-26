@@ -150,11 +150,16 @@ html, body {
   position: absolute;
   right: 0;
   top: -.2rem;
+  /* 5.5rem + 19.5rem = 25rem */
+  left: 25rem;
   color: #52B6CC;
   margin: 1.3rem 1.5rem 0 0;
   padding: 0;
   display: inline;
   line-height: 1.6rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .notification > img {
