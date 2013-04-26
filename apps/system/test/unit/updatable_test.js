@@ -330,6 +330,13 @@ suite('system/Updatable', function() {
                        mockApp.mId);
         });
 
+        test('should call downloaded of UpdateManager', function() {
+          mockApp.mTriggerDownloadAvailable();
+          mockApp.mTriggerDownloadProgress(42);
+          mockApp.mTriggerDownloadSuccess();
+          assert.isTrue(MockUpdateManager.mDownloadedCalled);
+        });
+
         test('should not remove self if not downloading', function() {
           mockApp.mTriggerDownloadSuccess();
           assert.isNull(MockUpdateManager.mLastDownloadsRemoval);
@@ -464,6 +471,10 @@ suite('system/Updatable', function() {
 
         test('should reset the downloading flag', function() {
           assert.isFalse(subject.downloading);
+        });
+
+        test('should signal the UpdateManager', function() {
+          assert.isTrue(MockUpdateManager.mDownloadedCalled);
         });
 
         test('should reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
