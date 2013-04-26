@@ -41,6 +41,7 @@ var subject,
     mockContact,
     fbButtons,
     linkButtons;
+var SCALE_RATIO = 1;
 
 suite('Render contact', function() {
 
