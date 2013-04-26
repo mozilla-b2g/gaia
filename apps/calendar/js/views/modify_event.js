@@ -100,6 +100,13 @@ Calendar.ns('Views').ModifyEvent = (function() {
     },
 
     /**
+     * Check if current event has been stored in the database
+     */
+    isSaved: function() {
+        return !!this.provider;
+    },
+
+    /**
      * Build the initial list of calendar ids.
      */
     onfirstseen: function() {
@@ -354,7 +361,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
         event.preventDefault();
       }
 
-      if (this.provider) {
+      if (this.isSaved()) {
         var self = this;
         function handleDelete() {
           self.provider.deleteEvent(self.event.data, function(err) {
@@ -397,7 +404,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       // Disable the button on primary event to avoid race conditions
       this.disablePrimary();
 
-      if (this.provider) {
+      if (this.isSaved()) {
         this._persistEvent('updateEvent', 'canUpdate');
       } else {
         this._persistEvent('createEvent', 'canCreate');
@@ -582,7 +589,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       settings.getValue(layout + 'AlarmDefault', next.bind(this));
 
       function next(err, value) {
-        if (!alarmMap[value] && !this.event.alarms.length) {
+        if (!this.isSaved() && !alarmMap[value] && !this.event.alarms.length) {
           alarms.push({
             layout: layout,
             trigger: value
