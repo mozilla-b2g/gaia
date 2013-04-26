@@ -144,6 +144,14 @@ function singletap(e) {
 
 // Quick zoom in and out with dbltap events
 function doubletapOnPhoto(e) {
+  // Don't allow zooming while we're still scanning for photos and
+  // have found large photos without previews on the card.  Zooming in
+  // decodes the full-size version of the photo and that can cause OOM
+  // errors if there is also metadata scanning going on with large images.
+  // XXX: Remove this when bug 854795 is fixed.
+  if (scanningBigImages)
+    return;
+
   var scale;
   if (currentFrame.fit.scale > currentFrame.fit.baseScale)   // If zoomed in
     scale = currentFrame.fit.baseScale / currentFrame.fit.scale; // zoom out
@@ -267,6 +275,14 @@ function swipeHandler(event) {
 // We also support pinch-to-zoom
 function transformHandler(e) {
   if (transitioning)
+    return;
+
+  // Don't allow zooming while we're still scanning for photos and
+  // have found large photos without previews on the card.  Zooming in
+  // decodes the full-size version of the photo and that can cause OOM
+  // errors if there is also metadata scanning going on with large images.
+  // XXX: Remove this when bug 854795 is fixed.
+  if (scanningBigImages)
     return;
 
   currentFrame.zoom(e.detail.relative.scale,
