@@ -78,20 +78,6 @@ ul li > * {
   white-space: nowrap;
 }
 
-/* sublines */
-ul li > small {
-  position: absolute;
-  left: 3rem;
-  right: 3rem;
-  top: 50%;
-  padding-top: 0.4rem;
-  font-size: 1.4rem;
-  color: #505859;
-  /* click/tap events should be caught by the <a> element below the <small> */
-  pointer-events: none;
-}
-
-
 /* required for empty elements like Bluetooth */
 ul li > small:not(:empty) + a,
 ul li > small:not(:empty) + span {
