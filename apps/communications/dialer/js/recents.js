@@ -583,22 +583,27 @@ var Recents = {
     return false;
   },
 
+  _switchToContacts: function re_switchToContacts() {
+    window.removeEventListener('hashchange', this._switchToContacts);
+    this.addContactActionMenu.classList.remove('visible');
+  },
+
   createNewContact: function re_createNewContact() {
     var src = '/contacts/index.html';
     src += '#view-contact-form?tel=' + this.newPhoneNumber;
     var timestamp = new Date().getTime();
+    window.addEventListener('hashchange', this._switchToContacts.bind(this));
     this.iframeContacts.src = src + '&timestamp=' + timestamp;
     window.location.hash = '#contacts-view';
-    this.addContactActionMenu.classList.remove('visible');
   },
 
   addToExistingContact: function re_addToExistingContact() {
     var src = '/contacts/index.html';
     src += '#add-parameters?tel=' + this.newPhoneNumber;
     var timestamp = new Date().getTime();
+    window.addEventListener('hashchange', this._switchToContacts.bind(this));
     this.iframeContacts.src = src + '&timestamp=' + timestamp;
     window.location.hash = '#contacts-view';
-    this.addContactActionMenu.classList.remove('visible');
   },
 
   call: function re_call() {

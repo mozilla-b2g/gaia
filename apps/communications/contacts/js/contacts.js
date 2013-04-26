@@ -103,9 +103,7 @@ var Contacts = (function() {
         initContactsList();
         initForm(function onInitForm() {
           navigation.home();
-          if (ActivityHandler.currentlyHandling) {
-            selectList(params, true);
-          }
+          selectList(params, true);
           showApp();
         });
         break;
@@ -323,6 +321,7 @@ var Contacts = (function() {
   };
 
   var selectList = function selectList(params, fromUpdateActivity) {
+    var phoneNumber = params.tel || '';
     addButton.classList.add('hide');
     contactsList.clearClickHandlers();
     contactsList.load();
