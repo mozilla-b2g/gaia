@@ -67,6 +67,7 @@ if (DEBUG) {
   prefs.push(["dom.mozContacts.enabled", true]);
   prefs.push(["dom.mozSettings.enabled", true]);
   prefs.push(["dom.mozTCPSocket.enabled", true]);
+  prefs.push(["notification.feature.enabled", true]);
   prefs.push(["dom.sysmsg.enabled", true]);
   prefs.push(["dom.mozAlarms.enabled", true]);
   prefs.push(["device.storage.enabled", true]);
