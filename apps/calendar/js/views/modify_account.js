@@ -186,14 +186,17 @@ Calendar.ns('Views').ModifyAccount = (function() {
       if (this.model._id) {
         this.type = 'update';
         this.deleteButton.addEventListener('click', this.deleteRecord);
-        this.cancelDeleteButton.addEventListener('click',
-                                                 this.cancel);
+        this.cancelDeleteButton.addEventListener('click', this.cancel);
       } else {
         this.type = 'create';
       }
 
       this.form.reset();
       this.updateForm();
+
+      var usernameType = this.model.usernameType;
+      this.fields['user'].type = (usernameType === undefined) ?
+          'text' : usernameType;
 
       list.add(this.type);
       list.add('preset-' + this.model.preset);

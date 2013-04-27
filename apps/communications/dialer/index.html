@@ -10,6 +10,8 @@
     <script defer src="/dialer/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
+    <!-- Needed to not duplicate PIN/PUK management strings -->
+    <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini">
 
     <!-- CSS -->
     <link rel="stylesheet" type="text/css" href="/contacts/style/transitions.css">
@@ -265,7 +267,7 @@
         </p>
       </section>
       <menu>
-        <button class="full" id="cancel">Cancel</button>
+        <button class="full" id="cancel" data-l10n-id="cancel">Cancel</button>
       </menu>
     </form>
     --></div>

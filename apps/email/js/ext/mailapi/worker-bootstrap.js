@@ -2884,6 +2884,11 @@ var COMPARE_DEPTH = 6;
 function boundedCmpObjs(a, b, depthLeft) {
   var aAttrCount = 0, bAttrCount = 0, key, nextDepth = depthLeft - 1;
 
+  if ('toJSON' in a)
+    a = a.toJSON();
+  if ('toJSON' in b)
+    b = b.toJSON();
+
   for (key in a) {
     aAttrCount++;
     if (!(key in b))

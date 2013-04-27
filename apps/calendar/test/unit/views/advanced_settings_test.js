@@ -63,6 +63,9 @@ suiteGroup('Views.AdvancedSettings', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="advanced-settings-view">',
+        '<header class="account-list-header">',
+          '<h2 data-l10n-id="account-list-header">Accounts</h2>',
+        '</header>',
         '<ul class="account-list"></ul>',
       '</div>',
       '<select name="syncFrequency" id="setting-sync-frequency">',

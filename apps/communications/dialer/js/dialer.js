@@ -5,6 +5,8 @@ var CallHandler = (function callHandler() {
     document.location.host;
   var callScreenWindow = null;
   var callScreenWindowLoaded = false;
+  var callScreenWindowReady = false;
+  var btCommandsToForward = [];
   var currentActivity = null;
 
   /* === Settings === */
@@ -56,9 +58,6 @@ var CallHandler = (function callHandler() {
 
     activity.postResult({ status: 'accepted' });
   }
-  if (window.navigator.mozSetMessageHandler) {
-    window.navigator.mozSetMessageHandler('activity', handleActivity);
-  }
 
   /* === Notifications support === */
   function handleNotification(evt) {
@@ -71,9 +70,6 @@ var CallHandler = (function callHandler() {
       app.launch('dialer');
       window.location.hash = '#recents-view';
     };
-  }
-  if (window.navigator.mozSetMessageHandler) {
-    window.navigator.mozSetMessageHandler('notification', handleNotification);
   }
 
   function handleNotificationRequest(number) {
@@ -152,9 +148,6 @@ var CallHandler = (function callHandler() {
 
     openCallScreen();
   }
-  if (window.navigator.mozSetMessageHandler) {
-    window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
-  }
 
   /* === Bluetooth Support === */
   function btCommandHandler(message) {
@@ -176,20 +169,17 @@ var CallHandler = (function callHandler() {
     }
 
     // Other commands needs to be handled from the call screen
-    sendCommandToCallScreen('BT', command);
-  }
-  if (window.navigator.mozSetMessageHandler) {
-    window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
-                                           btCommandHandler);
+    if (callScreenWindowReady) {
+      sendCommandToCallScreen('BT', command);
+    } else {
+      // We queue the commands while the call screen is loading
+      btCommandsToForward.push(command);
+    }
   }
 
   /* === Headset Support === */
   function headsetCommandHandler(message) {
     sendCommandToCallScreen('HS', message);
-  }
-  if (window.navigator.mozSetMessageHandler) {
-    window.navigator.mozSetMessageHandler('headset-button',
-                                          headsetCommandHandler);
   }
 
   /*
@@ -216,7 +206,9 @@ var CallHandler = (function callHandler() {
 
   // Receiving messages from the callscreen via post message
   //   - when the call screen is closing
+  //   - when the call screen is ready to receive messages
   //   - when we need to send a missed call notification
+  //   - when we need to add an entry to the recents database
   function handleMessage(evt) {
     if (evt.origin !== COMMS_APP_ORIGIN) {
       return;
@@ -226,6 +218,8 @@ var CallHandler = (function callHandler() {
 
     if (data === 'closing') {
       handleCallScreenClosing();
+    } else if (data === 'ready') {
+      handleCallScreenReady();
     } else if (data.type && data.type === 'notification') {
       // We're being asked to send a missed call notification
       NavbarManager.ensureResources(function() {
@@ -346,10 +340,21 @@ var CallHandler = (function callHandler() {
   function handleCallScreenClosing() {
     callScreenWindow = null;
     callScreenWindowLoaded = false;
+    callScreenWindowReady = false;
+  }
+
+  function handleCallScreenReady() {
+    callScreenWindowReady = true;
+
+    // Have any BT commands queued?
+    btCommandsToForward.forEach(function btIterator(command) {
+      sendCommandToCallScreen('BT', command);
+    });
+    btCommandsToForward = [];
   }
 
   /* === MMI === */
-  function initMMI() {
+  function init() {
     loader.load(['/shared/js/mobile_operator.js',
                  '/dialer/js/mmi.js',
                  '/dialer/js/mmi_ui.js',
@@ -357,7 +362,17 @@ var CallHandler = (function callHandler() {
                  '/shared/style/input_areas.css',
                  '/shared/style_unstable/progress_activity.css',
                  '/dialer/style/mmi.css'], function() {
+
       if (window.navigator.mozSetMessageHandler) {
+        window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
+        window.navigator.mozSetMessageHandler('activity', handleActivity);
+        window.navigator.mozSetMessageHandler('notification',
+                                              handleNotification);
+        window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
+                                               btCommandHandler);
+        window.navigator.mozSetMessageHandler('headset-button',
+                                              headsetCommandHandler);
+
         window.navigator.mozSetMessageHandler('ussd-received', function(evt) {
           if (document.hidden) {
             var request = window.navigator.mozApps.getSelf();
@@ -374,7 +389,7 @@ var CallHandler = (function callHandler() {
   }
 
   return {
-    initMMI: initMMI,
+    init: init,
     call: call
   };
 })();
@@ -507,7 +522,7 @@ window.addEventListener('load', function startup(evt) {
       parent.removeChild(delayed);
     });
 
-    CallHandler.initMMI();
+    CallHandler.init();
 
     // Load delayed scripts
     loader.load(['/contacts/js/fb/fb_data.js',

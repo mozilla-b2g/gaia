@@ -25,7 +25,7 @@ suite('thread_ui.js >', function() {
   var recipient;
 
   var realMozL10n;
-  var realMozSms;
+  var realMozMobileMessage;
 
   var mocksHelper = mocksHelperForThreadUI;
 
@@ -59,11 +59,13 @@ suite('thread_ui.js >', function() {
       '  <span class="icon icon-edit"></span>' +
       '</a>' +
       '<h1 id="messages-header-text">Messages</h1>' +
-      '<form id="messages-tel-form">' +
-      '  <input id="messages-recipient" type="text" name="tel" class="tel" />' +
-      '  <span id="messages-clear-button" role="button"' +
-      '    class="icon icon-clear"></span>' +
-      '</form>' +
+      '<section id="messages-to-field">' +
+        '<section data-l10n-id="to" id="to-label">' +
+          'To:' +
+        '</section>' +
+        '<section id="messages-recipients-container">' +
+        '</section>' +
+      '</section>' +
       '<article id="messages-container" class="view-body" data-type="list">' +
       '</article>' +
       '<form role="search" id="messages-compose-form" ' +
@@ -97,17 +99,17 @@ suite('thread_ui.js >', function() {
     document.body.appendChild(container);
 
     ThreadUI.init();
-    realMozSms = ThreadUI._mozSms;
-    ThreadUI._mozSms = MockNavigatormozSms;
+    realMozMobileMessage = ThreadUI._mozMobileMessage;
+    ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
   });
 
   teardown(function() {
     container.parentNode.removeChild(container);
     container = null;
 
-    MockNavigatormozSms.mTeardown();
+    MockNavigatormozMobileMessage.mTeardown();
     mocksHelper.teardown();
-    ThreadUI._mozSms = realMozSms;
+    ThreadUI._mozMobileMessage = realMozMobileMessage;
   });
 
   suite('enableSend() >', function() {
@@ -151,36 +153,19 @@ suite('thread_ui.js >', function() {
       test('button should be enabled when there is both contact and input',
         function() {
 
-        input.value = 'Hola';
-        recipient.value = '123123123';
+        ThreadUI.input.value = 'Hola';
+        var recipient = ThreadUI.appendEditableRecipient();
+        ThreadUI.createRecipient(recipient);
         ThreadUI.enableSend();
         assert.isFalse(sendButton.disabled);
       });
     });
   });
 
-  suite('cleanFields >', function() {
-    setup(function() {
-      window.location.hash = '#new';
-      input.value = 'Hola';
-      recipient.value = '123123123';
-      ThreadUI.enableSend();
-      ThreadUI.cleanFields();
-    });
-
-    teardown(function() {
-      window.location.hash = '';
-    });
-
-    test('should disable the button', function() {
-      assert.isTrue(sendButton.disabled);
-    });
-  });
-
   suite('updateCounter() >', function() {
     suite('in first segment >', function() {
       setup(function() {
-        MockNavigatormozSms.mNextSegmentInfo = {
+        MockNavigatormozMobileMessage.mNextSegmentInfo = {
           segments: 1,
           charsAvailableInLastSegment: 20
         };
@@ -206,7 +191,7 @@ suite('thread_ui.js >', function() {
           availableChars = 10;
 
       setup(function() {
-        MockNavigatormozSms.mNextSegmentInfo = {
+        MockNavigatormozMobileMessage.mNextSegmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
@@ -233,7 +218,7 @@ suite('thread_ui.js >', function() {
           availableChars = 20;
 
       setup(function() {
-        MockNavigatormozSms.mNextSegmentInfo = {
+        MockNavigatormozMobileMessage.mNextSegmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
@@ -260,7 +245,7 @@ suite('thread_ui.js >', function() {
           availableChars = 20;
 
       setup(function() {
-        MockNavigatormozSms.mNextSegmentInfo = {
+        MockNavigatormozMobileMessage.mNextSegmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
@@ -287,7 +272,7 @@ suite('thread_ui.js >', function() {
           availableChars = 0;
 
       setup(function() {
-        MockNavigatormozSms.mNextSegmentInfo = {
+        MockNavigatormozMobileMessage.mNextSegmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };

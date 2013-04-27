@@ -454,13 +454,16 @@ section[role="region"] > header .icon.icon-settings
 #view-settings [data-type="list"] li button.icon-sim:before {
   background-image: url(/contacts/style/images/import_SIM.png);
 }
+#view-settings [data-type="list"] li button.icon-sd:before {
+  background-image: url(/contacts/style/images/import_sd.png);
+}
 
 #view-settings [data-type="list"] li button.icon-gmail:before {
   background-image: url(/contacts/style/images/gmail_icon.png);
 }
 
 #view-settings [data-type="list"] li button.icon-live:before {
-  background-image: url(/contacts/style/images/hotmail_icon.png);
+  background-image: url(/contacts/style/images/outlook_icon.png);
 }
 
 

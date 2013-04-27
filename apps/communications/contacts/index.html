@@ -147,7 +147,7 @@
             <section id="contact-detail" class="view-body-inner">
               <!-- Phone Template -->
               <li data-phone id='phone-details-template-#i#' data-template>
-                <h2>#type#</h2>
+                <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
                 <div class="item">
                   <div class="item-media pull-right">
                     <button id="send-sms-button-#i#" class="activity send-sms icon icon-message"></button>
@@ -170,7 +170,7 @@
 
               <!-- Email Template -->
               <li data-mail id='email-details-template-#i#' data-template>
-                <h2>#type#</h2>
+                <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
                 <div class="item">
                   <div class="item-body-exp">
                     <button id="email-or-pick-#i#" class="activity icon icon-email">
@@ -203,7 +203,7 @@
 
               <!-- Address Template -->
               <li data-address id='address-details-template-#i#' data-template>
-                <h2>#type#</h2>
+                <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
                 <div class="item">
                   <div class="item-body-exp">
                     <a href="#" class="action action-block">
@@ -253,7 +253,7 @@
         <div id='add-phone-#i#' data-template class='phone-template' data-index="#i#">
           <fieldset class="fillflow-row">
             <legend class="action">
-              <span data-taglist="phone-type" name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</span>
+              <span data-taglist="phone-type" name="tel" data-value="#type_value#" id="tel_type_#i#" data-field="type" data-l10n-id=#type_l10n_id#>#type#</span>
             </legend>
             <section>
               <p class="setbox-item">
@@ -272,7 +272,7 @@
         <div id='add-email-#i#' data-template class='email-template' data-index="#i#">
           <fieldset class="fillflow-row">
             <legend class="action">
-              <span data-taglist="email-type" name="email[#i#][type]" value="#type#" id="email_type_#i#" data-field="type">#type#</span>
+              <span data-taglist="email-type" name="email[#i#][type]" data-value="#type_value#" id="email_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>
             </legend>
             <section>
               <p class="setbox-item">
@@ -287,7 +287,7 @@
         <div id='add-address-#i#' data-template class='address-template' data-index="#i#">
           <fieldset class="fillflow-row">
             <legend class="action">
-              <span data-taglist="address-type" name="adr[#i#][type]" value="#type#" id="address_type_#i#" data-field="type">#type#</span>
+              <span data-taglist="address-type" name="adr[#i#][type]" data-value="#type_value#" id="address_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>
             </legend>
             <section>
               <p class="setbox-item">
@@ -467,6 +467,12 @@
                 </button>
                 <p id="no-sim" data-l10n-id="noSimMsg"></p>
               </li>
+              <li id="settingsStorage">
+                <button class="icon icon-sd" data-l10n-id="importSd">
+                  Memory card
+                </button>
+                <p id="no-sd" data-l10n-id="noSdMsg"></p>
+              </li>
               <li class="importService">
                 <button class="icon icon-gmail" data-l10n-id="importGmail">
                   Gmail
@@ -474,7 +480,7 @@
               </li>
               <li class="importService">
                 <button class="icon icon-live" data-l10n-id="importLive">
-                  Windows Live
+                  Outlook
                 </button>
               </li>
             </ul>

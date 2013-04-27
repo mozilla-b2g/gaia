@@ -179,6 +179,10 @@ var CardsView = (function() {
       runningApps[displayedApp].frame.blur();
 
     placeCards();
+    // At the beginning only the current card can listen to tap events
+    currentCardStyle.pointerEvents = 'auto';
+
+    window.addEventListener('tap', CardsView);
 
     function addCard(origin, app, displayedAppCallback) {
       // Display card switcher background first to make user focus on the
@@ -196,6 +200,12 @@ var CardsView = (function() {
       var card = document.createElement('li');
       card.classList.add('card');
       card.dataset.origin = origin;
+
+      var landscape = WindowManager.getOrientationForApp(origin) ===
+                                                            'landscape-primary';
+      if (landscape) {
+        card.classList.add('landscape');
+      }
 
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
@@ -269,6 +279,12 @@ var CardsView = (function() {
           card.style.backgroundImage = 'url(' + cachedLayer + ')';
         }
 
+        // We cannot take a screenshot here for landscape apps because the
+        // mobile is on portrait
+        if (landscape) {
+          return;
+        }
+
         // And then switch it with screenshots when one will be ready
         // (instead of -moz-element backgrounds)
         // Only take a new screenshot if is the active app
@@ -299,10 +315,6 @@ var CardsView = (function() {
             };
         }
       });
-
-      // Set up event handling
-      // A click elsewhere in the card switches to that task
-      card.addEventListener('tap', runApp);
     }
   }
 
@@ -312,11 +324,9 @@ var CardsView = (function() {
       var element = e.target.parentNode;
       cardsList.removeChild(element);
       closeApp(element, true);
-      return;
+    } else if ('origin' in e.target.dataset) {
+      WindowManager.launch(e.target.dataset.origin);
     }
-
-    var origin = this.dataset.origin;
-    WindowManager.launch(origin);
   }
 
   function closeApp(element, removeImmediately) {
@@ -381,6 +391,7 @@ var CardsView = (function() {
 
     // events to handle
     window.removeEventListener('lock', CardsView);
+    window.removeEventListener('tap', CardsView);
 
     if (removeImmediately) {
       cardsView.classList.add('no-transition');
@@ -492,7 +503,6 @@ var CardsView = (function() {
     // Current card sets the z-index to level 2 and opacity to 1
     currentCardStyle.zIndex = 2;
     currentCardStyle.opacity = 1;
-    currentCardStyle.pointerEvents = 'auto';
 
     // Previous and next cards set the z-indez to level 1 and opacity to 0.4
     prevCardStyle.zIndex = nextCardStyle.zIndex = 1;
@@ -516,6 +526,7 @@ var CardsView = (function() {
       currentCard.removeEventListener('transitionend', transitionend);
       prevCardStyle.MozTransition = currentCardStyle.MozTransition =
       nextCardStyle.MozTransition = '';
+      currentCardStyle.pointerEvents = 'auto';
     });
   }
 
@@ -715,11 +726,6 @@ var CardsView = (function() {
           );
         }
 
-        // Without removing the listener before closing card
-        // sometimes the 'click' event fires, even if 'mouseup'
-        // uses stopPropagation()
-        element.removeEventListener('tap', runApp);
-
         // Remove the icon from the task list
         cardsList.removeChild(element);
 
@@ -815,6 +821,10 @@ var CardsView = (function() {
 
       case 'contextmenu':
         manualOrderStart(evt);
+        break;
+
+      case 'tap':
+        runApp(evt);
         break;
 
       case 'home':

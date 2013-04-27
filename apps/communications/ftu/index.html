@@ -47,16 +47,19 @@
 
   <!-- Code for the FTU App -->
   <script defer type="text/javascript" src="/ftu/js/basket-client.js"></script>
+  <script defer type="text/javascript" src="/contacts/js/utilities/sdcard.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/status.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/overlay.js"></script>
   <script defer type="text/javascript" src="/ftu/js/services_launcher.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
+  <script defer type="text/javascript" src="/contacts/js/utilities/vcard_parser.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_data.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_utils.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_query.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_contact_utils.js"></script>
   <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
   <script defer type="text/javascript" src="/ftu/js/sim_manager.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/sd_manager.js"></script>
   <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
   <script defer type="text/javascript" src="/ftu/js/import_services.js"></script>
   <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
@@ -250,6 +253,12 @@
               </button>
               <p id="no-sim" data-l10n-id="noSimMsg">To import insert a SIM card</p>
             </li>
+            <li id="sd_import" class="importOption">
+              <button id="sd-import-button" class="icon icon-sd" data-l10n-id="importSd">
+                  SD card
+              </button>
+              <p id="no-sd" data-l10n-id="noSdMsg">To import insert a SD card</p>
+            </li>
             <li id="gmail_import" class="importOption">
               <button id="gmail-import-button" class="icon icon-gmail" data-l10n-id="importGmail">
                   GMail
@@ -257,7 +266,7 @@
             </li>
             <li id="live_import" class="importOption">
               <button id="live-import-button" class="icon icon-wlive" data-l10n-id="importLive">
-                  Windows Live
+                Outlook
               </button>
             </li>
           </ul>
