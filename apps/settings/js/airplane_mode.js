@@ -57,7 +57,7 @@ var AirplaneMode = {
 
   init: function apm_init() {
     var mobileConnection = getMobileConnection();
-    var wifiManager = getWifiManager();
+    var wifiManager = WifiHelper.getWifiManager();
 
     var settings = Settings.mozSettings;
     if (!settings)
