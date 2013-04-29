@@ -29,6 +29,9 @@
 
   var vibrationEnabled = true;
 
+  // Cache the content volume when entering silent mode
+  var cachedContentVolume = -1;
+
   // This event is generated in shell.js in response to bluetooth headset.
   // Bluetooth headset always assign audio volume to a specific value when
   // pressing its volume-up/volume-down buttons.
@@ -100,6 +103,9 @@
         var max = MAX_VOLUME[channel];
         currentVolume[channel] =
             parseInt(Math.max(0, Math.min(max, volume)), 10);
+
+        if (channel == 'content')
+          fetchCachedContentVolume();
       });
     })(channel);
   }
@@ -110,6 +116,28 @@
 
     vibrationEnabled = vibration;
   });
+
+  // Fetch stored content volume if it exists.
+  // We should make sure this happens after settingsDB callback
+  // after booting.
+
+  var inited = false;
+
+  function fetchCachedContentVolume() {
+    if (inited)
+      return;
+
+    inited = true;
+    pendingRequestCount++;
+    window.asyncStorage.getItem('content.volume',
+      function onGettingContentVolume(value) {
+        if (!value)
+          return;
+
+        cachedContentVolume = value;
+        pendingRequestCount--;
+      });
+  }
 
   var activeTimeout = 0;
 
@@ -159,12 +187,65 @@
     }
   }
 
+  function enterSilentMode() {
+    var isCachedAlready =
+      (currentVolume['content'] == currentVolume['content']);
+    cachedContentVolume = currentVolume['content'];
+    pendingRequestCount++;
+    var req = SettingsListener.getSettingsLock().set({
+      'audio.volume.content': 0
+    });
+
+    req.onsuccess = function onSuccess() {
+      pendingRequestCount--;
+
+      // Write to async storage only happens when
+      // we haven't stored it before.
+      // If the user presses the volume rockers repeatedly down and up,
+      // between silent-mode/vibration mode/normal mode,
+      // we won't repeatedly write the same value to storage.
+      if (!isCachedAlready)
+        window.asyncStorage.setItem('content.volume', cachedContentVolume);
+    };
+
+    req.onerror = function onError() {
+      pendingRequestCount--;
+    };
+  }
+
+  function leaveSilentMode() {
+    // We're leaving silent mode.
+    if (cachedContentVolume >= 0) {
+      var req;
+      pendingRequestCount++;
+      req = SettingsListener.getSettingsLock().set({
+        'audio.volume.content': cachedContentVolume
+      });
+      cachedContentVolume = -1;
+      req.onsuccess = function onSuccess() {
+        pendingRequestCount--;
+      };
+
+      req.onerror = function onError() {
+        pendingRequestCount--;
+      };
+    }
+  }
+
   function changeVolume(delta, channel) {
     channel = channel ? channel : getChannel();
 
     muteState = getVolumeState(currentVolume[channel], delta, channel);
 
     var volume = currentVolume[channel] + delta;
+
+    // Silent mode entry point
+    if (volume == 0 && delta < 0 && channel == 'notification') {
+      enterSilentMode();
+    } else if (volume == 1 && delta > 0 && channel == 'notification' &&
+                cachedContentVolume >= 0) {
+      leaveSilentMode();
+    }
 
     currentVolume[channel] = volume =
       Math.max(0, Math.min(MAX_VOLUME[channel], volume));
