@@ -20,7 +20,7 @@ function getYoutubeVideo(url, successCallback, errorCallback) {
   var videoId = url.slice(15, url.indexOf('?'));
   var query = 'http://www.youtube.com/get_video_info?&video_id=' + videoId;
 
-  var request = new XMLHttpRequest();
+  var request = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
   request.open('GET', query);
   request.onerror = function() {
     console.error('error while querying', query);
