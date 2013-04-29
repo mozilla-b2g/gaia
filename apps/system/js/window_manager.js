@@ -936,6 +936,9 @@ var WindowManager = (function() {
 
         callback(app);
       }
+      // When the device is booted, check if the battery is drained.
+      // If so, SleepMenu.startPowerOff() would be called.
+      BatteryManager.checkBatteryDrainage();
     };
   }
 
