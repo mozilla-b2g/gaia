@@ -171,6 +171,7 @@ var Filmstrip = (function() {
       // Remove the thumbnail image from the filmstrip
       filmstrip.removeChild(item.element);
       URL.revokeObjectURL(item.element.src);
+      item.element.src = '';
 
       // Renumber the item elements
       items.forEach(function(item, index) {
@@ -196,6 +197,18 @@ var Filmstrip = (function() {
       storage.delete(filename).onerror = function(e) {
         console.warn('Failed to delete', filename,
                      'from DeviceStorage:', e.target.error);
+      }
+
+      // If this is a video file, delete its poster image as well
+      if (item.isVideo) {
+        var poster = filename.replace('.3gp', '.jpg');
+        var pictureStorage = Camera._pictureStorage;
+
+        pictureStorage.delete(poster).onerror = function(e) {
+          console.warn('Failed to delete poster image', poster,
+                       'for video', filename, 'from DeviceStorage:',
+                       e.target.error);
+        };
       }
     }
   }
@@ -431,6 +444,44 @@ var Filmstrip = (function() {
     });
   }
 
+  // Remove the filmstrip item with correspondent filename. If filename is
+  // a video poster image, remove the filmstrip item of its video file.
+  function deleteItem(filename) {
+    var deletedFileName;
+
+    // Check whether filename is a video poster image or not. If filename
+    // contains 'VID' and ends with '.jpg', consider it a video poster
+    // image and get the video filename by changing '.jpg' to '.3gp'
+    if (filename.indexOf('VID') != -1 &&
+        filename.lastIndexOf('.jpg') === filename.length - 4) {
+      deletedFileName = filename.replace('.jpg', '.3gp');
+    } else {
+      deletedFileName = filename;
+    }
+
+    // Remove the item in filmstrip
+    for (var n = 0; n < items.length; n++) {
+      if (items[n].filename === deletedFileName) {
+        var item = items[n];
+
+        // Remove the item from the array of items
+        items.splice(n, 1);
+
+        // Remove the thumbnail image from the filmstrip
+        filmstrip.removeChild(item.element);
+        URL.revokeObjectURL(item.element.src);
+        item.element.src = '';
+
+        break;
+      }
+    }
+
+    // Renumber the item elements after the removed one
+    for (var i = n; i < items.length; i++) {
+      items[i].element.dataset.index = i;
+    }
+  }
+
   // Remove all items from the filmstrip. Don't delete the files, but
   // forget all of our state. This also exits preview mode if we're in it.
   function clear() {
@@ -611,6 +662,7 @@ var Filmstrip = (function() {
     show: show,
     addImage: addImage,
     addVideo: addVideo,
+    deleteItem: deleteItem,
     clear: clear,
     setOrientation: setOrientation
   };
