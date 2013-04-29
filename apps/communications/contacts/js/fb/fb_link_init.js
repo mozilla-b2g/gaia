@@ -13,6 +13,8 @@
     '#friends-list': fb.link.ui.selected
   });
 
+  fb.link.init();
+
   // This event listener is added manually as it wil be changing dynamically
   document.querySelector('#view-all').onclick = fb.link.ui.viewAllFriends;
 
@@ -23,7 +25,7 @@
         return;
       }
       window.removeEventListener('message', getAccessToken);
-       fb.link.start(cid, e.data.data);
+      fb.link.start(cid, e.data.data);
     });
 
     parent.postMessage({
