@@ -73,13 +73,8 @@ Calendar.Timespan = (function() {
      *
      * @param {Date|Numeric|Timespan} start range or one position.
      * @param {Date|Numeric} [end] do a span comparison.
-     * @param {boolean|undefined} inclusive whether to check endpoints.
      */
-    overlaps: function(start, end, inclusive) {
-      if (inclusive === undefined) {
-        inclusive = true;
-      }
-
+    overlaps: function(start, end) {
       var ourStart = this.start;
       var ourEnd = this.end;
 
@@ -92,12 +87,10 @@ Calendar.Timespan = (function() {
         end = (end instanceof Date) ? end.valueOf() : end;
       }
 
-      if (inclusive && (start === ourEnd || ourStart === end)) {
-        return true;
-      }
-
-      return (start >= ourStart && start < ourEnd ||
-              ourStart >= start && ourStart < end);
+      return (
+          start >= ourStart && start < ourEnd ||
+          ourStart >= start && ourStart < end
+      );
     },
 
     /**

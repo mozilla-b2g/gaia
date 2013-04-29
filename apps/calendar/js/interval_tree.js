@@ -137,9 +137,8 @@ Calendar.IntervalTree = (function() {
      * @param {Function} callback first argument is matching
      *                            record second is the node in the
      *                            tree where record was found.
-     * @param {boolean|undefined} inclusive whether to check endpoints.
      */
-    traverse: function(span, fn, inclusive) {
+    traverse: function(span, fn) {
       if (this.left && (span.start < this.median)) {
         this.left.traverse(span, fn);
       }
@@ -155,7 +154,7 @@ Calendar.IntervalTree = (function() {
           break;
         }
 
-        if (span.overlaps(item[START], item[END], inclusive)) {
+        if (span.overlaps(item[START], item[END])) {
           fn(item, this);
         }
       }
@@ -169,10 +168,9 @@ Calendar.IntervalTree = (function() {
      * Find all overlapping records via a Calendar.Timespan.
      *
      * @param {Calendar.Timespan} span timespan.
-     * @param {boolean|undefined} inclusive whether to check endpoints.
      * @return {Array} results sorted by start time.
      */
-    query: function(span, inclusive) {
+    query: function(span) {
       var results = [];
       var seen = Object.create(null);
 
@@ -183,7 +181,7 @@ Calendar.IntervalTree = (function() {
         if (!seen[item._id]) {
           results.push(item);
         }
-      }, inclusive);
+      });
 
       return results;
     }
@@ -462,11 +460,10 @@ Calendar.IntervalTree = (function() {
      * Rebuilds tree if in unclean state first.
      *
      * @param {Calendar.Timespan} span timespan.
-     * @param {boolean|undefined} inclusive whether to check endpoints.
      */
-    query: function(span, inclusive) {
+    query: function(span) {
       this.build();
-      return this.rootNode.query(span, inclusive);
+      return this.rootNode.query(span);
     },
 
     _nodeFromList: function(list) {

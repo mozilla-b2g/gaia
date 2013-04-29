@@ -487,7 +487,7 @@ Calendar.ns('Controllers').Time = (function() {
      * @return {Array} busytimes ordered by start date.
      */
     queryCache: function(timespan) {
-      return this._collection.query(timespan, false /** inclusive */);
+      return this._collection.query(timespan);
     },
 
     /**
