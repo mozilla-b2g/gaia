@@ -144,6 +144,10 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   background-image: url('images/CallLog_30x30_missed_grey.png');
 }
 
+[data-type="list"] .log-item {
+  padding: 0;
+}
+
 .log-item * {
   pointer-events: none;
 }
