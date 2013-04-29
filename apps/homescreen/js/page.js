@@ -312,6 +312,7 @@ Icon.prototype = {
     if (callback) {
       img.onload = img.onerror = function done() {
         callback(this.src);
+        img.onload = img.onerror = null;
       };
     }
   },
@@ -616,6 +617,13 @@ Page.prototype = {
   animate: function pg_animate(children, draggableNode, targetNode) {
     var draggableIndex = children.indexOf(draggableNode);
     var targetIndex = children.indexOf(targetNode);
+
+    if (draggableIndex === -1 || targetIndex === -1) {
+      // Index is outside the bounds of the array, it doesn't make sense
+      setTimeout(this.setReady.bind(this, true));
+      return;
+    }
+
     var upward = draggableIndex < targetIndex;
     this.draggableNode = draggableNode;
     this.beforeNode = upward ? targetNode.nextSibling : targetNode;
@@ -647,7 +655,7 @@ Page.prototype = {
 
     this.iconsWhileDragging = [];
 
-    if (reflow)
+    if (reflow && this.olist.contains(this.draggableNode))
       this.olist.insertBefore(this.draggableNode, this.beforeNode);
 
     callback();
@@ -663,8 +671,8 @@ Page.prototype = {
       var self = this;
 
       self.container.addEventListener('onpageready', function onPageReady() {
-        self.doDragLeave(callback, reflow);
         self.container.removeEventListener('onpageready', onPageReady);
+        self.doDragLeave(callback, reflow);
       });
 
       return;
