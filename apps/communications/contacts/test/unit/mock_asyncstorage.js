@@ -6,5 +6,7 @@ var MockAsyncStorage = {
     if (cb) {
       cb(this.orderByLastName);
     }
-  }
+  },
+  setItem: function() {},
+  removeItem: function() {}
 };
