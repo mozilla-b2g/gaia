@@ -294,6 +294,42 @@ suite('Utils', function() {
       resizeTest('IMG_0554.jpg');
     });
   });
+
+  suite('Utils.typeFromMimeType', function() {
+    var testIndex;
+    var tests = {
+      'text/plain': 'text',
+      'image/jpeg': 'img',
+      'video/ogg': 'video',
+      'audio/ogg': 'audio',
+      'not-a-mime': null,
+      'text': null,
+      'appplication/video': null
+    };
+
+    for (testIndex in tests) {
+      test(testIndex, function() {
+        assert.equal(Utils.typeFromMimeType(testIndex), tests[testIndex]);
+      });
+    }
+
+    suite('Defensive', function() {
+      test('long string', function() {
+        var longString = 'this/is/a/really/long/string/that/excedes/255/chars';
+        longString += longString;
+        longString += longString;
+        assert.equal(Utils.typeFromMimeType(longString), null);
+      });
+      test('non-strings', function() {
+        assert.equal(Utils.typeFromMimeType(null), null);
+        assert.equal(Utils.typeFromMimeType({}), null);
+        assert.equal(Utils.typeFromMimeType(0), null);
+        assert.equal(Utils.typeFromMimeType(true), null);
+      });
+
+    });
+  });
+
 });
 
 suite('Utils.Message', function() {
@@ -477,4 +513,5 @@ suite('Utils.Template', function() {
       );
     });
   });
+
 });
