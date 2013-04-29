@@ -24,15 +24,6 @@ const kScriptsPerDomain = {
     'lib/cameras.js',
     'lib/mobile_connection.js',
     'lib/wifi.js'
-  ],
-
-  // App specific includes
-  'communications.gaiamobile.org': [
-    'workloads/contacts.js'
-  ],
-
-  'sms.gaiamobile.org': [
-    'workloads/contacts.js'
   ]
 };
 
