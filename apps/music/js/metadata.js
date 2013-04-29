@@ -418,6 +418,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   //   http://xiph.org/vorbis/doc/Vorbis_I_spec.html
   //   http://www.xiph.org/vorbis/doc/v-comment.html
   //   http://wiki.xiph.org/VorbisComment
+  //   http://tools.ietf.org/html/draft-ietf-codec-oggopus-00
   //
   function parseOggMetadata(header) {
     function sum(x, y) { return x + y; } // for Array.reduce() below
@@ -442,7 +443,18 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         return;
       }
 
-      if (page.readByte() !== 3 || page.readASCIIText(6) !== 'vorbis') {
+      // Look for a comment packet from a supported codec
+      var first_byte = page.readByte();
+      var valid = false;
+      switch (first_byte) {
+        case 3:
+          valid = page.readASCIIText(6) === 'vorbis';
+          break;
+        case 79:
+          valid = page.readASCIIText(7) === 'pusTags';
+          break;
+      }
+      if (!valid) {
         errorCallback('malformed ogg comment packet');
       }
 
