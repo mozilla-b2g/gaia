@@ -248,3 +248,39 @@ MockFb.getAddress = function(fbData) {
 
   return out;
 };
+
+MockFb.utils = (function() {
+  var value;
+
+  return {
+    getContactData: function() {
+      return {
+        set onsuccess(cb) {
+          cb();
+        },
+        get result() {
+          return value;
+        }
+      };
+    },
+
+    set result(r) {
+      value = r;
+    },
+
+    runQuery: function(query, cbs) {
+      var ALL_QUERY = ['SELECT uid, name, last_name, first_name,',
+        ' middle_name, email from user ',
+        ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me()) ',
+        ' ORDER BY name'
+      ];
+
+      if (query === ALL_QUERY.join('')) {
+        cbs.success(MockAllFacebookContacts);
+      }
+      else {
+        cbs.success(MockLinkedContacts);
+      }
+    }
+  };
+}());
