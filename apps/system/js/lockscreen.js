@@ -522,7 +522,11 @@ var LockScreen = {
   },
 
   unlock: function ls_unlock(instant, detail) {
-    var currentApp = WindowManager.getDisplayedApp();
+    // This file is loaded before the Window Manager in order to intercept
+    // hardware buttons events. As a result WindowManager is not defined when
+    // the device is turned on and this file is loaded.
+    var currentApp =
+      'WindowManager' in window ? WindowManager.getDisplayedApp() : null;
 
     var currentFrame = null;
 
