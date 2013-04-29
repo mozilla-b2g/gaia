@@ -672,6 +672,34 @@ var ThreadUI = {
     // Go to Bottom
     ThreadUI.scrollViewToBottom();
   },
+  createMmsContent: function thui_createMmsContent(dataArray) {
+    var container = document.createElement('div');
+    container.classList.add('mmsContainer');
+    dataArray.forEach(function(attachment) {
+      var mediaElement, textElement;
+      if (attachment.name && attachment.blob) {
+        var type = attachment.blob.type.split('/')[0];
+        var url = URL.createObjectURL(attachment.blob);
+        if (type == 'image') {
+          mediaElement = document.createElement('img');
+          mediaElement.src = url;
+        } else {
+          mediaElement = document.createElement(type);
+          var sourceTag = document.createElement('source');
+          sourceTag.src = url;
+          mediaElement.appendChild(sourceTag);
+        }
+        container.appendChild(mediaElement);
+      }
+      if (attachment.text) {
+        textElement = document.createElement('span');
+        textElement.innerHTML =
+          LinkHelper.searchAndLinkClickableData(attachment.text);
+        container.appendChild(textElement);
+      }
+    });
+    return container;
+  },
   // Method for rendering the list of messages using infinite scroll
   renderMessages: function thui_renderMessages(filter, callback) {
     // We initialize all params before rendering
@@ -766,14 +794,26 @@ var ThreadUI = {
     }
 
 
-    var bodyHTML = LinkHelper.searchAndLinkClickableData(bodyText);
+    var bodyHTML = '';
+    var pElement = messageDOM.querySelector('p');
+    if (message.type && message.type === 'mms') { // MMS
+      if (message.delivery === 'not-downloaded') {
+        // TODO: We need to handle the mms message with "not-downloaded" status
+      } else {
+        pElement.classList.add('mms-bubble-content');
+        SMIL.parse(message, function(slideArray) {
+          pElement.appendChild(ThreadUI.createMmsContent(slideArray));
+        });
+      }
+    } else { // SMS
+      bodyHTML = LinkHelper.searchAndLinkClickableData(bodyText);
+    }
     // check for messageDOM paragraph element to assign linked message html
     // For now keeping the containing anchor markup as this
     // structure is part of building blocks.
     // http://buildingfirefoxos.com/building-blocks/lists/
     // Todo: Open bug to fix contaning anchor to div to avoid
     // below extra innerHTML call
-    var pElement = messageDOM.querySelector('p');
     pElement.innerHTML = bodyHTML;
     return messageDOM;
   },

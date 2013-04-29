@@ -310,8 +310,19 @@ var MessageManager = {
       console.log(msg);
     };
   },
-  send: function mm_send(number, text, callback, errorHandler) {
-    var req = this._mozMobileMessage.send(number, text);
+  send: function mm_send(number, msgContent, callback, errorHandler) {
+    var req;
+    if (typeof msgContent === 'string') { // send SMS
+      req = this._mozMobileMessage.send(number, msgContent);
+    } else if (Array.isArray(msgContent)) { // send MMS
+      var msg = SMIL.generate(msgContent);
+      req = this._mozMobileMessage.sendMMS({
+        receivers: [number],
+        subject: '',
+        smil: msg.smil,
+        attachments: msg.attachments
+      });
+    }
     req.onsuccess = function onsuccess(e) {
       callback && callback(req.result);
     };
