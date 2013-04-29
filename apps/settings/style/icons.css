@@ -113,7 +113,7 @@
   background-position: -12rem -9rem;
 }
 
-#menuItem-deviceStorage::before {
+#menuItem-applicationStorage::before {
   background-position: 0 -12rem;
 }
 

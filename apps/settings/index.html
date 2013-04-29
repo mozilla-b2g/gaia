@@ -58,6 +58,7 @@
     <!-- shared helper library -->
     <!--<script defer src="shared/js/mouse_event_shim.js"></script>-->
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
+    <!--<script defer src="shared/js/async_storage.js"></script>-->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
@@ -906,7 +907,6 @@
         </ul>
       </div>
 
-      <script src="shared/js/async_storage.js"></script>
       <script defer src="js/carrier.js"></script>
       -->
     </section>
@@ -978,7 +978,6 @@
         </menu>
       </form>
 
-      <script src="shared/js/async_storage.js"></script>
       <script src="js/bluetooth.js"></script>
       -->
     </section>
@@ -2346,17 +2345,14 @@
     </section>
 
     <!-- Device :: Device Storage -->
-    <section role="region" id="deviceStorage">
+    <section role="region" id="applicationStorage">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="deviceStorage"> Device Storage </h1>
+        <h1 data-l10n-id="appStorage"> Application Storage </h1>
       </header>
 
       <div>
-        <header>
-          <h2 data-l10n-id="appStorage">Application Storage</h2>
-        </header>
         <ul>
           <li>
             <progress id="apps-space-bar" min="0" value="0" max="100"></progress>
@@ -2383,6 +2379,7 @@
           </li>
         </ul>
       </div>
+      <script src="js/app_storage.js"></script>
       -->
     </section>
 
@@ -2397,48 +2394,43 @@
       <div>
         <ul>
           <li>
-            <div id="space-stackedbar"></div>
-          </li>
-          <li id="music-space">
-            <span class="stackedbar-color"></span>
-            <a data-l10n-id="music-space"> Music
-              <span class="size"></span>
-            </a>
-          </li>
-          <li id="pictures-space">
-            <span class="stackedbar-color"></span>
-            <a data-l10n-id="pictures-space"> Pictures
-              <span class="size"></span>
-            </a>
-          </li>
-          <li id="videos-space">
-            <span class="stackedbar-color"></span>
-            <a data-l10n-id="videos-space"> Movies
-              <span class="size"></span>
-            </a>
-          </li>
-          <li id="media-free-space">
-            <span class="stackedbar-color"></span>
-            <a data-l10n-id="left-space"> Space Left
-              <span class="size"></span>
-            </a>
+            <label>
+              <input id="ums-switch" type="checkbox" data-type="switch" data-ignore />
+              <span></span>
+            </label>
+            <small id="ums-desc">Disabled</small>
+            <a data-l10n-id="enableUSBStorage">Enable USB storage</a>
           </li>
         </ul>
-
+        <div id="volume-list">
+        </div>
         <header>
           <h2 data-l10n-id="advanced">Advanced</h2>
         </header>
         <ul>
           <li>
-            <label>
-              <input type="checkbox" name="ums.enabled"/>
-              <span></span>
-            </label>
-            <small id="ums-desc"> </small>
-            <a data-l10n-id="usbMassStorage">USB mass storage</a>
+            <p data-l10n-id="default-media-location">Default media location</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select id="defaultMediaLocation" name="device.storage.writable.name">
+              </select>
+            </p>
+          </li>
+          <li data-l10n-id="default-media-location-msg" class="explanation">
+            Choose where photos, videos, music and downloads are stored by default.
           </li>
         </ul>
       </div>
+      <form data-type="confirm" role="dialog" id="default-location-popup-container" hidden>
+        <section>
+          <p>Changing the default media storage volume will effect where photos, videos, downloads and other media will be saved to by default. Existing data will remain in its current location.</p>
+        </section>
+        <menu>
+          <button id="default-location-cancel-btn">Cancel</button>
+          <button id="default-location-change-btn">Change</button>
+        </menu>
+      </form>
+      <script src="js/media_storage.js"></script>
       -->
     </section>
 
@@ -2758,6 +2750,28 @@
             <a id="menuItem-doNotTrack" class="menu-item" href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
           </li>
         </ul>
+        <!-- Main :: Storage -->
+        <header>
+          <h2 data-l10n-id="storage">Storage</h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" id="ums-switch-root" data-type="switch" data-ignore />
+              <span></span>
+            </label>
+            <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
+            <a class="menu-item" data-l10n-id="enableUSBStorage">Enable USB storage</a>
+          </li>
+          <li>
+            <small id="application-storage-desc" class="menu-item-desc"></small>
+            <a id="menuItem-applicationStorage" class="menu-item" href="#applicationStorage" data-l10n-id="appStorage">Application Storage</a>
+          </li>
+          <li id="media-storage-section">
+            <small id="media-storage-desc" class="menu-item-desc"></small>
+            <a id="menuItem-mediaStorage" class="menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
+          </li>
+        </ul>
 
         <!-- Main :: Device -->
         <header>
@@ -2770,14 +2784,6 @@
           <li>
             <small id="battery-desc" class="menu-item-desc"></small>
             <a id="menuItem-battery" class="menu-item" href="#battery" data-l10n-id="battery">Battery</a>
-          </li>
-          <li>
-            <small id="device-storage-desc" class="menu-item-desc"></small>
-            <a id="menuItem-deviceStorage" class="menu-item" href="#deviceStorage" data-l10n-id="deviceStorage">Device Storage</a>
-          </li>
-          <li id="media-storage-section">
-            <small id="media-storage-desc" class="menu-item-desc"></small>
-            <a id="menuItem-mediaStorage" class="menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
           </li>
           <li hidden>
             <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
