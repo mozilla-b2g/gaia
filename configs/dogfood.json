@@ -1,0 +1,31 @@
+{
+  "apps" : [
+     "apps/bluetooth",
+     "apps/browser",
+     "apps/browser",
+     "apps/calendar",
+     "apps/camera",
+     "apps/clock",
+     "apps/communications",
+     "apps/costcontrol",
+     "apps/email",
+     "apps/fm",
+     "apps/gallery",
+     "apps/homescreen",
+     "apps/keyboard",
+     "apps/sms",
+     "apps/music",
+     "apps/pdfjs",
+     "apps/settings",
+     "apps/system",
+     "apps/video",
+     "apps/wallpaper",
+     "showcase_apps/crystalskull",
+     "showcase_apps/cubevid",
+     "showcase_apps/twittershare",
+     "external-apps/marketplace",
+     "external-apps/m.here.com",
+     "external-dogfood-apps/hoststubtest",
+     "external-dogfood-apps/packstubtest"]
+}
+
