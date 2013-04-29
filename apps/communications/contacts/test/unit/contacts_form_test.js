@@ -35,9 +35,9 @@ suite('Render contact form', function() {
       }
     };
     realContacts = window.Contacts;
-    window.Contacts = MockContactsApp;
+    window.Contacts = MockContacts;
     realFb = window.fb;
-    window.fb = MockFb;
+    window.fb = Mockfb;
     document.body.innerHTML = MockFormDom;
     footer = document.querySelector('footer');
     subject = contacts.Form;
@@ -160,7 +160,7 @@ suite('Render contact form', function() {
       window.fb.setIsFbContact(true);
 
       var deviceContact = new MockContactAllFields();
-      var fbContact = new MockFb.Contact(deviceContact);
+      var fbContact = new Mockfb.Contact(deviceContact);
       fbContact.getDataAndValues().onsuccess = function() {
         deviceContact.photo = null;
         subject.render(deviceContact, null, this.result);
@@ -196,7 +196,7 @@ suite('Render contact form', function() {
     test('FB Contact. Address from Facebook', function() {
       window.fb.setIsFbContact(true);
 
-      var fbContact = new MockFb.Contact(mockContact);
+      var fbContact = new Mockfb.Contact(mockContact);
       fbContact.getDataAndValues().onsuccess = function() {
         subject.render(mockContact, null, this.result);
 
@@ -226,7 +226,7 @@ suite('Render contact form', function() {
       window.fb.setIsFbContact(true);
       window.fb.setIsFbLinked(true);
 
-      var fbContact = new MockFb.Contact(mockContact);
+      var fbContact = new Mockfb.Contact(mockContact);
 
       fbContact.getDataAndValues().onsuccess = function() {
         this.result[0].tel[1] = {
@@ -272,7 +272,7 @@ suite('Render contact form', function() {
       window.fb.setIsFbContact(true);
       window.fb.setIsFbLinked(true);
 
-      var fbContact = new MockFb.Contact(mockContact);
+      var fbContact = new Mockfb.Contact(mockContact);
       fbContact.getDataAndValues().onsuccess = function() {
         subject.render(mockContact, null, this.result);
 
