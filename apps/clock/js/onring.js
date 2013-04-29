@@ -11,6 +11,7 @@ var RingView = {
   _screenLock: null,
   _onFireAlarm: {},
   _started: false,
+  _isVibrate: true,
 
   get time() {
     delete this.time;
@@ -38,6 +39,8 @@ var RingView = {
   },
 
   init: function rv_init() {
+    var ALARM_NOTIFICATION_LENGTH = 900000;
+
     document.addEventListener('mozvisibilitychange', this);
     this._onFireAlarm = window.opener.ActiveAlarmController.getOnFireAlarm();
     if (!document.mozHidden) {
@@ -59,6 +62,14 @@ var RingView = {
         // Our final chance is to rely on visibilitychange event handler.
       }, 0);
     }
+
+    /* If user don't handle the onFire alarm,
+       pause the ringtone and turn off vibration after 15 minutes */
+    var self = this;
+    window.setTimeout(function rv_pauseRingtone() {
+      self.stopAlarmNotification('ring');
+      self.stopAlarmNotification('vibrate');
+    }, ALARM_NOTIFICATION_LENGTH);
 
     this.setAlarmTime();
     this.setAlarmLabel();
@@ -104,13 +115,6 @@ var RingView = {
                              this.getAlarmSound();
     ringtonePlayer.src = selectedAlarmSound;
     ringtonePlayer.play();
-    /* If user don't handle the onFire alarm,
-       pause the ringtone after 15 minutes */
-    var self = this;
-    var duration = 60000 * 15;
-    window.setTimeout(function rv_pauseRingtone() {
-      self.stopAlarmNotification('ring');
-    }, duration);
   },
 
   vibrate: function rv_vibrate() {
@@ -118,17 +122,11 @@ var RingView = {
       this._vibrateInterval = window.setInterval(function vibrate() {
         navigator.vibrate([1000]);
       }, 2000);
-      /* If user don't handle the onFire alarm,
-       turn off vibration after 15 minutes */
-      var self = this;
-      var duration = 60000 * 15;
-      window.setTimeout(function rv_clearVibration() {
-        self.stopAlarmNotification('vibrate');
-      }, duration);
     }
   },
 
   startAlarmNotification: function rv_startAlarmNotification() {
+    var isVibrate = this._isVibrate;
     // Ensure called only once.
     if (this._started)
       return;
@@ -136,7 +134,9 @@ var RingView = {
     this._started = true;
     this.setWakeLockEnabled(true);
     this.ring();
-    this.vibrate();
+    if (isVibrate) {
+      this.vibrate();
+    }
   },
 
   stopAlarmNotification: function rv_stopAlarmNotification(action) {
@@ -161,6 +161,10 @@ var RingView = {
       break;
     }
     this.setWakeLockEnabled(false);
+  },
+
+  setVibrate: function am_setVibrate(isVibrate) {
+    this._isVibrate = isVibrate;
   },
 
   getAlarmTime: function am_getAlarmTime() {
@@ -219,7 +223,25 @@ var RingView = {
 
 window.addEventListener('localized', function showBody() {
   window.removeEventListener('localized', showBody);
-  RingView.init();
+  var settings = navigator.mozSettings;
+
+  if (settings) {
+    var lock = settings.createLock();
+    var reqVibrationEnable = lock.get('vibration.enabled');
+    reqVibrationEnable.onsuccess = function onVibrationEnable() {
+      var enable = reqVibrationEnable.result['vibration.enabled'];
+      RingView.setVibrate(enable);
+      RingView.init();
+    };
+
+    settings.addObserver('vibration.enabled', function(evt) {
+      var enable = evt.settingValue;
+      RingView.setVibrate(enable);
+      if (enable) {
+        RingView.vibrate();
+      } else {
+        RingView.stopAlarmNotification('vibrate');
+      }
+    });
+  }
 });
-
-
