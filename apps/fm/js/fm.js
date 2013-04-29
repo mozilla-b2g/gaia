@@ -398,7 +398,7 @@ var frequencyDialer = {
   },
 
   _updateUI: function(frequency, ignoreDialer) {
-    $('frequency').textContent = parseFloat(frequency.toFixed(1));
+    $('frequency').textContent = frequency.toFixed(1);
     if (true !== ignoreDialer) {
       this._translateX = (this._minFrequency - frequency) * this._space;
       var dialer = $('frequency-dialer');
