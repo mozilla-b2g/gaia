@@ -190,7 +190,7 @@ var OnCallHandler = (function onCallHandler() {
   // Setting up the SimplePhoneMatcher
   var conn = window.navigator.mozMobileConnection;
   if (conn && conn.voice && conn.voice.network && conn.voice.network.mcc) {
-    SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
+    SimplePhoneMatcher.mcc = conn.voice.network.mcc;
   }
 
   var ringtonePlayer = new Audio();
