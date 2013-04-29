@@ -101,6 +101,7 @@ settings = {
  "ril.mms.mmsproxy": "",
  "ril.mms.passwd": "",
  "ril.mms.user": "",
+ "ril.mms.retrieval_mode": "automatic",
  "ril.radio.preferredNetworkType": "",
  "ril.radio.disabled": False,
  "ril.supl.apn": "",
