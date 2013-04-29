@@ -169,7 +169,7 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
 
   // find the absolute root of the app's html file.
   let rootUrl = htmlFile.parent.path;
-  rootUrl = rootUrl.replace(webapp.manifestFile.parent.path, '');
+  rootUrl = rootUrl.replace(webapp.manifestFile.parent.path, '') || '.';
   // the above will yield something like: '', '/facebook/', '/contacts/', etc...
 
   function writeAggregatedScript(config) {
@@ -362,8 +362,7 @@ if (GAIA_INLINE_LOCALES === '1') {
 
   // LOCALES_FILE is a relative path by default: shared/resources/languages.json
   // -- but it can be an absolute path when doing a multilocale build.
-  // LOCALES_FILE is using unix separator, ensure working fine on win32
-  let abs_path_chunks = [GAIA_DIR].concat(LOCALES_FILE.split('/'));
+  let abs_path_chunks = [GAIA_DIR].concat(LOCALES_FILE.split(/\/|\\/));
   let file = getFile.apply(null, abs_path_chunks);
   if (!file.exists()) {
     file = getFile(LOCALES_FILE);

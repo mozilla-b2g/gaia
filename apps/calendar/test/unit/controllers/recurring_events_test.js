@@ -1,19 +1,35 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('controllers/recurring_events.js');
-  requireLib('provider/caldav.js');
-  requireLib('models/account.js');
-});
+requireLib('models/account.js');
+requireLib('provider/abstract.js');
+requireLib('provider/local.js');
+requireLib('provider/caldav.js');
 
-suite('controllers/recurring_event', function() {
+suiteGroup('Controllers.RecurringEvents', function() {
 
   var subject;
   var app;
   var timeController;
+  var db;
 
-  setup(function() {
+  setup(function(done) {
     app = testSupport.calendar.app();
+    db = app.db;
+
     subject = new Calendar.Controllers.RecurringEvents(app);
     timeController = app.timeController;
+    db.open(done);
+  });
+
+  teardown(function(done) {
+    subject.unobserve();
+    testSupport.calendar.clearStore(
+      db,
+      ['accounts'],
+      function() {
+        done(function() {
+          db.close();
+        });
+      }
+    );
   });
 
   test('initialization', function() {
@@ -37,14 +53,17 @@ suite('controllers/recurring_event', function() {
   });
 
   suite('controller events', function() {
-    setup(function() {
+    var date = new Date(2012, 1, 1);
+
+    setup(function(done) {
       subject.observe();
       subject.waitBeforeMove = 10;
+      app.timeController.move(date);
+
+      subject.once('expandComplete', done);
     });
 
     test('syncComplete', function(done) {
-      var date = new Date(2012, 1, 1);
-      app.timeController.move(date);
 
       subject.queueExpand = function(date) {
         done(function() {
@@ -177,14 +196,14 @@ suite('controllers/recurring_event', function() {
     });
 
     function setupProvider(type) {
-      setup(function() {
+      setup(function(done) {
         account = Factory('account', {
           providerType: type,
           _id: type
         });
 
         provider = app.provider(type);
-        app.store('Account').cached[type] = account;
+        app.store('Account').persist(account, done);
       });
     }
 

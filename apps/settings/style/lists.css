@@ -18,10 +18,8 @@ ul li {
   min-height: 6rem;
 }
 
-ul li.active,
-ul li a:active {
-  background-color: #b2f2ff;
-  color: #222;
+ul li.sound-setting {
+  min-height: 7.9rem;
 }
 
 ul li > a,
@@ -37,9 +35,32 @@ ul li > span {
   padding: 0 3rem;
 }
 
+ul li.active,
+ul li:not(.explanation):active,
+ul li:not(.disabled) > small + a:active,
+ul li:not(.disabled) > a[href]:active {
+  background-color: #b2f2ff;
+  color: #222;
+}
+
 ul li.disabled > a {
   color: gray;
   pointer-events: none;
+}
+
+ul > li > progress {
+  display: inline-block;
+  margin: 0 0 0 3rem;
+  padding: 0;
+}
+
+ul > li > progress + span {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0;
+  padding: 0 0 0 1rem;
+  color: #505b5b;
+  font-size: 1.4rem;
 }
 
 /* description + value on the same line */
@@ -75,8 +96,10 @@ ul li > label:not([for]) + small {
 }
 
 /* required for empty elements like Bluetooth */
-ul li > small:not(:empty) + a {
+ul li > small:not(:empty) + a,
+ul li > small:not(:empty) + span {
   line-height: 4.4rem;
+  overflow: inherit; /* see Bug 831429 */
 }
 
 
@@ -115,6 +138,10 @@ ul li > label:not([for]) ~ a {
   padding-right: 6rem;
 }
 
+ul li > label:not([for]):active ~ a {
+  background-color: #b2f2ff;
+  color: #222;
+}
 
 /******************************************************************************
  * Field inputs
@@ -124,7 +151,7 @@ ul li p {
   font-size: 1.9rem;
   font-weight: 400;
   margin: 0;
-  padding: 1rem 3rem;
+  padding: 1rem 3rem 1.2rem;
 }
 
 ul li p + label:not([for]) {
@@ -144,11 +171,58 @@ ul li p + input[type="password"] {
  * Range inputs
  */
 
+input[type=range] {
+  -moz-appearance: none;
+  border: none;
+  background: none;
+}
+
+input[type=range]:-moz-focusring {
+  outline: none;
+}
+
 ul li > label input[type="range"] {
-  width: 80%;
+  position: relative;
+  top: calc(50% - 1.5rem);
+  left: 6.5rem;
+  right: 8.5rem;
+  height: 3rem;
+  width: calc(100% - 15rem);
+}
+
+input[type=range]::-moz-range-track {
+  height: 0.1rem;
+  background-color: #7e7e7e;
+}
+
+input[type=range]::-moz-range-progress {
+  height: 0.3rem;
+  background-color: #01c5ed;
+}
+
+input[type=range]::-moz-range-thumb {
+  width: 2.8rem;
+  height: 2.8rem;
+  border: solid 0.1rem transparent;
+  border-radius: 3rem;
+  transition: border 0.15s ease;
+  -moz-box-sizing: border-box;
+  background: url(images/range_thumb.png) no-repeat 50% 50%;
+}
+
+input[type=range]:active::-moz-range-thumb {
+  border: solid 0.4rem #01c5ed;
+}
+
+ul li.sound-setting > label input[type="range"] {
+  margin: 0 auto;
   width: calc(100% - 6rem);
-  margin-left: 3rem;
-  margin-top: 2rem;
+  left: 3rem;
+}
+
+ul li#brightness-manual > label input[type="range"] {
+  margin: 0 auto;
+  width: calc(100% - 13rem);
 }
 
 /**
@@ -191,10 +265,10 @@ ul li > label.bug344618_polyfill div:before {
 ul li > label.bug344618_polyfill div {
   position: relative;
   top: calc(50% - 1.5rem);
-  left: 7.5rem;
-  right: 7.5rem;
+  left: 3rem;
+  right: 3rem;
   height: 3rem;
-  width: calc(100% - 15rem);
+  width: calc(100% - 6rem);
 }
 
 /* fill */
@@ -297,16 +371,25 @@ section[role="region"] > ul > li > p + .fake-select {
 }
 
 
-
 /******************************************************************************
  * Progress, Meter
  */
 
-ul li progress, ul li meter {
+ul > li progress {
   display: block;
   width: calc(100% - 6rem);
   height: 3rem;
-  margin: 2.5rem auto;
+  margin: 3rem auto;
+  background: #e7e7e7;
+  border: 0.1rem solid #b6b6b6;
+  border-radius: 0.3rem;
+}
+
+ul > li progress::-moz-progress-bar {
+  margin: 1px;
+  height: calc(100% - 0.2rem);
+  border-radius: 0.2rem;
+  background-color: #82c72c;
 }
 
 
@@ -315,7 +398,7 @@ ul li progress, ul li meter {
  */
 
 dl > * {
-  font-size: 1.7em;
+  font-size: 1.7rem;
 }
 
 dl dt {

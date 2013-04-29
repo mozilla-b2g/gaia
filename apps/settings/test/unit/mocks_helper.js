@@ -42,6 +42,6 @@ MocksHelper.prototype = {
         mock[funcName]();
       }
     });
-  },
+  }
 };
 

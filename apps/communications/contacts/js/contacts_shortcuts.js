@@ -11,9 +11,7 @@ if (!utils.alphaScroll) {
         overlayStyle, groupSelector;
 
     var isScrolling = false;
-
-    var overlayTimeout = 0, scrollToTimeout = 0;
-    var previous = null;
+    var alreadyRendered = false;
 
     // Callback invoked when scrolling is neded
     var P_SCROLLTO_CB = 'scrollToCb';
@@ -30,7 +28,35 @@ if (!utils.alphaScroll) {
 
     var RESET_TRANSITION = '0s';
 
+    var offset = 0, lastY = 0;
+
+    var isTouch = 'ontouchstart' in window;
+    var touchstart = isTouch ? 'touchstart' : 'mousedown';
+    var touchmove = isTouch ? 'touchmove' : 'mousemove';
+    var touchend = isTouch ? 'touchend' : 'mouseup';
+
+    var getY = (function getYWrapper() {
+      return isTouch ? function(e) { return e.touches[0].pageY } :
+                       function(e) { return e.pageY };
+    })();
+
+    var getTarget = (function getTargetWrapper() {
+      if (isTouch) {
+        return function(e) {
+          var touch = e.touches[0];
+          return document.elementFromPoint(touch.pageX, touch.pageY);
+        }
+      } else {
+        return function(e) {
+          return e.target;
+        }
+      }
+    })();
+
     alphaScroll.init = function(params) {
+      if (alreadyRendered) {
+        return;
+      }
       scrollToCallback = params[P_SCROLLTO_CB];
       jumper = params[P_JUMPER];
       overlay = params[P_OVERLAY];
@@ -39,10 +65,9 @@ if (!utils.alphaScroll) {
       overlay.textContent = '';
       overlayStyle = overlay.style;
 
-      jumper.addEventListener('mousedown', scrollStart);
-      jumper.addEventListener('mousemove', scrollTo);
-      jumper.addEventListener('mouseleave', scrollEnd);
-      jumper.addEventListener('mouseup', scrollEnd);
+      jumper.addEventListener(touchstart, scrollStart);
+      jumper.addEventListener(touchmove, scrollTo);
+      jumper.addEventListener(touchend, scrollEnd);
 
       var alphabet = [];
       for (var i = 65; i <= 90; i++) {
@@ -52,9 +77,13 @@ if (!utils.alphaScroll) {
         anchor: '#'
       });
       utils.templates.append(jumper, alphabet);
-    }
+      alreadyRendered = true;
+    };
 
     function scrollStart(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      offset = offset || jumper.querySelector('[data-anchor]').offsetHeight;
       overlayStyle.MozTransitionDelay = RESET_TRANSITION;
       overlayStyle.MozTransitionDuration = RESET_TRANSITION;
       overlayStyle.opacity = '1';
@@ -68,13 +97,11 @@ if (!utils.alphaScroll) {
       overlayStyle.MozTransitionDelay = TRANSITION_DELAY;
       overlayStyle.MozTransitionDuration = TRANSITION_DURATION;
       overlayStyle.opacity = '0';
-      overlay.textContent = previous = null;
+      overlay.textContent = null;
       isScrolling = false;
     }
 
     function scrollTo(evt) {
-      var current, querySelector, domTarget, anch;
-
       evt.preventDefault();
       evt.stopPropagation();
 
@@ -82,34 +109,32 @@ if (!utils.alphaScroll) {
         return;
       }
 
-      current = evt.target.dataset;
-
-      if (previous === current) {
+      var currentY = getY(evt);
+      if (Math.abs(lastY - currentY) < offset) {
         return;
       }
+
+      lastY = currentY;
+
+      var dataset = getTarget(evt).dataset;
 
       // Render
-      if (evt.target.dataset.letter) {
-        overlay.textContent = evt.target.dataset.letter;
-      } else if (evt.target.dataset.img) {
+      if (dataset.letter) {
+        overlay.textContent = dataset.letter;
+      } else if (dataset.img) {
         overlay.textContent = '';
         var img = new Image();
-        img.src = 'style/images/' + evt.target.dataset.img;
+        img.src = 'style/images/' + dataset.img;
         overlay.appendChild(img);
-      } else {
-        overlay.textContent = '';
       }
 
-      anch = current.anchor;
-      querySelector = '#' + ((anch == 'group-#') ? 'group-und' : anch);
-
-      domTarget = doc.querySelector(querySelector);
-      if (!domTarget || domTarget.clientHeight <= 0)
+      var anch = dataset.anchor;
+      var selector = anch === 'group-#' ? 'group-und' : anch;
+      var domTarget = doc.querySelector('#' + selector);
+      if (!domTarget)
         return;
 
-      previous = current;
-
-      scrollToCallback(domTarget);
+      scrollToCallback(domTarget, selector.replace('group-', ''));
     }
 
     // Cache images refered in 'data-img'es

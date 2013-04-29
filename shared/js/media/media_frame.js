@@ -41,9 +41,16 @@ function MediaFrame(container, includeVideo) {
   this.displayingVideo = false;
   this.displayingImage = false;
   this.imageblob = null;
+  this.previewblob = null;
   this.videoblob = null;
   this.posterblob = null;
   this.url = null;
+
+  var self = this;
+  this.image.onerror = function(e) {
+    if (self.onerror)
+      self.onerror(e);
+  };
 }
 
 MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
@@ -60,56 +67,56 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
   // Keep track of what kind of content we have
   this.displayingImage = true;
 
-  // Make the image element visible
-  this.image.style.display = 'block';
-
   // If the preview is at least as big as the screen, display that.
   // Otherwise, display the full-size image.
-  if (preview &&
-      (preview.width >= window.innerWidth ||
-       preview.height >= window.innerHeight)) {
+  if (preview && (preview.start || preview.filename)) {
     this.displayingPreview = true;
-    this._displayImage(blob.slice(preview.start, preview.end, 'image/jpeg'),
-                       preview.width, preview.height);
+    if (preview.start) {
+      this._displayImage(blob.slice(preview.start, preview.end, 'image/jpeg'));
+    }
+    else {
+      var storage = navigator.getDeviceStorage('pictures');
+      var getreq = storage.get(preview.filename);
+      var self = this;
+      getreq.onsuccess = function() {
+        self.previewblob = getreq.result;
+        self._displayImage(self.previewblob);
+      };
+      getreq.onerror = function() {
+        self.displayingPreview = false;
+        self.preview = null;
+        self._displayImage(blob);
+      };
+    }
   }
   else {
-    this._displayImage(blob, width, height);
+    this._displayImage(blob);
   }
 };
 
 // A utility function we use to display the full-size image or the preview.
-MediaFrame.prototype._displayImage = function _displayImage(blob, width, height)
-{
+MediaFrame.prototype._displayImage = function _displayImage(blob) {
   var self = this;
-  var oldImage;
 
   // Create a URL for the blob (or preview blob)
   if (this.url)
     URL.revokeObjectURL(this.url);
   this.url = URL.createObjectURL(blob);
 
-  // If we don't know the width or the height yet, then set up an event
-  // handler to set the image size and position once it is loaded.
-  // This happens for the open activity.
-  if (!width || !height) {
-    this.image.src = this.url;
-    this.image.addEventListener('load', function onload() {
-      this.removeEventListener('load', onload);
-      self.itemWidth = this.width = this.naturalWidth;
-      self.itemHeight = this.height = this.naturalHeight;
-      self.computeFit();
-      self.setPosition();
-    });
-    return;
-  }
+  var preload = new Image();
 
-  // Start loading the new image
-  this.image.src = this.url;
-  // Update image size and position
-  this.itemWidth = width;
-  this.itemHeight = height;
-  this.computeFit();
-  this.setPosition();
+  preload.addEventListener('load', function onload() {
+    preload.removeEventListener('load', onload);
+
+    self.image.src = preload.src;
+    self.itemWidth = preload.width;
+    self.itemHeight = preload.height;
+    self.computeFit();
+    self.setPosition();
+    self.image.style.display = 'block';
+  });
+
+  preload.src = this.url;
 };
 
 MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
@@ -166,9 +173,7 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
 MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
   if (this.displayingImage && this.preview && !this.displayingPreview) {
     this.displayingPreview = true;
-    this._displayImage(this.imageblob.slice(this.preview.start,
-                                            this.preview.end,
-                                            'image/jpeg'),
+    this._displayImage(this.previewblob,
                        this.preview.width,
                        this.preview.height);
   }
@@ -211,6 +216,7 @@ MediaFrame.prototype.clear = function clear() {
   this.displayingVideo = false;
   this.itemWidth = this.itemHeight = null;
   this.imageblob = null;
+  this.previewblob = null;
   this.videoblob = null;
   this.posterblob = null;
   this.fullsizeWidth = this.fullsizeHeight = null;
@@ -279,20 +285,8 @@ MediaFrame.prototype.computeFit = function computeFit() {
 MediaFrame.prototype.reset = function reset() {
   // If we're not displaying the preview image, but we have one,
   // and it is the right size, then switch to it
-  if (this.displayingImage && !this.displayingPreview && this.preview &&
-      (this.preview.width >= window.innerWidth ||
-       this.preview.height >= window.innerHeight)) {
+  if (this.displayingImage && !this.displayingPreview && this.preview) {
     this._switchToPreviewImage(); // resets image size and position
-    return;
-  }
-
-  // Otherwise, if we are displaying the preview image but it is no
-  // longer big enough for the screen (such as after a resize event)
-  // then switch to full size. This case should be rare.
-  if (this.displayingImage && this.displayingPreview &&
-      this.preview.width < window.innerWidth &&
-      this.preview.height < window.innerHeight) {
-    this._switchToFullSizeImage(); // resets image size and position
     return;
   }
 
@@ -384,8 +378,8 @@ MediaFrame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
 
   // After zooming, these are the new photo coordinates.
   // Note we just use the relative scale amount here, not this.fit.scale
-  var photoX = Math.floor(photoX * scale);
-  var photoY = Math.floor(photoY * scale);
+  photoX = Math.floor(photoX * scale);
+  photoY = Math.floor(photoY * scale);
 
   // To keep that point still, here are the new left and top values we need
   this.fit.left = centerX - photoX;
@@ -431,7 +425,7 @@ MediaFrame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
     if (this.oldimage)
       this.oldimage.style.transition = transition;
     var self = this;
-    this.image.addEventListener('transitionend', function done(e) {
+    this.image.addEventListener('transitionend', function done() {
       self.image.removeEventListener('transitionend', done);
       self.image.style.transition = null;
     });

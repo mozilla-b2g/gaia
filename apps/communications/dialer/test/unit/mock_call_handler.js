@@ -1,11 +1,7 @@
-var MockOnCallHandler = {
-  mLastEntryAdded: null,
+var MockCallHandler = {
+  _lastCall: null,
 
-  addRecentEntry: function(entry) {
-    this.mLastEntryAdded = entry;
-  },
-
-  mTeardown: function() {
-    this.mLastEntryAdded = null;
+  call: function call(number) {
+    this._lastCall = number;
   }
-}
+};

@@ -10,16 +10,26 @@
     <script defer src="/dialer/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
+    <!-- Needed to not duplicate PIN/PUK management strings -->
+    <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini">
 
     <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="/contacts/style/transitions.css">
+    <link rel="stylesheet" type="text/css" href="/contacts/style/animations.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/dialer.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
     <link rel="stylesheet" type="text/css" href="/shared/style_unstable/tabs.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/responsive.css">
 
     <!-- JS -->
     <script defer src="/shared/js/mouse_event_shim.js"></script>
+    <script defer src="/dialer/js/tone_player.js"></script>
     <script defer src="/dialer/js/keypad.js"></script>
     <script defer src="/dialer/js/dialer.js"></script>
+    <script defer src="/dialer/js/recents_db.js"></script>
+
+    <!-- for perf-measurement related utilities -->
+    <script defer src='/shared/js/performance_testing_helper.js'></script>
 
     <!-- Lazy load all the things:
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
@@ -28,6 +38,9 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="/shared/style_unstable/lists.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css">
+    <link rel="stylesheet" type="text/css" href="/dialer/style/mmi.css">
     <script defer src="/shared/js/async_storage.js"></script>
     <script defer src="/shared/js/l10n.js"></script>
     <script defer src="/shared/js/l10n_date.js"></script>
@@ -39,9 +52,13 @@
     <script defer src="/contacts/js/fb/fb_data.js"></script>
     <script defer src="/contacts/js/fb/fb_contact_utils.js"></script>
     <script defer src="/dialer/js/contacts.js"></script>
+    <script defer src="/dialer/js/contact_data_manager.js"></script>
+    <script defer src="/dialer/js/suggestion_bar.js"></script>
     <script defer src="/dialer/js/recents.js"></script>
     <script defer src="/dialer/js/telephony_helper.js"></script>
-    <script defer src="/dialer/js/ussd.js"></script>
+    <script defer src="/dialer/js/mmi.js"></script>
+    <script defer src="/dialer/js/mmi_ui.js"></script>
+    <script defer src="/dialer/js/newsletter_manager.js"></script>
     -->
   </head>
   <body role="application">
@@ -75,7 +92,8 @@
       </article>
       <article class="view" role="tab" id="contacts-view">
         <a id="option-contacts" href="#contacts-view" class="icon icon-contacts">contacts</a>
-        <iframe role="tabpanel" id="iframe-contacts" frameBorder="no" class="grid-wrapper"></iframe>
+        <div id="iframe-contacts-container" role="tabpanel">
+        </div>
       </article>
       <article id="keyboard-view" role="tab">
         <a id="option-keypad" href="#keyboard-view" class="icon icon-keypad">keypad</a>
@@ -92,6 +110,34 @@
               </div>
             </div>
           </div>
+          <section id="suggestion-bar" hidden>
+            <div id="suggestion-count" class="more"></div>
+            <div class="suggestion-item">
+              <div class="name"></div>
+              <div>
+                <span class="tel-type"></span>
+                <span class="tel"><span class="matched"></span></span>
+              </div>
+            </div>
+          </section>
+          <form id="suggestion-overlay" role="dialog" data-type="action" hidden>
+            <header></header>
+            <menu>
+              <ul id="suggestion-list" role="listbox">
+              </ul>
+              <button id="suggestion-overlay-cancel" data-l10n-id='cancel'>Cancel</button>
+            </menu>
+          </form>
+          <!-- Template for cloning suggestion bar item. Will never be shown directly. -->
+          <ul hidden>
+            <li class="suggestion-item" id="suggestion-item-template" hidden>
+              <div class="name"></div>
+              <div>
+                <span class="tel-type"></span>
+                <span class="tel"><span class="matched"></span></span>
+              </div>
+            </li>
+          </ul>
           <article id="keyboard-container">
             <section id="keypad">
               <div class="keypad-cell">
@@ -180,7 +226,7 @@
       </menu>
     </form>
 
-    <form id="confirmation-message" class="hide" role="dialog" data-type="confirm">
+    <form id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm">
       <section>
         <h1>Confirmation title</h1>
         <p>Confirmation message</p>
@@ -188,6 +234,40 @@
       <menu>
         <button>Action 1</button>
         <button>Action 2</button>
+      </menu>
+    </form>
+
+    <article id="mmi-screen" role="region" hidden>
+      <section role="region">
+        <header>
+          <button id="mmi-close"><span class="icon icon-close"> close </span></button>
+          <menu type="toolbar">
+            <button id="send" data-l10n-id="send" disabled> Send </button>
+          </menu>
+          <h1 id="header-title">USSD</h1>
+        </header>
+      </section>
+      <section id="mmi-container" role="region">
+        <div id="message">
+        </div>
+      </section>
+      <form id="response" role="region">
+        <p>
+          <input id="response-text" type="text" data-l10n-id="type-your-response" placeholder="Type your selection..." required disabled>
+          <button id="response-text-reset" type="reset" data-l10n-id="clear-all-text"> Clear-all-text </button>
+        </p>
+      </form>
+    </article>
+
+    <form data-type="confirm" role="dialog" id="loading-overlay" class="hide">
+      <section>
+        <h1 data-l10n-id="sending">Sending</h1>
+        <p role="status">
+          <progress class="pack-activity" value="0" max="100"></progress>
+        </p>
+      </section>
+      <menu>
+        <button class="full" id="cancel" data-l10n-id="cancel">Cancel</button>
       </menu>
     </form>
     --></div>

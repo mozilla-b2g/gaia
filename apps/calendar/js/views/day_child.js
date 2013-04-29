@@ -17,6 +17,11 @@ Calendar.ns('Views').DayChild = (function() {
     _renderEvent: function(busytime, event) {
       var remote = event.remote;
       var attendees;
+      var classes;
+
+      if (event.remote.alarms.length) {
+        classes = 'has-alarms';
+      }
 
       if (event.remote.attendees) {
         attendees = this._renderAttendees(
@@ -25,6 +30,7 @@ Calendar.ns('Views').DayChild = (function() {
       }
 
       return template.event.render({
+        classes: classes,
         busytimeId: busytime._id,
         calendarId: event.calendarId,
         title: event.remote.title,

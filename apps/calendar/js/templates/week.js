@@ -26,6 +26,20 @@
             this.h('title') +
           '</div>' +
         '</li>';
+    },
+
+    frame: function() {
+      return '<section class="sticky">' +
+          '<section class="children">' +
+            '<span class="all-day">' +
+              this.l10n('', 'hour-allday') +
+            '</span>' +
+          '</section>' +
+        '</section>' +
+        '<div class="scroll">' +
+          '<ol class="sidebar"></ol>' +
+          '<section class="children"></section>' +
+        '</div>';
     }
   });
 

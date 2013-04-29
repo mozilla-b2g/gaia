@@ -8,9 +8,9 @@
 
 #utility-tray {
   position: absolute;
-  top: -moz-calc(-100% + 40px);
-  width: -moz-calc(100%);
-  height: -moz-calc(100% - 20px);
+  top: calc(-100% + 4rem);
+  width: calc(100%);
+  height: calc(100% - 2rem);
   background-color: rgba(0, 0, 0, 0.7);
   visibility: hidden;
 }
@@ -20,10 +20,8 @@
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 20px;
-
-  border-bottom: 1px solid #111;
-  border-top: 1px solid #111;
-
-  background: #111 url('images/grippy.png') no-repeat 50% 50%;
+  height: 2rem;
+  border-bottom: 0.1rem solid #111;
+  border-top: 0.1rem solid #111;
+  background: #111 url('images/grippy.png') no-repeat center / 2rem;
 }

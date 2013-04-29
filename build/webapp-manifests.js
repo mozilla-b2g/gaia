@@ -16,6 +16,7 @@ if (!webappsTargetDir.exists())
   webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
 
 let manifests = {};
+
 let id = 1;
 
 function copyRec(source, target) {
@@ -73,6 +74,16 @@ Gaia.webapps.forEach(function (webapp) {
   // appStatus == 2 means this is a privileged app.
   // appStatus == 1 means this is an installed (unprivileged) app
 
+  var localId = id++;
+  // localId start from 1 in release build. For DEBUG=1 build the system app can
+  // run inside Firefox desktop inside a regular tab and so the permissions set
+  // based on a principal are not working.
+  // To make it works the system app will be assigned an id of 0, which
+  // is the equivalent of the const NO_APP_ID.
+  if (DEBUG && webappTargetDirName == ('system.' + GAIA_DOMAIN)) {
+    localId = 0;
+  }
+
   let url = webapp.url;
   manifests[webappTargetDirName] = {
     origin:        url,
@@ -81,7 +92,7 @@ Gaia.webapps.forEach(function (webapp) {
     installTime:   INSTALL_TIME,
     manifestURL:   url + '/manifest.webapp',
     appStatus:     getAppStatus(webapp.manifest.type),
-    localId:       id++
+    localId:       localId
   };
 
 });
@@ -124,15 +135,19 @@ Gaia.externalWebapps.forEach(function (webapp) {
     }
     appPackage.copyTo(webappTargetDir, 'application.zip');
     updateManifest.copyTo(webappTargetDir, 'update.webapp');
-    removable = true;
+    removable = ("removable" in webapp.metaData) ? !!webapp.metaData.removable
+                                                 : true;
     origin = webapp.metaData.origin;
     installOrigin = webapp.metaData.installOrigin;
     manifestURL = webapp.metaData.manifestURL;
   } else {
     webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
     origin = webapp.metaData.origin;
-    installOrigin = webapp.metaData.origin;
-    manifestURL = webapp.metaData.origin + 'manifest.webapp';
+    installOrigin = webapp.metaData.installOrigin || webapp.metaData.origin;
+    manifestURL = webapp.metaData.manifestURL ||
+                    (webapp.metaData.origin + 'manifest.webapp');
+    removable = ("removable" in webapp.metaData) ? !!webapp.metaData.removable
+                                                 : true;
 
     // This is an hosted app. Check if there is an offline cache.
     let srcCacheFolder = webapp.sourceDirectoryFile.clone();

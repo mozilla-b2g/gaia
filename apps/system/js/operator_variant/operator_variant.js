@@ -12,7 +12,7 @@
   if (!settings)
     return;
 
-  var iccSettings = { mcc: -1, mnc: -1 };
+  var iccSettings = { mcc: '-1', mnc: '-1' };
 
   // Read the mcc/mnc settings, then trigger callback.
   function getICCSettings(callback) {
@@ -22,10 +22,10 @@
 
     var mccRequest = transaction.get(mccKey);
     mccRequest.onsuccess = function() {
-      iccSettings.mcc = parseInt(mccRequest.result[mccKey], 10) || 0;
+      iccSettings.mcc = mccRequest.result[mccKey] || '0';
       var mncRequest = transaction.get(mncKey);
       mncRequest.onsuccess = function() {
-        iccSettings.mnc = parseInt(mncRequest.result[mncKey], 10) || 0;
+        iccSettings.mnc = mncRequest.result[mncKey] || '0';
         callback();
       };
     };
@@ -51,10 +51,14 @@
       return;
 
     // XXX sometimes we get 0/0 for mcc/mnc, even when cardState === 'ready'...
-    var mcc = parseInt(mobileConnection.iccInfo.mcc, 10) || 0;
-    var mnc = parseInt(mobileConnection.iccInfo.mnc, 10) || 0;
-    if (!mcc || !mnc)
+    var mcc = mobileConnection.iccInfo.mcc || '0';
+    var mnc = mobileConnection.iccInfo.mnc || '0';
+    if ((mcc === '0') || (mnc === '0'))
       return;
+
+    // avoid setting APN (and operator variant) settings if mcc/mnc codes
+    // changes.
+    mobileConnection.removeEventListener('iccinfochange', checkICCInfo);
 
     // same SIM card => do nothing
     if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc))

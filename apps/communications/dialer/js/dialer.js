@@ -1,8 +1,12 @@
 'use strict';
 
 var CallHandler = (function callHandler() {
+  var COMMS_APP_ORIGIN = document.location.protocol + '//' +
+    document.location.host;
   var callScreenWindow = null;
   var callScreenWindowLoaded = false;
+  var callScreenWindowReady = false;
+  var btCommandsToForward = [];
   var currentActivity = null;
 
   /* === Settings === */
@@ -54,7 +58,6 @@ var CallHandler = (function callHandler() {
 
     activity.postResult({ status: 'accepted' });
   }
-  window.navigator.mozSetMessageHandler('activity', handleActivity);
 
   /* === Notifications support === */
   function handleNotification(evt) {
@@ -68,18 +71,30 @@ var CallHandler = (function callHandler() {
       window.location.hash = '#recents-view';
     };
   }
-  window.navigator.mozSetMessageHandler('notification', handleNotification);
 
   function handleNotificationRequest(number) {
     Contacts.findByNumber(number, function lookup(contact, matchingTel) {
       LazyL10n.get(function localized(_) {
         var title = _('missedCall');
 
-        var sender = (contact == null) ? number :
-          (Utils.getPhoneNumberPrimaryInfo(matchingTel, contact) ||
-            _('unknown'));
-
-        var body = _('from', {sender: sender});
+        var body;
+        if (!number) {
+          body = _('from-withheld-number');
+        } else if (contact) {
+          var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
+            contact);
+          if (primaryInfo) {
+            if (primaryInfo !== matchingTel.value) {
+              body = _('from-contact', {contact: primaryInfo});
+            } else {
+              body = _('from-number', {number: primaryInfo});
+            }
+          } else {
+            body = _('from-withheld-number');
+          }
+        } else {
+          body = _('from-number', {number: number});
+        }
 
         navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
           var app = evt.target.result;
@@ -99,12 +114,15 @@ var CallHandler = (function callHandler() {
 
   /* === Recents support === */
   function handleRecentAddRequest(entry) {
-    Recents.load(function recentsLoaded() {
-      RecentsDBManager.init(function() {
-        RecentsDBManager.add(entry, function() {
-          RecentsDBManager.close();
-          Recents.refresh();
-        });
+    RecentsDBManager.init(function() {
+      RecentsDBManager.add(entry, function() {
+        if (Recents.loaded) {
+          if (window.location.hash === '#recents-view') {
+            Recents.refresh();
+          } else {
+            Recents.renderNeeded = true;
+          }
+        }
       });
     });
   }
@@ -130,7 +148,6 @@ var CallHandler = (function callHandler() {
 
     openCallScreen();
   }
-  window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
 
   /* === Bluetooth Support === */
   function btCommandHandler(message) {
@@ -152,17 +169,18 @@ var CallHandler = (function callHandler() {
     }
 
     // Other commands needs to be handled from the call screen
-    sendCommandToCallScreen('BT', command);
+    if (callScreenWindowReady) {
+      sendCommandToCallScreen('BT', command);
+    } else {
+      // We queue the commands while the call screen is loading
+      btCommandsToForward.push(command);
+    }
   }
-  window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
-                                         btCommandHandler);
 
   /* === Headset Support === */
   function headsetCommandHandler(message) {
     sendCommandToCallScreen('HS', message);
   }
-  window.navigator.mozSetMessageHandler('headset-button',
-                                        headsetCommandHandler);
 
   /*
     Send commands to the callScreen via post message.
@@ -178,24 +196,30 @@ var CallHandler = (function callHandler() {
       return;
     }
 
-    var origin = document.location.protocol + '//' +
-        document.location.host;
     var message = {
       type: type,
       command: command
     };
 
-    callScreenWindow.postMessage(message, origin);
+    callScreenWindow.postMessage(message, COMMS_APP_ORIGIN);
   }
 
   // Receiving messages from the callscreen via post message
   //   - when the call screen is closing
+  //   - when the call screen is ready to receive messages
   //   - when we need to send a missed call notification
+  //   - when we need to add an entry to the recents database
   function handleMessage(evt) {
+    if (evt.origin !== COMMS_APP_ORIGIN) {
+      return;
+    }
+
     var data = evt.data;
 
     if (data === 'closing') {
       handleCallScreenClosing();
+    } else if (data === 'ready') {
+      handleCallScreenReady();
     } else if (data.type && data.type === 'notification') {
       // We're being asked to send a missed call notification
       NavbarManager.ensureResources(function() {
@@ -213,16 +237,14 @@ var CallHandler = (function callHandler() {
 
   /* === Calls === */
   function call(number) {
-    if (UssdManager.isUSSD(number)) {
-      UssdManager.send(number);
+    if (MmiManager.isMMI(number)) {
+      MmiManager.send(number);
+      // Clearing the code from the dialer screen gives the user immediate
+      // feedback.
+      KeypadManager.updatePhoneNumber('', 'begin', true);
+      SuggestionBar.clear();
       return;
     }
-
-    var oncall = function t_oncall() {
-      if (!callScreenWindow) {
-        openCallScreen(opened);
-      }
-    };
 
     var connected, disconnected = function clearPhoneView() {
       KeypadManager.updatePhoneNumber('', 'begin', true);
@@ -232,6 +254,14 @@ var CallHandler = (function callHandler() {
 
     var error = function() {
       shouldCloseCallScreen = true;
+    };
+
+    var oncall = function() {
+      if (!callScreenWindow) {
+        SuggestionBar.hideOverlay();
+        SuggestionBar.clear();
+        openCallScreen(opened);
+      }
     };
 
     var opened = function() {
@@ -246,6 +276,10 @@ var CallHandler = (function callHandler() {
   }
 
   /* === Attention Screen === */
+  // Each window gets a unique name to prevent a possible race condition
+  // where we want to open a new call screen while the previous one is
+  // animating out of the screen.
+  var callScreenId = 0;
   function openCallScreen(openCallback) {
     if (callScreenWindow)
       return;
@@ -257,7 +291,7 @@ var CallHandler = (function callHandler() {
     var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
     var openWindow = function dialer_openCallScreen(state) {
       callScreenWindow = window.open(urlBase + '#' + state,
-                  'call_screen', 'attention');
+                  ('call_screen' + callScreenId++), 'attention');
 
       callScreenWindow.onload = function onload() {
         highPriorityWakeLock.unlock();
@@ -306,14 +340,51 @@ var CallHandler = (function callHandler() {
   function handleCallScreenClosing() {
     callScreenWindow = null;
     callScreenWindowLoaded = false;
+    callScreenWindowReady = false;
   }
 
-  /* === USSD === */
+  function handleCallScreenReady() {
+    callScreenWindowReady = true;
+
+    // Have any BT commands queued?
+    btCommandsToForward.forEach(function btIterator(command) {
+      sendCommandToCallScreen('BT', command);
+    });
+    btCommandsToForward = [];
+  }
+
+  /* === MMI === */
   function init() {
     loader.load(['/shared/js/mobile_operator.js',
-                 '/dialer/js/ussd.js'], function() {
-      window.navigator.mozSetMessageHandler('ussd-received',
-          UssdManager.openUI.bind(UssdManager));
+                 '/dialer/js/mmi.js',
+                 '/dialer/js/mmi_ui.js',
+                 '/shared/style/headers.css',
+                 '/shared/style/input_areas.css',
+                 '/shared/style_unstable/progress_activity.css',
+                 '/dialer/style/mmi.css'], function() {
+
+      if (window.navigator.mozSetMessageHandler) {
+        window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
+        window.navigator.mozSetMessageHandler('activity', handleActivity);
+        window.navigator.mozSetMessageHandler('notification',
+                                              handleNotification);
+        window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
+                                               btCommandHandler);
+        window.navigator.mozSetMessageHandler('headset-button',
+                                              headsetCommandHandler);
+
+        window.navigator.mozSetMessageHandler('ussd-received', function(evt) {
+          if (document.hidden) {
+            var request = window.navigator.mozApps.getSelf();
+            request.onsuccess = function() {
+              request.result.launch('dialer');
+            };
+          }
+
+          MmiManager.handleMMIReceived(evt.message, evt.sessionEnded);
+        });
+      }
+
     });
   }
 
@@ -334,16 +405,28 @@ var NavbarManager = {
       self.update();
     });
   },
-
-  /**
+  resourcesLoaded: false,
+  /*
    * Ensures resources are loaded
    */
   ensureResources: function(cb) {
+    if (this.resourcesLoaded) {
+      if (cb && typeof cb === 'function') {
+        cb();
+      }
+      return;
+    }
+    var self = this;
     loader.load(['/shared/js/async_storage.js',
                  '/shared/js/notification_helper.js',
                  '/shared/js/simple_phone_matcher.js',
                  '/dialer/js/contacts.js',
-                 '/dialer/js/recents.js'], cb);
+                 '/dialer/js/recents.js'], function rs_loaded() {
+                    self.resourcesLoaded = true;
+                    if (cb && typeof cb === 'function') {
+                      cb();
+                    }
+                  });
   },
 
   update: function nm_update() {
@@ -360,6 +443,8 @@ var NavbarManager = {
     // contacts activites. Postponed to v2
     var checkContactsTab = function() {
       var contactsIframe = document.getElementById('iframe-contacts');
+      if (!contactsIframe)
+        return;
 
       var index = contactsIframe.src.indexOf('#add-parameters');
       if (index != -1) {
@@ -372,16 +457,29 @@ var NavbarManager = {
       case '#recents-view':
         checkContactsTab();
         this.ensureResources(function() {
-          Recents.updateContactDetails();
           recent.classList.add('toolbar-option-selected');
-          Recents.load();
+          if (!Recents.loaded) {
+            Recents.load();
+            return;
+          }
+          if (Recents.renderNeeded) {
+            Recents.refresh();
+            Recents.renderNeeded = false;
+          }
           Recents.updateLatestVisit();
         });
         break;
       case '#contacts-view':
         var frame = document.getElementById('iframe-contacts');
-        if (!frame.src) {
+        if (!frame) {
+          var view = document.getElementById('iframe-contacts-container');
+          frame = document.createElement('iframe');
           frame.src = '/contacts/index.html';
+          frame.id = 'iframe-contacts';
+          frame.setAttribute('frameBorder', 'no');
+          frame.classList.add('grid-wrapper');
+
+          view.appendChild(frame);
         }
 
         contacts.classList.add('toolbar-option-selected');
@@ -413,13 +511,16 @@ window.addEventListener('load', function startup(evt) {
     var delayed = document.getElementById('delay');
     delayed.innerHTML = delayed.childNodes[0].nodeValue;
 
-    var parent = delayed.parentNode;
-    var child;
-    while (child = delayed.children[0]) {
-      parent.insertBefore(child, delayed);
-    }
-
-    parent.removeChild(delayed);
+    // Translate content.
+    LazyL10n.get(function localized() {
+      navigator.mozL10n.translate(delayed);
+      var parent = delayed.parentNode;
+      var child;
+      while (child = delayed.children[0]) {
+        parent.insertBefore(child, delayed);
+      }
+      parent.removeChild(delayed);
+    });
 
     CallHandler.init();
 
@@ -427,7 +528,8 @@ window.addEventListener('load', function startup(evt) {
     loader.load(['/contacts/js/fb/fb_data.js',
                  '/contacts/js/fb/fb_contact_utils.js',
                  '/shared/style/confirm.css',
-                 '/contacts/js/confirm_dialog.js']);
+                 '/contacts/js/confirm_dialog.js',
+                 '/dialer/js/newsletter_manager.js']);
   });
 });
 
@@ -440,3 +542,21 @@ window.onresize = function(e) {
     document.body.classList.remove('with-keyboard');
   }
 };
+
+// If the app loses focus, close the audio stream. This works around an
+// issue in Gecko where the Audio Data API causes gfx performance problems,
+// in particular when scrolling the homescreen.
+// See: https://bugzilla.mozilla.org/show_bug.cgi?id=779914
+document.addEventListener('mozvisibilitychange', function visibilitychanged() {
+  if (!document.mozHidden) {
+    TonePlayer.ensureAudio();
+  } else {
+    // Reset the audio stream. This ensures that the stream is shutdown
+    // *immediately*.
+    TonePlayer.trashAudio();
+    // Just in case stop any dtmf tone
+    if (navigator.mozTelephony) {
+      navigator.mozTelephony.stopTone();
+    }
+  }
+});

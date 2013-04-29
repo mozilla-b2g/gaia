@@ -19,7 +19,7 @@ html {
 }
 
 body {
-  background: url(images/app/ui/pattern.png) repeat left top;
+  background: url('/shared/resources/branding/splash_screen_generic.png') 0 0 no-repeat;
 }
 
 form {
@@ -52,11 +52,22 @@ input.error {
   overflow: hidden;
 }
 
+.window {
+  opacity: 1.0;
+  background: url(images/app/ui/pattern.png) repeat left top;
+  transition: opacity ease 0.2s;
+}
+
+.window.non-ready {
+  opacity: 0.0;
+}
+
 .view {
   top: 9.1rem;
   background: url(images/app/ui/pattern.png) repeat left top;
   transform: translate(0, 0);
-  transition: transform 0.3s ease;
+  transition: transform 0.5s ease,
+              opacity 0.2s ease;
 }
 
 .view.standalone {
@@ -80,6 +91,11 @@ input.error {
 /* VIEWPORTS */
 .view[data-viewport="behind"] {
   visibility: hidden;
+}
+
+.view[data-viewport="ethereal"] {
+  pointer-events: none;
+  opacity: 0;
 }
 
 .view[data-viewport="bottom"] {
@@ -151,25 +167,6 @@ li button.icon-topupcode:before  {
   background-image: url(images/app/icons/topupcode.png);
 }
 
-
-/* BB PROGRESS */
-body[role="application"] progress:not([value]) {
-  background: url(images/app/icons/loader.png) no-repeat center center;
-  width: 3rem;
-  height: 3rem;
-  animation: loader 0.8s linear infinite;
-}
-
-@keyframes loader {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-
 /* CONTENT */
 section.content {
   padding: 2.5rem 2rem;
@@ -203,99 +200,6 @@ section.content .error-messages {
   overflow: hidden;
   border-bottom: solid 1px #b20000;
   -moz-transition: all 0.2s ease;
-}
-
-
-/* SETTINGS LISTS */
-.settings li {
-  border-bottom: solid 1px #e0e0dd;
-  font-size: 1.6rem;
-  line-height: 1.2em;
-  padding: 1.2rem 1.5rem 1.2rem 3rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.settings li[aria-disabled="true"]:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #e6e6e6;
-  opacity: 0.7;
-}
-
-.settings li:last-child {
-  border-bottom: none;
-}
-
-.settings li time,
-.settings li .meta {
-  font-size: 1.4rem;
-  color: #505859;
-}
-
-.settings li sub {
-  vertical-align: baseline;
-  font-size: 1.2rem;
-}
-
-/* End elements */
-.settings li > .end {
-  position: absolute;
-  right: 1.5rem;
-  top: 50%;
-  height: 4.6rem;
-  margin-top: -2.3rem;
-}
-
-.settings li > .end:before {
-  content: "";
-  display: inline-block;
-  vertical-align: middle;
-  width: 1px;
-  height: 100%;
-  margin-left: -8px;
-}
-
-.settings li > .end button,
-.settings li > .end .button {
-  display: inline-block;
-  vertical-align: middle;
-  width: 10.0rem;
-  margin: 0;
-  padding-left: 0.5rem;
-  overflow: hidden;
-}
-
-.settings li > .end button .tag {
-  margin: 0;
-  float: none;
-  height: auto;
-  width: auto;
-}
-
-.settings li .toggle.end {
-  margin-top: -2.3rem;
-}
-
-.settings li label {
-  font-size: 1.4rem;
-  color: #505859;
-}
-
-.settings li .toggle input[type="checkbox"] {
-  pointer-events: none;
-}
-
-.settings li input[type="number"] {
-  width: 5.5rem;
-  height: 2.5rem;
-  line-height: 2.5rem;
-  display: inline-block;
-  text-align: right;
 }
 
 #message-handler {

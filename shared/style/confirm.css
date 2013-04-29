@@ -6,10 +6,7 @@
 form[role="dialog"][data-type="confirm"] {
   background:
     url(confirm/images/ui/pattern.png) repeat left top,
-    url(confirm/images/ui/gradient.png) no-repeat left top;
-  background-size: auto auto, 100% 100%;
-  /* We can't use shortand with background size because is not implemented yet:
-  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
+    url(confirm/images/ui/gradient.png) no-repeat left top / 100% 100%;
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -30,16 +27,16 @@ form[role="dialog"][data-type="confirm"]:before {
   content: "";
   display: inline-block;
   vertical-align: middle;
-  width: 1px;
+  width: 0.1rem;
   height: 100%;
-  margin-left: -1px;
+  margin-left: -0.1rem;
 }
 
 form[role="dialog"][data-type="confirm"] > section {
   font-weight: lighter;
   font-size: 2.2rem;
   color: #FAFAFA;
-  padding: 0 2.5rem 0 2rem;
+  padding: 0 1.5rem;
   -moz-box-sizing: padding-box;
   width: 100%;
   display: inline-block;
@@ -52,10 +49,10 @@ form[role="dialog"][data-type="confirm"] > section {
 form[role="dialog"][data-type="confirm"] h1 {
   font-weight: normal;
   font-size: 1.6rem;
-  line-height: 1em;
+  line-height: 1.5em;
   color: #fff;
   margin: 0;
-  padding: 0;
+  padding: 0 1.5rem;
 }
 
 /* Menu & buttons setup */
@@ -88,7 +85,7 @@ form[role="dialog"][data-type="confirm"] menu button {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom;
+  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom/ auto 100%;
   border: 0.1rem solid #a6a6a6;
   border-radius: 0.3rem;
   font: 500 1.6rem/3.8rem 'MozTT', Sans-serif;
@@ -104,7 +101,6 @@ form[role="dialog"][data-type="confirm"] menu button:active,
 form[role="dialog"][data-type="confirm"] menu button.recommend:active,
 a.recommend[role="button"]:active  {
   border-color: #008aaa;
-  background: #008aaa;
   color: #333;
 }
 
@@ -162,8 +158,9 @@ form[role="dialog"][data-type="confirm"] menu button.full {
 form[role="dialog"][data-type="confirm"] p {
   word-wrap: break-word;
   margin: 1rem 0 0;
-  padding-top: 1rem;
+  padding: 1rem 1.5rem;
   border-top: 0.1rem solid #686868;
+  line-height: 3rem;
 }
 
 form[role="dialog"][data-type="confirm"] p img {

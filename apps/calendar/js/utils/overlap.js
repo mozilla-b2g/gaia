@@ -56,9 +56,19 @@ Calendar.ConflictSpan = (function() {
         busytime._startDateMS,
         busytime._endDateMS
       );
+
+      /** @type {Calendar.IntervalTree} */
+      var curr;
+      /** @type {Array} */
+      var result;
       for (var i = 0; i < this.columns.length; i++) {
-        var curr = this.columns[i];
-        if (!curr.query(span).length) {
+        curr = this.columns[i];
+        if (curr == null) {
+          continue;
+        }
+
+        result = curr.query(span, true /** inclusive */);
+        if (result.length === 0) {
           column = curr;
           break;
         }
@@ -177,9 +187,17 @@ Calendar.ConflictSpan = (function() {
       // Scan for the end of the first gap, if any.
       var splitAt = false;
       var prevHits = null;
+
+      /** @type {Calendar.Timespan} */
+      var span;
+      /** @type {Array} */
+      var result;
+      /** @type {number} */
+      var hits;
       for (var top = start; top < end; top += MIN_SPLIT_INTERVAL) {
-        var span = new Calendar.Timespan(top, top + MIN_SPLIT_INTERVAL);
-        var hits = this.all.query(span).length;
+        span = new Calendar.Timespan(top, top + MIN_SPLIT_INTERVAL);
+        result = this.all.query(span, true /** inclusive */);
+        hits = result.length;
         if (0 === prevHits && hits > 0) {
           // Transition from empty to non-empty is where we split.
           splitAt = top; break;
@@ -193,7 +211,7 @@ Calendar.ConflictSpan = (function() {
       // Remove & collect the post-gap items for new split.
       var newItems = [];
       var splitSpan = new Calendar.Timespan(splitAt, Infinity);
-      var splitItems = this.all.query(splitSpan);
+      var splitItems = this.all.query(splitSpan, true /** inclusive */);
       var self = this;
       splitItems.forEach(function(item) {
         self.remove(item, true);
@@ -388,7 +406,7 @@ Calendar.ns('Utils').Overlap = (function() {
         busytime._endDateMS
       );
 
-      return this.tree.query(span);
+      return this.tree.query(span, true /** inclusive */);
     },
 
     /**

@@ -50,7 +50,6 @@ var NotificationScreen = {
 
   lockscreenPreview: true,
   silent: false,
-  alerts: true,
   vibrates: true,
 
   init: function ns_init() {
@@ -244,7 +243,7 @@ var NotificationScreen = {
       this.toasterIcon.src = detail.icon;
       this.toasterIcon.hidden = false;
     } else {
-      this.toasterIcon.hidden = true
+      this.toasterIcon.hidden = true;
     }
 
     var time = document.createElement('span');
@@ -306,7 +305,7 @@ var NotificationScreen = {
                                this.lockScreenContainer.firstElementChild);
     }
 
-    if (this.alerts && !this.silent) {
+    if (!this.silent) {
       var ringtonePlayer = new Audio();
       ringtonePlayer.src = this._sound;
       ringtonePlayer.mozAudioChannelType = 'notification';
@@ -347,13 +346,15 @@ var NotificationScreen = {
   removeNotification: function ns_removeNotification(notificationID) {
     var notifSelector = '[data-notification-i-d="' + notificationID + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
-    var lockScreenNotificationNode = this.lockScreenContainer.querySelector(notifSelector);
+    var lockScreenNotificationNode =
+      this.lockScreenContainer.querySelector(notifSelector);
 
     if (notificationNode)
       notificationNode.parentNode.removeChild(notificationNode);
-    
+
     if (lockScreenNotificationNode)
-      lockScreenNotificationNode.parentNode.removeChild(lockScreenNotificationNode);
+      lockScreenNotificationNode.parentNode
+        .removeChild(lockScreenNotificationNode);
     this.updateStatusBarIcon();
   },
 
@@ -402,14 +403,10 @@ SettingsListener.observe(
   NotificationScreen.lockscreenPreview = value;
 });
 
-SettingsListener.observe('alert-sound.enabled', true, function(value) {
-  NotificationScreen.alerts = value;
-});
-
 SettingsListener.observe('ring.enabled', true, function(value) {
   NotificationScreen.silent = !value;
 });
 
-SettingsListener.observe('alert-vibration.enabled', true, function(value) {
+SettingsListener.observe('vibration.enabled', true, function(value) {
   NotificationScreen.vibrates = value;
 });

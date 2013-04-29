@@ -5,7 +5,7 @@
   margin-right: auto;
   overflow: hidden;
   width: 85%;
-  font-size: 8px;
+  font-size: 0.8rem;
 }
 
 #spin-date-picker .picker-bar-gradient {
@@ -21,8 +21,8 @@
 
   border-top: solid 0.7rem;
   border-bottom: solid 0.7rem;
-  border-left:  1px solid #111;
-  border-right: 1px solid #111;
+  border-left:  0.1rem solid #111;
+  border-right: 0.1rem solid #111;
 
   position: absolute;
   top: 0;
@@ -70,7 +70,7 @@
 
 div.animation-on {
   -moz-transition-duration: 0.5s;
-  -moz-transition-property: top, left;
+  -moz-transition-property: transform;
 }
 
 .picker-unit {
@@ -85,9 +85,9 @@ div.animation-on {
 }
 
 #spin-date-picker .picker-bar-background {
-  background: url("../themes/default/images/ui/time_pattern.png") repeat scroll left top transparent;
+  background: url("../themes/default/images/ui/time_pattern.png") repeat left top / 0.5rem;
   position: absolute;
-  width: 73px;
+  width: 7.3rem;
   height: 100%;
   right: 0;
   top: 0;
@@ -98,7 +98,7 @@ div.animation-on {
   width: 0.2rem;
   height: 100%;
   top: 0;
-  left: 54px;
+  left: 5.4rem;
   background: -moz-linear-gradient(center left, #555 50%, #000 50%);
   pointer-events: none;
 }
@@ -108,14 +108,14 @@ div.animation-on {
   width: 0.2rem;
   height: 100%;
   top: 0;
-  right: 73px;
+  right: 7.3rem;
   background: -moz-linear-gradient(center left, #555 50%, #000 50%);
   pointer-events: none;
 }
 
 #spin-date-picker .value-picker-date-wrapper {
   position: absolute;
-  width: 54px;
+  width: 5.4rem;
   height: 100%;
   top: 10em;
   left: 0;
@@ -123,18 +123,18 @@ div.animation-on {
 
 #spin-date-picker .value-picker-month-wrapper {
   position: absolute;
-  width: -moz-calc(100% - 127px);
+  width: calc(100% - 12.7rem);
   height: 100%;
   top: 10em;
-  left: 54px;
+  left: 5.4rem;
 }
 
 #spin-date-picker .value-picker-year-wrapper {
   position: absolute;
-  width: 73px;
+  width: 7.3rem;
   height: 100%;
   top: 10em;
-  right: 0px;
+  right: 0;
 }
 
 #spin-date-picker .value-picker-date {
@@ -163,7 +163,7 @@ div.animation-on {
 
 #spin-date-picker .picker-container.YMD .value-picker-month-wrapper {
   right: auto;
-  left: 73px;
+  left: 7.3rem;
 }
 
 #spin-date-picker .picker-container.YMD .value-picker-date-wrapper {
@@ -173,17 +173,17 @@ div.animation-on {
 
 #spin-date-picker .picker-container.YMD .left-picker-separator {
   right: auto;
-  left: 73px;
+  left: 7.3rem;
 }
 
 #spin-date-picker .picker-container.YMD .right-picker-separator {
-  right: 54px;
+  right: 5.4rem;
   left: auto;
 }
 
 #spin-date-picker .picker-container.YMD .picker-bar-background {
   right: auto;
-  left: 0px;
+  left: 0;
 }
 
 
@@ -194,7 +194,7 @@ div.animation-on {
 
 #spin-date-picker .picker-container.DMY .value-picker-month-wrapper {
   right: auto;
-  left: 54px;
+  left: 5.4rem;
 }
 
 #spin-date-picker .picker-container.DMY .value-picker-date-wrapper {
@@ -204,16 +204,16 @@ div.animation-on {
 
 #spin-date-picker .picker-container.DMY .left-picker-separator {
   right: auto;
-  left: 54px;
+  left: 5.4rem;
 }
 
 #spin-date-picker .picker-container.DMY .right-picker-separator {
-  right: 73px;
+  right: 7.3rem;
   left: auto;
 }
 
 #spin-date-picker .picker-container.DMY .picker-bar-background {
-  right: 0px;
+  right: 0;
   left: auto;
 }
 
@@ -225,25 +225,25 @@ div.animation-on {
 
 #spin-date-picker .picker-container.MDY .value-picker-month-wrapper {
   right: auto;
-  left: 0px;
+  left: 0;
 }
 
 #spin-date-picker .picker-container.MDY .value-picker-date-wrapper {
   right: auto;
-  left: -moz-calc(100% - 127px);
+  left: calc(100% - 12.7rem);
 }
 
 #spin-date-picker .picker-container.MDY .left-picker-separator {
   right: auto;
-  left: -moz-calc(100% - 127px);
+  left: calc(100% - 12.7rem);
 }
 
 #spin-date-picker .picker-container.MDY .right-picker-separator {
-  right: 73px;
+  right: 7.3rem;
   left: auto;
 }
 
 #spin-date-picker .picker-container.MDY .picker-bar-background {
-  right: 0px;
+  right: 0;
   left: auto;
 }

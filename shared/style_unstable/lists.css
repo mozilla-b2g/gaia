@@ -22,7 +22,7 @@
 /* Title divisors */
 [data-type="list"] header {
   border-bottom: 0.1rem solid #ff4E00;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.5rem;
   margin: 0;
   font-size: 1.6rem;
   line-height: 1.8rem;
@@ -40,6 +40,7 @@
   border-bottom: solid 0.1rem #dbd9d9;
   color: #000;
   margin: 0;
+  padding-left: 1.5rem;
   display: block;
   position: relative;
   z-index: 1;
@@ -119,7 +120,7 @@
 [data-type="list"] aside.icon {
   width: 3rem;
   height: 6rem;
-  background: #fff no-repeat left center;
+  background: #fff no-repeat left center / 100% auto;
   font: 0/0 a;
   display: block;
   overflow: hidden;

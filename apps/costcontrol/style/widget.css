@@ -61,15 +61,16 @@ p.meta {
 
 /* FTE */
 .widget-authed-sim {
-  background: url(images/widget/sim/authed-sim.png);
+  background: url(images/widget/sim/authed-sim.png) no-repeat center center;
 }
 
 .widget-nonauthed-sim {
-  background: url(images/widget/sim/nonauthed-sim.png);  
+  background: url(images/widget/sim/nonauthed-sim.png) no-repeat center center;
 }
 
-.widget-no-sim2 {
-  background: url(images/widget/sim/no-sim.png);
+.widget-no-sim2,
+.widget-sim-locked {
+  background: url(images/widget/sim/no-sim.png) no-repeat center center;
 }
 
 #fte-view .icon {
@@ -77,6 +78,7 @@ p.meta {
   margin-left: 0.5rem;
   width: 3.75rem;
   height: 4.5rem;
+  background-size: 2.6rem;
   vertical-align: middle;
   background-position: center;
   background-repeat: no-repeat;
@@ -98,7 +100,7 @@ p.meta {
   width: 50%;
   height: 100%;
   -moz-box-sizing: border-box;
-  background: url(images/widget/ui/glossy-gradient.png) repeat-x left bottom;
+  background: url(images/widget/ui/glossy-gradient.png) repeat-x left bottom / auto 100%;
 }
 
 .credit {
@@ -113,7 +115,7 @@ p.meta {
 .view {
   overflow: hidden;
   height: 100%;
-  background: url(images/widget/icons/icon-go.png) no-repeat calc(100% - 0.8rem) center ;
+  background: url(images/widget/icons/icon-go.png) no-repeat calc(100% - 0.8rem) center / 0.9rem;
 }
 
 .info {
@@ -159,6 +161,7 @@ p.meta {
 /* Updating */
 #balance-view.updating #balance-icon {
   background-image: url(images/widget/icons/updating.png);
+  background-size: 3.1rem;
   animation: balance-spin 1.75s infinite linear;
   animation-delay: 0.5s;
 }
@@ -166,6 +169,7 @@ p.meta {
 /* Warning */
 #balance-view.warning #balance-icon {
   background-image: url(images/widget/icons/warning.png);
+  background-size: 3rem;
   animation: none;
 }
 
@@ -226,7 +230,6 @@ p.meta {
 .data .stats dt {
   font-weight: 400;
   color: rgba(255, 255, 255, 0.5);
-  text-transform: lowercase;
 }
 
 .data .stats dd {

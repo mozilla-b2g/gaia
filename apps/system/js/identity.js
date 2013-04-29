@@ -6,8 +6,7 @@
 'use strict';
 
 const kIdentityScreen = 'https://login.native-persona.org/sign_in#NATIVE';
-const kIdentityFrame =
-    'https://login.native-persona.org/communication_iframe';
+const kIdentityFrame = 'https://login.native-persona.org/communication_iframe';
 
 var Identity = (function() {
   var iframe;
@@ -24,7 +23,7 @@ var Identity = (function() {
       var requestId = e.detail.requestId;
       switch (e.detail.type) {
         // Chrome asks Gaia to show the identity dialog.
-        case 'open-id-dialog':
+        case 'id-dialog-open':
           if (!chromeEventId)
             return;
 
@@ -69,7 +68,7 @@ var Identity = (function() {
           }
           break;
 
-        case 'received-id-assertion':
+        case 'id-dialog-done':
           if (e.detail.showUI) {
             TrustedUIManager.close(this.trustedUILayers[requestId],
                                    (function dialogClosed() {
@@ -77,6 +76,13 @@ var Identity = (function() {
             }).bind(this));
           }
           this._dispatchEvent({ id: chromeEventId });
+          break;
+
+        case 'id-dialog-close-iframe':
+          if (iframe) {
+            iframe.parentNode.removeChild(iframe);
+            iframe = null;
+          }
           break;
       }
     },
@@ -88,9 +94,12 @@ var Identity = (function() {
   };
 })();
 
-// Make sure L10n is ready before init
-if (navigator.mozL10n.readyState == 'complete' ||
-    navigator.mozL10n.readyState == 'interactive') {
+// Make sure L10n is ready before init.
+// Check for existence of navigator.mozL10n in order not to raise
+// errors in test suites.
+if (navigator.mozL10n &&
+    (navigator.mozL10n.readyState == 'complete' ||
+     navigator.mozL10n.readyState == 'interactive')) {
   Identity.init();
 } else {
   window.addEventListener('localized', Identity.init.bind(Identity));

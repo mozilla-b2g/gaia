@@ -1,5 +1,5 @@
 section[role="region"].skin-organic {
-  background: url("images/pattern.png") repeat left top #ffffff;
+  background: #fff url("images/pattern.png");
 }
 
 /* Make it so that invalid input areas only show up as red when they're focused.
@@ -39,8 +39,15 @@ input:focus:invalid {
 }
 
 .sup-form-btn {
+  width: calc(100% - 3rem);
+}
+
+.sup-manual-config-btn {
+  display: inline-block;
+  color: black;
+  font-size: 1.4rem;
+  line-height: 1.2rem;
   margin: 1.5rem 3rem;
-  width: calc(100% - 6rem);
 }
 
 .sup-form-link {
@@ -73,24 +80,41 @@ input:focus:invalid {
 
 
 .sup-progress-region {
-  padding: 0 5%;
-  position: absolute;
-  top: 40%;
-  width: 90%;
-  text-align: center;
-}
-.sup-progress-spinner {
-  display: block !important;
-  margin: 2rem auto;
-}
-.sup-progress-label {
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  font-size: 1.5rem;
+  width: calc(100% - 3rem);
+  margin: 16rem auto 0;
+  padding-top: 1.2rem;
+  vertical-align: middle;
+  border-top: 0.1rem solid #bdbdbb;
 }
 
-.sup-account-done-label {
-  text-align: center;
+.sup-progress-label {
+  display: inline-block;
+  width: calc(100% - 7rem);
+  vertical-align: middle;
+  font-weight: lighter;
+  font-size: 2.4rem;
+  line-height: 3rem;
+  letter-spacing: 0.024rem;
+  word-spacing: 0.1rem;
+}
+.sup-progress-spinner {
+  margin-right: 1.2rem;
+}
+
+.card-setup-done .sup-progress-label {
+  padding: 0 1.5rem;
+}
+
+.card-setup-done .sup-form-btn {
+  position: absolute;
+  bottom: 6.3rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  margin: 0;
+}
+
+.card-setup-done .sup-form-btn.recommend {
+  bottom: 1.5rem;
 }
 
 /* get some margin around the form elements; I'm not sure how BB wants it */
@@ -115,22 +139,21 @@ input:focus:invalid {
 }
 
 .tng-account-item-label {
+  white-space: nowrap;
   margin: 0;
 }
+
 .tng-account-add, .tng-account-delete {
+  width: calc(100% - 3rem);
+  margin: 1.1rem auto;
   text-align: center;
-  width: calc(100% - 6rem);
-  margin: 0.8rem 0;
 }
 
 li:not([role]) {
   position: relative;
   width: 100%;
-  height: 5.5rem;
-  border: solid 1px #dbd9d9;
-  border-right: none;
-  border-left: none;
-  margin: -1px 0 0;
+  min-height: 5.5rem;
+  border-bottom: solid 0.1rem #dbd9d9;
   list-style-type: none;
 }
 
@@ -178,14 +201,14 @@ li.align-center {
 .mail-select {
   vertical-align: middle;
   height: 3.8rem;
-  background: none repeat scroll 0% 0% rgb(231, 231, 231);
+  background: rgb(231, 231, 231);
   border: 0.1rem solid rgb(182, 182, 182);
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
   font-size: 1.4rem;
   font-weight: 600;
   padding: 0.9rem 1rem;
   color: rgb(51, 51, 51);
-  text-shadow: 0.1rem 0.1rem 0px rgba(255, 255, 255, 0.3);
+  text-shadow: 0.1rem 0.1rem 0 rgba(255, 255, 255, 0.3);
   text-decoration: none;
   outline: medium none;
 }
@@ -200,6 +223,23 @@ li.settings-input-list {
   height: auto;
 }
 
+.tng-accounts-container {
+  margin: 0;
+  padding: 0;
+}
+
+.tng-accounts-container li {
+  min-height: 6rem;
+  text-align: center;
+}
+
+.tng-accounts-container li > a {
+  padding: 0 3rem;
+  text-align: left;
+  font-size: 1.9rem;
+  line-height: 6rem;
+}
+
 .settings-button {
   margin: 1.5rem 3rem;
   width: calc(100% - 6rem);
@@ -207,4 +247,37 @@ li.settings-input-list {
 
 .tng-email-lib-version {
   opacity: 0;
+}
+
+section.card-settings-account li {
+  margin: 0 auto;
+  overflow: hidden;
+  width: 100%;
+}
+
+section.card-settings-account li.synchronize-setting label {
+  height: 3.5rem;
+  line-height: 3.5rem;
+  width: auto;
+}
+
+section.card-settings-account li span.button {
+  display: block;
+  margin: 0 auto 1rem auto;
+  width: calc(100% - 3rem);
+}
+
+section.card-settings-account li span.button select {
+  padding-left: 0;
+  text-align: left;
+  text-indent: -0.22rem;
+  /** Need to push the little select arrow off the page */
+  width: calc(100% + 10rem) !important;
+}
+
+.tng-account-synchronize {
+  background: none;
+  border: transparent;
+  font-size: 1.7rem;
+  font-weight: bold;
 }

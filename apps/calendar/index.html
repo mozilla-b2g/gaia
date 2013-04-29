@@ -7,33 +7,25 @@
   <link rel="stylesheet" type="text/css" href="/style/calendar.css">
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/day_views.css">
-  <link rel="stylesheet" type="text/css" href="/style/forms.css">
-  <link rel="stylesheet" type="text/css" href="/style/overlay.css">
   <link rel="stylesheet" type="text/css" href="/style/building_blocks.css" />
+  <link rel="stylesheet" type="text/css" href="/shared/style/headers.css" />
+  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/toolbars.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style/responsive.css" >
 
   <!-- localization -->
   <link rel="resource" type="application/l10n" href="/locales/locales.ini">
   <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
 
-  <!--- shared styles -->
-  <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css" />
-  <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
-  <link rel="stylesheet" type="text/css" href="/shared/style/switches.css" />
-  <link rel="stylesheet" type="text/css" href="/shared/style/status.css" />
-  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css" />
-
-  <script src="/js/mozalarm_shim.js" charset="utf-8"></script>
-
   <!--- shared scripts -->
   <script defer src="/shared/js/l10n.js" charset="utf-8"></script>
-  <script defer src="/shared/js/desktop.js" charset="utf-8"></script>
   <script defer src="/shared/js/gesture_detector.js" charset="utf-8"></script>
   <script defer src="/shared/js/l10n_date.js" charset="utf-8"></script>
-  <script defer src="/shared/js/lazy_loader.js" charset="utf-8"></script>
   <script defer src="/shared/js/notification_helper.js" charset="utf-8"></script>
 
   <script defer src="/js/ext/page.js" charset="utf-8"></script>
   <script defer src="/js/ext/uuid.js" charset="utf-8"></script>
+
+  <script defer src="/js/mozalarm_shim.js" charset="utf-8"></script>
 
   <!-- lib root must load before anything else -->
   <script defer src="/js/calendar.js" charset="utf-8"></script>
@@ -73,9 +65,9 @@
   <!--- store -->
   <script defer src="/js/store/abstract.js" charset="utf-8"></script>
   <script defer src="/js/store/busytime.js" charset="utf-8"></script>
-  <script defer src="/js/store/event.js" charset="utf-8"></script>
   <script defer src="/js/store/account.js" charset="utf-8"></script>
   <script defer src="/js/store/calendar.js" charset="utf-8"></script>
+  <script defer src="/js/store/event.js" charset="utf-8"></script>
   <script defer src="/js/store/setting.js" charset="utf-8"></script>
   <script defer src="/js/store/alarm.js" charset="utf-8"></script>
   <script defer src="/js/store/ical_component.js" charset="utf-8"></script>
@@ -97,6 +89,16 @@
 
 <body role="application" class="loading">
 <div class="delay"><!--
+
+<link rel="stylesheet" type="text/css" href="/style/forms.css">
+<link rel="stylesheet" type="text/css" href="/style/overlay.css">
+
+<link rel="stylesheet" type="text/css" href="/shared/style/buttons.css" />
+<link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
+<link rel="stylesheet" type="text/css" href="/shared/style/switches.css" />
+<link rel="stylesheet" type="text/css" href="/shared/style/status.css" />
+<link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css" />
+
 <section id="errors" role="status">
   <p class="errors"></p>
 </section>
@@ -141,7 +143,7 @@
     </button>
 
     <menu type="toolbar">
-      <a href="/add/">
+      <a href="/event/add/">
         <span data-l10n-id="new-event" class="icon icon-add" >
           Add Event
         </span>
@@ -153,7 +155,7 @@
   </header>
 
   <div id="progress-indicator">
-    <img id="throbber" src="/style/ui/progress.png">
+    <div id="throbber"></div>
   </div>
 
 
@@ -173,18 +175,8 @@
 
   <section id="day-view">
   </section>
-
   <div class="delay"><!--
   <section id="week-view">
-    <section class="sticky">
-      <section class="children">
-        <span class="all-day" data-l10n-id="hour-allday">All Day</span>
-      </section>
-    </section>
-    <div class="scroll">
-      <ol class="sidebar"></ol>
-      <section class="children"></section>
-    </div>
   </section>
   --></div>
 
@@ -239,36 +231,60 @@
     <h1 data-l10n-id="advanced-settings-header">Calendar Settings</h1>
   </header>
 
-  <div class="errors"></div>
+  <section class="content">
+    <div class="errors"></div>
 
-  <header>
-    <h2 data-l10n-id="account-list-header">
-      Accounts
-    </h2>
-  </header>
+    <header class="account-list-header">
+      <h2 data-l10n-id="account-list-header">
+        Accounts
+      </h2>
+    </header>
 
-  <ol class="account-list link-list">
-  </ol>
+    <ol class="account-list link-list">
+    </ol>
 
-  <header>
-    <h2 data-l10n-id="advanced-settings-personalization">
-      Personalization
-    </h2>
-  </header>
+    <header>
+      <h2 data-l10n-id="advanced-settings-personalization">
+        Personalization
+      </h2>
+    </header>
 
-  <ol class="settings-list link-list">
-    <li>
-      <label>
-        <span data-l10n-id="sync-frequency">Sync Calendar</span>
-        <select id="setting-sync-frequency" name="syncFrequency">
-          <option data-l10n-id="sync-frequency-15min" value="15">15 min</option>
-          <option data-l10n-id="sync-frequency-30min" value="30">30 min</option>
-          <option data-l10n-id="sync-frequency-manual" value="null">Manual</option>
-        </select>
-      </label>
-    </li>
-  </ol>
+    <ol class="settings-list link-list">
+      <li>
+        <label>
+          <span data-l10n-id="sync-frequency">Sync Calendar</span>
+          <span class="button icon icon-dialog">
+            <select id="setting-sync-frequency" name="syncFrequency">
+              <option data-l10n-id="sync-frequency-15min" value="15">15 min</option>
+              <option data-l10n-id="sync-frequency-30min" value="30">30 min</option>
+              <option data-l10n-id="sync-frequency-manual" value="null">Manual</option>
+            </select>
+          </span>
+        </label>
+      </li>
+    </ol>
 
+    <header>
+      <h2 data-l10n-id="advanced-settings-reminders">
+        Reminders
+      </h2>
+    </header>
+
+    <ol class="settings-list link-list">
+      <li>
+        <label id="default-event-alarm">
+          <span data-l10n-id="events">Events</span>
+          <span class="button icon icon-dialog"></span>
+        </label>
+      </li>
+      <li>
+        <label id="default-allday-alarm">
+          <span data-l10n-id="all-day-events">All-day Events</span>
+          <span class="button icon icon-dialog"></span>
+        </label>
+      </li>
+    </ol>
+  </section>
 </section>
 
 <section class="fullscreen-view" id="modify-event-view" role="region">
@@ -344,6 +360,12 @@
         </span>
       </li>
 
+      <li>
+        <h3 data-l10n-id="remind-me">Remind me</h3>
+        <div class="alarms">
+        </div>
+      </li>
+
       <li class="notes">
         <textarea class="fieldbox" name="description" data-l10n-id="event-description" x-inputmode="latin-prose" placeholder="Notes"></textarea>
       </li>
@@ -362,6 +384,65 @@
   </form>
 </section>
 
+<section class="fullscreen-view" id="event-view" role="region">
+  <header>
+    <button class="cancel">
+      <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
+    </button>
+
+    <menu type="toolbar">
+      <button class="edit">
+        <span data-l10n-id="edit">Edit</span>
+      </button>
+    </menu>
+
+    <h1 data-l10n-id="add-event-header">
+      Event
+    </h1>
+  </header>
+
+  <section data-type="list">
+    <ul>
+      <li class="title">
+        <h1><span class="content"></span></h1>
+      </li>
+
+      <li class="location">
+        <span class="content"></span>
+      </li>
+
+      <li class="current-calendar">
+        <span class="content"></span>
+      </li>
+
+      <li class="start-date">
+        From: <span class="content"></span>
+        <span class="start-time">
+          <span class="content"></span>
+        </span>
+      </li>
+
+      <li class="end-date">
+        To: <span class="content"></span>
+        <span class="end-time">
+          <span class="content"></span>
+        </span>
+      </li>
+
+      <li class="alarms">
+        <h2 data-l10n-id="remind-me">Remind me</h2>
+        <span class="content"></span>
+      </li>
+
+      <li class="description">
+        <strong>Notes</strong><br>
+        <span class="content"></span>
+      </li>
+
+    </ul>
+  </section>
+</section>
+
 <section class="fullscreen-view skin-organic" id="modify-account-view" role="region">
   <header>
     <button class="cancel">
@@ -378,8 +459,10 @@
   </header>
 
   <section class="during-progress">
-    <p data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</p>
-    <progress class="small"></progress>
+    <div>
+      <progress class="small"></progress>
+      <span data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</span>
+    </div>
   </section>
 
   <form>
@@ -398,6 +481,11 @@
             placeholder="URL" />
 
         </li>
+        <li>
+          <a data-l10n-id="remove-account-data" role="button" href="#remove-account-dialog" class="danger delete-record">
+            Remove Local Data
+          </a>
+        </li>
       </ol>
     </fieldset>
   </form>
@@ -405,11 +493,6 @@
   <section role="status">
     <p class="errors"></p>
   </section>
-
-
-  <a data-l10n-id="remove-account-data" role="button" href="#remove-account-dialog" class="danger delete-record">
-    Remove Local Data
-  </a>
 
   <form role="dialog" data-type="confirm" id="remove-account-dialog">
     <section>
@@ -429,3 +512,4 @@
 
 </body>
 </html>
+

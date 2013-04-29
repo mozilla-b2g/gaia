@@ -9,13 +9,14 @@
 
 .day-events {
   display: block;
+  box-shadow: none;
 }
 
 .day-events > .hour {
   height: 6rem;
-  padding-left: 0.7rem;
+  padding-left: 1.5rem;
   position: relative;
-  border-bottom: 1px solid #D0D0D0;
+  border-bottom: 0.1rem solid #D0D0D0;
 }
 
 .day-events > .hour.hour-allday {
@@ -29,21 +30,23 @@
 }
 
 .day-events > .hour h4 {
-  top: 0.5rem;
-  width: 6rem;
-  line-height: 3rem;
   position: absolute;
-  text-align: center;
+  width: 6rem;
+  padding-top: 1.4rem;
+  color: #000;
+  font-size: 1.4rem;
+  font-weight: 400;
 }
 
 /** events */
 
 .day-events .events {
   -moz-user-select: none;
-  margin-left: 6rem;
   position: relative;
-  width: calc(100% - 6rem);
+  width: calc(100% - 7.4rem);
   height: 6rem;
+  margin-left: 7.4rem;
+  border-left: 0.1rem solid #bbb;
 }
 
 .day-events .event {
@@ -60,11 +63,15 @@
 .day-events .container {
   /* turn off calendar color bg */
   background: white !important;
-  border-width: 1px;
+  border-width: 0.1rem;
   border-style: solid;
-  border-left-width: 6px;
+  border-left-width: 0.6rem;
   height: 100%;
-  padding: 1rem;
+  padding: 0.8rem 1rem 2.2rem;
+}
+
+.day-events .event.has-alarms .container {
+  background: #FFF url(/style/icons/alarm.png) no-repeat top right / 3rem !important;
 }
 
 .day-events .hour .display-hour {
@@ -76,26 +83,27 @@
 }
 
 .day-events .event h5 {
-  width: calc(100% - 1rem - 6px);
-  min-height: 2rem;
-  padding-top: 0.25rem;
-  font-size: 1.6rem;
+  width: calc(100% - 1rem - 0.6rem);
+  min-height: 2.2rem;
+  padding-top: 0.6rem;
+  font-size: 1.9rem;
+  font-weight: 500;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .day-events .event .details {
-  width: calc(100% - 1rem - 6px);
-  min-height: 2rem;
+  display: block;
+  top: 2.8rem;
+  width: calc(100% - 1rem - 0.6rem);
+  min-height: 2.1rem;
+  padding-top: 0.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  display: block;
-  padding-top: 0.6rem;
-  color: #535353;
-  font-size: 1.1rem;
-  top: 3rem;
+  color: #5b5b5b;
+  font-size: 1.5rem;
 }
 
 .day-events .event.partial-hour .details {
@@ -108,16 +116,16 @@
 
 /* overlap */
 
-.event[data-overlaps="1"] { padding-left: 6px; z-index: 11; }
-.event[data-overlaps="2"] { padding-left: 12px; z-index: 12; }
-.event[data-overlaps="3"] { padding-left: 18px; z-index: 13; }
-.event[data-overlaps="4"] { padding-left: 24px; z-index: 14; }
-.event[data-overlaps="5"] { padding-left: 30px; z-index: 15; }
-.event[data-overlaps="6"] { padding-left: 36px; z-index: 16; }
-.event[data-overlaps="7"] { padding-left: 42px; z-index: 17; }
-.event[data-overlaps="8"] { padding-left: 48px; z-index: 18; }
-.event[data-overlaps="9"] { padding-left: 54px; z-index: 19; }
-.event[data-overlaps="10"] { padding-left: 60px; z-index: 20; }
+.event[data-overlaps="1"] { padding-left: 0.6rem; z-index: 11; }
+.event[data-overlaps="2"] { padding-left: 1.2rem; z-index: 12; }
+.event[data-overlaps="3"] { padding-left: 1.8rem; z-index: 13; }
+.event[data-overlaps="4"] { padding-left: 2.4rem; z-index: 14; }
+.event[data-overlaps="5"] { padding-left: 3rem; z-index: 15; }
+.event[data-overlaps="6"] { padding-left: 3.6rem; z-index: 16; }
+.event[data-overlaps="7"] { padding-left: 4.2rem; z-index: 17; }
+.event[data-overlaps="8"] { padding-left: 4.8rem; z-index: 18; }
+.event[data-overlaps="9"] { padding-left: 5.4rem; z-index: 19; }
+.event[data-overlaps="10"] { padding-left: 6rem; z-index: 20; }
 
 /* months day view */
 
@@ -132,11 +140,11 @@
 #day-view > section {
   top: 4.9rem;
   overflow: hidden;
-  height: calc(100% - 8.33rem);
+  height: calc(100% - 6.9rem);
   position: absolute;
   width: 100%;
-  border-left: 1px solid #AAA;
-  border-right: 1px solid #AAA;
+  border-left: 0.1rem solid #AAA;
+  border-right: 0.1rem solid #AAA;
   display: none;
 }
 

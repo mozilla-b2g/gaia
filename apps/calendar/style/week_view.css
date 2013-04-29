@@ -1,6 +1,6 @@
 #week-view {
   overflow: hidden;
-  user-select: -moz-none;
+  -moz-user-select: none;
 }
 
 #week-view h1 {
@@ -18,74 +18,26 @@
 }
 
 #week-view {
-  position: relative;
+  position: static;
 }
 
-#week-view .sidebar {
-   min-height: 6rem;
-   width: 2rem;
-   color: black;
-   text-align: center;
-   text-transform: uppercase;
-   font-size: 1.3rem;
-   border-left: none;
-   border-top: none;
-   float: left;
-}
-
-#week-view .sidebar li:last-child {
-  border-bottom: none;
-}
-
-#week-view .sidebar > li {
-  transform: rotate(-90deg);
-  line-height: 120%;
-  width: 6rem;
-  padding: 0.4rem 0.3rem 0 0;
-  float: left;
-  height: 6rem;
-  text-align: right;
-  border-left: 1px solid #CCC;
-  padding: 0.2rem
-  overflow: hidden;
-}
-
-#week-view > .scroll {
-  height: calc(100% - 8rem);
-  overflow-y: scroll;
-}
-
-#week-view > .scroll > .children {
-  position: relative;
-  height: 100%;
-  float: left;
-  width: calc(100% - 2rem);
-}
-
-#week-view .children > section {
+#week-view > section {
+  height: calc(100% - 8.33rem);
   display: none;
-  width: 100%;
-  height: 100%;
+  position: absolute;
 }
 
-#week-view .children section.active {
-  display: block !important;
-}
-
-
-#week-view .children > .weekday.days-3 > section {
-  width: 33%;
-}
-
-#week-view .children > .weekday > section {
-  display: none;
-  height: 100%;
-  width: 25%;
-  float: left;
-}
-
-#week-view .week-events.active {
+#week-view > section.active {
   display: block;
+}
+
+/* sticky all-day styles */
+#week-view .sticky ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0 0 0 2rem;
+  height: 2rem;
+  background: #2A2A2A;
 }
 
 #week-view .week-events > ol,
@@ -97,83 +49,6 @@
   font-size: 120%;
   height: 6rem;
   position: relative;
-}
-
-#week-view .week-events > ol {
-  width: 100%;
-}
-
-#week-view .week-events > ol li.event {
-  position: absolute;
-  width: 100%;
-  z-index: 10;
-}
-
-#week-view .week-events .container {
-  height: 100%;
-  margin: 1px;
-  line-height: 120%;
-  font-size: 120%;
-  padding: 0.2rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  position: relative;
-
-  background-image: linear-gradient(
-    to bottom,
-    rgba(255,255,255,0.5) 0%,
-    rgba(255,255,255,0) 60%,
-    rgba(0, 0, 0, 0.2) 100%
-  )
-}
-
-/* overlap */
-.weekday .event[data-overlaps="1"] { padding: 3px; }
-.weekday .event[data-overlaps="2"] { padding: 6px; }
-.weekday .event[data-overlaps="3"] { padding: 9px; }
-.weekday .event[data-overlaps="4"] { padding: 12px; }
-.weekday .event[data-overlaps="5"] { padding: 15px; }
-.weekday .event[data-overlaps="6"] { padding: 18px; }
-.weekday .event[data-overlaps="7"] { padding: 21px; }
-.weekday .event[data-overlaps="8"] { padding: 24px; }
-.weekday .event[data-overlaps="9"] { padding: 27px; }
-.weekday .event[data-overlaps="10"] { padding: 30px; }
-
-/* Sticky All Day Events */
-#week-view .sticky {
-  border-bottom: 1px solid #2A2A2A;
-  height: 8rem;
-  overflow: hidden;
-  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
-  position: relative;
-  z-index: 11;
-}
-
-#week-view .all-day {
-  transform: rotate(-90deg);
-  line-height: 120%;
-  float: left;
-  position: absolute;
-  top: 4rem;
-  left: -1rem;
-  font-size: 1.3rem;
-}
-
-#week-view .sticky .children {
-  width: 100%;
-}
-
-#week-view .sticky ul {
-  display: none;
-  list-style-type: none;
-  margin: 0;
-  padding: 0 0 0 2rem;
-  height: 2rem;
-  background: #2A2A2A;
-}
-
-#week-view .sticky ul.active {
-  display:block;
 }
 
 #week-view .sticky li {
@@ -194,19 +69,126 @@
   position: static;
 }
 
-#week-view .sticky .days-3 li {
+#week-view .days-3 .sticky li {
   width: 33%;
 }
 
-#week-view .sticky .days-4 li {
+#week-view .days-4 .sticky li {
   width: 25%;
 }
 
-#week-view .week-events {
-  height: 6rem;
+#week-view .sticky {
+  border-bottom: 1px solid #2A2A2A;
+  height: 8rem;
+  overflow: hidden;
+  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
+  position: relative;
+  z-index: 11;
 }
 
-#week-view .sticky ol {
+#week-view .sticky .all-day {
+  transform: rotate(-90deg);
+  line-height: 120%;
+  float: left;
+  position: absolute;
+  top: 4rem;
+  left: -1rem;
+  font-size: 1.3rem;
+}
+
+#week-view .sticky .children {
+  width: 100%;
+}
+
+#week-view .sticky .children ol {
   border-bottom: 0;
   border-left: 0;
 }
+
+/* sidebar styles */
+#week-view .sidebar {
+   min-height: 6rem;
+   width: 2rem;
+   color: #000;
+   text-align: center;
+   text-transform: uppercase;
+   font-size: 1.4rem;
+   border-left: none;
+   border-top: none;
+   float: left;
+}
+
+#week-view .sidebar li:last-child {
+  border-bottom: none;
+}
+
+#week-view .sidebar > li {
+  transform: rotate(-90deg);
+  line-height: 120%;
+  width: 6rem;
+  padding: 0.4rem 0.3rem 0 0;
+  float: left;
+  height: 6rem;
+  text-align: center;
+  border-left: 1px solid #CCC;
+  padding: 0.2rem;
+  overflow: hidden;
+}
+
+#week-view .scroll {
+  height: calc(100% - 7.9rem);
+  overflow-y: scroll;
+}
+
+#week-view .scroll > .children {
+  position: relative;
+  height: 100%;
+  float: left;
+  width: calc(100% - 2rem);
+}
+
+
+#week-view .weekday .children > section {
+  height: 100%;
+  width: 25%;
+  float: left;
+}
+
+#week-view .weekday.days-3 .children > section {
+  width: 33%;
+}
+
+#week-view .week-events,
+#week-view .week-events > ol {
+  width: 100%;
+}
+
+/* week view event styles */
+#week-view .week-events > ol li.event {
+  position: absolute;
+  width: 100%;
+  z-index: 10;
+}
+
+#week-view .week-events .container {
+  height: 100%;
+  margin: 1px;
+  line-height: 1.4rem;
+  font-size: 120%;
+  padding: 0.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+}
+
+/* overlap */
+.weekday .event[data-overlaps="1"] { padding: 0.3rem; }
+.weekday .event[data-overlaps="2"] { padding: 0.6rem; }
+.weekday .event[data-overlaps="3"] { padding: 0.9rem; }
+.weekday .event[data-overlaps="4"] { padding: 1.2rem; }
+.weekday .event[data-overlaps="5"] { padding: 1.5rem; }
+.weekday .event[data-overlaps="6"] { padding: 1.8rem; }
+.weekday .event[data-overlaps="7"] { padding: 2.1rem; }
+.weekday .event[data-overlaps="8"] { padding: 2.4rem; }
+.weekday .event[data-overlaps="9"] { padding: 2.7rem; }
+.weekday .event[data-overlaps="10"] { padding: 3rem; }

@@ -25,9 +25,7 @@ html, body {
   right: 0;
   bottom: 0;
   overflow-x: auto;
-  background: url(images/bg_top.png) top left no-repeat,
-              url(images/bg_bottom.png) bottom left no-repeat,
-              url(images/bg_1px.png) repeat-y;
+  background: url(images/bg_light.png);
   background-size: 100% auto;
 }
 
@@ -55,7 +53,7 @@ html, body {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  border-top: 1px solid #a6a6a6;
+  border-top: 0.1rem solid #a6a6a6;
   background: rgba(0,0,0,0.05);
   display: block;
   overflow: hidden;
@@ -72,7 +70,7 @@ html, body {
 }
 
 [role=navigation] button {
-  width: calc((100% - 1rem) / 2);
+  width: calc((100% / 2) - 0.5rem);
   float: left;
   margin-right: 1rem;
   position: relative;
@@ -90,12 +88,12 @@ html, body {
   left: 0;
   position: absolute;
   pointer-events: none;
-  background: url(images/prev.png) no-repeat center center;
+  background: url(images/prev.png) no-repeat center center / 1.1rem;
 }
 
 [role=navigation] button.recommend span {
   left: calc(100% - 3rem);
-  background: url(images/next.png) no-repeat center center;
+  background-image: url(images/next.png);
 }
 
 [role=navigation] #wifi-join-button {
@@ -202,7 +200,8 @@ html, body {
   z-index: 3000;
   transition: all 1s ease;
   background-image: url(/shared/resources/branding/powered.png);
-  background-size: 100% auto;
+  background-size: cover;
+  background-position: center top;
 }
 
 #splash-screen.show {
@@ -277,18 +276,121 @@ html, body {
   Languages Styles
 */
 
-#languages [data-type="list"] {
-  background: url(images/bg_bubbles.png) 0 -4.5rem no-repeat;
+#languages {
+  background: url(images/bg_bubbles.png) fixed no-repeat;
   background-size: 100% auto;
-  padding-top: 14rem;
+  overflow: hidden;
+}
+
+#languages [data-type="list"] {
+  position: relative;
+  top: 12.5rem;
+  height: 24rem;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding-top: 0;
 }
 
 /*
-  Wifi
-*/
+ * Wifi
+ */
+
 #wifi [data-type="list"] li > p {
   pointer-events: none;
 }
+
+#wifi li {
+  padding: 0 1.5rem;
+}
+#wifi li.connected p {
+  color: #00AACC;
+}
+
+#wifi li:after {
+  content: "";
+  transition: opacity 0.2s ease;
+  background: #b1f1ff;
+  opacity: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+#wifi li:active:after {
+  opacity: 0.6;
+}
+
+/*
+  No result container
+*/
+#networks {
+  top: 0;
+  bottom: 0;
+}
+
+#networks-list:first-child {
+  padding-top: 0;
+}
+
+#wifi #no-result-container {
+  position: absolute;
+  background: url('images/wifi_icon.png') no-repeat fixed center / 23.6rem;
+  height: 100%;
+  width: 100%;
+}
+
+#wifi #no-result-message {
+  text-align: left;
+  line-height: 3rem;
+  position: relative;
+  top: 50%;
+  border-top: .1rem solid rgba(96,96,96,.5);
+  padding: 0;
+  width: 27rem;
+  margin: -3rem auto;
+  color: #606060;
+  font-weight: 300;
+  font-size: 2.26rem;
+}
+
+/*
+ * States of Wifi signal
+ */
+aside.wifi-icon {
+  background-repeat: no-repeat;
+  background-position: 0 center;
+  background-size: 16rem;
+  width: 3.2rem;
+}
+aside.wifi-signal       { background-image: url(images/wifi_disconnected_sprite.png);}
+aside.connected         { background-image: url(images/wifi_connected_sprite.png);}
+aside.secured           { background-image: url(images/wifi_disconnected_locked_sprite.png);}
+aside.secured.connected { background-image: url(images/wifi_connected_locked_sprite.png);}
+aside.level-0 { background-position:     0rem center;}
+aside.level-1 { background-position:  -3.2rem center;}
+aside.level-2 { background-position:  -6.4rem center;}
+aside.level-3 { background-position:  -9.6rem center;}
+aside.level-4 { background-position: -12.8rem center;}
+
+aside.secured.connecting { background-image: url(images/wifi_connected_locked_sprite.png);}
+aside.connecting {
+  background-image: url(images/wifi_connected_sprite.png);
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: step-start;
+  animation-name: wifi-signal;
+}
+@keyframes wifi-signal {
+ 0%     { background-position:     0rem center; }
+ 25%    { background-position:  -3.2rem center; }
+ 50%    { background-position:  -6.4rem center; }
+ 75%    { background-position:  -9.6rem center; }
+ 100%   { background-position: -12.8rem center; }
+}
+
 
 /*
   Wifi configuration
@@ -338,7 +440,7 @@ html, body {
   opacity: 0;
   z-index: 3010;
   transition: all 1s ease;
-  background: #3b4547;
+  background: url(images/bg_grey-noise.png);
 }
 
 #finish-screen.show, #tutorialFinish.show {
@@ -382,6 +484,7 @@ html, body {
   height: calc(100% - 6rem);
   padding: 0 3rem;
   width: calc(100% - 6rem);
+  background-size: 17.6rem;
 }
 
 #finish-screen [role=navigation],#tutorialFinish [role=navigation] {
@@ -390,6 +493,10 @@ html, body {
 
 #finish-screen [role=navigation] button,#tutorialFinish [role=navigation] button {
   text-align: center;
+}
+
+#step1Img, #step2Img, #step3Img, #step4Img, #step5Img {
+  width: 28.9rem;
 }
 
 /*
@@ -404,6 +511,7 @@ html, body {
 #time_zone_overlay {
   background-position: bottom;
   background-repeat: no-repeat;
+  background-size: 100%;
   position: relative;
   position: absolute;
   z-index: 10;
@@ -458,6 +566,7 @@ html, body {
   background-image: url('images/timezone/map.png') ;
   background-position: bottom;
   background-repeat: no-repeat;
+  background-size: 100%;
   position: relative;
   height: 21.5rem;
   width: 100%;
@@ -543,7 +652,7 @@ html, body {
   color: #5B5B5B;
   font-size: 1.5rem;
   line-height: 2rem;
-  margin: -0.2rem 0 0.6rem;
+  margin: -0.5rem 0 1.5rem 0;
   padding: 0;
   white-space: normal;
 }
@@ -555,13 +664,22 @@ html, body {
 
 /* Extending icon types*/
 #import_contacts [data-type="list"] li button.icon-fb:before {
-  background-image: url('images/import_fb.png');
+  background-image: url('/contacts/style/images/f_logo.png');
 }
 
-/* Extending icon types*/
 #import_contacts [data-type="list"] li button.icon-sim:before {
-  background-image: url(/contacts/style/images/import_SIM.png);
-  background-size: 1.6rem;
+  background-image: url('/contacts/style/images/import_SIM.png');
+}
+#import_contacts [data-type="list"] li button.icon-sd:before {
+  background-image: url('/contacts/style/images/import_sd.png');
+}
+
+#import_contacts [data-type="list"] li button.icon-wlive:before {
+  background-image: url('/contacts/style/images/outlook_icon.png');
+}
+
+#import_contacts [data-type="list"] li button.icon-gmail:before {
+  background-image: url('/contacts/style/images/gmail_icon.png');
 }
 
 #import_contacts li button.icon {
@@ -572,6 +690,11 @@ html, body {
 #import_contacts li button.icon:before {
   right: auto;
   left: 0.5rem;
+  background-size: 3rem;
+}
+
+#import_contacts li button[disabled="disabled"].icon:before {
+  opacity: 0.2;
 }
 
 #import_contacts article:first-child ul {
@@ -580,7 +703,7 @@ html, body {
 
 
 #fb_after_import1 {
-  background: url('images/import_fb.png') center left no-repeat;
+  background: url('images/import_fb.png') no-repeat center left /3rem;
 }
 
 #statusMsg.ftu {
@@ -592,28 +715,6 @@ html, body {
 #statusMsg.ftu.bannerStart {
   z-index: 2;
   opacity: 1;
-}
-
-
-#wifi li {
-  padding: 0 1.5rem;
-}
-
-#wifi li:after {
-  content: "";
-  transition: opacity 0.2s ease;
-  background: #b1f1ff;
-  opacity: 0;
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-}
-
-#wifi li:active:after {
-  opacity: 0.6;
 }
 
 /*
@@ -631,8 +732,13 @@ html, body {
   font-size: 1.35rem;
   line-height: 1.8rem;
 }
+
 #welcome_browser #browser_logo_horizontal {
   margin: 1rem 0;
+}
+
+#welcome_browser #browser_logo_horizontal img{
+  max-width: 100%;
 }
 
 #welcome_browser label {
@@ -844,10 +950,6 @@ i.hack-first-child {
   transition: none;
 }
 
-[data-type="list"].pack-value-selector li:first-child {
-  border-top: 0.1rem solid rgb(219, 217, 217);
-}
-
 [data-type="list"].pack-value-selector li:after {
   content: "";
   transition: opacity 0.2s ease;
@@ -892,7 +994,7 @@ i.hack-first-child {
 }
 
 [data-type="list"].pack-value-selector li label:not([for]) input:checked + span {
-  background: url("images/checked.png") no-repeat right center;
+  background: url("images/checked.png") no-repeat right center / 100%;
 }
 
 [data-type="list"].pack-value-selector li label:not([for]) input + span + p {
@@ -913,35 +1015,13 @@ i.hack-first-child {
   height: 100%;
 }
 
-/*
-  States of Wifi
-*/
-
-.wifi-signal0 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 32, 32, 0) !important;
-}
-
-.wifi-signal1 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 64, 32, 32) !important;
-}
-
-.wifi-signal2 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 96, 32, 64) !important;
-}
-
-.wifi-signal3 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 128, 32, 96) !important;
-}
-
-.wifi-signal4 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 160, 32, 128) !important;
-}
-
-
 .icon {
-  background-color: transparent !important;
-  background-repeat: no-repeat !important;
-  background-position: center center !important;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#time-form .icon {
+  background-color: transparent;
 }
 
 /*
@@ -974,7 +1054,7 @@ i.hack-first-child {
 */
 
 #tutorial-screen [role=main] > [role=region] {
-  background-color: #474747;
+  background: url(images/bg_grey-noise.png);
   color: white;
 }
 
@@ -1004,3 +1084,4 @@ i.hack-first-child {
   width: calc(100% / 5);
   background: #FFFFFF;
 }
+

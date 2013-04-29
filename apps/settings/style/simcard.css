@@ -1,5 +1,5 @@
 #simpin-dialog .container {
-  padding-left: 2rem;
+  padding: 0 2rem;
   font-size: 1.4em;
 }
 
@@ -7,8 +7,16 @@
   padding-top: 1rem;
 }
 
+#simpin-dialog .error {
+  font-size: 1.2rem;
+}
+
 #simpin-dialog .error #messageHeader {
   color: red;
+}
+
+#simpin-dialog  .sim-code-area {
+  font-size: 1.4rem;
 }
 
 #simpin-dialog .input-wrapper {
@@ -18,10 +26,18 @@
 #simpin-dialog .input-wrapper input {
   font-size: 2.1rem;
   display: block;
+  width: 100%;
 }
 
+#simpin-dialog .input-wrapper input[type="number"] {
+  border: none;
+  padding: 0;
+  height: 4rem;
+  background: transparent;
+}
+
+
 #simpin-dialog .input-wrapper input[type="text"] {
-  width: auto;
   pointer-events: none;
   position: absolute;
   top: 0;

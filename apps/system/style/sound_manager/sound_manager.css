@@ -3,182 +3,142 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 40px;
+  right: 0;
+  height: 4rem;
+  padding-right: 2rem;
   -moz-transition: opacity 0.5s ease;
   pointer-events: none;
   display: none;
   background-image: url("images/header_bg.png");
 }
 
-#volume > * {
-  line-height: 40px;
-  height: 40px;
-  display: inline-block;
+#volume.visible {
+  display: block;
+}
+
+#volume > span {
+  height: 4rem;
   float: left;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
 }
 
+#volume section {
+  overflow: hidden;
+  margin-top: 1.5rem;
+  height: 1rem;
+}
+
+/* Default shows 15 sound pieces */
+#volume section div {
+  width: 6.5%!important;
+  height: 100%;
+  float: left;
+  background: #666;
+  -moz-box-sizing: border-box;
+  border-left: solid 0.2rem #3e3e3e;
+}
+
+#volume section div:first-child {
+  border-radius: 0.6rem 0 0 0.6rem;
+  border: none;
+}
+
+#volume section div:nth-last-child(2) {
+  border-radius: 0 0.6rem 0.6rem 0;
+  /* Last visible bar */
+}
+
+#volume section div:last-child {
+  display: none;
+}
+
+#volume section div.active {
+  background: #00abcc;
+}
+
+#volume.mute section div {
+  background: #666;
+}
+
 #volume span {
   display: inline-block;
-  width: 25px;
+  width: 2.5rem;
   float: left;
 }
 
+/* Icon states */
 #volume span.vibration {
   visibility: hidden;
-  margin-left: 5px;
+  margin-left: 0.5rem;
   background-image: url('images/vibration_disabled_icon.png');
+  background-size: 0.8rem auto;
 }
 
 #volume.vibration span.vibration {
   background-image: url('images/vibration_enabled_icon.png');
+  background-size: 0.8rem auto;
 }
 
 #volume.mute span.mute-state {
   background-image: url('images/speaker_mute_icon.png');
+  background-size: 2.2rem auto;
 }
 
+#volume[data-channel="telephony"] span.mute-state,
+#volume[data-channel="bt_sco"] span.mute-state,
 #volume span.mute-state {
   background-image: url('images/speaker_regular_icon.png');
+  background-size: 2.2rem auto;
 }
 
 #volume span.volume {
-  margin-left: 5px;
+  margin-left: 0.5rem;
   background-image: url('images/speaker_loud_icon.png');
+  background-size: 2.2rem auto;
+  float: right;
 }
 
-#volume.visible {
-  display: block;
+/* Telephony channel, just shows 6 progress pieces */
+#volume[data-channel="telephony"] section div {
+  width: 16.6%!important;
 }
 
-#volume[data-channel="notification"] span.vibration {
-  visibility: visible;
+/* First always keep active */
+#volume[data-channel="telephony"] section div:first-child {
+  background: #00abcc;
 }
 
-#volume[data-channel="bt_sco"] div:nth-child(n+4),
-#volume[data-channel="content"] div:nth-child(n+4),
-#volume[data-channel="alarm"] div:nth-child(n+4),
-#volume[data-channel="notification"] div:nth-child(n+4) {
-  width: 12px;
-  margin-left: 2px;
-  background-image: url('images/volume_center_disabled.png');
+#volume[data-channel="telephony"] section div:nth-child(n+6) {
+  border-radius: 0 0.6rem 0.6rem 0;
+  /* Last visible bar */
 }
 
-#volume[data-channel="telephony"] div:nth-child(n+4) {
-  width: 42px;
-  margin-left: 2px;
-  background-image: url('images/volume_center_disabled.png');
-}
-
-#volume[data-channel="bt_sco"] div.active:nth-child(n+4),
-#volume[data-channel="content"] div.active:nth-child(n+4),
-#volume[data-channel="alarm"] div.active:nth-child(n+4),
-#volume[data-channel="notification"] div.active:nth-child(n+4),
-#volume[data-channel="telephony"] div.active:nth-child(n+4) {
-  background-image: url('images/volume_center_active.png');
-}
-
-#volume div:nth-child(3) {
-  background-image: url('images/volume_left_disabled.png');
-}
-
-#volume div.active:nth-child(3) {
-  background-image: url('images/volume_left_active.png');
-}
-
-#volume[data-channel="bt_sco"] div:nth-child(17),
-#volume[data-channel="alarm"] div:nth-child(17),
-#volume[data-channel="notification"] div:nth-child(17),
-#volume[data-channel="content"] div:nth-child(17),
-#volume[data-channel="telephony"] div:nth-child(7) {
-  background-image: url('images/volume_right_disabled.png');
-}
-
-#volume[data-channel="bt_sco"] div.active:nth-child(17),
-#volume[data-channel="alarm"] div.active:nth-child(17),
-#volume[data-channel="notification"] div.active:nth-child(17),
-#volume[data-channel="content"] div.active:nth-child(17),
-#volume[data-channel="telephony"] div.active:nth-child(7) {
-  background-image: url('images/volume_right_active.png');
-}
-
-#volume[data-channel="telephony"] div:nth-child(n+8) {
+#volume[data-channel="telephony"] section div:nth-child(n+7) {
   display: none;
 }
 
-#volume[data-channel="notification"] > div:nth-child(n+3),
-#volume[data-channel="alarm"] > div:nth-child(n+3),
-#volume[data-channel="bt_sco"] > div:nth-child(n+3),
-#volume[data-channel="content"] > div:nth-child(n+3) {
-  width: 12px;
-  background-size: 12px 10px;
+/* bt_sco channel, shows 16 (all of them) progress pieces */
+#volume[data-channel="bt_sco"] section div {
+  width: 6.25%!important;
 }
 
-#volume[data-channel="telephony"] > div:nth-child(n+3) {
-  width: 42px;
-  background-size: 42px 10px;
+/* First always keep active */
+#volume[data-channel="bt_sco"] section div:first-child {
+  background: #00abcc;
 }
 
-@media (orientation: landscape) and (width: 480px) {
-  #volume[data-channel="bt_sco"] div:nth-child(n+4),
-  #volume[data-channel="content"] div:nth-child(n+4),
-  #volume[data-channel="alarm"] div:nth-child(n+4),
-  #volume[data-channel="notification"] div:nth-child(n+4),
-  #volume[data-channel="telephony"] div:nth-child(n+4) {
-    width: 36px;
-    margin-left: 2px;
-    background-size: 36px 10px;
-    background-image: url('images/VolumeOverlay_Landscape_SegmentOff.png');
-  }
+#volume[data-channel="bt_sco"] section div:nth-last-child(2) {
+  border-radius: 0;
+}
 
-  #volume[data-channel="telephony"] div:nth-child(n+8) {
-    display: none;
-  }
+#volume[data-channel="bt_sco"] section div:last-child {
+  border-radius: 0 0.6rem 0.6rem 0;
+  display: block;
+  /* Last visible bar */
+}
 
-  #volume[data-channel="bt_sco"] div.active:nth-child(n+4),
-  #volume[data-channel="content"] div.active:nth-child(n+4),
-  #volume[data-channel="alarm"] div.active:nth-child(n+4),
-  #volume[data-channel="notification"] div.active:nth-child(n+4),
-  #volume[data-channel="telephony"] div.active:nth-child(n+4) {
-    background-image: url('images/VolumeOverlay_Landscape_SegmentOn.png');
-  }
-
-  #volume div:nth-child(3) {
-    background-image: url('images/VolumeOverlay_Landscape_SegmentOff_left.png');
-  }
-
-  #volume div.active:nth-child(3) {
-    background-image: url('images/VolumeOverlay_Landscape_SegmentOn_left.png');
-  }
-
-  #volume[data-channel="bt_sco"] div:nth-child(17),
-  #volume[data-channel="content"] div:nth-child(17),
-  #volume[data-channel="alarm"] div:nth-child(17),
-  #volume[data-channel="notification"] div:nth-child(17),
-  #volume[data-channel="telephony"] div:nth-child(7) {
-    background-image: url('images/VolumeOverlay_Landscape_SegmentOff_right.png');
-  }
-
-  #volume[data-channel="bt_sco"] div.active:nth-child(17),
-  #volume[data-channel="content"] div.active:nth-child(17),
-  #volume[data-channel="alarm"] div.active:nth-child(17),
-  #volume[data-channel="notification"] div.active:nth-child(17),
-  #volume[data-channel="telephony"] div.active:nth-child(7) {
-    background-image: url('images/VolumeOverlay_Landscape_SegmentOn_right.png');
-  }
-
-  #volume[data-channel="notification"] > div:nth-child(n+3),
-  #volume[data-channel="alarm"] > div:nth-child(n+3),
-  #volume[data-channel="bt_sco"] > div:nth-child(n+3),
-  #volume[data-channel="content"] > div:nth-child(n+3) {
-    width: 22px;
-    background-size: 22px 10px;
-  }
-
-  #volume[data-channel="telephony"] > div:nth-child(n+3) {
-    width: 74px;
-    background-size: 74px 10px;
-  }
+/* Notification channel */
+#volume[data-channel="notification"] span.vibration {
+  visibility: visible;
 }

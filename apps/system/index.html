@@ -41,6 +41,10 @@
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
+    <!-- Not deferring the following to show startup logo/animation as soon as possible. -->
+    <script src="js/logo_loader.js"></script>
+    <script src="js/init_logo_handler.js"></script>
+
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/mouse2touch.js"></script>
@@ -96,6 +100,9 @@
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar.js"></script>
+
+    <!-- FTU launcher -->
+    <script defer src="js/ftu_launcher.js"></script>
 
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
@@ -227,24 +234,59 @@
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
+    <!-- Shared responsive -->
+    <link rel="stylesheet" href="shared/style/responsive.css">
+
     <style>
-      /* initlogo style is here to prevent flashing */
-      #initlogo {
+      /* initlogos style is here to prevent flashing */
+
+      #os-logo {
         position: absolute;
         overflow: hidden;
         width: 100%;
         height: 100%;
-
-        background: #000 url('shared/resources/branding/initlogo.png') bottom right no-repeat;
-
+        background: #000 url('shared/resources/branding/initlogo.png') no-repeat center / cover;
         z-index: 65536;
-
         opacity: 1;
-        transition: opacity 1s ease 3s;
+        transition: opacity 1s ease 2s;
         pointer-events: none;
       }
 
-      #initlogo.hide {
+      #carrier-logo {
+        position: absolute;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        background: #000;
+      }
+
+      #carrier-logo > img,
+      #poweroff-splash > img {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        opacity: 1;
+        transition: opacity 1s ease 2s;
+      }
+
+      #carrier-logo > video,
+      #poweroff-splash > video {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        opacity: 1;
+        transition: opacity 1s ease;
+      }
+
+      #carrier-logo.transparent {
+        background: transparent;
+      }
+
+      #carrier-logo > img.hide,
+      #carrier-logo > video.hide,
+      #os-logo.hide,
+      #poweroff-splash > img.hide,
+      #poweroff-splash > video.hide {
         opacity: 0;
       }
     </style>
@@ -253,7 +295,9 @@
 
   <body role="application">
     <div id="screen" class="locked">
-      <div id="initlogo" data-z-index-level="initlogo"></div>
+      <div id="os-logo" data-z-index-level="initlogo">
+        <div id="carrier-logo"></div>
+      </div>
 
       <div id="statusbar" data-z-index-level="statusbar">
         <!-- Carrier & date label -->
@@ -375,12 +419,14 @@
                 <div id="messageHeader">The PIN was incorrect.</div>
                 <span id="messageBody">3 tries left.</span>
               </div>
+              <!-- tries left -->
+              <div id="triesLeft" data-l10-id="inputCodeRetriesLeft">3 tries left</div>
 
               <!-- sim pin input field -->
               <div id="pinArea" hidden>
                 <div data-l10n-id="simPin">SIM PIN</div>
                 <div class="input-wrapper">
-                  <input name="simpin" type="number" size="8" maxlength="8" />
+                  <input name="simpin" type="number" x-inputmode="digits" size="8" maxlength="8" />
                   <input name="simpinVis" type="text" size="8" maxlength="8" />
                 </div>
               </div>
@@ -388,16 +434,16 @@
               <div id="pukArea" hidden>
                 <div data-l10n-id="pukCode">PUK Code</div>
                 <div class="input-wrapper">
-                  <input name="simpuk" type="number" size="8" maxlength="8" />
+                  <input name="simpuk" type="number" x-inputmode="digits" size="8" maxlength="8" />
                   <input name="simpukVis" type="text" size="8" maxlength="8" />
                 </div>
               </div>
-              <!-- sim nck input field -->
-              <div id="nckArea" hidden>
-                <div data-l10n-id="nckCode">NCK Code</div>
+              <!-- sim nck/cck/spck input field -->
+              <div id="xckArea" hidden>
+                <div name="xckDesc" data-l10n-id="nckCode">NCK Code</div>
                 <div class="input-wrapper">
-                  <input name="nckpin" type="number" size="16" maxlength="16" />
-                  <input name="nckpinVis" type="text" size="16" maxlength="16" />
+                  <input name="xckpin" type="number" size="16" maxlength="16" />
+                  <input name="xckpinVis" type="text" size="16" maxlength="16" />
                 </div>
               </div>
               <!-- new sim pin input field -->
@@ -406,15 +452,17 @@
                   Create PIN (must contain 4 to 8 digits)
                 </div>
                 <div class="input-wrapper">
-                  <input name="newSimpin" type="number" size="8" maxlength="8" />
+                  <input name="newSimpin" type="number" x-inputmode="digits" size="8" maxlength="8" />
                   <input name="newSimpinVis" type="text" size="8" maxlength="8" />
                 </div>
               </div>
               <!-- confirm new sim pin input field -->
               <div id="confirmPinArea" hidden>
-                <div>Confirm New PIN</div>
+                <div data-l10n-id="confirmNewSimPinMsg">
+                  Confirm New PIN
+                </div>
                 <div class="input-wrapper">
-                  <input name="confirmNewSimpin" type="number" size="8" maxlength="8" />
+                  <input name="confirmNewSimpin" type="number" x-inputmode="digits" size="8" maxlength="8" />
                   <input name="confirmNewSimpinVis" type="text" size="8" maxlength="8" />
                 </div>
               </div>
@@ -572,7 +620,7 @@
       <!-- value selector -->
       <div id="value-selector" hidden data-z-index-level="value-selector">
         <!-- popup of options for select element -->
-        <form id="select-option-popup" role="dialog">
+        <form id="select-option-popup" role="dialog" data-type="value-selector">
           <section id="value-selector-container">
             <h1 data-l10n-id="choose-option">Choose your option</h1>
             <ol role="listbox">
@@ -597,10 +645,10 @@
                     <div id="value-indicator-hover-time">:</div>
                     <div id="value-indicator-hover"></div>
                   </div>
-                  <div id="value-picker-hours" class="animation-on"></div>
-                  <div id="value-picker-minutes" class="animation-on"></div>
+                  <div id="value-picker-hours" class="value-picker animation-on"></div>
+                  <div id="value-picker-minutes" class="value-picker animation-on"></div>
                   <div id="right-picker-separator"></div>
-                  <div id="value-picker-hour24-state" class="animation-on"></div>
+                  <div id="value-picker-hour24-state" class="value-picker animation-on"></div>
                   <div id="picker-bar-gradient"></div>
                 </div>
               </div>
@@ -627,16 +675,13 @@
                     <div class="value-indicator-hover"></div>
                   </div>
                   <div class="value-picker-date-wrapper">
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
+                    <div class="value-picker value-picker-date animation-on"></div>
                   </div>
                   <div class="value-picker-month-wrapper">
-                    <div class="value-picker-month" class="animation-on"></div>
+                    <div class="value-picker value-picker-month" class="animation-on"></div>
                   </div>
                   <div class="value-picker-year-wrapper">
-                    <div class="value-picker-year" class="animation-on"></div>
+                    <div class="value-picker value-picker-year" class="animation-on"></div>
                   </div>
                   <div class="picker-bar-gradient"></div>
                 </div>
@@ -770,7 +815,7 @@
 
       <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
         <div id="lockscreen-container">
-          <div id="lockscreen-panel-main" class="lockscreen-panel" data-wallpaper>
+          <div id="lockscreen-panel-main" class="lockscreen-panel">
             <div id="lockscreen-header">
               <div id="lockscreen-connstate" hidden><span></span><span></span></div>
               <div id="lockscreen-mute" hidden></div>
@@ -798,7 +843,7 @@
             </div>
           </div>
 
-          <div id="lockscreen-panel-passcode" class="lockscreen-panel" data-wallpaper>
+          <div id="lockscreen-panel-passcode" class="lockscreen-panel">
             <h2 id="lockscreen-passcode-status" data-l10n-id="enter-security-code">Enter Security&nbsp;Code</h2>
             <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
             <div id="lockscreen-passcode-pad">
@@ -811,9 +856,9 @@
               <a role="button" href="#" data-key="7">7<span>PQRS<span></a>
               <a role="button" href="#" data-key="8">8<span>TUV<span></a>
               <a role="button" href="#" data-key="9">9<span>WXYZ<span></a>
-              <a role="button" href="#" data-key="e" data-l10n-id="emergency-call-button" class="lockscreen-passcode-pad-func last-row">Emergency Call</a>
+              <a role="button" href="#" data-key="e" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="emergency-call-button">Emergency Call</span></a>
               <a role="button" href="#" data-key="0" class="last-row">0</a>
-              <a role="button" href="#" data-key="c" data-l10n-id="cancel" class="lockscreen-passcode-pad-func last-row">Cancel</a>
+              <a role="button" href="#" data-key="c" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="cancel">Cancel</span></a>
               <a role="button" href="#" data-key="b" class="last-row">⌫</a>
             </div>
           </div>
@@ -878,22 +923,25 @@
         <div id="volume" class="vibration">
           <span class="vibration"></span>
           <span class="mute-state"></span>
-          <div class="active"></div>
-          <div class="active"></div>
-          <div class="active"></div>
-          <div class="active"></div>
-          <div class="active"></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
           <span class="volume"></span>
+          <section>
+            <div class="active"></div>
+            <div class="active"></div>
+            <div class="active"></div>
+            <div class="active"></div>
+            <div class="active"></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </section>
         </div>
       </div>
 

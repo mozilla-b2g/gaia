@@ -1,4 +1,4 @@
-body[role="application"] [role="dialog"]:not([data-type="edit"]):before {
+body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type="action"]):before {
   content: "";
   display: inline-block;
   height: 100%;
@@ -6,7 +6,7 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]):before {
   width: 1px;
 }
 
-body[role="application"] [role="dialog"]:not([data-type="edit"]) {
+body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type="action"]) {
   background-attachment: scroll, scroll;
   background-clip: border-box, border-box;
   background-color: transparent;
@@ -59,7 +59,7 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]) p:last-child {
   display: -moz-box;
 }
 
-body[role="application"] [role="dialog"]:not([data-type="edit"]) p {
+body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type="action"]) p {
   color: #FAFAFA;
   font-family: 'MozTT',Sans-serif;
   font-size: 2.2rem;
@@ -68,7 +68,7 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]) p {
   line-height: 1.4em;
 }
 
-body[role="application"] [role="dialog"]:not([data-type="edit"]) menu:not([type="toolbar"]) {
+body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type="action"]) menu:not([type="toolbar"]) {
   background: url("images/ui/pattern.png") repeat scroll left top #2D2D2D;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   bottom: 0;
@@ -86,7 +86,7 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]) menu[data-items
   width: -moz-calc((100% - 1rem) / 2);
 }
 
-body[role="application"] [role="dialog"]:not([data-type="edit"]) menu:not([type="toolbar"]) button {
+body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type="action"]) menu:not([type="toolbar"]) button {
   -moz-box-sizing: border-box;
   background: url("images/ui/default.png") repeat-x scroll left bottom #FAFAFA;
   border: 1px solid #9F9F9F;

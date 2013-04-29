@@ -15,9 +15,8 @@
     "audio-channel-notification":{},
     "contacts":{ "access": "readcreate" },
     "desktop-notification":{},
-    "device-storage:music":{ "access": "readcreate" },
-    "device-storage:pictures":{ "access": "readcreate" },
-    "device-storage:videos":{ "access": "readcreate" },
+    "storage":{},
+    "device-storage:sdcard":{ "access": "readcreate" },
     "systemXHR":{},
     "settings":{ "access": "readonly" },
     "tcp-socket":{}
@@ -55,7 +54,7 @@
     "share": {
       "filters": {
         "type": "image/*"
-       },          
+       },
       "disposition": "window",
       "returnValue": true
     },

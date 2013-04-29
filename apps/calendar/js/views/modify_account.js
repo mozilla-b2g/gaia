@@ -1,4 +1,4 @@
-(function(window) {
+Calendar.ns('Views').ModifyAccount = (function() {
 
   function ModifyAccount(options) {
     Calendar.View.apply(this, arguments);
@@ -16,6 +16,8 @@
 
   ModifyAccount.prototype = {
     __proto__: Calendar.View.prototype,
+
+    _changeToken: 0,
 
     selectors: {
       element: '#modify-account-view',
@@ -96,7 +98,17 @@
 
       update.forEach(function(name) {
         var field = this.fields[name];
-        this.model[name] = field.value;
+        var value = field.value;
+        if (name === 'fullUrl') {
+          // Prepend a scheme if url has neither port nor scheme
+          var port = Calendar.Utils.URI.getPort(value);
+          var scheme = Calendar.Utils.URI.getScheme(value);
+          if (!port && !scheme) {
+            value = 'https://' + value;
+          }
+        }
+
+        this.model[name] = value;
       }, this);
     },
 
@@ -161,16 +173,6 @@
       return model;
     },
 
-    /**
-     * @param {String} id account id.
-     */
-    _updateModel: function(id, callback) {
-      var store = this.app.store('Account');
-      var self = this;
-
-      return store.cached[id];
-    },
-
     render: function() {
       if (!this.model) {
         throw new Error('must provider model to ModifyAccount');
@@ -184,14 +186,17 @@
       if (this.model._id) {
         this.type = 'update';
         this.deleteButton.addEventListener('click', this.deleteRecord);
-        this.cancelDeleteButton.addEventListener('click',
-                                                 this.cancel);
+        this.cancelDeleteButton.addEventListener('click', this.cancel);
       } else {
         this.type = 'create';
       }
 
       this.form.reset();
       this.updateForm();
+
+      var usernameType = this.model.usernameType;
+      this.fields['user'].type = (usernameType === undefined) ?
+          'text' : usernameType;
 
       list.add(this.type);
       list.add('preset-' + this.model.preset);
@@ -221,34 +226,42 @@
       if (this.model)
         this.destroy();
 
-      var provider;
-      var autoSubmit;
       var params = data.params;
+      var changeToken = ++this._changeToken;
+
+      this.completeUrl = '/settings/';
+
+      var self = this;
+      function displayModel(err, model) {
+        // race condition another dispatch has queued
+        // while we where waiting for an async event.
+        if (self._changeToken !== changeToken)
+          return;
+
+        if (err) {
+          console.log(
+            'Error displaying model in ModifyAccount',
+            data
+          );
+          return;
+        }
+
+        self.model = model;
+        self.render();
+
+        if (self.ondispatch) {
+          self.ondispatch();
+        }
+      }
 
       if (params.id) {
-        this.model = this._updateModel(params.id);
-        this.completeUrl = '/settings/';
+        this.app.store('Account').get(params.id, displayModel);
       } else if (params.preset) {
-        this.model = this._createModel(params.preset);
-        this.completeUrl = '/settings/';
-      }
-
-      if (this.model && this.model.providerType) {
-        provider = this.app.provider(this.model.providerType);
-        autoSubmit = !provider.useCredentials && !provider.useUrl;
-      }
-
-      // when provider requires no credentials
-      // auto submit form (which will also redirect)
-      if (provider && autoSubmit) {
-        this.save();
-      } else {
-        this.render();
+        displayModel(null, this._createModel(params.preset));
       }
     }
-
   };
 
-  Calendar.ns('Views').ModifyAccount = ModifyAccount;
+  return ModifyAccount;
 
-}(this));
+}());

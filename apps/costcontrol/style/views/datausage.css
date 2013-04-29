@@ -8,14 +8,14 @@
   list-style: none;
   padding: 0;
   margin: 0 1.5rem;
-  border: solid 1px #adadad;
+  border: solid 0.1rem #adadad;
   border-right: none;
   border-left: none;
 }
 
 #datausage-tab .toggle-data li {
   padding-left: 3rem;
-  height: 4rem;
+  height: 3.8rem;
   border-bottom-color: #adadad;
 }
 
@@ -51,7 +51,7 @@
   width: 1.5rem;
   height: 1.5rem;
   position: absolute;
-  border: solid 1px #979797;
+  border: solid 0.1rem #979797;
   left: 0.5rem;
   top: 50%;
   margin: -0.95rem 0 0;
@@ -78,7 +78,7 @@
 /* GRAPHS */
 #datausage-tab section.graph {
   position: relative;
-  height: 30rem;
+  height: 28.5rem;
 }
 
 #datausage-tab section.graph canvas {

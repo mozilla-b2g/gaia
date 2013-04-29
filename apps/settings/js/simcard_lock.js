@@ -14,12 +14,21 @@ var SimPinLock = {
   updateSimCardStatus: function spl_updateSimStatus() {
     var _ = navigator.mozL10n.get;
 
-    if (this.mobileConnection.cardState === 'absent') {
-      this.simSecurityDesc.textContent = _('noSimCard');
+    var cardState = this.mobileConnection.cardState;
+    var cardStateMapping = {
+      'null': 'simCardNotReady',
+      'unknown': 'unknownSimCardState',
+      'absent': 'noSimCard'
+    };
+    var textContent = cardStateMapping[cardState ? cardState : 'null'];
+    if (textContent) {
+      this.simSecurityDesc.textContent = _(textContent);
+      this.simSecurityDesc.dataset.l10nId = textContent;
       this.simPinCheckBox.disabled = true;
       this.changeSimPinItem.hidden = true;
       return;
     }
+
     // with SIM card, query its status
     var self = this;
     var req = this.mobileConnection.getCardLock('pin');
@@ -27,6 +36,8 @@ var SimPinLock = {
       var enabled = req.result.enabled;
       self.simSecurityDesc.textContent = (enabled) ?
         _('enabled') : _('disabled');
+      self.simSecurityDesc.dataset.l10nId = (enabled) ?
+        'enabled' : 'disabled';
       self.simPinCheckBox.disabled = false;
       self.simPinCheckBox.checked = enabled;
       self.changeSimPinItem.hidden = !enabled;

@@ -169,17 +169,30 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
         results[type] = totalBytes;
         results['free'] = freeBytes;
         current--;
-        if(current == 0)
+        if (current == 0)
           callback(results);
-          
+
       });
     }
+  }
 
+  function getFreeSpace(callback) {
+    var deviceStorage = navigator.getDeviceStorage('sdcard');
+
+    if (!deviceStorage) {
+      console.error('Cannot get free space size in sdcard');
+      return;
+    }
+    deviceStorage.freeSpace().onsuccess = function(e) {
+      var freeSpace = e.target.result;
+      callback(freeSpace);
+    };
   }
 
   return {
     getStat: getStat,
-    getStats: getStats
+    getStats: getStats,
+    getFreeSpace: getFreeSpace
   };
 
 })();
@@ -194,7 +207,15 @@ function bug344618_polyfill() {
   var range = document.createElement('input');
   range.type = 'range';
   if (range.type == 'range') {
+    // In some future version of gaia that will only be used with gecko v23+,
+    // we can remove the bug344618_polyfill stuff.
     console.warn("bug344618 has landed, there's some dead code to remove.");
+    var sel = 'label:not(.without_bug344618_polyfill) > input[type="range"]';
+    var ranges = document.querySelectorAll(sel);
+    for (var i = 0; i < ranges.length; i++) {
+      var label = ranges[i].parentNode;
+      label.classList.add('without_bug344618_polyfill');
+    }
     return; // <input type="range"> is already supported, early way out.
   }
 
@@ -316,8 +337,8 @@ var getMobileConnection = function() {
     return navigator.mozMobileConnection;
 
   var initialized = false;
-  var fakeICCInfo = { shortName: 'Fake Free-Mobile', mcc: 208, mnc: 15 };
-  var fakeNetwork = { shortName: 'Fake Orange F', mcc: 208, mnc: 1 };
+  var fakeICCInfo = { shortName: 'Fake Free-Mobile', mcc: '208', mnc: '15' };
+  var fakeNetwork = { shortName: 'Fake Orange F', mcc: '208', mnc: '1' };
   var fakeVoice = {
     state: 'notSearching',
     roaming: true,
@@ -345,6 +366,20 @@ var getMobileConnection = function() {
     get voice() {
       return initialized ? fakeVoice : null;
     }
+  };
+};
+
+var getBluetooth = function() {
+  var navigator = window.navigator;
+  if ('mozBluetooth' in navigator)
+    return navigator.mozBluetooth;
+  return {
+    enabled: false,
+    addEventListener: function(type, callback, bubble) {},
+    onenabled: function(event) {},
+    onadapteradded: function(event) {},
+    ondisabled: function(event) {},
+    getDefaultAdapter: function() {}
   };
 };
 

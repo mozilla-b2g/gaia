@@ -22,11 +22,14 @@
   display: block;
 }
 
-#phoneLock-passcode div.passcode-error {
+#phoneLock-passcode .passcode-error {
+  clear: both;
   display: none;
+  height: 4.2rem;
+  padding-left: 3rem;
   color: red;
-  font-size: 1.7rem;
-  padding-left: 2rem;
+  font-size: 1.5rem;
+  line-height: 4.2rem;
 }
 
 #phoneLock-passcode[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
@@ -39,20 +42,35 @@
   display: block;
 }
 
+#phoneLock-passcode[data-passcode-status="error"] menu[data-mode="new"] {
+  display: none;
+}
+
 #passcode-change div.passcode-overlay {
   position: relative;
 }
 
-#phoneLock-passcode .passcode-container > span {
-  width: 100%;
-  color: #000;
+#phoneLock-passcode .passcode > label {
   -moz-box-sizing: border-box;
-  font-size: 1.9rem;
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 1.6rem 0 0.4rem;
   padding: 0 2rem;
+  color: #000;
+  font-size: 1.8rem;
 }
 
 #phoneLock-passcode [data-mode] {
   display: none;
+}
+
+#phoneLock-passcode menu[type="toolbar"] {
+  width: 9rem;
+}
+
+#phoneLock-passcode menu[type="toolbar"] button {
+  width: 100%;
 }
 
 #phoneLock-passcode[data-mode="create"]  [data-mode*="create"],
@@ -73,7 +91,7 @@
 #passcode-input {
   z-index: -1;
   position: absolute;
-  top: 0;
+  top: -5rem;
   left: 0;
 }
 
@@ -81,28 +99,28 @@
   position: absolute;
   z-index: 1;
   width: 100%;
-  top: 5rem;
+  top: 0;
   left: 0;
   background: url(images/document-bg.png);
 }
 
 .passcode {
-  height: 6rem;
-  width: 100%;
+  width: calc(100% - 2rem);
+  margin: 0 auto;
+  overflow: hidden;
 }
 
 .passcode-digit {
   -moz-box-sizing: border-box;
-  display: block;
+  position: relative;
   float: left;
   width: calc(25% - 1rem);
-  margin: 1.5rem 0.5rem;
   height: 4rem;
+  margin: 0 0.5rem;
+  border: 0.1rem solid #c2c2c2;
   text-align: center;
-  box-shadow: 0 0 0.8rem #999 inset;
   background-color: #fff;
-  border-radius: 0.5rem;
-  position: relative;
+  border-radius: 0.3rem;
 }
 
 span.passcode-digit[data-dot]::before {

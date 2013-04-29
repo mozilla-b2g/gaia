@@ -23,18 +23,22 @@ var AppStorage = (function AppStorage() {
 
   function attachListeners() {
     _appStorage.addEventListener('change', handleEvent);
+    window.addEventListener('localized', handleEvent);
   }
 
   function detachListeners() {
     _appStorage.removeEventListener('change', handleEvent);
+    window.removeEventListener('localized', handleEvent);
   }
 
   function handleEvent(evt) {
     debug('event handler: ' + evt.type + ' - ' + evt.reason);
     if (_callback)
-      _callback();
+      getSpaceInfo(_callback);  // Bug834204_fix update issue
   }
 
+  //XXX we really don't need this callback because nobody invoke this method
+  //with a callback function.
   function getSpaceInfo(callback) {
     var callbackFunc = callback ? callback : _callback;
     DeviceStorageHelper.getStat('apps', callbackFunc);

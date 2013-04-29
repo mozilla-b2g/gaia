@@ -62,23 +62,24 @@ GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
 else ifeq ($(MAKECMDGOALS), dogfood)
 DOGFOOD=1
-PRODUCTION=1
-GAIA_OPTIMIZE=1
-B2G_SYSTEM_APPS=1
 else ifeq ($(MAKECMDGOALS), production)
 PRODUCTION=1
-GAIA_OPTIMIZE=1
-B2G_SYSTEM_APPS=1
+endif
+
+ifeq ($(DOGFOOD), 1)
+PRODUCTION=1
 endif
 
 # PRODUCTION is also set for user and userdebug B2G builds
 ifeq ($(PRODUCTION), 1)
+GAIA_OPTIMIZE=1
+B2G_SYSTEM_APPS=1
 GAIA_APP_SRCDIRS=apps
 ADB_REMOUNT=1
 endif
 
-ifeq ($(MAKECMDGOALS), dogfood)
-GAIA_APP_SRCDIRS=apps dogfood_apps
+ifeq ($(DOGFOOD), 1)
+GAIA_APP_SRCDIRS+=dogfood_apps
 endif
 
 ifeq ($(B2G_SYSTEM_APPS), 1)
@@ -147,6 +148,30 @@ SEP=\\
 MSYS_FIX=/
 endif
 
+ifndef GAIA_DISTRIBUTION_DIR
+  GAIA_DISTRIBUTION_DIR := $(CURDIR)$(SEP)distribution
+else
+	ifneq (,$(findstring MINGW32_,$(SYS)))
+		GAIA_DISTRIBUTION_DIR := $(join \
+			$(filter %:,$(subst :,: ,$GAIA_DISTRIBUTION_DIR)),\
+			$(realpath $(filter-out %:,$(subst :,: ,$GAIA_DISTRIBUTION_DIR))))
+	else
+		GAIA_DISTRIBUTION_DIR := $(realpath $(GAIA_DISTRIBUTION_DIR))
+	endif
+endif
+
+SETTINGS_PATH := build/custom-settings.json
+ifdef GAIA_DISTRIBUTION_DIR
+	DISTRIBUTION_SETTINGS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)settings.json
+	DISTRIBUTION_CONTACTS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)contacts.json
+	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
+		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
+	endif
+	ifneq ($(wildcard $(DISTRIBUTION_CONTACTS)),)
+		CONTACTS_PATH := $(DISTRIBUTION_CONTACTS)
+	endif
+endif
+
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
@@ -199,12 +224,12 @@ ifneq ($(LOCALE_BASEDIR),)
 		targets="$$targets --target $$appdir"; \
 	done; \
 	python $(CURDIR)/build/multilocale.py \
-		--config $(LOCALES_FILE) \
-		--source $(LOCALE_BASEDIR) \
+		--config '$(LOCALES_FILE)' \
+		--source '$(LOCALE_BASEDIR)' \
 		$$targets;
 	@echo "Done"
 ifneq ($(LOCALES_FILE),shared/resources/languages.json)
-	cp $(LOCALES_FILE) shared/resources/languages.json
+	cp '$(LOCALES_FILE)' shared/resources/languages.json
 endif
 endif
 
@@ -267,55 +292,42 @@ offline-cache: webapp-manifests install-xulrunner-sdk
 	@$(call run-js-command, offline-cache)
 	@echo "Done"
 
-# Create contacts DB
-contacts: install-xulrunner-sdk
-	@echo "Generate contacts database"
-	@rm -rf profile/indexedDB
-	@$(call run-js-command, contacts)
-	@echo "Done"
+# Copy preload contacts to profile
+contacts:
+ifdef CONTACTS_PATH
+	@echo "Copying preload contacts to profile"
+	@cp $(CONTACTS_PATH) profile
+else
+	@rm -f profile/contacts.json
+endif
 
 # Create webapps
 offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
 
+# Create an empty reference workload
+.PHONY: reference-workload-empty
+reference-workload-empty:
+	test_media/reference-workload/makeReferenceWorkload.sh empty
+
 # Create a light reference workload
 .PHONY: reference-workload-light
 reference-workload-light:
-	@echo "Populate Databases - Light Workload"
-	$(ADB) shell stop b2g
-	$(ADB) push  test_media/reference-workload/contactsDb-200.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
-	$(ADB) push  test_media/reference-workload/smsDb-200.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
-	$(ADB) shell start b2g
-	@echo "Done"
+	test_media/reference-workload/makeReferenceWorkload.sh light
 
 # Create a medium reference workload
 .PHONY: reference-workload-medium
 reference-workload-medium:
-	@echo "Populate Databases - Medium Workload"
-	$(ADB) shell stop b2g
-	$(ADB) push  test_media/reference-workload/contactsDb-500.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
-	$(ADB) push  test_media/reference-workload/smsDb-500.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
-	$(ADB) shell start b2g
-	@echo "Done"
+	test_media/reference-workload/makeReferenceWorkload.sh medium
 
 # Create a heavy reference workload
 .PHONY: reference-workload-heavy
 reference-workload-heavy:
-	@echo "Populate Databases - Heavy Workload"
-	$(ADB) shell stop b2g
-	$(ADB) push  test_media/reference-workload/contactsDb-1000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
-	$(ADB) push  test_media/reference-workload/smsDb-1000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
-	$(ADB) shell start b2g
-	@echo "Done"
+	test_media/reference-workload/makeReferenceWorkload.sh heavy
 
 # Create an extra heavy reference workload
 .PHONY: reference-workload-x-heavy
 reference-workload-x-heavy:
-	@echo "Populate Databases - Extra Heavy Workload"
-	$(ADB) shell stop b2g
-	$(ADB) push  test_media/reference-workload/contactsDb-2000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
-	$(ADB) push  test_media/reference-workload/smsDb-2000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
-	$(ADB) shell start b2g
-	@echo "Done"
+	test_media/reference-workload/makeReferenceWorkload.sh x-heavy
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
@@ -380,7 +392,7 @@ define run-js-command
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
-	const LOCALES_FILE = "$(LOCALES_FILE)";                                     \
+	const LOCALES_FILE = "$(subst \,\\,$(LOCALES_FILE))";                       \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
 	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
@@ -390,7 +402,7 @@ define run-js-command
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
 	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
 	const GAIA_ENGINE = "xpcshell";                                             \
-	const CUSTOMIZE = "$(realpath $(CUSTOMIZE))";      													\
+	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";               	\
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
@@ -400,6 +412,7 @@ endef
 # conflict, the result is undefined.
 EXTENDED_PREF_FILES = \
   custom-prefs.js \
+  gps-prefs.js \
   payment-prefs.js \
   ua-override-prefs.js \
 
@@ -447,7 +460,7 @@ ifndef APPS
 	ifdef APP
 		APPS=$(APP)
 	else
-		APPS=$(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' )
+		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' )
 	endif
 endif
 
@@ -593,8 +606,8 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
-	@gjslint --nojsdoc -r shared/js
+	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext' -x 'homescreen/js/hiddenapps.js,settings/js/hiddenapps.js'
+	@gjslint --nojsdoc -r shared/js -e 'phoneNumberJS'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
@@ -656,12 +669,15 @@ update-offline-manifests:
 
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then
-# you should use the install-gaia target of the B2G Makefile. But if you're
-# working on just gaia itself, and you already have B2G firmware on your
-# phone, and you have adb in your path, then you can use the install-gaia
-# target to update the gaia files and reboot b2g
+# you should use:
+#
+#  BUILD_APP_NAME=app-name ./flash.sh gaia
+#
+# But if you're working on just gaia itself, and you already have B2G firmware
+# on your phone, and you have adb in your path, then you can use the
+# install-gaia target to update the gaia files and reboot b2g
 TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
-APP_NAME = $(shell cat apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4)
+APP_NAME = $(shell cat *apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4 | cut -b 1-15)
 APP_PID = $(shell adb shell b2g-ps | grep '^${APP_NAME}' | sed 's/^${APP_NAME}\s*//' | awk '{ print $$2 }')
 install-gaia: profile
 	$(ADB) start-server
@@ -718,23 +734,35 @@ production: reset-gaia
 dogfood: reset-gaia
 
 # Remove everything and install a clean profile
-reset-gaia: purge install-gaia install-settings-defaults
+reset-gaia: purge install-gaia install-default-data
 
 # remove the memories and apps on the phone
 purge:
 	$(ADB) shell stop b2g
 	@(for FILE in `$(ADB) shell ls $(MSYS_FIX)/data/local | tr -d '\r'`; \
 	do \
-		[ $$FILE != 'tmp' ] && $(ADB) shell rm -r $(MSYS_FIX)/data/local/$$FILE; \
+		[ $$FILE = 'tmp' ] || $(ADB) shell rm -r $(MSYS_FIX)/data/local/$$FILE; \
 	done);
 	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
-	$(ADB) shell rm -r $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/webapps
+	$(ADB) shell rm -r $(MSYS_FIX)/data/local/webapps
+	$(ADB) remount
+	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 
 # Build the settings.json file from settings.py
 ifeq ($(NOFTU), 1)
-SETTINGS_ARG=--noftu
+SETTINGS_ARG += --noftu
 endif
+
+ifeq ($(REMOTE_DEBUGGER), 1)
+SETTINGS_ARG += --enable-debugger
+endif
+
+ifeq ($(DEBUG),1)
+SETTINGS_ARG += --homescreen=http://homescreen.$(GAIA_DOMAIN):$(GAIA_PORT)/manifest.webapp
+SETTINGS_ARG += --noftu
+endif
+
 
 # We want the console to be disabled for device builds using the user variant.
 ifneq ($(TARGET_BUILD_VARIANT),user)
@@ -744,17 +772,22 @@ endif
 profile/settings.json:
 ifneq ($(HIDPI),*)
 	python build/settings.py --hidpi build/wallpaper@2x.jpg
-	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --hidpi --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@2x.jpg --override build/custom-settings.json --output $@
+	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --hidpi --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@2x.jpg --override $(SETTINGS_PATH) --output $@
 else
 	python build/settings.py build/wallpaper.jpg
-	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override build/custom-settings.json --output $@
+	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override $(SETTINGS_PATH) --output $@
 endif
 
-# push profile/settings.json to the phone
-install-settings-defaults: profile/settings.json
+# push profile/settings.json and profile/contacts.json (if CONTACTS_PATH defined) to the phone
+install-default-data: profile/settings.json contacts
 	$(ADB) shell stop b2g
 	$(ADB) remount
 	$(ADB) push profile/settings.json /system/b2g/defaults/settings.json
+ifdef CONTACTS_PATH
+	$(ADB) push profile/contacts.json /system/b2g/defaults/contacts.json
+else
+	$(ADB) shell rm /system/b2g/defaults/contacts.json
+endif
 	$(ADB) shell start b2g
 
 # clean out build products

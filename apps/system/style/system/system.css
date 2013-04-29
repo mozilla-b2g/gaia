@@ -2,23 +2,14 @@ html {
   font-size: 10px;
 }
 
-@media screen and (min-width: 480px) {
-  html {
-    font-size: 13.3px;
-  }
-}
-
 body {
   width: 100%;
   height: 100%;
-  margin: 0px;
-  padding: 0px;
-
+  margin: 0;
+  padding: 0;
   overflow: hidden;
-
   font-family: 'MozTT', sans-serif;
   color: #fff;
-  font-size: 12px;
 }
 
 #screen {
@@ -26,11 +17,10 @@ body {
   overflow: hidden;
   width: 100%;
   height: 100%;
-
   background-color: #000;
-  background-size: cover;
+  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
   background-repeat: no-repeat;
-  background-position: 50% 50%;
+  background-position: 50% 2rem;
 }
 
 #screen.screenoff {
@@ -70,26 +60,26 @@ body {
   display: block;
   position: absolute;
   border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  margin-left: -30px;
-  margin-top: -30px;
+  width: 6rem;
+  height: 6rem;
+  margin-left: -3rem;
+  margin-top: -3rem;
   left: 50%;
   opacity: 0;
 }
 
 #poweroff-ring-1 {
-  top: 120px;
+  top: 12rem;
   background-color: #e66600;
 }
 
 #poweroff-ring-2 {
-  top: 240px;
+  top: 24rem;
   background-color: #dc4e00;
 }
 
 #poweroff-ring-3 {
-  top: 360px;
+  top: 36rem;
   background-color: #d24500;
 }
 
@@ -101,10 +91,10 @@ body {
   left: 50%;
   margin: auto;
   background-color: black;
-  width: 40px;
-  height: 40px;
-  margin-top: -20px;
-  margin-left: -20px;
+  width: 4rem;
+  height: 4rem;
+  margin-top: -2rem;
+  margin-left: -2rem;
 }
 
 #poweroff-ring-2 > span {
@@ -209,12 +199,12 @@ body {
 
 #windows {
   position: absolute;
-  left: 0px;
+  left: 0rem;
   width: 100%;
   top: -100%;
   height: 0;
   max-height: 0;
-  border: 0px;
+  border: 0rem;
   overflow: hidden;
 }
 
@@ -231,7 +221,7 @@ body {
   padding: 0;
   overflow: hidden;
   left: 0;
-  top: 20px;
+  top: 2rem;
 
   /* Need to leave this in here to prevent flickering. */
   transform: scale(1);
@@ -247,7 +237,7 @@ body {
  * Gecko.  The performance issue should be fixed by
  * https://bugzilla.mozilla.org/show_bug.cgi?id=697645 or a related bug.
  *
-  border-radius: 8px;
+  border-radius: 0.8rem;
  */
 }
 
@@ -261,7 +251,7 @@ body {
 }
 
 #screen.active-statusbar #windows > .appWindow {
-  top: 40px;
+  top: 4rem;
 }
 
 #windows > .appWindow:not(.homescreen) {
@@ -276,31 +266,73 @@ body {
   visibility: hidden;
 }
 
-#windows > .appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening) {
+#windows > .appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening):not(.closing) {
+  opacity: 0;
+}
+
+#screen.switch-app > #windows > .appWindow.closing {
   opacity: 0;
   transform: scale(0.6);
 }
 
 #windows > .appWindow.opening {
-  transition: transform 0.25s ease, opacity 0.15s ease;
+  animation: openApp 0.3s forwards ease;
+  pointer-events: auto;
 }
 
 #windows.slow-transition > .appWindow.opening {
-  transition: transform 5s ease, opacity 3s ease;
+  animation: openApp 3s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.opening,
-#screen.cards-view > #windows > .appWindow.closing,
+#screen.cards-view > #windows > .appWindow.opening {
+  animation: openAppFromCardView 0.15s forwards ease;
+}
+
+#screen.cards-view > #windows.slow-transition > .appWindow.opening {
+  animation: openAppFromCardView 1.5s forwards ease;
+}
+
+/* Opacity increases start up time then we don't use it anymore for opening */
+@keyframes openApp {
+  0%   { transform: scale(0.1) }
+  100% { transform: scale(1.0) }
+}
+
+#windows > .appWindow.homescreen.zoom-in > iframe {
+  animation: zoom-in 0.3s forwards ease;
+}
+
+#windows.slow-transition > .appWindow.homescreen.zoom-in > iframe {
+  animation: zoom-in 3s forwards ease;
+}
+
+#screen.switch-app > #windows > .appWindow.homescreen.zoom-in > iframe,
+#screen.cards-view > #windows > .appWindow.homescreen.zoom-in > iframe {
+  animation: none;
+}
+
+@keyframes zoom-in {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.8); }
+}
+
+@keyframes openAppFromCardView {
+  0%   { transform: scale(0.8); }
+  100% { transform: scale(1.0); }
+}
+
 #screen.switch-app > #windows > .appWindow.opening,
 #screen.switch-app > #windows > .appWindow.closing {
   transition: transform 0.25s ease;
   visibility: inherit;
   opacity: 1;
+  animation: none;
 }
 
 #screen.switch-app > #windows.slow-transition > .appWindow.opening,
 #screen.switch-app > #windows.slow-transition > .appWindow.closing {
   transition: transform 5s ease;
+  animation: none;
 }
 
 #screen.switch-app > #windows > .appWindow.opening-card {
@@ -332,11 +364,50 @@ body {
 }
 
 #windows > .appWindow.closing {
-  transition: transform 0.25s ease, opacity 0.15s ease 0.1s;
+  animation: closeApp 0.3s forwards ease;
+  /* The animation takes .3 seconds so users cannot touch the app while the
+   * closing animation is performing */
+  pointer-events: none;
 }
 
 #windows.slow-transition > .appWindow.closing {
-  transition: transform 5s ease, opacity 3s ease 2s;
+  animation: closeApp 3s forwards ease;
+}
+
+#windows > .appWindow.homescreen.zoom-out > iframe {
+  animation: zoom-out 0.3s forwards ease;
+}
+
+#windows.slow-transition > .appWindow.homescreen.zoom-out > iframe {
+  animation: zoom-out 3s forwards ease;
+}
+
+#screen.switch-app > #windows > .appWindow.homescreen.zoom-out > iframe ,
+#screen.cards-view > #windows > .appWindow.homescreen.zoom-out > iframe {
+  animation: none;
+}
+
+@keyframes zoom-out {
+  0%   { transform: scale(1.8) }
+  100% { transform: scale(1) }
+}
+
+#screen.cards-view > #windows > .appWindow.closing {
+  animation: closeAppTowardsCardView 0.15s forwards ease;
+}
+
+#screen.cards-view > #windows.slow-transition > .appWindow.closing {
+  animation: closeAppTowardsCardView 1.5s forwards ease;
+}
+
+@keyframes closeApp {
+  0%   { transform: scale(1.0); opacity: 1; }
+  100% { transform: scale(0.1); opacity: 0; }
+}
+
+@keyframes closeAppTowardsCardView {
+  0%   { transform: scale(1.0); }
+  100% { transform: scale(0.8); }
 }
 
 #windows > .appWindow.inlineActivity,
@@ -371,12 +442,12 @@ body {
 #screen.attention > #windows > .appWindow.fullscreen-app,
 #screen.attention > #windowSprite,
 #screen.fullscreen-app.attention > #windowSprite {
-  height: calc(100% - 40px);
-  top: 40px;
+  height: calc(100% - 4rem);
+  top: 4rem;
 }
 
 #windowSprite.before-inline-activity {
-  transform: translateY(calc(100% - 1px));
+  transform: translateY(calc(100% - 0.1rem));
   opacity: 1;
   visibility: visible;
 }
@@ -463,17 +534,17 @@ iframe.backgroundWindow {
 
 #dialog-overlay {
   position: absolute;
-  top: 20px;
+  top: 2rem;
   left: 0;
   width: 100%;
-  height: calc(100% - 20px);
+  height: calc(100% - 2rem);
   visibility: hidden;
   pointer-events: none;
 }
 
 #screen.active-statusbar #dialog-overlay {
-  top: 40px;
-  height: calc(100% - 40px);
+  top: 4rem;
+  height: calc(100% - 4rem);
 }
 
 #screen:-moz-full-screen-ancestor #dialog-overlay,
@@ -538,23 +609,6 @@ iframe.backgroundWindow {
 
 #screen iframe.communication-frame {
   visibility: hidden;
-}
-
-/*
-  Styles for FTU starting
-*/
-
-#screen.ftu > [data-z-index-level="app"] > .appWindow.homescreen,
-#screen.ftu > [data-z-index-level="app"] > .appWindow.homescreen.active {
-  opacity: 0;
-}
-
-#screen.ftuStarting #lockscreen {
-  display: none;
-}
-
-#screen.ftuStarting #statusbar {
-  opacity: 0;
 }
 
 /* For app error */

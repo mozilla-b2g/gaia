@@ -50,11 +50,17 @@ var Settings = {
       var spanField = document.querySelector(rule);
       if (spanField) {
         // check whether this setting comes from a select option
-        rule = '[data-setting="' + key + '"] [value="' + value + '"]';
-        var option = document.querySelector(rule);
-        if (option) {
-          spanField.dataset.l10nId = option.dataset.l10nId;
-          spanField.textContent = option.textContent;
+        var options = document.querySelector('select[data-setting="' +
+          key + '"]');
+        if (options) {
+          // iterate option matching
+          var max = options.length;
+          for (var i = 0; i < max; i++) {
+            if (options[i] && options[i].value === value) {
+              spanField.dataset.l10nId = options[i].dataset.l10nId;
+              spanField.textContent = options[i].textContent;
+            }
+          }
         } else {
           spanField.textContent = value;
         }
@@ -76,7 +82,9 @@ var Settings = {
           if (input.value == value)
             return;
           input.value = value;
-          input.refresh(); // XXX to be removed when bug344618 lands
+          if (input.refresh) {
+            input.refresh(); // XXX to be removed when bug344618 lands
+          }
           break;
         case 'select':
           for (var i = 0; i < input.options.length; i++) {
@@ -124,7 +132,7 @@ var Settings = {
     // activate all scripts
     var scripts = panel.querySelectorAll('script');
     for (var i = 0; i < scripts.length; i++) {
-      var src = scripts[i].getAttribute('src')
+      var src = scripts[i].getAttribute('src');
       if (document.head.querySelector('script[src="' + src + '"]')) {
         continue;
       }
@@ -183,6 +191,10 @@ var Settings = {
   // without these, so we keep this around most of the time.
   _settingsCache: null,
 
+  get settingsCache() {
+    return this._settingsCache;
+  },
+
   // True when a request has already been made to fill the settings
   // cache.  When this is true, no further get("*") requests should be
   // made; instead, pending callbacks should be added to
@@ -192,7 +204,7 @@ var Settings = {
   // There can be race conditions in which we need settings values,
   // but haven't filled the cache yet.  This array tracks those
   // listeners.
-  _pendingSettingsCallbacks: [ ],
+  _pendingSettingsCallbacks: [],
 
   // Invoke |callback| with a request object for a successful fetch of
   // settings values, when those values are ready.
@@ -244,6 +256,16 @@ var Settings = {
         }
       }
 
+      // remove initial class so the swich animation will apply
+      // on these toggles if user interact with it.
+      setTimeout(function() {
+        for (var i = 0; i < checkboxes.length; i++) {
+          if (checkboxes[i].classList.contains('initial')) {
+            checkboxes[i].classList.remove('initial');
+          }
+        }
+      }, 0);
+
       // preset all radio buttons
       rule = 'input[type="radio"]:not([data-ignore])';
       var radios = panel.querySelectorAll(rule);
@@ -271,7 +293,9 @@ var Settings = {
         var key = ranges[i].name;
         if (key && result[key] != undefined) {
           ranges[i].value = parseFloat(result[key]);
-          ranges[i].refresh(); // XXX to be removed when bug344618 lands
+          if (ranges[i].refresh) {
+            ranges[i].refresh(); // XXX to be removed when bug344618 lands
+          }
         }
       }
 
@@ -282,12 +306,15 @@ var Settings = {
         // link the button with the select element
         var index = select.selectedIndex;
         if (index >= 0) {
-          button.textContent = select.options[index].textContent;
+          var selection = select.options[index];
+          button.textContent = selection.textContent;
+          button.dataset.l10nId = selection.dataset.l10nId;
         }
         if (parent.classList.contains('fake-select')) {
           select.addEventListener('change', function() {
-            var newSelect = this.options[this.selectedIndex].textContent;
-            button.textContent = newSelect;
+            var newSelection = this.options[this.selectedIndex];
+            button.textContent = newSelection.textContent;
+            button.dataset.l10nId = newSelection.dataset.l10nId;
           });
         }
       };
@@ -536,7 +563,27 @@ window.addEventListener('load', function loadSettings() {
   window.addEventListener('change', Settings);
 
   Settings.init();
-  handleDataConnectivity();
+  handleRadioAndCardState();
+
+  setTimeout(function() {
+    var scripts = [
+      'js/utils.js',
+      'shared/js/mouse_event_shim.js',
+      'js/airplane_mode.js',
+      'js/battery.js',
+      'js/app_storage.js',
+      'js/media_storage.js',
+      'shared/js/mobile_operator.js',
+      'js/connectivity.js',
+      'js/security_privacy.js',
+      'js/icc_menu.js'
+    ];
+    scripts.forEach(function attachScripts(src) {
+      var script = document.createElement('script');
+      script.src = src;
+      document.head.appendChild(script);
+    });
+  });
 
   // panel lazy-loading
   function lazyLoad(panel) {
@@ -579,12 +626,24 @@ window.addEventListener('load', function loadSettings() {
           for (var lang in languages) {
             var option = document.createElement('option');
             option.value = lang;
-            option.textContent = languages[lang];
+            // Right-to-Left (RTL) languages:
+            // (http://www.w3.org/International/questions/qa-scripts)
+            // Arabic, Hebrew, Farsi, Pashto, Urdu
+            var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+            // Use script direction control-characters to wrap the text labels
+            // since markup (i.e. <bdo>) does not work inside <option> tags
+            // http://www.w3.org/International/tutorials/bidi-xhtml/#nomarkup
+            var lEmbedBegin =
+                (rtlList.indexOf(lang) >= 0) ? '&#x202B;' : '&#x202A;';
+            var lEmbedEnd = '&#x202C;';
+            // The control-characters enforce the language-specific script
+            // direction to correctly display the text label (Bug #851457)
+            option.innerHTML = lEmbedBegin + languages[lang] + lEmbedEnd;
             option.selected = (lang == document.documentElement.lang);
             langSel.appendChild(option);
           }
         });
-        Settings.updateLanguagePanel();
+        setTimeout(Settings.updateLanguagePanel);
         break;
       case 'mediaStorage':        // full media storage status + panel startup
         MediaStorage.initUI();
@@ -608,6 +667,10 @@ window.addEventListener('load', function loadSettings() {
   var oldHash = window.location.hash || '#root';
   function showPanel() {
     var hash = window.location.hash;
+
+    if (hash === '#wifi') {
+      PerformanceTestingHelper.dispatch('start');
+    }
 
     var oldPanel = document.querySelector(oldHash);
     var newPanel = document.querySelector(hash);
@@ -654,28 +717,48 @@ window.addEventListener('load', function loadSettings() {
 
         oldPanel.addEventListener('transitionend', function onTransitionEnd() {
           oldPanel.removeEventListener('transitionend', onTransitionEnd);
-          // Workaround for bug 825622, remove when fixed
-          if (newPanel.id == 'about-licensing') {
-            var iframe = document.getElementById('os-license');
-            iframe.src = iframe.dataset.src;
+          switch (newPanel.id) {
+            case 'about-licensing':
+              // Workaround for bug 825622, remove when fixed
+              var iframe = document.getElementById('os-license');
+              iframe.src = iframe.dataset.src;
+              break;
+            case 'wifi':
+              PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
+              break;
           }
         });
       });
     });
   }
 
-  function handleDataConnectivity() {
-    function updateDataConnectivity(disabled) {
-      var item = document.querySelector('#data-connectivity');
-      var link = document.querySelector('#menuItem-cellularAndData');
+  function handleRadioAndCardState() {
+    function updateDataSubpanelItem(disabled) {
+      var item = document.getElementById('data-connectivity');
+      var link = document.getElementById('menuItem-cellularAndData');
       if (!item || !link)
         return;
 
       if (disabled) {
         item.classList.add('carrier-disabled');
-        link.onclick = function() { return false; }
+        link.onclick = function() { return false; };
       } else {
         item.classList.remove('carrier-disabled');
+        link.onclick = null;
+      }
+    }
+
+    function updateCallSubpanelItem(disabled) {
+      var item = document.getElementById('call-settings');
+      var link = document.getElementById('menuItem-callSettings');
+      if (!item || !link)
+        return;
+
+      if (disabled) {
+        item.classList.add('call-settings-disabled');
+        link.onclick = function() { return false; };
+      } else {
+        item.classList.remove('call-settings-disabled');
         link.onclick = null;
       }
     }
@@ -688,10 +771,13 @@ window.addEventListener('load', function loadSettings() {
 
     var req = settings.createLock().get(key);
     req.onsuccess = function() {
-      updateDataConnectivity(req.result[key]);
+      var value = req.result[key];
+      updateDataSubpanelItem(value);
+      updateCallSubpanelItem(value);
     };
     settings.addObserver(key, function(evt) {
-      updateDataConnectivity(evt.settingValue);
+      updateDataSubpanelItem(evt.settingValue);
+      updateCallSubpanelItem(evt.settingValue);
     });
   }
 
@@ -750,3 +836,6 @@ window.addEventListener('localized', function showLanguages() {
 // Do initialization work that doesn't depend on the DOM, as early as
 // possible in startup.
 Settings.preInit();
+
+MouseEventShim.trackMouseMoves = false;
+

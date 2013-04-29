@@ -31,7 +31,8 @@ var PermissionManager = (function() {
     }
     if (detail.fullscreenorigin != WindowManager.getDisplayedApp()) {
       // The message to be displayed on the approval UI.
-      var message = _('fullscreen-request', { 'origin': detail.fullscreenorigin });
+      var message =
+        _('fullscreen-request', { 'origin': detail.fullscreenorigin });
       fullscreenRequest = requestPermission(message,
                                             /* yesCallback */ null,
                                             /* noCallback */ function() {
@@ -198,6 +199,21 @@ var PermissionManager = (function() {
   rememberSection.addEventListener('click', function onLabelClick() {
     remember.checked = !remember.checked;
   });
+
+  function discardPermissionRequest() {
+    if (currentRequestId == undefined)
+      return;
+
+    dispatchResponse(currentRequestId, 'permission-deny', false);
+    hidePermissionPrompt();
+  };
+
+  // On home/holdhome pressed, discard permission request.
+  // XXX: We should make permission dialog be embededd in appWindow
+  // Gaia bug is https://bugzilla.mozilla.org/show_bug.cgi?id=853711
+  // Gecko bug is https://bugzilla.mozilla.org/show_bug.cgi?id=852013
+  window.addEventListener('home', discardPermissionRequest);
+  window.addEventListener('holdhome', discardPermissionRequest);
 
 }());
 

@@ -1,11 +1,7 @@
-
 // Send these sites a custom user-agent. Bugs to remove each override after
 // evangelism are included.
-pref("general.useragent.override.facebook.com", "\(Mobile#(Android; Mobile"); // bug 827635
 pref("general.useragent.override.youtube.com", "\(Mobile#(Android; Mobile"); // bug 827636
-pref("general.useragent.override.yelp.com", "\(Mobile#(Android; Mobile"); // bug 799884 
-pref("general.useragent.override.dailymotion.com", "\(Mobile#(Android; Mobile"); // bug 827638
-pref("general.useragent.override.accounts.google.com", "\(Mobile#(Android; Mobile"); // bug 805164 
+pref("general.useragent.override.accounts.google.com", "\(Mobile#(Android; Mobile"); // bug 805164
 pref("general.useragent.override.maps.google.com", "\(Mobile#(Android; Mobile"); // bug 802981
 pref("general.useragent.override.uol.com.br", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 826330
 pref("general.useragent.override.live.com", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 826332
@@ -53,7 +49,6 @@ pref("general.useragent.override.scribd.com", "\(Mobile#(Android; Mobile"); // b
 pref("general.useragent.override.elpais.com.co", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 827670
 pref("general.useragent.override.olx.com.co", "\(Mobile#(Android; Mobile"); // bug 827672
 pref("general.useragent.override.avianca.com", "\(Mobile#(Android; Mobile"); // bug 827674
-pref("general.useragent.override.dropbox.com", "\(Mobile#(Android; Mobile"); // bug 827676
 pref("general.useragent.override.marca.com", "\(Mobile#(Android; Mobile"); // bug 827678
 pref("general.useragent.override.wp.pl", "\(Mobile#(Android; Mobile"); // bug 828351
 pref("general.useragent.override.gazeta.pl", "\(Mobile#(Android; Mobile"); // bug 828354
@@ -80,7 +75,6 @@ pref("general.useragent.override.antena3.com", "\(Mobile#(Android; Mobile"); // 
 pref("general.useragent.override.ingdirect.es", "\(Mobile#(Android; Mobile"); // bug 828401
 pref("general.useragent.override.fotocasa.es", "\(Mobile#(Android; Mobile"); // bug 828403
 pref("general.useragent.override.orange.es", "\(Mobile#(Android; Mobile"); // bug 828406
-pref("general.useragent.override.stackoverflow.com", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 828408
 pref("general.useragent.override.amazon.co.uk", "\(Mobile#(Android; Mobile"); // bug 828412
 pref("general.useragent.override.paginasamarillas.es", "\(Mobile#(Android; Mobile"); // bug 828414
 pref("general.useragent.override.loteriasyapuestas.es", "\(Mobile#(Android; Mobile"); // bug 828416
@@ -89,11 +83,9 @@ pref("general.useragent.override.booking.com", "\(Mobile#(Android; Mobile"); // 
 pref("general.useragent.override.publico.es", "\(Mobile#(Android; Mobile"); // bug 828422
 pref("general.useragent.override.mercadolibre.com.ve", "\(Mobile#(Android; Mobile"); // bug 828425
 pref("general.useragent.override.lapatilla.com", "\(Mobile#(Android; Mobile"); // bug 828428
-pref("general.useragent.override.meridiano.com.ve", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 828430
 pref("general.useragent.override.espn.go.com", "\(Mobile#(Android; Mobile"); // bug 828431
 pref("general.useragent.override.olx.com.ve", "\(Mobile#(Android; Mobile"); // bug 828433
 pref("general.useragent.override.rincondelvago.com", "\(Mobile#(Android; Mobile"); // bug 828435
-pref("general.useragent.override.avn.info.ve", "\(Mobile#(Android; Mobile"); // bug 828437
 pref("general.useragent.override.movistar.com.ve", "\(Mobile#(Android; Mobile"); // bug 828439
 pref("general.useragent.override.laverdad.com", "\(Mobile#(Android; Mobile"); // bug 828441
 pref("general.useragent.override.despegar.com.ve", "\(Mobile#(Android; Mobile"); // bug 828443
@@ -137,3 +129,4 @@ pref("general.useragent.override.txt2nite.com", "\(Mobile#(Android; Mobile"); //
 pref("general.useragent.override.slashgear.com", "\(Mobile#(Android; Mobile"); // bug 843181
 pref("general.useragent.override.thechive.com", "\(Mobile#(Android; Mobile"); // bug 843183
 pref("general.useragent.override.chevrolet.com", "\(Mobile#(Android; Mobile"); // bug 843186
+pref("general.useragent.override.deadline.com", "\(Mobile#(Android; Mobile"); // bug 848854

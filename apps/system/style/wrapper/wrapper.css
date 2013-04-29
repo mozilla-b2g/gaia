@@ -1,12 +1,11 @@
-
 #wrapper-activity-indicator {
   position: fixed;
-  top: 20px; /* This is the status bar height */
+  top: 2rem; /* This is the status bar height */
   left: 0;
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 4px;
+  height: 0.3rem;
   background-image: url('../shared/progress.gif');
 
   pointer-events: none;
@@ -14,8 +13,6 @@
 }
 
 #wrapper-activity-indicator.visible {
-  -moz-transition-delay: .5s; /* Delay opening a wrapper */
-  -moz-transition-property: visibility;
   visibility: visible;
 }
 
@@ -80,18 +77,22 @@
 
 #back-button {
   background-image: url("images/back.png");
+  background-size: 2rem;
 }
 
 #forward-button {
   background-image: url("images/forward.png");
+  background-size: 3rem;
 }
 
 #reload-button {
   background-image: url("images/reload.png");
+  background-size: 2.6rem;
 }
 
 #bookmark-button {
   background-image: url("images/bookmark.png");
+  background-size: 3rem;
 }
 
 #bookmark-button[data-disabled] {
@@ -100,6 +101,7 @@
 
 #close-button {
   background-image: url("images/close.png");
+  background-size: 2.1rem;
 }
 
 #wrapper-footer menu button[data-disabled] {

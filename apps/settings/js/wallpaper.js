@@ -54,15 +54,12 @@ var Wallpaper = {
           navigator.mozSettings.createLock().set({
             'wallpaper.image': reader.result
           });
-        }
-
-        self.preview.src = a.result.url;
-        settings.createLock().set({'wallpaper.image': a.result.url});
+        };
       };
       a.onerror = function onPickError() {
         console.warn('pick failed!');
       };
-    }
+    };
     this.preview.addEventListener('click', onWallpaperClick);
     this.button.addEventListener('click', onWallpaperClick);
   }

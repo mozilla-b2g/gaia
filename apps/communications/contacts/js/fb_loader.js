@@ -27,7 +27,7 @@ var fbLoader = (function() {
     document.body.appendChild(iframesFragment);
 
     var scripts = [
-      '/contacts/js/fb_extensions.js',
+      '/contacts/js/service_extensions.js',
       '/contacts/oauth2/js/parameters.js',
       '/contacts/js/fb/fb_utils.js',
       '/contacts/js/fb/fb_query.js',
@@ -39,26 +39,10 @@ var fbLoader = (function() {
       '/contacts/js/fb/fb_data.js'
     ];
 
-    var fragment = document.createDocumentFragment();
-
-    var onScriptLoaded = function onScriptLoaded() {
-      scriptsLoaded++;
-      if (scriptsLoaded === scripts.length) {
-        var event = new CustomEvent('facebookLoaded');
-        window.dispatchEvent(event);
-      }
-    };
-
-    for (var i = 0; i < scripts.length; i++) {
-      var script = scripts[i];
-      var elem = document.createElement('script');
-      elem.setAttribute('type', 'text/javascript');
-      elem.src = script;
-      elem.addEventListener('load', onScriptLoaded);
-      fragment.appendChild(elem);
-    }
-
-    document.head.appendChild(fragment);
+    LazyLoader.load(scripts, function() {
+      var event = new CustomEvent('facebookLoaded');
+      window.dispatchEvent(event);
+    });
   };
 
   return {

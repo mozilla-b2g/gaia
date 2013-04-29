@@ -1,3 +1,4 @@
+
 /**
  * Implements a fake account type for UI testing/playing only.
  **/
@@ -21,7 +22,7 @@ define('mailapi/fake/account',
  *  reversible names.  To keep things easily reversible, if you add names, make
  *  sure they have no spaces in them!
  */
-const FIRST_NAMES = [
+var FIRST_NAMES = [
   "Andy", "Bob", "Chris", "David", "Emily", "Felix",
   "Gillian", "Helen", "Idina", "Johnny", "Kate", "Lilia",
   "Martin", "Neil", "Olof", "Pete", "Quinn", "Rasmus",
@@ -34,7 +35,7 @@ const FIRST_NAMES = [
  *  reversible names.  To keep things easily reversible, if you add names, make
  *  sure they have no spaces in them!
  */
-const LAST_NAMES = [
+var LAST_NAMES = [
   "Anway", "Bell", "Clarke", "Davol", "Ekberg", "Flowers",
   "Gilbert", "Hook", "Ivarsson", "Jones", "Kurtz", "Lowe",
   "Morris", "Nagel", "Orzabal", "Price", "Quinn", "Rolinski",
@@ -48,7 +49,7 @@ const LAST_NAMES = [
  *  make sure they have no spaces in them!  Also, make sure your additions
  *  don't break the secret Monty Python reference!
  */
-const SUBJECT_ADJECTIVES = [
+var SUBJECT_ADJECTIVES = [
   "Big", "Small", "Huge", "Tiny",
   "Red", "Green", "Blue", "My",
   "Happy", "Sad", "Grumpy", "Angry",
@@ -61,7 +62,7 @@ const SUBJECT_ADJECTIVES = [
  *  make sure they have no spaces in them!  Also, make sure your additions
  *  don't break the secret Monty Python reference!
  */
-const SUBJECT_NOUNS = [
+var SUBJECT_NOUNS = [
   "Meeting", "Party", "Shindig", "Wedding",
   "Document", "Report", "Spreadsheet", "Hovercraft",
   "Aardvark", "Giraffe", "Llama", "Velociraptor",
@@ -73,7 +74,7 @@ const SUBJECT_NOUNS = [
  *  by MessageGenerator.  These can (clearly) have spaces in them.  Make sure
  *  your additions don't break the secret Monty Python reference!
  */
-const SUBJECT_SUFFIXES = [
+var SUBJECT_SUFFIXES = [
   "Today", "Tomorrow", "Yesterday", "In a Fortnight",
   "Needs Attention", "Very Important", "Highest Priority", "Full Of Eels",
   "In The Lobby", "On Your Desk", "In Your Car", "Hiding Behind The Door",
@@ -204,12 +205,12 @@ MessageGenerator.prototype = {
                   SUBJECT_SUFFIXES.length;
     return SUBJECT_ADJECTIVES[iAdjective] + " " +
            SUBJECT_NOUNS[iNoun] + " " +
-           SUBJECT_SUFFIXES[iSuffix];
+           SUBJECT_SUFFIXES[iSuffix] + " #" + aSubjectNumber;
   },
 
   /**
    * Fabricate a message-id suitable for the given synthetic message.  Although
-   *  we don't use the message yet, in theory it would var us tailor the
+   *  we don't use the message yet, in theory it would let us tailor the
    *  message id to the server that theoretically might be sending it.  Or some
    *  such.
    *
@@ -313,11 +314,6 @@ MessageGenerator.prototype = {
    *     contents of the headers object.  This should only be used to construct
    *     illegal header values; general usage should use another explicit
    *     mechanism.
-   * @param [aArgs.junk] Should this message be flagged as junk for the benefit
-   *     of the messageInjection helper so that it can know to flag the message
-   *     as junk?  We have no concept of marking a message as definitely not
-   *     junk at this point.
-   * @param [aArgs.read] Should this message be marked as already read?
    * @returns a SyntheticMessage fashioned just to your liking.
    */
   makeMessage: function makeMessage(aArgs) {
@@ -330,7 +326,7 @@ MessageGenerator.prototype = {
               '@mozgaia',
       author: null,
       date: null,
-      flags: [],
+      flags: aArgs.flags || [],
       hasAttachments: false,
       subject: null,
       snippet: null,
@@ -369,7 +365,7 @@ MessageGenerator.prototype = {
     if (aArgs.age) {
       var age = aArgs.age;
       // start from 'now'
-      var ts = this._clock || Date.now();
+      var ts = this._clock.valueOf() || Date.now();
       if (age.seconds)
         ts -= age.seconds * 1000;
       if (age.minutes)
@@ -418,7 +414,9 @@ MessageGenerator.prototype = {
         '3: ...\n' +
         '\nIt is a tiny screen we target, thank goodness!';
     }
-    bodyInfo.bodyReps = ['plain', [0x1, bodyText]];
+    bodyInfo.bodyReps = [
+      { type: 'plain', content: [0x1, bodyText] }
+    ];
 
     if (this._mode === 'info') {
       return {
@@ -434,6 +432,7 @@ MessageGenerator.prototype = {
         body: bodyText,
         to: this._formatAddresses(bodyInfo.to),
       };
+
       if (bodyInfo.cc)
         messageOpts.cc = this._formatAddresses(bodyInfo.cc);
 
@@ -469,7 +468,8 @@ MessageGenerator.prototype = {
         bodyInfo: bodyInfo,
         // XXX mailcomposer is tacking newlines onto the end of the message that
         // we don't want.  Ideally we want to fix mailcomposer...
-        messageText: data.trimRight()
+        messageText: data.trimRight(),
+        flags: headerInfo.flags
       };
     }
   },
@@ -478,8 +478,8 @@ MessageGenerator.prototype = {
     count: 10,
   },
   MAKE_MESSAGES_PROPAGATE: ['attachments', 'body',
-                            'cc', 'from', 'to', 'inReplyTo',
-                            'subject', 'clobberHeaders', 'junk', 'read'],
+                            'cc', 'flags', 'from', 'to', 'inReplyTo',
+                            'subject', 'clobberHeaders'],
   /**
    * Given a set definition, produce a list of synthetic messages.
    *
@@ -615,7 +615,7 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
     address: ourIdentity.address,
   };
 
-  const HOURS_MS = 60 * 60 * 1000;
+  var HOURS_MS = 60 * 60 * 1000;
   var inboxFolder = {
     id: this.id + '/0',
     name: 'Inbox',
@@ -735,6 +735,11 @@ FakeAccount.prototype = {
     throw new Error('XXX not implemented');
   },
 
+  getFolderMetaForFolderId: function(folderId) {
+    // Just always return null
+    return null;
+  },
+
   sliceFolderMessages: function fa_sliceFolderMessages(folderId, bridgeHandle) {
     return this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
   },
@@ -779,7 +784,7 @@ FakeFolderStorage.prototype = {
 };
 
 }); // end define
-
+;
 /**
  * Configurator for fake
  **/
@@ -890,4 +895,4 @@ exports.configurator = {
 };
 
 }); // end define
-
+;

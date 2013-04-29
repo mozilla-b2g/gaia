@@ -1,11 +1,18 @@
-html, body {
+html {
+  font-size: 10px;
+}
+
+html,body {
   width: 100%;
   height: 100%;
   overflow: hidden;
   margin: 0;
   color: white;
   font-family: 'MozTT', sans-serif;
-  font-size: 10px;
+}
+
+.font-light {
+  font-weight: 300;
 }
 
 a {
@@ -79,12 +86,12 @@ body.hidden *[data-l10n-id] {
   height: 100% !important;
 }
 
-.with-keyboard [role="tablist"] [role="tab"] > a{
+.with-keyboard [role="tablist"] [role="tab"] > a {
   display: none;
 }
 
 /* Making lazy loading look nice */
-#iframe-contacts,
+#contacts-view [role="tabpanel"],
 #recents-view.hidden [role="tabpanel"] {
   background-image: url(/shared/style/headers/images/ui/header.png),
                     url(/shared/style/headers/images/ui/shadow.png);
@@ -93,6 +100,14 @@ body.hidden *[data-l10n-id] {
   background-size: 100% 5rem, 100% 0.3rem;
 }
 
+#iframe-contacts-container {
+  overflow: hidden;
+}
+
 #recents-view.hidden [role="tabpanel"] section {
-  visibility: hidden;
+  display:none;
+}
+
+.no-opacity {
+  opacity: 0 !important;
 }

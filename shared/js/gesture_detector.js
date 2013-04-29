@@ -159,7 +159,7 @@ var GestureDetector = (function() {
     var event = this.element.ownerDocument.createEvent('CustomEvent');
     event.initCustomEvent(type, true, true, detail);
     this.target.dispatchEvent(event);
-  }
+  };
 
   //
   // Tuneable parameters

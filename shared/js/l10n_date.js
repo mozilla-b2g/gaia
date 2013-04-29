@@ -61,6 +61,11 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
           value = d.getDate();
           break;
 
+        // like %d, without any leading zero
+        case '%p':
+          value = d.getHours() <= 12 ? 'AM' : 'PM';
+          break;
+
         // localized date/time strings
         case '%c':
         case '%x':
@@ -81,8 +86,47 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
     return format;
   }
 
-  // variant of John Resig's PrettyDate.js
-  function prettyDate(time, useCompactFormat) {
+  /**
+   * Returns the parts of a number of seconds
+   */
+  function relativeParts(seconds) {
+    seconds = Math.abs(seconds);
+    var descriptors = {};
+    var units = [
+      'years', 86400 * 365,
+      'months', 86400 * 30,
+      'weeks', 86400 * 7,
+      'days', 86400,
+      'hours', 3600,
+      'minutes', 60
+    ];
+
+    if (seconds < 60) {
+      return {
+        minutes: Math.round(seconds / 60)
+      };
+    }
+
+    for (var i = 0, uLen = units.length; i < uLen; i += 2) {
+      var value = units[i + 1];
+      if (seconds >= value) {
+        descriptors[units[i]] = Math.floor(seconds / value);
+        seconds -= descriptors[units[i]] * value;
+      }
+    }
+    return descriptors;
+  }
+
+  /**
+   * Returns a translated string which respresents the
+   * relative time before or after a date.
+   * @param {String|Date} time before/after the currentDate.
+   * @param {String} useCompactFormat whether to use a compact display format.
+   * @param {Number} maxDiff returns a formatted date if the diff is greater.
+   */
+  function prettyDate(time, useCompactFormat, maxDiff) {
+    maxDiff = maxDiff || 86400 * 10; // default = 10 days
+
     switch (time.constructor) {
       case String: // timestamp
         time = parseInt(time);
@@ -97,33 +141,17 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
       return _('incorrectDate');
     }
 
+    if (secDiff > maxDiff) {
+      return localeFormat(new Date(time), '%x');
+    }
+
     var f = useCompactFormat ? '-short' : '-long';
+    var parts = relativeParts(secDiff);
 
-    if (secDiff >= 0) { // past
-      var dayDiff = Math.floor(secDiff / 86400);
-      if (secDiff < 3600) {
-        return _('minutesAgo' + f, { m: Math.floor(secDiff / 60) });
-      } else if (dayDiff === 0) {
-        return _('hoursAgo' + f, { h: Math.floor(secDiff / 3600) });
-      } else if (dayDiff < 10) {
-        return _('daysAgo' + f, { d: dayDiff });
-      }
+    var affix = secDiff >= 0 ? '-ago' : '-until';
+    for (var i in parts) {
+      return _(i + affix + f, { value: parts[i]});
     }
-
-    if (secDiff < 0) { // future
-      secDiff = -secDiff;
-      dayDiff = Math.floor(secDiff / 86400);
-      if (secDiff < 3600) {
-        return _('inMinutes' + f, { m: Math.floor(secDiff / 60) });
-      } else if (dayDiff === 0) {
-        return _('inHours' + f, { h: Math.floor(secDiff / 3600) });
-      } else if (dayDiff < 10) {
-        return _('inDays' + f, { d: dayDiff });
-      }
-    }
-
-    // too far: return an absolute date
-    return localeFormat(new Date(time), '%x');
   }
 
   // API
@@ -138,7 +166,7 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
       return localeFormat(d, '%c');
     },
     localeFormat: localeFormat,
-    fromNow: prettyDate
+    fromNow: prettyDate,
+    relativeParts: relativeParts
   };
 };
-

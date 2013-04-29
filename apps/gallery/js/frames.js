@@ -99,6 +99,10 @@ function deleteSingleItem() {
     msg = navigator.mozL10n.get('delete-photo?');
   }
   if (confirm(msg)) {
+    // disable delete and share button to prevent operations while delete item
+    $('fullscreen-delete-button').classList.add('disabled');
+    $('fullscreen-share-button').classList.add('disabled');
+
     deleteFile(currentFileIndex);
   }
 }
@@ -144,6 +148,14 @@ function singletap(e) {
 
 // Quick zoom in and out with dbltap events
 function doubletapOnPhoto(e) {
+  // Don't allow zooming while we're still scanning for photos and
+  // have found large photos without previews on the card.  Zooming in
+  // decodes the full-size version of the photo and that can cause OOM
+  // errors if there is also metadata scanning going on with large images.
+  // XXX: Remove this when bug 854795 is fixed.
+  if (scanningBigImages)
+    return;
+
   var scale;
   if (currentFrame.fit.scale > currentFrame.fit.baseScale)   // If zoomed in
     scale = currentFrame.fit.baseScale / currentFrame.fit.scale; // zoom out
@@ -269,6 +281,14 @@ function transformHandler(e) {
   if (transitioning)
     return;
 
+  // Don't allow zooming while we're still scanning for photos and
+  // have found large photos without previews on the card.  Zooming in
+  // decodes the full-size version of the photo and that can cause OOM
+  // errors if there is also metadata scanning going on with large images.
+  // XXX: Remove this when bug 854795 is fixed.
+  if (scanningBigImages)
+    return;
+
   currentFrame.zoom(e.detail.relative.scale,
                     e.detail.midpoint.clientX,
                     e.detail.midpoint.clientY);
@@ -350,6 +370,9 @@ function showFile(n) {
     $('fullscreen-edit-button').classList.add('disabled');
   else
     $('fullscreen-edit-button').classList.remove('disabled');
+  // Always bring delete and share button back after show file
+  $('fullscreen-delete-button').classList.remove('disabled');
+  $('fullscreen-share-button').classList.remove('disabled');
 }
 
 // Transition to the next file, animating it over the specified time (ms).

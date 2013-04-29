@@ -24,10 +24,12 @@ var CaptivePortal = {
         currentNetwork.ssid : '';
     var message = _('captive-wifi-available', { networkName: networkName });
 
-    if (WindowManager.isFtuRunning()) {
+    if (FtuLauncher.isFtuRunning()) {
       settings.createLock().set({'wifi.connect_via_settings': false});
 
-      this.entrySheet = new EntrySheet(document.getElementById('screen'), url, new BrowserFrame(url));
+      this.entrySheet = new EntrySheet(document.getElementById('screen'),
+                                      url,
+                                      new BrowserFrame(url));
       this.entrySheet.open();
       return;
     }
@@ -37,7 +39,8 @@ var CaptivePortal = {
         id: id, title: '', text: message, icon: icon
       });
       this.captiveNotification_onTap = function() {
-        self.notification.removeEventListener('tap', self.captiveNotification_onTap);
+        self.notification.removeEventListener('tap',
+                                              self.captiveNotification_onTap);
         self.captiveNotification_onTap = null;
         NotificationScreen.removeNotification(id);
         new MozActivity({
@@ -63,7 +66,8 @@ var CaptivePortal = {
     if (id === this.eventId) {
       if (this.notification && this.notification.parentNode) {
         if (this.captiveNotification_onTap) {
-          this.notification.removeEventListener('tap', this.captiveNotification_onTap);
+          this.notification.removeEventListener('tap',
+                                                this.captiveNotification_onTap);
           this.captiveNotification_onTap = null;
         }
         NotificationScreen.removeNotification(id);
@@ -94,9 +98,10 @@ var CaptivePortal = {
 
     // Using settings API to know whether user is manually selecting
     // wifi AP from settings app.
-    SettingsListener.observe('wifi.connect_via_settings', true, function(value) {
-      self.isManualConnect = value;
-    });
+    SettingsListener.observe('wifi.connect_via_settings', true,
+      function(value) {
+        self.isManualConnect = value;
+      });
   }
 };
 

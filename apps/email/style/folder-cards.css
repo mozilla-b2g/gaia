@@ -4,6 +4,7 @@
 .fld-accounts-header {
 }
 .fld-accounts-header-label {
+  color: red;
 }
 
 .fld-account-item, .fld-folder-item, .fld-folder-list-header {
@@ -20,7 +21,8 @@
   font-weight: bold;
 }
 .fld-account-name {
-  font-size: 2rem;
+  font-size: 1.7rem;
+  padding: 0 1rem;
 }
 .fld-account-problem {
   color: red;
@@ -32,38 +34,33 @@
   display: none;
 }
 
-.card-folder-picker {
+.card-folder-picker,
+.card-account-picker {
   box-shadow: inset 0 0 1rem black;
   background-color: rgba(0, 0, 0, 0.6);
   color: white;
 }
 
-.folder-scoller-region {
-  background-color: white;
-  background: url(images/pattern.png) repeat left top #3a4446;
+.fld-folders-container,
+.acct-scroller-region {
+  background: #3a4446 url(images/pattern.png);
   background-size: auto auto, 100% 100%;
-  overflow: hidden;
-}
-
-.fld-accounts-container, .fld-folders-container {
-  -moz-transition: transform .2s ease-in;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
 .fld-folders-container {
-  -moz-transform: translateX(100%);
-  height: calc(100% - 4.8rem);
+  padding-bottom: 9.6rem;
 }
 
-.fld-accounts-container {
-  position: absolute;
-  width: 100%;
-  -moz-transform: translateX(-100%);
-  height: calc(100% - 9.8rem);
+.folder-scroller-region.scrollregion-below-header,
+.acct-scroller-region.scrollregion-below-header {
+  height: calc(100% - 5rem);
 }
 
-.folder-scoller-region .show {
-  -moz-transform: translateX(0px);
+.fld-folders-container {
+  -moz-transition: transform .2s ease-in;
+  overflow-y: auto;
 }
 
 .fld-accounts-btn {
@@ -79,7 +76,7 @@
   border-bottom: none;
 }
 .fld-folder-item.fld-folder-selected {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: #008caa;
   font-weight: bold;
 }
 .fld-folder-unselectable {
@@ -91,25 +88,26 @@
   background: #008aaa;
 }
 .fld-folder-name {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
 }
 .fld-folder-unread {
   display: none;
 }
 
 .fld-folder-depth0 {
+  padding-left: 1.5rem;
 }
 .fld-folder-depth1 {
-  padding-left: 3.5rem;
+  padding-left: 3rem;
 }
 .fld-folder-depth2 {
-  padding-left: 5rem;
+  padding-left: 4.5rem;
 }
 .fld-folder-depth3 {
-  padding-left: 6.5rem;
+  padding-left: 6rem;
 }
 .fld-folder-depth4 {
-  padding-left: 8rem;
+  padding-left: 6.5rem;
 }
 .fld-folder-depth5 {
   padding-left: 9.5rem;
@@ -119,7 +117,7 @@
 }
 
 .fld-nav-settings-btn {
-  background: url("images/icons/settings.png") no-repeat scroll center transparent;
+  background-image: url("images/icons/settings.png") !important;
 }
 
 .fld-nav-last-synced {

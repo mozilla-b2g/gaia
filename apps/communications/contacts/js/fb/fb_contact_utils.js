@@ -4,6 +4,7 @@ var fb = this.fb || {};
 fb.CATEGORY = 'facebook';
 fb.NOT_LINKED = 'not_linked';
 fb.LINKED = 'fb_linked';
+fb.PROPAGATED_PREFIX = 'fb_propagated_';
 
 // Types of URLs for FB Information
 fb.PROFILE_PHOTO_URI = 'fb_profile_photo';
@@ -24,6 +25,24 @@ fb.isFbLinked = function(devContact) {
                         devContact.category.indexOf(fb.LINKED) !== -1);
 };
 
+fb.isPropagated = function fcu_isPropagated(field, devContact) {
+  return (devContact.category && devContact.category.
+                                  indexOf(fb.PROPAGATED_PREFIX + field) !== -1);
+};
+
+fb.removePropagatedFlag = function fcu_removePropagatedFlag(field, devContact) {
+  var idx = devContact.category.indexOf(fb.PROPAGATED_PREFIX + field);
+  if (idx !== -1) {
+    devContact.category.splice(idx, 1);
+  }
+};
+
+fb.setPropagatedFlag = function fcu_setPropagatedFlag(field, devContact) {
+  var idx = devContact.category.indexOf(fb.PROPAGATED_PREFIX + field);
+  if (idx === -1) {
+    devContact.category.push(fb.PROPAGATED_PREFIX + field);
+  }
+};
 
 fb.getFriendUid = function(devContact) {
   var out = devContact.uid;

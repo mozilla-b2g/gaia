@@ -439,13 +439,15 @@ var LockScreen = {
     switch (target) {
       case this.areaCamera:
         var panelOrFullApp = function panelOrFullApp() {
-          if (self.passCodeEnabled) {
+          // If the passcode is enabled and it has a timeout which has passed
+          // switch to secure camera
+          if (self.passCodeEnabled && self._passCodeTimeoutCheck) {
             // Go to secure camera panel
             self.switchPanel('camera');
             return;
           }
 
-          self.unlock();
+          self.unlock(/* instant */ null, /* detail */ { areaCamera: true });
 
           var a = new MozActivity({
             name: 'record',
@@ -507,6 +509,11 @@ var LockScreen = {
   },
 
   lockIfEnabled: function ls_lockIfEnabled(instant) {
+    if (FtuLauncher && FtuLauncher.isFtuRunning()) {
+      this.unlock(instant);
+      return;
+    }
+
     if (this.enabled) {
       this.lock(instant);
     } else {
@@ -514,20 +521,26 @@ var LockScreen = {
     }
   },
 
-  unlock: function ls_unlock(instant) {
+  unlock: function ls_unlock(instant, detail) {
     var currentApp = WindowManager.getDisplayedApp();
-    WindowManager.setOrientationForApp(currentApp);
 
-    var currentFrame = WindowManager.getAppFrame(currentApp).firstChild;
+    var currentFrame = null;
+
+    if (currentApp) {
+      currentFrame = WindowManager.getAppFrame(currentApp).firstChild;
+      WindowManager.setOrientationForApp(currentApp);
+    }
+
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
-    this.setElasticEnabled(false);
-    this.mainScreen.focus();
 
     var repaintTimeout = 0;
     var nextPaint = (function() {
       clearTimeout(repaintTimeout);
-      currentFrame.removeNextPaintListener(nextPaint);
+
+      if (currentFrame)
+        currentFrame.removeNextPaintListener(nextPaint);
+
 
       if (instant) {
         this.overlay.classList.add('no-transition');
@@ -541,7 +554,7 @@ var LockScreen = {
       if (!wasAlreadyUnlocked) {
         // Any changes made to this,
         // also need to be reflected in apps/system/js/storage.js
-        this.dispatchEvent('unlock');
+        this.dispatchEvent('unlock', detail);
         this.writeSetting(false);
 
         if (instant)
@@ -554,19 +567,23 @@ var LockScreen = {
       }
     }).bind(this);
 
-    this.dispatchEvent('will-unlock');
-    currentFrame.addNextPaintListener(nextPaint);
+    if (currentFrame)
+      currentFrame.addNextPaintListener(nextPaint);
+
     repaintTimeout = setTimeout(function ensureUnlock() {
       nextPaint();
-    }, 400);
+    }, 200);
+
+    this.setElasticEnabled(false);
+    this.mainScreen.focus();
+    this.dispatchEvent('will-unlock');
   },
 
   lock: function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
 
-    this.updateTime();
-
+    navigator.mozL10n.ready(this.updateTime.bind(this));
     this.switchPanel();
 
     this.setElasticEnabled(ScreenManager.screenEnabled);
@@ -705,16 +722,21 @@ var LockScreen = {
       return;
     }
 
-    var overlay = this.overlay;
-    var self = this;
     panel = panel || 'main';
+    var overlay = this.overlay;
+    var currentPanel = overlay.dataset.panel;
+
+    if (currentPanel && currentPanel === panel) {
+      return;
+    }
+
+    var self = this;
 
     this._switchingPanel = true;
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
-          if (overlay.dataset.panel !== panel)
-            self.dispatchEvent('lockpanelchange');
+          self.dispatchEvent('lockpanelchange', { 'panel': panel });
 
           overlay.dataset.panel = panel;
           self._switchingPanel = false;
@@ -730,8 +752,8 @@ var LockScreen = {
     var f = new navigator.mozL10n.DateTimeFormat();
     var _ = navigator.mozL10n.get;
 
-    var timeFormat = _('shortTimeFormat') || '%H:%M';
-    var dateFormat = _('longDateFormat') || '%A %e %B';
+    var timeFormat = _('shortTimeFormat');
+    var dateFormat = _('longDateFormat');
     var time = f.localeFormat(d, timeFormat);
     this.clockNumbers.textContent = time.match(/([012]?\d).[0-5]\d/g);
     this.clockMeridiem.textContent = (time.match(/AM|PM/i) || []).join('');
@@ -748,104 +770,118 @@ var LockScreen = {
     if (!conn)
       return;
 
-    var voice = conn.voice;
-    var iccInfo = conn.iccInfo;
-    var connstateLine1 = this.connstate.firstElementChild;
-    var connstateLine2 = this.connstate.lastElementChild;
-    var _ = navigator.mozL10n.get;
+    navigator.mozL10n.ready(function() {
+      var connstateLine1 = this.connstate.firstElementChild;
+      var connstateLine2 = this.connstate.lastElementChild;
+      var _ = navigator.mozL10n.get;
 
-    var updateConnstateLine1 = function updateConnstateLine1(l10nId) {
-      connstateLine1.dataset.l10nId = l10nId;
-      connstateLine1.textContent = _(l10nId) || '';
-    };
+      var updateConnstateLine1 = function updateConnstateLine1(l10nId) {
+        connstateLine1.dataset.l10nId = l10nId;
+        connstateLine1.textContent = _(l10nId) || '';
+      };
 
-    var self = this;
-    var updateConnstateLine2 = function updateConnstateLine2(l10nId) {
-      if (l10nId) {
-        self.connstate.classList.add('twolines');
-        connstateLine2.dataset.l10nId = l10nId;
-        connstateLine2.textContent = _(l10nId) || '';
-      } else {
-        self.connstate.classList.remove('twolines');
-        delete(connstateLine2.dataset.l10nId);
-        connstateLine2.textContent = '';
+      var self = this;
+      var updateConnstateLine2 = function updateConnstateLine2(l10nId) {
+        if (l10nId) {
+          self.connstate.classList.add('twolines');
+          connstateLine2.dataset.l10nId = l10nId;
+          connstateLine2.textContent = _(l10nId) || '';
+        } else {
+          self.connstate.classList.remove('twolines');
+          delete(connstateLine2.dataset.l10nId);
+          connstateLine2.textContent = '';
+        }
+      };
+
+      // Reset line 2
+      updateConnstateLine2();
+
+      if (this.airplaneMode) {
+        updateConnstateLine1('airplaneMode');
+        return;
       }
-    };
 
-    // Reset line 2
-    updateConnstateLine2();
+      var voice = conn.voice;
 
-    if (this.airplaneMode) {
-      updateConnstateLine1('airplaneMode');
-      return;
-    }
-
-    // Possible value of voice.state are:
-    // 'notSearching', 'searching', 'denied', 'registered',
-    // where the latter three mean the phone is trying to grab the network.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=777057
-    if (voice.state == 'notSearching') {
-      updateConnstateLine1('noNetwork');
-      return;
-    }
-
-    if (!voice.connected && !voice.emergencyCallsOnly) {
-      // "Searching"
-      // voice.state can be any of the latter three values.
-      // (it's possible that the phone is briefly 'registered'
-      // but not yet connected.)
-      updateConnstateLine1('searching');
-      return;
-    }
-
-    if (voice.emergencyCallsOnly) {
-      updateConnstateLine1('emergencyCallsOnly');
-
-      switch (conn.cardState) {
-        case 'absent':
-          updateConnstateLine2('emergencyCallsOnly-noSIM');
-          break;
-
-        case 'pinRequired':
-          updateConnstateLine2('emergencyCallsOnly-pinRequired');
-          break;
-
-        case 'pukRequired':
-          updateConnstateLine2('emergencyCallsOnly-pukRequired');
-          break;
-
-        case 'networkLocked':
-          updateConnstateLine2('emergencyCallsOnly-networkLocked');
-          break;
-
-        default:
-          updateConnstateLine2();
-          break;
+      // Possible value of voice.state are:
+      // 'notSearching', 'searching', 'denied', 'registered',
+      // where the latter three mean the phone is trying to grab the network.
+      // See https://bugzilla.mozilla.org/show_bug.cgi?id=777057
+      if ('state' in voice && voice.state == 'notSearching') {
+        updateConnstateLine1('noNetwork');
+        return;
       }
-      return;
-    }
 
-    var operatorInfos = MobileOperator.userFacingInfo(conn);
-    if (this.cellbroadcastLabel) {
-      connstateLine2.textContent = this.cellbroadcastLabel;
-    } else if (operatorInfos.carrier) {
-      connstateLine2.textContent = operatorInfos.carrier + ' ' +
-        operatorInfos.region;
-    }
+      if (!voice.connected && !voice.emergencyCallsOnly) {
+        // "Searching"
+        // voice.state can be any of the latter three values.
+        // (it's possible that the phone is briefly 'registered'
+        // but not yet connected.)
+        updateConnstateLine1('searching');
+        return;
+      }
 
-    var operator = operatorInfos.operator;
+      if (voice.emergencyCallsOnly) {
+        updateConnstateLine1('emergencyCallsOnly');
 
-    if (voice.roaming) {
-      var l10nArgs = { operator: operator };
-      connstateLine1.dataset.l10nId = 'roaming';
-      connstateLine1.dataset.l10nArgs = JSON.stringify(l10nArgs);
-      connstateLine1.textContent = _('roaming', l10nArgs);
+        switch (conn.cardState) {
+          case 'unknown':
+            updateConnstateLine2('emergencyCallsOnly-unknownSIMState');
+            break;
 
-      return;
-    }
+          case 'absent':
+            updateConnstateLine2('emergencyCallsOnly-noSIM');
+            break;
 
-    delete connstateLine1.dataset.l10nId;
-    connstateLine1.textContent = operator;
+          case 'pinRequired':
+            updateConnstateLine2('emergencyCallsOnly-pinRequired');
+            break;
+
+          case 'pukRequired':
+            updateConnstateLine2('emergencyCallsOnly-pukRequired');
+            break;
+
+          case 'networkLocked':
+            updateConnstateLine2('emergencyCallsOnly-networkLocked');
+            break;
+
+          case 'serviceProviderLocked':
+            updateConnstateLine2('emergencyCallsOnly-serviceProviderLocked');
+            break;
+
+          case 'corporateLocked':
+            updateConnstateLine2('emergencyCallsOnly-corporateLocked');
+            break;
+
+          default:
+            updateConnstateLine2();
+            break;
+        }
+        return;
+      }
+
+      var operatorInfos = MobileOperator.userFacingInfo(conn);
+      if (this.cellbroadcastLabel) {
+        connstateLine2.textContent = this.cellbroadcastLabel;
+      } else if (operatorInfos.carrier) {
+        connstateLine2.textContent = operatorInfos.carrier + ' ' +
+          operatorInfos.region;
+      }
+
+      var operator = operatorInfos.operator;
+
+      if (voice.roaming) {
+        var l10nArgs = { operator: operator };
+        connstateLine1.dataset.l10nId = 'roaming';
+        connstateLine1.dataset.l10nArgs = JSON.stringify(l10nArgs);
+        connstateLine1.textContent = _('roaming', l10nArgs);
+
+        return;
+      }
+
+      delete connstateLine1.dataset.l10nId;
+      connstateLine1.textContent = operator;
+    }.bind(this));
   },
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
@@ -893,61 +929,11 @@ var LockScreen = {
     }
   },
 
-  updateBackground: function ls_updateBackground(background_datauri) {
-    this._imgPreload([background_datauri, 'style/lockscreen/images/mask.png'],
-                     function(images) {
-
-      // Bug 829075 : We need a <canvas> in the DOM to prevent banding on
-      // Otoro-like devices
-      var canvas = document.createElement('canvas');
-      canvas.classList.add('lockscreen-wallpaper');
-      canvas.width = images[0].width;
-      canvas.height = images[0].height;
-
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(images[0], 0, 0);
-      ctx.drawImage(images[1], 0, 0);
-
-      var panels_selector = '.lockscreen-panel[data-wallpaper]';
-      var panels = document.querySelectorAll(panels_selector);
-      for (var i = 0, il = panels.length; i < il; i++) {
-        var copied_canvas;
-        var panel = panels[i];
-
-        // Remove previous <canvas> if they exist
-        var old_canvas = panel.querySelector('canvas');
-        if (old_canvas) {
-          old_canvas.parentNode.removeChild(old_canvas);
-        }
-
-        // For the first panel, we can use the existing <canvas>
-        if (!copied_canvas) {
-          copied_canvas = canvas;
-        } else {
-          // Otherwise, copy the node and content
-          copied_canvas = canvas.cloneNode();
-          copied_canvas.getContext('2d').drawImage(canvas, 0, 0);
-        }
-
-        panel.insertBefore(copied_canvas, panel.firstChild);
-      }
-    });
-  },
-
-  _imgPreload: function ls_imgPreload(img_paths, callback) {
-    var loaded = 0;
-    var images = [];
-    var il = img_paths.length;
-    var inc = function() {
-      loaded += 1;
-      if (loaded === il && callback) {
-        callback(images);
-      }
-    };
-    for (var i = 0; i < il; i++) {
-      images[i] = new Image();
-      images[i].onload = inc;
-      images[i].src = img_paths[i];
+  updateBackground: function ls_updateBackground(value) {
+    var panels = document.querySelectorAll('.lockscreen-panel');
+    var url = 'url(' + value + ')';
+    for (var i = 0; i < panels.length; i++) {
+      panels[i].style.backgroundImage = url;
     }
   },
 
@@ -973,9 +959,15 @@ var LockScreen = {
     this.mainScreen = document.getElementById('screen');
   },
 
-  dispatchEvent: function ls_dispatchEvent(name) {
+  dispatchEvent: function ls_dispatchEvent(name, detail) {
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(name, true, true, null);
+    var evt = new CustomEvent(name, {
+      'bubbles': true,
+      'cancelable': true,
+      // Set event detail if needed for the specific event 'name' (relevant for
+      // passing which button triggered the event)
+      'detail': detail
+    });
     window.dispatchEvent(evt);
   },
 

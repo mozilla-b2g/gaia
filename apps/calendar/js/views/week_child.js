@@ -9,7 +9,7 @@ Calendar.ns('Views').WeekChild = (function() {
     this.hourEventsSelector = null;
 
     this.allDayElement = document.createElement('section');
-    this.allDayElement.classList.add('week-events')
+    this.allDayElement.classList.add('week-events');
   }
 
   Week.prototype = {

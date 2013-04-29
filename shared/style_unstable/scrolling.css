@@ -26,16 +26,15 @@ nav[data-type="scrollbar"] p {
 }
 
 nav[data-type="scrollbar"] ol {
-  padding: 0.3rem 0;
+  padding: 0.3rem 0 0;
   margin: 0;
   border-radius: 4rem;
-  opacity: 0.6;
   list-style: none;
 }
 
 nav[data-type="scrollbar"] li {
   font-size: 1rem;
-  line-height: 1.4em;
+  line-height: 1.35rem;
   text-align: center;
   text-transform: uppercase;
   width: 4.5rem;
@@ -45,19 +44,20 @@ nav[data-type="scrollbar"] li a {
   display: block;
   color: #333;
   width: 100%;
-  text-indent: 1.5rem;
+  padding-left: 1.1rem;
   text-decoration: none;
 }
 
 /* Top action icons */
 nav[data-type="scrollbar"] li .pack-icon-search,
 nav[data-type="scrollbar"] li .pack-icon-favorites {
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 1.6rem;
+  height: 1.6rem;
   font-size: 0;
   vertical-align: middle;
-  background: transparent no-repeat center center;
+  background: transparent no-repeat 50% 50%;
 }
+
 nav[data-type="scrollbar"] li span:not([hidden]) {
   display: inline-block;
 }
@@ -67,5 +67,6 @@ nav[data-type="scrollbar"] li .pack-icon-search {
 }
 
 nav[data-type="scrollbar"] li .pack-icon-favorites {
+  margin-bottom: 0.6rem;
   background-image: url(scrolling/images/icons/favorites.png);
 }

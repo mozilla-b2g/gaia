@@ -1,4 +1,4 @@
-# Gaia
+# Gaia [![Build Status](https://travis-ci.org/mozilla-b2g/gaia.png)](https://travis-ci.org/mozilla-b2g/gaia)
 
 Gaia is Mozilla's Phone UX for the Boot to Gecko (B2G) project.
 
@@ -22,6 +22,7 @@ and talk to us on IRC:
 
 See INSTALL file in B2G repository for instructions on building and running B2G. To try out Gaia on desktop, see
 
+  https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Building_and_installing_Firefox_OS
   https://wiki.mozilla.org/Gaia/Hacking
 
 # Installing on different devices resolution

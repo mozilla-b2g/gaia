@@ -9,4 +9,5 @@ var MockURL = {
 var MockImageLoader = function() {
   this.init = function() {};
   this.reload = function() {};
+  this.setResolver = function() {};
 };

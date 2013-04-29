@@ -29,15 +29,20 @@ var AttentionScreen = {
 
   init: function as_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this), true);
+
     window.addEventListener('mozbrowserclose', this.close.bind(this), true);
     window.addEventListener('mozbrowsererror', this.close.bind(this), true);
+
     window.addEventListener('keyboardchange', this.resize.bind(this), true);
     window.addEventListener('keyboardhide', this.resize.bind(this), true);
 
     this.bar.addEventListener('click', this.show.bind(this));
+
     window.addEventListener('home', this.hide.bind(this));
     window.addEventListener('holdhome', this.hide.bind(this));
     window.addEventListener('appwillopen', this.hide.bind(this));
+
+    window.addEventListener('will-unlock', this.screenUnlocked.bind(this));
   },
 
   resize: function as_resize(evt) {
@@ -105,6 +110,9 @@ var AttentionScreen = {
     // alternatively, if the newly appended frame is the visible frame
     // and we are in the status bar mode, expend to full screen mode.
     if (!this.isVisible()) {
+      // Attention screen now only support portrait mode.
+      screen.mozLockOrientation('portrait-primary');
+
       this.attentionScreen.classList.add('displayed');
       this.mainScreen.classList.add('attention');
       this.dispatchEvent('attentionscreenshow', {
@@ -183,6 +191,11 @@ var AttentionScreen = {
         { origin: this.attentionScreen.lastElementChild.dataset.frameOrigin });
     }
 
+    // Restore the orientation of current displayed app
+    var currentApp = WindowManager.getDisplayedApp();
+    if (currentApp)
+      WindowManager.setOrientationForApp(currentApp);
+
     this.attentionScreen.classList.remove('displayed');
     this.mainScreen.classList.remove('attention');
     this.dispatchEvent('attentionscreenhide', { origin: origin });
@@ -190,6 +203,9 @@ var AttentionScreen = {
 
   // expend the attention screen overlay to full screen
   show: function as_show() {
+    // Attention screen now only support portrait mode.
+    screen.mozLockOrientation('portrait-primary');
+
     // leaving "status-mode".
     this.attentionScreen.classList.remove('status-mode');
     // there shouldn't be a transition from "status-mode" to "active-statusbar"
@@ -213,6 +229,12 @@ var AttentionScreen = {
   hide: function as_hide() {
     if (!this.isFullyVisible())
       return;
+
+    // Restore the orientation of current displayed app
+    var currentApp = WindowManager.getDisplayedApp();
+
+    if (currentApp)
+      WindowManager.setOrientationForApp(currentApp);
 
     // entering "active-statusbar" mode,
     // with a transform: translateY() slide up transition.
@@ -253,6 +275,13 @@ var AttentionScreen = {
     if (origin === frameOrigin) {
       this.show();
     }
+  },
+
+  screenUnlocked: function as_screenUnlocked() {
+    // If the app behind the soon-to-be-unlocked lockscreen has an
+    // attention screen we should display it
+    var app = WindowManager.getCurrentDisplayedApp();
+    this.showForOrigin(app.origin);
   },
 
   getAttentionScreenOrigins: function as_getAttentionScreenOrigins() {

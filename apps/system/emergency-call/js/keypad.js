@@ -1,9 +1,3 @@
-/*
- *  The code is being shared between system/emergency-call/js/keypad.js
- *  and dialer/js/keypad.js. Be sure to update both file when you commit!
- *
- */
-
 'use strict';
 
 var kFontStep = 4;
@@ -459,3 +453,12 @@ var KeypadManager = {
      }
   }
 };
+
+// Set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('localized', function showBody() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+});
+

@@ -1,4 +1,6 @@
-const InputMethods = {}; // latin.js expects this to be defined
+// latin.js expects these constants to be defined
+const LAYOUT_PAGE_DEFAULT = 'Default';
+const InputMethods = {};
 var im; // this will hold the input method we're testing
 
 requireApp('keyboard/js/imes/latin/latin.js', function() {
@@ -24,11 +26,14 @@ function init() {
   // Initialize the input method with the object it will use to send
   // its output back to us
   im.init({
+    resetUpperCase: function() {
+      isUpperCase = false;
+    },
     sendKey: function(keycode) {
       if (keycode === 8) { // backspace
-        output = output.substring(0, output.length-1);
+        output = output.substring(0, output.length - 1);
       }
-      else 
+      else
         output += String.fromCharCode(keycode);
     },
     sendString: function(s) {
@@ -40,19 +45,21 @@ function init() {
     setUpperCase: function(uc) {
       isUpperCase = uc;
     },
+    setLayoutPage: function() {
+    }
   });
 }
 
 
 // Utility funcs
 function capitalize(s) {
-  if (s.length === 0) 
+  if (s.length === 0)
     return s;
   return s[0].toUpperCase() + s.substring(1);
 }
 
 function isUppercase(s) {
-  for(var i = 0; i < s.length; i++) {
+  for (var i = 0; i < s.length; i++) {
     var c = s[i];
     if (c.toLowerCase() === c)
       return false;
@@ -63,7 +70,7 @@ function isUppercase(s) {
 // shallow copy of an object
 function clone(o) {
   var copy = {};
-  for(var p in o)
+  for (var p in o)
     copy[p] = o[p];
   return copy;
 }
@@ -71,19 +78,19 @@ function clone(o) {
 // These tests verify that the latin input method is doing what it should.
 // They pass input to the IM by calling its click() method, and verify that
 // the input method sends back the expected output through the sendKey
-// function that we pass it.  The latin input method sends suggestions 
+// function that we pass it.  The latin input method sends suggestions
 // asynchronously, but other parts are synchronous
 
 
 // The capitalization and punctuation behavior of the Latin IM depends
 // on these variables:
-// 
+//
 //   input field type
 //   input mode
 //   existing text in input field
 //   cursor position
 //   whether there is a selection
-// 
+//
 // Suggestions depend on all of those and also depend on the
 // language and whether word suggestions are enabled or not.
 //
@@ -94,7 +101,7 @@ var types = [
   'textarea',
   'search',
   'url',
-  'email',
+  'email'
 ];
 
 // Test these input modes
@@ -109,7 +116,7 @@ var contentStates = {
   // empty input field
   empty: { value: '', cursor: 0 },
   // cursor is in the middle of a bunch of spaces
-  inSpace: { value: "a      b", cursor: 4},
+  inSpace: { value: 'a      b', cursor: 4},
 
   // cursor is at the start, middle, or end of the input field
   start: { value: 'word', cursor: 0 },
@@ -129,8 +136,8 @@ var contentStates = {
   // cursor is after a sentence, before another
   afterSentence: { value: 'Foo. Bar.', cursor: 5 },
   afterQuestion: { value: 'Foo? Bar.', cursor: 5 },
-  afterExclamation: { value: 'Foo! Bar.', cursor: 5 },
-}
+  afterExclamation: { value: 'Foo! Bar.', cursor: 5 }
+};
 
 
 // Test all the permutations of states above against these inputs.
@@ -145,7 +152,7 @@ var inputs = {
   ' ?': expectedPunctuation,      // Does it get transposed?
   ' ,': expectedPunctuation,      // Does it get transposed?
   ' ;': expectedPunctuation,      // Does it get transposed?
-  ' :': expectedPunctuation,      // Does it get transposed?
+  ' :': expectedPunctuation       // Does it get transposed?
 };
 
 // Does space punc get transposed to punc space?
@@ -164,9 +171,13 @@ function expectedPunctuation(input, type, mode, value, cursor) {
   // same as latin mode, so do nothing
   if (!mode && type !== 'textarea')
     return input;
+  // If input is a space followed by a colon or semicolon, do not transpose.
+  // This facilitates the entry of emoticons such as :O
+  if (input === ' :' || input === ' ;')
+    return input;
 
   // If the previous character is a letter, transpose otherwise don't
-  if (cursor > 0 && /[a-zA-Z]/.test(value[cursor-1]))
+  if (cursor > 0 && /[a-zA-Z]/.test(value.charAt(cursor - 1)))
     return input[1] + input[0];
   return input;
 }
@@ -185,7 +196,7 @@ function expectedSpaceSpace(input, type, mode, value, cursor) {
     return input;
 
   // If the previous character is a letter, return dot space
-  if (cursor > 0 && /[a-zA-Z]/.test(value[cursor-1]))
+  if (cursor > 0 && /[a-zA-Z]/.test(value[cursor - 1]))
     return '. ';
   return '  ';
 }
@@ -208,11 +219,11 @@ function expectedCapitalization(input, type, mode, value, cursor) {
     return capitalize(input);
 
   // If inserting in an all caps word, use uppercase
-  if (cursor >= 2 && isUppercase(value.substring(cursor-2, cursor)))
+  if (cursor >= 2 && isUppercase(value.substring(cursor - 2, cursor)))
     return input.toUpperCase();
 
   // if the character before the cursor is not a space, don't capitalize
-  if (!/\s/.test(value[cursor-1]))
+  if (!/\s/.test(value[cursor - 1]))
     return input;
 
   // If we're at then end of a sentence, capitalize
@@ -224,26 +235,22 @@ function expectedCapitalization(input, type, mode, value, cursor) {
 }
 
 
-// For each test, we activate() the IM with a given initial state, 
+// For each test, we activate() the IM with a given initial state,
 // then send it some input, and check the output. The initial state includes
 // lanuage, whether suggestions are enabled, input type, input mode, input value
 // cursor position (or selectionstart, selection end)
 // There are lots of possible initial states, and we may have different
 // output in each case.
 
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840495.
-suite("latin input method capitalization and punctuation", function() {
-  for(var t = 0; t < types.length; t++) {
+suite('latin input method capitalization and punctuation', function() {
+  for (var t = 0; t < types.length; t++) {
     var type = types[t];
-    for(var m = 0; m < modes.length; m++) {
+    for (var m = 0; m < modes.length; m++) {
       var mode = modes[m];
-      for(var statename in contentStates) {
+      for (var statename in contentStates) {
         var state = contentStates[statename];
-        for(var input in inputs) {
-          runtest(input, type, mode, statename)
+        for (var input in inputs) {
+          runtest(input, type, mode, statename);
         }
       }
     }
@@ -263,18 +270,18 @@ suite("latin input method capitalization and punctuation", function() {
       // reset the output state
       reset();
       // activate the IM
-      im.activate('en', false, {
+      im.activate('en', {
         type: type,
         inputmode: mode,
         value: state.value,
         selectionStart: state.cursor,
         selectionEnd: state.cursor
-      });
+      },{suggest: false, correct: false});
 
-      // Send the input one character at a time, converting 
+      // Send the input one character at a time, converting
       // the input to uppercase if the IM has set uppercase
-      for(var i = 0; i < input.length; i++) {
-        if (isUpperCase) 
+      for (var i = 0; i < input.length; i++) {
+        if (isUpperCase)
           im.click(input[i].toUpperCase().charCodeAt(0));
         else
           im.click(input.charCodeAt(i));
@@ -289,16 +296,15 @@ suite("latin input method capitalization and punctuation", function() {
     });
   }
 });
-*/
 
 /*
- * This code is an attempt to test whether word suggestions are offered when 
+ * This code is an attempt to test whether word suggestions are offered when
  * they are expected. It doesn't work because when we load latin.js from
  * this test file instead of the app, the path is wrong for loading the
  * worker thread, and the suggestion engine doesn't actually start up
- * 
+ *
  * So for now, we can only test capitalization and punctuation
- * 
+ *
 var finishTest; // we store the done function here
 var suggestionsExpected;
 var suggestionsTimer;
@@ -313,7 +319,7 @@ function gotSuggestions(words) {
 
 
 // Test that word suggestions are offered quicly when they should be
-// and are not offered when they shouldn't be. Because they are 
+// and are not offered when they shouldn't be. Because they are
 // asynchronous, however, we have to use a timeout to detect the
 // not offered case, and therefore can't run this test for all
 // permutations of type and mode.
@@ -334,7 +340,7 @@ suite("latin input method word suggestions", function() {
   runtest('en', true, 'text', 'latin', 'empty', true);
   runtest('pt-Br', true, 'text', 'latin', 'empty', true);
   runtest('none', true, 'text', 'latin', 'empty', false);
-  
+
   // try disabled suggestions
   runtest('en', false, 'text', 'latin', 'empty', false);
 
@@ -349,15 +355,15 @@ suite("latin input method word suggestions", function() {
     test(testname, function(done) {
       finishTest = done;
       suggestionsExpected = expected;
-      
+
       reset();
-      im.activate(language, enabled, {
+      im.activate(language, {
         type: type,
         inputmode: mode,
         value: state.value,
         selectionStart: state.cursor,
         selectionEnd: state.se || state.cursor
-      });
+      }, { suggest: enabled, correct: false});
       // Send some input and see if we get completions
       im.click('t'.charCodeAt(0));
 

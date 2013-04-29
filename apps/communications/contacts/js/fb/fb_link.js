@@ -26,7 +26,7 @@ if (!fb.link) {
 
     // Base query to search for contacts
     var SEARCH_QUERY = ['SELECT uid, name, email from user ',
-    ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me() ORDER BY rank) ',
+    ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me()) ',
     ' AND (', null, ')', ' ORDER BY name'
     ];
 
@@ -220,10 +220,15 @@ if (!fb.link) {
         var numFriendsProposed = data.length;
         var searchAccentsArrays = {};
         var index = 0;
+
         data.forEach(function(item) {
           if (!item.email) {
             item.email = '';
           }
+          var box = importUtils.getPreferredPictureBox();
+          item.picwidth = box.width;
+          item.picheight = box.height;
+
           // Only do this if we need to prepare the search accents phase
           if (numQueries === 2) {
             // Saving the original order
@@ -274,6 +279,9 @@ if (!fb.link) {
         Curtain.hide(function onCurtainHide() {
           sendReadyEvent();
           window.addEventListener('message', function linkOnViewPort(e) {
+            if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
+              return;
+            }
             var data = e.data;
             if (data && data.type === 'dom_transition_end') {
               window.removeEventListener('message', linkOnViewPort);
@@ -404,7 +412,7 @@ if (!fb.link) {
       }
       var template = friendsList.querySelector('[data-template]');
 
-      friendsList.innerHTML = '';
+      utils.dom.removeChildNodes(friendsList);
       friendsList.appendChild(template);
     }
 
@@ -518,16 +526,15 @@ if (!fb.link) {
         }
         else {
           state = 'linking';
-          var importReq = fb.importer.importFriend(friendUidToLink,
-                                                   access_token);
+          var callbacks = { };
 
-          importReq.onsuccess = function() {
+          callbacks.success = function(data) {
             Curtain.hide(function() {
-              notifyParent(importReq.result);
+              notifyParent(data);
             });
           };
 
-          importReq.onerror = function(e) {
+          callbacks.error = function(e) {
             var error = e.target.error;
             window.console.error('FB: Error while importing friend data ',
                                  JSON.stringify(error));
@@ -541,9 +548,12 @@ if (!fb.link) {
             Curtain.show('error', 'linking');
           };
 
-          importReq.ontimeout = function() {
+          callbacks.timeout = function() {
             link.baseHandler('timeout');
           };
+
+          FacebookConnector.importContact(friendUidToLink, access_token,
+                                          callbacks);
         }
       };
 

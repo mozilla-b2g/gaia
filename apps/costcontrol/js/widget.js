@@ -16,27 +16,46 @@
   waitForDOMAndMessageHandler(window, onReady);
 
   var costcontrol;
-  var hasSim = true;
   function onReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
+    var cardState = checkCardState();
 
-    // No SIM
-    if (!mobileConnection || mobileConnection.cardState === 'absent') {
-      hasSim = false;
-      startWidget();
-
-    // SIM is not ready
-    } else if (mobileConnection.cardState !== 'ready') {
+    // SIM not ready
+    if (cardState !== 'ready') {
       debug('SIM not ready:', mobileConnection.cardState);
-      mobileConnection.oniccinfochange = onReady;
+      mobileConnection.oncardstatechange = onReady;
 
     // SIM is ready
     } else {
       debug('SIM ready. ICCID:', mobileConnection.iccInfo.iccid);
-      mobileConnection.oniccinfochange = undefined;
+      mobileConnection.oncardstatechange = undefined;
       startWidget();
     }
   };
+
+  // Check the card status. Return 'ready' if all OK or take actions for
+  // special situations such as 'pin/puk locked' or 'absent'.
+  function checkCardState() {
+    var mobileConnection = window.navigator.mozMobileConnection;
+    var state, cardState;
+    state = cardState = mobileConnection.cardState;
+
+    // SIM is absent
+    if (cardState === 'absent') {
+      debug('There is no SIM');
+      showSimError('no-sim2');
+
+    // SIM is locked
+    } else if (
+      cardState === 'pinRequired' ||
+      cardState === 'pukRequired'
+    ) {
+      showSimError('sim-locked');
+      state = 'locked';
+    }
+
+    return state;
+  }
 
   function startWidget() {
     checkSIMChange(function _onSIMChecked() {
@@ -75,7 +94,8 @@
     // Update UI when visible
     document.addEventListener('mozvisibilitychange',
       function _onVisibilityChange(evt) {
-        if (!document.mozHidden && initialized) {
+        if (!document.mozHidden && initialized &&
+            checkCardState() === 'ready') {
           updateUI();
         }
       }
@@ -138,30 +158,44 @@
 
   // USER INTERFACE
 
+  // Reuse fte panel to display errors
+  function showSimError(status) {
+    var fte = document.getElementById('fte-view');
+    var leftPanel = document.getElementById('left-panel');
+    var rightPanel = document.getElementById('right-panel');
+
+    fte.setAttribute('aria-hidden', false);
+    leftPanel.setAttribute('aria-hidden', true);
+    rightPanel.setAttribute('aria-hidden', true);
+
+    var className = 'widget-' + status;
+    document.getElementById('fte-icon').textContent = 'icon ' + className;
+    fte.querySelector('p:first-child').textContent = _(className + '-heading');
+    fte.querySelector('p:last-child').textContent = _(className + '-meta');
+  }
+
   function setupFte(provider, mode) {
 
     fte.setAttribute('aria-hidden', false);
     leftPanel.setAttribute('aria-hidden', true);
     rightPanel.setAttribute('aria-hidden', true);
 
-    if (hasSim) {
-      fte.addEventListener('click', function launchFte() {
-        fte.removeEventListener('click', launchFte);
-        var activity = new MozActivity({ name: 'costcontrol/balance' });
-      });
-    }
+    fte.addEventListener('click', function launchFte() {
+      fte.removeEventListener('click', launchFte);
+      var activity = new MozActivity({ name: 'costcontrol/balance' });
+    });
 
     var keyLookup = {
         PREPAID: 'widget-authed-sim',
         POSTPAID: 'widget-authed-sim',
         DATA_USAGE_ONLY: 'widget-nonauthed-sim'
     };
-    var simKey = hasSim ? keyLookup[mode] : 'widget-no-sim2';
+    var simKey = keyLookup[mode];
 
     document.getElementById('fte-icon').className = 'icon ' + simKey;
-    fte.querySelector('p:first-child').innerHTML = _(simKey + '-heading',
+    fte.querySelector('p:first-child').textContent = _(simKey + '-heading',
                                                      { provider: provider });
-    fte.querySelector('p:last-child').innerHTML = _(simKey + '-meta');
+    fte.querySelector('p:last-child').textContent = _(simKey + '-meta');
   }
 
   var hashMark = 0;
@@ -249,17 +283,18 @@
             value: limitText[0],
             unit: limitText[1]
           });
-          leftTag.innerHTML = limitTresspased ? _('limit-passed') : _('used');
-          leftValue.innerHTML = limitTresspased ? limitText : currentText;
-          rightTag.innerHTML = limitTresspased ? _('used') : _('limit');
-          rightValue.innerHTML = limitTresspased ? currentText : limitText;
+          leftTag.textContent = limitTresspased ? _('limit-passed') : _('used');
+          leftValue.textContent = limitTresspased ? limitText : currentText;
+          rightTag.textContent = limitTresspased ? _('used') : _('limit');
+          rightValue.textContent = limitTresspased ? currentText : limitText;
 
         } else {
           // Texts
-          document.getElementById('mobile-usage-value').innerHTML =
+          document.getElementById('mobile-usage-value').textContent =
             _('magnitude', { value: data[0], unit: data[1] });
-          views.dataUsage.querySelector('.meta').innerHTML =
-            formatTimeHTML(stats.timestamp);
+          var meta = views.dataUsage.querySelector('.meta');
+          meta.innerHTML = '';
+          meta.appendChild(formatTimeHTML(stats.timestamp));
         }
         checkDataUsageNotification(settings, stats.mobile.total,
           // inform driver in system we are finished to update the widget
@@ -291,20 +326,21 @@
           requestObj = { type: 'telephony' };
           costcontrol.request(requestObj, function _onRequest(result) {
             var activity = result.data;
-            document.getElementById('telephony-calltime').innerHTML =
+            document.getElementById('telephony-calltime').textContent =
               _('magnitude', {
                 value: computeTelephonyMinutes(activity),
                 unit: 'min'
               }
             );
-            document.getElementById('telephony-smscount').innerHTML =
+            document.getElementById('telephony-smscount').textContent =
               _('magnitude', {
                 value: activity.smscount,
                 unit: 'SMS'
               }
             );
-            views.telephony.querySelector('.meta').innerHTML =
-              formatTimeHTML(activity.timestamp);
+            var meta = views.telephony.querySelector('.meta');
+            meta.innerHTML = '';
+            meta.appendChild(formatTimeHTML(activity.timestamp));
           });
         }
       }
@@ -317,23 +353,26 @@
     // Balance not available
     if (balance === null) {
       debug('Balance not available.');
-      document.getElementById('balance-credit').innerHTML = _('not-available');
+      document.getElementById('balance-credit')
+        .textContent = _('not-available');
       views.balance.querySelector('.meta').innerHTML = '';
       return;
     }
 
     // Balance available
-    document.getElementById('balance-credit').innerHTML = _('currency', {
+    document.getElementById('balance-credit').textContent = _('currency', {
       value: balance.balance,
       currency: ConfigManager.configuration.credit.currency
     });
 
     // Timestamp
-    var timeContent = formatTimeHTML(balance.timestamp);
+    var meta = views.balance.querySelector('.meta');
     if (views.balance.classList.contains('updating')) {
-      timeContent = _('updating') + '...';
+      meta.textContent = _('updating-ellipsis');
+    } else {
+      meta.innerHTML = '';
+      meta.appendChild(formatTimeHTML(balance.timestamp));
     }
-    views.balance.querySelector('.meta').innerHTML = timeContent;
 
     // Limits: reaching zero / low limit
     if (balance.balance === 0) {

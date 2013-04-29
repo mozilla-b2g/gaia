@@ -1,9 +1,4 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('template.js');
-  requireLib('templates/week.js');
-});
-
-suite('templates/week', function() {
+suiteGroup('Templates.Week', function() {
   var subject;
 
   suiteSetup(function() {
@@ -59,6 +54,11 @@ suite('templates/week', function() {
     var result = subject.header.render('foo');
     assert.ok(result);
     assert.include(result, 'foo');
+  });
+
+  test('#frame', function() {
+    var result = subject.frame.render();
+    assert.ok(result);
   });
 
 });

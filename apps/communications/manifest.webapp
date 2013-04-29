@@ -80,7 +80,10 @@
     "time": {},
     "audio-channel-telephony":{},
     "audio-channel-ringer":{},
-    "browser":{}
+    "browser":{},
+    "idle":{},
+    "storage": {},
+    "device-storage:sdcard": { "access": "readonly" }
   },
   "orientation": "portrait-primary",
   "activities": {
@@ -92,6 +95,14 @@
       "href": "/contacts/index.html?pick",
       "returnValue": true
     },
+    "open": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
+      "disposition": "inline",
+      "href": "/contacts/index.html?open",
+      "returnValue": true
+    },
     "new": {
       "filters": {
         "type": "webcontacts/contact"
@@ -100,9 +111,18 @@
       "href": "/contacts/index.html?new",
       "returnValue": true
     },
+    "update": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
+      "disposition": "inline",
+      "href": "/contacts/index.html?update",
+      "returnValue": true
+    },
     "dial": {
       "filters": {
-        "type": "webtelephony/number"
+        "type": "webtelephony/number",
+        "number": { "regexp":"/^[\\d\\s+#*().-]{0,50}$/" }
       },
       "href": "/dialer/index.html#keyboard-view",
       "disposition": "window"

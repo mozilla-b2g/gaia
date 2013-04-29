@@ -1,6 +1,10 @@
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 
+if (!this.SettingsListener) {
+  this.SettingsListener = null;
+}
+
 suite('dialer/utils', function() {
   var realPhoneMatcher;
 
@@ -22,7 +26,7 @@ suite('dialer/utils', function() {
       MockContacts.mCarrier = null; // No carrier
       MockContacts.findByNumber(number, function(contact, matchingTel) {
         var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
-          contact);
+          contact, number);
         assert.equal(MockContacts.mType + ', ' + number, additionalInfo);
         done();
       });
@@ -32,7 +36,7 @@ suite('dialer/utils', function() {
       MockContacts.mCarrier = 'carrier'; // Carrier value
       MockContacts.findByNumber(number, function(contact, matchingTel) {
         var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
-          contact);
+          contact, number);
         assert.equal(MockContacts.mType + ', ' +
           MockContacts.mCarrier, additionalInfo);
         done();

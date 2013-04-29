@@ -78,17 +78,18 @@ var TelephonyTab = (function() {
   }
 
   function updateTimePeriod(lastReset, old, key, settings) {
-    time.innerHTML = formatTimeHTML(lastReset,
-                                    settings.lastTelephonyActivity.timestamp);
+    time.innerHTML = '';
+    time.appendChild(formatTimeHTML(lastReset,
+                                    settings.lastTelephonyActivity.timestamp));
 
   }
 
   function updateCounters(activity) {
-    smscount.innerHTML = _('magnitude', {
+    smscount.textContent = _('magnitude', {
       value: activity.smscount,
       unit: 'SMS'
     });
-    calltime.innerHTML = _('magnitude', {
+    calltime.textContent = _('magnitude', {
       value: computeTelephonyMinutes(activity),
       unit: 'min.'
     });
@@ -103,7 +104,7 @@ var TelephonyTab = (function() {
       var dateFormatter = new navigator.mozL10n.DateTimeFormat();
       var content = dateFormatter.localeFormat(settings.nextReset,
         _('short-date-format'));
-      resetDate.innerHTML = content;
+      resetDate.textContent = content;
     }
   }
 

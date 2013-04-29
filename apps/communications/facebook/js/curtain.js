@@ -6,26 +6,42 @@ var Curtain = (function() {
 
   var curtainFrame = parent.document.querySelector('#fb-curtain');
   var doc = curtainFrame.contentDocument;
-  var cancelButton = doc.querySelector('#cancel');
-  var retryButton = doc.querySelector('#retry');
 
-  var progressElement = doc.querySelector('#progressElement');
-
-  var form = doc.querySelector('form');
-
+  var cpuWakeLock, cancelButton, retryButton, progressElement, form,
+      progressTitle;
   var messages = [];
   var elements = ['error', 'timeout', 'wait', 'message', 'progress'];
-  elements.forEach(function createElementRef(name) {
-    messages[name] = doc.getElementById(name + 'Msg');
-  });
 
-  var progressTitle = doc.getElementById('progressTitle');
+  if (doc.readyState === 'complete') {
+    init();
+  } else {
+    // The curtain could not be loaded at this moment
+    curtainFrame.addEventListener('load', function loaded() {
+      curtainFrame.removeEventListener('load', loaded);
+      init();
+    });
+  }
 
-  var cpuWakeLock;
+  function init() {
+    cancelButton = doc.querySelector('#cancel');
+    retryButton = doc.querySelector('#retry');
+
+    progressElement = doc.querySelector('#progressElement');
+
+    form = doc.querySelector('form');
+
+    elements.forEach(function createElementRef(name) {
+      messages[name] = doc.getElementById(name + 'Msg');
+    });
+
+    progressTitle = doc.getElementById('progressTitle');
+  }
 
   function doShow(type) {
     form.dataset.state = type;
     curtainFrame.classList.add('visible');
+    curtainFrame.classList.remove('fadeOut');
+    curtainFrame.classList.add('fadeIn');
   }
 
   function capitalize(str) {
@@ -54,12 +70,12 @@ var Curtain = (function() {
     this.setFrom = function(pfrom) {
       from = capitalize(pfrom);
       progressTitle.textContent = _('progressFB3' + from + 'Title');
-    }
+    };
 
     this.setTotal = function(ptotal) {
       total = ptotal;
       showMessage();
-    }
+    };
   }
 
   return {
@@ -130,9 +146,11 @@ var Curtain = (function() {
       }
 
       delete form.dataset.state;
-      curtainFrame.classList.remove('visible');
-      curtainFrame.addEventListener('transitionend', function tend() {
-        curtainFrame.removeEventListener('transitionend', tend);
+      curtainFrame.classList.remove('fadeIn');
+      curtainFrame.classList.add('fadeOut');
+      curtainFrame.addEventListener('animationend', function cu_fadeOut(ev) {
+        curtainFrame.removeEventListener('animationend', cu_fadeOut);
+        curtainFrame.classList.remove('visible');
         if (typeof hiddenCB === 'function') {
           hiddenCB();
         }

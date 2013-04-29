@@ -1,3 +1,4 @@
+
 /* Copyright 2012 Mozilla Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,1024 +18,70 @@
   if (typeof exports === 'object')
     module.exports = factory();
   else if (typeof define === 'function' && define.amd)
-    define('wbxml',factory);
+    define('activesync/codepages/FolderHierarchy',[], factory);
   else
-    root.WBXML = factory();
+    root.ASCPHierarchy = factory();
 }(this, function() {
   'use strict';
 
-  let exports = {};
-
-  const Tokens = {
-    SWITCH_PAGE: 0x00,
-    END:         0x01,
-    ENTITY:      0x02,
-    STR_I:       0x03,
-    LITERAL:     0x04,
-    EXT_I_0:     0x40,
-    EXT_I_1:     0x41,
-    EXT_I_2:     0x42,
-    PI:          0x43,
-    LITERAL_C:   0x44,
-    EXT_T_0:     0x80,
-    EXT_T_1:     0x81,
-    EXT_T_2:     0x82,
-    STR_T:       0x83,
-    LITERAL_A:   0x84,
-    EXT_0:       0xC0,
-    EXT_1:       0xC1,
-    EXT_2:       0xC2,
-    OPAQUE:      0xC3,
-    LITERAL_AC:  0xC4,
-  };
-
-  /**
-   * Create a constructor for a custom error type that works like a built-in
-   * Error.
-   *
-   * @param name the string name of the error
-   * @param parent (optional) a parent class for the error, defaults to Error
-   * @param extraArgs an array of extra arguments that can be passed to the
-   *        constructor of this error type
-   * @return the constructor for this error
-   */
-  function makeError(name, parent, extraArgs) {
-    function CustomError() {
-      // Try to let users call this as CustomError(...) without the "new". This
-      // is imperfect, and if you call this function directly and give it a
-      // |this| that's a CustomError, things will break. Don't do it!
-      var self = this instanceof CustomError ?
-                 this : Object.create(CustomError.prototype);
-      var tmp = Error();
-      var offset = 1;
-
-      self.stack = tmp.stack.substring(tmp.stack.indexOf('\n') + 1);
-      self.message = arguments[0] || tmp.message;
-      if (extraArgs) {
-        offset += extraArgs.length;
-        for (var i = 0; i < extraArgs.length; i++)
-          self[extraArgs[i]] = arguments[i+1];
-      }
-
-      var m = /@(.+):(.+)/.exec(self.stack);
-      self.fileName = arguments[offset] || (m && m[1]) || "";
-      self.lineNumber = arguments[offset + 1] || (m && m[2]) || 0;
-
-      return self;
-    }
-    CustomError.prototype = Object.create((parent || Error).prototype);
-    CustomError.prototype.name = name;
-    CustomError.prototype.constructor = CustomError;
-
-    return CustomError;
-  }
-
-  var ParseError = makeError('WBXML.ParseError');
-  exports.ParseError = ParseError;
-
-  function StringTable(data, decoder) {
-    this.strings = [];
-    this.offsets = {};
-
-    let start = 0;
-    for (let i = 0; i < data.length; i++) {
-      if (data[i] === 0) {
-        this.offsets[start] = this.strings.length;
-        this.strings.push(decoder.decode( data.subarray(start, i) ));
-        start = i + 1;
+  return {
+    Tags: {
+      Folders:      0x0705,
+      Folder:       0x0706,
+      DisplayName:  0x0707,
+      ServerId:     0x0708,
+      ParentId:     0x0709,
+      Type:         0x070A,
+      Response:     0x070B,
+      Status:       0x070C,
+      ContentClass: 0x070D,
+      Changes:      0x070E,
+      Add:          0x070F,
+      Delete:       0x0710,
+      Update:       0x0711,
+      SyncKey:      0x0712,
+      FolderCreate: 0x0713,
+      FolderDelete: 0x0714,
+      FolderUpdate: 0x0715,
+      FolderSync:   0x0716,
+      Count:        0x0717,
+    },
+    Enums: {
+      Type: {
+        Generic:         '1',
+        DefaultInbox:    '2',
+        DefaultDrafts:   '3',
+        DefaultDeleted:  '4',
+        DefaultSent:     '5',
+        DefaultOutbox:   '6',
+        DefaultTasks:    '7',
+        DefaultCalendar: '8',
+        DefaultContacts: '9',
+        DefaultNotes:   '10',
+        DefaultJournal: '11',
+        Mail:           '12',
+        Calendar:       '13',
+        Contacts:       '14',
+        Tasks:          '15',
+        Journal:        '16',
+        Notes:          '17',
+        Unknown:        '18',
+        RecipientCache: '19',
+      },
+      Status: {
+        Success:              '1',
+        FolderExists:         '2',
+        SystemFolder:         '3',
+        FolderNotFound:       '4',
+        ParentFolderNotFound: '5',
+        ServerError:          '6',
+        InvalidSyncKey:       '9',
+        MalformedRequest:    '10',
+        UnknownError:        '11',
+        CodeUnknown:         '12',
       }
     }
-  }
-
-  StringTable.prototype = {
-    get: function(offset) {
-      if (offset in this.offsets)
-        return this.strings[this.offsets[offset]];
-      else {
-        if (offset < 0)
-          throw new ParseError('offset must be >= 0');
-
-        let curr = 0;
-        for (let i = 0; i < this.strings.length; i++) {
-          // Add 1 to the current string's length here because we stripped a
-          // null-terminator earlier.
-          if (offset < curr + this.strings[i].length + 1)
-            return this.strings[i].slice(offset - curr);
-          curr += this.strings[i].length + 1;
-        }
-      }
-      throw new ParseError('invalid offset');
-    },
   };
-
-  function CompileCodepages(codepages) {
-    codepages.__nsnames__ = {};
-    codepages.__tagnames__ = {};
-    codepages.__attrdata__ = {};
-
-    for (let [name, page] in Iterator(codepages)) {
-      if (name.match(/^__/))
-        continue;
-
-      if (page.Tags) {
-        let [,v] = Iterator(page.Tags).next();
-        codepages.__nsnames__[v >> 8] = name;
-
-        for (let [tag, value] in Iterator(page.Tags))
-          codepages.__tagnames__[value] = tag;
-      }
-
-      if (page.Attrs) {
-        for (let [attr, data] in Iterator(page.Attrs)) {
-          if (!('name' in data))
-            data.name = attr;
-          codepages.__attrdata__[data.value] = data;
-          page.Attrs[attr] = data.value;
-        }
-      }
-    }
-  }
-  exports.CompileCodepages = CompileCodepages;
-
-  const mib2str = {
-      3: 'US-ASCII',
-      4: 'ISO-8859-1',
-      5: 'ISO-8859-2',
-      6: 'ISO-8859-3',
-      7: 'ISO-8859-4',
-      8: 'ISO-8859-5',
-      9: 'ISO-8859-6',
-     10: 'ISO-8859-7',
-     11: 'ISO-8859-8',
-     12: 'ISO-8859-9',
-     13: 'ISO-8859-10',
-    106: 'UTF-8',
-  };
-
-  // TODO: Really, we should build our own map here with synonyms for the
-  // various encodings, but this is a step in the right direction.
-  const str2mib = {};
-  for (let [k, v] in Iterator(mib2str))
-    str2mib[v] = k;
-
-  function Element(ownerDocument, type, tag) {
-    this.ownerDocument = ownerDocument;
-    this.type = type;
-    this._attrs = {};
-
-    if (typeof tag === 'string') {
-      let pieces = tag.split(':');
-      if (pieces.length === 1)
-        this.localTagName = pieces[0];
-      else        [this.namespaceName, this.localTagName] = pieces;
-    }
-    else {
-      this.tag = tag;
-      Object.defineProperties(this, {
-        'namespace':     { get: function() { return this.tag >> 8; } },
-        'localTag':      { get: function() { return this.tag & 0xff; } },
-        'namespaceName': { get: function() {
-          return this.ownerDocument._codepages.__nsnames__[this.namespace];
-        } },
-        'localTagName':  { get: function() {
-          return this.ownerDocument._codepages.__tagnames__[this.tag];
-        } },
-      });
-    }
-  }
-  exports.Element = Element;
-  Element.prototype = {
-    get tagName() {
-      let ns = this.namespaceName;
-      ns = ns ? ns + ':' : '';
-      return ns + this.localTagName;
-    },
-
-    get attributes() {
-      for (let [name, pieces] in Iterator(this._attrs)) {
-        let [namespace, localName] = name.split(':');
-        yield { name: name, namespace: namespace, localName: localName,
-                value: this._getAttribute(pieces) };
-      }
-    },
-
-    getAttribute: function(attr) {
-      if (typeof attr === 'number')
-        attr = this.ownerDocument._codepages.__attrdata__[attr].name;
-      else if (!(attr in this._attrs) && this.namespace !== null &&
-               attr.indexOf(':') === -1)
-        attr = this.namespaceName + ':' + attr;
-      return this._getAttribute(this._attrs[attr]);
-    },
-
-    _getAttribute: function(pieces) {
-      let strValue = '';
-      let array = [];
-
-      for (let [,hunk] in Iterator(pieces)) {
-        if (hunk instanceof Extension) {
-          if (strValue) {
-            array.push(strValue);
-            strValue = '';
-          }
-          array.push(hunk);
-        }
-        else if (typeof hunk === 'number') {
-          strValue += this.ownerDocument._codepages.__attrdata__[hunk].data ||
-                      '';
-        }
-        else {
-          strValue += hunk;
-        }
-      }
-      if (strValue)
-        array.push(strValue);
-
-      return array.length === 1 ? array[0] : array;
-    },
-
-    _addAttribute: function(attr) {
-      if (typeof attr === 'string') {
-        if (attr in this._attrs)
-          throw new ParseError('attribute '+attr+' is repeated');
-        return this._attrs[attr] = [];
-      }
-      else {
-        let namespace = attr >> 8;
-        let localAttr = attr & 0xff;
-
-        let localName = this.ownerDocument._codepages.__attrdata__[localAttr]
-                            .name;
-        let nsName = this.ownerDocument._codepages.__nsnames__[namespace];
-        let name = nsName + ':' + localName;
-
-        if (name in this._attrs)
-          throw new ParseError('attribute '+name+' is repeated');
-        return this._attrs[name] = [attr];
-      }
-    },
-  };
-
-  function EndTag(ownerDocument) {
-    this.ownerDocument = ownerDocument;
-  }
-  exports.EndTag = EndTag;
-  EndTag.prototype = {
-    get type() { return 'ETAG'; },
-  };
-
-  function Text(ownerDocument, textContent) {
-    this.ownerDocument = ownerDocument;
-    this.textContent = textContent;
-  }
-  exports.Text = Text;
-  Text.prototype = {
-    get type() { return 'TEXT'; },
-  };
-
-  function Extension(ownerDocument, subtype, index, value) {
-    this.ownerDocument = ownerDocument;
-    this.subtype = subtype;
-    this.index = index;
-    this.value = value;
-  }
-  exports.Extension = Extension;
-  Extension.prototype = {
-    get type() { return 'EXT'; },
-  };
-
-  function ProcessingInstruction(ownerDocument) {
-    this.ownerDocument = ownerDocument;
-  }
-  exports.ProcessingInstruction = ProcessingInstruction;
-  ProcessingInstruction.prototype = {
-    get type() { return 'PI'; },
-
-    get target() {
-      if (typeof this.targetID === 'string')
-        return this.targetID;
-      else
-        return this.ownerDocument._codepages.__attrdata__[this.targetID].name;
-    },
-
-    _setTarget: function(target) {
-      this.targetID = target;
-      if (typeof target === 'string')
-        return this._data = [];
-      else
-        return this._data = [target];
-    },
-
-    // XXX: this seems impolite...
-    _getAttribute: Element.prototype._getAttribute,
-
-    get data() { return this._getAttribute(this._data); },
-  };
-
-  function Opaque(ownerDocument, data) {
-    this.ownerDocument = ownerDocument;
-    this.data = data;
-  }
-  exports.Opaque = Opaque;
-  Opaque.prototype = {
-    get type() { return 'OPAQUE'; },
-  };
-
-  function Reader(data, codepages) {
-    this._data = data instanceof Writer ? data.bytes : data;
-    this._codepages = codepages;
-    this.rewind();
-  }
-  exports.Reader = Reader;
-  Reader.prototype = {
-    _get_uint8: function() {
-      if (this._index === this._data.length)
-        throw StopIteration;
-      return this._data[this._index++];
-    },
-
-    _get_mb_uint32: function() {
-      let b;
-      let result = 0;
-      do {
-        b = this._get_uint8();
-        result = result*128 + (b & 0x7f);
-      } while(b & 0x80);
-      return result;
-    },
-
-    _get_slice: function(length) {
-      let start = this._index;
-      this._index += length;
-      return this._data.subarray(start, this._index);
-    },
-
-    _get_c_string: function() {
-      let start = this._index;
-      while (this._get_uint8());
-      return this._data.subarray(start, this._index - 1);
-    },
-
-    rewind: function() {
-      this._index = 0;
-
-      let v = this._get_uint8();
-      this.version = ((v & 0xf0) + 1).toString() + '.' + (v & 0x0f).toString();
-      this.pid = this._get_mb_uint32();
-      this.charset = mib2str[this._get_mb_uint32()] || 'unknown';
-      this._decoder = TextDecoder(this.charset);
-
-      let tbl_len = this._get_mb_uint32();
-      this.strings = new StringTable(this._get_slice(tbl_len), this._decoder);
-
-      this.document = this._getDocument();
-    },
-
-    // start        = version publicid charset strtbl body
-    // strtbl       = length *byte
-    // body         = *pi element *pi
-    // element      = stag [ 1*attribute END ] [ *content END ]
-    //
-    // content      = element | string | extension | entity | pi | opaque
-    //
-    // stag         = TAG | ( LITERAL index )
-    // attribute    = attrStart *attrValue
-    // attrStart    = ATTRSTART | ( LITERAL index )
-    // attrValue    = ATTRVALUE | string | extension | entity
-    //
-    // extension    = ( EXT_I termstr ) | ( EXT_T index ) | EXT
-    //
-    // string       = inline | tableref
-    // inline       = STR_I termstr
-    // tableref     = STR_T index
-    //
-    // entity       = ENTITY entcode
-    // entcode      = mb_u_int32            // UCS-4 character code
-    //
-    // pi           = PI attrStart *attrValue END
-    //
-    // opaque       = OPAQUE length *byte
-    //
-    // version      = u_int8 containing WBXML version number
-    // publicid     = mb_u_int32 | ( zero index )
-    // charset      = mb_u_int32
-    // termstr      = charset-dependent string with termination
-    // index        = mb_u_int32            // integer index into string table.
-    // length       = mb_u_int32            // integer length.
-    // zero         = u_int8                // containing the value zero (0).
-    _getDocument: function() {
-      // Parser states
-      const States = {
-        BODY: 0,
-        ATTRIBUTES: 1,
-        ATTRIBUTE_PI: 2,
-      };
-
-      let state = States.BODY;
-      let currentNode;
-      let currentAttr;
-      let codepage = 0;
-      let depth = 0;
-      let foundRoot = false;
-
-      let appendString = (function(s) {
-        if (state === States.BODY) {
-          if (!currentNode)
-            currentNode = new Text(this, s);
-          else
-            currentNode.textContent += s;
-        }
-        else { // if (state === States.ATTRIBUTES || state === States.ATTRIBUTE_PI)
-          currentAttr.push(s);
-        }
-        // We can assume that we're in a valid state, so don't bother checking
-        // here.
-      }).bind(this);
-
-      try { while (true) {
-        let tok = this._get_uint8();
-
-        if (tok === Tokens.SWITCH_PAGE) {
-          codepage = this._get_uint8();
-          if (!(codepage in this._codepages.__nsnames__))
-            throw new ParseError('unknown codepage '+codepage)
-        }
-        else if (tok === Tokens.END) {
-          if (state === States.BODY && depth-- > 0) {
-            if (currentNode) {
-              yield currentNode;
-              currentNode = null;
-            }
-            yield new EndTag(this);
-          }
-          else if (state === States.ATTRIBUTES || state === States.ATTRIBUTE_PI) {
-            state = States.BODY;
-
-            yield currentNode;
-            currentNode = null;
-            currentAttr = null;
-          }
-          else {
-            throw new ParseError('unexpected END token');
-          }
-        }
-        else if (tok === Tokens.ENTITY) {
-          if (state === States.BODY && depth === 0)
-            throw new ParseError('unexpected ENTITY token');
-          let e = this._get_mb_uint32();
-          appendString('&#'+e+';');
-        }
-        else if (tok === Tokens.STR_I) {
-          if (state === States.BODY && depth === 0)
-            throw new ParseError('unexpected STR_I token');
-          appendString(this._decoder.decode(this._get_c_string()));
-        }
-        else if (tok === Tokens.PI) {
-          if (state !== States.BODY)
-            throw new ParseError('unexpected PI token');
-          state = States.ATTRIBUTE_PI;
-
-          if (currentNode)
-            yield currentNode;
-          currentNode = new ProcessingInstruction(this);
-        }
-        else if (tok === Tokens.STR_T) {
-          if (state === States.BODY && depth === 0)
-            throw new ParseError('unexpected STR_T token');
-          let r = this._get_mb_uint32();
-          appendString(this.strings.get(r));
-        }
-        else if (tok === Tokens.OPAQUE) {
-          if (state !== States.BODY)
-            throw new ParseError('unexpected OPAQUE token');
-          let len = this._get_mb_uint32();
-          let data = this._get_slice(len);
-
-          if (currentNode) {
-            yield currentNode;
-            currentNode = null;
-          }
-          yield new Opaque(this, data);
-        }
-        else if (((tok & 0x40) || (tok & 0x80)) && (tok & 0x3f) < 3) {
-          let hi = tok & 0xc0;
-          let lo = tok & 0x3f;
-          let subtype;
-          let value;
-
-          if (hi === Tokens.EXT_I_0) {
-            subtype = 'string';
-            value = this._decoder.decode(this._get_c_string());
-          }
-          else if (hi === Tokens.EXT_T_0) {
-            subtype = 'integer';
-            value = this._get_mb_uint32();
-          }
-          else { // if (hi === Tokens.EXT_0)
-            subtype = 'byte';
-            value = null;
-          }
-
-          let ext = new Extension(this, subtype, lo, value);
-          if (state === States.BODY) {
-            if (currentNode) {
-              yield currentNode;
-              currentNode = null;
-            }
-            yield ext;
-          }
-          else { // if (state === States.ATTRIBUTES || state === States.ATTRIBUTE_PI)
-            currentAttr.push(ext);
-          }
-        }
-        else if (state === States.BODY) {
-          if (depth === 0) {
-            if (foundRoot)
-              throw new ParseError('multiple root nodes found');
-            foundRoot = true;
-          }
-
-          let tag = (codepage << 8) + (tok & 0x3f);
-          if ((tok & 0x3f) === Tokens.LITERAL) {
-            let r = this._get_mb_uint32();
-            tag = this.strings.get(r);
-          }
-
-          if (currentNode)
-            yield currentNode;
-          currentNode = new Element(this, (tok & 0x40) ? 'STAG' : 'TAG', tag);
-          if (tok & 0x40)
-            depth++;
-
-          if (tok & 0x80) {
-            state = States.ATTRIBUTES;
-          }
-          else {
-            state = States.BODY;
-
-            yield currentNode;
-            currentNode = null;
-          }
-        }
-        else { // if (state === States.ATTRIBUTES || state === States.ATTRIBUTE_PI)
-          let attr = (codepage << 8) + tok;
-          if (!(tok & 0x80)) {
-            if (tok === Tokens.LITERAL) {
-              let r = this._get_mb_uint32();
-              attr = this.strings.get(r);
-            }
-            if (state === States.ATTRIBUTE_PI) {
-              if (currentAttr)
-                throw new ParseError('unexpected attribute in PI');
-              currentAttr = currentNode._setTarget(attr);
-            }
-            else {
-              currentAttr = currentNode._addAttribute(attr);
-            }
-          }
-          else {
-            currentAttr.push(attr);
-          }
-        }
-      } } catch (e) {
-        if (!(e instanceof StopIteration))
-          throw e;
-      }
-    },
-
-    dump: function(indentation, header) {
-      let result = '';
-
-      if (indentation === undefined)
-        indentation = 2;
-      let indent = function(level) {
-        return new Array(level*indentation + 1).join(' ');
-      };
-      let tagstack = [];
-
-      if (header) {
-        result += 'Version: ' + this.version + '\n';
-        result += 'Public ID: ' + this.pid + '\n';
-        result += 'Charset: ' + this.charset + '\n';
-        result += 'String table:\n  "' +
-                  this.strings.strings.join('"\n  "') + '"\n\n';
-      }
-
-      let newline = false;
-      for (let node in this.document) {
-        if (node.type === 'TAG' || node.type === 'STAG') {
-          result += indent(tagstack.length) + '<' + node.tagName;
-
-          for (let attr in node.attributes) {
-            result += ' ' + attr.name + '="' + attr.value + '"';
-          }
-
-          if (node.type === 'STAG') {
-            tagstack.push(node.tagName);
-            result += '>\n';
-          }
-          else
-            result += '/>\n';
-        }
-        else if (node.type === 'ETAG') {
-          let tag = tagstack.pop();
-          result += indent(tagstack.length) + '</' + tag + '>\n';
-        }
-        else if (node.type === 'TEXT') {
-          result += indent(tagstack.length) + node.textContent + '\n';
-        }
-        else if (node.type === 'PI') {
-          result += indent(tagstack.length) + '<?' + node.target;
-          if (node.data)
-            result += ' ' + node.data;
-          result += '?>\n';
-        }
-        else if (node.type === 'OPAQUE') {
-          result += indent(tagstack.length) + '<![CDATA[' + node.data + ']]>\n';
-        }
-        else {
-          throw new Error('Unknown node type "' + node.type + '"');
-        }
-      }
-
-      return result;
-    },
-  };
-
-  function Writer(version, pid, charset, strings) {
-    this._rawbuf = new ArrayBuffer(1024);
-    this._buffer = new Uint8Array(this._rawbuf);
-    this._pos = 0;
-    this._codepage = 0;
-    this._tagStack = [];
-
-    let [major, minor] = version.split('.').map(function(x) {
-      return parseInt(x);
-    });
-    let v = ((major - 1) << 4) + minor;
-
-    let charsetNum = charset;
-    if (typeof charset === 'string') {
-      charsetNum = str2mib[charset];
-      if (charsetNum === undefined)
-        throw new Error('unknown charset '+charset);
-    }
-    let encoder = this._encoder = TextEncoder(charset);
-
-    this._write(v);
-    this._write(pid);
-    this._write(charsetNum);
-    if (strings) {
-      let bytes = strings.map(function(s) { return encoder.encode(s); });
-      let len = bytes.reduce(function(x, y) { return x + y.length + 1; }, 0);
-      this._write_mb_uint32(len);
-      for (let [,b] in Iterator(bytes)) {
-        this._write_bytes(b);
-        this._write(0x00);
-      }
-    }
-    else {
-      this._write(0x00);
-    }
-  }
-  exports.Writer = Writer;
-
-  Writer.Attribute = function(name, value) {
-    this.isValue = typeof name === 'number' && (name & 0x80);
-    if (this.isValue && value !== undefined)
-      throw new Error("Can't specify a value for attribute value constants");
-    this.name = name;
-    this.value = value;
-  };
-
-  Writer.StringTableRef = function(index) {
-    this.index = index;
-  };
-
-  Writer.Entity = function(code) {
-    this.code = code;
-  };
-
-  Writer.Extension = function(subtype, index, data) {
-    const validTypes = {
-      'string':  { value:     Tokens.EXT_I_0,
-                   validator: function(data) {
-                     return typeof data === 'string';
-                   } },
-      'integer': { value:     Tokens.EXT_T_0,
-                   validator: function(data) {
-                     return typeof data === 'number';
-                   } },
-      'byte':    { value:     Tokens.EXT_0,
-                   validator: function(data) {
-                     return data === null || data === undefined;
-                   } },
-    };
-
-    let info = validTypes[subtype];
-    if (!info)
-      throw new Error('Invalid WBXML Extension type');
-    if (!info.validator(data))
-      throw new Error('Data for WBXML Extension does not match type');
-    if (index !== 0 && index !== 1 && index !== 2)
-      throw new Error('Invalid WBXML Extension index');
-
-    this.subtype = info.value;
-    this.index = index;
-    this.data = data;
-  };
-
-  Writer.a = function(name, val) { return new Writer.Attribute(name, val); };
-  Writer.str_t = function(index) { return new Writer.StringTableRef(index); };
-  Writer.ent = function(code) { return new Writer.Entity(code) };
-  Writer.ext = function(subtype, index, data) { return new Writer.Extension(
-    subtype, index, data); };
-
-  Writer.prototype = {
-    _write: function(tok) {
-      // Expand the buffer by a factor of two if we ran out of space.
-      if (this._pos === this._buffer.length - 1) {
-        this._rawbuf = new ArrayBuffer(this._rawbuf.byteLength * 2);
-        let buffer = new Uint8Array(this._rawbuf);
-
-        for (let i = 0; i < this._buffer.length; i++)
-          buffer[i] = this._buffer[i];
-
-        this._buffer = buffer;
-      }
-
-      this._buffer[this._pos++] = tok;
-    },
-
-    _write_mb_uint32: function(value) {
-      let bytes = [];
-      bytes.push(value % 0x80);
-      while (value >= 0x80) {
-        value >>= 7;
-        bytes.push(0x80 + (value % 0x80));
-      }
-
-      for (let i = bytes.length - 1; i >= 0; i--)
-        this._write(bytes[i]);
-    },
-
-    _write_bytes: function(bytes) {
-      for (let i = 0; i < bytes.length; i++)
-        this._write(bytes[i]);
-    },
-
-    _write_str: function(str) {
-      this._write_bytes(this._encoder.encode(str));
-    },
-
-    _setCodepage: function(codepage) {
-      if (this._codepage !== codepage) {
-        this._write(Tokens.SWITCH_PAGE);
-        this._write(codepage);
-        this._codepage = codepage;
-      }
-    },
-
-    _writeTag: function(tag, stag, attrs) {
-      if (tag === undefined)
-        throw new Error('unknown tag');
-
-      let flags = 0x00;
-      if (stag)
-        flags += 0x40;
-      if (attrs.length)
-        flags += 0x80;
-
-      if (tag instanceof Writer.StringTableRef) {
-        this._write(Tokens.LITERAL + flags);
-        this._write_mb_uint32(tag.index);
-      }
-      else {
-        this._setCodepage(tag >> 8);
-        this._write((tag & 0xff) + flags);
-      }
-
-      if (attrs.length) {
-        for (let [,attr] in Iterator(attrs))
-          this._writeAttr(attr);
-        this._write(Tokens.END);
-      }
-    },
-
-    _writeAttr: function(attr) {
-      if (!(attr instanceof Writer.Attribute))
-        throw new Error('Expected an Attribute object');
-      if (attr.isValue)
-        throw new Error("Can't use attribute value constants here");
-
-      if (attr.name instanceof Writer.StringTableRef) {
-        this._write(Tokens.LITERAL);
-        this._write(attr.name.index);
-      }
-      else {
-        this._setCodepage(attr.name >> 8);
-        this._write(attr.name & 0xff);
-      }
-      this._writeText(attr.value, true);
-    },
-
-    _writeText: function(value, inAttr) {
-      if (Array.isArray(value)) {
-        for (let [,piece] in Iterator(value))
-          this._writeText(piece, inAttr);
-      }
-      else if (value instanceof Writer.StringTableRef) {
-        this._write(Tokens.STR_T);
-        this._write_mb_uint32(value.index);
-      }
-      else if (value instanceof Writer.Entity) {
-        this._write(Tokens.ENTITY);
-        this._write_mb_uint32(value.code);
-      }
-      else if (value instanceof Writer.Extension) {
-        this._write(value.subtype + value.index);
-        if (value.subtype === Tokens.EXT_I_0) {
-          this._write_str(value.data);
-          this._write(0x00);
-        }
-        else if (value.subtype === Tokens.EXT_T_0) {
-          this._write_mb_uint32(value.data);
-        }
-      }
-      else if (value instanceof Writer.Attribute) {
-        if (!value.isValue)
-          throw new Error('Unexpected Attribute object');
-        if (!inAttr)
-          throw new Error("Can't use attribute value constants outside of " +
-                          "attributes");
-        this._setCodepage(value.name >> 8);
-        this._write(value.name & 0xff);
-      }
-      else if (value !== null && value !== undefined) {
-        this._write(Tokens.STR_I);
-        this._write_str(value.toString());
-        this._write(0x00);
-      }
-    },
-
-    tag: function(tag) {
-      let tail = arguments.length > 1 ? arguments[arguments.length - 1] : null;
-      if (tail === null || tail instanceof Writer.Attribute) {
-        let rest = Array.prototype.slice.call(arguments, 1);
-        this._writeTag(tag, false, rest);
-        return this;
-      }
-      else {
-        let head = Array.prototype.slice.call(arguments, 0, -1);
-        return this.stag.apply(this, head)
-                     .text(tail)
-                   .etag();
-      }
-    },
-
-    stag: function(tag) {
-      let rest = Array.prototype.slice.call(arguments, 1);
-      this._writeTag(tag, true, rest);
-      this._tagStack.push(tag);
-      return this;
-    },
-
-    etag: function(tag) {
-      if (this._tagStack.length === 0)
-        throw new Error('Spurious etag() call!');
-      let expectedTag = this._tagStack.pop();
-      if (tag !== undefined && tag !== expectedTag)
-        throw new Error('Closed the wrong tag');
-
-      this._write(Tokens.END);
-      return this;
-    },
-
-    text: function(value) {
-      this._writeText(value);
-      return this;
-    },
-
-    pi: function(target, data) {
-      this._write(Tokens.PI);
-      this._writeAttr(Writer.a(target, data));
-      this._write(Tokens.END);
-      return this;
-    },
-
-    ext: function(subtype, index, data) {
-      return this.text(Writer.ext(subtype, index, data));
-    },
-
-    opaque: function(data) {
-      this._write(Tokens.OPAQUE);
-      this._write_mb_uint32(data.length);
-      if (typeof data === 'string') {
-        this._write_str(data);
-      }
-      else {
-        for (let i = 0; i < data.length; i++)
-          this._write(data[i]);
-      }
-      return this;
-    },
-
-    get buffer() { return this._rawbuf.slice(0, this._pos); },
-    get bytes() { return new Uint8Array(this._rawbuf, 0, this._pos); },
-  };
-
-  function EventParser() {
-    this.listeners = [];
-    this.onerror = function(e) { throw e; };
-  }
-  exports.EventParser = EventParser;
-  EventParser.prototype = {
-    addEventListener: function(path, callback) {
-      this.listeners.push({path: path, callback: callback});
-    },
-
-    _pathMatches: function(a, b) {
-      return a.length === b.length && a.every(function(val, i) {
-        if (b[i] === '*')
-          return true;
-        else if (Array.isArray(b[i])) {
-          return b[i].indexOf(val) !== -1;
-        }
-        else
-          return val === b[i];
-      });
-    },
-
-    run: function(reader) {
-      let fullPath = [];
-      let recPath = [];
-      let recording = 0;
-
-      for (let node in reader.document) {
-        if (node.type === 'TAG') {
-          fullPath.push(node.tag);
-          for (let [,listener] in Iterator(this.listeners)) {
-            if (this._pathMatches(fullPath, listener.path)) {
-              node.children = [];
-              try {
-                listener.callback(node);
-              }
-              catch (e) {
-                if (this.onerror)
-                  this.onerror(e);
-              }
-            }
-          }
-
-          fullPath.pop();
-        }
-        else if (node.type === 'STAG') {
-          fullPath.push(node.tag);
-
-          for (let [,listener] in Iterator(this.listeners)) {
-            if (this._pathMatches(fullPath, listener.path)) {
-              recording++;
-            }
-          }
-        }
-        else if (node.type === 'ETAG') {
-          for (let [,listener] in Iterator(this.listeners)) {
-            if (this._pathMatches(fullPath, listener.path)) {
-              recording--;
-              try {
-                listener.callback(recPath[recPath.length-1]);
-              }
-              catch (e) {
-                if (this.onerror)
-                  this.onerror(e);
-              }
-            }
-          }
-
-          fullPath.pop();
-        }
-
-        if (recording) {
-          if (node.type === 'STAG') {
-            node.type = 'TAG';
-            node.children = [];
-            if (recPath.length)
-              recPath[recPath.length-1].children.push(node);
-            recPath.push(node);
-          }
-          else if (node.type === 'ETAG') {
-            recPath.pop();
-          }
-          else {
-            node.children = [];
-            recPath[recPath.length-1].children.push(node);
-          }
-        }
-      }
-    },
-  };
-
-  return exports;
 }));
 
 /* Copyright 2012 Mozilla Foundation
@@ -1054,1132 +101,35 @@
 
 (function (root, factory) {
   if (typeof exports === 'object')
-    module.exports = factory(require('wbxml'));
+    module.exports = factory();
   else if (typeof define === 'function' && define.amd)
-    define('activesync/codepages',['wbxml'], factory);
+    define('activesync/codepages/ComposeMail',[], factory);
   else
-    root.ActiveSyncCodepages = factory(WBXML);
-}(this, function(WBXML) {
+    root.ASCPComposeMail = factory();
+}(this, function() {
   'use strict';
 
-  let codepages = {
-    Common: {
-      Enums: {
-        Status: {
-          InvalidContent:                                  '101',
-          InvalidWBXML:                                    '102',
-          InvalidXML:                                      '103',
-          InvalidDateTime:                                 '104',
-          InvalidCombinationOfIDs:                         '105',
-          InvalidIDs:                                      '106',
-          InvalidMIME:                                     '107',
-          DeviceIdMissingOrInvalid:                        '108',
-          DeviceTypeMissingOrInvalid:                      '109',
-          ServerError:                                     '110',
-          ServerErrorRetryLater:                           '111',
-          ActiveDirectoryAccessDenied:                     '112',
-          MailboxQuotaExceeded:                            '113',
-          MailboxServerOffline:                            '114',
-          SendQuotaExceeded:                               '115',
-          MessageRecipientUnresolved:                      '116',
-          MessageReplyNotAllowed:                          '117',
-          MessagePreviouslySent:                           '118',
-          MessageHasNoRecipient:                           '119',
-          MailSubmissionFailed:                            '120',
-          MessageReplyFailed:                              '121',
-          AttachmentIsTooLarge:                            '122',
-          UserHasNoMailbox:                                '123',
-          UserCannotBeAnonymous:                           '124',
-          UserPrincipalCouldNotBeFound:                    '125',
-          UserDisabledForSync:                             '126',
-          UserOnNewMailboxCannotSync:                      '127',
-          UserOnLegacyMailboxCannotSync:                   '128',
-          DeviceIsBlockedForThisUser:                      '129',
-          AccessDenied:                                    '130',
-          AccountDisabled:                                 '131',
-          SyncStateNotFound:                               '132',
-          SyncStateLocked:                                 '133',
-          SyncStateCorrupt:                                '134',
-          SyncStateAlreadyExists:                          '135',
-          SyncStateVersionInvalid:                         '136',
-          CommandNotSupported:                             '137',
-          VersionNotSupported:                             '138',
-          DeviceNotFullyProvisionable:                     '139',
-          RemoteWipeRequested:                             '140',
-          LegacyDeviceOnStrictPolicy:                      '141',
-          DeviceNotProvisioned:                            '142',
-          PolicyRefresh:                                   '143',
-          InvalidPolicyKey:                                '144',
-          ExternallyManagedDevicesNotAllowed:              '145',
-          NoRecurrenceInCalendar:                          '146',
-          UnexpectedItemClass:                             '147',
-          RemoteServerHasNoSSL:                            '148',
-          InvalidStoredRequest:                            '149',
-          ItemNotFound:                                    '150',
-          TooManyFolders:                                  '151',
-          NoFoldersFounds:                                 '152',
-          ItemsLostAfterMove:                              '153',
-          FailureInMoveOperation:                          '154',
-          MoveCommandDisallowedForNonPersistentMoveAction: '155',
-          MoveCommandInvalidDestinationFolder:             '156',
-          AvailabilityTooManyRecipients:                   '160',
-          AvailabilityDLLimitReached:                      '161',
-          AvailabilityTransientFailure:                    '162',
-          AvailabilityFailure:                             '163',
-          BodyPartPreferenceTypeNotSupported:              '164',
-          DeviceInformationRequired:                       '165',
-          InvalidAccountId:                                '166',
-          AccountSendDisabled:                             '167',
-          IRM_FeatureDisabled:                             '168',
-          IRM_TransientError:                              '169',
-          IRM_PermanentError:                              '170',
-          IRM_InvalidTemplateID:                           '171',
-          IRM_OperationNotPermitted:                       '172',
-          NoPicture:                                       '173',
-          PictureTooLarge:                                 '174',
-          PictureLimitReached:                             '175',
-          BodyPart_ConversationTooLarge:                   '176',
-          MaximumDevicesReached:                           '177',
-        },
-      },
-    },
-
-    AirSync: {
-      Tags: {
-        Sync:              0x0005,
-        Responses:         0x0006,
-        Add:               0x0007,
-        Change:            0x0008,
-        Delete:            0x0009,
-        Fetch:             0x000A,
-        SyncKey:           0x000B,
-        ClientId:          0x000C,
-        ServerId:          0x000D,
-        Status:            0x000E,
-        Collection:        0x000F,
-        Class:             0x0010,
-        Version:           0x0011,
-        CollectionId:      0x0012,
-        GetChanges:        0x0013,
-        MoreAvailable:     0x0014,
-        WindowSize:        0x0015,
-        Commands:          0x0016,
-        Options:           0x0017,
-        FilterType:        0x0018,
-        Truncation:        0x0019,
-        RtfTruncation:     0x001A,
-        Conflict:          0x001B,
-        Collections:       0x001C,
-        ApplicationData:   0x001D,
-        DeletesAsMoves:    0x001E,
-        NotifyGUID:        0x001F,
-        Supported:         0x0020,
-        SoftDelete:        0x0021,
-        MIMESupport:       0x0022,
-        MIMETruncation:    0x0023,
-        Wait:              0x0024,
-        Limit:             0x0025,
-        Partial:           0x0026,
-        ConversationMode:  0x0027,
-        MaxItems:          0x0028,
-        HeartbeatInterval: 0x0029,
-      },
-
-      Enums: {
-        Status: {
-          Success:            '1',
-          InvalidSyncKey:     '3',
-          ProtocolError:      '4',
-          ServerError:        '5',
-          ConversionError:    '6',
-          MatchingConflict:   '7',
-          ObjectNotFound:     '8',
-          OutOfSpace:         '9',
-          HierarchyChanged:  '12',
-          IncompleteRequest: '13',
-          InvalidInterval:   '14',
-          InvalidRequest:    '15',
-          Retry:             '16',
-        },
-        FilterType: {
-          NoFilter:        '0',
-          OneDayBack:      '1',
-          ThreeDaysBack:   '2',
-          OneWeekBack:     '3',
-          TwoWeeksBack:    '4',
-          OneMonthBack:    '5',
-          ThreeMonthsBack: '6',
-          SixMonthsBack:   '7',
-          IncompleteTasks: '8',
-        },
-        Conflict: {
-          ClientReplacesServer: '0',
-          ServerReplacesClient: '1',
-        },
-        MIMESupport: {
-          Never:     '0',
-          SMIMEOnly: '1',
-          Always:    '2',
-        },
-        MIMETruncation: {
-          TruncateAll:  '0',
-          Truncate4K:   '1',
-          Truncate5K:   '2',
-          Truncate7K:   '3',
-          Truncate10K:  '4',
-          Truncate20K:  '5',
-          Truncate50K:  '6',
-          Truncate100K: '7',
-          NoTruncate:   '8',
-        },
-      },
-    },
-
-    Contacts: {
-      Tags: {
-        Anniversary:               0x0105,
-        AssistantName:             0x0106,
-        AssistantPhoneNumber:      0x0107,
-        Birthday:                  0x0108,
-        Body:                      0x0109,
-        BodySize:                  0x010A,
-        BodyTruncated:             0x010B,
-        Business2PhoneNumber:      0x010C,
-        BusinessAddressCity:       0x010D,
-        BusinessAddressCountry:    0x010E,
-        BusinessAddressPostalCode: 0x010F,
-        BusinessAddressState:      0x0110,
-        BusinessAddressStreet:     0x0111,
-        BusinessFaxNumber:         0x0112,
-        BusinessPhoneNumber:       0x0113,
-        CarPhoneNumber:            0x0114,
-        Categories:                0x0115,
-        Category:                  0x0116,
-        Children:                  0x0117,
-        Child:                     0x0118,
-        CompanyName:               0x0119,
-        Department:                0x011A,
-        Email1Address:             0x011B,
-        Email2Address:             0x011C,
-        Email3Address:             0x011D,
-        FileAs:                    0x011E,
-        FirstName:                 0x011F,
-        Home2PhoneNumber:          0x0120,
-        HomeAddressCity:           0x0121,
-        HomeAddressCountry:        0x0122,
-        HomeAddressPostalCode:     0x0123,
-        HomeAddressState:          0x0124,
-        HomeAddressStreet:         0x0125,
-        HomeFaxNumber:             0x0126,
-        HomePhoneNumber:           0x0127,
-        JobTitle:                  0x0128,
-        LastName:                  0x0129,
-        MiddleName:                0x012A,
-        MobilePhoneNumber:         0x012B,
-        OfficeLocation:            0x012C,
-        OtherAddressCity:          0x012D,
-        OtherAddressCountry:       0x012E,
-        OtherAddressPostalCode:    0x012F,
-        OtherAddressState:         0x0130,
-        OtherAddressStreet:        0x0131,
-        PagerNumber:               0x0132,
-        RadioPhoneNumber:          0x0133,
-        Spouse:                    0x0134,
-        Suffix:                    0x0135,
-        Title:                     0x0136,
-        WebPage:                   0x0137,
-        YomiCompanyName:           0x0138,
-        YomiFirstName:             0x0139,
-        YomiLastName:              0x013A,
-        CompressedRTF:             0x013B,
-        Picture:                   0x013C,
-        Alias:                     0x013D,
-        WeightedRank:              0x013E,
-      },
-    },
-
-    Email: {
-      Tags: {
-        Attachment:              0x0205,
-        Attachments:             0x0206,
-        AttName:                 0x0207,
-        AttSize:                 0x0208,
-        Att0Id:                  0x0209,
-        AttMethod:               0x020A,
-        AttRemoved:              0x020B,
-        Body:                    0x020C,
-        BodySize:                0x020D,
-        BodyTruncated:           0x020E,
-        DateReceived:            0x020F,
-        DisplayName:             0x0210,
-        DisplayTo:               0x0211,
-        Importance:              0x0212,
-        MessageClass:            0x0213,
-        Subject:                 0x0214,
-        Read:                    0x0215,
-        To:                      0x0216,
-        Cc:                      0x0217,
-        From:                    0x0218,
-        ReplyTo:                 0x0219,
-        AllDayEvent:             0x021A,
-        Categories:              0x021B,
-        Category:                0x021C,
-        DTStamp:                 0x021D,
-        EndTime:                 0x021E,
-        InstanceType:            0x021F,
-        BusyStatus:              0x0220,
-        Location:                0x0221,
-        MeetingRequest:          0x0222,
-        Organizer:               0x0223,
-        RecurrenceId:            0x0224,
-        Reminder:                0x0225,
-        ResponseRequested:       0x0226,
-        Recurrences:             0x0227,
-        Recurrence:              0x0228,
-        Recurrence_Type:         0x0229,
-        Recurrence_Until:        0x022A,
-        Recurrence_Occurrences:  0x022B,
-        Recurrence_Interval:     0x022C,
-        Recurrence_DayOfWeek:    0x022D,
-        Recurrence_DayOfMonth:   0x022E,
-        Recurrence_WeekOfMonth:  0x022F,
-        Recurrence_MonthOfYear:  0x0230,
-        StartTime:               0x0231,
-        Sensitivity:             0x0232,
-        TimeZone:                0x0233,
-        GlobalObjId:             0x0234,
-        ThreadTopic:             0x0235,
-        MIMEData:                0x0236,
-        MIMETruncated:           0x0237,
-        MIMESize:                0x0238,
-        InternetCPID:            0x0239,
-        Flag:                    0x023A,
-        Status:                  0x023B,
-        ContentClass:            0x023C,
-        FlagType:                0x023D,
-        CompleteTime:            0x023E,
-        DisallowNewTimeProposal: 0x023F,
-      },
-      Enums: {
-        Importance: {
-          Low:    '0',
-          Normal: '1',
-          High:   '2',
-        },
-        InstanceType: {
-          Single:             '0',
-          RecurringMaster:    '1',
-          RecurringInstance:  '2',
-          RecurringException: '3',
-        },
-        BusyStatus: {
-          Free:      '0',
-          Tentative: '1',
-          Busy:      '2',
-          Oof:       '3',
-        },
-        Recurrence_Type: {
-          Daily:             '0',
-          Weekly:             '1',
-          MonthlyNthDay:      '2',
-          Monthly:            '3',
-          YearlyNthDay:       '5',
-          YearlyNthDayOfWeek: '6',
-        },
-        /* XXX: missing Recurrence_DayOfWeek */
-        Sensitivity: {
-          Normal:       '0',
-          Personal:     '1',
-          Private:      '2',
-          Confidential: '3',
-        },
-        Status: {
-          Cleared:  '0',
-          Complete: '1',
-          Active:   '2',
-        },
-      },
-    },
-
-    Calendar: {
-      Tags: {
-        TimeZone:                  0x0405,
-        AllDayEvent:               0x0406,
-        Attendees:                 0x0407,
-        Attendee:                  0x0408,
-        Email:                     0x0409,
-        Name:                      0x040A,
-        Body:                      0x040B,
-        BodyTruncated:             0x040C,
-        BusyStatus:                0x040D,
-        Categories:                0x040E,
-        Category:                  0x040F,
-        CompressedRTF:             0x0410,
-        DtStamp:                   0x0411,
-        EndTime:                   0x0412,
-        Exception:                 0x0413,
-        Exceptions:                0x0414,
-        Deleted:                   0x0415,
-        ExceptionStartTime:        0x0416,
-        Location:                  0x0417,
-        MeetingStatus:             0x0418,
-        OrganizerEmail:            0x0419,
-        OrganizerName:             0x041A,
-        Recurrence:                0x041B,
-        Type:                      0x041C,
-        Until:                     0x041D,
-        Occurrences:               0x041E,
-        Interval:                  0x041F,
-        DayOfWeek:                 0x0420,
-        DayOfMonth:                0x0421,
-        WeekOfMonth:               0x0422,
-        MonthOfYear:               0x0423,
-        Reminder:                  0x0424,
-        Sensitivity:               0x0425,
-        Subject:                   0x0426,
-        StartTime:                 0x0427,
-        UID:                       0x0428,
-        AttendeeStatus:            0x0429,
-        AttendeeType:              0x042A,
-        Attachment:                0x042B,
-        Attachments:               0x042C,
-        AttName:                   0x042D,
-        AttSize:                   0x042E,
-        AttOid:                    0x042F,
-        AttMethod:                 0x0430,
-        AttRemoved:                0x0431,
-        DisplayName:               0x0432,
-        DisallowNewTimeProposal:   0x0433,
-        ResponseRequested:         0x0434,
-        AppointmentReplyTime:      0x0435,
-        ResponseType:              0x0436,
-        CalendarType:              0x0437,
-        IsLeapMonth:               0x0438,
-        FirstDayOfWeek:            0x0439,
-        OnlineMeetingConfLink:     0x043A,
-        OnlineMeetingExternalLink: 0x043B,
-      },
-    },
-
-    Move: {
-      Tags: {
-        MoveItems: 0x0505,
-        Move:      0x0506,
-        SrcMsgId:  0x0507,
-        SrcFldId:  0x0508,
-        DstFldId:  0x0509,
-        Response:  0x050A,
-        Status:    0x050B,
-        DstMsgId:  0x050C,
-      },
-      Enums: {
-        Status: {
-          InvalidSourceID: '1',
-          InvalidDestID:   '2',
-          Success:         '3',
-          SourceIsDest:    '4',
-          MoveFailure:     '5',
-          ItemLocked:      '7',
-        },
-      },
-    },
-
-    ItemEstimate: {
-      Tags: {
-        GetItemEstimate: 0x0605,
-        Version:         0x0606,
-        Collections:     0x0607,
-        Collection:      0x0608,
-        Class:           0x0609,
-        CollectionId:    0x060A,
-        DateTime:        0x060B,
-        Estimate:        0x060C,
-        Response:        0x060D,
-        Status:          0x060E,
-      },
-      Enums: {
-        Status: {
-          Success:           '1',
-          InvalidCollection: '2',
-          NoSyncState:       '3',
-          InvalidSyncKey:    '4',
-        },
-      },
-    },
-
-    FolderHierarchy: {
-      Tags: {
-        Folders:      0x0705,
-        Folder:       0x0706,
-        DisplayName:  0x0707,
-        ServerId:     0x0708,
-        ParentId:     0x0709,
-        Type:         0x070A,
-        Response:     0x070B,
-        Status:       0x070C,
-        ContentClass: 0x070D,
-        Changes:      0x070E,
-        Add:          0x070F,
-        Delete:       0x0710,
-        Update:       0x0711,
-        SyncKey:      0x0712,
-        FolderCreate: 0x0713,
-        FolderDelete: 0x0714,
-        FolderUpdate: 0x0715,
-        FolderSync:   0x0716,
-        Count:        0x0717,
-      },
-      Enums: {
-        Type: {
-          Generic:         '1',
-          DefaultInbox:    '2',
-          DefaultDrafts:   '3',
-          DefaultDeleted:  '4',
-          DefaultSent:     '5',
-          DefaultOutbox:   '6',
-          DefaultTasks:    '7',
-          DefaultCalendar: '8',
-          DefaultContacts: '9',
-          DefaultNotes:   '10',
-          DefaultJournal: '11',
-          Mail:           '12',
-          Calendar:       '13',
-          Contacts:       '14',
-          Tasks:          '15',
-          Journal:        '16',
-          Notes:          '17',
-          Unknown:        '18',
-          RecipientCache: '19',
-        },
-        Status: {
-          Success:              '1',
-          FolderExists:         '2',
-          SystemFolder:         '3',
-          FolderNotFound:       '4',
-          ParentFolderNotFound: '5',
-          ServerError:          '6',
-          InvalidSyncKey:       '9',
-          MalformedRequest:    '10',
-          UnknownError:        '11',
-          CodeUnknown:         '12',
-        },
-      },
-    },
-
-    MeetingResponse: {
-      Tags: {
-        CalendarId:      0x0805,
-        CollectionId:    0x0806,
-        MeetingResponse: 0x0807,
-        RequestId:       0x0808,
-        Request:         0x0809,
-        Result:          0x080A,
-        Status:          0x080B,
-        UserResponse:    0x080C,
-        InstanceId:      0x080E,
-      },
-      Enums: {
-        Status: {
-          Success:        '1',
-          InvalidRequest: '2',
-          MailboxError:   '3',
-          ServerError:    '4',
-        },
-        UserResponse: {
-          Accepted:  '1',
-          Tentative: '2',
-          Declined:  '3',
-        },
-      },
-    },
-
-    Tasks: {
-      Tags: {
-        Body:                   0x0905,
-        BodySize:               0x0906,
-        BodyTruncated:          0x0907,
-        Categories:             0x0908,
-        Category:               0x0909,
-        Complete:               0x090A,
-        DateCompleted:          0x090B,
-        DueDate:                0x090C,
-        UtcDueDate:             0x090D,
-        Importance:             0x090E,
-        Recurrence:             0x090F,
-        Recurrence_Type:        0x0910,
-        Recurrence_Start:       0x0911,
-        Recurrence_Until:       0x0912,
-        Recurrence_Occurrences: 0x0913,
-        Recurrence_Interval:    0x0914,
-        Recurrence_DayOfMonth:  0x0915,
-        Recurrence_DayOfWeek:   0x0916,
-        Recurrence_WeekOfMonth: 0x0917,
-        Recurrence_MonthOfYear: 0x0918,
-        Recurrence_Regenerate:  0x0919,
-        Recurrence_DeadOccur:   0x091A,
-        ReminderSet:            0x091B,
-        ReminderTime:           0x091C,
-        Sensitivity:            0x091D,
-        StartDate:              0x091E,
-        UtcStartDate:           0x091F,
-        Subject:                0x0920,
-        CompressedRTF:          0x0921,
-        OrdinalDate:            0x0922,
-        SubOrdinalDate:         0x0923,
-        CalendarType:           0x0924,
-        IsLeapMonth:            0x0925,
-        FirstDayOfWeek:         0x0926,
-      },
-    },
-
-    ResolveRecipients: {
-      Tags: {
-        ResolveRecipients:      0x0A05,
-        Response:               0x0A06,
-        Status:                 0x0A07,
-        Type:                   0x0A08,
-        Recipient:              0x0A09,
-        DisplayName:            0x0A0A,
-        EmailAddress:           0x0A0B,
-        Certificates:           0x0A0C,
-        Certificate:            0x0A0D,
-        MiniCertificate:        0x0A0E,
-        Options:                0x0A0F,
-        To:                     0x0A10,
-        CertificateRetrieval:   0x0A11,
-        RecipientCount:         0x0A12,
-        MaxCertificates:        0x0A13,
-        MaxAmbiguousRecipients: 0x0A14,
-        CertificateCount:       0x0A15,
-        Availability:           0x0A16,
-        StartTime:              0x0A17,
-        EndTime:                0x0A18,
-        MergedFreeBusy:         0x0A19,
-        Picture:                0x0A1A,
-        MaxSize:                0x0A1B,
-        Data:                   0x0A1C,
-        MaxPictures:            0x0A1D,
-      },
-      Enums: {
-        Status: {
-          Success:                   '1',
-          AmbiguousRecipientFull:    '2',
-          AmbiguousRecipientPartial: '3',
-          RecipientNotFound:         '4',
-          ProtocolError:             '5',
-          ServerError:               '6',
-          InvalidSMIMECert:          '7',
-          CertLimitReached:          '8',
-        },
-        CertificateRetrieval: {
-          None: '1',
-          Full: '2',
-          Mini: '3',
-        },
-        MergedFreeBusy: {
-          Free:      '0',
-          Tentative: '1',
-          Busy:      '2',
-          Oof:       '3',
-          NoData:    '4',
-        },
-      },
-    },
-
-    ValidateCert: {
-      Tags: {
-        ValidateCert:     0x0B05,
-        Certificates:     0x0B06,
-        Certificate:      0x0B07,
-        CertificateChain: 0x0B08,
-        CheckCRL:         0x0B09,
-        Status:           0x0B0A,
-      },
-      Enums: {
-        Status: {
-          Success:               '1',
-          ProtocolError:         '2',
-          InvalidSignature:      '3',
-          UntrustedSource:       '4',
-          InvalidChain:          '5',
-          NotForEmail:           '6',
-          Expired:               '7',
-          InconsistentTimes:     '8',
-          IdMisused:             '9',
-          MissingInformation:   '10',
-          CAEndMismatch:        '11',
-          EmailAddressMismatch: '12',
-          Revoked:              '13',
-          ServerOffline:        '14',
-          ChainRevoked:         '15',
-          RevocationUnknown:    '16',
-          UnknownError:         '17',
-        },
-      },
-    },
-
-    Contacts2: {
-      Tags: {
-        CustomerId:       0x0C05,
-        GovernmentId:     0x0C06,
-        IMAddress:        0x0C07,
-        IMAddress2:       0x0C08,
-        IMAddress3:       0x0C09,
-        ManagerName:      0x0C0A,
-        CompanyMainPhone: 0x0C0B,
-        AccountName:      0x0C0C,
-        NickName:         0x0C0D,
-        MMS:              0x0C0E,
-      },
-    },
-
-    Ping: {
-      Tags: {
-        Ping:              0x0D05,
-        AutdState:         0x0D06,
-        Status:            0x0D07,
-        HeartbeatInterval: 0x0D08,
-        Folders:           0x0D09,
-        Folder:            0x0D0A,
-        Id:                0x0D0B,
-        Class:             0x0D0C,
-        MaxFolders:        0x0D0D,
-      },
-      Enums: {
-        Status: {
-          Expired:           '1',
-          Changed:           '2',
-          MissingParameters: '3',
-          SyntaxError:       '4',
-          InvalidInterval:   '5',
-          TooManyFolders:    '6',
-          SyncFolders:       '7',
-          ServerError:       '8',
-        },
-      },
-    },
-
-    Provision: {
-      Tags: {
-        Provision:                                0x0E05,
-        Policies:                                 0x0E06,
-        Policy:                                   0x0E07,
-        PolicyType:                               0x0E08,
-        PolicyKey:                                0x0E09,
-        Data:                                     0x0E0A,
-        Status:                                   0x0E0B,
-        RemoteWipe:                               0x0E0C,
-        EASProvisionDoc:                          0x0E0D,
-        DevicePasswordEnabled:                    0x0E0E,
-        AlphanumericDevicePasswordRequired:       0x0E0F,
-        DeviceEncryptionEnabled:                  0x0E10,
-        RequireStorageCardEncryption:             0x0E10,
-        PasswordRecoveryEnabled:                  0x0E11,
-        AttachmentsEnabled:                       0x0E13,
-        MinDevicePasswordLength:                  0x0E14,
-        MaxInactivityTimeDeviceLock:              0x0E15,
-        MaxDevicePasswordFailedAttempts:          0x0E16,
-        MaxAttachmentSize:                        0x0E17,
-        AllowSimpleDevicePassword:                0x0E18,
-        DevicePasswordExpiration:                 0x0E19,
-        DevicePasswordHistory:                    0x0E1A,
-        AllowStorageCard:                         0x0E1B,
-        AllowCamera:                              0x0E1C,
-        RequireDeviceEncryption:                  0x0E1D,
-        AllowUnsignedApplications:                0x0E1E,
-        AllowUnsignedInstallationPackages:        0x0E1F,
-        MinDevicePasswordComplexCharacters:       0x0E20,
-        AllowWiFi:                                0x0E21,
-        AllowTextMessaging:                       0x0E22,
-        AllowPOPIMAPEmail:                        0x0E23,
-        AllowBluetooth:                           0x0E24,
-        AllowIrDA:                                0x0E25,
-        RequireManualSyncWhenRoaming:             0x0E26,
-        AllowDesktopSync:                         0x0E27,
-        MaxCalendarAgeFilter:                     0x0E28,
-        AllowHTMLEmail:                           0x0E29,
-        MaxEmailAgeFilter:                        0x0E2A,
-        MaxEmailBodyTruncationSize:               0x0E2B,
-        MaxEmailHTMLBodyTruncationSize:           0x0E2C,
-        RequireSignedSMIMEMessages:               0x0E2D,
-        RequireEncryptedSMIMEMessages:            0x0E2E,
-        RequireSignedSMIMEAlgorithm:              0x0E2F,
-        RequireEncryptionSMIMEAlgorithm:          0x0E30,
-        AllowSMIMEEncryptionAlgorithmNegotiation: 0x0E31,
-        AllowSMIMESoftCerts:                      0x0E32,
-        AllowBrowser:                             0x0E33,
-        AllowConsumerEmail:                       0x0E34,
-        AllowRemoteDesktop:                       0x0E35,
-        AllowInternetSharing:                     0x0E36,
-        UnapprovedInROMApplicationList:           0x0E37,
-        ApplicationName:                          0x0E38,
-        ApprovedApplicationList:                  0x0E39,
-        Hash:                                     0x0E3A,
-      },
-    },
-
-    Search: {
-      Tags: {
-        Search:         0x0F05,
-        Stores:         0x0F06,
-        Store:          0x0F07,
-        Name:           0x0F08,
-        Query:          0x0F09,
-        Options:        0x0F0A,
-        Range:          0x0F0B,
-        Status:         0x0F0C,
-        Response:       0x0F0D,
-        Result:         0x0F0E,
-        Properties:     0x0F0F,
-        Total:          0x0F10,
-        EqualTo:        0x0F11,
-        Value:          0x0F12,
-        And:            0x0F13,
-        Or:             0x0F14,
-        FreeText:       0x0F15,
-        DeepTraversal:  0x0F17,
-        LongId:         0x0F18,
-        RebuildResults: 0x0F19,
-        LessThan:       0x0F1A,
-        GreaterThan:    0x0F1B,
-        Schema:         0x0F1C,
-        Supported:      0x0F1D,
-        UserName:       0x0F1E,
-        Password:       0x0F1F,
-        ConversationId: 0x0F20,
-        Picture:        0x0F21,
-        MaxSize:        0x0F22,
-        MaxPictures:    0x0F23,
-      },
-      Enums: {
-        Status: {
-          Success:              '1',
-          InvalidRequest:       '2',
-          ServerError:          '3',
-          BadLink:              '4',
-          AccessDenied:         '5',
-          NotFound:             '6',
-          ConnectionFailure:    '7',
-          TooComplex:           '8',
-          Timeout:             '10',
-          SyncFolders:         '11',
-          EndOfRange:          '12',
-          AccessBlocked:       '13',
-          CredentialsRequired: '14',
-        },
-      },
-    },
-
-    GAL: {
-      Tags: {
-        DisplayName:  0x1005,
-        Phone:        0x1006,
-        Office:       0x1007,
-        Title:        0x1008,
-        Company:      0x1009,
-        Alias:        0x100A,
-        FirstName:    0x100B,
-        LastName:     0x100C,
-        HomePhone:    0x100D,
-        MobilePhone:  0x100E,
-        EmailAddress: 0x100F,
-        Picture:      0x1010,
-        Status:       0x1011,
-        Data:         0x1012,
-      },
-    },
-
-    AirSyncBase: {
-      Tags: {
-        BodyPreference:     0x1105,
-        Type:               0x1106,
-        TruncationSize:     0x1107,
-        AllOrNone:          0x1108,
-        Reserved:           0x1109,
-        Body:               0x110A,
-        Data:               0x110B,
-        EstimatedDataSize:  0x110C,
-        Truncated:          0x110D,
-        Attachments:        0x110E,
-        Attachment:         0x110F,
-        DisplayName:        0x1110,
-        FileReference:      0x1111,
-        Method:             0x1112,
-        ContentId:          0x1113,
-        ContentLocation:    0x1114,
-        IsInline:           0x1115,
-        NativeBodyType:     0x1116,
-        ContentType:        0x1117,
-        Preview:            0x1118,
-        BodyPartPreference: 0x1119,
-        BodyPart:           0x111A,
-        Status:             0x111B,
-      },
-      Enums: {
-        Type: {
-          PlainText: '1',
-          HTML:      '2',
-          RTF:       '3',
-          MIME:      '4',
-        },
-        Method: {
-          Normal:          '1',
-          EmbeddedMessage: '5',
-          AttachOLE:       '6',
-        },
-        NativeBodyType: {
-          PlainText: '1',
-          HTML:      '2',
-          RTF:       '3',
-        },
-        Status: {
-          Success: '1',
-        },
-      },
-    },
-
-    Settings: {
-      Tags: {
-        Settings:                    0x1205,
-        Status:                      0x1206,
-        Get:                         0x1207,
-        Set:                         0x1208,
-        Oof:                         0x1209,
-        OofState:                    0x120A,
-        StartTime:                   0x120B,
-        EndTime:                     0x120C,
-        OofMessage:                  0x120D,
-        AppliesToInternal:           0x120E,
-        AppliesToExternalKnown:      0x120F,
-        AppliesToExternalUnknown:    0x1210,
-        Enabled:                     0x1211,
-        ReplyMessage:                0x1212,
-        BodyType:                    0x1213,
-        DevicePassword:              0x1214,
-        Password:                    0x1215,
-        DeviceInformation:           0x1216,
-        Model:                       0x1217,
-        IMEI:                        0x1218,
-        FriendlyName:                0x1219,
-        OS:                          0x121A,
-        OSLanguage:                  0x121B,
-        PhoneNumber:                 0x121C,
-        UserInformation:             0x121D,
-        EmailAddresses:              0x121E,
-        SmtpAddress:                 0x121F,
-        UserAgent:                   0x1220,
-        EnableOutboundSMS:           0x1221,
-        MobileOperator:              0x1222,
-        PrimarySmtpAddress:          0x1223,
-        Accounts:                    0x1224,
-        Account:                     0x1225,
-        AccountId:                   0x1226,
-        AccountName:                 0x1227,
-        UserDisplayName:             0x1228,
-        SendDisabled:                0x1229,
-        /* Missing tag value 0x122A */
-        RightsManagementInformation: 0x122B,
-      },
-      Enums: {
-        Status: {
-          Success:              '1',
-          ProtocolError:        '2',
-          AccessDenied:         '3',
-          ServerError:          '4',
-          InvalidArguments:     '5',
-          ConflictingArguments: '6',
-          DeniedByPolicy:       '7',
-        },
-        OofState: {
-          Disabled:  '0',
-          Global:    '1',
-          TimeBased: '2',
-        },
-      },
-    },
-
-    DocumentLibrary: {
-      Tags: {
-        LinkId:           0x1305,
-        DisplayName:      0x1306,
-        IsFolder:         0x1307,
-        CreationDate:     0x1308,
-        LastModifiedDate: 0x1309,
-        IsHidden:         0x130A,
-        ContentLength:    0x130B,
-        ContentType:      0x130C,
-      },
-    },
-
-    ItemOperations: {
-      Tags: {
-        ItemOperations:      0x1405,
-        Fetch:               0x1406,
-        Store:               0x1407,
-        Options:             0x1408,
-        Range:               0x1409,
-        Total:               0x140A,
-        Properties:          0x140B,
-        Data:                0x140C,
-        Status:              0x140D,
-        Response:            0x140E,
-        Version:             0x140F,
-        Schema:              0x1410,
-        Part:                0x1411,
-        EmptyFolderContents: 0x1412,
-        DeleteSubFolders:    0x1413,
-        UserName:            0x1414,
-        Password:            0x1415,
-        Move:                0x1416,
-        DstFldId:            0x1417,
-        ConversationId:      0x1418,
-        MoveAlways:          0x1419,
-      },
-      Enums: {
-        Status: {
-          Success:               '1',
-          ProtocolError:         '2',
-          ServerError:           '3',
-          BadURI:                '4',
-          AccessDenied:          '5',
-          ObjectNotFound:        '6',
-          ConnectionFailure:     '7',
-          InvalidByteRange:      '8',
-          UnknownStore:          '9',
-          EmptyFile:            '10',
-          DataTooLarge:         '11',
-          IOFailure:            '12',
-          ConversionFailure:    '14',
-          InvalidAttachment:    '15',
-          ResourceAccessDenied: '16',
-        },
-      },
-    },
-
-    ComposeMail: {
-      Tags: {
-        SendMail:        0x1505,
-        SmartForward:    0x1506,
-        SmartReply:      0x1507,
-        SaveInSentItems: 0x1508,
-        ReplaceMime:     0x1509,
-        /* Missing tag value 0x150A */
-        Source:          0x150B,
-        FolderId:        0x150C,
-        ItemId:          0x150D,
-        LongId:          0x150E,
-        InstanceId:      0x150F,
-        Mime:            0x1510,
-        ClientId:        0x1511,
-        Status:          0x1512,
-        AccountId:       0x1513,
-      },
-    },
-
-    Email2: {
-      Tags: {
-        UmCallerID:            0x1605,
-        UmUserNotes:           0x1606,
-        UmAttDuration:         0x1607,
-        UmAttOrder:            0x1608,
-        ConversationId:        0x1609,
-        ConversationIndex:     0x160A,
-        LastVerbExecuted:      0x160B,
-        LastVerbExecutionTime: 0x160C,
-        ReceivedAsBcc:         0x160D,
-        Sender:                0x160E,
-        CalendarType:          0x160F,
-        IsLeapMonth:           0x1610,
-        AccountId:             0x1611,
-        FirstDayOfWeek:        0x1612,
-        MeetingMessageType:    0x1613,
-      },
-      Enums: {
-        LastVerbExecuted: {
-          Unknown:       '0',
-          ReplyToSender: '1',
-          ReplyToAll:    '2',
-          Forward:       '3',
-        },
-        CalendarType: {
-          Default:                     '0',
-          Gregorian:                   '1',
-          GregorianUS:                 '2',
-          Japan:                       '3',
-          Taiwan:                      '4',
-          Korea:                       '5',
-          Hijri:                       '6',
-          Thai:                        '7',
-          Hebrew:                      '8',
-          GregorianMeFrench:           '9',
-          GregorianArabic:            '10',
-          GregorianTranslatedEnglish: '11',
-          GregorianTranslatedFrench:  '12',
-          JapaneseLunar:              '14',
-          ChineseLunar:               '15',
-          KoreanLunar:                '20',
-        },
-        FirstDayOfWeek: {
-          Sunday:    '0',
-          Monday:    '1',
-          Tuesday:   '2',
-          Wednesday: '3',
-          Thursday:  '4',
-          Friday:    '5',
-          Saturday:  '6',
-        },
-        MeetingMessageType: {
-          Unspecified:         '0',
-          InitialRequest:      '1',
-          FullUpdate:          '2',
-          InformationalUpdate: '3',
-          Outdated:            '4',
-          DelegatorsCopy:      '5',
-          Delegated:           '6',
-        },
-      },
-    },
-
-    Notes: {
-      Tags: {
-        Subject:          0x1705,
-        MessageClass:     0x1706,
-        LastModifiedDate: 0x1707,
-        Categories:       0x1708,
-        Category:         0x1709,
-      },
-    },
-
-    RightsManagement: {
-      Tags: {
-        RightsManagementSupport:            0x1805,
-        RightsManagementTemplates:          0x1806,
-        RightsManagementTemplate:           0x1807,
-        RightsManagementLicense:            0x1808,
-        EditAllowed:                        0x1809,
-        ReplyAllowed:                       0x180A,
-        ReplyAllAllowed:                    0x180B,
-        ForwardAllowed:                     0x180C,
-        ModifyRecipientsAllowed:            0x180D,
-        ExtractAllowed:                     0x180E,
-        PrintAllowed:                       0x180F,
-        ExportAllowed:                      0x1810,
-        ProgrammaticAccessAllowed:          0x1811,
-        Owner:                              0x1812,
-        ContentExpiryDate:                  0x1813,
-        TemplateID:                         0x1814,
-        TemplateName:                       0x1815,
-        TemplateDescription:                0x1816,
-        ContentOwner:                       0x1817,
-        RemoveRightsManagementDistribution: 0x1818,
-      },
-    },
+  return {
+    Tags: {
+      SendMail:        0x1505,
+      SmartForward:    0x1506,
+      SmartReply:      0x1507,
+      SaveInSentItems: 0x1508,
+      ReplaceMime:     0x1509,
+      /* Missing tag value 0x150A */
+      Source:          0x150B,
+      FolderId:        0x150C,
+      ItemId:          0x150D,
+      LongId:          0x150E,
+      InstanceId:      0x150F,
+      Mime:            0x1510,
+      ClientId:        0x1511,
+      Status:          0x1512,
+      AccountId:       0x1513,
+    }
   };
-
-  WBXML.CompileCodepages(codepages);
-
-  return codepages;
 }));
+
 /* Copyright 2012 Mozilla Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -2197,721 +147,534 @@
 
 (function (root, factory) {
   if (typeof exports === 'object')
-    module.exports = factory(require('wbxml'), require('activesync/codepages'));
+    module.exports = factory();
   else if (typeof define === 'function' && define.amd)
-    define('activesync/protocol',['wbxml', 'activesync/codepages'], factory);
+    define('activesync/codepages/AirSync',[], factory);
   else
-    root.ActiveSyncProtocol = factory(WBXML, ActiveSyncCodepages);
-}(this, function(WBXML, ASCP) {
+    root.ASCPAirSync = factory();
+}(this, function() {
+  'use strict';
+  return {
+    Tags: {
+      Sync:              0x0005,
+      Responses:         0x0006,
+      Add:               0x0007,
+      Change:            0x0008,
+      Delete:            0x0009,
+      Fetch:             0x000A,
+      SyncKey:           0x000B,
+      ClientId:          0x000C,
+      ServerId:          0x000D,
+      Status:            0x000E,
+      Collection:        0x000F,
+      Class:             0x0010,
+      Version:           0x0011,
+      CollectionId:      0x0012,
+      GetChanges:        0x0013,
+      MoreAvailable:     0x0014,
+      WindowSize:        0x0015,
+      Commands:          0x0016,
+      Options:           0x0017,
+      FilterType:        0x0018,
+      Truncation:        0x0019,
+      RtfTruncation:     0x001A,
+      Conflict:          0x001B,
+      Collections:       0x001C,
+      ApplicationData:   0x001D,
+      DeletesAsMoves:    0x001E,
+      NotifyGUID:        0x001F,
+      Supported:         0x0020,
+      SoftDelete:        0x0021,
+      MIMESupport:       0x0022,
+      MIMETruncation:    0x0023,
+      Wait:              0x0024,
+      Limit:             0x0025,
+      Partial:           0x0026,
+      ConversationMode:  0x0027,
+      MaxItems:          0x0028,
+      HeartbeatInterval: 0x0029,
+    },
+
+    Enums: {
+      Status: {
+        Success:            '1',
+        InvalidSyncKey:     '3',
+        ProtocolError:      '4',
+        ServerError:        '5',
+        ConversionError:    '6',
+        MatchingConflict:   '7',
+        ObjectNotFound:     '8',
+        OutOfSpace:         '9',
+        HierarchyChanged:  '12',
+        IncompleteRequest: '13',
+        InvalidInterval:   '14',
+        InvalidRequest:    '15',
+        Retry:             '16',
+      },
+      FilterType: {
+        NoFilter:        '0',
+        OneDayBack:      '1',
+        ThreeDaysBack:   '2',
+        OneWeekBack:     '3',
+        TwoWeeksBack:    '4',
+        OneMonthBack:    '5',
+        ThreeMonthsBack: '6',
+        SixMonthsBack:   '7',
+        IncompleteTasks: '8',
+      },
+      Conflict: {
+        ClientReplacesServer: '0',
+        ServerReplacesClient: '1',
+      },
+      MIMESupport: {
+        Never:     '0',
+        SMIMEOnly: '1',
+        Always:    '2',
+      },
+      MIMETruncation: {
+        TruncateAll:  '0',
+        Truncate4K:   '1',
+        Truncate5K:   '2',
+        Truncate7K:   '3',
+        Truncate10K:  '4',
+        Truncate20K:  '5',
+        Truncate50K:  '6',
+        Truncate100K: '7',
+        NoTruncate:   '8',
+      },
+    },
+  };
+}));
+
+/* Copyright 2012 Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+(function (root, factory) {
+  if (typeof exports === 'object')
+    module.exports = factory();
+  else if (typeof define === 'function' && define.amd)
+    define('activesync/codepages/AirSyncBase',[], factory);
+  else
+    root.ASCPAirSyncBase = factory();
+}(this, function() {
   'use strict';
 
-  var exports = {};
-
-  function nullCallback() {}
-
-  /**
-   * Create a constructor for a custom error type that works like a built-in
-   * Error.
-   *
-   * @param name the string name of the error
-   * @param parent (optional) a parent class for the error, defaults to Error
-   * @param extraArgs an array of extra arguments that can be passed to the
-   *        constructor of this error type
-   * @return the constructor for this error
-   */
-  function makeError(name, parent, extraArgs) {
-    function CustomError() {
-      // Try to let users call this as CustomError(...) without the "new". This
-      // is imperfect, and if you call this function directly and give it a
-      // |this| that's a CustomError, things will break. Don't do it!
-      var self = this instanceof CustomError ?
-                 this : Object.create(CustomError.prototype);
-      var tmp = Error();
-      var offset = 1;
-
-      self.stack = tmp.stack.substring(tmp.stack.indexOf('\n') + 1);
-      self.message = arguments[0] || tmp.message;
-      if (extraArgs) {
-        offset += extraArgs.length;
-        for (var i = 0; i < extraArgs.length; i++)
-          self[extraArgs[i]] = arguments[i+1];
+  return {
+    Tags: {
+      BodyPreference:     0x1105,
+      Type:               0x1106,
+      TruncationSize:     0x1107,
+      AllOrNone:          0x1108,
+      Reserved:           0x1109,
+      Body:               0x110A,
+      Data:               0x110B,
+      EstimatedDataSize:  0x110C,
+      Truncated:          0x110D,
+      Attachments:        0x110E,
+      Attachment:         0x110F,
+      DisplayName:        0x1110,
+      FileReference:      0x1111,
+      Method:             0x1112,
+      ContentId:          0x1113,
+      ContentLocation:    0x1114,
+      IsInline:           0x1115,
+      NativeBodyType:     0x1116,
+      ContentType:        0x1117,
+      Preview:            0x1118,
+      BodyPartPreference: 0x1119,
+      BodyPart:           0x111A,
+      Status:             0x111B,
+    },
+    Enums: {
+      Type: {
+        PlainText: '1',
+        HTML:      '2',
+        RTF:       '3',
+        MIME:      '4',
+      },
+      Method: {
+        Normal:          '1',
+        EmbeddedMessage: '5',
+        AttachOLE:       '6',
+      },
+      NativeBodyType: {
+        PlainText: '1',
+        HTML:      '2',
+        RTF:       '3',
+      },
+      Status: {
+        Success: '1',
       }
-
-      var m = /@(.+):(.+)/.exec(self.stack);
-      self.fileName = arguments[offset] || (m && m[1]) || "";
-      self.lineNumber = arguments[offset + 1] || (m && m[2]) || 0;
-
-      return self;
     }
-    CustomError.prototype = Object.create((parent || Error).prototype);
-    CustomError.prototype.name = name;
-    CustomError.prototype.constructor = CustomError;
+  };
+}));
 
-    return CustomError;
-  }
+/* Copyright 2012 Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-  var AutodiscoverError = makeError('ActiveSync.AutodiscoverError');
-  exports.AutodiscoverError = AutodiscoverError;
+(function (root, factory) {
+  if (typeof exports === 'object')
+    module.exports = factory();
+  else if (typeof define === 'function' && define.amd)
+    define('activesync/codepages/ItemEstimate',[], factory);
+  else
+    root.ASCPItemEstimate = factory();
+}(this, function() {
+  'use strict';
 
-  var AutodiscoverDomainError = makeError('ActiveSync.AutodiscoverDomainError',
-                                          AutodiscoverError);
-  exports.AutodiscoverDomainError = AutodiscoverDomainError;
-
-  var HttpError = makeError('ActiveSync.HttpError', null, ['status']);
-  exports.HttpError = HttpError;
-
-  function nsResolver(prefix) {
-    const baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
-    const ns = {
-      rq: baseUrl + 'mobilesync/requestschema/2006',
-      ad: baseUrl + 'responseschema/2006',
-      ms: baseUrl + 'mobilesync/responseschema/2006',
-    };
-    return ns[prefix] || null;
-  }
-
-  function Version(str) {    [this.major, this.minor] = str.split('.').map(function(x) {
-      return parseInt(x);
-    });
-  }
-  exports.Version = Version;
-  Version.prototype = {
-    eq: function(other) {
-      if (!(other instanceof Version))
-        other = new Version(other);
-      return this.major === other.major && this.minor === other.minor;
+  return {
+    Tags: {
+      GetItemEstimate: 0x0605,
+      Version:         0x0606,
+      Collections:     0x0607,
+      Collection:      0x0608,
+      Class:           0x0609,
+      CollectionId:    0x060A,
+      DateTime:        0x060B,
+      Estimate:        0x060C,
+      Response:        0x060D,
+      Status:          0x060E,
     },
-    ne: function(other) {
-      return !this.eq(other);
-    },
-    gt: function(other) {
-      if (!(other instanceof Version))
-        other = new Version(other);
-      return this.major > other.major ||
-             (this.major === other.major && this.minor > other.minor);
-    },
-    gte: function(other) {
-      if (!(other instanceof Version))
-        other = new Version(other);
-      return this.major >= other.major ||
-             (this.major === other.major && this.minor >= other.minor);
-    },
-    lt: function(other) {
-      return !this.gte(other);
-    },
-    lte: function(other) {
-      return !this.gt(other);
-    },
-    toString: function() {
-      return this.major + '.' + this.minor;
+    Enums: {
+      Status: {
+        Success:           '1',
+        InvalidCollection: '2',
+        NoSyncState:       '3',
+        InvalidSyncKey:    '4',
+      },
     },
   };
+}));
 
-  /**
-   * Set the Authorization header on an XMLHttpRequest.
-   *
-   * @param xhr the XMLHttpRequest
-   * @param username the username
-   * @param password the user's password
-   */
-  function setAuthHeader(xhr, username, password) {
-    let authorization = 'Basic ' + btoa(username + ':' + password);
-    xhr.setRequestHeader('Authorization', authorization);
-  }
+/* Copyright 2012 Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-  /**
-   * Perform autodiscovery for the server associated with this account.
-   *
-   * @param aEmailAddress the user's email address
-   * @param aPassword the user's password
-   * @param aTimeout a timeout (in milliseconds) for the request
-   * @param aCallback a callback taking an error status (if any) and the
-   *        server's configuration
-   * @param aNoRedirect true if autodiscovery should *not* follow any
-   *        specified redirects (typically used when autodiscover has already
-   *        told us about a redirect)
-   */
-  function autodiscover(aEmailAddress, aPassword, aTimeout, aCallback,
-                        aNoRedirect) {
-    if (!aCallback) aCallback = nullCallback;
-    let domain = aEmailAddress.substring(aEmailAddress.indexOf('@') + 1);
+(function (root, factory) {
+  if (typeof exports === 'object')
+    module.exports = factory();
+  else if (typeof define === 'function' && define.amd)
+    define('activesync/codepages/Email',[], factory);
+  else
+    root.ASCPEmail = factory();
+}(this, function() {
+  'use strict';
 
-    // The first time we try autodiscovery, we should try to recover from
-    // AutodiscoverDomainErrors. The second time, *all* errors should be
-    // reported to the callback.
-    do_autodiscover(domain, aEmailAddress, aPassword, aTimeout, aNoRedirect,
-                    function(aError, aConfig) {
-      if (aError instanceof AutodiscoverDomainError)
-        do_autodiscover('autodiscover.' + domain, aEmailAddress, aPassword,
-                        aTimeout, aNoRedirect, aCallback);
-      else
-        aCallback(aError, aConfig);
-    });
-  }
-  exports.autodiscover = autodiscover;
-
-  /**
-   * Perform the actual autodiscovery process for a given URL.
-   *
-   * @param aHost the host name to attempt autodiscovery for
-   * @param aEmailAddress the user's email address
-   * @param aPassword the user's password
-   * @param aTimeout a timeout (in milliseconds) for the request
-   * @param aNoRedirect true if autodiscovery should *not* follow any
-   *        specified redirects (typically used when autodiscover has already
-   *        told us about a redirect)
-   * @param aCallback a callback taking an error status (if any) and the
-   *        server's configuration
-   */
-  function do_autodiscover(aHost, aEmailAddress, aPassword, aTimeout,
-                           aNoRedirect, aCallback) {
-    let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
-    xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
-             true);
-    setAuthHeader(xhr, aEmailAddress, aPassword);
-    xhr.setRequestHeader('Content-Type', 'text/xml');
-    xhr.timeout = aTimeout;
-
-    xhr.upload.onprogress = xhr.upload.onload = function() {
-      xhr.timeout = 0;
-    };
-
-    xhr.onload = function() {
-      if (xhr.status < 200 || xhr.status >= 300)
-        return aCallback(new HttpError(xhr.statusText, xhr.status));
-
-      let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
-
-      function getNode(xpath, rel) {
-        return doc.evaluate(xpath, rel, nsResolver,
-                            XPathResult.FIRST_ORDERED_NODE_TYPE, null)
-                  .singleNodeValue;
-      }
-      function getNodes(xpath, rel) {
-        return doc.evaluate(xpath, rel, nsResolver,
-                            XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-      }
-      function getString(xpath, rel) {
-        return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
-                            null).stringValue;
-      }
-
-      if (doc.documentElement.tagName === 'parsererror')
-        return aCallback(new AutodiscoverDomainError(
-          'Error parsing autodiscover response'));
-
-      let responseNode = getNode('/ad:Autodiscover/ms:Response', doc);
-      if (!responseNode)
-        return aCallback(new AutodiscoverDomainError(
-          'Missing Autodiscover Response node'));
-
-      let error = getNode('ms:Error', responseNode) ||
-                  getNode('ms:Action/ms:Error', responseNode);
-      if (error)
-        return aCallback(new AutodiscoverError(
-          getString('ms:Message/text()', error)));
-
-      let redirect = getNode('ms:Action/ms:Redirect', responseNode);
-      if (redirect) {
-        if (aNoRedirect)
-          return aCallback(new AutodiscoverError(
-            'Multiple redirects occurred during autodiscovery'));
-
-        let redirectedEmail = getString('text()', redirect);
-        return autodiscover(redirectedEmail, aPassword, aTimeout, aCallback,
-                            true);
-      }
-
-      let user = getNode('ms:User', responseNode);
-      let config = {
-        culture: getString('ms:Culture/text()', responseNode),
-        user: {
-          name:  getString('ms:DisplayName/text()',  user),
-          email: getString('ms:EMailAddress/text()', user),
-        },
-        servers: [],
-      };
-
-      let servers = getNodes('ms:Action/ms:Settings/ms:Server', responseNode);
-      let server;
-      while ((server = servers.iterateNext())) {
-        config.servers.push({
-          type:       getString('ms:Type/text()',       server),
-          url:        getString('ms:Url/text()',        server),
-          name:       getString('ms:Name/text()',       server),
-          serverData: getString('ms:ServerData/text()', server),
-        });
-      }
-
-      // Try to find a MobileSync server from Autodiscovery.
-      for (let [,server] in Iterator(config.servers)) {
-        if (server.type === 'MobileSync') {
-          config.mobileSyncServer = server;
-          break;
-        }
-      }
-      if (!config.mobileSyncServer) {
-        return aCallback(new AutodiscoverError('No MobileSync server found'),
-                         config);
-      }
-
-      aCallback(null, config);
-    };
-
-    xhr.ontimeout = xhr.onerror = function() {
-      aCallback(new Error('Error getting Autodiscover URL'));
-    };
-
-    // TODO: use something like
-    // http://ejohn.org/blog/javascript-micro-templating/ here?
-    let postdata =
-    '<?xml version="1.0" encoding="utf-8"?>\n' +
-    '<Autodiscover xmlns="' + nsResolver('rq') + '">\n' +
-    '  <Request>\n' +
-    '    <EMailAddress>' + aEmailAddress + '</EMailAddress>\n' +
-    '    <AcceptableResponseSchema>' + nsResolver('ms') +
-         '</AcceptableResponseSchema>\n' +
-    '  </Request>\n' +
-    '</Autodiscover>';
-
-    xhr.send(postdata);
-  }
-
-  /**
-   * Create a new ActiveSync connection.
-   *
-   * ActiveSync connections use XMLHttpRequests to communicate with the
-   * server. These XHRs are created with mozSystem: true and mozAnon: true to,
-   * respectively, help with CORS, and to ignore the authentication cache. The
-   * latter is important because 1) it prevents the HTTP auth dialog from
-   * appearing if the user's credentials are wrong and 2) it allows us to
-   * connect to the same server as multiple users.
-   *
-   * @param aDeviceId (optional) a string identifying this device
-   * @param aDeviceType (optional) a string identifying the type of this device
-   */
-  function Connection(aDeviceId, aDeviceType) {
-    this._deviceId = aDeviceId || 'v140Device';
-    this._deviceType = aDeviceType || 'SmartPhone';
-    this.timeout = 0;
-
-    this._connected = false;
-    this._waitingForConnection = false;
-    this._connectionError = null;
-    this._connectionCallbacks = [];
-
-    this.baseUrl = null;
-    this._username = null;
-    this._password = null;
-
-    this.versions = [];
-    this.supportedCommands = [];
-    this.currentVersion = null;
-  }
-  exports.Connection = Connection;
-  Connection.prototype = {
-    /**
-     * Perform any callbacks added during the connection process.
-     *
-     * @param aError the error status (if any)
-     */
-    _notifyConnected: function(aError) {
-      if (aError)
-        this.disconnect();
-
-      for (let [,callback] in Iterator(this._connectionCallbacks))
-        callback.apply(callback, arguments);
-      this._connectionCallbacks = [];
+  return {
+    Tags: {
+      Attachment:              0x0205,
+      Attachments:             0x0206,
+      AttName:                 0x0207,
+      AttSize:                 0x0208,
+      Att0Id:                  0x0209,
+      AttMethod:               0x020A,
+      AttRemoved:              0x020B,
+      Body:                    0x020C,
+      BodySize:                0x020D,
+      BodyTruncated:           0x020E,
+      DateReceived:            0x020F,
+      DisplayName:             0x0210,
+      DisplayTo:               0x0211,
+      Importance:              0x0212,
+      MessageClass:            0x0213,
+      Subject:                 0x0214,
+      Read:                    0x0215,
+      To:                      0x0216,
+      Cc:                      0x0217,
+      From:                    0x0218,
+      ReplyTo:                 0x0219,
+      AllDayEvent:             0x021A,
+      Categories:              0x021B,
+      Category:                0x021C,
+      DTStamp:                 0x021D,
+      EndTime:                 0x021E,
+      InstanceType:            0x021F,
+      BusyStatus:              0x0220,
+      Location:                0x0221,
+      MeetingRequest:          0x0222,
+      Organizer:               0x0223,
+      RecurrenceId:            0x0224,
+      Reminder:                0x0225,
+      ResponseRequested:       0x0226,
+      Recurrences:             0x0227,
+      Recurrence:              0x0228,
+      Recurrence_Type:         0x0229,
+      Recurrence_Until:        0x022A,
+      Recurrence_Occurrences:  0x022B,
+      Recurrence_Interval:     0x022C,
+      Recurrence_DayOfWeek:    0x022D,
+      Recurrence_DayOfMonth:   0x022E,
+      Recurrence_WeekOfMonth:  0x022F,
+      Recurrence_MonthOfYear:  0x0230,
+      StartTime:               0x0231,
+      Sensitivity:             0x0232,
+      TimeZone:                0x0233,
+      GlobalObjId:             0x0234,
+      ThreadTopic:             0x0235,
+      MIMEData:                0x0236,
+      MIMETruncated:           0x0237,
+      MIMESize:                0x0238,
+      InternetCPID:            0x0239,
+      Flag:                    0x023A,
+      Status:                  0x023B,
+      ContentClass:            0x023C,
+      FlagType:                0x023D,
+      CompleteTime:            0x023E,
+      DisallowNewTimeProposal: 0x023F,
     },
-
-    /**
-     * Get the connection status.
-     *
-     * @return true iff we are fully connected to the server
-     */
-    get connected() {
-      return this._connected;
-    },
-
-    /*
-     * Initialize the connection with a server and account credentials.
-     *
-     * @param aServer the ActiveSync server to connect to
-     * @param aUsername the account's username
-     * @param aPassword the account's password
-     */
-    open: function(aServer, aUsername, aPassword) {
-      this.baseUrl = aServer + '/Microsoft-Server-ActiveSync';
-      this._username = aUsername;
-      this._password = aPassword;
-    },
-
-    /**
-     * Connect to the server with this account by getting the OPTIONS from
-     * the server (and verifying the account's credentials).
-     *
-     * @param aCallback a callback taking an error status (if any) and the
-     *        server's options.
-     */
-    connect: function(aCallback) {
-      // If we're already connected, just run the callback and return.
-      if (this.connected) {
-        if (aCallback)
-          aCallback(null);
-        return;
-      }
-
-      // Otherwise, queue this callback up to fire when we do connect.
-      if (aCallback)
-        this._connectionCallbacks.push(aCallback);
-
-      // Don't do anything else if we're already trying to connect.
-      if (this._waitingForConnection)
-        return;
-
-      this._waitingForConnection = true;
-      this._connectionError = null;
-
-      this.getOptions((function(aError, aOptions) {
-        this._waitingForConnection = false;
-        this._connectionError = aError;
-
-        if (aError) {
-          console.error('Error connecting to ActiveSync:', aError);
-          return this._notifyConnected(aError, aOptions);
-        }
-
-        this._connected = true;
-        this.versions = aOptions.versions;
-        this.supportedCommands = aOptions.commands;
-        this.currentVersion = new Version(aOptions.versions.slice(-1)[0]);
-
-        return this._notifyConnected(null, aOptions);
-      }).bind(this));
-    },
-
-    /**
-     * Disconnect from the ActiveSync server, and reset the connection state.
-     * The server and credentials remain set however, so you can safely call
-     * connect() again immediately after.
-     */
-    disconnect: function() {
-      if (this._waitingForConnection)
-        throw new Error("Can't disconnect while waiting for server response");
-
-      this._connected = false;
-      this.versions = [];
-      this.supportedCommands = [];
-      this.currentVersion = null;
-    },
-
-    /**
-     * Attempt to provision this account. XXX: Currently, this doesn't actually
-     * do anything, but it's useful as a test command for Gmail to ensure that
-     * the user entered their password correctly.
-     *
-     * @param aCallback a callback taking an error status (if any) and the
-     *        WBXML response
-     */
-    provision: function(aCallback) {
-      const pv = ASCP.Provision.Tags;
-      let w = new WBXML.Writer('1.3', 1, 'UTF-8');
-      w.stag(pv.Provision)
-        .etag();
-      this.postCommand(w, aCallback);
-    },
-
-    /**
-     * Get the options for the server associated with this account.
-     *
-     * @param aCallback a callback taking an error status (if any), and the
-     *        resulting options.
-     */
-    getOptions: function(aCallback) {
-      if (!aCallback) aCallback = nullCallback;
-
-      let conn = this;
-      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
-      xhr.open('OPTIONS', this.baseUrl, true);
-      setAuthHeader(xhr, this._username, this._password);
-      xhr.timeout = this.timeout;
-
-      xhr.upload.onprogress = xhr.upload.onload = function() {
-        xhr.timeout = 0;
-      };
-
-      xhr.onload = function() {
-        if (xhr.status < 200 || xhr.status >= 300) {
-          console.error('ActiveSync options request failed with response ' +
-                        xhr.status);
-          aCallback(new HttpError(xhr.statusText, xhr.status));
-          return;
-        }
-
-        let result = {
-          versions: xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
-          commands: xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
-        };
-
-        aCallback(null, result);
-      };
-
-      xhr.ontimeout = xhr.onerror = function() {
-        let error = new Error('Error getting OPTIONS URL');
-        console.error(error);
-        aCallback(error);
-      };
-
-      // Set the response type to "text" so that we don't try to parse an empty
-      // body as XML.
-      xhr.responseType = 'text';
-      xhr.send();
-    },
-
-    /**
-     * Check if the server supports a particular command. Requires that we be
-     * connected to the server already.
-     *
-     * @param aCommand a string/tag representing the command type
-     * @return true iff the command is supported
-     */
-    supportsCommand: function(aCommand) {
-      if (!this.connected)
-        throw new Error('Connection required to get command');
-
-      if (typeof aCommand === 'number')
-        aCommand = ASCP.__tagnames__[aCommand];
-      return this.supportedCommands.indexOf(aCommand) !== -1;
-    },
-
-    /**
-     * DEPRECATED. See postCommand() below.
-     */
-    doCommand: function() {
-      console.warn('doCommand is deprecated. Use postCommand instead.');
-      this.postCommand.apply(this, arguments);
-    },
-
-    /**
-     * Send a WBXML command to the ActiveSync server and listen for the
-     * response.
-     *
-     * @param aCommand the WBXML representing the command or a string/tag
-     *        representing the command type for empty commands
-     * @param aCallback a callback to call when the server has responded; takes
-     *        two arguments: an error status (if any) and the response as a
-     *        WBXML reader. If the server returned an empty response, the
-     *        response argument is null.
-     * @param aExtraParams (optional) an object containing any extra URL
-     *        parameters that should be added to the end of the request URL
-     * @param aExtraHeaders (optional) an object containing any extra HTTP
-     *        headers to send in the request
-     * @param aProgressCallback (optional) a callback to invoke with progress
-     *        information, when available. Two arguments are provided: the
-     *        number of bytes received so far, and the total number of bytes
-     *        expected (when known, 0 if unknown).
-     */
-    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders,
-                          aProgressCallback) {
-      const contentType = 'application/vnd.ms-sync.wbxml';
-
-      if (typeof aCommand === 'string' || typeof aCommand === 'number') {
-        this.postData(aCommand, contentType, null, aCallback, aExtraParams,
-                      aExtraHeaders);
-      }
-      else {
-        let r = new WBXML.Reader(aCommand, ASCP);
-        let commandName = r.document.next().localTagName;
-        this.postData(commandName, contentType, aCommand.buffer, aCallback,
-                      aExtraParams, aExtraHeaders, aProgressCallback);
-      }
-    },
-
-    /**
-     * Send arbitrary data to the ActiveSync server and listen for the response.
-     *
-     * @param aCommand a string (or WBXML tag) representing the command type
-     * @param aContentType the content type of the post data
-     * @param aData the data to be posted
-     * @param aCallback a callback to call when the server has responded; takes
-     *        two arguments: an error status (if any) and the response as a
-     *        WBXML reader. If the server returned an empty response, the
-     *        response argument is null.
-     * @param aExtraParams (optional) an object containing any extra URL
-     *        parameters that should be added to the end of the request URL
-     * @param aExtraHeaders (optional) an object containing any extra HTTP
-     *        headers to send in the request
-     * @param aProgressCallback (optional) a callback to invoke with progress
-     *        information, when available. Two arguments are provided: the
-     *        number of bytes received so far, and the total number of bytes
-     *        expected (when known, 0 if unknown).
-     */
-    postData: function(aCommand, aContentType, aData, aCallback, aExtraParams,
-                       aExtraHeaders, aProgressCallback) {
-      // Make sure our command name is a string.
-      if (typeof aCommand === 'number')
-        aCommand = ASCP.__tagnames__[aCommand];
-
-      if (!this.supportsCommand(aCommand)) {
-        let error = new Error("This server doesn't support the command " +
-                              aCommand);
-        console.error(error);
-        aCallback(error);
-        return;
-      }
-
-      // Build the URL parameters.
-      let params = [
-        ['Cmd', aCommand],
-        ['User', this._email],
-        ['DeviceId', this._deviceId],
-        ['DeviceType', this._deviceType]
-      ];
-      if (aExtraParams) {
-        for (let [,param] in Iterator(params)) {
-          if (param[0] in aExtraParams)
-            throw new TypeError('reserved URL parameter found');
-        }
-        for (let kv in Iterator(aExtraParams))
-          params.push(kv);
-      }
-      let paramsStr = params.map(function(i) {
-        return encodeURIComponent(i[0]) + '=' + encodeURIComponent(i[1]);
-      }).join('&');
-
-      // Now it's time to make our request!
-      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
-      xhr.open('POST', this.baseUrl + '?' + paramsStr, true);
-      setAuthHeader(xhr, this._username, this._password);
-      xhr.setRequestHeader('MS-ASProtocolVersion', this.currentVersion);
-      xhr.setRequestHeader('Content-Type', aContentType);
-
-      // Add extra headers if we have any.
-      if (aExtraHeaders) {
-        for (let [key, value] in Iterator(aExtraHeaders))
-          xhr.setRequestHeader(key, value);
-      }
-
-      xhr.timeout = this.timeout;
-
-      xhr.upload.onprogress = xhr.upload.onload = function() {
-        xhr.timeout = 0;
-      };
-      xhr.onprogress = function(event) {
-        if (aProgressCallback)
-          aProgressCallback(event.loaded, event.total);
-      };
-
-      let conn = this;
-      let parentArgs = arguments;
-      xhr.onload = function() {
-        // This status code is a proprietary Microsoft extension used to
-        // indicate a redirect, not to be confused with the draft-standard
-        // "Unavailable For Legal Reasons" status. More info available here:
-        // <http://msdn.microsoft.com/en-us/library/gg651019.aspx>
-        if (xhr.status === 451) {
-          conn.baseUrl = xhr.getResponseHeader('X-MS-Location');
-          conn.postData.apply(conn, parentArgs);
-          return;
-        }
-
-        if (xhr.status < 200 || xhr.status >= 300) {
-          console.error('ActiveSync command ' + aCommand + ' failed with ' +
-                        'response ' + xhr.status);
-          aCallback(new HttpError(xhr.statusText, xhr.status));
-          return;
-        }
-
-        let response = null;
-        if (xhr.response.byteLength > 0)
-          response = new WBXML.Reader(new Uint8Array(xhr.response), ASCP);
-        aCallback(null, response);
-      };
-
-      xhr.ontimeout = xhr.onerror = function() {
-        let error = new Error('Error getting command URL');
-        console.error(error);
-        aCallback(error);
-      };
-
-      xhr.responseType = 'arraybuffer';
-      xhr.send(aData);
+    Enums: {
+      Importance: {
+        Low:    '0',
+        Normal: '1',
+        High:   '2',
+      },
+      InstanceType: {
+        Single:             '0',
+        RecurringMaster:    '1',
+        RecurringInstance:  '2',
+        RecurringException: '3',
+      },
+      BusyStatus: {
+        Free:      '0',
+        Tentative: '1',
+        Busy:      '2',
+        Oof:       '3',
+      },
+      Recurrence_Type: {
+        Daily:             '0',
+        Weekly:             '1',
+        MonthlyNthDay:      '2',
+        Monthly:            '3',
+        YearlyNthDay:       '5',
+        YearlyNthDayOfWeek: '6',
+      },
+      /* XXX: missing Recurrence_DayOfWeek */
+      Sensitivity: {
+        Normal:       '0',
+        Personal:     '1',
+        Private:      '2',
+        Confidential: '3',
+      },
+      Status: {
+        Cleared:  '0',
+        Complete: '1',
+        Active:   '2',
+      },
     },
   };
+}));
 
-  return exports;
+/* Copyright 2012 Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+(function (root, factory) {
+  if (typeof exports === 'object')
+    module.exports = factory();
+  else if (typeof define === 'function' && define.amd)
+    define('activesync/codepages/ItemOperations',[], factory);
+  else
+    root.ASCPItemOperations = factory();
+}(this, function() {
+  'use strict';
+
+  return {
+    Tags: {
+      ItemOperations:      0x1405,
+      Fetch:               0x1406,
+      Store:               0x1407,
+      Options:             0x1408,
+      Range:               0x1409,
+      Total:               0x140A,
+      Properties:          0x140B,
+      Data:                0x140C,
+      Status:              0x140D,
+      Response:            0x140E,
+      Version:             0x140F,
+      Schema:              0x1410,
+      Part:                0x1411,
+      EmptyFolderContents: 0x1412,
+      DeleteSubFolders:    0x1413,
+      UserName:            0x1414,
+      Password:            0x1415,
+      Move:                0x1416,
+      DstFldId:            0x1417,
+      ConversationId:      0x1418,
+      MoveAlways:          0x1419,
+    },
+    Enums: {
+      Status: {
+        Success:               '1',
+        ProtocolError:         '2',
+        ServerError:           '3',
+        BadURI:                '4',
+        AccessDenied:          '5',
+        ObjectNotFound:        '6',
+        ConnectionFailure:     '7',
+        InvalidByteRange:      '8',
+        UnknownStore:          '9',
+        EmptyFile:            '10',
+        DataTooLarge:         '11',
+        IOFailure:            '12',
+        ConversionFailure:    '14',
+        InvalidAttachment:    '15',
+        ResourceAccessDenied: '16',
+      },
+    },
+  };
 }));
 
 define('mailapi/activesync/folder',
   [
     'rdcommon/log',
-    'wbxml',
-    'activesync/codepages',
-    'activesync/protocol',
-    'mimelib',
-    '../quotechew',
-    '../htmlchew',
     '../date',
     '../syncbase',
     '../util',
+    'activesync/codepages/AirSync',
+    'activesync/codepages/AirSyncBase',
+    'activesync/codepages/ItemEstimate',
+    'activesync/codepages/Email',
+    'activesync/codepages/ItemOperations',
     'module',
+    'require',
     'exports'
   ],
   function(
     $log,
-    $wbxml,
-    $ascp,
-    $activesync,
-    $mimelib,
-    $quotechew,
-    $htmlchew,
     $date,
     $sync,
     $util,
+    $AirSync,
+    $AirSyncBase,
+    $ItemEstimate,
+    $Email,
+    $ItemOperations,
     $module,
+    require,
     exports
   ) {
 'use strict';
 
-const DESIRED_SNIPPET_LENGTH = 100;
+/**
+ * The desired number of bytes to fetch when downloading bodies, but the body's
+ * size exceeds the maximum requested size.
+ */
+var DESIRED_TEXT_SNIPPET_BYTES = 512;
 
 /**
  * This is minimum number of messages we'd like to get for a folder for a given
  * sync range. It's not exact, since we estimate from the number of messages in
  * the past two weeks, but it's close enough.
  */
-const DESIRED_MESSAGE_COUNT = 50;
-
-const FILTER_TYPE = $ascp.AirSync.Enums.FilterType;
+var DESIRED_MESSAGE_COUNT = 50;
 
 /**
- * Map our built-in sync range values to their corresponding ActiveSync
- * FilterType values. We exclude 3 and 6 months, since they aren't valid for
- * email.
- *
- * Also see SYNC_RANGE_ENUMS_TO_MS in `syncbase.js`.
+ * Filter types are lazy initialized once the activesync code is loaded.
  */
-const SYNC_RANGE_TO_FILTER_TYPE = {
-  'auto': null,
-    '1d': FILTER_TYPE.OneDayBack,
-    '3d': FILTER_TYPE.ThreeDaysBack,
-    '1w': FILTER_TYPE.OneWeekBack,
-    '2w': FILTER_TYPE.TwoWeeksBack,
-    '1m': FILTER_TYPE.OneMonthBack,
-   'all': FILTER_TYPE.NoFilter,
-};
+var FILTER_TYPE, SYNC_RANGE_TO_FILTER_TYPE, FILTER_TYPE_TO_STRING;
+function initFilterTypes() {
+  FILTER_TYPE = $AirSync.Enums.FilterType;
 
-/**
- * This mapping is purely for logging purposes.
- */
-const FILTER_TYPE_TO_STRING = {
-  0: 'all messages',
-  1: 'one day',
-  2: 'three days',
-  3: 'one week',
-  4: 'two weeks',
-  5: 'one month',
-};
+  /**
+   * Map our built-in sync range values to their corresponding ActiveSync
+   * FilterType values. We exclude 3 and 6 months, since they aren't valid for
+   * email.
+   *
+   * Also see SYNC_RANGE_ENUMS_TO_MS in `syncbase.js`.
+   */
+  SYNC_RANGE_TO_FILTER_TYPE = {
+    'auto': null,
+      '1d': FILTER_TYPE.OneDayBack,
+      '3d': FILTER_TYPE.ThreeDaysBack,
+      '1w': FILTER_TYPE.OneWeekBack,
+      '2w': FILTER_TYPE.TwoWeeksBack,
+      '1m': FILTER_TYPE.OneMonthBack,
+     'all': FILTER_TYPE.NoFilter,
+  };
+
+  /**
+   * This mapping is purely for logging purposes.
+   */
+  FILTER_TYPE_TO_STRING = {
+    0: 'all messages',
+    1: 'one day',
+    2: 'three days',
+    3: 'one week',
+    4: 'two weeks',
+    5: 'one month',
+  };
+}
+
+var $wbxml, $mimelib, $mailchew;
+
+function lazyConnection(cbIndex, fn, failString) {
+  return function lazyRun() {
+    var args = Array.slice(arguments),
+        errback = args[cbIndex],
+        self = this;
+
+    require(['wbxml', 'mimelib', '../mailchew'],
+    function (wbxml, mimelib, mailchew) {
+      if (!$wbxml) {
+        $wbxml = wbxml;
+        $mimelib = mimelib;
+        $mailchew = mailchew;
+        initFilterTypes();
+      }
+
+      self._account.withConnection(errback, function () {
+        fn.apply(self, args);
+      }, failString);
+    });
+  };
+}
+
 
 function ActiveSyncFolderConn(account, storage, _parentLog) {
   this._account = account;
@@ -2942,11 +705,13 @@ ActiveSyncFolderConn.prototype = {
    * filterType on a per-folder basis. The per-folder filterType may be
    * undefined, in which case, we will attempt to infer a good filter type
    * elsewhere (see _inferFilterType()).
+   * ASSUMES that it is only called after lazy load of activesync code and
+   * initFilterTypes() has been run.
    */
   get filterType() {
-    let syncRange = this._account.accountDef.syncRange;
+    var syncRange = this._account.accountDef.syncRange;
     if (SYNC_RANGE_TO_FILTER_TYPE.hasOwnProperty(syncRange)) {
-      let accountFilterType = SYNC_RANGE_TO_FILTER_TYPE[syncRange];
+      var accountFilterType = SYNC_RANGE_TO_FILTER_TYPE[syncRange];
       if (accountFilterType)
         return accountFilterType;
       else
@@ -2955,7 +720,7 @@ ActiveSyncFolderConn.prototype = {
     else {
       console.warn('Got an invalid syncRange (' + syncRange +
                    ') using three days back instead');
-      return $ascp.AirSync.Enums.FilterType.ThreeDaysBack;
+      return $AirSync.Enums.FilterType.ThreeDaysBack;
     }
   },
 
@@ -2966,12 +731,13 @@ ActiveSyncFolderConn.prototype = {
    * @param {string} filterType The filter type for our synchronization
    * @param {function} callback A callback to be run when the operation finishes
    */
-  _getSyncKey: function asfc__getSyncKey(filterType, callback) {
-    let folderConn = this;
-    let account = this._account;
-    const as = $ascp.AirSync.Tags;
+  _getSyncKey: lazyConnection(1, function asfc__getSyncKey(filterType,
+                                                           callback) {
+    var folderConn = this;
+    var account = this._account;
+    var as = $AirSync.Tags;
 
-    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(as.Sync)
        .stag(as.Collections)
          .stag(as.Collection)
@@ -2999,7 +765,7 @@ ActiveSyncFolderConn.prototype = {
       // response.
       folderConn.syncKey = '0';
 
-      let e = new $wbxml.EventParser();
+      var e = new $wbxml.EventParser();
       e.addEventListener([as.Sync, as.Collections, as.Collection, as.SyncKey],
                          function(node) {
         folderConn.syncKey = node.children[0].textContent;
@@ -3019,7 +785,7 @@ ActiveSyncFolderConn.prototype = {
         callback();
       }
     });
-  },
+  }),
 
   /**
    * Get an estimate of the number of messages to be synced.  We assume we have
@@ -3028,22 +794,38 @@ ActiveSyncFolderConn.prototype = {
    * @param {string} filterType The filter type for our estimate
    * @param {function} callback A callback to be run when the operation finishes
    */
-  _getItemEstimate: function asfc__getItemEstimate(filterType, callback) {
-    const ie = $ascp.ItemEstimate.Tags;
-    const as = $ascp.AirSync.Tags;
+  _getItemEstimate: lazyConnection(1, function asfc__getItemEstimate(filterType,
+                                                                     callback) {
+    var ie = $ItemEstimate.Tags;
+    var as = $AirSync.Tags;
 
-    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(ie.GetItemEstimate)
        .stag(ie.Collections)
-         .stag(ie.Collection)
-           .tag(as.SyncKey, this.syncKey)
+         .stag(ie.Collection);
+
+    if (this._account.conn.currentVersion.gte('14.0')) {
+          w.tag(as.SyncKey, this.syncKey)
            .tag(ie.CollectionId, this.serverId)
            .stag(as.Options)
              .tag(as.FilterType, filterType)
-           .etag()
-         .etag()
-       .etag()
-     .etag();
+           .etag();
+    }
+    else if (this._account.conn.currentVersion.gte('12.0')) {
+          w.tag(ie.CollectionId, this.serverId)
+           .tag(as.FilterType, filterType)
+           .tag(as.SyncKey, this.syncKey);
+    }
+    else {
+          w.tag(ie.Class, 'Email')
+           .tag(as.SyncKey, this.syncKey)
+           .tag(ie.CollectionId, this.serverId)
+           .tag(as.FilterType, filterType);
+    }
+
+        w.etag(ie.Collection)
+       .etag(ie.Collections)
+     .etag(ie.GetItemEstimate);
 
     this._account.conn.postCommand(w, function(aError, aResponse) {
       if (aError) {
@@ -3052,10 +834,10 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      let e = new $wbxml.EventParser();
-      const base = [ie.GetItemEstimate, ie.Response];
+      var e = new $wbxml.EventParser();
+      var base = [ie.GetItemEstimate, ie.Response];
 
-      let status, estimate;
+      var status, estimate;
       e.addEventListener(base.concat(ie.Status), function(node) {
         status = node.children[0].textContent;
       });
@@ -3074,7 +856,7 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      if (status !== $ascp.ItemEstimate.Enums.Status.Success) {
+      if (status !== $ItemEstimate.Enums.Status.Success) {
         console.error('Error getting item estimate:', status);
         callback('unknown');
       }
@@ -3082,7 +864,7 @@ ActiveSyncFolderConn.prototype = {
         callback(null, estimate);
       }
     });
-  },
+  }),
 
   /**
    * Infer the filter type for this folder to get a sane number of messages.
@@ -3091,11 +873,11 @@ ActiveSyncFolderConn.prototype = {
    *  finishes, taking two arguments: an error (if any), and the filter type we
    *  picked
    */
-  _inferFilterType: function asfc__inferFilterType(callback) {
-    let folderConn = this;
-    const Type = $ascp.AirSync.Enums.FilterType;
+  _inferFilterType: lazyConnection(0, function asfc__inferFilterType(callback) {
+    var folderConn = this;
+    var Type = $AirSync.Enums.FilterType;
 
-    let getEstimate = function(filterType, onSuccess) {
+    var getEstimate = function(filterType, onSuccess) {
       folderConn._getSyncKey(filterType, function(error) {
         if (error) {
           callback('unknown');
@@ -3104,7 +886,9 @@ ActiveSyncFolderConn.prototype = {
 
         folderConn._getItemEstimate(filterType, function(error, estimate) {
           if (error) {
-            callback('unknown');
+            // If we couldn't get an estimate, just tell the main callback that
+            // we want three days back.
+            callback(null, Type.ThreeDaysBack);
             return;
           }
 
@@ -3114,8 +898,8 @@ ActiveSyncFolderConn.prototype = {
     };
 
     getEstimate(Type.TwoWeeksBack, function(estimate) {
-      let messagesPerDay = estimate / 14; // Two weeks. Twoooo weeeeeeks.
-      let filterType;
+      var messagesPerDay = estimate / 14; // Two weeks. Twoooo weeeeeeks.
+      var filterType;
 
       if (estimate < 0)
         filterType = Type.ThreeDaysBack;
@@ -3131,7 +915,7 @@ ActiveSyncFolderConn.prototype = {
         filterType = Type.OneMonthBack;
       else {
         getEstimate(Type.NoFilter, function(estimate) {
-          let filterType;
+          var filterType;
           if (estimate > DESIRED_MESSAGE_COUNT) {
             filterType = Type.OneMonthBack;
             // Reset the sync key since we're changing filter types. This avoids
@@ -3156,7 +940,7 @@ ActiveSyncFolderConn.prototype = {
       folderConn._LOG.inferFilterType(filterType);
       callback(null, filterType);
     });
-  },
+  }),
 
   /**
    * Sync the folder with the server and enumerate all the changes since the
@@ -3168,20 +952,10 @@ ActiveSyncFolderConn.prototype = {
    *   progresses that takes a number in the range [0.0, 1.0] to express
    *   progress.
    */
-  _enumerateFolderChanges: function asfc__enumerateFolderChanges(callback,
-                                                                 progress) {
-    let folderConn = this, storage = this._storage;
+  _enumerateFolderChanges: lazyConnection(0,
+    function asfc__enumerateFolderChanges(callback, progress) {
+    var folderConn = this, storage = this._storage;
 
-    if (!this._account.conn.connected) {
-      this._account.conn.connect(function(error) {
-        if (error) {
-          callback('aborted');
-          return;
-        }
-        folderConn._enumerateFolderChanges(callback, progress);
-      });
-      return;
-    }
     if (!this.filterType) {
       this._inferFilterType(function(error, filterType) {
         if (error) {
@@ -3205,12 +979,12 @@ ActiveSyncFolderConn.prototype = {
       return;
     }
 
-    const as = $ascp.AirSync.Tags;
-    const asEnum = $ascp.AirSync.Enums;
-    const asb = $ascp.AirSyncBase.Tags;
-    const asbEnum = $ascp.AirSyncBase.Enums;
+    var as = $AirSync.Tags;
+    var asEnum = $AirSync.Enums;
+    var asb = $AirSyncBase.Tags;
+    var asbEnum = $AirSyncBase.Enums;
 
-    let w;
+    var w;
 
     // If the last sync was ours and we got an empty response back, we can send
     // an empty request to repeat our request. This saves a little bandwidth.
@@ -3235,28 +1009,25 @@ ActiveSyncFolderConn.prototype = {
              .stag(as.Options)
                .tag(as.FilterType, this.filterType)
 
-      // XXX: For some servers (e.g. Hotmail), we could be smart and get the
-      // native body type (plain text or HTML), but Gmail doesn't seem to let us
-      // do this. For now, let's keep it simple and always get HTML.
-      if (this._account.conn.currentVersion.gte('12.0'))
-              w.stag(asb.BodyPreference)
-                 .tag(asb.Type, asbEnum.Type.HTML)
-               .etag();
-
+      // Older versions of ActiveSync give us the body by default. Ensure they
+      // omit it.
+      if (this._account.conn.currentVersion.lte('12.0')) {
               w.tag(as.MIMESupport, asEnum.MIMESupport.Never)
-               .tag(as.MIMETruncation, asEnum.MIMETruncation.NoTruncate)
-             .etag()
+               .tag(as.Truncation, asEnum.MIMETruncation.TruncateAll);
+      }
+
+            w.etag()
            .etag()
          .etag()
        .etag();
     }
 
     this._account.conn.postCommand(w, function(aError, aResponse) {
-      let added   = [];
-      let changed = [];
-      let deleted = [];
-      let status;
-      let moreAvailable = false;
+      var added   = [];
+      var changed = [];
+      var deleted = [];
+      var status;
+      var moreAvailable = false;
 
       folderConn._account._syncsInProgress--;
 
@@ -3277,8 +1048,8 @@ ActiveSyncFolderConn.prototype = {
       }
 
       folderConn._account._lastSyncResponseWasEmpty = false;
-      let e = new $wbxml.EventParser();
-      const base = [as.Sync, as.Collections, as.Collection];
+      var e = new $wbxml.EventParser();
+      var base = [as.Sync, as.Collections, as.Collection];
 
       e.addEventListener(base.concat(as.SyncKey), function(node) {
         folderConn.syncKey = node.children[0].textContent;
@@ -3294,9 +1065,10 @@ ActiveSyncFolderConn.prototype = {
 
       e.addEventListener(base.concat(as.Commands, [[as.Add, as.Change]]),
                          function(node) {
-        let id, guid, msg;
+        var id, guid, msg;
 
-        for (let [,child] in Iterator(node.children)) {
+        for (var iter in Iterator(node.children)) {
+          var child = iter[1];
           switch (child.tag) {
           case as.ServerId:
             guid = child.children[0].textContent;
@@ -3322,15 +1094,16 @@ ActiveSyncFolderConn.prototype = {
         msg.header.srvid = guid;
         // XXX need to get the message's message-id header value!
 
-        let collection = node.tag === as.Add ? added : changed;
+        var collection = node.tag === as.Add ? added : changed;
         collection.push(msg);
       });
 
       e.addEventListener(base.concat(as.Commands, [[as.Delete, as.SoftDelete]]),
                          function(node) {
-        let guid;
+        var guid;
 
-        for (let [,child] in Iterator(node.children)) {
+        for (var iter in Iterator(node.children)) {
+          var child = iter[1];
           switch (child.tag) {
           case as.ServerId:
             guid = child.children[0].textContent;
@@ -3376,11 +1149,12 @@ ActiveSyncFolderConn.prototype = {
         totalBytes = Math.max(1000000, bytesSoFar);
       progress(0.1 + 0.7 * bytesSoFar / totalBytes);
     });
-  },
+  }, 'aborted'),
 
   /**
    * Parse the DOM of an individual message to build header and body objects for
    * it.
+   * ASSUMES activesync code has already been lazy-loaded.
    *
    * @param {WBXML.Element} node The fully-parsed node describing the message
    * @param {boolean} isAdded True if this is a new message, false if it's a
@@ -3388,11 +1162,11 @@ ActiveSyncFolderConn.prototype = {
    * @return {object} An object containing the header and body for the message
    */
   _parseMessage: function asfc__parseMessage(node, isAdded) {
-    const em = $ascp.Email.Tags;
-    const asb = $ascp.AirSyncBase.Tags;
-    const asbEnum = $ascp.AirSyncBase.Enums;
+    var em = $Email.Tags;
+    var asb = $AirSyncBase.Tags;
+    var asbEnum = $AirSyncBase.Enums;
 
-    let header, body, flagHeader;
+    var header, body, flagHeader;
 
     if (isAdded) {
       header = {
@@ -3401,24 +1175,24 @@ ActiveSyncFolderConn.prototype = {
         suid: null,
         guid: null,
         author: null,
+        to: null,
+        cc: null,
+        bcc: null,
+        replyTo: null,
         date: null,
         flags: [],
         hasAttachments: false,
         subject: null,
-        snippet: null,
+        snippet: null
       };
 
       body = {
         date: null,
         size: 0,
-        to: null,
-        cc: null,
-        bcc: null,
-        replyTo: null,
         attachments: [],
         relatedParts: [],
         references: null,
-        bodyReps: null,
+        bodyReps: null
       };
 
       flagHeader = function(flag, state) {
@@ -3431,20 +1205,22 @@ ActiveSyncFolderConn.prototype = {
         flags: [],
         mergeInto: function(o) {
           // Merge flags
-          for (let [,flagstate] in Iterator(this.flags)) {
+          for (var iter in Iterator(this.flags)) {
+            var flagstate = iter[1];
             if (flagstate[1]) {
               o.flags.push(flagstate[0]);
             }
             else {
-              let index = o.flags.indexOf(flagstate[0]);
+              var index = o.flags.indexOf(flagstate[0]);
               if (index !== -1)
                 o.flags.splice(index, 1);
             }
           }
 
           // Merge everything else
-          const skip = ['mergeInto', 'suid', 'srvid', 'guid', 'id', 'flags'];
-          for (let [key, value] in Iterator(this)) {
+          var skip = ['mergeInto', 'suid', 'srvid', 'guid', 'id', 'flags'];
+          for (var iter in Iterator(this)) {
+            var key = iter[0], value = iter[1];
             if (skip.indexOf(key) !== -1)
               continue;
 
@@ -3455,7 +1231,8 @@ ActiveSyncFolderConn.prototype = {
 
       body = {
         mergeInto: function(o) {
-          for (let [key, value] in Iterator(this)) {
+          for (var iter in Iterator(this)) {
+            var key = iter[0], value = iter[1];
             if (key === 'mergeInto') continue;
             o[key] = value;
           }
@@ -3467,10 +1244,11 @@ ActiveSyncFolderConn.prototype = {
       }
     }
 
-    let bodyType, bodyText;
+    var bodyType, bodySize;
 
-    for (let [,child] in Iterator(node.children)) {
-      let childText = child.children.length ? child.children[0].textContent :
+    for (var iter in Iterator(node.children)) {
+      var child = iter[1];
+      var childText = child.children.length ? child.children[0].textContent :
                                               null;
 
       switch (child.tag) {
@@ -3481,13 +1259,13 @@ ActiveSyncFolderConn.prototype = {
         header.author = $mimelib.parseAddresses(childText)[0] || null;
         break;
       case em.To:
-        body.to = $mimelib.parseAddresses(childText);
+        header.to = $mimelib.parseAddresses(childText);
         break;
       case em.Cc:
-        body.cc = $mimelib.parseAddresses(childText);
+        header.cc = $mimelib.parseAddresses(childText);
         break;
       case em.ReplyTo:
-        body.replyTo = $mimelib.parseAddresses(childText);
+        header.replyTo = $mimelib.parseAddresses(childText);
         break;
       case em.DateReceived:
         body.date = header.date = new Date(childText).valueOf();
@@ -3496,35 +1274,47 @@ ActiveSyncFolderConn.prototype = {
         flagHeader('\\Seen', childText === '1');
         break;
       case em.Flag:
-        for (let [,grandchild] in Iterator(child.children)) {
+        for (var iter2 in Iterator(child.children)) {
+          var grandchild = iter2[1];
           if (grandchild.tag === em.Status)
             flagHeader('\\Flagged', grandchild.children[0].textContent !== '0');
         }
         break;
       case asb.Body: // ActiveSync 12.0+
-        for (let [,grandchild] in Iterator(child.children)) {
+        for (var iter2 in Iterator(child.children)) {
+          var grandchild = iter2[1];
           switch (grandchild.tag) {
           case asb.Type:
-            bodyType = grandchild.children[0].textContent;
+            var type = grandchild.children[0].textContent;
+            if (type === asbEnum.Type.HTML)
+              bodyType = 'html';
+            else {
+              // I've seen a handful of extra-weird messages with body types
+              // that aren't plain or html. Let's assume they're plain, though.
+              if (type !== asbEnum.Type.PlainText)
+                console.warn('A message had a strange body type:', type)
+              bodyType = 'plain';
+            }
             break;
-          case asb.Data:
-            bodyText = grandchild.children[0].textContent;
+          case asb.EstimatedDataSize:
+            bodySize = grandchild.children[0].textContent;
             break;
           }
         }
         break;
-      case em.Body: // pre-ActiveSync 12.0
-        bodyType = asbEnum.Type.PlainText;
-        bodyText = childText;
+      case em.BodySize: // pre-ActiveSync 12.0
+        bodyType = 'plain';
+        bodySize = childText;
         break;
       case asb.Attachments: // ActiveSync 12.0+
       case em.Attachments:  // pre-ActiveSync 12.0
-        for (let [,attachmentNode] in Iterator(child.children)) {
+        for (var iter2 in Iterator(child.children)) {
+          var attachmentNode = iter2[1];
           if (attachmentNode.tag !== asb.Attachment &&
               attachmentNode.tag !== em.Attachment)
             continue;
 
-          let attachment = {
+          var attachment = {
             name: null,
             contentId: null,
             type: null,
@@ -3534,10 +1324,11 @@ ActiveSyncFolderConn.prototype = {
             file: null,
           };
 
-          let isInline = false;
-          for (let [,attachData] in Iterator(attachmentNode.children)) {
-            let dot, ext;
-            let attachDataText = attachData.children.length ?
+          var isInline = false;
+          for (var iter3 in Iterator(attachmentNode.children)) {
+            var attachData = iter3[1];
+            var dot, ext;
+            var attachDataText = attachData.children.length ?
                                  attachData.children[0].textContent : null;
 
             switch (attachData.tag) {
@@ -3548,7 +1339,8 @@ ActiveSyncFolderConn.prototype = {
               // Get the file's extension to look up a mimetype, but ignore it
               // if the filename is of the form '.bashrc'.
               dot = attachment.name.lastIndexOf('.');
-              ext = dot > 0 ? attachment.name.substring(dot + 1) : '';
+              ext = dot > 0 ? attachment.name.substring(dot + 1).toLowerCase() :
+                              '';
               attachment.type = $mimelib.contentTypes[ext] ||
                                 'application/octet-stream';
               break;
@@ -3583,41 +1375,266 @@ ActiveSyncFolderConn.prototype = {
       }
     }
 
-    // Process the body as needed.
-    if (bodyType === asbEnum.Type.PlainText) {
-      let bodyRep = $quotechew.quoteProcessTextBody(bodyText);
-      header.snippet = $quotechew.generateSnippet(bodyRep,
-                                                  DESIRED_SNIPPET_LENGTH);
-      body.bodyReps = ['plain', bodyRep];
-    }
-    else if (bodyType === asbEnum.Type.HTML) {
-      let htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
-      header.snippet = $htmlchew.generateSnippet(htmlNode,
-                                                 DESIRED_SNIPPET_LENGTH);
-      body.bodyReps = ['html', htmlNode.innerHTML];
-    }
+    body.bodyReps = [{
+      type: bodyType,
+      sizeEstimate: bodySize,
+      amountDownloaded: 0,
+      isDownloaded: false
+    }];
 
     return { header: header, body: body };
   },
 
-  syncDateRange: function asfc_syncDateRange(startTS, endTS, accuracyStamp,
-                                             doneCallback, progressCallback) {
-    let folderConn = this,
+  /**
+   * Download the bodies for a set of headers.
+   */
+  downloadBodies: function(headers, options, callback) {
+    if (this._account.conn.currentVersion.lt('12.0'))
+      return this._syncBodies(headers, callback);
+
+    var anyErr,
+        pending = 1,
+        folderConn = this;
+
+    function next(err) {
+      if (err && !anyErr)
+        anyErr = err;
+
+      if (!--pending) {
+        folderConn._storage.runAfterDeferredCalls(function() {
+          callback(anyErr);
+        });
+      }
+    }
+
+    for (var i = 0; i < headers.length; i++) {
+      if (!headers[i] || headers[i].snippet)
+        continue;
+
+      pending++;
+      this.downloadBodyReps(headers[i], options, next);
+    }
+
+    // by having one pending item always this handles the case of not having any
+    // snippets needing a download and also returning in the next tick of the
+    // event loop.
+    window.setZeroTimeout(next);
+  },
+
+  downloadBodyReps: lazyConnection(1, function(header, options, callback) {
+    var folderConn = this;
+    var account = this._account;
+
+    if (account.conn.currentVersion.lt('12.0'))
+      return this._syncBodies([header], callback);
+
+    if (typeof(options) === 'function') {
+      callback = options;
+      options = null;
+    }
+    options = options || {};
+
+    var io = $ItemOperations.Tags;
+    var ioEnum = $ItemOperations.Enums;
+    var as = $AirSync.Tags;
+    var asEnum = $AirSync.Enums;
+    var asb = $AirSyncBase.Tags;
+    var Type = $AirSyncBase.Enums.Type;
+
+    var gotBody = function gotBody(bodyInfo) {
+      // ActiveSync only stores one body rep, no matter how many body parts the
+      // MIME message actually has.
+      var bodyRep = bodyInfo.bodyReps[0];
+      var bodyType = bodyRep.type === 'html' ? Type.HTML : Type.PlainText;
+      var truncationSize;
+
+      // If the body is bigger than the max size, grab a small bit of plain text
+      // to show as the snippet.
+      if (options.maximumBytesToFetch < bodyRep.sizeEstimate) {
+        bodyType = Type.PlainText;
+        truncationSize = DESIRED_TEXT_SNIPPET_BYTES;
+      }
+
+      var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+      w.stag(io.ItemOperations)
+         .stag(io.Fetch)
+           .tag(io.Store, 'Mailbox')
+           .tag(as.CollectionId, folderConn.serverId)
+           .tag(as.ServerId, header.srvid)
+           .stag(io.Options)
+             // Only get the AirSyncBase:Body element to minimize bandwidth.
+             .stag(io.Schema)
+               .tag(asb.Body)
+             .etag()
+             .stag(asb.BodyPreference)
+               .tag(asb.Type, bodyType);
+
+      if (truncationSize)
+              w.tag(asb.TruncationSize, truncationSize);
+
+            w.etag()
+           .etag()
+         .etag()
+       .etag();
+
+      account.conn.postCommand(w, function(aError, aResponse) {
+        if (aError) {
+          console.error(aError);
+          callback('unknown');
+          return;
+        }
+
+        var status, bodyContent,
+            e = new $wbxml.EventParser();
+        e.addEventListener([io.ItemOperations, io.Status], function(node) {
+          status = node.children[0].textContent;
+        });
+        e.addEventListener([io.ItemOperations, io.Response, io.Fetch,
+                            io.Properties, asb.Body, asb.Data], function(node) {
+          bodyContent = node.children[0].textContent;
+        });
+        e.run(aResponse);
+
+        if (status !== ioEnum.Status.Success)
+          return callback('unknown');
+
+        folderConn._updateBody(header, bodyInfo, bodyContent, !!truncationSize,
+                               callback);
+      });
+    };
+
+    this._storage.getMessageBody(header.suid, header.date, gotBody);
+  }),
+
+  /**
+   * Sync message bodies. This function should only be used against ActiveSync
+   * 2.5! XXX: This *always* downloads the bodies for all the messages, even if
+   * it exceeds the maximum requested size.
+   */
+  _syncBodies: function(headers, callback) {
+    var as = $AirSync.Tags;
+    var asEnum = $AirSync.Enums;
+    var em = $Email.Tags;
+
+    var folderConn = this;
+    var account = this._account;
+
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(as.Sync)
+       .stag(as.Collections)
+         .stag(as.Collection)
+           .tag(as.Class, 'Email')
+           .tag(as.SyncKey, this.syncKey)
+           .tag(as.CollectionId, this.serverId)
+           .stag(as.Options)
+             .tag(as.MIMESupport, asEnum.MIMESupport.Never)
+           .etag()
+           .stag(as.Commands);
+
+    for (var i = 0; i < headers.length; i++) {
+            w.stag(as.Fetch)
+               .tag(as.ServerId, headers[i].srvid)
+             .etag();
+    }
+
+          w.etag()
+         .etag()
+       .etag()
+     .etag();
+
+    account.conn.postCommand(w, function(aError, aResponse) {
+      if (aError) {
+        console.error(aError);
+        callback('unknown');
+        return;
+      }
+
+      var status, anyErr,
+          i = 0,
+          pending = 1;
+
+      function next(err) {
+        if (err && !anyErr)
+          anyErr = err;
+
+        if (!--pending) {
+          folderConn._storage.runAfterDeferredCalls(function() {
+            callback(anyErr);
+          });
+        }
+      }
+
+      var e = new $wbxml.EventParser();
+      var base = [as.Sync, as.Collections, as.Collection];
+      e.addEventListener(base.concat(as.SyncKey), function(node) {
+        folderConn.syncKey = node.children[0].textContent;
+      });
+      e.addEventListener(base.concat(as.Status), function(node) {
+        status = node.children[0].textContent;
+      });
+      e.addEventListener(base.concat(as.Responses, as.Fetch,
+                                     as.ApplicationData, em.Body),
+                         function(node) {
+        // We assume the response is in the same order as the request!
+        var header = headers[i++];
+        var bodyContent = node.children[0].textContent;
+
+        pending++;
+        folderConn._storage.getMessageBody(header.suid, header.date,
+                                           function(body) {
+          folderConn._updateBody(header, body, bodyContent, false, next);
+        });
+      });
+      e.run(aResponse);
+
+      if (status !== asEnum.Status.Success)
+        return next('unknown');
+
+      next(null);
+    });
+  },
+
+  _updateBody: function(header, bodyInfo, bodyContent, snippetOnly, callback) {
+    var bodyRep = bodyInfo.bodyReps[0];
+
+    var type = snippetOnly ? 'plain' : bodyRep.type;
+    var data = $mailchew.processMessageContent(bodyContent, type, !snippetOnly,
+                                               true, this._LOG);
+
+    header.snippet = data.snippet;
+    bodyRep.isDownloaded = !snippetOnly;
+    bodyRep.amountDownloaded = bodyContent.length;
+    if (!snippetOnly)
+      bodyRep.content = data.content;
+
+    var event = {
+      changeType: 'bodyReps',
+      indexes: [0]
+    };
+
+    this._storage.updateMessageHeader(header.date, header.id, false, header);
+    this._storage.updateMessageBody(header, bodyInfo, event);
+    this._storage.runAfterDeferredCalls(callback);
+  },
+
+  sync: lazyConnection(1, function asfc_sync(accuracyStamp, doneCallback,
+                                    progressCallback) {
+    var folderConn = this,
         addedMessages = 0,
         changedMessages = 0,
         deletedMessages = 0;
 
-    this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
+    this._LOG.sync_begin(null, null, null);
     this._enumerateFolderChanges(function (error, added, changed, deleted,
                                            moreAvailable) {
-      let storage = folderConn._storage;
+      var storage = folderConn._storage;
 
       if (error === 'badkey') {
         folderConn._account._recreateFolder(storage.folderId, function(s) {
           // If we got a bad sync key, we'll end up creating a new connection,
           // so just clear out the old storage to make this connection unusable.
           folderConn._storage = null;
-          folderConn._LOG.syncDateRange_end(null, null, null, startTS, endTS);
+          folderConn._LOG.sync_end(null, null, null);
         });
         return;
       }
@@ -3626,7 +1643,8 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      for (let [,message] in Iterator(added)) {
+      for (var iter in Iterator(added)) {
+        var message = iter[1];
         // If we already have this message, it's probably because we moved it as
         // part of a local op, so let's assume that the data we already have is
         // ok. XXX: We might want to verify this, to be safe.
@@ -3638,7 +1656,8 @@ ActiveSyncFolderConn.prototype = {
         addedMessages++;
       }
 
-      for (let [,message] in Iterator(changed)) {
+      for (var iter in Iterator(changed)) {
+        var message = iter[1];
         // If we don't know about this message, just bail out.
         if (!storage.hasMessageWithServerId(message.header.srvid))
           continue;
@@ -3652,7 +1671,8 @@ ActiveSyncFolderConn.prototype = {
         // XXX: update bodies
       }
 
-      for (let [,messageGuid] in Iterator(deleted)) {
+      for (var iter in Iterator(deleted)) {
+        var messageGuid = iter[1];
         // If we don't know about this message, it's probably because we already
         // deleted it.
         if (!storage.hasMessageWithServerId(messageGuid))
@@ -3663,36 +1683,27 @@ ActiveSyncFolderConn.prototype = {
       }
 
       if (!moreAvailable) {
-        let messagesSeen = addedMessages + changedMessages + deletedMessages;
+        var messagesSeen = addedMessages + changedMessages + deletedMessages;
 
         // Note: For the second argument here, we report the number of messages
         // we saw that *changed*. This differs from IMAP, which reports the
         // number of messages it *saw*.
-        folderConn._LOG.syncDateRange_end(addedMessages, changedMessages,
-                                          deletedMessages, startTS, endTS);
-        storage.markSyncRange(startTS, endTS, 'XXX', accuracyStamp);
+        folderConn._LOG.sync_end(addedMessages, changedMessages,
+                                 deletedMessages);
+        storage.markSyncRange($sync.OLDEST_SYNC_DATE, accuracyStamp, 'XXX',
+                              accuracyStamp);
         doneCallback(null, null, messagesSeen);
       }
     },
     progressCallback);
-  },
+  }),
 
-  performMutation: function(invokeWithWriter, callWhenDone) {
-    let folderConn = this;
-    if (!this._account.conn.connected) {
-      this._account.conn.connect(function(error) {
-        if (error) {
-          callback('unknown');
-          return;
-        }
-        folderConn.performMutation(invokeWithWriter, callWhenDone);
-      });
-      return;
-    }
+  performMutation: lazyConnection(1, function(invokeWithWriter, callWhenDone) {
+    var folderConn = this;
 
-    const as = $ascp.AirSync.Tags;
+    var as = $AirSync.Tags;
 
-    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(as.Sync)
        .stag(as.Collections)
          .stag(as.Collection);
@@ -3732,10 +1743,10 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      let e = new $wbxml.EventParser();
-      let syncKey, status;
+      var e = new $wbxml.EventParser();
+      var syncKey, status;
 
-      const base = [as.Sync, as.Collections, as.Collection];
+      var base = [as.Sync, as.Collections, as.Collection];
       e.addEventListener(base.concat(as.SyncKey), function(node) {
         syncKey = node.children[0].textContent;
       });
@@ -3752,7 +1763,7 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      if (status === $ascp.AirSync.Enums.Status.Success) {
+      if (status === $AirSync.Enums.Status.Success) {
         folderConn.syncKey = syncKey;
         if (callWhenDone)
           callWhenDone(null);
@@ -3763,31 +1774,24 @@ ActiveSyncFolderConn.prototype = {
         callWhenDone('status:' + status);
       }
     });
-  },
+  }),
 
   // XXX: take advantage of multipart responses here.
   // See http://msdn.microsoft.com/en-us/library/ee159875%28v=exchg.80%29.aspx
-  downloadMessageAttachments: function(uid, partInfos, callback, progress) {
-    let folderConn = this;
-    if (!this._account.conn.connected) {
-      this._account.conn.connect(function(error) {
-        if (error) {
-          callback('unknown');
-          return;
-        }
-        folderConn.downloadMessageAttachments(uid, partInfos, callback,
-                                              progress);
-      });
-      return;
-    }
+  downloadMessageAttachments: lazyConnection(2, function(uid,
+                                                         partInfos,
+                                                         callback,
+                                                         progress) {
+    var folderConn = this;
 
-    const io = $ascp.ItemOperations.Tags;
-    const ioStatus = $ascp.ItemOperations.Enums.Status;
-    const asb = $ascp.AirSyncBase.Tags;
+    var io = $ItemOperations.Tags;
+    var ioStatus = $ItemOperations.Enums.Status;
+    var asb = $AirSyncBase.Tags;
 
-    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(io.ItemOperations);
-    for (let [,part] in Iterator(partInfos)) {
+    for (var iter in Iterator(partInfos)) {
+      var part = iter[1];
       w.stag(io.Fetch)
          .tag(io.Store, 'Mailbox')
          .tag(asb.FileReference, part.part)
@@ -3802,18 +1806,19 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      let globalStatus;
-      let attachments = {};
+      var globalStatus;
+      var attachments = {};
 
-      let e = new $wbxml.EventParser();
+      var e = new $wbxml.EventParser();
       e.addEventListener([io.ItemOperations, io.Status], function(node) {
         globalStatus = node.children[0].textContent;
       });
       e.addEventListener([io.ItemOperations, io.Response, io.Fetch],
                          function(node) {
-        let part = null, attachment = {};
+        var part = null, attachment = {};
 
-        for (let [,child] in Iterator(node.children)) {
+        for (var iter in Iterator(node.children)) {
+          var child = iter[1];
           switch (child.tag) {
           case io.Status:
             attachment.status = child.children[0].textContent;
@@ -3824,8 +1829,9 @@ ActiveSyncFolderConn.prototype = {
           case io.Properties:
             var contentType = null, data = null;
 
-            for (let [,grandchild] in Iterator(child.children)) {
-              let textContent = grandchild.children[0].textContent;
+            for (var iter2 in Iterator(child.children)) {
+              var grandchild = iter2[1];
+              var textContent = grandchild.children[0].textContent;
 
               switch (grandchild.tag) {
               case asb.ContentType:
@@ -3848,9 +1854,10 @@ ActiveSyncFolderConn.prototype = {
       });
       e.run(aResult);
 
-      let error = globalStatus !== ioStatus.Success ? 'unknown' : null;
-      let bodies = [];
-      for (let [,part] in Iterator(partInfos)) {
+      var error = globalStatus !== ioStatus.Success ? 'unknown' : null;
+      var bodies = [];
+      for (var iter in Iterator(partInfos)) {
+        var part = iter[1];
         if (attachments.hasOwnProperty(part.part) &&
             attachments[part.part].status === ioStatus.Success) {
           bodies.push(attachments[part.part].data);
@@ -3862,7 +1869,7 @@ ActiveSyncFolderConn.prototype = {
       }
       callback(error, bodies);
     });
-  },
+  }),
 };
 
 function ActiveSyncFolderSyncer(account, folderStorage, _parentLog) {
@@ -3877,7 +1884,8 @@ function ActiveSyncFolderSyncer(account, folderStorage, _parentLog) {
 exports.ActiveSyncFolderSyncer = ActiveSyncFolderSyncer;
 ActiveSyncFolderSyncer.prototype = {
   /**
-   * Can we synchronize?  Not if we don't have a server id!
+   * Can we synchronize?  Not if we don't have a server id!  (This happens for
+   * the inbox when it is speculative before our first syncFolderList.)
    */
   get syncable() {
     return this.folderConn.serverId !== null;
@@ -3890,30 +1898,25 @@ ActiveSyncFolderSyncer.prototype = {
     return false;
   },
 
-  syncDateRange: function(startTS, endTS, syncCallback, doneCallback,
-                          progressCallback) {
+  initialSync: function(slice, initialDays, syncCallback,
+                        doneCallback, progressCallback) {
     syncCallback('sync', false, true);
-    this.folderConn.syncDateRange(
-      startTS, endTS, $date.NOW(),
-      this.onSyncCompleted.bind(this, doneCallback),
+    this.folderConn.sync(
+      $date.NOW(),
+      this.onSyncCompleted.bind(this, doneCallback, true),
       progressCallback);
   },
 
-  syncAdjustedDateRange: function(startTS, endTS, syncCallback, doneCallback,
-                                  progressCallback) {
-    // ActiveSync doesn't adjust date ranges. Just do a normal sync.
-    this.syncDateRange(startTS, endTS, syncCallback, doneCallback,
-                       progressCallback);
-  },
-
-  refreshSync: function(startTS, endTS, useBisectLimit, doneCallback,
-                        progressCallback) {
-    this.folderConn.syncDateRange(startTS, endTS, $date.NOW(),
-                                  doneCallback, progressCallback);
+  refreshSync: function(slice, dir, startTS, endTS, origStartTS,
+                        doneCallback, progressCallback) {
+    this.folderConn.sync(
+      $date.NOW(),
+      this.onSyncCompleted.bind(this, doneCallback, false),
+      progressCallback);
   },
 
   // Returns false if no sync is necessary.
-  growSync: function(endTS, batchHeaders, userRequestsGrowth, syncCallback,
+  growSync: function(slice, growthDirection, anchorTS, syncStepDays,
                      doneCallback, progressCallback) {
     // ActiveSync is different, and trying to sync more doesn't work with it.
     // Just assume we've got all we need.
@@ -3927,32 +1930,38 @@ ActiveSyncFolderSyncer.prototype = {
    * either trigger another sync if we still want more data, or close out the
    * current sync.
    */
-  onSyncCompleted: function ifs_onSyncCompleted(doneCallback, err, bisectInfo,
-                                                messagesSeen) {
+  onSyncCompleted: function ifs_onSyncCompleted(doneCallback, initialSync,
+                                                err, bisectInfo, messagesSeen) {
+    var storage = this.folderStorage;
+    console.log("Sync Completed!", messagesSeen, "messages synced");
+
+    // Expand the accuracy range to cover everybody.
+    if (!err)
+      storage.markSyncedToDawnOfTime();
+    // Always save state, although as an optimization, we could avoid saving state
+    // if we were sure that our state with the server did not advance.
+    this._account.__checkpointSyncCompleted();
+
     if (err) {
       doneCallback(err);
       return;
     }
 
-    let storage = this.folderStorage;
+    if (initialSync) {
+      storage._curSyncSlice.ignoreHeaders = false;
+      storage._curSyncSlice.waitingOnData = 'db';
 
-    console.log("Sync Completed!", messagesSeen, "messages synced");
-
-    // Expand the accuracy range to cover everybody.
-    storage.markSyncedEntireFolder();
-
-    storage._curSyncSlice.ignoreHeaders = false;
-    storage._curSyncSlice.waitingOnData = 'db';
-
-    storage.getMessagesInImapDateRange(
-      0, $date.FUTURE(), $sync.INITIAL_FILL_SIZE, $sync.INITIAL_FILL_SIZE,
-      // Don't trigger a refresh; we just synced.
-      storage.onFetchDBHeaders.bind(storage, storage._curSyncSlice, false,
-                                    doneCallback, null)
-    );
-
-    storage._curSyncSlice = null;
-    this._account.__checkpointSyncCompleted();
+      storage.getMessagesInImapDateRange(
+        0, null, $sync.INITIAL_FILL_SIZE, $sync.INITIAL_FILL_SIZE,
+        // Don't trigger a refresh; we just synced.  Accordingly, releaseMutex can
+        // be null.
+        storage.onFetchDBHeaders.bind(storage, storage._curSyncSlice, false,
+                                      doneCallback, null)
+      );
+    }
+    else {
+      doneCallback(err);
+    }
   },
 
   allConsumersDead: function() {
@@ -3972,10 +1981,15 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       inferFilterType: { filterType: false },
     },
     asyncJobs: {
-      syncDateRange: {
-        newMessages: true, existingMessages: true, deletedMessages: true,
-        start: false, end: false,
+      sync: {
+        newMessages: true, changedMessages: true, deletedMessages: true,
       },
+    },
+    errors: {
+      htmlParseError: { ex: $log.EXCEPTION },
+      htmlSnippetError: { ex: $log.EXCEPTION },
+      textChewError: { ex: $log.EXCEPTION },
+      textSnippetError: { ex: $log.EXCEPTION },
     },
   },
   ActiveSyncFolderSyncer: {
@@ -3986,27 +2000,98 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
+;
+/* Copyright 2012 Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+(function (root, factory) {
+  if (typeof exports === 'object')
+    module.exports = factory();
+  else if (typeof define === 'function' && define.amd)
+    define('activesync/codepages/Move',[], factory);
+  else
+    root.ASCPMove = factory();
+}(this, function() {
+  'use strict';
+
+  return {
+    Tags: {
+      MoveItems: 0x0505,
+      Move:      0x0506,
+      SrcMsgId:  0x0507,
+      SrcFldId:  0x0508,
+      DstFldId:  0x0509,
+      Response:  0x050A,
+      Status:    0x050B,
+      DstMsgId:  0x050C,
+    },
+    Enums: {
+      Status: {
+        InvalidSourceID: '1',
+        InvalidDestID:   '2',
+        Success:         '3',
+        SourceIsDest:    '4',
+        MoveFailure:     '5',
+        ItemLocked:      '7',
+      },
+    },
+  };
+}));
 
 define('mailapi/activesync/jobs',
   [
-    'wbxml',
-    'activesync/codepages',
-    'activesync/protocol',
     'rdcommon/log',
     '../jobmixins',
+    'activesync/codepages/AirSync',
+    'activesync/codepages/Email',
+    'activesync/codepages/Move',
     'module',
+    'require',
     'exports'
   ],
   function(
-    $wbxml,
-    $ascp,
-    $activesync,
     $log,
     $jobmixins,
+    $AirSync,
+    $Email,
+    $Move,
     $module,
+    require,
     exports
   ) {
 'use strict';
+
+var $wbxml;
+
+function lazyConnection(cbIndex, fn, failString) {
+  return function lazyRun() {
+    var args = Array.slice(arguments),
+        errback = args[cbIndex],
+        self = this;
+
+    require(['wbxml'], function (wbxml) {
+      if (!$wbxml) {
+        $wbxml = wbxml;
+      }
+
+      self.account.withConnection(errback, function () {
+        fn.apply(self, args);
+      }, failString);
+    });
+  };
+}
 
 function ActiveSyncJobDriver(account, state, _parentLog) {
   this.account = account;
@@ -4046,8 +2131,8 @@ ActiveSyncJobDriver.prototype = {
       self._heldMutexReleasers.push(releaseMutex);
 
       var syncer = storage.folderSyncer;
-      if (needConn && !self.account.conn.connected) {
-        self.account.conn.connect(function(error) {
+      if (needConn) {
+        self.account.withConnection(callback, function () {
           try {
             callback(syncer.folderConn, storage);
           }
@@ -4055,8 +2140,7 @@ ActiveSyncJobDriver.prototype = {
             self._LOG.callbackErr(ex);
           }
         });
-      }
-      else {
+      } else {
         try {
           callback(syncer.folderConn, storage);
         }
@@ -4075,9 +2159,9 @@ ActiveSyncJobDriver.prototype = {
 
   local_do_modtags: $jobmixins.local_do_modtags,
 
-  do_modtags: function(op, jobDoneCallback, undo) {
+  do_modtags: lazyConnection(1, function(op, jobDoneCallback, undo) {
     // Note: this method is derived from the IMAP implementation.
-    let addTags = undo ? op.removeTags : op.addTags,
+    var addTags = undo ? op.removeTags : op.addTags,
         removeTags = undo ? op.addTags : op.removeTags;
 
     function getMark(tag) {
@@ -4088,13 +2172,13 @@ ActiveSyncJobDriver.prototype = {
       return undefined;
     }
 
-    let markRead = getMark('\\Seen');
-    let markFlagged = getMark('\\Flagged');
+    var markRead = getMark('\\Seen');
+    var markFlagged = getMark('\\Flagged');
 
-    const as = $ascp.AirSync.Tags;
-    const em = $ascp.Email.Tags;
+    var as = $AirSync.Tags;
+    var em = $Email.Tags;
 
-    let aggrErr = null;
+    var aggrErr = null;
 
     this._partitionAndAccessFoldersSequentially(
       op.messages, true,
@@ -4122,7 +2206,7 @@ ActiveSyncJobDriver.prototype = {
 
         folderConn.performMutation(
           function withWriter(w) {
-            for (let i = 0; i < serverIds.length; i++) {
+            for (var i = 0; i < serverIds.length; i++) {
               w.stag(as.Change)
                  .tag(as.ServerId, serverIds[i])
                  .stag(as.ApplicationData);
@@ -4153,7 +2237,7 @@ ActiveSyncJobDriver.prototype = {
       },
       /* reverse if we're undoing */ undo,
       'modtags');
-  },
+  }),
 
   check_modtags: function(op, callback) {
     callback(null, 'idempotent');
@@ -4170,7 +2254,7 @@ ActiveSyncJobDriver.prototype = {
 
   local_do_move: $jobmixins.local_do_move,
 
-  do_move: function(op, jobDoneCallback) {
+  do_move: lazyConnection(1, function(op, jobDoneCallback) {
     /*
      * The ActiveSync command for this does not produce or consume SyncKeys.
      * As such, we don't need to acquire mutexes for the source folders for
@@ -4184,10 +2268,10 @@ ActiveSyncJobDriver.prototype = {
      * disappear and then show up again. XXX we are not currently enforcing this
      * yet.
      */
-    let aggrErr = null, account = this.account,
+    var aggrErr = null, account = this.account,
         targetFolderStorage = this.account.getFolderStorageForFolderId(
                                 op.targetFolder);
-    const mo = $ascp.Move.Tags;
+    var mo = $Move.Tags;
 
     this._partitionAndAccessFoldersSequentially(
       op.messages, true,
@@ -4210,9 +2294,9 @@ ActiveSyncJobDriver.prototype = {
           return;
         }
 
-        let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+        var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
         w.stag(mo.MoveItems);
-        for (let i = 0; i < serverIds.length; i++) {
+        for (var i = 0; i < serverIds.length; i++) {
           w.stag(mo.Move)
              .tag(mo.SrcMsgId, serverIds[i])
              .tag(mo.SrcFldId, storage.folderMeta.serverId)
@@ -4237,7 +2321,7 @@ ActiveSyncJobDriver.prototype = {
       },
       false,
       'move');
-  },
+  }),
 
   check_move: function(op, jobDoneCallback) {
 
@@ -4253,10 +2337,10 @@ ActiveSyncJobDriver.prototype = {
 
   local_do_delete: $jobmixins.local_do_delete,
 
-  do_delete: function(op, jobDoneCallback) {
-    let aggrErr = null;
-    const as = $ascp.AirSync.Tags;
-    const em = $ascp.Email.Tags;
+  do_delete: lazyConnection(1, function(op, jobDoneCallback) {
+    var aggrErr = null;
+    var as = $AirSync.Tags;
+    var em = $Email.Tags;
 
     this._partitionAndAccessFoldersSequentially(
       op.messages, true,
@@ -4272,7 +2356,7 @@ ActiveSyncJobDriver.prototype = {
 
         folderConn.performMutation(
           function withWriter(w) {
-            for (let i = 0; i < serverIds.length; i++) {
+            for (var i = 0; i < serverIds.length; i++) {
               w.stag(as.Delete)
                  .tag(as.ServerId, serverIds[i])
                .etag(as.Delete);
@@ -4294,7 +2378,7 @@ ActiveSyncJobDriver.prototype = {
       },
       false,
       'delete');
-  },
+  }),
 
   check_delete: function(op, callback) {
     callback(null, 'idempotent');
@@ -4317,19 +2401,8 @@ ActiveSyncJobDriver.prototype = {
     doneCallback(null);
   },
 
-  do_syncFolderList: function(op, doneCallback) {
+  do_syncFolderList: lazyConnection(1, function(op, doneCallback) {
     var account = this.account, self = this;
-    // establish a connection if we are not already connected
-    if (!account.conn.connected) {
-      account.conn.connect(function(error) {
-        if (error) {
-          doneCallback('aborted-retry');
-          return;
-        }
-        self.do_syncFolderList(op, doneCallback);
-      });
-      return;
-    }
 
     // The inbox needs to be resynchronized if there was no server id and we
     // have active slices displaying the contents of the folder.  (No server id
@@ -4357,7 +2430,7 @@ ActiveSyncJobDriver.prototype = {
         // automatically, we can ignore that case for now.
       }
     });
-  },
+  }, 'aborted-retry'),
 
   check_syncFolderList: function(op, doneCallback) {
     doneCallback('idempotent');
@@ -4372,7 +2445,21 @@ ActiveSyncJobDriver.prototype = {
   },
 
   //////////////////////////////////////////////////////////////////////////////
-  // download
+  // downloadBodies: Download the bodies from a list of messages
+
+  local_do_downloadBodies: $jobmixins.local_do_downloadBodies,
+
+  do_downloadBodies: $jobmixins.do_downloadBodies,
+
+  //////////////////////////////////////////////////////////////////////////////
+  // downloadBodyReps: Download the bodies from a single message
+
+  local_do_downloadBodyReps: $jobmixins.local_do_downloadBodyReps,
+
+  do_downloadBodyReps: $jobmixins.do_downloadBodyReps,
+
+  //////////////////////////////////////////////////////////////////////////////
+  // download: Download one or more attachments from a single message
 
   local_do_download: $jobmixins.local_do_download,
 
@@ -4383,6 +2470,32 @@ ActiveSyncJobDriver.prototype = {
   local_undo_download: $jobmixins.local_undo_download,
 
   undo_download: $jobmixins.undo_download,
+
+  //////////////////////////////////////////////////////////////////////////////
+  // saveDraft
+
+  local_do_saveDraft: $jobmixins.local_do_saveDraft,
+
+  do_saveDraft: $jobmixins.do_saveDraft,
+
+  check_saveDraft: $jobmixins.check_saveDraft,
+
+  local_undo_saveDraft: $jobmixins.local_undo_saveDraft,
+
+  undo_saveDraft: $jobmixins.undo_saveDraft,
+
+  //////////////////////////////////////////////////////////////////////////////
+  // deleteDraft
+
+  local_do_deleteDraft: $jobmixins.local_do_deleteDraft,
+
+  do_deleteDraft: $jobmixins.do_deleteDraft,
+
+  check_deleteDraft: $jobmixins.check_deleteDraft,
+
+  local_undo_deleteDraft: $jobmixins.local_undo_deleteDraft,
+
+  undo_deleteDraft: $jobmixins.undo_deleteDraft,
 
   //////////////////////////////////////////////////////////////////////////////
   // purgeExcessMessages is a NOP for activesync
@@ -4413,14 +2526,22 @@ ActiveSyncJobDriver.prototype = {
 var LOGFAB = exports.LOGFAB = $log.register($module, {
   ActiveSyncJobDriver: {
     type: $log.DAEMON,
+    events: {
+      savedAttachment: { storage: true, mimeType: true, size: true },
+      saveFailure: { storage: false, mimeType: false, error: false },
+    },
+    TEST_ONLY_events: {
+      saveFailure: { filename: false },
+    },
     errors: {
       callbackErr: { ex: $log.EXCEPTION },
     },
+
   },
 });
 
 }); // end define
-
+;
 /**
  * Implements the ActiveSync protocol for Hotmail and Exchange.
  **/
@@ -4428,41 +2549,60 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 define('mailapi/activesync/account',
   [
     'rdcommon/log',
-    'mailcomposer',
-    'wbxml',
-    'activesync/codepages',
-    'activesync/protocol',
     '../a64',
     '../accountmixins',
     '../mailslice',
     '../searchfilter',
+    'activesync/codepages/FolderHierarchy',
+    'activesync/codepages/ComposeMail',
     './folder',
     './jobs',
     '../util',
     'module',
+    'require',
     'exports'
   ],
   function(
     $log,
-    $mailcomposer,
-    $wbxml,
-    $ascp,
-    $activesync,
     $a64,
     $acctmixins,
     $mailslice,
     $searchfilter,
+    $FolderHierarchy,
+    $ComposeMail,
     $asfolder,
     $asjobs,
     $util,
     $module,
+    require,
     exports
   ) {
 'use strict';
 
-const bsearchForInsert = $util.bsearchForInsert;
+// Lazy loaded vars.
+var $wbxml;
 
-const DEFAULT_TIMEOUT_MS = exports.DEFAULT_TIMEOUT_MS = 30 * 1000;
+var bsearchForInsert = $util.bsearchForInsert;
+
+var DEFAULT_TIMEOUT_MS = exports.DEFAULT_TIMEOUT_MS = 30 * 1000;
+
+function lazyConnection(cbIndex, fn, failString) {
+  return function lazyRun() {
+    var args = Array.slice(arguments),
+        errback = args[cbIndex],
+        self = this;
+
+    require(['wbxml'], function (wbxml) {
+      if (!$wbxml) {
+        $wbxml = wbxml;
+      }
+
+      self.withConnection(errback, function () {
+        fn.apply(self, args);
+      }, failString);
+    });
+  };
+}
 
 function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
                            receiveProtoConn, _parentLog) {
@@ -4470,18 +2610,10 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   this.id = accountDef.id;
   this.accountDef = accountDef;
 
-  if (receiveProtoConn) {
+  if (receiveProtoConn)
     this.conn = receiveProtoConn;
-  }
-  else {
-    this.conn = new $activesync.Connection();
-    this.conn.open(accountDef.connInfo.server, accountDef.credentials.username,
-                   accountDef.credentials.password);
-    this.conn.timeout = DEFAULT_TIMEOUT_MS;
-
-    // XXX: We should check for errors during connection and alert the user.
-    this.conn.connect();
-  }
+  else
+    this.conn = null;
 
   this._db = dbConn;
 
@@ -4489,6 +2621,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
 
   this.enabled = true;
   this.problems = [];
+  this._alive = true;
 
   this.identities = accountDef.identities;
 
@@ -4535,7 +2668,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   if (!inboxFolder) {
     // XXX localized Inbox string (bug 805834)
     this._addedFolder(null, '0', 'Inbox',
-                      $ascp.FolderHierarchy.Enums.Type.DefaultInbox, true);
+                      $FolderHierarchy.Enums.Type.DefaultInbox, null, true);
   }
 }
 exports.Account = exports.ActiveSyncAccount = ActiveSyncAccount;
@@ -4543,6 +2676,38 @@ ActiveSyncAccount.prototype = {
   type: 'activesync',
   toString: function asa_toString() {
     return '[ActiveSyncAccount: ' + this.id + ']';
+  },
+
+  /**
+   * Manages connecting, and wiring up initial connection if it is not
+   * initialized yet.
+   */
+  withConnection: function (errback, callback, failString) {
+    if (!this.conn) {
+      require(['activesync/protocol'], function (activesync) {
+        var accountDef = this.accountDef;
+        this.conn = new activesync.Connection();
+        this.conn.open(accountDef.connInfo.server,
+                       accountDef.credentials.username,
+                       accountDef.credentials.password);
+        this.conn.timeout = DEFAULT_TIMEOUT_MS;
+
+        this.withConnection(errback, callback, failString);
+      }.bind(this));
+      return;
+    }
+
+    if (!this.conn.connected) {
+      this.conn.connect(function(error) {
+        if (error) {
+          errback(failString || 'unknown');
+          return;
+        }
+        callback();
+      });
+    } else {
+      callback();
+    }
   },
 
   toBridgeWire: function asa_toBridgeWire() {
@@ -4587,17 +2752,23 @@ ActiveSyncAccount.prototype = {
 
   saveAccountState: function asa_saveAccountState(reuseTrans, callback,
                                                   reason) {
-    let account = this;
-    let perFolderStuff = [];
-    for (let [,folder] in Iterator(this.folders)) {
-      let folderStuff = this._folderStorages[folder.id]
+    if (!this._alive) {
+      this._LOG.accountDeleted('saveAccountState');
+      return;
+    }
+
+    var account = this;
+    var perFolderStuff = [];
+    for (var iter in Iterator(this.folders)) {
+      var folder = iter[1];
+      var folderStuff = this._folderStorages[folder.id]
                            .generatePersistenceInfo();
       if (folderStuff)
         perFolderStuff.push(folderStuff);
     }
 
     this._LOG.saveAccountState(reason);
-    let trans = this._db.saveAccountFolderStates(
+    var trans = this._db.saveAccountFolderStates(
       this.id, this._folderInfos, perFolderStuff, this._deadFolderIds,
       function stateSaved() {
         if (callback)
@@ -4615,16 +2786,23 @@ ActiveSyncAccount.prototype = {
     this.saveAccountState(null, null, 'checkpointSync');
   },
 
-  shutdown: function asa_shutdown() {
+  shutdown: function asa_shutdown(callback) {
     this._LOG.__die();
+    if (callback)
+      callback();
+  },
+
+  accountDeleted: function asa_accountDeleted() {
+    this._alive = false;
+    this.shutdown();
   },
 
   sliceFolderMessages: function asa_sliceFolderMessages(folderId,
                                                         bridgeHandle) {
-    let storage = this._folderStorages[folderId],
+    var storage = this._folderStorages[folderId],
         slice = new $mailslice.MailSlice(bridgeHandle, storage, this._LOG);
 
-    storage.sliceOpenFromNow(slice);
+    storage.sliceOpenMostRecent(slice);
   },
 
   searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
@@ -4634,13 +2812,11 @@ ActiveSyncAccount.prototype = {
     // the slice is self-starting, we don't need to call anything on storage
   },
 
-  syncFolderList: function asa_syncFolderList(callback) {
-    // We can assume that we already have a connection here, since jobs.js
-    // ensures it.
-    let account = this;
+  syncFolderList: lazyConnection(0, function asa_syncFolderList(callback) {
+    var account = this;
 
-    const fh = $ascp.FolderHierarchy.Tags;
-    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    var fh = $FolderHierarchy.Tags;
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderSync)
        .tag(fh.SyncKey, this.meta.syncKey)
      .etag();
@@ -4650,8 +2826,8 @@ ActiveSyncAccount.prototype = {
         callback(aError);
         return;
       }
-      let e = new $wbxml.EventParser();
-      let deferredAddedFolders = [];
+      var e = new $wbxml.EventParser();
+      var deferredAddedFolders = [];
 
       e.addEventListener([fh.FolderSync, fh.SyncKey], function(node) {
         account.meta.syncKey = node.children[0].textContent;
@@ -4659,9 +2835,11 @@ ActiveSyncAccount.prototype = {
 
       e.addEventListener([fh.FolderSync, fh.Changes, [fh.Add, fh.Delete]],
                          function(node) {
-        let folder = {};
-        for (let [,child] in Iterator(node.children))
+        var folder = {};
+        for (var iter in Iterator(node.children)) {
+          var child = iter[1];
           folder[child.localTagName] = child.children[0].textContent;
+        }
 
         if (node.tag === fh.Add) {
           if (!account._addedFolder(folder.ServerId, folder.ParentId,
@@ -4687,8 +2865,9 @@ ActiveSyncAccount.prototype = {
       // folders before their parents). Keep trying to add folders until we're
       // done.
       while (deferredAddedFolders.length) {
-        let moreDeferredAddedFolders = [];
-        for (let [,folder] in Iterator(deferredAddedFolders)) {
+        var moreDeferredAddedFolders = [];
+        for (var iter in Iterator(deferredAddedFolders)) {
+          var folder = iter[1];
           if (!account._addedFolder(folder.ServerId, folder.ParentId,
                                     folder.DisplayName, folder.Type))
             moreDeferredAddedFolders.push(folder);
@@ -4698,11 +2877,41 @@ ActiveSyncAccount.prototype = {
         deferredAddedFolders = moreDeferredAddedFolders;
       }
 
+      // - create local drafts folder (if needed)
+      var localDrafts = account.getFirstFolderWithType('localdrafts');
+      if (!localDrafts) {
+        // Try and add the folder next to the existing drafts folder, or the
+        // sent folder if there is no drafts folder.  Otherwise we must have an
+        // inbox and we want to live under that.
+        var sibling = account.getFirstFolderWithType('drafts') ||
+                      account.getFirstFolderWithType('sent');
+        // If we have a sibling, it can tell us our gelam parent folder id
+        // which is different from our parent server id.  From there, we can
+        // map to the serverId.  Note that top-level folders will not have a
+        // parentId, in which case we want to just go with the top level.
+        var parentServerId;
+        if (sibling) {
+          if (sibling.parentId)
+            parentServerId =
+              account._folderInfos[sibling.parentId].$meta.serverId;
+          else
+            parentServerId = '0';
+        }
+        // Otherwise try and make the Inbox our parent.
+        else {
+          parentServerId = account.getFirstFolderWithType('inbox').serverId;
+        }
+        // Since this is a synthetic folder; we just directly choose the name
+        // that our l10n mapping will transform.
+        account._addedFolder(null, parentServerId, 'localdrafts', null,
+                             'localdrafts');
+      }
+
       console.log('Synced folder list');
       if (callback)
         callback(null);
     });
-  },
+  }),
 
   // Map folder type numbers from ActiveSync to Gaia's types
   _folderTypes: {
@@ -4725,6 +2934,8 @@ ActiveSyncAccount.prototype = {
    * @param {string} displayName The display name for the new folder
    * @param {string} typeNum A numeric value representing the new folder's type,
    *   corresponding to the mapping in _folderTypes above
+   * @param {string} forceType Force a string folder type for this folder.
+   *   Used for synthetic folders like localdrafts.
    * @param {boolean} suppressNotification (optional) if true, don't notify any
    *   listeners of this addition
    * @return {object} the folderMeta if we added the folder, true if we don't
@@ -4732,29 +2943,30 @@ ActiveSyncAccount.prototype = {
    *   (e.g. if we haven't added the folder's parent yet)
    */
   _addedFolder: function asa__addedFolder(serverId, parentServerId, displayName,
-                                          typeNum, suppressNotification) {
-    if (!(typeNum in this._folderTypes))
+                                          typeNum, forceType,
+                                          suppressNotification) {
+    if (!forceType && !(typeNum in this._folderTypes))
       return true; // Not a folder type we care about.
 
-    const folderType = $ascp.FolderHierarchy.Enums.Type;
+    var folderType = $FolderHierarchy.Enums.Type;
 
-    let path = displayName;
-    let parentFolderId = null;
-    let depth = 0;
+    var path = displayName;
+    var parentFolderId = null;
+    var depth = 0;
     if (parentServerId !== '0') {
       parentFolderId = this._serverIdToFolderId[parentServerId];
       // We haven't learned about the parent folder. Just return, and wait until
       // we do.
       if (parentFolderId === undefined)
         return null;
-      let parent = this._folderInfos[parentFolderId];
+      var parent = this._folderInfos[parentFolderId];
       path = parent.$meta.path + '/' + path;
       depth = parent.$meta.depth + 1;
     }
 
     // Handle sentinel Inbox.
     if (typeNum === folderType.DefaultInbox) {
-      let existingInboxMeta = this.getFirstFolderWithType('inbox');
+      var existingInboxMeta = this.getFirstFolderWithType('inbox');
       if (existingInboxMeta) {
         // Update the server ID to folder ID mapping.
         delete this._serverIdToFolderId[existingInboxMeta.serverId];
@@ -4769,13 +2981,13 @@ ActiveSyncAccount.prototype = {
       }
     }
 
-    let folderId = this.id + '/' + $a64.encodeInt(this.meta.nextFolderNum++);
-    let folderInfo = this._folderInfos[folderId] = {
+    var folderId = this.id + '/' + $a64.encodeInt(this.meta.nextFolderNum++);
+    var folderInfo = this._folderInfos[folderId] = {
       $meta: {
         id: folderId,
         serverId: serverId,
         name: displayName,
-        type: this._folderTypes[typeNum],
+        type: forceType || this._folderTypes[typeNum],
         path: path,
         parentId: parentFolderId,
         depth: depth,
@@ -4800,8 +3012,8 @@ ActiveSyncAccount.prototype = {
                                    $asfolder.ActiveSyncFolderSyncer, this._LOG);
     this._serverIdToFolderId[serverId] = folderId;
 
-    let folderMeta = folderInfo.$meta;
-    let idx = bsearchForInsert(this.folders, folderMeta, function(a, b) {
+    var folderMeta = folderInfo.$meta;
+    var idx = bsearchForInsert(this.folders, folderMeta, function(a, b) {
       return a.path.localeCompare(b.path);
     });
     this.folders.splice(idx, 0, folderMeta);
@@ -4821,7 +3033,7 @@ ActiveSyncAccount.prototype = {
    *   listeners of this addition
    */
   _deletedFolder: function asa__deletedFolder(serverId, suppressNotification) {
-    let folderId = this._serverIdToFolderId[serverId],
+    var folderId = this._serverIdToFolderId[serverId],
         folderInfo = this._folderInfos[folderId],
         folderMeta = folderInfo.$meta;
 
@@ -4851,7 +3063,7 @@ ActiveSyncAccount.prototype = {
    */
   _recreateFolder: function asa__recreateFolder(folderId, callback) {
     this._LOG.recreateFolder(folderId);
-    let folderInfo = this._folderInfos[folderId];
+    var folderInfo = this._folderInfos[folderId];
     folderInfo.$impl = {
       nextId: 0,
       nextHeaderBlock: 0,
@@ -4866,16 +3078,17 @@ ActiveSyncAccount.prototype = {
       this._deadFolderIds = [];
     this._deadFolderIds.push(folderId);
 
-    let self = this;
+    var self = this;
     this.saveAccountState(null, function() {
-      let newStorage =
+      var newStorage =
         new $mailslice.FolderStorage(self, folderId, folderInfo, self._db,
                                      $asfolder.ActiveSyncFolderSyncer,
                                      self._LOG);
-      for (let [,slice] in Iterator(self._folderStorages[folderId]._slices)) {
+      for (var iter in Iterator(self._folderStorages[folderId]._slices)) {
+        var slice = iter[1];
         slice._storage = newStorage;
-        slice._resetHeadersBecauseOfRefreshExplosion(true);
-        newStorage.sliceOpenFromNow(slice);
+        slice.reset();
+        newStorage.sliceOpenMostRecent(slice);
       }
       self._folderStorages[folderId]._slices = [];
       self._folderStorages[folderId] = newStorage;
@@ -4920,29 +3133,20 @@ ActiveSyncAccount.prototype = {
    *   }
    * ]
    */
-  createFolder: function asa_createFolder(parentFolderId, folderName,
-                                          containOnlyOtherFolders, callback) {
-    let account = this;
-    if (!this.conn.connected) {
-      this.conn.connect(function(error) {
-        if (error) {
-          callback('unknown');
-          return;
-        }
-        account.createFolder(parentFolderId, folderName,
-                             containOnlyOtherFolders, callback);
-      });
-      return;
-    }
+  createFolder: lazyConnection(3, function asa_createFolder(parentFolderId,
+                                                      folderName,
+                                                      containOnlyOtherFolders,
+                                                      callback) {
+    var account = this;
 
-    let parentFolderServerId = parentFolderId ?
+    var parentFolderServerId = parentFolderId ?
       this._folderInfos[parentFolderId] : '0';
 
-    const fh = $ascp.FolderHierarchy.Tags;
-    const fhStatus = $ascp.FolderHierarchy.Enums.Status;
-    const folderType = $ascp.FolderHierarchy.Enums.Type.Mail;
+    var fh = $FolderHierarchy.Tags;
+    var fhStatus = $FolderHierarchy.Enums.Status;
+    var folderType = $FolderHierarchy.Enums.Type.Mail;
 
-    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderCreate)
        .tag(fh.SyncKey, this.meta.syncKey)
        .tag(fh.ParentId, parentFolderServerId)
@@ -4951,8 +3155,8 @@ ActiveSyncAccount.prototype = {
      .etag();
 
     this.conn.postCommand(w, function(aError, aResponse) {
-      let e = new $wbxml.EventParser();
-      let status, serverId;
+      var e = new $wbxml.EventParser();
+      var status, serverId;
 
       e.addEventListener([fh.FolderCreate, fh.Status], function(node) {
         status = node.children[0].textContent;
@@ -4975,7 +3179,7 @@ ActiveSyncAccount.prototype = {
       }
 
       if (status === fhStatus.Success) {
-        let folderMeta = account._addedFolder(serverId, parentFolderServerId,
+        var folderMeta = account._addedFolder(serverId, parentFolderServerId,
                                               folderName, folderType);
         callback(null, folderMeta);
       }
@@ -4986,7 +3190,7 @@ ActiveSyncAccount.prototype = {
         callback('unknown');
       }
     });
-  },
+  }),
 
   /**
    * Delete an existing folder WITHOUT ANY ABILITY TO UNDO IT.  Current UX
@@ -4994,34 +3198,25 @@ ActiveSyncAccount.prototype = {
    *
    * Callback is like the createFolder one, why not.
    */
-  deleteFolder: function asa_deleteFolder(folderId, callback) {
-    let account = this;
-    if (!this.conn.connected) {
-      this.conn.connect(function(error) {
-        if (error) {
-          callback('unknown');
-          return;
-        }
-        account.deleteFolder(folderId, callback);
-      });
-      return;
-    }
+  deleteFolder: lazyConnection(1, function asa_deleteFolder(folderId,
+                                                            callback) {
+    var account = this;
 
-    let folderMeta = this._folderInfos[folderId].$meta;
+    var folderMeta = this._folderInfos[folderId].$meta;
 
-    const fh = $ascp.FolderHierarchy.Tags;
-    const fhStatus = $ascp.FolderHierarchy.Enums.Status;
-    const folderType = $ascp.FolderHierarchy.Enums.Type.Mail;
+    var fh = $FolderHierarchy.Tags;
+    var fhStatus = $FolderHierarchy.Enums.Status;
+    var folderType = $FolderHierarchy.Enums.Type.Mail;
 
-    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderDelete)
        .tag(fh.SyncKey, this.meta.syncKey)
        .tag(fh.ServerId, folderMeta.serverId)
      .etag();
 
     this.conn.postCommand(w, function(aError, aResponse) {
-      let e = new $wbxml.EventParser();
-      let status;
+      var e = new $wbxml.EventParser();
+      var status;
 
       e.addEventListener([fh.FolderDelete, fh.Status], function(node) {
         status = node.children[0].textContent;
@@ -5049,20 +3244,10 @@ ActiveSyncAccount.prototype = {
         callback('unknown');
       }
     });
-  },
+  }),
 
-  sendMessage: function asa_sendMessage(composer, callback) {
-    let account = this;
-    if (!this.conn.connected) {
-      this.conn.connect(function(error) {
-        if (error) {
-          callback('unknown');
-          return;
-        }
-        account.sendMessage(composer, callback);
-      });
-      return;
-    }
+  sendMessage: lazyConnection(1, function asa_sendMessage(composer, callback) {
+    var account = this;
 
     // we want the bcc included because that's how we tell the server the bcc
     // results.
@@ -5070,8 +3255,8 @@ ActiveSyncAccount.prototype = {
       // ActiveSync 14.0 has a completely different API for sending email. Make
       // sure we format things the right way.
       if (this.conn.currentVersion.gte('14.0')) {
-        const cm = $ascp.ComposeMail.Tags;
-        let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+        var cm = $ComposeMail.Tags;
+        var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
         w.stag(cm.SendMail)
            .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
            .tag(cm.SaveInSentItems)
@@ -5099,8 +3284,12 @@ ActiveSyncAccount.prototype = {
         });
       }
       else { // ActiveSync 12.x and lower
+        var encoder = new TextEncoder('UTF-8');
+
+        // On B2G 18, XHRs expect ArrayBuffers and will barf on Uint8Arrays. In
+        // the future, we can remove the last |.buffer| bit below.
         this.conn.postData('SendMail', 'message/rfc822',
-                           mimeBuffer,
+                           encoder.encode(mimeBuffer).buffer,
                            function(aError, aResponse) {
           if (aError) {
             console.error(aError);
@@ -5113,7 +3302,7 @@ ActiveSyncAccount.prototype = {
         }, { SaveInSent: 'T' });
       }
     }.bind(this));
-  },
+  }),
 
   getFolderStorageForFolderId: function asa_getFolderStorageForFolderId(
                                folderId) {
@@ -5158,6 +3347,11 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       deleteFolder: {},
       recreateFolder: { id: false },
       saveAccountState: { reason: false },
+      /**
+       * XXX: this is really an error/warning, but to make the logging less
+       * confusing, treat it as an event.
+       */
+      accountDeleted: { where: false },
     },
     asyncJobs: {
       runOp: { mode: true, type: true, error: false, op: false },
@@ -5169,7 +3363,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-
+;
 /**
  * Configurator for activesync
  **/
@@ -5179,7 +3373,6 @@ define('mailapi/activesync/configurator',
     'rdcommon/log',
     '../accountcommon',
     '../a64',
-    'activesync/protocol',
     './account',
     'exports'
   ],
@@ -5187,88 +3380,88 @@ define('mailapi/activesync/configurator',
     $log,
     $accountcommon,
     $a64,
-    $asproto,
     $asacct,
     exports
   ) {
 
 exports.account = $asacct;
-exports.protocol = $asproto;
 exports.configurator = {
   tryToCreateAccount: function cfg_as_ttca(universe, userDetails, domainInfo,
                                            callback, _LOG) {
-    var credentials = {
-      username: domainInfo.incoming.username,
-      password: userDetails.password,
-    };
-
-    var self = this;
-    var conn = new $asproto.Connection();
-    conn.open(domainInfo.incoming.server, credentials.username,
-              credentials.password);
-    conn.timeout = $asacct.DEFAULT_TIMEOUT_MS;
-
-    conn.connect(function(error, options) {
-      if (error) {
-        // This error is basically an indication of whether we were able to
-        // call getOptions or not.  If the XHR request completed, we get an
-        // HttpError.  If we timed out or an XHR error occurred, we get a
-        // general Error.
-        var failureType,
-            failureDetails = { server: domainInfo.incoming.server };
-
-        if (error instanceof $asproto.HttpError) {
-          if (error.status === 401) {
-            failureType = 'bad-user-or-pass';
-          }
-          else if (error.status === 403) {
-            failureType = 'not-authorized';
-          }
-          // Treat any other errors where we talked to the server as a problem
-          // with the server.
-          else {
-            failureType = 'server-problem';
-            failureDetails.status = error.status;
-          }
-        }
-        else {
-          // We didn't talk to the server, so let's call it an unresponsive
-          // server.
-          failureType = 'unresponsive-server';
-        }
-        callback(failureType, null, failureDetails);
-        return;
-      }
-
-      var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
-      var accountDef = {
-        id: accountId,
-        name: userDetails.accountName || userDetails.emailAddress,
-
-        type: 'activesync',
-        syncRange: 'auto',
-
-        credentials: credentials,
-        connInfo: {
-          server: domainInfo.incoming.server
-        },
-
-        identities: [
-          {
-            id: accountId + '/' +
-                $a64.encodeInt(universe.config.nextIdentityNum++),
-            name: userDetails.displayName || domainInfo.displayName,
-            address: userDetails.emailAddress,
-            replyTo: null,
-            signature: null
-          },
-        ]
+    require(['activesync/protocol'], function ($asproto) {
+      var credentials = {
+        username: domainInfo.incoming.username,
+        password: userDetails.password,
       };
 
-      self._loadAccount(universe, accountDef, conn, function (account) {
-        callback(null, account, null);
+      var self = this;
+      var conn = new $asproto.Connection();
+      conn.open(domainInfo.incoming.server, credentials.username,
+                credentials.password);
+      conn.timeout = $asacct.DEFAULT_TIMEOUT_MS;
+
+      conn.connect(function(error, options) {
+        if (error) {
+          // This error is basically an indication of whether we were able to
+          // call getOptions or not.  If the XHR request completed, we get an
+          // HttpError.  If we timed out or an XHR error occurred, we get a
+          // general Error.
+          var failureType,
+              failureDetails = { server: domainInfo.incoming.server };
+
+          if (error instanceof $asproto.HttpError) {
+            if (error.status === 401) {
+              failureType = 'bad-user-or-pass';
+            }
+            else if (error.status === 403) {
+              failureType = 'not-authorized';
+            }
+            // Treat any other errors where we talked to the server as a problem
+            // with the server.
+            else {
+              failureType = 'server-problem';
+              failureDetails.status = error.status;
+            }
+          }
+          else {
+            // We didn't talk to the server, so let's call it an unresponsive
+            // server.
+            failureType = 'unresponsive-server';
+          }
+          callback(failureType, null, failureDetails);
+          return;
+        }
+
+        var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
+        var accountDef = {
+          id: accountId,
+          name: userDetails.accountName || userDetails.emailAddress,
+
+          type: 'activesync',
+          syncRange: 'auto',
+
+          credentials: credentials,
+          connInfo: {
+            server: domainInfo.incoming.server
+          },
+
+          identities: [
+            {
+              id: accountId + '/' +
+                  $a64.encodeInt(universe.config.nextIdentityNum++),
+              name: userDetails.displayName || domainInfo.displayName,
+              address: userDetails.emailAddress,
+              replyTo: null,
+              signature: null
+            },
+          ]
+        };
+
+        self._loadAccount(universe, accountDef, conn, function (account) {
+          callback(null, account, null);
+        });
       });
-    });
+    }.bind(this));
   },
 
   recreateAccount: function cfg_as_ra(universe, oldVersion, oldAccountInfo,
@@ -5323,4 +3516,4 @@ exports.configurator = {
   },
 };
 
-}); // end define
+}); // end define;

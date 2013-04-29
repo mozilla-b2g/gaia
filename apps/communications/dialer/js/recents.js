@@ -2,8 +2,8 @@
 
 var Recents = {
   _: null,
-  _loaded: false,
-
+  loaded: false,
+  _TIME_WINDOW: 604800000, // One week of window in calllog
   get headerEditModeText() {
     delete this.headerEditModeText;
     return this.headerEditModeText = document.
@@ -64,57 +64,34 @@ var Recents = {
       getElementById('select-all-threads');
   },
 
-  get iframeContacts() {
-    delete this.iframeContacts;
-    return this.iframeContacts = document.
-      getElementById('iframe-contacts');
-  },
-
-  get addContactActionMenu() {
-    delete this.addContactActionMenu;
-    return this.addContactActionMenu = document.
-      getElementById('add-contact-action-menu');
-  },
-
   get recentsEditMenu() {
     delete this.recentsEditMenu;
     return this.recentsEditMenu = document.
       getElementById('edit-mode');
   },
 
-  get callMenuItem() {
-    delete this.callMenuItem;
-    return this.callMenuItem = document.
-      getElementById('call-menuitem');
-  },
-
-  get createNewContactMenuItem() {
-    delete this.createNewContactMenuItem;
-    return this.createNewContactMenuItem = document.
-      getElementById('create-new-contact-menuitem');
-  },
-
-  get addToExistingContactMenuItem() {
-    delete this.addToExistingContactMenuItem;
-    return this.addToExistingContactMenuItem = document.
-      getElementById('add-to-existing-contact-menuitem');
-  },
-
-  get cancelActionMenuItem() {
-    delete this.cancelActionMenuItem;
-    return this.cancelActionMenuItem = document.
-      getElementById('cancel-action-menu');
+  createFilter: function re_createFilter(startDate, endDate) {
+    var dateFilter = {
+      'startDate': Date.now() - this._TIME_WINDOW
+    };
+    if (startDate) {
+      dateFilter.startDate = startDate;
+    }
+    if (endDate) {
+      dateFilter.endDate = endDate;
+    }
+    return dateFilter;
   },
 
   load: function re_load(callback) {
-    if (this._loaded) {
+    if (this.loaded) {
       if (callback) {
         callback();
       }
       return;
     }
 
-    this._loaded = true;
+    this.loaded = true;
 
     // Time to load the external css/js
     var scripts = [
@@ -123,12 +100,11 @@ var Recents = {
       '/shared/style/headers.css',
       '/shared/style/switches.css',
       '/shared/style/edit_mode.css',
-      '/shared/style/action_menu.css',
       '/shared/style_unstable/lists.css',
 
+      '/dialer/js/phone_action_menu.js',
       '/dialer/js/fixed_header.js',
-      '/dialer/js/utils.js',
-      '/dialer/js/recents_db.js'
+      '/dialer/js/utils.js'
     ];
 
     loader.load(scripts, function() {
@@ -138,7 +114,6 @@ var Recents = {
 
       this.init();
       this.recentsView.classList.remove('hidden');
-      this.addContactActionMenu.hidden = false;
       this.recentsEditMenu.hidden = false;
 
       if (callback) {
@@ -186,26 +161,6 @@ var Recents = {
       this.recentsContainer.addEventListener('click',
         this.click.bind(this));
     }
-    if (this.callMenuItem) {
-      this.callMenuItem.addEventListener('click',
-        this.call.bind(this));
-    }
-    if (this.addContactActionMenu) {
-      this.addContactActionMenu.addEventListener('submit',
-        this.formSubmit.bind(this));
-    }
-    if (this.createNewContactMenuItem) {
-      this.createNewContactMenuItem.addEventListener('click',
-        this.createNewContact.bind(this));
-    }
-    if (this.addToExistingContactMenuItem) {
-      this.addToExistingContactMenuItem.addEventListener('click',
-        this.addToExistingContact.bind(this));
-    }
-    if (this.cancelActionMenuItem) {
-      this.cancelActionMenuItem.addEventListener('click',
-        this.cancelActionMenu.bind(this));
-    }
 
     // Setting up the SimplePhoneMatcher
     var conn = window.navigator.mozMobileConnection;
@@ -219,17 +174,37 @@ var Recents = {
     });
   },
 
+  removeContactInfo: function re_removeContact(id) {
+    // Reused code from current one.
+    // Should be refactored for avoiding so many
+    // querySelectors
+    var selector = '[data-contact-id="' + id + '"]';
+    var toUpdate = this.recentsContainer.querySelectorAll(selector);
+    for (var i = toUpdate.length - 1; i >= 0; i--) {
+      var logItem = toUpdate[i];
+      logItem.dataset.contactId = '';
+      var contactPhoto = logItem.querySelector('.call-log-contact-photo');
+      var primaryInfoMainNode = logItem.querySelector('.primary-info-main'),
+        manyContactsNode = logItem.querySelector('.many-contacts'),
+        phoneNumberAdditionalInfoNode =
+          logItem.querySelector('.call-additional-info');
+      primaryInfoMainNode.textContent = logItem.dataset.num;
+      contactPhoto.src = '';
+      logItem.classList.remove('hasPhoto');
+      phoneNumberAdditionalInfoNode.textContent = '';
+    }
+  },
+
   // Refresh can be called on an unloaded Recents
   refresh: function re_refresh() {
-    this.load(function loaded() {
-      RecentsDBManager.init(function() {
-        RecentsDBManager.get(function(recents) {
-          // We need l10n to be loaded before rendering
-          LazyL10n.get(function localized() {
-            Recents.render(recents);
-          });
+    var self = this;
+    RecentsDBManager.init(function() {
+      RecentsDBManager.get(function(recents) {
+        // We need l10n to be loaded before rendering
+        LazyL10n.get(function localized() {
+          Recents.render(recents);
         });
-      });
+      }, self.createFilter());
     });
   },
 
@@ -284,9 +259,20 @@ var Recents = {
         var selectedCallsLength = selectedCalls.length;
         if (selectedCallsLength == 0) {
           this.headerEditModeText.textContent = this._('edit');
+          this.recentsIconDelete.classList.add('disabled');
+          this.deselectAllThreads.setAttribute('disabled', 'disabled');
+          this.selectAllThreads.textContent = this._('selectAll');
+          this.selectAllThreads.removeAttribute('disabled');
         } else {
           this.headerEditModeText.textContent = this._('edit-selected',
                                                   {n: selectedCallsLength});
+          this.recentsIconDelete.classList.remove('disabled');
+          this.deselectAllThreads.removeAttribute('disabled');
+          if (visibleCalls.length === selectedCallsLength) {
+            this.selectAllThreads.setAttribute('disabled', 'disabled');
+          } else {
+            this.selectAllThreads.removeAttribute('disabled');
+          }
         }
       }
       if (this._allViewGroupingPending) {
@@ -318,9 +304,20 @@ var Recents = {
           var selectedCallsLength = selectedCalls.length;
           if (selectedCallsLength == 0) {
             this.headerEditModeText.textContent = this._('edit');
+            this.recentsIconDelete.classList.add('disabled');
+            this.deselectAllThreads.setAttribute('disabled', 'disabled');
+            this.selectAllThreads.textContent = this._('selectAll');
+            this.selectAllThreads.removeAttribute('disabled');
           } else {
             this.headerEditModeText.textContent = this._('edit-selected',
                                                     {n: selectedCallsLength});
+            this.recentsIconDelete.classList.remove('disabled');
+            this.deselectAllThreads.removeAttribute('disabled');
+            if (visibleCalls.length === selectedCallsLength) {
+              this.selectAllThreads.setAttribute('disabled', 'disabled');
+            } else {
+              this.selectAllThreads.removeAttribute('disabled');
+            }
           }
         }
       }
@@ -421,26 +418,36 @@ var Recents = {
           ConfirmDialog.hide();
           self.render(recents);
           document.body.classList.remove('recents-edit');
-        });
+        }, self.createFilter());
     });
   },
 
   getSameTypeCallsOnSameDay: function re_getSameTypeCallsOnSameDay(
     day, phoneNumber, phoneNumberType, callType, startingWith) {
-    var groupSelector = '[data-num^="' + phoneNumber +
-      '"]' + (phoneNumberType ? ('[data-phone-type="' +
-      phoneNumberType + '"]') : '') +
-      '[data-type' + (startingWith ? '^' : '') + '="' + callType + '"]';
+    var groupSelector;
+    if (phoneNumber) {
+      groupSelector = '[data-num^="' + phoneNumber + '"]';
+    } else {
+      groupSelector = '[data-num="' + phoneNumber + '"]';
+    }
+    if (phoneNumberType) {
+      groupSelector += '[data-phone-type="' + phoneNumberType + '"]';
+    }
+    groupSelector += '[data-type';
+    if (startingWith) {
+      groupSelector += '^';
+    }
+    groupSelector += '="' + callType + '"]';
     return day.querySelectorAll(groupSelector);
   },
 
   getMostRecentCallWithSameTypeOnSameDay:
     function getMostRecentCallWithSameTypeOnSameDay(
       day, phoneNumber, phoneNumberType, callType, startingWith) {
-    var groupSelector = '[data-num^="' + phoneNumber +
-      '"]' + (phoneNumberType ? ('[data-phone-type="' +
-      phoneNumberType + '"]') : '') +
-      '[data-type' + (startingWith ? '^' : '') + '="' + callType +
+    var groupSelector = (phoneNumber ? ('[data-num^="' + phoneNumber + '"]') :
+      ('[data-num="' + phoneNumber + '"]')) +
+      (phoneNumberType ? ('[data-phone-type="' + phoneNumberType + '"]') :
+      '') + '[data-type' + (startingWith ? '^' : '') + '="' + callType +
       '"][data-count]:not(.hide)';
     return day.querySelector(groupSelector);
   },
@@ -508,7 +515,7 @@ var Recents = {
       if (target.classList.contains('isContact')) {
         contactId = target.dataset.contactId;
       }
-      Recents.viewOrCreate(contactId, phoneNumber);
+      PhoneNumberActionMenu.show(contactId, phoneNumber);
     } else {
       //Edit mode
       if (target.classList.contains('call-log-contact-photo')) {
@@ -537,57 +544,6 @@ var Recents = {
     }
   },
 
-  formSubmit: function formSubmit(event) {
-    return false;
-  },
-
-  createNewContact: function re_createNewContact() {
-    var src = '/contacts/index.html';
-    src += '#view-contact-form?tel=' + this.newPhoneNumber;
-    var timestamp = new Date().getTime();
-    this.iframeContacts.src = src + '&timestamp=' + timestamp;
-    window.location.hash = '#contacts-view';
-    this.addContactActionMenu.classList.remove('visible');
-  },
-
-  addToExistingContact: function re_addToExistingContact() {
-    var src = '/contacts/index.html';
-    src += '#add-parameters?tel=' + this.newPhoneNumber;
-    var timestamp = new Date().getTime();
-    this.iframeContacts.src = src + '&timestamp=' + timestamp;
-    window.location.hash = '#contacts-view';
-    this.addContactActionMenu.classList.remove('visible');
-  },
-
-  call: function re_call() {
-    if (this.newPhoneNumber) {
-      this.updateLatestVisit();
-      CallHandler.call(this.newPhoneNumber);
-    }
-    this.addContactActionMenu.classList.remove('visible');
-  },
-
-  cancelActionMenu: function re_cancelActionMenu() {
-    this.addContactActionMenu.classList.remove('visible');
-  },
-
-  viewOrCreate: function re_viewOrCreate(contactId, phoneNumber) {
-    var contactsIframe = document.getElementById('iframe-contacts');
-    var src = '/contacts/index.html';
-    if (contactId) {
-      src += '#view-contact-details?id=' + contactId;
-      src += '&tel=' + phoneNumber;
-      // enable the function of receiving the messages posted from the iframe
-      src += '&back_to_previous_tab=1';
-      var timestamp = new Date().getTime();
-      contactsIframe.src = src + '&timestamp=' + timestamp;
-      window.location.hash = '#contacts-view';
-    } else {
-      this.newPhoneNumber = phoneNumber;
-      this.addContactActionMenu.classList.add('visible');
-    }
-  },
-
   getSelectedEntries: function re_getSelectedGroups() {
     var itemSelector = '.log-item:not(.hide) input:checked';
     var items = document.querySelectorAll(itemSelector);
@@ -606,10 +562,10 @@ var Recents = {
       }
     }
     var entry =
-      '<li class="log-item ' + highlight +
-      '  " data-num="' + recent.number +
-      '  " data-date="' + recent.date +
-      '  " data-type="' + recent.type + '">' +
+      '<li class="log-item ' + highlight + '"' +
+      '  data-num="' + recent.number + '"' +
+      '  data-date="' + recent.date + '"' +
+      '  data-type="' + recent.type + '">' +
       '  <label class="call-log-selection danger">' +
       '    <input type="checkbox" />' +
       '    <span></span>' +
@@ -621,7 +577,7 @@ var Recents = {
       '    <aside class="icon call-type-icon ' + classes + '"></aside>' +
       '    <p class="primary-info">' +
       '      <span class="primary-info-main">' +
-               (recent.number || this._('unknown')) +
+               (recent.number || this._('withheld-number')) +
       '      </span>' + '<span class="many-contacts">' +
       '      </span>' + '<span class="entry-count">' +
       '      </span>' +
@@ -646,8 +602,8 @@ var Recents = {
       this.recentsContainer.innerHTML =
         '<div id="no-result-container">' +
         ' <div id="no-result-message">' +
-        ' <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
-        ' <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
+        '   <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
+        '   <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
         ' </div>' +
         '</div>';
       navigator.mozL10n.translate(this.recentsContainer);
@@ -661,7 +617,7 @@ var Recents = {
     var self = this;
     window.asyncStorage.getItem('latestCallLogVisit', function getItem(value) {
       var content = '',
-        currentDay = '';
+          currentDay = '';
 
       for (var i = 0; i < recents.length; i++) {
         var day = Utils.getDayDate(recents[i].date);
@@ -685,7 +641,6 @@ var Recents = {
       FixedHeader.refresh();
 
       self.updateContactDetails();
-
       var event = new Object();
       self._allViewGroupingPending = true;
       self._missedViewGroupingPending = true;
@@ -707,7 +662,7 @@ var Recents = {
 
   updateContactDetails: function re_updateContactDetails() {
     // If we're not loaded yet, nothing to update
-    if (!this._loaded) {
+    if (!this.loaded) {
       return;
     }
 
@@ -737,7 +692,7 @@ var Recents = {
         primaryInfoMainNode.textContent = primaryInfo;
       } else {
         LazyL10n.get(function gotL10n(_) {
-          primaryInfoMainNode.textContent = _('unknown');
+          primaryInfoMainNode.textContent = _('withheld-number');
         });
       }
       manyContactsNode.innerHTML = contactsWithSameNumber ?
@@ -752,7 +707,7 @@ var Recents = {
         logItem.classList.remove('hasPhoto');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
-        matchingTel, contact);
+        matchingTel, contact, phoneNumber);
       phoneNumberAdditionalInfoNode.textContent = phoneNumberAdditionalInfo;
       logItem.classList.add('isContact');
       logItem.dataset['contactId'] = contact.id;
@@ -833,6 +788,7 @@ var Recents = {
         }
       }
     }
+    PerformanceTestingHelper.dispatch('call-log-ready');
   },
 
   groupCalls: function re_groupCalls(olderCallEl, newerCallEl, count, inc) {
@@ -850,7 +806,7 @@ var Recents = {
 
   updateHighlighted: function re_updateHighlighted() {
     // No need to update if we're not loaded yet
-    if (!this._loaded)
+    if (!this.loaded)
       return;
 
     var itemSelector = '.log-item.highlighted',
@@ -895,8 +851,17 @@ var Recents = {
 };
 
 // Keep the call history up to date
-document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (!document.mozHidden) {
-    Recents.refresh();
+navigator.mozContacts.oncontactchange = function oncontactchange(event) {
+  switch (event.reason) {
+    case 'create':
+    case 'update':
+      Recents.updateContactDetails();
+      break;
+
+    case 'remove':
+      // Avoiding refresh the whole list. We just remove
+      // contact info from entries with data-contact-id = id
+      Recents.removeContactInfo(event.contactID);
+      break;
   }
-});
+};

@@ -23,7 +23,7 @@
  * this makes Cost Control to change to the datausage tab at the same time it
  * closes the card in the overlay layer.
  *
- * If you want to preserve a layer but changing the other, use the empty string 
+ * If you want to preserve a layer but changing the other, use the empty string
  * as the id of the layer you want to preserve.
  * For intance, you want to only close the overlay layer but not affecting the
  * tab layer:
@@ -44,25 +44,50 @@ var CostControlApp = (function() {
 
   var costcontrol, initialized = false;
   function onReady() {
-    setupCardHandler();
     var mobileConnection = window.navigator.mozMobileConnection;
+    var cardState = checkCardState();
 
-    // SIM is absent
-    if (mobileConnection.cardState === 'absent') {
-      debug('There is no SIM');
-      alert(_('widget-no-sim2-heading') + '\n' + _('widget-no-sim2-meta'));
-      window.close();
-
-    // SIM is not ready
-    } else if (mobileConnection.cardState !== 'ready') {
-      debug('SIM not ready:', mobileConnection.cardState);
-      mobileConnection.oniccinfochange = onReady;
+    // SIM not ready
+    if (cardState !== 'ready') {
+      debug('SIM not ready:', cardState);
+      mobileConnection.oncardstatechange = onReady;
 
     // SIM is ready
     } else {
-      mobileConnection.oniccinfochange = undefined;
+      mobileConnection.oncardstatechange = undefined;
       startApp();
     }
+  }
+
+  // Check the card status. Return 'ready' if all OK or take actions for
+  // special situations such as 'pin/puk locked' or 'absent'.
+  function checkCardState() {
+    var mobileConnection = window.navigator.mozMobileConnection;
+    var state, cardState;
+    state = cardState = mobileConnection.cardState;
+
+    // SIM is absent
+    if (cardState === 'absent') {
+      debug('There is no SIM');
+      showSimErrorDialog('no-sim2');
+
+    // SIM is locked
+    } else if (
+      cardState === 'pinRequired' ||
+      cardState === 'pukRequired'
+    ) {
+      showSimErrorDialog('sim-locked');
+      state = 'locked';
+    }
+
+    return state;
+  }
+
+  function showSimErrorDialog(status) {
+    var header = _('widget-' + status + '-heading');
+    var msg = _('widget-' + status + '-meta');
+    alert(header + '\n' + msg);
+    window.close();
   }
 
   // XXX: See the module documentation for details about URL schema
@@ -71,8 +96,9 @@ var CostControlApp = (function() {
     // View managers for dialogs and settings
     vmanager = new ViewManager();
     tabmanager = new ViewManager(
-      ['balance-tab', 'telephony-tab', 'datausage-tab']
+      ['balance-tab', 'telephony-tab', { id: 'datausage-tab', tab: 'right' }]
     );
+    settingsVManager = new ViewManager();
 
     // View handler
     window.addEventListener('hashchange', function _onHashChange(evt) {
@@ -143,13 +169,9 @@ var CostControlApp = (function() {
   });
 
   function setupApp() {
-    // View managers for dialogs and settings
-    tabmanager = new ViewManager(
-      ['balance-tab', 'telephony-tab', { id:'datausage-tab', tab:'right' }]
-    );
-    settingsVManager = new ViewManager();
+    setupCardHandler();
 
-    // Configure settings
+    // Configure settings buttons
     var settingsButtons = document.querySelectorAll('.settings-button');
     Array.prototype.forEach.call(settingsButtons,
       function _eachSettingsButton(button) {
@@ -197,11 +219,20 @@ var CostControlApp = (function() {
       }
     );
 
+    // Check card state when visible
+    document.addEventListener('mozvisibilitychange',
+      function _onVisibilityChange(evt) {
+        if (!document.mozHidden && initialized) {
+          checkCardState();
+        }
+      }
+    );
+
     updateUI();
     ConfigManager.observe('plantype', updateUI, true);
 
     initialized = true;
-    
+
     loadSettings();
   }
 
@@ -209,7 +240,7 @@ var CostControlApp = (function() {
   function loadSettings() {
     document.getElementById('settings-view-placeholder').src = 'settings.html';
   }
-  
+
   function handleNotification(type) {
     switch (type) {
       case 'topUpError':
@@ -234,22 +265,6 @@ var CostControlApp = (function() {
       // Layout
       if (mode !== currentMode) {
         currentMode = mode;
-
-        if (mode === 'PREPAID') {
-          if (typeof TelephonyTab !== 'undefined') {
-            TelephonyTab.finalize();
-          }
-          if (typeof BalanceTab !== 'undefined') {
-            BalanceTab.initialize();
-          }
-        } else if (mode === 'POSTPAID') {
-          if (typeof BalanceTab !== 'undefined') {
-            BalanceTab.finalize();
-          }
-          if (typeof TelephonyTab !== 'undefined') {
-            TelephonyTab.initialize();
-          }
-        }
 
         // Stand alone mode when data usage only
         if (mode === 'DATA_USAGE_ONLY') {
@@ -276,6 +291,27 @@ var CostControlApp = (function() {
           }
         }
 
+        // XXX: Break initialization to allow Gecko to render the animation on
+        // time.
+        setTimeout(function continueLoading() {
+          document.getElementById('main').classList.remove('non-ready');
+
+          if (mode === 'PREPAID') {
+            if (typeof TelephonyTab !== 'undefined') {
+              TelephonyTab.finalize();
+            }
+            if (typeof BalanceTab !== 'undefined') {
+              BalanceTab.initialize();
+            }
+          } else if (mode === 'POSTPAID') {
+            if (typeof BalanceTab !== 'undefined') {
+              BalanceTab.finalize();
+            }
+            if (typeof TelephonyTab !== 'undefined') {
+              TelephonyTab.initialize();
+            }
+          }
+        });
       }
     });
   }

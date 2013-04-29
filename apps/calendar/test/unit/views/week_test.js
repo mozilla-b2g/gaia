@@ -1,20 +1,8 @@
 requireCommon('test/synthetic_gestures.js');
+require('/shared/js/gesture_detector.js');
+requireLib('timespan.js');
 
-requireApp('calendar/test/unit/helper.js', function() {
-  require('/shared/js/gesture_detector.js');
-  requireLib('utils/ordered_map.js');
-  requireLib('timespan.js');
-  requireLib('templates/day.js');
-  requireLib('templates/week.js');
-  requireLib('views/time_parent.js');
-  requireLib('views/day_based.js');
-  requireLib('views/day_child.js');
-  requireLib('views/week_child.js');
-  requireLib('views/day.js');
-  requireLib('views/week.js');
-});
-
-suite('views/week', function() {
+suiteGroup('Views.Week', function() {
   var subject;
   var app;
   var controller;
@@ -35,13 +23,6 @@ suite('views/week', function() {
     testEl.id = 'test';
     testEl.innerHTML = [
       '<div id="week-view">',
-        '<div class="scroll">',
-          '<section class="sidebar">a</section>',
-          '<section class="children">a</section>',
-        '</div>',
-        '<section class="sticky">',
-          '<div class="children"></div>',
-        '</section>',
       '</div>'
     ].join('');
 
@@ -99,7 +80,7 @@ suite('views/week', function() {
 
     test('initializer', function() {
       assert.ok(subject.element);
-      assert.length(subject.element.children, 3);
+      assert.length(subject.element.children, 2);
     });
 
     test('.id', function() {
@@ -292,10 +273,6 @@ suite('views/week', function() {
     assert.ok(subject.frameContainer);
   });
 
-  test('#sidebar', function() {
-    assert.ok(subject.sidebar);
-  });
-
   test('#onfirstseen', function() {
     assert.equal(subject.onfirstseen, subject.render);
   });
@@ -311,7 +288,7 @@ suite('views/week', function() {
     });
 
     test('#_appendSidebarHours', function() {
-      var html = subject.sidebar.outerHTML;
+      var html = subject.element.querySelector('.sidebar').outerHTML;
       assert.ok(html, 'has contents');
 
       var i = 0;

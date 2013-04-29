@@ -74,7 +74,7 @@
       // If the alarm is in the past, fake it was launched
       if (when.getTime() < Date.now()) {
         debug('Faking a past reset alarm');
-        _onAlarm({ data: { type:'nextReset' } });
+        _onAlarm({ data: { type: 'nextReset' } });
         if (callback) {
           setTimeout(callback);
         }
@@ -95,7 +95,7 @@
   function getTopUpTimeout(callback) {
     ConfigManager.requestSettings(function _onSettings(settings) {
       var request = navigator.mozAlarms.getAll();
-      request.onsuccess = function (e) {
+      request.onsuccess = function(e) {
         var alarms = e.target.result;
         var length = alarms.length;
         if (!length) {
@@ -153,7 +153,7 @@
 
       iconURL += '?topUpError';
       NotificationHelper.send(_('topup-incorrectcode-title2'),
-                              _('topup-incorrectcode-message2'), iconURL,
+                              _('topup-incorrectcode-message3'), iconURL,
                               goToTopUpCode);
 
       if (callback) {
@@ -291,8 +291,8 @@
       if (settings.dataLimit) {
         if (usage >= limit && !settings.dataUsageNotified) {
           var limitText = formatData(smartRound(limit));
-          var title = _('data-limit-notification-title', { limit: limitText });
-          var message = _('data-limit-notification-text');
+          var title = _('data-limit-notification-title2', { limit: limitText });
+          var message = _('data-limit-notification-text2');
           NotificationHelper.send(title, message, iconURL, goToDataUsage);
           ConfigManager.setOption({ 'dataUsageNotified': true }, callback);
           return true;

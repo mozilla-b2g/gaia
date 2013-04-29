@@ -17,6 +17,9 @@ function ComposeCard(domNode, mode, args) {
     .addEventListener('click', this.onBack.bind(this), false);
   this.sendButton = domNode.getElementsByClassName('cmp-send-btn')[0];
   this.sendButton.addEventListener('click', this.onSend.bind(this), false);
+  this._bound_onVisibilityChange = this.onVisibilityChange.bind(this);
+  document.addEventListener('mozvisibilitychange',
+                            this._bound_onVisibilityChange);
 
   this.toNode = domNode.getElementsByClassName('cmp-to-text')[0];
   this.ccNode = domNode.getElementsByClassName('cmp-cc-text')[0];
@@ -51,38 +54,19 @@ function ComposeCard(domNode, mode, args) {
     containerList[i].addEventListener('click',
       this.onContainerClick.bind(this));
   }
+  // Add attachments area event listener
+  var attachmentBtns =
+    domNode.getElementsByClassName('cmp-attachment-container');
+  for (var i = 0; i < attachmentBtns.length; i++) {
+    attachmentBtns[i].addEventListener('click',
+                                       this.onAttachmentAdd.bind(this));
+  }
 
   // Add subject focus for larger hitbox
   var subjectContainer = domNode.querySelector('.cmp-subject');
   subjectContainer.addEventListener('click', function subjectFocus() {
     subjectContainer.querySelector('input').focus();
   });
-
-  // Add attachments
-  var attachmentsContainer =
-    domNode.getElementsByClassName('cmp-attachments-container')[0];
-  if (this.composer.attachments && this.composer.attachments.length) {
-    var attTemplate = cmpNodes['attachment-item'],
-        filenameTemplate =
-          attTemplate.getElementsByClassName('cmp-attachment-filename')[0],
-        filesizeTemplate =
-          attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
-    for (var i = 0; i < this.composer.attachments.length; i++) {
-      var attachment = this.composer.attachments[i];
-      filenameTemplate.textContent = attachment.name;
-      filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
-      var attachmentNode = attTemplate.cloneNode(true);
-      attachmentsContainer.appendChild(attachmentNode);
-
-      attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
-        .addEventListener('click',
-                          this.onClickRemoveAttachment.bind(
-                            this, attachmentNode, attachment));
-    }
-  }
-  else {
-    attachmentsContainer.classList.add('collapsed');
-  }
 
   // Sent sound init
   this.sentAudioKey = 'mail.sent-sound.enabled';
@@ -137,6 +121,10 @@ ComposeCard.prototype = {
     if (this.isEmptyAddress()) {
       this.sendButton.setAttribute('aria-disabled', 'true');
     }
+
+    // Add attachments
+    this.insertAttachments();
+
     this.subjectNode.value = this.composer.subject;
     this.textBodyNode.value = this.composer.body.text;
     // force the textarea to be sized.
@@ -181,6 +169,30 @@ ComposeCard.prototype = {
     // need to save it.  However, what we send to the back-end is what gets
     // sent, so if you want to implement editing UI and change this here,
     // go crazy.
+  },
+
+  _closeCard: function() {
+    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+  },
+
+  _saveNeeded: function() {
+    var self = this;
+    var checkAddressEmpty = function() {
+      var bubbles = self.domNode.querySelectorAll('.cmp-peep-bubble');
+      if (bubbles.length == 0 && !self.toNode.value && !self.ccNode.value &&
+          !self.bccNode.value)
+        return true;
+      else
+        return false;
+    };
+
+    return (this.subjectNode.value || this.textBodyNode.value ||
+        !checkAddressEmpty());
+  },
+
+  _saveDraft: function() {
+    this._saveStateToComposer();
+    this.composer.saveDraft();
   },
 
   createBubbleNode: function(name, address) {
@@ -246,7 +258,7 @@ ComposeCard.prototype = {
 
     if (evt.keyCode == 8 && node.value == '') {
       //delete bubble
-      var previousBubble = node.previousSibling;
+      var previousBubble = node.previousElementSibling;
       this.deleteBubble(previousBubble);
       if (this.isEmptyAddress()) {
         this.sendButton.setAttribute('aria-disabled', 'true');
@@ -260,6 +272,7 @@ ComposeCard.prototype = {
   onAddressInput: function(evt) {
     var node = evt.target;
     var container = evt.target.parentNode;
+
     if (this.isEmptyAddress()) {
       this.sendButton.setAttribute('aria-disabled', 'true');
       return;
@@ -304,8 +317,10 @@ ComposeCard.prototype = {
     if (!this.stringContainer) {
       this.stringContainer = document.createElement('div');
       this.domNode.appendChild(this.stringContainer);
+
+      var inputStyle = window.getComputedStyle(node);
+      this.stringContainer.style.fontSize = inputStyle.fontSize;
     }
-    this.stringContainer.style.fontSize = '1.5rem';
     this.stringContainer.style.display = 'inline-block';
     this.stringContainer.textContent = node.value;
     node.style.width = (this.stringContainer.clientWidth + 2) + 'px';
@@ -319,7 +334,7 @@ ComposeCard.prototype = {
       var email = target.querySelector('.cmp-peep-address').textContent;
       contents.getElementsByTagName('header')[0].textContent = email;
       document.body.appendChild(contents);
-      var formSubmit = function(evt) {
+      var formSubmit = (function(evt) {
         document.body.removeChild(contents);
         switch (evt.explicitOriginalTarget.className) {
           case 'cmp-contact-menu-delete':
@@ -329,7 +344,7 @@ ComposeCard.prototype = {
             break;
         }
         return false;
-      }.bind(this);
+      }).bind(this);
       contents.addEventListener('submit', formSubmit);
       return;
     }
@@ -356,19 +371,83 @@ ComposeCard.prototype = {
       this.textBodyNode.rows = neededRows;
   },
 
+  insertAttachments: function() {
+    var attachmentsContainer =
+      this.domNode.getElementsByClassName('cmp-attachments-container')[0];
+
+    if (this.composer.attachments && this.composer.attachments.length) {
+      // Clean the container before we insert the new attachments
+      attachmentsContainer.innerHTML = '';
+
+      var attTemplate = cmpNodes['attachment-item'],
+          filenameTemplate =
+            attTemplate.getElementsByClassName('cmp-attachment-filename')[0],
+          filesizeTemplate =
+            attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
+      for (var i = 0; i < this.composer.attachments.length; i++) {
+        var attachment = this.composer.attachments[i];
+        filenameTemplate.textContent = attachment.name;
+        filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
+        var attachmentNode = attTemplate.cloneNode(true);
+        attachmentsContainer.appendChild(attachmentNode);
+
+        attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
+          .addEventListener('click',
+                            this.onClickRemoveAttachment.bind(
+                              this, attachmentNode, attachment));
+      }
+
+      this.updateAttachmentsSize();
+
+      attachmentsContainer.classList.remove('collapsed');
+    }
+    else {
+      attachmentsContainer.classList.add('collapsed');
+    }
+  },
+
+  updateAttachmentsSize: function() {
+    var attachmentLabel =
+      this.domNode.getElementsByClassName('cmp-attachment-label')[0];
+    var attachmentsSize =
+      this.domNode.getElementsByClassName('cmp-attachments-size')[0];
+
+    attachmentLabel.textContent =
+      mozL10n.get('compose-attachments',
+                  { n: this.composer.attachments.length});
+
+    if (this.composer.attachments.length === 0) {
+      attachmentsSize.textContent = '';
+
+      // When there is no attachments, hide the container
+      // to keep the style of empty attachments
+      var attachmentsContainer =
+        this.domNode.getElementsByClassName('cmp-attachments-container')[0];
+
+      attachmentsContainer.classList.add('collapsed');
+    }
+    else {
+      var totalSize = 0;
+      for (var i = 0; i < this.composer.attachments.length; i++) {
+        totalSize += this.composer.attachments[i].blob.size;
+      }
+
+      attachmentsSize.textContent = prettyFileSize(totalSize);
+    }
+  },
+
   onClickRemoveAttachment: function(node, attachment) {
     node.parentNode.removeChild(node);
     this.composer.removeAttachment(attachment);
+
+    this.updateAttachmentsSize();
   },
 
   /**
    * Save the draft if there's anything to it, close the card.
    */
   onBack: function() {
-    // Since we will discard all the content while exit, there is no need to
-    // save draft for now.
-    //this.composer.saveDraftEndComposition();
-    var discardHandler = function() {
+    var goBack = (function() {
       if (this.activity) {
         // We need more testing here to make sure the behavior that back
         // to originated activity works perfectly without any crash or
@@ -376,37 +455,44 @@ ComposeCard.prototype = {
 
         this.activity.postError('cancelled');
         this.activity = null;
-
-        Cards.removeCardAndSuccessors(this.domNode, 'animate');
-      } else {
-        Cards.removeCardAndSuccessors(this.domNode, 'animate');
       }
-    }.bind(this);
-    var self = this;
-    var checkAddressEmpty = function() {
-      var bubbles = self.domNode.querySelectorAll('.cmp-peep-bubble');
-      if (bubbles.length == 0 && !self.toNode.value && !self.ccNode.value &&
-          !self.bccNode.value)
-        return true;
-      else
-        return false;
-    };
-    if (!this.subjectNode.value && !this.textBodyNode.value &&
-        checkAddressEmpty()) {
-      discardHandler();
+
+      this._closeCard();
+    }).bind(this);
+
+    if (!this._saveNeeded()) {
+      goBack();
       return;
     }
-    var dialog = cmpNodes['discard-confirm'].cloneNode(true);
-    ConfirmDialog.show(dialog,
-      { // Confirm
-        id: 'cmp-discard-ok',
-        handler: discardHandler
-      },
-      { // Cancel
-        id: 'cmp-discard-cancel',
-        handler: null
+
+    var menu = cmpNodes['draft-menu'].cloneNode(true);
+    document.body.appendChild(menu);
+    var formSubmit = (function(evt) {
+      document.body.removeChild(menu);
+      switch (evt.explicitOriginalTarget.id) {
+        case 'cmp-draft-save':
+          this._saveDraft();
+          goBack();
+          break;
+        case 'cmp-draft-discard':
+          this.composer.abortCompositionDeleteDraft();
+          goBack();
+          break;
+        case 'cmp-draft-cancel':
+          break;
       }
-    );
+      return false;
+    }).bind(this);
+    menu.addEventListener('submit', formSubmit);
+  },
+
+  /**
+   * Save the draft if there's anything to it, close the card.
+   */
+  onVisibilityChange: function() {
+    if (document.mozHidden && this._saveNeeded()) {
+      this._saveDraft();
+    }
   },
 
   onSend: function() {
@@ -430,7 +516,7 @@ ComposeCard.prototype = {
             }
             activity = null;
           }
-        }
+        };
 
         if (self.sentAudioEnabled) {
           self.sentAudio.play();
@@ -451,8 +537,8 @@ ComposeCard.prototype = {
           return;
         }
         activityHandler();
-        Cards.removeCardAndSuccessors(domNode, 'animate');
-      }
+        this._closeCard();
+      }.bind(this)
     );
   },
 
@@ -474,13 +560,49 @@ ComposeCard.prototype = {
           self.insertBubble(emt, this.result.name, this.result.email);
           self.sendButton.setAttribute('aria-disabled', 'false');
         }
-      }
+      };
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
+  },
+
+  onAttachmentAdd: function(event) {
+    event.stopPropagation();
+
+    try {
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'image/*', // any kind of image
+          nocrop: true
+        }
+      });
+      activity.onsuccess = (function success() {
+        var name = activity.result.blob.name || activity.result.name;
+
+        // It's possible that the name field is empty
+        // we should generate a default name for it, please see
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=848855
+        if (name)
+          name = name.substring(name.lastIndexOf('/') + 1);
+
+        this.composer.addAttachment({
+          name: name,
+          blob: activity.result.blob
+        });
+
+        this.insertAttachments();
+      }).bind(this);
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
   },
 
   die: function() {
+    document.removeEventListener('mozvisibilitychange',
+                                 this._bound_onVisibilityChange);
+    this.composer.die();
+    this.composer = null;
   }
 };
 Cards.defineCardWithDefaultMode('compose', {}, ComposeCard);

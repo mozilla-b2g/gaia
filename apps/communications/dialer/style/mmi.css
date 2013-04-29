@@ -1,0 +1,48 @@
+#mmi-screen {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: white;
+  color: black;
+  z-index: 1;
+}
+
+#mmi-screen.responseForm #response {
+  display: block;
+}
+
+#mmi-container {
+  height: -moz-calc(100% - 5rem - 5rem);
+}
+
+#message {
+  font-size: 2rem;
+  padding: 1rem;
+  white-space: pre-line;
+  word-wrap: break-word;
+  overflow: auto;
+}
+
+#response {
+  width: 100%;
+  height: 5rem;
+  background: rgb(245, 245, 245);
+  display: none;
+}
+
+#response p {
+  height: 3.8rem;
+  margin: 0.6rem;
+}
+
+#response-text[disabled] {
+  opacity: 0.8;
+}
+
+/*
+  Loading screen
+*/
+
+#loading-overlay.hide {
+  display: none;
+}

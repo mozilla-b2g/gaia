@@ -288,7 +288,8 @@ var requirejs, require, define;
             loadCount = 0,
             startTime = (new Date()).getTime(),
             errCount = 0,
-            trackedErrors = {};
+            trackedErrors = {},
+            urlFetched = {};
 
         /**
          * Trims the . and .. from an array of path segments.
@@ -783,16 +784,29 @@ var requirejs, require, define;
 
         load = typeof importScripts === 'function' ?
                 function (map) {
+                    var url = map.url;
+                    if (urlFetched[url]) {
+                        return;
+                    }
+                    urlFetched[url] = true;
+
                     //Ask for the deferred so loading is triggered.
                     //Do this before loading, since loading is sync.
                     getDefer(map.id);
-                    importScripts(map.url);
+                    importScripts(url);
                     takeQueue(map.id);
                 } :
                 function (map) {
-                    var id = map.id,
-                        url = map.url,
-                        script = document.createElement('script');
+                    var script,
+                        id = map.id,
+                        url = map.url;
+
+                    if (urlFetched[url]) {
+                        return;
+                    }
+                    urlFetched[url] = true;
+
+                    script = document.createElement('script');
                     script.setAttribute('data-requiremodule', id);
                     script.type = config.scriptType || 'text/javascript';
                     script.charset = 'utf-8';
@@ -1036,7 +1050,7 @@ var requirejs, require, define;
                 });
                 err = new Error('Timeout for modules: ' + noLoads);
                 err.requireModules = noLoads;
-                throw err;
+                req.onError(err);
             } else if (loadCount || reqDefs.length) {
                 //Something is still waiting to load. Wait for it, but only
                 //if a timeout is not already in effect.

@@ -16,7 +16,8 @@
   <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/status.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
-  <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
+  <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
+  <link rel="stylesheet" type="text/css" href="shared/style/responsive.css"/>
   <!-- Unstable building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css"/>
@@ -24,22 +25,23 @@
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
   <!-- Shared code -->
-  <script type="text/javascript" src="shared/js/l10n.js"></script>
-  <script type="text/javascript" src="shared/js/l10n_date.js"></script>
-  <script type="text/javascript" src="shared/js/gesture_detector.js"></script>
+  <script type="text/javascript" defer src="shared/js/l10n.js"></script>
+  <script type="text/javascript" defer src="shared/js/l10n_date.js"></script>
+  <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
   <!-- Specific code -->
-  <script type="text/javascript" src="js/input_areas.js"></script>
-  <script type="text/javascript" src="js/console-hook.js"></script>
-  <script type="text/javascript" src="js/mail-common.js"></script>
-  <script type="text/javascript" src="js/message-cards.js"></script>
-  <script type="text/javascript" src="js/folder-cards.js"></script>
+  <script type="text/javascript" defer src="js/contacts.js"></script>
+  <script type="text/javascript" defer src="js/input_areas.js"></script>
+  <script type="text/javascript" defer src="js/console-hook.js"></script>
+  <script type="text/javascript" defer src="js/mail-common.js"></script>
+  <script type="text/javascript" defer src="js/message-cards.js"></script>
+  <script type="text/javascript" defer src="js/folder-cards.js"></script>
   <!-- This one is an optimized vendor library containing our mail backend. -->
   <!-- START BACKEND INJECT - do not modify -->
-  <script type="application/javascript;version=1.8" src="js/ext/alameda.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/end.js"></script>
+  <script type="application/javascript;version=1.8" defer src="js/ext/alameda.js"></script>
+  <script type="application/javascript;version=1.8" defer src="js/ext/end.js"></script>
   <!-- END BACKEND INJECT -->
-  <script type="text/javascript" src="/shared/js/lazy_loader.js"></script>
-  <script type="text/javascript" src="js/mail-app.js"></script>
+  <script type="text/javascript" defer src="/shared/js/lazy_loader.js"></script>
+  <script type="text/javascript" defer src="js/mail-app.js"></script>
   <!-- Lazy Loaded Resources. See: App.loader.load()
   <link rel="stylesheet" type="text/css" href="style/value_selector.css>
   <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
@@ -48,6 +50,7 @@
   <script type="text/javascript" src="js/iframe-shims.js"></script>
   <script type="text/javascript" src="js/setup-cards.js"></script>
   <script type="text/javascript" src="js/compose-cards.js"></script>
+  <script type="text/javascript" src="shared/js/mime_mapper.js"></script>
   -->
 </head>
 
@@ -77,17 +80,6 @@
        into them. -->
   <div id="templates" class="collapsed">
     <div id="templ-card">
-      <div class="card-account-picker card">
-        <div class="fld-accounts-header top-header">
-          <h2 class="fld-accounts-header-label header-label"
-              data-l10n-id="accounts-header">AccountS</h2>
-        </div>
-        <div class="scrollregion-below-header">
-          <div class="fld-accounts-container">
-          </div>
-        </div>
-      </div>
-
       <!-- Shows folders for navigation or move targeting.
            The navigation mode is less than full-width so we can see the
            messages display to its right.  -->
@@ -100,12 +92,9 @@
             <h1 class="fld-folders-header-account-label"></h1>
           </header>
         </section>
-        <div class="scrollregion-below-header folder-scoller-region">
-          <div class="fld-accounts-container">
+        <div class="scrollregion-below-header folder-scroller-region">
+          <div class="fld-folders-container">
           </div>
-          <div class="fld-folders-container show">
-          </div>
-          <div class="bottom-toolbar-spacer"></div>
         </div>
         <div class="fld-nav-toolbar bottom-toolbar">
           <button class="fld-nav-settings-btn bottom-btn"></button>
@@ -119,8 +108,30 @@
           <span class="fld-nav-account-problem icon collapsed">!</span>
         </div>
       </div>
+      <!-- Shows accounts, to the left of folder list.
+           The navigation mode is less than full-width so we can see the
+           messages display to its right.  -->
+      <div class="card-account-picker card anim-overlay">
+        <section class="acct-picker-header skin-organic" role="region">
+          <header>
+            <a href="#" class="fld-accounts-btn">
+              <span class="icon icon-back"></span>
+            </a>
+            <h1 class="acct-picker-header-label"
+                data-l10n-id="settings-account-section"></h1>
+          </header>
+        </section>
+        <div class="scrollregion-below-header acct-scroller-region">
+          <div class="acct-list-container">
+          </div>
+          <div class="bottom-toolbar-spacer"></div>
+        </div>
+        <div class="fld-nav-toolbar bottom-toolbar">
+          <button class="fld-nav-settings-btn bottom-btn"></button>
+        </div>
+      </div>
       <!-- Lists the messages in a folder -->
-      <div class="card-message-list card">
+      <div class="card-message-list card" data-tray-target>
         <!-- Non-search header -->
         <section class="msg-list-header msg-nonsearch-only" role="region">
           <header>
@@ -227,9 +238,7 @@
           <button class="msg-move-btn bottom-btn"></button>
         </div>
         <div class="msg-list-empty-container collapsed">
-          <div class="msg-list-empty-message">
-            <p class="msg-list-empty-message-text" data-l10n-id="messages-folder-empty">No messagE</p>
-          </div>
+          <p class="msg-list-empty-message-text" data-l10n-id="messages-folder-empty">No messagE</p>
         </div>
       </div>
 
@@ -254,35 +263,37 @@
         </section>
         <div class="scrollregion-below-header scrollregion-horizontal-too">
           <div class="msg-envelope-bar">
-            <div class="msg-envelope-date"></div>
-            <div class="msg-envelope-from-line msg-envelope-line">
+            <div class="msg-envelope-from-line">
               <span class="msg-envelope-key"
                      data-l10n-id="envelope-from">FroM</span>
             </div>
             <!-- the details starts out collapsed, but can be toggled -->
             <div class="msg-envelope-details">
-              <div class="msg-envelope-to-line msg-envelope-line">
+              <div class="msg-envelope-to-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-to">tO</span>
               </div>
-              <div class="msg-envelope-cc-line msg-envelope-line">
+              <div class="msg-envelope-cc-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-cc">cC</span>
               </div>
-              <div class="msg-envelope-bcc-line msg-envelope-line">
+              <div class="msg-envelope-bcc-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-bcc">BcC</span>
               </div>
             </div>
-            <h3 class="msg-envelope-subject"></h3>
+            <div class="msg-envelope-subject-container">
+              <h3 class="msg-envelope-subject"></h3>
+              <span class="msg-envelope-date"></span>
+            </div>
           </div>
           <ul class="msg-attachments-container">
           </ul>
-          <div class="msg-body-container"></div>
+          <div class="msg-body-container"><progress></progress></div>
           <div class="bottom-toolbar-spacer"></div>
         </div>
         <!-- Tells us about remote/not downloaded images, asks to show -->
-        <div class="msg-reader-load-infobar">
+        <div class="msg-reader-load-infobar collapsed">
         </div>
         <div class="msg-reader-action-toolbar bottom-toolbar">
           <button class="msg-delete-btn bottom-btn"></button>
@@ -342,14 +353,23 @@
                 <div class="cmp-bcc-add cmp-contact-add"></div>
               </div>
             </div>
+            <div class="cmp-envelope-line cmp-combo">
+              <span class="cmp-attachment-label cmp-addr-label"
+                     data-l10n-id="compose-attachments[zero]">AttachmentS:</span>
+              <div class="cmp-attachment-container cmp-addr-container">
+                <div class="cmp-attachments-size">
+                </div>
+                <div class="cmp-attachment-add cmp-file-add"></div>
+              </div>
+            </div>
+            <ul class="cmp-attachments-container">
+            </ul>
             <div class="cmp-envelope-line cmp-subject">
               <span class="cmp-subject-label"
                      data-l10n-id="compose-subject">SubjecT:</span>
               <input class="cmp-subject-text" type="text" />
             </div>
           </div>
-          <ul class="cmp-attachments-container">
-          </ul>
           <textarea class="cmp-body-text" rows="1"></textarea>
           <div class="cmp-body-html">
           </div>
@@ -424,7 +444,7 @@
               <button type="reset"></button>
             </p>
           </form>
-          <a href="#" class="sup-manual-config-btn sup-form-link"
+          <a href="#" class="sup-manual-config-btn"
                   data-l10n-id="setup-manual-config2">
             ManuaL SetuP
           </a>
@@ -440,10 +460,10 @@
               data-l10n-id="setup-account-header3">NeW AccounT</h1>
         </header>
         <div class="sup-progress-region">
+          <progress class="sup-progress-spinner"></progress>
           <span class="sup-progress-label" data-l10n-id="setup-progress-wait">
             PleasE WaiT WhilE I SeT UP YouR AccounT
           </span>
-          <progress class="sup-progress-spinner"></progress>
         </div>
       </section>
       <!-- Account all setup, add another or read your mail? -->
@@ -452,10 +472,13 @@
           <h1 class="sup-account-header-label"
               data-l10n-id="setup-completed-header">MaiL AccounT SetuP</h1>
         </header>
-        <h2 class="sup-account-done-label sup-form-label"
-            data-l10n-id="setup-completed-label">AlL DonE!</h2>
+        <div class="sup-progress-region">
+          <span class="sup-progress-label" data-l10n-id="setup-completed-label">
+            AlL DonE!
+          </span>
+        </div>
         <button class="sup-add-another-account-btn sup-form-btn"
-                data-l10n-id="setup-add-another-account">
+              data-l10n-id="setup-add-another-account">
           AdD AnotheR AccounT
         </button>
         <button class="sup-show-mail-btn sup-form-btn recommend"
@@ -509,10 +532,12 @@
               </p>
             </div>
 
+            <header>
+              <h2 data-l10n-id="setup-manual-account-type">AccounT TypE</h2>
+            </header>
             <div class="sup-form sup-form-item">
-              <span data-l10n-id="setup-manual-account-type">AccounT TypE</span>
               <!-- These don't need L10N as they are protocol names. -->
-              <select class="mail-select sup-manual-account-type end">
+              <select class="sup-manual-account-type">
                 <option value="imap+smtp">IMAP+SMTP</option>
                 <option value="activesync">ActiveSync</option>
               </select>
@@ -677,11 +702,12 @@
           <header class="tng-main-accounts-label">
             <h2 data-l10n-id="settings-account-section">AccountS</h2>
           </header>
-          <div class="tng-accounts-container"></div>
-            <li class="align-center">
+          <ul class="tng-accounts-container">
+            <li>
               <button href="#" data-l10n-id="settings-account-add"
                 class="tng-account-add">AdD AccounT</button>
             </li>
+          </ul>
           <!-- Hide for v1: Hide general setting section to reduce effort-->
           <header class="tng-main-about-label collapsed">
             <h2 data-l10n-id="settings-general-section">GeneraL SettingS</h2>
@@ -769,14 +795,13 @@
           <li>
             <span data-l10n-id="settings-account-type" class="list-text">
               AccounT TypE</span>
-            <em class="aside end">
+            <div class="aside end">
               <span class="tng-account-type list-value">AccounT TypE</span>
-            </em>
+            </div>
           </li>
-          <li>
-            <span data-l10n-id="settings-account-synchronize" class="list-text">
-              SynchronizE</span>
-            <em class="aside end">
+          <li class="synchronize-setting">
+            <label data-l10n-id="settings-account-synchronize" class="list-text">SynchronizE</label>
+            <span class="button icon icon-dialog">
               <select class="mail-select tng-account-synchronize">
                 <option value="auto" data-l10n-id="settings-synchronize-auto">
                   AutomatiC</option>
@@ -793,7 +818,7 @@
                 <option value="all" data-l10n-id="settings-synchronize-all">
                   AlL MessageS</option>
               </select>
-            </em>
+            </span>
           </li>
           <li>
             <a href="#" data-l10n-id="settings-account-credentials"
@@ -803,7 +828,7 @@
           <div class="tng-account-server-container"></div>
           <li class="align-center">
             <button href="#" data-l10n-id="settings-account-delete"
-              class="tng-account-delete">DeletE AccounT</button>
+              class="tng-account-delete danger">DeletE AccounT</button>
           </li>
         </section>
       </section>
@@ -885,7 +910,7 @@
       </section>
 
       <!-- Developer debug page; for those in the know -->
-      <section class="card-settings-debug card">
+      <section class="card-settings-debug card skin-organic" role="region">
         <header>
           <a href="#" class="tng-close-btn">
             <span class="icon icon-close"></span>
@@ -959,22 +984,23 @@
         </button>
       </li>
 
-      <!-- Hide for V1: Hide open contact app option in context menu -->
-      <!--
-      <ul class="msg-contact-menu menu">
-        <li class="msg-contact-menu-view menu-item collapsed"
-            data-l10n-id="message-contact-menu-view">View contacT</li>
-        <li class="msg-contact-menu-reply menu-item"
-            data-l10n-id="message-contact-menu-reply">ReplY</li>
-      </ul> -->
       <form class="msg-contact-menu" role="dialog" data-type="action">
         <header></header>
         <menu>
+          <button class="msg-contact-menu-new collapsed" data-l10n-id="message-contact-menu-new">
+            Send new maiL
+          </button>
+          <button class="msg-contact-menu-reply collapsed" data-l10n-id="message-contact-menu-reply">
+            ReplY
+          </button>
           <button class="msg-contact-menu-view collapsed" data-l10n-id="message-contact-menu-view">
             View contacT
           </button>
-          <button class="msg-contact-menu-reply" data-l10n-id="message-contact-menu-reply">
-            ReplY
+          <button class="msg-contact-menu-create-contact collapsed" data-l10n-id="message-contact-menu-create">
+            Save new contacT
+          </button>
+          <button class="msg-contact-menu-add-to-existing-contact collapsed" data-l10n-id="message-contact-menu-add-existing">
+            Add to existing contacT
           </button>
           <button class="msg-contact-menu-cancel" data-l10n-id="message-multiedit-cancel">
             CanceL
@@ -989,6 +1015,16 @@
         <menu>
           <button id="msg-delete-cancel" data-l10n-id="message-multiedit-cancel">CanceL</button>
           <button id="msg-delete-ok" class="danger" data-l10n-id="message-edit-menu-delete">OK</button>
+        </menu>
+      </form>
+      <form role="dialog" class="msg-browse-confirm" data-type="confirm">
+        <section>
+          <h1 data-l10n-id="confirm-dialog-title">Confirmation</h1>
+          <p></p>
+        </section>
+        <menu>
+          <button id="msg-browse-cancel" data-l10n-id="message-multiedit-cancel">CanceL</button>
+          <button id="msg-browse-ok" class="recommend" data-l10n-id="dialog-button-ok">OK</button>
         </menu>
       </form>
     </div>
@@ -1009,14 +1045,11 @@
           </button>
         </menu>
       </form>
-      <form role="dialog" class="cmp-discard-confirm" data-type="confirm">
-        <section>
-          <h1 data-l10n-id="confirm-dialog-title">ConfirmatioN</h1>
-          <p><span data-l10n-id="compose-discard-message"></span></p>
-        </section>
+      <form role="dialog" class="cmp-draft-menu" data-type="action">
         <menu>
-          <button id="cmp-discard-cancel" data-l10n-id="message-multiedit-cancel">CanceL</button>
-          <button id="cmp-discard-ok" class="danger" data-l10n-id="compose-discard-confirm">OK</button>
+          <button id="cmp-draft-save" data-l10n-id="compose-draft-save">SaVe DrAft</button>
+          <button id="cmp-draft-discard" class="danger" data-l10n-id="compose-discard-confirm">DisCarD</button>
+          <button id="cmp-draft-cancel" data-l10n-id="message-multiedit-cancel">CanCeL</button>
         </menu>
       </form>
       <form role="dialog" class="cmp-send-failed-confirm" data-type="confirm">
@@ -1037,10 +1070,10 @@
       </li>
       <form role="dialog" data-type="confirm" class="cmp-sending-container">
         <section class="cmp-messages-sending">
-          <h1 data-l10n-id="compose-sending-message">Sending messagE</h1>
-          <p style="text-align: center">
+          <p data-l10n-id="compose-sending-message">
             <progress></progress>
-          </p>   
+            Sending messagE
+          </p>
         </section>
       </form>
     </div>
@@ -1069,6 +1102,7 @@
       </form>
     </div>
   </div>
+
 </body>
 </html>
 

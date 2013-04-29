@@ -31,7 +31,12 @@ function checkDataUsageNotification(settings, usage, callback) {
 
 // Waits for DOMContentLoaded and messagehandlerready, then call the callback
 function waitForDOMAndMessageHandler(window, callback) {
-  var remainingSteps = 2;
+  var docState = document.readyState;
+  var DOMAlreadyLoaded = docState === 'complete' || docState === 'interactive';
+  var remainingSteps = DOMAlreadyLoaded ? 1 : 2;
+  debug('DOMAlreadyLoaded:', DOMAlreadyLoaded);
+  debug('Waiting for', remainingSteps, 'events to start!');
+
   function checkReady(evt) {
     debug(evt.type, 'event received!');
     remainingSteps--;
@@ -195,9 +200,18 @@ function getDataLimit(settings) {
 }
 
 function formatTimeHTML(timestampA, timestampB) {
+  function timeElement(content) {
+    var time = document.createElement('time');
+    time.textContent = content;
+    return time;
+  }
+
+  var fragment = document.createDocumentFragment();
+
   // No interval
   if (typeof timestampB === 'undefined') {
-    return '<time>' + formatTime(timestampA) + '</time>';
+    fragment.appendChild(timeElement(formatTime(timestampA)));
+    return fragment;
   }
 
   // Same day case
@@ -211,8 +225,12 @@ function formatTimeHTML(timestampA, timestampB) {
   }
 
   // Interval
-  return '<time>' + formatTime(timestampA) + '</time> – ' +
-         '<time>' + formatTime(timestampB) + '</time>';
+  fragment.appendChild(
+    timeElement(formatTime(timestampA, _('short-date-format')))
+  );
+  fragment.appendChild(document.createTextNode(' – '));
+  fragment.appendChild(timeElement(formatTime(timestampB)));
+  return fragment;
 }
 
 function localizeWeekdaySelector(selector) {

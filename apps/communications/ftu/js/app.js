@@ -8,7 +8,7 @@ var AppManager = {
     this.isLocalized = true;
     SimManager.init();
     WifiManager.init();
-    FacebookIntegration.init();
+    ImportIntegration.init();
     TimeManager.init();
     UIManager.init();
     Navigation.init();
@@ -32,7 +32,6 @@ var AppManager = {
     setTimeout(function() {
       // TODO Include VIVO SIM Card management
       // https://bugzilla.mozilla.org/show_bug.cgi?id=801269#c6
-      var self = this;
       Navigation.manageStep();
       UIManager.activationScreen.classList.add('show');
       // Remove the splash
@@ -51,4 +50,3 @@ navigator.mozL10n.ready(function showBody() {
     UIManager.mainTitle.innerHTML = _('language');
   }
 });
-

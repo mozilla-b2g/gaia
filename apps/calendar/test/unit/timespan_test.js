@@ -1,6 +1,4 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('timespan.js');
-});
+requireLib('timespan.js');
 
 suite('timespan', function() {
 
@@ -182,7 +180,7 @@ suite('timespan', function() {
         },
 
         'range: starts on end date': {
-          assert: false,
+          assert: true,
           value: new Calendar.Timespan(
             endDate,
             new Date(2015, 1, 1)

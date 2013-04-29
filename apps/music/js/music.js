@@ -9,6 +9,7 @@ var musicTitle;
 var playlistTitle;
 var artistTitle;
 var albumTitle;
+var songTitle;
 var unknownAlbum;
 var unknownArtist;
 var unknownTitle;
@@ -17,6 +18,15 @@ var highestRatedTitle;
 var recentlyAddedTitle;
 var mostPlayedTitle;
 var leastPlayedTitle;
+
+var unknownTitleL10nId = 'unknownTitle';
+var unknownArtistL10nId = 'unknownArtist';
+var unknownAlbumL10nId = 'unknownAlbum';
+var shuffleAllTitleL10nId = 'playlists-shuffle-all';
+var highestRatedTitleL10nId = 'playlists-highest-rated';
+var recentlyAddedTitleL10nId = 'playlists-recently-added';
+var mostPlayedTitleL10nId = 'playlists-most-played';
+var leastPlayedTitleL10nId = 'playlists-least-played';
 
 // The MediaDB object that manages the filesystem and the database of metadata
 // See init()
@@ -34,14 +44,17 @@ window.addEventListener('localized', function onlocalized() {
   playlistTitle = navigator.mozL10n.get('playlists');
   artistTitle = navigator.mozL10n.get('artists');
   albumTitle = navigator.mozL10n.get('albums');
-  unknownAlbum = navigator.mozL10n.get('unknownAlbum');
-  unknownArtist = navigator.mozL10n.get('unknownArtist');
-  unknownTitle = navigator.mozL10n.get('unknownTitle');
-  shuffleAllTitle = navigator.mozL10n.get('playlists-shuffle-all');
-  highestRatedTitle = navigator.mozL10n.get('playlists-highest-rated');
-  recentlyAddedTitle = navigator.mozL10n.get('playlists-recently-added');
-  mostPlayedTitle = navigator.mozL10n.get('playlists-most-played');
-  leastPlayedTitle = navigator.mozL10n.get('playlists-least-played');
+  songTitle = navigator.mozL10n.get('songs');
+  unknownAlbum = navigator.mozL10n.get(unknownAlbumL10nId);
+  unknownArtist = navigator.mozL10n.get(unknownArtistL10nId);
+  unknownTitle = navigator.mozL10n.get(unknownTitleL10nId);
+  shuffleAllTitle = navigator.mozL10n.get(shuffleAllTitleL10nId);
+  highestRatedTitle = navigator.mozL10n.get(highestRatedTitleL10nId);
+  recentlyAddedTitle = navigator.mozL10n.get(recentlyAddedTitleL10nId);
+  mostPlayedTitle = navigator.mozL10n.get(mostPlayedTitleL10nId);
+  leastPlayedTitle = navigator.mozL10n.get(leastPlayedTitleL10nId);
+
+  TabBar.playlistArray.localize();
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('invisible');
@@ -50,6 +63,8 @@ window.addEventListener('localized', function onlocalized() {
   // But don't re-initialize if the user switches languages while we're running.
   if (!musicdb)
     init();
+  else
+    ModeManager.updateTitle();
 });
 
 // We use this flag when switching views. We want to hide the scan progress
@@ -86,8 +101,9 @@ function init() {
 
     // stop and reset the player then back to tiles mode to avoid crash
     PlayerView.stop();
-    changeMode(MODE_TILES);
-  }
+    ModeManager.start(MODE_TILES);
+    TilesView.hideSearch();
+  };
 
   musicdb.onready = function() {
     // Hide the nocard or pluggedin overlay if it is displayed
@@ -146,6 +162,7 @@ function init() {
   // updated list of files. We don't want to do this for every new file
   // but we do want to redisplay every so often.
   musicdb.oncreated = function(event) {
+    var currentMode = ModeManager.currentMode;
     if (scanning && !displayingScanProgress &&
         (currentMode === MODE_TILES || currentMode === MODE_LIST))
     {
@@ -236,13 +253,19 @@ function showOverlay(id) {
   var title = navigator.mozL10n.get(id + '-title');
   var text = navigator.mozL10n.get(id + '-text');
 
-  document.getElementById('overlay-title').textContent = title;
-  document.getElementById('overlay-text').textContent = text;
+  var titleElement = document.getElementById('overlay-title');
+  var textElement = document.getElementById('overlay-text');
+
+  titleElement.textContent = title;
+  titleElement.dataset.l10nId = id + '-title';
+  textElement.textContent = text;
+  textElement.dataset.l10nId = id + '-text';
+
   document.getElementById('overlay').classList.remove('hidden');
 }
 
-// We need four handles here to cancel enumerations
-// for tilesView, listView, sublistView and playerView
+// We need handles here to cancel enumerations for
+// tilesView, listView, sublistView and playerView
 var tilesHandle = null;
 var listHandle = null;
 var sublistHandle = null;
@@ -255,7 +278,7 @@ function showCurrentView(callback) {
   // and then pass them synchronously to the update() functions.
   // If we do it asynchronously, then we'll get one redraw for
   // every song.
-  if (currentMode === MODE_LIST) {
+  if (ModeManager.currentMode === MODE_LIST) {
     listHandle =
       musicdb.enumerateAll('metadata.' + TabBar.option, null, 'nextunique',
                            function(songs) {
@@ -290,104 +313,134 @@ function showCurrentView(callback) {
 
 }
 
-// This Application has four modes, TILES, LIST, SUBLIST and PLAYER
+// This Application has five modes: TILES, SEARCH, LIST, SUBLIST, and PLAYER
+// Search has two "modes", depending on whether we came from TILES or LIST.
+//
+// Before the Music app is launched we use display: none to hide the modes so
+// that Gecko will not try to apply CSS styles on those elements which seems are
+// actions that slows down the startup time we will remove display: none on
+// elements when we need to display them.
 var MODE_TILES = 1;
 var MODE_LIST = 2;
 var MODE_SUBLIST = 3;
 var MODE_PLAYER = 4;
-var currentMode, fromMode;
-var playerTitle, sublistTitle;
+var MODE_SEARCH_FROM_TILES = 5;
+var MODE_SEARCH_FROM_LIST = 6;
 
-// Before Music app is launched
-// we use display: none to hide the four pages(TILES, LIST, SUBLIST and PLAYER)
-// so that Gecko will not try to apply CSS styles on those elements
-// which seems are actions that slows down the startup time
-// we will remove display: none on elements when we need to display them
+var ModeManager = {
+  _modeStack: [],
+  playerTitle: null,
 
-function changeMode(mode, callback) {
-  var title;
-  var playerLoaded = (typeof PlayerView != 'undefined');
+  get currentMode() {
+    return this._modeStack[this._modeStack.length - 1];
+  },
 
-  switch (mode) {
-    case MODE_TILES:
-      title = playerTitle || musicTitle;
-      break;
-    case MODE_LIST:
-      switch (TabBar.option) {
-        case 'playlist':
-          title = playlistTitle;
-          break;
-        case 'artist':
-          title = artistTitle;
-          break;
-        case 'album':
-          title = albumTitle;
-          break;
-      }
+  start: function(mode, callback) {
+    this._modeStack = [mode];
+    this._updateMode(callback);
+  },
 
-      sublistTitle = title;
-      document.getElementById('views-list').classList.remove('hidden');
-      break;
-    case MODE_SUBLIST:
-      title = sublistTitle;
-      document.getElementById('views-sublist').classList.remove('hidden');
-      break;
-    case MODE_PLAYER:
-      title = playerTitle;
-      document.getElementById('views-player').classList.remove('hidden');
+  push: function(mode, callback) {
+    this._modeStack.push(mode);
+    this._updateMode(callback);
+  },
+
+  pop: function() {
+    if (this._modeStack.length <= 1)
+      return;
+    this._modeStack.pop();
+    this._updateMode();
+  },
+
+  updateTitle: function() {
+    var title;
+
+    switch (this.currentMode) {
+      case MODE_TILES:
+        title = this.playerTitle || musicTitle;
+        break;
+      case MODE_LIST:
+      case MODE_SUBLIST:
+        switch (TabBar.option) {
+          case 'playlist':
+            title = playlistTitle;
+            break;
+          case 'artist':
+            title = artistTitle;
+            break;
+          case 'album':
+            title = albumTitle;
+            break;
+          case 'title':
+            title = songTitle;
+            break;
+        }
+        break;
+      case MODE_PLAYER:
+        title = this.playerTitle || unknownTitle;
+        break;
+    }
+
+    // if title doesn't exist, that should be the first time launch
+    // so we can just ignore changeTitleText()
+    // because the title is already localized in HTML
+    // And if title does exist, it should be the localized "Music"
+    // so it will be just fine to update changeTitleText() again
+    if (title)
+      TitleBar.changeTitleText(title);
+  },
+
+  _updateMode: function(callback) {
+    var mode = this.currentMode;
+    var playerLoaded = (typeof PlayerView != 'undefined');
+
+    this.updateTitle();
+
+    if (mode === MODE_PLAYER) {
       // Here if Player is not loaded yet and we are going to play
       // load Player.js then we can use the PlayerView object
-      if (!playerLoaded) {
-        LazyLoader.load('js/Player.js', function() {
+      document.getElementById('views-player').classList.remove('hidden');
+      LazyLoader.load('js/Player.js', function() {
+        if (!playerLoaded)
           PlayerView.init(true);
 
-          if (callback)
-            callback();
-        });
-      }
-      break;
+        if (callback)
+          callback();
+      });
+    } else {
+      if (mode === MODE_LIST)
+        document.getElementById('views-list').classList.remove('hidden');
+      else if (mode === MODE_SUBLIST)
+        document.getElementById('views-sublist').classList.remove('hidden');
+      else if (mode === MODE_SEARCH_FROM_TILES ||
+               mode === MODE_SEARCH_FROM_LIST)
+        document.getElementById('search').classList.remove('hidden');
+
+      if (callback)
+        callback();
+    }
+
+    // Remove all mode classes before applying a new one
+    var modeClasses = ['tiles-mode', 'list-mode', 'sublist-mode', 'player-mode',
+                       'search-from-tiles-mode', 'search-from-list-mode'];
+
+    modeClasses.forEach(function resetMode(targetClass) {
+      document.body.classList.remove(targetClass);
+    });
+
+    document.body.classList.add(modeClasses[mode - 1]);
+
+    // Don't display scan progress if we're in sublist or player mode.
+    // In these modes the user needs to see the regular titlebar so they
+    // can use the back button. If the user returns to tiles or list
+    // mode and we get more scan results we'll resume the progress display.
+    if (displayingScanProgress &&
+        (mode === MODE_SUBLIST || mode === MODE_PLAYER)) {
+      document.getElementById('scan-progress').classList.add('hidden');
+      displayingScanProgress = false;
+    }
   }
-
-  // if title doesn't exist, that should be the first time launch
-  // so we can just ignore changeTitleText()
-  // because the title is already localized in HTML
-  // And if title does exist, it should be the localized "Music"
-  // so it will be just fine to update changeTitleText() again
-  if (title)
-    TitleBar.changeTitleText(title);
-
-  if (mode === currentMode)
-    return;
-
-  if (fromMode >= mode) {
-    fromMode = mode - 1;
-  } else {
-    fromMode = currentMode;
-  }
-  currentMode = mode;
-
-  // Remove all mode classes before applying a new one
-  var modeClasses = ['tiles-mode', 'list-mode', 'sublist-mode', 'player-mode'];
-
-  modeClasses.forEach(function resetMode(targetClass) {
-    document.body.classList.remove(targetClass);
-  });
-
-  document.body.classList.add(modeClasses[mode - 1]);
-
-  // Don't display scan progress if we're in sublist or player mode.
-  // In these modes the user needs to see the regular titlebar so they
-  // can use the back button. If the user returns to tiles or list
-  // mode and we get more scan results we'll resume the progress display.
-  if (displayingScanProgress &&
-      (mode === MODE_SUBLIST || mode === MODE_PLAYER)) {
-    document.getElementById('scan-progress').classList.add('hidden');
-    displayingScanProgress = false;
-  }
-
-  if (callback && playerLoaded)
-    callback();
-}
+};
 
 // Title Bar
 var TitleBar = {
@@ -415,22 +468,22 @@ var TitleBar = {
   },
 
   handleEvent: function tb_handleEvent(evt) {
+    var target = evt.target;
     switch (evt.type) {
       case 'click':
-        var target = evt.target;
         if (!target)
           return;
 
         switch (target.id) {
           case 'title-back':
-            changeMode(fromMode);
+            ModeManager.pop();
 
             break;
           case 'title-player':
             // We cannot to switch to player mode
             // when there is no song in the dataSource of player
             if (PlayerView.dataSource.length != 0)
-              changeMode(MODE_PLAYER);
+              ModeManager.push(MODE_PLAYER);
 
             break;
         }
@@ -450,6 +503,22 @@ var TilesView = {
     return this._view = document.getElementById('views-tiles');
   },
 
+  get anchor() {
+    delete this._anchor;
+    return this._anchor = document.getElementById('views-tiles-anchor');
+  },
+
+  get searchBox() {
+    delete this._searchBox;
+    return this._searchBox = document.getElementById('views-tiles-search');
+  },
+
+  get searchInput() {
+    delete this._searchInput;
+    return this._searchInput = document.getElementById(
+      'views-tiles-search-input');
+  },
+
   get dataSource() {
     return this._dataSource;
   },
@@ -463,6 +532,8 @@ var TilesView = {
     this.index = 0;
 
     this.view.addEventListener('click', this);
+    this.view.addEventListener('input', this);
+    this.searchInput.addEventListener('focus', this);
   },
 
   clean: function tv_clean() {
@@ -472,8 +543,16 @@ var TilesView = {
 
     this.dataSource = [];
     this.index = 0;
-    this.view.innerHTML = '';
+    this.anchor.innerHTML = '';
     this.view.scrollTop = 0;
+    this.hideSearch();
+  },
+
+  hideSearch: function tv_hideSearch() {
+    this.searchInput.value = '';
+    // XXX: we probably want to animate this...
+    if (this.view.scrollTop < this.searchBox.offsetHeight)
+      this.view.scrollTop = this.searchBox.offsetHeight;
   },
 
   update: function tv_update(result) {
@@ -495,6 +574,12 @@ var TilesView = {
 
       // Display the TilesView after when finished updating the UI
       document.getElementById('views-tiles').classList.remove('hidden');
+      // After the hidden class is removed, hideSearch can be effected
+      // because the computed styles are applied to the search elements
+      // And ux wants the search bar to retain its position for about
+      // a half second, but half second seems to short for notifying users
+      // so we use one second instead of a half second
+      window.setTimeout(this.hideSearch.bind(this), 1000);
       return;
     }
 
@@ -513,7 +598,10 @@ var TilesView = {
     var albumName = document.createElement('div');
     albumName.className = 'tile-title-album';
     artistName.textContent = result.metadata.artist || unknownArtist;
+    artistName.dataset.l10nId =
+      result.metadata.artist ? '' : unknownArtistL10nId;
     albumName.textContent = result.metadata.album || unknownAlbum;
+    albumName.dataset.l10nId = result.metadata.album ? '' : unknownAlbumL10nId;
     titleBar.appendChild(artistName);
 
     // There are 6 tiles in one group
@@ -567,22 +655,54 @@ var TilesView = {
       container.appendChild(titleBar);
 
     tile.appendChild(container);
-    this.view.appendChild(tile);
+    this.anchor.appendChild(tile);
 
     this.index++;
   },
 
   handleEvent: function tv_handleEvent(evt) {
+    var target = evt.target;
     switch (evt.type) {
       case 'click':
-        var target = evt.target;
         if (!target)
           return;
 
-        if (target.dataset.index) {
-          var handler = tv_playSong.bind(this);
+        if (target.id === 'views-tiles-search-clear') {
+          SearchView.clearSearch();
+          return;
+        }
+
+        if (target.id === 'views-tiles-search-close') {
+          if (ModeManager.currentMode === MODE_SEARCH_FROM_TILES) {
+            ModeManager.pop();
+          }
+          this.hideSearch();
+          evt.preventDefault();
+        } else if (target.dataset.index) {
+          var handler;
+          var index = target.dataset.index;
+
+          var data = this.dataSource[index];
+          handler = tv_playAlbum.bind(this, data, index);
 
           target.addEventListener('transitionend', handler);
+        }
+
+        break;
+
+      case 'focus':
+        if (target.id === 'views-tiles-search-input') {
+          if (ModeManager.currentMode !== MODE_SEARCH_FROM_TILES) {
+            ModeManager.push(MODE_SEARCH_FROM_TILES);
+            SearchView.search(target.value);
+          }
+        }
+
+        break;
+
+      case 'input':
+        if (target.id === 'views-tiles-search-input') {
+          SearchView.search(target.value);
         }
 
         break;
@@ -591,15 +711,14 @@ var TilesView = {
         return;
     }
 
-    function tv_playSong() {
-      var index = target.dataset.index;
-      var data = this.dataSource[index];
+    function tv_playAlbum(data, index) {
       var backgroundIndex = index % 10;
+
       var key = 'metadata.album';
       var range = IDBKeyRange.only(data.metadata.album);
       var direction = 'next';
 
-      changeMode(MODE_PLAYER, function() {
+      ModeManager.push(MODE_PLAYER, function() {
         PlayerView.clean();
 
         // When an user tap an album on the tilesView
@@ -628,21 +747,44 @@ var TilesView = {
 
 // In Music, visually we have three styles of list
 // Here we use one function to create different style lists
-function createListElement(option, data, index) {
+function createListElement(option, data, index, highlight) {
   var li = document.createElement('li');
   li.className = 'list-item';
 
   var a = document.createElement('a');
   a.href = '#';
   a.dataset.index = index;
+  a.dataset.option = option;
 
   li.appendChild(a);
+
+  function highlightText(result, text) {
+    var textContent = result.textContent;
+    var index = textContent.toLocaleLowerCase().indexOf(text);
+
+    if (index >= 0) {
+      var innerHTML = textContent.substring(0, index) +
+                      '<span class="search-highlight">' +
+                      textContent.substring(index, index + text.length) +
+                      '</span>' +
+                      textContent.substring(index + text.length);
+
+      result.innerHTML = innerHTML;
+    }
+  }
 
   switch (option) {
     case 'playlist':
       var titleSpan = document.createElement('span');
       titleSpan.className = 'list-playlist-title';
-      titleSpan.textContent = data.metadata.title || unknownTitle;
+      if (data.metadata.l10nId) {
+        titleSpan.textContent = data.metadata.title;
+        titleSpan.dataset.l10nId = data.metadata.l10nId;
+      } else {
+        titleSpan.textContent = data.metadata.title || unknownTitle;
+        titleSpan.dataset.l10nId =
+          data.metadata.title ? '' : unknownTitleL10nId;
+      }
 
       a.dataset.keyRange = 'all';
       a.dataset.option = data.option;
@@ -659,6 +801,7 @@ function createListElement(option, data, index) {
 
     case 'artist':
     case 'album':
+    case 'title':
       var parent = document.createElement('div');
       parent.className = 'list-image-parent';
       parent.classList.add('default-album-' + index % 10);
@@ -674,15 +817,39 @@ function createListElement(option, data, index) {
         var artistSpan = document.createElement('span');
         artistSpan.className = 'list-single-title';
         artistSpan.textContent = data.metadata.artist || unknownArtist;
+        artistSpan.dataset.l10nId =
+          data.metadata.artist ? '' : unknownArtistL10nId;
+
+        // Highlight the text when the highlight argument is passed
+        // This should only happens when we are creating searched results
+        if (highlight)
+          highlightText(artistSpan, highlight);
+
         li.appendChild(artistSpan);
       } else {
-        var albumSpan = document.createElement('span');
+        var albumOrTitleSpan = document.createElement('span');
         var artistSpan = document.createElement('span');
-        albumSpan.className = 'list-main-title';
+        albumOrTitleSpan.className = 'list-main-title';
         artistSpan.className = 'list-sub-title';
-        albumSpan.textContent = data.metadata.album || unknownAlbum;
+        if (option === 'album') {
+          albumOrTitleSpan.textContent = data.metadata.album || unknownAlbum;
+          albumOrTitleSpan.dataset.l10nId =
+            data.metadata.album ? '' : unknownAlbumL10nId;
+        } else {
+          albumOrTitleSpan.textContent = data.metadata.title || unknownTitle;
+          albumOrTitleSpan.dataset.l10nId =
+            data.metadata.title ? '' : unknownTitleL10nId;
+        }
         artistSpan.textContent = data.metadata.artist || unknownArtist;
-        li.appendChild(albumSpan);
+        artistSpan.dataset.l10nId =
+          data.metadata.artist ? '' : unknownArtistL10nId;
+
+        // Highlight the text when the highlight argument is passed
+        // This should only happens when we are creating searched results
+        if (highlight)
+          highlightText(albumOrTitleSpan, highlight);
+
+        li.appendChild(albumOrTitleSpan);
         li.appendChild(artistSpan);
       }
 
@@ -703,6 +870,7 @@ function createListElement(option, data, index) {
       var titleSpan = document.createElement('span');
       titleSpan.className = 'list-song-title';
       titleSpan.textContent = songTitle;
+      titleSpan.dataset.l10nId = data.metadata.title ? '' : unknownTitleL10nId;
 
       var lengthSpan = document.createElement('span');
       lengthSpan.className = 'list-song-length';
@@ -724,6 +892,22 @@ var ListView = {
     return this._view = document.getElementById('views-list');
   },
 
+  get anchor() {
+    delete this._anchor;
+    return this._anchor = document.getElementById('views-list-anchor');
+  },
+
+  get searchBox() {
+    delete this._searchBox;
+    return this._searchBox = document.getElementById('views-list-search');
+  },
+
+  get searchInput() {
+    delete this._searchInput;
+    return this._searchInput = document.getElementById(
+      'views-list-search-input');
+  },
+
   get dataSource() {
     return this._dataSource;
   },
@@ -738,6 +922,8 @@ var ListView = {
     this.lastFirstLetter = null;
 
     this.view.addEventListener('click', this);
+    this.view.addEventListener('input', this);
+    this.searchInput.addEventListener('focus', this);
   },
 
   clean: function lv_clean() {
@@ -748,8 +934,16 @@ var ListView = {
     this.dataSource = [];
     this.index = 0;
     this.lastFirstLetter = null;
-    this.view.innerHTML = '';
+    this.anchor.innerHTML = '';
     this.view.scrollTop = 0;
+    this.hideSearch();
+  },
+
+  hideSearch: function lv_hideSearch() {
+    this.searchInput.value = '';
+    // XXX: we probably want to animate this...
+    if (this.view.scrollTop < this.searchBox.offsetHeight)
+      this.view.scrollTop = this.searchBox.offsetHeight;
   },
 
   update: function lv_update(option, result) {
@@ -758,7 +952,7 @@ var ListView = {
 
     this.dataSource.push(result);
 
-    if (option === 'artist' || option === 'album') {
+    if (option !== 'playlist') {
       var firstLetter = result.metadata[option].charAt(0);
 
       if (this.lastFirstLetter != firstLetter) {
@@ -768,79 +962,89 @@ var ListView = {
         headerLi.className = 'list-header';
         headerLi.textContent = this.lastFirstLetter || '?';
 
-        this.view.appendChild(headerLi);
+        this.anchor.appendChild(headerLi);
       }
     }
 
-    this.view.appendChild(createListElement(option, result, this.index));
+    this.anchor.appendChild(createListElement(option, result, this.index));
 
     this.index++;
   },
 
   handleEvent: function lv_handleEvent(evt) {
+    var target = evt.target;
+
     switch (evt.type) {
       case 'click':
-        var target = evt.target;
         if (!target)
           return;
 
-        var option = target.dataset.option;
-        if (option) {
-          var index = target.dataset.index;
-          var data = this.dataSource[index];
+        if (target.id === 'views-list-search-clear') {
+          SearchView.clearSearch();
+          return;
+        }
 
-          var targetOption =
-            (option === 'date') ? option : 'metadata.' + option;
-          var keyRange = (target.dataset.keyRange != 'all') ?
-            IDBKeyRange.only(target.dataset.keyRange) : null;
-          var direction =
-           (data.metadata.title === mostPlayedTitle ||
-            data.metadata.title === recentlyAddedTitle ||
-            data.metadata.title === highestRatedTitle) ? 'prev' : 'next';
-
+        if (target.id === 'views-list-search-close') {
+          if (ModeManager.currentMode === MODE_SEARCH_FROM_LIST) {
+            ModeManager.pop();
+          }
+          this.hideSearch();
+          evt.preventDefault();
+        } else {
+          var option = target.dataset.option;
           // When an user select "Shuffle all"
           // We just play all songs with shuffle order
           // or change mode to subList view and list songs
-          if (option === 'title') {
+          if (option === 'shuffleAll') {
             musicdb.getAll(function lv_getAll(dataArray) {
-              changeMode(MODE_PLAYER, function() {
+              ModeManager.push(MODE_PLAYER, function() {
                 PlayerView.setSourceType(TYPE_MIX);
                 PlayerView.dataSource = dataArray;
                 PlayerView.setShuffle(true);
                 PlayerView.play(PlayerView.shuffledList[0]);
               });
             });
-          } else {
-            SubListView.clean();
+          } else if (option === 'title') {
+            ModeManager.push(MODE_PLAYER, function() {
+              var targetIndex = parseInt(target.dataset.index);
 
-            sublistHandle =
-              musicdb.enumerateAll(targetOption, keyRange, direction,
-                function lv_enumerateAll(dataArray) {
-                  var albumName;
+              PlayerView.setSourceType(TYPE_MIX);
+              PlayerView.dataSource = this.dataSource;
+              PlayerView.play(targetIndex);
+            }.bind(this));
+          } else if (option) {
+            var index = target.dataset.index;
+            var data = this.dataSource[index];
 
-                  if (option === 'artist') {
-                    albumName = data.metadata.artist || unknownArtist;
-                  } else if (option === 'album') {
-                    albumName = data.metadata.album || unknownAlbum;
-                  } else {
-                    albumName = data.metadata.title || unknownTitle;
-                  }
+            var keyRange = (target.dataset.keyRange != 'all') ?
+              IDBKeyRange.only(target.dataset.keyRange) : null;
+            var direction =
+             (data.metadata.title === mostPlayedTitle ||
+              data.metadata.title === recentlyAddedTitle ||
+              data.metadata.title === highestRatedTitle) ? 'prev' : 'next';
 
-                  SubListView.setAlbumName(albumName);
-                  SubListView.setAlbumDefault(index);
-                  SubListView.dataSource = dataArray;
-
-                  if (data.metadata.thumbnail)
-                    SubListView.setAlbumSrc(data);
-
-                  dataArray.forEach(function(songData) {
-                    SubListView.update(songData);
-                  });
-
-                  changeMode(MODE_SUBLIST);
-                }
-            );
+            SubListView.activate(
+              option, data, index, keyRange, direction, function() {
+                ModeManager.push(MODE_SUBLIST);
+              });
           }
+        }
+
+        break;
+
+      case 'focus':
+        if (target.id === 'views-list-search-input') {
+          if (ModeManager.currentMode !== MODE_SEARCH_FROM_LIST) {
+            ModeManager.push(MODE_SEARCH_FROM_LIST);
+            SearchView.search(target.value);
+          }
+        }
+
+        break;
+
+      case 'input':
+        if (target.id === 'views-list-search-input') {
+          SearchView.search(target.value);
         }
 
         break;
@@ -925,8 +1129,49 @@ var SubListView = {
     };
   },
 
-  setAlbumName: function slv_setAlbumName(name) {
+  setAlbumName: function slv_setAlbumName(name, l10nId) {
     this.albumName.textContent = name;
+    this.albumName.dataset.l10nId = l10nId;
+  },
+
+  activate: function(option, data, index, keyRange, direction, callback) {
+    var targetOption = (option === 'date') ? option : 'metadata.' + option;
+    SubListView.clean();
+
+    sublistHandle = musicdb.enumerateAll(targetOption, keyRange, direction,
+                                         function lv_enumerateAll(dataArray) {
+      var albumName;
+      var albumNameL10nId;
+
+      if (option === 'artist') {
+        albumName = data.metadata.artist || unknownArtist;
+        albumNameL10nId = data.metadata.artist ? '' : unknownArtistL10nId;
+      } else if (option === 'album') {
+        albumName = data.metadata.album || unknownAlbum;
+        albumNameL10nId = data.metadata.album ? '' : unknownAlbumL10nId;
+      } else {
+        albumName = data.metadata.title || unknownTitle;
+        albumNameL10nId = data.metadata.title ? '' : unknownTitleL10nId;
+      }
+
+      // Overrides l10nId.
+      if (data.metadata.l10nId)
+        albumNameL10nId = data.metadata.l10nId;
+
+      SubListView.setAlbumName(albumName, albumNameL10nId);
+      SubListView.setAlbumDefault(index);
+      SubListView.dataSource = dataArray;
+
+      if (data.metadata.picture)
+        SubListView.setAlbumSrc(data);
+
+      dataArray.forEach(function(songData) {
+        SubListView.update(songData);
+      });
+
+      if (callback)
+        callback();
+    });
   },
 
   update: function slv_update(result) {
@@ -952,7 +1197,7 @@ var SubListView = {
         }
 
         if (target === this.shuffleButton) {
-          changeMode(MODE_PLAYER, function() {
+          ModeManager.push(MODE_PLAYER, function() {
             PlayerView.setSourceType(TYPE_LIST);
             PlayerView.dataSource = this.dataSource;
             PlayerView.setShuffle(true);
@@ -962,7 +1207,7 @@ var SubListView = {
         }
 
         if (target.dataset.index || target === this.playAllButton) {
-          changeMode(MODE_PLAYER, function() {
+          ModeManager.push(MODE_PLAYER, function() {
             PlayerView.setSourceType(TYPE_LIST);
             PlayerView.dataSource = this.dataSource;
 
@@ -1008,8 +1253,158 @@ var SubListView = {
   }
 };
 
+var SearchView = {
+  get view() {
+    delete this._view;
+    return this._view = document.getElementById('search');
+  },
+
+  get searchArtistsView() {
+    delete this._searchArtists;
+    return this._searchArtists = document.getElementById(
+      'views-search-artists');
+  },
+
+  get searchAlbumsView() {
+    delete this._searchAlbums;
+    return this._searchAlbums = document.getElementById(
+      'views-search-albums');
+  },
+
+  get searchTitlesView() {
+    delete this._searchTitles;
+    return this._searchTitles = document.getElementById(
+      'views-search-titles');
+  },
+
+  init: function sv_init() {
+    this.dataSource = [];
+    this.searchHandles = { artist: null, album: null, title: null };
+
+    this.view.addEventListener('click', this);
+  },
+
+  search: function sv_search(query) {
+    this.clearSearch();
+    if (!query)
+      return;
+
+    query = query.toLocaleLowerCase();
+
+    var lists = { artist: this.searchArtistsView,
+                  album: this.searchAlbumsView,
+                  title: this.searchTitlesView };
+    var numResults = { artist: 0, album: 0, title: 0 };
+
+    function sv_showResult(option, result) {
+      if (result === null) {
+        this.searchHandles[option] = null;
+        return;
+      }
+
+      if (result.metadata[option].toLocaleLowerCase().indexOf(query) !== -1) {
+        this.dataSource.push(result);
+
+        numResults[option]++;
+        lists[option].classList.remove('hidden');
+        lists[option].getElementsByClassName('search-result-count')[0]
+                     .textContent = numResults[option];
+        lists[option].getElementsByClassName('search-results')[0].appendChild(
+          createListElement(option, result, this.dataSource.length - 1, query)
+        );
+      }
+    }
+
+    this.searchHandles.artist = musicdb.enumerate(
+      'metadata.artist', null, 'nextunique',
+      sv_showResult.bind(this, 'artist')
+    );
+    this.searchHandles.album = musicdb.enumerate(
+      'metadata.album', null, 'nextunique',
+      sv_showResult.bind(this, 'album')
+    );
+    this.searchHandles.title = musicdb.enumerate(
+      'metadata.title',
+      sv_showResult.bind(this, 'title')
+    );
+  },
+
+  clearSearch: function sv_clearSearch() {
+    for (var option in this.searchHandles) {
+      var handle = this.searchHandles[option];
+      if (handle)
+        musicdb.cancelEnumeration(handle);
+    }
+
+    var views = [this.searchArtistsView, this.searchAlbumsView,
+                 this.searchTitlesView];
+    views.forEach(function(view) {
+      view.getElementsByClassName('search-results')[0].innerHTML = '';
+      view.classList.add('hidden');
+    });
+    this.dataSource = [];
+  },
+
+  handleEvent: function sv_handleEvent(evt) {
+    var target = evt.target;
+    switch (evt.type) {
+      case 'click':
+        if (!target)
+          return;
+
+        if (target.dataset.index) {
+          var handler;
+          var index = target.dataset.index;
+
+          var option = target.dataset.option;
+          var keyRange = target.dataset.keyRange;
+          var data = this.dataSource[index];
+          handler = sv_openResult.bind(this, option, data, index, keyRange);
+
+          target.addEventListener('transitionend', handler);
+        }
+        break;
+
+      default:
+        return;
+    }
+
+    function sv_openResult(option, data, index, keyRange) {
+      if (option === 'title') {
+        ModeManager.push(MODE_PLAYER, function() {
+          PlayerView.setSourceType(TYPE_LIST);
+          PlayerView.dataSource = [data];
+          PlayerView.play(0, index % 10);
+        });
+      } else {
+        SubListView.activate(option, data, index, keyRange, 'next', function() {
+          ModeManager.push(MODE_SUBLIST);
+        });
+      }
+
+      target.removeEventListener('transitionend', handler);
+    }
+  }
+};
+
 // Tab Bar
 var TabBar = {
+  // this array is for automated playlists
+  playlistArray: [
+    {metadata: {title: shuffleAllTitle,
+      l10nId: shuffleAllTitleL10nId}, option: 'shuffleAll'},
+    {metadata: {title: highestRatedTitle,
+      l10nId: highestRatedTitleL10nId}, option: 'rated'},
+    {metadata: {title: recentlyAddedTitle,
+      l10nId: recentlyAddedTitleL10nId}, option: 'date'},
+    {metadata: {title: mostPlayedTitle,
+      l10nId: mostPlayedTitleL10nId}, option: 'played'},
+    {metadata: {title: leastPlayedTitle,
+      l10nId: leastPlayedTitleL10nId}, option: 'played'},
+    // update ListView with null result to hide the scan progress
+    null
+  ],
+
   get view() {
     delete this._view;
     return this._view = document.getElementById('tabs');
@@ -1018,6 +1413,17 @@ var TabBar = {
   init: function tab_init() {
     this.option = '';
     this.view.addEventListener('click', this);
+
+    this.playlistArray.localize = function() {
+      this.forEach(function(playList) {
+        if (playList) {
+          var metadata = playList.metadata;
+          if (metadata && metadata.l10nId) {
+            metadata.title = navigator.mozL10n.get(metadata.l10nId);
+          }
+        }
+      });
+    };
   },
 
   setDisabled: function tab_setDisabled(option) {
@@ -1044,32 +1450,23 @@ var TabBar = {
 
         switch (target.id) {
           case 'tabs-mix':
-            changeMode(MODE_TILES);
+            ModeManager.start(MODE_TILES);
+            TilesView.hideSearch();
 
             break;
           case 'tabs-playlists':
-            changeMode(MODE_LIST);
+            ModeManager.start(MODE_LIST);
             ListView.clean();
 
-            // this array is for automated playlists
-            var playlistArray = [
-              {metadata: {title: shuffleAllTitle}, option: 'title'},
-              {metadata: {title: highestRatedTitle}, option: 'rated'},
-              {metadata: {title: recentlyAddedTitle}, option: 'date'},
-              {metadata: {title: mostPlayedTitle}, option: 'played'},
-              {metadata: {title: leastPlayedTitle}, option: 'played'},
-              // update ListView with null result to hide the scan progress
-              null
-            ];
-
-            playlistArray.forEach(function(playlist) {
+            this.playlistArray.forEach(function(playlist) {
               ListView.update(this.option, playlist);
             }.bind(this));
 
             break;
           case 'tabs-artists':
           case 'tabs-albums':
-            changeMode(MODE_LIST);
+          case 'tabs-songs':
+            ModeManager.start(MODE_LIST);
             ListView.clean();
 
             listHandle =
@@ -1095,7 +1492,8 @@ window.addEventListener('DOMContentLoaded', function() {
   TilesView.init();
   ListView.init();
   SubListView.init();
+  SearchView.init();
   TabBar.init();
 
-  changeMode(MODE_TILES);
+  ModeManager.start(MODE_TILES);
 });

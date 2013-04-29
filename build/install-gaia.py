@@ -145,6 +145,11 @@ def install_gaia_slow():
     adb_push('profile/webapps', webapps_path)
     adb_push('profile/user.js', '/data/local')
 
+def install_preload_data():
+    db_path = 'profile/indexedDB/'
+    if os.path.exists(db_path):
+        adb_push(db_path, '/data/local/indexedDB')
+
 def install_gaia():
     global remote_path
     try:
@@ -158,6 +163,7 @@ def install_gaia():
     except:
         # If anything goes wrong, fall back to the slow method.
         install_gaia_slow()
+    install_preload_data()
 
 if __name__ == '__main__':
     if len(sys.argv) > 3:

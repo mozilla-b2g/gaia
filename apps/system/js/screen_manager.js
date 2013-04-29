@@ -87,10 +87,9 @@ var ScreenManager = {
   _idleTimerId: 0,
 
   /*
-   * If the screen off is triggered by promixity during phon call then
-   * we need wake it up while phone is ended.
+   * To track the reason caused screen off?
    */
-  _screenOffByProximity: false,
+  _screenOffBy: null,
 
   /*
    * Request wakelock during in_call state.
@@ -99,9 +98,21 @@ var ScreenManager = {
    */
   _cpuWakeLock: null,
 
+  /*
+   * Current state of the CPU Wake lock
+   */
+  _cpuState: null,
+
+  /*
+   * We track the audio status
+   */
+  _audioActive: false,
+  _audioCpuSleepTimerId: 0,
+
   init: function scm_init() {
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
+    window.addEventListener('mozChromeEvent', this);
 
     this.screen = document.getElementById('screen');
 
@@ -121,8 +132,8 @@ var ScreenManager = {
             break;
 
           case 'cpu':
-            power.cpuSleepAllowed = (state != 'locked-foreground' &&
-                                     state != 'locked-background');
+            self._cpuState = state;
+            self.refreshCpuSleepAllowed();
             break;
         }
       });
@@ -199,6 +210,7 @@ var ScreenManager = {
         break;
 
       case 'sleep':
+        this._screenOffBy = 'powerkey';
         this.turnScreenOff(true);
         break;
 
@@ -207,7 +219,14 @@ var ScreenManager = {
         break;
 
       case 'userproximity':
-        this._screenOffByProximity = evt.near;
+        var bluetooth = navigator.mozBluetooth;
+        var telephony = window.navigator.mozTelephony;
+        // 0x111E is for querying earphone type.
+        if ((bluetooth && bluetooth.isConnected(0x111E)) ||
+            telephony.speakerEnabled)
+          break;
+
+        this._screenOffBy = evt.near ? 'proximity' : '';
         if (evt.near) {
           this.turnScreenOff(true);
         } else {
@@ -218,12 +237,11 @@ var ScreenManager = {
       case 'callschanged':
         var telephony = window.navigator.mozTelephony;
         if (!telephony.calls.length) {
-          if (this._screenOffByProximity) {
+          if (this._screenOffBy == 'proximity') {
             this.turnScreenOn();
           }
 
           window.removeEventListener('userproximity', this);
-          this._screenOffByProximity = false;
 
           if (this._cpuWakeLock) {
            this._cpuWakeLock.unlock();
@@ -237,6 +255,9 @@ var ScreenManager = {
         // notification.
         if (this._cpuWakeLock) {
           this.turnScreenOn();
+          // In case of user making an extra call, the attention screen
+          // may be hidden at top so we need to confirm it's shown again.
+          AttentionScreen.show();
 
           break;
         }
@@ -249,22 +270,53 @@ var ScreenManager = {
 
       case 'statechange':
         var call = evt.target;
-        if (call.state !== 'connected') {
+        if (call.state !== 'connected' && call.state !== 'alerting') {
           break;
         }
 
-        // The call is connected. Remove the statechange listener
-        // and enable the user proximity sensor.
+        // The call is connected (MT call) or alerting (MO call).
+        // Remove the statechange listener and enable the user proximity
+        // sensor.
         call.removeEventListener('statechange', this);
 
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
         window.addEventListener('userproximity', this);
+        break;
+
+      case 'mozChromeEvent':
+        if (evt.detail.type == 'audio-channel-changed') {
+          var audioActive = (evt.detail.channel !== 'none' &&
+                             evt.detail.channel !== 'telephony');
+
+          if (this._audioCpuSleepTimerId) {
+            clearTimeout(this._audioCpuSleepTimerId);
+            this._audioCpuSleepTimerId = 0;
+          }
+
+          // If some audio channel is active we refresh the cpuSleepAllowed
+          // immediately, otherwise we just use a timer in order to prevert
+          // rapid stop/start.
+          if (audioActive) {
+            this._audioActive = true;
+            this.refreshCpuSleepAllowed();
+          } else {
+            var self = this;
+            this._audioCpuSleepTimerId = setTimeout(function cpuSleepTimer() {
+              self._audioActive = false;
+              self.refreshCpuSleepAllowed();
+              self._audioCpuSleepTimerId = 0;
+            }, 2000);
+          }
+        }
         break;
     }
   },
 
   toggleScreen: function scm_toggleScreen() {
     if (this.screenEnabled) {
+      // Currently there is no one used toggleScreen, so just set reason as
+      // toggle. If it is used by someone in the future, we can rename it.
+      this._screenOffBy = 'toggle';
       this.turnScreenOff();
     } else {
       this.turnScreenOn();
@@ -281,9 +333,9 @@ var ScreenManager = {
     // we turn the screen back on.
     self._savedBrightness = navigator.mozPower.screenBrightness;
 
-    // Remove the cpuWakeLock if screen is not turned off by
-    // userproximity event.
-    if (!this._screenOffByProximity && this._cpuWakeLock) {
+    // Remove the cpuWakeLock and listening of proximity event, if screen is
+    // turned off by power key.
+    if (this._cpuWakeLock != null && this._screenOffBy == 'powerkey') {
       window.removeEventListener('userproximity', this);
       this._cpuWakeLock.unlock();
       this._cpuWakeLock = null;
@@ -314,9 +366,7 @@ var ScreenManager = {
     };
 
     if (instant) {
-      if (!WindowManager.isFtuRunning()) {
-        screenOff();
-      }
+      screenOff();
       return true;
     }
 
@@ -333,6 +383,7 @@ var ScreenManager = {
   },
 
   turnScreenOn: function scm_turnScreenOn(instant) {
+    this._screenOffBy = '';
     if (this.screenEnabled) {
       if (this._inTransition) {
         // Cancel the dim out
@@ -482,6 +533,7 @@ var ScreenManager = {
 
     var self = this;
     var idleCallback = function idle_proxy() {
+      self._screenOffBy = 'idle_timeout';
       self.turnScreenOff(instant);
     };
     var activeCallback = function active_proxy() {
@@ -497,6 +549,13 @@ var ScreenManager = {
       { bubbles: true, cancelable: false,
         detail: { screenEnabled: this.screenEnabled } });
     window.dispatchEvent(evt);
+  },
+
+  refreshCpuSleepAllowed: function scm_refreshCpuSleepAllowed() {
+    var power = navigator.mozPower;
+    power.cpuSleepAllowed = (this._cpuState != 'locked-foreground' &&
+                             this._cpuState != 'locked-background' &&
+                             !this._audioActive);
   }
 };
 

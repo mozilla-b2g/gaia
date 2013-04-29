@@ -315,10 +315,14 @@ var PlayerView = {
     if (arguments.length > 0) {
       var songData = this.dataSource[targetIndex];
 
-      playerTitle = songData.metadata.title || unknownTitle;
-      TitleBar.changeTitleText(playerTitle);
+      ModeManager.playerTitle = songData.metadata.title;
+      ModeManager.updateTitle();
       this.artist.textContent = songData.metadata.artist || unknownArtist;
+      this.artist.dataset.l10nId =
+        songData.metadata.artist ? '' : unknownArtistL10nId;
       this.album.textContent = songData.metadata.album || unknownAlbum;
+      this.album.dataset.l10nId =
+        songData.metadata.album ? '' : unknownAlbumL10nId;
       this.currentIndex = targetIndex;
 
       // backgroundIndex is from the index of sublistView
@@ -351,8 +355,11 @@ var PlayerView = {
         var titleBar = document.getElementById('title-text');
 
         titleBar.textContent = metadata.title || unknownTitle;
+        titleBar.dataset.l10nId = metadata.title ? '' : unknownTitleL10nId;
         this.artist.textContent = metadata.artist || unknownArtist;
+        this.artist.dataset.l10nId = metadata.artist ? '' : unknownArtistL10nId;
         this.album.textContent = metadata.album || unknownAlbum;
+        this.album.dataset.l10nId = metadata.album ? '' : unknownAlbumL10nId;
 
         // Add the blob from the dataSource to the fileinfo
         // because we want use the cover image which embedded in that blob
@@ -419,12 +426,15 @@ var PlayerView = {
         // When reaches the end, stop and back to the previous mode
         this.stop();
         this.clean();
-        playerTitle = null;
+        ModeManager.playerTitle = null;
 
         // To leave player mode and set the correct title to the TitleBar
         // we have to decide which mode we should back to when the player stops
-        var stopToMode = (currentMode != MODE_PLAYER) ? currentMode : fromMode;
-        changeMode(stopToMode);
+        if (ModeManager.currentMode === MODE_PLAYER) {
+          ModeManager.pop();
+        } else {
+          ModeManager.updateTitle();
+        }
         return;
       }
     } else {
@@ -524,7 +534,11 @@ var PlayerView = {
     this.seekIndicator.style.transform = 'translateX(' + x + ')';
 
     this.seekElapsed.textContent = formatTime(currentTime);
-    this.seekRemaining.textContent = '-' + formatTime(endTime - currentTime);
+    var remainingTime = endTime - currentTime;
+    // Check if there is remaining time to show, avoiding to display "-00:00"
+    // while song is loading (Bug 833710)
+    this.seekRemaining.textContent =
+        (remainingTime > 0) ? '-' + formatTime(remainingTime) : '---:--';
   },
 
   handleEvent: function pv_handleEvent(evt) {

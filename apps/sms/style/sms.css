@@ -1,36 +1,9 @@
-/*
-Currently media queries with min/max resolution are not working
-in Firefox until fixing:
-https://bugzilla.mozilla.org/show_bug.cgi?id=779527
-That's why in SII or Nexus SMS App is not rendered properly.
-*/
-
-@media screen and (min-resolution: 230dpi) {
-
-  html {
-    font-size: 14.7px;
-  }
-}
-
-@media screen and (max-resolution: 220dpi) {
-
-  html {
-    font-size: 13.5px;
-  }
-}
-
-@media screen and (max-resolution: 200dpi) {
-
-  html {
-    font-size: 10px;
-  }
-}
-
 html, body {
   height: 100%;
   width: 100%;
   padding: 0;
   margin: 0;
+  font-size: 10px;
   overflow-x: hidden !important;
   overflow-y: hidden !important;
   font-family: 'MozTT', sans-serif;
@@ -39,6 +12,8 @@ html, body {
 /* Override Building Block [Header] styles */
 section[role="region"] > header:first-child .icon.icon-clear {
   background-image: url(images/icons/clear.png);
+  background-position: center calc(50% + 0.1rem);
+  background-size: 1.7rem;
   right: calc(-50% + 7rem);
   width: 2rem;
   margin: 0;
@@ -57,9 +32,9 @@ form.bottom[role="search"] {
   z-index: 3;
 }
 
-#receiver-input {
+#messages-recipient {
   padding-right: 3rem;
-  font-size: -moz-calc(8 * 0.226rem);
+  font-size: 1.8rem;
 }
 
 /* Override Building Block [Edit mode] styles */
@@ -109,7 +84,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   opacity: 0;
   display: block;
   overflow: hidden;
-  right: 5rem; 
+  right: 5rem;
 }
 
 [data-type="list"] aside.icon-unread {
@@ -118,7 +93,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 }
 
 [data-type="list"] .unread aside.icon-unread {
-  background: url("../style/images/unread.png") no-repeat scroll left center transparent;
+  background: url("../style/images/unread.png") no-repeat left center / 1rem;
 }
 
 [data-type="list"] p time {
@@ -151,16 +126,16 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   transition: all 0.3s ease;
 }
 
-.edit #thread-list-container[data-type="list"] aside.pack-end {
+.edit #threads-container[data-type="list"] aside.pack-end {
   margin: 0 0 0 -3rem;
 }
 
-.edit #thread-list-container[data-type="list"] aside.pack-end img {
+.edit #threads-container[data-type="list"] aside.pack-end img {
   transform: translateX(7.5rem);
   transition: all 0.3s ease;
 }
 
-.edit #thread-list-container[data-type="list"] aside.pack-end img[src=""] {
+.edit #threads-container[data-type="list"] aside.pack-end img[src=""] {
   width: 6.5rem;
 }
 
@@ -198,29 +173,29 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 }
 
 #main-wrapper[data-position='left'].peek .panel {
-  transform: translateX(-1px);
+  transform: translateX(-0.1rem);
 }
 #main-wrapper[data-position='left'] .panel {
   transform: translateX(-100%);
 }
 
 #main-wrapper[data-position='right'].peek .panel {
-  transform: translateX(calc(-100% + 1px));
+  transform: translateX(calc(-100% + 0.1rem));
 }
 #main-wrapper[data-position='right'] .panel {
   transform: translateX(0%);
 }
 
-#thread-list,#thread-messages {
+#threads-container,#thread-messages {
   z-index: 10;
   background: white;
 }
 
-#icon-contact {
+#messages-contact-pick-button {
   display: none;
 }
 
-/* 
+/*
   Styles for Edit mode in Thread List
 */
 
@@ -228,7 +203,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   transform: translateY(0);
 }
 
-.edit .new-sms-form {
+.edit .messages-compose-form {
   transform: translateY(3.6rem);
 }
 
@@ -236,16 +211,16 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   transform: translateY(0);
 }
 
-.edit #thread-list-container .item > a {
+.edit #threads-container .item > a {
   transform: translateX(3rem);
   pointer-events: none;
 }
 
-.edit #thread-list-container .item > a.unread .unread-tag {
+.edit #threads-container .item > a.unread .unread-tag {
   opacity: 0;
 }
 
-.edit #thread-list-container .checkbox-container {
+.edit #threads-container .checkbox-container {
   pointer-events:auto;
   opacity: 1;
   transform: translateX(0);
@@ -265,7 +240,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 */
 
 section[role="region"].new > header:first-child h1 {
-  display: none;
+  pointer-events: none;
 }
 
 section[role="region"].new > header:first-child form {
@@ -284,7 +259,7 @@ section[role="region"].new > header:first-child form {
   display: none;
 }
 
-.new #icon-contact {
+.new #messages-contact-pick-button {
   display: block;
 }
 
@@ -294,7 +269,7 @@ section[role="region"].new > header:first-child form {
 
 #messages-container {
   -moz-box-sizing: border-box;
-  background: none repeat scroll 0 0 #F4F4F4;
+  background: none repeat scroll 0 0 #E4E4E4;
   text-align: left;
 }
 
@@ -305,7 +280,7 @@ section[role="region"].new > header:first-child form {
 #messages-container header {
   border-bottom: 0.1rem solid #A6A6A6;
   color: #606060;
-  font-size: calc(6 * 0.226rem);
+  font-size: 1.3rem;
   margin: 0 1.5rem 1rem;
   padding: 1rem 1.5rem 0;
   text-align: left;
@@ -343,7 +318,7 @@ section[role="region"].new > header:first-child form {
   height: 100%;
 }
 
-#messages-container[data-type="list"] li.bubble p {  
+#messages-container[data-type="list"] li.bubble p {
   text-align: right;
   overflow: visible;
   white-space: normal;
@@ -351,7 +326,7 @@ section[role="region"].new > header:first-child form {
   border: 0.2rem solid #2c393b;
   background: #fff;
   margin-right: 0.7rem;
-  font-size: -moz-calc(8.5 * 0.226rem);
+  font-size: 1.9rem;
   line-height: 2.2rem;
   -moz-box-sizing: border-box;
   max-width: 20.5rem;
@@ -366,8 +341,9 @@ section[role="region"].new > header:first-child form {
   width: 1.1rem;
   height: 1rem;
   background-image: url('images/bubble_ticks.png');
+  background-position: -2.2rem 0;
+  background-size: 5.5rem;
   position: absolute;
-  background-position: -22px 0;
   right: -1.1rem;
   top: 1rem;
 }
@@ -392,16 +368,15 @@ section[role="region"].new > header:first-child form {
 }
 
 #messages-container[data-type="list"] li.bubble .sending p:after {
-  background-position: -33px 0;
+  background-position: -3.3rem 0;
   right: -1.1rem;
 }
 
 #messages-container[data-type="list"] li.bubble .error p {
   border: 0.2rem solid #B90000;
 }
-
 #messages-container[data-type="list"] li.bubble .error p:after {
-  background-position: -44px 0;
+  background-position: -4.4rem 0;
   right: -1.1rem;
 }
 
@@ -409,8 +384,7 @@ section[role="region"].new > header:first-child form {
   background: url('images/icons/exclamation.png') no-repeat center center;
   background-size: 2.2rem;
   width: 3.2rem;
-  height: 2.2rem;
-  margin-top: 1rem;
+  height: 4.5rem;
 }
 #messages-container[data-type="list"] li.bubble aside progress {
   margin-top: 0.4rem;
@@ -420,7 +394,7 @@ section[role="region"].new > header:first-child form {
   overflow: hidden;
 }
 
-/* 
+/*
   Styles for Edit mode in Messages Container
 */
 
@@ -450,11 +424,11 @@ section[role="region"].new > header:first-child form {
 }
 
 .edit #messages-container[data-type="list"] li.selected p:after {
-  background-position: -44px 0;
+  background-position: -4.4rem 0;
 }
 
 .edit #messages-container[data-type="list"] li.selected .received p:after {
-  background-position: -11px 0;
+  background-position: -1.1rem 0;
 }
 
 .edit-button {
@@ -463,7 +437,7 @@ section[role="region"].new > header:first-child form {
   width: 100%;
   -moz-box-sizing: border-box;
   font-weight: 600;
-  font-size: calc(7 * 0.226rem);
+  font-size: 1.6rem;
   color: white;
   opacity: 0.99; /* hackaround for painting bug (bug 821221) */
 }
@@ -477,35 +451,35 @@ section[role="region"].new > header:first-child form {
   Bottom bar for sending SMS
 */
 
-.new-sms-form {
+.messages-compose-form {
   transition: transform .2s ease-in;
 }
 
-form.bottom[role="search"].new-sms-form {
+form.bottom[role="search"].messages-compose-form {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
 }
 
-#send-message.active {
+#messages-send-button.active {
   background: #008aaa;
 }
 
-#send-message:before {
+#messages-send-button:before {
   content: attr(data-counter);
-  font-size: 1.2rem;
-  color: #606060;
+  color: #666;
+  font-weight: normal;
+  font-size: -moz-calc(8 * 0.226rem);
   position: absolute;
-  right: 1.5rem;
-  bottom: 2.4rem;
+  right: 1rem;
+  top: -0.2rem;
 }
 
-#message-to-send {
+#messages-input {
   padding: 0.4rem 0.2rem 0.2rem 0.6rem;
-  line-height: -moz-calc(8 * 0.226rem) !important;
-  font-size: -moz-calc(8 * 0.226rem);
-  max-height: none;
+  line-height: 1.8rem !important;
+  font-size: 1.8rem;
 }
 
 #send-message-container {
@@ -533,18 +507,21 @@ form.bottom[role="search"].new-sms-form {
 #loading [role="status"] {
   text-align: center;
   height: 4rem;
-} 
+}
 
 /*
   No result container
 */
 
-#no-result-container {
+#threads-no-messages {
   background-image: url('images/SMS_200x200_bubble.png');
-  background-repeat:no-repeat;
-  background-attachment:fixed;
-  background-position:center;
-  height: 100%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  background-size: 20rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: -moz-calc(100% - 5rem);
   width: 100%;
 }
 
@@ -559,7 +536,7 @@ form.bottom[role="search"].new-sms-form {
   margin: -8rem auto;
   color: #606060;
   font-weight: 300;
-  font-size: calc(10 * 0.226rem);
+  font-size: 2.2rem;
 }
 
 /*
@@ -583,4 +560,119 @@ form.bottom[role="search"].new-sms-form {
   line-height: 1.8rem;
   color: #FF4E00;
   z-index: 4;
+}
+
+/*
+  Styles related to the new layout of the composer
+*/
+
+#messages-to-field {
+  display: none;
+  text-align: left;
+  min-height: 3.7rem;
+  overflow: hidden;
+  border-bottom: .1rem solid #949494;
+  color: black;
+  position: relative;
+  margin: 0 1.5rem;
+  margin-top: .3rem;
+  padding: .8rem 0;
+  width: -moz-calc(100% - 3rem);
+  z-index: 10;
+  background: #E4E4E4;
+  font-size: 1.465rem;
+}
+
+section[role="region"].new #messages-to-field {
+  display: block;
+}
+
+#to-label {
+  display: inline-block;
+  width: 2.5rem;
+  position: absolute;
+  top: 1.9rem;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  color: black;
+  font-size: 1.465rem;
+}
+
+#add-contact {
+  display: inline-block;
+  text-align: center;
+  width: 3rem;
+  position: absolute;
+  right: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 3rem;
+  font-weight: bold;
+  color: black;
+  height: 4rem;
+  line-height: 4rem;
+}
+
+#messages-recipients-container {
+  top: .9rem;
+  left: 3rem;
+  position: relative;
+  width: 10rem;
+  display: inline-block;
+  width: -moz-calc(100% - 6.8rem);
+}
+
+.recipient {
+  background: white;
+  padding: .2rem 0.8rem;
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: -moz-calc(100% - 1rem);
+  border: .1rem solid #949494;
+  color: #333333;
+  height: 2rem;
+  margin-right: .5rem;
+  border-radius: .2rem;
+}
+
+.recipient[contenteditable=true] {
+  background: none;
+  border: none;
+  overflow: hidden;
+  white-space: normal;
+  text-overflow: normal;
+  color: black;
+  font-size: 1.8rem;
+}
+
+section[role="region"].new #messages-container[data-type="list"] > ul.contactList {
+  position: absolute;
+  width: 100%;
+  z-index: 5;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: -moz-calc(100% - 5rem)  ;
+  padding: 0;
+}
+
+section[role="region"].new #messages-container[data-type="list"] {
+  margin-top: .3rem;
+}
+
+section[role="region"].new #messages-container[data-type="list"]  li:first-child {
+  margin-top: 5.6rem;
+}
+
+section[role="region"].new #messages-container[data-type="list"]  li{
+  background: #E4E4E4;
+  padding: 0 1.5rem;
+  pointer-events: normal;
+}
+
+.suggestion * {
+  pointer-events : none;
 }

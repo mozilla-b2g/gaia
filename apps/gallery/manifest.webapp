@@ -9,6 +9,7 @@
   },
   "fullscreen": true,
   "permissions": {
+    "storage":{},
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
     "deprecated-hwvideo":{},
@@ -24,7 +25,7 @@
     },
     "pick": {
       "filters": {
-        "type": ["image/jpeg", "image/png"]
+        "type": ["image/*", "image/jpeg", "image/png"]
        },
       "disposition": "inline",
       "returnValue": true,
@@ -32,7 +33,7 @@
     },
     "open": {
       "filters": {
-        "type": ["image/jpeg", "image/png", "image/gif"]
+        "type": ["image/jpeg", "image/png", "image/gif", "image/bmp"]
        },
       "disposition": "inline",
       "returnValue": true,

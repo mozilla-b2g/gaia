@@ -1,13 +1,13 @@
 'use strict';
 
-requireApp('communications/dialer/js/ussd.js');
+requireApp('communications/dialer/js/mmi.js');
 
 const SUCCESS_MMI_NO_MSG = 'sucess_mmi_no_msg';
 const FAILED_MMI_NO_MSG = 'failed_mmi_no_msg';
 const SUCCESS_MMI_MSG = 'success_mmi_msg';
 const FAILED_MMI_MSG = 'failed_mmi_msg';
 
-const USSD_MSG = 'ussd_msg';
+const MMI_MSG = 'mmi_msg';
 
 const MMI_CF_MSG_ACTIVE_VOICE = 'mmi_cf_active_voice';
 const MMI_CF_MSG_ACTIVE_DATA = 'mmi_cf_active_data';
@@ -34,6 +34,10 @@ var MockMozMobileConnection = {
   ICC_SERVICE_CLASS_PAD: (1 << 7),
   ICC_SERVICE_CLASS_MAX: (1 << 7),
 
+  voice: {
+    network: 'Fake voice network'
+  },
+
   addEventListener: function mmmc_addEventListener(event_name, listener) {
   },
 
@@ -50,19 +54,19 @@ var MockMozMobileConnection = {
     switch (message) {
       case SUCCESS_MMI_NO_MSG:
         evt.target.result = null;
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
       case SUCCESS_MMI_MSG:
         evt.target.result = SUCCESS_MMI_MSG;
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
       case FAILED_MMI_NO_MSG:
         evt.target.error.name = null;
-        UssdManager.notifyError(evt);
+        MmiManager.notifyError(evt);
         break;
       case FAILED_MMI_MSG:
         evt.target.error.name = FAILED_MMI_MSG;
-        UssdManager.notifyError(evt);
+        MmiManager.notifyError(evt);
         break;
       case MMI_CF_MSG_ACTIVE_VOICE:
         evt.target.result = [{
@@ -70,7 +74,7 @@ var MockMozMobileConnection = {
           number: EXPECTED_PHONE,
           serviceClass: this.ICC_SERVICE_CLASS_VOICE
         }];
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_DATA:
         evt.target.result = [{
@@ -78,7 +82,7 @@ var MockMozMobileConnection = {
           number: EXPECTED_PHONE,
           serviceClass: this.ICC_SERVICE_CLASS_DATA
         }];
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_FAX:
         evt.target.result = [{
@@ -86,7 +90,7 @@ var MockMozMobileConnection = {
           number: EXPECTED_PHONE,
           serviceClass: this.ICC_SERVICE_CLASS_FAX
         }];
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_DATA_SYNC:
         evt.target.result = [{
@@ -94,7 +98,7 @@ var MockMozMobileConnection = {
           number: EXPECTED_PHONE,
           serviceClass: this.ICC_SERVICE_CLASS_DATA_SYNC
         }];
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_DATA_ASYNC:
         evt.target.result = [{
@@ -102,7 +106,7 @@ var MockMozMobileConnection = {
           number: EXPECTED_PHONE,
           serviceClass: this.ICC_SERVICE_CLASS_DATA_ASYNC
         }];
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_PACKET:
         evt.target.result = [{
@@ -110,7 +114,7 @@ var MockMozMobileConnection = {
           number: EXPECTED_PHONE,
           serviceClass: this.ICC_SERVICE_CLASS_PACKET
         }];
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_PAD:
         evt.target.result = [{
@@ -118,7 +122,7 @@ var MockMozMobileConnection = {
           number: EXPECTED_PHONE,
           serviceClass: this.ICC_SERVICE_CLASS_PAD
         }];
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_INVALID_SERVICE_CLASS:
         evt.target.result = [{
@@ -126,7 +130,7 @@ var MockMozMobileConnection = {
           number: EXPECTED_PHONE,
           serviceClass: -1
         }];
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
      case MMI_CF_MSG_TWO_RULES:
         evt.target.result = [{
@@ -138,13 +142,13 @@ var MockMozMobileConnection = {
           number: EXPECTED_PHONE,
           serviceClass: this.ICC_SERVICE_CLASS_DATA
         }];
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ALL_INACTIVE:
         evt.target.result = [{
           active: false
         }];
-        UssdManager.notifySuccess(evt);
+        MmiManager.notifySuccess(evt);
         break;
     }
 
@@ -153,7 +157,7 @@ var MockMozMobileConnection = {
   },
 
   cancelMMI: function mmmc_cancelMMI() {
-    UssdManager.notifySuccess({
+    MmiManager.notifySuccess({
       target: {
         result: null
       }
@@ -162,11 +166,7 @@ var MockMozMobileConnection = {
 
   triggerUssdReceived: function mmmc_triggerUssdReceived(message,
                                                          sessionEnded) {
-    UssdManager.handleEvent({
-      type: 'ussdreceived',
-      message: message,
-      sessionEnded: sessionEnded
-    });
+    MmiManager.handleMMIReceived(message, sessionEnded);
   },
 
   teardown: function mmmc_teardown() {

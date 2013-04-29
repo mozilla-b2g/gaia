@@ -1,10 +1,3 @@
-/* Media definitions */
-@media screen and (max--moz-device-pixel-ratio: 1.5) {
-  html {
-    font-size: 15px;
-  }
-}
-
 @font-face {
   font-family: 'Keyboard Symbols';
   font-weight: 600;
@@ -56,7 +49,6 @@ button::-moz-focus-inner {
 /* Rows */
 .keyboard-row {
   width: 100%;
-  margin-bottom: 0.5rem;
   white-space: nowrap;
 }
 
@@ -69,11 +61,12 @@ button::-moz-focus-inner {
 .keyboard-key {
   -moz-box-sizing: border-box;
   padding: 0 0.1rem;
-  border: none;
   background: url(images/key-shadow.png) no-repeat center -1px;
   background-size: 100% 100%;
   min-width: 2.6rem;
   display: inline-block;
+  border: none;
+  border-bottom: 0.5rem solid transparent; /* enlarge click area */
 }
 
 /* Visible keys */
@@ -506,18 +499,18 @@ bubble above the key when you tap and hold. */
 /* IMEs */
 #keyboard-pending-symbol-panel {
   position: absolute;
-  top: -35px;
+  top: -3.5rem;
   left: 0;
-  height: 32px;
-  line-height: 32px;
-  font-size: 24px;
+  height: 3.2rem;
+  line-height: 3.2rem;
+  font-size: 2.4rem;
   width: auto;
-  padding: 0 8px;
+  padding: 0 0.8rem;
   background: rgba(245, 245, 245, 0.7);
   color: rgb(36, 36, 36);
-  border-top-right-radius: 8px;
-  border-top: 1px solid #d5d5d5;
-  border-right: 1px solid #d5d5d5;
+  border-top-right-radius: 0.8rem;
+  border-top: 0.1rem solid #d5d5d5;
+  border-right: 0.1rem solid #d5d5d5;
   white-space: nowrap;
 }
 
@@ -526,27 +519,27 @@ bubble above the key when you tap and hold. */
 }
 
 #keyboard-candidate-panel {
-  height: 64px;
+  height: 6.4rem;
   overflow: auto;
   white-space: nowrap;
   color: black;
   background: rgb(176, 174, 168);
-  border-top: 1px solid #e8e8ff;
-  border-bottom: 1px solid #808098;
+  border-top: 0.1rem solid #e8e8ff;
+  border-bottom: 0.1rem solid #808098;
   display: none;
   margin: 0 -1rem 0 -1rem;
 }
 
 #keyboard.candidate-panel #keyboard-candidate-panel {
   display: block;
-  width: -moz-calc(100% - 62px + 1rem);
+  width: -moz-calc(100% - 6.2rem + 1rem);
   overflow-y: hidden;
 }
 
 /* for latin suggestions we don't need such a tall box */
 /* and in latin we hide the toggle button, so we can be full-width */
 #keyboard.candidate-panel #keyboard-candidate-panel.latin {
-  height: 30px;
+  height: 3rem;
   width: 100%;
   background: none;
   margin: 0;
@@ -554,7 +547,7 @@ bubble above the key when you tap and hold. */
 }
 
 #keyboard.full-candidate-panel {
-  padding-top: 66px;
+  padding-top: 6.6rem;
 }
 
 #keyboard.full-candidate-panel #keyboard-candidate-panel {
@@ -565,7 +558,7 @@ bubble above the key when you tap and hold. */
   height: 100%;
   width: 100%;
   border: none;
-  border-top: 2px solid #a3a3a3;
+  border-top: 0.2rem solid #a3a3a3;
   z-index: 1;
   margin:0; padding:0;
   overflow-x: hidden;
@@ -573,8 +566,8 @@ bubble above the key when you tap and hold. */
 }
 
 #keyboard.full-candidate-panel #keyboard-candidate-panel span {
-  border-top: 1px solid #e8e8ff;
-  border-bottom: 1px solid #808098;
+  border-top: 0.1rem solid #e8e8ff;
+  border-bottom: 0.1rem solid #808098;
 }
 
 #keyboard-candidate-panel[data-truncated]::after {
@@ -586,14 +579,14 @@ bubble above the key when you tap and hold. */
 
 #keyboard-candidate-panel span,
 #keyboard-candidate-panel[data-truncated]::after {
-  border-left: 1px solid #e8e8ff;
-  border-right: 1px solid #808098;
-  font-size: 32px;
-  line-height: 60px;
-  min-width: 60px;
+  border-left: 0.1rem solid #e8e8ff;
+  border-right: 0.1rem solid #808098;
+  font-size: 3.2rem;
+  line-height: 6rem;
+  min-width: 5rem;
   display: inline-block;
-  height: 64px;
-  padding: 0 10px;
+  height: 6.4rem;
+  padding: 0 1rem;
   text-align: center;
   background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
@@ -601,27 +594,32 @@ bubble above the key when you tap and hold. */
 #keyboard-candidate-panel.latin span,
 #keyboard-candidate-panel[data-truncated].latin::after {
   font-family: 'MozTT', sans-serif;
-  font-size: 10pt;
-  line-height: 24px;
-  height: 24px;
+  font-size: 1.2rem;
+  line-height: 2.4rem;
+  height: 2.4rem;
   border: none;
-  border-radius: 4px;
-  margin: 3px;
+  border-radius: 0.4rem;
+  margin: 0.3rem;
 }
 
+#keyboard-candidate-panel.latin span.autocorrect {
+  background: #0ac;   /* XXX: gradient like above? */
+}
+
+
 #keyboard-candidate-panel-toggle-button {
-  border-left: 1px solid #e8e8ff;
-  border-right: 1px solid #808098;
-  border-bottom: 1px solid #808098;
+  border-left: 0.1rem solid #e8e8ff;
+  border-right: 0.1rem solid #808098;
+  border-bottom: 0.1rem solid #808098;
   position: absolute;
-  font-size: 32px;
-  line-height: 60px;
+  font-size: 3.2rem;
+  line-height: 6rem;
   right: 0;
-  top: 1px;
+  top: 0.1rem;
   text-align: center;
-  box-shadow: -4px 0 5px -5px black;
-  width: 60px;
-  height: 64px;
+  box-shadow: -0.4rem 0 0.5rem -0.5rem black;
+  width: 6rem;
+  height: 6.4rem;
   color: black;
   background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
   display: none;
@@ -629,7 +627,7 @@ bubble above the key when you tap and hold. */
 
 #keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
   display: block;
-  border-top: 1px solid #e8e8ff;
+  border-top: 0.1rem solid #e8e8ff;
   top: 0;
   z-index: 1;
 }
@@ -681,3 +679,4 @@ bubble above the key when you tap and hold. */
   visibility: visible;
   color: #555;
 }
+

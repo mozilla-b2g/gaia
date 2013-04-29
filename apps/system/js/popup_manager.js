@@ -67,6 +67,10 @@ var PopupManager = {
     // this seems needed, or an override to origin in close()
     this._currentOrigin = origin;
 
+    if (WindowManager.getDisplayedApp() == origin) {
+      this.screen.classList.add('popup');
+    }
+
     this.container.appendChild(popup);
 
     popup.addEventListener('mozbrowsererror', this);
@@ -146,7 +150,7 @@ var PopupManager = {
         if (WindowManager.getDisplayedApp() !== evt.target.dataset.frameOrigin)
           return;
 
-        this.show();
+        this.title.textContent = this.getTitleFromUrl(popup.dataset.url);
         break;
 
       case 'mozbrowsererror':

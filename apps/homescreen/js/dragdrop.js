@@ -31,13 +31,14 @@ const DragDropManager = (function() {
   var disabledCheckingLimitsTimeout = null;
 
   var draggableIcon, previousOverlapIcon, overlapingTimeout, overlapElem,
-      originElem;
+      originElem, draggableElemStyle;
 
   var pageHelper = GridManager.pageHelper;
 
   var dirCtrl, limitY, overlapingDock;
 
-  var currentEvent = {}, startEvent = {};
+  // Current and start positions
+  var cx, cy, sx, sy;
 
   /*
    * Sets the isTranslatingPages variable
@@ -67,7 +68,7 @@ const DragDropManager = (function() {
   var transitioning = false;
 
   function onNavigationEnd() {
-    transitioning = false;
+    transitioning = isDisabledDrop = false;
   }
 
   function overDock() {
@@ -83,15 +84,15 @@ const DragDropManager = (function() {
 
     if (!overlapingDock) {
       // I've just entered
+      sendDragLeaveEvent(pageHelper.getCurrent());
       draggableIcon.addClassToDragElement('overDock');
       DockManager.page.appendIcon(draggableIcon);
       drop(DockManager.page);
-      previousOverlapIcon = overlapElem;
     }
 
-    if (dirCtrl.limitNext(currentEvent.x)) {
+    if (dirCtrl.limitNext(cx)) {
       DockManager.goNextSet();
-    } else if (dirCtrl.limitPrev(currentEvent.x)) {
+    } else if (dirCtrl.limitPrev(cx)) {
       DockManager.goPreviousSet();
     }
 
@@ -99,22 +100,18 @@ const DragDropManager = (function() {
   }
 
   function overIconGrid() {
-    if (transitioning) {
-      isDisabledDrop = true;
-      return;
-    }
-
     isDisabledDrop = false;
-    var currentX = currentEvent.x;
     var curPageObj = pageHelper.getCurrent();
 
     if (overlapingDock) {
+      sendDragLeaveEvent(DockManager.page);
       draggableIcon.removeClassToDragElement('overDock');
       overlapingDock = false;
       curPageObj.appendIconVisible(draggableIcon);
     } else if (!isDisabledCheckingLimits) {
-      if (dirCtrl.limitNext(currentX)) {
+      if (dirCtrl.limitNext(cx)) {
         isDisabledDrop = true;
+        sendDragLeaveEvent(curPageObj);
 
         if (pageHelper.getCurrentPageNumber() <
             pageHelper.getTotalPagesNumber() - 1) {
@@ -126,13 +123,15 @@ const DragDropManager = (function() {
 
         setDisabledCheckingLimits(true);
         if (pageHelper.getNext()) {
-          GridManager.goToNextPage(onNavigationEnd);
           transitioning = true;
+          GridManager.goToNextPage(onNavigationEnd);
         }
-      } else if (pageHelper.getCurrentPageNumber() > GridManager.landingPage + 1
-                 && dirCtrl.limitPrev(currentX)) {
-        isDisabledDrop = true;
 
+      } else if (
+          (pageHelper.getCurrentPageNumber() > GridManager.landingPage + 1) &&
+          dirCtrl.limitPrev(cx)) {
+        isDisabledDrop = true;
+        sendDragLeaveEvent(curPageObj);
         pageHelper.getPrevious().appendIconVisible(draggableIcon);
         setDisabledCheckingLimits(true);
         transitioning = true;
@@ -149,8 +148,12 @@ const DragDropManager = (function() {
    * it's needed
    */
   function checkLimits() {
-    if (currentEvent.y >= limitY) {
-      overDock(overlapElem);
+    if (transitioning) {
+      return;
+    }
+
+    if (cy >= limitY) {
+      overDock();
     } else {
       overIconGrid();
     }
@@ -164,7 +167,8 @@ const DragDropManager = (function() {
   function onStart(elem) {
     overlapElem = originElem = elem;
     draggableIcon = GridManager.getIcon(elem.dataset);
-    draggableIcon.onDragStart(startEvent.x, startEvent.y);
+    draggableIcon.onDragStart(sx, sy);
+    draggableElemStyle = draggableIcon.draggableElem.style;
     if (overlapingDock) {
       draggableIcon.addClassToDragElement('overDock');
     } else if (DockManager.isFull()) {
@@ -182,16 +186,17 @@ const DragDropManager = (function() {
     isDisabledCheckingLimits = false;
     isDisabledDrop = false;
     transitioning = false;
-
     var page = getPage();
     if (page.ready) {
+      sendDragLeaveEvent(page, true);
       draggableIcon.onDragStop(callback);
     } else {
       // Probably users release the draggable icon before re-arranged
-      page.onReArranged = function fn_ready() {
-        delete page.onReArranged;
+      page.container.addEventListener('onpageready', function onPageReady() {
+        page.container.removeEventListener('onpageready', onPageReady);
+        sendDragLeaveEvent(page, true);
         draggableIcon.onDragStop(callback);
-      };
+      });
     }
   }
 
@@ -202,7 +207,7 @@ const DragDropManager = (function() {
       page.drop(draggableIcon, overlapIcon);
     } else if (classList.contains('dockWrapper')) {
       var firstIcon = page.getFirstIcon();
-      if (currentEvent.x < firstIcon.getLeft()) {
+      if (cx < firstIcon.getLeft()) {
         if (draggableIcon !== firstIcon) {
           page.drop(draggableIcon, firstIcon);
         }
@@ -216,16 +221,21 @@ const DragDropManager = (function() {
     previousOverlapIcon = undefined;
   }
 
+  function move() {
+    draggableElemStyle.MozTransform =
+                          'translate(' + (cx - sx) + 'px,' + (cy - sy) + 'px)';
+  }
+
   /*
    * It's performed when the draggable element is moving
    *
    * @param {Object} DOMElement behind draggable icon
    */
   function onMove(evt) {
-    var x = currentEvent.x = getTouch(evt).pageX;
-    var y = currentEvent.y = getTouch(evt).pageY;
+    var x = cx = getTouch(evt).pageX;
+    var y = cy = getTouch(evt).pageY;
 
-    draggableIcon.onDragMove(x, y);
+    window.mozRequestAnimationFrame(move);
 
     var page = getPage();
     if (!page.ready) {
@@ -262,7 +272,7 @@ const DragDropManager = (function() {
     }
 
     checkLimits(overlapElem);
-    if (isDisabledDrop) {
+    if (isDisabledDrop || !getPage().ready) {
       clearTimeout(overlapingTimeout);
       return;
     }
@@ -271,8 +281,10 @@ const DragDropManager = (function() {
       clearTimeout(overlapingTimeout);
       if (classList.contains('page')) {
         var lastIcon = page.getLastIcon();
-        if (y > lastIcon.getTop() && draggableIcon !== lastIcon) {
-          page.drop(draggableIcon, lastIcon);
+        if (lastIcon && y > lastIcon.getTop() && draggableIcon !== lastIcon) {
+          overlapingTimeout = setTimeout(function() {
+            page.drop(draggableIcon, lastIcon);
+          }, REARRANGE_DELAY);
         }
       } else {
         overlapingTimeout = setTimeout(drop, REARRANGE_DELAY, page);
@@ -280,6 +292,16 @@ const DragDropManager = (function() {
     }
 
     previousOverlapIcon = overlapElem;
+  }
+
+  function sendDragLeaveEvent(page, reflow) {
+    // For some reason, moving a node re-triggers the blob URI to be validated
+    // after inserting this one in other position of the DOM
+    draggableIcon.loadRenderedIcon(function loaded(url) {
+      page.onDragLeave(function revoke() {
+        window.URL.revokeObjectURL(url);
+      }, reflow);
+    });
   }
 
   function onEnd(evt) {
@@ -321,7 +343,8 @@ const DragDropManager = (function() {
       window.addEventListener(touchend, onEnd);
       GridManager.onDragStart();
       DockManager.onDragStart();
-      startEvent = initCoords;
+      sx = initCoords.x;
+      sy = initCoords.y;
       isDockDisabled = false;
       overlapingDock = (initCoords.y >= limitY) ? true : false;
       onStart(evt.target.className === 'options' ? evt.target.parentNode :

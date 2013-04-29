@@ -111,6 +111,7 @@ var Payment = {
             id: this.chromeEventId,
             frame: evt.target
           });
+          this.removeEventListener('mozbrowserloadstart', loadStart);
         }).bind(this));
 
         // The payment flow is shown within the trusted UI

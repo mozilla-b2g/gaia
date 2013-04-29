@@ -58,10 +58,6 @@ var WindowManager = (function() {
   var homescreen = null;
   var homescreenURL = '';
   var homescreenManifestURL = '';
-  var ftu = null;
-  var ftuManifestURL = '';
-  var ftuURL = '';
-  var isRunningFirstRunApp = false;
   // keep the reference of inline activity frame here
   var inlineActivityFrames = [];
   var activityCallerOrigin = '';
@@ -99,18 +95,12 @@ var WindowManager = (function() {
   // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
 
-  // Function to hide init starting logo
-  function handleInitlogo(callback) {
-    var initlogo = document.getElementById('initlogo');
-    initlogo.classList.add('hide');
-    initlogo.addEventListener('transitionend', function delInitlogo() {
-      initlogo.removeEventListener('transitionend', delInitlogo);
-      initlogo.parentNode.removeChild(initlogo);
-      if (callback) {
-        callback();
-      }
-    });
-  };
+  // Track the audio activity.
+  var normalAudioChannelActive = false;
+
+  // When an app stops playing audio and the device is locked, we use a timer
+  // in order to restore its visibility.
+  var deviceLockedTimer = 0;
 
   // Public function. Return the origin of the currently displayed app
   // or null if there is none.
@@ -124,14 +114,12 @@ var WindowManager = (function() {
       return false;
 
     var manifest = app.manifest;
-    if (manifest.entry_points && manifest.type == 'certified') {
-      var entryPoint = manifest.entry_points[origin.split('/')[3]];
-      if (entryPoint)
-          return entryPoint.fullscreen;
-      return false;
-    } else {
-      return manifest.fullscreen;
+    if ('entry_points' in manifest && manifest.entry_points &&
+        manifest.type == 'certified') {
+       manifest = manifest.entry_points[origin.split('/')[3]];
     }
+
+    return 'fullscreen' in manifest ? manifest.fullscreen : false;
   }
 
   // Make the specified app the displayed app.
@@ -313,6 +301,55 @@ var WindowManager = (function() {
     });
   }
 
+  window.addEventListener('ftuskip', function skipFTU() {
+    InitLogoHandler.animate();
+    setDisplayedApp(homescreen);
+  });
+
+  // Open and close app animations
+  windows.addEventListener('animationend', function frameAnimationend(evt) {
+    var animationName = evt.animationName;
+    var frame = evt.target;
+
+    if (animationName.indexOf('openApp') !== -1) {
+      windowScaled(frame);
+
+      var onWindowReady = function() {
+        windowOpened(frame);
+
+        setTimeout(openCallback);
+        openCallback = null;
+        setOpenFrame(null);
+
+        ensureHomescreen().classList.remove('zoom-in');
+      };
+
+      // If this is a cold launch let's wait for the app to load first
+      var iframe = openFrame.firstChild;
+      if ('unpainted' in iframe.dataset) {
+
+        if ('wrapper' in frame.dataset)
+          wrapperFooter.classList.add('visible');
+
+        iframe.addEventListener('mozbrowserloadend', function on(e) {
+          iframe.removeEventListener('mozbrowserloadend', on);
+          onWindowReady();
+        });
+      } else {
+        onWindowReady();
+      }
+    } else if (animationName.indexOf('closeApp') !== -1) {
+      windowClosed(frame);
+
+      setTimeout(closeCallback);
+      closeCallback = null;
+
+      setCloseFrame(null);
+
+      ensureHomescreen().classList.remove('zoom-out');
+    }
+  });
+
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
     var prop = evt.propertyName;
     var frame = evt.target;
@@ -366,6 +403,7 @@ var WindowManager = (function() {
         classList.remove('opening-switching');
         classList.add('opening');
       } else if (classList.contains('opening')) {
+        windowScaled(frame);
         windowOpened(frame);
 
         setTimeout(openCallback);
@@ -375,77 +413,54 @@ var WindowManager = (function() {
         setOpenFrame(null);
         screenElement.classList.remove('switch-app');
       }
-
-      return;
-    }
-
-    if (classList.contains('opening')) {
-      var onWindowReady = function() {
-        windowOpened(frame);
-
-        setTimeout(openCallback);
-        openCallback = null;
-
-        setOpenFrame(null);
-      };
-
-      // If this is a cold launch let's wait for the app to load first
-      var iframe = openFrame.firstChild;
-      if ('unpainted' in iframe.dataset) {
-        iframe.addEventListener('mozbrowserloadend', function on(e) {
-          iframe.removeEventListener('mozbrowserloadend', on);
-          onWindowReady();
-        });
-      } else {
-        onWindowReady();
-      }
-    } else if (classList.contains('closing')) {
-      windowClosed(frame);
-
-      setTimeout(closeCallback);
-      closeCallback = null;
-
-      setCloseFrame(null);
     }
   });
 
   // Executes when the opening transition scale the app
   // to full size.
-  function windowOpened(frame) {
+  function windowScaled(frame) {
     var iframe = frame.firstChild;
-
-    frame.classList.add('active');
-    windows.classList.add('active');
-
-    if ('wrapper' in frame.dataset) {
-      wrapperFooter.classList.add('visible');
-    }
-
-    // Take the focus away from the currently displayed app
-    var app = runningApps[displayedApp];
-    if (app && app.iframe)
-      app.iframe.blur();
-
-    // Give the focus to the frame
-    iframe.focus();
-
-    if (!TrustedUIManager.isVisible() && !isRunningFirstRunApp) {
-      // Set homescreen visibility to false
-      toggleHomescreen(false);
-    }
 
     // Set displayedApp to the new value
     displayedApp = iframe.dataset.frameOrigin;
 
     // Set orientation for the new app
     setOrientationForApp(displayedApp);
+  }
+
+  // Execute when the application is actually loaded
+  function windowOpened(frame) {
+    var iframe = frame.firstChild;
+
+    if (displayedApp == iframe.dataset.frameOrigin) {
+      frame.classList.add('active');
+      windows.classList.add('active');
+
+      if ('wrapper' in frame.dataset) {
+        wrapperFooter.classList.add('visible');
+      }
+
+      // Take the focus away from the currently displayed app
+      var app = runningApps[displayedApp];
+      if (app && app.iframe)
+        app.iframe.blur();
+
+      if (!TrustedUIManager.isVisible() && !FtuLauncher.isFtuRunning()) {
+        // Set homescreen visibility to false
+        toggleHomescreen(false);
+      }
+
+      // Give the focus to the frame
+      iframe.focus();
+    }
 
     // Dispatch an 'appopen' event.
     var manifestURL = runningApps[displayedApp].manifestURL;
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appopen', true, false, {
       manifestURL: manifestURL,
-      origin: displayedApp
+      origin: displayedApp,
+      isHomescreen: (manifestURL === homescreenManifestURL)
     });
     frame.dispatchEvent(evt);
   }
@@ -454,23 +469,18 @@ var WindowManager = (function() {
   function windowClosed(frame) {
     var iframe = frame.firstChild;
 
-    // If the FTU is closing, make sure we save this state
-    if (iframe.src == ftuURL) {
-      isRunningFirstRunApp = false;
-      document.getElementById('screen').classList.remove('ftu');
-      window.asyncStorage.setItem('ftu.enabled', false);
-      // Done with FTU, letting everyone know
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('ftudone',
-        /* canBubble */ true, /* cancelable */ false, {});
-      window.dispatchEvent(evt);
-    }
-
     frame.classList.remove('active');
     windows.classList.remove('active');
 
     // set the closed frame visibility to false
-    if ('setVisible' in iframe) {
+
+    // XXX: After bug 822325 is fixed in gecko,
+    // we don't need to check trusted ui state here anymore.
+    // We do this because we don't want the trustedUI opener
+    // is killed in background due to OOM.
+
+    if ('setVisible' in iframe &&
+        !TrustedUIManager.hasTrustedUI(iframe.dataset.frameOrigin)) {
       // When we setVisible(false) the app frame, it throws out its
       // layer tree, which results in it not being renderable by the
       // compositor.  If that happens before we repaint our tree
@@ -743,6 +753,7 @@ var WindowManager = (function() {
       transitionOpenCallback = null;
 
       if (!screenElement.classList.contains('switch-app')) {
+        ensureHomescreen().classList.add('zoom-in');
         openFrame.classList.add('opening');
       } else if (!openFrame.classList.contains('opening')) {
         openFrame.classList.add('opening-card');
@@ -750,7 +761,7 @@ var WindowManager = (function() {
     };
 
     if ('unpainted' in openFrame.firstChild.dataset) {
-      waitForNextPaintOrBackground(openFrame, transitionOpenCallback);
+      setFrameBackground(openFrame, transitionOpenCallback);
     } else {
       waitForNextPaint(openFrame, transitionOpenCallback);
     }
@@ -763,7 +774,14 @@ var WindowManager = (function() {
         // If attention screen is fully visible now,
         // don't give the open frame visible.
         // This is the case that homescreen is restarted behind attention screen
-        openFrame.firstChild.setVisible(false);
+
+        // XXX: After bug 822325 is fixed in gecko,
+        // we don't need to check trusted ui state here anymore.
+        // We do this because we don't want the trustedUI opener
+        // is killed in background due to OOM.
+        if (!TrustedUIManager.hasTrustedUI(
+            openFrame.firstChild.dataset.frameOrigin))
+          openFrame.firstChild.setVisible(false);
       }
     }
   }
@@ -832,11 +850,6 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
-    if ('wrapper' in closeFrame.dataset) {
-      wrapperHeader.classList.remove('visible');
-      wrapperFooter.classList.remove('visible');
-    }
-
     transitionCloseCallback = function startClosingTransition() {
       // We have been canceled by another transition.
       if (!closeFrame || transitionCloseCallback != startClosingTransition)
@@ -846,8 +859,14 @@ var WindowManager = (function() {
       transitionCloseCallback = null;
 
       // Start the transition
+      ensureHomescreen().classList.add('zoom-out');
       closeFrame.classList.add('closing');
       closeFrame.classList.remove('active');
+
+      if ('wrapper' in closeFrame.dataset) {
+        wrapperHeader.classList.remove('visible');
+        wrapperFooter.classList.remove('visible');
+      }
     };
 
     waitForNextPaint(homescreenFrame, transitionCloseCallback);
@@ -883,7 +902,8 @@ var WindowManager = (function() {
                   /* expectingSystemMessage */ false);
       runningApps[homescreen].iframe.dataset.start = Date.now();
       setAppSize(homescreen);
-      if (displayedApp != homescreen && 'setVsibile' in runningApps[homescreen].iframe)
+      if (displayedApp != homescreen &&
+        'setVsibile' in runningApps[homescreen].iframe)
         runningApps[homescreen].iframe.setVisible(false);
     } else if (reset) {
       runningApps[homescreen].iframe.src = homescreenURL;
@@ -919,87 +939,6 @@ var WindowManager = (function() {
     };
   }
 
-  function skipFTU() {
-    document.getElementById('screen').classList.remove('ftuStarting');
-    handleInitlogo();
-    setDisplayedApp(homescreen);
-  }
-
-  // Check if the FTU was executed or not, if not, get a
-  // reference to the app and launch it.
-  function retrieveFTU() {
-    window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
-      document.getElementById('screen').classList.add('ftuStarting');
-      if (launchFTU === false) {
-        skipFTU();
-        return;
-      }
-      var lock = navigator.mozSettings.createLock();
-      var req = lock.get('ftu.manifestURL');
-      req.onsuccess = function() {
-        ftuManifestURL = this.result['ftu.manifestURL'];
-        if (!ftuManifestURL) {
-          dump('FTU manifest cannot be found skipping.\n');
-          skipFTU();
-          return;
-        }
-        ftu = Applications.getByManifestURL(ftuManifestURL);
-        if (!ftu) {
-          dump('Opps, bogus FTU manifest.\n');
-          skipFTU();
-          return;
-        }
-        ftuURL = ftu.origin + ftu.manifest.entry_points['ftu'].launch_path;
-        ftu.launch('ftu');
-      };
-      req.onerror = function() {
-        dump('Couldn\'t get the ftu manifestURL.\n');
-        skipFTU();
-      };
-    });
-  }
-
-  // Hide current app
-  function hideCurrentApp(callback) {
-    if (displayedApp == null || displayedApp == homescreen)
-      return;
-
-    toggleHomescreen(true);
-    var frame = getAppFrame(displayedApp);
-    frame.classList.add('back');
-    frame.classList.remove('restored');
-    if (callback) {
-      frame.addEventListener('transitionend', function execCallback() {
-        frame.style.visibility = 'hidden';
-        frame.removeEventListener('transitionend', execCallback);
-        callback();
-      });
-    }
-  }
-
-  // If app parameter is passed,
-  // it means there's a specific app needs to be restored
-  // instead of current app
-  function restoreCurrentApp(app) {
-    if (app) {
-      // Restore app visibility immediately but don't open it.
-      var frame = getAppFrame(app);
-      frame.style.visibility = 'visible';
-      frame.classList.remove('back');
-    } else {
-      app = displayedApp;
-      toggleHomescreen(false);
-      var frame = getAppFrame(app);
-      frame.style.visibility = 'visible';
-      frame.classList.remove('back');
-      frame.classList.add('restored');
-      frame.addEventListener('transitionend', function removeRestored() {
-        frame.removeEventListener('transitionend', removeRestored);
-        frame.classList.remove('restored');
-      });
-    }
-  }
-
   function toggleHomescreen(visible) {
     var homescreenFrame = ensureHomescreen();
     if (homescreenFrame && 'setVisible' in homescreenFrame.firstChild)
@@ -1009,14 +948,11 @@ var WindowManager = (function() {
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
     var currentApp = displayedApp, newApp = origin || homescreen;
-    var isFirstRunApplication = !currentApp && (origin == ftuURL);
 
     var homescreenFrame = null;
-    if (!isFirstRunApplication) {
-      // Returns the frame reference of the home screen app.
-      // Restarts the homescreen app if it was killed in the background.
-      homescreenFrame = ensureHomescreen();
-    }
+    // Returns the frame reference of the home screen app.
+    // Restarts the homescreen app if it was killed in the background.
+    homescreenFrame = ensureHomescreen();
 
     // Cancel transitions waiting to be started.
     transitionOpenCallback = null;
@@ -1032,12 +968,26 @@ var WindowManager = (function() {
     // Before starting a new transition, let's make sure current transitions
     // are stopped and the state classes are cleaned up.
     // visibility status should also be reset.
-    if (openFrame && 'setVisible' in openFrame.firstChild)
-      openFrame.firstChild.setVisible(false);
-    if (closeFrame && 'setVisible' in closeFrame.firstChild)
-      closeFrame.firstChild.setVisible(false);
+    if (openFrame && 'setVisible' in openFrame.firstChild) {
+      // XXX: After bug 822325 is fixed in gecko,
+      // we don't need to check trusted ui state here anymore.
+      // We do this because we don't want the trustedUI opener
+      // is killed in background due to OOM.
+      if (!TrustedUIManager.hasTrustedUI(
+            openFrame.firstChild.dataset.frameOrigin))
+        openFrame.firstChild.setVisible(false);
+    }
+    if (closeFrame && 'setVisible' in closeFrame.firstChild) {
+      // XXX: After bug 822325 is fixed in gecko,
+      // we don't need to check trusted ui state here anymore.
+      // We do this because we don't want the trustedUI opener
+      // is killed in background due to OOM.
+      if (!TrustedUIManager.hasTrustedUI(
+            closeFrame.firstChild.dataset.frameOrigin))
+        closeFrame.firstChild.setVisible(false);
+    }
 
-    if (!isFirstRunApplication && newApp == homescreen && !AttentionScreen.isFullyVisible()) {
+    if (newApp == homescreen && !AttentionScreen.isFullyVisible()) {
       toggleHomescreen(true);
     }
 
@@ -1053,7 +1003,7 @@ var WindowManager = (function() {
 
       var app = runningApps[newApp];
       // Allows listeners to cancel app opening and so stay on homescreen
-      if (!app.frame.dispatchEvent(evt)) {
+      if (!app.iframe.dispatchEvent(evt)) {
         if (typeof(callback) == 'function')
           callback();
         return;
@@ -1090,7 +1040,8 @@ var WindowManager = (function() {
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('apploadtime', true, false, {
           time: parseInt(Date.now() - iframe.dataset.start),
-          type: (e.type == 'appopen') ? 'w' : 'c'
+          type: (e.type == 'appopen') ? 'w' : 'c',
+          src: iframe.src
         });
         iframe.dispatchEvent(evt);
       }, true);
@@ -1101,20 +1052,20 @@ var WindowManager = (function() {
       if (newApp == homescreen) {
         // relaunch homescreen
         openWindow(homescreen, callback);
-      } else if (callback) {
+      } else {
+        if (requireFullscreen(newApp)) {
+          screenElement.classList.add('fullscreen-app');
+        }
+
         // Just run the callback right away if it is not homescreen
-        callback();
+        if (callback)
+          callback();
       }
     }
     // Case 2: null --> app
-    else if (isFirstRunApplication) {
-      isRunningFirstRunApp = true;
+    else if (FtuLauncher.isFtuRunning() && newApp !== homescreen) {
       openWindow(newApp, function windowOpened() {
-        handleInitlogo(function() {
-          var mainScreen = document.getElementById('screen');
-          mainScreen.classList.add('ftu');
-          mainScreen.classList.remove('ftuStarting');
-        });
+        InitLogoHandler.animate();
       });
     }
     // Case 3: null->homescreen || homescreen->app
@@ -1178,6 +1129,21 @@ var WindowManager = (function() {
     isOutOfProcessDisabled = value;
   });
 
+  // update app name when language setting changes
+  SettingsListener.observe('language.current', null,
+    function(value) {
+      if (!value)
+          return;
+
+      for (var origin in runningApps) {
+        var app = runningApps[origin];
+        if (!app || !app.manifest)
+          continue;
+        var manifest = app.manifest;
+        app.name = new ManifestHelper(manifest).name;
+      }
+    });
+
   function createFrame(origFrame, origin, url, name, manifest, manifestURL) {
     var iframe = origFrame || document.createElement('iframe');
     iframe.setAttribute('mozallowfullscreen', 'true');
@@ -1209,14 +1175,19 @@ var WindowManager = (function() {
     // These apps currently have bugs preventing them from being
     // run out of process. All other apps will be run OOP.
     //
+    var host = document.location.host;
+    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+    var protocol = document.location.protocol + '//';
+    var browserManifestUrl =
+      protocol + 'browser.' + domain + '/manifest.webapp';
     var outOfProcessBlackList = [
-      'Browser'
+      browserManifestUrl
       // Requires nested content processes (bug 761935).  This is not
       // on the schedule for v1.
     ];
 
     if (!isOutOfProcessDisabled &&
-        outOfProcessBlackList.indexOf(name) === -1) {
+        outOfProcessBlackList.indexOf(manifestURL) === -1) {
       // FIXME: content shouldn't control this directly
       iframe.setAttribute('remote', 'true');
     }
@@ -1227,8 +1198,8 @@ var WindowManager = (function() {
   }
 
   function maybeSetFrameIsCritical(iframe, origin) {
-    if (origin.startsWith("app://communications.gaiamobile.org/dialer") ||
-        origin.startsWith("app://clock.gaiamobile.org")) {
+    if (origin.startsWith('app://communications.gaiamobile.org/dialer') ||
+        origin.startsWith('app://clock.gaiamobile.org')) {
       iframe.setAttribute('mozapptype', 'critical');
     }
   }
@@ -1281,11 +1252,6 @@ var WindowManager = (function() {
     if (requireFullscreen(origin)) {
       frame.classList.add('fullscreen-app');
     }
-    if (origin === ftuURL) {
-      // Add a way to identify ftu app
-      // (Used by SimLock)
-      frame.classList.add('ftu');
-    }
 
     numRunningApps++;
 
@@ -1293,6 +1259,20 @@ var WindowManager = (function() {
   }
 
   function startInlineActivity(origin, url, name, manifest, manifestURL) {
+    // If the same inline activity frame is existed and showing,
+    // we reuse its iframe.
+    if (inlineActivityFrames.length) {
+      var showingInlineActivityFrame =
+        inlineActivityFrames[inlineActivityFrames.length - 1].firstChild;
+
+      if (showingInlineActivityFrame.dataset.frameURL == url) {
+        return;
+      }
+    }
+
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('activitywillopen', true, true, { origin: origin });
+
     // Create the <iframe mozbrowser mozapp> that hosts the app
     var frame = createFrame(null, origin, url, name, manifest, manifestURL);
     var iframe = frame.firstChild;
@@ -1307,12 +1287,25 @@ var WindowManager = (function() {
     // inline frame. With the name we can get frames of the same app using the
     // window.open method.
     iframe.name = 'inline';
+    iframe.dataset.start = Date.now();
 
     // Save the reference
     inlineActivityFrames.push(frame);
 
     // Set the size
     setInlineActivityFrameSize();
+
+    frame.addEventListener('mozbrowserloadend', function activityloaded(e) {
+      e.target.removeEventListener(e.type, activityloaded, true);
+
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('activityloadtime', true, false, {
+        time: parseInt(Date.now() - iframe.dataset.start),
+        type: 'c', // Activity is always cold booted now.
+        src: iframe.src
+      });
+      iframe.dispatchEvent(evt);
+    }, true);
 
     // Add the iframe to the document
     windows.appendChild(frame);
@@ -1371,6 +1364,9 @@ var WindowManager = (function() {
     if (openFrame == frame)
       setOpenFrame(null);
 
+    // Bug 856692: force the close of the keyboard in closing inline activities
+    dispatchEvent(new CustomEvent('activitywillclose'));
+
     // If frame is never set visible, we can remove the frame directly
     // without closing transition
     if (!frame.classList.contains('active')) {
@@ -1420,7 +1416,7 @@ var WindowManager = (function() {
     if (e.detail.type == 'activity-done') {
       // Remove the top most frame every time we get an 'activity-done' event.
       stopInlineActivity();
-      if (!inlineActivityFrames.length) {
+      if (!inlineActivityFrames.length && !activityCallerOrigin) {
         setDisplayedApp(activityCallerOrigin);
         activityCallerOrigin = '';
       }
@@ -1497,7 +1493,6 @@ var WindowManager = (function() {
             e.detail.target.disposition == 'inline') {
           // Inline activities behaves more like a dialog,
           // let's deal them here.
-
           startInlineActivity(origin, e.detail.url,
                               name, manifest, app.manifestURL);
 
@@ -1598,11 +1593,19 @@ var WindowManager = (function() {
     'attentionscreenshow',
     'attentionscreenhide',
     'status-active',
-    'status-inactive'
+    'status-inactive',
+    'mozChromeEvent'
   ];
 
+  function resetDeviceLockedTimer() {
+    if (deviceLockedTimer) {
+      clearTimeout(deviceLockedTimer);
+      deviceLockedTimer = 0;
+    }
+  }
+
   function overlayEventHandler(evt) {
-    if (attentionScreenTimer)
+    if (attentionScreenTimer && 'mozChromeEvent' != evt.type)
       clearTimeout(attentionScreenTimer);
     switch (evt.type) {
       case 'status-active':
@@ -1615,9 +1618,24 @@ var WindowManager = (function() {
         } else {
           setVisibilityForCurrentApp(true);
         }
+        resetDeviceLockedTimer();
         break;
       case 'lock':
-        setVisibilityForCurrentApp(false);
+        // XXX: We couldn't avoid to stop inline activities
+        // when screen is turned off and lockscreen is enabled
+        // to avoid two cameras iframes are competing resources
+        // if the user opens a app to call camera activity and
+        // at the same time open camera app from lockscreen.
+        if (inlineActivityFrames.length) {
+          stopInlineActivity(true);
+        }
+
+        // If the audio is active, the app should not set non-visible
+        // otherwise it will be muted.
+        if (!normalAudioChannelActive) {
+          setVisibilityForCurrentApp(false);
+        }
+        resetDeviceLockedTimer();
         break;
 
       /*
@@ -1628,20 +1646,51 @@ var WindowManager = (function() {
         if (!AttentionScreen.isVisible())
           return;
       case 'attentionscreenshow':
-        if (evt.detail && evt.detail.origin &&
-          evt.detail.origin != displayedApp) {
-            attentionScreenTimer = setTimeout(function setVisibility() {
-              if (inlineActivityFrames.length) {
-                setVisibilityForInlineActivity(false);
-              } else {
-                setVisibilityForCurrentApp(false);
-              }
-            }, 3000);
+        var detail = evt.detail;
+        if (detail && detail.origin && detail.origin != displayedApp) {
+          attentionScreenTimer = setTimeout(function setVisibility() {
+            if (inlineActivityFrames.length) {
+              setVisibilityForInlineActivity(false);
+            } else {
+              setVisibilityForCurrentApp(false);
+            }
+          }, 3000);
 
-            // Immediatly blur the frame in order to ensure hiding the keyboard
-            var app = runningApps[displayedApp];
-            if (app)
+          // Instantly blur the frame in order to ensure hiding the keyboard
+          var app = runningApps[displayedApp];
+          if (app) {
+            if ('contentWindow' in app.iframe) {
+              // Bug 845661 - Attention screen does not appears when
+              // the url bar input is focused.
+              // Calling app.iframe.blur() on an in-process window
+              // seems to triggers heavy tasks that froze the main
+              // process for a while and seems to expose a gecko
+              // repaint issue.
+              // So since the only in-process frame is the browser app
+              // let's switch it's visibility as soon as possible when
+              // there is an attention screen and delegate the
+              // responsibility to blur the possible focused elements
+              // itself.
+              app.iframe.setVisible(false);
+            } else {
               app.iframe.blur();
+            }
+          }
+        }
+        break;
+
+      case 'mozChromeEvent':
+        if (evt.detail.type == 'visible-audio-channel-changed') {
+          resetDeviceLockedTimer();
+
+          if (normalAudioChannelActive && evt.detail.channel !== 'normal' &&
+              LockScreen.locked) {
+            deviceLockedTimer = setTimeout(function setVisibility() {
+              setVisibilityForCurrentApp(false);
+            }, 3000);
+          }
+
+          normalAudioChannelActive = (evt.detail.channel === 'normal');
         }
         break;
     }
@@ -1655,7 +1704,8 @@ var WindowManager = (function() {
     if (!inlineActivityFrames.length)
       return;
 
-    var topFrame = inlineActivityFrames[inlineActivityFrames.length - 1].firstChild;
+    var topFrame = inlineActivityFrames[inlineActivityFrames.length - 1]
+      .firstChild;
     if ('setVisible' in topFrame) {
       topFrame.setVisible(visible);
     }
@@ -1931,14 +1981,22 @@ var WindowManager = (function() {
 
   // Stop running the app with the specified origin
   function kill(origin, callback) {
-    if (!isRunning(origin))
+    if (!isRunning(origin)) {
+      if (callback) {
+        setTimeout(callback);
+      }
       return;
+    }
 
     // As we can't immediatly remove runningApps entry,
     // we flag it as being killed in order to avoid trying to remove it twice.
     // (Check required because of bug 814583)
-    if (runningApps[origin].killed)
+    if (runningApps[origin].killed) {
+      if (callback) {
+        setTimeout(callback);
+      }
       return;
+    }
     runningApps[origin].killed = true;
 
     // If the app is the currently displayed app, switch to the homescreen
@@ -1961,13 +2019,17 @@ var WindowManager = (function() {
       } else {
         setDisplayedApp(homescreen, function() {
           removeFrame(origin);
-          if (callback)
+          if (callback) {
             setTimeout(callback);
+          }
         });
       }
 
     } else {
       removeFrame(origin);
+      if (callback) {
+        setTimeout(callback);
+      }
     }
 
     // Send a synthentic 'appterminated' event.
@@ -2023,11 +2085,13 @@ var WindowManager = (function() {
     }
 
     if (displayedApp !== homescreen || inTransition) {
-      if (displayedApp != ftuURL) {
-        setDisplayedApp(homescreen);
-      } else {
-        e.preventDefault();
-      }
+      // Make sure this happens before activity frame is removed.
+      // Because we will be asked by a 'activity-done' event from gecko
+      // to relaunch to activity caller, and this is the only way to
+      // determine if we are going to homescreen or the original app.
+      activityCallerOrigin = '';
+      ensureHomescreen().classList.remove('zoom-in');
+      setDisplayedApp(homescreen);
     } else {
       stopInlineActivity(true);
       ensureHomescreen(true);
@@ -2071,9 +2135,6 @@ var WindowManager = (function() {
 
   // Return the object that holds the public API
   return {
-    isFtuRunning: function() {
-      return isRunningFirstRunApp;
-    },
     launch: launch,
     kill: kill,
     reload: reload,
@@ -2087,10 +2148,16 @@ var WindowManager = (function() {
     getCurrentDisplayedApp: function() {
       return runningApps[displayedApp];
     },
-    hideCurrentApp: hideCurrentApp,
-    restoreCurrentApp: restoreCurrentApp,
+    getOrientationForApp: function(origin) {
+      var app = runningApps[origin];
+
+      if (!app || !app.manifest)
+        return;
+
+      return app.manifest.orientation;
+    },
+    toggleHomescreen: toggleHomescreen,
     retrieveHomescreen: retrieveHomescreen,
-    retrieveFTU: retrieveFTU,
     screenshots: screenshots
   };
 }());

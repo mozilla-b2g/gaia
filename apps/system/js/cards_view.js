@@ -12,12 +12,6 @@ var CardsView = (function() {
   //display icon of an app on top of app's card
   var DISPLAY_APP_ICON = false;
   var USER_DEFINED_ORDERING = false;
-  // If 'true', scrolling moves the list one card
-  // at time, and snaps the list so the current card
-  // is centered in the view
-  // If 'false', use free, physics-based scrolling
-  // (Gaia default)
-  var SNAPPING_SCROLLING = true;
   // if 'true' user can close the app
   // by dragging it upwards
   var MANUAL_CLOSING = true;
@@ -39,8 +33,6 @@ var CardsView = (function() {
   // before the timer ticks while in reordering
   // mode
   var allowScrollingWhileSorting = false;
-  // Initial margin of the reordered card
-  var dragMargin = 0;
   // Are we reordering or removing the card now?
   var draggingCardUp = false;
   // Are we moving card left or right?
@@ -49,6 +41,8 @@ var CardsView = (function() {
   var userSortedApps = [];
   var HVGA = document.documentElement.clientWidth < 480;
   var cardsViewShown = false;
+
+  var windowWidth = window.innerWidth;
 
   // init events
   var gd = new GestureDetector(cardsView);
@@ -173,11 +167,7 @@ var CardsView = (function() {
 
     }
 
-    if (SNAPPING_SCROLLING) {
-      cardsView.style.overflow = 'hidden'; //disabling native scrolling
-    }
-
-    if (SNAPPING_SCROLLING || MANUAL_CLOSING) {
+    if (MANUAL_CLOSING) {
       cardsView.addEventListener('mousedown', CardsView);
     }
 
@@ -187,6 +177,12 @@ var CardsView = (function() {
     // If there is a displayed app, take keyboard focus away
     if (displayedApp)
       runningApps[displayedApp].frame.blur();
+
+    placeCards();
+    // At the beginning only the current card can listen to tap events
+    currentCardStyle.pointerEvents = 'auto';
+
+    window.addEventListener('tap', CardsView);
 
     function addCard(origin, app, displayedAppCallback) {
       // Display card switcher background first to make user focus on the
@@ -204,6 +200,12 @@ var CardsView = (function() {
       var card = document.createElement('li');
       card.classList.add('card');
       card.dataset.origin = origin;
+
+      var landscape = WindowManager.getOrientationForApp(origin) ===
+                                                            'landscape-primary';
+      if (landscape) {
+        card.classList.add('landscape');
+      }
 
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
@@ -246,7 +248,8 @@ var CardsView = (function() {
         header.setAttribute('role', 'region');
         header.classList.add('skin-organic');
         header.innerHTML = '<header><button><span class="icon icon-close">';
-        header.innerHTML += '</span></button><h1>' + escapeHTML(popupFrame.name, true);
+        header.innerHTML +=
+          '</span></button><h1>' + escapeHTML(popupFrame.name, true);
         header.innerHTML += '</h1></header>';
         card.appendChild(header);
         card.classList.add('trustedui');
@@ -258,41 +261,60 @@ var CardsView = (function() {
 
       cardsList.appendChild(card);
 
-      // If we have a cached screenshot, use that first
-      // We then 'res-in' the correctly sized version
-      var cachedLayer = WindowManager.screenshots[origin];
-      if (cachedLayer) {
-        card.style.backgroundImage = 'url(' + cachedLayer + ')';
-      }
+      card.addEventListener('outviewport', function outviewport() {
+        card.style.display = 'none';
+      });
 
-      // rect is the final size (considering CSS transform) of the card.
-      var rect = card.getBoundingClientRect();
+      card.addEventListener('onviewport', function onviewport() {
+        card.style.display = 'block';
 
-      // And then switch it with screenshots when one will be ready
-      // (instead of -moz-element backgrounds)
-      frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
-        function gotScreenshot(screenshot) {
-          if (screenshot.target.result) {
-            var objectURL = URL.createObjectURL(screenshot.target.result);
+        if (card.style.backgroundImage) {
+          return;
+        }
 
-            // Overwrite the cached image to prevent flickering
-            card.style.backgroundImage = 'url(' + objectURL + '), url(' + cachedLayer + ')';
+        // If we have a cached screenshot, use that first
+        // We then 'res-in' the correctly sized version
+        var cachedLayer = WindowManager.screenshots[origin];
+        if (cachedLayer) {
+          card.style.backgroundImage = 'url(' + cachedLayer + ')';
+        }
 
-            // setTimeout is needed to ensure that the image is fully drawn
-            // before we remove it. Otherwise the rendering is not smooth.
-            // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
-            setTimeout(function() {
+        // We cannot take a screenshot here for landscape apps because the
+        // mobile is on portrait
+        if (landscape) {
+          return;
+        }
 
-              // Override the cached image
-              URL.revokeObjectURL(cachedLayer);
-              WindowManager.screenshots[origin] = objectURL;
-            }, 200);
-          }
-        };
+        // And then switch it with screenshots when one will be ready
+        // (instead of -moz-element backgrounds)
+        // Only take a new screenshot if is the active app
+        if (!cachedLayer || (
+          typeof frameForScreenshot.getScreenshot === 'function' &&
+          origin === displayedApp)) {
+          // rect is the final size (considering CSS transform) of the card.
+          var rect = card.getBoundingClientRect();
+          frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
+            function gotScreenshot(screenshot) {
+              if (screenshot.target.result) {
+                var objectURL = URL.createObjectURL(screenshot.target.result);
 
-      // Set up event handling
-      // A click elsewhere in the card switches to that task
-      card.addEventListener('tap', runApp);
+                // Overwrite the cached image to prevent flickering
+                card.style.backgroundImage =
+                  'url(' + objectURL + '), url(' + cachedLayer + ')';
+
+                // setTimeout is needed to ensure that the image is fully drawn
+                // before we remove it. Otherwise the rendering is not smooth.
+                // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
+                setTimeout(function() {
+
+                  // Override the cached image
+                  URL.revokeObjectURL(cachedLayer);
+                  WindowManager.screenshots[origin] = objectURL;
+                }, 200);
+              }
+            };
+        }
+      });
     }
   }
 
@@ -302,13 +324,9 @@ var CardsView = (function() {
       var element = e.target.parentNode;
       cardsList.removeChild(element);
       closeApp(element, true);
-      return;
+    } else if ('origin' in e.target.dataset) {
+      WindowManager.launch(e.target.dataset.origin);
     }
-
-    var origin = this.dataset.origin;
-    alignCurrentCard(function cardAligned() {
-      WindowManager.launch(origin);
-    });
   }
 
   function closeApp(element, removeImmediately) {
@@ -317,12 +335,13 @@ var CardsView = (function() {
 
     // Fix for non selectable cards when we remove the last card
     // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
-    if (cardsList.children.length === currentDisplayed) {
+    var cardsLength = cardsList.children.length;
+    if (cardsLength === currentDisplayed) {
       currentDisplayed--;
     }
 
     // If there are no cards left, then dismiss the task switcher.
-    if (!cardsList.children.length)
+    if (!cardsLength)
       hideCardSwitcher(removeImmediately);
   }
 
@@ -372,7 +391,11 @@ var CardsView = (function() {
 
     // events to handle
     window.removeEventListener('lock', CardsView);
+    window.removeEventListener('tap', CardsView);
 
+    if (removeImmediately) {
+      cardsView.classList.add('no-transition');
+    }
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
     cardsViewShown = false;
@@ -381,13 +404,13 @@ var CardsView = (function() {
     function removeCards() {
       cardsView.removeEventListener('transitionend', removeCards);
       screenElement.classList.remove('cards-view');
-
-      while (cardsList.firstElementChild) {
-        cardsList.removeChild(cardsList.firstElementChild);
-      }
+      cardsList.innerHTML = '';
+      prevCardStyle = currentCardStyle = nextCardStyle = currentCard =
+      prevCard = nextCard = deltaX = null;
     }
     if (removeImmediately) {
       removeCards();
+      cardsView.classList.remove('no-transition');
     } else {
       cardsView.addEventListener('transitionend', removeCards);
     }
@@ -397,9 +420,8 @@ var CardsView = (function() {
     return cardsViewShown;
   }
 
-  //scrolling cards
-  var initialCardViewPosition;
-  var initialTouchPosition = {};
+  //scrolling cards (Positon 0 is x-coord and position 1 is y-coord)
+  var initialTouchPosition = [0, 0];
   // If the pointer down event starts outside of a card, then there's
   // no ambiguity between tap/pan, so we don't need a transition
   // threshold.
@@ -409,35 +431,150 @@ var CardsView = (function() {
   // switching the card.  It doesn't make sense for users to start
   // swiping because they want to stay on the same card.
   var threshold = 1;
+  var thresholdOrdering = 100;
   // Distance after which dragged card starts moving
   var moveCardThreshold = window.innerHeight / 6;
   // Arbitrarily chosen to be 4x larger than the gecko18 drag
   // threshold.  This constant should be a truemm/mozmm value, but
   // it's hard for us to evaluate that here.
   var removeCardThreshold = 100;
+  var switchingCardThreshold = 30;
 
-  function alignCurrentCard(callback) {
-    var number = currentDisplayed;
-    if (!cardsList.children[number])
-      return;
+  var prevCardStyle, currentCardStyle, nextCardStyle, deltaX;
+  var currentCard, prevCard, nextCard;
 
-    var target = cardsList.children[number];
-    var scrollLeft = cardsView.scrollLeft;
-    var targetScrollLeft = target.offsetLeft;
+  // With this object we avoid several if statements
+  var pseudoCard = {
+    style: {
+      // Empty object
+    },
+    dispatchEvent: function() {
+      // Do nothing
+    }
+  };
 
-    if (Math.abs(scrollLeft - targetScrollLeft) < 4) {
-      cardsView.scrollLeft = target.offsetLeft;
-      if (callback)
-        callback();
+  var onViewPortEvent = new CustomEvent('onviewport');
+  var outViewPortEvent = new CustomEvent('outviewport');
+
+  // Scale for current card
+  var CC_SCALE = 0.8;
+  // Scale for current card's siblings
+  var SC_SCALE = 0.6;
+  // Opacity value for current card's siblings
+  var SC_OPA = 0.4;
+  var CARD_TRANSITION = '-moz-transform .3s, opacity .3s';
+
+  function placeCards() {
+    currentCard = cardsList.children[currentDisplayed];
+
+    if (!currentCard) {
+      // Fake objects -> index out of bound exception
+      currentCard = nextCard = prevCard = pseudoCard;
+      currentCardStyle = nextCardStyle = prevCardStyle = pseudoCard.style;
       return;
     }
 
-    cardsView.scrollLeft = scrollLeft + (targetScrollLeft - scrollLeft) / 2;
-    target.transform = '';
+    currentCard.dispatchEvent(onViewPortEvent);
+    // Link to the style objects of the cards
+    currentCardStyle = reorderedCard !== currentCard ? currentCard.style :
+                                                       noCard;
 
-    window.mozRequestAnimationFrame(function newFrameCallback() {
-      alignCurrentCard(callback);
+    prevCard = currentCard.previousElementSibling || pseudoCard;
+    if (prevCard !== reorderedCard) {
+      prevCard.dispatchEvent(onViewPortEvent);
+      prevCardStyle = prevCard.style;
+    } else {
+      prevCardStyle = pseudoCard.style;
+    }
+
+    nextCard = currentCard.nextElementSibling || pseudoCard;
+    if (nextCard !== reorderedCard) {
+      nextCard.dispatchEvent(onViewPortEvent);
+      nextCardStyle = nextCard.style;
+    } else {
+      nextCardStyle = pseudoCard.style;
+    }
+
+    // Scaling and translating cards to reach target positions
+    prevCardStyle.MozTransform = 'scale(' + SC_SCALE + ') translateX(-100%)';
+    currentCardStyle.MozTransform = 'scale(' + CC_SCALE + ') translateX(0)';
+    nextCardStyle.MozTransform = 'scale(' + SC_SCALE + ') translateX(100%)';
+
+    // Current card sets the z-index to level 2 and opacity to 1
+    currentCardStyle.zIndex = 2;
+    currentCardStyle.opacity = 1;
+
+    // Previous and next cards set the z-indez to level 1 and opacity to 0.4
+    prevCardStyle.zIndex = nextCardStyle.zIndex = 1;
+    prevCardStyle.opacity = nextCardStyle.opacity = SC_OPA;
+  }
+
+  function alignCurrentCard() {
+    // We're going to release memory hiding card out of screen
+    deltaX < 0 ? prevCard.dispatchEvent(outViewPortEvent) :
+                 nextCard.dispatchEvent(outViewPortEvent);
+
+    // Disable previous current card
+    currentCardStyle.pointerEvents = 'none';
+
+    placeCards();
+
+    prevCardStyle.MozTransition = nextCardStyle.MozTransition =
+                              currentCardStyle.MozTransition = CARD_TRANSITION;
+
+    currentCard.addEventListener('transitionend', function transitionend() {
+      currentCard.removeEventListener('transitionend', transitionend);
+      prevCardStyle.MozTransition = currentCardStyle.MozTransition =
+      nextCardStyle.MozTransition = '';
+      currentCardStyle.pointerEvents = 'auto';
     });
+  }
+
+  function moveCards() {
+    var scaleFactor = Math.abs((deltaX / windowWidth) * (CC_SCALE - SC_SCALE));
+
+    var card = prevCardStyle;
+    var oppositeCard = nextCardStyle;
+    var translateSign = -100;
+    if (deltaX > 0) {
+      var card = nextCardStyle;
+      var oppositeCard = prevCardStyle;
+      var translateSign = 100;
+    }
+
+    var movementFactor = Math.abs(deltaX) / windowWidth;
+
+    // Scaling and translating next or previous sibling
+    card.MozTransform = 'scale(' + (SC_SCALE + scaleFactor) +
+                ') translateX(' + (translateSign * (1 - movementFactor)) + '%)';
+
+    // Fading in new card
+    card.opacity = SC_OPA + (movementFactor * (1 - SC_OPA));
+    // Hiding the opposite sibling card progressively
+    oppositeCard.opacity = SC_OPA - movementFactor;
+    // Fading out current card
+    currentCardStyle.opacity = 1 - (movementFactor * (1 - SC_OPA));
+
+    // Scaling and translating current card
+    currentCardStyle.MozTransform = 'scale(' + (CC_SCALE - scaleFactor) +
+                                    ') translateX(' + -deltaX + 'px)';
+  }
+
+  function isReorderingMode() {
+    return (USER_DEFINED_ORDERING && reorderedCard !== null);
+  }
+
+  function onMoveEventForScrolling(evt) {
+    deltaX = initialTouchPosition[0] - (evt.touches ? evt.touches[0].pageX :
+                                        evt.pageX);
+    moveCards();
+  }
+
+  function onMoveEventForDeleting(evt, deltaY) {
+    var dy = deltaY | initialTouchPosition[1] -
+                              (evt.touches ? evt.touches[0].pageY : evt.pageY);
+    evt.target.style.MozTransform = 'scale(' + CC_SCALE +
+                                                  ') translateY(-' + dy + 'px)';
   }
 
   function onStartEvent(evt) {
@@ -447,54 +584,50 @@ var CardsView = (function() {
     cardsView.addEventListener('mouseup', CardsView);
     cardsView.addEventListener('swipe', CardsView);
 
-    initialCardViewPosition = cardsView.scrollLeft;
-    initialTouchPosition = {
-        x: evt.touches ? evt.touches[0].pageX : evt.pageX,
-        y: evt.touches ? evt.touches[0].pageY : evt.pageY
-    };
+    if (evt.touches) {
+      initialTouchPosition = [evt.touches[0].pageX, evt.touches[0].pageY];
+    } else {
+      initialTouchPosition = [evt.pageX, evt.pageY];
+    }
   }
 
   function onMoveEvent(evt) {
     evt.stopPropagation();
-    var touchPosition = {
-        x: evt.touches ? evt.touches[0].pageX : evt.pageX,
-        y: evt.touches ? evt.touches[0].pageY : evt.pageY
-    };
+    var touchPosition = evt.touches ? [evt.touches[0].pageX,
+                                       evt.touches[0].pageY] :
+                                      [evt.pageX, evt.pageY];
 
-    if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
-      var differenceY = initialTouchPosition.y - touchPosition.y;
-      if (differenceY > moveCardThreshold) {
-        // We don't want user to scroll the CardsView when one of the card is
-        // already dragger upwards
-        draggingCardUp = true;
-        evt.target.style.MozTransform = 'scale(0.6) translate(0, -' +
-                                        differenceY + 'px)';
+    deltaX = initialTouchPosition[0] - touchPosition[0];
+    var deltaY = initialTouchPosition[1] - touchPosition[1];
+
+    if (!isReorderingMode()) {
+      if (MANUAL_CLOSING && deltaY > moveCardThreshold &&
+          evt.target.classList.contains('card')) {
+          // We don't want user to scroll the CardsView when one of the card is
+          // already dragger upwards
+          draggingCardUp = true;
+          cardsView.removeEventListener('mousemove', CardsView);
+          document.addEventListener('mousemove', onMoveEventForDeleting);
+          onMoveEventForDeleting(evt, deltaY);
+      } else {
+        // If we are not reordering or removing Cards now and Snapping
+        // Scrolling is enabled, we want to scroll the CardList
+        if (Math.abs(deltaX) > switchingCardThreshold) {
+          cardsView.removeEventListener('mousemove', CardsView);
+          document.addEventListener('mousemove', onMoveEventForScrolling);
+        }
+
+        moveCards();
       }
-    }
-
-    // If we are not reordering or removing Cards now
-    // and Snapping Scrolling is enabled, we want to scroll
-    // the CardList
-    if (SNAPPING_SCROLLING && reorderedCard === null && !draggingCardUp) {
-      var differenceX = initialTouchPosition.x - touchPosition.x;
-      cardsView.scrollLeft = initialCardViewPosition + differenceX;
-    }
-
     // If re are in reordering mode (there is a DOM element in)
     // reorderedCard variable) we are able to put this element somewere
     // among the others
-    if (USER_DEFINED_ORDERING && reorderedCard !== null) {
-      var differenceX = touchPosition.x - initialTouchPosition.x;
-      // Probably there is more clever solution for calculating
-      // position of transformed DOM element, but this was my
-      // first thought and it seems to work
-      var moveOffset = (cardsList.children[currentDisplayed].offsetLeft / 0.6) +
-                       differenceX - (dragMargin / 0.6);
+    } else {
+      var differenceX = -deltaX;
+      reorderedCard.style.MozTransform = 'scale(0.9) translateX(' +
+                                          differenceX + 'px)';
 
-      reorderedCard.style.MozTransform =
-        'scale(0.6) translate(' + moveOffset + 'px, 0)';
-
-      if (Math.abs(differenceX) > threshold) {
+      if (Math.abs(differenceX) > thresholdOrdering) {
         // We don't want to jump to the next page immediately,
         // We are waiting half a second for user to decide if
         // he wants to leave the Card here or scroll further
@@ -506,7 +639,7 @@ var CardsView = (function() {
           }, 500);
 
           if (differenceX > 0 &&
-              currentDisplayed <= cardsList.children.length) {
+              currentDisplayed < cardsList.children.length - 1) {
             currentDisplayed++;
             sortingDirection = 'right';
             alignCurrentCard();
@@ -527,6 +660,8 @@ var CardsView = (function() {
 
     document.releaseCapture();
     cardsView.removeEventListener('mousemove', CardsView);
+    document.removeEventListener('mousemove', onMoveEventForDeleting);
+    document.removeEventListener('mousemove', onMoveEventForScrolling);
     cardsView.removeEventListener('mouseup', CardsView);
     cardsView.removeEventListener('swipe', CardsView);
 
@@ -538,29 +673,32 @@ var CardsView = (function() {
       dy = eventDetail.dy;
       direction = eventDetail.direction;
     } else {
-      var touchPosition = {
-        x: evt.touches ? evt.touches[0].pageX : evt.pageX,
-        y: evt.touches ? evt.touches[0].pageY : evt.pageY
-      };
-      dx = touchPosition.x - initialTouchPosition.x;
-      dy = touchPosition.y - initialTouchPosition.y;
+      if (evt.touches) {
+        dx = evt.touches[0].pageX - initialTouchPosition[0];
+        dy = evt.touches[0].pageY - initialTouchPosition[1];
+      } else {
+        dx = evt.pageX - initialTouchPosition[0];
+        dy = evt.pageY - initialTouchPosition[1];
+      }
       direction = dx > 0 ? 'right' : 'left';
     }
 
-    if (SNAPPING_SCROLLING && !draggingCardUp && reorderedCard === null) {
+    if (!draggingCardUp && reorderedCard === null) {
       if (Math.abs(dx) > threshold) {
+        deltaX = dx;
         direction = dx > 0 ? 'right' : 'left';
         if (direction === 'left' &&
             currentDisplayed < cardsList.children.length - 1) {
           currentDisplayed++;
-          alignCurrentCard();
         } else if (direction === 'right' && currentDisplayed > 0) {
           currentDisplayed--;
-          alignCurrentCard();
         }
+        alignCurrentCard();
       } else {
         alignCurrentCard();
       }
+
+      return;
     }
 
     // if the element we start dragging on
@@ -588,26 +726,28 @@ var CardsView = (function() {
           );
         }
 
-        // Without removing the listener before closing card
-        // sometimes the 'click' event fires, even if 'mouseup'
-        // uses stopPropagation()
-        element.removeEventListener('tap', runApp);
-
         // Remove the icon from the task list
         cardsList.removeChild(element);
 
         closeApp(element);
-
-        --currentDisplayed;
         alignCurrentCard();
         return;
       } else {
         element.style.MozTransform = '';
         alignCurrentCard();
       }
+
+      return;
     }
 
-    if (USER_DEFINED_ORDERING && reorderedCard !== null) {
+    if (isReorderingMode()) {
+      if (reorderedCard === cardsList.children[currentDisplayed]) {
+        reorderedCard = null;
+        alignCurrentCard();
+
+        return;
+      }
+
       // Position of the card depends on direction of scrolling
       if (sortingDirection === 'right') {
         if (currentDisplayed <= cardsList.children.length) {
@@ -624,10 +764,8 @@ var CardsView = (function() {
           cardsList.children[currentDisplayed]
         );
       }
-      reorderedCard.style.MozTransform = '';
-      reorderedCard.dataset['edit'] = 'false';
-      reorderedCard = null;
 
+      reorderedCard = null;
       alignCurrentCard();
 
       // remove the app origin from ordering array
@@ -640,13 +778,19 @@ var CardsView = (function() {
     }
   }
 
+  function setEditMode(card) {
+    var style = card.style;
+    style.zIndex = 3;
+    style.opacity = 0.8;
+    style.MozTransform = 'scale(0.9) translateX(0)';
+  }
+
   function manualOrderStart(evt) {
     evt.preventDefault();
     reorderedCard = evt.target;
     allowScrollingWhileSorting = true;
     if (reorderedCard.classList.contains('card')) {
-      dragMargin = reorderedCard.offsetLeft;
-      reorderedCard.dataset['edit'] = true;
+      setEditMode(reorderedCard, true);
       sortingDirection = 'left';
     }
   }
@@ -679,6 +823,10 @@ var CardsView = (function() {
         manualOrderStart(evt);
         break;
 
+      case 'tap':
+        runApp(evt);
+        break;
+
       case 'home':
         if (!cardSwitcherIsShown())
           return;
@@ -705,8 +853,10 @@ var CardsView = (function() {
         showCardSwitcher();
         break;
 
-      case 'appwillopen':
-        hideCardSwitcher();
+      case 'appopen':
+        if (!evt.detail.isHomescreen) {
+          hideCardSwitcher(/* immediately */ true);
+        }
         break;
     }
   }
@@ -725,5 +875,4 @@ window.addEventListener('attentionscreenshow', CardsView);
 window.addEventListener('attentionscreenhide', CardsView);
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
-window.addEventListener('appwillopen', CardsView);
-
+window.addEventListener('appopen', CardsView);

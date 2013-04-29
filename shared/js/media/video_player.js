@@ -82,14 +82,14 @@ function VideoPlayer(container) {
   this.reset = function() {
     hidePlayer();
     hidePoster();
-  }
+  };
 
   this.init = function() {
     playbackTime = 0;
     hidePlayer();
     showPoster();
     this.pause();
-  }
+  };
 
   function hidePlayer() {
     player.style.display = 'none';
@@ -111,7 +111,7 @@ function VideoPlayer(container) {
         player.currentTime = playbackTime;
       }
       self.play();
-    }
+    };
   }
 
   function hidePoster() {
@@ -423,6 +423,10 @@ function VideoPlayer(container) {
     var seconds = time % 60;
     if (minutes < 60) {
       return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
+    } else {
+      var hours = Math.floor(minutes / 60);
+      minutes = Math.round(minutes % 60);
+      return hours + ':' + padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
     }
     return '';
   }

@@ -15,11 +15,15 @@
   <link  rel="stylesheet"type="text/css" href="/shared/style/status.css" rel="stylesheet">
 
   <!-- Specific style -->
+  <link rel="stylesheet" type="text/css" href="/contacts/style/transitions.css">
+  <link rel="stylesheet" type="text/css" href="/contacts/style/animations.css">
   <link rel="stylesheet" type="text/css" href="/contacts/style/overlay.css">
   <link rel="stylesheet" type="text/css" href="/contacts/style/status.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
   <link rel="stylesheet" type="text/css" href="/facebook/style/curtain_frame.css">
+  <!-- HIDPI support -->
+  <link rel="stylesheet" type="text/css" href="/shared/style/responsive.css" >
 
   <title>Welcome to Browser OS</title>
 
@@ -43,18 +47,21 @@
 
   <!-- Code for the FTU App -->
   <script defer type="text/javascript" src="/ftu/js/basket-client.js"></script>
+  <script defer type="text/javascript" src="/contacts/js/utilities/sdcard.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/status.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/overlay.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/fb_launcher.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/services_launcher.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
+  <script defer type="text/javascript" src="/contacts/js/utilities/vcard_parser.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_data.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_utils.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_query.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_contact_utils.js"></script>
   <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
   <script defer type="text/javascript" src="/ftu/js/sim_manager.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/sd_manager.js"></script>
   <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/facebook.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/import_services.js"></script>
   <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
   <script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
   <script defer type="text/javascript" src="/ftu/js/data_mobile.js"></script>
@@ -77,32 +84,44 @@
     <article role="main">
       <section id="pincode-screen" role="region">
         <label id="pin-label" data-l10n-id="type_pin">Type your PIN code</label>
+        <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="pin-input" name="simpin" type="password" size="8" maxlength="8" />
           <input id="fake-pin-input" class="fake-input" name="fake-simpin" type="number" size="8" maxlength="8" />
-          <div id="pin-error" class="hidden error"></div>
+          <label id="pin-error" data-l10n-id="pinError" class="hidden error">The PIN was incorrect.</label>
         </section>
       </section>
 
       <section id="pukcode-screen" role="region">
         <label id="puk-label" data-l10n-id="simLocked">The SIM card is locked</label>
+        <label id="puk-retries-left" data-l10n-id="inputCodeRetriesLeft">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="puk-input" name="simpuk" type="password" size="8" maxlength="8" />
           <input id="fake-puk-input" class="fake-input" name="fake-simpuk" type="number" size="8" maxlength="8" />
-          <div id="puk-info" class="info" data-l10n-id="pukError">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
-          <div id="puk-error" class="hidden error"></div>
+          <div id="puk-info" data-l10n-id="pukInfo" class="info">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
+          <div id="puk-error" data-l10n-id="pukError" class="hidden error">The PUK was incorrect.</div>
         </section>
         <label id="newpin" data-l10n-id="create_newpin">Create new PIN (4 to 8 digits)</label>
         <section class="input-wrapper">
           <input id="newpin-input" name="newpin" type="password" size="8" maxlength="8" />
           <input id="fake-newpin-input" class="fake-input" name="fake-newpin" type="number" size="8" maxlength="8" />
-          <div id="newpin-error" class="hidden error"></div>
+          <label id="newpin-error" data-l10n-id="pinValidation" class="hidden error">PIN must have between 4 and 8 characters.</label>
         </section>
         <label id="confirm-newpin" data-l10n-id="confirm_newpin">Confirm new PIN</label>
         <section class="input-wrapper">
           <input id="confirm-newpin-input" name="confirm-newpin" type="password" size="8" maxlength="8" />
           <input id="fake-confirm-newpin-input" class="fake-input" name="fake-confirm-newpin" type="number" size="8" maxlength="8" />
-          <div id="confirm-newpin-error" class="hidden error"></div>
+          <label id="confirm-newpin-error" data-l10n-id="confirm_newpin" class="hidden error">Confirm new PIN</label>
+        </section>
+      </section>
+
+      <section id="xckcode-screen" role="region">
+        <label id="xck-label" data-l10n-id="type_nck">Type your NCK code</label>
+        <label id="xkc-retries-left" data-l10n-id="inputCodeRetriesLeft">Unknown tries left</label>
+        <section class="input-wrapper">
+          <input id="xck-input" name="simxck" type="password" size="16" maxlength="16" />
+          <input id="fake-xck-input" class="fake-input" name="fake-simxck" type="number" size="16" maxlength="16" />
+          <label id="xck-error" data-l10n-id="confirm_newpin" class="hidden error"></label>
         </section>
       </section>
     </article>
@@ -160,9 +179,7 @@
         </section>
       </section>
       <section role="region" id="wifi">
-        <article data-type="list">
-          <ul id="networks">
-          </ul>
+        <article id="networks" role="main">
         </article>
       </section>
       <section role="region" id="configure_network">
@@ -215,7 +232,7 @@
                 Change
               </button>
               <p id="date-configuration-label"></p>
-              <input id="date-configuration" class="invisible" type="date"></input>
+              <input id="date-configuration" class="invisible" type="date" min="1970-1-1" max="2037-12-31"></input>
             </li>
             <li>
               <button class="change icon icon-dialog" data-l10n-id="change" type="button">
@@ -236,6 +253,22 @@
               </button>
               <p id="no-sim" data-l10n-id="noSimMsg">To import insert a SIM card</p>
             </li>
+            <li id="sd_import" class="importOption">
+              <button id="sd-import-button" class="icon icon-sd" data-l10n-id="importSd">
+                  SD card
+              </button>
+              <p id="no-sd" data-l10n-id="noSdMsg">To import insert a SD card</p>
+            </li>
+            <li id="gmail_import" class="importOption">
+              <button id="gmail-import-button" class="icon icon-gmail" data-l10n-id="importGmail">
+                  GMail
+              </button>
+            </li>
+            <li id="live_import" class="importOption">
+              <button id="live-import-button" class="icon icon-wlive" data-l10n-id="importLive">
+                Outlook
+              </button>
+            </li>
           </ul>
         </article>
         <header>
@@ -247,7 +280,7 @@
               <button id="fb-import-button" class="icon icon-fb" data-l10n-id="importFb2">
                   Facebook
               </button>
-              <p id="no-network" class="hidden" data-l10n-id="noConnection">
+              <p id="no-network" class="hidden" data-l10n-id="noConnection11">
                 To import Facebook friends connect to Wi-Fi or data network
               </p>
             </li>
@@ -365,7 +398,6 @@
         </p>
         <section id="newsletter-form">
           <input type="email" data-l10n-id="emailAddress" placeholder="Email address" id="newsletter-input"></input>
-          <button class="recommend" data-l10n-id="done" id="newsletter-button">Done</butto>
         </section>
         <section id="newsletter-success-screen">
           <p data-l10n-id="email-successfully-added">
@@ -577,7 +609,7 @@
     </menu>
   </form>
 
-  <form data-type="confirm" id="loading-overlay" role="dialog">
+  <form data-type="confirm" id="loading-overlay" role="dialog" class="hide no-opacity">
     <section id="progress-activity" class="hide">
       <h1 id="progress-title"></h1>
       <p role="status">

@@ -123,14 +123,20 @@ Calendar.ns('Provider').Abstract = (function() {
 
     /**
      * Returns the capabilities of a single event.
+     *
+     * @param {Object} event object.
+     * @param {Function} callback [err, caps].
      */
-    eventCapabilities: function() {
+    eventCapabilities: function(event, callback) {
       var caps = this.calendarCapabilities();
-      return {
-        canCreate: caps.canCreateEvent,
-        canUpdate: caps.canUpdateEvent,
-        canDelete: caps.canDeleteEvent
-      };
+
+      Calendar.nextTick(function() {
+        callback(null, {
+          canCreate: caps.canCreateEvent,
+          canUpdate: caps.canUpdateEvent,
+          canDelete: caps.canDeleteEvent
+        });
+      });
     }
 
   };

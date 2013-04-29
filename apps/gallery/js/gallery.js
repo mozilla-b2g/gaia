@@ -94,6 +94,14 @@ var visibilityMonitor;
 
 var loader = LazyLoader;
 
+// This flag is set in MetadataParser.js if we encounter images larger
+// than 2 megapixels that do not have big enough embedded
+// previews. The flag is read in frames.js where it is used to prevent
+// the user from zooming in on images at the same time (to prevent OOM
+// crashes). And it is cleared below when the scanning process ends
+// XXX: When bug 854795 is fixed, we'll be able to remove this flag
+var scanningBigImages = false;
+
 // The localized event is the main entry point for the app.
 // We don't do anything until we receive it.
 window.addEventListener('localized', function showBody() {
@@ -134,7 +142,7 @@ function init() {
   };
 
   // In crop view, the done button finishes the pick
-  $('crop-done-button').onclick = finishPick;
+  $('crop-done-button').onclick = cropAndEndPick;
 
   // The camera buttons should both launch the camera app
   $('fullscreen-camera-button').onclick = launchCameraApp;
@@ -151,9 +159,9 @@ function init() {
   window.onresize = resizeHandler;
 
   // If we were not invoked by an activity, then start off in thumbnail
-  // list mode, and fire up the image and video mediadb objects.
+  // list mode, and fire up the MediaDB object.
   if (!navigator.mozHasPendingMessage('activity')) {
-    initDB(true);
+    initDB();
     setView(thumbnailListView);
   }
 
@@ -165,17 +173,31 @@ function init() {
     case 'browse':
       // The 'browse' activity is the way we launch Gallery from Camera.
       // If this was a cold start, then the db needs to be initialized.
-      if (!photodb)
-        initDB(true);  // Initialize both the photo and video databases
-      // Always switch to the list of thumbnails.
-      setView(thumbnailListView);
+      if (!photodb) {
+        initDB();  // Initialize the media database
+        setView(thumbnailListView);
+      }
+      else {
+        // If the gallery was already running we we arrived here via a
+        // browse activity, then the user is probably coming to us from the
+        // camera, and she probably wants to see the list of thumbnails.
+        // If we're currently displaying a single image, switch to the
+        // thumbnails. But if the user left the gallery in the middle of
+        // an edit or in the middle of making a selection, then returning
+        // to the thumbnail list would cause her to lose work, so in those
+        // cases we don't change anything and let the gallery resume where
+        // the user left it.  See Bug 846220.
+        if (currentView === fullscreenView)
+          setView(thumbnailListView);
+      }
       break;
     case 'pick':
       if (pendingPick) // I don't think this can really happen anymore
         cancelPick();
+      pendingPick = a; // We need pendingPick set before calling initDB()
       if (!photodb)
-        initDB(false); // Don't include videos when picking photos!
-      startPick(a);
+        initDB();
+      startPick();
       break;
     }
   });
@@ -183,7 +205,7 @@ function init() {
 
 // Initialize MediaDB objects for photos and videos, and set up their
 // event handlers.
-function initDB(include_videos) {
+function initDB() {
   photodb = new MediaDB('pictures', metadataParserWrapper, {
     mimeTypes: ['image/jpeg', 'image/png'],
     version: 2,
@@ -192,9 +214,12 @@ function initDB(include_videos) {
     batchSize: PAGE_SIZE // Max batch size: one screenful
   });
 
-  if (include_videos) {
-    videostorage = navigator.getDeviceStorage('videos');
-  }
+  // This is where we find videos once the photodb notifies us that a
+  // new video poster image has been detected. Note that we need this
+  // even during a pick activity when we're not displaying videos
+  // because we might still might find and parse metadata for new
+  // videos during the scanning process.
+  videostorage = navigator.getDeviceStorage('videos');
 
   var loaded = false;
   function metadataParserWrapper(file, onsuccess, onerror) {
@@ -227,7 +252,7 @@ function initDB(include_videos) {
     if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
       showOverlay(null);
 
-    initThumbnails(include_videos);
+    initThumbnails();
   };
 
   photodb.onscanstart = function onscanstart() {
@@ -237,9 +262,16 @@ function initDB(include_videos) {
   };
 
   photodb.onscanend = function onscanend() {
+    // if we're still having the scanning overlay there are no photo's
+    if (currentOverlay === 'scanning')
+      showOverlay('emptygallery');
+
     // Hide the scanning indicator
     $('progress').classList.add('hidden');
     $('throbber').classList.remove('throb');
+
+    // It is safe to zoom in now
+    scanningBigImages = false;
   };
 
   // One or more files was created (or was just discovered by a scan)
@@ -262,7 +294,7 @@ function getVideoFile(filename, callback) {
   };
   req.onerror = function() {
     console.error('Failed to get video file', filename);
-  }
+  };
 }
 
 // This comparison function is used for sorting arrays and doing binary
@@ -284,7 +316,7 @@ function compareFilesByDate(a, b) {
 // when the sdcard becomes available again after a USB mass storage
 // session or an sdcard replacement.
 //
-function initThumbnails(include_videos) {
+function initThumbnails() {
   // If we've already been called once, then we've already got thumbnails
   // displayed. There is no need to re-enumerate them, so we just go
   // straight to scanning for new files
@@ -337,7 +369,7 @@ function initThumbnails(include_videos) {
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
     if (fileinfo) {
       // For a pick activity, don't display videos
-      if (!include_videos && fileinfo.metadata.video)
+      if (pendingPick && fileinfo.metadata.video)
         return;
 
       batch.push(fileinfo);
@@ -365,7 +397,7 @@ function initThumbnails(include_videos) {
   function done() {
     flush();
     if (files.length === 0) { // If we didn't find anything
-      showOverlay('emptygallery');
+      showOverlay('scanning');
     }
     // Now that we've enumerated all the photos and videos we already know
     // about go start looking for new photos and videos.
@@ -440,13 +472,27 @@ function deleteFile(n) {
   if (fileinfo.metadata.video) {
     videostorage.delete(fileinfo.metadata.video);
   }
+
+  // If the metdata parser saved a preview image for this photo,
+  // delete that, too.
+  if (fileinfo.metadata.preview && fileinfo.metadata.preview.filename) {
+    // We use raw device storage here instead of MediaDB because that is
+    // what MetadataParser.js uses for saving the preview.
+    var pictures = navigator.getDeviceStorage('pictures');
+    pictures.delete(fileinfo.metadata.preview.filename);
+  }
 }
 
 function fileCreated(fileinfo) {
   var insertPosition;
 
+  // If the new file is a video and we're handling an image pick activity
+  // then we won't display the new file.
+  if (pendingPick && fileinfo.metadata.video)
+    return;
+
   // If we were showing the 'no pictures' overlay, hide it
-  if (currentOverlay === 'emptygallery')
+  if (currentOverlay === 'emptygallery' || currentOverlay === 'scanning')
     showOverlay(null);
 
   // If this new image is newer than the first one, it goes first
@@ -646,12 +692,13 @@ function thumbnailOffscreen(thumbnail) {
 var pendingPick;
 var pickType;
 var pickWidth, pickHeight;
+var pickedFile;
 var cropURL;
 var cropEditor;
 
-function startPick(activityRequest) {
-  pendingPick = activityRequest;
-  pickType = activityRequest.source.data.type;
+function startPick() {
+  pickType = pendingPick.source.data.type;
+
   if (pendingPick.source.data.width && pendingPick.source.data.height) {
     pickWidth = pendingPick.source.data.width;
     pickHeight = pendingPick.source.data.height;
@@ -661,16 +708,40 @@ function startPick(activityRequest) {
   }
   // We need this for cropping the photo
   loader.load('js/ImageEditor.js', function() {
-    setView(pickView);    
+    setView(pickView);
   });
 }
 
+// Called when the user clicks on a thumbnail in pick mode
 function cropPickedImage(fileinfo) {
+  pickedFile = fileinfo;
+
+  // Do we actually want to allow the user to crop the image?
+  var nocrop = pendingPick.source.data.nocrop;
+
+  if (nocrop) {
+    // If we're not cropping we don't want the word "Crop" in the title bar
+    // XXX: UX will probably get rid of this title bar soon, anyway.
+    $('crop-header').textContent = '';
+  }
+
   setView(cropView);
 
-  photodb.getFile(fileinfo.name, function(file) {
+  photodb.getFile(pickedFile.name, function(file) {
     cropURL = URL.createObjectURL(file);
     cropEditor = new ImageEditor(cropURL, $('crop-frame'), {}, function() {
+      // If the initiating app doesn't want to allow the user to crop
+      // the image, we don't display the crop overlay. But we still use
+      // this image editor to preview the image.
+      if (nocrop) {
+        // Set a fake crop region even though we won't display it
+        // so that getCroppedRegionBlob() works.
+        cropEditor.cropRegion.left = cropEditor.cropRegion.top = 0;
+        cropEditor.cropRegion.right = cropEditor.dest.w;
+        cropEditor.cropRegion.bottom = cropEditor.dest.h;
+        return;
+      }
+
       cropEditor.showCropOverlay();
       if (pickWidth)
         cropEditor.setCropAspectRatio(pickWidth, pickHeight);
@@ -680,15 +751,43 @@ function cropPickedImage(fileinfo) {
   });
 }
 
-function finishPick() {
-  cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight,
-                                  function(blob) {
-                                    pendingPick.postResult({
-                                      type: pickType,
-                                      blob: blob
-                                    });
-                                    cleanupPick();
-                                  });
+function cropAndEndPick() {
+  if (Array.isArray(pickType)) {
+    if (pickType.length === 0 ||
+        pickType.indexOf(pickedFile.type) !== -1 ||
+        pickType.indexOf('image/*') !== -1) {
+      pickType = pickedFile.type;
+    }
+    else if (pickType.indexOf('image/png') !== -1) {
+      pickType = 'image/png';
+    }
+    else {
+      pickType = 'image/jpeg';
+    }
+  }
+  else if (pickType === 'image/*') {
+    pickType = pickedFile.type;
+  }
+
+  // If we're not changing the file type or resizing the image and if
+  // we're not cropping, or if the user did not crop, then we can just
+  // use the file as it is.
+  if (pickType === pickedFile.type &&
+      !pickWidth && !pickHeight &&
+      (pendingPick.source.data.nocrop || !cropEditor.hasBeenCropped())) {
+    photodb.getFile(pickedFile.name, endPick);
+  }
+  else {
+    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight, endPick);
+  }
+}
+
+function endPick(blob) {
+  pendingPick.postResult({
+    type: pickType,
+    blob: blob
+  });
+  cleanupPick();
 }
 
 function cancelPick() {
@@ -710,6 +809,7 @@ function cleanupCrop() {
 function cleanupPick() {
   cleanupCrop();
   pendingPick = null;
+  pickedFile = null;
   setView(thumbnailListView);
 }
 
@@ -823,18 +923,75 @@ function deleteSelectedItems() {
   if (selected.length === 0)
     return;
 
-  var msg = navigator.mozL10n.get('delete-n-items?', {n: selected.length});
-  if (confirm(msg)) {
-    // XXX
+  showConfirmDialog({
+    message: navigator.mozL10n.get('delete-n-items?', {n: selected.length}),
+    cancelText: navigator.mozL10n.get('cancel'),
+    confirmText: navigator.mozL10n.get('delete'),
+    danger: true
+  }, function() { // onSuccess
     // deleteFile is O(n), so this loop is O(n*n). If used with really large
     // selections, it might have noticably bad performance.  If so, we
     // can write a more efficient deleteFiles() function.
     for (var i = 0; i < selected.length; i++) {
       selected[i].classList.toggle('selected');
-      deleteFile(parseInt(selected[i].dataset.index));
+      deleteFile(parseInt(selected[i].dataset.index, 10));
     }
     clearSelection();
-  }
+  });
+}
+
+// show a confirm dialog
+function showConfirmDialog(options, onConfirm, onCancel) {
+  LazyLoader.load('shared/style/confirm.css', function() {
+    var dialog = $('confirm-dialog');
+    var msgEle = $('confirm-msg');
+    var cancelButton = $('confirm-cancel');
+    var confirmButton = $('confirm-ok');
+
+    // set up the dialog based on the options
+    msgEle.textContent = options.message;
+    cancelButton.textContent = options.cancelText ||
+      navigator.mozL10n.get('cancel');
+    confirmButton.textContent = options.confirmText ||
+      navigator.mozL10n.get('ok');
+
+    if (options.danger) {
+      confirmButton.classList.add('danger');
+    }
+    else {
+      confirmButton.classList.remove('danger');
+    }
+
+    // show the confirm dialog
+    dialog.classList.remove('hidden');
+
+    // attach event handlers
+    var onCancelClick = function(ev) {
+      close(ev);
+      if (onCancel) {
+        onCancel();
+      }
+      return false;
+    };
+    var onConfirmClick = function(ev) {
+      close(ev);
+      if (onConfirm) {
+        onConfirm();
+      }
+      return false;
+    };
+    cancelButton.addEventListener('click', onCancelClick);
+    confirmButton.addEventListener('click', onConfirmClick);
+
+    function close(ev) {
+      dialog.classList.add('hidden');
+      cancelButton.removeEventListener('click', onCancelClick);
+      confirmButton.removeEventListener('click', onConfirmClick);
+      ev.preventDefault();
+      ev.stopPropagation();
+      return false;
+    }
+  });
 }
 
 
@@ -940,6 +1097,7 @@ var currentOverlay;  // The id of the current overlay or null if none.
 //   nocard: no sdcard is installed in the phone
 //   pluggedin: the sdcard is being used by USB mass storage
 //   emptygallery: no pictures found
+//   scanning: scanning the sdcard for photo's, but none found yet
 //
 // Localization is done using the specified id with "-title" and "-text"
 // suffixes.
@@ -947,13 +1105,35 @@ var currentOverlay;  // The id of the current overlay or null if none.
 function showOverlay(id) {
   currentOverlay = id;
 
-  if (id === null) {
-    $('overlay').classList.add('hidden');
-    return;
+  var title, text;
+
+  switch (currentOverlay) {
+    case null:
+      $('overlay').classList.add('hidden');
+      return;
+    case 'nocard':
+      title = navigator.mozL10n.get('nocard2-title');
+      text = navigator.mozL10n.get('nocard2-text');
+      break;
+    case 'pluggedin':
+      title = navigator.mozL10n.get('pluggedin2-title');
+      text = navigator.mozL10n.get('pluggedin2-text');
+      break;
+    case 'scanning':
+      title = navigator.mozL10n.get('scanning-title');
+      text = navigator.mozL10n.get('scanning-text');
+      break;
+    case 'emptygallery':
+      title = navigator.mozL10n.get('emptygallery2-title');
+      text = navigator.mozL10n.get('emptygallery2-text');
+      break;
+    default:
+      console.warn('Reference to undefined overlay', currentOverlay);
+      return;
   }
 
-  $('overlay-title').textContent = navigator.mozL10n.get(id + '2-title');
-  $('overlay-text').textContent = navigator.mozL10n.get(id + '2-text');
+  $('overlay-title').textContent = title;
+  $('overlay-text').textContent = text;
   $('overlay').classList.remove('hidden');
 }
 

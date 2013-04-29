@@ -39,12 +39,24 @@ Calendar.ns('Views').CalendarColors = (function() {
     },
 
     render: function() {
-      var store = Calendar.App.store('Calendar');
-      var key;
+      var calendarStore = Calendar.App.store('Calendar');
 
-      for (key in store.cached) {
-        this.updateRule(store.cached[key]);
-      }
+      calendarStore.all(function(err, calendars) {
+        if (err) {
+          console.log('Error fetch calendars in CalendarColors');
+        }
+
+        var id;
+        for (id in calendars) {
+          this.updateRule(calendars[id]);
+        }
+
+        if (this.onrender) {
+          this.onrender();
+        }
+
+      }.bind(this));
+
     },
 
     /**

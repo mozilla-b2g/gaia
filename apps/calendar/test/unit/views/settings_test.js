@@ -1,12 +1,7 @@
 requireCommon('test/synthetic_gestures.js');
+requireLib('models/calendar.js');
 
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('models/calendar.js');
-  requireLib('templates/calendar.js');
-  requireLib('views/settings.js');
-});
-
-suite('views/settings', function() {
+suiteGroup('Views.Settings', function() {
 
   var subject;
   var app;
@@ -14,6 +9,30 @@ suite('views/settings', function() {
   var controller;
   var template;
   var triggerEvent;
+
+  function stageModels(list) {
+    var object = Object.create(null);
+
+    setup(function(done) {
+      var trans = app.db.transaction('calendars', 'readwrite');
+
+      trans.oncomplete = function() {
+        done();
+      };
+
+      trans.onerror = function(e) {
+        done(e.target.error);
+      };
+
+      var model;
+      for (var key in list) {
+        model = Factory('calendar', list[key]);
+        store.persist((object[key] = model), trans);
+      }
+    });
+
+    return object;
+  }
 
   suiteSetup(function() {
     triggerEvent = testSupport.calendar.triggerEvent;
@@ -24,7 +43,7 @@ suite('views/settings', function() {
     el.parentNode.removeChild(el);
   });
 
-  setup(function() {
+  setup(function(done) {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
@@ -44,8 +63,24 @@ suite('views/settings', function() {
 
     subject = new Calendar.Views.Settings({
       app: app,
-      syncProgressTarget: div
+      syncProgressTarget: div,
+      // normally this is higher in production but
+      // we don't need to wait that long in tests.
+      waitBeforePersist: 10
     });
+
+    app.db.open(done);
+  });
+
+  teardown(function(done) {
+    testSupport.calendar.clearStore(
+      app.db,
+      ['calendars'],
+      function() {
+        app.db.close();
+        done();
+      }
+    );
   });
 
   test('initialization', function() {
@@ -72,78 +107,62 @@ suite('views/settings', function() {
     assert.ok(subject.syncProgressTarget);
   });
 
-  suite('#_initEvents', function() {
-
-    var models;
-    var children;
-
-    setup(function() {
-      models = {};
-      // render out one model
-      models[1] = {
-        name: 'first',
+  suite('#observeStore', function() {
+    var models = stageModels({
+      first: {
         localDisplayed: true,
-        _id: 'one'
-      };
-
-      store._cached = models;
-      subject.render();
-      children = subject.calendars.children;
+        _id: 'first',
+        remote: {
+          name: 'first'
+        }
+      }
     });
 
-    suite('update', function() {
+    var children;
+    setup(function(done) {
+      // we must wait until rendering completes
+      subject.render();
+      subject.onrender = function() {
+        children = subject.calendars.children;
+        Calendar.nextTick(done);
+      };
+    });
 
-      test('when flagged as _inUpdate', function() {
-        subject._localUpdate = true;
+    test('update', function() {
+      var model = models.first;
+      var check = children[0].querySelector(
+        '*[type="checkbox"]'
+      );
 
-        models[1].name = 'foobar';
+      model.localDisplayed = false;
+      model.remote.name = 'foo';
 
-        store.emit('update', 'one', models[1]);
+      store.emit('update', model._id, model);
 
-        assert.notEqual(
-          children[0].textContent,
-          models[1].name,
-          'should not update when marked as _localUpdate'
-        );
-      });
-
-      test('when not flagged', function() {
-        var check = children[0].querySelector(
-          '*[type="checkbox"]'
-        );
-
-        models[1].name = 'foo';
-        models[1].localDisplayed = false;
-
-        store.emit('update', 'one', models[1]);
-
-        assert.equal(children[0].textContent, 'foo');
-        assert.isFalse(
-          check.checked
-        );
-      });
-
+      assert.equal(children[0].textContent, 'foo');
+      assert.isFalse(
+        check.checked
+      );
     });
 
     test('add', function() {
-      models[2] = {
-        name: 'second',
+      var model = Factory('calendar', {
         localDisplayed: false,
-        _id: 'two'
-      };
+        _id: 'two',
+        remote: { name: 'second' }
+      });
 
       assert.equal(children.length, 1);
-      store.emit('add', 'two', models[2]);
+      store.emit('add', 'two', model);
       assert.equal(children.length, 2);
 
       assert.equal(children[1].textContent, 'second');
     });
 
     test('remove', function() {
-      store.emit('remove', 'one');
+      store.emit('remove', models.first._id);
       assert.equal(children.length, 0);
     });
-
   });
 
   test('sync', function() {
@@ -160,50 +179,81 @@ suite('views/settings', function() {
   });
 
   suite('#_onCalendarDisplayToggle', function() {
-    var model;
-    var checkbox;
+    var models = stageModels({
+      displayed: {
+        localDisplayed: true,
+        _id: 1
+      },
+
+      hidden: {
+        localDisplayed: false,
+        _id: 'hidden'
+      }
+    });
+
+    var checkboxes;
     var calledWith;
 
-    setup(function() {
-      model = Factory('calendar', {
-        localDisplayed: true,
-        _id: 'my-calendar'
-      });
-
-      store._cached = {
-        'my-calendar': model
-      };
-
+    setup(function(done) {
       subject.render();
-      checkbox = subject.calendars.querySelector(
-        'input[type="checkbox"]'
-      );
-    });
+      subject.onrender = function() {
+        checkboxes = {};
 
-    setup(function() {
-      store.persist = function() {
-        calledWith = arguments;
+        for (var id in models) {
+          checkboxes[id] = subject.calendars.querySelector(
+            'input[value="' + models[id]._id + '"]'
+          );
+        }
+
+        done();
       };
     });
 
-    test('initial toggle', function() {
-      assert.isTrue(checkbox.checked, 'should be checked initially');
+    function checkAsync(id, value) {
+      Calendar.nextTick(function() {
+        checkboxes[id].checked = !!value;
+        triggerEvent(checkboxes[id], 'change');
+      });
+    }
 
-      checkbox.checked = false;
-      triggerEvent(checkbox, 'change');
+    test('changing display state to false', function(done) {
+      // the goal is to trigger the change event
+      // multiple times but verify we only persist
+      // once...
+      assert.isTrue(
+        checkboxes.displayed.checked, 'begins checked'
+      );
 
-      assert.equal(calledWith[0], model);
-      assert.equal(model.localDisplayed, !!checkbox.checked);
+      // fired when calendar is persisted
+      subject.ondisplaypersist = function(calendar) {
+        done(function() {
+          assert.equal(calendar._id, models.displayed._id);
+          // verify we set it to false and checkbox is hidden.
+          assert.isFalse(calendar.localDisplayed);
+          assert.isFalse(checkboxes.displayed.checked);
+        });
+      };
 
-      var cb = calledWith[1];
-      cb();
-      assert.isTrue(subject._localUpdate);
-      store.emit('persist');
-      assert.isFalse(subject._localUpdate);
-      // verify the handler was removed;
-      subject._localUpdate = true;
-      store.emit('persist');
-      assert.isTrue(subject._localUpdate);
+      checkAsync('displayed', false);
+      checkAsync('displayed', true);
+      checkAsync('displayed', false);
+    });
+
+    test('changing display to true', function(done) {
+      assert.isFalse(
+        checkboxes.hidden.checked,
+        'begins unchecked'
+      );
+
+      checkAsync('hidden', true);
+
+      subject.ondisplaypersist = function(calendar) {
+        done(function() {
+          assert.equal(calendar._id, models.hidden._id);
+          assert.isTrue(calendar.localDisplayed);
+          assert.isTrue(checkboxes.hidden.checked);
+        });
+      };
     });
 
   });
@@ -211,19 +261,35 @@ suite('views/settings', function() {
   suite('#render', function() {
     var models = {};
 
-    setup(function() {
-      models[1] = {
+    setup(function(done) {
+      models[1] = Factory('calendar', {
         name: 'First',
         localDisplayed: true,
         _id: 1
-      };
+      });
 
-      models[2] = {
+      models[2] = Factory('calendar', {
         name: 'Second',
         localDisplayed: false,
         _id: 2
+      });
+
+      var trans = app.db.transaction('calendars', 'readwrite');
+
+      store.persist(models[1], trans);
+      store.persist(models[2], trans);
+
+      trans.oncomplete = function() {
+        done();
       };
-      store._cached = models;
+
+      trans.onerror = function(e) {
+        done(e);
+      };
+    });
+
+    setup(function(done) {
+      subject.onrender = done;
       subject.render();
     });
 

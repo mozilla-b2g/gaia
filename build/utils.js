@@ -170,13 +170,8 @@ function makeWebappsObject(dirs) {
 
 let externalAppsDirs = ['external-apps'];
 
-// External apps are built differently from other apps by webapp-manifests.js,
-// and we need apps that are both external and dogfood to be treated like
-// external apps (to properly test external apps on dogfood devices), so we
-// segregate them into their own directory that we add to the list of external
-// apps dirs here when building a dogfood profile.
-if (DOGFOOD === '1') {
-  externalAppsDirs.push('external-dogfood-apps');
+if (DOGFOOD === '0' && PRODUCTION === '0') {
+  externalAppsDirs.push('test_external_apps');
 }
 
 const Gaia = {
@@ -185,7 +180,7 @@ const Gaia = {
   webapps: makeWebappsObject(GAIA_APP_SRCDIRS),
   externalWebapps: makeWebappsObject(externalAppsDirs.join(' ')),
   aggregatePrefix: 'gaia_build_',
-  customizeFolder: CUSTOMIZE
+  distributionDir: GAIA_DISTRIBUTION_DIR
 };
 
 function registerProfileDirectory() {

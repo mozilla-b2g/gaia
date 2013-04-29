@@ -10,13 +10,18 @@
   bottom: 0;
   right: 0;
 }
+
 #simpin-dialog .container {
-  padding-left: 20px;
-  font-size: 1.5em;
+  padding-left: 2rem;
+  font-size: 1.5rem;
+}
+
+#simpin-dialog .container div {
+  white-space: normal;
 }
 
 #simpin-dialog .container > div {
-  padding-top: 10px;
+  padding-top: 1rem;
 }
 
 #errorMsg{
@@ -39,7 +44,7 @@
 }
 
 #simpin-dialog .input-wrapper input {
-  font-size: 2.0em;
+  font-size: 3rem;
   display: block;
 }
 
@@ -48,5 +53,9 @@
   pointer-events: none;
   position: absolute;
   top: 0;
+}
+
+#xckArea .input-wrapper input {
+  font-size: 1.8em;
 }
 

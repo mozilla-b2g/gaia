@@ -14,6 +14,10 @@ html * {
   overflow: hidden;
 }
 
+.font-light {
+  font-weight: 300;
+}
+
 button::-moz-focus-inner {
   border: 0;
 }
@@ -50,9 +54,7 @@ button::-moz-focus-inner {
 }
 
 #keypad-callbar.hide,
-#keypad-hide-bar.hide,
-#callbar-answer.hide,
-#callbar-hang-up.hide {
+#keypad-hide-bar.hide {
   display: none;
 }
 
@@ -86,8 +88,8 @@ button::-moz-focus-inner {
 }
 
 body.showKeypad #views {
-  transition: top 0.3s ease;
-  top: 0;
+  transition: transform 0.3s ease;
+  transform: translateY(-100%);
   z-index: 500;
 }
 
@@ -213,6 +215,7 @@ body.hidden *[data-l10n-id] {
 #mute > span {
   display: inline-block;
   background: url('images/ActionIcon_40x40_mute.png');
+  background-size: 4rem;
   width: 4rem;
   height: 4rem;
 }
@@ -228,7 +231,7 @@ button[disabled] .icon-keypad-visibility {
 .icon-keypad-visibility {
   display:inline-block;
   background:url('images/ActionIcon_40x40_dialpad.png') ;
-  background-size: 4rem 4rem;
+  background-size: 4rem;
   width:4rem;
   height:4rem;
 }
@@ -236,6 +239,7 @@ button[disabled] .icon-keypad-visibility {
 #speaker span {
   display:inline-block;
   background:url('images/ActionIcon_40x40_speaker.png') ;
+  background-size: 4rem;
   width:4rem;
   height:4rem;
   opacity: 1.0;
@@ -260,10 +264,6 @@ button[disabled] .icon-keypad-visibility {
   width: 50%;
 }
 
-#callbar-hang-up.full-space {
-  width: 100%;
-}
-
 #callbar-answer {
   height: 6.5rem;
   width: 50%;
@@ -286,15 +286,11 @@ button[disabled] .icon-keypad-visibility {
   background: #820000;
 }
 
-#callbar-hang-up.full-space > #callbar-hang-up-action {
-  margin: 1rem 1.5rem 1.5rem 1.5rem;
-}
-
 #callbar-hang-up-action > div {
   margin: 0 auto;
   background-image: url('images/ActionIcon_40x40_hangup.png');
   background-repeat: no-repeat;
-  background-size: 4rem 4rem;
+  background-size: 4rem;
   background-position: center;
   width: 4rem;
   height: 4rem;
@@ -314,7 +310,7 @@ button[disabled] .icon-keypad-visibility {
   margin: 0 auto;
   background-image: url('images/ActionIcon_40x40_pickup.png');
   background-repeat: no-repeat;
-  background-size: 4rem 4rem;
+  background-size: 4rem;
   background-position: center;
   width: 4rem;
   height: 4rem;
@@ -362,20 +358,21 @@ button[disabled] .icon-keypad-visibility {
 }
 
 #calls[data-count="1"] > section .numberWrapper .number {
-  height: 4rem;
-  padding: 2rem 2rem 0 0;
-  font-size: 3.6rem;
-  line-height: 4rem;
+  height: 2.5rem;
+  padding: 2rem 0 0 0;
+  font-size: 3.3rem;
+  line-height: 1.5rem;
   color: black;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: lighter;
 }
 
 #calls[data-count="1"] > section .numberWrapper
   .number.noAdditionalContactInfo {
-  height: 10rem;
-  line-height: 10rem;
+  height: 8rem;
+  line-height: 8rem;
   padding: 0;
 }
 
@@ -387,7 +384,7 @@ button[disabled] .icon-keypad-visibility {
 }
 
 #calls[data-count="1"] > section .additionalContactInfo {
-  height: 2rem;
+  height: 1.2rem;
   width: 100%;
   padding: 0 2rem 2rem 2rem;
   background: #01c5ed;
@@ -451,7 +448,7 @@ button[disabled] .icon-keypad-visibility {
   height: 3.5rem;
   margin: 4rem 0 0 1rem;
   background-repeat: no-repeat;
-  background-size: 2.4rem 2.4rem;
+  background-size: 2.4rem;
 }
 
 #calls[data-count="1"] > section .duration > .direction.incoming > div {
@@ -494,6 +491,7 @@ button[disabled] .icon-keypad-visibility {
   background-image:  url("images/incoming-call.png");
   background-position: top 2rem right 1.5rem;
   background-repeat: no-repeat;
+  background-size: 1.6rem;
 }
 
 #incoming-container.displayed {
@@ -543,7 +541,7 @@ button[disabled] .icon-keypad-visibility {
   line-height: 6rem;
   margin: 0 1.5rem;
   height: 5rem;
-  border-bottom: 1px #333030 solid;
+  border-bottom: 0.1rem #333030 solid;
 }
 
 #incoming-ignore > span {
@@ -553,17 +551,18 @@ button[disabled] .icon-keypad-visibility {
 }
 
 /* Handling the status bar mode */
-@media screen and (max-height: 40px) {
+@media screen and (max-height: 4.5em ) {
   body {
     background-image: url('images/green-noise-bg.png');
     background-repeat: repeat-x;
+    background-size: auto 4rem;
   }
 
   #call-screen {
     background: transparent;
 
     border-radius: 0;
-    border-bottom: 1px #4c6700 solid;
+    border-bottom: 0.1rem #4c6700 solid;
   }
 
   #main-container {
@@ -643,8 +642,9 @@ button[disabled] .icon-keypad-visibility {
   width: 100%;
 }
 
-#call-screen[data-layout="dialing"] #callbar-hang-up-action {
-  margin: 1rem 1.5rem 1.5rem 1.5rem;
+#call-screen[data-layout="dialing"] #callbar-hang-up-action,
+#call-screen[data-layout="connected"] #callbar-hang-up-action {
+  margin: 1rem 1.5rem 1.5rem;
 }
 
 #call-screen[data-layout="incoming"] #co-advanced,

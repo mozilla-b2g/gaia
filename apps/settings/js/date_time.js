@@ -100,6 +100,18 @@ navigator.mozL10n.ready(function SettingsDateAndTime() {
 
   function setTimeAutoEnabled(enabled) {
     gTimeAutoSwitch.dataset.state = enabled ? 'auto' : 'manual';
+
+    if (enabled)
+      return;
+
+    // Reset the timezone to the previous user selected value
+    var reqUserTZ = settings.createLock().get('time.timezone.user-selected');
+    reqUserTZ.onsuccess = function dt_getUserTimezoneSuccess() {
+      var userSelTimezone = reqUserTZ.result['time.timezone.user-selected'];
+      if (userSelTimezone) {
+        settings.createLock().set({'time.timezone': userSelTimezone});
+      }
+    };
   }
 
   settings.addObserver(kTimeAutoEnabled, function(event) {
@@ -180,6 +192,15 @@ navigator.mozL10n.ready(function SettingsDateAndTime() {
     window.clearTimeout(_updateClockTimeout);
     updateDate();
     updateClock();
+  });
+
+  window.addEventListener('localized', function localized() {
+    // Update date and time locale when language is changed
+    var d = new Date();
+    var f = new navigator.mozL10n.DateTimeFormat();
+    var format = _('shortTimeFormat');
+    gDate.textContent = f.localeFormat(d, '%x');
+    gTime.textContent = f.localeFormat(d, format);
   });
 
   document.addEventListener('mozvisibilitychange', function visibilityChange() {

@@ -12,8 +12,6 @@ settings = {
  "accessibility.invert": False,
  "accessibility.screenreader": False,
  "alarm.enabled": False,
- "alert-sound.enabled": True,
- "alert-vibration.enabled": True,
  "app.reportCrashes": "ask",
  "app.update.interval": 86400,
  "audio.volume.alarm": 15,
@@ -53,11 +51,13 @@ settings = {
  "keyboard.layouts.pinyin": False,
  "keyboard.layouts.greek": False,
  "keyboard.layouts.japanese": False,
+ "keyboard.layouts.polish": False,
  "keyboard.layouts.portuguese": False,
  "keyboard.layouts.spanish": False,
  "keyboard.vibration": False,
  "keyboard.clicksound": False,
- "keyboard.wordsuggestion": False,
+ "keyboard.autocorrect": True,
+ "keyboard.wordsuggestion": True,
  "keyboard.current": "en",
  "language.current": "en-US",
  "lockscreen.passcode-lock.code": "0000",
@@ -69,8 +69,8 @@ settings = {
  "lockscreen.unlock-sound.enabled": False,
  "mail.sent-sound.enabled": True,
  "message.sent-sound.enabled": True,
- "operatorvariant.mcc": 0,
- "operatorvariant.mnc": 0,
+ "operatorvariant.mcc": "0",
+ "operatorvariant.mnc": "0",
  "ril.iccInfo.mbdn":"",
  "ril.sms.strict7BitEncoding.enabled": False,
  "ril.cellbroadcast.searchlist": "",
@@ -135,6 +135,7 @@ settings = {
  "ums.mode": 0,
  "vibration.enabled": True,
  "wifi.enabled": True,
+ "wifi.screen_off_timeout": 600000,
  "wifi.disabled_by_wakelock": False,
  "wifi.notification": False,
  "wifi.connect_via_settings": False,
@@ -206,8 +207,14 @@ def main():
     # Set the default locale
     if options.locale:
         settings["language.current"] = options.locale
+        keyboard_layouts_name = "shared/resources/keyboard_layouts.json"
+        keyboard_layouts = json.load(open(keyboard_layouts_name))
+        if options.locale in keyboard_layouts:
+            default_layout = keyboard_layouts[options.locale]
+            settings["keyboard.layouts.english"] = False
+            settings["keyboard.layouts.{0}".format(default_layout)] = True
 
-    settings["devtools.debugger.remote-enabled"] = enable_debugger;
+    settings["devtools.debugger.remote-enabled"] = enable_debugger
 
     # Grab wallpaper.jpg and convert it into a base64 string
     wallpaper_file = open(wallpaper_filename, "rb")

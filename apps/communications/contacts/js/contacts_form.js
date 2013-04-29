@@ -27,6 +27,7 @@ contacts.Form = (function() {
       formView,
       nonEditableValues,
       deviceContact,
+      fbContact,
       currentPhoto;
 
   var REMOVED_CLASS = 'removed';
@@ -38,6 +39,8 @@ contacts.Form = (function() {
   // The size we want our contact photos to be
   var PHOTO_WIDTH = 320;
   var PHOTO_HEIGHT = 320;
+
+  var touchstart = 'ontouchstart' in window ? 'touchstart' : 'mousedown';
 
   var textFieldsCache = {
     _textFields: null,
@@ -126,7 +129,7 @@ contacts.Form = (function() {
     });
 
     var form = dom.getElementById('contact-form');
-    form.addEventListener('mousedown', function click(event) {
+    form.addEventListener(touchstart, function click(event) {
       var tgt = event.target;
       if (tgt.tagName == 'BUTTON' && tgt.getAttribute('type') == 'reset') {
         event.preventDefault();
@@ -135,32 +138,54 @@ contacts.Form = (function() {
         checkDisableButton();
       }
     });
+
+    thumbAction.addEventListener(touchstart, function click(event) {
+      // Removing current photo
+      if (event.target.tagName == 'BUTTON')
+        saveButton.removeAttribute('disabled');
+    });
+
+    formView.addEventListener('ValueModified', function onValueModified(event) {
+      if (!event.detail) {
+        return;
+      }
+
+      if (event.detail.prevValue !== event.detail.newValue) {
+        saveButton.removeAttribute('disabled');
+      }
+    });
   };
 
-  var render = function cf_render(contact, callback, pFbContactData) {
+  var render = function cf_render(contact, callback, pFbContactData,
+                                  fromUpdateActivity) {
     var fbContactData = pFbContactData || [];
 
+    fbContact = fbContactData[2] || {};
     nonEditableValues = fbContactData[1] || {};
     deviceContact = contact;
     var renderedContact = fbContactData[0] || deviceContact;
 
     resetForm();
     (renderedContact && renderedContact.id) ?
-                        showEdit(renderedContact) : showAdd(renderedContact);
+       showEdit(renderedContact, fromUpdateActivity) : showAdd(renderedContact);
     if (callback) {
       callback();
     }
   };
 
-  var showEdit = function showEdit(contact) {
+  var showEdit = function showEdit(contact, fromUpdateActivity) {
     if (!contact || !contact.id) {
       return;
     }
     formView.classList.add('skin-organic');
+    if (!fromUpdateActivity)
+      saveButton.setAttribute('disabled', 'disabled');
+    saveButton.setAttribute('data-l10n-id', 'update');
     saveButton.textContent = _('update');
     currentContact = contact;
     deleteContactButton.parentNode.classList.remove('hide');
-    formTitle.innerHTML = _('editContact');
+    formTitle.setAttribute('data-l10n-id', 'editContact');
+    formTitle.textContent = _('editContact');
     currentContactId.value = contact.id;
     givenName.value = contact.givenName || '';
     familyName.value = contact.familyName || '';
@@ -217,13 +242,15 @@ contacts.Form = (function() {
       currentContact = {};
     }
     saveButton.setAttribute('disabled', 'disabled');
+    saveButton.setAttribute('data-l10n-id', 'done');
     saveButton.textContent = _('done');
     deleteContactButton.parentNode.classList.add('hide');
-    formTitle.innerHTML = _('addContact');
+    formTitle.setAttribute('data-l10n-id', 'addContact');
+    formTitle.textContent = _('addContact');
 
     params = params || {};
 
-    givenName.value = params.giveName || '';
+    givenName.value = params.givenName || '';
     familyName.value = params.lastName || '';
     company.value = params.company || '';
 
@@ -268,14 +295,24 @@ contacts.Form = (function() {
     var fields = config['fields'];
     var container = config['container'];
 
-    var default_type = tags[0].value || '';
+    var default_type = tags[0].type || '';
     var currField = {};
     var infoFromFB = false;
+
     for (var j = 0; j < fields.length; j++) {
       var currentElem = fields[j];
       var def = (currentElem === 'type') ? default_type : '';
       var defObj = (typeof(obj) === 'string') ? obj : obj[currentElem];
       var value = currField[currentElem] = defObj || def;
+      if (currentElem === 'type') {
+        currField['type_value'] = value;
+
+        // Do localizatiion for built-in types
+        if (isBuiltInType(value, tags)) {
+          currField['type_l10n_id'] = value;
+          value = _(value) || value;
+        }
+      }
       currField[currentElem] = utils.text.escapeHTML(value, true);
       if (!infoFromFB && value && nonEditableValues[value]) {
         infoFromFB = true;
@@ -299,7 +336,7 @@ contacts.Form = (function() {
     // Add event listeners
     var boxTitle = rendered.querySelector('legend.action');
     if (boxTitle) {
-      boxTitle.addEventListener('mousedown', onGoToSelectTag);
+      boxTitle.addEventListener(touchstart, onGoToSelectTag);
     }
 
     container.appendChild(rendered);
@@ -346,9 +383,28 @@ contacts.Form = (function() {
     return photo;
   };
 
+  var CATEGORY_WHITE_LIST = ['gmail', 'live'];
+  function updateCategoryForImported(contact) {
+    if (Array.isArray(contact.category)) {
+      var total = CATEGORY_WHITE_LIST.length;
+      var idx = -1;
+      for (var i = 0; i < total; i++) {
+        var idx = contact.category.indexOf(CATEGORY_WHITE_LIST[i]);
+        if (idx !== -1) {
+          break;
+        }
+      }
+      if (idx !== -1) {
+        contact.category[idx] = contact.category[idx] + '/updated';
+      }
+    }
+  }
+
   var saveContact = function saveContact() {
     currentContact = currentContact || {};
     currentContact = deviceContact || currentContact;
+    var deviceGivenName = currentContact.givenName;
+    var deviceFamilyName = currentContact.familyName;
 
     saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
@@ -382,14 +438,7 @@ contacts.Form = (function() {
     myContact['photo'] = currentContact['photo'] || [];
     myContact['photo'][0] = getCurrentPhoto();
 
-    if (myContact.givenName || myContact.familyName) {
-      var name = myContact.givenName || '';
-      name += ' ';
-      if (myContact.familyName) {
-        name += myContact.familyName;
-      }
-      myContact.name = [name];
-    }
+    createName(myContact);
 
     getPhones(myContact);
     getEmails(myContact);
@@ -419,12 +468,18 @@ contacts.Form = (function() {
       }
       contact = currentContact;
 
-      // If it is a FB Contact not linked it will be automatically linked
-      // As now there is additional contact data entered by the user
       if (fb.isFbContact(contact)) {
-        var fbContact = new fb.Contact(contact);
-        // Here the contact has been promoted to linked but not saved yet
-        fbContact.promoteToLinked();
+        // If it is a FB Contact not linked it will be automatically linked
+        // As now there is additional contact data entered by the user
+        if (!fb.isFbLinked(contact)) {
+          var fbContact = new fb.Contact(contact);
+          // Here the contact has been promoted to linked but not saved yet
+          fbContact.promoteToLinked();
+        } else {
+          setPropagatedFlag('givenName', deviceGivenName[0], contact);
+          setPropagatedFlag('familyName', deviceFamilyName[0], contact);
+          createName(contact);
+        }
       }
 
     } else {
@@ -432,6 +487,7 @@ contacts.Form = (function() {
       contact.init(myContact);
     }
 
+    updateCategoryForImported(contact);
     var request = navigator.mozContacts.save(contact);
 
     request.onsuccess = function onsuccess() {
@@ -447,6 +503,54 @@ contacts.Form = (function() {
     };
   };
 
+  var createName = function createName(myContact) {
+    if (myContact.givenName || myContact.familyName) {
+      var name = myContact.givenName || '';
+      name += ' ';
+      if (myContact.familyName) {
+        name += myContact.familyName;
+      }
+      myContact.name = [name];
+    }
+  };
+
+  var setPropagatedFlag = function setPropagatedFlag(field, value, contact) {
+    if (!Array.isArray(contact[field]) || !contact[field][0] ||
+        !contact[field][0].trim()) {
+      // Here the user is deleting completely the field then we get the
+      // original facebook field value
+      fb.setPropagatedFlag(field, contact);
+      contact[field] = fbContact[field];
+    } else if (contact[field][0] !== value) {
+      // The user is changing the value of the field then we have a local field.
+      // It implies not propagation
+      fb.removePropagatedFlag(field, contact);
+    }
+  };
+
+  function getNormalizedType(tag, tagList) {
+    // By default is the tag itself
+    var out = tag;
+
+    for (var j = 0; j < tagList.length; j++) {
+      if (tagList[j].value === tag) {
+        out = tagList[j].type;
+      }
+    }
+
+    return out;
+  }
+
+  function isBuiltInType(type, tagList) {
+    for (var j = 0; j < tagList.length; j++) {
+      if (tagList[j].type === type) {
+          return true;
+      }
+    }
+
+    return false;
+  }
+
   var getPhones = function getPhones(contact) {
     var selector = '#view-contact-form form div.phone-template:not(.removed)';
     var phones = dom.querySelectorAll(selector);
@@ -459,7 +563,7 @@ contacts.Form = (function() {
         continue;
 
       var selector = 'tel_type_' + arrayIndex;
-      var typeField = dom.getElementById(selector).textContent || '';
+      var typeField = dom.getElementById(selector).dataset.value || '';
       var carrierSelector = 'carrier_' + arrayIndex;
       var carrierField = dom.getElementById(carrierSelector).value || '';
       contact['tel'] = contact['tel'] || [];
@@ -480,7 +584,7 @@ contacts.Form = (function() {
       var emailField = dom.getElementById('email_' + arrayIndex);
       var emailValue = emailField.value;
       var selector = 'email_type_' + arrayIndex;
-      var typeField = dom.getElementById(selector).textContent || '';
+      var typeField = dom.getElementById(selector).dataset.value || '';
       if (!emailValue)
         continue;
 
@@ -502,7 +606,8 @@ contacts.Form = (function() {
       var addressValue = addressField.value || '';
 
       var selector = 'address_type_' + arrayIndex;
-      var typeField = dom.getElementById(selector).textContent || '';
+      var typeField = dom.getElementById(selector).dataset.value || '';
+
       selector = 'locality_' + arrayIndex;
       var locality = dom.getElementById(selector).value || '';
       selector = 'postalCode_' + arrayIndex;
@@ -563,10 +668,9 @@ contacts.Form = (function() {
     var emails = dom.querySelector('#contacts-form-emails');
     var addresses = dom.querySelector('#contacts-form-addresses');
     var notes = dom.querySelector('#contacts-form-notes');
-    phones.innerHTML = '';
-    emails.innerHTML = '';
-    addresses.innerHTML = '';
-    notes.innerHTML = '';
+
+    [phones, emails, addresses, notes].forEach(utils.dom.removeChildNodes);
+
     counters = {
       'tel': 0,
       'email': 0,
@@ -662,7 +766,7 @@ contacts.Form = (function() {
 
     activity.onsuccess = function success() {
       addRemoveIconToPhoto();
-
+      saveButton.removeAttribute('disabled');
       // XXX
       // this.result.blob is valid now, but it won't stay valid
       // (see https://bugzilla.mozilla.org/show_bug.cgi?id=806503)

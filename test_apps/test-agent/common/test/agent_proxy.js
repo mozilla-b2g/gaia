@@ -11,7 +11,16 @@
     ui: 'tdd',
     /* path to mocha */
     mochaUrl: CommonResourceLoader.url('/common/vendor/mocha/mocha.js'),
-    testHelperUrl: CommonResourceLoader.url('/common/test/helper.js'),
+
+    /**
+     * Important: will not cause failures if missing.
+     * Allows each app to have its own setup.js file that will execute
+     * before any tests are loaded so we can utilize helpers outside
+     * of setup blocks. Any files require from setup.js should also
+     * block loading of any tests...
+     */
+    testHelperUrl: [CommonResourceLoader.url('/common/test/helper.js'), '/test/unit/setup.js'],
+
     reporter: null
   });
 
@@ -21,14 +30,6 @@
   worker.on({
 
     'sandbox': function() {
-      /**
-       * Important will not cause failures if missing.
-       * Allows each app to have its own setup.js file that will execute
-       * before any tests are loaded so we can utilize helpers outside
-       * of setup blocks. Any files require from setup.js should also
-       * block loading of any tests...
-       */
-      worker.loader.require('/test/unit/setup.js');
     },
 
     'run tests': function() {

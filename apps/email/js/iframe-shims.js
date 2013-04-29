@@ -9,7 +9,7 @@
  * us for the non-newsletter case.  We could also internally load the CSS file
  * and splice it in rather than hardcoding it.
  */
-const DEFAULT_STYLE_TAG =
+var DEFAULT_STYLE_TAG =
   '<style type="text/css">\n' +
   // ## blockquote
   // blockquote per html5: before: 1em, after: 1em, start: 40px, end: 40px
@@ -237,12 +237,14 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
   viewport.style.width = (scrollWidth * scale) + 'px';
   viewport.style.height = (scrollHeight * scale) + 'px';
 
-  // setting iframe.style.height is not sticky, so be heavy-handed:
+  // setting iframe.style.height is not sticky, so be heavy-handed.
+  // Also, do not set overflow: hidden since we are already clipped by our
+  // viewport or our containing card and Gecko slows down a lot because of the
+  // extra clipping.
   iframe.setAttribute(
     'style',
     'padding: 0; border-width: 0; margin: 0; ' +
     'transform-origin: top left; ' +
-    'overflow: hidden; ' +
     'pointer-events: none;');
   iframe.style.width = scrollWidth + 'px';
 
@@ -251,7 +253,10 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
       iframe.style.height = '';
       scrollHeight = iframeBody.scrollHeight;
     }
-    iframe.style.transform = 'scale(' + scale + ')';
+    if (scale !== 1)
+      iframe.style.transform = 'scale(' + scale + ')';
+    else
+      iframe.style.transform = '';
     iframe.style.height =
       ((scrollHeight * Math.max(1, scale)) + scrollPad) + 'px';
     viewport.style.width = (scrollWidth * scale) + 'px';
@@ -311,7 +316,7 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
   // Using tap gesture event for URL link handling.
   if (clickHandler) {
     viewport.removeEventListener('click', clickHandler);
-    bindSanitizedClickHandler(viewport, clickHandler, null);
+    bindSanitizedClickHandler(viewport, clickHandler, null, iframe);
   }
   // If mail is not newsletter mode, ignore zoom/dbtap event handling.
   if (!newsletterMode || interactiveMode !== 'interactive') {
@@ -370,8 +375,8 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
   return iframeShims;
 }
 
-function bindSanitizedClickHandler(target, clickHandler, topNode) {
-  var iframe = target.childNodes[0], eventType, node;
+function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
+  var eventType, node;
   // Variables that only valid for HTML type mail.
   var root, title, header, titleHeight, headerHeight, iframeDoc;
   // Tap gesture event for HTML type mail and click event for plain text mail
@@ -391,7 +396,8 @@ function bindSanitizedClickHandler(target, clickHandler, topNode) {
     function clicked(event) {
       if (iframe) {
         var dx, dy;
-        var scale = iframe.style.transform.match(/(\d|\.)+/g)[0];
+        var transform = iframe.style.transform || 'scale(1)';
+        var scale = transform.match(/(\d|\.)+/g)[0];
         dx = event.detail.clientX + root.scrollLeft;
         dy = event.detail.clientY + root.scrollTop - titleHeight - headerHeight;
         node = iframeDoc.elementFromPoint(dx / scale, dy / scale);

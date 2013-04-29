@@ -1,9 +1,9 @@
 #permission-screen {
   position: absolute;
-  top: 20px;
+  top: 2rem;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 20px);
+  height: -moz-calc(100% - 2rem);
   background-color: rgba(0,0,0,0.4);
   -moz-transition: opacity 0.5s ease;
   pointer-events: none;
@@ -17,8 +17,8 @@
 }
 
 #screen.attention #permission-screen {
-  top: 40px;
-  height: -moz-calc(100% - 40px);
+  top: 4rem;
+  height: calc(100% - 4rem);
 }
 
 #permission-screen.visible {
@@ -29,6 +29,7 @@
 #permission-remember-section {
   height: 6rem;
   border-top: 0.1rem solid #686868;
+  font-size: 1.6rem;
   width: 100%;
   position: relative;
 }
@@ -38,9 +39,14 @@
 }
 
 #permission-message {
-  background-image: none;
-  background-repeat: no-repeat no-repeat;
-  min-height: 64px;
+  margin: 0;
+  padding-top: 1.2rem;
+  padding-bottom: 0.8rem;
+  min-height: 4.4rem;
+  font-size: 1.6rem;
+  background-repeat: no-repeat;
+  background-size: 6.4rem;
+  background-position: 0 50%;
 }
 
 #permission-screen[data-type] #permission-remember-section,
@@ -49,12 +55,12 @@
 }
 
 #permission-screen[data-type] #permission-message {
-  padding-left: 64px;
+  padding-left: 7.2rem;
 }
 
 #permission-remember-section label {
   position: absolute;
-  right: 1rem;
+  right: 0.4rem;
 }
 
 #permission-remember-label {

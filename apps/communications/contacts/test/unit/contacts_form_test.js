@@ -4,6 +4,7 @@ requireApp('communications/contacts/test/unit/mock_form_dom.js.html');
 requireApp('communications/contacts/js/contacts_form.js');
 requireApp('communications/contacts/js/utilities/normalizer.js');
 requireApp('communications/contacts/js/utilities/templates.js');
+requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contact_all_fields.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
@@ -30,7 +31,7 @@ suite('Render contact form', function() {
       DateTimeFormat: function() {
         this.localeFormat = function(date, format) {
           return date;
-        }
+        };
       }
     };
     realContacts = window.Contacts;
@@ -189,7 +190,7 @@ suite('Render contact form', function() {
 
         assert.isTrue(thumbnail.classList.contains('facebook'));
         assert.isTrue(thumbnail.classList.contains('removed'));
-      }
+      };
     });
 
     test('FB Contact. Address from Facebook', function() {
@@ -217,7 +218,7 @@ suite('Render contact form', function() {
         assertAddressData(0, this.result[0]);
 
         assert.isFalse(footer.classList.contains('hide'));
-      }
+      };
     });
 
 
@@ -264,7 +265,7 @@ suite('Render contact form', function() {
           assertPhoneData(c, this.result[0]);
           assertEmailData(c, this.result[0]);
         }
-      }
+      };
     });
 
     test('FB Linked. Photo local to the device', function() {
@@ -281,7 +282,7 @@ suite('Render contact form', function() {
 
         assert.isFalse(thumbnail.classList.contains('facebook'));
         assert.isFalse(thumbnail.classList.contains('removed'));
-      }
+      };
     });
   });
 
@@ -296,7 +297,7 @@ suite('Render contact form', function() {
     }
   }
 
-  function assertPhoneData(c,phoneData) {
+  function assertPhoneData(c, phoneData) {
     var data = phoneData || mockContact;
 
     var valuePhone = document.querySelector('#number_' + c).value;
@@ -307,7 +308,7 @@ suite('Render contact form', function() {
     assert.isTrue(carrierPhone === data.tel[c].carrier);
   }
 
-  function assertEmailData(c,emailData) {
+  function assertEmailData(c, emailData) {
     var data = emailData || mockContact;
 
     var valueEmail = document.querySelector('#email_' + c).value;
@@ -316,7 +317,7 @@ suite('Render contact form', function() {
     assert.isTrue(typeEmail === data.email[c].type);
   }
 
-  function assertAddressData(c,addrData) {
+  function assertAddressData(c, addrData) {
     var data = addrData || mockContact;
 
     var valueType = document.querySelector('#address_type_' + c).textContent;

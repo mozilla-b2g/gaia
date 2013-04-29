@@ -22,6 +22,5 @@ div.windowSprite {
   text-align: center;
   color: #fff;
   font-size: 2em;
-  text-shadow: #000 0 2px 1px;
+  text-shadow: #000 0 0.2rem 0.1rem;
 }
-

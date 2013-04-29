@@ -66,12 +66,13 @@ var Wallpaper = {
 
       canvas.toBlob(function(blob) {
         self.pickActivity.postResult({
-          type: 'image/png',
-          blob: blob
-        }, 'image/png');
+          type: 'image/jpeg',
+          blob: blob,
+          name: src
+        }, 'image/jpeg');
 
         self.endPick();
-      }, self.pickActivity.source.data.type);
+      }, 'image/jpeg');
     };
   },
 

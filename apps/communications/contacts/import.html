@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <link rel="resource" type="application/l10n" href="/contacts/locales/fb/locales.ini">
+    <script type="text/javascript" src="/shared/js/l10n.js"></script>
+
+    <script type="text/javascript" src="/shared/js/async_storage.js"></script>
+    <script type="text/javascript" src="/shared/js/lazy_loader.js"></script>
+
+    <script type="text/javascript" src="oauth2/js/flow.js"></script>
+    <script type="text/javascript" src="oauth2/js/oauth20.js"></script>
+    <script type="text/javascript" src="oauth2/js/parameters.js"></script>
+    <script type="text/javascript" src="/facebook/js/curtain.js"></script>
+
+    <script defer type="text/javascript" src="/contacts/js/import_utils.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/confirm_dialog.js"></script>
+    <script defer type="text/javascript" src="js/utilities/templates.js"></script>
+    <script defer type="text/javascript" src="js/utilities/event_listeners.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/utilities/image_loader.js"></script>
+    <script defer type="text/javascript" src="js/fb/friends_list.js"></script>
+    <script defer type="text/javascript" src="js/contacts_shortcuts.js"></script>
+
+    <script defer type="text/javascript" src="js/search.js"></script>
+    <script defer type="text/javascript" src="js/utilities/normalizer.js"></script>
+    <script defer type="text/javascript" src="js/utilities/image_square.js"></script>
+    <script defer type="text/javascript" src="js/utilities/dom.js"></script>
+
+    <script defer type="text/javascript" src="js/fixed_header.js"></script>
+    <script defer type="text/javascript" src="js/utilities/http_rest.js"></script>
+    <script defer type="text/javascript" src="js/contacts_importer.js"></script>
+    <script defer type="text/javascript" src="js/contacts_cleaner.js"></script>
+    <script defer type="text/javascript" src="js/importer_ui.js"></script>
+    <script defer type="text/javascript" src="js/import_init.js"></script>
+
+    <link rel="stylesheet" href="style/shared/core/css/root.css">
+
+    <!-- Building Blocks -->
+    <link href="/shared/style_unstable/progress_activity.css" rel="stylesheet">
+    <link href="/shared/style/status.css" rel="stylesheet">
+    <link href="/shared/style/headers.css" rel="stylesheet">
+    <link href="/shared/style/input_areas.css" rel="stylesheet">
+    <link href="/shared/style/switches.css" rel="stylesheet">
+    <link href="/shared/style_unstable/lists.css" rel="stylesheet">
+    <link href="/shared/style/confirm.css" rel="stylesheet">
+    <link href="/shared/style_unstable/scrolling.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="style/import.css">
+    <link rel="stylesheet" href="style/fixed_header.css">
+    <link rel="stylesheet" href="style/search.css">
+    <link rel="stylesheet" href="/contacts/style/animations.css">
+    <!-- multi-resolution support -->
+    <link rel="stylesheet" href="/shared/style/responsive.css">
+  </head>
+
+  <body role="application">
+    <section role="region" id="content" class="import">
+
+      <header>
+        <a href="#" id="import-close">
+          <span class="icon icon-close" data-l10n-id="close">close</span>
+        </a>
+        <menu type="toolbar">
+          <button  id="import-action" data-l10n-id="import" disabled>
+            Import
+          </button>
+        </menu>
+        <h1>Service</h1>
+      </header>
+
+      <section id="main">
+        <!-- Contacts List Section -->
+        <section id='mainContent' data-state="selection">
+          <form id="search-container" role="search" class="search">
+            <p>
+              <label for="search" id="search-start">
+                <input type="search" name="search" class="textfield" placeholder="Search"
+                       data-l10n-id="search-contact">
+              </label>
+            </p>
+          </form>
+
+          <section class="friends-msg">
+            <output id="num-friends" hidden></output>
+            <p id="friends-msg"></p>
+          </section>
+          <section id="groups-list" class="unbordered import-list" data-type="list">
+            <section id="group-#group#" data-template>
+              <header>#group#</header>
+              <ol id="contacts-list-#group#">
+                <li data-template data-uuid="#uid#" data-search="#search#" aria-disabled="false" class="block-item">
+                  <label>
+                    <input type="checkbox" name="#uid#"></input>
+                    <span></span>
+                  </label>
+                  <aside class="pack-end">
+                    <img data-src="#contactPictureUri#"></img>
+                  </aside>
+                  <p data-order-by="firstName"><strong>#givenName#</strong> #familyName#</p>
+                  <p data-order-by="lastName">#givenName# <strong>#familyName#</strong></p>
+                  <p>#email1#</p>
+                </li>
+              </ol>
+            </section> <!-- group template content -->
+          </section> <!-- groupsList -->
+
+          <form role="dialog" data-type="confirm" class="no-overlay">
+            <menu id="select-all-wrapper">
+              <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll">
+                Deselect all
+              </button>
+              <button id="select-all" class="edit-button" data-l10n-id="selectAll">
+                Select all
+              </button>
+            </menu>
+          </form>
+        </section> <!-- mainContent -->
+
+        <section id='fixed-container' class='fixed-title-import'></section>
+
+        <nav data-type="scrollbar">
+          <p></p>
+          <ol>
+            <li data-template data-anchor="group-#anchor#" data-letter="#anchor#">
+              <a href="#">#anchor#</a>
+            </li>
+          </ol>
+        </nav>
+      </section> <!-- main -->
+
+      <section id="search-view" class="view" role="region">
+        <form id="searchview-container" role="search" class="search">
+           <button id='done-search' type="submit" data-l10n-id="done-search">Done</button>
+           <p>
+             <label for="search-contact">
+               <input type="search" name="search" class="textfield"
+                    placeholder="Search" id="search-contact"  data-l10n-id="search-contact">
+               <button type="reset">Clear</button>
+             </label>
+           </p>
+        </form>
+        <section id="groups-list-search">
+          <ol id="search-list" data-type="list">
+          </ol>
+        </section>
+
+        <section>
+          <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
+          <p id="search-progress" class="hidden" role="status">
+            <progress  class="small"></progress>
+          </p>
+        </section>
+      </section> <!-- search-view section -->
+
+    </section> <!-- role region -->
+  </body>
+</html>

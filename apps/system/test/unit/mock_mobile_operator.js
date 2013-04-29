@@ -6,10 +6,14 @@ var MockMobileOperator = {
       'operator': this.mOperator,
       'carrier': this.mCarrier,
       'region': this.mRegion
-    }
+    };
   },
 
   mOperator: '',
   mCarrier: '',
-  mRegion: ''
+  mRegion: '',
+
+  mTeardown: function() {
+    this.mOperator = this.mCarrier = this.mRegion = '';
+  }
 };

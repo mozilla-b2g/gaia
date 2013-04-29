@@ -70,6 +70,7 @@ if (typeof window.oauth2 === 'undefined') {
         var token_ts = tokenData.token_ts;
 
         if (expires !== 0 && Date.now() - token_ts >= expires) {
+          window.console.warn('Access token has expired, restarting flow');
           startOAuth(state, service);
           return;
         }
@@ -78,6 +79,12 @@ if (typeof window.oauth2 === 'undefined') {
           ready(access_token);
         }
       });
+    };
+
+    function getLocation(href) {
+      var l = document.createElement('a');
+      l.href = href;
+      return l;
     };
 
     /**
@@ -94,6 +101,12 @@ if (typeof window.oauth2 === 'undefined') {
     function tokenDataReady(e) {
       var parameters = e.data;
       if (!parameters || !parameters.access_token) {
+        return;
+      }
+      var location = getLocation(oauthflow.params[accessTokenCbData.service].
+        redirectURI);
+      var allowedOrigin = location.protocol + '//' + location.host;
+      if (e.origin !== allowedOrigin) {
         return;
       }
 
@@ -119,7 +132,7 @@ if (typeof window.oauth2 === 'undefined') {
               parent.postMessage({
                 type: 'token_stored',
                 data: ''
-              },oauthflow.params[accessTokenCbData.service].appOrigin);
+              }, oauthflow.params[accessTokenCbData.service].appOrigin);
         });
       },0);
     } // tokenReady

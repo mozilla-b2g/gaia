@@ -15,19 +15,29 @@ function AnimatedIcon(element, path, frames, delay) {
   this.frame = 1;
   this.frames = frames;
   this.timerId = null;
+  this._started = false;
+  var image;
 
   // Load the image and paint the first frame
-  var image = new Image();
-  image.src = path;
-  image.onload = function() {
-    var w = image.width;
-    var h = image.height / frames;
-
-    context.drawImage(image, 0, 0, w, h, 0, 0, w, h);
+  function init() {
+    image = new Image();
+    image.src = path;
+    image.onload = function() {
+      var w = image.width;
+      var h = image.height / frames;
+      context.drawImage(image, 0, 0, w, h, 0, 0, w, h);
+    };
   }
 
   this.start = function() {
     var self = this;
+    // XXX: If we draw canvas during device start up,
+    // it will face following issue.
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=849736
+    if (!self._started) {
+      self._started = true;
+      init();
+    }
 
     if (this.timerId == null) {
       this.timerId = setInterval(function() {
@@ -42,14 +52,14 @@ function AnimatedIcon(element, path, frames, delay) {
           }
       }, delay);
     }
-  }
+  };
 
   this.stop = function() {
     if (this.timerId != null) {
       clearInterval(this.timerId);
       this.timerId = null;
     }
-  }
+  };
 }
 
 var StatusBar = {
@@ -102,7 +112,10 @@ var StatusBar = {
    */
   systemDownloadsCount: 0,
 
-  /* Objects used to animate the system downloads and network activity canvas elements */
+  /**
+   * Objects used to animate the system downloads and
+   * network activity canvas elements
+   */
   networkActivityAnimation: null,
   systemDownloadsAnimation: null,
 
@@ -121,6 +134,10 @@ var StatusBar = {
 
   init: function sb_init() {
     this.getAllElements();
+
+    // Hide clock when initializing since this is handled by the event
+    // listeners for 'lock', 'unlock', and 'lockpanelchange'
+    this.icons.time.hidden = true;
 
     var settings = {
       'ril.radio.disabled': ['signal', 'data'],
@@ -166,14 +183,21 @@ var StatusBar = {
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
 
+    // Listen to 'lock', 'unlock', and 'lockpanelchange' from lockscreen.js in
+    // order to correctly set the visibility of the statusbar clock depending
+    // on the active lockscreen panel
+    window.addEventListener('lock', this);
+    window.addEventListener('unlock', this);
+    window.addEventListener('lockpanelchange', this);
+
     this.systemDownloadsCount = 0;
 
     // Create the objects used to animate the statusbar-network-activity and
     // statusbar-system-downloads canvas elements
     this.networkActivityAnimation = new AnimatedIcon(this.icons.networkActivity,
-      'style/statusbar/images/network-activity-flat.png', 6, 200);
+      '/style/statusbar/images/network-activity-flat.png', 6, 200);
     this.systemDownloadsAnimation = new AnimatedIcon(this.icons.systemDownloads,
-      'style/statusbar/images/system-downloads-flat.png', 8, 130);
+      '/style/statusbar/images/system-downloads-flat.png', 8, 130);
 
     this.setActive(true);
   },
@@ -182,6 +206,24 @@ var StatusBar = {
     switch (evt.type) {
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
+        break;
+
+      case 'lock':
+        // Hide the clock in the statusbar when screen is locked
+        this.icons.time.hidden = true;
+        break;
+
+      case 'unlock':
+        // Display the clock in the statusbar when screen is unlocked
+        this.icons.time.hidden = false;
+        break;
+
+      case 'lockpanelchange':
+        if (this.screen.classList.contains('locked')) {
+          // Display the clock in the statusbar if on Emergency Call screen
+          var isHidden = (evt.detail.panel == 'emergency-call') ? false : true;
+          this.icons.time.hidden = isHidden;
+        }
         break;
 
       case 'chargingchange':
@@ -218,7 +260,7 @@ var StatusBar = {
         break;
 
       case 'moztimechange':
-        this.update.time.call(this);
+        navigator.mozL10n.ready(this.update.time.bind(this));
         break;
 
       case 'mozChromeEvent':
@@ -256,7 +298,7 @@ var StatusBar = {
   setActive: function sb_setActive(active) {
     this.active = active;
     if (active) {
-      this.update.time.call(this);
+      navigator.mozL10n.ready(this.update.time.bind(this));
 
       var battery = window.navigator.battery;
       if (battery) {
@@ -491,6 +533,9 @@ var StatusBar = {
         case 'connected':
           icon.hidden = false;
 
+          if (icon.dataset.connecting) {
+            delete icon.dataset.connecting;
+          }
           var relSignalStrength =
             wifiManager.connectionInformation.relSignalStrength;
           icon.dataset.level = Math.floor(relSignalStrength / 25);

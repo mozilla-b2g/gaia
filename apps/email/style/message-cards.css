@@ -11,6 +11,12 @@
   /* force the card to be tall enough so we can scroll the search bit out of the
      way by default*/
   min-height: calc(100% + 4.8rem); /* 2.4rem is the search bar */
+  /* Give it a z-index of 0 so that all its contents are forced into a single stacking
+     context. This simplifies display list construction because our many positioned
+     descendants can be clipped as a single group instead of independently.
+     XXX we can take this out when Gecko bug 841192 is fixed. */
+  position: relative;
+  z-index: 0;
 }
 
 /* Have enough scroll space to have the search bit pull out. */
@@ -20,26 +26,27 @@
 /* Have enough space at the bottom for the last message to not be under the
    action bar. */
 .msg-list-scroll-padding-bottom {
-  height: 8rem;
-}
-
-.msg-messages-sync-container {
+  height: 4rem;
 }
 
 .msg-search-tease-bar {
-  height: 4.8rem;
   background-color: #eee;
-  border-radius: 4px;
   text-align: center;
+  border-bottom: 0.1rem solid #bdbdbd;
 }
 
 input.msg-search-text-tease {
-  width: 90%;
-  height: calc(100% - 1rem - 2px);
-  border: 1px solid;
-  border-radius: 3px;
-  margin: 0.5rem 0;
   display: inline-block;
+  width: calc(100% - 3rem);
+  height: 3rem;
+  margin: 0.1rem 0 0.4rem;
+  font-size: 1.7rem;
+  border: 0.1rem solid #c2c2c2;
+  border-radius: 0.3rem;
+}
+
+.msg-search-text {
+  font-size: 1.7rem !important;
 }
 
 .msg-no-subject {
@@ -54,16 +61,15 @@ input.msg-search-text-tease {
   position: relative;
   height: 8rem;
   overflow: hidden;
-  border-bottom: 1px solid lightgray;
-  vertical-align: 0%;
+  border-bottom: 0.1rem solid #bdbdbb;
 }
 .msg-header-item:active {
   background-color: #b1f1ff;
 }
 .msg-header-unread-section {
   position: absolute;
-  left: 1.5rem;
   top: 50%;
+  left: 1rem;
   display: inline-block;
   height: .9rem;
   width: .9rem;
@@ -71,24 +77,24 @@ input.msg-search-text-tease {
   border-radius: 50%;
 }
 .msg-header-unread-section-unread {
-  background-color: #52B6CC;
+  background-color: #53b8cc;
 }
 .msg-header-details-section {
   display: block;
   position: absolute;
-  top: 0px;
-  left: 3.8rem;
-  /* 100% - (unread-section) - (icons-section) - (avatar-section) */
-  width: -moz-calc(100% - 4rem - 2rem - 2.8rem);
+  top: 0;
+  left: 2.8rem;
+  /* 100% - (unread-section) - (icons-section) */
+  width: calc(100% - 2.8rem - 3rem);
   height: 100%;
   font-size: 1.6rem;
-  line-height: 2.0rem;
+  line-height: 2rem;
   padding: 1rem 0;
 }
 .msg-header-icons-section {
   display: block;
   position: absolute;
-  top: 0px;
+  top: 0;
   right: 2.8rem; /* The width of the avatar-section. */
   width: 2rem;
   height: 100%;
@@ -97,8 +103,8 @@ input.msg-search-text-tease {
 .msg-header-avatar-section {
   display: block;
   position: absolute;
-  top: 0px;
-  right: 0rem;
+  top: 0;
+  right: 0;
   width: 2.8rem;
   height: 100%;
 }
@@ -109,8 +115,9 @@ input.msg-search-text-tease {
   width: -moz-available;
 }
 .msg-header-author {
-  font-size: 110%;
-  color: black;
+  font-size: 1.9rem;
+  font-weight: 500;
+  color: #000;
   display: table-cell;
   width: -moz-available;
   white-space: nowrap;
@@ -118,7 +125,9 @@ input.msg-search-text-tease {
   text-overflow: ellipsis;
 }
 .msg-header-date {
-  color: gray;
+  color: #808080;
+  font-size: 1.5rem;
+  font-weight: 400;
   display: table-cell;
   width: -moz-min-content;
   white-space: nowrap;
@@ -129,15 +138,18 @@ input.msg-search-text-tease {
 }
 .msg-header-subject {
   display: block;
-  color: black;
-  font-weight: 600;
+  color: #000;
+  font-size: 1.5rem;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .msg-header-snippet {
   display: block;
-  color: gray;
+  color: #808080;
+  font-size: 1.5rem;
+  font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -149,8 +161,9 @@ input.msg-search-text-tease {
   font-size: 150%;
 }
 .msg-header-star-starred {
-  background: url("images/icons/message-list-star.png") no-repeat scroll center transparent;
+  background: url("images/icons/message-list-star.png") no-repeat center / 2rem;
   position: absolute;
+  right: -2rem;
   width: 2rem;
   height: 2rem;
   top: 3rem;
@@ -159,8 +172,9 @@ input.msg-search-text-tease {
   display: block;
 }
 .msg-header-attachments-yes {
-  background: url("images/icons/message-list-attachment.png") no-repeat scroll center transparent;
+  background: url("images/icons/message-list-attachment.png") no-repeat center / 2 rem;
   position: absolute;
+  right: -2rem;
   width: 2rem;
   height: 2rem;
   top: 5rem;
@@ -168,40 +182,38 @@ input.msg-search-text-tease {
 
 
 .msg-envelope-bar {
-  border-bottom: 1px solid gray;
-  font-size: 1.5rem;
+  padding-top: 0.7rem;
   width: 100%;
+  font-size: 1.4rem;
+  color: #848484;
 }
 
 .msg-envelope-date {
-  font-size: 1rem;
-  text-align: right;
+  font-size: 1.3rem;
+  color: #8f8f8f;
 }
-.msg-envelope-line {
-  display: block;
-  margin: 0.8rem;
-}
-.msg-envelope-key {
 
+.msg-envelope-from-line,
+.msg-envelope-details {
+  padding: 0 1.5rem 0.8rem;
 }
 
 .msg-envelope-key::after {
   content: ":";
 }
 
-.msg-envelope-from-line {
-  margin-top: 0;
-}
-.msg-envelope-to-line {
-}
-.msg-envelope-cc-line {
-}
-.msg-envelope-bcc-line {
+
+.msg-envelope-subject-container {
+  padding: 0.5rem 1.3rem;
+  border-top: 0.1rem solid #bdbdbb;
+  border-bottom: 0.1rem solid #bdbdbb;
 }
 
 .msg-envelope-subject {
+  color: #000;
+  margin: 0;
+  font-size: 1.8rem;
   font-weight: bold;
-  margin: 0.8rem;
 }
 
 .msg-body-container {
@@ -209,22 +221,32 @@ input.msg-search-text-tease {
   white-space: pre-wrap;
   font-size: 1.9rem;
   line-height: 2.6rem;
+  margin: 1rem 1.5rem;
+}
+
+.card-message-reader .msg-body-container > progress {
+  display: block;
+  margin: 0 auto;
 }
 
 .msg-attachments-container {
-  padding: 0 1rem;
+  padding: 0 1.5rem;
   font-size: 1.2rem;
   line-height: 4rem;
 }
 
 .msg-peep-bubble {
+  color: #2c2c2c;
   display: inline-block;
-  background: -moz-linear-gradient(top, #FFFFFF, #DDDDDD);
-  border: 1px solid #CCCCCC;
+  background: #f2f2f2;
+  border: 0.1rem solid #ddd;
   border-radius: 1rem;
-  margin: 1px 0;
-  padding: 2px 0.8rem;
-  font-size: 80%;
+  margin: 0.3rem 0 0;
+  padding: 0.2rem 0.8rem;
+  font-weight: 500;
+  font-size: 1.3rem;
+  font-family: "MozTT", Sans-serif;
+  box-shadow: 0 0.1rem 0.1rem #fff inset;
 }
 .msg-peep-bubble * {
   pointer-events: none;
@@ -232,7 +254,6 @@ input.msg-search-text-tease {
 .msg-peep-content {
 }
 .msg-peep-address {
-  font-style: italic;
 }
 
 .msg-attachment-item {
@@ -249,7 +270,7 @@ input.msg-search-text-tease {
   display: inline-block;
 }
 .msg-attachment-icon {
-  background: url("images/icons/message-list-attachment.png") no-repeat scroll center transparent;
+  background: url("images/icons/message-list-attachment.png") no-repeat center / 2rem;
   display: inline-block;
   width: 2rem;
   height: 2rem;
@@ -261,6 +282,7 @@ input.msg-search-text-tease {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: calc(100% - 12.5rem);
+  white-space: nowrap;
 }
 .msg-attachment-filesize {
   color: gray;
@@ -287,7 +309,7 @@ input.msg-search-text-tease {
   width: 4.5rem;
   margin-bottom: 0;
   position: absolute;
-  right: 0rem;
+  right: 0;
 }
 
 .moz-external-link {
@@ -297,52 +319,52 @@ input.msg-search-text-tease {
 
 .msg-body-content {
   color: black;
-  margin: 4px 0px;
+  margin: 0.4rem 0;
   word-wrap: break-word;
 }
 .msg-body-signature {
   color: blue;
-  margin: 4px 0px;
+  margin: 0.4rem 0;
 }
 .msg-body-leadin {
   color: gray;
-  margin: 4px 0px;
+  margin: 0.4rem 0;
 }
 .msg-body-q1, .msg-body-q2, .msg-body-q3, .msg-body-q4,
 .msg-body-q5, .msg-body-q6, .msg-body-q7, .msg-body-q8, .msg-body-q9 {
-  padding: 2px;
-  margin: 4px 0px;
+  padding: 0.2rem;
+  margin: 0.4rem 0;
 }
 .msg-body-q1 {
-  border-left: 1px solid gray;
+  border-left: 0.1rem solid gray;
 }
 .msg-body-q2 {
-  border-left: 2px solid gray;
+  border-left: 0.2rem solid gray;
 }
 .msg-body-q3 {
-  border-left: 3px solid gray;
+  border-left: 0.3rem solid gray;
 }
 .msg-body-q4 {
-  border-left: 4px solid gray;
+  border-left: 0.4rem solid gray;
 }
 .msg-body-q5 {
-  border-left: 5px solid gray;
+  border-left: 0.5rem solid gray;
 }
 .msg-body-q6 {
-  border-left: 6px solid gray;
+  border-left: 0.6rem solid gray;
 }
 .msg-body-q7 {
-  border-left: 7px solid gray;
+  border-left: 0.7rem solid gray;
 }
 .msg-body-q8 {
-  border-left: 8px solid gray;
+  border-left: 0.8rem solid gray;
 }
 .msg-body-q9 {
-  border-left: 9px solid gray;
+  border-left: 0.9rem solid gray;
 }
 .msg-body-disclaimer, .msg-body-list, .msg-body-product, .msg-body-ads {
   color: gray;
-  margin: 4px 0px;
+  margin: 0.4rem 0;
 }
 
 .msg-reader-load-infobar {
@@ -364,17 +386,17 @@ input.msg-search-text-tease {
 /* We need to use !important on the buttons because shared/style/buttons.css definesa more specific
    selector than ours for :active, so we can't just reorder the files to fix the problem. */
 .msg-refresh-btn {
-  background: url("images/icons/refresh.png") no-repeat scroll center transparent !important;
+  background-image: url("images/icons/refresh.png") !important;
 }
 
 .msg-search-btn {
-  background: url("images/icons/search.png") no-repeat scroll center transparent !important;
+  background-image: url("images/icons/search.png") !important;
   position: absolute;
-  right: 0px;
+  right: 0;
 }
 
 .msg-edit-btn {
-  background: url("images/icons/edit-mode.png") no-repeat scroll center transparent !important;
+  background-image: url("images/icons/edit-mode.png") !important;
   position: absolute;
   left: calc((100% - 6rem)/2);
 }
@@ -384,23 +406,23 @@ input.msg-search-text-tease {
 }
 
 .msg-star-btn {
-  background: url("images/icons/star.png") no-repeat scroll center transparent !important;
+  background: url("images/icons/star.png") no-repeat scroll transparent center center / 3rem !important;
 }
 
 .msg-mark-read-btn {
-  background: url("images/icons/mark.png") no-repeat scroll center transparent !important;
+  background: url("images/icons/mark.png") no-repeat scroll transparent center center / 3rem !important;
 }
 
 .msg-delete-btn {
-  background: url("images/icons/delete.png") no-repeat scroll center transparent !important;
+  background: url("images/icons/delete.png") no-repeat scroll transparent center center / 3rem !important;
 }
 
 .msg-move-btn {
-  background: url("images/icons/move.png") no-repeat scroll center transparent !important;
+  background: url("images/icons/move.png") no-repeat scroll transparent center center / 3rem !important;
 }
 
 .msg-forward-btn {
-  background: url("images/icons/forward.png") no-repeat scroll center transparent !important;
+  background: url("images/icons/forward.png") no-repeat scroll transparent center center / 3rem !important;
 }
 
 /* Message list edit mode layout control */
@@ -426,57 +448,79 @@ input.msg-search-text-tease {
   Empty message-list container
 */
 .msg-list-empty-container {
-  background-image: url('images/mail_watermark.png');
-  background-repeat:no-repeat;
-  background-position: 50% 40%;
-  height: 20rem;
-  width: 100%;
   position: absolute;
-  top: 10rem;
-  left: 0;
+  top: 9rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  width: calc(100% - 3rem);
+  height: 20rem;
 }
 
-.msg-list-empty-message {
-  text-align: center;
-  line-height: 3rem;
+.msg-list-empty-message-text {
   position: relative;
-  top: 12rem;
-  border-top: .1rem solid rgba(96,96,96,.5);
-  width: 27rem;
-  margin: -7rem auto;
-  color: #606060;
-  font-weight: 300;
-  font-size: 2.26rem;
+  top: 2.8rem;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  color: #010101;
+  font-weight: lighter;
+  font-size: 2.4rem;
+  border-top: 0.1rem solid #bebebe;
 }
 
 /* PROGRESS LABEL BUILDING BLOCKS EXTENSION */
+.msg-messages-sync-container {
+  margin-bottom: 1.2rem;
+}
+
+
 .msg-messages-sync-container > p,
 .msg-list-empty {
-  width: 80%;
-  padding: 2rem 10%;
-  text-align: center;
-  font: 500 1.3rem/1em "MozTT", Sans-serif;
+  height: 8rem;
+  padding: 0;
+  margin: 0;
+  font-weight: 500;
+  font-size: 1.5rem;
+  font-family: "MozTT", Sans-serif;
+  line-height: 8rem;
 }
 .msg-list-empty {
   position: absolute;
   top: 40%;
 }
-.msg-messages-syncing > span {
-  margin: 0 1rem;
-}
+
+.msg-messages-syncing,
 .msg-messages-sync-more {
-  margin: 3rem 0;
-  border-top: 1px solid lightgray;
-  border-bottom: 1px solid lightgray;
+  border-bottom: 0.1rem solid #bebebe;
+}
+
+.msg-messages-syncing > span {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: normal;
+}
+
+.msg-messages-syncing > progress {
+  line-height: normal;
+  margin: 0 0.5rem 0 3rem !important;
+}
+
+.msg-messages-sync-more {
+  height: 8rem;
+  padding: 0;
+  margin: 0;
+  font-weight: 500;
+  font-size: 1.5rem;
+  font-family: "MozTT", Sans-serif;
+  line-height: 8rem;
 }
 .msg-messages-sync-more > span {
-  margin: 0;
+  margin: 0 3rem;
 }
 
 /* Filters selected state */
 ul[role="tablist"].filter li[aria-selected="true"] {
   background: #fff;
-  border: solid 1px #999;
+  border: solid 0.1rem #999;
   border-top: none;
   color: #000;
 }

@@ -58,45 +58,6 @@ body {
   -moz-user-select: none;
 }
 
-
-/*
-#open-toolbar {
-  background: rgba(128,128,128,0.5);
-  height: 50px;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-*/
-
-footer {
-  background: rgba(0, 0, 0, 0.75);
-  height: 40px;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1;
-  box-shadow: 0px -2px 5px rgba(50, 50, 50, 0.75);
-}
-
-#open-camera-button {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  left: 0;
-  background-image: url('images/iconaction_camera_30x30.png');
-}
-
-#open-delete-button {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  left: 50%;
-  background-image: url('images/iconaction_delete_30x30.png');
-}
-
 /* buttons */
 a.button {
   display: block;
