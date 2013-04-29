@@ -270,6 +270,66 @@ suite('Utils', function() {
       });
     });
   });
+
+  suite('Utils for MMS user story test', function() {
+    test('Image rescaling to 300kB', function(done) {
+      // Open test image for testing image resize ability
+      function resizeTest(name) {
+        var req = new XMLHttpRequest();
+        req.open('GET' , '/test/unit/media/' + name, true);
+        req.responseType = 'blob';
+
+        req.onreadystatechange = function() {
+          if (req.readyState === 4 && req.status === 200) {
+            var blob = req.response;
+            var limit = 300 * 1024;
+            Utils.getResizedImgBlob(blob, function(resizedBlob) {
+              assert.isTrue(resizedBlob.size < limit);
+              done();
+            }, limit);
+          }
+        };
+        req.send(null);
+      }
+      resizeTest('IMG_0554.jpg');
+    });
+  });
+
+  suite('Utils.typeFromMimeType', function() {
+    var testIndex;
+    var tests = {
+      'text/plain': 'text',
+      'image/jpeg': 'img',
+      'video/ogg': 'video',
+      'audio/ogg': 'audio',
+      'not-a-mime': null,
+      'text': null,
+      'appplication/video': null
+    };
+
+    for (testIndex in tests) {
+      test(testIndex, function() {
+        assert.equal(Utils.typeFromMimeType(testIndex), tests[testIndex]);
+      });
+    }
+
+    suite('Defensive', function() {
+      test('long string', function() {
+        var longString = 'this/is/a/really/long/string/that/excedes/255/chars';
+        longString += longString;
+        longString += longString;
+        assert.equal(Utils.typeFromMimeType(longString), null);
+      });
+      test('non-strings', function() {
+        assert.equal(Utils.typeFromMimeType(null), null);
+        assert.equal(Utils.typeFromMimeType({}), null);
+        assert.equal(Utils.typeFromMimeType(0), null);
+        assert.equal(Utils.typeFromMimeType(true), null);
+      });
+
+    });
+  });
+
 });
 
 suite('Utils.Message', function() {
@@ -451,29 +511,6 @@ suite('Utils.Template', function() {
         interpolated,
         '&lt;script&gt;alert(&quot;hi!&quot;)&lt;/script&gt;<p>this is ok</p>'
       );
-    });
-  });
-
-  suite('Utils for MMS user story test', function() {
-    test('Image rescaling to 300kB', function() {
-      // Open test image for testing image resize ability
-      function resizeTest(name) {
-        var req = new XMLHttpRequest();
-        req.open('GET' , '/test/unit/media/' + name, true);
-        req.responseType = 'blob';
-
-        req.onreadystatechange = function() {
-          if (req.readyState === 4 && req.status === 200) {
-            var blob = req.response;
-            var limit = 300 * 1024;
-            Utils.getResizedImgBlob(blob, function(resizedBlob) {
-              assert.isTrue(resizedBlob.size < limit);
-            }, limit);
-          }
-        }
-        req.send(null);
-      }
-      resizeTest('IMG_0554.jpg');
     });
   });
 });

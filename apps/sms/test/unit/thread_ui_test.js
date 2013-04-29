@@ -4,14 +4,17 @@
 // mocha and when we have that new mocha in test agent
 mocha.setup({ globals: ['alert'] });
 
-requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_l10n.js');
+requireApp('sms/js/utils.js');
+requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
+requireApp('sms/test/unit/mock_link_helper.js');
 requireApp('sms/js/thread_ui.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Utils',
+  'LinkHelper',
   'alert'
 ]);
 
@@ -292,6 +295,34 @@ suite('thread_ui.js >', function() {
       test('an alert is sent', function() {
         assert.equal(Mockalert.mLastMessage, 'messages-max-length-notice');
       });
+    });
+  });
+  suite('createMmsContent', function() {
+    var testImageBlob;
+
+    suiteSetup(function createMmsContent_suiteSetup(done) {
+      var req = new XMLHttpRequest();
+      req.open('GET', '/test/unit/media/kitten-450.jpg', true);
+      req.responseType = 'blob';
+      req.onload = function() {
+        testImageBlob = req.response;
+        done();
+      };
+      req.send();
+    });
+
+    test('generated html', function() {
+      var inputArray = [{
+        text: '&escapeTest',
+        name: 'imageTest.jpg',
+        blob: testImageBlob
+      }];
+      var output = ThreadUI.createMmsContent(inputArray);
+      var img = output.querySelectorAll('img');
+      assert.equal(img.length, 1);
+      var span = output.querySelectorAll('span');
+      assert.equal(span.length, 1);
+      assert.equal(span[0].innerHTML.slice(0, 5), '&amp;');
     });
   });
 });
