@@ -215,10 +215,32 @@
         };
       }
     },
-    camelCase: function(str) {
+    camelCase: function ut_camelCase(str) {
       return str.replace(rdashes, function replacer(str, p1) {
         return p1.toUpperCase();
       });
+    },
+    typeFromMimeType: function ut_typeFromMimeType(mime) {
+      var MAX_MIME_TYPE_LENGTH = 256; // ought to be enough for anybody
+      if (typeof mime !== 'string' || mime.length > MAX_MIME_TYPE_LENGTH) {
+        return null;
+      }
+
+      var index = mime.indexOf('/');
+      if (index === -1) {
+        return null;
+      }
+      var mainPart = mime.slice(0, index);
+      switch (mainPart) {
+        case 'image':
+          return 'img';
+        case 'video':
+        case 'audio':
+        case 'text':
+          return mainPart;
+        default:
+          return null;
+      }
     }
   };
 
