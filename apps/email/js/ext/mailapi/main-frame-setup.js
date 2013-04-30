@@ -3161,6 +3161,8 @@ if (("indexedDB" in window) && window.indexedDB) {
  *
  * Explanation of most recent bump:
  *
+ * Bumping to 21 because of massive error in partial fetching merges.
+ *
  * Bumping to 20 because of block sizing changes.
  *
  * Bumping to 19 because of change from uids to ids, but mainly because we are
@@ -3173,7 +3175,7 @@ if (("indexedDB" in window) && window.indexedDB) {
  * Bumping to 17 because we changed the folder representation to store
  * hierarchy.
  */
-var CUR_VERSION = 20;
+var CUR_VERSION = 21;
 
 /**
  * What is the lowest database version that we are capable of performing a
