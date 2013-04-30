@@ -5,9 +5,7 @@
 }
 
 a:focus,
-button:focus,
-a::-moz-focus-inner,
-button::-moz-focus-inner {
+a::-moz-focus-inner, {
   outline: none;
   border: none;
 }
@@ -48,13 +46,13 @@ input.error {
   top: 0;
   right: 0;
   bottom: 0;
-  z-index: 10;
+  z-index: 5;
   overflow: hidden;
 }
 
 .window {
   opacity: 1.0;
-  background: url(images/app/ui/pattern.png) repeat left top;
+  background: #fff;
   transition: opacity ease 0.2s;
 }
 
@@ -63,11 +61,16 @@ input.error {
 }
 
 .view {
-  top: 9.1rem;
+  top: 9.3rem;
   background: url(images/app/ui/pattern.png) repeat left top;
   transform: translate(0, 0);
   transition: transform 0.5s ease,
               opacity 0.2s ease;
+}
+
+#balance-tab,
+#telephony-tab {
+  background: #fff;
 }
 
 .view.standalone {
@@ -125,10 +128,32 @@ input.error {
 }
 
 /* BB FILTER */
-body[role="application"] ul.filter[role="tablist"][data-position=bottom] {
-  position: absolute;
-  left: 0;
-  top: 5rem;
+[role="tablist"][data-type="filter"] {
+  height: 4.2rem;
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] {
+  background: #fff;
+  border: solid 0.1rem #999;
+  border-top: none;
+  color: #000;
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"]:first-child[aria-selected="true"] {
+  border-left: none;
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"]:last-child[aria-selected="true"] {
+  border-right: none;
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] > a {
+  color: #000;
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"] > a:active {
+  background-color: #008aaa;
+  color: #fff;
 }
 
 /* BB HEADER ICONS */
@@ -145,6 +170,10 @@ body[role="application"] section[role="region"] > header button {
 /* BB BUTTONS ICONS */
 .buttons-list {
   list-style: none;
+}
+
+li button:after {
+  top: calc(100% + 0.1rem);
 }
 
 .fake-select select {
@@ -188,39 +217,15 @@ body[role="application"] progress:not([value]) {
 
 /* CONTENT */
 section.content {
-  padding: 2.5rem 2rem;
-}
-
-/* COUNTDOWN */
-.countdown {
-  font-size: 1.6rem;
-  padding-bottom: 1.5rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #BBB;
-}
-
-#top-up-countdown {
-  color: #C7C9C6;
-}
-
-/* ERROR MESSAGES */
-section.content .error-messages[aria-hidden="true"] {
-  -moz-transform: translateY(-10rem);
-  display: block!important;
-  height: 0;
-  padding: 0;
-}
-
-section.content .error-messages {
-  color: #b20000;
-  font-size: 1.4rem;
-  line-height: 1.4em;
-  padding: 0 0.8rem 0.5rem;
-  overflow: hidden;
-  border-bottom: solid 1px #b20000;
-  -moz-transition: all 0.2s ease;
+  padding: 1.5rem 2rem;
 }
 
 #message-handler {
   visibility: hidden;
 }
+
+#topup-dialog,
+#settings-view {
+  z-index: 20;
+}
+
