@@ -476,11 +476,20 @@ function createThumbnailItem(videonum) {
 
   var details = document.createElement('div');
   details.className = 'details';
+  details.dataset.title = videodata.metadata.title;
+  var title = document.createElement('span');
+  title.className = 'title';
+  title.textContent = videodata.metadata.title;
+  details.appendChild(title);
   if (isFinite(videodata.metadata.duration)) {
     var d = Math.round(videodata.metadata.duration);
-    details.dataset.after = formatDuration(d);
-  }
-  details.textContent = videodata.metadata.title;
+    var after = document.createElement('span');
+    after.className = 'after';
+    details.dataset.duration = ' ' + formatDuration(d);
+    after.textContent = details.dataset.duration;
+    details.appendChild(after);
+   }
+  details.dataset.counter = 1;
 
   var thumbnail = document.createElement('li');
   thumbnail.className = 'thumbnail';
@@ -501,6 +510,23 @@ function createThumbnailItem(videonum) {
   inner.appendChild(details);
   thumbnail.appendChild(inner);
   return thumbnail;
+}
+
+function textTruncate(e) {
+  var el = e;
+  var dataset = el.dataset;
+  var min = { portrait: 45, landscape: 175 };
+  if (dataset.title.length > min[orientation]) {
+    el.firstChild.textContent = dataset.title.slice(0, min[orientation]);
+    el.firstChild.textContent = el.firstChild.textContent.toString() + ' ...';
+  }
+  else
+    el.firstChild.textContent = dataset.title;
+
+  el.style.overflow = 'visible';
+  el.style.overflow = 'hidden';
+
+  dataset.counter++;
 }
 
 function thumbnailClickHandler() {
@@ -887,6 +913,7 @@ function hidePlayer() {
     dom.thumbnails.classList.remove('hidden');
     playerShowing = false;
     updateDialog();
+    truncateAllTitle();
 
     // Unload the video. This releases the video decoding hardware
     // so other apps can use it. Note that any time the video app is hidden
@@ -1096,114 +1123,16 @@ function formatDuration(duration) {
   return hours + ':' + padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
 }
 
-function textTruncate(el) {
-
-  // Define helpers
-  var helpers = {
-    getLine: function h_getLine(letter) {
-      return parseInt((letter.offsetTop - atom.top) / atom.height) + 1;
-    },
-    hideLetter: function h_hideLetter(letter) {
-      letter.style.display = 'none';
-    },
-    after: function h_after(node, after) {
-      if (node.nextSibling) {
-        node.parentNode.insertBefore(after, node.nextSibling);
-      } else {
-        node.parentNode.appendChild(after);
-      }
-    }
-  };
-
-  var text = { el: el };
-
-  // Define real content before
-  if (!text.el.dataset.raw) {
-    text.el.dataset.raw = el.textContent;
+function truncateAllTitle() {
+  var texts = document.querySelectorAll('.details');
+  for (var i = 0; i < texts.length; i++) {
+     texts[i].dataset.counter = 1;
+      // Force element to be repainted
+      texts[i].style.overflow = 'visible';
+      texts[i].firstChild.textContent = texts[i].dataset.title;
+      texts[i].style.overflow = 'hidden';
+      textTruncate(texts[i]);
   }
-  text.el.innerHTML = text.el.dataset.raw;
-  delete text.el.dataset.visible;
-
-  var after = { el: document.createElement('span') };
-  after.el.className = 'after';
-  document.body.appendChild(after.el);
-
-  // Set positionable all letter
-  var t = text.el.innerHTML.replace(/(.)/g, '<span>$1</span>');
-  text.el.innerHTML = t;
-
-  // get atomic letter dimension
-  var atom = {
-    left: text.el.firstChild.offsetLeft,
-    top: text.el.firstChild.offsetTop,
-    width: text.el.firstChild.offsetWidth,
-    height: text.el.firstChild.offsetHeight
-  };
-
-  // Possible lines number
-  text.lines = (text.el.offsetHeight -
-    (text.el.offsetHeight) % atom.height) / atom.height;
-
-  // Prepare ... element to be append if necessary
-  var etc = document.createElement('span');
-  etc.innerHTML = '...';
-  after.el.appendChild(etc);
-
-  // Append duration this is required
-  var duration = document.createElement('span');
-  duration.innerHTML = text.el.dataset.after;
-  after.el.appendChild(duration);
-
-  // Init width left to include the after element
-  text.widthLeft = text.el.clientWidth;
-
-  // After element
-  after.width = after.el.offsetWidth;
-
-  // Each letter
-  var line;
-  var i = 0;
-  var children = text.el.children;
-  var space = document.createTextNode(' ');
-
-  while (children[i]) {
-    var letter = children[i];
-    if (letter.className == after.el.className) {
-      i++;
-      continue;
-    }
-    line = helpers.getLine(letter);
-    // If in last line truncate
-    if (text.lines == line) {
-      if (letter.textContent != ' ') {
-        // If enought space left to print after element
-        text.widthLeft -= letter.offsetWidth;
-        if (text.widthLeft - after.width < 3 * atom.width && !after.already) {
-          after.already = true;
-          helpers.after(letter, space);
-          helpers.after(letter, after.el);
-          after.el.insertBefore(space, after.el.lastChild);
-        } else if (after.already) {
-          helpers.hideLetter(letter);
-        }
-      }
-    } else if (text.lines <= line || after.already == true) {
-      helpers.hideLetter(letter);
-    }
-    i++;
-  }
-  // This can be optimized, for sure !
-  if (!after.already) {
-    if (text.lines > line) {
-      // Remove etc child from after element
-      after.el.removeChild(etc);
-      text.el.appendChild(after.el);
-      text.el.insertBefore(space, after.el);
-    } else {
-      after.el.style.display = 'none';
-    }
-  }
-  text.el.dataset.visible = 'true';
 }
 
  // Pause on visibility change
@@ -1247,18 +1176,18 @@ function restoreVideo() {
 // show|hide controls over the player
 dom.videoControls.addEventListener('mousedown', playerMousedown);
 
+var orientation=screen.availWidth > screen.availHeight?'landscape': 'portrait';
 // Rescale when window size changes. This should get called when
 // orientation changes
 window.addEventListener('resize', function() {
   if (dom.player.readyState !== HAVE_NOTHING) {
     setPlayerSize();
   }
+  orientation=screen.availWidth > screen.availHeight?'landscape': 'portrait';
 
   // reTruncate text
-  var texts = document.querySelectorAll('.details');
-  for (var i = 0; i < texts.length; i++) {
-    textTruncate(texts[i]);
-  }
+  truncateAllTitle();
+
 });
 
 dom.player.addEventListener('timeupdate', timeUpdated);
