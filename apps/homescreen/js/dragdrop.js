@@ -176,16 +176,7 @@ const DragDropManager = (function() {
     }
   }
 
-  /*
-   * This method is invoked when dragging is finished. It checks if
-   * there is overflow or not in a page and removes the last page when
-   * is empty
-   */
-  function stop(callback) {
-    clearTimeout(disabledCheckingLimitsTimeout);
-    isDisabledCheckingLimits = false;
-    isDisabledDrop = false;
-    transitioning = false;
+  function doStop(callback) {
     var page = getPage();
     if (page.ready) {
       sendDragLeaveEvent(page, true);
@@ -196,6 +187,28 @@ const DragDropManager = (function() {
         page.container.removeEventListener('onpageready', onPageReady);
         sendDragLeaveEvent(page, true);
         draggableIcon.onDragStop(callback);
+      });
+    }
+  }
+
+  /*
+   * This method is invoked when dragging is finished. It checks if
+   * there is overflow or not in a page and removes the last page when
+   * is empty
+   */
+  function stop(callback) {
+    clearTimeout(disabledCheckingLimitsTimeout);
+    isDisabledCheckingLimits = false;
+    isDisabledDrop = false;
+    transitioning = false;
+    // We have to wait for the rearrange of the page from we have come
+    var from = overlapingDock ? pageHelper.getCurrent() : DockManager.page;
+    if (from.ready) {
+      doStop(callback);
+    } else {
+      from.container.addEventListener('onpageready', function onPageReady() {
+        from.container.removeEventListener('onpageready', onPageReady);
+        doStop(callback);
       });
     }
   }
