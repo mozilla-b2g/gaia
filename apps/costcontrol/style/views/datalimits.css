@@ -1,6 +1,7 @@
 /* TOPUP VIEW */
 #data-limit-dialog {
   top: 0;
+  z-index: 20;
 }
 
 #data-limit-dialog form {
@@ -11,7 +12,7 @@
   padding: 1.5rem;
 }
 
-#data-limit-dialog form button {
+#data-limit-dialog form button.switch-unit-button {
   float: right;
   margin: 0;
   width: 9rem;
