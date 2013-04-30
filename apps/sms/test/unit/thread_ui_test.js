@@ -10,11 +10,13 @@ requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_link_helper.js');
+requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/js/thread_ui.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Utils',
   'LinkHelper',
+  'MozActivity',
   'alert'
 ]);
 
@@ -31,12 +33,23 @@ suite('thread_ui.js >', function() {
   var realMozMobileMessage;
 
   var mocksHelper = mocksHelperForThreadUI;
+  var testImageBlob;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     mocksHelper.suiteSetup();
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    var req = new XMLHttpRequest();
+    req.open('GET', '/test/unit/media/kitten-450.jpg', true);
+    req.responseType = 'blob';
+    req.onload = function() {
+      testImageBlob = req.response;
+      done();
+    };
+    req.send();
+
   });
 
   suiteTeardown(function() {
@@ -298,19 +311,6 @@ suite('thread_ui.js >', function() {
     });
   });
   suite('createMmsContent', function() {
-    var testImageBlob;
-
-    suiteSetup(function createMmsContent_suiteSetup(done) {
-      var req = new XMLHttpRequest();
-      req.open('GET', '/test/unit/media/kitten-450.jpg', true);
-      req.responseType = 'blob';
-      req.onload = function() {
-        testImageBlob = req.response;
-        done();
-      };
-      req.send();
-    });
-
     test('generated html', function() {
       var inputArray = [{
         text: '&escapeTest',
@@ -323,6 +323,35 @@ suite('thread_ui.js >', function() {
       var span = output.querySelectorAll('span');
       assert.equal(span.length, 1);
       assert.equal(span[0].innerHTML.slice(0, 5), '&amp;');
+    });
+  });
+  suite('MMS images', function() {
+    var img;
+    suiteSetup(function() {
+      // create an image mms DOM Element:
+      var inputArray = [{
+        name: 'imageTest.jpg',
+        blob: testImageBlob
+      }];
+
+      // quick dirty creation of a thread with image:
+      var output = ThreadUI.createMmsContent(inputArray);
+      // need to get a container from ThreadUI because event is delegated
+      var messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
+      messageContainer.appendChild(output);
+
+      img = output.querySelector('img');
+    });
+    test('MozActivity is called with the proper info on click', function() {
+      // Start the test: simulate a click event
+      img.click();
+
+      assert.equal(MockMozActivity.calls.length, 1);
+      var call = MockMozActivity.calls[0];
+      assert.equal(call.name, 'open');
+      assert.equal(call.data.type, 'image/jpeg');
+      assert.equal(call.data.filename, 'imageTest.jpg');
+      assert.equal(call.data.blob, testImageBlob);
     });
   });
 });

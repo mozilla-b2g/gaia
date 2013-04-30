@@ -4,11 +4,14 @@ var MockUtils = {
   // we need that this function does real work, so it's copied from the real
   // Utils.js
   camelCase: Utils.camelCase,
+  date: Utils.date,
   startTimeHeaderScheduler: function() {},
   Template: Utils.Template,
   getFontSize: function() {
     return 12;
   },
+  getDayDate: Utils.getDayDate,
+  getFormattedHour: Utils.getFormattedHour,
 
   // real code needed here to map types
   typeFromMimeType: Utils.typeFromMimeType,
