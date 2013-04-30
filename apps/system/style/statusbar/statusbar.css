@@ -22,6 +22,14 @@ body, html {
   -moz-box-sizing: border-box;
 }
 
+#screen.locked:not(.attention) #statusbar{
+  background-color: transparent;
+}
+
+#screen.attention.locked #statusbar-time {
+  display: block;
+}
+
 #statusbar > * {
   pointer-events: none;
   float: right;
@@ -167,7 +175,7 @@ body, html {
 }
 
 .sb-icon-wifi[data-level="0"][data-connecting="true"] {
-  background: url('images/wifi-connecting.gif') no-repeat;
+  background: url('images/wifi-connecting.png') no-repeat;
   background-position: 0 0;
   background-size: 1.6rem;
 }
@@ -222,7 +230,7 @@ body, html {
 }
 
 .sb-icon-signal[data-level="-1"][data-searching="true"] {
-  background: url('images/signal-searching.gif') no-repeat;
+  background: url('images/signal-searching.png') no-repeat;
   background-position: 0 0;
   background-size: 1.6rem 1.6rem;
 }
@@ -272,12 +280,6 @@ body, html {
   background: url('images/icons.png') no-repeat;
   background-position: -16.8rem -4rem;
   background-size: 31rem;
-}
-
-.sb-icon-network-activity {
-  background: url('images/network-activity.gif') no-repeat;
-  background-position: 0 0;
-  background-size: 1.6rem;
 }
 
 .sb-icon-headphones {
@@ -333,7 +335,7 @@ body, html {
 }
 
 .sb-icon-notification {
-  background: #000;
+  background: none;
   width: 3.2rem;
   position: relative;
 }
@@ -393,15 +395,6 @@ body, html {
   width: 100%;
   text-align: center;
   font-size: 1.15rem; /*5pt  was 0.8rem */
-}
-
-/* JW: should we show how many current download we have
- * as in sb-icon-ms or sb-icon-notification ? */
-.sb-icon-system-downloads {
-  /* JW: waiting for the correct icon; in the mean time I made this one */
-  background: url('images/system-downloads.gif') no-repeat;
-  background-position: 0 0;
-  background-size: 1.6rem 1.6rem;
 }
 
 .sb-icon-call-forwarding {
