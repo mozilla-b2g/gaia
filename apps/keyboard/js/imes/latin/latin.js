@@ -81,7 +81,6 @@
   const SEMICOLON = 59;
 
   const WS = /^\s+$/;                    // all whitespace characters
-  const UC = /^[A-ZÀ-ÖØ-Þ]+$/;           // all uppercase latin characters
 
   const DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
 
@@ -517,7 +516,7 @@
     // want to autocorrect a valid word. Also, if the input begins with
     // a capital letter, capitalize the suggestions
     var lcinput = input.toLowerCase();
-    var inputStartsWithCapital = isUpperCase(input[0]);
+    var inputStartsWithCapital = (input[0] !== lcinput[0]);
     var inputIsWord = false;
     for (var i = 0; i < suggestions.length; i++) {
       suggestions[i] = suggestions[i][0];
@@ -661,8 +660,15 @@
     }
   }
 
+  // Return true if all characters of s are uppercase. A character
+  // is uppercase if toLowerCase() on that character is returns something
+  // different than the character
   function isUpperCase(s) {
-    return UC.test(s);
+    var lc = s.toLowerCase();
+    for (var i = 0, n = s.length; i < n; i++)
+      if (s[i] === lc[i])
+        return false;
+    return true;
   }
 
   function isWhiteSpace(s) {
