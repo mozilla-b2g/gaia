@@ -194,11 +194,7 @@ const Keyboards = {
       o: 'óºöòôōœøɵ',
       u: 'üúùûū',
       s: '$ßš',
-<<<<<<< HEAD
-      l: 'l·l £',
-=======
       l: '£ l·l',
->>>>>>> upstream/master
       n: 'ń',
       y: '¥',
       r: 'R$ ',
