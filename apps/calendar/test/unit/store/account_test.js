@@ -150,6 +150,19 @@ suite('store/account', function() {
       });
     });
 
+    test('persist + oauth change', function(done) {
+      model.oauth = { code: 'xxx' };
+      result = Factory('caldav.account', {
+        oauth: { refresh_token: 'xxx' }
+      });
+
+      subject.verifyAndPersist(model, function(err, id, data) {
+        done(function() {
+          assert.equal(data.oauth, result.oauth);
+        });
+      });
+    });
+
     test('persist no change', function(done) {
       result = {};
 
