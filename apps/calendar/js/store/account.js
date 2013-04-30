@@ -50,15 +50,8 @@
           // This is used to find calendars.
           model.calendarHome = data.calendarHome;
 
-          // entrypoint is used to re-authenticate.
-          if ('entrypoint' in data) {
-            model.entrypoint = data.entrypoint;
-          }
-
-          if ('domain' in data) {
-            model.domain = data.domain;
-          }
-
+          // server may override properties on demand.
+          Calendar.extend(model, data);
           self.persist(model, callback);
         });
       });

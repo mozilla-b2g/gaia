@@ -5,7 +5,6 @@ Calendar.ns('Service').Caldav = (function() {
   /* TODO: ugly hack to enable system XHR fix upstream in Caldav lib */
   var xhrOpts = {
     mozSystem: true,
-    mozAnon: true,
     useMozChunkedText: true
   };
 
@@ -53,6 +52,38 @@ Calendar.ns('Service').Caldav = (function() {
 
     handleEvent: function(e) {
       this[e.type].apply(this, e.data);
+    },
+
+    /**
+     * Builds an Caldav connection from an account model object.
+     */
+    _createConnection: function(account) {
+      var params = Calendar.extend({}, account);
+      var preset = Calendar.Presets[account.preset];
+
+      if (
+          preset &&
+          preset.authenticationType &&
+          preset.apiCredentials
+      ) {
+        switch (preset.authenticationType) {
+          case 'oauth2':
+            params.httpHandler = 'oauth2';
+
+            // shallow copy the apiCredentials on the preset
+            params.apiCredentials =
+              Calendar.extend({}, preset.apiCredentials);
+
+            // the url in this case will always be tokenUrl
+            params.apiCredentials.url =
+              preset.apiCredentials.tokenUrl;
+
+            break;
+        }
+      }
+
+      var connection = new Caldav.Connection(params);
+      return connection;
     },
 
     _requestHome: function(connection, url) {
@@ -111,7 +142,7 @@ Calendar.ns('Service').Caldav = (function() {
 
     getAccount: function(account, callback) {
       var url = account.entrypoint;
-      var connection = new Caldav.Connection(account);
+      var connection = this._createConnection(account);
 
       var request = this._requestHome(connection, url);
       return request.send(function(err, data) {
@@ -120,9 +151,18 @@ Calendar.ns('Service').Caldav = (function() {
           return;
         }
 
-        callback(null, {
-          calendarHome: data.url
-        });
+        var result = {};
+
+        if (data.url)
+          result.calendarHome = data.url;
+
+        if (connection.oauth)
+          result.oauth = connection.oauth;
+
+        if (connection.user)
+          result.user = connection.user;
+
+        callback(null, result);
       });
     },
 
@@ -143,9 +183,7 @@ Calendar.ns('Service').Caldav = (function() {
     findCalendars: function(account, callback) {
       var self = this;
       var url = account.calendarHome;
-      var connection = new Caldav.Connection(
-        account
-      );
+      var connection = this._createConnection(account);
 
       var request = this._requestCalendars(
         connection,
@@ -715,9 +753,7 @@ Calendar.ns('Service').Caldav = (function() {
     streamEvents: function(account, calendar, options, stream, callback) {
       var self = this;
       var hasCompleted = false;
-      var connection = new Caldav.Connection(
-        account
-      );
+      var connection = this._createConnection(account);
 
       var cache = options.cached;
 
@@ -793,9 +829,7 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     deleteEvent: function(account, calendar, event, callback) {
-      var connection = new Caldav.Connection(
-        account
-      );
+      var connection = this._createConnection(account);
 
       var req = this._assetRequest(connection, event.url);
 
@@ -848,7 +882,7 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     createEvent: function(account, calendar, event, callback) {
-      var connection = new Caldav.Connection(account);
+      var connection = this._createConnection(account);
       var vcalendar = new ICAL.Component('vcalendar');
       var icalEvent = new ICAL.Event();
 
@@ -898,9 +932,7 @@ Calendar.ns('Service').Caldav = (function() {
      *  unmodified parsed ical component. (VCALENDAR).
      */
     updateEvent: function(account, calendar, eventDetails, callback) {
-      var connection = new Caldav.Connection(
-        account
-      );
+      var connection = this._createConnection(account);
 
       var icalComponent = eventDetails.icalComponent;
       var event = eventDetails.event;

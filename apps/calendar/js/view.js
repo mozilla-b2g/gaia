@@ -121,7 +121,14 @@
      * @param {String} selector name as defined in selectors.
      * @param {Boolean} all true when to find all elements. (default false).
      */
-    _findElement: function(name, all) {
+    _findElement: function(name, all, element) {
+      if (typeof(all) === 'object') {
+        element = all;
+        all = false;
+      }
+
+      element = element || document;
+
       var cacheName;
       var selector;
 
@@ -135,9 +142,9 @@
 
         if (!this[cacheName]) {
           if (all) {
-            this[cacheName] = document.querySelectorAll(selector);
+            this[cacheName] = element.querySelectorAll(selector);
           } else {
-            this[cacheName] = document.querySelector(selector);
+            this[cacheName] = element.querySelector(selector);
           }
         }
 
