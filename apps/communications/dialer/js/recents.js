@@ -222,7 +222,7 @@ var Recents = {
     // Setting up the SimplePhoneMatcher
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice && conn.voice.network) {
-      SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
+      SimplePhoneMatcher.mcc = conn.voice.network.mcc;
     }
 
     LazyL10n.get(function localized(_) {
