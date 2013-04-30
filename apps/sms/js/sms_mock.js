@@ -207,15 +207,6 @@
         timestamp: new Date(Date.now() - 172800000)
       },
       {
-        threadId: 3,
-        sender: null,
-        receiver: '197743697',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        type: 'sms',
-        timestamp: new Date(Date.now() - 652800000)
-      },
-      {
         threadId: 4,
         sender: null,
         receiver: '197746797',
@@ -304,6 +295,7 @@
       {
         id: 1,
         participants: ['1977'],
+        lastMessageType: 'sms',
         body: 'Alo, how are you today, my friend? :)',
         timestamp: new Date(Date.now()),
         unreadCount: 0
@@ -311,15 +303,9 @@
       {
         id: 2,
         participants: ['436797'],
+        lastMessageType: 'sms',
         body: 'Sending :)',
         timestamp: new Date(Date.now() - 172800000),
-        unreadCount: 0
-      },
-      {
-        id: 3,
-        participants: ['197743697'],
-        body: 'Nothing :)',
-        timestamp: new Date(Date.now() - 652800000),
         unreadCount: 0
       },
       {
@@ -327,11 +313,13 @@
         participants: ['197746797'],
         body: 'short (delivery: received)',
         timestamp: new Date(Date.now() - 100000),
+        lastMessageType: 'sms',
         unreadCount: 0
       },
       {
         id: 5,
         participants: ['14886783487'],
+        lastMessageType: 'sms',
         body: 'Hello world!',
         timestamp: new Date(Date.now() - 60000000),
         unreadCount: 2
@@ -339,7 +327,6 @@
       {
         id: 6,
         participants: ['052780'],
-        body: 'Test MMS message',
         lastMessageType: 'mms',
         timestamp: new Date(),
         unreadCount: 0
