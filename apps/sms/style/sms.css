@@ -390,8 +390,32 @@ section[role="region"].new > header:first-child form {
   overflow: hidden;
 }
 
-.mms-bubble-content > img {
+.mms-container > img {
   display: block;
+  max-height: 10rem;
+  max-width: 100%;
+}
+
+.mms-container .video-placeholder {
+  display: block;
+  width: 10.7rem;
+  height: 8rem;
+  background-image: url('icons/video_thumb.png');
+}
+.mms-container .audio-placeholder {
+  display: block;
+  width: 6rem;
+  height: 6rem;
+  background-image: url('icons/audio_thumb.png');
+}
+
+.mms-container .video-placeholder:active,
+.mms-container .video-placeholder:hover {
+  background-position: 0 -8rem;
+}
+.mms-container .audio-placeholder:active ,
+.mms-container .audio-placeholder:hover {
+  background-position: 0 -6rem;
 }
 
 /*

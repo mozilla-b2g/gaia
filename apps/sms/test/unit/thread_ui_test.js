@@ -32,6 +32,7 @@ suite('thread_ui.js >', function() {
   var mocksHelper = mocksHelperForThreadUI;
   var testImageBlob;
   var testAudioBlob;
+  var testVideoBlob;
 
   suiteSetup(function(done) {
     mocksHelper.suiteSetup();
@@ -48,7 +49,7 @@ suite('thread_ui.js >', function() {
       req.responseType = 'blob';
       req.onload = function() {
         loadCallback(req.response);
-        if (--assetsNeeded) {
+        if (--assetsNeeded === 0) {
           done();
         }
       };
@@ -59,6 +60,9 @@ suite('thread_ui.js >', function() {
     });
     getAsset('/test/unit/media/audio.oga', function(blob) {
       testAudioBlob = blob;
+    });
+    getAsset('/test/unit/media/video.ogv', function(blob) {
+      testVideoBlob = blob;
     });
   });
 
@@ -486,7 +490,7 @@ suite('thread_ui.js >', function() {
       var messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
       messageContainer.appendChild(output);
 
-      audio = output.querySelector('img');
+      audio = output.querySelector('.audio-placeholder');
     });
 
     test('MozActivity is called with the proper info on click', function() {
@@ -499,6 +503,37 @@ suite('thread_ui.js >', function() {
       assert.equal(call.data.type, 'audio/ogg');
       assert.equal(call.data.filename, 'audio.oga');
       assert.equal(call.data.blob, testAudioBlob);
+    });
+  });
+
+  suite('MMS video', function() {
+    var video;
+    setup(function() {
+      // create an image mms DOM Element:
+      var inputArray = [{
+        name: 'video.ogv',
+        blob: testVideoBlob
+      }];
+
+      // quick dirty creation of a thread with video:
+      var output = ThreadUI.createMmsContent(inputArray);
+      // need to get a container from ThreadUI because event is delegated
+      var messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
+      messageContainer.appendChild(output);
+
+      video = output.querySelector('.video-placeholder');
+    });
+
+    test('MozActivity is called with the proper info on click', function() {
+      video.click();
+
+      // check that the MozActivity was called with the proper info
+      assert.equal(MockMozActivity.calls.length, 1);
+      var call = MockMozActivity.calls[0];
+      assert.equal(call.name, 'open');
+      assert.equal(call.data.type, 'video/ogg');
+      assert.equal(call.data.filename, 'video.ogv');
+      assert.equal(call.data.blob, testVideoBlob);
     });
   });
 });
