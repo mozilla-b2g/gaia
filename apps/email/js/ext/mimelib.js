@@ -160,15 +160,15 @@ function handleAddress(tokens){
             return [];
         }else{
             address = {
-                address: data.address || data.text,
-                name: data.text || data.address
+                address: data.address || data.text || "",
+                name: data.text || data.address || ""
             };
 
             if(address.address == address.name){
                 if((address.address || "").match(/@/)){
-                    delete address.name;
+                    address.name = "";
                 }else{
-                    delete address.address;
+                    address.address = "";
                 }
                 
             }
@@ -204,7 +204,6 @@ function Tokenizer(str){
  */
 Tokenizer.prototype.operators = {
     "\"": "\"",
-    "'": "'",
     "(": ")",
     "<": ">",
     ",": "",
