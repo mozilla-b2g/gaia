@@ -118,6 +118,7 @@ var PlayerView = {
 
     this.audio.addEventListener('play', this);
     this.audio.addEventListener('pause', this);
+    this.audio.addEventListener('durationchange', this);
     this.audio.addEventListener('timeupdate', this);
     this.audio.addEventListener('ended', this);
 
@@ -650,6 +651,7 @@ var PlayerView = {
         }
         this.isSeeking = false;
         break;
+      case 'durationchange':
       case 'timeupdate':
         if (!this.isSeeking)
           this.updateSeekBar();
