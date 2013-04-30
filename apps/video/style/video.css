@@ -90,13 +90,15 @@ li .details {
   height: 9.3rem;
   top: 0;
   right: 1.8rem;
-  visibility: hidden;
+  overflow: hidden;
+  word-break: break-all;
 }
 li .details[data-visible] {
   visibility: visible;
 }
-li .after span:last-child {
+li .after  {
   color: #95a3a6;
+  display: block;
 }
 
 /* All of the main views fill the screen */
