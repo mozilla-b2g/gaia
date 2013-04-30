@@ -7,7 +7,10 @@
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
     <link rel="stylesheet" type="text/css" href="style/music.css"/>
+    <!-- multi-resolution support -->
+    <link rel="stylesheet" type="text/css" href="shared/style/responsive.css"/>
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
@@ -136,7 +139,7 @@
     </div>
     <!-- display scanning progress over the titlebar -->
     <div id="scan-progress" class="hidden">
-      <div id="scan-spinner"></div>
+      <progress id="scan-spinner"></progress>
       <div id="scan-count"></div>
       <div id="scan-artist"></div>
       <div id="scan-title"></div>
@@ -149,7 +152,7 @@
       </div>
     </div>
     <!-- display this at startup while we load music -->
-    <div id="spinner-overlay"><div id="spinner"></div></div>
+    <div id="spinner-overlay"><progress id="spinner"></progress></div>
   </body>
 </html>
 
