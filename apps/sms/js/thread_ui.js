@@ -1018,6 +1018,9 @@ var ThreadUI = {
     }
 
     Contacts.findByString(filterValue, function gotContact(contacts) {
+      if (!recipient.textContent.trim()) {
+        return;
+      }
       // There are contacts that match the input.
       //  1. Clear the existing container html
       //  2. Add the "hide" class to the messages-no-results display
