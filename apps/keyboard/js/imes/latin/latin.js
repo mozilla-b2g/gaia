@@ -357,7 +357,7 @@
     // If we made a correction and haven't changed it at all yet,
     // then revert it.
     var len = revertFrom ? revertFrom.length : 0;
-    if (len && cursor > len &&
+    if (len && cursor >= len &&
         inputText.substring(cursor - len, cursor) === revertFrom) {
 
       // Revert the content of the text field
@@ -571,6 +571,13 @@
       inputText.substring(cursor);
 
     cursor += word.length - oldWord.length + 1;
+
+    // Remember the change we just made so we can revert it if the
+    // next key is a backspace. Note that it is not an autocorrection
+    // so we don't need to disable corrections.
+    revertFrom = word + ' ';
+    revertTo = oldWord;
+    justAutoCorrected = false;
 
     // Clear the suggestions
     keyboard.sendCandidates([]);
