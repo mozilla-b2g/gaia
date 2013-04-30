@@ -31,6 +31,7 @@ PRODUCTION?=0
 GAIA_OPTIMIZE?=0
 HIDPI?=*
 DOGFOOD?=0
+TEST_AGENT_PORT?=8789
 
 LOCAL_DOMAINS?=1
 
@@ -564,15 +565,15 @@ endif
 test-agent-test:
 ifneq ($(strip $(APP)),)
 	@echo 'Running tests for $(APP)';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER) $(APP_TEST_LIST)
+	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
 else
 	@echo 'Running all tests';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER)
+	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
 endif
 
 .PHONY: test-agent-server
 test-agent-server: common-install
-	$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent server -c ./$(TEST_AGENT_DIR)/test-agent-server.js --http-path . --growl
+	$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./$(TEST_AGENT_DIR)/test-agent-server.js --http-path . --growl
 
 .PHONY: marionette
 marionette:
