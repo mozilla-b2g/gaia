@@ -34,6 +34,7 @@ suite('thread_ui.js >', function() {
 
   var mocksHelper = mocksHelperForThreadUI;
   var testImageBlob;
+  var testAudioBlob;
 
   suiteSetup(function(done) {
     mocksHelper.suiteSetup();
@@ -41,15 +42,27 @@ suite('thread_ui.js >', function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    var req = new XMLHttpRequest();
-    req.open('GET', '/test/unit/media/kitten-450.jpg', true);
-    req.responseType = 'blob';
-    req.onload = function() {
-      testImageBlob = req.response;
-      done();
-    };
-    req.send();
+    var assetsNeeded = 0;
+    function getAsset(filename, loadCallback) {
+      assetsNeeded++;
 
+      var req = new XMLHttpRequest();
+      req.open('GET', filename, true);
+      req.responseType = 'blob';
+      req.onload = function() {
+        loadCallback(req.response);
+        if (--assetsNeeded) {
+          done();
+        }
+      };
+      req.send();
+    }
+    getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
+      testImageBlob = blob;
+    });
+    getAsset('/test/unit/media/audio.oga', function(blob) {
+      testAudioBlob = blob;
+    });
   });
 
   suiteTeardown(function() {
@@ -325,9 +338,10 @@ suite('thread_ui.js >', function() {
       assert.equal(span[0].innerHTML.slice(0, 5), '&amp;');
     });
   });
+
   suite('MMS images', function() {
     var img;
-    suiteSetup(function() {
+    setup(function() {
       // create an image mms DOM Element:
       var inputArray = [{
         name: 'imageTest.jpg',
@@ -352,6 +366,37 @@ suite('thread_ui.js >', function() {
       assert.equal(call.data.type, 'image/jpeg');
       assert.equal(call.data.filename, 'imageTest.jpg');
       assert.equal(call.data.blob, testImageBlob);
+    });
+  });
+
+  suite('MMS audio', function() {
+    var audio;
+    setup(function() {
+      // create an image mms DOM Element:
+      var inputArray = [{
+        name: 'audio.oga',
+        blob: testAudioBlob
+      }];
+
+      // quick dirty creation of a thread with image:
+      var output = ThreadUI.createMmsContent(inputArray);
+      // need to get a container from ThreadUI because event is delegated
+      var messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
+      messageContainer.appendChild(output);
+
+      audio = output.querySelector('img');
+    });
+
+    test('MozActivity is called with the proper info on click', function() {
+      audio.click();
+
+      // check that the MozActivity was called with the proper info
+      assert.equal(MockMozActivity.calls.length, 1);
+      var call = MockMozActivity.calls[0];
+      assert.equal(call.name, 'open');
+      assert.equal(call.data.type, 'audio/ogg');
+      assert.equal(call.data.filename, 'audio.oga');
+      assert.equal(call.data.blob, testAudioBlob);
     });
   });
 });
