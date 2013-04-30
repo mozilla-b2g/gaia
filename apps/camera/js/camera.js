@@ -147,8 +147,18 @@ var Camera = {
   PREVIEW_PAUSE: 500,
   FILMSTRIP_DURATION: 5000, // show filmstrip for 5s before fading
 
-  _flashModes: [],
-  _currentFlashMode: 0,
+  _flashState: {
+    camera: {
+      supported: false,
+      modes: ['off', 'auto', 'on'],
+      currentMode: 1 // default flash mode is 'auto'
+    },
+    video: {
+      supported: false,
+      modes: ['off', 'torch'],
+      currentMode: 0
+    }
+  },
 
   _config: {
     fileFormat: 'jpeg'
@@ -403,6 +413,7 @@ var Camera = {
     var newMode = (this.captureMode === this.CAMERA) ? this.VIDEO : this.CAMERA;
     this.disableButtons();
     this.setCaptureMode(newMode);
+    this.updateFlashUI();
 
     function gotPreviewStream(stream) {
       this.viewfinder.mozSrcObject = stream;
@@ -430,17 +441,25 @@ var Camera = {
     this.toggleButton.setAttribute('data-mode', modeName);
   },
 
-  toggleFlash: function camera_toggleFlash() {
-    if (this._currentFlashMode === this._flashModes.length - 1) {
-      this._currentFlashMode = 0;
+  updateFlashUI: function camera_updateFlashUI() {
+    var flash = this._flashState[this.captureMode];
+    if (flash.supported) {
+      this.setFlashMode();
+      this.toggleFlashBtn.classList.remove('hidden');
     } else {
-      this._currentFlashMode = this._currentFlashMode + 1;
+      this.toggleFlashBtn.classList.add('hidden');
     }
+  },
+
+  toggleFlash: function camera_toggleFlash() {
+    var flash = this._flashState[this.captureMode];
+    flash.currentMode = (flash.currentMode + 1) % flash.modes.length;
     this.setFlashMode();
   },
 
   setFlashMode: function camera_setFlashMode() {
-    var flashModeName = this._flashModes[this._currentFlashMode];
+    var flash = this._flashState[this.captureMode];
+    var flashModeName = flash.modes[flash.currentMode];
     this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
     this._cameraObj.flashMode = flashModeName;
   },
@@ -732,10 +751,26 @@ var Camera = {
       this.toggleButton.classList.add('hidden');
     }
 
-    this._flashModes = capabilities.flashModes;
-    if (this._flashModes) {
-      this.setFlashMode();
-      this.toggleFlashBtn.classList.remove('hidden');
+    // For checking flash support
+    function isSubset(subset, set) {
+      for (var i = 0; i < subset.length; i++) {
+        if (set.indexOf(subset[i]) == -1)
+          return false;
+      }
+      return true;
+    }
+
+    var flashModes = capabilities.flashModes;
+    if (flashModes) {
+      // Check camera flash support
+      var flash = this._flashState[this.CAMERA];
+      flash.supported = isSubset(flash.modes, flashModes);
+
+      // Check video flash support
+      flash = this._flashState[this.VIDEO];
+      flash.supported = isSubset(flash.modes, flashModes);
+
+      this.updateFlashUI();
     } else {
       this.toggleFlashBtn.classList.add('hidden');
     }

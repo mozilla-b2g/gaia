@@ -547,7 +547,9 @@ MessageListCard.prototype = {
     else
       this.syncMoreNode.classList.add('collapsed');
 
-    if (this.messagesSlice.items.length === 0) {
+    // Show empty layout, unless this is a slice with fake data that
+    // will get changed soon.
+    if (this.messagesSlice.items.length === 0 && !this.messagesSlice._fake) {
       this.showEmptyLayout();
     }
     // Consider requesting more data or discarding data based on scrolling that
@@ -732,34 +734,58 @@ MessageListCard.prototype = {
 
   },
 
+  _fakeRemoveElements: [],
+
   onMessagesSplice: function(index, howMany, addedItems,
-                             requested, moreExpected) {
+                             requested, moreExpected, fake) {
+    // If no work to do, just skip it. This is particularly important during
+    // the fake to real transition, where an empty onMessagesSplice is sent.
+    // If this return is not done, there is a flicker in the message list
+    if (index === 0 && howMany === 0 && !addedItems.length)
+      return;
+
+    if (this._fakeRemoveElements.length) {
+      this._fakeRemoveElements.forEach(function(element) {
+        element.parentNode.removeChild(element);
+      });
+      this._fakeRemoveElements = [];
+    }
+
     var prevHeight;
     // - removed messages
     if (howMany) {
-      // Plan to fixup the scroll position if we are deleting a message that
-      // starts before the (visible) scrolled area.  (We add the container's
-      // start offset because it is as big as the occluding header bar.)
-      prevHeight = null;
-      if (this.messagesSlice.items[index].element.offsetTop <
-          this.scrollContainer.scrollTop + this.messagesContainer.offsetTop) {
-        prevHeight = this.messagesContainer.clientHeight;
-      }
+      if (fake && index === 0 && this.messagesSlice.items.length === howMany &&
+          !addedItems.length) {
+        // If this is a call to remove the fake data, hold onto it until the
+        // next splice call, to avoid flickering.
+        this._fakeRemoveElements = this.messagesSlice.items.map(
+              function(item) { return item.element; });
+      } else {
+        // Regular remove for current call.
+        // Plan to fixup the scroll position if we are deleting a message that
+        // starts before the (visible) scrolled area.  (We add the container's
+        // start offset because it is as big as the occluding header bar.)
+        var prevHeight = null;
+        if (this.messagesSlice.items[index].element.offsetTop <
+            this.scrollContainer.scrollTop + this.messagesContainer.offsetTop) {
+          prevHeight = this.messagesContainer.clientHeight;
+        }
 
-      for (var i = index + howMany - 1; i >= index; i--) {
-        var message = this.messagesSlice.items[i];
-        message.element.parentNode.removeChild(message.element);
-      }
+        for (var i = index + howMany - 1; i >= index; i--) {
+          var message = this.messagesSlice.items[i];
+          message.element.parentNode.removeChild(message.element);
+        }
 
-      // If fixup is requred, adjust.
-      if (prevHeight !== null) {
-        this.scrollContainer.scrollTop -=
-          (prevHeight - this.messagesContainer.clientHeight);
-      }
+        // If fixup is requred, adjust.
+        if (prevHeight !== null) {
+          this.scrollContainer.scrollTop -=
+            (prevHeight - this.messagesContainer.clientHeight);
+        }
 
-      // Check the message count after deletion:
-      if (this.messagesContainer.children.length === 0) {
-        this.showEmptyLayout();
+        // Check the message count after deletion:
+        if (this.messagesContainer.children.length === 0) {
+          this.showEmptyLayout();
+        }
       }
     }
 

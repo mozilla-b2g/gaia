@@ -321,7 +321,7 @@ function initThumbnails() {
   // displayed. There is no need to re-enumerate them, so we just go
   // straight to scanning for new files
   if (visibilityMonitor) {
-    scan();
+    photodb.scan();
     return;
   }
 

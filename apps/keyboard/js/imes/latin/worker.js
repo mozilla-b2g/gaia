@@ -14,15 +14,18 @@
 //
 //  setLanguage: the input method uses this message to tell the worker
 //    to load a dictionary for the prediction engine. If no such dictionary
-//    is found the worker response with an "unknownLanguage" message.
+//    is found or if the dictionary is invalid, the worker responds with
+//    an "error" message.
 //
-//  setLayout: the input method uses this message to pass a new keyboard
-//    layout to the prediction engine
+//  setNearbyKeys: the input method uses this message to pass information about
+//    what keys are near each other in the current keyboard layout
 //
 //  predict: the input method uses this message to ask the prediction
 //    engine to suggestion completions for (or corrections to) the specified
 //    string. The worker responds with a "predictions" message whose argument
-//    is an array of up to 3 predicted words.
+//    is an array of up to 3 predicted words. If the the specified string
+//    is a word in the dictionary, the worker may send a "word" message
+//    first to quickly tell the keyboard that the word is valid.
 //
 
 'use strict';
@@ -45,6 +48,9 @@ function log(msg) {
 // than we have to.
 var currentLanguage;
 
+// The prediction that is currently running, if any. So that it can be cancelled
+var pendingPrediction;
+
 var Commands = {
   setLanguage: function setLanguage(language) {
     if (language !== currentLanguage) {
@@ -66,26 +72,44 @@ var Commands = {
       //
       if (!xhr.response || xhr.response.byteLength === 0) {
         log('error loading dictionary');
-        postMessage({ cmd: 'unknownLanguage', language: language });
+        postMessage({ cmd: 'error', message: 'Unknown language: ' + language });
       }
       else {
-        Predictions.setDictionary(xhr.response);
+        try {
+          Predictions.setDictionary(xhr.response);
+        }
+        catch (e) {
+          postMessage({ cmd: 'error', message: e.message + ': ' + dicturl});
+        }
       }
     }
   },
 
-  setLayout: function setLayout(layout) {
-    Predictions.setLayout(layout);
+  setNearbyKeys: function setNearbyKeys(nearbyKeys) {
+    try {
+      Predictions.setNearbyKeys(nearbyKeys);
+    }
+    catch (e) {
+      postMessage({cmd: 'error',
+                   message: 'Predictions.setNearbyKeys(): ' + e.message});
+    }
   },
 
   predict: function predict(prefix) {
-    try {
-      var words = Predictions.predict(prefix);
+    if (pendingPrediction)  // Make sure we're not still running a previous one
+      pendingPrediction.abort();
+
+    // var start = Date.now();
+    pendingPrediction = Predictions.predict(prefix, success, error);
+
+    function success(words) {
+      // log('suggestions for: ' + prefix + ' ' + JSON.stringify(words) + ' ' +
+      //     (Date.now() - start));
       postMessage({ cmd: 'predictions', input: prefix, suggestions: words });
     }
-    catch (e) {
-      log('Exception in predictions.js: ' + JSON.stringify(e));
-      postMessage({cmd: 'predictions', input: prefix, suggestions: [] });
+
+    function error(msg) {
+      log('Error in Predictions.predict(): ' + msg);
     }
   }
 };

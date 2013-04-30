@@ -180,7 +180,7 @@ suite('timespan', function() {
         },
 
         'range: starts on end date': {
-          assert: true,
+          assert: false,
           value: new Calendar.Timespan(
             endDate,
             new Date(2015, 1, 1)

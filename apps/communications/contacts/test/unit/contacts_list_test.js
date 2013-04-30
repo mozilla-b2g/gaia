@@ -299,9 +299,9 @@ suite('Render contacts list', function() {
 
 
     realContacts = window.Contacts;
-    window.Contacts = MockContactsApp;
+    window.Contacts = MockContacts;
     realFb = window.fb;
-    window.fb = MockFb;
+    window.fb = Mockfb;
     window.Contacts.extServices = MockExtFb;
     realFixedHeader = window.FixedHeader;
     window.FixedHeader = MockFixedHeader;

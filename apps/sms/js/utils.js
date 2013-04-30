@@ -215,10 +215,32 @@
         };
       }
     },
-    camelCase: function(str) {
+    camelCase: function ut_camelCase(str) {
       return str.replace(rdashes, function replacer(str, p1) {
         return p1.toUpperCase();
       });
+    },
+    typeFromMimeType: function ut_typeFromMimeType(mime) {
+      var MAX_MIME_TYPE_LENGTH = 256; // ought to be enough for anybody
+      if (typeof mime !== 'string' || mime.length > MAX_MIME_TYPE_LENGTH) {
+        return null;
+      }
+
+      var index = mime.indexOf('/');
+      if (index === -1) {
+        return null;
+      }
+      var mainPart = mime.slice(0, index);
+      switch (mainPart) {
+        case 'image':
+          return 'img';
+        case 'video':
+        case 'audio':
+        case 'text':
+          return mainPart;
+        default:
+          return null;
+      }
     }
   };
 
@@ -234,17 +256,24 @@
   var priv = new WeakMap();
 
   function extract(node) {
-    if (!node) {
-      return '';
-    }
-
+    var nodeId;
     // Received an ID string? Find the appropriate node to continue
     if (typeof node === 'string') {
+      nodeId = node;
       node = document.getElementById(node);
+    } else if (node) {
+      nodeId = node.id;
+    }
+
+    if (!node) {
+      console.error('Can not find the node passed to Utils.Template', nodeId);
+      return '';
     }
 
     // No firstChild means no comment node.
     if (!node.firstChild) {
+      console.error(
+        'Node passed to Utils.Template should have a comment node', nodeId);
       return '';
     }
 
@@ -260,6 +289,9 @@
       // a comment node, it's likely a text node, so hop to
       // the nextSibling and repeat the operation.
     } while ((node = node.nextSibling));
+
+    console.error(
+      'Nodes passed to Utils.Template should have a comment node', nodeId);
     return '';
   }
 
