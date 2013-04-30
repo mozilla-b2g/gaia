@@ -540,7 +540,7 @@ section[role="region"] > header .icon.icon-settings
   opacity: 0;
 }
 
-#no-sim {
+#no-sim, #no-sd {
   color: #5B5B5B;
   font-size: 1.5rem;
   line-height: 2rem;
@@ -549,7 +549,7 @@ section[role="region"] > header .icon.icon-settings
   white-space: normal;
 }
 
-#settingsSIM {
+#settingsSIM, #settingsStorage {
   height: auto;
 }
 
@@ -560,7 +560,6 @@ section[role="region"] > header .icon.icon-settings
 #importSources > li {
   border-bottom: none;
 }
-
 
 #importSources > li.importService {
   height: 5rem;

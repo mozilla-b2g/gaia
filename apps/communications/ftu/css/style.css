@@ -639,8 +639,7 @@ aside.connecting {
   background-color: #008aaa !important;
 }
 
-
-#no-sim, #no-network, #fb_after_import2 p {
+#no-sim, #no-sd, #no-network, #fb_after_import2 p {
   color: #5B5B5B;
   font-size: 1.5rem;
   line-height: 2rem;

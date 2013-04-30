@@ -142,15 +142,17 @@ contacts.Settings = (function() {
    * @param {Boolean} cardState Whether storage import should be enabled or not.
    */
   var enableStorageImport = function enableStorageImport(cardState) {
-    var importStorage =
-      document.getElementById('settingsStorage').firstElementChild;
+    var importStorage = document.getElementById('settingsStorage');
+    var importStorageButton = importStorage.firstElementChild;
 
     if (cardState) {
-      importStorage.removeAttribute('disabled');
+      importStorage.classList.add('importService');
+      importStorageButton.removeAttribute('disabled');
       noSdMsg.classList.add('hide');
     }
     else {
-      importStorage.setAttribute('disabled', 'disabled');
+      importStorage.classList.remove('importService');
+      importStorageButton.setAttribute('disabled', 'disabled');
       noSdMsg.classList.remove('hide');
     }
   };
@@ -221,7 +223,7 @@ contacts.Settings = (function() {
       'imported': imported,
       'total': theTotal
     });
-    
+
     // This is to support the case of a long literal, particularly
     // when 0 or 1 friends are imported
     var msgPart1 = totalsMsgContent;
