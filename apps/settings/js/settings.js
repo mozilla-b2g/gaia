@@ -587,6 +587,7 @@ window.addEventListener('load', function loadSettings() {
       'js/app_storage.js',
       'js/media_storage.js',
       'shared/js/mobile_operator.js',
+      'shared/js/wifi_helper.js',
       'js/connectivity.js',
       'js/security_privacy.js',
       'js/icc_menu.js'
