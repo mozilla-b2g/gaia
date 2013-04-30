@@ -339,16 +339,20 @@ var WindowManager = (function() {
         onWindowReady();
       }
     } else if (animationName.indexOf('closeApp') !== -1) {
-      windowClosed(frame);
-
-      setTimeout(closeCallback);
-      closeCallback = null;
-
-      setCloseFrame(null);
+      closeApp(frame);
 
       ensureHomescreen().classList.remove('zoom-out');
     }
   });
+
+  function closeApp(frame) {
+    windowClosed(frame);
+
+    setTimeout(closeCallback);
+    closeCallback = null;
+
+    setCloseFrame(null);
+  }
 
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
     var prop = evt.propertyName;
@@ -850,6 +854,10 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
+    // Ensure that the homescreen has the correct state (openApp animationend
+    // couldn't be fired after crashing an app for example)
+    homescreenFrame.classList.remove('zoom-in');
+
     transitionCloseCallback = function startClosingTransition() {
       if (wrapperFooter.classList.contains('visible')) {
         wrapperHeader.classList.remove('visible');
@@ -864,9 +872,16 @@ var WindowManager = (function() {
       transitionCloseCallback = null;
 
       // Start the transition
-      ensureHomescreen().classList.add('zoom-out');
-      closeFrame.classList.add('closing');
+      if (!app.killed) {
+        ensureHomescreen().classList.add('zoom-out');
+        closeFrame.classList.add('closing');
+      }
+
       closeFrame.classList.remove('active');
+
+      if (app.killed) {
+        closeApp(closeFrame);
+      }
     };
 
     waitForNextPaint(homescreenFrame, transitionCloseCallback);
