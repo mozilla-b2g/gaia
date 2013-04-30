@@ -198,9 +198,10 @@ var menuTimeout = 0;
 const keyboardGroups = {
   'english': ['en'],
   'dvorak': ['en-Dvorak'],
-  'spanish': ['es'],
-  'portuguese': ['pt_BR'],
-  'polish': ['pl'],
+  'spanish' : ['es'],
+  'portuguese' : ['pt_BR'],
+  'polish' : ['pl'],
+  'catalan' : ['ca'],
   'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr'],
   'cyrillic': ['ru', 'sr-Cyrl'],
   'serbian-latin': ['sr-Latn'],
