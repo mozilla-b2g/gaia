@@ -1,9 +1,32 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+(function(global) {
 'use strict';
 
-var ThreadUI = {
+var attachmentMap = new WeakMap();
+
+function thui_mmsAttachmentClick(target) {
+  var attachment = attachmentMap.get(target);
+  if (!attachment) {
+    return;
+  }
+  var activity = new MozActivity({
+    name: 'open',
+    data: {
+      type: attachment.blob.type,
+      filename: attachment.name,
+      blob: attachment.blob
+    }
+  });
+  activity.onerror = function() {
+    console.warn('error with open activity', this.error.name);
+    // TODO: Add an alert here with a string saying something like
+    // "There is no application available to open this file type"
+  };
+}
+
+var ThreadUI = global.ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
@@ -675,7 +698,7 @@ var ThreadUI = {
 
   createMmsContent: function thui_createMmsContent(dataArray) {
     var container = document.createElement('div');
-    container.classList.add('mmsContainer');
+    container.classList.add('mms-container');
     dataArray.forEach(function(attachment) {
       var mediaElement, textElement;
 
@@ -690,6 +713,8 @@ var ThreadUI = {
           };
           container.appendChild(mediaElement);
         }
+        attachmentMap.set(mediaElement, attachment);
+        container.appendChild(mediaElement);
       }
 
       if (attachment.text) {
@@ -990,6 +1015,7 @@ var ThreadUI = {
       case 'click':
         if (window.location.hash !== '#edit') {
           // Handle events on links in a message
+          thui_mmsAttachmentClick(evt.target);
           LinkActionHandler.handleTapEvent(evt);
           return;
         }
@@ -1360,3 +1386,6 @@ window.addEventListener('resize', function resize() {
   // Scroll to bottom
   ThreadUI.scrollViewToBottom();
 });
+
+}(this));
+
