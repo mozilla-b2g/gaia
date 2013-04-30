@@ -4058,7 +4058,7 @@ exports.chewHeaderAndBodyStructure =
  *    var header = ...;
  *    var content = (some fetched content)..
  *
- *    $imapchew.updateMessageWithBodyRep(
+ *    $imapchew.updateMessageWithFetch(
  *      header,
  *      bodyInfo,
  *      {

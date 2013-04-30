@@ -1,78 +1,86 @@
-requireApp('communications/contacts/js/utilities/future.js');
 requireApp('communications/contacts/js/utilities/vcard_parser.js');
 
-var vcf1 = 'BEGIN:VCARD\n\
-VERSION:2.1\n\
-N:Gump;Forrest\n\
-FN:Forrest Gump\n\
-ORG:Bubba Gump Shrimp Co.\n\
-  TITLE:Shrimp Man\n\
-PHOTO;GIF:http://www.example.com/dir_photos/my_photo.gif\n\
-  TEL;WORK;VOICE:(111) 555-1212\n\
-TEL;HOME;VOICE:(404) 555-1212\n\
-ADR;WORK:;;100 Waters Edge;Baytown;LA;30314;United States of America\n\
-LABEL;WORK;ENCODING=QUOTED-PRINTABLE:100 Waters Edge=0D=0ABaytown, LA 30314=0D=0AUnited States of America\n\
-ADR;HOME:;;42 Plantation St.;Baytown;LA;30314;United States of America\n\
-LABEL;HOME;ENCODING=QUOTED-PRINTABLE:42 Plantation St.=0D=0ABaytown, LA 30314=0D=0AUnited States of America\n\
-EMAIL;PREF;INTERNET:forrestgump@example.com\n\
-REV:20080424T195243Z\n\
-END:VCARD';
+var vcf1 = 'BEGIN:VCARD\n' +
+'VERSION:2.1\n' +
+'N:Gump;Forrest\n' +
+'FN:Forrest Gump\n' +
+'ORG:Bubba Gump Shrimp Co.\n' +
+'TITLE:Shrimp Man\n' +
+'PHOTO;GIF:http://www.example.com/dir_photos/my_photo.gif\n' +
+'TEL;WORK;VOICE:(111) 555-1212\n' +
+'TEL;HOME;VOICE:(404) 555-1212\n' +
+'ADR;WORK:;;100 Waters Edge;Baytown;LA;30314;United States of America\n' +
+'LABEL;WORK;ENCODING=QUOTED-PRINTABLE:100 Waters Edge=0D=0ABaytown, ' +
+'LA 30314=0D=0AUnited States of America\n' +
+'ADR;HOME:;;42 Plantation St.;Baytown;LA;30314;United States of America\n' +
+'LABEL;HOME;ENCODING=QUOTED-PRINTABLE:42 Plantation St.=0D=0ABaytown, ' +
+'LA 30314=0D=0AUnited States of America\n' +
+'EMAIL;PREF;INTERNET:forrestgump@example.com\n' +
+'REV:20080424T195243Z\n' +
+'END:VCARD';
 
-var vcf2 = 'BEGIN:VCARD\n\
-VERSION:3.0\n\
-N:Gump;Forrest\n\
-FN:Forrest Gump\n\
-ORG:Bubba Gump Shrimp Co.\n\
-  TITLE:Shrimp Man\n\
-PHOTO;VALUE=URL;TYPE=GIF:http://www.example.com/dir_photos/my_photo.gif\n\
-  TEL;TYPE=WORK,VOICE:(111) 555-1212\n\
-TEL;TYPE=HOME,VOICE:(404) 555-1212\n\
-ADR;TYPE=WORK:;;100 Waters Edge;Baytown;LA;30314;United States of America\n\
-LABEL;TYPE=WORK:100 Waters Edge\nBaytown, LA 30314\nUnited States of America\n\
-ADR;TYPE=HOME:;;42 Plantation St.;Baytown;LA;30314;United States of America\n\
-LABEL;TYPE=HOME:42 Plantation St.\nBaytown, LA 30314\nUnited States of America\n\
-EMAIL;TYPE=PREF,INTERNET:forrestgump@example.com\n\
-REV:2008-04-24T19:52:43Z\n\
-END:VCARD';
 
-var vcf3 = 'BEGIN:VCARD\n\
-VERSION:4.0\n\
-N:Gump;Forrest;;;\n\
-FN:Forrest Gump\n\
-ORG:Bubba Gump Shrimp Co.\n\
-  TITLE:Shrimp Man\n\
-PHOTO;MEDIATYPE=image/gif:http://www.example.com/dir_photos/my_photo.gif\n\
-  TEL;TYPE=work,voice;VALUE=uri:tel:+1-111-555-1212\n\
-TEL;TYPE=home,voice;VALUE=uri:tel:+1-404-555-1212\n\
-ADR;TYPE=work;LABEL="100 Waters Edge\nBaytown, LA 30314\nUnited States of America"\n\
-:;;100 Waters Edge;Baytown;LA;30314;United States of America\n\
-ADR;TYPE=home;LABEL="42 Plantation St.\nBaytown, LA 30314\nUnited States of America"\n\
-:;;42 Plantation St.;Baytown;LA;30314;United States of America\n\
-EMAIL:forrestgump@example.com\n\
-REV:20080424T195243Z\n\
-END:VCARD';
+var vcf2 = 'BEGIN:VCARD\n' +
+'VERSION:3.0\n' +
+'N:Gump;Forrest\n' +
+'FN:Forrest Gump\n' +
+'ORG:Bubba Gump Shrimp Co.\n' +
+'TITLE:Shrimp Man\n' +
+'PHOTO;VALUE=URL;TYPE=GIF:http://www.example.com/dir_photos/my_photo.gif\n' +
+'TEL;TYPE=WORK,VOICE:(111) 555-1212\n' +
+'TEL;TYPE=HOME,VOICE:(404) 555-1212\n' +
+'ADR;TYPE=WORK:;;100 Waters Edge;Baytown;LA;30314;United States of America\n' +
+'LABEL;TYPE=WORK:100 Waters Edge\nBaytown, ' +
+'LA 30314\nUnited States of America\n' +
+'ADR;TYPE=HOME:;;42 Plantation St.;Baytown;' +
+'LA;30314;United States of America\n' +
+'LABEL;TYPE=HOME:42 Plantation St.\nBaytown, ' +
+'LA 30314\nUnited States of America\n' +
+'EMAIL;TYPE=PREF,INTERNET:forrestgump@example.com\n' +
+'REV:2008-04-24T19:52:43Z\n' +
+'END:VCARD';
 
-var vcfwrong1 = 'BEGIN:VCARD\n\
-VERSION:4.0\n\
-N:Gump;Forrest;;;\n\
-FN:Forrest Gump\n\
-ORG:Bubba Gump Shrimp Co.\n\
-  TITLE:Shrimp Man\n\
-PHOTO;MEDIATYPE=image/gif:http://www.example.com/dir_photos/my_photo.gif\n\
-  TEL;TYPE=work,voice;VALUE=uri:tel:+1-111-555-1212\n\
-TEL;TYPE=home,voice;VALUE=uri:tel:+1-404-555-1212\n\
-ADR;TYPE=work;LABEL="100 Waters Edge\nBaytown, LA 30314\nUnited States of America"\n\
-:;;100 Waters Edge;Baytown;LA;30314;United States of America\n\
-ADR;TYPE=home;LABEL="42 Plantation St.\nBaytown, LA 30314\nUnited States of America"\n\
-:;;42 Plantation St.;Baytown;LA;30314;United States of America\n\
-EMAIL:forrestgump@example.com\n\
-REV:20080424T195243Z\n\
-END:VCARD\n\
-BEGIN:VCARD\n\
-VERSION:4.0\n\
-akajslkfj\n\
-END:VCARD';
+var vcf3 = 'BEGIN:VCARD\n' +
+'VERSION:4.0\n' +
+'N:Gump;Forrest;;;\n' +
+'FN:Forrest Gump\n' +
+'ORG:Bubba Gump Shrimp Co.\n' +
+'TITLE:Shrimp Man\n' +
+'PHOTO;MEDIATYPE=image/gif:http://www.example.com/dir_photos/my_photo.gif\n' +
+'TEL;TYPE=work,voice;VALUE=uri:tel:+1-111-555-1212\n' +
+'TEL;TYPE=home,voice;VALUE=uri:tel:+1-404-555-1212\n' +
+'ADR;TYPE=work;LABEL="100 Waters Edge\nBaytown, ' +
+'LA 30314\nUnited States of America"\n' +
+':;;100 Waters Edge;Baytown;LA;30314;United States of America\n' +
+'ADR;TYPE=home;LABEL="42 Plantation St.\nBaytown, ' +
+'LA 30314\nUnited States of America"\n' +
+':;;42 Plantation St.;Baytown;LA;30314;United States of America\n' +
+'EMAIL:forrestgump@example.com\n' +
+'REV:20080424T195243Z\n' +
+'END:VCARD';
 
+var vcfwrong1 = 'BEGIN:VCARD\n' +
+'VERSION:4.0\n' +
+'N:Gump;Forrest;;;\n' +
+'FN:Forrest Gump\n' +
+'ORG:Bubba Gump Shrimp Co.\n' +
+'  TITLE:Shrimp Man\n' +
+'PHOTO;MEDIATYPE=image/gif:http://www.example.com/dir_photos/my_photo.gif\n' +
+'  TEL;TYPE=work,voice;VALUE=uri:tel:+1-111-555-1212\n' +
+'TEL;TYPE=home,voice;VALUE=uri:tel:+1-404-555-1212\n' +
+'ADR;TYPE=work;LABEL="100 Waters Edge\nBaytown, ' +
+'LA 30314\nUnited States of America"\n' +
+':;;100 Waters Edge;Baytown;LA;30314;United States of America\n' +
+'ADR;TYPE=home;LABEL="42 Plantation St.\nBaytown, ' +
+'LA 30314\nUnited States of America"\n' +
+':;;42 Plantation St.;Baytown;LA;30314;United States of America\n' +
+'EMAIL:forrestgump@example.com\n' +
+'REV:20080424T195243Z\n' +
+'END:VCARD\n' +
+'BEGIN:VCARD\n' +
+'VERSION:4.0\n' +
+'akajslkfj\n' +
+'END:VCARD';
 
 suite('vCard parsing settings', function() {
   function stub(additionalCode, ret) {
@@ -114,16 +122,12 @@ suite('vCard parsing settings', function() {
       reader.onread = stub();
       reader.onimported = stub();
       reader.onerror = stub();
-
-
-
       reader.process(function import_finish(contacts) {
         assert.equal(1, contacts.length);
-
         assert.equal(1, reader.onread.callCount);
         assert.equal(1, reader.onimported.callCount);
-        assert.equal(0, reader.onerror.callCount);
 
+        assert.equal(0, reader.onerror.callCount);
         var contact = contacts[0];
 
         assert.equal('Forrest Gump', contact.name[0]);

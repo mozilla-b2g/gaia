@@ -1,5 +1,6 @@
-DICTIONARY_PATH =../../../../../../dictionaries
-
+# After building a dictionary here, move the resulting .dict file to
+# apps/keyboard/js/imes/latin/dictionaries/ and check it in.
+#
 # Available:
 # cs.dict, de.dict, en_gb.dict, en_us.dict, es.dict, fr.dict,
 # hr.dict, it.dict, nb.dict, pt_pt.dict, pt_br.dict
@@ -11,8 +12,6 @@ WHITELIST = \
  pt_br.dict \
  fr.dict \
  es.dict
-
-VPATH = $(DICTIONARY_PATH)
 
 %.dict: %_wordlist.xml xml2dict.py
 	python3 xml2dict.py -o $@ $<

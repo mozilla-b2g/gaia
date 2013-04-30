@@ -294,6 +294,42 @@ suite('Utils', function() {
       resizeTest('IMG_0554.jpg');
     });
   });
+
+  suite('Utils.typeFromMimeType', function() {
+    var testIndex;
+    var tests = {
+      'text/plain': 'text',
+      'image/jpeg': 'img',
+      'video/ogg': 'video',
+      'audio/ogg': 'audio',
+      'not-a-mime': null,
+      'text': null,
+      'appplication/video': null
+    };
+
+    for (testIndex in tests) {
+      test(testIndex, function() {
+        assert.equal(Utils.typeFromMimeType(testIndex), tests[testIndex]);
+      });
+    }
+
+    suite('Defensive', function() {
+      test('long string', function() {
+        var longString = 'this/is/a/really/long/string/that/excedes/255/chars';
+        longString += longString;
+        longString += longString;
+        assert.equal(Utils.typeFromMimeType(longString), null);
+      });
+      test('non-strings', function() {
+        assert.equal(Utils.typeFromMimeType(null), null);
+        assert.equal(Utils.typeFromMimeType({}), null);
+        assert.equal(Utils.typeFromMimeType(0), null);
+        assert.equal(Utils.typeFromMimeType(true), null);
+      });
+
+    });
+  });
+
 });
 
 suite('Utils.Message', function() {
@@ -315,6 +351,22 @@ suite('Utils.Message', function() {
 suite('Utils.Template', function() {
 
   suite('extracted template strings', function() {
+
+    var domElement;
+    suiteSetup(function() {
+      domElement = document.createElement('div');
+      domElement.id = 'existing-id';
+      domElement.appendChild(document.createComment('testing'));
+      document.body.appendChild(domElement);
+    });
+
+    suiteTeardown(function() {
+      if (domElement && domElement.parentNode) {
+        document.body.removeChild(domElement);
+        domElement = null;
+      }
+    });
+
     test('extract(node)', function() {
       var node = document.createElement('div');
       var comment = document.createComment('<span>${str}</span>');
@@ -331,13 +383,23 @@ suite('Utils.Template', function() {
         Utils.Template(node).toString(), ''
       );
     });
+
     test('extract(null)', function() {
       assert.equal(Utils.Template(null), '');
     });
+
     test('extract(non-element)', function() {
       assert.equal(Utils.Template(document), '');
       assert.equal(Utils.Template(window), '');
       assert.equal(Utils.Template(document.createComment('')), '');
+    });
+
+    test('extract("non-existing-id")', function() {
+      assert.equal(Utils.Template('non-existing-id'), '');
+    });
+
+    test('extract("existing-id")', function() {
+      assert.equal(Utils.Template('existing-id').toString(), 'testing');
     });
   });
 
@@ -451,4 +513,5 @@ suite('Utils.Template', function() {
       );
     });
   });
+
 });
