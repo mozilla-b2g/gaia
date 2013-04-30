@@ -276,10 +276,6 @@ body {
   visibility: hidden;
 }
 
-#screen.cards-view > #windows > .appWindow.closing {
-  transform: scale(0.8);
-}
-
 #windows > .appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening) {
   opacity: 0;
   transform: scale(0.6);
