@@ -1,4 +1,5 @@
-var MockContacts = {
+// FIXME workaround for Bug 867421
+var MockContactsForDialer = {
   findByNumber: function findByNumber(number, callback) {
     this.mCalledWith = number;
     this.mPhoto = 'test';

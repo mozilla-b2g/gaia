@@ -29,6 +29,8 @@ suite('suggestion Bar', function() {
   var domSuggestionCount;
   var domOverlay;
 
+  var MockContacts;
+
   var subject;
 
   var mockResult1 = [{
@@ -60,6 +62,11 @@ suite('suggestion Bar', function() {
     event.initEvent(eventName, true, true);
     element.dispatchEvent(event);
   };
+
+  suiteSetup(function() {
+    // FIXME workaround for Bug 867421
+    MockContacts = MockContactsForDialer;
+  });
 
   setup(function() {
     subject = SuggestionBar;

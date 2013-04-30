@@ -1,3 +1,4 @@
+// FIXME workaround for Bug 867421
 var MockUtils = {
   mCalledPrettyDate: false,
   mCalledHeaderDate: false,
@@ -15,11 +16,6 @@ var MockUtils = {
 
   getDayDate: function re_getDayDate(timestamp) {
     this.mCalledGetDayDate = true;
-  },
-
-  getPhoneNumberPrimaryInfo: function getPhoneNumberPrimaryInfo(matchingTel,
-    contact) {
-    this.mCalledGetPhoneNumberPrimaryInfo = true;
   },
 
   getPhoneNumberAdditionalInfo: function getPhoneNumberAdditionalInfo(

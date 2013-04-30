@@ -41,7 +41,12 @@ suite('dialer/handled_call', function() {
   var realUtils;
   var phoneNumber;
 
+  var MockContacts;
+
   suiteSetup(function() {
+    // FIXME workaround for Bug 867421
+    MockContacts = MockContactsForDialer;
+
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
 
