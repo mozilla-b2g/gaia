@@ -1,6 +1,9 @@
 'use strict';
 
 var MockUpdateManager = {
+  _dataConnectionWarningEnabled: true,
+  _startedDownloadUsingDataConnection: false,
+
   addToUpdatesQueue: function mum_addtoUpdateQueue(updatable) {
     this.mLastUpdatesAdd = updatable;
     this.mUpdates.push(updatable);
@@ -31,6 +34,10 @@ var MockUpdateManager = {
     }
   },
 
+  downloaded: function mum_downloaded(updatable) {
+    this.mDownloadedCalled = true;
+  },
+
   downloadProgressed: function mum_downloadProgressed(bytes) {
     this.mProgressCalledWith = bytes;
   },
@@ -58,7 +65,11 @@ var MockUpdateManager = {
   mProgressCalledWith: null,
   mCheckForUpdatesCalledWith: null,
   mStartedUncompressingCalled: false,
+  mDownloadedCalled: false,
   mTeardown: function mum_mTeardown() {
+    this._dataConnectionWarningEnabled = true;
+    this._startedDownloadUsingDataConnection = false;
+
     this.mErrorBannerRequested = false;
     this.mLastUpdatesAdd = null;
     this.mLastUpdatableAdd = null;
@@ -68,6 +79,7 @@ var MockUpdateManager = {
     this.mProgressCalledWith = null;
     this.mCheckForUpdatesCalledWith = null;
     this.mStartedUncompressingCalled = false;
+    this.mDownloadedCalled = false;
     this.mUpdates = [];
     this.mDownloads = [];
   }
