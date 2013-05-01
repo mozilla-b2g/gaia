@@ -15,5 +15,6 @@ var MockUtils = {
 
   // real code needed here to map types
   typeFromMimeType: Utils.typeFromMimeType,
-  escapeHTML: Utils.escapeHTML
+  escapeHTML: Utils.escapeHTML,
+  escapeRegex: Utils.escapeRegex
 };
