@@ -1,5 +1,7 @@
-requireApp('communications/dialer/js/utils.js');
+'use strict';
+
 requireApp('communications/dialer/test/unit/mock_contacts.js');
+requireApp('communications/dialer/js/utils.js');
 
 if (!this.SettingsListener) {
   this.SettingsListener = null;
@@ -7,6 +9,8 @@ if (!this.SettingsListener) {
 
 suite('dialer/utils', function() {
   var realPhoneMatcher;
+
+  var MockContacts;
 
   // Mock the mozL10n api for the Utils class
   navigator.mozL10n = {
@@ -18,6 +22,8 @@ suite('dialer/utils', function() {
   var number = '555-555-555-555';
 
   suiteSetup(function() {
+    // FIXME workaround for Bug 867421
+    MockContacts = MockContactsForDialer;
     subject = Utils;
   });
 
