@@ -1,9 +1,32 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+(function(global) {
 'use strict';
 
-var ThreadUI = {
+var attachmentMap = new WeakMap();
+
+function thui_mmsAttachmentClick(target) {
+  var attachment = attachmentMap.get(target);
+  if (!attachment) {
+    return;
+  }
+  var activity = new MozActivity({
+    name: 'open',
+    data: {
+      type: attachment.blob.type,
+      filename: attachment.name,
+      blob: attachment.blob
+    }
+  });
+  activity.onerror = function() {
+    console.warn('error with open activity', this.error.name);
+    // TODO: Add an alert here with a string saying something like
+    // "There is no application available to open this file type"
+  };
+}
+
+var ThreadUI = global.ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
@@ -672,6 +695,42 @@ var ThreadUI = {
     // Go to Bottom
     ThreadUI.scrollViewToBottom();
   },
+
+  createMmsContent: function thui_createMmsContent(dataArray) {
+    var container = document.createElement('div');
+    container.classList.add('mms-container');
+    dataArray.forEach(function(attachment) {
+      var mediaElement, textElement;
+
+      if (attachment.name && attachment.blob) {
+        var type = Utils.typeFromMimeType(attachment.blob.type);
+        if (type) {
+          var url = URL.createObjectURL(attachment.blob);
+          mediaElement = document.createElement(type);
+          mediaElement.src = url;
+          mediaElement.onload = function() {
+            URL.revokeObjectURL(url);
+          };
+          container.appendChild(mediaElement);
+        }
+        attachmentMap.set(mediaElement, attachment);
+        container.appendChild(mediaElement);
+      }
+
+      if (attachment.text) {
+        textElement = document.createElement('span');
+
+        // escape text for html and look for clickable numbers, etc.
+        var text = Utils.escapeHTML(attachment.text);
+        text = LinkHelper.searchAndLinkClickableData(text);
+
+        textElement.innerHTML = text;
+        container.appendChild(textElement);
+      }
+    });
+    return container;
+  },
+
   // Method for rendering the list of messages using infinite scroll
   renderMessages: function thui_renderMessages(filter, callback) {
     // We initialize all params before rendering
@@ -753,6 +812,7 @@ var ThreadUI = {
       }
     }
     // Create HTML content
+    // TODO: use Utils.Template here
     var messageHTML = '<label class="danger">' +
                       '<input type="checkbox" value="' + inputValue + '">' +
                       '<span></span>' +
@@ -766,15 +826,20 @@ var ThreadUI = {
     }
 
 
-    var bodyHTML = LinkHelper.searchAndLinkClickableData(bodyText);
-    // check for messageDOM paragraph element to assign linked message html
-    // For now keeping the containing anchor markup as this
-    // structure is part of building blocks.
-    // http://buildingfirefoxos.com/building-blocks/lists/
-    // Todo: Open bug to fix contaning anchor to div to avoid
-    // below extra innerHTML call
     var pElement = messageDOM.querySelector('p');
-    pElement.innerHTML = bodyHTML;
+    if (message.type && message.type === 'mms') { // MMS
+      if (message.delivery === 'not-downloaded') {
+        // TODO: We need to handle the mms message with "not-downloaded" status
+      } else {
+        pElement.classList.add('mms-bubble-content');
+        SMIL.parse(message, function(slideArray) {
+          pElement.appendChild(ThreadUI.createMmsContent(slideArray));
+        });
+      }
+    } else { // SMS
+      // TODO: make this work without setting innerHTML
+      pElement.innerHTML = LinkHelper.searchAndLinkClickableData(bodyText);
+    }
     return messageDOM;
   },
 
@@ -950,6 +1015,7 @@ var ThreadUI = {
       case 'click':
         if (window.location.hash !== '#edit') {
           // Handle events on links in a message
+          thui_mmsAttachmentClick(evt.target);
           LinkActionHandler.handleTapEvent(evt);
           return;
         }
@@ -1206,6 +1272,9 @@ var ThreadUI = {
     }
 
     Contacts.findByString(filterValue, function gotContact(contacts) {
+      if (!recipient.textContent.trim()) {
+        return;
+      }
       // There are contacts that match the input.
       this.container.innerHTML = '';
       if (!contacts || !contacts.length) {
@@ -1317,3 +1386,6 @@ window.addEventListener('resize', function resize() {
   // Scroll to bottom
   ThreadUI.scrollViewToBottom();
 });
+
+}(this));
+

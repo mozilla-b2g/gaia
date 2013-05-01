@@ -16,7 +16,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css">
 
     <!-- App and Views -->
     <link rel="stylesheet" type="text/css" href="style/app.css">
@@ -66,19 +66,19 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
       </header>
 
       <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
-      <ul id="tabs" role="tablist" class="filter" data-items="2" data-position="bottom">
-        <li id="balance-tab-filter" aria-selected="true">
-          <a role="tab" data-l10n-id="balance" href="#balance-tab">
+      <ul id="tabs" role="tablist" data-type="filter" data-items="2">
+        <li id="balance-tab-filter" role="tab">
+          <a data-l10n-id="balance" href="#balance-tab">
             Balance
           </a>
         </li>
-        <li id="telephony-tab-filter" aria-hidden="true">
-          <a role="tab" data-l10n-id="phone" href="#telephony-tab">
+        <li id="telephony-tab-filter" role="tab" aria-hidden="true">
+          <a data-l10n-id="phone" href="#telephony-tab">
             Phone
           </a>
         </li>
-        <li id="datausage-tab-filter">
-          <a role="tab" data-l10n-id="internet" href="#datausage-tab">
+        <li id="datausage-tab-filter" role="tab">
+          <a data-l10n-id="internet" href="#datausage-tab">
             Internet
           </a>
         </li>

@@ -1,4 +1,34 @@
 
+var define;
+(function () {
+  var modules = {};
+  define = function (id, deps, fn) {
+    if (typeof deps === 'function') {
+        fn = deps;
+        deps = null;
+    }
+
+    if (deps) {
+      deps = deps.map(function (dep) {
+        if (dep.charAt(0) === '.') {
+          dep = 'mailapi' + dep.substring(1);
+        }
+        if (dep === 'exports') {
+          return modules[id] = {};
+        } else {
+          return modules[dep];
+        }
+      });
+    }
+    var result = fn.apply(modules[id], deps);
+    if (!modules[id]) {
+      modules[id] = result;
+    }
+  };
+}());
+
+define("amd-shim", function(){});
+
 (function () {
   // Like setTimeout, but only takes a function argument.  There's
   // no time argument (always zero) and no arguments (you have to
@@ -25,12 +55,89 @@ define('mailapi/mailapi',
     exports
   ) {
 
-/**
- * Helper function to check account flag fast path in a cookie
- */
-function hasAccountCookie() {
-  return (document.cookie || '').indexOf('mailHasAccounts') !== -1;
+function objCopy(obj) {
+  var copy = {};
+  Object.keys(obj).forEach(function (key) {
+    copy[key] = obj[key];
+  });
+  return copy;
 }
+
+/**
+ * Saves a JS object to document.cookie using JSON.stringify().
+ * This method claims all cookie keys that have pattern
+ * /cache(\d+)/
+ */
+function saveCookieCache(obj) {
+  var json = JSON.stringify(obj);
+  json = encodeURIComponent(json);
+
+  // Set to 20 years from now.
+  var expiry = Date.now() + (20 * 365 * 24 * 60 * 60 * 1000);
+  expiry = (new Date(expiry)).toUTCString();
+
+  // Split string into segments.
+  var index = 0;
+  var endPoint = 0;
+  var length = json.length;
+
+  for (var i = 0; i < length; i = endPoint, index += 1) {
+    // Max per-cookie length is around 4097 bytes for firefox.
+    // Give some space for key and allow i18n chars, which may
+    // take two bytes, end up with 2030. This page used
+    // to test cookie limits: http://browsercookielimits.x64.me/
+    endPoint = 2030 + i;
+    if (endPoint > length) {
+      endPoint = length;
+    }
+
+    document.cookie = 'cache' + index + '=' + json.substring(i, endPoint) +
+                      '; expires=' + expiry;
+  }
+
+  // If previous cookie was bigger, clear out the other values,
+  // to make sure they do not interfere later when reading and
+  // reassembling.
+  var maxSegment = 20;
+  for (i = index; i < maxSegment; i++) {
+    document.cookie = 'cache' + i + '=; expires=' + expiry;
+  }
+
+  console.log('saveCacheCookie: ' + json.length + ' in ' +
+              (index) + ' segments');
+}
+
+/**
+ * Gets a JS object from document.cookie using JSON.stringify().
+ * This method assumes all cookie keys that have pattern
+ * /cache(\d+)/ are part of the object value. This method could
+ * throw given vagaries of cookie cookie storage and encodings.
+ * Be prepared.
+ */
+function getCookieCache() {
+  var value = document.cookie;
+  var pairRegExp = /cache(\d+)=([^;]+)/g;
+  var segments = [];
+  var match;
+
+  while (match = pairRegExp.exec(value)) {
+    segments[parseInt(match[1], 10)] = match[2] || '';
+  }
+
+  value = decodeURIComponent(segments.join(''));
+  return (value && JSON.parse(value)) || null;
+}
+
+/**
+ * recvCache version number. If the DB or structure of recv messages
+ * changes, then this version should be revved.
+ */
+var CACHE_VERSION = 1;
+
+/**
+ * The number of header wire messages to cache in the recvCache
+ */
+var HEADER_CACHE_LIMIT = 8;
 
 /**
  *
@@ -38,6 +145,10 @@ function hasAccountCookie() {
 function MailAccount(api, wireRep) {
   this._api = api;
   this.id = wireRep.id;
+
+  // Hold on to wireRep for caching
+  this._wireRep = wireRep;
+
   this.type = wireRep.type;
   this.name = wireRep.name;
   this.syncRange = wireRep.syncRange;
@@ -162,6 +273,9 @@ MailSenderIdentity.prototype = {
 function MailFolder(api, wireRep) {
   this._api = api;
   this.id = wireRep.id;
+
+  // Hold on to wireRep for caching
+  this._wireRep = wireRep;
 
   /**
    * The human-readable name of the folder.  (As opposed to its path or the
@@ -443,6 +557,10 @@ MailPeep.prototype = {
  */
 function MailHeader(slice, wireRep) {
   this._slice = slice;
+
+  // Store the wireRep so it can be used for caching.
+  this._wireRep = wireRep;
+
   this.id = wireRep.suid;
   this.guid = wireRep.guid;
 
@@ -1017,12 +1135,18 @@ function BridgedViewSlice(api, ns, handle) {
    */
   this._growing = 0;
 
+  /**
+   * Indicates if this slice holds fake, cached data used only for fast startup.
+   */
+  this._fake = false;
+
   this.onadd = null;
   this.onchange = null;
   this.onsplice = null;
   this.onremove = null;
   this.onstatus = null;
   this.oncomplete = null;
+  this.oncachereset = null;
   this.ondead = null;
 }
 BridgedViewSlice.prototype = {
@@ -1086,6 +1210,7 @@ BridgedViewSlice.prototype = {
     this.onremove = null;
     this.onstatus = null;
     this.oncomplete = null;
+    this.oncachereset = null;
     this._api.__bridgeSend({
         type: 'killSlice',
         handle: this._handle
@@ -1543,6 +1668,9 @@ function MailAPI() {
   this._pendingRequests = {};
   this._liveBodies = {};
 
+  // Store bridgeSend messages received before back end spawns.
+  this._storedSends = [];
+
   this._processingMessage = null;
   /**
    * List of received messages whose processing is being deferred because we
@@ -1581,6 +1709,26 @@ function MailAPI() {
    * }
    */
   this.onbadlogin = null;
+
+  // Read cache for select recv messages for fast startup.
+  if (typeof document !== 'undefined') {
+    var cache;
+    try {
+      this._recvCache = cache = getCookieCache();
+      if (cache && cache.version !== CACHE_VERSION)
+        cache = null;
+    } catch (e) {
+      console.log('Bad cookie cache, ignoring: ' + e);
+      document.cookie = '';
+      cache = null;
+    }
+  }
+
+  if (!cache) {
+    this._resetCache();
+  }
+
+  this._setHasAccounts();
 }
 exports.MailAPI = MailAPI;
 MailAPI.prototype = {
@@ -1593,12 +1741,69 @@ MailAPI.prototype = {
 
   utils: MailUtils,
 
+
+  _setHasAccounts: function () {
+    this.hasAccounts = this._recvCache && this._recvCache.accounts &&
+                       this._recvCache.accounts.addItems &&
+                       this._recvCache.accounts.addItems[0];
+  },
+
+  _resetCache: function () {
+    this._recvCache = {
+      version: CACHE_VERSION
+    };
+  },
+
+  /**
+   * Saves off the recvCache to persistent storage. Do it on
+   * a setTimeout to avoid blocking any critical startup code.
+   */
+  _saveCache: function () {
+    if (!this._saveCacheId) {
+      this._saveCacheId = setTimeout(function () {
+        this._saveCacheId = 0;
+        saveCookieCache(this._recvCache);
+      }.bind(this), 1000);
+    }
+  },
+
   /**
    * Send a message over/to the bridge.  The idea is that we (can) communicate
    * with the backend using only a postMessage-style JSON channel.
    */
   __bridgeSend: function(msg) {
-    // actually, this method gets clobbered.
+    // This method gets clobbered eventually once back end worker is ready.
+    // Until then, it will store calls to send to the back end and use
+    // cached responses for fast startup.
+
+    this._storedSends.push(msg);
+
+    var cache = this._recvCache;
+
+    var fakeMessage;
+    if (cache) {
+      if (msg.type === 'viewAccounts') {
+        fakeMessage = cache.accounts;
+      } else if (msg.type === 'viewFolders' &&
+        cache.accountId === msg.argument) {
+        fakeMessage = cache.folders;
+      } else if (msg.type === 'viewFolderMessages') {
+        fakeMessage = cache.headers;
+      }
+
+      if (fakeMessage) {
+        // While the handle IDs should match, allow for the cached value
+        // to be generated differently, and force the value for the handle
+        // we have now in this instance of the app.
+        fakeMessage.handle = msg.handle;
+
+        // Notify async to maintain observable behavior when messages are sent
+        // async to the back end.
+        setTimeout(function () {
+          this._recv_sliceSplice(fakeMessage, true);
+        }.bind(this));
+      }
+    }
   },
 
   /**
@@ -1632,7 +1837,7 @@ MailAPI.prototype = {
   },
 
   _doneProcessingMessage: function(msg) {
-    if (this._processingMessage !== msg)
+    if (this._processingMessage && this._processingMessage !== msg)
       throw new Error('Mismatched message completion!');
 
     this._processingMessage = null;
@@ -1647,13 +1852,20 @@ MailAPI.prototype = {
     return true;
   },
 
-  _recv_sliceSplice: function ma__recv_sliceSplice(msg) {
+  _recv_sliceSplice: function ma__recv_sliceSplice(msg, fake) {
     var slice = this._slices[msg.handle];
     if (!slice) {
       unexpectedBridgeDataError('Received message about a nonexistent slice:',
                                 msg.handle);
       return true;
     }
+
+    // Track if this is a slice with some fake data, so the slice can
+    // clean up the cached data later. This will be reset later to
+    // true once splice wraps up in _fire_sliceSplice, when real data
+    // comes in.
+    if (fake)
+      slice._fake = true;
 
     var transformedItems = this._transform_sliceSplice(msg, slice);
     // It's possible that a transformed representation is depending on an async
@@ -1662,13 +1874,13 @@ MailAPI.prototype = {
     // flickering or just triggering reflows that could otherwise be avoided.
     if (ContactCache.pendingLookups.length) {
       ContactCache.callbacks.push(function contactsResolved() {
-        this._fire_sliceSplice(msg, slice, transformedItems);
+        this._fire_sliceSplice(msg, slice, transformedItems, fake);
         this._doneProcessingMessage(msg);
       }.bind(this));
       return false;
     }
     else {
-      this._fire_sliceSplice(msg, slice, transformedItems);
+      this._fire_sliceSplice(msg, slice, transformedItems, fake);
       return true;
     }
   },
@@ -1677,25 +1889,6 @@ MailAPI.prototype = {
     var addItems = msg.addItems, transformedItems = [], i;
     switch (slice._ns) {
       case 'accounts':
-
-        if (typeof document !== 'undefined') {
-          var hasAccounts = hasAccountCookie();
-          if (addItems.length && !hasAccounts) {
-            // Sets a cookie indicating where there are accounts to enable fast
-            // load of "add account" screen without loading the email backend.
-            // Set to 20 years from now.
-            var expiry = Date.now() + (20 * 365 * 24 * 60 * 60 * 1000);
-            expiry = (new Date(expiry)).toUTCString();
-            document.cookie = 'mailHasAccounts; expires=' + expiry;
-            this.hasAccounts = true;
-          } else if (!addItems.length && hasAccounts) {
-            // Reset cookie to indicate no accounts. Important
-            // to allow fast path _fake account guess to guess correctly.
-            document.cookie = '';
-            this.hasAccounts = false;
-          }
-        }
-
         for (i = 0; i < addItems.length; i++) {
           transformedItems.push(new MailAccount(this, addItems[i]));
         }
@@ -1735,8 +1928,55 @@ MailAPI.prototype = {
   },
 
   _fire_sliceSplice: function ma__fire_sliceSplice(msg, slice,
-                                                   transformedItems) {
-    var i, stopIndex;
+                                                   transformedItems, fake) {
+    var i, stopIndex, items, tempMsg;
+
+    // If slice is still in fake mode, and the transformed items
+    // all match current values, just bail early.
+    if (!fake && slice._fake) {
+      // a slice can only be in a fake mode once, on startup.
+      slice._fake = false;
+
+      var fakeLength = slice.items.length;
+      var mismatched = transformedItems.length !== fakeLength ||
+        transformedItems.some(function (item, i) {
+          return !slice.items[i] || slice.items[i].id !== item.id;
+        });
+
+      if (mismatched) {
+        // Clear out the cached data from the slice as it is no
+        // longer valid.
+        this._fire_sliceSplice({
+          index: 0,
+          howMany: fakeLength
+        }, slice, [], true);
+
+        // In an extreme edge case where cache has data but the IndexedDB
+        // has been wiped or corrupted, need to clear out the cache, as
+        // the accounts result may have addedItems: [] but the slice will
+        // have cached bad data.
+        if (slice._ns === 'accounts' && !transformedItems.length &&
+            !msg.moreExpected && msg.requested && msg.howMany === 0 &&
+            msg.index === 0 && fakeLength) {
+          this._resetCache();
+          this._setHasAccounts();
+
+          console.log('Account cache not valid, issuing slice.oncachereset');
+          if (slice.oncachereset) {
+            try {
+              slice.oncachereset();
+            }
+            catch (ex) {
+              reportClientCodeError('oncachereset notification error', ex,
+                                    '\n', ex.stack);
+            }
+          }
+        }
+      } else {
+        console.log('Slice cache match, ignoring sliceSplice for ' + slice._ns);
+        return;
+      }
+    }
 
     // - generate namespace-specific notifications
     slice.atTop = msg.atTop;
@@ -1756,7 +1996,7 @@ MailAPI.prototype = {
     if (slice.onsplice) {
       try {
         slice.onsplice(msg.index, msg.howMany, transformedItems,
-                       msg.requested, msg.moreExpected);
+                       msg.requested, msg.moreExpected, fake);
       }
       catch (ex) {
         reportClientCodeError('onsplice notification error', ex,
@@ -1814,6 +2054,76 @@ MailAPI.prototype = {
           reportClientCodeError('oncomplete notification error', ex,
                                 '\n', ex.stack);
         }
+      }
+    }
+
+    // Update the cache for the front end
+    if (!fake && typeof document !== 'undefined') {
+      if (!this._recvCache)
+        this._resetCache();
+
+      switch (slice._ns) {
+
+        case 'accounts':
+          // Cache the first / default account.
+          var firstItem = slice.items[0] && slice.items[0]._wireRep;
+
+          // Clear cache if no accounts or the first account has changed.
+          if (!slice.items.length || this._recvCache.accountId !== firstItem.id)
+            this._resetCache();
+
+          tempMsg = objCopy(msg);
+          tempMsg.howMany = 0;
+          tempMsg.index = 0;
+          if (firstItem) {
+            tempMsg.addItems = [firstItem];
+            this._recvCache.accountId = firstItem.id;
+          }
+          this._recvCache.accounts = tempMsg;
+          this._setHasAccounts();
+          this._saveCache();
+          break;
+
+        case 'folders':
+          // Cache the (first) inbox for the default account.
+          items = slice.items;
+          if (this._recvCache.accountId &&
+              this._recvCache.accountId === slice.accountId) {
+            for (i = 0; i < items.length; i++) {
+              var folderItem = items[i];
+              // Find first inbox item.
+              if (folderItem.type === 'inbox') {
+                this._recvCache.folderId = folderItem.id;
+                tempMsg = objCopy(msg);
+                tempMsg.howMany = 0;
+                tempMsg.index = 0;
+                tempMsg.addItems = [folderItem._wireRep];
+                this._recvCache.folders = tempMsg;
+                this._saveCache();
+                break;
+              }
+            }
+          }
+          break;
+
+        case 'headers':
+          // Cache the top HEADER_CACHE_LIMIT messages for the default inbox.
+          if (msg.atTop && slice.folderId === this._recvCache.folderId) {
+            tempMsg = {
+              "type": "sliceSplice",
+              handle: msg.handle,
+              index: 0,
+              howMany: 0,
+              atTop: false
+            };
+            tempMsg.addItems = [];
+            items = slice.items;
+            for (i = 0; i < HEADER_CACHE_LIMIT && i < items.length; i++)
+              tempMsg.addItems[i] = items[i]._wireRep;
+            this._recvCache.headers = tempMsg;
+            this._saveCache();
+          }
+          break;
       }
     }
   },
@@ -2147,12 +2457,6 @@ MailAPI.prototype = {
   },
 
   /**
-   * Shortcut flag to indicate if there are accounts configured.
-   * Only useful in browser environments that have cookies enabled.
-   */
-  hasAccounts: hasAccountCookie(),
-
-  /**
    * Get the list of accounts.  This can be used for the list of accounts in
    * setttings or for a folder tree where only one account's folders are visible
    * at a time.
@@ -2215,6 +2519,14 @@ MailAPI.prototype = {
   viewFolders: function ma_viewFolders(mode, argument) {
     var handle = this._nextHandle++,
         slice = new FoldersViewSlice(this, handle);
+
+    // Hold on to the ID for use in recvCache. In the
+    // recvCache case, this is only needed when fetching
+    // accounts.
+    if (argument && mode === 'account') {
+      slice.accountId = argument.id;
+    }
+
     this._slices[handle] = slice;
 
     this.__bridgeSend({
@@ -2234,6 +2546,7 @@ MailAPI.prototype = {
   viewFolderMessages: function ma_viewFolderMessages(folder) {
     var handle = this._nextHandle++,
         slice = new HeadersViewSlice(this, handle);
+    slice.folderId = folder.id;
     // the initial population counts as a request.
     slice.pendingRequestCount++;
     this._slices[handle] = slice;
@@ -3161,6 +3474,8 @@ if (("indexedDB" in window) && window.indexedDB) {
  *
  * Explanation of most recent bump:
  *
+ * Bumping to 21 because of massive error in partial fetching merges.
+ *
  * Bumping to 20 because of block sizing changes.
  *
  * Bumping to 19 because of change from uids to ids, but mainly because we are
@@ -3173,7 +3488,7 @@ if (("indexedDB" in window) && window.indexedDB) {
  * Bumping to 17 because we changed the folder representation to store
  * hierarchy.
  */
-var CUR_VERSION = 20;
+var CUR_VERSION = 21;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -3748,17 +4063,21 @@ define('mailapi/main-frame-setup',
 
   var worker;
   function init() {
-    worker = new Worker('js/ext/mailapi/worker-bootstrap.js');
+    // Do on a timeout to allow other startup logic to complete without
+    // this code interfering
+    setTimeout(function() {
+      worker = new Worker('js/ext/mailapi/worker-bootstrap.js');
 
-    $router.useWorker(worker);
+      $router.useWorker(worker);
 
-    $router.register(control);
-    $router.register(bridge);
-    $router.register($configparser);
-    $router.register($cronsync);
-    $router.register($devicestorage);
-    $router.register($maildb);
-    $router.register($net);
+      $router.register(control);
+      $router.register(bridge);
+      $router.register($configparser);
+      $router.register($cronsync);
+      $router.register($devicestorage);
+      $router.register($maildb);
+      $router.register($net);
+    });
   }
 
   var control = {
@@ -3787,7 +4106,11 @@ define('mailapi/main-frame-setup',
   };
 
 
-  var mailAPI;
+  // Create a purposely global MailAPI, and indicate it is fake for
+  // now, waiting on real back end to boot up.
+  MailAPI = new $mailapi.MailAPI();
+  MailAPI._fake = true;
+
   var bridge = {
     name: 'bridge',
     sendMessage: null,
@@ -3795,8 +4118,8 @@ define('mailapi/main-frame-setup',
       var msg = args;
 
       if (msg.type === 'hello') {
-        mailAPI = new $mailapi.MailAPI();
-        mailAPI.__bridgeSend = function(msg) {
+        delete MailAPI._fake;
+        MailAPI.__bridgeSend = function(msg) {
           worker.postMessage({
             uid: uid,
             type: 'bridge',
@@ -3804,14 +4127,15 @@ define('mailapi/main-frame-setup',
           });
         };
 
-        mailAPI.config = msg.config;
+        MailAPI.config = msg.config;
 
-        var evtObject = document.createEvent('Event');
-        evtObject.initEvent('mailapi', false, false);
-        evtObject.mailAPI = mailAPI;
-        window.dispatchEvent(evtObject);
+        // Send up all the queued messages to real backend now.
+        MailAPI._storedSends.forEach(function (msg) {
+          MailAPI.__bridgeSend(msg);
+        });
+        MailAPI._storedSends = [];
       } else {
-        mailAPI.__bridgeReceive(msg);
+        MailAPI.__bridgeReceive(msg);
       }
     },
   };

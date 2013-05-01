@@ -359,8 +359,8 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // state
     var state = document.createElement('small');
-    // XXX do we need l10n here?
-    state.textContent = network.state;
+    state.textContent =
+      network.state ? _('state-' + network.state) : _('state-unknown');
 
     // create list item
     var li = document.createElement('li');

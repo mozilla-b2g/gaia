@@ -1,23 +1,28 @@
 <link rel="stylesheet" href="stylesheet.css">
-<script src="controls.js"></script>
+<script defer src="controls.js"></script>
+<script defer src="workloads.js"></script>
 
 <h3>Hardware Buttons</h3>
 <section>
-	<button onclick="hardware.home()">Home</button>
-	<button onclick="hardware.holdHome()">Hold Home</button>
-	<button onclick="hardware.volumeUp()">Volume Up</button>
-	<button onclick="hardware.volumeDown()">Volume Down</button>
-	<button onclick="hardware.sleep()">Sleep</button>
-	<button onclick="hardware.wake()">Wake</button>
-	<button onclick="hardware.holdSleep()">Hold Sleep</button>
+  <button onclick="hardware.home()">Home</button>
+  <button onclick="hardware.holdHome()">Hold Home</button>
+  <button onclick="hardware.volumeUp()">Volume Up</button>
+  <button onclick="hardware.volumeDown()">Volume Down</button>
+  <button onclick="hardware.sleep()">Sleep</button>
+  <button onclick="hardware.wake()">Wake</button>
+  <button onclick="hardware.holdSleep()">Hold Sleep</button>
 </section>
 
 <h3>Emulation</h3>
 <section>
-	<button onclick="emulation.notification()">Notification</button>
+  <button onclick="emulation.notification()">Notification</button>
 </section>
 
 <h3>Developer</h3>
 <section>
-	<button onclick="worflow.reload()">Reload Application</button>
+  <button onclick="workflow.reload()">Reload Application</button>
+  <button onclick="workflow.screenshot()">Take a screenshot</button>
+  <select id="reference-workloads">
+    <option value="-1">Import workload:</option>
+  </select>
 </section>

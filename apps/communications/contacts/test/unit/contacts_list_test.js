@@ -299,9 +299,9 @@ suite('Render contacts list', function() {
 
 
     realContacts = window.Contacts;
-    window.Contacts = MockContactsApp;
+    window.Contacts = MockContacts;
     realFb = window.fb;
-    window.fb = MockFb;
+    window.fb = Mockfb;
     window.Contacts.extServices = MockExtFb;
     realFixedHeader = window.FixedHeader;
     window.FixedHeader = MockFixedHeader;
@@ -454,7 +454,7 @@ suite('Render contacts list', function() {
       newContact.givenName = null;
       newContact.name = null;
       newContact.category = null;
-      newContact.org = 'AD';
+      newContact.org = ['AD'];
       subject.refresh(newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);

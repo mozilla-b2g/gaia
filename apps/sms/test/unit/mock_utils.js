@@ -3,14 +3,17 @@
 var MockUtils = {
   // we need that this function does real work, so it's copied from the real
   // Utils.js
-  camelCase: function(str) {
-    return str.replace(/-(.)/g, function replacer(str, p1) {
-      return p1.toUpperCase();
-    });
-  },
+  camelCase: Utils.camelCase,
+  date: Utils.date,
   startTimeHeaderScheduler: function() {},
-  Template: function() {},
+  Template: Utils.Template,
   getFontSize: function() {
     return 12;
-  }
+  },
+  getDayDate: Utils.getDayDate,
+  getFormattedHour: Utils.getFormattedHour,
+
+  // real code needed here to map types
+  typeFromMimeType: Utils.typeFromMimeType,
+  escapeHTML: Utils.escapeHTML
 };

@@ -19,6 +19,26 @@
  * properties of the input element that has the focus. If inputmode is
  * "verbatim" then the input method does not modify the user's input in any
  * way. See getInputMode() for a description of input modes.
+ *
+ * TODO:
+ *
+ *  when deciding whether to autocorrect, if the first 2 choices are
+ *    a prefix of one another, then consider the ratio of 1st to 3rd instead
+ *    of 1st to second possibly?  If there different forms of the same word
+ *    and that word is the most likely, then substitute it?
+ *
+ *  add a per-language settings-based list of customizable corrections?
+ *
+ *  Display an X icon in the suggestions line to give the user a way
+ *  to dismiss an autocorrection?  (Easier than space, backspace, space).
+ *
+ *  Display a + icon in the suggestions line to give the user a way to
+ *  add the current input to a personal word list so it doesn't get
+ *  auto-corrected?
+ *
+ *  Use color somehow to indicate that a word is properly spelled?
+ *
+ *  Make the phone vibrate when it makes an automatic corection?
  */
 (function() {
   // Register ourselves in the keyboard's set of input methods
@@ -53,6 +73,7 @@
   var selection;          // The end of the selection, if there is one, or 0
   var lastSpaceTimestamp; // If the last key was a space, this is the timestamp
   var layoutParams;       // Parameters passed to setLayoutParams
+  var nearbyKeyMap;       // Map keys to nearby keys
   var idleTimer;          // Used by deactivate
   var suggestionsTimer;   // Used by updateSuggestions;
   var autoCorrection;     // Correction to make if next input is space
@@ -81,7 +102,7 @@
   const SEMICOLON = 59;
 
   const WS = /^\s+$/;                    // all whitespace characters
-  const UC = /^[A-ZÀ-ÖØ-Þ]+$/;           // all uppercase latin characters
+  const PUNC = /^[.,?!;:]+$/;            // punctuation
 
   const DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
 
@@ -185,18 +206,20 @@
     if (!worker) {
       // If we haven't created the worker before, do it now
       worker = new Worker('js/imes/latin/worker.js');
-      if (layoutParams)
-        worker.postMessage({ cmd: 'setLayout', args: [layoutParams]});
+      if (layoutParams && nearbyKeyMap)
+        worker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
 
       worker.onmessage = function(e) {
         switch (e.data.cmd) {
         case 'log':
-          console.log.apply(console, e.data.message);
+          console.log(e.data.message);
           break;
-        case 'unknownLanguage':
-          console.error('No dictionary for language', e.data.language);
+        case 'error':
+          console.error(e.data.message);
           break;
         case 'predictions':
+          // The worker is suggesting words. If the input is a word, it
+          // will be first.
           handleSuggestions(e.data.input, e.data.suggestions);
           break;
         }
@@ -357,7 +380,7 @@
     // If we made a correction and haven't changed it at all yet,
     // then revert it.
     var len = revertFrom ? revertFrom.length : 0;
-    if (len && cursor > len &&
+    if (len && cursor >= len &&
         inputText.substring(cursor - len, cursor) === revertFrom) {
 
       // Revert the content of the text field
@@ -517,7 +540,7 @@
     // want to autocorrect a valid word. Also, if the input begins with
     // a capital letter, capitalize the suggestions
     var lcinput = input.toLowerCase();
-    var inputStartsWithCapital = isUpperCase(input[0]);
+    var inputStartsWithCapital = (input[0] !== lcinput[0]);
     var inputIsWord = false;
     for (var i = 0; i < suggestions.length; i++) {
       suggestions[i] = suggestions[i][0];
@@ -538,6 +561,8 @@
       // Make sure the user also has their actual input as a choice
       // XXX: should this be highlighted in some special way?
       // XXX: or should we just have a x icon to dismiss the autocorrection?
+      if (suggestions.length === 3)
+        suggestions.pop();
       suggestions.push(input);
       // Mark the auto-correction so the renderer can highlight it
       suggestions[0] = '*' + suggestions[0];
@@ -572,6 +597,13 @@
 
     cursor += word.length - oldWord.length + 1;
 
+    // Remember the change we just made so we can revert it if the
+    // next key is a backspace. Note that it is not an autocorrection
+    // so we don't need to disable corrections.
+    revertFrom = word + ' ';
+    revertTo = oldWord;
+    justAutoCorrected = false;
+
     // Clear the suggestions
     keyboard.sendCandidates([]);
 
@@ -581,14 +613,84 @@
 
   function setLayoutParams(params) {
     layoutParams = params;
+    // XXX We call nearbyKeys() every time the keyboard pops up.
+    // Maybe it would be better to compute it once in keyboard.js and
+    // cache it.
+    nearbyKeyMap = nearbyKeys(params);
     if (worker)
-      worker.postMessage({ cmd: 'setLayout', args: [params]});
+      worker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
+  }
+
+  function nearbyKeys(layout) {
+    var nearbyKeys = {};
+    var keys = layout.keyArray;
+    var keysize = Math.min(layout.keyWidth, layout.keyHeight) * 1.2;
+    var threshold = keysize * keysize;
+
+    // For each key, calculate the keys nearby.
+    for (var n = 0; n < keys.length; ++n) {
+      var key1 = keys[n];
+      if (SpecialKey(key1))
+        continue;
+      var nearby = {};
+      for (var m = 0; m < keys.length; ++m) {
+        if (m === n)
+          continue; // don't compare a key to itself
+        var key2 = keys[m];
+        if (SpecialKey(key2))
+          continue;
+        var d = distance(key1, key2);
+        if (d !== 0)
+          nearby[key2.code] = d;
+      }
+      nearbyKeys[key1.code] = nearby;
+    }
+
+    return nearbyKeys;
+
+    // Compute the inverse square distance between the center point of
+    // two keys, using the radius of the key (where radius is defined
+    // as the distance from the center of key1 to a corner of key1)
+    // as the unit of measure. If the distance is greater than 2.5
+    // times the radius return 0 instead.
+    function distance(key1, key2) {
+      var cx1 = key1.x + key1.width / 2;
+      var cy1 = key1.y + key1.height / 2;
+      var cx2 = key2.x + key2.width / 2;
+      var cy2 = key2.y + key2.height / 2;
+      var radius = Math.sqrt(key1.width * key1.width / 4 +
+                             key1.height * key1.height / 4);
+
+      var dx = (cx1 - cx2) / radius;
+      var dy = (cy1 - cy2) / radius;
+      var distanceSquared = dx * dx + dy * dy;
+      if (distanceSquared > 2.5 * 2.5)
+        return 0;
+      else
+        return 1 / distanceSquared;
+    }
+
+    // Determine whether the key is a special character or a regular letter.
+    // Special characters include backspace (8), return (13), and space (32).
+    function SpecialKey(key) {
+      switch (key.code) {
+      case 0:
+      case KeyEvent.DOM_VK_BACK_SPACE:
+      case KeyEvent.DOM_VK_CAPS_LOCK:
+      case KeyEvent.DOM_VK_RETURN:
+      case KeyEvent.DOM_VK_ALT:
+      case KeyEvent.DOM_VK_SPACE:
+        return true;
+      default: // anything else is not special
+        return false;
+      }
+    }
   }
 
   function updateSuggestions(repeat) {
     // If the user hasn't enabled suggestions, or if they're not appropriate
     // for this input type, or are turned off by the input mode, do nothing
-    if (!suggesting && ! correcting)
+    if (!suggesting && !correcting)
       return;
 
     // If we deferred suggestions because of a key repeat, clear that timer
@@ -597,6 +699,7 @@
       suggestionsTimer = null;
     }
 
+    // If we're still repeating, reset the repeat timer.
     if (repeat) {
       suggestionsTimer = setTimeout(updateSuggestions, autorepeatDelay);
       return;
@@ -654,8 +757,15 @@
     }
   }
 
+  // Return true if all characters of s are uppercase. A character
+  // is uppercase if toLowerCase() on that character is returns something
+  // different than the character
   function isUpperCase(s) {
-    return UC.test(s);
+    var lc = s.toLowerCase();
+    for (var i = 0, n = s.length; i < n; i++)
+      if (s[i] === lc[i])
+        return false;
+    return true;
   }
 
   function isWhiteSpace(s) {
@@ -676,14 +786,18 @@
     if (cursor < inputText.length && !WS.test(inputText[cursor]))
       return false;
 
-    // We're at the end of a word if the cursor is not at the start and
-    // the character before the cursor is not whitespace
-    return cursor > 0 && !WS.test(inputText[cursor - 1]);
+    // If the cursor is at position 0 then we're not at the end of a word
+    if (cursor <= 0)
+      return false;
+
+    // We're at the end of a word if the character before the cursor is
+    // not whitespace or punctuation
+    var c = inputText[cursor - 1];
+    return !WS.test(c) && !PUNC.test(c);
   }
 
-  // Get the word before the cursor
+  // Get the word before the cursor. Assumes that atWordEnd() is true
   function wordBeforeCursor() {
-    // Otherwise, find the word we're at the end of and ask for completions
     for (var firstletter = cursor - 1; firstletter >= 0; firstletter--) {
       if (WS.test(inputText[firstletter])) {
         break;
