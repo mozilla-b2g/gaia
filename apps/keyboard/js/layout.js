@@ -1289,9 +1289,9 @@ const Keyboards = {
       z: 'žźż',
       r: 'R$ ',
       '?': '!¿¡',
-      '.': ',;:·',
+      '.': ',;:·…',
       "'": '"«»',
-      '-': '_'
+      '-': '_—'
     },
     width: 11,
     keys: [
@@ -1305,10 +1305,10 @@ const Keyboards = {
         { value: 'l' }, { value: 'ç' }, { value: "'", keyCode: 39, hidden: ['email', 'url'] },
         { value: ':', visible: ['url']}, { value: '_', visible: ['email']}
       ], [
-        { value: '⇪', ratio: 2, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
+        { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
         { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },
         { value: 'b' }, { value: 'n' }, { value: 'm' }, { value: '-' },
-        { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+        { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
@@ -1329,7 +1329,7 @@ const Keyboards = {
         '€': '$ £ ¥ R$',
         '?': '¿',
         '"': '«»',
-        '.': ',;:·',
+        '.': ',;:·…',
         '!': '¡'
       },
       keys: [
