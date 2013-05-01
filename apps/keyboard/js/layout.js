@@ -1293,7 +1293,7 @@ const Keyboards = {
       "'": '"«»',
       '-': '_'
     },
-    widht: 11,
+    width: 11,
     keys: [
       [
         { value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' },
