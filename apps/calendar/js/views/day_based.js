@@ -92,7 +92,6 @@ Calendar.ns('Views').DayBased = (function() {
      */
     _idsToHours: null,
 
-
     get element() {
       return this._element;
     },
@@ -100,8 +99,6 @@ Calendar.ns('Views').DayBased = (function() {
     get events() {
       return this._eventsElement;
     },
-
-    /** private **/
 
     /**
      * Reset the hour cache.
@@ -350,7 +347,7 @@ Calendar.ns('Views').DayBased = (function() {
     _renderHour: function(hour) {
       return this.template.hour.render({
         displayHour: Calendar.Calc.formatHour(hour),
-        hour: String(hour)
+        hour: hour.toString()
       });
     },
 
@@ -384,28 +381,15 @@ Calendar.ns('Views').DayBased = (function() {
     },
 
     createHour: function(hour) {
-      this.hours.indexOf(hour);
-
-      var len = this.hours.items.length;
-      var idx = this.hours.insertIndexOf(hour);
-
       var html = this._renderHour(hour);
-      var parent = this.events;
-
-      if (hour === Calendar.Calc.ALLDAY) {
-        parent = this.allDayElement;
+      var parent = (hour === Calendar.Calc.ALLDAY) ?
+        this.allDayElement : this.events;
+      if (!parent) {
+        throw new Error('parent must be specified');
       }
 
-      if (!parent)
-        throw new Error('parent must be specified');
-
-      var el = this._insertElement(
-        html,
-        parent,
-        this.hours.items,
-        idx
-      );
-
+      var idx = this.hours.insertIndexOf(hour);
+      var el = this._insertElement(html, parent, this.hours.items, idx);
       return this.hours.set(hour, {
         element: el,
         records: new OrderedMap(),
@@ -536,27 +520,99 @@ Calendar.ns('Views').DayBased = (function() {
     },
 
     /**
-     * Creates and returns
-     *
+     * Creates a DOM representation of this view.
+     * @return {Element} some element.
      */
     create: function() {
       var el = this._buildElement();
 
       if (this.renderAllHours) {
-        var hour = 0;
-
         if (this.outsideAllDay) {
           this.createHour('allday');
         }
 
-        for (; hour < 24; hour++) {
+        for (var hour = 0; hour < 24; hour++) {
           this.createHour(hour);
         }
       }
 
+      // TODO(gareth): This is maybe not a good place for this.
       this.changeDate(this.date);
 
+      this.delegate(el, 'click', 'section.hour',
+          this._onHourClick.bind(this));
       return el;
+    },
+
+    /**
+     * @param {MouseEvent} evt A click event on an hour element.
+     * @param {Element} el matched by css selector.
+     * @private
+     */
+    _onHourClick: function(evt, el) {
+      if (this._clickedOnEvent(evt.target)) {
+        // We just clicked on an event... bail!
+        return;
+      }
+
+      var hour = el.getAttribute('data-hour');
+      if (!hour) {
+        // Something went terribly wrong...
+        return;
+      }
+
+      var startDate = new Date(this.date.getTime());
+      startDate.setHours(0);
+      startDate.setMinutes(0);
+      startDate.setSeconds(0);
+
+      var endDate = new Date(this.date.getTime());
+      endDate.setHours(0);
+      endDate.setMinutes(0);
+      endDate.setSeconds(0);
+
+      var queryString = {};
+      if (hour === Calendar.Calc.ALLDAY) {
+        queryString.isAllDay = true;
+        endDate.setDate(startDate.getDate() + 1);
+      } else {
+        // If it's not all day it must be a number.
+        hour = parseInt(hour);
+        startDate.setHours(hour);
+        endDate.setHours(hour + 1);
+      }
+
+      queryString.startDate = startDate.toString();
+      queryString.endDate = endDate.toString();
+
+      this.app.go(
+          '/event/add/?' +
+          Calendar.QueryString.stringify(queryString)
+      );
+    },
+
+    /**
+     * The structure of one of these cells is:
+     * <div class="events">
+     *   // This will be empty if and only if we have no events
+     * </div>
+     * @param {Element} target The HTML element that got clicked.
+     * @return {boolean} Whether or not we clicked on an event.
+     * @private
+     */
+    _clickedOnEvent: function(target) {
+      // Find the div with the events class.
+      var el = target;
+      while (!el.classList.contains('events')) {
+        el = el.parentNode;
+        if (!el || el.nodeType !== 1 /** ELEMENT_NODE */) {
+          return false;
+        }
+      }
+
+      // Compute whether we found the div and it has one or more children.
+      var children = el.childNodes;
+      return children && children.length > 0;
     },
 
     activate: function() {
@@ -578,7 +634,6 @@ Calendar.ns('Views').DayBased = (function() {
     destroy: function() {
       this._removeTimespanObserver();
       var el = this.element;
-
       if (el && el.parentNode) {
         el.parentNode.removeChild(el);
       }
