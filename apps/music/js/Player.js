@@ -29,6 +29,14 @@ if (acm) {
   });
 }
 
+window.addEventListener('mozvisibilitychange', function() {
+  if (document.mozHidden) {
+    PlayerView.audio.removeEventListener('timeupdate', PlayerView);
+  } else {
+    PlayerView.audio.addEventListener('timeupdate', PlayerView);
+  }
+});
+
 // View of Player
 var PlayerView = {
   get view() {
