@@ -493,6 +493,45 @@ Calendar.ns('Views').ModifyEvent = (function() {
     },
 
     /**
+     * Read the urlparams and override stuff on our event model.
+     * @param {string} search Optional string of the form ?foo=bar&cat=dog.
+     * @private
+     */
+    _overrideEvent: function(search) {
+      search = search || window.location.search;
+      if (!search || search.length === 0) {
+        return;
+      }
+
+      // Remove the question mark that begins the search.
+      if (search.substr(0, 1) === '?') {
+        search = search.substr(1, search.length - 1);
+      }
+
+      // Parse the urlparams.
+      var params = Calendar.QueryString.parse(search);
+      for (var field in params) {
+        var value = params[field];
+        switch (field) {
+          case ModifyEvent.OverrideableField.START_DATE:
+          case ModifyEvent.OverrideableField.END_DATE:
+            params[field] = new Date(value);
+            break;
+          default:
+            params[field] = value;
+            break;
+        }
+      }
+
+      // Override fields on our event.
+      var model = this.event;
+      for (var field in ModifyEvent.OverrideableField) {
+        var value = ModifyEvent.OverrideableField[field];
+        model[value] = params[value] || model[value];
+      }
+    },
+
+    /**
      * Updates form to use values from the current model.
      *
      * Does not handle readonly flags or calenarId associations.
@@ -502,14 +541,12 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Resets any value on the current form.
      */
     _updateUI: function() {
-      var model = this.event;
-
+      this._overrideEvent();
       this.form.reset();
 
+      var model = this.event;
       this.getEl('title').value = model.title;
-
       this.getEl('location').value = model.location;
-
       var dateSrc = model;
       if (model.remote.isRecurring && this.busytime) {
         dateSrc = this.busytime;
@@ -522,7 +559,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var allday = this.getEl('allday');
       if (allday && (allday.checked = model.isAllDay)) {
         this._toggleAllDay();
-
         endDate = this.formatEndDate(endDate);
       }
 
@@ -562,7 +598,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Called on render or when toggling an all-day event
      */
     updateAlarms: function(isAllDay, callback) {
-
       var template = Calendar.Templates.Alarm;
       var alarms = [];
 
@@ -633,6 +668,20 @@ Calendar.ns('Views').ModifyEvent = (function() {
       this.reset();
     }
 
+  };
+
+  /**
+   * The fields on our event model which urlparams may override.
+   * @enum {string}
+   */
+  ModifyEvent.OverrideableField = {
+    CALENDAR_ID: 'calendarId',
+    DESCRIPTION: 'description',
+    END_DATE: 'endDate',
+    IS_ALL_DAY: 'isAllDay',
+    LOCATION: 'location',
+    START_DATE: 'startDate',
+    TITLE: 'title'
   };
 
   return ModifyEvent;
