@@ -210,6 +210,8 @@ FolderPickerCard.prototype = {
     this.updateFolderDom(folder);
 
     this._showFolder(folder);
+    //Set path to empty when moving from folder / tray screen
+    document.body.dataset.path = " ";
     Cards.moveToCard(['message-list', 'nonsearch']);
   },
 

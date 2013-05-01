@@ -326,6 +326,8 @@ var Cards = {
          this._containerNode.offsetWidth - this.TRAY_GUTTER_WIDTH)) {
       event.stopPropagation();
 
+      //Showing path to empty when moving from folder / tray screen
+      document.body.dataset.path = " ";
       // Look for a card with a data-tray-target attribute
       var targetIndex = -1;
       this._cardStack.some(function(card, i) {
