@@ -65,23 +65,30 @@ suite('thread_ui.js >', function() {
     container.className = 'panel';
 
     var additionalMarkup =
-      '<a role="link" id="messages-back-button">' +
-      '  <span class="icon icon-back"></span>' +
-      '</a>' +
-      '<a id="messages-contact-pick-button">' +
-      '  <span class="icon icon-user"></span>' +
-      '</a>' +
-      '<a href="#edit" id="icon-edit">' +
-      '  <span class="icon icon-edit"></span>' +
-      '</a>' +
-      '<h1 id="messages-header-text">Messages</h1>' +
-      '<section id="messages-to-field">' +
-        '<section data-l10n-id="to" id="to-label">' +
+      '<header class="view-header regular-header">' +
+        '<a role="link" id="messages-back-button">' +
+        '  <span class="icon icon-back"></span>' +
+        '</a>' +
+        '<a id="messages-contact-pick-button">' +
+        '  <span class="icon icon-user"></span>' +
+        '</a>' +
+        '<a href="#edit" id="icon-edit">' +
+        '  <span class="icon icon-edit"></span>' +
+        '</a>' +
+        '<h1 id="messages-header-text">Messages</h1>' +
+      '</header>' +
+      '<article id="messages-composer-to-field">' +
+        '<label data-l10n-id="to" id="to-label">' +
           'To:' +
-        '</section>' +
+        '</label>' +
         '<section id="messages-recipients-container">' +
         '</section>' +
-      '</section>' +
+        '<section id="messages-live-search-container">' +
+          '<ul id="messages-live-search-results"' +
+            'class="contactList" data-type="list">' +
+          '</ul>' +
+        '</section>' +
+      '</article>' +
       '<article id="messages-container" class="view-body" data-type="list">' +
       '</article>' +
       '<form role="search" id="messages-compose-form" ' +
