@@ -139,7 +139,9 @@ var ThreadUI = global.ThreadUI = {
       'mousedown', this.addRecipientFromContacts.bind(this)
     );
 
-    this.tmpl = ['contact', 'highlight'].reduce(function(tmpls, name) {
+    this.tmpl = [
+      'contact', 'highlight', 'message'
+    ].reduce(function(tmpls, name) {
       tmpls[name] = Utils.Template('messages-' + name + '-tmpl');
       return tmpls;
     }, {});
@@ -792,59 +794,47 @@ var ThreadUI = global.ThreadUI = {
   },
 
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
-    // Retrieve all data from message
-    var id = message.id;
-    var bodyText = Utils.Message.format(message.body);
+    var bodyHTML = '';
     var delivery = message.delivery;
     var messageDOM = document.createElement('li');
 
-    messageDOM.classList.add('bubble');
-
+    var classNames = ['message', message.type, delivery];
+    classNames.push(delivery === 'received' ? 'incoming' : 'outgoing');
     if (hidden) {
-      messageDOM.classList.add('hidden');
+      classNames.push('hidden');
     }
-    messageDOM.id = 'message-' + id;
-    var inputValue = id;
-    var asideHTML = '';
-    // Do we have to add some error/sending icon?
-    if (delivery) {
-      switch (delivery) {
-        case 'error':
-          asideHTML = '<aside class="pack-end"></aside>';
-          break;
-        case 'sending':
-          asideHTML = '<aside class="pack-end">' +
-                      '<progress></progress></aside>';
-          break;
-      }
+    messageDOM.className = classNames.join(' ');
+
+    if (message.type === 'sms') {
+      bodyHTML = LinkHelper.searchAndLinkClickableData(Utils.Message.format(
+        message.body || ''
+      ));
     }
-    // Create HTML content
-    // TODO: use Utils.Template here
-    var messageHTML = '<label class="danger">' +
-                      '<input type="checkbox" value="' + inputValue + '">' +
-                      '<span></span>' +
-                      '</label>' +
-                    '<a class="' + delivery + '">';
-    messageHTML += asideHTML;
-    messageHTML += '<p></p></a>';
-    messageDOM.innerHTML = messageHTML;
+
+    messageDOM.id = 'message-' + message.id;
+
+    messageDOM.innerHTML = this.tmpl.message.interpolate({
+      id: String(message.id),
+      bodyHTML: bodyHTML
+    }, {
+      safe: ['bodyHTML']
+    });
+
     if (delivery === 'error') {
       ThreadUI.addResendHandler(message, messageDOM);
     }
 
     var pElement = messageDOM.querySelector('p');
-    if (message.type && message.type === 'mms') { // MMS
-      if (message.delivery === 'not-downloaded') {
+    if (message.type === 'mms') { // MMS
+      if (delivery === 'not-downloaded') {
         // TODO: We need to handle the mms message with "not-downloaded" status
       } else {
         SMIL.parse(message, function(slideArray) {
           pElement.appendChild(ThreadUI.createMmsContent(slideArray));
         });
       }
-    } else { // SMS
-      // TODO: make this work without setting innerHTML
-      pElement.innerHTML = LinkHelper.searchAndLinkClickableData(bodyText);
     }
+
     return messageDOM;
   },
 
@@ -884,8 +874,7 @@ var ThreadUI = global.ThreadUI = {
   },
 
   addResendHandler: function thui_addResendHandler(message, messageDOM) {
-    var aElement = messageDOM.querySelector('aside');
-    aElement.addEventListener('click', function resend(e) {
+    messageDOM.addEventListener('click', function resend(e) {
       var hash = window.location.hash;
       if (hash != '#edit') {
         if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
@@ -1110,12 +1099,10 @@ var ThreadUI = global.ThreadUI = {
     if (!messageDOM) {
       return;
     }
-    // Remove 'sending' style
-    var aElement = messageDOM.querySelector('a');
-    aElement.classList.remove('sending');
-    // Remove the 'spinner'
-    var spinnerContainer = aElement.querySelector('aside');
-    aElement.removeChild(spinnerContainer);
+
+    // Update class names to reflect message state
+    messageDOM.classList.remove('sending');
+    messageDOM.classList.add('sent');
 
     // Play the audio notification
     if (this.sentAudioEnabled) {
@@ -1128,18 +1115,14 @@ var ThreadUI = global.ThreadUI = {
     if (!messageDOM) {
       return;
     }
-    // Remove 'sending' style and add 'error' style
-    var aElement = messageDOM.querySelector('a');
     // Check if it was painted as 'error' before
-    if (!aElement.classList.contains('sending')) {
+    if (messageDOM.classList.contains('error')) {
       return;
     }
-    aElement.classList.remove('sending');
-    aElement.classList.add('error');
 
-    // Remove only the spinner
-    var spinnerContainer = aElement.querySelector('aside');
-    spinnerContainer.innerHTML = '';
+    // Update class names to reflect message state
+    messageDOM.classList.remove('sending');
+    messageDOM.classList.add('error');
 
     ThreadUI.addResendHandler(message, messageDOM);
 
