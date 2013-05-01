@@ -522,7 +522,7 @@ Evme.Brain = new function Evme_Brain() {
         this.success = function success(data) {
             document.body.classList.remove(CLASS_REQUESTING);
             
-            var coords = data && data.position && data.position.coordinates,
+            var coords = data && data.position && data.position.coords,
                 lat = coords && coords.latitude,
                 lon = coords && coords.longitude;
             
