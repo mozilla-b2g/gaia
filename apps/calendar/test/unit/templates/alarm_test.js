@@ -40,6 +40,12 @@ suiteGroup('Templates.Alarm', function() {
         /None/.test(renderDescription('none'))
       );
     });
+
+    test('single unit rendered', function() {
+      assert.equal(
+        '1 hour before', renderDescription(-5400)
+      );
+    });
   });
 
 });
