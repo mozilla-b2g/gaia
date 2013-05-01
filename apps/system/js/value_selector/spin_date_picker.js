@@ -67,7 +67,7 @@ var SpinDatePicker = (function SpinDatePicker() {
    *
    * @param {String} date format.
    */
-  function getDateComponentOrder(format) {
+  function getDateComponentOrder() {
     var format = navigator.mozL10n.get('dateTimeFormat_%x');
     var order = '';
     var tokens = format.match(/(%E.|%O.|%.)/g);
