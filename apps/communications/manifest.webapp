@@ -108,7 +108,7 @@
         "type": "webcontacts/contact"
       },
       "disposition": "inline",
-      "href": "/contacts/index.html?new",
+      "href": "/contacts/new.html",
       "returnValue": true
     },
     "update": {
@@ -116,7 +116,7 @@
         "type": "webcontacts/contact"
       },
       "disposition": "inline",
-      "href": "/contacts/index.html?update",
+      "href": "/contacts/update.html",
       "returnValue": true
     },
     "dial": {
