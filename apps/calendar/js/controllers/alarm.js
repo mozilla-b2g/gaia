@@ -44,6 +44,10 @@ Calendar.ns('Controllers').Alarm = (function() {
         navigator.mozSetMessageHandler('alarm', function(msg) {
           self.handleAlarmMessage(msg);
         });
+        // handle notifications when the process of Calendar App is closed
+        navigator.mozSetMessageHandler('notification', function(msg) {
+          self.handleNotificationMessage(msg);
+        });
       } else {
         debug('mozSetMessageHandler is mising!');
       }
@@ -75,6 +79,27 @@ Calendar.ns('Controllers').Alarm = (function() {
       }
     },
 
+    handleNotificationMessage: function(message) {
+      debug('got message', message);
+      var self = this;
+
+      if (!message.clicked) {
+        return;
+      }
+
+      // handle notifications when the process of Calendar App is closed
+      navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
+        var app = evt.target.result;
+        var id = message.imageURL.split('?')[1];
+        var url = '/alarm-display/' + id;
+
+        if(app !== null) {
+          app.launch();
+        }
+        self.app.go(url);
+      };
+    },
+
     _sendAlarmNotification: function(alarm, event, busytime) {
       var now = new Date();
 
@@ -100,6 +125,8 @@ Calendar.ns('Controllers').Alarm = (function() {
       navigator.mozApps.getSelf().onsuccess = function sendNotification(e) {
         var app = e.target.result;
         var icon = (app) ? NotificationHelper.getIconURI(app) : '';
+        // XXX: The busytime._id is used when the process of Calendar app is closed.
+        icon = icon + '?' + busytime._id;
         var notification = NotificationHelper.send(
         title,
         description,

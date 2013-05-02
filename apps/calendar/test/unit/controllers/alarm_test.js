@@ -72,7 +72,7 @@ suiteGroup('Controllers.Alarm', function() {
     suiteSetup(function() {
       realApi = navigator.mozSetMessageHandler;
       navigator.mozSetMessageHandler = function() {
-        handleMessagesCalled = arguments;
+        handleMessagesCalled.push(arguments);
       };
 
       realAlarmApi = navigator.mozAlarms;
@@ -104,7 +104,7 @@ suiteGroup('Controllers.Alarm', function() {
     });
 
     setup(function() {
-      handleMessagesCalled = false;
+      handleMessagesCalled = [];
       worksQueue = false;
       alarmStore.workQueue = function() {
         worksQueue = true;
@@ -121,8 +121,9 @@ suiteGroup('Controllers.Alarm', function() {
 
     test('alarm messages', function(done) {
       subject.observe();
-      assert.ok(handleMessagesCalled);
-      assert.equal(handleMessagesCalled[0], 'alarm');
+      var handleAlarmMessages = handleMessagesCalled[0];
+      assert.ok(handleAlarmMessages);
+      assert.equal(handleAlarmMessages[0], 'alarm');
 
       subject.handleAlarmMessage = function(msg) {
         done(function() {
@@ -130,7 +131,22 @@ suiteGroup('Controllers.Alarm', function() {
         });
       };
 
-      handleMessagesCalled[1]('foo');
+      handleAlarmMessages[1]('foo');
+    });
+
+    test('notification messages', function(done) {
+      subject.observe();
+      var handleNotificationMessages = handleMessagesCalled[1];
+      assert.ok(handleNotificationMessages);
+      assert.equal(handleNotificationMessages[0], 'notification');
+
+      subject.handleNotificationMessage = function(msg) {
+        done(function() {
+          assert.equal(msg, 'foo');
+        });
+      };
+
+      handleNotificationMessages[1]('foo');
     });
 
     suite('#_sendAlarmNotification', function() {
@@ -535,6 +551,31 @@ suiteGroup('Controllers.Alarm', function() {
 
         });
 
+      });
+    });
+
+    suite('#handleNotificationMessage', function() {
+      var realGo;
+      var message;
+
+      setup(function(done) {
+        message = {clicked: true, imageURL: 'app://calendar.gaiamobile.org/icon.png?foo'};
+        realGo = app.go;
+        done();
+      });
+
+      teardown(function() {
+        Calendar.App.go = realGo;
+      });
+
+      test('receive a notification message', function(done) {
+
+        app.go = function(place) {
+          assert.equal(place, '/alarm-display/foo', 'redirects to alarm display page');
+          done();
+        };
+
+        subject.handleNotificationMessage(message);
       });
     });
 
