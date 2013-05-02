@@ -314,6 +314,12 @@ var StatusBar = {
 
       window.addEventListener('wifi-statuschange',
                               this.update.wifi.bind(this));
+
+      var wifiManager = window.navigator.mozWifiManager;
+      if (wifiManager) {
+        wifiManager.connectionInfoUpdate = this.update.wifi.bind(this);
+      }
+
       this.update.wifi.call(this);
 
       window.addEventListener('moznetworkupload', this);
