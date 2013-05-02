@@ -82,7 +82,6 @@ pref("general.useragent.override.bbva.es", "\(Mobile#(Android; Mobile"); // bug 
 pref("general.useragent.override.booking.com", "\(Mobile#(Android; Mobile"); // bug 828420
 pref("general.useragent.override.publico.es", "\(Mobile#(Android; Mobile"); // bug 828422
 pref("general.useragent.override.mercadolibre.com.ve", "\(Mobile#(Android; Mobile"); // bug 828425
-pref("general.useragent.override.lapatilla.com", "\(Mobile#(Android; Mobile"); // bug 828428
 pref("general.useragent.override.espn.go.com", "\(Mobile#(Android; Mobile"); // bug 828431
 pref("general.useragent.override.olx.com.ve", "\(Mobile#(Android; Mobile"); // bug 828433
 pref("general.useragent.override.rincondelvago.com", "\(Mobile#(Android; Mobile"); // bug 828435
