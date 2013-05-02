@@ -312,15 +312,14 @@ var ThreadUI = global.ThreadUI = {
 
   // Create a recipient box non-editable
   createRecipient: function thui_createRecipientBox(recipient) {
-
+    // Remove ';' if needed
+    recipient.textContent = recipient.textContent.replace(/;$/, '');
+    if (recipient.textContent.length === 0) {
+      this.removeRecipient(recipient);
+      this.input.focus();
+      return;
+    }
     if (!recipient.dataset.isContact) {
-      // Remove ';' if needed
-      recipient.textContent = recipient.textContent.replace(/;$/, '');
-      if (recipient.textContent.length === 0) {
-        this.removeRecipient(recipient);
-        this.input.focus();
-        return;
-      }
       // Add dataset if needed
       recipient.dataset.phoneNumber = recipient.textContent;
     }
