@@ -139,7 +139,7 @@ var CallHandler = (function callHandler() {
     }
   }
 
-  /* === Incoming and STK calls === */
+  /* === ALL calls === */
   function newCall() {
     // We need to query mozTelephony a first time here
     // see bug 823958
