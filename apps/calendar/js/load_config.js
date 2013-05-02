@@ -393,6 +393,13 @@ Calendar.LoadConfig = (function() {
 
       'Presets': {
         js: ['presets']
+      },
+
+      'OAuthWindow': {
+        js: [
+          'querystring',
+          'oauth_window'
+        ]
       }
     }
   };
