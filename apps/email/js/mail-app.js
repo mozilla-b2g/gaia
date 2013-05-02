@@ -148,7 +148,35 @@ var App = {
           }
         };
       } else {
-        injectStartCard(acctsSlice);
+        if (acctsSlice)
+          acctsSlice.die();
+
+        // - no accounts, show the setup page!
+        if (!Cards.hasCard(['setup-account-info', 'default'])) {
+
+          if (activityCallback) {
+            // Clear out activity callback, but do it
+            // before calling activityCallback, in
+            // case that code then needs to set a delayed
+            // activityCallback for later.
+            var activityCb = activityCallback;
+            activityCallback = null;
+            var result = activityCb();
+            if (!result)
+              return;
+          }
+
+          // Could have bad state from an incorrect _fake fast path.
+          // Mostly likely when the email app is updated from one that
+          // did not have the fast path cookies set up.
+          Cards.removeAllCards();
+
+          Cards.pushCard(
+            'setup-account-info', 'default', 'immediate',
+            {
+              allowBack: false
+            });
+        }
       }
 
       if (MailAPI._fake) {
@@ -165,51 +193,17 @@ var App = {
       App.showMessageViewOrSetup();
     };
 
-    // Insert a starting card, based on best guess from cache
-    injectStartCard();
-  }
-};
-
-function injectStartCard(acctsSlice) {
-  if (MailAPI._fake && MailAPI.hasAccounts) {
-    // Insert a fake card while loading finishes.
-    Cards.assertNoCards();
-    Cards.pushCard(
-      'message-list', 'nonsearch', 'immediate',
-      { folder: null }
-    );
-  } else {
-    if (acctsSlice)
-      acctsSlice.die();
-
-    // - no accounts, show the setup page!
-    if (!Cards.hasCard(['setup-account-info', 'default'])) {
-
-      if (activityCallback) {
-        // Clear out activity callback, but do it
-        // before calling activityCallback, in
-        // case that code then needs to set a delayed
-        // activityCallback for later.
-        var activityCb = activityCallback;
-        activityCallback = null;
-        var result = activityCb();
-        if (!result)
-          return;
-      }
-
-      // Could have bad state from an incorrect _fake fast path.
-      // Mostly likely when the email app is updated from one that
-      // did not have the fast path cookies set up.
-      Cards.removeAllCards();
-
+    if (MailAPI._fake && MailAPI.hasAccounts) {
+      // Insert a fake card while loading finishes, to give the appearance
+      // of something loading, and to shorten the time the page is white.
+      Cards.assertNoCards();
       Cards.pushCard(
-        'setup-account-info', 'default', 'immediate',
-        {
-          allowBack: false
-        });
+        'message-list', 'nonsearch', 'immediate',
+        { folder: null }
+      );
     }
   }
-}
+};
 
 var queryURI = function _queryURI(uri) {
   function addressesToArray(addresses) {
