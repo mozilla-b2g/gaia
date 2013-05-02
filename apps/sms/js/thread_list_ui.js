@@ -159,14 +159,14 @@ var ThreadListUI = {
   },
 
   delete: function thlui_delete() {
+    var inputs = this.selectedInputs;
     var question = navigator.mozL10n.get('deleteThreads-confirmation2');
     if (confirm(question)) {
       WaitingScreen.show();
-      var inputs = this.selectedInputs;
-      var nums = inputs.map(function(input) {
-        return input.value;
-      });
-
+      var nums = [];
+      for (var i = 0; i < inputs.length; i++) {
+        nums.push(inputs[i].value);
+      }
       var filter = new MozSmsFilter();
       filter.numbers = nums;
       var messagesToDeleteIDs = [];
