@@ -20,7 +20,7 @@ function thui_mmsAttachmentClick(target) {
     }
   });
   activity.onerror = function() {
-    console.warn('error with open activity', this.error.name);
+    console.error('error with open activity', this.error.name);
     // TODO: Add an alert here with a string saying something like
     // "There is no application available to open this file type"
   };
@@ -699,12 +699,18 @@ var ThreadUI = global.ThreadUI = {
     var container = document.createElement('div');
     container.classList.add('mms-container');
     dataArray.forEach(function(attachment) {
-      var mediaElement, textElement;
+      var mediaElement, textElement, url;
 
       if (attachment.name && attachment.blob) {
         var type = Utils.typeFromMimeType(attachment.blob.type);
         if (type) {
-          var url = URL.createObjectURL(attachment.blob);
+          // we special case audio to display an image of an audio attachment
+          if (type === 'audio') {
+            type = 'img';
+            url = '/style/icons/audio_thumb.png';
+          } else {
+            url = URL.createObjectURL(attachment.blob);
+          }
           mediaElement = document.createElement(type);
           mediaElement.src = url;
           mediaElement.onload = function() {
@@ -823,7 +829,6 @@ var ThreadUI = global.ThreadUI = {
     if (delivery === 'error') {
       ThreadUI.addResendHandler(message, messageDOM);
     }
-
 
     var pElement = messageDOM.querySelector('p');
     if (message.type && message.type === 'mms') { // MMS
