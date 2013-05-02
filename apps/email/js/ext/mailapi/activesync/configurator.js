@@ -3373,6 +3373,7 @@ define('mailapi/activesync/configurator',
     '../accountcommon',
     '../a64',
     './account',
+    'require',
     'exports'
   ],
   function(
@@ -3380,8 +3381,56 @@ define('mailapi/activesync/configurator',
     $accountcommon,
     $a64,
     $asacct,
+    require,
     exports
   ) {
+
+function checkServerCertificate(url, callback) {
+  var match = /^https:\/\/([^:/]+)(?::(\d+))?/.exec(url);
+  // probably unit test http case?
+  if (!match) {
+    callback(null);
+    return;
+  }
+  var port = match[2] ? parseInt(match[2], 10) : 443,
+      host = match[1];
+
+  console.log('checking', host, port, 'for security problem');
+
+  require(['tls'], function($tls) {
+    var sock = $tls.connect(port, host);
+    function reportAndClose(err) {
+      if (sock) {
+        var wasSock = sock;
+        sock = null;
+        try {
+          wasSock.end();
+        }
+        catch (ex) {
+        }
+        callback(err);
+      }
+    }
+    // this is a little dumb, but since we don't actually get an event right now
+    // that tells us when our secure connection is established, and connect always
+    // happens, we write data when we connect to help trigger an error or have us
+    // receive data to indicate we successfully connected.
+    // so, the deal is that connect is going to happen.
+    sock.on('connect', function() {
+      sock.write(new Buffer('GET /images/logo.png HTTP/1.1\n\n'));
+    });
+    sock.on('error', function(err) {
+      var reportErr = null;
+      if (err && typeof(err) === 'object' &&
+          /^Security/.test(err.name))
+        reportErr = 'bad-security';
+      reportAndClose(reportErr);
+    });
+    sock.on('data', function(data) {
+      reportAndClose(null);
+    });
+  });
+}
 
 exports.account = $asacct;
 exports.configurator = {
@@ -3423,9 +3472,20 @@ exports.configurator = {
             }
           }
           else {
-            // We didn't talk to the server, so let's call it an unresponsive
-            // server.
-            failureType = 'unresponsive-server';
+            // We didn't talk to the server, so it's either an unresponsive
+            // server or a server with a bad certificate.  (We require https
+            // outside of unit tests so there's no need to branch here.)
+            checkServerCertificate(
+              domainInfo.incoming.server,
+              function(securityError) {
+                var failureType;
+                if (securityError)
+                  failureType = 'bad-security';
+                else
+                  failureType = 'unresponsive-server';
+                callback(failureType, null, failureDetails);
+              });
+            return;
           }
           callback(failureType, null, failureDetails);
           return;
@@ -3515,4 +3575,5 @@ exports.configurator = {
   },
 };
 
-}); // end define;
+}); // end define
+;
