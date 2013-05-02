@@ -27,7 +27,8 @@ var lazyLoadFiles = [
   'shared/style_unstable/progress_activity.css',
   'style/custom_dialog.css',
   'shared/style/action_menu.css',
-  'shared/style/responsive.css'
+  'shared/style/responsive.css',
+  'style/notification.css'
 ];
 
 window.addEventListener('localized', function showBody() {
