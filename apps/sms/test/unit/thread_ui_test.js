@@ -5,20 +5,17 @@
 mocha.setup({ globals: ['alert'] });
 
 requireApp('sms/test/unit/mock_utils.js');
-requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/js/thread_ui.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
-  'Utils',
-  'alert'
+  'Utils'
 ]);
 
 mocksHelperForThreadUI.init();
 
 suite('thread_ui.js >', function() {
-  var container;
   var sendButton;
   var input;
   var composeForm;
@@ -43,59 +40,12 @@ suite('thread_ui.js >', function() {
 
   setup(function() {
     mocksHelper.setup();
+    loadBodyHTML('/index.html');
 
-    container = document.createElement('section');
-    container.id = 'thread-messages';
-    container.className = 'panel';
-
-    var additionalMarkup =
-      '<a role="link" id="go-to-threadlist">' +
-      '  <span class="icon icon-back"></span>' +
-      '</a>' +
-      '<a id="icon-contact">' +
-      '  <span class="icon icon-user"></span>' +
-      '</a>' +
-      '<a href="#edit" id="icon-edit">' +
-      '  <span class="icon icon-edit"></span>' +
-      '</a>' +
-      '<h1 id="header-text">Messages</h1>' +
-      '<form id="messages-tel-form">' +
-      '  <input id="receiver-input" type="text" name="tel" class="tel" />' +
-      '  <span id="clear-search"' +
-      '    class="icon icon-clear"></span>' +
-      '</form>' +
-      '<article id="messages-container" class="view-body" data-type="list">' +
-      '</article>' +
-      '<form role="search" id="new-sms-form" ' +
-      '  class="bottom new-sms-form">' +
-      '  <button id="send-message" disabled' +
-      '    type="submit">Send</button>' +
-      '  <p>' +
-      '    <textarea type="text" id="message-to-send" ' +
-      '      name="message-to-send" ' +
-      '      placeholder="Message"></textarea>' +
-      '  </p>' +
-      '</form>' +
-      '<form role="dialog" id="messages-edit-form" data-type="edit" >' +
-      '  <button id="messages-cancel-button">' +
-      '    <span class="icon icon-close">close</span>' +
-      '  </button>' +
-      '  <button id="messages-delete-button">delete</button>' +
-      '  <button id="deselect-all-messages" disabled' +
-      '    class="edit-button">' +
-      '  </button>' +
-      '  <button id="select-all-messages" class="edit-button">' +
-      '  </button>' +
-      '</form>';
-
-    container.insertAdjacentHTML('beforeend', additionalMarkup);
-
-    sendButton = container.querySelector('#send-message');
-    input = container.querySelector('#message-to-send');
-    composeForm = container.querySelector('#new-sms-form');
-    recipient = container.querySelector('#receiver-input');
-
-    document.body.appendChild(container);
+    sendButton = document.getElementById('send-message');
+    input = document.getElementById('message-to-send');
+    composeForm = document.getElementById('new-sms-form');
+    recipient = document.getElementById('receiver-input');
 
     ThreadUI.init();
     ThreadUI.sendButton = sendButton;
@@ -108,8 +58,7 @@ suite('thread_ui.js >', function() {
   });
 
   teardown(function() {
-    container.parentNode.removeChild(container);
-    container = null;
+    document.body.innerHTML = '';
 
     MockNavigatormozSms.mTeardown();
     mocksHelper.teardown();
@@ -130,6 +79,20 @@ suite('thread_ui.js >', function() {
       input.value = 'Hola';
       ThreadUI.enableSend();
       assert.isFalse(sendButton.disabled);
+    });
+
+    test('button should be disabled if there is some text ' +
+      'but too many segments', function() {
+
+      MockNavigatormozSms.mNextSegmentInfo = {
+        segments: 11,
+        charsAvailableInLastSegment: 10
+      };
+      input.value = 'Hola';
+
+      ThreadUI.enableSend();
+
+      assert.isTrue(sendButton.disabled);
     });
 
     suite('#new mode >', function() {
@@ -162,6 +125,22 @@ suite('thread_ui.js >', function() {
         ThreadUI.enableSend();
         assert.isFalse(sendButton.disabled);
       });
+
+      test('button should be enabled when there is both contact and input, ' +
+          'but too many segments',
+        function() {
+
+        MockNavigatormozSms.mNextSegmentInfo = {
+          segments: 11,
+          charsAvailableInLastSegment: 10
+        };
+
+        input.value = 'Hola';
+        recipient.value = '123123123';
+        ThreadUI.enableSend();
+
+        assert.isTrue(sendButton.disabled);
+      });
     });
   });
 
@@ -184,14 +163,26 @@ suite('thread_ui.js >', function() {
   });
 
   suite('updateCounter() >', function() {
-    suite('in first segment >', function() {
+    var banner, shouldEnableSend;
+
+    setup(function() {
+      banner = document.getElementById('messages-max-length-notice');
+    });
+
+    suite('no characters entered >', function() {
       setup(function() {
         MockNavigatormozSms.mNextSegmentInfo = {
-          segments: 1,
-          charsAvailableInLastSegment: 20
+          segments: 0,
+          charsAvailableInLastSegment: 0
         };
 
-        ThreadUI.updateCounter();
+        // display the banner to check that it is correctly hidden
+        banner.classList.remove('hide');
+
+        // add a maxlength to check that it is correctly removed
+        input.setAttribute('maxlength', 25);
+
+        shouldEnableSend = ThreadUI.updateCounter();
       });
 
       test('no counter is displayed', function() {
@@ -202,8 +193,41 @@ suite('thread_ui.js >', function() {
         assert.equal(input.maxLength, -1);
       });
 
-      test('no alert is sent', function() {
-        assert.isNull(Mockalert.mLastMessage);
+      test('no banner is displayed', function() {
+        assert.ok(banner.classList.contains('hide'));
+      });
+    });
+
+    suite('in first segment >', function() {
+      setup(function() {
+        MockNavigatormozSms.mNextSegmentInfo = {
+          segments: 1,
+          charsAvailableInLastSegment: 20
+        };
+
+        // display the banner to check that it is correctly hidden
+        banner.classList.remove('hide');
+
+        // add a maxlength to check that it is correctly removed
+        input.setAttribute('maxlength', 25);
+
+        shouldEnableSend = ThreadUI.updateCounter();
+      });
+
+      test('no counter is displayed', function() {
+        assert.equal(sendButton.dataset.counter, '');
+      });
+
+      test('the user can enter more characters', function() {
+        assert.equal(input.maxLength, -1);
+      });
+
+      test('no banner is displayed', function() {
+        assert.ok(banner.classList.contains('hide'));
+      });
+
+      test('the send button should be enabled', function() {
+        assert.isTrue(shouldEnableSend);
       });
     });
 
@@ -217,7 +241,13 @@ suite('thread_ui.js >', function() {
           charsAvailableInLastSegment: availableChars
         };
 
-        ThreadUI.updateCounter();
+        // display the banner to check that it is correctly hidden
+        banner.classList.remove('hide');
+
+        // add a maxlength to check that it is correctly removed
+        input.setAttribute('maxlength', 25);
+
+        shouldEnableSend = ThreadUI.updateCounter();
       });
 
       test('a counter is displayed', function() {
@@ -229,8 +259,12 @@ suite('thread_ui.js >', function() {
         assert.equal(input.maxLength, -1);
       });
 
-      test('no alert is sent', function() {
-        assert.isNull(Mockalert.mLastMessage);
+      test('no banner is displayed', function() {
+        assert.ok(banner.classList.contains('hide'));
+      });
+
+      test('the send button should be enabled', function() {
+        assert.isTrue(shouldEnableSend);
       });
     });
 
@@ -244,7 +278,13 @@ suite('thread_ui.js >', function() {
           charsAvailableInLastSegment: availableChars
         };
 
-        ThreadUI.updateCounter();
+        // display the banner to check that it is correctly hidden
+        banner.classList.remove('hide');
+
+        // add a maxlength to check that it is correctly removed
+        input.setAttribute('maxlength', 25);
+
+        shouldEnableSend = ThreadUI.updateCounter();
       });
 
       test('a counter is displayed', function() {
@@ -256,8 +296,12 @@ suite('thread_ui.js >', function() {
         assert.equal(input.maxLength, -1);
       });
 
-      test('no alert is sent', function() {
-        assert.isNull(Mockalert.mLastMessage);
+      test('no banner is displayed', function() {
+        assert.ok(banner.classList.contains('hide'));
+      });
+
+      test('the send button should be enabled', function() {
+        assert.isTrue(shouldEnableSend);
       });
     });
 
@@ -271,7 +315,13 @@ suite('thread_ui.js >', function() {
           charsAvailableInLastSegment: availableChars
         };
 
-        ThreadUI.updateCounter();
+        // display the banner to check that it is correctly hidden
+        banner.classList.remove('hide');
+
+        // add a maxlength to check that it is correctly removed
+        input.setAttribute('maxlength', 25);
+
+        shouldEnableSend = ThreadUI.updateCounter();
       });
 
       test('a counter is displayed', function() {
@@ -283,8 +333,12 @@ suite('thread_ui.js >', function() {
         assert.equal(input.maxLength, -1);
       });
 
-      test('no alert is sent', function() {
-        assert.isNull(Mockalert.mLastMessage);
+      test('no banner is displayed', function() {
+        assert.ok(banner.classList.contains('hide'));
+      });
+
+      test('the send button should be enabled', function() {
+        assert.isTrue(shouldEnableSend);
       });
     });
 
@@ -298,7 +352,9 @@ suite('thread_ui.js >', function() {
           charsAvailableInLastSegment: availableChars
         };
 
-        ThreadUI.updateCounter();
+        // display the banner again, to check it's correctly displayed
+        banner.classList.add('hide');
+        shouldEnableSend = ThreadUI.updateCounter();
       });
 
       test('a counter is displayed', function() {
@@ -310,8 +366,53 @@ suite('thread_ui.js >', function() {
         assert.equal(input.maxLength, input.value.length);
       });
 
-      test('an alert is sent', function() {
-        assert.equal(Mockalert.mLastMessage, 'messages-max-length-notice');
+      test('the banner is displayed', function() {
+        assert.isFalse(banner.classList.contains('hide'));
+      });
+
+      test('the banner has the max length message', function() {
+        var actual = banner.querySelector('p').textContent;
+        assert.equal(actual, 'messages-max-length-text');
+      });
+
+      test('the send button should be enabled', function() {
+        assert.isTrue(shouldEnableSend);
+      });
+    });
+
+    suite('too many segments >', function() {
+      var segment = 11,
+          availableChars = 25;
+
+      setup(function() {
+        MockNavigatormozSms.mNextSegmentInfo = {
+          segments: segment,
+          charsAvailableInLastSegment: availableChars
+        };
+
+        shouldEnableSend = ThreadUI.updateCounter();
+      });
+
+      test('a counter is displayed', function() {
+        var expected = availableChars + '/' + segment;
+        assert.equal(sendButton.dataset.counter, expected);
+      });
+
+      test('the user can not enter more characters', function() {
+        assert.equal(input.maxLength, input.value.length);
+      });
+
+      test('the banner is displayed', function() {
+        assert.isFalse(banner.classList.contains('hide'));
+      });
+
+      test('the banner has the exceeded length message', function() {
+        var actual = banner.querySelector('p').textContent;
+        assert.equal(actual, 'messages-exceeded-length-text');
+      });
+
+      test('the send button should be disabled', function() {
+        assert.isFalse(shouldEnableSend);
       });
     });
   });

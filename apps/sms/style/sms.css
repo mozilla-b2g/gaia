@@ -272,10 +272,6 @@ section[role="region"].new > header:first-child form {
   display: block;
 }
 
-.carrier-wrapper {
-  z-index: 2;
-}
-
 .new .carrier-wrapper {
   display: none;
 }
@@ -583,4 +579,13 @@ form.bottom[role="search"].new-sms-form {
   line-height: 1.8rem;
   color: #FF4E00;
   z-index: 4;
+}
+
+.subheader {
+  position: absolute;
+  z-index: 5; /* should be between 4 and 9 (inclusive). 3 is the z-index for
+                 the input form, 10 is the z-index for the header */
+  left: 0;
+  right: 0;
+  top: 5rem;
 }

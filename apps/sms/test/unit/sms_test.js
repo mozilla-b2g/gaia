@@ -3,7 +3,6 @@
 */
 'use strict';
 
-
 // Import of all code needed
 requireApp('sms/js/contacts.js');
 requireApp('sms/js/fixed_header.js');
@@ -187,6 +186,8 @@ suite('SMS App Unit-Test', function() {
     window.addEventListener(
       'hashchange', boundOnHashChange
     );
+    realMozMobileMessage = ThreadUI._mozMobileMessage;
+    ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
   });
 
   suiteTeardown(function() {

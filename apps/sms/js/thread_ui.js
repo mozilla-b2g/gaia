@@ -95,6 +95,9 @@ var ThreadUI = {
     // `navigator.mozSms` API
     this._mozSms = navigator.mozSms || window.DesktopMockNavigatormozSms;
 
+    this.maxLengthNotice =
+      document.getElementById('messages-max-length-notice');
+
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
 
     // Prevent sendbutton to hide the keyboard:
@@ -198,26 +201,34 @@ var ThreadUI = {
   },
 
   enableSend: function thui_enableSend() {
-    if (this.input.value.length > 0) {
-      this.updateCounter();
-    }
-    if (window.location.hash == '#new' && this.contactInput.value.length == 0) {
-      this.sendButton.disabled = true;
-      return;
-    }
+    // should disable if we have no message input
+    var disableSendMessage = !this.input.value.length;
 
-    this.sendButton.disabled = !(this.input.value.length > 0);
+    var messageNotLong = this.updateCounter();
+
+    // should disable if the message is too long
+    disableSendMessage = disableSendMessage || !messageNotLong;
+
+    // should disable if we have no recipients in the "new thread" view
+    disableSendMessage = disableSendMessage ||
+      (window.location.hash == '#new' && !this.contactInput.value.length);
+
+    this.sendButton.disabled = disableSendMessage;
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom() {
     this.view.scrollTop = this.view.scrollHeight;
   },
 
+  // will return true if we can send the message, false if we can't send the
+  // message
   updateCounter: function thui_updateCount() {
     if (!this._mozSms.getSegmentInfoForText) {
-      return;
+      return true;
     }
+
     var value = this.input.value;
+
     // We set maximum concatenated number of our SMS app to 10 based on:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
     var kMaxConcatenatedMessages = 10;
@@ -227,26 +238,30 @@ var ThreadUI = {
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
     var counter = '';
-    if (segments > 1 || availableChars <= 10) {
+    if (segments && (segments > 1 || availableChars <= 10)) {
       counter = availableChars + '/' + segments;
     }
     this.sendButton.dataset.counter = counter;
     var hasMaxLength = (segments === kMaxConcatenatedMessages &&
         !availableChars);
 
-    // note: when we'll have the MMS feature, we'll want to use an MMS instead
-    // of forbidding this.
-    if (hasMaxLength) {
-      // set maxlength before calling alert, to disable entering more characters
-      this.input.setAttribute('maxlength', value.length);
-      // this will make the keyboard disappear
-      this.input.blur();
+    // we may have this if we switch from 140-character messages to 70-character
+    // messages due to an encoding change
+    var exceededMaxLength = (segments > kMaxConcatenatedMessages);
 
-      var message = navigator.mozL10n.get('messages-max-length-notice');
-      window.alert(message);
+    if (hasMaxLength || exceededMaxLength) {
+      this.input.setAttribute('maxlength', value.length);
+      var key = hasMaxLength ?
+          'messages-max-length-text' : 'messages-exceeded-length-text';
+      var message = navigator.mozL10n.get(key);
+      this.maxLengthNotice.querySelector('p').textContent = message;
+      this.maxLengthNotice.classList.remove('hide');
     } else {
-      this.input.removeAttribute('maxlength');
+      this.input.removeAttribute('maxlength', value.length);
+      this.maxLengthNotice.classList.add('hide');
     }
+
+    return !exceededMaxLength;
   },
 
   updateInputHeight: function thui_updateInputHeight() {

@@ -22,7 +22,8 @@ var lazyLoadFiles = [
   'shared/style/switches.css',
   'shared/style/confirm.css',
   'shared/style_unstable/progress_activity.css',
-  'style/custom_dialog.css'
+  'style/custom_dialog.css',
+  'style/notification.css'
 ];
 
 window.addEventListener('localized', function showBody() {
