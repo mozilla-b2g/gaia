@@ -47,8 +47,7 @@ if (!fb.link) {
     };
 
     var friendsList;
-    var viewButton = document.querySelector('#view-all');
-    var mainSection = document.querySelector('#main');
+    var viewButton, mainSection;
 
     var currentRecommendation = null;
     var allFriends = null;
@@ -58,6 +57,9 @@ if (!fb.link) {
     var state;
     var _ = navigator.mozL10n.get;
     var imgLoader;
+
+    // Only needed for testing purposes
+    var completedCb;
 
     // Builds the first query for finding a contact to be linked to
     function buildQuery(contact) {
@@ -276,6 +278,10 @@ if (!fb.link) {
         utils.templates.append('#friends-list', currentRecommendation);
         imgLoader.reload();
 
+        if (typeof completedCb === 'function') {
+          completedCb();
+        }
+
         Curtain.hide(function onCurtainHide() {
           sendReadyEvent();
           window.addEventListener('message', function linkOnViewPort(e) {
@@ -463,7 +469,10 @@ if (!fb.link) {
       };
     }
 
-    link.start = function(contactId, acc_tk) {
+    link.start = function(contactId, acc_tk, endCb) {
+      // Only needed for testing purposes
+      completedCb = endCb;
+
       access_token = acc_tk;
       contactid = contactId;
 
@@ -481,6 +490,11 @@ if (!fb.link) {
       else {
         link.getProposal(contactId, acc_tk);
       }
+    };
+
+    link.init = function() {
+      mainSection = document.querySelector('#main');
+      viewButton = document.querySelector('#view-all');
     };
 
     function retryOnErrorCb() {
