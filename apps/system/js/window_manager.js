@@ -948,6 +948,9 @@ var WindowManager = (function() {
 
         callback(app);
       }
+
+      // Dispatch an event here for battery check.
+      window.dispatchEvent(new CustomEvent('homescreen-ready'));
     };
   }
 
