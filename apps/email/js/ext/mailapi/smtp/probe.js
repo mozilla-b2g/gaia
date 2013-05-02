@@ -1170,8 +1170,8 @@ SmtpProber.prototype = {
     if (!this.onresult)
       return;
     if (err && typeof(err) === 'object') {
-      // detect an nsISSLStatus instance by an unusual property.
-      if ('isNotValidAtThisTime' in err) {
+      // XXX just map all security errors as indicated by name
+      if (err.name && /^Security/.test(err.name)) {
         err = 'bad-security';
       }
       else {
@@ -1189,7 +1189,8 @@ SmtpProber.prototype = {
 
     this.error = err;
     if (err)
-      console.warn('PROBE:SMTP sad. error: |' + (err && err.message) + '|');
+      console.warn('PROBE:SMTP sad. error: | ' + (err && err.name || err) +
+                   ' | '  + (err && err.message || '') + ' |');
     else
       console.log('PROBE:SMTP happy');
 
