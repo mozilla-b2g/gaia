@@ -53,7 +53,7 @@ var CallScreen = {
                                 OnCallHandler.toggleCalls);
 
     // If the phone is locked, show as an locked-style at very first.
-    if (window.location.hash === '#locked') {
+    if ((window.location.hash === '#locked') && !this.screen.dataset.layout) {
       CallScreen.render('incoming-locked');
     }
     if (navigator.mozSettings) {
