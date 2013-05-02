@@ -56,6 +56,8 @@
 
         for (var i in parts) {
           description += _(i + '-' + affix, {value: parts[i]});
+          // For now only display the first time part that we get
+          break;
         }
       }
 
