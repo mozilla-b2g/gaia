@@ -956,8 +956,9 @@ ImapConnection.prototype.connect = function(loginCb) {
       var errType;
       // (only do error probing on things we can safely use 'in' on)
       if (err && typeof(err) === 'object') {
-        // detect an nsISSLStatus instance by an unusual property.
-        if ('isNotValidAtThisTime' in err) {
+        // XXX just map all security errors as indicated by the name into
+        // security errors.
+        if (/^Security/.test(err.name)) {
           err = new Error('SSL error');
           errType = err.type = 'bad-security';
         }
@@ -2525,7 +2526,7 @@ ImapProber.prototype = {
   onError: function ImapProber_onError(err) {
     if (!this.onresult)
       return;
-    console.warn('PROBE:IMAP sad', err && err.name, '|', err && err.type, '|',
+    console.warn('PROBE:IMAP sad.', err && err.name, '|', err && err.type, '|',
                  err && err.message, '|', err && err.serverResponse);
 
     var normErr = normalizeError(err);
