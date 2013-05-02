@@ -100,7 +100,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var node = this.numberNode;
   var additionalInfoNode = this.additionalInfoNode;
 
-  if (!number.length) {
+  if (!number) {
     LazyL10n.get(function localized(_) {
       node.textContent = _('unknown');
     });
