@@ -181,6 +181,8 @@ var ThreadUI = global.ThreadUI = {
   },
 
   liveSearchResultsHandler: function thui_liveSearchResultsHandler(e) {
+    e.stopPropagation();
+    e.preventDefault();
     var recipient =
         this.recipientsContainer.querySelector('span[contenteditable=true]');
     var phoneNumber = e.target.dataset.phoneNumber;
@@ -195,8 +197,6 @@ var ThreadUI = global.ThreadUI = {
     var newRecipient = this.appendEditableRecipient(contact);
     this.createRecipient(newRecipient);
     this.liveSearchResults.textContent = '';
-    e.stopPropagation();
-    e.preventDefault();
   },
 
   messageComposerInputHandler: function thui_messageInputHandler(event) {
