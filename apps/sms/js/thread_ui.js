@@ -341,6 +341,9 @@ var ThreadUI = global.ThreadUI = {
     var newRecipient = document.createElement('span');
     // Add styles
     newRecipient.classList.add('recipient');
+    // Disable word suggestions by setting the inputmode to 'verbatim'
+    // XXX Bug 869661: change this to inputmode=name when that is supported
+    newRecipient.setAttribute('x-inputmode', 'verbatim');
     // Append to 'recipients-container'
     this.recipientsContainer.appendChild(newRecipient);
     // If it's a contact we need to add extra-info
