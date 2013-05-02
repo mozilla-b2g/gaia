@@ -462,6 +462,20 @@ var Settings = {
                 case 'checkbox':
                   input.checked = request.result[key] || false;
                   break;
+                case 'select-one':
+                  input.value = request.result[key] || '';
+                  // Reset the select button content: We have to sync
+                  // the content to value in db before entering dialog
+                  var parent = input.parentElement;
+                  var button = input.previousElementSibling;
+                  // link the button with the select element
+                  var index = input.selectedIndex;
+                  if (index >= 0) {
+                    var selection = input.options[index];
+                    button.textContent = selection.textContent;
+                    button.dataset.l10nId = selection.dataset.l10nId;
+                  }
+                  break;
                 default:
                   input.value = request.result[key] || '';
                   break;
