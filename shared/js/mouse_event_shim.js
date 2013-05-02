@@ -46,6 +46,10 @@
 
   function discardEvent(e) {
     if (e.isTrusted) {
+      // We shouldn't block click events on context menu items
+      // As BrowserElementClick dispatch a click event when user select an item
+      if (e.type === 'click' && e.target.tagName.indexOf('MENU') === 0)
+        return;
       e.stopImmediatePropagation(); // so it goes no further
       if (e.type === 'click')
         e.preventDefault();         // so it doesn't trigger a change event
