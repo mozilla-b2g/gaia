@@ -208,6 +208,14 @@ var Cards = {
    */
   _cardStack: [],
   activeCardIndex: -1,
+  /*
+   * @oneof[null @listof[cardName modeName]]{
+   *   If a lazy load is causing us to have to wait before we push a card, this
+   *   is the type of card we are planning to push.  This is used by hasCard
+   *   to avoid returning misleading answers while an async push is happening.
+   * }
+   */
+  _pendingPush: null,
 
   /**
    * Cards can stack on top of each other, make sure the stacked set is
@@ -418,16 +426,19 @@ var Cards = {
     var typePrefix = type.split('-')[0];
 
     if (!cardDef && lazyCards[typePrefix]) {
-      var args = Array.slice(arguments);
+      this._pendingPush = [type, mode];
+      var saveArgs = Array.slice(arguments);
       var callback = function() {
-        this.pushCard.apply(this, args);
+        this.pushCard.apply(this, saveArgs);
       };
 
       this.eatEventsUntilNextCard();
       App.loader.load(lazyCards[typePrefix], callback.bind(this));
       return;
-    } else if (!cardDef)
+    } else if (!cardDef) {
       throw new Error('No such card def type: ' + type);
+    }
+    this._pendingPush = null;
 
     var modeDef = cardDef.modes[mode];
     if (!modeDef)
@@ -519,6 +530,11 @@ var Cards = {
   },
 
   hasCard: function(query) {
+    if (this._pendingPush && Array.isArray(query) && query.length === 2 &&
+        this._pendingPush[0] === query[0] &&
+        this._pendingPush[1] === query[1])
+      return true;
+
     return this._findCard(query, true) > -1;
   },
 
