@@ -30,23 +30,17 @@ if (LOCAL_DOMAINS) {
   prefs.push(["network.dns.localDomains", domains.join(",")]);
 }
 
-if (DEBUG) {
-  prefs.push(["marionette.defaultPrefs.enabled", true]);
-  prefs.push(["b2g.remote-js.enabled", true]);
-  prefs.push(["b2g.remote-js.port", 4242]);
-  prefs.push(["javascript.options.showInConsole", true]);
-  prefs.push(["nglayout.debug.disable_xul_cache", true]);
-  prefs.push(["browser.dom.window.dump.enabled", true]);
-  prefs.push(["javascript.options.strict", true]);
-  prefs.push(["dom.report_all_js_exceptions", true]);
-  prefs.push(["nglayout.debug.disable_xul_fastload", true]);
-  prefs.push(["extensions.autoDisableScopes", 0]);
+if (BROWSER) {
+  // Set system app as default firefox tab
   prefs.push(["browser.startup.homepage", homescreen]);
   prefs.push(["startup.homepage_welcome_url", ""]);
+  // Disable dialog asking to set firefox as default OS browser
   prefs.push(["browser.shell.checkDefaultBrowser", false]);
+  // Automatically open devtools on the firefox os panel
   prefs.push(["devtools.toolbox.host", "side"]);
   prefs.push(["devtools.toolbox.sidebar.width", 800]);
-  prefs.push(["devtools.chrome.enabled", true]);
+  prefs.push(["devtools.toolbox.selectedTool", "firefox-os-controls"]);
+  // Disable session store to ensure having only one tab opened
   prefs.push(["browser.sessionstore.max_tabs_undo", 0]);
   prefs.push(["browser.sessionstore.max_windows_undo", 0]);
   prefs.push(["browser.sessionstore.restore_on_demand", false]);
@@ -55,7 +49,6 @@ if (DEBUG) {
   prefs.push(["dom.mozBrowserFramesEnabled", true]);
   prefs.push(["b2g.ignoreXFrameOptions", true]);
   prefs.push(["network.disable.ipc.security", true]);
-  prefs.push(["webgl.verbose", true]);
 
   prefs.push(["dom.ipc.tabs.disabled", true]);
   prefs.push(["browser.ignoreNativeFrameTextSelection", true]);
@@ -73,7 +66,23 @@ if (DEBUG) {
   prefs.push(["device.storage.enabled", true]);
   prefs.push(["device.storage.prompt.testing", true]);
   prefs.push(["dom.mozPermissionSettings.enabled", true]);
+  prefs.push(["notification.feature.enabled", true]);
+}
 
+if (DEBUG) {
+  prefs.push(["marionette.defaultPrefs.enabled", true]);
+
+  prefs.push(["nglayout.debug.disable_xul_cache", true]);
+  prefs.push(["nglayout.debug.disable_xul_fastload", true]);
+
+  prefs.push(["javascript.options.showInConsole", true]);
+  prefs.push(["browser.dom.window.dump.enabled", true]);
+  prefs.push(["javascript.options.strict", true]);
+  prefs.push(["dom.report_all_js_exceptions", true]);
+  prefs.push(["webgl.verbose", true]);
+
+  // Identity debug messages
+  prefs.push(["toolkit.identity.debug", true]);
 
   // Disable HTTP caching for now
   // This makes working with the system app much easier, due to the iframe
@@ -94,9 +103,12 @@ if (DEBUG) {
                      webapp.sourceDirectoryName);
   });
   prefs.push(["extensions.gaia.app_relative_path", appPathList.join(' ')]);
+}
 
-  // Identity debug messages
-  prefs.push(["toolkit.identity.debug", true]);
+// We have to allow installing helper addons from profile extension folder
+// in both debug and browser compatibility modes
+if (DEBUG || BROWSER) {
+  prefs.push(["extensions.autoDisableScopes", 0]);
 }
 
 function writePrefs() {
