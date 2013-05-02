@@ -138,14 +138,15 @@ var EvmeManager = (function EvmeManager() {
                       'modules/Apps/Apps.js',
                       'modules/BackgroundImage/BackgroundImage.js',
                       'modules/Banner/Banner.js',
+                      'modules/ConnectionMessage/ConnectionMessage.js',
+                      'modules/Helper/Helper.js',
                       'modules/Location/Location.js',
-                      'modules/Shortcuts/Shortcuts.js',
-                      'modules/ShortcutsCustomize/ShortcutsCustomize.js',
                       'modules/Searchbar/Searchbar.js',
                       'modules/SearchHistory/SearchHistory.js',
-                      'modules/Helper/Helper.js',
-                      'modules/ConnectionMessage/ConnectionMessage.js',
+                      'modules/Shortcuts/Shortcuts.js',
+                      'modules/ShortcutsCustomize/ShortcutsCustomize.js',
                       'modules/SmartFolder/SmartFolder.js',
+                      'modules/Tasker/Tasker.js',
                       'js/helpers/Storage.js',
                       'js/plugins/Scroll.js',
                       'js/external/uuid.js',
@@ -156,16 +157,15 @@ var EvmeManager = (function EvmeManager() {
                       'js/plugins/Analytics.js',
                       'js/plugins/APIStatsEvents.js'];
       var css_files = ['css/common.css',
-                       'modules/Apps/Apps.css',
-                       'modules/BackgroundImage/BackgroundImage.css',
-                       'modules/Banner/Banner.css',
-                       'modules/Shortcuts/Shortcuts.css',
-                       'modules/ShortcutsCustomize/ShortcutsCustomize.css',
-                       'modules/Searchbar/Searchbar.css',
-                       'modules/SearchHistory/SearchHistory.css',
-                       'modules/Helper/Helper.css',
-                       'modules/ConnectionMessage/ConnectionMessage.css',
-                       'modules/SmartFolder/SmartFolder.css'];
+                      'modules/Apps/Apps.css',
+                      'modules/BackgroundImage/BackgroundImage.css',
+                      'modules/Banner/Banner.css',
+                      'modules/ConnectionMessage/ConnectionMessage.css',
+                      'modules/Helper/Helper.css',
+                      'modules/Searchbar/Searchbar.css',
+                      'modules/Shortcuts/Shortcuts.css',
+                      'modules/ShortcutsCustomize/ShortcutsCustomize.css',
+                      'modules/SmartFolder/SmartFolder.css'];
 
       var head = document.head,
           filesLoadProgress = 0,
@@ -175,6 +175,7 @@ var EvmeManager = (function EvmeManager() {
         e.target.removeEventListener('load', onFileLoad);
         
         filesLoadProgress++;
+        console.log('tasker load: ' + filesLoadProgress + '/' + filesLoadCount);
         if (filesLoadProgress >= filesLoadCount) {
           Evme.init();
         }

@@ -14,7 +14,9 @@
     "device-storage:pictures":{ "access": "readonly" },
     "open-remote-window":{},
     "storage":{},
-    "geolocation": {}
+    "geolocation": {},
+    "power":{},
+    "idle":{}
   },
   "locales": {
     "ar": {

@@ -104,6 +104,16 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
         return list;
     };
     
+    this.getShortcutByKey = function getShortcutByKey(key) {
+        for (var i=0, shortcut; shortcut = shortcuts[i++];) {
+            if (shortcut.getQuery() === key || shortcut.getExperience() == key) {
+              return shortcut;
+            }
+        }
+        
+        return null;
+    };
+    
     this.orderByElements = function orderByElements() {
         var _shortcuts = [];
             
@@ -305,9 +315,12 @@ Evme.Shortcut = function Evme_Shortcut() {
     
     this.setImage = function setImage(shortcutIcons) {
       if (elThumb && shortcutIcons && shortcutIcons.length > 0) {
-        var elIconGroup = Evme.IconGroup.get(shortcutIcons, self.getName());
-        elThumb.innerHTML = '';
-        elThumb.appendChild(elIconGroup);
+        var elIconGroup = Evme.IconGroup.get(shortcutIcons, self.getName(), function onReady(elCanvas) {
+          if (elThumb) {
+            elThumb.innerHTML = '';
+            elThumb.appendChild(elCanvas);
+          }
+        });
       }
     };
      

@@ -251,6 +251,10 @@ window.Evme = new function Evme_Core() {
       "SEARCH_SOURCES": data.searchSources,
       "PAGEVIEW_SOURCES": data.pageViewSources
     });
+    
+    Evme.Tasker.init({
+      "triggerInterval": data.taskerTriggerInterval
+    });
 
     Evme.EventHandler.trigger(NAME, "init", {"deviceId": Evme.DoATAPI.getDeviceId()});
   }

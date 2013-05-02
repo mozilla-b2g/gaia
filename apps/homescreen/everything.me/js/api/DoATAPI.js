@@ -226,24 +226,50 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         }, options._NOCACHE);
     };
     
+    this.shortcutsGet = function shortcutsGet(options, callback) {
+        !options && (options = {});
+
+        var params = {
+            "queries": options.queries || []
+        };
+
+        return request({
+            "methodNamespace": "Shortcuts",
+            "methodName": "get",
+            "params": params,
+            "callback": callback
+        }, options._NOCACHE);
+    };
+    
     this.Shortcuts = new function Shortcuts() {
         var self = this,
             STORAGE_KEY_SHORTCUTS = "localShortcuts",
             STORAGE_KEY_ICONS = "localShortcutsIcons",
-            queriesToAppIds = {};
+            queriesToAppIds = {},
+            didClear = false;
         
         this.get = function get(options, callback) {
             Evme.Storage.get(STORAGE_KEY_SHORTCUTS, function storageShortcuts(shortcuts) {
               Evme.Storage.get(STORAGE_KEY_ICONS, function storageIcons(icons) {
-                if (!shortcuts) {
+                if (!shortcuts && !didClear) {
                     shortcuts = Evme.__config['_' + STORAGE_KEY_SHORTCUTS];
                     icons = Evme.__config['_' + STORAGE_KEY_ICONS];
                 }
+                
+                didClear = false;
                 
                 saveAppIds(shortcuts);
                 
                 callback && callback(createResponse(shortcuts, icons));
               });
+            });
+        };
+        
+        this.clear = function clear(callback) {
+            queriesToAppIds = {};
+            didClear = true;
+            Evme.Storage.remove(STORAGE_KEY_SHORTCUTS, function onShortcutsRemoved() {
+              Evme.Storage.remove(STORAGE_KEY_ICONS, callback);
             });
         };
         
@@ -276,8 +302,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                 icons = options.icons;
 
             self.get(null, function onGetSuccess(data) {
-                var currentShortcuts = data.response.shortcuts,
-                    currentIcons = data.response.icons;
+                var currentShortcuts = data.response.shortcuts || [],
+                    currentIcons = data.response.icons || {};
                 
                 for (var i=0,shortcut; shortcut=shortcuts[i++];) {
                     if (contains(currentShortcuts, shortcut) === false) {
@@ -296,6 +322,38 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             });
             
         }
+        
+        // this method gets icons or shortcuts and updates the single items in the DB
+        // options.icons should be a map of appId : icon
+        // options.shortcuts should be a map of experienceId/query : appIds
+        this.update = function update(options, callback) {
+          var icons = options.icons || {},
+              shortcuts = options.shortcuts || {};
+          
+          self.get(null, function onGetSuccess(data) {
+              var currentShortcuts = data.response.shortcuts || [],
+                  currentIcons = data.response.icons || {};
+              
+              for (var appId in icons) {
+                currentIcons[appId] = icons[appId];
+              }
+              
+              for (var i=0,shortcut,newShortcutData; i<currentShortcuts.length; i++) {
+                shortcut = currentShortcuts[i];
+                newShortcutData = shortcuts[shortcut.query] || shortcuts[shortcut.experienceId];
+                
+                if (newShortcutData) {
+                  currentShortcuts[i].appIds = newShortcutData;
+                  saveAppIds(currentShortcuts[i]);
+                }
+              }
+              
+              self.set({
+                  "shortcuts": currentShortcuts,
+                  "icons": currentIcons
+              }, callback);
+          });
+        };
         
         this.remove = function remove(shortcutToRemove) {
             self.get({}, function onGetSuccess(data){
@@ -388,6 +446,10 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         function saveAppIds(shortcuts) {
             if (!shortcuts) {
               return;
+            }
+            
+            if (!Array.isArray(shortcuts)) {
+              shortcuts = [shortcuts];
             }
             
             for (var i=0,shortcut,value; shortcut=shortcuts[i++];) {

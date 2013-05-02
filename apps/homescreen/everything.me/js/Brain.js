@@ -543,6 +543,87 @@ Evme.Brain = new function Evme_Brain() {
         };
     };
 
+    // modules/Tasker/
+    this.Tasker = new function Tasker() {
+      var self = this;
+      
+      this.TASK_UPDATE_SHORTCUT_ICONS = "updateShortcutIcons";
+
+      // module init
+      this.init = function init() {
+        Evme.Tasker.add({
+          "id": self.TASK_UPDATE_SHORTCUT_ICONS
+        });
+      };
+
+      // when a new task is added to the queue
+      this.taskAdded = function taskAdded(data) {
+        
+      };
+
+      // process the queue
+      this.trigger = function trigger(data) {
+        var tasks = data.tasks;
+
+        for (var id in tasks) {
+          if (self['callback_' + id]) {
+            self['callback_' + id](tasks[id])
+          } else {
+            Evme.Utils.log('Error: No handler for task [' + id + ']');
+          }
+        }
+      };
+
+      this['callback_' + this.TASK_UPDATE_SHORTCUT_ICONS] = function updateShortcutIcons(taskData) {
+        if (Evme.Brain.ShortcutsCustomize.isOpen()) {
+          return false;
+        }
+        
+        Evme.DoATAPI.Shortcuts.get(null, function onSuccess(data){
+          var currentShortcuts = data && data.response && data.response.shortcuts || [],
+              shortcutsToSend = [];
+  
+          for (var i=0, shortcut, query; shortcut=currentShortcuts[i++];) {
+              query = shortcut.query;
+  
+              if (shortcut.experienceId && !query) {
+                  query = Evme.Utils.l10n('shortcut', 'id-' + Evme.Utils.shortcutIdToKey(shortcut.experienceId));
+              }
+              
+              if (query) {
+                  shortcutsToSend.push(query.toLowerCase());
+              }
+          }
+          
+          // re-request all the user's shortcuts to upadte them from the API
+          // otherwise the shortcut icons will remain static and will never change, even if
+          // the apps inside them have
+          Evme.DoATAPI.shortcutsGet({
+            "queries": JSON.stringify(shortcutsToSend),
+            "_NOCACHE": true
+          }, function onShortcutsGet(response) {
+            var shortcuts = response.response.shortcuts,
+                icons = response.response.icons;
+            
+            if (!shortcuts || !icons) {
+              return;
+            }
+            
+            Evme.DoATAPI.Shortcuts.clear(function onShortcuteCleared(){
+              Evme.DoATAPI.Shortcuts.add({
+                  "shortcuts": shortcuts,
+                  "icons": icons
+              }, function onSuccess(){
+                  Brain.Shortcuts.loadFromAPI();
+              });
+            });
+          });
+          
+          return true;
+        });
+      };
+    };
+
     // modules/Apps/
     this.Apps = new function Apps() {
         var bShouldGetHighResIcons = false;
@@ -1017,7 +1098,7 @@ Evme.Brain = new function Evme_Brain() {
                                                 TIMEOUT_BEFORE_SHOWING_APPS_LOADING);
                   }
                 });
-
+  
                 requestSmartFolderApps = Evme.DoATAPI.search({
                     "query": experienceId? '' : query,
                     "experienceId": experienceId,
@@ -1030,6 +1111,8 @@ Evme.Brain = new function Evme_Brain() {
                     "iconFormat": iconsFormat
                 }, function onSuccess(data) {
                     var apps = data.response.apps;
+                    
+                    updateShortcutIcons(experienceId || query, apps);
 
                     currentFolder.appsPaging.max = data.response.paging.max;
 
@@ -1108,6 +1191,30 @@ Evme.Brain = new function Evme_Brain() {
                 
                 requestSmartFolderApps = null;
             });
+        };
+        
+        function updateShortcutIcons(key, apps) {
+          var shortcuts = {},
+              icons = {},
+              NUMBER_OF_ICONS = 3;
+              
+          for (var i=0,app; i<NUMBER_OF_ICONS; i++) {
+            app = apps[i]
+            icons[app.id] = app.icon;
+          }
+          shortcuts[key] = Object.keys(icons);
+          
+          Evme.DoATAPI.Shortcuts.update({
+            "shortcuts": shortcuts,
+            "icons": icons
+          }, function onShortcutsUpdated() {
+            for (var key in shortcuts) {
+              var shortcut = Evme.Shortcuts.getShortcutByKey(key);
+              if (shortcut) {
+                shortcut.setImage(shortcuts[key]);
+              }
+            }
+          });
         }
     };
 
@@ -1321,6 +1428,9 @@ Evme.Brain = new function Evme_Brain() {
                         "existing": arrCurrentShortcuts,
                         "iconFormat": Evme.Utils.getIconsFormat()
                     }, function onSuccess(data) {
+                        var suggestedShortcuts = data.response.shortcuts || [],
+                            icons = data.response.icons || {};
+
                       	if (!isRequesting) {
                       		return;
                       	}
@@ -1443,6 +1553,8 @@ Evme.Brain = new function Evme_Brain() {
             // TODO in the future, we might want to refresh results
             // to reflect accurate location.
             // but for now only the next request will use the location
+
+            Evme.Tasker.trigger(true);
         };
         
         // construct a valid API url- for debugging purposes
