@@ -626,7 +626,6 @@ window.addEventListener('load', function loadSettings() {
   setTimeout(function() {
     var scripts = [
       'js/utils.js',
-      'shared/js/mouse_event_shim.js',
       'js/airplane_mode.js',
       'js/battery.js',
       'shared/js/async_storage.js',
@@ -889,6 +888,3 @@ window.addEventListener('localized', function updateLocalized() {
 // Do initialization work that doesn't depend on the DOM, as early as
 // possible in startup.
 Settings.preInit();
-
-MouseEventShim.trackMouseMoves = false;
-
