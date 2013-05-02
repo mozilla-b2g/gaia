@@ -574,7 +574,6 @@ window.addEventListener('load', function loadSettings() {
 
   LazyLoader.load([
       'js/utils.js',
-      'shared/js/mouse_event_shim.js',
       'js/airplane_mode.js',
       'js/battery.js',
       'js/app_storage.js',
@@ -837,5 +836,3 @@ window.addEventListener('localized', function showLanguages() {
 // Do initialization work that doesn't depend on the DOM, as early as
 // possible in startup.
 Settings.preInit();
-
-MouseEventShim.trackMouseMoves = false;
