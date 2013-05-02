@@ -1275,11 +1275,11 @@ const Keyboards = {
     needsCandidatePanel: 'true',
     menuLabel: 'català',
     alt: {
-      a: 'àáâäåãāæ',
+      a: 'àáâäåãāæª@',
       c: 'çćč',
       e: 'èéêëēę€ɛ',
       i: 'íïìîīį',
-      o: 'òóöôōœøɵ',
+      o: 'òóöôōœøɵº',
       u: 'úüùûū',
       s: 'ßśš$',
       S: 'ŚŠŞ',
