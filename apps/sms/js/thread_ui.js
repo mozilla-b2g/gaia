@@ -52,7 +52,6 @@ var ThreadUI = global.ThreadUI = {
     this._mozMobileMessage = navigator.mozMobileMessage ||
                               window.DesktopMockNavigatormozMobileMessage;
 
-    // Handler of the 'to-field'
     this.recipientsContainer.addEventListener(
       'click', this.recipientsContainerClickHandler.bind(this)
     );
@@ -1309,9 +1308,9 @@ var ThreadUI = global.ThreadUI = {
       if (!contacts || !contacts.length) {
         return;
       }
-      contacts.forEach((function(contact) {
+      contacts.forEach(function(contact) {
         this.renderContact(contact, filterValue);
-      }).bind(this));
+      }, this);
     }.bind(this));
   },
 
