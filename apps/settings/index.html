@@ -679,6 +679,28 @@
       </header>
 
       <div>
+        <ul class="mmsSettings-list">
+          <li>
+            <p data-l10n-id="auto-retrieve">Auto retrieve</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select data-setting="ril.mms.retrieval_mode">
+                <option value="manual" data-l10n-id="manual-retrieve">Off</option>
+                <option value="automatic" data-l10n-id="auto-roaming-retrieve">On with roaming</option>
+                <option value="automatic-home" data-l10n-id="auto-no-roaming-retrieve">On without roaming/option>
+              </select>
+            </p>
+          </li>
+        </ul>
+        <ul class="apnSettings-list">
+          <li class="apnSettings-custom">
+            <label>
+              <input type="radio" data-setting="ril.mms.carrier" name="mmsApnSettingsCarrier" value="_custom_" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="custom">(custom settings)</a>
+          </li>
+        </ul>
         <header>
           <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
         </header>
@@ -878,7 +900,7 @@
                 data-l10n-id="dataSettings">Data Settings</button>
             </label>
           </li>
-          <li hidden>
+          <li>
             <label>
               <button data-href="#carrier-mmsSettings"
                 data-l10n-id="mmsSettings">MMS Settings</button>

@@ -476,8 +476,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
       getMccMncCodes(function() {
         // XXX this should be done later -- not during init()
         Carrier.fillAPNList('data');
-        // XXX commented this line because MMS Settings is hidden
-        // Carrier.fillAPNList('mms');
+        Carrier.fillAPNList('mms');
         Carrier.fillAPNList('supl');
       });
     }
