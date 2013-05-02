@@ -1393,6 +1393,10 @@ require.config({
     'mailapi/imap/protocol/snippetparser': 'mailapi/imap/protocollayer',
     'mailapi/imap/protocol/bodyfetcher': 'mailapi/imap/protocollayer',
 
+    // 'tls' is actually in both the SMTP probe and IMAP probe, but the SMTP
+    // probe is much smaller, so if someone requests it outright, just use that.
+    'tls': 'mailapi/smtp/probe',
+
     // The imap probe layer also contains the imap module
     'imap': 'mailapi/imap/probe',
 
@@ -13441,6 +13445,15 @@ var autoconfigByDomain = exports._autoconfigByDomain = {
       // This string may be clobbered with the correct port number when
       // running as a unit test.
       server: 'http://localhost:8880',
+      username: '%EMAILADDRESS%',
+    },
+  },
+  // like slocalhost, really just exists to generate a test failure
+  'saslocalhost': {
+    type: 'activesync',
+    displayName: 'Test',
+    incoming: {
+      server: 'https://localhost:443',
       username: '%EMAILADDRESS%',
     },
   },

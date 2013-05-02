@@ -3954,14 +3954,9 @@ define('mailapi/worker-support/net-main',[],function() {
       if (err && typeof(err) === 'object') {
         wrappedErr = {
           name: err.name,
+          type: err.type,
           message: err.message
         };
-        // Propagate the SSL error detecting heuristic used elsewhere.  This is
-        // an XPCOM interface that we do not expect to structured clone across
-        // so well.
-        if ('isNotValidAtThisTime' in err) {
-          wrappedErr.isNotValidAtThisTime = err.isNotValidAtThisTime;
-        }
       }
       else {
         wrappedErr = err;
