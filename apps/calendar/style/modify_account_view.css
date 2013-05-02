@@ -31,3 +31,27 @@
 #remove-account-dialog {
   display: none;
 }
+
+#oauth2 {
+  display: none;
+  z-index: 1000000;
+  background: white;
+}
+
+#oauth2.active {
+  display: block;
+}
+
+#oauth2 .browser-container {
+  width: 100%;
+  /* -5rem for the header */
+  height: calc(100% - 4rem);
+}
+
+#oauth2 .browser-container > iframe {
+  padding: 0;
+  margin: 0;
+  border: none;
+  height: 100%;
+  width: 100%;
+}

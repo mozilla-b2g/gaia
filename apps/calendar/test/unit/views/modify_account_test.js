@@ -1,7 +1,7 @@
 requireLib('provider/abstract.js');
 requireLib('provider/local.js');
 
-uiteGroup('Views.ModifyAccount', function() {
+suiteGroup('Views.ModifyAccount', function() {
 
   var subject;
   var account;
@@ -47,7 +47,16 @@ uiteGroup('Views.ModifyAccount', function() {
           '<input name="fullUrl" />',
         '</form>',
         '<button class="delete-confirm">',
-      '</div>'
+      '</div>',
+      '<section id="oauth2">',
+        '<header>',
+          '<button class="cancel">',
+            '<a>cancel</a>',
+          '</button>',
+          '<h1 class="toolbar"></h1>',
+        '</header>',
+        '<div class="browser-container"></div>',
+      '</section>'
     ].join('');
 
     document.body.appendChild(div);
@@ -76,6 +85,10 @@ uiteGroup('Views.ModifyAccount', function() {
       );
     });
 
+  });
+
+  test('#oauth2Window', function() {
+    assert.ok(subject.oauth2Window);
   });
 
   test('#deleteButton', function() {
@@ -193,9 +206,9 @@ uiteGroup('Views.ModifyAccount', function() {
       assert.ok(!subject.errors.textContent, 'clears text');
     });
 
-    test('updates form', function() {
+    test('with updateModel option', function() {
       subject.fields['user'].value = 'iupdatedu';
-      subject.save();
+      subject.save({ updateModel: true });
       assert.equal(subject.model.user, 'iupdatedu');
     });
 
@@ -267,7 +280,7 @@ uiteGroup('Views.ModifyAccount', function() {
 
   test('#updateForm', function() {
     account.user = 'james';
-    //we never display the password.
+    //we never displa the password.
     account.password = 'baz';
     account.fullUrl = 'http://google.com/path/';
 
@@ -305,36 +318,9 @@ uiteGroup('Views.ModifyAccount', function() {
       };
     });
 
-    suite('provider no creds', function() {
-      var calledSave;
-      var model;
-
-      setup(function() {
-        calledSave = false;
-
-        subject.save = function() {
-          calledSave = true;
-        };
-
-        model = new Calendar.Models.Account({
-          providerType: 'Local'
-        });
-
-
-        subject._createModel = function() {
-          return model;
-        };
-      });
-
-      test('result', function() {
-        subject.dispatch({ params: { preset: 'local'} });
-        assert.isTrue(calledSave);
-      });
-
-    });
-
     test('new', function() {
       var calledWith;
+      model = Factory('account');
       subject._createModel = function() {
         calledWith = arguments;
         return model;
@@ -354,7 +340,7 @@ uiteGroup('Views.ModifyAccount', function() {
       var calledWith;
       var destroyed;
 
-      subject.model = {};
+      model = Factory('account', { 'preset': 'local' });
       subject.destroy = function() {
         destroyed = true;
       };
@@ -378,42 +364,98 @@ uiteGroup('Views.ModifyAccount', function() {
   });
 
   suite('#render', function() {
+    suite('normal flow', function() {
 
-    setup(function() {
-      account.user = 'foo';
-      subject.fields.password.value = 'foo';
-      subject.render();
+      setup(function() {
+        account.user = 'foo';
+        subject.fields.password.value = 'foo';
+        subject.render();
+      });
+
+      test('save button', function(done) {
+        var called;
+        subject.fields.user.value = 'updated';
+
+        subject.accountHandler.send = function(model) {
+          done(function() {
+            assert.equal(
+              model.user,
+              subject.fields.user.value,
+              'updates fields'
+            );
+          });
+        };
+
+        triggerEvent(subject.saveButton, 'click');
+      });
+
+      test('type', function(done) {
+        assert.ok(subject.type);
+        done();
+      });
+
+      test('update', function(done) {
+        assert.equal(subject.fields.user.value, 'foo');
+        done();
+      });
+
+      test('clear password', function() {
+        assert.equal(subject.fields.password.value, '');
+      });
+
+      test('type class', function() {
+        assert.isTrue(hasClass(subject.type));
+        assert.isTrue(hasClass('preset-' + account.preset));
+        assert.isTrue(hasClass('provider-' + account.providerType));
+      });
     });
 
-    test('save button', function() {
-      var called;
+    suite('oauth flow', function() {
+      var callsSave;
+      var MockOAuth = function(server, params) {
+        this.server = server;
+        this.params = params;
 
-      subject.accountHandler.send = function() {
-        called = true;
+        this.open = function() {
+          this.isOpen = true;
+        };
+
+        this.close = function() {
+          this.isOpen = false;
+        };
       };
 
-      triggerEvent(subject.saveButton, 'click');
-      assert.ok(called);
-    });
+      var RealOAuth;
+      suiteSetup(function() {
+        RealOAuth = Calendar.OAuthWindow;
+        Calendar.OAuthWindow = MockOAuth;
+      });
 
-    test('type', function(done) {
-      assert.ok(subject.type);
-      done();
-    });
+      suiteTeardown(function() {
+        Calendar.OAuthWindow = RealOAuth;
+      });
 
-    test('update', function(done) {
-      assert.equal(subject.fields.user.value, 'foo');
-      done();
-    });
+      setup(function() {
+        subject.save = function() {
+          callsSave = true;
+        };
 
-    test('clear password', function() {
-      assert.equal(subject.fields.password.value, '');
-    });
+        subject.preset = Calendar.Presets.google;
+        subject.render();
+      });
 
-    test('type class', function() {
-      assert.isTrue(hasClass(subject.type));
-      assert.isTrue(hasClass('preset-' + account.preset));
-      assert.isTrue(hasClass('provider-' + account.providerType));
+      test('oauth flow is a success', function() {
+        var code = 'xxx';
+        assert.ok(subject._oauthDialog, 'has dialog');
+        subject._oauthDialog.oncomplete({ code: code });
+        assert.equal(subject.model.oauth.code, code, 'sets code');
+        assert.ok(callsSave);
+      });
+
+      test('oauth flow is aborted', function(done) {
+        subject.cancel = done;
+        subject._oauthDialog.onabort();
+      });
     });
   });
 
@@ -447,4 +489,3 @@ uiteGroup('Views.ModifyAccount', function() {
   });
 
 });
-*/

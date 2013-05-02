@@ -1321,6 +1321,88 @@ function write (chunk) {
     [Caldav('responder'), Caldav] :
     [module, require('./caldav')]
 ));
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// Query String Utilities
+
+(function(module, ns) {
+
+  var QueryString = {};
+
+  QueryString.escape = function(str) {
+    return encodeURIComponent(str);
+  };
+
+  var stringifyPrimitive = function(v) {
+    switch (typeof v) {
+      case 'string':
+        return v;
+
+      case 'boolean':
+        return v ? 'true' : 'false';
+
+      case 'number':
+        return isFinite(v) ? v : '';
+
+      default:
+        return '';
+    }
+  };
+
+
+  QueryString.stringify = QueryString.encode = function(obj, sep, eq, name) {
+    sep = sep || '&';
+    eq = eq || '=';
+    if (obj === null) {
+      obj = undefined;
+    }
+
+    if (typeof obj === 'object') {
+      return Object.keys(obj).map(function(k) {
+        var ks = QueryString.escape(stringifyPrimitive(k)) + eq;
+        if (Array.isArray(obj[k])) {
+          return obj[k].map(function(v) {
+            return ks + QueryString.escape(stringifyPrimitive(v));
+          }).join(sep);
+        } else {
+          return ks + QueryString.escape(stringifyPrimitive(obj[k]));
+        }
+      }).join(sep);
+
+    }
+
+    if (!name) return '';
+    return QueryString.escape(stringifyPrimitive(name)) + eq +
+           QueryString.escape(stringifyPrimitive(obj));
+  };
+
+  module.exports = QueryString;
+
+}.apply(
+  this,
+  (this.Caldav) ?
+    [Caldav('querystring'), Caldav] :
+    [module, require('./caldav')]
+));
 (function(module, ns) {
 
   var Responder = ns.require('responder');
@@ -2025,17 +2107,19 @@ function write (chunk) {
   Xhr.prototype = {
     globalXhrOptions: null,
     xhrClass: Native,
+    xhr: null,
     method: 'GET',
     async: true,
     waiting: false,
     user: null,
     password: null,
     url: null,
+    streaming: true,
 
     headers: {},
     data: null,
 
-    _seralize: function _seralize() {
+    _serialize: function _serialize() {
       return this.data;
     },
 
@@ -2052,45 +2136,58 @@ function write (chunk) {
     },
 
     /**
-     * Sends request to server.
-     *
-     * @param {Function} callback success/failure handler.
+     * Aborts the request if it has already been sent.
+     * @param {Function=} cb An optional callback function.
      */
-    send: function send(callback) {
-      var header, xhr;
+    abort: function(cb) {
+      if (this.waiting) {
+        this.xhr.abort();
+        this.waiting = false;
+      }
+
+      if (cb !== undefined) {
+        cb();
+      }
+    },
+
+   _buildXHR: function(callback) {
+      var header;
 
       if (typeof(callback) === 'undefined') {
         callback = this.callback;
       }
 
-      if (this.globalXhrOptions) {
-        xhr = new this.xhrClass(this.globalXhrOptions);
-      } else {
-        xhr = new this.xhrClass();
-      }
+      this.xhr = new this.xhrClass(
+          this.globalXhrOptions ? this.globalXhrOptions : undefined);
+
       // This hack is in place due to some platform
       // bug in gecko when using mozSystem xhr
       // the credentials only seem to work as expected
       // when constructing them manually.
       if (!this.globalXhrOptions || !this.globalXhrOptions.mozSystem) {
-        xhr.open(this.method, this.url, this.async, this.user, this.password);
+        this.xhr.open(
+            this.method, this.url, this.async, this.user, this.password);
       } else {
-        xhr.open(this.method, this.url, this.async);
-        xhr.setRequestHeader('Authorization', this._credentials(
+        this.xhr.open(this.method, this.url, this.async);
+        this.xhr.setRequestHeader('Authorization', this._credentials(
           this.user,
           this.password
         ));
       }
 
       var useMozChunkedText = false;
-      if (this.globalXhrOptions && this.globalXhrOptions.useMozChunkedText) {
+      if (
+        this.streaming &&
+        this.globalXhrOptions &&
+        this.globalXhrOptions.useMozChunkedText
+      ) {
         useMozChunkedText = true;
-        xhr.responseType = 'moz-chunked-text';
+        this.xhr.responseType = 'moz-chunked-text';
       }
 
       for (header in this.headers) {
         if (Object.hasOwnProperty.call(this.headers, header)) {
-          xhr.setRequestHeader(header, this.headers[header]);
+          this.xhr.setRequestHeader(header, this.headers[header]);
         }
       }
 
@@ -2098,31 +2195,33 @@ function write (chunk) {
       var hasProgressEvents = false;
 
       // check for progress event support.
-      if ('onprogress' in xhr) {
-        hasProgressEvents = true;
-        var last = 0;
+      if (this.streaming) {
+        if ('onprogress' in this.xhr) {
+          hasProgressEvents = true;
+          var last = 0;
 
-        if (useMozChunkedText) {
-          xhr.onprogress = (function onChunkedProgress(event) {
-            if (this.ondata) {
-              this.ondata(xhr.responseText);
-            }
-          }.bind(this));
-        } else {
-          xhr.onprogress = (function onProgress(event) {
-            var chunk = xhr.responseText.substr(last, event.loaded);
-            last = event.loaded;
-            if (this.ondata) {
-              this.ondata(chunk);
-            }
-          }.bind(this));
+          if (useMozChunkedText) {
+            this.xhr.onprogress = (function onChunkedProgress(event) {
+              if (this.ondata) {
+                this.ondata(this.xhr.responseText);
+              }
+            }.bind(this));
+          } else {
+            this.xhr.onprogress = (function onProgress(event) {
+              var chunk = this.xhr.responseText.substr(last, event.loaded);
+              last = event.loaded;
+              if (this.ondata) {
+                this.ondata(chunk);
+              }
+            }.bind(this));
+          }
         }
       }
 
-      xhr.onreadystatechange = (function onReadyStateChange() {
+      this.xhr.onreadystatechange = (function onReadyStateChange() {
         var data;
-        if (xhr.readyState === 4) {
-          data = xhr.responseText;
+        if (this.xhr.readyState === 4) {
+          data = this.xhr.responseText;
 
           // emulate progress events for node...
           // this really lame we should probably just
@@ -2133,13 +2232,22 @@ function write (chunk) {
           }
 
           this.waiting = false;
-          callback(null, xhr);
+          callback(null, this.xhr);
         }
       }.bind(this));
 
       this.waiting = true;
-      xhr.send(this._seralize());
+      return this.xhr;
+    },
 
+    /**
+     * Sends request to server.
+     *
+     * @param {Function} callback success/failure handler.
+     */
+    send: function send(callback) {
+      var xhr = this._buildXHR(callback);
+      xhr.send(this._serialize());
       return xhr;
     }
   };
@@ -2152,6 +2260,421 @@ function write (chunk) {
     [Caldav('xhr'), Caldav] :
     [module, require('./caldav')]
 ));
+(function(module, ns) {
+
+  var XHR = ns.require('xhr');
+  var QueryString = ns.require('querystring');
+
+  var REQUIRED_CREDENTIALS = [
+    'client_secret',
+    'client_id',
+    'redirect_uri',
+    'url'
+  ];
+
+  /**
+   * Private helper for issuing a POST http request the given endpoint.
+   * The body of the HTTP request is a x-www-form-urlencoded request.
+   *
+   *
+   * @param {String} url endpoint of server.
+   * @param {Object} requestData object representation of form data.
+   */
+  function post(url, requestData, callback) {
+    var xhr = new XHR({
+      url: url,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      data: QueryString.stringify(requestData),
+      method: 'POST',
+      streaming: false
+    });
+
+    return xhr.send(callback);
+  }
+
+  /**
+   * Given a string (directly from xhr.responseText usually) format and create
+   * an oauth authorization server response.
+   *
+   * @param {String} resp raw response from http server.
+   * @return {Object} formatted version of response.
+   */
+  function formatResponse(resp) {
+    resp = JSON.parse(resp);
+
+    // replace the oauth details
+    if (resp.access_token) {
+      resp.issued_at = Date.now();
+    }
+
+    return resp;
+  }
+
+  /**
+   * Creates an OAuth authentication handler. The logic here is designed to
+   * handle the cases after the user initially authenticates and we either have
+   * a "code" or "refresh_token".
+   *
+   *
+   *    var oauthClient = new OAuth(
+   *      {
+   *        url: 'https://accounts.google.com/o/oauth2/token',
+   *        client_secret: '',
+   *        client_id: '',
+   *        redirect_uri: '',
+   *        // optional user_info option
+   *        user_info: {
+   *          url: 'https://www.googleapis.com/oauth2/v3/userinfo',
+   *          field: 'email'
+   *        }
+   *      }
+   *    );
+   *
+   */
+  function OAuth(credentials) {
+    this.apiCredentials = {};
+
+    for (var key in credentials) {
+      this.apiCredentials[key] = credentials[key];
+    }
+
+    REQUIRED_CREDENTIALS.forEach(function(type) {
+      if (!(type in this.apiCredentials)) {
+        throw new Error('.apiCredentials.' + type + ' : must be available.');
+      }
+    }, this);
+  }
+
+  OAuth.prototype = {
+
+    /**
+     * Basic API credentials for oauth operations.
+     *
+     * Required properties:
+     *
+     *    - url
+     *    - client_id
+     *    - client_secret
+     *    - redirect_uri
+     *
+     * @type {Object}
+     */
+    apiCredentials: null,
+
+    /**
+     * Private helper for requesting user info... Unlike other methods this
+     * is unrelated to core rfc6749 functionality.
+     *
+     * NOTE: Really brittle as it will not refresh tokens must be called
+     * directly after authorization with a fresh access_token.
+     *
+     *
+     * @param {Object} oauth result of a previous oauth response
+     *  (must contain valid access_token).
+     *
+     * @param {Function} callback called with [err, userProperty].
+     */
+    _requestUserInfo: function(oauth, callback) {
+      var apiCredentials = this.apiCredentials;
+      var url = apiCredentials.user_info.url;
+      var field = apiCredentials.user_info.field;
+      var authorization = oauth.token_type + ' ' + oauth.access_token;
+
+      var xhr = new XHR({
+        headers: {
+          Authorization: authorization
+        },
+        url: url,
+        streaming: false
+      });
+
+      xhr.send(function(err, request) {
+        if (err) {
+          return callback(err);
+        }
+
+        var json;
+        try {
+          json = JSON.parse(request.responseText);
+          callback(null, json[field]);
+        } catch (e) {
+          return callback(e);
+        }
+
+      });
+    },
+
+    /**
+     * Given a code from the user sign in flow get the refresh token &
+     * access_token.
+     */
+    authenticateCode: function(code, callback) {
+      var apiCredentials = this.apiCredentials;
+
+      if (!code) {
+        return setTimeout(function() {
+          callback(new Error('code must be given'));
+        });
+      }
+
+      var self = this;
+      function handleResponse(err, xhr) {
+        if (err) {
+          return callback(err);
+        }
+
+        var result;
+
+        try {
+          result = formatResponse(xhr.responseText);
+        } catch (e) {
+          return callback(e);
+        }
+
+
+        if (!apiCredentials.user_info) {
+          return callback(null, result);
+        }
+
+        // attempt fetching user details
+        self._requestUserInfo(result, function(err, user) {
+          if (err) {
+            return callback(err);
+          }
+          result.user = user;
+          callback(null, result);
+        });
+      }
+
+      return post(
+        apiCredentials.url,
+        {
+          code: code,
+          client_id: apiCredentials.client_id,
+          client_secret: apiCredentials.client_secret,
+          redirect_uri: apiCredentials.redirect_uri,
+          grant_type: 'authorization_code'
+        },
+        handleResponse
+      );
+    },
+
+    /**
+     * Refresh api keys and tokens related to those keys.
+     *
+     * @param {String} refreshToken token for refreshing oauth credentials
+     *   (refresh_token per rfc6749).
+     */
+    refreshToken: function(refreshToken, callback) {
+      var apiCredentials = this.apiCredentials;
+
+      if (!refreshToken) {
+        throw new Error('invalid refresh token given: "' + refreshToken + '"');
+      }
+
+      function handleResponse(err, xhr) {
+        if (err) {
+          return callback(err);
+        }
+
+        try {
+          callback(null, formatResponse(xhr.responseText));
+        } catch (e) {
+          callback(e);
+        }
+      }
+
+      return post(
+        apiCredentials.url,
+        {
+          refresh_token: refreshToken,
+          client_id: apiCredentials.client_id,
+          client_secret: apiCredentials.client_secret,
+          grant_type: 'refresh_token'
+        },
+        handleResponse
+      );
+    },
+
+    /**
+     * Soft verification of tokens... Ensures access_token is available and is
+     * not expired.
+     *
+     * @param {Object} oauth details.
+     * @return {Boolean} true when looks valid.
+     */
+    accessTokenValid: function(oauth) {
+      return !!(
+        oauth &&
+        oauth.access_token &&
+        oauth.expires_in &&
+        oauth.issued_at &&
+        (Date.now() < (oauth.issued_at + oauth.expires_in))
+      );
+    }
+
+  };
+
+
+  module.exports = OAuth;
+
+}.apply(
+  this,
+  (this.Caldav) ?
+    [Caldav('oauth2'), Caldav] :
+    [module, require('./caldav')]
+));
+
+
+
+(function(module, ns) {
+
+  var XHR = ns.require('xhr');
+
+  function BasicAuth(connection, options) {
+    // create a clone of options
+    var clone = Object.create(null);
+
+    if (typeof(options) !== 'undefined') {
+      for (var key in options) {
+        clone[key] = options[key];
+      }
+    }
+
+    clone.password = connection.password || clone.password;
+    clone.user = connection.user || clone.user;
+
+    XHR.call(this, clone);
+  }
+
+  BasicAuth.prototype = {
+    __proto__: XHR.prototype
+  };
+
+
+  module.exports = BasicAuth;
+
+}.apply(
+  this,
+  (this.Caldav) ?
+    [Caldav('http/basic_auth'), Caldav] :
+    [module, require('../caldav')]
+));
+
+(function(module, ns) {
+
+  var XHR = ns.require('xhr');
+  var QueryString = ns.require('querystring');
+  var Connection = ns.require('connection');
+  var OAuth = ns.require('oauth2');
+
+  /**
+   * Creates an XHR like object given a connection and a set of options
+   * (passed directly to the superclass)
+   *
+   * @param {Caldav.Connection} connection used for apiCredentials.
+   * @param {Object} options typical XHR options.
+   */
+  function Oauth2(connection, options) {
+    if (
+      !connection ||
+      !connection.oauth ||
+      (
+        !connection.oauth.code &&
+        !connection.oauth.refresh_token
+      )
+    ) {
+      throw new Error('connection .oauth must have code or refresh_token');
+    }
+
+    this.connection = connection;
+
+    this.oauth =
+      new OAuth(connection.apiCredentials);
+
+    // create a clone of options
+    var clone = Object.create(null);
+
+    if (typeof(options) !== 'undefined') {
+      for (var key in options) {
+        clone[key] = options[key];
+      }
+    }
+
+    XHR.call(this, clone);
+  }
+
+  Oauth2.prototype = {
+    __proto__: XHR.prototype,
+
+    _sendXHR: function(xhr) {
+      xhr.setRequestHeader(
+        'Authorization', 'Bearer ' + this.connection.oauth.access_token
+      );
+
+      xhr.send(this._serialize());
+      return xhr;
+    },
+
+    _updateConnection: function(credentials) {
+      var oauth = this.connection.oauth;
+      var update = { oauth: credentials };
+
+      if (oauth.refresh_token && !credentials.refresh_token)
+        credentials.refresh_token = oauth.refresh_token;
+
+      if (credentials.user) {
+        update.user = credentials.user;
+        delete credentials.user;
+      }
+
+      return this.connection.update(update);
+    },
+
+    send: function(callback) {
+      var xhr = this._buildXHR(callback);
+      var oauth = this.connection.oauth;
+
+      // everything is fine just send
+      if (this.oauth.accessTokenValid(oauth)) {
+        return this._sendXHR(xhr);
+      }
+
+      var handleTokenUpdates = (function handleTokenUpdates(err, credentials) {
+        if (err) {
+          return callback(err);
+        }
+        this._updateConnection(credentials);
+        return this._sendXHR(xhr);
+      }.bind(this));
+
+      if (oauth.code) {
+        this.oauth.authenticateCode(oauth.code, handleTokenUpdates);
+
+        // it should be impossible to have both code and refresh_token
+        // but we return as a guard
+        return xhr;
+      }
+
+      if (oauth.refresh_token) {
+        this.oauth.refreshToken(oauth.refresh_token, handleTokenUpdates);
+        return xhr;
+      }
+    }
+
+  };
+
+
+  module.exports = Oauth2;
+
+}.apply(
+  this,
+  (this.Caldav) ?
+    [Caldav('http/oauth2'), Caldav] :
+    [module, require('../caldav')]
+));
+
+
 (function(module, ns) {
 
   var XHR = ns.require('xhr');
@@ -2184,6 +2707,10 @@ function write (chunk) {
       }
     }
 
+    var httpHandler = this.httpHandler || 'basic_auth';
+    if (typeof(httpHandler) !== 'object') {
+      this.httpHandler = Caldav.require('http/' + httpHandler);
+    }
   }
 
   Connection.prototype = {
@@ -2209,36 +2736,49 @@ function write (chunk) {
      * @return {Caldav.Xhr} http request set with default options.
      */
     request: function(options) {
-      if (typeof(options) === 'undefined') {
-        options = {};
-      }
-
-      var copy = {};
-      var key;
-      // copy options
-
-      for (key in options) {
-        copy[key] = options[key];
-      }
-
-      if (!copy.user) {
-        copy.user = this.user;
-      }
-
-      if (!copy.password) {
-        copy.password = this.password;
-      }
-
-      if (copy.url && copy.url.indexOf('http') !== 0) {
-        var url = copy.url;
-        if (url.substr(0, 1) !== '/') {
-          url = '/' + url;
+      if (options) {
+        if (options.url && options.url.indexOf('http') !== 0) {
+          var url = options.url;
+          if (url.substr(0, 1) !== '/') {
+            url = '/' + url;
+          }
+          options.url = this.domain + url;
         }
-        copy.url = this.domain + url;
       }
 
-      return new XHR(copy);
-    }
+      return new this.httpHandler(this, options);
+    },
+
+    /**
+     * Update properties on this connection and trigger a "update" event.
+     *
+     *
+     *    connection.onupdate = function() {
+     *      // do stuff
+     *    };
+     *
+     *    connection.update({
+     *      user: 'foobar'
+     *    });
+     *
+     *
+     * @param {Object} newProperties to shallow copy onto connection.
+     */
+    update: function(newProperties) {
+      if (newProperties) {
+        for (var key in newProperties) {
+          if (Object.prototype.hasOwnProperty.call(newProperties, key)) {
+            this[key] = newProperties[key];
+          }
+        }
+      }
+
+      if (this.onupdate) {
+        this.onupdate();
+      }
+
+      return this;
+    },
 
   };
 
@@ -2694,6 +3234,8 @@ function write (chunk) {
      * @param {Function} callback node style callback.
      *                            Receives three arguments
      *                            error, parsedData, xhr.
+     * @return {Caldav.Xhr} The xhr request so that the caller
+     *                      has a chance to abort the request.
      */
     send: function(callback) {
       var self = this;
@@ -2706,6 +3248,10 @@ function write (chunk) {
 
       // in the future we may stream data somehow
       req.send(function xhrResult(err, xhr) {
+        if (err) {
+          return callback(err);
+        }
+
         if (xhr.status > 199 && xhr.status < 300) {
           // success
           self.sax.close();
@@ -2715,6 +3261,8 @@ function write (chunk) {
           callback(new Errors.CaldavHttpError(xhr.status));
         }
       });
+
+      return req;
     }
   };
 
@@ -2799,6 +3347,8 @@ function write (chunk) {
      *
      * @param {Object} [options] calendar options.
      * @param {Function} callback node style [err, data, xhr].
+     * @return {Caldav.Xhr} The underlying xhr request so that the caller
+     *                      has a chance to abort the request.
      */
     get: function(options, callback) {
       if (typeof(options) === 'function') {
@@ -2808,7 +3358,7 @@ function write (chunk) {
 
       var req = this._buildRequest('GET', options);
 
-      req.send(function(err, xhr) {
+      return req.send(function(err, xhr) {
         callback(err, xhr.responseText, xhr);
       });
     },
@@ -2819,6 +3369,8 @@ function write (chunk) {
      * @param {Object} [options] see get.
      * @param {String} data post content.
      * @param {Function} callback node style [err, data, xhr].
+     * @return {Caldav.Xhr} The underlying xhr request so that the caller
+     *                      has a chance to abort the request.
      */
     put: function(options, data, callback) {
       if (typeof(options) === 'string') {
@@ -2834,7 +3386,7 @@ function write (chunk) {
       var req = this._buildRequest('PUT', options);
       req.data = data;
 
-      req.send(function(err, xhr) {
+      return req.send(function(err, xhr) {
         callback(err, xhr.responseText, xhr);
       });
     },
@@ -2844,6 +3396,8 @@ function write (chunk) {
      *
      * @param {Object} [options] see get.
      * @param {Function} callback node style [err, data, xhr].
+     * @return {Caldav.Xhr} The underlying xhr request so that the caller
+     *                      has a chance to abort the request.
      */
     delete: function(options, callback) {
       if (typeof(options) === 'function') {
@@ -2853,7 +3407,7 @@ function write (chunk) {
 
       var req = this._buildRequest('DELETE', options);
 
-      req.send(function(err, xhr) {
+      return req.send(function(err, xhr) {
         callback(err, xhr.responseText, xhr);
       });
     }
@@ -3092,6 +3646,10 @@ function write (chunk) {
 
     Propfind: ns.require('request/propfind'),
 
+    /**
+     * @return {Caldav.Xhr} The underlying xhr request so that the caller
+     *                      has a chance to abort the request.
+     */
     _findPrincipal: function(url, callback) {
       var find = new this.Propfind(this.connection, {
         url: url
@@ -3100,7 +3658,7 @@ function write (chunk) {
       find.prop('current-user-principal');
       find.prop('principal-URL');
 
-      find.send(function(err, data) {
+      return find.send(function(err, data) {
         var principal;
 
         if (err) {
@@ -3113,15 +3671,14 @@ function write (chunk) {
         if (!principal) {
           principal = findProperty('principal-URL', data, true);
         }
-        
+
         if ('unauthenticated' in principal) {
-          callback(new Errors.UnauthenticatedError());          
-        } else if (principal.href){
+          callback(new Errors.UnauthenticatedError());
+        } else if (principal.href) {
           callback(null, principal.href);
         } else {
           callback(new Errors.CaldavHttpError(404));
         }
-     
       });
     },
 
@@ -3133,7 +3690,7 @@ function write (chunk) {
 
       find.prop(['caldav', 'calendar-home-set']);
 
-      find.send(function(err, data) {
+      return find.send(function(err, data) {
         if (err) {
           callback(err);
           return;
@@ -3152,10 +3709,12 @@ function write (chunk) {
      *
      * @param {Function} callback node style where second argument
      *                            are the details of the home calendar.
+     * @return {Caldav.Xhr} The underlying xhr request so that the caller
+     *                      has a chance to abort the request.
      */
     send: function(callback) {
       var self = this;
-      self._findPrincipal(self.url, function(err, url) {
+      return self._findPrincipal(self.url, function(err, url) {
 
         if (!url) {
           callback(err);
@@ -3251,6 +3810,20 @@ function write (chunk) {
     [Caldav('request/resources'), Caldav] :
     [module, require('../caldav')]
 ));
+(function(module, ns) {
+
+  module.exports = {
+    BasicAuth: ns.require('http/basic_auth'),
+    OAuth2: ns.require('http/oauth2')
+  };
+
+}.apply(
+  this,
+  (this.Caldav) ?
+    [Caldav('http'), Caldav] :
+    [module, require('../caldav')]
+));
+
 (function(module, ns) {
 
   module.exports = {
@@ -3468,6 +4041,8 @@ function write (chunk) {
   exports.Request = ns.require('request');
   exports.Connection = ns.require('connection');
   exports.Resources = ns.require('resources');
+  exports.Http = ns.require('http');
+  exports.OAuth2 = ns.require('oauth2');
 
 }.apply(
   this,

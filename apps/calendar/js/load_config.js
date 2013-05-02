@@ -370,6 +370,17 @@ Calendar.LoadConfig = (function() {
         js: [
           'controllers/alarm'
         ]
+      },
+
+      'Presets': {
+        js: ['presets']
+      },
+
+      'OAuthWindow': {
+        js: [
+          'querystring',
+          'oauth_window'
+        ]
       }
     }
   };
