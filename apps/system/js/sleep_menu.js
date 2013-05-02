@@ -103,6 +103,8 @@ var SleepMenu = {
     this.elements.container.innerHTML = '';
     this.buildMenu(this.generateItems());
     this.elements.overlay.classList.add('visible');
+    // Lock orientation to portrait
+    screen.mozLockOrientation('portrait-primary');
   },
 
   buildMenu: function sm_buildMenu(items) {
@@ -116,6 +118,9 @@ var SleepMenu = {
 
   hide: function lm_hide() {
     this.elements.overlay.classList.remove('visible');
+    // Reset the orientation for the currently running app
+    var currentApp = WindowManager.getDisplayedApp();
+    WindowManager.setOrientationForApp(currentApp);
   },
 
   handleEvent: function sm_handleEvent(evt) {
