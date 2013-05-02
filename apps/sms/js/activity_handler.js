@@ -79,14 +79,15 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 if (!window.location.hash.length) {
   window.navigator.mozSetMessageHandler('sms-received',
     function smsReceived(message) {
-      // Acquire the "high-priority" wake lock when we receive an SMS.  This
-      // raises the priority of this process above vanilla background apps,
-      // making it less likely to be killed on OOM.
+      // Acquire the cpu wake lock when we receive an SMS.  This raises the
+      // priority of this process above vanilla background apps, making it less
+      // likely to be killed on OOM.  It also prevents the device from going to
+      // sleep before the user is notified of the new message.
       //
       // We'll release it once we display a notification to the user.  We also
       // release the lock after 30s, in case we never run the notification code
       // for some reason.
-      var wakeLock = navigator.requestWakeLock('high-priority');
+      var wakeLock = navigator.requestWakeLock('cpu');
       var wakeLockReleased = false;
       var timeoutID = null;
       function releaseWakeLock() {
