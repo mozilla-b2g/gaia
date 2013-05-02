@@ -35,7 +35,8 @@ var BatteryManager = {
     if (battery) {
       // When the device is booted, check if the battery is drained.
       // If so, SleepMenu.startPowerOff() would be called.
-      this.checkBatteryDrainage();
+      window.addEventListener('homescreen-ready',
+                              this.checkBatteryDrainage.bind(this));
 
       battery.addEventListener('levelchange', this);
       battery.addEventListener('chargingchange', this);
