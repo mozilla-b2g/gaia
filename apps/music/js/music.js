@@ -990,7 +990,7 @@ var ListView = {
           // When an user select "Shuffle all"
           // We just play all songs with shuffle order
           // or change mode to subList view and list songs
-          if (option === 'title') {
+          if (option === 'shuffleAll') {
             musicdb.getAll(function lv_getAll(dataArray) {
               ModeManager.push(MODE_PLAYER, function() {
                 PlayerView.setSourceType(TYPE_MIX);
