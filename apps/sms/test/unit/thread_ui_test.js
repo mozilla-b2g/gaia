@@ -4,9 +4,12 @@
 // mocha and when we have that new mocha in test agent
 mocha.setup({ globals: ['alert'] });
 
-requireApp('sms/js/utils.js');
+requireApp('sms/js/compose.js');
 requireApp('sms/js/recipients.js');
+requireApp('sms/js/thread_ui.js');
+requireApp('sms/js/utils.js');
 
+requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
@@ -14,7 +17,6 @@ requireApp('sms/test/unit/mock_link_helper.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_recipients.js');
-requireApp('sms/js/thread_ui.js');
 
 
 var mocksHelperForThreadUI = new MocksHelper([
@@ -106,26 +108,30 @@ suite('thread_ui.js >', function() {
 
   suite('Search', function() {
     test('search results cleared', function() {
-      ThreadUI.input.value = '';
-      ThreadUI.container.textContent = 'foo';
+      Compose.clear();
+      Compose.append('foo');
       ThreadUI.cleanFields(true);
-      assert.equal(ThreadUI.container.textContent, '');
+      assert.equal(Compose.getContent(), '');
     });
   });
 
   suite('enableSend() >', function() {
     setup(function() {
+      Compose.clear();
       ThreadUI.updateCounter();
     });
 
-    test('disabled at the beginning', function() {
-      ThreadUI.enableSend();
+    teardown(function() {
+      Compose.clear();
+    });
+
+    test('button should be disabled at the beginning', function() {
+      Compose.clear();
       assert.isTrue(sendButton.disabled);
     });
 
-    test('enabled when there is some text', function() {
-      input.value = 'Hola';
-      ThreadUI.enableSend();
+    test('button should be enabled when there is some text', function() {
+      Compose.append('Hola');
       assert.isFalse(sendButton.disabled);
     });
 
@@ -146,29 +152,33 @@ suite('thread_ui.js >', function() {
     suite('#new mode >', function() {
       setup(function() {
         window.location.hash = '#new';
+        Compose.clear();
+        ThreadUI.recipients.length = 0;
       });
 
       teardown(function() {
         window.location.hash = '';
+        Compose.clear();
+        ThreadUI.recipients.length = 0;
       });
 
       test('button should be disabled when there is neither contact or input',
         function() {
+        Compose.clear();
 
-        ThreadUI.enableSend();
         assert.isTrue(sendButton.disabled);
       });
 
       test('button should be disabled when there is no contact', function() {
-        input.value = 'Hola';
-        ThreadUI.enableSend();
+        Compose.append('Hola');
+        console.log(sendButton.disabled);
         assert.isTrue(sendButton.disabled);
       });
 
       test('button should be enabled when there is both contact and input',
         function() {
+        Compose.append('Hola');
 
-        ThreadUI.input.value = 'Hola';
         ThreadUI.recipients.add({
           number: '999'
         });
@@ -185,13 +195,11 @@ suite('thread_ui.js >', function() {
           segments: 11,
           charsAvailableInLastSegment: 10
         };
-        input.value = 'Hola';
 
         ThreadUI.recipients.add({
           number: '999'
         });
-
-        ThreadUI.enableSend();
+        Compose.append('Hola');
 
         assert.isTrue(sendButton.disabled);
       });
@@ -216,17 +224,13 @@ suite('thread_ui.js >', function() {
         banner.classList.remove('hide');
 
         // add a maxlength to check that it is correctly removed
-        input.setAttribute('maxlength', 25);
+        Compose.setMaxLength(25);
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
 
       test('no counter is displayed', function() {
         assert.equal(sendButton.dataset.counter, '');
-      });
-
-      test('the user can enter more characters', function() {
-        assert.equal(input.maxLength, -1);
       });
 
       test('no banner is displayed', function() {
@@ -245,17 +249,13 @@ suite('thread_ui.js >', function() {
         banner.classList.remove('hide');
 
         // add a maxlength to check that it is correctly removed
-        input.setAttribute('maxlength', 25);
+        Compose.setMaxLength(25);
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
 
       test('no counter is displayed', function() {
         assert.equal(sendButton.dataset.counter, '');
-      });
-
-      test('the user can enter more characters', function() {
-        assert.equal(input.maxLength, -1);
       });
 
       test('no banner is displayed', function() {
@@ -281,7 +281,7 @@ suite('thread_ui.js >', function() {
         banner.classList.remove('hide');
 
         // add a maxlength to check that it is correctly removed
-        input.setAttribute('maxlength', 25);
+        Compose.setMaxLength(25);
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -289,10 +289,6 @@ suite('thread_ui.js >', function() {
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
         assert.equal(sendButton.dataset.counter, expected);
-      });
-
-      test('the user can enter more characters', function() {
-        assert.equal(input.maxLength, -1);
       });
 
       test('no banner is displayed', function() {
@@ -318,7 +314,7 @@ suite('thread_ui.js >', function() {
         banner.classList.remove('hide');
 
         // add a maxlength to check that it is correctly removed
-        input.setAttribute('maxlength', 25);
+        Compose.setMaxLength(25);
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -326,10 +322,6 @@ suite('thread_ui.js >', function() {
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
         assert.equal(sendButton.dataset.counter, expected);
-      });
-
-      test('the user can enter more characters', function() {
-        assert.equal(input.maxLength, -1);
       });
 
       test('no banner is displayed', function() {
@@ -355,7 +347,7 @@ suite('thread_ui.js >', function() {
         banner.classList.remove('hide');
 
         // add a maxlength to check that it is correctly removed
-        input.setAttribute('maxlength', 25);
+        Compose.setMaxLength(25);
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -363,10 +355,6 @@ suite('thread_ui.js >', function() {
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
         assert.equal(sendButton.dataset.counter, expected);
-      });
-
-      test('the user can enter more characters', function() {
-        assert.equal(input.maxLength, -1);
       });
 
       test('no banner is displayed', function() {
@@ -396,10 +384,6 @@ suite('thread_ui.js >', function() {
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
         assert.equal(sendButton.dataset.counter, expected);
-      });
-
-      test('the user can not enter more characters', function() {
-        assert.equal(input.maxLength, input.value.length);
       });
 
       test('the banner is displayed', function() {
@@ -434,22 +418,6 @@ suite('thread_ui.js >', function() {
         assert.equal(sendButton.dataset.counter, expected);
       });
 
-      test('the user can not enter more characters', function() {
-        assert.equal(input.maxLength, input.value.length);
-      });
-
-      test('the banner is displayed', function() {
-        assert.isFalse(banner.classList.contains('hide'));
-      });
-
-      test('the banner has the exceeded length message', function() {
-        var actual = banner.querySelector('p').textContent;
-        assert.equal(actual, 'messages-exceeded-length-text');
-      });
-
-      test('the send button should be disabled', function() {
-        assert.isFalse(shouldEnableSend);
-      });
     });
   });
 
