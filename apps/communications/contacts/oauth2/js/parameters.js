@@ -6,7 +6,7 @@ oauthflow.params = {
     appOrigin:
       'app://communications.gaiamobile.org',
     redirectURI:
-      'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/flow.html',
+      'https://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/flow.html',
     loginPage:
       'https://m.facebook.com/dialog/oauth/?',
     applicationId:
@@ -15,9 +15,9 @@ oauthflow.params = {
       ['friends_about_me', 'friends_birthday', 'friends_hometown',
        'friends_location', 'friends_work_history', 'read_stream'],
     redirectMsg:
-    'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/dialogs_end.html',
+      'https://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/dialogs_end.html',
     redirectLogout:
-      'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/logout.json'
+      'https://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/logout.json'
   },
 
   live: {
