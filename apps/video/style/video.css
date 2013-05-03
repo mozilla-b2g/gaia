@@ -72,7 +72,6 @@ li .inner {
 li .img {
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: cover;
   height: 12rem;
   width: 21rem;
   overflow: hidden;
@@ -154,6 +153,21 @@ li .after span:last-child {
 .thumbnail.selected {
   outline: solid #00aacc 3px;
   outline-offset: -3px;
+}
+
+/*
+ * When the user holds their finger over a thumbnail, change the background
+ * color to highlight it
+ */
+.thumbnail:active {
+  background-color: #0ac;
+}
+
+/*
+ * And make all the children translucent so the color shows through
+ */
+.thumbnail:active div {
+  opacity: 0.85;
 }
 
 /*
@@ -272,8 +286,6 @@ header h1 {
   margin: 0 0 0 3.4rem !important;
 }
 
-
-
 /* the indeterminate progress bar displayed while scanning */
 #throbber {
   position: absolute;
@@ -281,7 +293,7 @@ header h1 {
   left: 0;
   width: 100%;
   height: 0.3rem;
-  display: none;
+  overflow: hidden;
   z-index: 100;
 }
 
