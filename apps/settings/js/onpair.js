@@ -21,7 +21,6 @@ var PairView = {
 
   pairView: document.getElementById('pair-view'),
 
-  deviceInfo: document.getElementById('device-info'),
   nameLabel: document.getElementById('label-name'),
   pairDescription: document.getElementById('pair-description'),
   pairButton: document.getElementById('button-pair'),
@@ -42,7 +41,6 @@ var PairView = {
     window.addEventListener('resize', this);
 
     this.nameLabel.textContent = this._device.name;
-    this.deviceInfo.className = this._device.icon;
     this.pairView.hidden = false;
 
     var stringName = this._pairMode + '-pair-' + this._pairMethod;

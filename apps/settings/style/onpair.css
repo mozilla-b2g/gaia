@@ -1,40 +1,58 @@
-html {
-  font: 10px/2em "MozTT", Sans-serif;
-}
-#pair-view div {
-  font-size: 1.7rem;
-}
+/**
+ * Settings > onpair style & layout
+ */
 
-#pair-view #pair-description {
-  font-size: 1.4rem;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-
-#pair-view #device-info #label-name {
-  display: block;
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 10px;
+  font-family: "MozTT", sans-serif;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-#pair-view .pair-method {
+#pair-view {
+  padding: 0;
+}
+
+#pair-view h2 {
+  font-size: 1.6rem;
+  font-weight: 400;
+  border: none;
+  margin: 2.2rem 0 1.4rem;
+  line-height: 1.4rem;
+  padding: 0 1.5rem;
+}
+
+#pair-view > section {
+  height: 100%;
+  padding: 0 1.5rem;
+}
+
+#label-name {
+  border-top: 0.1rem solid #696969;
+  font-size: 2.5rem;
+  line-height: 7rem;
+  padding: 0 1.5rem;
+}
+
+#pair-description {
+  margin: 0;
+  padding: 1rem 1.5rem 0;
+  border-top-color: #696969;
+  font-size: 2rem;
+  line-height: 2.7rem;
+  font-weight: 300;
+}
+
+#passkey {
+  position: absolute;
+  bottom: 11rem;
+  left: 1.5rem;
+  width: calc(100% - 3rem);
+  font-size: 3rem;
+  font-weight: 400;
   text-align: center;
-  font-size: 1.9rem;
-}
-
-#pair-view .pair-method input {
-  font-size: 1.5rem;
-}
-
-#device-info {
-  background-repeat: no-repeat;
-  background-position: left 0rem top 50%;
-  padding-left: 3rem;
-}
-
-.bluetooth-default {
-  /* https://bugzilla.mozilla.org/show_bug.cgi?id=853693 */
-  /* need a transparent background of icons_sprite.gif */
 }
 
