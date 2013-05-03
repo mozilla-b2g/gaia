@@ -127,7 +127,11 @@ let customize = {"homescreens": [
     ["apps", "music"],
     ["apps", "video"]
   ]
-]};
+],
+  "search_page": {
+    "enabled":true
+  }
+};
 
 if (DOGFOOD == 1) {
   customize.homescreens[0].push(["dogfood_apps", "feedback"]);
@@ -137,7 +141,7 @@ customize = JSON.parse(getDistributionFileContent('homescreens', customize));
 let content = {
   search_page: {
     provider: 'EverythingME',
-    enabled: true
+    enabled: customize.search_page.enabled
   },
 
   // It defines the threshold in pixels to consider a gesture like a tap event
