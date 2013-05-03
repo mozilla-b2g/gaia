@@ -1,9 +1,15 @@
 Calendar.ns('Views').ModifyAccount = (function() {
 
+  var OAUTH_AUTH_CREDENTIALS = [
+    'client_id',
+    'scope',
+    'redirect_uri',
+    'state'
+  ];
+
   function ModifyAccount(options) {
     Calendar.View.apply(this, arguments);
 
-    this.save = this.save.bind(this);
     this.deleteRecord = this.deleteRecord.bind(this);
     this.cancel = this.cancel.bind(this);
 
@@ -12,6 +18,9 @@ Calendar.ns('Views').ModifyAccount = (function() {
     );
 
     this.accountHandler.on('authorizeError', this);
+
+    // bound so we can add remove listeners
+    this._boundSaveUpdateModel = this.save.bind(this, { updateModel: true });
   }
 
   ModifyAccount.prototype = {
@@ -28,10 +37,15 @@ Calendar.ns('Views').ModifyAccount = (function() {
       cancelDeleteButton: '#modify-account-view .delete-cancel',
       backButton: '#modify-account-view .cancel',
       status: '#modify-account-view section[role="status"]',
-      errors: '#modify-account-view .errors'
+      errors: '#modify-account-view .errors',
+      oauth2Window: '#oauth2'
     },
 
     progressClass: 'in-progress',
+
+    get oauth2Window() {
+      return this._findElement('oauth2Window');
+    },
 
     get deleteButton() {
       return this._findElement('deleteButton');
@@ -138,7 +152,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
       window.back();
     },
 
-    save: function() {
+    save: function(options) {
       var list = this.element.classList;
       var self = this;
 
@@ -150,7 +164,9 @@ Calendar.ns('Views').ModifyAccount = (function() {
       list.add(this.progressClass);
 
       this.errors.textContent = '';
-      this.updateModel();
+
+      if (options && options.updateModel)
+        this.updateModel();
 
       this.accountHandler.send(this.model, function(err) {
         list.remove(self.progressClass);
@@ -173,14 +189,53 @@ Calendar.ns('Views').ModifyAccount = (function() {
       return model;
     },
 
+    _redirectToOAuthFlow: function() {
+      var apiCredentials = this.preset.apiCredentials;
+      var params = {
+        /*
+         * code response type for now might change when we can use window.open
+         */
+        response_type: 'code',
+        /* offline so we get refresh_token[s] */
+        access_type: 'offline',
+        /* we us force so we always get a refresh_token */
+        approval_prompt: 'force'
+      };
+
+      OAUTH_AUTH_CREDENTIALS.forEach(function(key) {
+        if (key in apiCredentials) {
+          params[key] = apiCredentials[key];
+        }
+      });
+
+      var oauth = this._oauthDialog = new Calendar.OAuthWindow(
+        this.oauth2Window,
+        apiCredentials.authorizationUrl,
+        params
+      );
+
+      var self = this;
+
+      oauth.open();
+      oauth.onabort = function() {
+        self.cancel();
+      };
+
+      oauth.oncomplete = function(params) {
+        if (!params.code) {
+          return console.error('authentication error');
+        }
+        self.model.oauth = { code: params.code };
+        self.save();
+      };
+    },
+
     render: function() {
       if (!this.model) {
         throw new Error('must provider model to ModifyAccount');
       }
 
-      var list = this.element.classList;
-
-      this.saveButton.addEventListener('click', this.save);
+      this.saveButton.addEventListener('click', this._boundSaveUpdateModel);
       this.backButton.addEventListener('click', this.cancel);
 
       if (this.model._id) {
@@ -191,17 +246,31 @@ Calendar.ns('Views').ModifyAccount = (function() {
         this.type = 'create';
       }
 
+      var list = this.element.classList;
+      list.add(this.type);
+      list.add('preset-' + this.model.preset);
+      list.add('provider-' + this.model.providerType);
+
+      if (this.preset && this.preset.authenticationType === 'oauth2') {
+        // show the dialog immediately
+        this.oauth2Window.classList.add(Calendar.View.ACTIVE);
+
+        // but lazy load the real objects we need.
+        if (Calendar.OAuthWindow)
+          return this._redirectToOAuthFlow();
+
+        return Calendar.App.loadObject(
+          'OAuthWindow', this._redirectToOAuthFlow.bind(this)
+        );
+      }
+
       this.form.reset();
       this.updateForm();
 
       var usernameType = this.model.usernameType;
       this.fields['user'].type = (usernameType === undefined) ?
           'text' : usernameType;
-
-      list.add(this.type);
-      list.add('preset-' + this.model.preset);
-      list.add('provider-' + this.model.providerType);
-    },
+   },
 
     destroy: function() {
       var list = this.element.classList;
@@ -214,7 +283,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
       this._fields = null;
       this.form.reset();
 
-      this.saveButton.removeEventListener('click', this.save);
+      this.saveButton.removeEventListener('click', this._boundSaveUpdateModel);
       this.deleteButton.removeEventListener('click', this.deleteRecord);
       this.cancelDeleteButton.removeEventListener('click',
                                                   this.cancel);
@@ -233,6 +302,8 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
       var self = this;
       function displayModel(err, model) {
+        self.preset = Calendar.Presets[model.preset];
+
         // race condition another dispatch has queued
         // while we where waiting for an async event.
         if (self._changeToken !== changeToken)
@@ -258,6 +329,15 @@ Calendar.ns('Views').ModifyAccount = (function() {
         this.app.store('Account').get(params.id, displayModel);
       } else if (params.preset) {
         displayModel(null, this._createModel(params.preset));
+      }
+    },
+
+    oninactive: function() {
+      Calendar.View.prototype.oninactive.apply(this, arguments);
+
+      if (this._oauthDialog) {
+        this._oauthDialog.close();
+        this._oauthDialog = null;
       }
     }
   };

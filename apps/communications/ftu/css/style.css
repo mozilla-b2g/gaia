@@ -284,8 +284,8 @@ html, body {
 
 #languages [data-type="list"] {
   position: relative;
-  top: 12.5rem;
-  height: 24rem;
+  top: 15.5rem;
+  height: calc(100% - 15.5rem);
   overflow-y: scroll;
   overflow-x: hidden;
   padding-top: 0;

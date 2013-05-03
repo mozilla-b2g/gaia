@@ -1,6 +1,8 @@
 'use strict';
 
 var KeyboardManager = (function() {
+  var keyboardHeight = 0;
+
   function getKeyboardURL() {
     // TODO: Retrieve it from Settings, allowing 3rd party keyboards
     var host = document.location.host;
@@ -41,6 +43,10 @@ var KeyboardManager = (function() {
     var type = urlparser.hash.split('=');
     switch (type[0]) {
       case '#show':
+
+        //XXX: The url will contain the info for keyboard height
+        keyboardHeight = parseInt(type[1]);
+
         var updateHeight = function updateHeight() {
           container.removeEventListener('transitionend', updateHeight);
           if (container.classList.contains('hide')) {
@@ -51,7 +57,7 @@ var KeyboardManager = (function() {
 
           var detail = {
             'detail': {
-              'height': parseInt(type[1])
+              'height': keyboardHeight
             }
           };
 
@@ -70,11 +76,16 @@ var KeyboardManager = (function() {
       case '#hide':
         // inform window manager to resize app first or
         // it may show the underlying homescreen
+        keyboardHeight = 0;
         dispatchEvent(new CustomEvent('keyboardhide'));
         container.classList.add('hide');
         break;
     }
   });
+
+  function getHeight() {
+    return keyboardHeight;
+  }
 
   // For Bug 812115: hide the keyboard when the app is closed here,
   // since it would take a longer round-trip to receive focuschange
@@ -86,9 +97,15 @@ var KeyboardManager = (function() {
   ];
   closeKeyboardEvents.forEach(function onEvent(eventType) {
     window.addEventListener(eventType, function closeKeyboard() {
+      keyboardHeight = 0;
       dispatchEvent(new CustomEvent('keyboardhide'));
       container.classList.add('hide');
     });
   });
+
+  return {
+    getHeight: getHeight
+  };
+
 })();
 

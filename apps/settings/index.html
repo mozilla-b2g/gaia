@@ -675,6 +675,28 @@
       </header>
 
       <div>
+        <ul class="mmsSettings-list">
+          <li>
+            <p data-l10n-id="auto-retrieve">Auto retrieve</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select data-setting="ril.mms.retrieval_mode">
+                <option value="manual" data-l10n-id="manual-retrieve">Off</option>
+                <option value="automatic" data-l10n-id="auto-roaming-retrieve">On with roaming</option>
+                <option value="automatic-home" data-l10n-id="auto-no-roaming-retrieve">On without roaming/option>
+              </select>
+            </p>
+          </li>
+        </ul>
+        <ul class="apnSettings-list">
+          <li class="apnSettings-custom">
+            <label>
+              <input type="radio" data-setting="ril.mms.carrier" name="mmsApnSettingsCarrier" value="_custom_" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="custom">(custom settings)</a>
+          </li>
+        </ul>
         <header>
           <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
         </header>
@@ -868,7 +890,7 @@
                 data-l10n-id="dataSettings">Data Settings</button>
             </label>
           </li>
-          <li hidden>
+          <li>
             <label>
               <button data-href="#carrier-mmsSettings"
                 data-l10n-id="mmsSettings">MMS Settings</button>
@@ -2461,9 +2483,9 @@
           <li class="description" data-l10n-id="crash-reports-description-1"></li>
           <li class="description" data-l10n-id="crash-reports-description-2"></li>
           <li>
-            <label for="" class="description">
+            <p class="description">
               <span data-l10n-id="crash-reports-description-3-start"></span><a href="https://www.mozilla.org/privacy/" data-l10n-id="crash-reports-description-3-privacy" class="link-text"></a><span data-l10n-id="crash-reports-description-3-end"></span>
-            </label>
+            </p>
           </li>
         </ul>
       </div>
@@ -2492,12 +2514,12 @@
         </header>
         <ul>
           <li>
-            <label for="" class="description">
+            <p class="description">
               <span data-l10n-id="performanceDataInfo">
                 Help us improve Browser OS by sharing data about your phone.
               </span>
               <a href="http://mozilla.org/telemetry" data-l10n-id="learn-more" class="link-text">Learn More</a>
-            </label>
+            </p>
           </li>
           <li>
             <label>
@@ -2513,13 +2535,13 @@
         </header>
         <ul>
           <li>
-            <label for="" class="description">
+            <p class="description">
               <span data-l10n-id="crashReportInfo">
                 Sending Mozilla a report when a crash occurs helps us fix the problem
                 for everyone. Reports are sent over Wi-Fi only.
               </span>
               <a href="#crashReports" data-l10n-id="learn-more" class="link-text">Learn More</a>
-            </label>
+            </p>
           </li>
           <li>
             <label>
@@ -2572,12 +2594,8 @@
               <button data-l10n-id="user-guide"> User Guide </button>
             </label>
           </li>
-          <li class="no-support-info">
-            <label for="" class="description">
-              <span data-l10n-id="default-support">
-                Please contact your local provider for support.
-              </span>
-            </label>
+          <li class="no-support-info description" data-l10n-id="default-support">
+            Please contact your local provider for support.
           </li>
         </ul>
       </div>

@@ -110,6 +110,7 @@ suite('dock.js >', function() {
     test('looks ok', function() {
       assert.ok(dock);
       assert.equal(1, dock.getNumIcons());
+      assert.isFalse(DockManager.isFull());
     });
 
     test('#calculateDimentions', function() {
@@ -120,6 +121,11 @@ suite('dock.js >', function() {
     test('#getRight', function() {
       assert.ok(dock.getRight() > 0);
     });
+
+    test('#getLeft', function() {
+      assert.isTrue(dock.getLeft() >= 0);
+    });
+
   });
 
   suite('with 0 icons >', function() {
@@ -128,6 +134,7 @@ suite('dock.js >', function() {
       setupDom();
       dock = new Dock(dockContainer, getIcons(0));
       DockManager.init(dockContainer, dock, tapThreshold);
+      assert.isFalse(DockManager.isFull());
     });
 
     teardown(teardownDom);
@@ -145,5 +152,10 @@ suite('dock.js >', function() {
     test('#getRight', function() {
       assert.equal(dock.getRight(), 0);
     });
+
+    test('#getLeft', function() {
+      assert.isTrue(dock.getLeft() >= 0);
+    });
+
   });
 });
