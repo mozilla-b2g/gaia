@@ -535,6 +535,10 @@ span[role="button"].icon-arrow.icon-arrow-right {
   position: relative;
 }
 
+.fillflow-row.last {
+  margin-bottom: 0;
+}
+
 .fillflow-left {
   margin-right: 0.7rem;
 }
@@ -555,9 +559,9 @@ span[role="button"].icon-arrow.icon-arrow-right {
 /* ROW ACTION */
 .fillflow-row-action {
   position: absolute;
-  left: 100%;
+  right: -4.5rem;
   top: 50%;
-  margin: -1rem 0 0 0.5rem;
+  margin: -1rem 0 0 0;
   background: none;
   border: none;
   width: auto;
@@ -619,7 +623,6 @@ span[role="button"].icon-arrow.icon-arrow-right {
   display: block;
 }
 
-
 .fillflow-media img {
   width: 100%;
   height: 100%;
@@ -643,3 +646,31 @@ nav[data-type="scrollbar"] p img {
   left: 25%;
   width: auto;
 }
+
+fieldset section {
+  margin: 0;
+  border-left: none;
+}
+
+fieldset legend.action {
+  position: absolute;
+  top: -0.1rem;
+  left: -0.1rem;
+  width: 9.5rem;
+  height: 4.2rem;
+  text-transform: none;
+  line-height: 4.2rem;
+  border-radius: 0.2rem;
+  border: 0.1rem solid #a6a6a6;
+  background-color: #e7e7e7;
+}
+
+#contact-form .small {
+  float: right;
+  width: calc(100% - 9.2rem);
+}
+
+fieldset section p {
+  clear: both;
+}
+
