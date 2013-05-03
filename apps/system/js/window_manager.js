@@ -864,6 +864,11 @@ var WindowManager = (function() {
     closeFrame.dispatchEvent(evt);
 
     transitionCloseCallback = function startClosingTransition() {
+      if (wrapperFooter.classList.contains('visible')) {
+        wrapperHeader.classList.remove('visible');
+        wrapperFooter.classList.remove('visible');
+      }
+
       // We have been canceled by another transition.
       if (!closeFrame || transitionCloseCallback != startClosingTransition)
         return;
@@ -874,11 +879,6 @@ var WindowManager = (function() {
       // Start the transition
       closeFrame.classList.add('closing');
       closeFrame.classList.remove('active');
-
-      if ('wrapper' in closeFrame.dataset) {
-        wrapperHeader.classList.remove('visible');
-        wrapperFooter.classList.remove('visible');
-      }
     };
 
     waitForNextPaint(homescreenFrame, transitionCloseCallback);
