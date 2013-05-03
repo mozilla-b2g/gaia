@@ -2369,6 +2369,10 @@ MailAPI.prototype = {
    *     positive indications of some type of maintenance rather than a
    *     generic error string.
    *   }
+   *   @case['user-account-exists']{
+   *     If the user tries to create an account which is already configured.
+   *     Should not be created. We will show that account is already configured
+   *   }
    *   @case['unknown']{
    *     We don't know what happened; count this as our bug for not knowing.
    *   }

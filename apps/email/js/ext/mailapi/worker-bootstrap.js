@@ -14644,6 +14644,14 @@ MailUniverse.prototype = {
       callback('offline');
       return;
     }
+    if (!userDetails.forceCreate) {
+      for (var i = 0; i < this.accounts.length; i++) {
+        if (userDetails.emailAddress = this.accounts[i].identities[0].address) {
+          callback('user-account-exists');
+          return;
+        }
+      }
+    }
 
     if (domainInfo) {
       $acctcommon.tryToManuallyCreateAccount(this, userDetails, domainInfo,
