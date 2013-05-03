@@ -36,7 +36,8 @@ var ThreadUI = global.ThreadUI = {
     var _ = navigator.mozL10n.get;
     // Fields with 'messages' label
     [
-      'container', 'to-field', 'recipients-container',
+      'container',
+      'recipients-container', 'live-search-results',
       'header-text', 'recipient', 'input', 'compose-form',
       'check-all-button', 'uncheck-all-button',
       'contact-pick-button', 'back-button', 'send-button',
@@ -51,12 +52,14 @@ var ThreadUI = global.ThreadUI = {
     this._mozMobileMessage = navigator.mozMobileMessage ||
                               window.DesktopMockNavigatormozMobileMessage;
 
-    // Handler of the 'to-field'
-    this.toField.addEventListener(
+    this.recipientsContainer.addEventListener(
       'click', this.recipientsContainerClickHandler.bind(this)
     );
 
-    this.toField.addEventListener(
+    this.liveSearchResults.addEventListener(
+      'click', this.liveSearchResultsHandler.bind(this));
+
+    this.recipientsContainer.addEventListener(
       'input', this.recipientsContainerInputHandler.bind(this), true);
 
     // Handlers for send button and avoiding to hide keyboard instead
@@ -177,6 +180,25 @@ var ThreadUI = global.ThreadUI = {
     this.input.value = value;
   },
 
+  liveSearchResultsHandler: function thui_liveSearchResultsHandler(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    var recipient =
+        this.recipientsContainer.querySelector('span[contenteditable=true]');
+    var phoneNumber = e.target.dataset.phoneNumber;
+    var name = e.target.dataset.name;
+    var contact = {
+      'name': name,
+      'number': phoneNumber
+    };
+    // We remove the editable item
+    this.removeRecipient(recipient);
+    // We append the new one after picking from the list
+    var newRecipient = this.appendEditableRecipient(contact);
+    this.createRecipient(newRecipient);
+    this.liveSearchResults.textContent = '';
+  },
+
   messageComposerInputHandler: function thui_messageInputHandler(event) {
     this.updateInputHeight();
     this.enableSend();
@@ -249,8 +271,11 @@ var ThreadUI = global.ThreadUI = {
     if (textTyped.charAt(textTyped.length - 1) === ';') {
       this.createRecipient(recipient);
     } else {
+      if (!recipient.textContent.trim()) {
+        return;
+      }
       // If it's not a ';' we are going to launch the live search
-      this.searchContact(recipient.textContent, recipient);
+      this.searchContact(recipient.textContent);
     }
   },
 
@@ -287,10 +312,14 @@ var ThreadUI = global.ThreadUI = {
 
   // Create a recipient box non-editable
   createRecipient: function thui_createRecipientBox(recipient) {
-
+    // Remove ';' if needed
+    recipient.textContent = recipient.textContent.replace(/;$/, '');
+    if (recipient.textContent.length === 0) {
+      this.removeRecipient(recipient);
+      this.input.focus();
+      return;
+    }
     if (!recipient.dataset.isContact) {
-      // Remove ';' if needed
-      recipient.textContent = recipient.textContent.replace(/;$/, '');
       // Add dataset if needed
       recipient.dataset.phoneNumber = recipient.textContent;
     }
@@ -311,6 +340,7 @@ var ThreadUI = global.ThreadUI = {
   cleanRecipients: function thui_cleanRecipients() {
     this.recipients = [];
     this.recipientsContainer.textContent = '';
+    this.liveSearchResults.textContent = '';
   },
 
   // Remove a recipient from the 'to-field'
@@ -1205,7 +1235,7 @@ var ThreadUI = global.ThreadUI = {
 
   // Returns true when a contact has been rendered
   // Returns false when no contact has been rendered
-  renderContact: function thui_renderContact(contact, value, contactsUl) {
+  renderContact: function thui_renderContact(contact, value) {
     // Contact records that don't have phone numbers
     // cannot be sent SMS or MMS messages
     // TODO: Add email checking support for MMS
@@ -1214,7 +1244,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     var input = value.trim();
-
+    var contactsUl = this.liveSearchResults;
     var escaped = Utils.escapeRegex(input);
     var escsubs = escaped.split(/\s+/);
     var tels = contact.tel;
@@ -1264,7 +1294,7 @@ var ThreadUI = global.ThreadUI = {
     return true;
   },
 
-  searchContact: function thui_searchContact(filterValue, recipient) {
+  searchContact: function thui_searchContact(filterValue) {
 
     if (!filterValue.trim()) {
       // In cases where searchContact was invoked for "input"
@@ -1272,43 +1302,19 @@ var ThreadUI = global.ThreadUI = {
       // character in the recipient input field,
       // eg. type "a", then delete it.
       // Always remove the the existing results.
-      this.container.innerHTML = '';
+      this.liveSearchResults.innerHTML = '';
       return;
     }
 
     Contacts.findByString(filterValue, function gotContact(contacts) {
-      if (!recipient.textContent.trim()) {
-        return;
-      }
       // There are contacts that match the input.
-      this.container.innerHTML = '';
+      this.liveSearchResults.innerHTML = '';
       if (!contacts || !contacts.length) {
         return;
       }
-      // TODO Modify in Bug 861227 in order to create a standalone element
-      var contactsUl = document.createElement('ul');
-      contactsUl.classList.add('contactList');
-      contactsUl.addEventListener('click', function(e) {
-        var phoneNumber = e.target.dataset.phoneNumber;
-        var name = e.target.dataset.name;
-        var contact = {
-          'name': name,
-          'number': phoneNumber
-        };
-        // We remove the editable item
-        ThreadUI.removeRecipient(recipient);
-        // We append the new one after picking from the list
-        var newRecipient = ThreadUI.appendEditableRecipient(contact);
-        ThreadUI.createRecipient(newRecipient);
-        ThreadUI.container.textContent = '';
-        e.stopPropagation();
-        e.preventDefault();
-      });
-      ThreadUI.container.appendChild(contactsUl);
-      // Render each contact
       contacts.forEach(function(contact) {
-        ThreadUI.renderContact(contact, filterValue, contactsUl);
-      });
+        this.renderContact(contact, filterValue);
+      }, this);
     }.bind(this));
   },
 

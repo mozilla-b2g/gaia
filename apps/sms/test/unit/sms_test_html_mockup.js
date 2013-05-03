@@ -55,14 +55,19 @@ function renderThreadMsgHeader() {
             '<h1 id="messages-header-text" ' +
               'data-l10n-id="messages" aria-hidden="true">' +
               'Messages</h1>' +
-            '<section id="messages-to-field">' +
-              '<section id="to-label">' +
-                'To:' +
-              '</section>' +
-              '<section id="messages-recipients-container">' +
-              '</section>' +
-            '</section>' +
           '</header>' +
+          '<article id="messages-composer-to-field">' +
+            '<label data-l10n-id="to" id="to-label">' +
+              'To:' +
+            '</label>' +
+            '<section id="messages-recipients-container">' +
+            '</section>' +
+            '<section id="messages-live-search-container">' +
+              '<ul id="messages-live-search-results"' +
+                'class="contactList" data-type="list">' +
+              '</ul>' +
+            '</section>' +
+          '</article>' +
           '<article id="messages-container" ' +
           'class="view-body" data-type="list">' +
           '</article>';
