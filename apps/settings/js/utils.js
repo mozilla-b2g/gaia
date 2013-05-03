@@ -268,8 +268,11 @@ function bug344618_polyfill() {
 
     // move the throbber to the proper position, according to mouse events
     var updatePosition = function updatePosition(event) {
+      var pointer = event.changedTouches && event.changedTouches[0] ?
+                    event.changedTouches[0] :
+                    event;
       var rect = slider.getBoundingClientRect();
-      var pos = (event.clientX - rect.left) / rect.width;
+      var pos = (pointer.clientX - rect.left) / rect.width;
       pos = Math.max(pos, 0);
       pos = Math.min(pos, 1);
       fill.style.width = (100 * pos) + '%';
@@ -293,6 +296,8 @@ function bug344618_polyfill() {
     var onDragMove = function onDragMove(event) {
       if (isDragging) {
         updatePosition(event);
+        // preventDefault prevents vertical scrolling
+        event.preventDefault();
       }
     };
     var onDragStop = function onDragStop(event) {
@@ -306,10 +311,16 @@ function bug344618_polyfill() {
       updatePosition(event);
       notify();
     };
-    slider.onmousedown = onClick;
-    thumb.onmousedown = onDragStart;
-    label.onmousemove = onDragMove;
-    label.onmouseup = onDragStop;
+
+    slider.addEventListener('mousedown', onClick);
+    slider.addEventListener('touchstart', onClick);
+    thumb.addEventListener('mousedown', onDragStart);
+    thumb.addEventListener('touchstart', onDragStart);
+    label.addEventListener('mousemove', onDragMove);
+    label.addEventListener('touchmove', onDragMove);
+    label.addEventListener('mouseup', onDragStop);
+    label.addEventListener('touchend', onDragStop);
+    label.addEventListener('touchcancel', onDragStop);
 
     // expose the 'refresh' method on <input>
     // XXX remember to call it after setting input.value manually...

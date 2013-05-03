@@ -287,19 +287,19 @@ ul li > label.bug344618_polyfill div span:first-child {
 ul li > label.bug344618_polyfill div span:last-child {
   position: absolute;
   top: 50%;
-  margin: -1.5rem 0 0 -1.5rem;
+  margin: -2rem 0 0 -2rem;
   display: block;
-  width: 2.8rem;
-  height: 2.8rem;
-  border: solid 0.1rem transparent;
-  border-radius: 3rem;
-  transition: border 0.15s ease;
-  -moz-box-sizing: border-box;
+  width: 3.8rem;
+  height: 3.8rem;
+  outline: solid 0.1rem transparent;
+  outline-offset: -1rem;
+  -moz-outline-radius: 3rem;
+  transition: outline 0.15s ease;
   background: url(images/range_thumb.png) no-repeat 50% 50%;
 }
 
 ul li > label.bug344618_polyfill div span:last-child:active {
-  border: solid 0.4rem #01c5ed;
+  outline: solid 0.4rem #01c5ed;
 }
 
 
