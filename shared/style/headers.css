@@ -102,6 +102,7 @@ section[role="region"] > header:first-child menu[type="toolbar"] button {
   background: none;
   text-align: center;
   text-shadow: none;
+  border-bottom: 0.1rem solid transparent;
   z-index: 5;
 }
 
@@ -133,8 +134,6 @@ section[role="region"] > header:first-child button {
 /* Pressed state */
 section[role="region"] > header:first-child a::-moz-focus-inner,
 section[role="region"] > header:first-child button::-moz-focus-inner,
-section[role="region"] > header:first-child a:active,
-section[role="region"] > header:first-child button:active,
 section[role="region"] > header:first-child a:focus,
 section[role="region"] > header:first-child button:focus {
   outline: none !important;
@@ -147,6 +146,7 @@ section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-dis
 section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active  {
   background: #008aaa !important;
   transition: background 0.2s ease;
+  border-bottom-color: rgba(0, 0, 0, 0.2);
 }
 
 /* Disabled state */
