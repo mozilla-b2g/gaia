@@ -74,7 +74,7 @@ contacts.Settings = (function() {
     noSdMsg = document.querySelector('#no-sd');
 
     // Gmail & Hotmail import
-    importLiveButton = document.querySelector('[data-l10n-id="importLive"]');
+    importLiveButton = document.querySelector('[data-l10n-id="importOutlook"]');
     importGmailButton = document.querySelector('[data-l10n-id="importGmail"]');
 
     importLiveButton.onclick = Contacts.extServices.importLive;
