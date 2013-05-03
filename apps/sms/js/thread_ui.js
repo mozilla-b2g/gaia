@@ -35,6 +35,8 @@ var ThreadUI = global.ThreadUI = {
     var _ = navigator.mozL10n.get;
     var templateIds = ['contact', 'highlight', 'message', 'recipient'];
 
+    Compose.init('messages-compose-form');
+
     // Fields with 'messages' label
     [
       'container', 'to-field', 'recipients-list',
@@ -51,7 +53,10 @@ var ThreadUI = global.ThreadUI = {
     // Allow for stubbing in environments that do not implement the
     // `navigator.mozMobileMessage` API
     this._mozMobileMessage = navigator.mozMobileMessage ||
-                              window.DesktopMockNavigatormozMobileMessage;
+      window.DesktopMockNavigatormozMobileMessage;
+
+    // In case of input, we have to resize the input following UX Specs.
+    Compose.on('input', this.messageComposerInputHandler.bind(this));
 
     this.toField.addEventListener(
       'keypress', this.toFieldKeypress.bind(this), true
@@ -115,11 +120,6 @@ var ThreadUI = global.ThreadUI = {
     // When 'focus' we have to remove 'edit-mode' in the recipient
     this.input.addEventListener(
       'focus', this.messageComposerFocusHandler.bind(this)
-    );
-
-    // In case of input, we have to resize the input following UX Specs.
-    this.input.addEventListener(
-      'input', this.messageComposerInputHandler.bind(this)
     );
 
     // Delegate to |this.handleEvent|
@@ -206,7 +206,8 @@ var ThreadUI = global.ThreadUI = {
 
   // Method for setting the body of a SMS/MMS from activity
   setMessageBody: function thui_setMessageBody(value) {
-    this.input.value = value;
+    Compose.clear();
+    Compose.append(value);
   },
 
   messageComposerInputHandler: function thui_messageInputHandler(event) {
@@ -323,7 +324,7 @@ var ThreadUI = global.ThreadUI = {
   back: function thui_back() {
     var goBack = (function() {
       this.stopRendering();
-      if (!this.input.value.length) {
+      if (Compose.isEmpty()) {
         window.location.hash = '#thread-list';
         return;
       }
@@ -356,7 +357,7 @@ var ThreadUI = global.ThreadUI = {
     this.initSentAudio();
 
     // should disable if we have no message input
-    var disableSendMessage = !this.input.value.length;
+    var disableSendMessage = Compose.isEmpty();
 
     var messageNotLong = this.updateCounter();
 
@@ -377,11 +378,12 @@ var ThreadUI = global.ThreadUI = {
   // will return true if we can send the message, false if we can't send the
   // message
   updateCounter: function thui_updateCount() {
-    if (!this._mozMobileMessage.getSegmentInfoForText) {
+    if (!(this._mozMobileMessage &&
+          this._mozMobileMessage.getSegmentInfoForText)) {
       return true;
     }
 
-    var value = this.input.value;
+    var value = Compose.getText();
 
     // We set maximum concatenated number of our SMS app to 10 based on:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
@@ -404,14 +406,14 @@ var ThreadUI = global.ThreadUI = {
     var exceededMaxLength = (segments > kMaxConcatenatedMessages);
 
     if (hasMaxLength || exceededMaxLength) {
-      this.input.setAttribute('maxlength', value.length);
+      Compose.setMaxLength(value.length);
       var key = hasMaxLength ?
           'messages-max-length-text' : 'messages-exceeded-length-text';
       var message = navigator.mozL10n.get(key);
       this.maxLengthNotice.querySelector('p').textContent = message;
       this.maxLengthNotice.classList.remove('hide');
     } else {
-      this.input.removeAttribute('maxlength', value.length);
+      Compose.setMaxLength(false);
       this.maxLengthNotice.classList.add('hide');
     }
 
@@ -430,7 +432,11 @@ var ThreadUI = global.ThreadUI = {
     var buttonHeight = 30;
 
     // Retrieve elements useful in growing method
-    var bottomBar = document.getElementById('messages-compose-form');
+    var bottomBar = this.composeForm;
+    var bottomBarMaxHeight = parseInt(bottomBar.style.maxHeight, 10);
+
+    // We need to grow the input step by step
+    this.input.style.height = null;
 
     // Updating the height if scroll is bigger that height
     // This is when we have reached the header (UX requirement)
@@ -439,7 +445,7 @@ var ThreadUI = global.ThreadUI = {
       this.input.style.height = inputMaxHeight / fontSize + 'rem';
       // Update the bottom bar height taking into account the padding
       bottomBar.style.height =
-        inputMaxHeight / fontSize + verticalPadding + 'rem';
+        bottomBarMaxHeight / fontSize + verticalPadding + 'rem';
       // We update the position of the button taking into account the
       // new height
       this.sendButton.style.marginTop =
@@ -447,8 +453,6 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    // In a regular scenario, we need to grow the input step by step
-    this.input.style.height = null;
     // If the scroll height is smaller than original offset height, we keep
     // offset height to keep original height, otherwise we use scroll height
     // with additional margin for preventing scroll bar.
@@ -978,11 +982,8 @@ var ThreadUI = global.ThreadUI = {
   cleanFields: function thui_cleanFields(forceClean) {
     var self = this;
     var clean = function clean() {
-      self.input.value = '';
-      self.container.textContent = '';
-      self.sendButton.disabled = true;
+      Compose.clear();
       self.sendButton.dataset.counter = '';
-      self.updateInputHeight();
       if (window.location.hash === '#new') {
         self.initRecipients();
         self.updateComposerHeader();
@@ -1023,7 +1024,7 @@ var ThreadUI = global.ThreadUI = {
       }
 
       // Retrieve text
-      text = this.input.value;
+      text = Compose.getText();
       if (!text) {
         return;
       }
