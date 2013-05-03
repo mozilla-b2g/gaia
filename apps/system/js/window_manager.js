@@ -1415,6 +1415,14 @@ var WindowManager = (function() {
     }
   });
 
+  // Watch chrome event that order to close an app
+  window.addEventListener('mozChromeEvent', function(e) {
+    if (e.detail.type == 'webapps-close') {
+      var app = Applications.getByManifestURL(e.detail.manifestURL);
+      kill(app.origin);
+    }
+  });
+
   // There are two types of mozChromeEvent we need to handle
   // in order to launch the app for Gecko
   window.addEventListener('mozChromeEvent', function(e) {
