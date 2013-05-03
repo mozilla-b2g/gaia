@@ -14,6 +14,8 @@
     <script defer src="shared/js/blobview.js"></script>
     <script defer src="shared/js/media/get_video_rotation.js"></script>
     <script defer src="shared/js/mouse_event_shim.js"></script>
+    <script defer src="js/metadata.js"></script>
+    <script defer src="js/db.js"></script>
     <script defer src="js/video.js"></script>
   </head>
   <body role="application" class="skin-dark">
@@ -84,8 +86,9 @@
     <!-- It gets styled differently depending on what it is over -->
     <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
 
+    <!-- A thin indeterminate progress bar to indicate scanning -->
     <!-- set class to "throb" to make it go, or hidden" to make it stop -->
-    <div id="throbber"><div></div></div>
+    <div id="throbber" class="hidden"><div></div></div>
 
     <!-- display messages like "No Photos" and "No SD Card" here -->
     <div id="overlay" class="hidden">
