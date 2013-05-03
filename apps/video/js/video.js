@@ -50,8 +50,8 @@ var currentVideoBlob; // The blob for the currently playing video
 var videos = [];
 var firstScanEnded = false;
 
-var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
-var THUMBNAIL_HEIGHT = 160;
+var THUMBNAIL_WIDTH = 210;
+var THUMBNAIL_HEIGHT = 120;
 
 // Enumerating the readyState for html5 video api
 var HAVE_NOTHING = 0;
@@ -60,8 +60,6 @@ var storageState;
 var currentOverlay;
 
 var dragging = false;
-// ignore timeUpdated during capture the thumbnail
-var seekedToCaptureFrame = false;
 
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /^DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
@@ -76,127 +74,20 @@ function init() {
   dom.thumbnailsDeleteButton.addEventListener('click', deleteSelectedItems);
   dom.thumbnailsShareButton.addEventListener('click', shareSelectedItems);
   dom.thumbnailsSingleDeleteButton.addEventListener('click', function() {
-    document.mozCancelFullScreen();
-    deleteSingleFile(currentVideo.name);
+    // If we're deleting the file shown in the player we've got to
+    // return to the thumbnail list. We pass false to hidePlayer() to tell it
+    // not to record new metadata for the file we're about to delete.
+    if (deleteSingleFile(currentVideo.name))
+      hidePlayer(false);
   });
 
   dom.thumbnailsSingleShareButton.addEventListener('click', function() {
-    document.mozCancelFullScreen();
     videodb.getFile(currentVideo.name, function(blob) {
       share([blob]);
     });
   });
 
   dom.thumbnailsCancelButton.addEventListener('click', hideSelectView);
-}
-
-function initDB() {
-  videodb = new MediaDB('videos', metaDataParser);
-
-  videodb.onunavailable = function(event) {
-    storageState = event.detail;
-    updateDialog();
-  };
-  videodb.onready = function() {
-    storageState = false;
-    updateDialog();
-    createThumbnailList();
-  };
-
-  videodb.onscanstart = function() {
-    dom.throbber.classList.add('throb');
-  };
-  videodb.onscanend = function() {
-    dom.throbber.classList.remove('throb');
-    if (!firstScanEnded) {
-      firstScanEnded = true;
-      updateDialog();
-    }
-  };
-
-  videodb.oncreated = function(event) {
-    event.detail.forEach(videoCreated);
-  };
-  videodb.ondeleted = function(event) {
-    event.detail.forEach(videoDeleted);
-  };
-}
-
-// This comparison function is used for sorting arrays and doing binary
-// search on the resulting sorted arrays.
-function compareVideosByDate(a, b) {
-  return b.date - a.date;
-}
-
-// Assuming that array is sorted according to comparator, return the
-// array index at which element should be inserted to maintain sort order
-function binarysearch(array, element, comparator, from, to) {
-  if (comparator === undefined)
-    comparator = function(a, b) {
-      return a - b;
-    };
-
-  if (from === undefined)
-    return binarysearch(array, element, comparator, 0, array.length);
-
-  if (from === to)
-    return from;
-
-  var mid = Math.floor((from + to) / 2);
-
-  var result = comparator(element, array[mid]);
-  if (result < 0)
-    return binarysearch(array, element, comparator, from, mid);
-  else
-    return binarysearch(array, element, comparator, mid + 1, to);
-}
-
-function videoAdded(videodata) {
-  if (!videodata || !videodata.metadata.isVideo) {
-    return;
-  }
-
-  videos.push(videodata);  // remember the file
-
-  // create its thumbnail
-  var thumbnail = createThumbnailItem(videos.length - 1);
-  dom.thumbnails.appendChild(thumbnail);
-  var text = thumbnail.querySelector('.details');
-  textTruncate(text);
-}
-
-function videoCreated(videodata) {
-  if (!videodata || !videodata.metadata.isVideo) {
-    return;
-  }
-
-  var insertPosition;
-
-  // If this new video is newer than the first one, it goes first
-  // This is the most common case for bluetooth received video
-  if (videos.length === 0 || videodata.date > videos[0].date) {
-    insertPosition = 0;
-  }
-  else {
-    // Otherwise we have to search for the right insertion spot
-    insertPosition = binarysearch(videos, videodata, compareVideosByDate);
-  }
-
-  // Insert the video info into the array
-  videos.splice(insertPosition, 0, videodata);
-
-  // Create a thumbnail for this video and insert it at the right spot
-  var thumbnail = createThumbnailItem(insertPosition);
-  var thumbnailElts = dom.thumbnails.querySelectorAll('.thumbnail');
-  dom.thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
-
-  var text = thumbnail.querySelector('.details');
-  textTruncate(text);
-
-  // increment the index of each of the thumbnails after the new one
-  for (var i = insertPosition; i < thumbnailElts.length; i++) {
-    thumbnailElts[i].dataset.index = i + 1;
-  }
 }
 
 function showSelectView() {
@@ -309,19 +200,19 @@ function deleteFile(n) {
   // Delete the file from the MediaDB. This removes the db entry and
   // deletes the file in device storage. This will generate an change
   // event which will call imageDeleted()
-  var fileinfo = videos[n].name;
+  var filename = videos[n].name;
 
-  if (FROMCAMERA.test(fileinfo)) {
+  if (FROMCAMERA.test(filename)) {
       // If we're deleting a video file recorded by our camera,
       // we also need to delete the poster image associated with
       // that video.
-      var postername = fileinfo.replace('.3gp', '.jpg');
+      var postername = filename.replace('.3gp', '.jpg');
       navigator.getDeviceStorage('pictures'). delete(postername);
   }
     // Whether or not there was a poster file to delete, delete the
     // actual video file. This will cause the MediaDB to send a 'deleted'
     // event, and the handler for that event will call videoDeleted() below.
-    videodb.deleteFile(fileinfo);
+    videodb.deleteFile(filename);
 }
 
 function deleteSingleFile(file) {
@@ -332,14 +223,17 @@ function deleteSingleFile(file) {
       // we also need to delete the poster image associated with
       // that video.
       var postername = file.replace('.3gp', '.jpg');
-      navigator.getDeviceStorage('pictures'). delete(postername);
+      navigator.getDeviceStorage('pictures'). delete(postername); // gjslint
     }
 
     // Whether or not there was a poster file to delete, delete the
     // actual video file. This will cause the MediaDB to send a 'deleted'
     // event, and the handler for that event will call videoDeleted() below.
     videodb.deleteFile(file);
+    return true;
   }
+
+  return false;
 }
 
 // Clicking on the share button in select mode shares all selected images
@@ -407,45 +301,6 @@ function share(blobs) {
   };
 }
 
-function videoDeleted(filename) {
-  // Find the deleted video in our videos array
-  for (var n = 0; n < videos.length; n++) {
-    if (videos[n].name === filename)
-      break;
-  }
-
-  if (n >= videos.length)  // It was a video we didn't know about
-    return;
-
-  // Remove the video from the array
-  var deletedVideoData = videos.splice(n, 1)[0];
-
-  dom.thumbnails.removeChild(getThumbnailDom(filename));
-
-  // Change the index associated with all the thumbnails after the deleted one
-  // This keeps the data-index attribute of each thumbnail element in sync
-  // with the files[] array.
-  var thumbnailElts = dom.thumbnails.querySelectorAll('.thumbnail');
-  for (var i = n + 1; i < thumbnailElts.length; i++) {
-    thumbnailElts[i].dataset.index = i - 1;
-  }
-
-  updateDialog();
-}
-
-// Only called on startup to generate initial list of already
-// scanned media, once this is build videoDeleted/Created are used
-// to keep it up to date
-function createThumbnailList() {
-  if (dom.thumbnails.firstChild !== null) {
-    dom.thumbnails.textContent = '';
-  }
-  // Clean up the videos array
-  videos = [];
-
-  videodb.enumerate('date', null, 'prev', videoAdded);
-}
-
 function updateDialog() {
   if (videos.length !== 0 && (!storageState || playerShowing)) {
     showOverlay(null);
@@ -455,7 +310,9 @@ function updateDialog() {
     showOverlay('nocard');
   } else if (storageState === MediaDB.UNMOUNTED) {
     showOverlay('pluggedin');
-  } else if (firstScanEnded && videos.length === 0) {
+  } else if (firstScanEnded &&
+             videos.length === 0 &&
+             metadataQueue.length === 0) {
     showOverlay('empty');
   }
 }
@@ -510,153 +367,15 @@ function thumbnailClickHandler() {
     return;
   if (currentView === dom.thumbnailListView ||
       currentView === dom.fullscreenView) {
-    showPlayer(parseInt(this.dataset.index), true);
+    // Be certain that metadata parsing has stopped before we show the
+    // video player. Otherwise, we'll have contention for the video hardware
+    var index = parseInt(this.dataset.index);
+    stopParsingMetadata(function() {
+      showPlayer(index, true);
+    });
   }
   else if (currentView === dom.thumbnailSelectView) {
     updateSelection(this);
-  }
-}
-
-function metaDataParser(videofile, callback, metadataError, delayed) {
-  // XXX
-  // When the camera records a video, it saves the video file and then
-  // uses a <video> tag to create a poster image for that video.
-  // But if the Video app is running, we get an event from device storage
-  // and start parsing the metadata when the video file is created. So now
-  // the Camera app and the Video app are both trying to use the video
-  // decoding hardware at the same time. The camera app really has to
-  // succeed. We should modify this app to wait for and use the poster image
-  // the way that the Gallery app does. For now, however, we avoid the problem
-  // by just waiting to give the Camera app time to save the poster image.
-  // In the worst case, we could fail to parse the metadata here. But that
-  // is better than having the camera fail to record the video correctly.
-  //
-  if (!delayed && FROMCAMERA.test(videofile.name)) {
-    setTimeout(function() {
-      metaDataParser(videofile, callback, metadataError, true);
-    }, 2000);
-    return;
-  }
-
-  var previewPlayer = document.createElement('video');
-  var completed = false;
-
-  if (!previewPlayer.canPlayType(videofile.type)) {
-    return callback({isVideo: false});
-  }
-
-  var url = URL.createObjectURL(videofile);
-  var metadata = {
-    isVideo: true,
-    title: fileNameToVideoName(videofile.name)
-  };
-
-  previewPlayer.preload = 'metadata';
-  previewPlayer.style.width = THUMBNAIL_WIDTH + 'px';
-  previewPlayer.style.height = THUMBNAIL_HEIGHT + 'px';
-  previewPlayer.src = url;
-  previewPlayer.onerror = function(e) {
-    if (!completed) {
-      metadataError(metadata.title);
-    }
-    previewPlayer.removeAttribute('src');
-    previewPlayer.load();
-  };
-  previewPlayer.onloadedmetadata = function() {
-
-    // File Object only does basic detection for content type,
-    // if videoWidth is 0 then this is likely an audio file (ogg / mp4)
-    if (!previewPlayer.videoWidth) {
-      return callback({isVideo: false});
-    }
-
-    metadata.duration = previewPlayer.duration;
-    metadata.width = previewPlayer.videoWidth;
-    metadata.height = previewPlayer.videoHeight;
-
-    function createThumbnail() {
-      captureFrame(previewPlayer, metadata, function(poster) {
-        metadata.poster = poster;
-        URL.revokeObjectURL(url);
-        completed = true;
-        previewPlayer.removeAttribute('src');
-        previewPlayer.load();
-        callback(metadata);
-      });
-    }
-
-    // If this is a .3gp video file, look for its rotation matrix and
-    // then create the thumbnail. Otherwise set rotation to 0 and
-    // create the thumbnail.
-    // getVideoRotation is defined in shared/js/media/get_video_rotation.js
-    if (/.3gp$/.test(videofile.name)) {
-      getVideoRotation(videofile, function(rotation) {
-        if (typeof rotation === 'number')
-          metadata.rotation = rotation;
-        else if (typeof rotation === 'string')
-          console.warn('Video rotation:', rotation);
-        createThumbnail();
-      });
-    } else {
-      metadata.rotation = 0;
-      createThumbnail();
-    }
-  };
-}
-
-function captureFrame(player, metadata, callback) {
-  var image = null;
-  function doneSeeking() {
-    player.onseeked = null;
-    try {
-      var canvas = document.createElement('canvas');
-      var ctx = canvas.getContext('2d');
-      canvas.width = THUMBNAIL_WIDTH;
-      canvas.height = THUMBNAIL_HEIGHT;
-      // If a rotation is specified, rotate the canvas context
-      if ('rotation' in metadata) {
-        ctx.save();
-        switch (metadata.rotation) {
-        case 90:
-          ctx.translate(THUMBNAIL_WIDTH, 0);
-          ctx.rotate(Math.PI / 2);
-          break;
-        case 180:
-          ctx.translate(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-          ctx.rotate(Math.PI);
-          break;
-        case 270:
-          ctx.translate(0, THUMBNAIL_HEIGHT);
-          ctx.rotate(-Math.PI / 2);
-          break;
-        }
-      }
-      ctx.drawImage(player, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-      if (metadata.rotation) {
-        ctx.restore();
-      }
-      image = canvas.mozGetAsFile('poster', 'image/jpeg');
-    } catch (e) {
-      console.error('Failed to create a poster image:', e);
-    }
-    if (seekedToCaptureFrame) {
-      player.currentTime = 0;
-      seekedToCaptureFrame = false;
-    }
-    callback(image);
-  }
-
-  // If we are on the first frame, lets skip into the video since some
-  // videos just start with a black screen
-  if (player.currentTime === 0) {
-    seekedToCaptureFrame = true;
-    player.currentTime = Math.floor(player.duration / 4);
-  }
-
-  if (player.seeking) {
-    player.onseeked = doneSeeking;
-  } else {
-    doneSeeking();
   }
 }
 
@@ -712,7 +431,7 @@ function playerMousedown(event) {
   if (event.target == dom.play) {
     setVideoPlaying(dom.player.paused);
   } else if (event.target == dom.close) {
-    hidePlayer();
+    hidePlayer(true);
   } else if (event.target == dom.sliderWrapper) {
     dragSlider(event);
   } else if (event.target == dom.pickerDone && pendingPick) {
@@ -872,13 +591,19 @@ function showPlayer(videonum, autoPlay) {
   });
 }
 
-function hidePlayer() {
+function hidePlayer(updateMetadata) {
   if (!playerShowing)
     return;
 
   dom.player.pause();
 
   function completeHidingPlayer() {
+    // Allow the screen to blank now.
+    if (screenLock) {
+      screenLock.unlock();
+      screenLock = null;
+    }
+
     // switch to the video gallery view
     dom.fullscreenView.classList.add('hidden');
     dom.thumbnailSelectView.classList.add('hidden');
@@ -897,9 +622,13 @@ function hidePlayer() {
     // not be holding on to the video hardware
     dom.player.removeAttribute('src');
     dom.player.load();
+
+    // Now that we're done using the video hardware to play a video, we
+    // can start using it to parse metadata again, if we need to.
+    startParsingMetadata();
   }
 
-  if (!('metadata' in currentVideo)) {
+  if (!('metadata' in currentVideo) || !updateMetadata || pendingPick) {
     completeHidingPlayer();
     return;
   }
@@ -911,13 +640,6 @@ function hidePlayer() {
   video.metadata.currentTime = dom.player.currentTime;
   captureFrame(dom.player, currentVideo.metadata, function(poster) {
     currentVideo.metadata.poster = poster;
-    dom.player.currentTime = 0;
-
-    // Allow the screen to blank now.
-    if (screenLock) {
-      screenLock.unlock();
-      screenLock = null;
-    }
 
     var posterImg = li.querySelector('.img');
     if (poster && posterImg) {
@@ -929,7 +651,11 @@ function hidePlayer() {
       unwatched.parentNode.removeChild(unwatched);
     }
 
-    videodb.updateMetadata(video.name, video.metadata, completeHidingPlayer);
+    // Store the new metadata, but don't wait for it to complete
+    videodb.updateMetadata(video.name, video.metadata);
+
+    // Go ahead and switch back to the thumbnails now
+    completeHidingPlayer();
   });
 }
 
@@ -943,7 +669,7 @@ function playerEnded() {
   }
 
   dom.player.currentTime = 0;
-  hidePlayer();
+  hidePlayer(true);
 }
 
 function play() {
@@ -1214,6 +940,7 @@ function textTruncate(el) {
  // Pause on visibility change
 document.addEventListener('mozvisibilitychange', function visibilityChange() {
   if (document.mozHidden) {
+    stopParsingMetadata();
     if (playing)
       pause();
 
@@ -1221,6 +948,7 @@ document.addEventListener('mozvisibilitychange', function visibilityChange() {
       releaseVideo();
   }
   else {
+    startParsingMetadata();
     if (playerShowing) {
       showVideoControls(true);
       restoreVideo();
@@ -1313,7 +1041,7 @@ function showPickView() {
 function cleanupPick() {
   pendingPick = null;
   currentVideoBlob = null;
-  hidePlayer();
+  hidePlayer(false);
 }
 
 navigator.mozSetMessageHandler('activity', function activityHandler(a) {
@@ -1325,3 +1053,13 @@ navigator.mozSetMessageHandler('activity', function activityHandler(a) {
     showPickView();
   }
 });
+
+function showThrobber() {
+  dom.throbber.classList.remove('hidden');
+  dom.throbber.classList.add('throb');
+}
+
+function hideThrobber() {
+  dom.throbber.classList.add('hidden');
+  dom.throbber.classList.remove('throb');
+}
