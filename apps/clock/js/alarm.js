@@ -407,14 +407,7 @@ var AlarmList = {
     d.setHours(alarm.hour);
     d.setMinutes(alarm.minute);
     var time = getLocaleTime(d);
-    var label = (alarm.label === '') ? _('alarm') : escapeHTML(alarm.label);
-    content = '<label class="alarmList">' +
-              '  <input id="input-enable"' +
-                   '" data-id="' + alarm.id +
-                   '" type="checkbox"' + isChecked + '>' +
-              '  <span></span>' +
-              '</label>' +
-              '<a href="#alarm" id="alarm-item" data-id="' +
+    content = '<a href="#alarm" id="alarm-item" data-id="' +
                  alarm.id + '">' +
               '  <div class="description">' +
               '    <div class="alarmList-time">' +
@@ -426,7 +419,13 @@ var AlarmList = {
               '      <div class="repeat">' + summaryRepeat + '</div>' +
               '    </div>' +
               '  </div>' +
-              '</a>';
+              '</a>' +
+              '<label class="alarmList">' +
+              '  <input id="input-enable"' +
+                   '" data-id="' + alarm.id +
+                   '" type="checkbox"' + isChecked + '>' +
+              '  <span></span>' +
+              '</label>';
 
     alarmItem.parentNode.innerHTML = content;
     // clear the refreshing alarm's flag

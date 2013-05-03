@@ -136,6 +136,7 @@ var ValuePicker = (function() {
   //
   function VP(e, unitStyle) {
     this.element = e;
+    this.container = document.getElementById('alarm');
     this._valueDisplayedText = unitStyle.valueDisplayedText;
     this._unitClassName = unitStyle.className;
     this._lower = 0;
@@ -314,6 +315,7 @@ var ValuePicker = (function() {
 
   function vp_mouseup(event) {
     event.stopPropagation();
+    this.container.classList.remove('no-scroll');
     this.removeEventListeners();
 
     // Add animation back
@@ -338,6 +340,7 @@ var ValuePicker = (function() {
     this.element.classList.remove('animation-on');
 
     startEvent = currentEvent = cloneEvent(event);
+    this.container.classList.add('no-scroll');
     tunedIndex = this._currentIndex;
 
     this.removeEventListeners();
