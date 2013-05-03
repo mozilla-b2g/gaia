@@ -628,36 +628,24 @@ var ThreadUI = global.ThreadUI = {
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
       /** If we have more than one contact sharing the same phone number
-       *  we show the name of the first contact and how many other contacts
-       *  share that same number. We thing it's user's responsability to correct
-       *  this mess with the agenda.
+       *  we show the title of contact detail with validate name/company
+       *  and how many other contacts share that same number. We think it's
+       *  user's responsability to correct this mess with the agenda.
        */
-      if (contacts.length > 1) {
-        this.headerText.dataset.isContact = true;
-        var contactName = contacts[0].name[0];
-        var numOthers = contacts.length - 1;
-        this.headerText.textContent = navigator.mozL10n.get('others', {
-          name: contactName,
-          n: numOthers
-        });
-        carrierTag.classList.add('hide');
+      var details = Utils.getContactDetails(number, contacts);
+      this.headerText.dataset.isContact = !!details.isContact;
+      var contactName = details.title || number;
+      var numOthers = contacts.length > 0 ? contacts.length - 1 : 0;
+      this.headerText.textContent = navigator.mozL10n.get('contact-title-text',
+      {
+        name: contactName,
+        n: numOthers
+      });
+      if (details.carrier) {
+        carrierTag.textContent = details.carrier;
+        carrierTag.classList.remove('hide');
       } else {
-        Utils.getPhoneDetails(number,
-                              contacts[0],
-                              function returnedDetails(details) {
-          if (details.isContact) {
-            this.headerText.dataset.isContact = true;
-          } else {
-            delete this.headerText.dataset.isContact;
-          }
-          this.headerText.textContent = details.title || number;
-          if (details.carrier) {
-            carrierTag.textContent = details.carrier;
-            carrierTag.classList.remove('hide');
-          } else {
-            carrierTag.classList.add('hide');
-          }
-        }.bind(this));
+        carrierTag.classList.add('hide');
       }
 
       if (callback) {
@@ -1218,48 +1206,58 @@ var ThreadUI = global.ThreadUI = {
     var escaped = Utils.escapeRegex(input);
     var escsubs = escaped.split(/\s+/);
     var tels = contact.tel;
-    var name = contact.name[0];
     var regexps = {
       name: new RegExp('(\\b' + escsubs.join(')|(\\b') + ')', 'gi'),
       number: new RegExp(escaped, 'ig')
     };
+    var telsLength = tels.length;
 
-
-    for (var i = 0; i < tels.length; i++) {
+    if (!telsLength) {
+      return false;
+    }
+    var details = Utils.getContactDetails(tels[0].value, contact);
+    for (var i = 0; i < telsLength; i++) {
       var current = tels[i];
       var number = current.value;
+      var title = details.title || number;
 
-      Utils.getPhoneDetails(number, contact, function(details) {
-        var contactLi = document.createElement('li');
-        var data = {
-          name: Utils.escapeHTML(name || details.title),
-          number: Utils.escapeHTML(number),
-          type: current.type || '',
-          carrier: current.carrier || '',
-          srcAttr: details.photoURL ?
-            'src="' + Utils.escapeHTML(details.photoURL) + '"' : '',
-          nameHTML: '',
-          numberHTML: ''
+      var contactLi = document.createElement('li');
+      var data = {
+        name: Utils.escapeHTML(title),
+        number: Utils.escapeHTML(number),
+        type: current.type || '',
+        carrier: current.carrier || '',
+        srcAttr: details.photoURL ?
+          'src="' + Utils.escapeHTML(details.photoURL) + '"' : '',
+        nameHTML: '',
+        numberHTML: ''
+      };
+
+      ['name', 'number'].forEach(function(key) {
+        data[key + 'HTML'] = data[key].replace(
+          regexps[key], function(match) {
+            return this.tmpl.highlight.interpolate({
+              str: match
+            });
+          }.bind(this)
+        );
+      }, this);
+
+      // Interpolate HTML template with data and inject.
+      // Known "safe" HTML values will not be re-sanitized.
+      contactLi.innerHTML = this.tmpl.contact.interpolate(data, {
+        safe: ['nameHTML', 'numberHTML', 'srcAttr']
+      });
+      contactsUl.appendChild(contactLi);
+
+      // Revoke contact photo after image onload.
+      var photo = contactLi.querySelector('img');
+      if (photo) {
+        photo.onload = photo.onerror = function revokePhotoURL() {
+          this.onload = this.onerror = null;
+          URL.revokeObjectURL(this.src);
         };
-
-        ['name', 'number'].forEach(function(key) {
-          data[key + 'HTML'] = data[key].replace(
-            regexps[key], function(match) {
-              return this.tmpl.highlight.interpolate({
-                str: match
-              });
-            }.bind(this)
-          );
-        }, this);
-
-        // Interpolate HTML template with data and inject.
-        // Known "safe" HTML values will not be re-sanitized.
-        contactLi.innerHTML = this.tmpl.contact.interpolate(data, {
-          safe: ['nameHTML', 'numberHTML', 'srcAttr']
-        });
-        contactsUl.appendChild(contactLi);
-
-      }.bind(this));
+      }
     }
     return true;
   },
