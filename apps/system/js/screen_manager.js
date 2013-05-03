@@ -223,7 +223,10 @@ var ScreenManager = {
         var telephony = window.navigator.mozTelephony;
         // 0x111E is for querying earphone type.
         if ((bluetooth && bluetooth.isConnected(0x111E)) ||
-            telephony.speakerEnabled)
+            telephony.speakerEnabled ||
+            StatusBar.headphonesActive)
+            // XXX: Remove this hack in Bug 868348
+            // We shouldn't access headset status from statusbar.
           break;
 
         this._screenOffBy = evt.near ? 'proximity' : '';
