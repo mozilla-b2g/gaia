@@ -51,8 +51,9 @@ var AttentionScreen = {
       if (!this.isFullyVisible())
         return;
 
+      var keyboardHeight = KeyboardManager.getHeight();
       this.attentionScreen.style.height =
-        window.innerHeight - evt.detail.height + 'px';
+        window.innerHeight - keyboardHeight + 'px';
     } else if (evt.type == 'keyboardhide') {
       // We still need to reset the height property even when the attention
       // screen is not fully visible, or it will overrides the height

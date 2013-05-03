@@ -150,8 +150,8 @@ var ModalDialog = {
         break;
 
       case 'keyboardchange':
-        this.setHeight(window.innerHeight -
-          evt.detail.height - StatusBar.height);
+        var keyboardHeight = KeyboardManager.getHeight();
+        this.setHeight(window.innerHeight - keyboardHeight - StatusBar.height);
         break;
     }
   },
