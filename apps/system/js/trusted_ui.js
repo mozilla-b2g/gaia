@@ -361,8 +361,8 @@ var TrustedUIManager = {
         this._hide();
         break;
       case 'keyboardchange':
-        this._setHeight(window.innerHeight -
-          StatusBar.height - evt.detail.height);
+        var keyboardHeight = KeyboardManager.getHeight();
+        this._setHeight(window.innerHeight - StatusBar.height - keyboardHeight);
         break;
       case 'keyboardhide':
         this._setHeight(window.innerHeight - StatusBar.height);
