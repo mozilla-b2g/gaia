@@ -76,12 +76,12 @@ function init() {
   dom.thumbnailsDeleteButton.addEventListener('click', deleteSelectedItems);
   dom.thumbnailsShareButton.addEventListener('click', shareSelectedItems);
   dom.thumbnailsSingleDeleteButton.addEventListener('click', function() {
-    document.mozCancelFullScreen();
+    hidePlayer();
     deleteSingleFile(currentVideo.name);
   });
 
   dom.thumbnailsSingleShareButton.addEventListener('click', function() {
-    document.mozCancelFullScreen();
+    hidePlayer();
     videodb.getFile(currentVideo.name, function(blob) {
       share([blob]);
     });
