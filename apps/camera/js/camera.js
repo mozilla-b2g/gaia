@@ -144,7 +144,7 @@ var Camera = {
   _previewPaused: false,
   _previewActive: false,
 
-  PREVIEW_PAUSE: 500,
+  PREVIEW_PAUSE: 0,
   FILMSTRIP_DURATION: 5000, // show filmstrip for 5s before fading
 
   _flashState: {
