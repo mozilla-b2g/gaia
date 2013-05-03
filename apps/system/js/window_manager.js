@@ -161,7 +161,15 @@ var WindowManager = (function() {
   // phone orientation is changed). And also when an app is launched
   // and each time an app is brought to the front, since the
   // orientation could have changed since it was last displayed
-  function setAppSize(origin, changeActivityFrame) {
+
+  // @param {origin} the origin of the app we set the size for
+  // @param {changeActivityFrame}  to denote if needed to change inline
+  //        activity size
+  // @param {keyboardHeight} the height of the keyboard
+  // @param {keyboardHeightChange} to denote that this size change is due to
+  //        keyboard, no need to adjust the height for wrapper
+  function setAppSize(origin, changeActivityFrame, keyboardHeight,
+                      keyboardHeightChange) {
     var app = runningApps[origin];
     if (!app)
       return;
@@ -169,16 +177,19 @@ var WindowManager = (function() {
     var frame = app.frame;
     var manifest = app.manifest;
 
+    if (typeof keyboardHeight == 'undefined')
+      keyboardHeight = 0;
+
     var cssWidth = window.innerWidth + 'px';
-    var cssHeight = window.innerHeight - StatusBar.height;
-    if ('wrapper' in frame.dataset) {
+    var cssHeight = window.innerHeight - StatusBar.height - keyboardHeight;
+    if (!keyboardHeightChange && 'wrapper' in frame.dataset) {
       cssHeight -= 10;
     }
     cssHeight += 'px';
 
     if (!screenElement.classList.contains('attention') &&
         requireFullscreen(origin)) {
-      cssHeight = window.innerHeight + 'px';
+      cssHeight = window.innerHeight - keyboardHeight + 'px';
     }
 
     frame.style.width = cssWidth;
@@ -188,28 +199,6 @@ var WindowManager = (function() {
     // if changeActivityFrame is not explicitly set to false.
     if (changeActivityFrame !== false)
       setInlineActivityFrameSize();
-  }
-
-  // App's height is relevant to keyboard height
-  function setAppHeight(keyboardHeight) {
-    var app = runningApps[displayedApp];
-    if (!app)
-      return;
-
-    var frame = app.frame;
-    var manifest = app.manifest;
-
-    var cssHeight =
-      window.innerHeight - StatusBar.height - keyboardHeight + 'px';
-
-    if (!screenElement.classList.contains('attention') &&
-        requireFullscreen(displayedApp)) {
-      cssHeight = window.innerHeight - keyboardHeight + 'px';
-    }
-
-    frame.style.height = cssHeight;
-
-    setInlineActivityFrameSize();
   }
 
   // Copy the dimension of the currently displayed app
@@ -2059,14 +2048,15 @@ var WindowManager = (function() {
                          'attentionscreenhide'];
   appResizeEvents.forEach(function eventIterator(event) {
     window.addEventListener(event, function on(evt) {
+      var keyboardHeight = KeyboardManager.getHeight();
       if (event == 'keyboardchange') {
         // Cancel fullscreen if keyboard pops
         if (document.mozFullScreen)
           document.mozCancelFullScreen();
 
-        setAppHeight(evt.detail.height);
+        setAppSize(displayedApp, true, keyboardHeight, true);
       } else if (displayedApp) {
-        setAppSize(displayedApp);
+        setAppSize(displayedApp, true, keyboardHeight, false);
       }
     });
   });
