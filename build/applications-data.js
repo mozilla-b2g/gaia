@@ -127,17 +127,27 @@ let customize = {"homescreens": [
     ["apps", "music"],
     ["apps", "video"]
   ]
-]};
+],
+  "search_page": {
+    "enabled" : true
+  }
+};
 
 if (DOGFOOD == 1) {
   customize.homescreens[0].push(["dogfood_apps", "feedback"]);
 }
 
 customize = JSON.parse(getDistributionFileContent('homescreens', customize));
+// keep e.me on by default
+let search_page_enabled = true;
+if (customize.search_page) {
+  search_page_enabled = customize.search_page.enabled;
+}
+
 let content = {
   search_page: {
     provider: 'EverythingME',
-    enabled: true
+    enabled: search_page_enabled
   },
 
   // It defines the threshold in pixels to consider a gesture like a tap event
