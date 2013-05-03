@@ -282,6 +282,11 @@ var Cards = {
    * Set by calling `eatEventsUntilNextCard`.
    */
   _eatingEventsUntilNextCard: false,
+  /**
+   * Set to true by other objects if a perf event should be triggered when the
+   * next _pushCard finishes.
+   */
+  _sendPerfWhenCardPushed: false,
 
   /**
    * Initialize and bind ourselves to the DOM which should now be fully loaded.
@@ -498,8 +503,8 @@ var Cards = {
       this._showCard(cardIndex, showMethod, 'forward');
     }
 
-    if (Cards._sendPerfCardDone) {
-      Cards._sendPerfCardDone = false;
+    if (Cards._sendPerfWhenCardPushed) {
+      Cards._sendPerfWhenCardPushed = false;
       PerformanceTestingHelper.dispatch('startup-path-done');
     }
   },
