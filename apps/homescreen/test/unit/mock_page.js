@@ -27,6 +27,9 @@ MockPage.prototype = {
 
   moveBy: function mp_moveBy(value) {
     MockPage.mMoveByArg = value;
+  },
+
+  tap: function mp_tap() {
   }
 };
 

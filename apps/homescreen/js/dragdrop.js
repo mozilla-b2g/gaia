@@ -38,7 +38,7 @@ const DragDropManager = (function() {
   var draggableIcon, previousOverlapIcon, overlapingTimeout, overlapElem,
       originElem, draggableElemStyle;
 
-  var pageHelper = GridManager.pageHelper;
+  var pageHelper;
 
   var dirCtrl, limitY, overlapingDock;
 
@@ -389,6 +389,7 @@ const DragDropManager = (function() {
       dirCtrl = GridManager.dirCtrl;
       limitY = window.innerHeight -
                document.querySelector('#footer').offsetHeight;
+      pageHelper = GridManager.pageHelper;
     },
 
     /*

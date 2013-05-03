@@ -153,10 +153,11 @@ suite('grid.js >', function() {
         assert.equal(document.body.dataset.transitioning, 'true');
 
         setTimeout(function() {
-          done(function() {
-            var currentPage = document.getElementById('landing-page');
-            assert.include(currentPage.style.MozTransform, 'translateX');
-          });
+          var currentPage = document.getElementById('landing-page');
+          assert.include(currentPage.style.MozTransform, 'translateX');
+          sendTouchEvent('touchend', containerNode, move);
+          sendMouseEvent('mouseup', containerNode, move);
+          done();
         }, TINY_TIMEOUT);
       });
     });
