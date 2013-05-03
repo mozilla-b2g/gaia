@@ -42,7 +42,8 @@
   transform: scale(0.6);
 }
 
-#cards-view .card.landscape {
+#cards-view .card.landscape, #cards-view .card.landscape-primary,
+#cards-view .card.landscape-secondary {
   /* calc(32rem * 0.6) */
   height: 19.2rem;
   /* calc(32rem * 0.6) -4rem */

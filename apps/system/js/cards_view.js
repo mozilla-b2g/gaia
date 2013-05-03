@@ -205,10 +205,10 @@ var CardsView = (function() {
       card.classList.add('card');
       card.dataset.origin = origin;
 
-      var landscape = WindowManager.getOrientationForApp(origin) ===
-                                                          'landscape-primary';
+      var orientation = WindowManager.getOrientationForApp(origin) || '';
+      var landscape = orientation.indexOf('landscape') !== -1;
       if (landscape) {
-        card.classList.add('landscape');
+        card.classList.add(orientation);
       }
 
       //display app icon on the tab
@@ -738,4 +738,3 @@ window.addEventListener('attentionscreenhide', CardsView);
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
 window.addEventListener('appwillopen', CardsView);
-
