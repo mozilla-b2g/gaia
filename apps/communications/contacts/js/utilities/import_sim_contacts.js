@@ -48,10 +48,10 @@ function SimContactsImporter() {
   }
 
   this.start = function() {
-    // request contacts with getSimContacts() -- valid types are:
-    //   'ADN': Abbreviated Dialing Numbers
-    //   'FDN': Fixed Dialing Numbers
-    var request = navigator.mozContacts.getSimContacts('ADN');
+    // request contacts with readContacts() -- valid types are:
+    //   'adn': Abbreviated Dialing Numbers
+    //   'fdn': Fixed Dialing Numbers
+    var request = navigator.mozMobileConnection.icc.readContacts('adn');
 
     request.onsuccess = function onsuccess() {
       self.items = request.result; // array of mozContact elements
