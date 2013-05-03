@@ -87,11 +87,11 @@ body {
 .card.center.card-folder-picker,
 .card.center.card-account-picker,
 .card.card-account-picker {
-  width: calc(100% - 4.3em);
+  width: calc(100% - 5.3em);
 }
 
 .card.center.card-folder-picker + .card.after {
-  transform: translateX(calc(100% - 4.3em));
+  transform: translateX(calc(100% - 5.3em));
 }
 
 .form-card {
@@ -266,4 +266,23 @@ section[role="status"] .toaster-banner-retry {
 section[role="status"][title="undo"] .toaster-banner-undo,
 section[role="status"][title="retry"] .toaster-banner-retry {
   display: inline;
+}
+
+/* Display of header when tray is open and closed, applying this only when dat-path is /folders/
+to make it not applicable, reset the path with any other value other than /folders/*/
+.card-message-list.after section[role="region"] > header > a.msg-folder-list-btn {
+  background-position: 5rem center;
+}
+
+.card-message-list.after section[role="region"] > header > a .icon.icon-menu {
+  padding-left: 3rem;
+  background-position: center center;
+}
+
+.card-message-list.after section[role="region"] > header > a .icon.icon-menu:after {
+  width: 5rem;
+}
+
+.card-message-list.after section[role="region"] > header > h1.msg-list-header-folder-label {
+  padding-left: 2rem;
 }
