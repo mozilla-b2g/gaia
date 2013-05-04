@@ -539,11 +539,12 @@ bubble above the key when you tap and hold. */
 /* for latin suggestions we don't need such a tall box */
 /* and in latin we hide the toggle button, so we can be full-width */
 #keyboard.candidate-panel #keyboard-candidate-panel.latin {
-  height: 3rem;
+  height: 2.6rem;
   width: 100%;
-  background: none;
+  background: #000;
   margin: 0;
   border: none;
+  overflow: hidden;
 }
 
 #keyboard.full-candidate-panel {
@@ -593,17 +594,35 @@ bubble above the key when you tap and hold. */
 
 #keyboard-candidate-panel.latin span,
 #keyboard-candidate-panel[data-truncated].latin::after {
+  display: inline-block;
+  -moz-box-sizing: border-box;
   font-family: 'MozTT', sans-serif;
-  font-size: 1.2rem;
-  line-height: 2.4rem;
-  height: 2.4rem;
+  font-size: 1.8rem;
+  line-height: 2.6rem;
+  height: 2.6rem;
+  width: 33%;
   border: none;
-  border-radius: 0.4rem;
-  margin: 0.3rem;
+  background: none;
+  padding-left: 1%;
+  padding-right: 1%;
+  margin: 0;
+  color: #fff;
+}
+
+#keyboard-candidate-panel.latin span:nth-child(1) {
+  text-align: left;
+}
+
+#keyboard-candidate-panel.latin span:nth-child(2) {
+  text-align: center;
+}
+
+#keyboard-candidate-panel.latin span:nth-child(3) {
+  text-align: right;
 }
 
 #keyboard-candidate-panel.latin span.autocorrect {
-  background: #0ac;   /* XXX: gradient like above? */
+  color: #0ac;   /* XXX: gradient like above? */
 }
 
 

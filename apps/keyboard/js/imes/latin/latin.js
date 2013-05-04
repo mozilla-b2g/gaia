@@ -510,7 +510,65 @@
     }
   }
 
+  // When the worker thread sends us a batch of suggestions, deal
+  // with them here.
+  function handleSuggestions(input, suggestions) {
+    // Check that the word before the cursor has not changed since
+    // we requested these suggestions. If the user has typed faster
+    // than we could offer suggestions, ignore these.
+    if (wordBeforeCursor() !== input) {
+      keyboard.sendCandidates([]); // Clear any displayed suggestions
+      return;
+    }
 
+    // Loop through the suggestions discarding the weights, and capitalizing
+    // words if the user's input is capitalized.
+    var lcinput = input.toLowerCase();
+    var inputStartsWithCapital = (input[0] !== lcinput[0]);
+    for (var i = 0; i < suggestions.length; i++) {
+      suggestions[i] = suggestions[i][0];
+      if (inputStartsWithCapital)
+        suggestions[i] =
+          suggestions[i][0].toUpperCase() + suggestions[i].substring(1);
+    }
+
+    // Now figure out if the input is one of the suggestions
+    var inputindex = suggestions.indexOf(input);
+
+    switch (inputindex) {
+    case -1:
+      // Input is not a word: show it second in the list, or first
+      // if there aren't any other suggestions
+      if (suggestions.length > 0)
+        suggestions = [suggestions[0], input, suggestions[1]];
+      else
+        suggestions = [input];
+      break;
+    case 0:
+    case 1:
+      // Input is the same as the first suggestion or is already in
+      // the second position: use the suggestions unmodified
+      break;
+    case 2:
+      // Input is the 3rd suggestion: swap to make it second
+      suggestions = [suggestions[0], input, suggestions[1]];
+      break;
+    }
+
+    // If we're going to use the first suggestion as an auto-correction
+    // then we have to tell the renderer to highlight it.
+    if (correcting && !correctionDisabled) {
+      // Remember the word to use if the next character is a space.
+      autoCorrection = suggestions[0];
+      // Mark the auto-correction so the renderer can highlight it
+      suggestions[0] = '*' + suggestions[0];
+    }
+
+    keyboard.sendCandidates(suggestions);
+  }
+
+
+/*
   // When the worker thread sends us a batch of suggestions, deal
   // with them here.
   function handleSuggestions(input, suggestions) {
@@ -570,6 +628,7 @@
 
     keyboard.sendCandidates(suggestions);
   }
+*/
 
   // If the user selects one of the suggestions offered by this input method
   // the keyboard calls this method to tell us it has been selected.
