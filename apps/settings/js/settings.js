@@ -115,13 +115,14 @@ var Settings = {
   },
 
   loadPanel: function settings_loadPanel(panel) {
-    if (!panel)
+    if (!panel) {
       return;
+    }
 
     this.loadPanelStylesheetsIfNeeded();
 
     // apply the HTML markup stored in the first comment node
-    for (var i = 0; i < panel.childNodes.length; i++) {
+    for (var i = 0, il = panel.childNodes.length; i < il; i++) {
       if (panel.childNodes[i].nodeType == document.COMMENT_NODE) {
         panel.innerHTML = panel.childNodes[i].nodeValue;
         break;
@@ -132,24 +133,17 @@ var Settings = {
     navigator.mozL10n.translate(panel);
 
     // activate all scripts
-    var scripts = panel.querySelectorAll('script');
-    for (var i = 0; i < scripts.length; i++) {
-      var src = scripts[i].getAttribute('src');
-      if (document.head.querySelector('script[src="' + src + '"]')) {
-        continue;
-      }
-
-      var script = document.createElement('script');
-      script.type = 'application/javascript';
-      script.src = src;
-      document.head.appendChild(script);
-    }
+    var scripts = panel.getElementsByTagName('script');
+    var scripts_src = Array.prototype.map.call(scripts, function(script) {
+      return script.getAttribute('src');
+    });
+    LazyLoader.load(scripts_src);
 
     // activate all links
     var self = this;
     var rule = 'a[href^="http"], a[href^="tel"], [data-href]';
     var links = panel.querySelectorAll(rule);
-    for (i = 0; i < links.length; i++) {
+    for (var i = 0, il = links.length; i < il; i++) {
       var link = links[i];
       if (!link.dataset.href) {
         link.dataset.href = link.href;
@@ -462,6 +456,20 @@ var Settings = {
                 case 'checkbox':
                   input.checked = request.result[key] || false;
                   break;
+                case 'select-one':
+                  input.value = request.result[key] || '';
+                  // Reset the select button content: We have to sync
+                  // the content to value in db before entering dialog
+                  var parent = input.parentElement;
+                  var button = input.previousElementSibling;
+                  // link the button with the select element
+                  var index = input.selectedIndex;
+                  if (index >= 0) {
+                    var selection = input.options[index];
+                    button.textContent = selection.textContent;
+                    button.dataset.l10nId = selection.dataset.l10nId;
+                  }
+                  break;
                 default:
                   input.value = request.result[key] || '';
                   break;
@@ -578,10 +586,8 @@ window.addEventListener('load', function loadSettings() {
   Settings.init();
   handleRadioAndCardState();
 
-  setTimeout(function() {
-    var scripts = [
+  LazyLoader.load([
       'js/utils.js',
-      'shared/js/mouse_event_shim.js',
       'js/airplane_mode.js',
       'js/battery.js',
       'js/app_storage.js',
@@ -590,24 +596,19 @@ window.addEventListener('load', function loadSettings() {
       'js/connectivity.js',
       'js/security_privacy.js',
       'js/icc_menu.js'
-    ];
-    scripts.forEach(function attachScripts(src) {
-      var script = document.createElement('script');
-      script.src = src;
-      document.head.appendChild(script);
-    });
-  });
+  ]);
 
   // panel lazy-loading
   function lazyLoad(panel) {
-    if (panel.children.length) // already initialized
+    if (panel.children.length) { // already initialized
       return;
+    }
 
     // load the panel and its sub-panels (dependencies)
     // (load the main panel last because it contains the scripts)
     var selector = 'section[id^="' + panel.id + '-"]';
     var subPanels = document.querySelectorAll(selector);
-    for (var i = 0; i < subPanels.length; i++) {
+    for (var i = 0, il = subPanels.length; i < il; i++) {
       Settings.loadPanel(subPanels[i]);
     }
     Settings.loadPanel(panel);
@@ -849,5 +850,3 @@ window.addEventListener('localized', function showLanguages() {
 // Do initialization work that doesn't depend on the DOM, as early as
 // possible in startup.
 Settings.preInit();
-
-MouseEventShim.trackMouseMoves = false;

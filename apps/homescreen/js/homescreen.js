@@ -14,13 +14,12 @@ const Homescreen = (function() {
 
   var initialized = false, landingPage;
 
-  // Initialize the various components.
-  PaginationBar.init('.paginationScroller');
-
   function initialize(lPage) {
     if (initialized) {
       return;
     }
+
+    PaginationBar.init('.paginationScroller');
 
     initialized = true;
     landingPage = lPage;

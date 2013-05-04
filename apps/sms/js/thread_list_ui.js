@@ -74,22 +74,22 @@ var ThreadListUI = {
       var contact = contacts[0];
 
       // Update contact phone number
-      var contactName = contact.name[0];
-      if (contacts.length > 1) {
-        // If there are more than one contact with same phone number
-        var others = contacts.length - 1;
-        nameContainer.textContent = navigator.mozL10n.get('others', {
-          name: contactName,
-          n: others
-        });
-      }else {
-        nameContainer.textContent = contactName;
-      }
+      var details = Utils.getContactDetails(number, contacts);
+      var title = details.title || number;
+      var others = contacts.length > 0 ? contacts.length - 1 : 0;
+      nameContainer.textContent = navigator.mozL10n.get('contact-title-text', {
+        name: title,
+        n: others
+      });
       // Do we have to update photo?
-      if (contact.photo && contact.photo[0]) {
-        var photoURL = URL.createObjectURL(contact.photo[0]);
-        photo.src = photoURL;
-      }
+      if (!details.photoURL)
+        return;
+
+      photo.src = details.photoURL;
+      photo.onload = photo.onerror = function revokePhotoURL() {
+        this.onload = this.onerror = null;
+        URL.revokeObjectURL(this.src);
+      };
     });
   },
 

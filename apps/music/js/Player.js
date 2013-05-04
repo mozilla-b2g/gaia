@@ -29,6 +29,14 @@ if (acm) {
   });
 }
 
+window.addEventListener('mozvisibilitychange', function() {
+  if (document.mozHidden) {
+    PlayerView.audio.removeEventListener('timeupdate', PlayerView);
+  } else {
+    PlayerView.audio.addEventListener('timeupdate', PlayerView);
+  }
+});
+
 // View of Player
 var PlayerView = {
   get view() {
@@ -91,6 +99,7 @@ var PlayerView = {
     this.isPlaying = false;
     this.isSeeking = false;
     this.dataSource = [];
+    this.playingBlob = null;
     this.currentIndex = 0;
     this.backgroundIndex = 0;
     this.setSeekBar(0, 0, 0); // Set 0 to default seek position
@@ -122,6 +131,7 @@ var PlayerView = {
       musicdb.cancelEnumeration(playerHandle);
 
     this.dataSource = [];
+    this.playingBlob = null;
   },
 
   setSourceType: function pv_setSourceType(type) {
@@ -347,6 +357,7 @@ var PlayerView = {
 
       musicdb.getFile(songData.name, function(file) {
         this.setAudioSrc(file, true);
+        this.playingBlob = file;
       }.bind(this));
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
       // if we reach here, that means we want to a blob
@@ -607,10 +618,14 @@ var PlayerView = {
           this.showInfo();
 
           var songData = this.dataSource[this.currentIndex];
-          songData.metadata.rated = parseInt(target.dataset.rating);
+          var targetRating = parseInt(target.dataset.rating);
+          var newRating = (targetRating === songData.metadata.rated) ?
+            targetRating - 1 : targetRating;
 
-          musicdb.updateMetadata(songData.name, songData.metadata,
-            this.setRatings.bind(this, parseInt(target.dataset.rating)));
+          songData.metadata.rated = newRating;
+
+          musicdb.updateMetadata(songData.name, songData.metadata);
+          this.setRatings(newRating);
         }
 
         break;

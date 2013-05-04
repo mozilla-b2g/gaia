@@ -21,7 +21,8 @@ var SETUP_ERROR_L10N_ID_MAP = {
   'unresponsive-server': 'setup-error-unresponsive-server',
   'server-problem': 'setup-error-server-problem',
   'no-config-info': 'setup-error-no-config-info',
-  'server-maintenance': 'setup-error-server-maintenance'
+  'server-maintenance': 'setup-error-server-maintenance',
+  'user-account-exists': 'setup-error-account-already-exists'
 };
 
 /**

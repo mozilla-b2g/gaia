@@ -284,8 +284,8 @@ html, body {
 
 #languages [data-type="list"] {
   position: relative;
-  top: 12.5rem;
-  height: 24rem;
+  top: 15.5rem;
+  height: calc(100% - 15.5rem);
   overflow-y: scroll;
   overflow-x: hidden;
   padding-top: 0;
@@ -648,7 +648,7 @@ aside.connecting {
   background-color: #008aaa !important;
 }
 
-#no-sim, #no-network, #fb_after_import2 p {
+#no-sim, #no-sd, #no-network, #fb_after_import2 p {
   color: #5B5B5B;
   font-size: 1.5rem;
   line-height: 2rem;

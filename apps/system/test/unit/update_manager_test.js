@@ -1024,6 +1024,66 @@ suite('system/UpdateManager', function() {
       test('should leave the updates available', function() {
         assert.equal(UpdateManager.updatesQueue.length, 2);
       });
+
+      suite('_dataConnectionWarningEnabled should not be affected by' +
+        'canceling downloads', function() {
+        let systemUpdatable;
+
+        setup(function() {
+          systemUpdatable = new MockSystemUpdatable();
+          UpdateManager.updatableApps = updatableApps;
+          [systemUpdatable, uAppWithDownloadAvailable].forEach(
+            function(updatable) {
+              UpdateManager.addToUpdatesQueue(updatable);
+              UpdateManager.addToDownloadsQueue(updatable);
+            });
+        });
+
+        test('_dataConnectionWarningEnabled should be true if it was true',
+          function() {
+            UpdateManager._dataConnectionWarningEnabled = true;
+            UpdateManager.cancelAllDownloads();
+            assert.isTrue(UpdateManager._dataConnectionWarningEnabled);
+        });
+
+        test('_dataConnectionWarningEnabled should be false if it was false',
+          function() {
+            UpdateManager._dataConnectionWarningEnabled = false;
+            UpdateManager.cancelAllDownloads();
+            assert.isFalse(UpdateManager._dataConnectionWarningEnabled);
+        });
+      });
+    });
+
+    suite('downloaded', function() {
+      var updatableApp, downloadDialog;
+
+      setup(function() {
+        var installedApp = new MockApp();
+        updatableApp = new MockAppUpdatable(installedApp);
+        UpdateManager.updatableApps = [updatableApp];
+        UpdateManager.init();
+        downloadDialog = UpdateManager.downloadDialog;
+      });
+
+      test('should handle downloaded when started using data connection',
+        function() {
+          UpdateManager._startedDownloadUsingDataConnection = true;
+          UpdateManager.downloaded(updatableApp);
+          assert.isFalse(UpdateManager._startedDownloadUsingDataConnection);
+          assert.isFalse(UpdateManager._dataConnectionWarningEnabled);
+          assert.equal(downloadDialog.dataset.dataConnectionInlineWarning,
+            'true');
+      });
+
+      test('should handle downloaded when started using wifi', function() {
+        UpdateManager._startedDownloadUsingDataConnection = false;
+        UpdateManager.downloaded(updatableApp);
+        assert.isFalse(UpdateManager._startedDownloadUsingDataConnection);
+        assert.isTrue(UpdateManager._dataConnectionWarningEnabled);
+        assert.equal(downloadDialog.dataset.dataConnectionInlineWarning,
+          'false');
+      });
     });
 
     suite('download prompt', function() {
@@ -1039,7 +1099,8 @@ suite('system/UpdateManager', function() {
         UpdateManager.updatesQueue = [hostedAppUpdatable, appUpdatable,
                                       systemUpdatable];
         UpdateManager.containerClicked();
-        UpdateManager._isDataConnectionWarningDialogEnabled = true;
+        UpdateManager._dataConnectionWarningEnabled = true;
+        UpdateManager._startedDownloadUsingDataConnection = false;
         UpdateManager.downloadDialog.dataset.nowifi = false;
       });
 
@@ -1111,17 +1172,7 @@ suite('system/UpdateManager', function() {
         };
 
         UpdateManager.requestDownloads(evt);
-        MockasyncStorage.getItem(
-          'gaia.system.isDataConnectionWarningDialogEnabled',
-          function(value) {
-            assert.isFalse(value);
-          });
-        assert.isFalse(UpdateManager._isDataConnectionWarningDialogEnabled);
-        assert.equal(
-          UpdateManager.downloadDialog.dataset.dataConnectionInlineWarning,
-          'true');
-
-        MockasyncStorage.mTeardown();
+        assert.isTrue(UpdateManager._startedDownloadUsingDataConnection);
       });
 
       test('should handle clicking download when using data connection ' +
@@ -1151,6 +1202,7 @@ suite('system/UpdateManager', function() {
 
         UpdateManager.requestDownloads(evt);
         assert.isTrue(calledToMockStartDownloads);
+        assert.isFalse(UpdateManager._startedDownloadUsingDataConnection);
 
         UpdateManager.startDownloads = realStartDownloadsFunc;
       });

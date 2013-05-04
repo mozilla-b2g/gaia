@@ -231,14 +231,32 @@ suite('GestureDetector', function() {
               assert.match(eventseq(), /(transform )+transformend/);
               var e = events[events.length - 1];
               var d = e.detail;
-              between(d.absolute.scale, 0.95 * p.scale, 1.05 * p.scale);
+
+              // We asked for p.scale so synthetic gestures will change
+              // the distance d between the two touches to d * p.scale.
+              // But we don't actually start detecting the gesture
+              // until the touches have moved a bit. So we don't expect
+              // to get p.scale back exactly. (XXX: maybe I should fix this
+              // in synthetic gestures instead of altering the tests).
+              var d0 = Math.sqrt((p.x1 - p.x0) * (p.x1 - p.x0) +
+                                 (p.y1 - p.y0) * (p.y1 - p.y0));
+              var d1 = d0 * p.scale;
+              var adjustment = GestureDetector.SCALE_THRESHOLD *
+                GestureDetector.THRESHOLD_SMOOTHING;
+              var expected;
+              if (d1 > d0)
+                expected = d1 / (d0 + adjustment);
+              else
+                expected = d1 / (d0 - adjustment);
+
+              between(d.absolute.scale, 0.95 * expected, 1.05 * expected);
               assert.equal(d.absolute.rotate, 0);
               assert.equal(d.relative.rotate, 0);
 
               // compute the product of all the relative scales
               var s = 1.0;
               events.forEach(function(e) { s *= e.detail.relative.scale; });
-              between(s, 0.95 * p.scale, 1.05 * p.scale);
+              between(s, 0.95 * expected, 1.05 * expected);
             });
           }
         });

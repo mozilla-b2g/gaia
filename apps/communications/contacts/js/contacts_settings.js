@@ -74,7 +74,7 @@ contacts.Settings = (function() {
     noSdMsg = document.querySelector('#no-sd');
 
     // Gmail & Hotmail import
-    importLiveButton = document.querySelector('[data-l10n-id="importLive"]');
+    importLiveButton = document.querySelector('[data-l10n-id="importOutlook"]');
     importGmailButton = document.querySelector('[data-l10n-id="importGmail"]');
 
     importLiveButton.onclick = Contacts.extServices.importLive;
@@ -142,15 +142,17 @@ contacts.Settings = (function() {
    * @param {Boolean} cardState Whether storage import should be enabled or not.
    */
   var enableStorageImport = function enableStorageImport(cardState) {
-    var importStorage =
-      document.getElementById('settingsStorage').firstElementChild;
+    var importStorage = document.getElementById('settingsStorage');
+    var importStorageButton = importStorage.firstElementChild;
 
     if (cardState) {
-      importStorage.removeAttribute('disabled');
+      importStorage.classList.add('importService');
+      importStorageButton.removeAttribute('disabled');
       noSdMsg.classList.add('hide');
     }
     else {
-      importStorage.setAttribute('disabled', 'disabled');
+      importStorage.classList.remove('importService');
+      importStorageButton.setAttribute('disabled', 'disabled');
       noSdMsg.classList.remove('hide');
     }
   };

@@ -3796,6 +3796,13 @@ define('mailapi/smtp/account',
     exports
   ) {
 
+/**
+ * Debug flag for use by unit tests to tell us to turn on debug logging of
+ * sending SMTP messages.  The output is unstructured and goes to console.log
+ * mainly with some weird unicode chars, but it's better than nothing.
+ */
+exports.ENABLE_SMTP_LOGGING = false;
+
 function SmtpAccount(universe, compositeAccount, accountId, credentials,
                      connInfo, _parentLog) {
   this.universe = universe;
@@ -3900,7 +3907,7 @@ SmtpAccount.prototype = {
             user: this.credentials.username,
             pass: this.credentials.password
           },
-          debug: false,
+          debug: exports.ENABLE_SMTP_LOGGING,
         });
 
       this._activeConnections.push(conn);

@@ -95,7 +95,7 @@ var Contacts = {
 
       options = {
         filterBy: ['tel'],
-        filterOp: 'contains',
+        filterOp: 'match',
         filterValue: variants[0] // matching the shortest variant
       };
     }
