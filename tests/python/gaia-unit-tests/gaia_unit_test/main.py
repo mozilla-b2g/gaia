@@ -49,7 +49,7 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
 
         for env in self.envs:
             if (self.envs[env].failures > 0):
-                exitCode = 1
+                exitCode = 10
 
             if len(self.envs[env].output):
                 print '\ntest report: (' + env + ')'
