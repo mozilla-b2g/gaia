@@ -63,7 +63,7 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
 
         // like %d, without any leading zero
         case '%p':
-          value = d.getHours() <= 12 ? 'AM' : 'PM';
+          value = d.getHours() < 12 ? 'AM' : 'PM';
           break;
 
         // localized date/time strings
