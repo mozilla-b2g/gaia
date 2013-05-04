@@ -12467,8 +12467,7 @@ MailBridge.prototype = {
             to: header.to,
             cc: header.cc,
             bcc: header.bcc,
-            // we abuse guid to serve as the references list...
-            referencesStr: header.guid,
+            referencesStr: body.references,
             attachments: attachments
           });
           callWhenDone();

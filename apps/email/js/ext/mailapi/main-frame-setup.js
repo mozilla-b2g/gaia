@@ -772,6 +772,8 @@ function MailBody(api, suid, wireRep, handle) {
   }
   this._relatedParts = wireRep.relatedParts;
   this.bodyReps = wireRep.bodyReps;
+  // references is included for debug/unit testing purposes, hence is private
+  this._references = wireRep.references;
 
   this.onchange = null;
   this.ondead = null;
@@ -2933,7 +2935,8 @@ MailAPI.prototype = {
     if (req.type === 'die' || (!msg.err && (req.type !== 'save')))
       delete this._pendingRequests[msg.handle];
     if (req.callback) {
-      req.callback.call(null, msg.err, msg.badAddresses, msg.sentDate);
+      req.callback.call(null, msg.err, msg.badAddresses,
+                        { sentDate: msg.sentDate, messageId: msg.messageId });
       req.callback = null;
     }
     return true;
