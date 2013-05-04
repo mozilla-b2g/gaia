@@ -18,39 +18,30 @@ function dieOnFatalError(msg) {
   throw new Error(msg);
 }
 
-var fldNodes, msgNodes, cmpNodes, supNodes, tngNodes;
-function processTemplNodes(prefix) {
-  var holder = document.getElementById('templ-' + prefix),
-      nodes = {},
-      node = holder.firstElementChild,
-      reInvariant = new RegExp('^' + prefix + '-');
-  while (node) {
-    var classes = node.classList, found = false;
-    for (var i = 0; i < classes.length; i++) {
-      if (reInvariant.test(classes[i])) {
-        var name = classes[i].substring(prefix.length + 1);
-        nodes[name] = node;
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      console.warn('Bad template node for prefix "' + prefix +
-                   '" for node with classes:', classes);
-    }
 
-    node = node.nextElementSibling;
+var EmailTemplate = {
+
+  _cached: {},
+
+  /**
+   * Gets a cached node, or retrieves it from the DOM
+   * @param {String} template prefix, e.g., fld, msg, cmp.
+   * @param {String} section identifier.
+   */
+  get: function(prefix, name) {
+    if (!this._cached[prefix])
+      this._cached[prefix] = {};
+
+    if (!this._cached[prefix][name]) {
+      var holder = document.getElementById('templ-' + prefix);
+      var node = holder.querySelector('.' + prefix + '-' + name);
+      node.innerHTML = node.childNodes[0].nodeValue;
+      navigator.mozL10n.translate(node);
+      this._cached[prefix][name] = node;
+    }
+    return this._cached[prefix][name];
   }
-
-  return nodes;
-}
-function populateTemplateNodes() {
-  fldNodes = processTemplNodes('fld');
-  msgNodes = processTemplNodes('msg');
-  cmpNodes = processTemplNodes('cmp');
-  supNodes = processTemplNodes('sup');
-  tngNodes = processTemplNodes('tng');
-}
+};
 
 function addClass(domNode, name) {
   if (domNode) {
@@ -240,10 +231,6 @@ var Cards = {
    * is visible.
    */
   _cardsNode: null,
-  /**
-   * DOM template nodes for the cards.
-   */
-  _templateNodes: null,
 
   /**
    * The DOM nodes that should be removed from their parent when our current
@@ -290,7 +277,6 @@ var Cards = {
     this._rootNode = document.body;
     this._containerNode = document.getElementById('cardContainer');
     this._cardsNode = document.getElementById('cards');
-    this._templateNodes = processTemplNodes('card');
 
     this._containerNode.addEventListener('click',
                                          this._onMaybeIntercept.bind(this),
@@ -451,7 +437,7 @@ var Cards = {
     if (!modeDef)
       throw new Error('No such card mode: ' + mode);
 
-    var domNode = this._templateNodes[type].cloneNode(true);
+    var domNode = App.Template.get('card', type).cloneNode(true); 
 
     var cardImpl = new cardDef.constructor(domNode, mode, args);
     var cardInst = {
