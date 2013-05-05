@@ -41,8 +41,6 @@ var ActivityHandler = {
 
       MessageManager.activity.isLocked = true;
 
-      activity.postResult({ status: 'accepted' });
-
       var number = activity.source.data.number;
       var body = activity.source.data.body;
 

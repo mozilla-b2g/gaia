@@ -35,7 +35,6 @@
     }
   },
   "default_locale": "en-US",
-  "background_page": "/background.html#0",
   "icons": {
     "60": "/style/icons/60/Sms.png",
     "120": "/style/icons/Sms.png",
@@ -46,7 +45,10 @@
     "new": {
       "filters": {
         "type": "websms/sms",
-        "number": { "regexp":"/^[\\w\\s+#*().-]{0,50}$/" }
+        "number": {
+          "pattern":"[\\w\\s+#*().-]{0,50}",
+          "regexp":"/^[\\w\\s+#*().-]{0,50}$/"
+        }
        },
       "disposition": "window"
     },
