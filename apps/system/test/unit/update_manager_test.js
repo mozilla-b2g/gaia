@@ -549,6 +549,32 @@ suite('system/UpdateManager', function() {
     });
 
     suite('container visibility', function() {
+      var checkThreshold;
+      var mutationsCount;
+      var mutationsCountThreshold;
+
+      function onMutations(mutations) {
+        mutationsCount += mutations.length;
+        if (checkThreshold) {
+          checkThreshold();
+        }
+      }
+
+      /* |done| is called when the threshold is reached */
+      function waitForMutationsThreshold(done) {
+        if (mutationsCount < mutationsCountThreshold) {
+          checkThreshold = function checkThreshold(mutations) {
+            if (mutationsCount >= mutationsCountThreshold) {
+              done();
+            }
+          };
+        } else {
+          done();
+        }
+      }
+
+      var observer = new MutationObserver(onMutations);
+
       suiteSetup(function() {
         UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = tinyTimeout;
         UpdateManager.TOASTER_TIMEOUT = tinyTimeout;
@@ -560,23 +586,38 @@ suite('system/UpdateManager', function() {
       });
 
       setup(function() {
+        var config = {
+          attributes: true,
+          attributeFilter: ['class'],
+          attributeOldValue: true // not necessary but good for debugging
+        };
+
+        mutationsCount = 0;
+        mutationsCountThreshold = 0; // default, override in nested suites/tests
+        observer.observe(UpdateManager.container, config);
+        observer.observe(UpdateManager.toaster, config);
         UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
       });
 
       teardown(function(done) {
-        /* We wait for all actions to happen in UpdateManager before reseting.
-           To prevent intermittent oranges from timeout inaccuracies due
-           to slow CI hardware we let an extra "tinyTimeout" (so 3 it is) go
-           by. */
-        setTimeout(function() {
+        waitForMutationsThreshold(function() {
+          observer.disconnect();
+          checkThreshold = null;
+          mutationsCount = 0;
           done();
-        }, tinyTimeout * 3);
+        });
       });
 
       suite('notification behavior after addToDownloadsQueue', function() {
         setup(function() {
           var css = UpdateManager.container.classList;
           UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
+
+          // we should have 2 changes:
+          // * display the container
+          // * set the container "downloading"
+          // we do not display the toaster if we're downloading
+          mutationsCountThreshold = 2;
         });
 
         test('should be displayed only once', function() {
@@ -587,7 +628,7 @@ suite('system/UpdateManager', function() {
             1);
         });
 
-        test('should not be displayed after timeout', function(done) {
+        test('should not be displayed again after timeout', function(done) {
           setTimeout(function() {
             var css = UpdateManager.container.classList;
             assert.isTrue(css.contains('displayed'));
@@ -610,6 +651,12 @@ suite('system/UpdateManager', function() {
               UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
               done();
             });
+
+            // we should have 2 changes:
+            // * display the container
+            // * set the container "downloading"
+            // we do not display the toaster if we're downloading
+            mutationsCountThreshold = 2;
           });
 
         test('should not increment the counter if already displayed',
@@ -627,6 +674,12 @@ suite('system/UpdateManager', function() {
         setup(function() {
           var css = UpdateManager.container.classList;
           assert.isFalse(css.contains('displayed'));
+
+          // we should have 3 changes:
+          // * display the container
+          // * display the toaster
+          // * remove the toaster
+          mutationsCountThreshold = 3;
         });
 
         test('should display after a timeout', function(done) {
@@ -651,6 +704,9 @@ suite('system/UpdateManager', function() {
             assert.isFalse(css.contains('displayed'));
             done();
           }, tinyTimeout * 2);
+
+          // no mutations at all here
+          mutationsCountThreshold = 0;
         });
 
         test('should display an updated count', function(done) {
