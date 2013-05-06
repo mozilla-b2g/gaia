@@ -60,6 +60,7 @@ function VideoPlayer(container) {
   var videourl;   // the url of the video to play
   var posterurl;  // the url of the poster image to display
   var rotation;   // Do we have to rotate the video? Set by load()
+  var orientation; // current player orientation
 
   // These are the raw (unrotated) size of the poster image, which
   // must have the same size as the video.
@@ -133,6 +134,9 @@ function VideoPlayer(container) {
 
   // Call this when the container size changes
   this.setPlayerSize = setPlayerSize;
+
+  // Call this when phone orientation changes
+  this.setPlayerOrientation = setPlayerOrientation;
 
   this.pause = function pause() {
     // Pause video playback
@@ -377,6 +381,31 @@ function VideoPlayer(container) {
     player.style.transform = transform;
   }
 
+  // Update current player orientation
+  function setPlayerOrientation(newOrientation) {
+    orientation = newOrientation;
+  }
+
+  // Compute position based on player orientation
+  function computePosition(panPosition, rect) {
+    var position;
+    switch (orientation) {
+      case 0:
+        position = (panPosition.clientX - rect.left) / rect.width;
+        break;
+      case 90:
+        position = (rect.bottom - panPosition.clientY) / rect.height;
+        break;
+      case 180:
+        position = (rect.right - panPosition.clientX) / rect.width;
+        break;
+      case 270:
+        position = (panPosition.clientY - rect.top) / rect.height;
+        break;
+    }
+    return position;
+  }
+
   // handle drags on the time slider
   slider.addEventListener('pan', function pan(e) {
     e.stopPropagation();
@@ -393,7 +422,7 @@ function VideoPlayer(container) {
     }
 
     var rect = backgroundBar.getBoundingClientRect();
-    var position = (e.detail.position.clientX - rect.left) / rect.width;
+    var position = computePosition(e.detail.position, rect);
     var pos = Math.min(Math.max(position, 0), 1);
     player.currentTime = player.duration * pos;
     updateTime();
