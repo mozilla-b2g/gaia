@@ -19,7 +19,7 @@ Calendar.ns('Views').DayChild = (function() {
       var attendees;
       var classes;
 
-      if (event.remote.alarms.length) {
+      if (event.remote.alarms && event.remote.alarms.length) {
         classes = 'has-alarms';
       }
 
