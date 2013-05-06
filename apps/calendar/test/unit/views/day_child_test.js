@@ -93,4 +93,20 @@ suiteGroup('Views.DayChild', function() {
 
     assert.ok(result.indexOf('has-alarms') === -1);
   });
+
+  test('#_renderEvent undefined alarms, bug 868600', function() {
+    var event = Factory('event', {
+      remote: {
+        title: '|rendercheck|'
+      }
+    });
+    delete event.remote.alarms;
+
+    var busytime = Factory('busytime');
+
+    var result = subject._renderEvent(busytime, event);
+    assert.ok(result);
+
+    assert.include(result, '|rendercheck|');
+  });
 });
