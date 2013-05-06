@@ -618,6 +618,10 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function end() {
+    if (handledCalls.length === 0) {
+      return;
+    }
+
     busyNotificationLock = false;
     // If there is an active call we end this one
     if (telephony.active) {
