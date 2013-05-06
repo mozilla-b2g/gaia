@@ -20,6 +20,13 @@ suite('l10n date', function(done) {
       var result = l10nDate.localeFormat(new Date(), '%x');
       assert.ok(/\d+\/\d+\/\d+/.test(result));
     });
+
+    test('should handle 12 PM correctly', function() {
+      var date = new Date();
+      date.setHours(12);
+      var result = l10nDate.localeFormat(date, '%p');
+      assert.strictEqual(result, 'PM');
+    });
   });
 
   suite('relativeParts', function() {
