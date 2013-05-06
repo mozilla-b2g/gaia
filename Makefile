@@ -10,8 +10,10 @@
 #               you need to have adb in your path or you can edit this line to#
 #               specify its location.                                         #
 #                                                                             #
-# DEBUG       : debug mode enables mode output on the console and disable the #
-#               the offline cache. This is mostly for desktop debugging.      #
+# DEBUG       : debug mode enables output on the console, serves apps via a   #
+#               local http server to allow modifying apps without having to   #
+#               rebuild them, and enables support for development in desktop. #
+#               This is mostly for desktop debugging.                         #
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
@@ -133,8 +135,7 @@ GAIA_INLINE_LOCALES?=1
 #                                                                             #
 ###############################################################################
 
-# In debug mode the offline cache is not used (even if it is generated) and
-# Gaia is loaded by a built-in web server via port GAIA_PORT.
+# In debug mode Gaia is loaded by a built-in web server via port GAIA_PORT.
 #
 # XXX For now the name of the domain should be mapped to localhost manually
 # by editing /etc/hosts on linux/mac. This steps would not be required
@@ -301,12 +302,6 @@ webapp-optimize: install-xulrunner-sdk
 optimize-clean: install-xulrunner-sdk
 	@$(call run-js-command, optimize-clean)
 
-# Populate appcache
-offline-cache: webapp-manifests install-xulrunner-sdk
-	@echo "Populate external apps appcache"
-	@$(call run-js-command, offline-cache)
-	@echo "Done"
-
 # Copy preload contacts to profile
 contacts:
 ifdef CONTACTS_PATH
@@ -347,7 +342,7 @@ reference-workload-x-heavy:
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/09/2012-09-20-03-05-43-mozilla-central/xulrunner-18.0a1.en-US.
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2013-05-06-03-09-25-mozilla-central/xulrunner-23.0a1.en-US.
 
 ifeq ($(SYS),Darwin)
 # For mac we have the xulrunner-sdk so check for this directory
@@ -371,8 +366,7 @@ XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 
 else
 # Otherwise, assume linux
-# downloads and installs locally xulrunner to run the xpchsell
-# script that creates the offline cache
+# downloads and installs locally xulrunner to run the xpcshell scripts
 XULRUNNER_LINUX_SDK_URL=$(XULRUNNER_SDK_URL)linux-
 ifeq ($(ARCH),x86_64)
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)x86_64.sdk.tar.bz2
@@ -663,28 +657,6 @@ forward:
 	$(ADB) shell touch $(MSYS_FIX)/data/local/rilproxyd
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
-
-
-# update the manifest.appcache files to match what's actually there
-update-offline-manifests:
-	for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
-	do \
-		rm -rf $$d/manifest.appcache ;\
-		if [ -f $$d/manifest.webapp ] ;\
-		then \
-			echo \\t$$d ;  \
-			( cd $$d ; \
-			echo "CACHE MANIFEST" > manifest.appcache ;\
-			cat `find * -type f | sort -nfs` | $(MD5SUM) | cut -f 1 -d ' ' | sed 's/^/\#\ Version\ /' >> manifest.appcache ;\
-			find * -type f | grep -v tools | sort >> manifest.appcache ;\
-			$(SED_INPLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
-			echo "http://$(GAIA_DOMAIN)$(GAIA_PORT)/webapi.js" >> manifest.appcache ;\
-			echo "NETWORK:" >> manifest.appcache ;\
-			echo "http://*" >> manifest.appcache ;\
-			echo "https://*" >> manifest.appcache ;\
-			) ;\
-		fi \
-	done
 
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then
