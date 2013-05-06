@@ -636,12 +636,14 @@ var Filmstrip = (function() {
       mediaFrame.style.height = containerHeight + 'px';
       mediaFrame.style.top = 0 + 'px';
       mediaFrame.style.left = 0 + 'px';
+      frame.video.setPortraitOrientation();
     }
     else {
       mediaFrame.style.width = containerHeight + 'px';
       mediaFrame.style.height = containerWidth + 'px';
       mediaFrame.style.top = ((containerHeight - containerWidth) / 2) + 'px';
       mediaFrame.style.left = ((containerWidth - containerHeight) / 2) + 'px';
+      frame.video.setLandscapeOrientation();
     }
 
     // And rotate so this new size fills the screen

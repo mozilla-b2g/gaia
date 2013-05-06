@@ -60,6 +60,7 @@ function VideoPlayer(container) {
   var videourl;   // the url of the video to play
   var posterurl;  // the url of the poster image to display
   var rotation;   // Do we have to rotate the video? Set by load()
+  var panRoatatedToLandscape = false;
 
   // These are the raw (unrotated) size of the poster image, which
   // must have the same size as the video.
@@ -133,6 +134,8 @@ function VideoPlayer(container) {
 
   // Call this when the container size changes
   this.setPlayerSize = setPlayerSize;
+  this.setPortraitOrientation = setPortraitOrientation;
+  this.setLandscapeOrientation = setLandscapeOrientation;
 
   this.pause = function pause() {
     // Pause video playback
@@ -313,7 +316,12 @@ function VideoPlayer(container) {
     context.drawImage(player, 0, 0);
     canvas.toBlob(callback);
   }
-
+  function setLandscapeOrientation() {
+    panRoatatedToLandscape = true;
+  }
+  function setPortraitOrientation() {
+    panRoatatedToLandscape = false;
+  }
   // Make the video fit the container
   function setPlayerSize() {
     var containerWidth = container.clientWidth;
@@ -393,7 +401,12 @@ function VideoPlayer(container) {
     }
 
     var rect = backgroundBar.getBoundingClientRect();
-    var position = (e.detail.position.clientX - rect.left) / rect.width;
+    var position;
+    if (panRoatatedToLandscape === true) {
+      position = (e.detail.position.clientY - rect.top) / rect.height;
+    } else if (panRoatatedToLandscape === false) {
+      position = (e.detail.position.clientX - rect.left) / rect.width;
+    }
     var pos = Math.min(Math.max(position, 0), 1);
     player.currentTime = player.duration * pos;
     updateTime();
