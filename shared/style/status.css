@@ -2,42 +2,27 @@
  * Status
  * ---------------------------------- */
 section[role="status"] {
-  background: url(status/images/ui/pattern.png) repeat left top, url(status/images/ui/gradient.png) no-repeat left top;
-  background-size: auto auto, 100% 100%;
+  background: rgba(64,64,64,1) url(status/images/ui/pattern.png) repeat left top;
   overflow: hidden;
   position: absolute;
   z-index: 100;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 1rem;
-  min-height: 6.2rem;
-  white-space: nowrap;
   font-family: "MozTT", Sans-serif;
   color: #fff;
-  text-align: center;
-}
-
-section[role="status"] p {
-  display: inline-block;
-  vertical-align: middle;
-  white-space: normal;
-  font-size: 1.6rem;
-  line-height: 1.4em;
-  max-width: 75%;
-  margin: 1rem 0;
   text-align: left;
 }
 
-section[role="status"]:before {
-  content: "";
-  height: 100%;
-  display: inline-block;
-  vertical-align: middle;
+section[role="status"] p {
+  font-size: 1.8rem;
+  font-weight: normal;
+  line-height: 2.2rem;
+  margin: 1rem 3rem;
+  padding: 0;
+  text-align: left;
 }
 
 section[role="status"] p strong {
-  text-transform: uppercase;
-  color: #0995b0;
-  font-weight: normal;
+  font-weight: 500;
 }
