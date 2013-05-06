@@ -5,9 +5,8 @@
 
 'use strict';
 
-const kIdentityScreen = 'https://login.native-persona.org/sign_in#NATIVE';
-const kIdentityFrame =
-    'https://login.native-persona.org/communication_iframe';
+const kIdentityScreen = '/sign_in#NATIVE';
+const kIdentityFrame = '/communication_iframe';
 
 var Identity = (function() {
   var iframe;
@@ -21,6 +20,7 @@ var Identity = (function() {
 
     handleEvent: function onMozChromeEvent(e) {
       var chromeEventId = e.detail.id;
+      var personaUri = e.detail.uri;
       var requestId = e.detail.requestId;
       switch (e.detail.type) {
         // Chrome asks Gaia to show the identity dialog.
@@ -44,7 +44,8 @@ var Identity = (function() {
           frame.setAttribute('mozbrowser', 'true');
           frame.setAttribute('remote', true);
           frame.classList.add('screen');
-          frame.src = e.detail.showUI ? kIdentityScreen : kIdentityFrame;
+          frame.src = personaUri +
+            (e.detail.showUI ? kIdentityScreen : kIdentityFrame);
           frame.addEventListener('mozbrowserloadstart',
               function loadStart(evt) {
             // After creating the new frame containing the identity flow, we
