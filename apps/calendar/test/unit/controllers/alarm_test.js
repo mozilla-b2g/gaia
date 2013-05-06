@@ -562,7 +562,11 @@ suiteGroup('Controllers.Alarm', function() {
       var message;
 
       setup(function(done) {
-        message = {clicked: true, imageURL: 'app://calendar.gaiamobile.org/icon.png?foo'};
+        message = {
+          clicked: true,
+          imageURL: 'app://calendar.gaiamobile.org/icon.png?foo'
+        };
+
         realGo = app.go;
         done();
       });
@@ -574,7 +578,8 @@ suiteGroup('Controllers.Alarm', function() {
       test('receive a notification message', function(done) {
 
         app.go = function(place) {
-          assert.equal(place, '/alarm-display/foo', 'redirects to alarm display page');
+          assert.equal(place, '/alarm-display/foo',
+              'redirects to alarm display page');
           done();
         };
 

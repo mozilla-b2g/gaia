@@ -93,7 +93,7 @@ Calendar.ns('Controllers').Alarm = (function() {
         var id = message.imageURL.split('?')[1];
         var url = '/alarm-display/' + id;
 
-        if(app !== null) {
+        if (app !== null) {
           app.launch();
         }
         self.app.go(url);
@@ -127,7 +127,8 @@ Calendar.ns('Controllers').Alarm = (function() {
       navigator.mozApps.getSelf().onsuccess = function sendNotification(e) {
         var app = e.target.result;
         var icon = (app) ? NotificationHelper.getIconURI(app) : '';
-        // XXX: The busytime._id is used when the process of Calendar app is closed.
+        // The busytime._id is used when
+        // the process of Calendar app is closed.
         icon = icon + '?' + busytime._id;
         var notification = NotificationHelper.send(
         title,
