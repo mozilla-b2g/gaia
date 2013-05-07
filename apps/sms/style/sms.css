@@ -473,6 +473,11 @@ section[role="region"].new > header:first-child form {
   pointer-events: none;
 }
 
+/* Add margin at the end of the ul to avoid overlay with edit mode */
+.edit ul:last-child {
+  margin-bottom: 7rem;
+}
+
 /*
   Bottom bar for sending SMS
 */
