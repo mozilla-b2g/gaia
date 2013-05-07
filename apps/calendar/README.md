@@ -27,3 +27,9 @@ Browse to http://calendar.gaiamobile.org:8080/.
 
 + Running the unit tests: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Testing/Gaia_unit_tests
 + Helpful command line utilities: https://npmjs.org/package/b2g-scripts
+
+### Distribution and Customization
+
+A calendar.json file may be specified inside of distribution/calendar.json. This will override the generated presets.js file during the build. At a minimum Google Oauth credentials should be provided for production releases. Failure to do so may result in broken calendars at some point.
+
+You can signup for Google credentials here: https://code.google.com/apis/console/b/0/?pli=1#access
