@@ -447,10 +447,6 @@ ul li > label .range-icons.brightness {
   display: none;
 }
 
-#dateTime ul[hidden] + header {
-  margin-top: 5rem;
-}
-
 #time-manual span {
   pointer-events: none;
 }
