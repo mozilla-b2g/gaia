@@ -698,29 +698,29 @@ var ThreadUI = global.ThreadUI = {
 
   createMmsContent: function thui_createMmsContent(dataArray) {
     var container = document.createElement('div');
-    container.classList.add('mms-container');
+    container.className = 'mms-container';
     dataArray.forEach(function(attachment) {
-      var mediaElement, textElement, url;
+      var mediaElement, textElement;
 
       if (attachment.name && attachment.blob) {
         var type = Utils.typeFromMimeType(attachment.blob.type);
         if (type) {
           // we special case audio to display an image of an audio attachment
-          if (type === 'audio') {
-            type = 'img';
-            url = '/style/icons/audio_thumb.png';
+          // video currently falls through this path too, we should revisit this
+          // with #869244
+          if (type === 'audio' || type === 'video') {
+            mediaElement = document.createElement('div');
+            mediaElement.className = type + '-placeholder';
           } else {
-            url = URL.createObjectURL(attachment.blob);
+            mediaElement = document.createElement(type);
+            mediaElement.src = URL.createObjectURL(attachment.blob);
+            mediaElement.onload = function() {
+              URL.revokeObjectURL(this.src);
+            };
           }
-          mediaElement = document.createElement(type);
-          mediaElement.src = url;
-          mediaElement.onload = function() {
-            URL.revokeObjectURL(url);
-          };
           container.appendChild(mediaElement);
+          attachmentMap.set(mediaElement, attachment);
         }
-        attachmentMap.set(mediaElement, attachment);
-        container.appendChild(mediaElement);
       }
 
       if (attachment.text) {
@@ -836,7 +836,6 @@ var ThreadUI = global.ThreadUI = {
       if (message.delivery === 'not-downloaded') {
         // TODO: We need to handle the mms message with "not-downloaded" status
       } else {
-        pElement.classList.add('mms-bubble-content');
         SMIL.parse(message, function(slideArray) {
           pElement.appendChild(ThreadUI.createMmsContent(slideArray));
         });
