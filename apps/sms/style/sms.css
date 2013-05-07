@@ -486,11 +486,17 @@ form.bottom[role="search"].messages-compose-form {
   bottom: 0;
 }
 
-#messages-send-button {
+/* Fix the compose buttons to the bottom of their container. */
+#messages-attach-button, #messages-send-button {
   float: none;
   position: absolute;
-  right: 0;
   bottom: 0;
+}
+#messages-attach-button {
+  left: 0;
+}
+#messages-send-button {
+  right: 0;
 }
 
 #messages-send-button.active {
@@ -514,12 +520,17 @@ form.bottom[role="search"].messages-compose-form {
   padding-right: 0.5rem;
 }
 
+/* TODO: Move this into the shared building block */
+#messages-attach-button:before {
+  background-image: url(images/paperclip-button.png);
+}
+
 #messages-compose-form {
   max-height: 38rem;
 }
 
 #messages-compose-form [contentEditable] {
-  padding: 0.4rem 7rem 0.2rem 0.6rem;
+  padding: 0.4rem 7rem 0.2rem 3.5rem;
   line-height: 1.8rem !important;
   min-height: 1.9rem;
   max-height: 37rem;
@@ -532,7 +543,6 @@ form.bottom[role="search"].messages-compose-form {
   color: #888;
   position: absolute;
   top: 0.8rem;
-  left: 0.8rem;
   content: attr(placeholder);
   pointer-events: none;
 }
