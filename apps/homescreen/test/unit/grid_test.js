@@ -12,6 +12,7 @@ requireApp('homescreen/test/unit/mock_apps_mgmt.js');
 requireApp('homescreen/test/unit/mock_configurator.js');
 requireApp('homescreen/test/unit/mock_hidden_apps.js');
 requireApp('homescreen/test/unit/mock_manifest_helper.js');
+requireApp('homescreen/test/unit/mock_icon_retriever.js');
 
 requireApp('homescreen/js/grid.js');
 
@@ -21,6 +22,8 @@ var mocksHelperForGrid = new MocksHelper([
   'Page',
   'Dock',
   'Icon',
+  'IconRetriever',
+  'TemplateIcon',
   'PaginationBar',
   'Configurator',
   'HIDDEN_APPS',
@@ -54,6 +57,30 @@ suite('grid.js >', function() {
     window.navigator.mozApps = realMozApps;
 
     mocksHelper.suiteTeardown();
+  });
+
+  suite('Default icons have be initialized correctly >', function() {
+
+    test('App icon by default is defined', function() {
+      var appBlob = GridManager.getBlobByDefault(new MockApp());
+      assert.ok(appBlob);
+    });
+
+    test('Bookmark icon by default is defined', function() {
+      var bookmarkBlob = GridManager.getBlobByDefault(new MockApp({
+        iconable: true
+      }));
+      assert.ok(bookmarkBlob);
+    });
+
+    test('App and bookmark icons by default are different', function() {
+      var appBlob = GridManager.getBlobByDefault(new MockApp());
+      var bookmarkBlob = GridManager.getBlobByDefault(new MockApp({
+        iconable: true
+      }));
+      assert.isTrue(appBlob !== bookmarkBlob);
+    });
+
   });
 
   setup(function(done) {

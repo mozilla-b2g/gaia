@@ -22,6 +22,8 @@ var GridManager = (function() {
 
   var dragging = false;
 
+  var defaultAppIcon, defaultBookmarkIcon;
+
   var opacityOnAppGridPageMax = .7;
   var kPageTransitionDuration, overlayTransition, overlay, overlayStyle;
 
@@ -1100,12 +1102,20 @@ var GridManager = (function() {
     return app.origin + url;
   }
 
+  function calculateDefaultIcons() {
+    defaultAppIcon = new TemplateIcon();
+    defaultAppIcon.loadDefaultIcon();
+    defaultBookmarkIcon = new TemplateIcon(true);
+    defaultBookmarkIcon.loadDefaultIcon();
+  }
+
   var defaults = {
     gridSelector: '.apps',
     dockSelector: '.dockWrapper'
   };
 
   function doInit(options, callback) {
+    calculateDefaultIcons();
     pages = [];
     bookmarkIcons = Object.create(null);
     appIcons = Object.create(null);
@@ -1121,6 +1131,7 @@ var GridManager = (function() {
     overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
 
     window.addEventListener('hashchange', hashchange);
+    IconRetriever.init();
 
     // Initialize the grid from the state saved in IndexedDB.
     HomeState.init(function eachPage(pageState) {
@@ -1254,6 +1265,14 @@ var GridManager = (function() {
 
     get landingPage() {
       return landingPage;
+    },
+
+    getBlobByDefault: function(app) {
+      if (app && app.iconable) {
+        return defaultBookmarkIcon.descriptor.renderedIcon;
+      } else {
+        return defaultAppIcon.descriptor.renderedIcon;
+      }
     },
 
     showRestartDownloadDialog: showRestartDownloadDialog,
