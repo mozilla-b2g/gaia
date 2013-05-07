@@ -8,7 +8,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
 }
 
 [role="tablist"] > [role="tab"] {
@@ -73,11 +73,13 @@
 
 
 /* Selected state */
-[role="tablist"] > [role="tab"]:target > a {
+[role="tablist"] > [role="tab"]:target > a,
+[role="tablist"] > [role="tab"][aria-selected="true"] > a {
   color: #62c6f5
 }
 
-[role="tablist"] > [role="tab"]:target > a.icon:after {
+[role="tablist"] > [role="tab"]:target > a.icon:after,
+[role="tablist"] > [role="tab"][aria-selected="true"] > a.icon:after {
   background-position: center -4rem;
 }
 
@@ -102,7 +104,8 @@
   overflow: auto;
 }
 
-[role="tablist"] :target [role="tabpanel"] {
+[role="tablist"] :target [role="tabpanel"],
+[role="tablist"] [aria-selected="true"] [role="tabpanel"] {
   z-index: 1;
   visibility: visible;
 }
@@ -134,16 +137,8 @@
   padding: 0;
   margin: 0;
   position: relative;
-}
-
-[role="tablist"][data-type="filter"]:before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  height: 0.2rem;
-  background: url(tabs/images/ui/shadow.png) repeat-x left bottom;
+  background: #eef2f5 url(tabs/images/ui/background.png) repeat-x left bottom;
+  height: 4rem;
 }
 
 [role="tablist"][data-type="filter"] > [role="tab"] {
@@ -151,41 +146,37 @@
   text-align: center;
   -moz-box-sizing: border-box;
   color: #737272;
-  border-bottom: solid 0.1rem #999;
+  border-left: solid 0.1rem #b1b4b5;
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"]:first-child {
+  border-left: none;
 }
 
 [role="tablist"][data-type="filter"] > [role="tab"] > a {
   display: block;
-  padding: 1.3rem 0.5rem;
+  padding: 0 0.5rem;
   text-decoration: none;
   color: #737272;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   background-color: transparent;
-  font: bold 1.4rem/1em "Open Sans", Sans-serif;
+  font: normal 1.6rem/4rem "MozTT", Sans-serif;
   width: auto;
   float: none;
 }
 
 /* Selected state */
-[role="tablist"][data-type="filter"] > [role="tab"]:target {
+[role="tablist"][data-type="filter"] > [role="tab"]:target,
+[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] {
   background: #fff;
-  border: solid 0.1rem #999;
-  border-top: none;
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"]:target > a,
+[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] > a {
   color: #000;
-}
-
-[role="tablist"][data-type="filter"] > [role="tab"]:first-child:target {
-  border-left: none;
-}
-
-[role="tablist"][data-type="filter"] > [role="tab"]:last-child:target {
-  border-right: none;
-}
-
-[role="tablist"][data-type="filter"] > [role="tab"]:target > a {
-  color: #000;
+  font-weight: 500;
 }
 
 [role="tablist"][data-type="filter"] > [role="tab"] > a:active {
@@ -194,16 +185,12 @@
 }
 
 /* Bottom position */
-[role="tablist"][data-type="filter"].bottom:before {
+[role="tablist"][data-type="filter"].bottom {
   bottom: 100%;
   top: auto;
-  background-image: url(tabs/images/ui/shadow-revert.png);
+  background: #eef2f5 url(tabs/images/ui/background-revert.png) repeat-x left top;
 }
 
-[role="tablist"][data-type="filter"].bottom > [role="tab"] {
-  border-bottom: none;
-  border-top: solid 0.1rem #999;
-}
 [role="tablist"][data-type="filter"].bottom > [role="tab"] > a {
   height: auto;
 }
