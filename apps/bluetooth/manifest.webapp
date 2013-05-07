@@ -20,9 +20,6 @@
   "orientation": "portrait-primary",
   "activities": {
     "share": {
-      "filters": {
-      	"number": 1
-       },
       "disposition": "inline",
       "returnValue": true,
       "href": "/transfer.html"
