@@ -57,6 +57,35 @@
     },
 
     /**
+     * Marks a given calendar with an error.
+     *
+     * Emits a 'error' event immediately.. This method is typically
+     * triggered by an account wide error.
+     *
+     *
+     * @param {Object} calendar model.
+     * @param {Calendar.Error} error for given calendar.
+     * @param {IDBTransaction} transaction optional.
+     * @param {Function} callback fired when model is saved [err, id, model].
+     */
+    markWithError: function(calendar, error, trans, callback) {
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = null;
+      }
+
+      if (!calendar._id)
+        throw new Error('given calendar must be persisted.');
+
+      calendar.error = {
+        name: error.name,
+        date: new Date()
+      };
+
+      this.persist(calendar, trans, callback);
+    },
+
+    /**
      * Find calendars in a specific account.
      * Results will be returned in an object where
      * the key is the remote.id and the value is the calendar.
@@ -99,6 +128,9 @@
 
     /**
      * Sync remote and local events for a calendar.
+     *
+     * TODO: Deprecate use of this function in favor of a sync methods
+     *       inside of providers.
      */
     sync: function(account, calendar, callback) {
       var self = this;
