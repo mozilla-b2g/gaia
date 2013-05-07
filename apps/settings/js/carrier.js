@@ -7,6 +7,7 @@
 navigator.mozL10n.ready(function carrierSettings() {
   var APN_FILE = '/shared/resources/apn.json';
   var _ = window.navigator.mozL10n.get;
+  const AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
 
   /**
    * gCompatibleAPN holds all compatible APNs matching the current iccInfo
@@ -111,6 +112,16 @@ navigator.mozL10n.ready(function carrierSettings() {
           rilData(usage, 'mmsproxy').value = item.mmsproxy || '';
           rilData(usage, 'mmsport').value = item.mmsport || '';
         }
+        var input = document.getElementById('ril-' + usage + '-authType');
+        input.value = item.authtype ? AUTH_TYPES[input.value] : 'notDefined';
+        var parent = input.parentElement;
+        var button = input.previousElementSibling;
+        var index = input.selectedIndex;
+        if (index >= 0) {
+          var selection = input.options[index];
+          button.textContent = selection.textContent;
+          button.dataset.l10nId = selection.dataset.l10nId;
+        }
       };
 
       // include the radio button element in a list item
@@ -150,6 +161,20 @@ navigator.mozL10n.ready(function carrierSettings() {
             rilData(usage, key).value = value || '';
         });
       });
+
+      asyncStorage.getItem(
+        'ril.' + usage + '.custom.authtype', function(value) {
+          var input = document.getElementById('ril-' + usage + '-authType');
+          input.value = value || 'notDefined';
+          var parent = input.parentElement;
+          var button = input.previousElementSibling;
+          var index = input.selectedIndex;
+          if (index >= 0) {
+            var selection = input.options[index];
+            button.textContent = selection.textContent;
+            button.dataset.l10nId = selection.dataset.l10nId;
+          }
+      });
     }
 
     //helper
@@ -163,6 +188,8 @@ navigator.mozL10n.ready(function carrierSettings() {
         asyncStorage.setItem('ril.' + usage + '.custom.' + key,
                              rilData(usage, key).value);
       });
+      var authType = document.getElementById('ril-' + usage + '-authType');
+      asyncStorage.setItem('ril.' + usage + '.custom.authtype', authType.value);
     }
 
     // find the current APN, relying on the carrier name
