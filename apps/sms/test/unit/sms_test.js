@@ -13,7 +13,6 @@ requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
-requireApp('sms/test/unit/mock_settings.js');
 
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/contacts.js');
@@ -56,9 +55,6 @@ suite('SMS App Unit-Test', function() {
   var realMozMobileMessage;
   var boundOnHashChange;
   var getContactDetails;
-  var nativeMozMobileMessage = navigator.mozMobileMessage;
-  var nativeSettings = navigator.mozSettings;
-  var realGestureDetector;
 
   suiteSetup(function() {
     navigator.mozL10n = MockL10n;
@@ -690,93 +686,5 @@ suite('SMS App Unit-Test', function() {
         '+919810137553', 'Sixth number is +919810137553');
     });
   });
-
-// TEMPORARILY DISABLING THESE TESTS SINCE THEY ARE SINGLE
-// RECIPIENT DEPENDENT.
-
-// suite('Sending SMS from new screen', function() {
-//   var contacts = null;
-
-//   setup(function() {
-//     contacts = MockContact.list();
-//   });
-
-//   test('Sending to contact should put in right thread', function(done) {
-//     var contact = contacts[0];
-
-//     Contacts.findByString = stub(function(str, callback) {
-//       callback(contacts);
-//     });
-//     Contacts.findByPhoneNumber = stub(function(str, callback) {
-//       callback(contacts);
-//     });
-
-//     MessageManager.onHashChange = stub();
-//     MessageManager.send = stub();
-
-//     window.location.hash = '#new';
-
-//     ThreadUI.recipients.push({
-//       name: contact.name,
-//       phoneNumber: contact.tel[0].value,
-//       source: 'contacts'
-//     });
-
-//     // Launch an input
-//     ThreadUI.input.value = 'Jo quiro';
-//     ThreadUI.sendMessage();
-
-//     setTimeout(function() {
-//       assert.equal(Contacts.findByString.callCount, 0);
-//       assert.equal(Contacts.findByPhoneNumber.callCount, 1);
-//       assert.equal(MessageManager.send.callCount, 1);
-//       assert.equal(MessageManager.send.calledWith[0], contact.tel[0].value);
-//       assert.equal(MessageManager.send.calledWith[1], 'Jo quiro');
-
-//       window.location.hash = '';
-//       done();
-//     }, 30);
-//   });
-//   test('Sending to short nr should not link to contact', function(done) {
-//     // findByString does a substring find
-//     Contacts.findByString = stub(function(str, callback) {
-//       callback(contacts);
-//     });
-//     Contacts.findByPhoneNumber = stub(function(str, callback) {
-//       callback([]);
-//     });
-
-//     MessageManager.onHashChange = stub();
-//     MessageManager.send = stub();
-
-//     window.location.hash = '#new';
-
-//     ThreadUI.recipients.push({
-//       phoneNumber: '2471'
-//     });
-
-//     ThreadUI.input.value = 'Short';
-//     ThreadUI.sendMessage();
-
-//     setTimeout(function() {
-//       assert.equal(Contacts.findByString.callCount, 0);
-//       assert.equal(Contacts.findByPhoneNumber.callCount, 1);
-//       assert.equal(MessageManager.send.callCount, 1);
-//       assert.equal(
-//         MessageManager.send.calledWith[0], ThreadUI.recipients[0]
-//       );
-//       assert.equal(MessageManager.send.calledWith[1], 'Short');
-
-//       window.location.hash = '';
-//       done();
-//     }, 30);
-//     assert.equal(send.callCount, 1);
-//     // Check for the first number in the recipients list
-//     assert.equal(send.calledWith[0][0], '2471');
-//     assert.equal(send.calledWith[1], 'Short');
-
-//     window.location.hash = '';
-//   });
-// });
 });
 
