@@ -542,15 +542,3 @@ input.msg-search-text-tease {
 .msg-messages-sync-more > span {
   margin: 0 3rem;
 }
-
-/* Filters selected state */
-ul[role="tablist"].filter li[aria-selected="true"] {
-  background: #fff;
-  border: solid 0.1rem #999;
-  border-top: none;
-  color: #000;
-}
-
-ul[role="tablist"].filter li[aria-selected="true"] a {
-  color: #000;
-}
