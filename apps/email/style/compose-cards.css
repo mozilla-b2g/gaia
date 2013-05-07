@@ -95,12 +95,13 @@ input.cmp-subject-text {
 }
 
 .cmp-body-text {
+  display: block;
+  height: auto;
+  min-height: 10rem;
+  max-height: none;
   -moz-box-sizing: border-box;
   width: calc(100% - 4rem);
-  min-height: 10rem;
   margin: 1rem 1.5rem;
-  display: block;
-  overflow: hidden;
   padding: 0rem;
   font: 1.7rem/1.9rem "MozTT", Sans-serif;
   font-weight: normal;
