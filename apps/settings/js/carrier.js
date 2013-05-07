@@ -391,6 +391,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
     var scanItem = list.querySelector('li[data-state="ready"]');
     scanItem.onclick = scan;
     var currentStateElement = null;
+    var previousElementState =""; // previous selected network state
 
     // clear the list
     function clear() {
@@ -405,19 +406,30 @@ var Carrier = (function newCarrier(window, document, undefined) {
     function selectOperator(network, messageElement) {
       var _ = window.navigator.mozL10n.get;
       var req = mobileConnection.selectNetwork(network);
-      // update current network state as 'available' (the string display
-      // on the network to connect)
-      currentStateElement.textContent = messageElement.textContent;
-      currentStateElement.dataset.l10nId = messageElement.dataset.l10nId;
-      currentStateElement = messageElement;
+	  
+      // Bug 865995_update network state as their network state when select other operator
+      // e.g. 'current' state should be changed as available
+      // 'available' and 'forbidden' state should be changed as their state : To be Mozilla Review
+      if(currentStateElement.state === 'current') {
+        currentStateElement.textContent = _('state-available');
+        currentStateElement = messageElement;
+      }
+      else {
+        currentStateElement.textContent = previousElementState;
+        currentStateElement = messageElement;
+      }
+      previousElementState = messageElement.textContent;
+      
       messageElement.textContent = _('operator-status-connecting');
       messageElement.dataset.l10nId = 'operator-status-connecting';
       req.onsuccess = function onsuccess() {
+        currentStateElement.rat = network.state;
         messageElement.textContent = _('operator-status-connected');
         messageElement.dataset.l10nId = 'operator-status-connected';
         updateSelectionMode(false);
       };
       req.onerror = function onsuccess() {
+        currentStateElement.connected = network.state;
         messageElement.textContent = _('operator-status-connectingfailed');
         messageElement.dataset.l10nId = 'operator-status-connectingfailed';
       };
@@ -434,6 +446,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
           var listItem = newListItem(networks[i], selectOperator);
           if (networks[i].state === 'current') {
             currentStateElement = listItem.querySelector('small');
+	    currentStateElement.state = networks[i].state; // current state should be changed to available
           }
           list.insertBefore(listItem, scanItem);
         }
