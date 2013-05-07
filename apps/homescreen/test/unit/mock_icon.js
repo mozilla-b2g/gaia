@@ -10,6 +10,10 @@ MockIcon.prototype = {
   },
 
   update: function mi_update() {
+  },
+
+  getWidth: function mi_getWidth() {
+    return 16;
   }
 };
 

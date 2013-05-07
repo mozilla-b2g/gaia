@@ -512,6 +512,10 @@ Icon.prototype = {
 
   getLeft: function icon_getLeft() {
     return this.container.getBoundingClientRect().left;
+  },
+
+  getWidth: function icon_getWidth() {
+    return this.container.getBoundingClientRect().width;
   }
 };
 

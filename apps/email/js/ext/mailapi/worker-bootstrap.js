@@ -11449,13 +11449,16 @@ define('encoding',['require','exports','module'],function(require, exports, modu
  */
 function checkEncoding(name){
     name = (name || "").toString().trim().toLowerCase().
+        // this handles aliases with dashes and underscores too; built-in
+        // aliase are only for latin1, latin2, etc.
         replace(/^latin[\-_]?(\d+)$/, "iso-8859-$1").
-        replace(/^win(?:dows)?[\-_]?(\d+)$/, "windows-$1").
+        // win949, win-949, ms949 => windows-949
+        replace(/^(?:(?:win(?:dows)?)|ms)[\-_]?(\d+)$/, "windows-$1").
         replace(/^utf[\-_]?(\d+)$/, "utf-$1").
-        replace(/^ks_c_5601\-1987$/, "windows-949"). // maps to euc-kr
         replace(/^us_?ascii$/, "ascii"); // maps to windows-1252
     return name;
 }
+exports.checkEncoding = checkEncoding;
 
 var ENCODER_OPTIONS = { fatal: false };
 
@@ -12464,8 +12467,7 @@ MailBridge.prototype = {
             to: header.to,
             cc: header.cc,
             bcc: header.bcc,
-            // we abuse guid to serve as the references list...
-            referencesStr: header.guid,
+            referencesStr: body.references,
             attachments: attachments
           });
           callWhenDone();
@@ -13384,7 +13386,6 @@ var AUTOCONFIG_TIMEOUT_MS = 30 * 1000;
 
 var Configurators = {
   'imap+smtp': './composite/configurator',
-  'fake': './fake/configurator',
   'activesync': './activesync/configurator'
 };
 
@@ -13468,9 +13469,6 @@ var autoconfigByDomain = exports._autoconfigByDomain = {
     smtpPort: 465,
     smtpCrypto: true,
     usernameIsFullEmail: false,
-  },
-  'example.com': {
-    type: 'fake',
   },
 };
 
@@ -14641,6 +14639,14 @@ MailUniverse.prototype = {
     if (!this.online) {
       callback('offline');
       return;
+    }
+    if (!userDetails.forceCreate) {
+      for (var i = 0; i < this.accounts.length; i++) {
+        if (userDetails.emailAddress = this.accounts[i].identities[0].address) {
+          callback('user-account-exists');
+          return;
+        }
+      }
     }
 
     if (domainInfo) {
