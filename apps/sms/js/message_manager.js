@@ -90,6 +90,7 @@ var MessageManager = {
       } else {
         var timestamp = threadMockup.timestamp.getTime();
         var previousThread = document.getElementById('thread_' + threadId);
+        var newMessage = previousThread ? 0 : 1;
         if (previousThread && previousThread.dataset.time > timestamp) {
           // If the received SMS it's older that the latest one
           // We need only to update the 'unread status'
@@ -114,7 +115,7 @@ var MessageManager = {
             threadsContainer.removeChild(previousThread);
           }
         }
-        ThreadListUI.appendThread(threadMockup);
+        ThreadListUI.appendThread(threadMockup, newMessage);
       }
     }
   },

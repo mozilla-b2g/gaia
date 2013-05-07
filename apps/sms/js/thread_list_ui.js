@@ -199,7 +199,7 @@ var ThreadListUI = {
     // Refactor the rendering method: do not empty the entire
     // list on every render.
     ThreadListUI.container.innerHTML = '';
-    ThreadListUI.count = threads.length;
+    ThreadListUI.count = 0;
 
     if (threads.length) {
       // There are messages to display.
@@ -227,7 +227,7 @@ var ThreadListUI = {
         }
         var thread = threads.pop();
         setTimeout(function() {
-          ThreadListUI.appendThread(thread);
+          ThreadListUI.appendThread(thread, true);
           appendThreads(threads, callback);
         });
       };
@@ -309,7 +309,10 @@ var ThreadListUI = {
       ThreadListUI.container.appendChild(fragment);
     }
   },
-  appendThread: function thlui_appendThread(thread) {
+  appendThread: function thlui_appendThread(thread, newThread) {
+    if (newThread) {
+      ThreadListUI.count++;
+    }
     var num = thread.participants[0];
     var timestamp = thread.timestamp.getTime();
     // We create the DOM element of the thread
