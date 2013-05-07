@@ -8,93 +8,90 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
+Cu.import('resource://gre/modules/Services.jsm');
+
 function debug(data) {
   dump('desktop-helper: ' + data + '\n');
 }
 
-function startup(data, reason) {
-  Cu.import('resource://gre/modules/Services.jsm');
+const kChromeRootPath = 'chrome://desktop-helper.js/content/data/';
 
-  Cu.import('resource://gre/modules/ContactService.jsm');
-  Cu.import('resource://gre/modules/SettingsChangeNotifier.jsm');
-  Cu.import('resource://gre/modules/ActivitiesService.jsm');
-  Cu.import('resource://gre/modules/PermissionPromptHelper.jsm');
+// XXX Scripts should be loaded based on the permissions of the apps not
+// based on the domain.
+const kScriptsPerDomain = {
+  '.gaiamobile.org': [
+    'ffos_runtime.js',
+    'lib/bluetooth.js',
+    'lib/cameras.js',
+    'lib/mobile_connection.js',
+    'lib/wifi.js'
+  ]
+};
 
-  try {
-    // Sigh. Seems like there is a registration issue between all the addons.
-    // This is dirty but delaying this seems to make it.
-    var timer = Cc['@mozilla.org/timer;1'].createInstance(Ci.nsITimer);
-    timer.initWithCallback(function() {
-      Services.scriptloader.loadSubScript('chrome://desktop-helper.js/content/alarms.js', {});
-    }, 1000, Ci.nsITimer.TYPE_ONE_SHOT);
+function injectMocks() {
+  // Track loading of apps to inject mock APIs
+  Services.obs.addObserver(function(document) {
+    // Some documents like XBL don't have location and should be ignored
+    if (!document.location || !document.defaultView)
+      return;
+    let currentDomain = document.location.toString();
+    let window = document.defaultView;
 
-    // Then inject the missing contents inside apps.
-    // XXX This code is the only things that should affect both Firefox and
-    // b2g-desktop. Loading mock apis lives here.
-    var mm = Cc['@mozilla.org/globalmessagemanager;1']
-               .getService(Ci.nsIMessageBroadcaster);
-    mm.loadFrameScript('chrome://desktop-helper.js/content/content.js', true);
-   mm.loadFrameScript('chrome://global/content/BrowserElementPanning.js', true);
-
-    // XXX This code is Firefox only and should not be loaded in b2g-desktop.
-    Services.obs.addObserver(function() {
-      let browserWindow = Services.wm.getMostRecentWindow('navigator:browser');
-
-      // Automatically toggle responsive design mode
-      let args = {'width': 320, 'height': 480};
-      let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
-      mgr.handleGcliCommand(browserWindow,
-                            browserWindow.gBrowser.selectedTab,
-                            'resize to',
-                            args);
-
-      // And devtool panel while maximizing its size according to screen size
-      Services.prefs.setIntPref('devtools.toolbox.sidebar.width',
-                                browserWindow.screen.width - 550);
-      browserWindow.resizeTo(
-        browserWindow.screen.width,
-        browserWindow.outerHeight
-      );
-      gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser);
-
-      // XXX This code should be loaded by the keyboard/ extension
-      // to not change the behavior of b2g-desktop.
-      try {
-        // Try to load a the keyboard if there is a keyboard addon.
-        Cu.import('resource://keyboard.js/Keyboard.jsm');
-        mm.addMessageListener('Forms:Input', Keyboard);
-        mm.loadFrameScript('chrome://keyboard.js/content/forms.js', true);
-      } catch(e) {
-        debug('Can\'t load Keyboard.jsm. Likely because the keyboard addon is not here.');
-      }
-    }, 'sessionstore-windows-restored', false);
-
-    // XXX This code is Firefox only and should not be loaded in b2g-desktop.
-    try {
-      // Register a new devtool panel with various OS controls
-      Cu.import('resource:///modules/devtools/gDevTools.jsm');
-      gDevTools.registerTool({
-        id: 'firefox-os-controls',
-        key: 'F',
-        modifiers: 'accel,shift',
-        icon: 'chrome://desktop-helper.js/content/panel/icon.gif',
-        url: 'chrome://desktop-helper.js/content/panel/index.html',
-        label: 'FFOS Control',
-        tooltip: 'Set of controls to tune FirefoxOS apps in Desktop browser',
-        isTargetSupported: function(target) {
-          return target.isLocalTab;
-        },
-        build: function(iframeWindow, toolbox) {
-          iframeWindow.wrappedJSObject.tab = toolbox.target.window;
-          return {
-            destroy: function () {}
-          };
-        }
-      });
-    } catch(e) {
-      debug('Can\'t load the devtools panel. Likely because this version of Gecko is too old');
+    // Do not include mocks for unit test sandboxes
+    if (window.wrappedJSObject.mocha &&
+        currentDomain.indexOf('_sandbox.html') !== -1) {
+      return;
     }
 
+    debug('+++ loading scripts for app: ' + currentDomain + "\n");
+    // Inject mocks based on domain
+    for (let domain in kScriptsPerDomain) {
+      if (currentDomain.indexOf(domain) == -1)
+        continue;
+
+      let includes = kScriptsPerDomain[domain];
+      for (let i = 0; i < includes.length; i++) {
+        debug('loading ' + includes[i] + '...');
+
+        Services.scriptloader.loadSubScript(kChromeRootPath + includes[i],
+                                            window.wrappedJSObject);
+      }
+    }
+
+    // Inject script to simulate touch events only in the system app
+    if (currentDomain.indexOf('system.gaiamobile.org') != -1) {
+      // We need to register mouse event listeners on the iframe/browser
+      // element
+      let frame = window.QueryInterface(Ci.nsIInterfaceRequestor)
+                        .getInterface(Ci.nsIWebNavigation)
+                        .QueryInterface(Ci.nsIDocShell).chromeEventHandler;
+      let scope = {
+        addEventListener: function (type, fun, capture) frame.addEventListener(type, fun, capture),
+        removeEventListener: function (type, fun) frame.removeEventListener(type, fun)
+      };
+      Services.scriptloader.loadSubScript("chrome://desktop-helper.js/content/touch-events.js",
+                                          scope);
+    }
+  }, 'document-element-inserted', false);
+}
+
+function hotfixAlarms() {
+  // Replace existing alarm service xpcom factory by a new working one,
+  // until a working fallback is implemented in platform code (bug 867868)
+
+  // Sigh. Seems like there is a registration issue between all the addons.
+  // This is dirty but delaying this seems to make it.
+  var timer = Cc['@mozilla.org/timer;1'].createInstance(Ci.nsITimer);
+  timer.initWithCallback(function() {
+    Services.scriptloader.loadSubScript('chrome://desktop-helper.js/content/alarms.js', {});
+  }, 1000, Ci.nsITimer.TYPE_ONE_SHOT);
+}
+
+function startup(data, reason) {
+  try {
+    hotfixAlarms();
+
+    injectMocks();
   } catch (e) {
     debug('Something went wrong while trying to start desktop-helper: ' + e);
   }
