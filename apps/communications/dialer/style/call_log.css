@@ -28,13 +28,10 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 /* Override Building Block styles for lists */
-#recents-container[data-type="list"] li {
-  border-top: 0.1rem solid #DBD9D9;
-  border-bottom: none;
-}
-
-#recents-container[data-type="list"] li:first-child {
-  border-top: none;
+#call-log-container[data-type="list"] {
+  width: calc(100% + 0.8rem);
+  padding: 0 2.3rem 0 1.5rem;
+  -moz-box-sizing: border-box;
 }
 
 .disabled {
