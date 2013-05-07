@@ -1946,6 +1946,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     //queue the event until the current group
     //emits an 'end' event
     if (envId !== currentEnv) {
+      if (!this.envQueue[envId]) {
+        return console.log(
+          'Attempting to log an test event for the environment: "' + envId +
+          '" but it does not exist. \nevent:', event, '\ndata:', data
+        );
+      }
       this.envQueue[envId].push(arguments);
       return this;
     }
@@ -2425,6 +2431,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     this.emit('worker start');
   };
 
+  /**
+   * Signals when the worker is ready to start running tests
+   */
+  proto.ready = function ready() {
+    this.emit('worker ready');
+    if (this.send) {
+      this.send('worker ready');
+    }
+  };
+
 }(this));
 (function(window) {
   /**
@@ -2568,10 +2584,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       options = {};
     }
 
-    this.testMap = {};
-    this.testEnvs = {};
     this.testGroups = {};
-    this.domains = {};
+    this.sandboxes = {};
 
     for (key in options) {
       if (options.hasOwnProperty(key)) {
@@ -2601,7 +2615,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       worker.on('worker start', function(data) {
         if (data && data.type == self.listenToWorker) {
-          self._startDomainTests(self.currentDomain);
+          self._startDomainTests(self.currentEnv);
         }
       });
 
@@ -2685,7 +2699,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     /**
      * Creates new iframe and register's it under
-     * .domains
+     * .sandboxes
      *
      *
      * Removes current iframe and its
@@ -2696,34 +2710,35 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       var iframe;
       //if we have a current domain
       //remove it it should be finished now.
-      if (this.currentDomain) {
+      if (this.currentEnv) {
         this.removeIframe(
-          this.domains[this.currentDomain]
+          this.sandboxes[this.currentEnv]
         );
-        delete this.testGroups[this.currentDomain];
+        delete this.testGroups[this.currentEnv];
       }
 
-      var nextDomain = Object.keys(this.testGroups).shift();
-      if (nextDomain) {
-        this.currentDomain = nextDomain;
-        iframe = this.createIframe(nextDomain);
-        this.domains[this.currentDomain] = iframe;
+      var nextEnv = Object.keys(this.testGroups).shift();
+      if (nextEnv) {
+        var nextGroup = this.testGroups[nextEnv];
+        this.currentEnv = nextGroup.env;
+        iframe = this.createIframe(nextGroup.domain);
+        this.sandboxes[this.currentEnv] = iframe;
       } else {
-        this.currentDomain = null;
+        this.currentEnv = null;
       }
     },
 
     /**
      * Sends run tests event to domain.
      *
-     * @param {String} domain url.
+     * @param {String} env the enviroment to test against.
      */
-    _startDomainTests: function(domain) {
+    _startDomainTests: function(env) {
       var iframe, tests, group;
 
-      if (domain in this.domains) {
-        iframe = this.domains[domain];
-        group = this.testGroups[domain];
+      if (env in this.sandboxes) {
+        iframe = this.sandboxes[env];
+        group = this.testGroups[env];
 
         this.send(iframe, 'set env', group.env);
         this.send(iframe, 'run tests', { tests: group.tests });
@@ -2742,20 +2757,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           group;
 
       this.testGroups = {};
-      this.testEnvs = {};
-      this.testMap = {};
 
       for (i; i < len; i++) {
         group = this.groupTestsByDomain(tests[i]);
-        if (group.domain && group.test) {
-          if (!(group.domain in this.testGroups)) {
-            this.testGroups[group.domain] = {
+        if (group.env && group.test) {
+          if (!(group.env in this.testGroups)) {
+            this.testGroups[group.env] = {
               env: group.env,
+              domain: group.domain,
               tests: []
             };
           }
-          this.testGroups[group.domain].tests.push(group.test);
-          this.testEnvs[group.env] = true;
+          this.testGroups[group.env].tests.push(group.test);
         }
       }
     },
@@ -2768,7 +2781,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     runTests: function(tests) {
       var envs;
       this._createTestGroups(tests);
-      envs = Object.keys(this.testEnvs);
+      envs = Object.keys(this.testGroups);
       this.worker.emit('set test envs', envs);
       this.worker.send('set test envs', envs);
       this._loadNextDomain();
@@ -2910,8 +2923,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           };
         }
 
+        // due to a bug in mocha, iframes added to the DOM are
+        // detected as global leaks in FF 21+, these global ignores
+        // are a workaround. see also:
+        // https://developer.mozilla.org/en-US/docs/Site_Compatibility_for_Firefox_21
+        var globalIgnores = ['0', '1', '2', '3', '4', '5'];
+
         //setup mocha
         box.mocha.setup({
+          globals: globalIgnores,
           ui: self.ui,
           reporter: self.getReporter(box)
         });
@@ -3179,4 +3199,3 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
 }(this));
-
