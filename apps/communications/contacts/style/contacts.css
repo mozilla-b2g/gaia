@@ -95,10 +95,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   transition: transform 0.5s ease-out;
 }
 
-.view-contact-profile .view-body-inner hr {
-  margin-top: 0;
-}
-
 .view-contact-profile .view-body-inner:not(.no-photo):after {
   background: url(images/shadow_1px.png) repeat-x bottom / auto 0.8rem;
   content: "";
@@ -158,6 +154,10 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 }
 
 /* Edit contact section */
+#contact-form ul {
+  margin-bottom: 1.5rem;
+}
+
 .view-edit-contact .tail-actions {
   padding-top: 0.7rem;
   margin: 1rem 0 2rem;
@@ -172,8 +172,23 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   margin: 0;
 }
 
+.view-edit-contact form li:first-child {
+  margin-top: .5rem;
+  padding-top: 1rem;
+  border-top: .1rem solid rgb(189, 189, 187);
+}
+
 .view-edit-contact form li {
-  margin-right: 3rem;
+  padding-bottom: 1rem;
+  padding-right: 3rem;
+  margin-bottom: 1rem;
+  border-bottom: .1rem solid rgb(189, 189, 187);
+}
+
+.view-edit-contact form li:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .view-edit-contact form li > section{
@@ -188,9 +203,8 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   border-radius: 0.3rem 0.3rem 0 0;
 }
 
-.view-edit-contact form li section + button {
-  margin-top: -0.6rem;
-  border-radius: 0 0 0.4rem 0.4rem;
+.view-body-inner button {
+  margin: 1rem auto 0;
 }
 
 .view-edit-contact form li section + button:after {
@@ -241,12 +255,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 .view-edit-contact .facebook fieldset section p {
   border-bottom-color: #255c95;
-}
-
-hr {
-  background-color: #BCBCBC;
-  border: 0;
-  height: 0.1rem;
 }
 
 /* Overriding Input areas BB */
@@ -575,3 +583,4 @@ section[role="region"] > header .icon.icon-settings
 #importSources > li.importService {
   height: 5rem;
 }
+
