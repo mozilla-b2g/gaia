@@ -7,6 +7,7 @@
 
   window.Calendar = {
 
+    ERROR: 'error',
     DEBUG: false,
 
     extend: function(target, input) {

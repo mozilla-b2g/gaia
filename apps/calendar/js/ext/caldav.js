@@ -1321,6 +1321,46 @@ function write (chunk) {
     [Caldav('responder'), Caldav] :
     [module, require('./caldav')]
 ));
+(function(module, ns) {
+
+  Errors = {};
+
+  /**
+   * Errors typically are for front-end routing purposes so the important
+   * part really is just the name and (maybe) the symbol... These are really
+   * intended to be consumed by name... So once a name has been assigned it
+   * should never be modified.
+   */
+  [
+    { symbol: 'Authentication', name: 'authentication' },
+    { symbol: 'InvalidEntrypoint', name: 'invalid-entrypoint' },
+    { symbol: 'ServerFailure', name: 'server-failure' },
+    { symbol: 'Unknown', name: 'unknown' }
+  ].forEach(function createError(def) {
+    var obj = Errors[def.symbol] = function(message) {
+      this.message = message;
+      this.name = 'caldav-' + def.name;
+
+      try {
+        throw new Error();
+      } catch (e) {
+        this.stack = e.stack;
+      }
+    };
+
+    // just so instanceof Error works
+    obj.prototype = Object.create(Error.prototype);
+  });
+
+  module.exports = Errors;
+
+}.apply(
+  this,
+  (this.Caldav) ?
+    [Caldav('errors'), Caldav] :
+    [module, require('./caldav')]
+));
+
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2067,11 +2107,25 @@ function write (chunk) {
 */
 (function(module, ns) {
   var Native;
+  var Errors = ns.require('errors');
 
   if (typeof(window) === 'undefined') {
     Native = require('xmlhttprequest').XMLHttpRequest;
   } else {
     Native = window.XMLHttpRequest;
+  }
+
+  function determineHttpStatusError(status) {
+    var message = 'Cannot handle request due to server response';
+    var err = 'Unknown';
+
+    if (status === 500)
+      err = 'ServerFailure';
+
+    if (status === 401)
+      err = 'Authentication';
+
+    return new Errors[err](message);
   }
 
   /**
@@ -2115,6 +2169,7 @@ function write (chunk) {
     password: null,
     url: null,
     streaming: true,
+    validateStatus: false,
 
     headers: {},
     data: null,
@@ -2232,7 +2287,18 @@ function write (chunk) {
           }
 
           this.waiting = false;
-          callback(null, this.xhr);
+
+          if (
+            !this.validateStatus ||
+            (
+              this.xhr.status > 199 &&
+              this.xhr.status < 300
+            )
+          ) {
+            return callback(null, this.xhr);
+          }
+
+          callback(determineHttpStatusError(this.xhr.status), this.xhr);
         }
       }.bind(this));
 
@@ -2273,6 +2339,44 @@ function write (chunk) {
   ];
 
   /**
+   * Given a string (directly from xhr.responseText usually) format and create
+   * an oauth authorization server response.
+   *
+   * @param {String} resp raw response from http server.
+   * @return {Object} formatted version of response.
+   */
+  function formatResponse(resp) {
+    resp = JSON.parse(resp);
+
+    // replace the oauth details
+    if (resp.access_token) {
+      resp.issued_at = Date.now();
+    }
+
+    return resp;
+  }
+
+  /**
+   * Sends XHR object's request and handles common JSON parsing issues.
+   */
+  function sendRequest(xhr, callback) {
+    return xhr.send(function(err, request) {
+      if (err) {
+        return callback(err);
+      }
+
+      var result;
+      try {
+        result = formatResponse(request.responseText);
+      } catch (e) {
+        err = e;
+      }
+
+      callback(err, result, request);
+    });
+  }
+
+  /**
    * Private helper for issuing a POST http request the given endpoint.
    * The body of the HTTP request is a x-www-form-urlencoded request.
    *
@@ -2289,25 +2393,7 @@ function write (chunk) {
       streaming: false
     });
 
-    return xhr.send(callback);
-  }
-
-  /**
-   * Given a string (directly from xhr.responseText usually) format and create
-   * an oauth authorization server response.
-   *
-   * @param {String} resp raw response from http server.
-   * @return {Object} formatted version of response.
-   */
-  function formatResponse(resp) {
-    resp = JSON.parse(resp);
-
-    // replace the oauth details
-    if (resp.access_token) {
-      resp.issued_at = Date.now();
-    }
-
-    return resp;
+    return sendRequest(xhr, callback);
   }
 
   /**
@@ -2388,19 +2474,13 @@ function write (chunk) {
         streaming: false
       });
 
-      xhr.send(function(err, request) {
+      sendRequest(xhr, function(err, json) {
         if (err) {
           return callback(err);
         }
 
-        var json;
-        try {
-          json = JSON.parse(request.responseText);
-          callback(null, json[field]);
-        } catch (e) {
-          return callback(e);
-        }
-
+        /* json is an object so this should not explode */
+        callback(err, json[field]);
       });
     },
 
@@ -2418,19 +2498,10 @@ function write (chunk) {
       }
 
       var self = this;
-      function handleResponse(err, xhr) {
+      function handleResponse(err, result) {
         if (err) {
           return callback(err);
         }
-
-        var result;
-
-        try {
-          result = formatResponse(xhr.responseText);
-        } catch (e) {
-          return callback(e);
-        }
-
 
         if (!apiCredentials.user_info) {
           return callback(null, result);
@@ -2472,18 +2543,6 @@ function write (chunk) {
         throw new Error('invalid refresh token given: "' + refreshToken + '"');
       }
 
-      function handleResponse(err, xhr) {
-        if (err) {
-          return callback(err);
-        }
-
-        try {
-          callback(null, formatResponse(xhr.responseText));
-        } catch (e) {
-          callback(e);
-        }
-      }
-
       return post(
         apiCredentials.url,
         {
@@ -2492,7 +2551,7 @@ function write (chunk) {
           client_secret: apiCredentials.client_secret,
           grant_type: 'refresh_token'
         },
-        handleResponse
+        callback
       );
     },
 
@@ -2548,7 +2607,8 @@ function write (chunk) {
   }
 
   BasicAuth.prototype = {
-    __proto__: XHR.prototype
+    __proto__: XHR.prototype,
+    validateStatus: true
   };
 
 
@@ -2606,6 +2666,8 @@ function write (chunk) {
 
   Oauth2.prototype = {
     __proto__: XHR.prototype,
+
+    validateStatus: true,
 
     _sendXHR: function(xhr) {
       xhr.setRequestHeader(
@@ -3131,58 +3193,8 @@ function write (chunk) {
 ));
 (function(module, ns) {
 
-  function CaldavHttpError(code) {
-    this.code = code;
-    var message;
-    switch(this.code) {
-      case 401:
-        message = 'Wrong username or/and password';
-        break;
-      case 404:
-        message = 'Url not found';
-        break;
-      case 500:
-        message = 'Server error';
-        break;
-      default:
-        message = this.code;
-    }
-    Error.call(this, message);
-  }
-
-  CaldavHttpError.prototype = {
-    __proto__: Error.prototype,
-    constructor: CaldavHttpError
-  }
-
-  // Unauthenticated error for 
-  // Google Calendar
-  function UnauthenticatedError() {
-    var message = "Wrong username or/and password";
-    Error.call(this, message);
-  }
-
-  UnauthenticatedError.prototype = {
-    __proto__: Error.prototype,
-    constructor: UnauthenticatedError
-  }
-
-  module.exports = {
-    CaldavHttpError: CaldavHttpError,
-    UnauthenticatedError: UnauthenticatedError
-  };
-
-}.apply(
-  this,
-  (this.Caldav) ?
-    [Caldav('request/errors'), Caldav] :
-    [module, require('../caldav')]
-));
-(function(module, ns) {
-
   var SAX = ns.require('sax');
   var XHR = ns.require('xhr');
-  var Errors = ns.require('request/errors');
 
   /**
    * Creates an (Web/Cal)Dav request.
@@ -3252,14 +3264,8 @@ function write (chunk) {
           return callback(err);
         }
 
-        if (xhr.status > 199 && xhr.status < 300) {
-          // success
-          self.sax.close();
-          self._processResult(req, callback);
-        } else {
-          // fail
-          callback(new Errors.CaldavHttpError(xhr.status));
-        }
+        self.sax.close();
+        return self._processResult(req, callback);
       });
 
       return req;
@@ -3594,8 +3600,8 @@ function write (chunk) {
 ));
 (function(module, ns) {
 
-  var Errors = ns.require('request/errors');
-  
+  var RequestErrors = ns.require('errors');
+
   /**
    * Creates a propfind request.
    *
@@ -3666,19 +3672,32 @@ function write (chunk) {
           return;
         }
 
-        principal = findProperty('current-user-principal', data, true);
+        // some fairly dumb allowances
+        principal =
+          findProperty('current-user-principal', data, true) ||
+          findProperty('principal-URL', data, true);
 
         if (!principal) {
-          principal = findProperty('principal-URL', data, true);
+          return callback(new Errors.InvalidEntrypoint(
+            'both current-user-principal and principal-URL are missing'
+          ));
         }
 
+        // per http://tools.ietf.org/html/rfc6638 we get unauthenticated
         if ('unauthenticated' in principal) {
-          callback(new Errors.UnauthenticatedError());
-        } else if (principal.href) {
-          callback(null, principal.href);
-        } else {
-          callback(new Errors.CaldavHttpError(404));
+          return callback(
+            new Errors.Authentication('caldav response is unauthenticated')
+          );
         }
+
+        // we might have both principal.href & unauthenticated
+        if (principal.href) {
+          return callback(null, principal.href);
+        }
+
+        callback(
+          new Errors.InvalidEntrypoint('no useful location information found')
+        );
       });
     },
 
@@ -4043,6 +4062,7 @@ function write (chunk) {
   exports.Resources = ns.require('resources');
   exports.Http = ns.require('http');
   exports.OAuth2 = ns.require('oauth2');
+  exports.Errors = ns.require('errors');
 
 }.apply(
   this,
@@ -4050,4 +4070,3 @@ function write (chunk) {
     [Caldav, Caldav] :
     [module, require('./caldav')]
 ));
-

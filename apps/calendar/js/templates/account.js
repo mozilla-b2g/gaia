@@ -14,6 +14,7 @@
 
     account: function() {
       var id = this.h('id');
+
       return '<li id="account-' + id + '">' +
           '<a href="/update-account/' + id + '">' +
             '<span class="preset"' +

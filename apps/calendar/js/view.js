@@ -1,4 +1,6 @@
 (function(window) {
+  var DEFAULT_ERROR_ID = 'error-default';
+
   /**
    * Very simple base class for views.
    * Provides functionality for active/inactive.
@@ -55,6 +57,23 @@
 
     get errors() {
       return this._findElement('errors');
+    },
+
+    /**
+     * Creates a string id for a given model.
+     *
+     *    view.idForModel('foo-', { _id: 1 }); // => foo-1
+     *    view.idForModel('foo-', '2'); // => foo-2
+     *
+     * @param {String} prefix of string.
+     * @param {Object|String|Numeric} objectOrString representation of model.
+     */
+    idForModel: function(prefix, objectOrString) {
+      prefix += (typeof(objectOrString) === 'object') ?
+        objectOrString._id :
+        objectOrString;
+
+      return prefix;
     },
 
     calendarId: function(input) {
@@ -174,8 +193,8 @@
       var len = list.length;
 
       for (; i < len; i++) {
-        var name = list[i].name;
-        errors += _('error-' + name) || name;
+        var name = list[i].l10nID || list[i].name;
+        errors += _('error-' + name) || _(DEFAULT_ERROR_ID);
       }
 
       // populate error and display it.

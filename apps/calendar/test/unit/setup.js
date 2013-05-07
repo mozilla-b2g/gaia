@@ -315,6 +315,7 @@
   requireApp('calendar/shared/js/l10n_date.js');
 
   requireLib('calendar.js');
+  requireLib('error.js');
   requireApp('calendar/test/unit/loader.js');
   requireLib('responder.js');
   requireLib('calc.js');
@@ -333,6 +334,7 @@
   requireSupport('mock_provider.js');
   requireLib('worker/manager.js');
   requireLib('controllers/service.js');
+  requireLib('controllers/error.js');
   requireLib('controllers/time.js');
   requireLib('controllers/sync.js');
   requireLib('controllers/alarm.js');

@@ -1,6 +1,18 @@
 Calendar.ns('Controllers').Sync = (function() {
 
   /**
+   * Private helper for choosing how to dispatch errors.
+   * When given a callback the callback will be called otherwise the error
+   * controller will be invoked.
+   */
+  function handleError(err, callback) {
+    if (callback)
+      return callback(err);
+
+    Calendar.App.errorController.dispatch(err);
+  }
+
+  /**
    * Handles all synchronization related
    * tasks. The intent is that this will
    * be the focal point for any view
@@ -45,6 +57,8 @@ Calendar.ns('Controllers').Sync = (function() {
      *
      */
     all: function(callback) {
+      // this is for backwards compatibility... in reality we should remove
+      // callbacks from .all.
       if (callback) {
         this.once('syncComplete', callback);
       }
@@ -85,8 +99,7 @@ Calendar.ns('Controllers').Sync = (function() {
       this._incrementPending();
       store.sync(account, calendar, function(err) {
         self._resolvePending();
-        if (callback)
-          callback(err);
+        handleError(err, callback);
       });
     },
 
@@ -94,6 +107,10 @@ Calendar.ns('Controllers').Sync = (function() {
      * Initiates a sync of a single account and all
      * associated calendars (calendars that exist after
      * the full sync of the account itself).
+     *
+     * The contract is if an callback is given the callback MUST handle the
+     * error given. The default behaviour is to bubble up the error up to the
+     * error controller.
      *
      * @param {Object} account sync target.
      * @param {Function} [callback] optional callback.
@@ -106,6 +123,10 @@ Calendar.ns('Controllers').Sync = (function() {
 
       this._incrementPending();
       accountStore.sync(account, function(err) {
+        if (err) {
+          self._resolvePending();
+          return handleError(err, callback);
+        }
 
         var pending = 0;
         function next() {
@@ -119,7 +140,8 @@ Calendar.ns('Controllers').Sync = (function() {
 
         function fetchCalendars(err, calendars) {
           if (err) {
-            return callback(err);
+            self._resolvePending();
+            return handleError(err, callback);
           }
 
           for (var key in calendars) {

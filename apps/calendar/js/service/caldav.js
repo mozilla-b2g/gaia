@@ -808,6 +808,11 @@ Calendar.ns('Service').Caldav = (function() {
           'DAV:/response', handleResponse
         );
 
+        if (err) {
+          callback(err);
+          return;
+        }
+
         if (!pending) {
           var missing = [];
 
@@ -819,7 +824,7 @@ Calendar.ns('Service').Caldav = (function() {
           stream.emit('missingEvents', missing);
 
           // notify the requester that we have completed.
-          callback(err);
+          callback();
         }
       });
     },
@@ -914,6 +919,11 @@ Calendar.ns('Service').Caldav = (function() {
       event.icalComponent = vcalendar.toString();
 
       req.put({}, event.icalComponent, function(err, data, xhr) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
         var token = xhr.getResponseHeader('Etag');
         event.syncToken = token;
         // TODO: error handling
@@ -1000,6 +1010,11 @@ Calendar.ns('Service').Caldav = (function() {
         event.icalComponent = vcal;
 
         req.put({}, vcal, function(err, data, xhr) {
+          if (err) {
+            callback(err);
+            return;
+          }
+
           var token = xhr.getResponseHeader('Etag');
           event.syncToken = token;
           // TODO: error handling

@@ -47,6 +47,20 @@ suiteGroup('Views.ModifyEvent', function() {
     return template.render({ value: html });
   }
 
+  function primaryIsEnabled() {
+    assert.ok(
+      !subject.primaryButton.hasAttribute('aria-disabled'),
+      'button is enabled'
+    );
+  }
+
+  function primaryIsDisabled() {
+    assert.ok(
+      subject.primaryButton.hasAttribute('aria-disabled'),
+      'button is disabled'
+    );
+  }
+
   var triggerEvent;
   var InputParser;
   suiteSetup(function() {
@@ -517,6 +531,21 @@ suiteGroup('Views.ModifyEvent', function() {
       subject.deleteRecord();
     });
 
+    test('with an error', function(done) {
+      var err = new Calendar.Error.Authentication();
+      subject.showErrors = function(givenErr) {
+        done(function() {
+          assert.equal(err, givenErr);
+        });
+      };
+
+      provider.deleteEvent = function(model, callback) {
+        Calendar.nextTick(callback.bind(null, err));
+      };
+
+      subject.deleteRecord();
+    });
+
     test('with valid provider', function(done) {
       provider.deleteEvent = function(toDelete, callback) {
         assert.equal(toDelete._id, event._id, 'deletes event');
@@ -547,7 +576,25 @@ suiteGroup('Views.ModifyEvent', function() {
     });
 
     function haltsOnError(providerMethod) {
-      test('does not save when validator errors occurs', function(done) {
+      test('does not persist record when provider fails', function(done) {
+        var dispatchesError;
+        var err = new Calendar.Error.Authentication();
+        subject.showErrors = function(gotErr) {
+          done(function() {
+            assert.equal(err, gotErr, 'dispatches error');
+          });
+        };
+
+        provider[providerMethod] = function() {
+          var args = Array.slice(arguments);
+          var cb = args.pop();
+          Calendar.nextTick(cb.bind(null, err));
+        };
+
+        subject.primary();
+      });
+
+      test('does not invoke provider when validations fails', function(done) {
         provider[providerMethod] = function() {
           done(new Error('should not persist record.'));
         };

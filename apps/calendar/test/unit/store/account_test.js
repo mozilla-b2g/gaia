@@ -40,6 +40,76 @@ suite('store/account', function() {
     assert.deepEqual(subject._cached, {});
   });
 
+  suite('#markWithError', function() {
+    var errEvent;
+    var accounts = testSupport.calendar.dbFixtures(
+      'account',
+      'Account', {
+        one: { _id: 55, providerType: 'Mock' }
+      }
+    );
+
+    var calendars = testSupport.calendar.dbFixtures(
+      'calendar',
+      'Calendar', {
+        one: { _id: 'one', accountId: 55 },
+        two: { _id: 'two', accountId: 55 }
+      }
+    );
+
+    var model;
+    setup(function() {
+      model = accounts.one;
+    });
+
+    test('authentication error', function(done) {
+      var error = new Calendar.Error.Authentication();
+
+      subject.markWithError(model, error, function(gotErr) {
+        subject.get(model._id, function(getErr, result) {
+          done(function() {
+            assert.ok(!gotErr, 'is successful');
+
+            assert.equal(
+              result.error.name,
+              error.name,
+              'model is marked with error'
+            );
+
+            assert.instanceOf(
+              result.error.date,
+              Date,
+              'has date of occurrence'
+            );
+          });
+        });
+      });
+    });
+
+    suite('dependant calendars', function() {
+      var err;
+      setup(function(done) {
+        err = new Calendar.Error.Authentication();
+        subject.markWithError(model, err, done);
+      });
+
+      function verifyCalendar(key) {
+        test('ensure calendar is marked: ' + key, function(done) {
+          app.store('Calendar').get(key, function(getErr, result) {
+            done(function() {
+              assert.ok(result, 'has calendar');
+              assert.ok(result.error, 'sets error');
+              assert.equal(result.error.name, err.name, 'sets error');
+            });
+          });
+        });
+      }
+
+      verifyCalendar('one');
+      verifyCalendar('two');
+    });
+  });
+
   suite('#availablePresets', function() {
     var presetAccount;
     var presets = {
@@ -127,6 +197,7 @@ suite('store/account', function() {
 
     suite('existing account', function() {
       setup(function(done) {
+        model.error = {};
         subject.persist(model, done);
       });
 
@@ -145,6 +216,7 @@ suite('store/account', function() {
 
             done(function() {
               assert.equal(result.password, 'new', 'updates pass');
+              assert.ok(!result.error, 'clears errors');
             });
           });
         });
@@ -327,7 +399,8 @@ suite('store/account', function() {
 
       cals.update = Factory('calendar', {
         accountId: account._id,
-        remote: { name: 'update' }
+        remote: { name: 'update' },
+        error: {}
       });
     });
 
@@ -424,6 +497,8 @@ suite('store/account', function() {
         Calendar.Models.Calendar,
         'should update cache'
       );
+
+      assert.ok(!remoteUpdate.error, 'removes error');
 
       assert.equal(
         remoteUpdate.remote.description,

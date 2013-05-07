@@ -2,18 +2,18 @@ requireApp('calendar/shared/js/notification_helper.js');
 
 suiteGroup('Controllers.Alarm', function() {
 
-  function lockMock() {
-    return {
-      mAquired: false,
-      mIsUnlocked: false,
-      unlock: function() {
-        this.mIsUnlocked = true;
-      }
-    };
-  }
-
   function mockRequestWakeLock(handler) {
     var realApi;
+
+    function lockMock() {
+      return {
+        mAquired: false,
+        mIsUnlocked: false,
+        unlock: function() {
+          this.mIsUnlocked = true;
+        }
+      };
+    }
 
     suiteSetup(function() {
       realApi = navigator.requestWakeLock;

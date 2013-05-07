@@ -159,6 +159,7 @@ Calendar.App = (function(window) {
       this.syncController = new Calendar.Controllers.Sync(this);
       this.serviceController = new Calendar.Controllers.Service(this);
       this.alarmController = new Calendar.Controllers.Alarm(this);
+      this.errorController = new Calendar.Controllers.Error(this);
 
       // observe sync events
       this.observePendingObject(this.syncController);
