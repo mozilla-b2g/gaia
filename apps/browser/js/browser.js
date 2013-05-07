@@ -28,9 +28,6 @@ var Browser = {
   previousScreen: null,
   currentScreen: 'page-screen',
 
-  DEFAULT_SEARCH_PROVIDER_URL: 'm.bing.com',
-  DEFAULT_SEARCH_PROVIDER_TITLE: 'Bing',
-  DEFAULT_SEARCH_PROVIDER_ICON: 'http://bing.com/favicon.ico',
   DEFAULT_FAVICON: 'style/images/favicon.png',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
@@ -281,6 +278,16 @@ var Browser = {
       });
     }
 
+    function addDefaultSearchEngines(data) {
+      // customize search engines
+      asyncStorage.setItem('search_engines',JSON.stringify(data.search_engines));
+      asyncStorage.setItem('search_engine_default', data.search_engine_default);
+      var default_item = data.search_engines[data.search_engine_default];
+      asyncStorage.setItem('default_search_provider_url', default_item['url']);
+      asyncStorage.setItem('default_search_provider_title', default_item['title']);
+      asyncStorage.setItem('default_search_provider_icon', default_item['icon']);
+    }
+
     // pad leading zeros
     function zfill(code, len) {
       var c = code;
@@ -304,6 +311,7 @@ var Browser = {
         codename = pad_mcc + DEFAULT_MNC;
       }
       addDefaultBookmarks(data[codename]);
+      addDefaultSearchEngines(data[codename]);
     }
 
     // Fetch default data
@@ -693,7 +701,7 @@ var Browser = {
 
     // No protocol, could be a search term
     if (this.isNotURL(input)) {
-      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL +
+      return 'http://' + asyncStorage.getItem('default_search_provider_url') +
         '/search?q=' + input;
     }
 
@@ -998,10 +1006,10 @@ var Browser = {
     }, this);
     if (visited.length < 2 && filter) {
       var data = {
-        title: this.DEFAULT_SEARCH_PROVIDER_TITLE,
-        uri: 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL +
+        title: asyncStorage.getItem('default_search_provider_title'),
+        uri: 'http://' + asyncStorage.getItem('default_search_provider_url') +
           '/search?q=' + filter,
-        iconUri: this.DEFAULT_SEARCH_PROVIDER_ICON,
+        iconUri: asyncStorage.getItem('default_search_provider_icon'),
         description: _('search-for') + ' "' + filter + '"'
       };
       this.drawAwesomescreenListItem(list, data);

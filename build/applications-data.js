@@ -243,7 +243,7 @@ init = getFile(GAIA_DIR, 'apps', 'browser', 'js', 'init.json');
 // mnc:3 digits, fill with leading zeros, fill '000' in MNC to provide the carrier default bookmark
 
 content = {
-  "000000":{
+  "000000": {
     "bookmarks": [
       { "title": "Vivo Busca",
         "uri": "http://www.google.com.br/m/search?client=ms-hms-tef-br",
@@ -258,7 +258,20 @@ content = {
         "uri": "http://www.vivo.com.br/conteudosmartphone",
         "iconUri": "data:image/jpg;base64,/9j/4AAQSkZJRgABAQEAlgCWAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAgACADASIAAhEBAxEB/8QAGgAAAgIDAAAAAAAAAAAAAAAABQYBAwQHCP/EAC4QAAEDAwIEBQIHAAAAAAAAAAECAwQFBhEAIQcSMUETFFFhcSKBMkKCkqGxwf/EABkBAAIDAQAAAAAAAAAAAAAAAAMGAAECBP/EACQRAAIBAwQCAgMAAAAAAAAAAAECEQMEEgAFITEiQVFxMmGh/9oADAMBAAIRAxEAPwDrG7rkg25AEiVlx1eQywk/U4f8A7nSXFrXEW4k+ZpMJiFEV+BxYSAfgqyT8gasmQBcPEQpmDnjNuFPIenI2OnwVf3ozOnSKnJ8rDeUhnPIyyyoJKwO59Btn2Gky53F7lncswQMVVVMFiOzPxpko0KVsiqEDORJLcgA9CPnQGbVOJdvtGXUIrE+IjdxTaUr5R6kJwoD3wQNN9lXVCuaEXGR4UlsAuMk52PRST3ToLBRNgywtp59pxDwbcaWvmC9wMehznY++sOi01qlcRZSYIDbHmikIT0AW0lah8cxOpZX9ak6sC2JYKysZImYIPB4jkau4pUbimwKgMBIKiAY7BHXvgjQldRXa/F+WmouLEOWQ6ypXQJUCDj9RP7dTSLHrsC6mpER1C6c49zpmMPAEtE53Gc5x6ZGn29LUpd1QEx56VNvNEqYkN7LaJ649QcDIOxwO4B0jxba4kW2S1RqjGqEXP0guBKvulY5QfcHJ0W82rB/KmXTLIY/kCYkR7BgaNbbgtWl4OEfEKQ3RA6IPo/erJ9PumJeTtRapbstIfUtsBWW1D8pOD22ODo9Zdt1RmsP1+vPDzTpJbjpVlKCeqj2zjYY6DQZUHilUh4cmQ1BQepEhKMfdsc3862HSWpLFMjMzHQ7IbbSlxYJIUoDc7763tW3UzcM5RwAchnAGR98cn9Trm3C7dKIQMhJGJxkmB/PvX//2Q=="
       }
-    ]
+    ],
+    "search_engines": [
+      {
+        "title": "Bing",
+        "url": "m.bing.com",
+        "icon": "http://bing.com/favicon.ico"
+      },
+      {
+        "title": "Google",
+        "url": "www.google.com",
+        "icon": "https://www.google.com.tw/images/google_favicon_128.png"
+      }
+    ],
+    "search_engine_default": "1"
   }
 }
 
