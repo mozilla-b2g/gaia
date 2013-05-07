@@ -60,5 +60,8 @@ var MockGridManager = {
     limitPrev: function() {
       return false;
     }
+  },
+  getBlobByDefault: function() {
+    return null;
   }
 };
