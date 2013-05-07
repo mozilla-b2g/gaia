@@ -24,19 +24,6 @@ const Homescreen = (function() {
     initialized = true;
     landingPage = lPage;
 
-    window.addEventListener('hashchange', function() {
-      if (document.location.hash != '#root')
-        return;
-
-      // this happens when the user presses the 'home' button
-      if (Homescreen.isInEditMode()) {
-        exitFromEditMode();
-      } else {
-        GridManager.goToPage(landingPage);
-      }
-      GridManager.ensurePanning();
-    });
-
     var swipeSection = Configurator.getSection('swipe');
     var options = {
       gridSelector: '.apps',
@@ -50,6 +37,19 @@ const Homescreen = (function() {
     };
 
     GridManager.init(options, function gm_init() {
+      window.addEventListener('hashchange', function() {
+        if (document.location.hash != '#root')
+          return;
+
+        // this happens when the user presses the 'home' button
+        if (Homescreen.isInEditMode()) {
+          exitFromEditMode();
+        } else {
+          GridManager.goToPage(landingPage);
+        }
+        GridManager.ensurePanning();
+      });
+
       PaginationBar.show();
       if (document.location.hash === '#root') {
         // Switch to the first page only if the user has not already
