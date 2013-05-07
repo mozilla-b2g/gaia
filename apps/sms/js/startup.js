@@ -21,6 +21,7 @@ var lazyLoadFiles = [
   'js/link_helper.js',
   'js/action_menu.js',
   'js/link_action_handler.js',
+  'js/settings.js',
   'shared/style/input_areas.css',
   'shared/style/switches.css',
   'shared/style/confirm.css',
@@ -44,6 +45,12 @@ window.addEventListener('load', function() {
     ThreadListUI.init();
     // We render the threads
     MessageManager.getThreads(ThreadListUI.renderThreads);
+    // Fetch mmsSizeLimitation
+    Settings.getMmsSizeLimitation(function(size) {
+      if (size && !isNaN(size)) {
+        Settings.mmsSizeLimitation = size;
+      }
+    });
     // We add activity/system message handlers
     LazyLoader.load(['js/activity_handler.js']);
   }
