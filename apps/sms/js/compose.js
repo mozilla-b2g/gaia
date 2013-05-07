@@ -17,7 +17,8 @@ var Compose = (function() {
   var dom = {
     form: null,
     message: null,
-    button: null
+    sendButton: null,
+    attachButton: null
   };
 
   var handlers = {
@@ -113,7 +114,8 @@ var Compose = (function() {
     init: function thui_compose_init(formId) {
       dom.form = document.getElementById(formId);
       dom.message = dom.form.querySelector('[contenteditable]');
-      dom.button = dom.form.querySelector('button');
+      dom.sendButton = document.getElementById('messages-send-button');
+      dom.attachButton = document.getElementById('messages-attach-button');
 
       // update the placeholder after input
       dom.message.addEventListener('input', composeCheck);
@@ -121,6 +123,9 @@ var Compose = (function() {
       // we need to bind to keydown & keypress because of #870120
       dom.message.addEventListener('keydown', composeLockCheck);
       dom.message.addEventListener('keypress', composeLockCheck);
+
+      dom.attachButton.addEventListener('click',
+        this.onAttachClick.bind(this));
 
       this.clear();
 
@@ -199,7 +204,7 @@ var Compose = (function() {
     },
 
     disable: function(state) {
-      dom.button.disabled = state;
+      dom.sendButton.disabled = state;
       return this;
     },
 
@@ -247,6 +252,32 @@ var Compose = (function() {
       state.full = false;
       composeCheck();
       return this;
+    },
+
+    onAttachClick: function thui_onAttachClick() {
+      this.requestAttachment();
+    },
+
+    /** Initiates a 'pick' MozActivity allowing the user to create an
+     * attachment
+     */
+    requestAttachment: function() {
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          // TODO: Extend this array with elements 'audio/*' and 'video/*'
+          type: ['image/*']
+        }
+      });
+
+      activity.onsuccess = function() {
+         // TODO: use `activity.result` to create the attachment
+         // See: Bug 840044
+      };
+
+      activity.onerror = function() {
+        // TODO: Update the UI as if "cancel" was selected.
+      };
     }
 
   };

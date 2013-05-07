@@ -42,7 +42,7 @@ var ThreadUI = global.ThreadUI = {
       'container', 'to-field', 'recipients-list',
       'header-text', 'recipient', 'input', 'compose-form',
       'check-all-button', 'uncheck-all-button',
-      'contact-pick-button', 'back-button', 'send-button',
+      'contact-pick-button', 'back-button', 'send-button', 'attach-button',
       'delete-button', 'cancel-button',
       'edit-mode', 'edit-form', 'tel-form',
       'max-length-notice'
@@ -456,7 +456,7 @@ var ThreadUI = global.ThreadUI = {
         inputMaxHeight / fontSize + verticalPadding + 'rem';
       // We update the position of the button taking into account the
       // new height
-      this.sendButton.style.marginTop =
+      this.sendButton.style.marginTop = this.attachButton.style.marginTop =
         (this.input.offsetHeight - buttonHeight) / fontSize + 'rem';
       return;
     }
@@ -479,7 +479,8 @@ var ThreadUI = global.ThreadUI = {
     // We move the button to the right position
     var buttonOffset = (this.input.offsetHeight - buttonHeight) /
       fontSize + 'rem';
-    this.sendButton.style.marginTop = buttonOffset;
+    this.sendButton.style.marginTop = this.attachButton.style.marginTop =
+      buttonOffset;
 
     // Last adjustment to view taking into account the new height of the bar
     this.container.style.bottom = bottomBarHeight;

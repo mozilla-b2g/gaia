@@ -13,10 +13,12 @@ requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_moz_activity.js');
 
 var mocksHelper = new MocksHelper([
   'Recipients',
-  'Utils'
+  'Utils',
+  'MozActivity'
 ]).init();
 
 suite('compose_test.js', function() {
@@ -190,6 +192,18 @@ suite('compose_test.js', function() {
       });
       teardown(function() {
         Compose.clear();
+      });
+    });
+
+    suite('requestAttachment', function() {
+      test('correctly invokes the "pick" MozActivity', function() {
+        Compose.requestAttachment();
+        assert.equal(MockMozActivity.calls.length, 1);
+        var call = MockMozActivity.calls[0];
+        assert.equal(call.name, 'pick');
+        assert.isDefined(call.data);
+        assert.isArray(call.data.type);
+        assert.include(call.data.type, 'image/*');
       });
     });
 
