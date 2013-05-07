@@ -196,7 +196,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.data.user': 'user',
       'ril.data.passwd': 'password',
       'ril.data.httpProxyHost': 'proxy',
-      'ril.data.httpProxyPort': 'port'
+      'ril.data.httpProxyPort': 'port',
+      'ril.data.authtype': 'authtype'
     },
     'supl': {
       'ril.supl.carrier': 'carrier',
@@ -204,7 +205,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.supl.user': 'user',
       'ril.supl.passwd': 'password',
       'ril.supl.httpProxyHost': 'proxy',
-      'ril.supl.httpProxyPort': 'port'
+      'ril.supl.httpProxyPort': 'port',
+      'ril.supl.authtype': 'authtype'
     },
     'mms': {
       'ril.mms.carrier': 'carrier',
@@ -215,7 +217,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.mms.httpProxyPort': 'port',
       'ril.mms.mmsc': 'mmsc',
       'ril.mms.mmsproxy': 'mmsproxy',
-      'ril.mms.mmsport': 'mmsport'
+      'ril.mms.mmsport': 'mmsport',
+      'ril.mms.authtype': 'authtype'
     },
     'operatorvariant': {
       'ril.iccInfo.mbdn': 'voicemail',
