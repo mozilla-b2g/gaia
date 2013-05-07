@@ -72,19 +72,18 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   padding-top: 1.5rem;
 }
 
-[data-type="list"] ul {
-  padding: 0 1.5rem;
-}
-
 [data-type="list"] li {
   height: 6.1rem;
 }
 
 [data-type="list"] li > label {
-  opacity: 0;
+  right: 5rem;
+
   display: block;
   overflow: hidden;
-  right: 5rem;
+
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 [data-type="list"] aside.icon-unread {
@@ -113,8 +112,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 .edit [data-type="list"] li > label {
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(5rem);
-  transition: all 0.3s ease;
+  transform: translateX(7rem);
 }
 
 .edit [data-type="list"] li > a > aside.icon-unread {
@@ -274,11 +272,12 @@ section[role="region"].new > header:first-child form {
 }
 
 #messages-container header {
-  border-bottom: 0.1rem solid #A6A6A6;
-  color: #606060;
-  font-size: 1.3rem;
   margin: 0 1.5rem 1rem;
   padding: 1rem 1.5rem 0;
+  border-bottom: none;
+
+  color: #606060;
+  font-size: 1.3rem;
   text-align: left;
   text-transform: uppercase;
 }
@@ -287,18 +286,21 @@ section[role="region"].new > header:first-child form {
   margin-bottom: 7rem;
 }
 
-#messages-container[data-type="list"] li.bubble {
-  border-bottom: 0.1rem solid transparent;
+#messages-container[data-type="list"] .message {
+  position: relative;
+
   display: block;
   overflow: hidden;
-  margin: 0;
-  padding: 0.5rem 0;
-  position: relative;
   width: 100%;
   height: auto;
+  margin: 0;
+  padding: 0.5rem 0;
+  border-bottom: 0.1rem solid transparent;
+
+  transition: none;
 }
 
-#messages-container[data-type="list"] li.hidden {
+#messages-container[data-type="list"] .message.hidden {
   display: none;
 }
 
@@ -306,129 +308,124 @@ section[role="region"].new > header:first-child form {
   display: none;
 }
 
-#messages-container[data-type="list"] li.bubble:first-child {
-  padding: 0 0 0.5rem 0;
-}
-
-#messages-container[data-type="list"] li.bubble a {
-  height: 100%;
-}
-
-#messages-container[data-type="list"] li.bubble p {
-  text-align: right;
+#messages-container[data-type="list"] .message .bubble {
   overflow: visible;
-  white-space: normal;
-  border-radius: 0.5rem 0.5rem 0.5rem 0.5rem;
-  border: 0.2rem solid #2c393b;
-  background: #fff;
-  margin-right: 0.7rem;
-  font-size: 1.9rem;
-  line-height: 2.2rem;
   -moz-box-sizing: border-box;
-  max-width: 20.5rem;
-  padding: 1rem;
-  position: relative;
-  text-align: left;
+  max-width: -moz-calc(100% - 2rem);
+  height: 100%;
+
+  background: #fff;
+}
+
+#messages-container[data-type="list"] .message.mms .bubble > img {
+  display: block;
+}
+
+#messages-container[data-type="list"] .message.outgoing .bubble {
   float: right;
+
+  /* Prevent text content from rendering underneath the absolutely-positioned
+   * aside.
+   * TODO: Render the aside within the layout using flexbox. */
+  padding-right: 5rem;
+  margin-left: 2rem;
 }
 
-#messages-container[data-type="list"] li.bubble p:after {
-  content: '';
-  width: 1.1rem;
-  height: 1rem;
-  background-image: url('images/bubble_ticks.png');
-  background-position: -2.2rem 0;
-  background-size: 5.5rem;
-  position: absolute;
-  right: -1.1rem;
-  top: 1rem;
-}
-
-#messages-container[data-type="list"] li.bubble .received p {
+#messages-container[data-type="list"] .message.incoming .bubble {
   float: left;
-  background: #FBEAE0;
-  border: 0.2rem solid #FF4E00;
-  margin-left: 0.7rem;
-  float: left;
+
+  border-radius: 0 0.3rem 0.3rem 0;
+  margin-right: 2rem;
+  padding-left: 2rem;
+
+  background: #FCC987;
 }
 
-#messages-container[data-type="list"] li.bubble .received p:after {
-  background-position: 0 0;
-  left: -1.1rem;
-  margin-top: 0;
-}
-
-#messages-container[data-type="list"] li.bubble .sending p {
-  border: 0.2rem solid #5f5f5f;
+#messages-container[data-type="list"] .message.sending .bubble {
   color: #5f5f5f;
 }
 
-#messages-container[data-type="list"] li.bubble .sending p:after {
-  background-position: -3.3rem 0;
-  right: -1.1rem;
+#messages-container[data-type="list"] .message.error .bubble {
+  border-color: #B90000;
+  border-width: 0.1rem;
+  border-style: solid;
 }
 
-#messages-container[data-type="list"] li.bubble .error p {
-  border: 0.2rem solid #B90000;
-}
-#messages-container[data-type="list"] li.bubble .error p:after {
-  background-position: -4.4rem 0;
-  right: -1.1rem;
+#messages-container[data-type="list"] .message.error.outgoing .bubble {
+  border-right-width: 0;
 }
 
-#messages-container[data-type="list"] li.bubble .error aside.pack-end {
+#messages-container[data-type="list"] .message .bubble > aside {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: auto;
+
+  display: none;
+  overflow: hidden;
+  width: 5rem;
+
+  text-align: center;
+}
+
+#messages-container[data-type="list"] .message.error .bubble > aside progress {
+  display: none;
+}
+
+#messages-container[data-type="list"] .message.error .bubble > aside {
+  display: block;
+
   background: url('images/icons/exclamation.png') no-repeat center center;
   background-size: 2.2rem;
-  width: 3.2rem;
-  height: 4.5rem;
-}
-#messages-container[data-type="list"] li.bubble aside progress {
-  margin-top: 0.4rem;
 }
 
-#messages-container[data-type="list"] li.bubble aside {
-  overflow: hidden;
-}
-
-.mms-bubble-content > img {
+#messages-container[data-type="list"] .message.sending .bubble > aside {
   display: block;
+}
+
+#messages-container[data-type="list"] .message.sending .bubble > aside progress {
+  display: block;
+  height: 100%;
+  margin: 0 auto;
+}
+
+#messages-container[data-type="list"] .message .bubble p {
+  position: relative;
+
+  padding: 1rem;
+
+  text-align: left;
+  line-height: 2.2rem;
+  white-space: normal;
 }
 
 /*
   Styles for Edit mode in Messages Container
 */
 
-.edit #messages-container[data-type="list"] li {
+.edit #messages-container[data-type="list"] .message {
   border-color: #e7e7e7;
 }
 
-.edit #messages-container[data-type="list"] li:last-child {
+.edit #messages-container[data-type="list"] .message:last-child {
   border-color: transparent;
 }
 
-.edit [data-type="list"] li a {
+.edit [data-type="list"] .message .bubble {
   pointer-events: none;
 }
 
-.edit #messages-container[data-type="list"] li p {
+.edit #messages-container[data-type="list"] .message p {
   transform: translateX(0);
 }
 
-.edit #messages-container[data-type="list"] li .received p {
-  transform: translateX(4rem);
-  transition: all 0.3s ease 0s;
+.edit #messages-container[data-type="list"] .message.outgoing {
+  padding-left: 4rem;
 }
 
-.edit #messages-container[data-type="list"] li.selected p {
-  border: 0.2rem solid #B90000;
-}
-
-.edit #messages-container[data-type="list"] li.selected p:after {
-  background-position: -4.4rem 0;
-}
-
-.edit #messages-container[data-type="list"] li.selected .received p:after {
-  background-position: -1.1rem 0;
+.edit #messages-container[data-type="list"] .message.incoming .bubble {
+  padding-left: 6rem;
 }
 
 .edit-button {
