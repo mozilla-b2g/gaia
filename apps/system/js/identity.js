@@ -44,7 +44,8 @@ var Identity = (function() {
           frame.setAttribute('mozbrowser', 'true');
           frame.setAttribute('remote', true);
           frame.classList.add('screen');
-          frame.src = personaUri + (e.detail.showUI ? kIdentityScreen : kIdentityFrame);
+          frame.src = personaUri +
+            (e.detail.showUI ? kIdentityScreen : kIdentityFrame);
           frame.addEventListener('mozbrowserloadstart',
               function loadStart(evt) {
             // After creating the new frame containing the identity flow, we
