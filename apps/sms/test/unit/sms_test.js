@@ -6,10 +6,10 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
-require('/shared/test/unit/load_body_html_helper.js');
 
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
+requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/contacts.js');
@@ -46,6 +46,7 @@ suite('SMS App Unit-Test', function() {
 
   var findByString;
   var nativeMozL10n = navigator.mozL10n;
+  var realMozMobileMessage;
   var boundOnHashChange;
   var getContactDetails;
 
@@ -133,9 +134,12 @@ suite('SMS App Unit-Test', function() {
     window.addEventListener(
       'hashchange', boundOnHashChange
     );
+    realMozMobileMessage = ThreadUI._mozMobileMessage;
+    ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
   });
 
   suiteTeardown(function() {
+    ThreadUI._mozMobileMessage = realMozMobileMessage;
     Contacts.findByString = findByString;
     // cleanup
     window.document.body.innerHTML = '';

@@ -104,6 +104,8 @@
             </a>
           </menu>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
+        </header>
+        <div class='subheader'>
           <section id="messages-to-field">
             <section data-l10n-id="to" id="to-label">
               To:
@@ -111,9 +113,14 @@
             <section id="messages-recipients-container">
             </section>
           </section>
-        </header>
-        <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
-          Carrier unknown
+          <section id="messages-max-length-notice"
+                  role='notification'
+                  class='hide'>
+            <p></p>
+          </section>
+          <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
+            Carrier unknown
+          </div>
         </div>
         <article id="messages-container" class="view-body" data-type="list">
         </article>
