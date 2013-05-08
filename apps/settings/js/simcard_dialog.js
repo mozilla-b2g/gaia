@@ -85,15 +85,6 @@ var SimPinDialog = {
 
   handleCardState: function spl_handleCardState() {
     var _ = navigator.mozL10n.get;
-    var retryCount = this.mobileConnection.retryCount;
-
-    if (!retryCount) {
-      this.triesLeftMsg.hidden = true;
-    } else {
-      var l10nArgs = { n: triesLeft };
-      this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
-      this.triesLeftMsg.hidden = false;
-    }
 
     var cardState = this.mobileConnection.cardState;
     switch (cardState) {
@@ -286,6 +277,15 @@ var SimPinDialog = {
         this.inputFieldControl(true, false, true);
         this.dialogTitle.textContent = _('newpinTitle') || '';
         break;
+    }
+
+    var retryCount = this.mobileConnection.retryCount;
+    if (!retryCount) {
+      this.triesLeftMsg.hidden = true;
+    } else {
+      var l10nArgs = { n: retryCount };
+      this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
+      this.triesLeftMsg.hidden = false;
     }
 
     if (onsuccess && typeof onsuccess === 'function')

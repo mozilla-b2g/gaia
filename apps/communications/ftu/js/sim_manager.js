@@ -108,7 +108,7 @@ var SimManager = {
     if (!this.retryCount || this.retryCount === 'undefined') {
       UIManager.pinRetriesLeft.classList.add('hidden');
     } else {
-      var l10nArgs = {n: retries};
+      var l10nArgs = {n: this.retryCount};
       UIManager.pinRetriesLeft.textContent = _('inputCodeRetriesLeft',
                                                l10nArgs);
       UIManager.pinRetriesLeft.classList.remove('hidden');
@@ -123,7 +123,7 @@ var SimManager = {
     if (!this.retryCount) {
       UIManager.pukRetriesLeft.classList.add('hidden');
     } else {
-      var l10nArgs = {n: retries};
+      var l10nArgs = {n: this.retryCount};
       UIManager.pukRetriesLeft.textContent = _('inputCodeRetriesLeft',
                                                l10nArgs);
       UIManager.pukRetriesLeft.classList.remove('hidden');
