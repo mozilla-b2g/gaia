@@ -4,16 +4,22 @@
 // mocha and when we have that new mocha in test agent
 mocha.setup({ globals: ['alert'] });
 
-requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/js/utils.js');
+requireApp('sms/js/recipients.js');
+
+requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_link_helper.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
+requireApp('sms/test/unit/mock_contact.js');
+requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/js/thread_ui.js');
+
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Utils',
+  'Recipients',
   'LinkHelper',
   'MozActivity'
 ]);
@@ -26,6 +32,7 @@ suite('thread_ui.js >', function() {
   var composeForm;
   var recipient;
 
+  var realRecipients;
   var realMozL10n;
   var realMozMobileMessage;
 
@@ -36,6 +43,9 @@ suite('thread_ui.js >', function() {
 
   suiteSetup(function(done) {
     mocksHelper.suiteSetup();
+
+    realRecipients = Recipients;
+    Recipients = MockRecipients;
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -67,6 +77,7 @@ suite('thread_ui.js >', function() {
   });
 
   suiteTeardown(function() {
+    Recipients = realRecipients;
     navigator.mozL10n = realMozL10n;
     mocksHelper.suiteTeardown();
   });
@@ -78,7 +89,7 @@ suite('thread_ui.js >', function() {
     sendButton = document.getElementById('messages-send-button');
     input = document.getElementById('messages-input');
     composeForm = document.getElementById('messages-compose-form');
-    recipient = document.getElementById('messages-recipient');
+
 
     ThreadUI.init();
     realMozMobileMessage = ThreadUI._mozMobileMessage;
@@ -98,12 +109,12 @@ suite('thread_ui.js >', function() {
       ThreadUI.updateCounter();
     });
 
-    test('button should be disabled at the beginning', function() {
+    test('disabled at the beginning', function() {
       ThreadUI.enableSend();
       assert.isTrue(sendButton.disabled);
     });
 
-    test('button should be enabled when there is some text', function() {
+    test('enabled when there is some text', function() {
       input.value = 'Hola';
       ThreadUI.enableSend();
       assert.isFalse(sendButton.disabled);
@@ -149,13 +160,15 @@ suite('thread_ui.js >', function() {
         function() {
 
         ThreadUI.input.value = 'Hola';
-        var recipient = ThreadUI.appendEditableRecipient();
-        ThreadUI.createRecipient(recipient);
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
         ThreadUI.enableSend();
         assert.isFalse(sendButton.disabled);
       });
 
-      test('button should be enabled when there is both contact and input, ' +
+      test('button should be disabled when there is both contact and input, ' +
           'but too many segments',
         function() {
 
@@ -163,9 +176,11 @@ suite('thread_ui.js >', function() {
           segments: 11,
           charsAvailableInLastSegment: 10
         };
-        ThreadUI.input.value = 'Hola';
-        var recipient = ThreadUI.appendEditableRecipient();
-        ThreadUI.createRecipient(recipient);
+        input.value = 'Hola';
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
 
         ThreadUI.enableSend();
 
