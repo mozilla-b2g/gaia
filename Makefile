@@ -664,29 +664,6 @@ forward:
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
 
-
-# update the manifest.appcache files to match what's actually there
-update-offline-manifests:
-	for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
-	do \
-		rm -rf $$d/manifest.appcache ;\
-		if [ -f $$d/manifest.webapp ] ;\
-		then \
-			echo \\t$$d ;  \
-			( cd $$d ; \
-			echo "CACHE MANIFEST" > manifest.appcache ;\
-			cat `find * -type f | sort -nfs` | $(MD5SUM) | cut -f 1 -d ' ' | sed 's/^/\#\ Version\ /' >> manifest.appcache ;\
-			find * -type f | grep -v tools | sort >> manifest.appcache ;\
-			$(SED_INPLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
-			echo "http://$(GAIA_DOMAIN)$(GAIA_PORT)/webapi.js" >> manifest.appcache ;\
-			echo "NETWORK:" >> manifest.appcache ;\
-			echo "http://*" >> manifest.appcache ;\
-			echo "https://*" >> manifest.appcache ;\
-			) ;\
-		fi \
-	done
-
-
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use:
 #
