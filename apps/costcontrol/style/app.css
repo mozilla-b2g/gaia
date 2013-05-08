@@ -127,35 +127,6 @@ input.error {
   top: 0;
 }
 
-/* BB FILTER */
-[role="tablist"][data-type="filter"] {
-  height: 4.2rem;
-}
-
-[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] {
-  background: #fff;
-  border: solid 0.1rem #999;
-  border-top: none;
-  color: #000;
-}
-
-[role="tablist"][data-type="filter"] > [role="tab"]:first-child[aria-selected="true"] {
-  border-left: none;
-}
-
-[role="tablist"][data-type="filter"] > [role="tab"]:last-child[aria-selected="true"] {
-  border-right: none;
-}
-
-[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] > a {
-  color: #000;
-}
-
-[role="tablist"][data-type="filter"] > [role="tab"] > a:active {
-  background-color: #008aaa;
-  color: #fff;
-}
-
 /* BB HEADER ICONS */
 body[role="application"] section[role="region"] > header .icon.config {
   background-image: url(images/app/icons/config.png);
