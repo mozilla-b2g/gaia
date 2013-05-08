@@ -4,7 +4,7 @@
 'use strict';
 
 var MessageManager = {
-  currentNum: null,
+  currentNums: [],
   currentThread: null,
   activityBody: null, // Used when getting a sms:?body=... activity.
   mmsSizeLimitation: 0, // default mms message size limitation is unlimited.
@@ -179,11 +179,11 @@ var MessageManager = {
           MessageManager.activityBody = null;
         }
         // Cleaning global params related with the previous thread
-        MessageManager.currentNum = null;
+        MessageManager.currentNums.length = 0;
         MessageManager.currentThread = null;
         threadMessages.classList.add('new');
         MessageManager.slide(function() {
-          ThreadUI.appendEditableRecipient();
+          ThreadUI.initRecipients();
         });
         break;
       case '#thread-list':
@@ -191,7 +191,7 @@ var MessageManager = {
         var editButton = document.getElementById('icon-edit');
         editButton.parentNode.appendChild(editButton);
         // Cleaning global params related with the previous thread
-        MessageManager.currentNum = null;
+        MessageManager.currentNums.length = 0;
         MessageManager.currentThread = null;
         if (mainWrapper.classList.contains('edit')) {
           mainWrapper.classList.remove('edit');
@@ -230,7 +230,7 @@ var MessageManager = {
         if (num) {
           var filter = this.createFilter(num);
           var input = document.getElementById('messages-input');
-          MessageManager.currentNum = num;
+          MessageManager.currentNums[0] = num;
           if (mainWrapper.classList.contains('edit')) {
             mainWrapper.classList.remove('edit');
           } else if (threadMessages.classList.contains('new')) {
