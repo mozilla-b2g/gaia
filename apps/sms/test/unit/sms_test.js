@@ -320,6 +320,33 @@ suite('SMS App Unit-Test', function() {
     });
   });
 
+  suite('Threads-list rendering behavior', function() {
+    test('Calling without threads should not append', function(done) {
+      ThreadListUI.appendThread = stub();
+
+      ThreadListUI.renderThreads([], function() {
+        assert.equal(ThreadListUI.appendThread.callCount, 0);
+        done();
+      });
+    });
+
+    test('Calling renderThreads twice should stop one', function(done) {
+      ThreadListUI.appendThread = stub();
+
+      var first = stub(), second = stub();
+      ThreadListUI.renderThreads([{}, {}], first);
+      ThreadListUI.renderThreads([{}, {}], second);
+
+      setTimeout(function() {
+        assert.equal(first.callCount, 0);
+        assert.equal(second.callCount, 1);
+        assert.equal(ThreadListUI.appendThread.callCount, 2);
+
+        done();
+      }, 20);
+    });
+  });
+
   // Suite for reviewing Thread-view ("bubbles" view)
   suite('Messages given a thread', function() {
     var _tci;
