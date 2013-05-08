@@ -3,6 +3,13 @@
 var MocksHelper = function(mocks) {
   this.mocks = mocks;
   this.realWindowObjects = {};
+
+  // bind functions to myself
+  for (var key in this) {
+    if (typeof this[key] === 'function') {
+      this[key] = this[key].bind(this);
+    }
+  }
 };
 
 MocksHelper.prototype = {
@@ -13,6 +20,14 @@ MocksHelper.prototype = {
         window[objName] = null;
       }
     });
+    return this;
+  },
+
+  attachTestHelpers: function mh_attachTestHelpers() {
+    suiteSetup(this.suiteSetup);
+    suiteTeardown(this.suiteTeardown);
+    setup(this.setup);
+    teardown(this.teardown);
   },
 
   setup: function mh_setup() {
