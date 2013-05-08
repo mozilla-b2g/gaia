@@ -560,16 +560,6 @@ function modifyLayout(keyboardName) {
     space = copy(space);   // and the original space key
     row[c] = space;
 
-    // switch languages button
-    if (enabledKeyboardNames.length > 1 && !layout['hidesSwitchKey']) {
-      space.ratio -= 1;
-      row.splice(c, 0, {
-        value: '&#x1f310;',
-        ratio: 1,
-        keyCode: SWITCH_KEYBOARD
-      });
-      c += 1;
-    }
 
     // Alternate layout key
     // This gives the author the ability to change the alternate layout
@@ -587,21 +577,32 @@ function modifyLayout(keyboardName) {
     }
 
     if (!layout['disableAlternateLayout']) {
-      space.ratio -= 2;
+      space.ratio -= 1.5;
       if (layoutPage === LAYOUT_PAGE_DEFAULT) {
         row.splice(c, 0, {
           keyCode: ALTERNATE_LAYOUT,
           value: alternateLayoutKey,
-          ratio: 2
+          ratio: 1.5
         });
 
       } else {
         row.splice(c, 0, {
           keyCode: BASIC_LAYOUT,
           value: basicLayoutKey,
-          ratio: 2
+          ratio: 1.5
         });
       }
+      c += 1;
+    }
+
+    // switch languages button
+    if (enabledKeyboardNames.length > 1 && !layout['hidesSwitchKey']) {
+      space.ratio -= 1.5;
+      row.splice(c, 0, {
+        value: '&#x1f310;',
+        ratio: 1.5,
+        keyCode: SWITCH_KEYBOARD
+      });
       c += 1;
     }
 
@@ -634,26 +635,29 @@ function modifyLayout(keyboardName) {
         // adds . and , to both sides of the space bar
       case 'text':
         var overwrites = layout.textLayoutOverwrite || {};
-        var next = c + 1;
+        var next = c;
         if (overwrites['.'] !== false) {
           space.ratio -= 1;
-          next = c + 2;
+          next++;
         }
-        if (overwrites[','] !== false)
-          space.ratio -= 1;
 
-        if (overwrites[',']) {
-          row.splice(c, 0, {
-            value: overwrites[','],
-            ratio: 1,
-            keyCode: overwrites[','].charCodeAt(0)
-          });
-        } else if (overwrites[','] !== false) {
-          row.splice(c, 0, {
-            value: ',',
-            ratio: 1,
-            keyCode: 44
-          });
+        // Add ',' to 2nd level
+        if (layoutPage !== LAYOUT_PAGE_DEFAULT) {
+
+          if (overwrites[','] !== false) {
+            space.ratio -= 1;
+            next++;
+          }
+
+          var commaKey = {value: ',', keyCode: 44, ratio: 1};
+
+          if (overwrites[',']) {
+            commaKey.value = overwrites[','];
+            commaKey.keyCode = overwrites[','].charCodeAt(0);
+            row.splice(c, 0, commaKey);
+          } else if (overwrites[','] !== false) {
+            row.splice(c, 0, commaKey);
+          }
         }
 
         if (overwrites['.']) {
