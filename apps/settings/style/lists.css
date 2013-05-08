@@ -90,6 +90,14 @@ ul li > small {
   pointer-events: none;
 }
 
+/* sublines overlap with switch icon */
+ul li > small.text-overlap {  
+  width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 ul li > label:not([for]) + small {
   right: 6rem;
 }
