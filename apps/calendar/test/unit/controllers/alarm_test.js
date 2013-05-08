@@ -2,6 +2,38 @@ requireApp('calendar/shared/js/notification_helper.js');
 
 suiteGroup('Controllers.Alarm', function() {
 
+  function lockMock() {
+    return {
+      mAquired: false,
+      mIsUnlocked: false,
+      unlock: function() {
+        this.mIsUnlocked = true;
+      }
+    };
+  }
+
+  function mockRequestWakeLock(handler) {
+    var realApi;
+
+    suiteSetup(function() {
+      realApi = navigator.requestWakeLock;
+
+      navigator.requestWakeLock = function(type) {
+        var lock = lockMock();
+        lock.type = type;
+        lock.mAquired = true;
+
+        handler && handler(lock);
+
+        return lock;
+      };
+    });
+
+    suiteTeardown(function() {
+      navigator.requestWakeLock = realApi;
+    });
+  }
+
   var subject;
   var app;
   var db;
@@ -150,19 +182,16 @@ suiteGroup('Controllers.Alarm', function() {
 
     suite('#_sendAlarmNotification', function() {
       var realApi;
-      var lastNotification;
       var sent = [];
       var onsend;
       var mockApi = {
         send: function() {
-          sent.push(Array.prototype.slice.call(arguments));
-          lastNotification = {};
-          lastNotification;
+          var args = Array.slice(arguments);
+          var callback = args[args.length - 1];
 
+          sent.push(args);
           // wait until next tick...
-          setTimeout(function() {
-            onsend();
-          }, 0);
+          setTimeout(callback);
         },
 
         getIconURI: function() {
@@ -170,21 +199,47 @@ suiteGroup('Controllers.Alarm', function() {
         }
       };
 
+      var realMozApps;
+      var mozApp;
+
       suiteSetup(function() {
+        realMozApps = navigator.mozApps;
+
+        navigator.mozApps = {
+          getSelf: function() {
+            var ctx = {};
+            setTimeout(function() {
+              if (ctx.onsuccess) {
+                ctx.onsuccess({
+                  target: {
+                    result: mozApp
+                  }
+                });
+              }
+            });
+
+            return ctx;
+          }
+        };
+
         realApi = window.NotificationHelper;
         window.NotificationHelper = mockApi;
       });
 
       suiteTeardown(function() {
+        navigator.mozApps = realMozApps;
         window.NotificationHelper = realApi;
       });
-/*
-// These tests are currently failing on travis and have been temporarily
-// disabled as per Bug 841815. They should be fixed and re-enabled as soon as
-// possible as per Bug 840489.
+
+      setup(function() {
+        // will be returned by getSelf
+        mozApp = {};
+      });
+
       test('result', function(done) {
         sent.length = 0;
         var sentTo;
+        var firesReady = false;
 
         var now = new Date();
         var event = Factory('event');
@@ -194,19 +249,27 @@ suiteGroup('Controllers.Alarm', function() {
           sentTo = url;
         };
 
-        onsend = function() {
+        mozApp.launch = function() {
           done(function() {
-            var note = sent[0];
-            assert.equal(note[1], event.remote.description);
-            note[3]();
+            var notification = sent[0];
+            assert.ok(firesReady, 'is is freed prior to launching');
+            assert.equal(notification[1], event.remote.description);
             assert.ok(sentTo);
             assert.include(sentTo, busytime._id);
           });
         };
 
-        subject._sendAlarmNotification({}, event, busytime);
+        function onready() {
+          firesReady = true;
+        }
+
+        subject._sendAlarmNotification(
+          {},
+          event,
+          busytime,
+          onready
+        );
       });
-*/
     });
 
     suite('#handleAlarm', function() {
@@ -214,7 +277,6 @@ suiteGroup('Controllers.Alarm', function() {
       var busytime;
       var event;
       var alarm;
-
       var transPending = 0;
 
       function createTrans(done) {
@@ -236,7 +298,13 @@ suiteGroup('Controllers.Alarm', function() {
         return trans;
       }
 
+      var lock;
+      mockRequestWakeLock(function(_lock) {
+        lock = _lock;
+      });
+
       setup(function() {
+        lock = null;
         subject.observe();
         transPending = 0;
         sent.length = 0;
@@ -291,9 +359,11 @@ suiteGroup('Controllers.Alarm', function() {
           var trans = createTrans(function() {
             done(function() {
               assert.length(sent, 0);
+              assert.ok(lock.mIsUnlocked, 'frees lock');
             });
           });
           subject.handleAlarm(alarm, trans);
+          assert.ok(lock.mAquired, 'aquired lock');
         });
       });
 
@@ -332,13 +402,37 @@ suiteGroup('Controllers.Alarm', function() {
         });
 
         test('result', function(done) {
+          var isComplete = false;
+
+          var sent;
+          subject._sendAlarmNotification = function() {
+            sent = Array.slice(arguments);
+            assert.isFalse(
+              lock.mIsUnlocked, 'is locked until notification is ready'
+            );
+
+            var cb = sent[sent.length - 1];
+
+            cb();
+
+            assert.isTrue(
+              lock.mIsUnlocked,
+              'lock is freed after notification is ready'
+            );
+
+            isComplete = true;
+          };
+
           var trans = createTrans(function() {
             done(function() {
-              assert.deepEqual(sent[0][0], alarm);
-              assert.length(sent, 1);
+              assert.ok(isComplete);
+              assert.deepEqual(sent[0], alarm);
+              assert.ok(lock.mIsUnlocked, 'frees lock');
             });
           });
           subject.handleAlarm(alarm, trans);
+
+          assert.ok(lock.mAquired, 'aquired lock');
         });
       });
     });
@@ -449,33 +543,12 @@ suiteGroup('Controllers.Alarm', function() {
 
       suite('type: sync', function() {
         var locks = [];
-
-        var Lock = {
-          locked: false,
-
-          unlock: function() {
-            this.locked = false;
-          }
-        };
-
         var realLockApi;
 
-        suiteSetup(function() {
-          realLockApi = navigator.requestWakeLock;
-
-          navigator.requestWakeLock = function mockRequestLock(type) {
-            if (type === 'wifi') {
-              var lock = Object.create(Lock);
-              locks.push(lock);
-
-              lock.locked = true;
-              return lock;
-            }
-          };
-        });
-
-        suiteTeardown(function() {
-          navigator.requestWakeLock = realLockApi;
+        mockRequestWakeLock(function(lock) {
+          if (lock.type === 'wifi') {
+            locks.push(lock);
+          }
         });
 
         setup(function(done) {
@@ -528,7 +601,7 @@ suiteGroup('Controllers.Alarm', function() {
             assert.length(locks, 4, 'has correct number of locks');
 
             var freedAll = locks.every(function(lock) {
-              return lock.locked === false;
+              return lock.mIsUnlocked === true;
             });
 
             assert.ok(freedAll, 'all locks are freed.');
@@ -537,11 +610,11 @@ suiteGroup('Controllers.Alarm', function() {
           app.syncController.all = function(callback) {
             var lock = locks[locks.length - 1];
             assert.ok(lock, 'has lock');
-            assert.isTrue(lock.locked, 'is locked');
+            assert.isFalse(lock.mIsUnlocked, 'is locked');
 
             Calendar.nextTick(function() {
               callback();
-              assert.isFalse(lock.locked, 'unlocks itself');
+              assert.isTrue(lock.mIsUnlocked, 'unlocks itself');
 
               if (!(--pending))
                 done(onComplete);
