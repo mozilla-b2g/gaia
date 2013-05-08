@@ -258,6 +258,7 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           id: 9999,
           timestamp: new Date(),
+          type: 'sms',
           channel: 'sms'
         });
 
@@ -290,6 +291,7 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           id: 9999,
           timestamp: new Date(),
+          type: 'sms',
           channel: 'sms'
         });
 
@@ -411,6 +413,7 @@ suite('SMS App Unit-Test', function() {
           delivery: 'received',
           id: 9999,
           timestamp: new Date(),
+          type: 'sms',
           channel: 'sms'
         });
 
@@ -496,7 +499,8 @@ suite('SMS App Unit-Test', function() {
   suite('URL Links in SMS', function() {
     var Message = {
       id: '987',
-      body: 'Hello URL'
+      body: 'Hello URL',
+      type: 'sms'
     };
 
     //test
@@ -543,7 +547,8 @@ suite('SMS App Unit-Test', function() {
   suite('EmailAddress Links in SMS', function() {
     var Message = {
       id: '1234',
-      body: 'Hello n Welcome'
+      body: 'Hello n Welcome',
+      type: 'sms'
     };
 
     //test
@@ -589,7 +594,8 @@ suite('SMS App Unit-Test', function() {
   suite('Phone Links in SMS', function() {
     var Message = {
       id: '123',
-      body: 'Hello there'
+      body: 'Hello there',
+      type: 'sms'
     };
 
     //test
