@@ -269,6 +269,7 @@ section[role="region"].new > header:first-child form {
   -moz-box-sizing: border-box;
   background: none repeat scroll 0 0 #E4E4E4;
   text-align: left;
+  z-index: 5;
 }
 
 #messages-container header:first-child {
@@ -729,7 +730,7 @@ section[role="region"].new #messages-container[data-type="list"]  li{
 .subheader {
   background: #E4E4E4;
   position: absolute;
-  z-index: 5; /* should be between 4 and 9 (inclusive). 3 is the z-index for
+  z-index: 6; /* should be between 4 and 9 (inclusive). 3 is the z-index for
                  the input form, 10 is the z-index for the header */
   left: 0;
   right: 0;
