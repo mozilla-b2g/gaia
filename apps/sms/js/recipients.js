@@ -705,7 +705,7 @@
               name: typed,
               number: typed,
               source: 'manual'
-            });
+            }).focus();
           }
 
           // If the target already has focus, then prompt to
