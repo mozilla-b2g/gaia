@@ -22,12 +22,6 @@ var ThreadListUI = {
     }, this);
 
     this.delNumList = [];
-    Object.defineProperty(this, 'selectedInputs', {
-      get: function() {
-          return [].slice.call(this.container.querySelectorAll(
-                        'input[type=checkbox]:checked'));
-        }
-    });
     this.fullHeight = this.container.offsetHeight;
 
     this.checkAllButton.addEventListener(
@@ -53,6 +47,16 @@ var ThreadListUI = {
     this.editForm.addEventListener(
       'submit', this
     );
+  },
+
+  getSelectedInputs: function thlui_getSelectedInputs() {
+    if (this.container) {
+      return Array.prototype.slice.call(
+        this.container.querySelectorAll('input[type=checkbox]:checked')
+      );
+    } else {
+      return [];
+    }
   },
 
   updateThreadWithContact:
@@ -195,6 +199,16 @@ var ThreadListUI = {
   },
 
   renderThreads: function thlui_renderThreads(threads, renderCallback) {
+
+    // shut down this render
+    var abort = false;
+
+    // we store the function to kill the previous render on the function itself
+    if (thlui_renderThreads.abort) {
+      thlui_renderThreads.abort();
+    }
+
+
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854417
     // Refactor the rendering method: do not empty the entire
     // list on every render.
@@ -202,6 +216,9 @@ var ThreadListUI = {
     ThreadListUI.count = threads.length;
 
     if (threads.length) {
+      thlui_renderThreads.abort = function thlui_renderThreads_abort() {
+        abort = true;
+      };
       // There are messages to display.
       //  1. Add the "hide" class to the threads-no-messages display
       //  2. Remove the "hide" class from the view
@@ -217,22 +234,26 @@ var ThreadListUI = {
 
       var appendThreads = function(threads, callback) {
         if (!threads.length) {
-          // Refresh fixed header logic
-          FixedHeader.refresh();
-
           if (callback) {
             callback();
           }
           return;
         }
-        var thread = threads.pop();
-        setTimeout(function() {
-          ThreadListUI.appendThread(thread);
+
+        setTimeout(function appendThreadsDelayed() {
+          if (abort) {
+            return;
+          }
+          ThreadListUI.appendThread(threads.pop());
           appendThreads(threads, callback);
         });
       };
 
       appendThreads(threads, function at_callback() {
+        // Refresh fixed header logic
+        FixedHeader.refresh();
+        // clear up abort method
+        delete thlui_renderThreads.abort;
         // Boot update of headers
         Utils.updateTimeHeaders();
         // Once the rendering it's done, callback if needed
@@ -383,3 +404,10 @@ var ThreadListUI = {
     }
   }
 };
+
+Object.defineProperty(ThreadListUI, 'selectedInputs', {
+  get: function() {
+    return this.getSelectedInputs();
+  }
+});
+
