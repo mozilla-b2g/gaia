@@ -184,6 +184,7 @@
         body: 'Alo, how are you today, my friend? :)',
         delivery: 'sent',
         read: true,
+        type: 'sms',
         timestamp: new Date(Date.now())
       },
       {
@@ -193,6 +194,7 @@
         body: 'arr :)',
         delivery: 'sent',
         read: true,
+        type: 'sms',
         timestamp: new Date(Date.now() - 8400000000)
       },
       {
@@ -201,6 +203,7 @@
         receiver: '436797',
         body: 'Sending :)',
         delivery: 'sending',
+        type: 'sms',
         timestamp: new Date(Date.now() - 172800000)
       },
       {
@@ -209,39 +212,92 @@
         receiver: '197743697',
         body: 'Nothing :)',
         delivery: 'sent',
+        type: 'sms',
         timestamp: new Date(Date.now() - 652800000)
       },
       {
         threadId: 4,
         sender: null,
         receiver: '197746797',
-        body: 'Error message:)',
-        delivery: 'sending',
+        body: 'This message is intended to demonstrate hyperlink creation: ' +
+          'http://mozilla.org and https://bugzilla.mozilla.org/',
         error: true,
-        timestamp: new Date(Date.now() - 822800000)
+        type: 'sms',
+        timestamp: new Date(Date.now() - 900000)
       },
       {
         threadId: 4,
         sender: null,
         receiver: '197746797',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        timestamp: new Date(Date.now() - 1002800000)
+        body: 'This message is intended to demonstrate natural line ' +
+          'wrapping. (delivery: sending)',
+        delivery: 'sending',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 800000)
       },
       {
         threadId: 4,
         sender: null,
         receiver: '197746797',
-        body: 'Nothing :)',
+        body: 'This message is intended to demonstrate natural line ' +
+          'wrapping. (delivery: error)',
         delivery: 'error',
-        timestamp: new Date(Date.now() - 1002800000)
+        type: 'sms',
+        timestamp: new Date(Date.now() - 700000)
+      },
+      {
+        threadId: 4,
+        sender: null,
+        receiver: '197746797',
+        body: 'This message is intended to demonstrate natural line ' +
+          'wrapping. (delivery: sent)',
+        delivery: 'sent',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 600000)
+       },
+       {
+        threadId: 4,
+        sender: '197746797',
+        body: 'This message is intended to demonstrate natural line ' +
+          'wrapping. (delivery: received)',
+        delivery: 'received',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 500000)
+      },
+      {
+        threadId: 4,
+        sender: null,
+        receiver: '197746797',
+        body: 'short (delivery: sending)',
+        delivery: 'sending',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 400000)
+      },
+      {
+        threadId: 4,
+        sender: null,
+        receiver: '197746797',
+        body: 'short (delivery: error)',
+        delivery: 'error',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 300000)
+      },
+      {
+        threadId: 4,
+        sender: null,
+        receiver: '197746797',
+        body: 'short (delivery: sent)',
+        delivery: 'sent',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 200000)
       },
       {
         threadId: 4,
         sender: '197746797',
-        body: 'Recibido!',
+        body: 'short (delivery: received)',
         delivery: 'received',
-        timestamp: new Date(Date.now() - 50000000)
+        type: 'sms',
+        timestamp: new Date(Date.now() - 100000)
       }
     ],
     threads: [
@@ -269,8 +325,8 @@
       {
         id: 4,
         participants: ['197746797'],
-        body: 'Recibido!',
-        timestamp: new Date(Date.now() - 50000000),
+        body: 'short (delivery: received)',
+        timestamp: new Date(Date.now() - 100000),
         unreadCount: 0
       },
       {
@@ -304,6 +360,7 @@
       body: 'Hello world!',
       delivery: 'received',
       id: messagesDb.id++,
+      type: 'sms',
       timestamp: new Date(Date.now() - 60000000)
     });
   }
