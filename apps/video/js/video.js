@@ -983,7 +983,7 @@ dom.videoControls.addEventListener('mousedown', playerMousedown);
 // Rescale when window size changes. This should get called when
 // orientation changes
 window.addEventListener('resize', function() {
-  if (dom.player.readyState !== HAVE_NOTHING) {
+  if (dom.player.readyState !== HAVE_NOTHING || playerShowing === true) {
     setPlayerSize();
   }
 
