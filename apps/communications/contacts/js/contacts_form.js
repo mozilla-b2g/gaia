@@ -336,7 +336,7 @@ contacts.Form = (function() {
     // Add event listeners
     var boxTitle = rendered.querySelector('legend.action');
     if (boxTitle) {
-      boxTitle.addEventListener(touchstart, onGoToSelectTag);
+      boxTitle.addEventListener('click', onGoToSelectTag);
     }
 
     container.appendChild(rendered);
