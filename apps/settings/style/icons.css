@@ -316,8 +316,8 @@
   background-position: -24rem -3rem;
 }
 
-.bluetooth-type-pda,
-.bluetooth-type-phone {
+.bluetooth-type-pda:before,
+.bluetooth-type-phone:before {
   background-position: -27rem -3rem;
 }
 

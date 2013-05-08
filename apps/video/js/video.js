@@ -50,8 +50,9 @@ var currentVideoBlob; // The blob for the currently playing video
 var videos = [];
 var firstScanEnded = false;
 
-var THUMBNAIL_WIDTH = 210;
-var THUMBNAIL_HEIGHT = 120;
+var scaleRatio = window.innerWidth / 320;
+var THUMBNAIL_WIDTH = 210 * scaleRatio;
+var THUMBNAIL_HEIGHT = 120 * scaleRatio;
 
 // Enumerating the readyState for html5 video api
 var HAVE_NOTHING = 0;

@@ -185,7 +185,7 @@ article:not(:target) #keypad-delete {
 
 #keypad-callbar {
   background: rgba(24,24,24,.92);
-  height: 5.8rem;
+  height: 6rem;
   width: 100%;
   display: table;
   table-layout: fixed;
