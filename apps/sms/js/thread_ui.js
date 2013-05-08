@@ -156,6 +156,13 @@ var ThreadUI = global.ThreadUI = {
 
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
+    function header(count) {
+      this.headerText.textContent = navigator.mozL10n.get(
+        'recipient[many]', {
+        n: count
+      });
+    }
+
     if (this.recipients) {
       this.recipients.length = 0;
       this.recipients.focus();
@@ -166,15 +173,8 @@ var ThreadUI = global.ThreadUI = {
         template: this.tmpl.recipient
       });
 
-      this.recipients.on('add', function(count) {
-
-        // TODO: Update Header Text when recipient added
-      }.bind(this));
-
-      this.recipients.on('remove', function(count) {
-
-        // TODO: Update Header Text when recipient removed
-      }.bind(this));
+      this.recipients.on('add', header.bind(this));
+      this.recipients.on('remove', header.bind(this));
     }
   },
 
