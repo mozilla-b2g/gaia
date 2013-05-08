@@ -1030,13 +1030,19 @@ var ThreadUI = global.ThreadUI = {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=825604 landed
     //
     // This is totally broken logic and the dependency is wide sweeping.
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=868679
+    // PENDING: ttps://bugzilla.mozilla.org/show_bug.cgi?id=868679
     //
     MessageManager.currentNums = nums;
     this.updateHeaderData();
 
     // Send the SMS
     MessageManager.send(nums, text);
+
+    if (nums.length > 1) {
+      // This is a hack to make multi-recipient work as it did with single recipient
+      // PENDING: https://bugzilla.mozilla.org/show_bug.cgi?id=868679
+      window.location.hash = '#thread-list';
+    }
   },
 
   onMessageSent: function thui_onMessageSent(message) {
