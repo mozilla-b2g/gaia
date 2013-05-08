@@ -7,6 +7,12 @@ function initDB() {
 
   videodb.onunavailable = function(event) {
     storageState = event.detail;
+    // If player is playing, we need to hide the player which pauses the player
+    // and unloads the video file.
+    if (playerShowing) {
+      hidePlayer(true);
+    }
+
     updateDialog();
   };
   videodb.onready = function() {
