@@ -163,7 +163,10 @@ var PhoneLock = {
             if (this._passcodeBuffer.length > 0) {
               this._passcodeBuffer = this._passcodeBuffer.substring(0,
                   this._passcodeBuffer.length - 1);
-              
+              if(this.passcodePanel.dataset.passcodeStatus == 'success'){
+            	  this.hideErrorMessage();
+              }
+             
             }
           } else if(this._passcodeBuffer.length < 8){
             this._passcodeBuffer += key;
