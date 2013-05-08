@@ -264,10 +264,10 @@ ul li > label.bug344618_polyfill div:before {
 ul li > label.bug344618_polyfill div {
   position: relative;
   top: calc(50% - 1.5rem);
-  left: 3rem;
-  right: 3rem;
+  left: 6.0rem;
+  right: 8.0rem;
   height: 3rem;
-  width: calc(100% - 6rem);
+  width: calc(100% - 13rem);
 }
 
 /* fill */
