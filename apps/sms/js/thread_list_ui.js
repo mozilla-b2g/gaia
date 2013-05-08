@@ -396,6 +396,12 @@ var ThreadListUI = {
   },
   // Method for updating all contact info after creating a contact
   updateContactsInfo: function mm_updateContactsInfo() {
+    // Prevents cases where updateContactsInfo method is called
+    // before ThreadListUI.container exists (as observed by errors
+    // in the js console)
+    if (!ThreadListUI.container) {
+      return;
+    }
     // Retrieve all 'li' elements and getting the phone numbers
     var threads = ThreadListUI.container.getElementsByTagName('li');
     for (var i = 0; i < threads.length; i++) {

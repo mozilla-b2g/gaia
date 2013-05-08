@@ -128,6 +128,7 @@ if (!window.location.hash.length) {
       // The black list includes numbers for which notifications should not
       // progress to the user. Se blackllist.js for more information.
       var number = message.sender;
+      var threadId = message.threadId;
       var id = message.id;
 
       // Class 0 handler:
@@ -161,9 +162,12 @@ if (!window.location.hash.length) {
 
       // The SMS app is already displayed
       if (!document.mozHidden) {
-        var currentThread = MessageManager.currentNum;
+
+        // TODO: This satisfies the single recipient per thread assumption
+        // but needs to be updated to use threadId
+        var currentThread = MessageManager.currentThread;
         // If we are in the same thread, only we need to vibrate
-        if (number == currentThread) {
+        if (threadId == currentThread) {
           navigator.vibrate([200, 200, 200]);
           releaseWakeLock();
           return;
