@@ -775,51 +775,36 @@ window.addEventListener('load', function loadSettings() {
   }
 
   function handleRadioAndCardState() {
-    function updateDataSubpanelItem(disabled) {
-      var item = document.getElementById('data-connectivity');
-      var link = document.getElementById('menuItem-cellularAndData');
-      if (!item || !link)
-        return;
+    function disableSIMRelatedSubpanels(disable) {
+      const itemIds = ['call-settings',
+                       'data-connectivity',
+                       'simSecurity-settings'];
 
-      if (disabled) {
-        item.classList.add('carrier-disabled');
-        link.onclick = function() { return false; };
-      } else {
-        item.classList.remove('carrier-disabled');
-        link.onclick = null;
+      for (var id = 0; id < itemIds.length; id++) {
+        var item = document.getElementById(itemIds[id]);
+        if (!item) {
+          continue;
+        }
+
+        if (disable) {
+          item.classList.add('disabled');
+        } else {
+          item.classList.remove('disabled');
+        }
       }
     }
 
-    function updateCallSubpanelItem(disabled) {
-      var item = document.getElementById('call-settings');
-      var link = document.getElementById('menuItem-callSettings');
-      if (!item || !link)
-        return;
-
-      if (disabled) {
-        item.classList.add('call-settings-disabled');
-        link.onclick = function() { return false; };
-      } else {
-        item.classList.remove('call-settings-disabled');
-        link.onclick = null;
-      }
+    var mobileConnection = window.navigator.mozMobileConnection;
+    if (!mobileConnection) {
+      disableSIMRelatedSubpanels(true);
     }
 
-    var key = 'ril.radio.disabled';
+    var cardState = mobileConnection.cardState;
+    disableSIMRelatedSubpanels(cardState !== 'ready');
 
-    var settings = Settings.mozSettings;
-    if (!settings)
-      return;
-
-    var req = settings.createLock().get(key);
-    req.onsuccess = function() {
-      var value = req.result[key];
-      updateDataSubpanelItem(value);
-      updateCallSubpanelItem(value);
-    };
-    settings.addObserver(key, function(evt) {
-      updateDataSubpanelItem(evt.settingValue);
-      updateCallSubpanelItem(evt.settingValue);
+    mobileConnection.addEventListener('cardstatechange', function() {
+      var cardState = mobileConnection.cardState;
+      disableSIMRelatedSubpanels(cardState !== 'ready');
     });
   }
 
