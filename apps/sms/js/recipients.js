@@ -679,7 +679,7 @@
         // If there are recipients in the list and the
         // pan event is "pulling down", then switch the
         // view to multiline display
-        if (owner.length > 0) {
+        if (owner.length > 1) {
           if (event.detail.absolute.dy > 0) {
             this.visible('multiline');
           }
