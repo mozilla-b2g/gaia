@@ -204,19 +204,25 @@ function getMetadata(videofile, callback) {
   };
 
   function createThumbnail() {
-    captureFrame(offscreenVideo, metadata, function(frame) {
-      if (frame === null) {
-        // If something goes wrong in captureFrame, it probably means that
-        // this is not a valid video. In any case, if we don't have a
-        // thumbnail image we shouldn't try to display it to the user.
-        metadata.isVideo = false;
-      }
-      else {
-        metadata.poster = frame;
-      }
-      unload();
-      callback(metadata); // We've got all the metadata we need now.
-    });
+    // Videos often begin with a black screen, so skip ahead 5 seconds
+    // or 1/10th of the video, whichever is shorter in the hope that we'll
+    // get a more interesting thumbnail that way.
+    offscreenVideo.currentTime = Math.min(5, offscreenVideo.duration / 10);
+    offscreenVideo.onseeked = function() {
+      captureFrame(offscreenVideo, metadata, function(poster) {
+        if (poster === null) {
+          // If something goes wrong in captureFrame, it probably means that
+          // this is not a valid video. In any case, if we don't have a
+          // thumbnail image we shouldn't try to display it to the user.
+          metadata.isVideo = false;
+        }
+        else {
+          metadata.poster = poster;
+        }
+        unload();
+        callback(metadata); // We've got all the metadata we need now.
+      });
+    };
   }
 
   // Free the resources being used by the offscreen video element
@@ -235,82 +241,55 @@ function getMetadata(videofile, callback) {
   }
 }
 
-// This flag allows us to ignore timeUpdated events caused by seeking ahead
-// to grab a frame that is not right at the start of the video.
-var seekedToCaptureFrame = false;
-
 function captureFrame(player, metadata, callback) {
-  // If we are on the first frame, skip ahead into the video since some
-  // videos just start with a black screen
-  if (player.currentTime === 0) {
-    seekedToCaptureFrame = true;
-    // Skip ahead 5 seconds or 1/10th of the video, whichever is shorter
-    player.currentTime = Math.min(5, player.duration / 10);
-  }
+  try {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    canvas.width = THUMBNAIL_WIDTH;
+    canvas.height = THUMBNAIL_HEIGHT;
 
-  if (player.seeking) {
-    player.onseeked = doneSeeking;
-  } else {
-    doneSeeking();
-  }
+    var vw = player.videoWidth, vh = player.videoHeight;
+    var tw, th;
 
-  function doneSeeking() {
-    try {
-      player.onseeked = null;
-
-      var canvas = document.createElement('canvas');
-      var ctx = canvas.getContext('2d');
-      canvas.width = THUMBNAIL_WIDTH;
-      canvas.height = THUMBNAIL_HEIGHT;
-
-      var vw = player.videoWidth, vh = player.videoHeight;
-      var tw, th;
-
-      // If a rotation is specified, rotate the canvas context
-      switch (metadata.rotation) {
-      case 90:
-        ctx.translate(THUMBNAIL_WIDTH, 0);
-        ctx.rotate(Math.PI / 2);
-        tw = THUMBNAIL_HEIGHT;
-        th = THUMBNAIL_WIDTH;
-        break;
-      case 180:
-        ctx.translate(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-        ctx.rotate(Math.PI);
-        tw = THUMBNAIL_WIDTH;
-        th = THUMBNAIL_HEIGHT;
-        break;
-      case 270:
-        ctx.translate(0, THUMBNAIL_HEIGHT);
-        ctx.rotate(-Math.PI / 2);
-        tw = THUMBNAIL_HEIGHT;
-        th = THUMBNAIL_WIDTH;
-        break;
-      default:
-        tw = THUMBNAIL_WIDTH;
-        th = THUMBNAIL_HEIGHT;
-        break;
-      }
-
-      // Figure out what portion of the video we want to draw into the thumbnail
-      var scale = Math.min(vw / tw, vh / th);
-      var w = tw * scale, h = th * scale;
-      var x = (vw - w) / 2, y = (vh - h) / 2;
-
-      // Draw the current video frame into the image
-      ctx.drawImage(player, x, y, w, h, 0, 0, tw, th);
-
-      if (seekedToCaptureFrame) {
-        seekedToCaptureFrame = false;
-        player.currentTime = 0;
-      }
-
-      // Convert it to an image file and pass to the callback.
-      canvas.toBlob(callback, 'image/jpeg');
+    // If a rotation is specified, rotate the canvas context
+    switch (metadata.rotation) {
+    case 90:
+      ctx.translate(THUMBNAIL_WIDTH, 0);
+      ctx.rotate(Math.PI / 2);
+      tw = THUMBNAIL_HEIGHT;
+      th = THUMBNAIL_WIDTH;
+      break;
+    case 180:
+      ctx.translate(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+      ctx.rotate(Math.PI);
+      tw = THUMBNAIL_WIDTH;
+      th = THUMBNAIL_HEIGHT;
+      break;
+    case 270:
+      ctx.translate(0, THUMBNAIL_HEIGHT);
+      ctx.rotate(-Math.PI / 2);
+      tw = THUMBNAIL_HEIGHT;
+      th = THUMBNAIL_WIDTH;
+      break;
+    default:
+      tw = THUMBNAIL_WIDTH;
+      th = THUMBNAIL_HEIGHT;
+      break;
     }
-    catch (e) {
-      console.error('Exception in captureFrame:', e, e.stack);
-      callback(null);
-    }
+
+    // Figure out what portion of the video we want to draw into the thumbnail
+    var scale = Math.min(vw / tw, vh / th);
+    var w = tw * scale, h = th * scale;
+    var x = (vw - w) / 2, y = (vh - h) / 2;
+
+    // Draw the current video frame into the image
+    ctx.drawImage(player, x, y, w, h, 0, 0, tw, th);
+
+    // Convert it to an image file and pass to the callback.
+    canvas.toBlob(callback, 'image/jpeg');
+  }
+  catch (e) {
+    console.error('Exception in captureFrame:', e, e.stack);
+    callback(null);
   }
 }
