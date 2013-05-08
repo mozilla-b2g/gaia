@@ -516,27 +516,59 @@ var Settings = {
   },
 
   getSupportedLanguages: function settings_getLanguages(callback) {
-    var LANGUAGES = 'shared/resources/languages.json';
+    if (!callback)
+      return;
 
     if (this._languages) {
       callback(this._languages);
     } else {
+      var LANGUAGES = 'languages.json';
       var self = this;
-      var xhr = new XMLHttpRequest();
-      xhr.onreadystatechange = function loadSupportedLocales() {
-        if (xhr.readyState === 4) {
-          if (xhr.status === 0 || xhr.status === 200) {
-            self._languages = xhr.response;
-            callback(self._languages);
-          } else {
-            console.error('Failed to fetch languages.json: ', xhr.statusText);
-          }
+      this.readSharedFile(LANGUAGES, function getLanguages(data) {
+        if (data) {
+          self._languages = data;
+          callback(self._languages);
         }
-      };
-      xhr.open('GET', LANGUAGES, true); // async
-      xhr.responseType = 'json';
-      xhr.send();
+      });
     }
+  },
+
+  getSupportedKbLayouts: function settings_getSupportedKbLayouts(callback) {
+    if (!callback)
+      return;
+
+    if (this._kbLayoutList) {
+      callback(this._kbLayoutList);
+    } else {
+      var KEYBOARDS = 'keyboard_layouts.json';
+      var self = this;
+      this.readSharedFile(KEYBOARDS, function getKeyboardLayouts(data) {
+        if (data) {
+          self._kbLayoutList = data;
+          callback(self._kbLayoutList);
+        }
+      });
+    }
+  },
+
+  readSharedFile: function settings_readSharedFile(file, callback) {
+    var URI = '/shared/resources/' + file;
+    if (!callback)
+      return;
+
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function loadFile() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 0 || xhr.status === 200) {
+          callback(xhr.response);
+        } else {
+          console.error('Failed to fetch file: ' + file, xhr.statusText);
+        }
+      }
+    };
+    xhr.open('GET', URI, true); // async
+    xhr.responseType = 'json';
+    xhr.send();
   },
 
   updateLanguagePanel: function settings_updateLanguagePanel() {
@@ -834,7 +866,7 @@ window.addEventListener('keydown', function handleSpecialKeys(event) {
 });
 
 // startup & language switching
-window.addEventListener('localized', function showLanguages() {
+window.addEventListener('localized', function updateLocalized() {
   // set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
@@ -845,6 +877,28 @@ window.addEventListener('localized', function showLanguages() {
         languages[navigator.mozL10n.language.code];
   });
   Settings.updateLanguagePanel();
+
+  // update the enabled keyboards list with the language associated keyboard
+  Settings.getSupportedKbLayouts(function updateEnabledKb(keyboards) {
+    var newKb = keyboards[navigator.mozL10n.language.code];
+    var settingNewKeyboard = {};
+    var settingNewKeyboardLayout = {};
+    settingNewKeyboard['keyboard.current'] = navigator.mozL10n.language.code;
+    settingNewKeyboardLayout['keyboard.layouts.' + newKb] = true;
+
+    var settings = navigator.mozSettings;
+    try {
+      var lock = settings.createLock();
+      // Enable the language specific keyboard layout group
+      lock.set(settingNewKeyboardLayout);
+      // Activate the language associated keyboard, everything.me also uses
+      // this setting to improve searches
+      lock.set(settingNewKeyboard);
+    } catch (ex) {
+      console.warn('Exception in mozSettings.createLock():', ex);
+    }
+  });
+
 });
 
 // Do initialization work that doesn't depend on the DOM, as early as
