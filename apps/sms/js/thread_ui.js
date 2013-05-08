@@ -973,6 +973,7 @@ var ThreadUI = global.ThreadUI = {
     var self = this;
     var clean = function clean() {
       self.input.value = '';
+      self.container.textContent = '';
       self.sendButton.disabled = true;
       self.sendButton.dataset.counter = '';
       self.updateInputHeight();
@@ -980,7 +981,6 @@ var ThreadUI = global.ThreadUI = {
         self.initRecipients();
         self.updateComposerHeader();
       }
-
     };
 
     if (this.previousHash === window.location.hash ||

@@ -104,6 +104,15 @@ suite('thread_ui.js >', function() {
     ThreadUI._mozMobileMessage = realMozMobileMessage;
   });
 
+  suite('Search', function() {
+    test('search results cleared', function() {
+      ThreadUI.input.value = '';
+      ThreadUI.container.textContent = 'foo';
+      ThreadUI.cleanFields(true);
+      assert.equal(ThreadUI.container.textContent, '');
+    });
+  });
+
   suite('enableSend() >', function() {
     setup(function() {
       ThreadUI.updateCounter();
