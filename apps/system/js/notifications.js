@@ -305,7 +305,7 @@ var NotificationScreen = {
                                this.lockScreenContainer.firstElementChild);
     }
 
-    if (!this.silent) {
+    if (!this.silent && !StatusBar.recordingActive) {
       var ringtonePlayer = new Audio();
       ringtonePlayer.src = this._sound;
       ringtonePlayer.mozAudioChannelType = 'notification';
