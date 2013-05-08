@@ -56,7 +56,6 @@ suite('simcard dialog', function() {
         '<div id="messageHeader">The PIN was incorrect.</div>',
         '<span id="messageBody">3 tries left.</span>',
       '</div>',
-      '<div id="triesLeft">3 tries left</div>',
       '<div id="pinArea" hidden>',
         '<div data-l10n-id="simPin">SIM PIN</div>',
         '<div class="input-wrapper">',

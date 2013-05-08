@@ -19,7 +19,6 @@ var UIManager = {
     // PIN Screen
     'pincode-screen',
     'pin-label',
-    'pin-retries-left',
     'pin-input',
     'fake-pin-input',
     'pin-error',
@@ -28,10 +27,9 @@ var UIManager = {
     // PUK Screen
     'pukcode-screen',
     'puk-label',
-    'puk-retries-left',
     'puk-input',
-    'fake-puk-input',
     'puk-info',
+    'fake-puk-input',
     'puk-error',
     'newpin-input',
     'fake-newpin-input',
@@ -42,7 +40,6 @@ var UIManager = {
     // XCK Screen
     'xckcode-screen',
     'xck-label',
-    'xck-retries-left',
     'xck-input',
     'fake-xck-input',
     'xck-error',
