@@ -195,21 +195,21 @@ li .button.icon-dialog {
 li button.icon-dialog:before,
 li a[role="button"].icon-dialog:before,
 li .button.icon-dialog:before {
-  background: url(buttons/images/icons/dialog.png) no-repeat 1.6rem 0 / 1rem 9rem;
+  background: url(buttons/images/icons/dialog.png) no-repeat 1.7rem 0 / 1rem 9rem;
   top: 100%;
-  margin-top: -2.4rem;
+  margin-top: -2.3rem;
 }
 
 li button.icon-dialog:active:before,
 li a[role="button"].icon-dialog:active:before,
 li .button.icon-dialog:active:before {
-  background-position: 1.6rem -3rem;
+  background-position: 1.7rem -3rem;
 }
 
 li button.icon-dialog:disabled:before,
 li a[role="button"][aria-disabled="true"].icon-dialog:before,
 li .button[aria-disabled="true"].icon-dialog:before {
-  background-position: 1.6rem -6rem;
+  background-position: 1.7rem -6rem;
 }
 
 
