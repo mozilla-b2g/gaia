@@ -54,7 +54,7 @@ var WifiHelper = {
 
       setTimeout(function() {
         if (request.onsuccess) {
-  	request.onsuccess();
+          request.onsuccess();
         }
       }, 1000);
 
@@ -72,14 +72,14 @@ var WifiHelper = {
         var request = { result: bool };
 
         setTimeout(function() {
-  	if (request.onsuccess) {
-  	  request.onsuccess();
-  	}
-  	if (bool) {
-  	  self.onenabled();
-  	} else {
-  	  self.ondisabled();
-  	}
+          if (request.onsuccess) {
+            request.onsuccess();
+          }
+          if (bool) {
+            self.onenabled();
+          } else {
+            self.ondisabled();
+          }
         });
 
         self.enabled = bool;
@@ -97,23 +97,23 @@ var WifiHelper = {
         var networkEvent = { network: network };
 
         setTimeout(function fakeConnecting() {
-  	self.connection.network = network;
-  	self.connection.status = 'connecting';
-  	self.onstatuschange(networkEvent);
+          self.connection.network = network;
+          self.connection.status = 'connecting';
+          self.onstatuschange(networkEvent);
         }, 0);
 
         setTimeout(function fakeAssociated() {
-  	self.connection.network = network;
-  	self.connection.status = 'associated';
-  	self.onstatuschange(networkEvent);
+          self.connection.network = network;
+          self.connection.status = 'associated';
+          self.onstatuschange(networkEvent);
         }, 1000);
 
         setTimeout(function fakeConnected() {
-  	network.connected = true;
-  	self.connected = network;
-  	self.connection.network = network;
-  	self.connection.status = 'connected';
-  	self.onstatuschange(networkEvent);
+          network.connected = true;
+          self.connected = network;
+          self.connection.network = network;
+          self.connection.status = 'connected';
+          self.onstatuschange(networkEvent);
         }, 2000);
 
         return connection;
@@ -125,11 +125,11 @@ var WifiHelper = {
         var networkEvent = { network: network };
 
         setTimeout(function() {
-  	network.connected = false;
-  	self.connected = null;
-  	self.connection.network = null;
-  	self.connection.status = 'disconnected';
-  	self.onstatuschange(networkEvent);
+          network.connected = false;
+          self.connected = null;
+          self.connection.network = null;
+          self.connection.status = 'disconnected';
+          self.onstatuschange(networkEvent);
         }, 0);
       },
 
