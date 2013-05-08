@@ -228,7 +228,7 @@ var Recents = {
 
   filter: function re_filter(event) {
     // Do nothing if the selected tab is same that current
-    if (event.target.parentNode.getAttribute('aria-selected') === "true") {
+    if (event.target.parentNode.getAttribute('aria-selected') === 'true') {
       return;
     }
     var action = event.target.dataset.action;
@@ -329,7 +329,7 @@ var Recents = {
     if (this.allFilter.getAttribute('aria-selected') === 'true') {
       this.allFilter.removeAttribute('aria-selected');
     } else {
-      this.allFilter.setAttribute('aria-selected', 'true')
+      this.allFilter.setAttribute('aria-selected', 'true');
     }
     if (this.missedFilter.getAttribute('aria-selected') === 'true') {
       this.missedFilter.removeAttribute('aria-selected');
