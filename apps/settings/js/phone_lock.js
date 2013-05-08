@@ -163,12 +163,18 @@ var PhoneLock = {
             if (this._passcodeBuffer.length > 0) {
               this._passcodeBuffer = this._passcodeBuffer.substring(0,
                   this._passcodeBuffer.length - 1);
+<<<<<<< HEAD
               if (this.passcodePanel.dataset.passcodeStatus == 'success') {
                 this.hideErrorMessage();
               }
 
             }
           } else if (this._passcodeBuffer.length < 8) {
+=======
+              
+            }
+          } else if(this._passcodeBuffer.length < 8){
+>>>>>>> 8391d51... Bug 817912 - [Settings-Phone Lock] "confirm passcode" field accepts characters beyond the first 4
             this._passcodeBuffer += key;
           }
 
