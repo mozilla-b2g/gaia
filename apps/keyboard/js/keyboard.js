@@ -189,9 +189,9 @@ var menuTimeout = 0;
 const keyboardGroups = {
   'english': ['en'],
   'dvorak': ['en-Dvorak'],
-  'spanish' : ['es'],
-  'portuguese' : ['pt_BR'],
-  'polish' : ['pl'],
+  'spanish': ['es'],
+  'portuguese': ['pt_BR'],
+  'polish': ['pl'],
   'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr'],
   'cyrillic': ['ru', 'sr-Cyrl'],
   'serbian-latin': ['sr-Latn'],
@@ -274,6 +274,16 @@ var eventHandlers = {
   'mousedown': onMouseDown,
   'mouseup': onMouseUp,
   'mousemove': onMouseMove
+};
+
+var swiping = {
+  startMovePos: null,
+  happening: false, // Whether a swiping action is happening or not
+  lastMousex: -1,
+  mouseTravel: 0, // Distance traveled by swiping since the last move detection.
+  keyWidth: 0, // Width of a single keyboard key
+  stepDistance: 0, // Swiping distance required to move the cursor 1 character.
+  projectedPos: null // Projected cursor position during swiping
 };
 
 // The first thing we do when the keyboard app loads is query all the
@@ -372,15 +382,17 @@ function initKeyboard() {
       return function layoutCallback(e) {
         enabledKeyboardGroups[name] = e.settingValue;
         handleNewKeyboards();
-      }
+      };
     };
 
     navigator.mozSettings.addObserver(settingName,
-                                      createLayoutCallback(settingName));
+      createLayoutCallback(settingName));
   }
 
   // Initialize the rendering module
   IMERender.init(getUpperCaseValue, isSpecialKeyObj);
+  swiping.keyWidth = IMERender.getKeyWidth();
+  swiping.stepDistance = swiping.keyWidth / 2;
 
   // Attach event listeners to the element that does rendering
   for (var event in eventHandlers) {
@@ -446,7 +458,6 @@ function setKeyboardName(name) {
 
   if (!inputMethod)
     inputMethod = defaultInputMethod;
-
 }
 
 // Support function for render
@@ -465,13 +476,13 @@ function handleNewKeyboards() {
   for (var group in keyboardGroups) {
     if (enabledKeyboardGroups['keyboard.layouts.' + group])
       Array.prototype.push.apply(enabledKeyboardNames,
-                                 keyboardGroups[group]);
+        keyboardGroups[group]);
   }
 
   // If no keyboards were selected, use a default
   if (enabledKeyboardNames.length === 0)
     Array.prototype.push.apply(enabledKeyboardNames,
-                               defaultKeyboardNames);
+      defaultKeyboardNames);
 
 
   // Now load each of these keyboards and their input methods
@@ -488,24 +499,24 @@ function handleNewKeyboards() {
 function mapInputType(type) {
   switch (type) {
     // basic types
-  case 'url':
-  case 'tel':
-  case 'email':
-  case 'text':
-    return type;
-    break;
+    case 'url':
+    case 'tel':
+    case 'email':
+    case 'text':
+      return type;
+      break;
 
     // default fallback and textual types
-  case 'password':
-  case 'search':
-  default:
-    return 'text';
-    break;
+    case 'password':
+    case 'search':
+    default:
+      return 'text';
+      break;
 
-  case 'number':
-  case 'range': // XXX: should be different from number
-    return 'number';
-    break;
+    case 'number':
+    case 'range': // XXX: should be different from number
+      return 'number';
+      break;
   }
 }
 
@@ -621,68 +632,68 @@ function modifyLayout(keyboardName) {
     if (!layout['typeInsensitive']) {
       switch (currentInputType) {
         // adds . / and .com
-      case 'url':
-        space.ratio -= 5;
-        row.splice(c, 1, // delete space
-                   { value: '.', ratio: 1, keyCode: 46 },
-                   { value: '/', ratio: 2, keyCode: 47 },
-                   // As we are removing the space we need to assign
-                   // the extra space (i.e to .com)
-                   { value: '.com',
-                     ratio: 2 + space.ratio,
-                     compositeKey: '.com'
-                   }
-                  );
+        case 'url':
+          space.ratio -= 5;
+          row.splice(c, 1, // delete space
+            { value: '.', ratio: 1, keyCode: 46 },
+            { value: '/', ratio: 2, keyCode: 47 },
+            // As we are removing the space we need to assign
+            // the extra space (i.e to .com)
+            { value: '.com',
+              ratio: 2 + space.ratio,
+              compositeKey: '.com'
+            }
+          );
 
-        break;
+          break;
 
         // adds @ and .
-      case 'email':
-        space.ratio -= 2;
-        row.splice(c, 0, { value: '@', ratio: 1, keyCode: 64 });
-        row.splice(c + 2, 0, { value: '.', ratio: 1, keyCode: 46 });
-        break;
+        case 'email':
+          space.ratio -= 2;
+          row.splice(c, 0, { value: '@', ratio: 1, keyCode: 64 });
+          row.splice(c + 2, 0, { value: '.', ratio: 1, keyCode: 46 });
+          break;
 
         // adds . and , to both sides of the space bar
-      case 'text':
-        var overwrites = layout.textLayoutOverwrite || {};
-        var next = c + 1;
-        if (overwrites['.'] !== false) {
-          space.ratio -= 1;
-          next = c + 2;
-        }
-        if (overwrites[','] !== false)
-          space.ratio -= 1;
+        case 'text':
+          var overwrites = layout.textLayoutOverwrite || {};
+          var next = c + 1;
+          if (overwrites['.'] !== false) {
+            space.ratio -= 1;
+            next = c + 2;
+          }
+          if (overwrites[','] !== false)
+            space.ratio -= 1;
 
-        if (overwrites[',']) {
-          row.splice(c, 0, {
-            value: overwrites[','],
-            ratio: 1,
-            keyCode: overwrites[','].charCodeAt(0)
-          });
-        } else if (overwrites[','] !== false) {
-          row.splice(c, 0, {
-            value: ',',
-            ratio: 1,
-            keyCode: 44
-          });
-        }
+          if (overwrites[',']) {
+            row.splice(c, 0, {
+              value: overwrites[','],
+              ratio: 1,
+              keyCode: overwrites[','].charCodeAt(0)
+            });
+          } else if (overwrites[','] !== false) {
+            row.splice(c, 0, {
+              value: ',',
+              ratio: 1,
+              keyCode: 44
+            });
+          }
 
-        if (overwrites['.']) {
-          row.splice(next, 0, {
-            value: overwrites['.'],
-            ratio: 1,
-            keyCode: overwrites['.'].charCodeAt(0)
-          });
-        } else if (overwrites['.'] !== false) {
-          row.splice(next, 0, {
-            value: '.',
-            ratio: 1,
-            keyCode: 46
-          });
-        }
+          if (overwrites['.']) {
+            row.splice(next, 0, {
+              value: overwrites['.'],
+              ratio: 1,
+              keyCode: overwrites['.'].charCodeAt(0)
+            });
+          } else if (overwrites['.'] !== false) {
+            row.splice(next, 0, {
+              value: '.',
+              ratio: 1,
+              keyCode: 46
+            });
+          }
 
-        break;
+          break;
       }
     }
   } else {
@@ -756,11 +767,11 @@ function renderKeyboard(keyboardName) {
 function setUpperCase(upperCase, upperCaseLocked) {
 
   upperCaseLocked = (typeof upperCaseLocked == 'undefined') ?
-                     isUpperCaseLocked : upperCaseLocked;
+    isUpperCaseLocked : upperCaseLocked;
 
   // Do nothing if the states are not changed
   if (isUpperCase == upperCase &&
-      isUpperCaseLocked == upperCaseLocked)
+    isUpperCaseLocked == upperCaseLocked)
     return;
 
   isUpperCaseLocked = upperCaseLocked;
@@ -789,9 +800,8 @@ function updateSettings(key, value) {
 }
 
 function resetUpperCase() {
-  if (isUpperCase &&
-      !isUpperCaseLocked &&
-      layoutPage === LAYOUT_PAGE_DEFAULT) {
+  if (isUpperCase && !isUpperCaseLocked &&
+    layoutPage === LAYOUT_PAGE_DEFAULT) {
     setUpperCase(false);
   }
 }
@@ -1082,6 +1092,7 @@ function onMouseDown(evt) {
 // The coords object can either be a mouse event or a touch. We just expect the
 // coords object to have clientX, clientY, pageX, and pageY properties.
 function startPress(target, coords, touchId) {
+  swiping.startMovePos = { x: coords.pageX, y: coords.pageY };
   if (!isNormalKey(target))
     return;
 
@@ -1116,10 +1127,10 @@ function startPress(target, coords, touchId) {
 
 function inMenuLockedArea(coords) {
   return (menuLockedArea &&
-          coords.pageY >= menuLockedArea.top &&
-          coords.pageY <= menuLockedArea.bottom &&
-          coords.pageX >= menuLockedArea.left &&
-          coords.pageX <= menuLockedArea.right);
+    coords.pageY >= menuLockedArea.top &&
+    coords.pageY <= menuLockedArea.bottom &&
+    coords.pageX >= menuLockedArea.left &&
+    coords.pageX <= menuLockedArea.right);
 }
 
 function onMouseMove(evt) {
@@ -1154,10 +1165,45 @@ function movePress(target, coords, touchId) {
   // Update highlight: remove from older
   IMERender.unHighlightKey(oldTarget);
 
+  // If swipe is happening and it is longer than the length of a single key
+  if (!isShowingAlternativesMenu && (swiping.happening ||
+    (swiping.startMovePos &&
+      Math.abs(swiping.startMovePos.x - coords.pageX) > swiping.keyWidth))) {
+
+    var direction = coords.pageX > swiping.lastMouseX ? 1 : -1;
+
+    if (swiping.lastMouseX > -1) {
+      swiping.mouseTravel += Math.abs(coords.pageX - swiping.lastMouseX);
+    }
+    swiping.lastMouseX = coords.pageX;
+
+    var kb = navigator.mozKeyboard;
+    // Using `mozKeyboard.selectionEnd` doesn't work for us because it appears
+    // to act in an async fashion, so if we use it to calculate the next
+    // position when the user rapidly swipes, it will give outdated values and
+    // the cursor won't move as it should. We use `projectedPos` as the
+    // truth to know where the cursor 'should' be.
+    swiping.projectedPos = swiping.projectedPos || kb.selectionEnd;
+    if (swiping.mouseTravel > swiping.stepDistance) {
+      var times = Math.floor(swiping.mouseTravel / swiping.stepDistance);
+      swiping.projectedPos = swiping.projectedPos + (direction * times);
+      kb.setSelectionRange(swiping.projectedPos, swiping.projectedPos);
+      swiping.mouseTravel = 0;
+    }
+
+    swiping.happening = true;
+
+    clearTimeout(deleteTimeout);
+    clearInterval(deleteInterval);
+    clearTimeout(menuTimeout);
+    hideAlternatives();
+    return;
+  }
+
   var keyCode = parseInt(target.dataset.keycode);
 
   // Ignore if moving over delete key
-  if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
+  if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
     // Set currentKey to null so that no key is entered in this case.
     // Except when the current key is actually backspace itself. Then we
     // need to leave currentKey alone, so that autorepeat works correctly.
@@ -1176,8 +1222,7 @@ function movePress(target, coords, touchId) {
 
   // Hide of alternatives menu if the touch moved out of it
   if (target.parentNode !== IMERender.menu &&
-      isShowingAlternativesMenu &&
-      !inMenuLockedArea(coords))
+    isShowingAlternativesMenu && !inMenuLockedArea(coords))
     hideAlternatives();
 
   // Control showing alternatives menu
@@ -1201,11 +1246,19 @@ function onMouseUp(evt) {
 
 // The user is releasing a key so the key has been pressed. The meat is here.
 function endPress(target, coords, touchId) {
+  swiping.startMovePos = null;
+  swiping.projectedPos = null;
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
   clearTimeout(menuTimeout);
 
   hideAlternatives();
+
+  if (swiping.happening === true) {
+    swiping.happening = false;
+    swiping.lastMouseX = -1;
+    return;
+  }
 
   if (!target || !isNormalKey(target))
     return;
@@ -1258,105 +1311,105 @@ function endPress(target, coords, touchId) {
   // Handle normal key
   switch (keyCode) {
 
-  case BASIC_LAYOUT:
-    // Return to default page
-    setLayoutPage(LAYOUT_PAGE_DEFAULT);
-    break;
-
-  case ALTERNATE_LAYOUT:
-    // Switch to numbers+symbols page
-    setLayoutPage(LAYOUT_PAGE_SYMBOLS_I);
-    break;
-
-  case KeyEvent.DOM_VK_ALT:
-    // alternate between pages 1 and 2 of SYMBOLS
-    if (layoutPage === LAYOUT_PAGE_SYMBOLS_I) {
-      setLayoutPage(LAYOUT_PAGE_SYMBOLS_II);
-    } else {
-      setLayoutPage(LAYOUT_PAGE_SYMBOLS_I);
-    }
-    break;
-
-    // Switch language (keyboard)
-  case SWITCH_KEYBOARD:
-
-    // If the user has specify a keyboard in the menu,
-    // switch to that keyboard.
-    if (target.dataset.keyboard) {
-      setKeyboardName(target.dataset.keyboard);
-
-      // If the user is releasing the switch keyboard key while
-      // showing the alternatives, do nothing.
-    } else if (isShowingAlternativesMenu) {
+    case BASIC_LAYOUT:
+      // Return to default page
+      setLayoutPage(LAYOUT_PAGE_DEFAULT);
       break;
 
-      // Cycle between languages (keyboard)
-    } else {
-      var keyboards = enabledKeyboardNames;
-      var index = keyboards.indexOf(keyboardName);
-      index = (index + 1) % keyboards.length;
-      setKeyboardName(enabledKeyboardNames[index]);
-    }
+    case ALTERNATE_LAYOUT:
+      // Switch to numbers+symbols page
+      setLayoutPage(LAYOUT_PAGE_SYMBOLS_I);
+      break;
 
-    resetKeyboard();
+    case KeyEvent.DOM_VK_ALT:
+      // alternate between pages 1 and 2 of SYMBOLS
+      if (layoutPage === LAYOUT_PAGE_SYMBOLS_I) {
+        setLayoutPage(LAYOUT_PAGE_SYMBOLS_II);
+      } else {
+        setLayoutPage(LAYOUT_PAGE_SYMBOLS_I);
+      }
+      break;
 
-    /*
-     * XXX
-     * If we switch to a different keyboard that has a different input
-     * method, we need to call activate() again to set up the state for that
-     * input method. But we can only get the state we need when we get a
-     * focuschange event. This means that keyboard switching only works
-     * when the keyboards have the same input method.
-     * So to switch from a latin to an asian keyboard, you'd have to
-     * lose focus and then refocus the input field.  In practice, I think
-     * that asian keyboards have input methods that handle the latin case
-     * so this probably isn't an issue.
-    if (inputMethod.activate) {
-      inputMethod.activate(userLanguage, suggestionsEnabled, currentInputType);
-    }
-    */
-    break;
+    // Switch language (keyboard)
+    case SWITCH_KEYBOARD:
+
+      // If the user has specify a keyboard in the menu,
+      // switch to that keyboard.
+      if (target.dataset.keyboard) {
+        setKeyboardName(target.dataset.keyboard);
+
+        // If the user is releasing the switch keyboard key while
+        // showing the alternatives, do nothing.
+      } else if (isShowingAlternativesMenu) {
+        break;
+
+        // Cycle between languages (keyboard)
+      } else {
+        var keyboards = enabledKeyboardNames;
+        var index = keyboards.indexOf(keyboardName);
+        index = (index + 1) % keyboards.length;
+        setKeyboardName(enabledKeyboardNames[index]);
+      }
+
+      resetKeyboard();
+
+      /*
+       * XXX
+       * If we switch to a different keyboard that has a different input
+       * method, we need to call activate() again to set up the state for that
+       * input method. But we can only get the state we need when we get a
+       * focuschange event. This means that keyboard switching only works
+       * when the keyboards have the same input method.
+       * So to switch from a latin to an asian keyboard, you'd have to
+       * lose focus and then refocus the input field.  In practice, I think
+       * that asian keyboards have input methods that handle the latin case
+       * so this probably isn't an issue.
+       if (inputMethod.activate) {
+       inputMethod.activate(userLanguage, suggestionsEnabled, currentInputType);
+       }
+       */
+      break;
 
     // Expand / shrink the candidate panel
-  case TOGGLE_CANDIDATE_PANEL:
-    if (IMERender.ime.classList.contains('candidate-panel')) {
-      IMERender.ime.classList.remove('candidate-panel');
-      IMERender.ime.classList.add('full-candidate-panel');
-    } else {
-      IMERender.ime.classList.add('candidate-panel');
-      IMERender.ime.classList.remove('full-candidate-panel');
-    }
-    break;
+    case TOGGLE_CANDIDATE_PANEL:
+      if (IMERender.ime.classList.contains('candidate-panel')) {
+        IMERender.ime.classList.remove('candidate-panel');
+        IMERender.ime.classList.add('full-candidate-panel');
+      } else {
+        IMERender.ime.classList.add('candidate-panel');
+        IMERender.ime.classList.remove('full-candidate-panel');
+      }
+      break;
 
     // Shift or caps lock
-  case KeyEvent.DOM_VK_CAPS_LOCK:
+    case KeyEvent.DOM_VK_CAPS_LOCK:
 
-    // Already waiting for caps lock
-    if (isWaitingForSecondTap) {
-      isWaitingForSecondTap = false;
+      // Already waiting for caps lock
+      if (isWaitingForSecondTap) {
+        isWaitingForSecondTap = false;
 
-      setUpperCase(true, true);
+        setUpperCase(true, true);
 
-      // Normal behavior: set timeout for second tap and toggle caps
-    } else {
+        // Normal behavior: set timeout for second tap and toggle caps
+      } else {
 
-      isWaitingForSecondTap = true;
-      window.setTimeout(
-        function() {
-          isWaitingForSecondTap = false;
-        },
-        CAPS_LOCK_TIMEOUT
-      );
+        isWaitingForSecondTap = true;
+        window.setTimeout(
+          function() {
+            isWaitingForSecondTap = false;
+          },
+          CAPS_LOCK_TIMEOUT
+        );
 
-      // Toggle caps
-      setUpperCase(!isUpperCase, false);
-    }
-    break;
+        // Toggle caps
+        setUpperCase(!isUpperCase, false);
+      }
+      break;
 
     // Normal key
-  default:
-    inputMethod.click(keyCode);
-    break;
+    default:
+      inputMethod.click(keyCode);
+      break;
   }
 }
 
@@ -1388,14 +1441,14 @@ function resetKeyboard() {
 // we pass to real input methods
 function sendKey(keyCode) {
   switch (keyCode) {
-  case KeyEvent.DOM_VK_BACK_SPACE:
-  case KeyEvent.DOM_VK_RETURN:
-    window.navigator.mozKeyboard.sendKey(keyCode, 0);
-    break;
+    case KeyEvent.DOM_VK_BACK_SPACE:
+    case KeyEvent.DOM_VK_RETURN:
+      window.navigator.mozKeyboard.sendKey(keyCode, 0);
+      break;
 
-  default:
-    window.navigator.mozKeyboard.sendKey(0, keyCode);
-    break;
+    default:
+      window.navigator.mozKeyboard.sendKey(0, keyCode);
+      break;
   }
 }
 
@@ -1427,8 +1480,7 @@ function showKeyboard(state) {
   }
 
   if (!inputMethod.displaysCandidates ||
-      inputMethod.displaysCandidates())
-  {
+    inputMethod.displaysCandidates()) {
     IMERender.ime.classList.add('candidate-panel');
   }
   else {
@@ -1526,7 +1578,7 @@ function loadIMEngine(name) {
 // for symbols
 function updateLayoutParams() {
   if (inputMethod.setLayoutParams &&
-      layoutPage === LAYOUT_PAGE_DEFAULT) {
+    layoutPage === LAYOUT_PAGE_DEFAULT) {
     inputMethod.setLayoutParams({
       keyboardWidth: IMERender.getWidth(),
       keyboardHeight: getKeyCoordinateY(IMERender.getHeight()),
@@ -1589,7 +1641,7 @@ function getSettings(settings, callback) {
   catch (e) {
     // If settings is broken, just return the default values
     console.warn('Exception in mozSettings.createLock():', e,
-                 '\nUsing default values');
+      '\nUsing default values');
     for (var p in settings)
       results[p] = settings[p];
     callback(results);
@@ -1608,7 +1660,7 @@ function getSettings(settings, callback) {
     }
     catch (e) {
       console.warn('Exception querying setting', name, ':', e,
-                   '\nUsing default value');
+        '\nUsing default value');
       recordResult(name, settings[name]);
       return;
     }
