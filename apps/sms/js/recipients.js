@@ -279,8 +279,8 @@
     return this;
   };
 
-  Recipients.prototype.visible = function(type) {
-    view.get(this).visible(type);
+  Recipients.prototype.visible = function(type, opts) {
+    view.get(this).visible(type, opts || {});
     return this;
   };
 
@@ -516,10 +516,12 @@
 
   var rtype = /^(multi|single)line$/;
 
-  Recipients.View.prototype.visible = function(type) {
+  Recipients.View.prototype.visible = function(type, opts) {
     var view = priv.get(this);
     var state = view.state;
     var error = 'visible "type" (multiline or singleline)';
+
+    opts = opts || {};
 
     if (!type) {
       throw new Error('Missing ' + error);
@@ -560,11 +562,24 @@
     // the last child element in the recipients list view
     view.outer.addEventListener('transitionend', function te() {
       var last;
-      if (state.visible === 'singleline') {
-        last = view.inner.querySelector(':last-child');
-        last.focus();
+
+      if (state.visible === 'singleline' && opts.refocus) {
+        last = view.inner.lastElementChild;
+
+        if (opts.refocus) {
+          opts.refocus.focus();
+
+          while (last.isPlaceholder) {
+            last.parentNode.removeChild(last);
+            last = view.inner.lastElementChild;
+          }
+        } else {
+          last.focus();
+        }
+
         last.scrollIntoView(true);
       }
+
       state.isTransitioning = false;
       view.outer.removeEventListener('transitionend', te, true);
     });
@@ -747,6 +762,11 @@
         } else {
           // 2. Focus for fat fingering!
           //
+          if (!view.inner.lastElementChild.isPlaceholder) {
+            view.inner.appendChild(
+              this.placeholder
+            );
+          }
 
           this.focus();
           return;
@@ -892,14 +912,6 @@
       callback(response);
     }
   };
-
-  // Recipients.View.events = {
-  //   pan: function(absolute) {
-  //     if (absolute.dy > 0) {
-  //       this.visible('multiline');
-  //     }
-  //   }
-  // };
 
   exports.Recipients = Recipients;
 
