@@ -417,7 +417,7 @@ const Keyboards = {
   },
   fr: {
     label: 'French',
-    menuLabel: 'français',
+    menuLabel: 'Français',
     imEngine: 'latin',
     needsCandidatePanel: 'true',
     alt: {
@@ -556,7 +556,7 @@ const Keyboards = {
   },
   ru: {
     label: 'Russian',
-    menuLabel: 'русский',
+    menuLabel: 'Pусский',
     alt: {
       // incomplete
     },
@@ -583,7 +583,7 @@ const Keyboards = {
   },
   'sr-Cyrl': {
     label: 'Serbian (Cyrillic)',
-    menuLabel: 'српска ћирилица',
+    menuLabel: 'Cрпска ћирилица',
     alt: {
       // incomplete
     },
@@ -1085,7 +1085,7 @@ const Keyboards = {
   pl: {
     label: 'Polish',
     imEngine: 'latin',
-    menuLabel: 'polski',
+    menuLabel: 'Polski',
     needsCandidatePanel: true,
     alt: {
       a: 'ąáàâäåãāæ',
