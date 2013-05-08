@@ -150,23 +150,24 @@ var PhoneLock = {
         }
         break;
       case this.passcodeInput:
-        evt.preventDefault();
-        if (this._passcodeBuffer === '')
-          this.hideErrorMessage();
+          evt.preventDefault();
+          if (this._passcodeBuffer === '')
+            this.hideErrorMessage();
 
-        var code = evt.charCode;
-        if (code !== 0 && (code < 0x30 || code > 0x39))
-          return;
+          var code = evt.charCode;
+          if (code !== 0 && (code < 0x30 || code > 0x39))
+            return;
 
-        var key = String.fromCharCode(code);
-        if (evt.charCode === 0) {
-          if (this._passcodeBuffer.length > 0) {
-            this._passcodeBuffer = this._passcodeBuffer.substring(0,
-                this._passcodeBuffer.length - 1);
+          var key = String.fromCharCode(code);
+          if (evt.charCode === 0) {
+            if (this._passcodeBuffer.length > 0) {
+              this._passcodeBuffer = this._passcodeBuffer.substring(0,
+                  this._passcodeBuffer.length - 1);
+              
+            }
+          } else if(this._passcodeBuffer.length < 8){
+            this._passcodeBuffer += key;
           }
-        } else {
-          this._passcodeBuffer += key;
-        }
 
         this.updatePassCodeUI();
 
