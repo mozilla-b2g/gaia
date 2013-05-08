@@ -148,7 +148,7 @@ var StatusBar = {
       'tethering.wifi.enabled': ['tethering'],
       'tethering.wifi.connectedClients': ['tethering'],
       'tethering.usb.connectedClients': ['tethering'],
-      'ring.enabled': ['mute'],
+      'audio.volume.notification': ['mute'],
       'alarm.enabled': ['alarm'],
       'vibration.enabled': ['vibration'],
       'ril.cf.enabled': ['callForwarding']
@@ -576,7 +576,7 @@ var StatusBar = {
 
     mute: function sb_updateMute() {
       this.icons.mute.hidden =
-        (this.settingValues['ring.enabled'] == true);
+        (this.settingValues['audio.volume.notification'] != 0);
     },
 
     vibration: function sb_vibration() {

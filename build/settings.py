@@ -111,7 +111,6 @@ settings = {
  "ril.supl.passwd": "",
  "ril.supl.user": "",
  "ril.sms.strict7BitEncoding.enabled": False,
- "ring.enabled": True,
  "screen.automatic-brightness": True,
  "screen.brightness": 1,
  "screen.timeout": 60,

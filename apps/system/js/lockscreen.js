@@ -167,8 +167,8 @@ var LockScreen = {
       self.setEnabled(value);
     });
 
-    SettingsListener.observe('ring.enabled', true, function(value) {
-      self.mute.hidden = value;
+    SettingsListener.observe('audio.volume.notification', 7, function(value) {
+      self.mute.hidden = (value != 0);
     });
 
     SettingsListener.observe('vibration.enabled', true, function(value) {
