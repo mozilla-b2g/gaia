@@ -13,6 +13,166 @@
   var MockNavigatormozMobileMessage =
         window.DesktopMockNavigatormozMobileMessage = {};
 
+  var outstandingRequests = 0;
+  var requests = {};
+
+  function getTestFile(filename, callback) {
+    if (!requests[filename]) {
+      requests[filename] = [];
+      var req = new XMLHttpRequest();
+      req.open('GET', filename, true);
+      req.responseType = 'blob';
+      req.onload = function() {
+        requests[filename].forEach(function(callback) {
+          callback(req.response);
+          requests[filename].data = req.response;
+        });
+        // we called em, no need to store anymore
+        requests[filename].length = 0;
+        if (--outstandingRequests === 0) {
+          doneCallbacks.forEach(function(callback) {
+            callback();
+          });
+          doneCallbacks.length = 0;
+        }
+      };
+      requests[filename].push(callback);
+      outstandingRequests++;
+      req.send();
+    } else {
+      if (requests[filename].data) {
+        callback(requests[filename].data);
+      } else {
+        requests[filename].push(callback);
+      }
+    }
+  }
+
+  var doneCallbacks = [];
+  MockNavigatormozMobileMessage._doneLoadingData = function(callback) {
+    if (!outstandingRequests) {
+      callback();
+    } else {
+      doneCallbacks.push(callback);
+    }
+  };
+
+  getTestFile('/test/unit/media/kitten-450.jpg', function(testImageBlob) {
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'received',
+      subject: 'Test MMS Image message',
+      smil: '<smil><body><par><img src="example.jpg"/>' +
+            '<text src="text1"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['This is an image message'], { type: 'text/plain' })
+      },{
+        location: 'example.jpg',
+        content: testImageBlob
+      }],
+      timestamp: new Date()
+    });
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'sent',
+      subject: 'Test MMS Image message',
+      smil: '<smil><body><par><text src="text1"/></par>' +
+            '<par><img src="example.jpg"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['sent image message'], { type: 'text/plain' })
+      },{
+        location: 'example.jpg',
+        content: testImageBlob
+      }],
+      timestamp: new Date()
+    });
+  });
+
+  getTestFile('/test/unit/media/video.ogv', function(testVideoBlob) {
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'received',
+      subject: 'Test MMS Video message',
+      smil: '<smil><body><par><video src="example.ogv"/>' +
+            '<text src="text1"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['This is a video message'], { type: 'text/plain' })
+      },{
+        location: 'example.ogv',
+        content: testVideoBlob
+      }],
+      timestamp: new Date()
+    });
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'sent',
+      subject: 'Test MMS Video message',
+      smil: '<smil><body><par><text src="text1"/></par>' +
+            '<par><video src="example.ogv"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['sent video message'], { type: 'text/plain' })
+      },{
+        location: 'example.ogv',
+        content: testVideoBlob
+      }],
+      timestamp: new Date()
+    });
+  });
+  getTestFile('/test/unit/media/audio.oga', function(testAudioBlob) {
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'received',
+      subject: 'Test MMS audio message',
+      smil: '<smil><body><par><audio src="example.ogg"/>' +
+            '<text src="text1"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['This is an audio message'], { type: 'text/plain' })
+      },{
+        location: 'example.ogg',
+        content: testAudioBlob
+      }],
+      timestamp: new Date()
+    });
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'sent',
+      subject: 'Test MMS audio message',
+      smil: '<smil><body><par><text src="text1"/></par>' +
+            '<par><audio src="example.ogg"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['sent audio message'], { type: 'text/plain' })
+      },{
+        location: 'example.ogg',
+        content: testAudioBlob
+      }],
+      timestamp: new Date()
+    });
+  });
+
   // Fake in-memory message database
   var messagesDb = {
     id: 0,
@@ -119,6 +279,14 @@
         body: 'Hello world!',
         timestamp: new Date(Date.now() - 60000000),
         unreadCount: 2
+      },
+      {
+        id: 6,
+        participants: ['052780'],
+        body: 'Test MMS message',
+        lastMessageType: 'mms',
+        timestamp: new Date(),
+        unreadCount: 0
       }
     ]
   };
