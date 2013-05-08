@@ -14646,7 +14646,8 @@ MailUniverse.prototype = {
     }
     if (!userDetails.forceCreate) {
       for (var i = 0; i < this.accounts.length; i++) {
-        if (userDetails.emailAddress = this.accounts[i].identities[0].address) {
+        if (userDetails.emailAddress ===
+            this.accounts[i].identities[0].address) {
           callback('user-account-exists');
           return;
         }
