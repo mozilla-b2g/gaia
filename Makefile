@@ -286,9 +286,6 @@ webapp-manifests: install-xulrunner-sdk
 # Generate profile/webapps/APP/application.zip
 webapp-zip: stamp-commit-hash install-xulrunner-sdk
 ifneq ($(DEBUG),1)
-	@rm -rf apps/system/camera
-	@cp -r apps/camera apps/system/camera
-	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
 	@$(call run-js-command, webapp-zip)
 endif
