@@ -109,9 +109,6 @@ function addVideo(videodata) {
   var thumbnails = dom.thumbnails.children;
   dom.thumbnails.insertBefore(thumbnail, thumbnails[insertPosition]);
 
-  var text = thumbnail.querySelector('.details');
-  textTruncate(text);
-
   // increment the index of each of the thumbnails after the new one
   for (var i = insertPosition; i < thumbnails.length; i++) {
     thumbnails[i].dataset.index = i;
