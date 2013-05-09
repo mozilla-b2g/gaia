@@ -2797,12 +2797,9 @@ function makeReverseEntities () {
 }
 
 function escapeHTMLEntities(text) {
-  text = text.replace(/&([a-z]+);/gi, "__IGNORE_ENTITIES_HACK__$1;");
-
-  text = text.replace(/[\u00A0-\u2666<>]|&(?![#a-zA-Z0-9]+;)/g, function(c) {
-    return '&' + entities[c.charCodeAt(0)] + ';';
+  return text.replace(/[<>"']|&(?![#a-zA-Z0-9]+;)/g, function(c) {
+    return '&#' + c.charCodeAt(0) + ';';
   });
-  return text.replace(/__IGNORE_ENTITIES_HACK__([a-z]+);/gi, "&$1;");
 }
 
 exports.unescapeHTMLEntities = function unescapeHTMLEntities(text) {
