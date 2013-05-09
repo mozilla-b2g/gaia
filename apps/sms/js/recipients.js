@@ -182,7 +182,7 @@
 
     if (stack.length) {
       while ((handler = stack.pop())) {
-        handler(args);
+        handler.apply(null, args);
       }
     }
 
@@ -568,13 +568,15 @@
 
         if (opts.refocus) {
           opts.refocus.focus();
+        } else {
+          last.focus();
+        }
 
+        if (opts.refocus && opts.noPreserve) {
           while (last.isPlaceholder) {
             last.parentNode.removeChild(last);
             last = view.inner.lastElementChild;
           }
-        } else {
-          last.focus();
         }
 
         last.scrollIntoView(true);
@@ -757,6 +759,10 @@
 
               target = view.inner.lastElementChild;
               target.textContent = typed;
+
+              this.visible('singleline', {
+                refocus: target
+              });
             }
           }
         } else {
@@ -832,6 +838,7 @@
               // when they are finished editting and have
               // "accepted" the recipient entry
               data.get(view.owner).pop();
+              view.owner.emit('remove', data.get(view.owner).length);
             }
           }
         }
