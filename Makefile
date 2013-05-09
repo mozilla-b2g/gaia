@@ -633,7 +633,7 @@ stamp-commit-hash:
 	@(if [ -e gaia_commit_override.txt ]; then \
 		cp gaia_commit_override.txt apps/settings/resources/gaia_commit.txt; \
 	elif [ -d ./.git ]; then \
-		git log -1 --format="%H%n%at" HEAD > apps/settings/resources/gaia_commit.txt; \
+		git log -1 --format="%H%n%ct" HEAD > apps/settings/resources/gaia_commit.txt; \
 	else \
 		echo 'Unknown Git commit; build date shown here.' > apps/settings/resources/gaia_commit.txt; \
 		date +%s >> apps/settings/resources/gaia_commit.txt; \
