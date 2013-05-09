@@ -24,7 +24,8 @@ contacts.Settings = (function() {
     fbPwdRenewMsg,
     fbImportedValue,
     newOrderByLastName = null,
-    ORDER_KEY = 'order.lastname';
+    ORDER_KEY = 'order.lastname',
+    PENDING_LOGOUT_KEY = 'pendingLogout';
 
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
@@ -516,6 +517,9 @@ contacts.Settings = (function() {
   };
 
   var checkOnline = function() {
+    // Perform pending automatic logouts
+    window.setTimeout(automaticLogout, 0);
+
     // Facebook settings
     if (fb.isEnabled) {
       if (navigator.onLine === true) {
@@ -540,6 +544,54 @@ contacts.Settings = (function() {
       importLiveButton.removeAttribute('disabled');
     }
   };
+
+  function saveStatus(data) {
+    window.asyncStorage.setItem(PENDING_LOGOUT_KEY, data);
+  }
+
+  function automaticLogout() {
+    if (navigator.offLine === true) {
+      return;
+    }
+
+    LazyLoader.load(['/contacts/js/utilities/http_rest.js'], function() {
+      window.asyncStorage.getItem(PENDING_LOGOUT_KEY, function(data) {
+        if (!data) {
+          return;
+        }
+        var services = Object.keys(data);
+        var numResponses = 0;
+
+        services.forEach(function(service) {
+          var url = data[service];
+
+          var callbacks = {
+            success: function logout_success() {
+              numResponses++;
+              window.console.log('Successfully logged out: ', service);
+              delete data[service];
+              if (numResponses === services.length) {
+                saveStatus(data);
+              }
+            },
+            error: function logout_error() {
+              numResponses++;
+              if (numResponses === services.length) {
+                saveStatus(data);
+              }
+            },
+            timeout: function logout_timeout() {
+              numResponses++;
+              if (numResponses === services.length) {
+                saveStatus(data);
+              }
+            }
+          };
+          Rest.get(url, callbacks);
+        });
+      });
+    });
+  }
 
   var refresh = function refresh() {
     getData();

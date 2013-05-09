@@ -11,11 +11,12 @@ if (typeof Contacts.extServices === 'undefined') {
     var oauthFrame = document.querySelector('#fb-oauth');
     oauthFrame.src = '/facebook/fb_oauth.html';
     var currentURI, access_token;
-    var canClose = true;
+    var canClose = true, canCloseLogout = true;
     var closeRequested = false;
 
     extServices.startLink = function(cid, linked) {
       canClose = true;
+      canCloseLogout = true;
       contactId = cid;
       if (!linked) {
         load('fb_link.html' + '?contactId=' + contactId, 'proposal',
@@ -40,6 +41,7 @@ if (typeof Contacts.extServices === 'undefined') {
     function loadService(serviceName) {
       closeRequested = false;
       canClose = false;
+      canCloseLogout = false;
       load('import.html?service=' + serviceName, 'friends', serviceName);
     }
 
@@ -61,7 +63,7 @@ if (typeof Contacts.extServices === 'undefined') {
     function close(message) {
       extensionFrame.addEventListener('transitionend', function tclose() {
         extensionFrame.removeEventListener('transitionend', tclose);
-        if (canClose === true) {
+        if (canClose === true && canCloseLogout === true) {
           unload();
         }
         else {
@@ -315,12 +317,19 @@ if (typeof Contacts.extServices === 'undefined') {
         case 'sync_finished':
           // Sync finished thus the iframe can be safely "removed"
           canClose = true;
-          if (closeRequested) {
+          if (closeRequested && canCloseLogout) {
             unload();
           }
           // Check whether there has been changes or not
           if (data.data > 0) {
             notifySettings();
+          }
+        break;
+
+        case 'logout_finished':
+          canCloseLogout = true;
+          if (closeRequested && canClose) {
+            unload();
           }
         break;
 

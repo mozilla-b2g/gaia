@@ -150,6 +150,15 @@ if (typeof window.importer === 'undefined') {
                            onSearchResultCb, true);
     };
 
+    function notifyLogout() {
+       // Simulating logout finished to enable seamless closing of the iframe
+      var msg = {
+        type: 'logout_finished',
+        data: ''
+      };
+      parent.postMessage(msg, targetApp);
+    }
+
     UI.end = function(event) {
       var msg = {
         type: 'window_close',
@@ -159,7 +168,61 @@ if (typeof window.importer === 'undefined') {
       parent.postMessage(msg, targetApp);
       // uncomment this to make it work on B2G-Desktop
       // parent.postMessage(msg, '*');
+
+      notifyLogout();
     };
+
+    function removeToken(cb) {
+      var theCb = (typeof cb === 'function') ? cb : function() {};
+      window.asyncStorage.removeItem(tokenKey, theCb, theCb);
+    }
+
+    function markPendingLogout(url, service, cb) {
+      var PENDING_LOGOUT_KEY = 'pendingLogout';
+      window.asyncStorage.getItem(PENDING_LOGOUT_KEY,
+          function(data) {
+            var obj = data || {};
+            obj[service] = url;
+            var theCb = (typeof cb === 'function') ? cb : function() {};
+            window.asyncStorage.setItem(PENDING_LOGOUT_KEY, obj, theCb, theCb);
+          });
+    }
+
+    function serviceLogout(cb) {
+      if (serviceConnector.automaticLogout) {
+        var serviceName = serviceConnector.name;
+        var logoutUrl = oauthflow.params[serviceName].logoutUrl;
+
+        var callbacks = {
+          error: function() {
+            window.console.warn('Error while logging out user ', logoutUrl);
+            removeToken();
+            markPendingLogout(logoutUrl, serviceName, cb);
+          },
+          timeout: function() {
+            window.console.warn('Timeout while logging out user ', url);
+            removeToken();
+            markPendingLogout(logoutUrl, serviceName, cb);
+          },
+          success: function() {
+            window.console.log('Successfully logged out');
+            removeToken(cb);
+          }
+        };
+
+        // Prevent false logout positives
+        if (navigator.onLine === true) {
+          Rest.get(logoutUrl, callbacks);
+        }
+        else {
+          removeToken();
+          markPendingLogout(logoutUrl, serviceName, cb);
+        }
+      }
+      else {
+        cb();
+      }
+    }
 
     function tokenExpired(error) {
       return (error.code === TOKEN_EXPIRED_CODE || error === TOKEN_EXPIRED_STR);
@@ -279,6 +342,14 @@ if (typeof window.importer === 'undefined') {
 
         serviceConnector.startSync(existingContacts, myFriendsByUid,
                                    syncSuccess);
+      }
+      else {
+        // Automatically notify sync finished
+        var msg = {
+          type: 'sync_finished',
+          data: 0
+        };
+        parent.postMessage(msg, targetApp);
       }
     }
 
@@ -574,6 +645,9 @@ if (typeof window.importer === 'undefined') {
           })
         }, targetApp);
       }
+
+      // If the service requires to do the logout it is done
+      serviceLogout(notifyLogout);
 
       if (Importer.getContext() === 'ftu') {
         Curtain.hide(function onhide() {
