@@ -107,6 +107,10 @@ suiteGroup('Views.ModifyAccount', function() {
 
   });
 
+  test('#authenticationType', function() {
+    assert.equal(subject.authenticationType, 'basic');
+  });
+
   test('#oauth2Window', function() {
     assert.ok(subject.oauth2Window);
   });
@@ -415,10 +419,12 @@ suiteGroup('Views.ModifyAccount', function() {
         assert.isTrue(hasClass(subject.type));
         assert.isTrue(hasClass('preset-' + account.preset));
         assert.isTrue(hasClass('provider-' + account.providerType));
+        assert.isTrue(hasClass('auth-' + subject.authenticationType));
       });
     });
 
     suite('oauth flow', function() {
+
       var callsSave;
       var MockOAuth = function(server, params) {
         this.server = server;
@@ -448,8 +454,23 @@ suiteGroup('Views.ModifyAccount', function() {
           callsSave = true;
         };
 
+        // Oauth flows are only for new accounts
+        subject.model = {};
+
         subject.preset = Calendar.Presets.google;
         subject.render();
+      });
+
+      test('authenticationType', function() {
+        assert.equal(
+          subject.authenticationType,
+          subject.preset.authenticationType,
+          'sets authentication type to preset'
+        );
+      });
+
+      test('class names', function() {
+        assert.isTrue(hasClass('auth-' + subject.authenticationType));
       });
 
       test('oauth flow is a success', function() {
@@ -465,6 +486,19 @@ suiteGroup('Views.ModifyAccount', function() {
         subject._oauthDialog.onabort();
       });
     });
+
+    suite('modify oauth account', function() {
+      setup(function() {
+        subject.preset = Calendar.Presets.google;
+        subject.render();
+      });
+
+      test('oauth flow is not triggered', function() {
+        assert.equal(subject._oauthDialog, undefined, 'does not have dialog');
+        assert.ok(subject.fields.user.disabled);
+      });
+    });
+
   });
 
   suite('#destroy', function() {
@@ -486,6 +520,8 @@ suiteGroup('Views.ModifyAccount', function() {
 
     test('fields', function() {
       assert.equal(subject._fields, null);
+      assert.equal(subject.fields.user.disabled, false,
+        're-enable username field');
     });
 
     test('type class', function() {
