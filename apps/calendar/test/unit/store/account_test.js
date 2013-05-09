@@ -125,6 +125,32 @@ suite('store/account', function() {
       };
     });
 
+    suite('existing account', function() {
+      setup(function(done) {
+        subject.persist(model, done);
+      });
+
+      // bug 870512
+      test('should be able to update', function(done) {
+        result = {};
+        model.password = 'new';
+        subject.verifyAndPersist(model, function(err, data) {
+          if (err) {
+            return done(err);
+          }
+          subject.get(model._id, function(getErr, result) {
+            if (getErr) {
+              return done(err);
+            }
+
+            done(function() {
+              assert.equal(result.password, 'new', 'updates pass');
+            });
+          });
+        });
+      });
+    });
+
     // mock out the provider
     test('when verify fails', function(done) {
       error = new Error('bad stuff');
