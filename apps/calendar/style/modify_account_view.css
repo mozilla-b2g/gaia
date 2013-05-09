@@ -68,6 +68,10 @@
   display: none;
 }
 
+#modify-account-view.auth-oauth2 .password {
+  display: none;
+}
+
 #oauth2 {
   display: none;
   z-index: 1000000;
