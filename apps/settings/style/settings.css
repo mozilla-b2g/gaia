@@ -109,13 +109,19 @@ section[role="region"] > div {
 .hint label span {
   top: 2.9rem !important;
 }
+
 .hint .explanation {
   font-style: normal;
   position: relative;
   margin-top: -2rem;
-  padding: 0.5rem 10rem 1.3rem 3.1rem;
+  padding: 0.5rem 6rem 1.3rem 3.1rem;
   white-space: normal;
 }
+
+.hint > label:not([for]) ~ .explanation {
+  padding-right: 8rem;
+}
+
 .hint .explanation[hidden] {
   display: none;
 }

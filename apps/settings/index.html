@@ -669,7 +669,7 @@
       -->
     </section>
 
-    <!-- Connectivity :: Cellular & Data :: MMS Settings -->
+    <!-- Connectivity :: Cellular & Data :: Message Settings -->
     <section role="region" id="carrier-mmsSettings">
       <!--
       <header>
@@ -677,13 +677,30 @@
         <menu type="toolbar">
           <button type="submit"><span data-l10n-id="ok">OK</span></button>
         </menu>
-        <h1 data-l10n-id="mmsSettings"> MMS Settings </h1>
+        <h1 data-l10n-id="messageSettings"> Message Settings </h1>
       </header>
 
       <div>
+        <header>
+          <h2 data-l10n-id="text-message-confirmation"> Text message confirmation </h2>
+        </header>
+        <ul id="text-message-list">
+          <li class="hint">
+            <label>
+              <input type="checkbox" data-type="switch" data-setting="dom.sms.requestStatusReport"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="delivery-reports"> Delivery reports </a>
+            <p class="explanation" data-l10n-id="delivery-reports-details">Request notification of delivery for each message sent</p>
+          </li>
+        </ul>
+        <header>
+          <h2 data-l10n-id="mmsTitle"> Multimedia messaging (MMS) </h2>
+        </header>
         <ul class="mmsSettings-list">
-          <li>
-            <p data-l10n-id="auto-retrieve">Auto retrieve</p>
+          <li class="hint">
+            <a data-l10n-id="auto-retrieve">Auto retrieve</a>
+            <p class="explanation" data-l10n-id="auto-retrieve-details">automatically retieve messages</p>
             <p class="fake-select">
               <button class="icon icon-dialog">empty</button>
               <select data-setting="ril.mms.retrieval_mode">
@@ -694,6 +711,9 @@
             </p>
           </li>
         </ul>
+        <header>
+          <h2 data-l10n-id="apnSettings"> APN Settings </h2>
+        </header>
         <ul class="apnSettings-list">
           <li class="apnSettings-custom">
             <label>
@@ -905,7 +925,7 @@
           <li>
             <label>
               <button data-href="#carrier-mmsSettings"
-                data-l10n-id="mmsSettings">MMS Settings</button>
+                data-l10n-id="messageSettings">Message Settings</button>
             </label>
           </li>
           <li>
