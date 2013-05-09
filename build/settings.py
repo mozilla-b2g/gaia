@@ -21,6 +21,7 @@ settings = {
  "audio.volume.notification": 15,
  "audio.volume.tts": 15,
  "audio.volume.telephony": 5,
+ "audio.volume.cemaxvol": 11,
  "bluetooth.enabled": False,
  "bluetooth.debugging.enabled": False,
  "camera.shutter.enabled": True,
