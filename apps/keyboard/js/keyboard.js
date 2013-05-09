@@ -740,11 +740,13 @@ function renderKeyboard(keyboardName) {
     var keyboard = Keyboards[keyboardName];
     IMERender.setInputMethodName(keyboard.imEngine || 'default');
 
+    IMERender.ime.classList.remove('full-candidate-panel');
+
     // And draw the layout
     IMERender.draw(currentLayout, {
       uppercase: isUpperCase,
       inputType: currentInputType,
-      showCandidatePanel: Keyboards[keyboardName].needsCandidatePanel
+      showCandidatePanel: needsCandidatePanel()
     });
 
     IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
@@ -759,10 +761,12 @@ function renderKeyboard(keyboardName) {
 
   // XXX: if we are going to hide the candidatePanel, notify keyboard manager
   // first to update the app window size
-  if (!Keyboards[keyboardName].needsCandidatePanel && candidatePanelEnabled) {
+  if (!currentLayout.needsCandidatePanel && candidatePanelEnabled) {
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    var candidatePanelHeight = (candidatePanel) ?
+                               candidatePanel.scrollHeight : 0;
     document.location.hash = 'show=' +
-      (IMERender.ime.scrollHeight - candidatePanel.scrollHeight);
+      (IMERender.ime.scrollHeight - candidatePanelHeight);
 
     window.setTimeout(drawKeyboard, CANDIDATE_PANEL_SWITCH_TIMEOUT);
   } else {
@@ -791,7 +795,7 @@ function setUpperCase(upperCase, upperCaseLocked) {
   IMERender.draw(currentLayout, {
     uppercase: isUpperCaseLocked || isUpperCase,
     inputType: currentInputType,
-    showCandidatePanel: Keyboards[keyboardName].needsCandidatePanel
+    showCandidatePanel: needsCandidatePanel()
   });
   // And make sure the caps lock key is highlighted correctly
   IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
@@ -1434,8 +1438,6 @@ function showKeyboard(state) {
   currentInputMode = state.inputmode;
   currentInputType = mapInputType(state.type);
 
-  // reset the flag for candidate show/hide workaround
-  candidatePanelEnabled = false;
 
   resetKeyboard();
 
@@ -1446,16 +1448,6 @@ function showKeyboard(state) {
     });
   }
 
-  if (!inputMethod.displaysCandidates ||
-      inputMethod.displaysCandidates())
-  {
-    IMERender.ime.classList.add('candidate-panel');
-  }
-  else {
-    IMERender.ime.classList.remove('candidate-panel');
-  }
-  IMERender.ime.classList.remove('full-candidate-panel');
-
 }
 
 // Hide keyboard
@@ -1463,6 +1455,9 @@ function hideKeyboard() {
   IMERender.hideIME();
   if (inputMethod.deactivate)
     inputMethod.deactivate();
+
+  // reset the flag for candidate show/hide workaround
+  candidatePanelEnabled = false;
 }
 
 // Resize event handler
@@ -1650,5 +1645,15 @@ function getSettings(settings, callback) {
     if (numResults === numSettings) {
       callback(results);
     }
+  }
+}
+
+// To determine if the candidate panel for word suggestion is needed
+function needsCandidatePanel() {
+  if (Keyboards[keyboardName].needsCandidatePanel &&
+      (!inputMethod.displaysCandidates || inputMethod.displaysCandidates())) {
+    return true;
+  } else {
+    return false;
   }
 }
