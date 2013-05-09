@@ -22,7 +22,7 @@ body {
   padding-bottom: 50px;
 }
 
-#open-view {
+#open {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -34,7 +34,7 @@ body {
 }
 
 /* like .frame in gallery.css */
-#open-frame {
+#frame {
   position: absolute;
   top: 50px;
   left: 0px;
@@ -46,7 +46,7 @@ body {
   -moz-user-select: none;
 }
 
-#open-frame > img {
+#frame > img {
   top: 0px;  /* javascript modifies this position with a transform */
   left: 0px;
   position: absolute;
@@ -58,16 +58,6 @@ body {
   -moz-user-select: none;
 }
 
-/* buttons */
-a.button {
-  display: block;
-  padding: 0;
-  margin: 0;
-  border-width: 0;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-a.button:active, a.button:focus {
-  outline: none;
+*.hidden {
+  display:none;
 }

@@ -6,6 +6,7 @@
     <title>Gallery</title>
     <link rel="stylesheet" href="style/open.css" type="text/css" />
     <link rel="stylesheet" href="shared/style/headers.css" type="text/css" />
+    <link rel="stylesheet" href="shared/style/status.css" type="text/css" />
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
     <!-- Shared code -->
@@ -14,17 +15,25 @@
     <script type="text/javascript" defer src="shared/js/media/media_frame.js"></script>
     <script type="text/javascript" defer src="shared/js/blobview.js"></script>
     <script type="text/javascript" defer src="shared/js/media/jpeg_metadata_parser.js"></script>
+    <script type="text/javascript" defer src="shared/js/device_storage_utils.js"></script>
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/imagesize.js"></script>
     <script type="text/javascript" defer src="js/open.js"></script>
   </head>
 
   <body role="application">
-    <section id="open-view" role="region" class="skin-organic">
-      <header id="open-top">
-        <button id="open-back-button"><span class="icon icon-back"></span></button>
+    <section id="open" role="region" class="skin-organic">
+      <header id="header">
+        <button id="back"><span class="icon icon-back"></span></button>
+        <menu type="toolbar" id="menu" hidden>
+          <button id="save" data-l10n-id="save"></button>
+        </menu>
+        <h1 id="filename"></h1>
       </header>
-      <div id="open-frame"></div>
+      <div id="frame"></div>
+    </section>
+    <section id="banner" role="status" hidden>
+      <p id="message"></p>
     </section>
   </body>
 </html>
