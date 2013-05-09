@@ -63,6 +63,17 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   text-align: left;
 }
 
+[data-type="list"] [data-last-message-type="mms"] .body-text {
+  padding-left: 2rem;
+  min-width: 1.8rem;
+  min-height: 1.6rem;
+  margin-left: 0.3rem;
+
+  background-image: url('images/paperclip.png');
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+}
+
 [data-type="list"] header {
   margin: 0 1.5rem;
   padding: 0.5rem 1.5rem;
@@ -211,15 +222,6 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 
 .edit form[role="dialog"][data-type="edit"] header {
   transform: translateY(0);
-}
-
-.edit #threads-container .item > a {
-  transform: translateX(3rem);
-  pointer-events: none;
-}
-
-.edit #threads-container .item > a.unread .unread-tag {
-  opacity: 0;
 }
 
 .edit #threads-container .checkbox-container {

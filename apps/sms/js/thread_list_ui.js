@@ -11,6 +11,10 @@ var ThreadListUI = {
   init: function thlui_init() {
     var _ = navigator.mozL10n.get;
 
+    this.tmpl = {
+      thread: Utils.Template('messages-thread-tmpl')
+    };
+
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854413
     [
       'container', 'no-messages',
@@ -284,30 +288,28 @@ var ThreadListUI = {
     var num = thread.participants[0];
     var timestamp = thread.timestamp.getTime();
     var threadDOM = document.createElement('li');
+    var bodyHTML = '';
     threadDOM.id = 'thread_' + thread.id;
+    threadDOM.dataset.lastMessageType = thread.lastMessageType;
     threadDOM.dataset.time = timestamp;
     threadDOM.dataset.phoneNumber = num;
 
-    // Retrieving params from thread
-    var bodyText = (thread.body || '').split('\n')[0];
-    var bodyHTML = Utils.Message.format(bodyText);
-    var formattedDate = Utils.getFormattedHour(timestamp);
+    if (thread.unreadCount > 0) {
+      threadDOM.classList.add('unread');
+    }
+
+    if (thread.lastMessageType === 'sms' && thread.body) {
+      bodyHTML = Utils.Message.format(thread.body).split('\n')[0];
+    }
+
     // Create HTML Structure
-    var structureHTML = '<label class="danger">' +
-                          '<input type="checkbox" value="' + num + '">' +
-                          '<span></span>' +
-                        '</label>' +
-                        '<a href="#num=' + num +
-                          '" class="' +
-                          (thread.unreadCount > 0 ? 'unread' : '') + '">' +
-                          '<aside class="icon icon-unread">unread</aside>' +
-                          '<aside class="pack-end">' +
-                            '<img src="">' +
-                          '</aside>' +
-                          '<p class="name">' + num + '</p>' +
-                          '<p><time>' + formattedDate +
-                          '</time>' + bodyHTML + '</p>' +
-                        '</a>';
+    var structureHTML = this.tmpl.thread.interpolate({
+      num: num,
+      formattedDate: Utils.getFormattedHour(timestamp),
+      bodyHTML: bodyHTML
+    }, {
+      safe: ['bodyHTML']
+    });
 
     // Update HTML
     threadDOM.innerHTML = structureHTML;
