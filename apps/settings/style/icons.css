@@ -112,7 +112,7 @@
   background-position: -120px -90px;
 }
 
-#menuItem-deviceStorage::before {
+#menuItem-applicationStorage::before {
   background-position: 0 -120px;
 }
 

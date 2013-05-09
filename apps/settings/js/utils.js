@@ -158,24 +158,6 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     };
   }
 
-  function getStats(types, callback) {
-    var results = {};
-
-    var current = types.length;
-
-    for (var i = 0; i < types.length; i++) {
-      getStat(types[i], function(totalBytes, freeBytes, type) {
-
-        results[type] = totalBytes;
-        results['free'] = freeBytes;
-        current--;
-        if(current == 0)
-          callback(results);
-          
-      });
-    }
-  }
-
   function getFreeSpace(callback) {
     var deviceStorage = navigator.getDeviceStorage('sdcard');
 
@@ -189,10 +171,27 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     };
   }
 
+  function showFormatedSize(element, l10nId, size) {
+    if (size === undefined || isNaN(size)) {
+      element.textContent = '';
+      return;
+    }
+
+    // KB - 3 KB (nearest ones), MB, GB - 1.2 MB (nearest tenth)
+    var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
+    var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
+
+    var _ = navigator.mozL10n.get;
+    element.textContent = _(l10nId, {
+      size: sizeInfo.size,
+      unit: _('byteUnit-' + sizeInfo.unit)
+    });
+  }
+
   return {
     getStat: getStat,
-    getStats: getStats,
-    getFreeSpace: getFreeSpace
+    getFreeSpace: getFreeSpace,
+    showFormatedSize: showFormatedSize
   };
 
 })();
