@@ -7,12 +7,14 @@
     <link rel="stylesheet" href="style/music.css" type="text/css" />
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/status.css" />
     <!-- multi-resolution support -->
     <link rel="stylesheet" type="text/css" href="shared/style/responsive.css" />
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/device_storage_utils.js"></script>
     <script type="text/javascript" defer src="shared/js/mouse_event_shim.js"></script>
     <script type="text/javascript" defer src="shared/js/blobview.js"></script>
     <script type="text/javascript" defer src="shared/js/async_storage.js"></script>
@@ -27,6 +29,9 @@
     <section id="title" role="region" class="skin-dark">
       <header>
         <button id="title-back"><span class="icon icon-back"></span></button>
+        <menu type="toolbar">
+          <button id="title-save" data-l10n-id="save" hidden></button>
+        </menu>
         <h1 id="title-text" data-l10n-id="music">Music</h1>
       </header>
     </section>
@@ -65,6 +70,9 @@
         </div>
         <audio id="player-audio" class="hidden"></audio>
       </div>
+      <section id="banner" role="status" hidden>
+        <p id="message"></p>
+      </section>
     </div>
   </body>
 </html>
