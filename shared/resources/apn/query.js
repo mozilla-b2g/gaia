@@ -142,6 +142,18 @@ document.addEventListener('DOMContentLoaded', function onload() {
               operatorVariantSettings.cellBroadcastSearchList =
                 cellBroadcastSearchList;
             }
+            var skipProxy = otherSettings['skipProxy'];
+            if (skipProxy == 'true') {
+              var skipProxyFor = otherSettings['skipProxyFor'];
+              if (skipProxyFor) {
+                if (skipProxyFor.indexOf(result[i].carrier) != -1) {
+                  if (DEBUG) {
+                    console.log('Skip proxy setting for: ' + result[i].carrier);
+                  }
+                  result[i].proxy = result[i].port = '';
+                }
+              }
+            }
           }
 
           delete(result[i].mcc);
@@ -233,30 +245,34 @@ document.addEventListener('DOMContentLoaded', function onload() {
           // First merge the local DB
           var localAndroidDB = loadXML(LOCAL_ANDROID_DB_FILE);
           var localApns =
-            localAndroidDB.documentElement.getElementsByTagName('apn');
-          for (var i = 0; i < localApns.length; ++i) {
+            localAndroidDB.documentElement.querySelectorAll('apn');
+          for (var localApn of localApns) {
             // use local apn to patch origin carrier name in the Android DB
             // if the name is not the correct one (see bug 863126).
             // Note: This patch will not function once we get
             // the correct names updated in the upstream database.
-            if (localApns[i].getAttribute('name')) {
+            if (localApn.getAttribute('name')) {
               var pattern = 'apn' +
-                            '[mcc="' + localApns[i].getAttribute('mcc') + '"]' +
-                            '[mnc="' + localApns[i].getAttribute('mnc') + '"]';
-              var elems = gAndroidDB.documentElement.querySelectorAll(pattern);
-              for(var j = 0; j < elems.length; ++j) {
-                if (elems[j] && elems[j].getAttribute('carrier') ===
-                                         localApns[i].getAttribute('carrier')) {
+                            '[mcc="' + localApn.getAttribute('mcc') + '"]' +
+                            '[mnc="' + localApn.getAttribute('mnc') + '"]';
+              var androidApns =
+                gAndroidDB.documentElement.querySelectorAll(pattern);
+              for (var androidApn of androidApns) {
+                if (androidApn &&
+                    androidApn.getAttribute('carrier') ===
+                    localApn.getAttribute('carrier')) {
                   if (DEBUG) {
-                    console.log('replace "' + elems[j].getAttribute('carrier') +
-                      '" to "' + localApns[i].getAttribute('name') + '"');
+                    console.log('- replace "' +
+                                androidApn.getAttribute('carrier') +
+                                '" to "' + localApn.getAttribute('name') +
+                                '"');
                   }
-                  elems[j].setAttribute('carrier',
-                    localApns[i].getAttribute('name'));
+                  androidApn.setAttribute('carrier',
+                                          localApn.getAttribute('name'));
                 }
               }
-            } else { // append local APN
-              gAndroidDB.documentElement.appendChild(localApns[i]);
+            } else {
+              gAndroidDB.documentElement.appendChild(localApn);
             }
           }
           // Then the Gnome DB

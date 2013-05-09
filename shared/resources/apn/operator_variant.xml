@@ -79,14 +79,14 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="movistar Internet"
+       name="Movistar INTERNET"
        mcc="334"
        mnc="03"
        enableStrict7BitEncodingForSms="true"
        voicemail="*86"
    />
    <operator
-       name="movistar Internet"
+       name="Movistar INTERNET"
        mcc="334"
        mnc="030"
        enableStrict7BitEncodingForSms="true"
@@ -111,14 +111,14 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="Internet GT"
+       name="Movistar INTERNET"
        mcc="704"
        mnc="03"
        enableStrict7BitEncodingForSms="true"
        voicemail="*86"
    />
    <operator
-       name="Internet GT"
+       name="Movistar INTERNET"
        mcc="704"
        mnc="030"
        enableStrict7BitEncodingForSms="true"
@@ -143,14 +143,14 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="Internet SV"
+       name="Movistar INTERNET"
        mcc="706"
        mnc="04"
        enableStrict7BitEncodingForSms="true"
        voicemail="*86"
    />
    <operator
-       name="Internet SV"
+       name="Movistar INTERNET"
        mcc="706"
        mnc="040"
        enableStrict7BitEncodingForSms="true"
@@ -163,7 +163,7 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="Internet GPRS"
+       name="Movistar INTERNET"
        mcc="710"
        mnc="300"
        enableStrict7BitEncodingForSms="true"
@@ -194,7 +194,7 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="movistar INTERNET"
+       name="Movistar INTERNET"
        mcc="712"
        mnc="04"
        enableStrict7BitEncodingForSms="true"
@@ -207,7 +207,7 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="movistar INTERNET"
+       name="Movistar INTERNET"
        mcc="714"
        mnc="020"
        enableStrict7BitEncodingForSms="true"
@@ -226,7 +226,7 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="movistar Internet"
+       name="Movistar INTERNET"
        mcc="716"
        mnc="06"
        enableStrict7BitEncodingForSms="true"
@@ -239,7 +239,7 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="Movistar Emoción"
+       name="Movistar WAP"
        mcc="722"
        mnc="07"
        enableStrict7BitEncodingForSms="true"
@@ -370,11 +370,13 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="NEM"
+       name="Movistar APLICACIONES"
        mcc="730"
        mnc="02"
        enableStrict7BitEncodingForSms="true"
        voicemail="500"
+       skipProxy="true"
+       skipProxyFor="Movistar APLICACIONES"
    />
    <operator
        name="BAM Claro"
@@ -443,7 +445,7 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="movistar INTERNET"
+       name="Movistar INTERNET"
        mcc="732"
        mnc="123"
        enableStrict7BitEncodingForSms="true"
@@ -468,14 +470,14 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="movistar INTERNET"
+       name="Movistar INTERNET"
        mcc="734"
        mnc="04"
        enableStrict7BitEncodingForSms="true"
        voicemail="*2"
    />
    <operator
-       name="movistar WAP"
+       name="Movistar WAP"
        mcc="734"
        mnc="04"
        enableStrict7BitEncodingForSms="true"
@@ -488,7 +490,7 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="movistar INTERNET"
+       name="Movistar INTERNET"
        mcc="740"
        mnc="00"
        enableStrict7BitEncodingForSms="true"
@@ -525,7 +527,7 @@
        enableStrict7BitEncodingForSms="true"
    />
    <operator
-       name="Movistar Emoción"
+       name="Movistar INTERNET"
        mcc="748"
        mnc="07"
        enableStrict7BitEncodingForSms="true"

@@ -1004,7 +1004,7 @@
     {"carrier":"Mensajes Multimedia","apn":"mms.itelcel.com","user":"mmsgprs","password":"mmsgprs2003","mmsc":"http://mms.itelcel.com/servlets/mms","mmsproxy":"148.233.151.240","mmsport":"8080","authtype":"1","type":["mms"]}
   ],
   "03": [
-    {"carrier":"movistar Internet","apn":"internet.movistar.mx","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
+    {"carrier":"Movistar INTERNET","apn":"internet.movistar.mx","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
     {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Movistar MMS","apn":"mms.movistar.mx","user":"movistar","password":"movistar","mmsc":"http://mms.movistar.mx","mmsproxy":"10.2.20.1","mmsport":"80","authtype":"1","type":["mms"]}
   ],
@@ -3033,7 +3033,7 @@
     {"carrier":"MMS Entel","apn":"mms.entelpcs.cl","user":"entelpcs","password":"entelpcs","mmsproxy":"10.99.0.10","mmsport":"8080","mmsc":"http://mmsc.entelpcs.cl","authtype":"1","type":["mms"]}
   ],
   "02": [
-    {"carrier":"Movistar APLICACIONES","apn":"wap.tmovil.cl","proxy":"172.17.8.11","port":"8080","user":"wap","password":"wap","authtype":"1","type":["default","supl","dun"]},
+    {"carrier":"Movistar APLICACIONES","apn":"wap.tmovil.cl","proxy":"","port":"","user":"wap","password":"wap","authtype":"1","type":["default","supl","dun"]},
     {"voicemail":"500","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Movistar MMS","apn":"mms.tmovil.cl","user":"mms","password":"mms","mmsproxy":"172.17.8.10","mmsport":"8080","mmsc":"http://mms.movistar.cl","authtype":"1","type":["mms"]}
   ],
