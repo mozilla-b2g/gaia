@@ -179,3 +179,29 @@ form[role="dialog"][data-type="confirm"] p small {
   display: block;
 }
 
+form[role="dialog"][data-type="confirm"] dl {
+  border-top: 0.1rem solid #686868;
+  margin: 1rem 0 0;
+  overflow: hidden;
+  padding-top: 1rem;
+  font-size: 1.6rem;
+  line-height: 2.2rem;
+}
+
+form[role="dialog"][data-type="confirm"] dl > dt {
+  clear: both;
+  float: left;
+  width: 7rem;
+  padding-left: 1.5rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+form[role="dialog"][data-type="confirm"] dl > dd {
+  padding-right: 1.5rem;
+  font-weight: 300;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  overflow: hidden;
+}
+
