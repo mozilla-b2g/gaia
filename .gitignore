@@ -6,7 +6,6 @@
 *~
 manifest.appcache
 
-/apps/system/camera
 /apps/settings/resources/gaia_commit.txt
 /apps/calendar/js/presets.js
 /apps/homescreen/js/init.json
