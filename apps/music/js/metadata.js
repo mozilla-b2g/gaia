@@ -5,20 +5,25 @@
 function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var filename = blob.name;
 
-  // If the file is in the DCIM/ directory and has a .3gp extension
-  // then it is a video, not a music file and we ignore it
-  if (filename.slice(0, 5) === 'DCIM/' &&
-      filename.slice(-4).toLowerCase() === '.3gp') {
-    errorCallback('skipping 3gp video file');
-    return;
-  }
+  // If blob.name exists, it should be an audio file from system
+  // otherwise it should be an audio blob that probably from network/process
+  // we can still parse it but we don't need to care about the filename
+  if (filename) {
+    // If the file is in the DCIM/ directory and has a .3gp extension
+    // then it is a video, not a music file and we ignore it
+    if (filename.slice(0, 5) === 'DCIM/' &&
+        filename.slice(-4).toLowerCase() === '.3gp') {
+      errorCallback('skipping 3gp video file');
+      return;
+    }
 
-  // If the file has a .m4v extension then it is almost certainly a video.
-  // Device Storage should not even return these files to us:
-  // see https://bugzilla.mozilla.org/show_bug.cgi?id=826024
-  if (filename.slice(-4).toLowerCase() === '.m4v') {
-    errorCallback('skipping m4v video file');
-    return;
+    // If the file has a .m4v extension then it is almost certainly a video.
+    // Device Storage should not even return these files to us:
+    // see https://bugzilla.mozilla.org/show_bug.cgi?id=826024
+    if (filename.slice(-4).toLowerCase() === '.m4v') {
+      errorCallback('skipping m4v video file');
+      return;
+    }
   }
 
   // If the file is too small to be a music file then ignore it
