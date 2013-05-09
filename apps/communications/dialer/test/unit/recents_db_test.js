@@ -1,4 +1,5 @@
 requireApp('communications/dialer/js/recents_db.js');
+requireApp('communications/dialer/js/utils.js');
 
 suite('dialer/recents_db', function() {
   var numbers = ['123', '456', '789'];
@@ -13,6 +14,43 @@ suite('dialer/recents_db', function() {
               now + (2 * 86400000),
               now + (2 * 86400000) + 1];
 
+  function checkGroup(group, call, lastEntryDate, retryCount, result) {
+    var id = Utils.getDayDate(call.date) + '-' + call.number + '-' + call.type;
+    if (call.status) {
+      id += '-' + call.status;
+    }
+    assert.equal(group.id, id);
+    assert.equal(group.number, call.number);
+    assert.equal(group.date, Utils.getDayDate(call.date));
+    assert.equal(group.type, call.type);
+    assert.equal(group.status, call.status);
+    assert.equal(group.retryCount, retryCount);
+    assert.equal(group.lastEntryDate, lastEntryDate);
+    if (result) {
+      assert.equal(group.number, result.number);
+      assert.equal(group.date, result.date);
+      assert.equal(group.type, result.type);
+      assert.equal(group.status, result.status);
+      assert.equal(group.retryCount, result.retryCount);
+      assert.equal(group.lastEntryDate, result.lastEntryDate);
+    }
+  }
+
+  function checkGroupId(groupId, expected) {
+    assert.equal(groupId.length, expected.length);
+    for (var i = 0, j = groupId.length; i < j; i++) {
+      assert.equal(groupId[i], expected[i]);
+    }
+  }
+
+  function checkCall(call, expected) {
+    assert.equal(call.number, expected.number);
+    assert.equal(call.type, expected.type);
+    assert.equal(call.date, expected.date);
+    assert.equal(call.status, expected.status);
+    checkGroupId(call.groupId, RecentsDBManager._getGroupId(call));
+  }
+
   suite('Clean up', function() {
     test('delete_db', function(done) {
       RecentsDBManager.deleteDb(function() {
@@ -22,25 +60,57 @@ suite('dialer/recents_db', function() {
     });
   });
 
+  suite('Failed insert', function() {
+    test('Fail adding a call', function(done) {
+      RecentsDBManager.add('invalidcall', function(result) {
+        assert.equal(result, 'INVALID_CALL');
+        done();
+      });
+    });
+  });
+
   suite('Single call', function() {
     test('Add a call', function(done) {
-      RecentsDBManager.add({
+      var call = {
         number: numbers[0],
         type: 'incoming',
         date: days[0]
-      }, function() {
+      };
+      RecentsDBManager.add(call, function(result) {
         RecentsDBManager.getGroupList(function(groups) {
-          assert.length(groups, 1);
-          assert.equal(groups[0].number, numbers[0]);
-          assert.equal(groups[0].date, days[0]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[0].retryCount, 1);
+          assert.equal(groups.length, 1);
+          checkGroup(groups[0], call, call.date, 1, result);
           RecentsDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
-            assert.equal(recents[0].number, numbers[0]);
-            assert.equal(recents[0].type, 'incoming');
-            assert.equal(recents[0].date, days[0]);
-            assert.equal(recents[0].groupId, groups[0].id);
+            checkCall(recents[0], call);
+            done();
+          });
+        });
+      });
+    });
+
+    suiteTeardown(function(done) {
+      RecentsDBManager.deleteAll(function() {
+        done();
+      });
+    });
+  });
+
+  suite('Single call with status', function() {
+    test('Add a call', function(done) {
+      var call = {
+        number: numbers[0],
+        type: 'incoming',
+        date: days[0],
+        status: 'connected'
+      };
+      RecentsDBManager.add(call, function(result) {
+        RecentsDBManager.getGroupList(function(groups) {
+          assert.equal(groups.length, 1);
+          checkGroup(groups[0], call, call.date, 1, result);
+          RecentsDBManager.getRecentList(function(recents) {
+            assert.length(recents, 1);
+            checkCall(recents[0], call);
             done();
           });
         });
@@ -55,24 +125,28 @@ suite('dialer/recents_db', function() {
   });
 
   suite('Two calls, same group, different hour', function() {
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      status: 'connected',
+      date: days[0]
+    };
+
+    var call2 = {
+      number: numbers[0],
+      type: 'incoming',
+      status: 'connected',
+      date: days[1]
+    };
+
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[0]
-      }, function() {
+      RecentsDBManager.add(call, function(result) {
         RecentsDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
-          assert.equal(groups[0].number, numbers[0]);
-          assert.equal(groups[0].date, days[0]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[0].retryCount, 1);
+          checkGroup(groups[0], call, call.date, 1, result);
           RecentsDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
-            assert.equal(recents[0].number, numbers[0]);
-            assert.equal(recents[0].type, 'incoming');
-            assert.equal(recents[0].date, days[0]);
-            assert.equal(recents[0].groupId, groups[0].id);
+            checkCall(recents[0], call);
             done();
           });
         });
@@ -80,27 +154,14 @@ suite('dialer/recents_db', function() {
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[1]
-      }, function() {
+      RecentsDBManager.add(call2, function(result) {
         RecentsDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
-          assert.equal(groups[0].number, numbers[0]);
-          assert.equal(groups[0].date, days[1]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[0].retryCount, 2);
+          checkGroup(groups[0], call2, call2.date, 2, result);
           RecentsDBManager.getRecentList(function(recents) {
             assert.length(recents, 2);
-            assert.equal(recents[0].number, numbers[0]);
-            assert.equal(recents[1].number, numbers[0]);
-            assert.equal(recents[0].type, 'incoming');
-            assert.equal(recents[1].type, 'incoming');
-            assert.equal(recents[0].date, days[1]);
-            assert.equal(recents[1].date, days[0]);
-            assert.equal(recents[0].groupId, groups[0].id);
-            assert.equal(recents[1].groupId, groups[0].id);
+            checkCall(recents[0], call2);
+            checkCall(recents[1], call);
             done();
           }, null, true);
         }, null, true);
@@ -115,24 +176,30 @@ suite('dialer/recents_db', function() {
   });
 
   suite('Two calls, different group because of different number', function() {
+    var result;
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      status: 'connected',
+      date: days[0]
+    };
+
+    var call2 = {
+      number: numbers[1],
+      type: 'incoming',
+      status: 'connected',
+      date: days[1]
+    };
+
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[0]
-      }, function() {
+      RecentsDBManager.add(call, function(res) {
+        result = res;
         RecentsDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
-          assert.equal(groups[0].number, numbers[0]);
-          assert.equal(groups[0].date, days[0]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[0].retryCount, 1);
+          checkGroup(groups[0], call, call.date, 1, result);
           RecentsDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
-            assert.equal(recents[0].number, numbers[0]);
-            assert.equal(recents[0].type, 'incoming');
-            assert.equal(recents[0].date, days[0]);
-            assert.equal(recents[0].groupId, groups[0].id);
+            checkCall(recents[0], call);
             done();
           }, null, true);
         }, null, true);
@@ -140,31 +207,15 @@ suite('dialer/recents_db', function() {
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[1],
-        type: 'incoming',
-        date: days[1]
-      }, function() {
+      RecentsDBManager.add(call2, function(res) {
         RecentsDBManager.getGroupList(function(groups) {
           assert.length(groups, 2);
-          assert.equal(groups[0].number, numbers[1]);
-          assert.equal(groups[1].number, numbers[0]);
-          assert.equal(groups[0].date, days[1]);
-          assert.equal(groups[1].date, days[0]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[1].type, 'incoming');
-          assert.equal(groups[0].retryCount, 1);
-          assert.equal(groups[1].retryCount, 1);
+          checkGroup(groups[0], call2, call2.date, 1, res);
+          checkGroup(groups[1], call, call.date, 1, result);
           RecentsDBManager.getRecentList(function(recents) {
             assert.length(recents, 2);
-            assert.equal(recents[0].number, numbers[1]);
-            assert.equal(recents[1].number, numbers[0]);
-            assert.equal(recents[0].type, 'incoming');
-            assert.equal(recents[1].type, 'incoming');
-            assert.equal(recents[0].date, days[1]);
-            assert.equal(recents[1].date, days[0]);
-            assert.equal(recents[0].groupId, groups[0].id);
-            assert.equal(recents[1].groupId, groups[1].id);
+            checkCall(recents[0], call2);
+            checkCall(recents[1], call);
             done();
           }, null, true);
         }, null, true);
@@ -179,56 +230,46 @@ suite('dialer/recents_db', function() {
   });
 
   suite('Two calls, different group because of different day', function() {
+    var result;
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      status: 'connected',
+      date: days[0]
+    };
+
+    var call2 = {
+      number: numbers[0],
+      type: 'incoming',
+      status: 'connected',
+      date: days[2]
+    };
+
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[0]
-      }, function() {
+      RecentsDBManager.add(call, function(res) {
+        result = res;
         RecentsDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
-          assert.equal(groups[0].number, numbers[0]);
-          assert.equal(groups[0].date, days[0]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[0].retryCount, 1);
+          checkGroup(groups[0], call, call.date, 1, result);
           RecentsDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
-            assert.equal(recents[0].number, numbers[0]);
-            assert.equal(recents[0].type, 'incoming');
-            assert.equal(recents[0].date, days[0]);
-            assert.equal(recents[0].groupId, groups[0].id);
+            checkCall(recents[0], call);
             done();
-          });
-        });
+          }, null, true);
+        }, null, true);
       });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[2]
-      }, function() {
+      RecentsDBManager.add(call2, function(res) {
         RecentsDBManager.getGroupList(function(groups) {
           assert.length(groups, 2);
-          assert.equal(groups[0].number, numbers[0]);
-          assert.equal(groups[1].number, numbers[0]);
-          assert.equal(groups[0].date, days[2]);
-          assert.equal(groups[1].date, days[0]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[1].type, 'incoming');
-          assert.equal(groups[0].retryCount, 1);
-          assert.equal(groups[1].retryCount, 1);
+          checkGroup(groups[0], call2, call2.date, 1, res);
+          checkGroup(groups[1], call, call.date, 1, result);
           RecentsDBManager.getRecentList(function(recents) {
             assert.length(recents, 2);
-            assert.equal(recents[0].number, numbers[0]);
-            assert.equal(recents[1].number, numbers[0]);
-            assert.equal(recents[0].type, 'incoming');
-            assert.equal(recents[1].type, 'incoming');
-            assert.equal(recents[0].date, days[2]);
-            assert.equal(recents[1].date, days[0]);
-            assert.equal(recents[0].groupId, groups[0].id);
-            assert.equal(recents[1].groupId, groups[1].id);
+            checkCall(recents[0], call2);
+            checkCall(recents[1], call);
             done();
           }, null, true);
         }, null, true);
@@ -242,52 +283,46 @@ suite('dialer/recents_db', function() {
     });
   });
 
-  suite('Two calls, same group, different type', function(done) {
+  suite('Two calls, different group because of different type', function() {
+    var result;
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      status: 'connected',
+      date: days[0]
+    };
+
+    var call2 = {
+      number: numbers[0],
+      type: 'dialing',
+      date: days[1]
+    };
+
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[0]
-      }, function() {
+      RecentsDBManager.add(call, function(res) {
+        result = res;
         RecentsDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
-          assert.equal(groups[0].number, numbers[0]);
-          assert.equal(groups[0].date, days[0]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[0].retryCount, 1);
+          checkGroup(groups[0], call, call.date, 1, result);
           RecentsDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
-            assert.equal(recents[0].number, numbers[0]);
-            assert.equal(recents[0].type, 'incoming');
-            assert.equal(recents[0].date, days[0]);
-            assert.equal(recents[0].groupId, groups[0].id);
+            checkCall(recents[0], call);
             done();
-          });
-        });
+          }, null, true);
+        }, null, true);
       });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'dialing',
-        date: days[1]
-      }, function() {
+      RecentsDBManager.add(call2, function(res) {
         RecentsDBManager.getGroupList(function(groups) {
-          assert.length(groups, 1);
-          assert.equal(groups[0].number, numbers[0]);
-          assert.equal(groups[0].date, days[1]);
-          assert.equal(groups[0].type, 'dialing');
-          assert.equal(groups[0].retryCount, 1);
+          assert.length(groups, 2);
+          checkGroup(groups[0], call, call.date, 1, result);
+          checkGroup(groups[1], call2, call2.date, 1, res);
           RecentsDBManager.getRecentList(function(recents) {
             assert.length(recents, 2);
-            assert.equal(recents[0].number, numbers[0]);
-            assert.equal(recents[1].number, numbers[0]);
-            assert.equal(recents[0].type, 'dialing');
-            assert.equal(recents[1].type, 'incoming');
-            assert.equal(recents[0].date, days[1]);
-            assert.equal(recents[1].date, days[0]);
-            assert.equal(recents[0].groupId, groups[0].id);
+            checkCall(recents[0], call2);
+            checkCall(recents[1], call);
             done();
           }, null, true);
         }, null, true);
@@ -301,43 +336,49 @@ suite('dialer/recents_db', function() {
     });
   });
 
-  suite('Update group contact', function() {
+  suite('Two calls, different group because of different status', function() {
+    var result;
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      status: 'connected',
+      date: days[0]
+    };
+
+    var call2 = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[1]
+    };
+
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[0]
-      }, function() {
+      RecentsDBManager.add(call, function(res) {
+        result = res;
         RecentsDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
-          assert.equal(groups[0].number, numbers[0]);
-          assert.equal(groups[0].date, days[0]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[0].retryCount, 1);
+          checkGroup(groups[0], call, call.date, 1, result);
           RecentsDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
-            assert.equal(recents[0].number, numbers[0]);
-            assert.equal(recents[0].type, 'incoming');
-            assert.equal(recents[0].date, days[0]);
-            assert.equal(recents[0].groupId, groups[0].id);
+            checkCall(recents[0], call);
             done();
-          });
-        });
+          }, null, true);
+        }, null, true);
       });
     });
 
-    test('Update contact info', function(done) {
-      RecentsDBManager.updateGroupContactInfo(numbers[0], 'contactName',
-                                              function(count) {
-        assert.equal(count, 1);
+    test('Add another call', function(done) {
+      RecentsDBManager.add(call2, function(res) {
         RecentsDBManager.getGroupList(function(groups) {
-          assert.length(groups, 1);
-          assert.equal(groups[0].contact, 'contactName');
-          assert.equal(groups[0].number, numbers[0]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[0].date, days[0]);
-          done();
-        });
+          assert.length(groups, 2);
+          checkGroup(groups[0], call, call.date, 1, result);
+          checkGroup(groups[1], call2, call2.date, 1, res);
+          RecentsDBManager.getRecentList(function(recents) {
+            assert.length(recents, 2);
+            checkCall(recents[0], call2);
+            checkCall(recents[1], call);
+            done();
+          }, null, true);
+        }, null, true);
       });
     });
 
@@ -345,110 +386,37 @@ suite('dialer/recents_db', function() {
       RecentsDBManager.deleteAll(function() {
         done();
       });
-    });
-  });
-
-  suite('Update group contact of inexisting group', function() {
-    test('Update contact info', function(done) {
-      RecentsDBManager.updateGroupContactInfo('whatever', 'contactName',
-                                              function(count) {
-        assert.equal(count, 0);
-        done();
-      });
-    });
-  });
-
-  suite('Update group number', function() {
-    test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        contact: 'contactName',
-        type: 'incoming',
-        date: days[0]
-      }, function() {
-        RecentsDBManager.getGroupList(function(groups) {
-          assert.length(groups, 1);
-          assert.equal(groups[0].number, numbers[0]);
-          assert.equal(groups[0].contact, 'contactName');
-          assert.equal(groups[0].date, days[0]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[0].retryCount, 1);
-          RecentsDBManager.getRecentList(function(recents) {
-            assert.length(recents, 1);
-            assert.equal(recents[0].number, numbers[0]);
-            assert.equal(recents[0].contact, 'contactName');
-            assert.equal(recents[0].type, 'incoming');
-            assert.equal(recents[0].date, days[0]);
-            assert.equal(recents[0].groupId, groups[0].id);
-            done();
-          });
-        });
-      });
-    });
-
-    test('Update contact info', function(done) {
-      RecentsDBManager.updateGroupContactInfo(numbers[1], 'contactName',
-                                              function(count) {
-        assert.equal(count, 1);
-        RecentsDBManager.getGroupList(function(groups) {
-          assert.length(groups, 1);
-          assert.equal(groups[0].contact, 'contactName');
-          assert.equal(groups[0].number, numbers[1]);
-          assert.equal(groups[0].type, 'incoming');
-          assert.equal(groups[0].date, days[0]);
-          done();
-        });
-      }, true);
-    });
-
-    suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
-        done();
-      });
-    });
-  });
-
-  suite('Update group number of inexisting group', function() {
-    test('Update contact info', function(done) {
-      RecentsDBManager.updateGroupContactInfo(numbers[0], 'whatever',
-                                              function(count) {
-        assert.equal(count, 0);
-        done();
-      }, true);
     });
   });
 
   suite('Get last group', function() {
+    var call = {
+      number: numbers[1],
+      type: 'incoming',
+      date: days[0]
+    };
+    var call2 = {
+      number: numbers[2],
+      type: 'dialing',
+      date: days[4]
+    };
+    var call3 = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[2]
+    };
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[1],
-        type: 'incoming',
-        date: days[0]
-      }, function() {
-        done();
-      });
+      RecentsDBManager.add(call, function() { done(); });
     });
 
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[2],
-        type: 'dialing',
-        date: days[4]
-      }, function() {
-        done();
-      });
+      RecentsDBManager.add(call2, function() { done(); });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[2]
-      }, function() {
+      RecentsDBManager.add(call3, function() {
         RecentsDBManager.getLastGroup(function(group) {
-          assert.equal(group.date, days[4]);
-          assert.equal(group.number, numbers[2]);
-          assert.equal(group.type, 'dialing');
+          checkGroup(group, call2, call2.date, 1);
           done();
         });
       });
@@ -462,39 +430,35 @@ suite('dialer/recents_db', function() {
   });
 
   suite('Get last group sorted by date', function() {
+    var call = {
+      number: numbers[1],
+      type: 'incoming',
+      date: days[0]
+    };
+    var call2 = {
+      number: numbers[2],
+      type: 'dialing',
+      date: days[4]
+    };
+    var call3 = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[2]
+    };
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[1],
-        type: 'incoming',
-        date: days[0]
-      }, function() {
-        done();
-      });
+      RecentsDBManager.add(call, function() { done(); });
     });
 
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[2],
-        type: 'dialing',
-        date: days[4]
-      }, function() {
-        done();
-      });
+      RecentsDBManager.add(call2, function() { done(); });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[2]
-      }, function() {
+      RecentsDBManager.add(call3, function() {
         RecentsDBManager.getGroupList(function(groups) {
-          RecentsDBManager.getLastGroup(function(group) {
-            assert.equal(group.date, days[4]);
-            assert.equal(group.number, numbers[2]);
-            assert.equal(group.type, 'dialing');
-            done();
-          });
+          assert.equal(groups.length, 3);
+          checkGroup(groups[2], call2, call2.date, 1);
+          done();
         });
       });
     }, 'date');
@@ -507,36 +471,33 @@ suite('dialer/recents_db', function() {
   });
 
   suite('Get groups requesting a cursor', function() {
-     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[0]
-      }, function() {
-        done();
-      });
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[0]
+    };
+    var call2 = {
+      number: numbers[1],
+      type: 'dialing',
+      date: days[2]
+    };
+    var call3 = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[4]
+    };
+    test('Add a call', function(done) {
+      RecentsDBManager.add(call, function() { done(); });
     });
 
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[1],
-        type: 'dialing',
-        date: days[2]
-      }, function() {
-        done();
-      });
+      RecentsDBManager.add(call2, function() { done(); });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[2],
-        type: 'incoming',
-        date: days[4]
-      }, function() {
+      RecentsDBManager.add(call3, function() {
         RecentsDBManager.getGroupList(function(cursor) {
-          assert.equal(cursor.value.number, numbers[0]);
-          assert.equal(cursor.value.date, days[0]);
-          assert.equal(cursor.value.type, 'incoming');
+          checkGroup(cursor.value, call, call.date, 1);
           done();
         }, null, null, true);
       });
@@ -550,38 +511,36 @@ suite('dialer/recents_db', function() {
   });
 
   suite('Get groups requesting a cursor sorted by date', function() {
-     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[0]
-      }, function() {
-        done();
-      });
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[0]
+    };
+    var call2 = {
+      number: numbers[1],
+      type: 'dialing',
+      date: days[2]
+    };
+    var call3 = {
+      number: numbers[2],
+      type: 'incoming',
+      date: days[4]
+    };
+
+    test('Add a call', function(done) {
+      RecentsDBManager.add(call, function() { done(); });
     });
 
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[1],
-        type: 'dialing',
-        date: days[2]
-      }, function() {
-        done();
-      });
+      RecentsDBManager.add(call2, function() { done(); });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[2],
-        type: 'incoming',
-        date: days[4]
-      }, function() {
+      RecentsDBManager.add(call3, function() {
         RecentsDBManager.getGroupList(function(cursor) {
-          assert.equal(cursor.value.number, numbers[0]);
-          assert.equal(cursor.value.date, days[0]);
-          assert.equal(cursor.value.type, 'incoming');
+          checkGroup(cursor.value, call, call.date, 1);
           done();
-        }, 'date', null, true);
+        }, 'lastEntryDate', null, true);
       });
     });
 
@@ -594,38 +553,36 @@ suite('dialer/recents_db', function() {
 
   suite('Get groups requesting a cursor sorted by date in reverse order',
         function() {
-     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[0],
-        type: 'incoming',
-        date: days[0]
-      }, function() {
-        done();
-      });
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[0]
+    };
+    var call2 = {
+      number: numbers[1],
+      type: 'dialing',
+      date: days[2]
+    };
+    var call3 = {
+      number: numbers[2],
+      type: 'incoming',
+      date: days[4]
+    };
+
+    test('Add a call', function(done) {
+      RecentsDBManager.add(call, function() { done(); });
     });
 
     test('Add a call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[1],
-        type: 'dialing',
-        date: days[2]
-      }, function() {
-        done();
-      });
+      RecentsDBManager.add(call2, function() { done(); });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add({
-        number: numbers[2],
-        type: 'incoming',
-        date: days[4]
-      }, function() {
+      RecentsDBManager.add(call3, function() {
         RecentsDBManager.getGroupList(function(cursor) {
-          assert.equal(cursor.value.number, numbers[2]);
-          assert.equal(cursor.value.date, days[4]);
-          assert.equal(cursor.value.type, 'incoming');
+          checkGroup(cursor.value, call3, call3.date, 1);
           done();
-        }, 'date', true, true);
+        }, 'lastEntryDate', true, true);
       });
     });
 
@@ -635,5 +592,50 @@ suite('dialer/recents_db', function() {
       });
     });
   });
+
+  suite('Delete a group of calls', function() {
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[0]
+    };
+    test('Add a call', function(done) {
+      RecentsDBManager.add(call, function(group) {
+        checkGroup(group, call, call.date, 1);
+        RecentsDBManager.deleteGroup(group, function(result) {
+          assert.equal(result, 1);
+          done();
+        });
+      });
+    });
+  });
+
+  suite('Delete a group of calls with 2 calls', function() {
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[0]
+    };
+
+    var call2 = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[1]
+    };
+
+    test('Add a call', function(done) {
+      RecentsDBManager.add(call, function() { done(); });
+    });
+
+    test('Add another call', function(done) {
+      RecentsDBManager.add(call2, function(group) {
+        RecentsDBManager.deleteGroup(group, function(result) {
+          assert.equal(result, 2);
+          done();
+        });
+      });
+    });
+  });
+
 
 });
