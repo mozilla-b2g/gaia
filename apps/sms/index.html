@@ -126,9 +126,8 @@
         </article>
         <form role="search" id="messages-compose-form" class="bottom messages-compose-form">
           <button id="messages-send-button" disabled data-l10n-id="send" type="submit">Send</button>
-          <p>
-            <textarea type="text" id="messages-input" name="messages-input" placeholder="Message" data-l10n-id="composeMessage"></textarea>
-          </p>
+          <!-- The <br> is needed because of 414223, which is a WONTFIX. It's just because of how contentEditable works. https://bugzilla.mozilla.org/show_bug.cgi?id=414223 -->
+          <div id="messages-input" contentEditable="true" name="message" placeholder="Message" data-l10n-id="composeMessage"><br></div>
         </form>
         <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit" >
           <section>
@@ -193,6 +192,34 @@
         </aside>
         <p>${bodyHTML}</p>
       </section>
+      -->
+    </div>
+    <div id="attachment-tmpl" class="hide">
+      <!--
+      <style>
+        body.attachment {
+          margin: 0;
+          font-size: 1.5rem;
+          font-family: 'MozTT', sans-serif;
+        }
+        body.attachment img {
+          width: 100%;
+          height: 100%;
+        }
+        body.attachment div {
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          padding: 0.4rem 0.4rem 0 0.4rem;
+          background: rgba(0, 0, 0, 0.3);
+          border: 0.1rem solid rgba(255, 255, 255, 0.3);
+          border-radius: 1rem 0 0 0;
+          color: rgb(255, 255, 255);
+          font-size: 1rem;
+        }
+      </style>
+      <body class="attachment"><img src="${uri}">
+      <div>${size}</div>
       -->
     </div>
   </body>
