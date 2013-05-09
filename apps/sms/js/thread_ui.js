@@ -157,8 +157,11 @@ var ThreadUI = global.ThreadUI = {
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
     function header(count) {
-      this.headerText.textContent = navigator.mozL10n.get(
-        'recipient[many]', {
+      var message = count ?
+        (count > 1 ? 'recipient[many]' : 'recipient[one]') :
+        'newMessage';
+
+      this.headerText.textContent = navigator.mozL10n.get(message, {
         n: count
       });
     }
