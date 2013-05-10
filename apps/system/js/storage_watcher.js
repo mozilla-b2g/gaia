@@ -60,7 +60,7 @@ var DeviceStorageWatcher = {
     }
   },
 
-  lowDiskSpaceNotification: function dsw_lowDiskSpaceNotification(space) {
+  lowDiskSpaceNotification: function dsw_lowDiskSpaceNotification(space) {
     var msg = this._('low-device-storage');
     var notification;
     if (space && typeof space.size !== 'undefined' && space.unit) {
@@ -150,7 +150,7 @@ var DeviceStorageWatcher = {
         break;
     }
   }
-}
+};
 
 window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
