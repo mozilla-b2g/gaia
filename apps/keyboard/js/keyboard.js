@@ -203,13 +203,6 @@ const keyboardGroups = {
   'japanese': ['jp-kanji']
 };
 
-// Define language code aliases to correctly match the relevant keyboard,
-// i.e. language -> relevant keyboard name
-const keyboardAlias = {
-  'en-US': 'en',
-  'pt-BR': 'pt_BR'
-};
-
 // This is the default keyboard if none is selected in settings
 // XXX: switch this to pt-BR?
 const defaultKeyboardNames = ['en'];
@@ -294,7 +287,6 @@ function getKeyboardSettings() {
   // we want to query, with the default values we'll use if the query fails
   var settingsQuery = {
     'language.current': 'en-US',
-    'keyboard.current': 'en',
     'keyboard.wordsuggestion': true,
     'keyboard.autocorrect': true,
     'keyboard.vibration': false,
@@ -326,9 +318,6 @@ function getKeyboardSettings() {
       enabledKeyboardGroups[settingName] = values[settingName];
     }
 
-    // Activate the current keyboard and its associated input method
-    setKeyboardName(values['keyboard.current']);
-
     // And create an array of all enabled keyboard layouts from the set
     // of enabled groups
     handleNewKeyboards();
@@ -345,13 +334,6 @@ function initKeyboard() {
     // don't need to tell the keyboard about the new value right away.
     // We pass the value to the input method when the keyboard is displayed.
     userLanguage = e.settingValue;
-  });
-
-  navigator.mozSettings.addObserver('keyboard.current', function(e) {
-    // Switch to the language associated keyboard
-    // everything.me also uses this setting to improve searches
-    if (keyboardName !== e.settingValue)
-      setKeyboardName(e.settingValue);
   });
 
   navigator.mozSettings.addObserver('keyboard.wordsuggestion', function(e) {
@@ -452,8 +434,7 @@ function handleKeyboardSound() {
 }
 
 function setKeyboardName(name) {
-  var keyboard = Keyboards[name] || Keyboards[keyboardAlias[name]];
-
+  var keyboard = Keyboards[name];
   if (!keyboard) {
     console.warn('Unknown keyboard name', name);
     return;
@@ -497,6 +478,10 @@ function handleNewKeyboards() {
   for (var i = 0; i < enabledKeyboardNames.length; i++)
     loadKeyboard(enabledKeyboardNames[i]);
 
+  // Set the current keyboard to null. Later, when the input methods have
+  // loaded, and the user tries to display a keyboard we'll
+  // initialize the first enabled keyboard and its input method.
+  keyboardName = null;
 }
 
 // Map the input type to another type
@@ -1427,10 +1412,9 @@ function sendKey(keyCode) {
 // The state argument is the data passed with that event, and includes
 // the input field type, its inputmode, its content, and the cursor position.
 function showKeyboard(state) {
-  // If no keyboard has been selected yet or the selected one has been disabled
-  // from Settings, choose the first enabled one.
+  // If no keyboard has been selected yet, choose the first enabled one.
   // This will also set the inputMethod
-  if (enabledKeyboardNames.indexOf(keyboardName) == -1)
+  if (!keyboardName)
     setKeyboardName(enabledKeyboardNames[0]);
 
   IMERender.showIME();
