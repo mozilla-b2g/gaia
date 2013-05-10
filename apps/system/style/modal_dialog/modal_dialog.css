@@ -41,24 +41,13 @@
   margin-right: 0.2rem;
 }
 
-/* Confirm dialog */
-.modal-dialog-message-container p {
-  display:inline !important;
-  word-wrap: break-word;
-}
-
 /* Select one dialog */
-
 #modal-dialog-select-one .modal-dialog-message-container {
   display: block;
   padding: 0 1.5rem 0 1.5rem;
   position: absolute;
   left: 0;
   bottom: -moz-calc(3.8rem + 3rem);
-}
-
-#modal-dialog-select-one h3 {
-  font-size: 1.8rem;
 }
 
 #modal-dialog-select-one ul {
