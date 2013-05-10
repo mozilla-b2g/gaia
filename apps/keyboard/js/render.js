@@ -167,13 +167,17 @@ const IMERender = (function() {
     this.menu = document.getElementById('keyboard-accent-char-menu');
 
     // Builds candidate panel
-    if (layout.needsCandidatePanel || flags.showCandidatePanel) {
+    if (flags.showCandidatePanel) {
       this.ime.insertBefore(
         candidatePanelToggleButtonCode(), this.ime.firstChild);
       this.ime.insertBefore(candidatePanelCode(), this.ime.firstChild);
       this.ime.insertBefore(pendingSymbolPanelCode(), this.ime.firstChild);
       showPendingSymbols('');
       showCandidates([], true);
+
+      this.ime.classList.add('candidate-panel');
+    } else {
+      this.ime.classList.remove('candidate-panel');
     }
 
     resizeUI(layout);

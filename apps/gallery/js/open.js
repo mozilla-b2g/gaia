@@ -1,7 +1,16 @@
 window.addEventListener('localized', function() {
-  var activity;
-  var frame;
+  var activity;         // The activity object we're handling
+  var activityData;     // The data sent by the initiating app
+  var blob;             // The blob we'll be displaying and maybe saving
+  var frame;            // The MediaFrame that displays the image
+  var saved = false;    // Did we save the file?
+  var storage;          // The DeviceStorage object used for saving
+  var title;            // What we call the image in the titlebar and banner
+
+  // Register a handler to receive the Activity object
   navigator.mozSetMessageHandler('activity', handleOpenActivity);
+
+  function $(id) { return document.getElementById(id); }
 
   // If the image is bigger than this, decoding it will take too much
   // memory, and we don't want to cause an OOM, so we won't display it.
@@ -19,20 +28,19 @@ window.addEventListener('localized', function() {
   // file size test for other image formats.
   var MAX_FILE_SIZE = .5 * 1024 * 1024;
 
-  function handleOpenActivity(activity_request) {
-    activity = activity_request;
+  function handleOpenActivity(request) {
+    activity = request;
+    activityData = activity.source.data;
 
     // Set up the UI, if it is not already set up
     if (!frame) {
-      frame = new MediaFrame(document.getElementById('open-frame'), false);
+      // Hook up the buttons
+      $('back').addEventListener('click', done);
+      $('save').addEventListener('click', save);
 
-      var backButton = document.getElementById('open-back-button');
-      var toolbar = document.getElementById('open-toolbar');
+      // And register event handlers for gestures
+      frame = new MediaFrame($('frame'), false);
       var gestureDetector = new GestureDetector(frame.container);
-
-      // Set up events
-      backButton.addEventListener('click', done);
-
       gestureDetector.startDetecting();
       frame.container.addEventListener('dbltap', handleDoubleTap);
       frame.container.addEventListener('transform', handleTransform);
@@ -45,14 +53,22 @@ window.addEventListener('localized', function() {
       };
     }
 
+    // Display the filename in the header, if there was one
+    title = baseName(activityData.filename || '');
+    $('filename').textContent = title;
+
+    // Start off with the Save button hidden.
+    // We'll enable it below in the open() function if needed.
+    $('menu').hidden = true;
+
     // When an image file is received via bluetooth, we're invoked
     // by the system app. But the blob that is passed has a very large
     // invalid size field. See bug 850941. As a workaround, we use
     // the filename that is passed along with the blob and look the file
     // up via device storage.  When bug 850941 is fixed, we can remove
     // this code and replace it with open(blob);
-    var blob = activity.source.data.blob;
-    var filename = activity.source.data.filename;
+    blob = activityData.blob;
+    var filename = activityData.filename;
     if (filename && (!blob || blob.size > 25000000)) {
       var getrequest = navigator.getDeviceStorage('pictures').get(filename);
       getrequest.onsuccess = function() {
@@ -70,6 +86,17 @@ window.addEventListener('localized', function() {
 
   // Display the specified blob, unless it is too big to display
   function open(blob) {
+
+    // If the app that initiated this activity wants us to do allow the
+    // user to save this blob as a file, and if device storage is available
+    // and if there is enough free space, then display a save button.
+    if (activityData.allowSave && activityData.filename) {
+      getStorageIfAvailable('pictures', blob.size, function(ds) {
+        storage = ds;
+        $('menu').hidden = false;
+      });
+    }
+
     // Figure out how big (in pixels) the image is.
     // For JPEG images, this also gets us the preview image if there is one.
     getImageSize(blob, success, error);
@@ -141,7 +168,7 @@ window.addEventListener('localized', function() {
   }
 
   function done() {
-    activity.postResult({});
+    activity.postResult({ saved: saved });
     activity = null;
   }
 
@@ -171,5 +198,40 @@ window.addEventListener('localized', function() {
     if (direction === 'down' && velocity > 2)
       done();
   }
-});
 
+  function save() {
+    // Hide the menu that holds the save button: we can only save once
+    $('menu').hidden = true;
+    // XXX work around bug 870619
+    $('filename').textContent = $('filename').textContent;
+
+    getUnusedFilename(storage, activityData.filename, function(filename) {
+      var savereq = storage.addNamed(blob, filename);
+      savereq.onsuccess = function() {
+        // Remember that it has been saved so we can pass this back
+        // to the invoking app
+        saved = filename;
+        // And tell the user
+        showBanner(navigator.mozL10n.get('saved', { filename: title }));
+      };
+      savereq.onerror = function(e) {
+        // XXX we don't report this to the user because it is hard to
+        // localize.
+        console.error('Error saving', filename, e);
+      };
+    });
+  }
+
+  function showBanner(msg) {
+    $('message').textContent = msg;
+    $('banner').hidden = false;
+    setTimeout(function() {
+      $('banner').hidden = true;
+    }, 3000);
+  }
+
+  // Strip directories and just return the base filename
+  function baseName(filename) {
+    return filename.substring(filename.lastIndexOf('/') + 1);
+  }
+});

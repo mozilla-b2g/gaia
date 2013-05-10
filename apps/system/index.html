@@ -237,6 +237,10 @@
     <!-- Shared responsive -->
     <link rel="stylesheet" href="shared/style/responsive.css">
 
+    <!-- Device storage watcher -->
+    <script defer src="js/storage_watcher.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/storage_watcher/storage_watcher.css">
+
     <style>
       /* initlogos style is here to prevent flashing */
 
@@ -346,12 +350,21 @@
 
         <div id="notifications-container">
           <!-- Update Manager -->
-          <div id="update-manager-container" class='fake-notification'>
+          <div id="update-manager-container" class="fake-notification">
             <div class="icon">
             </div>
             <div class="activity">
             </div>
             <div class="message">
+            </div>
+          </div>
+          <!-- Storage watcher notification -->
+          <div id="storage-watcher-container" class="fake-notification">
+            <div class="icon">
+            </div>
+            <div class="message">
+            </div>
+            <div class="available-space">
             </div>
           </div>
           <!-- App Install Manager -->
@@ -559,60 +572,55 @@
             </div>
             <menu data-items="2">
               <button id="authentication-dialog-http-authentication-cancel" data-l10n-id="cancel">Cancel</button>
-              <button id="authentication-dialog-http-authentication-ok" data-l10n-id="login" class="affirmative">Login</button>
+              <button id="authentication-dialog-http-authentication-ok" data-l10n-id="login" class="recommend">Login</button>
             </menu>
           </div>
         </div>
 
         <div id="modal-dialog">
-          <div id="modal-dialog-alert" role="dialog">
-            <div class="modal-dialog-message-container inner">
-              <h3 id="modal-dialog-alert-title"></h3>
-              <p>
-                <span id="modal-dialog-alert-message"></span>
-              </p>
-            </div>
+          <form id="modal-dialog-alert" role="dialog" data-type="confirm">
+            <section>
+              <h1 id="modal-dialog-alert-title"></h1>
+              <p id="modal-dialog-alert-message"></p>
+            </section>
             <menu>
-              <button id="modal-dialog-alert-ok" data-l10n-id="ok" class="affirmative">OK</button>
+              <button id="modal-dialog-alert-ok" data-l10n-id="ok" class="recommend full">OK</button>
             </menu>
-          </div>
-
-          <div id="modal-dialog-confirm" role="dialog">
-            <div class="modal-dialog-message-container inner">
-              <h3 id="modal-dialog-confirm-title"></h3>
-              <p>
-                <span id="modal-dialog-confirm-message"></span>
-              </p>
-            </div>
+          </form>
+          <form id="modal-dialog-confirm" role="dialog" data-type="confirm">
+            <section class="modal-dialog-message-container">
+              <h1 id="modal-dialog-confirm-title"></h1>
+              <p id="modal-dialog-confirm-message"></p>
+            </section>
             <menu data-items="2">
               <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
-              <button id="modal-dialog-confirm-ok" data-l10n-id="ok" class="affirmative">OK</button>
+              <button id="modal-dialog-confirm-ok" data-l10n-id="ok" class="recommend">OK</button>
             </menu>
-          </div>
+          </form>
 
-          <div id="modal-dialog-prompt" role="dialog">
-            <div class="modal-dialog-message-container inner">
-              <h3 id="modal-dialog-prompt-title"></h3>
+          <form id="modal-dialog-prompt" role="dialog" data-type="confirm">
+            <section class="modal-dialog-message-container">
+              <h1 id="modal-dialog-prompt-title"></h1>
               <p>
                 <span id="modal-dialog-prompt-message"></span>
                 <input id="modal-dialog-prompt-input" />
               </p>
-            </div>
+            </section>
             <menu data-items="2">
               <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
-              <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="affirmative">OK</button>
+              <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="recommend">OK</button>
             </menu>
-          </div>
+          </form>
 
-          <div id="modal-dialog-select-one" role="dialog">
-            <div class="modal-dialog-message-container inner">
-              <h3 id="modal-dialog-select-one-title"></h3>
+          <form id="modal-dialog-select-one" role="dialog" data-type="confirm">
+            <section class="modal-dialog-message-container">
+              <h1 id="modal-dialog-select-one-title"></h1>
               <ul id="modal-dialog-select-one-menu"></ul>
-            </div>
+            </section>
             <menu>
               <button id="modal-dialog-select-one-cancel" data-l10n-id="cancel">Cancel</button>
             </menu>
-          </div>
+          </form>
         </div> <!-- end of #modal-dialog -->
 
       </div> <!-- end of #overlay-dialog -->
@@ -719,19 +727,15 @@
             data-z-index-level="app-install-dialog">
         <section>
           <h1 id="app-install-message"></h1>
-          <table>
-            <tr>
-              <th data-l10n-id="size">Size</th>
-              <td id="app-install-size"></td>
-            </tr>
-            <tr>
-              <th data-l10n-id="author">Author</th>
-              <td>
-                <span id="app-install-author-name"></span>
-                <br /><span id="app-install-author-url"></span>
-              </td>
-            </tr>
-          </table>
+          <dl>
+            <dt data-l10n-id="size">Size</dt>
+              <dd id="app-install-size"></dd>
+            <dt data-l10n-id="author">Author</dt>
+              <dd>
+                <span id="app-install-author-name"></span><br />
+                <span id="app-install-author-url"></span>
+              </dd>
+          </dl>
           <menu>
             <button id="app-install-cancel-button" data-l10n-id="cancel">Cancel</button>
             <button id="app-install-install-button" class="recommend" data-l10n-id="install">Install</button>
