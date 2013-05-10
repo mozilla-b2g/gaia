@@ -641,13 +641,12 @@ body.attachment div {
 #messages-to-field {
   display: none;
   text-align: left;
-  min-height: 3.3rem;
+  min-height: 3.5rem;
   overflow: hidden;
   border-bottom: .1rem solid #949494;
   color: black;
   position: relative;
   margin: 0;
-  margin-top: .3rem;
   padding: .8rem 1.5rem;
   width: -moz-calc(100% - 3rem);
   z-index: 10;
@@ -693,8 +692,8 @@ section[role="region"].new #messages-to-field {
   */
   overflow-y: hidden;
   overflow-x: hidden;
-  top: .5rem;
   left: 3rem;
+  top: .5rem;
   position: relative;
   width: 10rem;
   display: inline-block;
@@ -734,7 +733,7 @@ Do not remove.
   color: #333333;
   height: 2rem;
   margin-right: .5rem;
-  border-radius: .2rem;
+  border-radius: .3rem;
   font-size: 1.8rem;
 }
 
@@ -781,7 +780,7 @@ section[role="region"].new #messages-container[data-type="list"]  li{
   pointer-events : none;
 }
 .subheader {
-  background: #E4E4E4;
+  background: white;
   position: absolute;
   z-index: 6; /* should be between 4 and 9 (inclusive). 3 is the z-index for
                  the input form, 10 is the z-index for the header */
