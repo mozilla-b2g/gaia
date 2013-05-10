@@ -153,11 +153,15 @@ html, body {
   position: absolute;
   right: 0;
   top: -.2rem;
+  left: -moz-calc(55px + 19.5rem);
   color: #52B6CC;
   margin: 13px 15px 0 0;
   padding: 0;
   display: inline;
   line-height: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .notification > img {
