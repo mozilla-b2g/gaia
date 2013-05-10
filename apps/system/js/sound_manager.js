@@ -420,7 +420,7 @@
   /**
    * Leaving silent mode.
    * @param  {String} channel Specify the channel name
-   *                          which is going to enter silent mode
+   *                          which is going to enter silent mode.
    * @param  {Boolean} skip_restore Specify to skip the volume restore or not.
    */
   function leaveSilentMode(channel, skip_restore) {
