@@ -223,22 +223,35 @@ body {
   left: 0;
   top: 2rem;
 
-  /* Need to leave this in here to prevent flickering. */
-  transform: scale(1);
+  /*
+   * Do not specify height/width here!
+  * They should be handle executively in window_manager.js
+  *
+  */
 
-/*
- * Do not specify height/width here!
- * They should be handle executively in window_manager.js
- *
- */
+  /*
+  * Disable this for now because it forces an expensive fallback path in
+  * Gecko.  The performance issue should be fixed by
+  * https://bugzilla.mozilla.org/show_bug.cgi?id=697645 or a related bug.
+  *
+    border-radius: 0.8rem;
+  */
 
-/*
- * Disable this for now because it forces an expensive fallback path in
- * Gecko.  The performance issue should be fixed by
- * https://bugzilla.mozilla.org/show_bug.cgi?id=697645 or a related bug.
- *
-  border-radius: 0.8rem;
- */
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#windows > .appWindow:not(.homescreen) {
+  background-color: black;
+}
+
+#windows > .appWindow:not(.homescreen).render {
+  background-image: none !important;
+  background-color: transparent;
+}
+
+#windows > .appWindow:not(.homescreen):not(.active):not(.opening):not(.closing):not(.inlineActivity) {
+  opacity: 0;
 }
 
 #windows > .appWindow > iframe {
@@ -250,33 +263,20 @@ body {
   border: none;
 }
 
+#windows > .appWindow:not(.homescreen).render > iframe {
+  background-color: #fff;
+}
+
 #screen.active-statusbar #windows > .appWindow {
   top: 4rem;
 }
 
-#windows > .appWindow:not(.homescreen) {
-  background-color: #fff;
-}
-
-#windows > .appWindow:not(.homescreen).default-background {
-  background: url('/shared/resources/branding/splash_screen_generic.png') center center no-repeat #fff;
-}
-
-#windows > .appWindow:not(.active):not(.homescreen):not(.opening):not(.closing) {
-  visibility: hidden;
-}
-
-#windows > .appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening):not(.closing) {
-  opacity: 0;
-}
-
 #screen.switch-app > #windows > .appWindow.closing {
-  opacity: 0;
   transform: scale(0.6);
 }
 
 #windows > .appWindow.opening {
-  animation: openApp 0.3s forwards ease;
+  animation: openApp .3s forwards ease;
   pointer-events: auto;
 }
 
@@ -299,6 +299,7 @@ body {
 }
 
 #windows > .appWindow.homescreen.zoom-in > iframe {
+  transform: scale(1);
   animation: zoom-in 0.3s forwards ease;
 }
 
@@ -375,6 +376,7 @@ body {
 }
 
 #windows > .appWindow.homescreen.zoom-out > iframe {
+  transform: scale(1.8);
   animation: zoom-out 0.3s forwards ease;
 }
 
@@ -388,8 +390,8 @@ body {
 }
 
 @keyframes zoom-out {
-  0%   { transform: scale(1.8) }
-  100% { transform: scale(1) }
+  0%   { transform: scale(1.8); }
+  100% { transform: scale(1); }
 }
 
 #screen.cards-view > #windows > .appWindow.closing {
@@ -439,97 +441,13 @@ body {
   top: 0;
 }
 
-#screen.attention > #windows > .appWindow.fullscreen-app,
-#screen.attention > #windowSprite,
-#screen.fullscreen-app.attention > #windowSprite {
+#screen.attention > #windows > .appWindow.fullscreen-app {
   height: calc(100% - 4rem);
   top: 4rem;
 }
 
-#windowSprite.before-inline-activity {
-  transform: translateY(calc(100% - 0.1rem));
-  opacity: 1;
-  visibility: visible;
-}
-
-#windowSprite.inline-activity-opening {
-  transition: transform 0.25s ease;
-  transform: translateY(0);
-  opacity: 1;
-  visibility: visible;
-}
-
-#windowSprite.inline-activity-opened {
-  transition: opacity 0.15s ease;
-
-  transform: translateY(0);
-  opacity: 0;
-  visibility: visible;
-}
-
-#windowSprite.before-open {
-  transform: scale(0.6);
-  /* 0.01 opacity is needed to make sure Gecko paints and fire
-     MozAfterPaint event for us. */
-  opacity: 0.01;
-  visibility: visible;
-}
-
-#windowSprite.opening {
-  transition: transform 0.25s ease, opacity 0.15s ease;
-
-  transform: scale(1);
-  opacity: 1;
-  visibility: visible;
-}
-
-#screen.trustedui #windowSprite.opening {
-  opacity: 0;
-}
-
-#windowSprite.opened {
-  transition: opacity 0.15s ease;
-
-  transform: scale(1);
-  opacity: 0;
-  visibility: visible;
-}
-
-#windowSprite.before-close {
-  transform: scale(1);
-  /* 0.01 opacity is needed to make sure Gecko paints and fire
-     MozAfterPaint event for us. */
-  opacity: 0.01;
-  visibility: visible;
-}
-
-#windowSprite.closing {
-  transition: opacity 0.05s ease;
-
-  transform: scale(1);
-  opacity: 1;
-  visibility: visible;
-}
-
-#windowSprite.closed {
-  transition: transform 0.25s ease, opacity 0.15s ease;
-
-  transform: scale(0.6);
-  opacity: 0;
-  visibility: visible;
-}
-
 .accessibility-invert {
   filter: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxmaWx0ZXIKICAgICAgaWQ9ImludmVydEZpbHRlciIKICAgICAgY29sb3ItaW50ZXJwb2xhdGlvbi1maWx0ZXJzPSJzUkdCIj4KICAgIDxmZUNvbG9yTWF0cml4CiAgICAgICAgdmFsdWVzPSItMSAwIDAgMCAxIDAgLTEgMCAwIDEgMCAwIC0xIDAgMSAwIDAgMCAxIDAgIiAvPgogIDwvZmlsdGVyPgo8L3N2Zz4K#invertFilter);
-}
-
-iframe.backgroundWindow {
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  width: 1px;
-  height: 1px;
-  visibility: hidden;
 }
 
 #dialog-overlay {
