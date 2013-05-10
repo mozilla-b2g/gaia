@@ -227,8 +227,10 @@
     // push into the recipients list
     if (list.every(isSamePhoneNumber)) {
       list.push(new Recipient(entry));
-      this.emit('add', list.length);
     }
+    // XXX:Workaround for cleaning search result while duplicate
+    //     Dispatch add event no matter duplicate or not
+    this.emit('add', list.length);
 
     // Render the view
     this.render();
