@@ -117,7 +117,10 @@ var Compose = (function() {
 
       // update the placeholder after input
       dom.message.addEventListener('input', composeCheck);
+
+      // we need to bind to keydown & keypress because of #870120
       dom.message.addEventListener('keydown', composeLockCheck);
+      dom.message.addEventListener('keypress', composeLockCheck);
 
       this.clear();
 
