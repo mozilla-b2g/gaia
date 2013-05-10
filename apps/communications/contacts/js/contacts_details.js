@@ -120,7 +120,7 @@ contacts.Details = (function() {
     });
   };
 
-  var render = function cd_render(currentContact, tags, isEnrichedContact) {
+  var render = function cd_render(currentContact, tags, isEnrichedContact, cb) {
     contactData = currentContact || contactData;
 
     TAG_OPTIONS = tags || TAG_OPTIONS;
@@ -135,15 +135,15 @@ contacts.Details = (function() {
       var req = fbContact.getData();
 
       req.onsuccess = function do_reload() {
-        doReloadContactDetails(req.result);
+        doReloadContactDetails(req.result, cb);
       };
 
       req.onerror = function() {
         window.console.error('FB: Error while loading FB contact data');
-        doReloadContactDetails(contactData);
+        doReloadContactDetails(contactData, cb);
       };
     } else {
-      doReloadContactDetails(contactData);
+      doReloadContactDetails(contactData, cb);
     }
   };
 
@@ -152,7 +152,7 @@ contacts.Details = (function() {
   //
   // Method that generates HTML markup for the contact
   //
-  var doReloadContactDetails = function doReloadContactDetails(contact) {
+  var doReloadContactDetails = function doReloadContactDetails(contact, cb) {
 
     detailsName.textContent = contact.name;
     contactDetails.classList.remove('no-photo');
@@ -173,6 +173,9 @@ contacts.Details = (function() {
     }
 
     renderPhoto(contact);
+
+    if (cb)
+      cb();
   };
 
   var renderFavorite = function cd_renderFavorite(contact) {
