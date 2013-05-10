@@ -676,7 +676,7 @@
 
     // All keyboard events will need some information
     // about the input that the user typed.
-    if (event instanceof KeyboardEvent) {
+    if (event.type === 'keypress' || event.type === 'keyup') {
       typed = target.textContent.trim();
       length = typed.length;
     }
