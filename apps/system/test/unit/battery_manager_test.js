@@ -4,6 +4,7 @@ requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
+requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mocks_helper.js');
 requireApp('system/js/battery_manager.js');
 
@@ -26,6 +27,8 @@ suite('battery manager >', function() {
   var mocksHelper;
   var tinyTimeout = 10;
 
+  var realL10n;
+
   suiteSetup(function() {
     mocksHelper = new MocksHelper(mocksForBatteryManager);
     mocksHelper.suiteSetup();
@@ -36,6 +39,9 @@ suite('battery manager >', function() {
     // must be big enough, otherwise the BatteryManager timeout occurs
     // before the different suites execute.
     BatteryManager.TOASTER_TIMEOUT = tinyTimeout;
+    // for PowerSaveHandler
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
   });
 
   suiteTeardown(function() {
@@ -43,6 +49,8 @@ suite('battery manager >', function() {
 
     BatteryManager._battery = realBattery;
     realBattery = null;
+
+    navigator.mozL10n = realL10n;
   });
 
   setup(function() {
