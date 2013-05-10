@@ -68,6 +68,9 @@ function handleOpenActivity(request) {
   function save() {
     // Hide the menu that holds the save button: we can only save once
     saveButton.hidden = true;
+    // XXX work around bug 870619
+    document.getElementById('title-text').textContent =
+      document.getElementById('title-text').textContent;
 
     getUnusedFilename(storage, data.filename, function(filename) {
       var savereq = storage.addNamed(blob, filename);
@@ -76,7 +79,9 @@ function handleOpenActivity(request) {
         // to the invoking app
         saved = filename;
         // And tell the user
-        showBanner(navigator.mozL10n.get('saved', { filename: filename }));
+        showBanner(navigator.mozL10n.get('saved', {
+          title: document.getElementById('title-text').textContent
+        }));
       };
       savereq.onerror = function(e) {
         // XXX we don't report this to the user because it is hard to

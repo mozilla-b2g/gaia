@@ -5,6 +5,7 @@ window.addEventListener('localized', function() {
   var frame;            // The MediaFrame that displays the image
   var saved = false;    // Did we save the file?
   var storage;          // The DeviceStorage object used for saving
+  var title;            // What we call the image in the titlebar and banner
 
   // Register a handler to receive the Activity object
   navigator.mozSetMessageHandler('activity', handleOpenActivity);
@@ -53,7 +54,8 @@ window.addEventListener('localized', function() {
     }
 
     // Display the filename in the header, if there was one
-    $('filename').textContent = baseName(activityData.filename || '');
+    title = baseName(activityData.filename || '');
+    $('filename').textContent = title;
 
     // Start off with the Save button hidden.
     // We'll enable it below in the open() function if needed.
@@ -200,6 +202,8 @@ window.addEventListener('localized', function() {
   function save() {
     // Hide the menu that holds the save button: we can only save once
     $('menu').hidden = true;
+    // XXX work around bug 870619
+    $('filename').textContent = $('filename').textContent;
 
     getUnusedFilename(storage, activityData.filename, function(filename) {
       var savereq = storage.addNamed(blob, filename);
@@ -208,7 +212,7 @@ window.addEventListener('localized', function() {
         // to the invoking app
         saved = filename;
         // And tell the user
-        showBanner(navigator.mozL10n.get('saved', { filename: filename}));
+        showBanner(navigator.mozL10n.get('saved', { filename: title }));
       };
       savereq.onerror = function(e) {
         // XXX we don't report this to the user because it is hard to
