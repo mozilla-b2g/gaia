@@ -126,7 +126,7 @@ suite('ThreadUI Integration', function() {
 
       ThreadUI.toFieldInput.call(ThreadUI, fakeEvent);
 
-      assert.equal(ThreadUI.searchContact.called, 0);
+      assert.equal(ThreadUI.searchContact.called, 1);
       assert.equal(ThreadUI.searchContact.calledWith, '');
 
       fakeEvent.target.textContent = 'abd';
@@ -134,7 +134,7 @@ suite('ThreadUI Integration', function() {
 
       ThreadUI.toFieldInput.call(ThreadUI, fakeEvent);
 
-      assert.equal(ThreadUI.searchContact.called, 0);
+      assert.equal(ThreadUI.searchContact.called, 1);
       assert.equal(ThreadUI.searchContact.calledWith, '');
     });
   });

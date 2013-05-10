@@ -167,6 +167,8 @@ var ThreadUI = global.ThreadUI = {
 
       // check for enable send whenever recipients change
       this.enableSend();
+      // Clean search result after recipient count change.
+      this.container.textContent = '';
     }
 
     if (this.recipients) {
@@ -182,6 +184,7 @@ var ThreadUI = global.ThreadUI = {
       this.recipients.on('add', recipientsChanged.bind(this));
       this.recipients.on('remove', recipientsChanged.bind(this));
     }
+    this.container.textContent = '';
   },
 
   initSentAudio: function thui_initSentAudio() {
@@ -854,7 +857,6 @@ var ThreadUI = global.ThreadUI = {
 
   clear: function thui_clear() {
     this.initRecipients();
-    this.container.textContent = '';
   },
 
   toggleCheckedAll: function thui_select(value) {
@@ -1229,14 +1231,12 @@ var ThreadUI = global.ThreadUI = {
     var typed;
     if (event.target.isPlaceholder) {
       typed = event.target.textContent.trim();
-      if (typed) {
-        this.searchContact(typed);
-      }
+      this.searchContact(typed);
     }
   },
   searchContact: function thui_searchContact(filterValue) {
 
-    if (!filterValue.trim()) {
+    if (!filterValue) {
       // In cases where searchContact was invoked for "input"
       // that was actually a "delete" that removed the last
       // character in the recipient input field,
@@ -1262,9 +1262,6 @@ var ThreadUI = global.ThreadUI = {
       var contactsUl = document.createElement('ul');
       contactsUl.classList.add('contactList');
       contactsUl.addEventListener('click', function contactsUlHandler(event) {
-        // Clear the contacts search results container.
-        this.container.textContent = '';
-
         // Since the "dataset" DOMStringMap property is essentially
         // just an object of properties that exactly match the properties
         // used for recipients, push the whole dataset object into
