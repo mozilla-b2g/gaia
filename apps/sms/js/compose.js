@@ -146,6 +146,13 @@ var Compose = (function() {
 
         var last = content.length - 1;
         var text = node.textContent;
+        if (node.nodeName == 'BR') {
+          if (node === dom.message.lastChild) {
+            continue;
+          }
+          text = '\n';
+        }
+
         // append (if possible) text to the last entry
         if (text.length && typeof content[last] === 'string') {
           content[last] += text;
@@ -159,12 +166,15 @@ var Compose = (function() {
           lastContent = content.length;
         }
       }
-      // trim away any trailing empty lines
-      return content.slice(0, lastContent);
+
+      return content;
     },
 
     getText: function() {
-      return dom.message.textContent;
+      var out = this.getContent().filter(function(elem) {
+        return (typeof elem === 'string');
+      });
+      return out.join('');
     },
 
     isEmpty: function() {
@@ -221,14 +231,14 @@ var Compose = (function() {
         dom.message.focus();
         range.setStartAfter(firstNodes);
       } else {
-        dom.message.appendChild(fragment);
+        dom.message.insertBefore(fragment, dom.message.lastChild);
       }
       composeCheck();
       return this;
     },
 
     clear: function() {
-      dom.message.innerHTML = '';
+      dom.message.innerHTML = '<br>';
       state.full = false;
       composeCheck();
       return this;
