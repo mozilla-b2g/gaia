@@ -5,7 +5,6 @@
 mocha.setup({ globals: ['alert'] });
 
 requireApp('sms/js/compose.js');
-requireApp('sms/js/recipients.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/utils.js');
 
@@ -34,7 +33,6 @@ suite('thread_ui.js >', function() {
   var composeForm;
   var recipient;
 
-  var realRecipients;
   var realMozL10n;
   var realMozMobileMessage;
 
@@ -45,9 +43,6 @@ suite('thread_ui.js >', function() {
 
   suiteSetup(function(done) {
     mocksHelper.suiteSetup();
-
-    realRecipients = Recipients;
-    Recipients = MockRecipients;
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -79,7 +74,6 @@ suite('thread_ui.js >', function() {
   });
 
   suiteTeardown(function() {
-    Recipients = realRecipients;
     navigator.mozL10n = realMozL10n;
     mocksHelper.suiteTeardown();
   });
@@ -92,7 +86,7 @@ suite('thread_ui.js >', function() {
     input = document.getElementById('messages-input');
     composeForm = document.getElementById('messages-compose-form');
 
-
+    ThreadUI.recipients = null;
     ThreadUI.init();
     realMozMobileMessage = ThreadUI._mozMobileMessage;
     ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
@@ -164,18 +158,15 @@ suite('thread_ui.js >', function() {
 
       test('button should be disabled when there is neither contact or input',
         function() {
-        Compose.clear();
-
         assert.isTrue(sendButton.disabled);
       });
 
       test('button should be disabled when there is no contact', function() {
         Compose.append('Hola');
-        console.log(sendButton.disabled);
         assert.isTrue(sendButton.disabled);
       });
 
-      test('button should be enabled when there is both contact and input',
+      test('button should be enabled after adding a recipient when text exists',
         function() {
         Compose.append('Hola');
 
@@ -183,7 +174,17 @@ suite('thread_ui.js >', function() {
           number: '999'
         });
 
-        ThreadUI.enableSend();
+        assert.isFalse(sendButton.disabled);
+      });
+
+      test('button should be enabled after adding text when recipient exists',
+        function() {
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+        Compose.append('Hola');
+
         assert.isFalse(sendButton.disabled);
       });
 
