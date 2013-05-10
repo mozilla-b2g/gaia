@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/spinner.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/status.css" />
     <link rel="stylesheet" type="text/css" href="shared/style/responsive.css" >
   </head>
   <body role="application" class="skin-dark">
@@ -20,6 +21,9 @@
         <section role="region">
           <header>
             <a href="#" id="close"><span class="icon icon-back">back</span></a>
+            <menu type="toolbar" id="menu" hidden>
+              <button id="save" data-l10n-id="save"></button>
+            </menu>
             <h1 id="video-title"></h1>
           </header>
 
@@ -39,8 +43,12 @@
         </section>
       </div>
     </div>
+    <section id="banner" role="status" hidden>
+      <p id="message"></p>
+    </section>
 
     <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/device_storage_utils.js"></script>
     <script type="text/javascript" src="js/youtube.js"></script>
     <script type="text/javascript" src="js/view.js"></script>
   </body>

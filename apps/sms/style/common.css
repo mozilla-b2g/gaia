@@ -17,12 +17,15 @@
 }
 
 .carrier-wrapper {
+  position: absolute;
+  left: 0;
+  top: 0;
+
   font-size: -moz-calc(6 * 0.226rem);
   width: calc(100% - 3rem);
   position: absolute;
   background: rgba(255,255,255,0.7);
   color: black;
-  z-index: 1;
   text-align: left;
   padding-left: 3rem;
   text-overflow: ellipsis;

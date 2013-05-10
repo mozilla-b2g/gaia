@@ -60,7 +60,7 @@ function VideoPlayer(container) {
   var videourl;   // the url of the video to play
   var posterurl;  // the url of the poster image to display
   var rotation;   // Do we have to rotate the video? Set by load()
-  var orientation; // current player orientation
+  var orientation = 0; // current player orientation
 
   // These are the raw (unrotated) size of the poster image, which
   // must have the same size as the video.
