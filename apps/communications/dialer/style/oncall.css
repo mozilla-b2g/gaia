@@ -158,11 +158,11 @@ body.hidden *[data-l10n-id] {
 #main-container:before {
   content: "";
   position: absolute;
-  top: 7rem;
+  top: 0rem;
   left: 0;
   background-color: rgba(0, 0, 0, 0.45);
   width: 100%;
-  height: calc(100% - 7rem);
+  height: 100%;
 }
 
 #main-container.transparent:before {
@@ -425,6 +425,28 @@ button[disabled] .icon-keypad-visibility {
   background-position: center right 1.5rem;
   background-repeat: no-repeat;
   opacity: 0.7;
+}
+
+#calls[data-count="1"] > section.held {
+  background-color: #1c1818;
+  background-image: url('images/DialerIcon_35x35_paused.png');
+  background-position: top 2rem right 2rem;
+  background-repeat: no-repeat;
+  opacity: 0.7;
+}
+
+#calls[data-count="1"] > section.held .numberWrapper,
+#calls[data-count="1"] > section.held .duration,
+#calls[data-count="1"] > section.held .additionalContactInfo {
+  background: none;
+}
+
+#calls[data-count="1"] > section.held .numberWrapper .number {
+  color: white;
+}
+
+#calls[data-count="1"]> section.held .duration {
+  display: block;
 }
 
 #calls > section .numberWrapper {
