@@ -288,7 +288,7 @@ function getKeyboardSettings() {
     'keyboard.wordsuggestion': true,
     'keyboard.vibration': false,
     'keyboard.clicksound': false,
-    'ring.enabled': true
+    'audio.volume.notification': 7
   };
 
   // Add the keyboard group settings to our query, too.
@@ -303,7 +303,7 @@ function getKeyboardSettings() {
     suggestionsEnabled = values['keyboard.wordsuggestion'];
     vibrationEnabled = values['keyboard.vibration'];
     clickEnabled = values['keyboard.clicksound'];
-    isSoundEnabled = values['ring.enabled'];
+    isSoundEnabled = !!values['audio.volume.notification'];
 
     handleKeyboardSound();
 
@@ -343,8 +343,8 @@ function initKeyboard() {
     vibrationEnabled = e.settingValue;
   });
 
-  navigator.mozSettings.addObserver('ring.enabled', function(e) {
-    isSoundEnabled = e.settingValue;
+  navigator.mozSettings.addObserver('audio.volume.notification', function(e) {
+    isSoundEnabled = !!e.settingValue;
     handleKeyboardSound();
   });
 

@@ -37,12 +37,9 @@ var SleepMenu = {
     });
 
     var settings = navigator.mozSettings;
-    SettingsListener.observe('audio.volume.notification', 7, function(value) {
-      settings.createLock().set({'ring.enabled': (value != 0)});
-    });
 
-    SettingsListener.observe('ring.enabled', true, function(value) {
-      self.isSilentModeEnabled = !value;
+    SettingsListener.observe('audio.volume.notification', 7, function(value) {
+      self.isSilentModeEnabled = (value == 0);
     });
   },
 
@@ -180,29 +177,17 @@ var SleepMenu = {
 
       // About silent and silentOff
       // * Turn on silent mode will cause:
-      //   * Turn off ringtone no matter if ring is on or off
-      //   * for sms and incoming calls.
+      //   send a custom event 'mute' to sound manager
       // * Turn off silent mode will cause:
-      //   * Turn on ringtone no matter if ring is on or off
-      //   * for sms and incoming calls.
+      //   send a custom event 'unmute' to sound manager
       case 'silent':
-        if (!window.navigator.mozSettings)
-          return;
-
-        SettingsListener.getSettingsLock().set({
-          'ring.enabled': false
-        });
+        window.dispatchEvent(new Event('mute'));
         this.isSilentModeEnabled = true;
 
         break;
 
       case 'silentOff':
-        if (!window.navigator.mozSettings)
-          return;
-
-        SettingsListener.getSettingsLock().set({
-          'ring.enabled': true
-        });
+        window.dispatchEvent(new Event('unmute'));
         this.isSilentModeEnabled = false;
 
         break;
