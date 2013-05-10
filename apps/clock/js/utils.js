@@ -293,6 +293,7 @@ var ValuePicker = (function() {
   }
 
   function vp_mousemove(event) {
+    event.preventDefault();
     event.stopPropagation();
     currentEvent = cloneEvent(event);
 
@@ -313,6 +314,7 @@ var ValuePicker = (function() {
   }
 
   function vp_mouseup(event) {
+    event.preventDefault();
     event.stopPropagation();
     this.removeEventListeners();
 
@@ -330,6 +332,7 @@ var ValuePicker = (function() {
   }
 
   function vp_mousedown(event) {
+    event.preventDefault();
     event.stopPropagation();
     event.target.setCapture(true);
     MouseEventShim.setCapture();
