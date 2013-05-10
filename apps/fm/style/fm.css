@@ -9,9 +9,6 @@ html, body {
   font-size: 10px;
 }
 
-body {
-  background: url("images/app-texture.png") repeat scroll 0 0 #272D32;
-}
 
 a {
   outline: 0 none;
@@ -31,6 +28,7 @@ a:active {
 #container {
   height: 100%;
   width: 100%;
+  background-color: #272d32;
 }
 
 #container > div {
@@ -399,7 +397,7 @@ a#frequency-op-seekup:active {
   left: 0;
   z-index: 2;
   color: #FFF;
-  background: url(images/popup-texture.png) repeat 0 0 #272d32;
+  background-color: #272d32;
 }
 
 #antenna-warning > div:first-child {
@@ -421,12 +419,6 @@ a#frequency-op-seekup:active {
   padding: .5rem;
   margin: 0 2.5rem;
   border-top: .1rem solid #686868;
-}
-/******* end *******/
-
-/* localization */
-body.hidden *[data-l10n-id] {
-  visibility: hidden;
 }
 /******* end *******/
 

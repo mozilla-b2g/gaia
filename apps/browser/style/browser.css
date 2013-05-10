@@ -2,7 +2,6 @@ html, body {
   height: 100%;
   padding: 0;
   margin: 0;
-  background-color: #575E66;
   font-family: 'MozTT', sans-serif;
   font-size: 10px;
   overflow: hidden;
@@ -158,7 +157,7 @@ input[type="image"] {
   text-overflow: ellipsis;
 }
 
-#tabs-list .close:hover, #tabs-list .close:active {
+#tabs-list .close:active {
   color: #666;
 }
 
@@ -220,7 +219,7 @@ input[type="image"] {
   -moz-user-select: none;
 }
 
-#tabs-badge:active, #tabs-badge:hover {
+#tabs-badge:active {
   color: #AAA;
 }
 
@@ -722,7 +721,7 @@ li[role="listitem"] a {
   outline: none;
 }
 
-li[role="listitem"] a:hover, li[role="listitem"] a:active {
+li[role="listitem"] a:active {
   background-color: #EEE;
 }
 
