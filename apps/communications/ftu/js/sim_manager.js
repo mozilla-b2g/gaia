@@ -12,44 +12,29 @@ var SimManager = {
                                   this.handleCardState.bind(this));
 
     this.alreadyImported = false;
-
-    Object.defineProperty(this,
-                          'retryCount', {
-                            get: function() {
-                              return this.mobConn.retryCount;
-                            }
-                          });
   },
 
   handleUnlockError: function sm_handleUnlockError(data) {
-    var l10nArgs = {n: data.retryCount};
     switch (data.lockType) {
       case 'pin':
         UIManager.pinInput.value = '';
         UIManager.fakePinInput.value = '';
         UIManager.pinInput.classList.add('onerror');
-        UIManager.pinError.textContent = _('pinError');
+        UIManager.pinError.innerHTML = _('pinErrorMsg');
         UIManager.pinError.classList.remove('hidden');
-        UIManager.pinError.textContent = _('pinAttemptMsg2', l10nArgs);
-        UIManager.pinRetriesLeft.textContent = _('inputCodeRetriesLeft',
-                                                 l10nArgs);
-        if (data.retryCount == 1) {
-          UIManager.pinError.textContent += ' ' + _('pinLastChanceMsg');
-        }
+        UIManager.pinLabel.innerHTML = _('pinAttemptMsg2',
+                                         {n: data.retryCount});
+        if (data.retryCount == 1)
+          UIManager.pinError.innerHTML += _('pinLastChanceMsg');
         break;
       case 'puk':
         UIManager.pukInput.value = '';
         UIManager.fakePukInput.value = '';
         UIManager.pukInput.classList.add('onerror');
-        UIManager.pukError.textContent = _('pukError');
+        UIManager.pukError.innerHTML = _('pukErrorMsg');
         UIManager.pukError.classList.remove('hidden');
         UIManager.pukInfo.classList.add('hidden');
-        UIManager.pukError.textContent = _('pukAttemptMsg2', l10nArgs);
-        UIManager.pukRetriesLeft.textContent = _('inputCodeRetriesLeft',
-                                                 l10nArgs);
-        if (data.retryCount == 1) {
-          UIManager.pukError.textContent += _('pukLastChanceMsg');
-        }
+        UIManager.pukLabel.innerHTML = _('pukAttemptMsg', {n: data.retryCount});
         // TODO what if counter gets to 0 ??
         break;
     }
@@ -105,14 +90,6 @@ var SimManager = {
   accessCallback: null,
 
   showPinScreen: function sm_showScreen() {
-    if (!this.retryCount || this.retryCount === 'undefined') {
-      UIManager.pinRetriesLeft.classList.add('hidden');
-    } else {
-      var l10nArgs = {n: this.retryCount};
-      UIManager.pinRetriesLeft.textContent = _('inputCodeRetriesLeft',
-                                               l10nArgs);
-      UIManager.pinRetriesLeft.classList.remove('hidden');
-    }
     UIManager.activationScreen.classList.remove('show');
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.pincodeScreen.classList.add('show');
@@ -120,19 +97,11 @@ var SimManager = {
   },
 
   showPukScreen: function sm_showPukScreen() {
-    if (!this.retryCount) {
-      UIManager.pukRetriesLeft.classList.add('hidden');
-    } else {
-      var l10nArgs = {n: this.retryCount};
-      UIManager.pukRetriesLeft.textContent = _('inputCodeRetriesLeft',
-                                               l10nArgs);
-      UIManager.pukRetriesLeft.classList.remove('hidden');
-    }
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.activationScreen.classList.remove('show');
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.add('show');
-    UIManager.unlockSimHeader.textContent = _('pukcode');
+    UIManager.unlockSimHeader.innerHTML = _('pukcode');
     UIManager.fakePukInput.focus();
   },
 
@@ -164,7 +133,7 @@ var SimManager = {
   unlockPin: function sm_unlockPin() {
     var pin = UIManager.pinInput.value;
     if (pin.length < 4 || pin.length > 8) {
-      UIManager.pinError.textContent = _('pinValidation');
+      UIManager.pinError.innerHTML = _('pinValidation');
       UIManager.pinInput.classList.add('onerror');
       UIManager.pinError.classList.remove('hidden');
       return;
@@ -183,20 +152,22 @@ var SimManager = {
 
   clearFields: function sm_clearFields() {
     UIManager.pukInput.classList.remove('onerror');
+    UIManager.pukError.innerHTML = '';
     UIManager.pukError.classList.add('hidden');
 
     UIManager.newpinInput.classList.remove('onerror');
+    UIManager.newpinError.innerHTML = '';
     UIManager.newpinError.classList.add('hidden');
 
     UIManager.confirmNewpinInput.classList.remove('onerror');
+    UIManager.confirmNewpinError.innerHTML = '';
     UIManager.confirmNewpinError.classList.add('hidden');
   },
-
   unlockPuk: function sm_unlockPuk() {
     this.clearFields();
     var pukCode = UIManager.pukInput.value;
     if (pukCode.length !== 8) {
-      UIManager.pukError.textContent = _('pukValidation');
+      UIManager.pukError.innerHTML = _('pukValidation');
       UIManager.pukError.classList.remove('hidden');
       UIManager.pukInfo.classList.add('hidden');
       UIManager.pukInput.classList.add('onerror');
@@ -206,14 +177,14 @@ var SimManager = {
     var newpinCode = UIManager.newpinInput.value;
     var confirmNewpin = UIManager.confirmNewpinInput.value;
     if (newpinCode.length < 4 || newpinCode.length > 8) {
-      UIManager.newpinError.textContent = _('pinValidation');
+      UIManager.newpinError.innerHTML = _('pinValidation');
       UIManager.newpinError.classList.remove('hidden');
       UIManager.newpinInput.classList.add('onerror');
       UIManager.newpinError.focus();
       return;
     }
     if (newpinCode != confirmNewpin) {
-      UIManager.confirmNewpinError.textContent = _('newpinConfirmation');
+      UIManager.confirmNewpinError.innerHTML = _('newpinConfirmation');
       UIManager.confirmNewpinError.classList.remove('hidden');
       UIManager.newpinInput.classList.add('onerror');
       UIManager.confirmNewpinInput.classList.add('onerror');
@@ -224,10 +195,9 @@ var SimManager = {
     // Unlock SIM with PUK and new PIN
     var options = {lockType: 'puk', puk: pukCode, newPin: newpinCode };
     var req = this.mobConn.unlockCardLock(options);
-
-    req.onsuccess = (function sm_unlockSuccess() {
+    req.onsuccess = function sm_unlockSuccess() {
       this.hideScreen();
-    }).bind(this);
+    }.bind(this);
   },
 
   importContacts: function sm_importContacts() {
