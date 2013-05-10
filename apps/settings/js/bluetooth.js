@@ -82,6 +82,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       }
 
       var nameEntered = window.prompt(_('change-phone-name'), myName);
+
+      nameEntered = nameEntered.replace(/^\s+|\s+$/g, '');
+
       if (!nameEntered || nameEntered === '' || nameEntered === myName)
         return;
 
