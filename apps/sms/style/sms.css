@@ -522,10 +522,11 @@ form.bottom[role="search"].messages-compose-form {
   font-size: 1.8rem;
 }
 #messages-compose-form .placeholder[contentEditable]:after {
-  color: #666;
+  color: #888;
   position: absolute;
-  top: 0.4em;
-  left: 0.4em;
+  top: 0.8rem;
+  left: 0.8rem;
+  content: attr(placeholder);
 }
 #messages-input .attachment {
   border: none;
