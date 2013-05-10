@@ -207,7 +207,6 @@ function init() {
 // event handlers.
 function initDB() {
   photodb = new MediaDB('pictures', metadataParserWrapper, {
-    mimeTypes: ['image/jpeg', 'image/png'],
     version: 2,
     autoscan: false,     // We're going to call scan() explicitly
     batchHoldTime: 150,  // Batch files during scanning

@@ -1296,7 +1296,16 @@ var MediaDB = (function() {
           next();
         };
         getreq.onsuccess = function() {
-          parseMetadata(getreq.result, f);
+          // We got the filename from a device storage change event and
+          // verified that the filename was not one that we wanted to ignore.
+          // But until now, we haven't had the file and its type to check
+          // against the mimeTypes array. So if necessary we check again.
+          // If the file is not one of the types we're interested in we skip
+          // it. Otherwise, parse its metadata.
+          if (media.mimeTypes && ignore(media, getreq.result))
+            next();
+          else
+            parseMetadata(getreq.result, f);
         };
       }
       else {
