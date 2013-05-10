@@ -11,7 +11,6 @@
 
     _parseId: Calendar.Store.Abstract.prototype.probablyParseInt,
 
-
     verifyAndPersist: function(model, callback) {
       var self = this;
 
@@ -230,10 +229,16 @@
       if (!account._id)
         throw new Error('given account must be persisted');
 
-      account.error = {
-        name: error.name,
-        date: new Date()
-      };
+      if (!account.error) {
+        account.error = {
+          name: error.name,
+          date: new Date(),
+          count: 0
+        };
+      }
+
+      // increment the error count
+      account.error.count++;
 
       var calendarStore = this.db.getStore('Calendar');
       var self = this;

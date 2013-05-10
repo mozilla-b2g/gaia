@@ -62,27 +62,44 @@ suite('store/account', function() {
       model = accounts.one;
     });
 
-    test('authentication error', function(done) {
-      var error = new Calendar.Error.Authentication();
+    suite('marking error', function() {
+      var error;
+      setup(function(done) {
+        error = new Calendar.Error.Authentication();
+        subject.markWithError(model, error, done);
+      });
 
-      subject.markWithError(model, error, function(gotErr) {
-        subject.get(model._id, function(getErr, result) {
-          done(function() {
-            assert.ok(!gotErr, 'is successful');
+      function markedWithError(expectedCount) {
+        expectedCount = expectedCount || 1;
+        test('after erorr mark #' + expectedCount, function(done) {
+          subject.get(model._id, function(getErr, result) {
+            done(function() {
+              assert.ok(!getErr, 'is successful');
+              assert.equal(result.error.count, expectedCount, 'has count');
+              assert.equal(
+                result.error.name,
+                error.name,
+                'model is marked with error'
+              );
 
-            assert.equal(
-              result.error.name,
-              error.name,
-              'model is marked with error'
-            );
-
-            assert.instanceOf(
-              result.error.date,
-              Date,
-              'has date of occurrence'
-            );
+              assert.instanceOf(
+                result.error.date,
+                Date,
+                'has date of occurrence'
+              );
+            });
           });
         });
+      }
+
+      markedWithError(1);
+
+      suite('second mark', function() {
+        setup(function(done) {
+          subject.markWithError(model, error, done);
+        });
+
+        markedWithError(2);
       });
     });
 

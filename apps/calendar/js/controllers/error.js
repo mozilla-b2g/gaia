@@ -16,6 +16,11 @@ Calendar.ns('Controllers').Error = (function() {
     __proto__: Calendar.Responder.prototype,
 
     /**
+     * URL in which account errors are dispatched to.
+     */
+    accountErrorUrl: '/update-account/',
+
+    /**
      * Dispatch an error event.
      *
      * If this type of event has been captured will be dispatched directly to
@@ -43,6 +48,33 @@ Calendar.ns('Controllers').Error = (function() {
     handleAuthenticate: function(account, callback) {
       if (!account)
         return console.error('attempting to trigger reauth without an account');
+
+      // only trigger notification the first time there is an error.
+      if (!account.error || account.error.count !== 1) {
+        return Calendar.nextTick(callback);
+      }
+
+      var lock = navigator.requestWakeLock('cpu');
+
+      var title =
+        navigator.mozL10n.get('notification-error-sync-title');
+
+      var description =
+        navigator.mozL10n.get('notification-error-sync-description');
+
+      var url = this.accountErrorUrl + account._id;
+
+      this.app.loadObject('Notification', function() {
+        Calendar.Notification.send(
+          title,
+          description,
+          url,
+          function() {
+            callback && callback();
+            lock.unlock();
+          }
+        );
+      });
     }
   };
 
