@@ -1,0 +1,38 @@
+#storage-watcher-container {
+  display: none;
+  overflow: hidden;
+}
+
+#storage-watcher-container.displayed {
+  display: block;
+}
+
+#storage-watcher-container > .message
+#storage-watcher-container > .available-space {
+  width: calc(100% - 5.5rem);
+  line-height: 1.9rem;
+}
+
+#storage-watcher-container > .message {
+  margin: 1rem 0 0 5rem;
+  font-size: 1.5rem;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+#storage-watcher-container > .available-space {
+  margin: 0 0 0 5rem;
+  font-size: 1.4rem;
+  color: #bfbfbf;
+  font-weight: 400;
+}
+
+#storage-watcher-container > .icon {
+  float: left;
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  margin: 1.5rem 0.8rem;
+  background-image: url('images/devicestorage.png');
+  background-size: 3rem;
+}
