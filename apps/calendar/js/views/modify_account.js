@@ -1,5 +1,6 @@
 (function(window) {
 
+  var DEFAULT_AUTH_TYPE = 'basic';
   var OAUTH_AUTH_CREDENTIALS = [
     'client_id',
     'scope',
@@ -42,6 +43,13 @@
     },
 
     progressClass: 'in-progress',
+
+    get authenticationType() {
+      if (this.preset && this.preset.authenticationType)
+        return this.preset.authenticationType;
+
+      return DEFAULT_AUTH_TYPE;
+    },
 
     get oauth2Window() {
       return this._findElement('oauth2Window');
@@ -241,18 +249,25 @@
       list.add(this.type);
       list.add('preset-' + this.model.preset);
       list.add('provider-' + this.model.providerType);
+      list.add('auth-' + this.authenticationType);
 
-      if (this.preset && this.preset.authenticationType === 'oauth2') {
-        // show the dialog immediately
-        this.oauth2Window.classList.add(Calendar.View.ACTIVE);
+      if (this.authenticationType === 'oauth2') {
+        if (this.type === 'create') {
 
-        // but lazy load the real objects we need.
-        if (Calendar.OAuthWindow)
-          return this._redirectToOAuthFlow();
+          // show the dialog immediately
+          this.oauth2Window.classList.add(Calendar.View.ACTIVE);
 
-        return Calendar.App.loadObject(
-          'OAuthWindow', this._redirectToOAuthFlow.bind(this)
-        );
+          // but lazy load the real objects we need.
+          if (Calendar.OAuthWindow)
+            return this._redirectToOAuthFlow();
+
+          return Calendar.App.loadObject(
+            'OAuthWindow', this._redirectToOAuthFlow.bind(this)
+          );
+        }
+
+        this.fields.user.disabled = true;
+        this.saveButton.disabled = true;
       }
 
       this.form.reset();
@@ -266,6 +281,10 @@
 
       list.remove('preset-' + this.model.preset);
       list.remove('provider-' + this.model.providerType);
+      list.remove('auth-' + this.authenticationType);
+
+      this.fields.user.disabled = false;
+      this.saveButton.disabled = false;
 
       this._fields = null;
       this.form.reset();
