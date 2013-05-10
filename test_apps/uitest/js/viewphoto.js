@@ -37,7 +37,7 @@ document.getElementById('viewsave').onclick = function() {
       type: 'image/png',
       blob: imageblob,
       allowSave: true,
-      filename: 'downloads/uitests/helloworld.png'
+      filename: 'downloads/uitests/helloworldhello.png'
     }
   });
   a.onsuccess = function() {

@@ -178,6 +178,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   function save() {
     // Hide the menu that holds the save button: we can only save once
     dom.menu.hidden = true;
+    // XXX work around bug 870619
+    dom.videoTitle.textContent = dom.videoTitle.textContent;
 
     getUnusedFilename(storage, data.filename, function(filename) {
       var savereq = storage.addNamed(blob, filename);
