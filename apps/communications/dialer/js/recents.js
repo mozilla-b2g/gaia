@@ -216,11 +216,9 @@ var Recents = {
           this.headerEditModeText.textContent = this._('edit');
           this.deselectSelectedEntries();
           document.body.classList.toggle('recents-edit');
-          this.fitPrimaryInfoToSpace();
           break;
         case 'recents-icon-close': // Exit edit mode with no deletions
           document.body.classList.toggle('recents-edit');
-          this.fitPrimaryInfoToSpace();
           break;
       }
     }
@@ -731,7 +729,6 @@ var Recents = {
     }
     var entryCountNode = logItem.querySelector('.entry-count');
     entryCountNode.innerHTML = (count > 1) ? '&#160;(' + count + ')' : '';
-    this.fitPrimaryInfoToSpace(logItem);
   },
 
   groupCallsInCallLog: function re_groupCallsInCallLog() {
@@ -822,38 +819,6 @@ var Recents = {
       itemsLength = items.length;
     for (var i = 0; i < itemsLength; i++) {
       items[i].classList.remove('highlighted');
-    }
-  },
-
-  fitPrimaryInfoToSpace: function re_fitPrimaryInfoToSpace(logItemNode) {
-    var logItemNodes;
-    if (logItemNode) {
-      logItemNodes = [];
-      logItemNodes.push(logItemNode);
-    } else {
-      logItemNodes = this.recentsContainer.
-        querySelectorAll('.log-item.isContact:not(.hide)');
-    }
-    for (var i = 0; i < logItemNodes.length; i++) {
-      var primaryInfoNode = logItemNodes[i].
-        querySelector('.primary-info');
-      var primaryInfoNodeWidth = primaryInfoNode.clientWidth;
-      var primaryInfoMainNode = logItemNodes[i].
-        querySelector('.primary-info-main');
-      primaryInfoMainNode.style.width = 'auto';
-      var primaryInfoMainNodeCS = window.getComputedStyle(primaryInfoMainNode);
-      var primaryInfoMainNodeWidth = parseInt(primaryInfoMainNodeCS.width);
-      var manyContactsNode = logItemNodes[i].querySelector('.many-contacts');
-      var manyContactsNodeCS = window.getComputedStyle(manyContactsNode);
-      var manyContactsNodeWidth = parseInt(manyContactsNodeCS.width);
-      var entryCountNode = logItemNodes[i].querySelector('.entry-count');
-      var entryCountNodeCS = window.getComputedStyle(entryCountNode);
-      var entryCountNodeWidth = parseInt(entryCountNodeCS.width);
-      if ((primaryInfoMainNodeWidth + manyContactsNodeWidth +
-          entryCountNodeWidth) > primaryInfoNodeWidth) {
-        primaryInfoMainNode.style.width = (primaryInfoNodeWidth -
-          manyContactsNodeWidth - entryCountNodeWidth) + 'px';
-      }
     }
   }
 };
