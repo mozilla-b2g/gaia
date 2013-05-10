@@ -10,10 +10,12 @@ requireApp('sms/js/utils.js');
 requireApp('sms/js/thread_ui.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
-requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_attachment.js');
+requireApp('sms/test/unit/mock_recipients.js');
+requireApp('sms/test/unit/mock_utils.js');
 
 var mocksHelper = new MocksHelper([
+  'Recipients',
   'Utils'
 ]).init();
 
@@ -131,19 +133,18 @@ suite('compose_test.js', function() {
         Compose.append('<br>');
         Compose.append('end');
         var txt = Compose.getContent();
-        assert.equal(txt.length, 2, 'Two lines in txt');
-        assert.equal(txt[0], 'start', 'first line is isolated');
-        assert.equal(txt[1], 'end', 'last line is isolated');
+        assert.equal(txt.length, 1, 'Single text content');
+        assert.equal(txt[0], 'start\nend', 'output includes a line break');
       });
-      test('Trailing line breaks stripped', function() {
+      test('Trailing line breaks not stripped', function() {
         Compose.append('start');
         Compose.append('<br>');
         Compose.append('end');
-        Compose.append(new Array(20).join('<br>'));
+        Compose.append(new Array(5).join('<br>'));
+        var expected = 'start\nend\n\n\n\n';
         var txt = Compose.getContent();
-        assert.equal(txt.length, 2, 'Two lines in txt');
-        assert.equal(txt[0], 'start', 'first line is isolated');
-        assert.equal(txt[1], 'end', 'last line is isolated');
+        assert.equal(txt.length, 1, 'Single text content');
+        assert.equal(txt[0], expected, 'correct content');
       });
       test('Just attachment', function() {
         var attachment = new MockAttachment('image',
@@ -182,10 +183,10 @@ suite('compose_test.js', function() {
         Compose.append(attachment);
         Compose.append('end');
         var txt = Compose.getContent();
-        assert.equal(txt.length, 7, 'Three lines in txt');
-        assert.equal(txt[0], 'start', 'First line is start text');
-        assert.ok(txt[5] instanceof MockAttachment, 'Sub 4 is an attachment');
-        assert.equal(txt[6], 'end', 'Last line is end text');
+        assert.equal(txt.length, 3, 'Three lines in txt');
+        assert.equal(txt[0], 'start\n\n\n\n', 'First line is start text');
+        assert.ok(txt[1] instanceof MockAttachment, 'Sub 1 is an attachment');
+        assert.equal(txt[2], 'end', 'Last line is end text');
       });
       teardown(function() {
         Compose.clear();
