@@ -321,16 +321,21 @@ function updateDialog() {
 // Create a thumbnail item
 //
 function createThumbnailItem(videonum) {
-  var poster;
   var videodata = videos[videonum];
 
   var inner = document.createElement('div');
   inner.className = 'inner';
 
-  if (videodata.metadata.poster) {
-    poster = document.createElement('div');
-    poster.className = 'img';
-    setPosterImage(poster, videodata.metadata.poster);
+  // This  is the image blob we display for the video.
+  // If the video is part-way played, we display the bookmark image.
+  // Otherwise we display the poster image from metadata parsing.
+  var imageblob = videodata.metadata.bookmark || videodata.metadata.poster;
+
+  // This is the element that displays the image blob
+  var poster = document.createElement('div');
+  poster.className = 'img';
+  if (imageblob) {
+    setPosterImage(poster, imageblob);
   }
 
   var details = document.createElement('div');
@@ -352,9 +357,7 @@ function createThumbnailItem(videonum) {
 
   var thumbnail = document.createElement('li');
   thumbnail.className = 'thumbnail';
-  if (poster) {
-    inner.appendChild(poster);
-  }
+  inner.appendChild(poster);
 
   if (!videodata.metadata.watched) {
     var unread = document.createElement('div');
@@ -583,11 +586,6 @@ function showPlayer(videonum, autoPlay) {
     if (autoPlay) {
       play();
     }
-
-    if ('metadata' in currentVideo) {
-      currentVideo.metadata.watched = true;
-      videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
-    }
   }
 
   setVideoUrl(dom.player, currentVideo, function() {
@@ -661,29 +659,53 @@ function hidePlayer(updateMetadata) {
   }
 
   var video = currentVideo;
-  var li = getThumbnailDom(video.name);
+  var thumbnail = getThumbnailDom(video.name);
 
-  // Record current information about played video
-  video.metadata.currentTime = dom.player.currentTime;
-  captureFrame(dom.player, currentVideo.metadata, function(poster) {
-    currentVideo.metadata.poster = poster;
+  // If we reached the end of the video, then currentTime will have gone
+  // back to zero. If that is the case then we want to erase any bookmark
+  // image from the metadata and revert to the original poster image.
+  // Otherwise, if we've stopped in the middle of a video, we need to
+  // capture the current frame to use as a new bookmark. In either case
+  // we call updateMetadata() to update the thumbnail and update this and
+  // other modified metadata.
+  if (dom.player.currentTime === 0) {
+    video.metadata.bookmark = null; // Don't use delete here
+    updateMetadata();
+  }
+  else {
+    captureFrame(dom.player, video.metadata, function(bookmark) {
+      video.metadata.bookmark = bookmark;
+      updateMetadata();
+    });
+  }
 
-    var posterImg = li.querySelector('.img');
-    if (poster && posterImg) {
-      setPosterImage(posterImg, poster);
+  function updateMetadata() {
+    // Update the thumbnail image for this video
+    var posterImg = thumbnail.querySelector('.img');
+    var imageblob = video.metadata.bookmark || video.metadata.poster;
+    if (posterImg && imageblob) {
+      setPosterImage(posterImg, imageblob);
     }
 
-    var unwatched = li.querySelector('.unwatched');
-    if (unwatched) {
-      unwatched.parentNode.removeChild(unwatched);
+    // If this is the first time the video was watched, record that it has
+    // been watched now and update the corresponding document element.
+    if (!video.metadata.watched) {
+      video.metadata.watched = true;
+      var unwatched = thumbnail.querySelector('.unwatched');
+      if (unwatched) {
+        unwatched.parentNode.removeChild(unwatched);
+      }
     }
 
-    // Store the new metadata, but don't wait for it to complete
+    // Remember the current time so we can resume playback at this point
+    video.metadata.currentTime = dom.player.currentTime;
+
+    // Save the new metadata to the db, but don't wait for it to complete
     videodb.updateMetadata(video.name, video.metadata);
 
-    // Go ahead and switch back to the thumbnails now
+    // Finally, we can switch back to the thumbnails now
     completeHidingPlayer();
-  });
+  }
 }
 
 function playerEnded() {
