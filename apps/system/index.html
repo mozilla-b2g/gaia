@@ -237,6 +237,10 @@
     <!-- Shared responsive -->
     <link rel="stylesheet" href="shared/style/responsive.css">
 
+    <!-- Device storage watcher -->
+    <script defer src="js/storage_watcher.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/storage_watcher/storage_watcher.css">
+
     <style>
       /* initlogos style is here to prevent flashing */
 
@@ -346,12 +350,21 @@
 
         <div id="notifications-container">
           <!-- Update Manager -->
-          <div id="update-manager-container" class='fake-notification'>
+          <div id="update-manager-container" class="fake-notification">
             <div class="icon">
             </div>
             <div class="activity">
             </div>
             <div class="message">
+            </div>
+          </div>
+          <!-- Storage watcher notification -->
+          <div id="storage-watcher-container" class="fake-notification">
+            <div class="icon">
+            </div>
+            <div class="message">
+            </div>
+            <div class="available-space">
             </div>
           </div>
           <!-- App Install Manager -->
