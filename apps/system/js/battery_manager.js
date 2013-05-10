@@ -179,6 +179,8 @@ var PowerSaveHandler = (function PowerSaveHandler() {
     'geolocation.enabled' : false
   };
 
+  var _powerSaveEnabledLock = false;
+
   function init() {
     SettingsListener.observe('powersave.enabled', false,
       function sl_getPowerSave(value) {
@@ -229,6 +231,8 @@ var PowerSaveHandler = (function PowerSaveHandler() {
     };
 
     setMozSettings(settingsToSet);
+
+    _powerSaveEnabledLock = false;
   }
 
   function disablePowerSave() {
@@ -241,6 +245,25 @@ var PowerSaveHandler = (function PowerSaveHandler() {
     }
 
     setMozSettings(settingsToSet);
+  }
+
+  function showPowerSavingNotification() {
+    var _ = navigator.mozL10n.get;
+
+    var clickCB = function() {
+      var activityRequest = new MozActivity({
+        name: 'configure',
+        data: {
+          target: 'device',
+          section: 'battery'
+        }
+      });
+    };
+
+    NotificationHelper.send(_('notification-powersaving-mode-on-title'),
+                            _('notification-powersaving-mode-on-description'),
+                            'style/icons/System.png',
+                            clickCB);
   }
 
   function onBatteryChange() {
@@ -257,6 +280,10 @@ var PowerSaveHandler = (function PowerSaveHandler() {
       function getThreshold(value) {
         if (battery.level <= value && !_powerSaveEnabled) {
           setMozSettings({'powersave.enabled' : true});
+          if (!_powerSaveEnabledLock) {
+            showPowerSavingNotification();
+            _powerSaveEnabledLock = true;
+          }
           return;
         }
 
