@@ -586,10 +586,6 @@ a.recommend[role="button"]:active  {
   float: left;
 }
 
-#close-tab[disabled] {
-  display: none;
-}
-
 #try-reloading {
   float: right;
 }

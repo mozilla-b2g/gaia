@@ -343,8 +343,6 @@ var Browser = {
   },
 
   handleCloseTab: function browser_handleCloseTab() {
-    if (Object.keys(this.tabs).length == 1)
-      return;
     this.hideCrashScreen();
     this.deleteTab(this.currentTab.id);
     this.setTabVisibility(this.currentTab, true);
@@ -595,11 +593,6 @@ var Browser = {
   },
 
   showCrashScreen: function browser_showCrashScreen() {
-    if (Object.keys(this.tabs).length > 1) {
-      this.closeTab.removeAttribute('disabled');
-    } else {
-      this.closeTab.setAttribute('disabled', 'disabled');
-    }
     this.crashscreen.style.display = 'block';
   },
 
@@ -1498,6 +1491,15 @@ var Browser = {
     delete this.tabs[id];
     ModalDialog.clear(id);
     AuthenticationDialog.clear(id);
+
+    // If that was the last tab, create a new one and show start screen
+    if (Object.keys(this.tabs).length == 0) {
+      this.selectTab(this.createTab());
+      this.switchScreen(this.PAGE_SCREEN);
+      return;
+    }
+
+    // Otherwise, if closing current tab, switch to another one
     if (this.currentTab && this.currentTab.id === id) {
       // The tab to be selected when the current one is deleted
       var newTab = tabIds.indexOf(id);
@@ -1545,7 +1547,8 @@ var Browser = {
     this.setUrlBar(this.currentTab.title);
     this.updateSecurityIcon();
     this.refreshButtons();
-    if (id == this.FIRST_TAB && this.currentTab.url == null) {
+    // Show start screen if the tab hasn't been navigated
+    if (this.currentTab.url == null) {
       this.showStartscreen();
     } else {
       this.hideStartscreen();
@@ -1568,9 +1571,10 @@ var Browser = {
     this.startscreen.classList.remove('hidden');
     Places.getTopSites(this.MAX_TOP_SITES, null,
       function(places) {
-        this.showTopSiteThumbnails(places);
-        this.loadRemaining();
-      }.bind(this));
+      this.showTopSiteThumbnails(places);
+      this.loadRemaining();
+    }.bind(this));
+    this.bookmarkButton.classList.remove('bookmarked');
   },
 
   _topSiteThumbnailObjectURLs: [],
@@ -1683,7 +1687,6 @@ var Browser = {
     this.hideCurrentTab();
     this.tabsBadge.innerHTML = '';
 
-    var multipleTabs = Object.keys(this.tabs).length > 1;
     var ul = document.createElement('ul');
 
     this.tabsList.innerHTML = '';
@@ -1695,7 +1698,7 @@ var Browser = {
     this._tabScreenObjectURLs = [];
 
     for (var tab in this.tabs) {
-      var li = this.generateTabLi(this.tabs[tab], multipleTabs);
+      var li = this.generateTabLi(this.tabs[tab]);
       ul.appendChild(li);
     }
 
@@ -1706,7 +1709,7 @@ var Browser = {
     this.inTransition = false;
   },
 
-  generateTabLi: function browser_generateTabLi(tab, multipleTabs) {
+  generateTabLi: function browser_generateTabLi(tab) {
     var title = tab.title || tab.url || _('new-tab');
     var a = document.createElement('a');
     var li = document.createElement('li');
@@ -1714,13 +1717,11 @@ var Browser = {
     var preview = document.createElement('div');
     var text = document.createTextNode(title);
 
-    if (multipleTabs) {
-      var close = document.createElement('button');
-      close.appendChild(document.createTextNode('✕'));
-      close.classList.add('close');
-      close.setAttribute('data-id', tab.id);
-      a.appendChild(close);
-    }
+    var close = document.createElement('button');
+    close.appendChild(document.createTextNode('✕'));
+    close.classList.add('close');
+    close.setAttribute('data-id', tab.id);
+    a.appendChild(close);
 
     a.setAttribute('data-id', tab.id);
     preview.classList.add('preview');
@@ -1870,11 +1871,8 @@ var Browser = {
         return;
       }
 
-      // We cant delete the last tab
-      this.deleteable = Object.keys(this.browser.tabs).length > 1;
-      if (!this.deleteable || this.browser.inTransition) {
+      if (this.browser.inTransition)
         return;
-      }
 
       this.tab.classList.add('active');
       this.tab.style.MozTransition = '';
@@ -1883,9 +1881,8 @@ var Browser = {
     },
 
     pan: function tabSwipe_pan(e) {
-      if (!this.deleteable || this.browser.inTransition) {
+      if (this.browser.inTransition)
         return;
-      }
       var movement = Math.min(this.containerWidth,
                               Math.abs(e.detail.absolute.dx));
       if (movement > 0) {
@@ -1911,9 +1908,8 @@ var Browser = {
     },
 
     swipe: function tabSwipe_swipe(e) {
-      if (!this.deleteable || this.browser.inTransition) {
+      if (this.browser.inTransition)
         return;
-      }
 
       var distance = e.detail.start.screenX - e.detail.end.screenX;
       var fastenough = Math.abs(e.detail.vx) > this.TRANSITION_SPEED;
@@ -1952,14 +1948,7 @@ var Browser = {
           // Then delete everything
           browser.deleteTab(id);
           li.parentNode.removeChild(li);
-
-          if (Object.keys(self.browser.tabs).length === 1) {
-            var closeButtons = document.getElementsByClassName('close');
-            Array.forEach(closeButtons, function(el) {
-              el.parentNode.removeChild(el);
-            });
-          }
-
+          browser.updateTabsCount();
         }, true);
         li.style.MozTransition = 'height ' + 100 + 'ms linear';
         li.style.height = '0px';
