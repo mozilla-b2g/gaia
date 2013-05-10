@@ -745,7 +745,7 @@ body.attachment div {
 #messages-to-field {
   display: none;
   text-align: left;
-  min-height: 3.3rem;
+  min-height: 3.5rem;
   overflow: hidden;
   border-bottom: .1rem solid #4d4d4d;
   color: black;
