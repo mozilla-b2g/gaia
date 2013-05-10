@@ -156,7 +156,7 @@ var ThreadUI = global.ThreadUI = {
 
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
-    function header(count) {
+    function recipientsChanged(count) {
       var message = count ?
         (count > 1 ? 'recipient[many]' : 'recipient[one]') :
         'newMessage';
@@ -164,6 +164,9 @@ var ThreadUI = global.ThreadUI = {
       this.headerText.textContent = navigator.mozL10n.get(message, {
         n: count
       });
+
+      // check for enable send whenever recipients change
+      this.enableSend();
     }
 
     if (this.recipients) {
@@ -176,8 +179,8 @@ var ThreadUI = global.ThreadUI = {
         template: this.tmpl.recipient
       });
 
-      this.recipients.on('add', header.bind(this));
-      this.recipients.on('remove', header.bind(this));
+      this.recipients.on('add', recipientsChanged.bind(this));
+      this.recipients.on('remove', recipientsChanged.bind(this));
     }
   },
 
