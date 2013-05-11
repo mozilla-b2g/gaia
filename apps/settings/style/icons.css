@@ -113,7 +113,7 @@
   background-position: -12rem -9rem;
 }
 
-#menuItem-deviceStorage::before {
+#menuItem-applicationStorage::before {
   background-position: 0 -12rem;
 }
 
@@ -348,7 +348,7 @@
   content: "";
   width: 3.3rem;
   height: 3.3rem;
-  background: url(images/privacy_sprite.png) no-repeat 3rem 3rem / 9.6rem;
+  background: url(/shared/resources/branding/privacy_sprite.png) no-repeat 3rem 3rem / 9.6rem;
   position: absolute;
   left: 1.5rem;
   top: 50%;

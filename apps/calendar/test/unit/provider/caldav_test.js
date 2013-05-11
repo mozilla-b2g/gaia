@@ -16,9 +16,6 @@ suiteGroup('Provider.Caldav', function() {
   var componentStore;
   var eventStore;
 
-  var calendar;
-  var account;
-
   setup(function(done) {
     this.timeout(10000);
     app = testSupport.calendar.app();
@@ -28,11 +25,6 @@ suiteGroup('Provider.Caldav', function() {
     subject = new Calendar.Provider.Caldav({
       app: app
     });
-
-    calendar = Factory('calendar', {
-    });
-
-    account = Factory('account', { _id: 'one' });
 
     calendarStore = app.store('Calendar');
     accountStore = app.store('Account');
@@ -133,6 +125,66 @@ suiteGroup('Provider.Caldav', function() {
     });
   });
 
+  suite('#_handleServiceError', function() {
+    var permErrors = [
+      { input: 'caldav-authentication', expect: 'Authentication' },
+      { input: 'caldav-invalid-entrypoint', expect: 'InvalidServer' }
+    ];
+
+    function validatePermError(error) {
+      suite(error.input, function() {
+        var result;
+        var givenErr;
+        var expectedClass;
+
+        setup(function(done) {
+          expectedClass = Calendar.Error[error.expect];
+
+          givenErr = { name: error.input };
+          result = subject._handleServiceError(
+            givenErr,
+            { account: account }
+          );
+
+          accountStore.once('update', function(id, model) {
+            if (id === account._id) {
+              done();
+            }
+          });
+        });
+
+        test('returned value', function() {
+          assert.instanceOf(result, expectedClass);
+        });
+
+        test('updated error', function() {
+          assert.ok(account.error, 'has error');
+
+          assert.equal(
+            account.error.name,
+            (new expectedClass()).name,
+            'marks error with name'
+          );
+        });
+      });
+    }
+
+    permErrors.forEach(validatePermError);
+
+    test('generic error', function() {
+      accountStore.once('update', function() {
+        throw new Error('should not update account store');
+      });
+
+      var result = subject._handleServiceError(
+        { name: 'caldav-server-failure' },
+        { account: account }
+      );
+
+      assert.instanceOf(result, Calendar.Error);
+    });
+  });
+
   suite('#eventCapabilities', function() {
 
     test('recurring', function(done) {
@@ -206,7 +258,49 @@ suiteGroup('Provider.Caldav', function() {
     var calledWith;
     var error;
     var result;
-    var input = { user: 'foo' };
+    var input;
+
+    setup(function() {
+      input = Factory('account');
+    });
+
+    /**
+     * Validate error handling for a given request.
+     *
+     *
+     *    request(validateErrorHandling(done, ['calendar', 'account']));
+     *
+     */
+    function validateErrorHandling(done, fields) {
+      error = { name: 'caldav-authentication' };
+
+      var pending = 2;
+      function next() {
+        --pending;
+        if (pending === 0)
+          Calendar.nextTick(done);
+      }
+
+      // mock out real markWith Error
+      accountStore.markWithError = function() {};
+      var realHandleServiceError = subject._handleServiceError;
+
+      subject._handleServiceError = function(givenErr, detail) {
+        assert.equal(givenErr, error, 'sends error');
+
+        fields.forEach(function(field) {
+          assert.ok(detail[field], 'detail.' + field);
+        });
+
+        next();
+        return realHandleServiceError.apply(this, arguments);
+      };
+
+      return function(cbError) {
+        assert.ok(cbError, 'callback recieves error');
+        next();
+      };
+    }
 
     setup(function() {
       controller.request = function() {
@@ -231,15 +325,10 @@ suiteGroup('Provider.Caldav', function() {
       });
 
       test('error handling', function(done) {
-        error = new Error();
-        error.constructorName = 'CaldavHttpError';
-        error.code = 404;
-        var errorMsg = 'no-url';
-        subject.getAccount(input, function cb(cbError, cbResult) {
-          done(function() {
-            assert.equal(cbError, errorMsg);
-          });
-        });
+        subject.getAccount(
+          input,
+          validateErrorHandling(done, ['account'])
+        );
       });
 
       test('offline handling', function(done) {
@@ -255,6 +344,13 @@ suiteGroup('Provider.Caldav', function() {
     });
 
     suite('#findCalendars', function() {
+      test('error', function(done) {
+        subject.findCalendars(
+          input,
+          validateErrorHandling(done, ['account'])
+        );
+      });
+
       test('success', function(done) {
         result = {
           one: Factory.build('caldav.calendar'),
@@ -302,7 +398,8 @@ suiteGroup('Provider.Caldav', function() {
       var event;
       var id;
 
-      setup(function(done) {
+      setup(function() {
+        error = null;
         event = Factory('event', {
           calendarId: calendar._id
         });
@@ -313,29 +410,40 @@ suiteGroup('Provider.Caldav', function() {
         result.icalComponent = 'xfoo';
 
         id = calendar._id + '-foo';
-
-        subject.createEvent(event, done);
       });
 
-      test('icalComponent', function(done) {
-        componentStore.get(id, function(err, result) {
-          done(function() {
-            assert.deepEqual(result, {
-              eventId: id,
-              ical: 'xfoo'
+      suite('success', function() {
+        setup(function(done) {
+          subject.createEvent(event, done);
+        });
+
+        test('icalComponent', function(done) {
+          componentStore.get(id, function(err, result) {
+            done(function() {
+              assert.deepEqual(result, {
+                eventId: id,
+                ical: 'xfoo'
+              });
             });
+          });
+        });
+
+        test('event', function(done) {
+          eventStore.get(id, function(err, result) {
+            var remote = result.remote;
+            assert.equal(remote.id, 'foo');
+            assert.equal(remote.syncToken, 'hit');
+            assert.ok(!remote.icalComponent, 'does not have icalComponent');
+            done();
           });
         });
       });
 
-      test('event', function(done) {
-        eventStore.get(id, function(err, result) {
-          var remote = result.remote;
-          assert.equal(remote.id, 'foo');
-          assert.equal(remote.syncToken, 'hit');
-          assert.ok(!remote.icalComponent, 'does not have icalComponent');
-          done();
-        });
+      test('error handling', function(done) {
+        subject.createEvent(
+          event,
+          validateErrorHandling(done, ['account', 'calendar'])
+        );
       });
 
       test('offline handling', function(done) {
@@ -378,43 +486,52 @@ suiteGroup('Provider.Caldav', function() {
         componentStore.persist(component, done);
       });
 
-      setup(function(done) {
-        result = Factory.create('event').remote;
-        result.icalComponent = 'xfooo';
-        result.syncToken = 'changedmefoo';
-        subject.updateEvent(event, done);
+      suite('success', function() {
+        setup(function(done) {
+          error = null;
+          result = Factory.create('event').remote;
+          result.icalComponent = 'xfooo';
+          result.syncToken = 'changedmefoo';
+          subject.updateEvent(event, done);
+        });
+
+        test('sent data', function() {
+          var details = calledWith[calledWith.length - 2];
+
+          assert.ok(details.event, 'sends event');
+
+          assert.equal(
+            details.icalComponent,
+            'original',
+            'icalComponent'
+          );
+        });
+
+        test('component', function(done) {
+          componentStore.get(event._id, function(err, item) {
+            done(function() {
+              assert.deepEqual(
+                item,
+                { eventId: event._id, ical: 'xfooo' }
+              );
+            });
+          });
+        });
+
+        test('event', function(done) {
+          eventStore.get(event._id, function(err, item) {
+            done(function() {
+              assert.equal(item.remote.syncToken, result.syncToken);
+            });
+          });
+        });
       });
 
-      test('sent data', function() {
-        var details = calledWith[calledWith.length - 2];
-
-        assert.ok(details.event, 'sends event');
-
-        assert.equal(
-          details.icalComponent,
-          'original',
-          'icalComponent'
+      test('error handling', function(done) {
+        subject.updateEvent(
+          event,
+          validateErrorHandling(done, ['calendar', 'account'])
         );
-      });
-
-      test('component', function(done) {
-        componentStore.get(event._id, function(err, item) {
-          done(function() {
-            assert.deepEqual(
-              item,
-              { eventId: event._id, ical: 'xfooo' }
-            );
-          });
-        });
-      });
-
-      test('event', function(done) {
-        eventStore.get(event._id, function(err, item) {
-          done(function() {
-            assert.equal(item.remote.syncToken, result.syncToken);
-          });
-        });
-
       });
 
       test('offline handling', function(done) {
@@ -431,10 +548,21 @@ suiteGroup('Provider.Caldav', function() {
     });
 
     suite('#deleteEvent', function() {
-      test('success', function(done) {
-        var event = Factory('event', {
+      var event;
+      setup(function() {
+        event = Factory('event', {
           calendarId: calendar._id
         });
+      });
+
+      test('failure', function(done) {
+        subject.deleteEvent(
+          event,
+          validateErrorHandling(done, ['account', 'calendar'])
+        );
+      });
+
+      test('success', function(done) {
 
         subject.deleteEvent(event, function() {
           done(function() {
@@ -526,8 +654,6 @@ suiteGroup('Provider.Caldav', function() {
   });
 
   suite('#syncEvents', function() {
-    var account;
-    var calendar;
     var events = [];
 
     var calledWith;
@@ -555,18 +681,9 @@ suiteGroup('Provider.Caldav', function() {
         'readwrite'
       );
 
-      account = Factory('account', {
-        providerType: 'Caldav'
-      });
-
-      calendar = Factory('calendar');
-
       trans.oncomplete = function() {
         done();
       };
-
-      accountStore.persist(account, trans);
-      calendarStore.persist(calendar, trans);
     });
 
     suite('sync with cached events', function() {
@@ -636,11 +753,17 @@ suiteGroup('Provider.Caldav', function() {
 
   suite('#_syncEvents', function() {
     var calledWith;
-    var account;
-    var calendar;
     var cached = {};
+    var error;
+
+    setup(function(done) {
+      // add an error to calendar to simulate clearing the error
+      calendar.error = {};
+      calendarStore.persist(calendar, done);
+    });
 
     setup(function() {
+      error = null;
       subject.service.stream = function() {
         var args = Array.slice(arguments);
 
@@ -654,13 +777,31 @@ suiteGroup('Provider.Caldav', function() {
         calledWith = args;
         var stream = new Calendar.Responder();
         stream.request = function(callback) {
-          setTimeout(callback, 0, null);
+          setTimeout(callback, 0, error);
         };
         return stream;
       };
+    });
 
-      account = Factory('account');
-      calendar = Factory('calendar');
+    test('with error', function(done) {
+      error = { name: 'caldav-authentication' };
+
+      function oncomplete(cbErr) {
+        done(function() {
+          assert.instanceOf(cbErr, Calendar.Error.Authentication);
+          assert.deepEqual(cbErr.detail, {
+            account: account,
+            calendar: calendar
+          });
+        });
+      }
+
+      subject._syncEvents(
+        account,
+        calendar,
+        cached,
+        oncomplete
+      );
     });
 
     suite('with first syncDate', function() {
@@ -681,6 +822,10 @@ suiteGroup('Provider.Caldav', function() {
           startDate: expectedDate,
           cached: cached
         };
+
+
+        // simulate error clearing
+        calendar.error = {};
 
         var pull = subject._syncEvents(
           account,
@@ -711,6 +856,8 @@ suiteGroup('Provider.Caldav', function() {
 
           calendarStore.get(calendar._id, function(err, result) {
             done(function() {
+              assert.ok(!result.error, 'clears errors');
+
               assert.equal(
                 result.lastEventSyncToken,
                 result.remote.syncToken,

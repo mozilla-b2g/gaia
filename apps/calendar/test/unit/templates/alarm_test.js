@@ -8,9 +8,10 @@ suiteGroup('Templates.Alarm', function() {
     subject = Calendar.Templates.Alarm;
   });
 
-  function renderDescription(trigger) {
+  function renderDescription(trigger, layout) {
     return subject.description.render({
-      trigger: trigger
+      trigger: trigger,
+      layout: layout
     });
   }
 
@@ -40,6 +41,47 @@ suiteGroup('Templates.Alarm', function() {
         /None/.test(renderDescription('none'))
       );
     });
+
+    test('single unit rendered', function() {
+      assert.equal(
+        '1 hour before', renderDescription(-5400)
+      );
+    });
+  });
+
+  suite('#all day event alarms', function() {
+    test('trigger equal to system default\'s on day of event', function() {
+      assert.equal('On day of event', renderDescription(32400, 'allday'));
+    });
+
+    test('trigger equal to 9 hours before event', function() {
+      assert.equal('9 hours before', renderDescription(-32400, 'allday'));
+    });
+
+    test('trigger equal to 1 day before', function() {
+      assert.equal('1 day before', renderDescription(-54000, 'allday'));
+    });
+
+    test('trigger equal to 1 day after', function() {
+      assert.equal('1 day after', renderDescription(86400, 'allday'));
+    });
+
+    test('trigger equal to 2 days before', function() {
+      assert.equal('2 days before', renderDescription(-140400, 'allday'));
+    });
+
+    test('trigger equal to 1 week before', function() {
+      assert.equal('1 week before', renderDescription(-572400, 'allday'));
+    });
+
+    test('trigger equal to 2 weeks before', function() {
+      assert.equal('2 weeks before', renderDescription(-1177200, 'allday'));
+    });
+
+    test('trigger equal to 30 minutes', function() {
+      assert.equal('30 minutes before', renderDescription(-1800, 'allday'));
+    });
+
   });
 
 });

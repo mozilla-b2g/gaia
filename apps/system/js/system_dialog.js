@@ -60,7 +60,8 @@ function SystemDialog(id, options) {
         updateHeight();
         break;
       case 'keyboardchange':
-        updateHeight(evt.detail.height);
+        var keyboardHeight = KeyboardManager.getHeight();
+        updateHeight(keyboardHeight);
         break;
       case 'home':
       case 'holdhome':

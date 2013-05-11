@@ -3,9 +3,22 @@
   const NEXT_TICK = 'calendar-next-tick';
   var nextTickStack = [];
 
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
+
   window.Calendar = {
 
+    ERROR: 'error',
     DEBUG: false,
+
+    extend: function(target, input) {
+      for (var key in input) {
+        if (hasOwnProperty.call(input, key)) {
+          target[key] = input[key];
+        }
+      }
+
+      return target;
+    },
 
     /**
      * Very similar to node's nextTick.

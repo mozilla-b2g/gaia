@@ -52,7 +52,7 @@ var PhoneLock = {
     // If the pseudo-input loses focus, then allow the user to restore focus
     // by touching the container around the pseudo-input.
     var self = this;
-    this.passcodeContainer.addEventListener('mousedown', function(evt) {
+    this.passcodeContainer.addEventListener('click', function(evt) {
       self.passcodeInput.focus();
       evt.preventDefault();
     });

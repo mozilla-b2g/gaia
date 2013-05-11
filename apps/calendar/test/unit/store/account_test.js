@@ -40,6 +40,76 @@ suite('store/account', function() {
     assert.deepEqual(subject._cached, {});
   });
 
+  suite('#markWithError', function() {
+    var errEvent;
+    var accounts = testSupport.calendar.dbFixtures(
+      'account',
+      'Account', {
+        one: { _id: 55, providerType: 'Mock' }
+      }
+    );
+
+    var calendars = testSupport.calendar.dbFixtures(
+      'calendar',
+      'Calendar', {
+        one: { _id: 'one', accountId: 55 },
+        two: { _id: 'two', accountId: 55 }
+      }
+    );
+
+    var model;
+    setup(function() {
+      model = accounts.one;
+    });
+
+    test('authentication error', function(done) {
+      var error = new Calendar.Error.Authentication();
+
+      subject.markWithError(model, error, function(gotErr) {
+        subject.get(model._id, function(getErr, result) {
+          done(function() {
+            assert.ok(!gotErr, 'is successful');
+
+            assert.equal(
+              result.error.name,
+              error.name,
+              'model is marked with error'
+            );
+
+            assert.instanceOf(
+              result.error.date,
+              Date,
+              'has date of occurrence'
+            );
+          });
+        });
+      });
+    });
+
+    suite('dependant calendars', function() {
+      var err;
+      setup(function(done) {
+        err = new Calendar.Error.Authentication();
+        subject.markWithError(model, err, done);
+      });
+
+      function verifyCalendar(key) {
+        test('ensure calendar is marked: ' + key, function(done) {
+          app.store('Calendar').get(key, function(getErr, result) {
+            done(function() {
+              assert.ok(result, 'has calendar');
+              assert.ok(result.error, 'sets error');
+              assert.equal(result.error.name, err.name, 'sets error');
+            });
+          });
+        });
+      }
+
+      verifyCalendar('one');
+      verifyCalendar('two');
+    });
+  });
+
   suite('#availablePresets', function() {
     var presetAccount;
     var presets = {
@@ -125,6 +195,34 @@ suite('store/account', function() {
       };
     });
 
+    suite('existing account', function() {
+      setup(function(done) {
+        model.error = {};
+        subject.persist(model, done);
+      });
+
+      // bug 870512
+      test('should be able to update', function(done) {
+        result = {};
+        model.password = 'new';
+        subject.verifyAndPersist(model, function(err, data) {
+          if (err) {
+            return done(err);
+          }
+          subject.get(model._id, function(getErr, result) {
+            if (getErr) {
+              return done(err);
+            }
+
+            done(function() {
+              assert.equal(result.password, 'new', 'updates pass');
+              assert.ok(!result.error, 'clears errors');
+            });
+          });
+        });
+      });
+    });
+
     // mock out the provider
     test('when verify fails', function(done) {
       error = new Error('bad stuff');
@@ -146,6 +244,19 @@ suite('store/account', function() {
           assert.equal(data.domain, result.domain);
           assert.equal(data.entrypoint, result.entrypoint);
           assert.equal(data.calendarHome, result.calendarHome);
+        });
+      });
+    });
+
+    test('persist + oauth change', function(done) {
+      model.oauth = { code: 'xxx' };
+      result = Factory('caldav.account', {
+        oauth: { refresh_token: 'xxx' }
+      });
+
+      subject.verifyAndPersist(model, function(err, id, data) {
+        done(function() {
+          assert.equal(data.oauth, result.oauth);
         });
       });
     });
@@ -288,7 +399,8 @@ suite('store/account', function() {
 
       cals.update = Factory('calendar', {
         accountId: account._id,
-        remote: { name: 'update' }
+        remote: { name: 'update' },
+        error: {}
       });
     });
 
@@ -385,6 +497,8 @@ suite('store/account', function() {
         Calendar.Models.Calendar,
         'should update cache'
       );
+
+      assert.ok(!remoteUpdate.error, 'removes error');
 
       assert.equal(
         remoteUpdate.remote.description,

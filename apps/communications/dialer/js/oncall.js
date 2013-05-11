@@ -53,7 +53,7 @@ var CallScreen = {
                                 OnCallHandler.toggleCalls);
 
     // If the phone is locked, show as an locked-style at very first.
-    if (window.location.hash === '#locked') {
+    if ((window.location.hash === '#locked') && !this.screen.dataset.layout) {
       CallScreen.render('incoming-locked');
     }
     if (navigator.mozSettings) {
@@ -169,7 +169,7 @@ var OnCallHandler = (function onCallHandler() {
 
   /* === Settings === */
   var activePhoneSound = null;
-  SettingsListener.observe('ring.enabled', true, function(value) {
+  SettingsListener.observe('audio.volume.notification', 7, function(value) {
     activePhoneSound = !!value;
     if (ringing && activePhoneSound) {
       ringtonePlayer.play();
@@ -190,7 +190,7 @@ var OnCallHandler = (function onCallHandler() {
   // Setting up the SimplePhoneMatcher
   var conn = window.navigator.mozMobileConnection;
   if (conn && conn.voice && conn.voice.network && conn.voice.network.mcc) {
-    SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
+    SimplePhoneMatcher.mcc = conn.voice.network.mcc;
   }
 
   var ringtonePlayer = new Audio();
@@ -524,7 +524,11 @@ var OnCallHandler = (function onCallHandler() {
         endAndAnswer();
         break;
       case 'CHLD+ATA':
-        holdAndAnswer();
+        if (telephony.calls.length === 1) {
+          holdOrResumeSingleCall();
+        } else {
+          holdAndAnswer();
+        }
         break;
       default:
         var partialCommand = message.substring(0, 3);
@@ -604,10 +608,23 @@ var OnCallHandler = (function onCallHandler() {
 
   function toggleCalls() {
     if (handledCalls.length < 2) {
+      holdOrResumeSingleCall();
       return;
     }
 
     telephony.active.hold();
+  }
+
+  function holdOrResumeSingleCall() {
+    if (handledCalls.length !== 1) {
+      return;
+    }
+
+    if (telephony.active) {
+      telephony.active.hold();
+    } else {
+      telephony.calls[0].resume();
+    }
   }
 
   function ignore() {

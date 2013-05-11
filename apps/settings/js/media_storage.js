@@ -11,245 +11,443 @@
  * In this case, the user has to unplug the USB cable in order to actually turn
  * off UMS, and we put some text to that effect on the settings screen.
  */
+const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
+const ITEM_TYPE = ['music', 'pictures', 'videos', 'free'];
+
+var Volume = function(index, name, storages) {
+  this.index = index;
+  this.name = name;
+  this.storages = storages;
+  this.rootElement = null;  //<ul></ul>
+  this.stackedbar = null;
+};
+
+// This function will create a view for each volume under #volume-list,
+// the DOM structure looks like:
+//
+//<header>
+//  <h2 data-l10n-id="storage-name-sdcard">Internal Storage</h2>
+//</header>
+//<ul>
+//  <li>
+//    <div id="sdcard-space-stackedbar" class="space-stackedbar">
+//      <!-- stacked bar for displaying the amounts of media type usages -->
+//    </div>
+//  </li>
+//  <li class="color-music">
+//    <span class="stackedbar-color-label"></span>
+//    <a data-l10n-id="music-space">Music
+//      <span class="size"></span>
+//    </a>
+//  </li>
+//  <li class="color-pictures">
+//    <span class="stackedbar-color-label"></span>
+//    <a data-l10n-id="pictures-space">Pictures
+//      <span class="size"></span>
+//    </a>
+//  </li>
+//  <li class="color-videos">
+//    <span class="stackedbar-color-label"></span>
+//    <a data-l10n-id="videos-space">Videos
+//      <span class="size"></span>
+//    </a>
+//  </li>
+//  <li class="color-free">
+//    <span class="stackedbar-color-label"></span>
+//    <a data-l10n-id="free-space">Space left
+//      <span class="size"></span>
+//    </a>
+//  </li>
+//  <li>
+//    <label>
+//      <input type="checkbox" data-type="switch"
+//        name="ums.volume.sdcard.enabled" />
+//      <span></span>
+//    </label>
+//    <a data-l10n-id="share-using-usb">Share using USB</a>
+//  </li>
+//</ul>
+
+Volume.prototype.createView = function volume_createView(listRoot) {
+  var _ = navigator.mozL10n.get;
+  // create header
+  var h2 = document.createElement('h2');
+  var l10nId = 'storage-name-' + this.index;
+  h2.dataset.l10nId = l10nId;
+  h2.textContent = _(l10nId);
+  var header = document.createElement('header');
+  header.appendChild(h2);
+  listRoot.appendChild(header);
+  // create ul
+  this.rootElement = document.createElement('ul');
+  listRoot.appendChild(this.rootElement);
+
+  var stackedbarDiv = document.createElement('div');
+  stackedbarDiv.id = this.name + '-space-stackedbar';
+  stackedbarDiv.classList.add('space-stackedbar');
+  var li = document.createElement('li');
+  li.appendChild(stackedbarDiv);
+  this.rootElement.appendChild(li);
+  this.stackedbar = StackedBar(stackedbarDiv);
+
+  var self = this;
+  ITEM_TYPE.forEach(function(type) {
+    var label = document.createElement('span');
+    label.classList.add('stackedbar-color-label');
+    var size = document.createElement('span');
+    size.classList.add('size');
+    var text = document.createElement('a');
+    var l10nId = type + '-space';
+    text.dataset.l10nId = l10nId;
+    text.textContent = _(l10nId);
+    text.appendChild(size);
+    var li = document.createElement('li');
+    li.classList.add('color-' + type);
+    li.appendChild(label);
+    li.appendChild(text);
+    self.rootElement.appendChild(li);
+  });
+
+  var input = document.createElement('input');
+  input.type = 'checkbox';
+  input.dataset.type = 'switch';
+  input.name = 'ums.volume.' + this.name + '.enabled';
+  var span = document.createElement('span');
+  var label = document.createElement('label');
+  label.appendChild(input);
+  label.appendChild(span);
+  var text = document.createElement('a');
+  text.dataset.l10nId = 'share-using-usb';
+  text.textContent = _('share-using-usb');
+
+  var ele = document.createElement('li');
+  ele.appendChild(label);
+  ele.appendChild(text);
+  this.rootElement.appendChild(ele);
+};
+
+Volume.prototype.updateStorageInfo = function volume_updateStorageInfo() {
+  // Update the storage details
+  var self = this;
+  this.stackedbar.reset();
+  this.getStats(function(sizes) {
+    ITEM_TYPE.forEach(function(type) {
+      var element = self.rootElement.querySelector('.color-' + type + ' .size');
+      DeviceStorageHelper.showFormatedSize(element, 'storageSize', sizes[type]);
+      self.stackedbar.add({ 'type': type, 'value': sizes[type] });
+    });
+    self.stackedbar.refreshUI();
+  });
+};
+
+Volume.prototype.getStats = function volume_getStats(callback) {
+  var results = {};
+  var current = MEDIA_TYPE.length;
+  var storages = this.storages;
+  MEDIA_TYPE.forEach(function(type) {
+    var storage = storages[type];
+    storage.usedSpace().onsuccess = function(e) {
+      results[type] = e.target.result;
+      current--;
+      if (current == 0) {
+        storage.freeSpace().onsuccess = function(e) {
+          results['free'] = e.target.result;
+          if (callback)
+            callback(results);
+        };
+      }
+    };
+  });
+};
+
+Volume.prototype.updateInfo = function volume_updateInfo(callback) {
+  var self = this;
+  var availreq = this.storages.sdcard.available();
+  availreq.onsuccess = function availSuccess(evt) {
+    var state = evt.target.result;
+    switch (state) {
+      case 'shared':
+        self.setInfoUnavailable();
+        break;
+      case 'unavailable':
+        self.setInfoUnavailable();
+        break;
+      case 'available':
+        self.updateStorageInfo();
+        break;
+    }
+    if (callback)
+      callback(state);
+  };
+};
+
+Volume.prototype.setInfoUnavailable = function volume_setInfoUnavailable() {
+  var self = this;
+  var _ = navigator.mozL10n.get;
+  ITEM_TYPE.forEach(function(type) {
+    var rule = '.color-' + type + ' .size';
+    var element = self.rootElement.querySelector(rule);
+    element.textContent = _('size-not-available');
+    element.dataset.l10nId = 'size-not-available';
+  });
+  this.stackedbar.reset();
+};
 
 var MediaStorage = {
-  init: function mediaStorage_init() {
-    this.deviceStorage = navigator.getDeviceStorage('pictures');
+  init: function ms_init() {
+    this._volumeList = this.initAllVolumeObjects();
+
     this.documentStorageListener = false;
     this.updateListeners();
 
-    window.addEventListener('localized', this);
-
+    this.usmEnabledVolume = {};
+    this.umsVolumeShareState = false;
     // Use mozvisibilitychange so that we don't get notified of device
     // storage notifications when the settings app isn't visible.
     document.addEventListener('mozvisibilitychange', this);
-  },
-
-  initUI: function mediaStorage_initUI() {
-    this.umsEnabledCheckBox = document.querySelector('[name="ums.enabled"]');
+    this.umsEnabledCheckBox = document.getElementById('ums-switch');
     this.umsEnabledInfoBlock = document.getElementById('ums-desc');
-    if (!this.umsEnabledCheckBox || !this.umsEnabledInfoBlock)
-      return;
+    this.umsEnabledCheckBox.addEventListener('change', this);
+    this.registerUmsListener();
 
-    // The normal handling of the checkboxes in the settings is done through a
-    // 'change' event listener in settings.js
-    this.umsEnabledCheckBox.onchange = function umsEnabledChanged() {
-      MediaStorage.updateInfo();
-    };
-    stackedBar.init('space-stackedbar');
+    var self = this;
+    var umsSettingKey = 'ums.enabled';
+    Settings.getSettings(function(allSettings) {
+      self.umsEnabledCheckBox.checked = allSettings[umsSettingKey] || false;
+      self.updateMasterUmsDesc();
+    });
+    Settings.mozSettings.addObserver(umsSettingKey, function(evt) {
+      self.umsEnabledCheckBox.checked = evt.settingValue;
+      self.updateMasterUmsDesc();
+    });
+
+    this.defaultMediaLocation = document.getElementById('defaultMediaLocation');
+    this.defaultMediaLocation.addEventListener('click', this);
+    this.makeDefaultLocationMenu();
+
+    window.addEventListener('localized', this);
+
     this.updateInfo();
   },
 
-  handleEvent: function mediaStorage_handleEvent(evt) {
+  initAllVolumeObjects: function ms_initAllVolumeObjects() {
+    var volumes = {};
+    MEDIA_TYPE.forEach(function(type) {
+      var storages = navigator.getDeviceStorages(type);
+      storages.forEach(function(storage) {
+        var name = storage.storageName;
+        if (!volumes.hasOwnProperty(name)) {
+          volumes[name] = {};
+        }
+        volumes[name][type] = storage;
+      });
+    });
+    var _ = navigator.mozL10n.get;
+    var volumeList = [];
+    var volumeListRootElement = document.getElementById('volume-list');
+    for (var name in volumes) {
+      var volume = new Volume(volumeList.length, name, volumes[name]);
+      volume.createView(volumeListRootElement);
+      volumeList.push(volume);
+    }
+    return volumeList;
+  },
+
+  registerUmsListener: function ms_registerUmsListener() {
+    var self = this;
+    var settings = Settings.mozSettings;
+    this._volumeList.forEach(function(volume) {
+      var key = 'ums.volume.' + volume.name + '.enabled';
+      Settings.getSettings(function(allSettings) {
+        var input = document.querySelector('input[name="' + key + '"]');
+        input.checked = allSettings[key] || false;
+        self.usmEnabledVolume[volume.index] = input.checked;
+        self.updateMasterUmsDesc();
+      });
+      settings.addObserver(key, function(evt) {
+        self.usmEnabledVolume[volume.index] = evt.settingValue;
+        self.updateMasterUmsDesc();
+      });
+    });
+  },
+
+  updateMasterUmsDesc: function ms_updateMasterUmsDesc() {
+    var _ = navigator.mozL10n.get;
+    if (this.umsEnabledCheckBox.checked) {
+      var list = [];
+      for (var id in this.usmEnabledVolume) {
+        if (this.usmEnabledVolume[id]) {
+          list.push(_('short-storage-name-' + id));
+        }
+      }
+      if (list.length === 0) {
+        this.umsEnabledInfoBlock.textContent = _('enabled');
+        this.umsEnabledInfoBlock.dataset.l10nId = 'enabled';
+      } else {
+        var desc = _('ums-shared-volumes', { list: list.join(', ') });
+        this.umsEnabledInfoBlock.textContent = desc;
+        this.umsEnabledInfoBlock.dataset.l10nId = '';
+      }
+    } else if (this.umsVolumeShareState) {
+      this.umsEnabledInfoBlock.textContent = _('umsUnplugToDisable');
+      this.umsEnabledInfoBlock.dataset.l10nId = 'umsUnplugToDisable';
+    } else {
+      this.umsEnabledInfoBlock.textContent = _('disabled');
+      this.umsEnabledInfoBlock.dataset.l10nId = 'disabled';
+    }
+  },
+
+  handleEvent: function ms_handleEvent(evt) {
     switch (evt.type) {
       case 'localized':
         this.updateInfo();
         break;
       case 'change':
-        switch (evt.reason) {
-          case 'available':
-          case 'unavailable':
-          case 'shared':
-            this.updateInfo();
-            break;
+        if (evt.target.id === 'ums-switch') {
+          Storage.umsMasterSettingChanged(evt);
+        } else {
+          // we are handling storage state changes
+          // possible state: available, unavailable, shared
+          this.updateInfo();
         }
         break;
+      case 'click':
+        this.changeDefaultStorage();
+        break;
       case 'mozvisibilitychange':
-        this.updateListeners();
+        this.updateListeners(this.updateInfo.bind(this));
         break;
     }
   },
 
-  updateListeners: function mediaStorage_updateListeners() {
+  makeDefaultLocationMenu: function ms_makeDefaultLocationMenu() {
+    var _ = navigator.mozL10n.get;
+    var self = this;
+    var defaultMediaVolumeKey = 'device.storage.writable.name';
+    Settings.getSettings(function(allSettings) {
+      var defaultName = allSettings[defaultMediaVolumeKey];
+      var selectionMenu = self.defaultMediaLocation;
+      var selectedIndex = 0;
+      self._volumeList.forEach(function(volume, index) {
+        var option = document.createElement('option');
+        option.value = volume.name;
+        var l10nId = 'short-storage-name-' + volume.index;
+        option.dataset.l10nId = l10nId;
+        option.textContent = _(l10nId);
+        selectionMenu.appendChild(option);
+        if (defaultName && volume.name === defaultName) {
+          selectedIndex = index;
+        }
+      });
+      var selectedOption = selectionMenu.options[selectedIndex];
+      selectedOption.selected = true;
+
+      // update fake selection button content
+      var button = selectionMenu.previousElementSibling;
+      button.textContent = selectedOption.textContent;
+      button.dataset.l10nId = selectedOption.dataset.l10nId;
+
+      // disable option menu if we have only one option
+      if (self._volumeList.length === 1) {
+        selectionMenu.disabled = true;
+        var obj = {};
+        obj[defaultMediaVolumeKey] = selectedOption.value;
+        Settings.mozSettings.createLock().set(obj);
+      }
+    });
+  },
+  changeDefaultStorage: function ms_changeDefaultStorage() {
+    //Pop up a confirm window before listing options.
+    var popup = document.getElementById('default-location-popup-container');
+    var cancelBtn = document.getElementById('default-location-cancel-btn');
+    var changeBtn = document.getElementById('default-location-change-btn');
+
+    this.defaultMediaLocation.blur();
+    var self = this;
+    popup.hidden = false;
+    cancelBtn.onclick = function() {
+      popup.hidden = true;
+    };
+    changeBtn.onclick = function() {
+      popup.hidden = true;
+      setTimeout(function() {
+        self.defaultMediaLocation.focus();
+      });
+    };
+  },
+
+  updateListeners: function ms_updateListeners(callback) {
+    var self = this;
     if (document.mozHidden) {
       // Settings is being hidden. Unregister our change listener so we won't
       // get notifications whenever files are added in another app.
       if (this.documentStorageListener) {
-        this.deviceStorage.removeEventListener('change', this);
+        this._volumeList.forEach(function(volume) {
+          // use sdcard storage to represent this volume
+          var volumeStorage = volume.storages.sdcard;
+          volumeStorage.removeEventListener('change', self);
+        });
         this.documentStorageListener = false;
       }
     } else {
       if (!this.documentStorageListener) {
-        this.deviceStorage.addEventListener('change', this);
+        this._volumeList.forEach(function(volume) {
+          // use sdcard storage to represent this volume
+          var volumeStorage = volume.storages.sdcard;
+          volumeStorage.addEventListener('change', self);
+        });
         this.documentStorageListener = true;
       }
-      this.updateInfo();
+      if (callback && document.location.hash === '#mediaStorage')
+        callback();
     }
   },
 
-  updateInfo: function mediaStorage_updateInfo() {
+  updateInfo: function ms_updateInfo() {
     var self = this;
-
-    var availreq = this.deviceStorage.available();
-    availreq.onsuccess = function mediaStorage_availSuccess(evt) {
-      var _ = navigator.mozL10n.get;
-      var state = evt.target.result;
-
-      var infoBlock = self.umsEnabledInfoBlock;
-      if (infoBlock) {
-         if (self.umsEnabledCheckBox.checked) {
-           infoBlock.textContent = _('enabled');
-         } else if (state === 'shared') {
-           infoBlock.textContent = _('umsUnplugToDisable');
-         } else {
-           infoBlock.textContent = _('disabled');
-         }
-      }
-
-      var mediaSubtitle = document.getElementById('media-storage-desc');
-      switch (state) {
-        case 'shared':
-          mediaSubtitle.textContent = '';
-          mediaSubtitle.dataset.l10nId = '';
-          // Keep the media storage enabled,
-          // so that the user goes inside to toggle USB Mass storage.
-          self.setEnabledState(true);
-          self.setInfoInvalid();
-          break;
-
-        case 'unavailable':
-          mediaSubtitle.textContent = _('no-storage');
-          mediaSubtitle.dataset.l10nId = 'no-storage';
-          self.setEnabledState(false);
-          self.setInfoInvalid();
-          break;
-
-        case 'available':
-          self.setEnabledState(true);
-          self.updateStorageInfo();
-          break;
-      }
-    };
-  },
-
-  setEnabledState: function mediaStorage_setEnabledState(enabled) {
-    var mediaStorageSection = document.getElementById('media-storage-section');
-    if (!mediaStorageSection)
-      return;
-    if (enabled) {
-      mediaStorageSection.classList.remove('disabled');
-    } else {
-      mediaStorageSection.classList.add('disabled');
-    }
-  },
-
-  setInfoInvalid: function mediaStorage_setInfoInvalid() {
-    var _ = navigator.mozL10n.get;
-
-    // clear the space info when it is disabled
-    var idList = ['#music-space .size', '#pictures-space .size',
-      '#videos-space .size', '#media-free-space .size'];
-    idList.forEach(function clearSpace(id) {
-      var element = document.querySelector(id);
-      if (element) {
-        element.textContent = _('size-not-available');
-      }
-    });
-  },
-
-  updateStorageInfo: function mediaStorage_updateStorageInfo() {
-    var _ = navigator.mozL10n.get;
-    function formatSize(element, size, l10nId) {
-      if (!element)
-        return;
-
-      if (size === undefined || isNaN(size)) {
-        element.textContent = '';
-        return;
-      }
-
-      // KB - 3 KB (nearest ones), MB, GB - 1.2 MB (nearest tenth)
-      var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
-      var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
-
-      element.textContent = _(l10nId || 'storageSize', {
-        size: sizeInfo.size,
-        unit: _('byteUnit-' + sizeInfo.unit)
+    this.umsVolumeShareState = false;
+    this._volumeList.forEach(function(volume) {
+      volume.updateInfo(function(state) {
+        if (state === 'shared') {
+          self.umsVolumeShareState = true;
+        }
+        self.updateMasterUmsDesc();
       });
-    }
-
-    DeviceStorageHelper.getFreeSpace(function(freeSize) {
-      var element = document.getElementById('media-storage-desc');
-      formatSize(element, freeSize, 'availableSize');
-    });
-
-    // XXX https://bugzilla.mozilla.org/show_bug.cgi?id=844709
-    // if the sub-menu hasn't been loaded because of lazy-loading
-    // we don't need to update these fields
-    var element = document.querySelector('#music-space .size');
-    if (!element)
-      return;
-
-    // Update the storage details
-    stackedBar.reset();
-    DeviceStorageHelper.getStats(['music', 'pictures', 'videos'],
-      function(sizes) {
-        formatSize(element, sizes['music']);
-        stackedBar.add(new StackBarItem('music', sizes['music']));
-
-        element = document.querySelector('#pictures-space .size');
-        formatSize(element, sizes['pictures']);
-        stackedBar.add(new StackBarItem('pictures', sizes['pictures']));
-
-        element = document.querySelector('#videos-space .size');
-        formatSize(element, sizes['videos']);
-        stackedBar.add(new StackBarItem('videos', sizes['videos']));
-
-        element = document.querySelector('#media-free-space .size');
-        formatSize(element, sizes['free']);
-        stackedBar.add(new StackBarItem('free', sizes['free']));
-
-        stackedBar.refreshUI();
     });
   }
 };
 
-function StackBarItem(id, value) {
+var StackedBar = function(div) {
+  var container = div;
+  var items = [];
+  var totalSize = 0;
 
-  this.id = id;
+  return {
+    add: function sb_add(item) {
+      totalSize += item.value;
+      items.push(item);
+    },
 
-  this.value = value;
+    refreshUI: function sb_refreshUI() {
+      container.parentNode.hidden = false;
+      items.forEach(function(item) {
+        var className = 'color-' + item.type;
+        var ele = container.querySelector('.' + className);
+        if (!ele)
+          ele = document.createElement('span');
+        ele.classList.add(className);
+        ele.classList.add('stackedbar-item');
+        ele.style.width = (item.value * 100) / totalSize + '%';
+        container.appendChild(ele);
+      });
+    },
 
-}
-
-var stackedBar = {
-  _targetId: null,
-  _items: [],
-  _total: 0,
-
-  _initUI: function sb_initui(targetId) {
-    this._targetId = targetId;
-  },
-
-  init: function sb_init(targetId) {
-    this._initUI(targetId);
-  },
-
-  add: function sb_add(item) {
-    this._total = this._total + item.value;
-    this._items.push(item);
-  },
-
-  refreshUI: function sb_refreshUI() {
-    var container = document.getElementById(this._targetId);
-    if (!container)
-      return;
-    for (var i = 0; i < this._items.length; i++) {
-      var item = document.getElementById('stackedbar-item-' +
-          this._items[i].id);
-      if (!item)
-        item = document.createElement('span');
-      item.className = 'stackedbar-item';
-      item.id = 'stackedbar-item-' + this._items[i].id;
-      item.style.width = (this._items[i].value * 100) / this._total + '%';
-      container.appendChild(item);
+    reset: function sb_reset() {
+      items = [];
+      totalSize = 0;
+      container.parentNode.hidden = true;
     }
-  },
-
-  reset: function sb_reset() {
-    this._items = [];
-    this._total = 0;
-  }
+  };
 };
 
 navigator.mozL10n.ready(MediaStorage.init.bind(MediaStorage));

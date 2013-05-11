@@ -2,10 +2,10 @@
 .fixed-title-import {
   position: absolute;
   top: 5rem;
-  left: 1.5rem;
-  right: 2.5rem;
-  height: 1.8rem;
-  padding: 0.5rem 1.5rem;
+  left: 2rem;
+  right: 2.7rem;
+  height: 2.3rem;
+  padding: 0.5rem 0 0 1rem;
   z-index: 6;
   background-repeat: no-repeat;
   background-color: #f4f4f4;
@@ -13,8 +13,7 @@
   text-align: left;
   color: #FF5F19;
   font-size: 1.6rem;
-  line-height: 1.8rem;
-  border-bottom: 0.1rem solid #FF5F19;
+  border-bottom: 1px solid #FF5F19;
   pointer-events: none;
 }
 

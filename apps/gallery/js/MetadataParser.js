@@ -8,9 +8,11 @@
 // This file depends on JPEGMetadataParser.js and blobview.js
 //
 var metadataParser = (function() {
-  // If we generate our own thumbnails, aim for this size
-  var THUMBNAIL_WIDTH = 120;
-  var THUMBNAIL_HEIGHT = 120;
+  // If we generate our own thumbnails, aim for this size.
+  // Calculate needed size from longer side of the screen.
+  var THUMBNAIL_WIDTH = Math.round(
+                          Math.max(window.innerWidth, window.innerHeight) / 4);
+  var THUMBNAIL_HEIGHT = THUMBNAIL_WIDTH;
 
   // Don't try to decode image files of unknown type if bigger than this
   var MAX_UNKNOWN_IMAGE_FILE_SIZE = .5 * 1024 * 1024; // half a megabyte

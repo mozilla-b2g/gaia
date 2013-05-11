@@ -549,6 +549,32 @@ suite('system/UpdateManager', function() {
     });
 
     suite('container visibility', function() {
+      var checkThreshold;
+      var mutationsCount;
+      var mutationsCountThreshold;
+
+      function onMutations(mutations) {
+        mutationsCount += mutations.length;
+        if (checkThreshold) {
+          checkThreshold();
+        }
+      }
+
+      /* |done| is called when the threshold is reached */
+      function waitForMutationsThreshold(done) {
+        if (mutationsCount < mutationsCountThreshold) {
+          checkThreshold = function checkThreshold(mutations) {
+            if (mutationsCount >= mutationsCountThreshold) {
+              done();
+            }
+          };
+        } else {
+          done();
+        }
+      }
+
+      var observer = new MutationObserver(onMutations);
+
       suiteSetup(function() {
         UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = tinyTimeout;
         UpdateManager.TOASTER_TIMEOUT = tinyTimeout;
@@ -560,23 +586,38 @@ suite('system/UpdateManager', function() {
       });
 
       setup(function() {
+        var config = {
+          attributes: true,
+          attributeFilter: ['class'],
+          attributeOldValue: true // not necessary but good for debugging
+        };
+
+        mutationsCount = 0;
+        mutationsCountThreshold = 0; // default, override in nested suites/tests
+        observer.observe(UpdateManager.container, config);
+        observer.observe(UpdateManager.toaster, config);
         UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
       });
 
       teardown(function(done) {
-        /* We wait for all actions to happen in UpdateManager before reseting.
-           To prevent intermittent oranges from timeout inaccuracies due
-           to slow CI hardware we let an extra "tinyTimeout" (so 3 it is) go
-           by. */
-        setTimeout(function() {
+        waitForMutationsThreshold(function() {
+          observer.disconnect();
+          checkThreshold = null;
+          mutationsCount = 0;
           done();
-        }, tinyTimeout * 3);
+        });
       });
 
       suite('notification behavior after addToDownloadsQueue', function() {
         setup(function() {
           var css = UpdateManager.container.classList;
           UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
+
+          // we should have 2 changes:
+          // * display the container
+          // * set the container "downloading"
+          // we do not display the toaster if we're downloading
+          mutationsCountThreshold = 2;
         });
 
         test('should be displayed only once', function() {
@@ -587,7 +628,7 @@ suite('system/UpdateManager', function() {
             1);
         });
 
-        test('should not be displayed after timeout', function(done) {
+        test('should not be displayed again after timeout', function(done) {
           setTimeout(function() {
             var css = UpdateManager.container.classList;
             assert.isTrue(css.contains('displayed'));
@@ -610,6 +651,12 @@ suite('system/UpdateManager', function() {
               UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
               done();
             });
+
+            // we should have 2 changes:
+            // * display the container
+            // * set the container "downloading"
+            // we do not display the toaster if we're downloading
+            mutationsCountThreshold = 2;
           });
 
         test('should not increment the counter if already displayed',
@@ -627,6 +674,12 @@ suite('system/UpdateManager', function() {
         setup(function() {
           var css = UpdateManager.container.classList;
           assert.isFalse(css.contains('displayed'));
+
+          // we should have 3 changes:
+          // * display the container
+          // * display the toaster
+          // * remove the toaster
+          mutationsCountThreshold = 3;
         });
 
         test('should display after a timeout', function(done) {
@@ -651,6 +704,9 @@ suite('system/UpdateManager', function() {
             assert.isFalse(css.contains('displayed'));
             done();
           }, tinyTimeout * 2);
+
+          // no mutations at all here
+          mutationsCountThreshold = 0;
         });
 
         test('should display an updated count', function(done) {
@@ -1024,6 +1080,66 @@ suite('system/UpdateManager', function() {
       test('should leave the updates available', function() {
         assert.equal(UpdateManager.updatesQueue.length, 2);
       });
+
+      suite('_dataConnectionWarningEnabled should not be affected by' +
+        'canceling downloads', function() {
+        let systemUpdatable;
+
+        setup(function() {
+          systemUpdatable = new MockSystemUpdatable();
+          UpdateManager.updatableApps = updatableApps;
+          [systemUpdatable, uAppWithDownloadAvailable].forEach(
+            function(updatable) {
+              UpdateManager.addToUpdatesQueue(updatable);
+              UpdateManager.addToDownloadsQueue(updatable);
+            });
+        });
+
+        test('_dataConnectionWarningEnabled should be true if it was true',
+          function() {
+            UpdateManager._dataConnectionWarningEnabled = true;
+            UpdateManager.cancelAllDownloads();
+            assert.isTrue(UpdateManager._dataConnectionWarningEnabled);
+        });
+
+        test('_dataConnectionWarningEnabled should be false if it was false',
+          function() {
+            UpdateManager._dataConnectionWarningEnabled = false;
+            UpdateManager.cancelAllDownloads();
+            assert.isFalse(UpdateManager._dataConnectionWarningEnabled);
+        });
+      });
+    });
+
+    suite('downloaded', function() {
+      var updatableApp, downloadDialog;
+
+      setup(function() {
+        var installedApp = new MockApp();
+        updatableApp = new MockAppUpdatable(installedApp);
+        UpdateManager.updatableApps = [updatableApp];
+        UpdateManager.init();
+        downloadDialog = UpdateManager.downloadDialog;
+      });
+
+      test('should handle downloaded when started using data connection',
+        function() {
+          UpdateManager._startedDownloadUsingDataConnection = true;
+          UpdateManager.downloaded(updatableApp);
+          assert.isFalse(UpdateManager._startedDownloadUsingDataConnection);
+          assert.isFalse(UpdateManager._dataConnectionWarningEnabled);
+          assert.equal(downloadDialog.dataset.dataConnectionInlineWarning,
+            'true');
+      });
+
+      test('should handle downloaded when started using wifi', function() {
+        UpdateManager._startedDownloadUsingDataConnection = false;
+        UpdateManager.downloaded(updatableApp);
+        assert.isFalse(UpdateManager._startedDownloadUsingDataConnection);
+        assert.isTrue(UpdateManager._dataConnectionWarningEnabled);
+        assert.equal(downloadDialog.dataset.dataConnectionInlineWarning,
+          'false');
+      });
     });
 
     suite('download prompt', function() {
@@ -1039,7 +1155,8 @@ suite('system/UpdateManager', function() {
         UpdateManager.updatesQueue = [hostedAppUpdatable, appUpdatable,
                                       systemUpdatable];
         UpdateManager.containerClicked();
-        UpdateManager._isDataConnectionWarningDialogEnabled = true;
+        UpdateManager._dataConnectionWarningEnabled = true;
+        UpdateManager._startedDownloadUsingDataConnection = false;
         UpdateManager.downloadDialog.dataset.nowifi = false;
       });
 
@@ -1111,17 +1228,7 @@ suite('system/UpdateManager', function() {
         };
 
         UpdateManager.requestDownloads(evt);
-        MockasyncStorage.getItem(
-          'gaia.system.isDataConnectionWarningDialogEnabled',
-          function(value) {
-            assert.isFalse(value);
-          });
-        assert.isFalse(UpdateManager._isDataConnectionWarningDialogEnabled);
-        assert.equal(
-          UpdateManager.downloadDialog.dataset.dataConnectionInlineWarning,
-          'true');
-
-        MockasyncStorage.mTeardown();
+        assert.isTrue(UpdateManager._startedDownloadUsingDataConnection);
       });
 
       test('should handle clicking download when using data connection ' +
@@ -1151,6 +1258,7 @@ suite('system/UpdateManager', function() {
 
         UpdateManager.requestDownloads(evt);
         assert.isTrue(calledToMockStartDownloads);
+        assert.isFalse(UpdateManager._startedDownloadUsingDataConnection);
 
         UpdateManager.startDownloads = realStartDownloadsFunc;
       });

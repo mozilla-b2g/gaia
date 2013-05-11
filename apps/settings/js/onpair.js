@@ -92,6 +92,15 @@ var PairView = {
     window.close();
   },
 
+  closeInput: function() {
+    if (!this.pinInputItem.hidden) {
+      this.pinInput.blur();
+    }
+    if (!this.passkeyInputItem.hidden) {
+      this.passkeyInput.blur();
+    }
+  },
+
   handleEvent: function pv_handleEvent(evt) {
     var _ = navigator.mozL10n.get;
     if (!evt.target)

@@ -82,6 +82,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       }
 
       var nameEntered = window.prompt(_('change-phone-name'), myName);
+
+      nameEntered = nameEntered.replace(/^\s+|\s+$/g, '');
+
       if (!nameEntered || nameEntered === '' || nameEntered === myName)
         return;
 
@@ -469,8 +472,10 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         }
       } else {
         // if the attention screen still open, close it
-        if (childWindow)
+        if (childWindow) {
+          childWindow.PairView.closeInput();
           childWindow.close();
+        }
         // display failure only when active request
         if (pairingMode === 'active' && !userCanceledPairing) {
           // show pair process fail.

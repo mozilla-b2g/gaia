@@ -57,6 +57,7 @@
     <!-- shared helper library -->
     <!--<script defer src="shared/js/mouse_event_shim.js"></script>-->
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
+    <!--<script defer src="shared/js/async_storage.js"></script>-->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
@@ -161,6 +162,7 @@
     </section>
 
     <!-- Connectivity :: Wi-Fi :: Join Hidden Network -->
+    <!-- option "WPA-EAP" in Security is temporarily removed as per Bug 869843. -->
     <section role="region" id="wifi-joinHidden">
       <!--
       <header>
@@ -185,7 +187,6 @@
                 <option data-l10n-id="securityNone">none</option>
                 <option>WEP</option>
                 <option selected>WPA-PSK</option>
-                <option>WPA-EAP</option>
               </select>
             </p>
           </li>
@@ -663,7 +664,7 @@
       -->
     </section>
 
-    <!-- Connectivity :: Cellular & Data :: MMS Settings -->
+    <!-- Connectivity :: Cellular & Data :: Message Settings -->
     <section role="region" id="carrier-mmsSettings">
       <!--
       <header>
@@ -671,10 +672,52 @@
         <menu type="toolbar">
           <button type="submit"><span data-l10n-id="ok">OK</span></button>
         </menu>
-        <h1 data-l10n-id="mmsSettings"> MMS Settings </h1>
+        <h1 data-l10n-id="messageSettings"> Message Settings </h1>
       </header>
 
       <div>
+        <header>
+          <h2 data-l10n-id="text-message-confirmation"> Text message confirmation </h2>
+        </header>
+        <ul id="text-message-list">
+          <li class="hint">
+            <label>
+              <input type="checkbox" data-type="switch" data-setting="dom.sms.requestStatusReport"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="delivery-reports"> Delivery reports </a>
+            <p class="explanation" data-l10n-id="delivery-reports-details">Request notification of delivery for each message sent</p>
+          </li>
+        </ul>
+        <header>
+          <h2 data-l10n-id="mmsTitle"> Multimedia messaging (MMS) </h2>
+        </header>
+        <ul class="mmsSettings-list">
+          <li class="hint">
+            <a data-l10n-id="auto-retrieve">Auto retrieve</a>
+            <p class="explanation" data-l10n-id="auto-retrieve-details">automatically retieve messages</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select data-setting="ril.mms.retrieval_mode">
+                <option value="manual" data-l10n-id="manual-retrieve">Off</option>
+                <option value="automatic" data-l10n-id="auto-roaming-retrieve">On with roaming</option>
+                <option value="automatic-home" data-l10n-id="auto-no-roaming-retrieve">On without roaming/option>
+              </select>
+            </p>
+          </li>
+        </ul>
+        <header>
+          <h2 data-l10n-id="apnSettings"> APN Settings </h2>
+        </header>
+        <ul class="apnSettings-list">
+          <li class="apnSettings-custom">
+            <label>
+              <input type="radio" data-setting="ril.mms.carrier" name="mmsApnSettingsCarrier" value="_custom_" checked />
+              <span></span>
+            </label>
+            <a data-l10n-id="custom">(custom settings)</a>
+          </li>
+        </ul>
         <header>
           <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
         </header>
@@ -833,22 +876,21 @@
           <h2 data-l10n-id="dataConnectivity"> Data Connectivity </h2>
         </header>
         <ul>
-          <li class="hint">
+          <li>
             <label>
               <input type="checkbox" data-type="switch" name="ril.data.enabled" class="uninit"/>
               <span></span>
             </label>
             <small id="dataConnection-desc"></small>
             <a data-l10n-id="dataConnection">Data Connection</a>
-            <p id="dataConnection-expl" class="explanation" data-l10n-id="dataConnection-warning-message" hidden></p>
           </li>
-          <li class="hint">
+          <li id="dataConnection-expl" class="explanation" data-l10n-id="dataConnection-warning-message" hidden></li>
+          <li>
             <label>
               <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled" class="uninit"/>
               <span></span>
             </label>
             <a data-l10n-id="dataRoaming">Data Roaming</a>
-            <p id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden></p>
           </li>
           <li>
             <small id="msisdn-desc"></small>
@@ -862,6 +904,7 @@
             <small id="simid-desc"></small>
             <a data-l10n-id="simid">SIM Card Network ID</a>
           </li>
+          <li id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden></li>
         </ul>
 
         <header>
@@ -880,10 +923,10 @@
                 data-l10n-id="dataSettings">Data Settings</button>
             </label>
           </li>
-          <li hidden>
+          <li>
             <label>
               <button data-href="#carrier-mmsSettings"
-                data-l10n-id="mmsSettings">MMS Settings</button>
+                data-l10n-id="messageSettings">Message Settings</button>
             </label>
           </li>
           <li>
@@ -895,7 +938,6 @@
         </ul>
       </div>
 
-      <script src="shared/js/async_storage.js"></script>
       <script defer src="js/carrier.js"></script>
       -->
     </section>
@@ -967,7 +1009,6 @@
         </menu>
       </form>
 
-      <script src="shared/js/async_storage.js"></script>
       <script src="js/bluetooth.js"></script>
       -->
     </section>
@@ -1643,7 +1684,7 @@
             <span id="messageBody">3 tries left.</span>
           </div>
 
-          <div id="inputCodeRetriesLeft" data-l10-id="inputCodeRetriesLeft">
+          <div id="triesLeft" data-l10-id="inputCodeRetriesLeft">
             3 tries left
           </div>
 
@@ -2324,9 +2365,9 @@
               </select>
             </p>
           </li>
-          <li class="description" data-l10n-id="powerSave-expl">
+          <li class="description" data-l10n-id="powerSave-explanation">
             Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and
-            GPS connections to extend battery life. You can still turn these
+            Geolocation connections to extend battery life. You can still turn these
             services back on manually.
           </li>
         </ul>
@@ -2335,17 +2376,14 @@
     </section>
 
     <!-- Device :: Device Storage -->
-    <section role="region" id="deviceStorage">
+    <section role="region" id="applicationStorage">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="deviceStorage"> Device Storage </h1>
+        <h1 data-l10n-id="appStorage"> Application Storage </h1>
       </header>
 
       <div>
-        <header>
-          <h2 data-l10n-id="appStorage">Application Storage</h2>
-        </header>
         <ul>
           <li>
             <progress id="apps-space-bar" min="0" value="0" max="100"></progress>
@@ -2372,6 +2410,7 @@
           </li>
         </ul>
       </div>
+      <script src="js/app_storage.js"></script>
       -->
     </section>
 
@@ -2386,48 +2425,43 @@
       <div>
         <ul>
           <li>
-            <div id="space-stackedbar"></div>
-          </li>
-          <li id="music-space">
-            <span class="stackedbar-color"></span>
-            <a data-l10n-id="music-space"> Music
-              <span class="size"></span>
-            </a>
-          </li>
-          <li id="pictures-space">
-            <span class="stackedbar-color"></span>
-            <a data-l10n-id="pictures-space"> Pictures
-              <span class="size"></span>
-            </a>
-          </li>
-          <li id="videos-space">
-            <span class="stackedbar-color"></span>
-            <a data-l10n-id="videos-space"> Movies
-              <span class="size"></span>
-            </a>
-          </li>
-          <li id="media-free-space">
-            <span class="stackedbar-color"></span>
-            <a data-l10n-id="left-space"> Space Left
-              <span class="size"></span>
-            </a>
+            <label>
+              <input id="ums-switch" type="checkbox" data-type="switch" data-ignore />
+              <span></span>
+            </label>
+            <small id="ums-desc">Disabled</small>
+            <a data-l10n-id="enableUSBStorage">Enable USB storage</a>
           </li>
         </ul>
-
+        <div id="volume-list">
+        </div>
         <header>
           <h2 data-l10n-id="advanced">Advanced</h2>
         </header>
         <ul>
           <li>
-            <label>
-              <input type="checkbox" name="ums.enabled"/>
-              <span></span>
-            </label>
-            <small id="ums-desc"> </small>
-            <a data-l10n-id="usbMassStorage">USB mass storage</a>
+            <p data-l10n-id="default-media-location">Default media location</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select id="defaultMediaLocation" name="device.storage.writable.name">
+              </select>
+            </p>
+          </li>
+          <li data-l10n-id="default-media-location-msg" class="explanation">
+            Choose where photos, videos, music and downloads are stored by default.
           </li>
         </ul>
       </div>
+      <form data-type="confirm" role="dialog" id="default-location-popup-container" hidden>
+        <section>
+          <p>Changing the default media storage volume will effect where photos, videos, downloads and other media will be saved to by default. Existing data will remain in its current location.</p>
+        </section>
+        <menu>
+          <button id="default-location-cancel-btn">Cancel</button>
+          <button id="default-location-change-btn">Change</button>
+        </menu>
+      </form>
+      <script src="js/media_storage.js"></script>
       -->
     </section>
 
@@ -2473,9 +2507,9 @@
           <li class="description" data-l10n-id="crash-reports-description-1"></li>
           <li class="description" data-l10n-id="crash-reports-description-2"></li>
           <li>
-            <label for="" class="description">
+            <p class="description">
               <span data-l10n-id="crash-reports-description-3-start"></span><a href="https://www.mozilla.org/privacy/" data-l10n-id="crash-reports-description-3-privacy" class="link-text"></a><span data-l10n-id="crash-reports-description-3-end"></span>
-            </label>
+            </p>
           </li>
         </ul>
       </div>
@@ -2504,12 +2538,12 @@
         </header>
         <ul>
           <li>
-            <label for="" class="description">
+            <p class="description">
               <span data-l10n-id="performanceDataInfo">
                 Help us improve Browser OS by sharing data about your phone.
               </span>
               <a href="http://mozilla.org/telemetry" data-l10n-id="learn-more" class="link-text">Learn More</a>
-            </label>
+            </p>
           </li>
           <li>
             <label>
@@ -2525,13 +2559,13 @@
         </header>
         <ul>
           <li>
-            <label for="" class="description">
+            <p class="description">
               <span data-l10n-id="crashReportInfo">
                 Sending Mozilla a report when a crash occurs helps us fix the problem
                 for everyone. Reports are sent over Wi-Fi only.
               </span>
               <a href="#crashReports" data-l10n-id="learn-more" class="link-text">Learn More</a>
-            </label>
+            </p>
           </li>
           <li>
             <label>
@@ -2584,12 +2618,8 @@
               <button data-l10n-id="user-guide"> User Guide </button>
             </label>
           </li>
-          <li class="no-support-info">
-            <label for="" class="description">
-              <span data-l10n-id="default-support">
-                Please contact your local provider for support.
-              </span>
-            </label>
+          <li class="no-support-info description" data-l10n-id="default-support">
+            Please contact your local provider for support.
           </li>
         </ul>
       </div>
@@ -2663,7 +2693,7 @@
               <input type="checkbox" data-type="switch" name="geolocation.enabled" class="uninit"/>
               <span></span>
             </label>
-            <a id="menuItem-gps" class="menu-item" data-l10n-id="gps">GPS</a>
+            <a id="menuItem-gps" class="menu-item" data-l10n-id="geolocation">Geolocation</a>
           </li>
           <li>
             <small id="wifi-desc" class="menu-item-desc" data-l10n-id="fullStatus-disconnected">offline</small>
@@ -2751,6 +2781,28 @@
             <a id="menuItem-doNotTrack" class="menu-item" href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
           </li>
         </ul>
+        <!-- Main :: Storage -->
+        <header>
+          <h2 data-l10n-id="storage">Storage</h2>
+        </header>
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" id="ums-switch-root" data-type="switch" data-ignore />
+              <span></span>
+            </label>
+            <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
+            <a class="menu-item" data-l10n-id="enableUSBStorage">Enable USB storage</a>
+          </li>
+          <li>
+            <small id="application-storage-desc" class="menu-item-desc"></small>
+            <a id="menuItem-applicationStorage" class="menu-item" href="#applicationStorage" data-l10n-id="appStorage">Application Storage</a>
+          </li>
+          <li id="media-storage-section">
+            <small id="media-storage-desc" class="menu-item-desc"></small>
+            <a id="menuItem-mediaStorage" class="menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
+          </li>
+        </ul>
 
         <!-- Main :: Device -->
         <header>
@@ -2763,14 +2815,6 @@
           <li>
             <small id="battery-desc" class="menu-item-desc"></small>
             <a id="menuItem-battery" class="menu-item" href="#battery" data-l10n-id="battery">Battery</a>
-          </li>
-          <li>
-            <small id="device-storage-desc" class="menu-item-desc"></small>
-            <a id="menuItem-deviceStorage" class="menu-item" href="#deviceStorage" data-l10n-id="deviceStorage">Device Storage</a>
-          </li>
-          <li id="media-storage-section">
-            <small id="media-storage-desc" class="menu-item-desc"></small>
-            <a id="menuItem-mediaStorage" class="menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
           </li>
           <li hidden>
             <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>

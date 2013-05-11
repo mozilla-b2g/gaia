@@ -31,6 +31,21 @@ PRODUCTION?=0
 GAIA_OPTIMIZE?=0
 HIDPI?=*
 DOGFOOD?=0
+TEST_AGENT_PORT?=8789
+
+# Enable compatibility to run in Firefox Desktop
+BROWSER?=$(DEBUG)
+# Disable first time experience screen
+NOFTU?=0
+# Automatically enable remote debugger
+REMOTE_DEBUGGER?=0
+
+# We also disable FTU when running in Firefox or in debug mode
+ifeq ($(DEBUG),1)
+NOFTU=1
+else ifeq ($(BROWSER),1)
+NOFTU=1
+endif
 
 LOCAL_DOMAINS?=1
 
@@ -276,9 +291,6 @@ webapp-manifests: install-xulrunner-sdk
 # Generate profile/webapps/APP/application.zip
 webapp-zip: stamp-commit-hash install-xulrunner-sdk
 ifneq ($(DEBUG),1)
-	@rm -rf apps/system/camera
-	@cp -r apps/camera apps/system/camera
-	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
 	@$(call run-js-command, webapp-zip)
 endif
@@ -394,6 +406,7 @@ define run-js-command
 	const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)$(SEP)profile"; \
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
+	const BROWSER = $(BROWSER);                                           \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
@@ -443,10 +456,13 @@ applications-data: install-xulrunner-sdk
 # Generate profile/extensions
 EXT_DIR=profile/extensions
 extensions:
-	@mkdir -p profile
 	@rm -rf $(EXT_DIR)
-ifeq ($(DEBUG),1)
-	cp -r tools/extensions $(EXT_DIR)
+	@mkdir -p $(EXT_DIR)
+ifeq ($(BROWSER),1)
+	cp -r tools/extensions/* $(EXT_DIR)/
+else ifeq ($(DEBUG),1)
+	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
+	cp -r tools/extensions/httpd $(EXT_DIR)/
 endif
 	@echo "Finished: Generating extensions"
 
@@ -569,15 +585,15 @@ endif
 test-agent-test:
 ifneq ($(strip $(APP)),)
 	@echo 'Running tests for $(APP)';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER) $(APP_TEST_LIST)
+	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
 else
 	@echo 'Running all tests';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER)
+	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
 endif
 
 .PHONY: test-agent-server
 test-agent-server: common-install
-	$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent server -c ./$(TEST_AGENT_DIR)/test-agent-server.js --http-path . --growl
+	$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./$(TEST_AGENT_DIR)/test-agent-server.js --http-path . --growl
 
 .PHONY: marionette
 marionette:
@@ -611,7 +627,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext' -x 'homescreen/js/hiddenapps.js,settings/js/hiddenapps.js'
+	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext' -x 'calendar/js/presets.js,homescreen/js/hiddenapps.js,settings/js/hiddenapps.js'
 	@gjslint --nojsdoc -r shared/js -e 'phoneNumberJS'
 
 # Generate a text file containing the current changeset of Gaia
@@ -622,7 +638,7 @@ stamp-commit-hash:
 	@(if [ -e gaia_commit_override.txt ]; then \
 		cp gaia_commit_override.txt apps/settings/resources/gaia_commit.txt; \
 	elif [ -d ./.git ]; then \
-		git log -1 --format="%H%n%at" HEAD > apps/settings/resources/gaia_commit.txt; \
+		git log -1 --format="%H%n%ct" HEAD > apps/settings/resources/gaia_commit.txt; \
 	else \
 		echo 'Unknown Git commit; build date shown here.' > apps/settings/resources/gaia_commit.txt; \
 		date +%s >> apps/settings/resources/gaia_commit.txt; \
@@ -649,29 +665,6 @@ forward:
 	$(ADB) shell touch $(MSYS_FIX)/data/local/rilproxyd
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
-
-
-# update the manifest.appcache files to match what's actually there
-update-offline-manifests:
-	for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
-	do \
-		rm -rf $$d/manifest.appcache ;\
-		if [ -f $$d/manifest.webapp ] ;\
-		then \
-			echo \\t$$d ;  \
-			( cd $$d ; \
-			echo "CACHE MANIFEST" > manifest.appcache ;\
-			cat `find * -type f | sort -nfs` | $(MD5SUM) | cut -f 1 -d ' ' | sed 's/^/\#\ Version\ /' >> manifest.appcache ;\
-			find * -type f | grep -v tools | sort >> manifest.appcache ;\
-			$(SED_INPLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
-			echo "http://$(GAIA_DOMAIN)$(GAIA_PORT)/webapi.js" >> manifest.appcache ;\
-			echo "NETWORK:" >> manifest.appcache ;\
-			echo "http://*" >> manifest.appcache ;\
-			echo "https://*" >> manifest.appcache ;\
-			) ;\
-		fi \
-	done
-
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use:
@@ -765,9 +758,7 @@ endif
 
 ifeq ($(DEBUG),1)
 SETTINGS_ARG += --homescreen=http://homescreen.$(GAIA_DOMAIN):$(GAIA_PORT)/manifest.webapp
-SETTINGS_ARG += --noftu
 endif
-
 
 # We want the console to be disabled for device builds using the user variant.
 ifneq ($(TARGET_BUILD_VARIANT),user)

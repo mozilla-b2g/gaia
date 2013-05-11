@@ -59,6 +59,7 @@
   padding: 0 1.5rem 1rem;
 }
 
+#modify-account-view form li,
 #modify-account-view form li input {
   font-size: 1.7rem;
 }
@@ -66,4 +67,51 @@
 
 #remove-account-dialog {
   display: none;
+}
+
+#modify-account-view .sync-errors,
+#modify-account-view .oauth2-sign-in {
+  display: none;
+}
+
+#modify-account-view.auth-oauth2.error .sync-errors,
+#modify-account-view.auth-oauth2.error .oauth2-sign-in {
+  display: block;
+}
+
+#modify-account-view .sync-errors p {
+  margin: 0;
+  height: 3rem;
+  background: transparent url('icons/accountwarning_30x30.png') no-repeat left top;
+  padding-left: 3.5rem;
+  line-height: 3rem;
+}
+
+#modify-account-view.auth-oauth2 .save,
+#modify-account-view.auth-oauth2 .password {
+  display: none;
+}
+
+#oauth2 {
+  display: none;
+  z-index: 1000000;
+  background: white;
+}
+
+#oauth2.active {
+  display: block;
+}
+
+#oauth2 .browser-container {
+  width: 100%;
+  /* -5rem for the header */
+  height: calc(100% - 4rem);
+}
+
+#oauth2 .browser-container > iframe {
+  padding: 0;
+  margin: 0;
+  border: none;
+  height: 100%;
+  width: 100%;
 }

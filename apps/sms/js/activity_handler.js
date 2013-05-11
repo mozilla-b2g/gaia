@@ -3,7 +3,27 @@
 
 'use strict';
 
-function showThreadFromSystemMessage(number, body) {
+function handleMessageNotification(options) {
+  //Validate if message still exists before opening message thread
+  //See issue https://bugzilla.mozilla.org/show_bug.cgi?id=837029
+  if ((!options) || (!options.id)) {
+    return;
+  }
+  var message = navigator.mozSms.getMessage(options.id);
+  message.onerror = function onerror() {
+    alert(navigator.mozL10n.get('deleted-sms'));
+  };
+  message.onsuccess = function onsuccess() {
+    showThreadFromSystemMessage(options);
+  };
+}
+
+function showThreadFromSystemMessage(options) {
+  if (!options) {
+    return;
+  }
+  var number = options.number ? options.number : null;
+  var body = options.body ? options.body : null;
   var showAction = function act_action(number) {
     // If we only have a body, just trigger a new message.
     if (!number && body) {
@@ -69,8 +89,11 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
     return;
   MessageManager.lockActivity = true;
   activity.postResult({ status: 'accepted' });
-  showThreadFromSystemMessage(activity.source.data.number,
-                              activity.source.data.body);
+  var options = {
+    number: activity.source.data.number,
+    body: activity.source.data.body
+  };
+  showThreadFromSystemMessage(options);
 });
 
 /* === Incoming SMS support === */
@@ -79,14 +102,15 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 if (!window.location.hash.length) {
   window.navigator.mozSetMessageHandler('sms-received',
     function smsReceived(message) {
-      // Acquire the "high-priority" wake lock when we receive an SMS.  This
-      // raises the priority of this process above vanilla background apps,
-      // making it less likely to be killed on OOM.
+      // Acquire the cpu wake lock when we receive an SMS.  This raises the
+      // priority of this process above vanilla background apps, making it less
+      // likely to be killed on OOM.  It also prevents the device from going to
+      // sleep before the user is notified of the new message.
       //
       // We'll release it once we display a notification to the user.  We also
       // release the lock after 30s, in case we never run the notification code
       // for some reason.
-      var wakeLock = navigator.requestWakeLock('high-priority');
+      var wakeLock = navigator.requestWakeLock('cpu');
       var wakeLockReleased = false;
       var timeoutID = null;
       function releaseWakeLock() {
@@ -104,6 +128,8 @@ if (!window.location.hash.length) {
       // The black list includes numbers for which notifications should not
       // progress to the user. Se blackllist.js for more information.
       var number = message.sender;
+      var id = message.id;
+
       // Class 0 handler:
       if (message.messageClass === 'class-0') {
         // XXX: Hack hiding the message class in the icon URL
@@ -150,11 +176,15 @@ if (!window.location.hash.length) {
 
         // Stashing the number at the end of the icon URL to make sure
         // we get it back even via system message
-        iconURL += '?sms-received?' + number;
+        iconURL += '?sms-received?' + number + '?' + id;
 
         var goToMessage = function() {
           app.launch();
-          showThreadFromSystemMessage(number);
+          var options = {
+            number: number,
+            id: id
+          };
+          handleMessageNotification(options);
         };
 
         Contacts.findByPhoneNumber(message.sender, function gotContact(
@@ -186,8 +216,14 @@ if (!window.location.hash.length) {
         var notificationType = message.imageURL.split('?')[1];
         // Case regular 'sms-received'
         if (notificationType == 'sms-received') {
+
           var number = message.imageURL.split('?')[2];
-          showThreadFromSystemMessage(number);
+          var id = message.imageURL.split('?')[3];
+          var options = {
+            number: number,
+            id: id
+          };
+          handleMessageNotification(options);
           return;
         }
         var number = message.title;

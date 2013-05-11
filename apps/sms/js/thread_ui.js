@@ -1,9 +1,32 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+(function(global) {
 'use strict';
 
-var ThreadUI = {
+var attachmentMap = new WeakMap();
+
+function thui_mmsAttachmentClick(target) {
+  var attachment = attachmentMap.get(target);
+  if (!attachment) {
+    return;
+  }
+  var activity = new MozActivity({
+    name: 'open',
+    data: {
+      type: attachment.blob.type,
+      filename: attachment.name,
+      blob: attachment.blob
+    }
+  });
+  activity.onerror = function() {
+    console.error('error with open activity', this.error.name);
+    // TODO: Add an alert here with a string saying something like
+    // "There is no application available to open this file type"
+  };
+}
+
+var ThreadUI = global.ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
@@ -18,7 +41,8 @@ var ThreadUI = {
       'check-all-button', 'uncheck-all-button',
       'contact-pick-button', 'back-button', 'send-button',
       'delete-button', 'cancel-button',
-      'edit-mode', 'edit-form', 'tel-form'
+      'edit-mode', 'edit-form', 'tel-form',
+      'max-length-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -115,7 +139,9 @@ var ThreadUI = {
       'mousedown', this.addRecipientFromContacts.bind(this)
     );
 
-    this.tmpl = ['contact', 'highlight'].reduce(function(tmpls, name) {
+    this.tmpl = [
+      'contact', 'highlight', 'message'
+    ].reduce(function(tmpls, name) {
       tmpls[name] = Utils.Template('messages-' + name + '-tmpl');
       return tmpls;
     }, {});
@@ -317,6 +343,9 @@ var ThreadUI = {
     var newRecipient = document.createElement('span');
     // Add styles
     newRecipient.classList.add('recipient');
+    // Disable word suggestions by setting the inputmode to 'verbatim'
+    // XXX Bug 869661: change this to inputmode=name when that is supported
+    newRecipient.setAttribute('x-inputmode', 'verbatim');
     // Append to 'recipients-container'
     this.recipientsContainer.appendChild(newRecipient);
     // If it's a contact we need to add extra-info
@@ -395,27 +424,35 @@ var ThreadUI = {
 
   enableSend: function thui_enableSend() {
     this.initSentAudio();
-    if (this.input.value.length) {
-      this.updateCounter();
-    }
 
-    if (window.location.hash == '#new' && this.recipients.length === 0) {
-      this.sendButton.disabled = true;
-      return;
-    }
+    // should disable if we have no message input
+    var disableSendMessage = !this.input.value.length;
 
-    this.sendButton.disabled = !this.input.value.length;
+    var messageNotLong = this.updateCounter();
+
+    // should disable if the message is too long
+    disableSendMessage = disableSendMessage || !messageNotLong;
+
+    // should disable if we have no recipients in the "new thread" view
+    disableSendMessage = disableSendMessage ||
+      (window.location.hash == '#new' && !this.recipients.length);
+
+    this.sendButton.disabled = disableSendMessage;
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom() {
     this.container.scrollTop = this.container.scrollHeight;
   },
 
+  // will return true if we can send the message, false if we can't send the
+  // message
   updateCounter: function thui_updateCount() {
     if (!this._mozMobileMessage.getSegmentInfoForText) {
-      return;
+      return true;
     }
+
     var value = this.input.value;
+
     // We set maximum concatenated number of our SMS app to 10 based on:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
     var kMaxConcatenatedMessages = 10;
@@ -425,26 +462,30 @@ var ThreadUI = {
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
     var counter = '';
-    if (segments > 1 || availableChars <= 10) {
+    if (segments && (segments > 1 || availableChars <= 10)) {
       counter = availableChars + '/' + segments;
     }
     this.sendButton.dataset.counter = counter;
     var hasMaxLength = (segments === kMaxConcatenatedMessages &&
         !availableChars);
 
-    // note: when we'll have the MMS feature, we'll want to use an MMS instead
-    // of forbidding this.
-    if (hasMaxLength) {
-      // set maxlength before calling alert, to disable entering more characters
-      this.input.setAttribute('maxlength', value.length);
-      // this will make the keyboard disappear
-      this.input.blur();
+    // we may have this if we switch from 140-character messages to 70-character
+    // messages due to an encoding change
+    var exceededMaxLength = (segments > kMaxConcatenatedMessages);
 
-      var message = navigator.mozL10n.get('messages-max-length-notice');
-      window.alert(message);
+    if (hasMaxLength || exceededMaxLength) {
+      this.input.setAttribute('maxlength', value.length);
+      var key = hasMaxLength ?
+          'messages-max-length-text' : 'messages-exceeded-length-text';
+      var message = navigator.mozL10n.get(key);
+      this.maxLengthNotice.querySelector('p').textContent = message;
+      this.maxLengthNotice.classList.remove('hide');
     } else {
-      this.input.removeAttribute('maxlength');
+      this.input.removeAttribute('maxlength', value.length);
+      this.maxLengthNotice.classList.add('hide');
     }
+
+    return !exceededMaxLength;
   },
 
   updateInputHeight: function thui_updateInputHeight() {
@@ -605,36 +646,24 @@ var ThreadUI = {
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
       /** If we have more than one contact sharing the same phone number
-       *  we show the name of the first contact and how many other contacts
-       *  share that same number. We thing it's user's responsability to correct
-       *  this mess with the agenda.
+       *  we show the title of contact detail with validate name/company
+       *  and how many other contacts share that same number. We think it's
+       *  user's responsability to correct this mess with the agenda.
        */
-      if (contacts.length > 1) {
-        this.headerText.dataset.isContact = true;
-        var contactName = contacts[0].name[0];
-        var numOthers = contacts.length - 1;
-        this.headerText.textContent = navigator.mozL10n.get('others', {
-          name: contactName,
-          n: numOthers
-        });
-        carrierTag.classList.add('hide');
+      var details = Utils.getContactDetails(number, contacts);
+      this.headerText.dataset.isContact = !!details.isContact;
+      var contactName = details.title || number;
+      var numOthers = contacts.length > 0 ? contacts.length - 1 : 0;
+      this.headerText.textContent = navigator.mozL10n.get('contact-title-text',
+      {
+        name: contactName,
+        n: numOthers
+      });
+      if (details.carrier) {
+        carrierTag.textContent = details.carrier;
+        carrierTag.classList.remove('hide');
       } else {
-        Utils.getPhoneDetails(number,
-                              contacts[0],
-                              function returnedDetails(details) {
-          if (details.isContact) {
-            this.headerText.dataset.isContact = true;
-          } else {
-            delete this.headerText.dataset.isContact;
-          }
-          this.headerText.textContent = details.title || number;
-          if (details.carrier) {
-            carrierTag.textContent = details.carrier;
-            carrierTag.classList.remove('hide');
-          } else {
-            carrierTag.classList.add('hide');
-          }
-        }.bind(this));
+        carrierTag.classList.add('hide');
       }
 
       if (callback) {
@@ -675,20 +704,28 @@ var ThreadUI = {
 
   createMmsContent: function thui_createMmsContent(dataArray) {
     var container = document.createElement('div');
-    container.classList.add('mmsContainer');
+    container.className = 'mms-container';
     dataArray.forEach(function(attachment) {
       var mediaElement, textElement;
 
       if (attachment.name && attachment.blob) {
         var type = Utils.typeFromMimeType(attachment.blob.type);
         if (type) {
-          var url = URL.createObjectURL(attachment.blob);
-          mediaElement = document.createElement(type);
-          mediaElement.src = url;
-          mediaElement.onload = function() {
-            URL.revokeObjectURL(url);
-          };
+          // we special case audio to display an image of an audio attachment
+          // video currently falls through this path too, we should revisit this
+          // with #869244
+          if (type === 'audio' || type === 'video') {
+            mediaElement = document.createElement('div');
+            mediaElement.className = type + '-placeholder';
+          } else {
+            mediaElement = document.createElement(type);
+            mediaElement.src = URL.createObjectURL(attachment.blob);
+            mediaElement.onload = function() {
+              URL.revokeObjectURL(this.src);
+            };
+          }
           container.appendChild(mediaElement);
+          attachmentMap.set(mediaElement, attachment);
         }
       }
 
@@ -760,61 +797,47 @@ var ThreadUI = {
   },
 
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
-    // Retrieve all data from message
-    var id = message.id;
-    var bodyText = Utils.Message.format(message.body);
+    var bodyHTML = '';
     var delivery = message.delivery;
     var messageDOM = document.createElement('li');
 
-    messageDOM.classList.add('bubble');
-
+    var classNames = ['message', message.type, delivery];
+    classNames.push(delivery === 'received' ? 'incoming' : 'outgoing');
     if (hidden) {
-      messageDOM.classList.add('hidden');
+      classNames.push('hidden');
     }
-    messageDOM.id = 'message-' + id;
-    var inputValue = id;
-    var asideHTML = '';
-    // Do we have to add some error/sending icon?
-    if (delivery) {
-      switch (delivery) {
-        case 'error':
-          asideHTML = '<aside class="pack-end"></aside>';
-          break;
-        case 'sending':
-          asideHTML = '<aside class="pack-end">' +
-                      '<progress></progress></aside>';
-          break;
-      }
+    messageDOM.className = classNames.join(' ');
+
+    if (message.type === 'sms') {
+      bodyHTML = LinkHelper.searchAndLinkClickableData(Utils.Message.format(
+        message.body || ''
+      ));
     }
-    // Create HTML content
-    // TODO: use Utils.Template here
-    var messageHTML = '<label class="danger">' +
-                      '<input type="checkbox" value="' + inputValue + '">' +
-                      '<span></span>' +
-                      '</label>' +
-                    '<a class="' + delivery + '">';
-    messageHTML += asideHTML;
-    messageHTML += '<p></p></a>';
-    messageDOM.innerHTML = messageHTML;
+
+    messageDOM.id = 'message-' + message.id;
+
+    messageDOM.innerHTML = this.tmpl.message.interpolate({
+      id: String(message.id),
+      bodyHTML: bodyHTML
+    }, {
+      safe: ['bodyHTML']
+    });
+
     if (delivery === 'error') {
       ThreadUI.addResendHandler(message, messageDOM);
     }
 
-
     var pElement = messageDOM.querySelector('p');
-    if (message.type && message.type === 'mms') { // MMS
-      if (message.delivery === 'not-downloaded') {
+    if (message.type === 'mms') { // MMS
+      if (delivery === 'not-downloaded') {
         // TODO: We need to handle the mms message with "not-downloaded" status
       } else {
-        pElement.classList.add('mms-bubble-content');
         SMIL.parse(message, function(slideArray) {
           pElement.appendChild(ThreadUI.createMmsContent(slideArray));
         });
       }
-    } else { // SMS
-      // TODO: make this work without setting innerHTML
-      pElement.innerHTML = LinkHelper.searchAndLinkClickableData(bodyText);
     }
+
     return messageDOM;
   },
 
@@ -854,8 +877,7 @@ var ThreadUI = {
   },
 
   addResendHandler: function thui_addResendHandler(message, messageDOM) {
-    var aElement = messageDOM.querySelector('aside');
-    aElement.addEventListener('click', function resend(e) {
+    messageDOM.addEventListener('click', function resend(e) {
       var hash = window.location.hash;
       if (hash != '#edit') {
         if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
@@ -990,6 +1012,7 @@ var ThreadUI = {
       case 'click':
         if (window.location.hash !== '#edit') {
           // Handle events on links in a message
+          thui_mmsAttachmentClick(evt.target);
           LinkActionHandler.handleTapEvent(evt);
           return;
         }
@@ -1079,12 +1102,10 @@ var ThreadUI = {
     if (!messageDOM) {
       return;
     }
-    // Remove 'sending' style
-    var aElement = messageDOM.querySelector('a');
-    aElement.classList.remove('sending');
-    // Remove the 'spinner'
-    var spinnerContainer = aElement.querySelector('aside');
-    aElement.removeChild(spinnerContainer);
+
+    // Update class names to reflect message state
+    messageDOM.classList.remove('sending');
+    messageDOM.classList.add('sent');
 
     // Play the audio notification
     if (this.sentAudioEnabled) {
@@ -1097,18 +1118,14 @@ var ThreadUI = {
     if (!messageDOM) {
       return;
     }
-    // Remove 'sending' style and add 'error' style
-    var aElement = messageDOM.querySelector('a');
     // Check if it was painted as 'error' before
-    if (!aElement.classList.contains('sending')) {
+    if (messageDOM.classList.contains('error')) {
       return;
     }
-    aElement.classList.remove('sending');
-    aElement.classList.add('error');
 
-    // Remove only the spinner
-    var spinnerContainer = aElement.querySelector('aside');
-    spinnerContainer.innerHTML = '';
+    // Update class names to reflect message state
+    messageDOM.classList.remove('sending');
+    messageDOM.classList.add('error');
 
     ThreadUI.addResendHandler(message, messageDOM);
 
@@ -1187,48 +1204,58 @@ var ThreadUI = {
     var escaped = Utils.escapeRegex(input);
     var escsubs = escaped.split(/\s+/);
     var tels = contact.tel;
-    var name = contact.name[0];
     var regexps = {
       name: new RegExp('(\\b' + escsubs.join(')|(\\b') + ')', 'gi'),
       number: new RegExp(escaped, 'ig')
     };
+    var telsLength = tels.length;
 
-
-    for (var i = 0; i < tels.length; i++) {
+    if (!telsLength) {
+      return false;
+    }
+    var details = Utils.getContactDetails(tels[0].value, contact);
+    for (var i = 0; i < telsLength; i++) {
       var current = tels[i];
       var number = current.value;
+      var title = details.title || number;
 
-      Utils.getPhoneDetails(number, contact, function(details) {
-        var contactLi = document.createElement('li');
-        var data = {
-          name: Utils.escapeHTML(name || details.title),
-          number: Utils.escapeHTML(number),
-          type: current.type || '',
-          carrier: current.carrier || '',
-          srcAttr: details.photoURL ?
-            'src="' + Utils.escapeHTML(details.photoURL) + '"' : '',
-          nameHTML: '',
-          numberHTML: ''
+      var contactLi = document.createElement('li');
+      var data = {
+        name: Utils.escapeHTML(title),
+        number: Utils.escapeHTML(number),
+        type: current.type || '',
+        carrier: current.carrier || '',
+        srcAttr: details.photoURL ?
+          'src="' + Utils.escapeHTML(details.photoURL) + '"' : '',
+        nameHTML: '',
+        numberHTML: ''
+      };
+
+      ['name', 'number'].forEach(function(key) {
+        data[key + 'HTML'] = data[key].replace(
+          regexps[key], function(match) {
+            return this.tmpl.highlight.interpolate({
+              str: match
+            });
+          }.bind(this)
+        );
+      }, this);
+
+      // Interpolate HTML template with data and inject.
+      // Known "safe" HTML values will not be re-sanitized.
+      contactLi.innerHTML = this.tmpl.contact.interpolate(data, {
+        safe: ['nameHTML', 'numberHTML', 'srcAttr']
+      });
+      contactsUl.appendChild(contactLi);
+
+      // Revoke contact photo after image onload.
+      var photo = contactLi.querySelector('img');
+      if (photo) {
+        photo.onload = photo.onerror = function revokePhotoURL() {
+          this.onload = this.onerror = null;
+          URL.revokeObjectURL(this.src);
         };
-
-        ['name', 'number'].forEach(function(key) {
-          data[key + 'HTML'] = data[key].replace(
-            regexps[key], function(match) {
-              return this.tmpl.highlight.interpolate({
-                str: match
-              });
-            }.bind(this)
-          );
-        }, this);
-
-        // Interpolate HTML template with data and inject.
-        // Known "safe" HTML values will not be re-sanitized.
-        contactLi.innerHTML = this.tmpl.contact.interpolate(data, {
-          safe: ['nameHTML', 'numberHTML', 'srcAttr']
-        });
-        contactsUl.appendChild(contactLi);
-
-      }.bind(this));
+      }
     }
     return true;
   },
@@ -1360,3 +1387,6 @@ window.addEventListener('resize', function resize() {
   // Scroll to bottom
   ThreadUI.scrollViewToBottom();
 });
+
+}(this));
+

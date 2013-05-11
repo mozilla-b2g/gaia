@@ -42,6 +42,7 @@ suiteGroup('Models.Account', function() {
       subject.providerType = 'local';
       subject.preset = 'google';
       subject.calendarHome = '/foo/home';
+      subject.oauth = { code: 'xxx' };
     });
 
     test('output', function() {
@@ -53,7 +54,9 @@ suiteGroup('Models.Account', function() {
         user: subject.user,
         providerType: subject.providerType,
         calendarHome: '/foo/home',
-        preset: 'google'
+        preset: 'google',
+        oauth: { code: 'xxx' },
+        error: undefined
       };
 
       assert.deepEqual(subject.toJSON(), expected);

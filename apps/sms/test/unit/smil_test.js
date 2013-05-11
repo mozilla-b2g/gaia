@@ -134,6 +134,51 @@ suite('SMIL', function() {
         done();
       });
     });
+
+    test('SMIL doc with bad cid: references', function(done) {
+      var testText = 'Testing 1 2 3';
+      var message = {
+        smil: '<smil><body><par><text src="cid:1"/>' +
+              '<img src="cid:20"/></par></body></smil>',
+        attachments: [{
+          id: '<1>',
+          location: 'text1',
+          content: new Blob([testText], {type: 'text/plain'})
+        },{
+          id: '<2>',
+          location: 'example.jpg',
+          content: testImageBlob
+        }]
+      };
+      SMIL.parse(message, function(output) {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[0].blob, testImageBlob);
+        assert.equal(output[0].name, 'example.jpg');
+        done();
+      });
+    });
+
+    test('empty SMIL doc with attachments', function(done) {
+      var testText = 'Testing 1 2 3';
+      var message = {
+        smil: '<smil><body></body></smil>',
+        attachments: [{
+          id: '<1>',
+          location: 'text1',
+          content: new Blob([testText], {type: 'text/plain'})
+        },{
+          id: '<2>',
+          location: 'example.jpg',
+          content: testImageBlob
+        }]
+      };
+      SMIL.parse(message, function(output) {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[0].blob, testImageBlob);
+        assert.equal(output[0].name, 'example.jpg');
+        done();
+      });
+    });
   });
   suite('SMIL.generate', function() {
     test('Text only message', function(done) {

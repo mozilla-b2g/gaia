@@ -27,7 +27,7 @@ var MessageManager = {
                               this.onVisibilityChange.bind(this));
 
     // Callback if needed
-    if (callback && typeof callback === 'function') {
+    if (typeof callback === 'function') {
       callback();
     }
   },
@@ -64,7 +64,8 @@ var MessageManager = {
         participants: [message.sender],
         body: message.body,
         timestamp: message.timestamp,
-        unreadCount: 1
+        unreadCount: 1,
+        lastMessageType: message.type
       };
   },
 

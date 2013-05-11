@@ -10,16 +10,15 @@ html {
 }
 
 body {
-  background-color: black;
   color: #fff;
   font-family: "MozTT", sans-serif;
-  font-size: 10px;
+  font-size: 1rem;
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
   overflow: hidden;
-  padding-bottom: 50px;
+  padding-bottom: 5rem;
 }
 
 section {
@@ -36,12 +35,12 @@ section {
 /* All of the main views fill the screen */
 #thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #pick-view, #edit-view, #crop-view {
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
   overflow: hidden;
   font-size: 2.1rem;
 }
@@ -88,19 +87,19 @@ section {
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
-  padding: 110px 25px 0px 25px;
+  padding: 11rem 2.5rem 0 2.5rem;
 }
 
 #overlay-title {
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
-  margin: 0 5px -10px 5px;
+  margin: 0 0.5rem -1rem 0.5rem;
 }
 
 #overlay-text {
-  padding: 10px 5px 0 5px;
-  border-top: 1px solid #686868;	
+  padding: 1rem 0.5rem 0 0.5rem;
+  border-top: 0.1rem solid #686868;
   font-weight: 300;
   font-size: 2.5rem;
   color: #ebebeb;
@@ -110,14 +109,14 @@ section {
  * Thumbnails are implemented as <li> elements in a <ul> with background-image
  * set to display the image. We use background-size: cover to automatically
  * resize the image as needed.
- * The thumbnail list appears in regular browsing mode, in selection mode, 
+ * The thumbnail list appears in regular browsing mode, in selection mode,
  * and in pick mode.
  */
 
 #thumbnails {
   position: absolute;
   left: 0;
-  width: calc(100% + 1px); /* one extra pixel for the right margin */
+  width: 100%;
   /* top and bottom are set depending on view below */
   padding: 0;
   margin: 0;
@@ -138,13 +137,13 @@ section {
 
 /* thumbnails in thumbnail select view where there is a top bar */
 #thumbnails.select {
-  top: 50px;
+  top: 5rem;
   bottom: 0;
 }
 
 /* thumbnails in pick view where there is a top bar and no bottom */
 #thumbnails.pick {
-  top: 50px;
+  top: 5rem;
   bottom: 0;
 }
 
@@ -175,11 +174,26 @@ section {
    * at least get the effect of a grid rather than a black screen
    */
   background-color: #444;
+
+  /*
+   * Here's the thumbnail size for portrait mode. We have 3 thumbnails
+   * for each row. The size for landscape mode is handled below by
+   * media query.
+   * Padding-bottom is used here in order to set div height with respect
+   * to device width.
+   */
+  width: calc((100% - 2px) / 3 );
+  height: 0;
+  padding-bottom: calc((100% - 3px) / 3 );
+}
+
+.thumbnail:nth-child(3n) {
+  margin-right: 0;
 }
 
 .thumbnail.selected {
-  outline: solid #00aacc 3px;
-  outline-offset: -3px;
+  outline: solid #00aacc 0.3rem;
+  outline-offset: -0.3rem;
 }
 
 /*
@@ -187,32 +201,23 @@ section {
  * get stuck hidden behind the overlaid toolbar.
  */
 .thumbnail:last-child {
-  margin-bottom: 40px;
+  margin-bottom: 4rem;
 }
 
-
-/* 320x480 phones */
-@media (orientation: portrait) and (width: 320px) {
+@media (orientation: landscape) {
+  /* 4 thumbnails for each row in landscape mode. */
   .thumbnail {
-    width: 106px;
-    height: 106px;
+    width: calc((100% - 3px) / 4 );
+    padding-bottom: calc((100% - 3px) / 4 );
   }
-}
 
-@media (orientation: landscape) and (width: 480px) {
-  .thumbnail {
-    width: 119px;
-    height: 119px;
+  .thumbnail:nth-child(3n) {
+    margin-right: 1px;
   }
-}
 
-/* 480x800 phones portrait */
-@media (orientation: portrait) and (width: 480px),
-       (orientation: landscape) and (width: 800px) {
-    .thumbnail {
-        width: 159px;
-        height: 159px;
-    }
+  .thumbnail:nth-child(4n) {
+    margin-right: 0;
+  }
 }
 
 /* since fullscreen-view is fullscreen, it needs its own background color */
@@ -222,34 +227,34 @@ section {
 
 #frames {
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
 
 .frame {
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
   overflow: hidden;
   -moz-user-select: none;
 }
 
 .frame > img {
-  top: 0px;  /* javascript modifies this position with a transform */
-  left: 0px;
+  top: 0;  /* javascript modifies this position with a transform */
+  left: 0;
   position: absolute;
-  border-width: 0px;
-  padding: 0px;
-  margin: 0px;
-  transform-origin: 0px 0px;
+  border-width: 0;
+  padding: 0;
+  margin: 0;
+  transform-origin: 0 0;
   pointer-events: none;
   -moz-user-select: none;
 }
@@ -263,12 +268,12 @@ section {
  */
 .frame > img.swapping {
   opacity: 0.8;
-  outline: dashed #0ac 4px;
-  outline-offset: -4px;
+  outline: dashed #0ac 0.4rem;
+  outline-offset: -0.4rem;
 }
 
 .frame > video {
-  transform-origin: 0px 0px;
+  transform-origin: 0 0;
 }
 
 /* localization */
@@ -286,15 +291,16 @@ body.hidden *[data-l10n-id] {
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 0.3rem;
   border: none;
   overflow: hidden;
   z-index: 3; /* has to be higher than pick-top */
 }
 
 #throbber {
-  height: 24px;
+  height: 2.4rem;
   background-image: url(images/progress.png);
+  background-size: auto 100%;
 }
 
 #throbber.throb {
@@ -303,10 +309,10 @@ body.hidden *[data-l10n-id] {
 
 @keyframes throb {
   from {
-    transform: translateY(0px);
+    transform: translateY(0);
   }
   to {
-    transform: translateY(-21px);
+    transform: translateY(-2.1rem);
   }
 }
 
@@ -318,11 +324,12 @@ a.button {
   border-width: 0;
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 3rem;
 
   /* for buttons that display text */
   font-size: 1.4rem;
   text-align: center;
-  line-height: 40px;
+  line-height: 4rem;
 }
 
 a.button:active, a.button:focus {
@@ -336,13 +343,13 @@ a.button.disabled {
 
 footer {
   background: rgba(0, 0, 0, 0.75);
-  height: 40px;
+  height: 4rem;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 1;
-  box-shadow: 0px -2px 5px rgba(50, 50, 50, 0.75);
+  box-shadow: 0 -0.2rem 0.5rem rgba(50, 50, 50, 0.75);
 }
 
 .icon.icon-done {
@@ -355,7 +362,7 @@ footer {
   height: 100%;
   left: 0;
   background-image: url('images/iconaction_camera_30x30.png');
-  border-right: 1px solid #000;
+  border-right: 0.1rem solid #000;
 }
 
 #thumbnails-select-button {
@@ -372,7 +379,7 @@ footer {
   height: 100%;
   left: 0;
   background-image: url('images/iconaction_delete_30x30.png');
-  border-right: 1px solid #000;
+  border-right: 0.1rem solid #000;
 }
 
 #thumbnails-share-button {
@@ -384,7 +391,7 @@ footer {
 }
 
 #fullscreen-toolbar {
-  height: 40px;
+  height: 4rem;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -393,7 +400,7 @@ footer {
 }
 
 #fullscreen-view.toolbarhidden #fullscreen-toolbar {
-  transform: translate(0, 40px);
+  transform: translate(0, 4rem);
 }
 
 #fullscreen-back-button {
@@ -448,12 +455,12 @@ footer {
 /* like .frame */
 #crop-frame {
   position: absolute;
-  top: 50px;
-  bottom: 0px;
-  left: 0px;
+  top: 5rem;
+  bottom: 0;
+  left: 0;
   width: 100%;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
   overflow: hidden;
   -moz-user-select: none;
 }
@@ -461,13 +468,13 @@ footer {
 
 /* copied from .frame > img */
 #crop-image {
-  top: 0px;  /* javascript modifies this position with a transform */
-  left: 0px;
+  top: 0;  /* javascript modifies this position with a transform */
+  left: 0;
   position: relative;
-  border-width: 0px;
-  padding: 0px;
-  margin: 0px;
-  transform-origin: 0px 0px;
+  border-width: 0;
+  padding: 0;
+  margin: 0;
+  transform-origin: 0 0;
   pointer-events: none;
   -moz-user-select: none;
 }
@@ -483,19 +490,19 @@ footer {
   position: absolute;
   left: 0;
   right: 0;
-  top: 50px;
-  bottom: 100px;
+  top: 5rem;
+  bottom: 10rem;
 }
 
 #edit-preview-canvas {
   position: absolute;
   top: 10px;
   left: 10px;
-  width: calc(100% - 20px);  /* I can't do right: 10px here. Bug? */
-  height: calc(100% - 20px)  /* can't just set bottom: 10px here */
+  width: calc(100% - 2rem);  /* I can't do right: 1rem here. Bug? */
+  height: calc(100% - 2rem);  /* can't just set bottom: 1rem here */
 }
 
-#edit-crop-canvas { 
+#edit-crop-canvas {
   position: absolute;
   left: 0;
   right: 0;
@@ -507,8 +514,8 @@ footer {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 50px;
-  bottom: 40px;
+  height: 5rem;
+  bottom: 4rem;
   background: #555;
 }
 
@@ -524,13 +531,13 @@ footer {
   margin: 0;
   padding: 0;
   border-width: 0;
-  border-right: solid black 1px;
+  border-right: solid black 0.1rem;
   overflow: hidden;
 }
 
 #edit-effect-options a.selected.radio.button {
-  outline: solid #00aacc 3px;
-  outline-offset: -3px;
+  outline: solid #00aacc 0.3rem;
+  outline-offset: -0.3rem;
 }
 
 #edit-crop-options a.button {
@@ -542,16 +549,16 @@ footer {
   margin: 0;
   padding: 0;
   border-width: 0;
-  border-right: solid black 1px;
+  border-right: solid black 0.1rem;
   overflow: hidden;
-  padding-top: 16px;
+  padding-top: 1.6rem;
   font-size: 1.4rem;
   background-position: center;
 }
 
 #edit-crop-options a.selected.radio.button {
-  outline: solid #00aacc 2px;
-  outline-offset: -2px;
+  outline: solid #00aacc 0.2rem;
+  outline-offset: -0.2rem;
 }
 
 #edit-crop-none {
@@ -577,41 +584,41 @@ footer {
 
 /* instead of using images inside the buttons above, just draw boxes */
 #edit-free-frame {
-  margin-left: 5px;
-  margin-top: 5px;
-  width: 30px;
-  height: 25px;
-  border: dotted white 1px;
+  margin-left: 0.5rem;
+  margin-top: 0.5rem;
+  width: 3rem;
+  height: 2.5rem;
+  border: dotted white 0.1rem;
 }
 
 #edit-portrait-frame {
-  margin-left: 11px;
-  margin-top: 6px;
-  width: 26px;
-  height: 39px;
-  border: solid white 1px;
+  margin-left: 1.1rem;
+  margin-top: 0.6rem;
+  width: 2.6rem;
+  height: 3.9rem;
+  border: solid white 0.1rem;
 }
 
 #edit-landscape-frame {
-  margin-left: 5px;
-  margin-top: 12px;
-  width: 39px;
-  height: 26px;
-  border: solid white 1px;
+  margin-left: 0.5rem;
+  margin-top: 1.2rem;
+  width: 3.9rem;
+  height: 2.6rem;
+  border: solid white 0.1rem;
 }
 
 #edit-square-frame {
-  margin-left: 8px;
-  margin-top: 9px;
-  width: 32px;
-  height: 32px;
-  border: solid white 1px;
+  margin-left: 0.8rem;
+  margin-top: 0.9rem;
+  width: 3.2rem;
+  height: 3.2rem;
+  border: solid white 0.1rem;
 }
 
 /* All the effects radio buttons share these styles */
 #edit-effect-options > a.radio.button {
   width: 20%;
-  padding-top: 15px;
+  padding-top: 1.5rem;
 }
 
 #edit-effect-none {
@@ -645,9 +652,9 @@ a.filter-faded {
 /* All the border buttons share these styles */
 #edit-border-options a.radio.button {
   position: absolute;
-  width: calc(20% - 6px);
-  height: calc(100% - 6px);
-  top: 3px;
+  width: calc(20% - 0.6rem);
+  height: calc(100% - 0.6rem);
+  top: 0.3rem;
   padding: 0;
   background-size: cover;
   background-position: center;
@@ -656,28 +663,28 @@ a.filter-faded {
 }
 
 #edit-border-options a.selected.radio.button {
-  outline: solid #00aacc 3px;
+  outline: solid #00aacc 0.3rem;
 }
 
 #edit-border-none {
-  left: calc(0% + 3px);
-  border: 2px solid white;  
+  left: calc(0% + 0.3rem);
+  border: 0.2rem solid white;
 }
 #edit-border-thin-white {
-  left: calc(20% + 3px);
-  border: 2px solid white;  
+  left: calc(20% + 0.3rem);
+  border: 0.2rem solid white;
 }
 #edit-border-thick-white {
-  left: calc(40% + 3px);
-  border: 4px solid white;
+  left: calc(40% + 0.3rem);
+  border: 0.4rem solid white;
 }
 #edit-border-thin-black {
-  left: calc(60% + 3px);
-  border: 2px solid black;  
+  left: calc(60% + 0.3rem);
+  border: 0.2rem solid black;
 }
 #edit-border-thick-black {
-  left: calc(80% + 3px);
-  border: 4px solid black;  
+  left: calc(80% + 0.3rem);
+  border: 0.4rem solid black;
 }
 
 /* all buttons in the toolbar share these styles */
@@ -719,14 +726,14 @@ a.filter-faded {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 50px;
+  height: 5rem;
   background-color: #444;
   font-size: 1.4rem;
 }
 
 #sliderbar {
   position: relative;
-  height: 20px;
+  height: 2rem;
   padding: 0;
   margin: 0;
   overflow: hidden;
@@ -734,7 +741,7 @@ a.filter-faded {
 
 #sliderline {
   position: absolute;
-  height: 2px;
+  height: 0.2rem;
   top: 50%;
   left: 10%;
   right: 10%;
@@ -743,33 +750,33 @@ a.filter-faded {
 
 #sliderthumb {
   position: absolute;
-  width: 40px;
-  height: 40px;
-  top: -10px;
-  left: calc(10% - 20px);
+  width: 4rem;
+  height: 4rem;
+  top: -1rem;
+  left: calc(10% - 2rem);
   border-radius: 50%;
   background-color: #eee;
   text-align: center;
-  padding-top: 12px;
+  padding-top: 1.2rem;
   font-size: 1.4rem;
   color: black;
 }
 
 #sliderlabels {
   position: relative;
-  height: 30px;
+  height: 3rem;
   padding: 0;
   margin: 0;
   background-color: #222;
   color: white;
-  border-top: solid #eee 1px;
+  border-top: solid #eee 0.1rem;
 }
 
 .sliderlabel {
   position: absolute;
   top: 0;
-  height: 5px;
-  border-left: solid #eee 1px;
+  height: 0.5rem;
+  border-left: solid #eee 0.1rem;
 }
 
 .sliderlabel:after {
@@ -777,9 +784,9 @@ a.filter-faded {
   position: relative;
   display: block;
   text-align: center;
-  top: 5px;
-  width: 100px;
-  left: -50px;
+  top: 0.5rem;
+  width: 10rem;
+  left: -5rem;
 }
 
 #slider-3 {

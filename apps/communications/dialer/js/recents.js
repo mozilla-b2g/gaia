@@ -165,7 +165,7 @@ var Recents = {
     // Setting up the SimplePhoneMatcher
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice && conn.voice.network) {
-      SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
+      SimplePhoneMatcher.mcc = conn.voice.network.mcc;
     }
 
     LazyL10n.get(function localized(_) {
@@ -227,8 +227,8 @@ var Recents = {
   },
 
   filter: function re_filter(event) {
-    // do nothing if selected tab is same that current
-    if (event.target.parentNode.classList.contains('selected')) {
+    // Do nothing if the selected tab is same that current
+    if (event.target.parentNode.getAttribute('aria-selected') === 'true') {
       return;
     }
     var action = event.target.dataset.action;
@@ -326,8 +326,16 @@ var Recents = {
         this._missedViewGroupingPending = false;
       }
     }
-    this.allFilter.classList.toggle('selected');
-    this.missedFilter.classList.toggle('selected');
+    if (this.allFilter.getAttribute('aria-selected') === 'true') {
+      this.allFilter.removeAttribute('aria-selected');
+    } else {
+      this.allFilter.setAttribute('aria-selected', 'true');
+    }
+    if (this.missedFilter.getAttribute('aria-selected') === 'true') {
+      this.missedFilter.removeAttribute('aria-selected');
+    } else {
+      this.missedFilter.setAttribute('aria-selected', 'true');
+    }
     this.limitVisibleEntries(100);
   },
 
@@ -608,7 +616,7 @@ var Recents = {
         '</div>';
       navigator.mozL10n.translate(this.recentsContainer);
       this.recentsIconEdit.parentNode.setAttribute('aria-disabled', 'true');
-      this.allFilter.classList.add('selected');
+      this.allFilter.setAttribute('aria-selected', 'true');
       return;
     }
 
@@ -644,18 +652,18 @@ var Recents = {
       var event = new Object();
       self._allViewGroupingPending = true;
       self._missedViewGroupingPending = true;
-      if (self.missedFilter.classList.contains('selected')) {
-        self.missedFilter.classList.remove('selected');
+      if (self.missedFilter.getAttribute('aria-selected') === 'true') {
+        self.missedFilter.removeAttribute('aria-selected');
         event.target = self.missedFilter.children[0];
         self.filter(event);
-        self.missedFilter.classList.add('selected');
-        self.allFilter.classList.remove('selected');
+        self.missedFilter.setAttribute('aria-selected', 'true');
+        self.allFilter.removeAttribute('aria-selected');
       } else {
-        self.allFilter.classList.remove('selected');
+        self.allFilter.removeAttribute('aria-selected');
         event.target = self.allFilter.children[0];
         self.filter(event);
-        self.missedFilter.classList.remove('selected');
-        self.allFilter.classList.add('selected');
+        self.missedFilter.removeAttribute('aria-selected');
+        self.allFilter.setAttribute('aria-selected', 'true');
       }
     });
   },
