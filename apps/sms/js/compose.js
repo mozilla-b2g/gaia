@@ -187,8 +187,10 @@ var Compose = (function() {
      */
     setMaxLength: function(amount) {
       state.maxLength = amount;
-      state.lock;
-      if (this.getText().length >= state.maxLength) {
+      if (state.maxLength === false) {
+        state.lock = false;
+      }
+      else if (this.getText().length >= state.maxLength) {
         state.lock = true;
       }
     },
