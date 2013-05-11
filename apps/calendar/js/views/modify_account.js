@@ -228,9 +228,16 @@
       };
 
       oauth.oncomplete = function(params) {
+        if ('error' in params) {
+          // Ruh roh
+          return self.cancel();
+        }
+
         if (!params.code) {
           return console.error('authentication error');
         }
+
+        // Fistpump!
         self.model.oauth = { code: params.code };
         self.save();
       };
