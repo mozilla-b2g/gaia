@@ -19,12 +19,16 @@
   width: -moz-available;
 }
 
-.cmp-bubble-container,
-.cmp-attachments-size {
+.cmp-bubble-container {
   width: calc(100% - 3rem);
   float: left;
 }
 
+.cmp-attachments-size {
+  padding-top: 0.5rem;
+  width: calc(100% - 3rem);
+  float: left;
+}
 .cmp-peep-bubble {
   float: left;
   margin-left: 0.3rem;
@@ -118,6 +122,7 @@ input.cmp-subject-text {
 .cmp-attachment-item {
   list-style-type: none;
   height: 4rem;
+  padding-top: 1rem;
 }
 .cmp-attachment-icon {
   background: url("images/icons/message-list-attachment.png") no-repeat scroll center transparent;
