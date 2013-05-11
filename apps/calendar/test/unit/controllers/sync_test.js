@@ -1,5 +1,6 @@
 requireLib('models/calendar.js');
 requireLib('models/account.js');
+requireLib('store')
 
 suiteGroup('Controllers.Sync', function() {
 
@@ -12,6 +13,14 @@ suiteGroup('Controllers.Sync', function() {
   var db;
 
   var accModel;
+
+  function stageAccountSyncError(err) {
+    account.sync = function() {
+      var args = Array.slice(arguments);
+      var cb = args.pop();
+      Calendar.nextTick(cb.bind(this, err));
+    };
+  }
 
   setup(function(done) {
     this.timeout(10000);
@@ -164,8 +173,10 @@ suiteGroup('Controllers.Sync', function() {
     });
 
     suite('#account', function() {
+//<<<<<<< HEAD
       test('success', function() {
         var firedCallback = false;
+
         subject.account(accModel, function() {
           firedCallback = true;
         });

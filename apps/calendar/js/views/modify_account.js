@@ -13,6 +13,7 @@
 
     this.deleteRecord = this.deleteRecord.bind(this);
     this.cancel = this.cancel.bind(this);
+    this.displayOAuth2 = this.displayOAuth2.bind(this);
 
     this.accountHandler = new Calendar.Utils.AccountCreation(
       this.app
@@ -37,7 +38,8 @@
       backButton: '#modify-account-view .cancel',
       status: '#modify-account-view section[role="status"]',
       errors: '#modify-account-view .errors',
-      oauth2Window: '#oauth2'
+      oauth2Window: '#oauth2',
+      oauth2SignIn: '#modify-account-view .force-oauth2'
     },
 
     progressClass: 'in-progress',
@@ -51,6 +53,10 @@
 
     get oauth2Window() {
       return this._findElement('oauth2Window');
+    },
+
+    get oauth2SignIn() {
+      return this._findElement('oauth2SignIn');
     },
 
     get deleteButton() {
@@ -172,6 +178,22 @@
       });
     },
 
+    displayOAuth2: function(event) {
+      if (event) {
+        event.preventDefault();
+      }
+
+      this.oauth2Window.classList.add(Calendar.View.ACTIVE);
+
+      // but lazy load the real objects we need.
+      if (Calendar.OAuthWindow)
+        return this._redirectToOAuthFlow();
+
+      return Calendar.App.loadObject(
+        'OAuthWindow', this._redirectToOAuthFlow.bind(this)
+      );
+    },
+
     /**
      * @param {String} preset name of value in Calendar.Presets.
      */
@@ -256,6 +278,9 @@
         this.deleteButton.addEventListener('click', this.deleteRecord);
         this.cancelDeleteButton.addEventListener('click',
                                                  this.cancel);
+        if (this.authenticationType === 'oauth2') {
+          this.oauth2SignIn.addEventListener('click', this.displayOAuth2);
+        }
       } else {
         this.type = 'create';
       }
@@ -266,19 +291,12 @@
       list.add('provider-' + this.model.providerType);
       list.add('auth-' + this.authenticationType);
 
+      if (this.model.error)
+        list.add(Calendar.ERROR);
+
       if (this.authenticationType === 'oauth2') {
         if (this.type === 'create') {
-
-          // show the dialog immediately
-          this.oauth2Window.classList.add(Calendar.View.ACTIVE);
-
-          // but lazy load the real objects we need.
-          if (Calendar.OAuthWindow)
-            return this._redirectToOAuthFlow();
-
-          return Calendar.App.loadObject(
-            'OAuthWindow', this._redirectToOAuthFlow.bind(this)
-          );
+          this.displayOAuth2();
         }
 
         this.fields.user.disabled = true;
@@ -297,6 +315,7 @@
       list.remove('preset-' + this.model.preset);
       list.remove('provider-' + this.model.providerType);
       list.remove('auth-' + this.authenticationType);
+      list.remove(Calendar.ERROR);
 
       this.fields.user.disabled = false;
       this.saveButton.disabled = false;
@@ -304,6 +323,7 @@
       this._fields = null;
       this.form.reset();
 
+      this.oauth2SignIn.removeEventListener('click', this.displayOAuth2);
       this.saveButton.removeEventListener('click', this._boundSaveUpdateModel);
       this.deleteButton.removeEventListener('click', this.deleteRecord);
       this.cancelDeleteButton.removeEventListener('click',

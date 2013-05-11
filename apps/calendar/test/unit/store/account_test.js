@@ -13,7 +13,7 @@ suite('store/account', function() {
   setup(function(done) {
     this.timeout(5000);
     app = testSupport.calendar.app();
-    db = testSupport.calendar.db();
+    db = app.db;
     subject = db.getStore('Account');
 
     db.open(function(err) {
@@ -40,9 +40,78 @@ suite('store/account', function() {
     assert.deepEqual(subject._cached, {});
   });
 
+  suite('#markWithError', function() {
+    var errEvent;
+    var accounts = testSupport.calendar.dbFixtures(
+      'account',
+      'Account', {
+        one: { _id: 55, providerType: 'Mock' }
+      }
+    );
+
+    var calendars = testSupport.calendar.dbFixtures(
+      'calendar',
+      'Calendar', {
+        one: { _id: 'one', accountId: 55 },
+        two: { _id: 'two', accountId: 55 }
+      }
+    );
+
+    var model;
+    setup(function() {
+      model = accounts.one;
+    });
+
+    test('authentication error', function(done) {
+      var error = new Calendar.Error.Authentication();
+
+      subject.markWithError(model, error, function(gotErr) {
+        subject.get(model._id, function(getErr, result) {
+          done(function() {
+            assert.ok(!gotErr, 'is successful');
+
+            assert.equal(
+              result.error.name,
+              error.name,
+              'model is marked with error'
+            );
+
+            assert.instanceOf(
+              result.error.date,
+              Date,
+              'has date of occurrence'
+            );
+          });
+        });
+      });
+    });
+
+    suite('dependant calendars', function() {
+      var err;
+      setup(function(done) {
+        err = new Calendar.Error.Authentication();
+        subject.markWithError(model, err, done);
+      });
+
+      function verifyCalendar(key) {
+        test('ensure calendar is marked: ' + key, function(done) {
+          app.store('Calendar').get(key, function(getErr, result) {
+            done(function() {
+              assert.ok(result, 'has calendar');
+              assert.ok(result.error, 'sets error');
+              assert.equal(result.error.name, err.name, 'sets error');
+            });
+          });
+        });
+      }
+
+      verifyCalendar('one');
+      verifyCalendar('two');
+    });
+  });
+
   test('#presetActive', function() {
     subject._cached[1] = { preset: 'A' };
-
     assert.isTrue(subject.presetActive('A'));
     assert.isFalse(subject.presetActive('B'));
   });
@@ -120,7 +189,6 @@ suite('store/account', function() {
         done(function() {
           assert.instanceOf(data, Calendar.Models.Account);
           assert.equal(data.domain, modelParams.domain);
-          assert.equal(data.calendarHome, modelParams.calendarHome);
           assert.equal(subject.cached[id], data);
         });
       });
@@ -252,7 +320,8 @@ suite('store/account', function() {
 
       cals.update = Factory('calendar', {
         accountId: account._id,
-        remote: { name: 'update' }
+        remote: { name: 'update' },
+        error: {}
       });
     });
 
@@ -316,9 +385,9 @@ suite('store/account', function() {
         'should only have two records'
       );
 
-      assert.deepEqual(
-        remoteCalledWith[0], account.toJSON(),
-        'should send jsonified account'
+      assert.equal(
+        remoteCalledWith[0], account,
+        'should send account'
       );
 
       // re-index all records by remote
@@ -353,6 +422,8 @@ suite('store/account', function() {
         Calendar.Models.Calendar,
         'should update cache'
       );
+
+      assert.ok(!remoteUpdate.error, 'removes error');
 
       assert.equal(
         remoteUpdate.remote.description,

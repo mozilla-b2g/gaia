@@ -72,6 +72,11 @@ body[data-path^='/settings'] #time-views {
   float: left;
 }
 
+#settings .calendars .error label {
+  background: transparent url('icons/accountwarning_30x30.png') no-repeat 2rem 0.5rem;
+  padding-left: 6rem;
+}
+
 #settings .calendars label {
   display: block;
   padding: 1.6rem;

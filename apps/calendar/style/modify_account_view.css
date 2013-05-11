@@ -28,10 +28,43 @@
   display: none;
 }
 
+#modify-account-view form ol {
+  margin-top: 1.5rem;
+}
+
+#modify-account-view form li {
+  margin: 0;
+  padding: 0 1.5rem 1rem;
+}
+
+#modify-account-view form li,
+#modify-account-view form li input {
+  font-size: 1.7rem;
+}
+
 #remove-account-dialog {
   display: none;
 }
 
+#modify-account-view .sync-errors,
+#modify-account-view .oauth2-sign-in {
+  display: none;
+}
+
+#modify-account-view.auth-oauth2.error .sync-errors,
+#modify-account-view.auth-oauth2.error .oauth2-sign-in {
+  display: block;
+}
+
+#modify-account-view .sync-errors p {
+  margin: 0;
+  height: 3rem;
+  background: transparent url('icons/accountwarning_30x30.png') no-repeat left top;
+  padding-left: 3.5rem;
+  line-height: 3rem;
+}
+
+#modify-account-view.auth-oauth2 .save,
 #modify-account-view.auth-oauth2 .password {
   display: none;
 }

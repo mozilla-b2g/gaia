@@ -14,13 +14,14 @@ suite('view', function() {
     ].join('');
 
     document.body.appendChild(el);
-    subject.selectors: {
-      errors: 'section[role="status"] .errors',
-      status: 'section[role="status"]'
-    };
 
-
-    subject = new Calendar.View('#view');
+    subject = new Calendar.View({
+      selectors: {
+        element: '#view',
+        errors: 'section[role="status"] .errors',
+        status: 'section[role="status"]'
+      }
+    });
   });
 
   teardown(function() {
@@ -97,6 +98,22 @@ suite('view', function() {
       assert.equal(subject._myThingElement[0], expected);
     });
 
+  });
+
+  suite('#idForModel', function() {
+    test('string', function() {
+      assert.equal(
+        subject.idForModel('prefix-', 1),
+        'prefix-1'
+      );
+    });
+
+    test('object', function() {
+      assert.equal(
+        subject.idForModel('prefix-', { _id: 2 }),
+        'prefix-2'
+      );
+    });
   });
 
   suite('#delegate', function() {
@@ -184,19 +201,47 @@ suite('view', function() {
 
   });
 
-  test('#displayErrors', function() {
-    var errors = [{ name: 'foo' }];
-    subject.showErrors(errors);
+  suite('#showErrors', function() {
 
-    var list = subject.status.classList;
-    var errors = subject.errors.textContent;
+    test('successfuly display', function() {
+      var errors = [{ name: 'error-default' }];
+      subject.showErrors(errors);
 
-    assert.ok(errors);
-    assert.include(errors, 'foo');
+      var list = subject.status.classList;
+      var errors = subject.errors.textContent;
 
+      assert.ok(errors);
+      assert.include(errors, navigator.mozL10n.get('error-default'));
+
+      assert.ok(list.contains(subject.activeClass));
+      testSupport.calendar.triggerEvent(subject.status, 'animationend');
+      assert.ok(!list.contains(subject.activeClass));
+    });
+
+    /**
+     * Verifies that built in errors map to a l10n field.
+     */
+    function verifyBuiltIn(error, expectedID) {
+      test('show built-in error: Calendar.Error.' + error, function() {
+        var err = new Calendar.Error[error]();
+        var msg = navigator.mozL10n.get(expectedID) || expectedID;
+
+        subject.showErrors(err);
+        assert.equal(subject.errors.textContent, msg);
+        subject.hideErrors();
+      });
+    }
+
+    verifyBuiltIn('Authentication', 'error-unauthenticated');
+    verifyBuiltIn('ServerFailure', 'error-internal-server-error');
+    verifyBuiltIn('ServerFailure', 'error-internal-server-error');
+
+//<<<<<<< HEAD
     assert.ok(list.contains(subject.activeClass));
     triggerEvent(subject.status, 'animationend');
     assert.ok(!list.contains(subject.activeClass));
+//=======
+//>>>>>>> 3750ff0... Merge pull request #9652 from lightsofapollo/improve-error-handling
   });
 
   test('#onactive', function() {

@@ -2,6 +2,23 @@ Calendar.ns('Provider').Caldav = (function() {
 
   var _super = Calendar.Provider.Abstract.prototype;
 
+  var CALDAV_ERROR_MAP = {
+    'caldav-authentication': 'Authentication',
+    'caldav-invalid-entrypoint': 'InvalidServer',
+    'caldav-server-failure': 'ServerFailure'
+  };
+
+  function mapError(error, detail) {
+    var calError = CALDAV_ERROR_MAP[error.name];
+    if (!calError) {
+      calError = new Calendar.Error(error.name, detail);
+    } else {
+      calError = new Calendar.Error[calError](detail);
+    }
+
+    return calError;
+  }
+
   /**
    * The local provider contains most of the logic
    * of the database persistence so we reuse those bits
@@ -13,6 +30,7 @@ Calendar.ns('Provider').Caldav = (function() {
     Calendar.Provider.Abstract.apply(this, arguments);
 
     this.service = this.app.serviceController;
+    this.accounts = this.app.store('Account');
     this.busytimes = this.app.store('Busytime');
     this.events = this.app.store('Event');
     this.icalComponents = this.app.store('IcalComponent');
@@ -37,6 +55,37 @@ Calendar.ns('Provider').Caldav = (function() {
     canDeleteEvent: true,
 
     hasAccountSettings: true,
+
+    /**
+     * Error handling can be complex- this is the centralized location where
+     * methods can send their error state and some context (an account).
+     *
+     *    this._handleServiceError(
+     *      err,
+     *      { account: account, calendar: calendar }
+     *    );
+     *
+     * @param {Object} rawErr from service.
+     * @param {Object} detail for the error.
+     */
+    _handleServiceError: function(rawErr, detail) {
+      var calendarErr = mapError(rawErr, detail);
+
+      // when we receive a permanent error we should mark the account with an
+      // error.
+      if (
+        calendarErr instanceof Calendar.Error.Authentication ||
+        calendarErr instanceof Calendar.Error.InvalidServer
+      ) {
+        if (detail.account) {
+          this.accounts.markWithError(detail.account, calendarErr);
+        } else {
+          console.error('Permanent server error without an account!');
+        }
+      }
+
+      return calendarErr;
+    },
 
     /**
      * Determines the capabilities of a specific calendar.
@@ -112,47 +161,16 @@ Calendar.ns('Provider').Caldav = (function() {
         return;
       }
 
+      var self = this;
       this.service.request(
         'caldav',
         'getAccount',
         account,
         function(err, data) {
           if (err) {
-            var error = new Error();
-            if (err.constructorName === 'UnauthenticatedError') {
-
-              error.name = 'unauthenticated';
-
-            } else if (
-              err.code !== 'undefined' &&
-              err.constructorName === 'CaldavHttpError'
-            ) {
-              switch (err.code) {
-                case 401:
-                  error.name = 'unauthenticated';
-                  break;
-                case 404:
-                  error.name = 'no-url';
-                  break;
-                case 500:
-                  error.name = 'internal-server-error';
-                  break;
-                default:
-                  error.name = 'default';
-                  break;
-              }
-
-            } else {
-
-              error.name = 'default';
-
-            }
-
-            if (Calendar.DEBUG) {
-              console.error(error.message, error.stack);
-            }
-            callback(error);
-            return;
+            return callback(
+              self._handleServiceError(err, { account: account })
+            );
           }
           callback(null, data);
         }
@@ -163,7 +181,24 @@ Calendar.ns('Provider').Caldav = (function() {
       if (this.bailWhenOffline(callback)) {
         return;
       }
-      this.service.request('caldav', 'findCalendars', account, callback);
+
+      var self = this;
+      function formatCalendars(err, data) {
+        if (err) {
+          return callback(self._handleServiceError(err, {
+            account: account
+          }));
+        }
+
+        callback(err, data);
+      }
+
+      this.service.request(
+        'caldav',
+        'findCalendars',
+        account.toJSON(),
+        formatCalendars
+      );
     },
 
     _syncEvents: function(account, calendar, cached, callback) {
@@ -190,7 +225,8 @@ Calendar.ns('Provider').Caldav = (function() {
       };
 
       var stream = this.service.stream(
-        'caldav', 'streamEvents',
+        'caldav',
+        'streamEvents',
         account.toJSON(),
         calendar.remote,
         options
@@ -204,10 +240,15 @@ Calendar.ns('Provider').Caldav = (function() {
       var calendarStore = this.app.store('Calendar');
       var syncStart = new Date();
 
+      var self = this;
       stream.request(function(err) {
         if (err) {
-          callback(err);
-          return;
+          return callback(
+            self._handleServiceError(err, {
+              account: account,
+              calendar: calendar
+            })
+          );
         }
 
         var trans = pull.commit(function(commitErr) {
@@ -217,6 +258,12 @@ Calendar.ns('Provider').Caldav = (function() {
           }
           callback(null);
         });
+
+        /**
+         * Successfully synchronizing a calendar indicates we can remove this
+         * error.
+         */
+        calendar.error = undefined;
 
         calendar.lastEventSyncToken = calendar.remote.syncToken;
         calendar.lastEventSyncDate = syncStart;
@@ -413,7 +460,6 @@ Calendar.ns('Provider').Caldav = (function() {
         callback = busytime;
         busytime = null;
       }
-
       var self = this;
       var calendar = this.events.calendarFor(event);
       var account = this.events.accountFor(event);
@@ -430,8 +476,10 @@ Calendar.ns('Provider').Caldav = (function() {
         event.remote,
         function handleCreate(err, remote) {
           if (err) {
-            callback(err);
-            return;
+            return callback(self._handleServiceError(err, {
+              account: account,
+              calendar: calendar
+            }));
           }
 
           var event = {
@@ -480,8 +528,10 @@ Calendar.ns('Provider').Caldav = (function() {
 
       function handleUpdate(err, remote) {
         if (err) {
-          callback(err);
-          return;
+          return callback(self._handleServiceError(err, {
+            account: account,
+            calendar: calendar
+          }));
         }
 
         var component = {
@@ -546,19 +596,24 @@ Calendar.ns('Provider').Caldav = (function() {
       var account = store.accountFor(event);
       var self = this;
 
+      function handleRequest(err) {
+        if (err) {
+          callback(self._handleServiceError(err, {
+            account: account,
+            calendar: calendar
+          }));
+          return;
+        }
+        Local.deleteEvent.call(self, event, busytime, callback);
+      }
+
       this.service.request(
         'caldav',
         'deleteEvent',
         account,
         calendar.remote,
         event.remote,
-        function handleDelete(err) {
-          if (err) {
-            callback(err);
-            return;
-          }
-          Local.deleteEvent.call(self, event, busytime, callback);
-        }
+        handleRequest
       );
     },
 

@@ -1,4 +1,5 @@
 (function(window) {
+  var CALENDAR_PREFIX = 'calendar-';
 
   var template = Calendar.Templates.Calendar;
   var _super = Calendar.View.prototype;
@@ -47,7 +48,6 @@
 
     handleEvent: function(event) {
       switch (event.type) {
-
         // calendar updated
         case 'update':
           this._update.apply(this, event.data);
@@ -115,24 +115,41 @@
         return;
 
       var htmlId = 'calendar-' + id;
-      var el = document.getElementById(htmlId);
+      var el = document.getElementById(this.idForModel(CALENDAR_PREFIX, id));
       var check = el.querySelector('input[type="checkbox"]');
+
+      if (el.classList.contains(Calendar.ERROR) && !model.error) {
+        el.classList.remove(Calendar.ERROR);
+      }
+
+      if (model.error) {
+        el.classList.add(Calendar.ERROR);
+      }
 
       el.querySelector(this.selectors.calendarName).textContent = model.name;
       check.checked = model.localDisplayed;
     },
 
     _add: function(id, object) {
+      var idx = this.calendars.children.length;
+
       var html = template.item.render(object);
       this.calendars.insertAdjacentHTML(
         'beforeend',
         html
       );
+
+      if (object.error) {
+        var el = this.calendars.children[
+          idx
+        ];
+
+        el.classList.add(Calendar.ERROR);
+      }
     },
 
     _remove: function(id) {
-      var htmlId = 'calendar-' + id;
-      var el = document.getElementById(htmlId);
+      var el = document.getElementById(this.idForModel(CALENDAR_PREFIX, id));
       if (el) {
         el.parentNode.removeChild(el);
       }
@@ -145,12 +162,8 @@
       var html = '';
 
       for (key in store.cached) {
-        html += template.item.render(
-          store.cached[key]
-        );
+        this._add(key, store.cached[key]);
       }
-
-      list.innerHTML = html;
     },
 
     /**

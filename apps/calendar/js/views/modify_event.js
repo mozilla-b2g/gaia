@@ -289,21 +289,14 @@ Calendar.ns('Views').ModifyEvent = (function() {
       }
 
       if (this.provider) {
-        var caps = this.provider.eventCapabilities(this.event.data);
-        // XXX: unlike the save we don't wait for the transaction
-        // to complete before moving on. Providers (should) take
-        // action to remove the event from the display instantly
-        // then queue a async action to actually remove the whole event.
-        if (caps.canDelete) {
-          var self = this;
-          this.provider.deleteEvent(this.event.data, function(err) {
-            if (err) {
-              self.showErrors(err);
-              return;
-            }
-            self.app.go(self.returnTo());
-          });
-        }
+        var self = this;
+        this.provider.deleteEvent(this.event.data, function(err) {
+          if (err) {
+            self.showErrors(err);
+            return;
+          }
+          self.app.go(self.returnTo());
+        });
       }
     },
 

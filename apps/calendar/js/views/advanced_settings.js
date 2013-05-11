@@ -1,5 +1,6 @@
 (function(window) {
 
+  var ACCOUNT_PREFIX = 'account-';
   var template = Calendar.Templates.Account;
 
   function AdvancedSettings(options) {
@@ -30,7 +31,8 @@
       return {
         id: model._id,
         preset: model.preset,
-        user: model.user
+        user: model.user,
+        hasError: !!model.error
       };
     },
 
@@ -44,6 +46,7 @@
       var setting = this.app.store('Setting');
 
       account.on('add', this._addAccount.bind(this));
+      account.on('update', this._updateAccount.bind(this));
       account.on('remove', this._removeAccount.bind(this));
 
       setting.on('syncFrequencyChange', this);
@@ -94,12 +97,37 @@
         this._formatModel(model)
       );
 
+      var idx = this.accountList.children.length;
+      var item = template.account.render(this._formatModel(model));
       this.accountList.insertAdjacentHTML('beforeend', item);
+
+      if (model.error) {
+        this.accountList.children[idx].classList.add(Calendar.ERROR);
+      }
+    },
+
+    _updateAccount: function(id, model) {
+      var elementId = this.idForModel(ACCOUNT_PREFIX, id);
+      var el = document.getElementById(elementId);
+      if (!el) {
+        return console.error(
+          'trying to update account that was not rendered',
+          id,
+          elementId
+        );
+      }
+
+      if (el.classList.contains(Calendar.ERROR) && !model.error) {
+        el.classList.remove(Calendar.ERROR);
+      }
+
+      if (model.error) {
+        el.classList.add(Calendar.ERROR);
+      }
     },
 
     _removeAccount: function(id) {
-      var htmlId = 'account-' + id;
-      var el = document.getElementById(htmlId);
+      var el = document.getElementById(this.idForModel(ACCOUNT_PREFIX, id));
 
       if (el) {
         el.parentNode.removeChild(el);
@@ -117,13 +145,8 @@
       var result = '';
 
       for (key in items) {
-        if (this._displayAccount(items[key])) {
-          result += template.account.render(
-            this._formatModel(items[key])
-          );
-        }
+        this._addAccount(key, items[key]);
       }
-      list.innerHTML = result;
 
       var settings = this.app.store('Setting');
 

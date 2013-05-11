@@ -109,6 +109,33 @@
       }
 
       return results;
+    },
+
+    dbFixtures: function(factory, storeName, list) {
+      var object = Object.create(null);
+
+      setup(function(done) {
+        var db = Calendar.App.db;
+        var store = db.getStore(storeName);
+        var trans = db.transaction(store._dependentStores, 'readwrite');
+
+        for (var key in list) {
+          store.persist(
+            (object[key] = Factory(factory, list[key])),
+            trans
+          );
+        }
+
+        trans.onerror = function(e) {
+          done(e.target.error);
+        };
+
+        trans.oncomplete = function() {
+          done();
+        };
+      });
+
+      return object;
     }
   };
 
@@ -196,6 +223,7 @@
   requireApp('calendar/shared/js/l10n_date.js');
 
   requireLib('calendar.js');
+  requireLib('error.js');
   requireApp('calendar/test/unit/loader.js');
   requireLib('responder.js');
   requireLib('calc.js');
@@ -212,6 +240,7 @@
   requireLib('store/ical_component.js');
   requireLib('worker/manager.js');
   requireLib('controllers/service.js');
+  requireLib('controllers/error.js');
   requireLib('controllers/time.js');
   requireLib('controllers/sync.js');
   requireLib('controllers/alarm.js');

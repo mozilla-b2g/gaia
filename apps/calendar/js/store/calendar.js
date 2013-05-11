@@ -66,15 +66,47 @@
       store.removeByIndex('calendarId', id, trans);
     },
 
-    remotesByAccount: function(accountId) {
-      if (accountId in this._remoteByAccount) {
-        return this._remoteByAccount[accountId];
+    /**
+     * Marks a given calendar with an error.
+     *
+     * Emits a 'error' event immediately.. This method is typically
+     * triggered by an account wide error.
+     *
+     *
+     * @param {Object} calendar model.
+     * @param {Calendar.Error} error for given calendar.
+     * @param {IDBTransaction} transaction optional.
+     * @param {Function} callback fired when model is saved [err, id, model].
+     */
+    markWithError: function(calendar, error, trans, callback) {
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = null;
       }
+
+      if (!calendar._id)
+        throw new Error('given calendar must be persisted.');
+
+      calendar.error = {
+        name: error.name,
+        date: new Date()
+      };
+
+      this.persist(calendar, trans, callback);
+    },
+
+    remotesByAccount: function(accountId) {
+      if (accountId in this._remoteByAccount)
+        return this._remoteByAccount[accountId];
+
       return Object.create(null);
     },
 
     /**
      * Sync remote and local events for a calendar.
+     *
+     * TODO: Deprecate use of this function in favor of a sync methods
+     *       inside of providers.
      */
     sync: function(account, calendar, callback) {
       var self = this;

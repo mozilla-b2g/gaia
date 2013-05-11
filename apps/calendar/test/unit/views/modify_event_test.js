@@ -585,12 +585,33 @@ suiteGroup('Views.ModifyEvent', function() {
       assert.ok(!calledWith);
     });
 
-    test('with valid provider', function() {
+    test('with an error', function(done) {
+      var err = new Calendar.Error.Authentication();
+      subject.showErrors = function(givenErr) {
+        done(function() {
+          assert.equal(err, givenErr);
+        });
+      };
+
+      provider.deleteEvent = function(model, callback) {
+        Calendar.nextTick(callback.bind(null, err));
+      };
+
       subject.deleteRecord();
-      assert.equal(calledWith[0], subject.event.data, 'delete event');
-      var cb = calledWith[calledWith.length - 1];
-      cb();
-      assert.equal(redirectTo, '/foo', 'redirect');
+    });
+
+    test.skip('with valid provider', function(done) {
+      provider.deleteEvent = function(toDelete, callback) {
+        assert.equal(toDelete._id, event._id, 'deletes event');
+        callback();
+      };
+
+      app.go = function(place) {
+        assert.notEqual(place, '/foo', 'redirect is changed to event url');
+        done();
+      };
+
+      subject.deleteRecord();
     });
   });
 
@@ -610,8 +631,31 @@ suiteGroup('Views.ModifyEvent', function() {
       };
     });
 
-    function haltsOnError() {
-      test('does not save when validator errors occurs', function() {
+    function haltsOnError(providerMethod) {
+      test('does not persist record when provider fails', function(done) {
+        var dispatchesError;
+        var err = new Calendar.Error.Authentication();
+        subject.showErrors = function(gotErr) {
+          done(function() {
+            assert.equal(err, gotErr, 'dispatches error');
+          });
+        };
+
+        provider[providerMethod] = function() {
+          console.log('!! GOT HERE? ');
+          var args = Array.slice(arguments);
+          var cb = args.pop();
+          Calendar.nextTick(cb.bind(null, err));
+        };
+
+        subject.save();
+      });
+
+      test('does not invoke provider when validations fails', function(done) {
+        provider[providerMethod] = function() {
+          done(new Error('should not persist record.'));
+        };
+
         var event = subject.event;
         var errors = [];
         var displayedErrors;
@@ -625,8 +669,6 @@ suiteGroup('Views.ModifyEvent', function() {
         };
 
         subject.save();
-
-        assert.ok(!calledWith, 'does not save');
         assert.deepEqual(displayedErrors[0], errors, 'shows errors');
       });
     }
