@@ -395,11 +395,14 @@ var ThreadUI = global.ThreadUI = {
     var smsInfo = this._mozMobileMessage.getSegmentInfoForText(value);
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
-    var counter = '';
+
+    this.sendButton.dataset.counter = availableChars + '/' + segments;
     if (segments && (segments > 1 || availableChars <= 10)) {
-      counter = availableChars + '/' + segments;
+      this.sendButton.classList.add('has-counter');
+    } else {
+      this.sendButton.classList.remove('has-counter');
     }
-    this.sendButton.dataset.counter = counter;
+
     var hasMaxLength = (segments === kMaxConcatenatedMessages &&
         !availableChars);
 
@@ -986,6 +989,7 @@ var ThreadUI = global.ThreadUI = {
     var clean = function clean() {
       Compose.clear();
       self.sendButton.dataset.counter = '';
+      self.sendButton.classList.remove('has-counter');
       if (window.location.hash === '#new') {
         self.initRecipients();
         self.updateComposerHeader();
