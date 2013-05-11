@@ -90,8 +90,7 @@ Calendar.ns('Controllers').Alarm = (function() {
       // handle notifications when the process of Calendar App is closed
       navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
         var app = evt.target.result;
-        var id = message.imageURL.split('?')[1];
-        var url = '/alarm-display/' + id;
+        var url = message.imageURL.split('?')[1];
 
         if(app !== null) {
           app.launch();
@@ -128,34 +127,13 @@ Calendar.ns('Controllers').Alarm = (function() {
 
       // XXX: may want to truncate this ?
       var description = event.description;
-      var show = this.app.go.bind(this.app, this.displayURL + busytime._id);
+      var url = this.displayURL + busytime._id;
 
       debug('send notification', title, description);
 
-      navigator.mozApps.getSelf().onsuccess = function sendNotification(e) {
-        var app = e.target.result;
-        var icon = (app) ?
-          NotificationHelper.getIconURI(app) + '?' + busytime._id :
-          '';
-
-        // The busytime._id is used when
-        // the process of Calendar app is closed.
-        var showNotification = function showNotification() {
-          show();
-          if (app) {
-            app.launch();
-          }
-        };
-
-        var notification = NotificationHelper.send(
-          title,
-          description,
-          icon,
-          showNotification
-        );
-
-        callback();
-      };
+      Calendar.App.loadObject('Notification', function() {
+        Calendar.Notification.send(title, description, url, callback);
+      });
     },
 
     /**
