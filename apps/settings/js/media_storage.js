@@ -235,7 +235,7 @@ var MediaStorage = {
     MEDIA_TYPE.forEach(function(type) {
       var storages = navigator.getDeviceStorages(type);
       storages.forEach(function(storage) {
-        var name = storage.storageName;
+        var name = storage.volumeName;
         if (!volumes.hasOwnProperty(name)) {
           volumes[name] = {};
         }
