@@ -438,11 +438,10 @@ var ThreadUI = global.ThreadUI = {
       (parseInt(inputCss.getPropertyValue('padding-top'), 10) +
       parseInt(inputCss.getPropertyValue('padding-bottom'), 10)) /
       fontSize;
-    var buttonHeight = 30;
+    var buttonHeight = this.sendButton.offsetHeight;
 
     // Retrieve elements useful in growing method
     var bottomBar = this.composeForm;
-    var bottomBarMaxHeight = parseInt(bottomBar.style.maxHeight, 10);
 
     // We need to grow the input step by step
     this.input.style.height = null;
@@ -454,7 +453,7 @@ var ThreadUI = global.ThreadUI = {
       this.input.style.height = inputMaxHeight / fontSize + 'rem';
       // Update the bottom bar height taking into account the padding
       bottomBar.style.height =
-        bottomBarMaxHeight / fontSize + verticalPadding + 'rem';
+        inputMaxHeight / fontSize + verticalPadding + 'rem';
       // We update the position of the button taking into account the
       // new height
       this.sendButton.style.marginTop =
