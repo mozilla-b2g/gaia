@@ -497,14 +497,21 @@ form.bottom[role="search"].messages-compose-form {
   background: #008aaa;
 }
 
-#messages-send-button:before {
+#messages-send-button.has-counter:before {
   content: attr(data-counter);
-  color: #666;
+  color: rgb(133, 133, 133);
+  border-left: 0.1rem solid rgb(231, 231, 213);
   font-weight: normal;
-  font-size: -moz-calc(8 * 0.226rem);
+  font-size: 1.8rem;
+  text-align: left;
   position: absolute;
-  right: 1rem;
-  top: -0.2rem;
+  height: 4.4rem;
+  left: 0;
+  line-height: 1.8rem;
+  top: -5rem;
+  padding-top: 0;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
 #messages-compose-form {
