@@ -159,6 +159,11 @@ ol.link-list a {
   padding-right: 4rem;
 }
 
+#advanced-settings-view .account-list .error a {
+  background: transparent url('icons/accountwarning_30x30.png') no-repeat left;
+  padding-left: 3.5rem;
+}
+
 #advanced-settings-view .preset:after {
   content: ' - '
 }

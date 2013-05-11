@@ -831,7 +831,10 @@ suite('service/caldav', function() {
     var calledHandle = [];
     var calledWith;
 
+    var errResult;
+
     setup(function() {
+      errResult = null;
       calledHandle.length = 0;
       var realRequest = subject._requestEvents;
       givenCal = Factory('caldav.calendar');
@@ -855,13 +858,45 @@ suite('service/caldav', function() {
         query.send = function() {
           var cb = arguments[arguments.length - 1];
           setTimeout(function() {
-            cb(null);
+            cb(errResult);
           }, 0);
         };
 
         // return real query
         return query;
       };
+    });
+
+    test('authentication error', function(done) {
+      var stream = new Calendar.Responder();
+      var options = {
+        startDate: new Date(2012, 0, 1),
+        cached: {
+          'two/': { id: '2', syncToken: 'two' }
+        }
+      };
+
+      // will be sent in the callback
+      errResult = new Error();
+
+      stream.on(
+        'missingEvents',
+        done.bind(this, new Error('must not emit events'))
+      );
+
+      function handler(err) {
+        done(function() {
+          assert.equal(err, errResult, 'sends error');
+        });
+      }
+
+      subject.streamEvents(
+        givenAcc,
+        givenCal,
+        options,
+        stream,
+        handler
+      );
     });
 
     test('empty response', function(done) {
@@ -1385,6 +1420,7 @@ suite('service/caldav', function() {
       var start = new Date(2012, 1, 1);
       var end = new Date(2012, 1, 2);
       var result;
+      var errResult;
       var putCall;
 
       setup(function(done) {
@@ -1407,6 +1443,7 @@ suite('service/caldav', function() {
           event,
           function(err, remote) {
             result = remote;
+            errResult = err;
             done();
           }
         );

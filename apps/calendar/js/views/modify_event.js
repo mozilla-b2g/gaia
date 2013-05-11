@@ -349,7 +349,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
       }
 
       if (this.provider) {
-
         var self = this;
         function handleDelete() {
           self.provider.deleteEvent(self.event.data, function(err) {
@@ -390,7 +389,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       }
 
       // Disable the button on primary event to avoid race conditions
-      this.primaryButton.setAttribute('aria-disabled', 'true');
+      this.disablePrimary();
 
       if (this.provider) {
         this._persistEvent('updateEvent', 'canUpdate');
@@ -471,11 +470,19 @@ Calendar.ns('Views').ModifyEvent = (function() {
       return fields;
     },
 
+    enablePrimary: function() {
+      this.primaryButton.removeAttribute('aria-disabled');
+    },
+
+    disablePrimary: function() {
+      this.primaryButton.setAttribute('aria-disabled', 'true');
+    },
+
     /**
      * Re-enable the primary button when we show errors
      */
     showErrors: function() {
-      this.primaryButton.removeAttribute('aria-disabled');
+      this.enablePrimary();
       Calendar.Views.EventBase.prototype.showErrors.apply(this, arguments);
     },
 
