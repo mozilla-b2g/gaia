@@ -166,7 +166,7 @@ HandledCall.prototype.remove = function hc_remove() {
 };
 
 HandledCall.prototype.connected = function hc_connected() {
-  this.recentsEntry.type += '-connected';
+  this.recentsEntry.type = 'incoming-connected';
 
   if (!this.node)
     return;
@@ -187,7 +187,7 @@ HandledCall.prototype.busy = function hc_busy() {
 HandledCall.prototype.disconnected = function hc_disconnected() {
   if (this.recentsEntry &&
      (this.recentsEntry.type.indexOf('-connected') == -1)) {
-    this.recentsEntry.type += '-refused';
+    this.recentsEntry.type = 'incoming-refused';
   }
 
   if (this.recentsEntry) {
