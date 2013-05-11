@@ -102,7 +102,8 @@ Calendar.ns('Models').Account = (function() {
         'user',
         'providerType',
         'preset',
-        'oauth'
+        'oauth',
+        'error'
       ];
 
       fields.forEach(function(key) {

@@ -73,7 +73,28 @@ suite('store/calendar', function() {
       subject._removeFromCache(1);
       assert.ok(!subject._cached[1]);
     });
+  });
 
+  suite('#markWithError', function() {
+    var calendar;
+
+    setup(function(done) {
+      calendar = Factory('calendar');
+      subject.persist(calendar, done);
+    });
+
+    test('success', function(done) {
+      var err = new Calendar.Error.Authentication();
+      subject.markWithError(calendar, err, function(markErr) {
+        assert.ok(!markErr);
+        subject.get(calendar._id, function(getErr, result) {
+          done(function() {
+            assert.ok(result.error, 'has error');
+            assert.equal(result.error.name, err.name, 'set error');
+          });
+        });
+      });
+    });
   });
 
   suite('#persist', function() {
