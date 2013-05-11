@@ -1,4 +1,5 @@
 requireApp('calendar/shared/js/notification_helper.js');
+requireLib('notification.js');
 
 suiteGroup('Controllers.Alarm', function() {
 
@@ -184,7 +185,7 @@ suiteGroup('Controllers.Alarm', function() {
       var realApi;
       var sent = [];
       var onsend;
-      var mockApi = {
+      var MockNotifications = {
         send: function() {
           var args = Array.slice(arguments);
           var callback = args[args.length - 1];
@@ -192,82 +193,38 @@ suiteGroup('Controllers.Alarm', function() {
           sent.push(args);
           // wait until next tick...
           setTimeout(callback);
-        },
-
-        getIconURI: function() {
-          return 'icon';
         }
       };
 
-      var realMozApps;
-      var mozApp;
-
       suiteSetup(function() {
-        realMozApps = navigator.mozApps;
-
-        navigator.mozApps = {
-          getSelf: function() {
-            var ctx = {};
-            setTimeout(function() {
-              if (ctx.onsuccess) {
-                ctx.onsuccess({
-                  target: {
-                    result: mozApp
-                  }
-                });
-              }
-            });
-
-            return ctx;
-          }
-        };
-
-        realApi = window.NotificationHelper;
-        window.NotificationHelper = mockApi;
+        realApi = Calendar.Notification;
+        Calendar.Notification = MockNotifications;
       });
 
       suiteTeardown(function() {
-        navigator.mozApps = realMozApps;
-        window.NotificationHelper = realApi;
+        Calendar.Notification = realApi;
       });
 
-      setup(function() {
-        // will be returned by getSelf
-        mozApp = {};
-      });
-
-      test('result', function(done) {
-        sent.length = 0;
-        var sentTo;
-        var firesReady = false;
-
-        var now = new Date();
+      test('issues notification', function(done) {
         var event = Factory('event');
-        var busytime = Factory('busytime');
-
-        app.router.show = function(url) {
-          sentTo = url;
-        };
-
-        mozApp.launch = function() {
-          done(function() {
-            var notification = sent[0];
-            assert.ok(firesReady, 'is is freed prior to launching');
-            assert.equal(notification[1], event.remote.description);
-            assert.ok(sentTo);
-            assert.include(sentTo, busytime._id);
-          });
-        };
-
-        function onready() {
-          firesReady = true;
-        }
+        var busytime = Factory('busytime', { _id: '1' });
+        var url = subject.displayURL + busytime._id;
 
         subject._sendAlarmNotification(
           {},
           event,
           busytime,
-          onready
+          function() {
+            done(function() {
+              var notification = sent[0];
+              assert.ok(notification, 'sends notification');
+              assert.ok(notification[0], 'has title');
+              assert.equal(
+                notification[1], event.remote.description, 'description'
+              );
+              assert.equal(notification[2], url, 'sends url');
+            });
+          }
         );
       });
     });
@@ -637,7 +594,7 @@ suiteGroup('Controllers.Alarm', function() {
       setup(function(done) {
         message = {
           clicked: true,
-          imageURL: 'app://calendar.gaiamobile.org/icon.png?foo'
+          imageURL: 'app://calendar.gaiamobile.org/icon.png?/alarm-display/foo'
         };
 
         realGo = app.go;
