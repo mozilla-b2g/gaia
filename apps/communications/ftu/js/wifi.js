@@ -120,7 +120,7 @@ var WifiManager = {
     }
     var network = this.getNetwork(ssid);
     this.ssid = ssid;
-    var key = this.getSecurityType(network);
+    var key = WifiHelper.getKeyManagement(network);
     switch (key) {
       case 'WEP':
         network.wep = password;
@@ -171,28 +171,6 @@ var WifiManager = {
         }
       }
     };
-  },
-
-  getSecurityType: function wn_gst(network) {
-    var key = network.capabilities[0];
-    if (/WEP$/.test(key))
-      return 'WEP';
-    if (/PSK$/.test(key))
-      return 'WPA-PSK';
-    if (/EAP$/.test(key))
-      return 'WPA-EAP';
-    return false;
-  },
-  isUserMandatory: function wn_ium(ssid) {
-    var network = this.getNetwork(ssid);
-    return (this.getSecurityType(network).indexOf('EAP') != -1);
-  },
-  isPasswordMandatory: function wn_ipm(ssid) {
-    var network = this.getNetwork(ssid);
-    if (!this.getSecurityType(network)) {
-      return false;
-    }
-    return true;
   }
 };
 
@@ -245,7 +223,7 @@ var WifiUI = {
     var ssid = event.target.dataset.ssid;
 
     // Do we need to type password?
-    if (!WifiManager.isPasswordMandatory(ssid)) {
+    if (WifiHelper.getKeyManagement(WifiManager.getNetwork(ssid)) === '') {
       WifiUI.connect(ssid);
       return;
     }
@@ -268,7 +246,7 @@ var WifiUI = {
     passwordInput.addEventListener('keyup', function validatePassword() {
       // disable the "Join" button if the password is too short
       var disabled = false;
-      switch (WifiManager.getSecurityType(selectedNetwork)) {
+      switch (WifiHelper.getKeyManagement(selectedNetwork)) {
         case 'WPA-PSK':
           disabled = disabled || passwordInput.value.length < 8;
           break;
@@ -296,12 +274,13 @@ var WifiUI = {
     // Activate secondary menu
     UIManager.navBar.classList.add('secondary-menu');
     // Update changes in form
-    if (WifiManager.isUserMandatory(ssid)) {
-      userLabel.classList.remove('hidden');
-      userInput.classList.remove('hidden');
-    } else {
+    if (WifiHelper.getKeyManagement(
+        WifiManager.getNetwork(ssid)).indexOf('EAP') === -1) {
       userLabel.classList.add('hidden');
       userInput.classList.add('hidden');
+    } else {
+      userLabel.classList.remove('hidden');
+      userInput.classList.remove('hidden');
     }
 
     // Change hash
