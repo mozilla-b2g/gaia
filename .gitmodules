@@ -1,0 +1,6 @@
+[submodule "apps/calendar/submodule/l10n"]
+	path = apps/calendar/submodule/l10n
+	url = git@github.com:mozilla-ui/l10n.git
+[submodule "apps/calendar/submodule/gesture_detector"]
+	path = apps/calendar/submodule/gesture_detector
+	url = git@github.com:mozilla-ui/gesture_detector.git
