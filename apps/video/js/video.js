@@ -321,31 +321,43 @@ function updateDialog() {
 // Create a thumbnail item
 //
 function createThumbnailItem(videonum) {
-  var poster;
   var videodata = videos[videonum];
 
   var inner = document.createElement('div');
   inner.className = 'inner';
 
-  if (videodata.metadata.poster) {
-    poster = document.createElement('div');
-    poster.className = 'img';
-    setPosterImage(poster, videodata.metadata.poster);
+  // This  is the image blob we display for the video.
+  // If the video is part-way played, we display the bookmark image.
+  // Otherwise we display the poster image from metadata parsing.
+  var imageblob = videodata.metadata.bookmark || videodata.metadata.poster;
+
+  // This is the element that displays the image blob
+  var poster = document.createElement('div');
+  poster.className = 'img';
+  if (imageblob) {
+    setPosterImage(poster, imageblob);
   }
 
   var details = document.createElement('div');
   details.className = 'details';
+  details.dataset.title = videodata.metadata.title;
+  var title = document.createElement('span');
+  title.className = 'title';
+  title.textContent = videodata.metadata.title;
+  details.appendChild(title);
   if (isFinite(videodata.metadata.duration)) {
     var d = Math.round(videodata.metadata.duration);
-    details.dataset.after = formatDuration(d);
+    var after = document.createElement('span');
+    after.className = 'after';
+    after.textContent = ' ' + formatDuration(d);
+    details.appendChild(after);
   }
-  details.textContent = videodata.metadata.title;
+
+  details.addEventListener('overflow', detailsOverflowHandler);
 
   var thumbnail = document.createElement('li');
   thumbnail.className = 'thumbnail';
-  if (poster) {
-    inner.appendChild(poster);
-  }
+  inner.appendChild(poster);
 
   if (!videodata.metadata.watched) {
     var unread = document.createElement('div');
@@ -360,6 +372,24 @@ function createThumbnailItem(videonum) {
   inner.appendChild(details);
   thumbnail.appendChild(inner);
   return thumbnail;
+}
+
+function detailsOverflowHandler(e) {
+  var el = e.target;
+  var max = { portrait: 45, landscape: 175 };
+  var title = el.firstElementChild;
+  var orientation = window.innerWidth > window.innerHeight ?
+    'landscape' : 'portrait';
+  var end = title.textContent.length > max[orientation] ?
+    max[orientation] : -4;
+  if (title.textContent.length >= 4) {
+    title.textContent = title.textContent.slice(0, end) + '\u2026';
+  }
+
+  // Force element to be repainted to enable 'overflow' event
+  // Can't repaint without the timeout maybe a gecko bug.
+  el.style.overflow = 'visible';
+  setTimeout(function() { el.style.overflow = 'hidden'; });
 }
 
 function thumbnailClickHandler() {
@@ -556,11 +586,6 @@ function showPlayer(videonum, autoPlay) {
     if (autoPlay) {
       play();
     }
-
-    if ('metadata' in currentVideo) {
-      currentVideo.metadata.watched = true;
-      videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
-    }
   }
 
   setVideoUrl(dom.player, currentVideo, function() {
@@ -634,29 +659,53 @@ function hidePlayer(updateMetadata) {
   }
 
   var video = currentVideo;
-  var li = getThumbnailDom(video.name);
+  var thumbnail = getThumbnailDom(video.name);
 
-  // Record current information about played video
-  video.metadata.currentTime = dom.player.currentTime;
-  captureFrame(dom.player, currentVideo.metadata, function(poster) {
-    currentVideo.metadata.poster = poster;
+  // If we reached the end of the video, then currentTime will have gone
+  // back to zero. If that is the case then we want to erase any bookmark
+  // image from the metadata and revert to the original poster image.
+  // Otherwise, if we've stopped in the middle of a video, we need to
+  // capture the current frame to use as a new bookmark. In either case
+  // we call updateMetadata() to update the thumbnail and update this and
+  // other modified metadata.
+  if (dom.player.currentTime === 0) {
+    video.metadata.bookmark = null; // Don't use delete here
+    updateMetadata();
+  }
+  else {
+    captureFrame(dom.player, video.metadata, function(bookmark) {
+      video.metadata.bookmark = bookmark;
+      updateMetadata();
+    });
+  }
 
-    var posterImg = li.querySelector('.img');
-    if (poster && posterImg) {
-      setPosterImage(posterImg, poster);
+  function updateMetadata() {
+    // Update the thumbnail image for this video
+    var posterImg = thumbnail.querySelector('.img');
+    var imageblob = video.metadata.bookmark || video.metadata.poster;
+    if (posterImg && imageblob) {
+      setPosterImage(posterImg, imageblob);
     }
 
-    var unwatched = li.querySelector('.unwatched');
-    if (unwatched) {
-      unwatched.parentNode.removeChild(unwatched);
+    // If this is the first time the video was watched, record that it has
+    // been watched now and update the corresponding document element.
+    if (!video.metadata.watched) {
+      video.metadata.watched = true;
+      var unwatched = thumbnail.querySelector('.unwatched');
+      if (unwatched) {
+        unwatched.parentNode.removeChild(unwatched);
+      }
     }
 
-    // Store the new metadata, but don't wait for it to complete
+    // Remember the current time so we can resume playback at this point
+    video.metadata.currentTime = dom.player.currentTime;
+
+    // Save the new metadata to the db, but don't wait for it to complete
     videodb.updateMetadata(video.name, video.metadata);
 
-    // Go ahead and switch back to the thumbnails now
+    // Finally, we can switch back to the thumbnails now
     completeHidingPlayer();
-  });
+  }
 }
 
 function playerEnded() {
@@ -706,10 +755,7 @@ function timeUpdated() {
     // We can't update a progress bar if we don't know how long
     // the video is. It is kind of a bug that the <video> element
     // can't figure this out for ogv videos.
-    //
-    // check seekedToCaptureFrame to ignore update while CaptureFrame
-    if (dom.player.duration === Infinity || dom.player.duration === 0 ||
-      seekedToCaptureFrame) {
+    if (dom.player.duration === Infinity || dom.player.duration === 0) {
       return;
     }
 
@@ -827,116 +873,6 @@ function formatDuration(duration) {
   return hours + ':' + padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
 }
 
-function textTruncate(el) {
-
-  // Define helpers
-  var helpers = {
-    getLine: function h_getLine(letter) {
-      return parseInt((letter.offsetTop - atom.top) / atom.height) + 1;
-    },
-    hideLetter: function h_hideLetter(letter) {
-      letter.style.display = 'none';
-    },
-    after: function h_after(node, after) {
-      if (node.nextSibling) {
-        node.parentNode.insertBefore(after, node.nextSibling);
-      } else {
-        node.parentNode.appendChild(after);
-      }
-    }
-  };
-
-  var text = { el: el };
-
-  // Define real content before
-  if (!text.el.dataset.raw) {
-    text.el.dataset.raw = el.textContent;
-  }
-  text.el.innerHTML = text.el.dataset.raw;
-  delete text.el.dataset.visible;
-
-  var after = { el: document.createElement('span') };
-  after.el.className = 'after';
-  document.body.appendChild(after.el);
-
-  // Set positionable all letter
-  var t = text.el.innerHTML.replace(/(.)/g, '<span>$1</span>');
-  text.el.innerHTML = t;
-
-  // get atomic letter dimension
-  var atom = {
-    left: text.el.firstChild.offsetLeft,
-    top: text.el.firstChild.offsetTop,
-    width: text.el.firstChild.offsetWidth,
-    height: text.el.firstChild.offsetHeight
-  };
-
-  // Possible lines number
-  text.lines = (text.el.offsetHeight -
-    (text.el.offsetHeight) % atom.height) / atom.height;
-
-  // Prepare ... element to be append if necessary
-  var etc = document.createElement('span');
-  etc.innerHTML = '...';
-  after.el.appendChild(etc);
-
-  // Append duration this is required
-  var duration = document.createElement('span');
-  duration.innerHTML = text.el.dataset.after;
-  after.el.appendChild(duration);
-
-  // Init width left to include the after element
-  text.widthLeft = text.el.clientWidth;
-
-  // After element
-  after.width = after.el.offsetWidth;
-
-  // Each letter
-  var line;
-  var i = 0;
-  var children = text.el.children;
-  var space = document.createTextNode(' ');
-
-  while (children[i]) {
-    var letter = children[i];
-    if (letter.className == after.el.className) {
-      i++;
-      continue;
-    }
-    line = helpers.getLine(letter);
-    // If in last line truncate
-    if (text.lines == line) {
-      if (letter.textContent != ' ') {
-        // If enought space left to print after element
-        text.widthLeft -= letter.offsetWidth;
-        if (text.widthLeft - after.width < 3 * atom.width && !after.already) {
-          after.already = true;
-          helpers.after(letter, space);
-          helpers.after(letter, after.el);
-          after.el.insertBefore(space, after.el.lastChild);
-        } else if (after.already) {
-          helpers.hideLetter(letter);
-        }
-      }
-    } else if (text.lines <= line || after.already == true) {
-      helpers.hideLetter(letter);
-    }
-    i++;
-  }
-  // This can be optimized, for sure !
-  if (!after.already) {
-    if (text.lines > line) {
-      // Remove etc child from after element
-      after.el.removeChild(etc);
-      text.el.appendChild(after.el);
-      text.el.insertBefore(space, after.el);
-    } else {
-      after.el.style.display = 'none';
-    }
-  }
-  text.el.dataset.visible = 'true';
-}
-
  // Pause on visibility change
 document.addEventListener('mozvisibilitychange', function visibilityChange() {
   if (document.mozHidden) {
@@ -980,18 +916,23 @@ function restoreVideo() {
 // show|hide controls over the player
 dom.videoControls.addEventListener('mousedown', playerMousedown);
 
+// Force repainting of titles for enable overflow event
+function forceRepaintTitles() {
+  var texts = document.querySelectorAll('.details');
+  for (var i = 0; i < texts.length; i++) {
+    texts[i].style.overflow = 'visible';
+    texts[i].firstElementChild.textContent = texts[i].dataset.title;
+    texts[i].style.overflow = 'hidden';
+  }
+}
+
 // Rescale when window size changes. This should get called when
 // orientation changes
 window.addEventListener('resize', function() {
   if (dom.player.readyState !== HAVE_NOTHING) {
     setPlayerSize();
   }
-
-  // reTruncate text
-  var texts = document.querySelectorAll('.details');
-  for (var i = 0; i < texts.length; i++) {
-    textTruncate(texts[i]);
-  }
+  forceRepaintTitles();
 });
 
 dom.player.addEventListener('timeupdate', timeUpdated);

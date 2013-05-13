@@ -90,8 +90,7 @@ Calendar.ns('Controllers').Alarm = (function() {
       // handle notifications when the process of Calendar App is closed
       navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
         var app = evt.target.result;
-        var id = message.imageURL.split('?')[1];
-        var url = '/alarm-display/' + id;
+        var url = message.imageURL.split('?')[1];
 
         if (app !== null) {
           app.launch();
@@ -100,7 +99,17 @@ Calendar.ns('Controllers').Alarm = (function() {
       };
     },
 
-    _sendAlarmNotification: function(alarm, event, busytime) {
+    /**
+     * Private helper to build the notification.
+     *
+     * @param {Object} alarm from notification handler.
+     * @param {Object} event object from event store.
+     * @param {Object} busytime object from busytime store.
+     * @param {Function} callback
+     *  fired when notification is sent (but not clicked)
+     *  required for cpu wake locks.
+     */
+    _sendAlarmNotification: function(alarm, event, busytime, callback) {
       var now = new Date();
 
       event = new Calendar.Models.Event(event);
@@ -120,35 +129,29 @@ Calendar.ns('Controllers').Alarm = (function() {
 
       // XXX: may want to truncate this ?
       var description = event.description;
-      var show = this.app.go.bind(this.app, this.displayURL + busytime._id);
+      var url = this.displayURL + busytime._id;
 
       debug('send notification', title, description);
 
-      navigator.mozApps.getSelf().onsuccess = function sendNotification(e) {
-        var app = e.target.result;
-        var icon = (app) ? NotificationHelper.getIconURI(app) : '';
-        // The busytime._id is used when
-        // the process of Calendar app is closed.
-        icon = icon + '?' + busytime._id;
-        var notification = NotificationHelper.send(
-        title,
-        description,
-        icon,
-        function() {
-          show();
-          if (app) app.launch();
-        });
-      };
+      Calendar.App.loadObject('Notification', function() {
+        Calendar.Notification.send(title, description, url, callback);
+      });
     },
 
     /**
      * Given an alarm will send a notification.
      *
+     * NOTE about locks: we assume gecko will hold a cpu lock for the tick in
+     * which the system message fires. After that point we must hold a lock
+     * until dispatching the message (or deciding we don't need to dispatch).
+     * The assumption is the CPU may go to sleep (and thus stop processing the
+     * current tick of the event loop) at _any_ point.
+     *
+     *
      * @param {Object} alarm alarm object (usually from system message).
      * @param {IDBTransaction} [trans] optional transaction.
      */
     handleAlarm: function(alarm, trans) {
-      debug('got alarm', alarm);
       // a valid busytimeId will never be zero so ! is safe.
       if (!alarm._id || !alarm.busytimeId || !alarm.eventId) {
         return;
@@ -169,14 +172,23 @@ Calendar.ns('Controllers').Alarm = (function() {
       var busytime;
       var dbAlarm;
 
-      trans.oncomplete = function() {
+      // async operations are required... Keep the CPU awake until we are done.
+      var cpuLock = navigator.requestWakeLock('cpu');
+
+      // we really want to make sure we free this lock
+      trans.onerror = trans.onabort = function transactionFailure() {
+        cpuLock.unlock();
+      };
+
+      trans.oncomplete = function sendNotification() {
+
         // its possible that there are no results
-        // to the get operations (because events where removed)
+        // to the get operations (because events were removed)
         // we gracefully handle that by ignoring the alarm
         // when no associated records can be found.
         if (!dbAlarm || !event || !busytime) {
           debug('failed to load records', dbAlarm, event, busytime);
-          return;
+          return cpuLock.unlock();
         }
 
         var endDate = Calendar.Calc.dateFromTransport(busytime.end);
@@ -184,19 +196,27 @@ Calendar.ns('Controllers').Alarm = (function() {
 
         // if event has not ended yet we can send an alarm
         if (endDate > now) {
-          self._sendAlarmNotification(alarm, event, busytime);
+          // we need a lock to ensure we actually fire the notification
+          self._sendAlarmNotification(alarm, event, busytime, function() {
+            cpuLock.unlock();
+          });
+        } else {
+          // no alarm to send just free the cpu lock
+          cpuLock.unlock();
         }
       };
 
-      alarmStore.get(alarm._id, trans, function(err, record) {
+      alarmStore.get(alarm._id, trans, function getAlarm(err, record) {
         dbAlarm = record;
       });
 
-      eventStore.get(alarm.eventId, trans, function(err, record) {
+      eventStore.get(alarm.eventId, trans, function getEvent(err, record) {
         event = record;
       });
 
-      busytimeStore.get(alarm.busytimeId, trans, function(err, record) {
+      busytimeStore.get(alarm.busytimeId, trans, function getBusytime
+                        (err, record) {
+
         busytime = record;
       });
     },

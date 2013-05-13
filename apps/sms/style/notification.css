@@ -1,0 +1,21 @@
+section[role="notification"] {
+  z-index: 1;
+  position: relative; /* so that we can compete
+                         with absolutely positioned elements */
+
+  overflow: hidden;
+
+  background: rgba(64,64,64,0.9) url(images/pattern.png) left top repeat;
+  font-weight: normal;
+  color: #fff;
+  text-align: left;
+}
+
+section[role="notification"] p {
+  margin: 1rem 2rem;
+  padding: 0;
+  line-height: 2rem;
+
+  font-size: 1.5rem;
+  text-align: left;
+}

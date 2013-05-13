@@ -7,6 +7,12 @@ function initDB() {
 
   videodb.onunavailable = function(event) {
     storageState = event.detail;
+    // If player is playing, we need to hide the player which pauses the player
+    // and unloads the video file.
+    if (playerShowing) {
+      hidePlayer(true);
+    }
+
     updateDialog();
   };
   videodb.onready = function() {
@@ -108,9 +114,6 @@ function addVideo(videodata) {
   var thumbnail = createThumbnailItem(insertPosition);
   var thumbnails = dom.thumbnails.children;
   dom.thumbnails.insertBefore(thumbnail, thumbnails[insertPosition]);
-
-  var text = thumbnail.querySelector('.details');
-  textTruncate(text);
 
   // increment the index of each of the thumbnails after the new one
   for (var i = insertPosition; i < thumbnails.length; i++) {

@@ -13,6 +13,14 @@ suiteGroup('Controllers.Sync', function() {
 
   var accModel;
 
+  function stageAccountSyncError(err) {
+    account.sync = function() {
+      var args = Array.slice(arguments);
+      var cb = args.pop();
+      Calendar.nextTick(cb.bind(this, err));
+    };
+  }
+
   setup(function(done) {
     this.timeout(10000);
 
@@ -168,6 +176,31 @@ suiteGroup('Controllers.Sync', function() {
     });
 
     suite('#account', function() {
+
+      test('error without a callback', function(done) {
+        app.errorController.dispatch = function(given) {
+          done(function() {
+            assert.ok(!subject.pending);
+            assert.equal(err, given);
+          });
+        };
+
+        var err = new Calendar.Error();
+        stageAccountSyncError(err);
+        subject.account(accModel);
+        assert.equal(subject.pending, 1);
+      });
+
+      test('error with a callback', function(done) {
+        var err = new Error();
+        stageAccountSyncError(err);
+        subject.account(accModel, function(givenErr) {
+          done(function() {
+            assert.equal(givenErr, err, 'sends error');
+          });
+        });
+      });
+
       test('success', function(done) {
         var pendingCalendarSync = 2;
 

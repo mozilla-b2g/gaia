@@ -41,7 +41,8 @@ var ThreadUI = global.ThreadUI = {
       'check-all-button', 'uncheck-all-button',
       'contact-pick-button', 'back-button', 'send-button',
       'delete-button', 'cancel-button',
-      'edit-mode', 'edit-form', 'tel-form'
+      'edit-mode', 'edit-form', 'tel-form',
+      'max-length-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -138,7 +139,9 @@ var ThreadUI = global.ThreadUI = {
       'mousedown', this.addRecipientFromContacts.bind(this)
     );
 
-    this.tmpl = ['contact', 'highlight'].reduce(function(tmpls, name) {
+    this.tmpl = [
+      'contact', 'highlight', 'message'
+    ].reduce(function(tmpls, name) {
       tmpls[name] = Utils.Template('messages-' + name + '-tmpl');
       return tmpls;
     }, {});
@@ -340,6 +343,9 @@ var ThreadUI = global.ThreadUI = {
     var newRecipient = document.createElement('span');
     // Add styles
     newRecipient.classList.add('recipient');
+    // Disable word suggestions by setting the inputmode to 'verbatim'
+    // XXX Bug 869661: change this to inputmode=name when that is supported
+    newRecipient.setAttribute('x-inputmode', 'verbatim');
     // Append to 'recipients-container'
     this.recipientsContainer.appendChild(newRecipient);
     // If it's a contact we need to add extra-info
@@ -418,27 +424,35 @@ var ThreadUI = global.ThreadUI = {
 
   enableSend: function thui_enableSend() {
     this.initSentAudio();
-    if (this.input.value.length) {
-      this.updateCounter();
-    }
 
-    if (window.location.hash == '#new' && this.recipients.length === 0) {
-      this.sendButton.disabled = true;
-      return;
-    }
+    // should disable if we have no message input
+    var disableSendMessage = !this.input.value.length;
 
-    this.sendButton.disabled = !this.input.value.length;
+    var messageNotLong = this.updateCounter();
+
+    // should disable if the message is too long
+    disableSendMessage = disableSendMessage || !messageNotLong;
+
+    // should disable if we have no recipients in the "new thread" view
+    disableSendMessage = disableSendMessage ||
+      (window.location.hash == '#new' && !this.recipients.length);
+
+    this.sendButton.disabled = disableSendMessage;
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom() {
     this.container.scrollTop = this.container.scrollHeight;
   },
 
+  // will return true if we can send the message, false if we can't send the
+  // message
   updateCounter: function thui_updateCount() {
     if (!this._mozMobileMessage.getSegmentInfoForText) {
-      return;
+      return true;
     }
+
     var value = this.input.value;
+
     // We set maximum concatenated number of our SMS app to 10 based on:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
     var kMaxConcatenatedMessages = 10;
@@ -448,26 +462,30 @@ var ThreadUI = global.ThreadUI = {
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
     var counter = '';
-    if (segments > 1 || availableChars <= 10) {
+    if (segments && (segments > 1 || availableChars <= 10)) {
       counter = availableChars + '/' + segments;
     }
     this.sendButton.dataset.counter = counter;
     var hasMaxLength = (segments === kMaxConcatenatedMessages &&
         !availableChars);
 
-    // note: when we'll have the MMS feature, we'll want to use an MMS instead
-    // of forbidding this.
-    if (hasMaxLength) {
-      // set maxlength before calling alert, to disable entering more characters
-      this.input.setAttribute('maxlength', value.length);
-      // this will make the keyboard disappear
-      this.input.blur();
+    // we may have this if we switch from 140-character messages to 70-character
+    // messages due to an encoding change
+    var exceededMaxLength = (segments > kMaxConcatenatedMessages);
 
-      var message = navigator.mozL10n.get('messages-max-length-notice');
-      window.alert(message);
+    if (hasMaxLength || exceededMaxLength) {
+      this.input.setAttribute('maxlength', value.length);
+      var key = hasMaxLength ?
+          'messages-max-length-text' : 'messages-exceeded-length-text';
+      var message = navigator.mozL10n.get(key);
+      this.maxLengthNotice.querySelector('p').textContent = message;
+      this.maxLengthNotice.classList.remove('hide');
     } else {
-      this.input.removeAttribute('maxlength');
+      this.input.removeAttribute('maxlength', value.length);
+      this.maxLengthNotice.classList.add('hide');
     }
+
+    return !exceededMaxLength;
   },
 
   updateInputHeight: function thui_updateInputHeight() {
@@ -686,29 +704,29 @@ var ThreadUI = global.ThreadUI = {
 
   createMmsContent: function thui_createMmsContent(dataArray) {
     var container = document.createElement('div');
-    container.classList.add('mms-container');
+    container.className = 'mms-container';
     dataArray.forEach(function(attachment) {
-      var mediaElement, textElement, url;
+      var mediaElement, textElement;
 
       if (attachment.name && attachment.blob) {
         var type = Utils.typeFromMimeType(attachment.blob.type);
         if (type) {
           // we special case audio to display an image of an audio attachment
-          if (type === 'audio') {
-            type = 'img';
-            url = '/style/icons/audio_thumb.png';
+          // video currently falls through this path too, we should revisit this
+          // with #869244
+          if (type === 'audio' || type === 'video') {
+            mediaElement = document.createElement('div');
+            mediaElement.className = type + '-placeholder';
           } else {
-            url = URL.createObjectURL(attachment.blob);
+            mediaElement = document.createElement(type);
+            mediaElement.src = URL.createObjectURL(attachment.blob);
+            mediaElement.onload = function() {
+              URL.revokeObjectURL(this.src);
+            };
           }
-          mediaElement = document.createElement(type);
-          mediaElement.src = url;
-          mediaElement.onload = function() {
-            URL.revokeObjectURL(url);
-          };
           container.appendChild(mediaElement);
+          attachmentMap.set(mediaElement, attachment);
         }
-        attachmentMap.set(mediaElement, attachment);
-        container.appendChild(mediaElement);
       }
 
       if (attachment.text) {
@@ -779,60 +797,47 @@ var ThreadUI = global.ThreadUI = {
   },
 
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
-    // Retrieve all data from message
-    var id = message.id;
-    var bodyText = Utils.Message.format(message.body);
+    var bodyHTML = '';
     var delivery = message.delivery;
     var messageDOM = document.createElement('li');
 
-    messageDOM.classList.add('bubble');
-
+    var classNames = ['message', message.type, delivery];
+    classNames.push(delivery === 'received' ? 'incoming' : 'outgoing');
     if (hidden) {
-      messageDOM.classList.add('hidden');
+      classNames.push('hidden');
     }
-    messageDOM.id = 'message-' + id;
-    var inputValue = id;
-    var asideHTML = '';
-    // Do we have to add some error/sending icon?
-    if (delivery) {
-      switch (delivery) {
-        case 'error':
-          asideHTML = '<aside class="pack-end"></aside>';
-          break;
-        case 'sending':
-          asideHTML = '<aside class="pack-end">' +
-                      '<progress></progress></aside>';
-          break;
-      }
+    messageDOM.className = classNames.join(' ');
+
+    if (message.type === 'sms') {
+      bodyHTML = LinkHelper.searchAndLinkClickableData(Utils.Message.format(
+        message.body || ''
+      ));
     }
-    // Create HTML content
-    // TODO: use Utils.Template here
-    var messageHTML = '<label class="danger">' +
-                      '<input type="checkbox" value="' + inputValue + '">' +
-                      '<span></span>' +
-                      '</label>' +
-                    '<a class="' + delivery + '">';
-    messageHTML += asideHTML;
-    messageHTML += '<p></p></a>';
-    messageDOM.innerHTML = messageHTML;
+
+    messageDOM.id = 'message-' + message.id;
+
+    messageDOM.innerHTML = this.tmpl.message.interpolate({
+      id: String(message.id),
+      bodyHTML: bodyHTML
+    }, {
+      safe: ['bodyHTML']
+    });
+
     if (delivery === 'error') {
       ThreadUI.addResendHandler(message, messageDOM);
     }
 
     var pElement = messageDOM.querySelector('p');
-    if (message.type && message.type === 'mms') { // MMS
-      if (message.delivery === 'not-downloaded') {
+    if (message.type === 'mms') { // MMS
+      if (delivery === 'not-downloaded') {
         // TODO: We need to handle the mms message with "not-downloaded" status
       } else {
-        pElement.classList.add('mms-bubble-content');
         SMIL.parse(message, function(slideArray) {
           pElement.appendChild(ThreadUI.createMmsContent(slideArray));
         });
       }
-    } else { // SMS
-      // TODO: make this work without setting innerHTML
-      pElement.innerHTML = LinkHelper.searchAndLinkClickableData(bodyText);
     }
+
     return messageDOM;
   },
 
@@ -872,8 +877,7 @@ var ThreadUI = global.ThreadUI = {
   },
 
   addResendHandler: function thui_addResendHandler(message, messageDOM) {
-    var aElement = messageDOM.querySelector('aside');
-    aElement.addEventListener('click', function resend(e) {
+    messageDOM.addEventListener('click', function resend(e) {
       var hash = window.location.hash;
       if (hash != '#edit') {
         if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
@@ -1098,12 +1102,10 @@ var ThreadUI = global.ThreadUI = {
     if (!messageDOM) {
       return;
     }
-    // Remove 'sending' style
-    var aElement = messageDOM.querySelector('a');
-    aElement.classList.remove('sending');
-    // Remove the 'spinner'
-    var spinnerContainer = aElement.querySelector('aside');
-    aElement.removeChild(spinnerContainer);
+
+    // Update class names to reflect message state
+    messageDOM.classList.remove('sending');
+    messageDOM.classList.add('sent');
 
     // Play the audio notification
     if (this.sentAudioEnabled) {
@@ -1116,18 +1118,14 @@ var ThreadUI = global.ThreadUI = {
     if (!messageDOM) {
       return;
     }
-    // Remove 'sending' style and add 'error' style
-    var aElement = messageDOM.querySelector('a');
     // Check if it was painted as 'error' before
-    if (!aElement.classList.contains('sending')) {
+    if (messageDOM.classList.contains('error')) {
       return;
     }
-    aElement.classList.remove('sending');
-    aElement.classList.add('error');
 
-    // Remove only the spinner
-    var spinnerContainer = aElement.querySelector('aside');
-    spinnerContainer.innerHTML = '';
+    // Update class names to reflect message state
+    messageDOM.classList.remove('sending');
+    messageDOM.classList.add('error');
 
     ThreadUI.addResendHandler(message, messageDOM);
 

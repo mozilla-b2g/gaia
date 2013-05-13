@@ -55,26 +55,6 @@ ol, ul {
   list-style: none;
 }
 
-/* Copying Filters BB styles for selected filter, but using .selected instead of :target */
-ul[role="tablist"][data-type="filter"] > [role="tab"].selected {
-  background: #fff;
-  border: solid 1px #999;
-  border-top: none;
-  color: #000;
-}
-
-ul[role="tablist"][data-type="filter"] > [role="tab"]:first-child.selected {
-  border-left: none;
-}
-
-ul[role="tablist"][data-type="filter"] > [role="tab"]:last-child.selected {
-  border-right: none;
-}
-
-ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
-  color: #000;
-}
-
 .hide {
   display: none;
 }
@@ -142,10 +122,6 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
 
 [data-type="list"] aside.icon.icon-missed {
   background-image: url('images/CallLog_30x30_missed_grey.png');
-}
-
-[data-type="list"] .log-item {
-  padding: 0;
 }
 
 .log-item * {
