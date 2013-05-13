@@ -11,6 +11,7 @@
 var Compose = (function() {
   var placeholderClass = 'placeholder';
 
+  var slice = Array.prototype.slice;
   var attachments = new WeakMap();
 
   // will be defined in init
@@ -22,13 +23,17 @@ var Compose = (function() {
   };
 
   var handlers = {
-    input: []
+    input: [],
+    type: []
   };
 
   var state = {
     empty: true,
     maxLength: null,
-    lock: false
+    lock: false,
+
+    // 'sms' or 'mms'
+    type: 'sms'
   };
 
   // handler for 'input' in contentEditable
@@ -36,6 +41,7 @@ var Compose = (function() {
 
     var textLength = dom.message.textContent.length;
     var empty = !textLength;
+    var hasFrames = !!dom.message.querySelector('iframe');
 
     if (state.maxLength && textLength >= state.maxLength) {
       state.lock = true;
@@ -43,12 +49,12 @@ var Compose = (function() {
 
     if (empty) {
       var brs = dom.message.getElementsByTagName('br');
-      var attachment = dom.message.querySelector('iframe');
       // firefox will keep an extra <br> in there
-      if (brs.length > 1 || attachment !== null) {
+      if (brs.length > 1 || hasFrames) {
         empty = false;
       }
     }
+
     var placeholding = dom.message.classList.contains(placeholderClass);
     if (placeholding && !empty) {
       dom.message.classList.remove(placeholderClass);
@@ -62,6 +68,16 @@ var Compose = (function() {
     }
 
     trigger('input', e);
+
+    if (hasFrames && state.type == 'sms') {
+      compose.type = 'mms';
+    }
+
+    if (!hasFrames && state.type == 'mms') {
+      // this operation is cancelable
+      compose.type = 'sms';
+    }
+
   }
 
   function composeLockCheck(e) {
@@ -75,7 +91,8 @@ var Compose = (function() {
 
   function trigger(type) {
     var fns = handlers[type];
-    var args = [].slice(arguments, 1);
+    var args = slice.call(arguments, 1);
+
     if (fns && fns.length) {
       for (var i = 0; i < fns.length; i++) {
         fns[i].apply(this, args);
@@ -136,6 +153,16 @@ var Compose = (function() {
       if (handlers[type]) {
         handlers[type].push(handler);
       }
+      return this;
+    },
+    off: function(type, handler) {
+      if (handlers[type]) {
+        var index = handlers[type].indexOf(handler);
+        if (index !== -1) {
+          handlers[type].splice(index, 1);
+        }
+      }
+      return this;
     },
 
     getContent: function() {
@@ -189,7 +216,7 @@ var Compose = (function() {
       return state.empty;
     },
 
-    /** Sets the max number of chars allowed in the compositio area
+    /** Sets the max number of chars allowed in the composition area
      * @param {mixed} Number of characters to limit input to
      *                or `false` for no limit.
      */
@@ -296,5 +323,33 @@ var Compose = (function() {
     }
 
   };
+
+  Object.defineProperty(compose, 'type', {
+    get: function composeGetType() {
+      return state.type;
+    },
+    set: function composeSetType(value) {
+      // reject invalid types
+      if (!(value === 'sms' || value === 'mms')) {
+        return state.type;
+      }
+      if (value !== state.type) {
+        var event = new CustomEvent('type', {
+          cancelable: true
+        });
+        // store the old value in case of cancel
+        var oldValue = state.type;
+        state.type = value;
+        trigger('type', event);
+        if (event.defaultPrevented) {
+          state.type = oldValue;
+        } else {
+          dom.form.dataset.messageType = state.type;
+        }
+      }
+      return state.type;
+    }
+  });
+
   return compose;
 }());

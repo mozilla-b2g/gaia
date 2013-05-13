@@ -30,6 +30,8 @@ var ThreadUI = global.ThreadUI = {
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
   TO_FIELD_HEIGHT: 5.7,
+  // duration of the notification that message type was converted
+  CONVERTED_MESSAGE_DURATION: 3000,
   recipients: null,
   init: function thui_init() {
     var _ = navigator.mozL10n.get;
@@ -45,7 +47,7 @@ var ThreadUI = global.ThreadUI = {
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
       'delete-button', 'cancel-button',
       'edit-mode', 'edit-form', 'tel-form',
-      'max-length-notice'
+      'max-length-notice', 'convert-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -57,6 +59,8 @@ var ThreadUI = global.ThreadUI = {
 
     // In case of input, we have to resize the input following UX Specs.
     Compose.on('input', this.messageComposerInputHandler.bind(this));
+
+    Compose.on('type', this.messageComposerTypeHandler.bind(this));
 
     this.toField.addEventListener(
       'keypress', this.toFieldKeypress.bind(this), true
@@ -251,6 +255,25 @@ var ThreadUI = global.ThreadUI = {
     } while (node = node.previousSibling);
   },
 
+  // Message composer type changed:
+  messageComposerTypeHandler: function thui_messageComposerTypeHandler(event) {
+    // if we are changing to sms type, we might want to cancel
+    if (Compose.type === 'sms') {
+      if (this.updateSmsSegmentLimit()) {
+        return event.preventDefault();
+      }
+    }
+
+    var message = navigator.mozL10n.get('converted-to-' + Compose.type);
+    this.convertNotice.querySelector('p').textContent = message;
+    this.convertNotice.classList.remove('hide');
+
+    clearTimeout(this._convertNoticeTimeout);
+    this._convertNoticeTimeout = setTimeout(function hideConvertNotice() {
+      this.convertNotice.classList.add('hide');
+    }.bind(this), this.CONVERTED_MESSAGE_DURATION);
+  },
+
   // Create a recipient from contacts activity.
   requestContact: function thui_requestContact() {
     if (typeof MozActivity === 'undefined') {
@@ -380,16 +403,15 @@ var ThreadUI = global.ThreadUI = {
     this.container.scrollTop = this.container.scrollHeight;
   },
 
-  // will return true if we can send the message, false if we can't send the
-  // message
-  updateCounter: function thui_updateCount() {
+  // updates the counter for sms segments when in text only mode
+  // returns true when the limit is over the segment limit
+  updateSmsSegmentLimit: function thui_updateSmsSegmentLimit() {
     if (!(this._mozMobileMessage &&
           this._mozMobileMessage.getSegmentInfoForText)) {
-      return true;
+      return false;
     }
 
     var value = Compose.getText();
-
     // We set maximum concatenated number of our SMS app to 10 based on:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
     var kMaxConcatenatedMessages = 10;
@@ -399,33 +421,34 @@ var ThreadUI = global.ThreadUI = {
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
 
+    // in MMS mode, the counter value isn't used anyway, so we can update this
     this.sendButton.dataset.counter = availableChars + '/' + segments;
+
+    // if we are going to force MMS, this is true anyway, so adding has-counter
+    // again doesn't hurt us.
     if (segments && (segments > 1 || availableChars <= 10)) {
       this.sendButton.classList.add('has-counter');
     } else {
       this.sendButton.classList.remove('has-counter');
     }
 
-    var hasMaxLength = (segments === kMaxConcatenatedMessages &&
-        !availableChars);
+    return segments > kMaxConcatenatedMessages;
+  },
 
-    // we may have this if we switch from 140-character messages to 70-character
-    // messages due to an encoding change
-    var exceededMaxLength = (segments > kMaxConcatenatedMessages);
-
-    if (hasMaxLength || exceededMaxLength) {
-      Compose.setMaxLength(value.length);
-      var key = hasMaxLength ?
-          'messages-max-length-text' : 'messages-exceeded-length-text';
-      var message = navigator.mozL10n.get(key);
-      this.maxLengthNotice.querySelector('p').textContent = message;
-      this.maxLengthNotice.classList.remove('hide');
-    } else {
-      Compose.setMaxLength(false);
-      this.maxLengthNotice.classList.add('hide');
+  // will return true if we can send the message, false if we can't send the
+  // message
+  updateCounter: function thui_updateCount() {
+    if (Compose.type === 'mms') {
+      // always turn on the counter for mms, it just displays "MMS"
+      this.sendButton.classList.add('has-counter');
+      // TODO: put logic in here for mms limits - #840037
+      return true;
     }
 
-    return !exceededMaxLength;
+    if (this.updateSmsSegmentLimit()) {
+      Compose.type = 'mms';
+    }
+    return true;
   },
 
   updateInputHeight: function thui_updateInputHeight() {
