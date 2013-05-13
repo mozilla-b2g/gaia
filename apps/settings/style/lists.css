@@ -91,7 +91,7 @@ ul li > small {
 }
 
 ul li > label:not([for]) + small {
-  right: 6rem;
+  right: 9rem; 
 }
 
 /* required for empty elements like Bluetooth */
@@ -134,7 +134,7 @@ ul li > label:not([for]) > input[data-type="switch"] + span {
 }
 
 ul li > label:not([for]) ~ a {
-  padding-right: 6rem;
+  padding-right: 9rem;
 }
 
 ul li > label:not([for]):active ~ a {
@@ -444,12 +444,12 @@ html[dir="rtl"] ul li a[role="button"] {
 
 html[dir="rtl"] ul li > label:not([for]) > span,
 html[dir="rtl"] ul li > label:not([for]) > input[data-type="switch"] + span {
-  left: 6rem; /* XXX we use "right: 3rem" for LTR layouts... */
+  left: 9rem; /* XXX we use "right: 3rem" for LTR layouts... */
   right: inherit;
 }
 
 html[dir="rtl"] ul li > label:not([for]) ~ a {
-  padding-left: 6rem;
+  padding-left: 9rem;
   padding-right: 3rem;
 }
 
