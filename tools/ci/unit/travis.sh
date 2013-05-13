@@ -1,7 +1,7 @@
 #!/bin/bash
 
 RETRY=10
-FIREFOX_URL=http://ftp.mozilla.org/pub/mozilla.org/firefox/releases/18.0.1/linux-x86_64/en-US/firefox-18.0.1.tar.bz2
+FIREFOX_URL=http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/firefox-23.0a1.en-US.linux-x86_64.tar.bz2
 
 # generate port number between 10000 ~ 60000
 export TEST_AGENT_PORT=$[ 10000 + $RANDOM % (60000 + 1 - 10000) ]
