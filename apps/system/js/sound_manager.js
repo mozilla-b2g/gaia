@@ -8,6 +8,8 @@
     if (ScreenManager.screenEnabled || currentChannel !== 'none') {
       if (onBTEarphoneConnected() && onCall()) {
         changeVolume(1, 'bt_sco');
+      } else if (isHeadsetConnected) {
+        headsetVolumeup();
       } else {
         changeVolume(1);
       }
@@ -19,8 +21,36 @@
         changeVolume(-1, 'bt_sco');
       } else {
         changeVolume(-1);
+        ceAccumulator();
       }
     }
+  });
+
+  /**
+   * The mute event is dispatched from sleep menu.
+   * But if we have a mute hardware button or virtual button,
+   * we could make the button handler to fire this event, too.
+   */
+  window.addEventListener('mute', function() {
+    // Turn off vibration for really silence.
+    SettingsListener.getSettingsLock().set({
+      'vibration.enabled': false
+    });
+    enterSilentMode('notification');
+  });
+
+  /**
+   * The unmute event is dispatched from sleep menu.
+   * But if we have a mute hardware button or virtual button,
+   * we could make the button handler to fire this event, too.
+   */
+  window.addEventListener('unmute', function() {
+    // Turn on vibration.
+    SettingsListener.getSettingsLock().set({
+      'vibration.enabled': true
+    });
+    leaveSilentMode('notification');
+    leaveSilentMode('content');
   });
 
   // Store the current active channel;
@@ -29,8 +59,32 @@
 
   var vibrationEnabled = true;
 
-  // Cache the content volume when entering silent mode
-  var cachedContentVolume = -1;
+  // Cache the volume when entering silent mode.
+  // Currently only two channel would be used for mute.
+  var cachedVolume = {
+    'content': -1,
+    'notification': -1
+  };
+
+  var cachedChannels = ['content', 'notification'];
+
+  var isHeadsetConnected = false;
+
+  var TIME_TWENTY_HOURS = 72000000;
+
+  var TIME_TEST_HOURS = 90000;// for test
+
+  var TIME_ONE_MINUTE = 60000;
+
+  var CEAccumulatorID = null;
+
+  var CEWarningVol = 11;
+
+  var CEAccumulatorTime = 0;
+
+  var CETimestamp = 0;
+
+  var CACHE_CETIMES = 'CE_ACCTIME';
 
   // This event is generated in shell.js in response to bluetooth headset.
   // Bluetooth headset always assign audio volume to a specific value when
@@ -41,8 +95,134 @@
       changeVolume(e.detail.value - currentVolume['bt_sco'], 'bt_sco');
     } else if (type == 'audio-channel-changed') {
       currentChannel = e.detail.channel;
+      ceAccumulator();
+    } else if (type == 'headphones-status-changed') {
+      isHeadsetConnected = (e.detail.state != 'off');
+      ceAccumulator();
     }
   });
+
+  window.addEventListener('localized', function(e) {
+
+    SettingsListener.observe('audio.volume.cemaxvol', 11, function(volume) {
+      CEWarningVol = volume;
+    });
+
+    window.asyncStorage.getItem(CACHE_CETIME,
+      function onGettingContentVolume(value) {
+        if (!value) {
+          return;
+        } else {
+          CEAccumulatorTime = value;
+        }
+      });
+  });
+
+  window.addEventListener('unload', stopAccumulator, false);
+
+  function ceAccumulator() {
+    if (isHeadsetConnected && getChannel() == 'content' &&
+      currentVolume[currentChannel] >= CEWarningVol) {
+      if (CEAccumulatorTime == 0) {
+        resetToCEMaxVolume();
+      } else {
+        startAccumulator();
+      }
+    } else {
+      stopAccumulator();
+    }
+  }
+
+  function headsetVolumeup() {
+    if (currentVolume[getChannel()] >= CEWarningVol &&
+        getChannel() == 'content') {
+      if (CEAccumulatorTime == 0) {
+        var okfn = function() {
+          changeVolume(1);
+          startAccumulator();
+          CustomDialog.hide();
+        };
+        resetToCEMaxVolume(okfn);
+      } else {
+        startAccumulator();
+        changeVolume(1);
+      }
+    } else {
+      changeVolume(1);
+    }
+  }
+
+  function showCEWarningDialog(okfn) {
+    // show dialog
+    var cancel = {};
+    var confirm = {};
+    var agreement = false;
+    cancel.title = navigator.mozL10n.get('cancel');
+    confirm.title = navigator.mozL10n.get('continue');
+    cancel.callback = function() {
+      CustomDialog.hide();
+    };
+
+    if (okfn instanceof Function) {
+      confirm.callback = okfn;
+    } else {
+      confirm.callback = function() {
+        startAccumulator();
+        CustomDialog.hide();
+      };
+    }
+    var ceTitle = navigator.mozL10n.get('ceWarningtitle');
+    var ceMsg = navigator.mozL10n.get('ceWarningcontent');
+    CustomDialog.show(ceTitle, ceMsg, cancel, confirm);
+   }
+
+  function startAccumulator() {
+    if (CEAccumulatorID == null) {
+      if (CEAccumulatorTime == 0) {
+        CEAccumulatorTime = 1;
+        CETimestamp = parseInt(new Date().getTime(), 10);
+      }
+      CEAccumulatorID = window.setInterval(function() {
+        CEAccumulatorTime += TIME_ONE_MINUTE;
+        CETimestamp = parseInt(new Date().getTime(), 10);
+        if (CEAccumulatorTime > TIME_TWENTY_HOURS) {
+          CEAccumulatorTime = 0; // reset time
+          CETimestamp = 0; // reset timestamp
+          stopAccumulator();
+          resetToCEMaxVolume();
+        }
+      }, TIME_ONE_MINUTE);
+    }
+  }
+
+  function stopAccumulator() {
+    if (CEAccumulatorID != null) {
+      window.clearInterval(CEAccumulatorID);
+      CEAccumulatorID = null;
+      if (CETimestamp != 0) {
+         CEAccumulatorTime = CEAccumulatorTime +
+         (parseInt(new Date().getTime(), 10) - CETimestamp);
+      }
+      window.asyncStorage.setItem(CACHE_CETIME, CEAccumulatorTime);
+    }
+  }
+
+  function resetToCEMaxVolume(callback) {
+    pendingRequestCount++;
+    var req = SettingsListener.getSettingsLock().set({
+      'audio.volume.content': CEWarningVol
+    });
+
+    req.onsuccess = function onSuccess() {
+      pendingRequestCount--;
+      showCEWarningDialog(callback);
+    };
+
+    req.onerror = function onError() {
+      pendingRequestCount--;
+      showCEWarningDialog(callback);
+    };
+  }
 
   function onCall() {
     if (currentChannel == 'telephony')
@@ -104,8 +284,20 @@
         currentVolume[channel] =
             parseInt(Math.max(0, Math.min(max, volume)), 10);
 
-        if (channel == 'content')
-          fetchCachedContentVolume();
+        if (channel == 'content' && inited && volume > 0) {
+          leaveSilentMode('content',
+                          /* skip volume restore */ true);
+        } else if (channel == 'notification' && volume > 0) {
+          leaveSilentMode('notification',
+                          /* skip volume restore */ true);
+        } else if (channel == 'content' && volume == 0) {
+          // Enter silent mode when notification volume is 0
+          // no matter who sets this value.
+          enterSilentMode('notification');
+        }
+
+        if (!inited)
+          fetchCachedVolume();
       });
     })(channel);
   }
@@ -117,25 +309,30 @@
     vibrationEnabled = vibration;
   });
 
-  // Fetch stored content volume if it exists.
+  // Fetch stored volume if it exists.
   // We should make sure this happens after settingsDB callback
   // after booting.
 
   var inited = false;
 
-  function fetchCachedContentVolume() {
+  function fetchCachedVolume() {
     if (inited)
       return;
 
     inited = true;
-    pendingRequestCount++;
-    window.asyncStorage.getItem('content.volume',
-      function onGettingContentVolume(value) {
-        if (!value)
-          return;
+    pendingRequestCount += cachedChannels.length;
+    cachedChannels.forEach(
+      function iterator(channel) {
+        window.asyncStorage.getItem('content.volume',
+          function onGettingCachedVolume(value) {
+            if (!value) {
+              pendingRequestCount--;
+              return;
+            }
 
-        cachedContentVolume = value;
-        pendingRequestCount--;
+            cachedVolume[channel] = value;
+            pendingRequestCount--;
+          });
       });
   }
 
@@ -187,14 +384,21 @@
     }
   }
 
-  function enterSilentMode() {
+  function enterSilentMode(channel) {
+    if (!channel)
+      channel = 'content';
+
+    // Don't need to enter silent mode more than once.
+    if (currentVolume[channel] == 0)
+      return;
+
     var isCachedAlready =
-      (currentVolume['content'] == currentVolume['content']);
-    cachedContentVolume = currentVolume['content'];
+      (cachedVolume[channel] == currentVolume[channel]);
+    cachedVolume[channel] = currentVolume[channel];
     pendingRequestCount++;
-    var req = SettingsListener.getSettingsLock().set({
-      'audio.volume.content': 0
-    });
+    var settingObject = {};
+    settingObject['audio.volume.' + channel] = 0;
+    var req = SettingsListener.getSettingsLock().set(settingObject);
 
     req.onsuccess = function onSuccess() {
       pendingRequestCount--;
@@ -205,7 +409,7 @@
       // between silent-mode/vibration mode/normal mode,
       // we won't repeatedly write the same value to storage.
       if (!isCachedAlready)
-        window.asyncStorage.setItem('content.volume', cachedContentVolume);
+        window.asyncStorage.setItem(channel + '.volume', cachedVolume[channel]);
     };
 
     req.onerror = function onError() {
@@ -213,15 +417,30 @@
     };
   }
 
-  function leaveSilentMode() {
+  /**
+   * Leaving silent mode.
+   * @param  {String} channel Specify the channel name
+   *                          which is going to enter silent mode.
+   * @param  {Boolean} skip_restore Specify to skip the volume restore or not.
+   */
+  function leaveSilentMode(channel, skip_restore) {
+    if (!channel)
+      channel = 'content';
+
     // We're leaving silent mode.
-    if (cachedContentVolume >= 0) {
+    if (!skip_restore &&
+        (cachedVolume[channel] > 0 || currentVolume[channel] == 0)) {
       var req;
+      var settingObject = {};
+
+      // At least rollback to 1,
+      // otherwise we don't really leave silent mode.
+      settingObject['audio.volume.' + channel] =
+        (cachedVolume[channel] > 0) ? cachedVolume[channel] : 1;
+
       pendingRequestCount++;
-      req = SettingsListener.getSettingsLock().set({
-        'audio.volume.content': cachedContentVolume
-      });
-      cachedContentVolume = -1;
+      req = SettingsListener.getSettingsLock().set(settingObject);
+
       req.onsuccess = function onSuccess() {
         pendingRequestCount--;
       };
@@ -230,6 +449,8 @@
         pendingRequestCount--;
       };
     }
+
+    cachedVolume[channel] = -1;
   }
 
   function changeVolume(delta, channel) {
@@ -240,11 +461,17 @@
     var volume = currentVolume[channel] + delta;
 
     // Silent mode entry point
-    if (volume == 0 && delta < 0 && channel == 'notification') {
-      enterSilentMode();
+    if (volume <= 0 && delta < 0 && channel == 'notification') {
+      enterSilentMode('content');
     } else if (volume == 1 && delta > 0 && channel == 'notification' &&
-                cachedContentVolume >= 0) {
-      leaveSilentMode();
+                cachedVolume['content'] >= 0) {
+      // Now since the active channel is notification channel,
+      // we're leaving content silent mode and the same time restoring it.
+      leaveSilentMode('content');
+
+      // In the notification silent mode, volume rocker priority is higher
+      // than stored notification volume value so we skip the restore.
+      leaveSilentMode('notification', /*skip volume restore*/ true);
     }
 
     currentVolume[channel] = volume =

@@ -150,7 +150,7 @@ html, body {
 }
 
 /* Handling the status bar mode */
-@media screen and (max-height: 4rem) {
+@media screen and (max-height: 4em) {
   #ring-icon {
     width: 4rem;
     height: 4rem;
@@ -183,10 +183,14 @@ html, body {
 
   #ring-alarm-label {
     position: absolute;
-    top: 0.6rem;
+    top: 0.46rem;
     left: 4rem;
-    font: bolder 1.38rem/1.38rem 'MozTT',sans-serif;
+    font: bolder 1.38rem/1.44rem 'MozTT',sans-serif;
     color: #00aac8;
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
+    height: 1.5rem;
   }
 
   #footer-button-container {

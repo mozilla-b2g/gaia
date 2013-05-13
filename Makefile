@@ -286,9 +286,6 @@ webapp-manifests: install-xulrunner-sdk
 # Generate profile/webapps/APP/application.zip
 webapp-zip: stamp-commit-hash install-xulrunner-sdk
 ifneq ($(DEBUG),1)
-	@rm -rf apps/system/camera
-	@cp -r apps/camera apps/system/camera
-	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
 	@$(call run-js-command, webapp-zip)
 endif
@@ -625,7 +622,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext' -x 'homescreen/js/hiddenapps.js,settings/js/hiddenapps.js'
+	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext' -x 'calendar/js/presets.js,homescreen/js/hiddenapps.js,settings/js/hiddenapps.js'
 	@gjslint --nojsdoc -r shared/js -e 'phoneNumberJS'
 
 # Generate a text file containing the current changeset of Gaia
@@ -636,7 +633,7 @@ stamp-commit-hash:
 	@(if [ -e gaia_commit_override.txt ]; then \
 		cp gaia_commit_override.txt apps/settings/resources/gaia_commit.txt; \
 	elif [ -d ./.git ]; then \
-		git log -1 --format="%H%n%at" HEAD > apps/settings/resources/gaia_commit.txt; \
+		git log -1 --format="%H%n%ct" HEAD > apps/settings/resources/gaia_commit.txt; \
 	else \
 		echo 'Unknown Git commit; build date shown here.' > apps/settings/resources/gaia_commit.txt; \
 		date +%s >> apps/settings/resources/gaia_commit.txt; \
@@ -663,29 +660,6 @@ forward:
 	$(ADB) shell touch $(MSYS_FIX)/data/local/rilproxyd
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
-
-
-# update the manifest.appcache files to match what's actually there
-update-offline-manifests:
-	for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
-	do \
-		rm -rf $$d/manifest.appcache ;\
-		if [ -f $$d/manifest.webapp ] ;\
-		then \
-			echo \\t$$d ;  \
-			( cd $$d ; \
-			echo "CACHE MANIFEST" > manifest.appcache ;\
-			cat `find * -type f | sort -nfs` | $(MD5SUM) | cut -f 1 -d ' ' | sed 's/^/\#\ Version\ /' >> manifest.appcache ;\
-			find * -type f | grep -v tools | sort >> manifest.appcache ;\
-			$(SED_INPLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
-			echo "http://$(GAIA_DOMAIN)$(GAIA_PORT)/webapi.js" >> manifest.appcache ;\
-			echo "NETWORK:" >> manifest.appcache ;\
-			echo "http://*" >> manifest.appcache ;\
-			echo "https://*" >> manifest.appcache ;\
-			) ;\
-		fi \
-	done
-
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use:

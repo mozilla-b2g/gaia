@@ -55,7 +55,8 @@ suiteGroup('Models.Account', function() {
         providerType: subject.providerType,
         calendarHome: '/foo/home',
         preset: 'google',
-        oauth: { code: 'xxx' }
+        oauth: { code: 'xxx' },
+        error: undefined
       };
 
       assert.deepEqual(subject.toJSON(), expected);

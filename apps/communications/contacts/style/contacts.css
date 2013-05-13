@@ -357,8 +357,8 @@ form p textarea + button[type="reset"].hide {
 /* Contacts in comms application */
 @media screen and (max-height: 450px) and (min-height: 420px) {
  nav[data-type="scrollbar"] li {
-  font-size: 1rem;
-  line-height: 1.2rem;
+  font-size: 1.05rem;
+  line-height: 1.23rem;
  }
 }
 

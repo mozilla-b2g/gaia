@@ -13,6 +13,166 @@
   var MockNavigatormozMobileMessage =
         window.DesktopMockNavigatormozMobileMessage = {};
 
+  var outstandingRequests = 0;
+  var requests = {};
+
+  function getTestFile(filename, callback) {
+    if (!requests[filename]) {
+      requests[filename] = [];
+      var req = new XMLHttpRequest();
+      req.open('GET', filename, true);
+      req.responseType = 'blob';
+      req.onload = function() {
+        requests[filename].forEach(function(callback) {
+          callback(req.response);
+          requests[filename].data = req.response;
+        });
+        // we called em, no need to store anymore
+        requests[filename].length = 0;
+        if (--outstandingRequests === 0) {
+          doneCallbacks.forEach(function(callback) {
+            callback();
+          });
+          doneCallbacks.length = 0;
+        }
+      };
+      requests[filename].push(callback);
+      outstandingRequests++;
+      req.send();
+    } else {
+      if (requests[filename].data) {
+        callback(requests[filename].data);
+      } else {
+        requests[filename].push(callback);
+      }
+    }
+  }
+
+  var doneCallbacks = [];
+  MockNavigatormozMobileMessage._doneLoadingData = function(callback) {
+    if (!outstandingRequests) {
+      callback();
+    } else {
+      doneCallbacks.push(callback);
+    }
+  };
+
+  getTestFile('/test/unit/media/kitten-450.jpg', function(testImageBlob) {
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'received',
+      subject: 'Test MMS Image message',
+      smil: '<smil><body><par><img src="example.jpg"/>' +
+            '<text src="text1"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['This is an image message'], { type: 'text/plain' })
+      },{
+        location: 'example.jpg',
+        content: testImageBlob
+      }],
+      timestamp: new Date()
+    });
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'sent',
+      subject: 'Test MMS Image message',
+      smil: '<smil><body><par><text src="text1"/></par>' +
+            '<par><img src="example.jpg"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['sent image message'], { type: 'text/plain' })
+      },{
+        location: 'example.jpg',
+        content: testImageBlob
+      }],
+      timestamp: new Date()
+    });
+  });
+
+  getTestFile('/test/unit/media/video.ogv', function(testVideoBlob) {
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'received',
+      subject: 'Test MMS Video message',
+      smil: '<smil><body><par><video src="example.ogv"/>' +
+            '<text src="text1"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['This is a video message'], { type: 'text/plain' })
+      },{
+        location: 'example.ogv',
+        content: testVideoBlob
+      }],
+      timestamp: new Date()
+    });
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'sent',
+      subject: 'Test MMS Video message',
+      smil: '<smil><body><par><text src="text1"/></par>' +
+            '<par><video src="example.ogv"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['sent video message'], { type: 'text/plain' })
+      },{
+        location: 'example.ogv',
+        content: testVideoBlob
+      }],
+      timestamp: new Date()
+    });
+  });
+  getTestFile('/test/unit/media/audio.oga', function(testAudioBlob) {
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'received',
+      subject: 'Test MMS audio message',
+      smil: '<smil><body><par><audio src="example.ogg"/>' +
+            '<text src="text1"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['This is an audio message'], { type: 'text/plain' })
+      },{
+        location: 'example.ogg',
+        content: testAudioBlob
+      }],
+      timestamp: new Date()
+    });
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      delivery: 'sent',
+      subject: 'Test MMS audio message',
+      smil: '<smil><body><par><text src="text1"/></par>' +
+            '<par><audio src="example.ogg"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['sent audio message'], { type: 'text/plain' })
+      },{
+        location: 'example.ogg',
+        content: testAudioBlob
+      }],
+      timestamp: new Date()
+    });
+  });
+
   // Fake in-memory message database
   var messagesDb = {
     id: 0,
@@ -24,6 +184,7 @@
         body: 'Alo, how are you today, my friend? :)',
         delivery: 'sent',
         read: true,
+        type: 'sms',
         timestamp: new Date(Date.now())
       },
       {
@@ -33,6 +194,7 @@
         body: 'arr :)',
         delivery: 'sent',
         read: true,
+        type: 'sms',
         timestamp: new Date(Date.now() - 8400000000)
       },
       {
@@ -41,53 +203,99 @@
         receiver: '436797',
         body: 'Sending :)',
         delivery: 'sending',
+        type: 'sms',
         timestamp: new Date(Date.now() - 172800000)
       },
       {
-        threadId: 3,
-        sender: null,
-        receiver: '197743697',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        timestamp: new Date(Date.now() - 652800000)
-      },
-      {
         threadId: 4,
         sender: null,
         receiver: '197746797',
-        body: 'Error message:)',
-        delivery: 'sending',
+        body: 'This message is intended to demonstrate hyperlink creation: ' +
+          'http://mozilla.org and https://bugzilla.mozilla.org/',
         error: true,
-        timestamp: new Date(Date.now() - 822800000)
+        type: 'sms',
+        timestamp: new Date(Date.now() - 900000)
       },
       {
         threadId: 4,
         sender: null,
         receiver: '197746797',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        timestamp: new Date(Date.now() - 1002800000)
+        body: 'This message is intended to demonstrate natural line ' +
+          'wrapping. (delivery: sending)',
+        delivery: 'sending',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 800000)
       },
       {
         threadId: 4,
         sender: null,
         receiver: '197746797',
-        body: 'Nothing :)',
+        body: 'This message is intended to demonstrate natural line ' +
+          'wrapping. (delivery: error)',
         delivery: 'error',
-        timestamp: new Date(Date.now() - 1002800000)
+        type: 'sms',
+        timestamp: new Date(Date.now() - 700000)
+      },
+      {
+        threadId: 4,
+        sender: null,
+        receiver: '197746797',
+        body: 'This message is intended to demonstrate natural line ' +
+          'wrapping. (delivery: sent)',
+        delivery: 'sent',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 600000)
+       },
+       {
+        threadId: 4,
+        sender: '197746797',
+        body: 'This message is intended to demonstrate natural line ' +
+          'wrapping. (delivery: received)',
+        delivery: 'received',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 500000)
+      },
+      {
+        threadId: 4,
+        sender: null,
+        receiver: '197746797',
+        body: 'short (delivery: sending)',
+        delivery: 'sending',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 400000)
+      },
+      {
+        threadId: 4,
+        sender: null,
+        receiver: '197746797',
+        body: 'short (delivery: error)',
+        delivery: 'error',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 300000)
+      },
+      {
+        threadId: 4,
+        sender: null,
+        receiver: '197746797',
+        body: 'short (delivery: sent)',
+        delivery: 'sent',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 200000)
       },
       {
         threadId: 4,
         sender: '197746797',
-        body: 'Recibido!',
+        body: 'short (delivery: received)',
         delivery: 'received',
-        timestamp: new Date(Date.now() - 50000000)
+        type: 'sms',
+        timestamp: new Date(Date.now() - 100000)
       }
     ],
     threads: [
       {
         id: 1,
         participants: ['1977'],
+        lastMessageType: 'sms',
         body: 'Alo, how are you today, my friend? :)',
         timestamp: new Date(Date.now()),
         unreadCount: 0
@@ -95,30 +303,33 @@
       {
         id: 2,
         participants: ['436797'],
+        lastMessageType: 'sms',
         body: 'Sending :)',
         timestamp: new Date(Date.now() - 172800000),
         unreadCount: 0
       },
       {
-        id: 3,
-        participants: ['197743697'],
-        body: 'Nothing :)',
-        timestamp: new Date(Date.now() - 652800000),
-        unreadCount: 0
-      },
-      {
         id: 4,
         participants: ['197746797'],
-        body: 'Recibido!',
-        timestamp: new Date(Date.now() - 50000000),
+        body: 'short (delivery: received)',
+        timestamp: new Date(Date.now() - 100000),
+        lastMessageType: 'sms',
         unreadCount: 0
       },
       {
         id: 5,
         participants: ['14886783487'],
+        lastMessageType: 'sms',
         body: 'Hello world!',
         timestamp: new Date(Date.now() - 60000000),
         unreadCount: 2
+      },
+      {
+        id: 6,
+        participants: ['052780'],
+        lastMessageType: 'mms',
+        timestamp: new Date(),
+        unreadCount: 0
       }
     ]
   };
@@ -136,6 +347,7 @@
       body: 'Hello world!',
       delivery: 'received',
       id: messagesDb.id++,
+      type: 'sms',
       timestamp: new Date(Date.now() - 60000000)
     });
   }
