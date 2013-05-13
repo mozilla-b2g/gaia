@@ -116,6 +116,7 @@ Calendar.ns('Models').Calendar = (function() {
 
     toJSON: function() {
       var result = {
+        error: this.error,
         remote: this.remote,
         accountId: this.accountId,
         localDisplayed: this.localDisplayed,
