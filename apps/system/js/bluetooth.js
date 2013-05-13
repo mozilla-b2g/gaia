@@ -116,7 +116,8 @@ var Bluetooth = {
 
     var wasConnected = this.connected;
     this.connected =
-      bluetooth.isConnected(0x111E) || bluetooth.isConnected(0x1105);
+      bluetooth.isConnected(0x111E) || bluetooth.isConnected(0x1108) ||
+      bluetooth.isConnected(0x1105);
 
     if (wasConnected !== this.connected) {
       var evt = document.createEvent('CustomEvent');

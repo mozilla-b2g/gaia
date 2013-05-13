@@ -515,12 +515,20 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           device.address !== connectedAddress)
         return;
 
-      // '0x111E' is a service id to distigush connection type.
+      // '0x111E' is a service id of HFP.
+      // '0x1108' is a service id of HSP.
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
-      var req = defaultAdapter.disconnect(0x111E);
-      req.onerror = function() {
+      onerror = function() {
         showDeviceConnected(device.address, true);
       };
+
+      if (bluetooth.isConnected(0x111E)) {
+        var req = defaultAdapter.disconnect(0x111E);
+        req.onerror = onerror;
+      } else if (bluetooth.isConnected(0x1108)) {
+        var req = defaultAdapter.disconnect(0x1108);
+        req.onerror = onerror;
+      }
     }
 
     function setDeviceConnect(device) {
@@ -537,10 +545,15 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         setDeviceDisconnect(pairList.index[connectedAddress][0]);
       }
 
-      // '0x111E' is a service id to distigush connection type.
-      // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
-      var req = defaultAdapter.connect(device.address, 0x111E);
-      req.onerror = function() {
+      var connectToAdapter =
+        function bt_connectToAdapter(address, serviceID, onsuccess, onerror) {
+          var req = defaultAdapter.connect(address, serviceID);
+          req.onerror = onerror;
+          req.onsuccess = onsuccess;
+          return req;
+        };
+
+      var connectError = function bt_connectError() {
         // Connection state might be changed before DOM request response.
         if (connectingAddress) {
           showDeviceConnected(connectingAddress, false);
@@ -548,6 +561,21 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           window.alert(_('error-connect-msg'));
         }
       };
+
+      // '0x111E' is a service id of HFP.
+      // '0x1108' is a service id of HSP.
+      // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
+      var req = connectToAdapter(device.address, 0x111E, null, function() {
+        if (req.result === 'GetServiceChannelError') {
+          // Try to conect using HSP again.
+          connectToAdapter(device.address, 0x1108, null, function() {
+            connectError();
+          });
+        } else {
+          connectError();
+        }
+      });
+
       connectingAddress = device.address;
       if (!pairList.index[connectingAddress]) {
         return;

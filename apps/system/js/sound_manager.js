@@ -245,8 +245,8 @@
     if (!bluetooth)
       return false;
 
-    // 0x111E is for querying earphone type.
-    return navigator.mozBluetooth.isConnected(0x111E);
+    // 0x111E and 0x1108 are for querying earphone type.
+    return bluetooth.isConnected(0x111E) || bluetooth.isConnected(0x1108);
   };
 
   // Platform doesn't provide the maximum value of each channel
