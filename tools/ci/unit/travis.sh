@@ -54,7 +54,6 @@ waiting_port $TEST_AGENT_PORT
 echo 'Starting Firefox'
 firefox/firefox -profile `pwd`/profile "$TESTAGENT_URL" &> /dev/null &
 waiting_port 8080
-sleep 5
 
 echo
 section_echo 'make lint'

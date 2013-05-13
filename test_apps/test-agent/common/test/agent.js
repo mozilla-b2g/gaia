@@ -104,6 +104,10 @@
 
   worker.on({
 
+    'open': function() {
+      setTimeout(worker.ready.bind(worker), 0);
+    },
+
     'test runner': function() {
       KeepAwake.start();
     },
