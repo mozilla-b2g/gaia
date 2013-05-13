@@ -53,7 +53,7 @@
     // XXX sometimes we get 0/0 for mcc/mnc, even when cardState === 'ready'...
     var mcc = mobileConnection.iccInfo.mcc || '0';
     var mnc = mobileConnection.iccInfo.mnc || '0';
-    if ((mcc === '0') || (mnc === '0'))
+    if (mcc === '0')
       return;
 
     // avoid setting APN (and operator variant) settings if mcc/mnc codes
