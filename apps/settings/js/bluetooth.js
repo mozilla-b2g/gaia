@@ -514,8 +514,10 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           device.address !== connectedAddress)
         return;
 
-      // '0x111E' is a service id to distigush connection type.
+      // '0x111E' is a service id of HFP.
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
+      // XXX: Bug 870689. The device maybe connected using HFP or HSP. Always
+      // pass 0x111E here until gecko separates these two profiles.
       var req = defaultAdapter.disconnect(0x111E);
       req.onerror = function() {
         showDeviceConnected(device.address, true);
@@ -535,10 +537,15 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         setDeviceDisconnect(pairList.index[connectedAddress][0]);
       }
 
-      // '0x111E' is a service id to distigush connection type.
-      // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
-      var req = defaultAdapter.connect(device.address, 0x111E);
-      req.onerror = function() {
+      var connectToDevice =
+        function bt_connectToDevice(address, serviceID, onsuccess, onerror) {
+          var req = defaultAdapter.connect(address, serviceID);
+          req.onerror = onerror;
+          req.onsuccess = onsuccess;
+          return req;
+        };
+
+      var connectError = function bt_connectError() {
         // Connection state might be changed before DOM request response.
         if (connectingAddress) {
           showDeviceConnected(connectingAddress, false);
@@ -546,6 +553,21 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           window.alert(_('error-connect-msg'));
         }
       };
+
+      // '0x111E' is a service id of HFP.
+      // '0x1108' is a service id of HSP.
+      // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
+      var req = connectToDevice(device.address, 0x111E, null, function() {
+        if (req.error.name === 'DeviceChannelRetrievalError') {
+          // Try to connect using HSP again.
+          connectToDevice(device.address, 0x1108, null, function() {
+            connectError();
+          });
+        } else {
+          connectError();
+        }
+      });
+
       connectingAddress = device.address;
       if (!pairList.index[connectingAddress]) {
         return;
