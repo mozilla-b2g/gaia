@@ -520,6 +520,10 @@ form.bottom[role="search"].messages-compose-form {
   padding-right: 0.5rem;
 }
 
+[data-message-type="mms"] #messages-send-button.has-counter:before {
+  content: 'MMS';
+}
+
 /* TODO: Move this into the shared building block */
 #messages-attach-button:before {
   background-image: url(images/paperclip-button.png);

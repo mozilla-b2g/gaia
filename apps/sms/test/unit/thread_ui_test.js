@@ -189,30 +189,34 @@ suite('thread_ui.js >', function() {
         assert.isFalse(sendButton.disabled);
       });
 
-      test('button should be disabled when there is both contact and input, ' +
-          'but too many segments',
-        function() {
+      // TODO: Fix this test to be about being over the MMS limit inside #840035
 
-        MockNavigatormozMobileMessage.mNextSegmentInfo = {
-          segments: 11,
-          charsAvailableInLastSegment: 10
-        };
+      // test('button should be disabled when there is both contact and ' +
+      //     'input, but too many segments',
+      //   function() {
 
-        ThreadUI.recipients.add({
-          number: '999'
-        });
-        Compose.append('Hola');
+      //   MockNavigatormozMobileMessage.mNextSegmentInfo = {
+      //     segments: 11,
+      //     charsAvailableInLastSegment: 10
+      //   };
 
-        assert.isTrue(sendButton.disabled);
-      });
+      //   ThreadUI.recipients.add({
+      //     number: '999'
+      //   });
+      //   Compose.append('Hola');
+
+      //   assert.isTrue(sendButton.disabled);
+      // });
     });
   });
 
   suite('updateCounter() >', function() {
-    var banner, shouldEnableSend;
+    var banner, convertBanner, shouldEnableSend, form;
 
     setup(function() {
       banner = document.getElementById('messages-max-length-notice');
+      convertBanner = document.getElementById('messages-convert-notice');
+      form = document.getElementById('messages-compose-form');
     });
 
     suite('no characters entered >', function() {
@@ -223,7 +227,8 @@ suite('thread_ui.js >', function() {
         };
 
         // display the banner to check that it is correctly hidden
-        banner.classList.remove('hide');
+        // TODO: turn this assertion back on during #840035
+        // banner.classList.remove('hide');
 
         // add a maxlength to check that it is correctly removed
         Compose.setMaxLength(25);
@@ -248,7 +253,8 @@ suite('thread_ui.js >', function() {
         };
 
         // display the banner to check that it is correctly hidden
-        banner.classList.remove('hide');
+        // TODO: turn this assertion back on during #840035
+        // banner.classList.remove('hide');
 
         // add a maxlength to check that it is correctly removed
         Compose.setMaxLength(25);
@@ -280,7 +286,8 @@ suite('thread_ui.js >', function() {
         };
 
         // display the banner to check that it is correctly hidden
-        banner.classList.remove('hide');
+        // TODO: turn this assertion back on during #840035
+        // banner.classList.remove('hide');
 
         // add a maxlength to check that it is correctly removed
         Compose.setMaxLength(25);
@@ -313,7 +320,8 @@ suite('thread_ui.js >', function() {
         };
 
         // display the banner to check that it is correctly hidden
-        banner.classList.remove('hide');
+        // TODO: turn this assertion back on during #840035
+        // banner.classList.remove('hide');
 
         // add a maxlength to check that it is correctly removed
         Compose.setMaxLength(25);
@@ -346,7 +354,8 @@ suite('thread_ui.js >', function() {
         };
 
         // display the banner to check that it is correctly hidden
-        banner.classList.remove('hide');
+        // TODO: turn this assertion back on during #840035
+        // banner.classList.remove('hide');
 
         // add a maxlength to check that it is correctly removed
         Compose.setMaxLength(25);
@@ -378,8 +387,10 @@ suite('thread_ui.js >', function() {
           charsAvailableInLastSegment: availableChars
         };
 
-        // display the banner again, to check it's correctly displayed
-        banner.classList.add('hide');
+        // display the banner to check that it is correctly hidden
+        // TODO: turn this assertion back on during #840035
+        // banner.classList.remove('hide');
+
         shouldEnableSend = ThreadUI.updateCounter();
       });
 
@@ -388,18 +399,14 @@ suite('thread_ui.js >', function() {
         assert.equal(sendButton.dataset.counter, expected);
       });
 
-      test('the banner is displayed', function() {
-        assert.isFalse(banner.classList.contains('hide'));
-      });
-
-      test('the banner has the max length message', function() {
-        var actual = banner.querySelector('p').textContent;
-        assert.equal(actual, 'messages-max-length-text');
-      });
-
       test('the send button should be enabled', function() {
         assert.isTrue(shouldEnableSend);
       });
+
+      test('message type is sms', function() {
+        assert.equal(form.dataset.messageType, 'sms');
+      });
+
     });
 
     suite('too many segments >', function() {
@@ -419,6 +426,131 @@ suite('thread_ui.js >', function() {
         var expected = availableChars + '/' + segment;
         assert.equal(sendButton.dataset.counter, expected);
       });
+
+      test('message type is mms', function() {
+        assert.equal(form.dataset.messageType, 'mms');
+      });
+
+    });
+
+  });
+  suite('message type conversion >', function() {
+    var convertBanner, convertBannerText, fakeTime, form;
+    setup(function() {
+      fakeTime = sinon.useFakeTimers();
+      convertBanner = document.getElementById('messages-convert-notice');
+      convertBannerText = convertBanner.querySelector('p');
+      form = document.getElementById('messages-compose-form');
+    });
+    teardown(function() {
+      fakeTime.restore();
+    });
+    test('sms to mms and back displays banner', function() {
+      // cause a type switch event to happen
+      Compose.type = 'mms';
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for mms');
+      assert.equal(convertBannerText.textContent, 'converted-to-mms',
+        'conversion banner has mms message');
+
+      fakeTime.tick(2999);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for just shy of 3 seconds');
+
+      fakeTime.tick(1);
+      assert.isTrue(convertBanner.classList.contains('hide'),
+        'conversion banner is hidden at 3 seconds');
+
+      Compose.type = 'sms';
+
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for sms');
+      assert.equal(convertBannerText.textContent, 'converted-to-sms',
+        'conversion banner has sms message');
+
+      fakeTime.tick(2999);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for just shy of 3 seconds');
+
+      fakeTime.tick(1);
+      assert.isTrue(convertBanner.classList.contains('hide'),
+        'conversion banner is hidden at 3 seconds');
+
+    });
+
+    test('character limit from sms to mms and back displays banner',
+      function() {
+
+      // go over the limit
+      MockNavigatormozMobileMessage.mNextSegmentInfo = {
+        segments: 11,
+        charsAvailableInLastSegment: 0
+      };
+
+      ThreadUI.updateCounter();
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for mms');
+      assert.equal(convertBannerText.textContent, 'converted-to-mms',
+        'conversion banner has mms message');
+
+      fakeTime.tick(2999);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for just shy of 3 seconds');
+
+      fakeTime.tick(1);
+      assert.isTrue(convertBanner.classList.contains('hide'),
+        'conversion banner is hidden at 3 seconds');
+
+      MockNavigatormozMobileMessage.mNextSegmentInfo.segments = 0;
+      Compose.clear();
+
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for sms');
+      assert.equal(convertBannerText.textContent, 'converted-to-sms',
+        'conversion banner has sms message');
+
+      fakeTime.tick(2999);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for just shy of 3 seconds');
+
+      fakeTime.tick(1);
+      assert.isTrue(convertBanner.classList.contains('hide'),
+        'conversion banner is hidden at 3 seconds');
+
+    });
+    test('converting from sms to mms and back quickly', function() {
+      // go over the limit
+      MockNavigatormozMobileMessage.mNextSegmentInfo = {
+        segments: 11,
+        charsAvailableInLastSegment: 0
+      };
+
+      ThreadUI.updateCounter();
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for mms');
+      assert.equal(convertBannerText.textContent, 'converted-to-mms',
+        'conversion banner has mms message');
+
+      fakeTime.tick(1500);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is still shown');
+
+      MockNavigatormozMobileMessage.mNextSegmentInfo.segments = 0;
+      Compose.clear();
+
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for sms');
+      assert.equal(convertBannerText.textContent, 'converted-to-sms',
+        'conversion banner has sms message');
+
+      // long enough to go past the previous timeout 1500 + 2000 > 3000
+      fakeTime.tick(2000);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is still shown');
+
+      fakeTime.tick(1000);
+      assert.isTrue(convertBanner.classList.contains('hide'),
+        'conversion banner is hidden at 3 seconds');
 
     });
   });
