@@ -229,6 +229,9 @@ var BlobView = (function() {
     // I'll implement string reading methods as needed
 
     getASCIIText: function(offset, len) {
+		if(this.buffer.byteLength == 0) {
+	    return ' ';
+      }
       var bytes = new Uint8Array(this.buffer, offset + this.viewOffset, len);
       return String.fromCharCode.apply(String, bytes);
     },
