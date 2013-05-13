@@ -4,3 +4,9 @@
 [submodule "apps/calendar/submodule/gesture_detector"]
 	path = apps/calendar/submodule/gesture_detector
 	url = git@github.com:mozilla-ui/gesture_detector.git
+[submodule "apps/calendar/submodule/notification_helper"]
+	path = apps/calendar/submodule/notification_helper
+	url = git@github.com:mozilla-ui/notification_helper.git
+[submodule "apps/calendar/submodule/blocks"]
+	path = apps/calendar/submodule/blocks
+	url = git@github.com:mozilla-ui/blocks.git
