@@ -999,7 +999,7 @@ conceived.
 		</gsm>
 	</provider>
 	<provider>
-		<name>Warid</name>
+		<name>Airtel</name>
 		<gsm>
 			<network-id mcc="470" mnc="07"/>
 			<apn value="internet">
