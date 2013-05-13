@@ -173,6 +173,10 @@
       return null;
     },
 
+    /** Build and display the view. */
+    render: function() {
+    },
+
    /**
      * Displays a list of errors
      *

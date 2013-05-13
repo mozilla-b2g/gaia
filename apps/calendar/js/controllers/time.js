@@ -93,6 +93,9 @@ Calendar.ns('Controllers').Time = (function() {
      */
     cacheLocked: false,
 
+    /** @type {Calendar.Utils.HourlyUpdater} */
+    _hourlyUpdater: null,
+
     /**
      * Returns the most recently changed
      * day type either 'day' or 'selectedDay'
@@ -158,6 +161,16 @@ Calendar.ns('Controllers').Time = (function() {
       this.busytime.on('remove', function(id) {
         self.removeCachedBusytime(id);
       });
+
+      this.app.loadObject('Utils.HourlyUpdater', function() {
+        this._hourlyUpdater = new Calendar.Utils.HourlyUpdater(this);
+        this._hourlyUpdater.start(function() {
+          var date = new Date();
+          if (this._position < date) {
+            this.move(date);
+          }
+        }, this);
+      }.bind(this));
     },
 
     /**
