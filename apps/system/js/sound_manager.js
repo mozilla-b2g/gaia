@@ -101,7 +101,7 @@
   }
 
   function headsetVolumeup() {
-    if (currentVolume[getChannel()] >= ceWarningVol &&
+    if (currentVolume[getChannel()] >= CEWarningVol &&
         getChannel() == 'content') {
       if (CEAccumulatorTime == 0) {
         var okfn = function() {
