@@ -63,6 +63,17 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   text-align: left;
 }
 
+[data-type="list"] [data-last-message-type="mms"] .body-text {
+  padding-left: 2rem;
+  min-width: 1.8rem;
+  min-height: 1.6rem;
+  margin-left: 0.3rem;
+
+  background-image: url('images/paperclip.png');
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+}
+
 [data-type="list"] header {
   margin: 0 1.5rem;
   padding: 0.5rem 1.5rem;
@@ -213,15 +224,6 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   transform: translateY(0);
 }
 
-.edit #threads-container .item > a {
-  transform: translateX(3rem);
-  pointer-events: none;
-}
-
-.edit #threads-container .item > a.unread .unread-tag {
-  opacity: 0;
-}
-
 .edit #threads-container .checkbox-container {
   pointer-events:auto;
   opacity: 1;
@@ -337,6 +339,7 @@ section[role="region"].new > header:first-child form {
   width: 10.7rem;
   height: 8rem;
   background-image: url('icons/video_thumb.png');
+  background-size: 100%;
 }
 
 #messages-container[data-type="list"] .message.mms .audio-placeholder {
@@ -344,6 +347,7 @@ section[role="region"].new > header:first-child form {
   width: 6rem;
   height: 6rem;
   background-image: url('icons/audio_thumb.png');
+  background-size: 100%;
 }
 
 #messages-container[data-type="list"] .message.mms .video-placeholder:active,

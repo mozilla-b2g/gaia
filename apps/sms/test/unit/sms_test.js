@@ -10,7 +10,6 @@ require('/shared/js/l10n_date.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
-requireApp('sms/test/unit/mock_settings.js');
 
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/contacts.js');
@@ -50,8 +49,6 @@ suite('SMS App Unit-Test', function() {
   var realMozMobileMessage;
   var boundOnHashChange;
   var getContactDetails;
-  var nativeMozMobileMessage = navigator.mozMobileMessage;
-  var nativeSettings = navigator.mozSettings;
 
   suiteSetup(function() {
     navigator.mozL10n = MockL10n;
@@ -163,6 +160,33 @@ suite('SMS App Unit-Test', function() {
     // We are gonna review the HTML structure with this suite
     suite('Threads-list rendering', function() {
 
+      test('properly updates in response to an arriving message of a ' +
+        'different type', function() {
+        var container = ThreadListUI.container;
+        MessageManager.getThreads(function(threads) {
+          threads.forEach(function(thread, idx) {
+            var newMessage = {
+              threadId: thread.id,
+              sender: thread.participants[0],
+              timestamp: thread.timestamp,
+              type: thread.lastMessageType === 'mms' ? 'sms' : 'mms'
+            };
+            MessageManager.onMessageReceived({
+              message: newMessage
+            });
+          });
+        });
+        var mmsThreads = container.querySelectorAll(
+          '[data-last-message-type="mms"]'
+        );
+        var smsThreads = container.querySelectorAll(
+          '[data-last-message-type="sms"]'
+        );
+
+        assert.equal(mmsThreads.length, 3);
+        assert.equal(smsThreads.length, 1);
+      });
+
       test('Check HTML structure', function() {
         // Check the HTML structure, and if it fits with Building Blocks
 
@@ -175,6 +199,15 @@ suite('SMS App Unit-Test', function() {
         // We know as well that we have, in total, 5 threads
         assertNumberOfElementsInContainerByTag(container, 4, 'li');
         assertNumberOfElementsInContainerByTag(container, 4, 'a');
+
+        var mmsThreads = container.querySelectorAll(
+          '[data-last-message-type="mms"]'
+        );
+        var smsThreads = container.querySelectorAll(
+          '[data-last-message-type="sms"]'
+        );
+        assert.equal(mmsThreads.length, 1);
+        assert.equal(smsThreads.length, 3);
 
         // In our mockup we shoul group the threads following day criteria
         // In the second group, we should have 2 threads
@@ -882,33 +915,6 @@ suite('SMS App Unit-Test', function() {
         window.location.hash = '';
         done();
       }, 30);
-    });
-  });
-  suite('Fetch mms messaage size limitation', function() {
-    suiteSetup(function() {
-      navigator.mozMobileMessage = {
-        addEventListener: function() {}
-      };
-    });
-
-    suiteTeardown(function() {
-      navigator.mozMobileMessage = nativeMozMobileMessage;
-      navigator.mozSettings = nativeSettings;
-    });
-
-    test('Query size limitation without settings', function(done) {
-      MessageManager.getMmsSizeLimitation(function callback(size) {
-        assert.equal(size, null);
-        done();
-      });
-    });
-
-    test('Query size limitation with settings exist(300KB)', function(done) {
-      navigator.mozSettings = MockSettings;
-      MessageManager.getMmsSizeLimitation(function callback(size) {
-        assert.equal(size, 300 * 1024);
-        done();
-      });
     });
   });
 });

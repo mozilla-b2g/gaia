@@ -14,7 +14,7 @@ RED_COLOR=$(printf "\x1b[31;1m")
 GREEN_COLOR=$(printf "\x1b[32;1m")
 NORMAL_COLOR=$(printf "\x1b[0m")
 
-GJSLINT_PACKAGE_URL=http://closure-linter.googlecode.com/files/closure_linter-latest.tar.gz
+GJSLINT_PACKAGE_URL=http://closure-linter.googlecode.com/files/closure_linter-2.3.9.tar.gz
 
 function waiting_port {
   for i in $(seq 1 $RETRY); do

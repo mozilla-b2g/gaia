@@ -118,13 +118,19 @@ section[role="region"] > div {
 .hint label span {
   top: 2.9rem !important;
 }
+
 .hint .explanation {
   font-style: normal;
   position: relative;
   margin-top: -2rem;
-  padding: 0.5rem 10rem 1.3rem 3.1rem;
+  padding: 0.5rem 6rem 1.3rem 3.1rem;
   white-space: normal;
 }
+
+.hint > label:not([for]) ~ .explanation {
+  padding-right: 8rem;
+}
+
 .hint .explanation[hidden] {
   display: none;
 }
@@ -205,7 +211,7 @@ section li.password > p {
 * Media Storage settings
 */
 
-#mediaStorage #space-stackedbar {
+#mediaStorage .space-stackedbar {
   border: solid 0px green;
   display: inline-block;
   height: 30px;
@@ -214,28 +220,28 @@ section li.password > p {
   width: 90%;
 }
 
-#mediaStorage #space-stackedbar .stackedbar-item {
+#mediaStorage .space-stackedbar .stackedbar-item {
   display: inline-block;
   height: 30px;
 }
 
-#mediaStorage #space-stackedbar .stackedbar-item#stackedbar-item-music, #mediaStorage #music-space .stackedbar-color {
+#mediaStorage .space-stackedbar .color-music, #mediaStorage .color-music .stackedbar-color-label {
   background-color: #ff7517;
 }
 
-#mediaStorage #space-stackedbar .stackedbar-item#stackedbar-item-pictures, #mediaStorage #pictures-space .stackedbar-color {
+#mediaStorage .space-stackedbar .color-pictures, #mediaStorage .color-pictures .stackedbar-color-label {
   background-color: #5da31d;
 }
 
-#mediaStorage #space-stackedbar .stackedbar-item#stackedbar-item-videos, #mediaStorage #videos-space .stackedbar-color {
+#mediaStorage .space-stackedbar .color-videos, #mediaStorage .color-videos .stackedbar-color-label {
   background-color: #5917ba;
 }
 
-#mediaStorage #space-stackedbar .stackedbar-item#stackedbar-item-free, #mediaStorage #media-free-space .stackedbar-color {
+#mediaStorage .space-stackedbar .color-free, #mediaStorage .color-free .stackedbar-color-label {
   background-color: #fff;
 }
 
-#mediaStorage .stackedbar-color {
+#mediaStorage .stackedbar-color-label {
   display: inline-block;
   height: 2rem;
   left: 0.5rem;
@@ -244,7 +250,6 @@ section li.password > p {
   top: 2.1rem;
   width: 2rem;
 }
-
 
 /******************************************************************************
  * Call settings

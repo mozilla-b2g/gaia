@@ -1,5 +1,6 @@
-requireCommon('test/synthetic_gestures.js');
 requireLib('models/calendar.js');
+requireLib('models/account.js');
+requireCommon('test/synthetic_gestures.js');
 
 suiteGroup('Views.Settings', function() {
 
@@ -9,12 +10,17 @@ suiteGroup('Views.Settings', function() {
   var controller;
   var template;
   var triggerEvent;
+  var account;
 
   function stageModels(list) {
     var object = Object.create(null);
 
     setup(function(done) {
-      var trans = app.db.transaction('calendars', 'readwrite');
+      account = Factory('account', { _id: 'testacc' });
+
+      var trans = app.db.transaction(
+        ['calendars', 'accounts'], 'readwrite'
+      );
 
       trans.oncomplete = function() {
         done();
@@ -24,8 +30,11 @@ suiteGroup('Views.Settings', function() {
         done(e.target.error);
       };
 
+      app.store('Account').persist(account, trans);
+
       var model;
       for (var key in list) {
+        list[key].accountId = account._id;
         model = Factory('calendar', list[key]);
         store.persist((object[key] = model), trans);
       }
@@ -128,35 +137,87 @@ suiteGroup('Views.Settings', function() {
       };
     });
 
-    test('update', function() {
-      var model = models.first;
-      var check = children[0].querySelector(
-        '*[type="checkbox"]'
-      );
+    suite('update / error', function() {
+      var model;
+      var container;
 
-      model.localDisplayed = false;
-      model.remote.name = 'foo';
-
-      store.emit('update', model._id, model);
-
-      assert.equal(children[0].textContent, 'foo');
-      assert.isFalse(
-        check.checked
-      );
-    });
-
-    test('add', function() {
-      var model = Factory('calendar', {
-        localDisplayed: false,
-        _id: 'two',
-        remote: { name: 'second' }
+      setup(function() {
+        model = models.first;
+        container = children[0];
       });
 
-      assert.equal(children.length, 1);
-      store.emit('add', 'two', model);
-      assert.equal(children.length, 2);
+      test('update with error / without error', function() {
+        model.error = {};
+        store.emit('update', model._id, model);
 
-      assert.equal(children[1].textContent, 'second');
+        assert.ok(
+          container.classList.contains('error'),
+          'has error class'
+        );
+
+        delete model.error;
+        store.emit('update', model._id, model);
+
+        assert.ok(
+          !container.classList.contains('error'),
+          'removes error class'
+        );
+      });
+
+      test('normal flow', function() {
+        var check = children[0].querySelector(
+          '*[type="checkbox"]'
+        );
+
+        model.localDisplayed = false;
+        model.remote.name = 'foo';
+
+        store.emit('update', model._id, model);
+
+        assert.equal(children[0].textContent, 'foo');
+        assert.isFalse(
+          check.checked
+        );
+      });
+    });
+
+    suite('add', function() {
+      function addModel() {
+        store.emit('add', 'two', model);
+        assert.equal(children.length, 2);
+        assert.equal(children[1].textContent, 'second');
+
+        return children[1];
+      }
+
+      var model;
+      setup(function() {
+        model = Factory('calendar', {
+          localDisplayed: false,
+          _id: 'two',
+          remote: { name: 'second' }
+        });
+
+        assert.equal(children.length, 1);
+      });
+
+      test('success', function() {
+        var container = addModel();
+        assert.ok(
+          !container.classList.contains('error'),
+          'does not add error'
+        );
+      });
+
+      test('add with error', function() {
+        model.error = {};
+        var container = addModel();
+        assert.ok(
+          container.classList.contains('error'),
+          'has error'
+        );
+      });
+
     });
 
     test('remove', function() {
@@ -271,7 +332,8 @@ suiteGroup('Views.Settings', function() {
       models[2] = Factory('calendar', {
         name: 'Second',
         localDisplayed: false,
-        _id: 2
+        _id: 2,
+        error: {}
       });
 
       var trans = app.db.transaction('calendars', 'readwrite');
@@ -307,8 +369,18 @@ suiteGroup('Views.Settings', function() {
         one.querySelector('*[type="checkbox"]').checked
       );
 
+      assert.ok(
+        !one.classList.contains('error'),
+        'error is not added without an .error field'
+      );
+
       assert.isFalse(
         two.querySelector('*[type="checkbox"]').checked
+      );
+
+      assert.ok(
+        two.classList.contains('error'),
+        'if error is present in model render shows it'
       );
     });
 

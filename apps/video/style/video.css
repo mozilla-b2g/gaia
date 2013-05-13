@@ -3,12 +3,10 @@ html, body {
   margin: 0;
   padding: 0;
   font-size: 10px;
-  background: black;
   height: 100%;
 }
 
 body {
-  background-color: black;
   color: #fff;
   font-family: "MozTT", sans-serif;
   font-size: 10px;
@@ -25,6 +23,7 @@ section {
   padding: 0;
   overflow: hidden;
   font-size: 1.4rem;
+  background-color: black;
 }
 
 .hidden {
@@ -89,12 +88,12 @@ li .details {
   height: 9.3rem;
   top: 0;
   right: 1.8rem;
-  visibility: hidden;
+  overflow: hidden;
 }
 li .details[data-visible] {
   visibility: visible;
 }
-li .after span:last-child {
+li .after {
   color: #95a3a6;
 }
 
