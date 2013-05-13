@@ -18,7 +18,11 @@
  */
 function getImageSize(blob, callback, error) {
   BlobView.get(blob, 0, Math.min(1024, blob.size), function(data) {
-
+    // Make sure we are at least 8 bytes long before reading the first 8 bytes
+    if (data.byteLength <= 8) {
+      error('corrupt image file');
+      return;
+    }
     var magic = data.getASCIIText(0, 8);
     if (magic.substring(0, 4) === 'GIF8') {
       try {
