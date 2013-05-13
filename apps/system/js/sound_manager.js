@@ -5,8 +5,8 @@
 
 (function() {
   window.addEventListener('volumeup', function() {
-    if (ScreenManager.screenEnabled || currentChannel !== 'none' ) {
-      if (onBTEarphoneConnected() && onCall()) {
+    if (ScreenManager.screenEnabled || currentChannel !== 'none') {
+      if (Bluetooth.connected && onCall()) {
         changeVolume(1, 'bt_sco');
       } else if (isHeadsetConnected) {
         headsetVolumeup();
@@ -16,8 +16,8 @@
     }
   });
   window.addEventListener('volumedown', function() {
-    if (ScreenManager.screenEnabled || currentChannel !== 'none' ) {
-      if (onBTEarphoneConnected() && onCall()) {
+    if (ScreenManager.screenEnabled || currentChannel !== 'none') {
+      if (Bluetooth.connected && onCall()) {
         changeVolume(-1, 'bt_sco');
       } else {
         changeVolume(-1);
@@ -240,15 +240,6 @@
     });
   }
 
-  function onBTEarphoneConnected() {
-    var bluetooth = navigator.mozBluetooth;
-    if (!bluetooth)
-      return false;
-
-    // 0x111E is for querying earphone type.
-    return navigator.mozBluetooth.isConnected(0x111E);
-  };
-
   // Platform doesn't provide the maximum value of each channel
   // therefore, hard code here.
   var MAX_VOLUME = {
@@ -419,8 +410,8 @@
 
   /**
    * Leaving silent mode.
-   * @param  {String} channel Specify the channel name
-   *                          which is going to enter silent mode
+   * @param  {String} channel Specify the channel name.
+   *                          which is going to enter silent mode.
    * @param  {Boolean} skip_restore Specify to skip the volume restore or not.
    */
   function leaveSilentMode(channel, skip_restore) {
