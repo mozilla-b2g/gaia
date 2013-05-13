@@ -27,7 +27,7 @@
       mobileConnection.oncardstatechange = onReady;
 
     // SIM is ready, but ICC info is not ready yet
-    } else if (iccid === null){
+    } else if (iccid === null) {
       debug('ICC info not ready yet');
       mobileConnection.oniccinfochange = onReady;
 
