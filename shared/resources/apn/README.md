@@ -2,7 +2,7 @@ Three APN (Access Point Name) databases are used:
 
 * the Android database `/shared/resources/apn/apns_conf.xml` is the *de facto* standard we rely on;
 * a local database `/shared/resources/apn/apns_conf-local.xml` with the same format we merge with the above, used for where Google is lacking. Ideally this file should be empty as everything should be put upstream;
-* the Gnome database `/shared/resources/apn/serviceproviders.xml` is probably less up-to-date but has a bit more information.
+* the Gnome database `/shared/resources/apn/service_providers.xml` is probably less up-to-date but has a bit more information.
 
 A fourth file `/shared/resources/apn/operator-variant.xml` is also used.
 
