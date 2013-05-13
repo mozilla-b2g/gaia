@@ -115,7 +115,7 @@ ul li > label:not([for]) > input[data-type="switch"] + span {
 }
 
 ul li > label:not([for]) ~ a {
-  padding-right: 6rem;
+  padding-right: 9rem;
 }
 
 ul li > label:not([for]):active ~ a {
@@ -373,7 +373,7 @@ html[dir="rtl"] ul li > label:not([for]) > input[data-type="switch"] + span {
 }
 
 html[dir="rtl"] ul li > label:not([for]) ~ a {
-  padding-left: 6rem;
+  padding-left: 9rem;
   padding-right: 3rem;
 }
 
