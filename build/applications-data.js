@@ -106,42 +106,60 @@ function getDistributionFileContent(name, defaultContent) {
   return JSON.stringify(defaultContent, null, '  ');
 }
 
+
 // zeroth grid page is the dock
-let customize = {"homescreens": [
+let customize = {'homescreens': [
   [
-    ["apps", "communications", "dialer"],
-    ["apps", "sms"],
-    ["apps", "communications", "contacts"],
-    ["apps", "browser"]
+    ['apps', 'communications', 'dialer'],
+    ['apps', 'sms'],
+    ['apps', 'communications', 'contacts'],
+    ['apps', 'browser']
   ], [
-    ["apps", "camera"],
-    ["apps", "gallery"],
-    ["apps", "fm"],
-    ["apps", "settings"],
-    [GAIA_EXTERNAL_APP_SRCDIR, "marketplace.firefox.com"]
+    ['apps', 'camera'],
+    ['apps', 'gallery'],
+    ['apps', 'fm'],
+    ['apps', 'settings'],
+    [GAIA_EXTERNAL_APP_SRCDIR, 'marketplace.firefox.com']
   ], [
-    ["apps", "calendar"],
-    ["apps", "clock"],
-    ["apps", "costcontrol"],
-    ["apps", "email"],
-    ["apps", "music"],
-    ["apps", "video"]
+    ['apps', 'calendar'],
+    ['apps', 'clock'],
+    ['apps', 'costcontrol'],
+    ['apps', 'email'],
+    ['apps', 'music'],
+    ['apps', 'video']
   ]
 ],
-  "search_page": {
-    "enabled" : true
+  'search_page': {
+    'enabled': true
   }
 };
 
 if (DOGFOOD == 1) {
-  customize.homescreens[0].push(["dogfood_apps", "feedback"]);
+  customize.homescreens[0].push(['dogfood_apps', 'feedback']);
 }
 
 customize = JSON.parse(getDistributionFileContent('homescreens', customize));
 // keep e.me on by default
-let search_page_enabled = true;
-if (customize.search_page) {
-  search_page_enabled = customize.search_page.enabled;
+let search_page_enabled = (customize.search_page) ?
+                          customize.search_page.enabled : true;
+
+// It defines the threshold in pixels to consider a gesture like a tap event
+let tap_threshold = (customize.tap_threshold) ? customize.tap_threshold : 10;
+// It defines the threshold to consider a gesture like a swipe. Number
+// in the range 0.0 to 1.0, both included, representing the screen width
+let swipe_threshold = 0.4;
+// By default we define the virtual friction to .1 px/ms/ms
+let swipe_friction = 0.1;
+// Page transition duration defined in ms (300 ms by default)
+let transition_duration = 300;
+
+if (customize.swipe) {
+  if (customize.swipe.threshold)
+    swipe_threshold = customize.swipe.threshold;
+  if (customize.swipe.friction)
+    swipe_friction = customize.swipe.friction;
+  if (customize.swipe.transition_duration)
+    transition_duration = customize.swipe.transition_duration;
 }
 
 let content = {
@@ -150,19 +168,12 @@ let content = {
     enabled: search_page_enabled
   },
 
-  // It defines the threshold in pixels to consider a gesture like a tap event
-  tap_threshold: 10,
+  tap_threshold: tap_threshold,
 
   swipe: {
-    // It defines the threshold to consider a gesture like a swipe. Number
-    // in the range 0.0 to 1.0, both included, representing the screen width
-    threshold: 0.4,
-
-    // By default we define the virtual friction to .1 px/ms/ms
-    friction: 0.1,
-
-    // Page transition duration defined in ms (300 ms by default)
-    transition_duration: 300
+    threshold: swipe_threshold,
+    friction: swipe_friction,
+    transition_duration: transition_duration
   },
 
   // This specifies whether we optimize homescreen panning by trying to
@@ -185,7 +196,8 @@ let content = {
   )
 };
 
-let init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'init.json');
+let init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR,
+                  'homescreen', 'js', 'init.json');
 writeContent(init, JSON.stringify(content));
 
 // Apps that should never appear in settings > app permissions
