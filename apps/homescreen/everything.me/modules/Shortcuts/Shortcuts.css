@@ -64,7 +64,7 @@
             z-index: 100;
             display: none;
             cursor: pointer;
-            background: transparent url('/resources/images/delete.png') no-repeat left top;
+            background: transparent url('/resources/images/delete.png') no-repeat left top/2.4rem;
         }
     #evmeContainer .shortcut.disabled {
         opacity: 0;
@@ -96,15 +96,9 @@
             z-index: 10;
             -moz-transform-origin: 50% 50%;
         }
-        #evmeContainer .shortcut.add .thumb:before {
-            content: "";
-            background-position: -5.8rem -17rem;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 3.1rem;
-            height: 3.2rem;
-            margin: -1.4rem 0 0 -1.6rem;
+        #evmeContainer .shortcut.add .thumb {
+            background: url(/everything.me/images/add.png) 50% no-repeat;
+            background-size: 3rem 3.1rem;
             opacity: .7;
         }
         #evmeContainer .shortcut b {
