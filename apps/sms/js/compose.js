@@ -255,13 +255,20 @@ var Compose = (function() {
     },
 
     onAttachClick: function thui_onAttachClick() {
-      this.requestAttachment();
+      var request = this.requestAttachment();
+      request.onsuccess = this.append.bind(this);
     },
 
     /** Initiates a 'pick' MozActivity allowing the user to create an
      * attachment
+     * @return {Object} requestProxy A proxy for the underlying DOMRequest API.
+     *                               An "onsuccess" and/or "onerror" callback
+     *                               method may optionally be defined on this
+     *                               object.
      */
     requestAttachment: function() {
+      // Mimick the DOMRequest API
+      var requestProxy = {};
       var activity = new MozActivity({
         name: 'pick',
         data: {
@@ -271,13 +278,25 @@ var Compose = (function() {
       });
 
       activity.onsuccess = function() {
-         // TODO: use `activity.result` to create the attachment
-         // See: Bug 840044
+        var result = activity.result;
+        var blob = result.blob;
+        var objectURL = window.URL.createObjectURL(blob);
+        // Parse the attachment type from the MIME type
+        var type = result.type.split('/')[0];
+        var attachment = new Attachment(type, objectURL, blob.size);
+
+        if (typeof requestProxy.onsuccess === 'function') {
+          requestProxy.onsuccess(attachment);
+        }
       };
 
       activity.onerror = function() {
-        // TODO: Update the UI as if "cancel" was selected.
+        if (typeof requestProxy.onerror === 'function') {
+          requestProxy.onerror();
+        }
       };
+
+      return requestProxy;
     }
 
   };

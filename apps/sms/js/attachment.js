@@ -29,7 +29,9 @@ Attachment.prototype = {
   render: function() {
     var _ = navigator.mozL10n.get;
     var el = document.createElement('iframe');
-    el.setAttribute('sandbox', '');
+    // The attachment's iFrame requires access to the parent document's context
+    // so that URIs for Blobs created in the parent may resolve as expected.
+    el.setAttribute('sandbox', 'allow-same-origin');
     var src = 'data:text/html,';
     // We want kilobytes so we divide by 1024, with one fractional digit
     var size = Math.floor(this.size / 102.4) / 10;
