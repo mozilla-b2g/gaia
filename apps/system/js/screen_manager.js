@@ -219,10 +219,9 @@ var ScreenManager = {
         break;
 
       case 'userproximity':
-        var bluetooth = navigator.mozBluetooth;
         var telephony = window.navigator.mozTelephony;
-        // 0x111E is for querying earphone type.
-        if ((bluetooth && bluetooth.isConnected(0x111E)) ||
+        // 0x111E and 0x1108 are for querying earphone type.
+        if (Bluetooth.connected ||
             telephony.speakerEnabled ||
             StatusBar.headphonesActive)
             // XXX: Remove this hack in Bug 868348
