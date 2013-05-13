@@ -25,7 +25,7 @@
     // it is available before sending the screenshot request to chrome.
     // If device storage is available, the callback will be called.
     // Otherwise, an error message notification will be displayed.
-    getDeviceStorage(function() {
+    mozGetDeviceStorage(function() {
       // Let chrome know we'd like a screenshot.
       // This is a completely non-standard undocumented API
       // for communicating with our chrome code.
@@ -49,8 +49,8 @@
 
   // Get a DeviceStorage object and pass it to the callback.
   // Or, if device storage is not available, display a notification.
-  function getDeviceStorage(callback) {
-    var storage = navigator.getDeviceStorage('pictures');
+  function mozGetDeviceStorage(callback) {
+    var storage = navigator.mozGetDeviceStorage('pictures');
     var availreq = storage.available();
     availreq.onsuccess = function() {
       var state = availreq.result;
@@ -84,7 +84,7 @@
   window.addEventListener('mozChromeEvent', function ss_onMozChromeEvent(e) {
     try {
       if (e.detail.type === 'take-screenshot-success') {
-        getDeviceStorage(function(storage) {
+        mozGetDeviceStorage(function(storage) {
           var d = new Date();
           d = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
           var filename = 'screenshots/' +

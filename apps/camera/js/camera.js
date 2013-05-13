@@ -328,8 +328,8 @@ var Camera = {
 
     this._storageState = this.STORAGE_INIT;
 
-    this._pictureStorage = navigator.getDeviceStorage('pictures');
-    this._videoStorage = navigator.getDeviceStorage('videos'),
+    this._pictureStorage = navigator.mozGetDeviceStorage('pictures');
+    this._videoStorage = navigator.mozGetDeviceStorage('videos'),
 
     this._pictureStorage
       .addEventListener('change', this.deviceStorageChangeHandler.bind(this));

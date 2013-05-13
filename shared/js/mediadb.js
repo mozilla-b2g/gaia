@@ -473,7 +473,7 @@ var MediaDB = (function() {
       // Set up DeviceStorage
       // If storage is null, then there is no sdcard installed and
       // we have to abort.
-      media.storage = navigator.getDeviceStorage(mediaType);
+      media.storage = navigator.mozGetDeviceStorage(mediaType);
 
       // Handle change notifications from device storage
       // We set this onchange property to null in the close() method

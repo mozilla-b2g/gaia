@@ -1465,7 +1465,7 @@ MessageReaderCard.prototype = {
       // Get the file contents as a blob, so we can open the blob
       var storageType = attachment._file[0];
       var filename = attachment._file[1];
-      var storage = navigator.getDeviceStorage(storageType);
+      var storage = navigator.mozGetDeviceStorage(storageType);
       var getreq = storage.get(filename);
 
       getreq.onerror = function() {

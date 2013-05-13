@@ -1,15 +1,15 @@
 suite('DeviceStorage', function() {
   // If the API hasn't landed yet, then don't test it.
-  if (!navigator.getDeviceStorage) {
-    test("navigator.getDeviceStorage() doesn't exist; not running tests",
+  if (!navigator.mozGetDeviceStorage) {
+    test("navigator.mozGetDeviceStorage() doesn't exist; not running tests",
          function() {});
     return;
   }
 
-  var storageAreas = navigator.getDeviceStorage('pictures');
+  var storageAreas = navigator.mozGetDeviceStorage('pictures');
 
   if (storageAreas == null) {
-    test('navigator.getDeviceStorage() returns null on this platform; ' +
+    test('navigator.mozGetDeviceStorage() returns null on this platform; ' +
          'not running tests',
          function() {});
     return;
@@ -19,7 +19,7 @@ suite('DeviceStorage', function() {
 // These tests are currently failing and have been temporarily disabled as per
 // Bug 838993. They should be fixed and re-enabled as soon as possible as per
 // Bug 840493.
-    test('getDeviceStorage() returns an array', function() {
+    test('mozGetDeviceStorage() returns an array', function() {
       assert.ok(storageAreas);
       assert.isTrue(Array.isArray(storageAreas));
     });

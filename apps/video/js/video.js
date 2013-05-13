@@ -316,7 +316,7 @@ function deleteFile(n) {
       // we also need to delete the poster image associated with
       // that video.
       var postername = fileinfo.replace('.3gp', '.jpg');
-      navigator.getDeviceStorage('pictures'). delete(postername);
+      navigator.mozGetDeviceStorage('pictures'). delete(postername);
   }
     // Whether or not there was a poster file to delete, delete the
     // actual video file. This will cause the MediaDB to send a 'deleted'
@@ -332,7 +332,7 @@ function deleteSingleFile(file) {
       // we also need to delete the poster image associated with
       // that video.
       var postername = file.replace('.3gp', '.jpg');
-      navigator.getDeviceStorage('pictures'). delete(postername);
+      navigator.mozGetDeviceStorage('pictures'). delete(postername);
     }
 
     // Whether or not there was a poster file to delete, delete the

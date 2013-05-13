@@ -273,7 +273,7 @@ window.addEventListener('localized', function showPanel() {
       // If above issue is fixed,
       // we could refine following code to pass blob to API directly.
       var filepaths = activity.source.data.filepaths;
-      var storage = navigator.getDeviceStorage('sdcard');
+      var storage = navigator.mozGetDeviceStorage('sdcard');
       var getRequest = storage.get(filepaths[0]);
 
       getRequest.onsuccess = function() {

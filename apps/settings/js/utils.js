@@ -143,7 +143,7 @@ var FileSizeFormatter = (function FileSizeFormatter(fixed) {
 
 var DeviceStorageHelper = (function DeviceStorageHelper() {
   function getStat(type, callback) {
-    var deviceStorage = navigator.getDeviceStorage(type);
+    var deviceStorage = navigator.mozGetDeviceStorage(type);
 
     if (!deviceStorage) {
       console.error('Cannot get DeviceStorage for: ' + type);
@@ -177,7 +177,7 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
   }
 
   function getFreeSpace(callback) {
-    var deviceStorage = navigator.getDeviceStorage('sdcard');
+    var deviceStorage = navigator.mozGetDeviceStorage('sdcard');
 
     if (!deviceStorage) {
       console.error('Cannot get free space size in sdcard');

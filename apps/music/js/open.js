@@ -35,7 +35,7 @@ function handleOpenActivity(request) {
     // it will pass the file to music player via web activity
     // but we will got a file which cannot be parsed by the metadata parser
     // so we use the received filename to get the file again from deviceStorage
-    var storage = navigator.getDeviceStorage('music');
+    var storage = navigator.mozGetDeviceStorage('music');
     var getRequest = storage.get(fileName);
 
     getRequest.onsuccess = function() {

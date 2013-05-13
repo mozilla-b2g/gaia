@@ -169,7 +169,7 @@ function saveGeoloc() {
   var file = locationsToFile("gpx");
   var blob = new Blob([file], {type: 'application/gpx+xml'});
   var fname = "geoloc/geoloc-" + date + ".gpx";
-  var storage = navigator.getDeviceStorage('sdcard');
+  var storage = navigator.mozGetDeviceStorage('sdcard');
   if (!storage) {
     console.log("No storage available!");
     console.log(file);

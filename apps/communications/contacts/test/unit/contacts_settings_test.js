@@ -149,7 +149,7 @@ suite('Contacts settings', function() {
     });
 
     test('show SD Card import if SD card is present', function() {
-      navigator.getDeviceStorage = stub(true);
+      navigator.mozGetDeviceStorage = stub(true);
       contacts.Settings.refresh();
 
       assert.equal(document.getElementById('settingsStorage')

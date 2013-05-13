@@ -5,7 +5,7 @@ var Feedback = {
 
   init: function fb_init() {
     var filename = 'local/dogfoodid';
-    var storage = navigator.getDeviceStorage('apps');
+    var storage = navigator.mozGetDeviceStorage('apps');
     var done = document.getElementById('done');
 
     if (storage) {

@@ -8,7 +8,7 @@ window.onload = function() {
 
 function addImages(filenames) {
   console.log('Receiving', filenames.length, 'files');
-  var storage = navigator.getDeviceStorage('pictures');
+  var storage = navigator.mozGetDeviceStorage('pictures');
   filenames.forEach(function(filename) {
     storage.get(filename).onsuccess = function(e) {
       var blob = e.target.result;

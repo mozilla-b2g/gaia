@@ -75,7 +75,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
       this._displayImage(blob.slice(preview.start, preview.end, 'image/jpeg'));
     }
     else {
-      var storage = navigator.getDeviceStorage('pictures');
+      var storage = navigator.mozGetDeviceStorage('pictures');
       var getreq = storage.get(preview.filename);
       var self = this;
       getreq.onsuccess = function() {

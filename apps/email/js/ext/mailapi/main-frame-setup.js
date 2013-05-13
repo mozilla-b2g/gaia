@@ -3391,7 +3391,7 @@ define('mailapi/worker-support/devicestorage-main',[],function() {
   }
 
   function save(uid, cmd, storage, blob, filename) {
-    var deviceStorage = navigator.getDeviceStorage(storage);
+    var deviceStorage = navigator.mozGetDeviceStorage(storage);
     var req = deviceStorage.addNamed(blob, filename);
 
     req.onerror = function() {

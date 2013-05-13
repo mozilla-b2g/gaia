@@ -14,7 +14,7 @@
 
 var MediaStorage = {
   init: function mediaStorage_init() {
-    this.deviceStorage = navigator.getDeviceStorage('pictures');
+    this.deviceStorage = navigator.mozGetDeviceStorage('pictures');
     this.documentStorageListener = false;
     this.updateListeners();
 

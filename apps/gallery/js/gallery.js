@@ -219,7 +219,7 @@ function initDB() {
   // even during a pick activity when we're not displaying videos
   // because we might still might find and parse metadata for new
   // videos during the scanning process.
-  videostorage = navigator.getDeviceStorage('videos');
+  videostorage = navigator.mozGetDeviceStorage('videos');
 
   var loaded = false;
   function metadataParserWrapper(file, onsuccess, onerror) {
@@ -478,7 +478,7 @@ function deleteFile(n) {
   if (fileinfo.metadata.preview && fileinfo.metadata.preview.filename) {
     // We use raw device storage here instead of MediaDB because that is
     // what MetadataParser.js uses for saving the preview.
-    var pictures = navigator.getDeviceStorage('pictures');
+    var pictures = navigator.mozGetDeviceStorage('pictures');
     pictures.delete(fileinfo.metadata.preview.filename);
   }
 }

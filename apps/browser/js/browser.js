@@ -1224,7 +1224,7 @@ var Browser = {
         return;
       }
 
-      var storage = navigator.getDeviceStorage(storageType);
+      var storage = navigator.mozGetDeviceStorage(storageType);
       var addreq = storage.addNamed(blob, name);
 
       addreq.onsuccess = function() {

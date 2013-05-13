@@ -26,7 +26,7 @@ var MockSdCard = {
 };
 
 MockSdCard.status = MockSdCard.AVAILABLE;
-MockSdCard.deviceStorage = navigator.getDeviceStorage('sdcard');
+MockSdCard.deviceStorage = navigator.mozGetDeviceStorage('sdcard');
 
 MockSdCard.updateStorageState = function sd_updateStorageState(state) {
   switch (state) {

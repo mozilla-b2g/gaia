@@ -16,7 +16,7 @@ var AppStorage = (function AppStorage() {
   }
 
   function init(callback) {
-    _appStorage = navigator.getDeviceStorage('apps');
+    _appStorage = navigator.mozGetDeviceStorage('apps');
     _callback = callback;
     attachListeners();
   }

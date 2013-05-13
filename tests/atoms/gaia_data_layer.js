@@ -298,7 +298,7 @@ var GaiaDataLayer = {
     var media = [];
     mediaTypes.forEach(function(aType) {
       console.log('getting', aType);
-      var storage = navigator.getDeviceStorage(aType);
+      var storage = navigator.mozGetDeviceStorage(aType);
       var req = storage.enumerate();
       req.onsuccess = function() {
         var file = req.result;

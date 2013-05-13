@@ -54,7 +54,7 @@ var BluetoothTransfer = {
   pairList: {
     index: []
   },
-  _deviceStorage: navigator.getDeviceStorage('sdcard'),
+  _deviceStorage: navigator.mozGetDeviceStorage('sdcard'),
   _debug: false,
 
   get transferStatusList() {
@@ -453,7 +453,7 @@ var BluetoothTransfer = {
     var contentType = evt.contentType;
     var storageType = 'sdcard';
     var self = this;
-    var storage = navigator.getDeviceStorage(storageType);
+    var storage = navigator.mozGetDeviceStorage(storageType);
     var getreq = storage.get(filePath);
 
     getreq.onerror = function() {

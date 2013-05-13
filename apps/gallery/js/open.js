@@ -54,7 +54,7 @@ window.addEventListener('localized', function() {
     var blob = activity.source.data.blob;
     var filename = activity.source.data.filename;
     if (filename && (!blob || blob.size > 25000000)) {
-      var getrequest = navigator.getDeviceStorage('pictures').get(filename);
+      var getrequest = navigator.mozGetDeviceStorage('pictures').get(filename);
       getrequest.onsuccess = function() {
         open(getrequest.result); // this blob should have a valid size and type
       };

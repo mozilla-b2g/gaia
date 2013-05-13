@@ -303,7 +303,7 @@ var metadataParser = (function() {
         }, 'image/jpeg');
 
         function savePreview(previewblob) {
-          var storage = navigator.getDeviceStorage('pictures');
+          var storage = navigator.mozGetDeviceStorage('pictures');
           var filename = '.gallery/previews/' + file.name;
 
           // Delete any existing preview by this name

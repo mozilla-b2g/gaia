@@ -10,7 +10,7 @@ if (!utils.sdcard) {
   };
 
   SdCard.status = SdCard.NOT_INITIALIZED;
-  SdCard.deviceStorage = navigator.getDeviceStorage('sdcard');
+  SdCard.deviceStorage = navigator.mozGetDeviceStorage('sdcard');
 
   SdCard.updateStorageState = function sd_updateStorageState(state) {
     switch (state) {
@@ -53,7 +53,7 @@ if (!utils.sdcard) {
    * @param {Function} cb Callback.
    */
   SdCard.retrieveFiles = function retrieveFilesContent(mimes, exts, cb) {
-    var storage = navigator.getDeviceStorage('sdcard');
+    var storage = navigator.mozGetDeviceStorage('sdcard');
     var fileArray = [];
 
     var cursor = storage.enumerate();

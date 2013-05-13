@@ -1,8 +1,8 @@
 require('/shared/js/mediadb.js');
 
 suite('MediaDB', function() {
-  if (navigator.getDeviceStorage('pictures') == null) {
-    test('navigator.getDeviceStorage() returns null on this platform; ' +
+  if (navigator.mozGetDeviceStorage('pictures') == null) {
+    test('navigator.mozGetDeviceStorage() returns null on this platform; ' +
          'skipping all MediaDB tests',
          function() {});
     return;
@@ -23,7 +23,7 @@ suite('MediaDB', function() {
 
   // Create a fake png file
   function createFile(directory, name, content, callback) {
-    var storage = navigator.getDeviceStorage('pictures');
+    var storage = navigator.mozGetDeviceStorage('pictures');
     var blob = new Blob([JSON.stringify(content)], {type: 'image/png'});
     storage.addNamed(blob, directory + name).onsuccess = function() {
       if (callback) callback();
@@ -31,7 +31,7 @@ suite('MediaDB', function() {
   }
 
   function deleteFile(directory, name, callback) {
-    var storage = navigator.getDeviceStorage('pictures');
+    var storage = navigator.mozGetDeviceStorage('pictures');
     storage.delete(directory + name).onsuccess = function() {
       if (callback) callback();
     };
@@ -48,7 +48,7 @@ suite('MediaDB', function() {
 
   // Delete all files from a directory
   function clearDirectory(directory, callback) {
-    var storage = navigator.getDeviceStorage('pictures');
+    var storage = navigator.mozGetDeviceStorage('pictures');
     var cursor = storage.enumerate(directory);
     cursor.onsuccess = function() {
       var file = cursor.result;
