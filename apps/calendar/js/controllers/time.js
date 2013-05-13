@@ -682,7 +682,7 @@ Calendar.ns('Controllers').Time = (function() {
           var record = this._collection.byId[busytime];
 
           if (!record) {
-            console.log('Cannot find busytime by id: ', busytime);
+            //console.log('Cannot find busytime by id: ', busytime);
 
             // why pending++ ? we must add a pending item to our
             // counter otherwise the loop may close and return prior
