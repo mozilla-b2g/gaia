@@ -219,6 +219,11 @@ var ScreenManager = {
         break;
 
       case 'userproximity':
+        // XXX: Remove this hack in Bug 868348
+        // We shouldn't access headset status from statusbar.  
+        if (StatusBar.headphonesActive)
+          break;
+
         this._screenOffByProximity = evt.near;
         if (evt.near) {
           this.turnScreenOff(true);
