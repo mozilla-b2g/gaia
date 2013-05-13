@@ -124,7 +124,7 @@ var Camera = {
   _cameraProfile: null,
 
   _resumeViewfinderTimer: null,
-  _waitingToGenerateThumb: false,
+  _waitingToGeneratePoster: false,
 
   _styleSheet: document.styleSheets[0],
   _orientationRule: null,
@@ -333,6 +333,8 @@ var Camera = {
 
     this._pictureStorage
       .addEventListener('change', this.deviceStorageChangeHandler.bind(this));
+    this._videoStorage
+      .addEventListener('change', this.videoStorageChangeHandler.bind(this));
     this.checkStorageSpace();
 
     navigator.mozSetMessageHandler('activity', function(activity) {
@@ -561,23 +563,10 @@ var Camera = {
   stopRecording: function camera_stopRecording() {
     this._cameraObj.stopRecording();
     this._recording = false;
+    this._waitingToGeneratePoster = true;
     window.clearInterval(this._videoTimer);
     this.enableButtons();
     document.body.classList.remove('capturing');
-
-    // XXX
-    // I need some way to know when the camera is done writing this file
-    // currently I'm sending this to the filmstrip which is trying to
-    // determine its rotation and fails sometimes if the file is not
-    // yet complete.  For now, I just defer for a second, but
-    // there ought to be a better way.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=817367
-    // Maybe I'll get a device storage callback... check this.
-    var videofile = this._videoPath;
-    setTimeout(function() {
-      Filmstrip.addVideo(videofile);
-      Filmstrip.show(Camera.FILMSTRIP_DURATION);
-    }, 1000);
   },
 
   formatTimer: function camera_formatTimer(time) {
@@ -927,6 +916,21 @@ var Camera = {
       break;
     }
     this.checkStorageSpace();
+  },
+
+  videoStorageChangeHandler: function camera_videoStorageChangeHandler(e) {
+    switch (e.reason) {
+    case 'modified':
+      // The 'modified' event indicates camera is done writing video file if
+      // 1) camera is waiting to generate poster and 2) the modified file 
+      // is the video file just recorded
+      if (this._waitingToGeneratePoster && e.path === this._videoPath) {
+        Filmstrip.addVideo(this._videoPath);
+        Filmstrip.show(Camera.FILMSTRIP_DURATION);
+        this._waitingToGeneratePoster = false;
+      }
+      break;
+    }
   },
 
   updateStorageState: function camera_updateStorageState(state) {
