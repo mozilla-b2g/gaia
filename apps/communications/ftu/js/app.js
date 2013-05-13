@@ -3,9 +3,17 @@
 var _ = navigator.mozL10n.get;
 
 var AppManager = {
+  settings: navigator.mozSettings,
 
   init: function init() {
     this.isLocalized = true;
+    // Quick fix for bug 831697 (only for v1.0.1),
+    // should be fixed when uplifting 814840
+    if (this.settings) {
+      var lock = this.settings.createLock();
+      lock.set({'lockscreen.enabled': false});
+    }
+
     SimManager.init();
     WifiManager.init();
     FacebookIntegration.init();
@@ -38,7 +46,17 @@ var AppManager = {
       // Remove the splash
       UIManager.splashScreen.classList.remove('show');
     }, kSplashTimeout);
+  },
+
+  finish: function finish() {
+    WifiManager.finish();
+    if (this.settings) {
+      console.log('settings existe');
+      var req = this.settings.createLock().set({'lockscreen.enabled': true});
+    }
+    window.close();
   }
+
 };
 
 navigator.mozL10n.ready(function showBody() {
