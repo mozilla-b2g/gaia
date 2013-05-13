@@ -5,6 +5,7 @@
     <meta http-equiv="pragma" content="no-cache" />
     <title>Videos</title>
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css" >
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/spinner.css" />
@@ -12,6 +13,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/responsive.css" >
   </head>
   <body role="application" class="skin-dark">
+    <progress id="bufferingBar" class="pack-activity" value="0" max="100"></progress>
     <!-- display this at startup while we create thumbnails -->
     <div id="spinner-overlay"><div id="spinner"></div></div>
     <div id="videoFrame">

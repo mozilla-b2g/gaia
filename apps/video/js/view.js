@@ -97,7 +97,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
                'close', 'play', 'playHead',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
-               'menu', 'save', 'banner', 'message'];
+               'menu', 'save', 'banner', 'message', 'bufferingBar'];
 
     ids.forEach(function createElementRef(name) {
       dom[toCamelCase(name)] = document.getElementById(name);
@@ -123,6 +123,12 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     });
 
     dom.player.addEventListener('timeupdate', timeUpdated);
+    dom.player.addEventListener('loadstart', function() {
+      dom.bufferingBar.style.display = 'block';
+    });
+    dom.player.addEventListener('loadeddata', function() {
+      dom.bufferingBar.style.display = 'none';
+    });
 
     // Set the 'lang' and 'dir' attributes to <html> when the page is translated
     window.addEventListener('localized', function showBody() {

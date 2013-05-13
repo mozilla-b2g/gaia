@@ -27,7 +27,7 @@ section {
   font-size: 1.4rem;
 }
 
-.hidden {
+.hidden, #bufferingBar {
   display: none;
 }
 
