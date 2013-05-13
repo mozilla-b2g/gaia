@@ -1,0 +1,27 @@
+#! /usr/bin/env node
+
+var fs = require('fs');
+
+if(process.argv[2] === '--version'){
+  var jsonFile = fs.readFileSync(__dirname + '/../package.json', 'utf8');
+  console.log(JSON.parse(jsonFile).version);
+
+  return;
+};
+
+var commands = [
+      'server',
+      'test'
+    ],
+    command = process.argv[2] || '<none given>';
+
+
+if(commands.indexOf(command) === -1){
+  console.log(
+    "command: %s is not found. Available commands:", 
+    command,
+    commands.join(', ')
+  );
+} else {
+  require('../lib/node/bin/' + command);
+}
