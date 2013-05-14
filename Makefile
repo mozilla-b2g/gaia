@@ -521,6 +521,7 @@ common-install:
 	@test -x $(NPM) || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
 
 	cd $(TEST_AGENT_DIR) && npm install .
+	cp -r $(TEST_AGENT_DIR)/node_modules/test-agent-debug/ $(TEST_AGENT_DIR)/node_modules/test-agent/
 
 .PHONY: update-common
 update-common: common-install
