@@ -62,14 +62,6 @@
  * Closing a tag is to compute current and offset values and set the end date.
  * Opening a tag is to add a new tag object with the SIM id and the start date.
  *
- * When closing, we get tags labelling the current date. We say a tag labels a
- * date if:
- *   a) tag's start or end refer to the same day as date or
- *   b) date is between tag's start and tag's end or
- *   c) date is latter than tag's start and there is no tag's end
- *
- * At least one (the last and current) is retrieved. Now:
- *
  * > current value is got by asking Statistics API for the actual value at the
  *   moment of the switch.
  *
@@ -94,11 +86,15 @@
  * 3- Getting the usage for a SIM in a goal date
  * ---------------------------------------------
  * To get this value we need to retrieve an ordered subset of the tag list
- * labelling the goal date.
+ * labelling the goal date. We say a tag labels a date if:
+ *   a) tag's start or end refer to the same day as date or
+ *   b) date is between tag's start and tag's end or
+ *   c) date is latter than tag's start and there is no tag's end
  *
  * Now passing through this subset in reverse order we look for the first tag
  * with the SIM required. Several cases can occur:
- *   a) the tag has no end or the end is not the goal date, -> usage =
+ *   a) the tag is closed -> usage = tag's offset
+ *   b) the tag has no end or the end is not the goal date, -> usage =
  *
  *     (actual - <previous tag's actual>*) + <last tag with same SIM's offset>**
  *       if there is no fixing value for the goal date
@@ -108,8 +104,6 @@
  *
  *   ( *) Or 0 if there is no previous tag
  *   (**) Or 0 if there is no a closed tag
- *
- *   b) the tag is closed -> usage = tag's offset
  *
  * Conclussions
  * ============
@@ -164,15 +158,13 @@ var MindGap = (function() {
   }
 
   // Adds fields end, actual and offset to current open tag
-  function closeLastTag(allTags, currentDataUsage, when) {
-    var tag = allTags[tags.length - 1];
-    tag.actual = currentDataUsage;
-
-    var tags = getTagsForDate(allTags, when);
+  function closeLastTag(tags, currentDataUsage, when) {
     if (!tags.length) {
-      console.error('Impossible, we should be closing an unexistent tag.');
       return;
     }
+
+    var tag = tags[tags.length - 1];
+    tag.actual = currentDataUsage;
 
     if (tags.length < 2) {
       tag.offset = tag.actual;
@@ -205,8 +197,6 @@ var MindGap = (function() {
 
   // Return the usage for the inserted SIM for a date
   function getUsage(tags, currentUsage, date) {
-    debug('Current TAGS:', tags);
-    debug('Current date:', date);
     debug('Current usage:', currentUsage);
 
     var tag = tags[tags.length - 1];
