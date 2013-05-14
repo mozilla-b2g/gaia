@@ -520,7 +520,7 @@ common-install:
 	@test -x $(NODEJS) || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
 	@test -x $(NPM) || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
 
-	#cd $(TEST_AGENT_DIR) && npm install .
+	cd $(TEST_AGENT_DIR)
 
 .PHONY: update-common
 update-common: common-install
