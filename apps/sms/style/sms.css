@@ -534,6 +534,7 @@ form.bottom[role="search"].messages-compose-form {
   top: 0.8rem;
   left: 0.8rem;
   content: attr(placeholder);
+  pointer-events: none;
 }
 #messages-input .attachment {
   border: none;
