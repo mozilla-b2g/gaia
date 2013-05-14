@@ -61,6 +61,7 @@ var ThreadUI = global.ThreadUI = {
       'recipient'];
 
     Compose.init('messages-compose-form');
+    AttachmentMenu.init('attachment-options-menu');
 
     // Fields with 'messages' label
     [
