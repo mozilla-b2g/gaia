@@ -3,6 +3,7 @@
 var _ = navigator.mozL10n.get;
 
 var AppManager = {
+  settings: navigator.mozSettings,
 
   init: function init() {
     this.isLocalized = true;
@@ -14,6 +15,7 @@ var AppManager = {
     Navigation.init();
     DataMobile.init();
     var kSplashTimeout = 700;
+
     // Retrieve mobile connection if available
     var conn = window.navigator.mozMobileConnection;
     if (!conn) {
@@ -37,7 +39,22 @@ var AppManager = {
       // Remove the splash
       UIManager.splashScreen.classList.remove('show');
     }, kSplashTimeout);
-  }
+  },
+
+  disableLockscreen: function disableLockscreen() {
+    if (this.settings) {
+      var req = this.settings.createLock().set({'lockscreen.enabled': false});
+    }
+  },
+
+  finish: function finish() {
+    WifiManager.finish();
+    if (this.settings) {
+      var req = this.settings.createLock().set({'lockscreen.enabled': true});
+    }
+    window.close();
+   }
+
 };
 
 navigator.mozL10n.ready(function showBody() {

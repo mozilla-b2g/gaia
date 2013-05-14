@@ -111,6 +111,12 @@ var SimManager = {
         this.showXckScreen();
         break;
       default:
+        // Quick fix for bug 831697 (only for v1.0.1),
+        // should be fixed when uplifting 814840
+        if (this.mobConn.cardState === 'ready') {
+          AppManager.disableLockscreen();
+        }
+
         if (this.accessCallback) {
           this.accessCallback(this.mobConn.cardState === 'ready');
         }
