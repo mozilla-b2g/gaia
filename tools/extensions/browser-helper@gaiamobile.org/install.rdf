@@ -4,8 +4,8 @@
      xmlns:em="http://www.mozilla.org/2004/em-rdf#">
 
   <Description about="urn:mozilla:install-manifest">
-    <em:id>desktop-helper@gaiamobile.org</em:id>
-    <em:name>desktop-helper.js</em:name>
+    <em:id>browser-helper@gaiamobile.org</em:id>
+    <em:name>browser-helper.js</em:name>
     <em:version>0.1</em:version>
     <em:targetApplication>
       <Description>
@@ -16,8 +16,8 @@
     </em:targetApplication>
     <em:unpack>true</em:unpack>
     <em:bootstrap>true</em:bootstrap>
-    <em:creator>Kevin Grandon</em:creator>
-    <em:description>Shims to make gaia work on top of Xulrunner runtime</em:description>
+    <em:creator>Mozilla</em:creator>
+    <em:description>browser shims to make gaia work in desktop browser</em:description>
     <em:homepageURL>https://github.com/mozilla-b2g/gaia/</em:homepageURL>
   </Description>
 </RDF>
