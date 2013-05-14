@@ -32,7 +32,7 @@ section[role="region"] > header:first-child h1 {
   text-overflow: ellipsis;
   display: block;
   overflow: hidden;
-  margin: 0 0 0 3rem;
+  margin: 0 0 0 5.7rem;
   padding-right: 1rem;
   height: 100%
 }
@@ -45,8 +45,8 @@ section[role="region"] > header:first-child form {
   display: block;
   overflow: hidden;
   position: relative;
-  padding: 1rem 1rem 0 0.5rem ;
-  margin-left: 2.5rem;
+  padding: 1rem 1rem 0 1rem ;
+  margin-left: 5rem;
 }
 
 section[role="region"] > header:first-child input[type="text"] {
@@ -221,7 +221,7 @@ section[role="region"] > header:first-child > a {
   left: 0;
   width: 5rem;
   height: 5rem;
-  background: url(headers/images/ui/separator-large.png) no-repeat 2rem center / auto 4.8rem;
+  background: url(headers/images/ui/separator-large.png) no-repeat 4.7rem center / auto 4.8rem;
   overflow: hidden;
 }
 
@@ -234,7 +234,7 @@ section[role="region"] > header:first-child > button .icon,
 section[role="region"] > header:first-child > a .icon {
   position: static;
   display: block;
-  width: 2rem;
+  width: 4.7rem;
   height: 4.9rem;
   margin: 0;
   overflow: visible;
@@ -248,14 +248,14 @@ section[role="region"] > header:first-child > a .icon:after {
   left: 0;
   top: 0;
   z-index: -1;
-  width: 2rem;
+  width: 4.7rem;
   height: 4.9rem;
   background: #9d3d26 url(headers/images/ui/negative.png) repeat-x left bottom / auto 100%;
 }
 
 section[role="region"] > header > a .icon.icon-menu,
 section[role="region"] > header > button .icon.icon-menu {
-  background-position: -1.1rem center;
+  background-position: center;
 }
 
 /* ----------------------------------
@@ -273,7 +273,7 @@ section[role="region"] > header:after {
 
 section[role="region"] header h2 {
   margin: 0;
-  padding: 0.4rem 3rem;
+  padding: 0.4rem 3rem 0.4rem 5.7rem;
   color: #424242;
   font-family: "MozTT", Sans-serif;
   font-weight: 400;
