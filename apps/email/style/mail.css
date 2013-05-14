@@ -230,6 +230,11 @@ body {
   height: 100%;
 }
 
+/*Adding horizontal scroll to the form header*/
+form[role='dialog'] > header {
+  overflow: auto;
+}
+
 /*Disabled a tag style extend*/
 section[role="region"] > header:first-child menu[type="toolbar"] a[aria-disabled="true"] {
   pointer-events: none;
