@@ -723,5 +723,4 @@ window.addEventListener('load', function callSetup(evt) {
   CallScreen.init();
   CallScreen.syncSpeakerEnabled();
   KeypadManager.init(true);
-
 });

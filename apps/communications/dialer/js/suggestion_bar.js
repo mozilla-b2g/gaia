@@ -20,6 +20,12 @@ var SuggestionBar = {
   overlayCancel: document.getElementById('suggestion-overlay-cancel'),
 
   init: function sb_init() {
+    // When the DOM is abscent (in the call screen) we don't need
+    // to initialize the module.
+    if (!this.overlay) {
+      return;
+    }
+
     this.overlay.addEventListener('click', this);
     this.bar.addEventListener('click', this);
     this.countTag.addEventListener('click', this.showOverlay.bind(this));
