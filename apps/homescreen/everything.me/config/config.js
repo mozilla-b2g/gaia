@@ -8,6 +8,7 @@ Evme.__config = {
     "buildNum": 145,
     "timeoutBeforeSessionInit": 0,
     "apps": {
+        "appsPerRow": 4,
         "appHeight": 89,
         "widthForFiveApps": 400,
         "displayInstalledApps": true

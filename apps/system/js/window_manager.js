@@ -469,11 +469,11 @@ var WindowManager = (function() {
         }
 
         iframe.setVisible(false);
-      }
+      };
 
       request.onerror = function() {
         iframe.setVisible(false);
-      }
+      };
     }
 
     screenElement.classList.remove('fullscreen-app');
@@ -487,7 +487,7 @@ var WindowManager = (function() {
   // setFrameBackground() will attach the manifest icon as a background
   function setFrameBackground(frame, callback) {
     var splash = frame.firstChild.splash;
-    frame.style.backgroundImage = 'url("' +  splash + '")';
+    frame.style.backgroundImage = 'url("' + splash + '")';
     setTimeout(callback);
   }
 
@@ -852,7 +852,7 @@ var WindowManager = (function() {
       var zoomInCallback = function() {
         homescreenFrame.classList.remove('zoom-in');
         callback();
-      }
+      };
       openWindow(newApp, zoomInCallback);
     }
     // Case 5: app->homescreen
@@ -860,7 +860,7 @@ var WindowManager = (function() {
       var zoomOutCallback = function() {
         homescreenFrame.classList.remove('zoom-out');
         callback();
-      }
+      };
       closeWindow(currentApp, zoomOutCallback);
     }
     // Case 6: app-to-app transition
@@ -1206,7 +1206,6 @@ var WindowManager = (function() {
   function getIconForSplash(manifest) {
     var icons = 'icons' in manifest ? manifest['icons'] : null;
     if (!icons) {
-      dump("no icons :(\n");
       return null;
     }
 
@@ -1467,7 +1466,8 @@ var WindowManager = (function() {
           // Instantly blur the frame in order to ensure hiding the keyboard
           var app = runningApps[displayedApp];
           if (app) {
-            if ('contentWindow' in app.iframe) {
+            if ('contentWindow' in app.iframe &&
+                app.iframe.contentWindow != null) {
               // Bug 845661 - Attention screen does not appears when
               // the url bar input is focused.
               // Calling app.iframe.blur() on an in-process window

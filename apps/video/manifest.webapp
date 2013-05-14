@@ -44,7 +44,7 @@
   "activities": {
     "pick": {
       "filters": {
-        "type": ["video/*", "video/webm", "video/mp4", "video/3gpp"]
+        "type": ["video/*", "video/webm", "video/mp4", "video/3gpp", "video/ogg"]
        },
       "disposition": "inline",
       "returnValue": true,
@@ -52,7 +52,7 @@
     },
     "view" : {
       "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube"]
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube", "video/ogg"]
       },
       "href": "view.html",
       "disposition": "inline",
@@ -60,7 +60,7 @@
     },
     "open" : {
       "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube"]
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube", "video/ogg"]
       },
       "href": "view.html",
       "disposition": "inline",

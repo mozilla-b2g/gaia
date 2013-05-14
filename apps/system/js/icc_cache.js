@@ -26,7 +26,13 @@
     return;
   }
 
-  var icc = window.navigator.mozMobileConnection.icc;
+  // See bug 859712
+  // To have the backward compatibility for bug 859220.
+  // If we could not get iccManager from navigator,
+  // try to get it from mozMobileConnection.
+  // 'window.navigator.mozMobileConnection.icc' can be dropped after bug 859220 is landed.
+  var icc = window.navigator.mozIccManager || window.navigator.mozMobileConnection.icc;
+
   // Remove previous menu
   var resetApplications = window.navigator.mozSettings.createLock().set({
     'icc.applications': '{}'
