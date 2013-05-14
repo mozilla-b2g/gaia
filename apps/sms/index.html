@@ -170,6 +170,20 @@
         </section>
       </form>
     </article>
+    <menu id="attachment-options-menu" class="hide">
+      <div>
+        <form id="attachment-options" role="dialog" data-type="action">
+          <header></header>
+          <menu>
+            <button id="attachment-options-view"></button>
+            <button id="attachment-options-remove"></button>
+            <button id="attachment-options-replace"></button>
+            <button id="attachment-options-cancel"></button>
+          </menu>
+        </form>
+      </div>
+    </menu>
+    </div>
     <div id="messages-contact-tmpl" class="hide">
       <!--
       <a class="suggestion"
@@ -265,8 +279,10 @@
           font-size: 1rem;
         }
       </style>
-      <body class="attachment"><img src="${uri}">
-      <div>${size}</div>
+      <body class="attachment">
+        <img src="${uri}">
+        <div>${size}</div>
+      </body>
       -->
     </div>
   </body>
