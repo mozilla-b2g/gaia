@@ -108,7 +108,7 @@ const Keyboards = {
   en: {
     label: 'English',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    needsCandidatePanel: true,
     menuLabel: 'English',
     alt: {
       a: 'áàâäåãāæ',
@@ -188,7 +188,7 @@ const Keyboards = {
     label: 'Spanish',
     menuLabel: 'Español',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    needsCandidatePanel: true,
     alt: {
       a: 'áªàâäåãāæ',
       c: 'ç',
@@ -287,7 +287,7 @@ const Keyboards = {
     label: 'Portuguese',
     menuLabel: 'Português',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    needsCandidatePanel: true,
     alt: {
       a: 'áãàâäåæª',
       e: 'éêèęėēëɛ',
@@ -382,6 +382,7 @@ const Keyboards = {
   },
   cz: {
     label: 'Czech',
+    imEngine: 'latin',
     menuLabel: 'Česká',
     alt: {
       a: 'á',
@@ -422,7 +423,7 @@ const Keyboards = {
     label: 'French',
     menuLabel: 'Français',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    needsCandidatePanel: true,
     alt: {
       a: 'àâæáãäåā',
       c: 'çćč',
@@ -459,7 +460,7 @@ const Keyboards = {
     label: 'German',
     menuLabel: 'Deutsch',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    needsCandidatePanel: true,
     alt: {
       a: 'äàáâãåāæ',
       c: 'çćč',
@@ -518,6 +519,7 @@ const Keyboards = {
   },
   nb: {
     label: 'Norwegian Bokmal',
+    imEngine: 'latin',
     menuLabel: 'Norsk',
     alt: {
       a: 'äáàâąã',
@@ -614,6 +616,7 @@ const Keyboards = {
   },
   'sr-Latn': {
     label: 'Serbian (Latin)',
+    imEngine: 'latin',
     menuLabel: 'Srpski',
     alt: {
       c: 'čć',
@@ -673,6 +676,7 @@ const Keyboards = {
   },
   sk: {
     label: 'Slovak',
+    imEngine: 'latin',
     menuLabel: 'Slovenčina',
     alt: {
       a: 'áàâąãäæ',
@@ -711,6 +715,7 @@ const Keyboards = {
   },
   tr: {
     label: 'Turkish',
+    imEngine: 'latin',
     menuLabel: 'Türkçe',
     upperCase: {
       'i': 'İ'
@@ -750,7 +755,7 @@ const Keyboards = {
     label: 'English - Dvorak',
     menuLabel: 'Dvorak',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    needsCandidatePanel: true,
     alt: {
       a: 'àáâãäåāæ',
       c: 'çćč',
@@ -1276,7 +1281,7 @@ const Keyboards = {
   ca: {
     label: 'Catalan',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    needsCandidatePanel: true,
     menuLabel: 'català',
     alt: {
       a: 'àáâäåãāæª@',

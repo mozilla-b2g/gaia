@@ -222,6 +222,16 @@ const keyboardAlias = {
   'pt-BR': 'pt_BR'
 };
 
+// Define keyboard name aliases to correctly match the relevant language,
+// i.e. keyboard name -> relevant language code
+const languageAlias = {
+  'en': 'en-US',
+  'en-Dvorak': 'en-US',
+  'pt_BR': 'pt-BR',
+  'sr-Cyrl': 'sr',
+  'sr-Latn': 'sr'
+};
+
 // This is the default keyboard if none is selected in settings
 // XXX: switch this to pt-BR?
 // XXX: ideally, this should be based on the current language,
@@ -792,6 +802,7 @@ function renderKeyboard(keyboardName) {
   }
 
   candidatePanelEnabled = Keyboards[keyboardName].needsCandidatePanel;
+
 }
 
 function setUpperCase(upperCase, upperCaseLocked) {
@@ -1316,7 +1327,7 @@ function endPress(target, coords, touchId) {
 
     // Switch language (keyboard)
   case SWITCH_KEYBOARD:
-
+    var prevInputMethod = inputMethod;
     // If the user has specify a keyboard in the menu,
     // switch to that keyboard and update the setting.
     if (target.dataset.keyboard) {
@@ -1355,10 +1366,20 @@ function endPress(target, coords, touchId) {
      * lose focus and then refocus the input field.  In practice, I think
      * that asian keyboards have input methods that handle the latin case
      * so this probably isn't an issue.
-    if (inputMethod.activate) {
-      inputMethod.activate(userLanguage, suggestionsEnabled, currentInputType);
+     */
+    if (inputMethod == prevInputMethod) {
+      // If the input method is the same, the word prediction language can
+      // be updated by setting the keyboard language for the word suggestions
+      // engine, thus informing it to load the appropriate dictionary
+      var lang = languageAlias[keyboardName] || keyboardName;
+      // If current language needs a candidate panel, set its language
+      // auto-correction, otherwise deactivate the word correction of previous
+      // input method which remained active
+      var autoCorrection = needsCandidatePanel() ? correctionsEnabled : false;
+
+      if (inputMethod.setLanguage)
+        inputMethod.setLanguage(lang, autoCorrection);
     }
-    */
     break;
 
     // Expand / shrink the candidate panel
@@ -1472,7 +1493,10 @@ function showKeyboard(state) {
   resetKeyboard();
 
   if (inputMethod.activate) {
-    inputMethod.activate(userLanguage, state, {
+    // Word suggestions should follow the keyboard language configuration
+    var lang = languageAlias[keyboardName] || keyboardName;
+
+    inputMethod.activate(lang, state, {
       suggest: suggestionsEnabled,
       correct: correctionsEnabled
     });

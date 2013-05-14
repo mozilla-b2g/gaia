@@ -50,6 +50,7 @@
     displaysCandidates: displaysCandidates,
     click: click,
     select: select,
+    setLanguage: setLanguage,
     setLayoutParams: setLayoutParams
   };
 
@@ -62,7 +63,7 @@
 
   // These variables are the input method's state. Most of them are
   // passed to the activate() method or are derived in that method.
-  var language;           // The user's language
+  var language;           // The current keyboard layout language
   var inputMode;          // The inputmode we're using: see getInputMode()
   var capitalizing;       // Are we auto-capitalizing for this activation?
   var suggesting;         // Are we offering suggestions for this activation?
@@ -626,6 +627,19 @@
 
     // And update the keyboard capitalization state, if necessary
     updateCapitalization();
+  }
+
+  function setLanguage(lang, autocorrect) {
+    language = lang;
+    // Check if auto-correction is needed for the new
+    // language-associated keyboard
+    correcting = autocorrect || false;
+    // Set up the worker with the new language
+    // NOTE: checking if the worker is initialized and setting the language
+    //       are part of the process
+    setupSuggestionsWorker();
+
+    updateSuggestions();
   }
 
   function setLayoutParams(params) {
