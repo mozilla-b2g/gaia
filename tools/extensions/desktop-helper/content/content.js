@@ -284,7 +284,8 @@ var TouchEventHandler = (function touchEventHandler() {
       }).bind(this));
     },
     handleEvent: function teh_handleEvent(evt) {
-      if (evt.button || ignoreEvents)
+      if (evt.button || ignoreEvents ||
+          evt.mozInputSource == Ci.nsIDOMMouseEvent.MOZ_SOURCE_UNKNOWN)
         return;
 
       // The system window use an hybrid system even on the device which is
