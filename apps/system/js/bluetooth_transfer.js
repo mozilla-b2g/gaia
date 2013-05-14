@@ -2,53 +2,6 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
-// Following formats are supported by DeviceStorage
-// Ref: http://dxr.mozilla.org/mozilla-central/toolkit/content/
-// devicestorage.properties
-// # Extensions we recognize for DeviceStorage storage areas
-// pictures=*.jpe; *.jpg; *.jpeg; *.gif; *.png; *.bmp;
-// music=*.mp3; *.ogg; *.m4a; *.m4b; *.m4p; *.m4r; *.3gp; *.mp4; *.aac; *.m3u;
-//       *.pls; *.opus;
-// videos=*.mp4; *.mpeg; *.mpg; *.ogv; *.ogx; *.webm; *.3gp; *.ogg;
-
-var FileFormats = {       // Reference link:
-  // Image section
-  jpe: 'image/jpeg',      // http://en.wikipedia.org/wiki/JPEG
-  jpg: 'image/jpeg',      // http://en.wikipedia.org/wiki/JPEG
-  jpeg: 'image/jpeg',     // http://en.wikipedia.org/wiki/JPEG
-  gif: 'image/gif',       // http://en.wikipedia.org/wiki/Internet_media_type
-  png: 'image/png',       // http://en.wikipedia.org/wiki/Internet_media_type
-  bmp: 'image/bmp',       // http://en.wikipedia.org/wiki/BMP_file_format
-
-  // Music section
-  mp3: 'audio/mpeg',      // http://en.wikipedia.org/wiki/Internet_media_type
-  m4a: 'audio/x-m4a',     // http://www.mediawiki.org/wiki/
-  m4b: 'audio/x-m4b',     // Mobile_browser_testing/iPhone
-  m4p: 'audio/x-m4p',     // Same as above link
-  m4r: 'video/mp4',       // http://en.wikipedia.org/wiki/MPEG-4_Part_14
-
-  // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=850544
-  // We need to identify audio or video type by metadata parser for these format
-  // Before we support metadata parser, let these file format to be video type.
-  // ogg: 'audio/ogg',    // http://en.wikipedia.org/wiki/Ogg
-  // 3gp: 'audio/3gpp',   // http://en.wikipedia.org/wiki/Advanced_Audio_Coding
-  // mp4: 'audio/mp4',    // http://en.wikipedia.org/wiki/Internet_media_type
-  aac: 'audio/aac',       // http://en.wikipedia.org/wiki/Advanced_Audio_Coding
-  m3u: 'audio/x-mpegurl', // http://en.wikipedia.org/wiki/M3U
-  pls: 'audio/x-scpls',   // http://en.wikipedia.org/wiki/PLS_%28file_format%29
-  opus: 'audio/ogg',      // http://de.wikipedia.org/wiki/Opus_%28Audioformat%29
-
-  // Video section
-  mp4: 'video/mp4',       // http://en.wikipedia.org/wiki/MPEG-4_Part_14
-  mpeg: 'video/mpeg',     // http://wiki.whatwg.org/wiki/Video_type_parameters
-  mpg: 'video/mpeg',      // http://wiki.whatwg.org/wiki/Video_type_parameters
-  ogv: 'video/ogg',       // http://en.wikipedia.org/wiki/Ogg
-  ogx: 'video/ogg',       // http://en.wikipedia.org/wiki/Ogg
-  webm: 'video/webm',     // http://wiki.whatwg.org/wiki/Video_type_parameters
-  '3gp': 'video/3gpp',    // http://wiki.whatwg.org/wiki/Video_type_parameters
-  ogg: 'audio/ogg'        // http://en.wikipedia.org/wiki/Ogg (belong to audio)
-};
-
 var BluetoothTransfer = {
   bannerContainer: null,
   pairList: {
@@ -462,30 +415,16 @@ var BluetoothTransfer = {
       var file = getreq.result;
       // When we got the file by storage type of "sdcard"
       // use the file.type to replace the empty fileType which is given by API
-      var fileType = '';
       var fileName = file.name;
-      if (contentType != '') {
-        fileType = contentType;
-      } else {
-        var fileNameExtension =
-          fileName.substring(fileName.lastIndexOf('.') + 1);
-        if (file.type != '') {
-          fileType = file.type;
-          // Refine the file type to "audio/ogg" when the file format is *.ogg
-          if (fileType == 'video/ogg' &&
-              (fileNameExtension.indexOf('ogg') != -1)) {
-            fileType == 'audio/ogg';
-          }
-        } else {
-          // Parse Filename Extension to find out MIMETYPE
-          fileType = self.getMimetype(fileNameExtension);
-        }
-      }
+      var extension = fileName.split('.').pop();
+      var originalType = file.type || contentType;
+      var mappedType = (MimeMapper.isSupportedType(originalType)) ?
+        originalType : MimeMapper.guessTypeFromExtension(extension);
 
       var a = new MozActivity({
         name: 'open',
         data: {
-          type: fileType,
+          type: mappedType,
           blob: file,
           // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=812098
           // Pass the file name for Music APP since it can not open blob
@@ -506,10 +445,6 @@ var BluetoothTransfer = {
         self.debug(msg);
       };
     };
-  },
-
-  getMimetype: function bt_getMimetype(fileNameExtension) {
-    return FileFormats[fileNameExtension];
   },
 
   showUnknownMediaPrompt: function bt_showUnknownMediaPrompt(fileName) {
