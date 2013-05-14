@@ -576,6 +576,7 @@ test-agent-bootstrap-apps:
 ifneq ($(strip $(APP)),)
 APP_TEST_LIST=$(shell find apps/$(APP)/test/unit -name '*_test.js')
 endif
+
 .PHONY: test-agent-test
 test-agent-test:
 ifneq ($(strip $(APP)),)
@@ -585,6 +586,15 @@ else
 	@echo 'Running all tests';
 	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
 endif
+
+# TODO(gareth): Remove this once the contacts tests become stable.
+# Refer to https://bugzilla.mozilla.org/show_bug.cgi?id=863691.
+.PHONY: travis-test-agent-test
+travis-test-agent-test: nukecomm test-agent-test
+
+.PHONY: nukecomm
+nukecomm:
+	rm -rf apps/communications
 
 .PHONY: test-agent-server
 test-agent-server: common-install
