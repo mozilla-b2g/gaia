@@ -82,6 +82,7 @@ label input[data-type="switch"] + span:before {
   width: 5.4rem;
   z-index: -1;
   transition: transform 0.2s ease;
+  border-radius: 5.4rem;
 }
 
 label input[data-type="switch"] + span:before {
