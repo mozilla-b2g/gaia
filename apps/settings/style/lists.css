@@ -98,7 +98,6 @@ ul li > label:not([for]) + small {
 ul li > small:not(:empty) + a,
 ul li > small:not(:empty) + span {
   line-height: 4.4rem;
-  overflow: inherit; /* see Bug 831429 */
 }
 
 
