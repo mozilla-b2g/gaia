@@ -5,9 +5,9 @@
 
     <title>Bluetooth Pair Device</title>
     <meta name="description" content="Prompts user to take a device pair request">
-    <meta name="target" content="html">
-      <!-- Common style -->
+    <!-- Common style -->
     <link rel="stylesheet" href="shared/style/confirm.css">
+    <link rel="stylesheet" href="shared/style/input_areas.css">
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
@@ -25,23 +25,22 @@
   <body role="application">
     <form role="dialog" data-type="confirm" id="pair-view">
       <section>
-        <hr>
-        <div id="device-info">
-          <strong id="label-name"></strong>
-        </div>
-        <hr>
+        <h2 data-l10n-id="pair-view-title"></h2>
+        <h1 id="label-name"></h1>
 
-        <div id="pair-description"></div>
+        <p id="pair-description"></p>
 
-        <div id="confirmation-method" class="pair-method">
-          <strong id="passkey"></strong>
-        </div>
-        <div id="pin-input-method" class="pair-method" hidden>
-          <input id="pin-input" size="16" maxlength="16" />
-        </div>
-        <div id="passkey-input-method" class="pair-method" hidden>
+        <span id="confirmation-method" >
+          <span id="passkey"></span>
+        </span>
+
+        <span id="pin-input-method" hidden>
+          <input type="number" id="pin-input" size="4" maxlength="4" />
+        </span>
+
+        <span id="passkey-input-method" hidden>
           <input type="number" id="passkey-input" size="6" maxlength="6" />
-        </div>
+        </span>
       </section>
       <menu>
         <button id="button-close" data-l10n-id="cancel">Cancel</button>
@@ -50,3 +49,4 @@
     </form>
   </body>
 </html>
+
