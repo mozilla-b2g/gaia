@@ -124,7 +124,6 @@ var Camera = {
   _cameraProfile: null,
 
   _resumeViewfinderTimer: null,
-  _waitingToGenerateThumb: false,
 
   _styleSheet: document.styleSheets[0],
   _orientationRule: null,
@@ -561,23 +560,22 @@ var Camera = {
   stopRecording: function camera_stopRecording() {
     this._cameraObj.stopRecording();
     this._recording = false;
+
+    // Register a listener for writing completion of current video file
+    (function(videoStorage, videofile) {
+      videoStorage.addEventListener('change', function changeHandler(e) {
+        if (e.reason === 'modified' && e.path === videofile) {
+          Filmstrip.addVideo(videofile);
+          Filmstrip.show(Camera.FILMSTRIP_DURATION);
+          // Un-register the listener itself
+          videoStorage.removeEventListener('change', changeHandler);
+        }
+      });
+    })(this._videoStorage, this._videoPath);
+
     window.clearInterval(this._videoTimer);
     this.enableButtons();
     document.body.classList.remove('capturing');
-
-    // XXX
-    // I need some way to know when the camera is done writing this file
-    // currently I'm sending this to the filmstrip which is trying to
-    // determine its rotation and fails sometimes if the file is not
-    // yet complete.  For now, I just defer for a second, but
-    // there ought to be a better way.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=817367
-    // Maybe I'll get a device storage callback... check this.
-    var videofile = this._videoPath;
-    setTimeout(function() {
-      Filmstrip.addVideo(videofile);
-      Filmstrip.show(Camera.FILMSTRIP_DURATION);
-    }, 1000);
   },
 
   formatTimer: function camera_formatTimer(time) {
