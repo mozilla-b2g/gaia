@@ -22,6 +22,7 @@
 function Attachment(blob, name) {
   this.blob = blob;
   this.name = name || '';
+  this.optionsMenu = null;
 }
 
 Attachment.prototype = {
@@ -32,6 +33,7 @@ Attachment.prototype = {
     return Utils.typeFromMimeType(this.blob.type);
   },
   render: function() {
+    var self = this;
     var _ = navigator.mozL10n.get;
     var el = document.createElement('iframe');
     // The attachment's iFrame requires access to the parent document's context
@@ -49,11 +51,42 @@ Attachment.prototype = {
     el.src = src;
     el.className = 'attachment';
 
-    // When rendering is complete, signal Gecko to release the reference to the
-    // Blob
-    el.addEventListener('load',
+    // When rendering is complete
+    el.addEventListener('load', function() {
+      // Signal Gecko to release the reference to the Blob
       window.URL.revokeObjectURL.bind(window.URL, objectURL));
 
+      el.contentDocument.addEventListener('click', self.openOptionsMenu.bind(self));
+    });
+
     return el;
+  },
+
+  openOptionsMenu: function() {
+    var self = this;
+    var template = Utils.Template('attachment-options-tmpl');
+    var html = template.interpolate({
+      fileName: 'todo',
+      fileType: 'todo'
+    });
+    var elem = document.createElement('menu');
+    elem.innerHTML = html;
+
+    var viewButton = elem.querySelector('#attachment-options-view');
+    var removeButton = elem.querySelector('#attachment-options-remove');
+    var replaceButton = elem.querySelector('#attachment-options-replace');
+    var cancelButton = elem.querySelector('#attachment-options-cancel');
+
+    cancelButton.addEventListener('click', function() {
+      self.closeOptionsMenu();
+    });
+
+    this.optionsMenu = elem;
+    document.body.appendChild(elem);
+  },
+
+  closeOptionsMenu: function() {
+    this.optionsMenu.remove();
+    this.optionsMenu = null;
   }
 };
