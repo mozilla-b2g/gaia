@@ -127,7 +127,7 @@ var About = {
        */
 
       if (value !== 'check-complete') {
-        systemStatus.textContent = _(value, null, _('check-error'));
+        systemStatus.textContent = _(value) || _('check-error');
         console.error('Error checking for system update:', value);
       }
 
