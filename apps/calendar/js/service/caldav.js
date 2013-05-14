@@ -4,7 +4,11 @@ Calendar.ns('Service').Caldav = (function() {
 
   /* TODO: ugly hack to enable system XHR fix upstream in Caldav lib */
   var xhrOpts = {
+    /** system is required for cross domain XHR  */
     mozSystem: true,
+    /** mozAnon is required to avoid system level popups on 401 status */
+    mozAnon: true,
+    /** enables use of mozilla only streaming api's when available */
     useMozChunkedText: true
   };
 
