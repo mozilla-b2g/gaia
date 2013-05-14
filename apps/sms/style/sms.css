@@ -630,6 +630,7 @@ form.bottom[role="search"].messages-compose-form {
   position: absolute;
   top: 0.8rem;
   content: attr(placeholder);
+  pointer-events: none;
 }
 #messages-input .attachment {
   border: none;
