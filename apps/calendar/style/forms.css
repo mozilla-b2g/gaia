@@ -34,3 +34,10 @@ form li {
   padding: 0.25rem;
 }
 
+.datetime {
+  pointer-events: none;
+  position: absolute;
+  top: 0rem;
+  left: 2rem;
+  font-size: 1.2rem;
+}

@@ -515,15 +515,23 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       this.getEl('startDate').value =
         InputParser.exportDate(startDate);
+      this._updateDateTimeLocale(
+        'date', 'startDate', 'start-date-locale', startDate);
 
       this.getEl('endDate').value =
         InputParser.exportDate(endDate);
+      this._updateDateTimeLocale(
+        'date', 'endDate', 'end-date-locale', endDate);
 
       this.getEl('startTime').value =
         InputParser.exportTime(startDate);
+      this._updateDateTimeLocale(
+        'time', 'startTime', 'start-time-locale', startDate);
 
       this.getEl('endTime').value =
         InputParser.exportTime(endDate);
+      this._updateDateTimeLocale(
+        'time', 'endTime', 'end-time-locale', endDate);
 
       this.getEl('description').textContent =
         model.description;
@@ -543,6 +551,45 @@ Calendar.ns('Views').ModifyEvent = (function() {
       }
 
       this.updateAlarms(model.isAllDay);
+    },
+
+    /**
+     * Handling a layer over <input> to have localized
+     * date/time
+     */
+    _updateDateTimeLocale: function(type, date, target, value) {
+      var _ = navigator.mozL10n.get;
+      var dateTimeFormatter = new navigator.mozL10n.DateTimeFormat();
+
+      var _formats = {
+        'date': {'sep': '-', 'format': _('dateTimeFormat_%x')},
+        'time': {'sep': ':', 'format': _('dateTimeFormat_%X')}
+      };
+
+      var targetElement = document.getElementById(target);
+      if (!targetElement)
+        return;
+
+      targetElement.textContent = dateTimeFormatter.localeFormat(
+        value, _formats[type]['format']);
+      var self = this;
+      this.getEl(date).addEventListener('input', function(e) {
+        var selected = e.target.value.split(_formats[type]['sep']);
+        var newDate = new Date();
+        if (type == 'date') {
+          newDate.setFullYear(selected[0]);
+          newDate.setMonth(selected[1] - 1);
+          newDate.setDate(selected[2]);
+        }
+        if (type == 'time') {
+          newDate.setHours(selected[0]);
+          newDate.setMinutes(selected[1]);
+          newDate.setSeconds(0);
+        }
+        var newStrDate = dateTimeFormatter.localeFormat(
+          newDate, _formats[type]['format']);
+        targetElement.textContent = newStrDate;
+      });
     },
 
     /**
