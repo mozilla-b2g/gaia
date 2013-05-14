@@ -54,9 +54,9 @@ var Tutorial = {
 
     this.tutorialFinish.addEventListener('click', function ftuEnd() {
       self.tutorialFinish.removeEventListener('click', ftuEnd);
-      AppManager.finish();
+      WifiManager.finish();
+      window.close();
     });
-
     window.addEventListener('hashchange', this);
     window.location.hash = tutorialSteps[this.currentStep].hash;
   },

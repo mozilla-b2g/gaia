@@ -160,9 +160,9 @@ var UIManager = {
         }.bind(this));
 
     this.skipTutorialButton.addEventListener('click', function() {
-      AppManager.finish();
+      WifiManager.finish();
+      window.close();
     });
-
     this.letsGoButton.addEventListener('click', function() {
       UIManager.activationScreen.classList.remove('show');
       UIManager.finishScreen.classList.remove('show');
