@@ -96,6 +96,11 @@ var CallScreen = {
     OnCallHandler.toggleSpeaker();
   },
 
+  turnSpeakerOn: function cs_turnSpeakerOn() {
+    this.speakerButton.classList.add('speak');
+    OnCallHandler.turnSpeakerOn();
+  },
+
   turnSpeakerOff: function cs_turnSpeakerOff() {
     this.speakerButton.classList.remove('speak');
     OnCallHandler.turnSpeakerOff();
@@ -160,6 +165,8 @@ var OnCallHandler = (function onCallHandler() {
   var handledCalls = [];
   var telephony = window.navigator.mozTelephony;
   telephony.oncallschanged = onCallsChanged;
+
+  var settings = window.navigator.mozSettings;
 
   var displayed = false;
   var closing = false;
@@ -656,8 +663,22 @@ var OnCallHandler = (function onCallHandler() {
     telephony.muted = false;
   }
 
+  function turnSpeakerOn() {
+    if (!telephony.speakerEnabled) {
+      telephony.speakerEnabled = true;
+      if (settings) {
+        settings.createLock().set({'telephony.speaker.enabled': true});
+      }
+    }
+  }
+
   function turnSpeakerOff() {
-    telephony.speakerEnabled = false;
+    if (telephony.speakerEnabled) {
+      telephony.speakerEnabled = false;
+      if (settings) {
+        settings.createLock().set({'telephony.speaker.enabled': false});
+      }
+    }
   }
 
   function toggleMute() {
@@ -665,7 +686,10 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function toggleSpeaker() {
-    telephony.speakerEnabled = !telephony.speakerEnabled;
+    if (telephony.speakerEnabled)
+      turnSpeakerOff();
+    else
+      turnSpeakerOn();
   }
 
   /* === Recents management === */
@@ -708,6 +732,7 @@ var OnCallHandler = (function onCallHandler() {
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,
     unmute: unmute,
+    turnSpeakerOn: turnSpeakerOn,
     turnSpeakerOff: turnSpeakerOff,
 
     addRecentEntry: addRecentEntry,

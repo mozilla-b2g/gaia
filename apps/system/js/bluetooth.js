@@ -18,6 +18,8 @@ var Bluetooth = {
       return;
 
     var bluetooth = window.navigator.mozBluetooth;
+    var settings = window.navigator.mozSettings;
+    var self = this;
 
     SettingsListener.observe('bluetooth.enabled', true, function(value) {
       if (!bluetooth) {
@@ -32,7 +34,21 @@ var Bluetooth = {
       }
     });
 
-    var self = this;
+    // XXX: The key telephony.speaker.enabled was created
+    //      for resolving bug 870683.
+    if (settings) {
+      settings.addObserver('telephony.speaker.enabled',
+        function bt_onSpeakerEnabledChange(event) {
+          if (self.defaultAdapter && self.hfpHspConnected) {
+            if (event.settingValue) {
+              self.defaultAdapter.disconnectSco();
+            } else {
+              self.defaultAdapter.connectSco();
+            }
+          }
+      });
+    }
+
     // when bluetooth adapter is ready, emit event to notify QuickSettings
     // and try to get defaultAdapter at this moment
     bluetooth.onadapteradded = function bt_onAdapterAdded() {
