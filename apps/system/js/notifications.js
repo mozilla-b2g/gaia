@@ -51,6 +51,7 @@ var NotificationScreen = {
   lockscreenPreview: true,
   silent: false,
   vibrates: true,
+  wasNear: false,
 
   init: function ns_init() {
     window.addEventListener('mozChromeEvent', this);
@@ -80,6 +81,9 @@ var NotificationScreen = {
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
     window.addEventListener('mozvisibilitychange', this);
     window.addEventListener('appopen', this.handleAppopen.bind(this));
+
+    // in case of userproximity, avoid turning the screen on
+    window.addEventListener('userproximity', this);
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
@@ -117,6 +121,9 @@ var NotificationScreen = {
         if (!document.mozHidden) {
           this.updateTimestamps();
         }
+        break;
+      case 'userproximity':
+        this.wasNear = evt.near;
         break;
     }
   },
@@ -273,7 +280,7 @@ var NotificationScreen = {
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
     if (typeof(ScreenManager) !== 'undefined' &&
-      !ScreenManager.screenEnabled) {
+      !ScreenManager.screenEnabled && !this.wasNear) {
       ScreenManager.turnScreenOn();
     }
 
