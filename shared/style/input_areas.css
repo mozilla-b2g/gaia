@@ -74,6 +74,11 @@ form p textarea + button[type="reset"] {
   background: transparent url(input_areas/images/icons/clear.png) no-repeat 50% 50% / 1.7rem auto;
 }
 
+form.skin-dark p input + button[type="reset"],
+form.skin-dark p textarea + button[type="reset"] {
+  background-image: url(input_areas/images/icons/clear-dark.png);
+}
+
 /* To avoid colission with BB butons */
 li input + button[type="reset"]:after,
 li textarea + button[type="reset"]:after {
@@ -174,33 +179,57 @@ fieldset section p:last-child {
 form[role="search"] {
   position: relative;
   height: 3.7rem;
+  background: #dbe3eb;
+}
+
+form[role="search"].skin-dark {
+  background: url(input_areas/images/ui/background-dark.png) repeat;
+  background-size: 2rem;
+}
+
+form[role="search"].bottom {
   background: #fff;
 }
 
-section[role="region"] > header:first-child + form[role="search"] {
-  /* increase height when underneath a header because of header's shadow */
-  padding-top: 0.3rem;
-  border-bottom: 0.1rem solid #c8c8c8;
+form[role="search"]:before {
+  content: "";
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  height: 1.6rem;
+  width: 1.6rem;
+  background: url(input_areas/images/icons/search.png) no-repeat;
+  background-size: 1.6rem;
+}
+
+form[role="search"].bottom:before {
+  display: none;
+}
+
+form[role="search"].skin-dark:before {
+  background-image: url(input_areas/images/icons/search-dark.png);
 }
 
 form[role="search"]:after {
   content: "";
   position: absolute;
-  top: 100%;
+  top: 3.6rem;
   right: 0;
   left: 0;
-  height: 0.3rem;
+  height: 0.4rem;
   background: url(input_areas/images/ui/shadow-search.png) repeat-x left top;
+  border-top: 0.1rem solid #fff;
 }
 
 form[role="search"].bottom:after {
   content: "";
   position: absolute;
-  top: -0.3rem;
-  right: 0;
-  left: 0;
-  height: 0.3rem;
+  top: -0.4rem;
   background: url(input_areas/images/ui/shadow-invert.png) repeat-x 0 100%;
+  border-color: transparent;
+}
+form[role="search"].skin-dark:after {
+  border-color: #2b3538;
 }
 
 section[role="region"] > header:first-child + form[role="search"]:after{
@@ -208,22 +237,21 @@ section[role="region"] > header:first-child + form[role="search"]:after{
 }
 
 form[role="search"] p {
-  -moz-box-sizing: border-box;
-  padding: 0.3rem 1.2rem;
+  padding: 0.4rem 1.2rem 0 3.2rem;
   overflow: hidden;
 }
 
-form[role="search"].full p {
-  padding: 0.3rem 1rem;
+form[role="search"].bottom p {
+  padding: 0.4rem 1.2rem 0 1.2rem;
 }
 
 form[role="search"] p input,
 form[role="search"] p textarea {
   height: 3rem;
   border: none;
-  background: #fff;
+  background: none;
   font-size: 1.8rem;
-  padding: 0;
+  padding: 0.5rem 0;
 }
 
 form[role="search"] p input:focus {
@@ -233,6 +261,11 @@ form[role="search"] p input:focus {
 form[role="search"] p input:invalid, 
 form[role="search"] p textarea:invalid {
   border: none;
+}
+
+form[role="search"].skin-dark p input,
+form[role="search"].skin-dark p textarea {
+  color: #fff;
 }
 
 form[role="search"] button.icon {
@@ -250,6 +283,7 @@ form[role="search"] button.icon {
   margin: 0;
   position: relative;
 }
+
 form[role="search"] button.icon:before {
   content: "";
   position: absolute;
@@ -268,19 +302,29 @@ form[role="search"] button[type="submit"] {
   float: right;
   min-width: 6rem;
   height: 3.7rem;
-  padding: 0 1rem;
+  padding: 0 1.5rem;
   border: none;
-  color: #333;
+  color: #000;
   font-weight: 500;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   line-height: 3.2rem;
-  background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
-              url(input_areas/images/ui/active.png) repeat-x 0 100%;
+  background: url(input_areas/images/ui/separator.png) no-repeat 0 50%;
   background-size: auto 100%;
   border-radius: 0;
   width: auto;
   border-radius: 0;
   margin: 0;
+}
+
+form[role="search"].bottom button[type="submit"] {
+  color: #333;
+  background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
+              url(input_areas/images/ui/active.png) repeat-x 0 100%;
+}
+
+form[role="search"].skin-dark button[type="submit"] {
+  color: #fff;
+  background-image: url(input_areas/images/ui/separator-dark.png);
 }
 
 form[role="search"] button[type="submit"] + p > textarea {
