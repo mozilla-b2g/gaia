@@ -97,7 +97,7 @@
 	text-overflow: '';
 }
 
-li.active > div > img {
+ol:not([disabled]) li.active > div > img {
   filter: url('app_tapped_filter.svg#blur');
 }
 
