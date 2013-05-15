@@ -79,13 +79,10 @@ Attachment.prototype = {
     var replaceButton = elem.querySelector('#attachment-options-replace');
     var cancelButton = elem.querySelector('#attachment-options-cancel');
 
-    removeButton.addEventListener('click', function() {
-      self.remove();
-    });
-
-    cancelButton.addEventListener('click', function() {
-      self.closeOptionsMenu();
-    });
+    viewButton.addEventListener('click', self.view.bind(this));
+    removeButton.addEventListener('click', self.remove.bind(this));
+    replaceButton.addEventListener('click', self.replace.bind(this));
+    cancelButton.addEventListener('click', self.closeOptionsMenu.bind(this));
 
     this.optionsMenu = elem;
     document.body.appendChild(elem);
@@ -96,9 +93,30 @@ Attachment.prototype = {
     this.optionsMenu = null;
   },
 
+  view: function() {
+    var activity = new MozActivity({
+      name: 'view',
+      data: {
+        type: 'url',
+        url: this.uri
+      }
+    });
+    activity.onsuccess = function() {
+      alert("success");
+    };
+    activity.onerror = function() {
+      alert("error");
+    };
+  },
+
   remove: function() {
     this.el.remove();
     ThreadUI.updateInputHeight();
     this.closeOptionsMenu();
+  },
+
+  replace: function() {
+    // TODO
   }
+  
 };
