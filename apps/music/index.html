@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css"/>
     <link rel="stylesheet" type="text/css" href="style/music.css"/>
     <!-- multi-resolution support -->
     <link rel="stylesheet" type="text/css" href="shared/style/responsive.css"/>
@@ -131,12 +132,25 @@
         </div>
       </section>
     </div>
+    <!-- BB tabs -->
     <div id="tabs">
-      <button class="tabs-button" id="tabs-mix" data-option="mix"></button>
-      <button class="tabs-button" id="tabs-playlists" data-option="playlist"></button>
-      <button class="tabs-button" id="tabs-artists" data-option="artist"></button>
-      <button class="tabs-button" id="tabs-albums" data-option="album"></button>
-      <button class="tabs-button" id="tabs-songs" data-option="title"></button>
+      <ul role="tablist" data-items="5" class="bottom">
+        <li id="mix" role="tab">
+          <a href="#mix" id="tabs-mix" data-option="mix" class="icon">mix</a>
+        </li>
+        <li id="playlists" role="tab">
+          <a href="#playlists" id="tabs-playlists" data-option="playlist" class="icon">playlists</a>
+        </li>
+        <li id="artists" role="tab">
+          <a href="#artists" id="tabs-artists" data-option="artist" class="icon">artists</a>
+        </li>
+        <li id="albums" role="tab">
+          <a href="#albums" id="tabs-albums" data-option="album" class="icon">albums</a>
+        </li>
+        <li id="songs" role="tab">
+          <a href="#songs" id="tabs-songs" data-option="title" class="icon">songs</a>
+        </li>
+      </ul>
     </div>
     <!-- display scanning progress over the titlebar -->
     <div id="scan-progress" class="hidden">

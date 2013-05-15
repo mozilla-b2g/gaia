@@ -19,27 +19,41 @@
 
 'use strict';
 
-function Attachment(type, uri, size) {
-  this.type = type;
-  this.uri = uri;
-  this.size = size;
+function Attachment(blob, name) {
+  this.blob = blob;
+  this.name = name || '';
 }
 
 Attachment.prototype = {
+  get size() {
+    return this.blob.size;
+  },
+  get type() {
+    return Utils.typeFromMimeType(this.blob.type);
+  },
   render: function() {
     var _ = navigator.mozL10n.get;
     var el = document.createElement('iframe');
-    el.setAttribute('sandbox', '');
+    // The attachment's iFrame requires access to the parent document's context
+    // so that URIs for Blobs created in the parent may resolve as expected.
+    el.setAttribute('sandbox', 'allow-same-origin');
     var src = 'data:text/html,';
     // We want kilobytes so we divide by 1024, with one fractional digit
     var size = Math.floor(this.size / 102.4) / 10;
     var sizeString = _('attachmentSize', {n: size});
+    var objectURL = window.URL.createObjectURL(this.blob);
     src += Utils.Template('attachment-tmpl').interpolate({
-      uri: this.uri,
+      uri: objectURL,
       size: sizeString
     });
     el.src = src;
     el.className = 'attachment';
+
+    // When rendering is complete, signal Gecko to release the reference to the
+    // Blob
+    el.addEventListener('load',
+      window.URL.revokeObjectURL.bind(window.URL, objectURL));
+
     return el;
   }
 };

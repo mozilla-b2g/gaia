@@ -1,9 +1,8 @@
 'use strict';
 
-function MockAttachment(type, uri, size) {
-  this.type = type;
-  this.uri = uri;
-  this.size = size;
+function MockAttachment(blob, name = '') {
+  this.blob = blob;
+  this.name = name;
 }
 
 MockAttachment.prototype = {

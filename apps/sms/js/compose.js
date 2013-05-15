@@ -17,7 +17,8 @@ var Compose = (function() {
   var dom = {
     form: null,
     message: null,
-    button: null
+    sendButton: null,
+    attachButton: null
   };
 
   var handlers = {
@@ -113,7 +114,8 @@ var Compose = (function() {
     init: function thui_compose_init(formId) {
       dom.form = document.getElementById(formId);
       dom.message = dom.form.querySelector('[contenteditable]');
-      dom.button = dom.form.querySelector('button');
+      dom.sendButton = document.getElementById('messages-send-button');
+      dom.attachButton = document.getElementById('messages-attach-button');
 
       // update the placeholder after input
       dom.message.addEventListener('input', composeCheck);
@@ -121,6 +123,9 @@ var Compose = (function() {
       // we need to bind to keydown & keypress because of #870120
       dom.message.addEventListener('keydown', composeLockCheck);
       dom.message.addEventListener('keypress', composeLockCheck);
+
+      dom.attachButton.addEventListener('click',
+        this.onAttachClick.bind(this));
 
       this.clear();
 
@@ -199,7 +204,7 @@ var Compose = (function() {
     },
 
     disable: function(state) {
-      dom.button.disabled = state;
+      dom.sendButton.disabled = state;
       return this;
     },
 
@@ -247,6 +252,47 @@ var Compose = (function() {
       state.full = false;
       composeCheck();
       return this;
+    },
+
+    onAttachClick: function thui_onAttachClick() {
+      var request = this.requestAttachment();
+      request.onsuccess = this.append.bind(this);
+    },
+
+    /** Initiates a 'pick' MozActivity allowing the user to create an
+     * attachment
+     * @return {Object} requestProxy A proxy for the underlying DOMRequest API.
+     *                               An "onsuccess" and/or "onerror" callback
+     *                               method may optionally be defined on this
+     *                               object.
+     */
+    requestAttachment: function() {
+      // Mimick the DOMRequest API
+      var requestProxy = {};
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          // TODO: Extend this array with elements 'audio/*' and 'video/*'
+          type: ['image/*']
+        }
+      });
+
+      activity.onsuccess = function() {
+        var result = activity.result;
+        var attachment = new Attachment(result.blob, result.name);
+
+        if (typeof requestProxy.onsuccess === 'function') {
+          requestProxy.onsuccess(attachment);
+        }
+      };
+
+      activity.onerror = function() {
+        if (typeof requestProxy.onerror === 'function') {
+          requestProxy.onerror();
+        }
+      };
+
+      return requestProxy;
     }
 
   };

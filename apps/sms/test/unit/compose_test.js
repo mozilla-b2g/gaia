@@ -13,10 +13,13 @@ requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_moz_activity.js');
 
 var mocksHelper = new MocksHelper([
   'Recipients',
-  'Utils'
+  'Utils',
+  'MozActivity',
+  'Attachment'
 ]).init();
 
 suite('compose_test.js', function() {
@@ -190,6 +193,53 @@ suite('compose_test.js', function() {
       });
       teardown(function() {
         Compose.clear();
+      });
+    });
+
+    suite('requestAttachment', function() {
+      test('correctly invokes the "pick" MozActivity', function() {
+        Compose.requestAttachment();
+        assert.equal(MockMozActivity.calls.length, 1);
+        var call = MockMozActivity.calls[0];
+        assert.equal(call.name, 'pick');
+        assert.isDefined(call.data);
+        assert.isArray(call.data.type);
+        assert.include(call.data.type, 'image/*');
+      });
+      test('Invokes the provided "onsuccess" handler with an appropriate ' +
+        'Attachment instance', function(done) {
+        var req = Compose.requestAttachment();
+        req.onsuccess = function(attachment) {
+          assert.instanceOf(attachment, Attachment);
+
+          // TODO: Move these assertions to a higher-level test suite that
+          // concerns interactions between disparate units.
+          // See: Bug 868056
+          assert.equal(attachment.name, activity.result.name);
+          assert.equal(attachment.blob, activity.result.blob);
+
+          done();
+        };
+
+        // Simulate a successful 'pick' MozActivity
+        var activity = MockMozActivity.instances[0];
+        activity.result = {
+          name: 'test',
+          blob: new Blob()
+        };
+        activity.onsuccess();
+      });
+      test('Invokes the provided "failure" handler when the MozActivity fails',
+        function(done) {
+        var req = Compose.requestAttachment();
+        req.onerror = function() {
+          assert.ok(true);
+          done();
+        };
+
+        // Simulate an unsuccessful 'pick' MozActivity
+        var activity = MockMozActivity.instances[0];
+        activity.onerror();
       });
     });
 

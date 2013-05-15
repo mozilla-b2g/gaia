@@ -353,13 +353,13 @@ var Camera = {
   },
 
   screenTimeout: function camera_screenTimeout() {
-    if (screenLock) {
+    if (screenLock && !returnToCamera) {
       screenLock.unlock();
       screenLock = null;
     }
   },
   screenWakeLock: function camera_screenWakeLock() {
-    if ((!screenLock) && (returnToCamera === true)) {
+    if (!screenLock && returnToCamera) {
       screenLock = navigator.requestWakeLock('screen');
     }
   },

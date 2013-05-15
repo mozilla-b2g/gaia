@@ -184,8 +184,8 @@ var CostControlApp = (function() {
         }
         costcontrol = instance;
         setupApp();
-      }, _onNoICCID);
-    });
+      });
+    }, _onNoICCID);
   }
 
   var isApplicationLocalized = false;
