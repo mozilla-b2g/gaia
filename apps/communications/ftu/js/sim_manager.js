@@ -82,6 +82,11 @@ var SimManager = {
         this.showPukScreen();
         break;
       default:
+        // Quick fix for bug 831697,
+        // should be fixed when uplifting 814840
+        if (this.mobConn.cardState === 'ready') {
+          AppManager.disableLockscreen();
+        }
         if (this.accessCallback) {
           this.accessCallback(this.mobConn.cardState === 'ready');
         }
