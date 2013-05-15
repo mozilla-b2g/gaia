@@ -183,6 +183,16 @@ suiteGroup('Provider.Caldav', function() {
 
       assert.instanceOf(result, Calendar.Error);
     });
+
+    test('new account', function() {
+      var account = Factory('account');
+      var result = subject._handleServiceError(
+        { name: 'caldav-authentication' },
+        { account: account }
+      );
+
+      assert.instanceOf(result, Calendar.Error);
+    });
   });
 
   suite('#eventCapabilities', function() {
