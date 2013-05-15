@@ -224,7 +224,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json
+profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json create-default-data
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -780,6 +780,18 @@ else
 	$(ADB) shell rm /system/b2g/defaults/contacts.json
 endif
 	$(ADB) shell start b2g
+
+# create default data, gonk-misc will copy this folder during B2G build time
+create-default-data: preferences profile/settings.json contacts
+	# create a clean folder to store data for B2G, this folder will copy to b2g output folder.
+	rm -rf profile/defaults
+	mkdir -p profile/defaults/pref
+	# rename user_pref() to pref() in user.js
+	sed s/user_pref\(/pref\(/ profile/user.js > profile/defaults/pref/user.js
+	cp profile/settings.json profile/defaults/settings.json
+ifdef CONTACTS_PATH
+	cp profile/contacts.json profile/defaults/contacts.json
+endif
 
 # clean out build products
 clean:
