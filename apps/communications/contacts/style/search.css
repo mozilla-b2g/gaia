@@ -22,13 +22,8 @@ form.search {
   pointer-events: auto;
 }
 
-form.search p {
-  padding: 0;
-}
-
 form.search label {
   display: block;
-  padding: 0.5rem 3.5rem 0.5rem 3rem;
   background: none;
 }
 
@@ -62,10 +57,6 @@ form.search button[type="submit"] {
   opacity: 1;
   pointer-events: auto;
   overflow: hidden;
-}
-
-#search-view form.search label {
-  padding: 0.3rem 1.2rem;
 }
 
 #no-result {
