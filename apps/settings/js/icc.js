@@ -66,8 +66,10 @@
     // To have the backward compatibility for bug 859220.
     // If we could not get iccManager from navigator,
     // try to get it from mozMobileConnection.
-    // 'window.navigator.mozMobileConnection.icc' can be dropped after bug 859220 is landed.
-    icc = window.navigator.mozIccManager || window.navigator.mozMobileConnection.icc;
+    // 'window.navigator.mozMobileConnection.icc' can be dropped
+    // after bug 859220 is landed.
+    icc = window.navigator.mozIccManager ||
+          window.navigator.mozMobileConnection.icc;
 
     icc.onstksessionend = function handleSTKSessionEnd(event) {
       updateMenu();
