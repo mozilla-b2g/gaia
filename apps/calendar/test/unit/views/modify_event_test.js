@@ -948,6 +948,19 @@ suiteGroup('Views.ModifyEvent', function() {
         done();
       });
     });
+
+    test('populated presaved event with no existing alarms', function(done) {
+      subject.event.alarms = [];
+      subject.isSaved = function() {
+        return true;
+      };
+      subject.updateAlarms(true, function() {
+        var allAlarms = subject.alarmList.querySelectorAll('select');
+        assert.equal(allAlarms.length, 1);
+        assert.equal(allAlarms[0].value, 'none');
+        done();
+      });
+    });
   });
 
   suite('#returnTo', function() {
