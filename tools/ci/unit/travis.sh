@@ -66,8 +66,10 @@ make lint
 LINT_RESULT_STATUS=$?
 echo
 
-section_echo 'make test-agent-test'
-make test-agent-test REPORTER=Min
+# TODO(gareth): Remove this once the contacts tests become stable.
+# Refer to https://bugzilla.mozilla.org/show_bug.cgi?id=863691.
+section_echo 'make travis-test-agent-test'
+make travis-test-agent-test REPORTER=Min
 TEST_RESULT_STATUS=$?
 echo
 
