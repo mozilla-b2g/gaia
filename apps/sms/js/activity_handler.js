@@ -128,6 +128,7 @@ if (!window.location.hash.length) {
       // The black list includes numbers for which notifications should not
       // progress to the user. Se blackllist.js for more information.
       var number = message.sender;
+      var threadId = message.threadId;
       var id = message.id;
 
       // Class 0 handler:
@@ -159,47 +160,111 @@ if (!window.location.hash.length) {
         return;
       }
 
-      // The SMS app is already displayed
-      if (!document.mozHidden) {
-        var currentThread = MessageManager.currentNum;
-        // If we are in the same thread, only we need to vibrate
-        if (number == currentThread) {
-          navigator.vibrate([200, 200, 200]);
-          releaseWakeLock();
-          return;
+      function dispatchNotification(needManualRetrieve) {
+        // The SMS app is already displayed
+        if (!document.mozHidden) {
+
+          // TODO: This satisfies the single recipient per thread assumption
+          // but needs to be updated to use threadId. Please ref bug 868679.
+          var currentThread = MessageManager.currentThread;
+          // If we are in the same thread, only we need to vibrate
+          // XXX: Workaround for threadId bug in 870562.
+          if (threadId && threadId == currentThread) {
+            navigator.vibrate([200, 200, 200]);
+            releaseWakeLock();
+            return;
+          }
         }
-      }
 
-      navigator.mozApps.getSelf().onsuccess = function(evt) {
-        var app = evt.target.result;
-        var iconURL = NotificationHelper.getIconURI(app);
+        navigator.mozApps.getSelf().onsuccess = function(evt) {
+          var app = evt.target.result;
+          var iconURL = NotificationHelper.getIconURI(app);
 
-        // Stashing the number at the end of the icon URL to make sure
-        // we get it back even via system message
-        iconURL += '?sms-received?' + number + '?' + id;
+          // Stashing the number at the end of the icon URL to make sure
+          // we get it back even via system message
+          iconURL += '?sms-received?' + number + '?' + id;
 
-        var goToMessage = function() {
-          app.launch();
-          var options = {
-            number: number,
-            id: id
+          var goToMessage = function() {
+            app.launch();
+            var options = {
+              number: number,
+              id: id
+            };
+            handleMessageNotification(options);
           };
-          handleMessageNotification(options);
-        };
 
-        Contacts.findByPhoneNumber(message.sender, function gotContact(
-                                                                contact) {
-          var sender;
-          if (contact.length && contact[0].name) {
-            sender = Utils.escapeHTML(contact[0].name[0]);
-          } else {
-            sender = message.sender;
+          function getTitleFromMms(callback) {
+            // If message is not downloaded notification, we need to apply
+            // specific text in notification title;
+            // If subject exist, we display subject first;
+            // If the message only has text content, display text context;
+            // If there is no subject nor text content, display
+            // 'mms message' in the field.
+            if (needManualRetrieve) {
+              setTimeout(function notDownloadedCb() {
+                callback(navigator.mozL10n.get('notDownloaded-title'));
+              });
+            }
+            else if (message.subject) {
+              setTimeout(function subjectCb() {
+                callback(message.subject);
+              });
+            } else {
+              SMIL.parse(message, function slideCb(slideArray) {
+                var text, slidesLength = slideArray.length;
+                for (var i = 0; i < slidesLength; i++) {
+                  if (!slideArray[i].text)
+                    continue;
+
+                  text = slideArray[i].text;
+                  break;
+                }
+                text = text ? text : navigator.mozL10n.get('mms-message');
+                callback(text);
+              });
+            }
           }
 
-          NotificationHelper.send(sender, message.body, iconURL, goToMessage);
-          releaseWakeLock();
-        });
-      };
+          Contacts.findByPhoneNumber(message.sender, function gotContact(
+                                                                  contact) {
+            var sender;
+            if (contact.length && contact[0].name) {
+              sender = Utils.escapeHTML(contact[0].name[0]);
+            } else {
+              sender = message.sender;
+            }
+
+            if (message.type === 'sms') {
+              NotificationHelper.send(sender, message.body, iconURL,
+                                                            goToMessage);
+              releaseWakeLock();
+            } else { // mms
+              getTitleFromMms(function textCallback(text) {
+                NotificationHelper.send(sender, text, iconURL, goToMessage);
+                releaseWakeLock();
+              });
+            }
+          });
+        };
+      }
+      // If message type is mms and pending on server, ignore the notification
+      // because it will be retrieved from server automatically. Handle other
+      // manual/error status as manual download and dispatch notification.
+      // Please ref mxr for all the possible delivery status:
+      // http://mxr.mozilla.org/mozilla-central/source/dom/mms/src/ril/MmsService.js#62
+      if (message.type === 'sms') {
+        dispatchNotification();
+      } else {
+        // Here we can only have one sender, so deliveryStatus[0] => message
+        // status from sender.
+        var status = message.deliveryStatus[0];
+        if (status === 'pending')
+          return;
+
+        // If the delivery status is manual/rejected/error, we need to apply
+        // specific text to notify user that message is not downloaded.
+        dispatchNotification(status !== 'success');
+      }
   });
 
   window.navigator.mozSetMessageHandler('notification',

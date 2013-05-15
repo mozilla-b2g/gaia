@@ -2,7 +2,7 @@
   "name": "Music",
   "description": "Gaia Music",
   "type": "certified",
-  "launch_path": "/index.html",
+  "launch_path": "/index.html#mix",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -52,8 +52,9 @@
   },
   "default_locale": "en-US",
   "icons": {
+    "60": "/style/icons/60/Music.png",
     "120": "/style/icons/Music.png",
-    "60": "/style/icons/60/Music.png"
+    "320": "/style/icons/320/Music.png"
   },
   "orientation": "portrait-primary"
 }

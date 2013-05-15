@@ -312,6 +312,7 @@ Icon.prototype = {
     if (callback) {
       img.onload = img.onerror = function done() {
         callback(this.src);
+        img.onload = img.onerror = null;
       };
     }
   },
@@ -537,6 +538,10 @@ function Page(container, icons) {
 
 Page.prototype = {
 
+  // After launching an app we disable the page during <this time> in order to
+  // prevent multiple open-app animations
+  DISABLE_TAP_EVENT_DELAY: 600,
+
   /*
    * Renders a page for a list of apps
    *
@@ -616,6 +621,13 @@ Page.prototype = {
   animate: function pg_animate(children, draggableNode, targetNode) {
     var draggableIndex = children.indexOf(draggableNode);
     var targetIndex = children.indexOf(targetNode);
+
+    if (draggableIndex === -1 || targetIndex === -1) {
+      // Index is outside the bounds of the array, it doesn't make sense
+      setTimeout(this.setReady.bind(this, true));
+      return;
+    }
+
     var upward = draggableIndex < targetIndex;
     this.draggableNode = draggableNode;
     this.beforeNode = upward ? targetNode.nextSibling : targetNode;
@@ -647,7 +659,7 @@ Page.prototype = {
 
     this.iconsWhileDragging = [];
 
-    if (reflow)
+    if (reflow && this.olist.contains(this.draggableNode))
       this.olist.insertBefore(this.draggableNode, this.beforeNode);
 
     callback();
@@ -663,8 +675,8 @@ Page.prototype = {
       var self = this;
 
       self.container.addEventListener('onpageready', function onPageReady() {
-        self.doDragLeave(callback, reflow);
         self.container.removeEventListener('onpageready', onPageReady);
+        self.doDragLeave(callback, reflow);
       });
 
       return;
@@ -701,13 +713,15 @@ Page.prototype = {
         if (icon.app)
           Homescreen.showAppDialog(icon.app);
       }
-    } else if ('isIcon' in elem.dataset) {
+    } else if ('isIcon' in elem.dataset &&
+               !this.olist.getAttribute('disabled')) {
       var icon = GridManager.getIcon(elem.dataset);
       if (!icon.app)
         return;
 
       if (icon.descriptor.entry_point) {
         icon.app.launch(icon.descriptor.entry_point);
+        this.disableTap();
         return;
       }
 
@@ -716,7 +730,21 @@ Page.prototype = {
         return;
       }
       icon.app.launch();
+      this.disableTap();
     }
+  },
+
+  /*
+   * Disables the tap event for the page
+   *
+   * @param{Integer} milliseconds
+   */
+  disableTap: function pg_disableTap(icon, time) {
+    var olist = this.olist;
+    olist.setAttribute('disabled', true);
+    setTimeout(function disableTapTimeout() {
+      olist.removeAttribute('disabled');
+    }, time || this.DISABLE_TAP_EVENT_DELAY);
   },
 
   /*

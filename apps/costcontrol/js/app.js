@@ -46,15 +46,23 @@ var CostControlApp = (function() {
   function onReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
     var cardState = checkCardState();
+    var iccid = mobileConnection.iccInfo.iccid;
 
     // SIM not ready
     if (cardState !== 'ready') {
       debug('SIM not ready:', cardState);
       mobileConnection.oncardstatechange = onReady;
 
-    // SIM is ready
+    // SIM is ready, but ICC info is not ready yet
+    } else if (iccid === null) {
+      debug('ICC info not ready yet');
+      mobileConnection.oniccinfochange = onReady;
+
+    // All ready
     } else {
+      debug('SIM ready. ICCID:', iccid);
       mobileConnection.oncardstatechange = undefined;
+      mobileConnection.oniccinfochange = undefined;
       startApp();
     }
   }
@@ -162,6 +170,12 @@ var CostControlApp = (function() {
   }
 
   function startApp() {
+    function _onNoICCID() {
+      console.error('checkSIMChange() failed. Impossible to ensure consistent' +
+                    'data. Aborting start up.');
+      showSimErrorDialog('no-sim2');
+    }
+
     checkSIMChange(function _onSIMChecked() {
       CostControl.getInstance(function _onCostControlReady(instance) {
         if (ConfigManager.option('fte')) {
@@ -171,7 +185,7 @@ var CostControlApp = (function() {
         costcontrol = instance;
         setupApp();
       });
-    });
+    }, _onNoICCID);
   }
 
   var isApplicationLocalized = false;

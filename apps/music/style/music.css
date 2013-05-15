@@ -8,7 +8,6 @@ html {
 }
 
 body {
-  background-color: #000;
   color: #fff;
   font-family: "MozTT", sans-serif;
   margin: 0;
@@ -888,66 +887,41 @@ button::-moz-focus-inner {
   background: transparent;
 }
 
-
 #tabs {
   position: absolute;
   bottom: 0;
   width: 100%;
   height: 4rem;
   z-index: 20;
-  background: rgba(0, 0, 0, 0.75);
 }
 
-#tabs-mix,
-#tabs-playlists,
-#tabs-artists,
-#tabs-albums,
-#tabs-songs {
-  position: relative;
-  float: left;
-  width: 20%;
-  height: 100%;
-  padding: 0;
-  font-size: 1.7rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
+/* Overwrite BB tabs background transparency */
+[role="tablist"] > [role="tab"] > a {
+  background-color: rgba(0, 0, 0, 0.75);
 }
 
-#tabs-mix {
-  background-image: url("./images/IconAction_Camera_GridView_30x30.png");
+#tabs a {
+  outline: none;
 }
 
-#tabs-playlists {
-  background-image: url("./images/IconAction_Media_PlayList_30x30.png");
+#mix[role="tab"] a:after {
+  background-image: url("./images/iconaction_media_gridview.png");
 }
 
-#tabs-artists {
-  background-image: url("./images/IconAction_Media_ArtistFilter_30x30.png");
+#playlists[role="tab"] a:after {
+  background-image: url("./images/iconaction_media_playlistfilter.png");
 }
 
-#tabs-albums {
-  background-image: url("./images/IconAction_Media_AlbumFilter_30x30.png");
+#artists[role="tab"] a:after {
+  background-image: url("./images/iconaction_media_artistfilter.png");
 }
 
-#tabs-songs {
-  background-image: url("./images/IconAction_Media_Songs_30x30.png");
+#albums[role="tab"] a:after {
+  background-image: url("./images/iconaction_media_albumfilter.png");
 }
 
-.tabs-button {
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  transition: background 200ms ease;
-}
-.tabs-button:hover {
-  background: transparent;
-}
-.tabs-button:active {
-  background: rgb(0, 138, 170);
-}
-.tabs-button:disabled {
-
+#songs[role="tab"] a:after {
+  background-image: url("./images/iconaction_media_songsfilter.png");
 }
 
 .player-cover-button {

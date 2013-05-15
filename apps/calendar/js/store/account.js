@@ -11,7 +11,6 @@
 
     _parseId: Calendar.Store.Abstract.prototype.probablyParseInt,
 
-
     verifyAndPersist: function(model, callback) {
       var self = this;
 
@@ -48,6 +47,8 @@
             callback(err);
             return;
           }
+
+          model.error = undefined;
 
           // if this works we always will get a calendar home.
           // This is used to find calendars.
@@ -87,6 +88,8 @@
     /**
      * Syncs all calendars for account.
      *
+     * TODO: Deprecate this method in favor of new provider API's.
+     *
      * @param {Calendar.Models.Account} account sync target.
      * @param {Function} callback node style.
      */
@@ -115,7 +118,7 @@
         calendars = results;
         originalIds = Object.keys(calendars);
 
-        provider.findCalendars(account.toJSON(), persistCalendars);
+        provider.findCalendars(account, persistCalendars);
       }
 
       function persistCalendars(err, remoteCals) {
@@ -137,6 +140,7 @@
 
               var original = calendars[key];
               original.remote = cal;
+              original.error = undefined;
               persist.push(original);
             } else {
               // create a new calendar
@@ -200,6 +204,71 @@
       }
 
       return obj;
+    },
+
+    /**
+     * Marks given model with an error and sends an error event with the given
+     * model
+     *
+     * This will trigger an 'error' event immediately with the given model.
+     * The callback fires _after_ the event. Its entirely possible (under rare
+     * conditions) that this operation will fail but the event will fire.
+     *
+     *
+     * @param {Object} account model.
+     * @param {Calendar.Error} error to mark model with.
+     * @param {IDBTransaction} [trans] optional transaction.
+     * @param {Function} [callback] optional called with [err, model].
+     */
+    markWithError: function(account, error, trans, callback) {
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = null;
+      }
+
+      if (!account._id)
+        throw new Error('given account must be persisted');
+
+      if (!account.error) {
+        account.error = {
+          name: error.name,
+          date: new Date(),
+          count: 0
+        };
+      }
+
+      // increment the error count
+      account.error.count++;
+
+      var calendarStore = this.db.getStore('Calendar');
+      var self = this;
+      function fetchedCalendars(err, calendars) {
+        if (!trans) {
+          trans = self.db.transaction(
+            self._dependentStores,
+            'readwrite'
+          );
+        }
+
+        if (err) {
+          console.error('Cannot fetch all calendars', err);
+          return self.persist(account, trans, callback);
+        }
+
+        for (var id in calendars) {
+          calendarStore.markWithError(calendars[id], error, trans);
+        }
+
+        self.persist(account, trans);
+        self._transactionCallback(trans, callback);
+
+      }
+
+      // find related calendars and mark those too
+      calendarStore.remotesByAccount(
+        account._id,
+        fetchedCalendars
+      );
     },
 
     /**

@@ -15,6 +15,7 @@
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/mobile_operator.js"></script>
     <script defer src="shared/js/manifest_helper.js"></script>
+    <script defer src="shared/js/mime_mapper.js"></script>
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -35,7 +36,6 @@
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/splash_screen_generic.png"/>
     -->
 
     <!-- applications.js must not be deferred
@@ -46,7 +46,6 @@
     <script src="js/init_logo_handler.js"></script>
 
     <script defer src="js/screen_manager.js"></script>
-    <script defer src="js/background_service.js"></script>
     <script defer src="js/mouse2touch.js"></script>
     <script defer src="js/activities.js"></script>
     <script defer src="js/bootstrap.js"></script>
@@ -572,55 +571,60 @@
             </div>
             <menu data-items="2">
               <button id="authentication-dialog-http-authentication-cancel" data-l10n-id="cancel">Cancel</button>
-              <button id="authentication-dialog-http-authentication-ok" data-l10n-id="login" class="recommend">Login</button>
+              <button id="authentication-dialog-http-authentication-ok" data-l10n-id="login" class="affirmative">Login</button>
             </menu>
           </div>
         </div>
 
         <div id="modal-dialog">
-          <form id="modal-dialog-alert" role="dialog" data-type="confirm">
-            <section>
-              <h1 id="modal-dialog-alert-title"></h1>
-              <p id="modal-dialog-alert-message"></p>
-            </section>
+          <div id="modal-dialog-alert" role="dialog">
+            <div class="modal-dialog-message-container inner">
+              <h3 id="modal-dialog-alert-title"></h3>
+              <p>
+                <span id="modal-dialog-alert-message"></span>
+              </p>
+            </div>
             <menu>
-              <button id="modal-dialog-alert-ok" data-l10n-id="ok" class="recommend full">OK</button>
+              <button id="modal-dialog-alert-ok" data-l10n-id="ok" class="affirmative">OK</button>
             </menu>
-          </form>
-          <form id="modal-dialog-confirm" role="dialog" data-type="confirm">
-            <section class="modal-dialog-message-container">
-              <h1 id="modal-dialog-confirm-title"></h1>
-              <p id="modal-dialog-confirm-message"></p>
-            </section>
+          </div>
+
+          <div id="modal-dialog-confirm" role="dialog">
+            <div class="modal-dialog-message-container inner">
+              <h3 id="modal-dialog-confirm-title"></h3>
+              <p>
+                <span id="modal-dialog-confirm-message"></span>
+              </p>
+            </div>
             <menu data-items="2">
               <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
-              <button id="modal-dialog-confirm-ok" data-l10n-id="ok" class="recommend">OK</button>
+              <button id="modal-dialog-confirm-ok" data-l10n-id="ok" class="affirmative">OK</button>
             </menu>
-          </form>
+          </div>
 
-          <form id="modal-dialog-prompt" role="dialog" data-type="confirm">
-            <section class="modal-dialog-message-container">
-              <h1 id="modal-dialog-prompt-title"></h1>
+          <div id="modal-dialog-prompt" role="dialog">
+            <div class="modal-dialog-message-container inner">
+              <h3 id="modal-dialog-prompt-title"></h3>
               <p>
                 <span id="modal-dialog-prompt-message"></span>
                 <input id="modal-dialog-prompt-input" />
               </p>
-            </section>
+            </div>
             <menu data-items="2">
               <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
-              <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="recommend">OK</button>
+              <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="affirmative">OK</button>
             </menu>
-          </form>
+          </div>
 
-          <form id="modal-dialog-select-one" role="dialog" data-type="confirm">
-            <section class="modal-dialog-message-container">
-              <h1 id="modal-dialog-select-one-title"></h1>
+          <div id="modal-dialog-select-one" role="dialog">
+            <div class="modal-dialog-message-container inner">
+              <h3 id="modal-dialog-select-one-title"></h3>
               <ul id="modal-dialog-select-one-menu"></ul>
-            </section>
+            </div>
             <menu>
               <button id="modal-dialog-select-one-cancel" data-l10n-id="cancel">Cancel</button>
             </menu>
-          </form>
+          </div>
         </div> <!-- end of #modal-dialog -->
 
       </div> <!-- end of #overlay-dialog -->
