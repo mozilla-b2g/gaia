@@ -1940,7 +1940,7 @@ var WindowManager = (function() {
 
   window.setTimeout(function() {
     window.removeEventListener('devicemotion', dumbListener2);
-  }, 2000);
+  }, 20000);
 
   // Return the object that holds the public API
   return {

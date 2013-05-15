@@ -46,7 +46,7 @@ window.addEventListener('load', function startup() {
 
   window.setTimeout(function() {
     window.removeEventListener('devicemotion', dumbListener2);
-  }, 2000);
+  }, 20000);
 });
 
 /* === Shortcuts === */

@@ -172,10 +172,10 @@ var Camera = {
   },
 
   _previewConfigVideo: {
-    profile: 'cif',
+    profile: '480p',
     rotation: 0,
-    width: 352,
-    height: 288
+    width: 480,
+    height: 800
   },
 
   _shutterKey: 'camera.shutter.enabled',
@@ -196,7 +196,7 @@ var Camera = {
   RECORD_SPACE_PADDING: 1024 * 1024 * 1,
 
   // Maximum image resolution for still photos taken with camera
-  MAX_IMAGE_RES: 1600 * 1200, // Just under 2 megapixels
+  MAX_IMAGE_RES: 2560 * 1920, // Nexus S allows for 5Mp, use them.
 
   get overlayTitle() {
     return document.getElementById('overlay-title');

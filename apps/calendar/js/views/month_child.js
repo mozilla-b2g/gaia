@@ -196,6 +196,9 @@
         var name;
         var html = '';
 
+        var weekStartDiff = navigator.mozL10n.get('weekStartDiff');
+        weekStartDiff = parseInt(weekStartDiff || "0");
+
         for (; i < days; i++) {
           var day = i;
           // localization updates this value

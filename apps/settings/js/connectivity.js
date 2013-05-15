@@ -173,6 +173,31 @@ var Connectivity = (function(window, document, undefined) {
       return; // init will call updateCarrier()
     }
 
+    var mobileConnection = getMobileConnection();
+
+    var data = mobileConnection.data ? mobileConnection.data.network : null;
+    var voice = mobileConnection.voice ? mobileConnection.voice.network : null;
+    var icc = mobileConnection.iccInfo ? mobileConnection.iccInfo : null;
+    var name = data ? (data.shortName || data.longName) : '';
+    var netmnc = data ? data.mnc : '00';
+    var netmcc = data ? data.mcc : '000';
+    var simmnc = icc ? icc.mnc : '00';
+    var simmcc = icc ? icc.mcc : '000';
+    var msisdn = icc ? icc.msisdn : 'N/A';
+
+    netmcc = (netmcc < 100 && netmcc >= 10) ? "0"  + netmcc : netmcc;
+    simmcc = (simmcc < 100 && simmcc >= 10) ? "0"  + simmcc : simmcc;
+    netmcc = (netmcc < 100 && netmcc < 10)  ? "00" + netmcc : netmcc;
+    simmcc = (simmcc < 100 && simmcc < 10)  ? "00" + simmcc : simmcc;
+    netmnc = netmnc < 10 ? "0" + netmnc : netmnc;
+    simmnc = simmnc < 10 ? "0" + simmnc : simmnc;
+
+    document.getElementById('data-desc').textContent = name;
+    document.getElementById('call-desc').textContent = name;
+    document.getElementById('msisdn-desc').textContent = msisdn;
+    document.getElementById('netid-desc').textContent = netmcc + "" + netmnc;
+    document.getElementById('simid-desc').textContent = simmcc + "" + simmnc;
+
     var setCarrierStatus = function(msg) {
       var operator = msg.operator || '';
       var data = msg.data || '';

@@ -290,8 +290,12 @@ body, html {
   background-position: -23.1rem -4rem;
 }
 
-.sb-icon-geolocation[data-active="true"] {
+.sb-icon-geolocation[data-active="true"][data-fix="false"] {
   background-position: -21rem -4rem;
+}
+
+.sb-icon-geolocation[data-active="true"][data-fix="true"] {
+  background-position: -21rem -8rem;
 }
 
 .sb-icon-recording {

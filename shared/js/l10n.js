@@ -936,7 +936,6 @@
     gReadyState = 'interactive';
     consoleLog('loading [' + navigator.language + '] resources, ' +
         (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
-
     // load the default locale and translate the document if required
     if (document.documentElement.lang === navigator.language) {
       loadLocale(navigator.language);

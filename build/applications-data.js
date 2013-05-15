@@ -213,16 +213,16 @@ writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
 init = getFile(GAIA_DIR, 'apps', 'costcontrol', 'js', 'config.json');
 
 content = {
-  provider: 'Vivo',
-  enable_on: { "724": ["6", "10", "11", "23"] }, // { MCC: [ MNC1, MNC2, ...] }
-  is_free: true,
+  provider: 'Free',
+  enable_on: { "208": ["1", "15"] }, // { MCC: [ MNC1, MNC2, ...] }
+  is_free: false,
   is_roaming_free: true,
-  credit: { currency : 'R$' },
-  balance: {
-    destination: '8000',
-    text: 'SALDO',
-    senders: ['1515'],
-    regexp: 'Saldo Recarga: R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?'
+  credit: { currency : '€' },
+  balance: { 
+    destination: '999',
+    text: 'FirefoxOS powered',
+    senders: ['555'],
+    regexp: 'Du [0-9]{2}\/[0-9]{2} au [0-9]{2}\/[0-9]{2}, votre conso hors-forfait est de\\s*([0-9]+)(?:[,\\.]([0-9]+))?€'
   },
   topup: {
     destination: '7000',

@@ -152,6 +152,7 @@ var StatusBar = {
   },
 
   geolocationActive: false,
+  geolocationFix: false,
   geolocationTimer: null,
 
   recordingActive: false,
@@ -233,7 +234,7 @@ var StatusBar = {
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
-    // Listen to 'geolocation-status' and 'recording-status' mozChromeEvent
+    // Listen to 'geolocation-status', 'geolocation-fix' and 'recording-status' mozChromeEvent
     window.addEventListener('mozChromeEvent', this);
 
     // Listen to 'bluetoothconnectionchange' from bluetooth.js
@@ -335,6 +336,11 @@ var StatusBar = {
         switch (evt.detail.type) {
           case 'geolocation-status':
             this.geolocationActive = evt.detail.active;
+            this.update.geolocation.call(this);
+            break;
+
+          case 'geolocation-fix':
+            this.geolocationFix = evt.detail.fix;
             this.update.geolocation.call(this);
             break;
 
@@ -685,7 +691,9 @@ var StatusBar = {
 
       var icon = this.icons.geolocation;
       icon.dataset.active = this.geolocationActive;
+      icon.dataset.fix = this.geolocationFix;
 
+      // geolocationFix is always true when geolocationActive is
       if (this.geolocationActive) {
         // Geolocation is currently active, show the active icon.
         icon.hidden = false;
