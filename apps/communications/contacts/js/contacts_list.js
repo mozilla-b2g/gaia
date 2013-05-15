@@ -587,7 +587,7 @@ contacts.List = (function() {
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
     if (show && ActivityHandler.currentlyHandling) {
       var actName = ActivityHandler.activityName;
-      if (actName == 'pick' || actName == 'update') {
+      if (actName == 'update') {
         showNoContactsAlert();
         return;
       }
