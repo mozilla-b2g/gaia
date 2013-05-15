@@ -385,7 +385,10 @@ button[disabled] .icon-keypad-visibility {
 
 #calls[data-count="1"] > section .additionalContactInfo {
   height: 1.2rem;
-  width: 100%;
+  width: -moz-available;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   padding: 0 2rem 2rem 2rem;
   background: #01c5ed;
   font-size: 1.5rem;
