@@ -406,14 +406,20 @@
     var request = {
       error: null
     };
+    // In the case of a multi-recipient message, the mock will fake a response
+    // from the first recipient specified.
+    var senderNumber = Array.isArray(number) ? number[0] : number;
 
+    // TODO: Retrieve the message's thread by the thread ID.
+    // See Bug 868679 - [SMS][MMS] use the threadId as the "key" of a thread
+    // instead of a phone number in all places where it's relevant
     var thread = messagesDb.threads.filter(function(t) {
-      return t.participants[0] === number;
+      return t.participants[0] === senderNumber;
     })[0];
     if (!thread) {
       thread = {
         id: messagesDb.id++,
-        participants: [number],
+        participants: [].concat(number),
         body: text,
         timestamp: new Date(),
         unreadCount: 0
@@ -429,10 +435,11 @@
       type: 'sent',
       message: {
         sender: null,
-        receiver: number,
+        receiver: senderNumber,
         delivery: 'sending',
         body: text,
         id: sendId,
+        type: 'sms',
         timestamp: new Date(),
         threadId: thread.id
       }
@@ -473,11 +480,12 @@
       var receivedInfo = {
         type: 'received',
         message: {
-          sender: number,
+          sender: senderNumber,
           receiver: null,
           delivery: 'received',
           body: 'Hi back! ' + text,
           id: messagesDb.id++,
+          type: 'sms',
           timestamp: new Date(),
           threadId: thread.id
         }
@@ -532,6 +540,38 @@
     };
 
     continueCursor();
+
+    return request;
+  };
+
+  // getMessage
+  // Parameters:
+  //  - id: Number specifying the message to retrieve
+  //  Returns: request object
+  MockNavigatormozMobileMessage.getMessage = function(id) {
+    var request = {
+      error: null
+    };
+
+    setTimeout(function() {
+      if (simulation.failState()) {
+        request.error = {
+          name: 'mock getMessage error'
+        };
+        if (typeof request.onerror === 'function') {
+          request.onerror();
+        }
+        return;
+      }
+
+      request.result = messagesDb.messages.filter(function(message) {
+        return message.id === id;
+      })[0];
+
+      if (typeof request.onsuccess === 'function') {
+        request.onsuccess();
+      }
+    }, simulation.delay());
 
     return request;
   };
@@ -637,8 +677,11 @@
         return;
       }
 
+      request.result = false;
+
       for (idx = 0, len = msgs.length; idx < len; ++idx) {
         if (msgs[idx].id === id) {
+          request.result = true;
           msgs.splice(idx, 1);
           break;
         }
