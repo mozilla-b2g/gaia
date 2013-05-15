@@ -1,5 +1,6 @@
 requireLib('provider/abstract.js');
 requireLib('template.js');
+requireLib('querystring.js');
 
 suiteGroup('Views.ModifyEvent', function() {
 
@@ -370,6 +371,32 @@ suiteGroup('Views.ModifyEvent', function() {
           assert.equal(subject.event.alarms.length, 2);
         });
       });
+    });
+  });
+
+  suite('#_overrideEvent', function(done) {
+    var startDate;
+    var endDate;
+    var search;
+
+    setup(function() {
+      startDate = new Date(1989, 4, 17, 2, 0, 0, 0);
+      endDate = new Date(1989, 4, 17, 3, 0, 0, 0);
+      var queryString = {
+        startDate: startDate.toString(),
+        endDate: endDate.toString()
+      };
+
+      search = '?' + Calendar.QueryString.stringify(queryString);
+      subject.useModel(this.busytime, this.event, done);
+    });
+
+    test('should set startDate and endDate on the event', function() {
+      assert.notEqual(subject.event.startDate.getTime(), startDate.getTime());
+      assert.notEqual(subject.event.endDate.getTime(), endDate.getTime());
+      subject._overrideEvent(search);
+      assert.equal(subject.event.startDate.getTime(), startDate.getTime());
+      assert.equal(subject.event.endDate.getTime(), endDate.getTime());
     });
   });
 
