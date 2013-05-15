@@ -279,11 +279,7 @@ var Compose = (function() {
 
       activity.onsuccess = function() {
         var result = activity.result;
-        var blob = result.blob;
-        var objectURL = window.URL.createObjectURL(blob);
-        // Parse the attachment type from the MIME type
-        var type = result.type.split('/')[0];
-        var attachment = new Attachment(type, objectURL, blob.size);
+        var attachment = new Attachment(result.blob, result.name);
 
         if (typeof requestProxy.onsuccess === 'function') {
           requestProxy.onsuccess(attachment);
