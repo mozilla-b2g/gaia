@@ -7,6 +7,7 @@ mocha.setup({ globals: ['alert'] });
 requireApp('sms/js/compose.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/utils.js');
+requireApp('sms/js/message_manager.js');
 
 requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_l10n.js');
@@ -476,6 +477,139 @@ suite('thread_ui.js >', function() {
       });
     });
 
+  });
+
+  suite('resendMessage', function() {
+    setup(function() {
+      this.targetMsg = {
+        id: 23,
+        type: 'sms',
+        body: 'This is a test',
+        delivery: 'error',
+        timestamp: new Date()
+      };
+      this.otherMsg = {
+        id: 45,
+        type: 'sms',
+        body: 'This is another test',
+        delivery: 'sent',
+        timestamp: new Date()
+      };
+      ThreadUI.appendMessage(this.targetMsg);
+      ThreadUI.appendMessage(this.otherMsg);
+
+      assert.length(
+        ThreadUI.container.querySelectorAll('[data-message-id="23"]'),
+        1);
+      assert.length(
+        ThreadUI.container.querySelectorAll('[data-message-id="45"]'),
+        1);
+
+      this.getMessageReq = {};
+      sinon.stub(MessageManager, 'getMessage')
+        .returns(this.getMessageReq);
+      sinon.stub(MessageManager, 'deleteMessage').callsArgWith(1, true);
+
+      sinon.stub(ThreadUI, 'sendMessage');
+    });
+    teardown(function() {
+      MessageManager.getMessage.restore();
+      MessageManager.deleteMessage.restore();
+      ThreadUI.sendMessage.restore();
+    });
+
+    // TODO: Implement this functionality in a specialized method and update
+    // this test accordingly.
+    // Bug 872725 - [MMS] Message deletion logic is duplicated
+    test('removes the markup of only the specified message from the DOM',
+      function() {
+      ThreadUI.resendMessage(23);
+
+      this.getMessageReq.result = this.targetMsg;
+      this.getMessageReq.onsuccess();
+
+      assert.length(
+        ThreadUI.container.querySelectorAll('[data-message-id="23"]'),
+        0);
+      assert.length(
+        ThreadUI.container.querySelectorAll('[data-message-id="45"]'),
+        1);
+    });
+
+    test('invokes the `sendMessage` method', function() {
+      ThreadUI.resendMessage(23);
+
+      this.getMessageReq.result = this.targetMsg;
+      this.getMessageReq.onsuccess();
+
+      assert.deepEqual(ThreadUI.sendMessage.args, [[this.targetMsg.body]]);
+    });
+
+  });
+
+  // TODO: Move these tests to an integration test suite.
+  // Bug 868056 - Clean up SMS test suite
+  suite('Message resending UI', function() {
+    setup(function() {
+      ThreadUI.appendMessage({
+        id: 23,
+        type: 'sms',
+        body: 'This is a test',
+        delivery: 'error',
+        timestamp: new Date()
+      });
+      ThreadUI.appendMessage({
+        id: 45,
+        type: 'sms',
+        body: 'This is another test',
+        delivery: 'sent',
+        timestamp: new Date()
+      });
+      sinon.stub(window, 'confirm');
+      sinon.stub(ThreadUI, 'resendMessage');
+      this.elems = {
+        errorMsg: ThreadUI.container.querySelector('.error'),
+        sentMsg: ThreadUI.container.querySelector('.sent')
+      };
+    });
+    teardown(function() {
+      window.confirm.restore();
+      ThreadUI.resendMessage.restore();
+    });
+    test('clicking on an error message bubble triggers a confirmation dialog',
+      function() {
+      this.elems.errorMsg.querySelector('.bubble').click();
+      assert.equal(window.confirm.callCount, 1);
+    });
+    test('clicking within an error message bubble triggers a confirmation ' +
+      'dialog', function() {
+      this.elems.errorMsg.querySelector('.bubble *').click();
+      assert.equal(window.confirm.callCount, 1);
+    });
+    test('clicking on an error message does not trigger a confirmation dialog',
+      function() {
+      this.elems.errorMsg.click();
+      assert.equal(window.confirm.callCount, 0);
+    });
+    test('clicking on an error message bubble and accepting the ' +
+      'confirmation dialog triggers a message re-send operation', function() {
+      window.confirm.returns(true);
+      this.elems.errorMsg.querySelector('.bubble').click();
+      assert.equal(ThreadUI.resendMessage.callCount, 1);
+    });
+    test('clicking on an error message bubble and rejecting the ' +
+      'confirmation dialog does not trigger a message re-send operation',
+      function() {
+      window.confirm.returns(false);
+      this.elems.errorMsg.querySelector('.bubble').click();
+      assert.equal(ThreadUI.resendMessage.callCount, 0);
+    });
+    test('clicking on a sent message does not trigger a confirmation dialog ' +
+      'nor a message re-send operation', function() {
+      this.elems.sentMsg.click();
+      assert.equal(window.confirm.callCount, 0);
+      assert.equal(ThreadUI.resendMessage.callCount, 0);
+    });
   });
 
   suite('createMmsContent', function() {
