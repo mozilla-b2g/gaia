@@ -290,11 +290,13 @@ html, body {
 }
 
 #toggle-camera {
-  right: 2rem;
+  right: 1rem;
+  top: 2rem;
 }
 
 #toggle-flash {
-  left: 2rem;
+  left: 1rem;
+  top: 2rem;
 }
 
 #toggle-camera[data-mode=back]:after {
