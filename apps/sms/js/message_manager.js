@@ -283,6 +283,11 @@ var MessageManager = {
       console.log(msg);
     };
   },
+
+  getMessage: function mm_getMsg(id) {
+    return this._mozMobileMessage.getMessage(id);
+  },
+
   getMessages: function mm_getMgs(options) {
     var stepCB = options.stepCB, // CB which manage every message
         filter = options.filter, // mozMessageFilter
@@ -320,7 +325,7 @@ var MessageManager = {
     } else if (Array.isArray(msgContent)) { // send MMS
       var msg = SMIL.generate(msgContent);
       req = this._mozMobileMessage.sendMMS({
-        receivers: [number],
+        receivers: number,
         subject: '',
         smil: msg.smil,
         attachments: msg.attachments
