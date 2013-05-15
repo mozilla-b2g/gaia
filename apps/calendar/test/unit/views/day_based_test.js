@@ -273,6 +273,14 @@ suiteGroup('Views.DayBased', function() {
       assert.equal(el.style.height, '325%', 'height');
     });
 
+    test('cross the next day', function() {
+      var endDate = new Date(2012, 0, 2, 11, 00);
+      var busy = record(time(23, 00), endDate);
+      subject._assignPosition(busy, el);
+
+      assert.ok(!el.style.top, 'no top');
+      assert.equal(el.style.height, '100%', 'height');
+    });
   });
 
   suite('#_createRecord', function() {
