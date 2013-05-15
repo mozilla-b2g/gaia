@@ -77,8 +77,12 @@ Calendar.ns('Provider').Caldav = (function() {
         calendarErr instanceof Calendar.Error.Authentication ||
         calendarErr instanceof Calendar.Error.InvalidServer
       ) {
+        // there must always be an account
         if (detail.account) {
-          this.accounts.markWithError(detail.account, calendarErr);
+          // but we only mark it with a permanent error if its persisted.
+          if (detail.account._id) {
+            this.accounts.markWithError(detail.account, calendarErr);
+          }
         } else {
           console.error('Permanent server error without an account!');
         }
