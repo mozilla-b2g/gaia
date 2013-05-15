@@ -2,7 +2,7 @@
 
 // remove this when https://github.com/visionmedia/mocha/issues/819 is merged in
 // mocha and when we have that new mocha in test agent
-mocha.setup({ globals: ['alert'] });
+mocha.setup({ globals: ['alert', '0', '1'] });
 
 requireApp('sms/js/compose.js');
 requireApp('sms/js/thread_ui.js');
@@ -10,6 +10,7 @@ requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
 
 requireApp('sms/test/unit/mock_alert.js');
+requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
@@ -17,10 +18,13 @@ requireApp('sms/test/unit/mock_link_helper.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_recipients.js');
+requireApp('sms/test/unit/mock_settings.js');
 
 
 var mocksHelperForThreadUI = new MocksHelper([
+  'Attachment',
   'Utils',
+  'Settings',
   'Recipients',
   'LinkHelper',
   'MozActivity'
@@ -41,6 +45,13 @@ suite('thread_ui.js >', function() {
   var testImageBlob;
   var testAudioBlob;
   var testVideoBlob;
+
+  function mockAttachment(size) {
+    return new MockAttachment({
+      type: 'image/jpeg',
+      size: size
+    }, 'kitten-450.jpg');
+  }
 
   suiteSetup(function(done) {
     mocksHelper.suiteSetup();
@@ -191,22 +202,21 @@ suite('thread_ui.js >', function() {
 
       // TODO: Fix this test to be about being over the MMS limit inside #840035
 
-      // test('button should be disabled when there is both contact and ' +
-      //     'input, but too many segments',
-      //   function() {
+      test('button should be disabled when there is both contact and ' +
+          'input, but too much data to send as mms',
+        function() {
 
-      //   MockNavigatormozMobileMessage.mNextSegmentInfo = {
-      //     segments: 11,
-      //     charsAvailableInLastSegment: 10
-      //   };
+        ThreadUI.recipients.add({
+          number: '999'
+        });
 
-      //   ThreadUI.recipients.add({
-      //     number: '999'
-      //   });
-      //   Compose.append('Hola');
+        Compose.append(mockAttachment(300 * 1024));
 
-      //   assert.isTrue(sendButton.disabled);
-      // });
+        assert.isFalse(sendButton.disabled);
+        Compose.append('Hola');
+
+        assert.isTrue(sendButton.disabled);
+      });
     });
   });
 
@@ -227,11 +237,10 @@ suite('thread_ui.js >', function() {
         };
 
         // display the banner to check that it is correctly hidden
-        // TODO: turn this assertion back on during #840035
-        // banner.classList.remove('hide');
+        banner.classList.remove('hide');
 
-        // add a maxlength to check that it is correctly removed
-        Compose.setMaxLength(25);
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -243,6 +252,10 @@ suite('thread_ui.js >', function() {
       test('no banner is displayed', function() {
         assert.ok(banner.classList.contains('hide'));
       });
+
+      test('lock is unset', function() {
+        assert.isFalse(Compose.lock);
+      });
     });
 
     suite('in first segment >', function() {
@@ -253,11 +266,10 @@ suite('thread_ui.js >', function() {
         };
 
         // display the banner to check that it is correctly hidden
-        // TODO: turn this assertion back on during #840035
-        // banner.classList.remove('hide');
+        banner.classList.remove('hide');
 
-        // add a maxlength to check that it is correctly removed
-        Compose.setMaxLength(25);
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -272,6 +284,10 @@ suite('thread_ui.js >', function() {
 
       test('the send button should be enabled', function() {
         assert.isTrue(shouldEnableSend);
+      });
+
+      test('lock is unset', function() {
+        assert.isFalse(Compose.lock);
       });
     });
 
@@ -286,11 +302,10 @@ suite('thread_ui.js >', function() {
         };
 
         // display the banner to check that it is correctly hidden
-        // TODO: turn this assertion back on during #840035
-        // banner.classList.remove('hide');
+        banner.classList.remove('hide');
 
-        // add a maxlength to check that it is correctly removed
-        Compose.setMaxLength(25);
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -306,6 +321,10 @@ suite('thread_ui.js >', function() {
 
       test('the send button should be enabled', function() {
         assert.isTrue(shouldEnableSend);
+      });
+
+      test('lock is unset', function() {
+        assert.isFalse(Compose.lock);
       });
     });
 
@@ -320,11 +339,10 @@ suite('thread_ui.js >', function() {
         };
 
         // display the banner to check that it is correctly hidden
-        // TODO: turn this assertion back on during #840035
-        // banner.classList.remove('hide');
+        banner.classList.remove('hide');
 
-        // add a maxlength to check that it is correctly removed
-        Compose.setMaxLength(25);
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -341,6 +359,11 @@ suite('thread_ui.js >', function() {
       test('the send button should be enabled', function() {
         assert.isTrue(shouldEnableSend);
       });
+
+      test('lock is unset', function() {
+        assert.isFalse(Compose.lock);
+      });
+
     });
 
     suite('in last segment >', function() {
@@ -354,11 +377,10 @@ suite('thread_ui.js >', function() {
         };
 
         // display the banner to check that it is correctly hidden
-        // TODO: turn this assertion back on during #840035
-        // banner.classList.remove('hide');
+        banner.classList.remove('hide');
 
-        // add a maxlength to check that it is correctly removed
-        Compose.setMaxLength(25);
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -374,6 +396,10 @@ suite('thread_ui.js >', function() {
 
       test('the send button should be enabled', function() {
         assert.isTrue(shouldEnableSend);
+      });
+
+      test('lock is unset', function() {
+        assert.isFalse(Compose.lock);
       });
     });
 
@@ -388,8 +414,10 @@ suite('thread_ui.js >', function() {
         };
 
         // display the banner to check that it is correctly hidden
-        // TODO: turn this assertion back on during #840035
-        // banner.classList.remove('hide');
+        banner.classList.remove('hide');
+
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -407,6 +435,9 @@ suite('thread_ui.js >', function() {
         assert.equal(form.dataset.messageType, 'sms');
       });
 
+      test('lock is disabled', function() {
+        assert.isFalse(Compose.lock);
+      });
     });
 
     suite('too many segments >', function() {
@@ -418,6 +449,9 @@ suite('thread_ui.js >', function() {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
+
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -431,6 +465,78 @@ suite('thread_ui.js >', function() {
         assert.equal(form.dataset.messageType, 'mms');
       });
 
+      test('lock is disabled', function() {
+        assert.isFalse(Compose.lock);
+      });
+    });
+
+    suite('at size limit in mms >', function() {
+      setup(function() {
+        Settings.mmsSizeLimitation = 1024;
+        Compose.append(mockAttachment(512));
+        Compose.append(mockAttachment(512));
+        shouldEnableSend = ThreadUI.updateCounter();
+      });
+
+      teardown(function() {
+        Compose.clear();
+      });
+
+      test('shouldEnableSend', function() {
+        assert.isTrue(shouldEnableSend);
+      });
+
+      test('banner is displayed', function() {
+        assert.isFalse(banner.classList.contains('hide'));
+      });
+
+      test('banner has at size limit text', function() {
+        assert.equal(banner.querySelector('p').textContent,
+          'messages-max-length-text');
+      });
+
+      test('message type is mms', function() {
+        assert.equal(form.dataset.messageType, 'mms');
+      });
+
+      test('lock is enabled', function() {
+        assert.isTrue(Compose.lock);
+      });
+    });
+
+    suite('over size limit in mms >', function() {
+      setup(function() {
+        Settings.mmsSizeLimitation = 1024;
+        Compose.append(mockAttachment(512));
+        Compose.append('sigh');
+        Compose.append(mockAttachment(512));
+        shouldEnableSend = ThreadUI.updateCounter();
+      });
+
+      teardown(function() {
+        Compose.clear();
+      });
+
+      test('shouldEnableSend is false', function() {
+        assert.isFalse(shouldEnableSend);
+      });
+
+      test('banner is displayed', function() {
+        assert.isFalse(banner.classList.contains('hide'));
+      });
+
+      test('banner has at size limit text', function() {
+        assert.equal(banner.querySelector('p').textContent,
+          'messages-exceeded-length-text');
+      });
+
+      test('message type is mms', function() {
+        assert.equal(form.dataset.messageType, 'mms');
+      });
+
+      test('lock is enabled', function() {
+        assert.isTrue(Compose.lock);
+      });
     });
 
   });
