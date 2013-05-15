@@ -81,6 +81,7 @@ suite('service/caldav', function() {
     var xhr = Caldav.Xhr;
     var expected = {
       mozSystem: true,
+      mozAnon: true,
       useMozChunkedText: true
     };
 
