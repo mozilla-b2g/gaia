@@ -138,6 +138,7 @@ settings = {
  "ril.supl.authtype": "notDefined",
  "ril.sms.strict7BitEncoding.enabled": False,
  "ril.cellbroadcast.disabled": False,
+ "ril.data.apnSettings": "",
  "screen.automatic-brightness": True,
  "screen.brightness": 1,
  "screen.timeout": 60,

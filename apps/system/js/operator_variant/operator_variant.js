@@ -162,6 +162,36 @@
         transaction.set(item);
       }
     }
+    // for new apn settings
+    var apnSettings = [];
+    var apnTypeCandidates = ['default', 'supl', 'mms'];
+    var checkedType = [];
+    // converts apns to new format
+    for (var i = 0; i < result.length; i++) {
+      var sourceAPNItem = result[i];
+      //copy types
+      var apnTypes = [];
+
+      for (var j = 0; j < sourceAPNItem.type.length; j++) {
+        // we only need default, supl, mms, and not duplicate
+        if (apnTypeCandidates.indexOf(sourceAPNItem.type[j]) == -1 ||
+            checkedType.indexOf(sourceAPNItem.type[j]) != -1) {
+          continue;
+        }
+        apnTypes[apnTypes.length] = sourceAPNItem.type[j];
+        checkedType[checkedType.length] = sourceAPNItem.type[j];
+      }
+      // no valid apnType in this record.
+      if (0 == apnTypes.length) {
+        continue;
+      }
+      // got types we want, create types field and remove type field.
+      sourceAPNItem['types'] = apnTypes;
+      delete sourceAPNItem['type'];
+      // add apn bags
+      apnSettings.push(sourceAPNItem);
+    }
+    transaction.set({'ril.data.apnSettings': [apnSettings]});
 
     // store the current mcc/mnc info in the settings
     transaction.set({
