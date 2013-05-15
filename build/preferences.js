@@ -103,6 +103,9 @@ if (DEBUG) {
                      webapp.sourceDirectoryName);
   });
   prefs.push(["extensions.gaia.app_relative_path", appPathList.join(' ')]);
+
+  prefs.push(["general.useragent.locale", "en-US"]);
+  prefs.push(["intl.accept_languages", "en-US"]);
 }
 
 // We have to allow installing helper addons from profile extension folder
