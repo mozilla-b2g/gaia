@@ -273,6 +273,10 @@ input.msg-search-text-tease {
   font-size: 1.3rem;
   font-family: "MozTT", Sans-serif;
   box-shadow: 0 0.1rem 0.1rem #fff inset;
+  max-width: -moz-available;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .msg-peep-bubble * {
   pointer-events: none;
