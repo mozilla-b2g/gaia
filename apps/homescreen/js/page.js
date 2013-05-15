@@ -538,6 +538,10 @@ function Page(container, icons) {
 
 Page.prototype = {
 
+  // After launching an app we disable the page during <this time> in order to
+  // prevent multiple open-app animations
+  DISABLE_TAP_EVENT_DELAY: 600,
+
   /*
    * Renders a page for a list of apps
    *
@@ -709,13 +713,15 @@ Page.prototype = {
         if (icon.app)
           Homescreen.showAppDialog(icon.app);
       }
-    } else if ('isIcon' in elem.dataset) {
+    } else if ('isIcon' in elem.dataset &&
+               !this.olist.getAttribute('disabled')) {
       var icon = GridManager.getIcon(elem.dataset);
       if (!icon.app)
         return;
 
       if (icon.descriptor.entry_point) {
         icon.app.launch(icon.descriptor.entry_point);
+        this.disableTap();
         return;
       }
 
@@ -724,7 +730,21 @@ Page.prototype = {
         return;
       }
       icon.app.launch();
+      this.disableTap();
     }
+  },
+
+  /*
+   * Disables the tap event for the page
+   *
+   * @param{Integer} milliseconds
+   */
+  disableTap: function pg_disableTap(icon, time) {
+    var olist = this.olist;
+    olist.setAttribute('disabled', true);
+    setTimeout(function disableTapTimeout() {
+      olist.removeAttribute('disabled');
+    }, time || this.DISABLE_TAP_EVENT_DELAY);
   },
 
   /*
