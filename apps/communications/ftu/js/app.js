@@ -7,13 +7,6 @@ var AppManager = {
 
   init: function init() {
     this.isLocalized = true;
-    // Quick fix for bug 831697 (only for v1.0.1),
-    // should be fixed when uplifting 814840
-    if (this.settings) {
-      var lock = this.settings.createLock();
-      lock.set({'lockscreen.enabled': false});
-    }
-
     SimManager.init();
     WifiManager.init();
     FacebookIntegration.init();
@@ -48,10 +41,15 @@ var AppManager = {
     }, kSplashTimeout);
   },
 
+  disableLockscreen: function disableLockscreen() {
+    if (this.settings) {
+      var req = this.settings.createLock().set({'lockscreen.enabled': false});
+    }
+  },
+
   finish: function finish() {
     WifiManager.finish();
     if (this.settings) {
-      console.log('settings existe');
       var req = this.settings.createLock().set({'lockscreen.enabled': true});
     }
     window.close();
