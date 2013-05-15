@@ -150,6 +150,10 @@ var PopupManager = {
         if (WindowManager.getDisplayedApp() !== evt.target.dataset.frameOrigin)
           return;
 
+        if (typeof(popup) === 'undefined') {
+          return;
+        }
+
         this.title.textContent = this.getTitleFromUrl(popup.dataset.url);
         break;
 
