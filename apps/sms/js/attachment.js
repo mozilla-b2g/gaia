@@ -20,10 +20,25 @@
 'use strict';
 
 function Attachment(blob, name) {
+  var self = this;
   this.blob = blob;
   this.name = name || '';
   this.optionsMenu = null;
-  this.el = null;
+  this.el = document.createElement('iframe');
+  // The attachment's iFrame requires access to the parent document's context
+  // so that URIs for Blobs created in the parent may resolve as expected.
+  this.el.setAttribute('sandbox', 'allow-same-origin');
+  this.el.className = 'attachment';
+  this.objectURL = window.URL.createObjectURL(this.blob);
+
+  // When rendering is complete
+  this.el.addEventListener('load', function() {
+    // Signal Gecko to release the reference to the Blob
+    window.URL.revokeObjectURL(self.objectURL);
+
+    self.el.contentDocument.addEventListener('click',
+      self.openOptionsMenu.bind(self));
+  });
 }
 
 Attachment.prototype = {
@@ -36,40 +51,24 @@ Attachment.prototype = {
   render: function() {
     var self = this;
     var _ = navigator.mozL10n.get;
-    this.el = document.createElement('iframe');
-    // The attachment's iFrame requires access to the parent document's context
-    // so that URIs for Blobs created in the parent may resolve as expected.
-    this.el.setAttribute('sandbox', 'allow-same-origin');
     var src = 'data:text/html,';
     // We want kilobytes so we divide by 1024, with one fractional digit
     var size = Math.floor(this.size / 102.4) / 10;
     var sizeString = _('attachmentSize', {n: size});
-    var objectURL = window.URL.createObjectURL(this.blob);
     src += Utils.Template('attachment-tmpl').interpolate({
-      uri: objectURL,
+      uri: this.objectURL,
       size: sizeString
     });
     this.el.src = src;
-    this.el.className = 'attachment';
-
-    // When rendering is complete
-    this.el.addEventListener('load', function() {
-      // Signal Gecko to release the reference to the Blob
-      window.URL.revokeObjectURL.bind(window.URL, objectURL));
-
-      self.el.contentDocument.addEventListener('click',
-        self.openOptionsMenu.bind(self));
-    });
 
     return this.el;
   },
 
   openOptionsMenu: function() {
-    var self = this;
     var template = Utils.Template('attachment-options-tmpl');
     var html = template.interpolate({
-      fileName: 'todo',
-      fileType: 'todo'
+      fileName: this.name,
+      fileType: this.type
     });
     var elem = document.createElement('menu');
     elem.innerHTML = html;
@@ -79,10 +78,10 @@ Attachment.prototype = {
     var replaceButton = elem.querySelector('#attachment-options-replace');
     var cancelButton = elem.querySelector('#attachment-options-cancel');
 
-    viewButton.addEventListener('click', self.view.bind(this));
-    removeButton.addEventListener('click', self.remove.bind(this));
-    replaceButton.addEventListener('click', self.replace.bind(this));
-    cancelButton.addEventListener('click', self.closeOptionsMenu.bind(this));
+    viewButton.addEventListener('click', this.view.bind(this));
+    removeButton.addEventListener('click', this.remove.bind(this));
+    replaceButton.addEventListener('click', this.replace.bind(this));
+    cancelButton.addEventListener('click', this.closeOptionsMenu.bind(this));
 
     this.optionsMenu = elem;
     document.body.appendChild(elem);
@@ -95,17 +94,17 @@ Attachment.prototype = {
 
   view: function() {
     var activity = new MozActivity({
-      name: 'view',
+      name: 'open',
       data: {
-        type: 'url',
-        url: this.uri
+        type: this.blob.type,
+        filename: this.name,
+        blob: this.blob
       }
     });
-    activity.onsuccess = function() {
-      alert("success");
-    };
     activity.onerror = function() {
-      alert("error");
+      var _ = navigator.mozL10n.get;
+      console.error('error with open activity', this.error.name);
+      alert(_('attachmentOpenError'));
     };
   },
 
@@ -116,7 +115,14 @@ Attachment.prototype = {
   },
 
   replace: function() {
-    // TODO
+    var self = this;
+    var request = Compose.requestAttachment();
+    request.onsuccess = function() {
+      var result = request.result;
+      self.blob = result.blob;
+      self.name = result.name;
+      self.render();
+    }
   }
   
 };

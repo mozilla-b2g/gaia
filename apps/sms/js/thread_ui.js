@@ -1113,7 +1113,6 @@ var ThreadUI = global.ThreadUI = {
         if (window.location.hash !== '#edit') {
           this.handleMessageClick(evt);
           // Handle events on links in a message
-          thui_mmsAttachmentClick(evt.target);
           LinkActionHandler.handleTapEvent(evt);
           return;
         }
