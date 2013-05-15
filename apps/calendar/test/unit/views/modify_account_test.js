@@ -442,7 +442,6 @@ suiteGroup('Views.ModifyAccount', function() {
     });
 
     suite('oauth flow', function() {
-
       var callsSave;
       var MockOAuth = function(server, params) {
         this.server = server;
@@ -458,16 +457,49 @@ suiteGroup('Views.ModifyAccount', function() {
       };
 
       var RealOAuth;
+      var realMozApps;
       suiteSetup(function() {
+        realMozApps = navigator.mozApps;
         RealOAuth = Calendar.OAuthWindow;
         Calendar.OAuthWindow = MockOAuth;
+
+        navigator.mozApps = {
+          getSelf: function() {
+            var req = {};
+            Calendar.nextTick(function() {
+              if (req.onsuccess) {
+                req.onsuccess({
+                  target: {
+                    result: mozApp
+                  }
+                });
+              }
+            });
+
+            return req;
+          }
+        };
       });
 
       suiteTeardown(function() {
         Calendar.OAuthWindow = RealOAuth;
       });
 
-      setup(function() {
+      var clearsCookies;
+      var mozApp = {
+        clearBrowserData: function() {
+          var req = {};
+
+          Calendar.nextTick(function() {
+            clearsCookies = true;
+            req.onsuccess && req.onsuccess();
+          });
+          return req;
+        }
+      };
+
+      setup(function(done) {
+        clearsCookies = false;
         subject.save = function() {
           callsSave = true;
         };
@@ -477,6 +509,16 @@ suiteGroup('Views.ModifyAccount', function() {
 
         subject.preset = Calendar.Presets.google;
         subject.render();
+
+        var realFlow = subject._redirectToOAuthFlow;
+        subject._redirectToOAuthFlow = function() {
+          realFlow.apply(this, arguments);
+          done();
+        };
+      });
+
+      test('clears cookies', function() {
+        assert.ok(clearsCookies, 'cookies where cleared');
       });
 
       test('authenticationType', function() {
