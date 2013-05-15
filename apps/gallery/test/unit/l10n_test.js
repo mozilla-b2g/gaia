@@ -12,7 +12,7 @@ suite('L10n', function() {
   suiteSetup(function(done) {
     _ = navigator.mozL10n.get;
 
-    navigator.mozL10n.ready(function () {
+    navigator.mozL10n.ready(function() {
       done();
     });
 
