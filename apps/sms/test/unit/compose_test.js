@@ -211,16 +211,20 @@ suite('compose_test.js', function() {
         var req = Compose.requestAttachment();
         req.onsuccess = function(attachment) {
           assert.instanceOf(attachment, Attachment);
-          assert.equal(attachment.type, 'image');
-          assert.equal(attachment.size, 0);
-          assert.match(attachment.uri, /^blob:.+$/);
+
+          // TODO: Move these assertions to a higher-level test suite that
+          // concerns interactions between disparate units.
+          // See: Bug 868056
+          assert.equal(attachment.name, activity.result.name);
+          assert.equal(attachment.blob, activity.result.blob);
+
           done();
         };
 
         // Simulate a successful 'pick' MozActivity
         var activity = MockMozActivity.instances[0];
         activity.result = {
-          type: 'image/jpeg',
+          name: 'test',
           blob: new Blob()
         };
         activity.onsuccess();
