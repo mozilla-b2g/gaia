@@ -438,16 +438,42 @@ var ThreadUI = global.ThreadUI = {
   // will return true if we can send the message, false if we can't send the
   // message
   updateCounter: function thui_updateCount() {
+    var message;
+
     if (Compose.type === 'mms') {
-      // always turn on the counter for mms, it just displays "MMS"
-      this.sendButton.classList.add('has-counter');
-      // TODO: put logic in here for mms limits - #840037
-      return true;
+      return this.updateCounterForMms();
     }
 
+    Compose.lock = false;
+    this.maxLengthNotice.classList.add('hide');
     if (this.updateSmsSegmentLimit()) {
       Compose.type = 'mms';
     }
+    return true;
+  },
+
+  updateCounterForMms: function thui_updateCounterForMms() {
+    // always turn on the counter for mms, it just displays "MMS"
+    this.sendButton.classList.add('has-counter');
+
+    if (Settings.mmsSizeLimitation) {
+      if (Compose.size > Settings.mmsSizeLimitation) {
+        Compose.lock = true;
+        this.maxLengthNotice.querySelector('p').textContent =
+          navigator.mozL10n.get('messages-exceeded-length-text');
+        this.maxLengthNotice.classList.remove('hide');
+        return false;
+      } else if (Compose.size === Settings.mmsSizeLimitation) {
+        Compose.lock = true;
+        this.maxLengthNotice.querySelector('p').textContent =
+          navigator.mozL10n.get('messages-max-length-text');
+        this.maxLengthNotice.classList.remove('hide');
+        return true;
+      }
+    }
+
+    Compose.lock = false;
+    this.maxLengthNotice.classList.add('hide');
     return true;
   },
 
