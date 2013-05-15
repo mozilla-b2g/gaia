@@ -30,8 +30,7 @@ var Compose = (function() {
   var state = {
     empty: true,
     maxLength: null,
-    lock: false,
-
+    size: null,
     // 'sms' or 'mms'
     type: 'sms'
   };
@@ -42,10 +41,6 @@ var Compose = (function() {
     var textLength = dom.message.textContent.length;
     var empty = !textLength;
     var hasFrames = !!dom.message.querySelector('iframe');
-
-    if (state.maxLength && textLength >= state.maxLength) {
-      state.lock = true;
-    }
 
     if (empty) {
       var brs = dom.message.getElementsByTagName('br');
@@ -80,12 +75,14 @@ var Compose = (function() {
 
   }
 
-  function composeLockCheck(e) {
+  function composeKeyEvents(e) {
     // if locking and no-backspace pressed, cancel
-    if (state.lock && e.which !== 8) {
+    if (compose.lock && e.which !== 8) {
       e.preventDefault();
     } else {
-      state.lock = false;
+      // trigger a recompute of size on the keypresses
+      state.size = null;
+      compose.lock = false;
     }
   }
 
@@ -103,6 +100,9 @@ var Compose = (function() {
 
   function insert(item) {
     var fragment = document.createDocumentFragment();
+
+    // trigger recalc on insert
+    state.size = null;
 
     if (item.render) { // it's an Attachment
       var node = item.render();
@@ -128,7 +128,7 @@ var Compose = (function() {
   }
 
   var compose = {
-    init: function thui_compose_init(formId) {
+    init: function composeInit(formId) {
       dom.form = document.getElementById(formId);
       dom.message = dom.form.querySelector('[contenteditable]');
       dom.sendButton = document.getElementById('messages-send-button');
@@ -138,8 +138,8 @@ var Compose = (function() {
       dom.message.addEventListener('input', composeCheck);
 
       // we need to bind to keydown & keypress because of #870120
-      dom.message.addEventListener('keydown', composeLockCheck);
-      dom.message.addEventListener('keypress', composeLockCheck);
+      dom.message.addEventListener('keydown', composeKeyEvents);
+      dom.message.addEventListener('keypress', composeKeyEvents);
 
       dom.attachButton.addEventListener('click',
         this.onAttachClick.bind(this));
@@ -216,19 +216,9 @@ var Compose = (function() {
       return state.empty;
     },
 
-    /** Sets the max number of chars allowed in the composition area
-     * @param {mixed} Number of characters to limit input to
-     *                or `false` for no limit.
+    /** Stop further input because the max size is exceded
      */
-    setMaxLength: function(amount) {
-      state.maxLength = amount;
-      if (state.maxLength === false) {
-        state.lock = false;
-      }
-      else if (this.getText().length >= state.maxLength) {
-        state.lock = true;
-      }
-    },
+    lock: false,
 
     disable: function(state) {
       dom.sendButton.disabled = state;
@@ -277,6 +267,7 @@ var Compose = (function() {
     clear: function() {
       dom.message.innerHTML = '<br>';
       state.full = false;
+      state.size = 0;
       composeCheck();
       return this;
     },
@@ -348,6 +339,21 @@ var Compose = (function() {
         }
       }
       return state.type;
+    }
+  });
+
+  Object.defineProperty(compose, 'size', {
+    get: function composeGetSize() {
+      if (state.size !== null) {
+        return state.size;
+      }
+      return state.size = this.getContent().reduce(function(sum, content) {
+        if (typeof content === 'string') {
+          return sum + content.length;
+        } else {
+          return sum + content.size;
+        }
+      }, 0);
     }
   });
 

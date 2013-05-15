@@ -6,16 +6,18 @@
 mocha.globals(['0']);
 
 requireApp('sms/js/compose.js');
-requireApp('sms/js/utils.js');
 requireApp('sms/js/thread_ui.js');
+requireApp('sms/js/utils.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_recipients.js');
+requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 
 var mocksHelper = new MocksHelper([
+  'Settings',
   'Recipients',
   'Utils',
   'MozActivity',
@@ -26,10 +28,10 @@ suite('compose_test.js', function() {
   mocksHelper.attachTestHelpers();
   var realMozL10n;
 
-  function mockAttachment() {
+  function mockAttachment(size) {
     var attachment = new MockAttachment({
       type: 'image/jpeg',
-      size: 12345
+      size: size || 12345
     }, 'IMG_0554.jpg');
     attachment.mNextRender = document.createElement('iframe');
     attachment.mNextRender.className = 'attachment';
@@ -50,7 +52,9 @@ suite('compose_test.js', function() {
 
     setup(function() {
       loadBodyHTML('/index.html');
+      // if we don't do the ThreadUI.init - it breaks when run in a full suite
       ThreadUI.init();
+      // Compose.init('messages-compose-form');
       message = document.querySelector('[contenteditable]');
     });
     suite('Placeholder', function() {
@@ -235,6 +239,29 @@ suite('compose_test.js', function() {
         // Simulate an unsuccessful 'pick' MozActivity
         var activity = MockMozActivity.instances[0];
         activity.onerror();
+      });
+    });
+
+    suite('Getting size via size getter', function() {
+      setup(function() {
+        Compose.clear();
+      });
+      test('empty', function() {
+        assert.equal(Compose.size, 0);
+      });
+      test('text only', function() {
+        Compose.append('test');
+        assert.equal(Compose.size, 4);
+        Compose.append('test');
+        assert.equal(Compose.size, 8);
+      });
+      test('text and attachment', function() {
+        Compose.append('test');
+        assert.equal(Compose.size, 4);
+        Compose.append(mockAttachment(12345));
+        assert.equal(Compose.size, 12349);
+        Compose.append('test');
+        assert.equal(Compose.size, 12353);
       });
     });
 
