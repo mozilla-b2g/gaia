@@ -12,6 +12,8 @@ var GridManager = (function() {
 
   var dragging = false;
 
+  var defaultAppIcon, defaultBookmarkIcon;
+
   var opacityOnAppGridPageMax = .7;
   var kPageTransitionDuration = 300;
   var overlay, overlayStyle;
@@ -967,6 +969,13 @@ var GridManager = (function() {
     return app.origin + url;
   }
 
+  function calculateDefaultIcons() {
+    defaultAppIcon = new TemplateIcon();
+    defaultAppIcon.loadDefaultIcon();
+    defaultBookmarkIcon = new TemplateIcon(true);
+    defaultBookmarkIcon.loadDefaultIcon();
+  }
+
   return {
     /*
      * Initializes the grid manager
@@ -977,6 +986,7 @@ var GridManager = (function() {
      */
     init: function gm_init(gridSelector, dockSelector, pTapThreshold, callback)
     {
+      calculateDefaultIcons();
       pages = [];
       bookmarkIcons = Object.create(null);
       appIcons = Object.create(null);
@@ -986,6 +996,8 @@ var GridManager = (function() {
       initUI(gridSelector);
 
       tapThreshold = pTapThreshold;
+      IconRetriever.init();
+
       // Initialize the grid from the state saved in IndexedDB.
       HomeState.init(function eachPage(pageState) {
         // First 'page' is the dock.
@@ -1098,6 +1110,14 @@ var GridManager = (function() {
 
     get landingPage() {
       return landingPage;
+    },
+
+    getBlobByDefault: function(app) {
+      if (app && app.iconable) {
+        return defaultBookmarkIcon.descriptor.renderedIcon;
+      } else {
+        return defaultAppIcon.descriptor.renderedIcon;
+      }
     },
 
     showRestartDownloadDialog: showRestartDownloadDialog,
