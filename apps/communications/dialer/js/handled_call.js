@@ -107,6 +107,14 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     return;
   }
 
+  var isEmergencyNumber = this.call.emergency;
+  if (isEmergencyNumber) {
+    LazyL10n.get(function localized(_) {
+      node.textContent = _('emergencyNumber');
+    });
+    return;
+  }
+
   var voicemail = navigator.mozVoicemail;
   if (voicemail) {
     if (voicemail.number == number) {
