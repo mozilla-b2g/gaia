@@ -573,12 +573,13 @@ Evme.IconGroup = new function Evme_IconGroup() {
       WIDTH = 72 * Evme.Utils.devicePixelRatio,
       HEIGHT = ICON_HEIGHT + TEXT_MARGIN + TEXT_HEIGHT;
   
-  this.get = function get(ids, query) {
-      var el = renderCanvas({
-        "apps": ids || [],
-        "icons": Evme.Utils.getIconGroup() || [],
-        "query": query
-      });
+  this.get = function get(ids, query, callback) {
+    var el = renderCanvas({
+      "apps": ids || [],
+      "icons": Evme.Utils.getIconGroup() || [],
+      "query": query,
+      "onReady": callback
+    });
 
       return el;
   };
@@ -587,6 +588,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
       var apps = options.apps,
           icons = options.icons,
           query = options.query,
+          onReady = options.onReady,
           elCanvas = document.createElement('canvas'),
           context = elCanvas.getContext('2d');
 
@@ -606,7 +608,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
 
           app.icon = Evme.Utils.formatImageData(app.icon || Evme.IconManager.get(app.id));
 
-          loadIcon(app.icon, icons[i], context, i);   
+          loadIcon(app.icon, icons[i], context, i, onReady);   
       }
       
       // add the app name
@@ -619,7 +621,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
       return elCanvas;
   }
 
-  function loadIcon(iconSrc, icon, context, index) {
+  function loadIcon(iconSrc, icon, context, index, onReady) {
     var image = new Image();
 
     image.onload = function onImageLoad() {
@@ -647,7 +649,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
       }
       
       fixedImage.onload = function onImageLoad() {
-        onIconLoaded(context, this, icon, index);
+        onIconLoaded(context, this, icon, index, onReady);
       };
       
       fixedImage.src = elImageCanvas.toDataURL('image/png');
@@ -656,7 +658,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
     image.src = iconSrc;
   }
   
-  function onIconLoaded(context, image, icon, index) {
+  function onIconLoaded(context, image, icon, index, onAllIconsReady) {
     // once the image is ready to be drawn, we add it to an array
     // so when all the images are loaded we can draw them in the right order
     context.imagesLoaded.push({
@@ -691,6 +693,8 @@ Evme.IconGroup = new function Evme_IconGroup() {
         context.drawImage(image, -icon.size/2, -icon.size/2);
         context.restore();
       }
+
+      onAllIconsReady && onAllIconsReady(context.canvas);
     }
   }
 
