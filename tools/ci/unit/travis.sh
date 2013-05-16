@@ -3,10 +3,6 @@
 RETRY=10
 FIREFOX_URL=http://ftp.mozilla.org/pub/mozilla.org/firefox/releases/18.0.1/linux-x86_64/en-US/firefox-18.0.1.tar.bz2
 
-# Turn off unresponsive script dialogs so test-agent can keep running...
-# https://bugzilla.mozilla.org/show_bug.cgi?id=872141
-echo 'user_pref("dom.max_script_run_time", 0);' >> build/custom-prefs.js
-
 # generate port number between 10000 ~ 60000
 export TEST_AGENT_PORT=$[ 10000 + $RANDOM % (60000 + 1 - 10000) ]
 
