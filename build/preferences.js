@@ -58,15 +58,18 @@ if (BROWSER) {
   // Enable apis use on the device
   prefs.push(["dom.sms.enabled", true]);
   prefs.push(["dom.mozContacts.enabled", true]);
-  prefs.push(["dom.mozSettings.enabled", true]);
   prefs.push(["dom.mozTCPSocket.enabled", true]);
   prefs.push(["notification.feature.enabled", true]);
   prefs.push(["dom.sysmsg.enabled", true]);
   prefs.push(["dom.mozAlarms.enabled", true]);
   prefs.push(["device.storage.enabled", true]);
   prefs.push(["device.storage.prompt.testing", true]);
-  prefs.push(["dom.mozPermissionSettings.enabled", true]);
   prefs.push(["notification.feature.enabled", true]);
+
+  // WebSettings
+  prefs.push(["dom.mozSettings.enabled", true]);
+  prefs.push(["dom.navigator-property.disable.mozSettings", false]);
+  prefs.push(["dom.mozPermissionSettings.enabled", true]);
 }
 
 if (DEBUG) {
