@@ -130,8 +130,9 @@
     };
 
     request.onsuccess = (function() {
-      var gotThing = request.result.clearBrowserData();
-      aquireCode();
+      var gotThing = request.result.clearBrowserData().onsuccess = function() {
+        aquireCode();
+      };
     });
   }
 
