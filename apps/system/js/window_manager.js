@@ -776,8 +776,9 @@ var WindowManager = (function() {
       var app = runningApps[newApp];
       // Allows listeners to cancel app opening and so stay on homescreen
       if (!app.iframe.dispatchEvent(evt)) {
-        if (typeof(callback) == 'function')
+        if (callback) {
           callback();
+        }
         return;
       }
 
@@ -830,8 +831,9 @@ var WindowManager = (function() {
         }
 
         // Just run the callback right away if it is not homescreen
-        if (callback)
+        if (callback) {
           callback();
+        }
       }
     }
     // Case 2: null --> app
@@ -851,7 +853,9 @@ var WindowManager = (function() {
       homescreenFrame.classList.add('zoom-in');
       var zoomInCallback = function() {
         homescreenFrame.classList.remove('zoom-in');
-        callback();
+        if (callback) {
+          callback();
+        }
       };
       openWindow(newApp, zoomInCallback);
     }
@@ -859,7 +863,9 @@ var WindowManager = (function() {
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
       var zoomOutCallback = function() {
         homescreenFrame.classList.remove('zoom-out');
-        callback();
+        if (callback) {
+          callback();
+        }
       };
       closeWindow(currentApp, zoomOutCallback);
     }
