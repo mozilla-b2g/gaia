@@ -119,6 +119,8 @@ input[type="image"] {
   height: 6.5rem;
   -moz-user-select: none;
   padding: 1rem;
+  width: calc(100% - 2rem);
+  position: absolute;
 }
 
 #tabs-list li {
