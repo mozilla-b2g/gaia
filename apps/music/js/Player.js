@@ -1,8 +1,5 @@
 'use strict';
 
-// We will use a wake lock later to prevent Music from sleeping
-var cpuLock = null;
-
 // We have three types of the playing sources
 // These are for player to know which source type is playing
 var TYPE_MIX = 'mix';
@@ -305,11 +302,6 @@ var PlayerView = {
   play: function pv_play(targetIndex, backgroundIndex) {
     this.isPlaying = true;
 
-    // Hold a wake lock to prevent from sleeping
-    if (!cpuLock)
-      cpuLock = navigator.requestWakeLock('cpu');
-
-
     this.showInfo();
 
     if (arguments.length > 0) {
@@ -378,13 +370,6 @@ var PlayerView = {
 
   pause: function pv_pause() {
     this.isPlaying = false;
-
-    // We can go to sleep if music pauses
-    if (cpuLock) {
-      cpuLock.unlock();
-      cpuLock = null;
-    }
-
     this.audio.pause();
   },
 
