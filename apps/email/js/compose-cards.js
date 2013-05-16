@@ -5,6 +5,32 @@
  **/
 
 /**
+ * To make it easier to focus input boxes, we have clicks on their owning
+ * container cause a focus event to occur on the input.  This method helps us
+ * also position the cursor based on the location of the click so the cursor
+ * can end up at the edges of the input box which could otherwise be very hard
+ * to do.
+ */
+function focusInputAndPositionCursorFromContainerClick(event, input) {
+  // Do not do anything if the event is happening on the input already or we
+  // will disrupt the default positioning logic!  We use explicitOriginalTarget
+  // because under Gecko originalTarget may contain anonymous content.
+  if (event.explicitOriginalTarget === input)
+    return;
+
+  // coordinates are relative to the viewport origin
+  var bounds = input.getBoundingClientRect();
+  var midX = bounds.left + bounds.width / 2;
+  // and that's what clientX is too!
+  input.focus();
+  var cursorPos = 0;
+  if (event.clientX >= midX) {
+    cursorPos = input.value.length;
+  }
+  input.setSelectionRange(cursorPos, cursorPos);
+}
+
+/**
  * Composer card; wants an initialized message composition object when it is
  * created (for now).
  */
@@ -67,8 +93,9 @@ function ComposeCard(domNode, mode, args) {
 
   // Add subject focus for larger hitbox
   var subjectContainer = domNode.querySelector('.cmp-subject');
-  subjectContainer.addEventListener('click', function subjectFocus() {
-    subjectContainer.querySelector('input').focus();
+  subjectContainer.addEventListener('click', function subjectFocus(evt) {
+    focusInputAndPositionCursorFromContainerClick(
+      evt, subjectContainer.querySelector('input'));
   });
 
   // Add attachments
@@ -329,7 +356,7 @@ ComposeCard.prototype = {
     // While user clicks on the container, focus on input to triger
     // the keyboard.
     var input = evt.currentTarget.getElementsByClassName('cmp-addr-text')[0];
-    input.focus();
+    focusInputAndPositionCursorFromContainerClick(evt, input);
   },
 
   /**
