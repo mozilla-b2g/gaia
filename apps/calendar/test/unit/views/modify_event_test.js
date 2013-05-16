@@ -96,9 +96,13 @@ suiteGroup('Views.ModifyEvent', function() {
           '<input type="checkbox" name="allday" />',
           '<input name="title" />',
           '<input type="date" name="startDate" />',
+          '<span id="start-date-locale"></span>',
           '<input type="date" name="endDate" />',
+          '<span id="end-date-locale"></span>',
           '<input type="time" name="startTime" />',
+          '<span id="start-time-locale"></span>',
           '<input type="time" name="endTime" />',
+          '<span id="end-time-locale"></span>',
           '<input name="location" />',
           '<textarea name="description"></textarea>',
           '<input name="currentCalendar" />',
@@ -369,6 +373,29 @@ suiteGroup('Views.ModifyEvent', function() {
 
           assert.ok(list.contains(subject.ALLDAY));
           assert.equal(subject.event.alarms.length, 2);
+        });
+      });
+    });
+
+
+    // this allows to test _updateDateTimeLocale()
+    test('date/time are displayed according to the locale', function(done) {
+      remote.startDate = new Date(2012, 11, 30, 1, 2);
+      remote.endDate = new Date(2012, 11, 31, 13, 4);
+
+      updatesValues({}, function() {
+        done(function() {
+          var startDateLocale = document.getElementById('start-date-locale');
+          assert.equal(startDateLocale.textContent, '12/30/2012');
+
+          var endDateLocale = document.getElementById('end-date-locale');
+          assert.equal(endDateLocale.textContent, '12/31/2012');
+
+          var startTimeLocale = document.getElementById('start-time-locale');
+          assert.equal(startTimeLocale.textContent, '1:02:00 AM');
+
+          var endTimeLocale = document.getElementById('end-time-locale');
+          assert.equal(endTimeLocale.textContent, '1:04:00 PM');
         });
       });
     });
