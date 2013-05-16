@@ -529,15 +529,23 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       this.getEl('startDate').value =
         InputParser.exportDate(startDate);
+      this._updateDateTimeLocale(
+        'date', 'startDate', 'start-date-locale', startDate);
 
       this.getEl('endDate').value =
         InputParser.exportDate(endDate);
+      this._updateDateTimeLocale(
+        'date', 'endDate', 'end-date-locale', endDate);
 
       this.getEl('startTime').value =
         InputParser.exportTime(startDate);
+      this._updateDateTimeLocale(
+        'time', 'startTime', 'start-time-locale', startDate);
 
       this.getEl('endTime').value =
         InputParser.exportTime(endDate);
+      this._updateDateTimeLocale(
+        'time', 'endTime', 'end-time-locale', endDate);
 
       this.getEl('description').textContent =
         model.description;
@@ -557,6 +565,48 @@ Calendar.ns('Views').ModifyEvent = (function() {
       }
 
       this.updateAlarms(model.isAllDay);
+    },
+
+    /**
+     * Handling a layer over <input> to have localized
+     * date/time
+     */
+    _updateDateTimeLocale: function(type, date, target, value) {
+      var _ = navigator.mozL10n.get;
+      var dateTimeFormatter = new navigator.mozL10n.DateTimeFormat();
+
+      var _formats = {
+        date: _('dateTimeFormat_%x'),
+        time: _('dateTimeFormat_%X')
+      };
+
+      var targetElement = document.getElementById(target);
+      if (!targetElement)
+        return;
+
+      targetElement.textContent = dateTimeFormatter.localeFormat(
+        value, _formats[type]);
+
+      this.getEl(date).addEventListener('input', function(e) {
+        var selected;
+        var newDate = new Date();
+
+        if (type == 'date') {
+          selected = InputParser.importDate(e.target.value);
+          newDate.setFullYear(selected.year);
+          newDate.setMonth(selected.month);
+          newDate.setDate(selected.date);
+        }
+        if (type == 'time') {
+          selected = InputParser.importTime(e.target.value);
+          newDate.setHours(selected.hours);
+          newDate.setMinutes(selected.minutes);
+          newDate.setSeconds(0);
+        }
+
+        targetElement.textContent = dateTimeFormatter.localeFormat(
+          newDate, _formats[type]);
+      });
     },
 
     /**
