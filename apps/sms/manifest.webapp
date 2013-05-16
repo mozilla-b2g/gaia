@@ -49,6 +49,13 @@
         "number": { "regexp":"/^[\\w\\s+#*().-]{0,50}$/" }
        },
       "disposition": "window"
+    },
+    "share": {
+      "filters": {
+        "type": "image/*"
+       },
+      "disposition": "window",
+      "returnValue": true
     }
   },
   "messages": [
