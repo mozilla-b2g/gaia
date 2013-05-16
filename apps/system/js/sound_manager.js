@@ -224,6 +224,16 @@
     };
   }
 
+  // True if the homescreen or the lockscreen are visible.
+  var homescreenVisible = true;
+
+  window.addEventListener('appopen', function() {
+    homescreenVisible = false;
+  });
+  window.addEventListener('home', function() {
+    homescreenVisible = true;
+  });
+
   function onCall() {
     if (currentChannel == 'telephony')
       return true;
@@ -349,8 +359,9 @@
         return 'alarm';
       case 'notification':
       case 'ringer':
+          return 'notification';
       default:
-        return 'notification';
+        return homescreenVisible ? 'notification' : 'content';
     }
   }
 
