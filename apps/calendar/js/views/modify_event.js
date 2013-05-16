@@ -615,18 +615,18 @@ Calendar.ns('Views').ModifyEvent = (function() {
      */
     _updateDateTimeLocale: function(type, date, target, value) {
       var _ = navigator.mozL10n.get;
-      var dateTimeFormatter = new navigator.mozL10n.DateTimeFormat();
+      var localeFormat = Calendar.App.dateFormat.localeFormat;
 
       var _formats = {
         date: _('dateTimeFormat_%x'),
-        time: _('dateTimeFormat_%X')
+        time: _('shortTimeFormat')
       };
 
       var targetElement = document.getElementById(target);
       if (!targetElement)
         return;
 
-      targetElement.textContent = dateTimeFormatter.localeFormat(
+      targetElement.textContent = localeFormat(
         value, _formats[type]);
 
       this.getEl(date).addEventListener('input', function(e) {
@@ -646,7 +646,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
           newDate.setSeconds(0);
         }
 
-        targetElement.textContent = dateTimeFormatter.localeFormat(
+        targetElement.textContent = localeFormat(
           newDate, _formats[type]);
       });
     },
