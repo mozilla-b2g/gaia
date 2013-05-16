@@ -109,7 +109,6 @@ var EverythingME = {
                      'modules/Shortcuts/Shortcuts.css',
                      'modules/ShortcutsCustomize/ShortcutsCustomize.css',
                      'modules/Searchbar/Searchbar.css',
-                     'modules/SearchHistory/SearchHistory.css',
                      'modules/Helper/Helper.css',
                      'modules/Tip/Tip.css',
                      'modules/ConnectionMessage/ConnectionMessage.css',
