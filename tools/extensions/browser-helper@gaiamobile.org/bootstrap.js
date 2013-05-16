@@ -62,11 +62,7 @@ function startup(data, reason) {
 
       // And devtool panel while maximizing its size according to screen size
       Services.prefs.setIntPref('devtools.toolbox.sidebar.width',
-                                browserWindow.screen.width - 550);
-      browserWindow.resizeTo(
-        browserWindow.screen.width,
-        browserWindow.outerHeight
-      );
+                                browserWindow.outerWidth - 550);
       gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser);
 
       // XXX This code should be loaded by the keyboard/ extension
