@@ -113,7 +113,9 @@ input[type="image"] {
   display: block;
   height: 65px;
   -moz-user-select: none;
-  padding: 10px;
+  padding: 1rem;
+  width: calc(100% - 2rem);
+  position: absolute;
 }
 
 #tabs-list li {

@@ -1878,8 +1878,6 @@ var Browser = {
 
       this.tab.classList.add('active');
       this.tab.style.MozTransition = '';
-      this.tab.style.position = 'absolute';
-      this.tab.style.width = e.target.parentNode.clientWidth + 'px';
     },
 
     pan: function tabSwipe_pan(e) {
@@ -1898,9 +1896,7 @@ var Browser = {
         return;
       }
       if (this.isCloseButton) {
-        this.tab.style.position = 'absolute';
         this.tab.style.left = '0px';
-        this.tab.style.width = this.containerWidth + 'px';
         this.deleteTab(100, this.containerWidth);
         return;
       }
