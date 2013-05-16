@@ -392,10 +392,10 @@ suiteGroup('Views.ModifyEvent', function() {
           assert.equal(endDateLocale.textContent, '12/31/2012');
 
           var startTimeLocale = document.getElementById('start-time-locale');
-          assert.equal(startTimeLocale.textContent, '1:02:00 AM');
+          assert.equal(startTimeLocale.textContent, '1:02 AM');
 
           var endTimeLocale = document.getElementById('end-time-locale');
-          assert.equal(endTimeLocale.textContent, '1:04:00 PM');
+          assert.equal(endTimeLocale.textContent, '1:04 PM');
         });
       });
     });
