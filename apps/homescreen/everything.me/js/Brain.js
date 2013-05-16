@@ -992,6 +992,8 @@ Evme.Brain = new function Evme_Brain() {
                         "iconsFormat": iconsFormat,
                         "offset": currentFolder.appsPaging.offset
                     });
+                    
+                    updateShortcutIcons(experienceId || query, apps);
 
                     requestSmartFolderApps = null;
                     
@@ -1050,6 +1052,30 @@ Evme.Brain = new function Evme_Brain() {
 
                 requestSmartFolderApps = null;
             });
+        };
+        
+        function updateShortcutIcons(key, apps) {
+          var shortcutsToUpdate = {},
+              icons = {},
+              numberOfIconsInShortcut = (Evme.Utils.getIconGroup() || []).length;
+              
+          for (var i=0,app; i<numberOfIconsInShortcut; i++) {
+            app = apps[i];
+            icons[app.id] = app.icon;
+          }
+          shortcutsToUpdate[key] = Object.keys(icons);
+          
+          Evme.DoATAPI.Shortcuts.update({
+            "shortcuts": shortcutsToUpdate,
+            "icons": icons
+          }, function onShortcutsUpdated() {
+            for (var key in shortcutsToUpdate) {
+              var shortcut = Evme.Shortcuts.getShortcutByKey(key);
+              if (shortcut) {
+                shortcut.setImage(shortcutsToUpdate[key]);
+              }
+            }
+          });
         }
     };
 
