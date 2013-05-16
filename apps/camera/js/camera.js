@@ -380,6 +380,11 @@ var Camera = {
   disableButtons: function camera_disableButtons() {
     this.switchButton.setAttribute('disabled', 'disabled');
     this.captureButton.setAttribute('disabled', 'disabled');
+
+    if (this._pendingPick) {
+      var cancelButton = document.getElementById('cancel-pick');
+      cancelButton.onclick = function() { };
+    }
   },
 
   // When inside an activity the user cannot switch between
