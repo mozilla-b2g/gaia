@@ -117,11 +117,12 @@ Attachment.prototype = {
   replace: function() {
     var self = this;
     var request = Compose.requestAttachment();
-    request.onsuccess = function() {
-      var result = request.result;
+    request.onsuccess = function(result) {
       self.blob = result.blob;
       self.name = result.name;
+      self.objectURL = window.URL.createObjectURL(self.blob);
       self.render();
+      self.closeOptionsMenu();
     }
   }
   
