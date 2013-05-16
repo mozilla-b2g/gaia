@@ -1102,11 +1102,7 @@ var GridManager = (function() {
 
   var defaults = {
     gridSelector: '.apps',
-    dockSelector: '.dockWrapper',
-    tapThreshold: 10,
-    swipeThreshold: 0.4,
-    swipeFriction: 0.1,
-    swipeTransitionDuration: 300
+    dockSelector: '.dockWrapper'
   };
 
   function doInit(options, callback) {
@@ -1153,7 +1149,7 @@ var GridManager = (function() {
     /*
      * Initializes the grid manager
      *
-     * @param {Object} Hash of options
+     * @param {Object} Hash of options passed from GridManager.init
      *
      * @param {Function} Success callback
      *
