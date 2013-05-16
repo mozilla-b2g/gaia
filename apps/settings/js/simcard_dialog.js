@@ -160,6 +160,8 @@ var SimPinDialog = {
       this.errorMsgHeader.textContent = _('newPinErrorMsg');
       this.errorMsgBody.textContent = '';
       this.errorMsg.hidden = false;
+      this.newPinInput.value = '';
+      this.confirmPinInput.value = '';
       return;
     }
     var options = {lockType: 'puk', puk: puk, newPin: newPin };
@@ -201,6 +203,8 @@ var SimPinDialog = {
       this.errorMsgHeader.textContent = _('newPinErrorMsg');
       this.errorMsgBody.textContent = '';
       this.errorMsg.hidden = false;
+      this.newPinInput.value = '';
+      this.confirmPinInput.value = '';
       return;
     }
     var options = {lockType: 'pin', pin: pin, newPin: newPin};
