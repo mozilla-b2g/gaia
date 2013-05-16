@@ -263,6 +263,13 @@ section[role="region"].new > header:first-child form {
   display: block;
 }
 
+#messages-contact-pick-button .icon.icon-user {
+  background-image: url(images/add_user.png);
+  display:block;
+  height:2rem;
+  width:2rem;
+}
+
 /*
   Messages Style as 'bubbles'
 */
@@ -662,14 +669,12 @@ body.attachment div {
   text-align: left;
   min-height: 3.5rem;
   overflow: hidden;
-  border-bottom: .1rem solid #949494;
+  border-bottom: .1rem solid #4d4d4d;
   color: black;
   position: relative;
   margin: 0;
-  padding: .8rem 1.5rem;
-  width: -moz-calc(100% - 3rem);
+  padding: 0 1.5rem;
   z-index: 10;
-  background: url(/shared/style/headers/images/ui/shadow.png) repeat-x 0 0 white;
   font-size: 1.465rem;
   transition: height 0.2s ease-in-out;
 }
@@ -712,13 +717,13 @@ section[role="region"].new #messages-to-field {
   overflow-y: hidden;
   overflow-x: hidden;
   left: 3rem;
-  top: .5rem;
   position: relative;
   width: 10rem;
-  display: inline-block;
   width: -moz-calc(100% - 5.5rem);
-  height: 3.5rem;
+  height: 2.4rem;
   transition: height 0.2s ease-in-out;
+  padding-top: 1.2rem;
+  margin-bottom: 0.8rem;
 }
 
 /*
@@ -727,33 +732,27 @@ Do not remove.
 */
 #messages-recipients-list.multiline {
   overflow-y: scroll;
-  height: 10rem;
+  height: 8.8rem;
 }
 #messages-recipients-list.singleline {
   overflow-y: hidden;
-  height: 3.5rem;
-}
-#messages-to-field.multiline {
-  height: 10rem;
-}
-#messages-to-field.singleline {
-  height: 3.5rem;
+  height: 2.4rem;
 }
 
 .recipient {
-  background: white;
-  padding: .2rem 0.8rem;
+  background: -moz-linear-gradient(#fff, #f1f1f1);
+  padding: 0 0.8rem;
   display: inline-block;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  max-width: -moz-calc(100% - 1rem);
-  border: .1rem solid #949494;
-  color: #333333;
-  height: 2rem;
-  margin-right: .5rem;
+  max-width: -moz-calc(100% - 2.3rem);
+  border: .1rem solid #4d4d4d;
+  color: #2c2c2c;
+  height: 2.2rem;
+  margin: .8rem .5rem -0.8rem 0;
   border-radius: .3rem;
-  font-size: 1.8rem;
+  font-size: 1.7rem;
 }
 
 .recipient[contenteditable=true] {
@@ -781,10 +780,6 @@ section[role="region"].new #messages-container[data-type="list"] > ul.contactLis
   padding: 0;
 }
 
-section[role="region"].new #messages-container[data-type="list"] {
-  margin-top: .3rem;
-}
-
 section[role="region"].new #messages-container[data-type="list"]  li:first-child {
   margin-top: 5.6rem;
 }
@@ -799,11 +794,18 @@ section[role="region"].new #messages-container[data-type="list"]  li{
   pointer-events : none;
 }
 .subheader {
-  background: white;
+  background-color: #fff;
   position: absolute;
   z-index: 6; /* should be between 4 and 9 (inclusive). 3 is the z-index for
                  the input form, 10 is the z-index for the header */
   left: 0;
   right: 0;
   top: 5rem;
+}
+
+.subheader menu {
+  position:absolute;
+  right: 1.5rem;
+  top: 1.3rem;
+  z-index: 11;
 }
