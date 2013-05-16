@@ -1,7 +1,36 @@
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden !important;
+  width: 100%;
+  height: 100%;
+  font-size: 10px;
+  font-family: "MozTT", sans-serif;
+  overflow: hidden;
+}
+
+section[role="region"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  overflow: hidden;
+}
+
+section[role="region"] > div {
+  position: absolute;
+  top: 5rem;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 5rem);
+  overflow-y: scroll;
+}
+
+section.no-scroll[role="region"] > div {
+  overflow: hidden;
 }
 
 /* ------------- Button ------------- */
@@ -25,7 +54,7 @@ a.button, span.button {
 }
 
 a.button.left.close {
-  background: url(images/separator_close.png) no-repeat scroll 1.25rem center transparent;
+  background: url(images/separator_close.png) no-repeat 1.25rem center transparent;
   background-size: auto 100%;
   border: none;
   cursor: pointer;
@@ -48,9 +77,7 @@ a.button.left.close {
 
 .icon-close {
   display: inline-block;
-  background: url(images/edit_close.png) no-repeat;
-  background-position: left 0.63rem;
-  background-repeat: no-repeat;
+  background: url(images/edit_close.png) no-repeat left 0.63rem;
   background-size: 60% 60%;
   display: inline-block;
   width: 2.50rem;
@@ -75,8 +102,8 @@ a.button.right {
 a.button.right.plus {
   background: url(images/add_alarm.png) no-repeat center / 3.2rem;
   padding: 2.2rem 1.5rem;
-  height: 2.5rem;
-  width: 3.2rem;
+  height: 7rem;
+  width: 6rem;
   border: none;
   margin: 0;
   right: 0;
@@ -84,9 +111,9 @@ a.button.right.plus {
 }
 
 a.button.right.done-button {
-  background: url(images/separator_done.png) no-repeat scroll left center transparent;
-  border: none;
+  background: url(images/separator_done.png) no-repeat;
   background-size: auto 100%;
+  border: none;
   cursor: pointer;
   height: 3.13rem;
   top: 0;
@@ -119,26 +146,8 @@ select.abstract-menu {
 }
 
 #alarm-delete {
-  color: #F2F2F2;
-  font: 1.50rem/1.50rem 'MozTT',sans-serif;
   text-align: center;
-  text-decoration: none;
-  width: 100%;
-  line-height: 4.2rem;
-}
-
-#alarm-delete-button {
-  background: -moz-linear-gradient(bottom, #900010, #c90010);
-  border: none;
-  height: 4.2rem;
-  overflow: hidden;
-  margin: 0.3rem 0 0;
-  text-shadow: -1px -1px 0 #830B0B;
-  border-radius: 0.19rem 0.19rem 0.19rem 0.19rem;
-}
-
-#alarm-delete-button:active {
-  background: #890707;
+  margin-bottom: 0;
 }
 
 .view label.text {
@@ -150,7 +159,7 @@ select.abstract-menu {
 
 /* View */
 .view {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   border: 0;
@@ -214,43 +223,25 @@ li.singleline {
   -moz-box-sizing: border-box;
 }
 
-li.singleline.field:active {
-  background: #B1F1FF;
-}
-
 li.multiline {
   height: 22.19rem;
   border-top: none;
   border-bottom: 0.06rem solid #cbcbcc;
 }
 
-li.multiline:active {
-  background-color: white;
-  text-shadow: none;
-  color: #555;
-}
-
 li.picker {
   position: relative;
-  height: 16.71rem;
-  padding-top: 0.31rem;
-  padding-bottom: 0.5rem;
+  height: 16rem;
+  padding-bottom: 0 !important;
   border-top: none;
   border-bottom: none;
-  width: 27rem;
+  width: 100%;
   margin: 0 auto;
 }
 
 li.picker:active {
   background-color: transparent;
   text-shadow: none;
-}
-
-.view-alarm-lbl {
-  font: 1.40rem 'MozTT',sans-serif;
-  pointer-events: none;
-  margin-top: 1.4rem;
-  color: #505859;
 }
 
 .snooze-lbl {
@@ -271,13 +262,7 @@ ul {
 
 ul li { /* 6rem, including a 0.13rem border */
   position: relative;
-  height: 5.8rem;
   color: #555;
-}
-
-ul li:active {
-  background-color: rgba(0, 0, 0, .07);
-  color: #222;
 }
 
 ul li > a {
@@ -293,7 +278,6 @@ ul li > a, ul li > span, ul li > small { /* text ellipsis */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  width: -moz-calc(100% - 8.13rem);
 }
 
 ul li > span {
@@ -315,16 +299,21 @@ ul li > small {
 
 .alarmList-detail {
   position: absolute;
-  text-align: left;
-  width: 50%;
   top: 0;
+  width: 100%;
+  height: 100%;
+  text-align: left;
+}
+
+#alarms > li {
+  min-height: 5.8rem;
 }
 
 #alarms label {
   position: absolute;
   z-index: 0;
   right: 0;
-  height: 5.8rem;
+  height: 100%;
 }
 
 #alarms label input[type="checkbox"] + span {
@@ -340,13 +329,21 @@ ul li > small {
 #alarms label span {
   left: auto;
   right: 0.5rem;
-  top: 1.2rem;
+  top: 1.4rem;
   margin: 0;
 }
 
 #alarms a {
   padding-bottom: 0;
   height: 100%;
+}
+
+#alarms > li:active {
+  background: rgba(255,255,255, .1);
+}
+
+#alarms > li > a:active {
+  background: transparent;
 }
 
 /* fake input boxes for checkboxes & radio buttons */
@@ -359,7 +356,7 @@ ul li > small {
 }
 
 .view label.alarmList {
-  width: -moz-calc(8.13rem);
+  width: 8rem;
 }
 
 .view label > input {
@@ -436,7 +433,7 @@ input.right:-moz-placeholder {
 /* ----------- Input Error ---------- */
 input ~ * {
   color:#E00;
-  margin: -0.63rem 0rem 0rem 1.25rem;
+  margin: -0.63rem 0 0 1.25rem;
 }
 
 input ~ *:empty {
@@ -463,7 +460,7 @@ input ~ *:empty {
   height: auto;
   max-height: 52%;
   position: absolute;
-  bottom: 0rem;
+  bottom: 0;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   background-color: transparent;
@@ -471,21 +468,74 @@ input ~ *:empty {
 }
 
 #alarms li {
-  background: url(images/alarm_sep.png) no-repeat top / 29rem;
   padding-top: 0.2rem;
   padding-left: 0.8rem;
+  border-top: 0.2rem solid;
+  -moz-border-top-colors: rgba(128,128,128, .15) rgba(144,144,144, .15);
 }
 
 #digital-clock-background.visible ~ #alarms.count4 li:first-child {
   background: none;
 }
 
-#edit-alarm.tableView {
-  background: url(images/edit_background.png) no-repeat center center;
+#edit-alarm {
+  background: url(images/edit_background.png) no-repeat;
   background-size: 100% 100%;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
 }
+
+#edit-alarm > li {
+  width: calc(100% - 3rem);
+  margin: 0 auto;
+  padding: 1.5rem 0;
+  border-bottom: 0.1rem solid #bdbdbb;
+}
+
+#edit-alarm > li:first-child,
+#edit-alarm > li:last-child
+{
+  border: none;
+}
+
+#edit-alarm > li > span {
+  position: static;
+  display: block;
+  width: calc(100% - 3rem);
+  margin-top: -0.3rem;
+  padding: 0 1.5rem 0.5rem;
+  font-size: 1.8rem;
+  color: #000;
+}
+
+/******************************************************************************
+ * Fake select boxes
+ * should fix this in Bug 862246
+ */
+.fake-select {
+  position: relative;
+  display: block;
+  height: 3.8rem;
+  margin: 0;
+}
+
+.fake-select > button {
+  display: block;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.fake-select > select {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3.8rem;
+  border: none;
+  background: red;
+  opacity: 0;
+}
+
+/* */
 
 li img {
   position: absolute;
@@ -501,17 +551,16 @@ li img {
 }
 
 .alarmList-time span.time {
-  font: lighter 2.8rem 'MozTT', sans-serif;
+  font: lighter 2.7rem 'MozTT', sans-serif;
   margin-right: 0.4rem;
-  color: #CFE2E5;
+  color: #cfe2e5;
   height: auto;
 }
 
 .alarmList-time span.hour24-state {
   height: auto;
   font: 1.4rem 'MozTT', sans-serif;
-  color: #5C6466;
-  margin-left: -0.25rem;
+  color: #5c6466;
   text-transform: uppercase;
 }
 
@@ -551,39 +600,32 @@ li img {
 /* ----------- TimeSelectorView ---------- */
 #picker-bar {
   position: relative;
+  height: 100%;
   overflow: hidden;
-  height: -moz-calc(100% - 0.13rem);
-  margin-left: auto;
-  margin-right: auto;
-  border-bottom: solid 0.13rem;
-  -moz-border-bottom-colors: #CBCBCC #FFFFFF;
 }
 
 #picker-bar.format12h {}
 #picker-bar.format24h {}
 
 #picker-bar-gradient {
-  -moz-border-top-colors:
-    rgba(0, 0, 0, 0.4)  rgba(0, 0, 0, 0.25)  rgba(0, 0, 0, 0.2)
-    rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.07)  rgba(0, 0, 0, 0.05)
-    rgba(0, 0, 0, 0.04) rgba(0, 0, 0, 0.03)  rgba(0, 0, 0, 0.02);
-
-  -moz-border-bottom-colors:
-    rgba(0, 0, 0, 0.4)  rgba(0, 0, 0, 0.25)  rgba(0, 0, 0, 0.2)
-    rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.07)  rgba(0, 0, 0, 0.05)
-    rgba(0, 0, 0, 0.04) rgba(0, 0, 0, 0.03)  rgba(0, 0, 0, 0.02);
-
-  border-top: solid 0.63rem;
-  border-bottom: solid 0.63rem;
-  border-left:  1px solid #CCC;
-  border-right: 1px solid #CCC;
-
+  -moz-box-sizing: border-box;
   position: absolute;
   top: 0;
   width: 100%;
   height: 100%;
+  border-left: 0.1rem solid #ccc;
+  border-right: 0.1rem solid #ccc;
+  border-top: solid 0.67rem;
+  -moz-border-top-colors:
+    rgba(0, 0, 0, 0.4)  rgba(0, 0, 0, 0.25)  rgba(0, 0, 0, 0.2)
+    rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.07)  rgba(0, 0, 0, 0.05)
+    rgba(0, 0, 0, 0.04) rgba(0, 0, 0, 0.03)  rgba(0, 0, 0, 0.02);
+  border-bottom: solid 0.67rem;
+  -moz-border-bottom-colors:
+    rgba(0, 0, 0, 0.4)  rgba(0, 0, 0, 0.25)  rgba(0, 0, 0, 0.2)
+    rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.07)  rgba(0, 0, 0, 0.05)
+    rgba(0, 0, 0, 0.04) rgba(0, 0, 0, 0.03)  rgba(0, 0, 0, 0.02);
   pointer-events: none;
-  -moz-box-sizing: border-box;
 }
 
 #picker-container {
@@ -594,30 +636,13 @@ li img {
 }
 
 #value-indicator-wrapper {
-  background: url(/style/images/picker_label.png) no-repeat -0.6rem 0 / 28.2rem;
   position: absolute;
-  top: 5.6rem;
-  height: 6rem;
+  top: 5.8rem;
   width: 100%;
+  height: 5.2rem;
+  background-color: #00a5c5;
+  box-shadow: 0 0 .5rem rgba(0,0,0, .5);
   pointer-events: none;
-}
-
-#value-indicator-left,
-#value-indicator-right {
-  background: url(/style/images/picker_label.png) no-repeat 0 0 / 28.2rem;
-  position: absolute;
-  width: 0.6rem;
-  height: 6rem;
-  top: 5.6rem;
-}
-
-#value-indicator-left {
-  left: -0.5rem;
-}
-
-#value-indicator-right {
-  background-position: top right;
-  right: -0.5rem;
 }
 
 #value-indicator-hover-time {
@@ -770,5 +795,4 @@ div.animation-on {
 #picker-bar.format24h #right-picker-separator {
   display: none;
 }
-
 
