@@ -175,10 +175,3 @@ button.affirmative:active {
     font-size: 10px;
   }
 }
-
-/* 480x800 phones */
-@media screen and (min-width: 480px) {
-  html {
-    font-size: 13.3px;
-  }
-}
