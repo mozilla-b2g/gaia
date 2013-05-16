@@ -20,16 +20,6 @@ NORMAL_COLOR=$(printf "\x1b[0m")
 
 GJSLINT_PACKAGE_URL=http://closure-linter.googlecode.com/files/closure_linter-2.3.9.tar.gz
 
-function waiting_port {
-  for i in $(seq 1 $RETRY); do
-    nc -z localhost $1
-    if [ $? -eq 0 ]; then return; fi
-    sleep 1
-  done
-  echo "Waiting for server on port $1 failed."
-  exit 1
-}
-
 function section_echo {
   echo ${GREEN_COLOR}$1${NORMAL_COLOR}
   echo ${GREEN_COLOR}`seq -s= $(expr ${#1} + 1)|tr -d '[:digit:]'`${NORMAL_COLOR}
@@ -51,14 +41,11 @@ make common-install &> /dev/null
 echo 'Downloading xulrunner-sdk and making profile for testing (more than 5 minutes)'
 DEBUG=1 WGET_OPTS=-nv make &> /dev/null
 
-echo "Starting test-agent-server and waiting for server to start on port ${TEST_AGENT_PORT}"
+echo "Starting test-agent-servert ${TEST_AGENT_PORT}"
 make test-agent-server &> /dev/null &
-waiting_port $TEST_AGENT_PORT
 
 echo 'Starting Firefox'
 firefox/firefox -profile `pwd`/profile "$TESTAGENT_URL" &> /dev/null &
-waiting_port 8080
-sleep 5
 
 echo
 section_echo 'make lint'
