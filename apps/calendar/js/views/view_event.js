@@ -68,6 +68,23 @@ Calendar.ns('Views').ViewEvent = (function() {
       }
     },
 
+    formatDate: function(date) {
+      return Calendar.App.dateFormat.localeFormat(
+        date,
+        navigator.mozL10n.get('dateTimeFormat_%x')
+      );
+    },
+
+    formatTime: function(time) {
+      if (!time)
+        return '';
+
+      return Calendar.App.dateFormat.localeFormat(
+        time,
+        navigator.mozL10n.get('shortTimeFormat')
+      );
+    },
+
     /**
      * Updates the UI to use values from the current model.
      */
@@ -92,8 +109,8 @@ Calendar.ns('Views').ViewEvent = (function() {
 
       var startDate = dateSrc.startDate;
       var endDate = dateSrc.endDate;
-      var startTime = InputParser.exportTime(startDate);
-      var endTime = InputParser.exportTime(endDate);
+      var startTime = startDate;
+      var endTime = endDate;
 
       // update the allday status of the view
       if (model.isAllDay) {
@@ -105,15 +122,13 @@ Calendar.ns('Views').ViewEvent = (function() {
         endTime = null;
       }
 
-      this.setContent('start-date',
-        InputParser.exportDate(startDate));
+      this.setContent('start-date', this.formatDate(startDate));
 
-      this.setContent('end-date',
-        InputParser.exportDate(endDate));
+      this.setContent('end-date', this.formatDate(endDate));
 
-      this.setContent('start-time', startTime);
+      this.setContent('start-time', this.formatTime(startTime));
 
-      this.setContent('end-time', endTime);
+      this.setContent('end-time', this.formatTime(endTime));
 
       // Handle alarm display
       var alarmContent = '';
