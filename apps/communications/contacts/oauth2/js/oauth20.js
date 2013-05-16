@@ -11,6 +11,8 @@ if (typeof window.oauth2 === 'undefined') {
 
     var STORAGE_KEY = 'tokenData';
 
+    var DEFAULT_TIMEOUT = 30000;
+
     /**
      *  Clears credential data stored locally
      *
@@ -55,6 +57,27 @@ if (typeof window.oauth2 === 'undefined') {
             state: state
           }
         });
+        return;
+      }
+
+      if (oauthflow.params[service] &&
+        oauthflow.params[service].tokenSingleUse &&
+        oauthflow.params[service].logoutPage) {
+        var xhr = new XMLHttpRequest({
+          mozSystem: true
+        });
+
+        var onLogoutCallback = function onLogoutCallback(evt) {
+          startOAuth(state, service);
+        };
+
+        var logoutUrl = oauthflow.params[service].logoutPage;
+        xhr.open('GET', logoutUrl, true);
+        xhr.timeout = DEFAULT_TIMEOUT;
+        xhr.onload = onLogoutCallback;
+        xhr.onerror = onLogoutCallback;
+        xhr.ontimeout = onLogoutCallback;
+        xhr.send();
         return;
       }
 

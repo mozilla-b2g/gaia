@@ -31,7 +31,10 @@ oauthflow.params = {
       '00000000480EABC6',
     scope:
       ['wl.basic', 'wl.contacts_emails', 'wl.contacts_phone_numbers',
-       'wl.contacts_birthday', 'wl.contacts_postal_addresses']
+       'wl.contacts_birthday', 'wl.contacts_postal_addresses'],
+    tokenSingleUse: true,
+    logoutPage:
+      'https://login.live.com/logout.srf'
   },
 
   gmail: {
@@ -44,6 +47,9 @@ oauthflow.params = {
     applicationId:
       '897176504708.apps.googleusercontent.com',
     scope:
-      ['https://www.google.com/m8/feeds/']
+      ['https://www.google.com/m8/feeds/'],
+    tokenSingleUse: true,
+    logoutPage:
+      'https://accounts.google.com/Logout'
   }
 };
