@@ -51,6 +51,16 @@ Icon.prototype = {
    */
   app: null,
 
+  /**
+   * It returns an unique identifier among all icons installed on the homescreen
+   */
+  getUID: function icon_getUID() {
+    var descriptor = this.descriptor;
+
+    return (descriptor.manifestURL || descriptor.bookmarkURL) +
+           (descriptor.entry_point ? descriptor.entry_point : '');
+  },
+
   /*
    * Renders the icon into the page
    *
@@ -150,48 +160,29 @@ Icon.prototype = {
     var descriptor = this.descriptor;
     var icon = descriptor.icon;
     if (!icon) {
-      this.loadImageData();
-      return;
-    }
-
-    // If we already have locally cached data, load the image right away.
-    if (icon.indexOf('data:') == 0) {
-      this.loadImageData();
-      return;
-    }
-
-    var self = this;
-    var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
-    xhr.open('GET', icon, true);
-    xhr.responseType = 'blob';
-    try {
-      xhr.send(null);
-    } catch (e) {
-      console.error('Got an exception when trying to load icon "' + icon +
-          '", falling back to cached icon. Exception is:', e);
       this.loadCachedIcon();
       return;
     }
 
-    xhr.onreadystatechange = function saveIcon_readyStateChange(evt) {
-      if (xhr.readyState != xhr.DONE)
-        return;
+    // Display the default/oldRendered icon before trying to get the icon.
+    // Sometimes when the network is quite bad the XHR can take time, and we
+    // have an empty space
+    this.loadCachedIcon();
 
-      if (xhr.status != 0 && xhr.status != 200) {
-        console.error('Got HTTP status', xhr.status,
-            'when trying to load icon "' + icon +
-            '", falling back to cached icon.');
-        self.loadCachedIcon();
-        return;
+    IconRetriever.get({
+      icon: this,
+      success: function(blob) {
+        this.loadImageData(blob);
+      },
+      error: function() {
+        if (this.icon && !this.downloading &&
+            this.icon.classList.contains('loading')) {
+          this.icon.classList.remove('loading');
+          this.img.src = null;
+        }
+        this.loadCachedIcon();
       }
-      self.loadImageData(xhr.response);
-    };
-
-    xhr.onerror = function saveIcon_onerror() {
-      console.error('Got an error event when trying to load icon "' + icon +
-          '", falling back to cached icon.');
-      self.loadCachedIcon();
-    };
+    });
   },
 
   loadCachedIcon: function icon_loadCachedImage() {
@@ -199,19 +190,14 @@ Icon.prototype = {
     if (oldRenderedIcon && oldRenderedIcon instanceof Blob) {
       this.renderBlob(oldRenderedIcon);
     } else {
-      this.loadImageData();
+      this.loadDefaultIcon();
     }
   },
 
   loadImageData: function icon_loadImageData(blob) {
     var self = this;
     var img = new Image();
-    if (blob) {
-      var url = window.URL.createObjectURL(blob);
-      img.src = url;
-    } else {
-      img.src = this.descriptor.icon;
-    }
+    img.src = window.URL.createObjectURL(blob);
 
     if (this.icon && !this.downloading) {
       this.icon.classList.remove('loading');
@@ -219,31 +205,41 @@ Icon.prototype = {
 
     img.onload = function icon_loadSuccess() {
       img.onload = img.onerror = null;
-      if (blob)
-        window.URL.revokeObjectURL(img.src);
+      window.URL.revokeObjectURL(img.src);
       self.renderImage(img);
     };
 
     img.onerror = function icon_loadError() {
       console.error('error while loading the icon', img.src, '. Falling back ' +
           'to default icon.');
-      if (blob)
-        window.URL.revokeObjectURL(img.src);
-
-      if (self.img && self.img.src) {
-        // If we have a problem loading a new icon and there is one already
-        // loaded, do not continue...
-        img.onload = img.onerror = null;
-        return;
-      }
-
-      img.src = getDefaultIcon(self.app);
-      img.onload = function icon_errorIconLoadSucess() {
-        img.onload = null;
-        self.renderImage(img);
-      };
-      img.onerror = null;
+      window.URL.revokeObjectURL(img.src);
+      self.loadDefaultIcon(img);
     };
+  },
+
+  loadDefaultIcon: function icon_loadDefaultIcon(img) {
+    var image = img || new Image();
+    var self = this;
+
+    if (self.img && self.img.src) {
+      // If there is one already loaded, do not continue...
+      image.onload = image.onerror = null;
+      return;
+    }
+
+    var blob = GridManager.getBlobByDefault(self.app);
+    if (blob === null) {
+      // At this point theoretically the flow shouldn't go because the icons
+      // by default have to be loaded, but just in case to avoid race conditions
+      image.src = getDefaultIcon(self.app);
+      image.onload = function icon_defaultIconLoadSucess() {
+        image.onload = image.onerror = null;
+        self.renderImage(image);
+      };
+    } else {
+      self.renderBlob(blob);
+      image.onload = image.onerror = null;
+    }
   },
 
   renderImageForBookMark: function icon_renderImageForBookmark(img) {
@@ -517,6 +513,37 @@ Icon.prototype = {
 
   getWidth: function icon_getWidth() {
     return this.container.getBoundingClientRect().width;
+  }
+};
+
+function TemplateIcon(isBookmark) {
+  var descriptor = {
+    name: 'templateIcon',
+    hidden: true,
+    renderedIcon: null
+  };
+
+  var app = {};
+  if (isBookmark) {
+    app.iconable = true;
+  }
+
+  Icon.call(this, descriptor, app);
+}
+
+TemplateIcon.prototype = {
+  __proto__: Icon.prototype,
+  loadDefaultIcon: function ticon_loadDefaultIcon() {
+    var image = new Image();
+    var self = this;
+    image.src = getDefaultIcon(self.app);
+    image.onload = function icon_defaultIconLoadSucess() {
+      image.onload = null;
+      self.renderImage(image);
+    };
+  },
+  renderBlob: function ticon_renderBlob(blob) {
+    this.descriptor.renderedIcon = blob;
   }
 };
 
