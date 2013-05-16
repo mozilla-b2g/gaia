@@ -67,7 +67,7 @@ Attachment.prototype = {
   openOptionsMenu: function() {
     var template = Utils.Template('attachment-options-tmpl');
     var html = template.interpolate({
-      fileName: this.name,
+      fileName: this.name.substr(this.name.lastIndexOf('/') + 1),
       fileType: this.type
     });
     var elem = document.createElement('menu');
@@ -88,7 +88,7 @@ Attachment.prototype = {
   },
 
   closeOptionsMenu: function() {
-    this.optionsMenu.remove();
+    this.optionsMenu.parentNode.removeChild(this.optionsMenu);
     this.optionsMenu = null;
   },
 
@@ -109,7 +109,7 @@ Attachment.prototype = {
   },
 
   remove: function() {
-    this.el.remove();
+    this.el.parentNode.removeChild(this.el);
     ThreadUI.updateInputHeight();
     this.closeOptionsMenu();
   },
