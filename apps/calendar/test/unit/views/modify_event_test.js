@@ -1,5 +1,6 @@
 requireLib('provider/abstract.js');
 requireLib('template.js');
+requireLib('querystring.js');
 
 suiteGroup('Views.ModifyEvent', function() {
 
@@ -95,9 +96,13 @@ suiteGroup('Views.ModifyEvent', function() {
           '<input type="checkbox" name="allday" />',
           '<input name="title" />',
           '<input type="date" name="startDate" />',
+          '<span id="start-date-locale"></span>',
           '<input type="date" name="endDate" />',
+          '<span id="end-date-locale"></span>',
           '<input type="time" name="startTime" />',
+          '<span id="start-time-locale"></span>',
           '<input type="time" name="endTime" />',
+          '<span id="end-time-locale"></span>',
           '<input name="location" />',
           '<textarea name="description"></textarea>',
           '<input name="currentCalendar" />',
@@ -370,6 +375,55 @@ suiteGroup('Views.ModifyEvent', function() {
           assert.equal(subject.event.alarms.length, 2);
         });
       });
+    });
+
+
+    // this allows to test _updateDateTimeLocale()
+    test('date/time are displayed according to the locale', function(done) {
+      remote.startDate = new Date(2012, 11, 30, 1, 2);
+      remote.endDate = new Date(2012, 11, 31, 13, 4);
+
+      updatesValues({}, function() {
+        done(function() {
+          var startDateLocale = document.getElementById('start-date-locale');
+          assert.equal(startDateLocale.textContent, '12/30/2012');
+
+          var endDateLocale = document.getElementById('end-date-locale');
+          assert.equal(endDateLocale.textContent, '12/31/2012');
+
+          var startTimeLocale = document.getElementById('start-time-locale');
+          assert.equal(startTimeLocale.textContent, '1:02:00 AM');
+
+          var endTimeLocale = document.getElementById('end-time-locale');
+          assert.equal(endTimeLocale.textContent, '1:04:00 PM');
+        });
+      });
+    });
+  });
+
+  suite('#_overrideEvent', function(done) {
+    var startDate;
+    var endDate;
+    var search;
+
+    setup(function() {
+      startDate = new Date(1989, 4, 17, 2, 0, 0, 0);
+      endDate = new Date(1989, 4, 17, 3, 0, 0, 0);
+      var queryString = {
+        startDate: startDate.toString(),
+        endDate: endDate.toString()
+      };
+
+      search = '?' + Calendar.QueryString.stringify(queryString);
+      subject.useModel(this.busytime, this.event, done);
+    });
+
+    test('should set startDate and endDate on the event', function() {
+      assert.notEqual(subject.event.startDate.getTime(), startDate.getTime());
+      assert.notEqual(subject.event.endDate.getTime(), endDate.getTime());
+      subject._overrideEvent(search);
+      assert.equal(subject.event.startDate.getTime(), startDate.getTime());
+      assert.equal(subject.event.endDate.getTime(), endDate.getTime());
     });
   });
 
@@ -945,6 +999,19 @@ suiteGroup('Views.ModifyEvent', function() {
         assert.equal(allAlarms.length, 2);
         assert.equal(allAlarms[0].value, -300);
         assert.equal(allAlarms[1].value, 'none');
+        done();
+      });
+    });
+
+    test('populated presaved event with no existing alarms', function(done) {
+      subject.event.alarms = [];
+      subject.isSaved = function() {
+        return true;
+      };
+      subject.updateAlarms(true, function() {
+        var allAlarms = subject.alarmList.querySelectorAll('select');
+        assert.equal(allAlarms.length, 1);
+        assert.equal(allAlarms[0].value, 'none');
         done();
       });
     });

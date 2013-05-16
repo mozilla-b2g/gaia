@@ -267,8 +267,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                 icons = options.icons;
 
             self.get(null, function onGetSuccess(data) {
-                var currentShortcuts = data.response.shortcuts,
-                    currentIcons = data.response.icons;
+                var currentShortcuts = data.response.shortcuts || [],
+                    currentIcons = data.response.icons || {};
                 
                 for (var i=0,shortcut; shortcut=shortcuts[i++];) {
                     if (contains(currentShortcuts, shortcut) === false) {
@@ -287,6 +287,38 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             });
             
         }
+        
+        // this method gets icons or shortcuts and updates the single items in the DB
+        // options.icons should be a map of appId : icon
+        // options.shortcuts should be a map of experienceId/query : appIds
+        this.update = function update(options, callback) {
+          var icons = options.icons || {},
+              shortcuts = options.shortcuts || {};
+          
+          self.get(null, function onGetSuccess(data) {
+              var currentShortcuts = data.response.shortcuts || [],
+                  currentIcons = data.response.icons || {};
+              
+              for (var appId in icons) {
+                currentIcons[appId] = icons[appId];
+              }
+              
+              for (var i=0,shortcut,newShortcutData; i<currentShortcuts.length; i++) {
+                shortcut = currentShortcuts[i];
+                newShortcutData = shortcuts[shortcut.query] || shortcuts[shortcut.experienceId];
+                
+                if (newShortcutData) {
+                  currentShortcuts[i].appIds = newShortcutData;
+                  saveAppIds(currentShortcuts[i]);
+                }
+              }
+              
+              self.set({
+                  "shortcuts": currentShortcuts,
+                  "icons": currentIcons
+              }, callback);
+          });
+        };
         
         this.remove = function remove(shortcutToRemove) {
             self.get({}, function onGetSuccess(data){
@@ -372,6 +404,14 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         }
         
         function saveAppIds(shortcuts) {
+            if (!shortcuts) {
+              return;
+            }
+            
+            if (!Array.isArray(shortcuts)) {
+              shortcuts = [shortcuts];
+            }
+            
             for (var i=0,shortcut,value; shortcut=shortcuts[i++];) {
                 value = (shortcut.experienceId || shortcut.query).toString().toLowerCase();
                 queriesToAppIds[value] = shortcut.appIds;

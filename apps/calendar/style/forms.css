@@ -34,3 +34,17 @@ form li {
   padding: 0.25rem;
 }
 
+.datetime {
+  /* pass the events from <span> to <input> */
+  pointer-events: none;
+  position: absolute;
+  top: 0rem;
+  left: 2rem;
+  font-size: 1.4rem;
+  font-weight: normal;
+}
+
+.hidden-input {
+  /* visibility: hidden; will avoid events to reach the <input> */
+  opacity: 0;
+}

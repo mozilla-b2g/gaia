@@ -11,6 +11,7 @@
 var Compose = (function() {
   var placeholderClass = 'placeholder';
 
+  var slice = Array.prototype.slice;
   var attachments = new WeakMap();
 
   // will be defined in init
@@ -22,13 +23,16 @@ var Compose = (function() {
   };
 
   var handlers = {
-    input: []
+    input: [],
+    type: []
   };
 
   var state = {
     empty: true,
     maxLength: null,
-    lock: false
+    size: null,
+    // 'sms' or 'mms'
+    type: 'sms'
   };
 
   // handler for 'input' in contentEditable
@@ -36,19 +40,16 @@ var Compose = (function() {
 
     var textLength = dom.message.textContent.length;
     var empty = !textLength;
-
-    if (state.maxLength && textLength >= state.maxLength) {
-      state.lock = true;
-    }
+    var hasFrames = !!dom.message.querySelector('iframe');
 
     if (empty) {
       var brs = dom.message.getElementsByTagName('br');
-      var attachment = dom.message.querySelector('iframe');
       // firefox will keep an extra <br> in there
-      if (brs.length > 1 || attachment !== null) {
+      if (brs.length > 1 || hasFrames) {
         empty = false;
       }
     }
+
     var placeholding = dom.message.classList.contains(placeholderClass);
     if (placeholding && !empty) {
       dom.message.classList.remove(placeholderClass);
@@ -62,20 +63,33 @@ var Compose = (function() {
     }
 
     trigger('input', e);
+
+    if (hasFrames && state.type == 'sms') {
+      compose.type = 'mms';
+    }
+
+    if (!hasFrames && state.type == 'mms') {
+      // this operation is cancelable
+      compose.type = 'sms';
+    }
+
   }
 
-  function composeLockCheck(e) {
+  function composeKeyEvents(e) {
     // if locking and no-backspace pressed, cancel
-    if (state.lock && e.which !== 8) {
+    if (compose.lock && e.which !== 8) {
       e.preventDefault();
     } else {
-      state.lock = false;
+      // trigger a recompute of size on the keypresses
+      state.size = null;
+      compose.lock = false;
     }
   }
 
   function trigger(type) {
     var fns = handlers[type];
-    var args = [].slice(arguments, 1);
+    var args = slice.call(arguments, 1);
+
     if (fns && fns.length) {
       for (var i = 0; i < fns.length; i++) {
         fns[i].apply(this, args);
@@ -86,6 +100,9 @@ var Compose = (function() {
 
   function insert(item) {
     var fragment = document.createDocumentFragment();
+
+    // trigger recalc on insert
+    state.size = null;
 
     if (item.render) { // it's an Attachment
       var node = item.render();
@@ -111,7 +128,7 @@ var Compose = (function() {
   }
 
   var compose = {
-    init: function thui_compose_init(formId) {
+    init: function composeInit(formId) {
       dom.form = document.getElementById(formId);
       dom.message = dom.form.querySelector('[contenteditable]');
       dom.sendButton = document.getElementById('messages-send-button');
@@ -121,8 +138,8 @@ var Compose = (function() {
       dom.message.addEventListener('input', composeCheck);
 
       // we need to bind to keydown & keypress because of #870120
-      dom.message.addEventListener('keydown', composeLockCheck);
-      dom.message.addEventListener('keypress', composeLockCheck);
+      dom.message.addEventListener('keydown', composeKeyEvents);
+      dom.message.addEventListener('keypress', composeKeyEvents);
 
       dom.attachButton.addEventListener('click',
         this.onAttachClick.bind(this));
@@ -136,6 +153,16 @@ var Compose = (function() {
       if (handlers[type]) {
         handlers[type].push(handler);
       }
+      return this;
+    },
+    off: function(type, handler) {
+      if (handlers[type]) {
+        var index = handlers[type].indexOf(handler);
+        if (index !== -1) {
+          handlers[type].splice(index, 1);
+        }
+      }
+      return this;
     },
 
     getContent: function() {
@@ -189,19 +216,9 @@ var Compose = (function() {
       return state.empty;
     },
 
-    /** Sets the max number of chars allowed in the compositio area
-     * @param {mixed} Number of characters to limit input to
-     *                or `false` for no limit.
+    /** Stop further input because the max size is exceded
      */
-    setMaxLength: function(amount) {
-      state.maxLength = amount;
-      if (state.maxLength === false) {
-        state.lock = false;
-      }
-      else if (this.getText().length >= state.maxLength) {
-        state.lock = true;
-      }
-    },
+    lock: false,
 
     disable: function(state) {
       dom.sendButton.disabled = state;
@@ -250,6 +267,7 @@ var Compose = (function() {
     clear: function() {
       dom.message.innerHTML = '<br>';
       state.full = false;
+      state.size = 0;
       composeCheck();
       return this;
     },
@@ -296,5 +314,48 @@ var Compose = (function() {
     }
 
   };
+
+  Object.defineProperty(compose, 'type', {
+    get: function composeGetType() {
+      return state.type;
+    },
+    set: function composeSetType(value) {
+      // reject invalid types
+      if (!(value === 'sms' || value === 'mms')) {
+        return state.type;
+      }
+      if (value !== state.type) {
+        var event = new CustomEvent('type', {
+          cancelable: true
+        });
+        // store the old value in case of cancel
+        var oldValue = state.type;
+        state.type = value;
+        trigger('type', event);
+        if (event.defaultPrevented) {
+          state.type = oldValue;
+        } else {
+          dom.form.dataset.messageType = state.type;
+        }
+      }
+      return state.type;
+    }
+  });
+
+  Object.defineProperty(compose, 'size', {
+    get: function composeGetSize() {
+      if (state.size !== null) {
+        return state.size;
+      }
+      return state.size = this.getContent().reduce(function(sum, content) {
+        if (typeof content === 'string') {
+          return sum + content.length;
+        } else {
+          return sum + content.size;
+        }
+      }, 0);
+    }
+  });
+
   return compose;
 }());

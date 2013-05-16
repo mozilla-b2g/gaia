@@ -7,20 +7,17 @@ requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/js/recipients.js');
 
 
-var mocksHelper = new MocksHelper([
+var mocksHelperForRecipients = new MocksHelper([
   'Utils',
   'GestureDetector'
 ]);
 
-mocksHelper.init();
+mocksHelperForRecipients.init();
 
 suite('Recipients', function() {
   var recipients;
   var fixture;
-
-  if (typeof loadBodyHTML === 'undefined') {
-    require('/shared/test/unit/load_body_html_helper.js');
-  }
+  var mocksHelper = mocksHelperForRecipients;
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();

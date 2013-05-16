@@ -2,13 +2,15 @@
 
 // remove this when https://github.com/visionmedia/mocha/issues/819 is merged in
 // mocha and when we have that new mocha in test agent
-mocha.setup({ globals: ['alert'] });
+mocha.setup({ globals: ['alert', '0', '1'] });
 
 requireApp('sms/js/compose.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/utils.js');
+requireApp('sms/js/message_manager.js');
 
 requireApp('sms/test/unit/mock_alert.js');
+requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
@@ -16,10 +18,13 @@ requireApp('sms/test/unit/mock_link_helper.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_recipients.js');
+requireApp('sms/test/unit/mock_settings.js');
 
 
 var mocksHelperForThreadUI = new MocksHelper([
+  'Attachment',
   'Utils',
+  'Settings',
   'Recipients',
   'LinkHelper',
   'MozActivity'
@@ -40,6 +45,13 @@ suite('thread_ui.js >', function() {
   var testImageBlob;
   var testAudioBlob;
   var testVideoBlob;
+
+  function mockAttachment(size) {
+    return new MockAttachment({
+      type: 'image/jpeg',
+      size: size
+    }, 'kitten-450.jpg');
+  }
 
   suiteSetup(function(done) {
     mocksHelper.suiteSetup();
@@ -188,18 +200,19 @@ suite('thread_ui.js >', function() {
         assert.isFalse(sendButton.disabled);
       });
 
-      test('button should be disabled when there is both contact and input, ' +
-          'but too many segments',
-        function() {
+      // TODO: Fix this test to be about being over the MMS limit inside #840035
 
-        MockNavigatormozMobileMessage.mNextSegmentInfo = {
-          segments: 11,
-          charsAvailableInLastSegment: 10
-        };
+      test('button should be disabled when there is both contact and ' +
+          'input, but too much data to send as mms',
+        function() {
 
         ThreadUI.recipients.add({
           number: '999'
         });
+
+        Compose.append(mockAttachment(300 * 1024));
+
+        assert.isFalse(sendButton.disabled);
         Compose.append('Hola');
 
         assert.isTrue(sendButton.disabled);
@@ -208,10 +221,12 @@ suite('thread_ui.js >', function() {
   });
 
   suite('updateCounter() >', function() {
-    var banner, shouldEnableSend;
+    var banner, convertBanner, shouldEnableSend, form;
 
     setup(function() {
       banner = document.getElementById('messages-max-length-notice');
+      convertBanner = document.getElementById('messages-convert-notice');
+      form = document.getElementById('messages-compose-form');
     });
 
     suite('no characters entered >', function() {
@@ -224,8 +239,8 @@ suite('thread_ui.js >', function() {
         // display the banner to check that it is correctly hidden
         banner.classList.remove('hide');
 
-        // add a maxlength to check that it is correctly removed
-        Compose.setMaxLength(25);
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -236,6 +251,10 @@ suite('thread_ui.js >', function() {
 
       test('no banner is displayed', function() {
         assert.ok(banner.classList.contains('hide'));
+      });
+
+      test('lock is unset', function() {
+        assert.isFalse(Compose.lock);
       });
     });
 
@@ -249,8 +268,8 @@ suite('thread_ui.js >', function() {
         // display the banner to check that it is correctly hidden
         banner.classList.remove('hide');
 
-        // add a maxlength to check that it is correctly removed
-        Compose.setMaxLength(25);
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -265,6 +284,10 @@ suite('thread_ui.js >', function() {
 
       test('the send button should be enabled', function() {
         assert.isTrue(shouldEnableSend);
+      });
+
+      test('lock is unset', function() {
+        assert.isFalse(Compose.lock);
       });
     });
 
@@ -281,8 +304,8 @@ suite('thread_ui.js >', function() {
         // display the banner to check that it is correctly hidden
         banner.classList.remove('hide');
 
-        // add a maxlength to check that it is correctly removed
-        Compose.setMaxLength(25);
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -298,6 +321,10 @@ suite('thread_ui.js >', function() {
 
       test('the send button should be enabled', function() {
         assert.isTrue(shouldEnableSend);
+      });
+
+      test('lock is unset', function() {
+        assert.isFalse(Compose.lock);
       });
     });
 
@@ -314,8 +341,8 @@ suite('thread_ui.js >', function() {
         // display the banner to check that it is correctly hidden
         banner.classList.remove('hide');
 
-        // add a maxlength to check that it is correctly removed
-        Compose.setMaxLength(25);
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -332,6 +359,11 @@ suite('thread_ui.js >', function() {
       test('the send button should be enabled', function() {
         assert.isTrue(shouldEnableSend);
       });
+
+      test('lock is unset', function() {
+        assert.isFalse(Compose.lock);
+      });
+
     });
 
     suite('in last segment >', function() {
@@ -347,8 +379,8 @@ suite('thread_ui.js >', function() {
         // display the banner to check that it is correctly hidden
         banner.classList.remove('hide');
 
-        // add a maxlength to check that it is correctly removed
-        Compose.setMaxLength(25);
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
 
         shouldEnableSend = ThreadUI.updateCounter();
       });
@@ -365,6 +397,10 @@ suite('thread_ui.js >', function() {
       test('the send button should be enabled', function() {
         assert.isTrue(shouldEnableSend);
       });
+
+      test('lock is unset', function() {
+        assert.isFalse(Compose.lock);
+      });
     });
 
     suite('in last segment, no characters left >', function() {
@@ -377,8 +413,12 @@ suite('thread_ui.js >', function() {
           charsAvailableInLastSegment: availableChars
         };
 
-        // display the banner again, to check it's correctly displayed
-        banner.classList.add('hide');
+        // display the banner to check that it is correctly hidden
+        banner.classList.remove('hide');
+
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
+
         shouldEnableSend = ThreadUI.updateCounter();
       });
 
@@ -387,17 +427,16 @@ suite('thread_ui.js >', function() {
         assert.equal(sendButton.dataset.counter, expected);
       });
 
-      test('the banner is displayed', function() {
-        assert.isFalse(banner.classList.contains('hide'));
-      });
-
-      test('the banner has the max length message', function() {
-        var actual = banner.querySelector('p').textContent;
-        assert.equal(actual, 'messages-max-length-text');
-      });
-
       test('the send button should be enabled', function() {
         assert.isTrue(shouldEnableSend);
+      });
+
+      test('message type is sms', function() {
+        assert.equal(form.dataset.messageType, 'sms');
+      });
+
+      test('lock is disabled', function() {
+        assert.isFalse(Compose.lock);
       });
     });
 
@@ -411,6 +450,9 @@ suite('thread_ui.js >', function() {
           charsAvailableInLastSegment: availableChars
         };
 
+        // add a lock to check that it is correctly removed
+        Compose.lock = true;
+
         shouldEnableSend = ThreadUI.updateCounter();
       });
 
@@ -418,6 +460,203 @@ suite('thread_ui.js >', function() {
         var expected = availableChars + '/' + segment;
         assert.equal(sendButton.dataset.counter, expected);
       });
+
+      test('message type is mms', function() {
+        assert.equal(form.dataset.messageType, 'mms');
+      });
+
+      test('lock is disabled', function() {
+        assert.isFalse(Compose.lock);
+      });
+    });
+
+    suite('at size limit in mms >', function() {
+      setup(function() {
+        Settings.mmsSizeLimitation = 1024;
+        Compose.append(mockAttachment(512));
+        Compose.append(mockAttachment(512));
+        shouldEnableSend = ThreadUI.updateCounter();
+      });
+
+      teardown(function() {
+        Compose.clear();
+      });
+
+      test('shouldEnableSend', function() {
+        assert.isTrue(shouldEnableSend);
+      });
+
+      test('banner is displayed', function() {
+        assert.isFalse(banner.classList.contains('hide'));
+      });
+
+      test('banner has at size limit text', function() {
+        assert.equal(banner.querySelector('p').textContent,
+          'messages-max-length-text');
+      });
+
+      test('message type is mms', function() {
+        assert.equal(form.dataset.messageType, 'mms');
+      });
+
+      test('lock is enabled', function() {
+        assert.isTrue(Compose.lock);
+      });
+    });
+
+    suite('over size limit in mms >', function() {
+      setup(function() {
+        Settings.mmsSizeLimitation = 1024;
+        Compose.append(mockAttachment(512));
+        Compose.append('sigh');
+        Compose.append(mockAttachment(512));
+        shouldEnableSend = ThreadUI.updateCounter();
+      });
+
+      teardown(function() {
+        Compose.clear();
+      });
+
+      test('shouldEnableSend is false', function() {
+        assert.isFalse(shouldEnableSend);
+      });
+
+      test('banner is displayed', function() {
+        assert.isFalse(banner.classList.contains('hide'));
+      });
+
+      test('banner has at size limit text', function() {
+        assert.equal(banner.querySelector('p').textContent,
+          'messages-exceeded-length-text');
+      });
+
+      test('message type is mms', function() {
+        assert.equal(form.dataset.messageType, 'mms');
+      });
+
+      test('lock is enabled', function() {
+        assert.isTrue(Compose.lock);
+      });
+    });
+
+  });
+  suite('message type conversion >', function() {
+    var convertBanner, convertBannerText, fakeTime, form;
+    setup(function() {
+      fakeTime = sinon.useFakeTimers();
+      convertBanner = document.getElementById('messages-convert-notice');
+      convertBannerText = convertBanner.querySelector('p');
+      form = document.getElementById('messages-compose-form');
+    });
+    teardown(function() {
+      fakeTime.restore();
+    });
+    test('sms to mms and back displays banner', function() {
+      // cause a type switch event to happen
+      Compose.type = 'mms';
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for mms');
+      assert.equal(convertBannerText.textContent, 'converted-to-mms',
+        'conversion banner has mms message');
+
+      fakeTime.tick(2999);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for just shy of 3 seconds');
+
+      fakeTime.tick(1);
+      assert.isTrue(convertBanner.classList.contains('hide'),
+        'conversion banner is hidden at 3 seconds');
+
+      Compose.type = 'sms';
+
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for sms');
+      assert.equal(convertBannerText.textContent, 'converted-to-sms',
+        'conversion banner has sms message');
+
+      fakeTime.tick(2999);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for just shy of 3 seconds');
+
+      fakeTime.tick(1);
+      assert.isTrue(convertBanner.classList.contains('hide'),
+        'conversion banner is hidden at 3 seconds');
+
+    });
+
+    test('character limit from sms to mms and back displays banner',
+      function() {
+
+      // go over the limit
+      MockNavigatormozMobileMessage.mNextSegmentInfo = {
+        segments: 11,
+        charsAvailableInLastSegment: 0
+      };
+
+      ThreadUI.updateCounter();
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for mms');
+      assert.equal(convertBannerText.textContent, 'converted-to-mms',
+        'conversion banner has mms message');
+
+      fakeTime.tick(2999);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for just shy of 3 seconds');
+
+      fakeTime.tick(1);
+      assert.isTrue(convertBanner.classList.contains('hide'),
+        'conversion banner is hidden at 3 seconds');
+
+      MockNavigatormozMobileMessage.mNextSegmentInfo.segments = 0;
+      Compose.clear();
+
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for sms');
+      assert.equal(convertBannerText.textContent, 'converted-to-sms',
+        'conversion banner has sms message');
+
+      fakeTime.tick(2999);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for just shy of 3 seconds');
+
+      fakeTime.tick(1);
+      assert.isTrue(convertBanner.classList.contains('hide'),
+        'conversion banner is hidden at 3 seconds');
+
+    });
+    test('converting from sms to mms and back quickly', function() {
+      // go over the limit
+      MockNavigatormozMobileMessage.mNextSegmentInfo = {
+        segments: 11,
+        charsAvailableInLastSegment: 0
+      };
+
+      ThreadUI.updateCounter();
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for mms');
+      assert.equal(convertBannerText.textContent, 'converted-to-mms',
+        'conversion banner has mms message');
+
+      fakeTime.tick(1500);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is still shown');
+
+      MockNavigatormozMobileMessage.mNextSegmentInfo.segments = 0;
+      Compose.clear();
+
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is shown for sms');
+      assert.equal(convertBannerText.textContent, 'converted-to-sms',
+        'conversion banner has sms message');
+
+      // long enough to go past the previous timeout 1500 + 2000 > 3000
+      fakeTime.tick(2000);
+      assert.isFalse(convertBanner.classList.contains('hide'),
+        'conversion banner is still shown');
+
+      fakeTime.tick(1000);
+      assert.isTrue(convertBanner.classList.contains('hide'),
+        'conversion banner is hidden at 3 seconds');
 
     });
   });
@@ -476,6 +715,139 @@ suite('thread_ui.js >', function() {
       });
     });
 
+  });
+
+  suite('resendMessage', function() {
+    setup(function() {
+      this.targetMsg = {
+        id: 23,
+        type: 'sms',
+        body: 'This is a test',
+        delivery: 'error',
+        timestamp: new Date()
+      };
+      this.otherMsg = {
+        id: 45,
+        type: 'sms',
+        body: 'This is another test',
+        delivery: 'sent',
+        timestamp: new Date()
+      };
+      ThreadUI.appendMessage(this.targetMsg);
+      ThreadUI.appendMessage(this.otherMsg);
+
+      assert.length(
+        ThreadUI.container.querySelectorAll('[data-message-id="23"]'),
+        1);
+      assert.length(
+        ThreadUI.container.querySelectorAll('[data-message-id="45"]'),
+        1);
+
+      this.getMessageReq = {};
+      sinon.stub(MessageManager, 'getMessage')
+        .returns(this.getMessageReq);
+      sinon.stub(MessageManager, 'deleteMessage').callsArgWith(1, true);
+
+      sinon.stub(ThreadUI, 'sendMessage');
+    });
+    teardown(function() {
+      MessageManager.getMessage.restore();
+      MessageManager.deleteMessage.restore();
+      ThreadUI.sendMessage.restore();
+    });
+
+    // TODO: Implement this functionality in a specialized method and update
+    // this test accordingly.
+    // Bug 872725 - [MMS] Message deletion logic is duplicated
+    test('removes the markup of only the specified message from the DOM',
+      function() {
+      ThreadUI.resendMessage(23);
+
+      this.getMessageReq.result = this.targetMsg;
+      this.getMessageReq.onsuccess();
+
+      assert.length(
+        ThreadUI.container.querySelectorAll('[data-message-id="23"]'),
+        0);
+      assert.length(
+        ThreadUI.container.querySelectorAll('[data-message-id="45"]'),
+        1);
+    });
+
+    test('invokes the `sendMessage` method', function() {
+      ThreadUI.resendMessage(23);
+
+      this.getMessageReq.result = this.targetMsg;
+      this.getMessageReq.onsuccess();
+
+      assert.deepEqual(ThreadUI.sendMessage.args, [[this.targetMsg.body]]);
+    });
+
+  });
+
+  // TODO: Move these tests to an integration test suite.
+  // Bug 868056 - Clean up SMS test suite
+  suite('Message resending UI', function() {
+    setup(function() {
+      ThreadUI.appendMessage({
+        id: 23,
+        type: 'sms',
+        body: 'This is a test',
+        delivery: 'error',
+        timestamp: new Date()
+      });
+      ThreadUI.appendMessage({
+        id: 45,
+        type: 'sms',
+        body: 'This is another test',
+        delivery: 'sent',
+        timestamp: new Date()
+      });
+      sinon.stub(window, 'confirm');
+      sinon.stub(ThreadUI, 'resendMessage');
+      this.elems = {
+        errorMsg: ThreadUI.container.querySelector('.error'),
+        sentMsg: ThreadUI.container.querySelector('.sent')
+      };
+    });
+    teardown(function() {
+      window.confirm.restore();
+      ThreadUI.resendMessage.restore();
+    });
+    test('clicking on an error message bubble triggers a confirmation dialog',
+      function() {
+      this.elems.errorMsg.querySelector('.bubble').click();
+      assert.equal(window.confirm.callCount, 1);
+    });
+    test('clicking within an error message bubble triggers a confirmation ' +
+      'dialog', function() {
+      this.elems.errorMsg.querySelector('.bubble *').click();
+      assert.equal(window.confirm.callCount, 1);
+    });
+    test('clicking on an error message does not trigger a confirmation dialog',
+      function() {
+      this.elems.errorMsg.click();
+      assert.equal(window.confirm.callCount, 0);
+    });
+    test('clicking on an error message bubble and accepting the ' +
+      'confirmation dialog triggers a message re-send operation', function() {
+      window.confirm.returns(true);
+      this.elems.errorMsg.querySelector('.bubble').click();
+      assert.equal(ThreadUI.resendMessage.callCount, 1);
+    });
+    test('clicking on an error message bubble and rejecting the ' +
+      'confirmation dialog does not trigger a message re-send operation',
+      function() {
+      window.confirm.returns(false);
+      this.elems.errorMsg.querySelector('.bubble').click();
+      assert.equal(ThreadUI.resendMessage.callCount, 0);
+    });
+    test('clicking on a sent message does not trigger a confirmation dialog ' +
+      'nor a message re-send operation', function() {
+      this.elems.sentMsg.click();
+      assert.equal(window.confirm.callCount, 0);
+      assert.equal(ThreadUI.resendMessage.callCount, 0);
+    });
   });
 
   suite('createMmsContent', function() {

@@ -30,6 +30,8 @@ var ThreadUI = global.ThreadUI = {
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
   TO_FIELD_HEIGHT: 5.7,
+  // duration of the notification that message type was converted
+  CONVERTED_MESSAGE_DURATION: 3000,
   recipients: null,
   init: function thui_init() {
     var _ = navigator.mozL10n.get;
@@ -45,7 +47,7 @@ var ThreadUI = global.ThreadUI = {
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
       'delete-button', 'cancel-button',
       'edit-mode', 'edit-form', 'tel-form',
-      'max-length-notice'
+      'max-length-notice', 'convert-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -57,6 +59,8 @@ var ThreadUI = global.ThreadUI = {
 
     // In case of input, we have to resize the input following UX Specs.
     Compose.on('input', this.messageComposerInputHandler.bind(this));
+
+    Compose.on('type', this.messageComposerTypeHandler.bind(this));
 
     this.toField.addEventListener(
       'keypress', this.toFieldKeypress.bind(this), true
@@ -122,18 +126,17 @@ var ThreadUI = global.ThreadUI = {
       'focus', this.messageComposerFocusHandler.bind(this)
     );
 
-    // Delegate to |this.handleEvent|
     this.container.addEventListener(
-      'click', this
+      'click', this.handleEvent.bind(this)
     );
     this.container.addEventListener(
-      'contextmenu', this
+      'contextmenu', this.handleEvent.bind(this)
     );
     this.editForm.addEventListener(
-      'submit', this
+      'submit', this.handleEvent.bind(this)
     );
     this.composeForm.addEventListener(
-      'submit', this
+      'submit', this.handleEvent.bind(this)
     );
     // For picking a contact from Contacts. It's mouse down for
     // avoiding weird effect of keyboard, as in 'send' button.
@@ -250,6 +253,25 @@ var ThreadUI = global.ThreadUI = {
         }
       }
     } while (node = node.previousSibling);
+  },
+
+  // Message composer type changed:
+  messageComposerTypeHandler: function thui_messageComposerTypeHandler(event) {
+    // if we are changing to sms type, we might want to cancel
+    if (Compose.type === 'sms') {
+      if (this.updateSmsSegmentLimit()) {
+        return event.preventDefault();
+      }
+    }
+
+    var message = navigator.mozL10n.get('converted-to-' + Compose.type);
+    this.convertNotice.querySelector('p').textContent = message;
+    this.convertNotice.classList.remove('hide');
+
+    clearTimeout(this._convertNoticeTimeout);
+    this._convertNoticeTimeout = setTimeout(function hideConvertNotice() {
+      this.convertNotice.classList.add('hide');
+    }.bind(this), this.CONVERTED_MESSAGE_DURATION);
   },
 
   // Create a recipient from contacts activity.
@@ -381,16 +403,15 @@ var ThreadUI = global.ThreadUI = {
     this.container.scrollTop = this.container.scrollHeight;
   },
 
-  // will return true if we can send the message, false if we can't send the
-  // message
-  updateCounter: function thui_updateCount() {
+  // updates the counter for sms segments when in text only mode
+  // returns true when the limit is over the segment limit
+  updateSmsSegmentLimit: function thui_updateSmsSegmentLimit() {
     if (!(this._mozMobileMessage &&
           this._mozMobileMessage.getSegmentInfoForText)) {
-      return true;
+      return false;
     }
 
     var value = Compose.getText();
-
     // We set maximum concatenated number of our SMS app to 10 based on:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
     var kMaxConcatenatedMessages = 10;
@@ -400,33 +421,60 @@ var ThreadUI = global.ThreadUI = {
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
 
+    // in MMS mode, the counter value isn't used anyway, so we can update this
     this.sendButton.dataset.counter = availableChars + '/' + segments;
+
+    // if we are going to force MMS, this is true anyway, so adding has-counter
+    // again doesn't hurt us.
     if (segments && (segments > 1 || availableChars <= 10)) {
       this.sendButton.classList.add('has-counter');
     } else {
       this.sendButton.classList.remove('has-counter');
     }
 
-    var hasMaxLength = (segments === kMaxConcatenatedMessages &&
-        !availableChars);
+    return segments > kMaxConcatenatedMessages;
+  },
 
-    // we may have this if we switch from 140-character messages to 70-character
-    // messages due to an encoding change
-    var exceededMaxLength = (segments > kMaxConcatenatedMessages);
+  // will return true if we can send the message, false if we can't send the
+  // message
+  updateCounter: function thui_updateCount() {
+    var message;
 
-    if (hasMaxLength || exceededMaxLength) {
-      Compose.setMaxLength(value.length);
-      var key = hasMaxLength ?
-          'messages-max-length-text' : 'messages-exceeded-length-text';
-      var message = navigator.mozL10n.get(key);
-      this.maxLengthNotice.querySelector('p').textContent = message;
-      this.maxLengthNotice.classList.remove('hide');
-    } else {
-      Compose.setMaxLength(false);
-      this.maxLengthNotice.classList.add('hide');
+    if (Compose.type === 'mms') {
+      return this.updateCounterForMms();
     }
 
-    return !exceededMaxLength;
+    Compose.lock = false;
+    this.maxLengthNotice.classList.add('hide');
+    if (this.updateSmsSegmentLimit()) {
+      Compose.type = 'mms';
+    }
+    return true;
+  },
+
+  updateCounterForMms: function thui_updateCounterForMms() {
+    // always turn on the counter for mms, it just displays "MMS"
+    this.sendButton.classList.add('has-counter');
+
+    if (Settings.mmsSizeLimitation) {
+      if (Compose.size > Settings.mmsSizeLimitation) {
+        Compose.lock = true;
+        this.maxLengthNotice.querySelector('p').textContent =
+          navigator.mozL10n.get('messages-exceeded-length-text');
+        this.maxLengthNotice.classList.remove('hide');
+        return false;
+      } else if (Compose.size === Settings.mmsSizeLimitation) {
+        Compose.lock = true;
+        this.maxLengthNotice.querySelector('p').textContent =
+          navigator.mozL10n.get('messages-max-length-text');
+        this.maxLengthNotice.classList.remove('hide');
+        return true;
+      }
+    }
+
+    Compose.lock = false;
+    this.maxLengthNotice.classList.add('hide');
+    return true;
   },
 
   updateInputHeight: function thui_updateInputHeight() {
@@ -771,6 +819,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     messageDOM.id = 'message-' + message.id;
+    messageDOM.dataset.messageId = message.id;
 
     messageDOM.innerHTML = this.tmpl.message.interpolate({
       id: String(message.id),
@@ -778,10 +827,6 @@ var ThreadUI = global.ThreadUI = {
     }, {
       safe: ['bodyHTML']
     });
-
-    if (delivery === 'error') {
-      ThreadUI.addResendHandler(message, messageDOM);
-    }
 
     var pElement = messageDOM.querySelector('p');
     if (message.type === 'mms') { // MMS
@@ -830,18 +875,6 @@ var ThreadUI = global.ThreadUI = {
     for (var i = elements.length - 1; i >= 0; i--) {
       elements[i].classList.remove('hidden');
     }
-  },
-
-  addResendHandler: function thui_addResendHandler(message, messageDOM) {
-    messageDOM.addEventListener('click', function resend(e) {
-      var hash = window.location.hash;
-      if (hash != '#edit') {
-        if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
-          messageDOM.removeEventListener('click', resend);
-          ThreadUI.resendMessage(message, messageDOM);
-        }
-      }
-    });
   },
 
   cleanForm: function thui_cleanForm() {
@@ -962,10 +995,42 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  handleMessageClick: function thui_handleMessageClick(evt) {
+    var currentNode = evt.target;
+    var inBubble = false;
+    var elems = {};
+
+    // Walk up the DOM, inspecting all the elements
+    while (currentNode && currentNode.classList) {
+      if (currentNode.classList.contains('bubble')) {
+        elems.bubble = currentNode;
+      } else if (currentNode.classList.contains('message')) {
+        elems.message = currentNode;
+      }
+      currentNode = currentNode.parentNode;
+    }
+
+    // Click event handlers that occur outside of a message element should be
+    // defined elsewhere.
+    if (!elems.message) {
+      return;
+    }
+
+    // Click events originating from within a "bubble" of an error message
+    // should trigger a prompt for retransmission.
+    if (elems.bubble && elems.message.classList.contains('error')) {
+      if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
+        this.resendMessage(elems.message.dataset.messageId);
+      }
+      return;
+    }
+  },
+
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
         if (window.location.hash !== '#edit') {
+          this.handleMessageClick(evt);
           // Handle events on links in a message
           thui_mmsAttachmentClick(evt.target);
           LinkActionHandler.handleTapEvent(evt);
@@ -974,8 +1039,8 @@ var ThreadUI = global.ThreadUI = {
 
         var input = evt.target.parentNode.querySelector('input');
         if (input) {
-          ThreadUI.chooseMessage(input);
-          ThreadUI.checkInputs();
+          this.chooseMessage(input);
+          this.checkInputs();
         }
         break;
       case 'contextmenu':
@@ -1089,8 +1154,6 @@ var ThreadUI = global.ThreadUI = {
     messageDOM.classList.remove('sending');
     messageDOM.classList.add('error');
 
-    ThreadUI.addResendHandler(message, messageDOM);
-
     this.ifRilDisabled(this.showAirplaneModeError);
   },
 
@@ -1121,33 +1184,55 @@ var ThreadUI = global.ThreadUI = {
     );
   },
 
-  resendMessage: function thui_resendMessage(message, messageDOM) {
-    // Is the last one in the ul?
-    var messagesContainer = messageDOM.parentNode;
-    if (messagesContainer.childNodes.length == 1) {
-      // If it is, we remove header & container
-      var header = messagesContainer.previousSibling;
-      ThreadUI.container.removeChild(header);
-      ThreadUI.container.removeChild(messagesContainer);
-    } else {
-      // If not we only have to remove the message
-      messageDOM.parentNode.removeChild(messageDOM);
+  resendMessage: function thui_resendMessage(id) {
+    var messageDOM, messagesContainer, request;
+
+    if (typeof id !== 'number') {
+      id = parseInt(id, 10);
+    }
+    messageDOM = this.container.querySelector('[data-message-id="' + id +
+      '"]');
+    messagesContainer = messageDOM.parentNode;
+
+    // Defer removing the message from the DOM until after it has been
+    // successfully removed from the database
+    // TODO: Generelize this logic so it may be shared with `ThreadUI.delete`
+    // and more thoroughly tested.
+    // Bug 872725 - [MMS] Message deletion logic is duplicated
+    function removeFromDOM() {
+      // Is the last one in the ul?
+      if (messagesContainer.childNodes.length == 1) {
+        // If it is, we remove header & container
+        var header = messagesContainer.previousSibling;
+        ThreadUI.container.removeChild(header);
+        ThreadUI.container.removeChild(messagesContainer);
+      } else {
+        // If not we only have to remove the message
+        messageDOM.parentNode.removeChild(messageDOM);
+      }
+
+      // Have we more elements in the view?
+      if (!ThreadUI.container.childNodes.length) {
+        // Update header index
+        ThreadUI.dayHeaderIndex = 0;
+        ThreadUI.timeHeaderIndex = 0;
+      }
     }
 
-    // Have we more elements in the view?
-    if (!ThreadUI.container.childNodes.length) {
-      // Update header index
-      ThreadUI.dayHeaderIndex = 0;
-      ThreadUI.timeHeaderIndex = 0;
-    }
+    request = MessageManager.getMessage(id);
 
-    // delete from Gecko db as well
-    if (message.id) {
-      MessageManager.deleteMessage(message.id);
-    }
-
-    // We resend again
-    ThreadUI.sendMessage(message.body);
+    request.onsuccess = (function() {
+      var message = request.result;
+      // delete from Gecko db as well
+      MessageManager.deleteMessage(id, function(success) {
+        if (!success) {
+          return;
+        }
+        removeFromDOM();
+        // We resend again
+        this.sendMessage(message.body);
+      }.bind(this));
+    }).bind(this);
   },
 
 
