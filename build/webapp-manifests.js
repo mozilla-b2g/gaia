@@ -4,6 +4,9 @@ function debug(msg) {
   //dump('-*- webapp-manifest.js: ' + msg + '\n');
 }
 
+let io = Cc['@mozilla.org/network/io-service;1']
+           .getService(Components.interfaces.nsIIOService);
+
 let webappsTargetDir = Cc['@mozilla.org/file/local;1']
                .createInstance(Ci.nsILocalFile);
 webappsTargetDir.initWithPath(PROFILE_DIR);
@@ -56,6 +59,14 @@ function getAppStatus(status) {
   return appStatus;
 }
 
+function checkOrigin(origin) {
+  try {
+    return (io.newURI(origin, null, null).prePath === origin);
+  } catch (e) {
+    return false;
+  }
+}
+
 Gaia.webapps.forEach(function (webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
@@ -97,6 +108,8 @@ Gaia.webapps.forEach(function (webapp) {
 
 });
 
+let errors = [];
+
 // Process external webapps from /gaia/external-app/ folder
 Gaia.externalWebapps.forEach(function (webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
@@ -114,11 +127,51 @@ Gaia.externalWebapps.forEach(function (webapp) {
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
 
-  let origin;
-  let installOrigin;
-  let manifestURL;
-
   let removable;
+  let manifestURL = webapp.metaData.manifestURL;
+
+  if (!manifestURL) {
+    errors.push('External webapp `' + webapp.domain + '` does not have the ' +
+                'mandatory manifestURL property.');
+    return;
+  }
+
+  let manifestURI;
+  try {
+    manifestURI = io.newURI(manifestURL, null, null);
+  } catch (e) {
+    let msg = 'Error ' + e.name + ' while parsing manifestURL for webapp ' +
+               webapp.domain + ': ' + manifestURL;
+    if (e.name === 'NS_ERROR_MALFORMED_URI') {
+      msg += '\n    Is it an absolute URL?';
+    }
+
+    errors.push(msg);
+    return;
+  }
+
+  if (manifestURI.scheme === 'app') {
+    dump('Warning: external webapp `' + webapp.domain + '` has a manifestURL ' +
+          'with an app:// scheme, which makes it non-updatable.\n');
+  }
+
+  let origin = webapp.metaData.origin;
+  if (origin) {
+    if (!checkOrigin(origin)) {
+      errors.push('External webapp `' + webapp.domain + '` has an invalid ' +
+                  'origin: ' + origin);
+      return;
+    }
+  } else {
+    origin = manifestURI.prePath;
+  }
+
+  let installOrigin = webapp.metaData.installOrigin || origin;
+  if (!checkOrigin(installOrigin)) {
+    errors.push('External webapp `' + webapp.domain + '` has an invalid ' +
+                'installOrigin: ' + installOrigin);
+    return;
+  }
 
   // In case of packaged app, just copy `application.zip` and `update.webapp`
   let appPackage = webapp.sourceDirectoryFile.clone();
@@ -127,25 +180,19 @@ Gaia.externalWebapps.forEach(function (webapp) {
     let updateManifest = webapp.sourceDirectoryFile.clone();
     updateManifest.append('update.webapp');
     if (!updateManifest.exists()) {
-      throw new Error('External packaged webapp `' + webapp.domain + '  is ' +
-                      'missing an `update.webapp` file. This JSON file ' +
-                      'contains a `package_path` attribute specifying where ' +
-                      'to download the application zip package from the origin ' +
-                      'specified in `metadata.json` file.');
+      errors.push('External packaged webapp `' + webapp.domain + '  is ' +
+                  'missing an `update.webapp` file. This JSON file ' +
+                  'contains a `package_path` attribute specifying where ' +
+                  'to download the application zip package from the origin ' +
+                  'specified in `metadata.json` file.');
+      return;
     }
     appPackage.copyTo(webappTargetDir, 'application.zip');
     updateManifest.copyTo(webappTargetDir, 'update.webapp');
     removable = ("removable" in webapp.metaData) ? !!webapp.metaData.removable
                                                  : true;
-    origin = webapp.metaData.origin;
-    installOrigin = webapp.metaData.installOrigin;
-    manifestURL = webapp.metaData.manifestURL;
   } else {
     webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
-    origin = webapp.metaData.origin;
-    installOrigin = webapp.metaData.installOrigin || webapp.metaData.origin;
-    manifestURL = webapp.metaData.manifestURL ||
-                    (webapp.metaData.origin + 'manifest.webapp');
     removable = ("removable" in webapp.metaData) ? !!webapp.metaData.removable
                                                  : true;
 
@@ -155,9 +202,11 @@ Gaia.externalWebapps.forEach(function (webapp) {
     if (srcCacheFolder.exists()) {
       let cacheManifest = srcCacheFolder.clone();
       cacheManifest.append('manifest.appcache');
-      if (!cacheManifest.exists())
-        throw new Error('External webapp `' + webapp.domain + '` has a cache ' +
-                        'directory without `manifest.appcache` file.');
+      if (!cacheManifest.exists()) {
+        errors.push('External webapp `' + webapp.domain + '` has a cache ' +
+                    'directory without `manifest.appcache` file.');
+        return;
+      }
 
       // Copy recursively the whole cache folder to webapp folder
       let targetCacheFolder = webappTargetDir.clone();
@@ -184,6 +233,14 @@ Gaia.externalWebapps.forEach(function (webapp) {
   };
 
 });
+
+if (errors.length) {
+  var introMessage = 'We got ' + errors.length + ' manifest error' +
+    ((errors.length > 1) ? 's' : '') + ' while building:';
+  errors.unshift(introMessage);
+  var message = errors.join('\n * ') + '\n';
+  throw new Error(message);
+}
 
 // Write webapps global manifest
 let manifestFile = webappsTargetDir.clone();
