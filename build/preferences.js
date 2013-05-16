@@ -84,6 +84,10 @@ if (DEBUG) {
   prefs.push(["dom.report_all_js_exceptions", true]);
   prefs.push(["webgl.verbose", true]);
 
+  // Turn off unresponsive script dialogs so test-agent can keep running...
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=872141
+  prefs.push(["dom.max_script_run_time", 0]);
+
   // Identity debug messages
   prefs.push(["toolkit.identity.debug", true]);
 
