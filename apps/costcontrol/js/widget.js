@@ -19,6 +19,7 @@
   var hasSim = true;
   function onReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
+    var iccid = mobileConnection.iccInfo.iccid;
 
     // No SIM
     if (!mobileConnection || mobileConnection.cardState === 'absent') {
@@ -28,23 +29,50 @@
     // SIM is not ready
     } else if (mobileConnection.cardState !== 'ready') {
       debug('SIM not ready:', mobileConnection.cardState);
+      mobileConnection.oncardstatechange = onReady;
+
+    // SIM is ready, but ICC info is not ready yet
+    } else if (iccid === null) {
+      debug('ICC info not ready yet');
       mobileConnection.oniccinfochange = onReady;
 
-    // SIM is ready
+    // All ready
     } else {
-      debug('SIM ready. ICCID:', mobileConnection.iccInfo.iccid);
+      debug('SIM ready. ICCID:', iccid);
+      mobileConnection.oncardstatechange = undefined;
       mobileConnection.oniccinfochange = undefined;
       startWidget();
     }
   };
 
   function startWidget() {
-    checkSIMChange(function _onSIMChecked() {
-      CostControl.getInstance(function _onCostControlReady(instance) {
-        costcontrol = instance;
-        setupWidget();
-      });
-    });
+    function _onNoICCID() {
+      console.error('checkSIMChange() failed. Impossible to ensure consistent' +
+                    'data. Aborting start up.');
+      window.close(); // remove the widget
+    }
+
+    if (!hasSim) {
+      var leftPanel = document.getElementById('left-panel');
+      var rightPanel = document.getElementById('right-panel');
+      var fte = document.getElementById('fte-view');
+
+      fte.setAttribute('aria-hidden', false);
+      leftPanel.setAttribute('aria-hidden', true);
+      rightPanel.setAttribute('aria-hidden', true);
+
+      document.getElementById('fte-icon').className = 'icon ' + 'widget-no-sim2';
+      fte.querySelector('p:first-child').innerHTML = _('widget-no-sim2-heading');
+      fte.querySelector('p:last-child').innerHTML = _('widget-no-sim2-meta');
+
+    } else {
+      checkSIMChange(function _onSIMChecked() {
+        CostControl.getInstance(function _onCostControlReady(instance) {
+          costcontrol = instance;
+          setupWidget();
+        });
+      }, _onNoICCID);
+    }
   }
 
   window.addEventListener('localized', function _onLocalize() {
@@ -138,25 +166,23 @@
 
   // USER INTERFACE
 
-  function setupFte(provider, mode) {
+  function setupFte(mode) {
 
     fte.setAttribute('aria-hidden', false);
     leftPanel.setAttribute('aria-hidden', true);
     rightPanel.setAttribute('aria-hidden', true);
 
-    if (hasSim) {
-      fte.addEventListener('click', function launchFte() {
-        fte.removeEventListener('click', launchFte);
-        var activity = new MozActivity({ name: 'costcontrol/balance' });
-      });
-    }
+    fte.addEventListener('click', function launchFte() {
+      fte.removeEventListener('click', launchFte);
+      var activity = new MozActivity({ name: 'costcontrol/balance' });
+    });
 
     var keyLookup = {
         PREPAID: 'widget-authed-sim',
         POSTPAID: 'widget-authed-sim',
         DATA_USAGE_ONLY: 'widget-nonauthed-sim'
     };
-    var simKey = hasSim ? keyLookup[mode] : 'widget-no-sim2';
+    var simKey = keyLookup[mode];
 
     document.getElementById('fte-icon').className = 'icon ' + simKey;
     fte.querySelector('p:first-child').innerHTML = _(simKey + '-heading',
@@ -175,7 +201,7 @@
 
       // Show fte mode widget
       if (settings.fte) {
-        setupFte(configuration.provider, mode);
+        setupFte(mode);
         debug('Widget in FTE mode');
         return;
       }
