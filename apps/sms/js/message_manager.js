@@ -133,12 +133,18 @@ var MessageManager = {
     }
   },
 
-  slide: function mm_slide(callback) {
+  slide: function mm_slide(direction, callback) {
     var mainWrapper = document.getElementById('main-wrapper');
 
+    // If no sliding is necessary, schedule the callback to be invoked as soon
+    // as possible (maintaining the asynchronous API of this method)
+    if (mainWrapper.dataset.position === direction) {
+      setTimeout(callback);
+      return;
+    }
+
     mainWrapper.classList.add('peek');
-    mainWrapper.dataset.position = (mainWrapper.dataset.position == 'left') ?
-                                   'right' : 'left';
+    mainWrapper.dataset.position = direction;
 
     // We have 2 panels, so we get 2 transitionend for each step
     var trEndCount = 0;
@@ -166,6 +172,7 @@ var MessageManager = {
       case '#new':
 
         ThreadUI.cleanFields(true);
+        mainWrapper.classList.remove('edit');
         // If the message has a body, use it to popuplate the input field.
         if (MessageManager.activityBody) {
           ThreadUI.setMessageBody(MessageManager.activityBody);
@@ -175,7 +182,7 @@ var MessageManager = {
         MessageManager.currentNums.length = 0;
         MessageManager.currentThread = null;
         threadMessages.classList.add('new');
-        MessageManager.slide(function() {
+        MessageManager.slide('left', function() {
           ThreadUI.initRecipients();
         });
         break;
@@ -198,11 +205,11 @@ var MessageManager = {
             });
           }
         } else if (threadMessages.classList.contains('new')) {
-          MessageManager.slide(function() {
+          MessageManager.slide('right', function() {
             threadMessages.classList.remove('new');
           });
         } else {
-          MessageManager.slide(function() {
+          MessageManager.slide('right', function() {
             ThreadUI.container.innerHTML = '';
             if (MessageManager.activityTarget) {
               window.location.hash =
@@ -243,7 +250,7 @@ var MessageManager = {
             var self = this;
             // Update Header
             ThreadUI.updateHeaderData(function headerReady() {
-              MessageManager.slide(function slided() {
+              MessageManager.slide('left', function slided() {
                 ThreadUI.renderMessages(filter);
               });
             });
