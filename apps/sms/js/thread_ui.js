@@ -45,6 +45,7 @@ var ThreadUI = global.ThreadUI = {
   CHUNK_SIZE: 10,
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
+  IMAGE_RESIZE_DURATION: 3000,
   recipients: null,
   // Set to |true| when in edit mode
   inEditMode: false,
@@ -66,7 +67,7 @@ var ThreadUI = global.ThreadUI = {
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
       'delete-button', 'cancel-button',
       'edit-icon', 'edit-mode', 'edit-form', 'tel-form',
-      'max-length-notice', 'convert-notice'
+      'max-length-notice', 'convert-notice', 'resize-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -325,6 +326,27 @@ var ThreadUI = global.ThreadUI = {
   messageComposerInputHandler: function thui_messageInputHandler(event) {
     this.updateInputHeight();
     this.enableSend();
+
+    if (Compose.isResizing) {
+      this.resizeNotice.classList.remove('hide');
+
+      if (this._resizeNoticeTimeout) {
+        clearTimeout(this._resizeNoticeTimeout);
+        this._resizeNoticeTimeout = null;
+      }
+    } else {
+      // Update counter after image resize complete
+      this.updateCounterForMms();
+      if (this.resizeNotice.classList.contains('hide') ||
+          this._resizeNoticeTimeout) {
+        return;
+      }
+
+      this._resizeNoticeTimeout = setTimeout(function hideResizeNotice() {
+        this.resizeNotice.classList.add('hide');
+        this._resizeNoticeTimeout = null;
+      }.bind(this), this.IMAGE_RESIZE_DURATION);
+    }
   },
 
   assimilateRecipients: function thui_assimilateRecipients() {
@@ -517,7 +539,7 @@ var ThreadUI = global.ThreadUI = {
     this.initSentAudio();
 
     // should disable if we have no message input
-    var disableSendMessage = Compose.isEmpty();
+    var disableSendMessage = Compose.isEmpty() || Compose.isResizing;
     var messageNotLong = this.updateCounter();
     var hasRecipients = this.recipients &&
       (this.recipients.length || !!this.recipients.inputValue);
@@ -588,6 +610,10 @@ var ThreadUI = global.ThreadUI = {
   updateCounterForMms: function thui_updateCounterForMms() {
     // always turn on the counter for mms, it just displays "MMS"
     this.sendButton.classList.add('has-counter');
+    // Counter should be updated when image resizing complete
+    if (Compose.isResizing) {
+      return false;
+    }
 
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {

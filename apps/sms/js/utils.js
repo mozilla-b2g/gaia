@@ -296,13 +296,19 @@
     },
 
     getResizedImgBlob: function ut_getResizedImgBlob(blob, limit, callback) {
-      // Default image size limitation is set to 300KB for MMS user story
+      // Default image size limitation is set to 300KB for MMS user story.
+      // If limit is not given or bigger than default 300KB, default value need
+      // to be appied here for size checking.
+      var defaultLimit = 300 * 1024;
       if (typeof limit === 'function') {
         callback = limit;
-        limit = 300 * 1024;
+        limit = defaultLimit;
       }
+      limit = limit === 0 ? defaultLimit : Math.min(limit, defaultLimit);
       if (blob.size < limit) {
-        callback(blob);
+        setTimeout(function blobCb() {
+          callback(blob);
+        });
       } else {
         var img = document.createElement('img');
         var url = URL.createObjectURL(blob);

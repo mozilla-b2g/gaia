@@ -32,6 +32,7 @@ var Compose = (function() {
     maxLength: null,
     size: null,
     lastScrollPosition: 0,
+    resizing: false,
 
     // 'sms' or 'mms'
     type: 'sms'
@@ -126,6 +127,63 @@ var Compose = (function() {
     }
 
     return fragment;
+  }
+
+  function imageAttachmentsHandling() {
+    // There is need to resize image attachment if total compose
+    // size doen't exceed mms size limitation.
+    if (Compose.size < Settings.mmsSizeLimitation) {
+      composeCheck();
+      return;
+    }
+
+    var nodes = dom.message.querySelectorAll('iframe');
+    var imgNodes = [];
+    var done = 0;
+    Array.prototype.forEach.call(nodes, function findImgNodes(node) {
+      var item = attachments.get(node);
+      if (item.type === 'img') {
+        imgNodes.push(node);
+      }
+    });
+
+    // Total number of images < 3
+    //   => Set max image size to 2/5 message size limitation.
+    // Total number of images >= 3
+    //   => Set max image size to 1/5 message size limitation.
+    var images = imgNodes.length;
+    var limit = images > 2 ? Settings.mmsSizeLimitation * 0.2 :
+                             Settings.mmsSizeLimitation * 0.4;
+
+    function imageSized() {
+      if (++done === images) {
+        state.resizing = false;
+        composeCheck();
+      }
+    }
+
+    state.resizing = true;
+    imgNodes.forEach(function(node) {
+      var item = attachments.get(node);
+      if (item.blob.size < limit) {
+        imageSized();
+      } else {
+        Utils.getResizedImgBlob(item.blob, limit, function(resizedBlob) {
+          // trigger recalc when resized
+          state.size = null;
+
+          item.blob = resizedBlob;
+          var newNode = item.render();
+          attachments.set(newNode, item);
+          if (dom.message.contains(node)) {
+            dom.message.insertBefore(newNode, node);
+            dom.message.removeChild(node);
+          }
+          imageSized();
+        });
+      }
+    });
+    composeCheck();
   }
 
   var compose = {
@@ -314,7 +372,11 @@ var Compose = (function() {
         dom.message.insertBefore(fragment, dom.message.lastChild);
         this.scrollToTarget(dom.message.lastChild);
       }
-      composeCheck();
+      if (item.type === 'img') {
+        imageAttachmentsHandling();
+      } else {
+        composeCheck();
+      }
       return this;
     },
 
@@ -337,7 +399,7 @@ var Compose = (function() {
     },
 
     onAttachmentClick: function thui_onAttachmentClick(event) {
-      if (event.target.className === 'attachment') {
+      if (event.target.className === 'attachment' && !state.resizing) {
         this.currentAttachmentDOM = event.target;
         this.currentAttachment = attachments.get(event.target);
         AttachmentMenu.open(this.currentAttachment);
@@ -406,7 +468,8 @@ var Compose = (function() {
         var result = activity.result;
 
         if (Settings.mmsSizeLimitation &&
-          result.blob.size > Settings.mmsSizeLimitation) {
+          result.blob.size > Settings.mmsSizeLimitation &&
+          Utils.typeFromMimeType(result.blob.type) !== 'img') {
           if (typeof requestProxy.onerror === 'function') {
             requestProxy.onerror('file too large');
           }
@@ -472,6 +535,12 @@ var Compose = (function() {
           return sum + content.size;
         }
       }, 0);
+    }
+  });
+
+  Object.defineProperty(compose, 'isResizing', {
+    get: function composeGetResizeState() {
+      return state.resizing;
     }
   });
 

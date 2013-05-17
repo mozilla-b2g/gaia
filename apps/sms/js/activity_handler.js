@@ -78,6 +78,9 @@ var ActivityHandler = {
             name: names[idx],
             isDraft: true
           });
+          // TODO: We only allow sharing one item in a single action now.
+          //       Keeping the same sequence while adding the multiple items
+          //       should be considered in the future.
           Compose.append(attachment);
         });
       }
