@@ -52,6 +52,47 @@ function startup(data, reason) {
     Services.obs.addObserver(function() {
       let browserWindow = Services.wm.getMostRecentWindow('navigator:browser');
 
+      // Inject CSS in browser to customize responsive view
+      let doc = browserWindow.document;
+      let pi = doc.createProcessingInstruction('xml-stylesheet', 'href="chrome://browser-helper.js/content/browser.css" type="text/css"');
+      doc.insertBefore(pi, doc.firstChild);
+
+      // Inject custom controls in responsive view
+      Cu.import('resource:///modules/devtools/responsivedesign.jsm');
+      ResponsiveUIManager.once('on', function(event, tab, responsive) {
+        let document = tab.ownerDocument;
+        // <toolbar id="ffoshardware-button">
+        //  <toolbarbutton id="ffos-home-button" />
+        // </toolbar>
+        let toolbar = document.createElement('toolbar');
+        toolbar.setAttribute('id', 'ffos-hardware-buttons');
+        toolbar.setAttribute('align', 'center');
+        toolbar.setAttribute('pack', 'center');
+        let button = document.createElement('toolbarbutton');
+        button.setAttribute('id', 'ffos-home-button');
+        button.setAttribute('class', 'devtools-toolbarbutton');
+        toolbar.appendChild(button);
+        responsive.container.appendChild(toolbar);
+
+        // Simulate a home button
+        function sendChromeEvent(detail) {
+          var contentDetail = Components.utils.createObjectIn(responsive.browser.contentWindow);
+          for (var i in detail) {
+            contentDetail[i] = detail[i];
+          }
+          Components.utils.makeObjectPropsNormal(contentDetail);
+          var customEvt = responsive.browser.contentWindow.document.createEvent('CustomEvent');
+          customEvt.initCustomEvent('mozChromeEvent', true, true, contentDetail);
+          responsive.browser.contentWindow.dispatchEvent(customEvt);
+        }
+        button.addEventListener('mousedown', function() {
+          sendChromeEvent({type: 'home-button-press'});
+        }, false);
+        button.addEventListener('mouseup', function() {
+          sendChromeEvent({type: 'home-button-release'});
+        }, false);
+      });
+
       // Automatically toggle responsive design mode
       let args = {'width': 320, 'height': 480};
       let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
@@ -62,11 +103,7 @@ function startup(data, reason) {
 
       // And devtool panel while maximizing its size according to screen size
       Services.prefs.setIntPref('devtools.toolbox.sidebar.width',
-                                browserWindow.screen.width - 550);
-      browserWindow.resizeTo(
-        browserWindow.screen.width,
-        browserWindow.outerHeight
-      );
+                                browserWindow.outerWidth - 550);
       gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser);
 
       // XXX This code should be loaded by the keyboard/ extension

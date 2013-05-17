@@ -2,19 +2,19 @@
 
 var WifiManager = {
   init: function wn_init() {
-    if ('mozWifiManager' in window.navigator) {
-      this.api = window.navigator.mozWifiManager;
-      this.changeStatus();
-      // Ensure that wifi is on.
+    this.api = WifiHelper.getWifiManager();
+    this.changeStatus();
+    // Ensure that wifi is on.
+    if (navigator.mozSettings) {
       var lock = window.navigator.mozSettings.createLock();
       this.enable(lock);
       this.enableDebugging(lock);
+    }
 
-      this.gCurrentNetwork = this.api.connection.network;
-      if (this.gCurrentNetwork !== null) {
-        this.api.forget(this.gCurrentNetwork);
-        this.gCurrentNetwork = null;
-      }
+    this.gCurrentNetwork = this.api.connection.network;
+    if (this.gCurrentNetwork !== null) {
+      this.api.forget(this.gCurrentNetwork);
+      this.gCurrentNetwork = null;
     }
   },
 
@@ -25,9 +25,6 @@ var WifiManager = {
      * Until this is properly implemented, we just compare SSIDs and
      * capabilities to tell wether the network is already connected or not.
      */
-    if (!this.api) {
-      return false;
-    }
     var currentNetwork = this.api.connection.network;
     if (!currentNetwork || this.api.connection.status != 'connected')
       return false;
@@ -39,51 +36,16 @@ var WifiManager = {
 
   scan: function wn_scan(callback) {
     utils.overlay.show(_('scanningNetworks'), 'spinner');
-    if ('mozWifiManager' in window.navigator) {
-      var req = WifiManager.api.getNetworks();
-      var self = this;
-      req.onsuccess = function onScanSuccess() {
-        self.networks = req.result;
-        callback(self.networks);
-      };
-      req.onerror = function onScanError() {
-        console.log('Error reading networks: ' + req.error.name);
-        callback();
-      };
-    } else {
-      var fakeNetworks = [
-        {
-          ssid: 'Mozilla-G',
-          bssid: 'xx:xx:xx:xx:xx:xx',
-          capabilities: ['WPA-EAP'],
-          relSignalStrength: 67,
-          connected: false
-        },
-        {
-          ssid: 'Livebox 6752',
-          bssid: 'xx:xx:xx:xx:xx:xx',
-          capabilities: ['WEP'],
-          relSignalStrength: 32,
-          connected: false
-        },
-        {
-          ssid: 'Mozilla Guest',
-          bssid: 'xx:xx:xx:xx:xx:xx',
-          capabilities: [],
-          relSignalStrength: 98,
-          connected: false
-        },
-        {
-          ssid: 'Freebox 8953',
-          bssid: 'xx:xx:xx:xx:xx:xx',
-          capabilities: ['WPA2-PSK'],
-          relSignalStrength: 89,
-          connected: false
-        }
-      ];
-      this.networks = fakeNetworks;
-      callback(fakeNetworks);
-    }
+    var req = this.api.getNetworks();
+    var self = this;
+    req.onsuccess = function onScanSuccess() {
+      self.networks = req.result;
+      callback(self.networks);
+    };
+    req.onerror = function onScanError() {
+      console.log('Error reading networks: ' + req.error.name);
+      callback();
+    };
   },
   enable: function wn_enable(lock) {
     lock.set({'wifi.enabled': true});
@@ -99,7 +61,7 @@ var WifiManager = {
     lock.set({ 'wifi.debugging.enabled': true });
   },
   finish: function wn_finish() {
-    if (!this._prevDebuggingValue) {
+    if (!this._prevDebuggingValue && navigator.mozSettings) {
       var resetLock = window.navigator.mozSettings.createLock();
       resetLock.set({'wifi.debugging.enabled': false});
     }
@@ -115,12 +77,9 @@ var WifiManager = {
     return network;
   },
   connect: function wn_connect(ssid, password, user) {
-    if (!this.api) { // Desktop
-      return;
-    }
     var network = this.getNetwork(ssid);
     this.ssid = ssid;
-    var key = this.getSecurityType(network);
+    var key = WifiHelper.getKeyManagement(network);
     switch (key) {
       case 'WEP':
         network.wep = password;
@@ -171,28 +130,6 @@ var WifiManager = {
         }
       }
     };
-  },
-
-  getSecurityType: function wn_gst(network) {
-    var key = network.capabilities[0];
-    if (/WEP$/.test(key))
-      return 'WEP';
-    if (/PSK$/.test(key))
-      return 'WPA-PSK';
-    if (/EAP$/.test(key))
-      return 'WPA-EAP';
-    return false;
-  },
-  isUserMandatory: function wn_ium(ssid) {
-    var network = this.getNetwork(ssid);
-    return (this.getSecurityType(network).indexOf('EAP') != -1);
-  },
-  isPasswordMandatory: function wn_ipm(ssid) {
-    var network = this.getNetwork(ssid);
-    if (!this.getSecurityType(network)) {
-      return false;
-    }
-    return true;
   }
 };
 
@@ -245,7 +182,7 @@ var WifiUI = {
     var ssid = event.target.dataset.ssid;
 
     // Do we need to type password?
-    if (!WifiManager.isPasswordMandatory(ssid)) {
+    if (WifiHelper.isOpen(WifiManager.getNetwork(ssid))) {
       WifiUI.connect(ssid);
       return;
     }
@@ -268,7 +205,7 @@ var WifiUI = {
     passwordInput.addEventListener('keyup', function validatePassword() {
       // disable the "Join" button if the password is too short
       var disabled = false;
-      switch (WifiManager.getSecurityType(selectedNetwork)) {
+      switch (WifiHelper.getKeyManagement(selectedNetwork)) {
         case 'WPA-PSK':
           disabled = disabled || passwordInput.value.length < 8;
           break;
@@ -296,7 +233,7 @@ var WifiUI = {
     // Activate secondary menu
     UIManager.navBar.classList.add('secondary-menu');
     // Update changes in form
-    if (WifiManager.isUserMandatory(ssid)) {
+    if (WifiHelper.isEap(WifiManager.getNetwork(ssid))) {
       userLabel.classList.remove('hidden');
       userInput.classList.remove('hidden');
     } else {

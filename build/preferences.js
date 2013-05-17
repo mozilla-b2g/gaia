@@ -58,15 +58,18 @@ if (BROWSER) {
   // Enable apis use on the device
   prefs.push(["dom.sms.enabled", true]);
   prefs.push(["dom.mozContacts.enabled", true]);
-  prefs.push(["dom.mozSettings.enabled", true]);
   prefs.push(["dom.mozTCPSocket.enabled", true]);
   prefs.push(["notification.feature.enabled", true]);
   prefs.push(["dom.sysmsg.enabled", true]);
   prefs.push(["dom.mozAlarms.enabled", true]);
   prefs.push(["device.storage.enabled", true]);
   prefs.push(["device.storage.prompt.testing", true]);
-  prefs.push(["dom.mozPermissionSettings.enabled", true]);
   prefs.push(["notification.feature.enabled", true]);
+
+  // WebSettings
+  prefs.push(["dom.mozSettings.enabled", true]);
+  prefs.push(["dom.navigator-property.disable.mozSettings", false]);
+  prefs.push(["dom.mozPermissionSettings.enabled", true]);
 }
 
 if (DEBUG) {
@@ -80,6 +83,10 @@ if (DEBUG) {
   prefs.push(["javascript.options.strict", true]);
   prefs.push(["dom.report_all_js_exceptions", true]);
   prefs.push(["webgl.verbose", true]);
+
+  // Turn off unresponsive script dialogs so test-agent can keep running...
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=872141
+  prefs.push(["dom.max_script_run_time", 0]);
 
   // Identity debug messages
   prefs.push(["toolkit.identity.debug", true]);

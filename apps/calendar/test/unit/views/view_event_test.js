@@ -202,10 +202,10 @@ suiteGroup('Views.ViewEvent', function() {
       var expected = {
         title: remote.title,
         location: remote.location,
-        startDate: InputParser.exportDate(remote.startDate),
-        startTime: InputParser.exportTime(remote.startDate),
-        endDate: InputParser.exportDate(remote.endDate),
-        endTime: InputParser.exportTime(remote.endDate),
+        startDate: subject.formatDate(remote.startDate),
+        startTime: subject.formatTime(remote.startDate),
+        endDate: subject.formatDate(remote.endDate),
+        endTime: subject.formatTime(remote.endDate),
         currentCalendar: calendar.remote.name,
         description: remote.description
       };
@@ -288,7 +288,7 @@ suiteGroup('Views.ViewEvent', function() {
       remote.endDate = new Date(2012, 0, 2);
 
       updatesValues(
-        { endDate: '2012-01-01' },
+        { endDate: '01/01/2012' },
         true,
         done
       );
@@ -322,6 +322,13 @@ suiteGroup('Views.ViewEvent', function() {
 
         done();
       });
+    });
+  });
+
+  suite('#formatTime', function() {
+    test('returns empty if invalid', function() {
+      var result = subject.formatTime();
+      assert.equal('', result);
     });
   });
 

@@ -16,7 +16,7 @@ var Connectivity = (function(window, document, undefined) {
   var _ = navigator.mozL10n.get;
 
   // in util.js, we fake these device interfaces if they are not exist.
-  var wifiManager = getWifiManager();
+  var wifiManager = WifiHelper.getWifiManager();
   var bluetooth = getBluetooth();
   var mobileConnection = getMobileConnection();
 
