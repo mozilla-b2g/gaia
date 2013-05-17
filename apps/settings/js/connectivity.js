@@ -68,13 +68,15 @@ var Connectivity = (function(window, document, undefined) {
     }
     _initialized = true;
 
-    kCardState = {
-      'pinRequired' : _('simCardLockedMsg'),
-      'pukRequired' : _('simCardLockedMsg'),
-      'networkLocked' : _('simLockedPhone'),
-      'unknown' : _('unknownSimCardState'),
-      'absent' : _('noSimCard'),
-      'null' : _('simCardNotReady')
+    kCardStateL10nId = {
+      'pinRequired' : 'simCardLockedMsg',
+      'pukRequired' : 'simCardLockedMsg',
+      'networkLocked' : 'simLockedPhone',
+      'serviceProviderLocked' : 'simLockedPhone',
+      'corporateLocked' : 'simLockedPhone',
+      'unknown' : 'unknownSimCardState',
+      'absent' : 'noSimCard',
+      'null' : 'simCardNotReady'
     };
     mobileConnection.addEventListener('datachange', updateCarrier);
     updateCarrier();
@@ -85,11 +87,6 @@ var Connectivity = (function(window, document, undefined) {
     updateBluetooth();
     // register blutooth system message handler
     initSystemMessageHandler();
-
-    window.addEventListener('localized', function() {
-      updateWifi();
-      updateBluetooth();
-    });
   }
 
   /**
@@ -107,12 +104,11 @@ var Connectivity = (function(window, document, undefined) {
     if (wifiManager.enabled) {
       // network.connection.status has one of the following values:
       // connecting, associated, connected, connectingfailed, disconnected.
-      wifiDesc.textContent = _('fullStatus-' +
-        wifiManager.connection.status,
-        wifiManager.connection.network);
+      localize(wifiDesc,
+               'fullStatus-' + wifiManager.connection.status,
+               wifiManager.connection.network);
     } else {
-      wifiDesc.textContent = _('disabled');
-      wifiDesc.dataset.l10nId = 'disabled';
+      localize(wifiDesc, 'disabled');
     }
 
     // record the MAC address here because the "Device Information" panel
@@ -144,7 +140,7 @@ var Connectivity = (function(window, document, undefined) {
    * Mobile Connection Manager
    */
 
-  var kCardState; // see init()
+  var kCardStateL10nId; // see init()
   var kDataType = {
     'lte' : '4G LTE',
     'ehrpd': 'CDMA',
@@ -178,6 +174,7 @@ var Connectivity = (function(window, document, undefined) {
       var text = msg.error ||
         ((data && operator) ? (operator + ' - ' + data) : operator);
       dataDesc.textContent = text;
+      dataDesc.dataset.l10nId = msg.l10nId || '';
 
       /**
        * XXX italic style for specifying state change is not a ideal solution
@@ -200,11 +197,11 @@ var Connectivity = (function(window, document, undefined) {
       return setCarrierStatus({});
 
     // ensure the SIM card is present and unlocked
-    var cardState = kCardState[mobileConnection.cardState ?
-                               mobileConnection.cardState :
-                               'null'];
-    if (cardState)
-      return setCarrierStatus({ error: cardState });
+    var cardState = mobileConnection.cardState || 'null';
+    var l10nId = kCardStateL10nId[cardState];
+    if (l10nId) {
+      return setCarrierStatus({ error: _(l10nId), l10nId: l10nId });
+    }
 
     // operator name & data connection type
     if (!mobileConnection.data || !mobileConnection.data.network)
@@ -241,8 +238,8 @@ var Connectivity = (function(window, document, undefined) {
       return;
 
     // update the current SIM card state
-    var cardState = mobileConnection.cardState;
-    callDesc.textContent = kCardState[cardState] || '';
+    var cardState = mobileConnection.cardState || 'null';
+    localize(callDesc, kCardStateL10nId[cardState]);
   }
 
   /**
@@ -257,8 +254,10 @@ var Connectivity = (function(window, document, undefined) {
       init();
       return; // init will call updateBluetooth()
     }
-    bluetoothDesc.textContent = bluetooth.enabled ?
-      _('bt-status-nopaired') : _('bt-status-turnoff');
+
+    var l10nId = bluetooth.enabled ? 'bt-status-nopaired' : 'bt-status-turnoff';
+    localize(bluetoothDesc, l10nId);
+
     if (!bluetooth.enabled) {
       return;
     }
@@ -276,11 +275,9 @@ var Connectivity = (function(window, document, undefined) {
         paired.sort(function(a, b) {
           return a.name > b.name;
         });
-        var text = _('bt-status-paired', {
-          name: paired[0].name,
-          n: length - 1
-        });
-        bluetoothDesc.textContent = text;
+
+        localize(bluetoothDesc, 'bt-status-paired',
+                 { name: paired[0].name, n: length - 1 });
       };
     };
   }
