@@ -1,7 +1,7 @@
-requireApp('communications/dialer/js/recents_db.js');
+requireApp('communications/dialer/js/call_log_db.js');
 requireApp('communications/dialer/js/utils.js');
 
-suite('dialer/recents_db', function() {
+suite('dialer/call_log_db', function() {
   var numbers = ['123', '456', '789'];
   var now = Date.now();
   var days = [// Day 1
@@ -48,12 +48,12 @@ suite('dialer/recents_db', function() {
     assert.equal(call.type, expected.type);
     assert.equal(call.date, expected.date);
     assert.equal(call.status, expected.status);
-    checkGroupId(call.groupId, RecentsDBManager._getGroupId(call));
+    checkGroupId(call.groupId, CallLogDBManager._getGroupId(call));
   }
 
   suite('Clean up', function() {
     test('delete_db', function(done) {
-      RecentsDBManager.deleteDb(function() {
+      CallLogDBManager.deleteDb(function() {
         assert.ok(true, 'Recents DB deleted');
         done();
       });
@@ -62,7 +62,7 @@ suite('dialer/recents_db', function() {
 
   suite('Failed insert', function() {
     test('Fail adding a call', function(done) {
-      RecentsDBManager.add('invalidcall', function(result) {
+      CallLogDBManager.add('invalidcall', function(result) {
         assert.equal(result, 'INVALID_CALL');
         done();
       });
@@ -76,11 +76,11 @@ suite('dialer/recents_db', function() {
         type: 'incoming',
         date: days[0]
       };
-      RecentsDBManager.add(call, function(result) {
-        RecentsDBManager.getGroupList(function(groups) {
+      CallLogDBManager.add(call, function(result) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.equal(groups.length, 1);
           checkGroup(groups[0], call, call.date, 1, result);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
             checkCall(recents[0], call);
             done();
@@ -90,7 +90,7 @@ suite('dialer/recents_db', function() {
     });
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -104,11 +104,11 @@ suite('dialer/recents_db', function() {
         date: days[0],
         status: 'connected'
       };
-      RecentsDBManager.add(call, function(result) {
-        RecentsDBManager.getGroupList(function(groups) {
+      CallLogDBManager.add(call, function(result) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.equal(groups.length, 1);
           checkGroup(groups[0], call, call.date, 1, result);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
             checkCall(recents[0], call);
             done();
@@ -118,7 +118,7 @@ suite('dialer/recents_db', function() {
     });
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -140,11 +140,11 @@ suite('dialer/recents_db', function() {
     };
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function(result) {
-        RecentsDBManager.getGroupList(function(groups) {
+      CallLogDBManager.add(call, function(result) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
           checkGroup(groups[0], call, call.date, 1, result);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
             checkCall(recents[0], call);
             done();
@@ -154,11 +154,11 @@ suite('dialer/recents_db', function() {
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add(call2, function(result) {
-        RecentsDBManager.getGroupList(function(groups) {
+      CallLogDBManager.add(call2, function(result) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
           checkGroup(groups[0], call2, call2.date, 2, result);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 2);
             checkCall(recents[0], call2);
             checkCall(recents[1], call);
@@ -169,7 +169,7 @@ suite('dialer/recents_db', function() {
     });
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -192,12 +192,12 @@ suite('dialer/recents_db', function() {
     };
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function(res) {
+      CallLogDBManager.add(call, function(res) {
         result = res;
-        RecentsDBManager.getGroupList(function(groups) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
           checkGroup(groups[0], call, call.date, 1, result);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
             checkCall(recents[0], call);
             done();
@@ -207,12 +207,12 @@ suite('dialer/recents_db', function() {
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add(call2, function(res) {
-        RecentsDBManager.getGroupList(function(groups) {
+      CallLogDBManager.add(call2, function(res) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.length(groups, 2);
           checkGroup(groups[0], call2, call2.date, 1, res);
           checkGroup(groups[1], call, call.date, 1, result);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 2);
             checkCall(recents[0], call2);
             checkCall(recents[1], call);
@@ -223,7 +223,7 @@ suite('dialer/recents_db', function() {
     });
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -246,12 +246,12 @@ suite('dialer/recents_db', function() {
     };
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function(res) {
+      CallLogDBManager.add(call, function(res) {
         result = res;
-        RecentsDBManager.getGroupList(function(groups) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
           checkGroup(groups[0], call, call.date, 1, result);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
             checkCall(recents[0], call);
             done();
@@ -261,12 +261,12 @@ suite('dialer/recents_db', function() {
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add(call2, function(res) {
-        RecentsDBManager.getGroupList(function(groups) {
+      CallLogDBManager.add(call2, function(res) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.length(groups, 2);
           checkGroup(groups[0], call2, call2.date, 1, res);
           checkGroup(groups[1], call, call.date, 1, result);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 2);
             checkCall(recents[0], call2);
             checkCall(recents[1], call);
@@ -277,7 +277,7 @@ suite('dialer/recents_db', function() {
     });
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -299,12 +299,12 @@ suite('dialer/recents_db', function() {
     };
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function(res) {
+      CallLogDBManager.add(call, function(res) {
         result = res;
-        RecentsDBManager.getGroupList(function(groups) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
           checkGroup(groups[0], call, call.date, 1, result);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
             checkCall(recents[0], call);
             done();
@@ -314,12 +314,12 @@ suite('dialer/recents_db', function() {
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add(call2, function(res) {
-        RecentsDBManager.getGroupList(function(groups) {
+      CallLogDBManager.add(call2, function(res) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.length(groups, 2);
           checkGroup(groups[0], call, call.date, 1, result);
           checkGroup(groups[1], call2, call2.date, 1, res);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 2);
             checkCall(recents[0], call2);
             checkCall(recents[1], call);
@@ -330,7 +330,7 @@ suite('dialer/recents_db', function() {
     });
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -352,12 +352,12 @@ suite('dialer/recents_db', function() {
     };
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function(res) {
+      CallLogDBManager.add(call, function(res) {
         result = res;
-        RecentsDBManager.getGroupList(function(groups) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.length(groups, 1);
           checkGroup(groups[0], call, call.date, 1, result);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 1);
             checkCall(recents[0], call);
             done();
@@ -367,12 +367,12 @@ suite('dialer/recents_db', function() {
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add(call2, function(res) {
-        RecentsDBManager.getGroupList(function(groups) {
+      CallLogDBManager.add(call2, function(res) {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.length(groups, 2);
           checkGroup(groups[0], call, call.date, 1, result);
           checkGroup(groups[1], call2, call2.date, 1, res);
-          RecentsDBManager.getRecentList(function(recents) {
+          CallLogDBManager.getRecentList(function(recents) {
             assert.length(recents, 2);
             checkCall(recents[0], call2);
             checkCall(recents[1], call);
@@ -383,7 +383,7 @@ suite('dialer/recents_db', function() {
     });
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -406,16 +406,16 @@ suite('dialer/recents_db', function() {
       date: days[2]
     };
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function() { done(); });
+      CallLogDBManager.add(call, function() { done(); });
     });
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call2, function() { done(); });
+      CallLogDBManager.add(call2, function() { done(); });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add(call3, function() {
-        RecentsDBManager.getLastGroup(function(group) {
+      CallLogDBManager.add(call3, function() {
+        CallLogDBManager.getLastGroup(function(group) {
           checkGroup(group, call2, call2.date, 1);
           done();
         });
@@ -423,7 +423,7 @@ suite('dialer/recents_db', function() {
     });
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -446,16 +446,16 @@ suite('dialer/recents_db', function() {
       date: days[2]
     };
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function() { done(); });
+      CallLogDBManager.add(call, function() { done(); });
     });
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call2, function() { done(); });
+      CallLogDBManager.add(call2, function() { done(); });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add(call3, function() {
-        RecentsDBManager.getGroupList(function(groups) {
+      CallLogDBManager.add(call3, function() {
+        CallLogDBManager.getGroupList(function(groups) {
           assert.equal(groups.length, 3);
           checkGroup(groups[2], call2, call2.date, 1);
           done();
@@ -464,7 +464,7 @@ suite('dialer/recents_db', function() {
     }, 'date');
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -487,16 +487,16 @@ suite('dialer/recents_db', function() {
       date: days[4]
     };
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function() { done(); });
+      CallLogDBManager.add(call, function() { done(); });
     });
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call2, function() { done(); });
+      CallLogDBManager.add(call2, function() { done(); });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add(call3, function() {
-        RecentsDBManager.getGroupList(function(cursor) {
+      CallLogDBManager.add(call3, function() {
+        CallLogDBManager.getGroupList(function(cursor) {
           checkGroup(cursor.value, call, call.date, 1);
           done();
         }, null, null, true);
@@ -504,7 +504,7 @@ suite('dialer/recents_db', function() {
     });
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -528,16 +528,16 @@ suite('dialer/recents_db', function() {
     };
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function() { done(); });
+      CallLogDBManager.add(call, function() { done(); });
     });
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call2, function() { done(); });
+      CallLogDBManager.add(call2, function() { done(); });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add(call3, function() {
-        RecentsDBManager.getGroupList(function(cursor) {
+      CallLogDBManager.add(call3, function() {
+        CallLogDBManager.getGroupList(function(cursor) {
           checkGroup(cursor.value, call, call.date, 1);
           done();
         }, 'lastEntryDate', null, true);
@@ -545,7 +545,7 @@ suite('dialer/recents_db', function() {
     });
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -570,16 +570,16 @@ suite('dialer/recents_db', function() {
     };
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function() { done(); });
+      CallLogDBManager.add(call, function() { done(); });
     });
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call2, function() { done(); });
+      CallLogDBManager.add(call2, function() { done(); });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add(call3, function() {
-        RecentsDBManager.getGroupList(function(cursor) {
+      CallLogDBManager.add(call3, function() {
+        CallLogDBManager.getGroupList(function(cursor) {
           checkGroup(cursor.value, call3, call3.date, 1);
           done();
         }, 'lastEntryDate', true, true);
@@ -587,7 +587,7 @@ suite('dialer/recents_db', function() {
     });
 
     suiteTeardown(function(done) {
-      RecentsDBManager.deleteAll(function() {
+      CallLogDBManager.deleteAll(function() {
         done();
       });
     });
@@ -600,9 +600,9 @@ suite('dialer/recents_db', function() {
       date: days[0]
     };
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function(group) {
+      CallLogDBManager.add(call, function(group) {
         checkGroup(group, call, call.date, 1);
-        RecentsDBManager.deleteGroup(group, function(result) {
+        CallLogDBManager.deleteGroup(group, function(result) {
           assert.equal(result, 1);
           done();
         });
@@ -624,18 +624,17 @@ suite('dialer/recents_db', function() {
     };
 
     test('Add a call', function(done) {
-      RecentsDBManager.add(call, function() { done(); });
+      CallLogDBManager.add(call, function() { done(); });
     });
 
     test('Add another call', function(done) {
-      RecentsDBManager.add(call2, function(group) {
-        RecentsDBManager.deleteGroup(group, function(result) {
+      CallLogDBManager.add(call2, function(group) {
+        CallLogDBManager.deleteGroup(group, function(result) {
           assert.equal(result, 2);
           done();
         });
       });
     });
   });
-
 
 });
