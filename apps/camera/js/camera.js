@@ -809,6 +809,11 @@ var Camera = {
       window.setTimeout(this.resumePreview.bind(this), this.PREVIEW_PAUSE);
   },
 
+  takePictureError: function camera_takePictureError() {
+    alert(navigator.mozL10n.get('error-saving-title') + '. ' +
+          navigator.mozL10n.get('error-saving-text'));
+  },
+
   takePictureSuccess: function camera_takePictureSuccess(blob) {
     this._config.position = null;
     this._manuallyFocused = false;
@@ -836,11 +841,7 @@ var Camera = {
         this.checkStorageSpace();
 
       }).bind(this);
-
-      addreq.onerror = function() {
-        alert(navigator.mozL10n.get('error-saving-title') + '. ' +
-              navigator.mozL10n.get('error-saving-text'));
-      };
+      addreq.onerror = this.takePictureError;
     }).bind(this));
   },
 
@@ -1004,7 +1005,8 @@ var Camera = {
       this._config.position = this._position;
     }
     this._cameraObj
-      .takePicture(this._config, this.takePictureSuccess.bind(this));
+      .takePicture(this._config, this.takePictureSuccess.bind(this),
+                   this.takePictureError);
   },
 
   showOverlay: function camera_showOverlay(id) {
