@@ -29,20 +29,49 @@ var mocksHelper = new MocksHelper([
 suite('compose_test.js', function() {
   mocksHelper.attachTestHelpers();
   var realMozL10n;
+  var oversizedImageBlob,
+      smallImageBlob;
 
   function mockAttachment(size) {
     var attachment = new MockAttachment({
-      type: 'image/jpeg',
+      type: 'audio/ogg',
       size: size || 12345
-    }, 'IMG_0554.jpg');
-    attachment.mNextRender = document.createElement('iframe');
-    attachment.mNextRender.className = 'attachment';
+    }, 'audio.oga');
     return attachment;
   }
 
-  suiteSetup(function() {
+  function mockImgAttachment(isOversized) {
+    var attachment = isOversized ?
+      new MockAttachment(oversizedImageBlob, 'oversized.jpg') :
+      new MockAttachment(smallImageBlob, 'small.jpg');
+    return attachment;
+  }
+
+  suiteSetup(function(done) {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    // Create test blob for image attachment resize testing
+    var assetsNeeded = 0;
+    function getAsset(filename, loadCallback) {
+      assetsNeeded++;
+
+      var req = new XMLHttpRequest();
+      req.open('GET', filename, true);
+      req.responseType = 'blob';
+      req.onload = function() {
+        loadCallback(req.response);
+        if (--assetsNeeded === 0) {
+          done();
+        }
+      };
+      req.send();
+    }
+    getAsset('/test/unit/media/IMG_0554.jpg', function(blob) {
+      oversizedImageBlob = blob;
+    });
+    getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
+      smallImageBlob = blob;
+    });
   });
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
@@ -323,6 +352,85 @@ suite('compose_test.js', function() {
       });
     });
 
+    suite('Image Attachment Handling', function() {
+      var realgetResizedImgBlob;
+      setup(function() {
+        Compose.clear();
+      });
+      suiteSetup(function() {
+        realgetResizedImgBlob = Utils.getResizedImgBlob;
+        Utils.getResizedImgBlob = function mockResize() {
+          Utils.getResizedImgBlob.args = arguments;
+          realgetResizedImgBlob.apply(null, arguments);
+        };
+      });
+      suiteTeardown(function() {
+        Utils.getResizedImgBlob = realgetResizedImgBlob;
+      });
+      test('Attaching one image', function(done) {
+        function onInput() {
+          if (!Compose.isResizing) {
+            Compose.off('input', onInput);
+            var img = Compose.getContent();
+            assert.equal(img.length, 1, 'One image');
+            done();
+          }
+        };
+        Compose.on('input', onInput);
+        Compose.append(mockImgAttachment());
+      });
+      test('Attaching another oversized image', function(done) {
+        function onInput() {
+          if (!Compose.isResizing) {
+            var images = message.querySelectorAll('iframe');
+
+            if (images.length < 2) {
+              Compose.append(mockImgAttachment(true));
+            } else {
+              Compose.off('input', onInput);
+              assert.equal(images.length, 2, 'two images');
+              assert.equal(Compose.getContent()[1], 'append more image',
+                'Second attachment is text');
+              assert.isTrue(Utils.getResizedImgBlob.args[1] ===
+                            Settings.mmsSizeLimitation * 0.4,
+                'getResizedImgBlob should set to 2/5 MMS size');
+              assert.isTrue(Compose.getContent()[2].size <
+                            Settings.mmsSizeLimitation * 0.4,
+                'Image attachment is resized');
+              done();
+            }
+          }
+        };
+        Compose.on('input', onInput);
+        Compose.append(mockImgAttachment(true));
+        Compose.append('append more image');
+      });
+      test('Third image attached, size limitation should changed',
+        function(done) {
+        function onInput() {
+          if (!Compose.isResizing) {
+            var images = Compose.getContent();
+            if (images.length < 3) {
+              Compose.append(mockImgAttachment(true));
+            } else {
+              Compose.off('input', onInput);
+              assert.equal(images.length, 3, 'three images');
+              assert.isTrue(Utils.getResizedImgBlob.args[1] ===
+                            Settings.mmsSizeLimitation * 0.2,
+                'getResizedImgBlob should set to 1/5 MMS size');
+              images.forEach(function(img) {
+                assert.isTrue(img.size < Settings.mmsSizeLimitation * 0.2,
+                  'Image attachment is resized');
+              });
+              done();
+            }
+          }
+        };
+        Compose.on('input', onInput);
+        Compose.append(mockImgAttachment());
+      });
+    });
+
     suite('Message Type Events', function() {
       var form;
       var expectType = 'sms';
@@ -472,6 +580,33 @@ suite('compose_test.js', function() {
           assert.isTrue(AttachmentMenu.close.called);
         });
       });
+    });
+  });
+  suite('Image attachment pre-send menu', function() {
+    setup(function() {
+      sinon.stub(AttachmentMenu, 'open');
+      sinon.stub(AttachmentMenu, 'close');
+    });
+    teardown(function() {
+      AttachmentMenu.open.restore();
+      AttachmentMenu.close.restore();
+    });
+    test('click opens menu while resizing and resize complete', function(done) {
+      Compose.clear();
+      var imageAttachment = mockImgAttachment(true);
+      function onInput() {
+        if (!Compose.isResizing) {
+          Compose.off('input', onInput);
+          imageAttachment.mNextRender.click();
+          assert.isTrue(AttachmentMenu.open.called, 'Menu should popup');
+          done();
+        }
+      };
+      Compose.on('input', onInput);
+      Compose.append(imageAttachment);
+      imageAttachment.mNextRender.click();
+      assert.isFalse(AttachmentMenu.open.called,
+        'Menu could not be opened while ressizing');
     });
   });
 });

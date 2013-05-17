@@ -55,11 +55,7 @@ window.addEventListener('load', function() {
     // We render the threads
     MessageManager.getThreads(ThreadListUI.renderThreads);
     // Fetch mmsSizeLimitation
-    Settings.getMmsSizeLimitation(function(size) {
-      if (size && !isNaN(size)) {
-        Settings.mmsSizeLimitation = size;
-      }
-    });
+    Settings.init();
   }
 
   navigator.mozL10n.ready(function waitLocalizedForLoading() {

@@ -529,10 +529,10 @@ suite('Utils', function() {
           if (req.readyState === 4 && req.status === 200) {
             var blob = req.response;
             var limit = 300 * 1024;
-            Utils.getResizedImgBlob(blob, function(resizedBlob) {
+            Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
               assert.isTrue(resizedBlob.size < limit);
               done();
-            }, limit);
+            });
           }
         };
         req.send(null);
