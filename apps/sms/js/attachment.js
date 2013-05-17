@@ -37,8 +37,9 @@ function Attachment(blob, name) {
     window.URL.revokeObjectURL(self.objectURL);
 
     // Bubble click events from inside the iframe
-    self.el.contentDocument.addEventListener('click',
-      self.el.click.bind(self.el));
+    self.el.contentDocument.addEventListener('click', function() {
+      self.el.click(self.el);
+    });
   });
 }
 
