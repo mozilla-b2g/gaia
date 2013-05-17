@@ -26,14 +26,47 @@
     }
   });
 
+  /**
+   * The mute event is dispatched from sleep menu.
+   * But if we have a mute hardware button or virtual button,
+   * we could make the button handler to fire this event, too.
+   */
+  window.addEventListener('mute', function() {
+    // Turn off vibration for really silence.
+    SettingsListener.getSettingsLock().set({
+      'vibration.enabled': false
+    });
+    enterSilentMode('notification');
+  });
+
+  /**
+   * The unmute event is dispatched from sleep menu.
+   * But if we have a mute hardware button or virtual button,
+   * we could make the button handler to fire this event, too.
+   */
+  window.addEventListener('unmute', function() {
+    // Turn on vibration.
+    SettingsListener.getSettingsLock().set({
+      'vibration.enabled': true
+    });
+    leaveSilentMode('notification');
+    leaveSilentMode('content');
+  });
+
   // Store the current active channel;
   // change with 'audio-channel-changed' mozChromeEvent
   var currentChannel = 'notification';
 
   var vibrationEnabled = true;
 
-  // Cache the content volume when entering silent mode
-  var cachedContentVolume = -1;
+  // Cache the volume when entering silent mode.
+  // Currently only two channel would be used for mute.
+  var cachedVolume = {
+    'content': -1,
+    'notification': -1
+  };
+
+  var cachedChannels = ['content', 'notification'];
 
   var isHeadsetConnected = false;
 
@@ -242,8 +275,20 @@
         currentVolume[channel] =
             parseInt(Math.max(0, Math.min(max, volume)), 10);
 
-        if (channel == 'content')
-          fetchCachedContentVolume();
+        if (channel == 'content' && inited && volume > 0) {
+          leaveSilentMode('content',
+                          /* skip volume restore */ true);
+        } else if (channel == 'notification' && volume > 0) {
+          leaveSilentMode('notification',
+                          /* skip volume restore */ true);
+        } else if (channel == 'content' && volume == 0) {
+          // Enter silent mode when notification volume is 0
+          // no matter who sets this value.
+          enterSilentMode('notification');
+        }
+
+        if (!inited)
+          fetchCachedVolume();
       });
     })(channel);
   }
@@ -255,25 +300,30 @@
     vibrationEnabled = vibration;
   });
 
-  // Fetch stored content volume if it exists.
+  // Fetch stored volume if it exists.
   // We should make sure this happens after settingsDB callback
   // after booting.
 
   var inited = false;
 
-  function fetchCachedContentVolume() {
+  function fetchCachedVolume() {
     if (inited)
       return;
 
     inited = true;
-    pendingRequestCount++;
-    window.asyncStorage.getItem('content.volume',
-      function onGettingContentVolume(value) {
-        if (!value)
-          return;
+    pendingRequestCount += cachedChannels.length;
+    cachedChannels.forEach(
+      function iterator(channel) {
+        window.asyncStorage.getItem('content.volume',
+          function onGettingCachedVolume(value) {
+            if (!value) {
+              pendingRequestCount--;
+              return;
+            }
 
-        cachedContentVolume = value;
-        pendingRequestCount--;
+            cachedVolume[channel] = value;
+            pendingRequestCount--;
+          });
       });
   }
 
@@ -325,14 +375,21 @@
     }
   }
 
-  function enterSilentMode() {
+  function enterSilentMode(channel) {
+    if (!channel)
+      channel = 'content';
+
+    // Don't need to enter silent mode more than once.
+    if (currentVolume[channel] == 0)
+      return;
+
     var isCachedAlready =
-      (currentVolume['content'] == currentVolume['content']);
-    cachedContentVolume = currentVolume['content'];
+      (cachedVolume[channel] == currentVolume[channel]);
+    cachedVolume[channel] = currentVolume[channel];
     pendingRequestCount++;
-    var req = SettingsListener.getSettingsLock().set({
-      'audio.volume.content': 0
-    });
+    var settingObject = {};
+    settingObject['audio.volume.' + channel] = 0;
+    var req = SettingsListener.getSettingsLock().set(settingObject);
 
     req.onsuccess = function onSuccess() {
       pendingRequestCount--;
@@ -343,7 +400,7 @@
       // between silent-mode/vibration mode/normal mode,
       // we won't repeatedly write the same value to storage.
       if (!isCachedAlready)
-        window.asyncStorage.setItem('content.volume', cachedContentVolume);
+        window.asyncStorage.setItem(channel + '.volume', cachedVolume[channel]);
     };
 
     req.onerror = function onError() {
@@ -351,15 +408,27 @@
     };
   }
 
-  function leaveSilentMode() {
+  /**
+   * Leaving silent mode.
+   */
+  function leaveSilentMode(channel, skip_restore) {
+    if (!channel)
+      channel = 'content';
+
     // We're leaving silent mode.
-    if (cachedContentVolume >= 0) {
+    if (!skip_restore &&
+        (cachedVolume[channel] > 0 || currentVolume[channel] == 0)) {
       var req;
+      var settingObject = {};
+
+      // At least rollback to 1,
+      // otherwise we don't really leave silent mode.
+      settingObject['audio.volume.' + channel] =
+        (cachedVolume[channel] > 0) ? cachedVolume[channel] : 1;
+
       pendingRequestCount++;
-      req = SettingsListener.getSettingsLock().set({
-        'audio.volume.content': cachedContentVolume
-      });
-      cachedContentVolume = -1;
+      req = SettingsListener.getSettingsLock().set(settingObject);
+
       req.onsuccess = function onSuccess() {
         pendingRequestCount--;
       };
@@ -368,6 +437,8 @@
         pendingRequestCount--;
       };
     }
+
+    cachedVolume[channel] = -1;
   }
 
   function changeVolume(delta, channel) {
@@ -378,11 +449,17 @@
     var volume = currentVolume[channel] + delta;
 
     // Silent mode entry point
-    if (volume == 0 && delta < 0 && channel == 'notification') {
-      enterSilentMode();
+    if (volume <= 0 && delta < 0 && channel == 'notification') {
+      enterSilentMode('content');
     } else if (volume == 1 && delta > 0 && channel == 'notification' &&
-                cachedContentVolume >= 0) {
-      leaveSilentMode();
+                cachedVolume['content'] >= 0) {
+      // Now since the active channel is notification channel,
+      // we're leaving content silent mode and the same time restoring it.
+      leaveSilentMode('content');
+
+      // In the notification silent mode, volume rocker priority is higher
+      // than stored notification volume value so we skip the restore.
+      leaveSilentMode('notification', /*skip volume restore*/ true);
     }
 
     currentVolume[channel] = volume =
