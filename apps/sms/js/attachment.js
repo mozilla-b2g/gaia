@@ -32,15 +32,7 @@ function Attachment(blob, name) {
   this.objectURL = window.URL.createObjectURL(this.blob);
 
   // When rendering is complete
-  this.el.addEventListener('load', function() {
-    // Signal Gecko to release the reference to the Blob
-    window.URL.revokeObjectURL(self.objectURL);
-
-    // Bubble click events from inside the iframe
-    self.el.contentDocument.addEventListener('click', function() {
-      self.el.click(self.el);
-    });
-  });
+  this.el.addEventListener('load', this.handleLoad.bind(this));
 }
 
 Attachment.prototype = {
@@ -49,6 +41,15 @@ Attachment.prototype = {
   },
   get type() {
     return Utils.typeFromMimeType(this.blob.type);
+  },
+  handleLoad: function() {
+    // Signal Gecko to release the reference to the Blob
+    window.URL.revokeObjectURL(this.objectURL);
+
+    // Bubble click events from inside the iframe
+    this.el.contentDocument.addEventListener('click', function() {
+      this.el.click(this.el);
+    }.bind(this));
   },
   render: function() {
     var _ = navigator.mozL10n.get;
@@ -116,15 +117,14 @@ Attachment.prototype = {
   },
 
   replace: function() {
-    var self = this;
     var request = Compose.requestAttachment();
     request.onsuccess = function(result) {
-      self.blob = result.blob;
-      self.name = result.name;
-      self.objectURL = window.URL.createObjectURL(self.blob);
-      self.render();
-      self.closeOptionsMenu();
-    };
+      this.blob = result.blob;
+      this.name = result.name;
+      this.objectURL = window.URL.createObjectURL(this.blob);
+      this.render();
+      this.closeOptionsMenu();
+    }.bind(this);
   }
 
 };
