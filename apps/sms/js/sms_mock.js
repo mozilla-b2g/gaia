@@ -16,6 +16,7 @@
   var outstandingRequests = 0;
   var requests = {};
   var now = Date.now();
+  var ONE_DAY_TIME = 24 * 60 * 60 * 1000;
 
   function getTestFile(filename, callback) {
     if (!requests[filename]) {
@@ -305,6 +306,36 @@
         delivery: 'received',
         type: 'sms',
         timestamp: new Date(Date.now() - 100000)
+      },
+      {
+        threadId: 8,
+        sender: '123456',
+        type: 'mms',
+        delivery: 'not-downloaded',
+        deliveryStatus: ['pending'],
+        subject: 'Pending download',
+        timestamp: new Date(Date.now() - 150000),
+        expiryDate: new Date(Date.now() + ONE_DAY_TIME)
+      },
+      {
+        threadId: 8,
+        sender: '123456',
+        type: 'mms',
+        delivery: 'not-downloaded',
+        deliveryStatus: ['error'],
+        subject: 'Error download',
+        timestamp: new Date(Date.now() - 150000),
+        expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
+      },
+      {
+        threadId: 8,
+        sender: '123456',
+        type: 'mms',
+        delivery: 'not-downloaded',
+        deliveryStatus: ['error'],
+        subject: 'Error download',
+        timestamp: new Date(Date.now() - 150000),
+        expiryDate: new Date(Date.now() - ONE_DAY_TIME)
       }
     ],
     threads: [
@@ -352,6 +383,13 @@
         participants: ['999', '888', '777'],
         lastMessageType: 'mms',
         timestamp: new Date(now),
+        unreadCount: 0
+      },
+      {
+        id: 8,
+        participants: ['123456'],
+        lastMessageType: 'mms',
+        timestamp: new Date(Date.now() - 150000),
         unreadCount: 0
       }
     ]
@@ -953,6 +991,47 @@
       }
     }, simulation.delay());
 
+    return request;
+  };
+
+  MockNavigatormozMobileMessage.retrieveMMS = function(id) {
+    var request = {
+      error: null
+    };
+    var msgs = messagesDb.messages;
+    var idx = 0, len = msgs.length;
+    setTimeout(function() {
+      var msg;
+      for (; idx < len; ++idx) {
+        msg = msgs[idx];
+        if (msg.type !== 'mms' || msg.delivery !== 'not-downloaded' ||
+          +msg.expiryDate < +Date.now()) {
+          continue;
+        }
+        if (msg.id === id) {
+          request.result = msg;
+          msg.smil = '<smil><body><par><text src="text1"/></par>' +
+            '</body></smil>';
+          msg.attachments = [{
+            location: 'text1',
+            content: new Blob(['You retrieve me'], { type: 'text/plain' })
+          }];
+          msg.delivery = 'received';
+
+          if (typeof request.onsuccess === 'function') {
+            request.onsuccess.call(request);
+          }
+          trigger('received', {
+            type: 'received',
+            message: msg
+          });
+          return;
+        }
+      }
+      if (typeof request.onerror === 'function') {
+        request.onerror.call(request);
+      }
+    }, simulation.delay());
     return request;
   };
 

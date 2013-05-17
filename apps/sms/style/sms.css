@@ -318,6 +318,11 @@ section[role="region"].new > header:first-child form {
   transition: none;
 }
 
+/* hide download button via css on expired messages */
+.message.expired button {
+  display: none;
+}
+
 #messages-container[data-type="list"] .message.hidden {
   display: none;
 }
@@ -417,6 +422,12 @@ section[role="region"].new > header:first-child form {
   text-align: center;
 }
 
+#messages-container[data-type="list"] .message.incoming .bubble > aside {
+  left: 0;
+  right: auto;
+  margin: 0 0.5rem 0 0;
+}
+
 #messages-container[data-type="list"] .message.error .bubble > aside progress {
   display: none;
 }
@@ -428,10 +439,19 @@ section[role="region"].new > header:first-child form {
   background-size: 2.2rem;
 }
 
+#messages-container[data-type="list"] .message button.download {
+  padding: 0.5em;
+  margin: 0.5em;
+  background: #ccc;
+  width: 100%;
+}
+
+#messages-container[data-type="list"] .message.pending .bubble > aside,
 #messages-container[data-type="list"] .message.sending .bubble > aside {
   display: block;
 }
 
+#messages-container[data-type="list"] .message.pending .bubble > aside progress,
 #messages-container[data-type="list"] .message.sending .bubble > aside progress {
   display: block;
   height: 100%;
