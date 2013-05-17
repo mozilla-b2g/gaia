@@ -60,14 +60,22 @@ suite('thread_ui.js >', function() {
 
   var mocksHelper = mocksHelperForThreadUI;
   var testImageBlob;
+  var oversizedImageBlob;
   var testAudioBlob;
   var testVideoBlob;
 
   function mockAttachment(size) {
     return new MockAttachment({
-      type: 'image/jpeg',
+      type: 'video/ogg',
       size: size
-    }, 'kitten-450.jpg');
+    }, 'video.ogv');
+  }
+
+  function mockImgAttachment(isOversized) {
+    var attachment = isOversized ?
+      new MockAttachment(oversizedImageBlob, 'testOversized.jpg') :
+      new MockAttachment(testImageBlob, 'test.jpg');
+    return attachment;
   }
 
   suiteSetup(function(done) {
@@ -93,6 +101,9 @@ suite('thread_ui.js >', function() {
     }
     getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
       testImageBlob = blob;
+    });
+    getAsset('/test/unit/media/IMG_0554.jpg', function(blob) {
+      oversizedImageBlob = blob;
     });
     getAsset('/test/unit/media/audio.oga', function(blob) {
       testAudioBlob = blob;
@@ -255,6 +266,38 @@ suite('thread_ui.js >', function() {
         assert.isFalse(sendButton.disabled);
         Compose.append('Hola');
 
+        assert.isTrue(sendButton.disabled);
+      });
+
+      test('When adding an image that is under the limitation, button ' +
+           'should be enabled right after appended',
+        function() {
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+        Compose.append(mockImgAttachment());
+        assert.isFalse(sendButton.disabled);
+      });
+
+      test('When adding an oversized image, button should be disabled while ' +
+           'resizing and enabled when resize complete',
+        function(done) {
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+        function onInput() {
+          if (!Compose.isResizing) {
+            Compose.off('input', onInput);
+            assert.isFalse(sendButton.disabled);
+            done();
+          }
+        };
+        Compose.on('input', onInput);
+        Compose.append(mockImgAttachment(true));
         assert.isTrue(sendButton.disabled);
       });
     });
