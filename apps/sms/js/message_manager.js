@@ -336,6 +336,10 @@ var MessageManager = {
     return this._mozMobileMessage.getMessage(id);
   },
 
+  retrieveMMS: function mm_retrieveMMS(id) {
+    return this._mozMobileMessage.retrieveMMS(id);
+  },
+
   getMessages: function mm_getMgs(options) {
     /*
     options {

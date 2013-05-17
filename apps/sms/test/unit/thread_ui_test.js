@@ -737,6 +737,266 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('not-downloaded', function() {
+    var ONE_DAY_TIME = 24 * 60 * 60 * 1000;
+    var testMessages = [{
+      id: 1,
+      threadId: 8,
+      sender: '123456',
+      type: 'mms',
+      delivery: 'not-downloaded',
+      deliveryStatus: ['pending'],
+      subject: 'Pending download',
+      timestamp: new Date(Date.now() - 150000),
+      expiryDate: new Date(Date.now() + ONE_DAY_TIME)
+    },
+    {
+      id: 2,
+      threadId: 8,
+      sender: '123456',
+      type: 'mms',
+      delivery: 'not-downloaded',
+      deliveryStatus: ['error'],
+      subject: 'Error download',
+      timestamp: new Date(Date.now() - 150000),
+      expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
+    },
+    {
+      id: 3,
+      threadId: 8,
+      sender: '123456',
+      type: 'mms',
+      delivery: 'not-downloaded',
+      deliveryStatus: ['error'],
+      subject: 'Error download',
+      timestamp: new Date(Date.now() - 150000),
+      expiryDate: new Date(Date.now() - ONE_DAY_TIME)
+    }];
+    setup(function() {
+      sinon.stub(Utils.date.format, 'localeFormat', function() {
+        return 'date_stub';
+      });
+      sinon.stub(MessageManager, 'retrieveMMS', function() {
+        return {};
+      });
+    });
+    teardown(function() {
+      Utils.date.format.localeFormat.restore();
+      MessageManager.retrieveMMS.restore();
+    });
+    suite('pending message', function() {
+      var message = testMessages[0];
+      var element;
+      var notDownloadedMessage;
+      var button;
+      setup(function() {
+        ThreadUI.appendMessage(message);
+        element = document.getElementById('message-' + message.id);
+        notDownloadedMessage = element.querySelector('.not-downloaded-message');
+        button = element.querySelector('button');
+      });
+      test('element has correct data-message-id', function() {
+        assert.equal(element.dataset.messageId, message.id);
+      });
+      test('not-downloaded class present', function() {
+        assert.isTrue(element.classList.contains('not-downloaded'));
+      });
+      test('error class absent', function() {
+        assert.isFalse(element.classList.contains('error'));
+      });
+      test('expired class absent', function() {
+        assert.isFalse(element.classList.contains('expired'));
+      });
+      test('pending class absent', function() {
+        assert.isFalse(element.classList.contains('pending'));
+      });
+      test('message is correct', function() {
+        assert.equal(notDownloadedMessage.textContent,
+          'not-downloaded-mms{"date":"date_stub"}');
+      });
+      test('date is correctly determined', function() {
+        assert.equal(Utils.date.format.localeFormat.args[0][0],
+          message.expiryDate);
+        assert.equal(Utils.date.format.localeFormat.args[0][1],
+          'dateTimeFormat_%x');
+      });
+      test('button text is correct', function() {
+        assert.equal(button.textContent, 'download');
+      });
+      suite('clicking', function() {
+        setup(function() {
+          ThreadUI.handleMessageClick({
+            target: button
+          });
+        });
+        test('changes download text', function() {
+          assert.equal(button.textContent, 'downloading');
+        });
+        test('error class absent', function() {
+          assert.isFalse(element.classList.contains('error'));
+        });
+        test('pending class present', function() {
+          assert.isTrue(element.classList.contains('pending'));
+        });
+        test('click calls retrieveMMS', function() {
+          assert.isTrue(MessageManager.retrieveMMS.calledWith(message.id));
+        });
+        suite('response error', function() {
+          setup(function() {
+            MessageManager.retrieveMMS.returnValues[0].onerror();
+          });
+          test('error class present', function() {
+            assert.isTrue(element.classList.contains('error'));
+          });
+          test('pending class absent', function() {
+            assert.isFalse(element.classList.contains('pending'));
+          });
+          test('changes download text', function() {
+            assert.equal(button.textContent, 'download');
+          });
+        });
+        suite('response success', function() {
+          setup(function() {
+            MessageManager.retrieveMMS.returnValues[0].onsuccess();
+          });
+          // re-rendering message happens from a status handler
+          test('removes message', function() {
+            assert.equal(element.parentNode, null);
+          });
+        });
+      });
+    });
+    suite('error message', function() {
+      var message = testMessages[1];
+      var element;
+      var notDownloadedMessage;
+      var button;
+      setup(function() {
+        ThreadUI.appendMessage(message);
+        element = document.getElementById('message-' + message.id);
+        notDownloadedMessage = element.querySelector('.not-downloaded-message');
+        button = element.querySelector('button');
+      });
+      test('element has correct data-message-id', function() {
+        assert.equal(element.dataset.messageId, message.id);
+      });
+      test('not-downloaded class present', function() {
+        assert.isTrue(element.classList.contains('not-downloaded'));
+      });
+      test('error class present', function() {
+        assert.isTrue(element.classList.contains('error'));
+      });
+      test('expired class absent', function() {
+        assert.isFalse(element.classList.contains('expired'));
+      });
+      test('pending class absent', function() {
+        assert.isFalse(element.classList.contains('pending'));
+      });
+      test('message is correct', function() {
+        assert.equal(notDownloadedMessage.textContent,
+          'not-downloaded-mms{"date":"date_stub"}');
+      });
+      test('date is correctly determined', function() {
+        assert.equal(Utils.date.format.localeFormat.args[0][0],
+          message.expiryDate);
+        assert.equal(Utils.date.format.localeFormat.args[0][1],
+          'dateTimeFormat_%x');
+      });
+      test('button text is correct', function() {
+        assert.equal(button.textContent, 'download');
+      });
+      suite('clicking', function() {
+        setup(function() {
+          ThreadUI.handleMessageClick({
+            target: button
+          });
+        });
+        test('changes download text', function() {
+          assert.equal(button.textContent, 'downloading');
+        });
+        test('error class absent', function() {
+          assert.isFalse(element.classList.contains('error'));
+        });
+        test('pending class present', function() {
+          assert.isTrue(element.classList.contains('pending'));
+        });
+        test('click calls retrieveMMS', function() {
+          assert.isTrue(MessageManager.retrieveMMS.calledWith(message.id));
+        });
+        suite('response error', function() {
+          setup(function() {
+            MessageManager.retrieveMMS.returnValues[0].onerror();
+          });
+          test('error class present', function() {
+            assert.isTrue(element.classList.contains('error'));
+          });
+          test('pending class absent', function() {
+            assert.isFalse(element.classList.contains('pending'));
+          });
+          test('changes download text', function() {
+            assert.equal(button.textContent, 'download');
+          });
+        });
+        suite('response success', function() {
+          setup(function() {
+            MessageManager.retrieveMMS.returnValues[0].onsuccess();
+          });
+          // re-rendering message happens from a status handler
+          test('removes message', function() {
+            assert.equal(element.parentNode, null);
+          });
+        });
+      });
+    });
+    suite('expired message', function() {
+      var message = testMessages[2];
+      var element;
+      var element;
+      var notDownloadedMessage;
+      var button;
+      setup(function() {
+        ThreadUI.appendMessage(message);
+        element = document.getElementById('message-' + message.id);
+        notDownloadedMessage = element.querySelector('.not-downloaded-message');
+        button = element.querySelector('button');
+      });
+      test('element has correct data-message-id', function() {
+        assert.equal(element.dataset.messageId, message.id);
+      });
+      test('not-downloaded class present', function() {
+        assert.isTrue(element.classList.contains('not-downloaded'));
+      });
+      test('error class present', function() {
+        assert.isTrue(element.classList.contains('error'));
+      });
+      test('expired class present', function() {
+        assert.isTrue(element.classList.contains('expired'));
+      });
+      test('pending class absent', function() {
+        assert.isFalse(element.classList.contains('pending'));
+      });
+      test('message is correct', function() {
+        assert.equal(notDownloadedMessage.textContent,
+          'expired-mms{"date":"date_stub"}');
+      });
+      test('date is correctly determined', function() {
+        assert.equal(Utils.date.format.localeFormat.args[0][0],
+          message.expiryDate);
+        assert.equal(Utils.date.format.localeFormat.args[0][1],
+          'dateTimeFormat_%x');
+      });
+      suite('clicking', function() {
+        setup(function() {
+          ThreadUI.handleMessageClick({
+            target: button
+          });
+        });
+        test('does not call retrieveMMS', function() {
+          assert.equal(MessageManager.retrieveMMS.args.length, 0);
+        });
+      });
+    });
+  });
 
   suite('resendMessage', function() {
     setup(function() {
