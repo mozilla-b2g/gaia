@@ -12,7 +12,7 @@ suite('attachment_test.js', function() {
       'Test Attachment'));
   });
   teardown(function() {
-    
+
   });
 
   test('render', function() {
@@ -48,7 +48,7 @@ suite('attachment_test.js', function() {
   });
 
   test('replace', function() {
-    // TODO 
+    // TODO
   });
 
 });

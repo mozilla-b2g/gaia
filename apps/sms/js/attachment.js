@@ -123,7 +123,7 @@ Attachment.prototype = {
       self.objectURL = window.URL.createObjectURL(self.blob);
       self.render();
       self.closeOptionsMenu();
-    }
+    };
   }
-  
+
 };
