@@ -104,14 +104,14 @@ var ActivityHandler = {
     // For "new" message activities, proceed directly to
     // new message composition view.
     if (!message.threadId && message.number) {
-      showThreadFromSystemMessage(message);
+      ActivityHandler.showThreadFromSystemMessage(message);
       return;
     }
 
     var request = navigator.mozMobileMessage.getMessage(message.id);
 
     request.onsuccess = function onsuccess() {
-      showThreadFromSystemMessage(message);
+      ActivityHandler.showThreadFromSystemMessage(message);
     };
 
     request.onerror = function onerror() {

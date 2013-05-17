@@ -65,8 +65,14 @@ var ThreadListUI = {
 
   setContact: function thlui_setContact(node) {
     var thread = Threads.get(node.dataset.threadId);
-    var number = thread.participants[0];
-    var others = thread.participants.length - 1;
+    var number, others;
+
+    if (!thread) {
+      return;
+    }
+
+    number = thread.participants[0];
+    others = thread.participants.length - 1;
 
     if (!number) {
       return;
@@ -309,6 +315,7 @@ var ThreadListUI = {
     // Create DOM element
     var li = document.createElement('li');
     var timestamp = thread.timestamp.getTime();
+    var lastMessageType = thread.lastMessageType;
     var participants = thread.participants;
     var number = participants[0];
     var body = thread.body || '';
@@ -317,6 +324,7 @@ var ThreadListUI = {
     li.id = 'thread-' + id;
     li.dataset.threadId = id;
     li.dataset.time = timestamp;
+    li.dataset.lastMessageType = lastMessageType;
 
 
     if (thread.unreadCount > 0) {
@@ -329,7 +337,7 @@ var ThreadListUI = {
       body = '&nbsp;';
     }
 
-    if (thread.lastMessageType === 'sms' && body) {
+    if (lastMessageType === 'sms' && body) {
       body = Utils.Message.format(body).split('\n')[0];
     }
 

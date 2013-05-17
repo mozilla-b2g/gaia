@@ -69,7 +69,7 @@ suite('Threads', function() {
       });
 
       window.location.hash = '';
-      assert.deepEqual(Threads.active, null);
+      assert.equal(Threads.active, null);
     });
   });
 });

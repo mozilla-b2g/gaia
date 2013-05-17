@@ -277,7 +277,10 @@ var ThreadUI = global.ThreadUI = {
     this.convertNotice.querySelector('p').textContent = message;
     this.convertNotice.classList.remove('hide');
 
-    clearTimeout(this._convertNoticeTimeout);
+    if (this._convertNoticeTimeout) {
+      clearTimeout(this._convertNoticeTimeout);
+    }
+
     this._convertNoticeTimeout = setTimeout(function hideConvertNotice() {
       this.convertNotice.classList.add('hide');
     }.bind(this), this.CONVERTED_MESSAGE_DURATION);
@@ -1197,7 +1200,7 @@ var ThreadUI = global.ThreadUI = {
     if (typeof id !== 'number') {
       id = parseInt(id, 10);
     }
-    messageDOM = this.container.getElementById('messages-' + id);
+    messageDOM = this.container.querySelector('[data-message-id="' + id + '"]');
     messagesContainer = messageDOM.parentNode;
 
     // Defer removing the message from the DOM until after it has been
