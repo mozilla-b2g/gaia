@@ -98,21 +98,9 @@ var ScreenManager = {
    */
   _cpuWakeLock: null,
 
-  /*
-   * Current state of the CPU Wake lock
-   */
-  _cpuState: null,
-
-  /*
-   * We track the audio status
-   */
-  _audioActive: false,
-  _audioCpuSleepTimerId: 0,
-
   init: function scm_init() {
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
-    window.addEventListener('mozChromeEvent', this);
 
     this.screen = document.getElementById('screen');
 
@@ -121,20 +109,13 @@ var ScreenManager = {
 
     if (power) {
       power.addWakeLockListener(function scm_handleWakeLock(topic, state) {
-        switch (topic) {
-          case 'screen':
-            self._screenWakeLocked = (state == 'locked-foreground');
+        if (topic == 'screen') {
+          self._screenWakeLocked = (state == 'locked-foreground');
 
-            if (self._screenWakeLocked)
-              // Turn screen on if wake lock is acquire
-              self.turnScreenOn();
-            self._reconfigScreenTimeout();
-            break;
-
-          case 'cpu':
-            self._cpuState = state;
-            self.refreshCpuSleepAllowed();
-            break;
+          if (self._screenWakeLocked)
+            // Turn screen on if wake lock is acquire
+            self.turnScreenOn();
+          self._reconfigScreenTimeout();
         }
       });
     }
@@ -281,33 +262,6 @@ var ScreenManager = {
 
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
         window.addEventListener('userproximity', this);
-        break;
-
-      case 'mozChromeEvent':
-        if (evt.detail.type == 'audio-channel-changed') {
-          var audioActive = (evt.detail.channel !== 'none' &&
-                             evt.detail.channel !== 'telephony');
-
-          if (this._audioCpuSleepTimerId) {
-            clearTimeout(this._audioCpuSleepTimerId);
-            this._audioCpuSleepTimerId = 0;
-          }
-
-          // If some audio channel is active we refresh the cpuSleepAllowed
-          // immediately, otherwise we just use a timer in order to prevert
-          // rapid stop/start.
-          if (audioActive) {
-            this._audioActive = true;
-            this.refreshCpuSleepAllowed();
-          } else {
-            var self = this;
-            this._audioCpuSleepTimerId = setTimeout(function cpuSleepTimer() {
-              self._audioActive = false;
-              self.refreshCpuSleepAllowed();
-              self._audioCpuSleepTimerId = 0;
-            }, 2000);
-          }
-        }
         break;
     }
   },
@@ -549,13 +503,6 @@ var ScreenManager = {
       { bubbles: true, cancelable: false,
         detail: { screenEnabled: this.screenEnabled } });
     window.dispatchEvent(evt);
-  },
-
-  refreshCpuSleepAllowed: function scm_refreshCpuSleepAllowed() {
-    var power = navigator.mozPower;
-    power.cpuSleepAllowed = (this._cpuState != 'locked-foreground' &&
-                             this._cpuState != 'locked-background' &&
-                             !this._audioActive);
   }
 };
 
