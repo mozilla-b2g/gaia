@@ -6,13 +6,18 @@ suite('attachment_test.js', function() {
 
   setup(function() {
     loadBodyHTML('/index.html');
+
+    this.blob = new Blob(['This is an image message'],
+      {type: 'text/plain'});
     this.attachment = new Attachment(
-      new Blob(['This is an image message'],
-               { type: 'text/plain' },
-      'Test Attachment'));
+      this.blob,
+      'Test Attachment');
+
+    this.originalUpdateInputHeight = ThreadUI.updateInputHeight;
+    ThreadUI.updateInputHeight = function() {};
   });
   teardown(function() {
-
+    ThreadUI.updateInputHeight = this.originalUpdateInputHeight;
   });
 
   test('render', function() {
@@ -33,22 +38,25 @@ suite('attachment_test.js', function() {
     assert.ok(!document.querySelector('#attachment-options'));
   });
 
-  test('view', function() {
-    // TODO
-  });
-
   test('remove', function() {
+    // Add the attachment to a mocked container
     var el = this.attachment.render();
     var parent = document.createElement('div');
-    // TODO
-    //parent.appendChild(el);
-    //assert.ok(this.attachment.el);
-    //this.attachment.remove();
-    //assert.ok(!this.attachment.el);
-  });
+    parent.appendChild(el);
 
-  test('replace', function() {
-    // TODO
+    // Open options menu, since removing attachment should close menu
+    this.attachment.openOptionsMenu();
+
+    // Now you see it
+    assert.ok(this.attachment.el);
+
+    this.attachment.remove();
+
+    // Now you don't
+    assert.ok(!parent.firstChild);
+
+    // Options menu was closed
+    assert.ok(!document.querySelector('#attachment-options'));
   });
 
 });
