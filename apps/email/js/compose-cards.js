@@ -225,6 +225,7 @@ ComposeCard.prototype = {
   createBubbleNode: function(name, address) {
     var bubble = cmpNodes['peep-bubble'].cloneNode(true);
     bubble.classList.add('msg-peep-bubble');
+    bubble.classList.add('cmp-peep-bubble');
     bubble.setAttribute('data-address', address);
     bubble.setAttribute('data-name', name);
     bubble.querySelector('.cmp-peep-address').textContent = address;
