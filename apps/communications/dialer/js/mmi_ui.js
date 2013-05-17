@@ -186,6 +186,9 @@ var MmiUI = {
         if (retries)
           error += this._('inputCodeRetriesLeft', {n: retries});
         break;
+      case 'NEW_PIN_MISMATCH':
+        error = this._('newpinConfirmation');
+        break;
       default:
         break;
     }
