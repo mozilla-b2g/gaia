@@ -17,9 +17,9 @@ function getVideoRotation(blob, rotationCallback) {
   // A utility for traversing the tree of atoms in an MP4 file
   function MP4Parser(blob, handlers) {
     // Start off with a 1024 chunk from the start of the blob.
-    BlobView.get(blob, 0, 1024, function(data, error) {
+    BlobView.get(blob, 0, Math.min(1024, blob.size), function(data, error) {
       // Make sure that the blob is, in fact, some kind of MP4 file
-      if (data.getASCIIText(4, 4) !== 'ftyp') {
+      if (data.byteLength <= 8 || data.getASCIIText(4, 4) !== 'ftyp') {
         handlers.errorHandler('not an MP4 file');
         return;
       }
