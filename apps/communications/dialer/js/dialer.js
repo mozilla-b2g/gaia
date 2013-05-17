@@ -103,7 +103,7 @@ var CallHandler = (function callHandler() {
 
           var clickCB = function() {
             app.launch('dialer');
-            window.location.hash = '#recents-view';
+            window.location.hash = '#call-log-view';
           };
 
           NotificationHelper.send(title, body, iconURL, clickCB);
@@ -114,16 +114,8 @@ var CallHandler = (function callHandler() {
 
   /* === Recents support === */
   function handleRecentAddRequest(entry) {
-    RecentsDBManager.init(function() {
-      RecentsDBManager.add(entry, function() {
-        if (Recents.loaded) {
-          if (window.location.hash === '#recents-view') {
-            Recents.refresh();
-          } else {
-            Recents.renderNeeded = true;
-          }
-        }
-      });
+    CallLogDBManager.add(entry, function(logGroup) {
+      CallLog.appendGroup(logGroup, entry.contactInfo);
     });
   }
 
@@ -135,7 +127,7 @@ var CallHandler = (function callHandler() {
         // disable the function of receiving the messages posted from the iframe
         contactsIframe.contentWindow.history.pushState(null, null,
           '/contacts/index.html');
-        window.location.hash = '#recents-view';
+        window.location.hash = '#call-log-view';
         break;
     }
   }
@@ -421,7 +413,8 @@ var NavbarManager = {
                  '/shared/js/notification_helper.js',
                  '/shared/js/simple_phone_matcher.js',
                  '/dialer/js/contacts.js',
-                 '/dialer/js/recents.js'], function rs_loaded() {
+                 '/dialer/js/call_log.js',
+                 '/dialer/style/call_log.css'], function rs_loaded() {
                     self.resourcesLoaded = true;
                     if (cb && typeof cb === 'function') {
                       cb();
@@ -454,19 +447,11 @@ var NavbarManager = {
 
     var destination = window.location.hash;
     switch (destination) {
-      case '#recents-view':
+      case '#call-log-view':
         checkContactsTab();
         this.ensureResources(function() {
           recent.classList.add('toolbar-option-selected');
-          if (!Recents.loaded) {
-            Recents.load();
-            return;
-          }
-          if (Recents.renderNeeded) {
-            Recents.refresh();
-            Recents.renderNeeded = false;
-          }
-          Recents.updateLatestVisit();
+          CallLog.init();
         });
         break;
       case '#contacts-view':
@@ -483,16 +468,10 @@ var NavbarManager = {
         }
 
         contacts.classList.add('toolbar-option-selected');
-        this.ensureResources(function() {
-          Recents.updateHighlighted();
-        });
         break;
       case '#keyboard-view':
         checkContactsTab();
         keypad.classList.add('toolbar-option-selected');
-        this.ensureResources(function() {
-          Recents.updateHighlighted();
-        });
         break;
     }
   }
@@ -505,31 +484,25 @@ window.addEventListener('load', function startup(evt) {
   NavbarManager.init();
 
   setTimeout(function nextTick() {
-    // Lazy load DOM nodes
-    // This code is basically the same as the calendar loader
-    // Unit tests can be found in the calendar app
-    var delayed = document.getElementById('delay');
-    delayed.innerHTML = delayed.childNodes[0].nodeValue;
+    var lazyPanels = ['add-contact-action-menu',
+                      'confirmation-message',
+                      'edit-mode'];
 
-    // Translate content.
-    LazyL10n.get(function localized() {
-      navigator.mozL10n.translate(delayed);
-      var parent = delayed.parentNode;
-      var child;
-      while (child = delayed.children[0]) {
-        parent.insertBefore(child, delayed);
-      }
-      parent.removeChild(delayed);
-    });
+    loader.load(lazyPanels.map(function toElement(id) {
+        return document.getElementById(id);
+      })
+    );
 
     CallHandler.init();
-
-    // Load delayed scripts
-    loader.load(['/contacts/js/fb/fb_data.js',
-                 '/contacts/js/fb/fb_contact_utils.js',
-                 '/shared/style/confirm.css',
-                 '/contacts/js/confirm_dialog.js',
-                 '/dialer/js/newsletter_manager.js']);
+    LazyL10n.get(function loadLazyFilesSet() {
+      loader.load(['/contacts/js/fb/fb_data.js',
+                   '/contacts/js/fb/fb_contact_utils.js',
+                   '/shared/style/confirm.css',
+                   '/contacts/js/confirm_dialog.js',
+                   '/dialer/js/newsletter_manager.js',
+                   '/shared/style/edit_mode.css',
+                   '/shared/style/headers.css']);
+    });
   });
 });
 
