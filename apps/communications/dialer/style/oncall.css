@@ -577,6 +577,7 @@ button[disabled] .icon-keypad-visibility {
 /* Handling the status bar mode */
 @media screen and (max-height: 40px) {
   body {
+    background-color: #82af00;
     background-image: url('images/green-noise-bg.png');
     background-repeat: repeat-x;
   }
