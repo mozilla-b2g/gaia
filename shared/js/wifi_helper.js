@@ -159,6 +159,25 @@ var WifiHelper = {
     return '';
   },
 
+  isValidInput: function(key, password, identity) {
+    switch (key) {
+      case 'WPA-PSK':
+        if (!password || password.length < 8)
+          return false;
+        break;
+      case 'WPA-EAP':
+        if (!password || password.length < 1 ||
+            !identity || identity.length < 1)
+          return false;
+        break;
+      case 'WEP':
+        if (!password || (password.length !== 5 && password.length !== 13))
+          return false;
+        break;
+    }
+    return true;
+  },
+
   isOpen: function(network) {
     return this.getKeyManagement(network) === '';
   },
