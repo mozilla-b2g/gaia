@@ -19,6 +19,7 @@ requireApp('sms/js/contacts.js');
 requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/compose.js');
+requireApp('sms/js/threads.js');
 requireApp('sms/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/messages_mockup.js');
 requireApp('sms/test/unit/thread_list_mockup.js');
@@ -103,17 +104,17 @@ suite('SMS App Unit-Test', function() {
 
     MessageManager.getMessages = function(options, callback) {
 
-      var stepCB = options.stepCB, // CB which manage every message
+      var each = options.each, // CB which manage every message
         filter = options.filter, // mozMessageFilter
         invert = options.invert, // invert selection
-        endCB = options.endCB,   // CB when all messages retrieved
-        endCBArgs = options.endCBArgs; //Args for endCB
+        end = options.end,   // CB when all messages retrieved
+        endArgs = options.endArgs; //Args for end
 
       var messagesMockup = new MockThreadMessages();
       for (var i = 0, l = messagesMockup.length; i < l; i++) {
-        stepCB(messagesMockup[i]);
+        each(messagesMockup[i]);
       }
-      endCB(endCBArgs);
+      end(endArgs);
     };
 
     // We mockup the method for retrieving the info
@@ -195,7 +196,7 @@ suite('SMS App Unit-Test', function() {
           '[data-last-message-type="sms"]'
         );
 
-        assert.equal(mmsThreads.length, 3);
+        assert.equal(mmsThreads.length, 4);
         assert.equal(smsThreads.length, 1);
       });
 
@@ -205,12 +206,12 @@ suite('SMS App Unit-Test', function() {
         var container = ThreadListUI.container;
 
         // Given our mockup, we should have 4 grous UL/HEADER
-        assertNumberOfElementsInContainerByTag(container, 3, 'ul');
-        assertNumberOfElementsInContainerByTag(container, 3, 'header');
+        assertNumberOfElementsInContainerByTag(container, 4, 'ul');
+        assertNumberOfElementsInContainerByTag(container, 4, 'header');
 
         // We know as well that we have, in total, 5 threads
-        assertNumberOfElementsInContainerByTag(container, 4, 'li');
-        assertNumberOfElementsInContainerByTag(container, 4, 'a');
+        assertNumberOfElementsInContainerByTag(container, 5, 'li');
+        assertNumberOfElementsInContainerByTag(container, 5, 'a');
 
         var mmsThreads = container.querySelectorAll(
           '[data-last-message-type="mms"]'
@@ -219,7 +220,7 @@ suite('SMS App Unit-Test', function() {
           '[data-last-message-type="sms"]'
         );
         assert.equal(mmsThreads.length, 1);
-        assert.equal(smsThreads.length, 3);
+        assert.equal(smsThreads.length, 4);
 
         // In our mockup we shoul group the threads following day criteria
         // In the second group, we should have 2 threads
@@ -237,11 +238,11 @@ suite('SMS App Unit-Test', function() {
 
       test('Update thread with contact info', function() {
         // Given a number, we should retrieve the contact and update the info
-        var threadWithContact = document.getElementById('thread_1');
+        var threadWithContact = document.getElementById('thread-1');
         var contactName =
           threadWithContact.getElementsByClassName('name')[0].innerHTML;
         assert.equal(contactName,
-                     'contact-title-text{"name":"Pepito Grillo","n":0}');
+                     'contact-title-text[zero]{"name":"Pepito Grillo","n":0}');
       });
     });
 
@@ -251,7 +252,7 @@ suite('SMS App Unit-Test', function() {
       test('Check edit mode form', function() {
         var container = ThreadListUI.container;
         // Do we have all inputs ready?
-        assertNumberOfElementsInContainerByTag(container, 4, 'input');
+        assertNumberOfElementsInContainerByTag(container, 5, 'input');
       });
 
       test('Select all/Deselect All buttons', function() {
@@ -291,13 +292,13 @@ suite('SMS App Unit-Test', function() {
 
         var checkboxes =
           ThreadListUI.container.querySelectorAll('input[type=checkbox]');
-        assert.equal(4,
+        assert.equal(5,
           [].slice.call(checkboxes).filter(function(i) {
             return i.checked;
           }).length, 'All items should be checked');
 
         // now a new message comes in for a new thread...
-        ThreadListUI.count++;
+        ThreadListUI.counter++;
         ThreadListUI.appendThread({
           participants: ['287138'],
           body: 'Recibidas!',
@@ -310,8 +311,8 @@ suite('SMS App Unit-Test', function() {
         checkboxes =
           ThreadListUI.container.querySelectorAll('input[type=checkbox]');
 
-        assert.equal(checkboxes.length, 5);
-        assert.equal(ThreadListUI.count, 5, '.count should be in sync');
+        assert.equal(checkboxes.length, 6);
+        assert.equal(ThreadListUI.counter, 6, '.count should be in sync');
         assert.equal(checkboxes[4].checked, true);
         assert.equal(checkboxes[2].checked, true);
         // new checkbox should have been added
@@ -780,4 +781,3 @@ suite('SMS App Unit-Test', function() {
 //   });
 // });
 });
-
