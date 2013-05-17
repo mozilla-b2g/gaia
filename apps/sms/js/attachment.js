@@ -51,7 +51,6 @@ Attachment.prototype = {
     return Utils.typeFromMimeType(this.blob.type);
   },
   render: function() {
-    var self = this;
     var _ = navigator.mozL10n.get;
     var src = 'data:text/html,';
     // We want kilobytes so we divide by 1024, with one fractional digit
