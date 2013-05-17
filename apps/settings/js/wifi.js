@@ -584,18 +584,8 @@ navigator.mozL10n.ready(function wifiSettings() {
       // disable the "OK" button if the password is too short
       if (password) {
         var checkPassword = function checkPassword() {
-          var disabled = false;
-          switch (key) {
-            case 'WPA-PSK':
-              disabled = disabled || (password && password.value.length < 8);
-              break;
-            case 'WPA-EAP':
-              disabled = disabled || (identity && identity.value.length < 1);
-            case 'WEP':
-              disabled = disabled || (password && password.value.length < 1);
-              break;
-          }
-          dialog.querySelector('button[type=submit]').disabled = disabled;
+          dialog.querySelector('button[type=submit]').disabled =
+            !WifiHelper.isValidInput(key, password.value, identity.value);
         };
         password.oninput = checkPassword;
         identity.oninput = checkPassword;
