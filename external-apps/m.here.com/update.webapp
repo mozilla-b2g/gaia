@@ -20,5 +20,10 @@
       "description": "Obtenha HERE e sinta-se em casa em qualquer lugar, onde quer que você esteja. Saiba os melhores locais para ir, veja comentários e descubra novos destinos com dicas de residentes e guias reconhecidos."
     }
   },
+  "launch_path": "/welcome.html",
+  "icons": {
+    "128": "/ffos_128.png",
+    "60": "/ffos_60.png"
+  },
   "default_locale": "en-US"
 }
