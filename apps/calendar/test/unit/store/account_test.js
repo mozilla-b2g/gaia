@@ -194,7 +194,7 @@ suite('store/account', function() {
 
     setup(function() {
       error = null;
-      result = null;
+      result = {};
 
       modelParams = Factory.build('account', {
         providerType: 'Caldav'
@@ -211,6 +211,48 @@ suite('store/account', function() {
         }
       };
     });
+
+    suite('duplicate account failure', function() {
+      var existingAccount;
+      var existingParams = {
+        providerType: 'Caldav',
+        user: 'foobar',
+        fullUrl: 'http://google.com/foo'
+      };
+
+      function sendsDuplicateError(done) {
+        return function(err, id, model) {
+          done(function() {
+            assert.ok(!id, 'is not persisted');
+            assert.ok(err, 'sends error on duplicate account');
+            assert.equal(err.name, 'account-exist');
+          });
+        };
+      }
+
+      setup(function(done) {
+        existingAccount = Factory('account', existingParams);
+        subject.persist(existingAccount, done);
+      });
+
+
+      test('initial input is duplicate', function(done) {
+        var account = Factory('account', existingParams);
+
+        subject.verifyAndPersist(account, sendsDuplicateError(done));
+      });
+
+      test('input is updated to be duplicate', function(done) {
+        var account = Factory('account', existingParams);
+        account.user = '';
+
+        result = { user: existingParams.user };
+
+        subject.verifyAndPersist(account, sendsDuplicateError(done));
+      });
+
+    });
+
 
     suite('existing account', function() {
       setup(function(done) {
