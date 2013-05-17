@@ -272,9 +272,6 @@
         this.type = 'update';
         this.deleteButton.addEventListener('click', this.deleteRecord);
         this.cancelDeleteButton.addEventListener('click', this.cancel);
-        if (this.authenticationType === 'oauth2') {
-          this.oauth2SignIn.addEventListener('click', this.displayOAuth2);
-        }
       } else {
         this.type = 'create';
       }
@@ -289,6 +286,8 @@
         list.add(Calendar.ERROR);
 
       if (this.authenticationType === 'oauth2') {
+        this.oauth2SignIn.addEventListener('click', this.displayOAuth2);
+
         if (this.type === 'create') {
           this.displayOAuth2();
         }
