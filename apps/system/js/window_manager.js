@@ -771,7 +771,10 @@ var WindowManager = (function() {
     // Dispatch an appwillopen event only when we open an app
     if (newApp != currentApp) {
       var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('appwillopen', true, true, { origin: newApp });
+      evt.initCustomEvent('appwillopen', true, true, {
+        origin: newApp,
+        isHomescreen: (newApp === homescreen)
+      });
 
       var app = runningApps[newApp];
       // Allows listeners to cancel app opening and so stay on homescreen
