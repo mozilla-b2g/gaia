@@ -241,8 +241,8 @@ navigator.mozL10n.ready(function bluetoothSettings() {
             this.connectOpt.style.display = 'block';
             this.disconnectOpt.style.display = 'none';
             this.connectOpt.onclick = function() {
-              setDeviceConnect(device);
               stopDiscovery();
+              setDeviceConnect(device);
             };
           }
         } else {
@@ -435,10 +435,11 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         var small = aItem.querySelector('small');
         small.textContent = _('device-status-pairing');
         small.dataset.l10nId = 'device-status-pairing';
+        stopDiscovery();
+
         var req = defaultAdapter.pair(device);
         pairingMode = 'active';
         pairingAddress = device.address;
-        stopDiscovery();
         req.onerror = function bt_pairError(error) {
           showDevicePaired(false, req.error.name);
         };
