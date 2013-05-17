@@ -63,41 +63,46 @@ var ThreadListUI = {
     }
   },
 
-  updateThreadWithContact:
-    function thlui_updateThreadWithContact(number, thread) {
+  setContact: function thlui_setContact(node) {
+    var thread = Threads.get(node.dataset.threadId);
+    var number = thread.participants[0];
+    var others = thread.participants.length - 1;
+
+    if (!number) {
+      return;
+    }
+
+    // TODO: This should use SimplePhoneMatcher
 
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
-      var nameContainer = thread.getElementsByClassName('name')[0];
-      var photo = thread.getElementsByTagName('img')[0];
-      // !contacts matches null results from errors
-      // !contacts.length matches empty arrays from unmatches filters
-      if (!contacts || !contacts.length) {
-        // if no contacts, we show the number
-        nameContainer.textContent = number;
-        photo.src = '';
-        return;
-      }
-      // If there is contact with the phone number requested, we
-      // update the info in the thread
-      var contact = contacts[0];
+      var name = node.getElementsByClassName('name')[0];
+      var photo = node.getElementsByTagName('img')[0];
+      var plural = others && others > 0 ?
+        (others > 1 ? '[many]' : '[one]') : '[zero]';
+      var title, src, details;
 
-      // Update contact phone number
-      var details = Utils.getContactDetails(number, contacts);
-      var title = details.title || number;
-      var others = contacts.length > 0 ? contacts.length - 1 : 0;
-      nameContainer.textContent = navigator.mozL10n.get('contact-title-text', {
+      if (contacts && contacts.length) {
+        details = Utils.getContactDetails(number, contacts[0]);
+        title = details.title || number;
+        src = details.photoURL || '';
+      } else {
+        title = number;
+        src = '';
+      }
+
+      if (src) {
+        photo.onload = photo.onerror = function revokePhotoURL() {
+          this.onload = this.onerror = null;
+          URL.revokeObjectURL(this.src);
+        };
+      }
+
+      name.textContent = navigator.mozL10n.get('contact-title-text' + plural, {
         name: title,
         n: others
       });
-      // Do we have to update photo?
-      if (!details.photoURL)
-        return;
 
-      photo.src = details.photoURL;
-      photo.onload = photo.onerror = function revokePhotoURL() {
-        this.onload = this.onerror = null;
-        URL.revokeObjectURL(this.src);
-      };
+      photo.src = src;
     });
   },
 
@@ -121,7 +126,7 @@ var ThreadListUI = {
     var _ = navigator.mozL10n.get;
     var selected = ThreadListUI.selectedInputs.length;
 
-    if (selected === ThreadListUI.count) {
+    if (selected === ThreadListUI.counter) {
       this.checkAllButton.disabled = true;
     } else {
       this.checkAllButton.disabled = false;
@@ -168,33 +173,61 @@ var ThreadListUI = {
 
   delete: function thlui_delete() {
     var question = navigator.mozL10n.get('deleteThreads-confirmation2');
+    var threadIds, threadId, li, messageIds, filter;
+
+    function deleteMessages(messageIds) {
+      MessageManager.deleteMessages(messageIds, function ondelete() {
+        MessageManager.getThreads(function getThreads(threads) {
+          ThreadListUI.editDone = true;
+          window.location.hash = '#thread-list';
+        });
+      });
+    }
+
     if (confirm(question)) {
       WaitingScreen.show();
-      var inputs = this.selectedInputs;
-      var nums = inputs.map(function(input) {
+
+      threadIds = this.selectedInputs.map(function(input) {
         return input.value;
       });
 
-      var filter = new MozSmsFilter();
-      filter.numbers = nums;
-      var messagesToDeleteIDs = [];
-      var options = {
-        stepCB: function getMessageToDelete(message) {
-          messagesToDeleteIDs.push(message.id);
-        },
-        filter: filter,
-        invert: true,
-        endCB: function deleteMessages() {
-          MessageManager.deleteMessages(messagesToDeleteIDs,
-            function smsDeleted() {
-            MessageManager.getThreads(function recoverThreads(threads) {
-              ThreadListUI.editDone = true;
-              window.location.hash = '#thread-list';
-            });
+      // Remove and coerce the threadId back to a number
+      // MozSmsFilter and all other platform APIs
+      // expect this value to be a number.
+      while (threadId = +threadIds.pop()) {
+
+        // 1. Remove from the DOM
+        li = document.getElementById('thread-' + threadId);
+        li.parentNode.removeChild(li);
+        // ????
+        // li.classList.add('hide');
+
+        // 2.a If there are messages registered, immediately delete.
+        messageIds = Threads.get(threadId).messages.map(function(msg) {
+          return msg.id;
+        });
+
+        if (messageIds.length) {
+          deleteMessages(messageIds);
+        } else {
+        // 2.b Get the message ids by thread id and delete
+
+          filter = new MozSmsFilter();
+          filter.threadId = threadId;
+
+          MessageManager.getMessages({
+            filter: filter,
+            invert: true,
+            each: function each(message) {
+              messageIds.push(message.id);
+              return true;
+            },
+            end: function end() {
+              deleteMessages(messageIds);
+            }
           });
         }
-      };
-      MessageManager.getMessages(options);
+      }
     }
   },
 
@@ -217,7 +250,7 @@ var ThreadListUI = {
     // Refactor the rendering method: do not empty the entire
     // list on every render.
     ThreadListUI.container.innerHTML = '';
-    ThreadListUI.count = threads.length;
+    ThreadListUI.counter = threads.length;
 
     if (threads.length) {
       thlui_renderThreads.abort = function thlui_renderThreads_abort() {
@@ -285,36 +318,43 @@ var ThreadListUI = {
 
   createThread: function thlui_createThread(thread) {
     // Create DOM element
-    var num = thread.participants[0];
+    var li = document.createElement('li');
     var timestamp = thread.timestamp.getTime();
-    var threadDOM = document.createElement('li');
-    var bodyHTML = '';
-    threadDOM.id = 'thread_' + thread.id;
-    threadDOM.dataset.lastMessageType = thread.lastMessageType;
-    threadDOM.dataset.time = timestamp;
-    threadDOM.dataset.phoneNumber = num;
+    var participants = thread.participants;
+    var number = participants[0];
+    var body = thread.body || '';
+    var id = thread.id;
+
+    li.id = 'thread-' + id;
+    li.dataset.threadId = id;
+    li.dataset.time = timestamp;
+
 
     if (thread.unreadCount > 0) {
-      threadDOM.classList.add('unread');
+      li.classList.add('unread');
     }
 
-    if (thread.lastMessageType === 'sms' && thread.body) {
-      bodyHTML = Utils.Message.format(thread.body).split('\n')[0];
+    // Since getThreads returns a DOMStringMap,
+    // |undefined| has become a string instead of a value
+    if (body === 'undefined') {
+      body = '&nbsp;';
     }
 
-    // Create HTML Structure
-    var structureHTML = this.tmpl.thread.interpolate({
-      num: num,
-      formattedDate: Utils.getFormattedHour(timestamp),
-      bodyHTML: bodyHTML
+    if (thread.lastMessageType === 'sms' && body) {
+      body = Utils.Message.format(body).split('\n')[0];
+    }
+
+    // Render markup with thread data
+    li.innerHTML = this.tmpl.thread.interpolate({
+      id: id,
+      number: number,
+      body: body,
+      formattedDate: Utils.getFormattedHour(timestamp)
     }, {
-      safe: ['bodyHTML']
+      safe: ['id', 'body']
     });
 
-    // Update HTML
-    threadDOM.innerHTML = structureHTML;
-
-    return threadDOM;
+    return li;
   },
   insertThreadContainer:
     function thlui_insertThreadContainer(fragment, timestamp) {
@@ -333,12 +373,12 @@ var ThreadListUI = {
     }
   },
   appendThread: function thlui_appendThread(thread) {
-    var num = thread.participants[0];
     var timestamp = thread.timestamp.getTime();
     // We create the DOM element of the thread
-    var threadDOM = this.createThread(thread);
+    var node = this.createThread(thread);
+
     // Update info given a number
-    ThreadListUI.updateThreadWithContact(num, threadDOM);
+    this.setContact(node);
 
     // Is there any container already?
     var threadsContainerID = 'threadsContainer_' +
@@ -361,16 +401,16 @@ var ThreadListUI = {
     for (var i = 0, l = threads.length; i < l; i++) {
       if (timestamp > threads[i].dataset.time) {
         threadFound = true;
-        threadsContainer.insertBefore(threadDOM, threads[i]);
+        threadsContainer.insertBefore(node, threads[i]);
         break;
       }
     }
     if (!threadFound) {
-      threadsContainer.appendChild(threadDOM);
+      threadsContainer.appendChild(node);
     }
-
-    if (document.getElementById('main-wrapper').classList.contains('edit'))
+    if (document.getElementById('main-wrapper').classList.contains('edit')) {
       this.checkInputs();
+    }
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createThreadContainer: function thlui_createThreadContainer(timestamp) {
@@ -399,16 +439,26 @@ var ThreadListUI = {
     // Prevents cases where updateContactsInfo method is called
     // before ThreadListUI.container exists (as observed by errors
     // in the js console)
-    if (!ThreadListUI.container) {
+    if (!this.container) {
       return;
     }
-    // Retrieve all 'li' elements and getting the phone numbers
-    var threads = ThreadListUI.container.getElementsByTagName('li');
-    for (var i = 0; i < threads.length; i++) {
-      var thread = threads[i];
-      var num = thread.dataset.phoneNumber;
-      // Update info of the contact given a number
-      ThreadListUI.updateThreadWithContact(num, thread);
+    // Retrieve all 'li' elements
+    var threads = this.container.getElementsByTagName('li');
+
+    [].forEach.call(threads, this.setContact.bind(this));
+  },
+
+  mark: function thlui_mark(id, current) {
+    var li = document.getElementById('thread-' + id);
+    var remove = 'read';
+
+    if (current === 'read') {
+      remove = 'unread';
+    }
+
+    if (li) {
+      li.classList.remove(remove);
+      li.classList.add(current);
     }
   }
 };
@@ -418,4 +468,3 @@ Object.defineProperty(ThreadListUI, 'selectedInputs', {
     return this.getSelectedInputs();
   }
 });
-

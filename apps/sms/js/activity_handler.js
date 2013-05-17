@@ -33,16 +33,39 @@ var ActivityHandler = {
   // A mapping of MozActivity names to their associated event handler
   _handlers: {
     'new': function newHandler(activity) {
+
       // XXX This lock is about https://github.com/mozilla-b2g/gaia/issues/5405
-      if (MessageManager.lockActivity)
+      if (MessageManager.activity.isLocked) {
         return;
-      MessageManager.lockActivity = true;
+      }
+
+      MessageManager.activity.isLocked = true;
+
       activity.postResult({ status: 'accepted' });
-      var options = {
-        number: activity.source.data.number,
-        body: activity.source.data.body
-      };
-      ActivityHandler.showThreadFromSystemMessage(options);
+
+      var number = activity.source.data.number;
+      var body = activity.source.data.body;
+
+      Contacts.findByPhoneNumber(number, function findContact(results) {
+        var record, details, name, contact;
+
+        if (results.length) {
+          record = results[0];
+          details = Utils.getContactDetails(number, record);
+          name = record.name.length && record.name[0];
+          contact = {
+            number: number,
+            name: name,
+            source: 'contacts'
+          };
+        }
+
+        ActivityHandler.showThreadFromSystemMessage({
+          body: body,
+          number: number,
+          contact: contact || null
+        });
+      });
     },
     share: function shareHandler(activity) {
       var blobs = activity.source.data.blobs,
@@ -71,64 +94,79 @@ var ActivityHandler = {
     }
   },
 
-  handleMessageNotification: function ah_handleMessageNotification(options) {
+  handleMessageNotification: function ah_handleMessageNotification(message) {
     //Validate if message still exists before opening message thread
     //See issue https://bugzilla.mozilla.org/show_bug.cgi?id=837029
-    if ((!options) || (!options.id)) {
+    if (!message) {
       return;
     }
-    var message = navigator.mozSms.getMessage(options.id);
-    message.onerror = function onerror() {
-      alert(navigator.mozL10n.get('deleted-sms'));
+
+    // For "new" message activities, proceed directly to
+    // new message composition view.
+    if (!message.threadId && message.number) {
+      showThreadFromSystemMessage(message);
+      return;
+    }
+
+    var request = navigator.mozMobileMessage.getMessage(message.id);
+
+    request.onsuccess = function onsuccess() {
+      showThreadFromSystemMessage(message);
     };
-    message.onsuccess = function onsuccess() {
-      showThreadFromSystemMessage(options);
+
+    request.onerror = function onerror() {
+      alert(navigator.mozL10n.get('deleted-sms'));
     };
   },
 
   showThreadFromSystemMessage:
-    function ah_showThreadFromSystemMessage(options) {
-    if (!options) {
+    function ah_showThreadFromSystemMessage(message) {
+    if (!message) {
       return;
     }
-    var number = options.number ? options.number : null;
-    var body = options.body ? options.body : null;
+
+    var threadId = message.threadId ? message.threadId : null;
+    var body = message.body ? Utils.escapeHTML(message.body) : '';
+    var number = message.number ? message.number : '';
+    var contact = message.contact ? message.contact : null;
+    var threadHash = '#thread=' + threadId;
+
     var showAction = function act_action(number) {
       // If we only have a body, just trigger a new message.
-      if (!number && body) {
-        var escapedBody = Utils.escapeHTML(body);
-        if (escapedBody === '') {
-          return;
-        }
-        MessageManager.activityBody = escapedBody;
+      if (!threadId) {
+        MessageManager.activity.body = body || null;
+        MessageManager.activity.number = number || null;
+        MessageManager.activity.contact = contact || null;
+
+        // Move to new message
         window.location.hash = '#new';
         return;
       }
+      var locationHash = window.location.hash;
 
-      var currentLocation = window.location.hash;
-      switch (currentLocation) {
+      switch (locationHash) {
         case '#thread-list':
         case '#new':
-          window.location.hash = '#num=' + number;
-          delete MessageManager.lockActivity;
+          window.location.hash = threadHash;
+          MessageManager.activity.isLocked = false;
           break;
         case '#edit':
           history.back();
-          showAction(number);
+          showAction(threadId);
           break;
         default:
-          if (currentLocation.indexOf('#num=') != -1) {
+          if (locationHash.indexOf('#thread=') !== -1) {
             // Don't switch back to thread list if we're
-            // already displaying the requested number.
-            if (currentLocation == '#num=' + number) {
-              delete MessageManager.lockActivity;
+            // already displaying the requested threadId.
+            if (locationHash === threadHash) {
+              MessageManager.activity.isLocked = false;
             } else {
-              MessageManager.activityTarget = number;
+              MessageManager.activity.threadId = threadId;
               window.location.hash = '#thread-list';
             }
           } else {
-            window.location.hash = '#num=' + number;
-            delete MessageManager.lockActivity;
+            window.location.hash = threadHash;
+            MessageManager.activity.isLocked = false;
           }
           break;
       }
@@ -136,18 +174,18 @@ var ActivityHandler = {
 
     if (!document.documentElement.lang) {
       navigator.mozL10n.ready(function waitLocalized() {
-        showAction(number);
+        showAction(threadId);
       });
     } else {
       if (!document.mozHidden) {
         // Case of calling from Notification
-        showAction(number);
+        showAction(threadId);
         return;
       }
       document.addEventListener('mozvisibilitychange',
         function waitVisibility() {
           document.removeEventListener('mozvisibilitychange', waitVisibility);
-          showAction(number);
+          showAction(threadId);
       });
     }
   },
@@ -190,21 +228,19 @@ var ActivityHandler = {
       // Should use the tag element of the notification once the final spec
       // lands:
       // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
-      navigator.mozApps.getSelf().onsuccess = function(evt) {
-        var app = evt.target.result;
-        var iconURL = NotificationHelper.getIconURI(app);
+      navigator.mozApps.getSelf().onsuccess = function(event) {
+        var app = event.target.result;
+        // var iconURL = NotificationHelper.getIconURI(app);
 
         // XXX: Add params to Icon URL.
-        iconURL += '?class0';
-        var messageBody = number + '\n' + message.body;
+        iconURL += '?type=class0';
 
         // We have to remove the SMS due to it does not have to be shown.
         MessageManager.deleteMessage(message.id, function() {
           app.launch();
-          alert(messageBody);
+          alert(number + '\n' + message.body);
           releaseWakeLock();
         });
-
       };
       return;
     }
@@ -216,13 +252,7 @@ var ActivityHandler = {
     function dispatchNotification(needManualRetrieve) {
       // The SMS app is already displayed
       if (!document.mozHidden) {
-
-        // TODO: This satisfies the single recipient per thread assumption
-        // but needs to be updated to use threadId. Please ref bug 868679.
-        var currentThread = MessageManager.currentThread;
-        // If we are in the same thread, only we need to vibrate
-        // XXX: Workaround for threadId bug in 870562.
-        if (threadId && threadId == currentThread) {
+        if (threadId === Threads.currentId) {
           navigator.vibrate([200, 200, 200]);
           releaseWakeLock();
           return;
@@ -235,15 +265,16 @@ var ActivityHandler = {
 
         // Stashing the number at the end of the icon URL to make sure
         // we get it back even via system message
-        iconURL += '?sms-received?' + number + '?' + id;
+        iconURL += '?';
+        iconURL += [
+          'threadId=' + threadId,
+          'number=' + number,
+          'id=' + id
+        ].join('&');
 
-        var goToMessage = function() {
+        var goToMessage = function goToMessage() {
           app.launch();
-          var options = {
-            number: number,
-            id: id
-          };
-          ActivityHandler.handleMessageNotification(options);
+          ActivityHandler.handleMessageNotification(message);
         };
 
         function getTitleFromMms(callback) {
@@ -321,32 +352,32 @@ var ActivityHandler = {
   },
 
   onNotification: function ah_onNotificationClick(message) {
+    // The "message" argument object does not have
+    // the necessary information we need, so we'll
+    // extract it from the imageURL string
+    //
+    // TODO: Would be nice to get this fixed in the platform.
+    //
+    var params = Utils.params(message.imageURL);
+
     if (!message.clicked) {
       return;
     }
 
-    navigator.mozApps.getSelf().onsuccess = function(evt) {
-      var app = evt.target.result;
+    navigator.mozApps.getSelf().onsuccess = function(event) {
+      var app = event.target.result;
+
       app.launch();
 
-      // Getting back the number form the icon URL
-      var notificationType = message.imageURL.split('?')[1];
-      // Case regular 'sms-received'
-      if (notificationType == 'sms-received') {
-
-        var number = message.imageURL.split('?')[2];
-        var id = message.imageURL.split('?')[3];
-        var options = {
-          number: number,
-          id: id
-        };
-        ActivityHandler.handleMessageNotification(options);
+      if (params.type === 'sms' || params.type === 'mms') {
+        ActivityHandler.handleMessageNotification({
+          id: params.id,
+          threadId: params.threadId
+        });
         return;
       }
-      var number = message.title;
       // Class 0 message
-      var messageBody = number + '\n' + message.body;
-      alert(messageBody);
+      alert(message.title + '\n' + message.body);
     };
   }
 };

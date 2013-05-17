@@ -35,6 +35,14 @@ function MockThreadList() {
             body: 'Nothing :)',
             timestamp: getMockupedDate(2),
             unreadCount: 2
+          },
+          {
+            id: 5,
+            participants: ['999', '888', '777'],
+            lastMessageType: 'sms',
+            body: '...',
+            timestamp: getMockupedDate(3),
+            unreadCount: 0
           }
         ];
 
