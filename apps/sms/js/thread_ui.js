@@ -119,9 +119,19 @@ var ThreadUI = global.ThreadUI = {
       'click', this.delete.bind(this)
     );
 
+    /**
+     * WARN: This is incorrect. Tapping the header should
+     * open the participants view:
+     *
+     * https://bugzilla.mozilla.org/show_bug.cgi?id=870069
+     *
+
     this.headerText.addEventListener(
       'click', this.activateContact.bind(this)
     );
+
+     */
+
     // When 'focus' we have to remove 'edit-mode' in the recipient
     this.input.addEventListener(
       'focus', this.messageComposerFocusHandler.bind(this)
@@ -268,7 +278,10 @@ var ThreadUI = global.ThreadUI = {
     this.convertNotice.querySelector('p').textContent = message;
     this.convertNotice.classList.remove('hide');
 
-    clearTimeout(this._convertNoticeTimeout);
+    if (this._convertNoticeTimeout) {
+      clearTimeout(this._convertNoticeTimeout);
+    }
+
     this._convertNoticeTimeout = setTimeout(function hideConvertNotice() {
       this.convertNotice.classList.add('hide');
     }.bind(this), this.CONVERTED_MESSAGE_DURATION);
@@ -615,9 +628,21 @@ var ThreadUI = global.ThreadUI = {
   },
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData(callback) {
-    var length = MessageManager.currentNums.length;
-    var number = length ? MessageManager.currentNums[0] : null;
+    var thread, number, others;
 
+    if (Threads.currentId) {
+      thread = Threads.active;
+    }
+
+    if (!thread) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+
+    number = thread.participants[0];
+    others = thread.participants.length - 1;
 
     // For Desktop Testing, mozContacts it's mockuped but it's not working
     // completely. So in the case of Desktop testing we are going to execute
@@ -627,13 +652,9 @@ var ThreadUI = global.ThreadUI = {
       this.headerText.textContent = navigator.mozL10n.get(
         'contact-title-text', {
         name: number,
-        n: length - 1
+        n: others
       });
       setTimeout(callback);
-      return;
-    }
-
-    if (!length) {
       return;
     }
 
@@ -655,14 +676,17 @@ var ThreadUI = global.ThreadUI = {
        *  user's responsability to correct this mess with the agenda.
        */
       var details = Utils.getContactDetails(number, contacts);
-      this.headerText.dataset.isContact = !!details.isContact;
       var contactName = details.title || number;
-      var numOthers = contacts.length > 0 ? contacts.length - 1 : 0;
-      this.headerText.textContent = navigator.mozL10n.get('contact-title-text',
-      {
-        name: contactName,
-        n: numOthers
+      var plural = others && others > 0 ?
+        (others > 1 ? '[many]' : '[one]') : '[zero]';
+
+      this.headerText.dataset.isContact = !!details.isContact;
+      this.headerText.textContent = navigator.mozL10n.get(
+        'contact-title-text' + plural, {
+          name: contactName,
+          n: others
       });
+
       if (details.carrier) {
         carrierTag.textContent = details.carrier;
         carrierTag.classList.remove('hide');
@@ -765,12 +789,13 @@ var ThreadUI = global.ThreadUI = {
       setTimeout(function updatingStatus() {
         var messagesUnreadIDs = [];
         var changeStatusOptions = {
-          stepCB: function addUnreadMessage(message) {
+          each: function addUnreadMessage(message) {
             messagesUnreadIDs.push(message.id);
+            return true;
           },
           filter: filter,
           invert: true,
-          endCB: function handleUnread() {
+          end: function handleUnread() {
             MessageManager.markMessagesRead(messagesUnreadIDs, true);
           }
         };
@@ -778,13 +803,10 @@ var ThreadUI = global.ThreadUI = {
       });
     };
     var renderingOptions = {
-      stepCB: function renderMessage(message) {
+      each: function renderMessage(message) {
         if (self._stopRenderingNextStep) {
           // stop the iteration
           return false;
-        }
-        if (MessageManager.currentThread === null) {
-          MessageManager.currentThread = message.threadId;
         }
         self.appendMessage(message,/*hidden*/ true);
         self.messageIndex++;
@@ -795,7 +817,7 @@ var ThreadUI = global.ThreadUI = {
       },
       filter: filter,
       invert: false,
-      endCB: onMessagesRendered
+      end: onMessagesRendered
     };
     MessageManager.getMessages(renderingOptions);
   },
@@ -812,10 +834,10 @@ var ThreadUI = global.ThreadUI = {
     }
     messageDOM.className = classNames.join(' ');
 
-    if (message.type === 'sms') {
-      bodyHTML = LinkHelper.searchAndLinkClickableData(Utils.Message.format(
-        message.body || ''
-      ));
+    if (message.type && message.type === 'sms') {
+      bodyHTML = LinkHelper.searchAndLinkClickableData(
+        Utils.Message.format(message.body || '')
+      );
     }
 
     messageDOM.id = 'message-' + message.id;
@@ -1077,12 +1099,12 @@ var ThreadUI = global.ThreadUI = {
   },
 
   sendMessage: function thui_sendMessage(resendText) {
-    var nums, text;
+    var recipients, text;
 
     this.container.classList.remove('hide');
 
     if (resendText && typeof resendText === 'string') {
-      nums = MessageManager.currentNums;
+      recipients = MessageManager.activity.recipients;
       text = resendText;
     } else {
       // Retrieve nums depending on hash
@@ -1092,9 +1114,9 @@ var ThreadUI = global.ThreadUI = {
         if (!this.recipients.length) {
           return;
         }
-        nums = this.recipients.numbers;
+        recipients = this.recipients.numbers;
       } else {
-        nums = MessageManager.currentNums;
+        recipients = Threads.active.participants;
       }
 
       // Retrieve text
@@ -1105,27 +1127,19 @@ var ThreadUI = global.ThreadUI = {
     }
     // Clean fields (this lock any repeated click in 'send' button)
     this.cleanFields(true);
-    // Remove when
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=825604 landed
-    //
-    // This is totally broken logic and the dependency is wide sweeping.
-    // PENDING: ttps://bugzilla.mozilla.org/show_bug.cgi?id=868679
-    //
-    MessageManager.currentNums = nums;
+
     this.updateHeaderData();
 
-    // Send the SMS
-    MessageManager.send(nums, text);
+    // Hold onto the recipients until
+    MessageManager.activity.recipients = recipients;
 
-    if (nums.length > 1) {
-      // This is a hack to make multi-recipient work as it did with single
-      // PENDING: https://bugzilla.mozilla.org/show_bug.cgi?id=868679
-      window.location.hash = '#thread-list';
-    }
+    // Send the Message
+    MessageManager.send(recipients, text);
   },
 
   onMessageSent: function thui_onMessageSent(message) {
     var messageDOM = document.getElementById('message-' + message.id);
+
     if (!messageDOM) {
       return;
     }
@@ -1190,8 +1204,7 @@ var ThreadUI = global.ThreadUI = {
     if (typeof id !== 'number') {
       id = parseInt(id, 10);
     }
-    messageDOM = this.container.querySelector('[data-message-id="' + id +
-      '"]');
+    messageDOM = this.container.querySelector('[data-message-id="' + id + '"]');
     messagesContainer = messageDOM.parentNode;
 
     // Defer removing the message from the DOM until after it has been
@@ -1418,7 +1431,7 @@ var ThreadUI = global.ThreadUI = {
   onCreateContact: function thui_onCreateContact() {
     ThreadListUI.updateContactsInfo();
     // Update Header if needed
-    if (window.location.hash.substr(0, 5) === '#num=') {
+    if (window.location.hash.substr(0, 8) === '#thread=') {
       ThreadUI.updateHeaderData();
     }
   }

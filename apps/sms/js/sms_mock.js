@@ -15,6 +15,7 @@
 
   var outstandingRequests = 0;
   var requests = {};
+  var now = Date.now();
 
   function getTestFile(filename, callback) {
     if (!requests[filename]) {
@@ -63,6 +64,7 @@
       threadId: 6,
       sender: '052780',
       type: 'mms',
+      read: true,
       delivery: 'received',
       subject: 'Test MMS Image message',
       smil: '<smil><body><par><img src="example.jpg"/>' +
@@ -81,6 +83,7 @@
       threadId: 6,
       sender: '052780',
       type: 'mms',
+      read: true,
       delivery: 'sent',
       subject: 'Test MMS Image message',
       smil: '<smil><body><par><text src="text1"/></par>' +
@@ -102,6 +105,7 @@
       threadId: 6,
       sender: '052780',
       type: 'mms',
+      read: true,
       delivery: 'received',
       subject: 'Test MMS Video message',
       smil: '<smil><body><par><video src="example.ogv"/>' +
@@ -120,6 +124,7 @@
       threadId: 6,
       sender: '052780',
       type: 'mms',
+      read: true,
       delivery: 'sent',
       subject: 'Test MMS Video message',
       smil: '<smil><body><par><text src="text1"/></par>' +
@@ -139,6 +144,7 @@
       id: messagesDb.id++,
       threadId: 6,
       sender: '052780',
+      read: true,
       type: 'mms',
       delivery: 'received',
       subject: 'Test MMS audio message',
@@ -157,6 +163,7 @@
       id: messagesDb.id++,
       threadId: 6,
       sender: '052780',
+      read: true,
       type: 'mms',
       delivery: 'sent',
       subject: 'Test MMS audio message',
@@ -203,12 +210,14 @@
         receiver: '436797',
         body: 'Sending :)',
         delivery: 'sending',
+        read: true,
         type: 'sms',
         timestamp: new Date(Date.now() - 172800000)
       },
       {
         threadId: 4,
         sender: null,
+        read: true,
         receiver: '197746797',
         body: 'This message is intended to demonstrate hyperlink creation: ' +
           'http://mozilla.org and https://bugzilla.mozilla.org/',
@@ -219,6 +228,7 @@
       {
         threadId: 4,
         sender: null,
+        read: true,
         receiver: '197746797',
         body: 'This message is intended to demonstrate natural line ' +
           'wrapping. (delivery: sending)',
@@ -229,6 +239,7 @@
       {
         threadId: 4,
         sender: null,
+        read: true,
         receiver: '197746797',
         body: 'This message is intended to demonstrate natural line ' +
           'wrapping. (delivery: error)',
@@ -249,6 +260,7 @@
        {
         threadId: 4,
         sender: '197746797',
+        read: true,
         body: 'This message is intended to demonstrate natural line ' +
           'wrapping. (delivery: received)',
         delivery: 'received',
@@ -259,6 +271,7 @@
         threadId: 4,
         sender: null,
         receiver: '197746797',
+        read: true,
         body: 'short (delivery: sending)',
         delivery: 'sending',
         type: 'sms',
@@ -268,6 +281,7 @@
         threadId: 4,
         sender: null,
         receiver: '197746797',
+        read: true,
         body: 'short (delivery: error)',
         delivery: 'error',
         type: 'sms',
@@ -277,6 +291,7 @@
         threadId: 4,
         sender: null,
         receiver: '197746797',
+        read: true,
         body: 'short (delivery: sent)',
         delivery: 'sent',
         type: 'sms',
@@ -285,6 +300,7 @@
       {
         threadId: 4,
         sender: '197746797',
+        read: true,
         body: 'short (delivery: received)',
         delivery: 'received',
         type: 'sms',
@@ -297,7 +313,7 @@
         participants: ['1977'],
         lastMessageType: 'sms',
         body: 'Alo, how are you today, my friend? :)',
-        timestamp: new Date(Date.now()),
+        timestamp: new Date(now - (60000 * 12)),
         unreadCount: 0
       },
       {
@@ -328,7 +344,14 @@
         id: 6,
         participants: ['052780'],
         lastMessageType: 'mms',
-        timestamp: new Date(),
+        timestamp: new Date(now - (60000 * 10)),
+        unreadCount: 0
+      },
+      {
+        id: 7,
+        participants: ['999', '888', '777'],
+        lastMessageType: 'mms',
+        timestamp: new Date(now),
         unreadCount: 0
       }
     ]
@@ -344,6 +367,7 @@
     messagesDb.messages.push({
       threadId: 5,
       sender: '14886783487',
+      read: i < 147 ? true : false,
       body: 'Hello world!',
       delivery: 'received',
       id: messagesDb.id++,
@@ -351,6 +375,36 @@
       timestamp: new Date(Date.now() - 60000000)
     });
   }
+
+  var first = 60000 * 50; // 1 minute * 50 Minutes
+
+  for (var i = 0; i < 50; i++) {
+    var sender = ['999', '888', '777'][Math.floor(Math.random() * 3)];
+    var receivers = ['999', '888', '777'].filter(function(val) {
+      return val !== sender;
+    });
+    messagesDb.messages.push({
+      threadId: 7,
+      sender: sender,
+      receivers: receivers,
+      delivery: 'received',
+      id: messagesDb.id++,
+      read: true,
+      type: 'mms',
+      subject: '',
+      smil: '<smil><body><par><text src="text1"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['hi! this is ' + sender], { type: 'text/plain' })
+      }],
+      timestamp: new Date(now - first)
+    });
+    first -= 60000;
+  }
+
+
+
+
 
   // Internal publisher/subscriber implementation
   var allHandlers = {};
@@ -422,7 +476,8 @@
         participants: [].concat(number),
         body: text,
         timestamp: new Date(),
-        unreadCount: 0
+        unreadCount: 0,
+        lastMessageType: 'sms'
       };
       messagesDb.threads.push(thread);
     }
@@ -440,10 +495,12 @@
         body: text,
         id: sendId,
         type: 'sms',
+        read: true,
         timestamp: new Date(),
         threadId: thread.id
       }
     };
+
 
     var initiateSend = function() {
       messagesDb.messages.push(sendInfo.message);
@@ -486,12 +543,141 @@
           body: 'Hi back! ' + text,
           id: messagesDb.id++,
           type: 'sms',
+          read: false,
           timestamp: new Date(),
           threadId: thread.id
         }
       };
       messagesDb.messages.push(receivedInfo.message);
+      thread.unreadCount++;
       trigger('received', receivedInfo);
+    };
+
+    setTimeout(initiateSend, simulation.delay());
+
+    return request;
+  };
+
+  function hasSameParticipants(a, b) {
+    return a.every(function(p) {
+      return b.indexOf(p) !== -1;
+    });
+  }
+
+  MockNavigatormozMobileMessage.sendMMS = function(params) {
+    /**
+      params {
+        receivers: [...recipients],
+        subject: '',
+        smil: smil string,
+        attachments: ...
+      }
+    */
+
+    var sendId = messagesDb.id++;
+    var request = {
+      error: null
+    };
+
+    var thread = messagesDb.threads.filter(function(t) {
+      return hasSameParticipants(
+        t.participants, params.receivers
+      );
+    })[0];
+
+    // New group threads
+    if (!thread) {
+      thread = {
+        id: messagesDb.id++,
+        lastMessageType: 'mms',
+        participants: params.receivers,
+        body: '',
+        timestamp: new Date(),
+        unreadCount: 0
+      };
+      messagesDb.threads.push(thread);
+    } else {
+      thread.timestamp = new Date();
+    }
+
+    var sendInfo = {
+      type: 'sent',
+      message: {
+        id: sendId,
+        threadId: thread.id,
+        sender: null,
+        receivers: params.receivers,
+        type: 'mms',
+        delivery: 'sending',
+        read: true,
+        subject: '',
+        smil: params.smil,
+        attachments: params.attachments,
+        timestamp: new Date()
+      }
+    };
+
+
+    var initiateSend = function() {
+      messagesDb.messages.push(sendInfo.message);
+      trigger('sending', sendInfo);
+
+      setTimeout(completeSend, simulation.delay());
+    };
+
+    var completeSend = function() {
+      request.result = sendInfo;
+
+      if (simulation.failState()) {
+        sendInfo.message.delivery = 'error';
+        request.error = {
+          name: 'mock send error'
+        };
+        if (typeof request.onerror === 'function') {
+          request.onerror();
+        }
+        trigger('failed', sendInfo);
+      } else {
+        sendInfo.message.delivery = 'sent';
+        if (typeof request.onsuccess === 'function') {
+          request.onsuccess();
+        }
+        trigger('sent', sendInfo);
+
+        setTimeout(simulateResponse, simulation.delay());
+      }
+    };
+
+    // Echo messages back
+    var simulateResponse = function() {
+
+      params.receivers.forEach(function(sender) {
+        var receivedInfo = {
+          type: 'received',
+          message: {
+            sender: sender,
+            receiver: null,
+            delivery: 'received',
+            id: messagesDb.id++,
+            timestamp: new Date(),
+            threadId: thread.id,
+            type: 'mms',
+            read: false,
+            subject: '',
+            smil: '<smil><body><par><text src="text1"/></par></body></smil>',
+            attachments: [{
+              location: 'text1',
+              content: new Blob(
+                ['Got it! (This is ' + sender + ')'],
+                { type: 'text/plain' }
+              )
+            }]
+          }
+        };
+        messagesDb.messages.push(receivedInfo.message);
+        thread.unreadCount++;
+        trigger('received', receivedInfo);
+      });
     };
 
     setTimeout(initiateSend, simulation.delay());
@@ -604,6 +790,11 @@
                           num.indexOf(element.receiver) != -1));
         });
       }
+      if (filter.threadId) {
+        msgs = msgs.filter(function(msg) {
+          return msg.threadId === filter.threadId;
+        });
+      }
     }
 
     // Sort according to timestamp
@@ -663,8 +854,10 @@
       error: null
     };
     // Convenience alias
+    var threads = messagesDb.threads;
     var msgs = messagesDb.messages;
-    var idx, len;
+    var isEmptyThread = false;
+    var idx, len, threadId;
 
     setTimeout(function() {
       if (simulation.failState()) {
@@ -682,7 +875,75 @@
       for (idx = 0, len = msgs.length; idx < len; ++idx) {
         if (msgs[idx].id === id) {
           request.result = true;
+          threadId = msgs[idx].threadId;
           msgs.splice(idx, 1);
+          break;
+        }
+      }
+
+      isEmptyThread = !!msgs.filter(function(msg) {
+        return msg.threadId === threadId;
+      }).length;
+
+      if (isEmptyThread) {
+        for (idx = 0, len = threads.length; idx < len; ++idx) {
+          if (threads[idx].id === threadId) {
+            threads.splice(idx, 1);
+            break;
+          }
+        }
+      }
+
+      if (typeof request.onsuccess === 'function') {
+        request.onsuccess.call(request);
+      }
+    }, simulation.delay());
+
+    return request;
+  };
+
+  MockNavigatormozMobileMessage.markMessageRead = function(id, readBool) {
+    var request = {
+      result: true,
+      error: null
+    };
+    // Convenience alias
+    var threads = messagesDb.threads;
+    var msgs = messagesDb.messages;
+    var isUpdating = false;
+    var idx, len, threadId;
+
+    setTimeout(function() {
+      if (simulation.failState()) {
+        request.error = {
+          name: 'mock markMessageRead error'
+        };
+        if (typeof request.onerror === 'function') {
+          request.onerror();
+        }
+        return;
+      }
+
+      for (idx = 0, len = msgs.length; idx < len; ++idx) {
+        if (msgs[idx].id === id) {
+          if (msgs[idx].read !== readBool) {
+            isUpdating = true;
+          }
+          msgs[idx].read = readBool;
+          break;
+        }
+      }
+
+      for (idx = 0, len = threads.length; idx < len; ++idx) {
+        if (threads[idx].id === threadId) {
+          // Only change the unreadCount if this is
+          if (isUpdating) {
+            if (readBool) {
+              threads[idx].unreadCount--;
+            } else {
+              threads[idx].unreadCount++;
+            }
+          }
           break;
         }
       }
