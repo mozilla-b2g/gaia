@@ -890,6 +890,7 @@ suite('thread_ui.js >', function() {
       assert.equal(MockMozActivity.calls.length, 1);
       var call = MockMozActivity.calls[0];
       assert.equal(call.name, 'open');
+      assert.isTrue(call.data.allowSave);
       assert.equal(call.data.type, 'image/jpeg');
       assert.equal(call.data.filename, 'imageTest.jpg');
       assert.equal(call.data.blob, testImageBlob);
@@ -921,6 +922,7 @@ suite('thread_ui.js >', function() {
       assert.equal(MockMozActivity.calls.length, 1);
       var call = MockMozActivity.calls[0];
       assert.equal(call.name, 'open');
+      assert.isTrue(call.data.allowSave);
       assert.equal(call.data.type, 'audio/ogg');
       assert.equal(call.data.filename, 'audio.oga');
       assert.equal(call.data.blob, testAudioBlob);
@@ -952,6 +954,7 @@ suite('thread_ui.js >', function() {
       assert.equal(MockMozActivity.calls.length, 1);
       var call = MockMozActivity.calls[0];
       assert.equal(call.name, 'open');
+      assert.isTrue(call.data.allowSave);
       assert.equal(call.data.type, 'video/ogg');
       assert.equal(call.data.filename, 'video.ogv');
       assert.equal(call.data.blob, testVideoBlob);
