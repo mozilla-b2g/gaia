@@ -33,7 +33,8 @@ suite('FM', function() {
         '    <div id="frequency-indicator"></div>' +
         '    <div id="frequency-dialer" class="animation-on"></div>' +
         '  </div>' +
-        '</div>';
+        '</div>' +
+        '<div id="antenna-warning" hidden="hidden"></div>';
 
       document.body.appendChild(tempNode);
       frequencyDialer.init();
