@@ -368,6 +368,13 @@ section[role="region"].new > header:first-child form {
   background-position: 0 -6rem;
 }
 
+#messages-container[data-type="list"] .message.outgoing img,
+#messages-container[data-type="list"] .message.outgoing .video-placeholder,
+#messages-container[data-type="list"] .message.outgoing .audio-placeholder {
+  margin-left: auto;
+  margin-right: 0;
+}
+
 #messages-container[data-type="list"] .message.outgoing .bubble {
   float: right;
 
