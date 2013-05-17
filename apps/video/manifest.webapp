@@ -42,7 +42,7 @@
   "activities": {
     "view" : {
       "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube"]
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube", "video/ogg"]
       },
       "href": "view.html",
       "disposition": "inline",
