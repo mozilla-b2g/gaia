@@ -947,7 +947,8 @@
 
   // the B2G build system doesn't expose any `document'...
   if (typeof(document) !== 'undefined') {
-    if (document.readyState === 'complete') {
+    if (document.readyState === 'complete' ||
+      document.readyState === 'interactive') {
       window.setTimeout(l10nStartup);
     } else {
       document.addEventListener('DOMContentLoaded', l10nStartup);

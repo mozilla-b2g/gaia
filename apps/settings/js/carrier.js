@@ -365,8 +365,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
     var name = document.createElement('a');
     name.textContent = network.shortName || network.longName;
 
-    // state can be either:
-    // 'available', 'connected', 'current', 'forbidden' or null
+    // state
     var state = document.createElement('small');
     state.textContent =
       network.state ? _('state-' + network.state) : _('state-unknown');
@@ -404,6 +403,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // select operator
     function selectOperator(network, messageElement) {
+      var _ = window.navigator.mozL10n.get;
       var req = mobileConnection.selectNetwork(network);
       // update current network state as 'available' (the string display
       // on the network to connect)
