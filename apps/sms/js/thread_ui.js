@@ -13,9 +13,10 @@ function thui_mmsAttachmentClick(target) {
   var activity = new MozActivity({
     name: 'open',
     data: {
-      type: attachment.blob.type,
+      allowSave: true,
+      blob: attachment.blob,
       filename: attachment.name,
-      blob: attachment.blob
+      type: attachment.blob.type
     }
   });
   activity.onerror = function() {
