@@ -35,9 +35,9 @@ var Utils = {
   getPhoneNumberPrimaryInfo: function ut_getPhoneNumberPrimaryInfo(matchingTel,
     contact) {
     if (contact) {
-      if (contact.name && String(contact.name) !== '') {
+      if (contact.name && contact.name.length && contact.name[0] !== '') {
         return contact.name;
-      } else if (contact.org && String(contact.org) !== '') {
+      } else if (contact.org && contact.org.length && contact.org[0] !== '') {
         return contact.org;
       }
     }
@@ -46,7 +46,11 @@ var Utils = {
     }
     return null;
   },
-
+  toCamelCase: function ut_toCamelCase(str) {
+    return str.replace(/\-(.)/g, function replacer(str, p1) {
+      return p1.toUpperCase();
+    });
+  },
   // XXX: this is way too complex for the task accomplished
   getPhoneNumberAdditionalInfo: function ut_getPhoneNumberAdditionalInfo(
     matchingTel, associatedContact, inputNumber) {
