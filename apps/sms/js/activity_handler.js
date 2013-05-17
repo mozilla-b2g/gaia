@@ -230,7 +230,7 @@ var ActivityHandler = {
       // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
       navigator.mozApps.getSelf().onsuccess = function(event) {
         var app = event.target.result;
-        // var iconURL = NotificationHelper.getIconURI(app);
+        var iconURL = NotificationHelper.getIconURI(app);
 
         // XXX: Add params to Icon URL.
         iconURL += '?type=class0';
@@ -268,7 +268,7 @@ var ActivityHandler = {
         iconURL += '?';
         iconURL += [
           'threadId=' + threadId,
-          'number=' + number,
+          'number=' + encodeURIComponent(number),
           'id=' + id
         ].join('&');
 

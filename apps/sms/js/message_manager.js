@@ -313,7 +313,7 @@ var MessageManager = {
         Threads.set(this.result.id, this.result);
 
         // If one of the requested threads is also the
-        // is currently displayed thread, update the header immediately
+        // currently displayed thread, update the header immediately
         if (this.result.id === Threads.currentId) {
           ThreadUI.updateHeaderData();
         }
@@ -341,7 +341,7 @@ var MessageManager = {
     options {
       each: callback function invoked for each message
       end: callback function invoked when cursor is "done"
-      andArgs: specify arguments for the "end" callback
+      endArgs: specify arguments for the "end" callback
       filter: a MozMessageFilter or similar object
       invert: option to invert the selection
     }

@@ -634,6 +634,9 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (!thread) {
+      if (callback) {
+        callback();
+      }
       return;
     }
 
@@ -1124,10 +1127,10 @@ var ThreadUI = global.ThreadUI = {
     // Clean fields (this lock any repeated click in 'send' button)
     this.cleanFields(true);
 
+    this.updateHeaderData();
+
     // Hold onto the recipients until
     MessageManager.activity.recipients = recipients;
-
-    this.updateHeaderData();
 
     // Send the Message
     MessageManager.send(recipients, text);

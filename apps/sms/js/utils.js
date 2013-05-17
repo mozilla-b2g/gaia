@@ -17,7 +17,7 @@
     br: /(\r\n|\n|\r)/gm,
     nbsp: /\s\s/g
   };
-  var rparams = /([^?=&]+)(=([^&]*))?/g;
+  var rparams = /([^?=&]+)(?:=([^&]*))?/g;
 
   var Utils = {
     date: {
@@ -267,8 +267,8 @@
     },
     params: function(input) {
       var parsed = {};
-      input.replace(rparams, function($0, $1, $2, $3) {
-        parsed[$1] = $3;
+      input.replace(rparams, function($0, $1, $2) {
+        parsed[$1] = $2;
       });
       return parsed;
     }

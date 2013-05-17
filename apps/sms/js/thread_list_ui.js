@@ -83,6 +83,8 @@ var ThreadListUI = {
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var name = node.getElementsByClassName('name')[0];
       var photo = node.getElementsByTagName('img')[0];
+
+      // TODO: Fix This, https://bugzilla.mozilla.org/show_bug.cgi?id=873703
       var plural = others && others > 0 ?
         (others > 1 ? '[many]' : '[one]') : '[zero]';
       var title, src, details;
@@ -333,6 +335,8 @@ var ThreadListUI = {
 
     // Since getThreads returns a DOMStringMap,
     // |undefined| has become a string instead of a value
+    //
+    // TODO: Fix this, https://bugzilla.mozilla.org/show_bug.cgi?id=873706
     if (body === 'undefined') {
       body = '&nbsp;';
     }
