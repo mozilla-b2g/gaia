@@ -105,7 +105,7 @@ if (typeof window.oauth2 === 'undefined') {
       }
       var location = getLocation(oauthflow.params[accessTokenCbData.service].
         redirectURI);
-      var allowedOrigin = location.protocol + '//' + location.host;
+      var allowedOrigin = oauthflow.params[accessTokenCbData.service].appOrigin;
       if (e.origin !== allowedOrigin) {
         return;
       }
