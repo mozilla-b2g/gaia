@@ -51,7 +51,8 @@
     },
     "share": {
       "filters": {
-        "type": "image/*"
+        "type": "image/*",
+        "number": 1
        },
       "disposition": "window",
       "returnValue": true

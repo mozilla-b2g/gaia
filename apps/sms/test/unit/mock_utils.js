@@ -19,6 +19,7 @@ var MockUtils = {
   escapeRegex: Utils.escapeRegex,
   params: Utils.params,
   getContactDetails: Utils.getContactDetails,
+  getResizedImgBlob: Utils.getResizedImgBlob,
   removeNonDialables: Utils.removeNonDialables,
   compareDialables: Utils.compareDialables,
   Message: {
