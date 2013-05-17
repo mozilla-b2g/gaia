@@ -124,8 +124,8 @@ var UtilityTray = {
     this.lastY = undefined;
     this.startY = undefined;
 
-    // If the transition has not started yet there won't be any transitionend event
-    // so let's not wait in order to remove the utility-tray class.
+    // If the transition has not started yet there won't be any transitionend
+    // event so let's not wait in order to remove the utility-tray class.
     if (instant || style.MozTransform == 'translateY(0px)') {
       this.screen.classList.remove('utility-tray');
     }
