@@ -171,18 +171,15 @@ var ThreadListUI = {
     this.checkInputs();
   },
 
+  removeThread: function(threadId) {
+    var li = document.getElementById('thread-' + threadId);
+    li.parentNode.removeChild(li);
+  },
+
   delete: function thlui_delete() {
     var question = navigator.mozL10n.get('deleteThreads-confirmation2');
-    var threadIds, threadId, li, messageIds, filter;
-
-    function deleteMessages(messageIds) {
-      MessageManager.deleteMessages(messageIds, function ondelete() {
-        MessageManager.getThreads(function getThreads(threads) {
-          ThreadListUI.editDone = true;
-          window.location.hash = '#thread-list';
-        });
-      });
-    }
+    var messageIds = [];
+    var threadIds, threadId, filter;
 
     if (confirm(question)) {
       WaitingScreen.show();
@@ -195,38 +192,30 @@ var ThreadListUI = {
       // MozSmsFilter and all other platform APIs
       // expect this value to be a number.
       while (threadId = +threadIds.pop()) {
+        // Cleanup the DOM
+        this.removeThread(threadId);
 
-        // 1. Remove from the DOM
-        li = document.getElementById('thread-' + threadId);
-        li.parentNode.removeChild(li);
-        // ????
-        // li.classList.add('hide');
+        // Filter and request all messages with this threadId
+        filter = new MozSmsFilter();
+        filter.threadId = threadId;
 
-        // 2.a If there are messages registered, immediately delete.
-        messageIds = Threads.get(threadId).messages.map(function(msg) {
-          return msg.id;
-        });
+        MessageManager.getMessages({
+          filter: filter,
+          invert: true,
+          each: function each(message) {
+            MessageManager.deleteMessage(message.id);
+            return true;
+          },
+          end: function end() {
+            Threads.delete(threadId);
 
-        if (messageIds.length) {
-          deleteMessages(messageIds);
-        } else {
-        // 2.b Get the message ids by thread id and delete
-
-          filter = new MozSmsFilter();
-          filter.threadId = threadId;
-
-          MessageManager.getMessages({
-            filter: filter,
-            invert: true,
-            each: function each(message) {
-              messageIds.push(message.id);
-              return true;
-            },
-            end: function end() {
-              deleteMessages(messageIds);
+            // When the last threadId has been cleared...
+            if (!threadIds.length) {
+              ThreadListUI.editDone = true;
+              window.location.hash = '#thread-list';
             }
-          });
-        }
+          }
+        });
       }
     }
   },

@@ -356,7 +356,8 @@ var ActivityHandler = {
     // the necessary information we need, so we'll
     // extract it from the imageURL string
     //
-    // TODO: Would be nice to get this fixed in the platform.
+    // NOTE: In 1.2, use the arbitrary string allowed by
+    // the new notification spec.
     //
     var params = Utils.params(message.imageURL);
 

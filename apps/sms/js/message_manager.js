@@ -337,12 +337,21 @@ var MessageManager = {
   },
 
   getMessages: function mm_getMgs(options) {
-    var each = options.each, // CB which manage every message
-        filter = options.filter, // mozMessageFilter
-        invert = options.invert, // invert selection
-        end = options.end,   // CB when all messages retrieved
-        endArgs = options.endArgs; //Args for end
+    /*
+    options {
+      each: callback function invoked for each message
+      end: callback function invoked when cursor is "done"
+      andArgs: specify arguments for the "end" callback
+      filter: a MozMessageFilter or similar object
+      invert: option to invert the selection
+    }
 
+     */
+    var each = options.each;
+    var filter = options.filter;
+    var invert = options.invert;
+    var end = options.end;
+    var endArgs = options.endArgs;
     var cursor = this._mozMobileMessage.getMessages(filter, !invert);
 
     cursor.onsuccess = function onsuccess() {
@@ -369,14 +378,15 @@ var MessageManager = {
 
   // consider splitting this method for the different use cases
   send: function mm_send(recipients, msgContent, onsuccess, onerror) {
-    var isGroupOrMMS = false;
+    var isMMS = false;
+    var isGroup = false;
     var isSMILCandidate = false;
     var message, request;
 
     // When there are > 1 recipients specified for a message,
     // use MMS Group Messaging.
     // if (recipients.length > 1) {
-    //   isGroupOrMMS = true;
+    //   isMMS = true;
     //   msgContent = [{
     //     text: msgContent
     //   }];
@@ -387,14 +397,18 @@ var MessageManager = {
     }
 
     if (Array.isArray(msgContent)) {
-      isGroupOrMMS = true;
+      isMMS = true;
       isSMILCandidate = true;
     }
 
     message = isSMILCandidate ?
       SMIL.generate(msgContent) : msgContent;
 
-    if (isGroupOrMMS) {
+    if (recipients.length > 1) {
+      isGroup = true;
+    }
+
+   if (isMMS) {
       request = this._mozMobileMessage.sendMMS({
         subject: '',
         receivers: recipients,
@@ -402,7 +416,7 @@ var MessageManager = {
         attachments: message.attachments
       });
     } else {
-      // For this case, "recipients" may only
+      // For this case, "recipients" may
       // only have a single entry.
       request = this._mozMobileMessage.send(
         recipients, message
@@ -418,7 +432,7 @@ var MessageManager = {
       onerror && onerror();
     };
 
-    if (isGroupOrMMS) {
+    if (isGroup && !isMMS) {
       window.location.hash = '#thread-list';
     }
   },
@@ -447,8 +461,11 @@ var MessageManager = {
       this.deleteMessage(list.shift(), function(result) {
         this.deleteMessages(list, callback);
       }.bind(this));
-    } else
-      callback();
+    } else {
+      if (callback) {
+        callback();
+      }
+    }
   },
 
   markMessagesRead: function mm_markMessagesRead(list, value, callback) {

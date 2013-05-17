@@ -2,6 +2,7 @@
   'use strict';
 
   var threads = new Map();
+  var rthread = /\bthread=(.+)$/;
 
   function Thread(thread) {
     for (var p in thread) {
@@ -40,7 +41,7 @@
       return +threads.size;
     },
     get currentId() {
-      var matches = /\bthread=(.+)$/.exec(window.location.hash);
+      var matches = rthread.exec(window.location.hash);
       return (matches && matches.length) ? +(matches[1].trim()) : null;
     },
     get active() {
