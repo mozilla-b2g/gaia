@@ -36,7 +36,8 @@ var ThreadUI = global.ThreadUI = {
   recipients: null,
   init: function thui_init() {
     var _ = navigator.mozL10n.get;
-    var templateIds = ['contact', 'highlight', 'message', 'recipient'];
+    var templateIds = ['contact', 'highlight', 'message', 'not-downloaded',
+      'recipient'];
 
     Compose.init('messages-compose-form');
 
@@ -158,7 +159,8 @@ var ThreadUI = global.ThreadUI = {
     );
 
     this.tmpl = templateIds.reduce(function(tmpls, name) {
-      tmpls[name] = Utils.Template('messages-' + name + '-tmpl');
+      tmpls[Utils.camelCase(name)] =
+        Utils.Template('messages-' + name + '-tmpl');
       return tmpls;
     }, {});
 
@@ -822,16 +824,24 @@ var ThreadUI = global.ThreadUI = {
   },
 
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
+    var _ = navigator.mozL10n.get;
     var bodyHTML = '';
     var delivery = message.delivery;
     var messageDOM = document.createElement('li');
 
     var classNames = ['message', message.type, delivery];
-    classNames.push(delivery === 'received' ? 'incoming' : 'outgoing');
+
+    var notDownloaded = delivery === 'not-downloaded';
+
+    if (delivery === 'received' || notDownloaded) {
+      classNames.push('incoming');
+    } else {
+      classNames.push('outgoing');
+    }
+
     if (hidden) {
       classNames.push('hidden');
     }
-    messageDOM.className = classNames.join(' ');
 
     if (message.type && message.type === 'sms') {
       bodyHTML = LinkHelper.searchAndLinkClickableData(
@@ -839,6 +849,35 @@ var ThreadUI = global.ThreadUI = {
       );
     }
 
+    if (notDownloaded) {
+      // default strings:
+      var messageString = 'not-downloaded-mms';
+
+      // assuming that incoming message only has one deliveryStatus
+      var status = message.deliveryStatus[0];
+      var expireFormatted = Utils.date.format.localeFormat(
+        message.expiryDate, _('dateTimeFormat_%x')
+      );
+
+      var expired = +message.expiryDate < Date.now();
+
+      if (expired) {
+        classNames.push('expired');
+        messageString = 'expired-mms';
+      }
+
+      if (status === 'error') {
+        classNames.push('error');
+      }
+
+      messageString = _(messageString, { date: expireFormatted });
+      bodyHTML = this.tmpl.notDownloaded.interpolate({
+        message: messageString,
+        download: _('download')
+      });
+    }
+
+    messageDOM.className = classNames.join(' ');
     messageDOM.id = 'message-' + message.id;
     messageDOM.dataset.messageId = message.id;
 
@@ -849,15 +888,11 @@ var ThreadUI = global.ThreadUI = {
       safe: ['bodyHTML']
     });
 
-    var pElement = messageDOM.querySelector('p');
-    if (message.type === 'mms') { // MMS
-      if (delivery === 'not-downloaded') {
-        // TODO: We need to handle the mms message with "not-downloaded" status
-      } else {
-        SMIL.parse(message, function(slideArray) {
-          pElement.appendChild(ThreadUI.createMmsContent(slideArray));
-        });
-      }
+    if (message.type === 'mms' && !notDownloaded) { // MMS
+      var pElement = messageDOM.querySelector('p');
+      SMIL.parse(message, function(slideArray) {
+        pElement.appendChild(ThreadUI.createMmsContent(slideArray));
+      });
     }
 
     return messageDOM;
@@ -1009,6 +1044,7 @@ var ThreadUI = global.ThreadUI = {
     var currentNode = evt.target;
     var inBubble = false;
     var elems = {};
+    var _ = navigator.mozL10n.get;
 
     // Walk up the DOM, inspecting all the elements
     while (currentNode && currentNode.classList) {
@@ -1022,18 +1058,31 @@ var ThreadUI = global.ThreadUI = {
 
     // Click event handlers that occur outside of a message element should be
     // defined elsewhere.
-    if (!elems.message) {
+    if (!(elems.message && elems.bubble)) {
+      return;
+    }
+
+    // handle not-downloaded messages
+    if (elems.message.classList.contains('not-downloaded')) {
+
+      // do nothing for pending downloads, or expired downloads
+      if (elems.message.classList.contains('expired') ||
+        elems.message.classList.contains('pending')) {
+        return;
+      }
+      this.retrieveMMS(elems.message.dataset.messageId);
       return;
     }
 
     // Click events originating from within a "bubble" of an error message
     // should trigger a prompt for retransmission.
-    if (elems.bubble && elems.message.classList.contains('error')) {
-      if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
+    if (elems.message.classList.contains('error')) {
+      if (window.confirm(_('resend-confirmation'))) {
         this.resendMessage(elems.message.dataset.messageId);
       }
       return;
     }
+
   },
 
   handleEvent: function thui_handleEvent(evt) {
@@ -1199,6 +1248,29 @@ var ThreadUI = global.ThreadUI = {
       this.container.removeChild(header);
       this.container.removeChild(messagesContainer);
     }
+  },
+
+  retrieveMMS: function thui_retrieveMMS(messageId) {
+    // force a number
+    var id = +messageId;
+    var _ = navigator.mozL10n.get;
+    var request = MessageManager.retrieveMMS(id);
+    var messageDOM = this.container.querySelector(
+      '[data-message-id="' + id + '"]');
+
+    messageDOM.classList.add('pending');
+    messageDOM.classList.remove('error');
+    messageDOM.querySelector('button').textContent = _('downloading');
+
+    request.onsuccess = (function retrieveMMSSuccess() {
+      this.removeMessageDOM(messageDOM);
+    }).bind(this);
+
+    request.onerror = (function retrieveMMSError() {
+      messageDOM.classList.remove('pending');
+      messageDOM.classList.add('error');
+      messageDOM.querySelector('button').textContent = _('download');
+    });
   },
 
   resendMessage: function thui_resendMessage(id) {
