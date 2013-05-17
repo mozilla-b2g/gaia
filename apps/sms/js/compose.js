@@ -141,6 +141,12 @@ var Compose = (function() {
       dom.message.addEventListener('keydown', composeKeyEvents);
       dom.message.addEventListener('keypress', composeKeyEvents);
 
+      dom.message.addEventListener('click', function(e) {
+        if (e.target.className === 'attachment') {
+          attachments.get(e.target).openOptionsMenu();
+        }
+      });
+
       dom.attachButton.addEventListener('click',
         this.onAttachClick.bind(this));
 

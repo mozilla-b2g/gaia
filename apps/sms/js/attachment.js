@@ -36,8 +36,9 @@ function Attachment(blob, name) {
     // Signal Gecko to release the reference to the Blob
     window.URL.revokeObjectURL(self.objectURL);
 
+    // Bubble click events from inside the iframe
     self.el.contentDocument.addEventListener('click',
-      self.openOptionsMenu.bind(self));
+      self.el.click.bind(self.el));
   });
 }
 
