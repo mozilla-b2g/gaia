@@ -108,6 +108,33 @@ function audioPreview(element, type) {
 }
 
 /**
+ * L10n helper
+ */
+
+function localize(element, id, args) {
+  var mozL10n = navigator.mozL10n;
+  if (!element || !mozL10n)
+    return;
+
+  if (id) {
+    element.dataset.l10nId = id;
+  } else {
+    element.dataset.l10nId = '';
+    element.textContent = '';
+  }
+
+  if (args) {
+    element.dataset.l10nArgs = JSON.stringify(args);
+  } else {
+    element.dataset.l10nArgs = '';
+  }
+
+  mozL10n.ready(function l10nReady() {
+    mozL10n.translate(element);
+  });
+}
+
+/**
  * Helper class for formatting file size strings
  * required by *_storage.js
  */
