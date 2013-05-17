@@ -20,16 +20,20 @@
 'use strict';
 
 function Attachment(blob, name) {
-  var self = this;
   this.blob = blob;
   this.name = name || '';
-  this.optionsMenu = null;
+  this.optionsMenu = document.querySelector('#attachment-options-menu');
   this.el = document.createElement('iframe');
   // The attachment's iFrame requires access to the parent document's context
   // so that URIs for Blobs created in the parent may resolve as expected.
   this.el.setAttribute('sandbox', 'allow-same-origin');
   this.el.className = 'attachment';
   this.objectURL = window.URL.createObjectURL(this.blob);
+
+  if (!this.optionsMenuSetupDone) {
+    this.optionsMenuSetup();
+    this.optionsMenuSetupDone = true;
+  }
 
   // When rendering is complete
   this.el.addEventListener('load', this.handleLoad.bind(this));
@@ -66,31 +70,45 @@ Attachment.prototype = {
     return this.el;
   },
 
-  openOptionsMenu: function() {
-    var template = Utils.Template('attachment-options-tmpl');
-    var html = template.interpolate({
-      fileName: this.name.substr(this.name.lastIndexOf('/') + 1),
-      fileType: this.type
-    });
-    var elem = document.createElement('menu');
-    elem.innerHTML = html;
+  optionsMenuSetup: function() {
+    var viewButton = this.optionsMenu.querySelector('#attachment-options-view');
+    var removeButton = this.optionsMenu.querySelector('#attachment-options-remove');
+    var replaceButton = this.optionsMenu.querySelector('#attachment-options-replace');
+    var cancelButton = this.optionsMenu.querySelector('#attachment-options-cancel');
 
+    viewButton.addEventListener('click', this.view.bind(this));
+    removeButton.addEventListener('click', this.remove.bind(this));
+    replaceButton.addEventListener('click', this.replace.bind(this));
+    cancelButton.addEventListener('click', this.closeOptionsMenu.bind(this));
+  },
+
+  openOptionsMenu: function() {
+    var _ = navigator.mozL10n.get;
+    var elem = this.optionsMenu;
+    var fileName = this.name.substr(this.name.lastIndexOf('/') + 1);
+
+    var header = elem.querySelector('header');
     var viewButton = elem.querySelector('#attachment-options-view');
     var removeButton = elem.querySelector('#attachment-options-remove');
     var replaceButton = elem.querySelector('#attachment-options-replace');
     var cancelButton = elem.querySelector('#attachment-options-cancel');
+
+    header.textContent = fileName;
+    viewButton.textContent = _('view-attachment');
+    removeButton.textContent = _('remove-attachment', {type: this.type});
+    replaceButton.textContent = _('replace-attachment', {type: this.type});
+    cancelButton.textContent = _('cancel');
 
     viewButton.addEventListener('click', this.view.bind(this));
     removeButton.addEventListener('click', this.remove.bind(this));
     replaceButton.addEventListener('click', this.replace.bind(this));
     cancelButton.addEventListener('click', this.closeOptionsMenu.bind(this));
 
-    this.optionsMenu = elem;
-    document.body.appendChild(elem);
+    elem.className = '';
   },
 
   closeOptionsMenu: function() {
-    this.optionsMenu.parentNode.removeChild(this.optionsMenu);
+    this.optionsMenu.className = 'hide';
     this.optionsMenu = null;
   },
 
