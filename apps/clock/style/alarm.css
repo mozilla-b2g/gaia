@@ -716,7 +716,7 @@ div.animation-on {
 }
 .picker-unit.active {
   color: #FFFFFF;
-  font-size: 3.2rem;
+  transform: scale(1.5, 1.5);
 }
 
 #picker-bar-background {
