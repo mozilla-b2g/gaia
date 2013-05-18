@@ -721,12 +721,12 @@ var Camera = {
     var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
     var screenAspectRatio = screenHeight / screenWidth;
 
-    // Previews should match the aspect ratio and not be smaller than the screen.
+    // Previews should match the aspect ratio and not be smaller than the screen
     var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
       var isLarger = res.height >= screenHeight && res.width >= screenWidth;
       var aspectRatio = res.height / res.width;
-      var matchesAspectRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
-      return matchesAspectRatio && isLarger;
+      var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
+      return matchesRatio && isLarger;
     });
 
     // We should always have a valid preview size, but just in case
