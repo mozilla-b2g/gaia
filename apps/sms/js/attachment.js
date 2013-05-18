@@ -124,10 +124,10 @@ Attachment.prototype = {
   },
 
   replace: function() {
-    var request = Compose.requestAttachment();
+    var request = Compose.requestAttachment(true);
     request.onsuccess = function(result) {
       this.blob = result.blob;
-      this.name = result.name;
+      this.name = result.name || '';
       this.objectURL = window.URL.createObjectURL(this.blob);
       this.render();
       this.closeOptionsMenu();

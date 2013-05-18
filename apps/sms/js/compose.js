@@ -154,7 +154,7 @@ var Compose = (function() {
           attachment.view();
         }
         else if (e.target.id === 'attachment-options-remove') {
-          attachment.remove.();
+          attachment.remove();
         }
         else if (e.target.id === 'attachment-options-replace') {
           attachment.replace();
@@ -307,7 +307,7 @@ var Compose = (function() {
      *                               method may optionally be defined on this
      *                               object.
      */
-    requestAttachment: function() {
+    requestAttachment: function(resultOnly) {
       // Mimick the DOMRequest API
       var requestProxy = {};
       var activity = new MozActivity({
@@ -320,11 +320,16 @@ var Compose = (function() {
 
       activity.onsuccess = function() {
         var result = activity.result;
-        var attachment = new Attachment(result.blob, result.name);
-
-        if (typeof requestProxy.onsuccess === 'function') {
-          requestProxy.onsuccess(attachment);
+        if (typeof requestProxy.onsuccess !== 'function') {
+          return;
         }
+        if (resultOnly) {
+          requestProxy.onsuccess(result);
+        }
+        else {
+          requestProxy.onsuccess(new Attachment(result.blob, result.name));
+        }
+      
       };
 
       activity.onerror = function() {
