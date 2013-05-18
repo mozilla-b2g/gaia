@@ -130,25 +130,30 @@
   //   'latin-prose': offer word suggestions and capitalization
   //
   function getInputMode(type, mode) {
-    // For text, textarea and search types, use the requested input
-    // mode if it is valid and supported. Otherwise default to latin
-    // for text and search and to latin-prose for textarea.  For all
-    // other form fields, use verbatim mode so we never alter input.
+    // For text, textarea and search types, use the requested inputmode
+    // if it is valid and supported except numeric/digit mode. For
+    // numeric/digit mode, we return verbatim since no typing assitance
+    // is required. Otherwise default to latin for text and search and to
+    // latin-prose for textarea. For all other form fields, use verbatim mode
+    // so we never alter input.
     switch (type) {
-    case 'text':
-    case 'textarea':
-    case 'search':
-      switch (mode) {
-      case 'verbatim':
-      case 'latin':
-      case 'latin-prose':
-        return mode;
-      default:
-        return (type === 'textarea') ? 'latin-prose' : 'latin';
-      }
+      case 'text':
+      case 'textarea':
+      case 'search':
+        switch (mode) {
+          case 'verbatim':
+          case 'latin':
+          case 'latin-prose':
+            return mode;
+          case 'numeric':
+          case 'digit':
+            return 'verbatim';
+          default:
+            return (type === 'textarea') ? 'latin-prose' : 'latin';
+        }
 
-    default:
-      return 'verbatim';
+      default:
+        return 'verbatim';
     }
   }
 

@@ -31,56 +31,21 @@ var SimPinDialog = {
   action: 'unlock',
   origin: null,
 
-  // Now we don't have a number-password type for input field
-  // mimic one by binding one number input and one text input
   getNumberPasswordInputField: function spl_wrapNumberInput(name) {
-    var valueEntered = '';
     var inputField = document.querySelector('input[name="' + name + '"]');
-    var displayField = document.querySelector('input[name="' + name + 'Vis"]');
     var self = this;
 
-    inputField.addEventListener('keypress', function(evt) {
+    inputField.addEventListener('input', function(evt) {
       if (evt.target !== inputField)
         return;
-      evt.preventDefault();
 
-      var code = evt.charCode;
-      if (code !== 0 && (code < 0x30 || code > 0x39))
-        return;
-
-      if (code === 0) { // backspace
-        valueEntered = valueEntered.substr(0, valueEntered.length - 1);
-      } else {
-        if (valueEntered.length >= 8)
-          return;
-        valueEntered += String.fromCharCode(code);
-      }
-      displayField.value = encryption(valueEntered);
-      if (displayField.value.length >= 4)
+      if (inputField.value.length >= 4)
         self.dialogDone.disabled = false;
       else
         self.dialogDone.disabled = true;
     });
 
-    function encryption(str) {
-      return (new Array(str.length + 1)).join('*');
-    }
-
-    function setValue(value) {
-      valueEntered = value;
-      inputField.value = value;
-      displayField.value = encryption(valueEntered);
-    }
-
-    function setFocus() {
-      inputField.focus();
-    }
-
-    return {
-      get value() { return valueEntered; },
-      set value(value) { setValue(value) },
-      focus: setFocus
-    };
+    return inputField;
   },
 
   handleCardState: function spl_handleCardState() {

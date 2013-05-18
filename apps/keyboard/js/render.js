@@ -117,13 +117,11 @@ const IMERender = (function() {
         // Handle override
         var code = key.keyCode || keyChar.charCodeAt(0);
 
-        var className = isSpecialKey(key) ? 'special-key' : '';
-
-        // telLayout and numberLayout keys works like special-keys without
-        // popups
-        if (!isSpecialKey(key) &&
-            (inputType === 'tel' || inputType === 'number')) {
-          className = 'special-key big-key';
+        var className = '';
+        if (isSpecialKey(key)) {
+          className = 'special-key';
+        } else if (layout.keyClassName) {
+          className = layout.keyClassName;
         }
 
         var ratio = key.ratio || 1;
