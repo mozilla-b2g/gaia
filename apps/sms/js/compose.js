@@ -151,16 +151,16 @@ var Compose = (function() {
       dom.optionsMenu.addEventListener('click', function(e) {
         var attachment = attachments.get(dom.optionsMenu.el);
         if (e.target.id === 'attachment-options-view') {
-          attachment.view.call(attachment);
+          attachment.view();
         }
         else if (e.target.id === 'attachment-options-remove') {
-          attachment.remove.call(attachment);
+          attachment.remove.();
         }
         else if (e.target.id === 'attachment-options-replace') {
-          attachment.replace.call(attachment);
+          attachment.replace();
         }
         else if (e.target.id === 'attachment-options-cancel') {
-          attachment.closeOptionsMenu.call(attachment);
+          attachment.closeOptionsMenu();
         }
       });
 
