@@ -447,6 +447,7 @@ suite('SMS App Unit-Test', function() {
 
         var checkboxes =
           ThreadUI.container.querySelectorAll('input[type=checkbox]');
+        assert.equal(checkboxes.length, 5);
         assert.equal(checkboxes.length,
           [].slice.call(checkboxes).filter(function(i) {
             return i.checked;
@@ -487,15 +488,19 @@ suite('SMS App Unit-Test', function() {
           assert.equal(window.confirm.callCount, 1);
           assert.equal(MessageManager.deleteMessages.callCount, 1);
           assert.equal(MessageManager.deleteMessages.calledWith[0].length, 5);
-          assert.equal(ThreadUI.container.querySelectorAll('li').length, 1);
+          assert.equal(ThreadUI.container.querySelectorAll('li').length, 1,
+            'correct number of Thread li');
           assert.equal(
             ThreadUI.container.querySelector('#message-9999 p').textContent,
             'Recibidas!');
+          assert.isTrue(MessageManager.getThreads.called);
+          MessageManager.getThreads.restore();
 
           done();
         }, 1500); // only the last one is slow. What is blocking?
 
         window.history.back = stub();
+        sinon.stub(MessageManager, 'getThreads').callsArg(1);
         ThreadUI.delete();
       });
 
