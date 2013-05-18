@@ -87,6 +87,22 @@ Attachment.prototype = {
     var elem = this.optionsMenu;
     var fileName = this.name.substr(this.name.lastIndexOf('/') + 1);
 
+    // Localize the name of the file type
+    var mimeFirstPart = this.blob.type.substr(0, this.blob.type.indexOf('/'));
+    var fileType;
+    if (mimeFirstPart === 'image') {
+      fileType = _('attachment-type-image');
+    }
+    else if (mimeFirstPart === 'audio') {
+      fileType = _('attachment-type-audio');
+    }
+    else if (mimeFirstPart === 'video') {
+      fileType = _('attachment-type-video');
+    }
+    else {
+      fileType = this.blob.type;
+    }
+
     var header = elem.querySelector('header');
     var viewButton = elem.querySelector('#attachment-options-view');
     var removeButton = elem.querySelector('#attachment-options-remove');
@@ -95,8 +111,8 @@ Attachment.prototype = {
 
     header.textContent = fileName;
     viewButton.textContent = _('view-attachment');
-    removeButton.textContent = _('remove-attachment', {type: this.type});
-    replaceButton.textContent = _('replace-attachment', {type: this.type});
+    removeButton.textContent = _('remove-attachment', {type: fileType});
+    replaceButton.textContent = _('replace-attachment', {type: fileType});
     cancelButton.textContent = _('cancel');
 
     viewButton.addEventListener('click', this.view.bind(this));
