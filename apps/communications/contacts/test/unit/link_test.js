@@ -1,4 +1,3 @@
-requireApp('communications/contacts/test/unit/mock_link.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/facebook/test/unit/mock_curtain.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
@@ -11,13 +10,6 @@ requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_linked_contacts.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/js/fb/fb_link.js');
-
-var realImageLoader,
-    realAsyncStorage,
-    realFb,
-    linkProposal,
-    linkProposalChild;
-
 
 if (!this.asyncStorage) {
   this.asyncStorage = null;
@@ -33,6 +25,11 @@ if (!this.fb) {
 
 
 suite('Link Friends Test Suite', function() {
+  var realImageLoader,
+      realAsyncStorage,
+      realFb,
+      linkProposal,
+      linkProposalChild;
 
   suiteSetup(function() {
     realImageLoader = window.ImageLoader;
@@ -42,11 +39,13 @@ suite('Link Friends Test Suite', function() {
     window.asyncStorage = MockAsyncStorage;
 
     realFb = window.fb;
-    window.fb = MockFb;
+    window.fb = Mockfb;
     window.fb.link = realFb.link;
 
-    document.body.innerHTML = MockLinkHtml;
+  });
 
+  setup(function() {
+    loadBodyHTML('/contacts/fb_link.html');
     linkProposal = document.body.querySelector('#friends-list');
 
     linkProposalChild = linkProposal.firstElementChild;
@@ -54,6 +53,9 @@ suite('Link Friends Test Suite', function() {
     fb.link.init();
   });
 
+  teardown(function() {
+    document.body.innerHTML = '';
+  });
 
   test('Link UI. Proposal Calculated', function(done) {
     linkProposal.innerHTML = '';
