@@ -31,7 +31,6 @@ var playing = false;
 var playerShowing = false;
 
 // keep the screen on when playing
-var screenLock;
 var endedTimer;
 
 // same thing for the controls
@@ -623,12 +622,6 @@ function hidePlayer(updateMetadata) {
   dom.player.pause();
 
   function completeHidingPlayer() {
-    // Allow the screen to blank now.
-    if (screenLock) {
-      screenLock.unlock();
-      screenLock = null;
-    }
-
     // switch to the video gallery view
     dom.fullscreenView.classList.add('hidden');
     dom.thumbnailSelectView.classList.add('hidden');
@@ -728,10 +721,6 @@ function play() {
   // Start playing
   dom.player.play();
   playing = true;
-
-  // Don't let the screen go to sleep
-  if (!screenLock)
-    screenLock = navigator.requestWakeLock('screen');
 }
 
 function pause() {
@@ -741,12 +730,6 @@ function pause() {
   // Stop playing the video
   dom.player.pause();
   playing = false;
-
-  // Let the screen go to sleep
-  if (screenLock) {
-    screenLock.unlock();
-    screenLock = null;
-  }
 }
 
 // Update the progress bar and play head as the video plays
