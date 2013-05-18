@@ -133,6 +133,7 @@ var Compose = (function() {
       dom.message = dom.form.querySelector('[contenteditable]');
       dom.sendButton = document.getElementById('messages-send-button');
       dom.attachButton = document.getElementById('messages-attach-button');
+      dom.optionsMenu = document.getElementById('attachment-options-menu');
 
       // update the placeholder after input
       dom.message.addEventListener('input', composeCheck);
@@ -144,6 +145,23 @@ var Compose = (function() {
       dom.message.addEventListener('click', function(e) {
         if (e.target.className === 'attachment') {
           attachments.get(e.target).openOptionsMenu();
+        }
+      });
+
+      dom.optionsMenu.addEventListener('click', function(e) {
+        console.log("CLICK");
+        var attachment = attachments.get(dom.optionsMenu.el);
+        if (e.target.id === 'attachment-options-view') {
+          attachment.view.call(attachment);
+        }
+        else if (e.target.id === 'attachment-options-remove') {
+          attachment.remove.call(attachment);
+        }
+        else if (e.target.id === 'attachment-options-replace') {
+          attachment.replace.call(attachment);
+        }
+        else if (e.target.id === 'attachment-options-cancel') {
+          attachment.closeOptionsMenu.call(attachment);
         }
       });
 

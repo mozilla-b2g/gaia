@@ -22,18 +22,14 @@
 function Attachment(blob, name) {
   this.blob = blob;
   this.name = name || '';
-  this.optionsMenu = document.querySelector('#attachment-options-menu');
+  this.optionsMenu = document.getElementById('attachment-options-menu');
   this.el = document.createElement('iframe');
+  this.optionsMenu.el = this.el;
   // The attachment's iFrame requires access to the parent document's context
   // so that URIs for Blobs created in the parent may resolve as expected.
   this.el.setAttribute('sandbox', 'allow-same-origin');
   this.el.className = 'attachment';
   this.objectURL = window.URL.createObjectURL(this.blob);
-
-  if (!this.optionsMenuSetupDone) {
-    this.optionsMenuSetup();
-    this.optionsMenuSetupDone = true;
-  }
 
   // When rendering is complete
   this.el.addEventListener('load', this.handleLoad.bind(this));
@@ -70,37 +66,20 @@ Attachment.prototype = {
     return this.el;
   },
 
-  optionsMenuSetup: function() {
-    var viewButton = this.optionsMenu.querySelector('#attachment-options-view');
-    var removeButton = this.optionsMenu.querySelector('#attachment-options-remove');
-    var replaceButton = this.optionsMenu.querySelector('#attachment-options-replace');
-    var cancelButton = this.optionsMenu.querySelector('#attachment-options-cancel');
-
-    viewButton.addEventListener('click', this.view.bind(this));
-    removeButton.addEventListener('click', this.remove.bind(this));
-    replaceButton.addEventListener('click', this.replace.bind(this));
-    cancelButton.addEventListener('click', this.closeOptionsMenu.bind(this));
-  },
-
   openOptionsMenu: function() {
     var _ = navigator.mozL10n.get;
     var elem = this.optionsMenu;
     var fileName = this.name.substr(this.name.lastIndexOf('/') + 1);
 
     // Localize the name of the file type
+    var types = ['image', 'audio', 'video'];
     var mimeFirstPart = this.blob.type.substr(0, this.blob.type.indexOf('/'));
     var fileType;
-    if (mimeFirstPart === 'image') {
-      fileType = _('attachment-type-image');
-    }
-    else if (mimeFirstPart === 'audio') {
-      fileType = _('attachment-type-audio');
-    }
-    else if (mimeFirstPart === 'video') {
-      fileType = _('attachment-type-video');
+    if (mimeFirstPart.indexOf(mimeFirstPart) > -1) {
+      fileType = _('attachment-type-' + mimeFirstPart);
     }
     else {
-      fileType = this.blob.type;
+      fileType = mimeFirstPart;
     }
 
     var header = elem.querySelector('header');
@@ -125,7 +104,6 @@ Attachment.prototype = {
 
   closeOptionsMenu: function() {
     this.optionsMenu.className = 'hide';
-    this.optionsMenu = null;
   },
 
   view: function() {
