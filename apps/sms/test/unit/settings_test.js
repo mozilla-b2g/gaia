@@ -3,7 +3,7 @@
 */
 'use strict';
 
-requireApp('sms/test/unit/mock_settings.js');
+requireApp('sms/test/unit/mock_moz_settings.js');
 requireApp('sms/js/settings.js');
 
 
@@ -19,7 +19,7 @@ suite('Message App settings Unit-Test', function() {
     });
 
     test('Query size limitation with settings exist(300KB)', function(done) {
-      navigator.mozSettings = MockSettings;
+      navigator.mozSettings = MockMozSettings;
       Settings.getMmsSizeLimitation(function callback(size) {
         assert.equal(size, 300 * 1024);
         navigator.mozSettings = nativeSettings;

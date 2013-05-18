@@ -4,9 +4,16 @@
 'use strict';
 
 var MessageManager = {
-  currentNum: null,
-  currentThread: null,
-  activityBody: null, // Used when getting a sms:?body=... activity.
+
+  activity: {
+    body: null,
+    number: null,
+    contact: null,
+    recipients: null,
+    threadId: null,
+    isLocked: false
+  },
+
   init: function mm_init(callback) {
     if (this.initialized) {
       return;
@@ -34,11 +41,15 @@ var MessageManager = {
 
   onMessageSending: function mm_onMessageSending(e) {
     var message = e.message;
-    var num = message.receiver;
-    if (window.location.hash == '#new') {
-      // If we are in 'new' we go to the right thread
-      // 'num' has been internationalized by Gecko
-      window.location.hash = '#num=' + num;
+    var threadId = message.threadId;
+
+    if (Threads.has(threadId)) {
+      Threads.get(message.threadId).messages.push(message);
+    }
+
+    if (window.location.hash === '#new') {
+      // If we are in 'new' we go to right to thread view
+      window.location.hash = '#thread=' + threadId;
     } else {
       ThreadUI.appendMessage(message);
       ThreadUI.scrollViewToBottom();
@@ -65,18 +76,25 @@ var MessageManager = {
         body: message.body,
         timestamp: message.timestamp,
         unreadCount: 1,
-        lastMessageType: message.type
+        lastMessageType: message.type || 'sms'
       };
   },
 
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
-    if (message.messageClass === 'class-0') {
+    var threadId;
+
+    if (message.messageClass && message.messageClass === 'class-0') {
       return;
     }
 
-    var threadId = message.threadId;
-    if (threadId && threadId === this.currentThread) {
+    threadId = message.threadId;
+
+    if (Threads.has(threadId)) {
+      Threads.get(message.threadId).messages.push(message);
+    }
+
+    if (threadId === Threads.currentId) {
       //Append message and mark as unread
       this.markMessagesRead([message.id], true, function() {
         MessageManager.getThreads(ThreadListUI.renderThreads);
@@ -86,16 +104,21 @@ var MessageManager = {
       Utils.updateTimeHeaders();
     } else {
       var threadMockup = this.createThreadMockup(message);
+
+      if (!Threads.get(message.threadId)) {
+        Threads.set(message.threadId, threadMockup);
+        Threads.get(message.threadId).messages.push(message);
+      }
+
       if (ThreadListUI.container.getElementsByTagName('ul').length === 0) {
         ThreadListUI.renderThreads([threadMockup]);
       } else {
         var timestamp = threadMockup.timestamp.getTime();
-        var previousThread = document.getElementById('thread_' + threadId);
+        var previousThread = document.getElementById('thread-' + threadId);
         if (previousThread && previousThread.dataset.time > timestamp) {
           // If the received SMS it's older that the latest one
           // We need only to update the 'unread status'
-          previousThread.getElementsByTagName('a')[0].classList
-                    .add('unread');
+          ThreadListUI.mark(threadId, 'unread');
           return;
         }
         // We remove the previous one in order to place the new one properly
@@ -133,12 +156,18 @@ var MessageManager = {
     }
   },
 
-  slide: function mm_slide(callback) {
+  slide: function mm_slide(direction, callback) {
     var mainWrapper = document.getElementById('main-wrapper');
 
+    // If no sliding is necessary, schedule the callback to be invoked as soon
+    // as possible (maintaining the asynchronous API of this method)
+    if (mainWrapper.dataset.position === direction) {
+      setTimeout(callback);
+      return;
+    }
+
     mainWrapper.classList.add('peek');
-    mainWrapper.dataset.position = (mainWrapper.dataset.position == 'left') ?
-                                   'right' : 'left';
+    mainWrapper.dataset.position = direction;
 
     // We have 2 panels, so we get 2 transitionend for each step
     var trEndCount = 0;
@@ -162,30 +191,47 @@ var MessageManager = {
   onHashChange: function mm_onHashChange(e) {
     var mainWrapper = document.getElementById('main-wrapper');
     var threadMessages = document.getElementById('thread-messages');
+    var recipient;
+
     switch (window.location.hash) {
       case '#new':
 
         ThreadUI.cleanFields(true);
-        // If the message has a body, use it to popuplate the input field.
-        if (MessageManager.activityBody) {
-          ThreadUI.setMessageBody(MessageManager.activityBody);
-          MessageManager.activityBody = null;
-        }
-        // Cleaning global params related with the previous thread
-        MessageManager.currentNum = null;
-        MessageManager.currentThread = null;
+        mainWrapper.classList.remove('edit');
         threadMessages.classList.add('new');
-        MessageManager.slide(function() {
-          ThreadUI.appendEditableRecipient();
+
+        MessageManager.activity.recipients = null;
+
+        MessageManager.slide('left', function() {
+          ThreadUI.initRecipients();
+
+          if (MessageManager.activity.number ||
+              MessageManager.activity.contact) {
+
+            recipient = MessageManager.activity.contact || {
+              number: MessageManager.activity.number,
+              source: 'manual'
+            };
+
+            ThreadUI.recipients.add(recipient);
+
+            MessageManager.activity.number = null;
+            MessageManager.activity.contact = null;
+          }
+
+          // If the message has a body, use it to popuplate the input field.
+          if (MessageManager.activity.body) {
+            ThreadUI.setMessageBody(
+              MessageManager.activity.body
+            );
+            MessageManager.activity.body = null;
+          }
         });
         break;
       case '#thread-list':
         //Keep the  visible button the :last-child
         var editButton = document.getElementById('icon-edit');
         editButton.parentNode.appendChild(editButton);
-        // Cleaning global params related with the previous thread
-        MessageManager.currentNum = null;
-        MessageManager.currentThread = null;
         if (mainWrapper.classList.contains('edit')) {
           mainWrapper.classList.remove('edit');
           if (ThreadListUI.editDone) {
@@ -198,17 +244,19 @@ var MessageManager = {
             });
           }
         } else if (threadMessages.classList.contains('new')) {
-          MessageManager.slide(function() {
+          MessageManager.slide('right', function() {
             threadMessages.classList.remove('new');
           });
         } else {
-          MessageManager.slide(function() {
-            ThreadUI.container.innerHTML = '';
-            if (MessageManager.activityTarget) {
+          // Clear it before sliding.
+          ThreadUI.container.textContent = '';
+
+          MessageManager.slide('right', function() {
+            if (MessageManager.activity.threadId) {
               window.location.hash =
-                '#num=' + MessageManager.activityTarget;
-              delete MessageManager.activityTarget;
-              delete MessageManager.lockActivity;
+                '#thread=' + MessageManager.activity.threadId;
+              MessageManager.activity.threadId = null;
+              MessageManager.activity.isLocked = false;
             }
           });
         }
@@ -219,31 +267,31 @@ var MessageManager = {
         mainWrapper.classList.toggle('edit');
         break;
       default:
-        var num = this.getNumFromHash();
-        if (num) {
-          var filter = this.createFilter(num);
-          var input = document.getElementById('messages-input');
-          MessageManager.currentNum = num;
+        var threadId = Threads.currentId;
+        var filter;
+
+        if (threadId) {
+          filter = new MozSmsFilter();
+          filter.threadId = threadId;
+
           if (mainWrapper.classList.contains('edit')) {
             mainWrapper.classList.remove('edit');
           } else if (threadMessages.classList.contains('new')) {
-            ThreadUI.renderMessages(filter);
+            // After a message is sent...
+            //
             threadMessages.classList.remove('new');
-            ThreadUI.updateHeaderData();
-          } else {
-            // As soon as we click in the thread, we visually mark it
-            // as read.
-            var threadRead =
-              document.querySelector('li[data-phone-number="' + num + '"]');
-            if (threadRead) {
-              threadRead.getElementsByTagName('a')[0].classList
-                    .remove('unread');
-            }
 
-            var self = this;
+            ThreadUI.updateHeaderData(function() {
+              ThreadUI.renderMessages(filter);
+            });
+          } else {
+            // Viewing received messages...
+            //
+            ThreadListUI.mark(threadId, 'read');
+
             // Update Header
-            ThreadUI.updateHeaderData(function headerReady() {
-              MessageManager.slide(function slided() {
+            ThreadUI.updateHeaderData(function updateHeader() {
+              MessageManager.slide('left', function slideEnd() {
                 ThreadUI.renderMessages(filter);
               });
             });
@@ -253,23 +301,23 @@ var MessageManager = {
     }
   },
 
-  createFilter: function mm_createFilter(num) {
-    var filter = new MozSmsFilter();
-    filter.numbers = [num || ''];
-    return filter;
-  },
-
-  getNumFromHash: function mm_getNumFromHash() {
-    var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
-    return num ? num[1] : null;
-  },
-
   getThreads: function mm_getThreads(callback, extraArg) {
     var cursor = this._mozMobileMessage.getThreads(),
         threads = [];
+
     cursor.onsuccess = function onsuccess() {
       if (this.result) {
         threads.push(this.result);
+
+        // Register all threads to the Threads object.
+        Threads.set(this.result.id, this.result);
+
+        // If one of the requested threads is also the
+        // currently displayed thread, update the header immediately
+        if (this.result.id === Threads.currentId) {
+          ThreadUI.updateHeaderData();
+        }
+
         this.continue();
         return;
       }
@@ -283,26 +331,42 @@ var MessageManager = {
       console.log(msg);
     };
   },
+
+  getMessage: function mm_getMsg(id) {
+    return this._mozMobileMessage.getMessage(id);
+  },
+
   getMessages: function mm_getMgs(options) {
-    var stepCB = options.stepCB, // CB which manage every message
-        filter = options.filter, // mozMessageFilter
-        invert = options.invert, // invert selection
-        endCB = options.endCB,   // CB when all messages retrieved
-        endCBArgs = options.endCBArgs; //Args for endCB
+    /*
+    options {
+      each: callback function invoked for each message
+      end: callback function invoked when cursor is "done"
+      endArgs: specify arguments for the "end" callback
+      filter: a MozMessageFilter or similar object
+      invert: option to invert the selection
+    }
+
+     */
+    var each = options.each;
+    var filter = options.filter;
+    var invert = options.invert;
+    var end = options.end;
+    var endArgs = options.endArgs;
     var cursor = this._mozMobileMessage.getMessages(filter, !invert);
+
     cursor.onsuccess = function onsuccess() {
       if (!this.done) {
         var shouldContinue = true;
-        if (stepCB) {
-          shouldContinue = stepCB(this.result);
+        if (each) {
+          shouldContinue = each(this.result);
         }
-        // if stepCB returns false the iteration stops
+        // if each returns false the iteration stops
         if (shouldContinue !== false) { // if this is undefined this is fine
           this.continue();
         }
       } else {
-        if (endCB) {
-          endCB(endCBArgs);
+        if (end) {
+          end(endArgs);
         }
       }
     };
@@ -313,32 +377,70 @@ var MessageManager = {
   },
 
   // consider splitting this method for the different use cases
-  send: function mm_send(number, msgContent, callback, errorHandler) {
-    var req;
-    if (typeof msgContent === 'string') { // send SMS
-      req = this._mozMobileMessage.send(number, msgContent);
-    } else if (Array.isArray(msgContent)) { // send MMS
-      var msg = SMIL.generate(msgContent);
-      req = this._mozMobileMessage.sendMMS({
-        receivers: [number],
-        subject: '',
-        smil: msg.smil,
-        attachments: msg.attachments
-      });
+  send: function mm_send(recipients, msgContent, onsuccess, onerror) {
+    var isMMS = false;
+    var isGroup = false;
+    var isSMILCandidate = false;
+    var message, request;
+
+    // When there are > 1 recipients specified for a message,
+    // use MMS Group Messaging.
+    // if (recipients.length > 1) {
+    //   isMMS = true;
+    //   msgContent = [{
+    //     text: msgContent
+    //   }];
+    // }
+
+    if (!Array.isArray(recipients)) {
+      recipients = [recipients];
     }
-    req.onsuccess = function onsuccess(e) {
-      callback && callback(req.result);
+
+    if (Array.isArray(msgContent)) {
+      isMMS = true;
+      isSMILCandidate = true;
+    }
+
+    message = isSMILCandidate ?
+      SMIL.generate(msgContent) : msgContent;
+
+    if (recipients.length > 1) {
+      isGroup = true;
+    }
+
+   if (isMMS) {
+      request = this._mozMobileMessage.sendMMS({
+        subject: '',
+        receivers: recipients,
+        smil: message.smil,
+        attachments: message.attachments
+      });
+    } else {
+      // For this case, "recipients" may
+      // only have a single entry.
+      request = this._mozMobileMessage.send(
+        recipients, message
+      );
+    }
+
+    request.onsuccess = function onSuccess(event) {
+      onsuccess && onsuccess(event.result);
     };
 
-    req.onerror = function onerror(e) {
-      errorHandler && errorHandler(number);
+    request.onerror = function onError(event) {
+      console.log('Error Sending: ' + JSON.stringify(event.error));
+      onerror && onerror();
     };
+
+    if (isGroup && !isMMS) {
+      window.location.hash = '#thread-list';
+    }
   },
 
   deleteMessage: function mm_deleteMessage(id, callback) {
     var req = this._mozMobileMessage.delete(id);
     req.onsuccess = function onsuccess() {
-      callback && callback(req.result);
+      callback && callback(this.result);
     };
 
     req.onerror = function onerror() {
@@ -359,12 +461,15 @@ var MessageManager = {
       this.deleteMessage(list.shift(), function(result) {
         this.deleteMessages(list, callback);
       }.bind(this));
-    } else
-      callback();
+    } else {
+      if (callback) {
+        callback();
+      }
+    }
   },
 
   markMessagesRead: function mm_markMessagesRead(list, value, callback) {
-    if (!navigator.mozMobileMessage || !list.length) {
+    if (!this._mozMobileMessage || !list.length) {
       return;
     }
 
@@ -373,6 +478,7 @@ var MessageManager = {
     // other potential call to the API, like the one for getting a message
     // list, could be done within the calls to mark the messages as read.
     var req = this._mozMobileMessage.markMessageRead(list.pop(), value);
+
     req.onsuccess = (function onsuccess() {
       if (!list.length && callback) {
         callback(req.result);

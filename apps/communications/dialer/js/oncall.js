@@ -96,6 +96,11 @@ var CallScreen = {
     OnCallHandler.toggleSpeaker();
   },
 
+  turnSpeakerOn: function cs_turnSpeakerOn() {
+    this.speakerButton.classList.add('speak');
+    OnCallHandler.turnSpeakerOn();
+  },
+
   turnSpeakerOff: function cs_turnSpeakerOff() {
     this.speakerButton.classList.remove('speak');
     OnCallHandler.turnSpeakerOff();
@@ -160,6 +165,8 @@ var OnCallHandler = (function onCallHandler() {
   var handledCalls = [];
   var telephony = window.navigator.mozTelephony;
   telephony.oncallschanged = onCallsChanged;
+
+  var settings = window.navigator.mozSettings;
 
   var displayed = false;
   var closing = false;
@@ -494,7 +501,7 @@ var OnCallHandler = (function onCallHandler() {
       return;
     }
 
-    // Currently managing to kind of commands:
+    // Currently managing three kinds of commands:
     // BT: bluetooth
     // HS: headset
     // * : general cases, not specific to hardware control
@@ -539,11 +546,26 @@ var OnCallHandler = (function onCallHandler() {
     }
   }
 
+  var lastHeadsetPress = 0;
+
   function handleHSCommand(message) {
-    // We will receive the message for button released,
-    // we will ignore it
-    if (message != 'headset-button-press') {
-      return;
+    /**
+     * See bug 853132: plugging / unplugging some headphones might send a
+     * 'headset-button-press' / 'headset-button-release' message
+     * => if these two events happen in the same second, it's a click;
+     * => if these two events are too distant, ignore them.
+     */
+    switch (message) {
+      case 'headset-button-press':
+        lastHeadsetPress = Date.now();
+        return;
+        break;
+      case 'headset-button-release':
+        if ((Date.now() - lastHeadsetPress) > 1000)
+          return;
+        break;
+      default:
+        return;
     }
 
     if (telephony.active) {
@@ -656,8 +678,22 @@ var OnCallHandler = (function onCallHandler() {
     telephony.muted = false;
   }
 
+  function turnSpeakerOn() {
+    if (!telephony.speakerEnabled) {
+      telephony.speakerEnabled = true;
+      if (settings) {
+        settings.createLock().set({'telephony.speaker.enabled': true});
+      }
+    }
+  }
+
   function turnSpeakerOff() {
-    telephony.speakerEnabled = false;
+    if (telephony.speakerEnabled) {
+      telephony.speakerEnabled = false;
+      if (settings) {
+        settings.createLock().set({'telephony.speaker.enabled': false});
+      }
+    }
   }
 
   function toggleMute() {
@@ -665,7 +701,10 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function toggleSpeaker() {
-    telephony.speakerEnabled = !telephony.speakerEnabled;
+    if (telephony.speakerEnabled)
+      turnSpeakerOff();
+    else
+      turnSpeakerOn();
   }
 
   /* === Recents management === */
@@ -708,6 +747,7 @@ var OnCallHandler = (function onCallHandler() {
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,
     unmute: unmute,
+    turnSpeakerOn: turnSpeakerOn,
     turnSpeakerOff: turnSpeakerOff,
 
     addRecentEntry: addRecentEntry,
@@ -723,5 +763,4 @@ window.addEventListener('load', function callSetup(evt) {
   CallScreen.init();
   CallScreen.syncSpeakerEnabled();
   KeypadManager.init(true);
-
 });

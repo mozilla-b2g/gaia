@@ -3,6 +3,7 @@
 requireApp('homescreen/test/unit/mock_home_state.js');
 requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_xmlhttprequest.js');
+requireApp('homescreen/test/unit/mock_icon_retriever.js');
 requireApp('homescreen/test/unit/mock_grid_manager.js');
 
 requireApp('homescreen/js/page.js');
@@ -10,6 +11,7 @@ requireApp('homescreen/js/page.js');
 var mocksHelperForPage = new MocksHelper([
   'HomeState',
   'XMLHttpRequest',
+  'IconRetriever',
   'GridManager'
 ]);
 mocksHelperForPage.init();
@@ -170,8 +172,8 @@ suite('page.js >', function() {
         assertIconIsRendered();
         dragSuite();
 
-        test('should not use XHR to get the icon', function() {
-          assert.isUndefined(MockXMLHttpRequest.mLastOpenedUrl);
+        test('should use XHR to get the icon', function() {
+          assert.ok(MockXMLHttpRequest.mLastOpenedUrl);
         });
       });
 

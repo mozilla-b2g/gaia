@@ -11,7 +11,7 @@ navigator.mozL10n.ready(function wifiSettings() {
   if (!settings)
     return;
 
-  var gWifiManager = getWifiManager();
+  var gWifiManager = WifiHelper.getWifiManager();
   var gWifi = document.querySelector('#wifi');
   var gWifiCheckBox = document.querySelector('#wifi-enabled input');
   var gWifiInfoBlock = document.querySelector('#wifi-desc');
@@ -513,7 +513,7 @@ navigator.mozL10n.ready(function wifiSettings() {
       wifiConnect();
     } else {
       // offline, unknown network: propose to connect
-      var key = getKeyManagement();
+      var key = WifiHelper.getKeyManagement(network);
       switch (key) {
         case 'WEP':
         case 'WPA-PSK':
@@ -541,19 +541,8 @@ navigator.mozL10n.ready(function wifiSettings() {
       gCurrentNetwork = null;
     }
 
-    function getKeyManagement() {
-      var key = network.capabilities[0];
-      if (/WEP$/.test(key))
-        return 'WEP';
-      if (/PSK$/.test(key))
-        return 'WPA-PSK';
-      if (/EAP$/.test(key))
-        return 'WPA-EAP';
-      return '';
-    }
-
     function setPassword(password, identity) {
-      var key = getKeyManagement();
+      var key = WifiHelper.getKeyManagement(network);
       if (key == 'WEP') {
         network.wep = password;
       } else if (key == 'WPA-PSK') {

@@ -10,12 +10,16 @@ var Bluetooth = {
 
   /* keep a global connected property here */
   connected: false,
+  hfpHspConnected: false,
+  oppConnected: false,
 
   init: function bt_init() {
     if (!window.navigator.mozSettings)
       return;
 
     var bluetooth = window.navigator.mozBluetooth;
+    var settings = window.navigator.mozSettings;
+    var self = this;
 
     SettingsListener.observe('bluetooth.enabled', true, function(value) {
       if (!bluetooth) {
@@ -30,7 +34,21 @@ var Bluetooth = {
       }
     });
 
-    var self = this;
+    // XXX: The key telephony.speaker.enabled was created
+    //      for resolving bug 870683.
+    if (settings) {
+      settings.addObserver('telephony.speaker.enabled',
+        function bt_onSpeakerEnabledChange(event) {
+          if (self.defaultAdapter && self.hfpHspConnected) {
+            if (event.settingValue) {
+              self.defaultAdapter.disconnectSco();
+            } else {
+              self.defaultAdapter.connectSco();
+            }
+          }
+      });
+    }
+
     // when bluetooth adapter is ready, emit event to notify QuickSettings
     // and try to get defaultAdapter at this moment
     bluetooth.onadapteradded = function bt_onAdapterAdded() {
@@ -60,7 +78,10 @@ var Bluetooth = {
 
     // In headset connected case:
     navigator.mozSetMessageHandler('bluetooth-hfp-status-changed',
-      this.updateConnected.bind(this)
+      function bt_hfpStatusChanged(message) {
+        self.hfpHspConnected = message.connected;
+        self.updateConnected();
+      }
     );
 
     /* In file transfering case:
@@ -68,9 +89,9 @@ var Bluetooth = {
      * so we listen here but dispatch events to bluetooth_transfer.js
      * when getting bluetooth file transfer start/complete system messages
      */
-    var self = this;
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-start',
       function bt_fileTransferUpdate(transferInfo) {
+        self.oppConnected = true;
         self.updateConnected();
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-start',
@@ -82,6 +103,7 @@ var Bluetooth = {
 
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
       function bt_fileTransferUpdate(transferInfo) {
+        self.oppConnected = false;
         self.updateConnected();
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-complete',
@@ -115,8 +137,7 @@ var Bluetooth = {
       return;
 
     var wasConnected = this.connected;
-    this.connected =
-      bluetooth.isConnected(0x111E) || bluetooth.isConnected(0x1105);
+    this.connected = this.hfpHspConnected || this.oppConnected;
 
     if (wasConnected !== this.connected) {
       var evt = document.createEvent('CustomEvent');

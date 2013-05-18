@@ -11,12 +11,16 @@
 
     _parseId: Calendar.Store.Abstract.prototype.probablyParseInt,
 
-    verifyAndPersist: function(model, callback) {
-      var self = this;
-
-      this.all(function(error, allAccounts) {
-        if (error) {
-          callback(error);
+    /**
+     * Checks if a given account is a duplicate of another.
+     *
+     * @param {Calendar.Model.Account} model to check.
+     * @param {Function} callback [err].
+     */
+    _validateModel: function(model, callback) {
+      this.all(function(err, allAccounts) {
+        if (err) {
+          callback(err);
           return;
         }
 
@@ -38,24 +42,36 @@
           }
         }
 
-        var provider = Calendar.App.provider(
-          model.providerType
-        );
+        callback();
+      });
+    },
 
-        provider.getAccount(model.toJSON(), function(err, data) {
+    verifyAndPersist: function(model, callback) {
+      var self = this;
+      var provider = Calendar.App.provider(
+        model.providerType
+      );
+
+      provider.getAccount(model.toJSON(), function(err, data) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        model.error = undefined;
+
+        // if this works we always will get a calendar home.
+        // This is used to find calendars.
+        model.calendarHome = data.calendarHome;
+
+        // server may override properties on demand.
+        Calendar.extend(model, data);
+
+        self._validateModel(model, function(err) {
           if (err) {
-            callback(err);
-            return;
+            return callback(err);
           }
 
-          model.error = undefined;
-
-          // if this works we always will get a calendar home.
-          // This is used to find calendars.
-          model.calendarHome = data.calendarHome;
-
-          // server may override properties on demand.
-          Calendar.extend(model, data);
           self.persist(model, callback);
         });
       });

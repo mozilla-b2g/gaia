@@ -64,6 +64,42 @@ VCFReader.prototype.save = function(item, cb) {
   };
 };
 
+
+/**
+ * Matches Quoted-Printable characters in a string
+ * @type {RegExp}
+ */
+VCFReader._qpRegexp = /=([a-zA-Z0-9]{2})/g;
+
+/**
+ * Decodes a string encoded in Quoted-Printable format.
+ * @param {string} str String to be decoded.
+ * @return {string}
+ */
+VCFReader._decodeQuoted = function(str) {
+  return decodeURIComponent(
+    str.replace(VCFReader._qpRegexp, '%$1'));
+};
+
+/**
+ * Decodes Quoted-Printable encoding into UTF-8
+ * http://en.wikipedia.org/wiki/Quoted-printable
+ *
+ * @param {object} metaObj Checks for 'encoding' key to be quoted printable.
+ * @param {string} value String to be decoded.
+ * @return {string}
+ */
+VCFReader.decodeQP = function(metaObj, value) {
+  var decoded = value;
+  var isQP = metaObj && metaObj['encoding'] &&
+    metaObj['encoding'].toLowerCase() === 'quoted-printable';
+
+  if (isQP)
+    decoded = VCFReader._decodeQuoted(decoded);
+
+  return decoded;
+};
+
 /**
  * Converts a parsed vCard to a mozContact.
  *
@@ -75,6 +111,7 @@ VCFReader.vcardToContact = function(vcard) {
     return null;
 
   var contactObj = { adr: [], tel: [] };
+  // Set First Name right away as the 'name' property
   if (vcard.fn) {
     contactObj.name = vcard.fn;
   }
@@ -91,14 +128,17 @@ VCFReader.vcardToContact = function(vcard) {
 
     nameStruct && nameStruct.forEach(function(namePart, i) {
       if (namePart && nameConverter[i]) {
-        contactObj[nameConverter[i]] = namePart;
+        contactObj[nameConverter[i]] =
+          VCFReader.decodeQP(vcard.n[0].meta, namePart);
       }
     });
 
-    contactObj.name = contactObj.name || nameStruct.join(' ');
+    if (!contactObj.name) {
+      var join = nameStruct.join(' ');
+      contactObj.name = VCFReader.decodeQP(vcard.n[0].meta, join);
+    }
   }
   contactObj.givenName = contactObj.givenName || contactObj.name;
-
 
   (['org', 'photo', 'title']).forEach(function(field) {
     if (vcard[field]) {
@@ -117,23 +157,35 @@ VCFReader.vcardToContact = function(vcard) {
     'region', 'postalCode', 'countryName'];
 
   vcard.adr && vcard.adr.forEach(function(adr) {
-    var cur = { type: adr && adr.meta && adr.meta.type };
+    var cur = {};
+    if (adr.meta && adr.meta.type) cur.type = adr.meta.type;
 
-    for (var i = 2; i < adr.value.length; i++)
+    for (var i = 2; i < adr.value.length; i++) {
       cur[adrConverter[i]] = adr.value[i];
+      cur[adrConverter[i]] = VCFReader.decodeQP(adr.meta, cur[adrConverter[i]]);
+    }
 
     contactObj.adr.push(cur);
   });
 
   (['tel', 'email', 'url']).forEach(function field2field(field) {
     vcard[field] && vcard[field].forEach(function(v) {
-      var cur = { type: '', value: v.value && v.value[0] }, meta;
+      var metaKeys;
+      var cur = {};
+
       if (v.meta) {
-        meta = Object.keys(v.meta).map(function(key) { return v.meta[key]; });
-        if (meta.indexOf('pref') > -1 || meta.indexOf('PREF') > -1)
+        if (v.value) {
+          cur.value = VCFReader.decodeQP(v.meta, v.value[0]);
+        }
+
+        metaKeys = Object.keys(v.meta).map(function(key) {
+          return v.meta[key];
+        });
+
+        if (metaKeys.indexOf('pref') > -1 || metaKeys.indexOf('PREF') > -1)
           cur.type = 'PREF';
         else
-          cur.type = meta[0]; // Take only the first meta type
+          cur.type = metaKeys[0]; // Take only the first meta type
       }
 
       if (!contactObj[field])

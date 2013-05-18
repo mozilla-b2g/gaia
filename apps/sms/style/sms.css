@@ -263,6 +263,13 @@ section[role="region"].new > header:first-child form {
   display: block;
 }
 
+#messages-contact-pick-button .icon.icon-user {
+  background-image: url(images/add_user.png);
+  display:block;
+  height:2rem;
+  width:2rem;
+}
+
 /*
   Messages Style as 'bubbles'
 */
@@ -271,6 +278,7 @@ section[role="region"].new > header:first-child form {
   -moz-box-sizing: border-box;
   background: none repeat scroll 0 0 #E4E4E4;
   text-align: left;
+  z-index: 5;
 }
 
 #messages-container header:first-child {
@@ -473,8 +481,9 @@ section[role="region"].new > header:first-child form {
   Bottom bar for sending SMS
 */
 
-.messages-compose-form {
+.messages-compose-form[role="search"] {
   transition: transform .2s ease-in;
+  background: white;
 }
 
 form.bottom[role="search"].messages-compose-form {
@@ -484,26 +493,96 @@ form.bottom[role="search"].messages-compose-form {
   bottom: 0;
 }
 
+/* Fix the compose buttons to the bottom of their container. */
+#messages-attach-button, #messages-send-button {
+  float: none;
+  position: absolute;
+  bottom: 0;
+}
+#messages-attach-button {
+  left: 0;
+}
+#messages-send-button {
+  right: 0;
+}
+
 #messages-send-button.active {
   background: #008aaa;
 }
 
-#messages-send-button:before {
+#messages-send-button.has-counter:before {
   content: attr(data-counter);
-  color: #666;
+  color: rgb(133, 133, 133);
+  border-left: 0.1rem solid rgb(231, 231, 213);
   font-weight: normal;
-  font-size: -moz-calc(8 * 0.226rem);
+  font-size: 1.8rem;
+  text-align: left;
   position: absolute;
-  right: 1rem;
-  top: -0.2rem;
+  height: 4.4rem;
+  left: 0;
+  line-height: 1.8rem;
+  top: -5rem;
+  padding-top: 0;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
-#messages-input {
-  padding: 0.4rem 0.2rem 0.2rem 0.6rem;
+[data-message-type="mms"] #messages-send-button.has-counter:before {
+  content: 'MMS';
+}
+
+/* TODO: Move this into the shared building block */
+#messages-attach-button:before {
+  background-image: url(images/paperclip-button.png);
+}
+
+#messages-compose-form {
+  max-height: 38rem;
+}
+
+#messages-compose-form [contentEditable] {
+  padding: 0.4rem 7rem 0.2rem 3.5rem;
   line-height: 1.8rem !important;
+  min-height: 1.9rem;
+  max-height: 37rem;
+  /* Cursor hides itself otherwise: */
+  overflow: auto;
+  text-align: left;
   font-size: 1.8rem;
 }
+#messages-compose-form .placeholder[contentEditable]:after {
+  color: #888;
+  position: absolute;
+  top: 0.8rem;
+  content: attr(placeholder);
+  pointer-events: none;
+}
+#messages-input .attachment {
+  border: none;
+  width: 10rem;
+  height: 10rem;
+  display: block;
+}
 
+/* these are used in the attachment iframe */
+body.attachment {
+  margin: 0;
+  font-size: 1.5rem;
+}
+body.attachment img {
+  width: 100%;
+  height: 100%;
+}
+body.attachment div {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 0.4rem 0.4rem 0 0.4rem;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 1rem 0 0 0;
+  color: #FFF;
+}
 #send-message-container {
   height: 100%;
   width: 6rem;
@@ -588,21 +667,20 @@ form.bottom[role="search"].messages-compose-form {
   Styles related to the new layout of the composer
 */
 
+
 #messages-to-field {
   display: none;
   text-align: left;
-  min-height: 3.7rem;
+  min-height: 3.5rem;
   overflow: hidden;
-  border-bottom: .1rem solid #949494;
+  border-bottom: .1rem solid #4d4d4d;
   color: black;
   position: relative;
-  margin: 0 1.5rem;
-  margin-top: .3rem;
-  padding: .8rem 0;
-  width: -moz-calc(100% - 3rem);
+  margin: 0;
+  padding: 0 1.5rem;
   z-index: 10;
-  background: #E4E4E4;
   font-size: 1.465rem;
+  transition: height 0.2s ease-in-out;
 }
 
 section[role="region"].new #messages-to-field {
@@ -613,7 +691,7 @@ section[role="region"].new #messages-to-field {
   display: inline-block;
   width: 2.5rem;
   position: absolute;
-  top: 1.9rem;
+  top: 1.5rem;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -637,28 +715,48 @@ section[role="region"].new #messages-to-field {
   line-height: 4rem;
 }
 
-#messages-recipients-container {
-  top: .9rem;
+#messages-recipients-list {
+  /* From JS, Make this overflow:scroll when it's time to make this field scrollable
+  */
+  overflow-y: hidden;
+  overflow-x: hidden;
   left: 3rem;
   position: relative;
   width: 10rem;
-  display: inline-block;
-  width: -moz-calc(100% - 6.8rem);
+  width: -moz-calc(100% - 5.5rem);
+  height: 2.4rem;
+  transition: height 0.2s ease-in-out;
+  padding-top: 1.2rem;
+  margin-bottom: 0.8rem;
+}
+
+/*
+Used by Recipients.View to display multi or single line.
+Do not remove.
+*/
+#messages-recipients-list.multiline {
+  overflow-y: scroll;
+  height: 8.8rem;
+}
+#messages-recipients-list.singleline {
+  overflow-y: hidden;
+  height: 2.4rem;
 }
 
 .recipient {
-  background: white;
-  padding: .2rem 0.8rem;
+  background: -moz-linear-gradient(#fff, #f1f1f1);
+  padding: 0 0.8rem;
   display: inline-block;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  max-width: -moz-calc(100% - 1rem);
-  border: .1rem solid #949494;
-  color: #333333;
-  height: 2rem;
-  margin-right: .5rem;
-  border-radius: .2rem;
+  max-width: -moz-calc(100% - 2.3rem);
+  border: .1rem solid #4d4d4d;
+  color: #2c2c2c;
+  height: 2.2rem;
+  margin: .8rem .5rem -0.8rem 0;
+  border-radius: .3rem;
+  font-size: 1.7rem;
 }
 
 .recipient[contenteditable=true] {
@@ -671,6 +769,11 @@ section[role="region"].new #messages-to-field {
   font-size: 1.8rem;
 }
 
+.recipient:focus {
+  /*border: dotted 1px red;*/
+  font-size: 1.8rem;
+}
+
 section[role="region"].new #messages-container[data-type="list"] > ul.contactList {
   position: absolute;
   width: 100%;
@@ -679,10 +782,6 @@ section[role="region"].new #messages-container[data-type="list"] > ul.contactLis
   overflow-x: hidden;
   max-height: -moz-calc(100% - 5rem)  ;
   padding: 0;
-}
-
-section[role="region"].new #messages-container[data-type="list"] {
-  margin-top: .3rem;
 }
 
 section[role="region"].new #messages-container[data-type="list"]  li:first-child {
@@ -698,12 +797,19 @@ section[role="region"].new #messages-container[data-type="list"]  li{
 .suggestion * {
   pointer-events : none;
 }
-
 .subheader {
+  background-color: #fff;
   position: absolute;
-  z-index: 5; /* should be between 4 and 9 (inclusive). 3 is the z-index for
+  z-index: 6; /* should be between 4 and 9 (inclusive). 3 is the z-index for
                  the input form, 10 is the z-index for the header */
   left: 0;
   right: 0;
   top: 5rem;
+}
+
+.subheader menu {
+  position:absolute;
+  right: 1.5rem;
+  top: 1.3rem;
+  z-index: 11;
 }

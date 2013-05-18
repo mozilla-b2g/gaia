@@ -469,11 +469,11 @@ var WindowManager = (function() {
         }
 
         iframe.setVisible(false);
-      }
+      };
 
       request.onerror = function() {
         iframe.setVisible(false);
-      }
+      };
     }
 
     screenElement.classList.remove('fullscreen-app');
@@ -487,7 +487,7 @@ var WindowManager = (function() {
   // setFrameBackground() will attach the manifest icon as a background
   function setFrameBackground(frame, callback) {
     var splash = frame.firstChild.splash;
-    frame.style.backgroundImage = 'url("' +  splash + '")';
+    frame.style.backgroundImage = 'url("' + splash + '")';
     setTimeout(callback);
   }
 
@@ -771,13 +771,17 @@ var WindowManager = (function() {
     // Dispatch an appwillopen event only when we open an app
     if (newApp != currentApp) {
       var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('appwillopen', true, true, { origin: newApp });
+      evt.initCustomEvent('appwillopen', true, true, {
+        origin: newApp,
+        isHomescreen: (newApp === homescreen)
+      });
 
       var app = runningApps[newApp];
       // Allows listeners to cancel app opening and so stay on homescreen
       if (!app.iframe.dispatchEvent(evt)) {
-        if (typeof(callback) == 'function')
+        if (callback) {
           callback();
+        }
         return;
       }
 
@@ -830,8 +834,9 @@ var WindowManager = (function() {
         }
 
         // Just run the callback right away if it is not homescreen
-        if (callback)
+        if (callback) {
           callback();
+        }
       }
     }
     // Case 2: null --> app
@@ -851,16 +856,20 @@ var WindowManager = (function() {
       homescreenFrame.classList.add('zoom-in');
       var zoomInCallback = function() {
         homescreenFrame.classList.remove('zoom-in');
-        callback();
-      }
+        if (callback) {
+          callback();
+        }
+      };
       openWindow(newApp, zoomInCallback);
     }
     // Case 5: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
       var zoomOutCallback = function() {
         homescreenFrame.classList.remove('zoom-out');
-        callback();
-      }
+        if (callback) {
+          callback();
+        }
+      };
       closeWindow(currentApp, zoomOutCallback);
     }
     // Case 6: app-to-app transition
@@ -1206,7 +1215,6 @@ var WindowManager = (function() {
   function getIconForSplash(manifest) {
     var icons = 'icons' in manifest ? manifest['icons'] : null;
     if (!icons) {
-      dump("no icons :(\n");
       return null;
     }
 
@@ -1467,7 +1475,8 @@ var WindowManager = (function() {
           // Instantly blur the frame in order to ensure hiding the keyboard
           var app = runningApps[displayedApp];
           if (app) {
-            if ('contentWindow' in app.iframe) {
+            if ('contentWindow' in app.iframe &&
+                app.iframe.contentWindow != null) {
               // Bug 845661 - Attention screen does not appears when
               // the url bar input is focused.
               // Calling app.iframe.blur() on an in-process window
@@ -1861,7 +1870,7 @@ var WindowManager = (function() {
   // When the status bar is active it doubles in height so we need a resize
   var appResizeEvents = ['resize', 'status-active', 'status-inactive',
                          'keyboardchange', 'keyboardhide',
-                         'attentionscreenhide'];
+                         'attentionscreenhide', 'fullscreenchange'];
   appResizeEvents.forEach(function eventIterator(event) {
     window.addEventListener(event, function on(evt) {
       var keyboardHeight = KeyboardManager.getHeight();

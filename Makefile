@@ -224,7 +224,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json
+profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json create-default-data
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -762,10 +762,8 @@ endif
 
 profile/settings.json:
 ifneq ($(HIDPI),*)
-	python build/settings.py --hidpi build/wallpaper@2x.jpg
-	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --hidpi --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@2x.jpg --override $(SETTINGS_PATH) --output $@
+	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@2x.jpg --override $(SETTINGS_PATH) --output $@
 else
-	python build/settings.py build/wallpaper.jpg
 	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override $(SETTINGS_PATH) --output $@
 endif
 
@@ -780,6 +778,18 @@ else
 	$(ADB) shell rm /system/b2g/defaults/contacts.json
 endif
 	$(ADB) shell start b2g
+
+# create default data, gonk-misc will copy this folder during B2G build time
+create-default-data: preferences profile/settings.json contacts
+	# create a clean folder to store data for B2G, this folder will copy to b2g output folder.
+	rm -rf profile/defaults
+	mkdir -p profile/defaults/pref
+	# rename user_pref() to pref() in user.js
+	sed s/user_pref\(/pref\(/ profile/user.js > profile/defaults/pref/user.js
+	cp profile/settings.json profile/defaults/settings.json
+ifdef CONTACTS_PATH
+	cp profile/contacts.json profile/defaults/contacts.json
+endif
 
 # clean out build products
 clean:

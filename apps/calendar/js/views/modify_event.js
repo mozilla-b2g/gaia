@@ -100,6 +100,13 @@ Calendar.ns('Views').ModifyEvent = (function() {
     },
 
     /**
+     * Check if current event has been stored in the database
+     */
+    isSaved: function() {
+        return !!this.provider;
+    },
+
+    /**
      * Build the initial list of calendar ids.
      */
     onfirstseen: function() {
@@ -354,7 +361,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
         event.preventDefault();
       }
 
-      if (this.provider) {
+      if (this.isSaved()) {
         var self = this;
         function handleDelete() {
           self.provider.deleteEvent(self.event.data, function(err) {
@@ -397,7 +404,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       // Disable the button on primary event to avoid race conditions
       this.disablePrimary();
 
-      if (this.provider) {
+      if (this.isSaved()) {
         this._persistEvent('updateEvent', 'canUpdate');
       } else {
         this._persistEvent('createEvent', 'canCreate');
@@ -493,6 +500,45 @@ Calendar.ns('Views').ModifyEvent = (function() {
     },
 
     /**
+     * Read the urlparams and override stuff on our event model.
+     * @param {string} search Optional string of the form ?foo=bar&cat=dog.
+     * @private
+     */
+    _overrideEvent: function(search) {
+      search = search || window.location.search;
+      if (!search || search.length === 0) {
+        return;
+      }
+
+      // Remove the question mark that begins the search.
+      if (search.substr(0, 1) === '?') {
+        search = search.substr(1, search.length - 1);
+      }
+
+      // Parse the urlparams.
+      var params = Calendar.QueryString.parse(search);
+      for (var field in params) {
+        var value = params[field];
+        switch (field) {
+          case ModifyEvent.OverrideableField.START_DATE:
+          case ModifyEvent.OverrideableField.END_DATE:
+            params[field] = new Date(value);
+            break;
+          default:
+            params[field] = value;
+            break;
+        }
+      }
+
+      // Override fields on our event.
+      var model = this.event;
+      for (var field in ModifyEvent.OverrideableField) {
+        var value = ModifyEvent.OverrideableField[field];
+        model[value] = params[value] || model[value];
+      }
+    },
+
+    /**
      * Updates form to use values from the current model.
      *
      * Does not handle readonly flags or calenarId associations.
@@ -502,14 +548,12 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Resets any value on the current form.
      */
     _updateUI: function() {
-      var model = this.event;
-
+      this._overrideEvent();
       this.form.reset();
 
+      var model = this.event;
       this.getEl('title').value = model.title;
-
       this.getEl('location').value = model.location;
-
       var dateSrc = model;
       if (model.remote.isRecurring && this.busytime) {
         dateSrc = this.busytime;
@@ -522,21 +566,28 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var allday = this.getEl('allday');
       if (allday && (allday.checked = model.isAllDay)) {
         this._toggleAllDay();
-
         endDate = this.formatEndDate(endDate);
       }
 
       this.getEl('startDate').value =
         InputParser.exportDate(startDate);
+      this._updateDateTimeLocale(
+        'date', 'startDate', 'start-date-locale', startDate);
 
       this.getEl('endDate').value =
         InputParser.exportDate(endDate);
+      this._updateDateTimeLocale(
+        'date', 'endDate', 'end-date-locale', endDate);
 
       this.getEl('startTime').value =
         InputParser.exportTime(startDate);
+      this._updateDateTimeLocale(
+        'time', 'startTime', 'start-time-locale', startDate);
 
       this.getEl('endTime').value =
         InputParser.exportTime(endDate);
+      this._updateDateTimeLocale(
+        'time', 'endTime', 'end-time-locale', endDate);
 
       this.getEl('description').textContent =
         model.description;
@@ -559,10 +610,51 @@ Calendar.ns('Views').ModifyEvent = (function() {
     },
 
     /**
+     * Handling a layer over <input> to have localized
+     * date/time
+     */
+    _updateDateTimeLocale: function(type, date, target, value) {
+      var _ = navigator.mozL10n.get;
+      var localeFormat = Calendar.App.dateFormat.localeFormat;
+
+      var _formats = {
+        date: _('dateTimeFormat_%x'),
+        time: _('shortTimeFormat')
+      };
+
+      var targetElement = document.getElementById(target);
+      if (!targetElement)
+        return;
+
+      targetElement.textContent = localeFormat(
+        value, _formats[type]);
+
+      this.getEl(date).addEventListener('input', function(e) {
+        var selected;
+        var newDate = new Date();
+
+        if (type == 'date') {
+          selected = InputParser.importDate(e.target.value);
+          newDate.setFullYear(selected.year);
+          newDate.setMonth(selected.month);
+          newDate.setDate(selected.date);
+        }
+        if (type == 'time') {
+          selected = InputParser.importTime(e.target.value);
+          newDate.setHours(selected.hours);
+          newDate.setMinutes(selected.minutes);
+          newDate.setSeconds(0);
+        }
+
+        targetElement.textContent = localeFormat(
+          newDate, _formats[type]);
+      });
+    },
+
+    /**
      * Called on render or when toggling an all-day event
      */
     updateAlarms: function(isAllDay, callback) {
-
       var template = Calendar.Templates.Alarm;
       var alarms = [];
 
@@ -582,7 +674,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       settings.getValue(layout + 'AlarmDefault', next.bind(this));
 
       function next(err, value) {
-        if (!alarmMap[value] && !this.event.alarms.length) {
+        if (!this.isSaved() && !alarmMap[value] && !this.event.alarms.length) {
           alarms.push({
             layout: layout,
             trigger: value
@@ -633,6 +725,20 @@ Calendar.ns('Views').ModifyEvent = (function() {
       this.reset();
     }
 
+  };
+
+  /**
+   * The fields on our event model which urlparams may override.
+   * @enum {string}
+   */
+  ModifyEvent.OverrideableField = {
+    CALENDAR_ID: 'calendarId',
+    DESCRIPTION: 'description',
+    END_DATE: 'endDate',
+    IS_ALL_DAY: 'isAllDay',
+    LOCATION: 'location',
+    START_DATE: 'startDate',
+    TITLE: 'title'
   };
 
   return ModifyEvent;

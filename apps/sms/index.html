@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Messages</title>
-
     <!-- Stable Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
@@ -35,6 +34,7 @@
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/custom_dialog.js"></script>
     <script defer src="shared/js/notification_helper.js"></script>
+    <script defer src="shared/js/gesture_detector.js"></script>
     -->
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="js/startup.js"></script>
@@ -96,24 +96,31 @@
             <span class="icon icon-back"></span>
           </a>
           <menu type="toolbar">
-            <a id="messages-contact-pick-button">
-              <span class="icon icon-user"></span>
-            </a>
             <a href="#edit" id="icon-edit">
               <span class="icon icon-edit"></span>
             </a>
           </menu>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
         </header>
-        <div class='subheader'>
+        <div class="subheader">
+          <menu type="toolbar">
+            <a id="messages-contact-pick-button">
+              <span class="icon icon-user"></span>
+            </a>
+          </menu>
           <section id="messages-to-field">
             <section data-l10n-id="to" id="to-label">
               To:
             </section>
-            <section id="messages-recipients-container">
+            <section id="messages-recipients-list">
             </section>
           </section>
           <section id="messages-max-length-notice"
+                  role="notification"
+                  class="hide">
+            <p></p>
+          </section>
+          <section id="messages-convert-notice"
                   role="notification"
                   class="hide">
             <p></p>
@@ -124,11 +131,11 @@
         </div>
         <article id="messages-container" class="view-body" data-type="list">
         </article>
-        <form role="search" id="messages-compose-form" class="bottom messages-compose-form">
+        <form role="search" id="messages-compose-form" class="bottom messages-compose-form" data-message-type="sms">
+          <button id="messages-attach-button" class="icon icon-attachment">Attachment</button>
           <button id="messages-send-button" disabled data-l10n-id="send" type="submit">Send</button>
-          <p>
-            <textarea type="text" id="messages-input" name="messages-input" placeholder="Message" data-l10n-id="composeMessage"></textarea>
-          </p>
+          <!-- The <br> is needed because of 414223, which is a WONTFIX. It's just because of how contentEditable works. https://bugzilla.mozilla.org/show_bug.cgi?id=414223 -->
+          <div id="messages-input" contentEditable="true" name="message" placeholder="Message" data-l10n-id="composeMessage"><br></div>
         </form>
         <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit" >
           <section>
@@ -165,7 +172,8 @@
     </article>
     <div id="messages-contact-tmpl" class="hide">
       <!--
-      <a data-phone-number="${number}" data-name="${name}" class="suggestion">
+      <a class="suggestion"
+        data-number="${number}" data-source="contacts" data-name="${name}">
         <aside class="pack-end">
           <img ${srcAttr}>
         </aside>
@@ -195,23 +203,62 @@
       </section>
       -->
     </div>
+
     <div id="messages-thread-tmpl" class="hide">
       <!--
       <label class="danger">
-        <input type="checkbox" value="${num}">
+        <input type="checkbox" value="${id}">
         <span></span>
       </label>
-      <a href="#num=${num}">
+      <a href="#thread=${id}">
         <aside class="icon icon-unread">unread</aside>
         <aside class="pack-end">
           <img src="">
         </aside>
-        <p class="name">${num}</p>
+        <p class="name">${number}</p>
         <p>
           <time>${formattedDate}</time>
-          <span class="body-text">${bodyHTML}</span>
+          <span class="body-text">${body}</span>
         </p>
       </a>
+      -->
+    </div>
+
+    <div id="messages-recipient-tmpl" class="hide">
+      <!--
+      <span class="recipient" contenteditable="${editable}"
+        data-number="${number}" data-source="${source}" data-name="${name}">
+        ${name}
+      </span>
+      -->
+    </div>
+
+    <div id="attachment-tmpl" class="hide">
+      <!--
+      <style>
+        body.attachment {
+          margin: 0;
+          font-size: 1.5rem;
+          font-family: 'MozTT', sans-serif;
+        }
+        body.attachment img {
+          width: 100%;
+          height: 100%;
+        }
+        body.attachment div {
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          padding: 0.4rem 0.4rem 0 0.4rem;
+          background: rgba(0, 0, 0, 0.3);
+          border: 0.1rem solid rgba(255, 255, 255, 0.3);
+          border-radius: 1rem 0 0 0;
+          color: rgb(255, 255, 255);
+          font-size: 1rem;
+        }
+      </style>
+      <body class="attachment"><img src="${uri}">
+      <div>${size}</div>
       -->
     </div>
   </body>

@@ -62,11 +62,14 @@
    * Init STK UI
    */
   function init() {
-    if (!window.navigator.mozMobileConnection) {
-      return;
-    }
-
-    icc = window.navigator.mozMobileConnection.icc;
+    // See bug 859712
+    // To have the backward compatibility for bug 859220.
+    // If we could not get iccManager from navigator,
+    // try to get it from mozMobileConnection.
+    // 'window.navigator.mozMobileConnection.icc' can be dropped
+    // after bug 859220 is landed.
+    icc = window.navigator.mozIccManager ||
+          window.navigator.mozMobileConnection.icc;
 
     icc.onstksessionend = function handleSTKSessionEnd(event) {
       updateMenu();

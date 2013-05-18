@@ -124,7 +124,6 @@ var Camera = {
   _cameraProfile: null,
 
   _resumeViewfinderTimer: null,
-  _waitingToGenerateThumb: false,
 
   _styleSheet: document.styleSheets[0],
   _orientationRule: null,
@@ -141,6 +140,7 @@ var Camera = {
   STORAGE_CAPACITY: 4,
 
   _pictureSize: null,
+  _previewConfig: null,
   _previewPaused: false,
   _previewActive: false,
 
@@ -162,14 +162,6 @@ var Camera = {
 
   _config: {
     fileFormat: 'jpeg'
-  },
-
-  get _previewConfig() {
-    delete this._previewConfig;
-    return this._previewConfig = {
-      width: document.body.clientHeight,
-      height: document.body.clientWidth
-    };
   },
 
   _previewConfigVideo: {
@@ -354,13 +346,13 @@ var Camera = {
   },
 
   screenTimeout: function camera_screenTimeout() {
-    if (screenLock) {
+    if (screenLock && !returnToCamera) {
       screenLock.unlock();
       screenLock = null;
     }
   },
   screenWakeLock: function camera_screenWakeLock() {
-    if ((!screenLock) && (returnToCamera === true)) {
+    if (!screenLock && returnToCamera) {
       screenLock = navigator.requestWakeLock('screen');
     }
   },
@@ -381,6 +373,11 @@ var Camera = {
   disableButtons: function camera_disableButtons() {
     this.switchButton.setAttribute('disabled', 'disabled');
     this.captureButton.setAttribute('disabled', 'disabled');
+
+    if (this._pendingPick) {
+      var cancelButton = document.getElementById('cancel-pick');
+      cancelButton.onclick = function() { };
+    }
   },
 
   // When inside an activity the user cannot switch between
@@ -561,23 +558,22 @@ var Camera = {
   stopRecording: function camera_stopRecording() {
     this._cameraObj.stopRecording();
     this._recording = false;
+
+    // Register a listener for writing completion of current video file
+    (function(videoStorage, videofile) {
+      videoStorage.addEventListener('change', function changeHandler(e) {
+        if (e.reason === 'modified' && e.path === videofile) {
+          Filmstrip.addVideo(videofile);
+          Filmstrip.show(Camera.FILMSTRIP_DURATION);
+          // Un-register the listener itself
+          videoStorage.removeEventListener('change', changeHandler);
+        }
+      });
+    })(this._videoStorage, this._videoPath);
+
     window.clearInterval(this._videoTimer);
     this.enableButtons();
     document.body.classList.remove('capturing');
-
-    // XXX
-    // I need some way to know when the camera is done writing this file
-    // currently I'm sending this to the filmstrip which is trying to
-    // determine its rotation and fails sometimes if the file is not
-    // yet complete.  For now, I just defer for a second, but
-    // there ought to be a better way.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=817367
-    // Maybe I'll get a device storage callback... check this.
-    var videofile = this._videoPath;
-    setTimeout(function() {
-      Filmstrip.addVideo(videofile);
-      Filmstrip.show(Camera.FILMSTRIP_DURATION);
-    }, 1000);
   },
 
   formatTimer: function camera_formatTimer(time) {
@@ -665,36 +661,12 @@ var Camera = {
 
     this.viewfinder.mozSrcObject = null;
     this._timeoutId = 0;
-
-    var viewfinder = this.viewfinder;
-    var style = viewfinder.style;
-    var width = document.body.clientHeight;
-    var height = document.body.clientWidth;
-
-    style.top = ((width / 2) - (height / 2)) + 'px';
-    style.left = -((width / 2) - (height / 2)) + 'px';
-
-    var transform = 'rotate(90deg)';
-    var rotation;
-    if (camera == 1) {
-      /* backwards-facing camera */
-      transform += ' scale(-1, 1)';
-      rotation = 0;
-    } else {
-      /* forwards-facing camera */
-      rotation = 0;
-    }
-
-    style.MozTransform = transform;
-    style.width = width + 'px';
-    style.height = height + 'px';
-
     this._cameras = navigator.mozCameras.getListOfCameras();
     var options = {camera: this._cameras[this._camera]};
 
     function gotPreviewScreen(stream) {
-      viewfinder.mozSrcObject = stream;
-      viewfinder.play();
+      this.viewfinder.mozSrcObject = stream;
+      this.viewfinder.play();
 
       if (callback) {
         callback();
@@ -705,12 +677,14 @@ var Camera = {
 
     function gotCamera(camera) {
       this._cameraObj = camera;
-      this._config.rotation = rotation;
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
         this.pickPictureSize(camera.capabilities.pictureSizes);
+
+      this.setPreviewSize(camera);
       this.enableCameraFeatures(camera.capabilities);
+
       camera.onShutter = (function() {
         if (this._shutterSoundEnabled) {
           this._shutterSound.play();
@@ -735,6 +709,70 @@ var Camera = {
     } else {
       navigator.mozCameras.getCamera(options, gotCamera.bind(this));
     }
+  },
+
+  setPreviewSize: function(camera) {
+
+    var viewfinder = this.viewfinder;
+    var style = viewfinder.style;
+    // Switch screen dimensions to landscape
+    var screenWidth = document.body.clientHeight;
+    var screenHeight = document.body.clientWidth;
+    var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
+    var screenAspectRatio = screenHeight / screenWidth;
+
+    // Previews should match the aspect ratio and not be smaller than the screen.
+    var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
+      var isLarger = res.height >= screenHeight && res.width >= screenWidth;
+      var aspectRatio = res.height / res.width;
+      var matchesAspectRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
+      return matchesAspectRatio && isLarger;
+    });
+
+    // We should always have a valid preview size, but just in case
+    // we dont, pick the first provided.
+    if (validPreviews.length) {
+      // Pick the smallest valid preview
+      this._previewConfig = validPreviews.sort(function(a, b) {
+        return a.width * a.height - b.width * b.height;
+      }).shift();
+    } else {
+      this._previewConfig = camera.capabilities.previewSizes[0];
+    }
+
+    var transform = 'rotate(90deg)';
+    var width, height;
+
+    // The preview should be larger than the screen, shrink it so that as
+    // much as possible is on screen.
+    if (screenAspectRatio < pictureAspectRatio) {
+      width = screenWidth;
+      height = screenWidth * pictureAspectRatio;
+    } else {
+      width = screenHeight / pictureAspectRatio;
+      height = screenHeight;
+    }
+
+    if (camera == 1) {
+      /* backwards-facing camera */
+      transform += ' scale(-1, 1)';
+    }
+
+    // Counter the position due to the rotation
+    // This translation goes after the rotation so the element is shifted up
+    // before it is rotated 90 degress clockwise.
+    transform += ' translate(0, -' + height + 'px)';
+
+    // Now add another translation at to center the viewfinder on the screen.
+    // We put this at the start of the transform, which means it is applied
+    // last, after the rotation, so width and height are reversed.
+    var dx = -(height - screenHeight) / 2;
+    var dy = -(width - screenWidth) / 2;
+    transform = 'translate(' + dx + 'px,' + dy + 'px) ' + transform;
+
+    style.transform = transform;
+    style.width = width + 'px';
+    style.height = height + 'px';
   },
 
   recordingStateChanged: function(msg) {

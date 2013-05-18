@@ -1,44 +1,16 @@
+(function(exports) {
 'use strict';
 
-(function(exports) {
-  // Set default message size with 300KB
-  var settings = {
-    'dom.mms.operatorSizeLimitation' : 300
-  };
-
-  function mns_mLockSet(obj) {
-    for (var key in obj) {
-      settings[key] = obj[key];
-    }
+var MockSettings = {
+  mmsSizeLimitation: 300 * 1024,
+  getMmsSizeLimitation: function ms_getMmsSizeLimitation(callback) {
+    callback(this.mmsSizeLimitation);
+  },
+  mSetup: function() {
+    MockSettings.mmsSizeLimitation = 300 * 1024;
   }
+};
 
-  function mns_mLockGet(key) {
-    var resultObj = {};
-    resultObj[key] = settings[key];
-    var settingsRequest = {
-      result: resultObj
-    };
+exports.MockSettings = MockSettings;
 
-    setTimeout(function() {
-      if (settingsRequest.onsuccess) {
-        settingsRequest.onsuccess();
-      }
-    });
-
-    return settingsRequest;
-  }
-
-  function mns_createLock() {
-    return {
-      set: mns_mLockSet,
-      get: mns_mLockGet
-    };
-  }
-
-  var MockSettings = {
-    createLock: mns_createLock
-  };
-
-  exports.MockSettings = MockSettings;
-
-})(this);
+}(this));

@@ -420,6 +420,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
       req.onerror = function onsuccess() {
         messageElement.textContent = _('operator-status-connectingfailed');
         messageElement.dataset.l10nId = 'operator-status-connectingfailed';
+        updateSelectionMode(false);
       };
     }
 

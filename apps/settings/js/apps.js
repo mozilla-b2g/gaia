@@ -166,8 +166,8 @@ var ApplicationsList = {
         var key = Object.keys(manifest.icons)[0];
         var iconURL = manifest.icons[key];
 
-        // Adding origin if it's not a data URL
-        if (!(iconURL.slice(0, 4) === 'data')) {
+        // Adding origin if it is a relative URL
+        if (!(/^(http|https|data):/.test(iconURL))) {
           iconURL = app.origin + '/' + iconURL;
         }
 

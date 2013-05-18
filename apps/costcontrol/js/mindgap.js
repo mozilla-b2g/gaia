@@ -165,7 +165,11 @@ var MindGap = (function() {
 
   // Adds fields end, actual and offset to current open tag
   function closeLastTag(allTags, currentDataUsage, when) {
-    var tag = allTags[tags.length - 1];
+    if (!allTags.length) {
+      return; // nothing to close, trivially closed
+    }
+
+    var tag = allTags[allTags.length - 1];
     tag.actual = currentDataUsage;
 
     var tags = getTagsForDate(allTags, when);

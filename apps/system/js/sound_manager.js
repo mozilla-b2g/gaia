@@ -6,7 +6,7 @@
 (function() {
   window.addEventListener('volumeup', function() {
     if (ScreenManager.screenEnabled || currentChannel !== 'none') {
-      if (onBTEarphoneConnected() && onCall()) {
+      if (Bluetooth.connected && onCall()) {
         changeVolume(1, 'bt_sco');
       } else if (isHeadsetConnected) {
         headsetVolumeup();
@@ -17,7 +17,7 @@
   });
   window.addEventListener('volumedown', function() {
     if (ScreenManager.screenEnabled || currentChannel !== 'none') {
-      if (onBTEarphoneConnected() && onCall()) {
+      if (Bluetooth.connected && onCall()) {
         changeVolume(-1, 'bt_sco');
       } else {
         changeVolume(-1);
@@ -224,6 +224,16 @@
     };
   }
 
+  // True if the homescreen or the lockscreen are visible.
+  var homescreenVisible = true;
+
+  window.addEventListener('appopen', function() {
+    homescreenVisible = false;
+  });
+  window.addEventListener('home', function() {
+    homescreenVisible = true;
+  });
+
   function onCall() {
     if (currentChannel == 'telephony')
       return true;
@@ -239,15 +249,6 @@
         return (call.state == 'connected');
     });
   }
-
-  function onBTEarphoneConnected() {
-    var bluetooth = navigator.mozBluetooth;
-    if (!bluetooth)
-      return false;
-
-    // 0x111E is for querying earphone type.
-    return navigator.mozBluetooth.isConnected(0x111E);
-  };
 
   // Platform doesn't provide the maximum value of each channel
   // therefore, hard code here.
@@ -358,8 +359,9 @@
         return 'alarm';
       case 'notification':
       case 'ringer':
+          return 'notification';
       default:
-        return 'notification';
+        return homescreenVisible ? 'notification' : 'content';
     }
   }
 

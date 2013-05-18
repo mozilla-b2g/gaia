@@ -1,0 +1,256 @@
+/* Overriding BB styles for headers */
+section[role="region"] > header:first-child .icon {
+  pointer-events: auto;
+}
+
+section[role="region"] > header:first-child a[aria-disabled="true"] .icon,
+section[role="region"] > header:first-child button[aria-disabled="true"] .icon {
+  pointer-events: none;
+}
+
+/* Overriding BB styles for edit mode */
+form[role="dialog"][data-type="edit"] header .icon {
+  pointer-events: auto;
+}
+
+/* Override Building Block [Edit mode] styles */
+form[role="dialog"][data-type="edit"] header,
+form[role="dialog"][data-type="edit"] > menu {
+  transition: all 0.3s ease;
+}
+
+form[role="dialog"][data-type="edit"] header {
+  transform: translateY(-110%);
+}
+
+form[role="dialog"][data-type="edit"] > menu {
+  transform: translateY(110%);
+}
+
+/* Override Building Block styles for lists */
+#recents-container[data-type="list"] li {
+  border-top: 0.1rem solid #DBD9D9;
+  border-bottom: none;
+}
+
+#recents-container[data-type="list"] li:first-child {
+  border-top: none;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+li, ol, ul {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+ol, ul {
+  list-style: none;
+}
+
+.hide {
+  display: none;
+}
+
+.view-body {
+  background : white;
+  color: black;
+  height: -moz-calc(100% - 9.5rem);
+  -moz-transition: height .15s ease-in;
+  position: absolute;
+  overflow: hidden;
+  width: 100%;
+}
+
+.view-body-inner {
+  height: 100%;
+  overflow: auto;
+}
+
+.view-body-inner ol {
+  overflow: hidden;
+}
+
+.view-body .fixed-title {
+  background-position: 1.5rem 0;
+  height: 3.5rem;
+}
+
+.header-noresult {
+  padding-bottom: 4rem;
+}
+
+.header-text-noresult {
+  font-family: FontSemibold;
+  font-size: -moz-calc(7 * 0.226rem);
+  color: #373E45;
+}
+
+.icon-noresult {
+  width: 20rem;
+  height: 20rem;
+  margin: 0 auto;
+  background-image: url('images/ComLog_200x200_clock.png');
+}
+
+.icon-container {
+  float: left;
+  height: 100%;
+  width: 5rem;
+}
+
+.icon-incoming,
+.icon-outgoing,
+.icon-missed {
+  background-size: 3rem;
+}
+
+[data-type="list"] aside.icon.icon-incoming {
+  background-image: url('images/CallLog_30x30_incoming.png');
+}
+
+[data-type="list"] aside.icon.icon-outgoing {
+  background-image: url('images/CallLog_30x30_outgoing.png');
+}
+
+[data-type="list"] aside.icon.icon-missed {
+  background-image: url('images/CallLog_30x30_missed_grey.png');
+}
+
+.log-item * {
+  pointer-events: none;
+}
+
+.log-item .pack-end {
+  position: absolute;
+  right: 0;
+}
+
+.log-item:not(.hasPhoto) .pack-end {
+  width: 0;
+}
+
+.log-item .primary-info {
+  text-overflow: clip;
+}
+
+.log-item.hasPhoto .primary-info,
+.log-item.hasPhoto .secondary-info {
+  width: 19rem;
+}
+
+.log-item:not(.hasPhoto) .primary-info,
+.log-item:not(.hasPhoto) .secondary-info {
+  width: 25rem;
+}
+
+.log-item .primary-info span {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-item .call-log-contact-photo {
+  pointer-events: auto;
+}
+
+[data-type="list"] .highlighted aside.icon.icon-missed {
+  background-image: url('images/CallLog_30x30_missed.png');
+}
+
+.log-item.highlighted[data-type='incoming'] .call-time {
+  color: red !important;
+}
+
+.log-item.highlighted[data-type='incoming-refused'] .call-time {
+  color: red !important;
+}
+
+/* Edit mode state */
+.recents-edit form[role="dialog"][data-type="edit"] header,
+.recents-edit form[role="dialog"][data-type="edit"] > menu {
+  transform: translateY(0);
+}
+
+.recents-edit label:not([for]).call-log-selection {
+  transform: translateX(4rem);
+  transition: transform 0.3s ease;
+}
+
+.recents-edit .log-item a {
+  transform: translateX(3rem);
+  transition: all 0.3s ease;
+}
+
+.recents-edit .log-item.hasPhoto .primary-info,
+.recents-edit .log-item.hasPhoto .secondary-info,
+.recents-edit .log-item:not(.hasPhoto) .primary-info,
+.recents-edit .log-item:not(.hasPhoto) .secondary-info {
+  width: 22rem;
+}
+
+.recents-edit .pack-end {
+  transition: all 0.3s ease;
+  transform: translateX(6rem);
+}
+
+.recents-edit .call-log-contact-photo {
+  pointer-events: none;
+}
+
+.recents-edit .log-item label {
+  pointer-events: auto;
+}
+
+/*
+  No result container
+*/
+
+#no-result-container {
+  background: url('images/ComLog_200x200_clock.png') fixed no-repeat center / 20rem;
+  height: 100%;
+}
+
+#no-result-message {
+  position: relative;
+  top: 11.5rem;
+  border-top: .1rem solid rgba(96,96,96,.5);
+  padding: 1rem 0.5rem;
+}
+
+#no-result-message > p {
+  text-align: left;
+  line-height: 3rem;
+  font-size: 2.2rem;
+  font-weight: 300;
+  color: #606060;
+  margin: 0;
+}
+
+#edit-mode {
+  display: block;
+}
+
+.filter .log-item:not(.missed-call) {
+  display: none;
+}
+
+.filter .groupFiltered {
+  display: none;
+}
+
+.disabled {
+  pointer-events: none !important;
+}
+
+.disabled *{
+  pointer-events: none !important;
+}

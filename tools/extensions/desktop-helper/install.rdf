@@ -7,7 +7,6 @@
     <em:id>desktop-helper@gaiamobile.org</em:id>
     <em:name>desktop-helper.js</em:name>
     <em:version>0.1</em:version>
-	  <em:iconURL>chrome://desktop-helper.js/skin/logo.png</em:iconURL>
     <em:targetApplication>
       <Description>
        <em:id>toolkit@mozilla.org</em:id>
@@ -18,7 +17,7 @@
     <em:unpack>true</em:unpack>
     <em:bootstrap>true</em:bootstrap>
     <em:creator>Kevin Grandon</em:creator>
-    <em:description>desktop-helper.js</em:description>
+    <em:description>Shims to make gaia work on top of Xulrunner runtime</em:description>
     <em:homepageURL>https://github.com/mozilla-b2g/gaia/</em:homepageURL>
   </Description>
 </RDF>
