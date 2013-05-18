@@ -724,7 +724,7 @@ section[role="region"].new #messages-to-field {
   position: relative;
   width: 10rem;
   width: -moz-calc(100% - 5.5rem);
-  height: 2.4rem;
+  min-height: 2.4rem;
   transition: height 0.2s ease-in-out;
   padding-top: 1.2rem;
   margin-bottom: 0.8rem;
@@ -736,7 +736,7 @@ Do not remove.
 */
 #messages-recipients-list.multiline {
   overflow-y: scroll;
-  height: 8.8rem;
+  max-height: 14.5rem;
 }
 #messages-recipients-list.singleline {
   overflow-y: hidden;

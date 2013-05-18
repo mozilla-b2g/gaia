@@ -560,6 +560,18 @@
       return this;
     }
 
+    // If we are expanding to a multi-line mode,
+    // add a listener to collapse when we off-focus
+    // (Blur does not work on divs)
+    if (type === 'multiline') {
+      window.addEventListener('click', function _blur(e) {
+        if (!e.target.mozMatchesSelector('#' + view.outer.id)) {
+          this.visible('singleline');
+          window.removeEventListener('click', _blur);
+        }
+      }.bind(this));
+    }
+
     // Once the transition has ended, the set focus to
     // the last child element in the recipients list view
     view.outer.addEventListener('transitionend', function te() {
@@ -585,7 +597,7 @@
       }
 
       state.isTransitioning = false;
-      view.outer.removeEventListener('transitionend', te, true);
+      view.outer.removeEventListener('transitionend', te);
     });
 
     // Commence the transition
@@ -619,7 +631,7 @@
 
     gesture.stopDetecting();
 
-    ['click', 'keypress', 'keyup', 'blur', 'pan'].forEach(function(type) {
+    ['click', 'keypress', 'keyup', 'pan'].forEach(function(type) {
 
       // Bound handlers won't exist on the first run...
       if (this.observe.handler) {
@@ -710,6 +722,10 @@
 
       case 'click':
 
+        if (owner.length > 1) {
+          this.visible('multiline');
+        }
+
         // 1. Edit or Delete?
         // The target is a recipient view node
         if (target.parentNode === view.inner) {
@@ -784,7 +800,7 @@
 
       case 'keyup':
 
-        // Last character is a semi-colorn treat as an
+        // Last character is a semi-colon treat as an
         // "accept" of this recipient.
         if (typed && typed[length - 1] === ';') {
           isAcceptedRecipient = true;
@@ -796,15 +812,6 @@
           // going to accept as a recipient (trimmed)
           target.textContent = typed;
         }
-
-        // When a single, non-semi-colon character is
-        // typed into to the recipients list input,
-        // slide the the list upward to "single line"
-        if (!isAcceptedRecipient && (typed && typed.length === 1)) {
-          this.visible('singleline');
-        }
-
-
 
         break;
 
@@ -870,6 +877,9 @@
                 target.textContent = typed;
               }
             }
+          }
+          if (owner.length > 0) {
+            this.visible('multiline');
           }
         }
         break;
