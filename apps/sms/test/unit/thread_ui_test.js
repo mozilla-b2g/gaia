@@ -715,8 +715,28 @@ suite('thread_ui.js >', function() {
         });
       });
     });
-
   });
+
+
+  suite('removeMessageDOM', function() {
+    setup(function() {
+      ThreadUI.container.innerHTML = '<h2></h2><ul><li></li><li></li></ul>';
+    });
+    teardown(function() {
+      ThreadUI.container.innerHTML = '';
+    });
+    test('removeMessageDOM removes a child', function() {
+      ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
+      assert.equal(ThreadUI.container.querySelectorAll('li').length, 1);
+    });
+    test('removeMessageDOM removes headers and ul', function() {
+      ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
+      ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
+      assert.equal(ThreadUI.container.querySelectorAll('h2').length, 0);
+      assert.equal(ThreadUI.container.querySelectorAll('ul').length, 0);
+    });
+  });
+
 
   suite('resendMessage', function() {
     setup(function() {
@@ -961,4 +981,5 @@ suite('thread_ui.js >', function() {
       assert.equal(call.data.blob, testVideoBlob);
     });
   });
+
 });
