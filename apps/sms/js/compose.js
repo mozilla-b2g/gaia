@@ -149,7 +149,6 @@ var Compose = (function() {
       });
 
       dom.optionsMenu.addEventListener('click', function(e) {
-        console.log("CLICK");
         var attachment = attachments.get(dom.optionsMenu.el);
         if (e.target.id === 'attachment-options-view') {
           attachment.view.call(attachment);

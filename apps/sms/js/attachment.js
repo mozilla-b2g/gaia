@@ -94,11 +94,6 @@ Attachment.prototype = {
     replaceButton.textContent = _('replace-attachment', {type: fileType});
     cancelButton.textContent = _('cancel');
 
-    viewButton.addEventListener('click', this.view.bind(this));
-    removeButton.addEventListener('click', this.remove.bind(this));
-    replaceButton.addEventListener('click', this.replace.bind(this));
-    cancelButton.addEventListener('click', this.closeOptionsMenu.bind(this));
-
     elem.className = '';
   },
 
