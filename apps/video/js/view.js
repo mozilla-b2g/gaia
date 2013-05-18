@@ -11,7 +11,6 @@
  */
 navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var dom = {};            // document elements
-  var screenLock;          // keep the screen on when playing
   var playing = false;
   var endedTimer;
   var controlShowing = false;
@@ -164,7 +163,6 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   }
 
   function done() {
-    // release our screen lock
     pause();
 
     // Release any video resources
@@ -262,10 +260,6 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // Start playing
     dom.player.play();
     playing = true;
-
-    // Don't let the screen go to sleep
-    if (!screenLock)
-      screenLock = navigator.requestWakeLock('screen');
   }
 
   function pause() {
@@ -275,12 +269,6 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // Stop playing the video
     dom.player.pause();
     playing = false;
-
-    // Let the screen go to sleep
-    if (screenLock) {
-      screenLock.unlock();
-      screenLock = null;
-    }
   }
 
   // Update the progress bar and play head as the video plays

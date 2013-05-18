@@ -55,7 +55,6 @@ function VideoPlayer(container) {
   var controlsHidden = false;
   var dragging = false;
   var pausedBeforeDragging = false;
-  var screenLock; // keep the screen on when playing
   var endedTimer;
   var videourl;   // the url of the video to play
   var posterurl;  // the url of the poster image to display
@@ -150,12 +149,6 @@ function VideoPlayer(container) {
     // Show the big central play button
     playbutton.classList.remove('hidden');
 
-    // Unlock the screen so it can sleep on idle
-    if (screenLock) {
-      screenLock.unlock();
-      screenLock = null;
-    }
-
     if (this.onpaused)
       this.onpaused();
   };
@@ -180,10 +173,6 @@ function VideoPlayer(container) {
     // Show the controls
     footer.classList.remove('hidden');
     controlsHidden = false;
-
-    // Don't let the screen go to sleep
-    if (!screenLock)
-      screenLock = navigator.requestWakeLock('screen');
 
     if (this.onplaying)
       this.onplaying();
