@@ -53,6 +53,8 @@ var ThreadUI = global.ThreadUI = {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
 
+    this.mainWrapper = document.getElementById('main-wrapper');
+
     // Allow for stubbing in environments that do not implement the
     // `navigator.mozMobileMessage` API
     this._mozMobileMessage = navigator.mozMobileMessage ||
@@ -706,9 +708,6 @@ var ThreadUI = global.ThreadUI = {
     this.checkInputs();
     // Clean list of messages
     this.container.innerHTML = '';
-    // Update header index
-    this.dayHeaderIndex = 0;
-    this.timeHeaderIndex = 0;
     // Init readMessages array
     this.readMessages = [];
     // Initialize infinite scroll params
@@ -888,8 +887,9 @@ var ThreadUI = global.ThreadUI = {
       }
     }
 
-    if (document.getElementById('main-wrapper').classList.contains('edit'))
+    if (this.mainWrapper.classList.contains('edit')) {
       this.checkInputs();
+    }
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
@@ -938,7 +938,8 @@ var ThreadUI = global.ThreadUI = {
       var inputs = ThreadUI.container.querySelectorAll(
         'input[type="checkbox"]:checked'
       );
-      for (var i = 0; i < inputs.length; i++) {
+      var length = inputs.length;
+      for (var i = 0; i < length; i++) {
         delNumList.push(+inputs[i].value);
       }
 
@@ -948,30 +949,17 @@ var ThreadUI = global.ThreadUI = {
         function afterRender() {
           var completeDeletionDone = false;
           // Then sending/received messages
-          for (var i = 0; i < inputs.length; i++) {
-            var message = inputs[i].parentNode.parentNode;
-            var messagesContainer = message.parentNode;
-            // Is the last message in the container?
-            if (messagesContainer.childNodes.length == 1) {
-              var header = messagesContainer.previousSibling;
-              ThreadUI.container.removeChild(header);
-              ThreadUI.container.removeChild(messagesContainer);
-              if (!ThreadUI.container.childNodes.length) {
-                var mainWrapper = document.getElementById('main-wrapper');
-                mainWrapper.classList.remove('edit');
-                window.location.hash = '#thread-list';
-                WaitingScreen.hide();
-                completeDeletionDone = true;
-                break;
-              }
-            } else {
-              messagesContainer.removeChild(message);
-            }
+          for (var i = 0; i < length; i++) {
+            ThreadUI.removeMessageDOM(inputs[i].parentNode.parentNode);
           }
-          if (!completeDeletionDone) {
+
+          if (!ThreadUI.container.firstElementChild) {
+            ThreadUI.mainWrapper.classList.remove('edit');
+            window.location.hash = '#thread-list';
+          } else {
             window.history.back();
-            WaitingScreen.hide();
           }
+          WaitingScreen.hide();
         });
       };
 
@@ -1198,41 +1186,26 @@ var ThreadUI = global.ThreadUI = {
     );
   },
 
+  removeMessageDOM: function thui_removeMessageDOM(messageDOM) {
+    // store the parent so we can check emptiness later
+    var messagesContainer = messageDOM.parentNode;
+
+    messagesContainer.removeChild(messageDOM);
+
+    // was this the last one in the ul?
+    if (!messagesContainer.firstElementChild) {
+      // we remove header & container
+      var header = messagesContainer.previousSibling;
+      this.container.removeChild(header);
+      this.container.removeChild(messagesContainer);
+    }
+  },
+
   resendMessage: function thui_resendMessage(id) {
-    var messageDOM, messagesContainer, request;
+    // force id to be a number
+    id = +id;
 
-    if (typeof id !== 'number') {
-      id = parseInt(id, 10);
-    }
-    messageDOM = this.container.querySelector('[data-message-id="' + id + '"]');
-    messagesContainer = messageDOM.parentNode;
-
-    // Defer removing the message from the DOM until after it has been
-    // successfully removed from the database
-    // TODO: Generelize this logic so it may be shared with `ThreadUI.delete`
-    // and more thoroughly tested.
-    // Bug 872725 - [MMS] Message deletion logic is duplicated
-    function removeFromDOM() {
-      // Is the last one in the ul?
-      if (messagesContainer.childNodes.length == 1) {
-        // If it is, we remove header & container
-        var header = messagesContainer.previousSibling;
-        ThreadUI.container.removeChild(header);
-        ThreadUI.container.removeChild(messagesContainer);
-      } else {
-        // If not we only have to remove the message
-        messageDOM.parentNode.removeChild(messageDOM);
-      }
-
-      // Have we more elements in the view?
-      if (!ThreadUI.container.childNodes.length) {
-        // Update header index
-        ThreadUI.dayHeaderIndex = 0;
-        ThreadUI.timeHeaderIndex = 0;
-      }
-    }
-
-    request = MessageManager.getMessage(id);
+    var request = MessageManager.getMessage(id);
 
     request.onsuccess = (function() {
       var message = request.result;
@@ -1241,7 +1214,10 @@ var ThreadUI = global.ThreadUI = {
         if (!success) {
           return;
         }
-        removeFromDOM();
+        var messageDOM = this.container.querySelector(
+          '[data-message-id="' + id + '"]');
+
+        this.removeMessageDOM(messageDOM);
         // We resend again
         this.sendMessage(message.body);
       }.bind(this));
