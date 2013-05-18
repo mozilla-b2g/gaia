@@ -136,8 +136,8 @@ FolderPickerCard.prototype = {
       self.updateFolderDom(folder, true);
       foldersContainer.insertBefore(folderNode, insertBuddy);
 
-      if (this.mostRecentSyncTimestamp < folder.lastSyncedAt) {
-        this.mostRecentSyncTimestamp = folder.lastSyncedAt;
+      if (self.mostRecentSyncTimestamp < folder.lastSyncedAt) {
+        self.mostRecentSyncTimestamp = folder.lastSyncedAt;
         dirtySyncTime = true;
       }
     });
