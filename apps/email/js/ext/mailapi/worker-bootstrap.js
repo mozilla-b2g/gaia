@@ -8133,7 +8133,9 @@ FolderStorage.prototype = {
 
     aranges.splice.apply(aranges, [newInfo[0], delCount].concat(insertions));
 
-    this.folderMeta.lastSyncedAt = endTS;
+    /*lastSyncedAt depends on current timestamp of the client device
+     should not be added timezone offset*/
+    this.folderMeta.lastSyncedAt = NOW();
     if (this._account.universe)
       this._account.universe.__notifyModifiedFolder(this._account,
                                                     this.folderMeta);
