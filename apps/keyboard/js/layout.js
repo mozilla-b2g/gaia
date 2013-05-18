@@ -54,6 +54,7 @@ const Keyboards = {
   },
   numberLayout: {
     width: 9,
+    keyClassName: 'big-key special-key',
     keys: [
       [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
       [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],
@@ -71,6 +72,7 @@ const Keyboards = {
   },
   pinLayout: {
     width: 9,
+    keyClassName: 'big-key special-key',
     keys: [
       [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
       [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],
@@ -84,6 +86,7 @@ const Keyboards = {
   },
   telLayout: {
     width: 9,
+    keyClassName: 'big-key special-key',
     keys: [
       [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
       [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],

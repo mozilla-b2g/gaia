@@ -153,7 +153,7 @@ const LAYOUT_PAGE_SYMBOLS_II = 'Symbols_2';
 // Layout page: what set of symbols should the keyboard display?
 var layoutPage = LAYOUT_PAGE_DEFAULT;
 
-// This object is based on the keyboard layout form layout.js, but is
+// This object is based on the keyboard layout from layout.js, but is
 // modified (see modifyLayout()) to include keys for switching keyboards
 // and layouts, and type specific keys like ".com" for url keyboards.
 var currentLayout = null;
@@ -171,6 +171,7 @@ var currentInputType = null;
 var currentInputMode = null;
 var menuLockedArea = null;
 var candidatePanelEnabled = false;
+var isKeyboardRendered = false;
 const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
@@ -553,15 +554,31 @@ function modifyLayout(keyboardName) {
   }
 
   var altLayoutName;
-  if (currentInputType === 'tel')
-    altLayoutName = currentInputType + 'Layout';
-  else if (currentInputType === 'number')
-    altLayoutName =
-      currentInputMode === 'digits' ? 'pinLayout' : 'numberLayout';
-  else if (layoutPage === LAYOUT_PAGE_SYMBOLS_I)
+
+  switch (currentInputType) {
+    case 'tel':
+      altLayoutName = 'telLayout';
+      break;
+    case 'number':
+      altLayoutName = currentInputMode === 'digit' ?
+                                           'pinLayout' : 'numberLayout';
+      break;
+    // The matches when type="password", "text", or "search",
+    // see mapInputType() for details
+    case 'text':
+      if (currentInputMode === 'digit') {
+        altLayoutName = 'pinLayout';
+      } else if (currentInputMode === 'numeric') {
+        altLayoutName = 'numberLayout';
+      }
+      break;
+  }
+
+  if (layoutPage === LAYOUT_PAGE_SYMBOLS_I) {
     altLayoutName = 'alternateLayout';
-  else if (layoutPage === LAYOUT_PAGE_SYMBOLS_II)
+  } else if (layoutPage === LAYOUT_PAGE_SYMBOLS_II) {
     altLayoutName = 'symbolLayout';
+  }
 
   // Start with this base layout
   var layout;
@@ -759,6 +776,8 @@ function renderKeyboard(keyboardName) {
 
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
+
+    isKeyboardRendered = true;
   }
 
   // XXX: if we are going to hide the candidatePanel, notify keyboard manager
@@ -791,6 +810,8 @@ function setUpperCase(upperCase, upperCaseLocked) {
   isUpperCaseLocked = upperCaseLocked;
   isUpperCase = upperCase;
 
+  if (!isKeyboardRendered)
+    return;
   // When case changes we have to re-render the keyboard.
   // But note that we don't have to relayout the keyboard, so
   // we call draw() directly instead of renderKeyboard()
@@ -1362,24 +1383,25 @@ function endPress(target, coords, touchId) {
       });
     }
 
-      resetKeyboard();
+    resetKeyboard();
+    renderKeyboard(keyboardName);
 
-      /*
-       * XXX
-       * If we switch to a different keyboard that has a different input
-       * method, we need to call activate() again to set up the state for that
-       * input method. But we can only get the state we need when we get a
-       * focuschange event. This means that keyboard switching only works
-       * when the keyboards have the same input method.
-       * So to switch from a latin to an asian keyboard, you'd have to
-       * lose focus and then refocus the input field.  In practice, I think
-       * that asian keyboards have input methods that handle the latin case
-       * so this probably isn't an issue.
-       if (inputMethod.activate) {
-       inputMethod.activate(userLanguage, suggestionsEnabled, currentInputType);
-       }
-       */
-      break;
+    /*
+     * XXX
+     * If we switch to a different keyboard that has a different input
+     * method, we need to call activate() again to set up the state for that
+     * input method. But we can only get the state we need when we get a
+     * focuschange event. This means that keyboard switching only works
+     * when the keyboards have the same input method.
+     * So to switch from a latin to an asian keyboard, you'd have to
+     * lose focus and then refocus the input field.  In practice, I think
+     * that asian keyboards have input methods that handle the latin case
+     * so this probably isn't an issue.
+    if (inputMethod.activate) {
+      inputMethod.activate(userLanguage, suggestionsEnabled, currentInputType);
+    }
+    */
+    break;
 
     // Expand / shrink the candidate panel
     case TOGGLE_CANDIDATE_PANEL:
@@ -1442,8 +1464,6 @@ function resetKeyboard() {
   isUpperCase = false;
   isUpperCaseLocked = false;
 
-  renderKeyboard(keyboardName);
-
   IMERender.setUpperCaseLock(isUpperCase);
 }
 
@@ -1493,6 +1513,13 @@ function showKeyboard(state) {
       correct: correctionsEnabled
     });
   }
+<<<<<<< HEAD
+=======
+
+  // render the keyboard after activation, which will determine the state
+  // of uppercase/suggestion, etc.
+  renderKeyboard(keyboardName);
+>>>>>>> Bug 869879 - enable keyboard app to show pinLayout when type=password
 }
 
 // Hide keyboard
@@ -1503,6 +1530,7 @@ function hideKeyboard() {
 
   // reset the flag for candidate show/hide workaround
   candidatePanelEnabled = false;
+  isKeyboardRendered = false;
 }
 
 // Resize event handler

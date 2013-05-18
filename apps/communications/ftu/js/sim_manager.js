@@ -32,7 +32,6 @@ var SimManager = {
     switch (data.lockType) {
       case 'pin':
         UIManager.pinInput.value = '';
-        UIManager.fakePinInput.value = '';
         UIManager.pinInput.classList.add('onerror');
         UIManager.pinError.textContent = _('pinError');
         UIManager.pinError.classList.remove('hidden');
@@ -45,7 +44,6 @@ var SimManager = {
         break;
       case 'puk':
         UIManager.pukInput.value = '';
-        UIManager.fakePukInput.value = '';
         UIManager.pukInput.classList.add('onerror');
         UIManager.pukError.textContent = _('pukError');
         UIManager.pukError.classList.remove('hidden');
@@ -62,7 +60,6 @@ var SimManager = {
       case 'cck':
       case 'spck':
         UIManager.xckInput.value = '';
-        UIManager.fakeXckInput.value = '';
         UIManager.xckInput.classList.add('onerror');
         UIManager.xckError.textContent = _('nckError');
         UIManager.xckError.classList.remove('hidden');
@@ -148,7 +145,7 @@ var SimManager = {
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.pincodeScreen.classList.add('show');
     UIManager.xckcodeScreen.classList.remove('show');
-    UIManager.fakePinInput.focus();
+    UIManager.pinInput.focus();
   },
 
   showPukScreen: function sm_showPukScreen() {
@@ -169,7 +166,7 @@ var SimManager = {
     UIManager.pukcodeScreen.classList.add('show');
     UIManager.xckcodeScreen.classList.remove('show');
     UIManager.unlockSimHeader.textContent = _('pukcode');
-    UIManager.fakePukInput.focus();
+    UIManager.pukInput.focus();
   },
 
   showXckScreen: function sm_showXckScreen() {
@@ -204,7 +201,7 @@ var SimManager = {
         UIManager.xckLabel.textContent = _('type_spck');
         break;
     }
-    UIManager.fakeXckInput.focus();
+    UIManager.xckInput.focus();
   },
 
   hideScreen: function sm_hideScreen() {

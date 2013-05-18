@@ -21,7 +21,6 @@ var UIManager = {
     'pin-label',
     'pin-retries-left',
     'pin-input',
-    'fake-pin-input',
     'pin-error',
     'skip-pin-button',
     'unlock-sim-button',
@@ -30,21 +29,17 @@ var UIManager = {
     'puk-label',
     'puk-retries-left',
     'puk-input',
-    'fake-puk-input',
     'puk-info',
     'puk-error',
     'newpin-input',
-    'fake-newpin-input',
     'newpin-error',
     'confirm-newpin-input',
-    'fake-confirm-newpin-input',
     'confirm-newpin-error',
     // XCK Screen
     'xckcode-screen',
     'xck-label',
     'xck-retries-left',
     'xck-input',
-    'fake-xck-input',
     'xck-error',
     // Import contacts
     'sim-import-button',
@@ -91,18 +86,8 @@ var UIManager = {
     this.timeConfigurationLabel.innerHTML = f.localeFormat(currentDate, format);
     this.dateConfigurationLabel.innerHTML = currentDate.
       toLocaleFormat('%Y-%m-%d');
-    // Add events to DOM
-    this.fakePinInput.addEventListener('keypress',
-                                       this.fakeInputValues.bind(this));
-    this.fakePukInput.addEventListener('keypress',
-                                       this.fakeInputValues.bind(this));
-    this.fakeNewpinInput.addEventListener('keypress',
-                                          this.fakeInputValues.bind(this));
-    this.fakeConfirmNewpinInput.addEventListener('keypress',
-                                              this.fakeInputValues.bind(this));
-    this.fakeXckInput.addEventListener('keypress',
-                                       this.fakeInputValues.bind(this));
 
+    // Add events to DOM
     this.simImportButton.addEventListener('click', this);
     this.sdImportButton.addEventListener('click', this);
     this.skipPinButton.addEventListener('click', this);
@@ -242,23 +227,6 @@ var UIManager = {
     var tzRegion = document.getElementById('tz-region');
     var tzCity = document.getElementById('tz-city');
     tzSelect(tzRegion, tzCity, this.setTimeZone, this.setTimeZone);
-  },
-
-  fakeInputValues: function ui_fakeInputValues(event) {
-    var fakeInput = event.target;
-    var code = event.charCode;
-    if (code === 0 || (code >= 0x30 && code <= 0x39)) {
-      var displayInput =
-              document.getElementById(fakeInput.id.substr(5, fakeInput.length));
-      var content = displayInput.value;
-      if (code === 0) { // backspace
-        content = content.substr(0, content.length - 1);
-      } else {
-        content += String.fromCharCode(code);
-      }
-      displayInput.value = content;
-    }
-    fakeInput.value = '';
   },
 
   handleEvent: function ui_handleEvent(event) {
