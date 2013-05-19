@@ -364,6 +364,11 @@ var KeypadManager = {
       return;
     }
 
+    // If user input number more 50 digits, app shouldn't accept.
+    if (key != 'delete' && this._phoneNumber.length >= 50) {
+      return;
+    }
+
     var telephony = navigator.mozTelephony;
 
     event.stopPropagation();
