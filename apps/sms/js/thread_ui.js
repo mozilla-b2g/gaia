@@ -26,6 +26,27 @@ function thui_mmsAttachmentClick(target) {
   };
 }
 
+// reduce the Composer.getContent() into slide format used by SMIL.generate some
+// day in the future, we should make the SMIL and Compose use the same format
+function thui_generateSmilSlides(slides, content) {
+  var length = slides.length;
+  if (typeof content === 'string') {
+    if (!length || slides[length - 1].text) {
+      slides.push({
+        text: content
+      });
+    } else {
+      slides[length - 1].text = content;
+    }
+  } else {
+    slides.push({
+      blob: content.blob,
+      name: content.name
+    });
+  }
+  return slides;
+}
+
 var ThreadUI = global.ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
@@ -95,7 +116,7 @@ var ThreadUI = global.ThreadUI = {
     );
 
     this.sendButton.addEventListener(
-      'click', this.sendMessage.bind(this)
+      'click', this.onSendClick.bind(this)
     );
 
     this.container.addEventListener(
@@ -1113,16 +1134,22 @@ var ThreadUI = global.ThreadUI = {
   },
 
   cleanFields: function thui_cleanFields(forceClean) {
-    var self = this;
-    var clean = function clean() {
+    var clean = (function clean() {
       Compose.clear();
-      self.sendButton.dataset.counter = '';
-      self.sendButton.classList.remove('has-counter');
+
+      // Compose.clear might cause a conversion from mms -> sms, we need
+      // to ensure the message is hidden after we clear fields.
+      this.convertNotice.classList.add('hide');
+
+      // reset the counter
+      this.sendButton.dataset.counter = '';
+      this.sendButton.classList.remove('has-counter');
+
       if (window.location.hash === '#new') {
-        self.initRecipients();
-        self.updateComposerHeader();
+        this.initRecipients();
+        this.updateComposerHeader();
       }
-    };
+    }).bind(this);
 
     if (this.previousHash === window.location.hash ||
         this.previousHash === '#new') {
@@ -1136,34 +1163,30 @@ var ThreadUI = global.ThreadUI = {
     this.previousHash = window.location.hash;
   },
 
-  sendMessage: function thui_sendMessage(resendText) {
-    var recipients, text;
+  onSendClick: function thui_onSendClick() {
+    // don't send an empty message
+    if (Compose.isEmpty()) {
+      return;
+    }
 
+    // not sure why this happens - replace me if you know
     this.container.classList.remove('hide');
 
-    if (resendText && typeof resendText === 'string') {
-      recipients = MessageManager.activity.recipients;
-      text = resendText;
-    } else {
-      // Retrieve nums depending on hash
-      var hash = window.location.hash;
-      // Depending where we are, we get different nums
-      if (hash === '#new') {
-        if (!this.recipients.length) {
-          return;
-        }
-        recipients = this.recipients.numbers;
-      } else {
-        recipients = Threads.active.participants;
-      }
+    var content = Compose.getContent();
+    var messageType = Compose.type;
+    var recipients;
 
-      // Retrieve text
-      text = Compose.getText();
-      if (!text) {
+    // Depending where we are, we get different nums
+    if (window.location.hash === '#new') {
+      if (!this.recipients.length) {
         return;
       }
+      recipients = this.recipients.numbers;
+    } else {
+      recipients = Threads.active.participants;
     }
-    // Clean fields (this lock any repeated click in 'send' button)
+
+    // Clean composer fields (this lock any repeated click in 'send' button)
     this.cleanFields(true);
 
     this.updateHeaderData();
@@ -1172,7 +1195,16 @@ var ThreadUI = global.ThreadUI = {
     MessageManager.activity.recipients = recipients;
 
     // Send the Message
-    MessageManager.send(recipients, text);
+    if (messageType === 'sms') {
+      MessageManager.sendSMS(recipients, content[0], function messageSent() {
+        if (recipients.length > 1) {
+          window.location.hash = '#thread-list';
+        }
+      });
+    } else {
+      var smilSlides = content.reduce(thui_generateSmilSlides, []);
+      MessageManager.sendMMS(recipients, smilSlides);
+    }
   },
 
   onMessageSent: function thui_onMessageSent(message) {
@@ -1291,8 +1323,7 @@ var ThreadUI = global.ThreadUI = {
           '[data-message-id="' + id + '"]');
 
         this.removeMessageDOM(messageDOM);
-        // We resend again
-        this.sendMessage(message.body);
+        MessageManager.resendMessage(message);
       }.bind(this));
     }).bind(this);
   },
