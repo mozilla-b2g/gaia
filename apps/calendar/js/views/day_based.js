@@ -637,6 +637,17 @@ Calendar.ns('Views').DayBased = (function() {
       if (el && el.parentNode) {
         el.parentNode.removeChild(el);
       }
+    },
+
+    getScrollTop: function() {
+      var scroll = this.element.querySelectorAll('.day-events')[1];
+      var scrollTop = scroll.scrollTop;
+      return scrollTop;
+    },
+
+    setScrollTop: function(scrollTop) {
+      var scroll = this.element.querySelectorAll('.day-events')[1];
+      scroll.scrollTop = scrollTop;
     }
 
   };
