@@ -381,51 +381,14 @@ var MessageManager = {
   },
 
   // consider splitting this method for the different use cases
-  send: function mm_send(recipients, msgContent, onsuccess, onerror) {
-    var isMMS = false;
-    var isGroup = false;
-    var isSMILCandidate = false;
-    var message, request;
-
-    // When there are > 1 recipients specified for a message,
-    // use MMS Group Messaging.
-    // if (recipients.length > 1) {
-    //   isMMS = true;
-    //   msgContent = [{
-    //     text: msgContent
-    //   }];
-    // }
+  sendSMS: function mm_send(recipients, content, onsuccess, onerror) {
+    var request;
 
     if (!Array.isArray(recipients)) {
       recipients = [recipients];
     }
 
-    if (Array.isArray(msgContent)) {
-      isMMS = true;
-      isSMILCandidate = true;
-    }
-
-    message = isSMILCandidate ?
-      SMIL.generate(msgContent) : msgContent;
-
-    if (recipients.length > 1) {
-      isGroup = true;
-    }
-
-   if (isMMS) {
-      request = this._mozMobileMessage.sendMMS({
-        subject: '',
-        receivers: recipients,
-        smil: message.smil,
-        attachments: message.attachments
-      });
-    } else {
-      // For this case, "recipients" may
-      // only have a single entry.
-      request = this._mozMobileMessage.send(
-        recipients, message
-      );
-    }
+    request = this._mozMobileMessage.send(recipients, content);
 
     request.onsuccess = function onSuccess(event) {
       onsuccess && onsuccess(event.result);
@@ -435,9 +398,46 @@ var MessageManager = {
       console.log('Error Sending: ' + JSON.stringify(event.error));
       onerror && onerror();
     };
+  },
 
-    if (isGroup && !isMMS) {
-      window.location.hash = '#thread-list';
+  sendMMS: function mm_sendMMS(recipients, content, onsuccess, onerror) {
+    var request;
+
+    if (!Array.isArray(recipients)) {
+      recipients = [recipients];
+    }
+
+    var message = SMIL.generate(content);
+
+    request = this._mozMobileMessage.sendMMS({
+      subject: '',
+      receivers: recipients,
+      smil: message.smil,
+      attachments: message.attachments
+    });
+
+    request.onsuccess = function onSuccess(event) {
+      onsuccess && onsuccess(event.result);
+    };
+
+    request.onerror = function onError(event) {
+      console.log('Error Sending: ' + JSON.stringify(event.error));
+      onerror && onerror();
+    };
+  },
+
+  // takes a formatted message in case you happen to have one
+  resendMessage: function mm_resendMessage(message) {
+    if (message.type === 'sms') {
+      return this._mozMobileMessage.send(message.receiver, message.body);
+    }
+    if (message.type === 'mms') {
+      return this._mozMobileMessage.sendMMS({
+        receivers: message.receivers,
+        subject: message.subject,
+        smil: message.smil,
+        attachments: message.attachments
+      });
     }
   },
 
