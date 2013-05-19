@@ -8,6 +8,7 @@ suiteGroup('Views.TimeParent', function() {
   var app;
   var subject;
   var id;
+  var scrollTop;
   var controller;
 
   var TimeParent;
@@ -50,6 +51,14 @@ suiteGroup('Views.TimeParent', function() {
       el.id = this.id;
       this.element = el;
       return el;
+    },
+
+    getScrollTop: function() {
+      return this.scrollTop;
+    },
+
+    setScrollTop: function(scrollTop) {
+      this.scrollTop = scrollTop;
     }
   };
 
@@ -254,6 +263,16 @@ suiteGroup('Views.TimeParent', function() {
 
       // verify other children where removed
       assert.length(subject.frameContainer.children, 3);
+    });
+
+    test('the same scrollTop between day ane week views', function() {
+      subject.currentFrame.setScrollTop(100);
+
+      var next = subject._nextTime(date);
+      subject.changeDate(next);
+      var scrollTop = subject.currentFrame.getScrollTop();
+
+      assert.equal(scrollTop, 100, 'same scrollTop');
     });
   });
 
