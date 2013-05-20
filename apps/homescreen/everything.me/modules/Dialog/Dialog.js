@@ -219,36 +219,39 @@ Evme.Prompt = function Evme_Prompt(_options) {
         
         storageKey = STORAGE_PREFIX + id;
         
-        var shown = Evme.Storage.enabled() && Evme.Storage.get(storageKey);
-        if (shown) {
-            return false;
+        if (Evme.Storage.enabled()) {
+            Storage.get(storageKey, function storageGot(shown){
+                if (shown) {
+                    return false;
+                }
+                if (Evme.$("#" + storageKey)) {
+                    return false;
+                }
+                
+                el = Evme.$create('div;', {'id': storageKey, 'class': 'prompt textpage ' + (className? className : '')}, text + '<b class="close"></b>');
+                el.addEventListener("touchstart", function onTouchStart(e) {
+                    e && e.preventDefault();
+                    e && e.stopPropagation();
+                    
+                    cbClick();
+                });
+                
+                Evme.$(".close", el)[0].addEventListener("touchstart", function onTouchStart(e){
+                    e && e.preventDefault();
+                    e && e.stopPropagation();
+                    
+                    self.hide(true);
+                });
+                
+                elParent.append(el);
+                
+                window.setTimeout(function onTimeout(){
+                    el.classList.add("visible");
+                    
+                    cbShow();
+                }, 50);
+            });
         }
-        if (Evme.$("#" + storageKey)) {
-            return false;
-        }
-        
-        el = Evme.$create('div;', {'id': storageKey, 'class': 'prompt textpage ' + (className? className : '')}, text + '<b class="close"></b>');
-        el.addEventListener("touchstart", function onTouchStart(e) {
-            e && e.preventDefault();
-            e && e.stopPropagation();
-            
-            cbClick();
-        });
-        
-        Evme.$(".close", el)[0].addEventListener("touchstart", function onTouchStart(e){
-            e && e.preventDefault();
-            e && e.stopPropagation();
-            
-            self.hide(true);
-        });
-        
-        elParent.append(el);
-        
-        window.setTimeout(function onTimeout(){
-            el.classList.add("visible");
-            
-            cbShow();
-        }, 50);
         
         return true;
     };

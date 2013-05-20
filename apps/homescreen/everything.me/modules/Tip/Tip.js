@@ -26,34 +26,41 @@ window.Evme.Tip = function Evme_Tip(_config, _onShow, _onHide) {
         timesToShow = options.timesToShow || Infinity;
         blockScreen = options.blockScreen || false;
         
-        timesShown = options.ignoreStorage? 0 : Evme.Storage.get(id) || 0;
-        
-        if (timesShown < timesToShow && !Evme.$("#" + id)) {
-            el = Evme.$create('div', {
-                'id': id,
-                'class': "tip",
-                'data-l10n-id': Evme.Utils.l10nKey(NAME, options.id),
-                'data-l10n-args': JSON.stringify(_data)
-            });
-            
-            el.addEventListener("touchstart", click);
-            
-            if (classes) {
-                for (var i=0; i<classes.length; i++) {
-                    el.classList.add(classes[i]);
+        if (!options.ignoreStorage) {
+            Evme.Storage.get(id, function storageGot(time){
+                timesShown = time || 0;
+                if (timesShown < timesToShow && !Evme.$("#" + id)) {
+                    el = Evme.$create('div', {
+                        'id': id,
+                        'class': "tip",
+                        'data-l10n-id': Evme.Utils.l10nKey(NAME, options.id),
+                        'data-l10n-args': JSON.stringify(_data)
+                    });
+                    
+                    el.addEventListener("touchstart", click);
+                    
+                    if (classes) {
+                        for (var i=0; i<classes.length; i++) {
+                            el.classList.add(classes[i]);
+                        }
+                    }
+                    
+                    addButtons();
+                    
+                    if (blockScreen) {
+                        elScreen = Evme.$create('div', {'class': "screen tip-screen", 'style': "opacity: 0;"});
+                        Evme.Utils.getContainer().appendChild(elScreen);
+                    }
+                    
+                    Evme.Utils.getContainer().appendChild(el);
+                    
+                    el.style.marginTop = -el.offsetHeight/2 + "px";
+
+                    self.show();
                 }
-            }
-            
-            addButtons();
-            
-            if (blockScreen) {
-                elScreen = Evme.$create('div', {'class': "screen tip-screen", 'style': "opacity: 0;"});
-                Evme.Utils.getContainer().appendChild(elScreen);
-            }
-            
-            Evme.Utils.getContainer().appendChild(el);
-            
-            el.style.marginTop = -el.offsetHeight/2 + "px";
+            });
+        } else {
+            self.show();
         }
         
         return self;
@@ -83,7 +90,6 @@ window.Evme.Tip = function Evme_Tip(_config, _onShow, _onHide) {
             
             timesShown = timesShown + 1;
             Evme.Storage.set(id, timesShown);
-            
             onShow && onShow(self);
         }, showAfter);
         
