@@ -2717,6 +2717,8 @@ ActiveSyncAccount.prototype = {
       path: this.accountDef.name,
       type: this.accountDef.type,
 
+      defaultPriority: this.accountDef.defaultPriority,
+
       enabled: this.enabled,
       problems: this.problems,
 
@@ -3377,6 +3379,7 @@ define('mailapi/activesync/configurator',
     '../accountcommon',
     '../a64',
     './account',
+    '../date',
     'require',
     'exports'
   ],
@@ -3385,6 +3388,7 @@ define('mailapi/activesync/configurator',
     $accountcommon,
     $a64,
     $asacct,
+    $date,
     require,
     exports
   ) {
@@ -3499,6 +3503,7 @@ exports.configurator = {
         var accountDef = {
           id: accountId,
           name: userDetails.accountName || userDetails.emailAddress,
+          defaultPriority: $date.NOW(),
 
           type: 'activesync',
           syncRange: 'auto',

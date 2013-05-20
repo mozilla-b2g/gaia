@@ -4168,6 +4168,8 @@ CompositeAccount.prototype = {
       name: this.accountDef.name,
       type: this.accountDef.type,
 
+      defaultPriority: this.accountDef.defaultPriority,
+
       enabled: this.enabled,
       problems: this.problems,
 
@@ -4312,6 +4314,7 @@ define('mailapi/composite/configurator',
     '../a64',
     '../allback',
     './account',
+    '../date',
     'require',
     'exports'
   ],
@@ -4321,6 +4324,7 @@ define('mailapi/composite/configurator',
     $a64,
     $allback,
     $account,
+    $date,
     require,
     exports
   ) {
@@ -4447,6 +4451,7 @@ exports.configurator = {
     var accountDef = {
       id: accountId,
       name: userDetails.accountName || userDetails.emailAddress,
+      defaultPriority: $date.NOW(),
 
       type: 'imap+smtp',
       receiveType: 'imap',
