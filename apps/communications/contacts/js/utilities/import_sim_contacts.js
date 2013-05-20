@@ -48,10 +48,30 @@ function SimContactsImporter() {
   }
 
   this.start = function() {
+    // See bug 870237
+    // To have the backward compatibility for bug 859220.
+    // If we could not get iccManager from navigator,
+    // try to get it from mozMobileConnection.
+    // 'window.navigator.mozMobileConnection.icc' can be dropped
+    // after bug 859220 is landed.
+    var icc = navigator.mozIccManager || (navigator.mozMobileConnection &&
+                                            navigator.mozMobileConnection.icc);
+    var request;
+
     // request contacts with readContacts() -- valid types are:
     //   'adn': Abbreviated Dialing Numbers
     //   'fdn': Fixed Dialing Numbers
-    var request = navigator.mozMobileConnection.icc.readContacts('adn');
+    if (icc && icc.readContacts) {
+      request = icc.readContacts('adn');
+    }
+    else if (navigator.mozContacts) {
+      // Just to enable import on builds different than M-C
+      // In the longer term this line of code would disappear
+      request = navigator.mozContacts.getSimContacts('ADN');
+    }
+    else {
+      throw new Error('Not able to obtain a SIM import function from platform');
+    }
 
     request.onsuccess = function onsuccess() {
       self.items = request.result; // array of mozContact elements
