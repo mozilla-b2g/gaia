@@ -395,12 +395,14 @@ input.msg-search-text-tease {
 
 .msg-reader-load-infobar {
   position: absolute;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   color: white;
   font-size: 1.2rem;
   left: 0;
   bottom: 4.8rem;
   width: 100%;
-  height: 2.2rem;
+  /* we do not specify a height because text may be more than 1 line high */
   line-height: 2.2rem;
   padding: 0.8rem 1.6rem;
   background-color: #424242;;
