@@ -13,6 +13,7 @@ const Homescreen = (function() {
   });
 
   var initialized = false, landingPage;
+  onConnectionChange(navigator.onLine);
 
   function initialize(lPage) {
     if (initialized) {
@@ -97,6 +98,19 @@ const Homescreen = (function() {
     document.documentElement.lang = navigator.mozL10n.language.code;
     document.documentElement.dir = navigator.mozL10n.language.direction;
   }
+
+  function onConnectionChange(isOnline) {
+    var mode = isOnline ? 'online' : 'offline';
+    document.body.dataset.online = mode;
+  }
+
+  window.addEventListener('online', function onOnline(evt) {
+    onConnectionChange(true);
+  });
+
+  window.addEventListener('offline', function onOnline(evt) {
+    onConnectionChange(false);
+  });
 
   return {
     /*
