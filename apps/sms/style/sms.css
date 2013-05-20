@@ -836,21 +836,20 @@ Do not remove.
 
 section[role="region"].new #messages-container[data-type="list"] > ul.contactList {
   position: absolute;
-  width: 100%;
+  width: calc(100% - 3.1rem);
   z-index: 5;
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: -moz-calc(100% - 5rem)  ;
-  padding: 0;
+  max-height: -moz-calc(100% - 5rem);
+  padding: 0 1.5rem;
+  background: white;
 }
 
 section[role="region"].new #messages-container[data-type="list"]  li:first-child {
-  margin-top: 5.6rem;
+  margin-top: 4.6rem;
 }
 
 section[role="region"].new #messages-container[data-type="list"]  li{
-  background: #E4E4E4;
-  padding: 0 1.5rem;
   pointer-events: normal;
 }
 
