@@ -386,7 +386,7 @@ Evme.Apps = new function Evme_Apps() {
                 app = appsArray[appData.id];
                 
             if (app) {
-                appData.icon = Evme.IconManager.parse(appData.id, appData.icon, iconsFormat);
+                Evme.IconManager.add(appData.id, appData.icon, iconsFormat);
                 
                 app.update(appData);
             }
@@ -405,7 +405,7 @@ Evme.Apps = new function Evme_Apps() {
             var _app = apps[i];
             var id = _app.id;
             if (appsArray[id]) {
-                _app.icon = Evme.IconManager.parse(id, _app.icon, iconsFormat);
+                Evme.IconManager.add(id, _app.icon, iconsFormat);
                 appsArray[id].update(_app);
 
                 if (appsArray[id].missingIcon()) {
@@ -476,95 +476,29 @@ Evme.IconManager = new function Evme_IconManager() {
     var NAME = "IconManager", self = this,
         _prefix = "_icon", CACHE_VERSION = "2.6";
     
-    this.clear = function clear() {
-        var numIcons = 0;
-        var icons = Evme.Storage.get();
-        for (var k in icons) {
-            if (k.indexOf(_prefix) == 0) {
-                numIcons++;
-                Evme.Storage.remove(k);
-            }
-        }
-        return numIcons;
-    };
-    
-    this.validateCacheVersion = function validateCacheVersion() {
-        var currentVersion = Evme.Storage.get("iconsVersion");
-        if (!currentVersion || currentVersion != CACHE_VERSION) {
-            self.clear();
-            Evme.Storage.add("iconsVersion", CACHE_VERSION);
-        }
-    };
-    
-    this.parse = function parse(id, icon, iconsFormat) {
-        if (icon == null) {
-            // If icon from API is empty- it means it's in the user's cache
-            return self.get(id);
-        } else {
-            // Else add the icon to the user's cache and return it
-            return self.add(id, icon, iconsFormat);
-        }
-    };
-
     this.add = function add(id, icon, iconsFormat) {
+        if (!icon) {
+            return false;
+        }
+
         icon.format = iconsFormat;
         icon.id = id;
-        
+
         if (!icon.format || !icon.revision || !icon.id) {
-            return icon;
+            return false;
         }
-        
-        var iconInCache = self.get(id);
-        
-        if (!iconInCache || iconInCache.format < iconsFormat) {
-            var sIcon = "";
-            try {
-                sIcon = JSON.stringify(icon);
-                Evme.Storage.add(_prefix + id, sIcon);
-            } catch(ex) {
-                
+
+        self.get(id, function fromCache(iconFromCache) {
+            if (!iconFromCache || iconFromCache.format < iconsFormat) {
+                Evme.Storage.set(_prefix + id, icon);
             }
-            
-            return icon;
-        }
-        
-        return iconInCache;
+        });
+  
+        return true;
     };
 
-    this.get = function get(id) {
-        if (id) {
-            var icon = Evme.Storage.get(_prefix+id) || null;
-            
-            if (!icon) {
-                return null;
-            }
-            
-            // Icon in cache isn't a valid object (truncated or somthing perhaps?)
-            try {
-                icon = JSON.parse(icon);
-            } catch(ex) {
-                Evme.Storage.remove(_prefix+id);
-                return null;
-            }
-            
-            // Icon doesn't contain all the info (maybe it's from a previous version and failed removal)
-            if (!icon.id || !icon.revision || !icon.format) {
-                return null;
-            }
-            
-            return icon;
-        } else {
-            var _icons = {};
-            var icons = Evme.Storage.get();
-            
-            for (var k in icons) {
-                if (k.indexOf(_prefix) == 0) {
-                    _icons[k] = self.get(k.replace(_prefix, ""));
-                }
-            }
-            
-            return _icons;
-        }
+    this.get = function get(id, callback) {
+        Evme.Storage.get(_prefix+id, callback);
     };
 };
 
@@ -598,7 +532,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
       var apps = options.apps,
           icons = options.icons,
           query = options.query,
-          onReady = options.onReady,
+          onReady = options.onReady || function() {},
           elCanvas = document.createElement('canvas'),
           context = elCanvas.getContext('2d');
 
@@ -616,9 +550,15 @@ Evme.IconGroup = new function Evme_IconGroup() {
               };
           }
 
-          app.icon = Evme.Utils.formatImageData(app.icon || Evme.IconManager.get(app.id));
-
-          loadIcon(app.icon, icons[i], context, i, onReady);   
+          if (app.icon) {
+            loadIcon(Evme.Utils.formatImageData(app.icon), icons[i], context, i, onReady);
+          } else {
+            (function(app, icon, context, i, onReady){
+                Evme.IconManager.get(app.id, function onIconFromCache(appIcon) {
+                    loadIcon(Evme.Utils.formatImageData(appIcon), icon, context, i, onReady); 
+                });
+            }(app, icons[i], context, i, onReady));
+          }
       }
       
       // add the app name
@@ -704,7 +644,6 @@ Evme.IconGroup = new function Evme_IconGroup() {
         context.drawImage(image, -size/2, -size/2);
         context.restore();
       }
-
       onAllIconsReady && onAllIconsReady(context.canvas);
     }
   }
@@ -724,11 +663,17 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
             hadID = false;
             cfg.id = 'app-' + Evme.Utils.uuid();
         }
-        
-        // fill in default icon
-        // if there's no icon and it's a bing result / official website app
-        if (!cfg.icon && (!hadID || cfg.preferences.defaultIcon)){
-            cfg.icon = Evme.Apps.getDefaultIcon();
+
+        if (!cfg.icon) {
+            if (!hadID || cfg.preferences.defaultIcon) {
+                cfg.icon = Evme.Apps.getDefaultIcon();
+            } else {
+                Evme.IconManager.get(cfg.id, function onIconFromCache(iconFromCache) {
+                    self.setIcon(iconFromCache || Evme.Apps.getDefaultIcon());
+                });
+            }
+        } else {
+            Evme.IconManager.add(cfg.id, cfg.icon, cfg.iconFormat);
         }
     };
     
