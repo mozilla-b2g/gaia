@@ -96,7 +96,7 @@ li .after {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view {
+#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #crop-view {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -175,13 +175,29 @@ li .after {
   margin-bottom: 40px;
 }
 
+/* Video align and size */
+#crop-view {
+  white-space: nowrap;
+  font-size: 0;
+  text-align: center;
+  top: 50%;
+}
+
+#crop-view:before {
+  content: "";
+  width: 1px;
+  height: 100%;
+  margin-left: -1px;
+  display: inline-block;
+  vertical-align: middle
+}
+
 #player {
   /* size and position are set in JS depending on*/
   /* video size and screen orientation */
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: 0 0;
+  display: inline-block;
+  vertical-align: middle;
+  width: 100%;
 }
 
 /*
