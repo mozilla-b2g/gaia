@@ -89,19 +89,10 @@ const IMERender = (function() {
 
     layout.upperCase = layout.upperCase || {};
 
-    var first = true;
-
     var content = document.createDocumentFragment();
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
-
-      var firstRow = '';
-      if (first) {
-        firstRow = ' first-row';
-        first = false;
-      }
-
       var kbRow = document.createElement('div');
-      kbRow.className = 'keyboard-row' + firstRow;
+      kbRow.className = 'keyboard-row';
       row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
         var keyChar = key.value;
@@ -334,11 +325,8 @@ const IMERender = (function() {
     var left = (window.innerWidth / 2 > key.offsetLeft);
 
     // Place the menu to the left
-    if (left) {
+    if (!left) {
       this.menu.classList.add('kbr-menu-left');
-    // Place menu on the right and reverse key order
-    } else {
-      this.menu.classList.add('kbr-menu-right');
       altChars = altChars.reverse();
     }
 
@@ -452,7 +440,8 @@ const IMERender = (function() {
         keys = row.childNodes;
         for (var k = 0, key; key = keys[k]; k += 1) {
           ratio = layout.keys[r][k].ratio || 1;
-          key.style.width = (placeHolderWidth * ratio) + 'px';
+          // divide by 10 to convert the unit from px to rem
+          key.style.width = Math.floor(placeHolderWidth * ratio) / changeScale + 'rem';
 
           // to get the visual width/height of the key
           // for better proximity info
