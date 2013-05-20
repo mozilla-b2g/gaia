@@ -1158,11 +1158,11 @@ suite('thread_ui.js >', function() {
 
       // quick dirty creation of a thread with image:
       var output = ThreadUI.createMmsContent(inputArray);
+      img = output.querySelector('img');
+
       // need to get a container from ThreadUI because event is delegated
       var messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
       messageContainer.appendChild(output);
-
-      img = output.querySelector('img');
     });
     test('MozActivity is called with the proper info on click', function() {
       // Start the test: simulate a click event
@@ -1189,11 +1189,11 @@ suite('thread_ui.js >', function() {
 
       // quick dirty creation of a thread with image:
       var output = ThreadUI.createMmsContent(inputArray);
+      audio = output.querySelector('.audio-placeholder');
+
       // need to get a container from ThreadUI because event is delegated
       var messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
       messageContainer.appendChild(output);
-
-      audio = output.querySelector('.audio-placeholder');
     });
 
     test('MozActivity is called with the proper info on click', function() {
@@ -1221,11 +1221,11 @@ suite('thread_ui.js >', function() {
 
       // quick dirty creation of a thread with video:
       var output = ThreadUI.createMmsContent(inputArray);
+      video = output.querySelector('.video-placeholder');
+
       // need to get a container from ThreadUI because event is delegated
       var messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
       messageContainer.appendChild(output);
-
-      video = output.querySelector('.video-placeholder');
     });
 
     test('MozActivity is called with the proper info on click', function() {

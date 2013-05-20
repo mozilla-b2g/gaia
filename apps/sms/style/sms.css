@@ -340,10 +340,12 @@ section[role="region"].new > header:first-child form {
   background: #fff;
 }
 
-#messages-container[data-type="list"] .message.mms .bubble > img {
+#messages-container[data-type="list"] .message.mms .bubble img {
   display: block;
-  max-height: 10rem;
-  max-width: 100%;
+  max-height: 12rem;
+  height: auto;
+  max-width: 12rem;
+  width: auto;
 }
 
 #messages-container[data-type="list"] .message.mms .video-placeholder {
