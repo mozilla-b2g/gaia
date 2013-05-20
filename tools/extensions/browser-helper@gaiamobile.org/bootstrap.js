@@ -62,6 +62,9 @@ function startup(data, reason) {
       ResponsiveUIManager.once('on', function(event, tab, responsive) {
         let document = tab.ownerDocument;
 
+        // Ensure tweaking only the first responsive mode opened
+        responsive.stack.classList.add('os-mode');
+
         let sleepButton = document.createElement('button');
         sleepButton.id = 'os-sleep-button';
         sleepButton.setAttribute('top', 0);
@@ -137,8 +140,29 @@ function startup(data, reason) {
         }
       });
 
+      // Cleanup responsive mode if it's disabled
+      ResponsiveUIManager.on('off', function(event, tab, responsive) {
+        if (responsive.stack.classList.contains('os-mode')) {
+          responsive.stack.classList.remove('os-mode');
+          let document = tab.ownerDocument;
+          let sleepButton = document.getElementById('os-sleep-button');
+          responsive.stack.removeChild(sleepButton);
+          let volumeButtons = document.getElementById('os-volume-buttons');
+          responsive.stack.removeChild(volumeButtons);
+          let bottomToolbar = document.getElementById('os-hardware-buttons');
+          responsive.container.removeChild(bottomToolbar);
+        }
+      });
+
       // Automatically toggle responsive design mode
-      let args = {'width': 320, 'height': 480};
+      let width = 320, height = 480;
+      // We have to take into account padding and border introduced with the
+      // device look'n feel:
+      width += 15*2; // Horizontal padding
+      width += 1*2; // Vertical border
+      height += 60; // Top Padding
+      height += 1; // Top border
+      let args = {'width': width, 'height': height};
       let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
       mgr.handleGcliCommand(browserWindow,
                             browserWindow.gBrowser.selectedTab,
