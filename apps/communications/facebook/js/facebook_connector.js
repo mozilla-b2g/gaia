@@ -251,6 +251,10 @@ if (!window.FacebookConnector) {
         return 'facebook';
       },
 
+      get automaticLogout() {
+        return false;
+      },
+
       downloadContactPicture: function(contact, access_token, callbacks) {
         return fb.utils.getFriendPicture(contact.uid,
           function(blobPicture) {
