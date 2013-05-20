@@ -56,4 +56,11 @@ for continent in data:
             city = conflicts[cc]
         list[cc] = city
 
-print(json.dumps(list))
+for continent in data:
+    for entry in data[continent]:
+        cc = entry['cc'].encode('ascii')
+        city = entry['city'].encode('ascii')
+        if list[cc] == city:
+            entry['default'] = True
+
+print(json.dumps(data))
