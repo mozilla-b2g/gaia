@@ -457,15 +457,9 @@ var MessageManager = {
     removed completely.
   */
   deleteMessages: function mm_deleteMessages(list, callback) {
-    if (list.length > 0) {
-      this.deleteMessage(list.shift(), function(result) {
-        this.deleteMessages(list, callback);
-      }.bind(this));
-    } else {
-      if (callback) {
-        callback();
-      }
-    }
+    // mozMobileMessage.delete() has been modified per bug 771458.
+    // Now deleteMessage() can take an id or an array of id.
+    this.deleteMessage(list, callback);
   },
 
   markMessagesRead: function mm_markMessagesRead(list, value, callback) {
