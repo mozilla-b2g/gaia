@@ -61,36 +61,80 @@ function startup(data, reason) {
       Cu.import('resource:///modules/devtools/responsivedesign.jsm');
       ResponsiveUIManager.once('on', function(event, tab, responsive) {
         let document = tab.ownerDocument;
-        // <toolbar id="ffoshardware-button">
-        //  <toolbarbutton id="ffos-home-button" />
-        // </toolbar>
-        let toolbar = document.createElement('toolbar');
-        toolbar.setAttribute('id', 'ffos-hardware-buttons');
-        toolbar.setAttribute('align', 'center');
-        toolbar.setAttribute('pack', 'center');
-        let button = document.createElement('toolbarbutton');
-        button.setAttribute('id', 'ffos-home-button');
-        button.setAttribute('class', 'devtools-toolbarbutton');
-        toolbar.appendChild(button);
-        responsive.container.appendChild(toolbar);
 
-        // Simulate a home button
+        let sleepButton = document.createElement('button');
+        sleepButton.id = 'os-sleep-button';
+        sleepButton.setAttribute('top', 0);
+        sleepButton.setAttribute('right', 0);
+        sleepButton.addEventListener('mousedown', function() {
+          sendChromeEvent({type: 'sleep-button-press'});
+        });
+        sleepButton.addEventListener('mouseup', function() {
+          sendChromeEvent({type: 'sleep-button-release'});
+        });
+        responsive.stack.appendChild(sleepButton);
+
+        let volumeButtons = document.createElement('vbox');
+        volumeButtons.id = 'os-volume-buttons';
+        volumeButtons.setAttribute('top', 0);
+        volumeButtons.setAttribute('left', 0);
+
+        let volumeUp = document.createElement('button');
+        volumeUp.id = 'os-volume-up-button';
+        volumeUp.addEventListener('mousedown', function() {
+          sendChromeEvent({type: 'volume-up-button-press'});
+        });
+        volumeUp.addEventListener('mouseup', function() {
+          sendChromeEvent({type: 'volume-up-button-release'});
+        });
+
+        let volumeDown = document.createElement('button');
+        volumeDown.id = 'os-volume-down-button';
+        volumeDown.addEventListener('mousedown', function() {
+          sendChromeEvent({type: 'volume-down-button-press'});
+        });
+        volumeDown.addEventListener('mouseup', function() {
+          sendChromeEvent({type: 'volume-down-button-release'});
+        });
+
+        volumeButtons.appendChild(volumeUp);
+        volumeButtons.appendChild(volumeDown);
+        responsive.stack.appendChild(volumeButtons);
+
+        // <toolbar id="os-hardware-button">
+        //  <toolbarbutton id="os-home-button" />
+        // </toolbar>
+        let bottomToolbar = document.createElement('toolbar');
+        bottomToolbar.id = 'os-hardware-buttons';
+        bottomToolbar.setAttribute('align', 'center');
+        bottomToolbar.setAttribute('pack', 'center');
+
+        let homeButton = document.createElement('toolbarbutton');
+        homeButton.id = 'os-home-button';
+        homeButton.setAttribute('class', 'devtools-toolbarbutton');
+
+        homeButton.addEventListener('mousedown', function() {
+          sendChromeEvent({type: 'home-button-press'});
+        });
+        homeButton.addEventListener('mouseup', function() {
+          sendChromeEvent({type: 'home-button-release'});
+        });
+        bottomToolbar.appendChild(homeButton);
+        responsive.container.appendChild(bottomToolbar);
+
+        // Simulate chrome event.
         function sendChromeEvent(detail) {
-          var contentDetail = Components.utils.createObjectIn(responsive.browser.contentWindow);
+          let contentWindow = responsive.browser.contentWindow;
+          var contentDetail = Components.utils.createObjectIn(contentWindow);
           for (var i in detail) {
             contentDetail[i] = detail[i];
           }
           Components.utils.makeObjectPropsNormal(contentDetail);
-          var customEvt = responsive.browser.contentWindow.document.createEvent('CustomEvent');
+
+          var customEvt = contentWindow.document.createEvent('CustomEvent');
           customEvt.initCustomEvent('mozChromeEvent', true, true, contentDetail);
-          responsive.browser.contentWindow.dispatchEvent(customEvt);
+          contentWindow.dispatchEvent(customEvt);
         }
-        button.addEventListener('mousedown', function() {
-          sendChromeEvent({type: 'home-button-press'});
-        }, false);
-        button.addEventListener('mouseup', function() {
-          sendChromeEvent({type: 'home-button-release'});
-        }, false);
       });
 
       // Automatically toggle responsive design mode
