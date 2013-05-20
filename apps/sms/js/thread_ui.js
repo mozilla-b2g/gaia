@@ -732,8 +732,7 @@ var ThreadUI = global.ThreadUI = {
   },
 
   createMmsContent: function thui_createMmsContent(dataArray) {
-    var container = document.createElement('div');
-    container.className = 'mms-container';
+    var container = document.createDocumentFragment();
     dataArray.forEach(function(attachment) {
       var mediaElement, textElement;
 
