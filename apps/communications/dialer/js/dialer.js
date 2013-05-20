@@ -79,34 +79,36 @@ var CallHandler = (function callHandler() {
   }
 
   function handleNotificationRequest(number) {
-    Contacts.findByNumber(number, function lookup(contact, matchingTel) {
-      LazyL10n.get(function localized(_) {
-        var title = _('missedCall');
+    loader.load('/dialer/js/utils.js', function() {
+      Contacts.findByNumber(number, function lookup(contact, matchingTel) {
+        LazyL10n.get(function localized(_) {
+          var title = _('missedCall');
 
-        var sender;
-        if (!number) {
-          sender = _('unknown');
-        } else if (contact) {
-          sender = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact) ||
-              _('unknown');
-        } else {
-          sender = number;
-        }
+          var sender;
+          if (!number) {
+            sender = _('unknown');
+          } else if (contact) {
+            sender = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact) ||
+                _('unknown');
+          } else {
+            sender = number;
+          }
 
-        var body = _('from', {sender: sender});
+          var body = _('from', {sender: sender});
 
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
+          navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+            var app = evt.target.result;
 
-          var iconURL = NotificationHelper.getIconURI(app, 'dialer');
+            var iconURL = NotificationHelper.getIconURI(app, 'dialer');
 
-          var clickCB = function() {
-            app.launch('dialer');
-            window.location.hash = '#recents-view';
+            var clickCB = function() {
+              app.launch('dialer');
+              window.location.hash = '#recents-view';
+            };
+
+            NotificationHelper.send(title, body, iconURL, clickCB);
           };
-
-          NotificationHelper.send(title, body, iconURL, clickCB);
-        };
+        });
       });
     });
   }
