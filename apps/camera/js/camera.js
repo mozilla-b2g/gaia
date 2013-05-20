@@ -112,7 +112,8 @@ var Camera = {
 
   _videoTimer: null,
   _videoStart: null,
-  _videoPath: null,
+  _videoPath: null, // file path relative to video root directory
+  _videoRootDir: null, // video root directory string
 
   _autoFocusSupported: 0,
   _manuallyFocused: false,
@@ -530,7 +531,12 @@ var Camera = {
       var dummyfilename = path + '.' + name;
       var req = this._videoStorage.addNamed(dummyblob, dummyfilename);
       req.onerror = onerror;
-      req.onsuccess = (function fileCreated() {
+      req.onsuccess = (function fileCreated(e) {
+        // Extract video root directory string
+        var absolutePath = e.target.result;
+        var rootDirLength = absolutePath.length - dummyfilename.length;
+        this._videoRootDir = absolutePath.substring(0, rootDirLength);
+
         this._videoStorage.delete(dummyfilename); // No need to wait for success
         // Determine the number of bytes available on disk.
         var spaceReq = this._videoStorage.freeSpace();
@@ -562,6 +568,8 @@ var Camera = {
     // Register a listener for writing completion of current video file
     (function(videoStorage, videofile) {
       videoStorage.addEventListener('change', function changeHandler(e) {
+        // Regard the modification as video file writing completion if e.path
+        // matches current video filename. Note e.path is absolute path.
         if (e.reason === 'modified' && e.path === videofile) {
           Filmstrip.addVideo(videofile);
           Filmstrip.show(Camera.FILMSTRIP_DURATION);
@@ -569,7 +577,7 @@ var Camera = {
           videoStorage.removeEventListener('change', changeHandler);
         }
       });
-    })(this._videoStorage, this._videoPath);
+    })(this._videoStorage, this._videoRootDir + this._videoPath);
 
     window.clearInterval(this._videoTimer);
     this.enableButtons();
@@ -863,7 +871,8 @@ var Camera = {
                              'image',
                              (function(path, name) {
       var addreq = this._pictureStorage.addNamed(blob, path + name);
-      addreq.onsuccess = (function() {
+      addreq.onsuccess = (function(e) {
+        var absolutePath = e.target.result;
         if (this._pendingPick) {
           this._resizeBlobIfNeeded(blob, function(resized_blob) {
             this._pendingPick.postResult({
@@ -876,7 +885,7 @@ var Camera = {
           return;
         }
 
-        Filmstrip.addImage(path + name, blob);
+        Filmstrip.addImage(absolutePath, blob);
         Filmstrip.show(Camera.FILMSTRIP_DURATION);
         this.checkStorageSpace();
 
