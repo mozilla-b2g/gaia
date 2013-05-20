@@ -247,13 +247,13 @@ var UIManager = {
       // Default to the SIM codes, but we actually prefer the current
       // network codes.
       if (conn.iccInfo) {
-      mcc = conn.iccInfo.mcc;
-      mnc = conn.iccInfo.mnc;
-    }
-    if (conn.voice && conn.voice.network) {
-      mcc = conn.voice.network.mcc;
-      mnc = conn.voice.network.mnc;
-    }
+        mcc = conn.iccInfo.mcc;
+        mnc = conn.iccInfo.mnc;
+      }
+      if (conn.voice && conn.voice.network) {
+        mcc = conn.voice.network.mcc;
+        mnc = conn.voice.network.mnc;
+      }
     }
     tzSelect(tzRegion, tzCity, this.setTimeZone, this.setTimeZone, true, mcc, mnc);
   },
