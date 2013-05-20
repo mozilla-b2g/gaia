@@ -66,41 +66,6 @@ Attachment.prototype = {
     return this.el;
   },
 
-  openOptionsMenu: function() {
-    var _ = navigator.mozL10n.get;
-    var elem = this.optionsMenu;
-    var fileName = this.name.substr(this.name.lastIndexOf('/') + 1);
-
-    // Localize the name of the file type
-    var types = ['image', 'audio', 'video'];
-    var mimeFirstPart = this.blob.type.substr(0, this.blob.type.indexOf('/'));
-    var fileType;
-    if (mimeFirstPart.indexOf(mimeFirstPart) > -1) {
-      fileType = _('attachment-type-' + mimeFirstPart);
-    }
-    else {
-      fileType = mimeFirstPart;
-    }
-
-    var header = elem.querySelector('header');
-    var viewButton = elem.querySelector('#attachment-options-view');
-    var removeButton = elem.querySelector('#attachment-options-remove');
-    var replaceButton = elem.querySelector('#attachment-options-replace');
-    var cancelButton = elem.querySelector('#attachment-options-cancel');
-
-    header.textContent = fileName;
-    viewButton.textContent = _('view-attachment');
-    removeButton.textContent = _('remove-attachment', {type: fileType});
-    replaceButton.textContent = _('replace-attachment', {type: fileType});
-    cancelButton.textContent = _('cancel');
-
-    elem.className = '';
-  },
-
-  closeOptionsMenu: function() {
-    this.optionsMenu.className = 'hide';
-  },
-
   view: function() {
     var activity = new MozActivity({
       name: 'open',
@@ -120,7 +85,7 @@ Attachment.prototype = {
   remove: function() {
     this.el.parentNode.removeChild(this.el);
     ThreadUI.updateInputHeight();
-    this.closeOptionsMenu();
+    AttachmentMenu.close();
   },
 
   replace: function() {
@@ -130,7 +95,7 @@ Attachment.prototype = {
       this.name = result.name || '';
       this.objectURL = window.URL.createObjectURL(this.blob);
       this.render();
-      this.closeOptionsMenu();
+      AttachmentMenu.close();
     }.bind(this);
   }
 

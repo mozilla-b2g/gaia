@@ -15,6 +15,7 @@ var lazyLoadFiles = [
   'js/threads.js',
   'js/message_manager.js',
   'js/attachment.js',
+  'js/attachment_menu.js',
   'js/thread_list_ui.js',
   'js/thread_ui.js',
   'js/compose.js',

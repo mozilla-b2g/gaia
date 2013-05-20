@@ -144,7 +144,7 @@ var Compose = (function() {
 
       dom.message.addEventListener('click', function(e) {
         if (e.target.className === 'attachment') {
-          attachments.get(e.target).openOptionsMenu();
+          AttachmentMenu.open(attachments.get(e.target));
         }
       });
 
@@ -160,7 +160,7 @@ var Compose = (function() {
           attachment.replace();
         }
         else if (e.target.id === 'attachment-options-cancel') {
-          attachment.closeOptionsMenu();
+          AttachmentMenu.close();
         }
       });
 

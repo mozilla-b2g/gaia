@@ -1,11 +1,13 @@
 'use strict';
 
 requireApp('sms/js/attachment.js');
+requireApp('sms/js/attachment_menu.js');
 
 suite('attachment_test.js', function() {
 
   setup(function() {
     loadBodyHTML('/index.html');
+    AttachmentMenu.init('attachment-options-menu');
 
     this.blob = new Blob(['This is an image message'],
       {type: 'text/plain'});
@@ -25,19 +27,6 @@ suite('attachment_test.js', function() {
     assert.ok(el.src, 'src set');
   });
 
-  test('openOptionsMenu', function() {
-    assert.ok(!document.querySelector('#attachment-options'));
-    this.attachment.openOptionsMenu();
-    assert.ok(document.querySelector('#attachment-options'));
-  });
-
-  test('closeOptionsMenu', function() {
-    this.attachment.openOptionsMenu();
-    assert.ok(document.querySelector('#attachment-options'));
-    this.attachment.closeOptionsMenu();
-    assert.ok(!document.querySelector('#attachment-options'));
-  });
-
   test('remove', function() {
     // Add the attachment to a mocked container
     var el = this.attachment.render();
@@ -45,7 +34,7 @@ suite('attachment_test.js', function() {
     parent.appendChild(el);
 
     // Open options menu, since removing attachment should close menu
-    this.attachment.openOptionsMenu();
+    AttachmentMenu.open(this.attachment);
 
     // Now you see it
     assert.ok(this.attachment.el);
@@ -56,7 +45,7 @@ suite('attachment_test.js', function() {
     assert.ok(!parent.firstChild);
 
     // Options menu was closed
-    assert.ok(!document.querySelector('#attachment-options'));
+    assert.equal(document.querySelector('#attachment-options-menu').className, 'hide');
   });
 
 });
