@@ -1,0 +1,42 @@
+
+    <section role="region" id="content" class="link">
+
+      <header>
+        <a href="#" id="link-close">
+          <span class="icon icon-close" data-l10n-id="close">close</span>
+        </a>
+        <h1 data-l10n-id="fbFriends">Facebook Friends</h1>
+      </header>
+
+      <section id="main">
+        <!-- Contacts List Section -->
+        <section id="mainContent" data-state="selection" data-type="list">
+          <ol id="friends-list">
+            <li data-template data-uuid="#uid#">
+                <a href="#">
+                  <aside class="pack-end">
+                    <img data-src="https://graph.facebook.com/#uid#/picture?width=#picwidth#&height=#picheight#">
+                  </aside>
+                  <p>#name#</p>
+                  <p>#email#</p>
+                </a>
+            </li>
+          </ol>
+        </section> <!-- mainContent -->
+
+      <form role="dialog" data-type="confirm" class="no-overlay">
+        <menu>
+          <button id="view-all" data-l10n-id="viewAll" class="full">
+            View all Facebook Friends
+          </button>
+        </menu>
+      </form>
+
+    </section> <!-- main -->
+
+    </section> <!-- role="region" -->
+
+    <section id="statusMsg" role="status">
+      <p></p>
+    </section>
+
