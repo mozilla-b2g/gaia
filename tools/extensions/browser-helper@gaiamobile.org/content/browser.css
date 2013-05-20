@@ -1,12 +1,13 @@
 
 
 /* Ignore devtools usual resizer */
-box.devtools-responsiveui-resizehandle,
-box.devtools-responsiveui-resizebar {
+stack.browserStack.os-mode box.devtools-responsiveui-resizehandle,
+stack.browserStack.os-mode box.devtools-responsiveui-resizebar {
   display: none;
 }
 
-stack.browserStack {
+/* Gives responsive mode a phone look'n feel */
+stack.browserStack.os-mode {
   padding: 60px 15px 0;
 
   border-radius: 25px / 20px;
@@ -20,6 +21,7 @@ stack.browserStack {
   box-shadow: 0 3px 0.7px 1px #777777, 0 5px rgba(0, 0, 0, 0.4) inset !important;
 
   background-image: -moz-linear-gradient(right, #111 11%, #333 56%);
+  min-width: 320px;
 }
 
 #os-hardware-buttons {
