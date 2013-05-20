@@ -61,6 +61,12 @@ Icon.prototype = {
            (descriptor.entry_point ? descriptor.entry_point : '');
   },
 
+  isOfflineReady: function icon_isOfflineReady() {
+    return !(this.descriptor.isHosted &&
+      !this.descriptor.hasOfflineCache ||
+      this.descriptor.isBookmark);
+  },
+
   /*
    * Renders the icon into the page
    *
@@ -80,6 +86,7 @@ Icon.prototype = {
      */
 
     var container = this.container = document.createElement('li');
+    this.container.dataset.offlineReady = this.isOfflineReady();
     container.className = 'icon';
     if (this.descriptor.hidden) {
       delete this.descriptor.hidden;
@@ -379,6 +386,9 @@ Icon.prototype = {
     var oldDescriptor = this.descriptor;
     this.descriptor = descriptor;
     descriptor.removable === true ? this.appendOptions() : this.removeOptions();
+
+    // Update offline availability
+    this.container.dataset.offlineReady = this.isOfflineReady();
 
     if (descriptor.updateTime == oldDescriptor.updateTime &&
         descriptor.icon == oldDescriptor.icon) {
