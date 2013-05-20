@@ -252,7 +252,7 @@ Mockfb.getAddress = function(fbData) {
   return out;
 };
 
-MockFb.utils = (function() {
+Mockfb.utils = (function() {
   var value;
 
   return {
