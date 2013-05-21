@@ -206,7 +206,7 @@ var WifiUI = {
       // disable the "Join" button if the password is too short
       joinButton.disabled =
         !WifiHelper.isValidInput(WifiHelper.getKeyManagement(selectedNetwork),
-          passwordInput.value, userInput.value);;
+          passwordInput.value, userInput.value);
     });
 
     // Show / Hide password
