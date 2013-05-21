@@ -17,10 +17,7 @@
 }
 
 .carrier-wrapper {
-  position: absolute;
-  left: 0;
-  top: 0;
-
+  z-index: 3;
   font-size: -moz-calc(6 * 0.226rem);
   width: calc(100% - 3rem);
   position: absolute;
