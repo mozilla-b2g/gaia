@@ -212,7 +212,7 @@ li .button[aria-disabled="true"].icon-dialog:before {
 
 ul.compact,
 ol.compact {
-  margin-bottom: 1rem;
+  padding: 0 1.5rem 1.5rem 1.5rem;
 }
 
 .compact > li button,

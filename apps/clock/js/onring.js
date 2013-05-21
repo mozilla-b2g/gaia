@@ -135,8 +135,12 @@ var RingView = {
 
     this._started = true;
     this.setWakeLockEnabled(true);
-    this.ring();
-    this.vibrate();
+    if (this._onFireAlarm.sound) {
+      this.ring();
+    }
+    if (this._onFireAlarm.vibrate == 1) {
+      this.vibrate();
+    }
   },
 
   stopAlarmNotification: function rv_stopAlarmNotification(action) {
