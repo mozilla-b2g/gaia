@@ -1,6 +1,3 @@
-/*global GestureDetector asyncStorage AlarmManager summarizeDaysOfWeek
-          getLocaleTime ValuePicker escapeHTML changeSelectByValue
-          getSelectedValue is12hFormat */
 'use strict';
 
 var _ = navigator.mozL10n.get;
@@ -163,9 +160,15 @@ var ClockView = {
     switch (evt.type) {
       case 'mozvisibilitychange':
         if (document.mozHidden) {
-          window.clearTimeout(this._updateDaydateTimeout);
-          window.clearTimeout(this._updateDigitalClockTimeout);
-          window.clearTimeout(this._updateAnalogClockTimeout);
+          if (this._updateDaydateTimeout) {
+            window.clearTimeout(this._updateDaydateTimeout);
+          }
+          if (this._updateDigitalClockTimeout) {
+            window.clearTimeout(this._updateDigitalClockTimeout);
+          }
+          if (this._updateAnalogClockTimeout) {
+            window.clearTimeout(this._updateAnalogClockTimeout);
+          }
           return;
         } else if (!document.mozHidden) {
           // Refresh the view when app return to foreground.
@@ -200,7 +203,9 @@ var ClockView = {
     if (this._clockMode !== 'analog')
       asyncStorage.setItem(SETTINGS_CLOCKMODE, 'analog');
 
-    window.clearTimeout(this._updateDigitalClockTimeout);
+    if (this._updateDigitalClockTimeout) {
+      window.clearTimeout(this._updateDigitalClockTimeout);
+    }
     this.digitalClock.classList.remove('visible');
     this.digitalClockBackground.classList.remove('visible');
     this.resizeAnalogClock();
@@ -215,7 +220,9 @@ var ClockView = {
     if (this._clockMode !== 'digital')
       asyncStorage.setItem(SETTINGS_CLOCKMODE, 'digital');
 
-    window.clearTimeout(this._updateAnalogClockTimeout);
+    if (this._updateDigitalClockTimeout) {
+      window.clearTimeout(this._updateAnalogClockTimeout);
+    }
     this.analogClock.classList.remove('visible');
     this.updateDigitalClock();
     this._clockMode = 'digital';
@@ -237,7 +244,7 @@ var ClockView = {
   resizeAnalogClock: function cv_resizeAnalogClock() {
     var type = this.calAnalogClockType(AlarmList.getAlarmCount());
     this.container.className = 'marks' + type;
-    document.getElementById('alarms').className = 'tableView count' + type;
+    document.getElementById('alarms').className = 'count' + type;
   },
 
   showHideAlarmSetIndicator: function cv_showHideAlarmSetIndicator(enabled) {
@@ -259,10 +266,11 @@ var ClockView = {
   },
 
   show: function cv_show() {
+    window.location.hash = 'alarm-view';
     var self = this;
     self.digitalClock.className = '';
     self.analogClock.className = '';
-    if (self._clockMode == 'analog') {
+    if (self._clockMode === 'analog') {
       self.analogClock.className = 'visible';
     } else {
       self.digitalClock.className = 'visible';
@@ -279,6 +287,14 @@ var BannerView = {
   get bannerCountdown() {
     delete this.bannerCountdown;
     return this.bannerCountdown = document.getElementById('banner-countdown');
+  },
+
+  init: function BV_init() {
+    this.bannerCountdown.addEventListener('click', this);
+  },
+
+  handleEvent: function al_handleEvent(evt) {
+    this.hideBannerStatus();
   },
 
   calRemainTime: function BV_calRemainTime(targetTime) {
@@ -352,37 +368,33 @@ var AlarmList = {
     return this.title = document.getElementById('alarms-title');
   },
 
+  get newAlarmButton() {
+    delete this.newAlarmButton;
+    return this.newAlarmButton = document.getElementById('alarm-new');
+  },
+
   handleEvent: function al_handleEvent(evt) {
 
     var link = evt.target;
     if (!link)
       return;
 
-    switch (evt.type) {
-      case 'click':
-        switch (link.id) {
-          case 'alarm-new':
-            ClockView.hide();
-            AlarmEditView.load();
-            break;
-
-          case 'input-enable':
-            this.toggleAlarmEnableState(link.checked,
-              this.getAlarmFromList(parseInt(link.dataset.id, 10)));
-            break;
-
-          case 'alarm-item':
-            ClockView.hide();
-            AlarmEditView.load(this.getAlarmFromList(
-              parseInt(link.dataset.id, 10)));
-        }
-        break;
+    if (link === this.newAlarmButton) {
+      ClockView.hide();
+      AlarmEditView.load();
+    } else if (link.classList.contains('input-enable')) {
+      this.toggleAlarmEnableState(link.checked,
+        this.getAlarmFromList(parseInt(link.dataset.id, 10)));
+    } else if (link.classList.contains('alarm-item')) {
+      ClockView.hide();
+      AlarmEditView.load(this.getAlarmFromList(
+        parseInt(link.dataset.id, 10)));
     }
 
   },
 
   init: function al_init() {
-    document.getElementById('alarm-new').addEventListener('click', this);
+    this.newAlarmButton.addEventListener('click', this);
     this.alarms.addEventListener('click', this);
     this.refresh();
     AlarmManager.regUpdateAlarmEnableState(this.refreshItem.bind(this));
@@ -395,11 +407,7 @@ var AlarmList = {
     });
   },
 
-  refreshItem: function al_refreshItem(alarm) {
-    this.setAlarmFromList(alarm.id, alarm);
-    var content = '';
-    var id = 'a[data-id="' + alarm.id + '"]';
-    var alarmItem = this.alarms.querySelector(id);
+  buildAlarmContent: function al_buildAlarmContent(alarm) {
     var summaryRepeat =
       (alarm.repeat === '0000000') ? '' : summarizeDaysOfWeek(alarm.repeat);
     var isChecked = alarm.enabled ? ' checked="true"' : '';
@@ -408,27 +416,27 @@ var AlarmList = {
     d.setMinutes(alarm.minute);
     var time = getLocaleTime(d);
     var label = (alarm.label === '') ? _('alarm') : escapeHTML(alarm.label);
-    content = '<label class="alarmList">' +
-              '  <input id="input-enable"' +
-                   '" data-id="' + alarm.id +
-                   '" type="checkbox"' + isChecked + '>' +
-              '  <span></span>' +
-              '</label>' +
-              '<a href="#alarm" id="alarm-item" data-id="' +
-                 alarm.id + '">' +
-              '  <div class="description">' +
-              '    <div class="alarmList-time">' +
-              '      <span class="time">' + time.t + '</span>' +
-              '      <span class="hour24-state">' + time.p + '</span>' +
-              '    </div>' +
-              '    <div class="alarmList-detail">' +
-              '      <div class="label">' + label + '</div>' +
-              '      <div class="repeat">' + summaryRepeat + '</div>' +
-              '    </div>' +
-              '  </div>' +
-              '</a>';
+    return '<label class="alarmList alarmEnable">' +
+           '  <input class="input-enable"' +
+                 '" data-id="' + alarm.id +
+                 '" type="checkbox"' + isChecked + '>' +
+           '  <span></span>' +
+           '</label>' +
+           '<a href="#alarm" class="alarm-item" data-id="' + alarm.id + '">' +
+           '  <span class="time">' +
+                time.t + '<span class="period">' + time.p + '</span>' +
+           '  </span>' +
+           '  <span class="label">' + label + '</span>' +
+           '  <span class="repeat">' + summaryRepeat + '</span>' +
+           '</a>';
+  },
 
-    alarmItem.parentNode.innerHTML = content;
+
+  refreshItem: function al_refreshItem(alarm) {
+    this.setAlarmFromList(alarm.id, alarm);
+    var id = 'a[data-id="' + alarm.id + '"]';
+    var alarmItem = this.alarms.querySelector(id);
+    alarmItem.parentNode.innerHTML = this.buildAlarmContent(alarm);
     // clear the refreshing alarm's flag
     var index = this.refreshingAlarms.indexOf(alarm.id);
     this.refreshingAlarms.splice(index, 1);
@@ -438,39 +446,15 @@ var AlarmList = {
     this.alarmList = alarmDataList;
     var content = '';
 
+    this.alarms.innerHTML = '';
     alarmDataList.forEach(function al_fillEachList(alarm) {
-      var summaryRepeat =
-        (alarm.repeat === '0000000') ? '' : summarizeDaysOfWeek(alarm.repeat);
-      var isChecked = alarm.enabled ? ' checked="true"' : '';
-      var d = new Date();
-      d.setHours(alarm.hour);
-      d.setMinutes(alarm.minute);
-      var time = getLocaleTime(d);
-      var label = (alarm.label === '') ? _('alarm') : escapeHTML(alarm.label);
-      content += '<li>' +
-                 '  <label class="alarmList">' +
-                 '    <input id="input-enable"' +
-                        '" data-id="' + alarm.id +
-                        '" type="checkbox"' + isChecked + '>' +
-                 '    <span></span>' +
-                 '  </label>' +
-                 '  <a href="#alarm" id="alarm-item" data-id="' +
-                      alarm.id + '">' +
-                 '    <div class="description">' +
-                 '      <div class="alarmList-time">' +
-                 '        <span class="time">' + time.t + '</span>' +
-                 '        <span class="hour24-state">' + time.p + '</span>' +
-                 '      </div>' +
-                 '      <div class="alarmList-detail">' +
-                 '        <div class="label">' + label + '</div>' +
-                 '        <div class="repeat">' + summaryRepeat + '</div>' +
-                 '      </div>' +
-                 '    </div>' +
-                 '  </a>' +
-                 '</li>';
-    });
-    this.alarms.innerHTML = content;
-    if (this._previousAlarmCount != this.getAlarmCount()) {
+      var li = document.createElement('li');
+      li.className = 'alarm-cell';
+      li.innerHTML = this.buildAlarmContent(alarm);
+      this.alarms.appendChild(li);
+    }.bind(this));
+
+    if (this._previousAlarmCount !== this.getAlarmCount()) {
       this._previousAlarmCount = this.getAlarmCount();
       ClockView.resizeAnalogClock();
     }
@@ -479,7 +463,7 @@ var AlarmList = {
 
   getAlarmFromList: function al_getAlarmFromList(id) {
     for (var i = 0; i < this.alarmList.length; i++) {
-      if (this.alarmList[i].id == id)
+      if (this.alarmList[i].id === id)
         return this.alarmList[i];
     }
     return null;
@@ -487,7 +471,7 @@ var AlarmList = {
 
   setAlarmFromList: function al_setAlarmFromList(id, alarm) {
     for (var i = 0; i < this.alarmList.length; i++) {
-      if (this.alarmList[i].id == id) {
+      if (this.alarmList[i].id === id) {
         this.alarmList[i] = alarm;
         return;
       }
@@ -499,11 +483,11 @@ var AlarmList = {
   },
 
   toggleAlarmEnableState: function al_toggleAlarmEnableState(enabled, alarm) {
-    if (this.refreshingAlarms.indexOf(alarm.id) != -1) {
+    if (this.refreshingAlarms.indexOf(alarm.id) !== -1) {
       return;
     }
 
-    if (alarm.enabled == enabled)
+    if (alarm.enabled === enabled)
       return;
 
     alarm.enabled = enabled;
@@ -576,7 +560,7 @@ var ActiveAlarmController = {
     var type = message.data.type;
     // clear the requested id of went off alarm to DB
     var clearAlarmRequestId = function clearAlarmRequestId(alarm, callback) {
-      if (type == 'normal') {
+      if (type === 'normal') {
         alarm.normalAlarmId = '';
       } else {
         alarm.snoozeAlarmId = '';
@@ -584,7 +568,7 @@ var ActiveAlarmController = {
 
       AlarmManager.putAlarm(alarm, function aac_putAlarm(alarmFromDB) {
         // Set the next repeat alarm when nornal alarm goes off.
-        if (type == 'normal' && alarmFromDB.repeat !== '0000000' && callback) {
+        if (type === 'normal' && alarmFromDB.repeat !== '0000000' && callback) {
           alarmFromDB.enabled = false;
           callback(alarmFromDB);
         } else {
@@ -668,28 +652,25 @@ var AlarmEditView = {
     return this.element = document.getElementById('alarm');
   },
 
+  get scrollList() {
+    delete this.scrollList;
+    return this.scrollList = document.getElementById('edit-alarm');
+  },
+
   get labelInput() {
     delete this.labelInput;
     return this.labelInput =
       document.querySelector('input[name="alarm.label"]');
   },
 
-  get hourSelector() {
-    delete this.hourSelector;
-    return this.hourSelector =
-      document.getElementById('value-picker-hours');
+  get timeSelect() {
+    delete this.timeSelect;
+    return this.timeSelect = document.getElementById('time-select');
   },
 
-  get minuteSelector() {
-    delete this.minuteSelector;
-    return this.minuteSelector =
-      document.getElementById('value-picker-minutes');
-  },
-
-  get hour24StateSelector() {
-    delete this.hour24StateSelector;
-    return this.hour24StateSelector =
-      document.getElementById('value-picker-hour24-state');
+  get timeMenu() {
+    delete this.timeMenu;
+    return this.timeMenu = document.getElementById('time-menu');
   },
 
   get alarmTitle() {
@@ -717,6 +698,16 @@ var AlarmEditView = {
     return this.soundSelect = document.getElementById('sound-select');
   },
 
+  get vibrateMenu() {
+    delete this.vibrateMenu;
+    return this.vibrateMenu = document.getElementById('vibrate-menu');
+  },
+
+  get vibrateSelect() {
+    delete this.vibrateSelect;
+    return this.vibrateSelect = document.getElementById('vibrate-select');
+  },
+
   get snoozeMenu() {
     delete this.snoozeMenu;
     return this.snoozeMenu = document.getElementById('snooze-menu');
@@ -727,14 +718,9 @@ var AlarmEditView = {
     return this.snoozeSelect = document.getElementById('snooze-select');
   },
 
-  get deleteElement() {
-    delete this.deleteElement;
-    return this.deleteElement = document.getElementById('alarm-delete');
-  },
-
   get deleteButton() {
-    delete this.deleteElement;
-    return this.deleteElement = document.getElementById('alarm-delete-button');
+    delete this.deleteButton;
+    return this.deleteButton = document.getElementById('alarm-delete');
   },
 
   get backButton() {
@@ -742,99 +728,61 @@ var AlarmEditView = {
     return this.backElement = document.getElementById('alarm-close');
   },
 
-  get clockContainer() {
-    delete this.clockContainer;
-    return this.clockContainer =
-      document.getElementById('alarm-clock-container');
+  get doneButton() {
+    delete this.doneButton;
+    return this.doneButton = document.getElementById('alarm-done');
   },
 
   init: function aev_init() {
-    document.getElementById('alarm-done').addEventListener('click', this);
-    this.clockContainer.addEventListener('click', this);
+    this.backButton.addEventListener('click', this);
+    this.doneButton.addEventListener('click', this);
+    this.timeMenu.addEventListener('click', this);
+    this.timeSelect.addEventListener('blur', this);
     this.repeatMenu.addEventListener('click', this);
-    this.repeatSelect.addEventListener('change', this);
+    this.repeatSelect.addEventListener('blur', this);
     this.soundMenu.addEventListener('click', this);
     this.soundSelect.addEventListener('change', this);
     this.soundSelect.addEventListener('blur', this);
+    this.vibrateMenu.addEventListener('click', this);
+    this.vibrateSelect.addEventListener('blur', this);
     this.snoozeMenu.addEventListener('click', this);
-    this.snoozeSelect.addEventListener('change', this);
+    this.snoozeSelect.addEventListener('blur', this);
     this.deleteButton.addEventListener('click', this);
-    this.backButton.addEventListener('click', this);
-  },
-
-  initTimePicker: function aev_initTimePicker() {
-    var is12h = is12hFormat();
-    this.timePicker.is12hFormat = is12h;
-    this.setTimePickerStyle();
-    var startHour = is12h ? 1 : 0;
-    var endHour = is12h ? (startHour + 12) : (startHour + 12 * 2);
-    var unitClassName = 'picker-unit';
-    var hourDisplayedText = [];
-    for (var i = startHour; i < endHour; i++) {
-      var value = i;
-      hourDisplayedText.push(value);
-    }
-    var hourUnitStyle = {
-      valueDisplayedText: hourDisplayedText,
-      className: unitClassName
-    };
-    this.timePicker.hour = new ValuePicker(this.hourSelector, hourUnitStyle);
-
-    var minuteDisplayedText = [];
-    for (var i = 0; i < 60; i++) {
-      var value = (i < 10) ? '0' + i : i;
-      minuteDisplayedText.push(value);
-    }
-    var minuteUnitStyle = {
-      valueDisplayedText: minuteDisplayedText,
-      className: unitClassName
-    };
-    this.timePicker.minute =
-      new ValuePicker(this.minuteSelector, minuteUnitStyle);
-
-    if (is12h) {
-      var hour24StateUnitStyle = {
-        valueDisplayedText: ['AM', 'PM'],
-        className: unitClassName
-      };
-      this.timePicker.hour24State =
-        new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
-    }
-  },
-
-  setTimePickerStyle: function aev_setTimePickerStyle() {
-    var style = (this.timePicker.is12hFormat) ? 'format12h' : 'format24h';
-    document.getElementById('picker-bar').classList.add(style);
   },
 
   handleEvent: function aev_handleEvent(evt) {
-
+    evt.preventDefault();
     var input = evt.target;
     if (!input)
       return;
 
-    switch (input.id) {
-      case 'alarm-done':
+    switch (input) {
+      case this.backButton:
+        ClockView.show();
+        break;
+      case this.doneButton:
         ClockView.show();
         if (!this.save()) {
           evt.preventDefault();
-          return false;
+          return;
         }
         break;
-      case 'repeat-menu':
-        setTimeout(function(self) { self.repeatSelect.focus(); }, 0, this);
+      case this.timeMenu:
+        this.focusMenu(this.timeSelect);
         break;
-      case 'repeat-select':
-        switch (evt.type) {
-          case 'change':
-            this.refreshRepeatMenu(this.getRepeatSelect());
-            break;
-        }
+      case this.timeSelect:
+        this.refreshTimeMenu(this.getTimeSelect());
         break;
-      case 'sound-menu':
-        setTimeout(function(self) { self.soundSelect.focus(); }, 0, this);
+      case this.repeatMenu:
+        this.focusMenu(this.repeatSelect);
         break;
-      case 'sound-select':
+      case this.repeatSelect:
+        this.refreshRepeatMenu(this.getRepeatSelect());
+        break;
+      case this.soundMenu:
+        this.focusMenu(this.soundSelect);
+        break;
+      case this.soundSelect:
         switch (evt.type) {
           case 'change':
             this.refreshSoundMenu(this.getSoundSelect());
@@ -845,25 +793,27 @@ var AlarmEditView = {
             break;
         }
         break;
-      case 'snooze-menu':
-        setTimeout(function(self) { self.snoozeSelect.focus(); }, 0, this);
+      case this.vibrateMenu:
+        this.focusMenu(this.vibrateSelect);
         break;
-      case 'snooze-select':
-        switch (evt.type) {
-          case 'change':
-            this.refreshSnoozeMenu(this.getSnoozeSelect());
-            break;
-        }
+      case this.vibrateSelect:
+        this.refreshVibrateMenu(this.getVibrateSelect());
         break;
-      case 'alarm-delete':
+      case this.snoozeMenu:
+        this.focusMenu(this.snoozeSelect);
+        break;
+      case this.snoozeSelect:
+        this.refreshSnoozeMenu(this.getSnoozeSelect());
+        break;
+      case this.deleteButton:
         ClockView.show();
         this.delete();
         break;
-      case 'alarm-clock-container':
-      case 'alarm-close':
-        ClockView.show();
-        break;
     }
+  },
+
+  focusMenu: function aev_focusMenu(menu) {
+    setTimeout(function() { menu.focus(); }, 10);
   },
 
   getDefaultAlarm: function aev_getDefaultAlarm() {
@@ -877,65 +827,71 @@ var AlarmEditView = {
       hour: now.getHours(), // use current hour
       minute: now.getMinutes(), // use current minute
       enabled: true,
-      repeat: '0000000',
+      repeat: '0000000', // flags for days of week, init to false
       sound: 'ac_classic_clock_alarm.opus',
+      vibrate: 1,
       snooze: 5,
       color: 'Darkorange'
     };
   },
 
   load: function aev_load(alarm) {
-    // For faster page load the second section of the clock is inserted as
-    // a comment. If this is the case let's convert it to HTML first.
-    if (this.element.hidden) {
-      this.element.innerHTML = this.element.childNodes[1].data;
-      this.element.hidden = false;
+    if (this.element.classList.contains('hidden')) {
+      this.element.classList.remove('hidden');
       this.init();
-      // translate content
-      navigator.mozL10n.translate(this.element);
     }
 
-    if (this.timePicker.hour == null)
-      this.initTimePicker();
+    // scroll to top of form list
+    this.scrollList.scrollTop = 0;
+
+    window.location.hash = 'alarm';
 
     if (!alarm) {
+      this.element.classList.add('new');
       this.alarmTitle.textContent = _('newAlarm');
       alarm = this.getDefaultAlarm();
     } else {
+      this.element.classList.remove('new');
       this.alarmTitle.textContent = _('editAlarm');
     }
-
     this.alarm = alarm;
 
     this.element.dataset.id = alarm.id;
     this.labelInput.value = alarm.label;
-    // Set the value of time picker according to alarm time.
-    if (this.timePicker.is12hFormat) {
-      var hour = (alarm.hour % 12);
-      hour = (hour === 0) ? 12 : hour;
-      // 24-hour state value selector: AM = 0, PM = 1
-      var hour24State = (alarm.hour >= 12) ? 1 : 0;
-      this.timePicker.hour.setSelectedIndexByDisplayedText(hour);
-      this.timePicker.hour24State.setSelectedIndex(hour24State);
-    } else {
-      this.timePicker.hour.setSelectedIndex(alarm.hour);
-    }
-    this.timePicker.minute.setSelectedIndex(alarm.minute);
-    // Init repeat, sound, snooze selection menu.
+
+    // Init time, repeat, sound, snooze selection menu.
+    this.initTimeSelect();
+    this.refreshTimeMenu();
     this.initRepeatSelect();
     this.refreshRepeatMenu();
     this.initSoundSelect();
     this.refreshSoundMenu();
+    this.initVibrateSelect();
+    this.refreshVibrateMenu();
     this.initSnoozeSelect();
     this.refreshSnoozeMenu();
-    this.deleteButton.hidden = (alarm.id) ? false : true;
+  },
+
+  initTimeSelect: function aev_initTimeSelect() {
+    this.timeSelect.value = this.alarm.hour + ':' + this.alarm.minute;
+  },
+
+  getTimeSelect: function aev_getTimeSelect() {
+    return parseTime(this.timeSelect.value);
+  },
+
+  refreshTimeMenu: function aev_refreshTimeMenu(time) {
+    if (!time) {
+      time = this.alarm;
+    }
+    this.timeMenu.textContent = formatTime(time.hour, time.minute);
   },
 
   initRepeatSelect: function aev_initRepeatSelect() {
     var daysOfWeek = this.alarm.repeat;
     var options = this.repeatSelect.options;
     for (var i = 0; i < options.length; i++) {
-      options[i].selected = (daysOfWeek.substr(i, 1) == '1') ? true : false;
+      options[i].selected = (daysOfWeek.substr(i, 1) === '1') ? true : false;
     }
   },
 
@@ -948,9 +904,9 @@ var AlarmEditView = {
     return daysOfWeek;
   },
 
-  refreshRepeatMenu: function aev_refreshRepeatMenu(repeat) {
-    var daysOfWeek = (repeat) ? this.getRepeatSelect() : this.alarm.repeat;
-    this.repeatMenu.innerHTML = summarizeDaysOfWeek(daysOfWeek);
+  refreshRepeatMenu: function aev_refreshRepeatMenu(repeatOpts) {
+    var daysOfWeek = (repeatOpts) ? repeatOpts : this.alarm.repeat;
+    this.repeatMenu.textContent = summarizeDaysOfWeek(daysOfWeek);
   },
 
   initSoundSelect: function aev_initSoundSelect() {
@@ -963,8 +919,11 @@ var AlarmEditView = {
 
   refreshSoundMenu: function aev_refreshSoundMenu(sound) {
     // Refresh and parse the name of sound file for sound menu.
-    sound = (sound) ? this.getSoundSelect() : this.alarm.sound;
-    this.soundMenu.innerHTML = _(sound.replace('.', '_'));
+    sound = (sound !== undefined) ? sound : this.alarm.sound;
+    // sound could either be string or int, so test for both
+    this.soundMenu.textContent = (sound === 0 || sound === '0') ?
+                               _('noSound') :
+                               _(sound.replace('.', '_'));
   },
 
   previewSound: function aev_previewSound() {
@@ -988,6 +947,22 @@ var AlarmEditView = {
       this.previewRingtonePlayer.pause();
   },
 
+  initVibrateSelect: function aev_initVibrateSelect() {
+    changeSelectByValue(this.vibrateSelect, this.alarm.vibrate);
+  },
+
+  getVibrateSelect: function aev_getVibrateSelect() {
+    return getSelectedValue(this.vibrateSelect);
+  },
+
+  refreshVibrateMenu: function aev_refreshVibrateMenu(vibrate) {
+    vibrate = (vibrate !== undefined) ? vibrate : this.alarm.vibrate;
+    // vibrate could be either string or int, so test for both
+    this.vibrateMenu.textContent = (vibrate === 0 || vibrate === '0') ?
+                                 _('vibrateOff') :
+                                 _('vibrateOn');
+  },
+
   initSnoozeSelect: function aev_initSnoozeSelect() {
     changeSelectByValue(this.snoozeSelect, this.alarm.snooze);
   },
@@ -1001,7 +976,7 @@ var AlarmEditView = {
     this.snoozeMenu.textContent = _('nMinutes', {n: snooze});
   },
 
-  save: function aev_save() {
+  save: function aev_save(callback) {
     if (this.element.dataset.id !== '') {
       this.alarm.id = parseInt(this.element.dataset.id, 10);
     } else {
@@ -1011,40 +986,35 @@ var AlarmEditView = {
 
     this.alarm.label = this.labelInput.value;
     this.alarm.enabled = true;
-    // Get alarm time from time picker.
-    if (this.timePicker.is12hFormat) {
-      var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
-      var hour = this.timePicker.hour.getSelectedDisplayedText();
-      hour = (hour == 12) ? 0 : hour;
-      hour = hour + hour24Offset;
-      this.alarm.hour = hour;
-    } else {
-      this.alarm.hour = this.timePicker.hour.getSelectedIndex();
-    }
-    this.alarm.minute = this.timePicker.minute.getSelectedDisplayedText();
+
+    var time = this.getTimeSelect();
+    this.alarm.hour = time.hour;
+    this.alarm.minute = time.minute;
     this.alarm.repeat = this.getRepeatSelect();
     this.alarm.sound = this.getSoundSelect();
+    this.alarm.vibrate = this.getVibrateSelect();
     this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
 
     if (!error) {
       AlarmManager.putAlarm(this.alarm, function al_putAlarmList(alarm) {
         AlarmManager.toggleAlarm(alarm, alarm.enabled);
         AlarmList.refresh();
+        callback && callback(alarm);
       });
     }
 
     return !error;
   },
 
-  delete: function aev_delete() {
+  delete: function aev_delete(callback) {
     if (!this.element.dataset.id)
       return;
 
     var alarm = this.alarm;
     AlarmManager.delete(alarm, function aev_delete() {
       AlarmList.refresh();
+      callback && callback(alarm);
     });
-
   }
 
 };
