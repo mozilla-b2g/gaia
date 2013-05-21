@@ -687,6 +687,13 @@ var GridManager = (function() {
 
       pageElement.className = 'page';
       container.appendChild(pageElement);
+
+      // If the new page is situated right after the current displayed page,
+      // makes it visible and move it to the right place.
+      if (currentPage == pages.length - 2) {
+        goToPage(currentPage);
+      }
+
       updatePaginationBar();
     },
 
