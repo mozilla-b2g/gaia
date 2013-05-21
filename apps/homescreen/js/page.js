@@ -129,7 +129,7 @@ Icon.prototype = {
 
     container.appendChild(icon);
 
-    if (descriptor.removable) {
+    if (descriptor.removable === true) {
       // Menu button to delete the app
       var options = document.createElement('span');
       options.className = 'options';
