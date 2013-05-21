@@ -183,15 +183,17 @@
         event.preventDefault();
       }
 
+      var self = this;
       this.oauth2Window.classList.add(Calendar.View.ACTIVE);
 
-      // but lazy load the real objects we need.
-      if (Calendar.OAuthWindow)
-        return this._redirectToOAuthFlow();
-
-      return Calendar.App.loadObject(
-        'OAuthWindow', this._redirectToOAuthFlow.bind(this)
-      );
+      navigator.mozApps.getSelf().onsuccess = function(e) {
+        var app = e.target.result;
+        app.clearBrowserData().onsuccess = function() {
+          return Calendar.App.loadObject(
+            'OAuthWindow', self._redirectToOAuthFlow.bind(self)
+          );
+        };
+      };
     },
 
     /**
@@ -218,6 +220,7 @@
     },
 
     _redirectToOAuthFlow: function() {
+
       var apiCredentials = this.preset.apiCredentials;
       var params = {
         /*
