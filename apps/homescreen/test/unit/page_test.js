@@ -263,6 +263,35 @@ suite('page.js >', function() {
         });
       });
 
+      suite('removable and non-removable icons >', function() {
+        function createIcon(removable, done) {
+          var app = new MockApp();
+          var descriptor = {
+            manifestURL: app.manifestURL,
+            name: app.name,
+            removable: removable
+          };
+
+          icon = new Icon(descriptor, app);
+          renderIcon(done);
+        }
+
+        test('icon should be removable', function(done) {
+          createIcon(true, function() {
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 1);
+            done();
+          });
+        });
+
+        test('icon should not be removable', function(done) {
+          createIcon(false, function() {
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 0);
+            done();
+          });
+        });
+      });
 
     });
 
