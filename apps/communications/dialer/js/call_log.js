@@ -144,9 +144,9 @@ var CallLog = {
         } else {
           self.renderChunk(chunk);
           if (!screenRendered) {
-            self.enableEditMode();
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
+          self.enableEditMode();
           FixedHeader.refresh();
           self.updateHeadersContinuously();
           PerformanceTestingHelper.dispatch('call-log-ready');
@@ -162,7 +162,6 @@ var CallLog = {
       } else {
         if (self._groupCounter >= FIRST_CHUNK_SIZE && !screenRendered) {
           screenRendered = true;
-          self.enableEditMode();
           PerformanceTestingHelper.dispatch('first-chunk-ready');
         }
         self.renderChunk(chunk);
@@ -662,14 +661,14 @@ var CallLog = {
         this.callLogContainer.removeChild(section);
       }
       var dataset = logGroup.dataset;
-      var toDelete = [
-        parseInt(dataset.timestamp),
-        dataset.phoneNumber,
-        dataset.type
-      ];
-      if (dataset.status)
-        toDelete.push(dataset.status);
-
+      var toDelete = {
+        date: parseInt(dataset.timestamp),
+        number: dataset.phoneNumber,
+        type: dataset.type
+      };
+      if (dataset.status) {
+        toDelete.status = dataset.status;
+      }
       logGroupsToDelete.push(toDelete);
     }
 
