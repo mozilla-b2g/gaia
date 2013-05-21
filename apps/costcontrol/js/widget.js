@@ -166,7 +166,7 @@
 
   // USER INTERFACE
 
-  function setupFte(mode) {
+  function setupFte(provider, mode) {
 
     fte.setAttribute('aria-hidden', false);
     leftPanel.setAttribute('aria-hidden', true);
@@ -201,7 +201,7 @@
 
       // Show fte mode widget
       if (settings.fte) {
-        setupFte(mode);
+        setupFte(configuration.provider, mode);
         debug('Widget in FTE mode');
         return;
       }
