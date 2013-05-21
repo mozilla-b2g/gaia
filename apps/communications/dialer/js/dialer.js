@@ -79,41 +79,43 @@ var CallHandler = (function callHandler() {
   }
 
   function handleNotificationRequest(number) {
-    Contacts.findByNumber(number, function lookup(contact, matchingTel) {
-      LazyL10n.get(function localized(_) {
-        var title = _('missedCall');
+    loader.load('/dialer/js/utils.js', function() {
+      Contacts.findByNumber(number, function lookup(contact, matchingTel) {
+        LazyL10n.get(function localized(_) {
+          var title = _('missedCall');
 
-        var body;
-        if (!number) {
-          body = _('from-withheld-number');
-        } else if (contact) {
-          var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
-            contact);
-          if (primaryInfo) {
-            if (primaryInfo !== matchingTel.value) {
-              body = _('from-contact', {contact: primaryInfo});
+          var body;
+          if (!number) {
+            body = _('from-withheld-number');
+          } else if (contact) {
+            var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
+                                                              contact);
+            if (primaryInfo) {
+              if (primaryInfo !== matchingTel.value) {
+                body = _('from-contact', {contact: primaryInfo});
+              } else {
+                body = _('from-number', {number: primaryInfo});
+              }
             } else {
-              body = _('from-number', {number: primaryInfo});
+                body = _('from-withheld-number');
             }
           } else {
-            body = _('from-withheld-number');
+            body = _('from-number', {number: number});
           }
-        } else {
-          body = _('from-number', {number: number});
-        }
 
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
+          navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+            var app = evt.target.result;
 
-          var iconURL = NotificationHelper.getIconURI(app, 'dialer');
+            var iconURL = NotificationHelper.getIconURI(app, 'dialer');
 
-          var clickCB = function() {
-            app.launch('dialer');
-            window.location.hash = '#recents-view';
+            var clickCB = function() {
+              app.launch('dialer');
+              window.location.hash = '#recents-view';
+            };
+
+            NotificationHelper.send(title, body, iconURL, clickCB);
           };
-
-          NotificationHelper.send(title, body, iconURL, clickCB);
-        };
+        });
       });
     });
   }
