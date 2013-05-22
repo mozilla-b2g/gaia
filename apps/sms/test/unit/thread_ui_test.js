@@ -20,6 +20,8 @@ requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
+requireApp('sms/test/unit/mock_activity_picker.js');
+requireApp('sms/test/unit/mock_action_menu.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -27,7 +29,9 @@ var mocksHelperForThreadUI = new MocksHelper([
   'Settings',
   'Recipients',
   'LinkHelper',
-  'MozActivity'
+  'MozActivity',
+  'ActivityPicker',
+  'OptionMenu'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -1242,4 +1246,82 @@ suite('thread_ui.js >', function() {
     });
   });
 
+
+  suite('Header Actions', function() {
+    setup(function() {
+      MockActivityPicker.call.mSetup();
+    });
+
+    teardown(function() {
+      Threads.delete(1);
+      window.location.hash = '';
+      MockActivityPicker.call.mTeardown();
+    });
+
+    test('Single participant: Invoke Activities (known)', function() {
+
+      Threads.set(1, {
+        participants: ['999']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = true;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.ok(MockActivityPicker.call.called);
+      assert.equal(MockActivityPicker.call.calledWith[0], '999');
+    });
+
+    test('Single participant: Invoke Options (unknown)', function() {
+
+      Threads.set(1, {
+        participants: ['999']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = false;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.equal(MockOptionMenu.calls.length, 1);
+    });
+
+    test('Multi participant: DOES NOT Invoke Activities', function() {
+
+      Threads.set(1, {
+        participants: ['999', '888']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = true;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.equal(MockActivityPicker.call.called, false);
+      assert.equal(MockActivityPicker.call.calledWith, null);
+    });
+
+    test('Multi participant: DOES NOT Invoke Options', function() {
+
+      Threads.set(1, {
+        participants: ['999', '888']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = true;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.equal(MockOptionMenu.calls.length, 0);
+    });
+  });
 });
