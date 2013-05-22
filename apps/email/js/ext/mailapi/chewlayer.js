@@ -3921,13 +3921,16 @@ function chewStructure(msg) {
         sizeEstimate: partInfo.size,
         amountDownloaded: 0,
         // its important to know that sizeEstimate and amountDownloaded
-        // do _not_ determine if the bodyRep is fully downloaded the
+        // do _not_ determine if the bodyRep is fully downloaded; the
         // estimated amount is not reliable
-        isDownloaded: false,
+        // Zero-byte bodies are assumed to be accurate and we treat the file
+        // as already downloaded.
+        isDownloaded: partInfo.size === 0,
         // full internal IMAP representation
         // it would also be entirely appropriate to move
         // the information on the bodyRep directly?
-        _partInfo: partInfo
+        _partInfo: partInfo.size ? partInfo : null,
+        content: ''
       };
     }
 
@@ -4114,7 +4117,7 @@ exports.updateMessageWithFetch = function(header, body, req, res, _LOG) {
     bodyRep.isDownloaded = true;
 
     // clear private space for maintaining parser state.
-    delete bodyRep._partInfo;
+    bodyRep._partInfo = null;
   }
 
   if (!bodyRep.isDownloaded && res.buffer) {
