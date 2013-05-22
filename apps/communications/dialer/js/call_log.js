@@ -6,6 +6,10 @@ var CallLog = {
   _initialized: false,
   _headersInterval: null,
   _empty: true,
+  _listReady: false,
+  _chunksToRender: [],
+  _totalHeight: 0,
+  _viewHeight: 0,
 
   init: function cl_init() {
     if (this._initialized) {
@@ -47,7 +51,7 @@ var CallLog = {
 
       LazyL10n.get(function localized(_) {
         self._ = _;
-        var headerSelector = '#call-log-container header';
+        var headerSelector = '#call-log-container section:not(.hide) header';
         FixedHeader.init('#call-log-container',
                          '#fixed-container', headerSelector);
 
@@ -77,11 +81,40 @@ var CallLog = {
             self.updateHeadersContinuously();
           }
         });
+
+        self._viewHeight = self.callLogView.clientHeight;
+        self._totalHeight = self.callLogContainer.scrollHeight;
+
+        self.callLogContainer.addEventListener('scroll', function onScroll() {
+          var currentScroll = self.callLogContainer.scrollTop;
+          var diff = (self._totalHeight - currentScroll);
+
+          // When the scroll is about to reach the end of the shown list,
+          // we show the next element
+          if (diff < (self._viewHeight + (self._viewHeight * 0.1))) {
+            if (self._chunksToRender.length === 0 && self._listReady) {
+              self.callLogContainer.removeEventListener('scroll', onScroll);
+              return;
+            }
+            self.showNextChunk();
+            self._totalHeight = self.callLogContainer.scrollHeight;
+          }
+        });
       });
     });
   },
 
-  // Method for highlighting call events since last visit to call-log
+  showNextChunk: function cl_showNextChunk() {
+    if (!this._chunksToRender.length) {
+      return;
+    }
+    var toShow = this._chunksToRender.shift();
+    var selector = '[data-timestamp="' + toShow + '"]';
+    var toShowElement = this.callLogContainer.querySelector(selector);
+    toShowElement.classList.remove('hide');
+    FixedHeader.refresh();
+  },
+
   updateHighlight: function cl_updateHighlight() {
     var self = this;
     var evtName = 'latestCallLogVisit';
@@ -133,7 +166,7 @@ var CallLog = {
     var prevDate;
     var startDate = new Date().getTime();
     var screenRendered = false;
-    var FIRST_CHUNK_SIZE = 6;
+    var FIRST_CHUNK_SIZE = 10;
     this._groupCounter = 0;
 
     CallLogDBManager.getGroupList(function logGroupsRetrieved(cursor) {
@@ -142,14 +175,17 @@ var CallLog = {
           self.renderEmptyCallLog();
           self.disableEditMode();
         } else {
-          self.renderChunk(chunk);
+          var visible = false;
           if (!screenRendered) {
+            visible = true;
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
           self.enableEditMode();
+          self.renderChunk(chunk, visible);
           FixedHeader.refresh();
           self.updateHeadersContinuously();
           PerformanceTestingHelper.dispatch('call-log-ready');
+          self._listReady = true;
         }
         return;
       }
@@ -160,11 +196,12 @@ var CallLog = {
         self._groupCounter++;
         chunk.push(cursor.value);
       } else {
-        if (self._groupCounter >= FIRST_CHUNK_SIZE && !screenRendered) {
+        var isFirstChunk = (self._groupCounter <= FIRST_CHUNK_SIZE);
+        if (!isFirstChunk && !screenRendered) {
           screenRendered = true;
           PerformanceTestingHelper.dispatch('first-chunk-ready');
         }
-        self.renderChunk(chunk);
+        self.renderChunk(chunk, isFirstChunk);
         chunk = [cursor.value];
       }
       prevDate = currDate;
@@ -172,8 +209,8 @@ var CallLog = {
     }, 'lastEntryDate', true, true);
   },
 
-  renderChunk: function cl_renderChunk(chunk) {
-    var callLogSection = this.createSectionForGroup(chunk[0]);
+  renderChunk: function cl_renderChunk(chunk, visible) {
+    var callLogSection = this.createSectionForGroup(chunk[0], visible);
     var phoneNumbers = [];
     var logGroupContainer = callLogSection.getElementsByTagName('ol')[0];
 
@@ -182,6 +219,12 @@ var CallLog = {
       var logGroupDOM = this.createGroup(current);
       logGroupContainer.appendChild(logGroupDOM);
       phoneNumbers.push(current.number);
+    }
+
+    if (visible) {
+      FixedHeader.refresh();
+    } else {
+      this._chunksToRender.push(callLogSection.dataset.timestamp);
     }
 
     this.callLogContainer.appendChild(callLogSection);
@@ -241,7 +284,7 @@ var CallLog = {
     }
 
     // We don't have any call for that day, so creating a new section
-    var callLogSection = this.createSectionForGroup(group);
+    var callLogSection = this.createSectionForGroup(group, true);
     var logGroupContainer = callLogSection.getElementsByTagName('ol')[0];
     logGroupContainer.appendChild(logGroupDOM);
 
@@ -393,10 +436,12 @@ var CallLog = {
   },
 
   // Method that creates a new section for placing groups
-  createSectionForGroup: function cl_createSectionForGroup(group) {
+  createSectionForGroup: function cl_createSectionForGroup(group, visible) {
     var referenceTimestamp = group.date;
     var groupContainer = document.createElement('section');
     groupContainer.dataset.timestamp = referenceTimestamp;
+    groupContainer.className = visible ? '' : 'hide';
+
     var header = document.createElement('header');
     header.textContent = Utils.headerDate(referenceTimestamp);
     header.dataset.timestamp = referenceTimestamp;
@@ -674,6 +719,7 @@ var CallLog = {
 
     var self = this;
     CallLogDBManager.deleteGroupList(logGroupsToDelete, function() {
+      self.showNextChunk();
       document.body.classList.remove('recents-edit');
     });
   },
