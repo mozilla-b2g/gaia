@@ -10,5 +10,6 @@ function MockAttachment(blob, name = '') {
 MockAttachment.prototype = {
   render: function() {
     return this.mNextRender;
-  }
+  },
+  view: function() {}
 };

@@ -3,7 +3,7 @@
 */
 'use strict';
 
-mocha.globals(['0']);
+mocha.globals(['0', '6']);
 
 requireApp('sms/js/compose.js');
 requireApp('sms/js/thread_ui.js');
@@ -11,12 +11,14 @@ requireApp('sms/js/utils.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
+requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 
 var mocksHelper = new MocksHelper([
+  'AttachmentMenu',
   'Settings',
   'Recipients',
   'Utils',
@@ -341,6 +343,97 @@ suite('compose_test.js', function() {
         Compose.clear();
         assert.equal(Compose.type, 'sms');
         assert.equal(form.dataset.messageType, 'sms');
+      });
+    });
+  });
+  suite('Attachment pre-send menu', function() {
+    setup(function() {
+      this.blob = new Blob(['test'], {type: 'image/png'});
+      this.attachment = mockAttachment();
+      Compose.append(this.attachment);
+      sinon.stub(AttachmentMenu, 'open');
+      sinon.stub(AttachmentMenu, 'close');
+
+      // trigger a click on attachment
+      this.attachment.mNextRender.click();
+
+    });
+    teardown(function() {
+      AttachmentMenu.open.restore();
+      AttachmentMenu.close.restore();
+    });
+    test('click opens menu', function() {
+      assert.isTrue(AttachmentMenu.open.called);
+    });
+    suite('clicking on buttons', function() {
+      suite('view', function() {
+        setup(function() {
+          sinon.stub(this.attachment, 'view');
+
+          // trigger click on view
+          document.getElementById('attachment-options-view').click();
+        });
+        teardown(function() {
+          this.attachment.view.restore();
+        });
+        test('clicking on view calls attachment.view', function() {
+          assert.isTrue(this.attachment.view.called);
+        });
+      });
+
+      suite('remove', function() {
+        setup(function() {
+          // trigger click on remove
+          document.getElementById('attachment-options-remove').click();
+        });
+        test('removes the original attachment', function() {
+          assert.ok(!this.attachment.mNextRender.parentNode);
+        });
+        test('closes the menu', function() {
+          assert.isTrue(AttachmentMenu.close.called);
+        });
+      });
+
+      suite('cancel', function() {
+        setup(function() {
+          // trigger click on close
+          document.getElementById('attachment-options-cancel').click();
+        });
+        test('closes the menu', function() {
+          assert.isTrue(AttachmentMenu.close.called);
+        });
+      });
+
+      suite('replace', function() {
+        setup(function(done) {
+          this.replacement = mockAttachment();
+          sinon.stub(Compose, 'requestAttachment', function() {
+            var mockResult = {};
+            setTimeout(function() {
+              mockResult.onsuccess(this.replacement);
+              done();
+            }.bind(this));
+            return mockResult;
+          }.bind(this));
+
+          // trigger click on replace
+          document.getElementById('attachment-options-replace').click();
+        });
+        teardown(function() {
+          Compose.requestAttachment.restore();
+        });
+        test('clicking on replace requests an attachment', function() {
+          assert.isTrue(Compose.requestAttachment.called);
+        });
+        test('removes the original attachment', function() {
+          assert.ok(!this.attachment.mNextRender.parentNode);
+        });
+        test('inserts the new attachment', function() {
+          assert.ok(this.replacement.mNextRender.parentNode);
+        });
+        test('closes the menu', function() {
+          assert.isTrue(AttachmentMenu.close.called);
+        });
       });
     });
   });
