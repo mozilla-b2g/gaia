@@ -142,11 +142,6 @@ button::-moz-focus-inner {
   background-color: #00acd1;
 }
 
-/* landscape mode */
-.landscape .keyboard-key.highlighted > .visual-wrapper > span {
-  left: -0.4rem;
-}
-
 .keyboard-key.highlighted > .visual-wrapper > span:after {
   top: -0.2rem;
   right: -0.2rem;
