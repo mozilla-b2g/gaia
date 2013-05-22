@@ -150,12 +150,10 @@ var ThreadUI = global.ThreadUI = {
      *
      * https://bugzilla.mozilla.org/show_bug.cgi?id=870069
      *
-
+     */
     this.headerText.addEventListener(
       'click', this.activateContact.bind(this)
     );
-
-     */
 
     // When 'focus' we have to remove 'edit-mode' in the recipient
     this.input.addEventListener(
@@ -1494,7 +1492,17 @@ var ThreadUI = global.ThreadUI = {
 
   activateContact: function thui_activateContact() {
     var _ = navigator.mozL10n.get;
+    var participants = Threads.active && Threads.active.participants;
     var phoneNumber = this.headerText.dataset.phoneNumber;
+
+    // Do nothing when there are more then one participants
+    // in this thread.
+    // >1 requires the group participants view.
+    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=870069
+    if (participants && participants.length > 1) {
+      return;
+    }
+
     // Call to 'option menu' or 'dialer' depending on existence of contact
     if (this.headerText.dataset.isContact == 'true') {
       ActivityPicker.call(phoneNumber);

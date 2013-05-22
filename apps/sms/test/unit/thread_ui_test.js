@@ -20,6 +20,8 @@ requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
+requireApp('sms/test/unit/mock_activity_picker.js');
+requireApp('sms/test/unit/mock_action_menu.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -27,7 +29,9 @@ var mocksHelperForThreadUI = new MocksHelper([
   'Settings',
   'Recipients',
   'LinkHelper',
-  'MozActivity'
+  'MozActivity',
+  'ActivityPicker',
+  'OptionMenu'
 ]);
 
 mocksHelperForThreadUI.init();
