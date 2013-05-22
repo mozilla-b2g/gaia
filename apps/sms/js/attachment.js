@@ -38,6 +38,10 @@ Attachment.prototype = {
     // Bubble click events from inside the iframe
     event.target.contentDocument.addEventListener('click',
       event.target.click.bind(event.target));
+
+    // Bubble the contextmenu(longpress) as a click
+    event.target.contentDocument.addEventListener('contextmenu',
+      event.target.click.bind(event.target));
   },
   render: function() {
     var el = document.createElement('iframe');

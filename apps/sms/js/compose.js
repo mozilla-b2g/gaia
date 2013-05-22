@@ -145,8 +145,6 @@ var Compose = (function() {
 
       dom.message.addEventListener('click',
         this.onAttachmentClick.bind(this));
-      dom.message.addEventListener('contextmenu',
-        this.onAttachmentClick.bind(this));
 
       dom.optionsMenu.addEventListener('click',
         this.onAttachmentMenuClick.bind(this));
