@@ -2446,7 +2446,7 @@ MailAPI.prototype = {
         // reset before calling in case it wants to chain.
         slice.oncomplete = null;
         try {
-          completeFunc();
+          completeFunc(msg.newEmailCount);
         }
         catch (ex) {
           reportClientCodeError('oncomplete notification error', ex,

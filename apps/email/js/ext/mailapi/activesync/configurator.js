@@ -1700,14 +1700,19 @@ ActiveSyncFolderConn.prototype = {
       if (!moreAvailable) {
         var messagesSeen = addedMessages + changedMessages + deletedMessages;
 
-        // Note: For the second argument here, we report the number of messages
-        // we saw that *changed*. This differs from IMAP, which reports the
-        // number of messages it *saw*.
-        folderConn._LOG.sync_end(addedMessages, changedMessages,
-                                 deletedMessages);
-        storage.markSyncRange($sync.OLDEST_SYNC_DATE, accuracyStamp, 'XXX',
-                              accuracyStamp);
-        doneCallback(null, null, messagesSeen);
+        // Do not report completion of sync until all of our operations have
+        // been persisted to our in-memory database.  (We do not wait for
+        // things to hit the disk.)
+        storage.runAfterDeferredCalls(function() {
+          // Note: For the second argument here, we report the number of
+          // messages we saw that *changed*. This differs from IMAP, which
+          // reports the number of messages it *saw*.
+          folderConn._LOG.sync_end(addedMessages, changedMessages,
+                                   deletedMessages);
+          storage.markSyncRange($sync.OLDEST_SYNC_DATE, accuracyStamp, 'XXX',
+                                accuracyStamp);
+          doneCallback(null, null, messagesSeen);
+        });
       }
     },
     progressCallback);
