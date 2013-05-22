@@ -343,10 +343,9 @@ var Compose = (function() {
 
       activity.onsuccess = function() {
         var result = activity.result;
-        if (typeof requestProxy.onsuccess !== 'function') {
-          return;
+        if (typeof requestProxy.onsuccess === 'function') {
+          requestProxy.onsuccess(new Attachment(result.blob, result.name));
         }
-        requestProxy.onsuccess(new Attachment(result.blob, result.name));
       };
 
       activity.onerror = function() {
