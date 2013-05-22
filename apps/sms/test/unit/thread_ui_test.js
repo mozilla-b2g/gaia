@@ -12,6 +12,7 @@ requireApp('sms/js/message_manager.js');
 
 requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_attachment.js');
+requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
@@ -25,6 +26,7 @@ requireApp('sms/test/unit/mock_action_menu.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
+  'AttachmentMenu',
   'Utils',
   'Settings',
   'Recipients',
