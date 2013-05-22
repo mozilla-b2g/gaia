@@ -1,9 +1,27 @@
 'use strict';
 
 requireApp('sms/js/attachment.js');
-requireApp('sms/js/attachment_menu.js');
+requireApp('sms/js/utils.js');
+
+requireApp('sms/test/unit/mock_attachment_menu.js');
+requireApp('sms/test/unit/mock_l10n.js');
+requireApp('sms/test/unit/mock_utils.js');
+
+var MocksHelperForAttachment = new MocksHelper([
+  'AttachmentMenu',
+  'Utils'
+]).init();
 
 suite('attachment_test.js', function() {
+  MocksHelperForAttachment.attachTestHelpers();
+
+  suiteSetup(function() {
+    this.realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+  suiteTeardown(function() {
+    navigator.mozL10n = this.realMozL10n;
+  });
 
   setup(function() {
     loadBodyHTML('/index.html');
@@ -15,37 +33,11 @@ suite('attachment_test.js', function() {
       this.blob,
       'Test Attachment');
 
-    this.originalUpdateInputHeight = ThreadUI.updateInputHeight;
-    ThreadUI.updateInputHeight = function() {};
-  });
-  teardown(function() {
-    ThreadUI.updateInputHeight = this.originalUpdateInputHeight;
   });
 
   test('render', function() {
     var el = this.attachment.render();
     assert.ok(el.src, 'src set');
-  });
-
-  test('remove', function() {
-    // Add the attachment to a mocked container
-    var el = this.attachment.render();
-    var parent = document.createElement('div');
-    parent.appendChild(el);
-
-    // Open options menu, since removing attachment should close menu
-    AttachmentMenu.open(this.attachment);
-
-    // Now you see it
-    assert.ok(this.attachment.el);
-
-    this.attachment.remove();
-
-    // Now you don't
-    assert.ok(!parent.firstChild);
-
-    // Options menu was closed
-    assert.equal(document.querySelector('#attachment-options-menu').className, 'hide');
   });
 
 });

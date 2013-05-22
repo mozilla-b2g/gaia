@@ -31,6 +31,7 @@ var Compose = (function() {
     empty: true,
     maxLength: null,
     size: null,
+
     // 'sms' or 'mms'
     type: 'sms'
   };
@@ -144,23 +145,36 @@ var Compose = (function() {
 
       dom.message.addEventListener('click', function(e) {
         if (e.target.className === 'attachment') {
-          AttachmentMenu.open(attachments.get(e.target));
+          compose.currentAttachmentDOM = e.target;
+          compose.currentAttachment = attachments.get(e.target);
+          AttachmentMenu.open(compose.currentAttachment);
         }
       });
 
       dom.optionsMenu.addEventListener('click', function(e) {
-        var attachment = attachments.get(dom.optionsMenu.el);
-        if (e.target.id === 'attachment-options-view') {
-          attachment.view();
-        }
-        else if (e.target.id === 'attachment-options-remove') {
-          attachment.remove();
-        }
-        else if (e.target.id === 'attachment-options-replace') {
-          attachment.replace();
-        }
-        else if (e.target.id === 'attachment-options-cancel') {
-          AttachmentMenu.close();
+        switch (e.target.id) {
+          case 'attachment-options-view':
+            compose.currentAttachment.view();
+            break;
+          case 'attachment-options-remove':
+            attachments.delete(compose.currentAttachmentDOM);
+            dom.message.removeChild(compose.currentAttachmentDOM);
+            composeCheck({type: 'input'});
+            AttachmentMenu.close();
+          case 'attachment-options-replace':
+            var request = compose.requestAttachment();
+            request.onsuccess = (function replaceAttachmentWith(newAttachment) {
+              var el = newAttachment.render();
+              attachments.set(el, newAttachment);
+              dom.message.insertBefore(el, compose.currentAttachmentDOM);
+              dom.message.removeChild(compose.currentAttachmentDOM);
+              composeCheck({type: 'input'});
+              AttachmentMenu.close();
+            });
+            break;
+          case 'attachment-options-cancel':
+            AttachmentMenu.close();
+            break;
         }
       });
 
@@ -295,9 +309,10 @@ var Compose = (function() {
       return this;
     },
 
-    onAttachClick: function thui_onAttachClick() {
+    onAttachClick: function thui_onAttachClick(event) {
       var request = this.requestAttachment();
       request.onsuccess = this.append.bind(this);
+      composeCheck(event);
     },
 
     /** Initiates a 'pick' MozActivity allowing the user to create an
@@ -307,7 +322,7 @@ var Compose = (function() {
      *                               method may optionally be defined on this
      *                               object.
      */
-    requestAttachment: function(resultOnly) {
+    requestAttachment: function() {
       // Mimick the DOMRequest API
       var requestProxy = {};
       var activity = new MozActivity({
@@ -323,13 +338,7 @@ var Compose = (function() {
         if (typeof requestProxy.onsuccess !== 'function') {
           return;
         }
-        if (resultOnly) {
-          requestProxy.onsuccess(result);
-        }
-        else {
-          requestProxy.onsuccess(new Attachment(result.blob, result.name));
-        }
-      
+        requestProxy.onsuccess(new Attachment(result.blob, result.name));
       };
 
       activity.onerror = function() {

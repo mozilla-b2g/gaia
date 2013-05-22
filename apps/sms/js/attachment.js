@@ -22,17 +22,6 @@
 function Attachment(blob, name) {
   this.blob = blob;
   this.name = name || '';
-  this.optionsMenu = document.getElementById('attachment-options-menu');
-  this.el = document.createElement('iframe');
-  this.optionsMenu.el = this.el;
-  // The attachment's iFrame requires access to the parent document's context
-  // so that URIs for Blobs created in the parent may resolve as expected.
-  this.el.setAttribute('sandbox', 'allow-same-origin');
-  this.el.className = 'attachment';
-  this.objectURL = window.URL.createObjectURL(this.blob);
-
-  // When rendering is complete
-  this.el.addEventListener('load', this.handleLoad.bind(this));
 }
 
 Attachment.prototype = {
@@ -42,28 +31,39 @@ Attachment.prototype = {
   get type() {
     return Utils.typeFromMimeType(this.blob.type);
   },
-  handleLoad: function() {
+  handleLoad: function(el, objectURL) {
     // Signal Gecko to release the reference to the Blob
-    window.URL.revokeObjectURL(this.objectURL);
+    URL.revokeObjectURL(objectURL);
 
     // Bubble click events from inside the iframe
-    this.el.contentDocument.addEventListener('click', function() {
-      this.el.click(this.el);
-    }.bind(this));
+    el.contentDocument.addEventListener('click', function() {
+      this.click(this);
+    }.bind(el));
   },
   render: function() {
+    var el = document.createElement('iframe');
+
+    // The attachment's iFrame requires access to the parent document's context
+    // so that URIs for Blobs created in the parent may resolve as expected.
+    el.setAttribute('sandbox', 'allow-same-origin');
+    el.className = 'attachment';
+    var objectURL = window.URL.createObjectURL(this.blob);
+
+    // When rendering is complete
+    el.addEventListener('load', this.handleLoad.bind(this, el, objectURL));
+
     var _ = navigator.mozL10n.get;
     var src = 'data:text/html,';
     // We want kilobytes so we divide by 1024, with one fractional digit
     var size = Math.floor(this.size / 102.4) / 10;
     var sizeString = _('attachmentSize', {n: size});
     src += Utils.Template('attachment-tmpl').interpolate({
-      uri: this.objectURL,
+      uri: objectURL,
       size: sizeString
     });
-    this.el.src = src;
+    el.src = src;
 
-    return this.el;
+    return el;
   },
 
   view: function() {
@@ -80,23 +80,5 @@ Attachment.prototype = {
       console.error('error with open activity', this.error.name);
       alert(_('attachmentOpenError'));
     };
-  },
-
-  remove: function() {
-    this.el.parentNode.removeChild(this.el);
-    ThreadUI.updateInputHeight();
-    AttachmentMenu.close();
-  },
-
-  replace: function() {
-    var request = Compose.requestAttachment(true);
-    request.onsuccess = function(result) {
-      this.blob = result.blob;
-      this.name = result.name || '';
-      this.objectURL = window.URL.createObjectURL(this.blob);
-      this.render();
-      AttachmentMenu.close();
-    }.bind(this);
   }
-
 };

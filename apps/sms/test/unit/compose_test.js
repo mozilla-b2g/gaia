@@ -11,12 +11,14 @@ requireApp('sms/js/utils.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
+requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 
 var mocksHelper = new MocksHelper([
+  'AttachmentMenu',
   'Settings',
   'Recipients',
   'Utils',
