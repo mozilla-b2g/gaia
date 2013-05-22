@@ -2,7 +2,6 @@
  * Scrolling
  * ---------------------------------- */
 nav[data-type="scrollbar"] {
-  font-family: "MozTT", "Moz", Sans-serif;
   position: absolute;
   right: 0;
   top: 0;
@@ -17,7 +16,9 @@ nav[data-type="scrollbar"] p {
   width: 10.5rem;
   height: 10.5rem;
   opacity: 0;
-  font: 200 6rem/10.5rem "MozTT", "Moz", Sans-serif;
+  font-weight: 200;
+  font-size: 6rem;
+  line-height: 10.5rem;
   color: #fff;
   background: url(scrolling/images/ui/background.png) repeat left top;
   pointer-events: none;

@@ -12,7 +12,6 @@
   padding: 1.5rem 0 7rem;
   color: #fff;
   font-size: 0;
-  font-family: "MozTT", Sans-serif;
   white-space: nowrap;
   background: url(images/ui/pattern.png), url(images/ui/gradient.png) no-repeat;
   background-size: auto auto, 100% 100%;
@@ -38,7 +37,6 @@
 }
 
 [role="dialog"] h3 {
-  font-family: 'MozTT', Sans-serif;
   font-weight: normal;
   font-size: 1.6rem;
   line-height: 1em;

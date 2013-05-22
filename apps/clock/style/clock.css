@@ -73,13 +73,14 @@ html, body {
 
 #clock-time {
   letter-spacing: -0.5rem;
-  font: lighter 11rem 'MozTT', sans-serif;
+  font-weight: lighter;
+  font-size: 11rem;
   color: #CFE2E6;
   pointer-events: none;
 }
 
 #clock-hour24-state {
-  font: 3.7rem 'MozTT', sans-serif;
+  font-size: 3.7rem;
   color: #5C6466;
   text-transform: uppercase;
   pointer-events: none;
@@ -98,7 +99,8 @@ html, body {
 }
 
 #clock-day-date {
-  font: lighter normal 2.1rem 'MozTT', sans-serif;
+  font-weight: lighter;
+  font-size: 2.1rem;
   margin: 2.6rem 0 0 1.5rem;
   line-height: 1.7rem;
   position: absolute;
@@ -108,7 +110,6 @@ html, body {
 }
 
 #clock-day-date b {
-  font-family: MozTT;
   font-weight: normal;
 }
 

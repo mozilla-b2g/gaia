@@ -2,7 +2,6 @@ html, body {
   height: 100%;
   padding: 0;
   margin: 0;
-  font-family: 'MozTT', sans-serif;
   font-size: 10px;
   overflow: hidden;
 }
@@ -127,7 +126,6 @@ input[type="image"] {
   margin: 0;
   height: 8.5rem;
   border-bottom: 0.1rem solid #54575c;
-  font-family: 'MozTT', sans-serif;
   overflow: hidden;
   position: relative;
   width: 100%;
@@ -164,7 +162,6 @@ input[type="image"] {
 }
 
 #tabs-list .close {
-  font-family: 'MozTT', sans-serif;
   border: 0;
   position: absolute;
   right: 0;
@@ -181,7 +178,6 @@ input[type="image"] {
   margin: 0;
   width: 100%;
   height: 100%;
-  font-family: 'MozTT', sans-serif;
   z-index: 50;
   position: relative;
   left: 0;
@@ -206,7 +202,6 @@ input[type="image"] {
 }
 
 #tabs-badge {
-  font-family: 'MozTT', sans-serif;
   position: absolute;
   right: 0;
   top: 0;
@@ -331,7 +326,6 @@ input[type="image"] {
 }
 
 #url-input {
-  font-family: 'MozTT', sans-serif;
   font-size: 1.7rem;
   height: 3.4rem;
   -moz-box-flex: 1;
@@ -565,7 +559,6 @@ input::-moz-focus-inner {
   border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
   font-size: 1.7rem;
-  font-family: 'MozTT', Sans-serif;
   line-height: 3.8rem;
   color: #333;
   text-align: center;

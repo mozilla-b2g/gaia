@@ -8,7 +8,6 @@ body[role="application"] section[role="region"] > [role="tablist"]:not(.filter) 
   position: absolute;
   width: 100%;
   height: 100%;
-  font-family: "MozTT", Sans-serif;
 }
 
 body[role="application"] section[role="region"] > [role="tablist"]:not(.filter) li {

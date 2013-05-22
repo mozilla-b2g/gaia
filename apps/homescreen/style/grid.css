@@ -128,7 +128,6 @@ ol:not([disabled]) li.active > div > img {
   position: relative;
   height: 1.6rem; /* 15px in otoro */
   margin: 0 auto;
-  font-family: 'MozTT', sans-serif;
   font-weight: 500;
   letter-spacing: -0.025rem;
 }
