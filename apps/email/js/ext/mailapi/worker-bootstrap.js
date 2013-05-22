@@ -3151,7 +3151,7 @@ LoggestClassMaker.prototype = {
         throw new Error("Attempt to add expectations when already resolved!");
 
       var exp = [name];
-      for (var iArg = 0; iArg < numArgs; iArg++) {
+      for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION) {
           exp.push(arguments[iArg]);
         }
@@ -3284,7 +3284,7 @@ LoggestClassMaker.prototype = {
         throw new Error("Attempt to add expectations when already resolved!");
 
       var exp = [name_begin];
-      for (var iArg = 0; iArg < numArgs; iArg++) {
+      for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION)
           exp.push(arguments[iArg]);
       }
@@ -3301,7 +3301,7 @@ LoggestClassMaker.prototype = {
         throw new Error("Attempt to add expectations when already resolved!");
 
       var exp = [name_end];
-      for (var iArg = 0; iArg < numArgs; iArg++) {
+      for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION)
           exp.push(arguments[iArg]);
       }
@@ -3514,7 +3514,7 @@ LoggestClassMaker.prototype = {
         throw new Error("Attempt to add expectations when already resolved!");
 
       var exp = [name];
-      for (var iArg = 0; iArg < numArgs; iArg++) {
+      for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION)
           exp.push(arguments[iArg]);
       }
@@ -5187,7 +5187,7 @@ MailSlice.prototype = {
   },
 
   setStatus: function(status, requested, moreExpected, flushAccumulated,
-                      progress) {
+                      progress, newEmailCount) {
     if (!this._bridgeHandle)
       return;
 
@@ -5210,14 +5210,16 @@ MailSlice.prototype = {
       // XXX remove concat() once our bridge sending makes rep sharing
       // impossible by dint of actual postMessage or JSON roundtripping.
       this._bridgeHandle.sendSplice(0, 0, this.headers.concat(),
-                                    requested, moreExpected);
+                                    requested, moreExpected,
+                                    newEmailCount);
       // If we're no longer synchronizing, we want to update desiredHeaders
       // to avoid accumulating extra 'desire'.
       if (status !== 'synchronizing')
         this.desiredHeaders = this.headers.length;
     }
     else {
-      this._bridgeHandle.sendStatus(status, requested, moreExpected, progress);
+      this._bridgeHandle.sendStatus(status, requested, moreExpected, progress,
+                                    newEmailCount);
     }
   },
 
@@ -5892,6 +5894,13 @@ FolderStorage.prototype = {
   get hasActiveSlices() {
     return this._slices.length > 0;
   },
+
+  /**
+   * Function that we call with header whenever addMessageHeader gets called.
+   * @type {Function}
+   * @private
+   */
+  _onAddingHeader: null,
 
   /**
    * Reset all active slices.
@@ -7481,13 +7490,33 @@ FolderStorage.prototype = {
         // In the event we grow the startTS to the dawn of time, then we want
         // to also provide the original startTS so that the bisection does not
         // need to scan through years of empty space.
-        origStartTS = null;
+        origStartTS = null,
+        // If we are refreshing through 'now', we will count the new messages we
+        // hear about and update this.newEmailCount once the sync completes.  If
+        // we are performing any othe sync, the value will not be updated.
+        newEmailCount = null;
 
     // - Grow endTS
     // If the endTS lines up with the most recent known message for the folder,
     // then remove the timestamp constraint so it goes all the way to now.
     // OR if we just have no known messages
     if (this.headerIsYoungestKnown(endTS, slice.endUID)) {
+      var prevTS = endTS;
+      newEmailCount = 0;
+
+      /**
+       * Increment our new email count if the following conditions are met:
+       * 1. This header is younger than the youngest one before sync
+       * 2. and this hasn't already been seen.
+       * @param {HeaderInfo} header The header being added.
+       */
+      this._onAddingHeader = function(header) {
+        if (SINCE(header.date, prevTS) &&
+            (!header.flags || header.flags.indexOf('\\Seen') === -1)) {
+          newEmailCount += 1;
+        }
+      }.bind(this);
+
       endTS = null;
     }
     else {
@@ -7518,6 +7547,8 @@ FolderStorage.prototype = {
 
     var doneCallback = function refreshDoneCallback(err, bisectInfo,
                                                     numMessages) {
+      this._onAddingHeader = null;
+
       var reportSyncStatusAs = 'synced';
       switch (err) {
         case 'aborted':
@@ -7528,7 +7559,8 @@ FolderStorage.prototype = {
 
       releaseMutex();
       slice.waitingOnData = false;
-      slice.setStatus(reportSyncStatusAs, true, false);
+      slice.setStatus(reportSyncStatusAs, true, false, false, null,
+                      newEmailCount);
       return undefined;
     }.bind(this);
 
@@ -8486,6 +8518,9 @@ FolderStorage.prototype = {
           slice.desiredHeaders++;
         }
 
+        if (this._onAddingHeader !== null) {
+          this._onAddingHeader(header);
+        }
         slice.onHeaderAdded(header, false, true);
       }
     }
@@ -12783,9 +12818,11 @@ function SliceBridgeProxy(bridge, ns, handle) {
 SliceBridgeProxy.prototype = {
   /**
    * Issue a splice to add and remove items.
+   * @param {number} newEmailCount Number of new emails synced during this
+   *     slice request.
    */
   sendSplice: function sbp_sendSplice(index, howMany, addItems, requested,
-                                      moreExpected) {
+                                      moreExpected, newEmailCount) {
     this._bridge.__sendMessage({
       type: 'sliceSplice',
       handle: this._handle,
@@ -12800,6 +12837,7 @@ SliceBridgeProxy.prototype = {
       atBottom: this.atBottom,
       userCanGrowUpwards: this.userCanGrowUpwards,
       userCanGrowDownwards: this.userCanGrowDownwards,
+      newEmailCount: newEmailCount,
     });
   },
 
@@ -12814,12 +12852,16 @@ SliceBridgeProxy.prototype = {
     });
   },
 
+  /**
+   * @param {number} newEmailCount Number of new emails synced during this
+   *     slice request.
+   */
   sendStatus: function sbp_sendStatus(status, requested, moreExpected,
-                                      progress) {
+                                      progress, newEmailCount) {
     this.status = status;
     if (progress != null)
       this.progress = progress;
-    this.sendSplice(0, 0, [], requested, moreExpected);
+    this.sendSplice(0, 0, [], requested, moreExpected, newEmailCount);
   },
 
   sendSyncProgress: function(progress) {
