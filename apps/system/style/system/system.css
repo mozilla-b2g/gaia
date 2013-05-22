@@ -20,7 +20,7 @@ body {
   background-color: #000;
   background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
   background-repeat: no-repeat;
-  background-position: 50% 2rem;
+  background-position: 50% 2.5rem;
 }
 
 #screen.screenoff {
@@ -221,7 +221,7 @@ body {
   padding: 0;
   overflow: hidden;
   left: 0;
-  top: 2rem;
+  top: 2.5rem;
 
   /*
    * Do not specify height/width here!
@@ -452,10 +452,10 @@ body {
 
 #dialog-overlay {
   position: absolute;
-  top: 2rem;
+  top: 2.5rem;
   left: 0;
   width: 100%;
-  height: calc(100% - 2rem);
+  height: calc(100% - 2.5rem);
   visibility: hidden;
   pointer-events: none;
 }

@@ -1,7 +1,7 @@
 #value-selector {
   width: 100%;
-  height: calc(100% - 2rem);
-  top: 2rem;
+  height: calc(100% - 2.5rem);
+  top: 2.5rem;
   left: 0;
   position: absolute;
   transition: opacity 0.5s;

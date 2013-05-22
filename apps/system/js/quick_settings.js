@@ -8,7 +8,7 @@ var QuickSettings = {
   geolocationEnabled: false,
   WIFI_STATUSCHANGE_TIMEOUT: 2000,
   // ID of elements to create references
-  ELEMENTS: ['wifi', 'data', 'bluetooth', 'airplane-mode', 'full-app'],
+  ELEMENTS: ['wifi', 'data', 'bluetooth', 'airplane-mode', 'full-app', 'digital-photo'],
 
   init: function qs_init() {
     var settings = window.navigator.mozSettings;
@@ -189,6 +189,11 @@ var QuickSettings = {
             Applications.getByManifestURL(protocol + 'settings.' +
                                           domain + '/manifest.webapp').launch();
 
+            UtilityTray.hide();
+            break;
+
+          case this.digitalPhoto:
+            window.dispatchEvent(new Event('digitalphoto'));
             UtilityTray.hide();
             break;
         }
