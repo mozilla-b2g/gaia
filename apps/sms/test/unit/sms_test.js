@@ -242,7 +242,7 @@ suite('SMS App Unit-Test', function() {
         var contactName =
           threadWithContact.getElementsByClassName('name')[0].innerHTML;
         assert.equal(contactName,
-                     'contact-title-text[zero]{"name":"Pepito Grillo","n":0}');
+                     'contact-title-text{"name":"Pepito Grillo","n":0}');
       });
     });
 

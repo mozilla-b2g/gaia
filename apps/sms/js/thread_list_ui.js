@@ -83,10 +83,6 @@ var ThreadListUI = {
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var name = node.getElementsByClassName('name')[0];
       var photo = node.getElementsByTagName('img')[0];
-
-      // TODO: Fix This, https://bugzilla.mozilla.org/show_bug.cgi?id=873703
-      var plural = others && others > 0 ?
-        (others > 1 ? '[many]' : '[one]') : '[zero]';
       var title, src, details;
 
       if (contacts && contacts.length) {
@@ -105,7 +101,7 @@ var ThreadListUI = {
         };
       }
 
-      name.textContent = navigator.mozL10n.get('contact-title-text' + plural, {
+      name.textContent = navigator.mozL10n.get('contact-title-text', {
         name: title,
         n: others
       });
