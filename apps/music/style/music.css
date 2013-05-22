@@ -9,7 +9,6 @@ html {
 
 body {
   color: #fff;
-  font-family: "MozTT", sans-serif;
   margin: 0;
   padding: 0;
   height: 100%;
@@ -55,7 +54,6 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  font-family: "MozTT", Sans-serif;
   font-size: 0;
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */

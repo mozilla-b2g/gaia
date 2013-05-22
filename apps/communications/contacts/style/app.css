@@ -18,7 +18,8 @@ html, body {
 
 body {
   color: #fff;
-  font: 1.6rem/2.2rem MozTT, Sans-serif;
+  font-size: 1.6rem;
+  line-height: 2.2rem;
   text-align: center;
   vertical-align: middle;
 }
@@ -67,17 +68,16 @@ abbr, acronym {
 }
 
 strong {
-  font-family: MozTT, Sans-serif;
   font-weight: bold;
 }
 
 b {
-  font-family: MozTT, Sans-serif;
   font-weight: 600;
 }
 
 small {
-  font: 1.1rem/1rem MozTT, Sans-serif;
+  font-size: 1.1rem;
+  line-height: 1rem;
   color: #999;
 }
 

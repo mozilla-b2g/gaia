@@ -16,7 +16,8 @@ a.button, span.button {
   text-align: center;
   text-decoration: none;
   cursor: pointer;
-  font: bold 1.25rem 'MozTT', sans-serif;
+  font-weight: bold;
+  font-size: 1.25rem;
   line-height: 1.38rem;
   -moz-border-top-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
   -moz-border-right-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
@@ -108,7 +109,7 @@ a.abstract-menu {
   padding-left: 7.50rem;
   outline: 0;
   color: black;
-  font: 1.9rem 'MozTT',sans-serif;
+  font-size: 1.9rem;
   padding-top: 1.05rem;
   padding-bottom: 1.25rem;
 }
@@ -120,7 +121,8 @@ select.abstract-menu {
 
 #alarm-delete {
   color: #F2F2F2;
-  font: 1.50rem/1.50rem 'MozTT',sans-serif;
+  line-height: 1.5rem;
+  font-size: 1.5rem;
   text-align: center;
   text-decoration: none;
   width: 100%;
@@ -247,7 +249,7 @@ li.picker:active {
 }
 
 .view-alarm-lbl {
-  font: 1.40rem 'MozTT',sans-serif;
+  font-size: 1.40rem;
   pointer-events: none;
   margin-top: 1.4rem;
   color: #505859;
@@ -420,7 +422,7 @@ select.right {
 }
 
 input.right {
-  font: 1.9rem 'MozTT',sans-serif;
+  font-size: 1.9rem;
   margin: 0.37rem 0.5rem 0.19rem 6.6rem;
   width: -moz-calc(100% - 8.5rem);
   border: 0.06rem solid #CBCBCC;
@@ -501,7 +503,8 @@ li img {
 }
 
 .alarmList-time span.time {
-  font: lighter 2.8rem 'MozTT', sans-serif;
+  font-weight: lighter;
+  font-size: 2.8rem;
   margin-right: 0.4rem;
   color: #CFE2E5;
   height: auto;
@@ -509,14 +512,14 @@ li img {
 
 .alarmList-time span.hour24-state {
   height: auto;
-  font: 1.4rem 'MozTT', sans-serif;
+  font-size: 1.4rem;
   color: #5C6466;
   margin-left: -0.25rem;
   text-transform: uppercase;
 }
 
 .alarmList-detail .label {
-  font: 1.4rem 'MozTT', sans-serif;
+  font-size: 1.4rem;
   text-overflow: ellipsis;
   position: absolute;
   overflow: hidden;
@@ -527,7 +530,7 @@ li img {
 }
 
 .alarmList-detail .repeat {
-  font: 1.4rem 'MozTT', sans-serif;
+  font-size: 1.4rem;
   text-overflow: ellipsis;
   position: absolute;
   overflow: hidden;
@@ -621,7 +624,9 @@ li img {
 }
 
 #value-indicator-hover-time {
-  font: lighter 1.88rem/3.75rem 'MozTT',sans-serif;
+  font-weight: lighter;
+  font-size: 1.88rem;
+  line-height: 3.75rem;
   pointer-events: none;
   position: absolute;
   text-align: center;
@@ -704,7 +709,7 @@ div.animation-on {
 
 .picker-unit {
   position: relative;
-  font: 2.2rem 'MozTT',sans-serif;
+  font-size: 2.2rem;
   color: black;
   text-align: center;
   vertical-align: middle;
