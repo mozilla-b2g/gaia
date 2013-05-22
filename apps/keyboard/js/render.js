@@ -440,9 +440,7 @@ const IMERender = (function() {
         keys = row.childNodes;
         for (var k = 0, key; key = keys[k]; k += 1) {
           ratio = layout.keys[r][k].ratio || 1;
-          // divide by 10 to convert the unit from px to rem
-          key.style.width =
-            Math.floor(placeHolderWidth * ratio) / changeScale + 'rem';
+          key.style.width = Math.floor(placeHolderWidth * ratio) + 'px';
 
           // to get the visual width/height of the key
           // for better proximity info
