@@ -1565,6 +1565,11 @@ var WindowManager = (function() {
     return new ManifestHelper(manifest).name;
   }
 
+  window.addEventListener('digitalphoto', function() {
+    runningApps[homescreen].iframe.src = homescreenURL;
+    setAppSize(homescreen);
+  });
+
   // Deal with crashed apps
   window.addEventListener('mozbrowsererror', function(e) {
     if (!'frameType' in e.target.dataset)

@@ -1,9 +1,9 @@
 #permission-screen {
   position: absolute;
-  top: 2rem;
+  top: 2.5rem;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 2rem);
+  height: -moz-calc(100% - 2.5rem);
   background-color: rgba(0,0,0,0.4);
   -moz-transition: opacity 0.5s ease;
   pointer-events: none;

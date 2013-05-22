@@ -1,5 +1,5 @@
 html, body {
-  font-family: 'MozTT', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-size: 10px;
 }
 
@@ -45,7 +45,6 @@ html, body {
   top: 0.3rem;
   color: #52b8cc;
   font-size: 1.5rem;
-  font-weight: 500;
 }
 
 #toaster-detail {
@@ -54,7 +53,6 @@ html, body {
   top: 2.2rem;
   color: white;
   font-size: 1.4rem;
-  font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -65,30 +63,44 @@ html, body {
 }
 
 #notification-bar {
-  height: 3rem;
+  height: 5rem;
   background-color: #52b6cc;
-  color: #1b3f46;
+  color: #ffffff;
+  font-size: 3.2rem;
+  line-height: 5rem;
+}
+
+#notification-separator {
+  float: right;
+  background-image: url('images/separator-large.png');
+  background-repeat: no-repeat;
+  width: 0.1rem;
+  height: 5rem;
 }
 
 #notification-bar span {
   display: inline-block;
-  margin-left: 1.5rem;
-  font-size: 1.4rem;
-  font-weight: 500;
-  line-height: 3rem;
+  margin-left: 3rem;
+  font-size: 3.2rem;
+  line-height: 5rem;
 }
 
 #notification-bar button {
   float: right;
-  margin-right: 1.5rem;
-  width: 30%;
-  height: 3rem;
+  margin-right: 3rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  margin-left: 3rem;
   padding: 0;
   border: 0;
-  background: none;
   text-align: right;
-  font-size: 1.4rem;
-  font-weight: 500;
+  font-size: 3.2rem;
+  background-image: url('images/clear.png');
+  background-position: center center;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  width: 4rem;
+  height: 4rem;
 }
 
 /* remove ugly dotted outline when focus */
@@ -100,7 +112,7 @@ html, body {
   width: 100%;
 
   /* minus cost control, quick settings, bar and grippy */
-  height: calc(100% - 4.5rem - 6rem - 3rem - 2rem);
+  height: calc(100% - 4.5rem - 7rem - 5rem - 2.5rem);
   overflow-y: scroll;
   overflow-x: hidden;
 }
@@ -110,7 +122,6 @@ html, body {
   position: relative;
   height: 6rem;
   font-size: 1.4rem;
-  font-weight: 400;
   line-height: 1.9rem;
   background-color: rgba(0, 0, 0, 0.5);
   border-top: 0.1rem #404547 solid;
@@ -129,7 +140,6 @@ html, body {
   width: 19.5rem;
   margin: 1rem 0 0 5rem;
   font-size: 1.5rem;
-  font-weight: 500;
   line-height: 1.9rem;
   color: #FFFFFF;
 }
@@ -142,7 +152,6 @@ html, body {
   font-size: 1.4rem;
   line-height: 1.9rem;
   min-height: 1.9rem;
-  font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

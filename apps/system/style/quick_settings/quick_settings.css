@@ -6,11 +6,11 @@ html, body {
 #quick-settings {
   display: block;
   width: 100%;
-  height: 6rem;
+  height: 7rem;
   padding: 0;
 
   background-image: url(images/background.png);
-  background-size: 100% 6rem;
+  background-size: 100% 7rem;
 
   border-top:0.1rem black solid;
 }
@@ -18,9 +18,9 @@ html, body {
 #quick-settings > a {
   display: block;
   float: left;
-  width: calc(20% - 0.2rem);
-  height: 3rem;
-  margin: 1.5rem 0;
+  width: calc(25% - 0.2rem);
+  height: 5rem;
+  margin: 1rem 0;
   padding: 0;
   color: #fff;
   text-align: center;
@@ -35,18 +35,27 @@ html, body {
 #quick-settings > .separator {
   border-right: 0.1rem black solid;
   border-left: 0.1rem gray solid;
-  margin: 1.5rem 0;
-  height: 3rem;
+  margin: 1rem 0;
+  height: 5rem;
   float: left;
 }
 
+#quick-settings > .separator-img {
+  background-image: url(images/separator.jpg);
+  background-repeat: repeat-y;
+  height: 5rem;
+  margin: 1rem 0;
+  float: left;
+  width: 0.2rem;
+}
+
 #quick-settings > a:first-child {
-  width: calc(20% - 0.1rem);
+  width: calc(25% - 0.1rem);
   border-left: 0;
 }
 
 #quick-settings > a:last-child {
-  width: calc(20% - 0.1rem);
+  width: calc(25% - 0.1rem);
   border-right: 0;
 }
 
@@ -60,13 +69,15 @@ html, body {
   opacity: 0.5;
 }
 #quick-settings-wifi {
-  background-image: url(images/wifi-off.png);
+  background-image: url(images/actionicon_utilitytray_wifi_30x30.png);
+  background-size: 4rem 4rem;
 }
 #quick-settings-wifi[data-enabled] {
-  background-image: url(images/wifi-on.png);
+  background-image: url(images/actionicon_utilitytray_wifi_focus_30x30.png);
 }
 #quick-settings-data {
   background-image: url(images/data-off.png);
+  background-size: 4rem 4rem;
 }
 #quick-settings-data[data-network="2G"]  {
   background-image: url(images/data-2g-off.png);
@@ -117,16 +128,25 @@ html, body {
   background-image: url(images/bluetooth-on.png);
 }
 #quick-settings-airplane-mode {
-  background-image: url(images/airplane-mode-off.png);
+  background-size: 4rem 4rem;
+  background-image: url(images/actionicon_utilitytray_airplanemode_30x30.png);
 }
 #quick-settings-airplane-mode[data-enabled] {
-  background-image: url(images/airplane-mode-on.png);
+  background-image: url(images/actionicon_utilitytray_airplanemode_focused_30x30.png);
+}
+#quick-settings-digital-photo {
+  background-size: 4rem 4rem;
+  background-image: url(images/actionicon_utilitytray_digitalphoto_30x30.png);
+}
+#quick-settings-digital-photo:active {
+  background-image: url(images/actionicon_utilitytray_digitalphoto_focused_30x30.png);
 }
 #quick-settings-full-app {
-  background-image: url(images/settings-off.png);
+  background-size: 4rem 4rem;
+  background-image: url(images/actionicon_utilitytray_settings_30x30.png);
 }
 #quick-settings-full-app:active {
-  background-image: url(images/settings-on.png);
+  background-image: url(images/actionicon_utilitytray_settings_focused_30x30.png);
 }
 .quick-settings-airplane-mode {
   opacity: 0.5;
