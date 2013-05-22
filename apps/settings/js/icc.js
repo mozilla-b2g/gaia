@@ -630,37 +630,8 @@
 
     document.addEventListener('mozvisibilitychange',
         sendSessionEndTROnFocusLose, true);
-    var li = document.createElement('li');
-    var p = document.createElement('p');
-    p.id = 'stk-item-title';
-    p.classList.add('multiline_title');
-    p.textContent = options.text;
-    li.appendChild(p);
 
-    var input = document.createElement('input');
-    input.id = 'stk-item-input';
-    input.maxLength = options.maxLength;
-    input.placeholder = options.text;
-    if (options.isAlphabet) {
-      input.type = 'text';
-    } else {
-      input.type = 'tel';
-    }
-    if (options.defaultText) {
-      input.value = options.defaultText;
-    }
-    if (options.isYesNoRequired) {
-      input.type = 'checkbox';
-    }
-    if (options.hideInput) {
-      input.type = 'password';
-    }
-    if (options.hidden) {
-      input.type = 'hidden';
-    }
-    li.appendChild(input);
-    iccStkList.appendChild(li);
-
+    // AutoClose
     var timeoutInUse = options.duration;
     var inputTimeOutID = setTimeout(function() {
       debug('No response from user (Timeout)');
@@ -669,44 +640,106 @@
       });
     }, timeoutInUse ? calculateDurationInMS(options.duration) : inputTimeout);
 
-    li = document.createElement('li');
-    var label = document.createElement('label');
-    var button = document.createElement('button');
-    button.id = 'stk-item-ok';
-    button.textContent = 'Ok';
-    button.disabled = !checkInputLengthValid(input.value.length,
-                                              options.minLength,
-                                              options.maxLength);
-    button.onclick = function(event) {
+    // Common updateInput methodd
+    function stopSTKInputTimer() {
       if (inputTimeOutID) {
         clearTimeout(inputTimeOutID);
         inputTimeOutID = null;
       }
-      var value = document.getElementById('stk-item-input').value;
+    }
+    function inputSTKResponse(value) {
+      stopSTKInputTimer();
       responseSTKCommand({
         resultCode: icc.STK_RESULT_OK,
         input: value
       });
-    };
+    }
 
-    input.onkeyup = function(event) {
-      if (inputTimeOutID) {
-        clearTimeout(inputTimeOutID);
-        inputTimeOutID = null;
+    // Showing input screen
+    var li = document.createElement('li');
+    var p = document.createElement('p');
+    p.id = 'stk-item-title';
+    p.classList.add('multiline_title');
+    p.textContent = options.text;
+    li.appendChild(p);
+
+    if (!options.isYesNoRequired && !options.isYesNoRequested) {
+      var input = document.createElement('input');
+      input.id = 'stk-item-input';
+      input.maxLength = options.maxLength;
+      input.placeholder = options.text;
+      if (options.isAlphabet) {
+        input.type = 'text';
+      } else {
+        input.type = 'tel';
       }
-      if (input.type === 'tel') {
-        // Removing unauthorized characters
-        input.value = input.value.replace(/[()-]/g, '');
+      if (options.defaultText) {
+        input.value = options.defaultText;
       }
+      if (options.hideInput) {
+        input.type = 'password';
+      }
+      if (options.hidden) {
+        input.type = 'hidden';
+      }
+      li.appendChild(input);
+      iccStkList.appendChild(li);
+
+      li = document.createElement('li');
+      var label = document.createElement('label');
+      var button = document.createElement('button');
+      button.id = 'stk-item-ok';
+      button.textContent = _('ok');
       button.disabled = !checkInputLengthValid(input.value.length,
-                                              options.minLength,
-                                              options.maxLength);
-    };
+                                                options.minLength,
+                                                options.maxLength);
+      button.onclick = function(event) {
+        inputSTKResponse(document.getElementById('stk-item-input').value);
+      };
 
-    label.appendChild(button);
-    li.appendChild(label);
-    iccStkList.appendChild(li);
-    input.focus();
+      input.onkeyup = function(event) {
+        stopSTKInputTimer();
+        if (input.type === 'tel') {
+          // Removing unauthorized characters
+          input.value = input.value.replace(/[()-]/g, '');
+        }
+        button.disabled = !checkInputLengthValid(input.value.length,
+                                                options.minLength,
+                                                options.maxLength);
+      };
+
+      label.appendChild(button);
+      li.appendChild(label);
+      iccStkList.appendChild(li);
+      input.focus();
+    } else {
+      // Include default title
+      iccStkList.appendChild(li);
+
+      li = document.createElement('li');
+      var label = document.createElement('label');
+      var buttonYes = document.createElement('button');
+      buttonYes.id = 'stk-item-yes';
+      buttonYes.textContent = _('yes');
+      buttonYes.onclick = function(event) {
+        inputSTKResponse(1);
+      };
+      label.appendChild(buttonYes);
+      li.appendChild(label);
+      iccStkList.appendChild(li);
+
+      li = document.createElement('li');
+      var label = document.createElement('label');
+      var buttonNo = document.createElement('button');
+      buttonNo.id = 'stk-item-no';
+      buttonNo.textContent = _('no');
+      buttonNo.onclick = function(event) {
+        inputSTKResponse(0);
+      };
+      label.appendChild(buttonNo);
+      li.appendChild(label);
+      iccStkList.appendChild(li);
+    }
 
     // Help
     if (options.isHelpAvailable) {
