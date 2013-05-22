@@ -727,7 +727,7 @@ production: reset-gaia
 dogfood: reset-gaia
 
 # Remove everything and install a clean profile
-reset-gaia: purge install-gaia install-default-data
+reset-gaia: clean purge install-gaia install-default-data
 
 # remove the memories and apps on the phone
 purge:
