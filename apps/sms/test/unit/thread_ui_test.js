@@ -539,8 +539,8 @@ suite('thread_ui.js >', function() {
         assert.isTrue(Compose.lock);
       });
     });
-
   });
+
   suite('message type conversion >', function() {
     var convertBanner, convertBannerText, fakeTime, form;
     setup(function() {
@@ -716,7 +716,6 @@ suite('thread_ui.js >', function() {
       });
     });
   });
-
 
   suite('removeMessageDOM', function() {
     setup(function() {
@@ -1063,7 +1062,6 @@ suite('thread_ui.js >', function() {
 
       assert.deepEqual(ThreadUI.sendMessage.args, [[this.targetMsg.body]]);
     });
-
   });
 
   // TODO: Move these tests to an integration test suite.
