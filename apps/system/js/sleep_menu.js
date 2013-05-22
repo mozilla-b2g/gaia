@@ -280,8 +280,11 @@ var SleepMenu = {
       div.className = 'step1';
       var nextAnimation = function nextAnimation(e) {
         // Switch to next class
-        if (e.target == div)
+        if (e.target == div) {
           div.className = 'step2';
+          var shutdownSound = new Audio('./resources/sounds/shutdown.ogg');
+          shutdownSound.play();
+        }
 
         if (e.target != inner)
           return;
