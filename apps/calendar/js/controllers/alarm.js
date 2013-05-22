@@ -138,6 +138,24 @@ Calendar.ns('Controllers').Alarm = (function() {
       });
     },
 
+    handleAlarm: function(alarm, trans, callback) {
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = null;
+      }
+
+      var lock = navigator.requestWakeLock('cpu');
+      var self = this;
+
+      this._dispatchAlarm(alarm, trans, function() {
+        self.store.workQueue(function() {
+          callback && callback();
+          lock.unlock();
+        });
+      });
+
+    },
+
     /**
      * Given an alarm will send a notification.
      *
@@ -151,10 +169,10 @@ Calendar.ns('Controllers').Alarm = (function() {
      * @param {Object} alarm alarm object (usually from system message).
      * @param {IDBTransaction} [trans] optional transaction.
      */
-    handleAlarm: function(alarm, trans) {
+    _dispatchAlarm: function(alarm, trans, callback) {
       // a valid busytimeId will never be zero so ! is safe.
       if (!alarm._id || !alarm.busytimeId || !alarm.eventId) {
-        return;
+        return Calendar.nextTick(callback);
       }
 
       var now = new Date();
@@ -172,13 +190,8 @@ Calendar.ns('Controllers').Alarm = (function() {
       var busytime;
       var dbAlarm;
 
-      // async operations are required... Keep the CPU awake until we are done.
-      var cpuLock = navigator.requestWakeLock('cpu');
-
-      // we really want to make sure we free this lock
-      trans.onerror = trans.onabort = function transactionFailure() {
-        cpuLock.unlock();
-      };
+      // trigger callback in all cases...
+      trans.onerror = trans.onabort = callback;
 
       trans.oncomplete = function sendNotification() {
 
@@ -188,7 +201,7 @@ Calendar.ns('Controllers').Alarm = (function() {
         // when no associated records can be found.
         if (!dbAlarm || !event || !busytime) {
           debug('failed to load records', dbAlarm, event, busytime);
-          return cpuLock.unlock();
+          return Calendar.nextTick(callback);
         }
 
         var endDate = Calendar.Calc.dateFromTransport(busytime.end);
@@ -197,12 +210,9 @@ Calendar.ns('Controllers').Alarm = (function() {
         // if event has not ended yet we can send an alarm
         if (endDate > now) {
           // we need a lock to ensure we actually fire the notification
-          self._sendAlarmNotification(alarm, event, busytime, function() {
-            cpuLock.unlock();
-          });
+          self._sendAlarmNotification(alarm, event, busytime, callback);
         } else {
-          // no alarm to send just free the cpu lock
-          cpuLock.unlock();
+          callback();
         }
       };
 

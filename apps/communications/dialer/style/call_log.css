@@ -234,3 +234,23 @@ ol, ul {
   color: #606060;
   margin: 0;
 }
+
+#edit-mode {
+  display: block;
+}
+
+.filter .log-item:not(.missed-call) {
+  display: none;
+}
+
+.filter .groupFiltered {
+  display: none;
+}
+
+.disabled {
+  pointer-events: none !important;
+}
+
+.disabled *{
+  pointer-events: none !important;
+}

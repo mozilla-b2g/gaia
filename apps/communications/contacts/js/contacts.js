@@ -16,9 +16,7 @@ var Contacts = (function() {
     navigation.go('view-contact-form', 'popup');
   };
 
-  var selectedTag,
-      customTag,
-      contactTag,
+  var contactTag,
       settings,
       settingsButton,
       cancelButton,
@@ -156,7 +154,6 @@ var Contacts = (function() {
   };
 
   var initContainers = function initContainers() {
-    customTag = document.getElementById('custom-tag');
     settings = document.getElementById('view-settings');
     settingsButton = document.getElementById('settings-button');
     cancelButton = document.getElementById('cancel_activity');
@@ -392,100 +389,22 @@ var Contacts = (function() {
   };
 
   var goToSelectTag = function goToSelectTag(event) {
-    var target = event.currentTarget.children[0];
-    var tagList = target.dataset.taglist;
-    var options = TAG_OPTIONS[tagList];
-    fillTagOptions(options, tagList, target);
+    contactTag = event.currentTarget.children[0];
+    var tagsList = document.getElementById('tags-list');
+    var customTag = document.getElementById('custom-tag');
+    var selectedTagType = contactTag.dataset.taglist;
+    var options = TAG_OPTIONS[selectedTagType];
+
+    for (var i in options) {
+      options[i].value = _(options[i].type);
+    }
+    ContactsTag.setCustomTag(customTag);
+    ContactsTag.fillTagOptions(tagsList, contactTag, options);
+
     navigation.go('view-select-tag', 'right-left');
     if (document.activeElement) {
       document.activeElement.blur();
     }
-  };
-
-  var fillTagOptions = function fillTagOptions(options, tagList, update) {
-    var container = document.getElementById('tags-list');
-    utils.dom.removeChildNodes(container);
-    contactTag = update;
-
-    var selectedLink;
-    for (var option in options) {
-      var link = document.createElement('button');
-      link.dataset.index = option;
-      link.textContent = _(options[option].type);
-      link.setAttribute('data-l10n-id', options[option].type);
-      link.setAttribute('data-value', options[option].type);
-
-      link.onclick = function(event) {
-        selectTag(event.target, tagList);
-        event.preventDefault();
-      };
-
-      if (update.dataset.value == TAG_OPTIONS[tagList][option].type) {
-        selectedLink = link;
-      }
-
-      var list = document.createElement('li');
-      list.appendChild(link);
-      container.appendChild(list);
-    }
-
-    // Deal with the custom tag, clean or fill
-    customTag.value = '';
-    if (!selectedLink && update.textContent) {
-      customTag.value = update.textContent;
-    }
-
-    selectTag(selectedLink);
-  };
-
-  var onCustomTagSelected = function onCustomTagSelected() {
-    if (selectedTag) {
-      // Remove any mark if we had selected other option
-      selectedTag.removeAttribute('class');
-    }
-    selectedTag = null;
-  };
-
-  var selectTag = function selectTag(link, tagList) {
-    if (link == null) {
-      return;
-    }
-
-    //Clean any trace of the custom tag
-    customTag.value = '';
-
-    if (selectedTag) {
-      selectedTag.removeAttribute('class');
-    }
-
-    link.className = 'icon icon-selected';
-    selectedTag = link;
-  };
-
-  /*
-  * Finish the tag edition, check if we have a custom
-  * tag selected or use the predefined ones
-  */
-  var doneTag = function doneTag() {
-    var prevValue = contactTag.textContent;
-    if (selectedTag) {
-      contactTag.textContent = selectedTag.textContent;
-      contactTag.dataset.l10nId = selectedTag.dataset.l10nId;
-      contactTag.dataset.value = selectedTag.dataset.value;
-    } else if (customTag.value.length > 0) {
-      contactTag.textContent = customTag.value;
-      contactTag.dataset.value = customTag.value;
-    }
-    var valueModifiedEvent = new CustomEvent('ValueModified', {
-      bubbles: true,
-      detail: {
-        prevValue: prevValue,
-        newValue: contactTag.textContent
-      }
-    });
-    contactTag.dispatchEvent(valueModifiedEvent);
-    contactTag = null;
-    Contacts.goBack();
   };
 
   var sendSms = function sendSms(number) {
@@ -531,6 +450,25 @@ var Contacts = (function() {
         window.parent.postMessage(message, COMMS_APP_ORIGIN);
       }
     }
+  };
+
+  var handleSelectTagDone = function handleSelectTagDone() {
+    var prevValue = contactTag.textContent;
+    ContactsTag.clickDone(function() {
+      var valueModifiedEvent = new CustomEvent('ValueModified', {
+        bubbles: true,
+        detail: {
+          prevValue: prevValue,
+          newValue: contactTag.textContent
+        }
+      });
+      contactTag.dispatchEvent(valueModifiedEvent);
+      handleBack();
+    });
+  };
+
+  var handleCustomTag = function handleCustomTag() {
+    ContactsTag.touchCustomTag();
   };
 
   var sendEmailOrPick = function sendEmailOrPick(address) {
@@ -710,8 +648,6 @@ var Contacts = (function() {
       '#save-button': saveContact,
       '#add-contact-button': showAddContact,
       '#settings-button': showSettings, // Settings related
-      '#settings-cancel': handleBack,
-      '#settings-done': doneTag,
       '#cancel-search': exitSearchMode, // Search related
       '#search-start': [
         {
@@ -725,12 +661,14 @@ var Contacts = (function() {
       '#settings-close': hideSettings,
       '#toggle-favorite': toggleFavorite,
       'button[type="reset"]': stopPropagation,
+      '#settings-done': handleSelectTagDone,
+      '#settings-cancel': handleBack,
       // Bug 832861: Click event can't be synthesized correctly on customTag by
       // mouse_event_shim due to Gecko bug.  Use ontouchend here.
       '#custom-tag': [
         {
           event: 'touchend',
-          handler: onCustomTagSelected
+          handler: handleCustomTag
         }
       ]
     });
@@ -759,6 +697,7 @@ var Contacts = (function() {
       '/contacts/js/utilities/templates.js',
       '/contacts/js/contacts_shortcuts.js',
       '/contacts/js/confirm_dialog.js',
+      '/contacts/js/contacts_tag.js',
       '/contacts/js/contacts_settings.js',
       '/contacts/js/contacts_details.js',
       '/contacts/js/contacts_form.js',
@@ -902,7 +841,6 @@ var Contacts = (function() {
   window.addEventListener('localized', initContacts); // addEventListener
 
   return {
-    'doneTag': doneTag,
     'goBack' : handleBack,
     'cancel': handleCancel,
     'goToSelectTag': goToSelectTag,

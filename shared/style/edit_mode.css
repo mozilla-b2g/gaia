@@ -11,7 +11,6 @@ form[role="dialog"][data-type="edit"] {
   right: 0;
   bottom: 0;
   white-space: nowrap;
-  font-family: "MozTT", Sans-serif;
   color: #fff;
   pointer-events: none;
 }
@@ -41,7 +40,8 @@ form[role="dialog"][data-type="edit"] header:after {
 }
 
 form[role="dialog"][data-type="edit"] header h1 {
-  font: 2.5rem/5rem "MozTT", Sans-serif;
+  font-size: 2.5rem;
+  line-height: 5rem;
   text-align: left;
   color: #fff;
   white-space: nowrap;
@@ -57,7 +57,9 @@ form[role="dialog"][data-type="edit"] header button {
   background: none;
   padding: 0;
   overflow: hidden;
-  font: normal 1.4rem/1.1em "MozTT", Sans-serif;
+  font-weight: normal;
+  font-size: 1.4rem;
+  line-height: 1.1em;
   color: #fff;
   border-radius: 0;
 }
@@ -171,7 +173,6 @@ form[role="dialog"][data-type="edit"] menu button {
   border: 0.1rem solid #a6a6a6;
   border-radius: 0.3rem;
   font-size: 1.6rem;
-  font-family: 'MozTT', Sans-serif;
   font-weight: 500;
   line-height: 3.8rem;
   color: #333;

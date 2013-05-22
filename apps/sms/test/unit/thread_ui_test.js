@@ -5,6 +5,7 @@
 mocha.setup({ globals: ['alert', '0', '1'] });
 
 requireApp('sms/js/compose.js');
+requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
@@ -19,7 +20,8 @@ requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
-
+requireApp('sms/test/unit/mock_activity_picker.js');
+requireApp('sms/test/unit/mock_action_menu.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -27,7 +29,9 @@ var mocksHelperForThreadUI = new MocksHelper([
   'Settings',
   'Recipients',
   'LinkHelper',
-  'MozActivity'
+  'MozActivity',
+  'ActivityPicker',
+  'OptionMenu'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -538,8 +542,8 @@ suite('thread_ui.js >', function() {
         assert.isTrue(Compose.lock);
       });
     });
-
   });
+
   suite('message type conversion >', function() {
     var convertBanner, convertBannerText, fakeTime, form;
     setup(function() {
@@ -714,14 +718,295 @@ suite('thread_ui.js >', function() {
         });
       });
     });
+  });
 
+  suite('removeMessageDOM', function() {
+    setup(function() {
+      ThreadUI.container.innerHTML = '<h2></h2><ul><li></li><li></li></ul>';
+    });
+    teardown(function() {
+      ThreadUI.container.innerHTML = '';
+    });
+    test('removeMessageDOM removes a child', function() {
+      ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
+      assert.equal(ThreadUI.container.querySelectorAll('li').length, 1);
+    });
+    test('removeMessageDOM removes headers and ul', function() {
+      ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
+      ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
+      assert.equal(ThreadUI.container.querySelectorAll('h2').length, 0);
+      assert.equal(ThreadUI.container.querySelectorAll('ul').length, 0);
+    });
+  });
+
+  suite('not-downloaded', function() {
+    var ONE_DAY_TIME = 24 * 60 * 60 * 1000;
+    var testMessages = [{
+      id: 1,
+      threadId: 8,
+      sender: '123456',
+      type: 'mms',
+      delivery: 'not-downloaded',
+      deliveryStatus: ['pending'],
+      subject: 'Pending download',
+      timestamp: new Date(Date.now() - 150000),
+      expiryDate: new Date(Date.now() + ONE_DAY_TIME)
+    },
+    {
+      id: 2,
+      threadId: 8,
+      sender: '123456',
+      type: 'mms',
+      delivery: 'not-downloaded',
+      deliveryStatus: ['error'],
+      subject: 'Error download',
+      timestamp: new Date(Date.now() - 150000),
+      expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
+    },
+    {
+      id: 3,
+      threadId: 8,
+      sender: '123456',
+      type: 'mms',
+      delivery: 'not-downloaded',
+      deliveryStatus: ['error'],
+      subject: 'Error download',
+      timestamp: new Date(Date.now() - 150000),
+      expiryDate: new Date(Date.now() - ONE_DAY_TIME)
+    }];
+    setup(function() {
+      sinon.stub(Utils.date.format, 'localeFormat', function() {
+        return 'date_stub';
+      });
+      sinon.stub(MessageManager, 'retrieveMMS', function() {
+        return {};
+      });
+    });
+    teardown(function() {
+      Utils.date.format.localeFormat.restore();
+      MessageManager.retrieveMMS.restore();
+    });
+    suite('pending message', function() {
+      var message = testMessages[0];
+      var element;
+      var notDownloadedMessage;
+      var button;
+      setup(function() {
+        ThreadUI.appendMessage(message);
+        element = document.getElementById('message-' + message.id);
+        notDownloadedMessage = element.querySelector('.not-downloaded-message');
+        button = element.querySelector('button');
+      });
+      test('element has correct data-message-id', function() {
+        assert.equal(element.dataset.messageId, message.id);
+      });
+      test('not-downloaded class present', function() {
+        assert.isTrue(element.classList.contains('not-downloaded'));
+      });
+      test('error class absent', function() {
+        assert.isFalse(element.classList.contains('error'));
+      });
+      test('expired class absent', function() {
+        assert.isFalse(element.classList.contains('expired'));
+      });
+      test('pending class absent', function() {
+        assert.isFalse(element.classList.contains('pending'));
+      });
+      test('message is correct', function() {
+        assert.equal(notDownloadedMessage.textContent,
+          'not-downloaded-mms{"date":"date_stub"}');
+      });
+      test('date is correctly determined', function() {
+        assert.equal(Utils.date.format.localeFormat.args[0][0],
+          message.expiryDate);
+        assert.equal(Utils.date.format.localeFormat.args[0][1],
+          'dateTimeFormat_%x');
+      });
+      test('button text is correct', function() {
+        assert.equal(button.textContent, 'download');
+      });
+      suite('clicking', function() {
+        setup(function() {
+          ThreadUI.handleMessageClick({
+            target: button
+          });
+        });
+        test('changes download text', function() {
+          assert.equal(button.textContent, 'downloading');
+        });
+        test('error class absent', function() {
+          assert.isFalse(element.classList.contains('error'));
+        });
+        test('pending class present', function() {
+          assert.isTrue(element.classList.contains('pending'));
+        });
+        test('click calls retrieveMMS', function() {
+          assert.isTrue(MessageManager.retrieveMMS.calledWith(message.id));
+        });
+        suite('response error', function() {
+          setup(function() {
+            MessageManager.retrieveMMS.returnValues[0].onerror();
+          });
+          test('error class present', function() {
+            assert.isTrue(element.classList.contains('error'));
+          });
+          test('pending class absent', function() {
+            assert.isFalse(element.classList.contains('pending'));
+          });
+          test('changes download text', function() {
+            assert.equal(button.textContent, 'download');
+          });
+        });
+        suite('response success', function() {
+          setup(function() {
+            MessageManager.retrieveMMS.returnValues[0].onsuccess();
+          });
+          // re-rendering message happens from a status handler
+          test('removes message', function() {
+            assert.equal(element.parentNode, null);
+          });
+        });
+      });
+    });
+    suite('error message', function() {
+      var message = testMessages[1];
+      var element;
+      var notDownloadedMessage;
+      var button;
+      setup(function() {
+        ThreadUI.appendMessage(message);
+        element = document.getElementById('message-' + message.id);
+        notDownloadedMessage = element.querySelector('.not-downloaded-message');
+        button = element.querySelector('button');
+      });
+      test('element has correct data-message-id', function() {
+        assert.equal(element.dataset.messageId, message.id);
+      });
+      test('not-downloaded class present', function() {
+        assert.isTrue(element.classList.contains('not-downloaded'));
+      });
+      test('error class present', function() {
+        assert.isTrue(element.classList.contains('error'));
+      });
+      test('expired class absent', function() {
+        assert.isFalse(element.classList.contains('expired'));
+      });
+      test('pending class absent', function() {
+        assert.isFalse(element.classList.contains('pending'));
+      });
+      test('message is correct', function() {
+        assert.equal(notDownloadedMessage.textContent,
+          'not-downloaded-mms{"date":"date_stub"}');
+      });
+      test('date is correctly determined', function() {
+        assert.equal(Utils.date.format.localeFormat.args[0][0],
+          message.expiryDate);
+        assert.equal(Utils.date.format.localeFormat.args[0][1],
+          'dateTimeFormat_%x');
+      });
+      test('button text is correct', function() {
+        assert.equal(button.textContent, 'download');
+      });
+      suite('clicking', function() {
+        setup(function() {
+          ThreadUI.handleMessageClick({
+            target: button
+          });
+        });
+        test('changes download text', function() {
+          assert.equal(button.textContent, 'downloading');
+        });
+        test('error class absent', function() {
+          assert.isFalse(element.classList.contains('error'));
+        });
+        test('pending class present', function() {
+          assert.isTrue(element.classList.contains('pending'));
+        });
+        test('click calls retrieveMMS', function() {
+          assert.isTrue(MessageManager.retrieveMMS.calledWith(message.id));
+        });
+        suite('response error', function() {
+          setup(function() {
+            MessageManager.retrieveMMS.returnValues[0].onerror();
+          });
+          test('error class present', function() {
+            assert.isTrue(element.classList.contains('error'));
+          });
+          test('pending class absent', function() {
+            assert.isFalse(element.classList.contains('pending'));
+          });
+          test('changes download text', function() {
+            assert.equal(button.textContent, 'download');
+          });
+        });
+        suite('response success', function() {
+          setup(function() {
+            MessageManager.retrieveMMS.returnValues[0].onsuccess();
+          });
+          // re-rendering message happens from a status handler
+          test('removes message', function() {
+            assert.equal(element.parentNode, null);
+          });
+        });
+      });
+    });
+    suite('expired message', function() {
+      var message = testMessages[2];
+      var element;
+      var element;
+      var notDownloadedMessage;
+      var button;
+      setup(function() {
+        ThreadUI.appendMessage(message);
+        element = document.getElementById('message-' + message.id);
+        notDownloadedMessage = element.querySelector('.not-downloaded-message');
+        button = element.querySelector('button');
+      });
+      test('element has correct data-message-id', function() {
+        assert.equal(element.dataset.messageId, message.id);
+      });
+      test('not-downloaded class present', function() {
+        assert.isTrue(element.classList.contains('not-downloaded'));
+      });
+      test('error class present', function() {
+        assert.isTrue(element.classList.contains('error'));
+      });
+      test('expired class present', function() {
+        assert.isTrue(element.classList.contains('expired'));
+      });
+      test('pending class absent', function() {
+        assert.isFalse(element.classList.contains('pending'));
+      });
+      test('message is correct', function() {
+        assert.equal(notDownloadedMessage.textContent,
+          'expired-mms{"date":"date_stub"}');
+      });
+      test('date is correctly determined', function() {
+        assert.equal(Utils.date.format.localeFormat.args[0][0],
+          message.expiryDate);
+        assert.equal(Utils.date.format.localeFormat.args[0][1],
+          'dateTimeFormat_%x');
+      });
+      suite('clicking', function() {
+        setup(function() {
+          ThreadUI.handleMessageClick({
+            target: button
+          });
+        });
+        test('does not call retrieveMMS', function() {
+          assert.equal(MessageManager.retrieveMMS.args.length, 0);
+        });
+      });
+    });
   });
 
   suite('resendMessage', function() {
     setup(function() {
+      this.receivers = ['1234'];
       this.targetMsg = {
         id: 23,
         type: 'sms',
+        receivers: this.receivers,
         body: 'This is a test',
         delivery: 'error',
         timestamp: new Date()
@@ -729,8 +1014,9 @@ suite('thread_ui.js >', function() {
       this.otherMsg = {
         id: 45,
         type: 'sms',
-        body: 'This is another test',
-        delivery: 'sent',
+        receivers: this.receivers,
+        body: 'this test',
+        delivery: 'error',
         timestamp: new Date()
       };
       ThreadUI.appendMessage(this.targetMsg);
@@ -747,13 +1033,12 @@ suite('thread_ui.js >', function() {
       sinon.stub(MessageManager, 'getMessage')
         .returns(this.getMessageReq);
       sinon.stub(MessageManager, 'deleteMessage').callsArgWith(1, true);
-
-      sinon.stub(ThreadUI, 'sendMessage');
+      sinon.stub(MessageManager, 'resendMessage');
     });
     teardown(function() {
       MessageManager.getMessage.restore();
       MessageManager.deleteMessage.restore();
-      ThreadUI.sendMessage.restore();
+      MessageManager.resendMessage.restore();
     });
 
     // TODO: Implement this functionality in a specialized method and update
@@ -774,15 +1059,15 @@ suite('thread_ui.js >', function() {
         1);
     });
 
-    test('invokes the `sendMessage` method', function() {
+    test('invokes MessageManager.resendMessage', function() {
       ThreadUI.resendMessage(23);
 
       this.getMessageReq.result = this.targetMsg;
       this.getMessageReq.onsuccess();
 
-      assert.deepEqual(ThreadUI.sendMessage.args, [[this.targetMsg.body]]);
+      assert.deepEqual(MessageManager.resendMessage.args[0],
+        [this.targetMsg]);
     });
-
   });
 
   // TODO: Move these tests to an integration test suite.
@@ -877,11 +1162,11 @@ suite('thread_ui.js >', function() {
 
       // quick dirty creation of a thread with image:
       var output = ThreadUI.createMmsContent(inputArray);
+      img = output.querySelector('img');
+
       // need to get a container from ThreadUI because event is delegated
       var messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
       messageContainer.appendChild(output);
-
-      img = output.querySelector('img');
     });
     test('MozActivity is called with the proper info on click', function() {
       // Start the test: simulate a click event
@@ -890,6 +1175,7 @@ suite('thread_ui.js >', function() {
       assert.equal(MockMozActivity.calls.length, 1);
       var call = MockMozActivity.calls[0];
       assert.equal(call.name, 'open');
+      assert.isTrue(call.data.allowSave);
       assert.equal(call.data.type, 'image/jpeg');
       assert.equal(call.data.filename, 'imageTest.jpg');
       assert.equal(call.data.blob, testImageBlob);
@@ -907,11 +1193,11 @@ suite('thread_ui.js >', function() {
 
       // quick dirty creation of a thread with image:
       var output = ThreadUI.createMmsContent(inputArray);
+      audio = output.querySelector('.audio-placeholder');
+
       // need to get a container from ThreadUI because event is delegated
       var messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
       messageContainer.appendChild(output);
-
-      audio = output.querySelector('.audio-placeholder');
     });
 
     test('MozActivity is called with the proper info on click', function() {
@@ -921,6 +1207,7 @@ suite('thread_ui.js >', function() {
       assert.equal(MockMozActivity.calls.length, 1);
       var call = MockMozActivity.calls[0];
       assert.equal(call.name, 'open');
+      assert.isTrue(call.data.allowSave);
       assert.equal(call.data.type, 'audio/ogg');
       assert.equal(call.data.filename, 'audio.oga');
       assert.equal(call.data.blob, testAudioBlob);
@@ -938,11 +1225,11 @@ suite('thread_ui.js >', function() {
 
       // quick dirty creation of a thread with video:
       var output = ThreadUI.createMmsContent(inputArray);
+      video = output.querySelector('.video-placeholder');
+
       // need to get a container from ThreadUI because event is delegated
       var messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
       messageContainer.appendChild(output);
-
-      video = output.querySelector('.video-placeholder');
     });
 
     test('MozActivity is called with the proper info on click', function() {
@@ -952,9 +1239,89 @@ suite('thread_ui.js >', function() {
       assert.equal(MockMozActivity.calls.length, 1);
       var call = MockMozActivity.calls[0];
       assert.equal(call.name, 'open');
+      assert.isTrue(call.data.allowSave);
       assert.equal(call.data.type, 'video/ogg');
       assert.equal(call.data.filename, 'video.ogv');
       assert.equal(call.data.blob, testVideoBlob);
+    });
+  });
+
+
+  suite('Header Actions', function() {
+    setup(function() {
+      MockActivityPicker.call.mSetup();
+    });
+
+    teardown(function() {
+      Threads.delete(1);
+      window.location.hash = '';
+      MockActivityPicker.call.mTeardown();
+    });
+
+    test('Single participant: Invoke Activities (known)', function() {
+
+      Threads.set(1, {
+        participants: ['999']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = true;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.ok(MockActivityPicker.call.called);
+      assert.equal(MockActivityPicker.call.calledWith[0], '999');
+    });
+
+    test('Single participant: Invoke Options (unknown)', function() {
+
+      Threads.set(1, {
+        participants: ['999']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = false;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.equal(MockOptionMenu.calls.length, 1);
+    });
+
+    test('Multi participant: DOES NOT Invoke Activities', function() {
+
+      Threads.set(1, {
+        participants: ['999', '888']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = true;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.equal(MockActivityPicker.call.called, false);
+      assert.equal(MockActivityPicker.call.calledWith, null);
+    });
+
+    test('Multi participant: DOES NOT Invoke Options', function() {
+
+      Threads.set(1, {
+        participants: ['999', '888']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = true;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.equal(MockOptionMenu.calls.length, 0);
     });
   });
 });

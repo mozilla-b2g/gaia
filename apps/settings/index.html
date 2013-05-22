@@ -1472,7 +1472,11 @@
         <header>
           <h2 data-l10n-id="keyboardLayouts">Layouts</h2>
         </header>
-        <ul>
+        <ul id="keyboard-layouts">
+          <li id="language-keyboard">
+            <small></small>
+            <a></a>
+          </li>
           <li>
             <label>
               <input type="checkbox" name="keyboard.layouts.english" checked />
@@ -1507,6 +1511,13 @@
               <span></span>
             </label>
             <a data-l10n-id="polish">Polish</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.catalan"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="catalan">Catalan</a>
           </li>
           <li>
             <label>
@@ -2759,7 +2770,7 @@
             <small id="phoneLock-desc" class="menu-item-desc"></small>
             <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
           </li>
-          <li>
+          <li id="simSecurity-settings">
             <small id="simCardLock-desc" class="menu-item-desc"></small>
             <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM Security</a>
           </li>

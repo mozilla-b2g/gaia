@@ -43,7 +43,8 @@ ul li:not(.disabled) > a[href]:active {
 }
 
 ul li.disabled > a {
-  color: gray;
+  color: #797e80;
+  opacity: 0.6;
   pointer-events: none;
 }
 
@@ -98,7 +99,6 @@ ul li > label:not([for]) + small {
 ul li > small:not(:empty) + a,
 ul li > small:not(:empty) + span {
   line-height: 4.4rem;
-  overflow: inherit; /* see Bug 831429 */
 }
 
 

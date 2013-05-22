@@ -5,7 +5,6 @@ html, body {
   padding: 0;
   overflow: hidden !important;
   font-size: 10px;
-  font-family: "MozTT","Moz",sans-serif;
   font-weight: 400;
   user-select: none;
 }

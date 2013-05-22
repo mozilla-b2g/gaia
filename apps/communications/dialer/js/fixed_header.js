@@ -44,7 +44,7 @@ var FixedHeader = (function FixedHeader() {
       }
 
       // Switching Header
-      if (offset <= 0) {
+      if (offset < 0) {
         if (differentHeaders) {
           fixedContainer.style.transform = 'translateY(0)';
           currentlyFixed = currentHeader;

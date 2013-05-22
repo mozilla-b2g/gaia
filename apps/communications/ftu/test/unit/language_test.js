@@ -29,13 +29,6 @@ suite('languages >', function() {
     });
   });
 
-  test('loads keyboard layouts from file', function(done) {
-    LanguageManager.getSupportedKbLayouts(function() {
-      assert.isNotNull(LanguageManager._kbLayoutList);
-      done();
-    });
-  });
-
   test('change language', function() {
     var settingName = 'language.current';
     var fakeEvent = {
@@ -49,6 +42,31 @@ suite('languages >', function() {
                  fakeEvent.target.value);
   });
 
+  test('build language list', function(done) {
+    var language = 'en-US';
+
+    var section = document.createElement('section');
+    section.id = 'languages';
+    document.body.appendChild(section);
+    var list = document.createElement('ul');
+    section.appendChild(list);
+
+    LanguageManager.buildLanguageList(language);
+    assert.equal(document.querySelectorAll('li').length,
+                 Object.keys(LanguageManager._languages).length);
+    var selected = document.querySelectorAll('input[type="radio"]:checked');
+    assert.equal(selected.length, 1);
+    assert.equal(selected[0].value, language);
+    done();
+  });
+
+    test('loads keyboard layouts from file', function(done) {
+    LanguageManager.getSupportedKbLayouts(function() {
+      assert.isNotNull(LanguageManager._kbLayoutList);
+      done();
+    });
+  });
+
   test('change keyboard', function() {
     var settingName = 'keyboard.current',
         currentLanguage = 'currentLanguage',
@@ -59,37 +77,26 @@ suite('languages >', function() {
       currentLanguage: currentLanguage,
       newLanguage: newLanguage
     };
+    LanguageManager._languages = {
+      currentLanguage: 'The Current Language',
+      newLanguage: 'The New Language'
+    };
 
     var fakeEvent = {
       settingValue: newLanguage
     };
-
     LanguageManager.changeDefaultKb(fakeEvent);
+
+    // Check current language
     assert.equal(MockNavigatorSettings.mSettings[settingName],
                  fakeEvent.settingValue);
+
+    // Check old layout set to false
     assert.isFalse(MockNavigatorSettings.mSettings['keyboard.layouts.' +
                                                     currentLanguage]);
+    // Check new layout set to true
     assert.isTrue(MockNavigatorSettings.mSettings['keyboard.layouts.' +
                                                    newLanguage]);
-  });
-
-  test('build language list', function(done) {
-    var language = 'en-US';
-
-    var section = document.createElement('section');
-    section.id = 'languages';
-    document.body.appendChild(section);
-    var list = document.createElement('ul');
-    section.appendChild(list);
-    LanguageManager.buildLanguageList(language);
-    window.setTimeout(function() {
-      assert.equal(document.querySelectorAll('li').length,
-                   Object.keys(LanguageManager._languages).length);
-      var selected = document.querySelectorAll('input[type="radio"]:checked');
-      assert.equal(selected.length, 1);
-      assert.equal(selected[0].value, language);
-      done();
-    }, 100);
   });
 
 });

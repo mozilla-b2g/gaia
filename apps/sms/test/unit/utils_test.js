@@ -372,6 +372,19 @@ suite('Utils', function() {
     });
   });
 
+  suite('Utils.params', function() {
+    var testIndex;
+    var tests = {
+      '?foo=bar&baz=1&quux=null': {foo: 'bar', baz: '1', quux: 'null'}
+    };
+
+    for (testIndex in tests) {
+      test(testIndex, function() {
+        assert.deepEqual(Utils.params(testIndex), tests[testIndex]);
+      });
+    }
+  });
+
 });
 
 suite('Utils.Message', function() {

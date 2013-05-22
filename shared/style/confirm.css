@@ -15,7 +15,6 @@ form[role="dialog"][data-type="confirm"] {
   right: 0;
   bottom: 0;
   padding: 1.5rem 0 7rem;
-  font-family: "MozTT", Sans-serif;
   font-size: 0;
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
@@ -88,7 +87,9 @@ form[role="dialog"][data-type="confirm"] menu button {
   background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom/ auto 100%;
   border: 0.1rem solid #a6a6a6;
   border-radius: 0.3rem;
-  font: 500 1.6rem/3.8rem 'MozTT', Sans-serif;
+  font-weight: 500;
+  font-size: 1.6rem;
+  line-height: 3.8rem;
   color: #333;
   text-align: center;
   text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);

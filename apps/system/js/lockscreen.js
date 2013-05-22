@@ -130,6 +130,7 @@ var LockScreen = {
     /* Gesture */
     this.area.addEventListener('mousedown', this);
     this.areaCamera.addEventListener('click', this);
+    this.altCameraButton.addEventListener('click', this);
     this.areaUnlock.addEventListener('click', this);
     this.iconContainer.addEventListener('mousedown', this);
 
@@ -279,6 +280,11 @@ var LockScreen = {
 
           // Resume refreshing the clock when the screen is turned on.
           this.clock.start(this.refreshClock.bind(this));
+
+          // Show the unlock keypad immediately
+          if (this.passCodeEnabled) {
+            this.switchPanel('passcode');
+          }
         }
 
         this.lockIfEnabled(true);
@@ -289,7 +295,9 @@ var LockScreen = {
         this.updateConnState();
 
       case 'click':
-        if (evt.target === this.areaUnlock || evt.target === this.areaCamera) {
+        if (evt.target === this.areaUnlock ||
+           evt.target === this.areaCamera ||
+           evt.target === this.altCameraButton) {
           this.handleIconClick(evt.target);
           break;
         }
@@ -368,7 +376,11 @@ var LockScreen = {
 
       case 'home':
         if (this.locked) {
-          this.switchPanel();
+          if (this.passCodeEnabled) {
+            this.switchPanel('passcode');
+          } else {
+            this.switchPanel();
+          }
           evt.stopImmediatePropagation();
         }
         break;
@@ -448,6 +460,7 @@ var LockScreen = {
     var self = this;
     switch (target) {
       case this.areaCamera:
+      case this.altCameraButton:
         var panelOrFullApp = function panelOrFullApp() {
           // If the passcode is enabled and it has a timeout which has passed
           // switch to secure camera
@@ -951,7 +964,7 @@ var LockScreen = {
     // ID of elements to create references
     var elements = ['connstate', 'mute', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
-        'area-handle', 'passcode-code',
+        'area-handle', 'passcode-code', 'alt-camera', 'alt-camera-button',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call'];
 

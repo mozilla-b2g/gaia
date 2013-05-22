@@ -1,6 +1,6 @@
 'use strict';
 
-var RecentsDBManager = {
+var CallLogDBManager = {
   _db: null,
   _dbName: 'dialerRecents',
   _dbRecentsStore: 'dialerRecents',

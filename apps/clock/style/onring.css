@@ -1,7 +1,6 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: "MozTT", sans-serif;
   overflow: hidden !important;
   background-image: url(images/attention_background.png);
   background-size: 100% 100%;
@@ -41,19 +40,22 @@ html, body {
 }
 
 #ring-clock-time {
-  font: lighter 3.13rem 'MozTT', sans-serif;
+  font-weight: lighter;
+  font-size: 3.13rem;
   line-height: 5.63rem;
   width: 100%;
 }
 
 #ring-clock-hour24-state {
-  font: lighter 3.13rem 'MozTT', sans-serif;
+  font-weight: lighter;
+  font-size: 3.13rem;
   line-height: 5rem;
   padding-left: 0.94rem;
 }
 
 #ring-alarm-label {
-  font: lighter 2.50rem 'MozTT',sans-serif;
+  font-weight: lighter;
+  font-size: 2.50rem;
   line-height: 3.25rem;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -83,7 +85,9 @@ html, body {
   border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
   color: #333333;
   display: inline-block;
-  font: 600 1.63rem/4.06rem 'MozTT', sans-serif;
+  font-weight: 600;
+  font-size: 1.63rem;
+  line-height: 4.06rem;
   height: 4.12rem;
   margin: 1.50rem 0 0 1.56rem;
   outline: medium none;
@@ -113,7 +117,9 @@ html, body {
   border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
   color: #333333;
   display: inline-block;
-  font: 600 1.63rem/4.06rem 'MozTT', sans-serif;
+  font-weight: 600;
+  font-size: 1.63rem;
+  line-height: 4.06rem;
   height: 4.12rem;
   margin: 1.50rem 1.56rem 0 0.94rem;
   outline: medium none;
@@ -174,7 +180,9 @@ html, body {
   }
 
   #ring-clock-time {
-    font: bolder 1.38rem/1.38rem 'MozTT', sans-serif;
+    font-weight: bolder;
+    font-size: 1.38rem;
+    line-height: 1.38rem;
   }
 
   #ring-clock-hour24-state {
@@ -185,7 +193,9 @@ html, body {
     position: absolute;
     top: 0.46rem;
     left: 4rem;
-    font: bolder 1.38rem/1.44rem 'MozTT',sans-serif;
+    font-weight: bolder;
+    font-size: 1.38rem;
+    line-height: 1.44rem;
     color: #00aac8;
     margin-top: 0;
     margin-left: 0;

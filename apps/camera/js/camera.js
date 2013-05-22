@@ -112,7 +112,8 @@ var Camera = {
 
   _videoTimer: null,
   _videoStart: null,
-  _videoPath: null,
+  _videoPath: null, // file path relative to video root directory
+  _videoRootDir: null, // video root directory string
 
   _autoFocusSupported: 0,
   _manuallyFocused: false,
@@ -140,6 +141,7 @@ var Camera = {
   STORAGE_CAPACITY: 4,
 
   _pictureSize: null,
+  _previewConfig: null,
   _previewPaused: false,
   _previewActive: false,
 
@@ -161,14 +163,6 @@ var Camera = {
 
   _config: {
     fileFormat: 'jpeg'
-  },
-
-  get _previewConfig() {
-    delete this._previewConfig;
-    return this._previewConfig = {
-      width: document.body.clientHeight,
-      height: document.body.clientWidth
-    };
   },
 
   _previewConfigVideo: {
@@ -380,6 +374,11 @@ var Camera = {
   disableButtons: function camera_disableButtons() {
     this.switchButton.setAttribute('disabled', 'disabled');
     this.captureButton.setAttribute('disabled', 'disabled');
+
+    if (this._pendingPick) {
+      var cancelButton = document.getElementById('cancel-pick');
+      cancelButton.onclick = function() { };
+    }
   },
 
   // When inside an activity the user cannot switch between
@@ -532,7 +531,12 @@ var Camera = {
       var dummyfilename = path + '.' + name;
       var req = this._videoStorage.addNamed(dummyblob, dummyfilename);
       req.onerror = onerror;
-      req.onsuccess = (function fileCreated() {
+      req.onsuccess = (function fileCreated(e) {
+        // Extract video root directory string
+        var absolutePath = e.target.result;
+        var rootDirLength = absolutePath.length - dummyfilename.length;
+        this._videoRootDir = absolutePath.substring(0, rootDirLength);
+
         this._videoStorage.delete(dummyfilename); // No need to wait for success
         // Determine the number of bytes available on disk.
         var spaceReq = this._videoStorage.freeSpace();
@@ -564,6 +568,8 @@ var Camera = {
     // Register a listener for writing completion of current video file
     (function(videoStorage, videofile) {
       videoStorage.addEventListener('change', function changeHandler(e) {
+        // Regard the modification as video file writing completion if e.path
+        // matches current video filename. Note e.path is absolute path.
         if (e.reason === 'modified' && e.path === videofile) {
           Filmstrip.addVideo(videofile);
           Filmstrip.show(Camera.FILMSTRIP_DURATION);
@@ -571,7 +577,7 @@ var Camera = {
           videoStorage.removeEventListener('change', changeHandler);
         }
       });
-    })(this._videoStorage, this._videoPath);
+    })(this._videoStorage, this._videoRootDir + this._videoPath);
 
     window.clearInterval(this._videoTimer);
     this.enableButtons();
@@ -663,36 +669,12 @@ var Camera = {
 
     this.viewfinder.mozSrcObject = null;
     this._timeoutId = 0;
-
-    var viewfinder = this.viewfinder;
-    var style = viewfinder.style;
-    var width = document.body.clientHeight;
-    var height = document.body.clientWidth;
-
-    style.top = ((width / 2) - (height / 2)) + 'px';
-    style.left = -((width / 2) - (height / 2)) + 'px';
-
-    var transform = 'rotate(90deg)';
-    var rotation;
-    if (camera == 1) {
-      /* backwards-facing camera */
-      transform += ' scale(-1, 1)';
-      rotation = 0;
-    } else {
-      /* forwards-facing camera */
-      rotation = 0;
-    }
-
-    style.MozTransform = transform;
-    style.width = width + 'px';
-    style.height = height + 'px';
-
     this._cameras = navigator.mozCameras.getListOfCameras();
     var options = {camera: this._cameras[this._camera]};
 
     function gotPreviewScreen(stream) {
-      viewfinder.mozSrcObject = stream;
-      viewfinder.play();
+      this.viewfinder.mozSrcObject = stream;
+      this.viewfinder.play();
 
       if (callback) {
         callback();
@@ -703,12 +685,14 @@ var Camera = {
 
     function gotCamera(camera) {
       this._cameraObj = camera;
-      this._config.rotation = rotation;
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
         this.pickPictureSize(camera.capabilities.pictureSizes);
+
+      this.setPreviewSize(camera);
       this.enableCameraFeatures(camera.capabilities);
+
       camera.onShutter = (function() {
         if (this._shutterSoundEnabled) {
           this._shutterSound.play();
@@ -733,6 +717,70 @@ var Camera = {
     } else {
       navigator.mozCameras.getCamera(options, gotCamera.bind(this));
     }
+  },
+
+  setPreviewSize: function(camera) {
+
+    var viewfinder = this.viewfinder;
+    var style = viewfinder.style;
+    // Switch screen dimensions to landscape
+    var screenWidth = document.body.clientHeight;
+    var screenHeight = document.body.clientWidth;
+    var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
+    var screenAspectRatio = screenHeight / screenWidth;
+
+    // Previews should match the aspect ratio and not be smaller than the screen
+    var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
+      var isLarger = res.height >= screenHeight && res.width >= screenWidth;
+      var aspectRatio = res.height / res.width;
+      var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
+      return matchesRatio && isLarger;
+    });
+
+    // We should always have a valid preview size, but just in case
+    // we dont, pick the first provided.
+    if (validPreviews.length) {
+      // Pick the smallest valid preview
+      this._previewConfig = validPreviews.sort(function(a, b) {
+        return a.width * a.height - b.width * b.height;
+      }).shift();
+    } else {
+      this._previewConfig = camera.capabilities.previewSizes[0];
+    }
+
+    var transform = 'rotate(90deg)';
+    var width, height;
+
+    // The preview should be larger than the screen, shrink it so that as
+    // much as possible is on screen.
+    if (screenAspectRatio < pictureAspectRatio) {
+      width = screenWidth;
+      height = screenWidth * pictureAspectRatio;
+    } else {
+      width = screenHeight / pictureAspectRatio;
+      height = screenHeight;
+    }
+
+    if (camera == 1) {
+      /* backwards-facing camera */
+      transform += ' scale(-1, 1)';
+    }
+
+    // Counter the position due to the rotation
+    // This translation goes after the rotation so the element is shifted up
+    // before it is rotated 90 degress clockwise.
+    transform += ' translate(0, -' + height + 'px)';
+
+    // Now add another translation at to center the viewfinder on the screen.
+    // We put this at the start of the transform, which means it is applied
+    // last, after the rotation, so width and height are reversed.
+    var dx = -(height - screenHeight) / 2;
+    var dy = -(width - screenWidth) / 2;
+    transform = 'translate(' + dx + 'px,' + dy + 'px) ' + transform;
+
+    style.transform = transform;
+    style.width = width + 'px';
+    style.height = height + 'px';
   },
 
   recordingStateChanged: function(msg) {
@@ -823,7 +871,8 @@ var Camera = {
                              'image',
                              (function(path, name) {
       var addreq = this._pictureStorage.addNamed(blob, path + name);
-      addreq.onsuccess = (function() {
+      addreq.onsuccess = (function(e) {
+        var absolutePath = e.target.result;
         if (this._pendingPick) {
           this._resizeBlobIfNeeded(blob, function(resized_blob) {
             this._pendingPick.postResult({
@@ -836,7 +885,7 @@ var Camera = {
           return;
         }
 
-        Filmstrip.addImage(path + name, blob);
+        Filmstrip.addImage(absolutePath, blob);
         Filmstrip.show(Camera.FILMSTRIP_DURATION);
         this.checkStorageSpace();
 

@@ -222,6 +222,7 @@ contacts.Details = (function() {
        cList.getContactById(contact.id,
                            function onSuccess(savedContact, enrichedContact) {
         renderFavorite(savedContact);
+        setContact(savedContact);
         favoriteMessage.style.pointerEvents = 'auto';
       }, function onError() {
         console.error('Error reloading contact');

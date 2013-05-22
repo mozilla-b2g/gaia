@@ -404,7 +404,7 @@ SettingsListener.observe(
 });
 
 SettingsListener.observe('audio.volume.notification', 7, function(value) {
-  NotificationScreen.silent = (value != 0);
+  NotificationScreen.silent = (value == 0);
 });
 
 SettingsListener.observe('vibration.enabled', true, function(value) {

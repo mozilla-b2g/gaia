@@ -8,7 +8,6 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: 'MozTT', sans-serif;
   color: #fff;
 }
 
@@ -271,17 +270,13 @@ body {
   top: 4rem;
 }
 
-#screen.switch-app > #windows > .appWindow.closing {
-  transform: scale(0.6);
-}
-
 #windows > .appWindow.opening {
   animation: openApp .3s forwards ease;
   pointer-events: auto;
 }
 
 #windows.slow-transition > .appWindow.opening {
-  animation: openApp 3s forwards ease;
+  animation-duration: 3s;
 }
 
 #screen.cards-view > #windows > .appWindow.opening {
@@ -289,7 +284,7 @@ body {
 }
 
 #screen.cards-view > #windows.slow-transition > .appWindow.opening {
-  animation: openAppFromCardView 1.5s forwards ease;
+  animation-duration: 1.5s;
 }
 
 /* Opacity increases start up time then we don't use it anymore for opening */
@@ -304,7 +299,7 @@ body {
 }
 
 #windows.slow-transition > .appWindow.homescreen.zoom-in > iframe {
-  animation: zoom-in 3s forwards ease;
+  animation-duration: 3s;
 }
 
 #screen.switch-app > #windows > .appWindow.homescreen.zoom-in > iframe,
@@ -322,46 +317,51 @@ body {
   100% { transform: scale(1.0); }
 }
 
-#screen.switch-app > #windows > .appWindow.opening,
+#screen.switch-app > #windows {
+  /* The background color is black behind the switch app animation
+   * (the homescreen is hidden) */
+  background: #000;
+}
+
+#screen.switch-app > #windows > .appWindow.opening > iframe {
+  /* The background is defined for invoked apps because we don't have the
+     splash screen available at this point */
+  background-attachment: scroll, scroll;
+  background-clip: border-box, border-box;
+  background-color: transparent;
+  background-image: url("../themes/default/images/images/ui/pattern.png"),
+                    url("../themes/default/images/ui/gradient.png");
+  background-origin: padding-box, padding-box;
+  background-position: left top, left top;
+  background-repeat: repeat, no-repeat;
+  background-size: auto auto, 100% 100%;
+}
+
+#screen.switch-app > #windows > .appWindow.opening {
+  animation: invokedApp 0.6s forwards ease-out;
+}
+
 #screen.switch-app > #windows > .appWindow.closing {
-  transition: transform 0.25s ease;
-  visibility: inherit;
-  opacity: 1;
-  animation: none;
+  animation: invokingApp 0.6s forwards ease-out;
 }
 
 #screen.switch-app > #windows.slow-transition > .appWindow.opening,
 #screen.switch-app > #windows.slow-transition > .appWindow.closing {
-  transition: transform 5s ease;
-  animation: none;
+  animation-duration: 6s;
 }
 
-#screen.switch-app > #windows > .appWindow.opening-card {
-  transform: translateX(70%) scale(0.6);
-  visibility: inherit;
-  opacity: 1;
+/* Invoking app moves out */
+@keyframes invokingApp {
+  0%   { transform: scale(1.0); opacity: 1 }
+  50%  { transform: scale(0.8) translateX(0); opacity: 0.3 }
+  100% { transform: scale(0.6) translateX(105%); }
 }
 
-#screen.switch-app > #windows > .appWindow.opening-switching {
-  transform: scale(0.6);
-  transition: transform 0.25s ease;
-  visibility: inherit;
-  opacity: 1;
-}
-
-#screen.switch-app > #windows.slow-transition > .appWindow.opening-switching {
-  transition: transform 5s ease;
-}
-
-#screen.switch-app > #windows > .appWindow.closing-card {
-  transform: translateX(-70%) scale(0.6);
-  transition: transform 0.25s ease;
-  visibility: inherit;
-  opacity: 1;
-}
-
-#screen.switch-app > #windows.slow-transition > .appWindow.closing-card {
-  transition: transform 5s ease;
+/* Invoked app moves in */
+@keyframes invokedApp {
+  0%   { transform: scale(0.6) translateX(-133%); opacity: 0.3 }
+  50%  { transform: scale(0.6) translateX(-105%); opacity: 1 }
+  100% { transform: scale(1.0) translateX(0) }
 }
 
 #windows > .appWindow.closing {
@@ -372,7 +372,7 @@ body {
 }
 
 #windows.slow-transition > .appWindow.closing {
-  animation: closeApp 3s forwards ease;
+  animation-duration: 3s;
 }
 
 #windows > .appWindow.homescreen.zoom-out > iframe {
@@ -381,7 +381,7 @@ body {
 }
 
 #windows.slow-transition > .appWindow.homescreen.zoom-out > iframe {
-  animation: zoom-out 3s forwards ease;
+  animation-duration: 3s;
 }
 
 #screen.switch-app > #windows > .appWindow.homescreen.zoom-out > iframe ,

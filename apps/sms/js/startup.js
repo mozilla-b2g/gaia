@@ -12,8 +12,10 @@ var lazyLoadFiles = [
   'js/blacklist.js',
   'js/contacts.js',
   'js/recipients.js',
+  'js/threads.js',
   'js/message_manager.js',
   'js/attachment.js',
+  'js/attachment_menu.js',
   'js/thread_list_ui.js',
   'js/thread_ui.js',
   'js/compose.js',
@@ -26,6 +28,7 @@ var lazyLoadFiles = [
   'js/action_menu.js',
   'js/link_action_handler.js',
   'js/settings.js',
+  'js/activity_handler.js',
   'shared/style/input_areas.css',
   'shared/style/switches.css',
   'shared/style/confirm.css',
@@ -44,6 +47,7 @@ window.addEventListener('localized', function showBody() {
 
 window.addEventListener('load', function() {
   function initUIApp() {
+    ActivityHandler.init();
     // Init UI Managers
     ThreadUI.init();
     ThreadListUI.init();
@@ -55,8 +59,6 @@ window.addEventListener('load', function() {
         Settings.mmsSizeLimitation = size;
       }
     });
-    // We add activity/system message handlers
-    LazyLoader.load(['js/activity_handler.js']);
   }
 
   navigator.mozL10n.ready(function waitLocalizedForLoading() {
