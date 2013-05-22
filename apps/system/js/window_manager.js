@@ -253,12 +253,11 @@ var WindowManager = (function() {
     closeFrame = frame;
   }
 
+  var classNames = ['opening', 'closing'];
+
   // Remove these visible className from frame so we will not ended
   // up having a frozen frame in the middle of the transition
   function removeFrameClasses(frame) {
-    var classNames = ['opening', 'closing', 'opening-switching',
-      'opening-card', 'closing-card'];
-
     var classList = frame.classList;
 
     classNames.forEach(function removeClass(className) {
@@ -307,7 +306,25 @@ var WindowManager = (function() {
       closeCallback = null;
 
       setCloseFrame(null);
-    }
+    } else if (animationName === 'invokingApp') {
+      windowClosed(frame);
+      setTimeout(closeCallback);
+      closeCallback = null;
+
+      if (openFrame && openFrame.classList.contains('fullscreen-app')) {
+        screenElement.classList.add('fullscreen-app');
+      }
+    } else if (animationName === 'invokedApp') {
+      windowScaled(frame);
+      windowOpened(frame);
+
+      setTimeout(openCallback);
+      openCallback = null;
+
+      setCloseFrame(null);
+      setOpenFrame(null);
+      screenElement.classList.remove('switch-app');
+     }
   });
 
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
@@ -326,52 +343,6 @@ var WindowManager = (function() {
         setOpenFrame(null);
       } else {
         windows.removeChild(frame);
-      }
-
-      return;
-    }
-
-    if (screenElement.classList.contains('switch-app')) {
-      if (classList.contains('closing')) {
-        classList.remove('closing');
-        classList.add('closing-card');
-
-        if (openFrame) {
-          if (openFrame.classList.contains('opening-card')) {
-            openFrame.classList.remove('opening-card');
-            openFrame.classList.add('opening-switching');
-          } else {
-            // Skip the opening-card and opening-switching transition
-            // because the closing-card transition had already finished here.
-            if (openFrame.classList.contains('fullscreen-app')) {
-              screenElement.classList.add('fullscreen-app');
-            }
-            openFrame.classList.add('opening');
-          }
-        }
-      } else if (classList.contains('closing-card')) {
-        windowClosed(frame);
-        setTimeout(closeCallback);
-        closeCallback = null;
-
-      } else if (classList.contains('opening-switching')) {
-        // If the opening app need to be full screen, switch to full screen
-        if (classList.contains('fullscreen-app')) {
-          screenElement.classList.add('fullscreen-app');
-        }
-
-        classList.remove('opening-switching');
-        classList.add('opening');
-      } else if (classList.contains('opening')) {
-        windowScaled(frame);
-        windowOpened(frame);
-
-        setTimeout(openCallback);
-        openCallback = null;
-
-        setCloseFrame(null);
-        setOpenFrame(null);
-        screenElement.classList.remove('switch-app');
       }
     }
   });
@@ -491,12 +462,17 @@ var WindowManager = (function() {
     setTimeout(callback);
   }
 
+  function noop() {
+    // Do nothing
+  }
+
   // Perform an "open" animation for the app's iframe
-  function openWindow(origin, callback) {
+  function openWindow(origin, callback, preCallback) {
     var app = runningApps[origin];
     setOpenFrame(app.frame);
 
-    openCallback = callback || function() {};
+    openCallback = callback || noop;
+    preCallback = preCallback || noop;
 
     // set the size of the opening app
     setAppSize(origin);
@@ -530,11 +506,8 @@ var WindowManager = (function() {
       // Make sure we're not called twice.
       transitionOpenCallback = null;
 
-      if (!screenElement.classList.contains('switch-app')) {
-        openFrame.classList.add('opening');
-      } else if (!openFrame.classList.contains('opening')) {
-        openFrame.classList.add('opening-card');
-      }
+      preCallback();
+      openFrame.classList.add('opening');
     };
 
     if ('unloaded' in openFrame.firstChild.dataset) {
@@ -583,28 +556,38 @@ var WindowManager = (function() {
       iframe.addNextPaintListener(onNextPaint);
   }
 
+  function closeAnimation() {
+    closeFrame.classList.remove('active');
+    closeFrame.classList.add('closing');
+  }
+
   // Perform a "close" animation for the app's iframe
-  function closeWindow(origin, callback) {
+  function closeWindow(origin, callback, ready) {
     var app = runningApps[origin];
     setCloseFrame(app.frame);
-    closeCallback = callback || function() {};
+    closeCallback = callback || noop;
+    ready = ready || noop;
 
-    // Animate the window close.  Ensure the homescreen is in the
-    // foreground since it will be shown during the animation.
-    var homescreenFrame = ensureHomescreen();
+    var onSwitchWindow = isSwitchWindow();
 
-    // invoke openWindow to show homescreen here
-    openWindow(homescreen, null);
+    var homescreenFrame;
 
-    // Take keyboard focus away from the closing window
-    closeFrame.firstChild.blur();
+    if (!onSwitchWindow) {
+      // Animate the window close.  Ensure the homescreen is in the
+      // foreground since it will be shown during the animation.
+      homescreenFrame = ensureHomescreen();
 
-    // set orientation for homescreen app
-    setOrientationForApp(homescreen);
+      // invoke openWindow to show homescreen here
+      openWindow(homescreen, null);
 
-    // Set the size of both homescreen app and the closing app
-    // since the orientation had changed.
-    setAppSize(homescreen);
+      // set orientation for homescreen app
+      setOrientationForApp(homescreen);
+
+      // Set the size of both homescreen app and the closing app
+      // since the orientation had changed.
+      setAppSize(homescreen);
+    }
+
     setAppSize(origin);
 
     // Send a synthentic 'appwillclose' event.
@@ -628,13 +611,21 @@ var WindowManager = (function() {
       // Make sure we're not called twice.
       transitionCloseCallback = null;
 
+      ready();
+
       // Start the transition
-      closeFrame.classList.remove('active');
-      closeFrame.classList.add('closing');
-      ensureHomescreen().classList.add('zoom-out');
+      if (!onSwitchWindow) {
+        closeAnimation();
+        homescreenFrame.classList.add('zoom-out');
+      }
     };
 
-    waitForNextPaint(homescreenFrame, transitionCloseCallback);
+    onSwitchWindow ? transitionCloseCallback() :
+                     waitForNextPaint(homescreenFrame, transitionCloseCallback);
+  }
+
+  function isSwitchWindow() {
+    return screenElement.classList.contains('switch-app');
   }
 
   // Perform a "switching" animation for the closing frame and the opening frame
@@ -644,10 +635,10 @@ var WindowManager = (function() {
     screenElement.classList.add('switch-app');
 
     // Ask closeWindow() to start closing the displayedApp
-    closeWindow(displayedApp, callback);
-
-    // Ask openWindow() to show a card on the right waiting to be opened
-    openWindow(origin);
+    closeWindow(displayedApp, callback, function ready() {
+      // Ask openWindow() to show a card on the left waiting to be opened
+      openWindow(origin, noop, closeAnimation);
+    });
   }
 
   // Ensure the homescreen is loaded and return its frame.  Restarts
@@ -852,15 +843,16 @@ var WindowManager = (function() {
     // Case 4: homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
-
-      homescreenFrame.classList.add('zoom-in');
+      var zoomInPreCallback = function() {
+        homescreenFrame.classList.add('zoom-in');
+      };
       var zoomInCallback = function() {
         homescreenFrame.classList.remove('zoom-in');
         if (callback) {
           callback();
         }
       };
-      openWindow(newApp, zoomInCallback);
+      openWindow(newApp, zoomInCallback, zoomInPreCallback);
     }
     // Case 5: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
