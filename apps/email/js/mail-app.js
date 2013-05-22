@@ -95,7 +95,7 @@ var App = {
         // XXX: Because we don't have unified account now, we should switch to
         //       the latest account which user just added.
         var account = showLatest ? acctsSlice.items.slice(-1)[0] :
-                                   acctsSlice.items[0];
+                                   acctsSlice.defaultAccount;
 
         var foldersSlice = MailAPI.viewFolders('account', account);
         foldersSlice.oncomplete = function() {
