@@ -539,3 +539,16 @@ input.msg-search-text-tease {
 .msg-messages-sync-more > span {
   margin: 0 3rem;
 }
+
+.msg-list-topbar {
+  background-color: #00aacc;
+  color: white;
+  font-size: 1.2rem;
+  left: 0;
+  line-height: 2.2rem;
+  padding: 0.4rem 3rem 0.4rem 3rem;
+  position: absolute;
+  top: 5rem;
+  width: 100%;
+  z-index: 10;
+}
