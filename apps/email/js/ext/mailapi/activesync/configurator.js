@@ -3055,7 +3055,10 @@ ActiveSyncAccount.prototype = {
 
   /**
    * Recreate the folder storage for a particular folder; useful when we end up
-   * desyncing with the server and need to start fresh.
+   * desyncing with the server and need to start fresh.  No notification is
+   * generated, although slices are repopulated.
+   *
+   * FYI: There is a nearly identical method in IMAP's account implementation.
    *
    * @param {string} folderId the local ID of the folder
    * @param {function} callback a function to be called when the operation is
