@@ -222,8 +222,6 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
   if (!this.node)
     return;
 
-  CallScreen.unmute();
-  CallScreen.turnSpeakerOff();
   this.remove();
 };
 
