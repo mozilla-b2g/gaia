@@ -12,6 +12,10 @@
   filter: url('shadow.svg#drop-shadow');
 }
 
+#permissionsListHeader + ul li span {
+  width: 75%;
+}
+
 #permissionsListHeader + ul li select {
   width: 25%;
   padding: 0.5rem;
@@ -24,11 +28,24 @@
 
 #permissionsListHeader + ul li select[value='allow'] {
   background-color: #22aa22;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 #permissionsListHeader + ul li select[value='deny'] {
   background-color: #da4e49;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
+
+#permissionsListHeader + ul li select[value='prompt'] {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 
 #uninstall-app {
   display: block;
