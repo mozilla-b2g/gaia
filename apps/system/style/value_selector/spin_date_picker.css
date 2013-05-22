@@ -75,7 +75,8 @@ div.animation-on {
 
 .picker-unit {
   position: relative;
-  font: 2.5rem/8rem 'MozTT',sans-serif;
+  font-size: 2.5rem;
+  line-height: 8rem;
   color: #FFF;
   text-align: center;
   vertical-align: middle;

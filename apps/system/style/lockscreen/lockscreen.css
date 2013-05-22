@@ -153,7 +153,6 @@
 #lockscreen-connstate {
   width: 100%;
   display: inline-block;
-  font-family: 'MozTT', sans-serif;
   font-weight: 400;
   font-size: calc(6 * 0.226rem);
   text-shadow: 0.1rem 0.1rem 0.3rem #000000;
@@ -215,7 +214,6 @@
 }
 
 .lockscreen-clock, #lockscreen-date {
-  font-family: 'MozTT', sans-serif;
   text-shadow: 0.1rem 0.1rem 0.3rem #000000;
   color: #fff;
 }

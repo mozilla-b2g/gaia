@@ -23,7 +23,6 @@
   display: table;
   table-layout: fixed;
   border-spacing: 1.5rem 0rem;
-  font-family: 'MozTT';
   font-weight: 300;
   overflow: hidden;
   padding-bottom: 4.5rem;
@@ -102,7 +101,6 @@ article:not(:target) #keypad-delete {
   height: 6rem;
   vertical-align: middle;
   color: white;
-  font-family: 'MozTT';
   font-weight: 400;
   font-size: 5rem;
   line-height: 5.5rem;
@@ -230,7 +228,7 @@ article:not(:target) #keypad-delete {
 
 #keypad-callbar-cancel > div {
   text-align: center;
-  font: 2rem 'MozTT';
+  font-size: 2rem;
 }
 
 #keypad-callbar-call-action {
@@ -339,7 +337,6 @@ article:not(:target) #keypad-delete {
 .phone-number-font {
   font-size: 4rem;
   color: #00CAF4;
-  font-family:'MozTT';
 }
 
 /* Suggestion bar */
@@ -352,7 +349,6 @@ article:not(:target) #keypad-delete {
   overflow: hidden;
   -moz-box-sizing: border-box;
   position: absolute;
-  font-family:'MozTT';
   border-top: 1px solid rgba(255,255,255,0.2);
 }
 

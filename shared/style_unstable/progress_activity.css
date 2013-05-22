@@ -43,7 +43,9 @@ progress[value].pack-activity {
 /* Labels */
 p[role="status"] {
   padding: 0.5rem;
-  font: 300 2.25rem/1.4em "MozTT", Sans-serif;
+  font-weight: 300;
+  font-size: 2.25rem;
+  line-height: 1.4em;
   color: #fff;
 }
 

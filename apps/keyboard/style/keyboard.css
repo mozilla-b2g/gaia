@@ -82,7 +82,8 @@ button::-moz-focus-inner {
   left: 0;
   right: 0;
   color: #fff;
-  font: 2.4rem/3.8rem MozTT, Sans-serif;
+  font-size: 2.4rem;
+  line-height: 3.8rem;
   text-transform: uppercase;
   font-weight: 500;
   text-align: center;
@@ -133,7 +134,8 @@ button::-moz-focus-inner {
   right: -0.5rem;
   height: 5rem;
   color: #1a3f46;
-  font: 3.6rem/5rem MozTT, Sans-serif;
+  font-size: 3.6rem;
+  line-height: 5rem;
   font-weight: 500;
   border: none;
   border-radius: 0.2rem;
@@ -207,7 +209,7 @@ button::-moz-focus-inner {
 
 /* Special keys - text */
 .keyboard-key.special-key.text > .visual-wrapper > span {
-  font-family: MozTT, Sans-serif;
+  font-family: Sans-serif;
 }
 
 /* Highlight for special keys */
@@ -352,7 +354,8 @@ and displays the list of alternatives. */
 /* Styles for keys in accent menu (not highlighted). */
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
   border: none;
-  font: 3.6rem/5rem MozTT, Sans-serif;
+  font-size: 3.6rem;
+  line-height: 5rem;
   font-weight: 500;
   color: #fff;
 }
@@ -430,7 +433,6 @@ bubble above the key when you tap and hold. */
 
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span {
-  font-family: 'MozTT', Sans-serif;
   font-weight: 500;
   font-size: 1.8rem;
   line-height: 5rem;
@@ -550,7 +552,6 @@ bubble above the key when you tap and hold. */
 #keyboard-candidate-panel[data-truncated].latin::after {
   display: inline-block;
   -moz-box-sizing: border-box;
-  font-family: 'MozTT', sans-serif;
   font-size: 1.8rem;
   line-height: 2.6rem;
   height: 2.6rem;

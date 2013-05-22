@@ -9,7 +9,8 @@
     width: 100%;
     background: transparent;
     background-size: 100% 100%;
-    font: normal 1.2rem 'MozTT', Sans-Serif;
+    font-weight: normal;
+    font-size: 1.2rem;
     text-align: left;
 }
 

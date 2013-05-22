@@ -25,7 +25,9 @@ a[role="button"],
   background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom / auto 100%;
   border: 0.1rem solid #a6a6a6;
   border-radius: 0.2rem;
-  font: 500 1.6rem/3.8rem 'MozTT', Sans-serif;
+  font-weight: 500;
+  font-size: 1.6rem;
+  line-height: 3.8rem;
   color: #333;
   text-align: center;
   text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
@@ -234,7 +236,9 @@ ul.compact li label,
 ol.compact li label {
   padding: 0 1.5rem 1rem 1.5rem;
   color: #333;
-  font: normal 1.6rem/1.8rem 'MozTT', Sans-serif;
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 1.8rem;
   display: block;
   text-overflow: ellipsis;
   white-space: nowrap;

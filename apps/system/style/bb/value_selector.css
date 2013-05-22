@@ -16,7 +16,6 @@ form[role="dialog"][data-type="value-selector"] {
   right: 0;
   bottom: 0;
   padding: 0 0 7rem;
-  font-family: "MozTT", Sans-serif;
   font-size: 0;
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
@@ -43,7 +42,8 @@ form[role="dialog"][data-type="value-selector"] > section {
 }
 
 form[role="dialog"][data-type="value-selector"] h1 {
-  font: 1.6rem/1em 'MozTT', Sans-serif;
+  font-size: 1.6rem;
+  line-height: 1em;
   color: #fff;
   border-bottom: 0.1rem solid #616262;
   background: url(value_selector/images/ui/alpha.png) repeat 0 0;
@@ -81,7 +81,6 @@ form[role="dialog"][data-type="value-selector"] menu button {
   outline: none;
   border: none;
   font-size: 1.6rem;
-  font-family: 'MozTT', Sans-serif;
   font-weight: 600;
   line-height: 3.8rem;
   color: #fff;
