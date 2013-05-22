@@ -843,15 +843,16 @@ var WindowManager = (function() {
     // Case 4: homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
-
-      homescreenFrame.classList.add('zoom-in');
+      var zoomInPreCallback = function() {
+        homescreenFrame.classList.add('zoom-in');
+      };
       var zoomInCallback = function() {
         homescreenFrame.classList.remove('zoom-in');
         if (callback) {
           callback();
         }
       };
-      openWindow(newApp, zoomInCallback);
+      openWindow(newApp, zoomInCallback, zoomInPreCallback);
     }
     // Case 5: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
