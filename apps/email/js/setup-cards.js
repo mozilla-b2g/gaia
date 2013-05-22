@@ -648,6 +648,28 @@ function SettingsAccountCard(domNode, mode, args) {
   domNode.getElementsByClassName('tng-account-delete')[0]
     .addEventListener('click', this.onDelete.bind(this), false);
 
+  // Handle default account checkbox. If already a default, then the checkbox
+  // cannot be unchecked. The default is changed by going to an account that
+  // is not the default and checking that checkbox.
+  var defaultLabelNode = domNode.getElementsByClassName('tng-default-label')[0];
+  var defaultInputNode = domNode.getElementsByClassName('tng-default-input')[0];
+  if (this.account.isDefault) {
+    defaultInputNode.disabled = true;
+    defaultInputNode.checked = true;
+  } else {
+
+    defaultLabelNode.addEventListener('click', function(evt) {
+      evt.stopPropagation();
+      evt.preventBubble();
+
+      if (!defaultInputNode.disabled) {
+        defaultInputNode.disabled = true;
+        defaultInputNode.checked = true;
+        this.account.modifyAccount({ setAsDefault: true });
+      }
+    }.bind(this), false);
+  }
+
   // ActiveSync, IMAP and SMTP are protocol names, no need to be localized
   domNode.getElementsByClassName('tng-account-type')[0].textContent =
     (this.account.type === 'activesync') ? 'ActiveSync' : 'IMAP+SMTP';
