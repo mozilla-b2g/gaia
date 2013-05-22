@@ -11,6 +11,11 @@ var AttachmentMenu = (function() {
 
     init: function(id) {
       el = document.getElementById(id);
+      ['view', 'remove', 'replace', 'cancel'].forEach(function(button) {
+        attachmentMenu[button + 'Button'] =
+          el.querySelector('#attachment-options-' + button);
+      });
+      this.header = el.querySelector('header'); 
     },
 
     open: function(attachment) {
@@ -30,17 +35,12 @@ var AttachmentMenu = (function() {
         fileType = mimeFirstPart;
       }
 
-      var header = el.querySelector('header');
-      var viewButton = el.querySelector('#attachment-options-view');
-      var removeButton = el.querySelector('#attachment-options-remove');
-      var replaceButton = el.querySelector('#attachment-options-replace');
-      var cancelButton = el.querySelector('#attachment-options-cancel');
-
-      header.textContent = fileName;
-      viewButton.textContent = _('view-attachment');
-      removeButton.textContent = _('remove-attachment', {type: fileType});
-      replaceButton.textContent = _('replace-attachment', {type: fileType});
-      cancelButton.textContent = _('cancel');
+      this.header.textContent = fileName;
+      this.viewButton.textContent = _('view-attachment');
+      this.removeButton.textContent = _('remove-attachment', {type: fileType});
+      this.replaceButton.textContent = _('replace-attachment',
+        {type: fileType});
+      this.cancelButton.textContent = _('cancel');
 
       el.className = '';
     },

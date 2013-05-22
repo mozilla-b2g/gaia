@@ -31,14 +31,13 @@ Attachment.prototype = {
   get type() {
     return Utils.typeFromMimeType(this.blob.type);
   },
-  handleLoad: function(el, objectURL) {
+  handleLoad: function(objectURL, event) {
     // Signal Gecko to release the reference to the Blob
     URL.revokeObjectURL(objectURL);
 
     // Bubble click events from inside the iframe
-    el.contentDocument.addEventListener('click', function() {
-      this.click(this);
-    }.bind(el));
+    event.target.contentDocument.addEventListener('click',
+      event.target.click.bind(event.target));
   },
   render: function() {
     var el = document.createElement('iframe');
@@ -50,7 +49,7 @@ Attachment.prototype = {
     var objectURL = window.URL.createObjectURL(this.blob);
 
     // When rendering is complete
-    el.addEventListener('load', this.handleLoad.bind(this, el, objectURL));
+    el.addEventListener('load', this.handleLoad.bind(this, objectURL));
 
     var _ = navigator.mozL10n.get;
     var src = 'data:text/html,';
