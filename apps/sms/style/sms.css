@@ -262,11 +262,16 @@ section[role="region"].new > header:first-child form {
   display: block;
 }
 
-#messages-contact-pick-button .icon.icon-user {
-  background-image: url(images/add_user.png);
-  display:block;
-  height:2rem;
-  width:2rem;
+#messages-contact-pick-button .icon-user {
+  display: block;
+  height: 2rem;
+  width: 2rem;
+
+  background-image: url(images/add_contact.png);
+}
+
+#messages-contact-pick-button .icon-user:active {
+  background-position: 0 2rem;
 }
 
 /*
