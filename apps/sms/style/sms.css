@@ -6,7 +6,6 @@ html, body {
   font-size: 10px;
   overflow-x: hidden !important;
   overflow-y: hidden !important;
-  font-family: 'MozTT', sans-serif;
 }
 
 /* Override Building Block [Header] styles */

@@ -49,7 +49,6 @@
   overflow: hidden;
   opacity: 1;
   transition: opacity 0.5s;
-  font-family: "MozTT", sans-serif;
   -moz-user-select: none;
 }
 

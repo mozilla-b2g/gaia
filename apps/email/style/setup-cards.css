@@ -25,7 +25,7 @@ input:focus:invalid {
 }
 
 .sup-manual-prompt {
-  font: 1.1rem "MozTT", Sans-serif;
+  font-size: 1.1rem;
 }
 
 .sup-form-item {

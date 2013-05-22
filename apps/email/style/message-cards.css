@@ -271,7 +271,6 @@ input.msg-search-text-tease {
   padding: 0.2rem 0.8rem;
   font-weight: 500;
   font-size: 1.3rem;
-  font-family: "MozTT", Sans-serif;
   box-shadow: 0 0.1rem 0.1rem #fff inset;
 }
 .msg-peep-bubble * {
@@ -508,7 +507,6 @@ input.msg-search-text-tease {
   margin: 0;
   font-weight: 500;
   font-size: 1.5rem;
-  font-family: "MozTT", Sans-serif;
   line-height: 8rem;
 }
 .msg-list-empty {
@@ -538,7 +536,6 @@ input.msg-search-text-tease {
   margin: 0;
   font-weight: 500;
   font-size: 1.5rem;
-  font-family: "MozTT", Sans-serif;
   line-height: 8rem;
 }
 .msg-messages-sync-more > span {
