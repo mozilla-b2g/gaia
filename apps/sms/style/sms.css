@@ -345,11 +345,23 @@ section[role="region"].new > header:first-child form {
   background: #fff;
 }
 
-#messages-container[data-type="list"] .message.mms .bubble img {
+#messages-container[data-type="list"] .message.mms .mms-media {
   display: block;
   max-height: 12rem;
-  height: auto;
   max-width: 12rem;
+  margin: 1rem 0;
+}
+/* Media that occurs at the bounds of an MMS message does not need additional
+ * spacing. */
+#messages-container[data-type="list"] .message.mms .mms-media:first-child {
+  margin-top: 0;
+}
+#messages-container[data-type="list"] .message.mms .mms-media:last-child {
+  margin-bottom: 0;
+}
+
+#messages-container[data-type="list"] .message.mms .bubble img {
+  height: auto;
   width: auto;
 }
 
@@ -379,9 +391,7 @@ section[role="region"].new > header:first-child form {
   background-position: 0 -6rem;
 }
 
-#messages-container[data-type="list"] .message.outgoing img,
-#messages-container[data-type="list"] .message.outgoing .video-placeholder,
-#messages-container[data-type="list"] .message.outgoing .audio-placeholder {
+#messages-container[data-type="list"] .message.outgoing .mms-media {
   margin-left: auto;
   margin-right: 0;
 }

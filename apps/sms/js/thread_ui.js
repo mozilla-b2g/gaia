@@ -771,6 +771,7 @@ var ThreadUI = global.ThreadUI = {
               URL.revokeObjectURL(this.src);
             };
           }
+          mediaElement.classList.add('mms-media');
           container.appendChild(mediaElement);
           attachmentMap.set(mediaElement, attachment);
         }
