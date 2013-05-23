@@ -361,7 +361,8 @@
       case 'ringer':
           return 'notification';
       default:
-        return homescreenVisible ? 'notification' : 'content';
+        return homescreenVisible || LockScreen.locked ?
+          'notification' : 'content';
     }
   }
 
