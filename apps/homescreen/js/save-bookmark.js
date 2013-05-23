@@ -24,8 +24,13 @@ if (navigator.mozSetMessageHandler) {
               BookmarkEditor.close();
             }
           });
+        } else {
+          activity.postError('type not supported');
         }
         break;
+
+      default:
+        activity.postError('name not supported');
     }
   });
 }
