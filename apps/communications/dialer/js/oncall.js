@@ -380,6 +380,9 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function handleFirstIncoming(call) {
+    unmute();
+    turnSpeakerOff();
+
     var vibrateInterval = 0;
     if (activateVibration != false) {
       vibrateInterval = window.setInterval(function vibrate() {

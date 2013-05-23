@@ -239,14 +239,6 @@ suite('dialer/handled_call', function() {
       assert.equal(subject.recentsEntry, MockOnCallHandler.mLastEntryAdded);
     });
 
-    test('mute off after call', function() {
-      assert.isFalse(MockCallScreen.mMuteOn);
-    });
-
-    test('speaker off after call', function() {
-      assert.isFalse(MockCallScreen.mSpeakerOn);
-    });
-
     test('remove listener', function() {
       assert.isTrue(mockCall._listenerRemoved);
     });
