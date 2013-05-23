@@ -842,8 +842,48 @@ var ThreadUI = global.ThreadUI = {
     MessageManager.getMessages(renderingOptions);
   },
 
-  buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
+  // generates the html for not-downloaded messages - pushes class names into
+  // the classNames array also passed in, returns an HTML string
+  _createNotDownloadedHTML:
+  function thui_createNotDownloadedHTML(message, classNames) {
+
     var _ = navigator.mozL10n.get;
+
+    // default strings:
+    var messageString = 'not-downloaded-mms';
+    var downloadString = 'download';
+
+    // assuming that incoming message only has one deliveryStatus
+    var status = message.deliveryStatus[0];
+
+    var expireFormatted = Utils.date.format.localeFormat(
+      message.expiryDate, _('dateTimeFormat_%x')
+    );
+
+    var expired = +message.expiryDate < Date.now();
+
+    if (expired) {
+      classNames.push('expired');
+      messageString = 'expired-mms';
+    }
+
+    if (status === 'error') {
+      classNames.push('error');
+    }
+
+    if (status === 'pending') {
+      downloadString = 'downloading';
+      classNames.push('pending');
+    }
+
+    messageString = _(messageString, { date: expireFormatted });
+    return this.tmpl.notDownloaded.interpolate({
+      message: messageString,
+      download: _(downloadString)
+    });
+  },
+
+  buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var bodyHTML = '';
     var delivery = message.delivery;
     var messageDOM = document.createElement('li');
@@ -869,31 +909,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (notDownloaded) {
-      // default strings:
-      var messageString = 'not-downloaded-mms';
-
-      // assuming that incoming message only has one deliveryStatus
-      var status = message.deliveryStatus[0];
-      var expireFormatted = Utils.date.format.localeFormat(
-        message.expiryDate, _('dateTimeFormat_%x')
-      );
-
-      var expired = +message.expiryDate < Date.now();
-
-      if (expired) {
-        classNames.push('expired');
-        messageString = 'expired-mms';
-      }
-
-      if (status === 'error') {
-        classNames.push('error');
-      }
-
-      messageString = _(messageString, { date: expireFormatted });
-      bodyHTML = this.tmpl.notDownloaded.interpolate({
-        message: messageString,
-        download: _('download')
-      });
+      bodyHTML = this._createNotDownloadedHTML(message, classNames);
     }
 
     messageDOM.className = classNames.join(' ');
@@ -918,9 +934,19 @@ var ThreadUI = global.ThreadUI = {
   },
 
   appendMessage: function thui_appendMessage(message, hidden) {
-    // build messageDOM adding the links
-    var messageDOM = this.buildMessageDOM(message, hidden);
     var timestamp = message.timestamp.getTime();
+
+    // look for an old message and remove it first - prevent anything from ever
+    // double rendering for now
+    var messageDOM = this.container.querySelector(
+      '[data-message-id="' + message.id + '"]');
+    if (messageDOM) {
+      this.removeMessageDOM(messageDOM);
+    }
+
+    // build messageDOM adding the links
+    messageDOM = this.buildMessageDOM(message, hidden);
+
     messageDOM.dataset.timestamp = timestamp;
     // Add to the right position
     var messageContainer = ThreadUI.getMessageContainer(timestamp, hidden);
