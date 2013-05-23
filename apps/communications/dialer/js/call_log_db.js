@@ -594,7 +594,7 @@ var CallLogDBManager = {
       };
       cursor.onerror = function(event) {
         if (callback && callback instanceof Function) {
-          callback(e.target.error.name);
+          callback(event.target.error.name);
         }
       };
     });
