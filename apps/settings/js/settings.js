@@ -847,15 +847,15 @@ window.addEventListener('load', function loadSettings() {
     var mobileConnection = window.navigator.mozMobileConnection;
     if (!mobileConnection) {
       disableSIMRelatedSubpanels(true);
-    }
-
-    var cardState = mobileConnection.cardState;
-    disableSIMRelatedSubpanels(cardState !== 'ready');
-
-    mobileConnection.addEventListener('cardstatechange', function() {
+    }else{
       var cardState = mobileConnection.cardState;
       disableSIMRelatedSubpanels(cardState !== 'ready');
-    });
+
+      mobileConnection.addEventListener('cardstatechange', function() {
+      var cardState = mobileConnection.cardState;
+        disableSIMRelatedSubpanels(cardState !== 'ready');
+      });
+    }
   }
 
   // startup
