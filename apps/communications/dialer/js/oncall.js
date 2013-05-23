@@ -3,6 +3,7 @@
 var CallScreen = {
   _ticker: null,
   _screenLock: null,
+  _typedNumber: '',
 
   body: document.body,
   screen: document.getElementById('call-screen'),
@@ -62,6 +63,23 @@ var CallScreen = {
         CallScreen.setCallerContactImage(
           req.result['wallpaper.image'], false, true);
       };
+    }
+
+    // Handle resize events
+    window.addEventListener('resize', this.resizeHandler.bind(this));
+  },
+
+  resizeHandler: function cs_resizeHandler() {
+    // Handle attention screen switches between full screen/status bar mode.
+    // If a user is typing keypad during calling,
+    // we don't show the typed number in status bar mode.
+    if (window.innerHeight <= 40) {
+      if (this.body.classList.contains('showKeypad')) {
+        this._typedNumber = KeypadManager._phoneNumber;
+        KeypadManager.restorePhoneNumber('end', true);
+      }
+    } else if (this.body.classList.contains('showKeypad')) {
+      KeypadManager.updatePhoneNumber(this._typedNumber, 'begin', true);
     }
   },
 
