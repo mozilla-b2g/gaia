@@ -39,6 +39,11 @@ var AttachmentMenu = {
     this.cancelButton.textContent = _('cancel');
 
     this.el.className = '';
+
+    // focus the menu so we can lose focus on anything with the keyboard
+    // when we gain focus through longpress/contextmenu the keyboard
+    // won't go away on its own.
+    this.el.focus();
   },
 
   close: function() {
