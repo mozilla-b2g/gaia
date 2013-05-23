@@ -212,11 +212,13 @@ section li.password > p {
 */
 
 #mediaStorage .space-stackedbar {
-  border: solid 0px green;
+  background-color: #E7E7E7;
+  border: solid 1px #A6A6A6;
+  border-radius: 0.3rem;
   display: inline-block;
   height: 30px;
   margin: 0.8rem 5%;
-  padding: 0;
+  padding: 1px;
   width: 90%;
 }
 
@@ -225,20 +227,35 @@ section li.password > p {
   height: 30px;
 }
 
-#mediaStorage .space-stackedbar .color-music, #mediaStorage .color-music .stackedbar-color-label {
-  background-color: #ff7517;
+#mediaStorage .space-stackedbar .color-music,
+#mediaStorage .color-music .stackedbar-color-label {
+  background-color: #82C72C;
 }
 
-#mediaStorage .space-stackedbar .color-pictures, #mediaStorage .color-pictures .stackedbar-color-label {
-  background-color: #5da31d;
+#mediaStorage .space-stackedbar .color-pictures,
+#mediaStorage .color-pictures .stackedbar-color-label {
+  background-color: #00CAF2;
 }
 
-#mediaStorage .space-stackedbar .color-videos, #mediaStorage .color-videos .stackedbar-color-label {
-  background-color: #5917ba;
+#mediaStorage .space-stackedbar .color-videos,
+#mediaStorage .color-videos .stackedbar-color-label {
+  background-color: #2295D3;
 }
 
-#mediaStorage .space-stackedbar .color-free, #mediaStorage .color-free .stackedbar-color-label {
-  background-color: #fff;
+#mediaStorage .space-stackedbar .color-free,
+#mediaStorage .color-free .stackedbar-color-label {
+  background-color: #E7E7E7;
+}
+
+#mediaStorage .color-free .stackedbar-color-label {
+  border: solid 1px #A6A6A6;
+}
+
+#mediaStorage .color-music .stackedbar-color-label,
+#mediaStorage .color-pictures .stackedbar-color-label,
+#mediaStorage .color-videos .stackedbar-color-label,
+#mediaStorage .color-free .stackedbar-color-label {
+  border-radius: 0.3rem;
 }
 
 #mediaStorage .stackedbar-color-label {

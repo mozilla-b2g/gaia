@@ -374,7 +374,7 @@ section[role="region"] > ul > li > p + .fake-select {
  * Progress, Meter
  */
 
-ul > li progress {
+ul > li progress[value] {
   display: block;
   width: calc(100% - 6rem);
   height: 3rem;
@@ -384,7 +384,7 @@ ul > li progress {
   border-radius: 0.3rem;
 }
 
-ul > li progress::-moz-progress-bar {
+ul > li progress[value]::-moz-progress-bar {
   margin: 1px;
   height: calc(100% - 0.2rem);
   border-radius: 0.2rem;
