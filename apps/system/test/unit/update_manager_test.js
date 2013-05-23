@@ -224,28 +224,18 @@ suite('system/UpdateManager', function() {
   });
 
   suite('init', function() {
-    test('should get all applications', function(done) {
-      MockAppsMgmt.mNext = function() {
-        done();
-      };
+    test('should get all applications', function() {
       UpdateManager.init();
-      this.sinon.clock.tick(1);
     });
 
-    test('should create AppUpdatable on init', function(done) {
+    test('should create AppUpdatable on init', function() {
       MockAppUpdatable.mTeardown();
-
-      MockAppsMgmt.mNext = function() {
-        assert.equal(MockAppUpdatable.mCount, apps.length);
-        done();
-      };
       UpdateManager.init();
-      this.sinon.clock.tick(1);
+      assert.equal(MockAppUpdatable.mCount, apps.length);
     });
 
     test('should bind dom elements', function() {
       UpdateManager.init();
-      this.sinon.clock.tick(1);
       assert.equal('update-manager-container', UpdateManager.container.id);
       assert.equal('message', UpdateManager.message.className);
 
@@ -267,7 +257,6 @@ suite('system/UpdateManager', function() {
 
     test('should bind to the click event', function() {
       UpdateManager.init();
-      this.sinon.clock.tick(1);
       assert.equal(UpdateManager.containerClicked.name,
                    UpdateManager.container.onclick.name);
 
@@ -293,7 +282,6 @@ suite('system/UpdateManager', function() {
         MockAppUpdatable.mTeardown();
         MockAppsMgmt.mApps = [];
         UpdateManager.init();
-        this.sinon.clock.tick(1);
 
         installedApp = new MockApp();
         installedApp.downloadAvailable = true;
@@ -310,7 +298,6 @@ suite('system/UpdateManager', function() {
 
       setup(function() {
         UpdateManager.init();
-        this.sinon.clock.tick(1);
         UpdateManager.updatableApps = updatableApps;
         UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
 
@@ -353,7 +340,6 @@ suite('system/UpdateManager', function() {
 
       setup(function() {
         UpdateManager.init();
-        this.sinon.clock.tick(1);
         event = new MockChromeEvent({
           type: 'update-available',
           size: 42
@@ -389,7 +375,6 @@ suite('system/UpdateManager', function() {
     suite('no system update available', function() {
       setup(function() {
         UpdateManager.init();
-        this.sinon.clock.tick(1);
       });
 
       test('should not remember about the update', function() {
@@ -403,7 +388,6 @@ suite('system/UpdateManager', function() {
     setup(function() {
       MockAppsMgmt.mApps = [];
       UpdateManager.init();
-      this.sinon.clock.tick(1);
       UpdateManager.updatableApps = updatableApps;
     });
 
@@ -755,7 +739,6 @@ suite('system/UpdateManager', function() {
 
       setup(function() {
         UpdateManager.init();
-        this.sinon.clock.tick(1);
         UpdateManager.requestErrorBanner();
       });
 
@@ -805,7 +788,6 @@ suite('system/UpdateManager', function() {
   suite('actions', function() {
     setup(function() {
       UpdateManager.init();
-      this.sinon.clock.tick(1);
     });
 
     suite('start downloads', function() {
@@ -1042,7 +1024,6 @@ suite('system/UpdateManager', function() {
 
       setup(function() {
         UpdateManager.init();
-        this.sinon.clock.tick(1);
         var installedApp = new MockApp();
         updatableApp = new MockAppUpdatable(installedApp);
         UpdateManager.updatableApps = [updatableApp];
@@ -1261,7 +1242,6 @@ suite('system/UpdateManager', function() {
     suite('check for updates', function() {
       setup(function() {
         UpdateManager.init();
-        this.sinon.clock.tick(1);
       });
 
       test('should observe the setting', function() {
@@ -1298,7 +1278,6 @@ suite('system/UpdateManager', function() {
       suite('addToUpdatesQueue', function() {
         setup(function() {
           UpdateManager.init();
-          this.sinon.clock.tick(1);
 
           var installedApp = new MockApp();
           var updatableApp = new MockAppUpdatable(installedApp);
@@ -1383,7 +1362,6 @@ suite('system/UpdateManager', function() {
 
         setup(function() {
           UpdateManager.init();
-          this.sinon.clock.tick(1);
 
           var installedApp = new MockApp();
           updatableApp = new MockAppUpdatable(installedApp);
@@ -1420,7 +1398,6 @@ suite('system/UpdateManager', function() {
 
         setup(function() {
           UpdateManager.init();
-          this.sinon.clock.tick(1);
 
           var installedApp = new MockApp();
           updatableApp = new MockAppUpdatable(installedApp);
@@ -1488,7 +1465,6 @@ suite('system/UpdateManager', function() {
 
         setup(function() {
           UpdateManager.init();
-          this.sinon.clock.tick(1);
 
           var installedApp = new MockApp();
           updatableApp = new MockAppUpdatable(installedApp);

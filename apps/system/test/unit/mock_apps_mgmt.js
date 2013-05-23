@@ -1,20 +1,45 @@
+'use strict';
+
 var MockAppsMgmt = {
   getAll: function mam_getAll() {
-    var request = {};
-
-    setTimeout((function nextTick() {
-      if (request.onsuccess) {
-        var evt = {
-          target: {
-            result: this.mApps
-          }
-        };
-        request.onsuccess(evt);
-        if (this.mNext) {
-          this.mNext();
+    var callOnSuccess = (function callOnSuccess() {
+      var evt = {
+        target: {
+          result: this.mApps
         }
+      };
+      request.onsuccess(evt);
+
+      if (this.mNext) {
+        this.mNext();
       }
-    }).bind(this));
+    }).bind(this);
+
+    function nextTick() {
+      if (request.onsuccess) {
+        callOnSuccess();
+      }
+    };
+
+    var request;
+    if (this.mAsync) {
+      request = {};
+    } else {
+      request = {
+        get onsuccess() {
+          return this._onsuccess;
+        },
+        set onsuccess(func) {
+          this._onsuccess = func;
+          callOnSuccess();
+        }
+      };
+
+    }
+      
+    if (this.mAsync) {
+      setTimeout(nextTick);
+    }
 
     return request;
   },
@@ -26,10 +51,13 @@ var MockAppsMgmt = {
   mApps: [],
   mLastAppApplied: null,
   mNext: null,
+  mAsync: false,
+
   mTeardown: function mam_mTeardown() {
     this.mLastAppApplied = null;
     this.mApps = [];
     this.mNext = null;
+    this.mAsync = false;
   },
 
   mTriggerOninstall: function mam_mTriggerOninstall(app) {
