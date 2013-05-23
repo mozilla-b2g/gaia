@@ -164,7 +164,7 @@ var PhoneLock = {
             this._passcodeBuffer = this._passcodeBuffer.substring(0,
                 this._passcodeBuffer.length - 1);
           }
-        } else if(this._passcodeBuffer.length < 8){ 
+        } else if (this._passcodeBuffer.length < 8) {
           this._passcodeBuffer += key;
         }
 
