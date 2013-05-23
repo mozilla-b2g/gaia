@@ -6,6 +6,7 @@ function MockRecipients(setup) {
     add: [],
     remove: []
   };
+  this.numbers = [];
 }
 
 MockRecipients.prototype.add = function(contact) {
@@ -13,6 +14,7 @@ MockRecipients.prototype.add = function(contact) {
   span.textContent = contact.number;
   this.recipientsList.appendChild(span);
   this.length++;
+  this.numbers.push(contact.number);
   this.emit('add', this.length);
   return this;
 };
