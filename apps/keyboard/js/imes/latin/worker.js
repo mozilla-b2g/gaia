@@ -81,7 +81,7 @@ var Commands = {
   predict: function predict(prefix) {
     try {
       var words = Predictions.predict(prefix);
-      postMessage({ cmd: 'predictions', args: words });
+      postMessage({ cmd: 'predictions', args: words, input: prefix });
     }
     catch (e) {
       log('Exception in predictions.js: ' + JSON.stringify(e));
