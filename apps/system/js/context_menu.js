@@ -18,6 +18,7 @@ var ContextMenu = {
     };
 
     ListMenu.request(detail.contextmenu.items, '', onsuccess);
+    evt.preventDefault();
   }
 };
 
