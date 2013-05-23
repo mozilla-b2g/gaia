@@ -1155,6 +1155,8 @@ suite('thread_ui.js >', function() {
 
   suite('MMS images', function() {
     var img;
+    var messageContainer;
+
     setup(function() {
       // create an image mms DOM Element:
       var inputArray = [{
@@ -1167,13 +1169,15 @@ suite('thread_ui.js >', function() {
       img = output.querySelector('img');
 
       // need to get a container from ThreadUI because event is delegated
-      var messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
+      messageContainer = ThreadUI.getMessageContainer(Date.now(), false);
       messageContainer.appendChild(output);
-    });
-    test('MozActivity is called with the proper info on click', function() {
+      this.sinon.stub(ThreadUI, 'handleMessageClick');
+
       // Start the test: simulate a click event
       img.click();
+    });
 
+    test('MozActivity is called with the proper info on click', function() {
       assert.equal(MockMozActivity.calls.length, 1);
       var call = MockMozActivity.calls[0];
       assert.equal(call.name, 'open');
@@ -1181,6 +1185,10 @@ suite('thread_ui.js >', function() {
       assert.equal(call.data.type, 'image/jpeg');
       assert.equal(call.data.filename, 'imageTest.jpg');
       assert.equal(call.data.blob, testImageBlob);
+    });
+
+    test('Does not call handleMessageClick', function() {
+      assert.isFalse(ThreadUI.handleMessageClick.called);
     });
   });
 

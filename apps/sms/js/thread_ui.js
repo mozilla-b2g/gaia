@@ -8,7 +8,7 @@ var attachmentMap = new WeakMap();
 function thui_mmsAttachmentClick(target) {
   var attachment = attachmentMap.get(target);
   if (!attachment) {
-    return;
+    return false;
   }
   var activity = new MozActivity({
     name: 'open',
@@ -24,6 +24,7 @@ function thui_mmsAttachmentClick(target) {
     // TODO: Add an alert here with a string saying something like
     // "There is no application available to open this file type"
   };
+  return true;
 }
 
 // reduce the Composer.getContent() into slide format used by SMIL.generate some
@@ -1110,10 +1111,11 @@ var ThreadUI = global.ThreadUI = {
     switch (evt.type) {
       case 'click':
         if (window.location.hash !== '#edit') {
-          this.handleMessageClick(evt);
-          // Handle events on links in a message
-          thui_mmsAttachmentClick(evt.target);
-          LinkActionHandler.handleTapEvent(evt);
+          // if the click wasn't on an attachment check for other clicks
+          if (!thui_mmsAttachmentClick(evt.target)) {
+            this.handleMessageClick(evt);
+            LinkActionHandler.handleTapEvent(evt);
+          }
           return;
         }
 
