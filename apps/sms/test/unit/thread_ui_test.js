@@ -593,6 +593,7 @@ suite('thread_ui.js >', function() {
     test('sms to mms and back displays banner', function() {
       // cause a type switch event to happen
       Compose.type = 'mms';
+      assert.isTrue(sendButton.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
       assert.equal(convertBannerText.textContent, 'converted-to-mms',
@@ -608,6 +609,7 @@ suite('thread_ui.js >', function() {
 
       Compose.type = 'sms';
 
+      assert.isFalse(sendButton.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for sms');
       assert.equal(convertBannerText.textContent, 'converted-to-sms',

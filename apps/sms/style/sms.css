@@ -542,23 +542,27 @@ form.bottom[role="search"].messages-compose-form {
 
 #messages-send-button.has-counter:before {
   content: attr(data-counter);
-  color: rgb(133, 133, 133);
-  border-left: 0.1rem solid rgb(231, 231, 213);
-  font-weight: normal;
-  font-size: 1.8rem;
-  text-align: left;
+
   position: absolute;
-  height: 4.4rem;
   left: 0;
+  top: -1.9rem;
+
+  -moz-box-sizing: border-box;
+  height: 1.8rem;
+  padding: 0 0.5rem;
+
+  color: rgb(133, 133, 133);
+  font-weight: normal;
+  font-size: 1.4rem;
+  text-align: left;
   line-height: 1.8rem;
-  top: -5rem;
-  padding-top: 0;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
 }
 
 [data-message-type="mms"] #messages-send-button.has-counter:before {
   content: 'MMS';
+  color: #ff6622;
+  font-size: 1.5rem;
+  padding-left: 1.0rem;
 }
 
 /* TODO: Move this into the shared building block */
