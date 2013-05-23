@@ -295,7 +295,7 @@ ul li > a, ul li > span, ul li > small { /* text ellipsis */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  width: -moz-calc(100% - 8.13rem);
+  width: -moz-calc(100% - 4.5rem);
 }
 
 ul li > span {
