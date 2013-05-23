@@ -852,6 +852,7 @@ function releaseVideo() {
 // Call this when the app becomes visible again
 function restoreVideo() {
   setVideoUrl(dom.player, currentVideo, function() {
+    setPlayerSize();
     dom.player.currentTime = restoreTime;
   });
 }
