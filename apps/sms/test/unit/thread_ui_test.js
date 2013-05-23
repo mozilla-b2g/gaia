@@ -1250,4 +1250,219 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('Header Actions', function() {
+    setup(function() {
+      MockActivityPicker.call.mSetup();
+    });
+
+    teardown(function() {
+      Threads.delete(1);
+      window.location.hash = '';
+      MockActivityPicker.call.mTeardown();
+    });
+
+    test('Single participant: Invoke Activities (known)', function() {
+
+      Threads.set(1, {
+        participants: ['999']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = true;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.ok(MockActivityPicker.call.called);
+      assert.equal(MockActivityPicker.call.calledWith[0], '999');
+    });
+
+    test('Single participant: Invoke Options (unknown)', function() {
+
+      Threads.set(1, {
+        participants: ['999']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = false;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.equal(MockOptionMenu.calls.length, 1);
+    });
+
+    test('Multi participant: DOES NOT Invoke Activities', function() {
+
+      Threads.set(1, {
+        participants: ['999', '888']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = true;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.equal(MockActivityPicker.call.called, false);
+      assert.equal(MockActivityPicker.call.calledWith, null);
+    });
+
+    test('Multi participant: DOES NOT Invoke Options', function() {
+
+      Threads.set(1, {
+        participants: ['999', '888']
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.headerText.dataset.isContact = true;
+      ThreadUI.headerText.dataset.phoneNumber = '999';
+
+      ThreadUI.activateContact();
+
+      assert.equal(MockOptionMenu.calls.length, 0);
+    });
+  });
+
+  suite('Sending Behavior (onSendClick)', function() {
+    var realComposeisEmpty;
+    var realMessageManager;
+    var realEnableSend;
+
+    suiteSetup(function() {
+      realEnableSend = ThreadUI.enableSend;
+      realComposeisEmpty = Compose.isEmpty;
+      realMessageManager = MessageManager;
+
+      ThreadUI.enableSend = function() {
+        ThreadUI.sendButton.disabled = false;
+      };
+
+      Compose.isEmpty = function() {
+        return false;
+      };
+
+      MessageManager = {
+        activity: {
+          recipients: []
+        }
+      };
+
+      ['sendMMS', 'sendSMS'].forEach(function(prop) {
+        MessageManager[prop] = function() {
+          MessageManager[prop].called = true;
+          MessageManager[prop].calledWith = [].slice.call(arguments);
+        };
+
+        MessageManager[prop].mSetup = function() {
+          MessageManager[prop].called = false;
+          MessageManager[prop].calledWith = null;
+        };
+
+        MessageManager[prop].mTeardown = function() {
+          delete MessageManager[prop].called;
+          delete MessageManager[prop].calledWith;
+        };
+      });
+
+      MessageManager = MessageManager;
+    });
+
+    suiteTeardown(function() {
+      ThreadUI.enableSend = realEnableSend;
+      Compose.isEmpty = realComposeisEmpty;
+      MessageManager = realMessageManager;
+    });
+
+    setup(function() {
+      window.location.hash = '#new';
+      MessageManager.sendMMS.mSetup();
+      MessageManager.sendSMS.mSetup();
+    });
+
+    teardown(function() {
+      MessageManager.sendMMS.mTeardown();
+      MessageManager.sendSMS.mTeardown();
+    });
+
+
+    test('SMS, 1 Recipient, stays in view', function() {
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+
+      Compose.append('foo');
+
+      ThreadUI.onSendClick();
+
+      assert.ok(MessageManager.sendSMS.called);
+      assert.deepEqual(
+        MessageManager.sendSMS.calledWith,
+        [['999'], 'foo']
+      );
+      assert.equal(window.location.hash, '#new');
+    });
+
+    test('MMS, 1 Recipient, stays in view', function() {
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+
+      Compose.append(mockAttachment(512));
+
+      ThreadUI.onSendClick();
+
+      assert.ok(MessageManager.sendMMS.called);
+      assert.deepEqual(MessageManager.sendMMS.calledWith[0], ['999']);
+      assert.equal(window.location.hash, '#new');
+    });
+
+    test('SMS, >1 Recipient, moves to thread list', function(done) {
+
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+      ThreadUI.recipients.add({
+        number: '888'
+      });
+
+      Compose.append('foo');
+
+      window.onhashchange = function() {
+        assert.equal(window.location.hash, '#thread-list');
+        window.onhashchange = null;
+        done();
+      };
+
+      ThreadUI.onSendClick();
+
+      assert.ok(MessageManager.sendSMS.called);
+      assert.deepEqual(
+        MessageManager.sendSMS.calledWith,
+        [['999', '888'], 'foo']
+      );
+    });
+
+    test('MMS, >1 Recipient, stays in view', function() {
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+      ThreadUI.recipients.add({
+        number: '888'
+      });
+
+      Compose.append(mockAttachment(512));
+
+      ThreadUI.onSendClick();
+
+      assert.ok(MessageManager.sendMMS.called);
+      assert.deepEqual(MessageManager.sendMMS.calledWith[0], ['999', '888']);
+      assert.equal(window.location.hash, '#new');
+    });
+  });
+
 });

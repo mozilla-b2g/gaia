@@ -1199,11 +1199,11 @@ var ThreadUI = global.ThreadUI = {
 
     // Send the Message
     if (messageType === 'sms') {
-      MessageManager.sendSMS(recipients, content[0], function messageSent() {
-        if (recipients.length > 1) {
-          window.location.hash = '#thread-list';
-        }
-      });
+      MessageManager.sendSMS(recipients, content[0]);
+
+      if (recipients.length > 1) {
+        window.location.hash = '#thread-list';
+      }
     } else {
       var smilSlides = content.reduce(thui_generateSmilSlides, []);
       MessageManager.sendMMS(recipients, smilSlides);
