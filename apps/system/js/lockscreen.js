@@ -129,9 +129,9 @@ var LockScreen = {
 
     /* Gesture */
     this.area.addEventListener('mousedown', this);
-    this.areaCamera.addEventListener('click', this);
-    this.altCameraButton.addEventListener('click', this);
-    this.areaUnlock.addEventListener('click', this);
+    this.altCameraButton.addEventListener('mousedown', this);
+    this.areaCamera.addEventListener('mousedown', this);
+    this.areaUnlock.addEventListener('mousedown', this);
     this.iconContainer.addEventListener('mousedown', this);
 
     /* Unlock & camera panel clean up */
@@ -295,13 +295,6 @@ var LockScreen = {
         this.updateConnState();
 
       case 'click':
-        if (evt.target === this.areaUnlock ||
-           evt.target === this.areaCamera ||
-           evt.target === this.altCameraButton) {
-          this.handleIconClick(evt.target);
-          break;
-        }
-
         if (!evt.target.dataset.key)
           break;
 
@@ -311,6 +304,14 @@ var LockScreen = {
         break;
 
       case 'mousedown':
+        if (evt.target === this.areaUnlock ||
+           evt.target === this.areaCamera ||
+           evt.target === this.altCameraButton) {
+          evt.preventDefault();
+          this.handleIconClick(evt.target);
+          break;
+        }
+
         var leftTarget = this.areaCamera;
         var rightTarget = this.areaUnlock;
         var handle = this.areaHandle;
