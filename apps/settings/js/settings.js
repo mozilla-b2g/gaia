@@ -852,7 +852,7 @@ window.addEventListener('localized', function updateLocalized() {
 
   // update the enabled keyboards list with the language associated keyboard
   Settings.getSupportedKbLayouts(function updateEnabledKb(keyboards) {
-    var newKb = keyboards[navigator.mozL10n.language.code];
+    var newKb = keyboards.layout[navigator.mozL10n.language.code];
     var settingNewKeyboard = {};
     var settingNewKeyboardLayout = {};
     settingNewKeyboard['keyboard.current'] = navigator.mozL10n.language.code;
