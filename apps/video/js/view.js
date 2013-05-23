@@ -93,7 +93,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // so we'll play the video without going into fullscreen mode.
 
     // Get all the elements we use by their id
-    var ids = ['player', 'videoFrame', 'videoControls',
+    var ids = ['player', 'fullscreen-view', 'crop-view', 'videoControls',
                'close', 'play', 'playHead',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
@@ -198,34 +198,12 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     });
   }
 
-  // Make the video fit the container
+  // Align vertically fullscreen view
   function setPlayerSize() {
-    var containerWidth = window.innerWidth;
-    var containerHeight = window.innerHeight;
-
-    // Don't do anything if we don't know our size.
-    // This could happen if we get a resize event before our metadata loads
-    if (!dom.player.videoWidth || !dom.player.videoHeight)
-      return;
-
-    var width = dom.player.videoWidth;
-    var height = dom.player.videoHeight;
-    var xscale = containerWidth / width;
-    var yscale = containerHeight / height;
-    var scale = Math.min(xscale, yscale);
-
-    // scale large videos down, and scale small videos up
-    width *= scale;
-    height *= scale;
-
-    var left = ((containerWidth - width) / 2);
-    var top = ((containerHeight - height) / 2);
-
-    var transform = 'translate(' + left + 'px,' + top + 'px)';
-
-    transform += ' scale(' + scale + ')';
-
-    dom.player.style.transform = transform;
+    var containerHeight = (window.innerHeight > dom.player.offsetHeight) ?
+      window.innerHeight : dom.player.offsetHeight;
+    dom.cropView.style.marginTop = (containerHeight / 2) * -1 + 'px';
+    dom.cropView.style.height = containerHeight + 'px';
   }
 
   // show video player
