@@ -40,9 +40,20 @@ var ModalDialog = {
   },
 
   // Save the events returned by mozbrowsershowmodalprompt for later use.
-  // The events are stored according to webapp origin
-  // e.g., 'http://uitest.gaiamobile.org': evt
+  // The events are stored according to webapp origin and in some edge cases
+  // (in particular related to system messages) we have to handle multiple
+  // events for one origin, so we queue them.
+  // e.g., 'http://uitest.gaiamobile.org': [evt]
   currentEvents: {},
+
+  get eventForCurrentOrigin() {
+    var originEvents = this.currentEvents[this.currentOrigin];
+    if (originEvents && originEvents.length) {
+      return originEvents[0];
+    }
+
+    return null;
+  },
 
   init: function md_init() {
     // Get all elements initially.
@@ -79,7 +90,10 @@ var ModalDialog = {
 
         evt.preventDefault();
         var origin = evt.target.dataset.frameOrigin;
-        this.currentEvents[origin] = evt;
+        if (!this.currentEvents[origin]) {
+          this.currentEvents[origin] = [];
+        }
+        this.currentEvents[origin].push(evt);
 
         // Show modal dialog only if
         // the frame is currently displayed.
@@ -142,6 +156,19 @@ var ModalDialog = {
     }
   },
 
+  processNextEvent: function md_processNextEvent() {
+    var originEvents = this.currentEvents[this.currentOrigin];
+
+    originEvents.splice(0, 1);
+
+    if (originEvents.length) {
+      this.show(null, this.currentOrigin);
+      return;
+    }
+
+    delete this.currentEvents[this.currentOrigin];
+  },
+
   setHeight: function md_setHeight(height) {
     if (this.isVisible())
       this.overlay.style.height = height + 'px';
@@ -153,8 +180,8 @@ var ModalDialog = {
       return;
 
     var _ = navigator.mozL10n.get;
-    var evt = this.currentEvents[origin];
     this.currentOrigin = origin;
+    var evt = this.eventForCurrentOrigin;
 
     var message = evt.detail.message || '';
     var elements = this.elements;
@@ -211,7 +238,7 @@ var ModalDialog = {
   },
 
   hide: function md_hide() {
-    var evt = this.currentEvents[this.currentOrigin];
+    var evt = this.eventForCurrentOrigin;
     var type = evt.detail.promptType;
     if (type == 'prompt') {
       this.elements.promptInput.blur();
@@ -230,7 +257,7 @@ var ModalDialog = {
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
-    var evt = this.currentEvents[this.currentOrigin];
+    var evt = this.eventForCurrentOrigin;
 
     var type = evt.detail.promptType || evt.detail.type;
     switch (type) {
@@ -256,13 +283,13 @@ var ModalDialog = {
     if (evt.detail.unblock)
       evt.detail.unblock();
 
-    delete this.currentEvents[this.currentOrigin];
+    this.processNextEvent();
   },
 
   // When user clicks cancel button on confirm/prompt or
   // when the user try to escape the dialog with the escape key
   cancelHandler: function md_cancelHandler() {
-    var evt = this.currentEvents[this.currentOrigin];
+    var evt = this.eventForCurrentOrigin;
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
@@ -298,7 +325,7 @@ var ModalDialog = {
     if (evt.detail.unblock)
       evt.detail.unblock();
 
-    delete this.currentEvents[this.currentOrigin];
+    this.processNextEvent();
   },
 
   // When user selects an option on selectone dialog
@@ -306,7 +333,7 @@ var ModalDialog = {
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
-    var evt = this.currentEvents[this.currentOrigin];
+    var evt = this.eventForCurrentOrigin;
 
     evt.detail.returnValue = target.id;
     elements.selectOne.classList.remove('visible');
@@ -318,7 +345,7 @@ var ModalDialog = {
     if (evt.detail.unblock)
       evt.detail.unblock();
 
-    delete this.currentEvents[this.currentOrigin];
+    this.processNextEvent();
   },
 
   buildSelectOneDialog: function md_buildSelectOneDialog(data) {
@@ -429,7 +456,10 @@ var ModalDialog = {
 
     // Create a virtual mapping in this.currentEvents,
     // since system-app uses the different way to call ModalDialog.
-    this.currentEvents['system'] = pseudoEvt;
+    if (!this.currentEvents['system']) {
+      this.currentEvents['system'] = [];
+    }
+    this.currentEvents['system'].push(pseudoEvt);
     this.show(null, 'system');
     if (config.title)
       this.setTitle(config.type, config.title);
