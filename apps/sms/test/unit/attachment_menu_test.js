@@ -33,6 +33,8 @@ suite('attachment_menu_test.js', function() {
 
   suite('open', function() {
     setup(function() {
+      sinon.stub(AttachmentMenu.el, 'focus');
+
       document.querySelector('#attachment-options-menu').className = 'hide';
       // clear out a bunch of fields to make sure open uses localization
       AttachmentMenu.viewButton.textContent = '';
@@ -62,6 +64,9 @@ suite('attachment_menu_test.js', function() {
     });
     test('sets cancel text', function() {
       assert.equal(AttachmentMenu.cancelButton.textContent, 'cancel');
+    });
+    test('calls focus on main element', function() {
+      assert.ok(AttachmentMenu.el.focus.called);
     });
   });
 
