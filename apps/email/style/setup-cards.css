@@ -71,7 +71,6 @@ input:focus:invalid {
   margin-top: 0.4rem;
   text-align: right;
   font-size: 110%;
-  text-align: center;
 }
 .sup-error-code:before {
   content: "[";
