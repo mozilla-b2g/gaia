@@ -376,6 +376,8 @@ var ThreadUI = global.ThreadUI = {
       }
     }
 
+    this.updateCounter();
+
     var message = navigator.mozL10n.get('converted-to-' + Compose.type);
     this.convertNotice.querySelector('p').textContent = message;
     this.convertNotice.classList.remove('hide');
