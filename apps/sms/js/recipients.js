@@ -624,7 +624,7 @@
       // Bound handlers won't exist on the first run...
       if (this.observe.handler) {
         // Remove the old delegate to prevent zombie events
-        outer.parentNode.removeEventListener(
+        outer.removeEventListener(
           type, this.observe.handler, false
         );
       }
@@ -637,7 +637,7 @@
       }
 
       // Register the bound delegation handler
-      outer.parentNode.addEventListener(
+      outer.addEventListener(
         type, this.observe.handler, false
       );
     }, this);
