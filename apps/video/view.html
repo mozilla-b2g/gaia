@@ -14,8 +14,10 @@
   <body role="application" class="skin-dark">
     <!-- display this at startup while we create thumbnails -->
     <div id="spinner-overlay"><div id="spinner"></div></div>
-    <div id="videoFrame">
-      <video id="player" preload="metadata"></video>
+    <div id="fullscreen-view">
+      <div id="crop-view">
+        <video id="player" preload="metadata"></video>
+      </div>
       <!-- video controls -->
       <div id="videoControls" class="hidden">
         <section role="region">
