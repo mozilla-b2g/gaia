@@ -82,12 +82,13 @@ var CallLog = {
   },
 
   // Method for highlighting call events since last visit to call-log
-  updateHighlight: function cl_updateHighlight() {
+  updateHighlight: function cl_updateHighlight(target) {
     var self = this;
     var evtName = 'latestCallLogVisit';
+    var container = target || this.callLogContainer;
     window.asyncStorage.getItem(evtName, function getItem(referenceTimestamp) {
       if (referenceTimestamp) {
-        var logs = self.callLogContainer.getElementsByTagName('li');
+        var logs = container.getElementsByTagName('li');
         for (var i = 0, l = logs.length; i < l; i++) {
           if (logs[i].dataset.timestamp > referenceTimestamp) {
             logs[i].classList.add('highlighted');
@@ -184,6 +185,7 @@ var CallLog = {
       phoneNumbers.push(current.number);
     }
 
+    this.updateHighlight(callLogSection);
     this.callLogContainer.appendChild(callLogSection);
     this.updateListWithContactInfo(phoneNumbers, logGroupContainer);
   },
