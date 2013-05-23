@@ -101,7 +101,7 @@ var ThreadListUI = {
         };
       }
 
-      name.textContent = navigator.mozL10n.get('contact-title-text', {
+      name.textContent = navigator.mozL10n.get('thread-header-text', {
         name: title,
         n: others
       });

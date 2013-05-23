@@ -678,9 +678,9 @@ var ThreadUI = global.ThreadUI = {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
     if (!navigator.mozMobileMessage && callback) {
       this.headerText.textContent = navigator.mozL10n.get(
-        'contact-title-text', {
-          name: number,
-          n: others
+        'thread-header-text', {
+        name: number,
+        n: others
       });
       setTimeout(callback);
       return;
@@ -706,7 +706,7 @@ var ThreadUI = global.ThreadUI = {
 
       this.headerText.dataset.isContact = !!details.isContact;
       this.headerText.textContent = navigator.mozL10n.get(
-        'contact-title-text', {
+        'thread-header-text', {
           name: contactName,
           n: others
       });
