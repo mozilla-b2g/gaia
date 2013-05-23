@@ -87,7 +87,6 @@ input.msg-search-text-tease {
   position: relative;
   height: 8rem;
   overflow: hidden;
-  border-bottom: 0.1rem solid #bdbdbb;
 }
 .msg-header-item:active {
   background-color: #b1f1ff;
@@ -106,16 +105,16 @@ input.msg-search-text-tease {
   background-color: #53b8cc;
 }
 .msg-header-details-section {
-  display: block;
+  -moz-box-sizing: border-box;
   position: absolute;
   top: 0;
-  left: 2.8rem;
-  /* 100% - (unread-section) - (icons-section) */
-  width: calc(100% - 2.8rem - 3rem);
+  left: 1.5rem;
+  width: calc(100% - 3rem);
   height: 100%;
   font-size: 1.6rem;
   line-height: 2rem;
-  padding: 1rem 0;
+  padding: 1rem 1.5rem 0;
+  border-bottom: 0.1rem solid #bdbdbb;
 }
 .msg-header-icons-section {
   display: block;
@@ -467,8 +466,7 @@ input.msg-search-text-tease {
   left: 3.9rem;
 }
 .msg-messages-container.show-edit .msg-header-details-section {
-  left: 5.9rem;
-  width: -moz-calc(100% - 4rem - 1.9rem - 2rem - 2.8rem);
+  padding-left: 4.5rem;
 }
 
 /*
