@@ -741,6 +741,28 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('appendMessage removes old message', function() {
+    setup(function() {
+      this.targetMsg = {
+        id: 23,
+        type: 'sms',
+        receivers: this.receivers,
+        body: 'This is a test',
+        delivery: 'error',
+        timestamp: new Date()
+      };
+      ThreadUI.appendMessage(this.targetMsg);
+      this.original = ThreadUI.container.querySelector(
+        '[data-message-id="' + this.targetMsg.id + '"]');
+      ThreadUI.appendMessage(this.targetMsg);
+    });
+    test('original message removed when rendered a second time', function() {
+      var message = ThreadUI.container.querySelector(
+        '[data-message-id="' + this.targetMsg.id + '"]');
+      assert.notEqual(message, this.original);
+    });
+  });
+
   suite('not-downloaded', function() {
     var ONE_DAY_TIME = 24 * 60 * 60 * 1000;
     var testMessages = [{
@@ -760,13 +782,24 @@ suite('thread_ui.js >', function() {
       sender: '123456',
       type: 'mms',
       delivery: 'not-downloaded',
-      deliveryStatus: ['error'],
-      subject: 'Error download',
+      deliveryStatus: ['manual'],
+      subject: 'manual download',
       timestamp: new Date(Date.now() - 150000),
       expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
     },
     {
       id: 3,
+      threadId: 8,
+      sender: '123456',
+      type: 'mms',
+      delivery: 'not-downloaded',
+      deliveryStatus: ['error'],
+      subject: 'error download',
+      timestamp: new Date(Date.now() - 150000),
+      expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
+    },
+    {
+      id: 4,
       threadId: 8,
       sender: '123456',
       type: 'mms',
@@ -790,6 +823,56 @@ suite('thread_ui.js >', function() {
     });
     suite('pending message', function() {
       var message = testMessages[0];
+      var element;
+      var notDownloadedMessage;
+      var button;
+      setup(function() {
+        ThreadUI.appendMessage(message);
+        element = document.getElementById('message-' + message.id);
+        notDownloadedMessage = element.querySelector('.not-downloaded-message');
+        button = element.querySelector('button');
+      });
+      test('element has correct data-message-id', function() {
+        assert.equal(element.dataset.messageId, message.id);
+      });
+      test('not-downloaded class present', function() {
+        assert.isTrue(element.classList.contains('not-downloaded'));
+      });
+      test('error class absent', function() {
+        assert.isFalse(element.classList.contains('error'));
+      });
+      test('expired class absent', function() {
+        assert.isFalse(element.classList.contains('expired'));
+      });
+      test('pending class present', function() {
+        assert.isTrue(element.classList.contains('pending'));
+      });
+      test('message is correct', function() {
+        assert.equal(notDownloadedMessage.textContent,
+          'not-downloaded-mms{"date":"date_stub"}');
+      });
+      test('date is correctly determined', function() {
+        assert.equal(Utils.date.format.localeFormat.args[0][0],
+          message.expiryDate);
+        assert.equal(Utils.date.format.localeFormat.args[0][1],
+          'dateTimeFormat_%x');
+      });
+      test('button text is correct', function() {
+        assert.equal(button.textContent, 'downloading');
+      });
+      suite('clicking', function() {
+        setup(function() {
+          ThreadUI.handleMessageClick({
+            target: button
+          });
+        });
+        test('does not call retrieveMMS', function() {
+          assert.equal(MessageManager.retrieveMMS.args.length, 0);
+        });
+      });
+    });
+    suite('manual message', function() {
+      var message = testMessages[1];
       var element;
       var notDownloadedMessage;
       var button;
@@ -871,7 +954,7 @@ suite('thread_ui.js >', function() {
       });
     });
     suite('error message', function() {
-      var message = testMessages[1];
+      var message = testMessages[2];
       var element;
       var notDownloadedMessage;
       var button;
@@ -952,8 +1035,9 @@ suite('thread_ui.js >', function() {
         });
       });
     });
+
     suite('expired message', function() {
-      var message = testMessages[2];
+      var message = testMessages[3];
       var element;
       var element;
       var notDownloadedMessage;
