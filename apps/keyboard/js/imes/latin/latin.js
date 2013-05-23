@@ -177,7 +177,7 @@
           console.error('No dictionary for language', e.data.args[0]);
           break;
         case 'predictions':
-          keyboard.sendCandidates(e.data.args);
+          handleSuggestions(e.data.input, e.data.args);
           break;
         }
       };
@@ -280,6 +280,37 @@
     var word = inputText.substring(firstletter, cursor);
 
     worker.postMessage({cmd: 'predict', args: [word]});
+  }
+
+  function handleSuggestions(input, suggestions) {
+
+    function isCapitalized(word) {
+      return word[0].toLowerCase() !== word[0];
+    }
+
+    function capitalize(word) {
+      return word[0].toUpperCase() + word.substring(1);
+    }
+
+    function wordBeforeCursor() {
+      return inputText.substring(wordStartBeforeCursor(), cursor);
+    }
+
+    var typedWord = wordBeforeCursor();
+    if (input !== typedWord) {
+      //user typing faster than suggestions provided
+      keyboard.sendCandidates([]);
+    }
+    else {
+      if (isCapitalized(typedWord)) {
+        //capitalize all of the suggestions
+        for (var i = 0; i < suggestions.length; i++) {
+          suggestions[i] = capitalize(suggestions[i]);
+        }
+      }
+
+      keyboard.sendCandidates(suggestions);
+    }
   }
 
   // This function handles two special punctuation cases. If the user
@@ -434,7 +465,7 @@
     // firstletter is now the position of the start of the word and cursor is
     // the end of the word
     return firstletter;
-  } 
+  }
 
   // We only offer suggestions if the cursor is at the end of a word
   // The character before the cursor must be a word character and
