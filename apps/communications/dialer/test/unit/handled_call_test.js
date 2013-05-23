@@ -518,6 +518,15 @@ suite('dialer/handled_call', function() {
     assert.equal(numberNode.textContent, 'withheld-number');
   });
 
+  test('should display emergency number label', function() {
+    mockCall = new MockCall('112', 'dialing');
+    mockCall.emergency = true;
+    subject = new HandledCall(mockCall, fakeNode);
+
+    var numberNode = fakeNode.querySelector('.numberWrapper .number');
+    assert.equal(numberNode.textContent, 'emergencyNumber');
+  });
+
   suite('additional information', function() {
     test('check additional info updated', function() {
       mockCall = new MockCall('888', 'incoming');
