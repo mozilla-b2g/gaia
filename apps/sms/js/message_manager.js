@@ -88,6 +88,14 @@ var MessageManager = {
       return;
     }
 
+    // Here we can only have one sender, so deliveryStatus[0] => message
+    // status from sender. Ignore 'pending' messages that are received
+    // this means we are in automatic download mode
+    if (message.delivery === 'not-downloaded' &&
+        message.deliveryStatus[0] === 'pending') {
+      return;
+    }
+
     threadId = message.threadId;
 
     if (Threads.has(threadId)) {
