@@ -50,16 +50,7 @@ var UpdateManager = {
       this._mgmt = navigator.mozApps.mgmt;
     }
 
-    this._mgmt.getAll().onsuccess = (function gotAll(evt) {
-      var apps = evt.target.result;
-      apps.forEach(function appIterator(app) {
-        new AppUpdatable(app);
-      });
-    }).bind(this);
-
     this._settings = navigator.mozSettings;
-
-    this.systemUpdatable = new SystemUpdatable();
 
     this.container = document.getElementById('update-manager-container');
     this.message = this.container.querySelector('.message');
@@ -106,6 +97,15 @@ var UpdateManager = {
     // Always display the warning after users reboot the phone.
     this._dataConnectionWarningEnabled = true;
     this.downloadDialog.dataset.dataConnectionInlineWarning = false;
+
+    this._mgmt.getAll().onsuccess = (function gotAll(evt) {
+      var apps = evt.target.result;
+      apps.forEach(function appIterator(app) {
+        new AppUpdatable(app);
+      });
+    }).bind(this);
+
+    this.systemUpdatable = new SystemUpdatable();
   },
 
   requestDownloads: function um_requestDownloads(evt) {
