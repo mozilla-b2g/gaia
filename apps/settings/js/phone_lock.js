@@ -208,7 +208,7 @@ var PhoneLock = {
         }
         break;
       case this.passcodeEditButton:
-    	this._passcodeBuffer = ''
+        this._passcodeBuffer = '';
         this.changeMode('edit');
         break;
       case this.createPasscodeButton:
