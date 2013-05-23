@@ -219,10 +219,18 @@ navigator.mozL10n.ready(function wifiSettings() {
     /**
      * A Wi-Fi list item has the following HTML structure:
      *   <li>
+     *     <aside class="pack-end wifi-icon level-[?] [secured]"></aside>
      *     <small> Network Security </small>
-     *     <a [class="wifi-secure"]> Network SSID </a>
+     *     <a> Network SSID </a>
      *   </li>
      */
+
+    // icon
+    var icon = document.createElement('aside');
+    icon.classList.add('pack-end');
+    icon.classList.add('wifi-icon');
+    var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+    icon.classList.add('level-' + level);
 
     // ssid
     var ssid = document.createElement('a');
@@ -233,16 +241,24 @@ navigator.mozL10n.ready(function wifiSettings() {
     var keys = network.capabilities;
     if (keys && keys.length) {
       small.textContent = _('securedBy', { capabilities: keys.join(', ') });
-      ssid.classList.add('wifi-secure');
+      icon.classList.add('secured');
     } else {
       small.textContent = _('securityOpen');
-      small.dataset.l10nId = 'securityOpen';
     }
 
     // create list item
     var li = document.createElement('li');
+    li.appendChild(icon);
     li.appendChild(small);
     li.appendChild(ssid);
+
+    // Show connection status
+    icon.classList.add('wifi-signal');
+    if (isConnected(network)) {
+      small.textContent = _('shortStatus-connected');
+      icon.classList.add('connected');
+      li.classList.add('active');
+    }
 
     // bind connection callback
     li.onclick = function() {
@@ -336,15 +352,8 @@ navigator.mozL10n.ready(function wifiSettings() {
             var network = networks[networkKeys[i]];
             var listItem = newListItem(network, toggleNetwork);
 
-            // signal is between 0 and 100, level should be between 0 and 4
-            var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-            listItem.querySelector('a').classList.add('wifi-signal' + level);
-
             // put connected network on top of list
             if (isConnected(network)) {
-              listItem.classList.add('active');
-              listItem.querySelector('small').textContent =
-                  _('shortStatus-connected');
               list.insertBefore(listItem, infoItem.nextSibling);
             } else {
               list.insertBefore(listItem, scanItem);
@@ -380,7 +389,7 @@ navigator.mozL10n.ready(function wifiSettings() {
     }
 
     // display a message on the network item matching the ssid
-    function display(network, message) {
+    function display(network, networkStatus) {
       var key = network.ssid + '+' + network.capabilities.join('+');
       var listItem = index[key];
       var active = list.querySelector('.active');
@@ -388,10 +397,19 @@ navigator.mozL10n.ready(function wifiSettings() {
         active.classList.remove('active');
         active.querySelector('small').textContent =
             _('shortStatus-disconnected');
+        active.querySelector('aside').classList.remove('connecting');
+        active.querySelector('aside').classList.remove('connected');
       }
       if (listItem) {
         listItem.classList.add('active');
-        listItem.querySelector('small').textContent = message;
+        listItem.querySelector('small').textContent =
+                                            _('shortStatus-' + networkStatus);
+        if (networkStatus === 'connecting') {
+          listItem.querySelector('aside').classList.add('connecting');
+        }
+        if (networkStatus === 'connected') {
+          listItem.querySelector('aside').classList.remove('connecting');
+        }
       }
     }
 
@@ -530,13 +548,11 @@ navigator.mozL10n.ready(function wifiSettings() {
       gCurrentNetwork = network;
       gWifiManager.associate(network);
       settings.createLock().set({'wifi.connect_via_settings': true});
-      gNetworkList.display(network, _('shortStatus-connecting'));
     }
 
     function wifiDisconnect() {
       settings.createLock().set({'wifi.connect_via_settings': false});
       gWifiManager.forget(network);
-      gNetworkList.display(network, _('shortStatus-disconnected'));
       // get available network list
       gNetworkList.scan();
       gCurrentNetwork = null;
@@ -674,6 +690,8 @@ navigator.mozL10n.ready(function wifiSettings() {
 
     // networkStatus has one of the following values:
     // connecting, associated, connected, connectingfailed, disconnected.
+    gNetworkList.display(gCurrentNetwork, networkStatus);
+
     gWifiInfoBlock.textContent =
         _('fullStatus-' + networkStatus, gWifiManager.connection.network);
 
@@ -682,8 +700,6 @@ navigator.mozL10n.ready(function wifiSettings() {
       // connection has failed, probably an authentication issue...
       delete(gCurrentNetwork.password);
       gWifiManager.forget(gCurrentNetwork); // force a new authentication dialog
-      gNetworkList.display(gCurrentNetwork,
-          _('shortStatus-connectingfailed'));
       gCurrentNetwork = null;
     }
 
