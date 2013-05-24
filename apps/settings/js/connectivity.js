@@ -284,7 +284,7 @@ var Connectivity = (function(window, document, undefined) {
   function initSystemMessageHandler() {
     // XXX this is not a good way to interact with bluetooth.js
     var handlePairingRequest = function(message, method) {
-      window.location.hash = '#bluetooth';
+      Settings.currentPanel = '#bluetooth';
       setTimeout(function() {
         gDeviceList.onRequestPairing(message, method);
       }, 1500);
