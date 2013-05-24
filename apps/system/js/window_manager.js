@@ -455,6 +455,17 @@ var WindowManager = (function() {
     delete iframe.dataset.unloaded;
   });
 
+  windows.addEventListener('mozbrowservisibilitychange',
+    function visibilitychange(e) {
+      var target = e.target;
+
+      var type = e.detail.visible ? 'foreground' : 'background';
+      var detail = { manifestURL: target.getAttribute('mozapp') };
+      var evt = new CustomEvent(type, { detail: detail, bubbles: true });
+      target.dispatchEvent(evt);
+    }
+  );
+
   // setFrameBackground() will attach the manifest icon as a background
   function setFrameBackground(frame, callback) {
     var splash = frame.firstChild.splash;
