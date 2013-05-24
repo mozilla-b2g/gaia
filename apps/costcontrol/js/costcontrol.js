@@ -30,7 +30,6 @@ var CostControl = (function() {
       costcontrol = {
         request: request,
         isBalanceRequestSMS: isBalanceRequestSMS,
-        getApplicationMode: getApplicationMode,
         getDataUsageWarning: function _getDataUsageWarning() {
           return 0.8;
         }
@@ -62,20 +61,6 @@ var CostControl = (function() {
   }
 
   // OTHER LOGIC
-
-  // Get application mode based on the current SIM, OEM configuration and
-  // plantype. Can be: DATA_USAGE_ONLY, PREPAID and POSTPAID.
-  function getApplicationMode(settings) {
-    var simMCC = connection.iccInfo.mcc;
-    var simMNC = connection.iccInfo.mnc;
-    var enabledNetworks = ConfigManager.configuration.enable_on;
-    if (!(simMCC in enabledNetworks) ||
-        (enabledNetworks[simMCC].indexOf(simMNC) === -1)) {
-      return 'DATA_USAGE_ONLY';
-    }
-
-    return settings.plantype.toUpperCase();
-  }
 
   // Check if a SMS matches the form of a balance request
   function isBalanceRequestSMS(sms, configuration) {
@@ -219,7 +204,7 @@ var CostControl = (function() {
       return 'no_service';
     }
 
-    var mode = getApplicationMode(settings);
+    var mode = ConfigManager.getApplicationMode();
     if (mode !== 'PREPAID') {
       return 'no_service';
     }

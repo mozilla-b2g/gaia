@@ -439,7 +439,7 @@
         debug('SMS sent!');
 
         ConfigManager.requestAll(function _onInfo(configuration, settings) {
-          var mode = costcontrol.getApplicationMode(settings);
+          var mode = ConfigManager.getApplicationMode();
           if (mode === 'PREPAID' &&
               !costcontrol.isBalanceRequestSMS(sms, configuration)) {
             costcontrol.request({ type: 'balance' });
@@ -469,7 +469,7 @@
           debug('Outgoing call finished!');
 
           ConfigManager.requestSettings(function _onSettings(settings) {
-            var mode = costcontrol.getApplicationMode(settings);
+            var mode = ConfigManager.getApplicationMode();
             if (mode === 'PREPAID') {
               costcontrol.request({ type: 'balance' });
             }
