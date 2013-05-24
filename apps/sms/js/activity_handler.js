@@ -61,7 +61,7 @@ var ActivityHandler = {
           };
         }
 
-        ActivityHandler.showThreadFromSystemMessage({
+        ActivityHandler.toView({
           body: body,
           number: number,
           contact: contact || null
@@ -105,14 +105,14 @@ var ActivityHandler = {
     // For "new" message activities, proceed directly to
     // new message composition view.
     if (!message.threadId && message.number) {
-      ActivityHandler.showThreadFromSystemMessage(message);
+      ActivityHandler.toView(message);
       return;
     }
 
     var request = navigator.mozMobileMessage.getMessage(message.id);
 
     request.onsuccess = function onsuccess() {
-      ActivityHandler.showThreadFromSystemMessage(message);
+      ActivityHandler.toView(message);
     };
 
     request.onerror = function onerror() {
@@ -120,8 +120,31 @@ var ActivityHandler = {
     };
   },
 
-  showThreadFromSystemMessage:
-    function ah_showThreadFromSystemMessage(message) {
+  // Deliver the user to the correct view
+  // based on the params provided in the
+  // "message" object.
+  //
+  toView: function ah_toView(message) {
+    /**
+     *  "message" is either a message object that belongs
+     *  to a thread, or a message object from the system.
+     *
+     *
+     *  message {
+     *    number: A string phone number to pre-populate
+     *            the recipients list with.
+     *
+     *    body: An optional body to preset the compose
+     *           input with.
+     *
+     *    contact: An optional "contact" object
+     *
+     *    threadId: An option threadId corresponding
+     *              to a new or existing thread.
+     *
+     *  }
+     */
+
     if (!message) {
       return;
     }
@@ -132,7 +155,7 @@ var ActivityHandler = {
     var contact = message.contact ? message.contact : null;
     var threadHash = '#thread=' + threadId;
 
-    var showAction = function act_action(number) {
+    var showAction = function act_action() {
       // If we only have a body, just trigger a new message.
       if (!threadId) {
         MessageManager.activity.body = body || null;
@@ -153,7 +176,7 @@ var ActivityHandler = {
           break;
         case '#edit':
           history.back();
-          showAction(threadId);
+          showAction();
           break;
         default:
           if (locationHash.indexOf('#thread=') !== -1) {
@@ -175,18 +198,18 @@ var ActivityHandler = {
 
     if (!document.documentElement.lang) {
       navigator.mozL10n.ready(function waitLocalized() {
-        showAction(threadId);
+        showAction();
       });
     } else {
       if (!document.mozHidden) {
         // Case of calling from Notification
-        showAction(threadId);
+        showAction();
         return;
       }
       document.addEventListener('mozvisibilitychange',
         function waitVisibility() {
           document.removeEventListener('mozvisibilitychange', waitVisibility);
-          showAction(threadId);
+          showAction();
       });
     }
   },
