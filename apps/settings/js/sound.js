@@ -166,13 +166,13 @@
         })(key, list.settingName, selected.value);
       }
 
-      document.location.hash = 'sound';
+      Settings.currentPanel = '#sound';
     };
 
     var reset = dialog.querySelector('[type=reset]');
     reset.onclick = function onreset() {
       stopAudioPreview();
-      document.location.hash = 'sound'; // hide dialog box
+      Settings.currentPanel = '#sound'; // hide dialog box
     };
   }
 
@@ -193,7 +193,7 @@
     for (var key in lists) {
       activateCurrentElementFor(lists[key]);
     }
-    document.location.hash = 'sound-selection';
+    Settings.currentPanel = '#sound-selection';
   };
 })();
 

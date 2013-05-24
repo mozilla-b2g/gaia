@@ -218,7 +218,7 @@ var ApplicationsList = {
     if (!app)
       return;
 
-    window.location.hash = '#appPermissions';
+    Settings.currentPanel = '#appPermissions';
 
     this._apps.splice(appIndex, 1);
 
