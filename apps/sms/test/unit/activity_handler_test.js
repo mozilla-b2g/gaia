@@ -8,6 +8,10 @@ requireApp(
 requireApp('sms/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 requireApp('sms/shared/test/unit/mocks/mock_notification_helper.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
+
+requireApp('sms/js/message_manager.js');
+
+requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_messages.js');
@@ -234,4 +238,55 @@ suite('ActivityHandler', function() {
     });
   });
 
+  suite('"new" activity', function() {
+    var realMessageManager;
+    var realUtilsescapeHTML;
+    var realMozL10n;
+
+    suiteSetup(function() {
+      realMozL10n = navigator.mozL10n;
+      navigator.mozL10n = MockL10n;
+
+      realMessageManager = MessageManager;
+      realUtilsescapeHTML = Utils.escapeHTML;
+    });
+
+    suiteTeardown(function() {
+      MessageManager = realMessageManager;
+      Utils.escapeHTML = realUtilsescapeHTML;
+    });
+
+    setup(function() {
+      Utils = {
+        escapeHTML: function(x) {
+          return x;
+        }
+      };
+      MessageManager = {
+        activity: {
+          body: null,
+          number: null,
+          contact: null,
+          recipients: null,
+          threadId: null,
+          isLocked: false
+        }
+      };
+    });
+
+    test('new message to unknown contact', function(done) {
+      window.onhashchange = function() {
+        assert.equal(window.location.hash, '#new');
+        assert.equal(MessageManager.activity.number, '999');
+        assert.equal(MessageManager.activity.body, 'foo');
+        window.onhashchange = null;
+        done();
+      };
+
+      ActivityHandler.toView({
+        body: 'foo',
+        number: '999'
+      });
+    });
+  });
 });
