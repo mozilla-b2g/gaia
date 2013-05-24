@@ -221,34 +221,6 @@ hidden_apps = hidden_apps.concat([
 init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'hiddenapps.js');
 writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
 
-// Cost Control
-init = getFile(GAIA_DIR, 'apps', 'costcontrol', 'js', 'config.json');
-
-content = {
-  provider: 'Vivo',
-  enable_on: { "724": ["6", "10", "11", "23"] }, // { MCC: [ MNC1, MNC2, ...] }
-  is_free: true,
-  is_roaming_free: true,
-  credit: { currency : 'R$' },
-  balance: {
-    destination: '8000',
-    text: 'SALDO',
-    senders: ['1515'],
-    regexp: 'Saldo Recarga: R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?'
-  },
-  topup: {
-    destination: '7000',
-    ussd_destination: '*321#',
-    text: '&code',
-    senders: ['1515', '7000'],
-    confirmation_regexp: 'Voce recarregou R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?',
-    incorrect_code_regexp: '(Favor enviar|envie novamente|Verifique) o codigo de recarga'
-  },
-  default_low_limit_threshold: 3
-};
-
-writeContent(init, getDistributionFileContent('costcontrol', content));
-
 // SMS
 init = getFile(GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
 content = ["1515", "7000"];

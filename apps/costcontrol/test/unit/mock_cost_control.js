@@ -12,15 +12,7 @@ var MockCostControl = function(config) {
 
   config = config || {};
 
-  var fakeCostControlInstance = {
-    getApplicationMode: function() {
-      assert.isDefined(
-        config.applicationMode,
-        getMockRequiredMessage('getApplicationMode', 'applicationMode', true)
-      );
-      return config.applicationMode;
-    }
-  };
+  var fakeCostControlInstance = {};
 
   return {
     getInstance: function(callback) {
