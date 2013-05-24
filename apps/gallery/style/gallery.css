@@ -661,7 +661,7 @@ a.filter-faded {
 
 #edit-border-none {
   left: calc(0% + 3px);
-  border: 2px solid white;  
+  border: 0;
 }
 #edit-border-thin-white {
   left: calc(20% + 3px);
