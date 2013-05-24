@@ -159,6 +159,7 @@ ul li p + label:not([for]) {
 }
 
 ul li p + input[type="text"],
+ul li p + input[type="number"],
 ul li p + input[type="tel"],
 ul li p + input[type="password"] {
   width: calc(100% - 6rem);
