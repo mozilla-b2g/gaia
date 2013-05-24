@@ -142,6 +142,11 @@ var ActivityHandler = {
       }
       var locationHash = window.location.hash;
 
+      // When editing a thread the location hash will be #editthread=<id>.
+      if (locationHash.startsWith('#edit')) {
+        locationHash = '#edit';
+      }
+
       switch (locationHash) {
         case '#thread-list':
         case '#new':
@@ -149,8 +154,15 @@ var ActivityHandler = {
           MessageManager.activity.isLocked = false;
           break;
         case '#edit':
-          history.back();
-          showAction(threadId);
+          if (threadId === Threads.currentId()) {
+            // Don't switch back to thread list if we're
+            // already displaying the requested threadId.
+            MessageManager.activity.isLocked = false;
+          } else {
+            history.back();
+            showAction(threadId);
+          }
+
           break;
         default:
           if (locationHash.indexOf('#thread=') !== -1) {

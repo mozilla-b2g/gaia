@@ -1107,7 +1107,7 @@ var ThreadUI = global.ThreadUI = {
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
-        if (window.location.hash !== '#edit') {
+        if (!window.location.hash.startsWith('#edit')) {
           // if the click wasn't on an attachment check for other clicks
           if (!thui_mmsAttachmentClick(evt.target)) {
             this.handleMessageClick(evt);

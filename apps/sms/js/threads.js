@@ -2,7 +2,7 @@
   'use strict';
 
   var threads = new Map();
-  var rthread = /\bthread=(.+)$/;
+  var rthread = /thread=(.+)$/;
 
   function Thread(thread) {
     for (var p in thread) {
