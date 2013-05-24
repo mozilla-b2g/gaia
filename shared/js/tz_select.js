@@ -3,9 +3,25 @@
 
 'use strict';
 
-function tzSelect(regionSelector, citySelector, onchange, onload, mcc, mnc) {
+function tzSelect(regionSelector, citySelector, onchange, onload) {
   var TIMEZONE_FILE = '/shared/resources/tz.json';
-  var MCCMNC_FILE = '/shared/resources/mccmnc.json';
+  var APN_TZ_FILE = '/shared/resources/apn_tz.json';
+
+  function loadJSON(name, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', name, true);
+    xhr.responseType = 'json';
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4) {
+        var response = null;
+        if (xhr.status == 200 || xhr.status === 0) {
+          response = xhr.response;
+        }
+        callback(response);
+      }
+    };
+    xhr.send();
+  }
 
   /**
    * Activate a timezone selector UI
@@ -16,29 +32,6 @@ function tzSelect(regionSelector, citySelector, onchange, onload, mcc, mnc) {
     var gCity = currentID.replace(/.*?\//, '');
     var gTZ = null;
     var loaded = false;
-
-    function loadJSON(name, callback) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', name, true);
-      xhr.responseType = 'json';
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-          var response = null;
-          if (xhr.status == 200 || xhr.status === 0) {
-            response = xhr.response;
-          }
-          callback(response);
-        }
-      };
-      xhr.send();
-    }
-
-    function loadTZ(callback) {
-      loadJSON(TIMEZONE_FILE, function (response) {
-        gTZ = response;
-        callback():
-      });
-    }
 
     function fillSelectElement(selector, options) {
       selector.innerHTML = '';
@@ -116,7 +109,10 @@ function tzSelect(regionSelector, citySelector, onchange, onload, mcc, mnc) {
 
     regionSelector.onchange = fillCities;
     citySelector.onchange = setTimezone;
-    loadTZ(fillRegions);
+    loadJSON(TIMEZONE_FILE, function loadTZ(response) {
+      gTZ = response;
+      fillRegions();
+    });
   }
 
 
@@ -163,44 +159,43 @@ function tzSelect(regionSelector, citySelector, onchange, onload, mcc, mnc) {
           initialize(userSelTimezone);
           return;
         }
+
+        /**
+         * Try to guess the current timezone from the MCC/MNC tuple.
+         * Worst case scenario: default to New York (which is just as good or
+         * bad as anything else -- we used to default to Pago Pago)
+         */
         var tzDefault = 'America/New_York';
-        // If we were not given a mcc and mnc, default to New York, which is
-        // just as good or bad as anything else.
-        if (!mcc) {
-            initialize(tzDefault);
-            return;
+
+        // retrieve MCC/MNC
+        var mcc, mnc;
+        var conn = navigator.mozMobileConnection;
+        if (conn) {
+          // Default to the SIM codes, but we actually prefer the current
+          // network codes.
+          if (conn.iccInfo) {
+            mcc = conn.iccInfo.mcc;
+            mnc = conn.iccInfo.mnc;
+          }
+          if (conn.voice && conn.voice.network) {
+            mcc = conn.voice.network.mcc;
+            mnc = conn.voice.network.mnc;
+          }
         }
-        // Try to guess the timezone from the mcc/mnc.
-        var code = '' + (mcc | 0) + ('000' + mnc).substr(-3);
-        loadJSON(MCCMNC_FILE, function (response) {
+        if (!mcc) {
+          initialize(tzDefault);
+          return;
+        }
+
+        // most MCC values only match one country (hence one timezone);
+        // for the few MCC values that match several countries, rely on MNC.
+        loadJSON(APN_TZ_FILE, function(response) {
           if (response) {
-            // Get the country from the mcc/mnc database.
-            var cc = response[code];
-            if (!cc) {
-              // If that didn't work, try to match mcc only
-              for (var mccmnc in response) {
-                if (mccmnc.substr(0,3) == mcc) {
-                  cc = response[mccmnc];
-                  break;
-                }
-              }
-            }
-            // If we still don't have a country code, default to US (we used to
-            // default to Pago Pago here, so US is just as good/bad here.
-            if (!cc)
-              cc = 'us';
-            // Our other database uses upper case. Sigh.
-            cc = toUpperCase();
-            // Now go through the TZ database and find the primary time zone
-            // for this country code.
-            for (var c in gTZ) {
-              var list = gTZ[c];
-              for (var n = 0; n < list.length; ++n) {
-                if (list.cc == cc && list.primary) {
-                  tzDefault = list.id || (c + '/' + list.city);
-                  break;
-                }
-              }
+            var tz = response[mcc];
+            if (typeof(tz) == 'string') {
+              tzDefault = tz;
+            } else if (mnc in tz) {
+              tzDefault = tz[mnc];
             }
           }
           initialize(tzDefault);
