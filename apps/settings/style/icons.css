@@ -25,7 +25,8 @@
   background-size: 15rem;
 }
 
-.menu-item:active::before {
+.menu-item:active::before,
+.menu-item:focus::before {
   background-image: url(images/icons_sprite_active.gif);
 }
 

@@ -127,8 +127,8 @@ var PhoneLock = {
     this.hideErrorMessage();
     this.MODE = mode;
     this.passcodePanel.dataset.mode = mode;
-    if (document.location.hash != 'phoneLock-passcode') {
-      document.location.hash = 'phoneLock-passcode'; // show dialog box
+    if (Settings.currentPanel != '#phoneLock-passcode') {
+      Settings.currentPanel = '#phoneLock-passcode'; // show dialog box
 
       // Open the keyboard after the UI transition. We can't listen for the
       // ontransitionend event because some of the passcode mode changes, such
@@ -257,7 +257,7 @@ var PhoneLock = {
   backToPhoneLock: function pl_backToPhoneLock() {
     this._passcodeBuffer = '';
     this.passcodeInput.blur();
-    document.location.hash = 'phoneLock';
+    Settings.currentPanel = '#phoneLock';
   }
 };
 

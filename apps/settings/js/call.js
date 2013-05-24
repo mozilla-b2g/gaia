@@ -533,19 +533,19 @@ var Calls = (function(window, document, undefined) {
   }
 
   // Call subpanel navigation control.
-  var oldHash = document.location.hash || '#root';
-  window.addEventListener('hashchange', function() {
+  window.addEventListener('panelready', function(e) {
     // If navigation is from #root to #call panels then update UI always.
-    if (document.location.hash === '#call' &&
-        !oldHash.startsWith('#call-cf-')) {
-      if (!updatingInProgress) {
-        updateCallWaitingItemState(
-          function hashchange_updateCallWaitingItemState() {
-            updateCallForwardingSubpanels();
-        });
-      }
+    if (e.detail.current !== '#call' ||
+        e.detail.previous.startsWith('#call-cf-')) {
+      return;
     }
-    oldHash = document.location.hash;
+
+    if (!updatingInProgress) {
+      updateCallWaitingItemState(
+        function hashchange_updateCallWaitingItemState() {
+          updateCallForwardingSubpanels();
+      });
+    }
   });
 
   // Public API.
@@ -555,12 +555,7 @@ var Calls = (function(window, document, undefined) {
       initCallWaiting();
       initCallForwarding();
 
-      updateCallWaitingItemState(
-        function init_updateCallWaitingItemState() {
-          updateCallForwardingSubpanels(
-            function init_updateCallForwardingSubpanels() {
-              setTimeout(initCallForwardingObservers, 500);
-      })});
+      setTimeout(initCallForwardingObservers, 500);
     }
   };
 })(this, document);

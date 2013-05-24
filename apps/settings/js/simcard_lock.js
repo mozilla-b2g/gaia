@@ -67,7 +67,7 @@ var SimPinLock = {
               self.simPinCheckBox.checked = !enabled;
               self.updateSimCardStatus();
             },
-            document.location.hash
+            Settings.currentPanel
           );
           break;
         default:
@@ -80,13 +80,13 @@ var SimPinLock = {
               self.simPinCheckBox.checked = !enabled;
               self.updateSimCardStatus();
             },
-            document.location.hash
+            Settings.currentPanel
           );
           break;
       }
     };
     this.changeSimPinButton.onclick = function spl_changePin() {
-      SimPinDialog.show('changePin', null, null, document.location.hash);
+      SimPinDialog.show('changePin', null, null, Settings.currentPanel);
     };
 
     this.updateSimCardStatus();

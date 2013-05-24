@@ -261,7 +261,7 @@ var SimPinDialog = {
   // the origin parameter records the dialog caller.
   // when the dialog is closed, we can relocate back to the caller's div.
   show: function spl_show(action, onsuccess, oncancel, origin) {
-    if ('#simpin-dialog' == document.location.hash)
+    if ('#simpin-dialog' == Settings.currentPanel)
       return;
 
     var _ = navigator.mozL10n.get;
@@ -298,7 +298,7 @@ var SimPinDialog = {
       this.oncancel = oncancel;
 
     this.origin = origin;
-    document.location.hash = '#simpin-dialog';
+    Settings.currentPanel = '#simpin-dialog';
 
     if (action === 'unlock' && this.lockType === 'puk')
       this.pukInput.focus();
@@ -310,7 +310,7 @@ var SimPinDialog = {
   close: function spl_close() {
     this.clear();
     if (this.origin)
-      document.location.hash = this.origin;
+      Settings.currentPanel = this.origin;
   },
 
   skip: function spl_skip() {
