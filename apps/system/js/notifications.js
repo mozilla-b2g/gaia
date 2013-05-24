@@ -79,7 +79,7 @@ var NotificationScreen = {
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
     window.addEventListener('mozvisibilitychange', this);
-    window.addEventListener('appopen', this.handleAppopen.bind(this));
+    window.addEventListener('foreground', this.handleAppopen.bind(this));
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
