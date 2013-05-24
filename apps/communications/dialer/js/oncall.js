@@ -650,6 +650,10 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function toggleCalls() {
+    if (CallScreen.incomingContainer.classList.contains('displayed')) {
+      return;
+    }
+
     if (handledCalls.length < 2) {
       holdOrResumeSingleCall();
       return;
