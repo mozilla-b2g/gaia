@@ -2717,6 +2717,8 @@ ActiveSyncAccount.prototype = {
       path: this.accountDef.name,
       type: this.accountDef.type,
 
+      defaultPriority: this.accountDef.defaultPriority,
+
       enabled: this.enabled,
       problems: this.problems,
 
@@ -3055,7 +3057,10 @@ ActiveSyncAccount.prototype = {
 
   /**
    * Recreate the folder storage for a particular folder; useful when we end up
-   * desyncing with the server and need to start fresh.
+   * desyncing with the server and need to start fresh.  No notification is
+   * generated, although slices are repopulated.
+   *
+   * FYI: There is a nearly identical method in IMAP's account implementation.
    *
    * @param {string} folderId the local ID of the folder
    * @param {function} callback a function to be called when the operation is
@@ -3374,6 +3379,7 @@ define('mailapi/activesync/configurator',
     '../accountcommon',
     '../a64',
     './account',
+    '../date',
     'require',
     'exports'
   ],
@@ -3382,6 +3388,7 @@ define('mailapi/activesync/configurator',
     $accountcommon,
     $a64,
     $asacct,
+    $date,
     require,
     exports
   ) {
@@ -3496,6 +3503,7 @@ exports.configurator = {
         var accountDef = {
           id: accountId,
           name: userDetails.accountName || userDetails.emailAddress,
+          defaultPriority: $date.NOW(),
 
           type: 'activesync',
           syncRange: 'auto',

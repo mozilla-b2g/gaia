@@ -74,10 +74,14 @@ suite('languages >', function() {
 
     LanguageManager._currentLanguage = 'currentLanguage';
     LanguageManager._kbLayoutList = {
-      currentLanguage: currentLanguage,
-      newLanguage: newLanguage
+      'layout': {
+        currentLanguage: currentLanguage,
+        newLanguage: newLanguage
+      },
+      'nonLatin': [newLanguage]
     };
     LanguageManager._languages = {
+      'en': 'english',
       currentLanguage: 'The Current Language',
       newLanguage: 'The New Language'
     };
@@ -97,6 +101,8 @@ suite('languages >', function() {
     // Check new layout set to true
     assert.isTrue(MockNavigatorSettings.mSettings['keyboard.layouts.' +
                                                    newLanguage]);
+    // Check english layout enabled for non-latin keyboard
+    assert.isTrue(MockNavigatorSettings.mSettings['keyboard.layouts.english']);
   });
 
 });

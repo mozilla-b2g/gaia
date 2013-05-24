@@ -11526,6 +11526,7 @@ define('mailapi/mailbridge',
     'rdcommon/log',
     './util',
     './mailchew-strings',
+    './date',
     'require',
     'module',
     'exports'
@@ -11534,6 +11535,7 @@ define('mailapi/mailbridge',
     $log,
     $imaputil,
     $mailchewStrings,
+    $date,
     require,
     $module,
     exports
@@ -11777,6 +11779,14 @@ MailBridge.prototype = {
 
         case 'syncRange':
           accountDef.syncRange = val;
+          break;
+
+        case 'setAsDefault':
+          // Weird things can happen if the device's clock goes back in time,
+          // but this way, at least the user can change their default if they
+          // cycle through their accounts.
+          if (val)
+            accountDef.defaultPriority = $date.NOW();
           break;
       }
     }
@@ -14701,6 +14711,12 @@ MailUniverse.prototype = {
 
   saveAccountDef: function(accountDef, folderInfo) {
     this._db.saveAccountDef(this.config, accountDef, folderInfo);
+    var account = this.getAccountForAccountId(accountDef.id);
+
+    // If account exists, notify of modification. However on first
+    // save, the account does not exist yet.
+    if (account)
+      this.__notifyModifiedAccount(account);
   },
 
   /**

@@ -262,11 +262,16 @@ section[role="region"].new > header:first-child form {
   display: block;
 }
 
-#messages-contact-pick-button .icon.icon-user {
-  background-image: url(images/add_user.png);
-  display:block;
-  height:2rem;
-  width:2rem;
+#messages-contact-pick-button .icon-user {
+  display: block;
+  height: 2rem;
+  width: 2rem;
+
+  background-image: url(images/add_contact.png);
+}
+
+#messages-contact-pick-button .icon-user:active {
+  background-position: 0 2rem;
 }
 
 /*
@@ -462,7 +467,7 @@ section[role="region"].new > header:first-child form {
 #messages-container[data-type="list"] .message .bubble p {
   text-align: left;
   font-size: 1.9rem;
-  line-height: 2.5rem;
+  line-height: 2.3rem;
   white-space: normal;
   padding: 0;
 }

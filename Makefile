@@ -284,7 +284,7 @@ webapp-manifests: install-xulrunner-sdk
 	@#cat profile/webapps/webapps.json
 
 # Generate profile/webapps/APP/application.zip
-webapp-zip: stamp-commit-hash install-xulrunner-sdk
+webapp-zip: install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p profile/webapps
 	@$(call run-js-command, webapp-zip)
@@ -624,20 +624,6 @@ lint:
 	@# towerjelly
 	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext' -x 'calendar/js/presets.js,homescreen/js/hiddenapps.js,settings/js/hiddenapps.js'
 	@gjslint --nojsdoc -r shared/js -e 'phoneNumberJS'
-
-# Generate a text file containing the current changeset of Gaia
-# XXX I wonder if this should be a replace-in-file hack. This would let us
-#     let us remove the update-offline-manifests target dependancy of the
-#     default target.
-stamp-commit-hash:
-	@(if [ -e gaia_commit_override.txt ]; then \
-		cp gaia_commit_override.txt apps/settings/resources/gaia_commit.txt; \
-	elif [ -d ./.git ]; then \
-		git log -1 --format="%H%n%ct" HEAD > apps/settings/resources/gaia_commit.txt; \
-	else \
-		echo 'Unknown Git commit; build date shown here.' > apps/settings/resources/gaia_commit.txt; \
-		date +%s >> apps/settings/resources/gaia_commit.txt; \
-	fi)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:

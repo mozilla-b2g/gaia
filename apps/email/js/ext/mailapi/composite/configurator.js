@@ -269,6 +269,7 @@ define('mailapi/imap/folder',
 var $imaptextparser = null;
 var $imapsnippetparser = null;
 var $imapbodyfetcher = null;
+var $imapchew = null;
 var $imapsync = null;
 
 var allbackMaker = $allback.allbackMaker,
@@ -812,6 +813,14 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
           // subtract the estimated byte size
           overallMaximumBytes -= rep.sizeEstimate;
         }
+
+        // For a byte-serve request, we need to request at least 1 byte, so
+        // request some bytes.  This is a logic simplification that should not
+        // need to be used because imapchew.js should declare 0-byte files
+        // fully downloaded when their parts are created, but better a wasteful
+        // network request than breaking here.
+        if (bytesToFetch <= 0)
+          bytesToFetch = 64;
 
         // we may only need a subset of the total number of bytes.
         if (overallMaximumBytes !== undefined || rep.amountDownloaded) {
@@ -2972,6 +2981,50 @@ ImapAccount.prototype = {
   },
 
   /**
+   * Completely reset the state of a folder.  For use by unit tests and in the
+   * case of UID validity rolls.  No notification is generated, although slices
+   * are repopulated.
+   *
+   * FYI: There is a nearly identical method in ActiveSync's account
+   * implementation.
+   */
+  _recreateFolder: function(folderId, callback) {
+    this._LOG.recreateFolder(folderId);
+    var folderInfo = this._folderInfos[folderId];
+    folderInfo.$impl = {
+      nextId: 0,
+      nextHeaderBlock: 0,
+      nextBodyBlock: 0,
+    };
+    folderInfo.accuracy = [];
+    folderInfo.headerBlocks = [];
+    folderInfo.bodyBlocks = [];
+    // IMAP does not use serverIdHeaderBlockMapping
+
+    if (this._deadFolderIds === null)
+      this._deadFolderIds = [];
+    this._deadFolderIds.push(folderId);
+
+    var self = this;
+    this.saveAccountState(null, function() {
+      var newStorage =
+        new $mailslice.FolderStorage(self, folderId, folderInfo, self._db,
+                                     $imapfolder.ImapFolderSyncer,
+                                     self._LOG);
+      for (var iter in Iterator(self._folderStorages[folderId]._slices)) {
+        var slice = iter[1];
+        slice._storage = newStorage;
+        slice.reset();
+        newStorage.sliceOpenMostRecent(slice);
+      }
+      self._folderStorages[folderId]._slices = [];
+      self._folderStorages[folderId] = newStorage;
+
+      callback(newStorage);
+    }, 'recreateFolder');
+  },
+
+  /**
    * We are being told that a synchronization pass completed, and that we may
    * want to consider persisting our state.
    */
@@ -2989,10 +3042,10 @@ ImapAccount.prototype = {
    * that ever ends up not being the case that we need to cause mutating
    * operations to defer until after that snapshot has occurred.
    */
-  saveAccountState: function(reuseTrans, callback) {
+  saveAccountState: function(reuseTrans, callback, reason) {
     if (!this._alive) {
       this._LOG.accountDeleted('saveAccountState');
-      return;
+      return null;
     }
 
     var perFolderStuff = [], self = this;
@@ -3003,7 +3056,7 @@ ImapAccount.prototype = {
       if (folderStuff)
         perFolderStuff.push(folderStuff);
     }
-    this._LOG.saveAccountState();
+    this._LOG.saveAccountState(reason);
     var trans = this._db.saveAccountFolderStates(
       this.id, this._folderInfos, perFolderStuff,
       this._deadFolderIds,
@@ -3733,6 +3786,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     events: {
       createFolder: {},
       deleteFolder: {},
+      recreateFolder: { id: false },
 
       createConnection: {},
       reuseConnection: {},
@@ -3741,7 +3795,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       unknownDeadConnection: {},
       connectionMismatch: {},
 
-      saveAccountState: {},
+      saveAccountState: { reason: false },
       /**
        * XXX: this is really an error/warning, but to make the logging less
        * confusing, treat it as an event.
@@ -4114,6 +4168,8 @@ CompositeAccount.prototype = {
       name: this.accountDef.name,
       type: this.accountDef.type,
 
+      defaultPriority: this.accountDef.defaultPriority,
+
       enabled: this.enabled,
       problems: this.problems,
 
@@ -4258,6 +4314,7 @@ define('mailapi/composite/configurator',
     '../a64',
     '../allback',
     './account',
+    '../date',
     'require',
     'exports'
   ],
@@ -4267,6 +4324,7 @@ define('mailapi/composite/configurator',
     $a64,
     $allback,
     $account,
+    $date,
     require,
     exports
   ) {
@@ -4393,6 +4451,7 @@ exports.configurator = {
     var accountDef = {
       id: accountId,
       name: userDetails.accountName || userDetails.emailAddress,
+      defaultPriority: $date.NOW(),
 
       type: 'imap+smtp',
       receiveType: 'imap',

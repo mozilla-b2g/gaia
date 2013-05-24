@@ -1,7 +1,7 @@
 
 'use strict';
 
-const Homescreen = (function() {
+var Homescreen = (function() {
   var mode = 'normal';
   var origin = document.location.protocol + '//homescreen.' +
     document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');

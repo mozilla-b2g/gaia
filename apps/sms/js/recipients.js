@@ -624,7 +624,7 @@
       // Bound handlers won't exist on the first run...
       if (this.observe.handler) {
         // Remove the old delegate to prevent zombie events
-        outer.parentNode.removeEventListener(
+        outer.removeEventListener(
           type, this.observe.handler, false
         );
       }
@@ -637,7 +637,7 @@
       }
 
       // Register the bound delegation handler
-      outer.parentNode.addEventListener(
+      outer.addEventListener(
         type, this.observe.handler, false
       );
     }, this);
@@ -695,10 +695,21 @@
     switch (event.type) {
 
       case 'pan':
-        // If there are recipients in the list and the
-        // pan event is "pulling down", then switch the
-        // view to multiline display
-        if (owner.length > 1) {
+        // Switch to multiline display when:
+        //
+        //  1. There are 2 or more recipients in the list.
+        //  2. The recipients in the list have caused the
+        //      container to grow enough to require the
+        //      additional viewable area.
+        //      (>1 visible lines or 1.5x the original size)
+        //  3. The user is "pulling down" the recipient list.
+
+        // #1
+        if (owner.length > 1 &&
+          // #2
+          (view.inner.scrollHeight > (view.dims.inner.height * 1.5))) {
+
+          // #3
           if (event.detail.absolute.dy > 0) {
             this.visible('multiline');
           }

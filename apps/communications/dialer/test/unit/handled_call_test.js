@@ -239,14 +239,6 @@ suite('dialer/handled_call', function() {
       assert.equal(subject.recentsEntry, MockOnCallHandler.mLastEntryAdded);
     });
 
-    test('mute off after call', function() {
-      assert.isFalse(MockCallScreen.mMuteOn);
-    });
-
-    test('speaker off after call', function() {
-      assert.isFalse(MockCallScreen.mSpeakerOn);
-    });
-
     test('remove listener', function() {
       assert.isTrue(mockCall._listenerRemoved);
     });
@@ -516,6 +508,15 @@ suite('dialer/handled_call', function() {
 
     var numberNode = fakeNode.querySelector('.numberWrapper .number');
     assert.equal(numberNode.textContent, 'withheld-number');
+  });
+
+  test('should display emergency number label', function() {
+    mockCall = new MockCall('112', 'dialing');
+    mockCall.emergency = true;
+    subject = new HandledCall(mockCall, fakeNode);
+
+    var numberNode = fakeNode.querySelector('.numberWrapper .number');
+    assert.equal(numberNode.textContent, 'emergencyNumber');
   });
 
   suite('additional information', function() {

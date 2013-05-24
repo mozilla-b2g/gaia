@@ -8,7 +8,7 @@ var attachmentMap = new WeakMap();
 function thui_mmsAttachmentClick(target) {
   var attachment = attachmentMap.get(target);
   if (!attachment) {
-    return;
+    return false;
   }
   var activity = new MozActivity({
     name: 'open',
@@ -24,6 +24,7 @@ function thui_mmsAttachmentClick(target) {
     // TODO: Add an alert here with a string saying something like
     // "There is no application available to open this file type"
   };
+  return true;
 }
 
 // reduce the Composer.getContent() into slide format used by SMIL.generate some
@@ -51,7 +52,6 @@ var ThreadUI = global.ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
-  TO_FIELD_HEIGHT: 5.7,
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
   recipients: null,
@@ -190,6 +190,11 @@ var ThreadUI = global.ThreadUI = {
 
     // Initialized here, but used in ThreadUI.cleanFields
     this.previousHash = null;
+
+    // Cache fixed measurement while init
+    var style = window.getComputedStyle(this.input, null);
+    this.INPUT_PADDING = parseInt(style.getPropertyValue('padding-top'), 10) +
+      parseInt(style.getPropertyValue('padding-bottom'), 10);
   },
 
   // Initialize Recipients list and Recipients.View (DOM)
@@ -376,16 +381,14 @@ var ThreadUI = global.ThreadUI = {
 
   setInputMaxHeight: function thui_setInputMaxHeight() {
     // Method for initializing the maximum height
-    var fontSize = Utils.getFontSize();
-    var viewHeight = this.container.offsetHeight / fontSize;
-    var inputHeight = this.input.offsetHeight / fontSize;
-    var barHeight =
-      document.getElementById('messages-compose-form').offsetHeight / fontSize;
-    var adjustment = barHeight - inputHeight;
+    // Set the input height to:
+    // view height - (vertical padding (+ to field height if edit new message))
+    var viewHeight = this.container.offsetHeight;
+    var adjustment = this.INPUT_PADDING;
     if (window.location.hash === '#new') {
-      adjustment += this.TO_FIELD_HEIGHT;
+      adjustment += this.toField.offsetHeight;
     }
-    this.input.style.maxHeight = (viewHeight - adjustment) + 'rem';
+    this.input.style.maxHeight = (viewHeight - adjustment) + 'px';
   },
 
   back: function thui_back() {
@@ -520,11 +523,7 @@ var ThreadUI = global.ThreadUI = {
     // First of all we retrieve all CSS info which we need
     var inputCss = window.getComputedStyle(this.input, null);
     var inputMaxHeight = parseInt(inputCss.getPropertyValue('max-height'), 10);
-    var fontSize = Utils.getFontSize();
-    var verticalPadding =
-      (parseInt(inputCss.getPropertyValue('padding-top'), 10) +
-      parseInt(inputCss.getPropertyValue('padding-bottom'), 10)) /
-      fontSize;
+    var verticalPadding = this.INPUT_PADDING;
     var buttonHeight = this.sendButton.offsetHeight;
 
     // Retrieve elements useful in growing method
@@ -537,14 +536,13 @@ var ThreadUI = global.ThreadUI = {
     // This is when we have reached the header (UX requirement)
     if (this.input.scrollHeight > inputMaxHeight) {
       // Height of the input is the maximum
-      this.input.style.height = inputMaxHeight / fontSize + 'rem';
+      this.input.style.height = inputMaxHeight + 'px';
       // Update the bottom bar height taking into account the padding
-      bottomBar.style.height =
-        inputMaxHeight / fontSize + verticalPadding + 'rem';
+      bottomBar.style.height = (inputMaxHeight + verticalPadding) + 'px';
       // We update the position of the button taking into account the
       // new height
       this.sendButton.style.marginTop = this.attachButton.style.marginTop =
-        (this.input.offsetHeight - buttonHeight) / fontSize + 'rem';
+        (this.input.offsetHeight - buttonHeight) + 'px';
       return;
     }
 
@@ -553,19 +551,18 @@ var ThreadUI = global.ThreadUI = {
     // with additional margin for preventing scroll bar.
     this.input.style.height =
       this.input.offsetHeight > this.input.scrollHeight ?
-      this.input.offsetHeight / fontSize + 'rem' :
-      this.input.scrollHeight / fontSize + verticalPadding + 'rem';
+      this.input.offsetHeight + 'px' :
+      (this.input.scrollHeight + verticalPadding) + 'px';
 
     // We retrieve current height of the input
     var newHeight = this.input.getBoundingClientRect().height;
 
     // We calculate the height of the bottonBar which contains the input
-    var bottomBarHeight = (newHeight / fontSize + verticalPadding) + 'rem';
+    var bottomBarHeight = (newHeight + verticalPadding) + 'px';
     bottomBar.style.height = bottomBarHeight;
 
     // We move the button to the right position
-    var buttonOffset = (this.input.offsetHeight - buttonHeight) /
-      fontSize + 'rem';
+    var buttonOffset = (this.input.offsetHeight - buttonHeight) + 'px';
     this.sendButton.style.marginTop = this.attachButton.style.marginTop =
       buttonOffset;
 
@@ -678,9 +675,9 @@ var ThreadUI = global.ThreadUI = {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
     if (!navigator.mozMobileMessage && callback) {
       this.headerText.textContent = navigator.mozL10n.get(
-        'contact-title-text', {
-          name: number,
-          n: others
+        'thread-header-text', {
+        name: number,
+        n: others
       });
       setTimeout(callback);
       return;
@@ -706,7 +703,7 @@ var ThreadUI = global.ThreadUI = {
 
       this.headerText.dataset.isContact = !!details.isContact;
       this.headerText.textContent = navigator.mozL10n.get(
-        'contact-title-text', {
+        'thread-header-text', {
           name: contactName,
           n: others
       });
@@ -1110,10 +1107,11 @@ var ThreadUI = global.ThreadUI = {
     switch (evt.type) {
       case 'click':
         if (window.location.hash !== '#edit') {
-          this.handleMessageClick(evt);
-          // Handle events on links in a message
-          thui_mmsAttachmentClick(evt.target);
-          LinkActionHandler.handleTapEvent(evt);
+          // if the click wasn't on an attachment check for other clicks
+          if (!thui_mmsAttachmentClick(evt.target)) {
+            this.handleMessageClick(evt);
+            LinkActionHandler.handleTapEvent(evt);
+          }
           return;
         }
 
@@ -1195,11 +1193,11 @@ var ThreadUI = global.ThreadUI = {
 
     // Send the Message
     if (messageType === 'sms') {
-      MessageManager.sendSMS(recipients, content[0], function messageSent() {
-        if (recipients.length > 1) {
-          window.location.hash = '#thread-list';
-        }
-      });
+      MessageManager.sendSMS(recipients, content[0]);
+
+      if (recipients.length > 1) {
+        window.location.hash = '#thread-list';
+      }
     } else {
       var smilSlides = content.reduce(thui_generateSmilSlides, []);
       MessageManager.sendMMS(recipients, smilSlides);

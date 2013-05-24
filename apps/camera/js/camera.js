@@ -1024,8 +1024,8 @@ var Camera = {
 
   prepareTakePicture: function camera_takePicture() {
     this.disableButtons();
-    this.focusRing.setAttribute('data-state', 'focusing');
     if (this._autoFocusSupported && !this._manuallyFocused) {
+      this.focusRing.setAttribute('data-state', 'focusing');
       this._cameraObj.autoFocus(this.autoFocusDone.bind(this));
     } else {
       this.takePicture();

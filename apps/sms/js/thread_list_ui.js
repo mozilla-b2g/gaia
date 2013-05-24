@@ -101,7 +101,7 @@ var ThreadListUI = {
         };
       }
 
-      name.textContent = navigator.mozL10n.get('contact-title-text', {
+      name.textContent = navigator.mozL10n.get('thread-header-text', {
         name: title,
         n: others
       });
@@ -338,7 +338,7 @@ var ThreadListUI = {
     }
 
     if (lastMessageType === 'sms' && body) {
-      body = Utils.Message.format(body).split('\n')[0];
+      body = Utils.escapeHTML(body);
     }
 
     // Render markup with thread data
