@@ -130,11 +130,7 @@ Icon.prototype = {
     container.appendChild(icon);
 
     if (descriptor.removable === true) {
-      // Menu button to delete the app
-      var options = document.createElement('span');
-      options.className = 'options';
-      options.dataset.isIcon = true;
-      container.appendChild(options);
+      this.appendOptions();
     }
 
     target.appendChild(container);
@@ -145,6 +141,28 @@ Icon.prototype = {
       container.style.visibility = 'visible';
       icon.classList.add('loading');
     }
+  },
+
+  appendOptions: function icon_appendOptions() {
+    var options = this.container.querySelector('.options');
+    if (options) {
+      return;
+    }
+
+    // Menu button to delete the app
+    options = document.createElement('span');
+    options.className = 'options';
+    options.dataset.isIcon = true;
+    this.container.appendChild(options);
+  },
+
+  removeOptions: function icon_removeOptions() {
+    var options = this.container.querySelector('.options');
+    if (!options) {
+      return;
+    }
+
+    this.container.removeChild(options);
   },
 
   applyOverflowTextMask: function icon_applyOverflowTextMask() {
@@ -360,6 +378,7 @@ Icon.prototype = {
     this.updateAppStatus(app);
     var oldDescriptor = this.descriptor;
     this.descriptor = descriptor;
+    descriptor.removable === true ? this.appendOptions() : this.removeOptions();
 
     if (descriptor.updateTime == oldDescriptor.updateTime &&
         descriptor.icon == oldDescriptor.icon) {
