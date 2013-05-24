@@ -95,12 +95,13 @@ suite('SMIL', function() {
     test('SMIL doc with cid: prefixes on src', function(done) {
       var testText = 'Testing 1 2 3';
       var message = {
-        smil: '<smil><body><par><img src="cid:example.jpg"/>' +
+        smil: '<smil><body><par><img src="cid:23"/>' +
               '<text src="cid:text1"/></par></body></smil>',
         attachments: [{
           location: 'text1',
           content: new Blob([testText], {type: 'text/plain'})
         },{
+          id: '<23>',
           location: 'example.jpg',
           content: testImageBlob
         }]
@@ -109,6 +110,28 @@ suite('SMIL', function() {
         assert.equal(output[0].text, testText);
         assert.equal(output[0].blob, testImageBlob);
         assert.equal(output[0].name, 'example.jpg');
+        done();
+      });
+    });
+    test('SMIL doc with cid: prefixes on src and no location', function(done) {
+      // iphone!
+      var testText = 'Testing 1 2 3';
+      var message = {
+        smil: '<smil><body><par><img src="cid:23"/>' +
+              '<text src="cid:1"/></par></body></smil>',
+        attachments: [{
+          location: '<1>',
+          content: new Blob([testText], {type: 'text/plain'})
+        },{
+          id: '<23>',
+          content: testImageBlob
+        }]
+      };
+      SMIL.parse(message, function(output) {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[0].blob, testImageBlob);
+        // uses the id
+        assert.equal(output[0].name, '23');
         done();
       });
     });
@@ -179,6 +202,28 @@ suite('SMIL', function() {
         done();
       });
     });
+
+    test('empty SMIL doc with attachments and no location', function(done) {
+      var testText = 'Testing 1 2 3';
+      var message = {
+        smil: '<smil><body></body></smil>',
+        attachments: [{
+          id: '<1>',
+          content: new Blob([testText], {type: 'text/plain'})
+        },{
+          id: '<2>',
+          content: testImageBlob
+        }]
+      };
+      SMIL.parse(message, function(output) {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[0].blob, testImageBlob);
+        // uses id
+        assert.equal(output[0].name, '2');
+        done();
+      });
+    });
+
   });
   suite('SMIL.generate', function() {
     test('Text only message', function(done) {
