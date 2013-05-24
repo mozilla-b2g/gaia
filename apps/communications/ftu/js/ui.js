@@ -241,21 +241,7 @@ var UIManager = {
     // Initialize the timezone selector, see /shared/js/tz_select.js
     var tzRegion = document.getElementById('tz-region');
     var tzCity = document.getElementById('tz-city');
-    var mcc, mnc;
-    var conn = navigator.mozMobileConnection;
-    if (conn) {
-      // Default to the SIM codes, but we actually prefer the current
-      // network codes.
-      if (conn.iccInfo) {
-        mcc = conn.iccInfo.mcc;
-        mnc = conn.iccInfo.mnc;
-      }
-      if (conn.voice && conn.voice.network) {
-        mcc = conn.voice.network.mcc;
-        mnc = conn.voice.network.mnc;
-      }
-    }
-    tzSelect(tzRegion, tzCity, this.setTimeZone, this.setTimeZone, true, mcc, mnc);
+    tzSelect(tzRegion, tzCity, this.setTimeZone, this.setTimeZone);
   },
 
   fakeInputValues: function ui_fakeInputValues(event) {
