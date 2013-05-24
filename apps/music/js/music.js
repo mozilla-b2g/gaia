@@ -439,6 +439,13 @@ var ModeManager = {
         break;
       case MODE_LIST:
       case MODE_SUBLIST:
+        // When called from music player album cover, display default title
+        var prevMode = this._modeStack[(this._modeStack.length - 1) - 1];
+        if (prevMode == MODE_PLAYER) {
+          title = albumTitle;
+          break;
+        }
+
         switch (TabBar.option) {
           case 'playlist':
             title = playlistTitle;
