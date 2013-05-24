@@ -65,6 +65,7 @@ suite('dock.js >', function() {
   suite('with 1 icon >', function() {
 
     setup(function() {
+      MockPage.mIcons = [new MockIcon()];
       dock = new MockDock(dockContainer);
       DockManager.init(dockContainer, dock, tapThreshold);
     });
@@ -77,7 +78,9 @@ suite('dock.js >', function() {
 
     test('#calculateDimentions', function() {
       DockManager.calculateDimentions(dock.getNumIcons());
-      assert.notEqual(0, DockManager.cellWidth);
+      console.log('The dock width should be equal to 16 according to mockup: ' +
+                  DockManager.cellWidth);
+      assert.isTrue(DockManager.cellWidth > 0);
     });
 
     test('dock is not scrollable', function() {
@@ -101,12 +104,12 @@ suite('dock.js >', function() {
 
     test('looks ok', function() {
       assert.isFalse(DockManager.isFull());
-      assert.equal(0, dock.getNumIcons());
+      assert.equal(dock.getNumIcons(), 0);
     });
 
     test('#calculateDimentions', function() {
       DockManager.calculateDimentions(dock.getNumIcons());
-      assert.equal(0, DockManager.cellWidth);
+      assert.equal(DockManager.cellWidth, 0);
     });
 
     test('dock is not scrollable', function() {
