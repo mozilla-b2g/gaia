@@ -56,6 +56,7 @@ suite('SMS App Unit-Test', function() {
   var realMozMobileMessage;
   var boundOnHashChange;
   var getContactDetails;
+  var realGestureDetector;
 
   suiteSetup(function() {
     navigator.mozL10n = MockL10n;

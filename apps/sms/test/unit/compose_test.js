@@ -3,7 +3,7 @@
 */
 'use strict';
 
-mocha.globals(['0', '6']);
+mocha.globals(['0', '1', '2', '3', '4', '5', '6']);
 
 requireApp('sms/js/compose.js');
 requireApp('sms/js/thread_ui.js');
