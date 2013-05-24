@@ -956,6 +956,7 @@ var WindowManager = (function() {
   }
 
   function skipFTU() {
+    window.dispatchEvent(new Event('skipftu'));
     document.getElementById('screen').classList.remove('ftuStarting');
     InitLogoHandler.animate();
     setDisplayedApp(homescreen);
@@ -1305,7 +1306,7 @@ var WindowManager = (function() {
     if (origin === ftuURL) {
       // Add a way to identify ftu app
       // (Used by SimLock)
-      frame.classList.add('ftu');
+      iframe.classList.add('ftu');
     }
 
     numRunningApps++;
