@@ -103,7 +103,7 @@ settings = {
  "ril.mms.mmsproxy": "",
  "ril.mms.passwd": "",
  "ril.mms.user": "",
- "ril.mms.retrieval_mode": "automatic",
+ "ril.mms.retrieval_mode": "automatic-home",
  "dom.mms.operatorSizeLimitation": 0,
  "ril.radio.preferredNetworkType": "",
  "ril.radio.disabled": False,
