@@ -195,8 +195,8 @@ var ThreadUI = global.ThreadUI = {
 
     // Cache fixed measurement while init
     var style = window.getComputedStyle(this.input, null);
-    this.INPUT_PADDING = parseInt(style.getPropertyValue('padding-top'), 10) +
-      parseInt(style.getPropertyValue('padding-bottom'), 10);
+    this.INPUT_MARGIN = parseInt(style.getPropertyValue('margin-top'), 10) +
+      parseInt(style.getPropertyValue('margin-bottom'), 10);
   },
 
   // Initialize Recipients list and Recipients.View (DOM)
@@ -385,9 +385,9 @@ var ThreadUI = global.ThreadUI = {
   setInputMaxHeight: function thui_setInputMaxHeight() {
     // Method for initializing the maximum height
     // Set the input height to:
-    // view height - (vertical padding (+ to field height if edit new message))
+    // view height - (vertical margin (+ to field height if edit new message))
     var viewHeight = this.container.offsetHeight;
-    var adjustment = this.INPUT_PADDING;
+    var adjustment = this.INPUT_MARGIN;
     if (window.location.hash === '#new') {
       adjustment += this.toField.offsetHeight;
     }
@@ -525,7 +525,7 @@ var ThreadUI = global.ThreadUI = {
     // First of all we retrieve all CSS info which we need
     var inputCss = window.getComputedStyle(this.input, null);
     var inputMaxHeight = parseInt(inputCss.getPropertyValue('max-height'), 10);
-    var verticalPadding = this.INPUT_PADDING;
+    var verticalMargin = this.INPUT_MARGIN;
     var buttonHeight = this.sendButton.offsetHeight;
 
     // Retrieve elements useful in growing method
@@ -537,14 +537,13 @@ var ThreadUI = global.ThreadUI = {
     // Updating the height if scroll is bigger that height
     // This is when we have reached the header (UX requirement)
     if (this.input.scrollHeight > inputMaxHeight) {
-      // Height of the input is the maximum
-      this.input.style.height = inputMaxHeight + 'px';
-      // Update the bottom bar height taking into account the padding
-      bottomBar.style.height = (inputMaxHeight + verticalPadding) + 'px';
+      // Update the bottom bar height taking into account the margin
+      bottomBar.style.height = (inputMaxHeight + verticalMargin) + 'px';
+
       // We update the position of the button taking into account the
       // new height
       this.sendButton.style.marginTop = this.attachButton.style.marginTop =
-        (this.input.offsetHeight - buttonHeight) + 'px';
+        (this.input.offsetHeight + verticalMargin - buttonHeight) + 'px';
       return;
     }
 
@@ -554,19 +553,20 @@ var ThreadUI = global.ThreadUI = {
     this.input.style.height =
       this.input.offsetHeight > this.input.scrollHeight ?
       this.input.offsetHeight + 'px' :
-      (this.input.scrollHeight + verticalPadding) + 'px';
+      this.input.scrollHeight + 'px';
 
-    // We retrieve current height of the input
-    var newHeight = this.input.getBoundingClientRect().height;
+    // We calculate the current height of the input element (including margin)
+    var newHeight = this.input.getBoundingClientRect().height + verticalMargin;
 
     // We calculate the height of the bottonBar which contains the input
     var bottomBarHeight = newHeight + 'px';
     bottomBar.style.height = bottomBarHeight;
 
-    // We move the button to the right position
-    var buttonOffset = (this.input.offsetHeight - buttonHeight) + 'px';
+    // We set the buttons' top margin to ensure they render at the bottom of
+    // the container
+    var buttonOffset = this.input.offsetHeight + verticalMargin - buttonHeight;
     this.sendButton.style.marginTop = this.attachButton.style.marginTop =
-      buttonOffset;
+      buttonOffset + 'px';
 
     // Last adjustment to view taking into account the new height of the bar
     this.container.style.bottom = bottomBarHeight;
