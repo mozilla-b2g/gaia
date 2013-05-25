@@ -1340,6 +1340,56 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('Render Contact', function() {
+
+    test('Rendered Contact "givenName familyName"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.renderContact(contact, 'foo', ul);
+      html = ul.firstElementChild.innerHTML;
+      assert.ok(html.contains('Pepito Grillo'));
+    });
+
+    test('Rendered Contact highlighted "givenName familyName"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.renderContact(contact, 'Pepito Grillo', ul);
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(
+        html.contains('<span class="highlight">Pepito</span>')
+      );
+      assert.ok(
+        html.contains('<span class="highlight">Grillo</span>')
+      );
+    });
+
+    test('Rendered Contact "type | number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.renderContact(contact, 'foo', ul);
+      html = ul.firstElementChild.innerHTML;
+      assert.ok(html.contains('Mobile | +346578888888'));
+    });
+
+    test('Rendered Contact highlighted "type | number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.renderContact(contact, '346578888888', ul);
+      html = ul.firstElementChild.innerHTML;
+      assert.ok(
+        html.contains('Mobile | +<span class="highlight">346578888888</span>')
+      );
+    });
+  });
 
   suite('Header Actions', function() {
     setup(function() {
