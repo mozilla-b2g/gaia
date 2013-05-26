@@ -7,27 +7,69 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
   var TIMEZONE_FILE = '/shared/resources/tz.json';
   var APN_TZ_FILE = '/shared/resources/apn_tz.json';
 
-  function loadJSON(name, callback) {
+  function loadJSON(href, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', name, true);
+    xhr.open('GET', href, true);
     xhr.responseType = 'json';
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState == 4) {
-        var response = null;
-        if (xhr.status == 200 || xhr.status === 0) {
-          response = xhr.response;
-        }
-        callback(response);
-      }
+    xhr.onerror = callback;
+    xhr.onload = function() {
+      callback(xhr.response);
     };
     xhr.send();
   }
+
+
+  /**
+   * Guess the current timezone from the MCC/MNC tuple
+   */
+
+  function getDefaultTimezoneID(callback) {
+    if (!callback)
+      return;
+
+    // Worst case scenario: default to New York (which is just as good or
+    // bad as anything else -- we used to default to Pago Pago)
+    var tzDefault = 'America/New_York';
+
+    // retrieve MCC/MNC: use the current network codes when available,
+    // default to the SIM codes if necessary.
+    var mcc, mnc;
+    var conn = navigator.mozMobileConnection;
+    if (conn) {
+      if (conn.voice && conn.voice.network) {
+        mcc = conn.voice.network.mcc;
+        mnc = conn.voice.network.mnc;
+      } else if (conn.iccInfo) {
+        mcc = conn.iccInfo.mcc;
+        mnc = conn.iccInfo.mnc;
+      }
+    }
+    if (!mcc) {
+      callback(tzDefault);
+      return;
+    }
+
+    // most MCC values only match one country (hence one timezone);
+    // for the few MCC values that match several countries, rely on MNC.
+    loadJSON(APN_TZ_FILE, function(response) {
+      if (response) {
+        var tz = response[mcc];
+        if (typeof(tz) == 'string') {
+          tzDefault = tz;
+        } else if (tz && (mnc in tz)) {
+          tzDefault = tz[mnc];
+        }
+      }
+      callback(tzDefault);
+    });
+  }
+
 
   /**
    * Activate a timezone selector UI
    */
 
-  function newTZSelector(onchangeTZ, currentID) {
+  function newTZSelector(onchangeTZ, currentID, alreadyDefined) {
     var gRegion = currentID.replace(/\/.*/, '');
     var gCity = currentID.replace(/.*?\//, '');
     var gTZ = null;
@@ -112,6 +154,9 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     loadJSON(TIMEZONE_FILE, function loadTZ(response) {
       gTZ = response;
       fillRegions();
+      if (!alreadyDefined) { // no timezone defined: `currentID' is a new value
+        setTimezone();
+      }
     });
   }
 
@@ -129,7 +174,7 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
       setTimezoneDescription(event.settingValue);
     });
 
-    function initialize(initialValue) {
+    function initSelector(initialValue, alreadyDefined) {
       // initialize the timezone selector with the initial TZ setting
       newTZSelector(function updateTZ(tz) {
         var req = settings.createLock().set({'time.timezone': tz.id});
@@ -146,60 +191,21 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
             });
           };
         }
-      }, initialValue);
+      }, initialValue, alreadyDefined);
     }
 
     var reqTimezone = settings.createLock().get('time.timezone');
     reqTimezone.onsuccess = function dt_getStatusSuccess() {
-      // Load the time zone the user manually selected last time
+      // load the timezone the user manually selected last time,
+      // or get the default timezone for the current carrier
       var reqUserTZ = settings.createLock().get('time.timezone.user-selected');
       reqUserTZ.onsuccess = function dt_getUserTimezoneSuccess() {
         var userSelTimezone = reqUserTZ.result['time.timezone.user-selected'];
         if (userSelTimezone) {
-          initialize(userSelTimezone);
-          return;
+          initSelector(userSelTimezone, true);
+        } else {
+          getDefaultTimezoneID(initSelector);
         }
-
-        /**
-         * Try to guess the current timezone from the MCC/MNC tuple.
-         * Worst case scenario: default to New York (which is just as good or
-         * bad as anything else -- we used to default to Pago Pago)
-         */
-        var tzDefault = 'America/New_York';
-
-        // retrieve MCC/MNC
-        var mcc, mnc;
-        var conn = navigator.mozMobileConnection;
-        if (conn) {
-          // Default to the SIM codes, but we actually prefer the current
-          // network codes.
-          if (conn.iccInfo) {
-            mcc = conn.iccInfo.mcc;
-            mnc = conn.iccInfo.mnc;
-          }
-          if (conn.voice && conn.voice.network) {
-            mcc = conn.voice.network.mcc;
-            mnc = conn.voice.network.mnc;
-          }
-        }
-        if (!mcc) {
-          initialize(tzDefault);
-          return;
-        }
-
-        // most MCC values only match one country (hence one timezone);
-        // for the few MCC values that match several countries, rely on MNC.
-        loadJSON(APN_TZ_FILE, function(response) {
-          if (response) {
-            var tz = response[mcc];
-            if (typeof(tz) == 'string') {
-              tzDefault = tz;
-            } else if (mnc in tz) {
-              tzDefault = tz[mnc];
-            }
-          }
-          initialize(tzDefault);
-        });
       };
     };
 
