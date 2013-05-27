@@ -177,3 +177,7 @@ body[role="application"] [role="dialog"] {
   margin: 2rem;
   text-shadow: 0 0.2rem 0 #FFF;
 }
+
+.stepinfo {
+  margin: 0.5rem 2rem 1rem 2rem;
+}
