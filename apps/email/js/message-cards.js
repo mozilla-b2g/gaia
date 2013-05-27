@@ -1233,13 +1233,13 @@ MessageReaderCard.prototype = {
     var needToPrompt = this.header.hasAttachments ||
       this.body.embeddedImageCount > 0;
 
-    var forwardMessage = function() {
+    var forwardMessage = (function() {
       Cards.eatEventsUntilNextCard();
       var composer = this.header.forwardMessage('inline', function() {
              Cards.pushCard('compose', 'default', 'animate',
                             { composer: composer });
       });
-    }.bind(this);
+    }.bind(this));
 
     if (needToPrompt) {
       var dialog = msgNodes['attachment-disabled-confirm'].cloneNode(true);
