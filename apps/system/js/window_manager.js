@@ -404,10 +404,16 @@ var WindowManager = (function() {
         if ('wrapper' in frame.dataset)
           wrapperFooter.classList.add('visible');
 
-        iframe.addEventListener('mozbrowserloadend', function on(e) {
-          iframe.removeEventListener('mozbrowserloadend', on);
+        // Modified in window.js
+        // If we're already loaded, go to ready function directly.
+        if (iframe.dataset.loading == 'loaded') {
           onWindowReady();
-        });
+        } else {
+          iframe.addEventListener('mozbrowserloadend', function on(e) {
+            iframe.removeEventListener('mozbrowserloadend', on);
+            onWindowReady();
+          });
+        }
       } else {
         onWindowReady();
       }
@@ -1289,9 +1295,6 @@ var WindowManager = (function() {
     }
     maybeSetFrameIsCritical(iframe, origin);
 
-    // Add the iframe to the document
-    windows.appendChild(frame);
-
     // And map the app origin to the info we need for the app
     var app = new AppWindow({
       origin: origin,
@@ -1302,6 +1305,10 @@ var WindowManager = (function() {
       iframe: iframe,
       launchTime: 0
     });
+
+    // Add the iframe to the document
+    windows.appendChild(frame);
+
     runningApps[origin] = app;
 
     if (requireFullscreen(origin)) {

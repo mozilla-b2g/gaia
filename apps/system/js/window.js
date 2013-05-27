@@ -134,6 +134,21 @@
     if (ENABLE_LOG)
       this.appLog = new AppLog(this);
 
+    var self = this;
+    this.iframe.dataset.loading = '';
+    // Tracking the loading state of the iframe;
+    // XXX: Move out to a standalone class/function
+    // XXX: We should notify others by event publishing without
+    // modifying the dataset value directly. It's unclear.
+    this.iframe.addEventListener('mozbrowserloadstart', function (evt) {
+      console.warn('app of [' + self.origin + '] got a mozbrowserloadstart event.');
+      self.iframe.dataset.loading = 'progressing';
+    });
+    this.iframe.addEventListener('mozbrowserloadend', function (evt) {
+      console.warn('app of [' + self.origin + '] got a mozbrowserloadend event.');
+      self.iframe.dataset.loading = 'loaded';
+    });
+
     return this;
   };
 
