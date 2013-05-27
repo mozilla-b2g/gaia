@@ -251,7 +251,7 @@ var CallLogDBManager = {
         groups[key] = {
           id: id,
           lastEntryDate: this._getDayDate(record.date),
-          retryCount: record.retryCount
+          retryCount: 1
         };
       }
 
