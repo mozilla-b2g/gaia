@@ -154,7 +154,7 @@ suite('Utils', function() {
   });
 
   suite('Utils.getContactDetails', function() {
-    test('(number, contact, callback)', function() {
+    test('(number, contact)', function() {
       var contact = new MockContact();
 
       var details = Utils.getContactDetails('346578888888', contact);
@@ -176,7 +176,7 @@ suite('Utils', function() {
       });
     });
 
-    test('(number, null, callback)', function() {
+    test('(number, null)', function() {
       var contact = new MockContact();
 
       var details = Utils.getContactDetails('346578888888', null);
@@ -185,7 +185,7 @@ suite('Utils', function() {
       });
     });
 
-    test('(number (wrong number), contact, callback)', function() {
+    test('(number (wrong number), contact)', function() {
       var contact = new MockContact();
 
       var details = Utils.getContactDetails('99999999', contact);
@@ -198,7 +198,7 @@ suite('Utils', function() {
       });
     });
 
-    test('(number, contact (blank information), callback)', function() {
+    test('(number, contact (blank information))', function() {
       var contact = new MockContact();
       var name = contact.name[0];
 
@@ -214,6 +214,28 @@ suite('Utils', function() {
         carrier: 'Mobile | TEF'
       });
 
+    });
+
+    test('(number, contact, { photoURL: true })', function() {
+      var contact = new MockContact();
+      contact.photo = [
+        new Blob(['foo'], { type: 'text/plain' })
+      ];
+
+      var details = Utils.getContactDetails('999', contact, {
+        photoURL: true
+      });
+
+      assert.isDefined(details.photoURL);
+    });
+
+    test('(number, contact, { photoURL: false })', function() {
+      var contact = new MockContact();
+      var details = Utils.getContactDetails('999', contact, {
+        photoURL: false
+      });
+
+      assert.isUndefined(details.photoURL);
     });
 
     suite('Defensive', function() {
