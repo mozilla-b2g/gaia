@@ -354,14 +354,6 @@ form p textarea + button[type="reset"].hide {
   margin-left: -5rem;
 }
 
-/* Contacts in comms application */
-@media screen and (max-height: 450px) and (min-height: 420px) {
- nav[data-type="scrollbar"] li {
-  font-size: 1.05rem;
-  line-height: 1.23rem;
- }
-}
-
 /* SETTINGS */
 section[role="region"] > header .icon.icon-settings
      { background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png); }
