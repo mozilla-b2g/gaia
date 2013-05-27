@@ -990,7 +990,7 @@
    * Open settings application with ICC section opened
    */
   function openSTKApplication() {
-    document.location.hash = 'icc';
+    Settings.currentPanel = '#icc';
     window.navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
       var app = evt.target.result;
       app.launch('settings');

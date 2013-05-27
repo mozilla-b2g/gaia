@@ -398,7 +398,7 @@ var MediaStorage = {
         });
         this.documentStorageListener = true;
       }
-      if (callback && document.location.hash === '#mediaStorage')
+      if (callback && Settings.currentPanel === '#mediaStorage')
         callback();
     }
   },

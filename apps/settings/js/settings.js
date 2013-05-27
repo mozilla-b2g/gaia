@@ -18,6 +18,88 @@ var Settings = {
         settings : null;
   },
 
+  _currentPanel: '#root',
+
+  get currentPanel() {
+    return this._currentPanel;
+  },
+
+  set currentPanel(hash) {
+    if (!hash.startsWith('#')) {
+      hash = '#' + hash;
+    }
+
+    if (hash === '#wifi') {
+      PerformanceTestingHelper.dispatch('start');
+    }
+    var oldPanelHash = this._currentPanel;
+    var oldPanel = document.querySelector(this._currentPanel);
+    this._currentPanel = hash;
+    var newPanelHash = this._currentPanel;
+    var newPanel = document.querySelector(this._currentPanel);
+
+    // load panel (+ dependencies) if necessary -- this should be synchronous
+    this.lazyLoad(newPanel);
+
+    // switch previous/current/forward classes
+    // FIXME: The '.peek' is here to avoid an ugly white
+    // flickering when transitioning (gecko 18)
+    // the forward class helps us 'peek' in the right direction
+    oldPanel.className = newPanel.className ? 'peek' : 'peek previous forward';
+    newPanel.className = newPanel.className ?
+                           'current peek' : 'peek current forward';
+
+    /**
+     * Most browsers now scroll content into view taking CSS transforms into
+     * account.  That's not what we want when moving between <section>s,
+     * because the being-moved-to section is offscreen when we navigate to its
+     * #hash.  The transitions assume the viewport is always at document 0,0.
+     * So add a hack here to make that assumption true again.
+     * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
+     */
+    if ((window.scrollX !== 0) || (window.scrollY !== 0)) {
+      window.scrollTo(0, 0);
+    }
+
+    window.addEventListener('transitionend', function paintWait() {
+      window.removeEventListener('transitionend', paintWait);
+
+      // We need to wait for the next tick otherwise gecko gets confused
+      setTimeout(function nextTick() {
+        oldPanel.classList.remove('peek');
+        oldPanel.classList.remove('forward');
+        newPanel.classList.remove('peek');
+        newPanel.classList.remove('forward');
+
+        // Bug 818056 - When multiple visible panels are present,
+        // they are not painted correctly. This appears to fix the issue.
+        // Only do this after the first load
+        if (oldPanel.className === 'current')
+          return;
+
+        oldPanel.addEventListener('transitionend', function onTransitionEnd(e) {
+          oldPanel.removeEventListener('transitionend', onTransitionEnd);
+          var detail = {
+            previous: oldPanelHash,
+            current: newPanelHash
+          };
+          var event = new CustomEvent('panelready', {detail: detail});
+          window.dispatchEvent(event);
+          switch (newPanel.id) {
+            case 'about-licensing':
+              // Workaround for bug 825622, remove when fixed
+              var iframe = document.getElementById('os-license');
+              iframe.src = iframe.dataset.src;
+              break;
+            case 'wifi':
+              PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
+              break;
+          }
+        });
+      });
+    });
+  },
+
   // Early initialization of parts of the application that don't
   // depend on the DOM being loaded.
   preInit: function settings_preInit() {
@@ -166,6 +248,81 @@ var Settings = {
         };
       }
     }
+  },
+
+  lazyLoad: function settings_lazyLoad(panel) {
+    if (panel.children.length) { // already initialized
+      return;
+    }
+
+    // load the panel and its sub-panels (dependencies)
+    // (load the main panel last because it contains the scripts)
+    var selector = 'section[id^="' + panel.id + '-"]';
+    var subPanels = document.querySelectorAll(selector);
+    for (var i = 0, il = subPanels.length; i < il; i++) {
+      this.loadPanel(subPanels[i]);
+    }
+    this.loadPanel(panel);
+
+    // panel-specific initialization tasks
+    switch (panel.id) {
+      case 'display':             // <input type="range"> + brightness control
+        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
+        var manualBrightness = panel.querySelector('#brightness-manual');
+        var autoBrightnessSetting = 'screen.automatic-brightness';
+        var settings = Settings.mozSettings;
+        if (!settings)
+          return;
+        settings.addObserver(autoBrightnessSetting, function(event) {
+          manualBrightness.hidden = event.settingValue;
+        });
+        var req = settings.createLock().get(autoBrightnessSetting);
+        req.onsuccess = function brightness_onsuccess() {
+          manualBrightness.hidden = req.result[autoBrightnessSetting];
+        };
+        break;
+      case 'sound':               // <input type="range">
+        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
+        break;
+      case 'languages':           // fill language selector
+        var langSel = document.querySelector('select[name="language.current"]');
+        langSel.innerHTML = '';
+        Settings.getSupportedLanguages(function fillLanguageList(languages) {
+          for (var lang in languages) {
+            var option = document.createElement('option');
+            option.value = lang;
+            // Right-to-Left (RTL) languages:
+            // (http://www.w3.org/International/questions/qa-scripts)
+            // Arabic, Hebrew, Farsi, Pashto, Urdu
+            var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+            // Use script direction control-characters to wrap the text labels
+            // since markup (i.e. <bdo>) does not work inside <option> tags
+            // http://www.w3.org/International/tutorials/bidi-xhtml/#nomarkup
+            var lEmbedBegin =
+                (rtlList.indexOf(lang) >= 0) ? '&#x202B;' : '&#x202A;';
+            var lEmbedEnd = '&#x202C;';
+            // The control-characters enforce the language-specific script
+            // direction to correctly display the text label (Bug #851457)
+            option.innerHTML = lEmbedBegin + languages[lang] + lEmbedEnd;
+            option.selected = (lang == document.documentElement.lang);
+            langSel.appendChild(option);
+          }
+        });
+        setTimeout(this.updateLanguagePanel);
+        break;
+      case 'keyboard':
+        Settings.updateKeyboardPanel();
+        break;
+      case 'battery':             // full battery status
+        Battery.update();
+        break;
+    }
+
+    // preset all inputs in the panel and subpanels.
+    for (var i = 0; i < subPanels.length; i++) {
+      this.presetPanel(subPanels[i]);
+    }
+    this.presetPanel(panel);
   },
 
   // Cache of all current settings values.  There's some large stuff
@@ -374,7 +531,7 @@ var Settings = {
 
         // Go to that section
         setTimeout(function settings_goToSection() {
-          document.location.hash = section;
+          Settings.currentPanel = section;
         });
         break;
     }
@@ -679,151 +836,6 @@ window.addEventListener('load', function loadSettings() {
       'js/icc_menu.js'
   ]);
 
-  // panel lazy-loading
-  function lazyLoad(panel) {
-    if (panel.children.length) { // already initialized
-      return;
-    }
-
-    // load the panel and its sub-panels (dependencies)
-    // (load the main panel last because it contains the scripts)
-    var selector = 'section[id^="' + panel.id + '-"]';
-    var subPanels = document.querySelectorAll(selector);
-    for (var i = 0, il = subPanels.length; i < il; i++) {
-      Settings.loadPanel(subPanels[i]);
-    }
-    Settings.loadPanel(panel);
-
-    // panel-specific initialization tasks
-    switch (panel.id) {
-      case 'display':             // <input type="range"> + brightness control
-        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
-        var manualBrightness = panel.querySelector('#brightness-manual');
-        var autoBrightnessSetting = 'screen.automatic-brightness';
-        var settings = Settings.mozSettings;
-        if (!settings)
-          return;
-        settings.addObserver(autoBrightnessSetting, function(event) {
-          manualBrightness.hidden = event.settingValue;
-        });
-        var req = settings.createLock().get(autoBrightnessSetting);
-        req.onsuccess = function brightness_onsuccess() {
-          manualBrightness.hidden = req.result[autoBrightnessSetting];
-        };
-        break;
-      case 'sound':               // <input type="range">
-        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
-        break;
-      case 'languages':           // fill language selector
-        var langSel = document.querySelector('select[name="language.current"]');
-        langSel.innerHTML = '';
-        Settings.getSupportedLanguages(function fillLanguageList(languages) {
-          for (var lang in languages) {
-            var option = document.createElement('option');
-            option.value = lang;
-            // Right-to-Left (RTL) languages:
-            // (http://www.w3.org/International/questions/qa-scripts)
-            // Arabic, Hebrew, Farsi, Pashto, Urdu
-            var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
-            // Use script direction control-characters to wrap the text labels
-            // since markup (i.e. <bdo>) does not work inside <option> tags
-            // http://www.w3.org/International/tutorials/bidi-xhtml/#nomarkup
-            var lEmbedBegin =
-                (rtlList.indexOf(lang) >= 0) ? '&#x202B;' : '&#x202A;';
-            var lEmbedEnd = '&#x202C;';
-            // The control-characters enforce the language-specific script
-            // direction to correctly display the text label (Bug #851457)
-            option.innerHTML = lEmbedBegin + languages[lang] + lEmbedEnd;
-            option.selected = (lang == document.documentElement.lang);
-            langSel.appendChild(option);
-          }
-        });
-        setTimeout(Settings.updateLanguagePanel);
-        break;
-      case 'keyboard':
-        Settings.updateKeyboardPanel();
-        break;
-      case 'battery':             // full battery status
-        Battery.update();
-        break;
-    }
-
-    // preset all inputs in the panel and subpanels.
-    for (var i = 0; i < subPanels.length; i++) {
-      Settings.presetPanel(subPanels[i]);
-    }
-    Settings.presetPanel(panel);
-  }
-
-  // panel navigation
-  var oldHash = window.location.hash || '#root';
-  function showPanel() {
-    var hash = window.location.hash;
-
-    if (hash === '#wifi') {
-      PerformanceTestingHelper.dispatch('start');
-    }
-
-    var oldPanel = document.querySelector(oldHash);
-    var newPanel = document.querySelector(hash);
-
-    // load panel (+ dependencies) if necessary -- this should be synchronous
-    lazyLoad(newPanel);
-
-    // switch previous/current/forward classes
-    // FIXME: The '.peek' is here to avoid an ugly white
-    // flickering when transitioning (gecko 18)
-    // the forward class helps us 'peek' in the right direction
-    oldPanel.className = newPanel.className ? 'peek' : 'peek previous forward';
-    newPanel.className = newPanel.className ?
-                           'current peek' : 'peek current forward';
-    oldHash = hash;
-
-    /**
-     * Most browsers now scroll content into view taking CSS transforms into
-     * account.  That's not what we want when moving between <section>s,
-     * because the being-moved-to section is offscreen when we navigate to its
-     * #hash.  The transitions assume the viewport is always at document 0,0.
-     * So add a hack here to make that assumption true again.
-     * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
-     */
-    if ((window.scrollX !== 0) || (window.scrollY !== 0)) {
-      window.scrollTo(0, 0);
-    }
-
-    window.addEventListener('transitionend', function paintWait() {
-      window.removeEventListener('transitionend', paintWait);
-
-      // We need to wait for the next tick otherwise gecko gets confused
-      setTimeout(function nextTick() {
-        oldPanel.classList.remove('peek');
-        oldPanel.classList.remove('forward');
-        newPanel.classList.remove('peek');
-        newPanel.classList.remove('forward');
-
-        // Bug 818056 - When multiple visible panels are present,
-        // they are not painted correctly. This appears to fix the issue.
-        // Only do this after the first load
-        if (oldPanel.className === 'current')
-          return;
-
-        oldPanel.addEventListener('transitionend', function onTransitionEnd() {
-          oldPanel.removeEventListener('transitionend', onTransitionEnd);
-          switch (newPanel.id) {
-            case 'about-licensing':
-              // Workaround for bug 825622, remove when fixed
-              var iframe = document.getElementById('os-license');
-              iframe.src = iframe.dataset.src;
-              break;
-            case 'wifi':
-              PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
-              break;
-          }
-        });
-      });
-    });
-  }
-
   function handleRadioAndCardState() {
     function disableSIMRelatedSubpanels(disable) {
       const itemIds = ['call-settings',
@@ -859,25 +871,33 @@ window.addEventListener('load', function loadSettings() {
   }
 
   // startup
-  window.addEventListener('hashchange', showPanel);
-  switch (window.location.hash) {
-    case '#root':
-      // Nothing to do here; default startup case.
-      break;
-    case '':
-      document.location.hash = 'root';
-      break;
-    default:
-      document.getElementById('root').className = 'previous';
-      showPanel();
-      break;
-  }
+  document.addEventListener('click', function settings_backButtonClick(e) {
+    var target = e.target;
+    if (target.classList.contains('icon-back')) {
+      Settings.currentPanel = target.parentNode.getAttribute('href');
+    }
+  });
+  document.addEventListener('click', function settings_sectionOpenClick(e) {
+    var target = e.target;
+    var nodeName = target.nodeName.toLowerCase();
+    if (nodeName != 'a') {
+      return;
+    }
+
+    var href = target.getAttribute('href');
+    if (!href || !href.startsWith('#')) {
+      return;
+    }
+
+    Settings.currentPanel = href;
+    e.preventDefault();
+  });
 });
 
 // back button = close dialog || back to the root page
 // + prevent the [Return] key to validate forms
 window.addEventListener('keydown', function handleSpecialKeys(event) {
-  if (document.location.hash != '#root' &&
+  if (Settings.currentPanel != '#root' &&
       event.keyCode === event.DOM_VK_ESCAPE) {
     event.preventDefault();
     event.stopPropagation();
@@ -887,7 +907,7 @@ window.addEventListener('keydown', function handleSpecialKeys(event) {
       dialog.classList.remove('active');
       document.body.classList.remove('dialog');
     } else {
-      document.location.hash = '#root';
+      Settings.currentPanel = '#root';
     }
   } else if (event.keyCode === event.DOM_VK_RETURN) {
     event.target.blur();
