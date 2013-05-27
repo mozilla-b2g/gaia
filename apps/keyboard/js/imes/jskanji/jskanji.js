@@ -48,6 +48,19 @@
     'ｱ': 0, 'ｶ': 1, 'ｻ': 2, 'ﾀ': 3, 'ﾅ': 4, 'ﾊ': 5, 'ﾏ': 6, 'ﾔ': 7,
     'ﾗ': 8, 'ﾜ': 9, '､': 10
   };
+  var IMEKeyWithAltList = {
+      'あ', 'い', 'う', 'え', 'お',
+      'か', 'き', 'く', 'け', 'こ',
+      'さ', 'し', 'す', 'せ', 'そ',
+      'た', 'ち', 'つ', 'て', 'と',
+      'な', 'に', 'ぬ', 'ね', 'の',
+      'は', 'ひ', 'ふ', 'へ', 'ほ',
+      'ま', 'み', 'む', 'め', 'も',
+      'や', 'ゆ', 'よ',
+      'ら', 'り', 'る', 'れ', 'ろ',
+      'わ', 'を', 'ん',
+      '、', '。', '？', '！', '・', '　'
+  };
 
 
   var IMEHalfWidthCharactorCandidateList = [
@@ -450,14 +463,20 @@
 
       // append new key code to the end of `_inputBuf`
       // and begin to deal with the new buf
+      var isFlickInput = false;
       if (!(kana in IMEKeyMap)) {
-        _glue.sendString(kana);
-        return 1;
+          if (IMEKeyWithAltList.indexOf(kana) === -1) {
+              _glue.sendString(kana);
+              return 1;
+          }
+          isFlickInput = true;
       }
       if (_previousKeycode !== IMESpecialKey.BACK &&
           !(String.fromCharCode(_previousKeycode) in IMEKeyMap)) {
         _inputBuf.push(kana);
 
+      } else if (isFlickInput) {
+        _inputBuf.push(kana);
       } else {
         var prevKana = _inputBuf[_inputBuf.length - 1];
         var nextKeyInfo = getNextKeyInfo(prevKana, kana);
