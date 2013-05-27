@@ -369,7 +369,13 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         if (!value || !pairList.index[value])
           return;
         var device = pairList.index[value][0];
-        setDeviceConnect(device);
+        isDeviceConnected(device, function(connected) {
+          if (connected) {
+            showDeviceConnected(device.address, true);
+          } else {
+            setDeviceConnect(device);
+          }
+        });
       });
     }
 
@@ -419,6 +425,60 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         if (callback)
           callback();
       };
+    }
+
+    function isDeviceConnected(device, callback) {
+      if (!callback)
+        return;
+
+      if (defaultAdapter && device) {
+        var getConnectedDevices = function(profileID, gcdCallback) {
+          var req = defaultAdapter.getConnectedDevices(profileID);
+          req.onsuccess = function() {
+            if (gcdCallback) {
+              gcdCallback(req.result || []);
+            }
+          };
+          req.onerror = function() {
+            if (gcdCallback) {
+              gcdCallback(null);
+            }
+          };
+        };
+
+        var findDeviceByAddress = function(address, connectedDevices) {
+          if (!connectedDevices)
+            return false;
+
+          var found = false;
+          for (var i in connectedDevices) {
+            var connectedDevice = connectedDevices[i];
+            if (connectedDevice.address === address) {
+              found = true;
+              break;
+            }
+          }
+          return found;
+        };
+
+        // '0x111E' is a service id of HFP.
+        // '0x1108' is a service id of HSP.
+        getConnectedDevices(0x111E, function(hfpResult) {
+          if (findDeviceByAddress(device.address, hfpResult)) {
+            callback(true);
+          } else {
+            getConnectedDevices(0x1108, function(hspResult) {
+              if (findDeviceByAddress(device.address, hspResult)) {
+                callback(true);
+              } else {
+                callback(false);
+              }
+            });
+          }
+        });
+      } else {
+        callback(false);
+      }
     }
 
     // callback function when an avaliable device found
