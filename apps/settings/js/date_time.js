@@ -171,7 +171,21 @@ navigator.mozL10n.ready(function SettingsDateAndTime() {
   }
 
   // monitor time.timezone changes, see /shared/js/tz_select.js
-  tzSelect(gTimezoneRegion, gTimezoneCity, tzOnchange, tzOnchange);
+  var mcc, mnc;
+  var conn = navigator.mozMobileConnection;
+  if (conn) {
+    // Default to the SIM codes, but we actually prefer the current
+    // network codes.
+    if (conn.iccInfo) {
+      mcc = conn.iccInfo.mcc;
+      mnc = conn.iccInfo.mnc;
+    }
+    if (conn.voice && conn.voice.network) {
+      mcc = conn.voice.network.mcc;
+      mnc = conn.voice.network.mnc;
+    }
+  }
+  tzSelect(gTimezoneRegion, gTimezoneCity, tzOnchange, tzOnchange, mcc, mnc);
 
   gDatePicker.addEventListener('input', function datePickerChange() {
     setTime('date');
