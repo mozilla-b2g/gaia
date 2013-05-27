@@ -90,7 +90,14 @@ var ViewManager = (function() {
     if (callback) {
       callback(isTab, viewId, isTab ? currentViewId : previousViewId);
     }
+    notifyViewChange(isTab, viewId);
   };
+
+  function notifyViewChange(isTab, current) {
+    var type = isTab ? 'tabchanged' : 'viewchanged';
+    var event = new CustomEvent(type, { detail: current });
+    window.dispatchEvent(event);
+  }
 
   ViewManager.prototype.loadPanel = function _loadPanel(panel) {
     if (!panel || panel.hidden === false) return;
