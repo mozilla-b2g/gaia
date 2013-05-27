@@ -135,217 +135,132 @@ suite('dragdrop.js >', function() {
     HTMLDocument.prototype.elementFromPoint = realElementFromPoint;
   });
 
-  suite('Page [app1, app2, app3, app4] | Dock [app5, app6] >',
-        function() {
-
-    test('The page has been initialized correctly ', function() {
-      checkPositions(page, ['app1', 'app2', 'app3', 'app4']);
-      assert.equal(page.getNumIcons(), 4);
-    });
-
-    test('The dock has been initialized correctly ', function() {
-      checkPositions(dock, ['app5', 'app6']);
-      assert.equal(dock.getNumIcons(), 2);
-    });
-
+  test('The page has been initialized correctly | ' +
+       'Page [app1, app2, app3, app4] > ', function() {
+    checkPositions(page, ['app1', 'app2', 'app3', 'app4']);
+    assert.equal(page.getNumIcons(), 4);
   });
 
-  suite('Dragging app1 to app2 | Page [app2, app1, app3, app4] ' +
-        '| Dock [app5, app6] >', function() {
-
-    test('Before dragging the icon app1 is the first ', function() {
-      checkPositions(page, ['app1', 'app2', 'app3', 'app4']);
-      checkPositions(dock, ['app5', 'app6']);
-    });
-
-    test('After dragging icons has been rearranged correctly ', function(done) {
-      start(dragabbleIcon, 0, 0);
-      move(dragabbleIcon, 1, 0);
-      end(dragabbleIcon, 1, 0, function ended() {
-        checkPositions(page, ['app2', 'app1', 'app3', 'app4']);
-        checkPositions(dock, ['app5', 'app6']);
-        assert.equal(page.getNumIcons(), 4);
-        assert.equal(dock.getNumIcons(), 2);
-        done();
-      });
-    });
-
+  test('The dock has been initialized correctly | Dock [app5, app6] > ',
+       function() {
+    checkPositions(dock, ['app5', 'app6']);
+    assert.equal(dock.getNumIcons(), 2);
   });
 
-  suite('Dragging app1 to app3 | Page [app2, app3, app1, app4] ' +
-        '| Dock [app5, app6] >', function() {
-
-    test('Before dragging the icon app1 is the second ', function() {
+  test('Dragging app1 to app2 | Page [app2, app1, app3, app4] ' +
+      '| Dock [app5, app6] > ', function(done) {
+    start(dragabbleIcon, 0, 0);
+    move(dragabbleIcon, 1, 0);
+    end(dragabbleIcon, 1, 0, function ended() {
       checkPositions(page, ['app2', 'app1', 'app3', 'app4']);
       checkPositions(dock, ['app5', 'app6']);
+      assert.equal(page.getNumIcons(), 4);
+      assert.equal(dock.getNumIcons(), 2);
+      done();
     });
-
-    test('After dragging icons has been rearranged correctly ', function(done) {
-      start(dragabbleIcon, 1, 0);
-      move(dragabbleIcon, 2, 0);
-      end(dragabbleIcon, 2, 0, function ended() {
-        checkPositions(page, ['app2', 'app3', 'app1', 'app4']);
-        checkPositions(dock, ['app5', 'app6']);
-        assert.equal(page.getNumIcons(), 4);
-        assert.equal(dock.getNumIcons(), 2);
-        done();
-      });
-    });
-
   });
 
-  suite('Dragging app1 to app4 | Page [app2, app3, app4, app1] ' +
-        '| Dock [app5, app6] >', function() {
-
-    test('Before dragging the icon app1 is the third ', function() {
+  test('Dragging app1 to app3 | Page [app2, app3, app1, app4] ' +
+      '| Dock [app5, app6] > ', function(done) {
+    start(dragabbleIcon, 1, 0);
+    move(dragabbleIcon, 2, 0);
+    end(dragabbleIcon, 2, 0, function ended() {
       checkPositions(page, ['app2', 'app3', 'app1', 'app4']);
       checkPositions(dock, ['app5', 'app6']);
+      assert.equal(page.getNumIcons(), 4);
+      assert.equal(dock.getNumIcons(), 2);
+      done();
     });
-
-    test('After dragging icons has been rearranged correctly ', function(done) {
-      start(dragabbleIcon, 1, 0);
-      move(dragabbleIcon, 3, 0);
-      end(dragabbleIcon, 3, 0, function ended() {
-        checkPositions(page, ['app2', 'app3', 'app4', 'app1']);
-        checkPositions(dock, ['app5', 'app6']);
-        assert.equal(page.getNumIcons(), 4);
-        assert.equal(dock.getNumIcons(), 2);
-        done();
-      });
-    });
-
   });
 
-  suite('Dragging app1 to app2 | Page [app1, app2, app3, app4] ' +
-        '| Dock [app5, app6] >', function() {
-
-    test('Before dragging the icon app1 is the last ', function() {
+  test('Dragging app1 to app4 | Page [app2, app3, app4, app1] ' +
+      '| Dock [app5, app6] > ', function(done) {
+    start(dragabbleIcon, 1, 0);
+    move(dragabbleIcon, 3, 0);
+    end(dragabbleIcon, 3, 0, function ended() {
       checkPositions(page, ['app2', 'app3', 'app4', 'app1']);
       checkPositions(dock, ['app5', 'app6']);
+      assert.equal(page.getNumIcons(), 4);
+      assert.equal(dock.getNumIcons(), 2);
+      done();
     });
-
-    test('After dragging icons has been rearranged correctly ', function(done) {
-      start(dragabbleIcon, 3, 0);
-      move(dragabbleIcon, 0, 0);
-      end(dragabbleIcon, 0, 0, function ended() {
-        checkPositions(page, ['app1', 'app2', 'app3', 'app4']);
-        checkPositions(dock, ['app5', 'app6']);
-        assert.equal(page.getNumIcons(), 4);
-        assert.equal(dock.getNumIcons(), 2);
-        done();
-      });
-    });
-
   });
 
-  suite('Dragging app1 to dock (from left) | Page [app2, app3, app4] ' +
-        '| Dock [app1, app5, app6] >', function() {
-
-    test('Before dragging the icon app1 is the first in the page and app5 is' +
-         ' the first in the dock', function() {
+  test('Dragging app1 to app2 | Page [app1, app2, app3, app4] ' +
+      '| Dock [app5, app6] > ', function(done) {
+    start(dragabbleIcon, 3, 0);
+    move(dragabbleIcon, 0, 0);
+    end(dragabbleIcon, 0, 0, function ended() {
       checkPositions(page, ['app1', 'app2', 'app3', 'app4']);
       checkPositions(dock, ['app5', 'app6']);
+      assert.equal(page.getNumIcons(), 4);
+      assert.equal(dock.getNumIcons(), 2);
+      done();
     });
-
-    test('After dragging icons has been rearranged correctly ', function(done) {
-      start(dragabbleIcon, 0, 0);
-      move(dragabbleIcon, 0, 10000); // y = 10000 -> over the dock
-      end(dragabbleIcon, 0, 10000, function ended() {
-        checkPositions(page, ['app2', 'app3', 'app4']);
-        checkPositions(dock, ['app1', 'app5', 'app6']);
-        assert.equal(page.getNumIcons(), 3);
-        assert.equal(dock.getNumIcons(), 3);
-        done();
-      }, dock);
-    });
-
   });
 
-  suite('Dragging app1 to app5 | Page [app2, app3, app4] ' +
-        '| Dock [app5, app1, app6] >', function() {
-
-    test('Before dragging the icon app1 is the first in the dock', function() {
+  test('Dragging app1 to dock (from left) | Page [app2, app3, app4] ' +
+      '| Dock [app1, app5, app6] > ', function(done) {
+    start(dragabbleIcon, 0, 0);
+    move(dragabbleIcon, 0, 10000); // y = 10000 -> over the dock
+    end(dragabbleIcon, 0, 10000, function ended() {
       checkPositions(page, ['app2', 'app3', 'app4']);
       checkPositions(dock, ['app1', 'app5', 'app6']);
-    });
-
-    test('After dragging icons has been rearranged correctly ', function(done) {
-      start(dragabbleIcon, 0, 10000);
-      move(dragabbleIcon, 1, 10000);
-      end(dragabbleIcon, 1, 10000, function ended() {
-        checkPositions(page, ['app2', 'app3', 'app4']);
-        checkPositions(dock, ['app5', 'app1', 'app6']);
-        assert.equal(page.getNumIcons(), 3);
-        assert.equal(dock.getNumIcons(), 3);
-        done();
-      }, dock);
-    });
-
+      assert.equal(page.getNumIcons(), 3);
+      assert.equal(dock.getNumIcons(), 3);
+      done();
+    }, dock);
   });
 
-  suite('Dragging app1 to app6 | Page [app2, app3, app4] ' +
-        '| Dock [app5, app6, app1] >', function() {
-
-    test('Before dragging the icon app1 is the second in the dock', function() {
+  test('Dragging app1 to app5 | Page [app2, app3, app4] ' +
+      '| Dock [app5, app1, app6] > ', function(done) {
+    start(dragabbleIcon, 0, 10000);
+    move(dragabbleIcon, 1, 10000);
+    end(dragabbleIcon, 1, 10000, function ended() {
       checkPositions(page, ['app2', 'app3', 'app4']);
       checkPositions(dock, ['app5', 'app1', 'app6']);
-    });
-
-    test('After dragging icons has been rearranged correctly ', function(done) {
-      start(dragabbleIcon, 1, 10000);
-      move(dragabbleIcon, 2, 10000);
-      end(dragabbleIcon, 2, 10000, function ended() {
-        checkPositions(page, ['app2', 'app3', 'app4']);
-        checkPositions(dock, ['app5', 'app6', 'app1']);
-        assert.equal(page.getNumIcons(), 3);
-        assert.equal(dock.getNumIcons(), 3);
-        done();
-      }, dock);
-    });
-
+      assert.equal(page.getNumIcons(), 3);
+      assert.equal(dock.getNumIcons(), 3);
+      done();
+    }, dock);
   });
 
-  suite('Dragging app1 to grid | Page [app2, app3, app4, app1] ' +
-        '| Dock [app5, app6] >', function() {
-
-    test('Before dragging the icon app1 is the last in the dock', function() {
+  test('Dragging app1 to app6 | Page [app2, app3, app4] ' +
+      '| Dock [app5, app6, app1] > ', function(done) {
+    start(dragabbleIcon, 1, 10000);
+    move(dragabbleIcon, 2, 10000);
+    end(dragabbleIcon, 2, 10000, function ended() {
       checkPositions(page, ['app2', 'app3', 'app4']);
       checkPositions(dock, ['app5', 'app6', 'app1']);
-    });
-
-    test('After dragging icons has been rearranged correctly ', function(done) {
-      start(dragabbleIcon, 2, 10000);
-      move(dragabbleIcon, 0, 0);
-      end(dragabbleIcon, 0, 0, function ended() {
-        checkPositions(page, ['app1', 'app2', 'app3', 'app4']);
-        checkPositions(dock, ['app5', 'app6']);
-        assert.equal(page.getNumIcons(), 4);
-        assert.equal(dock.getNumIcons(), 2);
-        done();
-      });
-    });
-
+      assert.equal(page.getNumIcons(), 3);
+      assert.equal(dock.getNumIcons(), 3);
+      done();
+    }, dock);
   });
 
-  suite('Dragging app1 to app2 | Page [app1, app2, app3, app4] ' +
-        '| Dock [app5, app6] >', function() {
-
-    test('Before dragging the icon app1 is the last in the grid', function() {
+  test('Dragging app1 to grid | Page [app2, app3, app4, app1] ' +
+      '| Dock [app5, app6] > ', function(done) {
+    start(dragabbleIcon, 2, 10000);
+    move(dragabbleIcon, 0, 0);
+    end(dragabbleIcon, 0, 0, function ended() {
       checkPositions(page, ['app1', 'app2', 'app3', 'app4']);
       checkPositions(dock, ['app5', 'app6']);
+      assert.equal(page.getNumIcons(), 4);
+      assert.equal(dock.getNumIcons(), 2);
+      done();
     });
+  });
 
-    test('After dragging icons has been rearranged correctly ', function(done) {
-      start(dragabbleIcon, 3, 0);
-      move(dragabbleIcon, 0, 0);
-      end(dragabbleIcon, 0, 0, function ended() {
-        checkPositions(page, ['app1', 'app2', 'app3', 'app4']);
-        checkPositions(dock, ['app5', 'app6']);
-        assert.equal(page.getNumIcons(), 4);
-        assert.equal(dock.getNumIcons(), 2);
-        done();
-      });
+  test('Dragging app1 to app2 | Page [app1, app2, app3, app4] ' +
+      '| Dock [app5, app6] > ', function(done) {
+    start(dragabbleIcon, 3, 0);
+    move(dragabbleIcon, 0, 0);
+    end(dragabbleIcon, 0, 0, function ended() {
+      checkPositions(page, ['app1', 'app2', 'app3', 'app4']);
+      checkPositions(dock, ['app5', 'app6']);
+      assert.equal(page.getNumIcons(), 4);
+      assert.equal(dock.getNumIcons(), 2);
+      done();
     });
-
   });
 });
