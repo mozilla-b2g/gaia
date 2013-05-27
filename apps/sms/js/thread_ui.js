@@ -1389,9 +1389,8 @@ var ThreadUI = global.ThreadUI = {
       var data = {
         name: Utils.escapeHTML(title),
         number: Utils.escapeHTML(number),
-        type: type,
-        srcAttr: details.photoURL ?
-          'src="' + Utils.escapeHTML(details.photoURL) + '"' : '',
+        type: current.type || '',
+        carrier: current.carrier || '',
         nameHTML: '',
         numberHTML: ''
       };
@@ -1409,18 +1408,9 @@ var ThreadUI = global.ThreadUI = {
       // Interpolate HTML template with data and inject.
       // Known "safe" HTML values will not be re-sanitized.
       contactLi.innerHTML = this.tmpl.contact.interpolate(data, {
-        safe: ['nameHTML', 'numberHTML', 'srcAttr']
+        safe: ['nameHTML', 'numberHTML']
       });
       contactsUl.appendChild(contactLi);
-
-      // Revoke contact photo after image onload.
-      var photo = contactLi.querySelector('img');
-      if (photo) {
-        photo.onload = photo.onerror = function revokePhotoURL() {
-          this.onload = this.onerror = null;
-          URL.revokeObjectURL(this.src);
-        };
-      }
     }
     return true;
   },
