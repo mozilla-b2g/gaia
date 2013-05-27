@@ -393,8 +393,9 @@ var CallLogDBManager = {
    * return (via callback) count of deleted calls or error if needed.
    */
   deleteGroup: function rdbm_deleteGroup(group, callback) {
-    if (!group || typeof group !== 'object' || !group.date || !group.number ||
-        !group.type) {
+    // Valid group doesn't need to contain number, we can receive
+    // calls from unknown or hidden numbers as well
+    if (!group || typeof group !== 'object' || !group.date || !group.type) {
       callback('NOT_VALID_GROUP');
       return;
     }

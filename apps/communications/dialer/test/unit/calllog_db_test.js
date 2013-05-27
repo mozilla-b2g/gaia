@@ -124,6 +124,33 @@ suite('dialer/call_log_db', function() {
     });
   });
 
+  suite('Single call form hidden number', function() {
+    test('Add a call', function(done) {
+      var call = {
+        number: '',
+        type: 'incoming',
+        date: days[0]
+      };
+      CallLogDBManager.add(call, function(result) {
+        CallLogDBManager.getGroupList(function(groups) {
+          assert.equal(groups.length, 1);
+          checkGroup(groups[0], call, call.date, 1, result);
+          CallLogDBManager.getRecentList(function(recents) {
+            assert.length(recents, 1);
+            checkCall(recents[0], call);
+            done();
+          });
+        });
+      });
+    });
+
+    suiteTeardown(function(done) {
+      CallLogDBManager.deleteAll(function() {
+        done();
+      });
+    });
+  });
+  
   suite('Two calls, same group, different hour', function() {
     var call = {
       number: numbers[0],
@@ -637,4 +664,21 @@ suite('dialer/call_log_db', function() {
     });
   });
 
+  suite('Delete a group of hidden calls', function() {
+    var call = {
+      number: '',
+      type: 'incoming',
+      date: days[0]
+    };
+    test('Add a call', function(done) {
+      CallLogDBManager.add(call, function(group) {
+        checkGroup(group, call, call.date, 1);
+        CallLogDBManager.deleteGroup(group, function(result) {
+          assert.equal(result, 1);
+          done();
+        });
+      });
+    });
+  });
+  
 });
