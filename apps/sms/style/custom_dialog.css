@@ -47,7 +47,7 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]) h3 {
   color: #FFFFFF;
   font-family: 'MozTT',Sans-serif;
   font-size: 1.6rem;
-  font-weight: normal;
+  font-weight: 400;
   line-height: 1em;
   margin: 0 0 1rem;
   padding-bottom: 1rem;
