@@ -347,7 +347,6 @@
         get: function() {
           var node = clone.firstElementChild.cloneNode();
           node.isPlaceholder = true;
-          node.setAttribute('x-inputmode', 'verbatim');
           return node;
         }
       }

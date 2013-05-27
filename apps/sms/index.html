@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Messages</title>
+    <!-- multi-resolution support -->
+    <link rel="stylesheet" href="/shared/style/responsive.css">
     <!-- Stable Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
@@ -18,7 +20,6 @@
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/responsive.css">
     -->
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/root.css">
@@ -170,7 +171,7 @@
         </section>
       </form>
     </article>
-    <menu id="attachment-options-menu" class="hide">
+    <menu id="attachment-options-menu" class="hide" tabindex="-1">
       <div>
         <form id="attachment-options" role="dialog" data-type="action">
           <header></header>
@@ -193,7 +194,7 @@
         </aside>
         <p class="name">${nameHTML}</p>
         <p>
-          ${type} ${numberHTML} ${carrier}
+          ${type} ${numberHTML}
         </p>
       </a>
       -->
@@ -249,7 +250,8 @@
 
     <div id="messages-recipient-tmpl" class="hide">
       <!--
-      <span class="recipient" contenteditable="${editable}"
+      <span class="recipient" x-inputmode="verbatim"
+        contenteditable="${editable}"
         data-number="${number}" data-source="${source}" data-name="${name}">
         ${name}
       </span>

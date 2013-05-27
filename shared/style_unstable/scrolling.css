@@ -5,6 +5,7 @@ nav[data-type="scrollbar"] {
   position: absolute;
   right: 0;
   top: 0;
+  bottom: 0;
  }
 
 /* Mirror */
@@ -29,6 +30,8 @@ nav[data-type="scrollbar"] p {
 nav[data-type="scrollbar"] ol {
   padding: 0.3rem 0;
   margin: 0;
+  height: 100%;
+  -moz-box-sizing: border-box;
   border-radius: 4rem;
   opacity: 0.6;
   list-style: none;
@@ -40,12 +43,14 @@ nav[data-type="scrollbar"] li {
   text-align: center;
   text-transform: uppercase;
   width: 4.5rem;
+  height: 3.44%; /* 100% / 29 items */
 }
 
 nav[data-type="scrollbar"] li a {
   display: block;
   color: #333;
   width: 100%;
+  height: 100%;
   text-indent: 1.5rem;
   text-decoration: none;
 }
