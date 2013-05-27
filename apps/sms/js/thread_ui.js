@@ -698,6 +698,8 @@ var ThreadUI = global.ThreadUI = {
        *  and how many other contacts share that same number. We think it's
        *  user's responsability to correct this mess with the agenda.
        */
+      // Bug 867948: contacts null is a legitimate case, and
+      // getContactDetails is okay with that.
       var details = Utils.getContactDetails(number, contacts);
       var contactName = details.title || number;
 
