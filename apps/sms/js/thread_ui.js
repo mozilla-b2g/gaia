@@ -1387,7 +1387,7 @@ var ThreadUI = global.ThreadUI = {
       var data = {
         name: Utils.escapeHTML(title),
         number: Utils.escapeHTML(number),
-        type: current.type || '',
+        type: type,
         carrier: current.carrier || '',
         nameHTML: '',
         numberHTML: ''
