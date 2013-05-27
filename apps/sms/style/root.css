@@ -16,7 +16,8 @@ body {
   padding: 0;
   overflow: hidden;
   color: #000;
-  font: 1.6rem/2.2rem System Sans, Sans-serif;
+  font-size: 1.6rem;
+  line-height: 2.2rem;
   text-align: center;
   vertical-align: middle;
 }
@@ -65,17 +66,16 @@ abbr, acronym {
 }
 
 strong {
-  font-family: System Sans Bold, Sans-serif;
-  font-weight: normal
+  font-weight: 700;
 }
 
 b {
-  font-family: System Sans Semibold, Sans-serif;
-  font-weight: normal
+  font-weight: 600;
 }
 
 small {
-  font: 1.1rem/1rem System Sans, Sans-serif;
+  font-size: 1.1rem;
+  line-height: 1rem;
   color: #999;
 }
 
@@ -162,7 +162,8 @@ button {
   background: none;
   border: none;
   outline: none;
-  font: 1.1rem/1.3rem System Sans, Sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.3rem;
   color: #666;
   white-space: nowrap;
   cursor: pointer;
@@ -190,7 +191,8 @@ textarea {
 }
 
 input[type="text"], textarea {
-  font: 1.3rem/4rem System Sans Semibold, Sans-serif;
+  font-size: 1.3rem;
+  line-height: 4rem;
 }
 
 input[type="text"]:focus, textarea:focus {
@@ -216,7 +218,7 @@ img:-moz-broken {
 }
 
 /* HTML 5 */
-article, aside, details, figcaption, figure, footer, header, hgroup, 
+article, aside, details, figcaption, figure, footer, header, hgroup,
 menu, nav, section, video, audio, canvas, progress, meter, time {
   display: block;
   padding: 0;
