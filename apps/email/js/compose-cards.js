@@ -7,7 +7,7 @@
 /**
  * Max composer attachment size is defined as 5120000 bytes.
  */
-var  MAX_ATTACHMENT_SIZE = 5120000;
+var MAX_ATTACHMENT_SIZE = 5120000;
 
 /**
  * To make it easier to focus input boxes, we have clicks on their owning
@@ -421,7 +421,7 @@ ComposeCard.prototype = {
       for (var i = 0; i < this.composer.attachments.length; i++) {
         var attachment = this.composer.attachments[i];
         //check for attachment max size
-        if ( (totalSize + attachment.blob.size) > MAX_ATTACHMENT_SIZE) {
+        if ((totalSize + attachment.blob.size) > MAX_ATTACHMENT_SIZE) {
 
           /*Remove all the remaining attachments from composer*/
           while (this.composer.attachments.length > i) {
@@ -433,19 +433,22 @@ ComposeCard.prototype = {
 
           if (this.composer.attachments.length > 0) {
             title.textContent = mozL10n.get('composer-attachments-large');
-            content.textContent = mozL10n.get('compose-attchments-size-exceeded');
+            content.textContent =
+	      mozL10n.get('compose-attchments-size-exceeded');
           } else {
             title.textContent = mozL10n.get('composer-attachment-large');
-            content.textContent = mozL10n.get('compose-attchment-size-exceeded');
+            content.textContent =
+	      mozL10n.get('compose-attchment-size-exceeded');
           }
           ConfirmDialog.show(dialog,
-          {
-          // ok
-          id: 'msg-attach-ok',
-          handler: function(){
-            this.updateAttachmentsSize();
-          }.bind(this)
-          });
+           {
+            // ok
+            id: 'msg-attach-ok',
+            handler: function() {
+              this.updateAttachmentsSize();
+            }.bind(this)
+           }
+          );
           return;
         }
         totalSize = totalSize + attachment.blob.size;
