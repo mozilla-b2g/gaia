@@ -6,7 +6,6 @@
 // handle carrier settings
 var Carrier = (function newCarrier(window, document, undefined) {
   var APN_FILE = '/shared/resources/apn.json';
-  var _ = window.navigator.mozL10n.get;
 
   /**
    * gCompatibleAPN holds all compatible APNs matching the current iccInfo
@@ -365,7 +364,9 @@ var Carrier = (function newCarrier(window, document, undefined) {
     var name = document.createElement('a');
     name.textContent = network.shortName || network.longName;
 
-    // state
+    // state can be either:
+    // 'available', 'connected', 'current', 'forbidden' or null
+    var _ = window.navigator.mozL10n.get;
     var state = document.createElement('small');
     state.textContent =
       network.state ? _('state-' + network.state) : _('state-unknown');
