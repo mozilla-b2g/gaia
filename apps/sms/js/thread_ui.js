@@ -558,7 +558,7 @@ var ThreadUI = global.ThreadUI = {
     var newHeight = this.input.getBoundingClientRect().height;
 
     // We calculate the height of the bottonBar which contains the input
-    var bottomBarHeight = (newHeight + verticalPadding) + 'px';
+    var bottomBarHeight = newHeight + 'px';
     bottomBar.style.height = bottomBarHeight;
 
     // We move the button to the right position
