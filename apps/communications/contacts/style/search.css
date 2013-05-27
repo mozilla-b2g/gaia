@@ -11,7 +11,7 @@ form.search {
   top: 0;
   left: 0;
   text-align: left;
-  z-index: 1;
+  z-index: 5;
 }
 
 #search-view:not(.insearchmode) form.search * {
@@ -104,9 +104,11 @@ form.search button[type="submit"] {
 }
 
 #groups-list-search {
+  position: relative;
   text-align: left;
   padding: 0 1.5rem;
   overflow: auto;
+  z-index: 1;
 }
 
 #search-list {
