@@ -79,7 +79,7 @@ settings = {
  "debug.console.enabled": False,
  "phone.ring.keypad": True,
  "powersave.enabled": False,
- "powersave.threshold": 0,
+ "powersave.threshold": -1,
  "privacy.donottrackheader.enabled": False,
  "ril.callwaiting.enabled": None,
  "ril.cf.enabled": False,
