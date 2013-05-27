@@ -128,8 +128,13 @@
 
     // We will apply createObjectURL for details.photoURL if contact image exist
     // Please remember to revoke the photoURL after utilizing it.
-    getContactDetails: function ut_getContactDetails(number, contacts) {
+    getContactDetails:
+      function ut_getContactDetails(number, contacts, include) {
+
       var details = {};
+
+      include = include || {};
+
       function updateDetails(contact) {
         var name, phone, carrier, i, length, subscriber, org;
         name = contact.name[0];
@@ -157,8 +162,10 @@
         details.isContact = true;
 
         // Add photo
-        if (contact.photo && contact.photo[0]) {
-          details.photoURL = URL.createObjectURL(contact.photo[0]);
+        if (include.photoURL) {
+          if (contact.photo && contact.photo[0]) {
+            details.photoURL = URL.createObjectURL(contact.photo[0]);
+          }
         }
 
         // Carrier logic
