@@ -86,7 +86,9 @@ var ThreadListUI = {
       var title, src, details;
 
       if (contacts && contacts.length) {
-        details = Utils.getContactDetails(number, contacts[0]);
+        details = Utils.getContactDetails(number, contacts[0], {
+          photoURL: true
+        });
         title = details.title || number;
         src = details.photoURL || '';
       } else {
