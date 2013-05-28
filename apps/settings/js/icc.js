@@ -42,20 +42,10 @@
    * Recover application data
    */
   function getIccInfo() {
-    var SUPPORT_INFO = 'resources/icc.json';
-    var xhr = new XMLHttpRequest();
-    xhr.onerror = function() {
-      debug('Failed to fetch icc.json: ', xhr.statusText);
-    };
-    xhr.onload = function loadIccInfo() {
-      if (xhr.status === 0 || xhr.status === 200) {
-        defaultURL = xhr.response.defaultURL;
-        debug('default URL: ', defaultURL);
-      }
-    };
-    xhr.open('GET', SUPPORT_INFO, true); // async
-    xhr.responseType = 'json';
-    xhr.send();
+    loadJSON('/resources/icc.json', function loadIccInfo(data) {
+      defaultURL = data.defaultURL;
+      debug('default URL: ', defaultURL);
+    });
   }
 
   /**
