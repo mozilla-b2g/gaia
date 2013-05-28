@@ -62,6 +62,7 @@ settings = {
  "keyboard.wordsuggestion": True,
  "keyboard.current": "en",
  "language.current": "en-US",
+ "layers.draw-borders": False,
  "lockscreen.passcode-lock.code": "0000",
  "lockscreen.passcode-lock.timeout": 0,
  "lockscreen.passcode-lock.enabled": False,
