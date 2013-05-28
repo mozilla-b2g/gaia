@@ -29,7 +29,10 @@ var PermissionManager = (function() {
       cancelRequest(fullscreenRequest);
       fullscreenRequest = undefined;
     }
-    if (detail.fullscreenorigin != WindowManager.getDisplayedApp()) {
+    // Whitelisting fullscreen requests from Youtube in the Youtube app
+    if (detail.fullscreenorigin != WindowManager.getDisplayedApp() &&
+        !(detail.fullscreenorigin == "https://m.youtube.com"&&
+          WindowManager.getDisplayedApp() == "app://youtube.gaiamobile.org")) {
       // The message to be displayed on the approval UI.
       var message = _('fullscreen-request', { 'origin': detail.fullscreenorigin });
       fullscreenRequest = requestPermission(message,
