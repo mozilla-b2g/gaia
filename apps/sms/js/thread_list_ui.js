@@ -179,13 +179,38 @@ var ThreadListUI = {
 
   removeThread: function(threadId) {
     var li = document.getElementById('thread-' + threadId);
-    li.parentNode.removeChild(li);
+    var parent = li.parentNode;
+    parent.removeChild(li);
+
+    // remove the header and the ul for an empty list
+    if (!parent.firstElementChild) {
+      var grandparent = parent.parentNode;
+      grandparent.removeChild(parent.previousSibling);
+      grandparent.removeChild(parent);
+      FixedHeader.refresh();
+
+      // if we have no more elements, set empty classes
+      if (!this.container.querySelector('li')) {
+        this.setEmpty(true);
+      }
+    }
   },
 
   delete: function thlui_delete() {
     var question = navigator.mozL10n.get('deleteThreads-confirmation2');
     var messageIds = [];
-    var threadIds, threadId, filter;
+    var threadIds, threadId, filter, count;
+
+    function checkDone(threadId) {
+      Threads.delete(threadId);
+      // Cleanup the DOM
+      this.removeThread(threadId);
+
+      if (--count === 0) {
+        WaitingScreen.hide();
+        window.location.hash = '#thread-list';
+      }
+    }
 
     if (confirm(question)) {
       WaitingScreen.show();
@@ -194,12 +219,12 @@ var ThreadListUI = {
         return input.value;
       });
 
+      count = threadIds.length;
+
       // Remove and coerce the threadId back to a number
       // MozSmsFilter and all other platform APIs
       // expect this value to be a number.
       while (threadId = +threadIds.pop()) {
-        // Cleanup the DOM
-        this.removeThread(threadId);
 
         // Filter and request all messages with this threadId
         filter = new MozSmsFilter();
@@ -212,18 +237,19 @@ var ThreadListUI = {
             MessageManager.deleteMessage(message.id);
             return true;
           },
-          end: function end() {
-            Threads.delete(threadId);
-
-            // When the last threadId has been cleared...
-            if (!threadIds.length) {
-              ThreadListUI.editDone = true;
-              window.location.hash = '#thread-list';
-            }
-          }
+          end: checkDone.bind(this, threadId)
         });
       }
     }
+  },
+
+  setEmpty: function thlui_setEmpty(empty) {
+    var addWhenEmpty = empty ? 'add' : 'remove';
+    var removeWhenEmpty = empty ? 'remove' : 'add';
+
+    ThreadListUI.noMessages.classList[removeWhenEmpty]('hide');
+    ThreadListUI.container.classList[addWhenEmpty]('hide');
+    ThreadListUI.editIcon.classList[addWhenEmpty]('disabled');
   },
 
   cancelEditMode: function thlui_cancelEditMode() {
@@ -251,13 +277,8 @@ var ThreadListUI = {
       thlui_renderThreads.abort = function thlui_renderThreads_abort() {
         abort = true;
       };
-      // There are messages to display.
-      //  1. Add the "hide" class to the threads-no-messages display
-      //  2. Remove the "hide" class from the view
-      //
-      ThreadListUI.noMessages.classList.add('hide');
-      ThreadListUI.container.classList.remove('hide');
-      ThreadListUI.editIcon.classList.remove('disabled');
+
+      ThreadListUI.setEmpty(false);
 
       FixedHeader.init('#threads-container',
                        '#threads-header-container',
@@ -294,13 +315,7 @@ var ThreadListUI = {
         }
       });
     } else {
-      // There are no messages to display.
-      //  1. Remove the "hide" class from threads-no-messages display
-      //  2. Add the "hide" class to the view
-      //
-      ThreadListUI.noMessages.classList.remove('hide');
-      ThreadListUI.container.classList.add('hide');
-      ThreadListUI.editIcon.classList.add('disabled');
+      ThreadListUI.setEmpty(true);
 
       // Callback if exist
       if (renderCallback) {
