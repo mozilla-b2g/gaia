@@ -333,6 +333,9 @@ var WindowManager = (function() {
         if ('wrapper' in frame.dataset)
           wrapperFooter.classList.add('visible');
 
+        // XXX: A simple hack to gurantee the app has active class.
+        frame.classList.add('active');
+
         iframe.addEventListener('mozbrowserloadend', function on(e) {
           iframe.removeEventListener('mozbrowserloadend', on);
           onWindowReady();
