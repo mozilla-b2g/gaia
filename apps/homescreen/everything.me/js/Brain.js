@@ -1270,28 +1270,34 @@ Evme.Brain = new function Evme_Brain() {
                     requestSuggest = Evme.DoATAPI.Shortcuts.suggest({
                         "existing": arrCurrentShortcuts
                     }, function onSuccess(data) {
-                    	if(!isRequesting) {
-                    		return;
-                    	}
-                    	
-                        var suggestedShortcuts = data.response.shortcuts,
-                            icons = data.response.icons;
-    
-                        for (var id in icons) {
-                            currentIcons[id] = icons[id];
+                        var suggestedShortcuts = data.response.shortcuts || [],
+                            icons = data.response.icons || {};
+
+                        if(!isRequesting) {
+                          return;
                         }
-    
-                        Evme.ShortcutsCustomize.load({
-                            "shortcuts": suggestedShortcuts,
-                            "icons": currentIcons
-                        });
-    
+
                         isFirstShow = false;
                         isRequesting = false;
-                        Evme.ShortcutsCustomize.show();
-                        // setting timeout to give the select box enough time to show
-                        // otherwise there's visible flickering
-                        window.setTimeout(Evme.ShortcutsCustomize.Loading.hide, 300);
+
+                        if (suggestedShortcuts.length === 0) {
+                          window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'no-more-shortcuts'));
+                          Evme.ShortcutsCustomize.Loading.hide();
+                        } else {
+                          for (var id in icons) {
+                              currentIcons[id] = icons[id];
+                          }
+      
+                          Evme.ShortcutsCustomize.load({
+                              "shortcuts": suggestedShortcuts,
+                              "icons": currentIcons
+                          });
+      
+                          Evme.ShortcutsCustomize.show();
+                          // setting timeout to give the select box enough time to show
+                          // otherwise there's visible flickering
+                          window.setTimeout(Evme.ShortcutsCustomize.Loading.hide, 300);
+                        }
                     });
                 });
             });
