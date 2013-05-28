@@ -1160,6 +1160,19 @@ const Keyboards = {
     disableAlternateLayout: true,
     hidesSwitchKey: true,
     width: 10,
+    alt: {
+        'あ': 'いうえお',
+        'か': 'きくけこ',
+        'さ': 'しすせそ',
+        'た': 'ちつてと',
+        'な': 'にぬねの',
+        'は': 'ひふへほ',
+        'ま': 'みむめも',
+        'や': 'ゆよ',
+        'ら': 'りるれろ',
+        'わ': 'をん',
+        '、': '。？！・　'
+    },
     keys: [
       [
         { value: '戻す', keyCode: -10, ratio: 2 },
