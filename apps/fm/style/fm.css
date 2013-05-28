@@ -388,14 +388,13 @@ a#frequency-op-seekup:active {
 }
 /**** end ****/
 
-/***  styles for antenna warning box ****/
-#antenna-warning {
+/***  styles for  warning box ****/
+.warning {
   position: absolute;
   width: 100%;
   height: 100%;
   top: 0;
   left: 0;
-  z-index: 2;
   color: #FFF;
   background: url(images/popup-texture.png) repeat 0 0 #272d32;
 }
@@ -405,26 +404,56 @@ a#frequency-op-seekup:active {
   background: url(images/headset.png) no-repeat center center transparent;
 }
 
-#antenna-warning-header {
-  padding: 10px 30px 10px 30px;
+.warning .warning-header {
+  padding: 1rem 3rem 1rem 3rem;
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
-  margin-top: -2.5rem;
 }
 
-#antenna-warning-body {
+.warning .warning-body {
   font-weight: 300;
   font-size: 2.5rem;
-  padding: 5px;
-  margin: 0 25px;
-  border-top: 1px solid #686868;
+  padding: .5rem;
+  border-top: .1rem solid #686868;
+  margin: 0 2.5rem;
 }
 /******* end *******/
 
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
+}
+
+/* Press (default & recommend) */
+.warning .menu button:active {
+  border-color: #008aaa;
+  color: #333;
+}
+/**** end ****/
+
+/***  styles for antenna warning box ****/
+#antenna-warning {
+  z-index: 2;
+}
+
+#antenna-warning > div:first-child {
+  height: 60%;
+  background: url(images/headset.png) no-repeat center center / 18.4rem;
+}
+
+#antenna-warning .warning-header {
+  margin-top: -2.5rem;
+}
+/******* end *******/
+
+/***  styles for airplane mode warning box ****/
+#airplane-mode-warning {
+  z-index: 3;
+}
+
+#airplane-mode-warning .warning-header {
+  margin-top: 50%;
 }
 /******* end *******/
 
