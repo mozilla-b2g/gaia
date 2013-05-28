@@ -125,7 +125,6 @@ pref("general.useragent.override.thinkgeek.com", "\(Mobile#(Android; Mobile"); /
 pref("general.useragent.override.tylted.com", "\(Mobile#(Android; Mobile"); // bug 843176
 pref("general.useragent.override.txt2nite.com", "\(Mobile#(Android; Mobile"); // bug 843178
 pref("general.useragent.override.slashgear.com", "\(Mobile#(Android; Mobile"); // bug 843181
-pref("general.useragent.override.thechive.com", "\(Mobile#(Android; Mobile"); // bug 843183
 pref("general.useragent.override.chevrolet.com", "\(Mobile#(Android; Mobile"); // bug 843186
 pref("general.useragent.override.deadline.com", "\(Mobile#(Android; Mobile"); // bug 848854
 pref("general.useragent.override.3g.qq.com", "\(Mobile#(Android; Mobile"); // bug 866577
