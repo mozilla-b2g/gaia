@@ -346,12 +346,17 @@ function SetupProgressCard(domNode, mode, args) {
       password: args.password
     },
     args.domainInfo || null,
-    function(err, errDetails) {
+    function(err, errDetails, account) {
       self.creationInProcess = false;
       if (err)
         self.onCreationError(err, errDetails);
-      else
+      else {
+        if (document.getElementById('sup-enable-push-checkbox').checked) {
+          setupPushNotifications(account);
+        }
+
         self.onCreationSuccess();
+      }
     });
 }
 SetupProgressCard.prototype = {

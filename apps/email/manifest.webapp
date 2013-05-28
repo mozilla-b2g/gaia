@@ -8,7 +8,9 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "messages": [
-     { "alarm": "/index.html" }
+     { "alarm": "/index.html" },
+     { "push": "/index.html" },
+     { "push-register": "/index.html" }
   ],
   "permissions": {
     "alarms":{},
@@ -19,7 +21,8 @@
     "device-storage:sdcard":{ "access": "readcreate" },
     "systemXHR":{},
     "settings":{ "access": "readonly" },
-    "tcp-socket":{}
+    "tcp-socket":{},
+    "push":{}
   },
   "locales": {
     "ar": {
