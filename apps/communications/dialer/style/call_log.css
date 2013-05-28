@@ -28,13 +28,23 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 /* Override Building Block styles for lists */
-#recents-container[data-type="list"] li {
-  border-top: 0.1rem solid #DBD9D9;
-  border-bottom: none;
+#call-log-container[data-type="list"] li {
+  height: 7rem;
+  padding: 0.5rem 0 0;
+  -moz-box-sizing: border-box;
 }
 
-#recents-container[data-type="list"] li:first-child {
-  border-top: none;
+#call-log-container[data-type="list"] li a p {
+  line-height: 1.9rem;
+}
+
+#call-log-container[data-type="list"] li a p:nth-last-of-type(3) {
+  padding: 0;
+  line-height: 2rem;
+}
+
+.call-additional-info {
+  text-transform: capitalize;
 }
 
 .disabled {
@@ -135,18 +145,16 @@ ol, ul {
   text-overflow: clip;
 }
 
-.log-item.hasPhoto .primary-info,
-.log-item.hasPhoto .secondary-info {
+.log-item.hasPhoto a > p {
   width: 19rem;
 }
 
-.log-item:not(.hasPhoto) .primary-info,
-.log-item:not(.hasPhoto) .secondary-info {
+.log-item:not(.hasPhoto) a > p {
   width: 25rem;
 }
 
 .log-item .primary-info span {
-  display: inline-block;
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -180,10 +188,7 @@ ol, ul {
   transition: all 0.3s ease;
 }
 
-.recents-edit .log-item.hasPhoto .primary-info,
-.recents-edit .log-item.hasPhoto .secondary-info,
-.recents-edit .log-item:not(.hasPhoto) .primary-info,
-.recents-edit .log-item:not(.hasPhoto) .secondary-info {
+.recents-edit .log-item a > p {
   width: 22rem;
 }
 
