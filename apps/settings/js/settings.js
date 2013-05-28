@@ -268,18 +268,7 @@ var Settings = {
     switch (panel.id) {
       case 'display':             // <input type="range"> + brightness control
         bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
-        var manualBrightness = panel.querySelector('#brightness-manual');
-        var autoBrightnessSetting = 'screen.automatic-brightness';
-        var settings = Settings.mozSettings;
-        if (!settings)
-          return;
-        settings.addObserver(autoBrightnessSetting, function(event) {
-          manualBrightness.hidden = event.settingValue;
-        });
-        var req = settings.createLock().get(autoBrightnessSetting);
-        req.onsuccess = function brightness_onsuccess() {
-          manualBrightness.hidden = req.result[autoBrightnessSetting];
-        };
+        this.updateDisplayPanel();
         break;
       case 'sound':               // <input type="range">
         bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
@@ -680,9 +669,9 @@ var Settings = {
     if (this._languages) {
       callback(this._languages);
     } else {
-      var LANGUAGES = 'languages.json';
       var self = this;
-      this.readSharedFile(LANGUAGES, function getLanguages(data) {
+      var LANGUAGES = '/shared/resources/languages.json';
+      loadJSON(LANGUAGES, function loadLanguages(data) {
         if (data) {
           self._languages = data;
           callback(self._languages);
@@ -698,9 +687,9 @@ var Settings = {
     if (this._kbLayoutList) {
       callback(this._kbLayoutList);
     } else {
-      var KEYBOARDS = 'keyboard_layouts.json';
       var self = this;
-      this.readSharedFile(KEYBOARDS, function getKeyboardLayouts(data) {
+      var KEYBOARDS = '/shared/resources/keyboard_layouts.json';
+      loadJSON(KEYBOARDS, function loadKeyboardLayouts(data) {
         if (data) {
           self._kbLayoutList = data;
           callback(self._kbLayoutList);
@@ -709,24 +698,37 @@ var Settings = {
     }
   },
 
-  readSharedFile: function settings_readSharedFile(file, callback) {
-    var URI = '/shared/resources/' + file;
-    if (!callback)
+  updateDisplayPanel: function settings_updateDisplayPanel() {
+    var panel = document.getElementById('display');
+    var settings = Settings.mozSettings;
+    if (!settings || !panel)
       return;
 
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function loadFile() {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 0 || xhr.status === 200) {
-          callback(xhr.response);
-        } else {
-          console.error('Failed to fetch file: ' + file, xhr.statusText);
-        }
+    var manualBrightness = panel.querySelector('#brightness-manual');
+    var autoBrightness = panel.querySelector('#brightness-auto');
+    var autoBrightnessSetting = 'screen.automatic-brightness';
+
+    // hide "Adjust automatically" if there's no ambient light sensor --
+    // until bug 876496 is fixed, we have to read the `sensors.json' file to
+    // be sure this ambient light sensor is enabled.
+    loadJSON('/resources/sensors.json', function loadSensors(activeSensors) {
+      if (activeSensors.ambientLight) { // I can haz ambient light sensor
+        autoBrightness.hidden = false;
+        settings.addObserver(autoBrightnessSetting, function(event) {
+          manualBrightness.hidden = event.settingValue;
+        });
+        var req = settings.createLock().get(autoBrightnessSetting);
+        req.onsuccess = function brightness_onsuccess() {
+          manualBrightness.hidden = req.result[autoBrightnessSetting];
+        };
+      } else { // no ambient light sensor: force manual brightness setting
+        autoBrightness.hidden = true;
+        manualBrightness.hidden = false;
+        var cset = {};
+        cset[autoBrightnessSetting] = false;
+        settings.createLock().set(cset);
       }
-    };
-    xhr.open('GET', URI, true); // async
-    xhr.responseType = 'json';
-    xhr.send();
+    });
   },
 
   updateLanguagePanel: function settings_updateLanguagePanel() {

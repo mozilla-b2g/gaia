@@ -6,11 +6,13 @@
 /**
  * Constants
  */
+
 var DEBUG = false;
 
 /**
  * Debug method
  */
+
 function debug(msg, optObject) {
   if (DEBUG) {
     var output = '[DEBUG # Settings] ' + msg;
@@ -24,6 +26,7 @@ function debug(msg, optObject) {
 /**
  * Move settings to foreground
  */
+
 function reopenSettings() {
   navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
     var app = evt.target.result;
@@ -105,6 +108,25 @@ function audioPreview(element, type) {
   } else {
     audio.play();
   }
+}
+
+/**
+ * JSON loader
+ */
+
+function loadJSON(href, callback) {
+  if (!callback)
+    return;
+  var xhr = new XMLHttpRequest();
+  xhr.onerror = function() {
+    console.error('Failed to fetch file: ' + href, xhr.statusText);
+  };
+  xhr.onload = function() {
+    callback(xhr.response);
+  };
+  xhr.open('GET', href, true); // async
+  xhr.responseType = 'json';
+  xhr.send();
 }
 
 /**
@@ -220,7 +242,6 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     getFreeSpace: getFreeSpace,
     showFormatedSize: showFormatedSize
   };
-
 })();
 
 /**
