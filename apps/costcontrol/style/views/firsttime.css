@@ -62,9 +62,16 @@ body[role="application"] [role="dialog"] {
 
 /* Content */
 #firsttime-view .content {
-  padding: 3.5rem 1.5rem 0;
+  padding: 0 1.5rem 0;
+  margin-top: 3.5rem;
   list-style: none;
-  margin: 0;
+}
+
+/* Wrapper with scroll */
+#firsttime-view section.content {
+  -moz-box-sizing: border-box;
+  max-height: calc(100% - 5rem - 3.5rem - 6.8rem); /* window height - header height - steps progress - menu height  */
+  overflow-x: auto;
 }
 
 #firsttime-view .content h2 {
@@ -160,14 +167,6 @@ body[role="application"] [role="dialog"] {
 #firsttime-view .settings li {
   padding-left: 0;
   padding-right: 0;
-}
-
-#firsttime-view .settings li label.end {
-  margin-right: 0.5rem;
-}
-
-#firsttime-view .settings li > .end {
-  right: 0;
 }
 
 .step-hint {
