@@ -404,6 +404,9 @@ var WindowManager = (function() {
         if ('wrapper' in frame.dataset)
           wrapperFooter.classList.add('visible');
 
+        // XXX: A simple hack to gurantee the app has active class.
+        frame.classList.add('active');
+
         // Modified in window.js
         // If we're already loaded, go to ready function directly.
         if (iframe.dataset.loading == 'loaded') {
