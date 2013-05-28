@@ -164,7 +164,7 @@ suite('FM', function() {
       tempNode = document.createElement('div');
       tempNode.id = 'test';
       tempNode.innerHTML =
-        '<div id="antenna-warning" hidden="hidden"></div>' +
+        '<div id="antenna-warning" hidden></div>' +
         '<div id="frequency-bar"></div>' +
         '<a id="power-switch" href="#power-switch" data-enabled="false"' +
         '  data-enabling="false"></a></div>';
@@ -194,6 +194,78 @@ suite('FM', function() {
 
       test('#antenna-warning is hidden', function() {
         assert.ok(!!$('antenna-warning').hidden, mozFMRadio.antennaAvailable);
+      });
+    });
+  });
+
+  suite('update UI based on the airplane mode status', function() {
+    suiteSetup(function() {
+      tempNode = document.createElement('div');
+      tempNode.id = 'test';
+      tempNode.innerHTML = '<div id="airplane-mode-warning" hidden></div>';
+      document.body.appendChild(tempNode);
+    });
+
+    suiteTeardown(function() {
+      tempNode.parentNode.removeChild(tempNode);
+      tempNode = null;
+    });
+
+    suite('airplane mode on', function() {
+      setup(function() {
+        rilDisabled = true;
+        updateAirplaneModeUI();
+      });
+
+      test('#airplane-mode-warning is shown', function() {
+        assert.equal(!!$('airplane-mode-warning').hidden, false);
+      });
+    });
+
+    suite('airplane mode off', function() {
+      setup(function() {
+        rilDisabled = false;
+        updateAirplaneModeUI();
+      });
+
+      test('#airplane-mode-warning is hidden', function() {
+        assert.equal(!!$('airplane-mode-warning').hidden, true);
+      });
+    });
+  });
+
+  suite('update UI based on the antenna status', function() {
+    suiteSetup(function() {
+      tempNode = document.createElement('div');
+      tempNode.id = 'test';
+      tempNode.innerHTML = '<div id="antenna-warning" hidden></div>';
+      document.body.appendChild(tempNode);
+    });
+
+    suiteTeardown(function() {
+      tempNode.parentNode.removeChild(tempNode);
+      tempNode = null;
+    });
+
+    suite('antenna is plugged in', function() {
+      setup(function() {
+        mozFMRadio.antennaAvailable = true;
+        updateAntennaUI();
+      });
+
+      test('#antenna-warning is hidden', function() {
+        assert.equal(!!$('antenna-warning').hidden, true);
+      });
+    });
+
+    suite('antenna is not plugged in', function() {
+      setup(function() {
+        mozFMRadio.antennaAvailable = false;
+        updateAntennaUI();
+      });
+
+      test('#antenna-warning is shown', function() {
+        assert.equal(!!$('antenna-warning').hidden, false);
       });
     });
   });
