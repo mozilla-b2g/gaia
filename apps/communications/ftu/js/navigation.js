@@ -42,7 +42,6 @@ var steps = {
 
 // Retrieve number of steps for navigation
 var numSteps = Object.keys(steps).length;
-var _;
 
 var Navigation = {
   currentStep: 1,

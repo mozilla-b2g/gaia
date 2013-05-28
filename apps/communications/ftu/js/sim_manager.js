@@ -9,6 +9,7 @@ var SimManager = {
     this.mobConn = window.navigator.mozMobileConnection;
     if (!this.mobConn)
       return;
+    _ = navigator.mozL10n.get;
 
     this.mobConn.addEventListener('icccardlockerror',
                                   this.handleUnlockError.bind(this));
@@ -19,6 +20,7 @@ var SimManager = {
 
     Object.defineProperty(this,
                           'retryCount', {
+                            configurable: true,
                             get: function() {
                               return this.mobConn.retryCount;
                             }
