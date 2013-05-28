@@ -306,14 +306,12 @@ Evme.Shortcut = function Evme_Shortcut() {
     };
     
     this.setImage = function setImage(shortcutIcons) {
-      if (elThumb && shortcutIcons && shortcutIcons.length > 0) {
-        var elIconGroup = Evme.IconGroup.get(shortcutIcons, self.getName(), function onReady(elCanvas) {
-          if (elThumb) {
-            elThumb.innerHTML = '';
-            elThumb.appendChild(elCanvas);
-          }
-        });
-      }
+        if (elThumb && shortcutIcons && shortcutIcons.length > 0) {
+            var elIconGroup = Evme.IconGroup.get(shortcutIcons, self.getName(), function onReady(elCanvas) {
+              elThumb.innerHTML = '';
+              elThumb.appendChild(elCanvas);
+            });
+        }
     };
     
     this.refreshImage = function refreshImage() {
