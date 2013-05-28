@@ -111,7 +111,8 @@ var ValueSelector = {
                          '.value-picker-hour24-state'];
 
     pickerElements.forEach(function(className) {
-      this._context.querySelector(className).addEventListener('mousedown', this);
+      var el = this._context.querySelector(className);
+      el.addEventListener('mousedown', this);
     }, this);
 
     window.addEventListener('appopen', this);
@@ -535,7 +536,8 @@ var TimePicker = {
 
   setTimePickerStyle: function tp_setTimePickerStyle() {
     var style = (this.timePicker.is12hFormat) ? 'format12h' : 'format24h';
-    ValueSelector._context.querySelector('.picker-container').classList.add(style);
+    var container = ValueSelector._context.querySelector('.picker-container');
+    container.classList.add(style);
   },
 
   getHour: function tp_getHours() {
