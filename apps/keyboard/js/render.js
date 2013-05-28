@@ -92,7 +92,11 @@ const IMERender = (function() {
     var content = document.createDocumentFragment();
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
       var kbRow = document.createElement('div');
-      kbRow.className = 'keyboard-row';
+      var rowLayoutWidth = 0;
+      kbRow.classList.add('keyboard-row');
+      if (nrow === layout.keys.length - 1) {
+        kbRow.classList.add('keyboard-last-row');
+      }
       row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
         var keyChar = key.value;
@@ -123,6 +127,7 @@ const IMERender = (function() {
         }
 
         var ratio = key.ratio || 1;
+        rowLayoutWidth += ratio;
 
         var keyWidth = placeHolderWidth * ratio;
         var dataset = [{'key': 'row', 'value': nrow}];
@@ -134,8 +139,10 @@ const IMERender = (function() {
 
         kbRow.appendChild(buildKey(keyChar, className, keyWidth + 'px',
           dataset, key.altNote));
-
       }));
+
+      kbRow.dataset.layoutWidth = rowLayoutWidth;
+
       content.appendChild(kbRow);
     }));
 
@@ -437,14 +444,29 @@ const IMERender = (function() {
 
       var ratio, keys, rows = document.querySelectorAll('.keyboard-row');
       for (var r = 0, row; row = rows[r]; r += 1) {
+        var rowLayoutWidth = parseInt(row.dataset.layoutWidth, 10);
         keys = row.childNodes;
         for (var k = 0, key; key = keys[k]; k += 1) {
           ratio = layout.keys[r][k].ratio || 1;
+
           key.style.width = Math.floor(placeHolderWidth * ratio) + 'px';
 
           // to get the visual width/height of the key
           // for better proximity info
           var visualKey = key.querySelector('.visual-wrapper');
+
+          // row layout width is not 100%, make the first and last one bigger
+          if (rowLayoutWidth !== layoutWidth &&
+              (k === 0 || k === keys.length - 1)) {
+
+            // keep visual key width
+            visualKey.style.width = visualKey.offsetWidth + 'px';
+
+            // calculate new tap area
+            var newRatio = ratio + ((layoutWidth - rowLayoutWidth) / 2);
+            key.style.width = Math.floor(placeHolderWidth * newRatio) + 'px';
+            key.classList.add('float-key-' + (k === 0 ? 'first' : 'last'));
+          }
 
           _keyArray.push({
             code: key.dataset.keycode | 0,
