@@ -254,11 +254,12 @@ html, body {
 
 #hud {
   position: absolute;
-  top: 2rem;
+  top: 7rem;
   height: 7.5rem;
   left: 0;
   right: 0;
   z-index: 50;
+  transition: 0.2s ease-in-out;
 }
 
 #hud a {
@@ -318,7 +319,7 @@ html, body {
   background-image: url(images/flash_on.png);
 }
 
-#filmstrip.hidden {
+.filmstriphidden #filmstrip, .filmstriphidden #hud {
   transform: translateY(-5rem);
 }
 
