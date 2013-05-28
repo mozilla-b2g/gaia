@@ -286,6 +286,12 @@ content = {
 
 writeContent(init, getDistributionFileContent('browser', content));
 
+// Active Sensors
+init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'sensors.json');
+content = { ambientLight: true };
+
+writeContent(init, getDistributionFileContent('sensors', content));
+
 // Support
 init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'support.json');
 content = null;
