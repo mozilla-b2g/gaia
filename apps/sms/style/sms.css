@@ -538,8 +538,7 @@ form.bottom[role="search"].messages-compose-form {
 
 /* Fix the compose buttons to the bottom of their container. */
 #messages-attach-button, #messages-send-button {
-  float: none;
-  position: absolute;
+  position: relative;
   bottom: 0;
 }
 #messages-attach-button {
@@ -584,7 +583,7 @@ form.bottom[role="search"].messages-compose-form {
 }
 
 #messages-compose-form [contentEditable] {
-  padding: 0.4rem 7rem 0.2rem 3.5rem;
+  padding: 0.4rem 0.5rem 0.2rem 0.5rem;
   line-height: 1.8rem !important;
   min-height: 1.9rem;
   max-height: 37rem;
