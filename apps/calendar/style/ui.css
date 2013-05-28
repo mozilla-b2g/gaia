@@ -209,7 +209,7 @@ ol.link-list li:only-child a {
   overflow: hidden;
   visibility: hidden;
   /* completely override other views */
-  background: #E6E6E0;
+  background-color: #f4f4f4;
   position: absolute;
   top: 0;
   width: 100%;
