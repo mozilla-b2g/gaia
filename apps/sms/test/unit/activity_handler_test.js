@@ -1,5 +1,7 @@
 'use strict';
 
+mocha.globals(['alert']);
+
 requireApp(
   'sms/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
@@ -12,6 +14,7 @@ requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_black_list.js');
 requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_contacts.js');
+requireApp('sms/test/unit/mock_alert.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -25,7 +28,8 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Threads',
   'Contacts',
   'Utils',
-  'NotificationHelper'
+  'NotificationHelper',
+  'alert'
 ]).init();
 
 suite('ActivityHandler', function() {
@@ -164,6 +168,68 @@ suite('ActivityHandler', function() {
         test('launches the app', function() {
           assert.ok(MockNavigatormozApps.mAppWasLaunched);
         });
+      });
+    });
+  });
+
+  suite('user clicked the notification', function() {
+    var messageId = 1;
+    var threadId = 1;
+    var title = 'title';
+    var body = 'body';
+
+    setup(function() {
+      this.sinon.stub(ActivityHandler, 'handleMessageNotification');
+    });
+
+    suite('normal message', function() {
+      setup(function() {
+        var message = {
+          title: title,
+          body: body,
+          imageURL: 'url?id=' + messageId + '&threadId=' + threadId,
+          clicked: true
+        };
+
+        MockNavigatormozSetMessageHandler.mTrigger('notification', message);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      test('handleMessageNotification has been called', function() {
+        var spied = ActivityHandler.handleMessageNotification;
+        var firstCall = spied.args[0];
+        assert.ok(firstCall);
+        var arg = firstCall[0];
+        assert.equal(arg.id, messageId);
+        assert.equal(arg.threadId, threadId);
+      });
+
+      test('launches the app', function() {
+        assert.ok(MockNavigatormozApps.mAppWasLaunched);
+      });
+    });
+
+    suite('class-0 message', function() {
+      setup(function() {
+      var notification = {
+        title: title,
+        body: body,
+        imageURL: 'url?id=' + messageId + '&threadId=' + threadId +
+          '&type=class0',
+        clicked: true
+      };
+
+      MockNavigatormozSetMessageHandler.mTrigger('notification', notification);
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      test('an alert is displayed', function() {
+        assert.equal(Mockalert.mLastMessage, title + '\n' + body);
+      });
+
+      test('handleMessageNotification is not called', function() {
+        var spied = ActivityHandler.handleMessageNotification;
+        assert.isFalse(spied.called);
       });
     });
   });

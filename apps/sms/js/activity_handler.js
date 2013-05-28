@@ -369,15 +369,16 @@ var ActivityHandler = {
 
       app.launch();
 
-      if (params.type === 'sms' || params.type === 'mms') {
-        ActivityHandler.handleMessageNotification({
-          id: params.id,
-          threadId: params.threadId
-        });
+      // the type param is only set for class0 messages
+      if (params.type === 'class0') {
+        alert(message.title + '\n' + message.body);
         return;
       }
-      // Class 0 message
-      alert(message.title + '\n' + message.body);
+
+      ActivityHandler.handleMessageNotification({
+        id: params.id,
+        threadId: params.threadId
+      });
     };
   }
 };
