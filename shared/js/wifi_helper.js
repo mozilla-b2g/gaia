@@ -159,6 +159,42 @@ var WifiHelper = {
     return '';
   },
 
+  isValidInput: function(key, password, identity) {
+    function isValidWepKey(password) {
+      switch (password.length) {
+        case 5:
+        case 13:
+        case 16:
+        case 29:
+          return true;
+        case 10:
+        case 26:
+        case 32:
+        case 58:
+          return !/[^a-fA-F0-9]/.test(password);
+        default:
+          return false;
+      }
+    }
+
+    switch (key) {
+      case 'WPA-PSK':
+        if (!password || password.length < 8)
+          return false;
+        break;
+      case 'WPA-EAP':
+        if (!password || password.length < 1 ||
+            !identity || identity.length < 1)
+          return false;
+        break;
+      case 'WEP':
+        if (!password || !isValidWepKey(password))
+          return false;
+        break;
+    }
+    return true;
+  },
+
   isOpen: function(network) {
     return this.getKeyManagement(network) === '';
   },
