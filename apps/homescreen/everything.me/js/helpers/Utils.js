@@ -278,7 +278,9 @@ Evme.Utils = new function Evme_Utils() {
     
     this.isNewUser = function isNewUser() {
         if (newUser === undefined) {
-            newUser = !Evme.Storage.get("counter-ALLTIME");
+            Evme.Storage.get("counter-ALLTIME", function storageGot(value) {
+                newUser = !value;
+            });
         }
         return newUser;
     };
@@ -406,10 +408,7 @@ Evme.Utils = new function Evme_Utils() {
     };
     
     this.Apps = new function Apps() {
-        var self = this,
-            timeoutAppsToDrawLater = null;
-
-        var TIMEOUT_BEFORE_DRAWING_REST_OF_APPS = 100;
+        var self = this;
         
         this.print = function print(options) {
             var apps = options.apps,
@@ -424,37 +423,18 @@ Evme.Utils = new function Evme_Utils() {
                 iconsResult = {
                     "cached": [],
                     "missing": []
-                },
-                doLater = [];
-
-            window.clearTimeout(timeoutAppsToDrawLater);
+                };
 
             var docFrag = document.createDocumentFragment();
-            for (var i=0; i<apps.length; i++) {
-                var appData = apps[i],
-                    app = new Evme.App(appData, numAppsOffset+i, isMore, self),
-                    id = appData.id,
-                    icon = app.getIcon();
-                
-                icon = Evme.IconManager.parse(id, icon, iconsFormat);
-                app.setIcon(icon);
-                
-                if (Evme.Utils.isKeyboardVisible && (isMore || i<Math.max(apps.length/2, 8))) {
-                    docFrag.appendChild(app.draw());
-                } else {
-                    doLater.push(app);
-                }
+            for (var i=0,appData; appData=apps[i++];) {
+                appData.iconFormat = iconsFormat;
 
-                if (app.missingIcon()) {
-                    if (!icon) {
-                        icon = id;
-                    }
-                    iconsResult["missing"].push(icon);
-                } else {
-                    iconsResult["cached"].push(icon);
-                }
+                var app = new Evme.App(appData, numAppsOffset+i, isMore, self),
+                    id = appData.id;
 
-                appsList[''+id] = app;
+                docFrag.appendChild(app.draw());
+
+                appsList['' + id] = app;
 
                 if (appData.installed) {
                     hasInstalled = true;
@@ -464,22 +444,10 @@ Evme.Utils = new function Evme_Utils() {
             if (hasInstalled) {
                 options.obj && options.obj.hasInstalled(true);
             }
-            
+
             elList.appendChild(docFrag);
 
-            if (doLater.length > 0) {
-                timeoutAppsToDrawLater = window.setTimeout(function onTimeout(){
-                    var docFrag = document.createDocumentFragment();
-                    for (var i=0,app; app=doLater[i++];) {
-                        docFrag.appendChild(app.draw());
-                    }
-                    elList.appendChild(docFrag);
-                    
-                    onDone && onDone(appsList);
-                }, TIMEOUT_BEFORE_DRAWING_REST_OF_APPS);
-            } else {
-                onDone && onDone(appsList);
-            }
+            onDone && onDone(appsList);
 
             return iconsResult;
         }
