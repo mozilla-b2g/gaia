@@ -65,12 +65,20 @@ var SimPinDialog = {
         valueEntered += String.fromCharCode(code);
       }
       displayField.value = encryption(valueEntered);
+      checkDialogDone();
+    });
+	
+    inputField.addEventListener('focus', function() {
+      checkDialogDone();
+    });
+
+    function checkDialogDone() {
       if (displayField.value.length >= 4)
         self.dialogDone.disabled = false;
       else
         self.dialogDone.disabled = true;
-    });
-
+    }
+	
     function encryption(str) {
       return (new Array(str.length + 1)).join('*');
     }
@@ -318,7 +326,6 @@ var SimPinDialog = {
     UtilityTray.hide(true);
 
     this.systemDialog.show();
-    this.dialogDone.disabled = true;
     this.action = action;
     this.lockType = 'pin';
     switch (action) {
