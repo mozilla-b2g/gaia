@@ -394,6 +394,10 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         // check if a list of shortcuts contain the given shortcut
         // not a simple indexOf since a shortcut is either a query or an experienceId
         function contains(shortcuts, shortcut) {
+            if (!shortcuts) {
+              return false;
+            }
+
             for (var i=0,shortcutToCheck; shortcutToCheck=shortcuts[i++];) {
                 var experienceId1 = shortcutToCheck.experienceId,
                     experienceId2 = shortcut.experienceId,
