@@ -242,15 +242,6 @@ var MessageManager = {
         editButton.parentNode.appendChild(editButton);
         if (mainWrapper.classList.contains('edit')) {
           mainWrapper.classList.remove('edit');
-          if (ThreadListUI.editDone) {
-            ThreadListUI.editDone = false;
-            // TODO Address this re-render in
-            // https://bugzilla.mozilla.org/show_bug.cgi?id=825604
-            this.getThreads(ThreadListUI.renderThreads,
-              function threadListUpdated() {
-              WaitingScreen.hide();
-            });
-          }
         } else if (threadMessages.classList.contains('new')) {
           MessageManager.slide('right', function() {
             threadMessages.classList.remove('new');
