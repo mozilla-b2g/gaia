@@ -70,6 +70,7 @@ input:focus:invalid {
   color: #aaa;
   margin-top: 0.4rem;
   text-align: right;
+  font-size: 110%;
 }
 .sup-error-code:before {
   content: "[";
