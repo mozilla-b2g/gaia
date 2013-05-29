@@ -66,7 +66,7 @@
           configuration.credit.currency;
       }
 
-      var mode = costcontrol.getApplicationMode(settings);
+      var mode = ConfigManager.getApplicationMode();
 
       // Handle welcome screen
       var selectors = {
