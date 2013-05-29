@@ -48,13 +48,6 @@
   display: block;
 }
 
-#simpin-dialog .input-wrapper input[type="text"] {
-  width: auto;
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-}
-
 #xckArea .input-wrapper input {
   font-size: 1.8em;
 }

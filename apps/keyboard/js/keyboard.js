@@ -153,7 +153,7 @@ const LAYOUT_PAGE_SYMBOLS_II = 'Symbols_2';
 // Layout page: what set of symbols should the keyboard display?
 var layoutPage = LAYOUT_PAGE_DEFAULT;
 
-// This object is based on the keyboard layout form layout.js, but is
+// This object is based on the keyboard layout from layout.js, but is
 // modified (see modifyLayout()) to include keys for switching keyboards
 // and layouts, and type specific keys like ".com" for url keyboards.
 var currentLayout = null;
@@ -171,6 +171,7 @@ var currentInputType = null;
 var currentInputMode = null;
 var menuLockedArea = null;
 var candidatePanelEnabled = false;
+var isKeyboardRendered = false;
 const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
@@ -541,15 +542,31 @@ function modifyLayout(keyboardName) {
   }
 
   var altLayoutName;
-  if (currentInputType === 'tel')
-    altLayoutName = currentInputType + 'Layout';
-  else if (currentInputType === 'number')
-    altLayoutName =
-      currentInputMode === 'digits' ? 'pinLayout' : 'numberLayout';
-  else if (layoutPage === LAYOUT_PAGE_SYMBOLS_I)
+
+  switch (currentInputType) {
+    case 'tel':
+      altLayoutName = 'telLayout';
+      break;
+    case 'number':
+      altLayoutName = currentInputMode === 'digit' ?
+                                           'pinLayout' : 'numberLayout';
+      break;
+    // The matches when type="password", "text", or "search",
+    // see mapInputType() for details
+    case 'text':
+      if (currentInputMode === 'digit') {
+        altLayoutName = 'pinLayout';
+      } else if (currentInputMode === 'numeric') {
+        altLayoutName = 'numberLayout';
+      }
+      break;
+  }
+
+  if (layoutPage === LAYOUT_PAGE_SYMBOLS_I) {
     altLayoutName = 'alternateLayout';
-  else if (layoutPage === LAYOUT_PAGE_SYMBOLS_II)
+  } else if (layoutPage === LAYOUT_PAGE_SYMBOLS_II) {
     altLayoutName = 'symbolLayout';
+  }
 
   // Start with this base layout
   var layout;
@@ -747,6 +764,8 @@ function renderKeyboard(keyboardName) {
 
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
+
+    isKeyboardRendered = true;
   }
 
   // XXX: if we are going to hide the candidatePanel, notify keyboard manager
@@ -779,6 +798,8 @@ function setUpperCase(upperCase, upperCaseLocked) {
   isUpperCaseLocked = upperCaseLocked;
   isUpperCase = upperCase;
 
+  if (!isKeyboardRendered)
+    return;
   // When case changes we have to re-render the keyboard.
   // But note that we don't have to relayout the keyboard, so
   // we call draw() directly instead of renderKeyboard()
@@ -1309,6 +1330,7 @@ function endPress(target, coords, touchId) {
     }
 
     resetKeyboard();
+    renderKeyboard(keyboardName);
 
     /*
      * XXX
@@ -1388,8 +1410,6 @@ function resetKeyboard() {
   isUpperCase = false;
   isUpperCaseLocked = false;
 
-  renderKeyboard(keyboardName);
-
   IMERender.setUpperCaseLock(isUpperCase);
 }
 
@@ -1440,6 +1460,9 @@ function showKeyboard(state) {
     });
   }
 
+  // render the keyboard after activation, which will determine the state
+  // of uppercase/suggestion, etc.
+  renderKeyboard(keyboardName);
 }
 
 // Hide keyboard
@@ -1450,6 +1473,7 @@ function hideKeyboard() {
 
   // reset the flag for candidate show/hide workaround
   candidatePanelEnabled = false;
+  isKeyboardRendered = false;
 }
 
 // Resize event handler
