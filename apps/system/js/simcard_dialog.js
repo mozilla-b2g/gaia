@@ -67,7 +67,7 @@ var SimPinDialog = {
       displayField.value = encryption(valueEntered);
       checkDialogDone();
     });
-	
+
     inputField.addEventListener('focus', function() {
       checkDialogDone();
     });
@@ -78,7 +78,7 @@ var SimPinDialog = {
       else
         self.dialogDone.disabled = true;
     }
-	
+
     function encryption(str) {
       return (new Array(str.length + 1)).join('*');
     }
