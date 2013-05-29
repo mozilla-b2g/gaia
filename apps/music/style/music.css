@@ -1117,16 +1117,6 @@ form[role="search"] button {
   width: calc(2rem + 2px);
 }
 
-form[role="search"] .icon.icon-close {
-  background: url(/shared/style/headers/images/icons/close.png) no-repeat scroll center center transparent;
-  display: block;
-  width: 2rem;
-  height: 3.7rem;
-  margin: 0px;
-  overflow: visible;
-  font-size: 0px;
-}
-
 .search-highlight {
   background-color: rgb(0, 138, 170);
 }
