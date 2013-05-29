@@ -61,72 +61,28 @@ label input[type="checkbox"][data-type="switch"] + span {
   left: 50%;
   top: 50%;
   margin: -1.1rem 0 0 -2.7rem;
-  width: 5.4rem;
-  height: 2.2rem;
+  width: 5.1rem;
+  height: 2.1rem;
   pointer-events: none;
-  border: solid 1px #c2c2c2;
-  border-radius: 5.4rem;
+  border-radius: 1.2rem;
+  border: 0.1rem solid #c2c2c2;
   overflow: hidden;
-  background: url(switches/images/switch/handler.png) no-repeat -0.2rem center;
-  background-size: auto calc(100% + 2px);
-  transition: background 0.18s ease;
+  background: #e6e6e6 url(switches/images/switch/background_off.png) no-repeat -3.2rem 0 / 8.3rem 2.1rem;
+  transition: background 0.2s ease, border 0.2s ease;
 }
 
-label input[data-type="switch"] + span:after,
-label input[data-type="switch"] + span:before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 5.4rem;
-  z-index: -1;
-  transition: transform 0.2s ease;
-}
-
-label input[data-type="switch"] + span:before {
-  right: 100%;
-  background: #00c3ea url(switches/images/switch/icon.png) no-repeat 0.5rem center;
-  background-size: auto calc(100% - 2px);
-}
-
-label input[data-type="switch"] + span:after {
-  left: 100%;
-  background: #e6e6e6;
-  transform: translateX(-5.4rem);
+/* switch: 'ON' state */
+label input[type="checkbox"][data-type="switch"]:checked + span {
+  background: #e6e6e6 url(switches/images/switch/background.png) no-repeat 0 0 / 8.3rem 2.1rem;
+  border-color: #00abcd;
 }
 
 /* switch: disabled state */
-label input[data-type="switch"]:disabled + span:before,
-label input[data-type="switch"]:disabled + span:after {
-  opacity: 0.2;
-}
-
 label input[data-type="switch"]:disabled + span {
-  opacity: 0.3;
+  opacity: 0.4;
 }
 
-label input[data-type="switch"]:checked:disabled + span {
-  opacity: 1;
-  border: solid 1px #A7DBE6;
-}
-
-/* 'ON' state */
-
-label input[data-type="switch"]:checked + span {
-  border-color: #00acce;
-  background-position: 3.2rem center;
-}
-
-label input[data-type="switch"]:checked + span:before {
-  transform: translateX(5.4rem);
-}
-
-label input[data-type="switch"]:checked + span:after {
-  transform: translateX(0);
-}
-
-label input[type="checkbox"][data-type="switch"].uninit + span,
-label input[type="checkbox"][data-type="switch"].uninit + span:before,
-label input[type="checkbox"][data-type="switch"].uninit + span:after {
+label input[type="checkbox"][data-type="switch"].uninit + span {
   transition: none;
+  opacity: 0.4;
 }
