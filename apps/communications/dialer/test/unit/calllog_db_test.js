@@ -124,7 +124,7 @@ suite('dialer/call_log_db', function() {
     });
   });
 
-  suite('Single call form hidden number', function() {
+  suite('Single call from hidden number', function() {
     test('Add a call', function(done) {
       var call = {
         number: '',
