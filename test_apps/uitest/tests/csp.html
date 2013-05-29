@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>CSP Warning</title>
+  </head>
+  <body>
+    <h1>CSP Warning test</h1>
+    <p id="text">This line should not be removed by Javascript.</p>
+    <script>
+    window.onload = function () {
+      document.getElementById('text').textContent =
+        'Error! CSP violation is executed!';
+    };
+    </script>
+  </body>
+</html>
