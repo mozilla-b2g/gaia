@@ -80,37 +80,45 @@
       </fieldset>
      </form>
 
-    <h2 class="bb-docs">Input forms</h2>
+    <h2 class="bb-docs">Forms: Input text</h2>
 
-    <!-- form used at the top of the page with fixed/absolute position and content scrolls underneath -->
     <form role="search">
-      <button type="submit">Cancel</button>
       <p>
         <input type="text" placeholder="Search..." required>
         <button type="reset">Clear</button>
       </p>
     </form>
 
-    <!-- form used under a header, this form scrolls together with the content underneath the header -->
-    <section role="region"> 
-      <header>
-          <!-- here should be the content of the header -->
-      </header>
-      <form role="search" class="full">
-        <button type="submit">Send</button>
-        <p>
-          <input type="text" placeholder="Search..." required>
-          <button type="reset">Clear</button>
-        </p>
-      </form>
-    </section>
+    <form role="search">
+      <button type="submit">Cancel</button>
+      <p>
+        <input type="text" placeholder="Search..." required value="Some text here">
+        <button type="reset">Clear</button>
+      </p>
+    </form>
 
-    <form role="search" class="bottom">
-      <button class="icon icon-attachment">Attachment</button>
-      <button type="submit" disabled>Send</button>
+    <form role="search" class="skin-dark">
       <p>
         <input type="text" placeholder="Search..." required>
         <button type="reset">Clear</button>
+      </p>
+    </form>
+
+    <form role="search" class="skin-dark">
+      <button type="submit">Cancel</button>
+      <p>
+        <input type="text" placeholder="Search..." required value="Some text here">
+        <button type="reset">Clear</button>
+      </p>
+    </form>
+
+    <h2 class="bb-docs">Forms: Text area</h2>
+
+    <form role="search" class="bottom">
+      <!-- this button should be enabled after start typing in the input field-->
+      <button type="submit" disabled>Send</button>
+      <p>
+        <textarea required></textarea>
       </p>
     </form>
 
@@ -118,7 +126,7 @@
       <button class="icon icon-attachment">Attachment</button>
       <button type="submit">Send</button>
       <p>
-        <textarea placeholder="Search..." required>Some text here</textarea>
+        <textarea required>Some text here</textarea>
       </p>
     </form>
 
