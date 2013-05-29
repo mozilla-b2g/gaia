@@ -2,7 +2,10 @@
 
 (function(window) {
   var observers = {},
-      settings = {},
+      // Set default message size with 300KB
+      settings = {
+        'dom.mms.operatorSizeLimitation' : 300
+      },
       removedObservers = {};
 
   function mns_mLockSet(obj) {
@@ -11,9 +14,14 @@
     }
   }
 
-  function mns_mLockGet() {
+  function mns_mLockGet(key) {
+    var resultObj = {};
+    resultObj[key] = settings[key];
     var settingsRequest = {
-      result: {}
+      result: resultObj,
+      addEventListener: function(name, cb) {
+        settingsRequest['on' + name] = cb;
+      }
     };
 
     setTimeout(function() {

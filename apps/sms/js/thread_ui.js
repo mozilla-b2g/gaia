@@ -1358,24 +1358,26 @@ var ThreadUI = global.ThreadUI = {
 
   onMessageFailed: function thui_onMessageFailed(message) {
     var messageDOM = document.getElementById('message-' + message.id);
-    if (!messageDOM) {
-      return;
-    }
-    // Check if it was painted as 'error' before
-    if (messageDOM.classList.contains('error')) {
-      return;
-    }
+    // When this is the first message in a thread, we haven't displayed
+    // the new thread yet. The error flag will be shown when the thread
+    // will be rendered. See Bug 874043
+    if (messageDOM) {
 
-    // Update class names to reflect message state
-    messageDOM.classList.remove('sending');
-    messageDOM.classList.add('error');
+      // Check if it was painted as 'error' before
+      if (messageDOM.classList.contains('error')) {
+        return;
+      }
+
+      // Update class names to reflect message state
+      messageDOM.classList.remove('sending');
+      messageDOM.classList.add('error');
+    }
 
     this.ifRilDisabled(this.showAirplaneModeError);
   },
 
   ifRilDisabled: function thui_ifRilDisabled(func) {
     var settings = window.navigator.mozSettings;
-
     if (settings) {
       // Check if RIL is enabled or not
       var req = settings.createLock().get('ril.radio.disabled');
