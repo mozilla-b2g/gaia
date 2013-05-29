@@ -143,11 +143,15 @@ VCFReader.vcardToContact = function(vcard) {
   (['org', 'photo', 'title']).forEach(function(field) {
     if (vcard[field]) {
       var v = vcard[field][0];
-      if (typeof v === 'object') {
-        contactObj[field] = v.value;
-      } else if (typeof v === 'string') {
-        if (field === 'title') field = 'jobTitle';
-        contactObj[field] = [v];
+      if (field === 'title') field = 'jobTitle';
+
+      switch (typeof v) {
+        case 'object':
+          contactObj[field] = [VCFReader.decodeQP(v.meta, v.value[0])];
+          break;
+        case 'string':
+          contactObj[field] = [v];
+          break;
       }
     }
   });

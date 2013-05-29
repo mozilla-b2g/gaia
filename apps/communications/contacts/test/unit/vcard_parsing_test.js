@@ -4,8 +4,8 @@ var vcf1 = 'BEGIN:VCARD\n' +
   'VERSION:2.1\n' +
   'N;ENCODING=QUOTED-PRINTABLE;CHARSET=utf-8:Gump;F=C3=B3rrest\n' +
 //  'FN:Forrest Gump\n' +
-  'ORG:Bubba Gump Shrimp Co.\n' +
-  'TITLE:Shrimp Man\n' +
+  'ORG;ENCODING=QUOTED-PRINTABLE;CHARSET=utf-8:B=C3=B3bba Gump Shrimp Co.\n' +
+  'TITLE;ENCODING=QUOTED-PRINTABLE;CHARSET=utf-8:Shr=C3=B3mp Man\n' +
 
   'PHOTO;GIF:http://www.example.com/dir_photos/my_photo.gif\n' +
   'TEL;WORK;VOICE:(111) 555-1212\n' +
@@ -134,9 +134,8 @@ suite('vCard parsing settings', function() {
 
         assert.equal('Gump Fórrest', contact.name);
         assert.equal('Fórrest', contact.givenName);
-        assert.equal('Bubba Gump Shrimp Co.', contact.org[0]);
-        assert.equal('Shrimp Man', contact.jobTitle[0]);
-
+        assert.equal('Bóbba Gump Shrimp Co.', contact.org[0]);
+        assert.equal('Shrómp Man', contact.jobTitle[0]);
         assert.equal('http://www.example.com/dir_photos/my_photo.gif',
           contact.photo[0]);
 
