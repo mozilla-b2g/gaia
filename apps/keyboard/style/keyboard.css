@@ -37,7 +37,7 @@ button::-moz-focus-inner {
   bottom: 0;
   z-index: 15;
   width: 100%;
-  padding: 0.8rem 0 0.2rem;
+  padding: 0.8rem 0 0;
   border-top: 0.2rem solid;
   -moz-border-top-colors: #0b0b0b #999d9d;
   background-color: #6d7273;
@@ -57,6 +57,10 @@ button::-moz-focus-inner {
   padding: 0 0.1rem;
   border: none;
   background: none;
+}
+
+.keyboard-last-row .keyboard-key {
+  padding-bottom: 0.2rem;
 }
 
 /* Visible keys */
@@ -645,3 +649,11 @@ bubble above the key when you tap and hold. */
   color: #555;
 }
 
+/* Increase tap area for first / last keys in a row that
+  doesn't fill full width */
+.keyboard-key.float-key-first {
+  text-align: right;
+}
+.keyboard-key.float-key-last {
+  text-align: left;
+}
