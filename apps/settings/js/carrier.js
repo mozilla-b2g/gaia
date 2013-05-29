@@ -67,20 +67,13 @@ var Carrier = (function newCarrier(window, document, undefined) {
     }
 
     // load and query APN database, then trigger callback on results
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', APN_FILE, true);
-    xhr.responseType = 'json';
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
-        var apn = xhr.response;
-        var mcc = mccMncCodes.mcc;
-        var mnc = mccMncCodes.mnc;
-        // get a list of matching APNs
-        gCompatibleAPN = apn[mcc] ? (apn[mcc][mnc] || []) : [];
-        callback(filter(gCompatibleAPN), usage);
-      }
-    };
-    xhr.send();
+    loadJSON(APN_FILE, function loadAPN(apn) {
+      var mcc = mccMncCodes.mcc;
+      var mnc = mccMncCodes.mnc;
+      // get a list of matching APNs
+      gCompatibleAPN = apn[mcc] ? (apn[mcc][mnc] || []) : [];
+      callback(filter(gCompatibleAPN), usage);
+    });
   }
 
   // helper
