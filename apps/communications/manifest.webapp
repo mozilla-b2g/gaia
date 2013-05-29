@@ -13,8 +13,7 @@
       "name": "Phone",
       "icons": {
         "60": "/dialer/style/icons/60/Dialer.png",
-        "120": "/dialer/style/icons/Dialer.png",
-        "320": "/dialer/style/icons/320/Dialer.png"
+        "120": "/dialer/style/icons/Dialer.png"
       },
       "locales": {
         "ar": {
@@ -40,8 +39,7 @@
       "name": "Contacts",
       "icons": {
         "60": "/contacts/style/icons/60/Contacts.png",
-        "120": "/contacts/style/icons/Contacts.png",
-        "320": "/contacts/style/icons/320/Contacts.png"
+        "120": "/contacts/style/icons/Contacts.png"
       },
       "locales": {
         "ar": {
