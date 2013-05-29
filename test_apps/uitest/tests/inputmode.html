@@ -22,8 +22,12 @@
       now, inputmode is just controlling auto capitalization
     </p>
     <p>
-      The special inputmode "digits" for the number field will allow the
+      The special inputmode "digit" for the input field will allow the
       keyboard to enter digits(0-9) only.
+    </p>
+    <p>
+      Besides, the special inputmode "numeric" for the input field will allow the
+      keyboard to enter 0-9, +, -, comma, dot.
     </p>
 
     none: <input type="text"><br>
@@ -38,6 +42,14 @@
     latin-prose: <textarea x-inputmode="latin-prose"></textarea><br>
     latin-name: <textarea x-inputmode="latin-name"></textarea><br>
 
-    digits: <input type="number" x-inputmode="digits"><br>
+    number field with digits: <input type="number" x-inputmode="digit"><br>
+    text fields with digits: <input type="text" x-inputmode="digit"><br>
+    password fields with digits: <input type="password" x-inputmode="digit"><br>
+    textarea with digits: <textarea x-inputmode="digit"></textarea><br>
+
+    number field with numeric: <input type="number" x-inputmode="numeric"><br>
+    text fields with numeric: <input type="text" x-inputmode="numeric"><br>
+    password fields with numeric: <input type="password" x-inputmode="numeric"><br>
+    textarea with numeric: <textarea x-inputmode="numeric"></textarea><br>
   </body>
 </html>
