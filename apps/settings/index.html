@@ -485,6 +485,28 @@
       -->
     </section>
 
+    <!-- Connectivity :: Call :: Voice Mail -->
+    <section role="region" id="call-voiceMailSettings">
+      <!--
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1 data-l10n-id="voiceMail"> Voicemail </h1>
+      </header>
+
+      <div>
+        <ul>
+          <li>
+            <p data-l10n-id="voiceMail-number">Voicemail Number</p>
+            <input type="tel" id="vm-number" data-setting="ril.iccInfo.mbdn"/>
+          </li>
+        </ul>
+      </div>
+      -->
+    </section>
+
     <!-- Connectivity :: Call -->
     <section role="region" id="call">
       <!--
@@ -494,6 +516,13 @@
       </header>
 
       <div>
+        <ul>
+          <li>
+            <small id="voiceMail-desc"></small>
+            <a data-href="#call-voiceMailSettings" data-l10n-id="voiceMail">Voicemail</a>
+          </li>
+        </ul>
+
         <ul>
           <li id="menuItem-callWaiting" data-state="off">
             <label class="checkbox-label">
