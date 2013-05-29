@@ -9393,9 +9393,9 @@ BodyFilter.prototype = {
         matchQuotes = this.matchQuotes,
         idx;
 
-    for (var iBodyRep = 0; iBodyRep < body.bodyReps.length; iBodyRep += 2) {
-      var bodyType = body.bodyReps[iBodyRep],
-          bodyRep = body.bodyReps[iBodyRep + 1];
+    for (var iBodyRep = 0; iBodyRep < body.bodyReps.length; iBodyRep++) {
+      var bodyType = body.bodyReps[iBodyRep].type,
+          bodyRep = body.bodyReps[iBodyRep].content;
 
       if (bodyType === 'plain') {
         for (var iRep = 0; iRep < bodyRep.length && matches.length < stopAfter;
