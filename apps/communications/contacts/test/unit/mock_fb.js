@@ -1,5 +1,7 @@
 'use strict';
 
+requireApp('communications/contacts/test/unit/mock_linked_contacts.js');
+
 var FB_ID = 220439;
 
 var Mockfb = {
@@ -15,10 +17,7 @@ var Mockfb = {
   operationsTimeout: 20000,
 
   // mocks the saved data
-  savedData: [],
-  utils: {
-    getImportChecked: function() {}
-  }
+  savedData: []
 };
 
 Mockfb.init = function(callback) {
@@ -284,6 +283,7 @@ Mockfb.utils = (function() {
       else {
         cbs.success(MockLinkedContacts);
       }
-    }
+    },
+    getImportChecked: function() {}
   };
 }());
