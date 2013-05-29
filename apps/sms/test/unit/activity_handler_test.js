@@ -9,16 +9,15 @@ requireApp('sms/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 requireApp('sms/shared/test/unit/mocks/mock_notification_helper.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
-requireApp('sms/js/message_manager.js');
-
 requireApp('sms/test/unit/mock_l10n.js');
-requireApp('sms/test/unit/mock_attachment.js');
-requireApp('sms/test/unit/mock_compose.js');
-requireApp('sms/test/unit/mock_messages.js');
-requireApp('sms/test/unit/mock_black_list.js');
-requireApp('sms/test/unit/mock_threads.js');
-requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_alert.js');
+requireApp('sms/test/unit/mock_attachment.js');
+requireApp('sms/test/unit/mock_black_list.js');
+requireApp('sms/test/unit/mock_compose.js');
+requireApp('sms/test/unit/mock_contacts.js');
+requireApp('sms/test/unit/mock_messages.js');
+requireApp('sms/test/unit/mock_message_manager.js');
+requireApp('sms/test/unit/mock_threads.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -27,19 +26,18 @@ requireApp('sms/js/activity_handler.js');
 
 var mocksHelperForActivityHandler = new MocksHelper([
   'Attachment',
-  'Compose',
   'BlackList',
-  'Threads',
+  'Compose',
   'Contacts',
-  'Utils',
+  'MessageManager',
   'NotificationHelper',
+  'Threads',
+  'Utils',
   'alert'
 ]).init();
 
 suite('ActivityHandler', function() {
-  var mocksHelper = mocksHelperForActivityHandler;
-
-  mocksHelper.attachTestHelpers();
+  mocksHelperForActivityHandler.attachTestHelpers();
 
   var realSetMessageHandler;
   var realWakeLock;
@@ -239,41 +237,15 @@ suite('ActivityHandler', function() {
   });
 
   suite('"new" activity', function() {
-    var realMessageManager;
-    var realUtilsescapeHTML;
     var realMozL10n;
 
     suiteSetup(function() {
       realMozL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
-
-      realMessageManager = MessageManager;
-      realUtilsescapeHTML = Utils.escapeHTML;
     });
-
     suiteTeardown(function() {
-      MessageManager = realMessageManager;
-      Utils.escapeHTML = realUtilsescapeHTML;
+      navigator.mozL10n = realMozL10n;
     });
-
-    setup(function() {
-      Utils = {
-        escapeHTML: function(x) {
-          return x;
-        }
-      };
-      MessageManager = {
-        activity: {
-          body: null,
-          number: null,
-          contact: null,
-          recipients: null,
-          threadId: null,
-          isLocked: false
-        }
-      };
-    });
-
     test('new message to unknown contact', function(done) {
       window.onhashchange = function() {
         assert.equal(window.location.hash, '#new');
