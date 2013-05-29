@@ -7,7 +7,7 @@ mocha.setup({ignoreLeaks: true});
 requireApp('system/test/unit/mocks_helper.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_settings_listener.js');
-requireApp('system/test/unit/mock_navigator_settings.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_navigator_moz_mobile_connection.js');
 requireApp('system/test/unit/mock_activity.js');
