@@ -897,6 +897,14 @@ var WindowManager = (function() {
     AttentionScreen.showForOrigin(newApp);
   }
 
+  function setOrientationForInlineActivity(frame) {
+    if ('orientation' in frame.dataset) {
+      screen.mozLockOrientation(frame.dataset.orientation);
+    } else {  // If no orientation was requested, then let it rotate
+      screen.mozUnlockOrientation();
+    }
+  }
+
   function setOrientationForApp(origin) {
     if (origin == null) { // No app is currently running.
       screen.mozLockOrientation('portrait-primary');
@@ -914,8 +922,7 @@ var WindowManager = (function() {
         console.warn('screen.mozLockOrientation() returned false for',
                      origin, 'orientation', manifest.orientation);
       }
-    }
-    else {  // If no orientation was requested, then let it rotate
+    } else {  // If no orientation was requested, then let it rotate
       screen.mozUnlockOrientation();
     }
   }
@@ -1108,6 +1115,11 @@ var WindowManager = (function() {
     if ('setVisible' in iframe)
       iframe.setVisible(true);
 
+    if ('orientation' in manifest) {
+      frame.dataset.orientation = manifest.orientation;
+      setOrientationForInlineActivity(frame);
+    }
+
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
       openFrame.classList.add('active');
@@ -1184,6 +1196,7 @@ var WindowManager = (function() {
     if (!inlineActivityFrames.length) {
       // Give back focus to the displayed app
       var app = runningApps[displayedApp];
+      setOrientationForApp(displayedApp);
       if (app && app.iframe) {
         app.iframe.focus();
         if ('wrapper' in app.frame.dataset) {
@@ -1191,6 +1204,9 @@ var WindowManager = (function() {
         }
       }
       screenElement.classList.remove('inline-activity');
+    } else {
+      setOrientationForInlineActivity(
+        inlineActivityFrames[inlineActivityFrames.length - 1]);
     }
   }
 
