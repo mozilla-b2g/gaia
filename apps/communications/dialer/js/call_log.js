@@ -322,7 +322,7 @@ var CallLog = {
     var date = group.lastEntryDate;
     var number = group.number;
     var type = group.type;
-    var status = group.status || null;
+    var status = group.status || '';
     var groupDOM = document.createElement('li');
     groupDOM.classList.add('log-item');
     groupDOM.dataset.timestamp = date;
@@ -686,7 +686,7 @@ var CallLog = {
       var dataset = logGroup.dataset;
       var toDelete = {
         date: parseInt(dataset.timestamp),
-        number: dataset.phoneNumber,
+        number: dataset.phoneNumber === null ? '' : dataset.phoneNumber,
         type: dataset.type
       };
       if (dataset.status) {
