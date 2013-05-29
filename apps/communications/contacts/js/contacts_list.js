@@ -145,7 +145,7 @@ contacts.List = (function() {
         showNextGroup(true);
       }
     }
-    if (domTarget.offsetTop > 0)
+    if (domTarget.offsetTop >= 0)
       scrollable.scrollTop = domTarget.offsetTop;
   };
 
