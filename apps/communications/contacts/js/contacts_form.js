@@ -299,7 +299,11 @@ contacts.Form = (function() {
       var currentElem = fields[j];
       var def = (currentElem === 'type') ? default_type : '';
       var defObj = (typeof(obj) === 'string') ? obj : obj[currentElem];
-      var value = currField[currentElem] = defObj || def;
+      var value = '';
+
+      currField[currentElem] =
+      (typeof(defObj) === 'object') ? defObj.toString() : defObj;
+      value = currField[currentElem] || def;
       if (currentElem === 'type') {
         currField['type_value'] = value;
 
