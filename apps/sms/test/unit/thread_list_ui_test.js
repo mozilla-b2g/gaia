@@ -135,7 +135,7 @@ suite('thread_list_ui', function() {
       setup(function() {
         ThreadListUI.removeThread(3);
       });
-      test('calls FixedHeader.refresh when removing a thread header', function() {
+      test('calls FixedHeader.refresh', function() {
         assert.isTrue(FixedHeader.refresh.called);
       });
       test('leaves other threads alone', function() {
