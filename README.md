@@ -6,38 +6,23 @@ Boot to Gecko aims to create a complete, standalone operating system for the ope
 
 You can read more about B2G here:
 
-  http://mozilla.org/b2g
+> [http://mozilla.org/b2g](http://mozilla.org/b2g)
 
 follow us on twitter: @Boot2Gecko
 
-  http://twitter.com/Boot2Gecko
+> [http://twitter.com/Boot2Gecko](http://twitter.com/Boot2Gecko)
 
 join the Gaia mailing list:
 
-  http://groups.google.com/group/mozilla.dev.gaia
+> [http://groups.google.com/group/mozilla.dev.gaia](http://groups.google.com/group/mozilla.dev.gaia)
 
 and talk to us on IRC:
 
-  #gaia on irc.mozilla.org
+>  #gaia on irc.mozilla.org
 
-See INSTALL file in B2G repository for instructions on building and running B2G. To try out Gaia on desktop, see
+## Hacking Gaia
 
-  https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Building_and_installing_Firefox_OS
-  https://wiki.mozilla.org/Gaia/Hacking
-
-# Installing on different devices resolution
-### Currently supported screens
-  * **qHD**: ~540×960, device pixel ratio = 1.6875
-  * **WVGA**: ~480×800, device pixel ratio = 1.5
-
-### How to:
-You need to set `HIDPI=1` when using any `make` command
-
-### Examples
-`HIDPI=1 make reset-gaia`
-`HIDPI=1 make install-gaia`
-`HIDPI=1 BUILD_APP_NAME=contacts make install-gaia`
-
+[The Gaia/Hacking page on MDN](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Gaia/Hacking) has all the information that you need to start working on Gaia, including building and running Gaia on a compatible device or desktop computer.
 
 ## Tests
 
