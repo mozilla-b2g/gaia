@@ -34,6 +34,8 @@ settings = {
  "debug.log-animations.enabled": False,
  "debug.paint-flashing.enabled": False,
  "debug.peformancedata.shared": False,
+ "debug.trace-settings.enabled": False,
+ "debug.trace-system.enabled": False,
  "deviceinfo.firmware_revision": "",
  "deviceinfo.hardware": "",
  "deviceinfo.os": "",
