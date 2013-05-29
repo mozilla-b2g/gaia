@@ -267,3 +267,10 @@ section[role="status"][title="retry"] .toaster-banner-retry {
   display: inline;
 }
 
+.peep-bubble {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: -moz-available;
+  white-space: nowrap;
+  vertical-align: middle;
+}

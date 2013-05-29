@@ -27,10 +27,7 @@
 
 .cmp-peep-bubble {
   float: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: -moz-available;
-  white-space: nowrap;
+  margin-left: 0.3rem;
 }
 
 .cmp-to-text-container {
