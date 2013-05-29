@@ -1513,13 +1513,10 @@ function showKeyboard(state) {
       correct: correctionsEnabled
     });
   }
-<<<<<<< HEAD
-=======
 
   // render the keyboard after activation, which will determine the state
   // of uppercase/suggestion, etc.
   renderKeyboard(keyboardName);
->>>>>>> Bug 869879 - enable keyboard app to show pinLayout when type=password
 }
 
 // Hide keyboard
