@@ -150,7 +150,7 @@ suite('dialer/call_log_db', function() {
       });
     });
   });
-  
+
   suite('Two calls, same group, different hour', function() {
     var call = {
       number: numbers[0],
@@ -680,5 +680,5 @@ suite('dialer/call_log_db', function() {
       });
     });
   });
-  
+
 });
