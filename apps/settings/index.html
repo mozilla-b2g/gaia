@@ -1578,7 +1578,7 @@
       </header>
 
       <div class="passcode-overlay">
-        <input type="number" x-inputmode="digits" id="passcode-input" />
+        <input type="number" x-inputmode="digit" id="passcode-input" />
         <div class="passcode-container" id="passcode-container">
           <div class="passcode" id="passcode-pseudo-input">
             <label data-l10n-id="passcode">Passcode</label>
@@ -1689,16 +1689,14 @@
           <div id="pinArea">
             <div data-l10n-id="simPin">SIM PIN</div>
             <div class="input-wrapper">
-              <input type="number" name="simpin" size="8" maxlength="8" />
-              <input type="text" name="simpinVis" size="8" maxlength="8" />
+              <input type="password" x-inputmode="digit" name="simpin" size="8" maxlength="8" />
             </div>
           </div>
 
           <div id="pukArea">
             <div data-l10n-id="pukCode">PUK Code</div>
             <div class="input-wrapper">
-              <input type="number" name="simpuk" size="8" maxlength="8" />
-              <input type="text" name="simpukVis" size="8" maxlength="8" />
+              <input type="password" x-inputmode="digit" name="simpuk" size="8" maxlength="8" />
             </div>
           </div>
 
@@ -1707,8 +1705,7 @@
               Create PIN (must contain 4 to 8 digits)
             </div>
             <div class="input-wrapper">
-              <input type="number" name="newSimpin" size="8" maxlength="8" />
-              <input type="text" name="newSimpinVis" size="8" maxlength="8" />
+              <input type="password" x-inputmode="digit" name="newSimpin" size="8" maxlength="8" />
             </div>
           </div>
 
@@ -1717,8 +1714,7 @@
               Confirm New PIN
             </div>
             <div class="input-wrapper">
-              <input type="number" name="confirmNewSimpin" size="8" maxlength="8" />
-              <input type="text" name="confirmNewSimpinVis" size="8" maxlength="8" />
+              <input type="password" x-inputmode="digit" name="confirmNewSimpin" size="8" maxlength="8" />
             </div>
           </div>
         </div>

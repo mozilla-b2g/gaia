@@ -153,7 +153,7 @@ const LAYOUT_PAGE_SYMBOLS_II = 'Symbols_2';
 // Layout page: what set of symbols should the keyboard display?
 var layoutPage = LAYOUT_PAGE_DEFAULT;
 
-// This object is based on the keyboard layout form layout.js, but is
+// This object is based on the keyboard layout from layout.js, but is
 // modified (see modifyLayout()) to include keys for switching keyboards
 // and layouts, and type specific keys like ".com" for url keyboards.
 var currentLayout = null;
@@ -168,8 +168,10 @@ var touchEventsPresent = false;
 var touchedKeys = {};
 var touchCount = 0;
 var currentInputType = null;
+var currentInputMode = null;
 var menuLockedArea = null;
 var candidatePanelEnabled = false;
+var isKeyboardRendered = false;
 const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
@@ -543,12 +545,31 @@ function modifyLayout(keyboardName) {
   }
 
   var altLayoutName;
-  if (currentInputType === 'number' || currentInputType === 'tel')
-    altLayoutName = currentInputType + 'Layout';
-  else if (layoutPage === LAYOUT_PAGE_SYMBOLS_I)
+
+  switch (currentInputType) {
+    case 'tel':
+      altLayoutName = 'telLayout';
+      break;
+    case 'number':
+      altLayoutName = currentInputMode === 'digit' ?
+                                           'pinLayout' : 'numberLayout';
+      break;
+    // The matches when type="password", "text", or "search",
+    // see mapInputType() for details
+    case 'text':
+      if (currentInputMode === 'digit') {
+        altLayoutName = 'pinLayout';
+      } else if (currentInputMode === 'numeric') {
+        altLayoutName = 'numberLayout';
+      }
+      break;
+  }
+
+  if (layoutPage === LAYOUT_PAGE_SYMBOLS_I) {
     altLayoutName = 'alternateLayout';
-  else if (layoutPage === LAYOUT_PAGE_SYMBOLS_II)
+  } else if (layoutPage === LAYOUT_PAGE_SYMBOLS_II) {
     altLayoutName = 'symbolLayout';
+  }
 
   // Start with this base layout
   var layout;
@@ -733,7 +754,7 @@ function renderKeyboard(keyboardName) {
     IMERender.draw(currentLayout, {
       uppercase: isUpperCase,
       inputType: currentInputType,
-      showCandidatePanel: Keyboards[keyboardName].needsCandidatePanel
+      showCandidatePanel: needsCandidatePanel()
     });
 
     IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
@@ -744,14 +765,18 @@ function renderKeyboard(keyboardName) {
 
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
+
+    isKeyboardRendered = true;
   }
 
   // XXX: if we are going to hide the candidatePanel, notify keyboard manager
   // first to update the app window size
-  if (!Keyboards[keyboardName].needsCandidatePanel && candidatePanelEnabled) {
+  if (!currentLayout.needsCandidatePanel && candidatePanelEnabled) {
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    var candidatePanelHeight = (candidatePanel) ?
+                               candidatePanel.scrollHeight : 0;
     document.location.hash = 'show=' +
-      (IMERender.ime.scrollHeight - candidatePanel.scrollHeight);
+      (IMERender.ime.scrollHeight - candidatePanelHeight);
 
     window.setTimeout(drawKeyboard, CANDIDATE_PANEL_SWITCH_TIMEOUT);
   } else {
@@ -774,13 +799,15 @@ function setUpperCase(upperCase, upperCaseLocked) {
   isUpperCaseLocked = upperCaseLocked;
   isUpperCase = upperCase;
 
+  if (!isKeyboardRendered)
+    return;
   // When case changes we have to re-render the keyboard.
   // But note that we don't have to relayout the keyboard, so
   // we call draw() directly instead of renderKeyboard()
   IMERender.draw(currentLayout, {
     uppercase: isUpperCaseLocked || isUpperCase,
     inputType: currentInputType,
-    showCandidatePanel: Keyboards[keyboardName].needsCandidatePanel
+    showCandidatePanel: needsCandidatePanel()
   });
   // And make sure the caps lock key is highlighted correctly
   IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
@@ -835,8 +862,7 @@ function getUpperCaseValue(key) {
     return key.value;
 
   var upperCase = currentLayout.upperCase || {};
-  var v = upperCase[key.value] || key.value.toUpperCase();
-  return v;
+  return upperCase[key.value] || key.value.toUpperCase();
 }
 
 function setMenuTimeout(target, coords, touchId) {
@@ -1304,6 +1330,7 @@ function endPress(target, coords, touchId) {
     }
 
     resetKeyboard();
+    renderKeyboard(keyboardName);
 
     /*
      * XXX
@@ -1383,8 +1410,6 @@ function resetKeyboard() {
   isUpperCase = false;
   isUpperCaseLocked = false;
 
-  renderKeyboard(keyboardName);
-
   IMERender.setUpperCaseLock(isUpperCase);
 }
 
@@ -1423,10 +1448,9 @@ function showKeyboard(state) {
 
   IMERender.showIME();
 
+  currentInputMode = state.inputmode;
   currentInputType = mapInputType(state.type);
 
-  // reset the flag for candidate show/hide workaround
-  candidatePanelEnabled = false;
 
   resetKeyboard();
 
@@ -1434,16 +1458,10 @@ function showKeyboard(state) {
     inputMethod.activate(userLanguage, suggestionsEnabled, state);
   }
 
-  if (!inputMethod.displaysCandidates ||
-      inputMethod.displaysCandidates())
-  {
-    IMERender.ime.classList.add('candidate-panel');
-  }
-  else {
-    IMERender.ime.classList.remove('candidate-panel');
-  }
-  IMERender.ime.classList.remove('full-candidate-panel');
 
+  // render the keyboard after activation, which will determine the state
+  // of uppercase/suggestion, etc.
+  renderKeyboard(keyboardName);
 }
 
 // Hide keyboard
@@ -1451,6 +1469,10 @@ function hideKeyboard() {
   IMERender.hideIME();
   if (inputMethod.deactivate)
     inputMethod.deactivate();
+
+  // reset the flag for candidate show/hide workaround
+  candidatePanelEnabled = false;
+  isKeyboardRendered = false;
 }
 
 // Resize event handler
@@ -1638,5 +1660,15 @@ function getSettings(settings, callback) {
     if (numResults === numSettings) {
       callback(results);
     }
+  }
+}
+
+// To determine if the candidate panel for word suggestion is needed
+function needsCandidatePanel() {
+  if (Keyboards[keyboardName].needsCandidatePanel &&
+      (!inputMethod.displaysCandidates || inputMethod.displaysCandidates())) {
+    return true;
+  } else {
+    return false;
   }
 }

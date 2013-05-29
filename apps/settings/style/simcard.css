@@ -29,10 +29,8 @@
   width: auto;
 }
 
-#simpin-dialog .input-wrapper input[type="text"] {
-  width: auto;
-  pointer-events: none;
-  position: absolute;
-  top: 0;
+#simpin-dialog .input-wrapper input[type="number"] {
+  padding: 0;
+  height: 4rem;
 }
 

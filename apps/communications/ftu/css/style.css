@@ -250,13 +250,7 @@ html, body {
   padding-left: 1.5rem;
 }
 
-#unlock-sim-screen .fake-input {
-  margin-top: -4rem;
-  opacity: 0;
-
-}
-
-#unlock-sim-screen input[type="number"] {
+#unlock-sim-screen input[type="password"] {
     -moz-box-sizing: border-box;
     display: block;
     overflow: hidden;
@@ -265,10 +259,6 @@ html, body {
     resize: none;
     padding: 0 0.8rem;
     pointer-events: auto;
-}
-
-#unlock-sim-screen input[type="password"] {
-  pointer-events: none;
 }
 
 /*
