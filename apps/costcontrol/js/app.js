@@ -283,7 +283,7 @@ var CostControlApp = (function() {
   var currentMode;
   function updateUI() {
     ConfigManager.requestSettings(function _onSettings(settings) {
-      var mode = costcontrol.getApplicationMode(settings);
+      var mode = ConfigManager.getApplicationMode();
       debug('App UI mode: ', mode);
 
       // Layout

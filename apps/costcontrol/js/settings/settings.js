@@ -203,7 +203,7 @@ var Settings = (function() {
       localizeWeekdaySelector(document.getElementById('select-weekday'));
 
       // Layout
-      var mode = costcontrol.getApplicationMode(settings);
+      var mode = ConfigManager.getApplicationMode();
       if (currentMode !== mode) {
         currentMode = mode;
         var hidePlantypeSelector = (mode === 'DATA_USAGE_ONLY');
