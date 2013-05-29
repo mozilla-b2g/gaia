@@ -200,8 +200,14 @@ var MessageManager = {
     var mainWrapper = document.getElementById('main-wrapper');
     var threadMessages = document.getElementById('thread-messages');
     var recipient;
+    var locationHash = window.location.hash;
 
-    switch (window.location.hash) {
+    // When editing a thread the location hash will be #editthread=<id>.
+    if (locationHash.startsWith('#edit')) {
+      locationHash = '#edit';
+    }
+
+    switch (locationHash) {
       case '#new':
 
         ThreadUI.cleanFields(true);
@@ -284,6 +290,12 @@ var MessageManager = {
               ThreadUI.renderMessages(filter);
             });
           } else {
+            var threadEditButton = document.getElementById('icon-edit');
+
+            // When entering threaded mode encode encode the id of the current
+            // thread in the edit button URL.
+            threadEditButton.href = '#editthread=' + threadId;
+
             // Viewing received messages...
             //
             ThreadListUI.mark(threadId, 'read');
