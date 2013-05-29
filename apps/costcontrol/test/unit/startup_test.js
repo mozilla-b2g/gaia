@@ -212,14 +212,13 @@ suite('Application Startup Modes Test Suite >', function() {
   function setupLayoutMode(applicationMode) {
     loadBodyHTML('/index.html');
     window.Common = new MockCommon({ isValidICCID: true });
-    window.CostControl = new MockCostControl({
-      applicationMode: applicationMode
-    });
+    window.CostControl = new MockCostControl();
     window.navigator.mozMobileConnection = new MockMozMobileConnection({
       cardState: 'ready'
     });
     window.ConfigManager = new MockConfigManager({
-      fakeSettings: { fte: false }
+      fakeSettings: { fte: false },
+      applicationMode: applicationMode
     });
   }
 

@@ -4,6 +4,7 @@ var ConfigManager = (function() {
   'use strict';
 
   var today = new Date();
+  var connection = window.navigator.mozMobileConnection;
 
   var DEFAULT_SETTINGS = {
     'dataLimit': false,
@@ -51,36 +52,80 @@ var ConfigManager = (function() {
     'wifiFixing': 0
   };
 
-  // Load the vendor configuration provided in <GAIA>/build/application-data.js
-  var configuration;
+  function getApplicationMode() {
+    if (noConfigFound) {
+      return 'DATA_USAGE_ONLY';
+    }
+    return settings.plantype.toUpperCase();
+  }
+
+  var configuration, configurationIndex, noConfigFound = false;
+  function setConfig(newConfiguration) {
+    configuration = newConfiguration;
+    debug('Provider configuration done!');
+  }
+
+  // Load the operator configuration according to MCC_MNC pair
   function requestConfiguration(callback) {
+
+    function returnConfiguration() {
+      if (typeof callback === 'function') {
+        callback(configuration);
+      }
+    }
+
     if (configuration) {
-      setTimeout(function _onConfiguration() {
-        if (callback) {
-          callback(configuration);
-        }
+      setTimeout(function() {
+        returnConfiguration();
       });
       return;
     }
 
+    if (configurationIndex) {
+      loadConfiguration(returnConfiguration);
+    } else {
+      loadConfigurationIndex(function onIndex() {
+        loadConfiguration(returnConfiguration);
+      });
+    }
+  }
+
+  function loadConfiguration(callback) {
+    var configFilePath = getConfigFilePath();
+    LazyLoader.load(configFilePath, callback);
+  }
+
+  function getConfigFilePath() {
+    var mcc = connection.iccInfo.mcc;
+    var mnc = connection.iccInfo.mnc;
+    var key = mcc + '_' + mnc;
+    var configDir = configurationIndex[key];
+    if (!configDir) {
+      configDir = 'default';
+      noConfigFound = true;
+    }
+    return 'js/config/' + configDir + '/config.js';
+  }
+
+  function loadConfigurationIndex(callback) {
     var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/js/config/index.json', true);
     xhr.overrideMimeType('application/json');
-    xhr.open('GET', 'js/config.json', true);
-    xhr.send(null);
-
-    xhr.onreadystatechange = function _xhrStatusChange(evt) {
-      if (xhr.readyState !== 4) {
-        return;
+    xhr.responseType = 'json';
+    xhr.onload = function onXHRLoad() {
+      if (xhr.status !== 200) {
+        console.error('Error loading the configuration index! ' +
+                      'Error code: ' + xhr.status);
+        configurationIndex = {};
       }
-
-      if (xhr.status === 0 || xhr.status === 200) {
-        configuration = JSON.parse(xhr.responseText);
-        debug('OEM configuration done!');
-        if (callback) {
-          callback(configuration);
-        }
+      configurationIndex = xhr.response;
+      if (typeof callback === 'function') {
+        setTimeout(function() {
+          callback();
+        });
       }
     };
+    xhr.send();
   }
 
   // Let's serialize dates
@@ -270,6 +315,8 @@ var ConfigManager = (function() {
   }
 
   return {
+    getApplicationMode: getApplicationMode,
+    setConfig: setConfig,
     requestAll: requestAll,
     requestConfiguration: requestConfiguration,
     requestSettings: requestSettings,
