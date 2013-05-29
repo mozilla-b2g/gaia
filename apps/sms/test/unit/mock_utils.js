@@ -15,5 +15,9 @@ var MockUtils = {
   updateTimeHeaders: function() {},
   // real code needed here to map types
   typeFromMimeType: Utils.typeFromMimeType,
-  escapeHTML: Utils.escapeHTML
+  escapeHTML: Utils.escapeHTML,
+  escapeRegex: Utils.escapeRegex,
+  Message: {
+    format: function(str) { return str; }
+  }
 };

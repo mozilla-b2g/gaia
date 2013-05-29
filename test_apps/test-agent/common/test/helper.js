@@ -1,12 +1,12 @@
-//put stuff here to help you tests out...
+// put stuff here to help your tests out...
 
 (function(window) {
-  //register the global
+  // register the global
   window.navigator;
 
   var Common = window.parent.CommonResourceLoader,
-      //mocha test methods we want to provide
-      //yield support to.
+      // mocha test methods we want to provide
+      // yield support to.
       testMethods = [
         'suiteSetup',
         'setup',
@@ -15,9 +15,9 @@
         'suiteTeardown'
       ];
 
-  //chai has no backtraces in ff
-  //this patch will change the error
-  //class used to provide real .stack.
+  // chai has no backtraces in ff
+  // this patch will change the error
+  // class used to provide real .stack.
   function patchChai(Assertion) {
     function chaiAssert(expr, msg, negateMsg, expected, actual) {
       actual = actual || this.obj;
@@ -40,29 +40,29 @@
 
 
   /**
-   * require's a file from /common/ resources.
+   * Require a file from /common/ resources.
    *
-   *    requireCommon('vendor/mocha/mocha.js');
+   * Usage: requireCommon('vendor/mocha/mocha.js');
    *
    * @param {String} url relative location of file.
-   * @param {Function} [callback] optional callback called \
-   *                              when resource has been loaded.
+   * @param {Function} cb optional callback called
+   *                      when resource has been loaded.
    */
   window.requireCommon = function(url, cb) {
     require(Common.url('/common/' + url), cb);
   };
 
-  //template
+  // template
   requireCommon('test/template.js');
 
-  //load chai
+  // load chai
   window.requireCommon('vendor/chai/chai.js', function() {
     chai.Assertion.includeStack = true;
     patchChai(chai.Assertion);
     window.assert = chai.assert;
   });
 
-  //mocha helpers
+  // mocha helpers
   window.requireCommon('test/mocha_task.js');
   window.requireCommon('test/mocha_generators.js', function() {
     testMethods.forEach(function(method) {
@@ -70,7 +70,7 @@
     });
   });
 
-  //url utilities
+  // url utilities
   window.requireCommon('test/test_url_resolver.js');
 
 }(this));
