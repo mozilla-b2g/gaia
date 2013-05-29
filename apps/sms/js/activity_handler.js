@@ -47,7 +47,8 @@ var ActivityHandler = {
       Contacts.findByPhoneNumber(number, function findContact(results) {
         var record, details, name, contact;
 
-        if (results.length) {
+        // Bug 867948: results null is a legitimate case
+        if (results && results.length) {
           record = results[0];
           details = Utils.getContactDetails(number, record);
           name = record.name.length && record.name[0];
@@ -309,11 +310,11 @@ var ActivityHandler = {
 
         Contacts.findByPhoneNumber(message.sender, function gotContact(
                                                                 contact) {
-          var sender;
-          if (contact.length && contact[0].name) {
+          var sender = message.sender;
+          if (!contact) {
+            console.error('We got a null contact for sender:', sender);
+          } else if (contact.length && contact[0].name) {
             sender = Utils.escapeHTML(contact[0].name[0]);
-          } else {
-            sender = message.sender;
           }
 
           if (message.type === 'sms') {
