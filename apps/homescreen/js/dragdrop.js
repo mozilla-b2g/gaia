@@ -208,7 +208,7 @@ const DragDropManager = (function() {
         }
       } else {
         var lastIcon = page.getLastIcon();
-        if (draggableIcon !== lastIcon) {
+        if (lastIcon && draggableIcon !== lastIcon) {
           page.drop(draggableIcon, lastIcon);
         }
       }
@@ -271,7 +271,7 @@ const DragDropManager = (function() {
       clearTimeout(overlapingTimeout);
       if (classList.contains('page')) {
         var lastIcon = page.getLastIcon();
-        if (y > lastIcon.getTop() && draggableIcon !== lastIcon) {
+        if (lastIcon && y > lastIcon.getTop() && draggableIcon !== lastIcon) {
           page.drop(draggableIcon, lastIcon);
         }
       } else {

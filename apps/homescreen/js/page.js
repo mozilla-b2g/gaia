@@ -647,6 +647,12 @@ Page.prototype = {
     var initialIndex = children.indexOf(originNode);
     var endIndex = children.indexOf(targetNode);
 
+    if (initialIndex === -1 || endIndex === -1) {
+      // Index is outside the bounds of the array
+      setTimeout(this.setReady.bind(this, true));
+      return;
+    }
+
     var upward = initialIndex < endIndex;
     if (upward) {
       beforeNode = targetNode.nextSibling;
