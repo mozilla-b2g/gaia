@@ -55,6 +55,8 @@ var ThreadUI = global.ThreadUI = {
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
   recipients: null,
+  // Set to |true| when in edit mode
+  inEditMode: false,
   init: function thui_init() {
     var _ = navigator.mozL10n.get;
     var templateIds = ['contact', 'highlight', 'message', 'not-downloaded',
@@ -70,7 +72,7 @@ var ThreadUI = global.ThreadUI = {
       'check-all-button', 'uncheck-all-button',
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
       'delete-button', 'cancel-button',
-      'edit-mode', 'edit-form', 'tel-form',
+      'edit-icon', 'edit-mode', 'edit-form', 'tel-form',
       'max-length-notice', 'convert-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
@@ -138,6 +140,10 @@ var ThreadUI = global.ThreadUI = {
 
     this.cancelButton.addEventListener(
       'click', this.cancelEdit.bind(this)
+    );
+
+    this.editIcon.addEventListener(
+      'click', this.startEdit.bind(this)
     );
 
     this.deleteButton.addEventListener(
@@ -1012,6 +1018,12 @@ var ThreadUI = global.ThreadUI = {
     this.checkInputs();
   },
 
+  startEdit: function thui_edit() {
+    this.inEditMode = true;
+    this.cleanForm();
+    this.mainWrapper.classList.toggle('edit');
+  },
+
   delete: function thui_delete() {
     var question = navigator.mozL10n.get('deleteMessages-confirmation');
     if (window.confirm(question)) {
@@ -1035,12 +1047,12 @@ var ThreadUI = global.ThreadUI = {
             ThreadUI.removeMessageDOM(inputs[i].parentNode.parentNode);
           }
 
+          ThreadUI.cancelEdit();
+
           if (!ThreadUI.container.firstElementChild) {
-            ThreadUI.mainWrapper.classList.remove('edit');
             window.location.hash = '#thread-list';
-          } else {
-            window.history.back();
           }
+
           WaitingScreen.hide();
         });
       };
@@ -1050,7 +1062,8 @@ var ThreadUI = global.ThreadUI = {
   },
 
   cancelEdit: function thlui_cancelEdit() {
-    window.history.go(-1);
+    this.inEditMode = false;
+    this.mainWrapper.classList.remove('edit');
   },
 
   chooseMessage: function thui_chooseMessage(target) {
@@ -1135,7 +1148,7 @@ var ThreadUI = global.ThreadUI = {
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
-        if (window.location.hash !== '#edit') {
+        if (!this.inEditMode) {
           // if the click wasn't on an attachment check for other clicks
           if (!thui_mmsAttachmentClick(evt.target)) {
             this.handleMessageClick(evt);

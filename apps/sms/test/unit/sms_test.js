@@ -257,7 +257,7 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select all/Deselect All buttons', function() {
-        document.getElementById('main-wrapper').classList.add('edit');
+        ThreadListUI.startEdit();
         // Retrieve all inputs
         var inputs = ThreadListUI.container.getElementsByTagName('input');
         // Activate all inputs
@@ -288,7 +288,7 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select all while receiving new thread', function(done) {
-        document.getElementById('main-wrapper').classList.add('edit');
+        ThreadListUI.startEdit();
         ThreadListUI.toggleCheckedAll(true);
 
         var checkboxes =
@@ -329,7 +329,7 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('checkInputs should fire in edit mode', function(done) {
-        document.getElementById('main-wrapper').classList.add('edit');
+        ThreadListUI.startEdit();
         ThreadListUI.checkInputs = stub();
 
         ThreadListUI.counter++;
@@ -347,7 +347,7 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('checkInputs should not fire in normal mode', function(done) {
-        document.getElementById('main-wrapper').classList.remove('edit');
+        ThreadListUI.cancelEdit();
         ThreadListUI.checkInputs = stub();
 
         ThreadListUI.counter++;
@@ -443,7 +443,7 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select all while receiving new message', function(done) {
-        document.getElementById('main-wrapper').classList.add('edit');
+        ThreadUI.startEdit();
         ThreadUI.toggleCheckedAll(true);
 
         var checkboxes =
@@ -506,7 +506,7 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('checkInputs should fire in edit mode', function(done) {
-        document.getElementById('main-wrapper').classList.add('edit');
+        ThreadUI.startEdit();
         ThreadUI.checkInputs = stub();
 
         // now a new message comes in...
@@ -524,7 +524,7 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('checkInputs should not fire in normal mode', function(done) {
-        document.getElementById('main-wrapper').classList.remove('edit');
+        ThreadUI.cancelEdit();
         ThreadUI.checkInputs = stub();
 
         // now a new message comes in...

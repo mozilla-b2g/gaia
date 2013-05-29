@@ -238,11 +238,9 @@ var MessageManager = {
         break;
       case '#thread-list':
         //Keep the  visible button the :last-child
-        var editButton = document.getElementById('icon-edit');
+        var editButton = document.getElementById('messages-edit-icon');
         editButton.parentNode.appendChild(editButton);
-        if (mainWrapper.classList.contains('edit')) {
-          mainWrapper.classList.remove('edit');
-        } else if (threadMessages.classList.contains('new')) {
+        if (threadMessages.classList.contains('new')) {
           MessageManager.slide('right', function() {
             threadMessages.classList.remove('new');
           });
@@ -259,11 +257,6 @@ var MessageManager = {
             }
           });
         }
-        break;
-      case '#edit':
-        ThreadListUI.cleanForm();
-        ThreadUI.cleanForm();
-        mainWrapper.classList.toggle('edit');
         break;
       default:
         var threadId = Threads.currentId;
