@@ -274,6 +274,8 @@ suite('page.js >', function() {
 
           icon = new Icon(descriptor, app);
           renderIcon(done);
+
+          return icon;
         }
 
         test('icon should be removable', function(done) {
@@ -286,6 +288,34 @@ suite('page.js >', function() {
 
         test('icon should not be removable', function(done) {
           createIcon(false, function() {
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 0);
+            done();
+          });
+        });
+
+        test('non removable icon will be removable after updating',
+             function(done) {
+          var icon = createIcon(false, function() {
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 0);
+            icon.update({
+              removable: true
+            });
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 1);
+            done();
+          });
+        });
+
+        test('removable icon will be non removable after updating',
+             function(done) {
+          var icon = createIcon(true, function() {
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 1);
+            icon.update({
+              removable: false
+            });
             assert.equal(iconsContainer.querySelectorAll('li span.options').
                          length, 0);
             done();
