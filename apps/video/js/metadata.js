@@ -207,20 +207,42 @@ function getMetadata(videofile, callback) {
     // Videos often begin with a black screen, so skip ahead 5 seconds
     // or 1/10th of the video, whichever is shorter in the hope that we'll
     // get a more interesting thumbnail that way.
+    // Because of bug 874692, corrupt video files may not be seekable,
+    // and may not fire an error event, so if we aren't able to seek
+    // after a certain amount of time, we'll abort and assume that the
+    // video is invalid.
     offscreenVideo.currentTime = Math.min(5, offscreenVideo.duration / 10);
-    offscreenVideo.onseeked = function() {
+
+    var failed = false;                      // Did seeking fail?
+    var timeout = setTimeout(fail, 10000);   // Fail after 10 seconds
+    offscreenVideo.onerror = fail;           // Or if we get an error event
+    function fail() {                        // Seeking failure case
+      console.warn('Seek failed while creating thumbnail for', videofile.name,
+                   '. Ignoring corrupt file.');
+      failed = true;
+      clearTimeout(timeout);
+      offscreenVideo.onerror = null;
+      metadata.isVideo = false;
+      unload();
+      callback(metadata);
+    }
+    offscreenVideo.onseeked = function() {   // Seeking success case
+      if (failed) // Avoid race condition: if we already failed, stop now
+        return;
+      clearTimeout(timeout);
       captureFrame(offscreenVideo, metadata, function(poster) {
         if (poster === null) {
           // If something goes wrong in captureFrame, it probably means that
           // this is not a valid video. In any case, if we don't have a
           // thumbnail image we shouldn't try to display it to the user.
-          metadata.isVideo = false;
+          // XXX: See bug 869289: maybe we should not fail here.
+          fail();
         }
         else {
           metadata.poster = poster;
+          unload();
+          callback(metadata); // We've got all the metadata we need now.
         }
-        unload();
-        callback(metadata); // We've got all the metadata we need now.
       });
     };
   }
