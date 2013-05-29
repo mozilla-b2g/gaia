@@ -8,6 +8,9 @@ var ThreadListUI = {
   // threads. Updated in ThreadListUI.renderThreads
   count: 0,
 
+  // Set to |true| when in edit mode
+  inEditMode: false,
+
   init: function thlui_init() {
     var _ = navigator.mozL10n.get;
 
@@ -25,6 +28,8 @@ var ThreadListUI = {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
 
+    this.mainWrapper = document.getElementById('main-wrapper');
+
     this.delNumList = [];
     this.fullHeight = this.container.offsetHeight;
 
@@ -41,7 +46,11 @@ var ThreadListUI = {
     );
 
     this.cancelButton.addEventListener(
-      'click', this.cancelEditMode.bind(this)
+      'click', this.cancelEdit.bind(this)
+    );
+
+    this.editIcon.addEventListener(
+      'click', this.startEdit.bind(this)
     );
 
     this.container.addEventListener(
@@ -215,8 +224,8 @@ var ThreadListUI = {
       this.removeThread(threadId);
 
       if (--count === 0) {
+        this.cancelEdit();
         WaitingScreen.hide();
-        window.location.hash = '#thread-list';
       }
     }
 
@@ -260,8 +269,15 @@ var ThreadListUI = {
     ThreadListUI.editIcon.classList[addWhenEmpty]('disabled');
   },
 
-  cancelEditMode: function thlui_cancelEditMode() {
-    window.location.hash = '#thread-list';
+  startEdit: function thlui_edit() {
+    this.inEditMode = true;
+    this.cleanForm();
+    this.mainWrapper.classList.toggle('edit');
+  },
+
+  cancelEdit: function thlui_cancelEdit() {
+    this.inEditMode = false;
+    this.mainWrapper.classList.remove('edit');
   },
 
   renderThreads: function thlui_renderThreads(threads, renderCallback) {
@@ -421,7 +437,7 @@ var ThreadListUI = {
     if (!threadFound) {
       threadsContainer.appendChild(node);
     }
-    if (document.getElementById('main-wrapper').classList.contains('edit')) {
+    if (this.inEditMode) {
       this.checkInputs();
     }
   },
