@@ -346,14 +346,6 @@ var ThreadListUI = {
       li.classList.add('unread');
     }
 
-    // Since getThreads returns a DOMStringMap,
-    // |undefined| has become a string instead of a value
-    //
-    // TODO: Fix this, https://bugzilla.mozilla.org/show_bug.cgi?id=873706
-    if (body === 'undefined') {
-      body = '&nbsp;';
-    }
-
     if (lastMessageType === 'sms' && body) {
       body = Utils.escapeHTML(body);
     }
