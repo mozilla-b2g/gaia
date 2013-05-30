@@ -18,6 +18,8 @@ Evme.__config = {
     "minimumLettersForSearch": 1,
     "defaultBGImage": "",
     "bgImageSize": [320, 460],
+     // 24 hours
+    "taskerTriggerInterval": 24 * 60 * 60 * 1000,
     "searchbar": {
         "timeBeforeEventPause": 1600,
         "timeBeforeEventIdle": 10000

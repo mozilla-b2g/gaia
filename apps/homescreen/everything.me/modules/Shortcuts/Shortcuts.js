@@ -24,8 +24,8 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
     this.load = function load(data) {
         loadedResponse = Evme.Utils.cloneObject(data);
         
-        var _shortcuts = data.shortcuts.splice(0),
-            icons = data.icons;
+        var _shortcuts = (data.shortcuts || []).splice(0),
+            icons = data.icons || {};
             
         for (var id in icons) {
             Evme.IconManager.add(id, icons[id], Evme.Utils.ICONS_FORMATS.small);
