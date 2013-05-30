@@ -112,20 +112,6 @@ var WindowManager = (function() {
     return displayedApp || null;
   }
 
-  function requireFullscreen(origin) {
-    var app = runningApps[origin];
-    if (!app)
-      return false;
-
-    var manifest = app.manifest;
-    if ('entry_points' in manifest && manifest.entry_points &&
-        manifest.type == 'certified') {
-       manifest = manifest.entry_points[origin.split('/')[3]];
-    }
-
-    return 'fullscreen' in manifest ? manifest.fullscreen : false;
-  }
-
   // Make the specified app the displayed app.
   // Public function.  Pass null to make the homescreen visible
   function launch(origin) {
@@ -160,39 +146,14 @@ var WindowManager = (function() {
       return null;
   }
 
-  // Set the size of the app's iframe to match the size of the screen.
-  // We have to call this on resize events (which happen when the
-  // phone orientation is changed). And also when an app is launched
-  // and each time an app is brought to the front, since the
-  // orientation could have changed since it was last displayed
-  function setAppSize(origin, changeActivityFrame) {
-    var app = runningApps[origin];
-    if (!app)
-      return;
-
-    var frame = app.frame;
-    var manifest = app.manifest;
-
-    var cssWidth = window.innerWidth + 'px';
-    var cssHeight = window.innerHeight - StatusBar.height;
-    if ('wrapper' in frame.dataset) {
-      cssHeight -= 10;
-    }
-    cssHeight += 'px';
-
-    if (!screenElement.classList.contains('attention') &&
-        requireFullscreen(origin)) {
-      cssHeight = window.innerHeight + 'px';
-    }
-
-    frame.style.width = cssWidth;
-    frame.style.height = cssHeight;
-
-    // We will call setInlineActivityFrameSize()
-    // if changeActivityFrame is not explicitly set to false.
-    if (changeActivityFrame !== false)
+  // XXX: appWindow.resize needs to call setInlineActivityFramseSize().
+  // We should maintain a link in appWindow to activity frame
+  // so that appWindow can resize activity by itself.
+  window.addEventListener('appresize', function appResized(evt) {
+    if (evt.detail.changeActivityFrame) {
       setInlineActivityFrameSize();
-  }
+    }
+  });
 
   // App's height is relevant to keyboard height
   function setAppHeight(keyboardHeight) {
@@ -319,6 +280,7 @@ var WindowManager = (function() {
 
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
     var prop = evt.propertyName;
+
     var frame = evt.target;
     if (prop !== 'transform')
       return;
@@ -427,8 +389,12 @@ var WindowManager = (function() {
     // Set displayedApp to the new value
     displayedApp = iframe.dataset.frameOrigin;
 
+    var app = runningApps[displayedApp];
+
+    app.addClearRotateTransition();
     // Set orientation for the new app
     setOrientationForApp(displayedApp);
+
   }
 
   // Execute when the application is actually loaded
@@ -471,6 +437,7 @@ var WindowManager = (function() {
   // Executes when app closing transition finishes.
   function windowClosed(frame) {
     var iframe = frame.firstChild;
+    var origin = iframe.dataset.frameOrigin;
 
     // If the FTU is closing, make sure we save this state
     if (iframe.src == ftuURL) {
@@ -486,6 +453,8 @@ var WindowManager = (function() {
 
     frame.classList.remove('active');
     windows.classList.remove('active');
+
+    runningApps[origin].addClearRotateTransition();
 
     // set the closed frame visibility to false
 
@@ -516,6 +485,9 @@ var WindowManager = (function() {
     }
 
     screenElement.classList.remove('fullscreen-app');
+
+    // Inform keyboardmanager that we've finished the transition
+    dispatchEvent(new CustomEvent('appclose'));
   }
 
   // Save the screenshot
@@ -752,7 +724,7 @@ var WindowManager = (function() {
     openCallback = callback || function() {};
 
     // set the size of the opening app
-    setAppSize(origin);
+    app.resize();
 
     if (origin === homescreen) {
       // We cannot apply background screenshot to home screen app since
@@ -779,8 +751,10 @@ var WindowManager = (function() {
       return;
     }
 
-    if (requireFullscreen(origin))
+    if (app.isFullScreen())
       screenElement.classList.add('fullscreen-app');
+
+    app.setRotateTransition(app.manifest.orientation);
 
     transitionOpenCallback = function startOpeningTransition() {
       // We have been canceled by another transition.
@@ -862,10 +836,6 @@ var WindowManager = (function() {
     setCloseFrame(app.frame);
     closeCallback = callback || function() {};
 
-    // Animate the window close.  Ensure the homescreen is in the
-    // foreground since it will be shown during the animation.
-    var homescreenFrame = ensureHomescreen();
-
     // invoke openWindow to show homescreen here
     openWindow(homescreen, null);
 
@@ -877,8 +847,12 @@ var WindowManager = (function() {
 
     // Set the size of both homescreen app and the closing app
     // since the orientation had changed.
-    setAppSize(homescreen);
-    setAppSize(origin);
+    runningApps[homescreen].resize();
+    app.setRotateTransition();
+
+    // Animate the window close.  Ensure the homescreen is in the
+    // foreground since it will be shown during the animation.
+    var homescreenFrame = ensureHomescreen();
 
     // Send a synthentic 'appwillclose' event.
     // The keyboard uses this and the appclose event to know when to close
@@ -937,13 +911,13 @@ var WindowManager = (function() {
                   app.manifest.name, app.manifest, app.manifestURL,
                   /* expectingSystemMessage */ false);
       runningApps[homescreen].iframe.dataset.start = Date.now();
-      setAppSize(homescreen);
+      runningApps[homescreen].resize();
       if (displayedApp != homescreen &&
         'setVsibile' in runningApps[homescreen].iframe)
         runningApps[homescreen].iframe.setVisible(false);
     } else if (reset) {
       runningApps[homescreen].iframe.src = homescreenURL;
-      setAppSize(homescreen);
+      runningApps[homescreen].resize();
     }
 
     return runningApps[homescreen].frame;
@@ -1207,6 +1181,12 @@ var WindowManager = (function() {
       if (rv === false) {
         console.warn('screen.mozLockOrientation() returned false for',
                      origin, 'orientation', manifest.orientation);
+        // Prevent breaking app size on desktop since we've resized landscape
+        // apps for transition.
+        if (app.frame.dataset.orientation == 'landscape-primary' ||
+            app.frame.dataset.orientation == 'landscape-secondary') {
+          app.resize();
+        }
       }
     } else {  // If no orientation was requested, then let it rotate
       screen.mozUnlockOrientation();
@@ -1324,7 +1304,7 @@ var WindowManager = (function() {
     });
     runningApps[origin] = app;
 
-    if (requireFullscreen(origin)) {
+    if (app.isFullScreen()) {
       frame.classList.add('fullscreen-app');
     }
     if (origin === ftuURL) {
@@ -1594,7 +1574,7 @@ var WindowManager = (function() {
           // set the size of the iframe
           // so Cards View will get a correct screenshot of the frame
           if (!e.detail.isActivity) {
-            setAppSize(origin, false);
+            app.resize(false);
             if ('setVisible' in app.iframe)
               app.iframe.setVisible(false);
           }
@@ -2149,7 +2129,7 @@ var WindowManager = (function() {
 
         setAppHeight(evt.detail.height);
       } else if (displayedApp) {
-        setAppSize(displayedApp);
+        runningApps[displayedApp].resize();
       }
     });
   });

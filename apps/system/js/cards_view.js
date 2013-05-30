@@ -201,11 +201,9 @@ var CardsView = (function() {
       card.classList.add('card');
       card.dataset.origin = origin;
 
-      var orientation = WindowManager.getOrientationForApp(origin) || '';
-      var landscape = orientation.indexOf('landscape') !== -1;
-      if (landscape) {
-        card.classList.add(orientation);
-      }
+      var screenshotView = document.createElement('div');
+      screenshotView.classList.add('screenshotView');
+      card.appendChild(screenshotView);
 
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
@@ -267,22 +265,34 @@ var CardsView = (function() {
 
       card.addEventListener('onviewport', function onviewport() {
         card.style.display = 'block';
-
-        if (card.style.backgroundImage) {
+        if (screenshotView.style.backgroundImage) {
           return;
+        }
+
+        // Handling cards in different orientations
+        var orientation = app.currentOrientation;
+        var isLandscape = false;
+        if (orientation == 'landscape-primary' ||
+            orientation == 'landscape-secondary') {
+          isLandscape = true;
+        }
+        // Rotate screenshotView if needed
+        screenshotView.classList.add(orientation);
+        if (isLandscape) {
+          // We must exchange width and height if it's landscape mode
+          var width = card.clientHeight;
+          var height = card.clientWidth;
+          screenshotView.style.width = width + 'px';
+          screenshotView.style.height = height + 'px';
+          screenshotView.style.left = ((height - width) / 2) + 'px';
+          screenshotView.style.top = ((width - height) / 2) + 'px';
         }
 
         // If we have a cached screenshot, use that first
         // We then 'res-in' the correctly sized version
         var cachedLayer = WindowManager.screenshots[origin];
         if (cachedLayer) {
-          card.style.backgroundImage = 'url(' + cachedLayer + ')';
-        }
-
-        // We cannot take a screenshot here for landscape apps because the
-        // mobile is on portrait
-        if (landscape) {
-          return;
+          screenshotView.style.backgroundImage = 'url(' + cachedLayer + ')';
         }
 
         // And then switch it with screenshots when one will be ready
@@ -293,13 +303,15 @@ var CardsView = (function() {
           origin === displayedApp)) {
           // rect is the final size (considering CSS transform) of the card.
           var rect = card.getBoundingClientRect();
-          frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
+          var width = isLandscape ? rect.height : rect.width;
+          var height = isLandscape ? rect.width : rect.height;
+          frameForScreenshot.getScreenshot(width, height).onsuccess =
             function gotScreenshot(screenshot) {
               if (screenshot.target.result) {
                 var objectURL = URL.createObjectURL(screenshot.target.result);
 
                 // Overwrite the cached image to prevent flickering
-                card.style.backgroundImage =
+                screenshotView.style.backgroundImage =
                   'url(' + objectURL + '), url(' + cachedLayer + ')';
 
                 // setTimeout is needed to ensure that the image is fully drawn
