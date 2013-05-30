@@ -53,4 +53,14 @@ suite('homescreen.js >', function() {
     assert.isTrue(dialog.classList.contains('visible'));
   });
 
+  test(' Homescreen is listening online event ', function() {
+    window.dispatchEvent(new CustomEvent('online'));
+    assert.equal(document.body.dataset.online, 'online');
+  });
+
+  test(' Homescreen is listening offline event ', function() {
+    window.dispatchEvent(new CustomEvent('offline'));
+    assert.equal(document.body.dataset.online, 'offline');
+  });
+
 });
