@@ -189,7 +189,7 @@
     findByPhoneNumber: function contacts_findByPhone(filterValue, callback) {
       return this.findBy({
         filterBy: ['tel'],
-        filterOp: 'equals',
+        filterOp: 'match',
         filterValue: filterValue
       }, callback);
     }
