@@ -849,6 +849,9 @@ var CardsView = (function() {
         if (LockScreen.locked)
           return;
 
+        if (WindowManager.isFtuRunning())
+          return;
+
         SleepMenu.hide();
         showCardSwitcher();
         break;
