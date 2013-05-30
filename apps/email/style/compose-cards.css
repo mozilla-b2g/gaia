@@ -25,6 +25,14 @@
   float: left;
 }
 
+.cmp-attachments-size-text{
+  height: 3rem;
+  margin-left: 0.5rem;
+  line-height: 3rem;
+  border: 0 !important;
+  background: none;
+}
+
 .cmp-peep-bubble {
   float: left;
   overflow: hidden;
@@ -122,6 +130,7 @@ input.cmp-subject-text {
 .cmp-attachment-item {
   list-style-type: none;
   height: 4rem;
+  margin: 1rem;
 }
 .cmp-attachment-icon {
   background: url("images/icons/message-list-attachment.png") no-repeat scroll center transparent;
@@ -141,7 +150,7 @@ input.cmp-subject-text {
 .cmp-attachment-filesize {
   color: gray;
   display: inline-block;
-  margin-top: -3.5rem;
+  margin-top: -3rem;
   max-width: 4.5rem;
   vertical-align: middle;
 }
