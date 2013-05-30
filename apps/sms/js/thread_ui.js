@@ -1515,7 +1515,7 @@ var ThreadUI = global.ThreadUI = {
       var current = tels[i];
       var number = current.value;
       var title = details.title || number;
-      var type = current.type ? (current.type + ' |') : '';
+      var type = current.type ? (current.type + ',') : '';
 
       var li = document.createElement('li');
       var data = {
