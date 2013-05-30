@@ -407,7 +407,7 @@ section[role="region"].new > header:first-child form {
 #messages-container[data-type="list"] .message.outgoing .bubble {
   float: right;
 
-  padding-right: 5rem;
+  padding-right: 4.4rem;
   margin-left: 4rem;
   border-radius: 0.3rem 0 0 0.3rem;
 }
