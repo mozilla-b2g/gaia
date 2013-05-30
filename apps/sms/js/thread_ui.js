@@ -1385,7 +1385,7 @@ var ThreadUI = global.ThreadUI = {
       var current = tels[i];
       var number = current.value;
       var title = details.title || number;
-      var type = current.type ? (current.type + ' |') : '';
+      var type = current.type ? (current.type + ',') : '';
 
       var contactLi = document.createElement('li');
       var data = {
