@@ -263,6 +263,9 @@ var WindowManager = (function() {
     classNames.forEach(function removeClass(className) {
       classList.remove(className);
     });
+
+    frame.style.top = '';
+    frame.style.left = '';
   }
 
   window.addEventListener('ftuskip', function skipFTU() {
@@ -357,6 +360,7 @@ var WindowManager = (function() {
 
     // Set orientation for the new app
     setOrientationForApp(displayedApp);
+    frame.dataset.orientation = '';
   }
 
   // Execute when the application is actually loaded
@@ -432,8 +436,8 @@ var WindowManager = (function() {
       // element so that doesn't work either.)
       //
       // The "real" fix for this defect is tracked in bug 842102.
-      var request = iframe.getScreenshot(window.innerWidth,
-                                         window.innerHeight);
+      var request = iframe.getScreenshot(frame.clientWidth,
+                                         frame.clientHeight);
       request.onsuccess = function(e) {
         if (e.target.result) {
           screenshots[origin] = URL.createObjectURL(e.target.result);
@@ -448,6 +452,9 @@ var WindowManager = (function() {
     }
 
     screenElement.classList.remove('fullscreen-app');
+
+    // Inform keyboardmanager that we've finished the transition
+    dispatchEvent(new CustomEvent('appclose'));
   }
 
   windows.addEventListener('mozbrowserloadend', function firstpaint(evt) {
@@ -508,6 +515,9 @@ var WindowManager = (function() {
 
     if (requireFullscreen(origin))
       screenElement.classList.add('fullscreen-app');
+
+    setAppRotateTransition(origin, app.manifest.orientation ||
+                                   'portrait-primary');
 
     transitionOpenCallback = function startOpeningTransition() {
       // We have been canceled by another transition.
@@ -583,6 +593,9 @@ var WindowManager = (function() {
 
     var homescreenFrame;
 
+    // Preserve current orientation for close animation
+    var orientation = screen.mozOrientation;
+
     if (!onSwitchWindow) {
       // Animate the window close.  Ensure the homescreen is in the
       // foreground since it will be shown during the animation.
@@ -597,9 +610,9 @@ var WindowManager = (function() {
       // Set the size of both homescreen app and the closing app
       // since the orientation had changed.
       setAppSize(homescreen);
-    }
 
-    setAppSize(origin);
+      setAppRotateTransition(origin, orientation);
+    }
 
     // Send a synthentic 'appwillclose' event.
     // The keyboard uses this and the appclose event to know when to close
@@ -637,6 +650,34 @@ var WindowManager = (function() {
 
   function isSwitchWindow() {
     return screenElement.classList.contains('switch-app');
+  }
+
+  // Do css rotate based on the original orientation of frame
+  // for close and open animation.
+  function setAppRotateTransition(origin, orientation) {
+    var frame = runningApps[origin].frame;
+    var statusBarHeight = StatusBar.height;
+    var width;
+    var height;
+
+    if (!screenElement.classList.contains('attention') &&
+        requireFullscreen(origin)) {
+      statusBarHeight = 0;
+    }
+    // Rotate the frame if needed
+    frame.dataset.orientation = orientation;
+    if (orientation == 'landscape-primary' ||
+        orientation == 'landscape-secondary') {
+      width = window.innerHeight;
+      height = window.innerWidth - statusBarHeight;
+      frame.style.left = ((height - width) / 2) + 'px';
+      frame.style.top = ((width - height) / 2) + 'px';
+    } else {
+      width = window.innerWidth;
+      height = window.innerHeight - statusBarHeight;
+    }
+    frame.style.width = width + 'px';
+    frame.style.height = height + 'px';
   }
 
   // Perform a "switching" animation for the closing frame and the opening frame
@@ -913,6 +954,12 @@ var WindowManager = (function() {
       if (rv === false) {
         console.warn('screen.mozLockOrientation() returned false for',
                      origin, 'orientation', manifest.orientation);
+        // Prevent breaking app size on desktop since we've resized landscape
+        // apps for transition.
+        if (app.frame.dataset.orientation == 'landscape-primary' ||
+            app.frame.dataset.orientation == 'landscape-secondary') {
+          setAppSize(origin);
+        }
       }
     }
     else {  // If no orientation was requested, then let it rotate
