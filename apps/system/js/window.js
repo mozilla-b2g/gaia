@@ -137,6 +137,14 @@
       this[key] = configuration[key];
     }
 
+    // Check if it's a fullscreen app.
+    var manifest = this.manifest;
+    if ('entry_points' in manifest && manifest.entry_points &&
+        manifest.type == 'certified') {
+      manifest = manifest.entry_points[this.origin.split('/')[3]];
+    }
+    this._fullScreen = 'fullscreen' in manifest ? manifest.fullscreen : false;
+
     // We keep the appError object here for the purpose that
     // we may need to export the error state of AppWindow instance
     // to the other module in the future.
@@ -159,6 +167,12 @@
    * 'none': nothing is currently visible.
    */
   AppWindow.prototype._visibilityState = 'frame',
+
+  /**
+   * The current orientation of this app window corresponding to screen
+   * orientation.
+   */
+  AppWindow.prototype.currentOrientation = 'portrait-primary',
 
   /**
    * In order to prevent flashing of unpainted frame/screenshot overlay
@@ -399,6 +413,118 @@
     req.onerror = function gotScreenshotFromFrameError(evt) {
       callback();
     };
+  };
+
+  /**
+   * We will rotate the app window during app transition per current screen
+   * orientation and app's orientation. The width and height would be
+   * temporarily changed during the transition in this function.
+   *
+   * For example, when browser app is opened from
+   * homescreen and the current device orientation is
+   * 1) 'portrait-primary' :   Do nothing.
+   * 2) 'landscape-primary':   Rotate app frame by 90 degrees and set
+   *    width/height to device height/width correspondingly. Move frame position
+   *    to counter the position change due to rotation.
+   * 3) 'portrait-secondary':  Rotate app frame by 180 degrees.
+   * 4) 'landscape-secondary': Rotate app frame by 270 degrees and set
+   *    width/height to device height/width correspondingly. Move frame position
+   *    to counter the position change due to rotation.
+   */
+  AppWindow.prototype.setRotateTransition = function aw_setRotateTransition() {
+    var statusBarHeight = StatusBar.height;
+
+    var width;
+    var height;
+
+    var appOrientation = this.manifest.orientation;
+    var orientation = OrientationObserver.determine(appOrientation);
+
+    this.frame.classList.remove(this.currentOrientation);
+    this.currentOrientation = orientation;
+    this.frame.classList.add(orientation);
+
+    if (!AttentionScreen.isFullyVisible() && !AttentionScreen.isVisible() &&
+      this.isFullScreen()) {
+      statusBarHeight = 0;
+    }
+    // Rotate the frame if needed
+    if (orientation == 'landscape-primary' ||
+        orientation == 'landscape-secondary') {
+      width = window.innerHeight;
+      height = window.innerWidth - statusBarHeight;
+      this.frame.style.left = ((height - width) / 2) + 'px';
+      this.frame.style.top = ((width - height) / 2) + 'px';
+    } else {
+      width = window.innerWidth;
+      height = window.innerHeight - statusBarHeight;
+    }
+    this.frame.style.width = width + 'px';
+    this.frame.style.height = height + 'px';
+  };
+
+  // Detect whether this is a full screen app by its manifest.
+  AppWindow.prototype.isFullScreen = function aw_isFullScreen() {
+    return this._fullScreen;
+  };
+
+  // Queueing a cleaning task for styles set for rotate transition.
+  // We need to clear rotate after orientation changes; however when
+  // orientation changes didn't raise (ex: user rotates the device during
+  // transition; or the device is always in portrait primary;
+  // we should do cleanup on appopen / appclose instead)
+  AppWindow.prototype.addClearRotateTransition =
+    function aw_clearRotateTransition() {
+      var self = this;
+      var onClearRotate = function aw_onClearRotate(evt) {
+        window.screen.removeEventListener('mozorientationchange',
+                                          onClearRotate);
+        window.removeEventListener('appopen', onClearRotate);
+        window.removeEventListener('appclose', onClearRotate);
+
+        self.frame.style.left = '';
+        self.frame.style.top = '';
+        self.frame.classList.remove(self.currentOrientation);
+
+        if (self.currentOrientation != screen.mozOrientation &&
+            evt.type != 'appclose') {
+          self.resize();
+        }
+      };
+
+      window.screen.addEventListener('mozorientationchange', onClearRotate);
+      window.addEventListener('appopen', onClearRotate);
+      window.addEventListener('appclose', onClearRotate);
+    };
+
+  // Set the size of the app's iframe to match the size of the screen.
+  // We have to call this on resize events (which happen when the
+  // phone orientation is changed). And also when an app is launched
+  // and each time an app is brought to the front, since the
+  // orientation could have changed since it was last displayed
+  // @param {changeActivityFrame} to denote if needed to change inline
+  //                              activity size
+  AppWindow.prototype.resize = function aw_resize(changeActivityFrame) {
+    var cssWidth = window.innerWidth + 'px';
+    var cssHeight = window.innerHeight -
+                    StatusBar.height;
+    if ('wrapper' in this.frame.dataset) {
+      cssHeight -= 10;
+    }
+    cssHeight += 'px';
+
+    if (!AttentionScreen.isFullyVisible() && !AttentionScreen.isVisible() &&
+        this.isFullScreen()) {
+      cssHeight = window.innerHeight + 'px';
+    }
+
+    this.frame.style.width = cssWidth;
+    this.frame.style.height = cssHeight;
+
+    // We will call setInlineActivityFrameSize()
+    // if changeActivityFrame is not explicitly set to false.
+    dispatchEvent(new CustomEvent('appresize',
+        {changeActivityFrame: changeActivityFrame}));
   };
 
 }(this));
