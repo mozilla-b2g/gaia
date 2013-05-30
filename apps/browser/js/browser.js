@@ -1575,6 +1575,7 @@ var Browser = {
       this.loadRemaining();
     }.bind(this));
     this.bookmarkButton.classList.remove('bookmarked');
+    this.bookmarkButton.disabled = true;
   },
 
   _topSiteThumbnailObjectURLs: [],
@@ -1591,6 +1592,7 @@ var Browser = {
 
   hideStartscreen: function browser_hideStartScreen() {
     this.startscreen.classList.add('hidden');
+    this.bookmarkButton.disabled = false;
     this.clearTopSiteThumbnails();
   },
 
