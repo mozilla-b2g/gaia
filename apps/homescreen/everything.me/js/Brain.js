@@ -491,6 +491,116 @@ Evme.Brain = new function Evme_Brain() {
         };
     };
 
+    // modules/Tasker/
+    this.Tasker = new function Tasker() {
+      var self = this;
+      
+      this.TASK_UPDATE_SHORTCUT_ICONS = "updateShortcutIcons";
+
+      // module init
+      this.init = function init() {
+        Evme.Tasker.add({
+          "id": self.TASK_UPDATE_SHORTCUT_ICONS
+        });
+      };
+
+      // when a new task is added to the queue
+      this.taskAdded = function taskAdded(data) {
+        
+      };
+
+      // process the queue
+      this.trigger = function trigger(data) {
+        var tasks = data.tasks;
+
+        for (var id in tasks) {
+          if (self['callback_' + id]) {
+            self['callback_' + id](tasks[id])
+          } else {
+            Evme.Utils.log('Error: No handler for task [' + id + ']');
+          }
+        }
+      };
+
+      this['callback_' + this.TASK_UPDATE_SHORTCUT_ICONS] = function updateShortcutIcons(taskData) {
+        if (Evme.Brain.ShortcutsCustomize.isOpen()) {
+          return false;
+        }
+        
+        Evme.DoATAPI.Shortcuts.get(null, function onSuccess(data){
+          var appsKey = [],
+              currentShortcuts = data && data.response && data.response.shortcuts || [],
+              shortcutsToSend = {};
+  
+          for (var i=0, shortcut, query; shortcut=currentShortcuts[i++];) {
+              query = shortcut.query;
+  
+              if (shortcut.experienceId && !query) {
+                  query = Evme.Utils.l10n('shortcut', 'id-' + Evme.Utils.shortcutIdToKey(shortcut.experienceId));
+              }
+              
+              if (query) {
+                  shortcutsToSend[query.toLowerCase()] = shortcut.experienceId;
+              }
+              
+              // the appsKey will be used later on to determine change
+              appsKey = appsKey.concat(shortcut.appIds);
+          }
+          
+          // re-request all the user's shortcuts to upadte them from the API
+          // otherwise the shortcut icons will remain static and will never change, even if
+          // the apps inside them have
+          Evme.DoATAPI.shortcutsGet({
+            "queries": JSON.stringify(Object.keys(shortcutsToSend)),
+            "_NOCACHE": true
+          }, function onShortcutsGet(response) {
+            var shortcuts = response.response.shortcuts,
+                icons = response.response.icons,
+                newAppsKey = [];
+            
+            if (!shortcuts || !icons) {
+              return;
+            }
+            
+            // create a key from the new shortcuts' icons to determine change
+            for (var i=0,shortcut; shortcut=shortcuts[i++];) {
+              newAppsKey = newAppsKey.concat(shortcut.appIds);
+            }
+            
+            // if the icons haven't changed- no need to update everything and cause a UI refresh
+            if (appsKey.join(',') === newAppsKey.join(',')) {
+              Evme.Utils.log('Shortcuts keys are the same- no need to refresh')
+              return;
+            }
+
+            // experience is more "important" than the query, so if we got it
+            // we reomve the query
+            for (var i=0,shortcut; shortcut=shortcuts[i++];) {
+              if (!shortcut.experienceId) {
+                shortcut.experienceId = shortcutsToSend[shortcut.query];
+              }
+              if (shortcut.experienceId) {
+                delete shortcut.query;
+              }
+            }
+
+            Evme.Utils.log('Updating shortcuts: ' + JSON.stringify(shortcuts));
+            
+            Evme.DoATAPI.Shortcuts.clear(function onShortcuteCleared(){
+              Evme.DoATAPI.Shortcuts.add({
+                  "shortcuts": shortcuts,
+                  "icons": icons
+              }, function onSuccess(){
+                  Brain.Shortcuts.loadFromAPI();
+              });
+            });
+          });
+          
+          return true;
+        });
+      };
+    };
+
     // modules/Apps/
     this.Apps = new function Apps() {
         var bShouldGetHighResIcons = false;
@@ -1032,12 +1142,13 @@ Evme.Brain = new function Evme_Brain() {
               icons = {},
               numberOfIconsInShortcut = (Evme.Utils.getIconGroup() || []).length;
               
+          shortcutsToUpdate[key] = [];
           for (var i=0,app; i<numberOfIconsInShortcut; i++) {
             app = apps[i];
             icons[app.id] = app.icon;
+            shortcutsToUpdate[key].push(app.id);
           }
-          shortcutsToUpdate[key] = Object.keys(icons);
-          
+
           Evme.DoATAPI.Shortcuts.update({
             "shortcuts": shortcutsToUpdate,
             "icons": icons
@@ -1138,6 +1249,8 @@ Evme.Brain = new function Evme_Brain() {
 
         // item remove
         this.remove = function remove(data) {
+            Evme.Utils.log('Remove shortcut: ' + JSON.stringify(data));
+
             Evme.Shortcuts.remove(data.shortcut);
             Evme.DoATAPI.Shortcuts.remove(data.data);
         };
@@ -1185,10 +1298,12 @@ Evme.Brain = new function Evme_Brain() {
         // done button clicked
         this.done = function done(data) {
             if (data.shortcuts && data.shortcuts.length > 0) {
+                Evme.Utils.log('Adding shortcuts: ' + data.shortcuts);
                 Evme.DoATAPI.Shortcuts.add({
                     "shortcuts": data.shortcuts,
                     "icons": data.icons
                 }, function onSuccess(){
+                    Evme.Utils.log('Done, let\s refresh the UI');
                     Brain.Shortcuts.loadFromAPI();
                 });
             }
@@ -1214,8 +1329,8 @@ Evme.Brain = new function Evme_Brain() {
     
                 // load user/default shortcuts from API
                 Evme.DoATAPI.Shortcuts.get(null, function onSuccess(data){
-                    var loadedResponse = data.response,
-                        currentIcons = loadedResponse.icons,
+                    var loadedResponse = data.response || {},
+                        currentIcons = loadedResponse.icons || {},
                         arrCurrentShortcuts = [],
                         shortcutsToSelect = {};
     
@@ -1335,6 +1450,8 @@ Evme.Brain = new function Evme_Brain() {
             // TODO in the future, we might want to refresh results
             // to reflect accurate location.
             // but for now only the next request will use the location
+
+            Evme.Tasker.trigger(true);
         };
         
         // construct a valid API url- for debugging purposes
