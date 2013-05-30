@@ -376,20 +376,16 @@ function createThumbnailItem(videonum) {
 
 function detailsOverflowHandler(e) {
   var el = e.target;
-  var max = { portrait: 45, landscape: 175 };
   var title = el.firstElementChild;
-  var orientation = window.innerWidth > window.innerHeight ?
-    'landscape' : 'portrait';
-  var end = title.textContent.length > max[orientation] ?
-    max[orientation] : -4;
-  if (title.textContent.length >= 4) {
+  if (title.textContent.length > 5) {
+    var max = (window.innerWidth > window.innerHeight) ? 175 : 45;
+    var end = title.textContent.length > max ? max - 1 : -5;
     title.textContent = title.textContent.slice(0, end) + '\u2026';
+    // Force element to be repainted to enable 'overflow' event
+    // Can't repaint without the timeout maybe a gecko bug.
+    el.style.overflow = 'visible';
+    setTimeout(function() { el.style.overflow = 'hidden'; });
   }
-
-  // Force element to be repainted to enable 'overflow' event
-  // Can't repaint without the timeout maybe a gecko bug.
-  el.style.overflow = 'visible';
-  setTimeout(function() { el.style.overflow = 'hidden'; });
 }
 
 function thumbnailClickHandler() {
