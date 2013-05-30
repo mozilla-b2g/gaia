@@ -37,6 +37,7 @@ settings = {
  "deviceinfo.os": "",
  "deviceinfo.platform_build_id": "",
  "deviceinfo.platform_version": "",
+ "deviceinfo.product_model": "",
  "deviceinfo.software": "",
  "deviceinfo.update_channel": "",
  "gaia.system.checkForUpdates": False,
