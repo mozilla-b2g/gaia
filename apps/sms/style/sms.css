@@ -588,7 +588,6 @@ form.bottom[role="search"].messages-compose-form {
   margin: 0.8rem 0.2rem;
   line-height: 2rem;
   min-height: 1.9rem;
-  max-height: 36rem;
   -moz-box-sizing: border-box;
   /* Cursor hides itself otherwise: */
   overflow: auto;
@@ -721,6 +720,7 @@ body.attachment div {
   border-bottom: .1rem solid #4d4d4d;
   color: black;
   position: relative;
+  background-color: #fff;
   margin: 0;
   padding: 0 1.5rem;
   z-index: 10;
@@ -842,7 +842,6 @@ section[role="region"].new #messages-container[data-type="list"]  li{
   pointer-events : none;
 }
 .subheader {
-  background-color: #fff;
   position: absolute;
   z-index: 6; /* should be between 4 and 9 (inclusive). 3 is the z-index for
                  the input form, 10 is the z-index for the header */

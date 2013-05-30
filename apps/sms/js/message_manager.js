@@ -292,7 +292,6 @@ var MessageManager = {
       break;
     }
 
-    ThreadUI.setInputMaxHeight();
   },
 
   getThreads: function mm_getThreads(callback, extraArg) {
