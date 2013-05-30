@@ -91,11 +91,20 @@ var Calls = (function(window, document, undefined) {
                       'li-cfmb-desc',
                       'li-cfnrep-desc',
                       'li-cfnrea-desc'];
+    var isUnconditionalCFOn = (_cfReasonStates[0] === 1);
+
     elementIds.forEach(function(id) {
-      if (enable)
-        document.getElementById(id).classList.remove('disabled');
-      else
+      var element = document.getElementById(id);
+      if (enable) {
+        element.classList.remove('disabled');
+        // If unconditional call forwarding is on we keep disabled the other
+        // panels.
+        if (isUnconditionalCFOn && id !== 'li-cfu-desc') {
+          element.classList.add('disabled');
+        }
+      } else {
         document.getElementById(id).classList.add('disabled');
+      }
     });
   };
 
