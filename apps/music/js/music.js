@@ -227,6 +227,19 @@ function init() {
   musicdb.ondeleted = function(event) {
     filesDeletedWhileScanning += event.detail.length;
   };
+
+  document.querySelector('#views')
+    .addEventListener('transitionend', function(event) {
+      var classList = document.body.classList;
+      if (event.propertyName == 'transform') {
+        if (classList.contains('search-from-tiles-mode') ||
+            classList.contains('search-from-list-mode')) {
+          classList.add('search-transition-end');
+        } else {
+          classList.remove('search-transition-end');
+        }
+      }
+    }, false);
 }
 
 //
@@ -493,9 +506,6 @@ var ModeManager = {
         document.getElementById('views-list').classList.remove('hidden');
       else if (mode === MODE_SUBLIST)
         document.getElementById('views-sublist').classList.remove('hidden');
-      else if (mode === MODE_SEARCH_FROM_TILES ||
-               mode === MODE_SEARCH_FROM_LIST)
-        document.getElementById('search').classList.remove('hidden');
 
       if (callback)
         callback();
