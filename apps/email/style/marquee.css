@@ -1,0 +1,62 @@
+#marquee-h-wrapper {
+  position: absolute;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: normal;
+  /* Subtract padding-left and amount of padding desired on the right side */
+  width: calc(100% - 3rem - 2rem);
+}
+
+/* --- Right to left (RTL) marquee styles --- */
+.marquee-rtl-start-linear {
+  transform: translateX(0);
+  /* 12s duration of animation: 0% -> -100%;
+   *  3s start delay */
+  animation: left-marquee 12s linear 3s 1;
+}
+
+.marquee-rtl-start-ease {
+  transform: translateX(0);
+  /* 12s duration of animation: 0% -> -100%;
+   *  3s start delay */
+  animation: left-marquee 12s ease-in 3s 1;
+}
+
+.marquee-rtl {
+  /* 20s duration of animation: +100% -> -100%; */
+  animation: left-marquee 20s linear 0s infinite;
+}
+
+@keyframes left-marquee {
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* --- Alternate (alt: RTL <-> LTR) marquee styles --- */
+.marquee-alt-linear {
+  transform: translateX(0);
+  animation: alt-marquee 15s linear 0s infinite;
+}
+
+.marquee-alt-ease {
+  transform: translateX(0);
+  animation: alt-marquee 15s ease-in-out 0s infinite;
+}
+
+@keyframes alt-marquee {
+  /* 3s delay in start (1.5s = 10%) */
+  20% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-100%);
+  }
+  /* 3s delay when aligned right */
+  70% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}

@@ -364,8 +364,13 @@ ComposeCard.prototype = {
     if (target.classList.contains('cmp-peep-bubble')) {
       var contents = cmpNodes['contact-menu'].cloneNode(true);
       var email = target.querySelector('.cmp-peep-address').textContent;
-      contents.getElementsByTagName('header')[0].textContent = email;
+      var headerNode = contents.getElementsByTagName('header')[0];
+      // Setup the marquee structure
+      Marquee.setup(email, headerNode);
+      // Activate marquee once the contents DOM are added to document
       document.body.appendChild(contents);
+      Marquee.activate('alternate', 'ease');
+
       var formSubmit = (function(evt) {
         document.body.removeChild(contents);
         switch (evt.explicitOriginalTarget.className) {
