@@ -221,7 +221,8 @@
         read: true,
         receiver: '197746797',
         body: 'This message is intended to demonstrate hyperlink creation: ' +
-          'http://mozilla.org and https://bugzilla.mozilla.org/',
+        'http://mozilla.org or https://bugzilla.mozilla.org:8080' +
+        ' or\ngoogle.com or www.google.es',
         error: true,
         type: 'sms',
         timestamp: new Date(Date.now() - 900000)
