@@ -20,6 +20,7 @@ var Volume = function(index, name, storages) {
   this.storages = storages;
   this.rootElement = null;  //<ul></ul>
   this.stackedbar = null;
+  this.state = null;
 };
 
 // This function will create a view for each volume under #volume-list,
@@ -165,6 +166,7 @@ Volume.prototype.updateInfo = function volume_updateInfo(callback) {
   var availreq = this.storages.sdcard.available();
   availreq.onsuccess = function availSuccess(evt) {
     var state = evt.target.result;
+    self.state = state;
     switch (state) {
       case 'shared':
         self.setInfoUnavailable();
@@ -223,11 +225,10 @@ var MediaStorage = {
 
     this.defaultMediaLocation = document.getElementById('defaultMediaLocation');
     this.defaultMediaLocation.addEventListener('click', this);
-    this.makeDefaultLocationMenu();
 
     window.addEventListener('localized', this);
 
-    this.updateInfo();
+    this.updateInfo(this.makeDefaultLocationMenu.bind(this));
   },
 
   initAllVolumeObjects: function ms_initAllVolumeObjects() {
@@ -308,7 +309,7 @@ var MediaStorage = {
         } else {
           // we are handling storage state changes
           // possible state: available, unavailable, shared
-          this.updateInfo();
+          this.updateInfo(this.refreshDefaultLocationMenu.bind(this));
         }
         break;
       case 'click':
@@ -322,40 +323,74 @@ var MediaStorage = {
 
   makeDefaultLocationMenu: function ms_makeDefaultLocationMenu() {
     var _ = navigator.mozL10n.get;
+
+    var selectionMenu = this.defaultMediaLocation;
+    this._volumeList.forEach(function(volume, index) {
+      var option = document.createElement('option');
+      option.value = volume.name;
+      var l10nId = 'short-storage-name-' + volume.index;
+      option.dataset.l10nId = l10nId;
+      option.textContent = _(l10nId);
+      selectionMenu.appendChild(option);
+    });
+
+    // disable option menu if we have only one option
+    if (this._volumeList.length === 1) {
+      selectionMenu.disabled = true;
+      var obj = {};
+      obj[defaultMediaVolumeKey] = selectedOption.value;
+      Settings.mozSettings.createLock().set(obj);
+    }
+
+    this.refreshDefaultLocationMenu();
+  },
+
+  refreshDefaultLocationMenu: function ms_refreshDLMenu() {
     var self = this;
-    var defaultMediaVolumeKey = 'device.storage.writable.name';
+    var defaultMediaLocation = this.defaultMediaLocation;
+
     Settings.getSettings(function(allSettings) {
-      var defaultName = allSettings[defaultMediaVolumeKey];
-      var selectionMenu = self.defaultMediaLocation;
-      var selectedIndex = 0;
-      self._volumeList.forEach(function(volume, index) {
-        var option = document.createElement('option');
-        option.value = volume.name;
-        var l10nId = 'short-storage-name-' + volume.index;
-        option.dataset.l10nId = l10nId;
-        option.textContent = _(l10nId);
-        selectionMenu.appendChild(option);
-        if (defaultName && volume.name === defaultName) {
-          selectedIndex = index;
+      var currentDefaultVolumeName =
+        allSettings['device.storage.writable.name'];
+      var defaultMediaVolumeAvailable = true;
+
+      self._volumeList.forEach(function(volume) {
+        var available = (volume.state === 'available');
+        // check if the current default volume is available
+        if (volume.name === currentDefaultVolumeName) {
+          defaultMediaVolumeAvailable = available;
+        }
+
+        // disable options of unavailable storages
+        var option = defaultMediaLocation.querySelector(
+          'option[value=' + volume.name + ']');
+        if (option) {
+          option.disabled = !available;
         }
       });
-      var selectedOption = selectionMenu.options[selectedIndex];
-      selectedOption.selected = true;
 
-      // update fake selection button content
-      var button = selectionMenu.previousElementSibling;
-      button.textContent = selectedOption.textContent;
-      button.dataset.l10nId = selectedOption.dataset.l10nId;
-
-      // disable option menu if we have only one option
-      if (self._volumeList.length === 1) {
-        selectionMenu.disabled = true;
-        var obj = {};
-        obj[defaultMediaVolumeKey] = selectedOption.value;
-        Settings.mozSettings.createLock().set(obj);
+      /* change the default media volume to 'sdcard'
+       * if the original volume is unavailable.
+       */
+      if (!defaultMediaVolumeAvailable) {
+        if (currentDefaultVolumeName !== 'sdcard') {
+          currentDefaultVolumeName = 'sdcard';
+        }
       }
+
+      // change the default selection
+      var option = defaultMediaLocation.querySelector(
+        'option[value=' + currentDefaultVolumeName + ']');
+      if (option)
+        option.selected = true;
+
+      // dispatch a change event to trigger the fake select change
+      var evt = document.createEvent('Event');
+      evt.initEvent('change', true, true);
+      defaultMediaLocation.dispatchEvent(evt);
     });
   },
+
   changeDefaultStorage: function ms_changeDefaultStorage() {
     //Pop up a confirm window before listing options.
     var popup = document.getElementById('default-location-popup-container');
@@ -403,17 +438,39 @@ var MediaStorage = {
     }
   },
 
-  updateInfo: function ms_updateInfo() {
+  updateInfo: function ms_updateInfo(callback) {
     var self = this;
-    this.umsVolumeShareState = false;
-    this._volumeList.forEach(function(volume) {
-      volume.updateInfo(function(state) {
-        if (state === 'shared') {
+
+    var afterInfoUpdated = function() {
+      self.umsVolumeShareState = false;
+
+      self._volumeList.forEach(function(volume) {
+        if (volume.state === 'shared') {
           self.umsVolumeShareState = true;
         }
-        self.updateMasterUmsDesc();
       });
-    });
+      self.updateMasterUmsDesc();
+
+      if (callback)
+        callback();
+    };
+
+    // update all volume info
+    var volumeLength = this._volumeList.length;
+    var finishedCount = 0;
+    if (volumeLength > 0) {
+      var finishedCount = 0;
+      this._volumeList.forEach(function(volume) {
+        volume.updateInfo(function(state) {
+          finishedCount++;
+          if (finishedCount === volumeLength) {
+            afterInfoUpdated();
+          }
+        });
+      });
+    } else {
+      afterInfoUpdated();
+    }
   }
 };
 
