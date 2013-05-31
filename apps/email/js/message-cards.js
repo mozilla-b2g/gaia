@@ -213,6 +213,12 @@ MessageListCard.prototype = {
    */
   PROGRESS_CANDYBAR_TIMEOUT_MS: 2000,
 
+  /**
+   * @type {MessageListTopbar}
+   * @private
+   */
+  _topbar: null,
+
   postInsert: function() {
     this._hideSearchBoxByScrolling();
 
@@ -538,7 +544,11 @@ MessageListCard.prototype = {
     this.toolbar.searchBtn.classList.remove('disabled');
   },
 
-  onSliceRequestComplete: function() {
+
+  /**
+   * @param {number=} newEmailCount Optional number of new messages.
+   */
+  onSliceRequestComplete: function(newEmailCount) {
     // We always want our logic to fire, but complete auto-clears before firing.
     this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
 
@@ -552,11 +562,30 @@ MessageListCard.prototype = {
     if (this.messagesSlice.items.length === 0 && !this.messagesSlice._fake) {
       this.showEmptyLayout();
     }
+
+    if (newEmailCount && newEmailCount !== NaN && newEmailCount !== 0) {
+      // Decorate or update the little notification bar that tells the user
+      // how many new emails they've received after a sync.
+      if (this._topbar && this._topbar.getElement() !== null) {
+        // Update the existing status bar.
+        this._topbar.updateNewEmailCount(newEmailCount);
+      } else {
+        this._topbar = new MessageListTopbar(
+            this.scrollContainer, newEmailCount);
+
+        var el =
+            document.getElementsByClassName(MessageListTopbar.CLASS_NAME)[0];
+        this._topbar.decorate(el);
+        this._topbar.render();
+      }
+    }
+
     // Consider requesting more data or discarding data based on scrolling that
     // has happened since we issued the request.  (While requests were pending,
     // onScroll ignored scroll events.)
     this._onScroll(null);
   },
+
 
   onScroll: function(evt) {
     if (this._pendingScrollEvent) {
