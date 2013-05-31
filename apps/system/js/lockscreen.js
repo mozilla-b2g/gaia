@@ -161,7 +161,6 @@ var LockScreen = {
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
       conn.addEventListener('voicechange', this);
-      conn.addEventListener('iccinfochange', this);
       this.updateConnState();
       this.connstate.hidden = false;
     }
@@ -169,6 +168,7 @@ var LockScreen = {
     /* icc state on lock screen */
     if (IccHelper.enabled) {
       IccHelper.addEventListener('cardstatechange', this);
+      IccHelper.addEventListener('iccinfochange', this);
     }
 
     var self = this;

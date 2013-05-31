@@ -1,13 +1,13 @@
 'use strict';
 
 var MockIccHelper = {
-  mProps: {'cardState': null},
+  mProps: {'cardState': null, 'iccInfo': {}},
 
-  mEventListeners: {'cardstatechange': []},
+  mEventListeners: {'cardstatechange': [], 'iccinfochange': []},
 
   mSuiteSetup: function icch_suite_setup() {
-    this.mProps = {'cardState': null};
-    this.mEventListeners = {'cardstatechange': []};
+    this.mProps = {'cardState': null, 'iccInfo': {}};
+    this.mEventListeners = {'cardstatechange': [], 'iccinfochange': []};
   },
 
   mTeardown: function icch_teardown() {},
@@ -36,6 +36,10 @@ var MockIccHelper = {
 
   get cardState() {
     return this.mProps['cardState'];
+  },
+
+  get iccInfo() {
+    return this.mProps['iccInfo'];
   },
 
   addEventListener: function icch_addEventListener(type, callback) {

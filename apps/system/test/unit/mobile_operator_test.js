@@ -5,7 +5,7 @@
 requireApp('system/shared/js/mobile_operator.js');
 
 suite('shared/MobileOperator', function() {
-  var MockMobileConnection;
+  var MockMobileConnection, MockIccHelper;
   var BRAZIL_MCC = '724';
 
 
@@ -18,9 +18,14 @@ suite('shared/MobileOperator', function() {
           mnc: '6'
         },
         cell: { gsmLocationAreaCode: 71 }
-      },
+      }
+    };
+
+    MockIccHelper = {
       iccInfo: { spn: 'Fake SPN' }
     };
+
+    window.IccHelper = MockIccHelper;
   });
 
   suite('Worldwide connection', function() {
@@ -38,24 +43,24 @@ suite('shared/MobileOperator', function() {
       assert.isUndefined(infos.region);
     });
     test('Connection with SPN display', function() {
-      MockMobileConnection.iccInfo.isDisplaySpnRequired = true;
+      MockIccHelper.iccInfo.isDisplaySpnRequired = true;
       var infos = MobileOperator.userFacingInfo(MockMobileConnection);
       assert.equal(infos.operator, 'Fake SPN');
       assert.isUndefined(infos.carrier);
       assert.isUndefined(infos.region);
     });
     test('Connection with SPN display and network display', function() {
-      MockMobileConnection.iccInfo.isDisplaySpnRequired = true;
-      MockMobileConnection.iccInfo.isDisplayNetworkNameRequired = true;
+      MockIccHelper.iccInfo.isDisplaySpnRequired = true;
+      MockIccHelper.iccInfo.isDisplayNetworkNameRequired = true;
       var infos = MobileOperator.userFacingInfo(MockMobileConnection);
       assert.equal(infos.operator, 'Fake short Fake SPN');
       assert.isUndefined(infos.carrier);
       assert.isUndefined(infos.region);
     });
     test('Connection with same SPN and network name', function() {
-      MockMobileConnection.iccInfo.isDisplaySpnRequired = true;
-      MockMobileConnection.iccInfo.spn = 'Fake short';
-      MockMobileConnection.iccInfo.isDisplayNetworkNameRequired = true;
+      MockIccHelper.iccInfo.isDisplaySpnRequired = true;
+      MockIccHelper.iccInfo.spn = 'Fake short';
+      MockIccHelper.iccInfo.isDisplayNetworkNameRequired = true;
       var infos = MobileOperator.userFacingInfo(MockMobileConnection);
       assert.equal(infos.operator, 'Fake short');
       assert.isUndefined(infos.carrier);
@@ -70,7 +75,7 @@ suite('shared/MobileOperator', function() {
     });
     test('Connection with roaming and SPN display', function() {
       MockMobileConnection.voice.roaming = true;
-      MockMobileConnection.iccInfo.isDisplaySpnRequired = true;
+      MockIccHelper.iccInfo.isDisplaySpnRequired = true;
       var infos = MobileOperator.userFacingInfo(MockMobileConnection);
       assert.equal(infos.operator, 'Fake short');
       assert.isUndefined(infos.carrier);

@@ -354,7 +354,6 @@ var getMobileConnection = function() {
     return navigator.mozMobileConnection;
 
   var initialized = false;
-  var fakeICCInfo = { shortName: 'Fake Free-Mobile', mcc: '208', mnc: '15' };
   var fakeNetwork = { shortName: 'Fake Orange F', mcc: '208', mnc: '1' };
   var fakeVoice = {
     state: 'notSearching',
@@ -376,7 +375,6 @@ var getMobileConnection = function() {
 
   return {
     addEventListener: fakeEventListener,
-    iccInfo: fakeICCInfo,
     get data() {
       return initialized ? { network: fakeNetwork } : null;
     },

@@ -1,24 +1,23 @@
 'use strict';
 
-requireApp(
-  'communications/ftu/test/unit/mock_navigator_moz_mobile_connection.js');
+requireApp('communications/ftu/test/unit/mock_icc_helper.js');
 requireApp('communications/ftu/test/unit/mock_settings.js');
 requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('communications/ftu/js/data_mobile.js');
 
+var mocksHelperForNavigation = new MocksHelper(['IccHelper']);
+mocksHelperForNavigation.init();
 
 suite('mobile data >', function() {
   var realSettings,
-      realMozMobileConnection,
       settingKey = 'ril.data.enabled';
+  var mocksHelper = mocksHelperForNavigation;
 
   suiteSetup(function() {
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
-    realMozMobileConnection = navigator.mozMobileConnection;
-    navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
-
+    mocksHelper.suiteSetup();
     DataMobile.init();
   });
 
@@ -26,8 +25,7 @@ suite('mobile data >', function() {
     navigator.mozSettings = realSettings;
     realSettings = null;
 
-    navigator.mozMobileConnection = realMozMobileConnection;
-    realMozMobileConnection = null;
+    mocksHelper.suiteTeardown();
   });
 
   test('load APN values from file', function(done) {
@@ -36,11 +34,8 @@ suite('mobile data >', function() {
                        'ril.data.passwd',
                        'ril.data.httpProxyHost',
                        'ril.data.httpProxyPort'];
-    MockNavigatorMozMobileConnection.iccInfo = {
-      mcc: '214',
-      mnc: '07'
-      // real values taken from /shared/resources/apn.json, careful if changed
-    };
+    // real values taken from /shared/resources/apn.json, careful if changed
+    IccHelper.setProperty('iccInfo', {mcc: '214', mnc: '07'});
     for (var settingName in settingList) {
       MockNavigatorSettings.mSettings[settingList[settingName]] = null;
     }
@@ -55,11 +50,8 @@ suite('mobile data >', function() {
   });
 
   test('toggle status of mobile data', function(done) {
-    MockNavigatorMozMobileConnection.iccInfo = {
-      mcc: '214',
-      mnc: '07'
-      // real values taken from /shared/resources/apn.json, careful if changed
-    };
+    // real values taken from /shared/resources/apn.json, careful if changed
+    IccHelper.setProperty('iccInfo', {mcc: '214', mnc: '07'});
     DataMobile.toggle(false, function() {
       assert.isFalse(MockNavigatorSettings.mSettings[settingKey]);
       done();

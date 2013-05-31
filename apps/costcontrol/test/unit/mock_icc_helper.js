@@ -10,6 +10,10 @@ var MockIccHelper = function(state) {
 
     get cardState() {
       return state;
+    },
+
+    get iccInfo() {
+      return {iccid: 'TEST_ICCID'};
     }
   };
 };

@@ -3,12 +3,6 @@
 var MockMozMobileConnection = function(state) {
   state = state || {};
 
-  if (!state.iccInfo) {
-    state.iccInfo = {
-      iccid: 'TEST_ICCID'
-    };
-  }
-
   if (!state.voice) {
     state.voice = {
     };
