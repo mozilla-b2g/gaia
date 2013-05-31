@@ -64,8 +64,7 @@ var CostControl = (function() {
 
   // Check if a SMS matches the form of a balance request
   function isBalanceRequestSMS(sms, configuration) {
-    return sms.body === configuration.balance.text &&
-           sms.receiver === configuration.balance.destination;
+    return sms.receiver === configuration.balance.destination;
   }
 
   // Perform a request. They must be specified via a request object with:
