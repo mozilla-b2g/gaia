@@ -107,13 +107,14 @@ var ModalDialog = {
       case 'alert':
         elements.alertMessage.innerHTML = message;
         elements.alert.hidden = false;
+        elements.alert.focus();
         break;
 
       case 'prompt':
         elements.prompt.hidden = false;
         elements.promptInput.value = evt.detail.initialValue;
         elements.promptMessage.innerHTML = message;
-        elements.promptInput.focus();
+        elements.prompt.focus();
         break;
 
       case 'custom-prompt':
@@ -153,11 +154,14 @@ var ModalDialog = {
           // We assume that checkbox custom message is already translated
           checkbox.nextElementSibling.textContent = prompt.checkboxMessage;
         }
+
+        elements.customPrompt.focus();
         break;
 
       case 'confirm':
         elements.confirm.hidden = false;
         elements.confirmMessage.innerHTML = message;
+        elements.confirm.focus();
         break;
     }
   },
