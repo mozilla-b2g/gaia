@@ -61,6 +61,11 @@ var BookmarkEditor = {
 
     this.origin = document.location.protocol + '//homescreen.' +
       document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');
+    document.addEventListener('mozvisibilitychange', function() {
+		if (document.mozHidden) {
+			close();
+  		} 
+	});
   },
 
   close: function bookmarkEditor_close() {
