@@ -1222,9 +1222,9 @@ var WindowManager = (function() {
     } else {
       // stop all activity frames
       // Remore the inlineActivityFrame reference
-      for (var frame of inlineActivityFrames) {
+      inlineActivityFrames.foreach(function(frame) {
         removeInlineFrame(frame);
-      }
+      });
       inlineActivityFrames = [];
     }
 
