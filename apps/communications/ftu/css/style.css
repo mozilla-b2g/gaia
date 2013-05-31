@@ -1037,6 +1037,30 @@ i.hack-first-child {
   margin: 0 0.5rem 0 0 !important;
 }
 
+/*
+  geolocation
+*/
+
+#geolocation [data-type="list"] li {
+  padding: 0 1.5rem;
+}
+
+#geolocation label:not([for]) {
+  width: 6rem;
+}
+
+#geolocation .content {
+  padding: 0 3rem 1rem 3rem;
+}
+
+#geolocation .content p {
+  font-size: 1.4rem;
+}
+
+[data-type="list"] aside {
+  margin: 0 0.5rem 0 0 !important;
+}
+
 
 /*
   Tutorial
