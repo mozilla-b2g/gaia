@@ -1517,8 +1517,6 @@ var WindowManager = (function() {
           attentionScreenTimer = setTimeout(function setVisibility() {
             if (inlineActivityFrames.length) {
               setVisibilityForInlineActivity(false);
-            } else {
-              setVisibilityForCurrentApp(false);
             }
           }, 3000);
 
