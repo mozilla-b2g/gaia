@@ -1819,6 +1819,15 @@ define('event-queue',['require'],function (require) {
 });
 
 define('microtime',['require'],function (require) {
+  // workers won't have this, of course...
+  if (window && window.performance && window.performance.now) {
+    return {
+      now: function () {
+        return window.performance.now() * 1000;
+      }
+    };
+  }
+
   return {
     now: function () {
       return Date.now() * 1000;
@@ -3319,6 +3328,10 @@ LoggestClassMaker.prototype = {
       return true;
     };
   },
+  /**
+   * Call like: loggedCall(logArg1, ..., logArgN, useAsThis, func,
+   *                       callArg1, ... callArgN);
+   */
   addCall: function(name, logArgs, testOnlyLogArgs) {
     this._define(name, 'call');
 
