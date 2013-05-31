@@ -24,6 +24,7 @@ settings = {
  "audio.volume.cemaxvol": 11,
  "bluetooth.enabled": False,
  "bluetooth.debugging.enabled": False,
+ "bootshutdown.sound.enabled": True,
  "camera.shutter.enabled": True,
  "clear.remote-windows.data": False,
  "debug.grid.enabled": False,
