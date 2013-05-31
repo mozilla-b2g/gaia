@@ -13,6 +13,7 @@ requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
+requireApp('sms/test/unit/mock_attachment_menu.js');
 
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/contacts.js');
@@ -31,9 +32,13 @@ requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/waiting_screen.js');
 requireApp('sms/js/startup.js');
 
-
+var MocksHelperForSmsUnitTest = new MocksHelper([
+  'AttachmentMenu'
+]).init();
 
 suite('SMS App Unit-Test', function() {
+  MocksHelperForSmsUnitTest.attachTestHelpers();
+
   function stub(additionalCode, ret) {
     if (additionalCode && typeof additionalCode !== 'function')
       ret = additionalCode;
@@ -555,21 +560,30 @@ suite('SMS App Unit-Test', function() {
     test('#Test URL in message', function() {
       var messageBody = 'For more details visit' +
       ' Yahoo.com, http://www.df.com' +
-      ' or visit faq mail.google.com/mail/help/intl/en/about.html';
+      ' or visit faq mail.google.com/mail/help/intl/en/about.html.' +
+      ' Also google.com/search?q=long+url+with+queries&sourceid=firefox' +
+      ' or \nhttps://secured.web:9080';
       var id = '123456';
       Message.id = id;
       Message.body = messageBody;
       var messageDOM = ThreadUI.buildMessageDOM(Message, false);
       var anchors = messageDOM.querySelectorAll('[data-url]');
-      assert.equal(anchors.length, 3,
-        '3 URLs are tappable in message');
+      assert.equal(anchors.length, 5,
+        '5 URLs are tappable in message');
       assert.equal(anchors[0].dataset.url,
         'http://Yahoo.com', 'First url is http://Yahoo.com');
       assert.equal(anchors[1].dataset.url,
         'http://www.df.com', 'Second url is http://www.df.com');
       assert.equal(anchors[2].dataset.url,
         'http://mail.google.com/mail/help/intl/en/about.html',
-         'Second url is http://mail.google.com/mail/help/intl/en/about.html');
+        'Third url is http://mail.google.com/mail/help/intl/en/about.html');
+      assert.equal(anchors[3].dataset.url,
+        'http://google.com/search?q=long+url+with+queries&sourceid=firefox',
+        'Fourth is google.com/search?q=long+url+with+queries&sourceid=firefox' +
+        ' and it comes with queries!');
+      assert.equal(anchors[4].dataset.url,
+        'https://secured.web:9080',
+        'Fifth is https://secured.web:9080, secured and after a line break');
 
     });
 
