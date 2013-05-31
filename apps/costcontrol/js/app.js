@@ -175,7 +175,7 @@ var CostControlApp = (function() {
     Common.checkSIMChange(function _onSIMChecked() {
       CostControl.getInstance(function _onCostControlReady(instance) {
         if (ConfigManager.option('fte')) {
-          Common.startFTE();
+          startFTE();
           return;
         }
         costcontrol = instance;
@@ -342,6 +342,11 @@ var CostControlApp = (function() {
 
   function isDataUsageTabShown() {
     return window.location.hash.split('#')[1] === 'datausage-tab';
+  }
+
+  function startFTE() {
+    var mode = ConfigManager.getApplicationMode();
+    Common.startFTE(mode);
   }
 
   return {
