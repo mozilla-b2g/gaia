@@ -861,7 +861,8 @@ function createListElement(option, data, index, highlight) {
 
   function highlightText(result, text) {
     var textContent = result.textContent;
-    var index = textContent.toLocaleLowerCase().indexOf(text);
+    var textLowerCased = textContent.toLocaleLowerCase();
+    var index = Normalizer.toAscii(textLowerCased).indexOf(text);
 
     if (index >= 0) {
       var innerHTML = textContent.substring(0, index) +
@@ -1392,7 +1393,9 @@ var SearchView = {
     if (!query)
       return;
 
-    query = query.toLocaleLowerCase();
+    // Convert to lowercase and replace accented characters
+    var queryLowerCased = query.toLocaleLowerCase();
+    query = Normalizer.toAscii(queryLowerCased);
 
     var lists = { artist: this.searchArtistsView,
                   album: this.searchAlbumsView,
@@ -1404,8 +1407,8 @@ var SearchView = {
         this.searchHandles[option] = null;
         return;
       }
-
-      if (result.metadata[option].toLocaleLowerCase().indexOf(query) !== -1) {
+      var resultLowerCased = result.metadata[option].toLocaleLowerCase();
+      if (Normalizer.toAscii(resultLowerCased).indexOf(query) !== -1) {
         this.dataSource.push(result);
 
         numResults[option]++;
