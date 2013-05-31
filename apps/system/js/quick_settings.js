@@ -95,6 +95,10 @@ var QuickSettings = {
           (self.wifi.dataset.enabled === undefined && !value))
         return;
 
+      // return during initializing
+      if (self.wifi.dataset.initializing)
+        return;
+
       if (value) {
         self.wifi.dataset.enabled = 'true';
       } else {
