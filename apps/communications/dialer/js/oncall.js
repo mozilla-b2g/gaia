@@ -789,3 +789,14 @@ window.addEventListener('load', function callSetup(evt) {
   CallScreen.syncSpeakerEnabled();
   KeypadManager.init(true);
 });
+
+window.onresize = function(e) {
+  if (window.innerHeight <= 40) {
+    if ( CallScreen.body.classList.contains("showKeypad")) {
+      CallScreen._typedNumber = KeypadManager._phoneNumber;
+      KeypadManager.restorePhoneNumber('end', true);
+    }
+  } else if( CallScreen.body.classList.contains("showKeypad")) {
+    KeypadManager.updatePhoneNumber(CallScreen._typedNumber,'begin', true);
+  }
+};
