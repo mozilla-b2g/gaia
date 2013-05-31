@@ -207,6 +207,7 @@ var ModalDialog = {
         elements.alert.classList.add('visible');
         this.setTitle('alert', '');
         elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
+        elements.alert.focus();
         break;
 
       case 'prompt':
@@ -217,6 +218,7 @@ var ModalDialog = {
         elements.promptOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.promptCancel.textContent = evt.noText ?
           evt.noText : _('cancel');
+        elements.prompt.focus();
         break;
 
       case 'confirm':
@@ -226,11 +228,13 @@ var ModalDialog = {
         elements.confirmOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.confirmCancel.textContent = evt.noText ?
           evt.noText : _('cancel');
+        elements.confirm.focus();
         break;
 
       case 'selectone':
         this.buildSelectOneDialog(message);
         elements.selectOne.classList.add('visible');
+        elements.selectOne.focus();
         break;
     }
 
