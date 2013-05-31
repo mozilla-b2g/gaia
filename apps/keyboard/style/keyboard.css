@@ -343,6 +343,7 @@ and displays the list of alternatives. */
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper span {
   background: none;
   border-radius: 0;
+  text-transform: none;
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:after,
