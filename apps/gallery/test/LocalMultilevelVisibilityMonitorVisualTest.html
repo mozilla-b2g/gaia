@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+    <style>
+      div > div {
+        border: 1px solid black;
+        -moz-box-sizing: border-box;
+        padding-left: 10px;
+        background: white;
+      }
+    </style>
+    <body>
+      blue = onscreen<br>
+      red = offscreen<br>
+      stronger color = event more recent<br>
+      viewport smaller than visible area for effect<br>
+
+    </body>
+    <script src="../../../shared/js/multilevel_visibility_monitor.js"></script>
+    <script>
+
+        document.body.appendChild(document.createElement('br'));
+
+        var container = document.createElement('div');
+        for (var i = 0; i < 50; i++) {
+          var div = document.createElement('div'); 
+          div.index = i;
+          for (var j = 0; j < 3; j++) {
+            var childDiv = document.createElement('div');
+            childDiv.index = i + ',' + j;
+            for (var k = 0; k < 3; k++) {
+              var childChildDiv = document.createElement('div');
+              childChildDiv.index = i + ',' + j + ',' + k;
+              for (var l = 0; l < 3; l++) {
+                var childChildChildDiv = document.createElement('div');
+                childChildChildDiv.index = i + ',' + j + ',' + k + ',' + l;
+                childChildChildDiv.style.height = '5px';
+                childChildDiv.appendChild(childChildChildDiv);
+              }
+              childDiv.appendChild(childChildDiv);
+            }
+            div.appendChild(childDiv);
+          }
+          container.appendChild(div);
+        }
+        container.style.height = '400px';
+        container.style.overflowY = 'scroll';
+        container.style.position = 'relative';
+        document.body.appendChild(container);
+
+        var scrollDelta = 1;
+        var monitor = monitorMultilevelChildVisibility(container, -50, scrollDelta, 4,
+          function(curr) {
+            clearInterval(curr.id);
+            var i = 1;
+            curr.style.background = 'rgb(' + i + ', ' + i + ',255)';
+            curr.id = setInterval(function() {
+              i += 10;
+              curr.style.background = 'rgb(' + i + ', ' + i + ',255)';
+              if (i >= 200)
+                clearInterval(curr.id);
+            }, 50);
+          },
+          function(curr) {
+            clearInterval(curr.id);
+            var i = 1;
+            curr.style.background = 'rgb(255, ' + i + ', ' + i + ')';
+            curr.id = setInterval(function() {
+              i += 10;
+              curr.style.background = 'rgb(255, ' + i + ', ' + i + ')';
+              if (i >= 200)
+                clearInterval(curr.id);
+            }, 50);
+          });
+
+    </script>
+  </head>
+  <body>
+  </body
+</html>
+
