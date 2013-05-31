@@ -182,14 +182,21 @@ var RecentsDBManager = {
     });
   },
 
-  getLast: function rdbm_getLast(callback) {
+  // Get the last outgoing call number
+  getLastOutgoing: function rdbm_getLastDialing(callback) {
     var objectStore = this.db.transaction(RecentsDBManager._dbStore).
-                        objectStore(RecentsDBManager._dbStore);
+    objectStore(RecentsDBManager._dbStore);
     var cursor = objectStore.openCursor(null, 'prev');
     cursor.onsuccess = function(event) {
       var item = event.target.result;
-      if (item) {
-        callback(item.value);
+      if (!item)
+        return;
+
+      var value = item.value;
+      if (value.type.indexOf('dialing') != -1) {
+        callback(value);
+      } else {
+        item.continue();
       }
     };
 

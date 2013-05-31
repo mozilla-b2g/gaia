@@ -159,7 +159,7 @@ var CallHandler = (function callHandler() {
     var partialCommand = command.substring(0, 3);
     if (command === 'BLDN') {
       RecentsDBManager.init(function() {
-        RecentsDBManager.getLast(function(lastRecent) {
+        RecentsDBManager.getLastOutgoing(function(lastRecent) {
           if (lastRecent.number) {
             CallHandler.call(lastRecent.number);
           }
