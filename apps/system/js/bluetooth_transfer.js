@@ -426,30 +426,80 @@ var BluetoothTransfer = {
       var mappedType = (MimeMapper.isSupportedType(originalType)) ?
         originalType : MimeMapper.guessTypeFromExtension(extension);
 
-      var a = new MozActivity({
-        name: 'open',
-        data: {
-          type: mappedType,
-          blob: file,
-          // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=812098
-          // Pass the file name for Music APP since it can not open blob
-          filename: file.name
-        }
-      });
+      // A simple test for the received file is playable or not
+      self.testReceivedFile(file, mappedType, playableHandler);
 
-      a.onerror = function(e) {
-        var msg = 'open activity error:' + a.error.name;
-        self.debug(msg);
-        // Cannot identify MIMETYPE
-        // So, show cannot open file dialog with unknow media type
-        UtilityTray.hide();
-        self.showUnknownMediaPrompt(fileName);
-      };
-      a.onsuccess = function(e) {
-        var msg = 'open activity onsuccess';
-        self.debug(msg);
-      };
+      function playableHandler() {
+        var a = new MozActivity({
+          name: 'open',
+          data: {
+            type: mappedType,
+            blob: file,
+            filename: file.name
+          }
+        });
+
+        a.onerror = function(e) {
+          var msg = 'open activity error:' + a.error.name;
+          self.debug(msg);
+          // Cannot identify MIMETYPE
+          // So, show cannot open file dialog with unknown media type
+          UtilityTray.hide();
+          self.showUnknownMediaPrompt(fileName);
+        };
+        a.onsuccess = function(e) {
+          var msg = 'open activity onsuccess';
+          self.debug(msg);
+        };
+      }
     };
+  },
+
+  testReceivedFile: function bt_testReceivedFile(file, type, callback) {
+    var self = this;
+    // We will just prompt the file is unknown media
+    // when the type does not exist
+    if (!type) {
+      self.showUnknownMediaPrompt(file.name);
+      return;
+    }
+
+    type = type.split('/')[0];
+
+    switch (type) {
+      case 'image':
+        // Do we need to test for images?
+        // Gallery already handles the invalid images well
+        callback();
+        break;
+      case 'audio':
+      case 'video':
+        var testPlayer = document.createElement(type);
+        var url = URL.createObjectURL(file);
+        // the preload must be set or the onerror will not be trigger
+        testPlayer.preload = 'metadata';
+        testPlayer.src = url;
+
+        testPlayer.onerror = function(e) {
+          URL.revokeObjectURL(url);
+          testPlayer.removeAttribute('src');
+          testPlayer.load();
+          self.showUnsupportedMediaPrompt(file.name);
+        };
+
+        testPlayer.oncanplay = function(e) {
+          URL.revokeObjectURL(url);
+          testPlayer.removeAttribute('src');
+          testPlayer.load();
+          callback();
+        };
+        break;
+      default:
+        // We will just prompt the file is unknown media
+        // because currently we only support image, audio and video
+        self.showUnknownMediaPrompt(file.name);
+        break;
+    }
   },
 
   showUnknownMediaPrompt: function bt_showUnknownMediaPrompt(fileName) {
@@ -462,6 +512,19 @@ var BluetoothTransfer = {
     };
 
     var body = _('unknownMediaTypeToOpen') + ' ' + fileName;
+    CustomDialog.show(_('cannotOpenFile'), body, confirm);
+  },
+
+  showUnsupportedMediaPrompt: function bt_UnsupportedMediaPrompt(fileName) {
+    var _ = navigator.mozL10n.get;
+    var confirm = {
+      title: _('confirm'),
+      callback: function() {
+        CustomDialog.hide();
+      }
+    };
+
+    var body = _('unsupportedMediaFileToOpen') + ' ' + fileName;
     CustomDialog.show(_('cannotOpenFile'), body, confirm);
   }
 };
