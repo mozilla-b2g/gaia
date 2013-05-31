@@ -269,8 +269,8 @@ var Common = {
     });
   },
 
-  startFTE: function() {
-    window.location = '/fte.html';
+  startFTE: function(mode) {
+    window.location = '/fte.html' + '#' + mode;
   },
 
   startApp: function() {

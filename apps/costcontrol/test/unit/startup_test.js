@@ -201,7 +201,8 @@ suite('Application Startup Modes Test Suite >', function() {
   test('First Time Experience Loaded when new SIM', function(done) {
     setupCardState('ready');
     window.ConfigManager = new MockConfigManager({
-      fakeSettings: { fte: true }
+      fakeSettings: { fte: true },
+      applicationMode: 'DATA_USAGE_ONLY'
     });
 
     assertFTEStarted(done);
