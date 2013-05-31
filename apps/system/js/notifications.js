@@ -51,6 +51,7 @@ var NotificationScreen = {
   lockscreenPreview: true,
   silent: false,
   vibrates: true,
+  vibrationEnabled: true,
 
   init: function ns_init() {
     window.addEventListener('mozChromeEvent', this);
@@ -316,7 +317,8 @@ var NotificationScreen = {
       }, 2000);
     }
 
-    if (this.vibrates) {
+    var vibrate = !this.silent ? this.vibrates : this.vibrates && this.vibrationEnabled;
+    if (vibrate) {
       if (document.mozHidden) {
         window.addEventListener('mozvisibilitychange', function waitOn() {
           window.removeEventListener('mozvisibilitychange', waitOn);
@@ -409,4 +411,8 @@ SettingsListener.observe('audio.volume.notification', 7, function(value) {
 
 SettingsListener.observe('vibration.enabled', true, function(value) {
   NotificationScreen.vibrates = value;
+});
+
+SettingsListener.observe('vibration.enabled', true, function(value) {
+  NotificationScreen.vibrationEnabled = value;
 });
