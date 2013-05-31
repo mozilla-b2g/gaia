@@ -15,7 +15,7 @@ suite('dialer/recents_db', function() {
     callList.push(new MockRecent('11111', 'incoming-refused', 1354131844000));
     callList.push(new MockRecent('11111', 'incoming-refused', 1354131845000));
 
-    singleCall = new MockRecent('22222', 'outgoing-connected', 1354131846000);
+    singleCall = new MockRecent('22222', 'dialing-connected', 1354131846000);
   });
 
   suite('#initialization', function() {
@@ -56,8 +56,8 @@ suite('dialer/recents_db', function() {
       });
     });
 
-    test('#getLast', function(done) {
-      subject.getLast(function(lastEntry) {
+    test('#getLastOutgoing', function(done) {
+      subject.getLastOutgoing(function(lastEntry) {
         assert.equal('22222', lastEntry.number);
         done();
       });
