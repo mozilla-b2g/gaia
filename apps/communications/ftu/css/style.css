@@ -141,7 +141,7 @@ html, body {
 .step-state:before {
   content: "";
   height: 0.3rem;
-  width: calc(100% / 7);
+  width: calc(100% / 8);
   position: absolute;
   top: 50%;
   left: 0;
@@ -181,6 +181,10 @@ html, body {
 
 .step-7.step-state:before {
   transform: translateX(600%);
+}
+
+.step-8.step-state:before {
+  transform: translateX(700%);
 }
 
 /*
