@@ -390,6 +390,10 @@ navigator.mozL10n.ready(function wifiSettings() {
 
     // display a message on the network item matching the ssid
     function display(network, networkStatus) {
+      if (!network) {
+        return;
+      }
+
       var key = network.ssid + '+' + network.capabilities.join('+');
       var listItem = index[key];
       var active = list.querySelector('.active');
