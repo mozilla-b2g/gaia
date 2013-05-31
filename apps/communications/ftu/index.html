@@ -146,6 +146,7 @@
       <li>wifi</li>
       <li>configure network</li>
       <li>date and time</li>
+      <li>geolocation</li>
       <li>browser privacy</li>
     </ol>
     <article role="main">
@@ -240,6 +241,27 @@
             </li>
           </ul>
         </form>
+      </section>
+      <section role="region" id="geolocation">
+        <article data-type="list">
+          <ul>
+            <li>
+              <aside class="pack-end">
+                <label>
+                  <input type="checkbox" data-type="switch" id="geolocation-switch" name="geolocation.enabled">
+                  <span></span>
+                </label>
+              </aside>
+              <p id="geolocationSwitchLabel" data-l10n-id="geolocationCheckbox"></p>
+            </li>
+          </ul>
+        </article>
+        <header><h2 id="geolocationNotice" data-l10n-id="notice"></h2></header>
+        <section class="content">
+          <p id="geolocationInfo" data-l10n-id="geolocationInfo">Some text here</p>
+          <p id="geolocationInfoMore" data-l10n-id="geolocationInfoMore">Some text here</p>
+          <p><a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy">Your Privacy</a></p>
+        </section>
       </section>
       <section role="region" id="import_contacts">
         <article data-type="list">
