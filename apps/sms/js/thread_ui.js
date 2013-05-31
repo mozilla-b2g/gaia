@@ -1267,6 +1267,13 @@ var ThreadUI = global.ThreadUI = {
       messageDOM.classList.add('error');
     }
 
+    // cannot send a message when SIM card is not ready
+    var conn = navigator.mozMobileConnection;
+    if (!conn || conn.cardState !== 'ready') {
+      var cardState = conn ? conn.cardState : undefined;
+      this.showSimCardError(cardState);
+      return;
+    }
     this.ifRilDisabled(this.showAirplaneModeError);
   },
 
@@ -1289,6 +1296,25 @@ var ThreadUI = global.ThreadUI = {
       _('sendAirplaneModeBody'),
       {
         title: _('sendAirplaneModeBtnOk'),
+        callback: function() {
+          CustomDialog.hide();
+        }
+      }
+    );
+  },
+
+  showSimCardError: function thui_showSimCardError(state) {
+    var _ = navigator.mozL10n.get;
+    var errorMessage = _('generalSimCardErrorBody');
+    if (state === 'absent') {
+      errorMessage = _('noSimCardErroeBody');
+    }
+
+    CustomDialog.show(
+      _('generalSimCardErrorTitle'),
+      errorMessage,
+      {
+        title: _('generalSimCardErrorBtnOk'),
         callback: function() {
           CustomDialog.hide();
         }

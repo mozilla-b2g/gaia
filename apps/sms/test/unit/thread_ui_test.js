@@ -746,6 +746,57 @@ suite('thread_ui.js >', function() {
           });
         });
       });
+      suite('send message with SIM card error', function() {
+        var realMozMobileConnection;
+
+        suiteSetup(function() {
+          realMozMobileConnection = navigator.mozMobileConnection;
+        });
+        suiteTeardown(function() {
+          navigator.mozMobileConnection = realMozMobileConnection;
+        });
+
+        test('no SIM card alert is visible', function(done) {
+          navigator.mozMobileConnection = { cardState: 'absent' };
+          ThreadUI.onMessageFailed(this.fakeMessage);
+          setTimeout(function() {
+            assert.isTrue(MockCustomDialog.mShown);
+            done();
+          });
+        });
+        test('unknown SIM card alert is visible', function(done) {
+          navigator.mozMobileConnection = { cardState: 'unknown' };
+          ThreadUI.onMessageFailed(this.fakeMessage);
+          setTimeout(function() {
+            assert.isTrue(MockCustomDialog.mShown);
+            done();
+          });
+        });
+        test('PIN code required alert is visible', function(done) {
+          navigator.mozMobileConnection = { cardState: 'pinRequired' };
+          ThreadUI.onMessageFailed(this.fakeMessage);
+          setTimeout(function() {
+            assert.isTrue(MockCustomDialog.mShown);
+            done();
+          });
+        });
+        test('PUK code required alert is visible', function(done) {
+          navigator.mozMobileConnection = { cardState: 'pukRequired' };
+          ThreadUI.onMessageFailed(this.fakeMessage);
+          setTimeout(function() {
+            assert.isTrue(MockCustomDialog.mShown);
+            done();
+          });
+        });
+        test('network locked alert is visible', function(done) {
+          navigator.mozMobileConnection = { cardState: 'networkLocked' };
+          ThreadUI.onMessageFailed(this.fakeMessage);
+          setTimeout(function() {
+            assert.isTrue(MockCustomDialog.mShown);
+            done();
+          });
+        });
+      });
     });
   });
 
