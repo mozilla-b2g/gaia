@@ -278,7 +278,7 @@ var UIManager = {
         break;
       // Privacy
       case 'share-performance':
-        this.updateSetting(event.target.name, event.target.value);
+        this.updateSetting(event.target.name, event.target.checked);
         break;
       default:
         // wifi selection
