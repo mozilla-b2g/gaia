@@ -1,6 +1,17 @@
 var BootSound = (function() {
 
+  var key = 'bootshutdown.sound.enabled';
+
+  var shouldPlayBootSound = false;
+
+  SettingsListener.observe(key, true, function(value) {
+    shouldPlayBootSound = value;
+  });
+
   function playBootupSound(delay) {
+    if (!shouldPlayBootSound) {
+      return;
+    }
     var bootupSound = new Audio('./resources/sounds/bootup.ogg');
     if (delay === 0) {
       bootupSound.play();
