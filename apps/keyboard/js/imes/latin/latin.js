@@ -418,7 +418,8 @@
   // character. It performs auto correction or auto punctuation or just
   // inserts the character.
   function handleCorrections(keycode) {
-    if (correcting && autoCorrection && !correctionDisabled && atWordEnd()) {
+    if (correcting && autoCorrection && !correctionDisabled && atWordEnd() &&
+        wordBeforeCursor() !== autoCorrection) {
       autoCorrect(keycode);
     }
     else if (punctuating && cursor >= 2 &&
@@ -642,15 +643,20 @@
   function select(word) {
     var oldWord = wordBeforeCursor();
 
-    // Send backspaces
-    for (var i = 0, n = oldWord.length; i < n; i++)
-      keyboard.sendKey(BACKSPACE);
+    if (oldWord === word) {
+      keyboard.sendKey(SPACE);
+    }
+    else {
+      // Send backspaces
+      for (var i = 0, n = oldWord.length; i < n; i++)
+        keyboard.sendKey(BACKSPACE);
 
-    // Send the word
-    keyboard.sendString(word);
+      // Send the word
+      keyboard.sendString(word);
 
-    // Send a space
-    keyboard.sendKey(SPACE);
+      // Send a space
+      keyboard.sendKey(SPACE);
+    }
 
     // Update internal state
     inputText =
