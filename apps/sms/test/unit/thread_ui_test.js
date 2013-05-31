@@ -1412,7 +1412,7 @@ suite('thread_ui.js >', function() {
       );
     });
 
-    test('Rendered Contact "type | number"', function() {
+    test('Rendered Contact "type, number"', function() {
       var ul = document.createElement('ul');
       var contact = new MockContact();
       var html;
@@ -1425,10 +1425,10 @@ suite('thread_ui.js >', function() {
         isHighlighted: true
       });
       html = ul.firstElementChild.innerHTML;
-      assert.ok(html.contains('Mobile | +346578888888'));
+      assert.ok(html.contains('Mobile, +346578888888'));
     });
 
-    test('Rendered Contact highlighted "type | number"', function() {
+    test('Rendered Contact highlighted "type, number"', function() {
       var ul = document.createElement('ul');
       var contact = new MockContact();
       var html;
@@ -1442,7 +1442,7 @@ suite('thread_ui.js >', function() {
       });
       html = ul.firstElementChild.innerHTML;
       assert.ok(
-        html.contains('Mobile | +<span class="highlight">346578888888</span>')
+        html.contains('Mobile, +<span class="highlight">346578888888</span>')
       );
     });
   });
