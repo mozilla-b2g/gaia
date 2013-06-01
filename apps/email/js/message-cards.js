@@ -213,6 +213,12 @@ MessageListCard.prototype = {
    */
   PROGRESS_CANDYBAR_TIMEOUT_MS: 2000,
 
+  /**
+   * @type {MessageListTopbar}
+   * @private
+   */
+  _topbar: null,
+
   postInsert: function() {
     this._hideSearchBoxByScrolling();
 
@@ -538,7 +544,11 @@ MessageListCard.prototype = {
     this.toolbar.searchBtn.classList.remove('disabled');
   },
 
-  onSliceRequestComplete: function() {
+
+  /**
+   * @param {number=} newEmailCount Optional number of new messages.
+   */
+  onSliceRequestComplete: function(newEmailCount) {
     // We always want our logic to fire, but complete auto-clears before firing.
     this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
 
@@ -552,11 +562,30 @@ MessageListCard.prototype = {
     if (this.messagesSlice.items.length === 0 && !this.messagesSlice._fake) {
       this.showEmptyLayout();
     }
+
+    if (newEmailCount && newEmailCount !== NaN && newEmailCount !== 0) {
+      // Decorate or update the little notification bar that tells the user
+      // how many new emails they've received after a sync.
+      if (this._topbar && this._topbar.getElement() !== null) {
+        // Update the existing status bar.
+        this._topbar.updateNewEmailCount(newEmailCount);
+      } else {
+        this._topbar = new MessageListTopbar(
+            this.scrollContainer, newEmailCount);
+
+        var el =
+            document.getElementsByClassName(MessageListTopbar.CLASS_NAME)[0];
+        this._topbar.decorate(el);
+        this._topbar.render();
+      }
+    }
+
     // Consider requesting more data or discarding data based on scrolling that
     // has happened since we issued the request.  (While requests were pending,
     // onScroll ignored scroll events.)
     this._onScroll(null);
   },
+
 
   onScroll: function(evt) {
     if (this._pendingScrollEvent) {
@@ -829,6 +858,10 @@ MessageListCard.prototype = {
     }
   },
 
+  _updatePeepDom: function(peep) {
+    peep.element.textContent = peep.name || peep.address;
+  },
+
   updateMessageDom: function(firstTime, message) {
     var msgNode = message.element;
 
@@ -850,8 +883,10 @@ MessageListCard.prototype = {
         listPerson = message.author;
 
       // author
-      msgNode.getElementsByClassName('msg-header-author')[0]
-        .textContent = listPerson.name || listPerson.address;
+      listPerson.element =
+        msgNode.getElementsByClassName('msg-header-author')[0];
+      listPerson.onchange = this._updatePeepDom;
+      listPerson.onchange(listPerson);
       // date
       dateNode.dataset.time = message.date.valueOf();
       dateNode.textContent = prettyDate(message.date);
@@ -898,10 +933,15 @@ MessageListCard.prototype = {
     if (firstTime) {
       // author
       var authorNode = msgNode.getElementsByClassName('msg-header-author')[0];
-      if (matches.author)
+      if (matches.author) {
         appendMatchItemTo(matches.author, authorNode);
-      else
-        authorNode.textContent = message.author.name || message.author.address;
+      }
+      else {
+        // we can only update the name if it wasn't matched on.
+        message.author.element = authorNode;
+        message.author.onchange = this._updatePeepDom;
+        message.author.onchange(message.author);
+      }
 
       // date
       dateNode.dataset.time = message.date.valueOf();
@@ -1111,7 +1151,7 @@ var MAX_QUOTE_CLASS_NAME = 'msg-body-qmax';
 
 function MessageReaderCard(domNode, mode, args) {
   this.domNode = domNode;
-  this.header = args.header;
+  this.header = args.header.makeCopy();
   // The body elements for the (potentially multiple) iframes we created to hold
   // HTML email content.
   this.htmlBodyNodes = [];
@@ -1312,57 +1352,17 @@ MessageReaderCard.prototype = {
 
   onPeepClick: function(target) {
     var contents = msgNodes['contact-menu'].cloneNode(true);
-    var email = target.dataset.address;
+    var peep = target.peep;
     var headerNode = contents.getElementsByTagName('header')[0];
     // Setup the marquee structure
-    Marquee.setup(email, headerNode);
+    Marquee.setup(peep.address, headerNode);
 
-    var contact = null;
     // Activate marquee once the contents DOM are added to document
     document.body.appendChild(contents);
     // XXX Remove 'ease' if linear animation is wanted
     Marquee.activate('alternate', 'ease');
 
-    /*
-     * Show menu items based on the options which consists of values of
-     * the type "_contextMenuType".
-     */
-    var showContextMenuItems = (function(options) {
-      if (options & this._contextMenuType.VIEW_CONTACT)
-        contents.querySelector('.msg-contact-menu-view')
-          .classList.remove('collapsed');
-      if (options & this._contextMenuType.CREATE_CONTACT)
-        contents.querySelector('.msg-contact-menu-create-contact')
-          .classList.remove('collapsed');
-      if (options & this._contextMenuType.ADD_TO_CONTACT)
-        contents.querySelector('.msg-contact-menu-add-to-existing-contact')
-          .classList.remove('collapsed');
-      if (options & this._contextMenuType.REPLY)
-        contents.querySelector('.msg-contact-menu-reply')
-          .classList.remove('collapsed');
-      if (options & this._contextMenuType.NEW_MESSAGE)
-        contents.querySelector('.msg-contact-menu-new')
-          .classList.remove('collapsed');
-    }).bind(this);
-
-    var updateName = (function(targetMail, name) {
-      if (!name || name === '')
-        return;
-
-      // update UI
-      var selector = '.msg-peep-bubble[data-address="' +
-        targetMail + '"]';
-      var nodes = Array.prototype.slice
-        .call(this.domNode.querySelectorAll(selector));
-
-      for (var i = 0; i < nodes.length; i++) {
-        var node = nodes[i];
-        var content = node.querySelector('.msg-peep-content');
-        node.dataset.name = name;
-        content.textContent = name;
-      }
-    }).bind(this);
-
+    // -- context menu selection handling
     var formSubmit = (function(evt) {
       document.body.removeChild(contents);
       switch (evt.explicitOriginalTarget.className) {
@@ -1372,34 +1372,35 @@ MessageReaderCard.prototype = {
           var composer =
             MailAPI.beginMessageComposition(this.header, null, null,
             function composerReady() {
+              // XXX future work to just let us pass peeps directly; will
+              // require normalization when sending things over the wire to the
+              // backend.
               composer.to = [{
-                address: target.dataset.address,
-                name: target.dataset.name
+                address: peep.address,
+                name: peep.name
               }];
               Cards.pushCard('compose', 'default', 'animate',
                              { composer: composer });
             });
           break;
         case 'msg-contact-menu-view':
-          if (contact) {
-            var activity = new MozActivity({
-              name: 'open',
-              data: {
-                type: 'webcontacts/contact',
-                params: {
-                  'id': contact.id
-                }
+          var activity = new MozActivity({
+            name: 'open',
+            data: {
+              type: 'webcontacts/contact',
+              params: {
+                'id': peep.contactId
               }
-            });
-          }
+            }
+          });
           break;
         case 'msg-contact-menu-create-contact':
           var params = {
-            'email': email
+            'email': peep.address
           };
 
-          if (name)
-            params['givenName'] = target.dataset.name;
+          if (peep.name)
+            params['givenName'] = peep.name;
 
           var activity = new MozActivity({
             name: 'new',
@@ -1408,12 +1409,8 @@ MessageReaderCard.prototype = {
               params: params
             }
           });
-
-          activity.onsuccess = function() {
-            var contact = activity.result.contact;
-            if (contact)
-              updateName(email, contact.name);
-          };
+          // since we already have contact change listeners that are hooked up
+          // to the UI, we leave it up to them to update the UI for us.
           break;
         case 'msg-contact-menu-add-to-existing-contact':
           var activity = new MozActivity({
@@ -1421,16 +1418,12 @@ MessageReaderCard.prototype = {
             data: {
               type: 'webcontacts/contact',
               params: {
-                'email': email
+                'email': peep.address
               }
             }
           });
-
-          activity.onsuccess = function() {
-            var contact = activity.result.contact;
-            if (contact)
-              updateName(email, contact.name);
-          };
+          // since we already have contact change listeners that are hooked up
+          // to the UI, we leave it up to them to update the UI for us.
           break;
         case 'msg-contact-menu-reply':
           //TODO: We need to enter compose view with specific email address.
@@ -1444,23 +1437,36 @@ MessageReaderCard.prototype = {
     }).bind(this);
     contents.addEventListener('submit', formSubmit);
 
-    ContactDataManager.searchContactData(email, function(contacts) {
-      var contextMenuOptions = this._contextMenuType.NEW_MESSAGE;
-      var messageType = target.dataset.type;
 
-      if (messageType === 'from')
-        contextMenuOptions |= this._contextMenuType.REPLY;
+    // -- populate context menu
+    var contextMenuOptions = this._contextMenuType.NEW_MESSAGE;
+    var messageType = peep.type;
 
-      if (contacts && contacts.length > 0) {
-        contact = contacts[0];
-        contextMenuOptions |= this._contextMenuType.VIEW_CONTACT;
-      } else {
-        contact = null;
-        contextMenuOptions |= this._contextMenuType.CREATE_CONTACT;
-        contextMenuOptions |= this._contextMenuType.ADD_TO_CONTACT;
-      }
-      showContextMenuItems(contextMenuOptions);
-    }.bind(this));
+    if (messageType === 'from')
+      contextMenuOptions |= this._contextMenuType.REPLY;
+
+    if (peep.isContact) {
+      contextMenuOptions |= this._contextMenuType.VIEW_CONTACT;
+    } else {
+      contextMenuOptions |= this._contextMenuType.CREATE_CONTACT;
+      contextMenuOptions |= this._contextMenuType.ADD_TO_CONTACT;
+    }
+
+    if (contextMenuOptions & this._contextMenuType.VIEW_CONTACT)
+      contents.querySelector('.msg-contact-menu-view')
+        .classList.remove('collapsed');
+    if (contextMenuOptions & this._contextMenuType.CREATE_CONTACT)
+      contents.querySelector('.msg-contact-menu-create-contact')
+        .classList.remove('collapsed');
+    if (contextMenuOptions & this._contextMenuType.ADD_TO_CONTACT)
+      contents.querySelector('.msg-contact-menu-add-to-existing-contact')
+        .classList.remove('collapsed');
+    if (contextMenuOptions & this._contextMenuType.REPLY)
+      contents.querySelector('.msg-contact-menu-reply')
+        .classList.remove('collapsed');
+    if (contextMenuOptions & this._contextMenuType.NEW_MESSAGE)
+      contents.querySelector('.msg-contact-menu-new')
+        .classList.remove('collapsed');
   },
 
   onLoadBarClick: function(event) {
@@ -1632,6 +1638,28 @@ MessageReaderCard.prototype = {
     var header = this.header, body = this.body;
 
     // -- Header
+    function updatePeep(peep) {
+      var nameNode = peep.element.getElementsByClassName('msg-peep-content')[0];
+
+      if (peep.type === 'from') {
+        // We display the sender of the message's name in the header and the
+        // address in the bubble.
+        domNode.getElementsByClassName('msg-reader-header-label')[0]
+          .textContent = peep.name || peep.address;
+
+        nameNode.textContent = peep.address;
+        nameNode.classList.add('msg-peep-address');
+      }
+      else {
+        nameNode.textContent = peep.name || peep.address;
+        if (!peep.name && peep.address) {
+          nameNode.classList.add('msg-peep-address');
+        } else {
+          nameNode.classList.remove('msg-peep-address');
+        }
+      }
+    }
+
     function addHeaderEmails(type, peeps) {
       var lineClass = 'msg-envelope-' + type + '-line';
       var lineNode = domNode.getElementsByClassName(lineClass)[0];
@@ -1643,40 +1671,16 @@ MessageReaderCard.prototype = {
 
       // Because we can avoid having to do multiple selector lookups, we just
       // mutate the template in-place...
-      var peepTemplate = msgNodes['peep-bubble'],
-          contentTemplate =
-            peepTemplate.getElementsByClassName('msg-peep-content')[0];
+      var peepTemplate = msgNodes['peep-bubble'];
 
-      // If the address field is "From", We only show the address and display
-      // name in the message header.
-      if (lineClass == 'msg-envelope-from-line') {
-        var peep = peeps[0];
-        // TODO: Display peep name if the address is not exist.
-        //       Do we nee to deal with that scenario?
-        contentTemplate.textContent = peep.name || peep.address;
-        peepTemplate.dataset.address = peep.address;
-        peepTemplate.dataset.name = peep.name;
-        peepTemplate.dataset.type = type;
-        if (peep.address) {
-          contentTemplate.classList.add('msg-peep-address');
-        }
-        lineNode.appendChild(peepTemplate.cloneNode(true));
-        domNode.getElementsByClassName('msg-reader-header-label')[0]
-          .textContent = peep.name || peep.address;
-        return;
-      }
       for (var i = 0; i < peeps.length; i++) {
         var peep = peeps[i];
-        contentTemplate.textContent = peep.name || peep.address;
-        peepTemplate.dataset.address = peep.address;
-        peepTemplate.dataset.name = peep.name;
-        peepTemplate.dataset.type = type;
-        if (!peep.name && peep.address) {
-          contentTemplate.classList.add('msg-peep-address');
-        } else {
-          contentTemplate.classList.remove('msg-peep-address');
-        }
-        lineNode.appendChild(peepTemplate.cloneNode(true));
+        peep.type = type;
+        peep.element = peepTemplate.cloneNode(true);
+        peep.element.peep = peep;
+        peep.onchange = updatePeep;
+        updatePeep(peep);
+        lineNode.appendChild(peep.element);
       }
     }
 
@@ -1809,6 +1813,12 @@ MessageReaderCard.prototype = {
   },
 
   die: function() {
+    // Our header was makeCopy()d from the message-list and so needs to be
+    // explicitly removed since it is not part of a slice.
+    if (this.header) {
+      this.header.__die();
+      this.header = null;
+    }
     if (this.body) {
       this.body.die();
       this.body = null;

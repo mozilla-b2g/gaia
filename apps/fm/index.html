@@ -18,10 +18,10 @@
   <body>
     <div id="container">
       <div id="frequency-bar">
-				<div id="frequency-display">
+        <div id="frequency-display">
           <a id="bookmark-button" href="#bookmark" data-bookmarked="false"></a>
           <div id="frequency">0</div>
-				</div>
+        </div>
       </div>
       <div id="dialer-bar">
         <div id="dialer-container">
@@ -33,17 +33,25 @@
         <div id="fav-list-container"></div>
       </div>
       <div id="action-bar">
-        <div><a id="frequency-op-seekdown" href="#seekdown"></a></div>
+        <div>
+          <a id="frequency-op-seekdown" href="#seekdown"></a>
+        </div>
         <div>
           <a id="power-switch" href="#power-switch" data-enabled="false" data-enabling="false"><span></span></a>
-				</div>
-        <div><a id="frequency-op-seekup" href="#seekup"></a></div>
-      </div>
+        </div>
+        <div>
+          <a id="frequency-op-seekup" href="#seekup"></a>
+        </div>
+      </div> 
     </div>
-    <div id="antenna-warning" hidden="hidden">
+    <div id="antenna-warning" class="warning" hidden>
       <div></div>
-      <div id="antenna-warning-header" data-l10n-id="noAntenna">Please plugin your headset</div>
-      <div id="antenna-warning-body" data-l10n-id="noAntennaMsg">The FM Radio requires a headset to use as an antenna.</div>
+      <div id="antenna-warning-header" class="warning-header" data-l10n-id="noAntenna">Please plugin your headset</div>
+      <div id="antenna-warning-body" class="warning-body" data-l10n-id="noAntennaMsg">The FM Radio requires a headset to use as an antenna.</div>
+    </div>
+    <div id="airplane-mode-warning" class="warning" hidden>
+      <div class="warning-header" data-l10n-id="airplaneModeHeader">Airplane mode is on</div>
+      <div class="warning-body" data-l10n-id="airplaneModeMsg">Turn off Airplane mode to use FM Radio.</div>
     </div>
   </body>
 </html>

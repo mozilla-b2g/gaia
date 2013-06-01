@@ -215,6 +215,10 @@ MailAccount.prototype = {
     this._wireRep.defaultPriority = wireRep.defaultPriority;
   },
 
+  __die: function() {
+    // currently, nothing to clean up
+  },
+
   /**
    * Tell the back-end to clear the list of problems with the account, re-enable
    * it, and try and connect.
@@ -286,6 +290,10 @@ MailSenderIdentity.prototype = {
   },
   toJSON: function() {
     return { type: 'MailSenderIdentity' };
+  },
+
+  __die: function() {
+    // nothing to clean up currently
   },
 };
 
@@ -370,6 +378,10 @@ MailFolder.prototype = {
     this.lastSyncedAt = wireRep.lastSyncedAt ? new Date(wireRep.lastSyncedAt)
                                              : null;
   },
+
+  __die: function() {
+    // currently nothing to clean up
+  }
 };
 
 function filterOutBuiltinFlags(flags) {
@@ -400,18 +412,44 @@ function serializeMessageName(x) {
 }
 
 /**
- * Caches contact lookups, both hits and misses.
+ * Caches contact lookups, both hits and misses, as well as updating the
+ * MailPeep instances returned by resolve calls.
+ *
+ * We maintain strong maps from both contact id and e-mail address to MailPeep
+ * instances.  We hold a strong reference because BridgedViewSlices already
+ * require explicit lifecycle maintenance (aka call die() when done with them).
+ * We need the contact id and e-mail address because when a contact is changed,
+ * an e-mail address may be changed, and we don't get to see the old
+ * representation.  So if the e-mail address was deleted, we need the contact id
+ * mapping.  And if the e-mail address was added, we need the e-mail address
+ * mapping.
+ *
+ * If the mozContacts API is not available, we just create inert MailPeep
+ * instances that do not get tracked or updated.
+ *
+ * Domain notes:
+ *
+ * The contacts API does not enforce any constraints on the number of contacts
+ * who can use an e-mail address, but the e-mail app only allows one contact
+ * to correspond to an e-mail address at a time.
  */
-var ContactCache = {
+var ContactCache = exports.ContactCache = {
   /**
    * Maps e-mail addresses to the mozContact rep for the object, or null if
    * there was a miss.
+   *
+   * We explicitly do not want to choose an arbitrary MailPeep instance to
+   * (re)use because it could lead to GC memory leaks if data/element/an expando
+   * were set on the MailPeep and we did not zero it out when the owning slice
+   * was destroyed.  We could, however, use the live set of peeps as a fallback
+   * if we don't have a contact cached.
    */
-  _cache: {},
+  _contactCache: Object.create(null),
   /** The number of entries in the cache. */
   _cacheHitEntries: 0,
   /** The number of stored misses in the cache. */
   _cacheEmptyEntries: 0,
+
   /**
    * Maximum number of hit entries in the cache before we should clear the
    * cache.
@@ -419,6 +457,189 @@ var ContactCache = {
   MAX_CACHE_HITS: 256,
   /** Maximum number of empty entries to store in the cache before clearing. */
   MAX_CACHE_EMPTY: 1024,
+
+  /** Maps contact id to lists of MailPeep instances. */
+  _livePeepsById: Object.create(null),
+  /** Maps e-mail addresses to lists of MailPeep instances */
+  _livePeepsByEmail: Object.create(null),
+
+  pendingLookupCount: 0,
+
+  callbacks: [],
+
+  init: function() {
+    var contactsAPI = navigator.mozContacts;
+    if (!contactsAPI)
+      return;
+
+    contactsAPI.oncontactchange = this._onContactChange.bind(this);
+  },
+
+  _resetCache: function() {
+    this._contactCache = Object.create(null);
+    this._cacheHitEntries = 0;
+    this._cacheEmptyEntries = 0;
+  },
+
+  shutdown: function() {
+    var contactsAPI = navigator.mozContacts;
+    if (!contactsAPI)
+      return;
+    contactsAPI.oncontactchange = null;
+  },
+
+  /**
+   * Currently we process the updates in real-time as we get them.  There's an
+   * inherent trade-off between chewing CPU when we're in the background and
+   * minimizing latency when we are displayed.  We're biased towards minimizing
+   * latency right now.
+   *
+   * All contact changes flush our contact cache rather than try and be fancy.
+   * We are already fancy with the set of live peeps and our lookups could just
+   * leverage that.  (The contact cache is just intended as a steady-state
+   * high-throughput thing like when displaying messages in the UI.  We don't
+   * expect a lot of contact changes to happen during that time.)
+   *
+   * For info on the events/triggers, see:
+   * https://developer.mozilla.org/en-US/docs/DOM/ContactManager.oncontactchange
+   */
+  _onContactChange: function(event) {
+    var contactsAPI = navigator.mozContacts;
+    var livePeepsById = this._livePeepsById,
+        livePeepsByEmail = this._livePeepsByEmail;
+
+    // clear the cache if it has anything in it (per the above doc block)
+    if (this._cacheHitEntries || this._cacheEmptyEntries)
+      this._resetCache();
+
+    // -- Contact removed OR all contacts removed!
+    if (event.reason === 'remove') {
+      function cleanOutPeeps(livePeeps) {
+        for (var iPeep = 0; iPeep < livePeeps.length; iPeep++) {
+          var peep = livePeeps[iPeep];
+          peep.contactId = null;
+          if (peep.onchange) {
+            try {
+              peep.onchange(peep);
+            }
+            catch (ex) {
+              reportClientCodeError('peep.onchange error', ex, '\n',
+                                    ex.stack);
+            }
+          }
+        }
+      }
+
+      // - all contacts removed! (clear() called)
+      var livePeeps;
+      if (!event.contactID) {
+        for (var contactId in livePeepsById) {
+          livePeeps = livePeepsById[contactId];
+          cleanOutPeeps(livePeeps);
+          this._livePeepsById = Object.create(null);
+        }
+      }
+      // - just one contact removed
+      else {
+        livePeeps = livePeepsById[event.contactID];
+        if (livePeeps) {
+          cleanOutPeeps(livePeeps);
+          delete livePeepsById[event.contactID];
+        }
+      }
+    }
+    // -- Created or updated; we need to fetch the contact to investigate
+    else {
+      var req = contactsAPI.find({
+        filterBy: ['id'],
+        filterOp: 'equals',
+        filterValue: event.contactID
+      });
+      req.onsuccess = function() {
+        // If the contact disappeared we will hear a 'remove' event and so don't
+        // need to process this.
+        if (!req.result.length)
+          return;
+        var contact = req.result[0], livePeeps, iPeep, peep;
+
+        // - process update with apparent e-mail address removal
+        if (event.reason === 'update') {
+          livePeeps = livePeepsById[contact.id];
+          if (livePeeps) {
+            var contactEmails = contact.email ?
+                  contact.email.map(function(e) { return e.value; }) :
+                [];
+            for (iPeep = 0; iPeep < livePeeps.length; iPeep++) {
+              peep = livePeeps[iPeep];
+              if (contactEmails.indexOf(peep.address) === -1) {
+                // Need to fix-up iPeep because of the splice; reverse iteration
+                // reorders our notifications and we don't want that, hence
+                // this.
+                livePeeps.splice(iPeep--, 1);
+                peep.contactId = null;
+                if (peep.onchange) {
+                  try {
+                    peep.onchange(peep);
+                  }
+                  catch (ex) {
+                    reportClientCodeError('peep.onchange error', ex, '\n',
+                                          ex.stack);
+                  }
+                }
+              }
+            }
+            if (livePeeps.length === 0)
+              delete livePeepsById[contact.id];
+          }
+        }
+        // - process create/update causing new coverage
+        if (!contact.email)
+          return;
+        for (var iEmail = 0; iEmail < contact.email.length; iEmail++) {
+          var email = contact.email[iEmail].value;
+          livePeeps = livePeepsByEmail[email];
+          // nothing to do if there are no peeps that use that email address
+          if (!livePeeps)
+            continue;
+
+          for (iPeep = 0; iPeep < livePeeps.length; iPeep++) {
+            peep = livePeeps[iPeep];
+            // If the peep is not yet associated with this contact or any other
+            // contact, then associate it.
+            if (!peep.contactId) {
+              peep.contactId = contact.id;
+              var idLivePeeps = livePeepsById[peep.contactId];
+              if (idLivePeeps === undefined)
+                idLivePeeps = livePeepsById[peep.contactId] = [];
+              idLivePeeps.push(peep);
+            }
+            // However, if it's associated with a different contact, then just
+            // skip the peep.
+            else if (peep.contactId !== contact.id) {
+              continue;
+            }
+            // (The peep must be associated with this contact, so update and
+            // fire)
+
+            if (contact.name && contact.name.length)
+              peep.name = contact.name[0];
+            if (peep.onchange) {
+              try {
+                peep.onchange(peep);
+              }
+              catch (ex) {
+                reportClientCodeError('peep.onchange error', ex, '\n',
+                                      ex.stack);
+              }
+            }
+          }
+        }
+      };
+      // We don't need to do anything about onerror; the 'remove' event will
+      // probably have fired in this case, making us correct.
+    }
+  },
+
   resolvePeeps: function(addressPairs) {
     if (addressPairs === null)
       return null;
@@ -428,76 +649,106 @@ var ContactCache = {
     }
     return resolved;
   },
+  /**
+   * Create a MailPeep instance with the best information available and return
+   * it.  Information from the (moz)Contacts API always trumps the passed-in
+   * information.  If we have a cache hit (which covers both positive and
+   * negative evidence), we are done/all resolved immediately.  Otherwise, we
+   * need to issue an async request.  In that case, you want to check
+   * ContactCache.pendingLookupCount and push yourself onto
+   * ContactCache.callbacks if you want to be notified when the current set of
+   * lookups gets resolved.
+   *
+   * This is a slightly odd API, but it's based on the knowledge that for a
+   * single e-mail we will potentially need to perform multiple lookups and that
+   * e-mail addresses are also likely to come in batches so there's no need to
+   * generate N callbacks when 1 will do.
+   */
   resolvePeep: function(addressPair) {
     var emailAddress = addressPair.address;
-    var entry = this._cache[emailAddress], contact;
+    var entry = this._contactCache[emailAddress], contact, peep;
+    var contactsAPI = navigator.mozContacts;
     // known miss; create miss peep
-    if (entry === null) {
-      return new MailPeep(addressPair.name || '', emailAddress, false, null);
+    // no contacts API, always a miss, skip out before extra logic happens
+    if (entry === null || !contactsAPI) {
+      peep = new MailPeep(addressPair.name || '', emailAddress, null, null);
+      if (!contactsAPI)
+        return peep;
     }
     // known contact; unpack contact info
     else if (entry !== undefined) {
-      return new MailPeep(entry.name || addressPair.name || '', emailAddress,
-                          true,
+      peep = new MailPeep(entry.name || addressPair.name || '', emailAddress,
+                          entry.id,
                           (entry.photo && entry.photo.length) ?
                             entry.photo[0] : null);
     }
     // not yet looked-up; assume it's a miss and we'll fix-up if it's a hit
     else {
-      var peep = new MailPeep(addressPair.name || '', emailAddress, false,
-                              null),
-          pendingLookups = this.pendingLookups;
+      peep = new MailPeep(addressPair.name || '',
+                          emailAddress, null, null);
 
-      var idxPendingLookup = pendingLookups.indexOf(emailAddress),
-          peepsToFixup;
-      if (idxPendingLookup !== -1) {
-        peepsToFixup = pendingLookups[idxPendingLookup + 1];
-        peepsToFixup.push(peep);
-        return peep;
-      }
+      // Place a speculative miss in the contact cache so that additional
+      // requests take that path.  They will get fixed up when our lookup
+      // returns (or if a change event happens to come in before our lookup
+      // returns.)  Note that we do not do any hit/miss counting right now; we
+      // wait for the result to come back.
+      this._contactCache[emailAddress] = null;
 
-      var contactsAPI = navigator.mozContacts;
-      if (!contactsAPI)
-        return peep;
-
+      this.pendingLookupCount++;
       var req = contactsAPI.find({
                   filterBy: ['email'],
-                  filterOp: 'contains',
+                  filterOp: 'equals',
                   filterValue: emailAddress
                 });
-      pendingLookups.push(emailAddress);
-      pendingLookups.push(peepsToFixup = [peep]);
-      var handleResult = function handleResult() {
-        var idxPendingLookup = pendingLookups.indexOf(emailAddress), i;
+      var self = this, handleResult = function() {
         if (req.result && req.result.length) {
           var contact = req.result[0];
 
-          ContactCache._cache[emailAddress] = contact;
-          if (++ContactCache._cacheHitEntries > ContactCache.MAX_CACHE_HITS) {
-            ContactCache._cacheHitEntries = 0;
-            ContactCache._cacheEmptyEntries = 0;
-            ContactCache._cache = {};
-          }
+          ContactCache._contactCache[emailAddress] = contact;
+          if (++ContactCache._cacheHitEntries > ContactCache.MAX_CACHE_HITS)
+            self._resetCache();
 
-          for (i = 0; i < peepsToFixup.length; i++) {
+          var peepsToFixup = self._livePeepsByEmail[emailAddress];
+          // there might no longer be any MailPeeps alive to care; leave
+          if (!peepsToFixup)
+            return;
+          for (var i = 0; i < peepsToFixup.length; i++) {
             var peep = peepsToFixup[i];
-            peep.isContact = true;
+            if (!peep.contactId) {
+              peep.contactId = contact.id;
+              var livePeeps = self._livePeepsById[peep.contactId];
+              if (livePeeps === undefined)
+                livePeeps = self._livePeepsById[peep.contactId] = [];
+              livePeeps.push(peep);
+            }
+
             if (contact.name && contact.name.length)
               peep.name = contact.name[0];
             if (contact.photo && contact.photo.length)
               peep._thumbnailBlob = contact.photo[0];
+
+            // If no one is waiting for our/any request to complete, generate an
+            // onchange notification.
+            if (!self.callbacks.length) {
+              if (peep.onchange) {
+                try {
+                  peep.onchange(peep);
+                }
+                catch (ex) {
+                  reportClientCodeError('peep.onchange error', ex, '\n',
+                                        ex.stack);
+                }
+              }
+            }
           }
         }
         else {
-          ContactCache._cache[emailAddress] = null;
-          if (++ContactCache._cacheEmptyEntries > ContactCache.MAX_CACHE_EMPTY) {
-            ContactCache._cacheHitEntries = 0;
-            ContactCache._cacheEmptyEntries = 0;
-            ContactCache._cache = {};
-          }
+          ContactCache._contactCache[emailAddress] = null;
+          if (++ContactCache._cacheEmptyEntries > ContactCache.MAX_CACHE_EMPTY)
+            self._resetCache();
         }
-        pendingLookups.splice(idxPendingLookup, 2);
-        if (!pendingLookups.length) {
+        // Only notify callbacks if all outstanding lookups have completed
+        if (--self.pendingLookupCount === 0) {
           for (i = 0; i < ContactCache.callbacks.length; i++) {
             ContactCache.callbacks[i]();
           }
@@ -506,12 +757,57 @@ var ContactCache = {
       };
       req.onsuccess = handleResult;
       req.onerror = handleResult;
+    }
 
-      return peep;
+    // - track the peep in our lists of live peeps
+    var livePeeps;
+    livePeeps = this._livePeepsByEmail[emailAddress];
+    if (livePeeps === undefined)
+      livePeeps = this._livePeepsByEmail[emailAddress] = [];
+    livePeeps.push(peep);
+
+    if (peep.contactId) {
+      livePeeps = this._livePeepsById[peep.contactId];
+      if (livePeeps === undefined)
+        livePeeps = this._livePeepsById[peep.contactId] = [];
+      livePeeps.push(peep);
+    }
+
+    return peep;
+  },
+
+  forgetPeepInstances: function() {
+    var livePeepsById = this._livePeepsById,
+        livePeepsByEmail = this._livePeepsByEmail;
+    for (var iArg = 0; iArg < arguments.length; iArg++) {
+      var peeps = arguments[iArg];
+      if (!peeps)
+        continue;
+      for (var iPeep = 0; iPeep < peeps.length; iPeep++) {
+        var peep = peeps[iPeep], livePeeps, idx;
+        if (peep.contactId) {
+          livePeeps = livePeepsById[peep.contactId];
+          if (livePeeps) {
+            idx = livePeeps.indexOf(peep);
+            if (idx !== -1) {
+              livePeeps.splice(idx, 1);
+              if (livePeeps.length === 0)
+                delete livePeepsById[peep.contactId];
+            }
+          }
+        }
+        livePeeps = livePeepsByEmail[peep.address];
+        if (livePeeps) {
+          idx = livePeeps.indexOf(peep);
+          if (idx !== -1) {
+            livePeeps.splice(idx, 1);
+            if (livePeeps.length === 0)
+              delete livePeepsByEmail[peep.address];
+          }
+        }
+      }
     }
   },
-  pendingLookups: [],
-  callbacks: [],
 };
 
 function revokeImageSrc() {
@@ -534,13 +830,24 @@ function showBlobInImg(imgNode, blob) {
   imgNode.addEventListener('load', revokeImageSrc);
 }
 
-function MailPeep(name, address, isContact, thumbnailBlob) {
-  this.isContact = isContact;
+function MailPeep(name, address, contactId, thumbnailBlob) {
   this.name = name;
   this.address = address;
+  this.contactId = contactId;
   this._thumbnailBlob = thumbnailBlob;
+
+  this.element = null;
+  this.data = null;
+  // peeps are usually one of: from, to, cc, bcc
+  this.type = null;
+
+  this.onchange = null;
 }
 MailPeep.prototype = {
+  get isContact() {
+    return this.contactId !== null;
+  },
+
   toString: function() {
     return '[MailPeep: ' + this.address + ']';
   },
@@ -548,6 +855,13 @@ MailPeep.prototype = {
     return {
       name: this.name,
       address: this.address,
+      contactId: this.contactId
+    };
+  },
+  toWireRep: function() {
+    return {
+      name: this.name,
+      address: this.address
     };
   },
 
@@ -615,6 +929,27 @@ MailHeader.prototype = {
     };
   },
 
+  /**
+   * The use-case is the message list providing the message reader with a
+   * header.  The header really wants to get update notifications from the
+   * backend and therefore not be inert, but that's a little complicated and out
+   * of scope for the current bug.
+   *
+   * We clone at all because our MailPeep.onchange and MailPeep.element values
+   * were getting clobbered.  All the instances are currently intended to map
+   * 1:1 to a single UI widget, so cloning seems like the right thing to do.
+   *
+   * A deeper issue is whether the message reader will want to have its own
+   * slice since the reader will soon allow forward/backward navigation.  I
+   * assume we'll want the message list to track that movement, which suggests
+   * that it really doesn't want to do that.  This suggests we'll either want
+   * non-inert clones or to just use a list-of-handlers model with us using
+   * closures and being careful about removing event handlers.
+   */
+  makeCopy: function() {
+    return new MailHeader(this._slice, this._wireRep);
+  },
+
   __update: function(wireRep) {
     if (wireRep.snippet !== null)
       this.snippet = wireRep.snippet;
@@ -625,6 +960,14 @@ MailHeader.prototype = {
     this.isForwarded = wireRep.flags.indexOf('$Forwarded') !== -1;
     this.isJunk = wireRep.flags.indexOf('$Junk') !== -1;
     this.tags = filterOutBuiltinFlags(wireRep.flags);
+  },
+
+  /**
+   * Release subscriptions associated with the header; currently this just means
+   * tell the ContactCache we no longer care about the `MailPeep` instances.
+   */
+  __die: function() {
+    ContactCache.forgetPeepInstances([this.author], this.to, this.cc, this.bcc);
   },
 
   /**
@@ -764,6 +1107,10 @@ MailMatchedHeader.prototype = {
       type: 'MailMatchedHeader',
       id: this.header.id
     };
+  },
+
+  __die: function() {
+    this.header.__die();
   },
 };
 
@@ -1236,6 +1583,11 @@ BridgedViewSlice.prototype = {
         type: 'killSlice',
         handle: this._handle
       });
+
+    for (var i = 0; i < this.items.length; i++) {
+      var item = this.items[i];
+      item.__die();
+    }
   },
 };
 
@@ -1295,6 +1647,7 @@ function HeadersViewSlice(api, handle, ns) {
   this._bodiesRequest = {};
 }
 HeadersViewSlice.prototype = Object.create(BridgedViewSlice.prototype);
+
 /**
  * Request a re-sync of the time interval covering the effective time
  * range.  If the most recently displayed message is the most recent message
@@ -1770,6 +2123,8 @@ function MailAPI() {
   }
 
   this._setHasAccounts();
+
+  ContactCache.init();
 }
 exports.MailAPI = MailAPI;
 MailAPI.prototype = {
@@ -1913,7 +2268,7 @@ MailAPI.prototype = {
     // call to mozContacts.  In this case, we don't want to surface the data to
     // the UI until the contacts are fully resolved in order to avoid the UI
     // flickering or just triggering reflows that could otherwise be avoided.
-    if (ContactCache.pendingLookups.length) {
+    if (ContactCache.pendingLookupCount) {
       ContactCache.callbacks.push(function contactsResolved() {
         this._fire_sliceSplice(msg, slice, transformedItems, fake);
         this._doneProcessingMessage(msg);
@@ -2054,6 +2409,8 @@ MailAPI.prototype = {
             slice.onremove(item, i);
           if (item.onremove)
             item.onremove(item, i);
+          // the item needs a chance to clean up after itself.
+          item.__die();
         }
       }
       catch (ex) {
@@ -2089,7 +2446,7 @@ MailAPI.prototype = {
         // reset before calling in case it wants to chain.
         slice.oncomplete = null;
         try {
-          completeFunc();
+          completeFunc(msg.newEmailCount);
         }
         catch (ex) {
           reportClientCodeError('oncomplete notification error', ex,
@@ -2118,7 +2475,7 @@ MailAPI.prototype = {
           tempMsg.howMany = 0;
           tempMsg.index = 0;
           if (defaultItem) {
-            tempMsg.addItems = [defaultItem];
+            tempMsg.addItems = [defaultItem._wireRep];
             this._recvCache.accountId = defaultItem.id;
           }
           this._recvCache.accounts = tempMsg;
@@ -2795,7 +3152,7 @@ MailAPI.prototype = {
 
   resolveEmailAddressToPeep: function(emailAddress, callback) {
     var peep = ContactCache.resolvePeep({ name: null, address: emailAddress });
-    if (ContactCache.pendingLookups.length)
+    if (ContactCache.pendingLookupCount)
       ContactCache.callbacks.push(callback.bind(null, peep));
     else
       callback(peep);
@@ -2868,7 +3225,7 @@ MailAPI.prototype = {
       msg.refSuid = options.replyTo.id;
       msg.refDate = options.replyTo.date.valueOf();
       msg.refGuid = options.replyTo.guid;
-      msg.refAuthor = options.replyTo.author.toJSON();
+      msg.refAuthor = options.replyTo.author.toWireRep();
       msg.refSubject = options.replyTo.subject;
     }
     else if (options.hasOwnProperty('forwardOf') && options.forwardOf) {
@@ -2877,7 +3234,7 @@ MailAPI.prototype = {
       msg.refSuid = options.forwardOf.id;
       msg.refDate = options.forwardOf.date.valueOf();
       msg.refGuid = options.forwardOf.guid;
-      msg.refAuthor = options.forwardOf.author.toJSON();
+      msg.refAuthor = options.forwardOf.author.toWireRep();
       msg.refSubject = options.forwardOf.subject;
     }
     else {
