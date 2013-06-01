@@ -4605,12 +4605,17 @@ exports.INITIAL_SYNC_GROWTH_DAYS = 3;
 /**
  * What should be multiple the current number of sync days by when we perform
  * a sync and don't find any messages?  There are upper bounds in
- * `FolderStorage.onSyncCompleted` that cap this and there's more comments
- * there.
+ * `ImapFolderSyncer.onSyncCompleted` that cap this and there's more comments
+ * there.  Note that we keep moving our window back as we go.
+ *
+ * This was 1.6 for a while, but it was proving to be a bit slow when the first
+ * messages start a ways back.  Also, once we moved to just syncing headers
+ * without bodies, the cost of fetching more than strictly required went way
+ * down.
  *
  * IMAP only.
  */
-exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = 1.6;
+exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = 2;
 
 /**
  * What is the furthest back in time we are willing to go?  This is an
@@ -4625,6 +4630,23 @@ exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = 1.6;
 exports.OLDEST_SYNC_DATE = Date.UTC(1990, 0, 1);
 
 /**
+ * Don't bother with iterative deepening if a folder has less than this many
+ * messages; just sync the whole thing.  The trade-offs here are:
+ *
+ * - Not wanting to fetch more messages than we need.
+ * - Because header envelope fetches are done in a batch and IMAP servers like
+ *   to sort UIDs from low-to-high, we will get the oldest messages first.
+ *   This can be mitigated by having our sync logic use request windowing to
+ *   offset this.
+ * - The time required to fetch the headers versus the time required to
+ *   perform deepening.  Because of network and disk I/O, deepening can take
+ *   a very long time
+ *
+ * IMAP only.
+ */
+exports.SYNC_WHOLE_FOLDER_AT_N_MESSAGES = 40;
+
+/**
  * If we issued a search for a date range and we are getting told about more
  * than the following number of messages, we will try and reduce the date
  * range proportionately (assuming a linear distribution) so that we sync
@@ -4634,7 +4656,7 @@ exports.OLDEST_SYNC_DATE = Date.UTC(1990, 0, 1);
  *
  * IMAP only.
  */
-exports.BISECT_DATE_AT_N_MESSAGES = 50;
+exports.BISECT_DATE_AT_N_MESSAGES = 60;
 
 /**
  * What's the maximum number of messages we should ever handle in a go and
@@ -4762,6 +4784,10 @@ exports.SYNC_RANGE_ENUMS_TO_MS = {
  * Testing support to adjust the value we use for the number of initial sync
  * days.  The tests are written with a value in mind (7), but 7 turns out to
  * be too high an initial value for actual use, but is fine for tests.
+ *
+ * This started by taking human-friendly strings, but I changed to just using
+ * the constant names when I realized that consistency for grepping purposes
+ * would be a good thing.
  */
 exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
   if (syncValues.hasOwnProperty('fillSize'))
@@ -4771,6 +4797,9 @@ exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
   if (syncValues.hasOwnProperty('growDays'))
     exports.INITIAL_SYNC_GROWTH_DAYS = syncValues.growDays;
 
+  if (syncValues.hasOwnProperty('SYNC_WHOLE_FOLDER_AT_N_MESSAGES'))
+    exports.SYNC_WHOLE_FOLDER_AT_N_MESSAGES =
+      syncValues.SYNC_WHOLE_FOLDER_AT_N_MESSAGES;
   if (syncValues.hasOwnProperty('bisectThresh'))
     exports.BISECT_DATE_AT_N_MESSAGES = syncValues.bisectThresh;
   if (syncValues.hasOwnProperty('tooMany'))
