@@ -266,6 +266,10 @@ body {
   background-color: #fff;
 }
 
+#windows > .appWindow.packaged:not(.homescreen).render > iframe {
+  background-color: black;
+}
+
 #screen.active-statusbar #windows > .appWindow {
   top: 4rem;
 }
