@@ -55,16 +55,16 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   // knows what language to send errors to us in.
   // XXX: show a loading spinner here?
   if (navigator.mozL10n.readyState === 'complete') {
-    getYoutubeVideo(url, showPlayer, handleError);
+    getYoutubeVideo(url, showPlayer, handleYoutubeError);
   }
   else {
     window.addEventListener('localized', function handleLocalized() {
       window.removeEventListener('localized', handleLocalized);
-      getYoutubeVideo(url, showPlayer, handleError);
+      getYoutubeVideo(url, showPlayer, handleYoutubeError);
     });
   }
 
-  function handleError(message) {
+  function handleYoutubeError(message) {
     // Start with a localized error message prefix
     var error = navigator.mozL10n.get('youtube-error-prefix');
 
@@ -229,6 +229,14 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       play();
     };
     dom.player.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
+    dom.player.onerror = function(evt) {
+      handleError(navigator.mozL10n.get('videoinvalid'));
+    };
+  }
+
+  function handleError(msg) {
+    alert(msg);
+    done();
   }
 
   function play() {
