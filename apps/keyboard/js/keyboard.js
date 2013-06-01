@@ -221,6 +221,12 @@ const keyboardAlias = {
   'pt-BR': 'pt_BR'
 };
 
+//Define keyboard -> relevant langauge name
+const langAlias = {
+  'en': 'en-US',
+  'pt_BR': 'pt-BR'
+};
+
 // This is the default keyboard if none is selected in settings
 // XXX: switch this to pt-BR?
 // XXX: ideally, this should be based on the current language,
@@ -1334,19 +1340,29 @@ function endPress(target, coords, touchId) {
 
     /*
      * XXX
+     * If we switch to a different keyboard which has same input method as
+     * the previous one,then we dont need to call activate().We have to only
+     * call setLangauge() to inform the worker about the new langauge.
      * If we switch to a different keyboard that has a different input
-     * method, we need to call activate() again to set up the state for that
-     * input method. But we can only get the state we need when we get a
-     * focuschange event. This means that keyboard switching only works
-     * when the keyboards have the same input method.
+     * method like asian keyboard, we need to call activate() again to set
+     * up the state for that input method. But we can only get the state we
+     * need when we get a focuschange event.
+     * This means that keyboard switching only works when the keyboards have
+     * the same input method.
      * So to switch from a latin to an asian keyboard, you'd have to
      * lose focus and then refocus the input field.  In practice, I think
      * that asian keyboards have input methods that handle the latin case
      * so this probably isn't an issue.
-    if (inputMethod.activate) {
-      inputMethod.activate(userLanguage, suggestionsEnabled, currentInputType);
-    }
     */
+    if (inputMethod.activate && inputMethod.setLanguage) {
+    // Word suggestions should follow the keyboard language configuration like
+    // if user langauge is Spanish and portugues keyboard layout( pt_BR) is choosen,
+    // langAlias[keyboardName] will change it to pt-BR */
+      var lang = (userLanguage.indexOf(keyboardName) == 0) ?
+        userLanguage : ((typeof langAlias[keyboardName] !== 'undefined') ?
+          langAlias[keyboardName] : keyboardName);
+      inputMethod.setLanguage(lang);
+    }
     break;
 
     // Expand / shrink the candidate panel
@@ -1454,7 +1470,11 @@ function showKeyboard(state) {
   resetKeyboard();
 
   if (inputMethod.activate) {
-    inputMethod.activate(userLanguage, state, {
+    var lang = (userLanguage.indexOf(keyboardName) == 0) ?
+      userLanguage : ((typeof langAlias[keyboardName] !== 'undefined') ?
+        langAlias[keyboardName] : keyboardName);
+
+    inputMethod.activate(lang, state, {
       suggest: suggestionsEnabled,
       correct: correctionsEnabled
     });

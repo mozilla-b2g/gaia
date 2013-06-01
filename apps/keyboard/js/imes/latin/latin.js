@@ -50,6 +50,7 @@
     displaysCandidates: displaysCandidates,
     click: click,
     select: select,
+    setLanguage: setLanguage,
     setLayoutParams: setLayoutParams
   };
 
@@ -200,6 +201,15 @@
 
   function displaysCandidates() {
     return suggesting;
+  }
+
+  function setLanguage(lang) {
+    language = lang;
+    // Tell the worker what language we're using. This will cause it to
+    // load or reload its dictionary.
+    worker.postMessage({ cmd: 'setLanguage', args: [language]});
+    worker.postMessage({cmd: 'predict', args: [wordBeforeCursor()]});
+    updateCapitalization();
   }
 
   function setupSuggestionsWorker() {
