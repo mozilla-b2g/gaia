@@ -449,12 +449,14 @@ ImapFolderConn.prototype = {
   /**
    * If no connection, acquires one and also sets up
    * deathback if connection is lost.
+   *
+   * See `acquireConn` for argument docs.
    */
-  withConnection: function (callback, deathback, label) {
+  withConnection: function (callback, deathback, label, dieOnConnectFailure) {
     if (!this._conn) {
       this.acquireConn(function () {
         this.withConnection(callback, deathback, label);
-      }.bind(this), deathback, label);
+      }.bind(this), deathback, label, dieOnConnectFailure);
       return;
     }
 
@@ -1178,14 +1180,34 @@ ImapFolderSyncer.prototype = {
   initialSync: function(slice, initialDays, syncCallback,
                         doneCallback, progressCallback) {
     syncCallback('sync', false);
-    this._startSync(
-      slice, PASTWARDS, // sync into the past
-      'grow',
-      null, // start syncing from the (unconstrained) future
-      $sync.OLDEST_SYNC_DATE, // sync no further back than this constant
-      null,
-      initialDays,
-      doneCallback, progressCallback);
+    // We want to enter the folder and get the box info so we can know if we
+    // should trigger our SYNC_WHOLE_FOLDER_AT_N_MESSAGES logic.
+    // _timelySyncSearch is what will get called next either way, and it will
+    // just reuse the connection and will correctly update the deathback so
+    // that our deathback is no longer active.
+    this.folderConn.withConnection(
+      function(folderConn, storage) {
+        // Flag to sync the whole range if we
+        var syncWholeTimeRange = false;
+        if (folderConn && folderConn.box &&
+            folderConn.box.messages.total <
+              $sync.SYNC_WHOLE_FOLDER_AT_N_MESSAGES) {
+          syncWholeTimeRange = true;
+        }
+
+        this._startSync(
+          slice, PASTWARDS, // sync into the past
+          'grow',
+          null, // start syncing from the (unconstrained) future
+          $sync.OLDEST_SYNC_DATE, // sync no further back than this constant
+          null,
+          syncWholeTimeRange ? null : initialDays,
+          doneCallback, progressCallback);
+      }.bind(this),
+      function died() {
+        doneCallback('aborted');
+      },
+      'initialSync', true);
   },
 
   /**
@@ -1509,27 +1531,27 @@ console.log("folder message count", folderMessageCount,
       daysToSearch = Math.ceil(this._curSyncDayStep *
                                $sync.TIME_SCALE_FACTOR_ON_NO_MESSAGES);
 
+      // These values used to be more conservative, but the importance of these
+      // guards was reduced when we switched to only syncing headers.
+      // At current constants (sync=3, scale=2), our doubling in the face of
+      // clamping is: 3, 6, 12, 24, 45, ... 90,
       if (lastSyncDaysInPast < 180) {
-        if (daysToSearch > 14)
-          daysToSearch = 14;
+        if (daysToSearch > 45)
+          daysToSearch = 45;
       }
-      else if (lastSyncDaysInPast < 365) {
-        if (daysToSearch > 30)
-          daysToSearch = 30;
-      }
-      else if (lastSyncDaysInPast < 730) {
-        if (daysToSearch > 60)
-          daysToSearch = 60;
-      }
-      else if (lastSyncDaysInPast < 1095) {
+      else if (lastSyncDaysInPast < 365) { // 1 year
         if (daysToSearch > 90)
           daysToSearch = 90;
       }
-      else if (lastSyncDaysInPast < 1825) { // 5 years
+      else if (lastSyncDaysInPast < 730) { // 2 years
         if (daysToSearch > 120)
           daysToSearch = 120;
       }
-      else if (lastSyncDaysInPast < 3650) {
+      else if (lastSyncDaysInPast < 1825) { // 5 years
+        if (daysToSearch > 180)
+          daysToSearch = 180;
+      }
+      else if (lastSyncDaysInPast < 3650) { // 10 years
         if (daysToSearch > 365)
           daysToSearch = 365;
       }
@@ -1868,7 +1890,11 @@ ImapJobDriver.prototype = {
           });
 
           action();
-        }, deathback, label);
+        },
+        // Always pass true for dieOnConnectFailure; we don't want any of our
+        // operations hanging out waiting for retry backoffs.  The ops want to
+        // only run when we believe we are online with a good connection.
+        deathback, label, true);
       } else {
         action();
       }
