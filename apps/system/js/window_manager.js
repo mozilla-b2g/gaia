@@ -996,6 +996,9 @@ var WindowManager = (function() {
     var frame = document.createElement('div');
     frame.appendChild(iframe);
     frame.className = 'appWindow';
+    if (origin.indexOf('app://') === 0) {
+      frame.classList.add('packaged');
+    }
 
     iframe.dataset.frameOrigin = origin;
     // Save original frame URL in order to restore it on frame load error
