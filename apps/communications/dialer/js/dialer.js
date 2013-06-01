@@ -167,9 +167,25 @@ var CallHandler = (function callHandler() {
       });
       return;
     } else if (partialCommand === 'ATD') {
-      var phoneNumber = command.substring(3);
-      CallHandler.call(phoneNumber);
-      return;
+      // special prefix for call index
+      // ATD>3 means we have to call the 3rd recent number
+      if (command[3] === '>') {
+        var index = parseInt(command.substring(4), 10);
+
+        RecentsDBManager.init(function() {
+          RecentsDBManager.getAtIndex(index, function(lastRecent) {
+            if (lastRecent.number) {
+              CallHandler.call(lastRecent.number);
+            }
+          });
+        });
+
+        return;
+      } else {
+        var phoneNumber = command.substring(3);
+        CallHandler.call(phoneNumber);
+        return;
+      }
     }
 
     // Other commands needs to be handled from the call screen
