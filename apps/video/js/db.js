@@ -15,6 +15,15 @@ function initDB() {
 
     updateDialog();
   };
+
+  // On devices that have internal and external storage, we get this event
+  // when the user pulls the sdcard out. If we're playing a video when that
+  // happens, we need to stop or risk a crash.
+  videodb.oncardremoved = function() {
+    if (playerShowing)
+      hidePlayer(true);
+  };
+
   videodb.onready = function() {
     storageState = false;
     updateDialog();
