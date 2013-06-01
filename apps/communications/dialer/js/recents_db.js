@@ -185,7 +185,7 @@ var RecentsDBManager = {
   // Get the last outgoing call number
   getLastOutgoing: function rdbm_getLastDialing(callback) {
     var objectStore = this.db.transaction(RecentsDBManager._dbStore).
-    objectStore(RecentsDBManager._dbStore);
+                      objectStore(RecentsDBManager._dbStore);
     var cursor = objectStore.openCursor(null, 'prev');
     cursor.onsuccess = function(event) {
       var item = event.target.result;
@@ -195,6 +195,34 @@ var RecentsDBManager = {
       var value = item.value;
       if (value.type.indexOf('dialing') != -1) {
         callback(value);
+      } else {
+        item.continue();
+      }
+    };
+
+    cursor.onerror = function(e) {
+      console.log('recents_db get failure: ', e.message);
+    };
+  },
+
+  // Get the nth last call
+  // n = 1, means the last one
+  getAtIndex: function rdbm_getAtIndex(n, callback) {
+    var objectStore = this.db.transaction(RecentsDBManager._dbStore).
+                      objectStore(RecentsDBManager._dbStore);
+    var cursor = objectStore.openCursor(null, 'prev');
+
+    var i = 0;
+
+    cursor.onsuccess = function(event) {
+      var item = event.target.result;
+      if (!item)
+        return;
+
+      i++;
+
+      if (i == n) {
+        callback(item.value);
       } else {
         item.continue();
       }
