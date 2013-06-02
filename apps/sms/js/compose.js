@@ -283,7 +283,6 @@ var Compose = (function() {
     onAttachClick: function thui_onAttachClick(event) {
       var request = this.requestAttachment();
       request.onsuccess = this.append.bind(this);
-      composeCheck(event);
     },
 
     onAttachmentClick: function thui_onAttachmentClick(event) {
