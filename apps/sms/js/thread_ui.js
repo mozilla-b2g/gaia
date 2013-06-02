@@ -83,6 +83,8 @@ var ThreadUI = global.ThreadUI = {
     this._mozMobileMessage = navigator.mozMobileMessage ||
       window.DesktopMockNavigatormozMobileMessage;
 
+    window.addEventListener('resize', this.resizeHandler.bind(this));
+
     // In case of input, we have to resize the input following UX Specs.
     Compose.on('input', this.messageComposerInputHandler.bind(this));
 
@@ -316,6 +318,13 @@ var ThreadUI = global.ThreadUI = {
     this._convertNoticeTimeout = setTimeout(function hideConvertNotice() {
       this.convertNotice.classList.add('hide');
     }.bind(this), this.CONVERTED_MESSAGE_DURATION);
+  },
+
+  resizeHandler: function thui_resizeHandler() {
+    this.setInputMaxHeight();
+    this.updateInputHeight();
+    // Scroll to bottom
+    this.scrollViewToBottom();
   },
 
   // Create a recipient from contacts activity.
@@ -1547,11 +1556,5 @@ var ThreadUI = global.ThreadUI = {
 };
 
 window.confirm = window.confirm; // allow override in unit tests
-
-window.addEventListener('resize', function resize() {
-  ThreadUI.setInputMaxHeight();
-  // Scroll to bottom
-  ThreadUI.scrollViewToBottom();
-});
 
 }(this));
