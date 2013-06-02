@@ -583,10 +583,6 @@ form.bottom[role="search"].messages-compose-form {
   background-image: url(images/paperclip-button.png);
 }
 
-#messages-compose-form {
-  max-height: 38rem;
-}
-
 #messages-compose-form [contentEditable] {
   padding: 0.1rem 0.5rem;
   margin: 0.8rem 0.2rem;
