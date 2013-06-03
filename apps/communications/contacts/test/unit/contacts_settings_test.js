@@ -23,7 +23,7 @@ var mocksHelperForContactSettings = new MocksHelper([
 mocksHelperForContactSettings.init();
 
 suite('Contacts settings', function() {
-  var checkForCard, real_, realNavigatorConn;
+  var checkForCard, real_, realNavigatorIcc;
   var mocksHelper = mocksHelperForContactSettings;
 
   function stub(additionalCode, ret) {
@@ -147,8 +147,8 @@ suite('Contacts settings', function() {
     setup(function() {
       document.body.innerHTML = dom;
 
-      realNavigatorConn = window.navigator.mozMobileConnection;
-      navigator.mozMobileConnection = { cardState: 'ready' };
+      realNavigatorIcc = window.navigator.mozIccManager;
+      navigator.mozIccManager = { cardState: 'ready' };
 
       contacts.Settings.init();
       checkForCard = utils.sdcard.checkStorageCard;
@@ -194,7 +194,7 @@ suite('Contacts settings', function() {
 
     teardown(function() {
       document.body.innerHTML = '';
-      window.navigator.mozMobileConnection = realNavigatorConn;
+      window.navigator.mozIccManager = realNavigatorIcc;
         utils.sdcard.checkStorageCard = checkForCard;
       mocksHelper.teardown();
       MockasyncStorage.clear();
