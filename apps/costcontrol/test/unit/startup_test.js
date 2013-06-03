@@ -99,9 +99,10 @@ suite('Application Startup Modes Test Suite >', function() {
     });
   }
 
-  function assertFTEStarted(done) {
-    window.addEventListener('ftestarted', function _onftestarted() {
+  function assertFTEStarted(mode, done) {
+    window.addEventListener('ftestarted', function _onftestarted(evt) {
       window.removeEventListener('ftestarted', _onftestarted);
+      assert.equal(evt.detail, mode);
       done();
     });
   }
@@ -198,17 +199,53 @@ suite('Application Startup Modes Test Suite >', function() {
     CostControlApp.init();
   });
 
-  test('First Time Experience Loaded when new SIM', function(done) {
-    setupCardState('ready');
-    window.ConfigManager = new MockConfigManager({
-      fakeSettings: { fte: true },
-      applicationMode: 'DATA_USAGE_ONLY'
-    });
+  test(
+    'First Time Experience Loaded when new SIM > DATA_USAGE_ONLY',
+    function(done) {
+      var applicationMode = 'DATA_USAGE_ONLY';
+      setupCardState('ready');
+      window.ConfigManager = new MockConfigManager({
+        fakeSettings: { fte: true },
+        applicationMode: applicationMode
+      });
 
-    assertFTEStarted(done);
+      assertFTEStarted(applicationMode, done);
 
-    CostControlApp.init();
-  });
+      CostControlApp.init();
+    }
+  );
+
+  test(
+    'First Time Experience Loaded when new SIM > PREPAID',
+    function(done) {
+      var applicationMode = 'PREPAID';
+      setupCardState('ready');
+      window.ConfigManager = new MockConfigManager({
+        fakeSettings: { fte: true },
+        applicationMode: applicationMode
+      });
+
+      assertFTEStarted(applicationMode, done);
+
+      CostControlApp.init();
+    }
+  );
+
+  test(
+    'First Time Experience Loaded when new SIM > POSTPAID',
+    function(done) {
+      var applicationMode = 'POSTPAID';
+      setupCardState('ready');
+      window.ConfigManager = new MockConfigManager({
+        fakeSettings: { fte: true },
+        applicationMode: applicationMode
+      });
+
+      assertFTEStarted(applicationMode, done);
+
+      CostControlApp.init();
+    }
+  );
 
   function setupLayoutMode(applicationMode) {
     loadBodyHTML('/index.html');
