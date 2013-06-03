@@ -155,6 +155,7 @@ function MailAccount(api, wireRep, acctsSlice) {
   this.type = wireRep.type;
   this.name = wireRep.name;
   this.syncRange = wireRep.syncRange;
+  this.customConfig = wireRep.customConfig;
 
   /**
    * Is the account currently enabled, as in will we talk to the server?
@@ -191,6 +192,7 @@ function MailAccount(api, wireRep, acctsSlice) {
   }
 
   this.username = wireRep.credentials.username;
+  this.password = wireRep.credentials.password;
   this.servers = wireRep.servers;
 
   // build a place for the DOM element and arbitrary data into our shape
@@ -2786,6 +2788,7 @@ MailAPI.prototype = {
    *     }
    *     @key[emailAddress String]
    *     @key[password String]
+   *     @key[customConfig @object]
    *   ]]
    *   @param[callback @func[
    *     @args[
@@ -2831,9 +2834,8 @@ MailAPI.prototype = {
     }
     delete this._pendingRequests[msg.handle];
 
-    // The account info here is currently for unit testing only; it's our wire
-    // protocol instead of a full MailAccount.
-    req.callback.call(null, msg.error, msg.errorDetails, msg.account);
+    var account = new MailAccount(this, msg.account, null);
+    req.callback.call(null, msg.error, msg.errorDetails, account);
     return true;
   },
 

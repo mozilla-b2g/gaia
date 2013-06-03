@@ -360,3 +360,162 @@ if ('mozSetMessageHandler' in window.navigator) {
 else {
   console.warn('Activity support disabled!');
 }
+
+// Push notifications setup and handling
+
+// Given an account, finds an IMAP server that supports TLS for
+// use with that account in the push proxy. Returns the address
+// of the IMAP server as a string <host>:<port>, or null
+function findIMAPServerForPushProxy(account) {
+  for (var i = 0; i < account.servers.length; ++i) {
+    if (account.servers[i].type === 'imap' &&
+        account.servers[i].connInfo.crypto === true) {
+
+      return account.servers[i].connInfo.hostname
+              + ':' + account.servers[i].connInfo.port;
+    }
+  }
+
+  return null;
+}
+
+// Given an endpoint, return an object with the account that
+// owns it, and the type of the endpoint (new mail or reconnect)
+function registrationForPushEndpoint(endpoint, callback) {
+  var acctsSlice = MailAPI.viewAccounts(false);
+  acctsSlice.oncomplete = function() {
+    var registration = null;
+    for (var i = 0; i < acctsSlice.items.length; i++) {
+      var account = acctsSlice.items[i];
+
+      var type = null;
+      if (account.customConfig.newMailEndpoint === endpoint) {
+        type = 'new mail';
+      } else if (account.customConfig.reconnectEndpoint === endpoint) {
+        type = 'reconnect';
+      }
+
+      if (type !== null) {
+        registration = {
+          account: account,
+          type: type
+        };
+
+        break;
+      }
+    }
+
+    callback(registration);
+  }
+}
+
+function pushMessageHandler(message) {
+  registrationForPushEndpoint(message.pushEndpoint, function(registration) {
+    if (!registration) {
+      return;
+    }
+
+    if (registration.type === 'new mail') {
+      var notification = navigator.mozNotification.createNotification(
+        'New email',
+        'You have new email at account ' + registration.account.username
+      );
+
+      notification.show();
+    } else if (registration.type === 'reconnect') {
+      setupPushNotifications(registration.account);
+    }
+  });
+}
+
+function pushRegisterHandler(message) {
+  registrationForPushEndpoint(message.pushEndpoint, function(registration) {
+    if (!registration) {
+      return;
+    }
+
+    setupPushNotifications(registration.account);
+  })
+}
+
+function contactPushProxy(account, IMAPServer, newMailPushEndpoint, reconnectPushEndpoint) {
+  var pushProxy = 'http://localhost:8081/register'; // XXX make a pref?
+  var proxyRequest = new XMLHttpRequest({mozSystem: true});
+
+  proxyRequest.open('POST', pushProxy);
+  proxyRequest.onreadystatechange = function(evt) {
+    if (proxyRequest.readyState == 4) {
+      if (proxyRequest.status === 200) {
+        account.modifyAccount({
+          customConfig: {
+            newMailEndpoint: newMailPushEndpoint,
+            reconnectEndpoint: reconnectPushEndpoint
+          }
+        });
+
+        console.log('Set up push notifications for ' + account.username);
+      } else {
+        navigator.push.unregister(newMailPushEndpoint);
+        navigator.push.unregister(reconnectPushEndpoint);
+        console.log('Failed to set up push notifications for ' + account.username);
+      }
+    }
+  }
+
+  proxyRequest.send(JSON.stringify({
+    'username': account.username,
+    'password': account.password,
+    'onNewMessageURL': newMailPushEndpoint,
+    'onReconnectURL': reconnectPushEndpoint,
+    'IMAPServer': IMAPServer
+  }));
+}
+
+function setupPushNotifications(account) {
+  if (!hasPushNotifications) {
+    return;
+  }
+
+  var IMAPServer = findIMAPServerForPushProxy(account);
+  if (IMAPServer === null) {
+    console.log("Can't find suitable email server for push notifications");
+    return;
+  }
+
+  // register for two push endpoints, send them to the email
+  // proxy once we have both.
+  var newMailPushEndpoint, reconnectPushEndpoint;
+
+  navigator.push.register().onsuccess = function(e) {
+    newMailPushEndpoint = e.target.result;
+    if (reconnectPushEndpoint) {
+      contactPushProxy(account,
+                       IMAPServer,
+                       newMailPushEndpoint,
+                       reconnectPushEndpoint);
+    }
+  }
+
+  navigator.push.register().onsuccess = function(e) {
+    reconnectPushEndpoint = e.target.result;
+    if (newMailPushEndpoint) {
+      contactPushProxy(account,
+                       IMAPServer,
+                       newMailPushEndpoint,
+                       reconnectPushEndpoint);
+    }
+  }
+}
+
+var hasPushNotifications = true;
+['push', 'mozSetMessageHandler', 'mozNotification'].forEach(function(prop) {
+  if (!navigator[prop]) {
+    console.warn('Missing ' + prop + ', will not set up push notifications');
+    hasPushNotifications = false;
+  }
+});
+
+if (hasPushNotifications) {
+  navigator.mozSetMessageHandler('push', pushMessageHandler);
+  navigator.mozSetMessageHandler('push-register', pushRegisterHandler);
+}

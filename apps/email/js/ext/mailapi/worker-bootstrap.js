@@ -11953,6 +11953,10 @@ MailBridge.prototype = {
           if (val)
             accountDef.defaultPriority = $date.NOW();
           break;
+
+        case 'customConfig':
+          accountDef.customConfig = val;
+          break;
       }
     }
     this.universe.saveAccountDef(accountDef, null);

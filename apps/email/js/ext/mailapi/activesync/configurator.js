@@ -2740,6 +2740,7 @@ ActiveSyncAccount.prototype = {
       name: this.accountDef.name,
       path: this.accountDef.name,
       type: this.accountDef.type,
+      customConfig: this.accountDef.customConfig,
 
       defaultPriority: this.accountDef.defaultPriority,
 
@@ -2752,6 +2753,7 @@ ActiveSyncAccount.prototype = {
 
       credentials: {
         username: this.accountDef.credentials.username,
+        password: this.accountDef.credentials.password
       },
 
       servers: [
@@ -3546,7 +3548,9 @@ exports.configurator = {
               replyTo: null,
               signature: null
             },
-          ]
+          ],
+
+          customConfig: userDetails.customConfig
         };
 
         self._loadAccount(universe, accountDef, conn, function (account) {
