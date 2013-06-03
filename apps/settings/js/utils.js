@@ -427,6 +427,30 @@ var getMobileConnection = function() {
   };
 };
 
+// create a fake mozIccManager if required (e.g. desktop browser)
+var getIccManager = function() {
+  var navigator = window.navigator;
+  if (('mozIccManager' in navigator) &&
+      navigator.mozIccManager) {
+    return navigator.mozIccManager;
+  }
+
+  function fakeEventListener(type, callback, bubble) {
+    if (initialized)
+      return;
+
+    // simulates a connection to a data network;
+    setTimeout(function fakeCallback() {
+      initialized = true;
+      callback();
+    }, 5000);
+  }
+
+  return {
+    addEventListener: fakeEventListener
+  };
+};
+
 var getBluetooth = function() {
   var navigator = window.navigator;
   if ('mozBluetooth' in navigator)

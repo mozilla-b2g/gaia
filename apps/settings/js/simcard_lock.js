@@ -15,7 +15,7 @@ var SimPinLock = {
   updateSimCardStatus: function spl_updateSimStatus() {
     var _ = navigator.mozL10n.get;
 
-    var cardState = this.mobileConnection.cardState;
+    var cardState = this.icc.cardState;
     var cardStateMapping = {
       'null': 'simCardNotReady',
       'unknown': 'unknownSimCardState',
@@ -54,12 +54,12 @@ var SimPinLock = {
     if (!this.icc)
       return;
 
-    this.mobileConnection.addEventListener('cardstatechange',
+    this.icc.addEventListener('cardstatechange',
       this.updateSimCardStatus.bind(this));
 
     var self = this;
     this.simPinCheckBox.onchange = function spl_toggleSimPin() {
-      switch (self.mobileConnection.cardState) {
+      switch (self.icc.cardState) {
         case 'pukRequired':
           var enabled = this.checked;
           SimPinDialog.show('unlock',

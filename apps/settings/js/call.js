@@ -28,6 +28,7 @@ var Calls = (function(window, document, undefined) {
     CALL_FORWARD_ACTION_ERASURE: 4
   };
 
+  var icc = getIccManager();
   var mobileConnection = getMobileConnection();
   var settings = window.navigator.mozSettings;
   var _voiceServiceClassMask = mobileConnection.ICC_SERVICE_CLASS_VOICE;
@@ -129,8 +130,8 @@ var Calls = (function(window, document, undefined) {
       'absent' : _('noSimCard'),
       'null' : _('simCardNotReady')
     };
-    var simCardState = kSimCardStates[mobileConnection.cardState ?
-                                      mobileConnection.cardState :
+    var simCardState = kSimCardStates[icc.cardState ?
+                                      icc.cardState :
                                       'null'];
     displayInfoForAll(simCardState);
   };
@@ -287,7 +288,7 @@ var Calls = (function(window, document, undefined) {
           return;
         }
         // Bails out in case of airplane mode.
-        if (mobileConnection.cardState !== 'ready') {
+        if (icc.cardState !== 'ready') {
           return;
         }
         var selector = 'input[data-setting="ril.cf.' + key + '.number"]';
@@ -403,19 +404,19 @@ var Calls = (function(window, document, undefined) {
 
   function initCallForwarding() {
     displayInfoForAll(_('callForwardingRequesting'));
-    if (!settings || !mobileConnection) {
+    if (!settings || !mobileConnection || !icc) {
       displayInfoForAll(_('callForwardingQueryError'));
       return;
     }
 
-    if (mobileConnection.cardState != 'ready') {
+    if (icc.cardState != 'ready') {
       displaySimCardStateInfo();
       return;
     }
 
     // Prevent sub panels from being selected while airplane mode.
-    mobileConnection.addEventListener('cardstatechange', function() {
-      enableTapOnCallForwardingItems(mobileConnection.cardState === 'ready');
+    icc.addEventListener('cardstatechange', function() {
+      enableTapOnCallForwardingItems(icc.cardState === 'ready');
     });
 
     // Initialize the call forwarding alert panel.
@@ -481,17 +482,17 @@ var Calls = (function(window, document, undefined) {
   }
 
   function initCallWaiting() {
-    if (!settings || !mobileConnection) {
+    if (!settings || !mobileConnection || !icc) {
       return;
     }
 
-    if (mobileConnection.cardState != 'ready') {
+    if (icc.cardState != 'ready') {
       return;
     }
 
     // Prevent the item from being changed while airplane mode.
-    mobileConnection.addEventListener('cardstatechange', function() {
-      enableTabOnCallWaitingItem(mobileConnection.cardState === 'ready');
+    icc.addEventListener('cardstatechange', function() {
+      enableTabOnCallWaitingItem(icc.cardState === 'ready');
     });
 
     var alertPanel = document.querySelector('#call .cw-alert');

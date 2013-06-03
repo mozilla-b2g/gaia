@@ -26,10 +26,6 @@ var Security = {
       phonelockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
     };
 
-    var mobileConnection = navigator.mozMobileConnection;
-    if (!mobileConnection)
-      return;
-
     var icc = navigator.mozIccManager;
     if (!icc)
       return;
@@ -37,7 +33,7 @@ var Security = {
     var simSecurityDesc = document.getElementById('simCardLock-desc');
     simSecurityDesc.style.fontStyle = 'italic';
 
-    switch (mobileConnection.cardState) {
+    switch (icc.cardState) {
       case null:
         simSecurityDesc.textContent = _('simCardNotReady');
         simSecurityDesc.dataset.l10nId = 'simCardNotReady';
