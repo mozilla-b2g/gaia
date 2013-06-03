@@ -336,11 +336,17 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
   function updateSelectionMode(scan) {
     var mode = mobileConnection.networkSelectionMode;
-    opAutoSelectState.textContent = mode || '';
     // we're assuming the auto-selection is ON by default.
-    opAutoSelectInput.checked = !mode || (mode === 'automatic');
-    if (!opAutoSelectInput.checked && scan) {
-      gOperatorNetworkList.scan();
+    var auto = !mode || (mode === 'automatic');
+    opAutoSelectInput.checked = auto;
+    if (auto) {
+      localize(opAutoSelectState, 'operator-networkSelect-auto');
+    } else {
+      opAutoSelectState.dataset.l10nId = '';
+      opAutoSelectState.textContent = mode;
+      if (scan) {
+        gOperatorNetworkList.scan();
+      }
     }
   }
 
@@ -403,16 +409,13 @@ var Carrier = (function newCarrier(window, document, undefined) {
       currentStateElement.textContent = messageElement.textContent;
       currentStateElement.dataset.l10nId = messageElement.dataset.l10nId;
       currentStateElement = messageElement;
-      messageElement.textContent = _('operator-status-connecting');
-      messageElement.dataset.l10nId = 'operator-status-connecting';
+      localize(messageElement,'operator-status-connecting');
       req.onsuccess = function onsuccess() {
-        messageElement.textContent = _('operator-status-connected');
-        messageElement.dataset.l10nId = 'operator-status-connected';
+        localize(messageElement, 'operator-status-connected');
         updateSelectionMode(false);
       };
       req.onerror = function onsuccess() {
-        messageElement.textContent = _('operator-status-connectingfailed');
-        messageElement.dataset.l10nId = 'operator-status-connectingfailed';
+        localize(messageElement, 'operator-status-connectingfailed');
         updateSelectionMode(false);
       };
     }
