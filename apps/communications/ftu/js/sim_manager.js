@@ -16,7 +16,7 @@ var SimManager = {
 
     this.icc.addEventListener('icccardlockerror',
                                   this.handleUnlockError.bind(this));
-    this.mobConn.addEventListener('cardstatechange',
+    this.icc.addEventListener('cardstatechange',
                                   this.handleCardState.bind(this));
 
     this.alreadyImported = false;
@@ -78,9 +78,9 @@ var SimManager = {
   },
 
   available: function sm_available() {
-    if (!this.mobConn)
+    if (!this.icc)
       return false;
-    return (this.mobConn.cardState === 'ready');
+    return (this.icc.cardState === 'ready');
   },
 
  /**
@@ -98,7 +98,7 @@ var SimManager = {
   handleCardState: function sm_handleCardState(callback) {
     SimManager.checkSIMButton();
     this.accessCallback = (typeof callback === 'function') ? callback : null;
-    switch (this.mobConn.cardState) {
+    switch (this.icc.cardState) {
       case 'pinRequired':
         this.showPinScreen();
         break;
@@ -112,7 +112,7 @@ var SimManager = {
         break;
       default:
         if (this.accessCallback) {
-          this.accessCallback(this.mobConn.cardState === 'ready');
+          this.accessCallback(this.icc.cardState === 'ready');
         }
         break;
     }
@@ -190,7 +190,7 @@ var SimManager = {
     UIManager.pukcodeScreen.classList.remove('show');
     UIManager.xckcodeScreen.classList.add('show');
 
-    switch (this.mobConn.cardState) {
+    switch (this.icc.cardState) {
       case 'networkLocked':
         UIManager.unlockSimHeader.textContent = _('nckcode');
         UIManager.xckLabel.textContent = _('type_nck');
@@ -225,7 +225,7 @@ var SimManager = {
   unlock: function sm_unlock() {
     this._unlocked = false;
 
-    switch (this.mobConn.cardState) {
+    switch (this.icc.cardState) {
       case 'pinRequired':
         this.unlockPin();
         break;
@@ -313,7 +313,7 @@ var SimManager = {
   unlockXck: function sm_unlockXck() {
     var xck = UIManager.xckInput.value;
     var lockType;
-    switch (this.mobConn.cardState) {
+    switch (this.icc.cardState) {
       case 'networkLocked':
         lockType = 'nck';
         break;

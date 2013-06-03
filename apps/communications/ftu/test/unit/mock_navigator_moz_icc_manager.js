@@ -2,10 +2,18 @@
 
 (function() {
 
+  var props = ['cardState'];
   var listeners;
 
   function _init() {
+    props.forEach(function(prop) {
+      Mock[prop] = null;
+    });
     listeners = {};
+  }
+
+  function _setProperty(property, newState) {
+    Mock[property] = newState;
   }
 
   function _addEventListener(evtName, func) {
@@ -37,6 +45,7 @@
 
   var Mock = {
     mTeardown: _init,
+    setProperty: _setProperty,
     addEventListener: _addEventListener,
     removeEventListener: _removeEventListener,
     unlockCardLock: _unlockCardLock
