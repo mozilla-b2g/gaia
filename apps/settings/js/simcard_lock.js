@@ -10,6 +10,7 @@ var SimPinLock = {
   changeSimPinButton: document.querySelector('#simpin-change button'),
 
   mobileConnection: null,
+  icc: null,
 
   updateSimCardStatus: function spl_updateSimStatus() {
     var _ = navigator.mozL10n.get;
@@ -31,7 +32,7 @@ var SimPinLock = {
 
     // with SIM card, query its status
     var self = this;
-    var req = this.mobileConnection.getCardLock('pin');
+    var req = this.icc.getCardLock('pin');
     req.onsuccess = function spl_checkSuccess() {
       var enabled = req.result.enabled;
       self.simSecurityDesc.textContent = (enabled) ?
@@ -47,6 +48,10 @@ var SimPinLock = {
   init: function spl_init() {
     this.mobileConnection = window.navigator.mozMobileConnection;
     if (!this.mobileConnection)
+      return;
+
+    this.icc = window.navigator.mozIccManager;
+    if (!this.icc)
       return;
 
     this.mobileConnection.addEventListener('cardstatechange',
