@@ -20,8 +20,7 @@ XPCOMUtils.defineLazyServiceGetter(this, "ppmm",
 let Keyboard = {
   _messageManager: null,
   _messageNames: [
-    'SetValue', 'RemoveFocus', 'SetSelectedOption', 'SetSelectedOptions',
-    'SetSelectionRange', 'ReplaceSurroundingText'
+    'SetValue', 'RemoveFocus', 'SetSelectedOption', 'SetSelectedOptions'
   ],
 
   get messageManager() {
@@ -38,7 +37,6 @@ let Keyboard = {
   init: function keyboardInit() {
     Services.obs.addObserver(this, 'in-process-browser-or-app-frame-shown', false);
     Services.obs.addObserver(this, 'remote-browser-frame-shown', false);
-    Services.obs.addObserver(this, 'oop-frameloader-crashed', false);
 
     for (let name of this._messageNames)
       ppmm.addMessageListener('Keyboard:' + name, this);
@@ -47,32 +45,23 @@ let Keyboard = {
   observe: function keyboardObserve(subject, topic, data) {
     let frameLoader = subject.QueryInterface(Ci.nsIFrameLoader);
     let mm = frameLoader.messageManager;
+    mm.addMessageListener('Forms:Input', this);
 
-    if (topic == 'oop-frameloader-crashed') {
-      if (this.messageManager == mm) {
-        // The application has been closed unexpectingly. Let's tell the
-        // keyboard app that the focus has been lost.
-        ppmm.broadcastAsyncMessage('Keyboard:FocusChange', { 'type': 'blur' });
-      }
-    } else {
-      mm.addMessageListener('Forms:Input', this);
-
-      // When not running apps OOP, we need to load forms.js here since this
-      // won't happen from dom/ipc/preload.js
-      try {
-         if (Services.prefs.getBoolPref("dom.ipc.tabs.disabled") === true) {
-           mm.loadFrameScript(kFormsFrameScript, true);
-        }
-      } catch (e) {
-         dump('Error loading ' + kFormsFrameScript + ' as frame script: ' + e + '\n');
-      }
-    }
+    // When not running apps OOP, we need to load forms.js here since this
+    // won't happen from dom/ipc/preload.js
+    try {
+       if (Services.prefs.getBoolPref("dom.ipc.tabs.disabled") === true) {
+         mm.loadFrameScript(kFormsFrameScript, true);
+       }
+     } catch (e) {
+       dump('Error loading ' + kFormsFrameScript + ' as frame script: ' + e + '\n');
+     }
   },
 
   receiveMessage: function keyboardReceiveMessage(msg) {
     // If we get a 'Keyboard:XXX' message, check that the sender has the
     // keyboard permission.
-    if (msg.name.indexOf("Keyboard:") != -1) {
+    if (msg.name != 'Forms:Input') {
       let mm;
       try {
         mm = msg.target.QueryInterface(Ci.nsIFrameLoaderOwner)
@@ -98,9 +87,6 @@ let Keyboard = {
       case 'Forms:Input':
         this.handleFormsInput(msg);
         break;
-      case 'Forms:SelectionChange':
-        this.handleFormsSelectionChange(msg);
-        break;
       case 'Keyboard:SetValue':
         this.setValue(msg);
         break;
@@ -113,12 +99,6 @@ let Keyboard = {
       case 'Keyboard:SetSelectedOptions':
         this.setSelectedOption(msg);
         break;
-      case 'Keyboard:SetSelectionRange':
-        this.setSelectionRange(msg);
-        break;
-      case 'Keyboard:ReplaceSurroundingText':
-        this.replaceSurroundingText(msg);
-        break;
     }
   },
 
@@ -129,13 +109,6 @@ let Keyboard = {
     ppmm.broadcastAsyncMessage('Keyboard:FocusChange', msg.data);
   },
 
-  handleFormsSelectionChange: function keyboardHandleFormsSelectionChange(msg) {
-    this.messageManager = msg.target.QueryInterface(Ci.nsIFrameLoaderOwner)
-                             .frameLoader.messageManager;
-
-    ppmm.broadcastAsyncMessage('Keyboard:SelectionChange', msg.data);
-  },
-
   setSelectedOption: function keyboardSetSelectedOption(msg) {
     this.messageManager.sendAsyncMessage('Forms:Select:Choice', msg.data);
   },
@@ -144,21 +117,12 @@ let Keyboard = {
     this.messageManager.sendAsyncMessage('Forms:Select:Choice', msg.data);
   },
 
-  setSelectionRange: function keyboardSetSelectionRange(msg) {
-    this.messageManager.sendAsyncMessage('Forms:SetSelectionRange', msg.data);
-  },
-
   setValue: function keyboardSetValue(msg) {
     this.messageManager.sendAsyncMessage('Forms:Input:Value', msg.data);
   },
 
   removeFocus: function keyboardRemoveFocus() {
     this.messageManager.sendAsyncMessage('Forms:Select:Blur', {});
-  },
-
-  replaceSurroundingText: function keyboardReplaceSurroundingText(msg) {
-    this.messageManager.sendAsyncMessage('Forms:ReplaceSurroundingText',
-                                         msg.data);
   }
 };
 
