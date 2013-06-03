@@ -28,7 +28,7 @@
         detail: { 'command': iccCommand }
       });
       window.dispatchEvent(event);
-    }, 1000);
+    }, 2000);
   }
 
   setTimeout(function updateStkMenu() {

@@ -821,6 +821,8 @@
       case icc.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
         selectedPhoneSound = 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms.ogg';
         break;
+      default:
+        selectedPhoneSound = 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
     }
     tonePlayer.src = selectedPhoneSound;
     tonePlayer.loop = true;
