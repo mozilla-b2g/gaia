@@ -57,7 +57,6 @@ if (BROWSER) {
 
   // Enable apis use on the device
   prefs.push(["dom.sms.enabled", true]);
-  prefs.push(["dom.mozContacts.enabled", true]);
   prefs.push(["dom.mozTCPSocket.enabled", true]);
   prefs.push(["notification.feature.enabled", true]);
   prefs.push(["dom.sysmsg.enabled", true]);
@@ -70,6 +69,11 @@ if (BROWSER) {
   prefs.push(["dom.mozSettings.enabled", true]);
   prefs.push(["dom.navigator-property.disable.mozSettings", false]);
   prefs.push(["dom.mozPermissionSettings.enabled", true]);
+
+  // Contacts
+  prefs.push(["dom.mozContacts.enabled", true]);
+  prefs.push(["dom.navigator-property.disable.mozContacts", false]);
+  prefs.push(["dom.global-constructor.disable.mozContact", false]);
 }
 
 if (DEBUG) {
