@@ -2,6 +2,7 @@
 
 requireApp('costcontrol/test/unit/mock_debug.js');
 requireApp('costcontrol/test/unit/mock_moz_mobile_connection.js');
+requireApp('costcontrol/test/unit/mock_moz_icc_manager.js');
 requireApp('costcontrol/test/unit/mock_config_manager.js');
 requireApp('costcontrol/test/unit/mock_settings_listener.js');
 requireApp('costcontrol/js/utils/toolkit.js');
@@ -9,7 +10,8 @@ requireApp('costcontrol/js/costcontrol.js');
 
 var realSettingsListener,
     realConfigManager,
-    realMozMobileConnection;
+    realMozMobileConnection,
+    realMozIccManager;
 
 if (!this.SettingsListener) {
   this.SettingsListener = null;
@@ -23,6 +25,10 @@ if (!this.navigator.mozMobileConnection) {
   this.navigator.mozMobileConnection = null;
 }
 
+if (!this.navigator.mozIccManager) {
+  this.navigator.mozIccManager = null;
+}
+
 suite('Cost Control Service Hub Suite >', function() {
 
   suiteSetup(function() {
@@ -31,8 +37,11 @@ suite('Cost Control Service Hub Suite >', function() {
 
     realConfigManager = window.ConfigManager;
 
-    realMozMobileConnection = window.navigator.mozMozMobileConnection;
+    realMozMobileConnection = window.navigator.mozMobileConnection;
     window.navigator.mozMobileConnection = new MockMozMobileConnection();
+
+    realMozIccManager = window.navigator.mozIccManager;
+    window.navigator.mozIccManager = new MockMozIccManager();
   });
 
   suiteTeardown(function() {
@@ -40,6 +49,7 @@ suite('Cost Control Service Hub Suite >', function() {
     window.SettingsListener = realSettingsListener;
     window.ConfigManager = realConfigManager;
     window.navigator.mozMobileConnection = realMozMobileConnection;
+    window.navigator.mozIccManager = realMozIccManager;
   });
 
   function setupDelaySinceLastBalance(lastBalanceRequest, delay) {

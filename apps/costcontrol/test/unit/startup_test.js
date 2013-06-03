@@ -9,6 +9,7 @@ requireApp('costcontrol/test/unit/mock_debug.js');
 requireApp('costcontrol/test/unit/mock_common.js');
 requireApp('costcontrol/test/unit/mock_moz_l10n.js');
 requireApp('costcontrol/test/unit/mock_moz_mobile_connection.js');
+requireApp('costcontrol/test/unit/mock_moz_icc_manager.js');
 requireApp('costcontrol/shared/test/unit/mocks/' +
            'mock_navigator_moz_set_message_handler.js');
 requireApp('costcontrol/test/unit/mock_cost_control.js');
@@ -21,6 +22,7 @@ require('/shared/test/unit/load_body_html_helper.js');
 
 var realCommon,
     realMozMobileConnection,
+    realMozIccManager,
     realMozL10n,
     realCostControl,
     realConfigManager,
@@ -32,6 +34,10 @@ if (!this.Common) {
 
 if (!this.navigator.mozMobileConnection) {
   this.navigator.mozMobileConnection = null;
+}
+
+if (!this.navigator.mozIccManager) {
+  this.navigator.mozIccManager = null;
 }
 
 if (!this.navigator.mozL10n) {
@@ -57,6 +63,8 @@ suite('Application Startup Modes Test Suite >', function() {
 
     realMozMobileConnection = window.navigator.mozMobileConnection;
 
+    realMozIccManager = window.navigator.mozIccManager;
+
     realMozL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = window.MockMozL10n;
 
@@ -78,6 +86,7 @@ suite('Application Startup Modes Test Suite >', function() {
   suiteTeardown(function() {
     window.Common = realCommon;
     window.navigator.mozMobileConnection = realMozMobileConnection;
+    window.navigator.mozIccManager = realMozIccManager;
     window.navigator.mozL10n = realMozL10n;
     window.CostControl = realCostControl;
     window.ConfigManager = realConfigManager;
@@ -166,7 +175,8 @@ suite('Application Startup Modes Test Suite >', function() {
   function setupCardState(cardState) {
     window.Common = new MockCommon({ isValidICCID: true });
     window.CostControl = new MockCostControl();
-    window.navigator.mozMobileConnection = new MockMozMobileConnection({
+    window.navigator.mozMobileConnection = new MockMozMobileConnection({});
+    window.navigator.mozIccManager = new MockMozIccManager({
       cardState: cardState
     });
   }
@@ -256,7 +266,8 @@ suite('Application Startup Modes Test Suite >', function() {
     loadBodyHTML('/index.html');
     window.Common = new MockCommon({ isValidICCID: true });
     window.CostControl = new MockCostControl();
-    window.navigator.mozMobileConnection = new MockMozMobileConnection({
+    window.navigator.mozMobileConnection = new MockMozMobileConnection({});
+    window.navigator.mozIccManager = new MockMozIccManager({
       cardState: 'ready'
     });
     window.ConfigManager = new MockConfigManager({
