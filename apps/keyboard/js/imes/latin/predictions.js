@@ -340,6 +340,12 @@ var Predictions = function() {
     // This is where we store the best complete words we've found so far.
     var words = new BoundedPriorityQueue(maxSuggestions);
 
+    // If the first letter of the input is a capital letter, then we
+    // want to capitalize the first letter of all the suggested words.
+    // We do this here rather than in latin.js so that we can filter out
+    // repeated words that come in both upper and lowercase forms
+    var capitalize = (input[0] === input[0].toUpperCase());
+
     // This is the object we return. It allows the caller to abort a
     // prediction in progress.
     var status = {
@@ -460,6 +466,10 @@ var Predictions = function() {
 
     // Add a word to the priority queue of words
     function addWord(word, weight) {
+      // If the input was capitalized, capitalize the word
+      if (capitalize)
+        word = word[0].toUpperCase() + word.substring(1);
+
       // Make sure we don't already have the word in the queue
       for (var i = 0, n = words.items.length; i < n; i++) {
         if (words.items[i][0] === word) {
