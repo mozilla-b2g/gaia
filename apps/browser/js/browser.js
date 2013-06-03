@@ -76,8 +76,28 @@ var Browser = {
     // (currently homepage is blank)
     Places.init((function(firstRun) {
       this.selectTab(this.createTab());
-      if (firstRun)
-        this.populateDefaultData();
+      if (firstRun) {
+        LazyLoader.load(['shared/js/async_storage.js',
+                         'js/customize.js'], function() {
+          Customize.populateDefaultData();
+        });
+      } else {
+        // restore search engine provider
+        LazyLoader.load(['shared/js/async_storage.js'], function() {
+          asyncStorage.getItem('default_search_provider_url',
+            function(value) {
+            this.DEFAULT_SEARCH_PROVIDER_URL = value;
+          });
+          asyncStorage.getItem('default_search_provider_title',
+            function(value) {
+            this.DEFAULT_SEARCH_PROVIDER_TITLE = value;
+          });
+          asyncStorage.getItem('default_search_provider_icon',
+            function(value) {
+            this.DEFAULT_SEARCH_PROVIDER_ICON = value;
+          }.bind(this));
+        });
+      }
       this.addressBarState = this.VISIBLE;
     }).bind(this));
   },
@@ -246,85 +266,6 @@ var Browser = {
 
      ModalDialog.init();
      AuthenticationDialog.init(false);
-  },
-
-  populateDefaultData: function browser_populateDefaultData() {
-    console.log('Populating default data.');
-
-    var DEFAULT_BOOKMARK = '000000';
-    var iccSettings = { mcc: '-1', mnc: '-1' };
-
-    // Read the mcc/mnc settings, then trigger callback.
-    // pattern from system/js/operator_variant/operator_variant.js
-    function getICCSettings(callback, data) {
-      var transaction = navigator.mozSettings.createLock();
-      var mccKey = 'operatorvariant.mcc';
-      var mncKey = 'operatorvariant.mnc';
-
-      var mccRequest = transaction.get(mccKey);
-      mccRequest.onsuccess = function() {
-        iccSettings.mcc = mccRequest.result[mccKey] || '0';
-        var mncRequest = transaction.get(mncKey);
-        mncRequest.onsuccess = function() {
-          iccSettings.mnc = mncRequest.result[mncKey] || '0';
-          callback(data);
-        };
-      };
-    }
-
-    function addDefaultBookmarks(data) {
-      // Save bookmarks
-      data.bookmarks.forEach(function browser_addDefaultBookmarks(bookmark) {
-        Places.addBookmark(bookmark.uri, bookmark.title);
-        if (bookmark.iconUri)
-          Places.setAndLoadIconForPage(bookmark.uri, bookmark.iconUri);
-      });
-    }
-
-    // pad leading zeros
-    function zfill(code, len) {
-      var c = code;
-      while (c.length < len) c = '0' + c;
-      return c;
-    }
-
-    /* Match best bookmark setting by
-     * 1. check carrier with region
-     * 2. check carrier
-     * 3. fallback to no SIM card case
-     */
-    function customizeDefaultBookmark(data) {
-      var DEFAULT_MNC = '000';
-      var codename = DEFAULT_BOOKMARK; //fallback to no SIM card case
-      var pad_mcc = zfill(iccSettings.mcc, 3);
-      var pad_mnc = zfill(iccSettings.mnc, 3);
-      if (data[pad_mcc + pad_mnc]) {
-        codename = pad_mcc + pad_mnc;
-      } else if (data[pad_mcc + DEFAULT_MNC]) {
-        codename = pad_mcc + DEFAULT_MNC;
-      }
-      addDefaultBookmarks(data[codename]);
-    }
-
-    // Fetch default data
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/js/init.json', true);
-    xhr.addEventListener('load', (function browser_defaultDataListener() {
-      if (!(xhr.status === 200 | xhr.status === 0))
-        return;
-
-      var data = JSON.parse(xhr.responseText);
-      if (data[DEFAULT_BOOKMARK]) { //has default bookmark
-        getICCSettings(customizeDefaultBookmark, data);
-      } else {
-        console.log('No default bookmark.');
-      }
-
-    }).bind(this), false);
-    xhr.onerror = function getDefaultDataError() {
-      console.log('Error getting default data.');
-    };
-    xhr.send();
   },
 
   // Clicking the page preview on the left gutter of the tab page opens
