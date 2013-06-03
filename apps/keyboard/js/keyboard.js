@@ -1539,7 +1539,15 @@ function loadIMEngine(name) {
     setLayoutPage: setLayoutPage,
     setUpperCase: setUpperCase,
     resetUpperCase: resetUpperCase
+    //replaceSurroundingText:
   };
+
+  if (navigator.mozKeyboard.replaceSurroundingText !== undefined) {
+    glue.replaceSurroundingText = navigator.mozKeyboard.replaceSurroundingText.bind(navigator.mozKeyboard);
+  }
+  else {
+    glue.replaceSurroundingText = null;
+  }
 
   script.addEventListener('load', function IMEngineLoaded() {
     var engine = InputMethods[imEngine];
