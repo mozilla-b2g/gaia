@@ -17,8 +17,10 @@ mocha.setup({globals: ['ignore_leaks']});
 // window[0] is created when we create the external url loader frame
 mocha.globals(['0']);
 
+var _;
 var mocksHelperForNavigation = new MocksHelper([
-  'UIManager'
+  'UIManager',
+  'SimManager'
 ]);
 mocksHelperForNavigation.init();
 
@@ -93,17 +95,7 @@ suite('navigation >', function() {
     });
 
     realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key) {
-        return key;
-      },
-      DateTimeFormat: function() {
-        this.localeFormat = function(date, format) {
-          return date;
-        };
-      }
-    };
-    _ = navigator.mozL10n.get;
+    navigator.mozL10n = MockL10n;
 
     realDataMobile = navigator.DataMobile;
     navigator.DataMobile = MockDataMobile;
@@ -115,8 +107,13 @@ suite('navigation >', function() {
   teardown(function() {
     mocksHelper.teardown();
     container.parentNode.removeChild(container);
+
     navigator.mozMobileConnection = realMozMobileConnection;
+    realMozMobileConnection = null;
+
     navigator.mozL10n = realL10n;
+    realL10n = null;
+
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);
     }
