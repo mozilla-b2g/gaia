@@ -334,8 +334,14 @@ var StatusBar = {
         break;
 
       case 'moztimechange':
-        navigator.mozL10n.ready(
-          this.clock.start.bind(this.clock, this.update.time.bind(this)));
+        navigator.mozL10n.ready((function _updateTime() {
+          // To stop clock for reseting the clock interval which runs every 60
+          // seconds. The reason to do this is that the time updated will be
+          // exactly aligned to minutes which means always getting 0 on seconds
+          // part.
+          this.clock.stop();
+          this.clock.start(this.update.time.bind(this));
+        }).bind(this));
         break;
 
       case 'mozChromeEvent':

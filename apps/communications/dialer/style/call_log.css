@@ -170,15 +170,11 @@ ol, ul {
   pointer-events: auto;
 }
 
-[data-type="list"] .highlighted aside.icon.icon-missed {
+[data-type="list"] .missed-call.highlighted aside.icon.icon-missed {
   background-image: url('images/CallLog_30x30_missed.png');
 }
 
-.log-item.highlighted[data-type='incoming'] .call-time {
-  color: #b90000 !important;
-}
-
-.log-item.highlighted[data-type='incoming-refused'] .call-time {
+.log-item.missed-call.highlighted .call-time {
   color: #b90000 !important;
 }
 

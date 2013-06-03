@@ -148,12 +148,12 @@ var CallHandler = (function callHandler() {
     var command = message['command'];
     var partialCommand = command.substring(0, 3);
     if (command === 'BLDN') {
-      RecentsDBManager.init(function() {
-        RecentsDBManager.getLast(function(lastRecent) {
-          if (lastRecent.number) {
-            CallHandler.call(lastRecent.number);
-          }
-        });
+      CallLogDBManager.getLastGroup(function(result) {
+        if (result && (typeof result === 'object') && result.number) {
+          CallHandler.call(result.number);
+        } else {
+          console.log('Could not get the last group ' + result);
+        }
       });
       return;
     } else if (partialCommand === 'ATD') {
