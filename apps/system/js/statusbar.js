@@ -285,7 +285,8 @@ var StatusBar = {
         break;
 
       case 'moztimechange':
-        this.clock.start.bind(this.clock, this.update.time.bind(this))
+        this.clock.stop();
+        this.clock.start(this.update.time.bind(this));
         break;
 
       case 'mozChromeEvent':
