@@ -560,18 +560,16 @@ form.bottom[role="search"].messages-compose-form {
 #messages-send-button.has-counter:before {
   content: attr(data-counter);
   color: rgb(133, 133, 133);
-  border-left: 0.1rem solid rgb(231, 231, 213);
   font-weight: normal;
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   text-align: left;
   position: absolute;
   height: 4.4rem;
   left: 0;
   line-height: 1.8rem;
-  top: -5rem;
-  padding-top: 0;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  top: -1.9rem;
+  padding: 0 0.5rem;
+  -moz-box-sizing: border-box;
 }
 
 [data-message-type="mms"] #messages-send-button.has-counter:before {
