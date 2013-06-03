@@ -6,6 +6,7 @@ requireApp('system/shared/js/mobile_operator.js');
 
 suite('shared/MobileOperator', function() {
   var MockMobileConnection1;
+  var MockMobileConnection2;
   var BRAZIL_MCC = 724;
 
 
