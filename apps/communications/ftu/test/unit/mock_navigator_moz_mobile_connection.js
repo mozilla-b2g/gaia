@@ -2,20 +2,56 @@
 
 (function() {
 
-  var props = ['voice', 'cardState', 'iccInfo', 'data'];
+  var props = ['voice', 'cardState', 'iccInfo', 'data', 'retryCount'];
+  var listeners;
 
-  function mnmmc_init() {
+  function _init() {
     props.forEach(function(prop) {
       Mock[prop] = null;
     });
+    listeners = {};
+  }
+
+  function _setProperty(property, newState) {
+    Mock[property] = newState;
+  }
+
+  function _addEventListener(evtName, func) {
+    listeners[evtName] = listeners[evtName] || [];
+    listeners[evtName].push(func);
+  }
+
+  function _removeEventListener(evtName, func) {
+    if (listeners[evtName]) {
+      var listenerArray = listeners[evtName];
+      var index = listenerArray.indexOf(func);
+      if (index !== -1) {
+        listenerArray.splice(index, 1);
+      }
+    }
+  }
+
+  function _unlockCardLock(options) {
+    var settingsRequest = {
+      result: {},
+      set onsuccess(callback) {
+        callback.call(this);
+      },
+      set onerror(callback) {}
+    };
+
+    return settingsRequest;
   }
 
   var Mock = {
-    addEventListener: function() {},
-    mTeardown: mnmmc_init
+    mTeardown: _init,
+    setProperty: _setProperty,
+    addEventListener: _addEventListener,
+    removeEventListener: _removeEventListener,
+    unlockCardLock: _unlockCardLock
   };
 
-  mnmmc_init();
+  _init();
 
   window.MockNavigatorMozMobileConnection = Mock;
 })();

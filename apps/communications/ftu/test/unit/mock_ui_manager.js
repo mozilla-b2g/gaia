@@ -6,7 +6,45 @@ var MockUIManager = {
     'progress-bar',
     'finish-screen',
     'nav-bar',
-    'main-title'
+    'main-title',
+    // Unlock SIM Screen
+    'unlock-sim-screen',
+    'unlock-sim-header',
+    // PIN Screen
+    'pincode-screen',
+    'pin-label',
+    'pin-retries-left',
+    'pin-input',
+    'fake-pin-input',
+    'pin-error',
+    'skip-pin-button',
+    'unlock-sim-button',
+    // PUK Screen
+    'pukcode-screen',
+    'puk-label',
+    'puk-retries-left',
+    'puk-input',
+    'fake-puk-input',
+    'puk-info',
+    'puk-error',
+    'newpin-input',
+    'fake-newpin-input',
+    'newpin-error',
+    'confirm-newpin-input',
+    'fake-confirm-newpin-input',
+    'confirm-newpin-error',
+    // XCK Screen
+    'xckcode-screen',
+    'xck-label',
+    'xck-retries-left',
+    'xck-input',
+    'fake-xck-input',
+    'xck-error',
+    // Import contacts
+    'sim-import-button',
+    'no-sim',
+    'sd-import-button',
+    'no-sd'
   ],
 
   mSetup: function muim_mSetup() {
