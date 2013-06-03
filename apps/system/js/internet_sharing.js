@@ -18,6 +18,7 @@ var InternetSharing = (function() {
 
   var settings;
   var mobileConnection;
+  var iccManager;
   // null or unknown state will change to one of the following state
   var validCardState = ['absent',
                         'pinRequired',
@@ -44,7 +45,7 @@ var InternetSharing = (function() {
   }
 
   function checkCardAndInternetSharing() {
-    cardState = mobileConnection.cardState;
+    cardState = iccManager.cardState;
     if (validCardState.indexOf(cardState) > -1) {
       // if it is known cardState, we need to load internet sharing state from
       // settings
@@ -122,10 +123,14 @@ var InternetSharing = (function() {
     if (!mobileConnection) {
       return;
     }
+    iccManager = window.navigator.mozIccManager;
+    if (!iccManager) {
+      return;
+    }
     observerHooked = false;
     checkCardAndInternetSharing();
     // listen cardstatechange event for ready, pin, puk, or network unlocking.
-    mobileConnection.addEventListener('cardstatechange',
+    iccManager.addEventListener('cardstatechange',
                                       checkCardAndInternetSharing);
   }
   return {init: _init};

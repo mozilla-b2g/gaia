@@ -14,9 +14,17 @@ suite('simcard dialog', function() {
   var mockUI;
 
   var MockMobileConnection = (function() {
+    return {
+      addEventListener: function(event, handler) {}
+    };
+  })();
+
+  var MockIccManager = (function() {
     var _cardState = null;
     return {
       addEventListener: function(event, handler) {},
+      setCardLock: function(options) {},
+      unlockCardLock: function(options) {},
       get cardState() {
         return _cardState;
       },
@@ -26,14 +34,6 @@ suite('simcard dialog', function() {
       mTeardown: function() {
         _cardState = null;
       }
-    };
-  })();
-
-  var MockIccManager = (function() {
-    return {
-      addEventListener: function(event, handler) {},
-      setCardLock: function(options) {},
-      unlockCardLock: function(options) {}
     };
   })();
 
@@ -126,16 +126,16 @@ suite('simcard dialog', function() {
   });
 
   teardown(function() {
-    MockMobileConnection.mTeardown();
+    MockIccManager.mTeardown();
   });
 
   suite('handle card state', function() {
     teardown(function() {
-      MockMobileConnection.mTeardown();
+      MockIccManager.mTeardown();
     });
 
     test('null', function() {
-      MockMobileConnection.mSetCardState(null);
+      MockIccManager.mSetCardState(null);
       SimPinDialog.handleCardState();
 
       assert.isTrue(SimPinDialog.pinArea.hidden);
@@ -146,7 +146,7 @@ suite('simcard dialog', function() {
     });
 
     test('unknown', function() {
-      MockMobileConnection.mSetCardState('unknown');
+      MockIccManager.mSetCardState('unknown');
       SimPinDialog.handleCardState();
 
       assert.isTrue(SimPinDialog.pinArea.hidden);
@@ -157,7 +157,7 @@ suite('simcard dialog', function() {
     });
 
     test('absent', function() {
-      MockMobileConnection.mSetCardState('absent');
+      MockIccManager.mSetCardState('absent');
       SimPinDialog.handleCardState();
 
       assert.isTrue(SimPinDialog.pinArea.hidden);
@@ -168,7 +168,7 @@ suite('simcard dialog', function() {
     });
 
     test('ready', function() {
-      MockMobileConnection.mSetCardState('ready');
+      MockIccManager.mSetCardState('ready');
       SimPinDialog.handleCardState();
 
       assert.isTrue(SimPinDialog.pinArea.hidden);
@@ -179,7 +179,7 @@ suite('simcard dialog', function() {
     });
 
     test('pin required', function() {
-      MockMobileConnection.mSetCardState('pinRequired');
+      MockIccManager.mSetCardState('pinRequired');
       SimPinDialog.handleCardState();
 
       assert.isFalse(SimPinDialog.pinArea.hidden);
@@ -190,7 +190,7 @@ suite('simcard dialog', function() {
     });
 
     test('puk required', function() {
-      MockMobileConnection.mSetCardState('pukRequired');
+      MockIccManager.mSetCardState('pukRequired');
       SimPinDialog.handleCardState();
 
       assert.isTrue(SimPinDialog.pinArea.hidden);
@@ -201,7 +201,7 @@ suite('simcard dialog', function() {
     });
 
     test('network locked', function() {
-      MockMobileConnection.mSetCardState('networkLocked');
+      MockIccManager.mSetCardState('networkLocked');
       SimPinDialog.handleCardState();
 
       assert.isTrue(SimPinDialog.pinArea.hidden);
@@ -212,7 +212,7 @@ suite('simcard dialog', function() {
     });
 
     test('corporate locked', function() {
-      MockMobileConnection.mSetCardState('corporateLocked');
+      MockIccManager.mSetCardState('corporateLocked');
       SimPinDialog.handleCardState();
 
       assert.isTrue(SimPinDialog.pinArea.hidden);
@@ -223,7 +223,7 @@ suite('simcard dialog', function() {
     });
 
     test('service provider locked', function() {
-      MockMobileConnection.mSetCardState('serviceProviderLocked');
+      MockIccManager.mSetCardState('serviceProviderLocked');
       SimPinDialog.handleCardState();
 
       assert.isTrue(SimPinDialog.pinArea.hidden);
