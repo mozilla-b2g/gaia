@@ -139,11 +139,11 @@ var ThreadListUI = {
     }
     if (selected) {
       this.uncheckAllButton.disabled = false;
-      this.deleteButton.disabled = false;
+      this.deleteButton.classList.remove('disabled');
       this.editMode.innerHTML = _('selected', {n: selected});
     } else {
       this.uncheckAllButton.disabled = true;
-      this.deleteButton.disabled = true;
+      this.deleteButton.classList.add('disabled');
       this.editMode.innerHTML = _('editMode');
     }
   },
