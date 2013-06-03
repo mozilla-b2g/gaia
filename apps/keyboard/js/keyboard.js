@@ -1538,9 +1538,7 @@ function loadIMEngine(name) {
     },
     setLayoutPage: setLayoutPage,
     setUpperCase: setUpperCase,
-    resetUpperCase: resetUpperCase,
-    replaceSurroundingText:
-       navigator.mozKeyboard.replaceSurroundingText.bind(navigator.mozKeyboard)
+    resetUpperCase: resetUpperCase
   };
 
   script.addEventListener('load', function IMEngineLoaded() {
