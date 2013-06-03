@@ -102,7 +102,7 @@
   const SEMICOLON = 59;
 
   const WS = /^\s+$/;                    // all whitespace characters
-  const PUNC = /^[.,?!;:]+$/;            // punctuation
+  const WORDSEP = /^[\s.,?!;:]+$/;       // word separator characters
 
   const DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
 
@@ -301,7 +301,7 @@
     }
     else {
       switch (keycode) {
-      case SPACE:
+      case SPACE:        // This list of characters matches the WORDSEP regexp
       case RETURN:
       case PERIOD:
       case QUESTION:
@@ -550,6 +550,20 @@
     // Now figure out if the input is one of the suggestions
     var inputindex = suggestions.indexOf(input);
 
+    // If the input is just one character long then we never want to
+    // auto-correct to more than one character (because it makes it hard
+    // to type abbreviations and other single-characters uses).  So if the
+    // first suggestion is not also one-character, then make the input
+    // into the first suggestion.
+    if (input.length === 1 && suggestions[0].length !== 1) {
+      if (inputindex === -1)                // If the input is not a suggestion
+        suggestions.pop();                  // Remove the last suggestion
+      else                                  // Otherwise
+        suggestions.splice(inputindex, 1);  // Remove the input
+      suggestions.unshift(input);           // Then add it at the start
+      inputindex = 0;                       // Update inputindex
+    }
+
     switch (inputindex) {
     case -1:
       // Input is not a word: show it second in the list, or first
@@ -784,6 +798,7 @@
 
     // If we're not at the end of the line and the character after the
     // cursor is not whitespace, don't offer a suggestion
+    // Note that we purposely use WS here, not WORDSEP.
     if (cursor < inputText.length && !WS.test(inputText[cursor]))
       return false;
 
@@ -792,15 +807,15 @@
       return false;
 
     // We're at the end of a word if the character before the cursor is
-    // not whitespace or punctuation
+    // not a word separator character
     var c = inputText[cursor - 1];
-    return !WS.test(c) && !PUNC.test(c);
+    return !WORDSEP.test(c);
   }
 
   // Get the word before the cursor. Assumes that atWordEnd() is true
   function wordBeforeCursor() {
     for (var firstletter = cursor - 1; firstletter >= 0; firstletter--) {
-      if (WS.test(inputText[firstletter])) {
+      if (WORDSEP.test(inputText[firstletter])) {
         break;
       }
     }
