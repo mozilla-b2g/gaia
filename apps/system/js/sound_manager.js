@@ -134,7 +134,7 @@
   }
 
   function headsetVolumeup() {
-    if (currentVolume[getChannel()] >= CEWarningVol &&
+    if ((currentVolume[getChannel()] + 1) >= CEWarningVol &&
         getChannel() == 'content') {
       if (CEAccumulatorTime == 0) {
         var okfn = function() {
@@ -210,7 +210,7 @@
   function resetToCEMaxVolume(callback) {
     pendingRequestCount++;
     var req = SettingsListener.getSettingsLock().set({
-      'audio.volume.content': CEWarningVol
+      'audio.volume.content': CEWarningVol - 1
     });
 
     req.onsuccess = function onSuccess() {
