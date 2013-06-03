@@ -358,6 +358,12 @@
         cursor--;
         inputText = inputText.substring(0, cursor) +
           inputText.substring(cursor + 1);
+
+        // If we have temporarily disabled auto correction for the current word
+        // and we've just backspaced over the entire word, then we can
+        // re-enabled it again
+        if (correctionDisabled && !wordBeforeCursor())
+          correctionDisabled = false;
       }
     } else {
       if (selection) {
@@ -379,6 +385,35 @@
     keyboard.sendKey(keycode);
   }
 
+  // Assuming that the word before the cursor is oldWord, send a
+  // minimal number of key events to change it to newWord in the text
+  // field.  Also update our internal state to match the new textfield
+  // content and cursor position.
+  function replaceBeforeCursor(oldWord, newWord) {
+    var oldWordLen = oldWord.length;
+
+    // Find the first character in currentWord and newWord that differs
+    // so we know how many backspaces we need to send.
+    for (var firstdiff = 0; firstdiff < oldWordLen; firstdiff++) {
+      if (oldWord[firstdiff] !== newWord[firstdiff])
+        break;
+    }
+
+    // Backspace as far as that first difference
+    for (var i = oldWordLen; i > firstdiff; i--)
+      keyboard.sendKey(BACKSPACE);
+
+    // And send the first different character and all that follow
+    keyboard.sendString(newWord.substring(firstdiff));
+
+    // Now update internal state
+    inputText =
+      inputText.substring(0, cursor - oldWordLen) +
+      newWord +
+      inputText.substring(cursor);
+    cursor += newWord.length - oldWordLen;
+  }
+
   // If we just did auto correction or auto punctuation, then backspace
   // should undo it. Otherwise it is just an ordinary backspace.
   function handleBackspace() {
@@ -389,16 +424,7 @@
         inputText.substring(cursor - len, cursor) === revertFrom) {
 
       // Revert the content of the text field
-      for (var i = 0; i < len; i++)
-        keyboard.sendKey(BACKSPACE);
-      keyboard.sendString(revertTo);
-
-      // Revert our internal state
-      inputText =
-        inputText.substring(0, cursor - len) +
-        revertTo +
-        inputText.substring(cursor);
-      cursor -= len - revertTo.length;
+      replaceBeforeCursor(revertFrom, revertTo);
 
       // If the change we just reverted was an auto-correction then
       // temporarily disable auto correction until the next space
@@ -438,29 +464,12 @@
   function autoCorrect(keycode) {
     // Get the word before the cursor
     var currentWord = wordBeforeCursor();
-    var currentWordLength = currentWord.length;
 
     // Figure out the auto correction text
-    var newWord = autoCorrection;                // Atart with suggested word
-    newWord += String.fromCharCode(keycode);     // and add the user's input.
-    if (keycode !== SPACE && keycode !== RETURN) // If not whitespace
-      newWord += ' ';                            // add a space.
+    var newWord = autoCorrection + String.fromCharCode(keycode);
 
-    // Backspace over the current word in the text field
-    for (var i = 0; i < currentWordLength; i++)
-      keyboard.sendKey(BACKSPACE);
-
-    // And send the correction to the textfield
-    keyboard.sendString(newWord);
-
-    // Now update our internal state to match.
-    inputText =
-      inputText.substring(0, cursor - currentWordLength) +
-      newWord +
-      inputText.substring(cursor);
-
-    // Update the cursor position, too.
-    cursor = cursor - currentWordLength + newWord.length;
+    // Make the correction
+    replaceBeforeCursor(currentWord, newWord);
 
     // Remember the change we just made so we can revert it if the
     // user types backspace
@@ -573,69 +582,6 @@
     keyboard.sendCandidates(suggestions);
   }
 
-
-/*
-  // When the worker thread sends us a batch of suggestions, deal
-  // with them here.
-  function handleSuggestions(input, suggestions) {
-    if (suggestions.length === 0) {         // If no suggestions
-      keyboard.sendCandidates(suggestions); // Clear any displayed suggestions
-      return;                               // We're done
-    }
-
-    // Check that the word before the cursor has not changed since
-    // we requested these suggestions. If the user has typed faster
-    // than we could offer suggestions, ignore these.
-    if (wordBeforeCursor() !== input) {
-      keyboard.sendCandidates([]); // Clear any displayed suggestions
-      return;
-    }
-
-    // Figure out if the first suggestion is good enough to offer as
-    // an autocorrection. We define "good enough" as significantly better
-    // than the second best suggestion. And significance is defined by
-    // a tuneable constant.
-    var significant =
-      suggestions.length === 1 ||
-      suggestions[0][1] / suggestions[1][1] > AUTO_CORRECT_THRESHOLD;
-
-    // Loop through the suggestions discarding the weights, and checking
-    // to see if the user's current input is one of the words. We don't
-    // want to autocorrect a valid word. Also, if the input begins with
-    // a capital letter, capitalize the suggestions
-    var lcinput = input.toLowerCase();
-    var inputStartsWithCapital = (input[0] !== lcinput[0]);
-    var inputIsWord = false;
-    for (var i = 0; i < suggestions.length; i++) {
-      suggestions[i] = suggestions[i][0];
-      if (lcinput === suggestions[i].toLowerCase())
-        inputIsWord = true;
-      if (inputStartsWithCapital)
-        suggestions[i] =
-          suggestions[i][0].toUpperCase() + suggestions[i].substring(1);
-    }
-
-    // If we're going to use the first suggestion as an auto-correction
-    // then we have to tell the renderer to highlight it and we have to
-    // ensure that the raw input is also listed as a suggestion. If the
-    // input is the same as the first suggestion, don't auto-correct it.
-    if (correcting && !correctionDisabled && significant && !inputIsWord) {
-      // Remember the word to use if the next character is a space.
-      autoCorrection = suggestions[0];
-      // Make sure the user also has their actual input as a choice
-      // XXX: should this be highlighted in some special way?
-      // XXX: or should we just have a x icon to dismiss the autocorrection?
-      if (suggestions.length === 3)
-        suggestions.pop();
-      suggestions.push(input);
-      // Mark the auto-correction so the renderer can highlight it
-      suggestions[0] = '*' + suggestions[0];
-    }
-
-    keyboard.sendCandidates(suggestions);
-  }
-*/
-
   // If the user selects one of the suggestions offered by this input method
   // the keyboard calls this method to tell us it has been selected.
   // We have to backspace over the current word, insert this new word, and
@@ -643,36 +589,21 @@
   function select(word) {
     var oldWord = wordBeforeCursor();
 
-    if (oldWord === word) {
-      keyboard.sendKey(SPACE);
-    }
-    else {
-      // Send backspaces
-      for (var i = 0, n = oldWord.length; i < n; i++)
-        keyboard.sendKey(BACKSPACE);
-
-      // Send the word
-      keyboard.sendString(word);
-
-      // Send a space
-      keyboard.sendKey(SPACE);
-    }
-
-    // Update internal state
-    inputText =
-      inputText.substring(0, cursor - oldWord.length) +
-      word +
-      ' ' +
-      inputText.substring(cursor);
-
-    cursor += word.length - oldWord.length + 1;
+    // Replace the current word with the selected suggestion plus space
+    word += ' ';
+    replaceBeforeCursor(oldWord, word);
 
     // Remember the change we just made so we can revert it if the
     // next key is a backspace. Note that it is not an autocorrection
     // so we don't need to disable corrections.
-    revertFrom = word + ' ';
+    revertFrom = word;
     revertTo = oldWord;
     justAutoCorrected = false;
+
+    // We inserted a space after the selected word, so we're beginning
+    // a new word here, which means that if auto-correction was disabled
+    // we can re-enable it now.
+    correctionDisabled = false;
 
     // Clear the suggestions
     keyboard.sendCandidates([]);
