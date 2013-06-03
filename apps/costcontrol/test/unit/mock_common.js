@@ -26,8 +26,8 @@ var MockCommon = function(config) {
     checkSIMChange: function(callback) {
       callback();
     },
-    startFTE: function() {
-      var event = new CustomEvent('ftestarted');
+    startFTE: function(mode) {
+      var event = new CustomEvent('ftestarted', { detail: mode });
       window.dispatchEvent(event);
     },
     startApp: function() {
