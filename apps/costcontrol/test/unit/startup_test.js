@@ -9,7 +9,8 @@ requireApp('costcontrol/test/unit/mock_debug.js');
 requireApp('costcontrol/test/unit/mock_common.js');
 requireApp('costcontrol/test/unit/mock_moz_l10n.js');
 requireApp('costcontrol/test/unit/mock_moz_mobile_connection.js');
-requireApp('costcontrol/test/unit/mock_moz_set_message_handler.js');
+requireApp('costcontrol/shared/test/unit/mocks/' +
+           'mock_navigator_moz_set_message_handler.js');
 requireApp('costcontrol/test/unit/mock_cost_control.js');
 requireApp('costcontrol/test/unit/mock_config_manager.js');
 requireApp('costcontrol/js/utils/toolkit.js');
@@ -63,7 +64,9 @@ suite('Application Startup Modes Test Suite >', function() {
     realConfigManager = window.ConfigManager;
 
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
-    window.navigator.mozSetMessageHandler = window.MockMozSetMessageHandler;
+    window.navigator.mozSetMessageHandler =
+      window.MockNavigatormozSetMessageHandler;
+    window.navigator.mozSetMessageHandler.mSetup();
   });
 
   setup(function() {
@@ -77,6 +80,7 @@ suite('Application Startup Modes Test Suite >', function() {
     window.navigator.mozL10n = realMozL10n;
     window.CostControl = realCostControl;
     window.ConfigManager = realConfigManager;
+    window.navigator.mozSetMessageHandler.mTeardown();
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
   });
 
