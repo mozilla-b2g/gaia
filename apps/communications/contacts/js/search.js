@@ -74,6 +74,9 @@ contacts.Search = (function() {
     });
 
     searchList.parentNode.addEventListener('touchstart', function() {
+      if (searchableNodes && remainingPending) {
+        addRemainingResults(searchableNodes, SEARCH_PAGE_SIZE);
+      }
       blurList = true;
     });
     searchNoResult = document.getElementById('no-result');
