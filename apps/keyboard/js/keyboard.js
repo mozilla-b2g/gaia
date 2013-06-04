@@ -750,10 +750,11 @@ function renderKeyboard(keyboardName) {
     IMERender.ime.classList.remove('full-candidate-panel');
 
     // And draw the layout
+    var showCandidatePanel = needsCandidatePanel();
     IMERender.draw(currentLayout, {
       uppercase: isUpperCase,
       inputType: currentInputType,
-      showCandidatePanel: needsCandidatePanel()
+      showCandidatePanel: showCandidatePanel
     });
 
     IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
@@ -764,6 +765,11 @@ function renderKeyboard(keyboardName) {
 
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
+
+    if (showCandidatePanel && inputMethod.rerenderCandidates) {
+      // we switched keyboards, and need to re-render candidates
+      inputMethod.rerenderCandidates();
+    }
 
     isKeyboardRendered = true;
   }

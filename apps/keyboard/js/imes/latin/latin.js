@@ -50,7 +50,11 @@
     displaysCandidates: displaysCandidates,
     click: click,
     select: select,
-    setLayoutParams: setLayoutParams
+    setLayoutParams: setLayoutParams,
+    rerenderCandidates: function() {
+      if (worker)
+        worker.postMessage({cmd: 'predict', args: [wordBeforeCursor()]});
+    }
   };
 
   // This is the object that is passed to init().
@@ -642,6 +646,7 @@
     // passing this data to the prediction engine if nothing has changed.
     var newmap = nearbyKeys(params);
     var serialized = JSON.stringify(newmap);
+
     if (serialized === serializedNearbyKeyMap)
       return;
 
