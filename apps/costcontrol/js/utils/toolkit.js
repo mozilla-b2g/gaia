@@ -52,15 +52,11 @@ Object.prototype.extend = function _extend() {
 
 var NOP = function() {};
 
-var Toolkit = {
-
-  checkEnoughDelay: function(threshold, dateA, dateB) {
-    if (!dateA) {
-      return true;
-    }
-
-    var end = dateB || new Date();
-    return (end.getTime() - dateA.getTime()) > threshold;
+function checkEnoughDelay(threshold, dateA, dateB) {
+  if (!dateA) {
+    return true;
   }
 
-};
+  var end = dateB || new Date();
+  return (end.getTime() - dateA.getTime()) > threshold;
+}
