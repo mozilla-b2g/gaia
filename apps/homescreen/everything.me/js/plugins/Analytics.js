@@ -700,31 +700,6 @@ Evme.Analytics = new function Evme_Analytics() {
         };
     };
     
-    
-    this.Tips = new function Tips() {
-        this.show = function show(data) {
-            queue({
-                "class": "Tips",
-                "event": "show",
-                "data": data
-            });
-        };
-        this.hide = function hide(data) {
-            queue({
-                "class": "Tips",
-                "event": "hide",
-                "data": data
-            });
-        };
-        this.click = function click(data) {
-            queue({
-                "class": "Tips",
-                "event": "click",
-                "data": data
-            });
-        };
-    };
-
     this.App = new function App() {
         this.addToHomeScreen = function addToHomeScreen(data) {
             queue({

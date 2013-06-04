@@ -18,8 +18,6 @@ window.Evme = new function Evme_Core() {
         Evme.Brain.init({
             "numberOfAppsToLoad": data.numberOfAppsToLoad+(Evme.Utils.devicePixelRatio>1? data.apps.appsPerRow: 0),
             "minimumLettersForSearch": data.minimumLettersForSearch,
-            "timeBeforeAllowingDialogsRemoval": data.timeBeforeAllowingDialogsRemoval,
-            "tips": data.tips,
             "searchSources": data.searchSources,
             "pageViewSources": data.pageViewSources,
             "displayInstalledApps": data.apps.displayInstalledApps
