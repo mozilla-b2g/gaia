@@ -251,7 +251,6 @@ suite('Recipients', function() {
       assert.ok(Recipients.View.prototype.reset);
       assert.ok(Recipients.View.prototype.render);
       assert.ok(Recipients.View.prototype.focus);
-      assert.ok(Recipients.View.prototype.observe);
       assert.ok(Recipients.View.prototype.handleEvent);
     });
 

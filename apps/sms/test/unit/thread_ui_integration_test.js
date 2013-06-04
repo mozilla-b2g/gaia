@@ -45,6 +45,9 @@ suite('ThreadUI Integration', function() {
 
     threadUIMozMobileMessage = ThreadUI._mozMobileMessage;
     ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
+
+    loadBodyHTML('/index.html');
+    ThreadUI.init();
   });
 
   suiteTeardown(function() {
@@ -54,17 +57,8 @@ suite('ThreadUI Integration', function() {
   });
 
   setup(function() {
-    loadBodyHTML('/index.html');
-
-    ThreadUI.init();
 
     ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
-
-    // recipients = new Recipients({
-    //   outer: 'messages-to-field',
-    //   inner: 'messages-recipients-list',
-    //   template: new Utils.Template('messages-recipient-tmpl')
-    // });
 
     sendButton = document.getElementById('messages-send-button');
     input = document.getElementById('messages-input');
@@ -77,6 +71,10 @@ suite('ThreadUI Integration', function() {
       // Mapped to node attr, not true boolean
       editable: 'true'
     };
+
+
+    ThreadUI.recipients = null;
+    ThreadUI.initRecipients();
   });
 
   teardown(function() {
@@ -141,11 +139,6 @@ suite('ThreadUI Integration', function() {
 
   suite('Recipient List Display', function() {
     test('Always begins in singleline mode', function() {
-      ThreadUI.recipients = new Recipients({
-        outer: 'messages-to-field',
-        inner: 'messages-recipients-list',
-        template: new Utils.Template('messages-recipient-tmpl')
-      });
 
       // Assert initial state: #messages-recipients-list is singleline
       assert.isFalse(
@@ -204,12 +197,6 @@ suite('ThreadUI Integration', function() {
 
     test('Captures stranded recipients', function() {
 
-      ThreadUI.recipients = new Recipients({
-        outer: 'messages-to-field',
-        inner: 'messages-recipients-list',
-        template: new Utils.Template('messages-recipient-tmpl')
-      });
-
       ThreadUI.recipients.add({
         number: '999'
       });
@@ -248,28 +235,40 @@ suite('ThreadUI Integration', function() {
 
     test('Lone ";" are not recipients', function() {
 
-      ThreadUI.recipients = new Recipients({
-        outer: 'messages-to-field',
-        inner: 'messages-recipients-list',
-        template: new Utils.Template('messages-recipient-tmpl')
-      });
+
+      children = ThreadUI.recipientsList.children;
+      recipients = ThreadUI.recipients;
+
+      // Set ";" in the placeholder, as if the user has typed
+      children[0].textContent = ';';
+
+      // Simulate input field focus/entry
+      input.click();
+
+      // There are no recipients...
+      assert.equal(recipients.length, 0);
+      // And one displayed child...
+      assert.equal(children.length, 1);
+    });
+
+
+    test('Taps on in-progress recipients do nothing special', function() {
 
       children = ThreadUI.recipientsList.children;
       recipients = ThreadUI.recipients;
 
       // Set text in the placeholder, as if the user has typed
-      // something before jumping to the input field
-      children[0].textContent = ';';
+      children[0].textContent = '9999999999';
 
-      // Simulate input field focus/entry
-      input.dispatchEvent(new CustomEvent('keypress'));
+      // Simulate a tap on the placeholder
+      children[0].click();
 
-      // There are now two recipients...
+      // There should be no recipients created
       assert.equal(recipients.length, 0);
-      // And three displayed children,
-      // (the recipient "avatars" and a
-      // placeholder for the next entry)
+
+      // And only the placeholder is displayed
       assert.equal(children.length, 1);
+      assert.isTrue(children[0].isPlaceholder);
     });
   });
 
