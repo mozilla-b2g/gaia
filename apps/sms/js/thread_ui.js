@@ -224,6 +224,7 @@ var ThreadUI = global.ThreadUI = {
 
     if (this.recipients) {
       this.recipients.length = 0;
+      this.recipients.visible('singleline');
       this.recipients.focus();
     } else {
       this.recipients = new Recipients({
