@@ -457,7 +457,21 @@ var WindowManager = (function() {
     dispatchEvent(new CustomEvent('appclose'));
   }
 
-  windows.addEventListener('mozbrowserloadend', function firstpaint(evt) {
+  windows.addEventListener('mozbrowserfirstpaint', function firstpaint(evt) {
+    var backgroundColor = evt.detail.backgroundColor;
+    /* When rotating the screen, the child may take some time to reflow.
+     * If the child takes longer than layers.orientation.sync.timeout
+     * to respond, gecko will go ahead and draw anyways. This code
+     * uses a simple heuristic to guess the least distracting color
+     * we should draw in the blank space. */
+
+    /* Only allow opaque colors */
+    if (backgroundColor.indexOf('rgb(') != -1) {
+      evt.target.style.backgroundColor = backgroundColor;
+    }
+  });
+
+  windows.addEventListener('mozbrowserloadend', function loadend(evt) {
     var iframe = evt.target;
     delete iframe.dataset.unloaded;
   });
