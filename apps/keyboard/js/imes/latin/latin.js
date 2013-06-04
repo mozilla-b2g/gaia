@@ -74,6 +74,7 @@
   var lastSpaceTimestamp; // If the last key was a space, this is the timestamp
   var layoutParams;       // Parameters passed to setLayoutParams
   var nearbyKeyMap;       // Map keys to nearby keys
+  var serializedNearbyKeyMap; // A stringified version of the above
   var idleTimer;          // Used by deactivate
   var suggestionsTimer;   // Used by updateSuggestions;
   var autoCorrection;     // Correction to make if next input is space
@@ -631,7 +632,16 @@
     // XXX We call nearbyKeys() every time the keyboard pops up.
     // Maybe it would be better to compute it once in keyboard.js and
     // cache it.
-    nearbyKeyMap = nearbyKeys(params);
+
+    // We get called every time the keyboard case changes. Don't bother
+    // passing this data to the prediction engine if nothing has changed.
+    var newmap = nearbyKeys(params);
+    var serialized = JSON.stringify(newmap);
+    if (serialized === serializedNearbyKeyMap)
+      return;
+
+    nearbyKeyMap = newmap;
+    serializedNearbyKeyMap = serialized;
     if (worker)
       worker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
   }
@@ -641,6 +651,12 @@
     var keys = layout.keyArray;
     var keysize = Math.min(layout.keyWidth, layout.keyHeight) * 1.2;
     var threshold = keysize * keysize;
+
+    // Make sure that all the keycodes are lowercase, not uppercase
+    for (var n = 0; n < keys.length; ++n) {
+      keys[n].code =
+        String.fromCharCode(keys[n].code).toLowerCase().charCodeAt(0);
+    }
 
     // For each key, calculate the keys nearby.
     for (var n = 0; n < keys.length; ++n) {
