@@ -169,10 +169,18 @@ var ActivityHandler = {
       switch (locationHash) {
         case '#thread-list':
         case '#new':
+          if (ThreadUI.inEditMode) {
+              ThreadUI.cancelEdit();
+          }
+
           window.location.hash = threadHash;
           MessageManager.activity.isLocked = false;
           break;
         default:
+          if (ThreadListUI.inEditMode) {
+              ThreadListUI.cancelEdit();
+          }
+
           if (locationHash.indexOf('#thread=') !== -1) {
             // Don't switch back to thread list if we're
             // already displaying the requested threadId.
