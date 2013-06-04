@@ -172,10 +172,6 @@ var ActivityHandler = {
           window.location.hash = threadHash;
           MessageManager.activity.isLocked = false;
           break;
-        case '#edit':
-          history.back();
-          showAction();
-          break;
         default:
           if (locationHash.indexOf('#thread=') !== -1) {
             // Don't switch back to thread list if we're
