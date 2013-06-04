@@ -40,7 +40,7 @@ var CostControlApp = (function() {
   'use strict';
 
   var costcontrol, initialized = false;
-  function onReady() {
+  function onReady(callback) {
     var mobileConnection = window.navigator.mozMobileConnection;
     var cardState = checkCardState();
     var iccid = mobileConnection.iccInfo.iccid;
@@ -60,7 +60,7 @@ var CostControlApp = (function() {
       debug('SIM ready. ICCID:', iccid);
       mobileConnection.oncardstatechange = undefined;
       mobileConnection.oniccinfochange = undefined;
-      startApp();
+      startApp(callback);
     }
   }
 
@@ -165,7 +165,7 @@ var CostControlApp = (function() {
     });
   }
 
-  function startApp() {
+  function startApp(callback) {
     function _onNoICCID() {
       console.error('checkSIMChange() failed. Impossible to ensure consistent' +
                     'data. Aborting start up.');
@@ -179,7 +179,7 @@ var CostControlApp = (function() {
           return;
         }
         costcontrol = instance;
-        setupApp();
+        setupApp(callback);
       });
     }, _onNoICCID);
   }
@@ -192,7 +192,29 @@ var CostControlApp = (function() {
     }
   });
 
-  function setupApp() {
+  window.addEventListener('message', function handler_finished(e) {
+    if (e.origin !== Common.COST_CONTROL_APP) {
+      return;
+    }
+
+    var type = e.data.type;
+
+    if (type === 'fte_finished') {
+      window.removeEventListener('message', handler_finished);
+
+      document.getElementById('splash_section').
+        setAttribute('aria-hidden', 'true');
+
+      // Only hide the FTE view when everything in the UI is ready
+      CostControlApp.afterFTU(function() {
+        document.getElementById('fte_view').classList.add('non-ready');
+        document.getElementById('fte_view').src = '';
+      });
+    }
+  });
+
+  function setupApp(callback) {
+
     setupCardHandler();
 
     // Configure settings buttons
@@ -252,7 +274,7 @@ var CostControlApp = (function() {
       }
     );
 
-    updateUI();
+    updateUI(callback);
     ConfigManager.observe('plantype', updateUI, true);
 
     initialized = true;
@@ -281,7 +303,7 @@ var CostControlApp = (function() {
   }
 
   var currentMode;
-  function updateUI() {
+  function updateUI(callback) {
     ConfigManager.requestSettings(function _onSettings(settings) {
       var mode = ConfigManager.getApplicationMode();
       debug('App UI mode: ', mode);
@@ -318,6 +340,9 @@ var CostControlApp = (function() {
         // XXX: Break initialization to allow Gecko to render the animation on
         // time.
         setTimeout(function continueLoading() {
+          if (typeof callback === 'function') {
+            window.setTimeout(callback, 0);
+          }
           document.getElementById('main').classList.remove('non-ready');
 
           if (mode === 'PREPAID') {
@@ -352,6 +377,9 @@ var CostControlApp = (function() {
   return {
     init: function() {
       Common.waitForDOMAndMessageHandler(window, onReady);
+    },
+    afterFTU: function(cb) {
+      onReady(cb);
     },
     reset: function() {
       costcontrol = null;
