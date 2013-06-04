@@ -1,10 +1,16 @@
 'use strict';
 
+if (typeof GestureDetector === 'undefined') {
+  require('/shared/js/gesture_detector.js');
+}
+requireApp('system/test/unit/mock_gesture_detector.js');
 
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/js/utils.js');
+requireApp('sms/js/attachment_menu.js');
+requireApp('sms/js/compose.js');
 requireApp('sms/js/contacts.js');
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/threads.js');
@@ -12,13 +18,6 @@ requireApp('sms/js/message_manager.js');
 requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/js/thread_ui.js');
 
-
-
-var mocksHelperForThreadUI = new MocksHelper([
-  'Recipients'
-]);
-
-mocksHelperForThreadUI.init();
 
 suite('ThreadUI Integration', function() {
   var realContacts;
@@ -140,7 +139,45 @@ suite('ThreadUI Integration', function() {
     });
   });
 
+  suite('Recipient List Display', function() {
+    test('Always begins in singleline mode', function() {
+      ThreadUI.recipients = new Recipients({
+        outer: 'messages-to-field',
+        inner: 'messages-recipients-list',
+        template: new Utils.Template('messages-recipient-tmpl')
+      });
 
+      // Assert initial state: #messages-recipients-list is singleline
+      assert.isFalse(
+        ThreadUI.recipientsList.classList.contains('multiline')
+      );
+      assert.isTrue(
+        ThreadUI.recipientsList.classList.contains('singleline')
+      );
+
+      // Modify state
+      ThreadUI.recipients.visible('multiline');
+
+      // Assert modified state: #messages-recipients-list is multiline
+      assert.isTrue(
+        ThreadUI.recipientsList.classList.contains('multiline')
+      );
+      assert.isFalse(
+        ThreadUI.recipientsList.classList.contains('singleline')
+      );
+
+      // Reset state
+      ThreadUI.initRecipients();
+
+      // Assert initial/reset state: #messages-recipients-list is singleline
+      assert.isFalse(
+        ThreadUI.recipientsList.classList.contains('multiline')
+      );
+      assert.isTrue(
+        ThreadUI.recipientsList.classList.contains('singleline')
+      );
+    });
+  });
 
   suite('Recipient Input Behaviours', function() {
     var is = {
