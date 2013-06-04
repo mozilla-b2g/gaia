@@ -74,6 +74,7 @@
   var lastSpaceTimestamp; // If the last key was a space, this is the timestamp
   var layoutParams;       // Parameters passed to setLayoutParams
   var nearbyKeyMap;       // Map keys to nearby keys
+  var serializedNearbyKeyMap; // A stringified version of the above
   var idleTimer;          // Used by deactivate
   var suggestionsTimer;   // Used by updateSuggestions;
   var autoCorrection;     // Correction to make if next input is space
@@ -102,7 +103,7 @@
   const SEMICOLON = 59;
 
   const WS = /^\s+$/;                    // all whitespace characters
-  const PUNC = /^[.,?!;:]+$/;            // punctuation
+  const WORDSEP = /^[\s.,?!;:]+$/;       // word separator characters
 
   const DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
 
@@ -301,7 +302,7 @@
     }
     else {
       switch (keycode) {
-      case SPACE:
+      case SPACE:        // This list of characters matches the WORDSEP regexp
       case RETURN:
       case PERIOD:
       case QUESTION:
@@ -390,7 +391,26 @@
   // field. Also update our internal state to match the new textfield
   // content and cursor position.
   function replaceBeforeCursor(oldWord, newWord) {
-    keyboard.replaceSurroundingText(newWord, oldWord.length, 0);
+    if (keyboard.replaceSurroundingText) {
+      keyboard.replaceSurroundingText(newWord, oldWord.length, 0);
+    }
+    else {
+      var oldWordLen = oldWord.length;
+
+      // Find the first character in currentWord and newWord that differs
+      // so we know how many backspaces we need to send.
+      for (var firstdiff = 0; firstdiff < oldWordLen; firstdiff++) {
+        if (oldWord[firstdiff] !== newWord[firstdiff])
+          break;
+      }
+
+      // Backspace as far as that first difference
+      for (var i = oldWordLen; i > firstdiff; i--)
+        keyboard.sendKey(BACKSPACE);
+
+      // And send the first different character and all that follow
+      keyboard.sendString(newWord.substring(firstdiff));
+    }
 
     // Now update internal state
     inputText =
@@ -536,6 +556,20 @@
     // Now figure out if the input is one of the suggestions
     var inputindex = suggestions.indexOf(input);
 
+    // If the input is just one character long then we never want to
+    // auto-correct to more than one character (because it makes it hard
+    // to type abbreviations and other single-characters uses).  So if the
+    // first suggestion is not also one-character, then make the input
+    // into the first suggestion.
+    if (input.length === 1 && suggestions[0].length !== 1) {
+      if (inputindex === -1)                // If the input is not a suggestion
+        suggestions.pop();                  // Remove the last suggestion
+      else                                  // Otherwise
+        suggestions.splice(inputindex, 1);  // Remove the input
+      suggestions.unshift(input);           // Then add it at the start
+      inputindex = 0;                       // Update inputindex
+    }
+
     switch (inputindex) {
     case -1:
       // Input is not a word: show it second in the list, or first
@@ -603,7 +637,16 @@
     // XXX We call nearbyKeys() every time the keyboard pops up.
     // Maybe it would be better to compute it once in keyboard.js and
     // cache it.
-    nearbyKeyMap = nearbyKeys(params);
+
+    // We get called every time the keyboard case changes. Don't bother
+    // passing this data to the prediction engine if nothing has changed.
+    var newmap = nearbyKeys(params);
+    var serialized = JSON.stringify(newmap);
+    if (serialized === serializedNearbyKeyMap)
+      return;
+
+    nearbyKeyMap = newmap;
+    serializedNearbyKeyMap = serialized;
     if (worker)
       worker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
   }
@@ -613,6 +656,12 @@
     var keys = layout.keyArray;
     var keysize = Math.min(layout.keyWidth, layout.keyHeight) * 1.2;
     var threshold = keysize * keysize;
+
+    // Make sure that all the keycodes are lowercase, not uppercase
+    for (var n = 0; n < keys.length; ++n) {
+      keys[n].code =
+        String.fromCharCode(keys[n].code).toLowerCase().charCodeAt(0);
+    }
 
     // For each key, calculate the keys nearby.
     for (var n = 0; n < keys.length; ++n) {
@@ -770,6 +819,7 @@
 
     // If we're not at the end of the line and the character after the
     // cursor is not whitespace, don't offer a suggestion
+    // Note that we purposely use WS here, not WORDSEP.
     if (cursor < inputText.length && !WS.test(inputText[cursor]))
       return false;
 
@@ -778,15 +828,15 @@
       return false;
 
     // We're at the end of a word if the character before the cursor is
-    // not whitespace or punctuation
+    // not a word separator character
     var c = inputText[cursor - 1];
-    return !WS.test(c) && !PUNC.test(c);
+    return !WORDSEP.test(c);
   }
 
   // Get the word before the cursor. Assumes that atWordEnd() is true
   function wordBeforeCursor() {
     for (var firstletter = cursor - 1; firstletter >= 0; firstletter--) {
-      if (WS.test(inputText[firstletter])) {
+      if (WORDSEP.test(inputText[firstletter])) {
         break;
       }
     }

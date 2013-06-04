@@ -496,10 +496,13 @@ bubble above the key when you tap and hold. */
 /* for latin suggestions we don't need such a tall box */
 /* and in latin we hide the toggle button, so we can be full-width */
 #keyboard.candidate-panel #keyboard-candidate-panel.latin {
-  height: 2.6rem;
-  width: 100%;
+  height: 3rem;
+  width: -moz-calc(100% - 1rem);
   background: #000;
-  margin: -0.6rem 0 0.3rem;
+  /* I don't know why we need the top and bottom margins */
+  /* the left and right just give nice side borders */
+  margin: -0.6rem 0.2rem 0.2rem 0.2rem;
+  padding: 0 0.3rem;
   border: none;
   overflow: hidden;
 }
@@ -548,38 +551,36 @@ bubble above the key when you tap and hold. */
   background: #ccc;
 }
 
-#keyboard-candidate-panel.latin span,
-#keyboard-candidate-panel[data-truncated].latin::after {
+#keyboard-candidate-panel.latin > div {
   display: inline-block;
+  height: 100%;       /* width set in render.js */
+  margin: 0 1%;       /* don't change without updating with in render.js */
+  border: 0;
+  overflow: hidden;
   -moz-box-sizing: border-box;
-  font-size: 1.8rem;
-  line-height: 2.6rem;
-  height: 2.6rem;
-  width: 33%;
-  border: none;
-  background: none;
-  padding-left: 1%;
-  padding-right: 1%;
+}
+
+#keyboard-candidate-panel.latin span {
+  /*
+   * We start inline, so we can measure the length of the text, and then
+   * convert (in render.js) to inline-block so we can transform the text
+   * and make it fit.
+   */
+  display: inline;
+  font-size: 2.4rem;
+  line-height: 3rem;
+  height: 3rem;
+  border: 0;
   margin: 0;
+  padding: 0;
+  background: none;
   color: #fff;
-}
-
-#keyboard-candidate-panel.latin span:nth-child(1) {
-  text-align: left;
-}
-
-#keyboard-candidate-panel.latin span:nth-child(2) {
   text-align: center;
 }
 
-#keyboard-candidate-panel.latin span:nth-child(3) {
-  text-align: right;
-}
-
 #keyboard-candidate-panel.latin span.autocorrect {
-  color: #0ac;   /* XXX: gradient like above? */
+  color: #0ac;
 }
-
 
 #keyboard-candidate-panel-toggle-button {
   position: absolute;

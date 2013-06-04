@@ -112,7 +112,8 @@ var VivoConfig = (function() {
         return generateCheckBalanceMessage();
       },
       senders: ['4850'],
-      regexp: balanceRegularExpression
+      regexp: balanceRegularExpression,
+      minimum_delay: 3 * 60 * 60 * 1000 // 3h
     },
     topup: {
       destination: '7000',

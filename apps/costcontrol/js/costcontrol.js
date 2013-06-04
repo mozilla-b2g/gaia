@@ -13,7 +13,6 @@
  */
 
 var CostControl = (function() {
-
   'use strict';
 
   var costcontrol;
@@ -87,8 +86,9 @@ var CostControl = (function() {
       switch (requestObj.type) {
         case 'balance':
           // Check service
-          var issues = getServiceIssues(settings);
-          if (issues) {
+          var issues = getServiceIssues(configuration, settings);
+          var canBeIgnoredByForcing = (issues === 'minimum_delay' && force);
+          if (issues && !canBeIgnoredByForcing) {
             result.status = 'error';
             result.details = issues;
             result.data = settings.lastBalance;
@@ -111,9 +111,9 @@ var CostControl = (function() {
 
           // Check in-progress
           var isWaiting = settings.waitingForBalance !== null;
-          var timeout = checkEnoughDelay(BALANCE_TIMEOUT,
-                                         settings.lastBalanceRequest);
-          if (isWaiting && !timeout && !force) {
+          var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
+                                                 settings.lastBalanceRequest);
+          if (isWaiting && !timeout) {
             result.status = 'in_progress';
             result.data = settings.lastBalance;
             if (callback) {
@@ -152,8 +152,8 @@ var CostControl = (function() {
 
           // Check in-progress
           var isWaiting = settings.waitingForTopUp !== null;
-          var timeout = checkEnoughDelay(BALANCE_TIMEOUT,
-                                         settings.lastTopUpRequest);
+          var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
+                                                 settings.lastTopUpRequest);
           if (isWaiting && !timeout && !force) {
             result.status = 'in_progress';
             result.data = settings.lastDataUsage;
@@ -186,15 +186,8 @@ var CostControl = (function() {
     });
   }
 
-  var airplaneMode = false;
-  SettingsListener.observe('ril.radio.disabled', false,
-    function _onValue(value) {
-      airplaneMode = value;
-    }
-  );
-
   // Check service status and return the most representative issue if there is
-  function getServiceIssues(settings) {
+  function getServiceIssues(configuration, settings) {
     if (airplaneMode) {
       return 'airplane_mode';
     }
@@ -216,6 +209,16 @@ var CostControl = (function() {
     var voice = connection.voice;
     if (voice.signalStrength === null) {
       return 'no_coverage';
+    }
+
+    if (configuration.balance.minimum_delay) {
+      var isMinimumDelayHonored = Toolkit.checkEnoughDelay(
+        configuration.balance.minimum_delay,
+        settings.lastBalanceRequest
+      );
+      if (!isMinimumDelayHonored) {
+        return 'minimum_delay';
+      }
     }
 
     return '';
@@ -477,6 +480,18 @@ var CostControl = (function() {
     return [output, accum];
   }
 
-  return { getInstance: getInstance };
+  var airplaneMode = false;
+  function init() {
+    SettingsListener.observe('ril.radio.disabled', false,
+      function _onValue(value) {
+        airplaneMode = value;
+      }
+    );
+  }
+
+  return {
+    init: init,
+    getInstance: getInstance
+  };
 
 }());

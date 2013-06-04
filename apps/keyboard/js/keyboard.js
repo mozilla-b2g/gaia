@@ -1538,10 +1538,13 @@ function loadIMEngine(name) {
     },
     setLayoutPage: setLayoutPage,
     setUpperCase: setUpperCase,
-    resetUpperCase: resetUpperCase,
-    replaceSurroundingText:
-       navigator.mozKeyboard.replaceSurroundingText.bind(navigator.mozKeyboard)
+    resetUpperCase: resetUpperCase
   };
+
+  if (typeof navigator.mozKeyboard.replaceSurroundingText === 'function') {
+    glue.replaceSurroundingText =
+      navigator.mozKeyboard.replaceSurroundingText.bind(navigator.mozKeyboard);
+  }
 
   script.addEventListener('load', function IMEngineLoaded() {
     var engine = InputMethods[imEngine];
