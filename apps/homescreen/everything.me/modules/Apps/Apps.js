@@ -128,10 +128,6 @@ Evme.Apps = new function Evme_Apps() {
     };
 
     this.clear = function clear() {
-        if (appsDataArray.length === 0) {
-            return false;
-        }
-        
         window.clearTimeout(timeoutAppsToDrawLater);
         for (var id in appsArray) {
             appsArray[id].remove();
