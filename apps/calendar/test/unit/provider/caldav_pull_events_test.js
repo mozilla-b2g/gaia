@@ -323,6 +323,98 @@ suiteGroup('Provider.CaldavPullEvents', function() {
     });
   });
 
+  suite('bug 809607', function() {
+
+    var accountStore;
+    var account;
+
+    setup(function(done) {
+      accountStore = app.store('Account');
+      account = Factory.create('account');
+      accountStore.persist(account, done);
+    });
+
+    var calendar;
+
+    setup(function(done) {
+      calendar = Factory.create('calendar');
+      calendar.accountId = account._id;
+      calendar.remote.syncToken = 'bug-809607';
+      calendar.syncToken = 'bug-809607';
+      app.store('Calendar').persist(calendar, done);
+    });
+
+    var subject;
+    var events;
+    var eventPersistCt;
+    var eventStore;
+
+    setup(function() {
+      subject = createSubject({account: account, calendar: calendar});
+
+      events = [];
+      for (var i = 0; i < 4; i++) {
+        events.push(serviceEvent('singleEvent'));
+      }
+
+      // Set up to count events persisted.
+      eventPersistCt = 0;
+      eventStore = app.store('Event');
+      eventStore.on('persist', function(id) {
+        eventPersistCt++;
+      });
+    });
+
+    test('account deletion during sync aborts processing', function(done) {
+      // Stream a couple of events before account removal
+      stream.emit('event', events[0]);
+      stream.emit('event', events[1]);
+
+      function afterRemove() {
+        // Stream a couple of events after account removal
+        stream.emit('event', events[2]);
+        stream.emit('event', events[3]);
+
+        // Attempt to commit the events
+        subject.commit(function() {
+          setTimeout(afterCommit, 0);
+        });
+      }
+
+      function afterCommit() {
+        // After account removal and commit, no events should have been saved.
+        assert.equal(eventPersistCt, 0);
+        done();
+      }
+
+      // Kick off the removal and subsequent steps...
+      accountStore.remove(account._id, function() {
+        setTimeout(afterRemove, 0);
+      });
+    });
+
+    test('abort during #commit also aborts transaction', function(done) {
+      // Stream some events...
+      for (var i = 0; i < events.length; i++) {
+        stream.emit('event', events[i]);
+      }
+
+      subject.commit(function() {
+        // No-op
+      });
+
+      // Detection of transaction abort is a test success.
+      subject._trans.onabort = function() {
+        // Restore the exception handler.
+        done();
+      };
+
+      // Queue up account removal...
+      accountStore.emit('remove', account._id);
+    });
+
+  });
+
   suite('#commit', function() {
     var removed = [];
     var eventStore;
