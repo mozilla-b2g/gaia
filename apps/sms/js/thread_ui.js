@@ -95,6 +95,8 @@ var ThreadUI = {
     // `navigator.mozSms` API
     this._mozSms = navigator.mozSms || window.DesktopMockNavigatormozSms;
 
+    this.numberFilter = new RegExp('^[\\w\\s+#*().-]{0,50}$');
+
     this.maxLengthNotice =
       document.getElementById('messages-max-length-notice');
 
@@ -1003,8 +1005,13 @@ var ThreadUI = {
           type: 'webcontacts/contact'
         }
       });
+      var self = this;
       activity.onsuccess = function success() {
         var number = this.result.number;
+        if (!number.match(self.numberFilter)) {
+          return;
+        }
+
         if (number) {
           window.location.hash = '#num=' + number;
         }
