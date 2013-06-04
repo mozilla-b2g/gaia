@@ -639,7 +639,7 @@ var MediaDB = (function() {
     // updated record back to the database. The third argument is optional. If
     // you pass a function, it will be called when the metadata is written.
     updateMetadata: function(filename, metadata, callback) {
-      if (this.state !== MediaDB.READY)
+      if (this.state === MediaDB.OPENING)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
       var media = this;
