@@ -3,6 +3,9 @@
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/js/contacts.js');
 
+if (!this.SimplePhoneMatcher) {
+  this.SimplePhoneMatcher = null;
+}
 suite('Contacts', function(done) {
   var nativeMozContacts = navigator.mozContacts;
 
@@ -445,6 +448,39 @@ suite('Contacts', function(done) {
       Contacts.findBy({}, function(contacts) {
         var mHistory = mozContacts.mHistory;
         assert.equal(contacts, null);
+        done();
+      });
+    });
+  });
+
+  suite('Contacts.findByPhoneNumber ', function() {
+    suiteSetup(function() {
+      window.SimplePhoneMatcher = {
+        sanitizedNumber: function(tel) {
+          return '+346578888888';
+        }
+      };
+    });
+
+    suiteTeardown(function() {
+      window.SimplePhoneMatcher = null;
+    });
+
+    test('tel with spaces', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByPhoneNumber('+34 657 888 8888', function(contacts) {
+        var mHistory = mozContacts.mHistory;
+
+        // contacts were found
+        assert.ok(Array.isArray(contacts));
+        assert.equal(contacts.length, 1);
+
+        // navigator.mozContacts.find was called?
+        assert.equal(mHistory.length, 1);
+        assert.equal(mHistory[0].filter.filterValue, '+346578888888');
+        assert.isNull(mHistory[0].request.error);
+
         done();
       });
     });

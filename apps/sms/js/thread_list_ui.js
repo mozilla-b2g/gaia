@@ -87,8 +87,6 @@ var ThreadListUI = {
       return;
     }
 
-    // TODO: This should use SimplePhoneMatcher
-
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var name = node.getElementsByClassName('name')[0];
       var photo = node.getElementsByTagName('img')[0];

@@ -187,10 +187,11 @@
       }, callback);
     },
     findByPhoneNumber: function contacts_findByPhone(filterValue, callback) {
+      var phoneNumber = SimplePhoneMatcher.sanitizedNumber(filterValue);
       return this.findBy({
         filterBy: ['tel'],
         filterOp: 'match',
-        filterValue: filterValue
+        filterValue: phoneNumber
       }, callback);
     }
   };
