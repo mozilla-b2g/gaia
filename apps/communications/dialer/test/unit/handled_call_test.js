@@ -270,9 +270,9 @@ suite('dialer/handled_call', function() {
     });
   });
 
-
   suite('holding', function() {
     setup(function() {
+      mockCall._connect();
       mockCall._hold();
     });
 
@@ -284,6 +284,8 @@ suite('dialer/handled_call', function() {
   suite('resuming', function() {
     setup(function() {
       MockCallScreen.mSyncSpeakerCalled = false;
+      mockCall._connect();
+      mockCall._hold();
       mockCall._resume();
     });
 
@@ -293,6 +295,10 @@ suite('dialer/handled_call', function() {
 
     test('sync speaker', function() {
       assert.isTrue(MockCallScreen.mSyncSpeakerCalled);
+    });
+
+    test('multiple hold resume should not affect the recentEntry type', function() {
+      assert.equal(subject.recentsEntry.type, 'dialing-connected');
     });
   });
 

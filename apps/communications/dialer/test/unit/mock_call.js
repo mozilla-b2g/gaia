@@ -54,7 +54,7 @@ function MockCall(aNumber, aState) {
     if (this._handler) {
       this.state = 'resuming';
       this._handler.handleEvent({call: this});
-      this.state = 'resumed';
+      this.state = 'connected';
       this._handler.handleEvent({call: this});
     }
   }).bind(this);
