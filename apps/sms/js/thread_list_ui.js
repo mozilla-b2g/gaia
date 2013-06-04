@@ -62,6 +62,16 @@ var ThreadListUI = {
     );
   },
 
+  getAllInputs: function thlui_getAllInputs() {
+    if (this.container) {
+      return Array.prototype.slice.call(
+        this.container.querySelectorAll('input[type=checkbox]')
+      );
+    } else {
+      return [];
+    }
+  },
+
   getSelectedInputs: function thlui_getSelectedInputs() {
     if (this.container) {
       return Array.prototype.slice.call(
@@ -141,7 +151,7 @@ var ThreadListUI = {
     var _ = navigator.mozL10n.get;
     var selected = ThreadListUI.selectedInputs.length;
 
-    if (selected === ThreadListUI.counter) {
+    if (selected === ThreadListUI.allInputs.length) {
       this.checkAllButton.disabled = true;
     } else {
       this.checkAllButton.disabled = false;
@@ -158,9 +168,7 @@ var ThreadListUI = {
   },
 
   cleanForm: function thlui_cleanForm() {
-    var inputs = this.container.querySelectorAll(
-      'input[type="checkbox"]'
-    );
+    var inputs = this.allInputs;
     var length = inputs.length;
     for (var i = 0; i < length; i++) {
       inputs[i].checked = false;
@@ -287,7 +295,6 @@ var ThreadListUI = {
     // Refactor the rendering method: do not empty the entire
     // list on every render.
     ThreadListUI.container.innerHTML = '';
-    ThreadListUI.counter = threads.length;
 
     if (threads.length) {
       thlui_renderThreads.abort = function thlui_renderThreads_abort() {
@@ -484,6 +491,12 @@ var ThreadListUI = {
     }
   }
 };
+
+Object.defineProperty(ThreadListUI, 'allInputs', {
+  get: function() {
+    return this.getAllInputs();
+  }
+});
 
 Object.defineProperty(ThreadListUI, 'selectedInputs', {
   get: function() {
