@@ -409,6 +409,11 @@ var BalanceTab = (function() {
 
   // Decide which error should be shown taking in count error priorities
   function setError(error) {
+    // Ignore showing message if the message is not registered
+    if (!ERRORS[error]) {
+      return;
+    }
+
     debug('Error mode:', error);
     var messageArea = document.getElementById('cost-control-message-area');
     var message = document.getElementById('error-message-placeholder');

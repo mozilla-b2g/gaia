@@ -1,0 +1,2 @@
+
+CostControl.init();
