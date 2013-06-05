@@ -13,11 +13,9 @@ Evme.Brain = new function Evme_Brain() {
         NUMBER_OF_APPS_TO_LOAD_IN_FOLDER = 16,
         NUMBER_OF_APPS_TO_LOAD = "FROM CONFIG",
         TIME_BEFORE_INVOKING_HASH_CHANGE = 200,
-        TIMEOUT_BEFORE_ALLOWING_DIALOG_REMOVE = "FROM CONFIG",
         MINIMUM_LETTERS_TO_SEARCH = 2,
         SEARCH_SOURCES = {},
         PAGEVIEW_SOURCES = {},
-        TIPS = {},
         ICON_SIZE = null,
 
         TIMEOUT_BEFORE_REQUESTING_APPS_AGAIN = 500,
@@ -69,9 +67,6 @@ Evme.Brain = new function Evme_Brain() {
 
         _config = options;
 
-        // Tips
-        TIPS = _config.tips;
-        TIMEOUT_BEFORE_ALLOWING_DIALOG_REMOVE = _config.timeBeforeAllowingDialogsRemoval;
         NUMBER_OF_APPS_TO_LOAD = _config.numberOfAppsToLoad || DEFAULT_NUMBER_OF_APPS_TO_LOAD;
         NUMBER_OF_APPS_TO_LOAD_IN_FOLDER = _config.numberOfAppsToLoad || NUMBER_OF_APPS_TO_LOAD_IN_FOLDER;
 
@@ -143,7 +138,6 @@ Evme.Brain = new function Evme_Brain() {
     this.Searchbar = new function Searchbar() {
         var self = this,
             timeoutBlur = null,
-            tipKeyboard = null,
             TIMEOUT_BEFORE_RUNNING_BLUR = 50;
 
         // Searchbar focused. Keyboard shows
@@ -157,10 +151,6 @@ Evme.Brain = new function Evme_Brain() {
             } else {
                 Brain.Helper.showDefault();
             }
-
-            if (!tipKeyboard) {
-                tipKeyboard = new Evme.Tip(TIPS.SEARCHBAR_FOCUS);
-            }
         };
 
         // Searchbar blurred. Keyboard hides.
@@ -170,9 +160,6 @@ Evme.Brain = new function Evme_Brain() {
                 data.e.stopPropagation();
             }
 
-            if (Brain.Dialog.isActive()) {
-                return;
-            }
 
             var didClickApp = false,
                 elClicked = data && data.e && data.e.explicitOriginalTarget;
@@ -184,8 +171,6 @@ Evme.Brain = new function Evme_Brain() {
                     }
                 }
             }
-
-            window.setTimeout(self.hideKeyboardTip, 500);
 
             Evme.Utils.setKeyboardVisibility(false);
             self.setEmptyClass();
@@ -231,11 +216,6 @@ Evme.Brain = new function Evme_Brain() {
 
         // Keyboard action key ("search") pressed
         this.returnPressed = function returnPressed(data) {
-            if (Brain.Dialog.isActive()) {
-                data && data.e && data.e.preventDefault();
-                return;
-            }
-
             var query = Evme.Searchbar.getValue();
             Searcher.searchExactFromOutside(query, SEARCH_SOURCES.RETURN_KEY);
             Evme.Searchbar.blur();
@@ -265,8 +245,6 @@ Evme.Brain = new function Evme_Brain() {
 
         // searchbar value changed
         this.valueChanged = function valueChanged(data) {
-            self.hideKeyboardTip();
-
             if (data.value) {
                 Searcher.searchAsYouType(data.value, SEARCH_SOURCES.TYPING);
             }
@@ -293,14 +271,6 @@ Evme.Brain = new function Evme_Brain() {
 
             if (typedQuery === suggestionsQuery) {
                 Searcher.searchExactAsYouType(firstSuggestion, typedQuery);
-            }
-        };
-
-        // hide keyboard tip
-        this.hideKeyboardTip = function hideKeyboardTip() {
-            if (tipKeyboard) {
-                tipKeyboard.hide();
-                tipKeyboard = null;
             }
         };
     };
@@ -1097,12 +1067,6 @@ Evme.Brain = new function Evme_Brain() {
 
         // show
         this.show = function show() {
-            new Evme.Tip(TIPS.APP_EXPLAIN, function onShow(tip) {
-                elContainer.addEventListener("touchstart", tip.hide);
-            });
-
-            Brain.Searchbar.hideKeyboardTip();
-
             self.loadFromAPI();
         };
 
@@ -1328,100 +1292,6 @@ Evme.Brain = new function Evme_Brain() {
         };
     };
 
-    // modules/Dialog/
-    this.Dialog = new function Dialog() {
-        var active = null;
-
-        // show
-        this.show = function show(data) {
-            active = data.obj;
-        };
-
-        // hide
-        this.remove = function remove(data) {
-            active = null;
-        };
-
-        // background modal clicked
-        this.blackoutClick = function blackoutClick() {
-            if (Evme.Utils.isKeyboardVisible) {
-                Evme.Searchbar.focus();
-                self.Evme.Searchbar.cancelBlur();
-            }
-        };
-
-        this.getActive = function getActive() {
-            return active;
-        };
-
-        this.isActive = function isActive() {
-            return (active !== null && !Brain.Tips.isVisible());
-        };
-    };
-
-    // modules/Tip/
-    this.Tips = new function Tips() {
-        var self = this,
-            activeTip = null,
-            timeoutShowTip = null;
-
-        // show
-        this.show = function show(tip, options) {
-            !options && (options = {});
-
-            if (activeTip) {
-                return null;
-            }
-
-            var shouldSendCallback = true;
-
-            if (options.query) {
-                for (var tipId in TIPS.HELPER) {
-                    if (tipId == options.query.toUpperCase()) {
-                        var helperTip = TIPS.HELPER[tipId];
-
-                        shouldSendCallback = false;
-
-                        self.timesShown(helperTip, function timesShown(numberOfTimesShown) {
-                            helperTip.timesShown = numberOfTimesShown || 0;
-
-                            if (helperTip.timesShown < helperTip.timesToShow) {
-                                showHelperTip(helperTip, options);
-                                options.onFinish && options.onFinish(true);
-                            } else {
-                                options.onFinish && options.onFinish(false);
-                            }
-                        });
-                        break;
-                    }
-                }
-            }
-
-            if (shouldSendCallback) {
-                options.onFinish && options.onFinish(false);
-            }
-        };
-
-        function showHelperTip(tip, options) {
-            Evme.Helper.hideTitle();
-            Evme.Helper.flash();
-            self.markAsShown(tip);
-        }
-
-        this.markAsShown = function markAsShown(tip) {
-            tip.timesShown++;
-            Evme.Storage.set(tip.id, tip.timesShown);
-        };
-
-        this.timesShown = function timesShown(tip, callback) {
-            Evme.Storage.get(tip.id, callback);
-        };
-
-        this.isVisible = function isVisible() {
-            return activeTip;
-        };
-    };
-
     // helpers/Utils.Connection
     this.Connection = new function Connection() {
         // upon becoming online
@@ -1489,7 +1359,6 @@ Evme.Brain = new function Evme_Brain() {
             hasMoreApps = false,
             iconsCachedFromLastRequest = [],
             autocompleteCache = {},
-            timeoutShowExactTip = null,
 
             requestSearch = null,
             requestImage = null,
@@ -1702,8 +1571,6 @@ Evme.Brain = new function Evme_Brain() {
                 isMore = (appsCurrentOffset > 0),
                 bSameQuery = (lastSearch.query === query);
             
-            var tipShownOnHelper = false;
-            
             // searching after a timeout while user it typing
             if (onlyDidYouMean || options.automaticSearch) {
                 // show only spelling or disambiguation, and only if the query is the same as what the user typed
@@ -1715,17 +1582,6 @@ Evme.Brain = new function Evme_Brain() {
             } else {
                 if (!isMore && !reloadingIcons) {
                     Evme.Helper.load(_query, query, suggestions, spelling, disambig);
-
-                    if (isExactMatch && !onlyDidYouMean && !Brain.App.isLoadingApp()) {
-                        Brain.Tips.show(TIPS.FIRST_EXACT, {
-                            "query": query,
-                            "onFinish": function onFinish(tipShownOnHelper) {
-                                if (isExactMatch && !(spelling.length > 0 || disambig.length > 1) && !tipShownOnHelper) {
-                                    Evme.Helper.showTitle();
-                                }
-                            }
-                        });
-                    }
 
                     if (isExactMatch) {
                         if (spelling.length > 0 || disambig.length > 1) {
@@ -1783,19 +1639,6 @@ Evme.Brain = new function Evme_Brain() {
                         Evme.Apps.getElement().classList.remove("has-more");
                     }
                 }
-            }
-
-            if (isExactMatch) {
-                var tip = TIPS.EXACT_RESULTS;
-                if (data.response.queryType == QUERY_TYPES.EXPERIENCE && TIPS.EXACT_RESULTS_SHORTCUT) {
-                    tip = TIPS.EXACT_RESULTS_SHORTCUT;
-                }
-                
-                tip._data = {
-                    "query": lastSearch.query
-                };
-                
-                new Evme.Tip(tip);
             }
 
             Evme.Searchbar.endRequest();

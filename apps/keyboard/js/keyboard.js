@@ -178,7 +178,7 @@ const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 const ACCENT_CHAR_MENU_TIMEOUT = 700;
 
 // Backspace repeat delay and repeat rate
-const REPEAT_RATE = 100;
+const REPEAT_RATE = 75;
 const REPEAT_TIMEOUT = 700;
 
 // How long to wait for more focuschange events before processing
@@ -205,7 +205,7 @@ const keyboardGroups = {
   'catalan' : ['ca'],
   'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr'],
   'cyrillic': ['ru', 'sr-Cyrl'],
-  'serbian-latin': ['sr-Latn'],
+  'serbian': ['sr-Latn', 'sr-Cyrl'],
   'hebrew': ['he'],
   'zhuyin': ['zh-Hant-Zhuyin'],
   'pinyin': ['zh-Hans-Pinyin'],

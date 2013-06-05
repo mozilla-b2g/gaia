@@ -134,35 +134,47 @@ suite('thread_ui.js >', function() {
     setup(function() {
       Compose.clear();
       ThreadUI.updateCounter();
+      window.location.hash = '#thread-1';
     });
 
     teardown(function() {
       Compose.clear();
+      window.location.hash = '';
     });
 
-    test('button should be disabled at the beginning', function() {
-      Compose.clear();
-      assert.isTrue(sendButton.disabled);
+    suite('Thread View', function() {
+      setup(function() {
+        window.location.hash = '#thread-1';
+      });
+
+      teardown(function() {
+        window.location.hash = '';
+      });
+
+      test('button should be disabled at the beginning', function() {
+        Compose.clear();
+        assert.isTrue(sendButton.disabled);
+      });
+
+      test('button should be enabled when there is some text', function() {
+        Compose.append('Hola');
+        assert.isFalse(sendButton.disabled);
+      });
+
+      test('button should not be disabled if there is some text ' +
+        'but too many segments', function() {
+
+        MockNavigatormozMobileMessage.mNextSegmentInfo = {
+          segments: 11,
+          charsAvailableInLastSegment: 10
+        };
+        Compose.append('Hola');
+
+        assert.isFalse(sendButton.disabled);
+      });
+
     });
 
-    test('button should be enabled when there is some text', function() {
-      Compose.append('Hola');
-      assert.isFalse(sendButton.disabled);
-    });
-
-    test('button should be disabled if there is some text ' +
-      'but too many segments', function() {
-
-      MockNavigatormozMobileMessage.mNextSegmentInfo = {
-        segments: 11,
-        charsAvailableInLastSegment: 10
-      };
-      input.value = 'Hola';
-
-      ThreadUI.enableSend();
-
-      assert.isTrue(sendButton.disabled);
-    });
 
     suite('#new mode >', function() {
       setup(function() {

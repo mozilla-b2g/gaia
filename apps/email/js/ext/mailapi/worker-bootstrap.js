@@ -10244,11 +10244,11 @@ exports.do_download = function(op, callback) {
   function saveToStorage(blob, storage, filename, partInfo, isRetry) {
     pendingStorageWrites++;
 
-    var callback = function(success, error) {
+    var callback = function(success, error, savedFilename) {
       if (success) {
         self._LOG.savedAttachment(storage, blob.type, blob.size);
-        console.log('saved attachment to', storage, filename, 'type:', blob.type);
-        partInfo.file = [storage, filename];
+        console.log('saved attachment to', storage, savedFilename, 'type:', blob.type);
+        partInfo.file = [storage, savedFilename];
         if (--pendingStorageWrites === 0)
           done();
       } else {
@@ -14637,9 +14637,9 @@ MailUniverse.prototype = {
                             endings: 'transparent'
                           });
       var filename = 'gem-log-' + Date.now() + '.json';
-      sendMessage('save', ['sdcard', blob, filename], function(success) {
+      sendMessage('save', ['sdcard', blob, filename], function(success, err, savedFile) {
         if (success)
-          console.log('saved log to "sdcard" devicestorage:', filename);
+          console.log('saved log to "sdcard" devicestorage:', savedFile);
         else
           console.error('failed to save log to', filename);
 

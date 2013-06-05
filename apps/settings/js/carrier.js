@@ -408,7 +408,7 @@ navigator.mozL10n.ready(function carrierSettings() {
       currentStateElement.textContent = messageElement.textContent;
       currentStateElement.dataset.l10nId = messageElement.dataset.l10nId;
       currentStateElement = messageElement;
-      localize(messageElement,'operator-status-connecting');
+      localize(messageElement, 'operator-status-connecting');
       req.onsuccess = function onsuccess() {
         localize(messageElement, 'operator-status-connected');
         updateSelectionMode(false);

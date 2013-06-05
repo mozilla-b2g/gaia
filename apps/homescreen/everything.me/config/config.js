@@ -13,7 +13,6 @@ Evme.__config = {
         "widthForFiveApps": 400,
         "displayInstalledApps": true
     },
-    "timeBeforeAllowingDialogsRemoval": 2000,
     "numberOfAppsToLoad": 16,
     "minHeightForMoreButton": 470,
     "minimumLettersForSearch": 1,
@@ -26,8 +25,6 @@ Evme.__config = {
     "searchSources": {
         "URL": "url",
         "TRENDING": "trnd",
-        "HOMEPAGE_TIP": "htip",
-        "HOMEPAGE_TIP_QUERY": "htpq",
         "SHORTCUT": "shrt",
         "SHORTCUT_ENTITY": "enty",
         "SHORTCUT_CONTINUE_BUTTON": "shrb",
@@ -100,27 +97,6 @@ Evme.__config = {
                     "/everything.me/images/icn/default3.png?cb=1346169250"
                 ]
             }
-        }
-    },
-    "tips": {
-        "APP_EXPLAIN": {
-            "id": "app-explain",
-            "timesToShow": 1,
-            "closeAfter": 6000,
-            "closeOnClick": true
-        },
-        "SEARCHBAR_FOCUS": {
-            "id": "searchbar-focus",
-            "timesToShow": 1,
-            "closeAfter": 60000,
-            "classes": ["stuckToSearchbar", "seeThrough"]
-        },
-        "EXACT_RESULTS": {
-            "id": "exact-results",
-            "timesToShow": 1,
-            "showAfter": 500,
-            "closeAfter": 4000,
-            "closeOnClick": true
         }
     },
     // time before refreshing user location (milliseconds)
