@@ -141,7 +141,7 @@ var CallHandler = (function callHandler() {
       if (telephony.calls.length !== 0) {
         openCallScreen();
       }
-    }
+    };
   }
 
   /* === Bluetooth Support === */
