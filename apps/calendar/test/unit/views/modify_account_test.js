@@ -641,6 +641,27 @@ suiteGroup('Views.ModifyAccount', function() {
         );
       });
     });
+
+    suite('submit form', function() {
+
+      setup(function() {
+        account.user = 'foo';
+        subject.fields.password.value = 'foo';
+        subject.render();
+      });
+
+      test('default is prevented', function(done) {
+        subject.element.addEventListener('submit', function(e) {
+          assert.ok(e.defaultPrevented);
+          done();
+        });
+
+        subject.accountHandler.send = function(model) {};
+
+        triggerEvent(subject.form, 'submit');
+      });
+
+    });
   });
 
 });
