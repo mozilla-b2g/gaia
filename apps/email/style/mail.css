@@ -44,8 +44,32 @@ body {
 
 }
 
+.card.center.anim-slide-up,
+.card.center.anim-slide-down {
+  -moz-transition-duration: 500ms;
+}
+
 .card.anim-up center {
   transition: translateX(0);
+}
+
+.card.center.anim-slide-up {
+  transform: translateX(0) translateY(-5rem);
+  height: auto;
+  z-index: 1;
+}
+
+.card.center.anim-slide-down {
+  transform: translateX(0) translateY(0rem);
+  height: auto;
+}
+
+.card.center.reset-index {
+  z-index: auto;
+}
+
+.card.fixed {
+  z-index: 0;
 }
 
 .card.no-anim {
@@ -267,3 +291,6 @@ section[role="status"][title="retry"] .toaster-banner-retry {
   display: inline;
 }
 
+form[role="search"]{
+  z-index: 1;
+}

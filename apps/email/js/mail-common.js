@@ -466,6 +466,12 @@ var Cards = {
       insertBuddy = null;
       domNode.classList.add(cardIndex === 0 ? 'before' : 'after');
     }
+    else if (placement === 'fixed') {
+      cardIndex = this._cardStack.length;
+      insertBuddy = null;
+      domNode.classList.add('anim-overlay');
+      domNode.classList.add('fixed');
+    }
     else if (placement === 'left') {
       cardIndex = this.activeCardIndex++;
       insertBuddy = this._cardsNode.children[cardIndex];
@@ -771,6 +777,12 @@ var Cards = {
     // If going forward and it is an overlay node, then do not animate the
     // beginning node, it will just sit under the overlay.
     if (isForward && endNode.classList.contains('anim-overlay')) {
+      // special slide-up animation for search
+      if (endNode.classList.contains('fixed')) {
+        addClass(beginNode, 'anim-slide-up');
+        endNode = null;
+      }
+
       beginNode = null;
 
       // anim-overlays are the transitions to new layers in the stack. If
@@ -791,6 +803,12 @@ var Cards = {
           addClass(beginNode, 'disabled-anim-vertical');
         }
       } else {
+        // special slide-down animation for search
+        if (endNode.classList.contains('anim-slide-up')) {
+          addClass(endNode, 'anim-slide-down');
+          removeClass(endNode, 'anim-slide-up');
+          removeClass(endNode, 'reset-index');
+        }
         endNode = null;
         this._zIndex -= 10;
       }
@@ -897,6 +915,18 @@ var Cards = {
         this._afterTransitionAction = null;
         afterTransitionAction();
       }
+
+      var nodeTarget = event.target;
+      // surface search list after animation
+      if (nodeTarget.classList.contains('anim-slide-up')) {
+        addClass(nodeTarget, 'reset-index');
+      }
+
+      // reset message list to default position
+      if (nodeTarget.classList.contains('anim-slide-down')) {
+        removeClass(nodeTarget, 'anim-slide-down');
+      }
+
     }
   },
 

@@ -219,13 +219,13 @@ MessageListCard.prototype = {
     if (this.mode === 'search')
       this.searchInput.focus();
   },
-
   onSearchButton: function() {
     Cards.pushCard(
-      'message-list', 'search', 'animate',
+      'message-list', 'search', 'immediate',
       {
         folder: this.curFolder
-      });
+      },
+      'fixed');
   },
 
   setEditMode: function(editMode) {
@@ -457,7 +457,7 @@ MessageListCard.prototype = {
       console.error('problem killing slice:', ex, '\n', ex.stack);
     }
     this.messagesSlice = null;
-    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    Cards.removeCardAndSuccessors(this.domNode, 'immediate');
   },
 
   onGetMoreMessages: function() {
@@ -479,7 +479,7 @@ MessageListCard.prototype = {
         this.progressNode.value = this.messagesSlice ?
                                   this.messagesSlice.syncProgress : 0;
         this.progressNode.classList.remove('pack-activity');
-        this.progressNode.classList.remove('hidden');
+        this.progressNode.classList.remove('collapsed');
         if (this.progressCandybarTimer)
           window.clearTimeout(this.progressCandybarTimer);
         this.progressCandybarTimer =
@@ -497,7 +497,7 @@ MessageListCard.prototype = {
       case 'synced':
         this.syncingNode.classList.add('collapsed');
         this.progressNode.classList.remove('pack-activity');
-        this.progressNode.classList.add('hidden');
+        this.progressNode.classList.add('collapsed');
         if (this.progressCandybarTimer) {
           window.clearTimeout(this.progressCandybarTimer);
           this.progressCandybarTimer = null;

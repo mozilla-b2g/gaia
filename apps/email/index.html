@@ -157,17 +157,17 @@
           </header>
         </section>
         <!-- Search header -->
-        <section role="region"
+        <section role="search"
                  class="msg-search-header msg-search-only">
           <header>
-            <a href="#" class="msg-search-cancel">
-              <span class="icon icon-close"
-                    data-l10n-id="message-search-cancel-accessible"></span>
-            </a>
-            <form>
-              <input type="text" required="required" class="msg-search-text"
+            <form class="search" role="search">
+              <button class='msg-search-cancel' data-l10n-id="message-search-cancel-accessible" type="submit">CanceL</button>
+              <p>
+                <label for="search-message">
+                <input name="search-message" type="text" required="required" class="msg-search-text"
                      data-l10n-id="message-search-input" />
-              <button type="reset" data-l10n-id="form-clear-input"></button>
+                <button type="reset" data-l10n-id="form-clear-input">CleaR</button>
+              </p>
             </form>
           </header>
           <!-- Search filter switcher -->
@@ -192,7 +192,7 @@
             </ul>
           </header>
         </section>
-        <progress class="msg-list-progress hidden" value="0" total="1.0">
+        <progress class="msg-list-progress collapsed" value="0" total="1.0">
         </progress>
         <!-- Scroll region -->
         <div class="msg-list-scrollouter">
@@ -201,10 +201,15 @@
             <!-- The search textbox hides under the lip of the messages.
                  As soon as any typing happens in it, we push the search
                  controls card. -->
-            <div class="msg-search-tease-bar msg-nonsearch-only">
-              <input class="msg-search-text-tease" type="text"
-                     data-l10n-id="message-search-input" />
-            </div>
+            <form class="search msg-search-tease-bar msg-nonsearch-only" role="search">
+              <p>
+                <label for="search" id="search-start">
+                  <input name="search" class="msg-search-text-tease" type="text"
+                         data-l10n-id="message-search-input" />
+                </label>
+              </p>
+            </form>
+          
             <div class="msg-messages-container">
             </div>
             <!-- maintain vertical space for the syncing/sync more div's
