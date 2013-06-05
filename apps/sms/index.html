@@ -272,35 +272,21 @@
       -->
     </div>
 
+    <!-- The image in this template ensures that the iFrame's 'load' event is
+    not triggered until after the attachment media is loaded. This, in turn,
+    prevents the Object URL from being revoked before the image has been drawn.
+    -->
     <div id="attachment-tmpl" class="hide">
       <!--
-      <style>
-        body {
-          font-family: 'Feura Sans', sans-serif;
-        }
-        body.attachment {
-          margin: 0;
-          font-size: 1rem;
-        }
-        body.attachment img {
-          width: 100%;
-          height: 100%;
-        }
-        body.attachment div {
-          position: absolute;
-          bottom: 0;
-          right: 0;
-          left: 0;
-
-          padding: 0 0.4rem;
-
-          background: rgba(0, 0, 0, 0.6);
-          color: rgb(255, 255, 255);
-        }
-      </style>
-      <body class="attachment">
-        <img src="${uri}">
-        <div>${size}</div>
+      <head>
+        <base href="${baseURL}">
+        <link rel="stylesheet" type="text/css" href="style/attachment.css">
+      </head>
+      <body class="attachment ${draftClass}">
+        <div style="${inlineStyle}" class="placeholder ${type}-placeholder"></div>
+        <div class="size-indicator">${size}</div>
+        <img src="${imgSrc}"
+          style="position: absolute;height: 0;width: 0;left: 0;top: 0;z-index:-1;">
       </body>
       -->
     </div>

@@ -1,0 +1,47 @@
+html, body {
+  font-size: 10px;
+}
+body {
+  font-family: 'Feura Sans', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.size-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+
+  padding: 0 0.4rem;
+  display: none;
+
+  background: rgba(0, 0, 0, 0.6);
+  color: rgb(255, 255, 255);
+  font-size: 1.5rem;
+}
+.draft .size-indicator {
+  display: block;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+.video-placeholder {
+  background-image: url('icons/video_thumb.png');
+}
+.audio-placeholder {
+  background-image: url('icons/audio_thumb.png');
+}
+.video-placeholder:active,
+.video-placeholder:hover {
+  background-image: url('icons/video_thumb_focus.png');
+}
+.audio-placeholder:active,
+.audio-placeholder:hover {
+  background-image: url('icons/audio_thumb_focus.png');
+}
