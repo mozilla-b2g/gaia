@@ -346,6 +346,8 @@ var StatusBar = {
         if (this.screen.classList.contains('fullscreen-app') ||
             document.mozFullScreen) {
           this.hide();
+        } else {
+          this.show();
         }
 
         this.clock.start(this.update.time.bind(this));
