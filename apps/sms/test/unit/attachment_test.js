@@ -36,6 +36,12 @@ suite('attachment_test.js', function() {
 
   });
 
+  test('Name property defaults to a string value', function() {
+    var attachment = new Attachment(new Blob());
+
+    assert.typeOf(attachment.name, 'string');
+  });
+
   test('render', function() {
     var el = this.attachment.render();
     assert.ok(el.src, 'src set');
