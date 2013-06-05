@@ -39,6 +39,11 @@ form.search button[type="submit"] {
   width: auto;
 }
 
+/* override bb to force show reset */
+form p input + button[type="reset"] {
+  opacity: 1;
+}
+
 /* Search view */
 #search-view {
   position: fixed;
