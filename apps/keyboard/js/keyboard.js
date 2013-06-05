@@ -205,7 +205,7 @@ const keyboardGroups = {
   'catalan' : ['ca'],
   'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr'],
   'cyrillic': ['ru', 'sr-Cyrl'],
-  'serbian-latin': ['sr-Latn'],
+  'serbian': ['sr-Latn', 'sr-Cyrl'],
   'hebrew': ['he'],
   'zhuyin': ['zh-Hant-Zhuyin'],
   'pinyin': ['zh-Hans-Pinyin'],
