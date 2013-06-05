@@ -168,7 +168,7 @@ var KeypadManager = {
                                                 this.hangUpCallFromKeypad);
     }
 
-    TonePlayer.init(this._onCall ? 'telephony' : 'ringer');
+    TonePlayer.init(this._onCall ? 'telephony' : 'normal');
 
     this.render();
   },
