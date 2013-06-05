@@ -108,7 +108,7 @@
       CEWarningVol = volume;
     });
 
-    window.asyncStorage.getItem(CACHE_CETIME,
+    window.asyncStorage.getItem(CACHE_CETIMES,
       function onGettingContentVolume(value) {
         if (!value) {
           return;
@@ -203,7 +203,7 @@
          CEAccumulatorTime = CEAccumulatorTime +
          (parseInt(new Date().getTime(), 10) - CETimestamp);
       }
-      window.asyncStorage.setItem(CACHE_CETIME, CEAccumulatorTime);
+      window.asyncStorage.setItem(CACHE_CETIMES, CEAccumulatorTime);
     }
   }
 
@@ -274,34 +274,47 @@
   // OFF -> VIBRATION -> MUTE
   var muteState = 'OFF';
 
-  for (var channel in currentVolume) {
-    (function(channel) {
-      var setting = 'audio.volume.' + channel;
-      SettingsListener.observe(setting, 5, function onSettingsChange(volume) {
-        if (pendingRequestCount)
-          return;
+  /*
+    Bind setting handlers
+    @param {Function} callback Callback being called after each setting handler
+                               has been invoked once.
+   */
+  (function bindVolumeSettingsHandlers(callback) {
+    var callsMade = 0;
+    var callbacksReceived = 0;
 
-        var max = MAX_VOLUME[channel];
-        currentVolume[channel] =
+    for (var channel in currentVolume) {
+      callsMade++;
+
+      (function(channel) {
+        var setting = 'audio.volume.' + channel;
+        SettingsListener.observe(setting, 5, function onSettingsChange(volume) {
+          // Initial loaded setting should always pass through (one per channel)
+          if (pendingRequestCount)
+            return;
+
+          var max = MAX_VOLUME[channel];
+          currentVolume[channel] =
             parseInt(Math.max(0, Math.min(max, volume)), 10);
 
-        if (channel == 'content' && inited && volume > 0) {
-          leaveSilentMode('content',
-                          /* skip volume restore */ true);
-        } else if (channel == 'notification' && volume > 0) {
-          leaveSilentMode('notification',
-                          /* skip volume restore */ true);
-        } else if (channel == 'content' && volume == 0) {
-          // Enter silent mode when notification volume is 0
-          // no matter who sets this value.
-          enterSilentMode('notification');
-        }
+          if (channel === 'content' && inited && volume > 0) {
+            leaveSilentMode('content',
+                            /* skip volume restore */ true);
+          } else if (channel === 'notification' && volume > 0) {
+            leaveSilentMode('notification',
+                            /* skip volume restore */ true);
+          } else if (channel === 'content' && volume == 0) {
+            // Enter silent mode when notification volume is 0
+            // no matter who sets this value.
+            enterSilentMode('notification');
+          }
 
-        if (!inited)
-          fetchCachedVolume();
-      });
-    })(channel);
-  }
+          if (!inited && ++callbacksReceived === callsMade)
+            callback();
+        });
+      })(channel);
+    }
+  })(fetchCachedVolume);
 
   SettingsListener.observe('vibration.enabled', true, function(vibration) {
     if (pendingRequestCount)
