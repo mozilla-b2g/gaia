@@ -74,6 +74,15 @@ if (BROWSER) {
   prefs.push(["dom.mozContacts.enabled", true]);
   prefs.push(["dom.navigator-property.disable.mozContacts", false]);
   prefs.push(["dom.global-constructor.disable.mozContact", false]);
+
+  // Partial implementation of gonk fonts
+  // See: http://mxr.mozilla.org/mozilla-central/source/modules/libpref/src/init/all.js#3202
+  prefs.push(["font.default.x-western", "sans-serif"]);
+
+  prefs.push(["font.name.serif.x-western", "Charis SIL Compact"]);
+  prefs.push(["font.name.sans-serif.x-western", "Feura Sans"]);
+  prefs.push(["font.name.monospace.x-western", "Source Code Pro"]);
+  prefs.push(["font.name-list.sans-serif.x-western", "Feura Sans, Roboto"]);
 }
 
 if (DEBUG) {
