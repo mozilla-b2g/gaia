@@ -21,6 +21,7 @@ Calendar.ns('Views').EventBase = (function() {
     UPDATE: 'update',
     PROGRESS: 'in-progress',
     ALLDAY: 'allday',
+    LOADING: 'loading',
 
     DEFAULT_VIEW: '/month/',
 
@@ -107,12 +108,17 @@ Calendar.ns('Views').EventBase = (function() {
 
     /**
      * Assigns and displays event & busytime information.
+     * Marks view as "loading"
      *
      * @param {Object} busytime for view.
      * @param {Object} event for view.
      * @param {Function} [callback] optional callback.
      */
     useModel: function(busytime, event, callback) {
+      // mark view with loading class
+      var classList = this.element.classList;
+      classList.add(this.LOADING);
+
       this.event = new Calendar.Models.Event(event);
       this.busytime = busytime;
 
@@ -145,6 +151,7 @@ Calendar.ns('Views').EventBase = (function() {
           console.log('Failed to fetch events capabilities', err);
 
           if (callback) {
+            classList.remove(self.LOADING);
             callback(err);
           }
 
@@ -155,6 +162,8 @@ Calendar.ns('Views').EventBase = (function() {
           self._markReadonly(true);
           self.element.classList.add(self.READONLY);
         }
+
+        classList.remove(self.LOADING);
 
         // inheritance hook...
         self._updateUI();
@@ -181,9 +190,13 @@ Calendar.ns('Views').EventBase = (function() {
       var self = this;
       var token = ++this._changeToken;
       var time = this.app.timeController;
+      var classList = this.element.classList;
+
+      classList.add(this.LOADING);
 
       time.findAssociated(id, function(err, list) {
         if (err) {
+          classList.remove(this.LOADING);
           console.log('Error looking up records for id: ', id);
         }
 
@@ -194,6 +207,9 @@ Calendar.ns('Views').EventBase = (function() {
             records.event,
             callback
           );
+        } else {
+          // ensure loading is removed
+          classList.remove(this.LOADING);
         }
       });
     },
@@ -252,6 +268,9 @@ Calendar.ns('Views').EventBase = (function() {
      * be found via the time controller.
      */
     dispatch: function(data) {
+      // always remove loading initially (to prevent worst case)
+      this.element.classList.remove(this.LOADING);
+
       var id = data.params.id;
       var classList = this.element.classList;
       var last = this.app.router.last;
