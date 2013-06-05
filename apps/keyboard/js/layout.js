@@ -586,7 +586,7 @@ const Keyboards = {
   },
   'sr-Cyrl': {
     label: 'Serbian (Cyrillic)',
-    menuLabel: 'Cрпска ћирилица',
+    menuLabel: 'Српски (ћирилица)',
     alt: {
       // incomplete
     },
@@ -613,7 +613,7 @@ const Keyboards = {
   },
   'sr-Latn': {
     label: 'Serbian (Latin)',
-    menuLabel: 'srpski',
+    menuLabel: 'Srpski',
     alt: {
       c: 'čć',
       d: 'đ',

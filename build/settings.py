@@ -55,6 +55,7 @@ settings = {
  "keyboard.layouts.japanese": False,
  "keyboard.layouts.polish": False,
  "keyboard.layouts.portuguese": False,
+ "keyboard.layouts.serbian": False,
  "keyboard.layouts.spanish": False,
  "keyboard.vibration": False,
  "keyboard.clicksound": False,
