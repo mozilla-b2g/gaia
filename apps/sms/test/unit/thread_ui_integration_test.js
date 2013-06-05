@@ -231,8 +231,9 @@ suite('ThreadUI Integration', function() {
       // something before jumping to the input field
       children[1].textContent = '000';
 
-      // Simulate toField blur event.
-      ThreadUI.toField.dispatchEvent(new CustomEvent('blur'));
+      // Simulate input field focus/entry
+      input.dispatchEvent(new CustomEvent('focus'));
+
 
       // There are now two recipients...
       assert.equal(recipients.length, 2);
