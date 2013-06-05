@@ -83,19 +83,19 @@ var Browser = {
         });
       } else {
         // restore search engine provider
-        LazyLoader.load(['shared/js/async_storage.js'], function() {
+        LazyLoader.load('shared/js/async_storage.js', function() {
           asyncStorage.getItem('default_search_provider_url',
             function(value) {
-            this.DEFAULT_SEARCH_PROVIDER_URL = value;
+            Browser.DEFAULT_SEARCH_PROVIDER_URL = value;
           });
           asyncStorage.getItem('default_search_provider_title',
             function(value) {
-            this.DEFAULT_SEARCH_PROVIDER_TITLE = value;
+            Browser.DEFAULT_SEARCH_PROVIDER_TITLE = value;
           });
           asyncStorage.getItem('default_search_provider_icon',
             function(value) {
-            this.DEFAULT_SEARCH_PROVIDER_ICON = value;
-          }.bind(this));
+            Browser.DEFAULT_SEARCH_PROVIDER_ICON = value;
+          });
         });
       }
       this.addressBarState = this.VISIBLE;
