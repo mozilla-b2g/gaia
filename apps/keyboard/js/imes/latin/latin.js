@@ -534,23 +534,20 @@
   // When the worker thread sends us a batch of suggestions, deal
   // with them here.
   function handleSuggestions(input, suggestions) {
-    // Check that the word before the cursor has not changed since
-    // we requested these suggestions. If the user has typed faster
-    // than we could offer suggestions, ignore these.
-    if (wordBeforeCursor() !== input) {
+    // If we didn't get any suggestions just send the empty array to
+    // clear any suggestions that are currently displayed. Do the same
+    // if the word before the cursor has changed since we requested
+    // these suggestions. That is, if the user has typed faster than we could
+    // offer suggestions, ignore them.
+    if (suggestions.length === 0 || wordBeforeCursor() !== input) {
       keyboard.sendCandidates([]); // Clear any displayed suggestions
       return;
     }
 
-    // Loop through the suggestions discarding the weights, and capitalizing
-    // words if the user's input is capitalized.
+    // Loop through the suggestions discarding the weights
     var lcinput = input.toLowerCase();
-    var inputStartsWithCapital = (input[0] !== lcinput[0]);
     for (var i = 0; i < suggestions.length; i++) {
       suggestions[i] = suggestions[i][0];
-      if (inputStartsWithCapital)
-        suggestions[i] =
-          suggestions[i][0].toUpperCase() + suggestions[i].substring(1);
     }
 
     // Now figure out if the input is one of the suggestions
@@ -572,12 +569,11 @@
 
     switch (inputindex) {
     case -1:
-      // Input is not a word: show it second in the list, or first
-      // if there aren't any other suggestions
-      if (suggestions.length > 0)
+      // Input is not a word: show it second in the list
+      if (suggestions.length > 1)
         suggestions = [suggestions[0], input, suggestions[1]];
       else
-        suggestions = [input];
+        suggestions = [suggestions[0], input];
       break;
     case 0:
     case 1:
@@ -749,7 +745,10 @@
       return;
     }
 
-    worker.postMessage({cmd: 'predict', args: [wordBeforeCursor()]});
+    var word = wordBeforeCursor();
+    if (word) { // Defend against bug 879572 even though I can't reproduce it
+      worker.postMessage({cmd: 'predict', args: [word]});
+    }
   }
 
   function updateCapitalization() {
