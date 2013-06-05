@@ -122,7 +122,8 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   color: #1D8399;
 }
 
-[data-type="list"] aside.pack-end img[src=""] {
+[data-type="list"] aside.pack-end img[src=""],
+form[data-type="action"] img[src=""] {
   opacity: 0;
   width: 0;
 }
@@ -259,7 +260,7 @@ section[role="region"].new > header:first-child form {
   display: none;
 }
 
-.new #icon-edit {
+.new #messages-icon-edit {
   display: none;
 }
 
@@ -283,18 +284,18 @@ section[role="region"].new > header:first-child form {
   Messages Style as 'bubbles'
 */
 
-#messages-container {
+.article-list {
   -moz-box-sizing: border-box;
   background: none repeat scroll 0 0 #E4E4E4;
   text-align: left;
   z-index: 5;
 }
 
-#messages-container header:first-child {
+.article-list header:first-child {
   margin-top: 2rem;
 }
 
-#messages-container header {
+.article-list header {
   margin: 0 0 0.6rem;
   padding: 1.5rem 0 0 0;
   border-bottom: none;
@@ -305,16 +306,16 @@ section[role="region"].new > header:first-child form {
   text-transform: uppercase;
 }
 
-#messages-container[data-type="list"] > ul:last-child {
+.article-list[data-type="list"] > ul:last-child {
   margin-bottom: 7rem;
 }
 
-#messages-container header,
-  #messages-container[data-type="list"] .message.incoming .bubble {
+.article-list header,
+  .article-list[data-type="list"] .message.incoming .bubble {
   padding-left: 4rem;
 }
 
-#messages-container[data-type="list"] .message {
+.article-list[data-type="list"] .message {
   position: relative;
 
   display: block;
@@ -332,15 +333,15 @@ section[role="region"].new > header:first-child form {
   display: none;
 }
 
-#messages-container[data-type="list"] .message.hidden {
+.article-list[data-type="list"] .message.hidden {
   display: none;
 }
 
-#messages-container[data-type="list"] header.hidden {
+.article-list[data-type="list"] header.hidden {
   display: none;
 }
 
-#messages-container[data-type="list"] .message .bubble {
+.article-list[data-type="list"] .message .bubble {
   overflow: visible;
   -moz-box-sizing: border-box;
   max-width: -moz-calc(100% - 4rem);
@@ -350,7 +351,7 @@ section[role="region"].new > header:first-child form {
   background: #fff;
 }
 
-#messages-container[data-type="list"] .message.mms .mms-media {
+.article-list[data-type="list"] .message.mms .mms-media {
   display: block;
   max-height: 12rem;
   max-width: 12rem;
@@ -370,7 +371,7 @@ section[role="region"].new > header:first-child form {
   width: auto;
 }
 
-#messages-container[data-type="list"] .message.mms .video-placeholder {
+.article-list[data-type="list"] .message.mms .video-placeholder {
   display: block;
   width: 10.7rem;
   height: 8rem;
@@ -378,7 +379,7 @@ section[role="region"].new > header:first-child form {
   background-size: 100%;
 }
 
-#messages-container[data-type="list"] .message.mms .audio-placeholder {
+.article-list[data-type="list"] .message.mms .audio-placeholder {
   display: block;
   width: 6rem;
   height: 6rem;
@@ -386,22 +387,24 @@ section[role="region"].new > header:first-child form {
   background-size: 100%;
 }
 
-#messages-container[data-type="list"] .message.mms .video-placeholder:active,
-#messages-container[data-type="list"] .message.mms .video-placeholder:hover {
+.article-list[data-type="list"] .message.mms .video-placeholder:active,
+.article-list[data-type="list"] .message.mms .video-placeholder:hover {
   background-position: 0 -8rem;
 }
 
-#messages-container[data-type="list"] .message.mms .audio-placeholder:active,
-#messages-container[data-type="list"] .message.mms .audio-placeholder:hover {
+.article-list[data-type="list"] .message.mms .audio-placeholder:active,
+.article-list[data-type="list"] .message.mms .audio-placeholder:hover {
   background-position: 0 -6rem;
 }
 
-#messages-container[data-type="list"] .message.outgoing .mms-media {
+.article-list[data-type="list"] .message.outgoing .mms-media,
+.article-list[data-type="list"] .message.outgoing .video-placeholder,
+.article-list[data-type="list"] .message.outgoing .audio-placeholder {
   margin-left: auto;
   margin-right: 0;
 }
 
-#messages-container[data-type="list"] .message.outgoing .bubble {
+.article-list[data-type="list"] .message.outgoing .bubble {
   float: right;
 
   padding-right: 4.1rem;
@@ -409,7 +412,7 @@ section[role="region"].new > header:first-child form {
   border-radius: 0.3rem 0 0 0.3rem;
 }
 
-#messages-container[data-type="list"] .message.incoming .bubble {
+.article-list[data-type="list"] .message.incoming .bubble {
   float: left;
 
   border-radius: 0 0.3rem 0.3rem 0;
@@ -417,19 +420,19 @@ section[role="region"].new > header:first-child form {
   background: #FCC987;
 }
 
-#messages-container[data-type="list"] .message.sending .bubble {
+.article-list[data-type="list"] .message.sending .bubble {
   color: #5f5f5f;
 }
 
-#messages-container[data-type="list"] .message.error .bubble {
+.article-list[data-type="list"] .message.error .bubble {
   border: 0.1rem solid #B90000;
 }
 
-#messages-container[data-type="list"] .message.error.outgoing .bubble {
+.article-list[data-type="list"] .message.error.outgoing .bubble {
   border-right-width: 0;
 }
 
-#messages-container[data-type="list"] .message .bubble > aside {
+.article-list[data-type="list"] .message .bubble > aside {
   position: absolute;
   top: 0;
   right: 0;
@@ -443,43 +446,43 @@ section[role="region"].new > header:first-child form {
   text-align: center;
 }
 
-#messages-container[data-type="list"] .message.incoming .bubble > aside {
+.article-list[data-type="list"] .message.incoming .bubble > aside {
   left: 0;
   right: auto;
   margin: 0 0.5rem 0 0;
 }
 
-#messages-container[data-type="list"] .message.error .bubble > aside progress {
+.article-list[data-type="list"] .message.error .bubble > aside progress {
   display: none;
 }
 
-#messages-container[data-type="list"] .message.error .bubble > aside {
+.article-list[data-type="list"] .message.error .bubble > aside {
   display: block;
 
   background: url('images/icons/exclamation.png') no-repeat center center;
   background-size: 2.2rem;
 }
 
-#messages-container[data-type="list"] .message button.download {
+.article-list[data-type="list"] .message button.download {
   padding: 0.5em;
   margin: 0.5em;
   background: #ccc;
   width: 100%;
 }
 
-#messages-container[data-type="list"] .message.pending .bubble > aside,
-#messages-container[data-type="list"] .message.sending .bubble > aside {
+.article-list[data-type="list"] .message.pending .bubble > aside,
+.article-list[data-type="list"] .message.sending .bubble > aside {
   display: block;
 }
 
-#messages-container[data-type="list"] .message.pending .bubble > aside progress,
-#messages-container[data-type="list"] .message.sending .bubble > aside progress {
+.article-list[data-type="list"] .message.pending .bubble > aside progress,
+.article-list[data-type="list"] .message.sending .bubble > aside progress {
   display: block;
   height: 100%;
   margin: 0 auto;
 }
 
-#messages-container[data-type="list"] .message .bubble p {
+.article-list[data-type="list"] .message .bubble p {
   text-align: left;
   font-size: 1.8rem;
   line-height: 2.3rem;
@@ -487,7 +490,7 @@ section[role="region"].new > header:first-child form {
   padding: 0;
 }
 
-#messages-container[data-type="list"] .message .bubble p a {
+.article-list[data-type="list"] .message .bubble p a {
   color: #000;
   text-decoration: underline;
 }
@@ -496,7 +499,7 @@ section[role="region"].new > header:first-child form {
   Styles for Edit mode in Messages Container
 */
 
-.edit #messages-container[data-type="list"] .message {
+.edit .article-list[data-type="list"] .message {
   border-color: #e7e7e7;
 }
 
@@ -819,7 +822,7 @@ Do not remove.
   font-size: 1.8rem;
 }
 
-section[role="region"].new #messages-container[data-type="list"] > ul.contactList {
+ul.contact-list {
   position: absolute;
   width: calc(100% - 3.1rem);
   z-index: 5;
@@ -830,17 +833,30 @@ section[role="region"].new #messages-container[data-type="list"] > ul.contactLis
   background: white;
 }
 
-section[role="region"].new #messages-container[data-type="list"]  li:first-child {
+ul.contact-prompt {
+  position: absolute;
+  width: calc(100% - 3.1rem);
+  z-index: 5;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: -moz-calc(100% - 5rem);
+  text-align: left;
+  color: white;
+}
+
+
+section[role="region"].new .article-list[data-type="list"]  li:first-child {
   margin-top: 4.6rem;
 }
 
-section[role="region"].new #messages-container[data-type="list"]  li{
+section[role="region"].new .article-list[data-type="list"]  li {
   pointer-events: normal;
 }
 
 .suggestion * {
-  pointer-events : none;
+  pointer-events: none;
 }
+
 .subheader {
   position: absolute;
   z-index: 6; /* should be between 4 and 9 (inclusive). 3 is the z-index for
