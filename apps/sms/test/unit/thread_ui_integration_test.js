@@ -454,9 +454,15 @@ suite('ThreadUI Integration', function() {
 
       assert.doesNotThrow(function() {
         ThreadUI.renderContact({
-          name: 'Spider Monkey',
-          tel: [{ value: '...' }]
-        }, '+99', ul);
+          contact: {
+            name: 'Spider Monkey',
+            tel: [{ value: '...' }]
+          },
+          input: '+99',
+          target: ul,
+          isContact: true,
+          isHighlighted: true
+        });
       });
 
       assert.ok(Utils.getContactDetails.called);
@@ -468,9 +474,15 @@ suite('ThreadUI Integration', function() {
 
       assert.doesNotThrow(function() {
         ThreadUI.renderContact({
-          name: 'Spider Monkey',
-          tel: [{ value: '...' }]
-        }, '*67 [800]-555-1212', ul);
+          contact: {
+            name: 'Spider Monkey',
+            tel: [{ value: '...' }]
+          },
+          input: '*67 [800]-555-1212',
+          target: ul,
+          isContact: true,
+          isHighlighted: true
+        });
       });
       assert.ok(Utils.getContactDetails.called);
       assert.equal(Utils.getContactDetails.args[0], '...');
@@ -482,9 +494,15 @@ suite('ThreadUI Integration', function() {
       var ul = document.createElement('ul');
       assert.doesNotThrow(function() {
         ThreadUI.renderContact({
-          name: 'Spider Monkey',
-          tel: [{ value: '...' }]
-        }, '\\^$*+?.', ul);
+          contact: {
+            name: 'Spider Monkey',
+            tel: [{ value: '...' }]
+          },
+          input: '\\^$*+?.',
+          target: ul,
+          isContact: true,
+          isHighlighted: true
+        });
       });
       assert.ok(Utils.getContactDetails.called);
       assert.equal(Utils.getContactDetails.args[0], '...');
@@ -495,17 +513,33 @@ suite('ThreadUI Integration', function() {
 
   suite('Defensive Contact Rendering', function() {
     test('has tel number', function() {
-      var contactsUl = document.createElement('ul');
+      var ul = document.createElement('ul');
       var contact = new MockContact();
-      assert.isTrue(ThreadUI.renderContact(contact,
-        contact.tel[0].value, contactsUl));
+      var isRendered = ThreadUI.renderContact({
+        contact: contact,
+        input: contact.tel[0].value,
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+
+      assert.isTrue(isRendered);
     });
 
     test('no tel number', function() {
-      var contactsUl = document.createElement('ul');
+      var ul = document.createElement('ul');
       var contact = new MockContact();
       contact.tel = null;
-      assert.isFalse(ThreadUI.renderContact(contact, null, contactsUl));
+
+      var isNotRendered = ThreadUI.renderContact({
+        contact: contact,
+        input: null,
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+
+      assert.isFalse(isNotRendered);
     });
   });
 });
