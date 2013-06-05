@@ -2,7 +2,7 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-size: 10px;
+  font-size: 62.5%;
 }
 
 body {
@@ -41,7 +41,7 @@ button {
   background: none;
   border: none;
   outline: none;
-  font: 1.1rem/1.3rem FontRegular;
+  font: 1.1rem/1.3rem 'Feura Sans', Sans-serif;
   color: #666;
   cursor: pointer;
 }
@@ -53,7 +53,7 @@ button::-moz-focus-inner {
 
 
 input[type="text"], textarea {
-  font: 1.3rem/4rem FontRegular;
+  font: 1.3rem/4rem 'Feura Sans', Sans-serif;
   -moz-box-sizing: border-box;
   width: 100%;
 }
