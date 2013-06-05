@@ -3800,6 +3800,7 @@ define('mailapi/worker-support/devicestorage-main',[],function() {
     dump('DeviceStorage: ' + str + '\n');
   }
 
+
   function save(uid, cmd, storage, blob, filename) {
     var deviceStorage = navigator.getDeviceStorage(storage);
     var req = deviceStorage.addNamed(blob, filename);
@@ -3808,8 +3809,15 @@ define('mailapi/worker-support/devicestorage-main',[],function() {
       self.sendMessage(uid, cmd, [false, req.error.name]);
     };
 
-    req.onsuccess = function() {
-      self.sendMessage(uid, cmd, [true]);
+    req.onsuccess = function(e) {
+      var prefix = '';
+
+      if (typeof window.IS_GELAM_TEST !== 'undefined') {
+        prefix = 'TEST_PREFIX/';
+      }
+
+      // Bool success, String err, String filename
+      self.sendMessage(uid, cmd, [true, null, prefix + e.target.result]);
     };
   }
 

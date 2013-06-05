@@ -67,7 +67,7 @@ var ThreadUI = global.ThreadUI = {
 
     // Fields with 'messages' label
     [
-      'container', 'to-field', 'recipients-list',
+      'container', 'subheader', 'to-field', 'recipients-list',
       'header-text', 'recipient', 'input', 'compose-form',
       'check-all-button', 'uncheck-all-button',
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
@@ -203,6 +203,21 @@ var ThreadUI = global.ThreadUI = {
     var style = window.getComputedStyle(this.input, null);
     this.INPUT_MARGIN = parseInt(style.getPropertyValue('margin-top'), 10) +
       parseInt(style.getPropertyValue('margin-bottom'), 10);
+
+    // Synchronize changes to the Compose field according to relevant changes
+    // in the subheader.
+    var subheaderMutationHandler = this.subheaderMutationHandler.bind(this);
+    var subheaderMutation = new MutationObserver(subheaderMutationHandler);
+    subheaderMutation.observe(this.subheader, {
+      attributes: true, subtree: true
+    });
+    subheaderMutation.observe(document.getElementById('thread-messages'), {
+      attributes: true
+    });
+    this.recipientsList.addEventListener('transitionend',
+      subheaderMutationHandler);
+
+    ThreadUI.setInputMaxHeight();
   },
 
   // Initialize Recipients list and Recipients.View (DOM)
@@ -224,6 +239,7 @@ var ThreadUI = global.ThreadUI = {
 
     if (this.recipients) {
       this.recipients.length = 0;
+      this.recipients.visible('singleline');
       this.recipients.focus();
     } else {
       this.recipients = new Recipients({
@@ -324,6 +340,13 @@ var ThreadUI = global.ThreadUI = {
     }.bind(this), this.CONVERTED_MESSAGE_DURATION);
   },
 
+  // Ensure that when the subheader is updated, the Compose field's dimensions
+  // are updated to avoid interference.
+  subheaderMutationHandler: function thui_subheaderMutationHandler() {
+    this.setInputMaxHeight();
+    this.updateInputHeight();
+  },
+
   resizeHandler: function thui_resizeHandler() {
     this.setInputMaxHeight();
     this.updateInputHeight();
@@ -394,15 +417,14 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  // Limit the maximum height of the Compose input field such that it never
+  // grows larger than the space available.
   setInputMaxHeight: function thui_setInputMaxHeight() {
-    // Method for initializing the maximum height
-    // Set the input height to:
-    // view height - (vertical margin (+ to field height if edit new message))
     var viewHeight = this.container.offsetHeight;
-    var adjustment = this.INPUT_MARGIN;
-    if (window.location.hash === '#new') {
-      adjustment += this.toField.offsetHeight;
-    }
+    // Account for the vertical margin of the input field and the height of the
+    // absolutely-position sub-header element.
+    var adjustment = this.subheader.offsetHeight + this.INPUT_MARGIN;
+
     this.input.style.maxHeight = (viewHeight - adjustment) + 'px';
   },
 
@@ -540,9 +562,8 @@ var ThreadUI = global.ThreadUI = {
     var inputMaxHeight = parseInt(inputCss.getPropertyValue('max-height'), 10);
     var verticalMargin = this.INPUT_MARGIN;
     var buttonHeight = this.sendButton.offsetHeight;
-
-    // Retrieve elements useful in growing method
-    var bottomBar = this.composeForm;
+    var composeForm = this.composeForm;
+    var newHeight;
 
     // We need to grow the input step by step
     this.input.style.height = null;
@@ -550,8 +571,16 @@ var ThreadUI = global.ThreadUI = {
     // Updating the height if scroll is bigger that height
     // This is when we have reached the header (UX requirement)
     if (this.input.scrollHeight > inputMaxHeight) {
-      // Update the bottom bar height taking into account the margin
-      bottomBar.style.height = (inputMaxHeight + verticalMargin) + 'px';
+      // Calculate the new Compose form height taking the input's margin into
+      // account
+      newHeight = inputMaxHeight + verticalMargin;
+
+      // Modify the input's scroll position to counteract the change in
+      // vertical offset that would otherwise result from setting the Compose
+      // form's height
+      this.input.scrollTop += parseInt(composeForm.style.height, 10) -
+        newHeight;
+      composeForm.style.height = newHeight + 'px';
 
       // We update the position of the button taking into account the
       // new height
@@ -569,11 +598,10 @@ var ThreadUI = global.ThreadUI = {
       this.input.scrollHeight + 'px';
 
     // We calculate the current height of the input element (including margin)
-    var newHeight = this.input.getBoundingClientRect().height + verticalMargin;
+    newHeight = this.input.getBoundingClientRect().height + verticalMargin;
 
-    // We calculate the height of the bottonBar which contains the input
-    var bottomBarHeight = newHeight + 'px';
-    bottomBar.style.height = bottomBarHeight;
+    // We calculate the height of the Compose form which contains the input
+    composeForm.style.height = newHeight + 'px';
 
     // We set the buttons' top margin to ensure they render at the bottom of
     // the container
@@ -581,8 +609,6 @@ var ThreadUI = global.ThreadUI = {
     this.sendButton.style.marginTop = this.attachButton.style.marginTop =
       buttonOffset + 'px';
 
-    // Last adjustment to view taking into account the new height of the bar
-    this.container.style.bottom = bottomBarHeight;
     this.scrollViewToBottom();
   },
 

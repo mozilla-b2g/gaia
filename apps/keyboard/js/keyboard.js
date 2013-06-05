@@ -178,7 +178,7 @@ const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 const ACCENT_CHAR_MENU_TIMEOUT = 700;
 
 // Backspace repeat delay and repeat rate
-const REPEAT_RATE = 100;
+const REPEAT_RATE = 75;
 const REPEAT_TIMEOUT = 700;
 
 // How long to wait for more focuschange events before processing
@@ -1540,6 +1540,11 @@ function loadIMEngine(name) {
     setUpperCase: setUpperCase,
     resetUpperCase: resetUpperCase
   };
+
+  if (typeof navigator.mozKeyboard.replaceSurroundingText === 'function') {
+    glue.replaceSurroundingText =
+      navigator.mozKeyboard.replaceSurroundingText.bind(navigator.mozKeyboard);
+  }
 
   script.addEventListener('load', function IMEngineLoaded() {
     var engine = InputMethods[imEngine];

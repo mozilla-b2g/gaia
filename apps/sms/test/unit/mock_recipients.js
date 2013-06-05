@@ -27,6 +27,10 @@ MockRecipients.prototype.focus = function() {
   return this;
 };
 
+MockRecipients.prototype.visible = function() {
+  return this;
+};
+
 MockRecipients.prototype.on = function(event, callback) {
   this.events[event].push(callback);
   return this;
