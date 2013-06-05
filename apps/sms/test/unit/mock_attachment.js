@@ -1,8 +1,9 @@
 'use strict';
 
-function MockAttachment(blob, name = '') {
+function MockAttachment(blob, options) {
   this.blob = blob;
-  this.name = name;
+  options = options || {};
+  this.name = options.name;
   this.size = blob && blob.size;
   this.mNextRender = document.createElement('iframe');
 }

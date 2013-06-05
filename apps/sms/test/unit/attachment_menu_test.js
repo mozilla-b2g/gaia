@@ -25,9 +25,9 @@ suite('attachment_menu_test.js', function() {
 
     this.blob = new Blob(['This is an image message'],
       {type: 'image/jpeg'});
-    this.attachment = new Attachment(
-      this.blob,
-      'Test.jpg');
+    this.attachment = new Attachment(this.blob, {
+      name: 'Test.jpg'
+    });
 
   });
 

@@ -74,8 +74,10 @@ var ActivityHandler = {
         window.removeEventListener('hashchange', insertAttachments);
 
         blobs.forEach(function(blob, idx) {
-          var name = names[idx];
-          var attachment = new Attachment(blob, name);
+          var attachment = new Attachment(blob, {
+            name: names[idx],
+            isDraft: true
+          });
           Compose.append(attachment);
         });
       }
