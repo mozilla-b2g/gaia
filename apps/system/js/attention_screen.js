@@ -41,6 +41,7 @@ var AttentionScreen = {
     window.addEventListener('home', this.hide.bind(this));
     window.addEventListener('holdhome', this.hide.bind(this));
     window.addEventListener('appwillopen', this.appOpenHandler.bind(this));
+    window.addEventListener('emergencyalert', this.hide.bind(this));
 
     window.addEventListener('will-unlock', this.screenUnlocked.bind(this));
   },
