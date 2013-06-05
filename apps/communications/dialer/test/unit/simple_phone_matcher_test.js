@@ -200,7 +200,9 @@ suite('lib/simple_phone_matcher', function() {
         bestMatchIndex: bestMatchIndex,
         localIndex: localIndex
       };
-      assert.deepEqual(result, SimplePhoneMatcher.bestMatch(variants, matches));
+      var inputNumber = '0971118876';
+      assert.deepEqual(result,
+      SimplePhoneMatcher.bestMatch(inputNumber, variants, matches));
     }
 
     setup(function() {
@@ -231,6 +233,30 @@ suite('lib/simple_phone_matcher', function() {
       var variants = [];
       var matches = [['112233', '118876'], ['000']];
       testBestMatch(0, 0, variants, matches);
+    });
+
+    test('match the number without national code', function() {
+      var inputNumber = '0971118876';
+      var matches = [['0971118876'], ['+55971118876']];
+      var result = {
+        bestMatchIndex: 0,
+        localIndex: 0
+      };
+
+      assert.deepEqual(result,
+      SimplePhoneMatcher.bestMatch(inputNumber, variants, matches));
+    });
+
+    test('match the number with national code', function() {
+      var inputNumber = '+55971118876';
+      var matches = [['0971118876'], ['+55971118876']];
+      var result = {
+        bestMatchIndex: 1,
+        localIndex: 0
+      };
+
+      assert.deepEqual(result,
+      SimplePhoneMatcher.bestMatch(inputNumber, variants, matches));
     });
   });
 });
