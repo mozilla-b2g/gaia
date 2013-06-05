@@ -45,7 +45,7 @@ function summarizeDaysOfWeek(bitStr) {
         weekdays.push(_('weekday-' + ((i + 1) % 7) + '-short'));
       }
     }
-    summary = weekdays.join('<span class="comma">,</span> ');
+    summary = weekdays.join(', ');
   }
   return summary;
 }

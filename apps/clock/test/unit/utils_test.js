@@ -1,6 +1,49 @@
+requireApp('email/test/unit/mock_l10n.js');
 requireApp('clock/js/utils.js');
 
 suite('Time functions', function() {
+
+  suite('#summarizeDaysOfWeek', function() {
+    var nativeMozL10n, _;
+
+    before(function() {
+      nativeMozL10n = navigator.mozL10n;
+      navigator.mozL10n = MockL10n;
+      _ = navigator.mozL10n.get;
+    });
+
+    after(function() {
+      navigator.mozL10n = nativeMozL10n;
+    });
+
+    test('should summarize everyday', function() {
+      assert.equal(summarizeDaysOfWeek('1111111'), _('everyday'));
+    });
+
+    test('should summarize weekdays', function() {
+      assert.equal(summarizeDaysOfWeek('1111100'), _('weekdays'));
+    });
+
+    test('should summarize weekends', function() {
+      assert.equal(summarizeDaysOfWeek('0000011'), _('weekends'));
+    });
+
+    test('should summarize never', function() {
+      assert.equal(summarizeDaysOfWeek('0000000'), _('never'));
+    });
+
+    test('should summarize a single day', function() {
+      assert.equal(summarizeDaysOfWeek('1000000'), _('weekday-1-short'));
+    });
+
+    test('should summarize a single day', function() {
+      var monTueWed = _('weekday-1-short') + ', ' +
+                      _('weekday-2-short') + ', ' +
+                      _('weekday-3-short');
+      assert.equal(summarizeDaysOfWeek('1110000'), monTueWed);
+    });
+
+  });
 
   suite('#formatTime', function() {
     var is12hStub;
