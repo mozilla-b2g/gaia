@@ -1,5 +1,10 @@
 'use strict';
 
+// XXX: Workaround bug 879710
+// We need to force Gecko to init mozMobileConnection here,
+// otherwise we will get incorrect cardState in the content process here.
+window.navigator.mozMobileConnection;
+
 var TelephonyHelper = (function() {
 
   var call = function t_call(number, oncall, onconnected,
