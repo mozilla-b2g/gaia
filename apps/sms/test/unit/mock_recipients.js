@@ -7,6 +7,7 @@ function MockRecipients(setup) {
     remove: []
   };
   this.numbers = [];
+  this.inputValue = '';
 }
 
 MockRecipients.prototype.add = function(contact) {
