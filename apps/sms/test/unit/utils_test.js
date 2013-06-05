@@ -216,6 +216,26 @@ suite('Utils', function() {
 
     });
 
+    test('(number, contact (has another number with same type and carrier))',
+         function() {
+      var contact = new MockContact();
+      contact.tel[2] = {
+        'value': '+346578889999',
+        'type': ['Mobile'],
+        'carrier': 'TEF'
+      };
+
+      var details = Utils.getContactDetails('+346578888888', contact);
+      assert.deepEqual(details, {
+        isContact: true,
+        title: 'Pepito Grillo',
+        name: 'Pepito Grillo',
+        org: '',
+        carrier: 'Mobile | +346578888888'
+      });
+
+    });
+
     test('(number, contact, { photoURL: true })', function() {
       var contact = new MockContact();
       contact.photo = [
