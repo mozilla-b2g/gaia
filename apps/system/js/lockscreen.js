@@ -164,17 +164,6 @@ var LockScreen = {
     }
 
     var self = this;
-    if (navigator && navigator.mozCellBroadcast) {
-      navigator.mozCellBroadcast.onreceived = function onReceived(event) {
-        var msg = event.message;
-        if (conn &&
-            conn.voice.network.mcc === MobileOperator.BRAZIL_MCC &&
-            msg.messageId === MobileOperator.BRAZIL_CELLBROADCAST_CHANNEL) {
-          self.cellbroadcastLabel = msg.body;
-          self.updateConnState();
-        }
-      };
-    }
 
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
@@ -1048,6 +1037,11 @@ var LockScreen = {
       container.removeEventListener(e.type, animationend);
       overlay.classList.remove('elastic');
     });
+  },
+
+  setCellbroadcastLabel: function ls_setCellbroadcastLabel(label) {
+    this.cellbroadcastLabel = label;
+    this.updateConnState();
   }
 };
 

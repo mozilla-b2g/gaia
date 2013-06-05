@@ -41,6 +41,8 @@ var AttentionScreen = {
     window.addEventListener('home', this.hide.bind(this));
     window.addEventListener('holdhome', this.hide.bind(this));
     window.addEventListener('appwillopen', this.appOpenHandler.bind(this));
+    window.addEventListener('emergencyalert',
+                            this.emergencyAlertHandler.bind(this));
 
     window.addEventListener('will-unlock', this.screenUnlocked.bind(this));
   },
@@ -66,6 +68,10 @@ var AttentionScreen = {
     if (!evt.detail.isHomescreen) {
       this.hide();
     }
+  },
+
+  emergencyAlertHandler: function as_emergencyAlertHandler() {
+    this.hide();
   },
 
   // show the attention screen overlay with newly created frame
