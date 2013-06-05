@@ -172,6 +172,7 @@ var currentInputMode = null;
 var menuLockedArea = null;
 var candidatePanelEnabled = false;
 var isKeyboardRendered = false;
+var currentCandidates = [];
 const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
@@ -777,6 +778,9 @@ function renderKeyboard(keyboardName) {
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
 
+    //restore the previous candidates
+    IMERender.showCandidates(currentCandidates);
+
     isKeyboardRendered = true;
   }
 
@@ -822,6 +826,9 @@ function setUpperCase(upperCase, upperCaseLocked) {
   });
   // And make sure the caps lock key is highlighted correctly
   IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+
+  //restore the previous candidates
+  IMERender.showCandidates(currentCandidates);
 }
 
 function resetUpperCase() {
@@ -1569,6 +1576,7 @@ function loadIMEngine(name) {
   var glue = {
     path: sourceDir + imEngine,
     sendCandidates: function kc_glue_sendCandidates(candidates) {
+      currentCandidates = candidates;
       IMERender.showCandidates(candidates);
     },
     sendPendingSymbols:
