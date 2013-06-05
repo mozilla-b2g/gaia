@@ -366,11 +366,14 @@ var ThreadUI = global.ThreadUI = {
     this.updateInputHeight();
   },
 
+  // Triggered when the onscreen keyboard appears/disappears.
   resizeHandler: function thui_resizeHandler() {
     this.setInputMaxHeight();
     this.updateInputHeight();
     // Scroll to bottom
     this.scrollViewToBottom();
+    // Make sure the caret in the "Compose" area is visible
+    Compose.scrollMessageContent();
   },
 
   // Create a recipient from contacts activity.
