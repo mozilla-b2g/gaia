@@ -9,7 +9,8 @@
   function createOptionMenuOnLongPress(param, title) {
     var _ = navigator.mozL10n.get;
     var options = new OptionMenu({
-      'items': [
+      header: title,
+      items: [
       {
         name: _('createNewContact'),
         method: function optionMethod(param) {
@@ -30,11 +31,10 @@
         // TODO Add functionality if needed
         }
       }
-      ],
-      'title': title
+      ]
     });
     options.show();
-  };
+  }
 
   var LinkActionHandler = {
     handleTapEvent:
