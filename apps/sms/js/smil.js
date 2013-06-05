@@ -204,8 +204,7 @@ var SMIL = window.SMIL = {
       // make sure the type was something we want, otherwise ignore it
       } else if (type) {
         slides.push({
-          name: attachment.location ||
-                attachment.id.replace(runsafefilename, ''),
+          name: attachment.location,
           blob: attachment.content
         });
       }
@@ -228,8 +227,7 @@ var SMIL = window.SMIL = {
         src = mediaElement.getAttribute('src');
         attachment = findAttachment(src);
         if (attachment) {
-          slide.name = attachment.location ||
-                       attachment.id.replace(runsafefilename, '');
+          slide.name = attachment.location;
           slide.blob = attachment.content;
         } else {
           attachmentsNotFound = true;

@@ -867,7 +867,7 @@ var ThreadUI = global.ThreadUI = {
     dataArray.forEach(function(messageData) {
       var mediaElement, textElement;
 
-      if (messageData.name && messageData.blob) {
+      if (messageData.blob) {
         var attachment = new Attachment(messageData.blob, {
           name: messageData.name
         });
