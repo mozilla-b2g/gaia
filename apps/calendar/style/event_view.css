@@ -1,3 +1,11 @@
+#event-view.loading .edit {
+  pointer-events: none;
+}
+
+#event-view.loading > section {
+  display: none;
+}
+
 #event-view > section {
   overflow-y: scroll;
   height: calc(100% - 5rem);
