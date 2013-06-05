@@ -416,7 +416,7 @@ suite('dialer/call_log_db', function() {
     });
   });
 
-  suite('Get last group', function() {
+  suite('Get last outgoing group', function() {
     var call = {
       number: numbers[1],
       type: 'incoming',
@@ -425,12 +425,12 @@ suite('dialer/call_log_db', function() {
     var call2 = {
       number: numbers[2],
       type: 'dialing',
-      date: days[4]
+      date: days[2]
     };
     var call3 = {
       number: numbers[0],
       type: 'incoming',
-      date: days[2]
+      date: days[4]
     };
     test('Add a call', function(done) {
       CallLogDBManager.add(call, function() { done(); });
@@ -442,10 +442,52 @@ suite('dialer/call_log_db', function() {
 
     test('Add another call', function(done) {
       CallLogDBManager.add(call3, function() {
-        CallLogDBManager.getLastGroup(function(group) {
-          checkGroup(group, call2, call2.date, 1);
-          done();
-        });
+        CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
+          function(group) {
+            checkGroup(group, call2, call2.date, 1);
+            done();
+          });
+      });
+    });
+
+    suiteTeardown(function(done) {
+      CallLogDBManager.deleteAll(function() {
+        done();
+      });
+    });
+  });
+
+  suite('Get a recent group at position', function() {
+    var call = {
+      number: numbers[1],
+      type: 'incoming',
+      date: days[0]
+    };
+    var call2 = {
+      number: numbers[2],
+      type: 'dialing',
+      date: days[2]
+    };
+    var call3 = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[4]
+    };
+    test('Add a call', function(done) {
+      CallLogDBManager.add(call, function() { done(); });
+    });
+
+    test('Add a call', function(done) {
+      CallLogDBManager.add(call2, function() { done(); });
+    });
+
+    test('Add another call', function(done) {
+      CallLogDBManager.add(call3, function() {
+        CallLogDBManager.getGroupAtPosition(3, 'lastEntryDate', true, null,
+          function(group) {
+            checkGroup(group, call, call.date, 1);
+            done();
+          });
       });
     });
 
