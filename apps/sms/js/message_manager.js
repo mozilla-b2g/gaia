@@ -205,7 +205,13 @@ var MessageManager = {
       case '#new':
 
         ThreadUI.cleanFields(true);
-        mainWrapper.classList.remove('edit');
+
+        if (ThreadListUI.inEditMode) {
+            ThreadListUI.cancelEdit();
+        } else if (ThreadUI.inEditMode) {
+            ThreadUI.cancelEdit();
+        }
+
         threadMessages.classList.add('new');
 
         MessageManager.activity.recipients = null;
@@ -266,9 +272,13 @@ var MessageManager = {
           filter = new MozSmsFilter();
           filter.threadId = threadId;
 
-          if (mainWrapper.classList.contains('edit')) {
-            mainWrapper.classList.remove('edit');
-          } else if (threadMessages.classList.contains('new')) {
+          if (ThreadListUI.inEditMode) {
+              ThreadListUI.cancelEdit();
+          } else if (ThreadUI.inEditMode) {
+              ThreadUI.cancelEdit();
+          }
+
+          if (threadMessages.classList.contains('new')) {
             // After a message is sent...
             //
             threadMessages.classList.remove('new');
