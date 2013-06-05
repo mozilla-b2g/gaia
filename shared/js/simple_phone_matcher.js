@@ -51,8 +51,8 @@ var SimplePhoneMatcher = {
   // ie. bestMatchIndex will be the index in the contact arrays, localIndex
   // the index in the phone numbers array of this contact
   bestMatch: function spm_bestMatchIndex(variants, matches) {
-    var bestMatchIndex = null;
-    var bestLocalIndex = null;
+    var bestMatchIndex = 0;
+    var bestLocalIndex = 0;
     var bestMatchLength = 0;
 
     matches.forEach(function(match, matchIndex) {
