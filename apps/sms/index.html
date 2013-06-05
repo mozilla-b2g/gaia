@@ -135,7 +135,10 @@
             </section>
           </div>
         </div>
-        <article id="messages-container" class="view-body" data-type="list">
+        <article id="messages-container" class="view-body article-list" data-type="list">
+        </article>
+        <article id="messages-participants" class="view-body article-list hide" data-type="list">
+          <ul id="messages-participants-list" class="contact-list"></ul>
         </article>
         <form role="search" id="messages-compose-form" class="bottom messages-compose-form" data-message-type="sms">
           <button id="messages-attach-button" class="icon icon-attachment">Attachment</button>
@@ -198,6 +201,14 @@
         <p>
           ${type} ${numberHTML}
         </p>
+      </a>
+      -->
+    </div>
+
+    <div id="messages-number-tmpl" class="hide">
+      <!--
+      <a class="suggestion" data-number="${number}" data-source="manual" data-name="${number}">
+        <p class="name">${number}</p>
       </a>
       -->
     </div>

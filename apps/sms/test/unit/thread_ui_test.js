@@ -4,6 +4,11 @@
 // mocha and when we have that new mocha in test agent
 mocha.setup({ globals: ['alert', '0', '1'] });
 
+// For Desktop testing
+if (!navigator.mozContacts) {
+  requireApp('sms/js/desktop_contact_mock.js');
+}
+
 requireApp('sms/js/compose.js');
 requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_ui.js');
@@ -20,6 +25,7 @@ requireApp('sms/test/unit/mock_link_helper.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('sms/test/unit/mock_contact.js');
+requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_activity_picker.js');
@@ -36,7 +42,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'MozActivity',
   'ActivityPicker',
   'OptionMenu',
-  'CustomDialog'
+  'CustomDialog',
+  'Contacts'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -1386,7 +1393,13 @@ suite('thread_ui.js >', function() {
       var contact = new MockContact();
       var html;
 
-      ThreadUI.renderContact(contact, 'foo', ul);
+      ThreadUI.renderContact({
+        contact: contact,
+        input: 'foo',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
       html = ul.firstElementChild.innerHTML;
       assert.ok(html.contains('Pepito Grillo'));
     });
@@ -1396,7 +1409,13 @@ suite('thread_ui.js >', function() {
       var contact = new MockContact();
       var html;
 
-      ThreadUI.renderContact(contact, 'Pepito Grillo', ul);
+      ThreadUI.renderContact({
+        contact: contact,
+        input: 'Pepito Grillo',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
       html = ul.firstElementChild.innerHTML;
 
       assert.ok(
@@ -1412,7 +1431,13 @@ suite('thread_ui.js >', function() {
       var contact = new MockContact();
       var html;
 
-      ThreadUI.renderContact(contact, 'foo', ul);
+      ThreadUI.renderContact({
+        contact: contact,
+        input: 'foo',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
       html = ul.firstElementChild.innerHTML;
       assert.ok(html.contains('Mobile, +346578888888'));
     });
@@ -1422,7 +1447,13 @@ suite('thread_ui.js >', function() {
       var contact = new MockContact();
       var html;
 
-      ThreadUI.renderContact(contact, '346578888888', ul);
+      ThreadUI.renderContact({
+        contact: contact,
+        input: '346578888888',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
       html = ul.firstElementChild.innerHTML;
       assert.ok(
         html.contains('Mobile, +<span class="highlight">346578888888</span>')
@@ -1432,16 +1463,19 @@ suite('thread_ui.js >', function() {
 
   suite('Header Actions', function() {
     setup(function() {
+      window.location.hash = '';
       MockActivityPicker.call.mSetup();
+      MockOptionMenu.mSetup();
     });
 
     teardown(function() {
       Threads.delete(1);
       window.location.hash = '';
       MockActivityPicker.call.mTeardown();
+      MockOptionMenu.mTeardown();
     });
 
-    test('Single participant: Invoke Activities (known)', function() {
+    test('Single participant: Contact Options (known)', function() {
 
       Threads.set(1, {
         participants: ['999']
@@ -1450,28 +1484,37 @@ suite('thread_ui.js >', function() {
       window.location.hash = '#thread=1';
 
       ThreadUI.headerText.dataset.isContact = true;
-      ThreadUI.headerText.dataset.phoneNumber = '999';
+      ThreadUI.headerText.dataset.number = '999';
 
-      ThreadUI.activateContact();
+      ThreadUI.onHeaderActivation();
 
-      assert.ok(MockActivityPicker.call.called);
-      assert.equal(MockActivityPicker.call.calledWith[0], '999');
+      var calls = MockOptionMenu.calls;
+
+      assert.equal(calls.length, 1);
+      assert.equal(calls[0].section, '999');
+      assert.equal(calls[0].items.length, 3);
+      assert.equal(typeof calls[0].complete, 'function');
     });
 
-    test('Single participant: Invoke Options (unknown)', function() {
+    test('Single participant: Contact Options (unknown)', function() {
 
       Threads.set(1, {
-        participants: ['999']
+        participants: ['777']
       });
 
       window.location.hash = '#thread=1';
 
       ThreadUI.headerText.dataset.isContact = false;
-      ThreadUI.headerText.dataset.phoneNumber = '999';
+      ThreadUI.headerText.dataset.number = '777';
 
-      ThreadUI.activateContact();
+      ThreadUI.onHeaderActivation();
 
-      assert.equal(MockOptionMenu.calls.length, 1);
+      var calls = MockOptionMenu.calls;
+
+      assert.equal(calls.length, 1);
+      assert.equal(calls[0].header, '777');
+      assert.equal(calls[0].items.length, 5);
+      assert.equal(typeof calls[0].complete, 'function');
     });
 
     test('Multi participant: DOES NOT Invoke Activities', function() {
@@ -1483,9 +1526,9 @@ suite('thread_ui.js >', function() {
       window.location.hash = '#thread=1';
 
       ThreadUI.headerText.dataset.isContact = true;
-      ThreadUI.headerText.dataset.phoneNumber = '999';
+      ThreadUI.headerText.dataset.number = '999';
 
-      ThreadUI.activateContact();
+      ThreadUI.onHeaderActivation();
 
       assert.equal(MockActivityPicker.call.called, false);
       assert.equal(MockActivityPicker.call.calledWith, null);
@@ -1500,11 +1543,47 @@ suite('thread_ui.js >', function() {
       window.location.hash = '#thread=1';
 
       ThreadUI.headerText.dataset.isContact = true;
-      ThreadUI.headerText.dataset.phoneNumber = '999';
+      ThreadUI.headerText.dataset.number = '999';
 
-      ThreadUI.activateContact();
+      ThreadUI.onHeaderActivation();
 
       assert.equal(MockOptionMenu.calls.length, 0);
+    });
+
+    test('Multi participant: Moves to Group View', function(done) {
+      Threads.set(1, {
+        participants: ['999', '888']
+      });
+
+      // Change to #thread=n
+      window.onhashchange = function() {
+        // Change to #group-view (per ThreadUI.onHeaderActivation())
+        window.onhashchange = function() {
+          assert.equal(window.location.hash, '#group-view');
+          assert.equal(ThreadUI.headerText.textContent, 'participant{"n":2}');
+          window.onhashchange = null;
+          done();
+        };
+
+        ThreadUI.onHeaderActivation();
+        ThreadUI.groupView();
+      };
+
+      window.location.hash = '#thread=1';
+    });
+
+    test('Multi participant: Reset Group View', function() {
+      var list = ThreadUI.participants.firstElementChild;
+
+      assert.equal(list.children.length, 0);
+
+      list.innerHTML = '<li></li><li></li><li></li>';
+
+      assert.equal(list.children.length, 3);
+
+      ThreadUI.groupView.reset();
+
+      assert.equal(list.children.length, 0);
     });
   });
 

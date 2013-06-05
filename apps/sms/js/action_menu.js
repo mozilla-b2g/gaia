@@ -3,8 +3,14 @@
 /*
  Generic action menu. Options should have the following structure:
 
-   var options = new OptionMenu({
-    'items': [
+
+  new OptionMenu(options);
+
+  options {
+
+    items: An array of menu options to render
+    eg.
+    [
       {
         name: 'Lorem ipsum',
         method: function optionMethod(param1, param2) {
@@ -14,20 +20,38 @@
       },
       ....
       ,
+
+
+      Last option has a different UI compared with the previous one.
+      This is because it's recommended to use as a 'Cancel' option
       {
         name: 'Cancel',
         method: function optionMethod(param) {
           // Method and param if needed
         },
-        params: ['Optional params']
+        params: ['Optional params'],
+
+        // Optional boolean flag to tell the
+        // menu button handlers that this option
+        // will not execute the "complete" callback.
+        // Defaults to "false"
+
+        incomplete: false [true]
       }
+    ],
 
-    ]
-  });
+    // Optional header text or node
+    header: ...,
 
-  Last option has a different UI compared with the previous one.
-  This is because it's recommended to use as a 'Cancel' option
+    // Optional section text or node
+    section: ...
 
+    // Optional callback to be invoked when a
+    // button in the menu is pressed. Can be
+    // overridden by an "incomplete: true" set
+    // on the menu item in the items array.
+    complete: function() {...}
+  }
 */
 
 
@@ -39,40 +63,60 @@ var OptionMenu = function(options) {
   // this instances DOM object references
   // More info:
   // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/WeakMap
-  var _buttonHandlers = new WeakMap();
+  var handlers = new WeakMap();
   // Retrieve items to be rendered
-  var _items = options.items;
+  var items = options.items;
   // Create the structure
-  this.actionMenu = document.createElement('form');
-  this.actionMenu.dataset.type = 'action';
-  this.actionMenu.setAttribute('role', 'dialog');
+  this.form = document.createElement('form');
+  this.form.dataset.type = 'action';
+  this.form.setAttribute('role', 'dialog');
   // We append title if needed
-  if (options.title && options.title.length > 0) {
-    var _header = document.createElement('header');
-    _header.textContent = options.title;
-    this.actionMenu.appendChild(_header);
+  if (options.header) {
+    var header = document.createElement('header');
+
+    if (typeof options.header === 'string') {
+      header.textContent = options.header || '';
+    } else {
+      header.appendChild(options.header);
+    }
+
+    this.form.appendChild(header);
   }
+  if (options.section) {
+    var section = document.createElement('section');
+
+    if (typeof options.section === 'string') {
+      section.textContent = options.section || '';
+    } else {
+      section.appendChild(options.section);
+    }
+
+    this.form.appendChild(section);
+  }
+
   // We append a menu with the list of options
-  var _menu = document.createElement('menu');
+  var menu = document.createElement('menu');
 
   // For each option, we append the item and listener
-  _items.forEach(function renderOption(item) {
+  items.forEach(function renderOption(item) {
     if (item.name && item.name.length > 0) {
       var button = document.createElement('button');
       button.textContent = item.name;
-      _menu.appendChild(button);
+      menu.appendChild(button);
       // Add a mapping from the button object
       // directly to its options item.
-      _buttonHandlers.set(button, item);
+      item.incomplete = item.incomplete || false;
+
+      handlers.set(button, item);
     }
   });
 
-  this.actionMenu.addEventListener('submit', function(event) {
+  this.form.addEventListener('submit', function(event) {
     event.preventDefault();
   });
 
-  _menu.addEventListener('click', function(event) {
-    var action = _buttonHandlers.get(event.target);
+  menu.addEventListener('click', function(event) {
+    var action = handlers.get(event.target);
     var method = (action && action.method) || function() {};
 
     // Delegate operation to target method. This allows
@@ -82,18 +126,22 @@ var OptionMenu = function(options) {
     }
     // Hide action menu when click is received
     this.hide();
+
+    if (typeof options.complete === 'function' && !action.incomplete) {
+      options.complete();
+    }
   }.bind(this));
   // Appending the action menu to the form
-  this.actionMenu.appendChild(_menu);
+  this.form.appendChild(menu);
 };
 
 // We prototype functions to show/hide the UI of action-menu
 OptionMenu.prototype.show = function() {
   // We append the element to body
-  document.body.appendChild(this.actionMenu);
+  document.body.appendChild(this.form);
 };
 
 OptionMenu.prototype.hide = function() {
   // We remove the element to body
-  document.body.removeChild(this.actionMenu);
+  document.body.removeChild(this.form);
 };

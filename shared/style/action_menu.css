@@ -62,6 +62,24 @@ form[role="dialog"][data-type="object"] > header:after {
   top: 5rem;
 }
 
+form[role="dialog"][data-type="action"] > section,
+form[role="dialog"][data-type="object"] > section {
+  width: 100%;
+  display: inline-block;
+  vertical-align: top;
+  white-space: normal;
+  font-size: 1.6rem;
+  line-height: 1em;
+  color: #fff !important;
+  padding: 2rem 2rem 0 2rem;
+  height: 5rem;
+  -moz-box-sizing: border-box;
+}
+
+form[role="dialog"][data-type="action"] > section a {
+  color: #fff !important;
+}
+
 /* Specific component code */
 form[role="dialog"][data-type="action"] > menu,
 form[role="dialog"][data-type="object"] > menu {
