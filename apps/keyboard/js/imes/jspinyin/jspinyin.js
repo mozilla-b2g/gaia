@@ -291,7 +291,7 @@ IMEngineBase.prototype = {
   /**
    * Notifies when the IM is shown
    */
-  activate: function engineBase_activate(language, suggestions, state) {
+  activate: function engineBase_activate(language, state, options) {
   }
 };
 
@@ -700,9 +700,9 @@ IMEngine.prototype = {
   /**
    * Override
    */
-  activate: function engine_activate(language, suggestions, state) {
+  activate: function engine_activate(language, state, options) {
     var inputType = state.type;
-    IMEngineBase.prototype.activate.call(this, language, suggestions, state);
+    IMEngineBase.prototype.activate.call(this, language, state, options);
     debug('Activate. Input type: ' + inputType);
     PinyinDecoderService.flushCache(null);
     var keyboard = this._inputTraditionalChinese ?
