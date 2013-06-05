@@ -130,8 +130,7 @@ suite('SMIL', function() {
       SMIL.parse(message, function(output) {
         assert.equal(output[0].text, testText);
         assert.equal(output[0].blob, testImageBlob);
-        // uses the id
-        assert.equal(output[0].name, '23');
+        assert.isUndefined(output[0].name, 'name is undefined');
         done();
       });
     });
@@ -218,8 +217,7 @@ suite('SMIL', function() {
       SMIL.parse(message, function(output) {
         assert.equal(output[0].text, testText);
         assert.equal(output[0].blob, testImageBlob);
-        // uses id
-        assert.equal(output[0].name, '2');
+        assert.isUndefined(output[0].name, 'name is undefined');
         done();
       });
     });
