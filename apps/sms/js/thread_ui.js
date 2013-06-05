@@ -163,9 +163,9 @@ var ThreadUI = global.ThreadUI = {
       'click', this.activateContact.bind(this)
     );
 
-    // When 'blur' we have to remove 'edit-mode' in the recipient
-    this.toField.addEventListener(
-      'blur', this.recipientWrappingHandler.bind(this), true
+    // When 'focus' we have to remove 'edit-mode' in the recipient
+    this.input.addEventListener(
+      'focus', this.messageComposerFocusHandler.bind(this)
     );
 
     this.container.addEventListener(
@@ -287,7 +287,7 @@ var ThreadUI = global.ThreadUI = {
     this.enableSend();
   },
 
-  recipientWrappingHandler: function thui_recipientWrappingHandler(event) {
+  messageComposerFocusHandler: function thui_messageInputHandler(event) {
     var node = this.recipientsList.lastChild;
     var typed;
 
@@ -1505,8 +1505,7 @@ var ThreadUI = global.ThreadUI = {
       // TODO Modify in Bug 861227 in order to create a standalone element
       var contactsUl = document.createElement('ul');
       contactsUl.classList.add('contactList');
-      // Using mousedown event can execute before blur event.
-      contactsUl.addEventListener('mousedown', function uiHandler(event) {
+      contactsUl.addEventListener('click', function contactsUlHandler(event) {
         // Since the "dataset" DOMStringMap property is essentially
         // just an object of properties that exactly match the properties
         // used for recipients, push the whole dataset object into
@@ -1516,7 +1515,7 @@ var ThreadUI = global.ThreadUI = {
         ).focus();
 
         // Clean up the event listener
-        contactsUl.removeEventListener('mousedown', contactsUlHandler);
+        contactsUl.removeEventListener('click', contactsUlHandler);
 
         event.stopPropagation();
         event.preventDefault();
