@@ -199,14 +199,35 @@ suite('Controllers.Time', function() {
       });
     });
 
-    test('#removeCachedEvent', function(done) {
-      subject.removeCachedEvent(event._id);
-      subject.findAssociated(busy, function(err, data) {
-        var result = data[0];
-        done(function() {
-          assert.notEqual(result.event, event);
-          assert.deepEqual(result.event, event);
+    suite('#removeCachedEvent', function() {
+      test('clear event', function(done) {
+        subject.removeCachedEvent(event._id);
+        subject.findAssociated(busy, function(err, data) {
+          var result = data[0];
+          done(function() {
+            assert.notEqual(result.event, event);
+            assert.deepEqual(result.event, event);
+          });
         });
+      });
+
+      test('clear associated busytime cache', function() {
+        var notAssociated = Factory('busytime', { eventId: 'notme' });
+        var associated = Factory('busytime', { eventId: event._id });
+
+        subject.cacheBusytime(associated);
+        subject.cacheBusytime(notAssociated);
+
+        subject.removeCachedEvent(event._id);
+        assert.isNull(
+          subject._collection.indexOf(associated),
+          'associated'
+        );
+
+        assert.ok(
+          subject._collection.indexOf(notAssociated) != null,
+          'not associated'
+        );
       });
     });
   });
