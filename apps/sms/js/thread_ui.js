@@ -162,9 +162,39 @@ var ThreadUI = global.ThreadUI = {
       'click', this.onParticipantClick.bind(this)
     );
 
-    // When 'focus' we have to remove 'edit-mode' in the recipient
+
+    // Assimilations
+    // -------------------------------------------------
+    // If the user manually types a recipient number
+    // into the recipients list and does not "accept" it
+    // via <ENTER> or ";", but proceeds to either
+    // the message or attachment options, attempt to
+    // gather those stranded recipients and assimilate them.
+    //
+    // Previously, an approach using the "blur" event on
+    // the Recipients' "messages-to-field" element was used,
+    // however the to-field will frequently lose "focus"
+    // to any of its recipient children. If we assimilate on
+    // to-field blur, the result is entirely unusable:
+    //
+    //  1. Focus will jump from the recipient input to the
+    //      message input
+    //  2. 1 or 2 characters may remain in the recipient
+    //      editable, which will be "assimilated"
+    //  3. If a user has made it past 1 & 2, any attempts to
+    //      select a contact from contact search results
+    //      will also jump focus to the message input field
+    //
+    //  Currently, there are 3 Assimilations.
+    //
+
+    // Assimilation 1
     this.input.addEventListener(
-      'focus', this.messageComposerFocusHandler.bind(this)
+      'focus', this.assimilateRecipients.bind(this)
+    );
+    // Assimilation 2
+    this.attachButton.addEventListener(
+      'click', this.assimilateRecipients.bind(this)
     );
 
     this.container.addEventListener(
@@ -306,7 +336,7 @@ var ThreadUI = global.ThreadUI = {
     this.enableSend();
   },
 
-  messageComposerFocusHandler: function thui_messageInputHandler(event) {
+  assimilateRecipients: function thui_assimilateRecipients() {
     var node = this.recipientsList.lastChild;
     var typed;
 
@@ -495,15 +525,16 @@ var ThreadUI = global.ThreadUI = {
 
     // should disable if we have no message input
     var disableSendMessage = Compose.isEmpty();
-
     var messageNotLong = this.updateCounter();
+    var hasRecipients = this.recipients &&
+      (this.recipients.length || !!this.recipients.inputValue);
 
     // should disable if the message is too long
     disableSendMessage = disableSendMessage || !messageNotLong;
 
     // should disable if we have no recipients in the "new thread" view
     disableSendMessage = disableSendMessage ||
-      (window.location.hash == '#new' && !this.recipients.length);
+      (window.location.hash == '#new' && !hasRecipients);
 
     this.sendButton.disabled = disableSendMessage;
   },
@@ -1273,6 +1304,12 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
+    // Assimilation 3 (see "Assimilations" above)
+    // User may return to recipients, type a new recipient
+    // manually and then click the sendButton without "accepting"
+    // the recipient.
+    this.assimilateRecipients();
+
     // not sure why this happens - replace me if you know
     this.container.classList.remove('hide');
 
@@ -1559,6 +1596,8 @@ var ThreadUI = global.ThreadUI = {
       typed = event.target.textContent.trim();
       this.searchContact(typed);
     }
+
+    this.enableSend();
   },
 
   searchContact: function thui_searchContact(filterValue) {
