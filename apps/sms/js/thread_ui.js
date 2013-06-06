@@ -301,6 +301,26 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  getAllInputs: function thui_getAllInputs() {
+    if (this.container) {
+      return Array.prototype.slice.call(
+        this.container.querySelectorAll('input[type=checkbox]')
+      );
+    } else {
+      return [];
+    }
+  },
+
+  getSelectedInputs: function thui_getSelectedInputs() {
+    if (this.container) {
+      return Array.prototype.slice.call(
+        this.container.querySelectorAll('input[type=checkbox]:checked')
+      );
+    } else {
+      return [];
+    }
+  },
+
   // Method for setting the body of a SMS/MMS from activity
   setMessageBody: function thui_setMessageBody(value) {
     Compose.clear();
@@ -1049,7 +1069,7 @@ var ThreadUI = global.ThreadUI = {
 
   cleanForm: function thui_cleanForm() {
     // Reset all inputs
-    var inputs = this.container.querySelectorAll('input[type="checkbox"]');
+    var inputs = this.allInputs;
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].checked = false;
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
@@ -1083,9 +1103,7 @@ var ThreadUI = global.ThreadUI = {
     if (window.confirm(question)) {
       WaitingScreen.show();
       var delNumList = [];
-      var inputs = ThreadUI.container.querySelectorAll(
-        'input[type="checkbox"]:checked'
-      );
+      var inputs = ThreadUI.selectedInputs;
       var length = inputs.length;
       for (var i = 0; i < length; i++) {
         delNumList.push(+inputs[i].value);
@@ -1131,12 +1149,8 @@ var ThreadUI = global.ThreadUI = {
 
   checkInputs: function thui_checkInputs() {
     var _ = navigator.mozL10n.get;
-    var selected = this.container.querySelectorAll(
-      'input[type="checkbox"]:checked'
-    );
-    var allInputs = this.container.querySelectorAll(
-      'input[type="checkbox"]'
-    );
+    var selected = this.selectedInputs;
+    var allInputs = this.allInputs;
     if (selected.length == allInputs.length) {
       this.checkAllButton.disabled = true;
     } else {
@@ -1617,6 +1631,18 @@ var ThreadUI = global.ThreadUI = {
     }
   }
 };
+
+Object.defineProperty(ThreadUI, 'allInputs', {
+  get: function() {
+    return this.getAllInputs();
+  }
+});
+
+Object.defineProperty(ThreadUI, 'selectedInputs', {
+  get: function() {
+    return this.getSelectedInputs();
+  }
+});
 
 window.confirm = window.confirm; // allow override in unit tests
 

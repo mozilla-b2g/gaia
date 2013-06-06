@@ -302,7 +302,6 @@ suite('SMS App Unit-Test', function() {
           }).length, 'All items should be checked');
 
         // now a new message comes in for a new thread...
-        ThreadListUI.counter++;
         ThreadListUI.appendThread({
           participants: ['287138'],
           body: 'Recibidas!',
@@ -316,7 +315,8 @@ suite('SMS App Unit-Test', function() {
           ThreadListUI.container.querySelectorAll('input[type=checkbox]');
 
         assert.equal(checkboxes.length, 6);
-        assert.equal(ThreadListUI.counter, 6, '.count should be in sync');
+        assert.equal(ThreadListUI.allInputs.length, 6,
+          '.allInputs should be in sync');
         assert.equal(checkboxes[4].checked, true);
         assert.equal(checkboxes[2].checked, true);
         // new checkbox should have been added
@@ -335,7 +335,6 @@ suite('SMS App Unit-Test', function() {
         document.getElementById('main-wrapper').classList.add('edit');
         ThreadListUI.checkInputs = stub();
 
-        ThreadListUI.counter++;
         ThreadListUI.appendThread({
           participants: ['287138'],
           body: 'Recibidas!',
@@ -353,7 +352,6 @@ suite('SMS App Unit-Test', function() {
         document.getElementById('main-wrapper').classList.remove('edit');
         ThreadListUI.checkInputs = stub();
 
-        ThreadListUI.counter++;
         ThreadListUI.appendThread({
           participants: ['287138'],
           body: 'Recibidas!',
