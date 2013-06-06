@@ -3,12 +3,13 @@
 (function() {
 
   var props = ['voice', 'cardState', 'iccInfo', 'data'];
-  var eventListeners = {'iccinfochange': [], 'cardstatechange': []};
+  var eventListeners = null;
 
   function mnmmc_init() {
     props.forEach(function(prop) {
       Mock[prop] = null;
     });
+    eventListeners = {'iccinfochange': [], 'cardstatechange': []};
   }
 
   function mnmmc_addEventListener(type, callback) {
@@ -29,7 +30,12 @@
       return;
     }
     eventListeners[type].forEach(function(callback) {
-      callback(evt);
+      if (typeof callback === 'function') {
+        callback(evt);
+      } else if (typeof callback == 'object' &&
+                 typeof callback['handleEvent'] === 'function') {
+        callback['handleEvent'](evt);
+      }
     });
 
     if (typeof Mock['on' + type] === 'function') {
