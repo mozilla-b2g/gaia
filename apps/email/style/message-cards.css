@@ -73,6 +73,7 @@ input.msg-search-text-tease {
 
 .msg-search-text {
   font-size: 1.7rem !important;
+  padding-right: 2.5rem !important;
 }
 
 .msg-no-subject {
