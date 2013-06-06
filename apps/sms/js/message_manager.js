@@ -201,11 +201,15 @@ var MessageManager = {
     var threadMessages = document.getElementById('thread-messages');
     var recipient;
 
+    // Leave the edit mode before transitioning to another panel. This is safe
+    // to do even if we're not in edit mode as it's essentially a no-op then.
+    ThreadUI.cancelEdit();
+    ThreadListUI.cancelEdit();
+
     switch (window.location.hash) {
       case '#new':
 
         ThreadUI.cleanFields(true);
-        mainWrapper.classList.remove('edit');
         threadMessages.classList.add('new');
 
         MessageManager.activity.recipients = null;
@@ -266,9 +270,7 @@ var MessageManager = {
           filter = new MozSmsFilter();
           filter.threadId = threadId;
 
-          if (mainWrapper.classList.contains('edit')) {
-            mainWrapper.classList.remove('edit');
-          } else if (threadMessages.classList.contains('new')) {
+          if (threadMessages.classList.contains('new')) {
             // After a message is sent...
             //
             threadMessages.classList.remove('new');
