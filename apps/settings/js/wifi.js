@@ -108,10 +108,8 @@ navigator.mozL10n.ready(function wifiSettings() {
       });
       req.onsuccess = function() {
         gWpsInProgress = false;
-        gWpsPbcLabelBlock.textContent = _('wpsMessage');
-        gWpsPbcLabelBlock.dataset.l10nId = 'wpsMessage';
-        gWpsInfoBlock.textContent = _('fullStatus-wps-canceled');
-        gWpsInfoBlock.dataset.l10nId = 'fullStatus-wps-canceled';
+        localize(gWpsPbcLabelBlock, 'wpsMessage');
+        localize(gWpsInfoBlock, 'fullStatus-wps-canceled');
       };
       req.onerror = function() {
         gWpsInfoBlock.textContent = _('wpsCancelFailedMessage') +
@@ -142,10 +140,8 @@ navigator.mozL10n.ready(function wifiSettings() {
           alert(_('wpsPinInput', { pin: req.result }));
         }
         gWpsInProgress = true;
-        gWpsPbcLabelBlock.textContent = _('wpsCancelMessage');
-        gWpsPbcLabelBlock.dataset.l10nId = 'wpsCancelMessage';
-        gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
-        gWpsInfoBlock.dataset.l10nId = 'fullStatus-wps-inprogress';
+        localize(gWpsPbcLabelBlock, 'wpsCancelMessage');
+        localize(gWpsInfoBlock, 'fullStatus-wps-inprogress');
       };
       req.onerror = function() {
         gWpsInfoBlock.textContent = _('fullStatus-wps-failed') +
@@ -716,9 +712,10 @@ navigator.mozL10n.ready(function wifiSettings() {
           networkStatus === 'wps-failed' ||
           networkStatus === 'wps-overlapped') {
         gWpsInProgress = false;
-        gWpsPbcLabelBlock.textContent = _('wpsMessage');
-        gWpsPbcLabelBlock.dataset.l10nId = 'wpsMessage';
+        localize(gWpsPbcLabelBlock, 'wpsMessage');
       }
+    } else {
+      localize(gWpsInfoBlock, 'wpsDescription');
     }
   }
 
