@@ -243,6 +243,9 @@
         setState(sleepState, type);
         return;
       case 'volume-up-button-release':
+        if (!ScreenManager.screenEnabled) {
+          return;
+        }
         if (this.direction === 'volume-up-button-press') {
           if (!this.repeating)
             fire('volumeup');
@@ -251,6 +254,9 @@
         }
         break;
       case 'volume-down-button-release':
+        if (!ScreenManager.screenEnabled) {
+          return;
+        }
         if (this.direction === 'volume-down-button-press') {
           if (!this.repeating)
             fire('volumedown');
