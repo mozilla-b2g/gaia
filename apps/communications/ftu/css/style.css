@@ -9,6 +9,14 @@ html, body {
   user-select: none;
 }
 
+a {
+  font-size: 1.35rem;
+  line-height: 1.8rem;
+  color: #000;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
 /*
   Areas in our app
 */
@@ -739,13 +747,6 @@ aside.connecting {
   margin: -1.5rem 0 0 -1.5rem;
 }
 
-#welcome_browser section a {
-  font-size: 1.35rem;
-  line-height: 1.8rem;
-  color: #000;
-  text-decoration: underline;
-  font-weight: 500;
-}
 #welcome_browser section p a {
   margin-left: 0.3rem;
 }
