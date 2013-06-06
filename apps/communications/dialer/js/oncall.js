@@ -238,15 +238,6 @@ var OnCallHandler = (function onCallHandler() {
       telephony.muted = false;
     }
 
-    // Animating the screen in the viewport.
-    // We wait for the next tick because we may receive an exitCallScreen
-    // as soon as we're loaded.
-    setTimeout(function nextTick() {
-      if (!closing) {
-        toggleScreen();
-      }
-    });
-
     postToMainWindow('ready');
   }
 
@@ -294,6 +285,9 @@ var OnCallHandler = (function onCallHandler() {
       exitCallScreen(false);
     } else {
       CallScreen.calls.dataset.count = handledCalls.length;
+      if (!displayed && !closing) {
+        toggleScreen();
+      }
     }
   }
 
