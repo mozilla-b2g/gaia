@@ -175,6 +175,105 @@ suite('ThreadUI Integration', function() {
         ThreadUI.recipientsList.classList.contains('singleline')
       );
     });
+
+    test('Typing in list will switch to singline mode', function(done) {
+      var toField = ThreadUI.toField;
+      var recipientsList = ThreadUI.recipientsList;
+
+      children = recipientsList.children;
+      recipients = ThreadUI.recipients;
+
+      // Fill the recipients list with enough recipients to
+      // enable the "pan" event
+      recipients.add({
+        number: '999999999999999999999999999999'
+      });
+
+      recipients.add({
+        number: '888888888888888888888888888888'
+      });
+
+      // Since the offsetHeight is lazily captured during any
+      // first event, trigger an event to ensure that the
+      // "pan" event will have a height to calculate with.
+      //
+      toField.click();
+
+      // Simulate list growth
+      recipientsList.style.height = '50px';
+
+      // Listen for the pan event, simulated immediately following.
+      toField.addEventListener('pan', function panTest() {
+        assert.isTrue(toField.classList.contains('multiline'));
+
+        toField.removeEventListener('pan', panTest, false);
+
+        // Once the pan event has occured, the following steps
+        // will simulate the user actions necessary for testing
+        // the return to single line mode
+
+        // 1. Enter text into the editable "placeholder"
+        children[2].textContent = '0';
+
+        // 2. Trigger a "keyup" event
+        children[2].dispatchEvent(
+          new CustomEvent('keyup', {
+            bubbles: true
+          })
+        );
+
+        // toField should now be "singleline" again
+        assert.isTrue(toField.classList.contains('singleline'));
+        done();
+      });
+
+      // Simulate pan event
+      toField.dispatchEvent(
+        new CustomEvent('pan', {
+          detail: {
+            absolute: {
+              dy: 1
+            }
+          }
+        })
+      );
+    });
+
+    test('Clicking in list will switch to singline mode', function(done) {
+      var toField = ThreadUI.toField;
+      var recipientsList = ThreadUI.recipientsList;
+
+      children = recipientsList.children;
+      recipients = ThreadUI.recipients;
+
+      // Fill the recipients list with enough recipients to
+      // enable the "multiline" view
+      recipients.add({
+        number: '999999999999999999999999999999'
+      });
+
+      recipients.add({
+        number: '888888888888888888888888888888'
+      });
+
+      // Simulate list growth
+      recipientsList.style.height = '50px';
+
+      // Listen for the pan event, simulated immediately following.
+      toField.addEventListener('click', function clickTest() {
+        toField.removeEventListener('click', clickTest, false);
+
+        // toField should now be "singleline" again
+        assert.isTrue(toField.classList.contains('singleline'));
+        done();
+      });
+
+      // Artificially set the list to multiline view
+      recipients.visible('multiline');
+
+      // Click "anywhere"
+      toField.click();
+    });
   });
 
   suite('Recipient Input Behaviours', function() {
