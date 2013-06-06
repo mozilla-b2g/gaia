@@ -263,7 +263,6 @@ const specialCodes = [
 ];
 
 // These values are initialized with user settings
-var userLanguage;
 var currentKeyboardName;
 var suggestionsEnabled;
 var correctionsEnabled;
@@ -303,7 +302,6 @@ function getKeyboardSettings() {
   // value of all keyboard-related settings. These are the settings
   // we want to query, with the default values we'll use if the query fails
   var settingsQuery = {
-    'language.current': 'en-US',
     'keyboard.current': 'en',
     'keyboard.wordsuggestion': true,
     'keyboard.autocorrect': true,
@@ -320,7 +318,6 @@ function getKeyboardSettings() {
   getSettings(settingsQuery, function gotSettings(values) {
 
     // Copy settings values to the corresponding global variables.
-    userLanguage = values['language.current'];
     currentKeyboardName = values['keyboard.current'];
     suggestionsEnabled = values['keyboard.wordsuggestion'];
     correctionsEnabled = values['keyboard.autocorrect'];
@@ -348,13 +345,6 @@ function getKeyboardSettings() {
 
 function initKeyboard() {
   // First, register handlers to track settings changes
-  navigator.mozSettings.addObserver('language.current', function(e) {
-    // The keyboard won't be displayed when this setting changes, so we
-    // don't need to tell the keyboard about the new value right away.
-    // We pass the value to the input method when the keyboard is displayed.
-    userLanguage = e.settingValue;
-  });
-
   navigator.mozSettings.addObserver('keyboard.current', function(e) {
     // Switch to the language associated keyboard
     // everything.me also uses this setting to improve searches
