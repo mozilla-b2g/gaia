@@ -119,14 +119,7 @@
 'use strict';
 
 var Predictions = function() {
-  const maxSuggestions = 3; // max number of suggestions to be returned
-  const maxCorrections = 1; // max number of corrections to the user's typing
   const cacheSize = 255;    // how many suggestions to remember
-
-  // While searching we maintain a priority queue of candidates we want
-  // to search further. These constants specify how many candidates we
-  // retain in that queue.
-  const maxCandidates = maxSuggestions * 8;
 
   // Weights of various permutations we do when matching input
   const variantFormMultiplier = .99;          // slightly prefer exact match
@@ -326,7 +319,13 @@ var Predictions = function() {
   // Before calling this function you must call setDictionary() and
   // setNearbyKeys() to provide the data it needs to make predictions.
   //
-  function predict(input, callback, onerror) {
+  function predict(input,           // the user's input
+                   maxSuggestions,  // how many suggestions are requested
+                   maxCandidates,   // how many candidates to consider
+                   maxCorrections,  // how many corrections to allow per word
+                   callback,        // call this on success
+                   onerror)         // and call this on error
+  {
     if (!tree || !nearbyKeys)
       throw Error('not initialized');
 
@@ -356,6 +355,11 @@ var Predictions = function() {
       }
     };
 
+    var cacheKey = input +
+      ',' + maxSuggestions +
+      ',' + maxCandidates +
+      ',' + maxCorrections;
+
     // Start searching for words soon...
     setTimeout(getWords);
 
@@ -375,7 +379,7 @@ var Predictions = function() {
       try {
         // Check the cache. If we've seen this input recently we can return
         // suggestions right away.
-        var cached_suggestions = cache.get(input);
+        var cached_suggestions = cache.get(cacheKey);
         if (cached_suggestions) {
           status.state = 'done';
           status.suggestions = cached_suggestions;
@@ -505,7 +509,7 @@ var Predictions = function() {
           if (!candidate || candidate.weight <= words.threshold) {
             status.state = 'done';
             status.suggestions = words.items; // the array in the word queue
-            cache.add(input, status.suggestions);
+            cache.add(cacheKey, status.suggestions);
             callback(status.suggestions);
             return;
           }
