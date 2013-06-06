@@ -28,7 +28,7 @@
 
     debug('got', evtName);
 
-    perfMeasurements[evtName] = window.performance.now();
+    perfMeasurements[evtName] = e.detail.timestamp;
     checkFinish();
   }
 
@@ -56,7 +56,6 @@
 
       debug('registering');
       perfMeasurements = Object.create(null);
-      perfMeasurements.start = window.performance.now();
 
       window.addEventListener(PERF_EVENT_NAME, handlePerfEvent);
       window[PERF_FLAG_NAME] = hasRegistered = true;
