@@ -481,7 +481,7 @@ ComposeCard.prototype = {
     var attachmentLabel =
       this.domNode.getElementsByClassName('cmp-attachment-label')[0];
     var attachmentsSize =
-      this.domNode.getElementsByClassName('cmp-attachments-size')[0];
+      this.domNode.getElementsByClassName('cmp-attachments-size-text')[0];
 
     attachmentLabel.textContent =
       mozL10n.get('compose-attachments',
