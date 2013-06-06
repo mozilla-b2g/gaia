@@ -472,19 +472,35 @@ var OnCallHandler = (function onCallHandler() {
     animating = true;
 
     var callScreen = CallScreen.screen;
-    callScreen.classList.toggle('displayed');
 
-    callScreen.addEventListener('transitionend', function trWait() {
-      callScreen.removeEventListener('transitionend', trWait);
+    if (displayed) {
+      callScreen.addEventListener('transitionend', function trWait() {
+        if (callScreen.classList.contains('peek')) {
+          setTimeout(function() {
+            callScreen.classList.remove('peek');
+            callScreen.classList.add('displayed');
+          });
+        } else {
+          animating = false;
+          callScreen.removeEventListener('transitionend', trWait);
+        }
+      });
+      callScreen.classList.add('peek');
+    } else {
+      callScreen.addEventListener('transitionend', function trWait() {
+        callScreen.removeEventListener('transitionend', trWait);
 
-      animating = false;
+        animating = false;
 
-      // We did animate the call screen off the viewport
-      // now closing the window.
-      if (!displayed) {
-        closeWindow();
-      }
-    });
+        // We did animate the call screen off the viewport
+        // now closing the window.
+        if (!displayed) {
+          closeWindow();
+        }
+      });
+      callScreen.classList.remove('displayed');
+      callScreen.classList.remove('peek');
+    }
   }
 
   function exitCallScreen(animate) {
