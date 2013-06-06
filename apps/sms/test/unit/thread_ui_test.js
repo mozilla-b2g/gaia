@@ -188,12 +188,14 @@ suite('thread_ui.js >', function() {
         window.location.hash = '#new';
         Compose.clear();
         ThreadUI.recipients.length = 0;
+        ThreadUI.recipients.inputValue = '';
       });
 
       teardown(function() {
         window.location.hash = '';
         Compose.clear();
         ThreadUI.recipients.length = 0;
+        ThreadUI.recipients.inputValue = '';
       });
 
       test('button should be disabled when there is neither contact or input',
@@ -204,6 +206,15 @@ suite('thread_ui.js >', function() {
       test('button should be disabled when there is no contact', function() {
         Compose.append('Hola');
         assert.isTrue(sendButton.disabled);
+      });
+
+      test('button should be enabled with recipient input', function() {
+        Compose.append('Hola');
+        ThreadUI.recipients.inputValue = '999';
+
+        // Call directly since no input event will be triggered
+        ThreadUI.enableSend();
+        assert.isFalse(sendButton.disabled);
       });
 
       test('button should be enabled after adding a recipient when text exists',

@@ -8,6 +8,7 @@ requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
+requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/attachment_menu.js');
 requireApp('sms/js/compose.js');
@@ -18,6 +19,9 @@ requireApp('sms/js/message_manager.js');
 requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/js/thread_ui.js');
 
+var mHelperIntegration = new MocksHelper([
+  'MessageManager'
+]).init();
 
 suite('ThreadUI Integration', function() {
   var realContacts;
@@ -32,6 +36,7 @@ suite('ThreadUI Integration', function() {
   var sendButton;
   var input;
 
+  mHelperIntegration.attachTestHelpers();
 
   if (typeof loadBodyHTML === 'undefined') {
     require('/shared/test/unit/load_body_html_helper.js');
@@ -195,7 +200,15 @@ suite('ThreadUI Integration', function() {
       }
     };
 
-    test('Captures stranded recipients', function() {
+    suiteSetup(function() {
+      window.location.hash = '#new';
+    });
+
+    suiteTeardown(function() {
+      window.location.hash = '';
+    });
+
+    test('Assimilate stranded recipients (message input)', function() {
 
       ThreadUI.recipients.add({
         number: '999'
@@ -232,6 +245,88 @@ suite('ThreadUI Integration', function() {
       assert.ok(is.corresponding(recipients.list[0], children[0], '999'));
       assert.ok(is.corresponding(recipients.list[1], children[1], '000'));
       assert.ok(is.placeholder(children[2]));
+    });
+
+    test('Assimilate stranded recipients (attachButton)', function() {
+
+      ThreadUI.recipients.add({
+        number: '777'
+      });
+
+      children = ThreadUI.recipientsList.children;
+      recipients = ThreadUI.recipients;
+
+      // There are one recipients...
+      assert.equal(recipients.length, 1);
+      // And two displayed children,
+      // (the recipient "avatars" and a
+      // placeholder for the next entry)
+      assert.equal(children.length, 2);
+
+      assert.ok(is.corresponding(recipients.list[0], children[0], '777'));
+      assert.ok(is.placeholder(children[1]));
+
+      // Set text in the placeholder, as if the user has typed
+      // something before jumping to the input field
+      children[1].textContent = '555';
+
+      // Simulate input field focus/entry
+      ThreadUI.attachButton.click();
+
+      // There are now two recipients...
+      assert.equal(recipients.length, 2);
+      // And three displayed children,
+      // (the recipient "avatars" and a
+      // placeholder for the next entry)
+      assert.equal(children.length, 3);
+
+      assert.ok(is.corresponding(recipients.list[0], children[0], '777'));
+      assert.ok(is.corresponding(recipients.list[1], children[1], '555'));
+      assert.ok(is.placeholder(children[2]));
+    });
+
+    test('Assimilate stranded recipients (sendButton)', function() {
+      // To ensure the onSendClick handler will succeed:
+
+      // 1. Add some content to the message
+      Compose.append('foo');
+
+      // 2. Create a recipient
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+
+
+      children = ThreadUI.recipientsList.children;
+      recipients = ThreadUI.recipients;
+
+      // There are one recipients...
+      assert.equal(recipients.length, 1);
+      // And two displayed children,
+      // (the recipient "avatars" and a
+      // placeholder for the next entry)
+      assert.equal(children.length, 2);
+
+      assert.ok(is.corresponding(recipients.list[0], children[0], '999'));
+      assert.ok(is.placeholder(children[1]));
+
+      // Set text in the placeholder, as if the user has typed
+      // something before jumping to the input field
+      children[1].textContent = '000';
+
+      // Simulate sendButton click
+      ThreadUI.onSendClick();
+
+      // This is asserted differently, since cleanFields has
+      // disposed of the recipients, input and attachments.
+
+      assert.ok(MessageManager.sendSMS.called);
+
+      // Ensure that the "unaccepted" recipient was assimilated
+      // and included in the recipients list when message was sent
+      assert.deepEqual(
+        MessageManager.sendSMS.args[0], [['999', '000'], 'foo']
+      );
     });
 
     test('Lone ";" are not recipients', function() {
