@@ -171,9 +171,13 @@
         // Carrier logic
         if (name) {
           // Check if other phones with same type and carrier
+          // Convert the tel-type to string before tel-type comparison.
+          // TODO : We might need to handle multiple tel type in the future.
           for (i = 0; i < length; i++) {
+            var telType = contact.tel[i].type.toString();
+            var phoneType = phone.type.toString();
             if (contact.tel[i].value !== phone.value &&
-                contact.tel[i].type === phone.type &&
+                telType === phoneType &&
                 contact.tel[i].carrier === phone.carrier) {
               carrier = phone.value;
             }
