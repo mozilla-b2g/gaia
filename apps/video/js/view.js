@@ -122,6 +122,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     });
 
     dom.player.addEventListener('timeupdate', timeUpdated);
+    dom.player.addEventListener('stalled', videoStalled);
+    dom.player.addEventListener('waiting', videoStreamWaiting);
+    dom.player.addEventListener('canplay', videoStreamCanPlay);
 
     // Set the 'lang' and 'dir' attributes to <html> when the page is translated
     window.addEventListener('localized', function showBody() {
@@ -206,9 +209,6 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   // show video player
   function showPlayer(url, title) {
-    // Dismiss the spinner
-    dom.spinnerOverlay.classList.add('hidden');
-
     dom.videoTitle.textContent = title || '';
     dom.player.src = url;
     dom.player.onloadedmetadata = function() {
@@ -242,7 +242,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   function play() {
     // Switch the button icon
     dom.play.classList.remove('paused');
-
+    dom.spinnerOverlay.classList.add('hidden');
     // Start playing
     dom.player.play();
     playing = true;
@@ -251,10 +251,24 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   function pause() {
     // Switch the button icon
     dom.play.classList.add('paused');
-
+    dom.spinnerOverlay.classList.add('hidden');
     // Stop playing the video
     dom.player.pause();
     playing = false;
+  }
+
+  function videoStalled() {
+    if(dom.player.networkState === dom.player.NETWORK_LOADING) {
+       dom.spinnerOverlay.classList.remove('hidden');
+    }
+  }
+  function videoStreamWaiting() {
+    if (dom.player.readyState < dom.player.HAVE_FUTURE_DATA && !dom.player.paused) {
+        dom.spinnerOverlay.classList.remove('hidden');
+    }
+  }
+  function videoStreamCanPlay() {
+    dom.spinnerOverlay.classList.add('hidden');
   }
 
   // Update the progress bar and play head as the video plays
