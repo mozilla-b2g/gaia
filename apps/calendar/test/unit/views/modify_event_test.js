@@ -867,6 +867,7 @@ suiteGroup('Views.ModifyEvent', function() {
 
     test('remove calendar (#_removeCalendarId)', function(done) {
       subject.onremovecalendar = function() {
+        subject.onremovecalendar = null;
         done(function() {
           assert.length(element.children, 2, 'removed one');
 
@@ -877,6 +878,7 @@ suiteGroup('Views.ModifyEvent', function() {
         });
       };
 
+      calendarStore.emit('preRemove', calendars.one._id);
       calendarStore.emit('remove', calendars.one._id);
     });
   });
