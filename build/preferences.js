@@ -30,7 +30,7 @@ if (LOCAL_DOMAINS) {
   prefs.push(["network.dns.localDomains", domains.join(",")]);
 }
 
-if (BROWSER) {
+if (DESKTOP) {
   // Set system app as default firefox tab
   prefs.push(["browser.startup.homepage", homescreen]);
   prefs.push(["startup.homepage_welcome_url", ""]);
@@ -127,7 +127,7 @@ if (DEBUG) {
 
 // We have to allow installing helper addons from profile extension folder
 // in both debug and browser compatibility modes
-if (DEBUG || BROWSER) {
+if (DEBUG || DESKTOP) {
   prefs.push(["extensions.autoDisableScopes", 0]);
 }
 
