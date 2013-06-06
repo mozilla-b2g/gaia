@@ -215,7 +215,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       var option = element.querySelector('[value="' + id + '"]');
       if (option) {
-        option.parentNode.remove(option);
+        element.removeChild(option);
       }
 
       if (this.onremovecalendar) {
