@@ -13,7 +13,7 @@
 }
 
 #permissionsListHeader + ul li span {
-  width: 75%;
+  width: calc(75% - 1.5rem);
 }
 
 #permissionsListHeader + ul li select {
@@ -24,28 +24,18 @@
   text-align: center;
   color: black;
   font-size: 1.4rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 #permissionsListHeader + ul li select[value='allow'] {
   background-color: #22aa22;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
 }
 
 #permissionsListHeader + ul li select[value='deny'] {
   background-color: #da4e49;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
 }
-
-#permissionsListHeader + ul li select[value='prompt'] {
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
 
 #uninstall-app {
   display: block;
