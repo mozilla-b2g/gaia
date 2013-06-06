@@ -31,7 +31,9 @@ contacts.Settings = (function() {
   var init = function initialize() {
     // To listen to card state changes is needed for enabling import from SIM
     var mobileConn = navigator.mozMobileConnection;
-    mobileConn.oncardstatechange = Contacts.cardStateChanged;
+    if (mobileConn) {
+      mobileConn.oncardstatechange = Contacts.cardStateChanged;
+    }
     fb.init(function onFbInit() {
       initContainers();
     });
