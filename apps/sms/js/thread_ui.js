@@ -1197,6 +1197,8 @@ var ThreadUI = global.ThreadUI = {
         elems.bubble = currentNode;
       } else if (currentNode.classList.contains('message')) {
         elems.message = currentNode;
+      } else if (currentNode.classList.contains('pack-end')) {
+        elems.packEnd = currentNode;
       }
       currentNode = currentNode.parentNode;
     }
@@ -1219,9 +1221,9 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    // Click events originating from within a "bubble" of an error message
+    // Click events originating from a "pack-end" aside of an error message
     // should trigger a prompt for retransmission.
-    if (elems.message.classList.contains('error')) {
+    if (elems.message.classList.contains('error') && elems.packEnd) {
       if (window.confirm(_('resend-confirmation'))) {
         this.resendMessage(elems.message.dataset.messageId);
       }
