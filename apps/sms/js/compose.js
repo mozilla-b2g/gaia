@@ -31,6 +31,7 @@ var Compose = (function() {
     empty: true,
     maxLength: null,
     size: null,
+    lastScrollPosition: 0,
 
     // 'sms' or 'mms'
     type: 'sms'
@@ -98,7 +99,6 @@ var Compose = (function() {
     }
   }
 
-
   function insert(item) {
     var fragment = document.createDocumentFragment();
 
@@ -163,6 +163,7 @@ var Compose = (function() {
       }
       return this;
     },
+
     off: function(type, handler) {
       if (handlers[type]) {
         var index = handlers[type].indexOf(handler);
@@ -233,6 +234,40 @@ var Compose = (function() {
       return this;
     },
 
+    scrollToTarget: function(target) {
+      // target can be an element or a selection range
+      var targetRect = target.getBoundingClientRect();
+
+      // put the middle of the target at the middle of the container box
+      var containerRect = dom.message.getBoundingClientRect();
+      var offset = (targetRect.top + targetRect.height / 2) -
+          (containerRect.top + containerRect.height / 2);
+
+      // we += because the scrollTop that was set is already compensated
+      // with the getBoundingClientRect()
+      dom.message.scrollTop += offset;
+    },
+
+    scrollMessageContent: function() {
+      if (document.activeElement === dom.message) {
+        // we just got the focus: ensure the caret is visible
+        var range = window.getSelection().getRangeAt(0);
+        if (range.collapsed) {
+          // We can't get the bounding client rect of a collapsed range,
+          // so let's insert a temporary node to get the caret position.
+          range.insertNode(document.createElement('span'));
+          this.scrollToTarget(range);
+          range.deleteContents();
+        } else {
+          this.scrollToTarget(range);
+        }
+        state.lastScrollPosition = dom.message.scrollTop;
+      } else {
+        // we just lost the focus: restore the last scroll position
+        dom.message.scrollTop = state.lastScrollPosition;
+      }
+    },
+
     /** Writes node to composition element
      * @param {mixed} item Html, DOMNode, or attachment to add
      *                     to composition element.
@@ -259,14 +294,18 @@ var Compose = (function() {
       var fragment = insert(item);
 
       if (document.activeElement === dom.message) {
+        // insert element at caret position
         var range = window.getSelection().getRangeAt(0);
         var firstNodes = fragment.firstChild;
         range.deleteContents();
         range.insertNode(fragment);
+        this.scrollToTarget(range);
         dom.message.focus();
         range.setStartAfter(firstNodes);
       } else {
+        // insert element at the end of the Compose area
         dom.message.insertBefore(fragment, dom.message.lastChild);
+        this.scrollToTarget(dom.message.lastChild);
       }
       composeCheck();
       return this;
