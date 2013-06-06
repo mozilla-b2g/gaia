@@ -172,6 +172,7 @@ var currentInputMode = null;
 var menuLockedArea = null;
 var candidatePanelEnabled = false;
 var isKeyboardRendered = false;
+var currentCandidates = [];
 const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
@@ -254,6 +255,7 @@ const specialCodes = [
 var userLanguage;
 var currentKeyboardName;
 var suggestionsEnabled;
+var correctionsEnabled;
 var clickEnabled;
 var vibrationEnabled;
 var enabledKeyboardGroups;
@@ -301,12 +303,13 @@ window.addEventListener('load', getKeyboardSettings);
 
 function getKeyboardSettings() {
   // Before we can initialize the keyboard we need to know the current
-  // value of all keyboard-related settings. These are two of the settings
-  // we want to query, with the default value we'll use
+  // value of all keyboard-related settings. These are the settings
+  // we want to query, with the default values we'll use if the query fails
   var settingsQuery = {
     'language.current': 'en-US',
     'keyboard.current': 'en',
     'keyboard.wordsuggestion': true,
+    'keyboard.autocorrect': true,
     'keyboard.vibration': false,
     'keyboard.clicksound': false,
     'audio.volume.notification': 7
@@ -323,6 +326,7 @@ function getKeyboardSettings() {
     userLanguage = values['language.current'];
     currentKeyboardName = values['keyboard.current'];
     suggestionsEnabled = values['keyboard.wordsuggestion'];
+    correctionsEnabled = values['keyboard.autocorrect'];
     vibrationEnabled = values['keyboard.vibration'];
     clickEnabled = values['keyboard.clicksound'];
     isSoundEnabled = !!values['audio.volume.notification'];
@@ -365,6 +369,13 @@ function initKeyboard() {
     // don't need to tell the keyboard about the new value right away.
     // We pass the value to the input method when the keyboard is displayed
     suggestionsEnabled = e.settingValue;
+  });
+
+  navigator.mozSettings.addObserver('keyboard.autocorrect', function(e) {
+    // The keyboard won't be displayed when this setting changes, so we
+    // don't need to tell the keyboard about the new value right away.
+    // We pass the value to the input method when the keyboard is displayed
+    correctionsEnabled = e.settingValue;
   });
 
   navigator.mozSettings.addObserver('keyboard.vibration', function(e) {
@@ -766,6 +777,9 @@ function renderKeyboard(keyboardName) {
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
 
+    //restore the previous candidates
+    IMERender.showCandidates(currentCandidates);
+
     isKeyboardRendered = true;
   }
 
@@ -811,6 +825,9 @@ function setUpperCase(upperCase, upperCaseLocked) {
   });
   // And make sure the caps lock key is highlighted correctly
   IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+
+  //restore the previous candidates
+  IMERender.showCandidates(currentCandidates);
 }
 
 function resetUpperCase() {
@@ -1455,7 +1472,10 @@ function showKeyboard(state) {
   resetKeyboard();
 
   if (inputMethod.activate) {
-    inputMethod.activate(userLanguage, suggestionsEnabled, state);
+    inputMethod.activate(userLanguage, state, {
+      suggest: suggestionsEnabled,
+      correct: correctionsEnabled
+    });
   }
 
 
@@ -1514,6 +1534,7 @@ function loadIMEngine(name) {
   var glue = {
     path: sourceDir + imEngine,
     sendCandidates: function kc_glue_sendCandidates(candidates) {
+      currentCandidates = candidates;
       IMERender.showCandidates(candidates);
     },
     sendPendingSymbols:
@@ -1539,6 +1560,11 @@ function loadIMEngine(name) {
     setUpperCase: setUpperCase,
     resetUpperCase: resetUpperCase
   };
+
+  if (typeof navigator.mozKeyboard.replaceSurroundingText === 'function') {
+    glue.replaceSurroundingText =
+      navigator.mozKeyboard.replaceSurroundingText.bind(navigator.mozKeyboard);
+  }
 
   script.addEventListener('load', function IMEngineLoaded() {
     var engine = InputMethods[imEngine];
