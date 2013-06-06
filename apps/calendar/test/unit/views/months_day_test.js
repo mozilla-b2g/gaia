@@ -41,6 +41,11 @@ suiteGroup('Views.MonthsDay', function() {
     assert.instanceOf(subject, Calendar.Views.DayChild);
   });
 
+  test('bug 803934', function() {
+    // verify flag is false
+    assert.isFalse(subject.renderAllHours);
+  });
+
 
   suite('#handleEvent', function() {
 
