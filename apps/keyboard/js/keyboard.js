@@ -124,6 +124,8 @@ const InputMethods = {};
 //  a number of other methods
 const defaultInputMethod = {
   click: sendKey,
+  setState: function(state) { this._state = state; },
+  getState: function() { return this._state; },
   displaysCandidates: function() { return false; }
 };
 
@@ -461,8 +463,8 @@ function setKeyboardName(name) {
   keyboardName = name;
   if (keyboard.imEngine)
     inputMethod = InputMethods[keyboard.imEngine];
-
-  if (!inputMethod)
+  else
+    // If no imEngine is defined, use the default inputMethod
     inputMethod = defaultInputMethod;
 }
 
@@ -1357,18 +1359,34 @@ function endPress(target, coords, touchId) {
      * that asian keyboards have input methods that handle the latin case
      * so this probably isn't an issue.
      */
-    if (inputMethod == prevInputMethod) {
-      // If the input method is the same, the word prediction language can
-      // be updated by setting the keyboard language for the word suggestions
-      // engine, thus informing it to load the appropriate dictionary
-      var lang = languageAlias[keyboardName] || keyboardName;
-      // If current language needs a candidate panel, set its language
-      // auto-correction, otherwise deactivate the word correction of previous
-      // input method which remained active
-      var autoCorrection = needsCandidatePanel() ? correctionsEnabled : false;
 
+    var lang = languageAlias[keyboardName] || keyboardName;
+    // If the input method is the same, the word prediction language can
+    // be updated by setting the keyboard language for the word suggestions
+    // engine, thus informing it to load the appropriate dictionary
+    if (inputMethod == prevInputMethod) {
       if (inputMethod.setLanguage)
-        inputMethod.setLanguage(lang, autoCorrection);
+        inputMethod.setLanguage(lang);
+    } else {
+      // If the input methods differ, get the previous input state and pass it
+      // to the new input method through activate
+      if (prevInputMethod.getState &&
+          (inputMethod.activate || inputMethod.setState)) {
+
+        var prevInputState = prevInputMethod.getState();
+        if (prevInputMethod.deactivate)
+          prevInputMethod.deactivate();
+
+        // Activate the new input method or pass on the input state
+        if (inputMethod.activate) {
+          inputMethod.activate(lang, prevInputState, {
+            suggest: suggestionsEnabled,
+            correct: correctionsEnabled
+          });
+        } else {
+          inputMethod.setState(prevInputState);
+        }
+      }
     }
     break;
 
@@ -1490,6 +1508,10 @@ function showKeyboard(state) {
       suggest: suggestionsEnabled,
       correct: correctionsEnabled
     });
+  // If no activate method is present, the input method should have a setState
+  // method to save the current state of input
+  } else if (inputMethod.setState) {
+    inputMethod.setState(state);
   }
 
   // render the keyboard after activation, which will determine the state
