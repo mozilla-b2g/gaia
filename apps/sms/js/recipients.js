@@ -621,6 +621,7 @@
     var isPreventingDefault = false;
     var isAcceptedRecipient = false;
     var isEdittingRecipient = false;
+    var isDeletingRecipient = false;
     var target = event.target;
     var keyCode = event.keyCode;
     var editable = 'false';
@@ -787,14 +788,25 @@
         // attempt to go back to the previous entry and edit that
         // recipient as if it were a newly added entry.
         if (keyCode === event.DOM_VK_BACK_SPACE) {
-          if (!typed) {
-            previous = target.previousSibling;
-            list = data.get(owner);
+          previous = target.previousSibling;
 
-            // Only manually typed entries may be editted directly
-            // in the recipients list view.
-            if (previous &&
-              (list.length && list[list.length - 1].source === 'manual')) {
+          if (!typed && previous) {
+            recipient = relation.get(previous);
+
+            // If the recipient to the immediate left is a
+            // known Contact, added either by Activity
+            // or via search contact results, remove it
+            // from the list
+            //
+            if (previous.dataset.source === 'contacts') {
+              isPreventingDefault = true;
+              isDeletingRecipient = true;
+
+              view.owner.remove(recipient);
+
+            } else if (previous.dataset.source === 'manual') {
+              // Only manually typed entries may be editted directly
+              // in the recipients list view.
 
               isEdittingRecipient = true;
               isPreventingDefault = true;
@@ -861,6 +873,10 @@
         // Set focus on the very placeholder item.
         this.render().focus();
       }
+    }
+
+    if (isDeletingRecipient) {
+      this.render().focus();
     }
 
     if (isEdittingRecipient) {

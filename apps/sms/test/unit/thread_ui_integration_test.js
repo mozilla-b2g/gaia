@@ -271,6 +271,57 @@ suite('ThreadUI Integration', function() {
       assert.equal(children.length, 1);
       assert.isTrue(children[0].isPlaceholder);
     });
+
+    /**
+     * The code in this test works exactly as it should
+     * when run as "standalone".
+     *
+     * The test runner appears to cause a loss of
+     * node references that are expected to exist
+
+    test('<delete> removes "known" contact to the left', function() {
+      function backspace(target) {
+        var doc = target.ownerDocument;
+        var view = doc.defaultView;
+
+        var event = doc.createEvent('KeyboardEvent');
+
+        event.initKeyEvent(
+          'keypress', true, true, view,
+          false, false, false, false,
+          KeyEvent.DOM_VK_BACK_SPACE, 0
+        );
+
+        target.dispatchEvent(event);
+
+        return event;
+      }
+
+      ThreadUI.recipients = new Recipients({
+        outer: 'messages-to-field',
+        inner: 'messages-recipients-list',
+        template: new Utils.Template('messages-recipient-tmpl')
+      });
+
+      ThreadUI.recipients.add({
+        source: 'contacts',
+        name: 'Rick',
+        number: '99999'
+      });
+
+      children = ThreadUI.recipientsList.children;
+      recipients = ThreadUI.recipients;
+
+      // Simulate backspace on the current placeholder
+      backspace(children[1]);
+
+      // There are no recipients...
+      assert.equal(recipients.length, 0);
+      // And one displayed placeholder
+      assert.equal(children.length, 1);
+    });
+    */
+
   });
 
   suite('Secure User Input', function() {
