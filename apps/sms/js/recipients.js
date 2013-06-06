@@ -588,7 +588,7 @@
       }
 
       state.isTransitioning = false;
-      view.outer.removeEventListener('transitionend', te, true);
+      view.outer.removeEventListener('transitionend', te, false);
     });
 
     // Commence the transition
@@ -740,6 +740,7 @@
             }
           }
         } else {
+          //
           // 2. Focus for fat fingering!
           //
           if (!view.inner.lastElementChild.isPlaceholder) {
@@ -748,7 +749,13 @@
             );
           }
 
-          this.focus();
+          if (view.state.visible !== 'singleline') {
+            this.visible('singleline', {
+              refocus: this
+            });
+          } else {
+            this.focus();
+          }
           return;
         }
 
@@ -772,8 +779,11 @@
         // When a single, non-semi-colon character is
         // typed into to the recipients list input,
         // slide the the list upward to "single line"
-        if (!isAcceptedRecipient && (typed && typed.length === 1)) {
-          this.visible('singleline');
+        // set focus to recipient
+        if (!isAcceptedRecipient && (typed && typed.length >= 1)) {
+          this.visible('singleline', {
+            refocus: target
+          });
         }
 
 
