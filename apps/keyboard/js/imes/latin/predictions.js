@@ -796,6 +796,13 @@ var Predictions = function() {
     var hasnext = firstbyte & 0x20;
     node.freq = firstbyte & 0x1F;
 
+    // - we know the node.freq won't actually be zero, its a rounding error,
+    //   the freq is actually 0 < freq < 1
+    // - we'll take the average, and set the freq to .5
+    if (node.freq === 0) {
+      node.freq = .5;
+    }
+
     if (haschar) {
       node.ch = tree[offset++];
       if (bigchar)
