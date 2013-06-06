@@ -32,7 +32,7 @@ GAIA_OPTIMIZE?=0
 DOGFOOD?=0
 
 # Enable compatibility to run in Firefox Desktop
-BROWSER?=$(DEBUG)
+DESKTOP?=$(DEBUG)
 # Disable first time experience screen
 NOFTU?=0
 # Automatically enable remote debugger
@@ -41,7 +41,7 @@ REMOTE_DEBUGGER?=0
 # We also disable FTU when running in Firefox or in debug mode
 ifeq ($(DEBUG),1)
 NOFTU=1
-else ifeq ($(BROWSER),1)
+else ifeq ($(DESKTOP),1)
 NOFTU=1
 endif
 
@@ -377,7 +377,7 @@ define run-js-command
 	const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)$(SEP)profile"; \
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
-	const BROWSER = $(BROWSER);                                           \
+	const DESKTOP = $(DESKTOP);                                           \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
@@ -428,7 +428,7 @@ EXT_DIR=profile/extensions
 extensions:
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
-ifeq ($(BROWSER),1)
+ifeq ($(DESKTOP),1)
 	cp -r tools/extensions/* $(EXT_DIR)/
 else ifeq ($(DEBUG),1)
 	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
