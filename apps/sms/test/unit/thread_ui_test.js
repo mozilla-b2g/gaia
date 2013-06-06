@@ -1244,25 +1244,27 @@ suite('thread_ui.js >', function() {
       window.confirm.restore();
       ThreadUI.resendMessage.restore();
     });
-    test('clicking on an error message bubble triggers a confirmation dialog',
+    test('clicking on "pack-end" aside in an error message' +
+      'triggers a confirmation dialog',
       function() {
-      this.elems.errorMsg.querySelector('.bubble').click();
+      this.elems.errorMsg.querySelector('.pack-end').click();
       assert.equal(window.confirm.callCount, 1);
     });
-    test('clicking within an error message bubble triggers a confirmation ' +
-      'dialog', function() {
-      this.elems.errorMsg.querySelector('.bubble *').click();
-      assert.equal(window.confirm.callCount, 1);
+    test('clicking on p element in an error message' +
+      'does not triggers a confirmation  dialog',
+      function() {
+      this.elems.errorMsg.querySelector('.bubble p').click();
+      assert.equal(window.confirm.callCount, 0);
     });
     test('clicking on an error message does not trigger a confirmation dialog',
       function() {
       this.elems.errorMsg.click();
       assert.equal(window.confirm.callCount, 0);
     });
-    test('clicking on an error message bubble and accepting the ' +
+    test('clicking on "pack-end" aside in an error message and accepting the ' +
       'confirmation dialog triggers a message re-send operation', function() {
       window.confirm.returns(true);
-      this.elems.errorMsg.querySelector('.bubble').click();
+      this.elems.errorMsg.querySelector('.pack-end').click();
       assert.equal(ThreadUI.resendMessage.callCount, 1);
     });
     test('clicking on an error message bubble and rejecting the ' +
