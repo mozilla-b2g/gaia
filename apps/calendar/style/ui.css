@@ -86,6 +86,10 @@ ol.link-list li:only-child a {
   height: calc(35% - 4rem);
 }
 
+#time-views > #months-day-view.long {
+  height: calc(35% - 4rem - (65% - 7rem) / 5);
+}
+
 #progress-indicator {
   position: absolute;
   top: 6.9rem;
@@ -273,11 +277,10 @@ body[data-path^="/month/"] section.month.previous {
 
 section.month {
   z-index: 200;
-  top: 4.9rem;
-  height: calc(65% - 5rem);
-  position: absolute;
+  position: relative;
   color: #484848;
   width: 100%;
+  height: 100%;
   border-left: 0.1rem solid #AAA;
   border-right: 0.1rem solid #AAA;
   display: none;
@@ -311,15 +314,11 @@ section.month li > .day {
 }
 
 section.month ol {
-  height: calc(20% - (2rem / 5));
+  height: calc((100% - 2rem) * 0.2);
 }
 
 section.month.weeks-4 ol {
   height: calc(25% - (2rem / 4));
-}
-
-section.month.weeks-6 ol {
-  height: calc(16.7% - (2rem / 6));
 }
 
 section.month li:first-child {
@@ -464,7 +463,8 @@ Indicators are in units of 12
 /** sub: view selector **/
 
 #view-selector {
-  position: relative;
+  position: absolute;
+  bottom: 0;
   z-index: 1000;
   width: 100%;
   height: 4rem;
