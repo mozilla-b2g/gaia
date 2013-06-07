@@ -706,23 +706,3 @@ body {
   visibility: hidden;
 }
 
-/* For app error */
-
-.appWindow > iframe {
-  z-index: 1;
-}
-
-.appError {
-  display: none;
-  background-color: black;
-  z-index: 0;
-}
-
-.appWindow > .appError {
-  background-color: black;
-}
-
-.appError.visible {
-  z-index: 2;
-  display: block;
-}
