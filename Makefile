@@ -187,6 +187,14 @@ ifdef GAIA_DISTRIBUTION_DIR
 	endif
 endif
 
+# Add apps from customization package
+ifdef GAIA_DISTRIBUTION_DIR
+  DISTRIBUTION_APPS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)apps
+  ifneq ($(wildcard $(DISTRIBUTION_APPS)),)
+      GAIA_APP_SRCDIRS += $(DISTRIBUTION_APPS)
+  endif
+endif
+
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
@@ -409,13 +417,13 @@ define run-js-command
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
 	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
-	const HIDPI = "$(HIDPI)";                                     \
+	const HIDPI = "$(HIDPI)";                                                   \
 	const DOGFOOD = "$(DOGFOOD)";                                               \
 	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
 	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
 	const GAIA_ENGINE = "xpcshell";                                             \
-	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";               	\
+	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";                   \
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
