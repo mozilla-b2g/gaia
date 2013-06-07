@@ -40,6 +40,7 @@ var RingView = {
   init: function rv_init() {
     document.addEventListener('mozvisibilitychange', this);
     this._onFireAlarm = window.opener.ActiveAlarmController.getOnFireAlarm();
+    var self = this;
     if (!document.mozHidden) {
       this.startAlarmNotification();
     } else {
@@ -47,7 +48,6 @@ var RingView = {
       // https://bugzilla.mozilla.org/show_bug.cgi?id=810431
       // The workaround is used in screen off mode.
       // mozHidden will be true in init() state.
-      var self = this;
       window.setTimeout(function rv_checkMozHidden() {
       // If mozHidden is true in init state,
       // it means that the incoming call happens before the alarm.
@@ -60,8 +60,11 @@ var RingView = {
       }, 0);
     }
 
-    this.setAlarmTime();
-    this.setAlarmLabel();
+    navigator.mozL10n.ready(function rv_waitLocalized() {
+      self.setAlarmTime();
+      self.setAlarmLabel();
+    });
+
     this.snoozeButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
   },
@@ -221,9 +224,5 @@ var RingView = {
 
 };
 
-window.addEventListener('localized', function showBody() {
-  window.removeEventListener('localized', showBody);
-  RingView.init();
-});
-
+RingView.init();
 
