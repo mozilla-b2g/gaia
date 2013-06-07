@@ -312,7 +312,24 @@ var metadataParser = (function() {
 
         function savePreview(previewblob) {
           var storage = navigator.getDeviceStorage('pictures');
-          var filename = '.gallery/previews/' + file.name;
+          var filename;
+          if (file.name[0] === '/') {
+            // We expect file.name to be a fully qualified name (perhaps
+            // something like /sdcard/DCIM/100MZLLA/IMG_0001.jpg).
+            var slashIndex = file.name.indexOf('/', 1);
+            if (slashIndex < 0) {
+              error("savePreview: Bad filename: '" + file.name + "'");
+              return;
+            }
+            filename =
+              file.name.substring(0, slashIndex) + // storageName (i.e. /sdcard)
+              '/.gallery/previews' +
+              file.name.substring(slashIndex); // rest of path (i,e, /DCIM/...)
+          } else {
+            // On non-composite storage areas (e.g. desktop), file.name will be
+            // a relative path.
+            filename = '.gallery/previews/' + file.name;
+          }
 
           // Delete any existing preview by this name
           var delreq = storage.delete(filename);
