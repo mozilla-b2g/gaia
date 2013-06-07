@@ -568,6 +568,13 @@ var Camera = {
         rotation: this._phoneOrientation,
         maxFileSizeBytes: freeBytes - this.RECORD_SPACE_PADDING
       };
+
+      if (this.pendingPick && this.pendingPick.source.data.maxFileSizeBytes) {
+        var maxFileSizeBytes = this.pendingPick.source.data.maxFileSizeBytes;
+        config.maxFileSizeBytes = Math.min(config.maxFileSizeBytes,
+                                           maxFileSizeBytes);
+      }
+
       this._cameraObj.startRecording(config,
                                      this._videoStorage, this._videoPath,
                                      onsuccess, onerror);
