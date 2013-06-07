@@ -100,13 +100,14 @@ Attachment.prototype = {
     return el;
   },
 
-  view: function() {
+  view: function(options) {
     var activity = new MozActivity({
       name: 'open',
       data: {
         type: this.blob.type,
         filename: this.name,
-        blob: this.blob
+        blob: this.blob,
+        allowSave: options && options.allowSave
       }
     });
     activity.onerror = function() {
