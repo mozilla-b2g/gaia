@@ -207,6 +207,8 @@ function localizeWeekdaySelector(selector) {
 
 var Common = {
 
+  COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
+
   isValidICCID: function(iccid) {
     return typeof iccid === 'string' && iccid.length;
   },
@@ -270,11 +272,28 @@ var Common = {
   },
 
   startFTE: function(mode) {
-    window.location = '/fte.html' + '#' + mode;
+    var iframe = document.getElementById('fte_view');
+
+    window.addEventListener('message', function handler(e) {
+      if (e.origin !== Common.COST_CONTROL_APP) {
+        return;
+      }
+
+      if (e.data.type === 'fte_ready') {
+        window.removeEventListener('message', handler);
+
+        iframe.classList.remove('non-ready');
+      }
+    });
+
+    iframe.src = '/fte.html' + '#' + mode;
   },
 
   startApp: function() {
-    window.location = '/index.html';
+    parent.postMessage({
+      type: 'fte_finished',
+      data: ''
+    }, Common.COST_CONTROL_APP);
   },
 
   closeApplication: function() {
@@ -285,4 +304,3 @@ var Common = {
     alert(message);
   }
 };
-

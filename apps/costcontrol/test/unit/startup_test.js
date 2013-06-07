@@ -16,6 +16,7 @@ requireApp('costcontrol/test/unit/mock_config_manager.js');
 requireApp('costcontrol/js/utils/toolkit.js');
 requireApp('costcontrol/js/view_manager.js');
 requireApp('costcontrol/js/app.js');
+requireApp('costcontrol/js/common.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
 var realCommon,
