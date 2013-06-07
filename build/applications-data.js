@@ -49,9 +49,18 @@ function iconDescriptor(directory, app_name, entry_point) {
   let origin = gaiaOriginURL(app_name);
   let manifestURL = gaiaManifestURL(app_name);
 
+  // Locate the directory of a given app.
+  // If the directory (Gaia.distributionDir)/(directory)/(app_name) exists,
+  // favor it over (GAIA_DIR)/(directory)/(app_name).
+  let targetDir = Gaia.distributionDir ? Gaia.distributionDir : GAIA_DIR;
+  let dir = getFile(targetDir, directory, app_name);
+
+  if (!dir.exists()) {
+    dir = getFile(GAIA_DIR, directory, app_name);
+  }
+
   // For external/3rd party apps that don't use the Gaia domain, we have an
   // 'metadata.json' file that specifies the URL.
-  let dir = getFile(GAIA_DIR, directory, app_name);
   let metadataFile = dir.clone();
   metadataFile.append("metadata.json");
   if (metadataFile.exists()) {
