@@ -123,6 +123,12 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     dom.player.addEventListener('timeupdate', timeUpdated);
 
+    // showing + hiding the loading spinner
+    dom.player.addEventListener('waiting', showSpinner);
+    dom.player.addEventListener('playing', hideSpinner);
+    dom.player.addEventListener('play', hideSpinner);
+    dom.player.addEventListener('pause', hideSpinner);
+
     // Set the 'lang' and 'dir' attributes to <html> when the page is translated
     window.addEventListener('localized', function showBody() {
       document.documentElement.lang = navigator.mozL10n.language.code;
@@ -147,7 +153,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       return;
     }
     if (event.target == dom.play) {
-      if (dom.player.paused)
+      if (dom.play.classList.contains('paused'))
         play();
       else
         pause();
@@ -206,8 +212,6 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   // show video player
   function showPlayer(url, title) {
-    // Dismiss the spinner
-    dom.spinnerOverlay.classList.add('hidden');
 
     dom.videoTitle.textContent = title || '';
     dom.player.src = url;
@@ -363,5 +367,13 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     if (!filename)
       return '';
     return filename.substring(filename.lastIndexOf('/') + 1);
+  }
+
+  function showSpinner() {
+    dom.spinnerOverlay.classList.remove('hidden');
+  }
+
+  function hideSpinner() {
+    dom.spinnerOverlay.classList.add('hidden');
   }
 });
