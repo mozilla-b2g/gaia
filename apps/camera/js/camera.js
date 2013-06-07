@@ -124,8 +124,6 @@ var Camera = {
   _photosTaken: [],
   _cameraProfile: null,
 
-  _resumeViewfinderTimer: null,
-
   _styleSheet: document.styleSheets[0],
   _orientationRule: null,
   _phoneOrientation: 0,
@@ -145,7 +143,6 @@ var Camera = {
   _previewPaused: false,
   _previewActive: false,
 
-  PREVIEW_PAUSE: 500,
   FILMSTRIP_DURATION: 5000, // show filmstrip for 5s before fading
 
   _flashState: {
@@ -890,11 +887,6 @@ var Camera = {
     this.enableButtons();
   },
 
-  restartPreview: function camera_restartPreview() {
-    this._resumeViewfinderTimer =
-      window.setTimeout(this.resumePreview.bind(this), this.PREVIEW_PAUSE);
-  },
-
   takePictureError: function camera_takePictureError() {
     alert(navigator.mozL10n.get('error-saving-title') + '. ' +
           navigator.mozL10n.get('error-saving-text'));
@@ -914,7 +906,7 @@ var Camera = {
       return;
     }
 
-    this.restartPreview();
+    this.resumePreview();
     this._addPictureToStorage(blob, function(name, absolutePath) {
       Filmstrip.addImage(absolutePath, blob);
       Filmstrip.show(Camera.FILMSTRIP_DURATION);
