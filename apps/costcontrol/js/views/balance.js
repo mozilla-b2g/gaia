@@ -14,6 +14,7 @@ var BalanceTab = (function() {
 
   var view, updateButton;
   var topUpUSSD, topUp, topUpDialog, topUpCodeInput, sendCode, countdownSpan;
+  var topUpLayoutController;
   var costcontrol, initialized;
 
   function setupTab() {
@@ -39,6 +40,9 @@ var BalanceTab = (function() {
       topUp = document.getElementById('balance-tab-topup-button');
       topUpCodeInput = document.getElementById('topup-code-input');
       countdownSpan = document.getElementById('top-up-countdown');
+
+      // Controllers
+      topUpLayoutController = new TopUpLayoutController(topUpUSSD, topUp);
 
       window.addEventListener('localized', localize);
 
@@ -89,6 +93,7 @@ var BalanceTab = (function() {
     ConfigManager.removeObserver('waitingForTopUp', onConfirmation);
     ConfigManager.removeObserver('errors', onTopUpErrors);
 
+    topUpLayoutSet = false;
     initialized = false;
   }
 
@@ -239,9 +244,14 @@ var BalanceTab = (function() {
   }
 
   // USER INTERFACE
-
+  var topUpLayoutSet = false;
   function updateUI(force) {
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestAll(function _onSettings(configuration, settings) {
+
+      if (!topUpLayoutSet) {
+        topUpLayoutController.setupLayout(configuration.topup);
+        topUpLayoutSet = true;
+      }
 
       resetTopUpCountdown();
       updateBalance(settings.lastBalance,
@@ -437,5 +447,4 @@ var BalanceTab = (function() {
     finalize: finalize
   };
 }());
-
 BalanceTab.initialize();
