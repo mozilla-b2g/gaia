@@ -147,7 +147,7 @@ var CallHandler = (function callHandler() {
       if (telephony.calls.length !== 0) {
         openCallScreen();
       }
-    }
+    };
   }
   if (window.navigator.mozSetMessageHandler) {
     window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
