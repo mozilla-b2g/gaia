@@ -5,7 +5,7 @@
 }
 
 a:focus,
-a::-moz-focus-inner, {
+a::-moz-focus-inner {
   outline: none;
   border: none;
 }
@@ -55,8 +55,20 @@ input.error {
   transition: opacity ease 0.2s;
 }
 
+.splash {
+  background-color: black;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-image: url("/style/icons/cost-control.png");
+}
+
+
 .window.non-ready {
   opacity: 0.0;
+}
+
+#fte_view.non-ready {
+  pointer-events: none;
 }
 
 .view {
@@ -179,4 +191,3 @@ section.content {
 #settings-view {
   z-index: 20;
 }
-
