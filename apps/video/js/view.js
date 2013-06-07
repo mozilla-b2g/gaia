@@ -23,6 +23,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var title = data.title || '';
   var storage;       // A device storage object used by the save button
   var saved = false; // Did we save it?
+  var timeUpdateCount = 0;
+  var lastTimeUpdate = -1;
 
   initUI();
 
@@ -121,6 +123,16 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       }
     });
 
+    var videoEvents = ['play', 'pause', 'ended', 'volumechange', 'loadeddata',
+                       'loadstart', 'timeupdate', 'progress',
+                       'playing', 'waiting', 'canplay', 'canplaythrough',
+                       'seeking', 'seeked', 'emptied', 'loadedmetadata',
+                       'error', 'suspend', 'stalled',
+                       'mozinterruptbegin', 'mozinterruptend'];
+    videoEvents.forEach(function addEve(name) {
+      dom.player.addEventListener(name, handleVideoEvent);
+    });
+
     dom.player.addEventListener('timeupdate', timeUpdated);
 
     // Set the 'lang' and 'dir' attributes to <html> when the page is translated
@@ -128,6 +140,56 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       document.documentElement.lang = navigator.mozL10n.language.code;
       document.documentElement.dir = navigator.mozL10n.language.direction;
     });
+  }
+
+  function updateThrobber() {
+    var show = false;
+    if (dom.player.seeking ||
+    dom.player.error ||
+    dom.player.networkState == dom.player.NETWORK_NO_SOURCE ||
+    (dom.player.networkState == dom.player.NETWORK_LOADING &&
+     (dom.player.paused || dom.player.ended ?
+      dom.player.readyState < dom.player.HAVE_CURRENT_DATA :
+      (dom.player.readyState < dom.player.HAVE_FUTURE_DATA &&
+        lastTimeUpdate == timeUpdateCount))) ||
+    (timeUpdateCount <= 1 && !dom.player.ended &&
+     dom.player.readyState < dom.player.HAVE_ENOUGH_DATA &&
+     dom.player.networkState == dom.player.NETWORK_LOADING))
+      show = true;
+    if (show)
+      dom.spinnerOverlay.classList.remove('hidden');
+    else
+      dom.spinnerOverlay.classList.add('hidden');
+    lastTimeUpdate = timeUpdateCount;
+  }
+
+  function handleVideoEvent(aEvent) {
+    switch (aEvent.type) {
+      case 'play':
+      case 'pause':
+      case 'ended':
+      case 'loadeddata':
+      case 'loadstart':
+      case 'progress':
+      case 'stalled':
+      case 'suspend':
+      case 'seeking':
+      case 'waiting':
+      case 'seeked':
+      case 'playing':
+      case 'canplay':
+      case 'canplaythrough':
+      case 'error':
+        updateThrobber();
+        break;
+      case 'timeupdate':
+        timeUpdateCount++;
+        if (timeUpdateCount <= 2)
+          updateThrobber();
+        break;
+      default:
+        break;
+    }
   }
 
   function setControlsVisibility(visible) {
@@ -206,8 +268,6 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   // show video player
   function showPlayer(url, title) {
-    // Dismiss the spinner
-    dom.spinnerOverlay.classList.add('hidden');
 
     dom.videoTitle.textContent = title || '';
     dom.player.src = url;
