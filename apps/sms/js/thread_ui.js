@@ -1382,17 +1382,26 @@ var ThreadUI = global.ThreadUI = {
       messageDOM.classList.add('error');
     }
 
-    this.ifRilDisabled(this.showAirplaneModeError);
+    this.ifRilDisabled(
+      this.showAirplaneModeError,
+      this.showSimCardError
+    );
   },
 
-  ifRilDisabled: function thui_ifRilDisabled(func) {
+  ifRilDisabled: function thui_ifRilDisabled(showAirplaneModeError, 
+                                             showSimCardError) {
     var settings = window.navigator.mozSettings;
     if (settings) {
       // Check if RIL is enabled or not
       var req = settings.createLock().get('ril.radio.disabled');
       req.addEventListener('success', function onsuccess() {
         var rilDisabled = req.result['ril.radio.disabled'];
-        rilDisabled && func();
+
+        if (rilDisabled) {
+          showAirplaneModeError();
+        } else {
+          showSimCardError();
+        }
       });
     }
   },
@@ -1409,6 +1418,32 @@ var ThreadUI = global.ThreadUI = {
         }
       }
     );
+  },
+
+  showSimCardError: function thui_showSimCardError() {
+    var conn = navigator.mozMobileConnection;
+    var _ = navigator.mozL10n.get;
+
+    // cannot send a message when SIM card is not ready
+    if (!conn || conn.cardState !== 'ready') {
+      var errorMessage = '';
+      if (conn && conn.cardState === 'absent') {
+        errorMessage = _('noSimCardErroeBody');
+      } else {
+        errorMessage = _('generalSimCardErrorBody');
+      }
+
+      CustomDialog.show(
+        _('generalSimCardErrorTitle'),
+        errorMessage,
+        {
+          title: _('generalSimCardErrorBtnOk'),
+          callback: function() {
+            CustomDialog.hide();
+          }
+        }
+      );
+    }
   },
 
   removeMessageDOM: function thui_removeMessageDOM(messageDOM) {
