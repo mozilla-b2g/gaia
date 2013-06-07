@@ -10,20 +10,11 @@ function thui_mmsAttachmentClick(target) {
   if (!attachment) {
     return false;
   }
-  var activity = new MozActivity({
-    name: 'open',
-    data: {
-      allowSave: true,
-      blob: attachment.blob,
-      filename: attachment.name,
-      type: attachment.blob.type
-    }
+
+  attachment.view({
+    allowSave: true
   });
-  activity.onerror = function() {
-    console.error('error with open activity', this.error.name);
-    // TODO: Add an alert here with a string saying something like
-    // "There is no application available to open this file type"
-  };
+
   return true;
 }
 

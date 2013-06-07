@@ -1327,14 +1327,14 @@ suite('thread_ui.js >', function() {
       });
     });
 
-    test('MozActivity is invoked when appropriate', function() {
-      var img;
+    test('Clicking on an attachment triggers its `view` method', function() {
       var messageContainer;
       // create an image mms DOM Element:
       var inputArray = [{
         name: 'imageTest.jpg',
         blob: testImageBlob
       }];
+      var viewSpy = sinon.spy(Attachment.prototype, 'view');
 
       // quick dirty creation of a thread with image:
       var output = ThreadUI.createMmsContent(inputArray);
@@ -1348,14 +1348,10 @@ suite('thread_ui.js >', function() {
       // Start the test: simulate a click event
       attachmentDOM.click();
 
-      assert.equal(MockMozActivity.calls.length, 1);
-      var call = MockMozActivity.calls[0];
-      assert.equal(call.name, 'open');
-      assert.isTrue(call.data.allowSave);
-      assert.equal(call.data.type, 'image/jpeg');
-      assert.equal(call.data.filename, 'imageTest.jpg');
-      assert.equal(call.data.blob, testImageBlob);
+      assert.equal(viewSpy.callCount, 1);
+      assert.ok(viewSpy.calledWith, { allowSave: true });
 
+      viewSpy.reset();
     });
   });
 
