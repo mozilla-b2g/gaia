@@ -367,7 +367,7 @@
 
           if (isBalance) {
             // Compose new balance
-            var integer = balanceData[1];
+            var integer = balanceData[1].replace(/[^0-9]/g, '');
             var decimal = balanceData[2] || '0';
             var newBalance = {
               balance: parseFloat(integer + '.' + decimal),
