@@ -168,6 +168,8 @@ var StatusBar = {
 
   headphonesActive: false,
 
+  listeningCallschanged: false,
+
   /**
    * this keeps how many current installs/updates we do
    * it triggers the icon "systemDownloads"
@@ -201,6 +203,8 @@ var StatusBar = {
 
   init: function sb_init() {
     this.getAllElements();
+
+    this.listeningCallschanged = false;
 
     // Refresh the time to reflect locale changes
     this.update.time.call(this, new Date());
@@ -750,7 +754,8 @@ var StatusBar = {
 
   addCallListener: function sb_addCallListener() {
     var telephony = navigator.mozTelephony;
-    if (telephony) {
+    if (telephony && !this.listeningCallschanged) {
+      this.listeningCallschanged = true;
       telephony.addEventListener('callschanged', this);
     }
   },
@@ -758,6 +763,7 @@ var StatusBar = {
   removeCallListener: function sb_addCallListener() {
     var telephony = navigator.mozTelephony;
     if (telephony) {
+      this.listeningCallschanged = false;
       telephony.removeEventListener('callschanged', this);
     }
   },
