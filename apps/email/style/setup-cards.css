@@ -47,7 +47,9 @@ input:focus:invalid {
   color: black;
   font-size: 1.4rem;
   line-height: 1.2rem;
-  margin: 1.5rem 3rem;
+  padding: 1.5rem;
+  margin-left: 1.5rem;
+  background: none; /* Overrides UA :active background-color */
 }
 
 .sup-form-link {
