@@ -374,8 +374,7 @@ var Compose = (function() {
       var activity = new MozActivity({
         name: 'pick',
         data: {
-          // TODO: Extend this array with elements 'audio/*' and 'video/*'
-          type: ['image/*']
+          type: ['image/*', 'audio/*', 'video/*']
         }
       });
 
