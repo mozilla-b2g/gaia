@@ -13,6 +13,7 @@ var MockCommon = function(config) {
   config = config || {};
 
   return {
+    COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
     isValidICCID: function(iccid) {
       assert.isDefined(
         config.isValidICCID,

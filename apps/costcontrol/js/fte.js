@@ -129,6 +129,11 @@
     }
   }
 
+  parent.postMessage({
+    type: 'fte_ready',
+    data: ''
+  }, Common.COST_CONTROL_APP);
+
   // TRACK SETUP
 
   var currentTrack = ['step-1', 'step-2'];
@@ -232,7 +237,7 @@
       ConfigManager.setOption({ fte: false }, function _returnToApp() {
         updateNextReset(settings.trackingPeriod, settings.resetTime,
           function _returnToTheApplication() {
-            window.location = 'index.html';
+            Common.startApp();
           }
         );
       });
