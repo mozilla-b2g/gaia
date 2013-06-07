@@ -242,6 +242,31 @@ suite('compose_test.js', function() {
         var activity = MockMozActivity.instances[0];
         activity.onerror();
       });
+      test('Triggers a "file too large" error when the returned file ' +
+        'exceeds the maxmium MMS size limit', function(done) {
+        var req = Compose.requestAttachment();
+        var activity = MockMozActivity.instances[0];
+        var origLimit = Settings.mmsSizeLimitation;
+        var largeBlob;
+
+        Settings.mmsSizeLimitation = 45;
+        largeBlob = new Blob([
+          new Array(Settings.mmsSizeLimitation + 3).join('a')
+        ]);
+
+        req.onerror = function(err) {
+          assert.equal(err, 'file too large');
+          Settings.mmsSizeLimitation = origLimit;
+          done();
+        };
+
+        // Simulate a successful 'pick' MozActivity
+        activity.result = {
+          name: 'test',
+          blob: largeBlob
+        };
+        activity.onsuccess();
+      });
     });
 
     suite('Getting size via size getter', function() {
