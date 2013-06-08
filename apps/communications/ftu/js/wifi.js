@@ -18,22 +18,6 @@ var WifiManager = {
     }
   },
 
-  isConnectedTo: function wn_isConnectedTo(network) {
-    /**
-     * XXX the API should expose a 'connected' property on 'network',
-     * and 'gWifiManager.connection.network' should be comparable to 'network'.
-     * Until this is properly implemented, we just compare SSIDs and
-     * capabilities to tell wether the network is already connected or not.
-     */
-    var currentNetwork = this.api.connection.network;
-    if (!currentNetwork || this.api.connection.status != 'connected')
-      return false;
-    var key = network.ssid + '+' + network.capabilities.join('+');
-    var curkey = currentNetwork.ssid + '+' +
-        currentNetwork.capabilities.join('+');
-    return (key == curkey);
-  },
-
   scan: function wn_scan(callback) {
     utils.overlay.show(_('scanningNetworks'), 'spinner');
     var req = this.api.getNetworks();
@@ -79,27 +63,7 @@ var WifiManager = {
   connect: function wn_connect(ssid, password, user) {
     var network = this.getNetwork(ssid);
     this.ssid = ssid;
-    var key = WifiHelper.getKeyManagement(network);
-    switch (key) {
-      case 'WEP':
-        network.wep = password;
-        break;
-      case 'WPA-PSK':
-        network.psk = password;
-        break;
-      case 'WPA-EAP':
-        network.password = password;
-        if (user && user.length) {
-          network.identity = user;
-        }
-        break;
-      default:
-        // Connect directly
-        this.gCurrentNetwork = network;
-        this.api.associate(network);
-        return;
-    }
-    network.keyManagement = key;
+    WifiHelper.setPassword(network, password, user);
     this.gCurrentNetwork = network;
     this.api.associate(network);
   },
@@ -277,7 +241,7 @@ var WifiUI = {
           ssidp.textContent = network.ssid;
           li.dataset.ssid = network.ssid;
           // Show authentication method
-          var keys = network.capabilities;
+          var keys = WifiHelper.getEncryptions(network);
 
           li.dataset.security = keys;
 
@@ -289,7 +253,7 @@ var WifiUI = {
           }
           // Show connection status
           icon.classList.add('wifi-signal');
-          if (WifiManager.isConnectedTo(network)) {
+          if (WifiHelper.isConnected(network)) {
             small.textContent = _('shortStatus-connected');
             icon.classList.add('connected');
             li.classList.add('connected');
@@ -304,7 +268,7 @@ var WifiUI = {
           li.appendChild(ssidp);
           li.appendChild(small);
           // Append to DOM
-          if (WifiManager.isConnectedTo(network)) {
+          if (WifiHelper.isConnected(network)) {
             networksList.insertBefore(li, networksList.firstChild);
           } else {
             networksList.appendChild(li);

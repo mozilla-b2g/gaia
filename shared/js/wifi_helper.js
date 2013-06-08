@@ -1,8 +1,12 @@
 'use strict';
 
 var WifiHelper = {
-  // create a fake mozWifiManager if required (e.g. desktop browser)
   getWifiManager: function() {
+    return this.wifiManager;
+  },
+
+  // create a fake mozWifiManager if required (e.g. desktop browser)
+  wifiManager: function() {
     var navigator = window.navigator;
     if ('mozWifiManager' in navigator)
       return navigator.mozWifiManager;
@@ -146,10 +150,39 @@ var WifiHelper = {
         network: null
       }
     };
+  }(),
+
+  setPassword: function(network, password, identity) {
+    var encType = this.getKeyManagement(network);
+    switch (encType) {
+      case 'WPA-PSK':
+        network.psk = password;
+        break;
+      case 'WPA-EAP':
+        network.password = password;
+        if (identity && identity.length) {
+          network.identity = identity;
+        }
+        break;
+      case 'WEP':
+        network.wep = password;
+        break;
+      default:
+        return;
+    }
+    network.keyManagement = encType;
+  },
+
+  setEncryptions: function(network, encryptions) {
+    network.capabilities = encryptions;
+  },
+
+  getEncryptions: function(network) {
+    return network.capabilities;
   },
 
   getKeyManagement: function(network) {
-    var key = network.capabilities[0];
+    var key = this.getEncryptions(network)[0];
     if (/WEP$/.test(key))
       return 'WEP';
     if (/PSK$/.test(key))
@@ -157,6 +190,22 @@ var WifiHelper = {
     if (/EAP$/.test(key))
       return 'WPA-EAP';
     return '';
+  },
+
+  isConnected: function(network) {
+    /**
+     * XXX the API should expose a 'connected' property on 'network',
+     * and 'wifiManager.connection.network' should be comparable to 'network'.
+     * Until this is properly implemented, we just compare SSIDs to tell wether
+     * the network is already connected or not.
+     */
+    var currentNetwork = this.wifiManager.connection.network;
+    if (!currentNetwork || !network)
+      return false;
+    var key = network.ssid + '+' + this.getEncryptions(network).join('+');
+    var curkey = currentNetwork.ssid + '+' +
+        this.getEncryptions(currentNetwork).join('+');
+    return key === curkey;
   },
 
   isValidInput: function(key, password, identity) {
