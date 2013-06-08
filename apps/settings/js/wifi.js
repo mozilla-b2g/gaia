@@ -108,10 +108,8 @@ navigator.mozL10n.ready(function wifiSettings() {
       });
       req.onsuccess = function() {
         gWpsInProgress = false;
-        gWpsPbcLabelBlock.textContent = _('wpsMessage');
-        gWpsPbcLabelBlock.dataset.l10nId = 'wpsMessage';
-        gWpsInfoBlock.textContent = _('fullStatus-wps-canceled');
-        gWpsInfoBlock.dataset.l10nId = 'fullStatus-wps-canceled';
+        localize(gWpsInfoBlock, 'fullStatus-wps-canceled');
+        wpsStatusReset();
       };
       req.onerror = function() {
         gWpsInfoBlock.textContent = _('wpsCancelFailedMessage') +
@@ -119,6 +117,17 @@ navigator.mozL10n.ready(function wifiSettings() {
       };
     } else {
       wpsDialog('wifi-wps', wpsCallback);
+    }
+
+    function wpsStatusReset() {
+      // The WPS process is done (connected, cancelled or error):
+      //  - reset the title of the WPS item ("Connect with WPS") right now;
+      //  - leave the current status for a moment, then reset it to the default
+      //    message ("Automatic Wi-Fi setup").
+      localize(gWpsPbcLabelBlock, 'wpsMessage');
+      setTimeout(function resetWpsInfoBlock() {
+        localize(gWpsInfoBlock, 'wpsDescription2');
+      }, 1500);
     }
 
     function wpsCallback(method, pin) {
@@ -142,10 +151,8 @@ navigator.mozL10n.ready(function wifiSettings() {
           alert(_('wpsPinInput', { pin: req.result }));
         }
         gWpsInProgress = true;
-        gWpsPbcLabelBlock.textContent = _('wpsCancelMessage');
-        gWpsPbcLabelBlock.dataset.l10nId = 'wpsCancelMessage';
-        gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
-        gWpsInfoBlock.dataset.l10nId = 'fullStatus-wps-inprogress';
+        localize(gWpsPbcLabelBlock, 'wpsCancelMessage');
+        localize(gWpsInfoBlock, 'fullStatus-wps-inprogress');
       };
       req.onerror = function() {
         gWpsInfoBlock.textContent = _('fullStatus-wps-failed') +
@@ -716,8 +723,7 @@ navigator.mozL10n.ready(function wifiSettings() {
           networkStatus === 'wps-failed' ||
           networkStatus === 'wps-overlapped') {
         gWpsInProgress = false;
-        gWpsPbcLabelBlock.textContent = _('wpsMessage');
-        gWpsPbcLabelBlock.dataset.l10nId = 'wpsMessage';
+        wpsStatusReset();
       }
     }
   }
