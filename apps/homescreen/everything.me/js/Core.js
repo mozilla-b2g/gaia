@@ -71,6 +71,10 @@ window.Evme = new function Evme_Core() {
     };
 
     function initObjects(data) {
+        Evme.Features.init({
+            "featureStateByConnection": data.featureStateByConnection
+        });
+        
         Evme.ConnectionMessage.init({
         });
         

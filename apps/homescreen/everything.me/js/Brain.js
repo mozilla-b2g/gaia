@@ -218,7 +218,6 @@ Evme.Brain = new function Evme_Brain() {
         this.returnPressed = function returnPressed(data) {
             var query = Evme.Searchbar.getValue();
             Searcher.searchExactFromOutside(query, SEARCH_SOURCES.RETURN_KEY);
-            Evme.Searchbar.blur();
         };
 
         // toggle classname when searchbar is empty
@@ -1406,6 +1405,34 @@ Evme.Brain = new function Evme_Brain() {
             el.appendChild(elCustomize);
         };
     };
+    
+    // modules/Features/Features.js
+    this.Features = new function Features() {
+      // called when a feature state is changed
+      this.set = function set(data) {
+        var featureName = data.featureName,
+            isEnabled = data.newValue;
+
+        if (!isEnabled) {
+          if (featureName === 'typingApps') {
+            Searcher.cancelSearch();
+            Evme.Apps.clear();
+            
+            // if there are no icons, we also disable images
+            // no point in showing background image without apps
+            Evme.Features.disable('typingImage');
+          }
+          if (featureName === 'typingImage') {
+            Searcher.cancelImageSearch();
+            Evme.BackgroundImage.loadDefault();
+          }
+        } else {
+          if (featureName === 'typingImage') {
+            Evme.Features.enable('typingApps');
+          }
+        }
+      };
+    };
 
     // helpers/Utils.Connection
     this.Connection = new function Connection() {
@@ -1544,6 +1571,15 @@ Evme.Brain = new function Evme_Brain() {
             }
 
             iconsFormat = Evme.Utils.getIconsFormat();
+            
+            // override icons format according to connection
+            if (!Evme.Features.isOn('iconQuality')) {
+              iconsFormat = Evme.Utils.ICONS_FORMATS.Small;
+              Evme.Features.startTimingFeature('iconQuality', Evme.Features.ENABLE);
+            } else {
+              Evme.Features.startTimingFeature('iconQuality', Evme.Features.DISABLE);
+            }
+            
             options.iconsFormat = iconsFormat;
 
             var _NOCACHE = false;
@@ -1551,7 +1587,7 @@ Evme.Brain = new function Evme_Brain() {
                 _NOCACHE = true;
             }
 
-            cancelSearch();
+            Searcher.cancelSearch();
 
             var installedApps = [];
             if (appsCurrentOffset == 0) {
@@ -1760,6 +1796,12 @@ Evme.Brain = new function Evme_Brain() {
 
             Evme.Searchbar.endRequest();
 
+            // consider this benchmark only if the response didn't come from the cache
+            if (!data._cache) {
+              Evme.Features.stopTimingFeature('typingApps', true);
+              Evme.Features.stopTimingFeature('iconQuality', true);
+            }
+
             return true;
         }
 
@@ -1799,8 +1841,8 @@ Evme.Brain = new function Evme_Brain() {
 
             Searcher.clearTimeoutForShowingDefaultImage();
 
-            var query = data.response.completion;
-            var image = Evme.Utils.formatImageData(data.response.image);
+            var query = data.response.completion,
+                image = Evme.Utils.formatImageData(data.response.image);
 
             if (image) {
                 lastQueryForImage = query;
@@ -1813,6 +1855,8 @@ Evme.Brain = new function Evme_Brain() {
 
                 Evme.BackgroundImage.update(image);
             }
+            
+            Evme.Features.stopTimingFeature('typingImage');
         }
 
         this.getIcons = function getIcons(ids, format) {
@@ -1865,24 +1909,19 @@ Evme.Brain = new function Evme_Brain() {
                 if (!data) {
                     return;
                 }
-
                 var items = data.response || [];
                 autocompleteCache[query] = items;
                 getAutocompleteComplete(items, query);
-                requestAutocomplete = null;
             });
         };
 
         function getAutocompleteComplete(items, querySentWith) {
-            if (!requestAutocomplete) {
-                return;
-            }
-            
             window.clearTimeout(timeoutAutocomplete);
             timeoutAutocomplete = window.setTimeout(function onTimeout(){
                 if (Evme.Utils.isKeyboardVisible && !requestSearch) {
                     Evme.Helper.loadSuggestions(items);
                     Evme.Helper.showSuggestions(querySentWith);
+                    requestAutocomplete = null;
                 }
             }, TIMEOUT_BEFORE_RENDERING_AC);
         };
@@ -1993,14 +2032,18 @@ Evme.Brain = new function Evme_Brain() {
                 "offset": offset,
                 "automaticSearch": automaticSearch
             };
-
+            
+            Evme.Features.startTimingFeature('typingApps', Evme.Features.ENABLE);
             Searcher.getApps(options);
+            
+            Evme.Features.startTimingFeature('typingImage', Evme.Features.ENABLE);
             Searcher.getBackgroundImage(options);
         };
 
         this.searchExactAsYouType = function searchExactAsYouType(query, queryTyped) {
             resetLastSearch(true);
-            cancelSearch();
+            
+            Searcher.cancelSearch();
             appsCurrentOffset = 0;
 
             var options = {
@@ -2012,11 +2055,18 @@ Evme.Brain = new function Evme_Brain() {
                 "onlyDidYouMean": true
             };
 
-            Searcher.getApps(options);
-            Searcher.getBackgroundImage(options);
+            if (Evme.Features.isOn('typingApps')) {
+              Evme.Features.startTimingFeature('typingApps', Evme.Features.ENABLE);
+              Searcher.getApps(options);
+            }
+            
+            if (Evme.Features.isOn('typingImage')) {
+              Evme.Features.startTimingFeature('typingImage', Evme.Features.ENABLE);
+              Searcher.getBackgroundImage(options);
+            }
         };
 
-        this.searchAsYouType = function searchAsYouType(query, source){
+        this.searchAsYouType = function searchAsYouType(query, source) {
             appsCurrentOffset = 0;
 
             Searcher.getAutocomplete(query);
@@ -2026,33 +2076,46 @@ Evme.Brain = new function Evme_Brain() {
                 "source": source
             };
 
-            requestSearch && requestSearch.abort && requestSearch.abort();
-            window.clearTimeout(timeoutSearchWhileTyping);
-            timeoutSearchWhileTyping = window.setTimeout(function onTimeout(){
-                Searcher.getApps(searchOptions);
-            }, TIMEOUT_BEFORE_RUNNING_APPS_SEARCH);
+            if (Evme.Features.isOn('typingApps')) {
+              requestSearch && requestSearch.abort && requestSearch.abort();
+              window.clearTimeout(timeoutSearchWhileTyping);
+              timeoutSearchWhileTyping = window.setTimeout(function onTimeout(){
+                  Evme.Features.startTimingFeature('typingApps', Evme.Features.DISABLE);
+                  Searcher.getApps(searchOptions);
+              }, TIMEOUT_BEFORE_RUNNING_APPS_SEARCH);
+            }
 
-            requestImage && requestImage.abort && requestImage.abort();
-            window.clearTimeout(timeoutSearchImageWhileTyping);
-            timeoutSearchImageWhileTyping = window.setTimeout(function onTimeout(){
-                Searcher.getBackgroundImage(searchOptions);
-            }, TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH);
+            if (Evme.Features.isOn('typingImage')) {
+              requestImage && requestImage.abort && requestImage.abort();
+              window.clearTimeout(timeoutSearchImageWhileTyping);
+              timeoutSearchImageWhileTyping = window.setTimeout(function onTimeout(){
+                  Evme.Features.startTimingFeature('typingImage', Evme.Features.DISABLE);
+                  Searcher.getBackgroundImage(searchOptions);
+              }, TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH);
+            }
         };
 
         this.cancelRequests = function cancelRequests() {
-            cancelSearch();
+            Evme.Features.stopTimingFeature('typingApps');
+            Evme.Features.stopTimingFeature('typingImage');
+            
+            Searcher.cancelSearch();
             cancelAutocomplete();
-
-            Searcher.clearTimeoutForShowingDefaultImage();
-            window.clearTimeout(timeoutSearchImageWhileTyping);
-            requestImage && requestImage.abort && requestImage.abort();
-            requestImage = null;
+            
+            Searcher.cancelImageSearch();
             
             requestIcons && requestIcons.abort && requestIcons.abort();
             requestIcons = null;
         };
+        
+        this.cancelImageSearch = function cancelImageSearch() {
+            Searcher.clearTimeoutForShowingDefaultImage();
+            window.clearTimeout(timeoutSearchImageWhileTyping);
+            requestImage && requestImage.abort && requestImage.abort();
+            requestImage = null;
+        };
 
-        function cancelSearch() {
+        this.cancelSearch = function cancelSearch() {
             window.clearTimeout(timeoutShowAppsLoading);
             window.clearTimeout(timeoutSearchWhileTyping);
             window.clearTimeout(timeoutSearch);
