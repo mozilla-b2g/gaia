@@ -270,7 +270,11 @@ a {
     height: 4rem;
     resize: none;
     padding: 0 0.8rem;
-    pointer-events: auto;
+    pointer-events: none;
+}
+
+#hidden-wifi-authentication input[type="password"] {
+  pointer-events: auto;
 }
 
 /*
@@ -327,13 +331,21 @@ a {
 /*
   No result container
 */
-#networks {
+
+#wifi-wrapper {
   top: 0;
-  bottom: 0;
+  bottom: 5.5rem;
 }
 
 #networks-list:first-child {
   padding-top: 0;
+}
+
+#join-hidden-button {
+  bottom: 0;
+  margin-top: 1.5rem;
+  width: calc(100% - 3rem);
+  margin-left: 1.5rem;
 }
 
 #wifi #no-result-container {
@@ -341,6 +353,7 @@ a {
   background: url('images/wifi_icon.png') no-repeat fixed center / 23.6rem;
   height: 100%;
   width: 100%;
+  pointer-events: none;
 }
 
 #wifi #no-result-message {
@@ -397,16 +410,26 @@ aside.connecting {
   Wifi configuration
 */
 
+#hidden-wifi-authentication form,
 #configure_network_params form {
   padding: 1rem 1.5rem;
 }
 
+#hidden-wifi-authentication form label,
 #configure_network_params form label {
   display: block;
   padding: 1.5rem 1.5rem 0.5rem 1.5rem ;
   font-size: 1.5rem;
 }
 
+#hidden-wifi-authentication form select {
+  width: 100%;
+  padding: 0.5rem 1.5rem 0.5rem 1.5rem ;
+  font-size: 1.5rem;
+}
+
+#hidden-wifi-authentication form select,
+#hidden-wifi-authentication form input,
 #configure_network_params form input {
   padding-left: 1.5rem;
 }
@@ -422,10 +445,19 @@ aside.connecting {
   width: auto;
   height: auto;
 }
+
+#hidden-wifi-authentication label span,
 #configure_network_params label span {
   top: 2rem;
   left: 3rem;
 }
+
+#hidden-wifi-authentication label p {
+  width: 12rem;
+  bottom: 0.4rem;
+  left: 3rem;
+}
+
 #configure_network_params label p {
   width: auto;
   float: right;

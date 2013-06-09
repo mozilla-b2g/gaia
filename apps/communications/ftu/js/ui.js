@@ -50,6 +50,15 @@ var UIManager = {
     'networks',
     'wifi-refresh-button',
     'wifi-join-button',
+    'join-hidden-button',
+    // Hidden Wifi
+    'hidden-wifi-authentication',
+    'hidden-wifi-ssid',
+    'hidden-wifi-security',
+    'hidden-wifi-password',
+    'hidden-wifi-identity',
+    'hidden-wifi-identity-box',
+    'hidden-wifi-show-password',
     //Date & Time
     'date-configuration',
     'time-configuration',
@@ -100,6 +109,22 @@ var UIManager = {
     this.wifiRefreshButton.addEventListener('click', this);
     this.wifiJoinButton.addEventListener('click', this);
     this.networks.addEventListener('click', this);
+
+    this.joinHiddenButton.addEventListener('click', this);
+    this.hiddenWifiSecurity.addEventListener('change', this);
+    this.wifiJoinButton.disabled = true;
+
+    this.hiddenWifiPassword.addEventListener('keyup', function() {
+      this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
+        this.hiddenWifiSecurity.value,
+        this.hiddenWifiPassword.value,
+        this.hiddenWifiIdentity.value
+      );
+    }.bind(this));
+
+    this.hiddenWifiShowPassword.onchange = function togglePasswordVisibility() {
+      UIManager.hiddenWifiPassword.type = this.checked ? 'text' : 'password';
+    };
 
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
@@ -263,7 +288,18 @@ var UIManager = {
         WifiManager.scan(WifiUI.renderNetworks);
         break;
       case 'wifi-join-button':
-        WifiUI.joinNetwork();
+        if (window.location.hash === '#hidden-wifi-authentication') {
+          WifiUI.joinHiddenNetwork();
+        } else {
+          WifiUI.joinNetwork();
+        }
+        break;
+      case 'join-hidden-button':
+        WifiUI.addHiddenNetwork();
+        break;
+      case 'hidden-wifi-security':
+        var securityType = event.target.value;
+        WifiUI.handleHiddenWifiSecurity(securityType);
         break;
       // Date & Time
       case 'time-configuration':
