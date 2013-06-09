@@ -45,7 +45,7 @@ function summarizeDaysOfWeek(bitStr) {
         weekdays.push(_('weekday-' + ((i + 1) % 7) + '-short'));
       }
     }
-    summary = weekdays.join('<span class="comma">,</span> ');
+    summary = weekdays.join(', ');
   }
   return summary;
 }
@@ -129,225 +129,41 @@ function getSelectedValue(selectElement) {
   return selectElement.options[selectElement.selectedIndex].value;
 }
 
-var ValuePicker = (function() {
-
-  //
-  // Constructor
-  //
-  function VP(e, unitStyle) {
-    this.element = e;
-    this._valueDisplayedText = unitStyle.valueDisplayedText;
-    this._unitClassName = unitStyle.className;
-    this._lower = 0;
-    this._upper = unitStyle.valueDisplayedText.length - 1;
-    this._range = unitStyle.valueDisplayedText.length;
-    this._currentIndex = 0;
-    this.init();
+function formatTime(hour, minute) {
+  var period = '';
+  if (is12hFormat()) {
+    period = hour < 12 ? 'AM' : 'PM';
+    hour = hour % 12;
+    hour = (hour == 0) ? 12 : hour;
   }
 
-  //
-  // Public methods
-  //
-  VP.prototype.getSelectedIndex = function() {
-    var selectedIndex = this._currentIndex;
-    return selectedIndex;
-  };
-
-  VP.prototype.getSelectedDisplayedText = function() {
-    var displayedText = this._valueDisplayedText[this._currentIndex];
-    return displayedText;
-  };
-
-  VP.prototype.setSelectedIndex = function(tunedIndex, ignorePicker) {
-    if ((tunedIndex % 1) > 0.5) {
-      tunedIndex = Math.floor(tunedIndex) + 1;
-    } else {
-      tunedIndex = Math.floor(tunedIndex);
-    }
-
-    if (tunedIndex < this._lower) {
-      tunedIndex = this._lower;
-    }
-
-    if (tunedIndex > this._upper) {
-      tunedIndex = this._upper;
-    }
-
-    this._currentIndex = tunedIndex;
-    this.updateUI(tunedIndex, ignorePicker);
-
-    return tunedIndex;
-  };
-
-  VP.prototype.setSelectedIndexByDisplayedText = function(displayedText) {
-    var newIndex = this._valueDisplayedText.indexOf(displayedText);
-    if (newIndex != -1) {
-      this._currentIndex = newIndex;
-      this.updateUI(newIndex);
-    }
-  };
-
-  //
-  // Internal methods
-  //
-  VP.prototype.init = function() {
-    this.initUI();
-    this.setSelectedIndex(0); // Default Index is zero
-    this.mousedownHandler = vp_mousedown.bind(this);
-    this.mousemoveHandler = vp_mousemove.bind(this);
-    this.mouseupHandler = vp_mouseup.bind(this);
-    this.transitionendHandler = vp_transitionend.bind(this);
-    this.addEventListeners();
-  };
-
-  VP.prototype.initUI = function() {
-    var lower = this._lower;
-    var upper = this._upper;
-    var unitCount = this._valueDisplayedText.length;
-    for (var i = 0; i < unitCount; ++i) {
-      this.addPickerUnit(i);
-    }
-    // cache the size of picker
-    this._pickerUnits = this.element.children;
-    this._pickerUnitsHeight = this._pickerUnits[0].clientHeight;
-    this._pickerHeight = this.element.clientHeight;
-    this._space = this._pickerHeight / this._range;
-  };
-
-  VP.prototype.addPickerUnit = function(index) {
-    var html = this._valueDisplayedText[index];
-    var unit = document.createElement('div');
-    unit.className = this._unitClassName;
-    unit.innerHTML = html;
-    this.element.appendChild(unit);
-  };
-
-  VP.prototype.updateUI = function(index, ignorePicker) {
-    this.resetUI();
-    if (true !== ignorePicker) {
-      this.element.style.top =
-            (this._lower - index) * this._space + 'px';
-    }
-  };
-
-  VP.prototype.addEventListeners = function() {
-    this.element.addEventListener('mousedown', this.mousedownHandler, false);
-  };
-
-  VP.prototype.removeEventListeners = function() {
-    this.element.removeEventListener('mouseup', this.mouseupHandler, false);
-    this.element.removeEventListener('mousemove', this.mousemoveHandler, false);
-  };
-
-  VP.prototype.resetUI = function() {
-    var actives = this.element.querySelectorAll('.active');
-    for (var i = 0; i < actives.length; i++) {
-      actives[i].classList.remove('active');
-    }
-    this._pickerUnits[this._currentIndex].classList.add('active');
-  };
-
-  function cloneEvent(evt) {
-    if ('touches' in evt) {
-      evt = evt.touches[0];
-    }
-    return { x: evt.pageX, y: evt.pageY,
-             timestamp: MouseEventShim.getEventTimestamp(evt) };
+  if (hour == 0) {
+    hour = '00';
   }
 
-  //
-  // Tuneable parameters
-  //
-  var SPEED_THRESHOLD = 0.1;
-  var currentEvent, startEvent, currentSpeed;
-  var tunedIndex = 0;
-
-  function toFixed(value) {
-    return parseFloat(value.toFixed(1));
+  if (minute < 10) {
+    minute = '0' + minute;
   }
 
-  function calcSpeed() {
-    var movingSpace = startEvent.y - currentEvent.y;
-    var deltaTime = currentEvent.timestamp - startEvent.timestamp;
-    var speed = movingSpace / deltaTime;
-    currentSpeed = parseFloat(speed.toFixed(2));
+  return hour + ':' + minute + period;
+}
+
+function parseTime(time) {
+  var parsed = time.split(':');
+  var hour = +parsed[0]; // cast hour to int, but not minute yet
+  var minute = parsed[1];
+
+  // account for 'AM' or 'PM' vs 24 hour clock
+  var periodIndex = minute.indexOf('M') - 1;
+  if (periodIndex >= 0) {
+    hour = (hour == 12) ? 0 : hour;
+    hour += (minute.slice(periodIndex) == 'PM') ? 12 : 0;
+    minute = minute.slice(0, periodIndex);
   }
 
-  function calcTargetIndex(space) {
-    return tunedIndex - getMovingSpace() / space;
-  }
-
-  // If the user swap really slow, narrow down the moving space
-  // So the user can fine tune value.
-  function getMovingSpace() {
-    var movingSpace = currentEvent.y - startEvent.y;
-    var reValue = Math.abs(currentSpeed) > SPEED_THRESHOLD ?
-                                movingSpace : movingSpace / 4;
-    return reValue;
-  }
-
-  function vp_transitionend() {
-    this.element.classList.remove('animation-on');
-    this.element.removeEventListener('transitionend',
-                                     this.transitionendHandler);
-  }
-
-  function vp_mousemove(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    currentEvent = cloneEvent(event);
-
-    calcSpeed();
-
-    // move selected index
-    this.element.style.top = parseFloat(this.element.style.top) +
-                              getMovingSpace() + 'px';
-
-    tunedIndex = calcTargetIndex(this._space);
-    var roundedIndex = Math.round(tunedIndex * 10) / 10;
-
-    if (roundedIndex != this._currentIndex) {
-      this.setSelectedIndex(toFixed(roundedIndex), true);
-    }
-
-    startEvent = currentEvent;
-  }
-
-  function vp_mouseup(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.removeEventListeners();
-
-    // Add animation back
-    this.element.addEventListener('transitionend', this.transitionendHandler);
-    this.element.classList.add('animation-on');
-
-    // Add momentum if speed is higher than a given threshold.
-    if (Math.abs(currentSpeed) > SPEED_THRESHOLD) {
-      var direction = currentSpeed > 0 ? 1 : -1;
-      tunedIndex += Math.min(Math.abs(currentSpeed) * 5, 5) * direction;
-    }
-    tunedIndex = this.setSelectedIndex(toFixed(tunedIndex));
-    currentSpeed = 0;
-  }
-
-  function vp_mousedown(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    event.target.setCapture(true);
-    MouseEventShim.setCapture();
-
-    // Stop animation
-    this.element.classList.remove('animation-on');
-
-    startEvent = currentEvent = cloneEvent(event);
-    tunedIndex = this._currentIndex;
-
-    this.removeEventListeners();
-    this.element.addEventListener('mousemove', this.mousemoveHandler, false);
-    this.element.addEventListener('mouseup', this.mouseupHandler, false);
-  }
-
-  return VP;
-}());
+  return {
+    hour: hour,
+    minute: +minute // now cast minute to int
+  };
+}
 

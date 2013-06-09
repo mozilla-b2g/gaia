@@ -4,7 +4,7 @@
 'use strict';
 
 // handle carrier settings
-var Carrier = (function newCarrier(window, document, undefined) {
+navigator.mozL10n.ready(function carrierSettings() {
   var APN_FILE = '/shared/resources/apn.json';
   var _ = window.navigator.mozL10n.get;
 
@@ -67,20 +67,13 @@ var Carrier = (function newCarrier(window, document, undefined) {
     }
 
     // load and query APN database, then trigger callback on results
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', APN_FILE, true);
-    xhr.responseType = 'json';
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
-        var apn = xhr.response;
-        var mcc = mccMncCodes.mcc;
-        var mnc = mccMncCodes.mnc;
-        // get a list of matching APNs
-        gCompatibleAPN = apn[mcc] ? (apn[mcc][mnc] || []) : [];
-        callback(filter(gCompatibleAPN), usage);
-      }
-    };
-    xhr.send();
+    loadJSON(APN_FILE, function loadAPN(apn) {
+      var mcc = mccMncCodes.mcc;
+      var mnc = mccMncCodes.mnc;
+      // get a list of matching APNs
+      gCompatibleAPN = apn[mcc] ? (apn[mcc][mnc] || []) : [];
+      callback(filter(gCompatibleAPN), usage);
+    });
   }
 
   // helper
@@ -343,11 +336,17 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
   function updateSelectionMode(scan) {
     var mode = mobileConnection.networkSelectionMode;
-    opAutoSelectState.textContent = mode || '';
     // we're assuming the auto-selection is ON by default.
-    opAutoSelectInput.checked = !mode || (mode === 'automatic');
-    if (!opAutoSelectInput.checked && scan) {
-      gOperatorNetworkList.scan();
+    var auto = !mode || (mode === 'automatic');
+    opAutoSelectInput.checked = auto;
+    if (auto) {
+      localize(opAutoSelectState, 'operator-networkSelect-auto');
+    } else {
+      opAutoSelectState.dataset.l10nId = '';
+      opAutoSelectState.textContent = mode;
+      if (scan) {
+        gOperatorNetworkList.scan();
+      }
     }
   }
 
@@ -403,23 +402,19 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // select operator
     function selectOperator(network, messageElement) {
-      var _ = window.navigator.mozL10n.get;
       var req = mobileConnection.selectNetwork(network);
       // update current network state as 'available' (the string display
       // on the network to connect)
       currentStateElement.textContent = messageElement.textContent;
       currentStateElement.dataset.l10nId = messageElement.dataset.l10nId;
       currentStateElement = messageElement;
-      messageElement.textContent = _('operator-status-connecting');
-      messageElement.dataset.l10nId = 'operator-status-connecting';
+      localize(messageElement, 'operator-status-connecting');
       req.onsuccess = function onsuccess() {
-        messageElement.textContent = _('operator-status-connected');
-        messageElement.dataset.l10nId = 'operator-status-connected';
+        localize(messageElement, 'operator-status-connected');
         updateSelectionMode(false);
       };
       req.onerror = function onsuccess() {
-        messageElement.textContent = _('operator-status-connectingfailed');
-        messageElement.dataset.l10nId = 'operator-status-connectingfailed';
+        localize(messageElement, 'operator-status-connectingfailed');
         updateSelectionMode(false);
       };
     }
@@ -470,29 +465,16 @@ var Carrier = (function newCarrier(window, document, undefined) {
     }
   };
 
-  // public API
-  return {
-    // display matching APNs
-    fillAPNList: function carrier_fillAPNList(usage) {
-      queryAPN(updateAPNList, usage);
-    },
+  // startup
+  Connectivity.updateCarrier(); // see connectivity.js
+  updateSelectionMode(true);
+  initDataConnectionAndRoamingWarnings();
 
-    // startup
-    init: function carrier_init() {
-      Connectivity.updateCarrier(); // see connectivity.js
-      updateSelectionMode(true);
-      initDataConnectionAndRoamingWarnings();
-
-      getMccMncCodes(function() {
-        // XXX this should be done later -- not during init()
-        Carrier.fillAPNList('data');
-        Carrier.fillAPNList('mms');
-        Carrier.fillAPNList('supl');
-      });
-    }
-  };
-})(this, document);
-
-// startup
-navigator.mozL10n.ready(Carrier.init.bind(Carrier));
+  // XXX this should be done later
+  getMccMncCodes(function() {
+    queryAPN(updateAPNList, 'data');
+    queryAPN(updateAPNList, 'mms');
+    queryAPN(updateAPNList, 'supl');
+  });
+});
 

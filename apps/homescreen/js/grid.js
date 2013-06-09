@@ -959,6 +959,17 @@ var GridManager = (function() {
   }
 
   /*
+    Detect if an app can work offline
+  */
+  function isHosted(app) {
+    return app.origin.indexOf('app://') === -1;
+  }
+
+  function hasOfflineCache(app) {
+    return app.manifest.appcache_path != null;
+  }
+
+  /*
    * Create or update a single icon for an Application (or Bookmark) object.
    */
   function createOrUpdateIconForApp(app, entryPoint) {
@@ -989,7 +1000,10 @@ var GridManager = (function() {
       removable: app.removable,
       name: iconsAndNameHolder.name,
       icon: bestMatchingIcon(app, iconsAndNameHolder),
-      useAsyncPanZoom: app.useAsyncPanZoom
+      useAsyncPanZoom: app.useAsyncPanZoom,
+      isHosted: isHosted(app),
+      hasOfflineCache: hasOfflineCache(app),
+      isBookmark: app.isBookmark
     };
     if (haveLocale && !app.isBookmark) {
       descriptor.localizedName = iconsAndNameHolder.name;

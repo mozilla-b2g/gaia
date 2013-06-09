@@ -10,6 +10,7 @@
   var priv = new WeakMap();
   var data = new WeakMap();
   var events = new WeakMap();
+  var relation = new WeakMap();
 
   var rtrigger = /[a-zA-Z0-9\+\(\*]/;
 
@@ -312,8 +313,6 @@
       template: template,
       active: null,
       nodes: nodes,
-      relation: new WeakMap(),
-      gesture: new GestureDetector(outer),
       state: {
         isTransitioning: false,
         visible: 'singleline'
@@ -347,13 +346,18 @@
         get: function() {
           var node = clone.firstElementChild.cloneNode();
           node.isPlaceholder = true;
-          node.setAttribute('x-inputmode', 'verbatim');
           return node;
         }
       }
     });
 
-    // Focus on the last "placeholder" element
+    ['click', 'keypress', 'keyup', 'blur', 'pan'].forEach(function(type) {
+      outer.addEventListener(type, this, false);
+    }, this);
+
+    new GestureDetector(outer).startDetecting();
+
+    // Set focus on the last "placeholder" element
     this.reset().focus();
   };
 
@@ -361,7 +365,7 @@
     // Clear any displayed text (not likely to exist)
     // Render each recipient in the Recipients object
     // Remove (if exist) and Add event listeners
-    this.clear().render().observe();
+    this.clear().render();
     return this;
   };
   /**
@@ -395,7 +399,6 @@
     var nodes = view.nodes;
     var inner = view.inner;
     var template = view.template;
-    var relation = view.relation;
     var list = view.owner.list;
     var length = list.length;
     var html = '';
@@ -606,73 +609,23 @@
   };
 
   /**
-   * observe
-   *
-   * Add and Remove all the listeners.
-   *
-   * @return {Recipients.View} Recipients.View instance.
-   */
-  Recipients.View.prototype.observe = function() {
-    var view = priv.get(this);
-    var outer = view.outer;
-    var gesture = view.gesture;
-
-    gesture.stopDetecting();
-
-    ['click', 'keypress', 'keyup', 'blur', 'pan'].forEach(function(type) {
-
-      // Bound handlers won't exist on the first run...
-      if (this.observe.handler) {
-        // Remove the old delegate to prevent zombie events
-        outer.removeEventListener(
-          type, this.observe.handler, false
-        );
-      }
-
-      // Create a new bound delegation handler:
-      // |this| => Recipients.View.prototype.handleEvent
-      // (Only if one doesn't exist)
-      if (this.observe.handler === null) {
-        this.observe.handler = this.handleEvent.bind(this, priv);
-      }
-
-      // Register the bound delegation handler
-      outer.addEventListener(
-        type, this.observe.handler, false
-      );
-    }, this);
-
-    gesture.startDetecting();
-
-    return this;
-  };
-
-  Recipients.View.prototype.observe.handler = null;
-
-  /**
    * handleEvent
    *
    * Single method for event handler delegation.
    *
    * @return {Undefined} void return.
    */
-  Recipients.View.prototype.handleEvent = function(proof, event) {
+  Recipients.View.prototype.handleEvent = function(event) {
     var view = priv.get(this);
-    var relation = view.relation;
     var owner = view.owner;
     var isPreventingDefault = false;
     var isAcceptedRecipient = false;
     var isEdittingRecipient = false;
+    var isDeletingRecipient = false;
     var target = event.target;
     var keyCode = event.keyCode;
     var editable = 'false';
     var typed, recipient, length, last, list, previous;
-
-    if (proof !== priv) {
-      throw new Error(
-        '`Recipients.View.prototype.handleEvent` cannot be called directly'
-      );
-    }
 
     // All keyboard events will need some information
     // about the input that the user typed.
@@ -724,6 +677,14 @@
         // 1. Edit or Delete?
         // The target is a recipient view node
         if (target.parentNode === view.inner) {
+
+          // Could be one of:
+          //   - Adding new, in progress
+          //   - Editting recipient
+          //
+          if (target.isPlaceholder) {
+            return;
+          }
 
           // If Recipient is clicked while another is actively
           // being editted, save the in-edit recipient before
@@ -827,14 +788,25 @@
         // attempt to go back to the previous entry and edit that
         // recipient as if it were a newly added entry.
         if (keyCode === event.DOM_VK_BACK_SPACE) {
-          if (!typed) {
-            previous = target.previousSibling;
-            list = data.get(owner);
+          previous = target.previousSibling;
 
-            // Only manually typed entries may be editted directly
-            // in the recipients list view.
-            if (previous &&
-              (list.length && list[list.length - 1].source === 'manual')) {
+          if (!typed && previous) {
+            recipient = relation.get(previous);
+
+            // If the recipient to the immediate left is a
+            // known Contact, added either by Activity
+            // or via search contact results, remove it
+            // from the list
+            //
+            if (previous.dataset.source === 'contacts') {
+              isPreventingDefault = true;
+              isDeletingRecipient = true;
+
+              view.owner.remove(recipient);
+
+            } else if (previous.dataset.source === 'manual') {
+              // Only manually typed entries may be editted directly
+              // in the recipients list view.
 
               isEdittingRecipient = true;
               isPreventingDefault = true;
@@ -901,6 +873,10 @@
         // Set focus on the very placeholder item.
         this.render().focus();
       }
+    }
+
+    if (isDeletingRecipient) {
+      this.render().focus();
     }
 
     if (isEdittingRecipient) {

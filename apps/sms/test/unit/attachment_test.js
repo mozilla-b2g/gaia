@@ -27,17 +27,26 @@ suite('attachment_test.js', function() {
     loadBodyHTML('/index.html');
     AttachmentMenu.init('attachment-options-menu');
 
-    this.blob = new Blob(['This is an image message'],
-      {type: 'text/plain'});
-    this.attachment = new Attachment(
-      this.blob,
-      'Test Attachment');
+    this.blob = new Blob(['This is an image message'], {
+      type: 'image/jpeg'
+    });
+    this.attachment = new Attachment(this.blob, {
+      name: 'Test Attachment'
+    });
 
+  });
+
+  test('Name property defaults to a string value', function() {
+    var attachment = new Attachment(new Blob());
+
+    assert.typeOf(attachment.name, 'string');
   });
 
   test('render', function() {
     var el = this.attachment.render();
     assert.ok(el.src, 'src set');
+    assert.include(el.classList, 'attachment');
+    assert.equal(el.dataset.attachmentType, 'img');
   });
 
 });

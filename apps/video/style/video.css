@@ -13,7 +13,7 @@ body {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  padding-bottom: 50px;
+  padding-bottom: 5rem;
 }
 
 section {
@@ -60,7 +60,7 @@ li .inner {
   border-color:rgba(255,255,255, 0.1);
 }
 .unwatched {
-  background: url(images/unwatched.png) no-repeat;
+  background: url(images/unwatched.png) no-repeat center / 100%;
   position: absolute;
   bottom: 0;
   width: 0.4rem;
@@ -98,12 +98,12 @@ li .after {
 /* All of the main views fill the screen */
 #thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #crop-view {
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
   overflow: hidden;
   font-size: 2.1rem;
 }
@@ -143,13 +143,13 @@ li .after {
 /* thumbnails in thumbnail select view where there is a top bar */
 #thumbnails.select,
 #thumbnails.pick {
-  top: 50px;
+  top: 5rem;
   bottom: 0;
 }
 
 .thumbnail.selected {
-  outline: solid #00aacc 3px;
-  outline-offset: -3px;
+  outline: solid #00aacc 0.3rem;
+  outline-offset: -0.3rem;
 }
 
 /*
@@ -172,7 +172,7 @@ li .after {
  * get stuck hidden behind the overlaid toolbar.
  */
 .thumbnail:last-child {
-  margin-bottom: 40px;
+  margin-bottom: 4rem;
 }
 
 /* Video align and size */
@@ -253,7 +253,7 @@ li .after {
 
 #overlay-text {
   padding: 1rem 0.5rem 0 0.5rem;
-  border-top: 1px solid #686868;
+  border-top: 0.1rem solid #686868;
   font-weight: 300;
   font-size: 2.5rem;
   color: #ebebeb;
@@ -286,6 +286,7 @@ body.hidden *[data-l10n-id] {
 
 .icon.icon-done {
   background-image: url('images/iconaction_done_30x30.png') !important;
+  background-size: 3rem;
 }
 
 header {
@@ -312,6 +313,7 @@ header h1 {
 #throbber > div {
   height: 2.4rem;
   background-image: url(images/progress.png);
+  background-size: auto 100%;
 }
 
 #throbber.throb > div {
@@ -339,7 +341,7 @@ a.button {
   /* for buttons that display text */
   font-size: 1.4rem;
   text-align: center;
-  line-height: 40px;
+  line-height: 4rem;
 }
 
 a.button:active, a.button:focus {
@@ -353,13 +355,13 @@ a.button.disabled {
 
 footer {
   background: rgba(0, 0, 0, 0.75);
-  height: 40px;
+  height: 4rem;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 1;
-  box-shadow: 0px -2px 5px rgba(50, 50, 50, 0.75);
+  box-shadow: 0 -0.2rem 0.5rem rgba(50, 50, 50, 0.75);
 }
 
 #thumbnails-video-button {
@@ -368,6 +370,7 @@ footer {
   height: 100%;
   left: 0%;
   background-image: url('images/iconaction_video_30x30.png');
+  background-size: 3rem;
 }
 
 #thumbnails-select-button {
@@ -376,6 +379,7 @@ footer {
   height: 100%;
   left: 50%;
   background-image: url('images/iconaction_select_30x30.png');
+  background-size: 3rem;
 }
 
 #thumbnails-delete-button {
@@ -384,7 +388,8 @@ footer {
   height: 100%;
   left: 0;
   background-image: url('images/iconaction_delete_30x30.png');
-  border-right: 1px solid #000;
+  background-size: 3rem;
+  border-right: 0.1rem solid #000;
 }
 
 #thumbnails-share-button {
@@ -393,6 +398,7 @@ footer {
   height: 100%;
   left: 50%;
   background-image: url('images/iconaction_share_30x30.png');
+  background-size: 3rem;
 }
 
 #thumbnails-single-delete-button {
@@ -401,7 +407,8 @@ footer {
   height: 100%;
   left: 0;
   background-image: url('images/iconaction_delete_30x30.png');
-  border-right: 1px solid #000;
+  background-size: 3rem;
+  border-right: 0.1rem solid #000;
 }
 
 #thumbnails-single-share-button {
@@ -410,6 +417,7 @@ footer {
   height: 100%;
   left: 50%;
   background-image: url('images/iconaction_share_30x30.png');
+  background-size: 3rem;
 }
 
 header .icon:after {
@@ -435,7 +443,7 @@ header .icon:after {
    For landscape mode here. Settings for portrait mode is written in
    media query at bottom */
 #videoBar {
-  background: url(images/scroll_bar_bg.png) rgba(0, 0, 0, 0.75) no-repeat 8.5rem center / auto 2rem;
+  background: url(images/scroll_bar_bg.png) rgba(0, 0, 0, 0.75) no-repeat 8.5rem center / 100% 2rem;
   position: absolute;
   overflow: hidden;
   left: 0;
@@ -599,7 +607,7 @@ header .icon:after {
   #videoBar {
     background-image: url(images/portrait/scroll_bar_bg.png);
     background-position: 6.1rem center;
-    background-size: auto 2.1rem;
+    background-size: 100% 2.1rem;
   }
 }
 

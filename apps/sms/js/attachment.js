@@ -19,9 +19,12 @@
 
 'use strict';
 
-function Attachment(blob, name) {
+function Attachment(blob, options) {
+  options = options || {};
   this.blob = blob;
-  this.name = name || '';
+  this.name = blob.name || options.name ||
+    navigator.mozL10n.get('unnamed-attachment');
+  this.isDraft = !!options.isDraft;
 }
 
 Attachment.prototype = {
@@ -33,7 +36,20 @@ Attachment.prototype = {
   },
   handleLoad: function(objectURL, event) {
     // Signal Gecko to release the reference to the Blob
-    URL.revokeObjectURL(objectURL);
+    // Because image attachments are rendered with the CSS `background-image`
+    // property, the time required to render such attachments is
+    // non-deterministic (even when the same image is loaded in parallel via an
+    // "img" tag). This timeout represents a conservative delay to wait before
+    // freeing the memory associated with the Object URL.
+    // TODO: Factor out this delay when implementing Attachment thumbnail
+    // images in the following bug:
+    // Bug 876467 - [mms] generate, store, and reuse thumbnails to display the
+    // images
+    if (objectURL) {
+      setTimeout(function() {
+        URL.revokeObjectURL(objectURL);
+      }, 1000);
+    }
 
     // Bubble click events from inside the iframe
     event.target.contentDocument.addEventListener('click',
@@ -45,12 +61,23 @@ Attachment.prototype = {
   },
   render: function() {
     var el = document.createElement('iframe');
+    var baseURL = location.protocol + '//' + location.host;
+    var inlineStyle = '';
+    var objectURL;
 
     // The attachment's iFrame requires access to the parent document's context
     // so that URIs for Blobs created in the parent may resolve as expected.
     el.setAttribute('sandbox', 'allow-same-origin');
     el.className = 'attachment';
-    var objectURL = window.URL.createObjectURL(this.blob);
+    el.dataset.attachmentType = this.type;
+
+    // We special case audio to display an image of an audio attachment video
+    // currently falls through this path too, we should revisit this with
+    // Bug 869244 - [MMS] 'Thumbnail'/'Poster' in video attachment is needed.
+    if (this.type === 'img') {
+      objectURL = window.URL.createObjectURL(this.blob);
+      inlineStyle = 'background-image: url(' + objectURL + ');';
+    }
 
     // When rendering is complete
     el.addEventListener('load', this.handleLoad.bind(this, objectURL));
@@ -61,7 +88,11 @@ Attachment.prototype = {
     var size = Math.floor(this.size / 102.4) / 10;
     var sizeString = _('attachmentSize', {n: size});
     src += Utils.Template('attachment-tmpl').interpolate({
-      uri: objectURL,
+      draftClass: this.isDraft ? 'draft' : '',
+      type: this.type,
+      inlineStyle: inlineStyle,
+      baseURL: baseURL,
+      imgSrc: objectURL,
       size: sizeString
     });
     el.src = src;
@@ -69,13 +100,14 @@ Attachment.prototype = {
     return el;
   },
 
-  view: function() {
+  view: function(options) {
     var activity = new MozActivity({
       name: 'open',
       data: {
         type: this.blob.type,
         filename: this.name,
-        blob: this.blob
+        blob: this.blob,
+        allowSave: options && options.allowSave
       }
     });
     activity.onerror = function() {

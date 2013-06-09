@@ -39,11 +39,6 @@
  *     An optional object containing additional MediaDB options.
  *     Supported options are:
  *
- *       directory:
- *          a subdirectory of the DeviceStorage directory. If you are only
- *          interested in images in the screenshots/ subdirectory for example,
- *          you can set this property to "screenshots/".
- *
  *       mimeTypes:
  *          an array of MIME types that specifies the kind of files you are
  *          interested in and that your metadata parser function knows how to
@@ -133,7 +128,7 @@
  * DATABASE RECORDS
  *
  * MediaDB stores a record in its IndexedDB database for each DeviceStorage
- * file of the appropriate media type, directory and mime type. The records
+ * file of the appropriate media type and mime type. The records
  * are objects of this form:
  *
  *   {
@@ -265,12 +260,14 @@
  *
  *   Event         Meaning
  *  --------------------------------------------------------------------------
- *   ready         MediaDB is ready for use
+ *   ready         MediaDB is ready for use. Also fired when new volumes added.
  *   unavailable   MediaDB is unavailable (often because of USB file transfer)
  *   created       One or more files were created
  *   deleted       One or more files were deleted
  *   scanstart     MediaDB is scanning
  *   scanend       MediaDB has finished scanning
+ *   cardremoved   A volume became permanently unavailable.
+ *                 Only fired on devices that have internal storage and a card
  *
  * Because MediaDB is a JavaScript library, these are not real DOM events, but
  * simulations.
@@ -287,6 +284,27 @@
  * methods.
  *
  * MediaDB events do not bubble and cannot be captured.
+ *
+ * INTERNAL AND EXTERNAL STORAGE
+ *
+ * Some devices have internal storage and also external (sdcard) storage.
+ * MediaDB hides this from apps, for the most part. There are some
+ * idiosyncracies to be aware of, however. With more than one device storage
+ * area available, MediaDB can remain available even when an sdcard is
+ * removed. When this happens we send a 'cardremoved' event instead of
+ * an 'unavailable' event. And if there were files on that card, the
+ * cardremoved event is followed by a series of deleted events for all of
+ * the files.
+ *
+ * If a card is inserted, we just send a 'ready' event, and start a new scan,
+ * even if we were already in the MediaDB.READY state.
+ *
+ * The situation is slightly different when one of the two storage areas is
+ * unmounted so it can be shared by USB, however. In this case, the files
+ * are only temporarily unavailable, and it doesn't make sense to delete
+ * them and then rescan everything when the volume is mounted again. So instead,
+ * when either of the storage areas is shared via USB, MediaDB sends its
+ * 'unavailable' event.
  *
  * METHODS
  *
@@ -336,7 +354,6 @@ var MediaDB = (function() {
       options = {};
     this.indexes = options.indexes || [];
     this.version = options.version || 1;
-    this.directory = options.directory || '';
     this.mimeTypes = options.mimeTypes;
     this.autoscan = (options.autoscan !== undefined) ? options.autoscan : true;
     this.state = MediaDB.OPENING;
@@ -351,11 +368,7 @@ var MediaDB = (function() {
     // A batch size of 0 means no maximum batch size
     this.batchSize = options.batchSize || 0;
 
-    if (this.directory &&
-        this.directory[this.directory.length - 1] !== '/')
-      this.directory += '/';
-
-    this.dbname = 'MediaDB/' + this.mediaType + '/' + this.directory;
+    this.dbname = 'MediaDB/' + this.mediaType + '/';
 
     var media = this;  // for the nested functions below
 
@@ -470,76 +483,227 @@ var MediaDB = (function() {
     };
 
     function initDeviceStorage() {
-      // Set up DeviceStorage
-      // If storage is null, then there is no sdcard installed and
-      // we have to abort.
+      var details = media.details;
+
+      // Get the composite storage object that agregates all files of the
+      // specified media type. We use this object when scanning and when
+      // retrieving files using their fully-qualifed names.
       media.storage = navigator.getDeviceStorage(mediaType);
 
-      // Handle change notifications from device storage
-      // We set this onchange property to null in the close() method
-      // so don't use addEventListener here
-      media.storage.addEventListener('change', deviceStorageChangeHandler);
-      media.details.dsEventListener = deviceStorageChangeHandler;
+      // Get the individual device storage objects, so that we can listen
+      // for events on the different volumes separately.
+      details.storages = navigator.getDeviceStorages(mediaType);
+      details.availability = {};
 
-      // Use available() to figure out if there is actually an sdcard there
-      // and emit a ready or unavailable event
-      var availreq = media.storage.available();
-      availreq.onsuccess = function(e) {
-        switch (e.target.result) {
-        case 'available':
-          changeState(media, MediaDB.READY);
-          if (media.autoscan)
-            scan(media); // Start scanning as soon as we're ready
-          break;
-        case 'unavailable':
-          changeState(media, MediaDB.NOCARD);
-          break;
-        case 'shared':
-          changeState(media, MediaDB.UNMOUNTED);
-          break;
+      // Start off by getting the initial availablility of the storage areas
+      // This is an async function that will call the next initialization
+      // step when it is done.
+      getStorageAvailability();
+
+      // This is an asynchronous step in the db initialization process
+      function getStorageAvailability() {
+        var next = 0;
+        getNextAvailability();
+
+        function getNextAvailability() {
+          if (next >= details.storages.length) {
+            // We've gotten the availability of all storage areas, so
+            // move on to the next step.
+            setupHandlers();
+            return;
+          }
+
+          var s = details.storages[next++];
+          var name = s.storageName;
+          var req = s.available();
+          req.onsuccess = function(e) {
+            details.availability[name] = req.result;
+            getNextAvailability();
+          };
+          req.onerror = function(e) {
+            details.availability[name] = 'unavailable';
+            getNextAvailability();
+          };
         }
-      };
-      availreq.onerror = function(e) {
-        console.error('available() failed',
-                      availreq.error && availreq.error.name);
-        changeState(media, MediaDB.UNMOUNTED);
-      };
-    }
+      }
 
-    function deviceStorageChangeHandler(e) {
-      var filename;
-      switch (e.reason) {
-      case 'available':
-        changeState(media, MediaDB.READY);
+      function setupHandlers() {
+        // Now that we know the state of all of the storage areas, register
+        // an event listener to monitor changes to that state.
+        for (var i = 0; i < details.storages.length; i++)
+          details.storages[i].addEventListener('change', changeHandler);
+
+        // Remember the listener so we can remove it in stop()
+        details.dsEventListener = changeHandler;
+
+        // Move on to the next step
+        sendInitialEvent();
+      }
+
+      function sendInitialEvent() {
+        // Get our current state based on the device storage availability
+        var state = getState(details.availability);
+
+        // Switch to that state and send an appropriate event
+        changeState(media, state);
+
+        // If the state is ready, and we're auto scanning then start a scan
         if (media.autoscan)
-          scan(media); // automatically scan every time the card comes back
-        break;
-      case 'unavailable':
-        changeState(media, MediaDB.NOCARD);
-        endscan(media);
-        break;
-      case 'shared':
-        changeState(media, MediaDB.UNMOUNTED);
-        endscan(media);
-        break;
-      case 'modified':
-      case 'deleted':
-        filename = e.path;
-        if (ignoreName(filename))
-          break;
-        if (media.directory) {
-          // Ignore changes outside of our directory
-          if (filename.substring(0, media.directory.length) !==
-              media.directory)
+          scan(media);
+      }
+
+      // Given a storage name -> availability map figure out what state
+      // the mediadb object should be in
+      function getState(availability) {
+        var n = 0;   // total number of storages
+        var a = 0;   // # that are available
+        var u = 0;   // # that are unavailable
+        var s = 0;   // # that are shared
+
+        for (var name in availability) {
+          n++;
+          switch (availability[name]) {
+          case 'available':
+            a++;
             break;
-          // And strip the directory from changes inside of it
-          filename = filename.substring(media.directory.length);
+          case 'unavailable':
+            u++;
+            break;
+          case 'shared':
+            s++;
+            break;
+          }
         }
+
+        // If any volume is shared, then behave as if they are all shared
+        // and make the entire MediaDB shared. This is because shared volumes
+        // are generally shared transiently and most files on the volume will
+        // probably still be there when the volume comes back. If we want to
+        // keep the MediaDB available while one volume is shared we have to
+        // rescan and discard all the files on the shared volume, which means
+        // it will take much longer to recover when the volume comes back. So
+        // it is better to just act as if all volumes are shared together
+        if (s > 0)
+          return MediaDB.UNMOUNTED;
+
+        // If all volumes are unavailable, then MediaDB is unavailable
+        if (u === n)
+          return MediaDB.NOCARD;
+
+        // Otherwise, there is at least one available volume, so MediaDB
+        // is available.
+        return MediaDB.READY;
+      }
+
+      function changeHandler(e) {
+        switch (e.reason) {
+        case 'modified':
+        case 'deleted':
+          fileChangeHandler(e);
+          return;
+
+        case 'available':
+        case 'unavailable':
+        case 'shared':
+          volumeChangeHandler(e);
+          return;
+
+        default:  // we ignore created events and handle modified instead.
+          return;
+        }
+      }
+
+      function volumeChangeHandler(e) {
+        var storageName = e.target.storageName;
+
+        // If nothing changed, ignore this event
+        if (details.availability[storageName] === e.reason)
+          return;
+
+        var oldState = media.state;
+
+        // Record the new availability of the volume that changed.
+        details.availability[storageName] = e.reason;
+
+        // And figure out what our new state is
+        var newState = getState(details.availability);
+
+        // If the state changed, send out an event about it
+        if (newState !== oldState) {
+          changeState(media, newState);
+
+          // Start scanning if we're available, and cancel scanning otherwise
+          if (newState === MediaDB.READY) {
+            if (media.autoscan)
+              scan(media);
+          }
+          else {
+            endscan(media);
+          }
+        }
+        else if (newState === MediaDB.READY) {
+          // In this case, the state did not change. But we may still need to
+          // send out an event. If both states are READY, then the user
+          // just inserted or removed an sdcard. If the user just added a
+          // card, then we want to send another available event and start a
+          // scan.  If the user just removed a card then we need to immediately
+          // tell the client that happened so the music app (for example) can
+          // stop playing. If it is playing a file that just disappeared it is
+          // in danger of crashing. Also, in this case we must delete the
+          // records (and send events) for all of the files on that card.
+          if (e.reason === 'available') {
+            // An SD card was just inserted, so send another ready event.
+            dispatchEvent(media, 'ready');
+
+            // And if we're automatically scanning, start the scan now.
+            // It would be more efficient if the scan() function could scan
+            // just one storage area at a time. But SD card insertion should
+            // be rare enough that efficiency is not so important.
+            if (media.autoscan)
+              scan(media);
+          }
+          else if (e.reason === 'unavailable') {
+            // An SD card was just removed. First send an event.
+            dispatchEvent(media, 'cardremoved');
+
+            // Now figure out all the files we know about that were on that
+            // volume and remove their records from the database and send events
+            // to the client.
+            deleteAllFiles(storageName);
+          }
+        }
+      }
+
+      function fileChangeHandler(e) {
+        var filename = e.path;
+        if (ignoreName(filename))
+          return;
+
+        // insertRecord and deleteRecord will send events to the client once
+        // the db has been updated.
         if (e.reason === 'modified')
           insertRecord(media, filename);
         else
           deleteRecord(media, filename);
-        break;
+      }
+
+      // Enumerate all entries in the DB and call deleteRecord for any whose
+      // filename begins with the specified storageName
+      function deleteAllFiles(storageName) {
+        var storagePrefix = storageName ? '/' + storageName + '/' : '';
+        var store = media.db.transaction('files').objectStore('files');
+        var cursorRequest = store.openCursor();
+        cursorRequest.onsuccess = function() {
+          var cursor = cursorRequest.result;
+          if (cursor) {
+            if (cursor.value.name.startsWith(storagePrefix)) {
+              // This will generate an event to notify the client that the
+              // file is now gone.
+              deleteRecord(media, cursor.value.name);
+            }
+            cursor.continue();
+          }
+        };
       }
     }
   }
@@ -551,7 +715,10 @@ var MediaDB = (function() {
 
       // There is no way to close device storage, but we at least want
       // to stop receiving events from it.
-      this.storage.removeEventListener('change', this.details.dsEventListener);
+      for (var i = 0; i < this.details.storages.length; i++) {
+        var s = this.details.storages[i];
+        s.removeEventListener('change', this.details.dsEventListener);
+      }
 
       // Change state and send out an event
       changeState(this, MediaDB.CLOSED);
@@ -582,7 +749,7 @@ var MediaDB = (function() {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
-      var getRequest = this.storage.get(this.directory + filename);
+      var getRequest = this.storage.get(filename);
       getRequest.onsuccess = function() {
         callback(getRequest.result);
       };
@@ -603,7 +770,7 @@ var MediaDB = (function() {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
-      this.storage.delete(this.directory + filename).onerror = function(e) {
+      this.storage.delete(filename).onerror = function(e) {
         console.error('MediaDB.deleteFile(): Failed to delete', filename,
                       'from DeviceStorage:', e.target.error);
       };
@@ -622,11 +789,11 @@ var MediaDB = (function() {
       var media = this;
 
       // Delete any existing file by this name, then save the file.
-      var deletereq = media.storage.delete(media.directory + filename);
+      var deletereq = media.storage.delete(filename);
       deletereq.onsuccess = deletereq.onerror = save;
 
       function save() {
-        var request = media.storage.addNamed(file, media.directory + filename);
+        var request = media.storage.addNamed(file, filename);
         request.onerror = function() {
           console.error('MediaDB: Failed to store', filename,
                         'in DeviceStorage:', request.error);
@@ -968,7 +1135,7 @@ var MediaDB = (function() {
       var cursor;
       if (timestamp > 0) {
         media.details.firstscan = false;
-        cursor = media.storage.enumerate(media.directory, {
+        cursor = media.storage.enumerate('', {
           // add 1 so we don't find the same newest file again
           since: new Date(timestamp + 1)
         });
@@ -979,10 +1146,12 @@ var MediaDB = (function() {
         // allows important optimizations during the scanning process
         media.details.firstscan = true;
         media.details.records = [];
-        cursor = media.storage.enumerate(media.directory);
+        cursor = media.storage.enumerate('');
       }
 
       cursor.onsuccess = function() {
+        if (!media.scanning)  // Abort if scanning has been cancelled
+          return;
         var file = cursor.result;
         if (file) {
           if (!ignore(media, file))
@@ -1033,8 +1202,10 @@ var MediaDB = (function() {
       // were found during the quick scan.  So we'll start off by
       // enumerating all files in device storage
       var dsfiles = [];
-      var cursor = media.storage.enumerate(media.directory);
+      var cursor = media.storage.enumerate('');
       cursor.onsuccess = function() {
+        if (!media.scanning)  // Abort if scanning has been cancelled
+          return;
         var file = cursor.result;
         if (file) {
           if (!ignore(media, file)) {
@@ -1060,6 +1231,8 @@ var MediaDB = (function() {
         var getAllRequest = store.mozGetAll();
 
         getAllRequest.onsuccess = function() {
+          if (!media.scanning)  // Abort if scanning has been cancelled
+            return;
           var dbfiles = getAllRequest.result;  // Should already be sorted
           compareLists(dbfiles, dsfiles);
         };
@@ -1171,11 +1344,7 @@ var MediaDB = (function() {
   // mediadb change event (possibly batched with other changes).
   // Ensures that only one file is being parsed at a time, but tries
   // to make as many db changes in one transaction as possible.  The
-  // special value null indicates that scanning is complete.  If the
-  // 2nd argument is a File, it should come from enumerate() so that
-  // the name property does not include the directory prefix.  If it
-  // is a name, then the directory prefix must already have been
-  // stripped.
+  // special value null indicates that scanning is complete.
   function insertRecord(media, fileOrName) {
     var details = media.details;
 
@@ -1191,7 +1360,6 @@ var MediaDB = (function() {
   }
 
   // Delete the database record associated with filename.
-  // filename must not include the directory prefix.
   function deleteRecord(media, filename) {
     var details = media.details;
 
@@ -1271,11 +1439,7 @@ var MediaDB = (function() {
     }
 
     // Insert a file into the db. One transaction per insertion.
-    // The argument might be a filename or a File object
-    // If it is a File, then it came from enumerate and its name
-    // property already has the directory stripped off.  If it is a
-    // filename, it came from a device storage change event and we
-    // stripped of the directory before calling insertRecord.
+    // The argument might be a filename or a File object.
     function insertFile(f) {
       // null is a special value pushed on to the queue when a scan()
       // is complete.  We use it to trigger a scanend event
@@ -1289,10 +1453,10 @@ var MediaDB = (function() {
 
       // If we got a filename, look up the file in device storage
       if (typeof f === 'string') {
-        var getreq = media.storage.get(media.directory + f);
+        var getreq = media.storage.get(f);
         getreq.onerror = function() {
           console.warn('MediaDB: Unknown file in insertRecord:',
-                       media.directory + f, getreq.error);
+                       f, getreq.error);
           next();
         };
         getreq.onsuccess = function() {

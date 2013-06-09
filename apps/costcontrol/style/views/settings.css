@@ -43,8 +43,13 @@
   min-height: 3.6rem;
 }
 
+.settings li p {
+  overflow: hidden;
+}
+
 .settings li p:only-of-type {
-  line-height: 3.6rem;
+  padding-top: 0.8rem;
+  line-height: 2rem;
 }
 
 .settings li[aria-disabled="true"]:after {
@@ -71,15 +76,14 @@
 
 /* End elements */
 .settings li > .end {
-  position: absolute;
-  right: 0;
-  top: 50%;
+  position: relative;
   height: 4.6rem;
-  margin-top: -2.3rem;
+  float: right;
+  margin: -0.5rem 0.4rem -0.5rem;
 }
 
-.settings li > .end.switch {
-  right: 0.5rem;
+.settings li > label.end {
+  margin-right: 0.5rem;
 }
 
 .settings li > .end:before {

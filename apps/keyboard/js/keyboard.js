@@ -153,7 +153,7 @@ const LAYOUT_PAGE_SYMBOLS_II = 'Symbols_2';
 // Layout page: what set of symbols should the keyboard display?
 var layoutPage = LAYOUT_PAGE_DEFAULT;
 
-// This object is based on the keyboard layout form layout.js, but is
+// This object is based on the keyboard layout from layout.js, but is
 // modified (see modifyLayout()) to include keys for switching keyboards
 // and layouts, and type specific keys like ".com" for url keyboards.
 var currentLayout = null;
@@ -171,13 +171,15 @@ var currentInputType = null;
 var currentInputMode = null;
 var menuLockedArea = null;
 var candidatePanelEnabled = false;
+var isKeyboardRendered = false;
+var currentCandidates = [];
 const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
 const ACCENT_CHAR_MENU_TIMEOUT = 700;
 
 // Backspace repeat delay and repeat rate
-const REPEAT_RATE = 100;
+const REPEAT_RATE = 75;
 const REPEAT_TIMEOUT = 700;
 
 // How long to wait for more focuschange events before processing
@@ -204,7 +206,7 @@ const keyboardGroups = {
   'catalan' : ['ca'],
   'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr'],
   'cyrillic': ['ru', 'sr-Cyrl'],
-  'serbian-latin': ['sr-Latn'],
+  'serbian': ['sr-Latn', 'sr-Cyrl'],
   'hebrew': ['he'],
   'zhuyin': ['zh-Hant-Zhuyin'],
   'pinyin': ['zh-Hans-Pinyin'],
@@ -491,6 +493,11 @@ function handleNewKeyboards() {
   // Now load each of these keyboards and their input methods
   for (var i = 0; i < enabledKeyboardNames.length; i++)
     loadKeyboard(enabledKeyboardNames[i]);
+
+  // If the keyboard has been disabled, reset keyboardName allowing it to be
+  // properly set when showing the keyboard
+  if (enabledKeyboardNames.indexOf(keyboardName) == -1)
+    keyboardName = null;
 }
 
 // Map the input type to another type
@@ -541,15 +548,31 @@ function modifyLayout(keyboardName) {
   }
 
   var altLayoutName;
-  if (currentInputType === 'tel')
-    altLayoutName = currentInputType + 'Layout';
-  else if (currentInputType === 'number')
-    altLayoutName =
-      currentInputMode === 'digits' ? 'pinLayout' : 'numberLayout';
-  else if (layoutPage === LAYOUT_PAGE_SYMBOLS_I)
+
+  switch (currentInputType) {
+    case 'tel':
+      altLayoutName = 'telLayout';
+      break;
+    case 'number':
+      altLayoutName = currentInputMode === 'digit' ?
+                                           'pinLayout' : 'numberLayout';
+      break;
+    // The matches when type="password", "text", or "search",
+    // see mapInputType() for details
+    case 'text':
+      if (currentInputMode === 'digit') {
+        altLayoutName = 'pinLayout';
+      } else if (currentInputMode === 'numeric') {
+        altLayoutName = 'numberLayout';
+      }
+      break;
+  }
+
+  if (layoutPage === LAYOUT_PAGE_SYMBOLS_I) {
     altLayoutName = 'alternateLayout';
-  else if (layoutPage === LAYOUT_PAGE_SYMBOLS_II)
+  } else if (layoutPage === LAYOUT_PAGE_SYMBOLS_II) {
     altLayoutName = 'symbolLayout';
+  }
 
   // Start with this base layout
   var layout;
@@ -747,6 +770,11 @@ function renderKeyboard(keyboardName) {
 
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
+
+    //restore the previous candidates
+    IMERender.showCandidates(currentCandidates);
+
+    isKeyboardRendered = true;
   }
 
   // XXX: if we are going to hide the candidatePanel, notify keyboard manager
@@ -779,6 +807,8 @@ function setUpperCase(upperCase, upperCaseLocked) {
   isUpperCaseLocked = upperCaseLocked;
   isUpperCase = upperCase;
 
+  if (!isKeyboardRendered)
+    return;
   // When case changes we have to re-render the keyboard.
   // But note that we don't have to relayout the keyboard, so
   // we call draw() directly instead of renderKeyboard()
@@ -789,6 +819,9 @@ function setUpperCase(upperCase, upperCaseLocked) {
   });
   // And make sure the caps lock key is highlighted correctly
   IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+
+  //restore the previous candidates
+  IMERender.showCandidates(currentCandidates);
 }
 
 function resetUpperCase() {
@@ -1309,6 +1342,7 @@ function endPress(target, coords, touchId) {
     }
 
     resetKeyboard();
+    renderKeyboard(keyboardName);
 
     /*
      * XXX
@@ -1388,8 +1422,6 @@ function resetKeyboard() {
   isUpperCase = false;
   isUpperCaseLocked = false;
 
-  renderKeyboard(keyboardName);
-
   IMERender.setUpperCaseLock(isUpperCase);
 }
 
@@ -1414,16 +1446,22 @@ function sendKey(keyCode) {
 // The state argument is the data passed with that event, and includes
 // the input field type, its inputmode, its content, and the cursor position.
 function showKeyboard(state) {
+  var newKeyboardName = currentKeyboardName;
   // If the keyboard is not initialized or the layout has changed,
   // set the new keyboard
   if (keyboardName !== currentKeyboardName) {
     // Make sure that currentKeyboardName is enabled. If not, use
     // the first enabled keyboard as the default.
-    if (enabledKeyboardNames.indexOf(currentKeyboardName) == -1)
-      currentKeyboardName = enabledKeyboardNames[0];
+    if (enabledKeyboardNames.indexOf(currentKeyboardName) == -1) {
+      // Update the keyboard.current setting with the first enabled keyboard
+      navigator.mozSettings.createLock().set({
+        'keyboard.current': enabledKeyboardNames[0]
+      });
+      newKeyboardName = enabledKeyboardNames[0];
+    }
 
     // Now initialize that keyboard
-    setKeyboardName(currentKeyboardName);
+    setKeyboardName(newKeyboardName);
   }
 
   IMERender.showIME();
@@ -1440,6 +1478,9 @@ function showKeyboard(state) {
     });
   }
 
+  // render the keyboard after activation, which will determine the state
+  // of uppercase/suggestion, etc.
+  renderKeyboard(keyboardName);
 }
 
 // Hide keyboard
@@ -1450,6 +1491,7 @@ function hideKeyboard() {
 
   // reset the flag for candidate show/hide workaround
   candidatePanelEnabled = false;
+  isKeyboardRendered = false;
 }
 
 // Resize event handler
@@ -1491,6 +1533,7 @@ function loadIMEngine(name) {
   var glue = {
     path: sourceDir + imEngine,
     sendCandidates: function kc_glue_sendCandidates(candidates) {
+      currentCandidates = candidates;
       IMERender.showCandidates(candidates);
     },
     sendPendingSymbols:
@@ -1516,6 +1559,11 @@ function loadIMEngine(name) {
     setUpperCase: setUpperCase,
     resetUpperCase: resetUpperCase
   };
+
+  if (typeof navigator.mozKeyboard.replaceSurroundingText === 'function') {
+    glue.replaceSurroundingText =
+      navigator.mozKeyboard.replaceSurroundingText.bind(navigator.mozKeyboard);
+  }
 
   script.addEventListener('load', function IMEngineLoaded() {
     var engine = InputMethods[imEngine];

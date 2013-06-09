@@ -4,12 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1, maximum-scale=1">
   <title>Email</title>
+
+  <!-- multi-resolution support -->
+  <link rel="stylesheet" href="/shared/style/responsive.css">
   <!-- Include building blocks we want our styles to override -->
   <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
   <!-- Include our styles -->
   <link rel="stylesheet" type="text/css" href="style/mail.css">
   <link rel="stylesheet" type="text/css" href="style/message-cards.css">
   <link rel="stylesheet" type="text/css" href="style/folder-cards.css">
+  <link rel="stylesheet" type="text/css" href="style/marquee.css">
   <!-- Include shared building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
@@ -17,7 +21,6 @@
   <link rel="stylesheet" type="text/css" href="shared/style/status.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
-  <link rel="stylesheet" type="text/css" href="shared/style/responsive.css"/>
   <!-- Unstable building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css"/>
@@ -33,8 +36,10 @@
   <script type="text/javascript" defer src="js/input_areas.js"></script>
   <script type="text/javascript" defer src="js/console-hook.js"></script>
   <script type="text/javascript" defer src="js/mail-common.js"></script>
+  <script type="text/javascript" defer src="js/message_list_topbar.js"></script>
   <script type="text/javascript" defer src="js/message-cards.js"></script>
   <script type="text/javascript" defer src="js/folder-cards.js"></script>
+  <script type="text/javascript" defer src="js/marquee.js"></script>
   <!-- This one is an optimized vendor library containing our mail backend. -->
   <!-- START BACKEND INJECT - do not modify -->
   <script type="text/javascript" defer src="js/ext/mailapi/main-frame-setup.js"></script>
@@ -220,6 +225,8 @@
             <div class="bottom-toolbar-spacer"></div>
           </div>
         </div>
+        <!-- New email notification bar -->
+        <div class="msg-list-topbar collapsed"></div>
         <!-- Conveys background send, plus undo-able recent actions -->
         <div class="msg-activity-infobar hidden">
         </div>
@@ -960,7 +967,7 @@
         </div><div class="msg-header-avatar-section">
         </div></a>
 
-      <div class="msg-peep-bubble">
+      <div class="msg-peep-bubble peep-bubble">
         <span class="msg-peep-content"></span>
       </div>
 
@@ -1001,6 +1008,15 @@
           </button>
         </menu>
       </form>
+      <form role="dialog" class="msg-attachment-disabled-confirm" data-type="confirm">
+        <section>
+          <p><span data-l10n-id="message-send-attachment-disabled-confirm"></span></p>
+        </section>
+        <menu>
+          <button id="msg-attachment-disabled-cancel" data-l10n-id="message-multiedit-cancel">CanceL</button>
+          <button id="msg-attachment-disabled-ok" data-l10n-id="dialog-button-ok">OK</button>
+        </menu>
+      </form>
       <form role="dialog" class="msg-delete-confirm" data-type="confirm">
         <section>
           <h1 data-l10n-id="confirm-dialog-title">ConfirmatioN</h1>
@@ -1021,10 +1037,19 @@
           <button id="msg-browse-ok" class="recommend" data-l10n-id="dialog-button-ok">OK</button>
         </menu>
       </form>
+      <form role="dialog" class="msg-attach-confirm" data-type="confirm">
+        <section>
+          <h1></h1>
+          <p></p>
+        </section>
+        <menu>
+          <button id="msg-attach-ok" class="full" data-l10n-id="dialog-button-ok">OK</button>
+        </menu>
+      </form>
     </div>
     <!-- Widget nodes for the compose cards; styles use the cmp prefix -->
     <div id="templ-cmp">
-      <div class="cmp-peep-bubble">
+      <div class="cmp-peep-bubble peep-bubble">
         <span class="cmp-peep-name"></span>
         <span class="cmp-peep-address collapsed"></span>
       </div>

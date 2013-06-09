@@ -10,6 +10,12 @@
  */
 
 function AnimatedIcon(element, path, frames, delay) {
+  var scaleRatio = window.innerWidth / 320;
+  var baseSize = 16 * scaleRatio;
+
+  element.width = baseSize;
+  element.height = baseSize;
+
   var context = element.getContext('2d');
 
   this.frame = 1;
@@ -25,7 +31,7 @@ function AnimatedIcon(element, path, frames, delay) {
     image.onload = function() {
       var w = image.width;
       var h = image.height / frames;
-      context.drawImage(image, 0, 0, w, h, 0, 0, w, h);
+      context.drawImage(image, 0, 0, w, h, 0, 0, baseSize, baseSize);
     };
   }
 
@@ -43,8 +49,9 @@ function AnimatedIcon(element, path, frames, delay) {
       this.timerId = setInterval(function() {
           var w = image.width;
           var h = image.height / frames;
-
-          context.drawImage(image, 0, self.frame * h, w, h, 0, 0, w, h);
+          context.clearRect(0, 0, baseSize, baseSize);
+          context.drawImage(image, 0, self.frame * h, w, h, 0, 0,
+            baseSize, baseSize);
           self.frame++;
 
           if (self.frame == self.frames) {
@@ -327,8 +334,14 @@ var StatusBar = {
         break;
 
       case 'moztimechange':
-        navigator.mozL10n.ready(
-          this.clock.start.bind(this.clock, this.update.time.bind(this)));
+        navigator.mozL10n.ready((function _updateTime() {
+          // To stop clock for reseting the clock interval which runs every 60
+          // seconds. The reason to do this is that the time updated will be
+          // exactly aligned to minutes which means always getting 0 on seconds
+          // part.
+          this.clock.stop();
+          this.clock.start(this.update.time.bind(this));
+        }).bind(this));
         break;
 
       case 'mozChromeEvent':

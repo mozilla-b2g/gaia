@@ -7,6 +7,7 @@ function MockRecipients(setup) {
     remove: []
   };
   this.numbers = [];
+  this.inputValue = '';
 }
 
 MockRecipients.prototype.add = function(contact) {
@@ -24,6 +25,10 @@ MockRecipients.prototype.render = function() {
 };
 
 MockRecipients.prototype.focus = function() {
+  return this;
+};
+
+MockRecipients.prototype.visible = function() {
   return this;
 };
 

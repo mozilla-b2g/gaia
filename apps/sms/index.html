@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Messages</title>
+    <!-- multi-resolution support -->
+    <link rel="stylesheet" href="/shared/style/responsive.css">
     <!-- Stable Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
@@ -18,7 +20,6 @@
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/responsive.css">
     -->
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/root.css">
@@ -49,7 +50,7 @@
             <a href="#new" id="icon-add">
               <span class="icon icon-compose"></span>
             </a>
-            <a href="#edit" id="threads-edit-icon">
+            <a id="threads-edit-icon">
               <span class="icon icon-edit"></span>
             </a>
           </menu>
@@ -96,13 +97,13 @@
             <span class="icon icon-back"></span>
           </a>
           <menu type="toolbar">
-            <a href="#edit" id="icon-edit">
+            <a id="messages-edit-icon">
               <span class="icon icon-edit"></span>
             </a>
           </menu>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
         </header>
-        <div class="subheader">
+        <div id="messages-subheader" class="subheader">
           <menu type="toolbar">
             <a id="messages-contact-pick-button">
               <span class="icon icon-user"></span>
@@ -112,24 +113,32 @@
             <section data-l10n-id="to" id="to-label">
               To:
             </section>
-            <section id="messages-recipients-list">
+            <section id="messages-recipients-list" class="singleline">
             </section>
           </section>
+          <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
+            Carrier unknown
+          </div>
           <section id="messages-max-length-notice"
                   role="notification"
                   class="hide">
             <p></p>
           </section>
-          <section id="messages-convert-notice"
-                  role="notification"
-                  class="hide">
-            <p></p>
-          </section>
-          <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
-            Carrier unknown
+          <!-- Notifications in this container will be rendered on top of the
+          Compose field. These notifications should be hidden automatically so
+          they do not prevent the user from inputting text. -->
+          <div class="overlay">
+            <section id="messages-convert-notice"
+                    role="notification"
+                    class="hide">
+              <p></p>
+            </section>
           </div>
         </div>
-        <article id="messages-container" class="view-body" data-type="list">
+        <article id="messages-container" class="view-body article-list" data-type="list">
+        </article>
+        <article id="messages-participants" class="view-body article-list hide" data-type="list">
+          <ul id="messages-participants-list" class="contact-list"></ul>
         </article>
         <form role="search" id="messages-compose-form" class="bottom messages-compose-form" data-message-type="sms">
           <button id="messages-attach-button" class="icon icon-attachment">Attachment</button>
@@ -188,13 +197,18 @@
       <!--
       <a class="suggestion"
         data-number="${number}" data-source="contacts" data-name="${name}">
-        <aside class="pack-end">
-          <img ${srcAttr}>
-        </aside>
         <p class="name">${nameHTML}</p>
         <p>
-          ${type} ${numberHTML} ${carrier}
+          ${type} ${numberHTML}
         </p>
+      </a>
+      -->
+    </div>
+
+    <div id="messages-number-tmpl" class="hide">
+      <!--
+      <a class="suggestion" data-number="${number}" data-source="manual" data-name="${number}">
+        <p class="name">${number}</p>
       </a>
       -->
     </div>
@@ -241,6 +255,7 @@
         <p class="name">${number}</p>
         <p>
           <time>${formattedDate}</time>
+          <span class="mms-icon">MMS</span>
           <span class="body-text">${body}</span>
         </p>
       </a>
@@ -249,39 +264,29 @@
 
     <div id="messages-recipient-tmpl" class="hide">
       <!--
-      <span class="recipient" contenteditable="${editable}"
+      <span class="recipient" x-inputmode="verbatim"
+        contenteditable="${editable}"
         data-number="${number}" data-source="${source}" data-name="${name}">
         ${name}
       </span>
       -->
     </div>
 
+    <!-- The image in this template ensures that the iFrame's 'load' event is
+    not triggered until after the attachment media is loaded. This, in turn,
+    prevents the Object URL from being revoked before the image has been drawn.
+    -->
     <div id="attachment-tmpl" class="hide">
       <!--
-      <style>
-        body.attachment {
-          margin: 0;
-          font-size: 1.5rem;
-        }
-        body.attachment img {
-          width: 100%;
-          height: 100%;
-        }
-        body.attachment div {
-          position: absolute;
-          bottom: 0;
-          right: 0;
-          padding: 0.4rem 0.4rem 0 0.4rem;
-          background: rgba(0, 0, 0, 0.3);
-          border: 0.1rem solid rgba(255, 255, 255, 0.3);
-          border-radius: 1rem 0 0 0;
-          color: rgb(255, 255, 255);
-          font-size: 1rem;
-        }
-      </style>
-      <body class="attachment">
-        <img src="${uri}">
-        <div>${size}</div>
+      <head>
+        <base href="${baseURL}">
+        <link rel="stylesheet" type="text/css" href="style/attachment.css">
+      </head>
+      <body class="attachment ${draftClass}">
+        <div style="${inlineStyle}" class="placeholder ${type}-placeholder"></div>
+        <div class="size-indicator">${size}</div>
+        <img src="${imgSrc}"
+          style="position: absolute;height: 0;width: 0;left: 0;top: 0;z-index:-1;">
       </body>
       -->
     </div>

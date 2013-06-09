@@ -25,7 +25,7 @@
  *
  * If you want to preserve a layer but changing the other, use the empty string
  * as the id of the layer you want to preserve.
- * For intance, you want to only close the overlay layer but not affecting the
+ * For instance, you want to only close the overlay layer but not affecting the
  * tab layer:
  * #
  *
@@ -39,11 +39,8 @@ var CostControlApp = (function() {
 
   'use strict';
 
-  // XXX: This is the point of entry, check common.js for more info
-  waitForDOMAndMessageHandler(window, onReady);
-
   var costcontrol, initialized = false;
-  function onReady() {
+  function onReady(callback) {
     var mobileConnection = window.navigator.mozMobileConnection;
     var cardState = checkCardState();
     var iccid = mobileConnection.iccInfo.iccid;
@@ -54,7 +51,7 @@ var CostControlApp = (function() {
       mobileConnection.oncardstatechange = onReady;
 
     // SIM is ready, but ICC info is not ready yet
-    } else if (!isValidICCID(iccid)) {
+    } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
       mobileConnection.oniccinfochange = onReady;
 
@@ -63,7 +60,7 @@ var CostControlApp = (function() {
       debug('SIM ready. ICCID:', iccid);
       mobileConnection.oncardstatechange = undefined;
       mobileConnection.oniccinfochange = undefined;
-      startApp();
+      startApp(callback);
     }
   }
 
@@ -92,12 +89,11 @@ var CostControlApp = (function() {
   }
 
   function showSimErrorDialog(status) {
-
     function realShowSimError(status) {
       var header = _('widget-' + status + '-heading');
       var msg = _('widget-' + status + '-meta');
-      alert(header + '\n' + msg);
-      setTimeout(window.close);
+      Common.modalAlert(header + '\n' + msg);
+      Common.closeApplication();
     }
 
     if (isApplicationLocalized) {
@@ -169,21 +165,21 @@ var CostControlApp = (function() {
     });
   }
 
-  function startApp() {
+  function startApp(callback) {
     function _onNoICCID() {
       console.error('checkSIMChange() failed. Impossible to ensure consistent' +
                     'data. Aborting start up.');
       showSimErrorDialog('no-sim2');
     }
 
-    checkSIMChange(function _onSIMChecked() {
+    Common.checkSIMChange(function _onSIMChecked() {
       CostControl.getInstance(function _onCostControlReady(instance) {
         if (ConfigManager.option('fte')) {
-          window.location = '/fte.html';
+          startFTE();
           return;
         }
         costcontrol = instance;
-        setupApp();
+        setupApp(callback);
       });
     }, _onNoICCID);
   }
@@ -196,7 +192,29 @@ var CostControlApp = (function() {
     }
   });
 
-  function setupApp() {
+  window.addEventListener('message', function handler_finished(e) {
+    if (e.origin !== Common.COST_CONTROL_APP) {
+      return;
+    }
+
+    var type = e.data.type;
+
+    if (type === 'fte_finished') {
+      window.removeEventListener('message', handler_finished);
+
+      document.getElementById('splash_section').
+        setAttribute('aria-hidden', 'true');
+
+      // Only hide the FTE view when everything in the UI is ready
+      CostControlApp.afterFTU(function() {
+        document.getElementById('fte_view').classList.add('non-ready');
+        document.getElementById('fte_view').src = '';
+      });
+    }
+  });
+
+  function setupApp(callback) {
+
     setupCardHandler();
 
     // Configure settings buttons
@@ -256,7 +274,7 @@ var CostControlApp = (function() {
       }
     );
 
-    updateUI();
+    updateUI(callback);
     ConfigManager.observe('plantype', updateUI, true);
 
     initialized = true;
@@ -285,9 +303,9 @@ var CostControlApp = (function() {
   }
 
   var currentMode;
-  function updateUI() {
+  function updateUI(callback) {
     ConfigManager.requestSettings(function _onSettings(settings) {
-      var mode = costcontrol.getApplicationMode(settings);
+      var mode = ConfigManager.getApplicationMode();
       debug('App UI mode: ', mode);
 
       // Layout
@@ -322,6 +340,9 @@ var CostControlApp = (function() {
         // XXX: Break initialization to allow Gecko to render the animation on
         // time.
         setTimeout(function continueLoading() {
+          if (typeof callback === 'function') {
+            window.setTimeout(callback, 0);
+          }
           document.getElementById('main').classList.remove('non-ready');
 
           if (mode === 'PREPAID') {
@@ -348,7 +369,28 @@ var CostControlApp = (function() {
     return window.location.hash.split('#')[1] === 'datausage-tab';
   }
 
+  function startFTE() {
+    var mode = ConfigManager.getApplicationMode();
+    Common.startFTE(mode);
+  }
+
   return {
+    init: function() {
+      Common.waitForDOMAndMessageHandler(window, onReady);
+    },
+    afterFTU: function(cb) {
+      onReady(cb);
+    },
+    reset: function() {
+      costcontrol = null;
+      initialized = false;
+      vmanager = null;
+      tabmanager = null;
+      settingsVManager = null;
+      currentMode = null;
+      isApplicationLocalized = false;
+      window.location.hash = '';
+    },
     showBalanceTab: function _showBalanceTab() {
       window.location.hash = '#balance-tab';
     },

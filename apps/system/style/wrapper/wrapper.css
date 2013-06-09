@@ -6,7 +6,6 @@
   padding: 0;
   width: 100%;
   height: 0.3rem;
-
   pointer-events: none;
   visibility: hidden;
 }
@@ -109,7 +108,7 @@
   pointer-events: none;
 }
 
-#wrapper-footer input::-moz-focus-inner, input:active {
+#wrapper-footer input::-moz-focus-inner, #wrapper-footer input:active {
   border: 0;
   background: transparent !important;
 }

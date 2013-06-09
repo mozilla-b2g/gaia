@@ -5,6 +5,11 @@
  **/
 
 /**
+ * Max composer attachment size is defined as 5120000 bytes.
+ */
+var MAX_ATTACHMENT_SIZE = 5120000;
+
+/**
  * To make it easier to focus input boxes, we have clicks on their owning
  * container cause a focus event to occur on the input.  This method helps us
  * also position the cursor based on the location of the click so the cursor
@@ -224,8 +229,8 @@ ComposeCard.prototype = {
 
   createBubbleNode: function(name, address) {
     var bubble = cmpNodes['peep-bubble'].cloneNode(true);
+    bubble.classList.add('peep-bubble');
     bubble.classList.add('msg-peep-bubble');
-    bubble.classList.add('cmp-peep-bubble');
     bubble.setAttribute('data-address', address);
     bubble.setAttribute('data-name', name);
     bubble.querySelector('.cmp-peep-address').textContent = address;
@@ -360,8 +365,13 @@ ComposeCard.prototype = {
     if (target.classList.contains('cmp-peep-bubble')) {
       var contents = cmpNodes['contact-menu'].cloneNode(true);
       var email = target.querySelector('.cmp-peep-address').textContent;
-      contents.getElementsByTagName('header')[0].textContent = email;
+      var headerNode = contents.getElementsByTagName('header')[0];
+      // Setup the marquee structure
+      Marquee.setup(email, headerNode);
+      // Activate marquee once the contents DOM are added to document
       document.body.appendChild(contents);
+      Marquee.activate('alternate', 'ease');
+
       var formSubmit = (function(evt) {
         document.body.removeChild(contents);
         switch (evt.explicitOriginalTarget.className) {
@@ -412,8 +422,41 @@ ComposeCard.prototype = {
             attTemplate.getElementsByClassName('cmp-attachment-filename')[0],
           filesizeTemplate =
             attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
+      var totalSize = 0;
       for (var i = 0; i < this.composer.attachments.length; i++) {
         var attachment = this.composer.attachments[i];
+        //check for attachment max size
+        if ((totalSize + attachment.blob.size) > MAX_ATTACHMENT_SIZE) {
+
+          /*Remove all the remaining attachments from composer*/
+          while (this.composer.attachments.length > i) {
+            this.composer.removeAttachment(this.composer.attachments[i]);
+          }
+          var dialog = msgNodes['attach-confirm'].cloneNode(true);
+          var title = dialog.getElementsByTagName('h1')[0];
+          var content = dialog.getElementsByTagName('p')[0];
+
+          if (this.composer.attachments.length > 0) {
+            title.textContent = mozL10n.get('composer-attachments-large');
+            content.textContent =
+            mozL10n.get('compose-attchments-size-exceeded');
+          } else {
+            title.textContent = mozL10n.get('composer-attachment-large');
+            content.textContent =
+            mozL10n.get('compose-attchment-size-exceeded');
+          }
+          ConfirmDialog.show(dialog,
+           {
+            // ok
+            id: 'msg-attach-ok',
+            handler: function() {
+              this.updateAttachmentsSize();
+            }.bind(this)
+           }
+          );
+          return;
+        }
+        totalSize = totalSize + attachment.blob.size;
         filenameTemplate.textContent = attachment.name;
         filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
         var attachmentNode = attTemplate.cloneNode(true);

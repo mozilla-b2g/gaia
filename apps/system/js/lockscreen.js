@@ -85,9 +85,15 @@ var LockScreen = {
   triggeredTimeoutId: 0,
 
   /*
-  * Interval ID for elastic of curve and arrow
+  * Interval ID for elastic of curve and arrow (null means the animation is
+  * not running).
   */
-  elasticIntervalId: 0,
+  elasticIntervalId: null,
+
+  /*
+  * True if the animation should be running right now.
+  */
+  elasticEnabled: false,
 
   /*
   * elastic animation interval
@@ -126,10 +132,10 @@ var LockScreen = {
     /* Status changes */
     window.addEventListener('volumechange', this);
     window.addEventListener('screenchange', this);
+    document.addEventListener('visibilitychange', this);
 
     /* Gesture */
     this.area.addEventListener('mousedown', this);
-    this.altCameraButton.addEventListener('mousedown', this);
     this.areaCamera.addEventListener('mousedown', this);
     this.areaUnlock.addEventListener('mousedown', this);
     this.iconContainer.addEventListener('mousedown', this);
@@ -157,17 +163,6 @@ var LockScreen = {
     }
 
     var self = this;
-    if (navigator && navigator.mozCellBroadcast) {
-      navigator.mozCellBroadcast.onreceived = function onReceived(event) {
-        var msg = event.message;
-        if (conn &&
-            conn.voice.network.mcc === MobileOperator.BRAZIL_MCC &&
-            msg.messageId === MobileOperator.BRAZIL_CELLBROADCAST_CHANNEL) {
-          self.cellbroadcastLabel = msg.body;
-          self.updateConnState();
-        }
-      };
-    }
 
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
@@ -289,6 +284,11 @@ var LockScreen = {
 
         this.lockIfEnabled(true);
         break;
+
+      case 'visibilitychange':
+        this.visibilityChanged();
+        break;
+
       case 'voicechange':
       case 'cardstatechange':
       case 'iccinfochange':
@@ -305,8 +305,7 @@ var LockScreen = {
 
       case 'mousedown':
         if (evt.target === this.areaUnlock ||
-           evt.target === this.areaCamera ||
-           evt.target === this.altCameraButton) {
+           evt.target === this.areaCamera) {
           evt.preventDefault();
           this.handleIconClick(evt.target);
           break;
@@ -461,7 +460,6 @@ var LockScreen = {
     var self = this;
     switch (target) {
       case this.areaCamera:
-      case this.altCameraButton:
         var panelOrFullApp = function panelOrFullApp() {
           // If the passcode is enabled and it has a timeout which has passed
           // switch to secure camera
@@ -1004,12 +1002,37 @@ var LockScreen = {
     });
   },
 
-  setElasticEnabled: function ls_setElasticEnabled(value) {
-    clearInterval(this.elasticIntervalId);
-    if (value) {
-      this.elasticIntervalId =
-        setInterval(this.playElastic.bind(this), this.ELASTIC_INTERVAL);
+  stopElasticTimer: function ls_stopElasticTimer() {
+    // Stop the timer if its running.
+    if (this.elasticIntervalId != null) {
+      clearInterval(this.elasticIntervalId);
+      this.elasticIntervalId = null;
     }
+  },
+
+  startElasticTimer: function ls_startElasticTimer() {
+    this.elasticIntervalId =
+      setInterval(this.playElastic.bind(this), this.ELASTIC_INTERVAL);
+  },
+
+  setElasticEnabled: function ls_setElasticEnabled(value) {
+    // Remember the state we want to be in.
+    this.elasticEnabled = value;
+    // If the timer is already running, stop it.
+    this.stopElasticTimer();
+    // If the document is visible, go ahead and start the timer now.
+    if (value && !document.hidden) {
+      this.startElasticTimer();
+    }
+  },
+
+  visibilityChanged: function ls_visibilityChanged() {
+    // Stop the timer when we go invisible and
+    // re-start it when we become visible.
+    if (document.hidden)
+      this.stopElasticTimer();
+    else if (this.elasticEnabled)
+      this.startElasticTimer();
   },
 
   playElastic: function ls_playElastic() {
@@ -1024,6 +1047,13 @@ var LockScreen = {
       container.removeEventListener(e.type, animationend);
       overlay.classList.remove('elastic');
     });
+  },
+
+  // Used by CellBroadcastSystem to notify the lockscreen of
+  // any incoming CB messages that need to be displayed.
+  setCellbroadcastLabel: function ls_setCellbroadcastLabel(label) {
+    this.cellbroadcastLabel = label;
+    this.updateConnState();
   }
 };
 

@@ -86,7 +86,8 @@ var About = {
 
     var info = mobileConnection.iccInfo;
     document.getElementById('deviceInfo-iccid').textContent = info.iccid;
-    document.getElementById('deviceInfo-msisdn').textContent = info.msisdn;
+    document.getElementById('deviceInfo-msisdn').textContent = info.msisdn ||
+      navigator.mozL10n.get('unknown-phoneNumber');
 
     var req = mobileConnection.sendMMI('*#06#');
     req.onsuccess = function getIMEI() {

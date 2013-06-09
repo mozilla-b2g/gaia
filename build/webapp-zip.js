@@ -22,28 +22,34 @@ const PR_EXCL = 0x80;
  */
 function addToZip(zip, pathInZip, file) {
   if (file.isHidden())
-	return;
+    return;
 
-  // All non @2x files and HIDPI enabled
-  if (HIDPI !== '*' && file.path.search('@2x') === -1) {
+  // if HIDPI is enabled and the file is a bitmap let's check if there is a
+  // bigger version in the directory. If so let's ignore the file in order to
+  // use the bigger version later.
+  let isBitmap = /\.(png|gif|jpg)$/.test(file.path);
+  if (isBitmap) {
+    let isHIDPIBitmap = /@2x/.test(file.path);
 
-    // Allowed bitmap files
-    var types = /\.png|\.gif|\.jpg/;
-    if (file.path.search(types) !== -1) {
+    if (HIDPI == 0 && isHIDPIBitmap) {
+      // Do not save hidpi files into the zip in non-hidpi build
+      return;
+    }
 
-      // Extract file extension
-      var ext = file.path.split('.').pop();
-      var path2x = file.path.split(types)[0] + '@2x.' + ext;
-      var file2x = new FileUtils.File(path2x);
-
-      // @2x one will come later
-      if (file2x.exists()) {
-        return;
+    if (HIDPI == 1) {
+      if (isHIDPIBitmap) {
+        // Save the hidpi file to the zip, stripping the name to be more generic.
+        pathInZip = pathInZip.replace('@2x', '');
+      } else {
+        // Check if there a hidpi file. If yes, let's ignore this bitmap since it will
+        // be loaded later (or it has already been loaded, depending on how the OS
+        // organize files.
+        let file2x = new FileUtils.File(file.path.replace(/(\.[a-z]+$)/, '@2x$1'));
+        if (file2x.exists()) {
+          return;
+        }
       }
     }
-  } else if (file.path.search('@2x') !== -1) {
-    // Send to the zip @2x files with normal filename
-    var pathInZip = pathInZip.split('@2x')[0] + pathInZip.split('@2x')[1];
   }
 
   if (isSubjectToBranding(file.path)) {
@@ -322,16 +328,6 @@ Gaia.webapps.forEach(function(webapp) {
       return;
     }
 
-    // Forces the file to pass as @2x
-    if ( HIDPI != '*' && file.path.search('@2x') == -1 ) {
-      var path2x = file.path.split('.')[0]+'@2x.'+file.path.split('.')[1];
-      var file2x = new FileUtils.File(path2x);
-      // Adds the suffix
-      if ( file2x.exists() ) {
-        var path = path.split('.')[0]+'@2x.'+path.split('.')[1];
-        var file = file2x;
-      }
-    }
     addToZip(zip, '/shared/resources/' + path, file);
 
     if (path === 'media/ringtones/' && Gaia.distributionDir &&

@@ -143,6 +143,30 @@ var WifiUI = {
     window.history.back();
   },
 
+  joinHiddenNetwork: function wui_jhn() {
+    var password = UIManager.hiddenWifiPassword.value;
+    var user = UIManager.hiddenWifiIdentity.value;
+    var ssid = UIManager.hiddenWifiSsid.value;
+    var security = UIManager.hiddenWifiSecurity.value;
+    if (ssid.length) {
+      if (!Array.isArray(WifiManager.networks)) {
+        WifiManager.networks = [];
+      }
+
+      WifiManager.networks.push({
+          ssid: ssid,
+          capabilities: [security],
+          relSignalStrength: 0
+      });
+      this.renderNetworks(WifiManager.networks);
+      WifiUI.connect(ssid, password, user);
+    }
+
+    // like in Settings: if we don't provide correct
+    // network data it just get back to the wifi screen
+    window.history.back();
+  },
+
   connect: function wui_connect(ssid, password, user) {
 
     // First we check if there is a previous selected network
@@ -204,18 +228,9 @@ var WifiUI = {
     joinButton.disabled = true;
     passwordInput.addEventListener('keyup', function validatePassword() {
       // disable the "Join" button if the password is too short
-      var disabled = false;
-      switch (WifiHelper.getKeyManagement(selectedNetwork)) {
-        case 'WPA-PSK':
-          disabled = disabled || passwordInput.value.length < 8;
-          break;
-        case 'WPA-EAP':
-          disabled = disabled || userInput.value.length < 1;
-        case 'WEP':
-          disabled = disabled || passwordInput.value.length < 1;
-          break;
-      }
-      joinButton.disabled = disabled;
+      joinButton.disabled =
+        !WifiHelper.isValidInput(WifiHelper.getKeyManagement(selectedNetwork),
+          passwordInput.value, userInput.value);
     });
 
     // Show / Hide password
@@ -243,6 +258,23 @@ var WifiUI = {
 
     // Change hash
     window.location.hash = '#configure_network';
+  },
+
+  addHiddenNetwork: function wui_addHiddenNetwork() {
+    // Remove refresh option
+    UIManager.activationScreen.classList.add('no-options');
+    // Update title
+    UIManager.mainTitle.textContent = _('join-hidden-button');
+    UIManager.navBar.classList.add('secondary-menu');
+    window.location.hash = '#hidden-wifi-authentication';
+  },
+
+  handleHiddenWifiSecurity: function wui_handleSecurity(secuityType) {
+    if (securityType.indexOf('EAP') !== -1) {
+      UIManager.hiddenWifiIdentityBox.classList.remove('hidden');
+    } else {
+      UIManager.hiddenWifiIdentityBox.classList.add('hidden');
+    }
   },
 
   renderNetworks: function wui_rn(networks) {

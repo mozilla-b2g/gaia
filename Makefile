@@ -29,12 +29,12 @@ GAIA_DOMAIN?=gaiamobile.org
 DEBUG?=0
 PRODUCTION?=0
 GAIA_OPTIMIZE?=0
-HIDPI?=*
+HIDPI?=0
 DOGFOOD?=0
 TEST_AGENT_PORT?=8789
 
 # Enable compatibility to run in Firefox Desktop
-BROWSER?=$(DEBUG)
+DESKTOP?=$(DEBUG)
 # Disable first time experience screen
 NOFTU?=0
 # Automatically enable remote debugger
@@ -43,7 +43,7 @@ REMOTE_DEBUGGER?=0
 # We also disable FTU when running in Firefox or in debug mode
 ifeq ($(DEBUG),1)
 NOFTU=1
-else ifeq ($(BROWSER),1)
+else ifeq ($(DESKTOP),1)
 NOFTU=1
 endif
 
@@ -185,6 +185,14 @@ ifdef GAIA_DISTRIBUTION_DIR
 	ifneq ($(wildcard $(DISTRIBUTION_CONTACTS)),)
 		CONTACTS_PATH := $(DISTRIBUTION_CONTACTS)
 	endif
+endif
+
+# Add apps from customization package
+ifdef GAIA_DISTRIBUTION_DIR
+  DISTRIBUTION_APPS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)apps
+  ifneq ($(wildcard $(DISTRIBUTION_APPS)),)
+      GAIA_APP_SRCDIRS += $(DISTRIBUTION_APPS)
+  endif
 endif
 
 ifeq ($(SYS),Darwin)
@@ -401,7 +409,7 @@ define run-js-command
 	const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)$(SEP)profile"; \
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
-	const BROWSER = $(BROWSER);                                           \
+	const DESKTOP = $(DESKTOP);                                           \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
@@ -409,13 +417,13 @@ define run-js-command
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
 	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
-	const HIDPI = "$(HIDPI)";                                     \
+	const HIDPI = "$(HIDPI)";                                                   \
 	const DOGFOOD = "$(DOGFOOD)";                                               \
 	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
 	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
 	const GAIA_ENGINE = "xpcshell";                                             \
-	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";               	\
+	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";                   \
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
@@ -453,7 +461,7 @@ EXT_DIR=profile/extensions
 extensions:
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
-ifeq ($(BROWSER),1)
+ifeq ($(DESKTOP),1)
 	cp -r tools/extensions/* $(EXT_DIR)/
 else ifeq ($(DEBUG),1)
 	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
@@ -747,7 +755,7 @@ SETTINGS_ARG += --console
 endif
 
 profile/settings.json:
-ifneq ($(HIDPI),*)
+ifeq ($(HIDPI),1)
 	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@2x.jpg --override $(SETTINGS_PATH) --output $@
 else
 	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override $(SETTINGS_PATH) --output $@

@@ -92,7 +92,11 @@ const IMERender = (function() {
     var content = document.createDocumentFragment();
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
       var kbRow = document.createElement('div');
-      kbRow.className = 'keyboard-row';
+      var rowLayoutWidth = 0;
+      kbRow.classList.add('keyboard-row');
+      if (nrow === layout.keys.length - 1) {
+        kbRow.classList.add('keyboard-last-row');
+      }
       row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
         var keyChar = key.value;
@@ -113,16 +117,15 @@ const IMERender = (function() {
         // Handle override
         var code = key.keyCode || keyChar.charCodeAt(0);
 
-        var className = isSpecialKey(key) ? 'special-key' : '';
-
-        // telLayout and numberLayout keys works like special-keys without
-        // popups
-        if (!isSpecialKey(key) &&
-            (inputType === 'tel' || inputType === 'number')) {
-          className = 'special-key big-key';
+        var className = '';
+        if (isSpecialKey(key)) {
+          className = 'special-key';
+        } else if (layout.keyClassName) {
+          className = layout.keyClassName;
         }
 
         var ratio = key.ratio || 1;
+        rowLayoutWidth += ratio;
 
         var keyWidth = placeHolderWidth * ratio;
         var dataset = [{'key': 'row', 'value': nrow}];
@@ -134,8 +137,10 @@ const IMERender = (function() {
 
         kbRow.appendChild(buildKey(keyChar, className, keyWidth + 'px',
           dataset, key.altNote));
-
       }));
+
+      kbRow.dataset.layoutWidth = rowLayoutWidth;
+
       content.appendChild(kbRow);
     }));
 
@@ -250,21 +255,63 @@ const IMERender = (function() {
         candidatePanel.dataset.truncated = true;
       }
 
+      // Make sure all of the candidates are defined
+      candidates = candidates.filter(function(c) { return !!c });
+
       candidates.forEach(function buildCandidateEntry(candidate) {
-        var span = document.createElement('span');
-        span.dataset.selection = true;
+        // Each candidate gets its own div
+        var div = document.createElement('div');
+        // Size the div based on the # of candidates (-2% for margins)
+        div.style.width = (100 / candidates.length - 2) + '%';
+        candidatePanel.appendChild(div);
+
+        var text, data, correction = false;
         if (typeof candidate === 'string') {
           if (candidate[0] === '*') { // it is an autocorrection candidate
             candidate = candidate.substring(1);
-            span.classList.add('autocorrect');
+            correction = true;
           }
-          span.dataset.data = span.textContent = candidate;
+          data = text = candidate;
         }
         else {
-          span.dataset.data = candidate[1];
-          span.textContent = candidate[0];
+          text = candidate[0];
+          data = candidate[1];
         }
-        candidatePanel.appendChild(span);
+
+        var span = fitText(div, text);
+        span.dataset.selection = true;
+        span.dataset.data = data;
+        if (correction)
+          span.classList.add('autocorrect');
+
+        // Put the text in a span and make it fit in the container
+        function fitText(container, text) {
+          container.textContent = '';
+          if (!text)
+            return;
+          var span = document.createElement('span');
+          span.textContent = text;
+          container.appendChild(span);
+
+          // This measurement only works if the span is display:inline
+          var textWidth = span.getBoundingClientRect().width;
+          var containerWidth = container.clientWidth;
+
+          // But the scaling and centering we do only works if the span
+          // is display:block (or inline-block), so we that style now.
+          span.style.display = 'inline-block';
+          if (textWidth > containerWidth) {
+            var scale = containerWidth / textWidth;
+            span.style.width = (100 / scale) + '%';
+            span.style.transformOrigin = 'left';
+            span.style.transform = 'scale(' + scale + ',1)';
+          }
+          else {
+            span.style.width = '100%';
+          }
+
+          return span;
+        }
       });
     }
   };
@@ -437,14 +484,29 @@ const IMERender = (function() {
 
       var ratio, keys, rows = document.querySelectorAll('.keyboard-row');
       for (var r = 0, row; row = rows[r]; r += 1) {
+        var rowLayoutWidth = parseInt(row.dataset.layoutWidth, 10);
         keys = row.childNodes;
         for (var k = 0, key; key = keys[k]; k += 1) {
           ratio = layout.keys[r][k].ratio || 1;
+
           key.style.width = Math.floor(placeHolderWidth * ratio) + 'px';
 
           // to get the visual width/height of the key
           // for better proximity info
           var visualKey = key.querySelector('.visual-wrapper');
+
+          // row layout width is not 100%, make the first and last one bigger
+          if (rowLayoutWidth !== layoutWidth &&
+              (k === 0 || k === keys.length - 1)) {
+
+            // keep visual key width
+            visualKey.style.width = visualKey.offsetWidth + 'px';
+
+            // calculate new tap area
+            var newRatio = ratio + ((layoutWidth - rowLayoutWidth) / 2);
+            key.style.width = Math.floor(placeHolderWidth * newRatio) + 'px';
+            key.classList.add('float-key-' + (k === 0 ? 'first' : 'last'));
+          }
 
           _keyArray.push({
             code: key.dataset.keycode | 0,

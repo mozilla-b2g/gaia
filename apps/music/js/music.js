@@ -125,15 +125,40 @@ function init() {
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
   musicdb.onunavailable = function(event) {
+    // If we were playing a song, stop it right away since we
+    // can't access the file anymore.
+    stopPlayingAndReset();
+
+    // Also let the user know why they can't play songs anymore
     var why = event.detail;
     if (why === MediaDB.NOCARD)
       showOverlay('nocard');
     else if (why === MediaDB.UNMOUNTED)
       showOverlay('pluggedin');
+  };
 
-    // stop and reset the player then back to tiles mode to avoid crash
-    PlayerView.stop();
+  // If the user removed the sdcard (but there is still internal storage)
+  // we just need to stop playing, we don't have to put up an overlay.
+  // This event will be followed by deleted events to remove the songs
+  // that were on the sdcard and are no longer playable.
+  musicdb.oncardremoved = stopPlayingAndReset;
+
+  function stopPlayingAndReset() {
+    // Stop and reset the player then back to tiles mode to avoid
+    // crash.  We could be smarter here by looking at the currently
+    // playing song and only stopping it if its volume is not in the
+    // list of available volumes. But that could potentially cause
+    // problems if we are playing a playlist and some songs are on one
+    // storage area and some in another. Yanking out an sdcard is
+    // uncommon enough that it should be fine to always stop playing.
+    if (typeof PlayerView !== 'undefined') {
+      PlayerView.stop();
+      PlayerView.clean();
+    }
+
     ModeManager.start(MODE_TILES);
+    ModeManager.playerTitle = null;
+    ModeManager.updateTitle();
     TilesView.hideSearch();
   };
 
@@ -157,6 +182,8 @@ function init() {
   var filesFoundBatch = 0;
   var scanning = false;
   var SCAN_UPDATE_BATCH_SIZE = 25; // Redisplay after this many new files
+  var DELETE_BATCH_TIMEOUT = 500;  // Redisplay this long after a delete
+  var deleteTimer = null;
 
   var scanProgress = document.getElementById('scan-progress');
   var scanCount = document.getElementById('scan-count');
@@ -194,28 +221,37 @@ function init() {
   // updated list of files. We don't want to do this for every new file
   // but we do want to redisplay every so often.
   musicdb.oncreated = function(event) {
-    var currentMode = ModeManager.currentMode;
-    if (scanning && !displayingScanProgress &&
-        (currentMode === MODE_TILES ||
-         currentMode === MODE_LIST ||
-         currentMode === MODE_PICKER))
-    {
-      displayingScanProgress = true;
-      scanProgress.classList.remove('hidden');
+    if (scanning) {
+      var currentMode = ModeManager.currentMode;
+      if (!displayingScanProgress &&
+          (currentMode === MODE_TILES ||
+           currentMode === MODE_LIST ||
+           currentMode === MODE_PICKER))
+      {
+        displayingScanProgress = true;
+        scanProgress.classList.remove('hidden');
+      }
+      var n = event.detail.length;
+
+      filesFoundWhileScanning += n;
+      filesFoundBatch += n;
+
+      scanCount.textContent = filesFoundWhileScanning;
+
+      var metadata = event.detail[0].metadata;
+      scanArtist.textContent = metadata.artist || '';
+      scanTitle.textContent = metadata.title || '';
+
+      if (filesFoundBatch > SCAN_UPDATE_BATCH_SIZE) {
+        filesFoundBatch = 0;
+        showCurrentView();
+      }
     }
-    var n = event.detail.length;
-
-    filesFoundWhileScanning += n;
-    filesFoundBatch += n;
-
-    scanCount.textContent = filesFoundWhileScanning;
-
-    var metadata = event.detail[0].metadata;
-    scanArtist.textContent = metadata.artist || '';
-    scanTitle.textContent = metadata.title || '';
-
-    if (filesFoundBatch > SCAN_UPDATE_BATCH_SIZE) {
-      filesFoundBatch = 0;
+    else {
+      // If we get a created event while we are not scanning, then
+      // there was probably a new song saved via bluetooth or MMS.
+      // We don't have any way to be clever about it; we just have to
+      // redisplay the entire view
       showCurrentView();
     }
   };
@@ -225,7 +261,23 @@ function init() {
   // display music that is no longer available.  But the only way to prevent
   // this is to refuse to display any music until the scan completes.
   musicdb.ondeleted = function(event) {
-    filesDeletedWhileScanning += event.detail.length;
+    if (scanning) {
+      // If we get a deletion during a scan, just note it for processing
+      // when the scan is over
+      filesDeletedWhileScanning += event.detail.length;
+    }
+    else {
+      // Otherwise, if we're not scanning, this may be one in a series
+      // of deletions (we get lots when the sd card is pulled out, for example)
+      // Don't redisplay the UI right away. Instead, wait until the deletions
+      // seem to have stopped or paused before updating
+      if (deleteTimer)
+        clearTimeout(deleteTimer);
+      deleteTimer = setTimeout(function() {
+        deleteTimer = null;
+        showCurrentView();    // Redisplay the UI
+      }, DELETE_BATCH_TIMEOUT);
+    }
   };
 }
 
@@ -331,6 +383,7 @@ function showCurrentView(callback) {
     if (pendingPick) {
       ListView.clean();
 
+      knownSongs.length = 0;
       listHandle =
         musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
                           function(song) {
@@ -377,6 +430,7 @@ function showCurrentView(callback) {
                                          songs.push(null);
                                          TilesView.clean();
 
+                                         knownSongs.length = 0;
                                          songs.forEach(function(song) {
                                            TilesView.update(song);
                                            // Push the song to knownSongs then
@@ -861,7 +915,8 @@ function createListElement(option, data, index, highlight) {
 
   function highlightText(result, text) {
     var textContent = result.textContent;
-    var index = textContent.toLocaleLowerCase().indexOf(text);
+    var textLowerCased = textContent.toLocaleLowerCase();
+    var index = Normalizer.toAscii(textLowerCased).indexOf(text);
 
     if (index >= 0) {
       var innerHTML = textContent.substring(0, index) +
@@ -1392,7 +1447,9 @@ var SearchView = {
     if (!query)
       return;
 
-    query = query.toLocaleLowerCase();
+    // Convert to lowercase and replace accented characters
+    var queryLowerCased = query.toLocaleLowerCase();
+    query = Normalizer.toAscii(queryLowerCased);
 
     var lists = { artist: this.searchArtistsView,
                   album: this.searchAlbumsView,
@@ -1404,8 +1461,8 @@ var SearchView = {
         this.searchHandles[option] = null;
         return;
       }
-
-      if (result.metadata[option].toLocaleLowerCase().indexOf(query) !== -1) {
+      var resultLowerCased = result.metadata[option].toLocaleLowerCase();
+      if (Normalizer.toAscii(resultLowerCased).indexOf(query) !== -1) {
         this.dataSource.push(result);
 
         numResults[option]++;

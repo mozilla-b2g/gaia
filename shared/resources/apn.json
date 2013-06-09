@@ -627,7 +627,7 @@
   ],
   "02": [
     {"carrier":"T-mobile.pl","apn":"internet","type":["default","supl"]},
-    {"voicemail":"602950","type":["operatorvariant"]},
+    {"voicemail":"602950","cellBroadcastSearchList":"0,9,19,28,112","type":["operatorvariant"]},
     {"carrier":"T-mobile.pl","apn":"mms","mmsc":"http://mms/servlets/mms","mmsproxy":"213.158.194.226","mmsport":"8080","type":["mms"]},
     {"carrier":"heyahinternet","apn":"heyah.pl","type":["default","supl"]},
     {"carrier":"heyahmms","apn":"heyahmms","mmsc":"http://mms.heyah.pl/servlets/mms","mmsproxy":"213.158.194.226","mmsport":"8080","type":["mms"]}

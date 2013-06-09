@@ -51,6 +51,7 @@
 #trustedui-throbber.loading {
   height: 0.3rem;
   background-image: url('../shared/progress.gif');
+  background-size: auto 0.3rem;
 }
 
 #trustedui-inner > .title-container {

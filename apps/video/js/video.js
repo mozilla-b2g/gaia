@@ -31,7 +31,6 @@ var playing = false;
 var playerShowing = false;
 
 // keep the screen on when playing
-var screenLock;
 var endedTimer;
 
 // same thing for the controls
@@ -50,8 +49,9 @@ var currentVideoBlob; // The blob for the currently playing video
 var videos = [];
 var firstScanEnded = false;
 
-var THUMBNAIL_WIDTH = 210;
-var THUMBNAIL_HEIGHT = 120;
+var scaleRatio = window.innerWidth / 320;
+var THUMBNAIL_WIDTH = 210 * scaleRatio;
+var THUMBNAIL_HEIGHT = 120 * scaleRatio;
 
 // Enumerating the readyState for html5 video api
 var HAVE_NOTHING = 0;
@@ -376,20 +376,16 @@ function createThumbnailItem(videonum) {
 
 function detailsOverflowHandler(e) {
   var el = e.target;
-  var max = { portrait: 45, landscape: 175 };
   var title = el.firstElementChild;
-  var orientation = window.innerWidth > window.innerHeight ?
-    'landscape' : 'portrait';
-  var end = title.textContent.length > max[orientation] ?
-    max[orientation] : -4;
-  if (title.textContent.length >= 4) {
+  if (title.textContent.length > 5) {
+    var max = (window.innerWidth > window.innerHeight) ? 175 : 45;
+    var end = title.textContent.length > max ? max - 1 : -5;
     title.textContent = title.textContent.slice(0, end) + '\u2026';
+    // Force element to be repainted to enable 'overflow' event
+    // Can't repaint without the timeout maybe a gecko bug.
+    el.style.overflow = 'visible';
+    setTimeout(function() { el.style.overflow = 'hidden'; });
   }
-
-  // Force element to be repainted to enable 'overflow' event
-  // Can't repaint without the timeout maybe a gecko bug.
-  el.style.overflow = 'visible';
-  setTimeout(function() { el.style.overflow = 'hidden'; });
 }
 
 function thumbnailClickHandler() {
@@ -566,12 +562,6 @@ function hidePlayer(updateMetadata) {
   dom.player.pause();
 
   function completeHidingPlayer() {
-    // Allow the screen to blank now.
-    if (screenLock) {
-      screenLock.unlock();
-      screenLock = null;
-    }
-
     // switch to the video gallery view
     dom.fullscreenView.classList.add('hidden');
     dom.thumbnailSelectView.classList.add('hidden');
@@ -671,10 +661,6 @@ function play() {
   // Start playing
   dom.player.play();
   playing = true;
-
-  // Don't let the screen go to sleep
-  if (!screenLock)
-    screenLock = navigator.requestWakeLock('screen');
 }
 
 function pause() {
@@ -684,12 +670,6 @@ function pause() {
   // Stop playing the video
   dom.player.pause();
   playing = false;
-
-  // Let the screen go to sleep
-  if (screenLock) {
-    screenLock.unlock();
-    screenLock = null;
-  }
 }
 
 // Update the progress bar and play head as the video plays

@@ -30,16 +30,7 @@
 }
 
 #simpin-dialog .input-wrapper input[type="number"] {
-  border: none;
   padding: 0;
   height: 4rem;
-  background: transparent;
-}
-
-
-#simpin-dialog .input-wrapper input[type="text"] {
-  pointer-events: none;
-  position: absolute;
-  top: 0;
 }
 

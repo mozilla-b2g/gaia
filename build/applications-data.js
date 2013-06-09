@@ -49,9 +49,18 @@ function iconDescriptor(directory, app_name, entry_point) {
   let origin = gaiaOriginURL(app_name);
   let manifestURL = gaiaManifestURL(app_name);
 
+  // Locate the directory of a given app.
+  // If the directory (Gaia.distributionDir)/(directory)/(app_name) exists,
+  // favor it over (GAIA_DIR)/(directory)/(app_name).
+  let targetDir = Gaia.distributionDir ? Gaia.distributionDir : GAIA_DIR;
+  let dir = getFile(targetDir, directory, app_name);
+
+  if (!dir.exists()) {
+    dir = getFile(GAIA_DIR, directory, app_name);
+  }
+
   // For external/3rd party apps that don't use the Gaia domain, we have an
   // 'metadata.json' file that specifies the URL.
-  let dir = getFile(GAIA_DIR, directory, app_name);
   let metadataFile = dir.clone();
   metadataFile.append("metadata.json");
   if (metadataFile.exists()) {
@@ -221,37 +230,9 @@ hidden_apps = hidden_apps.concat([
 init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'hiddenapps.js');
 writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
 
-// Cost Control
-init = getFile(GAIA_DIR, 'apps', 'costcontrol', 'js', 'config.json');
-
-content = {
-  provider: 'Vivo',
-  enable_on: { "724": ["6", "10", "11", "23"] }, // { MCC: [ MNC1, MNC2, ...] }
-  is_free: true,
-  is_roaming_free: true,
-  credit: { currency : 'R$' },
-  balance: {
-    destination: '8000',
-    text: 'SALDO',
-    senders: ['1515'],
-    regexp: 'Saldo Recarga: R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?'
-  },
-  topup: {
-    destination: '7000',
-    ussd_destination: '*321#',
-    text: '&code',
-    senders: ['1515', '7000'],
-    confirmation_regexp: 'Voce recarregou R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?',
-    incorrect_code_regexp: '(Favor enviar|envie novamente|Verifique) o codigo de recarga'
-  },
-  default_low_limit_threshold: 3
-};
-
-writeContent(init, getDistributionFileContent('costcontrol', content));
-
 // SMS
 init = getFile(GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
-content = ["1515", "7000"];
+content = ["4850", "7000"];
 
 writeContent(init, getDistributionFileContent('sms-blacklist', content));
 
@@ -285,6 +266,12 @@ content = {
 }
 
 writeContent(init, getDistributionFileContent('browser', content));
+
+// Active Sensors
+init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'sensors.json');
+content = { ambientLight: true };
+
+writeContent(init, getDistributionFileContent('sensors', content));
 
 // Support
 init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'support.json');

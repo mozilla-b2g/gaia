@@ -17,6 +17,8 @@ var MockUtils = {
   typeFromMimeType: Utils.typeFromMimeType,
   escapeHTML: Utils.escapeHTML,
   escapeRegex: Utils.escapeRegex,
+  params: Utils.params,
+  getContactDetails: Utils.getContactDetails,
   Message: {
     format: function(str) { return str; }
   }

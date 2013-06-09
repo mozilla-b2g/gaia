@@ -47,7 +47,8 @@ var ActivityHandler = {
       Contacts.findByPhoneNumber(number, function findContact(results) {
         var record, details, name, contact;
 
-        if (results.length) {
+        // Bug 867948: results null is a legitimate case
+        if (results && results.length) {
           record = results[0];
           details = Utils.getContactDetails(number, record);
           name = record.name.length && record.name[0];
@@ -58,7 +59,7 @@ var ActivityHandler = {
           };
         }
 
-        ActivityHandler.showThreadFromSystemMessage({
+        ActivityHandler.toView({
           body: body,
           number: number,
           contact: contact || null
@@ -73,8 +74,10 @@ var ActivityHandler = {
         window.removeEventListener('hashchange', insertAttachments);
 
         blobs.forEach(function(blob, idx) {
-          var name = names[idx];
-          var attachment = new Attachment(blob, name);
+          var attachment = new Attachment(blob, {
+            name: names[idx],
+            isDraft: true
+          });
           Compose.append(attachment);
         });
       }
@@ -102,14 +105,14 @@ var ActivityHandler = {
     // For "new" message activities, proceed directly to
     // new message composition view.
     if (!message.threadId && message.number) {
-      ActivityHandler.showThreadFromSystemMessage(message);
+      ActivityHandler.toView(message);
       return;
     }
 
     var request = navigator.mozMobileMessage.getMessage(message.id);
 
     request.onsuccess = function onsuccess() {
-      ActivityHandler.showThreadFromSystemMessage(message);
+      ActivityHandler.toView(message);
     };
 
     request.onerror = function onerror() {
@@ -117,8 +120,31 @@ var ActivityHandler = {
     };
   },
 
-  showThreadFromSystemMessage:
-    function ah_showThreadFromSystemMessage(message) {
+  // Deliver the user to the correct view
+  // based on the params provided in the
+  // "message" object.
+  //
+  toView: function ah_toView(message) {
+    /**
+     *  "message" is either a message object that belongs
+     *  to a thread, or a message object from the system.
+     *
+     *
+     *  message {
+     *    number: A string phone number to pre-populate
+     *            the recipients list with.
+     *
+     *    body: An optional body to preset the compose
+     *           input with.
+     *
+     *    contact: An optional "contact" object
+     *
+     *    threadId: An option threadId corresponding
+     *              to a new or existing thread.
+     *
+     *  }
+     */
+
     if (!message) {
       return;
     }
@@ -129,7 +155,7 @@ var ActivityHandler = {
     var contact = message.contact ? message.contact : null;
     var threadHash = '#thread=' + threadId;
 
-    var showAction = function act_action(number) {
+    var showAction = function act_action() {
       // If we only have a body, just trigger a new message.
       if (!threadId) {
         MessageManager.activity.body = body || null;
@@ -147,10 +173,6 @@ var ActivityHandler = {
         case '#new':
           window.location.hash = threadHash;
           MessageManager.activity.isLocked = false;
-          break;
-        case '#edit':
-          history.back();
-          showAction(threadId);
           break;
         default:
           if (locationHash.indexOf('#thread=') !== -1) {
@@ -172,18 +194,18 @@ var ActivityHandler = {
 
     if (!document.documentElement.lang) {
       navigator.mozL10n.ready(function waitLocalized() {
-        showAction(threadId);
+        showAction();
       });
     } else {
       if (!document.mozHidden) {
         // Case of calling from Notification
-        showAction(threadId);
+        showAction();
         return;
       }
       document.addEventListener('mozvisibilitychange',
         function waitVisibility() {
           document.removeEventListener('mozvisibilitychange', waitVisibility);
-          showAction(threadId);
+          showAction();
       });
     }
   },
@@ -309,11 +331,11 @@ var ActivityHandler = {
 
         Contacts.findByPhoneNumber(message.sender, function gotContact(
                                                                 contact) {
-          var sender;
-          if (contact.length && contact[0].name) {
+          var sender = message.sender;
+          if (!contact) {
+            console.error('We got a null contact for sender:', sender);
+          } else if (contact.length && contact[0].name) {
             sender = Utils.escapeHTML(contact[0].name[0]);
-          } else {
-            sender = message.sender;
           }
 
           if (message.type === 'sms') {
@@ -368,15 +390,16 @@ var ActivityHandler = {
 
       app.launch();
 
-      if (params.type === 'sms' || params.type === 'mms') {
-        ActivityHandler.handleMessageNotification({
-          id: params.id,
-          threadId: params.threadId
-        });
+      // the type param is only set for class0 messages
+      if (params.type === 'class0') {
+        alert(message.title + '\n' + message.body);
         return;
       }
-      // Class 0 message
-      alert(message.title + '\n' + message.body);
+
+      ActivityHandler.handleMessageNotification({
+        id: params.id,
+        threadId: params.threadId
+      });
     };
   }
 };

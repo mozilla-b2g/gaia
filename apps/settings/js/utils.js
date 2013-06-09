@@ -6,11 +6,13 @@
 /**
  * Constants
  */
+
 var DEBUG = false;
 
 /**
  * Debug method
  */
+
 function debug(msg, optObject) {
   if (DEBUG) {
     var output = '[DEBUG # Settings] ' + msg;
@@ -24,6 +26,7 @@ function debug(msg, optObject) {
 /**
  * Move settings to foreground
  */
+
 function reopenSettings() {
   navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
     var app = evt.target.result;
@@ -56,10 +59,10 @@ function openLink(url) {
  */
 
 function openDialog(dialogID, onSubmit, onReset) {
-  if ('#' + dialogID == document.location.hash)
+  if ('#' + dialogID == Settings.currentPanel)
     return;
 
-  var origin = document.location.hash;
+  var origin = Settings.currentPanel;
   var dialog = document.getElementById(dialogID);
 
   var submit = dialog.querySelector('[type=submit]');
@@ -67,7 +70,7 @@ function openDialog(dialogID, onSubmit, onReset) {
     submit.onclick = function onsubmit() {
       if (onSubmit)
         (onSubmit.bind(dialog))();
-      document.location.hash = origin; // hide dialog box
+      Settings.currentPanel = origin; // hide dialog box
     };
   }
 
@@ -76,11 +79,11 @@ function openDialog(dialogID, onSubmit, onReset) {
     reset.onclick = function onreset() {
       if (onReset)
         (onReset.bind(dialog))();
-      document.location.hash = origin; // hide dialog box
+      Settings.currentPanel = origin; // hide dialog box
     };
   }
 
-  document.location.hash = dialogID; // show dialog box
+  Settings.currentPanel = dialogID; // show dialog box
 }
 
 /**
@@ -105,6 +108,25 @@ function audioPreview(element, type) {
   } else {
     audio.play();
   }
+}
+
+/**
+ * JSON loader
+ */
+
+function loadJSON(href, callback) {
+  if (!callback)
+    return;
+  var xhr = new XMLHttpRequest();
+  xhr.onerror = function() {
+    console.error('Failed to fetch file: ' + href, xhr.statusText);
+  };
+  xhr.onload = function() {
+    callback(xhr.response);
+  };
+  xhr.open('GET', href, true); // async
+  xhr.responseType = 'json';
+  xhr.send();
 }
 
 /**
@@ -220,7 +242,6 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     getFreeSpace: getFreeSpace,
     showFormatedSize: showFormatedSize
   };
-
 })();
 
 /**

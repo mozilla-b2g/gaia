@@ -147,13 +147,6 @@ Evme.Searchbar = new function Evme_Searchbar() {
     }
     
     function inputKeyDown(e) {
-        // Hack to disable keyboard- must be here to cancel the event
-        if (Evme.Brain.Dialog.isActive()) {
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
-        
         window.clearTimeout(timeoutPause);
         window.clearTimeout(timeoutIdle);
     }
@@ -177,10 +170,6 @@ Evme.Searchbar = new function Evme_Searchbar() {
                 } else {
                     cbValueChanged(value);
                 }
-            }
-        } else {
-            if (e.keyCode === RETURN_KEY_CODE) {
-                cbReturnPressed(e, value);
             }
         }
     }
