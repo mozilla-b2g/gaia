@@ -92,6 +92,7 @@ var EverythingME = {
                     'modules/Tip/Tip.js',
                     'modules/ConnectionMessage/ConnectionMessage.js',
                     'modules/SmartFolder/SmartFolder.js',
+                    'modules/Features/Features.js',
                     'js/helpers/Storage.js',
                     'js/plugins/Scroll.js',
                     'js/external/uuid.js',

@@ -7,7 +7,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         deviceId = '',
         NUMBER_OF_RETRIES = 3,                          // number of retries before returning error
         RETRY_TIMEOUT = {"from": 1000, "to": 3000},     // timeout before retrying a failed request
-        MAX_REQUEST_TIME = 10000,                       // timeout before declaring a request as failed (if server isn't responding)
+        MAX_REQUEST_TIME = 20000,                       // timeout before declaring a request as failed (if server isn't responding)
         MAX_ITEMS_IN_CACHE = 20,                        // maximum number of calls to save in the user's cache
         CACHE_EXPIRATION_IN_MINUTES = 30,
         STORAGE_KEY_CREDS = "credentials",
@@ -101,17 +101,17 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         
         var params = {
             "query": options.query,
-            "experienceId": options.experienceId,
-            "typeHint": options.typeHint,
-            "feature": options.feature,
-            "cachedIcons": options.cachedIcons,
-            "exact": options.exact,
-            "spellcheck": options.spellcheck,
-            "suggest": options.suggest,
-            "first": options.first,
-            "limit": options.limit,
-            "idx": options.index,
-            "iconFormat": options.iconFormat,
+            "experienceId": options.experienceId || '',
+            "typeHint": options.typeHint || '',
+            "feature": options.feature || '',
+            "cachedIcons": options.cachedIcons || '',
+            "exact": !!options.exact,
+            "spellcheck": !!options.spellcheck,
+            "suggest": !!options.suggest,
+            "first": options.first || 0,
+            "limit": options.limit || 16,
+            "idx": options.index || '',
+            "iconFormat": options.iconFormat || 10,
             "prevQuery": (options.first === 0)? options.prevQuery || "" : ""
         };
         
@@ -189,14 +189,14 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
 
         var params = {
             "query": options.query,
-            "experienceId": options.experienceId,
-            "typeHint": options.typeHint,
-            "feature": options.feature,
-            "exact": options.exact,
-            "width": options.width,
-            "height": options.height,
-            "idx": options.index,
-            "prevQuery": options.prevQuery || ""
+            "experienceId": options.experienceId || '',
+            "typeHint": options.typeHint || '',
+            "feature": options.feature || '',
+            "exact": !!options.exact,
+            "width": options.width || 320,
+            "height": options.height || 460,
+            "idx": options.index || '',
+            "prevQuery": options.prevQuery || ''
         };
 
         return request({
@@ -838,6 +838,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                       saveParamFromRequest(methodNamespace+"."+methodName, responseFromCache);
                       
                       callback && window.setTimeout(function() {
+                          responseFromCache && (responseFromCache._cache = true);
                           callback(responseFromCache);
                       }, 10);
                       
@@ -924,19 +925,6 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     function getCacheKey(methodNamespace, methodName, params) {
         var sOptions = cacheCleanUpParams(params);
         return (methodNamespace + "." + methodName + "." + sOptions).toLowerCase();
-    }
-    
-    function getFromCache(cacheKey) {
-        var cached = Evme.Storage.get(cacheKey);
-        if (cached) {
-            try {
-                cached = JSON.parse(cached);
-            } catch(ex) {
-                cached = null;
-            }
-        }
-        
-        return cached;
     }
     
     this.insertToCache = function insertToCache(cacheKey, data, cacheTTL) {
@@ -1111,7 +1099,7 @@ Evme.Request = function Evme_Request() {
         requestRetry = null,
         timeoutBetweenRetries = 0,
         
-        request = null,
+        httpRequest = null,
         aborted = false,
         cacheKey = "",
         cacheTTL = 0,
@@ -1163,11 +1151,11 @@ Evme.Request = function Evme_Request() {
         
         params.stats = JSON.stringify(params.stats);
         
-        request = Evme.api[methodNamespace][methodName](params, apiCallback);
+        httpRequest = Evme.api[methodNamespace][methodName](params, apiCallback);
         
         requestTimeout = window.setTimeout(requestTimeoutCallback, maxRequestTime);
         
-        return request;
+        return httpRequest;
     };
     
     this.abort = function abort() {
@@ -1177,7 +1165,7 @@ Evme.Request = function Evme_Request() {
         
         aborted = true;
         clearTimeouts();
-        request && request.abort();
+        httpRequest && httpRequest.abort && httpRequest.abort();
         
         cbAbort(methodNamespace, methodName, params, retryNumber);
     };
@@ -1221,7 +1209,7 @@ Evme.Request = function Evme_Request() {
             return;
         }
         
-        request.abort();
+        httpRequest.abort();
         
         var data = {
             "errorCode": -100,

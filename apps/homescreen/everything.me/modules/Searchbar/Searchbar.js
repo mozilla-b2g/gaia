@@ -178,10 +178,6 @@ Evme.Searchbar = new function Evme_Searchbar() {
                     cbValueChanged(value);
                 }
             }
-        } else {
-            if (e.keyCode === RETURN_KEY_CODE) {
-                cbReturnPressed(e, value);
-            }
         }
     }
 
