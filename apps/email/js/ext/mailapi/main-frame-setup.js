@@ -3226,7 +3226,7 @@ MailAPI.prototype = {
       msg.refDate = options.replyTo.date.valueOf();
       msg.refGuid = options.replyTo.guid;
       msg.refAuthor = options.replyTo.author.toWireRep();
-      msg.refSubject = options.replyTo.subject;
+      msg.refSubject = options.replyTo.subject || '';
     }
     else if (options.hasOwnProperty('forwardOf') && options.forwardOf) {
       msg.mode = 'forward';
@@ -3235,7 +3235,7 @@ MailAPI.prototype = {
       msg.refDate = options.forwardOf.date.valueOf();
       msg.refGuid = options.forwardOf.guid;
       msg.refAuthor = options.forwardOf.author.toWireRep();
-      msg.refSubject = options.forwardOf.subject;
+      msg.refSubject = options.forwardOf.subject || '';
     }
     else {
       msg.mode = 'new';
