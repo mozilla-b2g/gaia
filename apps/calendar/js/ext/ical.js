@@ -187,7 +187,6 @@ ICAL.helpers = {
       for (var name in aSrc) {
         // uses prototype method to allow use of Object.create(null);
         if (Object.prototype.hasOwnProperty.call(aSrc, name)) {
-          this.dumpn("Cloning " + name + "\n");
           if (aDeep) {
             result[name] = ICAL.helpers.clone(aSrc[name], true);
           } else {
@@ -1512,6 +1511,19 @@ ICAL.Component = (function() {
   }
 
   Component.prototype = {
+    /**
+     * Hydrated properties are inserted into the _properties array at the same
+     * position as in the jCal array, so its possible the array contains
+     * undefined values for unhydrdated properties. To avoid iterating the
+     * array when checking if all properties have been hydrated, we save the
+     * count here.
+     */
+    _hydratedPropertyCount: 0,
+
+    /**
+     * The same count as for _hydratedPropertyCount, but for subcomponents
+     */
+    _hydratedComponentCount: 0,
 
     get name() {
       return this.jCal[NAME_INDEX];
@@ -1520,6 +1532,7 @@ ICAL.Component = (function() {
     _hydrateComponent: function(index) {
       if (!this._components) {
         this._components = [];
+        this._hydratedComponentCount = 0;
       }
 
       if (this._components[index]) {
@@ -1531,12 +1544,14 @@ ICAL.Component = (function() {
         this
       );
 
+      this._hydratedComponentCount++;
       return this._components[index] = comp;
     },
 
     _hydrateProperty: function(index) {
       if (!this._properties) {
         this._properties = [];
+        this._hydratedPropertyCount = 0;
       }
 
       if (this._properties[index]) {
@@ -1548,6 +1563,7 @@ ICAL.Component = (function() {
         this
       );
 
+      this._hydratedPropertyCount++;
       return this._properties[index] = prop;
     },
 
@@ -1603,7 +1619,7 @@ ICAL.Component = (function() {
         return result;
       } else {
         if (!this._components ||
-            (this._components.length !== jCalLen)) {
+            (this._hydratedComponentCount !== jCalLen)) {
           var i = 0;
           for (; i < jCalLen; i++) {
             this._hydrateComponent(i);
@@ -1701,7 +1717,7 @@ ICAL.Component = (function() {
         return result;
       } else {
         if (!this._properties ||
-            (this._properties.length !== jCalLen)) {
+            (this._hydratedPropertyCount !== jCalLen)) {
           var i = 0;
           for (; i < jCalLen; i++) {
             this._hydrateProperty(i);
@@ -1783,10 +1799,12 @@ ICAL.Component = (function() {
     addSubcomponent: function(component) {
       if (!this._components) {
         this._components = [];
+        this._hydratedComponentCount = 0;
       }
 
       var idx = this.jCal[COMPONENT_INDEX].push(component.jCal);
       this._components[idx - 1] = component;
+      this._hydratedComponentCount++;
     },
 
     /**
@@ -1797,7 +1815,11 @@ ICAL.Component = (function() {
      * @return {Boolean} true when comp is removed.
      */
     removeSubcomponent: function(nameOrComp) {
-      return this._removeObject(COMPONENT_INDEX, '_components', nameOrComp);
+      var removed = this._removeObject(COMPONENT_INDEX, '_components', nameOrComp);
+      if (removed) {
+        this._hydratedComponentCount--;
+      }
+      return removed;
     },
 
     /**
@@ -1807,7 +1829,9 @@ ICAL.Component = (function() {
      * @param {String} [name] (lowercase) component name.
      */
     removeAllSubcomponents: function(name) {
-      return this._removeAllObjects(COMPONENT_INDEX, '_components', name);
+      var removed = this._removeAllObjects(COMPONENT_INDEX, '_components', name);
+      this._hydratedComponentCount = 0;
+      return removed;
     },
 
     /**
@@ -1825,9 +1849,11 @@ ICAL.Component = (function() {
 
       if (!this._properties) {
         this._properties = [];
+        this._hydratedPropertyCount = 0;
       }
 
       this._properties[idx - 1] = property;
+      this._hydratedPropertyCount++;
     },
 
     /**
@@ -1873,7 +1899,11 @@ ICAL.Component = (function() {
      * @return {Boolean} true when deleted.
      */
     removeProperty: function(nameOrProp) {
-      return this._removeObject(PROPERTY_INDEX, '_properties', nameOrProp);
+      var removed = this._removeObject(PROPERTY_INDEX, '_properties', nameOrProp);
+      if (removed) {
+        this._hydratedPropertyCount--;
+      }
+      return removed;
     },
 
     /**
@@ -1882,7 +1912,9 @@ ICAL.Component = (function() {
      * @param {String} [name] (lowecase) optional property name.
      */
     removeAllProperties: function(name) {
-      return this._removeAllObjects(PROPERTY_INDEX, '_properties', name);
+      var removed = this._removeAllObjects(PROPERTY_INDEX, '_properties', name);
+      this._hydratedPropertyCount = 0;
+      return removed;
     },
 
     toJSON: function() {
@@ -2056,6 +2088,22 @@ ICAL.Property = (function() {
     },
 
     /**
+     * Get the default type based on this property's name.
+     *
+     * @return {String} the default type for this property.
+     */
+    getDefaultType: function() {
+      var name = this.name
+      if (name in design.property) {
+        var details = design.property[name];
+        if ('defaultType' in details) {
+          return details.defaultType;
+        }
+      }
+      return null;
+    },
+
+    /**
      * Sets type of property and clears out any
      * existing values of the current type.
      *
@@ -2126,6 +2174,12 @@ ICAL.Property = (function() {
       var i = 0;
       this.removeAllValues();
 
+      if (len > 0 &&
+          typeof(values[0]) === 'object' &&
+          'icaltype' in values[0]) {
+        this.resetType(values[0].icaltype);
+      }
+
       if (this.isDecorated) {
         for (; i < len; i++) {
           this._setDecoratedValue(values[i], i);
@@ -2138,11 +2192,17 @@ ICAL.Property = (function() {
     },
 
     /**
-     * Sets the current value of the property.
+     * Sets the current value of the property. If this is a multi-value
+     * property, all other values will be removed.
      *
      * @param {String|Object} value new prop value.
      */
     setValue: function(value) {
+      this.removeAllValues();
+      if (typeof(value) === 'object' && 'icaltype' in value) {
+        this.resetType(value.icaltype);
+      }
+
       if (this.isDecorated) {
         this._setDecoratedValue(value, 0);
       } else {
@@ -2357,23 +2417,27 @@ ICAL.Binary = (function() {
   ICAL.Period = function icalperiod(aData) {
     this.wrappedJSObject = this;
 
-    if ('start' in aData) {
-      if (!(aData.start instanceof ICAL.Time)) {
+    if (aData && 'start' in aData) {
+      if (aData.start && !(aData.start instanceof ICAL.Time)) {
         throw new TypeError('.start must be an instance of ICAL.Time');
       }
       this.start = aData.start;
     }
 
-    if ('end' in aData) {
-      if (!(aData.end instanceof ICAL.Time)) {
+    if (aData && ('end' in aData) && ('duration' in aData)) {
+      throw new Error('cannot accept both end and duration');
+    }
+
+    if (aData && 'end' in aData) {
+      if (aData.end && !(aData.end instanceof ICAL.Time)) {
         throw new TypeError('.end must be an instance of ICAL.Time');
       }
       this.end = aData.end;
     }
 
-    if ('duration' in aData) {
-      if (!(aData.duration instanceof ICAL.Duration)) {
-        throw new TypeError('.start must be an instance of ICAL.Duration');
+    if (aData && 'duration' in aData) {
+      if (aData.duration && !(aData.duration instanceof ICAL.Duration)) {
+        throw new TypeError('.duration must be an instance of ICAL.Duration');
       }
       this.duration = aData.duration;
     }
@@ -2395,8 +2459,23 @@ ICAL.Binary = (function() {
       }
     },
 
+    getEnd: function() {
+      if (this.end) {
+        return this.end;
+      } else {
+        var end = this.start.clone();
+        end.addDuration(this.duration);
+        return end;
+      }
+    },
+
     toString: function toString() {
       return this.start + "/" + (this.end || this.duration);
+    },
+
+    toICALString: function() {
+      return this.start.toICALString() + "/" +
+             (this.end || this.duration).toICALString();
     }
   };
 
@@ -2503,10 +2582,6 @@ ICAL.Binary = (function() {
           this[prop] = 0;
         }
       }
-
-      if (aData && "factor" in aData) {
-        this.isNegative = (aData.factor == "-1");
-      }
     },
 
     reset: function reset() {
@@ -2547,6 +2622,10 @@ ICAL.Binary = (function() {
         }
         return str;
       }
+    },
+
+    toICALString: function() {
+      return this.toString();
     }
   };
 
@@ -2587,11 +2666,27 @@ ICAL.Binary = (function() {
       case 'S':
         type = 'seconds';
         break;
+      default:
+        // Not a valid chunk
+        return 0;
     }
 
     if (type) {
-      object[type] = parseInt(number);
+      if (!number && number !== 0) {
+        throw new Error(
+          'invalid duration value: Missing number before "' + letter + '"'
+        );
+      }
+      var num = parseInt(number, 10);
+      if (ICAL.helpers.isStrictlyNaN(num)) {
+        throw new Error(
+          'invalid duration value: Invalid number "' + number + '" before "' + letter + '"'
+        );
+      }
+      object[type] = num;
     }
+
+    return 1;
   }
 
   /**
@@ -2606,13 +2701,21 @@ ICAL.Binary = (function() {
   ICAL.Duration.fromString = function icalduration_from_string(aStr) {
     var pos = 0;
     var dict = Object.create(null);
+    var chunks = 0;
 
     while ((pos = aStr.search(DURATION_LETTERS)) !== -1) {
       var type = aStr[pos];
       var numeric = aStr.substr(0, pos);
       aStr = aStr.substr(pos + 1);
 
-      parseDurationChunk(type, numeric, dict);
+      chunks += parseDurationChunk(type, numeric, dict);
+    }
+
+    if (chunks < 2) {
+      // There must be at least a chunk with "P" and some unit chunk
+      throw new Error(
+        'invalid duration value: Not enough duration components in "' + aStr + '"'
+      );
     }
 
     return new ICAL.Duration(dict);
@@ -2674,27 +2777,39 @@ ICAL.Binary = (function() {
       this.changes = [];
 
       if (aData instanceof ICAL.Component) {
+        // Either a component is passed directly
         this.component = aData;
-        this.tzid = this.component.getFirstPropertyValue('tzid');
-        return null;
-      }
-
-      for (var key in OPTIONS) {
-        var prop = OPTIONS[key];
-        if (aData && prop in aData) {
-          this[prop] = aData[prop];
-        }
-      }
-
-      if (aData && "component" in aData) {
-        if (typeof aData.component == "string") {
-          this.component = this.componentFromString(aData.component);
-        } else {
-          this.component = aData.component;
-        }
       } else {
-        this.component = null;
+        // Otherwise the component may be in the data object
+        if (aData && "component" in aData) {
+          if (typeof aData.component == "string") {
+            // If a string was passed, parse it as a component
+            var icalendar = ICAL.parse(aData.component);
+            this.component = new ICAL.Component(icalendar[1]);
+          } else if (aData.component instanceof ICAL.Component) {
+            // If it was a component already, then just set it
+            this.component = aData.component;
+          } else {
+            // Otherwise just null out the component
+            this.component = null;
+          }
+        }
+
+        // Copy remaining passed properties
+        for (var key in OPTIONS) {
+          var prop = OPTIONS[key];
+          if (aData && prop in aData) {
+            this[prop] = aData[prop];
+          }
+        }
       }
+
+      // If we have a component but no TZID, attempt to get it from the
+      // component's properties.
+      if (this.component instanceof ICAL.Component && !this.tzid) {
+        this.tzid = this.component.getFirstPropertyValue('tzid');
+      }
+
       return this;
     },
 
@@ -2731,16 +2846,13 @@ ICAL.Binary = (function() {
       for (;;) {
         var change = ICAL.helpers.clone(this.changes[change_num], true);
         if (change.utcOffset < change.prevUtcOffset) {
-          ICAL.helpers.dumpn("Adjusting " + change.utcOffset);
           ICAL.Timezone.adjust_change(change, 0, 0, 0, change.utcOffset);
         } else {
-          ICAL.helpers.dumpn("Adjusting prev " + change.prevUtcOffset);
           ICAL.Timezone.adjust_change(change, 0, 0, 0,
                                           change.prevUtcOffset);
         }
 
         var cmp = ICAL.Timezone._compare_change_fn(tt_change, change);
-        ICAL.helpers.dumpn("Compare" + cmp + " / " + change.toString());
 
         if (cmp >= 0) {
           change_num_to_use = change_num;
@@ -2831,7 +2943,7 @@ ICAL.Binary = (function() {
         }
 
         this.changes.sort(ICAL.Timezone._compare_change_fn);
-        this.expandedUntilYear = aYear;
+        this.expandedUntilYear = changesEndYear;
       }
     },
 
@@ -2889,12 +3001,17 @@ ICAL.Binary = (function() {
             change.hour = dtstart.hour;
             change.minute = dtstart.minute;
             change.second = dtstart.second;
+
+            if (dtstart.zone != ICAL.Timezone.utcTimezone) {
+              ICAL.Timezone.adjust_change(change, 0, 0, 0,
+                                              -change.prevUtcOffset);
+            }
           } else {
             change.hour = time.hour;
             change.minute = time.minute;
             change.second = time.second;
 
-            if (time.zone == ICAL.Timezone.utcTimezone) {
+            if (time.zone != ICAL.Timezone.utcTimezone) {
               ICAL.Timezone.adjust_change(change, 0, 0, 0,
                                               -change.prevUtcOffset);
             }
@@ -3138,7 +3255,11 @@ ICAL.TimezoneService = (function() {
   ICAL.Time.prototype = {
 
     icalclass: "icaltime",
-    icaltype: "date-time",
+
+    // is read only strictly defined by isDate
+    get icaltype() {
+      return this.isDate ? 'date' : 'date-time';
+    },
 
     /**
      * @type ICAL.Timezone
@@ -3216,6 +3337,8 @@ ICAL.TimezoneService = (function() {
 
     fromData: function fromData(aData, aZone) {
       for (var key in aData) {
+        // ical type cannot be set
+        if (key === 'icaltype') continue;
         this[key] = aData[key];
       }
 
@@ -3514,11 +3637,19 @@ ICAL.TimezoneService = (function() {
     subtractDate: function icaltime_subtract(aDate) {
       var unixTime = this.toUnixTime() + this.utcOffset();
       var other = aDate.toUnixTime() + aDate.utcOffset();
-      var diff = (unixTime - other);
+      return ICAL.Duration.fromSeconds(unixTime - other);
+    },
 
-      return ICAL.Duration.fromSeconds(
-        diff
-      );
+    /**
+     * Subtract the date details, taking timezones into account.
+     *
+     * @param {ICAL.Time}  The date to subtract.
+     * @return {ICAL.Duration}  The difference in duration.
+     */
+    subtractDateTz: function icaltime_subtract_abs(aDate) {
+      var unixTime = this.toUnixTime();
+      var other = aDate.toUnixTime();
+      return ICAL.Duration.fromSeconds(unixTime - other);
     },
 
     compare: function icaltime_compare(other) {
@@ -3619,7 +3750,6 @@ ICAL.TimezoneService = (function() {
         this._time.minute = 0;
         this._time.second = 0;
       }
-      this.icaltype = (isDate ? "date" : "date-time");
       this.adjust(0, 0, 0, 0);
 
       return this;
@@ -4096,13 +4226,11 @@ ICAL.TimezoneService = (function() {
     },
 
     getNextOccurrence: function getNextOccurrence(aStartTime, aRecurrenceId) {
-      ICAL.helpers.dumpn("GNO: " + aRecurrenceId + " / " + aStartTime);
       var iter = this.iterator(aStartTime);
       var next, cdt;
 
       do {
         next = iter.next();
-        ICAL.helpers.dumpn("Checking " + next + " <= " + aRecurrenceId);
       } while (next && next.compare(aRecurrenceId) <= 0);
 
       if (next && aRecurrenceId.zone) {
@@ -4157,7 +4285,7 @@ ICAL.TimezoneService = (function() {
         str += ';UNTIL=' + this.until.toString();
       }
       if ('wkst' in this && this.wkst !== ICAL.Time.DEFAULT_WEEK_START) {
-        str += ';WKST=' + REVERSE_DOW_MAP[this.wkst];
+        str += ';WKST=' + ICAL.Recur.numericDayToIcalDay(this.wkst);
       }
       return str;
     }
@@ -6331,15 +6459,6 @@ ICAL.Event = (function() {
       if (!prop) {
         prop = new ICAL.Property(propName);
         this.component.addProperty(prop);
-      }
-
-      // type conversion
-      if (time.isDate && prop.type !== 'date') {
-        prop.resetType('date');
-      }
-
-      if (!time.isDate && prop.type !== 'date-time') {
-        prop.resetType('date-time');
       }
 
       // utc and local don't get a tzid

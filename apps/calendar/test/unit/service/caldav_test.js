@@ -322,6 +322,73 @@ suite('service/caldav', function() {
     });
   });
 
+  suite('#adjustAbsoluteAlarms', function() {
+    parseFixture('singleEvent');
+
+    var component;
+    var relativeAlarm;
+    var absoluteAlarm;
+    var absoluteTriggerTime;
+
+    setup(function() {
+      component = icalEvent.component;
+
+      // remove all previous subcomponents
+      component.removeAllSubcomponents('valarm');
+
+      // create a relative alarm
+      relativeAlarm = new ICAL.Component('valarm');
+      // 5 minutes before
+      relativeAlarm.addPropertyWithValue('trigger', '-PT5M');
+      relativeAlarm.addPropertyWithValue('action', 'EMAIL');
+
+      absoluteAlarm = new ICAL.Component('valarm');
+
+      absoluteTriggerTime = icalEvent.startDate.clone();
+      absoluteTriggerTime.day -= 1;
+
+      absoluteAlarm.addPropertyWithValue(
+        'trigger',
+        absoluteTriggerTime
+      );
+
+      component.addSubcomponent(relativeAlarm);
+      component.addSubcomponent(absoluteAlarm);
+    });
+
+    test('changes alarm times', function() {
+      var originalDate = icalEvent.startDate.clone();
+      var newDate = icalEvent.startDate;
+
+      newDate.timezone = ICAL.Timezone.localTimezone;
+      newDate.isDate = true;
+      newDate.day += 10;
+
+      var expectedDuration = absoluteAlarm.getFirstPropertyValue('trigger').
+          subtractDate(originalDate);
+
+      subject.adjustAbsoluteAlarms(originalDate, icalEvent);
+
+      // sanity check
+      assert.equal(
+        relativeAlarm.getFirstPropertyValue('trigger'),
+        '-PT5M',
+        'relative times should be unchanged'
+      );
+
+      // should be same as original alarm timezone
+      var expectedDate = newDate.clone();
+      expectedDate.isDate = false;
+      expectedDate.timezone = originalDate.timezone;
+      expectedDate.day -= 1;
+
+      assert.equal(
+        absoluteAlarm.getFirstPropertyValue('trigger').toString(),
+        expectedDuration.toString()
+      );
+    });
+  });
+
   suite('#_displayAlarms', function() {
     suite('multiple instances of alarms', function() {
       // 5 minutes prior
