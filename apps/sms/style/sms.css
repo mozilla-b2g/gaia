@@ -462,6 +462,12 @@ section[role="region"].new > header:first-child form {
   margin: 0 auto;
 }
 
+.edit .article-list[data-type="list"] .message.error .bubble > aside,
+.edit .article-list[data-type="list"] .message.pending .bubble > aside progress,
+.edit .article-list[data-type="list"] .message.sending .bubble > aside progress { 
+  display: none;
+}
+
 .article-list[data-type="list"] .message .bubble p {
   text-align: left;
   font-size: 1.8rem;
