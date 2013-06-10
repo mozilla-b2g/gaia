@@ -392,6 +392,34 @@ suite('system/Statusbar', function() {
       assert.equal(dataset.emergency, 'true');
       assert.notEqual(dataset.searching, 'true');
     });
+
+    test('emergency calls, avoid infinite callback loop', function() {
+      MockNavigatorMozMobileConnection.voice = {
+        connected: false,
+        relSignalStrength: 80,
+        emergencyCallsOnly: true,
+        state: 'notSearching',
+        roaming: false,
+        network: {}
+      };
+
+      MockNavigatorMozMobileConnection.cardState = 'pinRequired';
+      MockNavigatorMozMobileConnection.iccInfo = {};
+
+      var mockTel = MockNavigatorMozTelephony;
+
+      StatusBar.update.signal.call(StatusBar);
+      assert.equal(mockTel.mCountEventListener('callschanged', StatusBar), 1);
+
+      // Bug 880390: On B2G18 adding a 'callschanged' listener can trigger
+      // another event immediately.  To avoid an infinite loop, the listener
+      // must only be added once.  Simulate this immediate event here and then
+      // check that we still only have one listener.
+
+      var evt = new CustomEvent('callschanged');
+      mockTel.mTriggerEvent(evt);
+      assert.equal(mockTel.mCountEventListener('callschanged', StatusBar), 1);
+    });
   }),
 
   suite('operator name', function() {
