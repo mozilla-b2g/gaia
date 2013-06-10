@@ -110,6 +110,11 @@ var LockScreen = {
   */
   HANDLE_MAX: 70,
 
+  /*
+  * Types of 2G Networks
+  */
+  NETWORKS_2G: ['gsm', 'gprs', 'edge'],
+
   /**
    * Object used for handling the clock UI element, wraps all related timers
    */
@@ -883,9 +888,14 @@ var LockScreen = {
       }
 
       var operatorInfos = MobileOperator.userFacingInfo(conn);
-      if (this.cellbroadcastLabel) {
+      var is2G = this.NETWORKS_2G.some(function checkConnectionType(elem) {
+        return (conn.voice.type == elem);
+      });
+      if (this.cellbroadcastLabel && is2G) {
+        self.connstate.classList.add('twolines');
         connstateLine2.textContent = this.cellbroadcastLabel;
       } else if (operatorInfos.carrier) {
+        self.connstate.classList.add('twolines');
         connstateLine2.textContent = operatorInfos.carrier + ' ' +
           operatorInfos.region;
       }
