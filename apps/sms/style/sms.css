@@ -260,7 +260,7 @@ section[role="region"].new > header:first-child form {
   display: none;
 }
 
-.new #messages-icon-edit {
+.new #messages-edit-icon {
   display: none;
 }
 
