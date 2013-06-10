@@ -546,11 +546,6 @@ var KeypadManager = {
   },
 
   _callVoicemail: function kh_callVoicemail() {
-     var voicemail = navigator.mozVoicemail;
-     if (voicemail && voicemail.number) {
-       CallHandler.call(voicemail.number);
-       return;
-     }
      var settings = navigator.mozSettings;
      if (!settings) {
       return;
@@ -558,9 +553,16 @@ var KeypadManager = {
      var transaction = settings.createLock();
      var request = transaction.get('ril.iccInfo.mbdn');
      request.onsuccess = function() {
-       if (request.result['ril.iccInfo.mbdn']) {
-         CallHandler.call(request.result['ril.iccInfo.mbdn']);
+       var number = request.result['ril.iccInfo.mbdn'];
+       var voicemail = navigator.mozVoicemail;
+       if (!number && voicemail && voicemail.number) {
+         number = voicemail.number;
        }
+       if (number) {
+         CallHandler.call(number);
+       }
+       // TODO: Bug 881178 - [Dialer] Invite the user to go set a voicemail
+       // number in the setting app.
      };
      request.onerror = function() {};
   }
