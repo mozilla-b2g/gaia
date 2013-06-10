@@ -10,6 +10,7 @@
   "permissions": {
     "storage":{},
     "mobileconnection":{},
+    "voicemail":{},
     "bluetooth":{},
     "device-storage:pictures":{ "access": "readonly" },
     "device-storage:music":{ "access": "readonly" },
