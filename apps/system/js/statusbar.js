@@ -188,6 +188,10 @@ var StatusBar = {
     // Refresh the time to reflect locale changes
     this.update.time.call(this, new Date());
 
+    // Hide clock when initializing since this is handled by the event
+    // listeners for 'lock', 'unlock', and 'lockpanelchange'
+    this.icons.time.hidden = true;
+
     var settings = {
       'ril.radio.disabled': ['signal', 'data'],
       'ril.data.enabled': ['data'],
@@ -238,8 +242,12 @@ var StatusBar = {
     window.addEventListener('holdhome', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('appopen', this);
+    // Listen to 'lock', 'unlock', and 'lockpanelchange' from lockscreen.js in
+    // order to correctly set the visibility of the statusbar clock depending
+    // on the active lockscreen panel
     window.addEventListener('lock', this);
     window.addEventListener('unlock', this);
+    window.addEventListener('lockpanelchange', this);
 
     // Listen to 'mozfullscreenchange' to see if we should hide statusbar
     window.addEventListener('mozfullscreenchange', this);
@@ -338,11 +346,15 @@ var StatusBar = {
 
       case 'lock':
         this.clock.stop();
+        // Hide the clock in the statusbar when screen is locked
+        this.icons.time.hidden = true;
         break;
 
+      case 'unlock':
+        // Display the clock in the statusbar when screen is unlocked
+        this.icons.time.hidden = false;
       case 'appopen':
       case 'mozfullscreenchange':
-      case 'unlock':
         if (this.screen.classList.contains('fullscreen-app') ||
             document.mozFullScreen) {
           this.hide();
@@ -351,6 +363,14 @@ var StatusBar = {
         }
 
         this.clock.start(this.update.time.bind(this));
+        break;
+
+      case 'lockpanelchange':
+        if (this.screen.classList.contains('locked')) {
+          // Display the clock in the statusbar if on Emergency Call screen
+          var isHidden = (evt.detail.panel == 'emergency-call') ? false : true;
+          this.icons.time.hidden = isHidden;
+        }
         break;
 
       case 'appwillclose':
