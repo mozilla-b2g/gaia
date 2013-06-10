@@ -23,6 +23,7 @@ Calendar.ns('Views').CalendarColors = (function() {
       var store = Calendar.App.store('Calendar');
       store.on('persist', this);
       store.on('remove', this);
+      store.on('preRemove', this);
     },
 
     handleEvent: function(e) {
@@ -30,6 +31,9 @@ Calendar.ns('Views').CalendarColors = (function() {
         case 'persist':
           // 1 is the model
           this.updateRule(e.data[1]);
+          break;
+        case 'preRemove':
+          this.hideCalendar(e.data[0]);
           break;
         case 'remove':
           // 0 is an id of a model
@@ -75,6 +79,14 @@ Calendar.ns('Views').CalendarColors = (function() {
         id = item;
       }
       return this.calendarId(String(id));
+    },
+
+    hideCalendar: function(id) {
+      this.updateRule({
+        _id: id,
+        localDisplayed: false,
+        color: '#CCC'
+      });
     },
 
     /**
