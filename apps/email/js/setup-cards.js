@@ -361,7 +361,8 @@ SetupProgressCard.prototype = {
     // XXX implement cancellation
   },
 
-  onBack: function() {
+  onBack: function(e) {
+    e.preventDefault();
     this.cancelCreation();
     Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
   },
