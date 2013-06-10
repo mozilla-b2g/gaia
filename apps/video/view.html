@@ -14,7 +14,14 @@
   </head>
   <body role="application" class="skin-dark">
     <!-- display this at startup while we create thumbnails -->
-    <div id="spinner-overlay"><div id="spinner"></div></div>
+    <div id="spinner-overlay">
+      <section role="region">
+          <header>
+            <button id="go-back"><span class="icon icon-back"></span></button>
+          </header>
+          <div id="spinner"></div>
+      </section>
+    </div>
     <div id="fullscreen-view">
       <div id="crop-view">
         <video id="player" preload="metadata"></video>
