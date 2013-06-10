@@ -100,7 +100,8 @@ var KeyboardManager = (function() {
   // when an inline activity goes away.
   var closeKeyboardEvents = [
     'appwillclose',
-    'activitywillclose'
+    'activitywillclose',
+    'activitymenuwillopen'
   ];
   closeKeyboardEvents.forEach(function onEvent(eventType) {
     window.addEventListener(eventType, function closeKeyboard() {
