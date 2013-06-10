@@ -386,7 +386,7 @@
     activate: function() {
 
       this.element.classList.add(this.ACTIVE);
-      if (this.weeks === 6) {
+      if (this.weeks === 6 && this.element.parentNode.nextElementSibling) {
         this.element.parentNode.nextElementSibling.classList.add(this.LONG);
       }
 
@@ -415,7 +415,7 @@
      */
     deactivate: function() {
       this.element.classList.remove(this.ACTIVE);
-      if (this.weeks === 6) {
+      if (this.weeks === 6 && this.element.parentNode.nextElementSibling) {
         this.element.parentNode.nextElementSibling.classList.remove(this.LONG);
       }
     },
