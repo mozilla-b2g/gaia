@@ -13,7 +13,7 @@ var CallScreen = {
 
   get activeCall() {
     delete this.activeCall;
-    return this.activeCall = this.calls.querySelector(':not(.held)');
+    return this.activeCall = this.calls.querySelector('.call:not(.held)');
   },
 
   mainContainer: document.getElementById('main-container'),
@@ -131,7 +131,7 @@ var CallScreen = {
 
   hideKeypad: function cs_hideKeypad() {
     KeypadManager.restorePhoneNumber('end', true);
-    KeypadManager.restoreAdditionalContactInfo();
+    KeypadManager.restoreAdditionalContactInfo(this.activeCall);
     this.body.classList.remove('showKeypad');
   },
 

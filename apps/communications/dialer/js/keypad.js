@@ -424,7 +424,7 @@ var KeypadManager = {
           this._isKeypadClicked = true;
           this._phoneNumber = key;
           this._additionalContactInfo = '';
-          this._updateAdditionalContactInfoView();
+          this._updateAdditionalContactInfoView(CallScreen.activeCall);
         } else {
           this._phoneNumber += key;
         }
@@ -519,15 +519,15 @@ var KeypadManager = {
   },
 
   updateAdditionalContactInfo:
-    function kh_updateAdditionalContactInfo(additionalContactInfo) {
+    function kh_updateAdditionalContactInfo(additionalContactInfo, callNode) {
     this._additionalContactInfo = additionalContactInfo;
-    this._updateAdditionalContactInfoView();
+    this._updateAdditionalContactInfoView(callNode);
   },
 
   _updateAdditionalContactInfoView:
-    function kh__updateAdditionalContactInfoView() {
-    var phoneNumberView = CallScreen.activeCall.querySelector('.number');
-    var additionalview = CallScreen.activeCall.querySelector(
+    function kh__updateAdditionalContactInfoView(callNode) {
+    var phoneNumberView = callNode.querySelector('.number');
+    var additionalview = callNode.querySelector(
       '.additionalContactInfo');
     if (!this._additionalContactInfo ||
       this._additionalContactInfo.trim() === '') {
@@ -541,8 +541,10 @@ var KeypadManager = {
     }
   },
 
-  restoreAdditionalContactInfo: function kh_restoreAdditionalContactInfo() {
-    this.updateAdditionalContactInfo(this._originalAdditionalContactInfo);
+  restoreAdditionalContactInfo:
+    function kh_restoreAdditionalContactInfo(callNode) {
+    this.updateAdditionalContactInfo(this._originalAdditionalContactInfo,
+      callNode);
   },
 
   _callVoicemail: function kh_callVoicemail() {
