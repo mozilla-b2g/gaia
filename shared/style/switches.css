@@ -84,5 +84,4 @@ label input[data-type="switch"]:disabled + span {
 
 label input[type="checkbox"][data-type="switch"].uninit + span {
   transition: none;
-  opacity: 0.4;
 }
