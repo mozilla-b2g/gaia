@@ -104,11 +104,18 @@ var AttentionScreen = {
     attentionFrame.dataset.frameType = 'attention';
     attentionFrame.dataset.frameName = evt.detail.name;
     attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
+    attentionFrame.dataset.manifestURL = manifestURL;
 
     // We would like to put the dialer call screen on top of all other
     // attention screens by ensure it is the last iframe in the DOM tree
     if (this._hasTelephonyPermission(app)) {
       this.attentionScreen.appendChild(attentionFrame);
+
+      // This event is for SIM PIN lock module.
+      // Because we don't need SIM PIN dialog during call
+      // but the mozMobileConnection cardstatechange event could
+      // be invoked by airplane mode toggle before the call is established.
+      this.dispatchEvent('callscreenwillopen');
     } else {
       this.attentionScreen.insertBefore(attentionFrame,
                                         this.bar.nextElementSibling);
@@ -167,6 +174,16 @@ var AttentionScreen = {
         evt.target.dataset.frameType !== 'attention' ||
         (evt.type === 'mozbrowsererror' && evt.detail.type !== 'fatal'))
       return;
+
+    // Check telephony permission before removing.
+    var app = Applications.getByManifestURL(evt.target.dataset.manifestURL);
+    if (app && this._hasTelephonyPermission(app)) {
+      // This event is for SIM PIN lock module.
+      // Because we don't need SIM PIN dialog during call
+      // but the mozMobileConnection cardstatechange event could
+      // be invoked by airplane mode toggle before the call is established.
+      this.dispatchEvent('callscreenwillclose');
+    }
 
     // Remove the frame
     var origin = evt.target.dataset.frameOrigin;
