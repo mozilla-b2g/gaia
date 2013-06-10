@@ -755,7 +755,7 @@ var LockScreen = {
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
-          self.dispatchEvent('lockpanelchange');
+          self.dispatchEvent('lockpanelchange', { 'panel': panel });
 
           overlay.dataset.panel = panel;
           self._switchingPanel = false;
