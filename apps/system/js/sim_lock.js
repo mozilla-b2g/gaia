@@ -4,6 +4,9 @@
 'use strict';
 
 var SimLock = {
+  //XXX: A hack to remember ftu state.
+  _ftuEnabled: null,
+
   init: function sl_init() {
     // Do not do anything if we can't have access to MobileConnection API
     var conn = window.navigator.mozMobileConnection;
@@ -20,7 +23,11 @@ var SimLock = {
     window.addEventListener('unlock', this);
 
     // always monitor card state change
-    conn.addEventListener('cardstatechange', this.showIfLocked.bind(this));
+    conn.addEventListener('cardstatechange', this._bypassFTU.bind(this));
+
+    window.addEventListener('skipftu', function() {
+      this._ftuEnabled = false;
+    }.bind(this));
   },
 
   handleEvent: function sl_handleEvent(evt) {
@@ -32,7 +39,7 @@ var SimLock = {
         if (evt.detail && evt.detail.areaCamera)
           return;
 
-        this.showIfLocked();
+        this._bypassFTU();
         break;
       case 'appwillopen':
         // If an app needs 'telephony' or 'sms' permissions (i.e. mobile
@@ -77,6 +84,28 @@ var SimLock = {
 
         break;
     }
+  },
+
+  // XXX: This is a hack.
+  // Because FTU tries to disable lockscreen,
+  // and lockscreen fires 'unlock' event immediately.
+  // after the setting value is change and
+  // the device is rebooting.
+  _bypassFTU: function sl__bypassFTU() {
+    if (this._ftuEnabled === false) {
+      this.showIfLocked();
+    }
+
+    // Furthermore checking ftu.enabled state.
+
+    var showFunc = this.showIfLocked.bind(this);
+
+    window.asyncStorage.getItem('ftu.enabled',
+      function getItem(launchFTU) {
+        if (launchFTU === false) {
+          showFunc();
+        }
+      });
   },
 
   showIfLocked: function sl_showIfLocked() {
