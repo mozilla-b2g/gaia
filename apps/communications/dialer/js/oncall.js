@@ -11,8 +11,7 @@ var CallScreen = {
   calls: document.getElementById('calls'),
 
   get activeCall() {
-    delete this.activeCall;
-    return this.activeCall = this.calls.querySelector(':not(.held)');
+    return OnCallHandler.activeCall();
   },
 
   mainContainer: document.getElementById('main-container'),
@@ -112,7 +111,7 @@ var CallScreen = {
   },
 
   hideKeypad: function cs_hideKeypad() {
-    KeypadManager.restorePhoneNumber('end', true);
+    KeypadManager.restorePhoneNumber();
     KeypadManager.restoreAdditionalContactInfo();
     this.body.classList.remove('showKeypad');
   },
@@ -295,16 +294,8 @@ var OnCallHandler = (function onCallHandler() {
       return;
     }
 
-    var node = null;
     // Find an available node for displaying the call
-    var children = CallScreen.calls.children;
-    for (var i = 0; i < children.length; i++) {
-      var n = children[i];
-      if (n.dataset.occupied === 'false') {
-        node = n;
-        break;
-      }
-    }
+    var node = CallScreen.calls.querySelector('.call[data-occupied="false"]');
     var hc = new HandledCall(call, node);
     handledCalls.push(hc);
 
@@ -714,6 +705,19 @@ var OnCallHandler = (function onCallHandler() {
     }, 3000);
   }
 
+  function activeCall() {
+    var telephonyActiveCall = telephony.active;
+    var activeCall = null;
+    for (var i = 0; i < handledCalls.length; i++) {
+      var handledCall = handledCalls[i];
+      if (telephonyActiveCall === handledCall.call) {
+        activeCall = handledCall;
+        break;
+      }
+    }
+    return activeCall;
+  }
+
   return {
     setup: setup,
 
@@ -732,7 +736,8 @@ var OnCallHandler = (function onCallHandler() {
 
     addRecentEntry: addRecentEntry,
 
-    notifyBusyLine: notifyBusyLine
+    notifyBusyLine: notifyBusyLine,
+    activeCall: activeCall
   };
 })();
 
