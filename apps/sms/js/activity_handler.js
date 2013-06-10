@@ -344,7 +344,18 @@ var ActivityHandler = {
             releaseWakeLock();
           } else { // mms
             getTitleFromMms(function textCallback(text) {
-              NotificationHelper.send(sender, text, iconURL, goToMessage);
+              // Retrieve the right title if there is more than one participant
+              var notificationMainText = number;
+              if (message.receivers && message.receivers.length > 1) {
+                var participants = message.receivers.length - 1;
+                notificationMainText =
+                  navigator.mozL10n.get('thread-header-text', {
+                    name: number,
+                    n: participants
+                  });
+              }
+              NotificationHelper.
+                send(notificationMainText, text, iconURL, goToMessage);
               releaseWakeLock();
             });
           }

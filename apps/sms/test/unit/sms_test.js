@@ -104,6 +104,10 @@ suite('SMS App Unit-Test', function() {
     // We mockup the method for retrieving the threads
     MessageManager.getThreads = function(callback, extraArg) {
       var threadsMockup = new MockThreadList();
+      var threadLength = threadsMockup.length;
+      for (var i = 0; i < threadLength; i++) {
+        Threads.set(threadsMockup[i].id, threadsMockup[i]);
+      }
       callback(threadsMockup, extraArg);
     };
 
@@ -175,35 +179,104 @@ suite('SMS App Unit-Test', function() {
       MessageManager.getThreads(ThreadListUI.renderThreads, done);
       _tci = ThreadListUI.checkInputs;
     });
+
+    suite('Thread-list update', function() {
+      test('New thread created - MMS Group', function() {
+        var threadId = 101101;
+        var e = {
+          message: {
+            id: 101,
+            threadId: threadId,
+            sender: '+33321321321',
+            receivers: ['+123123123', '+34123123123'],
+            delivery: 'received',
+            type: 'mms',
+            timestamp: new Date(),
+            read: true,
+            subject: '',
+            smil: null,
+            attachments: [new Blob(['body'], {type: 'text/plain'})],
+            expiryDate: new Date()
+          }
+        };
+
+        MessageManager.onMessageReceived(e);
+        var container = ThreadListUI.container;
+        // We check that a new thread has been created
+        assertNumberOfElementsInContainerByTag(container, 6, 'li');
+        assertNumberOfElementsInContainerByTag(container, 6, 'a');
+
+        var threadToTest = document.getElementById('thread-' + threadId);
+        var threadTitle =
+          threadToTest.getElementsByClassName('name')[0].textContent;
+        assert.equal(
+          threadTitle, 'thread-header-text{"name":"+123123123","n":1}'
+        );
+      });
+
+      test('New thread created - Regular MMS', function() {
+        var threadId = 101101;
+        var e = {
+          message: {
+            id: 101,
+            threadId: threadId,
+            sender: '+33321321321',
+            receivers: ['+123123123'],
+            delivery: 'received',
+            type: 'mms',
+            timestamp: new Date(),
+            read: true,
+            subject: '',
+            smil: null,
+            attachments: [new Blob(['body'], {type: 'text/plain'})],
+            expiryDate: new Date()
+          }
+        };
+
+        MessageManager.onMessageReceived(e);
+        var container = ThreadListUI.container;
+        // We check that a new thread has been created
+        assertNumberOfElementsInContainerByTag(container, 6, 'li');
+        assertNumberOfElementsInContainerByTag(container, 6, 'a');
+
+        var threadToTest = document.getElementById('thread-' + threadId);
+        var threadTitle =
+          threadToTest.getElementsByClassName('name')[0].textContent;
+        assert.equal(threadTitle, '+33321321321');
+      });
+
+      test('New thread created - Regular SMS', function() {
+        var threadId = 101101;
+        var e = {
+          message: {
+            id: 101,
+            threadId: threadId,
+            sender: '+33321321321',
+            receiver: '+123123123',
+            body: 'body',
+            delivery: 'received',
+            type: 'sms',
+            timestamp: new Date(),
+            read: true
+          }
+        };
+
+        MessageManager.onMessageReceived(e);
+        var container = ThreadListUI.container;
+        // We check that a new thread has been created
+        assertNumberOfElementsInContainerByTag(container, 6, 'li');
+        assertNumberOfElementsInContainerByTag(container, 6, 'a');
+
+        var threadToTest = document.getElementById('thread-' + threadId);
+        var threadTitle =
+          threadToTest.getElementsByClassName('name')[0].textContent;
+        assert.equal(threadTitle, '+33321321321');
+      });
+
+    });
+
     // We are gonna review the HTML structure with this suite
     suite('Threads-list rendering', function() {
-
-      test('properly updates in response to an arriving message of a ' +
-        'different type', function() {
-        var container = ThreadListUI.container;
-        MessageManager.getThreads(function(threads) {
-          threads.forEach(function(thread, idx) {
-            var newMessage = {
-              threadId: thread.id,
-              sender: thread.participants[0],
-              timestamp: thread.timestamp,
-              type: thread.lastMessageType === 'mms' ? 'sms' : 'mms'
-            };
-            MessageManager.onMessageReceived({
-              message: newMessage
-            });
-          });
-        });
-        var mmsThreads = container.querySelectorAll(
-          '[data-last-message-type="mms"]'
-        );
-        var smsThreads = container.querySelectorAll(
-          '[data-last-message-type="sms"]'
-        );
-
-        assert.equal(mmsThreads.length, 4);
-        assert.equal(smsThreads.length, 1);
-      });
 
       test('Check HTML structure', function() {
         // Check the HTML structure, and if it fits with Building Blocks
@@ -370,6 +443,7 @@ suite('SMS App Unit-Test', function() {
     teardown(function() {
       ThreadListUI.container.innerHTML = '';
       ThreadListUI.checkInputs = _tci;
+      Threads.clear();
     });
   });
 
