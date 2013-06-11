@@ -326,8 +326,10 @@ var Predictions = function() {
                    callback,        // call this on success
                    onerror)         // and call this on error
   {
-    if (!tree || !nearbyKeys)
-      throw Error('not initialized');
+    if (!tree || !nearbyKeys) {
+      onerror('dictionary and/or nearby keys are not initialized');
+      return;
+    }
 
     // The search algorithm compares the user's input to the dictionary tree
     // data structure and generates a set of candidates for each character.
