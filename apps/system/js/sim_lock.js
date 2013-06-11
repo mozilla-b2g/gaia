@@ -6,6 +6,7 @@
 var SimLock = {
   //XXX: A hack to remember ftu state.
   _ftuEnabled: null,
+  _duringCall: false,
 
   init: function sl_init() {
     // Do not do anything if we can't have access to MobileConnection API
@@ -28,10 +29,21 @@ var SimLock = {
     window.addEventListener('skipftu', function() {
       this._ftuEnabled = false;
     }.bind(this));
+
+    // Listen to callscreenwillopen and callscreenwillclose event
+    // to discard the cardstatechange event.
+    window.addEventListener('callscreenwillopen', this);
+    window.addEventListener('callscreenwillclose', this);
   },
 
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
+      case 'callscreenwillopen':
+        this._duringCall = true;
+        break;
+      case 'callscreenwillclose':
+        this._duringCall = false;
+        break;
       case 'unlock':
         // Check whether the lock screen was unlocked from the camera or not.
         // If the former is true, the SIM PIN dialog should not displayed after
@@ -114,6 +126,9 @@ var SimLock = {
       return false;
 
     if (LockScreen.locked)
+      return false;
+
+    if (this._duringCall)
       return false;
 
     switch (conn.cardState) {
