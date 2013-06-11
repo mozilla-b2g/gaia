@@ -276,9 +276,9 @@ var MindGap = (function() {
 
   // Return true is dateA and dateB refer to the same day
   function sameDate(dateA, dateB) {
-    return dateA.getUTCFullYear() === dateB.getUTCFullYear() &&
-           dateA.getUTCMonth() === dateB.getUTCMonth() &&
-           dateA.getUTCDate() === dateB.getUTCDate();
+    return dateA.getFullYear() === dateB.getFullYear() &&
+           dateA.getMonth() === dateB.getMonth() &&
+           dateA.getDate() === dateB.getDate();
   }
 
   // Return the fixing value for a date given a list of fixing pairs
