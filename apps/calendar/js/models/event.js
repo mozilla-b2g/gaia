@@ -216,7 +216,7 @@ Calendar.ns('Models').Event = (function() {
       var start = this.startDate.valueOf();
       var errors = [];
 
-      if (start > end) {
+      if (start >= end) {
         errors.push({
           name: 'start-after-end'
         });
