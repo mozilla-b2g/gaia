@@ -361,16 +361,44 @@ var Camera = {
   },
 
   handleActivity: function camera_handleActivity(activity) {
-    if (activity.source.name !== 'pick') {
+    if (activity.source.name !== 'pick' && activity.source.name !== 'record') {
       if (!this._initialised) {
         this.init();
       }
       return;
     }
-    this.initPick(activity);
 
-    var mode = (activity.source.data.type.indexOf('video/') !== -1) ?
-      this.VIDEO : this.CAMERA;
+    if (activity.source.name === 'pick') {
+      this.initPick(activity);
+
+      var mode = this.CAMERA;
+      // support either photo or video
+      // if webactivity request multiple format
+      if (typeof activity.source.data.type !== 'string') {
+        var type = '';
+        var len = activity.source.data.type.length;
+        for (var i = 0; i < len; i++) {
+          if (type === '') {
+              type = activity.source.data.type[i];
+          } else {
+            // detected multiple type support
+            if (type !== activity.source.data.type[i]) {
+              this.switchButton.classList.remove('hidden');
+              this.switchButton.removeAttribute('disabled');
+            }
+          }
+        }
+      } else {
+        if (activity.source.data.type.indexOf('video/') !== -1) {
+          mode = this.VIDEO;
+        }
+      }
+    } else { // record
+      if (activity.source.data.type === 'videos') {
+        mode = this.VIDEO;
+      }
+    }
+
     if (!this._initialised) {
       this.setCaptureMode(mode);
       this.init();
@@ -400,10 +428,11 @@ var Camera = {
   },
 
   enableButtons: function camera_enableButtons() {
-    if (!this._pendingPick) {
+    if (this._recording || this._pendingPick) {
+      this.captureButton.removeAttribute('disabled');
+    } else {
       this.switchButton.removeAttribute('disabled');
     }
-    this.captureButton.removeAttribute('disabled');
   },
 
   disableButtons: function camera_disableButtons() {
