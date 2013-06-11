@@ -307,6 +307,12 @@ var OnCallHandler = (function onCallHandler() {
       return;
     }
 
+    // First incoming or outgoing call, reset mute and speaker.
+    if (handledCalls.length == 0) {
+      CallScreen.unmute();
+      CallScreen.turnSpeakerOff();
+    }
+
     var node = null;
     // Find an available node for displaying the call
     var children = CallScreen.calls.children;
@@ -392,9 +398,6 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function handleFirstIncoming(call) {
-    unmute();
-    turnSpeakerOff();
-
     var vibrateInterval = 0;
     if (activateVibration != false) {
       vibrateInterval = window.setInterval(function vibrate() {
