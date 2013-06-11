@@ -23,7 +23,7 @@ function startup(data, reason) {
   DOMApplicationRegistry.allAppsLaunchable = true;
 
   const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
-  const GAIA_APP_SRCDIRS = Services.prefs.getCharPref("extensions.gaia.app_src_dirs");
+  const GAIA_APPDIRS = Services.prefs.getCharPref("extensions.gaia.appdirs");
   const GAIA_DIR = Services.prefs.getCharPref("extensions.gaia.dir");
   const GAIA_PORT = Services.prefs.getIntPref("extensions.gaia.port");
 
@@ -58,7 +58,7 @@ function startup(data, reason) {
     let host = GAIA_DOMAIN;
     identity.add(scheme, host, port);
 
-    let directories = getDirectories(baseDir);
+    let directories = getDirectories(GAIA_APPDIRS.split(' '));
     directories.forEach(function appendDir(name) {
       // Some app names can cause a raise here, preventing other apps
       // from being added.
@@ -72,25 +72,13 @@ function startup(data, reason) {
     server.registerPathHandler('/marionette', MarionetteHandler);
   }
 
-  function getDirectories(dir) {
-    let dirs = [];
-    let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
-
-    appSrcDirs.forEach(function addDirectory(name) {
+  function getDirectories(appDirs) {
+    return appDirs.map(function (path) {
       let appsDir = Cc['@mozilla.org/file/local;1']
                       .createInstance(Ci.nsILocalFile);
-      appsDir.initWithPath(dir);
-      appsDir.append(name);
-
-      let files = appsDir.directoryEntries;
-      while (files.hasMoreElements()) {
-        let file = files.getNext().QueryInterface(Ci.nsILocalFile);
-        if (file.isDirectory()) {
-          dirs.push(file.leafName);
-        }
-      }
+      appsDir.initWithPath(path);
+      return appsDir.leafName;
     });
-    return dirs;
   }
 
   function LongPoll(connid, transport) {
