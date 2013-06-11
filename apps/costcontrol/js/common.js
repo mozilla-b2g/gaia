@@ -297,7 +297,10 @@ var Common = {
   },
 
   closeApplication: function() {
-    window.close();
+    return setTimeout(function _close() {
+      debug('Closing.');
+      window.close();
+    });
   },
 
   modalAlert: function(message) {
