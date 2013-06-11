@@ -361,16 +361,40 @@ var Camera = {
   },
 
   handleActivity: function camera_handleActivity(activity) {
-    if (activity.source.name !== 'pick') {
+    if (activity.source.name !== 'pick' && activity.source.name !== 'record') {
       if (!this._initialised) {
         this.init();
       }
       return;
     }
-    this.initPick(activity);
 
-    var mode = (activity.source.data.type.indexOf('video/') !== -1) ?
-      this.VIDEO : this.CAMERA;
+    var types = activity.source.data.type || 'image/*';
+    var mode = this.CAMERA;
+    if (activity.source.name === 'pick') {
+      this.initPick(activity);
+
+      if (typeof types === 'string') {
+        types = [types];
+      }
+
+      var modes = { 'image': false, 'video': false};
+      types.forEach(function(type) {
+        var typePrefix = type.split('/')[0];
+        modes[typePrefix] = true;
+      });
+
+      if (modes.image && modes.video) {
+        this.switchButton.classList.remove('hidden');
+        this.switchButton.removeAttribute('disabled');
+      } else if (modes.video) {
+        mode = this.VIDEO;
+      }
+    } else { // record
+      if (types === 'videos') {
+        mode = this.VIDEO;
+      }
+    }
+
     if (!this._initialised) {
       this.setCaptureMode(mode);
       this.init();
@@ -400,10 +424,8 @@ var Camera = {
   },
 
   enableButtons: function camera_enableButtons() {
-    if (!this._pendingPick) {
+      this.captureButton.removeAttribute('disabled');
       this.switchButton.removeAttribute('disabled');
-    }
-    this.captureButton.removeAttribute('disabled');
   },
 
   disableButtons: function camera_disableButtons() {
