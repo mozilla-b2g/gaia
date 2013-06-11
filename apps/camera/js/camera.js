@@ -98,6 +98,7 @@ var DCFApi = (function() {
 var screenLock = null;
 var returnToCamera = true;
 var Camera = {
+  _initialised: false,
   _cameras: null,
   _camera: 0,
   _captureMode: null,
@@ -179,7 +180,7 @@ var Camera = {
   _position: null,
 
   _pendingPick: null,
-  _savedBlob: null,
+  _savedMedia: null,
 
   // The minimum available disk space to start recording a video.
   RECORD_SPACE_MIN: 1024 * 1024 * 2,
@@ -251,8 +252,21 @@ var Camera = {
   // previewStream as fast as possible, once the previewStream is
   // active we do the rest of the initialisation.
   init: function() {
-    var self = this;
-    this.setCaptureMode(this.CAMERA);
+    // We dont want to initialise until we know what type of activity
+    // we are handling
+    var hasMessage = navigator.mozHasPendingMessage('activity');
+    navigator.mozSetMessageHandler('activity', this.handleActivity.bind(this));
+
+    if (hasMessage) {
+      return;
+    }
+
+    // The activity may have defined a captureMode, otherwise
+    // be default we use the camera
+    if (this._captureMode === null) {
+      this.setCaptureMode(this.CAMERA);
+    }
+
     this.loadCameraPreview(this._camera, function() {
       var files = [
         'style/filmstrip.css',
@@ -267,20 +281,17 @@ var Camera = {
         'js/filmstrip.js'
       ];
       loader.load(files, function() {
-        self.delayedInit();
+        Camera.delayedInit();
       });
     });
   },
 
   delayedInit: function camera_delayedInit() {
-    // If we don't have any pending messages, show the usual UI
-    // Otherwise, determine which buttons to show once we get our
-    // activity message
-    if (!navigator.mozHasPendingMessage('activity')) {
+    if (!this._pendingPick) {
       this.galleryButton.classList.remove('hidden');
       this.switchButton.classList.remove('hidden');
-      this.enableButtons();
     }
+    this.enableButtons();
 
     // Dont let the phone go to sleep while the camera is
     // active, user must manually close it
@@ -343,23 +354,59 @@ var Camera = {
     this._pictureStorage
       .addEventListener('change', this.deviceStorageChangeHandler.bind(this));
     this.checkStorageSpace();
-
-    navigator.mozSetMessageHandler('activity', function(activity) {
-      var name = activity.source.name;
-      if (name === 'pick') {
-        Camera.initPick(activity);
-      }
-      else {
-        // We got another activity. Perhaps we were launched from gallery
-        // So show our usual buttons
-        Camera.galleryButton.classList.remove('hidden');
-        Camera.switchButton.classList.remove('hidden');
-      }
-      Camera.enableButtons();
-    });
-
     this.previewEnabled();
+
+    this._initialised = true;
     DCFApi.init();
+  },
+
+  handleActivity: function camera_handleActivity(activity) {
+    if (activity.source.name !== 'pick' && activity.source.name !== 'record') {
+      if (!this._initialised) {
+        this.init();
+      }
+      return;
+    }
+
+    if (activity.source.name === 'pick') {
+      this.initPick(activity);
+
+      var mode = this.CAMERA;
+      // support either photo or video
+      // if webactivity request multiple format
+      if (typeof activity.source.data.type !== 'string') {
+        var type = '';
+        var len = activity.source.data.type.length;
+        for (var i = 0; i < len; i++) {
+          if (type === '') {
+              type = activity.source.data.type[i];
+          } else {
+            // detected multiple type support
+            if (type !== activity.source.data.type[i]) {
+              this.switchButton.classList.remove('hidden');
+              this.switchButton.removeAttribute('disabled');
+            }
+          }
+        }
+      } else {
+        if (activity.source.data.type.indexOf('video/') !== -1) {
+          mode = this.VIDEO;
+        }
+      }
+    } else { // record
+      if (activity.source.data.type === 'videos') {
+        mode = this.VIDEO;
+      }
+    }
+
+    if (!this._initialised) {
+      this.setCaptureMode(mode);
+      this.init();
+    } else if (this._captureMode !== mode) {
+      // I dont think it is currently possible to get a pick activity
+      // with an initialised camera, but it may be in the future
+      this.changeMode(mode);
+    }
   },
 
   screenTimeout: function camera_screenTimeout() {
@@ -381,10 +428,11 @@ var Camera = {
   },
 
   enableButtons: function camera_enableButtons() {
-    if (!this._pendingPick) {
+    if (this._recording || this._pendingPick) {
+      this.captureButton.removeAttribute('disabled');
+    } else {
       this.switchButton.removeAttribute('disabled');
     }
-    this.captureButton.removeAttribute('disabled');
   },
 
   disableButtons: function camera_disableButtons() {
@@ -439,9 +487,14 @@ var Camera = {
       return;
     }
 
-    var newMode = (this.captureMode === this.CAMERA) ? this.VIDEO : this.CAMERA;
+    var newMode = (this._captureMode === this.CAMERA) ?
+      this.VIDEO : this.CAMERA;
+    this.changeMode(newMode);
+  },
+
+  changeMode: function(mode) {
     this.disableButtons();
-    this.setCaptureMode(newMode);
+    this.setCaptureMode(mode);
     this.updateFlashUI();
 
     function gotPreviewStream(stream) {
@@ -449,7 +502,7 @@ var Camera = {
       this.viewfinder.play();
       this.enableButtons();
     }
-    if (this.captureMode === this.CAMERA) {
+    if (this._captureMode === this.CAMERA) {
       this._cameraObj.getPreviewStream(this._previewConfig,
                                        gotPreviewStream.bind(this));
     } else {
@@ -471,7 +524,7 @@ var Camera = {
   },
 
   updateFlashUI: function camera_updateFlashUI() {
-    var flash = this._flashState[this.captureMode];
+    var flash = this._flashState[this._captureMode];
     if (flash.supported) {
       this.setFlashMode();
       this.toggleFlashBtn.classList.remove('hidden');
@@ -481,13 +534,13 @@ var Camera = {
   },
 
   toggleFlash: function camera_toggleFlash() {
-    var flash = this._flashState[this.captureMode];
+    var flash = this._flashState[this._captureMode];
     flash.currentMode = (flash.currentMode + 1) % flash.modes.length;
     this.setFlashMode();
   },
 
   setFlashMode: function camera_setFlashMode() {
-    var flash = this._flashState[this.captureMode];
+    var flash = this._flashState[this._captureMode];
     var flashModeName = flash.modes[flash.currentMode];
     this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
     this._cameraObj.flashMode = flashModeName;
@@ -544,6 +597,13 @@ var Camera = {
         rotation: this._phoneOrientation,
         maxFileSizeBytes: freeBytes - this.RECORD_SPACE_PADDING
       };
+
+      if (this.pendingPick && this.pendingPick.source.data.maxFileSizeBytes) {
+        var maxFileSizeBytes = this.pendingPick.source.data.maxFileSizeBytes;
+        config.maxFileSizeBytes = Math.min(config.maxFileSizeBytes,
+                                           maxFileSizeBytes);
+      }
+
       this._cameraObj.startRecording(config,
                                      this._videoStorage, this._videoPath,
                                      onsuccess, onerror);
@@ -593,19 +653,25 @@ var Camera = {
   },
 
   stopRecording: function camera_stopRecording() {
+    var self = this;
     this._cameraObj.stopRecording();
     this._recording = false;
-
     // Register a listener for writing completion of current video file
     (function(videoStorage, videofile) {
       videoStorage.addEventListener('change', function changeHandler(e) {
         // Regard the modification as video file writing completion if e.path
         // matches current video filename. Note e.path is absolute path.
         if (e.reason === 'modified' && e.path === videofile) {
-          Filmstrip.addVideo(videofile);
-          Filmstrip.show(Camera.FILMSTRIP_DURATION);
           // Un-register the listener itself
           videoStorage.removeEventListener('change', changeHandler);
+          if (self._pendingPick) {
+            self._savedMedia = videofile;
+            self.stopPreview();
+            self.showConfirmation(true);
+          } else {
+            Filmstrip.addVideo(videofile);
+            Filmstrip.show(Camera.FILMSTRIP_DURATION);
+          }
         }
       });
     })(this._videoStorage, this._videoRootDir + this._videoPath);
@@ -633,7 +699,7 @@ var Camera = {
       return;
     }
 
-    if (this.captureMode === this.CAMERA) {
+    if (this._captureMode === this.CAMERA) {
       this.prepareTakePicture();
     } else {
       this.toggleRecording();
@@ -678,10 +744,10 @@ var Camera = {
   },
 
   setCaptureMode: function camera_setCaptureMode(mode) {
-    if (this.captureMode) {
-      document.body.classList.remove(this.captureMode);
+    if (this._captureMode) {
+      document.body.classList.remove(this._captureMode);
     }
-    this.captureMode = mode;
+    this._captureMode = mode;
     document.body.classList.add(mode);
   },
 
@@ -689,7 +755,7 @@ var Camera = {
     // We will just ignore
     // because the filmstrip shouldn't be shown
     // while Camera is recording
-    if (this._recording)
+    if (this._recording || this._pendingPick)
       return;
 
     if (Filmstrip.isShown())
@@ -732,7 +798,7 @@ var Camera = {
         }
       }).bind(this);
       camera.onRecorderStateChange = this.recordingStateChanged.bind(this);
-      if (this.captureMode === this.CAMERA) {
+      if (this._captureMode === this.CAMERA) {
         camera.getPreviewStream(this._previewConfig,
                                 gotPreviewScreen.bind(this));
       } else {
@@ -902,7 +968,7 @@ var Camera = {
 
       // Just save the blob temporarily until the user presses "Retake" or
       // "Select".
-      this._savedBlob = blob;
+      this._savedMedia = blob;
       return;
     }
 
@@ -915,27 +981,34 @@ var Camera = {
   },
 
   retakePressed: function camera_retakePressed() {
-    this._savedBlob = null;
+    this._savedMedia = null;
     this.showConfirmation(false);
     this.cancelPickButton.removeAttribute('disabled');
-    this.restartPreview();
+    this.startPreview();
   },
 
   selectPressed: function camera_selectPressed() {
-    var blob = this._savedBlob;
-    this._savedBlob = null;
+    var media = this._savedMedia;
+    this._savedMedia = null;
     this.showConfirmation(false);
-    this.restartPreview();
-    this._addPictureToStorage(blob, function(name, absolutePath) {
-      this._resizeBlobIfNeeded(blob, function(resized_blob) {
-        this._pendingPick.postResult({
-          type: 'image/jpeg',
-          blob: resized_blob,
-          name: name
-        });
-        this._pendingPick = null;
+    if (this._captureMode === this.CAMERA) {
+      this._addPictureToStorage(media, function(name, absolutePath) {
+        this._resizeBlobIfNeeded(media, function(resized_blob) {
+          this._pendingPick.postResult({
+            type: 'image/jpeg',
+            blob: resized_blob,
+            name: name
+          });
+          this._pendingPick = null;
+        }.bind(this));
       }.bind(this));
-    }.bind(this));
+    } else {
+      this._pendingPick.postResult({
+        type: 'video/3gpp',
+        name: media
+      });
+      this._pendingPick = null;
+    }
   },
 
   _addPictureToStorage: function camera_addPictureToStorage(blob, callback) {
