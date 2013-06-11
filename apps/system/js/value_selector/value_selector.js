@@ -341,13 +341,15 @@ var ValueSelector = {
     for (var i = 0, n = options.length; i < n; i++) {
 
       var checked = options[i].selected ? ' aria-checked="true"' : '';
+      var disabled = options[i].disabled;
 
       // This for attribute is created only to avoid applying
       // a general rule in building block
       var forAttribute = ' for="gaia-option-' + options[i].optionIndex + '"';
+      var disabledAttribute = options[i].disabled ? 'disabled' : '';
 
       optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
-                     checked + '>' +
+                     checked + disabledAttribute + '>' +
                      '<label' + forAttribute + '> <span>' +
                      escapeHTML(options[i].text) +
                      '</span></label>' +

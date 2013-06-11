@@ -160,6 +160,11 @@ button.affirmative.active {
   word-wrap: break-word;
 }
 
+#value-selector-container ol li[disabled] {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
 #value-selector li input:checked + span,
 #value-selector li[aria-checked="true"] span {
   padding-right: 2.6rem;
