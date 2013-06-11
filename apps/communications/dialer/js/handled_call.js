@@ -55,8 +55,6 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       break;
     case 'resuming':
       this.node.classList.remove('held');
-      break;
-    case 'resumed':
       if (this.photo) {
         CallScreen.setCallerContactImage(this.photo, true, false);
       }
@@ -144,7 +142,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
         KeypadManager.formatPhoneNumber('end', true);
         var additionalInfo =
           Utils.getPhoneNumberAdditionalInfo(matchingTel, contact, number);
-        KeypadManager.updateAdditionalContactInfo(additionalInfo);
+        KeypadManager.updateAdditionalContactInfo(additionalInfo, self.node);
         if (contact.photo && contact.photo.length > 0) {
           self.photo = contact.photo[0];
           CallScreen.setCallerContactImage(self.photo, true, false);
