@@ -4,7 +4,6 @@ var CallHandler = (function callHandler() {
   var COMMS_APP_ORIGIN = document.location.protocol + '//' +
     document.location.host;
   var callScreenWindow = null;
-  var callScreenWindowLoaded = false;
   var callScreenWindowReady = false;
   var btCommandsToForward = [];
   var currentActivity = null;
@@ -290,7 +289,6 @@ var CallHandler = (function callHandler() {
 
       callScreenWindow.onload = function onload() {
         highPriorityWakeLock.unlock();
-        callScreenWindowLoaded = true;
         if (openCallback) {
           openCallback();
         }
@@ -323,7 +321,6 @@ var CallHandler = (function callHandler() {
 
   function handleCallScreenClosing() {
     callScreenWindow = null;
-    callScreenWindowLoaded = false;
     callScreenWindowReady = false;
   }
 
