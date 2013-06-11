@@ -831,7 +831,9 @@ var Camera = {
 
   previewEnabled: function() {
     this.enableButtons();
-    setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
+    if (!this._pendingPick) {
+      setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
+    }
   },
 
   stopPreview: function camera_stopPreview() {
