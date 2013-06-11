@@ -393,8 +393,10 @@ var AlarmList = {
   },
 
   alarmEditView: function(alarm) {
-    LazyLoader.load('js/alarm_edit.js', function() {
-      AlarmEdit.load(alarm);
+    LazyLoader.load(
+      [document.getElementById('alarm'), 'js/alarm_edit.js'],
+      function() {
+        AlarmEdit.load(alarm);
     });
   },
 
