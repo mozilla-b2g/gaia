@@ -232,7 +232,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json create-default-data
+profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json create-default-data profile/installed-extensions.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -311,6 +311,14 @@ offline-cache: webapp-manifests install-xulrunner-sdk
 	@echo "Populate external apps appcache"
 	@$(call run-js-command, offline-cache)
 	@echo "Done"
+
+# Get additional extensions
+profile/installed-extensions.json: build/additional-extensions.json $(wildcard .build/custom-extensions.json)
+ifeq ($(DESKTOP),1)
+	python build/additional-extensions.py --gaia-dir="$(CURDIR)"
+else ifeq ($(DEBUG),1)
+	touch profile/installed-extensions.json
+endif
 
 # Copy preload contacts to profile
 contacts:
