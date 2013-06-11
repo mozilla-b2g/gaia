@@ -335,10 +335,10 @@ suiteGroup('Views.ModifyEvent', function() {
             startDate: busytimeRecurring.startDate,
             endDate: busytimeRecurring.endDate
           };
-          assert.hasProperties(
-            subject.formData(),
-            expected
-          );
+
+          var actual = subject.formData();
+          actual.calendarId = parseInt(actual.calendarId, 10);
+          assert.hasProperties(actual, expected);
         });
       });
     });
