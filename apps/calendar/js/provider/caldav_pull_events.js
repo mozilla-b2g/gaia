@@ -148,8 +148,8 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
      * @param {Object} time service sent busytime.
      */
     formatBusytime: function(time) {
-      var id = this.busytimeIdFromRemote(time);
       var eventId = this.eventIdFromRemote(time, !time.isException);
+      var id = eventId + '-' + uuid.v4();
       var calendarId = this.calendar._id;
 
       time._id = id;
@@ -231,6 +231,8 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       // related to this event as we will be adding new
       // ones as part of the sync.
       this._busytimeStore.removeEvent(id);
+      // remove details of past cached events....
+      this.app.timeController.removeCachedEvent(event._id);
       this.app.timeController.cacheEvent(event);
 
       this.eventQueue.push(event);
