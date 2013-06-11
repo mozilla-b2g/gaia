@@ -196,6 +196,12 @@ suiteGroup('Models.Event', function() {
     assert.equal(subject.calendarId, 7);
   });
 
+  test('#calendarId with string input', function() {
+    subject.calendarId = '7';
+    assert.strictEqual(rawEvent.calendarId, 7);
+    assert.strictEqual(subject.calendarId, 7);
+  });
+
   test('#_id', function() {
     rawEvent._id = 'foo';
 

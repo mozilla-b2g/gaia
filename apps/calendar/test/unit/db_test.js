@@ -1,7 +1,9 @@
-requireLib('ext/uuid.js');
+requireLib('calendar.js');
 requireLib('db.js');
+requireLib('ext/uuid.js');
 requireLib('models/account.js');
 requireLib('models/calendar.js');
+requireLib('models/event.js');
 requireLib('presets.js');
 
 suite('db', function() {
@@ -53,20 +55,6 @@ suite('db', function() {
     assert.instanceOf(subject, Calendar.Responder);
     assert.deepEqual(subject._stores, {});
     assert.isTrue(Object.isFrozen(subject.store));
-  });
-
-  test('#_openStore', function() {
-    var Store = function(db) {
-      this.db = db;
-    };
-
-    Store.prototype = {
-      __proto__: Calendar.Store.Abstract.prototype,
-
-      onopen: function() {
-        this.open = true;
-      }
-    };
   });
 
   suite('#transaction', function() {
@@ -198,6 +186,174 @@ suite('db', function() {
           assert.isTrue(subject.hasUpgraded, 'has upgraded');
           assert.equal(subject.connection.name, subject.name);
           finishedOpen = true;
+        });
+      });
+
+      suite('Bug 851003', function() {
+        /**
+         * @type {Calendar.Store}
+         */
+        var busytimeStore, calendarStore, eventStore;
+
+        /**
+         * Keys for test events.
+         * @const {number}
+         */
+        var EVENT_ONE_ID, EVENT_TWO_ID, EVENT_THREE_ID;
+
+        /**
+         * Keys for test busytimes.
+         * @const {number}
+         */
+        var BUSYTIME_ONE_ID, BUSYTIME_TWO_ID, BUSYTIME_THREE_ID;
+
+        /**
+         * The version immediately before we fix the corrupt calendarIds.
+         * @const {number}
+         */
+        var OLD_VERSION;
+
+        setup(function(done) {
+          OLD_VERSION = 14;
+
+          // These need their calendarId fixed.
+          EVENT_ONE_ID = 'evt1';
+          BUSYTIME_ONE_ID = 'bt1';
+
+          // These are fine as is.
+          EVENT_TWO_ID = 'evt2';
+          BUSYTIME_TWO_ID = 'bt2';
+
+          // These need to be deleted.
+          EVENT_THREE_ID = 'evt3';
+          BUSYTIME_THREE_ID = 'bt3';
+
+          busytimeStore = subject.getStore('Busytime');
+          calendarStore = subject.getStore('Calendar');
+          eventStore = subject.getStore('Event');
+
+
+          subject.open(OLD_VERSION, function() {
+            calendarStore.persist(Factory('calendar', { _id: 1 }), trans);
+
+            [
+              Factory('event', {
+                calendarId: '1',
+                _id: EVENT_ONE_ID
+              }),
+              Factory('event', {
+                calendarId: 2,
+                _id: EVENT_TWO_ID
+              }),
+              Factory('event', {
+                calendarId: '3',
+                _id: EVENT_THREE_ID
+              })
+            ].forEach(function(obj) {
+              eventStore.persist(obj, trans);
+            });
+
+            [
+              Factory('busytime', {
+                eventId: EVENT_ONE_ID,
+                calendarId: '1',
+                _id: BUSYTIME_ONE_ID
+              }),
+              Factory('busytime', {
+                eventId: EVENT_TWO_ID,
+                calendarId: 2,
+                _id: BUSYTIME_TWO_ID
+              }),
+              Factory('busytime', {
+                eventId: EVENT_THREE_ID,
+                calendarId: '3',
+                _id: BUSYTIME_THREE_ID
+              })
+            ].forEach(function(obj) {
+              busytimeStore.persist(obj, trans);
+            });
+
+            var trans = subject.transaction(
+              ['busytimes', 'calendars', 'events'],
+              'readwrite'
+            );
+            trans.oncomplete = function() {
+              subject.close();
+              done();
+            };
+          });
+        });
+
+        teardown(function() {
+          if (subject.isOpen) {
+            subject.close();
+          }
+        });
+
+        test('should turn event str calendarId into int', function(done) {
+          subject.open(OLD_VERSION + 1, function() {
+            var trans = subject.transaction(['events'], 'readwrite');
+            var store = trans.objectStore('events');
+            store.get(EVENT_ONE_ID).onsuccess = function(evt) {
+              assert.strictEqual(evt.target.result.calendarId, 1);
+              done();
+            };
+          });
+        });
+
+        test('should not modify event int calendarId', function(done) {
+          subject.open(OLD_VERSION + 1, function() {
+            var trans = subject.transaction(['events'], 'readwrite');
+            var store = trans.objectStore('events');
+            var get = store.get(EVENT_TWO_ID).onsuccess = function(evt) {
+              assert.strictEqual(evt.target.result.calendarId, 2);
+              done();
+            };
+          });
+        });
+
+        test('should delete event if its calendar died', function(done) {
+          subject.open(OLD_VERSION + 1, function() {
+            var trans = subject.transaction(['events'], 'readwrite');
+            var store = trans.objectStore('events');
+            var get = store.get(EVENT_THREE_ID).onsuccess = function(evt) {
+              assert.strictEqual(evt.target.result, undefined);
+              done();
+            };
+          });
+        });
+
+        test('should turn busytime str calendarId into int', function(done) {
+          subject.open(OLD_VERSION + 1, function() {
+            var trans = subject.transaction(['busytimes'], 'readwrite');
+            var store = trans.objectStore('busytimes');
+            var get = store.get(BUSYTIME_ONE_ID).onsuccess = function(evt) {
+              assert.strictEqual(evt.target.result.calendarId, 1);
+              done();
+            };
+          });
+        });
+
+        test('should not modify busytime int calendarId', function(done) {
+          subject.open(OLD_VERSION + 1, function() {
+            var trans = subject.transaction(['busytimes'], 'readwrite');
+            var store = trans.objectStore('busytimes');
+            var get = store.get(BUSYTIME_TWO_ID).onsuccess = function(evt) {
+              assert.strictEqual(evt.target.result.calendarId, 2);
+              done();
+            };
+          });
+        });
+
+        test('should delete busytime if its calendar died', function(done) {
+          subject.open(OLD_VERSION + 1, function() {
+            var trans = subject.transaction(['busytimes'], 'readwrite');
+            var store = trans.objectStore('busytimes');
+            var get = store.get(BUSYTIME_THREE_ID).onsuccess = function(evt) {
+              assert.strictEqual(evt.target.result, undefined);
+              done();
+            };
+          });
         });
       });
     });
