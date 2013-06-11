@@ -99,7 +99,8 @@
         'ril.data.user': 'user',
         'ril.data.passwd': 'password',
         'ril.data.httpProxyHost': 'proxy',
-        'ril.data.httpProxyPort': 'port'
+        'ril.data.httpProxyPort': 'port',
+        'ril.data.authtype': 'authtype'
       },
       'supl': {
         'ril.supl.carrier': 'carrier',
@@ -107,7 +108,8 @@
         'ril.supl.user': 'user',
         'ril.supl.passwd': 'password',
         'ril.supl.httpProxyHost': 'proxy',
-        'ril.supl.httpProxyPort': 'port'
+        'ril.supl.httpProxyPort': 'port',
+        'ril.supl.authtype': 'authtype'
       },
       'mms': {
         'ril.mms.carrier': 'carrier',
@@ -118,7 +120,8 @@
         'ril.mms.httpProxyPort': 'port',
         'ril.mms.mmsc': 'mmsc',
         'ril.mms.mmsproxy': 'mmsproxy',
-        'ril.mms.mmsport': 'mmsport'
+        'ril.mms.mmsport': 'mmsport',
+        'ril.mms.authtype': 'authtype'
       },
       'operatorvariant': {
         'ril.iccInfo.mbdn': 'voicemail',
@@ -130,6 +133,8 @@
     var booleanPrefNames = [
       'ril.sms.strict7BitEncoding.enabled'
     ];
+
+    const AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
 
     // store relevant APN settings
     var transaction = settings.createLock();
@@ -148,7 +153,11 @@
         if (booleanPrefNames.indexOf(key) != -1) {
           item[key] = apn[name] || false;
         } else {
-          item[key] = apn[name] || '';
+          if (name === 'authtype') {
+            item[key] = apn[name] ? AUTH_TYPES[apn[name]] : 'notDefined';
+          } else {
+            item[key] = apn[name] || '';
+          }
         }
         transaction.set(item);
       }
