@@ -324,8 +324,11 @@
         clearTimeout(closing);
         ConfigManager.requestAll(function _onInfo(configuration, settings) {
           // Non expected SMS
-          if (configuration.balance.senders.indexOf(sms.sender) === -1 &&
-              configuration.topup.senders.indexOf(sms.sender) === -1) {
+          // configuration.balance or configuration.topup might not be set
+          // if the provider is not known, which is the case in default setup
+          if (!configuration.balance || !configuration.topup ||
+              (configuration.balance.senders.indexOf(sms.sender) === -1 &&
+               configuration.topup.senders.indexOf(sms.sender) === -1)) {
             closeIfProceeds();
             return;
           }
