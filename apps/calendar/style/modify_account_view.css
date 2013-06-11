@@ -69,6 +69,10 @@
   display: none;
 }
 
+#remove-account-dialog p {
+  font-size: 2.2rem;
+}
+
 #modify-account-view.auth-oauth2.create .user,
 #modify-account-view .sync-errors,
 #modify-account-view .oauth2-sign-in {
