@@ -281,59 +281,57 @@ suite('ActivityHandler', function() {
 
   suite('"new" activity', function() {
     var realMozL10n;
-
+    // Mockup activity
+    var newActivity = {
+      source: {
+        name: 'new',
+        data: {
+          number: '123',
+          body: 'foo'
+        }
+      }
+    };
     suiteSetup(function() {
+      window.location.hash = '#new';
       realMozL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
     });
     suiteTeardown(function() {
       navigator.mozL10n = realMozL10n;
     });
+    test('Activity lock should be released properly', function() {
+      // Review the status after handling the activity
+      this.sinon.stub(MessageManager, 'launchComposer', function(activity) {
+        assert.equal(activity.number, '123');
+        assert.equal(activity.body, 'foo');
+        //Is the lock released for a new request?
+        assert.isFalse(ActivityHandler.isLocked);
 
-    test('new message to unknown contact', function(done) {
-      window.onhashchange = function() {
-        assert.equal(window.location.hash, '#new');
-        assert.equal(MessageManager.activity.number, '999');
-        assert.equal(MessageManager.activity.body, 'foo');
-        window.onhashchange = null;
-        done();
-      };
-
-      ActivityHandler.toView({
-        body: 'foo',
-        number: '999'
       });
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
     });
 
-    test('new message with empty msg', function(done) {
-      // change location hash to #new
-      window.location.hash = '#new';
-      // check for onHashChange is called.
-      this.sinon.stub(MessageManager, 'onHashChange', function() {
-        assert.equal(window.location.hash, '#new');
-        done();
-      });
-      // no message in the input field.
+    test('new message with empty msg', function() {
+      // No message in the input field.
       Compose.mEmpty = true;
       this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
         assert.ok(false, 'confirmation dialog should not show');
       });
 
-      ActivityHandler.toView({
-        body: 'foo',
-        number: '999'
-      });
+      // Call the activity. As we are in 'new' there is no hashchange.
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
     });
 
-    test('new message with user input msg, discard it', function(done) {
-      // change location hash to #new
-      window.location.hash = '#new';
-      // check for onHashChange is called.
-      this.sinon.stub(MessageManager, 'onHashChange', function() {
-        assert.equal(MockOptionMenu.prototype.show.callCount, 1);
-        done();
+    test('new message with user input msg, discard it', function() {
+      // Review the status after handling the activity
+      this.sinon.stub(MessageManager, 'launchComposer', function(activity) {
+        assert.equal(activity.number, '123');
+        assert.equal(activity.body, 'foo');
+        //Is the lock released for a new request?
+        assert.isFalse(ActivityHandler.isLocked);
+
       });
-      // user typed message in the input field.
+      // User typed message in the input field
       Compose.mEmpty = false;
       this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
         assert.equal(MockOptionMenu.calls.length, 1);
@@ -345,24 +343,19 @@ suite('ActivityHandler', function() {
         // discard is the second button
         assert.isNotNull(items[1]);
         assert.equal(typeof items[1].method, 'function');
-        // call discard.
-        items[1].method();
+        // Check params
+        assert.equal(newActivity.source.data.number, items[1].params[0].number);
+        assert.equal(newActivity.source.data.body, items[1].params[0].body);
+        // Call discard with the params
+        items[1].method(items[1].params[0]);
       });
 
-      ActivityHandler.toView({
-        body: 'foo',
-        number: '999'
-      });
+      // Call the activity. As we are in 'new' there is no hashchange.
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
     });
 
-    test('new message with user input msg, edit it', function(done) {
-      // change location hash to #new
-      window.location.hash = '#new';
-      // check for onHashChange is called.
-      this.sinon.stub(MessageManager, 'onHashChange', function() {
-        assert.ok(false, 'onHashChange should not be called');
-      });
-      // no message in the input field.
+    test('new message with user input msg, edit it', function() {
+      // There is message in the input field.
       Compose.mEmpty = false;
       this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
         assert.equal(MockOptionMenu.calls.length, 1);
@@ -374,25 +367,13 @@ suite('ActivityHandler', function() {
         // edit is the first button
         assert.isNotNull(items[0]);
         assert.equal(typeof items[0].method, 'function');
+        // Check if when keeping the previous message the
+        // composer keeps the previous status;
+        assert.isNotNull(items[0].params);
         // call edit.
         items[0].method();
       });
-
-      ActivityHandler.toView({
-        body: 'foo',
-        number: '999'
-      });
-      // wait 10ms to check if onHashChange is called.
-      setTimeout(function() {
-        assert.isFalse(MessageManager.onHashChange.called);
-        assert.equal(MockOptionMenu.prototype.show.callCount, 1);
-        // check if activity variables are cleared.
-        assert.equal(MessageManager.activity.body, null);
-        assert.equal(MessageManager.activity.number, null);
-        assert.equal(MessageManager.activity.contact, null);
-        done();
-      }, 10);
-
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
     });
   });
 });
