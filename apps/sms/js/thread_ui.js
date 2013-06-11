@@ -1512,10 +1512,48 @@ var ThreadUI = global.ThreadUI = {
         photoURL: ''
       };
 
+    /*
+      Do a quick pass and build a list of
+      carriers and types to decide de logic
+      to display carrier or type defined
+      here:
+      https://bugzilla.mozilla.org/show_bug.cgi?id=877145#c3
+
+      This will build an object with keys type + '_' + carrier
+      and value the number of appearances that we have for
+      this contact.
+    */
+    var carrierInfo = {};
     for (var i = 0; i < telsLength; i++) {
       var current = tels[i];
-      var number = current.value;
-      var title = details.title || number;
+      if (!current.carrier) {
+        continue;
+      }
+      var key = current.type + '_' + current.carrier;
+      if (typeof carrierInfo[key] === 'undefined') {
+        carrierInfo[key] = 1;
+      } else {
+        carrierInfo[key] += 1;
+      }
+    }
+
+    /*
+      With the previous object for carrier info built,
+      decide in each situation what to show
+    */
+    var getCarrierNumberValue = function getValue(tel) {
+      if (!tel.carrier) {
+        return tel.value;
+      }
+      var key = tel.type + '_' + tel.carrier;
+      var carrier = carrierInfo[key] == 1 ? tel.carrier : null;
+      return carrier || tel.value || '';
+    };
+
+    for (var i = 0; i < telsLength; i++) {
+      var current = tels[i];
+      var number = getCarrierNumberValue(current);
+      var title = details.title || current.value;
       var type = current.type ? (current.type + ',') : '';
 
       var li = document.createElement('li');
