@@ -811,9 +811,11 @@ var ThreadUI = global.ThreadUI = {
 
       // The carrier banner is meaningless and confusing in
       // group message mode.
-      if (thread.participants.length === 1 && details.carrier) {
-        carrierTag.textContent = details.carrier;
-        carrierTag.classList.remove('hide');
+      if (thread.participants.length === 1) {
+        if (contacts && contacts.length) {
+          carrierTag.textContent = Utils.getContactCarrier(number, contacts[0].tel);
+          carrierTag.classList.remove('hide');
+        }
       } else {
         carrierTag.classList.add('hide');
       }
@@ -1514,14 +1516,17 @@ var ThreadUI = global.ThreadUI = {
       var current = tels[i];
       var number = current.value;
       var title = details.title || number;
-      var type = current.type ? (current.type + ',') : '';
+      var type = current.type && current.type.length ? current.type[0] : '';
+      var carrier = current.carrier ? (current.carrier + ', ') : '';
+      var separator = type || carrier ? ' | ' : '';
 
       var li = document.createElement('li');
       var data = {
         name: Utils.escapeHTML(title),
         number: Utils.escapeHTML(number),
         type: type,
-        carrier: current.carrier || '',
+        carrier: carrier,
+        separator: separator,
         nameHTML: '',
         numberHTML: ''
       };
