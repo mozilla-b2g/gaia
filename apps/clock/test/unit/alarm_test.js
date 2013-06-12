@@ -2,14 +2,15 @@ require('/shared/js/l10n.js');
 
 requireApp('clock/js/utils.js');
 requireApp('clock/js/alarmsdb.js');
-requireApp('clock/js/alarmManager.js');
+requireApp('clock/js/alarm_edit.js');
+requireApp('clock/js/alarm_manager.js');
 requireApp('clock/js/alarm.js');
 
 suite('AlarmEditView', function() {
   var subject;
 
   before(function() {
-    subject = AlarmEditView;
+    subject = AlarmEdit;
 
     // shim the edit alarm view
     delete subject.element;
