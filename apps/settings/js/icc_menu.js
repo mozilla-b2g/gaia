@@ -18,10 +18,7 @@
 
     // Open ICC section
     debug('ICC command to execute: ', iccCommand);
-    var page = document.location.protocol + '//' +
-      document.location.host + '/index.html#icc';
-    debug('page: ', page);
-    window.location.replace(page);
+    Settings.currentPanel = "#icc";
 
     setTimeout(function() {
       var event = new CustomEvent('stkasynccommand', {
