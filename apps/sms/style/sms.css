@@ -462,7 +462,7 @@ section[role="region"].new > header:first-child form {
 
 .edit .article-list[data-type="list"] .message.error .bubble > aside,
 .edit .article-list[data-type="list"] .message.pending .bubble > aside progress,
-.edit .article-list[data-type="list"] .message.sending .bubble > aside progress { 
+.edit .article-list[data-type="list"] .message.sending .bubble > aside progress {
   display: none;
 }
 
@@ -795,7 +795,7 @@ Do not remove.
   font-size: 1.8rem;
 }
 
-section[role="region"].new #messages-container[data-type="list"] > ul.contactList {
+.article-list[data-type="list"] ul.contact-list {
   position: absolute;
   width: calc(100% - 3.1rem);
   z-index: 5;
