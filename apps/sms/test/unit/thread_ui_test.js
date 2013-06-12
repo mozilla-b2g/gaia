@@ -1395,7 +1395,91 @@ suite('thread_ui.js >', function() {
       );
     });
 
-    test('Rendered Contact "type, number"', function() {
+    test('Rendered Contact "number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      contact.tel[0].carrier = null;
+      contact.tel[0].type = null;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: 'foo',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(html.contains('+346578888888'));
+    });
+
+    test('Rendered Contact highlighted "number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      contact.tel[0].carrier = null;
+      contact.tel[0].type = null;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: '346578888888',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(
+        html.contains('+<span class="highlight">346578888888</span>')
+      );
+    });
+
+    test('Rendered Contact "type | number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      contact.tel[0].carrier = null;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: 'foo',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(html.contains('Mobile | +346578888888'));
+    });
+
+    test('Rendered Contact highlighted "type | number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      contact.tel[0].carrier = null;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: '346578888888',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(
+        html.contains('Mobile | +<span class="highlight">346578888888</span>')
+      );
+    });
+
+
+
+    test('Rendered Contact "type | carrier, number"', function() {
       var ul = document.createElement('ul');
       var contact = new MockContact();
       var html;
@@ -1408,10 +1492,11 @@ suite('thread_ui.js >', function() {
         isHighlighted: true
       });
       html = ul.firstElementChild.innerHTML;
-      assert.ok(html.contains('Mobile, +346578888888'));
+
+      assert.ok(html.contains('Mobile | TEF, +346578888888'));
     });
 
-    test('Rendered Contact highlighted "type, number"', function() {
+    test('Rendered Contact highlighted "type | carrier, number"', function() {
       var ul = document.createElement('ul');
       var contact = new MockContact();
       var html;
@@ -1424,8 +1509,11 @@ suite('thread_ui.js >', function() {
         isHighlighted: true
       });
       html = ul.firstElementChild.innerHTML;
+
       assert.ok(
-        html.contains('Mobile, +<span class="highlight">346578888888</span>')
+        html.contains(
+          'Mobile | TEF, +<span class="highlight">346578888888</span>'
+        )
       );
     });
   });
