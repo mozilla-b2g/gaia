@@ -44,7 +44,7 @@ oauthflow.params = {
     loginPage:
       'https://accounts.google.com/o/oauth2/auth?',
     applicationId:
-      '897176504708.apps.googleusercontent.com',
+      '664741361278.apps.googleusercontent.com',
     scope:
       ['https://www.google.com/m8/feeds/'],
     logoutUrl:
