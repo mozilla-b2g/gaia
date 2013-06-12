@@ -15,10 +15,50 @@ var MocksHelperForAttachment = new MocksHelper([
 suite('attachment_test.js', function() {
   MocksHelperForAttachment.attachTestHelpers();
 
-  suiteSetup(function() {
+  var testImageBlob;
+  var testImageBlob_small;
+  var testImageBlob_bogus;
+  var testAudioBlob;
+  var testVideoBlob;
+
+  suiteSetup(function(done) {
     this.realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    // create a bogus image blob (should be rendered with a `corrupted' image)
+    testImageBlob_bogus = new Blob(['This is an image message'], {
+      type: 'image/jpeg'
+    });
+
+    // create sample blobs from real files: image, audio, video
+    var assetsNeeded = 0;
+    function getAsset(filename, loadCallback) {
+      assetsNeeded++;
+      var req = new XMLHttpRequest();
+      req.open('GET', filename, true);
+      req.responseType = 'blob';
+      req.onload = function() {
+        loadCallback(req.response);
+        if (--assetsNeeded === 0) {
+          done();
+        }
+      };
+      req.send();
+    }
+    getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
+      testImageBlob_small = blob; // image < 400 kB => create thumbnail
+    });
+    getAsset('/test/unit/media/IMG_0554.jpg', function(blob) {
+      testImageBlob = blob;
+    });
+    getAsset('/test/unit/media/audio.oga', function(blob) {
+      testAudioBlob = blob;
+    });
+    getAsset('/test/unit/media/video.ogv', function(blob) {
+      testVideoBlob = blob;
+    });
   });
+
   suiteTeardown(function() {
     navigator.mozL10n = this.realMozL10n;
   });
@@ -26,27 +66,74 @@ suite('attachment_test.js', function() {
   setup(function() {
     loadBodyHTML('/index.html');
     AttachmentMenu.init('attachment-options-menu');
-
-    this.blob = new Blob(['This is an image message'], {
-      type: 'image/jpeg'
-    });
-    this.attachment = new Attachment(this.blob, {
-      name: 'Test Attachment'
-    });
-
   });
 
   test('Name property defaults to a string value', function() {
     var attachment = new Attachment(new Blob());
-
     assert.typeOf(attachment.name, 'string');
   });
 
-  test('render', function() {
-    var el = this.attachment.render();
-    assert.ok(el.src, 'src set');
-    assert.include(el.classList, 'attachment');
-    assert.equal(el.dataset.attachmentType, 'img');
+  test('render bogus image attachment', function(done) {
+    var attachment = new Attachment(testImageBlob_bogus, {
+      name: 'Image attachment'
+    });
+    var el = attachment.render(function() {
+      assert.ok(el.src, 'src set');
+      assert.include(el.classList, 'attachment');
+      assert.equal(el.dataset.attachmentType, 'img');
+      done();
+    });
+  });
+
+  test('render small image attachment (thumbnail)', function(done) {
+    var attachment = new Attachment(testImageBlob_small, {
+      name: 'Image attachment'
+    });
+    var el = attachment.render(function() {
+      assert.ok(el.src, 'src set');
+      assert.include(el.classList, 'attachment');
+      assert.equal(el.dataset.attachmentType, 'img');
+      // image < 400 kB => there should be a dataURL thumbnail
+      assert.include(el.src, 'background');
+      assert.include(el.src, 'data:image');
+      done();
+    });
+  });
+
+  test('render big image attachment', function(done) {
+    var attachment = new Attachment(testImageBlob, {
+      name: 'Image attachment'
+    });
+    var el = attachment.render(function() {
+      assert.ok(el.src, 'src set');
+      assert.include(el.classList, 'attachment');
+      assert.equal(el.dataset.attachmentType, 'img');
+      done();
+    });
+  });
+
+  test('render audio attachment', function(done) {
+    var attachment = new Attachment(testAudioBlob, {
+      name: 'Audio attachment'
+    });
+    var el = attachment.render(function() {
+      assert.ok(el.src, 'src set');
+      assert.include(el.classList, 'attachment');
+      assert.equal(el.dataset.attachmentType, 'audio');
+      done();
+    });
+  });
+
+  test('render video attachment', function(done) {
+    var attachment = new Attachment(testVideoBlob, {
+      name: 'Video attachment'
+    });
+    var el = attachment.render(function() {
+      assert.ok(el.src, 'src set');
+      assert.include(el.classList, 'attachment');
+      assert.equal(el.dataset.attachmentType, 'video');
+      done();
+    });
   });
 
 });
