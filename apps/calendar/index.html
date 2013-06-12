@@ -10,6 +10,7 @@
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/day_views.css">
   <link rel="stylesheet" type="text/css" href="/style/building_blocks.css" />
+  <link rel="stylesheet" type="text/css" href="/style/first_time_use.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/headers.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style_unstable/toolbars.css">
 
@@ -85,6 +86,7 @@
   <script defer src="/js/controllers/time.js" charset="utf-8"></script>
   <script defer src="/js/controllers/sync.js" charset="utf-8"></script>
   <script defer src="/js/controllers/alarm.js" charset="utf-8"></script>
+  <script defer src="/js/first_time_use.js" charset="utf-8"></script>
   <script defer src="/js/app.js" charset="utf-8"></script>
 </head>
 
@@ -159,6 +161,15 @@
     <div id="throbber"></div>
   </div>
 
+  <div id="hint-swipe-to-navigate" class="hint hide">
+    <div class="hint-swipe-text">
+      <span>
+        <strong data-l10n-id="hint-swipe-action">Swipe</strong>
+        <span data-l10n-id="hint-swipe-to-navigate"> to navigate between calendar dates.</span>
+      </span>
+    </div>
+    <div class="hint-swipe-image"></div>
+  </div>
 
   <section id="month-view">
   </section>
@@ -176,6 +187,7 @@
 
   <section id="day-view">
   </section>
+
   <div class="delay"><!--
   <section id="week-view">
   </section>
