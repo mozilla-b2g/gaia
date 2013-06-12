@@ -18,6 +18,10 @@
   // Root path containing the sounds
   var root = '/shared/resources/media/';
 
+  // Timeout for playing a preview sound
+  var audioPreviewTimeout = 1000;
+  var audioPreviewTimer = null;
+
   function debug(str) {
     dump(' -*- SoundsPanel: ' + str + '\n');
   }
@@ -144,10 +148,19 @@
 
           list.element.onclick = function onListClick(evt) {
             if (evt.target.tagName == 'LABEL') {
-              if (evt.target.querySelector('input').value == 'none')
+              if (evt.target.querySelector('input').value == 'none') {
                 stopAudioPreview();
-              else
-                audioPreview(evt.target, key);
+              } else {
+                if (audioPreviewTimer !== null) {
+                  clearTimeout(audioPreviewTimer);
+                  audioPreviewTimer = null;
+                }
+                // Preview the sound after the defined timeout
+                audioPreviewTimer = setTimeout(
+                  audioPreview.bind(this, evt.target, key),
+                  audioPreviewTimeout
+                );
+              }
             }
           };
         });
@@ -198,6 +211,10 @@
   }
 
   function stopAudioPreview() {
+    if (audioPreviewTimer !== null) {
+      clearTimeout(audioPreviewTimer);
+      audioPreviewTimer = null;
+    }
     var audio = document.querySelector('#sound-selection audio');
     if (!audio.paused) {
       audio.pause();
