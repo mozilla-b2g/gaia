@@ -198,7 +198,7 @@
        mcc="712"
        mnc="04"
        enableStrict7BitEncodingForSms="true"
-       voicemail="*1960"
+       voicemail="*1690"
    />
    <operator
        name="Wap"
