@@ -348,6 +348,30 @@
     })
   );
 
+  ContactsDB.push(
+    new Contact({
+      familyName: 'Bird',
+      givenName: 'Big',
+      tel: {
+        value: '123456',
+        type: 'Mobile',
+        carrier: 'Nynex'
+      }
+    })
+  );
+
+  ContactsDB.push(
+    new Contact({
+      familyName: 'Carrier',
+      givenName: 'Igotno',
+      tel: {
+        value: '436797',
+        type: 'Mobile',
+        carrier: null
+      }
+    })
+  );
+
   // console.log( ContactsDB );
 
 
