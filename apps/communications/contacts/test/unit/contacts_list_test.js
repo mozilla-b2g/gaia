@@ -320,7 +320,7 @@ suite('Render contacts list', function() {
     subject = contacts.List;
 
     realAsyncStorage = window.asyncStorage;
-    window.asyncStorage = MockAsyncStorage;
+    window.asyncStorage = MockasyncStorage;
 
     resetDom(window.document);
 

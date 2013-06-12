@@ -64,7 +64,7 @@ suite('Import Friends Test Suite', function() {
     window.contacts.Search = MockSearch;
 
     realAsyncStorage = window.asyncStorage;
-    window.asyncStorage = MockAsyncStorage;
+    window.asyncStorage = MockasyncStorage;
 
     document.body.innerHTML = MockImportHtml;
 
