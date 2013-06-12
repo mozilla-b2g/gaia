@@ -712,7 +712,17 @@ suite('Render contacts list', function() {
       subject.remove('3');
       assert.isFalse(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
-      assertTotal(0, 0);
+      assertNoGroup(groupFav, containerFav);
+    });
+
+    test('reseting the dom of the contacts list', function() {
+      var newList = new MockContactsList();
+      subject.load(newList);
+
+      subject.load(null, true);
+
+      assertNoGroup(groupFav, containerFav);
+      assertNoGroup(groupFav, containerFav);
     });
 
     test('removing one contact', function() {
