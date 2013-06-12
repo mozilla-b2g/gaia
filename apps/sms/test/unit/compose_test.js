@@ -159,6 +159,18 @@ suite('compose_test.js', function() {
         assert.equal(txt.length, 1, 'Single text content');
         assert.equal(txt[0], expected, 'correct content');
       });
+      test('Text with non-break spaces', function() {
+        Compose.append('start');
+        Compose.append('&nbsp;');
+        Compose.append('&nbsp;');
+        Compose.append('&nbsp;');
+        Compose.append(' ');
+        Compose.append('end');
+        var expected = 'start    end';
+        var txt = Compose.getContent();
+        assert.equal(txt.length, 1, 'Single text content');
+        assert.equal(txt[0], expected, 'correct content');
+      });
       test('Just attachment', function() {
         Compose.append(mockAttachment());
         var txt = Compose.getContent();
