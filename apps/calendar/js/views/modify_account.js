@@ -37,6 +37,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
       saveButton: '#modify-account-view .save',
       deleteButton: '#modify-account-view .delete-confirm',
       cancelDeleteButton: '#modify-account-view .delete-cancel',
+      cancelButton: '.during-progress .cancel',
       backButton: '#modify-account-view .cancel',
       status: '#modify-account-view section[role="status"]',
       errors: '#modify-account-view .errors',
@@ -67,6 +68,10 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
     get cancelDeleteButton() {
       return this._findElement('cancelDeleteButton');
+    },
+
+    get cancelButton() {
+      return this._findElement('cancelButton');
     },
 
     get backButton() {
@@ -164,16 +169,22 @@ Calendar.ns('Views').ModifyAccount = (function() {
       app.router.show('/advanced-settings/');
     },
 
-    cancel: function(event) {
-      if (event) {
-        event.preventDefault();
-      }
-
+    back: function(e){
+      if (e) {
+        e.preventDefault();
+      };
       window.back();
     },
 
-    save: function(options, e) {
+    cancel: function(e) {
+      if (e) {
+        e.preventDefault();
+      };
+      var list = this.element.classList;
+      list.remove(this.progressClass);
+    },
 
+    save: function(options, e) {
       if (e) {
         e.preventDefault();
       }
@@ -288,7 +299,8 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
       this.form.addEventListener('submit', this._boundSaveUpdateModel);
       this.saveButton.addEventListener('click', this._boundSaveUpdateModel);
-      this.backButton.addEventListener('click', this.cancel);
+      this.cancelButton.addEventListener('click', this.cancel);
+      this.backButton.addEventListener('click', this.back);
 
       if (this.model._id) {
         this.type = 'update';
@@ -348,8 +360,9 @@ Calendar.ns('Views').ModifyAccount = (function() {
       this.cancelDeleteButton.removeEventListener('click',
                                                   this.cancel);
       this.backButton.removeEventListener('click',
-                                                this.cancel);
+                                                this.back);
       this.form.removeEventListener('submit', this._boundSaveUpdateModel);
+      this.cancelButton.removeEventListener('click', this.cancel);
     },
 
     dispatch: function(data) {
