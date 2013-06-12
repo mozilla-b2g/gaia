@@ -370,6 +370,9 @@ Calendar.App = (function(window) {
 
         self.recurringEventsController.observe();
       });
+      
+      // do our first time use hint.
+      Calendar.FirstTimeUse.doFirstTime(this);
     },
 
     /**
