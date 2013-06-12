@@ -594,11 +594,15 @@ form.bottom[role="search"].messages-compose-form {
   content: attr(placeholder);
   pointer-events: none;
 }
+
 .attachment {
-  border: none;
-  max-width: 10rem;
-  max-height: 10rem;
   display: block;
+  max-width: 120px;
+  max-height: 120px;
+  border: 1px solid #018eac;
+  border-radius: 2px;
+
+  background-color: rgba(0, 170, 205, 0.45);
 }
 
 #send-message-container {
