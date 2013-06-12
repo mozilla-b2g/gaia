@@ -918,14 +918,14 @@ var Camera = {
     this._savedBlob = null;
     this.showConfirmation(false);
     this.cancelPickButton.removeAttribute('disabled');
-    this.restartPreview();
+    this.resumePreview();
   },
 
   selectPressed: function camera_selectPressed() {
     var blob = this._savedBlob;
     this._savedBlob = null;
     this.showConfirmation(false);
-    this.restartPreview();
+    this.resumePreview();
     this._addPictureToStorage(blob, function(name, absolutePath) {
       this._resizeBlobIfNeeded(blob, function(resized_blob) {
         this._pendingPick.postResult({
