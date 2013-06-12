@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
             country[mnc].push(result[i]);
           } else {
             country[mnc] = [result[i]];
-            if (voicemail || otherSettings || cellBroadcastSearchList) {
+            if (voicemail || otherSettings) {
               operatorVariantSettings.type = [];
               operatorVariantSettings.type.push('operatorvariant');
               country[mnc].push(operatorVariantSettings);

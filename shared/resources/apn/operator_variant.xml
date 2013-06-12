@@ -545,4 +545,10 @@
       mnc="01"
       voicemail="3311"
   />
+  <operator
+      name="T-mobile.pl"
+      mcc="260"
+      mnc="02"
+      cellBroadcastSearchList="0,9,19,28,112"
+  />
 </variant>
