@@ -511,7 +511,8 @@ contacts.Settings = (function() {
     if (newOrderByLastName != null &&
       newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
-      contacts.List.load();
+      // Force the reset of the dom, we know that we changed the order
+      contacts.List.load(null, true);
       orderByLastName = newOrderByLastName;
     }
 
