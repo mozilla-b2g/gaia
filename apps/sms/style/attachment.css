@@ -1,6 +1,7 @@
 html, body {
   font-size: 10px;
 }
+
 body {
   font-family: 'Feura Sans', sans-serif;
   margin: 0;
@@ -20,6 +21,7 @@ body {
   color: rgb(255, 255, 255);
   font-size: 1.5rem;
 }
+
 .draft .size-indicator {
   display: block;
 }
@@ -27,21 +29,41 @@ body {
 .placeholder {
   width: 100%;
   height: 100%;
-  background-size: contain;
+
+  background-image: url('icons/attachments.png');
   background-repeat: no-repeat;
-  background-position: center center;
+  background-position: left top;
 }
-.video-placeholder {
-  background-image: url('icons/video_thumb.png');
+
+.placeholder:active,
+.placeholder:hover {
+  background-position: right top;
 }
+
+.img-placeholder {
+  background-position: left -82px;
+}
+
+.img-placeholder:active,
+.img-placeholder:hover {
+  background-position: right -82px;
+}
+
 .audio-placeholder {
-  background-image: url('icons/audio_thumb.png');
+  background-position: left -164px;
 }
-.video-placeholder:active,
-.video-placeholder:hover {
-  background-image: url('icons/video_thumb_focus.png');
-}
+
 .audio-placeholder:active,
 .audio-placeholder:hover {
-  background-image: url('icons/audio_thumb_focus.png');
+  background-position: right -164px;
 }
+
+.video-placeholder {
+  background-position: left -242px;
+}
+
+.video-placeholder:active,
+.video-placeholder:hover {
+  background-position: right -242px;
+}
+
