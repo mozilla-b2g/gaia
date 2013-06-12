@@ -190,6 +190,13 @@ var Compose = (function() {
 
         var last = content.length - 1;
         var text = node.textContent;
+
+        // Bug 877141 - contenteditable wil insert non-break spaces when
+        // multiple consecutive spaces are entered, we don't want them.
+        if (text) {
+          text = text.replace(/\u00A0/g, ' ');
+        }
+
         if (node.nodeName == 'BR') {
           if (node === dom.message.lastChild) {
             continue;
