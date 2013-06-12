@@ -67,3 +67,11 @@ body {
   background-position: right -242px;
 }
 
+.corrupted {
+  width: 100%;
+  height: 100%;
+
+  background-image: url('icons/corrupted.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+}
