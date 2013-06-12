@@ -14,9 +14,10 @@
 const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
 const ITEM_TYPE = ['music', 'pictures', 'videos', 'free'];
 
-var Volume = function(index, name, storages) {
-  this.index = index;
+var Volume = function(name, external, externalIndex, storages) {
   this.name = name;
+  this.external = external;
+  this.externalIndex = externalIndex;
   this.storages = storages;
   this.rootElement = null;  //<ul></ul>
   this.stackedbar = null;
@@ -26,7 +27,7 @@ var Volume = function(index, name, storages) {
 // the DOM structure looks like:
 //
 //<header>
-//  <h2 data-l10n-id="storage-name-sdcard">Internal Storage</h2>
+//  <h2 data-l10n-id="storage-name-internal">Internal Storage</h2>
 //</header>
 //<ul>
 //  <li>
@@ -68,11 +69,20 @@ var Volume = function(index, name, storages) {
 //  </li>
 //</ul>
 
+Volume.prototype.getL10nId = function volume_getL10nId(useShort) {
+  var prefix = useShort ? 'short-storage-name-' : 'storage-name-';
+  if (this.external) {
+    return prefix + 'external-' + this.externalIndex;
+  } else {
+    return prefix + 'internal';
+  }
+};
+
 Volume.prototype.createView = function volume_createView(listRoot) {
   var _ = navigator.mozL10n.get;
   // create header
   var h2 = document.createElement('h2');
-  var l10nId = 'storage-name-' + this.index;
+  var l10nId = this.getL10nId();
   h2.dataset.l10nId = l10nId;
   h2.textContent = _(l10nId);
   var header = document.createElement('header');
@@ -232,21 +242,33 @@ var MediaStorage = {
 
   initAllVolumeObjects: function ms_initAllVolumeObjects() {
     var volumes = {};
+    var totalVolumes = 0;
     MEDIA_TYPE.forEach(function(type) {
       var storages = navigator.getDeviceStorages(type);
       storages.forEach(function(storage) {
         var name = storage.storageName;
         if (!volumes.hasOwnProperty(name)) {
           volumes[name] = {};
+          totalVolumes++;
         }
         volumes[name][type] = storage;
       });
     });
-    var _ = navigator.mozL10n.get;
+
     var volumeList = [];
+    var externalIndex = 0;
     var volumeListRootElement = document.getElementById('volume-list');
     for (var name in volumes) {
-      var volume = new Volume(volumeList.length, name, volumes[name]);
+      var volume;
+      // XXX: This is a heuristic to determine whether a storage is internal or
+      // external (e.g. a pluggable SD card). It does *not* work in general, but
+      // it works for all officially-supported devices.
+      if (totalVolumes > 1 && name === 'sdcard') {
+        volume = new Volume(name, false /* internal */, 0, volumes[name]);
+      } else {
+        volume = new Volume(name, true /* external */, externalIndex++,
+                            volumes[name]);
+      }
       volume.createView(volumeListRootElement);
       volumeList.push(volume);
     }
@@ -256,16 +278,16 @@ var MediaStorage = {
   registerUmsListener: function ms_registerUmsListener() {
     var self = this;
     var settings = Settings.mozSettings;
-    this._volumeList.forEach(function(volume) {
+    this._volumeList.forEach(function(volume, index) {
       var key = 'ums.volume.' + volume.name + '.enabled';
       Settings.getSettings(function(allSettings) {
         var input = document.querySelector('input[name="' + key + '"]');
         input.checked = allSettings[key] || false;
-        self.usmEnabledVolume[volume.index] = input.checked;
+        self.usmEnabledVolume[index] = input.checked;
         self.updateMasterUmsDesc();
       });
       settings.addObserver(key, function(evt) {
-        self.usmEnabledVolume[volume.index] = evt.settingValue;
+        self.usmEnabledVolume[index] = evt.settingValue;
         self.updateMasterUmsDesc();
       });
     });
@@ -277,7 +299,7 @@ var MediaStorage = {
       var list = [];
       for (var id in this.usmEnabledVolume) {
         if (this.usmEnabledVolume[id]) {
-          list.push(_('short-storage-name-' + id));
+          list.push(_(this._volumeList[id].getL10nId(true)));
         }
       }
       if (list.length === 0) {
@@ -331,7 +353,7 @@ var MediaStorage = {
       self._volumeList.forEach(function(volume, index) {
         var option = document.createElement('option');
         option.value = volume.name;
-        var l10nId = 'short-storage-name-' + volume.index;
+        var l10nId = volume.getL10nId(true);
         option.dataset.l10nId = l10nId;
         option.textContent = _(l10nId);
         selectionMenu.appendChild(option);
