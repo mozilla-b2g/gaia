@@ -1610,7 +1610,7 @@ var ThreadUI = global.ThreadUI = {
       }
       // TODO Modify in Bug 861227 in order to create a standalone element
       var ul = document.createElement('ul');
-      ul.classList.add('contactList');
+      ul.classList.add('contact-list');
       ul.addEventListener('click', function ulHandler(event) {
         event.stopPropagation();
         event.preventDefault();
