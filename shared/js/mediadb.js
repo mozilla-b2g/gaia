@@ -1093,8 +1093,11 @@ var MediaDB = (function() {
   // Test whether this filename is one we ignore.
   // This is a separate function because device storage change events
   // give us a name only, not the file object.
+  // Ignore files having directories beginning with .
+  // Bug https://bugzilla.mozilla.org/show_bug.cgi?id=838179
   function ignoreName(filename) {
-    return (filename[0] === '.' || filename.indexOf('/.') !== -1);
+    var path = filename.substring(0, filename.lastIndexOf('/') + 1);
+    return (path[0] === '.' || path.indexOf('/.') !== -1);
   }
 
   // Tell the db to start a manual scan. I think we don't do
