@@ -202,15 +202,28 @@ var Wifi = {
   // so we will turn it back on.
   sleep: function wifi_sleep() {
     var lock = SettingsListener.getSettingsLock();
+
     // Actually turn off the wifi
-    lock.set({ 'wifi.enabled': false });
 
-    // Remember that it was turned off by us.
-    this.wifiDisabledByWakelock = true;
+    // The |sleep| might be triggered when an alarm comes.
+    // If the CPU is in suspend mode at this moment, alarm servcie would wake
+    // up the CPU to run the handler and turn it back to suspend immediately
+    // |sleep| is finished. In this case, we acquire a CPU wake lock to prevent
+    // the CPU goes to suspend mode before the switching is done.
+    var wakeLock1 = navigator.requestWakeLock('cpu');
+    var request1 = lock.set({ 'wifi.enabled': false });
+    request1.onerror = request1.onsuccess = function() {wakeLock1.unlock()};
 
-    // Keep this value in disk so if the phone reboots we'll
-    // be able to turn the wifi back on.
-    lock.set({ 'wifi.disabled_by_wakelock': true });
+
+     // Remember that it was turned off by us.
+     this.wifiDisabledByWakelock = true;
+
+     // Keep this value in disk so if the phone reboots we'll
+     // be able to turn the wifi back on.
+     var wakeLock2 = navigator.requestWakeLock('cpu');
+     var request2 = lock.set({ 'wifi.disabled_by_wakelock': true });
+     request2.onerror = request2.onsuccess = function() {wakeLock2.unlock()};
+
   },
 
   // Register for handling system message,
