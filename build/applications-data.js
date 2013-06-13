@@ -320,3 +320,35 @@ content = {
 };
 
 writeContent(init, 'Calendar.Presets = ' + getDistributionFileContent('calendar', content) + ';');
+
+// Communications config
+init = getFile(GAIA_DIR, 'apps', 'communications', 'contacts', 'config.json');
+content = {
+  'defaultContactsOrder': 'givenName',
+  'facebookEnabled': true,
+  'operationsTimeout': 25000,
+  'logLevel': 'DEBUG',
+  'facebookSyncPeriod': 24,
+  'testToken': ''
+};
+writeContent(init, getDistributionFileContent('communications', content));
+
+// Communications External Services
+init = getFile(GAIA_DIR, 'apps', 'communications', 'contacts', 'oauth2', 'js', 'parameters.js');
+content = {
+  redirectURI:
+    'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2/flow2.html',
+  loginPage:
+    'https://m.facebook.com/dialog/oauth/?',
+  applicationId:
+    '',
+  contactsAppOrigin:
+    'app://communications.gaiamobile.org',
+  redirectMsg:
+    'http://intense-tundra-4122.herokuapp.com/fbowd/dialogs_end.html',
+  redirectLogout:
+    'http://intense-tundra-4122.herokuapp.com/fbowd/logout.json'
+};
+
+writeContent(init, 'var fb = window.fb || {}; fb.oauthflow = window.fb.oauthflow || {}; fb.oauthflow.params = ' +
+  getDistributionFileContent('communications_services', content) + ';');

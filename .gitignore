@@ -17,6 +17,8 @@ manifest.appcache
 /test_apps/test-agent/test/config.json
 /apps/dialer/contacts
 /apps/browser/js/init.json
+/apps/communications/contacts/config.json
+/apps/communications/contacts/oauth2/js/parameters.js
 
 /apps/*/test/unit/_sandbox.html
 /apps/*/test/unit/_proxy.html
