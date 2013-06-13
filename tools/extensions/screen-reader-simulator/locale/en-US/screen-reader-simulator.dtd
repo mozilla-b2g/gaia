@@ -1,0 +1,13 @@
+<!ENTITY screenReaderEnable "Enable">
+
+<!ENTITY screenReaderNavigationLabel "Navigation:">
+<!ENTITY screenReaderPreviousItem "Previous Item">
+<!ENTITY screenReaderActivateItem "Activate Item">
+<!ENTITY screenReaderNextItem "Next Item">
+
+<!ENTITY screenReaderScrollLabel "Scroll:">
+<!ENTITY screenReaderScrollLeft "Scroll Left">
+<!ENTITY screenReaderScrollRight "Scroll Right">
+<!ENTITY screenReaderScrollUp "Scroll Up">
+<!ENTITY screenReaderScrollDown "Scroll Down">
+

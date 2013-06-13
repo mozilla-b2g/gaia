@@ -1,0 +1,58 @@
+.sr-controls > toolbarbutton { 
+  min-width: 32px;
+  //min-height: 22px;
+  margin: 0;
+  box-shadow: none;
+  border-radius: 0;
+  border-width: 0;
+  -moz-border-end-width: 1px;
+  outline-offset: -3px;
+}
+
+.sr-controls > toolbarbutton:last-of-type {
+  -moz-border-end-width: 0;
+}
+
+.sr-controls {
+  box-shadow: 0 1px 0 hsla(210,16%,76%,.15) inset,
+              0 0 0 1px hsla(210,16%,76%,.15) inset,
+              0 1px 0 hsla(210,16%,76%,.15);
+  border: 1px solid hsla(210,8%,5%,.45);
+  border-radius: 3px;
+  margin: 0 3px;
+}
+
+#sr-output {
+  -moz-appearance: none;
+  border-bottom: 1px solid ThreeDShadow;
+  margin: 0;
+  font-size: 0.9em;
+}
+
+#previous-item {
+  list-style-image: url("control-item-left.png");
+}
+
+#activate-item {
+  list-style-image: url("control-activate.png");
+}
+
+#next-item {
+  list-style-image: url("control-item-right.png");
+}
+
+#scroll-left {
+  list-style-image: url("control-scroll-left.png");
+}
+
+#scroll-up {
+  list-style-image: url("control-scroll-up.png");
+}
+
+#scroll-right {
+  list-style-image: url("control-scroll-right.png");
+}
+
+#scroll-down {
+  list-style-image: url("control-scroll-down.png");
+}
