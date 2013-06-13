@@ -29,6 +29,10 @@ var Settings = {
       hash = '#' + hash;
     }
 
+    if (hash == this._currentPanel) {
+      return;
+    }
+
     if (hash === '#wifi') {
       PerformanceTestingHelper.dispatch('start');
     }
