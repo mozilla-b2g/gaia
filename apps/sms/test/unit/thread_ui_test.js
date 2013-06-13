@@ -1477,8 +1477,6 @@ suite('thread_ui.js >', function() {
       );
     });
 
-
-
     test('Rendered Contact "type | carrier, number"', function() {
       var ul = document.createElement('ul');
       var contact = new MockContact();
@@ -1515,6 +1513,30 @@ suite('thread_ui.js >', function() {
           'Mobile | TEF, +<span class="highlight">346578888888</span>'
         )
       );
+    });
+
+    test('Rendered Contact omits numbers in recipient list', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.recipients.add({
+        number: '+346578888888'
+      });
+
+      // This contact has two tel entries.
+      ThreadUI.renderContact({
+        contact: contact,
+        input: '+346578888888',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+
+      html = ul.innerHTML;
+
+      assert.ok(!html.contains('346578888888'));
+      assert.equal(ul.children.length, 1);
     });
   });
 
