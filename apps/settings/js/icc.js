@@ -125,10 +125,7 @@
     });
     // We'll return to settings if no STK response received in a grace period
     goBackTimer.timer = setTimeout(function() {
-      var page = document.location.protocol + '//' +
-        document.location.host + '/index.html#root';
-      debug('page: ', page);
-      window.location.replace(page);
+      Settings.currentPanel = "#root";
     }, goBackTimer.timeout);
   };
 
