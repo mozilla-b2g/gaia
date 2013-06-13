@@ -153,7 +153,8 @@ var FacebookConfiguration = function FacebookConfiguration() {
   window.config = {};
 
   req.onload = function(configData) {
-    if (configData.facebookEnabled === true) {
+    window.config = configData;
+    if (configData.facebookEnabled === true && configData.appId) {
       enableFacebook();
     } else {
       disableFacebook();
