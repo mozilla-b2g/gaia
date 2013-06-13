@@ -249,7 +249,14 @@
       for (var i = 0; i < length; i++) {
         tel = tels[i];
 
-        if (tel.value === input) {
+        // Based on...
+        //  - ITU-T E.123 (http://www.itu.int/rec/T-REC-E.123-200102-I/)
+        //  - ITU-T E.164 (http://www.itu.int/rec/T-REC-E.164-201011-I/)
+        //
+        // ...It would appear that a maximally-minimal
+        // 7 digit comparison is safe.
+        //
+        if (tel.value && tel.value.slice(-7) === input.slice(-7)) {
           found = tel;
         }
 
@@ -263,6 +270,10 @@
 
         carrier = tel.carrier;
         type = tel.type[0];
+      }
+
+      if (!found) {
+        return '';
       }
 
       type = found.type[0];
