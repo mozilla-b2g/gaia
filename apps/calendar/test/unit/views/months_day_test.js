@@ -37,6 +37,11 @@ suiteGroup('Views.MonthsDay', function() {
     template = Calendar.Templates.Day;
   });
 
+  var dateFormat;
+  setup(function() {
+    dateFormat = navigator.mozL10n.get('agenda-date-format');
+  });
+
   test('initializer', function() {
     assert.instanceOf(subject, Calendar.Views.DayChild);
   });
@@ -44,12 +49,6 @@ suiteGroup('Views.MonthsDay', function() {
 
   suite('#handleEvent', function() {
 
-/*
-// This test is currently failing and has been temporarily disabled as per
-// Bug 838993. It should be fixed and re-enabled as soon as possible as per
-// Bug 840489.
-// This test appears to make incorrect assumptions about localization details
-// (it does not fail on systems configured for US English).
     test('selectedDayChange', function() {
       var date = new Date(2012, 1, 1);
       var calledWith;
@@ -81,27 +80,22 @@ suiteGroup('Views.MonthsDay', function() {
       );
 
       var html = subject.header.outerHTML;
+      var expected = app.dateFormat.localeFormat(date, dateFormat);
+
       assert.ok(html);
-      assert.include(html, date.toLocaleFormat('%A'));
+      assert.include(html, expected);
     });
-*/
   });
 
-/*
-// This test is currently failing and has been temporarily disabled as per
-// Bug 838993. It should be fixed and re-enabled as soon as possible as per
-// Bug 840489.
-// This test appears to make incorrect assumptions about localization details
-// (it does not fail on systems configured for US English).
   test('#_updateHeader', function() {
     var date = new Date(2012, 4, 11);
     var el = subject.header;
     subject.date = date;
     subject._updateHeader();
 
-    var format = '%A %e %B %Y';
-    var expected = date.toLocaleFormat(
-      format
+    var expected = app.dateFormat.localeFormat(
+      date,
+      dateFormat
     );
 
     assert.equal(
@@ -119,18 +113,11 @@ suiteGroup('Views.MonthsDay', function() {
     assert.ok(el.innerHTML, 'has contents');
     assert.include(el.innerHTML, expected);
   });
-*/
 
   test('#header', function() {
     assert.ok(subject.header);
   });
 
-/*
-// This test is currently failing and has been temporarily disabled as per
-// Bug 838993. It should be fixed and re-enabled as soon as possible as per
-// Bug 840489.
-// This test appears to make incorrect assumptions about localization details
-// (it does not fail on systems configured for US English).
   test('#render', function() {
     var date = new Date();
     var span = Calendar.Calc.spanOfDay(date);
@@ -143,10 +130,11 @@ suiteGroup('Views.MonthsDay', function() {
     assert.ok(subject.events, 'has events');
 
     var html = subject.header.outerHTML;
-    assert.ok(html);
-    assert.include(html, date.toLocaleFormat('%A'));
+    assert.include(
+      html,
+      app.dateFormat.localeFormat(subject.date, dateFormat)
+    );
   });
-*/
 
   test('#onfirstseen', function() {
     assert.equal(subject.onfirstseen, subject.render);
