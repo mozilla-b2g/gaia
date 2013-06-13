@@ -149,12 +149,12 @@ contacts.List = (function() {
       scrollable.scrollTop = domTarget.offsetTop;
   };
 
-  var load = function load(contacts) {
+  var load = function load(contacts, forceReset) {
     var onError = function() {
       console.log('ERROR Retrieving contacts');
     };
 
-    if (loaded) {
+    if (loaded || forceReset) {
       resetDom();
     }
 
