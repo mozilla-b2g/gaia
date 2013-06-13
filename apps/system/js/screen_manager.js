@@ -391,12 +391,12 @@ var ScreenManager = {
       this._setIdleTimeout(10, true);
       var self = this;
       var stopShortIdleTimeout = function scm_stopShortIdleTimeout() {
-        window.removeEventListener('unlock', stopShortIdleTimeout);
+        window.removeEventListener('will-unlock', stopShortIdleTimeout);
         window.removeEventListener('lockpanelchange', stopShortIdleTimeout);
         self._setIdleTimeout(self._idleTimeout, false);
       };
 
-      window.addEventListener('unlock', stopShortIdleTimeout);
+      window.addEventListener('will-unlock', stopShortIdleTimeout);
       window.addEventListener('lockpanelchange', stopShortIdleTimeout);
     } else {
       this._setIdleTimeout(this._idleTimeout, false);
