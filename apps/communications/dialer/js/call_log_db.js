@@ -656,57 +656,76 @@ var CallLogDBManager = {
                   limit);
   },
   /**
-   * Get the group with the most recent date.
+   * Get the call group which is the nth group with matched type
    *
+   * param position
+   *        To indicate the nth group is requested, 1 means the last one
+   * param sortedBy
+   *        Field to sort by.
+   * param prev
+   *        Boolean flag to get the list in reverse order.
+   * param type
+   *        Type to indicate whether we want 'dialing' (outgoing)
+   *        or 'incoming' call groups.
+   *        If not specified, will match any types.
    * param callback
    *        Function to be called with the last group or an error message if
    *        needed.
-   * param sortedBy
-   *        Field to sort by.
-   *
-   * return (via callback) the last group or an error message if needed.
+   * return (via callback) the group or an error message if needed.
    */
-  getLastGroup: function rdbm_getLastGroup(callback, sortedBy) {
+  getGroupAtPosition: function rdbm_getGroupAtPosition(position, sortedBy, prev,
+                                                       type, callback) {
+    if (!callback) {
+      return;
+    }
+
     var self = this;
     this._newTxn('readonly', this._dbGroupsStore,
                  function(error, txn, store) {
       if (error) {
-        if (callback && callback instanceof Function) {
-          callback(error);
-        }
+        callback(error);
         return;
       }
 
       try {
         var request = null;
+        var direction = prev ? 'prev' : 'next';
         if (sortedBy && sortedBy !== null) {
-          request = store.index(sortedBy).openCursor(null, 'prev');
+          request = store.index(sortedBy).openCursor(null, direction);
         } else {
-          request = store.openCursor(null, 'prev');
+          request = store.openCursor(null, direction);
         }
+
+        var i = 0;
+
         request.onsuccess = function(event) {
-          if (callback && callback instanceof Function) {
-            var result = event.target.result;
-            if (result) {
-              callback(self._getGroupObject(result.value));
-            } else {
-              callback(null);
-            }
+          var cursor = event.target.result;
+          if (!cursor) {
+            callback(null);
+            return;
+          }
+
+          var recentGroup = self._getGroupObject(cursor.value);
+          var matched = !type || recentGroup.type.indexOf(type) != -1;
+          if (matched) {
+            i++;
+          }
+
+          if (matched && i == position) {
+            callback(recentGroup);
+          } else {
+            cursor.continue();
           }
         };
+
         request.onerror = function(event) {
-          if (callback && callback instanceof Function) {
-            callback(event.target.error.name);
-          }
+          callback(event.target.error.name);
         };
       } catch (e) {
-        if (callback && callback instanceof Function) {
-          callback(e);
-        }
+        callback(e);
       }
     });
   },
-
   //**************************************************************************
   // TODO: This methods are only kept as a temporary meassure for not breaking
   //       the call log until bug 847406 lands.
