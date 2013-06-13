@@ -4,15 +4,16 @@
 'use strict';
 
 /**
- * Constants
- */
-
-var DEBUG = false;
-
-/**
  * Debug method
  */
-
+var DEBUG = false;
+var reqTraceSettings = Settings.mozSettings.createLock().get('debug.trace-settings.enabled');
+reqTraceSettings.onsuccess = function settingsDebug() {
+  DEBUG = reqTraceSettings.result['debug.trace-settings.enabled'];
+};
+Settings.mozSettings.addObserver('debug.trace-settings.enabled', function(event) {
+  DEBUG = event.settingValue;
+});
 function debug(msg, optObject) {
   if (DEBUG) {
     var output = '[DEBUG # Settings] ' + msg;

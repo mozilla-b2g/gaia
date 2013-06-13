@@ -4,24 +4,6 @@
 'use strict';
 
 (function() {
-  /**
-   * Constants
-   */
-  var DEBUG = false;
-
-  /**
-   * Debug method
-   */
-  function debug(msg, optObject) {
-    if (DEBUG) {
-      var output = '[DEBUG] STKCACHE: ' + msg;
-      if (optObject) {
-        output += JSON.stringify(optObject);
-      }
-      console.log(output);
-    }
-  }
-
   if (!window.navigator.mozMobileConnection) {
     return;
   }
