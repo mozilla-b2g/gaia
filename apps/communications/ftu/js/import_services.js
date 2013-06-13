@@ -149,18 +149,12 @@ var FacebookConfiguration = function FacebookConfiguration() {
     ImportIntegration.fbImport.classList.remove('hidden');
   };
 
-  var req = utils.config.load('/contacts/config.json');
   window.config = {};
-
-  req.onload = function(configData) {
-    if (configData.facebookEnabled === true) {
-      enableFacebook();
+  fb.init(function initialized() {
+    if (fb.isEnabled) {
+       enableFacebook();
     } else {
-      disableFacebook();
+        disableFacebook();
     }
-    window.config.operationsTimeout = configData.operationsTimeout;
-  };
-  req.onerror = function(code) {
-    disableFacebook();
-  };
+  });
 }();
