@@ -10,12 +10,11 @@
     <!-- Shared styles -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <!-- These are lazy loaded. Need to be included here so the build picks them up
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css" >
-    <!-- use local copy of buttons.css because shared BB will not be on v1.1 -->
-    <!-- see: https://bugzilla.mozilla.org/show_bug.cgi?id=880431 -->
-    <link rel="stylesheet" type="text/css" href="style/buttons.css">
-    <!-- <link rel="stylesheet" type="text/css" href="shared/style/buttons.css" > -->
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css" >
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css" >
+    -->
 
     <!-- Shared sounds -->
     <link rel="resources" type="directory" href="shared/resources/media/alarms/">
@@ -27,9 +26,7 @@
     <script defer src="/shared/js/l10n_date.js"></script>
 
     <!-- Specific code -->
-     <script defer src="shared/js/lazy_loader.js"></script> 
-    <script defer src="shared/js/gesture_detector.js"></script>
-    <script defer src="shared/js/mouse_event_shim.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script> 
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="js/utils.js"></script>
     <script defer src="js/alarmsdb.js"></script>
