@@ -391,12 +391,11 @@
   // field. Also update our internal state to match the new textfield
   // content and cursor position.
   function replaceBeforeCursor(oldWord, newWord) {
+    var oldWordLen = oldWord.length;
     if (keyboard.replaceSurroundingText) {
-      keyboard.replaceSurroundingText(newWord, oldWord.length, 0);
+      keyboard.replaceSurroundingText(newWord, oldWordLen, 0);
     }
     else {
-      var oldWordLen = oldWord.length;
-
       // Find the first character in currentWord and newWord that differs
       // so we know how many backspaces we need to send.
       for (var firstdiff = 0; firstdiff < oldWordLen; firstdiff++) {
