@@ -17,21 +17,31 @@ if (typeof fb.init === 'undefined') {
 
       req.onload = function(configData) {
         if (configData.facebookEnabled === true) {
-          fb.isEnabled = true;
-        }
+          LazyLoader.load('/contacts/oauth2/js/parameters.js', function() {
+            if (oauthflow.params.facebook &&
+               oauthflow.params.facebook.applicationId) {
 
-        fb.operationsTimeout = config.operationsTimeout =
+              fb.isEnabled = true;
+            }
+
+            fb.operationsTimeout = config.operationsTimeout =
                                                   configData.operationsTimeout;
-        fb.logLevel = configData.logLevel || 'none';
-        fb.syncPeriod = configData.facebookSyncPeriod || 24;
-        fb.testToken = configData.testToken;
+            fb.logLevel = configData.logLevel || 'none';
+            fb.syncPeriod = configData.facebookSyncPeriod || 24;
+            fb.testToken = configData.testToken;
 
-        callback();
+            callback();
+          });
+        }
+        else {
+          callback();
+        }
       };
 
       req.onerror = function(code) {
         window.console.error('Contacts: Error while checking if FB is enabled',
                              code);
+        callback();
       };
     };
   })();

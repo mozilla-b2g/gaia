@@ -10,7 +10,7 @@ oauthflow.params = {
     loginPage:
       'https://m.facebook.com/dialog/oauth/?',
     applicationId:
-      '323630664378726',
+      '',
     scope:
       ['friends_about_me', 'friends_birthday', 'friends_hometown',
        'friends_location', 'friends_work_history', 'read_stream'],
