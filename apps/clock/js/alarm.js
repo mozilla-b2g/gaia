@@ -6,9 +6,6 @@ var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
 var ClockView = {
   _clockMode: null, /* is read from settings */
 
-  _analogGestureDetector: null,
-  _digitalGestureDetector: null,
-
   get digitalClock() {
     delete this.digitalClock;
     return this.digitalClock = document.getElementById('digital-clock');
@@ -57,11 +54,8 @@ var ClockView = {
   initClockface: function cv_initClockface() {
     var self = this;
 
-    this._analogGestureDetector = new GestureDetector(this.analogClock);
-    this.analogClock.addEventListener('tap', this);
-
-    this._digitalGestureDetector = new GestureDetector(this.digitalClock);
-    this.digitalClock.addEventListener('tap', this);
+    this.analogClock.addEventListener('touchstart', this);
+    this.digitalClock.addEventListener('touchstart', this);
 
     asyncStorage.getItem(SETTINGS_CLOCKMODE, function(mode) {
       switch (mode) {
@@ -181,7 +175,7 @@ var ClockView = {
         }
         break;
 
-      case 'tap':
+      case 'touchstart':
         var input = evt.target;
         if (!input)
           return;
@@ -212,8 +206,6 @@ var ClockView = {
     this.updateAnalogClock();
     this._clockMode = 'analog';
     this.analogClock.classList.add('visible');
-    this._analogGestureDetector.startDetecting();
-    this._digitalGestureDetector.stopDetecting();
   },
 
   showDigitalClock: function cv_showDigitalClock() {
@@ -228,8 +220,6 @@ var ClockView = {
     this._clockMode = 'digital';
     this.digitalClock.classList.add('visible');
     this.digitalClockBackground.classList.add('visible');
-    this._digitalGestureDetector.startDetecting();
-    this._analogGestureDetector.stopDetecting();
   },
 
   calAnalogClockType: function cv_calAnalogClockType(count) {
@@ -394,7 +384,13 @@ var AlarmList = {
 
   alarmEditView: function(alarm) {
     LazyLoader.load(
-      [document.getElementById('alarm'), 'js/alarm_edit.js'],
+      [
+        document.getElementById('alarm'),
+        'js/alarm_edit.js',
+        'shared/style/input_areas.css',
+        'shared/style/buttons.css',
+        'shared/style/edit_mode.css'
+      ],
       function() {
         AlarmEdit.load(alarm);
     });
