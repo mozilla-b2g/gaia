@@ -29,6 +29,10 @@ var Settings = {
       hash = '#' + hash;
     }
 
+    if (hash == this._currentPanel) {
+      return;
+    }
+
     var oldPanelHash = this._currentPanel;
     var oldPanel = document.querySelector(this._currentPanel);
     this._currentPanel = hash;
