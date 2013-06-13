@@ -96,6 +96,7 @@ var AlarmEdit = {
   },
 
   init: function aev_init() {
+    navigator.mozL10n.translate(this.element);
     this.backButton.addEventListener('click', this);
     this.doneButton.addEventListener('click', this);
     this.timeMenu.addEventListener('click', this);
