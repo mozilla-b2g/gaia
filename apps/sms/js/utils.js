@@ -13,10 +13,6 @@
     '"': '&quot;',
     '\'': '&apos;'
   };
-  var rformatting = {
-    br: /(\r\n|\n|\r)/gm,
-    nbsp: /\s\s/g
-  };
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
 
   var Utils = {
@@ -282,14 +278,6 @@
         parsed[$1] = $2;
       });
       return parsed;
-    }
-  };
-
-  Utils.Message = {
-    format: function(str) {
-      var escaped = Utils.escapeHTML(str);
-      return escaped.replace(rformatting.br, '<br>')
-            .replace(rformatting.nbsp, ' &nbsp;');
     }
   };
 

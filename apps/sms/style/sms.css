@@ -472,7 +472,7 @@ section[role="region"].new > header:first-child form {
   text-align: left;
   font-size: 1.8rem;
   line-height: 2.3rem;
-  white-space: normal;
+  white-space: pre-wrap;
   padding: 0;
 }
 
