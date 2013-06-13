@@ -361,7 +361,7 @@ Places.db = {
     var transaction = db.transaction(['visits', 'places']);
     var visitsStore = transaction.objectStore('visits');
     var placesStore = transaction.objectStore('places');
-    visitsStore.openCursor(null, IDBCursor.PREV).onsuccess =
+    visitsStore.openCursor(null, 'prev').onsuccess =
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor && history.length < maximum) {
@@ -380,7 +380,7 @@ Places.db = {
     var transaction = self._db.transaction('places');
     var placesStore = transaction.objectStore('places');
     var frecencyIndex = placesStore.index('frecency');
-    frecencyIndex.openCursor(null, IDBCursor.PREV).onsuccess =
+    frecencyIndex.openCursor(null, 'prev').onsuccess =
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor && topSites.length < maximum) {
@@ -409,7 +409,7 @@ Places.db = {
     var transaction = this._db.transaction('places');
     var placesStore = transaction.objectStore('places');
     var frecencyIndex = placesStore.index('frecency');
-    frecencyIndex.openCursor(null, IDBCursor.PREV).onsuccess =
+    frecencyIndex.openCursor(null, 'prev').onsuccess =
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor && topSites.length < maximum) {
@@ -595,7 +595,7 @@ Places.db = {
     var bookmarksStore = transaction.objectStore('bookmarks');
     var bookmarksIndex = bookmarksStore.index('timestamp');
     var placesStore = transaction.objectStore('places');
-    bookmarksIndex.openCursor(null, IDBCursor.PREV).onsuccess =
+    bookmarksIndex.openCursor(null, 'prev').onsuccess =
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor) {
@@ -617,7 +617,7 @@ Places.db = {
     var transaction = db.transaction('bookmarks');
     var objectStore = transaction.objectStore('bookmarks');
 
-    objectStore.openCursor(null, IDBCursor.PREV).onsuccess =
+    objectStore.openCursor(null, 'prev').onsuccess =
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor) {
@@ -832,7 +832,7 @@ Places.db = {
     var placesStore = transaction.objectStore('places');
     var iconStore = transaction.objectStore('icons');
 
-    placesStore.openCursor(null, IDBCursor.PREV).onsuccess =
+    placesStore.openCursor(null, 'prev').onsuccess =
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor) {
