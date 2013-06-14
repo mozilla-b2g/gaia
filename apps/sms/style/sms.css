@@ -367,7 +367,7 @@ section.has-carrier .article-list header:first-child {
 .article-list[data-type="list"] .message .bubble {
   overflow: visible;
   -moz-box-sizing: border-box;
-  max-width: -moz-calc(100% - 4rem);
+  max-width: calc(100% - 4rem);
   height: 100%;
   padding: 1.5rem;
 
@@ -640,7 +640,7 @@ form.bottom[role="search"].messages-compose-form {
   background-size: 20rem;
   overflow-y: auto;
   overflow-x: hidden;
-  height: -moz-calc(100% - 5rem);
+  height: calc(100% - 5rem);
   width: 100%;
 }
 
@@ -771,7 +771,7 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  max-width: -moz-calc(100% - 2.3rem);
+  max-width: calc(100% - 2.3rem);
   border: .1rem solid #4d4d4d;
   color: #2c2c2c;
   height: 2.2rem;
@@ -811,22 +811,46 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   z-index: 5;
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: -moz-calc(100% - 5rem);
+  max-height: calc(100% - 5rem);
   padding: 0 1.5rem;
   background: white;
 }
 
 ul.contact-prompt {
-  position: absolute;
-  width: calc(100% - 3.1rem);
+  position: relative;
   z-index: 5;
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: -moz-calc(100% - 5rem);
+  max-height: calc(100% - 8rem);
   text-align: left;
   color: white;
+  font-weight: lighter;
+  line-height: normal;
 }
 
+body[role="application"] form[role="dialog"][data-type="action"] > section:first-child{
+  height: auto;
+  border-bottom: 0.1rem solid #616262;
+  padding-bottom: 1rem;
+  padding-left: 2rem 2.5rem 0 2.5rem;
+}
+
+ul.contact-prompt .number{
+  font-size: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+ul.contact-prompt .name{
+  font-size: 2.3rem;
+  line-height: 2.5rem;
+}
+
+body[role="application"] form[role="dialog"][data-type="action"] > header:first-child{
+  text-align: left;
+  padding: 1.5rem 2rem;
+  font-size: 2.3rem;
+  font-weight: lighter;
+}
 
 section[role="region"].new .article-list[data-type="list"]  li:first-child {
   margin-top: 4.6rem;
