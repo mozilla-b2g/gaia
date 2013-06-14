@@ -303,7 +303,7 @@
           } else if (channel === 'notification' && volume > 0) {
             leaveSilentMode('notification',
                             /* skip volume restore */ true);
-          } else if (channel === 'content' && volume == 0) {
+          } else if (channel === 'notification' && volume == 0) {
             // Enter silent mode when notification volume is 0
             // no matter who sets this value.
             enterSilentMode('notification');
