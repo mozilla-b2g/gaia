@@ -10,9 +10,6 @@ var SleepMenu = {
   // Indicate setting status of volume
   isSilentModeEnabled: false,
 
-  // Indicate setting status of bootshutdown.sound.enabled
-  shouldPlayShutdownSound: false,
-
   elements: {},
 
   get visible() {
@@ -44,11 +41,6 @@ var SleepMenu = {
     SettingsListener.observe('audio.volume.notification', 7, function(value) {
       self.isSilentModeEnabled = (value == 0);
     });
-
-    SettingsListener.observe('bootshutdown.sound.enabled', true,
-      function(value) {
-        self.shouldPlayShutdownSound = value;
-      });
   },
 
   // Generate items
@@ -290,10 +282,8 @@ var SleepMenu = {
         // Switch to next class
         if (e.target == div) {
           div.className = 'step2';
-          if (self.shouldPlayShutdownSound) {
-            var shutdownSound = new Audio('./resources/sounds/shutdown.ogg');
-            shutdownSound.play();
-          }
+          var shutdownSound = new Audio('./resources/sounds/shutdown.ogg');
+          shutdownSound.play();
         }
 
         if (e.target != inner)
