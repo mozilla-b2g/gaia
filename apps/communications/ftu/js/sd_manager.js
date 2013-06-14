@@ -23,7 +23,7 @@ var SdManager = {
     var importedContacts = 0;
 
     UIManager.navBar.setAttribute('aria-disabled', 'true');
-    var progress = utils.overlay.show(_('sdContacts-reading'), 'activityBar');
+    var progress = utils.overlay.show(_('memoryCardContacts-reading'), 'activityBar');
 
     var importButton = UIManager.sdImportButton;
     importButton.setAttribute('disabled', 'disabled');
@@ -61,7 +61,7 @@ var SdManager = {
 
           UIManager.navBar.removeAttribute('aria-disabled');
           utils.overlay.hide();
-          utils.status.show(_('sdContacts-imported3', {n: importedContacts}));
+          utils.status.show(_('memoryCardContacts-imported3', {n: importedContacts}));
 
         }, DELAY_FEEDBACK);
       });
@@ -69,7 +69,7 @@ var SdManager = {
 
     function import_read(n) {
       progress.setClass('progressBar');
-      progress.setHeaderMsg(_('sdContacts-importing'));
+      progress.setHeaderMsg(_('memoryCardContacts-importing'));
       progress.setTotal(n);
     }
 
@@ -101,7 +101,7 @@ var SdManager = {
           importButton.click();
         }
       };
-      ConfirmDialog.show(null, _('sdContacts-error'), cancel, retry);
+      ConfirmDialog.show(null, _('memoryCardContacts-error'), cancel, retry);
     }
   }
 };

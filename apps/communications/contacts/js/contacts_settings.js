@@ -19,7 +19,7 @@ contacts.Settings = (function() {
     fbUpdateButton,
     fbOfflineMsg,
     noSimMsg,
-    noSdMsg,
+    noMemoryCardMsg,
     fbTotalsMsg,
     fbPwdRenewMsg,
     fbImportedValue,
@@ -70,11 +70,11 @@ contacts.Settings = (function() {
 
     noSimMsg = document.querySelector('#no-sim');
 
-    sdImportLink = document.querySelector('[data-l10n-id="importSd"]');
+    sdImportLink = document.querySelector('[data-l10n-id="importMemoryCard"]');
     sdImportLink.addEventListener('click', function onSimImportHandler() {
       window.setTimeout(onSdImport, 0);
     });
-    noSdMsg = document.querySelector('#no-sd');
+    noMemoryCardMsg = document.querySelector('#no-sd');
 
     // Gmail & Hotmail import
     importLiveButton = document.querySelector('[data-l10n-id="importOutlook"]');
@@ -151,12 +151,12 @@ contacts.Settings = (function() {
     if (cardState) {
       importStorage.classList.add('importService');
       importStorageButton.removeAttribute('disabled');
-      noSdMsg.classList.add('hide');
+      noMemoryCardMsg.classList.add('hide');
     }
     else {
       importStorage.classList.remove('importService');
       importStorageButton.setAttribute('disabled', 'disabled');
-      noSdMsg.classList.remove('hide');
+      noMemoryCardMsg.classList.remove('hide');
     }
   };
 
@@ -428,7 +428,7 @@ contacts.Settings = (function() {
   };
 
   var onSdImport = function onSdImport() {
-    var progress = Contacts.showOverlay(_('sdContacts-reading'), 'activityBar');
+    var progress = Contacts.showOverlay(_('memoryCardContacts-reading'), 'activityBar');
     var wakeLock = navigator.requestWakeLock('cpu');
 
     var importedContacts = 0;
@@ -466,7 +466,7 @@ contacts.Settings = (function() {
         window.setTimeout(function onfinish_import() {
           resetWait(wakeLock);
           Contacts.navigation.home();
-          Contacts.showStatus(_('sdContacts-imported3', {
+          Contacts.showStatus(_('memoryCardContacts-imported3', {
             n: importedContacts
           }));
         }, DELAY_FEEDBACK);
@@ -475,7 +475,7 @@ contacts.Settings = (function() {
 
     function import_read(n) {
       progress.setClass('progressBar');
-      progress.setHeaderMsg(_('sdContacts-importing'));
+      progress.setHeaderMsg(_('memoryCardContacts-importing'));
       progress.setTotal(n);
     }
 
@@ -501,7 +501,7 @@ contacts.Settings = (function() {
           sdImportLink.click();
         }
       };
-      ConfirmDialog.show(null, _('sdContacts-error'), cancel, retry);
+      ConfirmDialog.show(null, _('memoryCardContacts-error'), cancel, retry);
       Contacts.hideOverlay();
     }
   };
