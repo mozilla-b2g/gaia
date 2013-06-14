@@ -458,7 +458,28 @@ section[role="region"] > header .icon.icon-settings
   background-image: url(/contacts/style/images/outlook_icon.png);
 }
 
+#importSources li button {
+  height: 5.5rem;
+  line-height: 1.9rem;
+}
 
+#importSources button p {
+  display: block;
+  font-size: 1.3rem;
+  line-height: 1.9rem;
+  color: #858585;
+  padding: 0;
+}
+
+#importSources button p span {
+  font-size: 1.3rem;
+}
+
+#importSources button p time {
+  font-size: 1.3rem;
+  display: inline-block;
+  margin: 0 0 0 0.5rem;
+}
 /* Error message */
 #view-settings .view-body-inner .fb-error {
   color: #D1323F;
@@ -563,5 +584,5 @@ section[role="region"] > header .icon.icon-settings
 }
 
 #importSources > li.importService {
-  height: 5rem;
+  height: auto;
 }
