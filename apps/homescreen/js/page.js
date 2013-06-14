@@ -22,6 +22,8 @@ var BASE_WIDTH = 320;
 var SCALE_RATIO = window.innerWidth / BASE_WIDTH;
 var MIN_ICON_SIZE = 52 * SCALE_RATIO;
 var MAX_ICON_SIZE = 60 * SCALE_RATIO;
+var ICON_PADDING_IN_CANVAS = 4;
+var ICONS_PER_ROW = 4;
 
 var DRAGGING_TRANSITION = '-moz-transform .3s';
 
@@ -72,7 +74,7 @@ Icon.prototype = {
    *
    * @param{Object} where the icon should be rendered
    *
-   * @param{Object} where the draggable element should be appened
+   * @param{Object} where the draggable element should be appended
    */
   render: function icon_render(target) {
     /*
@@ -111,8 +113,8 @@ Icon.prototype = {
     // Image
     var img = this.img = new Image();
     img.setAttribute('role', 'presentation');
-    img.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
-    img.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
+    img.width = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
+    img.height = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
     img.style.visibility = 'hidden';
     if (descriptor.renderedIcon) {
       this.displayRenderedIcon();
@@ -270,8 +272,8 @@ Icon.prototype = {
   renderImageForBookMark: function icon_renderImageForBookmark(img) {
     var self = this;
     var canvas = document.createElement('canvas');
-    canvas.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
-    canvas.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
+    canvas.width = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
+    canvas.height = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
     var ctx = canvas.getContext('2d');
 
     // Draw the background
@@ -300,8 +302,8 @@ Icon.prototype = {
     }
 
     var canvas = document.createElement('canvas');
-    canvas.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
-    canvas.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
+    canvas.width = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
+    canvas.height = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
 
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -315,8 +317,12 @@ Icon.prototype = {
     img.height =
         Math.min(MAX_ICON_SIZE, Math.max(img.height, MAX_ICON_SIZE));
 
-    var width = Math.min(img.width, canvas.width - 4 * SCALE_RATIO);
-    var height = Math.min(img.width, canvas.height - 4 * SCALE_RATIO);
+    var width =
+        Math.min(img.width, canvas.width - ICON_PADDING_IN_CANVAS *
+                 SCALE_RATIO);
+    var height =
+        Math.min(img.width, canvas.height - ICON_PADDING_IN_CANVAS *
+                 SCALE_RATIO);
     ctx.drawImage(img,
                   (canvas.width - width) / 2,
                   (canvas.height - height) / 2,
@@ -754,9 +760,11 @@ Page.prototype = {
       return;
 
     var x = node.dataset.posX = parseInt(node.dataset.posX || 0) +
-                      ((Math.floor(to % 4) - Math.floor(from % 4)) * 100);
+                      ((Math.floor(to % ICONS_PER_ROW) -
+                        Math.floor(from % ICONS_PER_ROW)) * 100);
     var y = node.dataset.posY = parseInt(node.dataset.posY || 0) +
-                      ((Math.floor(to / 4) - Math.floor(from / 4)) * 100);
+                      ((Math.floor(to / ICONS_PER_ROW) -
+                        Math.floor(from / ICONS_PER_ROW)) * 100);
 
     window.mozRequestAnimationFrame(function() {
       node.style.MozTransform = 'translate(' + x + '%, ' + y + '%)';
