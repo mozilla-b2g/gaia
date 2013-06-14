@@ -418,11 +418,9 @@ section[role="region"].new > header:first-child form {
   right: 0;
   bottom: 0;
   z-index: auto;
-
   display: none;
   overflow: hidden;
-  width: 5rem;
-
+  width: 4rem;
   text-align: center;
 }
 
