@@ -639,10 +639,10 @@ Page.prototype = {
   ready: true,
 
   setReady: function pg_setReady(value) {
+    this.ready = value;
     if (value) {
       this.container.dispatchEvent(new CustomEvent('onpageready'));
     }
-    this.ready = value;
   },
 
   /*
@@ -690,8 +690,8 @@ Page.prototype = {
     this.placeIcon(draggableNode, draggableIndex, targetIndex);
 
     var self = this;
-    targetNode.addEventListener('transitionend', function onTransitionEnd() {
-      targetNode.removeEventListener('transitionend', onTransitionEnd);
+    targetNode.addEventListener('transitionend', function onTransitionEnd(e) {
+      e.target.removeEventListener('transitionend', onTransitionEnd);
       children.splice(draggableIndex, 1);
       children.splice(targetIndex, 0, draggableNode);
       setTimeout(self.setReady.bind(self, true));
@@ -728,12 +728,20 @@ Page.prototype = {
     }
 
     if (!this.ready) {
-      var self = this;
-
-      self.container.addEventListener('onpageready', function onPageReady() {
-        self.container.removeEventListener('onpageready', onPageReady);
-        self.doDragLeave(callback, reflow);
+      var self = this, ensureCallbackID = null;
+      self.container.addEventListener('onpageready', function onPageReady(e) {
+        e.target.container.removeEventListener('onpageready', onPageReady);
+        if (ensureCallbackID !== null) {
+          window.clearTimeout(ensureCallbackID);
+          self.doDragLeave(callback, reflow);
+        }
       });
+
+      // We ensure that there is not a transitionend lost on dragging
+      var ensureCallbackID = window.setTimeout(function() {
+        ensureCallbackID = null;
+        self.doDragLeave(callback, reflow);
+      }, 300); // Dragging transition time
 
       return;
     }
@@ -975,6 +983,10 @@ dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
 
 dockProto.getLeft = function dk_getLeft() {
   return this.olist.getBoundingClientRect().left;
+};
+
+dockProto.getTransform = function dk_getTransform() {
+  return this.movableContainer.style.MozTransform;
 };
 
 /**
