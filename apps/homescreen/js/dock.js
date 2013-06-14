@@ -172,19 +172,29 @@ var DockManager = (function() {
     window.addEventListener(touchend, handleEvent);
   }
 
-  function rePosition(numApps) {
+  function rePosition(numApps, callback) {
     if (numApps > maxNumAppInViewPort && dock.getLeft() < 0 &&
           dock.getRight() > windowWidth) {
       // The dock takes up the screen width.
+      callback && setTimeout(callback);
       return;
     }
 
     // We are going to place the dock in the middle of the screen
     document.body.dataset.transitioning = 'true';
+    var beforeTransform = dock.getTransform();
     dock.moveByWithDuration(maxOffsetLeft / 2, .5);
+
+    if (beforeTransform === dock.getTransform()) {
+      delete document.body.dataset.transitioning;
+      callback && callback();
+      return;
+    }
+
     container.addEventListener('transitionend', function transEnd(e) {
       container.removeEventListener('transitionend', transEnd);
       delete document.body.dataset.transitioning;
+      callback && callback();
     });
   }
 
@@ -227,11 +237,17 @@ var DockManager = (function() {
       }
     },
 
-    onDragStop: function dm_onDragStop() {
+    onDragStop: function dm_onDragStop(callback) {
       container.addEventListener(touchstart, handleEvent);
       var numApps = dock.getNumIcons();
+
+      if (numApps === 0) {
+        callback && setTimeout(callback);
+        return;
+      }
+
       calculateDimentions(numApps);
-      rePosition(numApps);
+      rePosition(numApps, callback);
     },
 
     onDragStart: function dm_onDragStart() {
