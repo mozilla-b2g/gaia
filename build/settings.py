@@ -26,7 +26,6 @@ settings = {
  "bluetooth.enabled": False,
  "bluetooth.debugging.enabled": False,
  "bluetooth.suspended": False,
- "bootshutdown.sound.enabled": True,
  "camera.shutter.enabled": True,
  "clear.remote-windows.data": False,
  "debug.console.enabled": False,
