@@ -39,7 +39,7 @@ suite('Link Friends Test Suite', function() {
     window.ImageLoader = MockImageLoader;
 
     realAsyncStorage = window.asyncStorage;
-    window.asyncStorage = MockAsyncStorage;
+    window.asyncStorage = MockasyncStorage;
 
     realFb = window.fb;
     window.fb = Mockfb;

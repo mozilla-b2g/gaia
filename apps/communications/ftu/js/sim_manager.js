@@ -366,6 +366,7 @@ var SimManager = {
 
     importer.onfinish = function sim_import_finish() {
       window.setTimeout(function do_sim_import_finish() {
+        window.importUtils.setTimestamp('sim');
         SimManager.alreadyImported = true;
         UIManager.navBar.removeAttribute('aria-disabled');
         utils.overlay.hide();

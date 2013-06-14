@@ -57,6 +57,7 @@ var SdManager = {
 
       importer.process(function import_finish() {
         window.setTimeout(function onfinish_import() {
+          window.importUtils.setTimestamp('sd');
           SdManager.alreadyImported = true;
 
           UIManager.navBar.removeAttribute('aria-disabled');
