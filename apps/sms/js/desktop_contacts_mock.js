@@ -350,8 +350,8 @@
 
   ContactsDB.push(
     new Contact({
-      familyName: 'Bird',
-      givenName: 'Big',
+      familyName: 'O\'Hare',
+      givenName: 'Tom',
       tel: {
         value: '123456',
         type: 'Mobile',
