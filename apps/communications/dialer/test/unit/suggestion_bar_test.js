@@ -1,30 +1,24 @@
-requireApp('communications/dialer/js/suggestion_bar.js');
-requireApp('communications/shared/js/simple_phone_matcher.js');
-requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
+'use strict';
+
 requireApp('communications/dialer/test/unit/mock_contacts.js');
+requireApp('communications/dialer/test/unit/mock_l10n.js');
+requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 requireApp('communications/dialer/test/unit/mock_keypad.js');
 
-if (!this.Contacts) {
-  this.Contacts = null;
-}
+requireApp('communications/dialer/js/suggestion_bar.js');
+requireApp('communications/shared/js/simple_phone_matcher.js');
 
-if (!this.LazyL10n) {
-  this.LazyL10n = null;
-}
 
-if (!this.LazyLoader) {
-  this.LazyLoader = null;
-}
-
-if (!this.KeypadManager) {
-  this.KeypadManager = null;
-}
+var mocksHelperForSuggestionBar = new MocksHelper([
+  'Contacts',
+  'LazyL10n',
+  'LazyLoader',
+  'KeypadManager'
+]).init();
 
 suite('suggestion Bar', function() {
-  var realContacts;
-  var realLazyL10n;
-  var realLazyLoader;
-  var realKeypadManager;
+  mocksHelperForSuggestionBar.attachTestHelpers();
+
   var domSuggestionBar;
   var domSuggestionCount;
   var domOverlay;
@@ -80,24 +74,6 @@ suite('suggestion Bar', function() {
 
   setup(function() {
     subject = SuggestionBar;
-
-    realContacts = window.Contacts;
-    window.Contacts = MockContacts;
-
-    realLazyLoader = window.LazyLoader;
-    window.LazyLoader = MockLazyLoader;
-
-    realLazyL10n = LazyL10n;
-    window.LazyL10n = {
-      get: function get(cb) {
-        cb(function l10n_get(key) {
-          return key;
-        });
-      }
-    };
-
-    realKeypadManager = window.KeypadManager;
-    window.KeypadManager = MockKeypadManager;
 
     domSuggestionBar = document.createElement('section');
     domSuggestionBar.id = 'suggestion-bar';
@@ -226,10 +202,6 @@ suite('suggestion Bar', function() {
   });
 
   teardown(function() {
-    window.Contacts = realContacts;
-    window.LazyLoader = realLazyLoader;
-    window.LazyL10n = realLazyL10n;
-    window.KeypadManager = realKeypadManager;
     document.body.removeChild(domSuggestionBar);
     document.body.removeChild(domOverlay);
   });
