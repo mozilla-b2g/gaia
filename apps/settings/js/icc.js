@@ -125,7 +125,7 @@
     });
     // We'll return to settings if no STK response received in a grace period
     goBackTimer.timer = setTimeout(function() {
-      Settings.currentPanel = "#root";
+      Settings.currentPanel = '#root';
     }, goBackTimer.timeout);
   };
 
