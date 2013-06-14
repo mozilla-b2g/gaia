@@ -359,7 +359,7 @@ content = {
     loginPage:
       'https://m.facebook.com/dialog/oauth/?',
     applicationId:
-      '',
+      '395559767228801',
     scope:
       ['friends_about_me', 'friends_birthday', 'friends_hometown',
        'friends_location', 'friends_work_history', 'read_stream'],
