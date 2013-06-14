@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/responsive.css">
     <link rel="stylesheet" type="text/css" href="style/camera.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
 
     <script defer src="/shared/js/l10n.js"></script>
     <!-- for perf-measurement related utilities -->
@@ -53,6 +54,11 @@
     </div>
 
     <div id="overlay" class="hidden">
+      <section id="overlay-header-section" class="skin-dark hidden" role="region">
+        <header>
+          <a id="overlay-back-button" href="#"><span class="icon icon-back">back</span></a>
+        </header>
+      </section>
       <div id="overlay-content">
         <h1 id="overlay-title"></h1>
         <p id="overlay-text"><p>
