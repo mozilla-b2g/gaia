@@ -13,6 +13,22 @@ const PR_TRUNCATE = 0x20;
 const PR_SYNC = 0x40;
 const PR_EXCL = 0x80;
 
+// Make all timestamps the same so we always generate the same
+// output zip file for the same inputs
+const DEFAULT_TIME = 0;
+
+/**
+ * Add a file to a zip file with the specified time
+ */
+function addEntryFileWithTime(zip, pathInZip, file, time) {
+  let fis = Cc["@mozilla.org/network/file-input-stream;1"].
+              createInstance(Ci.nsIFileInputStream);
+  fis.init(file, -1, -1, 0);
+
+  zip.addEntryStream(pathInZip, time, Ci.nsIZipWriter.COMPRESSION_DEFAULT, fis, false);
+  fis.close();
+}
+
 /**
  * Add a file or a directory, recursively, to a zip file
  *
@@ -42,20 +58,14 @@ function addToZip(zip, pathInZip, file) {
         let l10nFile = file.parent.clone();
         l10nFile.append(file.leafName + '.' + GAIA_DEFAULT_LOCALE);
         if (l10nFile.exists()) {
-          zip.addEntryFile(pathInZip,
-                          Ci.nsIZipWriter.COMPRESSION_DEFAULT,
-                          l10nFile,
-                          false);
+          addEntryFileWithTime(zip, pathInZip, l10nFile, DEFAULT_TIME);
           return;
         }
       }
 
       let re = new RegExp('\\.html\\.' + GAIA_DEFAULT_LOCALE);
       if (!zip.hasEntry(pathInZip) && !re.test(file.leafName)) {
-        zip.addEntryFile(pathInZip,
-                        Ci.nsIZipWriter.COMPRESSION_DEFAULT,
-                        file,
-                        false);
+        addEntryFileWithTime(zip, pathInZip, file, DEFAULT_TIME);
       }
     } catch (e) {
       throw new Error('Unable to add following file in zip: ' +
@@ -67,7 +77,7 @@ function addToZip(zip, pathInZip, file) {
     debug(' +directory to zip ' + pathInZip);
 
     if (!zip.hasEntry(pathInZip))
-      zip.addEntryDirectory(pathInZip, file.lastModifiedTime, false);
+      zip.addEntryDirectory(pathInZip, DEFAULT_TIME, false);
 
     // Append a `/` at end of relative path if it isn't already here
     if (pathInZip.substr(-1) !== '/')
@@ -126,10 +136,7 @@ function customizeFiles(zip, src, dest) {
     if (zip.hasEntry(filename)) {
       zip.removeEntry(filename, false);
     }
-    zip.addEntryFile(filename,
-                    Ci.nsIZipWriter.COMPRESSION_DEFAULT,
-                    file,
-                    false);
+    addEntryFileWithTime(zip, filename, file, DEFAULT_TIME);
   });
 }
 
