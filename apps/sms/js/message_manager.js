@@ -211,14 +211,24 @@ var MessageManager = {
         return;
       }
 
-      if (activity.number || activity.contact) {
-        var recipient = activity.contact || {
-          number: activity.number,
-          source: 'manual'
+      // Choose the appropiate contact resolver, if we
+      // have a contact object, and no number,just use a dummy source,
+      // and return the contact, if not, if we have a number, use
+      // one of the functions to get a contact based on a number
+      var contactSource = Contacts.findByPhoneNumber.bind(Contacts);
+      var phoneNumber = activity.number;
+      if (activity.contact && !phoneNumber) {
+        contactSource = function dummySource(contact, cb) {
+          cb(activity.contact);
         };
-
-        ThreadUI.recipients.add(recipient);
+        phoneNumber = activity.contact.number || activity.contact.tel[0].value;
       }
+
+      Utils.getContactDisplayInfo(contactSource, phoneNumber,
+        (function onData(data) {
+        data.source = 'contacts';
+        ThreadUI.recipients.add(data);
+      }).bind(this));
 
       // If the message has a body, use it to populate the input field.
       if (activity.body) {

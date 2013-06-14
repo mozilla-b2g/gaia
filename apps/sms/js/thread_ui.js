@@ -440,13 +440,12 @@ var ThreadUI = global.ThreadUI = {
     });
 
     activity.onsuccess = (function() {
-      var details = Utils.getContactDetails('', activity.result);
-
-      this.recipients.add({
-        name: details.title || details.number || activity.result.name[0],
-        number: details.number || activity.result.number,
-        source: 'contacts'
-      });
+      Utils.getContactDisplayInfo(Contacts.findByPhoneNumber.bind(Contacts),
+        activity.result.number,
+        (function onData(data) {
+        data.source = 'contacts';
+        this.recipients.add(data);
+      }).bind(this));
     }).bind(this);
 
     activity.onerror = (function(e) {
@@ -1584,21 +1583,9 @@ var ThreadUI = global.ThreadUI = {
         continue;
       }
 
-      var number = current.value;
-      var title = details.title || number;
-      var type = current.type && current.type.length ? current.type[0] : '';
-      var carrier = current.carrier ? (current.carrier + ', ') : '';
-      var separator = type || carrier ? ' | ' : '';
       var li = document.createElement('li');
-      var data = {
-        name: title,
-        number: number,
-        type: type,
-        carrier: carrier,
-        separator: separator,
-        nameHTML: '',
-        numberHTML: ''
-      };
+
+      var data = Utils.getDisplayObject(details.title, current);
 
       ['name', 'number'].forEach(function(key) {
         var escapedData = Utils.escapeHTML(data[key]);

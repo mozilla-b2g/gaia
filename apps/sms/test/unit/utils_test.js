@@ -830,5 +830,75 @@ suite('Utils.Template', function() {
       );
     });
   });
+});
 
+suite('getDisplayObject', function() {
+
+  test('Tel object with carrier title and type', function() {
+    var myTitle = 'My title';
+    var type = 'Mobile';
+    var carrier = 'Carrier';
+    var value = 111111;
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value,
+      'carrier': carrier,
+      'type': [type]
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.separator, ' | ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, carrier + ', ');
+    assert.equal(data.number, value);
+  });
+
+  test('Tel object without title and type', function() {
+    var myTitle = 'My title';
+    var type = 'Mobile';
+    var value = 111111;
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value,
+      'carrier': null,
+      'type': [type]
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.separator, ' | ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+  });
+
+  test('Tel object with NO carrier title and NO type', function() {
+    var myTitle = 'My title';
+    var type = 'Mobile';
+    var value = 111111;
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.separator, '');
+    assert.equal(data.type, '');
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+  });
+
+  test('Tel object with carrier title and type and NO title', function() {
+    var myTitle = 'My title';
+    var type = 'Mobile';
+    var carrier = 'Carrier';
+    var value = 111111;
+    var data = Utils.getDisplayObject(null, {
+      'value': value,
+      'carrier': carrier,
+      'type': [type]
+    });
+
+    assert.equal(data.name, value);
+    assert.equal(data.separator, ' | ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, carrier + ', ');
+    assert.equal(data.number, value);
+  });
 });

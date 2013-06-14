@@ -49,7 +49,9 @@ suite('Recipients', function() {
       email: 'a@b.com',
       source: 'none',
       // Mapped to node attr, not true boolean
-      editable: 'true'
+      editable: 'true',
+      // Disambiguation 'display' attribute
+      display: 'Type | Carrier, Number'
     };
   });
 
