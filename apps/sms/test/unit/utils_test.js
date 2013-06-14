@@ -160,8 +160,8 @@ suite('Utils', function() {
       var details = Utils.getContactDetails('346578888888', contact);
       assert.deepEqual(details, {
         isContact: true,
-        title: 'Pepito Grillo',
-        name: 'Pepito Grillo',
+        title: 'Pepito O\'Hare',
+        name: 'Pepito O\'Hare',
         org: '',
         carrier: 'Mobile | TEF'
       });
@@ -169,8 +169,8 @@ suite('Utils', function() {
       details = Utils.getContactDetails('12125559999', contact);
       assert.deepEqual(details, {
         isContact: true,
-        title: 'Pepito Grillo',
-        name: 'Pepito Grillo',
+        title: 'Pepito O\'Hare',
+        name: 'Pepito O\'Hare',
         org: '',
         carrier: 'Batphone | XXX'
       });
@@ -191,8 +191,8 @@ suite('Utils', function() {
       var details = Utils.getContactDetails('99999999', contact);
       assert.deepEqual(details, {
         isContact: true,
-        title: 'Pepito Grillo',
-        name: 'Pepito Grillo',
+        title: 'Pepito O\'Hare',
+        name: 'Pepito O\'Hare',
         org: '',
         carrier: 'Mobile | TEF'
       });
@@ -228,8 +228,8 @@ suite('Utils', function() {
       var details = Utils.getContactDetails('+346578888888', contact);
       assert.deepEqual(details, {
         isContact: true,
-        title: 'Pepito Grillo',
-        name: 'Pepito Grillo',
+        title: 'Pepito O\'Hare',
+        name: 'Pepito O\'Hare',
         org: '',
         carrier: 'Mobile | +346578888888'
       });
@@ -267,8 +267,8 @@ suite('Utils', function() {
         var details = Utils.getContactDetails('0', contact);
         assert.deepEqual(details, {
           isContact: true,
-          title: 'Pepito Grillo',
-          name: 'Pepito Grillo',
+          title: 'Pepito O\'Hare',
+          name: 'Pepito O\'Hare',
           org: '',
           carrier: ''
         });
@@ -281,8 +281,8 @@ suite('Utils', function() {
         var details = Utils.getContactDetails('0', contact);
         assert.deepEqual(details, {
           isContact: true,
-          title: 'Pepito Grillo',
-          name: 'Pepito Grillo',
+          title: 'Pepito O\'Hare',
+          name: 'Pepito O\'Hare',
           org: '',
           carrier: ''
         });
@@ -295,8 +295,8 @@ suite('Utils', function() {
         var details = Utils.getContactDetails('0', contact);
         assert.deepEqual(details, {
           isContact: true,
-          title: 'Pepito Grillo',
-          name: 'Pepito Grillo',
+          title: 'Pepito O\'Hare',
+          name: 'Pepito O\'Hare',
           org: '',
           carrier: ''
         });
@@ -309,8 +309,8 @@ suite('Utils', function() {
         var details = Utils.getContactDetails('+12125559999', contact);
         assert.deepEqual(details, {
           isContact: true,
-          title: 'Pepito Grillo',
-          name: 'Pepito Grillo',
+          title: 'Pepito O\'Hare',
+          name: 'Pepito O\'Hare',
           org: '',
           carrier: 'Batphone | XXX'
         });

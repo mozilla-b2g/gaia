@@ -1523,8 +1523,8 @@ var ThreadUI = global.ThreadUI = {
 
       var li = document.createElement('li');
       var data = {
-        name: Utils.escapeHTML(title),
-        number: Utils.escapeHTML(number),
+        name: title,
+        number: number,
         type: type,
         carrier: carrier,
         separator: separator,

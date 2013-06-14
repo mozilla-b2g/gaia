@@ -1387,7 +1387,7 @@ suite('thread_ui.js >', function() {
         isHighlighted: true
       });
       html = ul.firstElementChild.innerHTML;
-      assert.ok(html.contains('Pepito Grillo'));
+      assert.include(html, 'Pepito O\'Hare');
     });
 
     test('Rendered Contact highlighted "givenName familyName"', function() {
@@ -1397,19 +1397,15 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.renderContact({
         contact: contact,
-        input: 'Pepito Grillo',
+        input: 'Pepito O\'Hare',
         target: ul,
         isContact: true,
         isHighlighted: true
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.ok(
-        html.contains('<span class="highlight">Pepito</span>')
-      );
-      assert.ok(
-        html.contains('<span class="highlight">Grillo</span>')
-      );
+      assert.include(html, '<span class="highlight">Pepito</span>');
+      assert.include(html, '<span class="highlight">O\'Hare</span>');
     });
 
     test('Rendered Contact "number"', function() {
