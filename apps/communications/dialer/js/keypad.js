@@ -184,15 +184,11 @@ var KeypadManager = {
 
   render: function hk_render(layoutType) {
     if (layoutType == 'oncall') {
-      var numberNode = CallScreen.activeCall.querySelector('.number');
-      this._phoneNumber = numberNode.textContent;
-      var additionalContactInfoNode = CallScreen.activeCall.
-        querySelector('.additionalContactInfo');
-      this._additionalContactInfo = additionalContactInfoNode.textContent;
+      if (CallScreen.activeCall) {
+        this._phoneNumber = CallScreen.activeCall.call.number;
+      }
       this._isKeypadClicked = false;
       this.phoneNumberViewContainer.classList.add('keypad-visible');
-      this._originalPhoneNumber = this._phoneNumber;
-      this._originalAdditionalContactInfo = this._additionalContactInfo;
       if (this.callBar) {
         this.callBar.classList.add('hide');
       }
@@ -246,103 +242,26 @@ var KeypadManager = {
   },
 
   formatPhoneNumber: function kh_formatPhoneNumber(ellipsisSide, maxFontSize) {
-    if (this._onCall) {
-      var fakeView = CallScreen.activeCall.querySelector('.fake-number');
-      var view = CallScreen.activeCall.querySelector('.number');
-    } else {
-      var fakeView = this.fakePhoneNumberView;
-      var view = this.phoneNumberView;
+    var fakeView = this.fakePhoneNumberView;
+    var view = this.phoneNumberView;
 
-      // We consider the case where the delete button may have
-      // been used to delete the whole phone number.
-      if (view.value == '') {
-        view.style.fontSize = this.maxFontSize;
-        return;
-      }
+    // We consider the case where the delete button may have
+    // been used to delete the whole phone number.
+    if (view.value == '') {
+      view.style.fontSize = this.maxFontSize;
+      return;
     }
 
     var newFontSize;
     if (maxFontSize) {
       newFontSize = this.maxFontSize;
     } else {
-      newFontSize = this.getNextFontSize(view, fakeView);
+      newFontSize =
+        Utils.getNextFontSize(view, fakeView, this.maxFontSize,
+          this.minFontSize, kFontStep);
     }
     view.style.fontSize = newFontSize + 'px';
-    this.addEllipsis(view, fakeView, ellipsisSide);
-  },
-
-  addEllipsis: function kh_addEllipsis(view, fakeView, ellipsisSide) {
-    var side = ellipsisSide || 'begin';
-    LazyL10n.get(function localized(_) {
-      var localizedSide;
-      if (navigator.mozL10n.language.direction === 'rtl') {
-        localizedSide = (side === 'begin' ? 'right' : 'left');
-      } else {
-        localizedSide = (side === 'begin' ? 'left' : 'right');
-      }
-      var computedStyle = window.getComputedStyle(view, null);
-      var currentFontSize = parseInt(
-        computedStyle.getPropertyValue('font-size')
-      );
-      var viewWidth = view.getBoundingClientRect().width;
-      fakeView.style.fontSize = currentFontSize + 'px';
-      fakeView.innerHTML = view.value ? view.value : view.innerHTML;
-
-      var value = fakeView.innerHTML;
-
-      // Guess the possible position of the ellipsis in order to minimize
-      // the following while loop iterations:
-      var counter = value.length -
-        (viewWidth *
-         (fakeView.textContent.length /
-           fakeView.getBoundingClientRect().width));
-
-      var newPhoneNumber;
-      while (fakeView.getBoundingClientRect().width > viewWidth) {
-
-        if (localizedSide == 'left') {
-          newPhoneNumber = '\u2026' + value.substr(-value.length + counter);
-        } else if (localizedSide == 'right') {
-          newPhoneNumber = value.substr(0, value.length - counter) + '\u2026';
-        }
-
-        fakeView.innerHTML = newPhoneNumber;
-        counter++;
-      }
-
-      if (newPhoneNumber) {
-        if (view.value) {
-          view.value = newPhoneNumber;
-        } else {
-          view.innerHTML = newPhoneNumber;
-        }
-      }
-    });
-  },
-
-  getNextFontSize: function kh_getNextFontSize(view, fakeView) {
-    var computedStyle = window.getComputedStyle(view, null);
-    var fontSize = parseInt(computedStyle.getPropertyValue('font-size'));
-    var viewWidth = view.getBoundingClientRect().width;
-    var viewHeight = view.getBoundingClientRect().height;
-    fakeView.style.fontSize = fontSize + 'px';
-    fakeView.innerHTML = (view.value ? view.value : view.innerHTML);
-
-    var rect = fakeView.getBoundingClientRect();
-
-    while ((rect.width < viewWidth) && (fontSize < this.maxFontSize)) {
-      fontSize = Math.min(fontSize + kFontStep, this.maxFontSize);
-      fakeView.style.fontSize = fontSize + 'px';
-      rect = fakeView.getBoundingClientRect();
-    }
-
-    while ((rect.width > viewWidth) && (fontSize > this.minFontSize)) {
-      fontSize = Math.max(fontSize - kFontStep, this.minFontSize);
-      fakeView.style.fontSize = fontSize + 'px';
-      rect = fakeView.getBoundingClientRect();
-    }
-
-    return fontSize;
+    Utils.addEllipsis(view, fakeView, ellipsisSide);
   },
 
   keyHandler: function kh_keyHandler(event) {
@@ -423,8 +342,7 @@ var KeypadManager = {
         if (!this._isKeypadClicked) {
           this._isKeypadClicked = true;
           this._phoneNumber = key;
-          this._additionalContactInfo = '';
-          this._updateAdditionalContactInfoView();
+          this.replaceAdditionalContactInfo('');
         } else {
           this._phoneNumber += key;
         }
@@ -487,7 +405,9 @@ var KeypadManager = {
 
     // If there are digits in the phone number, show the delete button
     // and enable the add contact button
-    if (!this._onCall) {
+    if (this._onCall) {
+      this.replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize);
+    } else {
       var visibility;
       if (phoneNumber.length > 0) {
         visibility = 'visible';
@@ -497,52 +417,40 @@ var KeypadManager = {
         this.callBarAddContact.classList.add('disabled');
       }
       this.deleteButton.style.visibility = visibility;
-    }
 
-    if (this._onCall) {
-      var view = CallScreen.activeCall.querySelector('.number');
-      view.textContent = phoneNumber;
-    } else {
       this.phoneNumberView.value = phoneNumber;
       this.moveCaretToEnd(this.phoneNumberView);
+
+      this.formatPhoneNumber(ellipsisSide, maxFontSize);
     }
 
-    this.formatPhoneNumber(ellipsisSide, maxFontSize);
     if (this.onValueChanged)
       this.onValueChanged(this._phoneNumber);
   },
 
-  restorePhoneNumber: function kh_restorePhoneNumber(ellipsisSide,
-    maxFontSize) {
-    this.updatePhoneNumber(this._originalPhoneNumber, ellipsisSide,
-      maxFontSize);
+  replacePhoneNumber:
+    function kh_replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize) {
+      if (this._onCall) {
+        CallScreen.activeCall.
+          replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize);
+      }
   },
 
-  updateAdditionalContactInfo:
-    function kh_updateAdditionalContactInfo(additionalContactInfo) {
-    this._additionalContactInfo = additionalContactInfo;
-    this._updateAdditionalContactInfoView();
-  },
-
-  _updateAdditionalContactInfoView:
-    function kh__updateAdditionalContactInfoView() {
-    var phoneNumberView = CallScreen.activeCall.querySelector('.number');
-    var additionalview = CallScreen.activeCall.querySelector(
-      '.additionalContactInfo');
-    if (!this._additionalContactInfo ||
-      this._additionalContactInfo.trim() === '') {
-      additionalview.textContent = '';
-      additionalview.classList.add('noAdditionalContactInfo');
-      phoneNumberView.classList.add('noAdditionalContactInfo');
-    } else {
-      phoneNumberView.classList.remove('noAdditionalContactInfo');
-      additionalview.classList.remove('noAdditionalContactInfo');
-      additionalview.textContent = this._additionalContactInfo;
+  restorePhoneNumber: function kh_restorePhoneNumber() {
+    if (this._onCall) {
+      CallScreen.activeCall.restorePhoneNumber();
     }
   },
 
+  replaceAdditionalContactInfo:
+    function kh_updateAdditionalContactInfo(additionalContactInfo) {
+    CallScreen.activeCall.replaceAdditionalContactInfo(additionalContactInfo);
+  },
+
   restoreAdditionalContactInfo: function kh_restoreAdditionalContactInfo() {
-    this.updateAdditionalContactInfo(this._originalAdditionalContactInfo);
+    if (this._onCall) {
+      CallScreen.activeCall.restoreAdditionalContactInfo();
+    }
   },
 
   _callVoicemail: function kh_callVoicemail() {
