@@ -119,6 +119,7 @@ a.button {
   padding: 0;
   margin: 0;
   border-width: 0;
+  background: transparent;
   background-position: center center;
   background-repeat: no-repeat;
   transition: 0.2s ease-in-out;
