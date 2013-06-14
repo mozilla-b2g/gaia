@@ -21,5 +21,6 @@ var MockUtils = {
   getContactDetails: Utils.getContactDetails,
   getResizedImgBlob: Utils.getResizedImgBlob,
   removeNonDialables: Utils.removeNonDialables,
-  compareDialables: Utils.compareDialables
+  compareDialables: Utils.compareDialables,
+  getDisplayObject: Utils.getDisplayObject
 };
