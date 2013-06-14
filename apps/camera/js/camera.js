@@ -198,6 +198,14 @@ var Camera = {
     return document.getElementById('overlay-text');
   },
 
+  get overlayHeaderSection() {
+    return document.getElementById('overlay-header-section');
+  },
+
+  get overlayBackButton() {
+    return document.getElementById('overlay-back-button');
+  },
+
   get overlay() {
     return document.getElementById('overlay');
   },
@@ -311,6 +319,8 @@ var Camera = {
       .addEventListener('click', this.retakePressed.bind(this));
     this.selectButton
       .addEventListener('click', this.selectPressed.bind(this));
+    this.overlayBackButton
+      .addEventListener('click', this.cancelPickActivity.bind(this));
 
     if (!navigator.mozCameras) {
       this.captureButton.setAttribute('disabled', 'disabled');
@@ -428,6 +438,10 @@ var Camera = {
     if (this.cancelPickButton.hasAttribute('disabled'))
       return;
 
+    this.cancelPickActivity();
+  },
+
+  cancelPickActivity: function camera_cancelPick() {
     if (this._pendingPick) {
       this._pendingPick.postError('pick cancelled');
     }
@@ -1120,6 +1134,12 @@ var Camera = {
     if (id === null) {
       this.overlay.classList.add('hidden');
       return;
+    }
+
+    if (this._pendingPick) {
+      this.overlayHeaderSection.classList.remove('hidden');
+    } else {
+      this.overlayHeaderSection.classList.add('hidden');
     }
 
     this.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
