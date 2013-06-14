@@ -867,6 +867,7 @@ var ThreadUI = global.ThreadUI = {
       var carrierText;
 
       this.headerText.dataset.isContact = !!details.isContact;
+      this.headerText.dataset.title = contactName;
       this.headerText.textContent = navigator.mozL10n.get(
         'thread-header-text', {
           name: contactName,
@@ -1849,10 +1850,16 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    this.activateContact({
-      number: this.headerText.dataset.number,
-      isContact: this.headerText.dataset.isContact === 'true' ? true : false
-    });
+    var isContact = this.headerText.dataset.isContact;
+    var number = this.headerText.dataset.number;
+    if (isContact === 'true') {
+      this.genPrompt(isContact, number);
+    } else {
+      this.activateContact({
+        number: this.headerText.dataset.number,
+        isContact: false
+      });
+    }
   },
 
   onParticipantClick: function onParticipantClick(event) {
@@ -1864,7 +1871,10 @@ var ThreadUI = global.ThreadUI = {
 
     isContact = target.dataset.source === 'contacts' ? true : false;
     number = target.dataset.number;
+    this.genPrompt(isContact, number);
+  },
 
+  genPrompt: function thui_genPrompt(isContact, number) {
     Contacts.findByPhoneNumber(number, function(results) {
       var ul = document.createElement('ul');
       var contact = isContact ? results[0] : {
