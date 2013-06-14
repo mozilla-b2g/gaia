@@ -429,22 +429,6 @@ suite('Utils', function() {
 
 });
 
-suite('Utils.Message', function() {
-  suite('format', function() {
-    test('escapes HTML; converts spaces and newlines', function() {
-      var fixture = [
-        '<p>"Hello!"&  \' </p>',
-        'world'
-      ].join('\r\n');
-
-      assert.equal(
-        Utils.Message.format(fixture),
-        '&lt;p&gt;&quot;Hello!&quot;&amp; &nbsp;&apos; &lt;/p&gt;<br>world'
-      );
-    });
-  });
-});
-
 suite('Utils.Template', function() {
 
   suite('extracted template strings', function() {
