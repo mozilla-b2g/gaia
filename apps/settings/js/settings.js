@@ -660,18 +660,7 @@ window.addEventListener('load', function loadSettings() {
     switch (panel.id) {
       case 'display':             // <input type="range"> + brightness control
         bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
-        var manualBrightness = panel.querySelector('#brightness-manual');
-        var autoBrightnessSetting = 'screen.automatic-brightness';
-        var settings = Settings.mozSettings;
-        if (!settings)
-          return;
-        settings.addObserver(autoBrightnessSetting, function(event) {
-          manualBrightness.hidden = event.settingValue;
-        });
-        var req = settings.createLock().get(autoBrightnessSetting);
-        req.onsuccess = function brightness_onsuccess() {
-          manualBrightness.hidden = req.result[autoBrightnessSetting];
-        };
+        Settings.updateDisplayPanel();
         break;
       case 'sound':               // <input type="range">
         bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
