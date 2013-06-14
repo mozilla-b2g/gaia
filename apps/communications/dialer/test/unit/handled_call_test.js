@@ -1,33 +1,26 @@
-requireApp('communications/dialer/js/handled_call.js');
-requireApp('communications/dialer/js/voicemail.js');
+'use strict';
 
-requireApp('communications/dialer/test/unit/mock_keypad.js');
-requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
 requireApp('communications/dialer/test/unit/mock_on_call.js');
+requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
+requireApp('communications/dialer/test/unit/mock_l10n.js');
 
-// We're going to swap those with mock objects
-// so we need to make sure they are defined.
-if (!this.Contacts) {
-  this.Contacts = null;
-}
-if (!this.CallScreen) {
-  this.CallScreen = null;
-}
-if (!this.OnCallHandler) {
-  this.OnCallHandler = null;
-}
-if (!this.KeypadManager) {
-  this.KeypadManager = null;
-}
-if (!this.Utils) {
-  this.Utils = null;
-}
-if (!this.LazyL10n) {
-  this.LazyL10n = null;
-}
+requireApp('communications/dialer/test/unit/mock_call.js');
+
+requireApp('communications/dialer/js/handled_call.js');
+requireApp('communications/dialer/js/voicemail.js');
+
+
+var mocksHelperForHandledCall = new MocksHelper([
+  'Contacts',
+  'CallScreen',
+  'OnCallHandler',
+  'KeypadManager',
+  'Utils',
+  'LazyL10n'
+]).init();
 
 suite('dialer/handled_call', function() {
   const VOICEMAIL_NUMBER = '123';
@@ -35,39 +28,11 @@ suite('dialer/handled_call', function() {
   var mockCall;
   var fakeNode;
 
-  var realContacts;
-  var realCallScreen;
-  var realCallHandler;
-  var realKeypadManager;
-  var realLazyL10n;
-  var realUtils;
   var phoneNumber;
 
+  mocksHelperForHandledCall.attachTestHelpers();
+
   suiteSetup(function() {
-    realContacts = window.Contacts;
-    window.Contacts = MockContacts;
-
-    realCallScreen = window.CallScreen;
-    window.CallScreen = MockCallScreen;
-
-    realCallHandler = window.OnCallHandler;
-    window.OnCallHandler = MockOnCallHandler;
-
-    realKeypadManager = window.KeypadManager;
-    window.KeypadManager = MockKeypadManager;
-
-    realLazyL10n = LazyL10n;
-    window.LazyL10n = {
-      get: function get(cb) {
-        cb(function l10n_get(key) {
-          return key;
-        });
-      }
-    };
-
-    realUtils = window.Utils;
-    window.Utils = MockUtils;
-
     phoneNumber = Math.floor(Math.random() * 10000);
 
     sinon.stub(Voicemail, 'check', function(number, callback) {
@@ -80,12 +45,6 @@ suite('dialer/handled_call', function() {
   });
 
   suiteTeardown(function() {
-    window.Contacts = realContacts;
-    window.CallScreen = realCallScreen;
-    window.OnCallHandler = realCallHandler;
-    window.KeypadManager = realKeypadManager;
-    window.LazyL10n = realLazyL10n;
-    window.Utils = realUtils;
     Voicemail.check.restore();
   });
 
@@ -122,12 +81,6 @@ suite('dialer/handled_call', function() {
   teardown(function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
-
-    MockContacts.mTearDown();
-    MockCallScreen.mTearDown();
-    MockOnCallHandler.mTeardown();
-    MockKeypadManager.mTearDown();
-    MockUtils.mTearDown();
   });
 
   suite('initialization', function() {
