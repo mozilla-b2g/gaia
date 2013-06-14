@@ -97,37 +97,50 @@ var ThreadListUI = {
       return;
     }
 
+    var name = node.getElementsByClassName('name')[0];
+    var photo = node.getElementsByTagName('img')[0];
+    name.dataset.isContact = 'false';
     // TODO: This should use SimplePhoneMatcher
 
-    Contacts.findByPhoneNumber(number, function gotContact(contacts) {
-      var name = node.getElementsByClassName('name')[0];
-      var photo = node.getElementsByTagName('img')[0];
-      var title, src, details;
+    // For thread display, we should display the name which could be mached in
+    // contacts.
+    thread.participants.forEach(function(number, index) {
+      Contacts.findByPhoneNumber(number, function gotContact(contacts) {
+        var title, src, details;
+        // If name already matched a validate contact, return directly.
+        if (name.dataset.isContact === 'true')
+          return;
 
-      if (contacts && contacts.length) {
-        details = Utils.getContactDetails(number, contacts[0], {
-          photoURL: true
+        if (contacts && contacts.length) {
+          details = Utils.getContactDetails(number, contacts[0], {
+            photoURL: true
+          });
+          title = details.title || number;
+          src = details.photoURL || '';
+          name.dataset.isContact = !!details.isContact;
+        } else {
+          title = number;
+          src = '';
+        }
+
+        if (title === number &&
+            index !== (thread.participants.length - 1))
+          return;
+
+        if (src) {
+          photo.onload = photo.onerror = function revokePhotoURL() {
+            this.onload = this.onerror = null;
+            URL.revokeObjectURL(this.src);
+          };
+        }
+
+        name.textContent = navigator.mozL10n.get('thread-header-text', {
+          name: title,
+          n: others
         });
-        title = details.title || number;
-        src = details.photoURL || '';
-      } else {
-        title = number;
-        src = '';
-      }
 
-      if (src) {
-        photo.onload = photo.onerror = function revokePhotoURL() {
-          this.onload = this.onerror = null;
-          URL.revokeObjectURL(this.src);
-        };
-      }
-
-      name.textContent = navigator.mozL10n.get('thread-header-text', {
-        name: title,
-        n: others
+        photo.src = src;
       });
-
-      photo.src = src;
     });
   },
 

@@ -782,47 +782,60 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    // Add data to contact activity interaction
-    this.headerText.dataset.number = number;
+    this.headerText.dataset.isContact = false;
+    thread.participants.forEach(function(number, index) {
+      // For header display, we show first matched contact's information --
+      // e.g. for 3 contacts, the app displays:
+      //
+      //    Jane Doe (+2)
+      //
+      // If the number could not match any validate contact, we will
+      // search next patticipant number until validate contact found.
+      Contacts.findByPhoneNumber(number, function gotContact(contacts) {
+        // If headerText already matched a validate contact, return directly.
+        if (this.headerText.dataset.isContact === 'true')
+          return;
 
-    // For the basic display, we only need the first contact's information --
-    // e.g. for 3 contacts, the app displays:
-    //
-    //    Jane Doe (+2)
-    //
-    Contacts.findByPhoneNumber(number, function gotContact(contacts) {
-      var carrierTag = document.getElementById('contact-carrier');
-      /** If we have more than one contact sharing the same phone number
-       *  we show the title of contact detail with validate name/company
-       *  and how many other contacts share that same number. We think it's
-       *  user's responsability to correct this mess with the agenda.
-       */
-      // Bug 867948: contacts null is a legitimate case, and
-      // getContactDetails is okay with that.
-      var details = Utils.getContactDetails(number, contacts);
-      var contactName = details.title || number;
+        var carrierTag = document.getElementById('contact-carrier');
+        /** If we have more than one contact sharing the same phone number
+         *  we show the title of contact detail with validate name/company
+         *  and how many other contacts share that same number. We think it's
+         *  user's responsability to correct this mess with the agenda.
+         */
+        // Bug 867948: contacts null is a legitimate case, and
+        // getContactDetails is okay with that.
+        var details = Utils.getContactDetails(number, contacts);
+        var contactName = details.title || number;
 
-      this.headerText.dataset.isContact = !!details.isContact;
-      this.headerText.textContent = navigator.mozL10n.get(
-        'thread-header-text', {
-          name: contactName,
-          n: others
-      });
+        if (contactName === number &&
+            index !== (thread.participants.length - 1))
+          return;
 
-      // The carrier banner is meaningless and confusing in
-      // group message mode.
-      if (thread.participants.length === 1) {
-        if (contacts && contacts.length) {
-          carrierTag.textContent = Utils.getContactCarrier(number, contacts[0].tel);
-          carrierTag.classList.remove('hide');
+        // Add data to contact activity interaction
+        this.headerText.dataset.number = number;
+        this.headerText.dataset.isContact = !!details.isContact;
+        this.headerText.textContent = navigator.mozL10n.get(
+          'thread-header-text', {
+            name: contactName,
+            n: others
+        });
+
+        // The carrier banner is meaningless and confusing in
+        // group message mode.
+        if (thread.participants.length === 1) {
+          if (contacts && contacts.length) {
+            carrierTag.textContent =
+              Utils.getContactCarrier(number, contacts[0].tel);
+            carrierTag.classList.remove('hide');
+          }
+        } else {
+          carrierTag.classList.add('hide');
         }
-      } else {
-        carrierTag.classList.add('hide');
-      }
 
-      if (callback) {
-        callback();
-      }
+        if (callback) {
+          callback();
+        }
+      }.bind(this));
     }.bind(this));
   },
 
