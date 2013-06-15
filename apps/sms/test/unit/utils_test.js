@@ -355,6 +355,111 @@ suite('Utils', function() {
     });
   });
 
+  suite('Utils.getContactCarrier', function() {
+
+    test('Single with carrier', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '101', type: ['Mobile'], carrier: 'Nynex'}
+      ];
+
+      var a = Utils.getContactCarrier('101', tel);
+
+      assert.equal(a, 'Mobile | Nynex');
+    });
+
+    test('Single no carrier', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '201', type: ['Mobile'], carrier: null}
+      ];
+
+      var a = Utils.getContactCarrier('201', tel);
+
+      assert.equal(a, 'Mobile | 201');
+    });
+
+    test('Multi different carrier & type, match both', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '301', type: ['Mobile'], carrier: 'Nynex'},
+        {value: '302', type: ['Home'], carrier: 'MCI'}
+      ];
+
+      var a = Utils.getContactCarrier('301', tel);
+      var b = Utils.getContactCarrier('302', tel);
+
+      assert.equal(a, 'Mobile | Nynex');
+      assert.equal(b, 'Home | MCI');
+    });
+
+    test('Multi different carrier, match first', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '401', type: ['Mobile'], carrier: 'Nynex'},
+        {value: '402', type: ['Home'], carrier: 'MCI'}
+      ];
+
+      var a = Utils.getContactCarrier('401', tel);
+
+      assert.equal(a, 'Mobile | Nynex');
+    });
+
+    test('Multi different carrier, match second', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '501', type: ['Mobile'], carrier: 'Nynex'},
+        {value: '502', type: ['Home'], carrier: 'MCI'}
+      ];
+
+      var a = Utils.getContactCarrier('502', tel);
+
+      assert.equal(a, 'Home | MCI');
+    });
+
+    test('Multi same carrier & type', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '601', type: ['Mobile'], carrier: 'Nynex'},
+        {value: '602', type: ['Mobile'], carrier: 'Nynex'}
+      ];
+
+      var a = Utils.getContactCarrier('601', tel);
+      var b = Utils.getContactCarrier('602', tel);
+
+      assert.equal(a, 'Mobile | 601');
+      assert.equal(b, 'Mobile | 602');
+    });
+
+    test('Multi same carrier, different type', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '701', type: ['Mobile'], carrier: 'Nynex'},
+        {value: '702', type: ['Home'], carrier: 'Nynex'}
+      ];
+
+      var a = Utils.getContactCarrier('701', tel);
+      var b = Utils.getContactCarrier('702', tel);
+
+      assert.equal(a, 'Mobile | Nynex');
+      assert.equal(b, 'Home | Nynex');
+    });
+
+    test('Multi different carrier, same type', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '801', type: ['Mobile'], carrier: 'Nynex'},
+        {value: '802', type: ['Mobile'], carrier: 'MCI'}
+      ];
+
+      var a = Utils.getContactCarrier('801', tel);
+      var b = Utils.getContactCarrier('802', tel);
+
+      assert.equal(a, 'Mobile | Nynex');
+      assert.equal(b, 'Mobile | MCI');
+    });
+  });
+
   suite('Utils for MMS user story test', function() {
     test('Image rescaling to 300kB', function(done) {
       // Open test image for testing image resize ability
