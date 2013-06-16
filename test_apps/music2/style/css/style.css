@@ -1,0 +1,31 @@
+body {
+  overflow-x: hidden;
+  font-family: Lato,Helvetica,Arial,sans-serif;
+  color: #cce;
+}
+
+* {
+  -moz-user-select: none;
+}
+
+.hidden {
+  display: none;
+}
+
+.faded {
+    opacity: 0;
+}
+
+/* TODO transform property */
+.fastTransition {
+  -moz-transition: all .2s ease-in-out 0s;
+}
+
+.superFastTransition {
+  -moz-transition: all .1s ease-in-out 0s;
+}
+
+.buttonDown {
+  background: #008aaa;
+  -moz-transition-duration: 0s;
+}
