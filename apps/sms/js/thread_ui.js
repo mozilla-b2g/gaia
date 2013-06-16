@@ -997,7 +997,8 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (message.type && message.type === 'sms') {
-      bodyHTML = LinkHelper.searchAndLinkClickableData(message.body);
+      var escapedBody = Utils.escapeHTML(message.body || '');
+      bodyHTML = LinkHelper.searchAndLinkClickableData(escapedBody);
     }
 
     if (notDownloaded) {

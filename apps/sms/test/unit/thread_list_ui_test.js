@@ -273,4 +273,44 @@ suite('thread_list_ui', function() {
       });
     });
   });
+
+  suite('createThread', function() {
+    setup(function() {
+      this.sinon.spy(MockUtils, 'escapeHTML');
+    });
+
+    function buildSMSThread(payload) {
+      var o = {
+        id: 1,
+        lastMessageType: 'sms',
+        participants: ['1234'],
+        body: payload,
+        timestamp: new Date()
+      };
+      return o;
+    }
+
+    function buildMMSThread(payload) {
+      var o = {
+        id: 1,
+        lastMessageType: 'mms',
+        participants: ['1234', '5678'],
+        body: payload,
+        timestamp: new Date()
+      };
+      return o;
+    }
+
+    test('escapes the body for SMS', function() {
+      var payload = 'hello <a href="world">world</a>';
+      ThreadListUI.createThread(buildSMSThread(payload));
+      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+    });
+
+    test('escapes the body for MMS', function() {
+      var payload = 'hello <a href="world">world</a>';
+      ThreadListUI.createThread(buildMMSThread(payload));
+      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+    });
+  });
 });
