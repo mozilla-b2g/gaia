@@ -356,8 +356,8 @@ var ThreadListUI = {
     var lastMessageType = thread.lastMessageType;
     var participants = thread.participants;
     var number = participants[0];
-    var body = thread.body || '';
     var id = thread.id;
+    var bodyHTML = Utils.escapeHTML(thread.body || '');
 
     li.id = 'thread-' + id;
     li.dataset.threadId = id;
@@ -369,22 +369,20 @@ var ThreadListUI = {
       li.classList.add('unread');
     }
 
-    if (lastMessageType === 'sms' && body) {
-      body = Utils.escapeHTML(body);
-    }
 
     // Render markup with thread data
     li.innerHTML = this.tmpl.thread.interpolate({
       id: id,
       number: number,
-      body: body,
+      bodyHTML: bodyHTML,
       formattedDate: Utils.getFormattedHour(timestamp)
     }, {
-      safe: ['id', 'body']
+      safe: ['id', 'bodyHTML']
     });
 
     return li;
   },
+
   insertThreadContainer:
     function thlui_insertThreadContainer(fragment, timestamp) {
     // We look for placing the group in the right place.
