@@ -351,13 +351,13 @@ contacts.Details = (function() {
     var telLength = Contacts.getLength(contact.tel);
     for (var tel = 0; tel < telLength; tel++) {
       var currentTel = contact.tel[tel];
-      var escapedType = utils.text.escapeHTML(currentTel.type, true);
+      var escapedType = Normalizer.escapeHTML(currentTel.type, true);
       var telField = {
-        value: utils.text.escapeHTML(currentTel.value, true) || '',
+        value: Normalizer.escapeHTML(currentTel.value, true) || '',
         type: _(escapedType) || escapedType ||
                                         TAG_OPTIONS['phone-type'][0].value,
         'type_l10n_id': currentTel.type,
-        carrier: utils.text.escapeHTML(currentTel.carrier || '', true) || '',
+        carrier: Normalizer.escapeHTML(currentTel.carrier || '', true) || '',
         i: tel
       };
       var template = utils.templates.render(phonesTemplate, telField);
@@ -392,9 +392,9 @@ contacts.Details = (function() {
     var emailLength = Contacts.getLength(contact.email);
     for (var email = 0; email < emailLength; email++) {
       var currentEmail = contact.email[email];
-      var escapedType = utils.text.escapeHTML(currentEmail['type'], true);
+      var escapedType = Normalizer.escapeHTML(currentEmail['type'], true);
       var emailField = {
-        value: utils.text.escapeHTML(currentEmail['value'], true) || '',
+        value: Normalizer.escapeHTML(currentEmail['value'], true) || '',
         type: _(escapedType) || escapedType ||
                                           TAG_OPTIONS['email-type'][0].value,
         'type_l10n_id': currentEmail['type'],
@@ -430,14 +430,14 @@ contacts.Details = (function() {
         continue;
       }
       var address = currentAddress['streetAddress'] || '';
-      var escapedStreet = utils.text.escapeHTML(address, true);
+      var escapedStreet = Normalizer.escapeHTML(address, true);
       var locality = currentAddress['locality'];
-      var escapedLocality = utils.text.escapeHTML(locality, true);
-      var escapedType = utils.text.escapeHTML(currentAddress['type'], true);
+      var escapedLocality = Normalizer.escapeHTML(locality, true);
+      var escapedType = Normalizer.escapeHTML(currentAddress['type'], true);
       var country = currentAddress['countryName'] || '';
-      var escapedCountry = utils.text.escapeHTML(country, true);
+      var escapedCountry = Normalizer.escapeHTML(country, true);
       var postalCode = currentAddress['postalCode'] || '';
-      var escapedPostalCode = utils.text.escapeHTML(postalCode, true);
+      var escapedPostalCode = Normalizer.escapeHTML(postalCode, true);
 
       var addressField = {
         streetAddress: escapedStreet,
@@ -465,7 +465,7 @@ contacts.Details = (function() {
     for (var i = 0; i < contact.note.length; i++) {
       var currentNote = contact.note[i];
       var noteField = {
-        note: utils.text.escapeHTML(currentNote, true) || '',
+        note: Normalizer.escapeHTML(currentNote, true) || '',
         i: i
       };
       var template = utils.templates.render(notesTemplate, noteField);

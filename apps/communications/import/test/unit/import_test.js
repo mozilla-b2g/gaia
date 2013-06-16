@@ -1,9 +1,9 @@
+require('/shared/js/text_normalizer.js');
 requireApp('communications/import/test/unit/mock_import.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_search.js');
 requireApp('communications/contacts/js/fb/friends_list.js');
-requireApp('communications/contacts/js/utilities/normalizer.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_fixed_header.js');
