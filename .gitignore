@@ -46,6 +46,6 @@ manifest.appcache
 
 /distribution/
 
-.cproject
-.project
+/.cproject
+/.project
 
