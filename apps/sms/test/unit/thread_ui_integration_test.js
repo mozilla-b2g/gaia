@@ -560,7 +560,7 @@ suite('ThreadUI Integration', function() {
           input: '+99',
           target: ul,
           isContact: true,
-          isHighlighted: true
+          isSuggestion: true
         });
       });
 
@@ -580,7 +580,7 @@ suite('ThreadUI Integration', function() {
           input: '*67 [800]-555-1212',
           target: ul,
           isContact: true,
-          isHighlighted: true
+          isSuggestion: true
         });
       });
       assert.ok(Utils.getContactDetails.called);
@@ -600,7 +600,7 @@ suite('ThreadUI Integration', function() {
           input: '\\^$*+?.',
           target: ul,
           isContact: true,
-          isHighlighted: true
+          isSuggestion: true
         });
       });
       assert.ok(Utils.getContactDetails.called);
@@ -619,7 +619,7 @@ suite('ThreadUI Integration', function() {
         input: contact.tel[0].value,
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
 
       assert.isTrue(isRendered);
@@ -635,7 +635,7 @@ suite('ThreadUI Integration', function() {
         input: null,
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
 
       assert.isFalse(isNotRendered);

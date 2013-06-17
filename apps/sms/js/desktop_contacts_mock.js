@@ -372,6 +372,23 @@
     })
   );
 
+  ContactsDB.push(
+    new Contact({
+      familyName: 'Jekyll',
+      givenName: 'Doctor',
+      tel: [
+        {
+          value: '+12125551234',
+          type: ['Mobile']
+        },
+        {
+          value: '+15551237890',
+          type: ['Home']
+        }
+      ]
+    })
+  );
+
   // console.log( ContactsDB );
 
 
