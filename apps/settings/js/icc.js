@@ -27,7 +27,6 @@
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
   var stkLastSelectedTest = null;
-  var displayTextTimeout = 40000;
   var inputTimeout = 40000;
   var goBackTimer = {
     timer: null,
@@ -85,12 +84,6 @@
     // We should use Settings.settingsCache first
     var settings = Settings.mozSettings;
     var lock = settings.createLock();
-    // Update displayTextTimeout with settings parameter
-    var reqDisplayTimeout = lock.get('icc.displayTextTimeout');
-    reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
-      displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
-    };
-
     // Update inputTimeout with settings parameter
     var reqInputTimeout = lock.get('icc.inputTextTimeout');
     reqInputTimeout.onsuccess = function icc_getInputTimeout() {
@@ -204,22 +197,6 @@
       case icc.STK_CMD_GET_INPUT:
         updateInput(command);
         iccLastCommandProcessed = true;
-        break;
-
-      case icc.STK_CMD_SEND_SMS:
-      case icc.STK_CMD_SEND_SS:
-      case icc.STK_CMD_SEND_USSD:
-      case icc.STK_CMD_SEND_DTMF:
-        debug(' STK:Send message: ', command);
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        if (options.text) {
-          debug('display text' + options.text);
-          command.options.userClear = true;
-          displayText(command);
-        }
         break;
 
       case icc.STK_CMD_SET_UP_EVENT_LIST:
@@ -672,42 +649,6 @@
    */
   function checkInputLengthValid(inputLen, minLen, maxLen) {
     return (inputLen >= minLen) && (inputLen <= maxLen);
-  }
-
-  /**
-   * Display text to the user
-   */
-  function displayText(command, cb) {
-    var options = command.options;
-    var timeoutId = setTimeout(function() {
-      alertbox.classList.add('hidden');
-      if (cb) {
-        cb(false);
-      }
-    }, displayTextTimeout);
-
-    alertbox_btn.onclick = function() {
-      clearTimeout(timeoutId);
-      alertbox.classList.add('hidden');
-      if (cb) {
-        cb(true);
-      }
-    };
-
-    alertbox_btnback.onclick = function() {
-      clearTimeout(timeoutId);
-      alertbox.classList.add('hidden');
-      stkResGoBack();
-    };
-
-    alertbox_btnclose.onclick = function() {
-      clearTimeout(timeoutId);
-      alertbox.classList.add('hidden');
-      stkResTerminate();
-    };
-
-    alertbox_msg.textContent = options.text;
-    alertbox.classList.remove('hidden');
   }
 
   /**
