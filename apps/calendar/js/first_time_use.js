@@ -1,8 +1,8 @@
 Calendar.FirstTimeUse = (function(window) {
 
   /**
-   * Default amount of time we will show the hint before dismissing it 
-   * automatically.
+   * Default amount of time (in milliseconds) we will show the hint before 
+   * dismissing it automatically.
    */
   const DEFAULT_HINT_TIMEOUT = 6000;
 
