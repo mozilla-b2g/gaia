@@ -72,9 +72,6 @@ CalendarIntegration.prototype = {
     eventFormAllDay: '#modify-event-view form .allday label',
     eventFormStatus: '#modify-event-view [role="status"]',
     eventFormError: '#modify-event-view .errors',
-    
-    /** hints */
-    hintSwipeToNavigate: '#hint-swipe-to-navigate',
 
     /** generic */
     present: '.present'

@@ -27,13 +27,6 @@ suite('calendar - launch', function() {
 
     // should start at month view
     yield app.waitUntilElement(month, 'displayed');
-    
-    // should be displaying the 'swipe to navigate' hint.
-    var hintSwipeToNavigate = yield app.element('hintSwipeToNavigate');
-    assert.ok(
-      hintSwipeToNavigate.classList.hasClass('show'), 
-      'swipe to navigate hint should be shown'
-    );
 
     var today = yield month.findElement(app.selector('present'));
     var id = yield today.getAttribute('data-date');
