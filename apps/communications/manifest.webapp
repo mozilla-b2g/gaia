@@ -139,7 +139,7 @@
      { "ussd-received": "/dialer/index.html#keyboard-view" }
   ],
   "redirects": [
-    {"from": "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/flow.html",
+    {"from": "https://www.facebook.com/connect/login_success.html",
     "to": "/redirects/redirect.html"},
     {"from": "https://serene-cove-3587.herokuapp.com/liveowd/oauth2_new/flow_live.html",
     "to": "/redirects/redirect.html"},
