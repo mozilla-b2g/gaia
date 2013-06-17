@@ -179,7 +179,6 @@ def main():
     parser.add_option(      "--locale", help="specify the default locale to use")
     parser.add_option(      "--hidpi", help="specify if the target device has hidpi screen")
     parser.add_option(      "--enable-debugger", help="enable remote debugger (and ADB for VARIANT=user builds)", action="store_true")
-    parser.add_option(      "--software-button", help="enable software button", action="store_true")
     (options, args) = parser.parse_args(sys.argv[1:])
 
     verbose = options.verbose
@@ -209,8 +208,6 @@ def main():
 
     enable_debugger = (options.enable_debugger == True)
 
-    enable_softkey = (options.software_button == True)
-
     if verbose:
         print "Console:", options.console
         print "Homescreen URL:", homescreen_url
@@ -218,7 +215,6 @@ def main():
         print "Setting Filename:",settings_filename
         print "Wallpaper Filename:", wallpaper_filename
         print "Enable Debugger:", enable_debugger
-        print "Enable Software button:", enable_softkey
 
     # Set the default console output
     if options.console:
@@ -243,9 +239,6 @@ def main():
             if options.locale not in keyboard_nonLatins:
                 settings["keyboard.layouts.english"] = False
             settings["keyboard.layouts.{0}".format(default_layout)] = True
-
-    # Enable software button
-    settings["software-button.enabled"] = enable_softkey
 
     settings["devtools.debugger.remote-enabled"] = enable_debugger
 
