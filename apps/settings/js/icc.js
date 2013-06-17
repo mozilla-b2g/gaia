@@ -219,33 +219,6 @@
         iccLastCommandProcessed = true;
         break;
 
-      case icc.STK_CMD_DISPLAY_TEXT:
-        debug(' STK:Show message: ', command);
-        if (options.responseNeeded) {
-          iccLastCommandProcessed = true;
-          responseSTKCommand({
-            resultCode: icc.STK_RESULT_OK
-          });
-          displayText(command, null);
-        } else {
-          displayText(command, function(userCleared) {
-            debug('Display Text, cb: ', command);
-            iccLastCommandProcessed = true;
-            if (command.options.userClear && !userCleared) {
-              debug('No response from user (Timeout)');
-              responseSTKCommand({
-                resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
-              });
-            } else {
-              debug('User closed the alert');
-              responseSTKCommand({
-                resultCode: icc.STK_RESULT_OK
-              });
-            }
-          });
-        }
-        break;
-
       case icc.STK_CMD_REFRESH:
         iccLastCommandProcessed = true;
         responseSTKCommand({
