@@ -29,7 +29,6 @@
   var stkLastSelectedTest = null;
   var displayTextTimeout = 40000;
   var inputTimeout = 40000;
-  var defaultURL = null;
   var goBackTimer = {
     timer: null,
     timeout: 1000
@@ -37,16 +36,6 @@
   var icc;
 
   init();
-
-  /**
-   * Recover application data
-   */
-  function getIccInfo() {
-    loadJSON('/resources/icc.json', function loadIccInfo(data) {
-      defaultURL = data.defaultURL;
-      debug('default URL: ', defaultURL);
-    });
-  }
 
   /**
    * Init STK UI
@@ -107,8 +96,6 @@
     reqInputTimeout.onsuccess = function icc_getInputTimeout() {
       inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
     };
-
-    getIccInfo();
   }
 
   function stkResTerminate() {
@@ -260,15 +247,6 @@
         if (options.callMessage) {
           alert(options.callMessage);
         }
-        break;
-
-      case icc.STK_CMD_LAUNCH_BROWSER:
-        debug(' STK:Setup Launch Browser. URL: ' + options.url);
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        showURL(options);
         break;
 
       case icc.STK_CMD_SET_UP_EVENT_LIST:
@@ -863,30 +841,6 @@
    */
   function clearNotification() {
     // TO-DO
-  }
-
-  /**
-   * Open URL
-   */
-  function showURL(options) {
-    var url = options.url;
-    if (url == null || url.length == 0) {
-      url = defaultURL;
-    }
-    debug('Final URL to open: ' + url);
-    if (url !== null && url.length !== 0) {
-      if (!options.confirmMessage || confirm(options.confirmMessage)) {
-        // Sanitise url just in case it doesn't start with http or https
-        // the web activity won't work, so add by default the http protocol
-        if (url.search('^https?://') == -1) {
-          // Our url doesn't contains the protocol
-          url = 'http://' + url;
-        }
-        openLink(url);
-      }
-    } else {
-      alert(_('operatorService-invalid-url'));
-    }
   }
 
   /**
