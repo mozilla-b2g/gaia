@@ -2,18 +2,10 @@
 
 (function() {
 
-  var props = ['voice', 'cardState', 'iccInfo', 'data', 'retryCount'];
   var listeners;
 
   function _init() {
-    props.forEach(function(prop) {
-      Mock[prop] = null;
-    });
     listeners = {};
-  }
-
-  function _setProperty(property, newState) {
-    Mock[property] = newState;
   }
 
   function _addEventListener(evtName, func) {
@@ -31,14 +23,26 @@
     }
   }
 
+  function _unlockCardLock(options) {
+    var settingsRequest = {
+      result: {},
+      set onsuccess(callback) {
+        callback.call(this);
+      },
+      set onerror(callback) {}
+    };
+
+    return settingsRequest;
+  }
+
   var Mock = {
     mTeardown: _init,
-    setProperty: _setProperty,
     addEventListener: _addEventListener,
-    removeEventListener: _removeEventListener
+    removeEventListener: _removeEventListener,
+    unlockCardLock: _unlockCardLock
   };
 
   _init();
 
-  window.MockNavigatorMozMobileConnection = Mock;
+  window.MockNavigatorMozIccManager = Mock;
 })();

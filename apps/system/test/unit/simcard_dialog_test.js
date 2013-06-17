@@ -9,15 +9,14 @@ if (!window['SimPinDialog'])
 
 suite('simcard dialog', function() {
   var realL10n = window.navigator.mozL10n;
-  var realMobileConnection = window.navigator.mobileConnection;
+  var realMobileConnection = window.navigator.mozMobileConnection;
+  var realIccManager = window.navigator.mozIccManager;
   var mockUI;
 
   var MockMobileConnection = (function() {
     var _cardState = null;
     return {
       addEventListener: function(event, handler) {},
-      setCardLock: function(options) {},
-      unlockCardLock: function(options) {},
       get cardState() {
         return _cardState;
       },
@@ -27,6 +26,14 @@ suite('simcard dialog', function() {
       mTeardown: function() {
         _cardState = null;
       }
+    };
+  })();
+
+  var MockIccManager = (function() {
+    return {
+      addEventListener: function(event, handler) {},
+      setCardLock: function(options) {},
+      unlockCardLock: function(options) {}
     };
   })();
 
@@ -40,6 +47,7 @@ suite('simcard dialog', function() {
   suiteSetup(function() {
     window.navigator.mozL10n = MockL10n;
     window.navigator.mozMobileConnection = MockMobileConnection;
+    window.navigator.mozIccManager = MockIccManager;
     window['SystemDialog'] = MockSystemDialog;
 
     var mockUIMarkup = [
@@ -106,6 +114,7 @@ suite('simcard dialog', function() {
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
     window.navigator.mozMobileConnection = realMobileConnection;
+    window.navigator.mozIccManager = realIccManager;
     window['SystemDialog'] = null;
 
     mockUI.innerHTML = '';
