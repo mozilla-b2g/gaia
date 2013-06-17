@@ -37,9 +37,7 @@
       "disposition": "window"
     }
   },
-  "messages": ["bluetooth-requestconfirmation",
-               "bluetooth-requestpasskey",
-               "bluetooth-requestpincode",
+  "messages": ["bluetooth-pairing-request",
                "bluetooth-authorize",
                "bluetooth-cancel",
                "bluetooth-pairedstatuschanged",
