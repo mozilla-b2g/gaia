@@ -180,10 +180,7 @@ var WindowManager = (function() {
       keyboardHeight = 0;
 
     var cssWidth = window.innerWidth + 'px';
-    var cssHeight = window.innerHeight -
-                    StatusBar.height -
-                    SoftwareButtonManager.height -
-                    keyboardHeight;
+    var cssHeight = window.innerHeight - StatusBar.height - keyboardHeight;
     if (!keyboardHeightChange && 'wrapper' in frame.dataset) {
       cssHeight -= 10;
     }
@@ -191,8 +188,7 @@ var WindowManager = (function() {
 
     if (!screenElement.classList.contains('attention') &&
         requireFullscreen(origin)) {
-      cssHeight = window.innerHeight - keyboardHeight -
-                  SoftwareButtonManager.height + 'px';
+      cssHeight = window.innerHeight - keyboardHeight + 'px';
     }
 
     frame.style.width = cssWidth;
@@ -220,8 +216,7 @@ var WindowManager = (function() {
       frame.style.top = '0px';
     } else {
       if ('wrapper' in appFrame.dataset) {
-        frame.style.height = window.innerHeight -
-          StatusBar.height - SoftwareButtonManager.height + 'px';
+        frame.style.height = window.innerHeight - StatusBar.height + 'px';
       } else {
         frame.style.height = appFrame.style.height;
       }
@@ -673,7 +668,6 @@ var WindowManager = (function() {
   function setAppRotateTransition(origin, orientation) {
     var frame = runningApps[origin].frame;
     var statusBarHeight = StatusBar.height;
-    var softkeyHeight = SoftwareButtonManager.height;
     var width;
     var height;
 
@@ -686,12 +680,12 @@ var WindowManager = (function() {
     if (orientation == 'landscape-primary' ||
         orientation == 'landscape-secondary') {
       width = window.innerHeight;
-      height = window.innerWidth - statusBarHeight - softkeyHeight;
+      height = window.innerWidth - statusBarHeight;
       frame.style.left = ((height - width) / 2) + 'px';
       frame.style.top = ((width - height) / 2) + 'px';
     } else {
       width = window.innerWidth;
-      height = window.innerHeight - statusBarHeight - softkeyHeight;
+      height = window.innerHeight - statusBarHeight;
     }
     frame.style.width = width + 'px';
     frame.style.height = height + 'px';
