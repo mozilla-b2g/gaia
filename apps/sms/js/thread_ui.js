@@ -1518,10 +1518,19 @@ var ThreadUI = global.ThreadUI = {
     for (var i = 0; i < telsLength; i++) {
       var current = tels[i];
       // Only render a contact's tel value entry for the _specified_
-      // input value when not rendering a suggestion.
+      // input value when not rendering a suggestion. If the tel
+      // record value _doesn't_ match, then continue.
       //
+      if (!isSuggestion && !Utils.compareDialables(current.value, input)) {
+        continue;
+      }
 
-      if (!isSuggestion && Utils.compareDialables(current.value, input)) {
+      // If rendering for contact search result suggestions, don't
+      // render contact tel records for values that are already
+      // selected as recipients. This comparison should be safe,
+      // as the value in this.recipients.numbers comes from the same
+      // source that current.value comes from.
+      if (isSuggestion && this.recipients.numbers.indexOf(current.value) > -1) {
         continue;
       }
 
