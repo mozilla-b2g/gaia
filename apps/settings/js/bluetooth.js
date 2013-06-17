@@ -480,9 +480,20 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     // callback function when an avaliable device found
     function onDeviceFound(evt) {
       var device = evt.device;
-      // ignore duplicate and paired device
-      if (openList.index[device.address] || pairList.index[device.address])
+      // Ignore duplicate and paired device. Update the name if needed.
+      var existingDevice = openList.index[device.address] ||
+        pairList.index[device.address];
+      if (existingDevice) {
+        var existingItem = existingDevice[1];
+        if (device.name && existingItem) {
+          var deviceName = existingItem.querySelector('a');
+          if (deviceName) {
+            deviceName.dataset.l10nId = '';
+            deviceName.textContent = device.name;
+          }
+        }
         return;
+      }
 
       var aItem = newListItem(device, 'device-status-tap-connect');
 
