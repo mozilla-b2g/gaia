@@ -1322,7 +1322,7 @@ suite('thread_ui.js >', function() {
         name: 'imageTest.jpg',
         blob: testImageBlob
       }];
-      var viewSpy = sinon.spy(Attachment.prototype, 'view');
+      var viewSpy = this.sinon.spy(Attachment.prototype, 'view');
 
       // quick dirty creation of a thread with image:
       var output = ThreadUI.createMmsContent(inputArray);
@@ -1338,8 +1338,6 @@ suite('thread_ui.js >', function() {
 
       assert.equal(viewSpy.callCount, 1);
       assert.ok(viewSpy.calledWith, { allowSave: true });
-
-      viewSpy.reset();
     });
   });
 
