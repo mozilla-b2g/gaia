@@ -41,6 +41,8 @@
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo.png"/>
     -->
 
+    <link rel="resource" type="image/png" href="shared/resources/branding/Browser.png"/>
+
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
@@ -102,6 +104,10 @@
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar.js"></script>
+
+    <!-- Software button -->
+    <link rel="stylesheet" type="text/css" href="style/software_button_manager/software_button_manager.css">
+    <script defer src="js/software_button_manager.js"></script>
 
     <!-- FTU launcher -->
     <script defer src="js/ftu_launcher.js"></script>
@@ -944,6 +950,12 @@
           </section>
         </div>
       </div>
+
+      <div id="software-buttons" data-z-index-level="software-buttons">
+        <button id="software-home-button"></button>
+      </div>
+
+      <button id="fullscreen-software-home-button" data-z-index-level="fullscreen-software-home-button"></button>
 
     </div> <!-- end of #screen -->
   </body>
