@@ -316,7 +316,7 @@ var MessageManager = {
         threads = [];
 
     cursor.onsuccess = function onsuccess() {
-      if (!this.done) {
+      if (this.result) {
         threads.push(this.result);
 
         // Register all threads to the Threads object.
