@@ -312,7 +312,7 @@
       <div>
         <ul>
           <li id="wifi-enabled">
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" data-ignore/>
               <span></span>
             </label>
@@ -383,7 +383,7 @@
             <input type="tel" id="cf-notreachable-number" data-setting="ril.cf.notreachable.number" disabled/>
           </li>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" data-setting="ril.cf.notreachable.enabled"/>
               <span></span>
             </label>
@@ -413,7 +413,7 @@
             <input type="tel" id="cf-noreply-number" data-setting="ril.cf.noreply.number" disabled/>
           </li>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" data-setting="ril.cf.noreply.enabled"/>
               <span></span>
             </label>
@@ -443,7 +443,7 @@
             <input type="tel" id="cf-mobilebusy-number" data-setting="ril.cf.mobilebusy.number" disabled/>
           </li>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" data-setting="ril.cf.mobilebusy.enabled"/>
               <span></span>
             </label>
@@ -473,7 +473,7 @@
             <input type="tel" id="cf-unconditional-number" data-setting="ril.cf.unconditional.number" disabled/>
           </li>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" data-setting="ril.cf.unconditional.enabled"/>
               <span></span>
             </label>
@@ -525,7 +525,7 @@
 
         <ul>
           <li id="menuItem-callWaiting" data-state="off">
-            <label class="checkbox-label">
+            <label class="checkbox-label switch">
               <input type="checkbox" data-type="switch" data-ignore/>
               <span></span>
             </label>
@@ -535,7 +535,7 @@
             <a data-l10n-id="callWaiting">Call Waiting</a>
           </li>
           <li id="menuItem-cellBroadcast">
-            <label class="checkbox-label">
+            <label class="checkbox-label switch">
               <input type="checkbox" data-type="switch" name="ril.cellbroadcast.disabled" />
               <span></span>
             </label>
@@ -573,7 +573,7 @@
             <strong data-l10n-id="confirmCallWaitingDesc">The device is currently unable to communicate with the carrier. Try setting the preference again.</strong>
           </p>
           <p class="cw-alert-sub-p">
-            <label class="cw-alert-checkbox-label">
+            <label class="cw-alert-checkbox-label switch">
               <input type="checkbox" data-type="switch" data-ignore/>
               <span></span>
             </label>
@@ -624,7 +624,7 @@
             </p>
           </li>
           <li id="operator-autoSelect">
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" data-ignore/>
               <span></span>
             </label>
@@ -734,7 +734,7 @@
         </header>
         <ul id="text-message-list">
           <li class="hint">
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" data-setting="dom.sms.requestStatusReport"/>
               <span></span>
             </label>
@@ -956,7 +956,7 @@
         </header>
         <ul>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" name="ril.data.enabled" class="uninit"/>
               <span></span>
             </label>
@@ -965,7 +965,7 @@
           </li>
           <li id="dataConnection-expl" class="explanation" data-l10n-id="dataConnection-warning-message" hidden></li>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled" class="uninit"/>
               <span></span>
             </label>
@@ -1020,7 +1020,7 @@
       <div>
         <ul>
           <li id="bluetooth-status" class="hint">
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" data-ignore/>
               <span></span>
             </label>
@@ -1030,7 +1030,7 @@
             </p>
           </li>
           <li hidden id="device-visible">
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" data-ignore />
               <span></span>
             </label>
@@ -1136,7 +1136,7 @@
         </header>
         <ul>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" name="tethering.wifi.enabled" class="uninit"/>
               <span></span>
             </label>
@@ -1173,7 +1173,7 @@
         </header>
         <ul>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" name="tethering.usb.enabled" class="uninit"/>
               <span></span>
             </label>
@@ -1231,7 +1231,7 @@
       <div>
         <ul>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" name="vibration.enabled" checked class="uninit"/>
               <span></span>
             </label>
@@ -1403,7 +1403,7 @@
       <div>
         <ul id="time-auto" data-state="auto" hidden>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" name="time.nitz.automatic-update.enabled" class="uninit"/>
               <span></span>
             </label>
@@ -1697,14 +1697,14 @@
       <div>
         <ul>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" name="lockscreen.enabled" id="lockscreen-enable" class="uninit"/>
               <span></span>
             </label>
             <a data-l10n-id="lockScreen">Lock Screen</a>
           </li>
           <li class="lockscreen-enabled">
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" name="lockscreen.passcode-lock.enabled" id="passcode-enable" class="uninit"/>
               <span></span>
             </label>
@@ -1831,7 +1831,7 @@
         </ul>
         <ul>
           <li id="simpin-enabled">
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" data-ignore/>
               <span></span>
             </label>
@@ -2427,7 +2427,7 @@
         </header>
         <ul>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" name="powersave.enabled" class="uninit"/>
               <span></span>
             </label>
@@ -2505,7 +2505,7 @@
       <div>
         <ul>
           <li>
-            <label>
+            <label class="switch">
               <input id="ums-switch" type="checkbox" data-type="switch" data-ignore />
               <span></span>
             </label>
@@ -2762,14 +2762,14 @@
         </header>
         <ul>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" name="ril.radio.disabled" class="uninit"/>
               <span></span>
             </label>
             <a id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</a>
           </li>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" data-type="switch" name="geolocation.enabled" class="uninit"/>
               <span></span>
             </label>
@@ -2867,7 +2867,7 @@
         </header>
         <ul>
           <li>
-            <label>
+            <label class="switch">
               <input type="checkbox" id="ums-switch-root" data-type="switch" data-ignore />
               <span></span>
             </label>
