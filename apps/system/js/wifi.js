@@ -210,19 +210,19 @@ var Wifi = {
     // up the CPU to run the handler and turn it back to suspend immediately
     // |sleep| is finished. In this case, we acquire a CPU wake lock to prevent
     // the CPU goes to suspend mode before the switching is done.
-    var wakeLock1 = navigator.requestWakeLock('cpu');
+    var wakeLockForWifi = navigator.requestWakeLock('cpu');
     lock.set({ 'wifi.enabled': false });
     window.addEventListener('wifi-disabled', function() {
-        if (wakeLock1) {
-          wakeLock1.unlock();
-          wakeLock1 = null;
-        }
+      if (wakeLockForWifi) {
+        wakeLockForWifi.unlock();
+        wakeLockForWifi = null;
+      }
     });
     window.setTimeout(function() {
-        if (wakeLock1) {
-          wakeLock1.unlock();
-          wakeLock1 = null;
-        }
+      if (wakeLockForWifi) {
+        wakeLockForWifi.unlock();
+        wakeLockForWifi = null;
+      }
      }, 30000); //To prevent the CPU awake forever (if wifi cannot be disabled)
 
      // Remember that it was turned off by us.
@@ -230,9 +230,10 @@ var Wifi = {
 
      // Keep this value in disk so if the phone reboots we'll
      // be able to turn the wifi back on.
-     var wakeLock2 = navigator.requestWakeLock('cpu');
+     var wakeLockForSettings = navigator.requestWakeLock('cpu');
      var request = lock.set({ 'wifi.disabled_by_wakelock': true });
-     request.onerror = request.onsuccess = function() {wakeLock2.unlock()};
+     request.onsuccess = function() { wakeLockForSettings.unlock() };
+     request.onerror = request.onsuccess;
 
   },
 
