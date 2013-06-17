@@ -36,10 +36,6 @@
   z-index: 65536;
 }
 
-#screen > [data-z-index-level="hardware-buttons"] {
-  z-index: 65536;
-}
-
 #screen > [data-z-index-level="sleep-menu"] {
   z-index: 65536;
 }
@@ -208,7 +204,6 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="cards-view"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="attention-screen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"] {
+#screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"] {
   z-index: 2147483647;
 }

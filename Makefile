@@ -39,8 +39,6 @@ DESKTOP?=$(DEBUG)
 NOFTU?=0
 # Automatically enable remote debugger
 REMOTE_DEBUGGER?=0
-# Enable software button
-SOFTWARE_BUTTON?=0
 
 # We also disable FTU when running in Firefox or in debug mode
 ifeq ($(DEBUG),1)
@@ -749,10 +747,6 @@ purge:
 # Build the settings.json file from settings.py
 ifeq ($(NOFTU), 1)
 SETTINGS_ARG += --noftu
-endif
-
-ifeq ($(SOFTWARE_BUTTON), 1)
-SETTINGS_ARG += --software-button
 endif
 
 ifeq ($(REMOTE_DEBUGGER), 1)
