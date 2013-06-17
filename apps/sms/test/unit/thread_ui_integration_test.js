@@ -200,31 +200,32 @@ suite('ThreadUI Integration', function() {
       toField.click();
 
       // Simulate list growth
-      recipientsList.style.height = '50px';
+      recipientsList.style.height = '60px';
 
       // Listen for the pan event, simulated immediately following.
       toField.addEventListener('pan', function panTest() {
-        assert.isTrue(toField.classList.contains('multiline'));
+        done(function() {
+          assert.isTrue(toField.classList.contains('multiline'));
 
-        toField.removeEventListener('pan', panTest, false);
+          toField.removeEventListener('pan', panTest, false);
 
-        // Once the pan event has occured, the following steps
-        // will simulate the user actions necessary for testing
-        // the return to single line mode
+          // Once the pan event has occured, the following steps
+          // will simulate the user actions necessary for testing
+          // the return to single line mode
 
-        // 1. Enter text into the editable "placeholder"
-        children[2].textContent = '0';
+          // 1. Enter text into the editable "placeholder"
+          children[2].textContent = '0';
 
-        // 2. Trigger a "keyup" event
-        children[2].dispatchEvent(
-          new CustomEvent('keyup', {
-            bubbles: true
-          })
-        );
+          // 2. Trigger a "keyup" event
+          children[2].dispatchEvent(
+            new CustomEvent('keyup', {
+              bubbles: true
+            })
+          );
 
-        // toField should now be "singleline" again
-        assert.isTrue(toField.classList.contains('singleline'));
-        done();
+          // toField should now be "singleline" again
+          assert.isTrue(toField.classList.contains('singleline'));
+        });
       });
 
       // Simulate pan event
