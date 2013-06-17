@@ -49,6 +49,8 @@ var DataUsageTab = (function() {
       wifiToggle.addEventListener('click', toggleWifi);
       mobileToggle.addEventListener('click', toggleMobile);
 
+      resetButtonState();
+
       // Setup the model
       ConfigManager.requestSettings(function _onSettings(settings) {
         debug('First time setup for model');
@@ -116,6 +118,25 @@ var DataUsageTab = (function() {
     ConfigManager.removeObserver('nextReset', changeNextReset);
 
     initialized = false;
+  }
+
+  function resetButtonState() {
+    asyncStorage.getItem('mobile.toggled', function callback(value) {
+      // Restore to last state of mobile toggled, default is true.
+      var preValue = (value === null ? true : value);
+      if (preValue != mobileToggle.checked) {
+        mobileToggle.checked = preValue;
+        toggleMobile();
+      }
+    });
+    asyncStorage.getItem('wifi.toggled', function callback(value) {
+      // Restore to last state of wifi toggled, default is false.
+      var preValue = (value === null ? false : value);
+      if (preValue !== wifiToggle.checked) {
+        wifiToggle.checked = preValue;
+        toggleWifi();
+      }
+    });
   }
 
   function getLimitInBytes(settings) {
@@ -257,6 +278,8 @@ var DataUsageTab = (function() {
     var isChecked = wifiToggle.checked;
     wifiLayer.setAttribute('aria-hidden', !isChecked);
     wifiItem.setAttribute('aria-disabled', !isChecked);
+    // save wifi toggled state
+    asyncStorage.setItem('wifi.toggled', isChecked);
   }
 
   // On tapping on mobile toggle
@@ -266,9 +289,14 @@ var DataUsageTab = (function() {
     warningLayer.setAttribute('aria-hidden', !isChecked);
     limitsLayer.setAttribute('aria-hidden', !isChecked);
     mobileItem.setAttribute('aria-disabled', !isChecked);
-    drawBackgroundLayer(model);
-    drawAxisLayer(model);
-    drawLimits(model);
+    // save wifi toggled state
+    asyncStorage.setItem('mobile.toggled', isChecked);
+
+    if (model) {
+      drawBackgroundLayer(model);
+      drawAxisLayer(model);
+      drawLimits(model);
+    }
   }
 
   // Expand the model with some computed values
