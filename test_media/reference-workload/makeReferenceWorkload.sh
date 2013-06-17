@@ -132,6 +132,11 @@ for app in $APPS; do
 
     sms)
       adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT.sqlite /data/local/indexedDB/chrome$IDB_PATH/226660312ssm.sqlite
+      ATTACHMENT_DIR=$SCRIPT_DIR/smsDb-$SMS_COUNT
+      tar -xvzf $SCRIPT_DIR/Attachments-$SMS_COUNT.tar.gz -C $SCRIPT_DIR
+      adb shell "rm /data/local/indexedDB/chrome$IDB_PATH/226660312ssm/*"
+      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ /data/local/indexedDB/chrome$IDB_PATH/226660312ssm/
+      rm -rf $ATTACHMENT_DIR/
       LINE=" Sms Messages:   $(printf "%4d" $SMS_COUNT)"
       ;;
 
