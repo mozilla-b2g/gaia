@@ -62,6 +62,7 @@
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
     <!--<script defer src="shared/js/async_storage.js"></script>-->
     <!--<script defer src="shared/js/wifi_helper.js"></script>-->
+    <!--<script defer src="/shared/js/settings_listener.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
@@ -534,9 +535,9 @@
             </label>
             <a data-l10n-id="callWaiting">Call Waiting</a>
           </li>
-          <li id="menuItem-cellBroadcast">
+          <li id="menuItem-cellBroadcast" class="disabled">
             <label class="checkbox-label">
-              <input type="checkbox" data-type="switch" name="ril.cellbroadcast.disabled" />
+              <input type="checkbox" data-type="switch" data-ignore disabled />
               <span></span>
             </label>
             <a data-l10n-id="cellBroadcast">Cell broadcast service</a>
