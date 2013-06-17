@@ -94,6 +94,10 @@ ul li > small {
 }
 
 ul li > label:not([for]) + small {
+  right: 6.1rem;
+}
+
+ul li > label.switch:not([for]) + small {
   right: 9rem;
 }
 
@@ -136,6 +140,10 @@ ul li > label:not([for]) > input[data-type="switch"] + span {
 }
 
 ul li > label:not([for]) ~ a {
+  padding-right: 6.1rem;
+}
+
+ul li > label.switch:not([for]) ~ a {
   padding-right: 9rem;
 }
 
@@ -452,6 +460,11 @@ html[dir="rtl"] ul li > label:not([for]) > input[data-type="switch"] + span {
 }
 
 html[dir="rtl"] ul li > label:not([for]) ~ a {
+  padding-left: 6.1rem;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] ul li > label.switch:not([for]) ~ a {
   padding-left: 9rem;
   padding-right: 3rem;
 }
