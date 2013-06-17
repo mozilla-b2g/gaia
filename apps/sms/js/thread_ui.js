@@ -813,8 +813,14 @@ var ThreadUI = global.ThreadUI = {
       // group message mode.
       if (thread.participants.length === 1) {
         if (contacts && contacts.length) {
+<<<<<<< HEAD
           carrierTag.textContent =
             Utils.getContactCarrier(number, contacts[0].tel);
+=======
+          carrierTag.textContent = Utils.getContactCarrier(
+            number, contacts[0].tel
+          );
+>>>>>>> Bug 880628 - [MMS/SMS] Multi-recipient. Allow manual entry of duplicate recipients
           carrierTag.classList.remove('hide');
         }
       } else {
@@ -1520,6 +1526,13 @@ var ThreadUI = global.ThreadUI = {
       var type = current.type && current.type.length ? current.type[0] : '';
       var carrier = current.carrier ? (current.carrier + ', ') : '';
       var separator = type || carrier ? ' | ' : '';
+
+      // Search results are highlighted; Don't display numbers in the
+      // search results list if they have already been added to the
+      // list of recipients.
+      if (isHighlighted && this.recipients.numbers.indexOf(number) > -1) {
+        continue;
+      }
 
       var li = document.createElement('li');
       var data = {
