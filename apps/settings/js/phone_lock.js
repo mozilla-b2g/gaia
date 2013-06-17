@@ -119,6 +119,10 @@ var PhoneLock = {
     this.passcodePanel.dataset.passcodeStatus = '';
   },
 
+  resetPasscodeStatus: function pl_resetPasscodeStatus() {
+    this.passcodePanel.dataset.passcodeStatus = '';
+  },
+
   enableButton: function pl_enableButton() {
     this.passcodePanel.dataset.passcodeStatus = 'success';
   },
@@ -163,6 +167,9 @@ var PhoneLock = {
           if (this._passcodeBuffer.length > 0) {
             this._passcodeBuffer = this._passcodeBuffer.substring(0,
                 this._passcodeBuffer.length - 1);
+            if (this.passcodePanel.dataset.passcodeStatus == 'success') {
+                this.resetPasscodeStatus();
+            }
           }
         } else if (this._passcodeBuffer.length < 8) {
           this._passcodeBuffer += key;
