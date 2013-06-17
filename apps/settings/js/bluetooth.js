@@ -480,9 +480,18 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     // callback function when an avaliable device found
     function onDeviceFound(evt) {
       var device = evt.device;
-      // ignore duplicate and paired device
-      if (openList.index[device.address] || pairList.index[device.address])
+      // ignore paired device
+      if (pairList.index[device.address])
         return;
+
+      var duplicateDevice = null;
+
+      // ignore or update duplicate device
+      if (openList.index[device.address]) {
+        duplicateDevice = openList.index[device.address][0];
+        if (duplicateDevice.name)
+          return;
+      }
 
       var aItem = newListItem(device, 'device-status-tap-connect');
 
@@ -501,7 +510,11 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         };
 
       };
-      openList.list.appendChild(aItem);
+
+      if (duplicateDevice == null)
+        openList.list.appendChild(aItem);
+      else
+        openList.list.replaceChild(aItem, openList.index[duplicateDevice.address][1]);
       openList.index[device.address] = [device, aItem];
     }
 
