@@ -8,6 +8,7 @@
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
     <script src="shared/js/idletimer.js"></script>
+    <script src="shared/js/dump.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
     <script defer src="shared/js/custom_dialog.js"></script>
@@ -61,7 +62,6 @@
     <script defer src="js/hardware_buttons.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/system_dialog.js"></script>
-    <script defer src="js/icc_cache.js"></script>
 
     <!-- Grid View -->
     <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
@@ -108,6 +108,11 @@
     <!-- Software button -->
     <link rel="stylesheet" type="text/css" href="style/software_button_manager/software_button_manager.css">
     <script defer src="js/software_button_manager.js"></script>
+
+    <!-- ICC/STK -->
+    <link rel="stylesheet" type="text/css" href="style/icc.css">
+    <script defer src="js/icc_worker.js"></script>
+    <script defer src="js/icc.js"></script>
 
     <!-- FTU launcher -->
     <script defer src="js/ftu_launcher.js"></script>
@@ -901,6 +906,19 @@
       <div id="cards-view" data-z-index-level="cards-view">
         <ul>
         </ul>
+      </div>
+
+      <!-- icc / stk -->
+      <div id="icc-view" data-z-index-level="icc-view">
+        <form role="dialog" data-type="confirm" id="icc-alert">
+          <section>
+            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <p id="icc-alert-msg"></p>
+          </section>
+          <menu>
+            <button type="button" data-l10n-id="ok" id="icc-alert-btn" class="recommend full">Ok</button>
+          </menu>
+        </form>
       </div>
 
       <div id="sleep-menu" data-z-index-level="sleep-menu">
