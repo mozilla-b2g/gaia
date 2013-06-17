@@ -128,8 +128,8 @@ var CostControl = (function() {
 
         case 'topup':
           // Check service
-          var issues = getServiceIssues(settings);
-          if (issues) {
+          var issues = getServiceIssues(configuration, settings);
+          if (issues && issues !== 'minimum_delay') {
             result.status = 'error';
             result.details = issues;
             result.data = settings.lastDataUsage;
