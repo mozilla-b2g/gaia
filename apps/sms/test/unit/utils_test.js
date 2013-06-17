@@ -458,6 +458,34 @@ suite('Utils', function() {
       assert.equal(a, 'Mobile | Nynex');
       assert.equal(b, 'Mobile | MCI');
     });
+
+    test('Multi different carrier, same type - intl number', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '1234567890', type: ['Mobile'], carrier: 'Nynex'},
+        {value: '0987654321', type: ['Mobile'], carrier: 'MCI'}
+      ];
+
+      var a = Utils.getContactCarrier('+1234567890', tel);
+      var b = Utils.getContactCarrier('+0987654321', tel);
+
+      assert.equal(a, 'Mobile | Nynex');
+      assert.equal(b, 'Mobile | MCI');
+    });
+
+    test('Multi different carrier, same type - never match', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '1234567890', type: ['Mobile'], carrier: 'Nynex'},
+        {value: '0987654321', type: ['Mobile'], carrier: 'MCI'}
+      ];
+
+      var a = Utils.getContactCarrier('+9999999999', tel);
+      var b = Utils.getContactCarrier('+9999999999', tel);
+
+      assert.equal(a, '');
+      assert.equal(b, '');
+    });
   });
 
   suite('Utils for MMS user story test', function() {
