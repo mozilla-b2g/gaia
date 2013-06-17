@@ -813,14 +813,9 @@ var ThreadUI = global.ThreadUI = {
       // group message mode.
       if (thread.participants.length === 1) {
         if (contacts && contacts.length) {
-<<<<<<< HEAD
-          carrierTag.textContent =
-            Utils.getContactCarrier(number, contacts[0].tel);
-=======
           carrierTag.textContent = Utils.getContactCarrier(
             number, contacts[0].tel
           );
->>>>>>> Bug 880628 - [MMS/SMS] Multi-recipient. Allow manual entry of duplicate recipients
           carrierTag.classList.remove('hide');
         }
       } else {
