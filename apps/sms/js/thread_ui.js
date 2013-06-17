@@ -813,7 +813,8 @@ var ThreadUI = global.ThreadUI = {
       // group message mode.
       if (thread.participants.length === 1) {
         if (contacts && contacts.length) {
-          carrierTag.textContent = Utils.getContactCarrier(number, contacts[0].tel);
+          carrierTag.textContent =
+            Utils.getContactCarrier(number, contacts[0].tel);
           carrierTag.classList.remove('hide');
         }
       } else {
