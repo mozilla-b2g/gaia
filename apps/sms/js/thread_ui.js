@@ -811,9 +811,13 @@ var ThreadUI = global.ThreadUI = {
 
       // The carrier banner is meaningless and confusing in
       // group message mode.
-      if (thread.participants.length === 1 && details.carrier) {
-        carrierTag.textContent = details.carrier;
-        carrierTag.classList.remove('hide');
+      if (thread.participants.length === 1) {
+        if (contacts && contacts.length) {
+          carrierTag.textContent = Utils.getContactCarrier(
+            number, contacts[0].tel
+          );
+          carrierTag.classList.remove('hide');
+        }
       } else {
         carrierTag.classList.add('hide');
       }
@@ -1515,6 +1519,13 @@ var ThreadUI = global.ThreadUI = {
       var number = current.value;
       var title = details.title || number;
       var type = current.type ? (current.type + ' |') : '';
+
+      // Search results are highlighted; Don't display numbers in the
+      // search results list if they have already been added to the
+      // list of recipients.
+      if (isHighlighted && this.recipients.numbers.indexOf(number) > -1) {
+        continue;
+      }
 
       var li = document.createElement('li');
       var data = {

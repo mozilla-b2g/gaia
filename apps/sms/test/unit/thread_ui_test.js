@@ -1414,6 +1414,68 @@ suite('thread_ui.js >', function() {
         html.contains('Mobile | +<span class="highlight">346578888888</span>')
       );
     });
+
+    test('Rendered Contact "type | carrier, number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: 'foo',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(html.contains('Mobile | TEF, +346578888888'));
+    });
+
+    test('Rendered Contact highlighted "type | carrier, number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: '346578888888',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(
+        html.contains(
+          'Mobile | TEF, +<span class="highlight">346578888888</span>'
+        )
+      );
+    });
+
+    test('Rendered Contact omits numbers in recipient list', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.recipients.add({
+        number: '+346578888888'
+      });
+
+      // This contact has two tel entries.
+      ThreadUI.renderContact({
+        contact: contact,
+        input: '+346578888888',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+
+      html = ul.innerHTML;
+
+      assert.ok(!html.contains('346578888888'));
+      assert.equal(ul.children.length, 1);
+    });
   });
 
   suite('Header Actions', function() {
