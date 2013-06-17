@@ -230,6 +230,10 @@
   window.addEventListener('appopen', function() {
     homescreenVisible = false;
   });
+  window.addEventListener('ftudone', function() {
+    // FTU closing implies we're going to homescreen.
+    homescreenVisible = true;
+  });
   window.addEventListener('home', function() {
     homescreenVisible = true;
   });
@@ -374,8 +378,8 @@
       case 'ringer':
           return 'notification';
       default:
-        return homescreenVisible || LockScreen.locked ?
-          'notification' : 'content';
+        return homescreenVisible || LockScreen.locked ||
+          FtuLauncher.isFtuRunning() ? 'notification' : 'content';
     }
   }
 
