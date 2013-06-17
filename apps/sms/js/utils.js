@@ -54,6 +54,7 @@
 
           if (newHeader !== header.textContent) {
             header.textContent = newHeader;
+            FixedHeader.start();
           }
         }
       }
