@@ -26,7 +26,6 @@ settings = {
  "bluetooth.enabled": False,
  "bluetooth.debugging.enabled": False,
  "bluetooth.suspended": False,
- "bootshutdown.sound.enabled": False,
  "camera.shutter.enabled": True,
  "clear.remote-windows.data": False,
  "debug.console.enabled": False,
@@ -232,10 +231,13 @@ def main():
     if options.locale:
         settings["language.current"] = options.locale
         keyboard_layouts_name = "shared/resources/keyboard_layouts.json"
-        keyboard_layouts = json.load(open(keyboard_layouts_name))
+        keyboard_layouts_res = json.load(open(keyboard_layouts_name))
+        keyboard_layouts = keyboard_layouts_res["layout"]
+        keyboard_nonLatins = keyboard_layouts_res["nonLatin"]
         if options.locale in keyboard_layouts:
             default_layout = keyboard_layouts[options.locale]
-            settings["keyboard.layouts.english"] = False
+            if options.locale not in keyboard_nonLatins:
+                settings["keyboard.layouts.english"] = False
             settings["keyboard.layouts.{0}".format(default_layout)] = True
 
     settings["devtools.debugger.remote-enabled"] = enable_debugger

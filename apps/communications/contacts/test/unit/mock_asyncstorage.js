@@ -1,12 +1,25 @@
 'use strict';
 
-var MockAsyncStorage = {
-  orderByLastName: false,
+var MockasyncStorage = {
+  keys: {},
+
   getItem: function(key, cb) {
-    if (cb) {
-      cb(this.orderByLastName);
+    if (!cb) {
+      return;
     }
+
+    cb(this.keys[key]);
   },
-  setItem: function() {},
-  removeItem: function() {}
+
+  setItem: function(key, value) {
+    this.keys[key] = value;
+  },
+
+  removeItem: function(key) {
+    delete this.keys[key];
+  },
+
+  clear: function(key) {
+    this.keys = {};
+  }
 };

@@ -348,6 +348,47 @@
     })
   );
 
+  ContactsDB.push(
+    new Contact({
+      familyName: 'O\'Hare',
+      givenName: 'Tom',
+      tel: {
+        value: '123456',
+        type: 'Mobile',
+        carrier: 'Nynex'
+      }
+    })
+  );
+
+  ContactsDB.push(
+    new Contact({
+      familyName: 'Carrier',
+      givenName: 'Igotno',
+      tel: {
+        value: '436797',
+        type: 'Mobile',
+        carrier: null
+      }
+    })
+  );
+
+  ContactsDB.push(
+    new Contact({
+      familyName: 'Jekyll',
+      givenName: 'Doctor',
+      tel: [
+        {
+          value: '+12125551234',
+          type: ['Mobile']
+        },
+        {
+          value: '+15551237890',
+          type: ['Home']
+        }
+      ]
+    })
+  );
+
   // console.log( ContactsDB );
 
 

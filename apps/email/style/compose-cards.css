@@ -19,8 +19,7 @@
   width: -moz-available;
 }
 
-.cmp-bubble-container,
-.cmp-attachments-size {
+.cmp-bubble-container {
   width: calc(100% - 3rem);
   float: left;
 }
@@ -65,11 +64,10 @@ input.cmp-subject-text {
   margin: 0.3rem 0;
 }
 
-.cmp-contact-add,
-.cmp-file-add {
+.cmp-contact-add {
   position: relative;
   left: 0.5rem;
-  background: url("images/add-contact.png") no-repeat center / 1.8rem;
+  background: url("images/icons/actionicon_email_addrecipient_20x20.png") no-repeat center / 2rem;
   width: 1.8rem;
   height: 1.8rem;
   border: 0.6rem solid transparent;
@@ -79,7 +77,8 @@ input.cmp-subject-text {
   vertical-align: middle;
 }
 
-.cmp-contact-add:active {
+.cmp-contact-add:active,
+.cmp-attachment-remove:active {
   border: 0.6rem solid #52B6CC;
 }
 
@@ -111,42 +110,82 @@ input.cmp-subject-text {
 }
 
 /* Attachment */
-.cmp-attachments-container {
-  padding: 0 1rem;
+.icon-attachment {
+  background: url("images/icons/actionicon_attachments_30x30.png") no-repeat scroll center / 3rem !important;
+}
+
+.cmp-attachment-total {
+  border-bottom: none;
+}
+
+.cmp-attachment-size {
+  display: table-cell;
+  white-space: nowrap;
+  text-align: left;
+  line-height: 3rem;
+  padding-left: 0.5rem;
+}
+
+.cmp-attachment-container {
+  padding: 0 1.5rem;
+  margin: 0;
   font-size: 1.2rem;
-  line-height: 4rem;
 }
 .cmp-attachment-item {
   list-style-type: none;
-  height: 4rem;
+  min-height: 3.5rem !important;
+  height: 3.5rem;
+  border-bottom: none !important;
+}
+.cmp-attachment-item:only-child {
+  min-height: 3.8rem !important;
+  height: 3.8rem;
+}
+.cmp-attachment-item:last-child {
+  border-bottom: 1px solid lightgray !important;
 }
 .cmp-attachment-icon {
   background: url("images/icons/message-list-attachment.png") no-repeat scroll center transparent;
   display: inline-block;
   width: 2rem;
-  height: 2rem;
-  margin-top: -3.5rem;
-  vertical-align: middle;
+  height: 3.5rem;
 }
-.cmp-attachment-filename {
+.cmp-attachment-item:only-child > .cmp-attachment-icon {
+  height: 3.8rem;
+}
+.cmp-attachment-filename,
+.cmp-attachment-filesize {
   display: inline-block;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: calc(100% - 12.5rem);
   white-space: nowrap;
+  font-size: 1.5rem;
+  font-weight: normal;
+  line-height: 3.5rem;
+}
+.cmp-attachment-item:only-child > .cmp-attachment-filename,
+.cmp-attachment-item:only-child > .cmp-attachment-filesize {
+  line-height: 3.8rem;
 }
 .cmp-attachment-filesize {
-  color: gray;
-  display: inline-block;
-  margin-top: -3.5rem;
-  max-width: 4.5rem;
-  vertical-align: middle;
+  max-width: 6.5rem;
+}
+.cmp-attachment-filesize:before {
+  content: "(";
+}
+.cmp-attachment-filesize:after {
+  content: ")";
 }
 .cmp-attachment-remove {
-  width: 3.5rem;
-  margin-bottom: 0;
+  background: url("images/icons/actionicon_email_removeattachment_20x20.png") no-repeat scroll center / 2rem;
+  width: 2rem;
+  height: 2rem;
+  top: calc(50% - 1.6rem); /* (100% - 2rem - 0.6rem x 2)/2 */
+  border: 0.6rem solid transparent;
+  border-radius: 50%;
   position: absolute;
-  right: 1rem;
+  right: -0.6rem;
 }
 .cmp-messages-sending {
   margin-top: 2.4rem;
