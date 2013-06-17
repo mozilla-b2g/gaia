@@ -17,6 +17,10 @@ var BalanceTab = (function() {
   var topUpLayoutController;
   var costcontrol, initialized;
 
+  function showTopUpWithCode(evt) {
+    topUpWithCode();
+  }
+
   function setupTab() {
     if (initialized) {
       return;
@@ -56,7 +60,7 @@ var BalanceTab = (function() {
 
       // Configure top up
       topUpUSSD.addEventListener('click', topUpWithUSSD);
-      topUp.addEventListener('click', topUpWithCode);
+      topUp.addEventListener('click', showTopUpWithCode);
       topUpCodeInput.addEventListener('input', toogleSend);
       sendCode.addEventListener('click', requestTopUp);
       ConfigManager.observe('waitingForTopUp', onConfirmation, true);
@@ -87,7 +91,7 @@ var BalanceTab = (function() {
     ConfigManager.removeObserver('errors', onBalanceTimeout);
 
     topUpUSSD.removeEventListener('click', topUpWithUSSD);
-    topUp.removeEventListener('click', topUpWithCode);
+    topUp.removeEventListener('click', showTopUpWithCode);
     topUpCodeInput.removeEventListener('input', toogleSend);
     sendCode.removeEventListener('click', requestTopUp);
     ConfigManager.removeObserver('waitingForTopUp', onConfirmation);
