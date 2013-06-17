@@ -488,6 +488,35 @@ suite('Utils', function() {
     });
   });
 
+  suite('Utils.removeNonDialables(number)', function() {
+    test('spaces', function() {
+      assert.equal(
+        Utils.removeNonDialables('888 999 5555'), '8889995555'
+      );
+    });
+
+    test('non-digit, common chars', function() {
+      assert.equal(
+        Utils.removeNonDialables('(1A)2B 3C'), '123'
+      );
+    });
+  });
+
+  suite('Utils.compareDialables(a, b)', function() {
+    test('spaces', function() {
+      assert.ok(
+        Utils.compareDialables('888 999 5555', '8889995555')
+      );
+    });
+
+    test('non-digit, common chars', function() {
+      assert.ok(
+        Utils.compareDialables('(1A)2B 3C', '123')
+      );
+    });
+  });
+
+
   suite('Utils for MMS user story test', function() {
     test('Image rescaling to 300kB', function(done) {
       // Open test image for testing image resize ability
