@@ -1308,7 +1308,8 @@ var WindowManager = (function() {
       manifestURL: manifestURL,
       frame: frame,
       iframe: iframe,
-      launchTime: 0
+      launchTime: 0,
+      isHomescreen: (manifestURL === homescreenManifestURL)
     });
     runningApps[origin] = app;
 
@@ -1671,10 +1672,11 @@ var WindowManager = (function() {
       case 'will-unlock':
         if (LockScreen.locked)
           return;
+
         if (inlineActivityFrames.length) {
           setVisibilityForInlineActivity(true);
         } else {
-          setVisibilityForCurrentApp(true);
+          runningApps[displayedApp].setVisible(true);
         }
         resetDeviceLockedTimer();
         break;
@@ -1682,7 +1684,7 @@ var WindowManager = (function() {
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         if (!normalAudioChannelActive) {
-          setVisibilityForCurrentApp(false);
+          runningApps[displayedApp].setVisible(false);
         }
         resetDeviceLockedTimer();
         break;
@@ -1701,7 +1703,12 @@ var WindowManager = (function() {
             if (inlineActivityFrames.length) {
               setVisibilityForInlineActivity(false);
             } else {
-              setVisibilityForCurrentApp(false);
+              /**
+               * We only retain the screenshot layer
+               * when attention screen drops.
+               * Otherwise we just bring the app to background.
+               */
+              runningApps[displayedApp].setVisible(false, true);
             }
           }, 3000);
 
@@ -1754,7 +1761,7 @@ var WindowManager = (function() {
               // is too short.
               if (isRunningFirstRunApp)
                 return;
-              setVisibilityForCurrentApp(false);
+              runningApps[displayedApp].setVisible(false);
             }, 3000);
           }
 
