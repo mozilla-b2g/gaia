@@ -1613,7 +1613,7 @@ suite('thread_ui.js >', function() {
       assert.equal(target.children.length, 2);
     });
 
-    test('Rendered Contact omits numbers in recipient list', function() {
+    test('Rendered Contact omit numbers already in recipient list', function() {
       var ul = document.createElement('ul');
       var contact = new MockContact();
       var html;
@@ -1628,7 +1628,7 @@ suite('thread_ui.js >', function() {
         input: '+346578888888',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
 
       html = ul.innerHTML;
@@ -1747,6 +1747,45 @@ suite('thread_ui.js >', function() {
       };
 
       window.location.hash = '#thread=1';
+    });
+
+    test('Multi participant: Correctly Displayed', function() {
+      var contacts = {
+        a: new MockContact(),
+        b: new MockContact()
+      };
+
+      // Truncate the tel record arrays; there should
+      // only be one when renderContact does its
+      // loop and comparison of dialiables
+      contacts.a.tel.length = 1;
+      contacts.b.tel.length = 1;
+
+      // Set to our "participants"
+      contacts.a.tel[0].value = '999';
+      contacts.b.tel[0].value = '888';
+
+      // "input" value represents the participant entry value
+      // that would be provided in ThreadUI.groupView()
+      ThreadUI.renderContact({
+        contact: contacts.a,
+        input: '999',
+        target: ThreadUI.participantsList,
+        isContact: true,
+        isSuggestion: false
+      });
+
+      ThreadUI.renderContact({
+        contact: contacts.b,
+        input: '888',
+        target: ThreadUI.participantsList,
+        isContact: true,
+        isSuggestion: false
+      });
+
+      assert.equal(
+        ThreadUI.participantsList.children.length, 2
+      );
     });
 
     test('Multi participant: Reset Group View', function() {
