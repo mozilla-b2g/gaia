@@ -1384,7 +1384,7 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
       assert.include(html, 'Pepito O\'Hare');
@@ -1400,7 +1400,7 @@ suite('thread_ui.js >', function() {
         input: 'Pepito O\'Hare',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1421,7 +1421,7 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1441,7 +1441,7 @@ suite('thread_ui.js >', function() {
         input: '346578888888',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1462,7 +1462,7 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1481,7 +1481,7 @@ suite('thread_ui.js >', function() {
         input: '346578888888',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1500,7 +1500,7 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1517,7 +1517,7 @@ suite('thread_ui.js >', function() {
         input: '346578888888',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1528,28 +1528,46 @@ suite('thread_ui.js >', function() {
       );
     });
 
-    test('Rendered Contact omits numbers in recipient list', function() {
-      var ul = document.createElement('ul');
-      var contact = new MockContact();
-      var html;
+    test('Rendered Contact w/ multiple: one', function() {
+      var target = document.createElement('ul');
 
-      ThreadUI.recipients.add({
-        number: '+346578888888'
-      });
-
-      // This contact has two tel entries.
       ThreadUI.renderContact({
-        contact: contact,
-        input: '+346578888888',
-        target: ul,
+        contact: MockContact(),
+        input: '+12125559999',
+        target: target,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: false
       });
 
-      html = ul.innerHTML;
+      assert.equal(target.children.length, 1);
+    });
 
-      assert.ok(!html.contains('346578888888'));
-      assert.equal(ul.children.length, 1);
+    test('Rendered Contact w/ multiple: one w/ minimal match', function() {
+      var target = document.createElement('ul');
+
+      ThreadUI.renderContact({
+        contact: MockContact(),
+        input: '5559999',
+        target: target,
+        isContact: true,
+        isSuggestion: false
+      });
+
+      assert.equal(target.children.length, 1);
+    });
+
+    test('Rendered Contact w/ multiple: all (isSuggestion)', function() {
+      var target = document.createElement('ul');
+
+      ThreadUI.renderContact({
+        contact: MockContact(),
+        input: '+12125559999',
+        target: target,
+        isContact: true,
+        isSuggestion: true
+      });
+
+      assert.equal(target.children.length, 2);
     });
 
     test('Rendered Contact omits numbers in recipient list', function() {
