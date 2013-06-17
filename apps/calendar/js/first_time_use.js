@@ -1,8 +1,24 @@
 Calendar.FirstTimeUse = (function(window) {
 
+  /**
+   * Default amount of time we will show the hint before dismissing it 
+   * automatically.
+   */
   const DEFAULT_HINT_TIMEOUT = 6000;
+
+  /**
+   * Settings Store key used to determine whether we've shown the hint once.
+   */
   const SWIPE_TO_NAVIGATE_HINT_KEY = 'showSwipeToNavigateHint';
 
+  /**
+   * The First Time Use Object is used for any and all hints that should
+   * be displayed to the user in various views when they are used for the
+   * first time.
+   * 
+   * Currently this is limited to the 'swipe to navigate' hint.
+   * 
+   */
   var FirstTimeUse = {
 
     /**
@@ -12,7 +28,7 @@ Calendar.FirstTimeUse = (function(window) {
      * 
      * Automatically saves state so that the hint is only shown once.
      * 
-     * @param {Object} The Calendar App Object
+     * @param {Object} calendarApp - The Calendar App Object
      */
     doFirstTime: function(calendarApp) {
       var self = this;
