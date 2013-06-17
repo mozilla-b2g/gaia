@@ -5,6 +5,7 @@
 
 var icc = {
   _iccLastCommand: null,
+  _displayTextTimeout: 40000,
 
   init: function icc_init() {
     this._icc = this.getICC();
@@ -16,6 +17,14 @@ var icc = {
           self.handleSTKCommand(message);
         });
     });
+
+    // Update displayTextTimeout with settings parameter
+    var reqDisplayTimeout = window.navigator.mozSettings.createLock().get(
+      'icc.displayTextTimeout');
+    reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
+      this._displayTextTimeout =
+        reqDisplayTimeout.result['icc.displayTextTimeout'];
+    };
   },
 
   getICC: function icc_getICC() {
@@ -108,6 +117,21 @@ var icc = {
     this._iccLastCommand = null;
   },
 
+  /**
+   * Common responses
+   */
+  terminateResponse: function() {
+    this.responseSTKCommand({
+      resultCode: this._icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+    });
+  },
+
+  backResponse: function() {
+    this.responseSTKCommand({
+      resultCode: this._icc.STK_RESULT_BACKWARD_MOVE_BY_USER
+    });
+  },
+
   /******************************************
    * ICC Helper methods
    ******************************************/
@@ -138,8 +162,57 @@ var icc = {
     this.icc_alert_msg.textContent = message;
     this.icc_alert.classList.add('visible');
     this.icc_view.classList.add('visible');
-  }
+  },
 
+  /**
+   * callback responds with "userCleared"
+   */
+  confirm: function(message, timeout, callback) {
+    if (!this.icc_confirm) {
+      this.icc_confirm = document.getElementById('icc-confirm');
+      this.icc_confirm_msg = document.getElementById('icc-confirm-msg');
+      this.icc_confirm_btn = document.getElementById('icc-confirm-btn');
+      this.icc_confirm_btn_back =
+        document.getElementById('icc-confirm-btn_back');
+      this.icc_confirm_btn_close =
+        document.getElementById('icc-confirm-btn_close');
+    }
+
+    if (typeof callback != 'function') {
+      callback = function() {};
+    }
+    var self = this;
+
+    // STK Default response (BACK and CLOSE)
+    this.icc_confirm_btn_back.onclick = function() {
+      clearTimeout(timeoutId);
+      self.hideViews();
+      self.backResponse();
+    };
+    this.icc_confirm_btn_close.onclick = function() {
+      clearTimeout(timeoutId);
+      self.hideViews();
+      self.terminateResponse();
+    };
+
+    // User acceptance
+    if (timeout) {
+      var timeoutId = setTimeout(function() {
+        self.hideViews();
+        callback(false);
+      }, timeout);
+    }
+
+    this.icc_confirm_btn.onclick = function() {
+      clearTimeout(timeoutId);
+      self.hideViews();
+      callback(true);
+    };
+
+    this.icc_confirm_msg.textContent = message;
+    this.icc_confirm.classList.add('visible');
+    this.icc_view.classList.add('visible');
+  }
 };
 
 // Initialize icc management
