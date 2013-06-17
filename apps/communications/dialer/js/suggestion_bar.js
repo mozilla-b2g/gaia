@@ -85,10 +85,14 @@ var SuggestionBar = {
       }
 
       self.bar.hidden = false;
+
+      //contacts = genMoreContacts(contacts);
+      self._totalMatchNum = self._getNumMatched.call(self, contacts);
+
       self.countTag.textContent =
-        (contacts.length < self.MAX_ITEMS) ?
-        contacts.length : (self.MAX_ITEMS + '+');
-      if (contacts.length > 1) {
+        (self._totalMatchNum < self.MAX_ITEMS) ?
+        self._totalMatchNum : (self.MAX_ITEMS + '+');
+      if (self._totalMatchNum > 1) {
         self.countTag.hidden = false;
         self.countTag.classList.add('more');
       } else {
@@ -107,16 +111,23 @@ var SuggestionBar = {
   },
 
   _fillContacts: function sb_fillContacts(node, contact) {
+
     var tel = contact.tel;
     // Find matched number from all numbers of the contact.
     var variants = SimplePhoneMatcher.generateVariants(this._phoneNumber);
+
     var matches = contact.tel.map(function getNumber(tel) {
         return tel.value;
       });
+
     var matchResult = SimplePhoneMatcher.bestMatch(variants, [matches]);
+
     // use first phone number if bestMatch can't give us localIndex
-    var matchedTel = (matchResult.localIndex != null) ?
-                 tel[matchResult.localIndex] : tel[0];
+
+    var matchIndex = matchResult.localIndex;
+
+    var matchedTel = (matchIndex != null) ?
+                 tel[matchIndex] : tel[0];
 
     // if first letter of query is '+' and first letter of matchedTel isn't '+'
     // we use query without country code instead of original query for
@@ -127,7 +138,7 @@ var SuggestionBar = {
 
     var markedNumber = this._markMatched(matchedTel.value, query);
     this._setItem(node, markedNumber, matchedTel.type,
-                  contact.name[0]);
+                    contact.name[0]);
   },
 
   _createItem: function sb_createItem() {
@@ -196,15 +207,53 @@ var SuggestionBar = {
     var self = this;
     LazyL10n.get(function localized(_) {
       title.textContent = _('suggestionMatches', {
-        n: maxItems,
+        n: self._totalMatchNum,
         matchNumber: self._phoneNumber
       });
     });
     for (var i = 0; i < maxItems; i++) {
-      var node = this._createItem();
-      this._fillContacts(node, this._contactList[i]);
+     // var node = this._createItem();
+      var telList = this._scanTel(this._contactList[i]);
+
+      for (var conIndex = 0; conIndex < telList.length; conIndex++) {
+        var node = this._createItem();
+        this._fillContacts(node, telList[conIndex]);
+      }
+
     }
     this.overlay.classList.add('display');
+  },
+
+  _scanTel: function sb_scanTel(contact) {
+    var reg = new RegExp(this._phoneNumber),
+        telList = [];
+    for (var telIndex = 0; telIndex < contact.tel.length; telIndex++) {
+      var tel = contact.tel[telIndex];
+      if (reg.test(tel.value)) {
+        var con = {
+          name: contact.name,
+          tel: [tel]
+        };
+        telList.push(con);
+      }
+    }
+    return telList;
+  },
+
+  _getNumMatched: function sb_getNumMatched(contacts) {
+    var reg = new RegExp(this._phoneNumber),
+        num = 0;
+    for (var i = 0; i < contacts.length; i++) {
+      var tels = contacts[i].tel;
+
+      for (var telIndex = 0; telIndex < tels.length; telIndex++) {
+        var tel = tels[telIndex];
+        if (reg.test(tel.value)) {
+          num += 1;
+        }
+      }
+    }
+    return num;
   },
 
   hideOverlay: function sb_hideOverlay() {
