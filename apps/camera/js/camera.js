@@ -266,10 +266,13 @@ var Camera = {
         '/shared/js/media/video_player.js',
         '/shared/js/media/media_frame.js',
         '/shared/js/gesture_detector.js',
+        '/shared/js/lazy_l10n.js',
         'js/filmstrip.js'
       ];
       loader.load(files, function() {
-        self.delayedInit();
+        LazyL10n.get(function localized() {
+          self.delayedInit();
+        });
       });
     });
   },
