@@ -210,7 +210,7 @@ suite('SMS App Unit-Test', function() {
         var threadTitle =
           threadToTest.getElementsByClassName('name')[0].textContent;
         assert.equal(
-          threadTitle, 'thread-header-text{"name":"+123123123","n":1}'
+          threadTitle, 'thread-header-text{"name":"+123123123","n":2}'
         );
       });
 

@@ -325,7 +325,7 @@ var MessageManager = {
     cursor.onsuccess = function onsuccess() {
       if (this.result) {
         threads.push(this.result);
-        console.log('**** getThreads '+this.result.participants);
+        
         // Register all threads to the Threads object.
         Threads.set(this.result.id, this.result);
 
