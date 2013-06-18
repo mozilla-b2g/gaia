@@ -1246,7 +1246,7 @@ var WindowManager = (function() {
     } else {
       // stop all activity frames
       // Remore the inlineActivityFrame reference
-      inlineActivityFrames.foreach(function(frame) {
+      inlineActivityFrames.forEach(function(frame) {
         removeInlineFrame(frame);
       });
       inlineActivityFrames = [];
