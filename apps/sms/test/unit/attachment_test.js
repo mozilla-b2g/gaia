@@ -25,7 +25,7 @@ suite('attachment_test.js', function() {
     this.realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    // create a bogus image blob (should be rendered with a `corrupted' image)
+    // create a bogus image blob (should be rendered with a `corrupted' class)
     testImageBlob_bogus = new Blob(['This is an image message'], {
       type: 'image/jpeg'
     });
@@ -81,6 +81,8 @@ suite('attachment_test.js', function() {
       assert.ok(el.src, 'src set');
       assert.include(el.classList, 'attachment');
       assert.equal(el.dataset.attachmentType, 'img');
+      // broken image => there should be a `corrupted' class
+      assert.include(el.src, 'corrupted');
       done();
     });
   });
@@ -96,6 +98,7 @@ suite('attachment_test.js', function() {
       // image < 400 kB => there should be a dataURL thumbnail
       assert.include(el.src, 'background');
       assert.include(el.src, 'data:image');
+      assert.ok(el.src.indexOf('corrupted') < 0);
       done();
     });
   });
@@ -108,6 +111,7 @@ suite('attachment_test.js', function() {
       assert.ok(el.src, 'src set');
       assert.include(el.classList, 'attachment');
       assert.equal(el.dataset.attachmentType, 'img');
+      assert.ok(el.src.indexOf('corrupted') < 0);
       done();
     });
   });
@@ -120,6 +124,7 @@ suite('attachment_test.js', function() {
       assert.ok(el.src, 'src set');
       assert.include(el.classList, 'attachment');
       assert.equal(el.dataset.attachmentType, 'audio');
+      assert.ok(el.src.indexOf('corrupted') < 0);
       done();
     });
   });
@@ -132,6 +137,7 @@ suite('attachment_test.js', function() {
       assert.ok(el.src, 'src set');
       assert.include(el.classList, 'attachment');
       assert.equal(el.dataset.attachmentType, 'video');
+      assert.ok(el.src.indexOf('corrupted') < 0);
       done();
     });
   });
