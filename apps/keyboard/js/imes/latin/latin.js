@@ -455,7 +455,7 @@
     }
     else if (punctuating && cursor >= 2 &&
              isWhiteSpace(inputText[cursor - 1]) &&
-             !isWhiteSpace(inputText[cursor - 2]))
+             !WORDSEP.test(inputText[cursor - 2]))
     {
       autoPunctuate(keycode);
     }
