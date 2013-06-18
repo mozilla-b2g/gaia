@@ -96,7 +96,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     var ids = ['player', 'fullscreen-view', 'crop-view', 'videoControls',
                'close', 'play', 'playHead',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
-               'slider-wrapper', 'spinner-overlay',
+               'slider-wrapper', 'spinner-overlay', 'go-back',
                'menu', 'save', 'banner', 'message'];
 
     ids.forEach(function createElementRef(name) {
@@ -112,6 +112,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.player.mozAudioChannelType = 'content';
 
     // show|hide controls over the player
+    dom.goBack.addEventListener('click', playerMousedown);
     dom.videoControls.addEventListener('mousedown', playerMousedown);
 
     // Rescale when window size changes. This should get called when
@@ -145,6 +146,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   }
 
   function playerMousedown(event) {
+    if (event.target == dom.goBack) {
+      done();
+    }
     // If we interact with the controls before they fade away,
     // cancel the fade
     if (controlFadeTimeout) {
@@ -172,7 +176,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   }
 
   function done() {
-    pause();
+    if (playing) {
+      pause();
+    }
 
     // Release any video resources
     dom.player.removeAttribute('src');
@@ -218,6 +224,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     dom.videoTitle.textContent = title || '';
     dom.player.src = url;
+
     dom.player.onloadedmetadata = function() {
       dom.durationText.textContent = formatDuration(dom.player.duration);
       timeUpdated();
@@ -226,6 +233,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       setPlayerSize();
 
       dom.player.currentTime = 0;
+
 
       // Show the controls briefly then fade out
       setControlsVisibility(true);
