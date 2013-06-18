@@ -305,5 +305,9 @@ var Common = {
 
   modalAlert: function(message) {
     alert(message);
+  },
+
+  get localize() {
+    return navigator.mozL10n.localize;
   }
 };
