@@ -101,6 +101,18 @@ navigator.mozL10n.ready(function wifiSettings() {
 
   // Wi-Fi Protected Setup
   var gWpsInProgress = false;
+
+  function wpsStatusReset() {
+    // The WPS process is done (connected, cancelled or error):
+    //  - reset the title of the WPS item ("Connect with WPS") right now;
+    //  - leave the current status for a moment, then reset it to the default
+    //    message ("Automatic Wi-Fi setup").
+    localize(gWpsPbcLabelBlock, 'wpsMessage');
+    setTimeout(function resetWpsInfoBlock() {
+      localize(gWpsInfoBlock, 'wpsDescription2');
+    }, 1500);
+  }
+
   document.getElementById('wps-column').onclick = function() {
     if (gWpsInProgress) {
       var req = gWifiManager.wps({
@@ -117,17 +129,6 @@ navigator.mozL10n.ready(function wifiSettings() {
       };
     } else {
       wpsDialog('wifi-wps', wpsCallback);
-    }
-
-    function wpsStatusReset() {
-      // The WPS process is done (connected, cancelled or error):
-      //  - reset the title of the WPS item ("Connect with WPS") right now;
-      //  - leave the current status for a moment, then reset it to the default
-      //    message ("Automatic Wi-Fi setup").
-      localize(gWpsPbcLabelBlock, 'wpsMessage');
-      setTimeout(function resetWpsInfoBlock() {
-        localize(gWpsInfoBlock, 'wpsDescription2');
-      }, 1500);
     }
 
     function wpsCallback(method, pin) {
