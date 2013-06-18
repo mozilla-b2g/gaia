@@ -236,7 +236,7 @@ ifneq ($(LOCALE_BASEDIR),)
 	for appdir in $(GAIA_LOCALE_SRCDIRS); do \
 		targets="$$targets --target $$appdir"; \
 	done; \
-	python $(CURDIR)/build/multilocale.py \
+	$(PYTHON_27) $(CURDIR)/build/multilocale.py \
 		--config '$(LOCALES_FILE)' \
 		--source '$(LOCALE_BASEDIR)' \
 		$$targets;
@@ -684,7 +684,7 @@ ifeq ($(ADB_REMOUNT),1)
 endif
 
 ifeq ($(BUILD_APP_NAME),*)
-	python build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)"
+	$(PYTHON_27) build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)"
 else
 	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
 	$(ADB) push profile/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
@@ -756,7 +756,7 @@ SETTINGS_ARG += --console
 endif
 
 profile/settings.json: build/settings.py build/wallpaper.jpg
-	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override $(SETTINGS_PATH) --output $@
+	$(PYTHON_27) build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override $(SETTINGS_PATH) --output $@
 
 # push profile/settings.json and profile/contacts.json (if CONTACTS_PATH defined) to the phone
 install-default-data: profile/settings.json contacts
