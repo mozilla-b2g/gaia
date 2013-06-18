@@ -8,15 +8,38 @@ require('/shared/js/l10n.js');
 suite('L10n', function() {
 
   var _;
+  var l10props = [
+    'cropimage                 = Crop',
+    'delete-n-items            = {[ plural(n) ]}',
+    'delete-n-items[zero]      = Nothing selected',
+    'delete-n-items[one]       = Delete selected item?',
+    'delete-n-items[other]     = Delete {{ n }} items?',
+    'textcontent-test          = this is text content',
+    'prop-test.prop            = this is a property',
+    'dot.prop-test.prop        = this is another property',
+    'dataset-test.dataset.prop = this is a data attribute',
+    'style-test.style.padding  = 10px'
+  ].join('\n');
 
-  // these l10n keys are defined in apps/gallery/locales/
   var key_cropImage = 'cropimage';
-  var key_delete = 'delete-n-items?';
+  var key_delete = 'delete-n-items';
 
+  // Do not begin tests until the test locale has been loaded.
   suiteSetup(function(done) {
+    var xhr = sinon.useFakeXMLHttpRequest();
+
+    xhr.onCreate = function(request) {
+      setTimeout(function() {
+        request.respond(200, {}, l10props);
+      }, 0);
+    };
+
     _ = navigator.mozL10n.get;
 
+    navigator.mozL10n.language.code = 'en-US';
+
     navigator.mozL10n.ready(function() {
+      xhr.restore();
       done();
     });
 
@@ -31,21 +54,60 @@ suite('L10n', function() {
       assert.strictEqual(_('bla'), '');
     });
 
+    suite('plural', function() {
+      test('n=0', function() {
+        assert.strictEqual(_(key_delete, { n: 0 }), 'Nothing selected');
+      });
+
+      test('n=1', function() {
+        assert.strictEqual(_(key_delete, { n: 1 }), 'Delete selected item?');
+      });
+
+      test('n=2', function() {
+        assert.strictEqual(_(key_delete, { n: 2 }), 'Delete 2 items?');
+      });
+
+    });
+
   });
 
-  suite('plural', function() {
-    test('n=0', function() {
-      assert.strictEqual(_(key_delete, { n: 0 }), 'Nothing selected');
+  suite('translate', function() {
+    var translate = navigator.mozL10n.translate;
+    var elem;
+
+    setup(function() {
+      elem = document.createElement('div');
     });
 
-    test('n=1', function() {
-      assert.strictEqual(_(key_delete, { n: 1 }), 'Delete selected item?');
+    test('text content', function() {
+      elem.dataset.l10nId = 'textcontent-test';
+      translate(elem);
+      assert.equal(elem.textContent, 'this is text content');
     });
 
-    test('n=2', function() {
-      assert.strictEqual(_(key_delete, { n: 2 }), 'Delete 2 items?');
+    test('properties', function() {
+      elem.dataset.l10nId = 'prop-test';
+      translate(elem);
+      assert.equal(elem.prop, 'this is a property');
     });
 
+    test('properties using final period', function() {
+      elem.dataset.l10nId = 'dot.prop-test';
+      translate(elem);
+      assert.equal(elem.prop, 'this is another property');
+    });
+
+    test('data-* attributes', function() {
+      elem.dataset.l10nId = 'dataset-test';
+      translate(elem);
+      assert.equal(elem.dataset.prop, 'this is a data attribute');
+    });
+
+    test('style attributes', function() {
+      elem.dataset.l10nId = 'style-test';
+      translate(elem);
+      assert.equal(elem.style.padding, '10px');
+    });
   });
 
 });
