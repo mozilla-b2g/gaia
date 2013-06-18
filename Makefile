@@ -232,7 +232,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json create-default-data profile/installed-extensions.json
+profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook profile/settings.json create-default-data profile/installed-extensions.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -634,12 +634,7 @@ endif
 
 # Lint apps
 lint:
-	@# ignore lint on:
-	@# cubevid
-	@# crystalskull
-	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext' -x 'calendar/js/presets.js,homescreen/js/hiddenapps.js,settings/js/hiddenapps.js,communications/contacts/config.json,communications/contacts/oauth2/js/parameters.js'
-	@gjslint --nojsdoc -r shared/js -e 'phoneNumberJS'
+	gjslint --multiprocess --nojsdoc -r apps -r shared -e '$(shell cat ./build/lint-excluded-dirs.list)' -x '$(shell cat ./build/lint-excluded-files.list)'
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -801,3 +796,5 @@ clean:
 really-clean: clean
 	rm -rf xulrunner-sdk .xulrunner-url
 
+install-git-hook:
+	cp tools/pre-commit .git/hooks/pre-commit
