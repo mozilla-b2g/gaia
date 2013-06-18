@@ -634,7 +634,7 @@ endif
 
 # Lint apps
 lint:
-	gjslint --multiprocess --nojsdoc -r apps -r shared -e '$(shell cat ./build/lint-excluded-dirs.list)' -x '$(shell cat ./build/lint-excluded-files.list)'
+	gjslint --nojsdoc -r apps -r shared -e '$(shell cat ./build/lint-excluded-dirs.list)' -x '$(shell cat ./build/lint-excluded-files.list)'
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
