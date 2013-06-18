@@ -132,6 +132,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     if (contact) {
       var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
       var contactCopy = {
+        id: contact.id,
         name: contact.name,
         org: contact.org,
         tel: contact.tel
