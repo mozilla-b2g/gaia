@@ -47,10 +47,11 @@
 
     return data;
   };
-
+  
   Responder.prototype = {
     parse: Responder.parse,
     stringify: Responder.stringify,
+    
 
     /**
      * Events on this instance

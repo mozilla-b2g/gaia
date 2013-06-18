@@ -318,6 +318,7 @@
   requireLib('error.js');
   requireApp('calendar/test/unit/loader.js');
   requireLib('responder.js');
+  requireLib('mixins.js');
   requireLib('calc.js');
   requireLib('view.js');
   requireLib('router.js');

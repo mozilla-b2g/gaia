@@ -208,6 +208,25 @@ suite('app', function() {
     });
   });
 
+  
+
+  /*test('with true url', function() {
+      //appcallback = function(err,ical)  {
+            //console.log(err,ical);
+        //    assert.ok(err,null);
+      //}
+
+      var url = "http://www.webcal.fi/cal.php?id=38&format=ics&wd=-1&wrn=1&label=Week&wp=4&wf=26&color=%23000000&cntr=us&lang=en&rid=wc";  
+      //assert.equal(null,null);   
+      //subject.testurl();
+      var fun = subject.addIcalFromUrl;
+      fun(url);
+      //var provider = Calendar.App.getProvider();
+      //provider.importFromUrl({},url,function(err,ical){});
+      //Calendar;
+      //.App.testurl;
+      //subject.provider('Local').importFromUrl({},url,function(err,ical){});
+  });*/
   test('initialization', function() {
     assert.ok(subject.startingURL, 'has startingURL');
   });
