@@ -582,6 +582,11 @@ suite('SMS App Unit-Test', function() {
       assert.equal(anchors[4].dataset.url,
         'https://secured.web:9080',
         'Fifth is https://secured.web:9080, secured and after a line break');
+      // The links generated shouldn have 'href'
+      var anchorsLength = anchors.length;
+      for (var i = 0; i < anchorsLength; i++) {
+        assert.equal(anchors[i].href, '');
+      }
 
     });
 
@@ -601,6 +606,11 @@ suite('SMS App Unit-Test', function() {
          'First url is http://www.mozilla.org/en-US/firefox/fx/');
       assert.equal(anchors[1].dataset.url,
         'http://www.gmail.com', 'Second url is http://www.gmail.com');
+      // The links generated shouldn have 'href'
+      var anchorsLength = anchors.length;
+      for (var i = 0; i < anchorsLength; i++) {
+        assert.equal(anchors[i].href, '');
+      }
     });
   });
 
@@ -626,6 +636,11 @@ suite('SMS App Unit-Test', function() {
         'abc@gmail.com', 'First email is abc@gmail.com');
       assert.equal(anchors[1].dataset.email,
         'myself@my.com', 'Second email is myself@my.com');
+      // The email links generated shouldn have 'href'
+      var anchorsLength = anchors.length;
+      for (var i = 0; i < anchorsLength; i++) {
+        assert.equal(anchors[i].href, '');
+      }
     });
 
     test('#Test with phone numbers, url and email in a message', function() {
@@ -648,6 +663,11 @@ suite('SMS App Unit-Test', function() {
         'sup.port@efg.com', 'Third email is sup.port@efg.com');
       assert.equal(anchors[3].dataset.email,
         'cs@yahoo.co.in', 'Fourth email is cs@yahoo.co.in');
+      // The email links generated shouldn have 'href'
+      var anchorsLength = anchors.length;
+      for (var i = 0; i < anchorsLength; i++) {
+        assert.equal(anchors[i].href, '');
+      }
     });
   });
 
@@ -704,6 +724,11 @@ suite('SMS App Unit-Test', function() {
         '+12343454567', 'Fifth number is +12343454567');
       assert.equal(anchors[6].dataset.phonenumber,
         '+919810137553', 'Sixth number is +919810137553');
+      // The phone links generated shouldn have 'href'
+      var anchorsLength = anchors.length;
+      for (var i = 0; i < anchorsLength; i++) {
+        assert.equal(anchors[i].href, '');
+      }
     });
   });
 });
