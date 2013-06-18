@@ -74,8 +74,9 @@ var MessageManager = {
 
     // If is a MMS Group, we are gonna mockup as well the recipients
     var participants = (message.receivers && message.receivers.length > 1) ?
-      message.receivers : [message.sender];
-
+      message.receivers : [];
+    participants.push(message.sender)
+    
     return {
         id: message.threadId,
         participants: participants,
@@ -324,7 +325,7 @@ var MessageManager = {
     cursor.onsuccess = function onsuccess() {
       if (this.result) {
         threads.push(this.result);
-
+        console.log('**** getThreads '+this.result.participants);
         // Register all threads to the Threads object.
         Threads.set(this.result.id, this.result);
 

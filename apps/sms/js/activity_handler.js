@@ -238,7 +238,7 @@ var ActivityHandler = {
 
     // The black list includes numbers for which notifications should not
     // progress to the user. Se blackllist.js for more information.
-    var number = message.sender;
+    var sender = message.sender;
     var threadId = message.threadId;
     var id = message.id;
 
@@ -258,7 +258,7 @@ var ActivityHandler = {
         // We have to remove the SMS due to it does not have to be shown.
         MessageManager.deleteMessage(message.id, function() {
           app.launch();
-          alert(number + '\n' + message.body);
+          alert(sender + '\n' + message.body);
           releaseWakeLock();
         });
       };
@@ -288,7 +288,7 @@ var ActivityHandler = {
         iconURL += '?';
         iconURL += [
           'threadId=' + threadId,
-          'number=' + encodeURIComponent(number),
+          'number=' + encodeURIComponent(sender),
           'id=' + id
         ].join('&');
 
@@ -345,13 +345,13 @@ var ActivityHandler = {
           } else { // mms
             getTitleFromMms(function textCallback(text) {
               // Retrieve the right title if there is more than one participant
-              var notificationMainText = number;
+              var notificationMainText = sender;
               if (message.receivers && message.receivers.length > 1) {
-                var participants = message.receivers.length - 1;
+                var otherParticipantsCount = message.receivers.length;
                 notificationMainText =
                   navigator.mozL10n.get('thread-header-text', {
-                    name: number,
-                    n: participants
+                    name: sender,
+                    n: otherParticipantsCount
                   });
               }
               NotificationHelper.

@@ -121,6 +121,7 @@ var ThreadListUI = {
           URL.revokeObjectURL(this.src);
         };
       }
+
       name.textContent = navigator.mozL10n.get('thread-header-text', {
         name: title,
         n: others
@@ -371,6 +372,7 @@ var ThreadListUI = {
     if (lastMessageType === 'sms' && body) {
       body = Utils.escapeHTML(body);
     }
+
     // Participants should be internationalized if needed
     var threadTitle = number;
     if (participants.length > 1) {
