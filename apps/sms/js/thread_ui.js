@@ -857,29 +857,34 @@ var ThreadUI = global.ThreadUI = {
     ThreadUI.scrollViewToBottom();
   },
 
-  createMmsContent: function thui_createMmsContent(dataArray) {
+  createMmsContent: function thui_createMmsContent(slides) {
     var container = document.createDocumentFragment();
-    dataArray.forEach(function(messageData) {
-      var mediaElement, textElement;
+    slides.forEach(function(slide) {
+      var media, name, text;
 
-      if (messageData.blob) {
-        var attachment = new Attachment(messageData.blob, {
-          name: messageData.name
+      if (slide.blob) {
+        var attachment = new Attachment(slide.blob, {
+          name: slide.name
         });
-        var mediaElement = attachment.render();
-        container.appendChild(mediaElement);
-        attachmentMap.set(mediaElement, attachment);
+        var media = attachment.render();
+        container.appendChild(media);
+        attachmentMap.set(media, attachment);
       }
 
-      if (messageData.text) {
-        textElement = document.createElement('span');
+      if (slide.name) {
+        name = document.createElement('div');
+        name.className = 'file-name';
+        name.textContent = Utils.escapeHTML(slide.name);
+        container.appendChild(name);
+      }
 
+      if (slide.text) {
+        text = document.createElement('span');
         // escape text for html and look for clickable numbers, etc.
-        var text = Utils.escapeHTML(messageData.text);
-        text = LinkHelper.searchAndLinkClickableData(text);
-
-        textElement.innerHTML = text;
-        container.appendChild(textElement);
+        text.innerHTML = LinkHelper.searchAndLinkClickableData(
+          Utils.escapeHTML(slide.text)
+        );
+        container.appendChild(text);
       }
     });
     return container;
