@@ -14,6 +14,8 @@
   var gLanguage = '';
   var gMacros = {};
   var gReadyState = 'loading';
+  // DOM element properties that may be localized with a key:value pair.
+  var gNestedProps = ['style', 'dataset'];
 
 
   /**
@@ -245,10 +247,18 @@
 
       // find attribute descriptions, if any
       for (var key in data) {
-        var id, prop, index = key.lastIndexOf('.');
+        var id, prop, nestedProp, index = key.lastIndexOf('.');
         if (index > 0) { // an attribute has been specified
           id = key.substring(0, index);
           prop = key.substr(index + 1);
+          index = id.lastIndexOf('.');
+          if (index > 0) { // a nested property may have been specified
+            nestedProp = id.substr(index + 1);
+            if (gNestedProps.indexOf(nestedProp) > -1) {
+              id = id.substr(0, index);
+              prop = nestedProp + '.' + prop;
+            }
+          }
         } else { // no attribute: assuming text content by default
           id = key;
           prop = gTextProp;
@@ -271,6 +281,7 @@
     callback = callback || function _callback() {};
 
     clear();
+    gReadyState = 'loading';
     gLanguage = lang;
 
     // check all <link type="application/l10n" href="..." /> nodes
@@ -904,7 +915,13 @@
     }
 
     for (var k in data) {
-      element[k] = data[k];
+      var idx = k.lastIndexOf('.');
+      var nestedProp = k.substr(0, idx);
+      if (gNestedProps.indexOf(nestedProp) > -1) {
+        element[nestedProp][k.substr(idx + 1)] = data[k];
+      } else {
+        element[k] = data[k];
+      }
     }
   }
 
