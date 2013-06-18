@@ -797,4 +797,4 @@ really-clean: clean
 	rm -rf xulrunner-sdk .xulrunner-url
 
 install-git-hook:
-	cp tools/pre-commit .git/hooks/pre-commit
+	test -d .git && cp tools/pre-commit .git/hooks/pre-commit
