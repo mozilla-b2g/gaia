@@ -21,4 +21,4 @@ done
 
 diff_with_exclude=`git diff --staged --name-only|grep -v $grep_exclude`
 
-gjslint --multiprocess --nojsdoc -x '`cat ./build/lint-excluded-files.list`' $diff_with_exclude
+gjslint --nojsdoc -x '`cat ./build/lint-excluded-files.list`' $diff_with_exclude
