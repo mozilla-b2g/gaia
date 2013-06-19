@@ -1351,8 +1351,8 @@ var Browser = {
 
       // Save the blob to device storage.
       // Extract a filename from the URL, and to some sanitizing.
-      var name = url.split('/').reverse()[0].toLowerCase()
-                    .replace(/[^a-z0-9\.]/g, '_');
+      var name = url.split('/').reverse()[0].toLowerCase().split(/[&?#]/g)[0]
+                       .replace(/[^a-z0-9\.]/g, '_');
 
       // If we have no file extension, use the content-type header to
       // add one.
