@@ -217,6 +217,7 @@ function initDB() {
   // because we might still might find and parse metadata for new
   // videos during the scanning process.
   videostorage = navigator.getDeviceStorage('videos');
+  videostorage.addEventListener('change', videoDeviceStorageChangeHandler);
 
   var loaded = false;
   function metadataParserWrapper(file, onsuccess, onerror) {
@@ -320,6 +321,15 @@ function getVideoFile(filename, callback) {
   req.onerror = function() {
     console.error('Failed to get video file', filename);
   };
+}
+
+// remove video thumbnail if its corresponding file is
+// deleted in the video app
+function videoDeviceStorageChangeHandler(e) {
+  if (e.reason === 'deleted') {
+    var filename = e.path.replace('.3gp', '.jpg');
+    fileDeleted(filename);
+  }
 }
 
 // This comparison function is used for sorting arrays and doing binary
