@@ -36,6 +36,7 @@ settings = {
  "debug.log-animations.enabled": False,
  "debug.paint-flashing.enabled": False,
  "debug.peformancedata.shared": False,
+ "debug.gaia.enabled": False,
  "deviceinfo.firmware_revision": "",
  "deviceinfo.hardware": "",
  "deviceinfo.mac": "",

@@ -46,6 +46,9 @@
     // Optional section text or node
     section: ...
 
+    // Optional data-type: confirm or action
+    type: 'confirm'
+
     // Optional callback to be invoked when a
     // button in the menu is pressed. Can be
     // overridden by an "incomplete: true" set
@@ -68,7 +71,7 @@ var OptionMenu = function(options) {
   var items = options.items;
   // Create the structure
   this.form = document.createElement('form');
-  this.form.dataset.type = 'action';
+  this.form.dataset.type = options.type || 'action';
   this.form.setAttribute('role', 'dialog');
   // We append title if needed
   if (options.header) {
@@ -96,6 +99,7 @@ var OptionMenu = function(options) {
 
   // We append a menu with the list of options
   var menu = document.createElement('menu');
+  menu.dataset.items = items.length;
 
   // For each option, we append the item and listener
   items.forEach(function renderOption(item) {
