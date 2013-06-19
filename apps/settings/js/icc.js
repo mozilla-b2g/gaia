@@ -159,12 +159,12 @@
    */
   function responseSTKCommand(response, force) {
     if (!force && (!iccLastCommand || !iccLastCommandProcessed)) {
-      debug('sendStkResponse NO COMMAND TO RESPONSE. Ignoring');
+      DUMP('sendStkResponse NO COMMAND TO RESPONSE. Ignoring');
       return;
     }
 
-    debug('sendStkResponse to command: ', iccLastCommand);
-    debug('sendStkResponse -- # response = ', response);
+    DUMP('sendStkResponse to command: ', iccLastCommand);
+    DUMP('sendStkResponse -- # response = ', response);
 
     icc.sendStkResponse(iccLastCommand, response);
     iccLastCommand = null;
@@ -175,7 +175,7 @@
    * Handle ICC Commands
    */
   function handleSTKCommand(command) {
-    debug('STK Proactive Command:', command);
+    DUMP('STK Proactive Command:', command);
     iccLastCommand = command;
     var options = command.options;
 
@@ -200,7 +200,7 @@
         break;
 
       default:
-        debug('STK Message not managed... response OK');
+        DUMP('STK Message not managed... response OK');
         iccLastCommandProcessed = true;
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
@@ -212,7 +212,7 @@
    * Navigate through all available STK applications
    */
   function updateMenu() {
-    debug('Showing STK main menu');
+    DUMP('Showing STK main menu');
     stkOpenAppName = null;
 
     stkCancelGoBack();
@@ -228,19 +228,19 @@
 
       if (!menu || !menu.items ||
         (menu.items.length == 1 && menu.items[0] === null)) {
-        debug('No STK available - hide & exit');
+        DUMP('No STK available - hide & exit');
         document.getElementById('icc-mainheader').hidden = true;
         document.getElementById('icc-mainentry').hidden = true;
         return;
       }
 
-      debug('STK Main App Menu title: ' + menu.title);
-      debug('STK Main App Menu default item: ' + menu.defaultItem);
+      DUMP('STK Main App Menu title: ' + menu.title);
+      DUMP('STK Main App Menu default item: ' + menu.defaultItem);
 
       iccMenuItem.textContent = menu.title;
       showTitle(menu.title);
       menu.items.forEach(function(menuItem) {
-        debug('STK Main App Menu item: ' + menuItem.text + ' # ' +
+        DUMP('STK Main App Menu item: ' + menuItem.text + ' # ' +
               menuItem.identifier);
         iccStkList.appendChild(buildMenuEntry({
           id: 'stk-menuitem-' + menuItem.identifier,
@@ -265,14 +265,14 @@
 
   function onMainMenuItemClick(event) {
     var identifier = event.target.getAttribute('stk-menu-item-identifier');
-    debug('sendStkMenuSelection: ', identifier);
+    DUMP('sendStkMenuSelection: ', identifier);
     icc.sendStkMenuSelection(identifier, false);
     stkLastSelectedTest = event.target.textContent;
     stkOpenAppName = stkLastSelectedTest;
   }
 
   function showHelpMenu(event) {
-    debug('Showing STK help menu');
+    DUMP('Showing STK help menu');
     stkOpenAppName = null;
 
     var reqApplications =
@@ -286,7 +286,7 @@
       iccMenuItem.textContent = menu.title;
       showTitle(_('operatorServices-helpmenu'));
       menu.items.forEach(function(menuItem) {
-        debug('STK Main App Help item: ' + menuItem.text + ' # ' +
+        DUMP('STK Main App Help item: ' + menuItem.text + ' # ' +
               menuItem.identifier);
         iccStkList.appendChild(buildMenuEntry({
           id: 'stk-helpitem-' + menuItem.identifier,
@@ -300,7 +300,7 @@
 
   function onMainMenuHelpItemClick(event) {
     var identifier = event.target.getAttribute('stk-help-item-identifier');
-    debug('sendStkHelpMenuSelection: ', identifier);
+    DUMP('sendStkHelpMenuSelection: ', identifier);
     icc.sendStkMenuSelection(identifier, true);
     stkLastSelectedTest = event.target.textContent;
     stkOpenAppName = stkLastSelectedTest;
@@ -312,15 +312,15 @@
   function updateSelection(command) {
     var menu = command.options;
 
-    debug('Showing STK menu');
+    DUMP('Showing STK menu');
     clearList();
 
-    debug('STK App Menu title: ' + menu.title);
-    debug('STK App Menu default item: ' + menu.defaultItem);
+    DUMP('STK App Menu title: ' + menu.title);
+    DUMP('STK App Menu default item: ' + menu.defaultItem);
 
     showTitle(menu.title);
     menu.items.forEach(function(menuItem) {
-      debug('STK App Menu item: ' + menuItem.text + ' # ' +
+      DUMP('STK App Menu item: ' + menuItem.text + ' # ' +
         menuItem.identifier);
       iccStkList.appendChild(buildMenuEntry({
         id: 'stk-menuitem-' + menuItem.identifier,
@@ -366,11 +366,11 @@
   function updateInput(command) {
     var options = command.options;
 
-    debug('Showing STK input box');
+    DUMP('Showing STK input box');
     clearList();
     showTitle(stkLastSelectedTest);
 
-    debug('STK Input title: ' + options.text);
+    DUMP('STK Input title: ' + options.text);
 
     document.addEventListener('mozvisibilitychange',
         sendSessionEndTROnFocusLose, true);
@@ -378,7 +378,7 @@
     // AutoClose
     var timeoutInUse = options.duration;
     var inputTimeOutID = setTimeout(function() {
-      debug('No response from user (Timeout)');
+      DUMP('No response from user (Timeout)');
       responseSTKCommand({
         resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
       });
