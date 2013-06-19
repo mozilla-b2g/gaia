@@ -19,6 +19,6 @@ for dir in $excluded_dirs; do
   grep_exclude="$grep_exclude -e $dir"
 done
 
-diff_with_exclude=`git diff --staged --name-only|grep -v $grep_exclude`
+diff_with_exclude=`git diff --staged --name-only --diff-filter=ACMRT|grep -v $grep_exclude`
 
 gjslint --nojsdoc -x '`cat ./build/lint-excluded-files.list`' $diff_with_exclude
