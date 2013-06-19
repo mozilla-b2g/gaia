@@ -372,24 +372,12 @@
    */
   AppWindow.prototype.getScreenshot = function aw_getScreenshot(callback) {
     // XXX: We had better store offsetWidth/offsetHeight.
-
-    // We don't need the screenshot of homescreen because:
-    // 1. Homescreen background is transparent,
-    //    currently gecko only sends JPG to us.
-    //    See bug 878003.
-    // 2. Homescreen screenshot isn't required by card view.
-    //    Since getScreenshot takes additional memory usage,
-    //    let's early return here.
-
     // XXX: Determine |this.isHomescreen| or not on our own in
     // appWindow.
-    if (this.isHomescreen) {
-      callback();
-      return;
-    }
-
-    var req = this.iframe.getScreenshot(
-      this.iframe.offsetWidth, this.iframe.offsetHeight);
+    // Get PNG screenshot for homescreen.
+    var req = 
+      this.iframe.getScreenshot(
+        this.iframe.offsetWidth, this.iframe.offsetHeight, !!this.isHomescreen);
 
     req.onsuccess = function gotScreenshotFromFrame(evt) {
       var result = evt.target.result;
