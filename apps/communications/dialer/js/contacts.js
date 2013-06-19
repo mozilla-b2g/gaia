@@ -136,7 +136,7 @@ var Contacts = {
       });
 
       // Finding the best match
-      var matchResult = SimplePhoneMatcher.bestMatch(variants, matches);
+      var matchResult = SimplePhoneMatcher.bestMatch(number, variants, matches);
 
       var contact = request.result[matchResult.bestMatchIndex];
       var contactsWithSameNumber;

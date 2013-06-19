@@ -50,14 +50,26 @@ var SimplePhoneMatcher = {
   //    }
   // ie. bestMatchIndex will be the index in the contact arrays, localIndex
   // the index in the phone numbers array of this contact
-  bestMatch: function spm_bestMatchIndex(variants, matches) {
+  bestMatch: function spm_bestMatchIndex(inputNumber, variants, matches) {
     var bestMatchIndex = 0;
     var bestLocalIndex = 0;
     var bestMatchLength = 0;
 
-    matches.forEach(function(match, matchIndex) {
-      match.forEach(function(number, localIndex) {
+    for (var matchIndex = 0; matchIndex < matches.length; matchIndex++) {
+      var match = matches[matchIndex];
+      for (var localIndex = 0; localIndex < match.length; localIndex++) {
+        var number = match[localIndex];
         var sanitizedNumber = this.sanitizedNumber(number);
+
+        if (sanitizedNumber === inputNumber) {
+          bestMatchIndex = matchIndex;
+          bestLocalIndex = localIndex;
+
+          return {
+            bestMatchIndex: bestMatchIndex,
+            localIndex: bestLocalIndex
+          };
+        }
 
         variants.forEach(function match(variant) {
           if (variant.indexOf(sanitizedNumber) !== -1 ||
@@ -71,8 +83,8 @@ var SimplePhoneMatcher = {
             }
           }
         });
-      }, this);
-    }, this);
+      }
+    }
 
     return {
       bestMatchIndex: bestMatchIndex,

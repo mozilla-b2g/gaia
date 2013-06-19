@@ -113,7 +113,8 @@ var SuggestionBar = {
     var matches = contact.tel.map(function getNumber(tel) {
         return tel.value;
       });
-    var matchResult = SimplePhoneMatcher.bestMatch(variants, [matches]);
+    var matchResult = SimplePhoneMatcher.
+                      bestMatch(this._phoneNumber, variants, [matches]);
     // use first phone number if bestMatch can't give us localIndex
     var matchedTel = (matchResult.localIndex != null) ?
                  tel[matchResult.localIndex] : tel[0];
