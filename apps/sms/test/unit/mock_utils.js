@@ -20,8 +20,5 @@ var MockUtils = {
   params: Utils.params,
   getContactDetails: Utils.getContactDetails,
   removeNonDialables: Utils.removeNonDialables,
-  compareDialables: Utils.compareDialables,
-  Message: {
-    format: function(str) { return str; }
-  }
+  compareDialables: Utils.compareDialables
 };
