@@ -99,13 +99,28 @@ var Commands = {
     if (pendingPrediction)  // Make sure we're not still running a previous one
       pendingPrediction.abort();
 
-    // var start = Date.now();
-    pendingPrediction = Predictions.predict(prefix, success, error);
+    // Ask for 3 predictions, considering 24 candidates that and considering
+    // only words with an edit distance of 1 (i.e. make only one correction
+    // per word)
+    pendingPrediction = Predictions.predict(prefix, 3, 24, 1,
+                                            success, error);
 
     function success(words) {
-      // log('suggestions for: ' + prefix + ' ' + JSON.stringify(words) + ' ' +
-      //     (Date.now() - start));
-      postMessage({ cmd: 'predictions', input: prefix, suggestions: words });
+      if (words.length) {
+        postMessage({ cmd: 'predictions', input: prefix, suggestions: words });
+        return;
+      }
+      else {
+        // If we didn't find anything, try more candidates and a larger
+        // edit distance to enlarge the search space.
+        pendingPrediction =
+          Predictions.predict(prefix, 3, 60, 2,
+                              function(words) {
+                                postMessage({ cmd: 'predictions',
+                                              input: prefix,
+                                              suggestions: words });
+                              }, error);
+      }
     }
 
     function error(msg) {

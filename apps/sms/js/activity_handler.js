@@ -74,8 +74,10 @@ var ActivityHandler = {
         window.removeEventListener('hashchange', insertAttachments);
 
         blobs.forEach(function(blob, idx) {
-          var name = names[idx];
-          var attachment = new Attachment(blob, name);
+          var attachment = new Attachment(blob, {
+            name: names[idx],
+            isDraft: true
+          });
           Compose.append(attachment);
         });
       }
@@ -171,10 +173,6 @@ var ActivityHandler = {
         case '#new':
           window.location.hash = threadHash;
           MessageManager.activity.isLocked = false;
-          break;
-        case '#edit':
-          history.back();
-          showAction();
           break;
         default:
           if (locationHash.indexOf('#thread=') !== -1) {

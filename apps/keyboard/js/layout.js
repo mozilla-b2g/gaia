@@ -432,7 +432,8 @@ const Keyboards = {
       u: 'ùûüúū',
       s: 'śšşß',
       S: 'ŚŠŞ',
-      n: 'ńñň'
+      n: 'ńñň',
+      '.': ',?!-;:'
     },
     keys: [
       [
@@ -499,7 +500,7 @@ const Keyboards = {
     keys: [
       [
         { value: 'ק' }, { value: 'ר' }, { value: 'א' }, { value: 'ט' },
-        { value: 'ו' }, { value: 'ו' }, { value: 'ם' }, { value: 'פ' },
+        { value: 'ו' }, { value: 'ן' }, { value: 'ם' }, { value: 'פ' },
         { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: 'ש' }, { value: 'ד' }, { value: 'ג' }, { value: 'כ' },
@@ -586,7 +587,7 @@ const Keyboards = {
   },
   'sr-Cyrl': {
     label: 'Serbian (Cyrillic)',
-    menuLabel: 'Cрпска ћирилица',
+    menuLabel: 'Српски (ћирилица)',
     alt: {
       // incomplete
     },
@@ -613,7 +614,7 @@ const Keyboards = {
   },
   'sr-Latn': {
     label: 'Serbian (Latin)',
-    menuLabel: 'srpski',
+    menuLabel: 'Srpski',
     alt: {
       c: 'čć',
       d: 'đ',

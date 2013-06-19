@@ -134,7 +134,7 @@
   }
 
   function headsetVolumeup() {
-    if (currentVolume[getChannel()] >= CEWarningVol &&
+    if ((currentVolume[getChannel()] + 1) >= CEWarningVol &&
         getChannel() == 'content') {
       if (CEAccumulatorTime == 0) {
         var okfn = function() {
@@ -210,7 +210,7 @@
   function resetToCEMaxVolume(callback) {
     pendingRequestCount++;
     var req = SettingsListener.getSettingsLock().set({
-      'audio.volume.content': CEWarningVol
+      'audio.volume.content': CEWarningVol - 1
     });
 
     req.onsuccess = function onSuccess() {
@@ -229,6 +229,10 @@
 
   window.addEventListener('appopen', function() {
     homescreenVisible = false;
+  });
+  window.addEventListener('ftudone', function() {
+    // FTU closing implies we're going to homescreen.
+    homescreenVisible = true;
   });
   window.addEventListener('home', function() {
     homescreenVisible = true;
@@ -303,7 +307,7 @@
           } else if (channel === 'notification' && volume > 0) {
             leaveSilentMode('notification',
                             /* skip volume restore */ true);
-          } else if (channel === 'content' && volume == 0) {
+          } else if (channel === 'notification' && volume == 0) {
             // Enter silent mode when notification volume is 0
             // no matter who sets this value.
             enterSilentMode('notification');
@@ -374,23 +378,50 @@
       case 'ringer':
           return 'notification';
       default:
-        return homescreenVisible || LockScreen.locked ?
-          'notification' : 'content';
+        return homescreenVisible || LockScreen.locked ||
+          FtuLauncher.isFtuRunning() ? 'notification' : 'content';
     }
   }
 
-  function getVolumeState(currentVolume, delta, channel) {
+  function calculateVolume(currentVolume, delta, channel) {
+    var volume = currentVolume;
     if (channel == 'notification') {
-      if (currentVolume + delta <= 0) {
-        if (currentVolume == 0 && vibrationEnabled) {
-          vibrationEnabled = false;
-        } else if (currentVolume > 0 && !vibrationEnabled) {
-          vibrationEnabled = true;
-        }
-        return 'MUTE';
-      } else {
-        return 'OFF';
+      if (volume == 0 && !vibrationEnabled) {
+        // This is for voluming up from Silent to Vibrate.
+        // Let's take -1 as the silent state and
+        // 0 as the vibrate state for easier calculation here.
+        volume = -1;
       }
+      volume += delta;
+    } else {
+      volume += delta;
+    }
+    return volume;
+  }
+
+  function getVibrationAndMuteState(currentVolume, delta, channel) {
+    if (channel == 'notification') {
+      var state;
+      var volume = currentVolume;
+      if (volume == 0 && !vibrationEnabled) {
+        // This is for voluming up from Silent to Vibrate.
+        // Let's take -1 as the silent state and
+        // 0 as the vibrate state for easier calculation here.
+        volume = -1;
+      }
+      volume += delta;
+
+      if (volume < 0) {
+        state = 'MUTE';
+        vibrationEnabled = false;
+      } else if (volume == 0) {
+        state = 'MUTE';
+        vibrationEnabled = true;
+      } else {
+        state = 'OFF';
+        vibrationEnabled = false;
+      }
+      return state;
     } else {
       if (currentVolume + delta <= 0) {
         return 'MUTE';
@@ -472,9 +503,10 @@
   function changeVolume(delta, channel) {
     channel = channel ? channel : getChannel();
 
-    muteState = getVolumeState(currentVolume[channel], delta, channel);
-
-    var volume = currentVolume[channel] + delta;
+    var vibrationEnabledOld = vibrationEnabled;
+    var volume = calculateVolume(currentVolume[channel], delta, channel);
+    muteState =
+      getVibrationAndMuteState(currentVolume[channel], delta, channel);
 
     // Silent mode entry point
     if (volume <= 0 && delta < 0 && channel == 'notification') {
@@ -501,28 +533,22 @@
     switch (muteState) {
       case 'OFF':
         classes.remove('mute');
-        if (vibrationEnabled) {
-          classes.add('vibration');
-        } else {
-          classes.remove('vibration');
-        }
         break;
       case 'MUTE':
         classes.add('mute');
-        if (channel == 'notification') {
-          if (vibrationEnabled) {
-            classes.add('vibration');
-            SettingsListener.getSettingsLock().set({
-                'vibration.enabled': true
-            });
-          } else {
-            classes.remove('vibration');
-            SettingsListener.getSettingsLock().set({
-                'vibration.enabled': false
-            });
-          }
-        }
         break;
+    }
+
+    if (vibrationEnabled) {
+      classes.add('vibration');
+    } else {
+      classes.remove('vibration');
+    }
+
+    if (vibrationEnabledOld != vibrationEnabled) {
+      SettingsListener.getSettingsLock().set({
+        'vibration.enabled': vibrationEnabled
+      });
     }
 
     var steps =

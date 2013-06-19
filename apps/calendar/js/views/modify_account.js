@@ -140,22 +140,28 @@ Calendar.ns('Views').ModifyAccount = (function() {
       }, this);
     },
 
-    deleteRecord: function() {
+    deleteRecord: function(e) {
+      if (e) {
+        e.preventDefault();
+      }
+
       var app = this.app;
       var id = this.model._id;
       var store = app.store('Account');
 
-      store.remove(id, function() {
-        // semi-hack clear the :target - harmless in tests
-        // but important in the current UI because css :target
-        // does not get cleared (for some reason)
-        window.location.replace('#');
+      // begin the removal (which will emit the preRemove event) but don't wait
+      // for it to complete...
+      store.remove(id);
 
-        // TODO: in the future we may want to store the entry
-        // url of this view and use that instead of this
-        // hard coded value...
-        app.router.show('/advanced-settings/');
-      });
+      // semi-hack clear the :target - harmless in tests
+      // but important in the current UI because css :target
+      // does not get cleared (for some reason)
+      window.location.replace('#');
+
+      // TODO: in the future we may want to store the entry
+      // url of this view and use that instead of this
+      // hard coded value...
+      app.router.show('/advanced-settings/');
     },
 
     cancel: function(event) {
@@ -166,7 +172,12 @@ Calendar.ns('Views').ModifyAccount = (function() {
       window.back();
     },
 
-    save: function(options) {
+    save: function(options, e) {
+
+      if (e) {
+        e.preventDefault();
+      }
+
       var list = this.element.classList;
       var self = this;
 
@@ -275,6 +286,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
         throw new Error('must provider model to ModifyAccount');
       }
 
+      this.form.addEventListener('submit', this._boundSaveUpdateModel);
       this.saveButton.addEventListener('click', this._boundSaveUpdateModel);
       this.backButton.addEventListener('click', this.cancel);
 
@@ -337,6 +349,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
                                                   this.cancel);
       this.backButton.removeEventListener('click',
                                                 this.cancel);
+      this.form.removeEventListener('submit', this._boundSaveUpdateModel);
     },
 
     dispatch: function(data) {

@@ -13,6 +13,7 @@ var MockCommon = function(config) {
   config = config || {};
 
   return {
+    COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
     isValidICCID: function(iccid) {
       assert.isDefined(
         config.isValidICCID,
@@ -26,8 +27,8 @@ var MockCommon = function(config) {
     checkSIMChange: function(callback) {
       callback();
     },
-    startFTE: function() {
-      var event = new CustomEvent('ftestarted');
+    startFTE: function(mode) {
+      var event = new CustomEvent('ftestarted', { detail: mode });
       window.dispatchEvent(event);
     },
     startApp: function() {

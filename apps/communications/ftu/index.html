@@ -17,7 +17,6 @@
   <link  rel="stylesheet"type="text/css" href="/shared/style/status.css" rel="stylesheet">
 
   <!-- Specific style -->
-  <link rel="stylesheet" type="text/css" href="/contacts/style/transitions.css">
   <link rel="stylesheet" type="text/css" href="/contacts/style/animations.css">
   <link rel="stylesheet" type="text/css" href="/contacts/style/overlay.css">
   <link rel="stylesheet" type="text/css" href="/contacts/style/status.css">
@@ -61,6 +60,7 @@
   <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
   <script defer type="text/javascript" src="/shared/js/wifi_helper.js"></script>
   <script defer type="text/javascript" src="/ftu/js/sim_manager.js"></script>
+  <script defer type="text/javascript" src="/contacts/js/import_utils.js"></script>
   <script defer type="text/javascript" src="/ftu/js/sd_manager.js"></script>
   <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
   <script defer type="text/javascript" src="/ftu/js/import_services.js"></script>
@@ -115,7 +115,7 @@
 
       <section id="xckcode-screen" role="region">
         <label id="xck-label" data-l10n-id="type_nck">Type your NCK code</label>
-        <label id="xkc-retries-left" data-l10n-id="inputCodeRetriesLeft">Unknown tries left</label>
+        <label id="xck-retries-left" data-l10n-id="inputCodeRetriesLeft">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="xck-input" name="simxck" type="password"  x-inputmode="digit" size="16" maxlength="16" />
           <label id="xck-error" data-l10n-id="confirm_newpin" class="hidden error"></label>
@@ -177,8 +177,13 @@
         </section>
       </section>
       <section role="region" id="wifi">
-        <article id="networks" role="main">
-        </article>
+        <div id="wifi-wrapper" role="main">
+          <article id="networks">
+          </article>
+          <button id="join-hidden-button">
+              Join hidden network
+          </button>
+        </div>
       </section>
       <section role="region" id="configure_network">
         <section id="configure_network_params">
@@ -196,6 +201,44 @@
           </form>
         </section>
       </section>
+      <section role="region" id="hidden-wifi-authentication">
+        <div>
+          <form>
+            <label id="label_wifi_ssid" for="wifi_ssid" data-l10n-id="ssid-name">
+              SSID Network Name
+            </label>
+            <input type="text" name="wifi_ssid" id="hidden-wifi-ssid"/>
+
+            <label id="label_wifi_security" for="wifi_security" data-l10n-id="security">
+              Security
+            </label>
+            <select id="hidden-wifi-security">
+              <option data-l10n-id="securityNone">none</option>
+              <option>WEP</option>
+              <option selected>WPA-PSK</option>
+              <option>WPA-EAP</option>
+            </select>
+
+            <div class="hidden" id="hidden-wifi-identity-box">
+              <label id="label_wifi_identity" for="wifi_identity" data-l10n-id="identity">
+                Identity
+              </label>
+              <input type="text" name="wifi_identity" id="hidden-wifi-identity"/>
+            </div>
+
+            <label id="label_hidden_wifi_password" for="wifi_hidden_password" data-l10n-id="password">
+              Password
+            </label>
+            <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value=""/>
+            <label id="label_show_password">
+              <input type="checkbox" id="hidden-wifi-show-password">
+              <span></span>
+              <p data-l10n-id="showPassword">Show Password</p>
+            </label>
+          </form>
+        </div>
+      </section>
+
       <section role="region" id="date_and_time">
         <section id="time_zone_overlay" class="gmt0">
         </section>
@@ -249,7 +292,7 @@
               <aside class="pack-end">
                 <label>
                   <input type="checkbox" data-type="switch" id="geolocation-switch" name="geolocation.enabled" checked>
-                  <span></span>geolocation
+                  <span></span>
                 </label>
               </aside>
               <p id="geolocationSwitchLabel" data-l10n-id="geolocationCheckbox"></p>
@@ -258,7 +301,7 @@
         </article>
         <header><h2 id="geolocationNotice" data-l10n-id="notice"></h2></header>
         <section class="content">
-          <p id="geolocationInfo" data-l10n-id="geolocationInfo">Some text here</p>
+          <p id="geolocationInfo" data-l10n-id="geolocationInfo2">Some text here</p>
           <p id="geolocationInfoMore" data-l10n-id="geolocationInfoMore">Some text here</p>
           <p><a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy">Your Privacy</a></p>
         </section>

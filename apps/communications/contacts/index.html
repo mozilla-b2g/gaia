@@ -131,6 +131,21 @@
 
       </section>    <!-- Search view -->
 
+      <section id='view-screenshot' role="region" class="view hide">
+        <header>
+          <a href="#" class="hide">
+            <span class="icon icon-close" data-l10n-id="exit">Exit</span>
+          </a>
+          <menu type="toolbar">
+            <button role="menuitem"><span class="icon icon-add" data-l10n-id="add">add</span></button>
+            <button role="menuitem"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
+          </menu>
+          <h1 data-l10n-id="contacts">Contacts</h1>
+        </header>
+        <article id="view-screenshot-body">
+        </article>
+      </section>
+
       <!-- Contact Details Section -->
       <section id='view-contact-details' role="region" class="view view-right view-contact-profile">
         <header id='details-view-header'>
@@ -462,26 +477,30 @@
               <h2 data-l10n-id="importContactsTitle">Import Contacts</h2>
             </header>
             <ul data-type="list" id="importSources">
-              <li id="settingsSIM">
+              <li id="settingsSIM" data-source="sim">
                 <button class="icon icon-sim" data-l10n-id="importSim2">
                   SIM card
+                  <p><span></span><time></time></p>
                 </button>
                 <p id="no-sim" data-l10n-id="noSimMsg"></p>
               </li>
-              <li id="settingsStorage">
+              <li id="settingsStorage" data-source="sd">
                 <button class="icon icon-sd" data-l10n-id="importSd">
                   Memory card
+                  <p><span></span><time></time></p>
                 </button>
                 <p id="no-sd" data-l10n-id="noSdMsg"></p>
               </li>
-              <li class="importService">
+              <li class="importService" data-source="gmail">
                 <button class="icon icon-gmail" data-l10n-id="importGmail">
                   Gmail
+                  <p><span></span><time></time></p>
                 </button>
               </li>
-              <li class="importService">
+              <li class="importService" data-source="live">
                 <button class="icon icon-live" data-l10n-id="importOutlook">
                   Outlook
+                  <p><span></span><time></time></p>
                 </button>
               </li>
             </ul>

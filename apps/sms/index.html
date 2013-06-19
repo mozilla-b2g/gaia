@@ -50,7 +50,7 @@
             <a href="#new" id="icon-add">
               <span class="icon icon-compose"></span>
             </a>
-            <a href="#edit" id="threads-edit-icon">
+            <a id="threads-edit-icon">
               <span class="icon icon-edit"></span>
             </a>
           </menu>
@@ -97,13 +97,13 @@
             <span class="icon icon-back"></span>
           </a>
           <menu type="toolbar">
-            <a href="#edit" id="icon-edit">
+            <a id="messages-edit-icon">
               <span class="icon icon-edit"></span>
             </a>
           </menu>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
         </header>
-        <div class="subheader">
+        <div id="messages-subheader" class="subheader">
           <menu type="toolbar">
             <a id="messages-contact-pick-button">
               <span class="icon icon-user"></span>
@@ -113,24 +113,32 @@
             <section data-l10n-id="to" id="to-label">
               To:
             </section>
-            <section id="messages-recipients-list">
+            <section id="messages-recipients-list" class="singleline">
             </section>
           </section>
+          <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
+            Carrier unknown
+          </div>
           <section id="messages-max-length-notice"
                   role="notification"
                   class="hide">
             <p></p>
           </section>
-          <section id="messages-convert-notice"
-                  role="notification"
-                  class="hide">
-            <p></p>
-          </section>
-          <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
-            Carrier unknown
+          <!-- Notifications in this container will be rendered on top of the
+          Compose field. These notifications should be hidden automatically so
+          they do not prevent the user from inputting text. -->
+          <div class="overlay">
+            <section id="messages-convert-notice"
+                    role="notification"
+                    class="hide">
+              <p></p>
+            </section>
           </div>
         </div>
-        <article id="messages-container" class="view-body" data-type="list">
+        <article id="messages-container" class="view-body article-list" data-type="list">
+        </article>
+        <article id="messages-participants" class="view-body article-list hide" data-type="list">
+          <ul id="messages-participants-list" class="contact-list"></ul>
         </article>
         <form role="search" id="messages-compose-form" class="bottom messages-compose-form" data-message-type="sms">
           <button id="messages-attach-button" class="icon icon-attachment">Attachment</button>
@@ -191,8 +199,16 @@
         data-number="${number}" data-source="contacts" data-name="${name}">
         <p class="name">${nameHTML}</p>
         <p>
-          ${type} ${numberHTML}
+          ${type}${separator}${carrier}${numberHTML}
         </p>
+      </a>
+      -->
+    </div>
+
+    <div id="messages-number-tmpl" class="hide">
+      <!--
+      <a class="suggestion" data-number="${number}" data-source="manual" data-name="${number}">
+        <p class="name">${number}</p>
       </a>
       -->
     </div>
@@ -258,33 +274,16 @@
 
     <div id="attachment-tmpl" class="hide">
       <!--
-      <style>
-        body {
-          font-family: 'Feura Sans', sans-serif;
-        }
-        body.attachment {
-          margin: 0;
-          font-size: 1rem;
-        }
-        body.attachment img {
-          width: 100%;
-          height: 100%;
-        }
-        body.attachment div {
-          position: absolute;
-          bottom: 0;
-          right: 0;
-          left: 0;
-
-          padding: 0 0.4rem;
-
-          background: rgba(0, 0, 0, 0.6);
-          color: rgb(255, 255, 255);
-        }
-      </style>
-      <body class="attachment">
-        <img src="${uri}">
-        <div>${size}</div>
+      <head>
+        <meta charset="utf-8">
+        <base href="${baseURL}">
+        <link rel="stylesheet" type="text/css" href="style/attachment.css">
+      </head>
+      <body class="attachment ${draftClass}">
+        <div style="${inlineStyle}" class="placeholder ${type}-placeholder">
+          <div class="${errorClass}"></div>
+        </div>
+        <div class="size-indicator">${size}</div>
       </body>
       -->
     </div>

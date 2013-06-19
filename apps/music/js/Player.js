@@ -271,12 +271,14 @@ var PlayerView = {
   },
 
   getMetadata: function pv_getMetadata(blob, callback) {
-    parseAudioMetadata(blob, pv_gotMetadata, pv_metadataError);
+    parseAudioMetadata(blob, pv_gotMetadata, pv_metadataError.bind(this));
 
     function pv_gotMetadata(metadata) {
       callback(metadata);
     }
     function pv_metadataError(e) {
+      if (this.onerror)
+        this.onerror(e);
       console.warn('parseAudioMetadata: error parsing metadata - ', e);
     }
   },
@@ -297,6 +299,10 @@ var PlayerView = {
     // An object URL must be released by calling URL.revokeObjectURL()
     // when we no longer need them
     this.audio.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
+    this.audio.onerror = (function(evt) {
+      if (this.onerror)
+        this.onerror(evt);
+    }).bind(this);
     // when play a new song, reset the seekBar first
     // this can prevent showing wrong duration
     // due to b2g cannot get some mp3's duration

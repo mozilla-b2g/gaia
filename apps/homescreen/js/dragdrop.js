@@ -206,6 +206,10 @@ const DragDropManager = (function() {
   }
 
   function drop(page) {
+    if (!overlapElem) {
+      return;
+    }
+
     var classList = overlapElem.classList;
     if (classList.contains('icon')) {
       var overlapIcon = GridManager.getIcon(overlapElem.dataset);
@@ -252,6 +256,10 @@ const DragDropManager = (function() {
     }
 
     var newOverlapElem = overlapElem;
+    if (!newOverlapElem) {
+      return;
+    }
+
     if (overlapElem.classList.contains('page')) {
       // We are on the grid but not icon
       newOverlapElem = document.elementFromPoint(x, y);
@@ -310,16 +318,11 @@ const DragDropManager = (function() {
   }
 
   function onEnd(evt) {
-    // No multi-touch
-    if (evt.target !== originElem)
-      return;
-
     clearTimeout(overlapingTimeout);
     window.removeEventListener(touchmove, onMove);
     window.removeEventListener(touchend, onEnd);
     stop(function dg_stop() {
-      DockManager.onDragStop();
-      GridManager.onDragStop();
+      DockManager.onDragStop(GridManager.onDragStop);
     });
   }
 
@@ -332,7 +335,7 @@ const DragDropManager = (function() {
   var DragLeaveEventManager = (function() {
 
     // List of pending events
-    var events = [];
+    var events = [], working = false;
 
     var DragLeaveEvent = function(page, callback, reflow) {
       this.page = page;
@@ -341,6 +344,7 @@ const DragDropManager = (function() {
     };
 
     DragLeaveEvent.prototype.send = function() {
+      working = true;
       var self = this;
 
       // For some reason, moving a node re-triggers the blob URI to be validated
@@ -349,8 +353,11 @@ const DragDropManager = (function() {
         self.page.onDragLeave(function done() {
           self.callback(function() {
             // Check pending operations
-            events.length == 0 ? isDisabledDrag = false : events.shift().send();
-            window.URL.revokeObjectURL(url);
+            events.length == 0 ? isDisabledDrag = working = false :
+                                 events.shift().send();
+            setTimeout(function() {
+              window.URL.revokeObjectURL(url);
+            });
           });
         }, self.reflow);
       });
@@ -375,7 +382,7 @@ const DragDropManager = (function() {
       send: function(page, callback, reflow) {
         isDisabledDrag = true;
         var event = new DragLeaveEvent(page, callback, reflow);
-        events.length === 0 ? event.send() : events.push(event);
+        events.length === 0 && !working ? event.send() : events.push(event);
       }
     };
   }());
@@ -398,8 +405,8 @@ const DragDropManager = (function() {
      * @param {Object} DOM event
      */
     start: function ddm_start(evt, initCoords) {
-      window.addEventListener(touchmove, onMove);
       window.addEventListener(touchend, onEnd);
+      window.addEventListener(touchmove, onMove);
       GridManager.onDragStart();
       DockManager.onDragStart();
       sx = initCoords.x;

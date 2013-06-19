@@ -3437,7 +3437,7 @@ define('mailapi/mailchew',
 
 var DESIRED_SNIPPET_LENGTH = 100;
 
-var RE_RE = /^[Rr][Ee]: /;
+var RE_RE = /^[Rr][Ee]:/;
 
 /**
  * Generate the reply subject for a message given the prior subject.  This is
@@ -3462,10 +3462,34 @@ var RE_RE = /^[Rr][Ee]: /;
  * http://mxr.mozilla.org/comm-central/ident?i=NS_MsgStripRE for more details.
  */
 exports.generateReplySubject = function generateReplySubject(origSubject) {
-  if (RE_RE.test(origSubject))
+  var re = 'Re: ';
+  if (origSubject) {
+    if (RE_RE.test(origSubject))
       return origSubject;
-  return 'Re: ' + origSubject;
+
+    return re + origSubject;
+  }
+  return re;
 };
+
+var FWD_FWD = /^[Ff][Ww][Dd]:/;
+
+/**
+ * Generate the foward subject for a message given the prior subject.  This is
+ * simply prepending "Fwd: " to the message if it does not already have an
+ * "Fwd:" equivalent.
+ */
+exports.generateForwardSubject = function generateForwardSubject(origSubject) {
+  var fwd = 'Fwd: ';
+  if (origSubject) {
+    if (FWD_FWD.test(origSubject))
+      return origSubject;
+
+    return fwd + origSubject;
+  }
+  return fwd;
+};
+
 
 var l10n_wroteString = '{name} wrote',
     l10n_originalMessageString = 'Original Message';
@@ -3489,7 +3513,7 @@ var l10n_forward_header_labels = {
   from: 'From',
   replyTo: 'Reply-To',
   to: 'To',
-  cc: 'CC',
+  cc: 'CC'
 };
 
 exports.setLocalizedStrings = function(strings) {
@@ -3504,7 +3528,7 @@ exports.setLocalizedStrings = function(strings) {
 if ($mailchewStrings.strings) {
   exports.setLocalizedStrings($mailchewStrings.strings);
 }
-$mailchewStrings.events.on('strings', function (strings) {
+$mailchewStrings.events.on('strings', function(strings) {
   exports.setLocalizedStrings(strings);
 });
 
@@ -3578,7 +3602,7 @@ exports.generateReplyBody = function generateReplyMessage(reps, authorPair,
  * Generate the body of an inline forward message.  XXX we need to generate
  * the header summary which needs some localized strings.
  */
-exports.generateForwardMessage = 
+exports.generateForwardMessage =
   function(author, date, subject, headerInfo, bodyInfo, identity) {
 
   var textMsg = '\n\n', htmlMsg = null;

@@ -1,0 +1,41 @@
+.appWindow > iframe {
+  z-index: 1;
+  visibility: visible;
+}
+
+.appError {
+  display: none;
+  background-color: black;
+  z-index: 0;
+}
+
+.appWindow > .appError {
+  background-color: black;
+}
+
+.appError.visible {
+  z-index: 1024;
+  display: block;
+}
+
+
+.appWindow > .screenshot-overlay {
+  z-index: -1;
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: '#0186d1';
+  pointer-events: none;
+}
+
+.appWindow > .screenshot-overlay.visible {
+  z-index: 2;
+  display: block;
+}
+
+.appWindow > iframe.hidden {
+  visibility: hidden;
+}

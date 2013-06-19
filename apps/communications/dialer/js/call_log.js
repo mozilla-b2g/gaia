@@ -551,6 +551,7 @@ var CallLog = {
 
   showEditMode: function cl_showEditMode() {
     this.headerEditModeText.textContent = this._('edit');
+    this.deleteButton.classList.add('disabled');
     document.body.classList.add('recents-edit');
   },
 

@@ -45,6 +45,21 @@ Calendar.EventMutations = (function() {
 
   var Calc = Calendar.Calc;
 
+  /**
+   * Create a single instance busytime for the given event object.
+   *
+   * @param {Object} event to create busytime for.
+   */
+  function createBusytime(event) {
+    return {
+      _id: event._id + '-' + uuid.v4(),
+      eventId: event._id,
+      calendarId: event.calendarId,
+      start: event.remote.start,
+      end: event.remote.end
+    };
+  }
+
   function Create(options) {
     if (options) {
       for (var key in options) {
@@ -81,9 +96,7 @@ Calendar.EventMutations = (function() {
       eventStore.persist(this.event, trans);
 
       if (!this.busytime) {
-        this.busytime = busytimeStore.factory(
-          this.event
-        );
+        this.busytime = createBusytime(this.event);
       }
 
       busytimeStore.persist(this.busytime, trans);

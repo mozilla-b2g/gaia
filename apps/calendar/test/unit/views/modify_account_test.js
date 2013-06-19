@@ -246,13 +246,8 @@ suiteGroup('Views.ModifyAccount', function() {
 
       triggerEvent(subject.deleteButton, 'click');
 
-      assert.ok(!calledShow, 'did not redirect before-removal');
       assert.ok(calledRemove, 'called remove');
       assert.equal(calledRemove[0], model._id, 'removes right id');
-
-      var removeCb = calledRemove[calledRemove.length - 1];
-
-      removeCb();
 
       assert.deepEqual(
         calledShow,
@@ -640,6 +635,27 @@ suiteGroup('Views.ModifyAccount', function() {
           'is ignored after destroy'
         );
       });
+    });
+
+    suite('submit form', function() {
+
+      setup(function() {
+        account.user = 'foo';
+        subject.fields.password.value = 'foo';
+        subject.render();
+      });
+
+      test('default is prevented', function(done) {
+        subject.element.addEventListener('submit', function(e) {
+          assert.ok(e.defaultPrevented);
+          done();
+        });
+
+        subject.accountHandler.send = function(model) {};
+
+        triggerEvent(subject.form, 'submit');
+      });
+
     });
   });
 

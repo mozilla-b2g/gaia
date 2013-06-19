@@ -457,9 +457,20 @@ var WindowManager = (function() {
     dispatchEvent(new CustomEvent('appclose'));
   }
 
-  windows.addEventListener('mozbrowserloadend', function firstpaint(evt) {
+  windows.addEventListener('mozbrowserloadend', function loadend(evt) {
     var iframe = evt.target;
     delete iframe.dataset.unloaded;
+    var backgroundColor = evt.detail.backgroundColor;
+    /* When rotating the screen, the child may take some time to reflow.
+     * If the child takes longer than layers.orientation.sync.timeout
+     * to respond, gecko will go ahead and draw anyways. This code
+     * uses a simple heuristic to guess the least distracting color
+     * we should draw in the blank space. */
+
+    /* Only allow opaque colors */
+    if (backgroundColor.indexOf('rgb(') != -1) {
+      iframe.style.backgroundColor = backgroundColor;
+    }
   });
 
   windows.addEventListener('mozbrowservisibilitychange',
@@ -938,6 +949,14 @@ var WindowManager = (function() {
     AttentionScreen.showForOrigin(newApp);
   }
 
+  function setOrientationForInlineActivity(frame) {
+    if ('orientation' in frame.dataset) {
+      screen.mozLockOrientation(frame.dataset.orientation);
+    } else {  // If no orientation was requested, then let it rotate
+      screen.mozUnlockOrientation();
+    }
+  }
+
   function setOrientationForApp(origin) {
     if (origin == null) { // No app is currently running.
       screen.mozLockOrientation('portrait-primary');
@@ -961,8 +980,7 @@ var WindowManager = (function() {
           setAppSize(origin);
         }
       }
-    }
-    else {  // If no orientation was requested, then let it rotate
+    } else {  // If no orientation was requested, then let it rotate
       screen.mozUnlockOrientation();
     }
   }
@@ -1083,7 +1101,8 @@ var WindowManager = (function() {
       manifestURL: manifestURL,
       frame: frame,
       iframe: iframe,
-      launchTime: 0
+      launchTime: 0,
+      isHomescreen: (manifestURL === homescreenManifestURL)
     });
     runningApps[origin] = app;
 
@@ -1155,6 +1174,11 @@ var WindowManager = (function() {
     if ('setVisible' in iframe)
       iframe.setVisible(true);
 
+    if ('orientation' in manifest) {
+      frame.dataset.orientation = manifest.orientation;
+      setOrientationForInlineActivity(frame);
+    }
+
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
       openFrame.classList.add('active');
@@ -1222,7 +1246,7 @@ var WindowManager = (function() {
     } else {
       // stop all activity frames
       // Remore the inlineActivityFrame reference
-      inlineActivityFrames.foreach(function(frame) {
+      inlineActivityFrames.forEach(function(frame) {
         removeInlineFrame(frame);
       });
       inlineActivityFrames = [];
@@ -1231,6 +1255,7 @@ var WindowManager = (function() {
     if (!inlineActivityFrames.length) {
       // Give back focus to the displayed app
       var app = runningApps[displayedApp];
+      setOrientationForApp(displayedApp);
       if (app && app.iframe) {
         app.iframe.focus();
         if ('wrapper' in app.frame.dataset) {
@@ -1238,6 +1263,9 @@ var WindowManager = (function() {
         }
       }
       screenElement.classList.remove('inline-activity');
+    } else {
+      setOrientationForInlineActivity(
+        inlineActivityFrames[inlineActivityFrames.length - 1]);
     }
   }
 
@@ -1479,10 +1507,11 @@ var WindowManager = (function() {
       case 'will-unlock':
         if (LockScreen.locked)
           return;
+
         if (inlineActivityFrames.length) {
           setVisibilityForInlineActivity(true);
         } else {
-          setVisibilityForCurrentApp(true);
+          runningApps[displayedApp].setVisible(true);
         }
         resetDeviceLockedTimer();
         break;
@@ -1499,7 +1528,7 @@ var WindowManager = (function() {
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         if (!normalAudioChannelActive) {
-          setVisibilityForCurrentApp(false);
+          runningApps[displayedApp].setVisible(false);
         }
         resetDeviceLockedTimer();
         break;
@@ -1518,7 +1547,12 @@ var WindowManager = (function() {
             if (inlineActivityFrames.length) {
               setVisibilityForInlineActivity(false);
             } else {
-              setVisibilityForCurrentApp(false);
+              /**
+               * We only retain the screenshot layer
+               * when attention screen drops.
+               * Otherwise we just bring the app to background.
+               */
+              runningApps[displayedApp].setVisible(false, true);
             }
           }, 3000);
 
@@ -1553,7 +1587,7 @@ var WindowManager = (function() {
           if (normalAudioChannelActive && evt.detail.channel !== 'normal' &&
               LockScreen.locked) {
             deviceLockedTimer = setTimeout(function setVisibility() {
-              setVisibilityForCurrentApp(false);
+              runningApps[displayedApp].setVisible(false);
             }, 3000);
           }
 

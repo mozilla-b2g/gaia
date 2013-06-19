@@ -255,21 +255,63 @@ const IMERender = (function() {
         candidatePanel.dataset.truncated = true;
       }
 
+      // Make sure all of the candidates are defined
+      candidates = candidates.filter(function(c) { return !!c });
+
       candidates.forEach(function buildCandidateEntry(candidate) {
-        var span = document.createElement('span');
-        span.dataset.selection = true;
+        // Each candidate gets its own div
+        var div = document.createElement('div');
+        // Size the div based on the # of candidates (-2% for margins)
+        div.style.width = (100 / candidates.length - 2) + '%';
+        candidatePanel.appendChild(div);
+
+        var text, data, correction = false;
         if (typeof candidate === 'string') {
           if (candidate[0] === '*') { // it is an autocorrection candidate
             candidate = candidate.substring(1);
-            span.classList.add('autocorrect');
+            correction = true;
           }
-          span.dataset.data = span.textContent = candidate;
+          data = text = candidate;
         }
         else {
-          span.dataset.data = candidate[1];
-          span.textContent = candidate[0];
+          text = candidate[0];
+          data = candidate[1];
         }
-        candidatePanel.appendChild(span);
+
+        var span = fitText(div, text);
+        span.dataset.selection = true;
+        span.dataset.data = data;
+        if (correction)
+          span.classList.add('autocorrect');
+
+        // Put the text in a span and make it fit in the container
+        function fitText(container, text) {
+          container.textContent = '';
+          if (!text)
+            return;
+          var span = document.createElement('span');
+          span.textContent = text;
+          container.appendChild(span);
+
+          // This measurement only works if the span is display:inline
+          var textWidth = span.getBoundingClientRect().width;
+          var containerWidth = container.clientWidth;
+
+          // But the scaling and centering we do only works if the span
+          // is display:block (or inline-block), so we that style now.
+          span.style.display = 'inline-block';
+          if (textWidth > containerWidth) {
+            var scale = containerWidth / textWidth;
+            span.style.width = (100 / scale) + '%';
+            span.style.transformOrigin = 'left';
+            span.style.transform = 'scale(' + scale + ',1)';
+          }
+          else {
+            span.style.width = '100%';
+          }
+
+          return span;
+        }
       });
     }
   };

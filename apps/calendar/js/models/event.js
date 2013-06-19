@@ -151,6 +151,10 @@ Calendar.ns('Models').Event = (function() {
     },
 
     set calendarId(value) {
+      if (value && typeof(value) !== 'number') {
+        value = Calendar.probablyParseInt(value);
+      }
+
       this.data.calendarId = value;
     },
 

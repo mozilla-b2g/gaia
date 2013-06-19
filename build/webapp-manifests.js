@@ -67,11 +67,7 @@ function checkOrigin(origin) {
   }
 }
 
-Gaia.webapps.forEach(function (webapp) {
-  // If BUILD_APP_NAME isn't `*`, we only accept one webapp
-  if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
-    return;
-
+function fillAppManifest(webapp) {
   // Compute webapp folder name in profile
   let webappTargetDirName = webapp.domain;
 
@@ -86,12 +82,12 @@ Gaia.webapps.forEach(function (webapp) {
   // appStatus == 1 means this is an installed (unprivileged) app
 
   var localId = id++;
-  // localId start from 1 in release build. For BROWSER=1 build the system
+  // localId start from 1 in release build. For DESKTOP=1 build the system
   // app can run inside Firefox desktop inside a regular tab and so the
   // permissions set based on a principal are not working.
   // To make it works the system app will be assigned an id of 0, which
   // is the equivalent of the const NO_APP_ID.
-  if (BROWSER && webappTargetDirName == ('system.' + GAIA_DOMAIN)) {
+  if (DESKTOP && webappTargetDirName == ('system.' + GAIA_DOMAIN)) {
     localId = 0;
   }
 
@@ -105,21 +101,12 @@ Gaia.webapps.forEach(function (webapp) {
     appStatus:     getAppStatus(webapp.manifest.type),
     localId:       localId
   };
+}
 
-});
 
 let errors = [];
 
-// Process external webapps from /gaia/external-app/ folder
-Gaia.externalWebapps.forEach(function (webapp) {
-  // If BUILD_APP_NAME isn't `*`, we only accept one webapp
-  if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
-    return;
-
-  if (!webapp.metaData) {
-    return;
-  }
-
+function fillExternalAppManifest(webapp) {
   // Compute webapp folder name in profile
   let webappTargetDirName = webapp.sourceDirectoryName;
 
@@ -231,7 +218,19 @@ Gaia.externalWebapps.forEach(function (webapp) {
     packageEtag:   packageEtag,
     appStatus:     getAppStatus(webapp.metaData.type || "web"),
   };
+}
 
+Gaia.webapps.forEach(function (webapp) {
+  // If BUILD_APP_NAME isn't `*`, we only accept one webapp
+  if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME) {
+    return;
+  }
+
+  if (webapp.metaData) {
+    fillExternalAppManifest(webapp);
+  } else {
+    fillAppManifest(webapp);
+  }
 });
 
 if (errors.length) {
@@ -248,4 +247,3 @@ manifestFile.append('webapps.json');
 
 // stringify json with 2 spaces indentation
 writeContent(manifestFile, JSON.stringify(manifests, null, 2) + '\n');
-

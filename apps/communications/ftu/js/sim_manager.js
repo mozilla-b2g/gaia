@@ -6,11 +6,15 @@ var SimManager = {
   _unlocked: false,
 
   init: function sm_init() {
+    this.icc = window.navigator.mozIccManager;
+    if (!this.icc)
+      return;
     this.mobConn = window.navigator.mozMobileConnection;
     if (!this.mobConn)
       return;
+    _ = navigator.mozL10n.get;
 
-    this.mobConn.addEventListener('icccardlockerror',
+    this.icc.addEventListener('icccardlockerror',
                                   this.handleUnlockError.bind(this));
     this.mobConn.addEventListener('cardstatechange',
                                   this.handleCardState.bind(this));
@@ -19,6 +23,7 @@ var SimManager = {
 
     Object.defineProperty(this,
                           'retryCount', {
+                            configurable: true,
                             get: function() {
                               return this.mobConn.retryCount;
                             }
@@ -249,7 +254,7 @@ var SimManager = {
 
     // Unlock SIM
     var options = {lockType: 'pin', pin: pin };
-    var req = this.mobConn.unlockCardLock(options);
+    var req = this.icc.unlockCardLock(options);
     req.onsuccess = (function sm_unlockSuccess() {
       this._unlocked = true;
       this.hideScreen();
@@ -298,7 +303,7 @@ var SimManager = {
 
     // Unlock SIM with PUK and new PIN
     var options = {lockType: 'puk', puk: pukCode, newPin: newpinCode };
-    var req = this.mobConn.unlockCardLock(options);
+    var req = this.icc.unlockCardLock(options);
     req.onsuccess = (function sm_unlockSuccess() {
       this._unlocked = true;
       this.hideScreen();
@@ -331,7 +336,7 @@ var SimManager = {
 
     // Unlock SIM
     var options = {lockType: lockType, pin: xck };
-    var req = this.mobConn.unlockCardLock(options);
+    var req = this.icc.unlockCardLock(options);
     req.onsuccess = (function sm_unlockSuccess() {
       this._unlocked = true;
       this.hideScreen();
@@ -364,6 +369,7 @@ var SimManager = {
 
     importer.onfinish = function sim_import_finish() {
       window.setTimeout(function do_sim_import_finish() {
+        window.importUtils.setTimestamp('sim');
         SimManager.alreadyImported = true;
         UIManager.navBar.removeAttribute('aria-disabled');
         utils.overlay.hide();

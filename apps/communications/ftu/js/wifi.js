@@ -18,22 +18,6 @@ var WifiManager = {
     }
   },
 
-  isConnectedTo: function wn_isConnectedTo(network) {
-    /**
-     * XXX the API should expose a 'connected' property on 'network',
-     * and 'gWifiManager.connection.network' should be comparable to 'network'.
-     * Until this is properly implemented, we just compare SSIDs and
-     * capabilities to tell wether the network is already connected or not.
-     */
-    var currentNetwork = this.api.connection.network;
-    if (!currentNetwork || this.api.connection.status != 'connected')
-      return false;
-    var key = network.ssid + '+' + network.capabilities.join('+');
-    var curkey = currentNetwork.ssid + '+' +
-        currentNetwork.capabilities.join('+');
-    return (key == curkey);
-  },
-
   scan: function wn_scan(callback) {
     utils.overlay.show(_('scanningNetworks'), 'spinner');
     var req = this.api.getNetworks();
@@ -79,27 +63,7 @@ var WifiManager = {
   connect: function wn_connect(ssid, password, user) {
     var network = this.getNetwork(ssid);
     this.ssid = ssid;
-    var key = WifiHelper.getKeyManagement(network);
-    switch (key) {
-      case 'WEP':
-        network.wep = password;
-        break;
-      case 'WPA-PSK':
-        network.psk = password;
-        break;
-      case 'WPA-EAP':
-        network.password = password;
-        if (user && user.length) {
-          network.identity = user;
-        }
-        break;
-      default:
-        // Connect directly
-        this.gCurrentNetwork = network;
-        this.api.associate(network);
-        return;
-    }
-    network.keyManagement = key;
+    WifiHelper.setPassword(network, password, user);
     this.gCurrentNetwork = network;
     this.api.associate(network);
   },
@@ -140,6 +104,30 @@ var WifiUI = {
     var user = document.getElementById('wifi_user').value;
     var ssid = document.getElementById('wifi_ssid').value;
     WifiUI.connect(ssid, password, user);
+    window.history.back();
+  },
+
+  joinHiddenNetwork: function wui_jhn() {
+    var password = UIManager.hiddenWifiPassword.value;
+    var user = UIManager.hiddenWifiIdentity.value;
+    var ssid = UIManager.hiddenWifiSsid.value;
+    var security = UIManager.hiddenWifiSecurity.value;
+    if (ssid.length) {
+      if (!Array.isArray(WifiManager.networks)) {
+        WifiManager.networks = [];
+      }
+
+      WifiManager.networks.push({
+          ssid: ssid,
+          capabilities: [security],
+          relSignalStrength: 0
+      });
+      this.renderNetworks(WifiManager.networks);
+      WifiUI.connect(ssid, password, user);
+    }
+
+    // like in Settings: if we don't provide correct
+    // network data it just get back to the wifi screen
     window.history.back();
   },
 
@@ -236,6 +224,23 @@ var WifiUI = {
     window.location.hash = '#configure_network';
   },
 
+  addHiddenNetwork: function wui_addHiddenNetwork() {
+    // Remove refresh option
+    UIManager.activationScreen.classList.add('no-options');
+    // Update title
+    UIManager.mainTitle.textContent = _('join-hidden-button');
+    UIManager.navBar.classList.add('secondary-menu');
+    window.location.hash = '#hidden-wifi-authentication';
+  },
+
+  handleHiddenWifiSecurity: function wui_handleSecurity(secuityType) {
+    if (securityType.indexOf('EAP') !== -1) {
+      UIManager.hiddenWifiIdentityBox.classList.remove('hidden');
+    } else {
+      UIManager.hiddenWifiIdentityBox.classList.add('hidden');
+    }
+  },
+
   renderNetworks: function wui_rn(networks) {
     var networksDOM = document.getElementById('networks');
     networksDOM.innerHTML = '';
@@ -277,7 +282,7 @@ var WifiUI = {
           ssidp.textContent = network.ssid;
           li.dataset.ssid = network.ssid;
           // Show authentication method
-          var keys = network.capabilities;
+          var keys = WifiHelper.getEncryptions(network);
 
           li.dataset.security = keys;
 
@@ -289,7 +294,7 @@ var WifiUI = {
           }
           // Show connection status
           icon.classList.add('wifi-signal');
-          if (WifiManager.isConnectedTo(network)) {
+          if (WifiHelper.isConnected(network)) {
             small.textContent = _('shortStatus-connected');
             icon.classList.add('connected');
             li.classList.add('connected');
@@ -304,7 +309,7 @@ var WifiUI = {
           li.appendChild(ssidp);
           li.appendChild(small);
           // Append to DOM
-          if (WifiManager.isConnectedTo(network)) {
+          if (WifiHelper.isConnected(network)) {
             networksList.insertBefore(li, networksList.firstChild);
           } else {
             networksList.appendChild(li);

@@ -74,6 +74,9 @@ contacts.Search = (function() {
     });
 
     searchList.parentNode.addEventListener('touchstart', function() {
+      if (searchableNodes && remainingPending) {
+        addRemainingResults(searchableNodes, SEARCH_PAGE_SIZE);
+      }
       blurList = true;
     });
     searchNoResult = document.getElementById('no-result');
@@ -327,8 +330,8 @@ contacts.Search = (function() {
   var search = function performSearch(searchDoneCb) {
     prevTextToSearch = currentTextToSearch;
 
-    currentTextToSearch = utils.text.normalize(searchBox.value.trim());
-    currentTextToSearch = utils.text.escapeRegExp(currentTextToSearch);
+    currentTextToSearch = Normalizer.toAscii(searchBox.value.trim());
+    currentTextToSearch = Normalizer.escapeRegExp(currentTextToSearch);
     var thisSearchText = new String(currentTextToSearch);
 
     if (thisSearchText.length === 0) {

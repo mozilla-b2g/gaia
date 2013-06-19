@@ -6,9 +6,13 @@
 */
 
 var LinkHelper = {
-  _urlRegex: new RegExp(['(^|\\s|,|;)[-\\w:%\\+.~#?&//=]{2,256}',
-    '\\.[a-z]{2,6}(?:\\/[-\\w:%\\+.~#?&//=]*)?'].
-    join(''), 'mgi'),
+  _urlRegex: new RegExp([
+      '(^|\\s|,|;|<br>)',             // right before
+      '(https?://)?',                 // protocol (if any)
+      '[-\\w%\\+.~#?&//=]{2,256}',    // server name
+      '\\.[a-z]{2,6}(:[0-9]{2,4})?',  // .domain[:port]
+      '(\\/[-\\w:%\\+.~#?;&//=]*)?'   // queries
+      ].join(''), 'mgi'),
   _emailRegex: /([\w\.-]+)@([\w\.-]+)\.([a-z\.]{2,6})/mgi,
   _phoneRegex: new RegExp(['(\\+?1?[-.]?\\(?([0-9]{3})\\)?',
     '[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?'].
@@ -28,7 +32,7 @@ var LinkHelper = {
       //to handle delimiter separated multiple links such as www.abc.com;df.com
       url = url.replace(delimiter, '');
 
-      linkText = delimiter + '<a href="#" data-url="' + httpPrefix +
+      linkText = delimiter + '<a data-url="' + httpPrefix +
                  url + '" data-action="url-link" >' +
                  url + '</a>';
       return linkText;
@@ -40,7 +44,7 @@ var LinkHelper = {
     return body.replace(this._emailRegex,
       function lh_processedEmail(email) {
         return [
-          '<a href="#" data-email="',
+          '<a data-email="',
           '" data-action="email-link">',
           '</a>'
         ].join(email);
@@ -51,7 +55,7 @@ var LinkHelper = {
     return phonetext.replace(this._phoneRegex,
     function lh_processedPhone(phone) {
       return [
-        '<a href="#" data-phonenumber="',
+        '<a data-phonenumber="',
         '" data-action="phone-link">',
         '</a>'
       ].join(phone);

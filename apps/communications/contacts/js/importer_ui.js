@@ -920,6 +920,7 @@ if (typeof window.importer === 'undefined') {
       theImporter.onsuccess = function(totalImported) {
         ongoingImport = false;
         window.setTimeout(function imported() {
+          window.importUtils.setTimestamp(serviceConnector.name);
           importedCB(totalImported);
         }, 0);
 

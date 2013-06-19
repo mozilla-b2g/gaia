@@ -128,10 +128,6 @@ Evme.Apps = new function Evme_Apps() {
     };
 
     this.clear = function clear() {
-        if (appsDataArray.length === 0) {
-            return false;
-        }
-        
         window.clearTimeout(timeoutAppsToDrawLater);
         for (var id in appsArray) {
             appsArray[id].remove();
@@ -560,7 +556,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
             }(app, icons[i], context, i, onReady));
           }
       }
-      
+  
       // add the app name
       Evme.Utils.writeTextToCanvas({
         "context": context,
@@ -572,6 +568,11 @@ Evme.IconGroup = new function Evme_IconGroup() {
   }
 
   function loadIcon(iconSrc, icon, context, index, onReady) {
+    if (!iconSrc) {
+      onIconLoaded(context, null, icon, index, onReady);
+      return false;
+    }
+
     var image = new Image();
 
     image.onload = function onImageLoad() {
@@ -629,6 +630,10 @@ Evme.IconGroup = new function Evme_IconGroup() {
         var image = obj.image,
             icon = obj.icon,
             size = icon.size * Evme.Utils.devicePixelRatio;
+        
+        if (!image) {
+          continue;
+        }
 
         // shadow
         context.shadowOffsetX = icon.shadowOffset;

@@ -523,8 +523,11 @@ var CardsView = (function() {
 
   function alignCurrentCard() {
     // We're going to release memory hiding card out of screen
-    deltaX < 0 ? prevCard.dispatchEvent(outViewPortEvent) :
-                 nextCard.dispatchEvent(outViewPortEvent);
+    if (deltaX < 0) {
+      prevCard && prevCard.dispatchEvent(outViewPortEvent);
+    } else {
+      nextCard && nextCard.dispatchEvent(outViewPortEvent);
+    }
 
     // Disable previous current card
     currentCardStyle.pointerEvents = 'none';
@@ -535,6 +538,10 @@ var CardsView = (function() {
                               currentCardStyle.MozTransition = CARD_TRANSITION;
 
     currentCard.addEventListener('transitionend', function transitionend() {
+      if (!currentCard) {
+        // removeCards method was called immediately without waiting
+        return;
+      }
       currentCard.removeEventListener('transitionend', transitionend);
       prevCardStyle.MozTransition = currentCardStyle.MozTransition =
       nextCardStyle.MozTransition = '';

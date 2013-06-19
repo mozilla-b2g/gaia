@@ -308,7 +308,11 @@ var Contacts = (function() {
           return;
         }
         contactsDetails.render(currentContact, TAG_OPTIONS);
-        navigation.go('view-contact-details', 'right-left');
+        if (contacts.Search.isInSearchMode()) {
+          navigation.go('view-contact-details', 'go-deeper-search');
+        } else {
+          navigation.go('view-contact-details', 'go-deeper');
+        }
       });
     });
   };
@@ -698,6 +702,9 @@ var Contacts = (function() {
       '/contacts/js/contacts_shortcuts.js',
       '/contacts/js/confirm_dialog.js',
       '/contacts/js/contacts_tag.js',
+      '/contacts/js/import_utils.js',
+      '/contacts/js/utilities/normalizer.js',
+      '/shared/js/text_normalizer.js',
       '/contacts/js/contacts_settings.js',
       '/contacts/js/contacts_details.js',
       '/contacts/js/contacts_form.js',
@@ -706,7 +713,6 @@ var Contacts = (function() {
       '/contacts/js/utilities/sdcard.js',
       '/contacts/js/utilities/vcard_parser.js',
       '/contacts/js/utilities/import_sim_contacts.js',
-      '/contacts/js/utilities/normalizer.js',
       '/contacts/js/utilities/status.js',
       '/contacts/js/utilities/overlay.js',
       '/contacts/js/utilities/dom.js',
@@ -716,7 +722,6 @@ var Contacts = (function() {
       '/shared/style/switches.css',
       '/shared/style/confirm.css',
       '/contacts/style/fixed_header.css',
-      '/contacts/style/transitions.css',
       '/contacts/style/animations.css',
       '/facebook/style/curtain_frame.css',
       '/contacts/style/status.css',
@@ -835,6 +840,10 @@ var Contacts = (function() {
         return;
       }
       Contacts.checkCancelableActivity();
+      if (document.mozHidden === false &&
+                                navigation.currentView() === 'view-settings') {
+        contacts.Settings.updateTimestamps();
+      }
     });
   };
 

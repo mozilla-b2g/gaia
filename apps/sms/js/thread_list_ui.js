@@ -8,6 +8,9 @@ var ThreadListUI = {
   // threads. Updated in ThreadListUI.renderThreads
   count: 0,
 
+  // Set to |true| when in edit mode
+  inEditMode: false,
+
   init: function thlui_init() {
     var _ = navigator.mozL10n.get;
 
@@ -25,6 +28,8 @@ var ThreadListUI = {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
 
+    this.mainWrapper = document.getElementById('main-wrapper');
+
     this.delNumList = [];
     this.fullHeight = this.container.offsetHeight;
 
@@ -41,7 +46,11 @@ var ThreadListUI = {
     );
 
     this.cancelButton.addEventListener(
-      'click', this.cancelEditMode.bind(this)
+      'click', this.cancelEdit.bind(this)
+    );
+
+    this.editIcon.addEventListener(
+      'click', this.startEdit.bind(this)
     );
 
     this.container.addEventListener(
@@ -51,6 +60,16 @@ var ThreadListUI = {
     this.editForm.addEventListener(
       'submit', this
     );
+  },
+
+  getAllInputs: function thlui_getAllInputs() {
+    if (this.container) {
+      return Array.prototype.slice.call(
+        this.container.querySelectorAll('input[type=checkbox]')
+      );
+    } else {
+      return [];
+    }
   },
 
   getSelectedInputs: function thlui_getSelectedInputs() {
@@ -132,26 +151,24 @@ var ThreadListUI = {
     var _ = navigator.mozL10n.get;
     var selected = ThreadListUI.selectedInputs.length;
 
-    if (selected === ThreadListUI.counter) {
+    if (selected === ThreadListUI.allInputs.length) {
       this.checkAllButton.disabled = true;
     } else {
       this.checkAllButton.disabled = false;
     }
     if (selected) {
       this.uncheckAllButton.disabled = false;
-      this.deleteButton.disabled = false;
+      this.deleteButton.classList.remove('disabled');
       this.editMode.innerHTML = _('selected', {n: selected});
     } else {
       this.uncheckAllButton.disabled = true;
-      this.deleteButton.disabled = true;
+      this.deleteButton.classList.add('disabled');
       this.editMode.innerHTML = _('editMode');
     }
   },
 
   cleanForm: function thlui_cleanForm() {
-    var inputs = this.container.querySelectorAll(
-      'input[type="checkbox"]'
-    );
+    var inputs = this.allInputs;
     var length = inputs.length;
     for (var i = 0; i < length; i++) {
       inputs[i].checked = false;
@@ -207,8 +224,8 @@ var ThreadListUI = {
       this.removeThread(threadId);
 
       if (--count === 0) {
+        this.cancelEdit();
         WaitingScreen.hide();
-        window.location.hash = '#thread-list';
       }
     }
 
@@ -252,8 +269,15 @@ var ThreadListUI = {
     ThreadListUI.editIcon.classList[addWhenEmpty]('disabled');
   },
 
-  cancelEditMode: function thlui_cancelEditMode() {
-    window.location.hash = '#thread-list';
+  startEdit: function thlui_edit() {
+    this.inEditMode = true;
+    this.cleanForm();
+    this.mainWrapper.classList.toggle('edit');
+  },
+
+  cancelEdit: function thlui_cancelEdit() {
+    this.inEditMode = false;
+    this.mainWrapper.classList.remove('edit');
   },
 
   renderThreads: function thlui_renderThreads(threads, renderCallback) {
@@ -271,7 +295,6 @@ var ThreadListUI = {
     // Refactor the rendering method: do not empty the entire
     // list on every render.
     ThreadListUI.container.innerHTML = '';
-    ThreadListUI.counter = threads.length;
 
     if (threads.length) {
       thlui_renderThreads.abort = function thlui_renderThreads_abort() {
@@ -414,7 +437,7 @@ var ThreadListUI = {
     if (!threadFound) {
       threadsContainer.appendChild(node);
     }
-    if (document.getElementById('main-wrapper').classList.contains('edit')) {
+    if (this.inEditMode) {
       this.checkInputs();
     }
   },
@@ -468,6 +491,12 @@ var ThreadListUI = {
     }
   }
 };
+
+Object.defineProperty(ThreadListUI, 'allInputs', {
+  get: function() {
+    return this.getAllInputs();
+  }
+});
 
 Object.defineProperty(ThreadListUI, 'selectedInputs', {
   get: function() {

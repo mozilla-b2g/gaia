@@ -104,9 +104,7 @@ var scanningBigImages = false;
 
 // The localized event is the main entry point for the app.
 // We don't do anything until we receive it.
-window.addEventListener('localized', function showBody() {
-  window.removeEventListener('localized', showBody);
-
+navigator.mozL10n.ready(function showBody() {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;

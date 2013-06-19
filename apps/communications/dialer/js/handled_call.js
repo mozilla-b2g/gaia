@@ -15,6 +15,8 @@ function HandledCall(aCall, aNode) {
   };
 
   this._initialState = this.call.state;
+  this._cachedInfo = '';
+  this._cachedAdditionalInfo = '';
 
   if (!aNode)
     return;
@@ -55,8 +57,6 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       break;
     case 'resuming':
       this.node.classList.remove('held');
-      break;
-    case 'resumed':
       if (this.photo) {
         CallScreen.setCallerContactImage(this.photo, true, false);
       }
@@ -136,15 +136,17 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
         };
         if (primaryInfo) {
           node.textContent = primaryInfo;
+          self._cachedInfo = primaryInfo;
         } else {
           LazyL10n.get(function gotL10n(_) {
-            node.textContent = _('withheld-number');
+            self._cachedInfo = _('withheld-number');
+            node.textContent = self._cachedInfo;
           });
         }
-        KeypadManager.formatPhoneNumber('end', true);
-        var additionalInfo =
+        self.formatPhoneNumber('end', true);
+        self._cachedAdditionalInfo =
           Utils.getPhoneNumberAdditionalInfo(matchingTel, contact, number);
-        KeypadManager.updateAdditionalContactInfo(additionalInfo);
+        self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
         if (contact.photo && contact.photo.length > 0) {
           self.photo = contact.photo[0];
           CallScreen.setCallerContactImage(self.photo, true, false);
@@ -163,10 +165,60 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
         return;
       }
 
-      node.textContent = number;
-      KeypadManager.formatPhoneNumber('end', true);
+      self._cachedInfo = number;
+      node.textContent = self._cachedInfo;
+      self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+      self.formatPhoneNumber('end', true);
     }
   );
+};
+
+HandledCall.prototype.replaceAdditionalContactInfo =
+  function hc_replaceAdditionalContactInfo(additionalContactInfo) {
+  if (!additionalContactInfo ||
+    additionalContactInfo.trim() === '') {
+    this.additionalInfoNode.textContent = '';
+    this.additionalInfoNode.classList.add('noAdditionalContactInfo');
+    this.numberNode.classList.add('noAdditionalContactInfo');
+  } else {
+    this.numberNode.classList.remove('noAdditionalContactInfo');
+    this.additionalInfoNode.classList.remove('noAdditionalContactInfo');
+    this.additionalInfoNode.textContent = additionalContactInfo;
+  }
+};
+
+HandledCall.prototype.restoreAdditionalContactInfo =
+  function hc_restoreAdditionalContactInfo(additionalContactInfo) {
+    this.replaceAdditionalContactInfo(this._cachedAdditionalInfo);
+};
+
+HandledCall.prototype.formatPhoneNumber =
+  function hc_formatPhoneNumber(ellipsisSide, maxFontSize) {
+    var fakeView = this.node.querySelector('.fake-number');
+    var view = this.numberNode;
+
+    var newFontSize;
+    if (maxFontSize) {
+      newFontSize = KeypadManager.maxFontSize;
+    } else {
+      newFontSize =
+        Utils.getNextFontSize(view, fakeView, KeypadManager.maxFontSize,
+          KeypadManager.minFontSize, kFontStep);
+    }
+    view.style.fontSize = newFontSize + 'px';
+    Utils.addEllipsis(view, fakeView, ellipsisSide);
+};
+
+HandledCall.prototype.replacePhoneNumber =
+  function hc_replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize) {
+    this.numberNode.textContent = phoneNumber;
+    this.formatPhoneNumber(ellipsisSide, maxFontSize);
+};
+
+HandledCall.prototype.restorePhoneNumber =
+  function hc_restorePhoneNumber() {
+    this.numberNode.textContent = this._cachedInfo;
+    this.formatPhoneNumber('end', true);
 };
 
 HandledCall.prototype.updateDirection = function hc_updateDirection() {

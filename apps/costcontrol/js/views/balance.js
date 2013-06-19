@@ -14,7 +14,12 @@ var BalanceTab = (function() {
 
   var view, updateButton;
   var topUpUSSD, topUp, topUpDialog, topUpCodeInput, sendCode, countdownSpan;
+  var topUpLayoutController;
   var costcontrol, initialized;
+
+  function showTopUpWithCode(evt) {
+    topUpWithCode();
+  }
 
   function setupTab() {
     if (initialized) {
@@ -40,6 +45,9 @@ var BalanceTab = (function() {
       topUpCodeInput = document.getElementById('topup-code-input');
       countdownSpan = document.getElementById('top-up-countdown');
 
+      // Controllers
+      topUpLayoutController = new TopUpLayoutController(topUpUSSD, topUp);
+
       window.addEventListener('localized', localize);
 
       // Configure updates
@@ -52,7 +60,7 @@ var BalanceTab = (function() {
 
       // Configure top up
       topUpUSSD.addEventListener('click', topUpWithUSSD);
-      topUp.addEventListener('click', topUpWithCode);
+      topUp.addEventListener('click', showTopUpWithCode);
       topUpCodeInput.addEventListener('input', toogleSend);
       sendCode.addEventListener('click', requestTopUp);
       ConfigManager.observe('waitingForTopUp', onConfirmation, true);
@@ -83,12 +91,13 @@ var BalanceTab = (function() {
     ConfigManager.removeObserver('errors', onBalanceTimeout);
 
     topUpUSSD.removeEventListener('click', topUpWithUSSD);
-    topUp.removeEventListener('click', topUpWithCode);
+    topUp.removeEventListener('click', showTopUpWithCode);
     topUpCodeInput.removeEventListener('input', toogleSend);
     sendCode.removeEventListener('click', requestTopUp);
     ConfigManager.removeObserver('waitingForTopUp', onConfirmation);
     ConfigManager.removeObserver('errors', onTopUpErrors);
 
+    topUpLayoutSet = false;
     initialized = false;
   }
 
@@ -239,9 +248,14 @@ var BalanceTab = (function() {
   }
 
   // USER INTERFACE
-
+  var topUpLayoutSet = false;
   function updateUI(force) {
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestAll(function _onSettings(configuration, settings) {
+
+      if (!topUpLayoutSet) {
+        topUpLayoutController.setupLayout(configuration.topup);
+        topUpLayoutSet = true;
+      }
 
       resetTopUpCountdown();
       updateBalance(settings.lastBalance,
@@ -409,6 +423,11 @@ var BalanceTab = (function() {
 
   // Decide which error should be shown taking in count error priorities
   function setError(error) {
+    // Ignore showing message if the message is not registered
+    if (!ERRORS[error]) {
+      return;
+    }
+
     debug('Error mode:', error);
     var messageArea = document.getElementById('cost-control-message-area');
     var message = document.getElementById('error-message-placeholder');
@@ -432,5 +451,4 @@ var BalanceTab = (function() {
     finalize: finalize
   };
 }());
-
 BalanceTab.initialize();

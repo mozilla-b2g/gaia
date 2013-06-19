@@ -3,37 +3,17 @@
   <head>
     <meta charset="utf-8">
     <title>Inline Activities Test</title>
+    <script defer src="../js/inlineactivities.js"></script>
     <style>
     button {
       font-size: 40px;
     }
 
     </style>
-    <script>
-
-    var go = function _go() {
-      var a = new MozActivity(
-        {
-          name: 'test',
-          data: {
-            type: 'inline'
-          }
-        }
-      );
-
-      a.onsuccess = function () {
-        document.getElementById('result').textContent = this.result.text;
-      };
-
-      a.onerror = function() {
-        document.getElementById('result').textContent = '(canceled)';
-      };
-    };
-    </script>
   </head>
   <body>
     <h1>Inline Activities Test</h1>
-    <p><button onclick="go()">Go Test</button></p>
+    <p><button id="go">Go Test</button></p>
     <p><strong>Received: </strong><span id="result"></span></p>
   </body>
 </html>

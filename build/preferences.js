@@ -30,7 +30,7 @@ if (LOCAL_DOMAINS) {
   prefs.push(["network.dns.localDomains", domains.join(",")]);
 }
 
-if (BROWSER) {
+if (DESKTOP) {
   // Set system app as default firefox tab
   prefs.push(["browser.startup.homepage", homescreen]);
   prefs.push(["startup.homepage_welcome_url", ""]);
@@ -57,7 +57,6 @@ if (BROWSER) {
 
   // Enable apis use on the device
   prefs.push(["dom.sms.enabled", true]);
-  prefs.push(["dom.mozContacts.enabled", true]);
   prefs.push(["dom.mozTCPSocket.enabled", true]);
   prefs.push(["notification.feature.enabled", true]);
   prefs.push(["dom.sysmsg.enabled", true]);
@@ -70,6 +69,20 @@ if (BROWSER) {
   prefs.push(["dom.mozSettings.enabled", true]);
   prefs.push(["dom.navigator-property.disable.mozSettings", false]);
   prefs.push(["dom.mozPermissionSettings.enabled", true]);
+
+  // Contacts
+  prefs.push(["dom.mozContacts.enabled", true]);
+  prefs.push(["dom.navigator-property.disable.mozContacts", false]);
+  prefs.push(["dom.global-constructor.disable.mozContact", false]);
+
+  // Partial implementation of gonk fonts
+  // See: http://mxr.mozilla.org/mozilla-central/source/modules/libpref/src/init/all.js#3202
+  prefs.push(["font.default.x-western", "sans-serif"]);
+
+  prefs.push(["font.name.serif.x-western", "Charis SIL Compact"]);
+  prefs.push(["font.name.sans-serif.x-western", "Feura Sans"]);
+  prefs.push(["font.name.monospace.x-western", "Source Code Pro"]);
+  prefs.push(["font.name-list.sans-serif.x-western", "Feura Sans, Roboto"]);
 }
 
 if (DEBUG) {
@@ -114,7 +127,7 @@ if (DEBUG) {
 
 // We have to allow installing helper addons from profile extension folder
 // in both debug and browser compatibility modes
-if (DEBUG || BROWSER) {
+if (DEBUG || DESKTOP) {
   prefs.push(["extensions.autoDisableScopes", 0]);
 }
 

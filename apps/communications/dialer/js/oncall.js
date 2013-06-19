@@ -12,8 +12,7 @@ var CallScreen = {
   calls: document.getElementById('calls'),
 
   get activeCall() {
-    delete this.activeCall;
-    return this.activeCall = this.calls.querySelector(':not(.held)');
+    return OnCallHandler.activeCall();
   },
 
   mainContainer: document.getElementById('main-container'),
@@ -76,7 +75,7 @@ var CallScreen = {
     if (window.innerHeight <= 40) {
       if (this.body.classList.contains('showKeypad')) {
         this._typedNumber = KeypadManager._phoneNumber;
-        KeypadManager.restorePhoneNumber('end', true);
+        KeypadManager.restorePhoneNumber();
       }
     } else if (this.body.classList.contains('showKeypad')) {
       KeypadManager.updatePhoneNumber(this._typedNumber, 'begin', true);
@@ -130,7 +129,7 @@ var CallScreen = {
   },
 
   hideKeypad: function cs_hideKeypad() {
-    KeypadManager.restorePhoneNumber('end', true);
+    KeypadManager.restorePhoneNumber();
     KeypadManager.restoreAdditionalContactInfo();
     this.body.classList.remove('showKeypad');
   },
@@ -238,15 +237,6 @@ var OnCallHandler = (function onCallHandler() {
       telephony.muted = false;
     }
 
-    // Animating the screen in the viewport.
-    // We wait for the next tick because we may receive an exitCallScreen
-    // as soon as we're loaded.
-    setTimeout(function nextTick() {
-      if (!closing) {
-        toggleScreen();
-      }
-    });
-
     postToMainWindow('ready');
   }
 
@@ -294,6 +284,9 @@ var OnCallHandler = (function onCallHandler() {
       exitCallScreen(false);
     } else {
       CallScreen.calls.dataset.count = handledCalls.length;
+      if (!displayed && !closing) {
+        toggleScreen();
+      }
     }
   }
 
@@ -313,16 +306,14 @@ var OnCallHandler = (function onCallHandler() {
       return;
     }
 
-    var node = null;
-    // Find an available node for displaying the call
-    var children = CallScreen.calls.children;
-    for (var i = 0; i < children.length; i++) {
-      var n = children[i];
-      if (n.dataset.occupied === 'false') {
-        node = n;
-        break;
-      }
+    // First incoming or outgoing call, reset mute and speaker.
+    if (handledCalls.length == 0) {
+      CallScreen.unmute();
+      CallScreen.turnSpeakerOff();
     }
+
+    // Find an available node for displaying the call
+    var node = CallScreen.calls.querySelector('.call[data-occupied="false"]');
     var hc = new HandledCall(call, node);
     handledCalls.push(hc);
 
@@ -398,9 +389,6 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function handleFirstIncoming(call) {
-    unmute();
-    turnSpeakerOff();
-
     var vibrateInterval = 0;
     if (activateVibration != false) {
       vibrateInterval = window.setInterval(function vibrate() {
@@ -558,6 +546,9 @@ var OnCallHandler = (function onCallHandler() {
           holdAndAnswer();
         }
         break;
+      case 'CHLD=0':
+        hangupWaitingCalls();
+        break;
       default:
         var partialCommand = message.substring(0, 3);
         if (partialCommand === 'VTS') {
@@ -674,6 +665,17 @@ var OnCallHandler = (function onCallHandler() {
     }
   }
 
+  // Hang up the held call or the second incomming call
+  function hangupWaitingCalls() {
+    handledCalls.forEach(function(handledCall) {
+      var callState = handledCall.call.state;
+      if (callState === 'held' ||
+        (callState === 'incoming' && handledCalls.length > 1)) {
+        handledCall.call.hangUp();
+      }
+    });
+  }
+
   function ignore() {
     var ignoreIndex = handledCalls.length - 1;
     handledCalls[ignoreIndex].call.hangUp();
@@ -759,6 +761,19 @@ var OnCallHandler = (function onCallHandler() {
     }, 3000);
   }
 
+  function activeCall() {
+    var telephonyActiveCall = telephony.active;
+    var activeCall = null;
+    for (var i = 0; i < handledCalls.length; i++) {
+      var handledCall = handledCalls[i];
+      if (telephonyActiveCall === handledCall.call) {
+        activeCall = handledCall;
+        break;
+      }
+    }
+    return activeCall;
+  }
+
   return {
     setup: setup,
 
@@ -777,7 +792,8 @@ var OnCallHandler = (function onCallHandler() {
 
     addRecentEntry: addRecentEntry,
 
-    notifyBusyLine: notifyBusyLine
+    notifyBusyLine: notifyBusyLine,
+    activeCall: activeCall
   };
 })();
 

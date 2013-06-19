@@ -122,7 +122,8 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   color: #1D8399;
 }
 
-[data-type="list"] aside.pack-end img[src=""] {
+[data-type="list"] aside.pack-end img[src=""],
+form[data-type="action"] img[src=""] {
   opacity: 0;
   width: 0;
 }
@@ -259,7 +260,7 @@ section[role="region"].new > header:first-child form {
   display: none;
 }
 
-.new #icon-edit {
+.new #messages-edit-icon {
   display: none;
 }
 
@@ -283,18 +284,18 @@ section[role="region"].new > header:first-child form {
   Messages Style as 'bubbles'
 */
 
-#messages-container {
+.article-list {
   -moz-box-sizing: border-box;
   background: none repeat scroll 0 0 #E4E4E4;
   text-align: left;
   z-index: 5;
 }
 
-#messages-container header:first-child {
+.article-list header:first-child {
   margin-top: 2rem;
 }
 
-#messages-container header {
+.article-list header {
   margin: 0 0 0.6rem;
   padding: 1.5rem 0 0 0;
   border-bottom: none;
@@ -305,16 +306,16 @@ section[role="region"].new > header:first-child form {
   text-transform: uppercase;
 }
 
-#messages-container[data-type="list"] > ul:last-child {
+.article-list[data-type="list"] > ul:last-child {
   margin-bottom: 7rem;
 }
 
-#messages-container header,
-  #messages-container[data-type="list"] .message.incoming .bubble {
+.article-list header,
+  .article-list[data-type="list"] .message.incoming .bubble {
   padding-left: 4rem;
 }
 
-#messages-container[data-type="list"] .message {
+.article-list[data-type="list"] .message {
   position: relative;
 
   display: block;
@@ -332,15 +333,15 @@ section[role="region"].new > header:first-child form {
   display: none;
 }
 
-#messages-container[data-type="list"] .message.hidden {
+.article-list[data-type="list"] .message.hidden {
   display: none;
 }
 
-#messages-container[data-type="list"] header.hidden {
+.article-list[data-type="list"] header.hidden {
   display: none;
 }
 
-#messages-container[data-type="list"] .message .bubble {
+.article-list[data-type="list"] .message .bubble {
   overflow: visible;
   -moz-box-sizing: border-box;
   max-width: -moz-calc(100% - 4rem);
@@ -350,18 +351,26 @@ section[role="region"].new > header:first-child form {
   background: #fff;
 }
 
-#messages-container[data-type="list"] .message.mms .mms-media {
+.article-list[data-type="list"] .attachment[data-attachment-type='video'] {
+  width: 10.7rem;
+  height: 8rem;
+}
+
+.article-list[data-type="list"] .attachment[data-attachment-type='audio'] {
+  width: 6rem;
+  height: 6rem;
+}
+
+.article-list[data-type="list"] .message .attachment {
   display: block;
-  max-height: 12rem;
-  max-width: 12rem;
   margin: 1rem 0;
 }
-/* Media that occurs at the bounds of an MMS message does not need additional
- * spacing. */
-#messages-container[data-type="list"] .message.mms .mms-media:first-child {
+/* Attachments that occur at the bounds of an MMS message do not need
+ * additional spacing. */
+#messages-container[data-type="list"] .message .attachment:first-child {
   margin-top: 0;
 }
-#messages-container[data-type="list"] .message.mms .mms-media:last-child {
+#messages-container[data-type="list"] .message .attachment:last-child {
   margin-bottom: 0;
 }
 
@@ -370,46 +379,20 @@ section[role="region"].new > header:first-child form {
   width: auto;
 }
 
-#messages-container[data-type="list"] .message.mms .video-placeholder {
-  display: block;
-  width: 10.7rem;
-  height: 8rem;
-  background-image: url('icons/video_thumb.png');
-  background-size: 100%;
-}
-
-#messages-container[data-type="list"] .message.mms .audio-placeholder {
-  display: block;
-  width: 6rem;
-  height: 6rem;
-  background-image: url('icons/audio_thumb.png');
-  background-size: 100%;
-}
-
-#messages-container[data-type="list"] .message.mms .video-placeholder:active,
-#messages-container[data-type="list"] .message.mms .video-placeholder:hover {
-  background-position: 0 -8rem;
-}
-
-#messages-container[data-type="list"] .message.mms .audio-placeholder:active,
-#messages-container[data-type="list"] .message.mms .audio-placeholder:hover {
-  background-position: 0 -6rem;
-}
-
-#messages-container[data-type="list"] .message.outgoing .mms-media {
+.article-list[data-type="list"] .message.outgoing .attachment {
   margin-left: auto;
   margin-right: 0;
 }
 
-#messages-container[data-type="list"] .message.outgoing .bubble {
+.article-list[data-type="list"] .message.outgoing .bubble {
   float: right;
 
-  padding-right: 5rem;
+  padding-right: 4.1rem;
   margin-left: 4rem;
   border-radius: 0.3rem 0 0 0.3rem;
 }
 
-#messages-container[data-type="list"] .message.incoming .bubble {
+.article-list[data-type="list"] .message.incoming .bubble {
   float: left;
 
   border-radius: 0 0.3rem 0.3rem 0;
@@ -417,77 +400,81 @@ section[role="region"].new > header:first-child form {
   background: #FCC987;
 }
 
-#messages-container[data-type="list"] .message.sending .bubble {
+.article-list[data-type="list"] .message.sending .bubble {
   color: #5f5f5f;
 }
 
-#messages-container[data-type="list"] .message.error .bubble {
+.article-list[data-type="list"] .message.error .bubble {
   border: 0.1rem solid #B90000;
 }
 
-#messages-container[data-type="list"] .message.error.outgoing .bubble {
+.article-list[data-type="list"] .message.error.outgoing .bubble {
   border-right-width: 0;
 }
 
-#messages-container[data-type="list"] .message .bubble > aside {
+.article-list[data-type="list"] .message .bubble > aside {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   z-index: auto;
-
   display: none;
   overflow: hidden;
-  width: 5rem;
-
+  width: 4rem;
   text-align: center;
 }
 
-#messages-container[data-type="list"] .message.incoming .bubble > aside {
+.article-list[data-type="list"] .message.incoming .bubble > aside {
   left: 0;
   right: auto;
   margin: 0 0.5rem 0 0;
 }
 
-#messages-container[data-type="list"] .message.error .bubble > aside progress {
+.article-list[data-type="list"] .message.error .bubble > aside progress {
   display: none;
 }
 
-#messages-container[data-type="list"] .message.error .bubble > aside {
+.article-list[data-type="list"] .message.error .bubble > aside {
   display: block;
 
   background: url('images/icons/exclamation.png') no-repeat center center;
   background-size: 2.2rem;
 }
 
-#messages-container[data-type="list"] .message button.download {
+.article-list[data-type="list"] .message button.download {
   padding: 0.5em;
   margin: 0.5em;
   background: #ccc;
   width: 100%;
 }
 
-#messages-container[data-type="list"] .message.pending .bubble > aside,
-#messages-container[data-type="list"] .message.sending .bubble > aside {
+.article-list[data-type="list"] .message.pending .bubble > aside,
+.article-list[data-type="list"] .message.sending .bubble > aside {
   display: block;
 }
 
-#messages-container[data-type="list"] .message.pending .bubble > aside progress,
-#messages-container[data-type="list"] .message.sending .bubble > aside progress {
+.article-list[data-type="list"] .message.pending .bubble > aside progress,
+.article-list[data-type="list"] .message.sending .bubble > aside progress {
   display: block;
   height: 100%;
   margin: 0 auto;
 }
 
-#messages-container[data-type="list"] .message .bubble p {
+.edit .article-list[data-type="list"] .message.error .bubble > aside,
+.edit .article-list[data-type="list"] .message.pending .bubble > aside progress,
+.edit .article-list[data-type="list"] .message.sending .bubble > aside progress {
+  display: none;
+}
+
+.article-list[data-type="list"] .message .bubble p {
   text-align: left;
-  font-size: 1.9rem;
+  font-size: 1.8rem;
   line-height: 2.3rem;
-  white-space: normal;
+  white-space: pre-wrap;
   padding: 0;
 }
 
-#messages-container[data-type="list"] .message .bubble p a {
+.article-list[data-type="list"] .message .bubble p a {
   color: #000;
   text-decoration: underline;
 }
@@ -496,7 +483,7 @@ section[role="region"].new > header:first-child form {
   Styles for Edit mode in Messages Container
 */
 
-.edit #messages-container[data-type="list"] .message {
+.edit .article-list[data-type="list"] .message {
   border-color: #e7e7e7;
 }
 
@@ -559,23 +546,27 @@ form.bottom[role="search"].messages-compose-form {
 
 #messages-send-button.has-counter:before {
   content: attr(data-counter);
-  color: rgb(133, 133, 133);
-  border-left: 0.1rem solid rgb(231, 231, 213);
-  font-weight: normal;
-  font-size: 1.8rem;
-  text-align: left;
+
   position: absolute;
-  height: 4.4rem;
   left: 0;
+  top: -1.9rem;
+
+  -moz-box-sizing: border-box;
+  height: 1.8rem;
+  padding: 0 0.5rem;
+
+  color: rgb(133, 133, 133);
+  font-weight: normal;
+  font-size: 1.4rem;
+  text-align: left;
   line-height: 1.8rem;
-  top: -5rem;
-  padding-top: 0;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
 }
 
 [data-message-type="mms"] #messages-send-button.has-counter:before {
   content: 'MMS';
+  color: #ff6622;
+  font-size: 1.5rem;
+  padding-left: 1.0rem;
 }
 
 /* TODO: Move this into the shared building block */
@@ -583,16 +574,11 @@ form.bottom[role="search"].messages-compose-form {
   background-image: url(images/paperclip-button.png);
 }
 
-#messages-compose-form {
-  max-height: 38rem;
-}
-
 #messages-compose-form [contentEditable] {
   padding: 0.1rem 0.5rem;
   margin: 0.8rem 0.2rem;
   line-height: 2rem;
   min-height: 1.9rem;
-  max-height: 36rem;
   -moz-box-sizing: border-box;
   /* Cursor hides itself otherwise: */
   overflow: auto;
@@ -606,32 +592,17 @@ form.bottom[role="search"].messages-compose-form {
   content: attr(placeholder);
   pointer-events: none;
 }
-#messages-input .attachment {
-  border: none;
-  width: 10rem;
-  height: 10rem;
+
+.attachment {
   display: block;
+  max-width: 120px;
+  max-height: 120px;
+  border: 1px solid #018eac;
+  border-radius: 2px;
+
+  background-color: rgba(0, 170, 205, 0.45);
 }
 
-/* these are used in the attachment iframe */
-body.attachment {
-  margin: 0;
-  font-size: 1.5rem;
-}
-body.attachment img {
-  width: 100%;
-  height: 100%;
-}
-body.attachment div {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  padding: 0.4rem 0.4rem 0 0.4rem;
-  background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 1rem 0 0 0;
-  color: #FFF;
-}
 #send-message-container {
   height: 100%;
   width: 6rem;
@@ -725,6 +696,7 @@ body.attachment div {
   border-bottom: .1rem solid #4d4d4d;
   color: black;
   position: relative;
+  background-color: #fff;
   margin: 0;
   padding: 0 1.5rem;
   z-index: 10;
@@ -823,7 +795,7 @@ Do not remove.
   font-size: 1.8rem;
 }
 
-section[role="region"].new #messages-container[data-type="list"] > ul.contactList {
+.article-list[data-type="list"] ul.contact-list {
   position: absolute;
   width: calc(100% - 3.1rem);
   z-index: 5;
@@ -834,19 +806,31 @@ section[role="region"].new #messages-container[data-type="list"] > ul.contactLis
   background: white;
 }
 
-section[role="region"].new #messages-container[data-type="list"]  li:first-child {
+ul.contact-prompt {
+  position: absolute;
+  width: calc(100% - 3.1rem);
+  z-index: 5;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: -moz-calc(100% - 5rem);
+  text-align: left;
+  color: white;
+}
+
+
+section[role="region"].new .article-list[data-type="list"]  li:first-child {
   margin-top: 4.6rem;
 }
 
-section[role="region"].new #messages-container[data-type="list"]  li{
+section[role="region"].new .article-list[data-type="list"]  li {
   pointer-events: normal;
 }
 
 .suggestion * {
-  pointer-events : none;
+  pointer-events: none;
 }
+
 .subheader {
-  background-color: #fff;
   position: absolute;
   z-index: 6; /* should be between 4 and 9 (inclusive). 3 is the z-index for
                  the input form, 10 is the z-index for the header */

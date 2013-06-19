@@ -31,6 +31,7 @@ var Compose = (function() {
     empty: true,
     maxLength: null,
     size: null,
+    lastScrollPosition: 0,
 
     // 'sms' or 'mms'
     type: 'sms'
@@ -98,7 +99,6 @@ var Compose = (function() {
     }
   }
 
-
   function insert(item) {
     var fragment = document.createDocumentFragment();
 
@@ -163,6 +163,7 @@ var Compose = (function() {
       }
       return this;
     },
+
     off: function(type, handler) {
       if (handlers[type]) {
         var index = handlers[type].indexOf(handler);
@@ -189,6 +190,13 @@ var Compose = (function() {
 
         var last = content.length - 1;
         var text = node.textContent;
+
+        // Bug 877141 - contenteditable wil insert non-break spaces when
+        // multiple consecutive spaces are entered, we don't want them.
+        if (text) {
+          text = text.replace(/\u00A0/g, ' ');
+        }
+
         if (node.nodeName == 'BR') {
           if (node === dom.message.lastChild) {
             continue;
@@ -233,6 +241,40 @@ var Compose = (function() {
       return this;
     },
 
+    scrollToTarget: function(target) {
+      // target can be an element or a selection range
+      var targetRect = target.getBoundingClientRect();
+
+      // put the middle of the target at the middle of the container box
+      var containerRect = dom.message.getBoundingClientRect();
+      var offset = (targetRect.top + targetRect.height / 2) -
+          (containerRect.top + containerRect.height / 2);
+
+      // we += because the scrollTop that was set is already compensated
+      // with the getBoundingClientRect()
+      dom.message.scrollTop += offset;
+    },
+
+    scrollMessageContent: function() {
+      if (document.activeElement === dom.message) {
+        // we just got the focus: ensure the caret is visible
+        var range = window.getSelection().getRangeAt(0);
+        if (range.collapsed) {
+          // We can't get the bounding client rect of a collapsed range,
+          // so let's insert a temporary node to get the caret position.
+          range.insertNode(document.createElement('span'));
+          this.scrollToTarget(range);
+          range.deleteContents();
+        } else {
+          this.scrollToTarget(range);
+        }
+        state.lastScrollPosition = dom.message.scrollTop;
+      } else {
+        // we just lost the focus: restore the last scroll position
+        dom.message.scrollTop = state.lastScrollPosition;
+      }
+    },
+
     /** Writes node to composition element
      * @param {mixed} item Html, DOMNode, or attachment to add
      *                     to composition element.
@@ -259,14 +301,18 @@ var Compose = (function() {
       var fragment = insert(item);
 
       if (document.activeElement === dom.message) {
+        // insert element at caret position
         var range = window.getSelection().getRangeAt(0);
         var firstNodes = fragment.firstChild;
         range.deleteContents();
         range.insertNode(fragment);
+        this.scrollToTarget(range);
         dom.message.focus();
         range.setStartAfter(firstNodes);
       } else {
+        // insert element at the end of the Compose area
         dom.message.insertBefore(fragment, dom.message.lastChild);
+        this.scrollToTarget(dom.message.lastChild);
       }
       composeCheck();
       return this;
@@ -283,7 +329,11 @@ var Compose = (function() {
     onAttachClick: function thui_onAttachClick(event) {
       var request = this.requestAttachment();
       request.onsuccess = this.append.bind(this);
-      composeCheck(event);
+      request.onerror = function(err) {
+        if (err === 'file too large') {
+          alert(navigator.mozL10n.get('file-too-large'));
+        }
+      };
     },
 
     onAttachmentClick: function thui_onAttachmentClick(event) {
@@ -316,6 +366,11 @@ var Compose = (function() {
             composeCheck({type: 'input'});
             AttachmentMenu.close();
           }).bind(this);
+          request.onerror = function(err) {
+            if (err === 'file too large') {
+              alert(navigator.mozL10n.get('file-too-large'));
+            }
+          };
           break;
         case 'attachment-options-cancel':
           AttachmentMenu.close();
@@ -333,24 +388,43 @@ var Compose = (function() {
     requestAttachment: function() {
       // Mimick the DOMRequest API
       var requestProxy = {};
-      var activity = new MozActivity({
+      var activityData = {
+        type: ['image/*', 'audio/*', 'video/*']
+      };
+      var activity;
+
+      if (Settings.mmsSizeLimitation) {
+        activityData.maxFileSize = Settings.mmsSizeLimitation;
+      }
+
+      activity = new MozActivity({
         name: 'pick',
-        data: {
-          // TODO: Extend this array with elements 'audio/*' and 'video/*'
-          type: ['image/*']
-        }
+        data: activityData
       });
 
       activity.onsuccess = function() {
         var result = activity.result;
+
+        if (Settings.mmsSizeLimitation &&
+          result.blob.size > Settings.mmsSizeLimitation) {
+          if (typeof requestProxy.onerror === 'function') {
+            requestProxy.onerror('file too large');
+          }
+          return;
+        }
+
         if (typeof requestProxy.onsuccess === 'function') {
-          requestProxy.onsuccess(new Attachment(result.blob, result.name));
+          requestProxy.onsuccess(new Attachment(result.blob, {
+            name: result.name,
+            isDraft: true
+          }));
         }
       };
 
+      // Re-throw Gecko-level errors
       activity.onerror = function() {
         if (typeof requestProxy.onerror === 'function') {
-          requestProxy.onerror();
+          requestProxy.onerror.apply(requestProxy, arguments);
         }
       };
 

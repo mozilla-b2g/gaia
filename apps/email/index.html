@@ -316,12 +316,15 @@
               <span class="icon icon-back">BacK</span>
             </a>
             <menu type="toolbar">
-              <a href="#" class="cmp-send-btn header-right-btn">
+              <a href="#" class="cmp-attachment-btn">
+                <span class="icon icon-attachment">AttachmenT</span>
+              </a>
+              <a href="#" class="cmp-send-btn">
                 <span class="icon icon-send">SenD</span>
               </a>
             </menu>
             <h1 class="cmp-compose-header-label"
-              data-l10n-id="compose-header">ComposE MessagE</h1>
+              data-l10n-id="compose-header-short">ComposE MessagE</h1>
           </header>
         </section>
         <div class="scrollregion-below-header">
@@ -359,22 +362,18 @@
                 <div class="cmp-bcc-add cmp-contact-add"></div>
               </div>
             </div>
-            <div class="cmp-envelope-line cmp-combo">
-              <span class="cmp-attachment-label cmp-addr-label"
-                     data-l10n-id="compose-attachments[zero]">AttachmentS:</span>
-              <div class="cmp-attachment-container cmp-addr-container">
-                <div class="cmp-attachments-size">
-                </div>
-                <div class="cmp-attachment-add cmp-file-add"></div>
-              </div>
-            </div>
-            <ul class="cmp-attachments-container">
-            </ul>
             <div class="cmp-envelope-line cmp-subject">
               <span class="cmp-subject-label"
                      data-l10n-id="compose-subject">SubjecT:</span>
               <input class="cmp-subject-text" type="text" />
             </div>
+            <div class="cmp-envelope-line cmp-attachment-total collapsed">
+              <span class="cmp-attachment-label cmp-addr-label"
+                     data-l10n-id="compose-attachments[zero]">AttachmentS:</span>
+              <span class="cmp-attachment-size"></span>
+            </div>
+            <ul class="cmp-attachment-container">
+            </ul>
           </div>
           <textarea class="cmp-body-text" rows="1"></textarea>
           <div class="cmp-body-html">
@@ -1085,7 +1084,7 @@
         <span class="cmp-attachment-icon"></span>
         <span class="cmp-attachment-filename"></span>
         <span class="cmp-attachment-filesize"></span>
-        <button class="cmp-attachment-remove">X</span>
+        <span class="cmp-attachment-remove"></span>
       </li>
       <form role="dialog" data-type="confirm" class="cmp-sending-container">
         <section class="cmp-messages-sending">

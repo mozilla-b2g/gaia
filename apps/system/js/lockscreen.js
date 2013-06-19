@@ -110,6 +110,11 @@ var LockScreen = {
   */
   HANDLE_MAX: 70,
 
+  /*
+  * Types of 2G Networks
+  */
+  NETWORKS_2G: ['gsm', 'gprs', 'edge'],
+
   /**
    * Object used for handling the clock UI element, wraps all related timers
    */
@@ -163,17 +168,6 @@ var LockScreen = {
     }
 
     var self = this;
-    if (navigator && navigator.mozCellBroadcast) {
-      navigator.mozCellBroadcast.onreceived = function onReceived(event) {
-        var msg = event.message;
-        if (conn &&
-            conn.voice.network.mcc === MobileOperator.BRAZIL_MCC &&
-            msg.messageId === MobileOperator.BRAZIL_CELLBROADCAST_CHANNEL) {
-          self.cellbroadcastLabel = msg.body;
-          self.updateConnState();
-        }
-      };
-    }
 
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
@@ -894,9 +888,14 @@ var LockScreen = {
       }
 
       var operatorInfos = MobileOperator.userFacingInfo(conn);
-      if (this.cellbroadcastLabel) {
+      var is2G = this.NETWORKS_2G.some(function checkConnectionType(elem) {
+        return (conn.voice.type == elem);
+      });
+      if (this.cellbroadcastLabel && is2G) {
+        self.connstate.classList.add('twolines');
         connstateLine2.textContent = this.cellbroadcastLabel;
       } else if (operatorInfos.carrier) {
+        self.connstate.classList.add('twolines');
         connstateLine2.textContent = operatorInfos.carrier + ' ' +
           operatorInfos.region;
       }
@@ -1058,6 +1057,13 @@ var LockScreen = {
       container.removeEventListener(e.type, animationend);
       overlay.classList.remove('elastic');
     });
+  },
+
+  // Used by CellBroadcastSystem to notify the lockscreen of
+  // any incoming CB messages that need to be displayed.
+  setCellbroadcastLabel: function ls_setCellbroadcastLabel(label) {
+    this.cellbroadcastLabel = label;
+    this.updateConnState();
   }
 };
 

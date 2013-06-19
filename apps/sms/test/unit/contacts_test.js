@@ -147,7 +147,7 @@ suite('Contacts', function(done) {
     test('(string[tel,givenName,familyName], ...) Match', function(done) {
       var mozContacts = navigator.mozContacts;
 
-      Contacts.findByString('Grillo', function(contacts) {
+      Contacts.findByString('O\'Hare', function(contacts) {
         var mHistory = mozContacts.mHistory;
 
         // contacts were found
@@ -156,7 +156,7 @@ suite('Contacts', function(done) {
 
         // navigator.mozContacts.find was called?
         assert.equal(mHistory.length, 1);
-        assert.equal(mHistory[0].filter.filterValue, 'Grillo');
+        assert.equal(mHistory[0].filter.filterValue, 'O\'Hare');
         assert.isNull(mHistory[0].request.error);
 
         done();
@@ -226,7 +226,7 @@ suite('Contacts', function(done) {
     test('no predominate', function(done) {
       var mozContacts = navigator.mozContacts;
 
-      Contacts.findByString('Pepito Grillo', function(contacts) {
+      Contacts.findByString('Pepito O\'Hare', function(contacts) {
         var mHistory = mozContacts.mHistory;
         // contacts were found
         assert.ok(Array.isArray(contacts));
@@ -241,7 +241,7 @@ suite('Contacts', function(done) {
     test('no predominate, reversed', function(done) {
       var mozContacts = navigator.mozContacts;
 
-      Contacts.findByString('Grillo Pepito', function(contacts) {
+      Contacts.findByString('O\'Hare Pepito', function(contacts) {
         var mHistory = mozContacts.mHistory;
 
         // contacts were found
@@ -257,7 +257,7 @@ suite('Contacts', function(done) {
     test('predominate first, upper', function(done) {
       var mozContacts = navigator.mozContacts;
 
-      Contacts.findByString('Pepi G', function(contacts) {
+      Contacts.findByString('Pepi O', function(contacts) {
         var mHistory = mozContacts.mHistory;
 
         // No contacts were found
@@ -273,7 +273,7 @@ suite('Contacts', function(done) {
     test('predominate last, upper', function(done) {
       var mozContacts = navigator.mozContacts;
 
-      Contacts.findByString('G Pepi', function(contacts) {
+      Contacts.findByString('O Pepi', function(contacts) {
         var mHistory = mozContacts.mHistory;
 
         // No contacts were found
@@ -290,7 +290,7 @@ suite('Contacts', function(done) {
     test('predominate first, lower', function(done) {
       var mozContacts = navigator.mozContacts;
 
-      Contacts.findByString('pepi g', function(contacts) {
+      Contacts.findByString('pepi o', function(contacts) {
         var mHistory = mozContacts.mHistory;
 
         // No contacts were found
@@ -306,7 +306,7 @@ suite('Contacts', function(done) {
     test('predominate last, lower', function(done) {
       var mozContacts = navigator.mozContacts;
 
-      Contacts.findByString('g pepi', function(contacts) {
+      Contacts.findByString('o pepi', function(contacts) {
         var mHistory = mozContacts.mHistory;
 
         // No contacts were found

@@ -60,8 +60,8 @@ var utils = this.utils || {};
       return;
     }
     overlay.classList.remove('hide');
-    overlay.classList.remove('fadeOut');
-    overlay.classList.add('fadeIn');
+    overlay.classList.remove('fade-out');
+    overlay.classList.add('fade-in');
     utils.overlay.isAnimationPlaying = true;
     overlay.addEventListener('animationend', function ov_onFadeIn(ev) {
       utils.overlay.isAnimationPlaying = false;
@@ -119,8 +119,8 @@ var utils = this.utils || {};
     if (!utils.overlay.isShown) {
       return;
     }
-    overlay.classList.remove('fadeIn');
-    overlay.classList.add('fadeOut');
+    overlay.classList.remove('fade-in');
+    overlay.classList.add('fade-out');
     utils.overlay.isAnimationPlaying = true;
     overlay.addEventListener('animationend', function ov_onFadeOut(ev) {
       utils.overlay.isAnimationPlaying = false;

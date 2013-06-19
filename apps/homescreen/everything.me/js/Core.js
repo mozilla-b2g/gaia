@@ -18,8 +18,6 @@ window.Evme = new function Evme_Core() {
         Evme.Brain.init({
             "numberOfAppsToLoad": data.numberOfAppsToLoad+(Evme.Utils.devicePixelRatio>1? data.apps.appsPerRow: 0),
             "minimumLettersForSearch": data.minimumLettersForSearch,
-            "timeBeforeAllowingDialogsRemoval": data.timeBeforeAllowingDialogsRemoval,
-            "tips": data.tips,
             "searchSources": data.searchSources,
             "pageViewSources": data.pageViewSources,
             "displayInstalledApps": data.apps.displayInstalledApps
@@ -73,6 +71,10 @@ window.Evme = new function Evme_Core() {
     };
 
     function initObjects(data) {
+        Evme.Features.init({
+            "featureStateByConnection": data.featureStateByConnection
+        });
+        
         Evme.ConnectionMessage.init({
         });
         
@@ -146,6 +148,10 @@ window.Evme = new function Evme_Core() {
             "pageRenderStartTs": head_ts,
             "SEARCH_SOURCES": data.searchSources,
             "PAGEVIEW_SOURCES": data.pageViewSources
+        });
+    
+        Evme.Tasker.init({
+          "triggerInterval": data.taskerTriggerInterval
         });
 
         Evme.EventHandler.trigger(NAME, "init", {"deviceId": Evme.DoATAPI.getDeviceId()});

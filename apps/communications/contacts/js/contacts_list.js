@@ -149,12 +149,12 @@ contacts.List = (function() {
       scrollable.scrollTop = domTarget.offsetTop;
   };
 
-  var load = function load(contacts) {
+  var load = function load(contacts, forceReset) {
     var onError = function() {
       console.log('ERROR Retrieving contacts');
     };
 
-    if (loaded) {
+    if (loaded || forceReset) {
       resetDom();
     }
 
@@ -317,8 +317,8 @@ contacts.List = (function() {
         searchInfo.push(current.value);
       }
     }
-    var escapedValue = utils.text.escapeHTML(searchInfo.join(' '), true);
-    return utils.text.normalize(escapedValue);
+    var escapedValue = Normalizer.escapeHTML(searchInfo.join(' '), true);
+    return Normalizer.toAscii(escapedValue);
   };
 
   function getHighlightedName(contact, ele) {
@@ -861,7 +861,7 @@ contacts.List = (function() {
     ret.push(second);
 
     if (first != '' || second != '')
-      return utils.text.normalize(ret.join('')).trim();
+      return Normalizer.toAscii(ret.join('')).trim();
     ret.push(contact.org);
     ret.push(contact.tel && contact.tel.length > 0 ?
       contact.tel[0].value.trim() : '');
@@ -869,7 +869,7 @@ contacts.List = (function() {
       contact.email[0].value.trim() : '');
     ret.push('#');
 
-    return utils.text.normalize(ret.join('')).trim();
+    return Normalizer.toAscii(ret.join('')).trim();
   };
 
   var getGroupName = function getGroupName(contact) {

@@ -34,7 +34,7 @@ DOGFOOD?=0
 TEST_AGENT_PORT?=8789
 
 # Enable compatibility to run in Firefox Desktop
-BROWSER?=$(DEBUG)
+DESKTOP?=$(DEBUG)
 # Disable first time experience screen
 NOFTU?=0
 # Automatically enable remote debugger
@@ -43,7 +43,7 @@ REMOTE_DEBUGGER?=0
 # We also disable FTU when running in Firefox or in debug mode
 ifeq ($(DEBUG),1)
 NOFTU=1
-else ifeq ($(BROWSER),1)
+else ifeq ($(DESKTOP),1)
 NOFTU=1
 endif
 
@@ -187,6 +187,14 @@ ifdef GAIA_DISTRIBUTION_DIR
 	endif
 endif
 
+# Add apps from customization package
+ifdef GAIA_DISTRIBUTION_DIR
+  DISTRIBUTION_APPS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)apps
+  ifneq ($(wildcard $(DISTRIBUTION_APPS)),)
+      GAIA_APP_SRCDIRS += $(DISTRIBUTION_APPS)
+  endif
+endif
+
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
@@ -224,7 +232,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json create-default-data
+profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook profile/settings.json create-default-data profile/installed-extensions.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -303,6 +311,14 @@ offline-cache: webapp-manifests install-xulrunner-sdk
 	@echo "Populate external apps appcache"
 	@$(call run-js-command, offline-cache)
 	@echo "Done"
+
+# Get additional extensions
+profile/installed-extensions.json: build/additional-extensions.json $(wildcard .build/custom-extensions.json)
+ifeq ($(DESKTOP),1)
+	python build/additional-extensions.py --gaia-dir="$(CURDIR)"
+else ifeq ($(DEBUG),1)
+	touch profile/installed-extensions.json
+endif
 
 # Copy preload contacts to profile
 contacts:
@@ -401,7 +417,7 @@ define run-js-command
 	const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)$(SEP)profile"; \
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
-	const BROWSER = $(BROWSER);                                           \
+	const DESKTOP = $(DESKTOP);                                           \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
@@ -409,13 +425,13 @@ define run-js-command
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
 	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
-	const HIDPI = "$(HIDPI)";                                     \
+	const HIDPI = "$(HIDPI)";                                                   \
 	const DOGFOOD = "$(DOGFOOD)";                                               \
 	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
 	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
 	const GAIA_ENGINE = "xpcshell";                                             \
-	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";               	\
+	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";                   \
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
@@ -453,7 +469,7 @@ EXT_DIR=profile/extensions
 extensions:
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
-ifeq ($(BROWSER),1)
+ifeq ($(DESKTOP),1)
 	cp -r tools/extensions/* $(EXT_DIR)/
 else ifeq ($(DEBUG),1)
 	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
@@ -517,8 +533,8 @@ tests: webapp-manifests offline
 
 .PHONY: common-install
 common-install:
-	@test -x $(NODEJS) || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
-	@test -x $(NPM) || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
+	@test -x "$(NODEJS)" || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
+	@test -x "$(NPM)" || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
 
 	cd $(TEST_AGENT_DIR) && npm install .
 
@@ -618,12 +634,7 @@ endif
 
 # Lint apps
 lint:
-	@# ignore lint on:
-	@# cubevid
-	@# crystalskull
-	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext' -x 'calendar/js/presets.js,homescreen/js/hiddenapps.js,settings/js/hiddenapps.js'
-	@gjslint --nojsdoc -r shared/js -e 'phoneNumberJS'
+	gjslint --nojsdoc -r apps -r shared -e '$(shell cat ./build/lint-excluded-dirs.list)' -x '$(shell cat ./build/lint-excluded-files.list)'
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -785,3 +796,5 @@ clean:
 really-clean: clean
 	rm -rf xulrunner-sdk .xulrunner-url
 
+install-git-hook:
+	test -d .git && cp tools/pre-commit .git/hooks/pre-commit || true

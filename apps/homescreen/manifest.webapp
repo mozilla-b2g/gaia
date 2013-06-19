@@ -14,7 +14,9 @@
     "device-storage:pictures":{ "access": "readonly" },
     "open-remote-window":{},
     "storage":{},
-    "geolocation": {}
+    "geolocation": {},
+    "alarms": {},
+    "power":{}
   },
   "locales": {
     "ar": {
@@ -49,5 +51,8 @@
       "href": "/save-bookmark.html",
       "returnValue": true
     }
-  }
+  },
+  "messages": [
+    { "alarm": "/index.html" }
+  ]
 }

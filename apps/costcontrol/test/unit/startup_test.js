@@ -9,12 +9,14 @@ requireApp('costcontrol/test/unit/mock_debug.js');
 requireApp('costcontrol/test/unit/mock_common.js');
 requireApp('costcontrol/test/unit/mock_moz_l10n.js');
 requireApp('costcontrol/test/unit/mock_moz_mobile_connection.js');
-requireApp('costcontrol/test/unit/mock_moz_set_message_handler.js');
+requireApp('costcontrol/shared/test/unit/mocks/' +
+           'mock_navigator_moz_set_message_handler.js');
 requireApp('costcontrol/test/unit/mock_cost_control.js');
 requireApp('costcontrol/test/unit/mock_config_manager.js');
 requireApp('costcontrol/js/utils/toolkit.js');
 requireApp('costcontrol/js/view_manager.js');
 requireApp('costcontrol/js/app.js');
+requireApp('costcontrol/js/common.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
 var realCommon,
@@ -63,7 +65,9 @@ suite('Application Startup Modes Test Suite >', function() {
     realConfigManager = window.ConfigManager;
 
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
-    window.navigator.mozSetMessageHandler = window.MockMozSetMessageHandler;
+    window.navigator.mozSetMessageHandler =
+      window.MockNavigatormozSetMessageHandler;
+    window.navigator.mozSetMessageHandler.mSetup();
   });
 
   setup(function() {
@@ -77,6 +81,7 @@ suite('Application Startup Modes Test Suite >', function() {
     window.navigator.mozL10n = realMozL10n;
     window.CostControl = realCostControl;
     window.ConfigManager = realConfigManager;
+    window.navigator.mozSetMessageHandler.mTeardown();
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
   });
 
@@ -99,9 +104,10 @@ suite('Application Startup Modes Test Suite >', function() {
     });
   }
 
-  function assertFTEStarted(done) {
-    window.addEventListener('ftestarted', function _onftestarted() {
+  function assertFTEStarted(mode, done) {
+    window.addEventListener('ftestarted', function _onftestarted(evt) {
       window.removeEventListener('ftestarted', _onftestarted);
+      assert.equal(evt.detail, mode);
       done();
     });
   }
@@ -198,16 +204,53 @@ suite('Application Startup Modes Test Suite >', function() {
     CostControlApp.init();
   });
 
-  test('First Time Experience Loaded when new SIM', function(done) {
-    setupCardState('ready');
-    window.ConfigManager = new MockConfigManager({
-      fakeSettings: { fte: true }
-    });
+  test(
+    'First Time Experience Loaded when new SIM > DATA_USAGE_ONLY',
+    function(done) {
+      var applicationMode = 'DATA_USAGE_ONLY';
+      setupCardState('ready');
+      window.ConfigManager = new MockConfigManager({
+        fakeSettings: { fte: true },
+        applicationMode: applicationMode
+      });
 
-    assertFTEStarted(done);
+      assertFTEStarted(applicationMode, done);
 
-    CostControlApp.init();
-  });
+      CostControlApp.init();
+    }
+  );
+
+  test(
+    'First Time Experience Loaded when new SIM > PREPAID',
+    function(done) {
+      var applicationMode = 'PREPAID';
+      setupCardState('ready');
+      window.ConfigManager = new MockConfigManager({
+        fakeSettings: { fte: true },
+        applicationMode: applicationMode
+      });
+
+      assertFTEStarted(applicationMode, done);
+
+      CostControlApp.init();
+    }
+  );
+
+  test(
+    'First Time Experience Loaded when new SIM > POSTPAID',
+    function(done) {
+      var applicationMode = 'POSTPAID';
+      setupCardState('ready');
+      window.ConfigManager = new MockConfigManager({
+        fakeSettings: { fte: true },
+        applicationMode: applicationMode
+      });
+
+      assertFTEStarted(applicationMode, done);
+
+      CostControlApp.init();
+    }
+  );
 
   function setupLayoutMode(applicationMode) {
     loadBodyHTML('/index.html');

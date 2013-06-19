@@ -124,8 +124,6 @@ var Camera = {
   _photosTaken: [],
   _cameraProfile: null,
 
-  _resumeViewfinderTimer: null,
-
   _styleSheet: document.styleSheets[0],
   _orientationRule: null,
   _phoneOrientation: 0,
@@ -145,7 +143,6 @@ var Camera = {
   _previewPaused: false,
   _previewActive: false,
 
-  PREVIEW_PAUSE: 500,
   FILMSTRIP_DURATION: 5000, // show filmstrip for 5s before fading
 
   _flashState: {
@@ -182,6 +179,7 @@ var Camera = {
   _position: null,
 
   _pendingPick: null,
+  _savedBlob: null,
 
   // The minimum available disk space to start recording a video.
   RECORD_SPACE_MIN: 1024 * 1024 * 2,
@@ -236,6 +234,18 @@ var Camera = {
     return document.getElementById('toggle-flash');
   },
 
+  get cancelPickButton() {
+    return document.getElementById('cancel-pick');
+  },
+
+  get retakeButton() {
+    return document.getElementById('retake-button');
+  },
+
+  get selectButton() {
+    return document.getElementById('select-button');
+  },
+
   // We have seperated init and delayedInit as we want to make sure
   // that on first launch we dont interfere and load the camera
   // previewStream as fast as possible, once the previewStream is
@@ -243,7 +253,9 @@ var Camera = {
   init: function() {
     var self = this;
     this.setCaptureMode(this.CAMERA);
+    PerformanceTestingHelper.dispatch('initialising-camera-preview');
     this.loadCameraPreview(this._camera, function() {
+      PerformanceTestingHelper.dispatch('camera-preview-loaded');
       var files = [
         'style/filmstrip.css',
         'style/VideoPlayer.css',
@@ -295,6 +307,12 @@ var Camera = {
       .addEventListener('click', this.capturePressed.bind(this));
     this.galleryButton
       .addEventListener('click', this.galleryBtnPressed.bind(this));
+    this.cancelPickButton
+      .addEventListener('click', this.cancelPick.bind(this));
+    this.retakeButton
+      .addEventListener('click', this.retakePressed.bind(this));
+    this.selectButton
+      .addEventListener('click', this.selectPressed.bind(this));
 
     if (!navigator.mozCameras) {
       this.captureButton.setAttribute('disabled', 'disabled');
@@ -344,6 +362,7 @@ var Camera = {
 
     this.previewEnabled();
     DCFApi.init();
+    PerformanceTestingHelper.dispatch('startup-path-done');
   },
 
   screenTimeout: function camera_screenTimeout() {
@@ -376,8 +395,21 @@ var Camera = {
     this.captureButton.setAttribute('disabled', 'disabled');
 
     if (this._pendingPick) {
-      var cancelButton = document.getElementById('cancel-pick');
-      cancelButton.onclick = function() { };
+      this.cancelPickButton.setAttribute('disabled', 'disabled');
+    }
+  },
+
+  showConfirmation: function camera_showConfirmation(show) {
+    var controls = document.getElementById('controls');
+    var confirmation = document.getElementById('confirmation');
+
+    if (show) {
+      controls.classList.add('hidden');
+      confirmation.classList.remove('hidden');
+    }
+    else {
+      controls.classList.remove('hidden');
+      confirmation.classList.add('hidden');
     }
   },
 
@@ -390,13 +422,15 @@ var Camera = {
     this.galleryButton.classList.add('hidden');
     this.switchButton.classList.add('hidden');
 
-    // Display the cancel button and add an event listener for it
-    var cancelButton = document.getElementById('cancel-pick');
-    cancelButton.classList.remove('hidden');
-    cancelButton.onclick = this.cancelPick.bind(this);
+    // Display the cancel button, and make sure it's enabled
+    this.cancelPickButton.classList.remove('hidden');
+    this.cancelPickButton.removeAttribute('disabled');
   },
 
   cancelPick: function camera_cancelPick() {
+    if (this.cancelPickButton.hasAttribute('disabled'))
+      return;
+
     if (this._pendingPick) {
       this._pendingPick.postError('pick cancelled');
     }
@@ -833,7 +867,9 @@ var Camera = {
 
   previewEnabled: function() {
     this.enableButtons();
-    setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
+    if (!this._pendingPick) {
+      setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
+    }
   },
 
   stopPreview: function camera_stopPreview() {
@@ -854,11 +890,6 @@ var Camera = {
     this.enableButtons();
   },
 
-  restartPreview: function camera_restartPreview() {
-    this._resumeViewfinderTimer =
-      window.setTimeout(this.resumePreview.bind(this), this.PREVIEW_PAUSE);
-  },
-
   takePictureError: function camera_takePictureError() {
     alert(navigator.mozL10n.get('error-saving-title') + '. ' +
           navigator.mozL10n.get('error-saving-text'));
@@ -868,32 +899,58 @@ var Camera = {
     this._config.position = null;
     this._manuallyFocused = false;
     this.hideFocusRing();
-    this.restartPreview();
-    DCFApi.createDCFFilename(this._pictureStorage,
-                             'image',
-                             (function(path, name) {
+
+    if (this._pendingPick) {
+      this.showConfirmation(true);
+
+      // Just save the blob temporarily until the user presses "Retake" or
+      // "Select".
+      this._savedBlob = blob;
+      return;
+    }
+
+    this.resumePreview();
+    this._addPictureToStorage(blob, function(name, absolutePath) {
+      Filmstrip.addImage(absolutePath, blob);
+      Filmstrip.show(Camera.FILMSTRIP_DURATION);
+      this.checkStorageSpace();
+    }.bind(this));
+  },
+
+  retakePressed: function camera_retakePressed() {
+    this._savedBlob = null;
+    this.showConfirmation(false);
+    this.cancelPickButton.removeAttribute('disabled');
+    this.resumePreview();
+  },
+
+  selectPressed: function camera_selectPressed() {
+    var blob = this._savedBlob;
+    this._savedBlob = null;
+    this.showConfirmation(false);
+    this.resumePreview();
+    this._addPictureToStorage(blob, function(name, absolutePath) {
+      this._resizeBlobIfNeeded(blob, function(resized_blob) {
+        this._pendingPick.postResult({
+          type: 'image/jpeg',
+          blob: resized_blob,
+          name: name
+        });
+        this._pendingPick = null;
+      }.bind(this));
+    }.bind(this));
+  },
+
+  _addPictureToStorage: function camera_addPictureToStorage(blob, callback) {
+    DCFApi.createDCFFilename(this._pictureStorage, 'image',
+                             function(path, name) {
       var addreq = this._pictureStorage.addNamed(blob, path + name);
-      addreq.onsuccess = (function(e) {
+      addreq.onsuccess = function(e) {
         var absolutePath = e.target.result;
-        if (this._pendingPick) {
-          this._resizeBlobIfNeeded(blob, function(resized_blob) {
-            this._pendingPick.postResult({
-              type: 'image/jpeg',
-              blob: resized_blob,
-              name: path + name
-            });
-            this._pendingPick = null;
-          }.bind(this));
-          return;
-        }
-
-        Filmstrip.addImage(absolutePath, blob);
-        Filmstrip.show(Camera.FILMSTRIP_DURATION);
-        this.checkStorageSpace();
-
-      }).bind(this);
+        callback(path + name, absolutePath);
+      };
       addreq.onerror = this.takePictureError;
-    }).bind(this));
+    }.bind(this));
   },
 
   _resizeBlobIfNeeded: function camera_resizeBlobIfNeeded(blob, callback) {

@@ -8,7 +8,11 @@ Evme.Storage = new function Evme_Storage() {
       };
       
       if (ttl) {
-        val.expires = Date.now() + ttl*1000;
+        if (ttl instanceof Function) {
+          callback = ttl;
+        } else {
+          val.expires = Date.now() + ttl*1000;
+        }
       }
       
       asyncStorage.setItem(KEY_PREFIX + key, val, callback);

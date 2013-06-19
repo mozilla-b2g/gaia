@@ -225,5 +225,12 @@ suite('lib/simple_phone_matcher', function() {
       matches = [['0055971118876', '12333'], ['000'], ['12345']];
       testBestMatch(0, 0, variants, matches);
     });
+
+    test('should return the first element as best match in the worst case',
+    function() {
+      var variants = [];
+      var matches = [['112233', '118876'], ['000']];
+      testBestMatch(0, 0, variants, matches);
+    });
   });
 });
