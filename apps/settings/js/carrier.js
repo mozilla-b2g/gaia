@@ -7,6 +7,7 @@
 navigator.mozL10n.ready(function carrierSettings() {
   var APN_FILE = '/shared/resources/apn.json';
   var _ = window.navigator.mozL10n.get;
+  var restartingDataConnection = false;
   const AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
 
   /**
@@ -223,9 +224,43 @@ navigator.mozL10n.ready(function carrierSettings() {
       storeCustomAPNSettingFields();
     };
 
+    /* XXX: This is a minimal and quick fix of bug 882059 for v1-train.
+     *      We should modify it after bug 842252 landed.
+     */
+    var apnSettingsChanged = false;
+    var apnRelatedInputs = Array.prototype.slice.call(
+      apnPanel.querySelectorAll('.apnSettings-list input[data-setting],' +
+                                '.apnSettings-advanced input[data-setting]'));
+    var onApnSettingsChanged = function() {
+      apnSettingsChanged = true;
+    };
+    apnRelatedInputs.forEach(function(input) {
+      var settingName = input.dataset.setting;
+      if (input.type === 'radio') {
+        input.addEventListener('change', onApnSettingsChanged);
+      } else {
+        input.addEventListener('input', onApnSettingsChanged);
+      }
+    });
+
+    function onSubmit() {
+      setTimeout(function() {
+        if (apnSettingsChanged) {
+          apnSettingsChanged = false;
+          restartDataConnection();
+        }
+      });
+    }
+
+    function onReset() {
+      apnSettingsChanged = false;
+    }
+
     // force data connection to restart if changes are validated
     var submitButton = apnPanel.querySelector('button[type=submit]');
-    submitButton.addEventListener('click', restartDataConnection);
+    var resetButton = apnPanel.querySelector('button[type=reset]');
+    submitButton.addEventListener('click', onSubmit);
+    resetButton.addEventListener('click', onReset);
   }
 
   // restart data connection by toggling it off and on again
@@ -234,6 +269,7 @@ navigator.mozL10n.ready(function carrierSettings() {
     if (!settings)
       return;
 
+    restartingDataConnection = true;
     var key = 'ril.data.enabled';
     function setDataState(state) {
       var cset = {};
@@ -246,6 +282,7 @@ navigator.mozL10n.ready(function carrierSettings() {
       if (request.result[key]) {
         setDataState(false);    // turn data off
         setTimeout(function() { // turn data back on
+          restartingDataConnection = false;
           setDataState(true);
         }, 2500); // restart data connection in 2.5s
       }
@@ -341,7 +378,7 @@ navigator.mozL10n.ready(function carrierSettings() {
       // Turn off data roaming automatically when users turn off data connection
       if (settings) {
         settings.addObserver('ril.data.enabled', function(event) {
-          if (!event.settingValue) {
+          if (!event.settingValue && !restartingDataConnection) {
             var cset = {};
             cset['ril.data.roaming_enabled'] = false;
             settings.createLock().set(cset);
