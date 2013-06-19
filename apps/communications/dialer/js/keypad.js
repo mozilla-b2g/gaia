@@ -264,8 +264,8 @@ var KeypadManager = {
     Utils.addEllipsis(view, fakeView, ellipsisSide);
   },
 
-  _lastPressedKey : null,
-  _keyPressStart  : null,
+  _lastPressedKey: null,
+  _keyPressStart: null,
 
   keyHandler: function kh_keyHandler(event) {
     var key = event.target.dataset.value;
@@ -370,12 +370,12 @@ var KeypadManager = {
         // Stop previous tone before dispatching a new one
         telephony.stopTone();
         telephony.startTone(key);
-        window.setTimeout(function ch_playDTMF(){
+        window.setTimeout(function ch_playDTMF() {
           telephony.stopTone();
           this._keyPressStart = null;
           this._lastPressedKey = null;
         }, toneLength, this);
-      } 
+      }
 
       var delay = this._longPress ? 0 : 100;
       if (keypadSoundIsEnabled) {
