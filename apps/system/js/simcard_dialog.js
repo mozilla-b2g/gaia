@@ -27,6 +27,7 @@ var SimPinDialog = {
   errorMsgBody: document.getElementById('messageBody'),
 
   mobileConnection: null,
+  iccManager: null,
 
   lockType: 'pin',
   action: 'unlock',
@@ -70,7 +71,7 @@ var SimPinDialog = {
 
     var cardState = this.mobileConnection.cardState;
     var lockType = this.lockTypeMap[cardState];
-    var retryCount = this.mobileConnection.retryCount;
+    var retryCount = this.iccManager.unlockRetryCount;
 
     if (!retryCount) {
       this.triesLeftMsg.hidden = true;
@@ -322,6 +323,10 @@ var SimPinDialog = {
 
     this.mobileConnection = window.navigator.mozMobileConnection;
     if (!this.mobileConnection)
+      return;
+
+    this.iccManager = window.navigator.mozIccManager;
+    if (!this.iccManager)
       return;
 
     this.mobileConnection.addEventListener('icccardlockerror',

@@ -26,6 +26,7 @@ var SimPinDialog = {
   errorMsgBody: document.getElementById('messageBody'),
 
   mobileConnection: null,
+  iccManager: null,
 
   lockType: 'pin',
   action: 'unlock',
@@ -248,7 +249,7 @@ var SimPinDialog = {
         break;
     }
 
-    var retryCount = this.mobileConnection.retryCount;
+    var retryCount = this.iccManager.unlockRetryCount;
     if (!retryCount) {
       this.triesLeftMsg.hidden = true;
     } else {
@@ -289,6 +290,10 @@ var SimPinDialog = {
   init: function spl_init() {
     this.mobileConnection = window.navigator.mozMobileConnection;
     if (!this.mobileConnection)
+      return;
+
+    this.iccManager = window.navigator.mozIccManager;
+    if (!this.iccManager)
       return;
 
     this.mobileConnection.addEventListener('icccardlockerror',
