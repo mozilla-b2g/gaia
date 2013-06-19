@@ -248,14 +248,15 @@ var SimPinDialog = {
         break;
     }
 
-    var retryCount = this.mobileConnection.retryCount;
-    if (!retryCount) {
-      this.triesLeftMsg.hidden = true;
-    } else {
-      var l10nArgs = { n: retryCount };
-      this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
-      this.triesLeftMsg.hidden = false;
-    }
+    IccHelper.getCardLockRetryCount(this.lockType, (function(retryCount) {
+      if (!retryCount) {
+        this.triesLeftMsg.hidden = true;
+      } else {
+        var l10nArgs = { n: retryCount };
+        this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
+        this.triesLeftMsg.hidden = false;
+      }
+    }).bind(this));
 
     if (onsuccess && typeof onsuccess === 'function')
       this.onsuccess = onsuccess;
