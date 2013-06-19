@@ -264,6 +264,9 @@ var KeypadManager = {
     Utils.addEllipsis(view, fakeView, ellipsisSide);
   },
 
+  _lastPressedKey : null,
+  _keyPressStart  : null,
+
   keyHandler: function kh_keyHandler(event) {
     var key = event.target.dataset.value;
 
@@ -291,20 +294,15 @@ var KeypadManager = {
     var telephony = navigator.mozTelephony;
 
     event.stopPropagation();
-    if (event.type == 'mousedown') {
+    if (event.type == 'mousedown' || event.type == 'touchstart') {
       this._longPress = false;
+      this._keyPressStart = Date.now();
+      this._lastPressedKey = key;
 
       if (key != 'delete') {
         if (keypadSoundIsEnabled) {
           // We do not support long press if not on a call
           TonePlayer.start(gTonesFrequencies[key], !this._onCall);
-        }
-
-        // Sending the DTMF tone if on a call
-        if (this._onCall) {
-          // Stop previous tone before dispatching a new one
-          telephony.stopTone();
-          telephony.startTone(key);
         }
       }
 
@@ -350,9 +348,34 @@ var KeypadManager = {
         this._phoneNumber += key;
       }
       this._updatePhoneNumberView('begin', false);
-    } else if (event.type == 'mouseup' || event.type == 'mouseleave') {
+    } else if (event.type == 'mouseleave') {
+        if (key !== 'delete' && key === this._lastPressedKey) {
+          this._keyPressStart = null;
+          this._lastPressedKey = null;
+        }
+    } else if (event.type == 'mouseup') {
       // Stop playing the DTMF/tone after a small delay
       // or right away if this is a long press
+
+      // Sending the DTMF tone if on a call on mouseup or mouseleave
+      // to prevent sending unwanted tones (BUG #829406);
+      if (key !== 'delete' && key === this._lastPressedKey) {
+        var keyPressStop = Date.now(),
+            toneLength = keyPressStop - this.keyPressStart;
+
+        if (keypadSoundIsEnabled) {
+          TonePlayer.stop();
+        }
+
+        // Stop previous tone before dispatching a new one
+        telephony.stopTone();
+        telephony.startTone(key);
+        window.setTimeout(function ch_playDTMF(){
+          telephony.stopTone();
+          this._keyPressStart = null;
+          this._lastPressedKey = null;
+        }, toneLength, this);
+      } 
 
       var delay = this._longPress ? 0 : 100;
       if (keypadSoundIsEnabled) {
