@@ -1,5 +1,4 @@
 requireApp('calendar/test/unit/provider/mock_stream.js');
-requireApp('calendar/js/ext/uuid.js');
 requireApp('calendar/test/unit/service/helper.js');
 requireLib('ext/ical.js');
 requireLib('ext/caldav.js');
@@ -162,6 +161,23 @@ suiteGroup('Provider.CaldavPullEvents', function() {
 
   });
 
+  test('#busytimeIdFromRemote', function() {
+    var busytime = {
+      eventId: 'foo',
+      start: { utc: 100 },
+      end: { utc: 200 }
+    };
+
+    var id = '100-200-' + subject.eventIdFromRemote(
+      busytime
+    );
+
+    assert.deepEqual(
+      subject.busytimeIdFromRemote(busytime),
+      id
+    );
+  });
+
   suite('#formatEvent', function() {
 
     test('recurring event', function() {
@@ -282,10 +298,19 @@ suiteGroup('Provider.CaldavPullEvents', function() {
           time
         );
 
+        var id = subject.busytimeIdFromRemote(
+          time
+        );
+
         var result = subject.formatBusytime(time);
-        assert.ok(result._id, 'has id');
 
         assert.equal(result.calendarId, calendar._id);
+
+        assert.equal(
+          result._id,
+          id,
+          '_id'
+        );
 
         assert.include(
           result.eventId,
@@ -568,10 +593,6 @@ suiteGroup('Provider.CaldavPullEvents', function() {
 
       stream.emit('occurrence', times[0]);
       assert.length(subject.busytimeQueue, 1);
-
-      // ids are unique each time
-      expected._id = subject.busytimeQueue[0]._id;
-      assert.ok(expected._id, 'has id');
 
       assert.hasProperties(
         subject.busytimeQueue[0],

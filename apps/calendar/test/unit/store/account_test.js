@@ -255,7 +255,6 @@ suite('store/account', function() {
 
 
     suite('existing account', function() {
-      // setup an account to modify
       setup(function(done) {
         model.error = {};
         subject.persist(model, done);
