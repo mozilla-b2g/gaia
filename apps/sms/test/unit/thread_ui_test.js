@@ -1308,9 +1308,12 @@ suite('thread_ui.js >', function() {
         }];
         var output = ThreadUI.createMmsContent(inputArray);
 
-        assert.equal(output.childNodes.length, 2);
+        // Includes the iframes and the file name displays
+        assert.equal(output.childNodes.length, 4);
         assert.match(output.childNodes[0].nodeName, /iframe/i);
-        assert.match(output.childNodes[1].nodeName, /iframe/i);
+        assert.match(output.childNodes[1].nodeName, /div/i);
+        assert.match(output.childNodes[2].nodeName, /iframe/i);
+        assert.match(output.childNodes[3].nodeName, /div/i);
       });
 
       test('mixed content', function() {
@@ -1321,9 +1324,10 @@ suite('thread_ui.js >', function() {
         }];
         var output = ThreadUI.createMmsContent(inputArray);
 
-        assert.equal(output.childNodes.length, 2);
+        assert.equal(output.childNodes.length, 3);
         assert.match(output.childNodes[0].nodeName, /iframe/i);
-        assert.equal(output.childNodes[1].innerHTML, 'text');
+        assert.match(output.childNodes[1].nodeName, /div/i);
+        assert.equal(output.childNodes[2].innerHTML, 'text');
       });
     });
 

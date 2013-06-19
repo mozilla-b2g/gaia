@@ -365,6 +365,18 @@ section[role="region"].new > header:first-child form {
   display: block;
   margin: 1rem 0;
 }
+
+.article-list[data-type="list"] .message.outgoing .file-name {
+  float: right;
+  color: #4d4d4d;
+  font-size: 1.6rem;
+}
+
+.article-list[data-type="list"] .message.incoming .file-name {
+  color: #4d4d4d;
+  font-size: 1.6rem;
+}
+
 /* Attachments that occur at the bounds of an MMS message do not need
  * additional spacing. */
 #messages-container[data-type="list"] .message .attachment:first-child {

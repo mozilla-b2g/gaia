@@ -8,7 +8,12 @@ requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
+requireApp('sms/test/unit/mock_attachment.js');
+requireApp('sms/test/unit/mock_link_helper.js');
 requireApp('sms/test/unit/mock_message_manager.js');
+requireApp('sms/js/attachment.js');
+requireApp('sms/js/link_helper.js');
+requireApp('sms/js/smil.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/attachment_menu.js');
 requireApp('sms/js/compose.js');
@@ -20,6 +25,8 @@ requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/js/thread_ui.js');
 
 var mHelperIntegration = new MocksHelper([
+  'Attachment',
+  'LinkHelper',
   'MessageManager'
 ]).init();
 
@@ -641,6 +648,216 @@ suite('ThreadUI Integration', function() {
       });
 
       assert.isFalse(isNotRendered);
+    });
+  });
+
+  suite('Message Contents Rendering', function() {
+    var testImageBlob;
+
+    suiteSetup(function(done) {
+      var assetsNeeded = 0;
+      function getAsset(filename, loadCallback) {
+        assetsNeeded++;
+
+        var req = new XMLHttpRequest();
+        req.open('GET', filename, true);
+        req.responseType = 'blob';
+        req.onload = function() {
+          loadCallback(req.response);
+          if (--assetsNeeded === 0) {
+            done();
+          }
+        };
+        req.send();
+      }
+      getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
+        testImageBlob = blob;
+      });
+    });
+
+    teardown(function() {
+      ThreadUI.container.innerHTML = '';
+    });
+
+    test('Message', function() {
+      var list, message;
+
+      ThreadUI.appendMessage({
+        id: 1,
+        threadId: 1,
+        sender: '9999999999',
+        body: 'foo bar baz',
+        delivery: 'sent',
+        read: true,
+        type: 'sms',
+        timestamp: new Date(Date.now())
+      });
+
+      list = ThreadUI.container.querySelector('ul');
+      message = list.firstElementChild;
+
+      // Rendered:
+      // 1. A Date/Time header
+      // 2. A Messages UL
+      assert.equal(ThreadUI.container.children.length, 2);
+
+      // The Messages UL has only one message
+      assert.equal(list.children.length, 1);
+
+      /*
+      <label class="danger">
+        <input type="checkbox" value="${id}">
+        <span></span>
+      </label>
+      <section class="bubble">
+        <aside class="pack-end">
+          <progress></progress>
+        </aside>
+        <p>${bodyHTML}</p>
+      </section>
+      */
+
+      // The Message contains the body content
+      assert.ok(message.innerHTML.contains('foo bar baz'));
+      ThreadUI.container.innerHTML = '';
+    });
+
+    test('Attachment, Smil: par img text /par', function(done) {
+      var list, message;
+
+      ThreadUI.appendMessage({
+        id: 1,
+        threadId: 1,
+        sender: '9999999999',
+        type: 'mms',
+        read: true,
+        delivery: 'received',
+        subject: 'Test MMS Image message',
+        smil: '<smil><body><par><img src="example.jpg"/>' +
+              '<text src="text1"/></par></body></smil>',
+        attachments: [{
+          location: 'text1',
+          content: new Blob(['received image message'], { type: 'text/plain' })
+        },{
+          location: 'example.jpg',
+          content: testImageBlob
+        }],
+        timestamp: new Date()
+      });
+
+      list = ThreadUI.container.querySelector('ul');
+      message = list.firstElementChild;
+
+      // Rendered:
+      // 1. A Date/Time header
+      // 2. A Messages UL
+      assert.equal(ThreadUI.container.children.length, 2);
+
+      // The Messages UL has only one message
+      assert.equal(list.children.length, 1);
+
+      /*
+      <label class="danger">
+        <input type="checkbox" value="${id}">
+        <span></span>
+      </label>
+      <section class="bubble">
+        <aside class="pack-end">
+          <progress></progress>
+        </aside>
+        <p>${bodyHTML}</p>
+      </section>
+
+      bodyHTML will be replaced with embedded attachment HTML
+
+      eg.
+      <span>sent image message</span><iframe></iframe>
+      <span class="file-name">example.jpg</span>
+      */
+
+      // Wait for the next execution turn to
+      // check for mms content.
+      setTimeout(function() {
+
+        // The Message contains
+        // - body content,
+        // - attachment iframe
+        // - attachment filename
+        assert.ok(message.innerHTML.contains('received image message'));
+        assert.ok(message.innerHTML.contains('example.jpg'));
+        assert.equal(message.querySelectorAll('iframe').length, 1);
+
+        done();
+      });
+    });
+
+    test('Attachment, Smil: par text /par par img /par', function(done) {
+      var list, message;
+
+      ThreadUI.appendMessage({
+        id: 1,
+        threadId: 1,
+        sender: '9999999999',
+        type: 'mms',
+        read: true,
+        delivery: 'received',
+        subject: 'Test MMS Image message',
+        smil: '<smil><body><par><text src="text1"/></par>' +
+              '<par><img src="example.jpg"/></par></body></smil>',
+        attachments: [{
+          location: 'text1',
+          content: new Blob(['received image message'], { type: 'text/plain' })
+        },{
+          location: 'example.jpg',
+          content: testImageBlob
+        }],
+        timestamp: new Date()
+      });
+
+      list = ThreadUI.container.querySelector('ul');
+      message = list.firstElementChild;
+
+      // Rendered:
+      // 1. A Date/Time header
+      // 2. A Messages UL
+      assert.equal(ThreadUI.container.children.length, 2);
+
+      // The Messages UL has only one message
+      assert.equal(list.children.length, 1);
+
+      /*
+      <label class="danger">
+        <input type="checkbox" value="${id}">
+        <span></span>
+      </label>
+      <section class="bubble">
+        <aside class="pack-end">
+          <progress></progress>
+        </aside>
+        <p>${bodyHTML}</p>
+      </section>
+
+      bodyHTML will be replaced with embedded attachment HTML
+
+      eg.
+      <span>sent image message</span><iframe></iframe>
+      <span class="file-name">example.jpg</span>
+      */
+
+      // Wait for the next execution turn to
+      // check for mms content.
+      setTimeout(function() {
+
+        // The Message contains
+        // - body content,
+        // - attachment iframe
+        // - attachment filename
+        assert.ok(message.innerHTML.contains('received image message'));
+        assert.ok(message.innerHTML.contains('example.jpg'));
+        assert.equal(message.querySelectorAll('iframe').length, 1);
+
+        done();
+      });
     });
   });
 });
