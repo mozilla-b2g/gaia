@@ -140,7 +140,8 @@
           draftClass: self.isDraft ? 'draft' : '',
           errorClass: thumbnail.error ? 'corrupted' : '',
           inlineStyle: (thumbnail.data && !thumbnail.error) ?
-            'background: url(' + thumbnail.data + ') no-repeat center center;' : '',
+            'background: url(' + thumbnail.data + ') no-repeat center center;' :
+            '',
           baseURL: location.protocol + '//' + location.host,
           size: self.sizeForHumans
         };
@@ -201,4 +202,3 @@
 
   exports.Attachment = Attachment;
 }(this));
-
