@@ -92,11 +92,34 @@
     return { id: l10nId, args: args };
   }
 
+  function setL10nAttributes(element, id, args) {
+    if (!element)
+      return;
+
+    if (id) {
+      element.setAttribute('data-l10n-id', id);
+    } else {
+      element.removeAttribute('data-l10n-id');
+      element[gProp] = ''; // clear element content
+    }
+
+    if (args) {
+      element.setAttribute('data-l10n-args', JSON.stringify(args));
+    } else {
+      element.removeAttribute('data-l10n-args');
+    }
+  }
+
   function fireL10nReadyEvent() {
+    gReadyState = 'complete';
+
     var evtObject = document.createEvent('Event');
     evtObject.initEvent('localized', false, false);
     evtObject.language = gLanguage;
     window.dispatchEvent(evtObject);
+
+    // localize all pending elements (if any)
+    gPendingElementQueue.flush();
   }
 
 
@@ -289,7 +312,6 @@
       }
       // early way out
       fireL10nReadyEvent(lang);
-      gReadyState = 'complete';
       return;
     }
 
@@ -301,7 +323,6 @@
       if (gResourceCount >= langCount) {
         callback();
         fireL10nReadyEvent(lang);
-        gReadyState = 'complete';
       }
     };
 
@@ -860,12 +881,16 @@
     return str;
   }
 
+
+  /**
+   * Translate and localize DOM elements
+   */
+
   // translate an HTML element
   function translateElement(element) {
     var l10n = getL10nAttributes(element);
-    if (!l10n.id) {
-        return;
-    }
+    if (!l10n.id)
+      return;
 
     // get the related l10n object
     var data = getL10nData(l10n.id, l10n.args);
@@ -922,6 +947,42 @@
     // translate element itself if necessary
     translateElement(element);
   }
+
+  // localize an element (synchronously) if mozL10n is ready
+  function localizeElement(element, id, args) {
+    setL10nAttributes(element, id, args);
+    if (gReadyState === 'complete') {
+      translateElement(element);
+    } else {
+      consoleWarn('could not translate #' + id + ': mozL10n not ready.');
+    }
+  }
+
+  // localize an element (asynchronously) as soon as mozL10n is ready
+  var gPendingElementQueue = (function() {
+    var timeoutID = 0;
+    var elementQueue = [];
+
+    // if the l10n resources aren't ready yet, `localizeElementQueue' will be
+    // triggered by `fireL10nReadyEvent'.
+    function localizeElementQueue() {
+      if (gReadyState === 'complete') {
+        timeoutID = 0;
+        while (elementQueue.length) {
+          translateElement(elementQueue.pop());
+        }
+      }
+    }
+
+    return {
+      push: function localizeWhenReady(element, id, args) {
+        setL10nAttributes(element, id, args);
+        elementQueue.push(element);
+        timeoutID = timeoutID || setTimeout(localizeElementQueue);
+      },
+      flush: localizeElementQueue
+    };
+  })();
 
 
   /**
@@ -992,6 +1053,10 @@
 
     // translate an element or document fragment
     translate: translateFragment,
+
+    // localize an element (= translate it and set its data-l10n-* attributes)
+    localize: localizeElement,                    // synchronous
+    localizeWhenReady: gPendingElementQueue.push, // asynchronous
 
     // get (a clone of) the dictionary for the current locale
     get dictionary() { return JSON.parse(JSON.stringify(gL10nData)); },
