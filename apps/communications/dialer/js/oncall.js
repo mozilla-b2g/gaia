@@ -546,6 +546,9 @@ var OnCallHandler = (function onCallHandler() {
           holdAndAnswer();
         }
         break;
+      case 'CHLD=0':
+        hangupWaitingCalls();
+        break;
       default:
         var partialCommand = message.substring(0, 3);
         if (partialCommand === 'VTS') {
@@ -660,6 +663,17 @@ var OnCallHandler = (function onCallHandler() {
     } else {
       telephony.calls[0].resume();
     }
+  }
+
+  // Hang up the held call or the second incomming call
+  function hangupWaitingCalls() {
+    handledCalls.forEach(function(handledCall) {
+      var callState = handledCall.call.state;
+      if (callState === 'held' ||
+        (callState === 'incoming' && handledCalls.length > 1)) {
+        handledCall.call.hangUp();
+      }
+    });
   }
 
   function ignore() {
