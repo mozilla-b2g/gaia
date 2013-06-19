@@ -90,7 +90,10 @@ var About = {
 
     var req = mobileConnection.sendMMI('*#06#');
     req.onsuccess = function getIMEI() {
-      document.getElementById('deviceInfo-imei').textContent = req.result;
+      if (req.result && req.result.statusMessage) {
+        document.getElementById('deviceInfo-imei').textContent =
+          req.result.statusMessage;
+      }
     };
   },
 

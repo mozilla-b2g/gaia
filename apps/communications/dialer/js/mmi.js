@@ -114,31 +114,89 @@ var MmiManager = {
       return msg;
     }).bind(this);
 
-    var result = evt.target.result;
-    if (this._pendingRequest === null &&
-        (!result || !result.length)) {
-      result = this._('mmi-session-expired');
+    var mmiResult = evt.target.result;
+
+    // We always expect an MMIResult object even for USSD requests.
+    if (!mmiResult) {
+      message = {
+        type: 'mmi-error',
+        error: this._('GenericFailure')
+      };
+
+      window.postMessage(message, this.COMMS_APP_ORIGIN);
+      return;
     }
 
-    // Call forwarding requests via MMI codes might return an array of
-    // nsIDOMMozMobileCFInfo objects. In that case we serialize that array
-    // into a single string that can be shown on the screen.
-    var msg = '';
-    Array.isArray(result) ? msg = processCf(result) : msg = result;
+    var message = {};
 
-    var message = {
-      type: 'mmi-success',
-      result: msg
-    };
+    if (mmiResult.serviceCode) {
+      message.title = this._(mmiResult.serviceCode);
+    }
+
+    switch (mmiResult.serviceCode) {
+      case 'scUssd':
+        // Bail out if there is nothing to show or if we got the .onsuccess
+        // event after the .onussdevent.
+        if (!mmiResult.statusMessage || this._pendingRequest === null) {
+          return;
+        }
+
+        message.type = 'mmi-success';
+        message.result = mmiResult.statusMessage;
+        break;
+      case 'scImei':
+        // We always expect the IMEI, so if we got a .onsuccess event
+        // without the IMEI value, we throw an error message.
+        if (mmiResult.statusMessage) {
+          message.type = 'mmi-success';
+          message.result = mmiResult.statusMessage;
+        } else {
+          message.type = 'mmi-error';
+          message.error = this._('GenericFailure');
+        }
+        break;
+      case 'scPin':
+      case 'scPin2':
+      case 'scPuk':
+      case 'scPuk2':
+        // TODO: Bug 874000. Use MMIResult for PIN/PIN2/PUK related
+        //       functionality.
+        break;
+      case 'scCallForwarding':
+        // Call forwarding requests via MMI codes might return an array of
+        // nsIDOMMozMobileCFInfo objects. In that case we serialize that array
+        // into a single string that can be shown on the screen.
+
+        // TODO: Bug 884343. Use MMIResult for Call Forwarding related
+        //       functionality.
+        break;
+      default:
+        // This would allow carriers and others to implement custom MMI codes
+        // with title and statusMessage only.
+        if (mmiResult.statusMessage) {
+          message.type = 'mmi-success';
+          message.result = mmiResult.statusMessage;
+        }
+        break;
+    }
 
     window.postMessage(message, this.COMMS_APP_ORIGIN);
   },
 
   notifyError: function mm_notifyError(evt) {
+    var mmiError = evt.target.error;
+
     var message = {
-      type: 'mmi-error',
-      error: evt.target.error.name
+      type: 'mmi-error'
     };
+
+    if (mmiError.serviceCode) {
+      message.title = this._(mmiError.serviceCode);
+    }
+
+    message.error = mmiError.name ?
+      this._(mmiError.name) : this._('GenericFailure');
+
     window.postMessage(message, this.COMMS_APP_ORIGIN);
   },
 
@@ -163,6 +221,7 @@ var MmiManager = {
     var data = {
       type: 'mmi-received-ui',
       message: message,
+      title: this._operator,
       sessionEnded: sessionEnded
     };
     window.postMessage(data, this.COMMS_APP_ORIGIN);
@@ -179,13 +238,6 @@ var MmiManager = {
 
     var message;
     switch (evt.type) {
-      case 'voicechange':
-        this._operator = MobileOperator.userFacingInfo(this._conn).operator;
-        message = {
-          type: 'mmi-networkchange',
-          operator: (this._operator ? this._operator : 'Unknown')
-        };
-        break;
       case 'message':
         if (evt.origin !== this.COMMS_APP_ORIGIN) {
           return;
