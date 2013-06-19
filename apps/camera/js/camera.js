@@ -344,9 +344,6 @@ var Camera = {
 
     this._pictureStorage
       .addEventListener('change', this.deviceStorageChangeHandler.bind(this));
-    this._videoStorage
-      .addEventListener('change',
-        this.videoDeviceStorageChangeHandler.bind(this));
     this.checkStorageSpace();
 
     navigator.mozSetMessageHandler('activity', function(activity) {
@@ -1020,14 +1017,6 @@ var Camera = {
       }
       this.updateOverlay();
     }).bind(this);
-  },
-
-  // remove form filmstrip if its correspondent file is deleted
-  // in video app
-  videoDeviceStorageChangeHandler:
-    function video_deviceStorageChangeHandler(e) {
-      if (e.reason === 'deleted')
-        Filmstrip.deleteItem(e.path);
   },
 
   deviceStorageChangeHandler: function camera_deviceStorageChangeHandler(e) {
