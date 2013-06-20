@@ -636,6 +636,10 @@ li[role="tab"] a {
   overflow: hidden;
 }
 
+li[role="tab"] a:active {
+  background: none;
+}
+
 li[role="tab"]:first-child a {
   margin-left: 0;
 }
