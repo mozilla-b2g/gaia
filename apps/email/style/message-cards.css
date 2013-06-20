@@ -512,9 +512,11 @@ input.msg-search-text-tease {
   top: 40%;
 }
 
-.msg-messages-syncing,
-.msg-messages-sync-more {
+.msg-messages-sync-container > .msg-messages-syncing,
+.msg-messages-sync-container > .msg-messages-sync-more {
   border-bottom: 0.1rem solid #bebebe;
+  width: calc(100% - 3rem);
+  margin: 0 auto;
 }
 
 .msg-messages-syncing > span {
