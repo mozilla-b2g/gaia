@@ -1534,6 +1534,8 @@ var Browser = {
     }
 
     this.setVisibleWrapper(tab, visible);
+    var fun = tab.loading ? 'add' : 'remove';
+    this.throbber.classList[fun]('loading');
     tab.dom.style.display = visible ? 'block' : 'none';
     tab.dom.style.top = '0px';
   },
