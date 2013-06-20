@@ -424,7 +424,7 @@ var BalanceTab = (function() {
   // Decide which error should be shown taking in count error priorities
   function setError(error) {
     // Ignore showing message if the message is not registered
-    if (!ERRORS[error]) {
+    if (error && !ERRORS[error]) {
       return;
     }
 
