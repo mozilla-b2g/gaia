@@ -83,6 +83,7 @@ var Widget = (function() {
   });
 
   var initialized, widget, leftPanel, rightPanel, fte, views = {};
+  var balanceView;
   function setupWidget() {
     // HTML entities
     widget = document.getElementById('cost-control');
@@ -100,6 +101,13 @@ var Widget = (function() {
     ConfigManager.observe('errors', onErrors, true);
     ConfigManager.observe('lastDataReset', onReset, true);
     ConfigManager.observe('lastTelephonyReset', onReset, true);
+
+    // Subviews
+    balanceView = new BalanceView(
+      document.getElementById('balance-credit'),
+      document.querySelector('#balance-credit + .meta'),
+      ConfigManager.configuration.balance.minimum_delay
+    );
 
     // Update UI when visible
     document.addEventListener('mozvisibilitychange',
@@ -369,29 +377,14 @@ var Widget = (function() {
   // Update the balance in balance view
   function updateBalance(balance, limit) {
 
-    // Balance not available
-    if (balance === null) {
-      debug('Balance not available.');
-      document.getElementById('balance-credit')
-        .textContent = _('not-available');
-      views.balance.querySelector('.meta').innerHTML = '';
+    if (!balance) {
+      debug('Balance not available');
+      balanceView.update();
       return;
     }
 
-    // Balance available
-    document.getElementById('balance-credit').textContent = _('currency', {
-      value: balance.balance,
-      currency: ConfigManager.configuration.credit.currency
-    });
-
-    // Timestamp
-    var meta = views.balance.querySelector('.meta');
-    if (views.balance.classList.contains('updating')) {
-      meta.textContent = _('updating-ellipsis');
-    } else {
-      meta.innerHTML = '';
-      meta.appendChild(formatTimeHTML(balance.timestamp));
-    }
+    var isUpdating = views.balance.classList.contains('updating');
+    balanceView.update(balance, isUpdating);
 
     // Limits: reaching zero / low limit
     if (balance.balance === 0) {
