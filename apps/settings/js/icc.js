@@ -206,11 +206,6 @@
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         break;
 
-      case icc.STK_CMD_PLAY_TONE:
-        debug(' STK:Play Tone: ', options);
-        playTone(options);
-        break;
-
       default:
         debug('STK Message not managed... response OK');
         iccLastCommandProcessed = true;
@@ -649,105 +644,6 @@
    */
   function checkInputLengthValid(inputLen, minLen, maxLen) {
     return (inputLen >= minLen) && (inputLen <= maxLen);
-  }
-
-  /**
-   * Play tones
-   */
-  function playTone(options) {
-    function closeToneAlert() {
-      tonePlayer.pause();
-      alertbox.classList.add('hidden');
-    }
-
-    debug('playTone: ', options);
-
-    var tonePlayer = new Audio();
-    var selectedPhoneSound;
-    if (typeof options.tone == 'string') {
-      options.tone = options.tone.charCodeAt(0);
-    }
-    switch (options.tone) {
-      case icc.STK_TONE_TYPE_DIAL_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
-        selectedPhoneSound = 'resources/dtmf_tones/480Hz+620Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_CONGESTION:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_RADIO_PATH_ACK:
-      case icc.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_ERROR:
-        selectedPhoneSound =
-            'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_CALL_WAITING_TONE:
-      case icc.STK_TONE_TYPE_RINGING_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_GENERAL_BEEP:
-        selectedPhoneSound = 'resources/dtmf_tones/400Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_POSITIVE_ACK_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms.ogg';
-        break;
-    }
-    tonePlayer.src = selectedPhoneSound;
-    tonePlayer.loop = true;
-
-    var timeout = 0;
-    if (options.duration &&
-        options.duration.timeUnit != undefined &&
-        options.duration.timeInterval != undefined) {
-      timeout = calculateDurationInMS(options.duration.timeUnit,
-        options.duration.timeInterval);
-    } else if (options.timeUnit != undefined &&
-        options.timeInterval != undefined) {
-      timeout = calculateDurationInMS(options.timUnit, options.timeInterval);
-    }
-    if (timeout) {
-      debug('Tone stop in (ms): ', timeout);
-      setTimeout(function() {
-        closeToneAlert();
-        iccLastCommandProcessed = true;
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
-      }, timeout);
-    }
-
-    if (options.isVibrate == true) {
-      window.navigator.vibrate([200]);
-    }
-
-    if (options.text) {
-      alertbox_btn.onclick = function() {
-        closeToneAlert();
-        iccLastCommandProcessed = true;
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
-      };
-      alertbox_btnback.onclick = function() {
-        closeToneAlert();
-        stkResGoBack();
-      };
-      alertbox_btnclose.onclick = function() {
-        closeToneAlert();
-        stkResTerminate();
-      };
-      alertbox_msg.textContent = options.text;
-      alertbox.classList.remove('hidden');
-    } else {
-      // If no dialog is showed, we answer the STK command
-      iccLastCommandProcessed = true;
-      responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
-    }
-
-    tonePlayer.play();
   }
 
   /**
