@@ -49,7 +49,8 @@ var ConfigManager = (function() {
     'plantype': 'prepaid',
     'resetTime': 1,
     'trackingPeriod': 'monthly',
-    'wifiFixing': 0
+    'isMobileChartVisible': true,
+    'isWifiChartVisible': false
   };
 
   function getApplicationMode() {
