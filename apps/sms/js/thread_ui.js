@@ -180,13 +180,19 @@ var ThreadUI = global.ThreadUI = {
     //  Currently, there are 3 Assimilations.
     //
 
+    var assimilate = this.assimilateRecipients.bind(this);
+
     // Assimilation 1
     this.input.addEventListener(
-      'focus', this.assimilateRecipients.bind(this)
+      'focus', assimilate
+    );
+    // Assimilation 1
+    this.input.addEventListener(
+      'click', assimilate
     );
     // Assimilation 2
     this.attachButton.addEventListener(
-      'click', this.assimilateRecipients.bind(this)
+      'click', assimilate
     );
 
     this.container.addEventListener(
@@ -239,6 +245,8 @@ var ThreadUI = global.ThreadUI = {
       subheaderMutationHandler);
 
     ThreadUI.setInputMaxHeight();
+
+    generateHeightRule();
   },
 
   // Initialize Recipients list and Recipients.View (DOM)
@@ -368,6 +376,18 @@ var ThreadUI = global.ThreadUI = {
       if (node.isPlaceholder) {
         typed = node.textContent.trim();
 
+        // Clicking on the compose input will trigger
+        // an assimilation. If the recipient input
+        // is a lone semi-colon:
+        //
+        //  1. Clear the contents of the editable placeholder
+        //  2. Do not assimilate the value.
+        //
+        if (typed === ';') {
+          node.textContent = '';
+          break;
+        }
+
         // If the user actually typed something,
         // assume it's a manually entered recipient.
         // Push a recipient into the recipients
@@ -419,6 +439,9 @@ var ThreadUI = global.ThreadUI = {
   resizeHandler: function thui_resizeHandler() {
     this.setInputMaxHeight();
     this.updateInputHeight();
+
+    generateHeightRule();
+
     // Scroll to bottom
     this.scrollViewToBottom();
     // Make sure the caret in the "Compose" area is visible
@@ -1930,5 +1953,66 @@ ThreadUI.groupView.reset = function groupViewReset() {
 };
 
 window.confirm = window.confirm; // allow override in unit tests
+
+/**
+ * generateHeightRule
+ *
+ * Generates a new style element, appends to head
+ * and inserts a generated rule for applying a class
+ * to the recipients list to set its height for
+ * multiline mode.
+ *
+ * @return {Boolean} true if rule was created, false if not.
+ */
+function generateHeightRule() {
+  var available, css, computed, occupied, index,
+      sheet, sheets, style, tmpl;
+
+  occupied = generateHeightRule.occupied;
+
+  if (occupied == null) {
+    computed = window.getComputedStyle(ThreadUI.recipientsList, null);
+
+    occupied = generateHeightRule.occupied = [
+      ThreadUI.INPUT_MARGIN,
+      ThreadUI.subheader.scrollHeight,
+      ThreadUI.sendButton.scrollHeight,
+      parseInt(computed.getPropertyValue('margin-bottom'), 10)
+    ].reduce(function(a, b) { return a + b; });
+  }
+
+  available = ThreadUI.container.clientHeight - occupied;
+
+  if (available === generateHeightRule.available) {
+    return false;
+  }
+
+  if (!generateHeightRule.sheet) {
+    style = document.createElement('style');
+    document.head.appendChild(style);
+    sheets = document.styleSheets;
+  }
+
+  sheet = generateHeightRule.sheet || sheets[sheets.length - 1];
+  index = generateHeightRule.index || sheet.cssRules.length;
+  tmpl = generateHeightRule.tmpl || Utils.Template('height-rule-tmpl');
+
+  css = tmpl.interpolate({
+    height: String(available)
+  }, { safe: ['height'] });
+
+  if (generateHeightRule.index) {
+    sheet.deleteRule(index);
+  }
+
+  sheet.insertRule(css, index);
+
+  generateHeightRule.available = available;
+  generateHeightRule.index = index;
+  generateHeightRule.sheet = sheet;
+  generateHeightRule.tmpl = tmpl;
+
+  return true;
+}
 
 }(this));

@@ -446,6 +446,12 @@ suite('ThreadUI Integration', function() {
       assert.equal(recipients.length, 0);
       // And one displayed child...
       assert.equal(children.length, 1);
+
+      // The the ";" has been removed from the
+      // recipients list
+      assert.equal(
+        ThreadUI.recipientsList.children[0].textContent, ''
+      );
     });
 
 
