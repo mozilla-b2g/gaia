@@ -1110,6 +1110,14 @@ var ListView = {
 
     this.dataSource.push(result);
 
+    // Hide the untitled album songs under album tab option
+    // Hide the untitled artist songs under artist tab option
+    if ((option === 'album' && result.metadata.album === '') ||
+      (option === 'artist' && result.metadata.artist === '')) {
+       this.index++;
+     return;
+    }
+
     if (option !== 'playlist') {
       var firstLetter = result.metadata[option].charAt(0);
 
