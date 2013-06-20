@@ -719,16 +719,27 @@ suite('Utils.Template', function() {
   });
 
   suite('interpolate', function() {
-    var node = document.createElement('div');
-    node.appendChild(document.createComment('<span>${str}</span>'));
+    var html = document.createElement('div');
+    var css = document.createElement('div');
+    html.appendChild(document.createComment('<span>${str}</span>'));
+    css.appendChild(document.createComment('#foo { height: ${height}px; }'));
 
-    test('interpolate(data)', function() {
-      var tmpl = Utils.Template(node);
+    test('interpolate(data) => html', function() {
+      var tmpl = Utils.Template(html);
       var interpolated = tmpl.interpolate({
         str: 'test'
       });
       assert.equal(typeof interpolated, 'string');
       assert.equal(interpolated, '<span>test</span>');
+    });
+
+    test('interpolate(data) => css', function() {
+      var tmpl = Utils.Template(css);
+      var interpolated = tmpl.interpolate({
+        height: '100'
+      });
+      assert.equal(typeof interpolated, 'string');
+      assert.equal(interpolated, '#foo { height: 100px; }');
     });
   });
 
