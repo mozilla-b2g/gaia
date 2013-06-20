@@ -3,7 +3,7 @@
 
 function MockContact(name) {
   name = typeof name !== 'undefined' ? name : {
-    familyName: ['Grillo'],
+    familyName: ['O\'Hare'],
     givenName: ['Pepito']
   };
   if (!(this instanceof MockContact)) {

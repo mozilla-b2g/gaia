@@ -32,7 +32,7 @@ var LinkHelper = {
       //to handle delimiter separated multiple links such as www.abc.com;df.com
       url = url.replace(delimiter, '');
 
-      linkText = delimiter + '<a href="#" data-url="' + httpPrefix +
+      linkText = delimiter + '<a data-url="' + httpPrefix +
                  url + '" data-action="url-link" >' +
                  url + '</a>';
       return linkText;
@@ -44,7 +44,7 @@ var LinkHelper = {
     return body.replace(this._emailRegex,
       function lh_processedEmail(email) {
         return [
-          '<a href="#" data-email="',
+          '<a data-email="',
           '" data-action="email-link">',
           '</a>'
         ].join(email);
@@ -55,7 +55,7 @@ var LinkHelper = {
     return phonetext.replace(this._phoneRegex,
     function lh_processedPhone(phone) {
       return [
-        '<a href="#" data-phonenumber="',
+        '<a data-phonenumber="',
         '" data-action="phone-link">',
         '</a>'
       ].join(phone);

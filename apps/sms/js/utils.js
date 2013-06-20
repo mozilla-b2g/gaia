@@ -14,6 +14,7 @@
     '\'': '&apos;'
   };
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
+  var rnondialablechars = /[^,#+\*\d]/g;
 
   var Utils = {
     date: {
@@ -245,7 +246,7 @@
       for (var i = 0; i < length; i++) {
         tel = tels[i];
 
-        if (tel.value === input) {
+        if (tel.value && Utils.compareDialables(tel.value, input)) {
           found = tel;
         }
 
@@ -261,11 +262,37 @@
         type = tel.type[0];
       }
 
+      if (!found) {
+        return '';
+      }
+
       type = found.type[0];
       carrier = hasUniqueCarriers || hasUniqueTypes ? found.carrier : '';
       value = carrier || found.value;
 
       return type + ' | ' + (carrier || value);
+    },
+
+    // Based on "non-dialables" in https://github.com/andreasgal/PhoneNumber.js
+    //
+    // @param {String} input Value to remove nondialiable chars from.
+    //
+    removeNonDialables: function ut_removeNonDialables(input) {
+      return input.replace(rnondialablechars, '');
+    },
+    // @param {String} a First number string to compare.
+    // @param {String} b Second number string to compare.
+    //
+    // Based on...
+    //  - ITU-T E.123 (http://www.itu.int/rec/T-REC-E.123-200102-I/)
+    //  - ITU-T E.164 (http://www.itu.int/rec/T-REC-E.164-201011-I/)
+    //
+    // ...It would appear that a maximally-minimal
+    // 7 digit comparison is safe.
+    compareDialables: function ut_compareDialables(a, b) {
+      a = Utils.removeNonDialables(a).slice(-7);
+      b = Utils.removeNonDialables(b).slice(-7);
+      return a === b;
     },
 
     getResizedImgBlob: function ut_getResizedImgBlob(blob, limit, callback) {

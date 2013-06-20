@@ -104,15 +104,15 @@
           <h1 id="messages-header-text" aria-hidden="true"></h1>
         </header>
         <div id="messages-subheader" class="subheader">
-          <menu type="toolbar">
-            <a id="messages-contact-pick-button">
-              <span class="icon icon-user"></span>
-            </a>
-          </menu>
           <section id="messages-to-field">
             <section data-l10n-id="to" id="to-label">
               To:
             </section>
+            <menu type="toolbar">
+              <a id="messages-contact-pick-button">
+                <span class="icon icon-user"></span>
+              </a>
+            </menu>
             <section id="messages-recipients-list" class="singleline">
             </section>
           </section>
@@ -280,7 +280,9 @@
         <link rel="stylesheet" type="text/css" href="style/attachment.css">
       </head>
       <body class="attachment ${draftClass}">
-        <div style="${inlineStyle}" class="placeholder ${type}-placeholder"></div>
+        <div style="${inlineStyle}" class="placeholder ${type}-placeholder">
+          <div class="${errorClass}"></div>
+        </div>
         <div class="size-indicator">${size}</div>
       </body>
       -->

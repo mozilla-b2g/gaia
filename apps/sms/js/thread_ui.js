@@ -813,7 +813,9 @@ var ThreadUI = global.ThreadUI = {
       // group message mode.
       if (thread.participants.length === 1) {
         if (contacts && contacts.length) {
-          carrierTag.textContent = Utils.getContactCarrier(number, contacts[0].tel);
+          carrierTag.textContent = Utils.getContactCarrier(
+            number, contacts[0].tel
+          );
           carrierTag.classList.remove('hide');
         }
       } else {
@@ -1473,10 +1475,11 @@ var ThreadUI = global.ThreadUI = {
      *     |true| if rendering a contact from stored contacts
      *     |false| if rendering an unknown contact
      *
-     *   isHighlighted:
+     *   isSuggestion:
      *     |true| if the value params.input should be
-     *     highlighted in the rendered HTML
-     *
+     *     highlighted in the rendered HTML & all tel
+     *     entries should be rendered.
+     *     *
      * }
      */
 
@@ -1491,7 +1494,7 @@ var ThreadUI = global.ThreadUI = {
     var input = params.input.trim();
     var ul = params.target;
     var isContact = params.isContact;
-    var isHighlighted = params.isHighlighted;
+    var isSuggestion = params.isSuggestion;
 
     var escaped = Utils.escapeRegex(input);
     var escsubs = escaped.split(/\s+/);
@@ -1514,16 +1517,32 @@ var ThreadUI = global.ThreadUI = {
 
     for (var i = 0; i < telsLength; i++) {
       var current = tels[i];
+      // Only render a contact's tel value entry for the _specified_
+      // input value when not rendering a suggestion. If the tel
+      // record value _doesn't_ match, then continue.
+      //
+      if (!isSuggestion && !Utils.compareDialables(current.value, input)) {
+        continue;
+      }
+
+      // If rendering for contact search result suggestions, don't
+      // render contact tel records for values that are already
+      // selected as recipients. This comparison should be safe,
+      // as the value in this.recipients.numbers comes from the same
+      // source that current.value comes from.
+      if (isSuggestion && this.recipients.numbers.indexOf(current.value) > -1) {
+        continue;
+      }
+
       var number = current.value;
       var title = details.title || number;
       var type = current.type && current.type.length ? current.type[0] : '';
       var carrier = current.carrier ? (current.carrier + ', ') : '';
       var separator = type || carrier ? ' | ' : '';
-
       var li = document.createElement('li');
       var data = {
-        name: Utils.escapeHTML(title),
-        number: Utils.escapeHTML(number),
+        name: title,
+        number: number,
         type: type,
         carrier: carrier,
         separator: separator,
@@ -1533,7 +1552,7 @@ var ThreadUI = global.ThreadUI = {
 
 
       ['name', 'number'].forEach(function(key) {
-        if (isHighlighted) {
+        if (isSuggestion) {
           data[key + 'HTML'] = data[key].replace(
             regexps[key], function(match) {
               return this.tmpl.highlight.interpolate({
@@ -1638,7 +1657,7 @@ var ThreadUI = global.ThreadUI = {
           input: filterValue,
           target: ul,
           isContact: true,
-          isHighlighted: true
+          isSuggestion: true
         });
       }, this);
     }.bind(this));
@@ -1688,7 +1707,7 @@ var ThreadUI = global.ThreadUI = {
         input: number,
         target: ul,
         isContact: isContact,
-        isHighlighted: false
+        isSuggestion: false
       });
 
       this.activateContact({
@@ -1722,7 +1741,7 @@ var ThreadUI = global.ThreadUI = {
           input: participant,
           target: ul,
           isContact: isContact,
-          isHighlighted: false
+          isSuggestion: false
         });
       }.bind(this));
     }.bind(this));

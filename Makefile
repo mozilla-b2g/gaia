@@ -29,7 +29,7 @@ GAIA_DOMAIN?=gaiamobile.org
 DEBUG?=0
 PRODUCTION?=0
 GAIA_OPTIMIZE?=0
-HIDPI?=0
+GAIA_DEV_PIXELS_PER_PX?=1
 DOGFOOD?=0
 TEST_AGENT_PORT?=8789
 
@@ -232,7 +232,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json create-default-data profile/installed-extensions.json
+profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook profile/settings.json create-default-data profile/installed-extensions.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -425,7 +425,7 @@ define run-js-command
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
 	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
-	const HIDPI = "$(HIDPI)";                                                   \
+	const GAIA_DEV_PIXELS_PER_PX = "$(GAIA_DEV_PIXELS_PER_PX)";                 \
 	const DOGFOOD = "$(DOGFOOD)";                                               \
 	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
@@ -634,12 +634,7 @@ endif
 
 # Lint apps
 lint:
-	@# ignore lint on:
-	@# cubevid
-	@# crystalskull
-	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext' -x 'calendar/js/presets.js,homescreen/js/hiddenapps.js,settings/js/hiddenapps.js,communications/contacts/config.json,communications/contacts/oauth2/js/parameters.js'
-	@gjslint --nojsdoc -r shared/js -e 'phoneNumberJS'
+	gjslint --nojsdoc -r apps -r shared -e '$(shell cat ./build/lint-excluded-dirs.list)' -x '$(shell cat ./build/lint-excluded-files.list)'
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -754,7 +749,7 @@ SETTINGS_ARG += --enable-debugger
 endif
 
 ifeq ($(DEBUG),1)
-SETTINGS_ARG += --homescreen=http://homescreen.$(GAIA_DOMAIN):$(GAIA_PORT)/manifest.webapp
+SETTINGS_ARG += --homescreen=http://homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp
 endif
 
 # We want the console to be disabled for device builds using the user variant.
@@ -763,8 +758,8 @@ SETTINGS_ARG += --console
 endif
 
 profile/settings.json:
-ifeq ($(HIDPI),1)
-	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@2x.jpg --override $(SETTINGS_PATH) --output $@
+ifneq ($(GAIA_DEV_PIXELS_PER_PX),1)
+	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@$(GAIA_DEV_PIXELS_PER_PX)x.jpg --override $(SETTINGS_PATH) --output $@
 else
 	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override $(SETTINGS_PATH) --output $@
 endif
@@ -801,3 +796,5 @@ clean:
 really-clean: clean
 	rm -rf xulrunner-sdk .xulrunner-url
 
+install-git-hook:
+	test -d .git && cp tools/pre-commit .git/hooks/pre-commit || true

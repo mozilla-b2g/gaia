@@ -36,6 +36,7 @@ settings = {
  "debug.log-animations.enabled": False,
  "debug.paint-flashing.enabled": False,
  "debug.peformancedata.shared": False,
+ "debug.gaia.enabled": False,
  "deviceinfo.firmware_revision": "",
  "deviceinfo.hardware": "",
  "deviceinfo.mac": "",
@@ -178,7 +179,6 @@ def main():
     parser.add_option("-v", "--verbose", help="increase output verbosity", action="store_true")
     parser.add_option(      "--noftu", help="bypass the ftu app", action="store_true")
     parser.add_option(      "--locale", help="specify the default locale to use")
-    parser.add_option(      "--hidpi", help="specify if the target device has hidpi screen")
     parser.add_option(      "--enable-debugger", help="enable remote debugger (and ADB for VARIANT=user builds)", action="store_true")
     (options, args) = parser.parse_args(sys.argv[1:])
 
@@ -199,13 +199,10 @@ def main():
     else:
         settings_filename = "profile/settings.json"
 
-    if options.wallpaper:
+    if options.wallpaper and os.path.exists(options.wallpaper):
         wallpaper_filename = options.wallpaper
     else:
-        if options.hidpi:
-            wallpaper_filename = "build/wallpaper@2x.jpg"
-        else:
-            wallpaper_filename = "build/wallpaper.jpg"
+        wallpaper_filename = "build/wallpaper.jpg"
 
     enable_debugger = (options.enable_debugger == True)
 

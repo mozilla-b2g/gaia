@@ -230,6 +230,10 @@
   window.addEventListener('appopen', function() {
     homescreenVisible = false;
   });
+  window.addEventListener('ftudone', function() {
+    // FTU closing implies we're going to homescreen.
+    homescreenVisible = true;
+  });
   window.addEventListener('home', function() {
     homescreenVisible = true;
   });
@@ -374,8 +378,8 @@
       case 'ringer':
           return 'notification';
       default:
-        return homescreenVisible || LockScreen.locked ?
-          'notification' : 'content';
+        return homescreenVisible || LockScreen.locked ||
+          FtuLauncher.isFtuRunning() ? 'notification' : 'content';
     }
   }
 
@@ -501,7 +505,8 @@
 
     var vibrationEnabledOld = vibrationEnabled;
     var volume = calculateVolume(currentVolume[channel], delta, channel);
-    muteState = getVibrationAndMuteState(currentVolume[channel], delta, channel);
+    muteState =
+      getVibrationAndMuteState(currentVolume[channel], delta, channel);
 
     // Silent mode entry point
     if (volume <= 0 && delta < 0 && channel == 'notification') {

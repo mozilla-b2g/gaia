@@ -709,15 +709,13 @@ section[role="region"].new #messages-to-field {
 }
 
 #to-label {
-  display: inline-block;
-  width: 2.5rem;
-  position: absolute;
-  top: 1.5rem;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  margin: 1.5rem 0.5rem 0 0;
+
   white-space: nowrap;
   color: black;
   font-size: 1.465rem;
+  float: left;
+  overflow: hidden;
 }
 
 #add-contact {
@@ -737,18 +735,14 @@ section[role="region"].new #messages-to-field {
 }
 
 #messages-recipients-list {
-  /* From JS, Make this overflow:scroll when it's time to make this field scrollable
-  */
-  overflow-y: hidden;
-  overflow-x: hidden;
-  left: 3rem;
-  position: relative;
-  width: 10rem;
-  width: -moz-calc(100% - 5.5rem);
   height: 2.4rem;
-  transition: height 0.2s ease-in-out;
   padding-top: 1.2rem;
   margin-bottom: 0.8rem;
+
+  transition: height 0.2s ease-in-out;
+  /* From JS, Make this overflow:scroll when it's time to make this field
+   * scrollable */
+  overflow: hidden;
 }
 
 /*
@@ -840,8 +834,7 @@ section[role="region"].new .article-list[data-type="list"]  li {
 }
 
 .subheader menu {
-  position:absolute;
-  right: 1.5rem;
-  top: 1.3rem;
-  z-index: 11;
+  margin-top: 1.3rem;
+
+  float: right;
 }

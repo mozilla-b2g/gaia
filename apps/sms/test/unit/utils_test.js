@@ -160,8 +160,8 @@ suite('Utils', function() {
       var details = Utils.getContactDetails('346578888888', contact);
       assert.deepEqual(details, {
         isContact: true,
-        title: 'Pepito Grillo',
-        name: 'Pepito Grillo',
+        title: 'Pepito O\'Hare',
+        name: 'Pepito O\'Hare',
         org: '',
         carrier: 'Mobile | TEF'
       });
@@ -169,8 +169,8 @@ suite('Utils', function() {
       details = Utils.getContactDetails('12125559999', contact);
       assert.deepEqual(details, {
         isContact: true,
-        title: 'Pepito Grillo',
-        name: 'Pepito Grillo',
+        title: 'Pepito O\'Hare',
+        name: 'Pepito O\'Hare',
         org: '',
         carrier: 'Batphone | XXX'
       });
@@ -191,8 +191,8 @@ suite('Utils', function() {
       var details = Utils.getContactDetails('99999999', contact);
       assert.deepEqual(details, {
         isContact: true,
-        title: 'Pepito Grillo',
-        name: 'Pepito Grillo',
+        title: 'Pepito O\'Hare',
+        name: 'Pepito O\'Hare',
         org: '',
         carrier: 'Mobile | TEF'
       });
@@ -228,8 +228,8 @@ suite('Utils', function() {
       var details = Utils.getContactDetails('+346578888888', contact);
       assert.deepEqual(details, {
         isContact: true,
-        title: 'Pepito Grillo',
-        name: 'Pepito Grillo',
+        title: 'Pepito O\'Hare',
+        name: 'Pepito O\'Hare',
         org: '',
         carrier: 'Mobile | +346578888888'
       });
@@ -267,8 +267,8 @@ suite('Utils', function() {
         var details = Utils.getContactDetails('0', contact);
         assert.deepEqual(details, {
           isContact: true,
-          title: 'Pepito Grillo',
-          name: 'Pepito Grillo',
+          title: 'Pepito O\'Hare',
+          name: 'Pepito O\'Hare',
           org: '',
           carrier: ''
         });
@@ -281,8 +281,8 @@ suite('Utils', function() {
         var details = Utils.getContactDetails('0', contact);
         assert.deepEqual(details, {
           isContact: true,
-          title: 'Pepito Grillo',
-          name: 'Pepito Grillo',
+          title: 'Pepito O\'Hare',
+          name: 'Pepito O\'Hare',
           org: '',
           carrier: ''
         });
@@ -295,8 +295,8 @@ suite('Utils', function() {
         var details = Utils.getContactDetails('0', contact);
         assert.deepEqual(details, {
           isContact: true,
-          title: 'Pepito Grillo',
-          name: 'Pepito Grillo',
+          title: 'Pepito O\'Hare',
+          name: 'Pepito O\'Hare',
           org: '',
           carrier: ''
         });
@@ -309,8 +309,8 @@ suite('Utils', function() {
         var details = Utils.getContactDetails('+12125559999', contact);
         assert.deepEqual(details, {
           isContact: true,
-          title: 'Pepito Grillo',
-          name: 'Pepito Grillo',
+          title: 'Pepito O\'Hare',
+          name: 'Pepito O\'Hare',
           org: '',
           carrier: 'Batphone | XXX'
         });
@@ -458,7 +458,64 @@ suite('Utils', function() {
       assert.equal(a, 'Mobile | Nynex');
       assert.equal(b, 'Mobile | MCI');
     });
+
+    test('Multi different carrier, same type - intl number', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '1234567890', type: ['Mobile'], carrier: 'Nynex'},
+        {value: '0987654321', type: ['Mobile'], carrier: 'MCI'}
+      ];
+
+      var a = Utils.getContactCarrier('+1234567890', tel);
+      var b = Utils.getContactCarrier('+0987654321', tel);
+
+      assert.equal(a, 'Mobile | Nynex');
+      assert.equal(b, 'Mobile | MCI');
+    });
+
+    test('Multi different carrier, same type - never match', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '1234567890', type: ['Mobile'], carrier: 'Nynex'},
+        {value: '0987654321', type: ['Mobile'], carrier: 'MCI'}
+      ];
+
+      var a = Utils.getContactCarrier('+9999999999', tel);
+      var b = Utils.getContactCarrier('+9999999999', tel);
+
+      assert.equal(a, '');
+      assert.equal(b, '');
+    });
   });
+
+  suite('Utils.removeNonDialables(number)', function() {
+    test('spaces', function() {
+      assert.equal(
+        Utils.removeNonDialables('888 999 5555'), '8889995555'
+      );
+    });
+
+    test('non-digit, common chars', function() {
+      assert.equal(
+        Utils.removeNonDialables('(1A)2B 3C'), '123'
+      );
+    });
+  });
+
+  suite('Utils.compareDialables(a, b)', function() {
+    test('spaces', function() {
+      assert.ok(
+        Utils.compareDialables('888 999 5555', '8889995555')
+      );
+    });
+
+    test('non-digit, common chars', function() {
+      assert.ok(
+        Utils.compareDialables('(1A)2B 3C', '123')
+      );
+    });
+  });
+
 
   suite('Utils for MMS user story test', function() {
     test('Image rescaling to 300kB', function(done) {

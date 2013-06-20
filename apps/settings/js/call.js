@@ -426,6 +426,34 @@ var Calls = (function(window, document, undefined) {
     });
   }
 
+  // The UI for cell broadcast indicates that it is enabled or not, whereas
+  // the setting used is 'disabled' so note that we switch the value when
+  // it is set or displayed
+  function initCellBroadcast() {
+    var CBS_KEY = 'ril.cellbroadcast.disabled';
+    var wrapper = document.getElementById('menuItem-cellBroadcast');
+    var input = wrapper.querySelector('input');
+    var init = false;
+
+    var cellBroadcastChanged = function(value) {
+      input.checked = !value;
+      if (!init) {
+        input.disabled = false;
+        wrapper.classList.remove('disabled');
+        init = true;
+      }
+    };
+
+    var inputChanged = function(event) {
+      var cbsset = {};
+      cbsset[CBS_KEY] = !input.checked;
+      settings.createLock().set(cbsset);
+    };
+
+    input.addEventListener('change', inputChanged);
+    SettingsListener.observe(CBS_KEY, false, cellBroadcastChanged);
+  }
+
   var callWaitingItemListener = function(evt) {
     var alertPanel = document.querySelector('#call .cw-alert');
     var confirmInput =
@@ -612,6 +640,7 @@ var Calls = (function(window, document, undefined) {
       initVoiceMailSettings();
       initCallWaiting();
       initCallForwarding();
+      initCellBroadcast();
 
       setTimeout(initCallForwardingObservers, 500);
     }

@@ -1334,7 +1334,7 @@ suite('thread_ui.js >', function() {
         name: 'imageTest.jpg',
         blob: testImageBlob
       }];
-      var viewSpy = sinon.spy(Attachment.prototype, 'view');
+      var viewSpy = this.sinon.spy(Attachment.prototype, 'view');
 
       // quick dirty creation of a thread with image:
       var output = ThreadUI.createMmsContent(inputArray);
@@ -1350,8 +1350,6 @@ suite('thread_ui.js >', function() {
 
       assert.equal(viewSpy.callCount, 1);
       assert.ok(viewSpy.calledWith, { allowSave: true });
-
-      viewSpy.reset();
     });
   });
 
@@ -1367,10 +1365,10 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
-      assert.ok(html.contains('Pepito Grillo'));
+      assert.include(html, 'Pepito O\'Hare');
     });
 
     test('Rendered Contact highlighted "givenName familyName"', function() {
@@ -1380,19 +1378,15 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.renderContact({
         contact: contact,
-        input: 'Pepito Grillo',
+        input: 'Pepito O\'Hare',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.ok(
-        html.contains('<span class="highlight">Pepito</span>')
-      );
-      assert.ok(
-        html.contains('<span class="highlight">Grillo</span>')
-      );
+      assert.include(html, '<span class="highlight">Pepito</span>');
+      assert.include(html, '<span class="highlight">O\'Hare</span>');
     });
 
     test('Rendered Contact "number"', function() {
@@ -1408,7 +1402,7 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1428,7 +1422,7 @@ suite('thread_ui.js >', function() {
         input: '346578888888',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1449,7 +1443,7 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1468,7 +1462,7 @@ suite('thread_ui.js >', function() {
         input: '346578888888',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1476,8 +1470,6 @@ suite('thread_ui.js >', function() {
         html.contains('Mobile | +<span class="highlight">346578888888</span>')
       );
     });
-
-
 
     test('Rendered Contact "type | carrier, number"', function() {
       var ul = document.createElement('ul');
@@ -1489,7 +1481,7 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1506,7 +1498,7 @@ suite('thread_ui.js >', function() {
         input: '346578888888',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1515,6 +1507,72 @@ suite('thread_ui.js >', function() {
           'Mobile | TEF, +<span class="highlight">346578888888</span>'
         )
       );
+    });
+
+    test('Rendered Contact w/ multiple: one', function() {
+      var target = document.createElement('ul');
+
+      ThreadUI.renderContact({
+        contact: MockContact(),
+        input: '+12125559999',
+        target: target,
+        isContact: true,
+        isSuggestion: false
+      });
+
+      assert.equal(target.children.length, 1);
+    });
+
+    test('Rendered Contact w/ multiple: one w/ minimal match', function() {
+      var target = document.createElement('ul');
+
+      ThreadUI.renderContact({
+        contact: MockContact(),
+        input: '5559999',
+        target: target,
+        isContact: true,
+        isSuggestion: false
+      });
+
+      assert.equal(target.children.length, 1);
+    });
+
+    test('Rendered Contact w/ multiple: all (isSuggestion)', function() {
+      var target = document.createElement('ul');
+
+      ThreadUI.renderContact({
+        contact: MockContact(),
+        input: '+12125559999',
+        target: target,
+        isContact: true,
+        isSuggestion: true
+      });
+
+      assert.equal(target.children.length, 2);
+    });
+
+    test('Rendered Contact omit numbers already in recipient list', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.recipients.add({
+        number: '+346578888888'
+      });
+
+      // This contact has two tel entries.
+      ThreadUI.renderContact({
+        contact: contact,
+        input: '+346578888888',
+        target: ul,
+        isContact: true,
+        isSuggestion: true
+      });
+
+      html = ul.innerHTML;
+
+      assert.ok(!html.contains('346578888888'));
+      assert.equal(ul.children.length, 1);
     });
   });
 
@@ -1627,6 +1685,45 @@ suite('thread_ui.js >', function() {
       };
 
       window.location.hash = '#thread=1';
+    });
+
+    test('Multi participant: Correctly Displayed', function() {
+      var contacts = {
+        a: new MockContact(),
+        b: new MockContact()
+      };
+
+      // Truncate the tel record arrays; there should
+      // only be one when renderContact does its
+      // loop and comparison of dialiables
+      contacts.a.tel.length = 1;
+      contacts.b.tel.length = 1;
+
+      // Set to our "participants"
+      contacts.a.tel[0].value = '999';
+      contacts.b.tel[0].value = '888';
+
+      // "input" value represents the participant entry value
+      // that would be provided in ThreadUI.groupView()
+      ThreadUI.renderContact({
+        contact: contacts.a,
+        input: '999',
+        target: ThreadUI.participantsList,
+        isContact: true,
+        isSuggestion: false
+      });
+
+      ThreadUI.renderContact({
+        contact: contacts.b,
+        input: '888',
+        target: ThreadUI.participantsList,
+        isContact: true,
+        isSuggestion: false
+      });
+
+      assert.equal(
+        ThreadUI.participantsList.children.length, 2
+      );
     });
 
     test('Multi participant: Reset Group View', function() {
