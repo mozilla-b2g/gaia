@@ -279,6 +279,14 @@ input[type="image"] {
   display: block;
 }
 
+.start-page.page-screen #toolbar-end {
+  display: none;
+}
+
+.start-page.page-screen #frames {
+  bottom: 0;
+}
+
 #url-bar {
   display: -moz-box;
   -moz-box-orient: horizontal;
