@@ -240,6 +240,16 @@ body {
   background-position: center center;
 }
 
+@media not (-moz-physical-home-button) {
+  #windows > .appWindow {
+    bottom: 5rem;
+  }
+}
+
+#screen.software-button-enabled #windows > .appWindow {
+  bottom: 5rem;
+}
+
 #windows > .appWindow:not(.homescreen) {
   background-color: black;
 }
@@ -635,6 +645,18 @@ body {
   height: calc(100% - 2rem);
   visibility: hidden;
   pointer-events: none;
+}
+
+@media not (-moz-physical-home-button) {
+  #dialog-overlay {
+    bottom: 5rem;
+    height: calc(100% - 2rem - 5rem);
+  }
+}
+
+#screen.software-button-enabled #windows > #dialog-overlay {
+  bottom: 5rem;
+  height: calc(100% - 2rem - 5rem);
 }
 
 #screen.active-statusbar #dialog-overlay {
