@@ -634,7 +634,9 @@ endif
 
 # Lint apps
 lint:
-	gjslint --nojsdoc -r apps -r shared -e '$(shell cat ./build/lint-excluded-dirs.list)' -x '$(shell cat ./build/lint-excluded-files.list)'
+	# --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
+	# http://code.google.com/p/closure-linter/issues/detail?id=64
+	gjslint --disable 210,217,220,225 -r apps -r shared -e '$(shell cat ./build/lint-excluded-dirs.list)' -x '$(shell cat ./build/lint-excluded-files.list)'
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
