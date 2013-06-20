@@ -1,7 +1,8 @@
-const INSTALL_TIME = 132333986000; // Match this to value in applications-data.js
+const INSTALL_TIME = 132333986000;
+// Match this to value in applications-data.js
 
 function debug(msg) {
-  //dump('-*- webapp-manifest.js: ' + msg + '\n');
+//  dump('-*- webapp-manifest.js: ' + msg + '\n');
 }
 
 let io = Cc['@mozilla.org/network/io-service;1']
@@ -45,13 +46,13 @@ function copyRec(source, target) {
 function getAppStatus(status) {
   let appStatus = 1; // By default, apps are installed
   switch (status) {
-    case "certified":
+    case 'certified':
       appStatus = 3;
       break;
-    case "privileged":
+    case 'privileged':
       appStatus = 2;
       break;
-    case "web":
+    case 'web':
     default:
       appStatus = 1;
       break;
@@ -67,6 +68,48 @@ function checkOrigin(origin) {
   }
 }
 
+function fillCommsAppManifest(webapp, webappTargetDir) {
+  let manifestContent = getFileContent(webapp.manifestFile);
+  var manifestObject = JSON.parse(manifestContent);
+
+  let redirects = manifestObject.redirects;
+
+  let indexedRedirects = {};
+  redirects.forEach(function(aRedirect) {
+    indexedRedirects[aRedirect.from] = aRedirect.to;
+  });
+
+  let mappingParameters = {
+    'facebook': 'redirectURI',
+    'live': 'redirectURI',
+    'gmail': 'redirectURI',
+    'facebook_dialogs': 'redirectMsg',
+    'facebook_logout': 'redirectLogout'
+  };
+
+  let content = JSON.parse(getFileContent(getFile(GAIA_DIR, 'build',
+                                       'communications_services.json')));
+  let custom = getDistributionFileContent('communications_services', content);
+  let commsServices = JSON.parse(custom);
+
+  let newRedirects = [];
+  redirects.forEach(function(aRedirect) {
+    let from = aRedirect.from;
+    let service = commsServices[from.split('_')[0] || from] || commsServices;
+    newRedirects.push({
+      from: service[mappingParameters[from]],
+      to: indexedRedirects[from]
+    });
+  });
+
+  manifestObject.redirects = newRedirects;
+
+  debug(webappTargetDir.path);
+
+  let file = getFile(webappTargetDir.path, 'manifest.webapp');
+  writeContent(file, JSON.stringify(manifestObject));
+}
+
 function fillAppManifest(webapp) {
   // Compute webapp folder name in profile
   let webappTargetDirName = webapp.domain;
@@ -75,6 +118,10 @@ function fillAppManifest(webapp) {
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
   webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
+
+  if (webapp.url.indexOf('communications.gaiamobile.org') !== -1) {
+    fillCommsAppManifest(webapp, webappTargetDir);
+  }
 
   // Add webapp's entry to the webapps global manifest.
   // appStatus == 3 means this is a certified app.
@@ -93,13 +140,13 @@ function fillAppManifest(webapp) {
 
   let url = webapp.url;
   manifests[webappTargetDirName] = {
-    origin:        url,
+    origin: url,
     installOrigin: url,
-    receipt:       null,
-    installTime:   INSTALL_TIME,
-    manifestURL:   url + '/manifest.webapp',
-    appStatus:     getAppStatus(webapp.manifest.type),
-    localId:       localId
+    receipt: null,
+    installTime: INSTALL_TIME,
+    manifestURL: url + '/manifest.webapp',
+    appStatus: getAppStatus(webapp.manifest.type),
+    localId: localId
   };
 }
 
@@ -176,12 +223,12 @@ function fillExternalAppManifest(webapp) {
     }
     appPackage.copyTo(webappTargetDir, 'application.zip');
     updateManifest.copyTo(webappTargetDir, 'update.webapp');
-    removable = ("removable" in webapp.metaData) ? !!webapp.metaData.removable
-                                                 : true;
+    removable = ('removable' in webapp.metaData) ? !!webapp.metaData.removable :
+                                                    true;
   } else {
     webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
-    removable = ("removable" in webapp.metaData) ? !!webapp.metaData.removable
-                                                 : true;
+    removable = ('removable' in webapp.metaData) ? !!webapp.metaData.removable :
+                                                    true;
 
     // This is an hosted app. Check if there is an offline cache.
     let srcCacheFolder = webapp.sourceDirectoryFile.clone();
@@ -207,20 +254,20 @@ function fillExternalAppManifest(webapp) {
 
   // Add webapp's entry to the webapps global manifest
   manifests[webappTargetDirName] = {
-    origin:        origin,
+    origin: origin,
     installOrigin: installOrigin,
-    receipt:       null,
-    installTime:   132333986000,
-    manifestURL:   manifestURL,
-    removable:     removable,
-    localId:       id++,
-    etag:          etag,
-    packageEtag:   packageEtag,
-    appStatus:     getAppStatus(webapp.metaData.type || "web"),
+    receipt: null,
+    installTime: 132333986000,
+    manifestURL: manifestURL,
+    removable: removable,
+    localId: id++,
+    etag: etag,
+    packageEtag: packageEtag,
+    appStatus: getAppStatus(webapp.metaData.type || 'web')
   };
 }
 
-Gaia.webapps.forEach(function (webapp) {
+Gaia.webapps.forEach(function(webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME) {
     return;
