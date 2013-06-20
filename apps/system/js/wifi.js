@@ -22,13 +22,17 @@ var Wifi = {
   _scanTimer: null,
 
   init: function wf_init() {
+    if (!window.navigator.mozSettings)
+      return;
+
+    if (!window.navigator.mozWifiManager)
+      return;
+
     window.addEventListener('screenchange', this);
 
     var battery = window.navigator.battery;
     battery.addEventListener('chargingchange', this);
 
-    if (!window.navigator.mozSettings)
-      return;
 
     // If wifi is turned off by us and phone got rebooted,
     // bring wifi back.
