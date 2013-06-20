@@ -37,31 +37,31 @@ function addEntryFileWithTime(zip, pathInZip, file, time) {
  * @param {nsIFile}      file      file xpcom to add.
  */
 function addToZip(zip, pathInZip, file) {
+  let suffix = '@' + GAIA_DEV_PIXELS_PER_PX + 'x';
   if (file.isHidden())
     return;
 
-  // if HIDPI is enabled and the file is a bitmap let's check if there is a
-  // bigger version in the directory. If so let's ignore the file in order to
-  // use the bigger version later.
+  // If GAIA_DEV_PIXELS_PER_PX is not 1 and the file is a bitmap let's check
+  // if there is a bigger version in the directory. If so let's ignore the
+  // file in order to use the bigger version later.
   let isBitmap = /\.(png|gif|jpg)$/.test(file.path);
   if (isBitmap) {
-    let isHIDPIBitmap = /@2x/.test(file.path);
-
-    if (HIDPI == 0 && isHIDPIBitmap) {
-      // Do not save hidpi files into the zip in non-hidpi build
+    let matchResult = /@([0-9]+\.?[0-9]*)x/.exec(file.path);
+    if ((GAIA_DEV_PIXELS_PER_PX === '1' && matchResult) ||
+        (matchResult && matchResult[1] !== GAIA_DEV_PIXELS_PER_PX)) {
       return;
     }
 
-    if (HIDPI == 1) {
-      if (isHIDPIBitmap) {
+    if (GAIA_DEV_PIXELS_PER_PX !== '1') {
+      if (matchResult && matchResult[1] === GAIA_DEV_PIXELS_PER_PX) {
         // Save the hidpi file to the zip, stripping the name to be more generic.
-        pathInZip = pathInZip.replace('@2x', '');
+        pathInZip = pathInZip.replace(suffix, '');
       } else {
         // Check if there a hidpi file. If yes, let's ignore this bitmap since it will
         // be loaded later (or it has already been loaded, depending on how the OS
         // organize files.
-        let file2x = new FileUtils.File(file.path.replace(/(\.[a-z]+$)/, '@2x$1'));
-        if (file2x.exists()) {
+        let hqfile = new FileUtils.File(file.path.replace(/(\.[a-z]+$)/, suffix + '$1'));
+        if (hqfile.exists()) {
           return;
         }
       }
