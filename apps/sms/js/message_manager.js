@@ -64,15 +64,22 @@ var MessageManager = {
   onMessageSent: function mm_onMessageSent(e) {
     ThreadUI.onMessageSent(e.message);
   },
+
   // This method fills the gap while we wait for next 'getThreads' request,
   // letting us rendering the new thread with a better performance.
   createThreadMockup: function mm_createThreadMockup(message) {
     // Given a message we create a thread as a mockup. This let us render the
     // thread without requesting Gecko, so we increase the performance and we
     // reduce Gecko requests.
+
+    // If is a MMS Group, we are gonna mockup as well the recipients
+    var participants = (message.receivers && message.receivers.length > 1) ?
+      message.receivers : [];
+    participants.push(message.sender)
+    
     return {
         id: message.threadId,
-        participants: [message.sender],
+        participants: participants,
         body: message.body,
         timestamp: message.timestamp,
         unreadCount: 1,
@@ -320,7 +327,7 @@ var MessageManager = {
     cursor.onsuccess = function onsuccess() {
       if (this.result) {
         threads.push(this.result);
-
+        
         // Register all threads to the Threads object.
         Threads.set(this.result.id, this.result);
 

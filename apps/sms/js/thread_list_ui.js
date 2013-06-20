@@ -373,10 +373,18 @@ var ThreadListUI = {
       body = Utils.escapeHTML(body);
     }
 
+    // Participants should be internationalized if needed
+    var threadTitle = number;
+    if (participants.length > 1) {
+      threadTitle = navigator.mozL10n.get('thread-header-text', {
+        name: number,
+        n: participants.length - 1
+      });
+    }
     // Render markup with thread data
     li.innerHTML = this.tmpl.thread.interpolate({
       id: id,
-      number: number,
+      participants: threadTitle,
       body: body,
       formattedDate: Utils.getFormattedHour(timestamp)
     }, {
