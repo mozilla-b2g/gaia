@@ -139,13 +139,15 @@
      { "ussd-received": "/dialer/index.html#keyboard-view" }
   ],
   "redirects": [
-    {"from": "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/flow.html",
+    {"from": "facebook",
     "to": "/redirects/redirect.html"},
-    {"from": "https://serene-cove-3587.herokuapp.com/liveowd/oauth2_new/flow_live.html",
-    "to": "/redirects/redirect.html"},
-    {"from": "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/dialogs_end.html",
+    {"from": "facebook_dialogs",
     "to": "/redirects/dialogs_end.html"},
-    {"from": "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/logout.json",
-    "to": "/redirects/logout.json"}
+    {"from": "facebook_logout",
+    "to": "/redirects/logout.json"},
+    {"from": "live",
+    "to": "/redirects/redirect.html"},
+    {"from": "gmail",
+    "to": "/redirects/redirect.html"}
   ]
 }
