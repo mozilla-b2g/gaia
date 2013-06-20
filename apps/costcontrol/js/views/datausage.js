@@ -125,19 +125,22 @@ var DataUsageTab = (function() {
   }
 
   function resetButtonState() {
-    asyncStorage.getItem('mobile.toggled', function callback(value) {
-      // Restore to last state of mobile toggled, default is true.
-      var preValue = (value === null ? true : value);
-      if (preValue != mobileToggle.checked) {
-        mobileToggle.checked = preValue;
+    ConfigManager.requestSettings(function _onSettings(settings) {
+      var isMobileChartVisible = settings.isMobileChartVisible;
+      if (typeof isMobileChartVisible === 'undefined') {
+        isMobileChartVisible = true;
+      }
+      if (isMobileChartVisible !== mobileToggle.checked) {
+        mobileToggle.checked = isMobileChartVisible;
         toggleMobile();
       }
-    });
-    asyncStorage.getItem('wifi.toggled', function callback(value) {
-      // Restore to last state of wifi toggled, default is false.
-      var preValue = (value === null ? false : value);
-      if (preValue !== wifiToggle.checked) {
-        wifiToggle.checked = preValue;
+
+      var isWifiChartVisible = settings.isWifiChartVisible;
+      if (typeof isWifiChartVisible === 'undefined') {
+        isWifiChartVisible = false;
+      }
+      if (isWifiChartVisible !== wifiToggle.checked) {
+        wifiToggle.checked = isWifiChartVisible;
         toggleWifi();
       }
     });
@@ -283,7 +286,7 @@ var DataUsageTab = (function() {
     wifiLayer.setAttribute('aria-hidden', !isChecked);
     wifiItem.setAttribute('aria-disabled', !isChecked);
     // save wifi toggled state
-    asyncStorage.setItem('wifi.toggled', isChecked);
+    ConfigManager.setOption({ isWifiChartVisible: isChecked });
   }
 
   // On tapping on mobile toggle
@@ -294,7 +297,7 @@ var DataUsageTab = (function() {
     limitsLayer.setAttribute('aria-hidden', !isChecked);
     mobileItem.setAttribute('aria-disabled', !isChecked);
     // save wifi toggled state
-    asyncStorage.setItem('mobile.toggled', isChecked);
+    ConfigManager.setOption({ isMobileChartVisible: isChecked });
 
     if (model) {
       drawBackgroundLayer(model);
