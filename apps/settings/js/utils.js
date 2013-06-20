@@ -133,28 +133,7 @@ function loadJSON(href, callback) {
  * L10n helper
  */
 
-function localize(element, id, args) {
-  var mozL10n = navigator.mozL10n;
-  if (!element || !mozL10n)
-    return;
-
-  if (id) {
-    element.dataset.l10nId = id;
-  } else {
-    element.dataset.l10nId = '';
-    element.textContent = '';
-  }
-
-  if (args) {
-    element.dataset.l10nArgs = JSON.stringify(args);
-  } else {
-    element.dataset.l10nArgs = '';
-  }
-
-  mozL10n.ready(function l10nReady() {
-    mozL10n.translate(element);
-  });
-}
+var localize = navigator.mozL10n.localize;
 
 /**
  * Helper class for formatting file size strings

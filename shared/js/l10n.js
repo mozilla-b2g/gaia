@@ -923,6 +923,34 @@
     translateElement(element);
   }
 
+  // localize an element as soon as mozL10n is ready
+  function localizeElement(element, id, args) {
+    if (!element)
+      return;
+
+    if (id) {
+      element.setAttribute('data-l10n-id', id);
+    } else {
+      // clear element content and data-l10n attributes
+      element.removeAttribute('data-l10n-id');
+      element.removeAttribute('data-l10n-args');
+      element[gProp] = '';
+      return;
+    }
+
+    if (args) {
+      element.setAttribute('data-l10n-args', JSON.stringify(args));
+    } else {
+      element.removeAttribute('data-l10n-args');
+    }
+
+    // if l10n resources are ready, translate now;
+    // if not, the element will be translated along with the document anyway.
+    if (gReadyState === 'complete') {
+      translateElement(element);
+    }
+  }
+
 
   /**
    * Startup & Public API
@@ -992,6 +1020,9 @@
 
     // translate an element or document fragment
     translate: translateFragment,
+
+    // localize an element (= set its data-l10n-* attributes and translate it)
+    localize: localizeElement,
 
     // get (a clone of) the dictionary for the current locale
     get dictionary() { return JSON.parse(JSON.stringify(gL10nData)); },
