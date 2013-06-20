@@ -34,7 +34,7 @@ DOGFOOD?=0
 TEST_AGENT_PORT?=8789
 
 # Enable compatibility to run in Firefox Desktop
-DESKTOP?=$(DEBUG)
+DESKTOP?=0
 # Disable first time experience screen
 NOFTU?=0
 # Automatically enable remote debugger
