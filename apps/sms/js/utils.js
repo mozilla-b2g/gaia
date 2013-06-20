@@ -3,7 +3,7 @@
 (function(exports) {
   'use strict';
   var rdashes = /-(.)/g;
-  var rmatcher = /\$\{([^{]+)\}/g;
+  var rmatcher = /\$\{([^}]+)\}/g;
   var rescape = /[.?*+^$[\]\\(){}|-]/g;
   var rentity = /[&<>"']/g;
   var rentities = {
