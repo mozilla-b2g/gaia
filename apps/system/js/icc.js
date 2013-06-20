@@ -153,6 +153,23 @@ var icc = {
    * ICC Helper methods
    ******************************************/
 
+  calculateDurationInMS: function icc_calculateDurationInMS(timeUnit,
+    timeInterval) {
+    var timeout = timeInterval;
+    switch (timeUnit) {
+      case this._icc.STK_TIME_UNIT_MINUTE:
+        timeout *= 3600000;
+        break;
+      case this._icc.STK_TIME_UNIT_SECOND:
+        timeout *= 1000;
+        break;
+      case this._icc.STK_TIME_UNIT_TENTH_SECOND:
+        timeout *= 100;
+        break;
+    }
+    return timeout;
+  },
+
   hideViews: function icc_hideViews() {
     if (!this.icc_view) {
       this.icc_view = document.getElementById('icc-view');
@@ -205,11 +222,13 @@ var icc = {
       clearTimeout(timeoutId);
       self.hideViews();
       self.backResponse();
+      callback(null);
     };
     this.icc_confirm_btn_close.onclick = function() {
       clearTimeout(timeoutId);
       self.hideViews();
       self.terminateResponse();
+      callback(null);
     };
 
     // User acceptance
