@@ -588,6 +588,11 @@ var Browser = {
   handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
     var input = this.urlInput.value;
 
+    if (input === '') {
+      this.setUrlButtonMode(null);
+      return;
+    }
+
     this.setUrlButtonMode(
       this.isNotURL(input) ? this.SEARCH : this.GO
     );
@@ -705,6 +710,11 @@ var Browser = {
     if (e) {
       e.preventDefault();
     }
+
+    if (this.urlButtonMode === null) {
+      return;
+    }
+
 
     if (this.urlButtonMode == this.REFRESH && this.currentTab.crashed) {
       this.setUrlBar(this.currentTab.url);
@@ -949,6 +959,15 @@ var Browser = {
 
   setUrlButtonMode: function browser_setUrlButtonMode(mode) {
     this.urlButtonMode = mode;
+
+    if (this.urlButtonMode === null) {
+      this.urlButton.style.backgroundImage = '';
+      this.urlButton.style.display = 'none';
+      return;
+    }
+
+    this.urlButton.style.display = 'block';
+
     switch (mode) {
       case this.GO:
         this.urlButton.style.backgroundImage = 'url(style/images/go.png)';
@@ -1747,7 +1766,8 @@ var Browser = {
     }).bind(this);
     this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
-    this.setUrlButtonMode(this.GO);
+    var buttonMode = this.urlInput.value === '' ? null : this.GO;
+    this.setUrlButtonMode(buttonMode);
     this.showTopSitesTab();
   },
 
@@ -1766,7 +1786,7 @@ var Browser = {
       this.setUrlButtonMode(this.STOP);
       this.throbber.classList.add('loading');
     } else {
-      var urlButton = this.currentTab.url ? this.REFRESH : this.GO;
+      var urlButton = this.currentTab.url ? this.REFRESH : null;
       this.setUrlButtonMode(urlButton);
       this.throbber.classList.remove('loading');
     }

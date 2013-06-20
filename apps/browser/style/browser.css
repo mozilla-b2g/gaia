@@ -295,7 +295,7 @@ input[type="image"] {
 
 #url-button {
   background-position: center;
-  display: block;
+  display: none;
   height: 3.2rem;
   width: 3.2rem;
   background-size: 3rem;
