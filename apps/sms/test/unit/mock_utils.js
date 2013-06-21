@@ -11,6 +11,7 @@ var MockUtils = {
     return 12;
   },
   getDayDate: Utils.getDayDate,
+  getHeaderDate: Utils.getHeaderDate,
   getFormattedHour: Utils.getFormattedHour,
   updateTimeHeaders: function() {},
   // real code needed here to map types
