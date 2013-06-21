@@ -115,62 +115,61 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     return;
   }
 
-  var voicemail = navigator.mozVoicemail;
-  if (voicemail) {
-    if (voicemail.number == number) {
-      node.textContent = voicemail.displayName ?
-        voicemail.displayName : number;
-      return;
-    }
-  }
-
   var self = this;
-  Contacts.findByNumber(number,
-    function lookupContact(contact, matchingTel, contactsWithSameNumber) {
-      if (contact) {
-        var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
-        var contactCopy = {
-          name: contact.name,
-          org: contact.org,
-          tel: contact.tel
-        };
-        if (primaryInfo) {
-          node.textContent = primaryInfo;
-          self._cachedInfo = primaryInfo;
-        } else {
-          LazyL10n.get(function gotL10n(_) {
-            self._cachedInfo = _('withheld-number');
-            node.textContent = self._cachedInfo;
-          });
-        }
-        self.formatPhoneNumber('end', true);
-        self._cachedAdditionalInfo =
-          Utils.getPhoneNumberAdditionalInfo(matchingTel, contact, number);
-        self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
-        if (contact.photo && contact.photo.length > 0) {
-          self.photo = contact.photo[0];
-          CallScreen.setCallerContactImage(self.photo, true, false);
-          if (typeof self.photo === 'string') {
-            contactCopy.photo = self.photo;
-          } else {
-            contactCopy.photo = [URL.createObjectURL(self.photo)];
-          }
-        }
+  Voicemail.check(number, function(isVoicemailNumber) {
+    if (isVoicemailNumber) {
+      LazyL10n.get(function localized(_) {
+        node.textContent = _('voiceMail');
+      });
+    } else {
+      Contacts.findByNumber(number, lookupContact);
+    }
+  });
 
-        self.recentsEntry.contactInfo = {
-          matchingTel: JSON.stringify(matchingTel),
-          contact: JSON.stringify(contactCopy),
-          contactsWithSameNumber: contactsWithSameNumber || 0
-        };
-        return;
+  function lookupContact(contact, matchingTel, contactsWithSameNumber) {
+    if (contact) {
+      var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
+      var contactCopy = {
+        name: contact.name,
+        org: contact.org,
+        tel: contact.tel
+      };
+      if (primaryInfo) {
+        node.textContent = primaryInfo;
+        self._cachedInfo = primaryInfo;
+      } else {
+        LazyL10n.get(function gotL10n(_) {
+          self._cachedInfo = _('withheld-number');
+          node.textContent = self._cachedInfo;
+        });
+      }
+      self.formatPhoneNumber('end', true);
+      self._cachedAdditionalInfo =
+        Utils.getPhoneNumberAdditionalInfo(matchingTel, contact, number);
+      self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+      if (contact.photo && contact.photo.length > 0) {
+        self.photo = contact.photo[0];
+        CallScreen.setCallerContactImage(self.photo, true, false);
+        if (typeof self.photo === 'string') {
+          contactCopy.photo = self.photo;
+        } else {
+          contactCopy.photo = [URL.createObjectURL(self.photo)];
+        }
       }
 
-      self._cachedInfo = number;
-      node.textContent = self._cachedInfo;
-      self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
-      self.formatPhoneNumber('end', true);
+      self.recentsEntry.contactInfo = {
+        matchingTel: JSON.stringify(matchingTel),
+        contact: JSON.stringify(contactCopy),
+        contactsWithSameNumber: contactsWithSameNumber || 0
+      };
+      return;
     }
-  );
+
+    self._cachedInfo = number;
+    node.textContent = self._cachedInfo;
+    self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+    self.formatPhoneNumber('end', true);
+  }
 };
 
 HandledCall.prototype.replaceAdditionalContactInfo =
