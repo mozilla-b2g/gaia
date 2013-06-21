@@ -65,9 +65,14 @@
     return document.querySelectorAll('link[type="application/l10n"]');
   }
 
-  function getL10nDictionary() {
-    var script = document.querySelector('script[type="application/l10n"]');
+  function getL10nDictionary(lang) {
+    var getDictionary = function(locale) {
+      var sel = 'script[type="application/l10n"]';
+      sel += locale ? '[lang="' + locale + '"]' : ':not([lang])';
+      return document.querySelector(sel);
+    }
     // TODO: support multiple and external JSON dictionaries
+    var script = getDictionary(lang) || getDictionary();
     return script ? JSON.parse(script.innerHTML) : null;
   }
 
@@ -279,10 +284,10 @@
     var langCount = langLinks.length;
     if (langCount == 0) {
       // we might have a pre-compiled dictionary instead
-      var dict = getL10nDictionary();
-      if (dict && dict.locales && dict.default_locale) {
+      var dict = getL10nDictionary(lang);
+      if (dict) {
         consoleLog('using the embedded JSON directory, early way out');
-        gL10nData = dict.locales[lang] || dict.locales[dict.default_locale];
+        gL10nData = dict;
         callback();
       } else {
         consoleLog('no resource to load, early way out');

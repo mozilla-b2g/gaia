@@ -139,7 +139,7 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
     // and to make parser's life better.
     try {
       content = JSMin(content).code;
-    } catch(e) {
+    } catch (e) {
       debug('Failed to minify content: ' + e);
     }
 
@@ -224,10 +224,15 @@ function optimize_embedl10nResources(doc, dictionary) {
   }
 
   // put the current dictionary in an inline JSON script
-  let script = doc.createElement('script');
-  script.type = 'application/l10n';
-  script.innerHTML = '\n  ' + JSON.stringify(dictionary) + '\n';
-  doc.documentElement.appendChild(script);
+  for (let lang in dictionary.locales) {
+    let script = doc.createElement('script');
+    script.type = 'application/l10n';
+    if (lang != dictionary.default_locale) {
+      script.lang = lang;
+    }
+    script.innerHTML = '\n  ' + JSON.stringify(dictionary.locales[lang]) + '\n';
+    doc.documentElement.appendChild(script);
+  }
 }
 
 function optimize_serializeHTMLDocument(doc, file) {
