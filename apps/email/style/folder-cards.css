@@ -122,8 +122,21 @@
 
 .fld-nav-last-synced {
   display: inline-block;
+  /* There is 1 button to our left; it is 6rem wide (which includes its padding
+     as a result of box-sizing).  It also has complicated border-sizing rules
+     from button.css that try and provide each button with fixed spacing. The
+     2rem is because we are absolutely positioned 2rem in from the right. */
+  max-width: calc(100% - (6rem + (100% - 25rem)/4) - 2rem);
+  overflow: hidden;
   position: absolute;
   right: 2rem;
+  /* Using ellipsis wastes too much space on overflow; use '' to avoid clipping
+     leaving part of a character visible but otherwise not waste space.
+     Note that gecko nightly currently won't do the right thing if we use the
+     2-value form and try and put our ellipsis on the left; this is probably
+     because we are using 2 spans. */
+  text-overflow: '';
+  white-space: nowrap;
 }
 
 .fld-nav-account-problem {
