@@ -401,6 +401,9 @@ navigator.mozL10n.ready(function carrierSettings() {
     li.appendChild(state);
     li.appendChild(name);
 
+    li.dataset.cachedState = network.state || 'unknown';
+    li.classList.add('operatorItem');
+
     // bind connection callback
     li.onclick = function() {
       callback(network, state);
@@ -416,7 +419,6 @@ navigator.mozL10n.ready(function carrierSettings() {
     var infoItem = list.querySelector('li[data-state="on"]');
     var scanItem = list.querySelector('li[data-state="ready"]');
     scanItem.onclick = scan;
-    var currentStateElement = null;
 
     // clear the list
     function clear() {
@@ -427,14 +429,30 @@ navigator.mozL10n.ready(function carrierSettings() {
       }
     }
 
+    function resetOperatorItemState() {
+      var operatorItems =
+        Array.prototype.slice.call(list.querySelectorAll('.operatorItem'));
+      operatorItems.forEach(function(operatorItem) {
+        var state = operatorItem.dataset.cachedState;
+        var messageElement = operatorItem.querySelector('small');
+
+        if (!state) {
+          state = 'unknown';
+        } else if (state === 'current') {
+          state = 'available';
+        }
+
+        localize(messageElement, 'state-' + state);
+      });
+    }
+
     // select operator
     function selectOperator(network, messageElement) {
-      var req = mobileConnection.selectNetwork(network);
       // update current network state as 'available' (the string display
       // on the network to connect)
-      currentStateElement.textContent = messageElement.textContent;
-      currentStateElement.dataset.l10nId = messageElement.dataset.l10nId;
-      currentStateElement = messageElement;
+      resetOperatorItemState();
+
+      var req = mobileConnection.selectNetwork(network);
       localize(messageElement, 'operator-status-connecting');
       req.onsuccess = function onsuccess() {
         localize(messageElement, 'operator-status-connected');
@@ -455,9 +473,6 @@ navigator.mozL10n.ready(function carrierSettings() {
         var networks = req.result;
         for (var i = 0; i < networks.length; i++) {
           var listItem = newListItem(networks[i], selectOperator);
-          if (networks[i].state === 'current') {
-            currentStateElement = listItem.querySelector('small');
-          }
           list.insertBefore(listItem, scanItem);
         }
         list.dataset.state = 'ready'; // "Search Again" button
