@@ -9,10 +9,6 @@
   background: black;
 }
 
-#software-buttons.pressed {
-  background: silver;
-}
-
 #software-buttons.visible {
   display: block;
 }
@@ -39,14 +35,8 @@
   display: block;
 }
 
-@media (-moz-physical-home-button) {
-  #software-buttons:not(.visible) {
-    display: none;
-  }
-}
-
-@media not (-moz-physical-home-button) {
-  #software-buttons {
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) #software-buttons {
     display: block;
   }
 }
