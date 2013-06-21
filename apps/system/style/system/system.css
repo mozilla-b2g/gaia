@@ -240,8 +240,8 @@ body {
   background-position: center center;
 }
 
-@media not (-moz-physical-home-button) {
-  #windows > .appWindow {
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) > #windows > .appWindow {
     bottom: 5rem;
   }
 }
@@ -647,7 +647,7 @@ body {
   pointer-events: none;
 }
 
-@media not (-moz-physical-home-button) {
+@media not all and (-moz-physical-home-button) {
   #dialog-overlay {
     bottom: 5rem;
     height: calc(100% - 2rem - 5rem);
