@@ -139,7 +139,7 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
     // and to make parser's life better.
     try {
       content = JSMin(content).code;
-    } catch(e) {
+    } catch (e) {
       debug('Failed to minify content: ' + e);
     }
 
@@ -342,8 +342,11 @@ function optimize_compile(webapp, file) {
       parseFromString(getFileContent(file), 'text/html');
 
   // if this HTML document uses l10n.js, pre-localize it --
+  // A document can use l10n.js either by including l10n.js or
+  // application/l10n resource link elements
   // selecting a language triggers `XMLHttpRequest' and `dispatchEvent' above
-  if (win.document.querySelector('script[src$="l10n.js"]')) {
+  if (win.document.querySelector('script[src$="l10n.js"]') ||
+      win.document.querySelector('link[type$="application/l10n"]')) {
     debug('localizing: ' + file.path);
     mozL10n.language.code = l10nLocales[processedLocales];
   }
