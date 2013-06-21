@@ -323,11 +323,20 @@ Calendar.LoadConfig = (function() {
       },
 
       'Provider.Local': {
-        group: ['Provider.Abstract'],
+        group: [
+          'Provider.Abstract',
+          'EventMutations'
+        ],
 
         js: [
           'ext/uuid',
-          'provider/local',
+          'provider/local'
+        ]
+      },
+
+      'EventMutations': {
+        js: [
+          'ext/uuid',
           'event_mutations'
         ]
       },
@@ -339,7 +348,10 @@ Calendar.LoadConfig = (function() {
       },
 
       'Provider.CaldavPullEvents': {
-        js: ['provider/caldav_pull_events']
+        js: [
+          'ext/uuid',
+          'provider/caldav_pull_events'
+        ]
       },
 
       'Provider.Caldav': {
