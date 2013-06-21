@@ -28,6 +28,7 @@ var lazyLoadFiles = [
   'js/action_menu.js',
   'js/link_action_handler.js',
   'js/settings.js',
+  'js/notification.js',
   'js/activity_handler.js',
   'shared/style/input_areas.css',
   'shared/style/switches.css',

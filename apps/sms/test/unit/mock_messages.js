@@ -11,6 +11,7 @@ var MockMessages = {
       body: 'body',
       delivery: 'received',
       type: 'sms',
+      messageClass: 'normal',
       timestamp: Date.now(),
       read: true
     };
