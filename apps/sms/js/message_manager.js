@@ -232,6 +232,8 @@ var MessageManager = {
 
             MessageManager.activity.number = null;
             MessageManager.activity.contact = null;
+            // already have recipients, move focus to input
+            ThreadUI.input.focus();
           }
 
           // If the message has a body, use it to popuplate the input field.

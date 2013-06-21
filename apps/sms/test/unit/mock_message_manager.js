@@ -3,6 +3,7 @@
 var MockMessageManager = {
   getMessages: function() {},
   deleteMessage: function() {},
+  onHashChange: function() {},
   sendSMS: function() {
     return {};
   },

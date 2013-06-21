@@ -1,7 +1,8 @@
-// Timespan is always loaded but not in the test
 requireLib('timespan.js');
+requireLib('calc.js');
+requireLib('event_mutations.js');
 
-suiteGroup('EventMutations', function() {
+suite('event_mutations', function() {
   var subject;
   var app;
   var db;
@@ -76,7 +77,6 @@ suiteGroup('EventMutations', function() {
 
     var event;
     var component;
-    var mutation;
 
     setup(function(done) {
       event = Factory('event');
@@ -94,7 +94,7 @@ suiteGroup('EventMutations', function() {
         new Date(Date.now() - 1 * 60 * 60 * 1000)
       );
 
-      mutation = subject.create({
+      var mutation = subject.create({
         event: event,
         icalComponent: component
       });
@@ -119,14 +119,14 @@ suiteGroup('EventMutations', function() {
     });
 
     test('busytime', function(done) {
-      var busytime = mutation.busytime;
-      assert.ok(busytime._id, 'has _id');
+      var expectedBusytime = busytimeStore.factory(
+        event
+      );
 
-      busytimeStore.get(busytime._id, function(err, value) {
+      busytimeStore.get(expectedBusytime._id, function(err, value) {
         done(function() {
           assert.hasProperties(value, {
             eventId: event._id,
-            calendarId: event.calendarId,
             start: event.remote.start,
             end: event.remote.end
           });
@@ -135,8 +135,12 @@ suiteGroup('EventMutations', function() {
     });
 
     test('alarms', function(done) {
+      var expectedBusytime = busytimeStore.factory(
+        event
+      );
+
       var expectedAlarms = [];
-      var busyId = mutation.busytime._id;
+      var busyId = expectedBusytime._id;
 
       alarmStore.findAllByBusytimeId(busyId, function(err, values) {
         done(function() {
@@ -173,7 +177,6 @@ suiteGroup('EventMutations', function() {
       create.commit(done);
     });
 
-    var mutation;
     setup(function(done) {
       event.remote.foo = true;
 
@@ -199,13 +202,13 @@ suiteGroup('EventMutations', function() {
 
       component.data = { changed: true };
 
-      mutation = subject.update({
+      var update = subject.update({
         event: event,
         icalComponent: component
       });
 
       addTime = addEvent = removeTime = null;
-      mutation.commit(done);
+      update.commit(done);
     });
 
     test('controller events', function() {
@@ -236,7 +239,11 @@ suiteGroup('EventMutations', function() {
     });
 
     test('busytime', function(done) {
-      busytimeStore.get(mutation.busytime._id, function(err, value) {
+      var expectedBusytime = busytimeStore.factory(
+        event
+      );
+
+      busytimeStore.get(expectedBusytime._id, function(err, value) {
         done(function() {
           assert.hasProperties(value, {
             eventId: event._id,
@@ -248,8 +255,12 @@ suiteGroup('EventMutations', function() {
     });
 
     test('alarms', function(done) {
+      var expectedBusytime = busytimeStore.factory(
+        event
+      );
+
       var expectedAlarms = event.remote.alarms;
-      var busyId = mutation.busytime._id;
+      var busyId = expectedBusytime._id;
 
       alarmStore.findAllByBusytimeId(busyId, function(err, values) {
         done(function() {

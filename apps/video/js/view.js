@@ -130,6 +130,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.player.addEventListener('play', hideSpinner);
     dom.player.addEventListener('pause', hideSpinner);
     dom.player.addEventListener('ended', playerEnded);
+    dom.player.addEventListener('canplaythrough', hideSpinner);
 
     // Set the 'lang' and 'dir' attributes to <html> when the page is translated
     window.addEventListener('localized', function showBody() {

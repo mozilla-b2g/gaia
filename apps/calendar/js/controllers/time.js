@@ -16,7 +16,6 @@ Calendar.ns('Controllers').Time = (function() {
 
     this._timespans = [];
     this._collection = new Calendar.IntervalTree();
-    this._collection.createIndex('eventId');
 
     this.busytime = app.store('Busytime');
   }
@@ -513,7 +512,6 @@ Calendar.ns('Controllers').Time = (function() {
      */
     removeCachedBusytime: function(id) {
       var collection = this._collection;
-
       if (id in collection.byId) {
         var busytime = collection.byId[id];
         var start = busytime.startDate;
@@ -535,20 +533,10 @@ Calendar.ns('Controllers').Time = (function() {
 
     /**
      * Remove a single event from the cache by its id.
-     * Also will clear any associated busytime record.
      *
      * @param {String} id of object to remove from cache.
      */
     removeCachedEvent: function(id) {
-      // purge any busytimes related to this event
-      var busytimes = this._collection.index('eventId', id);
-      if (busytimes) {
-        busytimes.forEach(function(busytime) {
-          this.removeCachedBusytime(busytime._id);
-        }, this);
-      }
-
-      // remove event details
       delete this._eventsCache[id];
     },
 
@@ -694,9 +682,7 @@ Calendar.ns('Controllers').Time = (function() {
           var record = this._collection.byId[busytime];
 
           if (!record) {
-            console.log(
-              'Cannot find busytime by id: ', JSON.stringify(busytime)
-            );
+            console.log('Cannot find busytime by id: ', busytime);
 
             // why pending++ ? we must add a pending item to our
             // counter otherwise the loop may close and return prior

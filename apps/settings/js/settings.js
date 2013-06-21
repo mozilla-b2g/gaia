@@ -759,7 +759,8 @@ window.addEventListener('load', function loadSettings() {
       'shared/js/mobile_operator.js',
       'js/connectivity.js',
       'js/security_privacy.js',
-      'js/icc_menu.js'
+      'js/icc_menu.js',
+      'shared/js/settings_listener.js'
     ];
     scripts.forEach(function attachScripts(src) {
       var script = document.createElement('script');

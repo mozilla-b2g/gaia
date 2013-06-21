@@ -569,6 +569,17 @@ var WindowManager = (function() {
     }
   });
 
+  windows.addEventListener('mozbrowservisibilitychange',
+    function visibilitychange(e) {
+      var target = e.target;
+
+      var type = e.detail.visible ? 'foreground' : 'background';
+      var detail = { manifestURL: target.getAttribute('mozapp') };
+      var evt = new CustomEvent(type, { detail: detail, bubbles: true });
+      target.dispatchEvent(evt);
+    }
+  );
+
   // setFrameBackground() will attach the screenshot background to
   // the given frame.
   // The callback could be sync or async (depend on whether we need
