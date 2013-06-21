@@ -5,12 +5,15 @@ requireApp(
 requireApp(
   'communications/ftu/test/unit/mock_navigator_moz_icc_manager.js');
 requireApp('communications/ftu/test/unit/mock_ui_manager.js');
+requireApp('communications/ftu/test/unit/mock_icc_helper.js');
+requireApp('communications/ftu/test/unit/mock_l10n.js');
 
 requireApp('communications/ftu/js/sim_manager.js');
 
 var _;
 var mocksHelperForNavigation = new MocksHelper([
-  'UIManager'
+  'UIManager',
+  'IccHelper'
 ]);
 mocksHelperForNavigation.init();
 
