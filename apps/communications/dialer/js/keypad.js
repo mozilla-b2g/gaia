@@ -1,6 +1,7 @@
 'use strict';
 
 var kFontStep = 4;
+var loader = LazyLoader;
 
 // Frequencies coming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
