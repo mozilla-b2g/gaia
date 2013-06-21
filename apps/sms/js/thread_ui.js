@@ -1388,14 +1388,26 @@ var ThreadUI = global.ThreadUI = {
 
     // Send the Message
     if (messageType === 'sms') {
-      MessageManager.sendSMS(recipients, content[0]);
+      MessageManager.sendSMS(recipients, content[0], null, null,
+        function onComplete(requestResult) {
+          if (requestResult.error.length > 0) {
+            var errorName = requestResult.error[0].name;
+            this.showSendMessageError(errorName);
+          }
+        }.bind(this)
+      );
 
       if (recipients.length > 1) {
         window.location.hash = '#thread-list';
       }
     } else {
       var smilSlides = content.reduce(thui_generateSmilSlides, []);
-      MessageManager.sendMMS(recipients, smilSlides);
+      MessageManager.sendMMS(recipients, smilSlides, null,
+        function onError(error) {
+          var errorName = error.name;
+          this.showSendMessageError(errorName);
+        }.bind(this)
+      );
     }
   },
 
@@ -1432,8 +1444,6 @@ var ThreadUI = global.ThreadUI = {
       messageDOM.classList.remove('sending');
       messageDOM.classList.add('error');
     }
-
-    this.ifRilDisabled(this.showAirplaneModeError);
   },
 
   onDeliverySuccess: function thui_onDeliverySuccess(message) {
@@ -1446,30 +1456,51 @@ var ThreadUI = global.ThreadUI = {
     messageDOM.classList.add('delivered');
   },
 
-  ifRilDisabled: function thui_ifRilDisabled(func) {
-    var settings = window.navigator.mozSettings;
-    if (settings) {
-      // Check if RIL is enabled or not
-      var req = settings.createLock().get('ril.radio.disabled');
-      req.addEventListener('success', function onsuccess() {
-        var rilDisabled = req.result['ril.radio.disabled'];
-        rilDisabled && func();
-      });
-    }
-  },
+  showSendMessageError: function mm_sendMessageOnError(errorName) {
+    var messageTitle = '';
+    var messageBody = '';
+    var buttonLabel = '';
 
-  showAirplaneModeError: function thui_showAirplaneModeError() {
-    var _ = navigator.mozL10n.get;
-    CustomDialog.show(
-      _('sendAirplaneModeTitle'),
-      _('sendAirplaneModeBody'),
-      {
-        title: _('sendAirplaneModeBtnOk'),
-        callback: function() {
-          CustomDialog.hide();
+    switch (errorName) {
+      case 'NoSignalError':
+      case 'NotFoundError':
+      case 'UnknownError':
+      case 'InternalError':
+        messageTitle = 'sendGeneralErrorTitle';
+        messageBody = 'sendGeneralErrorBody';
+        buttonLabel = 'sendGeneralErrorBtnOk';
+        break;
+      case 'NoSimCardError':
+        messageTitle = 'sendNoSimCardTitle';
+        messageBody = 'sendNoSimCardBody';
+        buttonLabel = 'sendNoSimCardBtnOk';
+        break;
+      case 'RadioDisabledError':
+        messageTitle = 'sendAirplaneModeTitle';
+        messageBody = 'sendAirplaneModeBody';
+        buttonLabel = 'sendAirplaneModeBtnOk';
+        break;
+    }
+
+    var dialog = new Dialog({
+      title: {
+        value: messageTitle,
+        l10n: true
+      },
+      body: {
+        value: messageBody,
+        l10n: true
+      },
+      options: {
+        cancel: {
+          text: {
+            value: buttonLabel,
+            l10n: true
+          }
         }
       }
-    );
+    });
+    dialog.show();
   },
 
   removeMessageDOM: function thui_removeMessageDOM(messageDOM) {
