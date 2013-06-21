@@ -116,6 +116,9 @@ var ScreenManager = {
             // Turn screen on if wake lock is acquire
             self.turnScreenOn();
           self._reconfigScreenTimeout();
+        } else if (topic == 'cpu') {
+          power.cpuSleepAllowed = (state != 'locked-foreground' &&
+                                    state != 'locked-background');
         }
       });
     }
