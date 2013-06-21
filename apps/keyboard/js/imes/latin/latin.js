@@ -698,6 +698,13 @@
       var dx = (cx1 - cx2) / radius;
       var dy = (cy1 - cy2) / radius;
       var distanceSquared = dx * dx + dy * dy;
+
+      if (distanceSquared < 1) {
+        console.warn('Keys too close',
+                     JSON.stringify(key1), JSON.stringify(key2));
+        return 0;
+      }
+
       if (distanceSquared > 2.5 * 2.5)
         return 0;
       else
