@@ -369,7 +369,16 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           if (connected) {
             showDeviceConnected(device.address, true);
           } else {
-            setDeviceConnect(device);
+            // If we restore connection right after Bleutooth is enabled, the
+            // failure rate would be higher than delaying for several seconds.
+            // That's because most Bluetooth headsets are smart enough and
+            // would try to reconnect with us once they found the connection
+            // is dropped, and that may fail since two connections happen at
+            // the same time.
+            stopDiscovery();
+            setTimeout(function() {
+              setDeviceConnect(device);
+            }, 5000);
           }
         });
       });
