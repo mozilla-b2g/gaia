@@ -1,5 +1,6 @@
 'use strict';
 
+require('/shared/js/simple_phone_matcher.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/js/contacts.js');
 
@@ -501,6 +502,115 @@ suite('Contacts', function(done) {
 
         done();
       });
+    });
+  });
+
+  suite('Contacts in memory', function() {
+    var variants;
+
+    setup(function() {
+      variants = SimplePhoneMatcher.generateVariants('+12125559999');
+      Contacts.clear();
+    });
+
+    test('Contacts.set(phone, record) [variants]', function() {
+
+      Contacts.set('+12125559999', new MockContact());
+
+      variants.forEach(function(variant) {
+        assert.ok(Contacts.has(variant));
+
+        variants.forEach(function(compare) {
+          assert.equal(
+            Contacts.get(variant), Contacts.get(compare)
+          );
+        });
+      });
+    });
+
+    test('Contacts.get(phone)', function() {
+      var record = new MockContact();
+
+      assert.equal(Contacts.get('+12125559999'), undefined);
+
+      Contacts.set('+12125559999', record);
+
+      variants.forEach(function(variant) {
+        assert.equal(Contacts.get(variant), record);
+      });
+    });
+
+    test('Contacts.get(phone variant)', function() {
+      var record = new MockContact();
+
+      assert.equal(Contacts.get('+12125559999'), undefined);
+
+      // Create cache record (this generates limited variants)
+      Contacts.set('2125559999', record);
+
+      // Should still be able to find the cached record
+      // with a normalized number
+      assert.equal(Contacts.get('+12125559999'), record);
+    });
+
+    test('Contacts.request(one, oneach)', function(done) {
+      Contacts.request('+12125559999', function(phone, record) {
+        variants.forEach(function(variant) {
+          assert.equal(Contacts.get(variant), record);
+        });
+        done();
+      });
+    });
+
+    test('Contacts.request(many, oneach)', function(done) {
+      var many = ['+12125559999', '+346578888888'];
+      // var copy = many.slice();
+
+      variants = many.reduce(function(data, phone) {
+        data[phone] = SimplePhoneMatcher.generateVariants(phone);
+        return data;
+      }, {});
+
+      Contacts.request(many, function(phone, record) {
+
+        variants[phone].forEach(function(variant) {
+          assert.equal(Contacts.get(variant), record);
+        });
+
+        many.splice(many.indexOf(phone), 1);
+
+        if (!many.length) {
+          done();
+        }
+      });
+    });
+
+    test('Contacts.findByPhoneNumber(phone cached)', function(done) {
+      var record = new MockContact();
+
+      Contacts.set('+12125559999', record);
+
+      Contacts.findByPhoneNumber('+12125559999', function(contacts) {
+        var contact = contacts[0];
+
+        // The found record will be the same object that the
+        // variants hold references to
+        variants.forEach(function(variant) {
+          assert.equal(Contacts.get(variant), contact);
+        });
+        done();
+      });
+    });
+
+    test('Contacts.findByPhoneNumber(phone not cached)', function(done) {
+      this.sinon.stub(Contacts, 'findBy', function() {
+        assert.ok(true);
+
+        Contacts.findBy.restore();
+        done();
+      });
+
+      Contacts.findByPhoneNumber('+12125559999', function() {});
     });
   });
 });

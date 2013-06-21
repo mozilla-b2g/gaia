@@ -52,7 +52,8 @@ var ThreadUI = global.ThreadUI = {
   init: function thui_init() {
     var _ = navigator.mozL10n.get;
     var templateIds = [
-      'contact', 'number', 'highlight', 'message', 'not-downloaded', 'recipient'
+      'contact', 'number', 'highlight', 'message',
+      'not-downloaded', 'recipient', 'sender'
     ];
 
     Compose.init('messages-compose-form');
@@ -889,6 +890,8 @@ var ThreadUI = global.ThreadUI = {
   renderMessages: function thui_renderMessages(filter, callback) {
     // We initialize all params before rendering
     this.initializeRendering();
+    this.buildMessageDOM.lastSender = '';
+
     // We call getMessages with callbacks
     var self = this;
     var onMessagesRendered = function messagesRendered() {
@@ -979,12 +982,13 @@ var ThreadUI = global.ThreadUI = {
 
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var bodyHTML = '';
+    var senderHTML = '';
     var delivery = message.delivery;
+    var thread = Threads.get(message.threadId);
     var messageDOM = document.createElement('li');
-
     var classNames = ['message', message.type, delivery];
-
     var notDownloaded = delivery === 'not-downloaded';
+    var details;
 
     if (delivery === 'received' || notDownloaded) {
       classNames.push('incoming');
@@ -995,6 +999,30 @@ var ThreadUI = global.ThreadUI = {
     if (hidden) {
       classNames.push('hidden');
     }
+
+    // This path is only meaningful to messages that meet criteria:
+    //
+    //  1. multi-recipient
+    //  2. MMS
+    //  3. started on this phone.
+    //
+    // FirefoxOS doesn't have any other support for group messages
+    //
+    if (this.buildMessageDOM.lastSender !== message.sender &&
+      (typeof thread !== 'undefined' && thread.participants.length > 1)) {
+
+      details = Utils.getContactDetails(
+        message.sender, Contacts.get(message.sender)
+      );
+
+      this.buildMessageDOM.lastSender = message.sender;
+
+      senderHTML = this.tmpl.sender.interpolate({
+        time: Utils.getFormattedHour(message.timestamp),
+        name: Utils.escapeHTML(details.title || message.sender)
+      });
+    }
+
 
     if (message.type && message.type === 'sms') {
       bodyHTML = LinkHelper.searchAndLinkClickableData(message.body);
@@ -1010,9 +1038,10 @@ var ThreadUI = global.ThreadUI = {
 
     messageDOM.innerHTML = this.tmpl.message.interpolate({
       id: String(message.id),
+      senderHTML: senderHTML,
       bodyHTML: bodyHTML
     }, {
-      safe: ['bodyHTML']
+      safe: ['senderHTML', 'bodyHTML']
     });
 
     if (message.type === 'mms' && !notDownloaded) { // MMS
@@ -1643,15 +1672,19 @@ var ThreadUI = global.ThreadUI = {
 
         // Clean up the event listener
         ul.removeEventListener('click', ulHandler);
-
-        event.stopPropagation();
-        event.preventDefault();
       }.bind(this));
 
       this.container.appendChild(ul);
 
       // Render each contact in the contacts results
       contacts.forEach(function(contact) {
+        // Cache this contact unless previously added.
+        contact.tel.forEach(function(tel) {
+          if (!Contacts.get(tel.value)) {
+            Contacts.set(tel.value, contact);
+          }
+        });
+
         this.renderContact({
           contact: contact,
           input: filterValue,
@@ -1849,6 +1882,8 @@ Object.defineProperty(ThreadUI, 'selectedInputs', {
     return this.getSelectedInputs();
   }
 });
+
+ThreadUI.buildMessageDOM.lastSender = '';
 
 ThreadUI.groupView.reset = function groupViewReset() {
   // Hide the group view

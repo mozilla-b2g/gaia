@@ -237,6 +237,61 @@
           }
         }
       });
+    },
+
+    getAll: function(options) {
+      if (!(this instanceof navigator.mozContacts.getAll)) {
+        return new navigator.mozContacts.getAll(options);
+      }
+      var onsuccess, onerror, contacts;
+
+      this.result = null;
+      this.error = null;
+
+      contacts = ContactsDB.slice();
+
+      this.continue = function() {
+        setTimeout(function() {
+          var result = contacts.length ?
+            contacts.shift() : null;
+
+          onsuccess.call(this, {
+            target: {
+              result: result
+            }
+          });
+        }.bind(this));
+      };
+
+      Object.defineProperties(this, {
+
+        onsuccess: {
+          // When the success handler gets assigned:
+          //  1. Set this.result to an array containing a MockContact instance
+          //  2. Immediately call the success handler
+          // This will behave like a _REALLY_ fast DB query
+          set: function(callback) {
+            onsuccess = callback;
+            if (callback !== null) {
+              this.continue();
+            }
+          }
+        },
+
+        onerror: {
+          set: function(callback) {
+            onerror = callback;
+            if (callback !== null) {
+              if (this.result === null && this.error !== null) {
+                setTimeout(function() {
+                  onerror.call(this);
+                  onerror = null;
+                }.bind(this), 0);
+              }
+            }
+          }
+        }
+      });
     }
   };
 

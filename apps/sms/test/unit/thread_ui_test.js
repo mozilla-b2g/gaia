@@ -800,6 +800,61 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('appendMessage', function() {
+    var message, rendered;
+
+    setup(function() {
+      Threads.set(1, {
+        participants: ['+12125559999']
+      });
+
+      Threads.set(2, {
+        participants: ['+12125559999', '+19995557890']
+      });
+
+      message = {
+        threadId: 1,
+        sender: '+12125559999',
+        read: true,
+        body: 'foo bar',
+        delivery: 'received',
+        type: 'sms',
+        timestamp: new Date(Date.now())
+      };
+    });
+
+    teardown(function() {
+      Threads.clear();
+      Contacts.clear();
+      rendered.parentNode.removeChild(rendered);
+    });
+
+    test('Single Recipient/Participant', function() {
+      ThreadUI.appendMessage(message);
+
+      rendered = document.getElementById('message-' + message.id);
+
+      assert.equal(rendered.children.length, 2);
+      assert.equal(rendered.firstElementChild.nodeName, 'LABEL');
+    });
+
+    test('Multi Recipients/Participants', function() {
+      message.threadId = 2;
+
+      Contacts.set('+12125559999', new MockContact());
+
+      ThreadUI.appendMessage(message);
+
+      rendered = document.getElementById('message-' + message.id);
+
+      assert.equal(rendered.children.length, 3);
+      assert.equal(rendered.firstElementChild.nodeName, 'DIV');
+      assert.ok(
+        rendered.firstElementChild.textContent.contains('Pepito')
+      );
+    });
+  });
+
   suite('appendMessage removes old message', function() {
     setup(function() {
       this.targetMsg = {
@@ -812,7 +867,8 @@ suite('thread_ui.js >', function() {
       };
       ThreadUI.appendMessage(this.targetMsg);
       this.original = ThreadUI.container.querySelector(
-        '[data-message-id="' + this.targetMsg.id + '"]');
+        '[data-message-id="' + this.targetMsg.id + '"]'
+      );
       ThreadUI.appendMessage(this.targetMsg);
     });
     test('original message removed when rendered a second time', function() {

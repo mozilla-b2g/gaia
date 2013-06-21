@@ -1,5 +1,8 @@
 'use strict';
 
+if (typeof SimplePhoneMatcher === 'undefined') {
+  require('/shared/js/simple_phone_matcher.js');
+}
 if (typeof GestureDetector === 'undefined') {
   require('/shared/js/gesture_detector.js');
 }
@@ -102,7 +105,7 @@ suite('ThreadUI Integration', function() {
     });
 
     teardown(function() {
-      realSearchContact = ThreadUI.searchContact;
+      ThreadUI.searchContact = realSearchContact;
     });
 
     test('toFieldInput handler, successful', function() {
@@ -641,6 +644,27 @@ suite('ThreadUI Integration', function() {
       });
 
       assert.isFalse(isNotRendered);
+    });
+  });
+
+  suite('Contact Caching', function() {
+    setup(function() {
+      Contacts.clear();
+    });
+
+    test('Contacts from lookup in cache', function(done) {
+      this.sinon.stub(Contacts, 'findByString', function(value, callback) {
+        var ul, click;
+
+        callback([new MockContact()]);
+
+        assert.ok(Contacts.has('+12125559999'));
+        assert.ok(Contacts.has('+346578888888'));
+        done();
+      });
+
+      ThreadUI.recipientsList.lastElementChild.textContent = '12125559999';
+      ThreadUI.searchContact('12125559999');
     });
   });
 });

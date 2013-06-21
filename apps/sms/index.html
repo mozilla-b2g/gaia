@@ -36,6 +36,7 @@
     <script defer src="shared/js/custom_dialog.js"></script>
     <script defer src="shared/js/notification_helper.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/simple_phone_matcher.js"></script>
     -->
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="js/startup.js"></script>
@@ -228,6 +229,7 @@
 
     <div id="messages-message-tmpl" class="hide">
       <!--
+      ${senderHTML}
       <label class="danger">
         <input type="checkbox" value="${id}">
         <span></span>
@@ -238,6 +240,16 @@
         </aside>
         <p>${bodyHTML}</p>
       </section>
+      -->
+    </div>
+
+    <div id="messages-sender-tmpl" class="hide">
+      <!--
+      <div class="sender">
+        <time>${time}</time>
+        <span class="divider">|</span>
+        ${name}:
+      </div>
       -->
     </div>
 

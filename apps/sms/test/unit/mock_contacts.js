@@ -2,6 +2,7 @@
 
 requireApp('sms/test/unit/mock_contact.js');
 
+
 var MockContacts = {
   mAsync: false,
   mCallCallback: function mc_mCallCallback(callback, result) {
@@ -29,7 +30,27 @@ var MockContacts = {
     this.mCallCallback(callback, result);
   },
 
+  get: function(phone) {
+    return MockContacts.data.get(phone);
+  },
+  set: function(phone, record) {
+    MockContacts.data.set(phone, record);
+  },
+  has: function() {
+    return MockContacts.data.has(phone);
+  },
+  delete: function() {
+    MockContacts.data.delete(phone);
+  },
+  clear: function() {
+    MockContacts.data.clear();
+  },
+  request: function() {},
+
   mTeardown: function mc_mTeardown() {
     this.mAsync = false;
   }
 };
+
+
+MockContacts.data = new Map();
