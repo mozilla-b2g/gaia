@@ -86,13 +86,17 @@ var SuggestionBar = {
 
       self.bar.hidden = false;
 
-      //contacts = genMoreContacts(contacts);
-      self._totalMatchNum = self._getNumMatched.call(self, contacts);
+      // Store contacts for constructing multiple suggestions.
+      self._contactList = contacts;
+      // Create matching index table for reference
+      self._allMatched = self._getAllMatched(self._contactList);
+
+      var totalMatchNum = self._allMatched.totalMatchNum;
 
       self.countTag.textContent =
-        (self._totalMatchNum < self.MAX_ITEMS) ?
-        self._totalMatchNum : (self.MAX_ITEMS + '+');
-      if (self._totalMatchNum > 1) {
+        (totalMatchNum < self.MAX_ITEMS) ?
+        totalMatchNum : (self.MAX_ITEMS + '+');
+      if (totalMatchNum > 1) {
         self.countTag.hidden = false;
         self.countTag.classList.add('more');
       } else {
@@ -100,38 +104,27 @@ var SuggestionBar = {
         self.countTag.classList.remove('more');
       }
 
-      // Store contacts for constructing multiple suggestions.
-      self._contactList = contacts;
-
       var node = self.bar.querySelector('.suggestion-item');
       var contact = contacts[0];
-      self._fillContacts(node, contact);
+      self._fillContacts(contact, self._allMatched.allMatches[0][0], node);
       self.bar.dataset.lastId = contact.id;
     });
   },
 
-  _fillContacts: function sb_fillContacts(node, contact) {
+  _fillContacts: function sb_fillContacts(contact, matchLocal, node) {
 
-    var tel = contact.tel;
-    // Find matched number from all numbers of the contact.
-    var variants = SimplePhoneMatcher.generateVariants(this._phoneNumber);
-
-    var matches = contact.tel.map(function getNumber(tel) {
-        return tel.value;
-      });
-
-    var matchResult = SimplePhoneMatcher.bestMatch(variants, [matches]);
-
-    // use first phone number if bestMatch can't give us localIndex
-
-    var matchIndex = matchResult.localIndex;
-
-    var matchedTel = (matchIndex != null) ?
-                 tel[matchIndex] : tel[0];
+    if (!node) {
+      for (var i = 0; i < matchLocal.length; i++) {
+        this._fillContacts(contact, matchLocal[i], this._createItem());
+      }
+      return;
+    }
 
     // if first letter of query is '+' and first letter of matchedTel isn't '+'
     // we use query without country code instead of original query for
     // markedNumber.
+    var matchedTel = contact.tel[matchLocal];
+
     var query = this._phoneNumber.charAt(0) === '+' &&
                     matchedTel.value.charAt(0) !== '+' ?
                     variants[0] : this._phoneNumber;
@@ -207,53 +200,26 @@ var SuggestionBar = {
     var self = this;
     LazyL10n.get(function localized(_) {
       title.textContent = _('suggestionMatches', {
-        n: self._totalMatchNum,
+        n: self.countTag.textContent,
         matchNumber: self._phoneNumber
       });
     });
     for (var i = 0; i < maxItems; i++) {
-     // var node = this._createItem();
-      var telList = this._scanTel(this._contactList[i]);
-
-      for (var conIndex = 0; conIndex < telList.length; conIndex++) {
-        var node = this._createItem();
-        this._fillContacts(node, telList[conIndex]);
-      }
-
+      this._fillContacts(this._contactList[i], this._allMatched.allMatches[i]);
     }
     this.overlay.classList.add('display');
   },
 
-  _scanTel: function sb_scanTel(contact) {
-    var reg = new RegExp(this._phoneNumber),
-        telList = [];
-    for (var telIndex = 0; telIndex < contact.tel.length; telIndex++) {
-      var tel = contact.tel[telIndex];
-      if (reg.test(tel.value)) {
-        var con = {
-          name: contact.name,
-          tel: [tel]
-        };
-        telList.push(con);
-      }
-    }
-    return telList;
-  },
+  _getAllMatched: function sb_getAllMatched(contacts) {
+    var variants = SimplePhoneMatcher.generateVariants(this._phoneNumber);
 
-  _getNumMatched: function sb_getNumMatched(contacts) {
-    var reg = new RegExp(this._phoneNumber),
-        num = 0;
-    for (var i = 0; i < contacts.length; i++) {
-      var tels = contacts[i].tel;
+    var contactTels = contacts.map(function getTels(contact) {
+      return contact.tel.map(function getNumber(tel) {
+        return tel.value;
+      });
+    });
 
-      for (var telIndex = 0; telIndex < tels.length; telIndex++) {
-        var tel = tels[telIndex];
-        if (reg.test(tel.value)) {
-          num += 1;
-        }
-      }
-    }
-    return num;
+    return SimplePhoneMatcher.bestMatch(variants, contactTels);
   },
 
   hideOverlay: function sb_hideOverlay() {

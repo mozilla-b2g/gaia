@@ -177,7 +177,7 @@ suite('suggestion Bar', function() {
   test('#show overlay', function() {
     SuggestionBar._contactList = mockResult2;
     SuggestionBar._phoneNumber = '1111';
-
+    SuggestionBar._allMatched = SuggestionBar._getAllMatched(mockResult2);
     subject.showOverlay();
 
     assert.equal(
@@ -190,7 +190,7 @@ suite('suggestion Bar', function() {
   test('#show overlay of all numbers of contact', function() {
     SuggestionBar._contactList = mockResult3;
     SuggestionBar._phoneNumber = '1234';
-
+    SuggestionBar._allMatched = SuggestionBar._getAllMatched(mockResult3);
     subject.showOverlay();
 
     assert.equal(
