@@ -26,16 +26,16 @@
   display: inline-block;
 }
 
-@media not (-moz-physical-home-button) {
-  #permission-screen {
-    height: -moz-calc(100% - 2rem - 5rem);
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) #permission-screen {
+    height: calc(100% - 2rem - 5rem);
   }
 
-  #screen.attention #permission-screen {
+  #screen.attention:not(.software-button-disabled) #permission-screen {
     height: calc(100% - 4rem - 5rem);
   }
 
-  #screen.fullscreen-app #permission-screen {
+  #screen.fullscreen-app:not(.software-button-disabled) #permission-screen {
     height: calc(100% - 5rem);
   }
 }
