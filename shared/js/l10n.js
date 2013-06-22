@@ -14,6 +14,7 @@
   var gLanguage = '';
   var gMacros = {};
   var gReadyState = 'loading';
+  var gDefaultLocale = 'en-US';
 
 
   /**
@@ -307,25 +308,32 @@
 
     // load all resource files
     function l10nResourceLink(link) {
-      var href = link.href;
-      var type = link.type;
-      this.load = function(lang, callback) {
-        var applied = lang;
-        parseResource(href, lang, callback, function() {
+      var re = /\{\{\s*locale\s*\}\}/;
+
+      var parse = function(locale, onload, onerror) {
+        var href = unescape(link.href).replace(re, locale);
+        parseResource(href, locale, onload, function notFound() {
           consoleWarn(href + ' not found.');
-          applied = '';
+          onerror();
         });
-        return applied; // return lang if found, an empty string if not found
+      };
+
+      this.load = function(locale, onload, onerror) {
+        onerror = onerror || function() {};
+        parse(locale, onload, function parseFallbackLocale() {
+          if (re.test(unescape(link.href)) && gDefaultLocale != locale) {
+            consoleLog('Trying the fallback locale: ' + gDefaultLocale);
+            parse(gDefaultLocale, onload, onerror);
+          } else {
+            onerror();
+          }
+        });
       };
     }
 
     for (var i = 0; i < langCount; i++) {
       var resource = new l10nResourceLink(langLinks[i]);
-      var rv = resource.load(lang, onResourceLoaded);
-      if (rv != lang) { // lang not found, used default resource instead
-        consoleWarn('"' + lang + '" resource not found');
-        gLanguage = '';
-      }
+      resource.load(lang, onResourceLoaded);
     }
   }
 
@@ -961,6 +969,7 @@
 
   // load the default locale on startup
   function l10nStartup() {
+    gDefaultLocale = document.documentElement.lang || gDefaultLocale;
     gReadyState = 'interactive';
     consoleLog('loading [' + navigator.language + '] resources, ' +
         (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
