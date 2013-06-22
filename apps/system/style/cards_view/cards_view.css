@@ -12,6 +12,18 @@
   background-color: rgba(0, 0, 0, 1);
 }
 
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) #cards-view {
+    height: calc(100% - 5rem);
+    bottom: 5rem;
+  }
+}
+
+#screen.software-button-enabled #cards-view {
+  height: calc(100% - 5rem);
+  bottom: 5rem;
+}
+
 #cards-view.active {
   visibility: inherit;
   opacity: 1;
