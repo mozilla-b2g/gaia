@@ -414,6 +414,16 @@ input.msg-search-text-tease {
 .msg-refresh-btn {
   background-image: url("images/icons/refresh.png") !important;
 }
+.msg-refresh-btn[data-state="synchronizing"] {
+  animation: 0.9s msg-refresh-rotate infinite steps(30);
+}
+
+@keyframes msg-refresh-rotate {
+  from { transform: rotate(1deg); }
+  to   { transform: rotate(360deg); }
+}
+
+
 
 .msg-search-btn {
   background-image: url("images/icons/search.png") !important;
@@ -517,17 +527,7 @@ input.msg-search-text-tease {
   border-bottom: 0.1rem solid #bebebe;
   width: calc(100% - 3rem);
   margin: 0 auto;
-}
-
-.msg-messages-syncing > span {
-  display: inline-block;
-  vertical-align: middle;
-  line-height: normal;
-}
-
-.msg-messages-syncing > progress {
-  line-height: normal;
-  margin: 0 0.5rem 0 3rem !important;
+  text-align: center;
 }
 
 .msg-messages-sync-more {
