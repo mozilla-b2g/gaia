@@ -173,6 +173,7 @@ var KeypadManager = {
     }
 
     TonePlayer.init(this._onCall ? 'telephony' : 'normal');
+    VoiceClipPlayer.init();
 
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',
@@ -328,11 +329,11 @@ var KeypadManager = {
         this._keyPressStart = Date.now();
         this._lastPressedKey = key;
 
-        if (key != 'delete') {
-          if (keypadSoundIsEnabled) {
-            // We do not support long press if not on a call
-            TonePlayer.start(gTonesFrequencies[key], !this._onCall);
-          }
+      if (key != 'delete') {
+        if (keypadSoundIsEnabled) {
+          // We do not support long press if not on a call
+          // TonePlayer.start(gTonesFrequencies[key], !this._onCall);
+          VoiceClipPlayer.start(key);
         }
 
         // Manage long press
@@ -455,7 +456,8 @@ var KeypadManager = {
 
     telephony.stopTone();
     telephony.startTone(value);
-    TonePlayer.start(gTonesFrequencies[value], true);
+    // TonePlayer.start(gTonesFrequencies[value], true);
+    VoiceClipPlayer.start(key);
     setTimeout(function nextTick() {
       telephony.stopTone();
       TonePlayer.stop();
