@@ -3140,7 +3140,7 @@ conceived.
 		<name>Pepephone</name>
 		<gsm>
 			<network-id mcc="214" mnc="06"/>
-			<apn value="gprs.pepephone.com" >
+			<apn value="gprsmov.pepephone.com" >
 				<plan type="postpaid"/>
 				<usage type="internet"/>
 			</apn>
