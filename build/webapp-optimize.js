@@ -326,9 +326,12 @@ function optimize_compile(webapp, file) {
       // save localized document
       let newPath = file.path + '.' + GAIA_DEFAULT_LOCALE;
       let newFile = new FileUtils.File(newPath);
-      optimize_embedl10nResources(win.document, dictionary);
 
-      if (GAIA_OPTIMIZE == 1 &&
+      if (GAIA_INLINE_LOCALES === '1') {
+        optimize_embedl10nResources(win.document, dictionary);
+      }
+
+      if (GAIA_OPTIMIZE === '1' &&
           JS_AGGREGATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) === -1) {
         optimize_aggregateJsResources(win.document, webapp, newFile);
         dump(
