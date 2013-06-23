@@ -215,7 +215,7 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
   scripts.forEach(commentScript);
 }
 
-function optimize_embedl10nResources(doc, dictionary) {
+function optimize_embedL10nResources(doc, dictionary) {
   // remove all external l10n resource nodes
   var resources = doc.querySelectorAll('link[type="application/l10n"]');
   for (let i = 0; i < resources.length; i++) {
@@ -228,6 +228,36 @@ function optimize_embedl10nResources(doc, dictionary) {
   script.type = 'application/l10n';
   script.innerHTML = '\n  ' + JSON.stringify(dictionary) + '\n';
   doc.documentElement.appendChild(script);
+}
+
+function optimize_concatL0nResources(doc, webapp, dictionary, hash) {
+  let dirName = 'locales-obj';
+
+  let localeDir = webapp.sourceDirectoryFile.clone();
+  localeDir.append(dirName);
+  ensureFolderExists(localeDir);
+
+  // create JSON dictionaries
+  for (let lang in dictionary.locales) {
+    let file = localeDir.clone();
+    file.append(hash + '.' + lang + '.json');
+    writeContent(file, JSON.stringify(dictionary.locales[lang], false, 2));
+  }
+
+  // replace all external l10n resource nodes by a single link:
+  // <link type="application/l10n" href="locales-obj/{{locale}}.json" />
+  var resources = doc.querySelectorAll('link[type="application/l10n"]');
+  for (let i = 0; i < resources.length; i++) {
+    var link = resources[i];
+    if (i === 0) {
+      let jsonLink = doc.createElement('link');
+      jsonLink.href = dirName + '/' + hash + '.{{locale}}.json';
+      jsonLink.type = 'application/l10n';
+      jsonLink.rel = 'prefetch';
+      link.parentNode.insertBefore(jsonLink, link);
+    }
+    link.parentNode.removeChild(link);
+  }
 }
 
 function optimize_serializeHTMLDocument(doc, file) {
@@ -306,7 +336,6 @@ function optimize_compile(webapp, file) {
     debug('fireL10nReadyEvent - ' +
         processedLocales + '/' + l10nLocales.length);
 
-    let docElt = win.document.documentElement;
     dictionary.locales[mozL10n.language.code] = mozL10n.dictionary;
 
     if (processedLocales < l10nLocales.length) {
@@ -315,6 +344,7 @@ function optimize_compile(webapp, file) {
     } else {
       // we expect the last locale to be the default one:
       // set the lang/dir attributes of the current document
+      let docElt = win.document.documentElement;
       docElt.dir = mozL10n.language.direction;
       docElt.lang = mozL10n.language.code;
 
@@ -322,11 +352,14 @@ function optimize_compile(webapp, file) {
       let newPath = file.path + '.' + GAIA_DEFAULT_LOCALE;
       let newFile = new FileUtils.File(newPath);
 
-      if (GAIA_INLINE_LOCALES === '1') {
-        optimize_embedl10nResources(win.document, dictionary);
+      if (GAIA_CONCAT_LOCALES === '1') {
+        let hash = hashCode(file.path);
+        optimize_concatL0nResources(win.document, webapp, dictionary, hash);
+      } else if (GAIA_INLINE_LOCALES === '1') {
+        optimize_embedL10nResources(win.document, dictionary);
       }
 
-      if (GAIA_OPTIMIZE == 1 &&
+      if (GAIA_OPTIMIZE === '1' &&
           JS_AGGREGATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) === -1) {
         optimize_aggregateJsResources(win.document, webapp, newFile);
         dump(
@@ -362,7 +395,7 @@ function optimize_compile(webapp, file) {
 
 debug('Begin');
 
-if (GAIA_INLINE_LOCALES === '1') {
+if (GAIA_INLINE_LOCALES === '1' || GAIA_CONCAT_LOCALES === '1') {
   l10nLocales = [];
   l10nDictionary.locales = {};
 

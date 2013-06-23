@@ -241,23 +241,24 @@
 
     // load and parse l10n data (warning: global variables are used here)
     loadResource(href, function(response) {
-      // parse *.properties text data into an l10n dictionary
-      var data = parseProperties(response);
-
-      // find attribute descriptions, if any
-      for (var key in data) {
-        var id, prop, index = key.lastIndexOf('.');
-        if (index > 0) { // an attribute has been specified
-          id = key.substring(0, index);
-          prop = key.substr(index + 1);
-        } else { // no attribute: assuming text content by default
-          id = key;
-          prop = gTextProp;
+      if (/\.json$/.test(href)) {
+        gL10nData = JSON.parse(response); // TODO: support multiple JSON files
+      } else { // *.ini or *.properties file
+        var data = parseProperties(response);
+        for (var key in data) {
+          var id, prop, index = key.lastIndexOf('.');
+          if (index > 0) { // a property name has been specified
+            id = key.substring(0, index);
+            prop = key.substr(index + 1);
+          } else { // no property name: assuming text content by default
+            id = key;
+            prop = '_';
+          }
+          if (!gL10nData[id]) {
+            gL10nData[id] = {};
+          }
+          gL10nData[id][prop] = data[key];
         }
-        if (!gL10nData[id]) {
-          gL10nData[id] = {};
-        }
-        gL10nData[id][prop] = data[key];
       }
 
       // trigger callback
@@ -764,7 +765,7 @@
       return str;
 
     // TODO: support other properties (l20n still doesn't...)
-    if (prop != gTextProp)
+    if (prop !== '_')
       return str;
 
     // initialize _pluralRules
@@ -855,7 +856,7 @@
       if (args && arg in args) {
         sub = args[arg];
       } else if (arg in gL10nData) {
-        sub = gL10nData[arg][gTextProp];
+        sub = gL10nData[arg]['_'];
       } else {
         consoleLog('argument {{' + arg + '}} for #' + key + ' is undefined.');
         return str;
@@ -883,9 +884,9 @@
     }
 
     // translate element (TODO: security checks?)
-    if (data[gTextProp]) { // XXX
+    if (data._) {
       if (element.children.length === 0) {
-        element[gTextProp] = data[gTextProp];
+        element[gTextProp] = data._;
       } else {
         // this element has element children: replace the content of the first
         // (non-empty) child textNode and clear other child textNodes
@@ -896,7 +897,7 @@
             if (found) {
               children[i].nodeValue = '';
             } else {
-              children[i].nodeValue = data[gTextProp];
+              children[i].nodeValue = data._;
               found = true;
             }
           }
@@ -904,11 +905,10 @@
         // if no (non-empty) textNode is found, insert a textNode before the
         // first element child.
         if (!found) {
-          var textNode = document.createTextNode(data[gTextProp]);
+          var textNode = document.createTextNode(data._);
           element.insertBefore(textNode, element.firstChild);
         }
       }
-      delete data[gTextProp];
     }
 
     for (var k in data) {
@@ -1002,12 +1002,8 @@
   // public API
   navigator.mozL10n = {
     // get a localized string
-    get: function l10n_get(key, args, fallback) {
-      var data = getL10nData(key, args) || fallback;
-      if (data) {
-        return 'textContent' in data ? data.textContent : '';
-      }
-      return '{{' + key + '}}';
+    get: function l10n_get(key, args) {
+      return getL10nData(key, args)._ || '';
     },
 
     // get|set the document language and direction
