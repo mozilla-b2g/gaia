@@ -543,7 +543,18 @@ var PlayerView = {
         switch (target.id) {
           case 'player-cover':
           case 'player-cover-image':
-            this.showInfo();
+            // Show album songs when tapping the album cover
+            if (SubListView) {
+              var index = this.currentIndex;
+              var data = this.dataSource[index];
+              var keyRange = IDBKeyRange.only(data.metadata.album);
+
+              SubListView.activate('album', this.dataSource[index],
+                index, keyRange, 'next',
+                function() {
+                  ModeManager.push(MODE_SUBLIST);
+                });
+            }
 
             break;
 
