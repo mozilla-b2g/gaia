@@ -16,6 +16,7 @@ body {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  background-color: black;
 }
 
 /*
@@ -271,7 +272,7 @@ body.picker-mode #title-player {
 }
 
 #search {
-  position: absolute;
+  position: relative;
   width: 100%;
   height: calc(100% - 3.6rem);
   overflow-x: hidden;
