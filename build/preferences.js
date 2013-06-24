@@ -137,7 +137,7 @@ if (DEBUG || DESKTOP) {
 }
 
 function writePrefs() {
-  let userJs = getFile(GAIA_DIR, 'profile', 'user.js');
+  let userJs = getFile(GAIA_DIR, PROFILE_FOLDER, 'user.js');
   let content = prefs.map(function (entry) {
     return 'user_pref("' + entry[0] + '", ' + JSON.stringify(entry[1]) + ');';
   }).join('\n');

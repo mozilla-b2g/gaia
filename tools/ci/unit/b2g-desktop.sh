@@ -32,7 +32,7 @@ then
   fi
 fi
 
-$B2G -profile $GAIA_PATH/profile &
+$B2G -profile $GAIA_PATH/profile-debug &
 PID=`jobs -p | tail -n 1`;
 
 cd $GAIA_PATH;

@@ -52,7 +52,7 @@ make test-agent-server &> /dev/null &
 waiting_port $TEST_AGENT_PORT
 
 echo 'Starting Firefox'
-firefox/firefox -profile `pwd`/profile "$TESTAGENT_URL" &> /dev/null &
+firefox/firefox -profile `pwd`/profile-debug "$TESTAGENT_URL" &> /dev/null &
 waiting_port 8080
 sleep 5
 
