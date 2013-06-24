@@ -583,6 +583,7 @@ function Page(container, icons) {
   if (icons)
     this.render(icons);
   this.iconsWhileDragging = [];
+  this.maxIcons = GridManager.pageHelper.maxIconsPerPage;
 }
 
 Page.prototype = {
@@ -673,7 +674,7 @@ Page.prototype = {
     var draggableIndex = children.indexOf(draggableNode);
     var targetIndex = children.indexOf(targetNode);
 
-    if (draggableIndex === -1 || targetIndex === -1) {
+    if (draggableIndex < 0 || targetIndex < 0 || targetIndex >= this.maxIcons) {
       // Index is outside the bounds of the array, it doesn't make sense
       setTimeout(this.setReady.bind(this, true));
       return;
@@ -890,7 +891,7 @@ Page.prototype = {
    * @param {Object} icon the icon to be added.
    */
   appendIconVisible: function pg_appendIconVisible(icon) {
-    if (this.getNumIcons() >= GridManager.pageHelper.maxIconsPerPage) {
+    if (this.getNumIcons() >= this.maxIcons) {
       this.insertBeforeLastIcon(icon);
     } else {
       this.appendIcon(icon);
