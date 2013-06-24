@@ -43,9 +43,13 @@ REMOTE_DEBUGGER?=0
 # We also disable FTU when running in Firefox or in debug mode
 ifeq ($(DEBUG),1)
 NOFTU=1
+PROFILE_FOLDER?=profile-debug
 else ifeq ($(DESKTOP),1)
 NOFTU=1
+PROFILE_FOLDER?=profile-debug
 endif
+
+PROFILE_FOLDER?=profile
 
 LOCAL_DOMAINS?=1
 
@@ -232,8 +236,8 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook profile/settings.json create-default-data profile/installed-extensions.json
-	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
+$(PROFILE_FOLDER): multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
@@ -283,18 +287,18 @@ app-makefiles:
 		done; \
 	done;
 
-# Generate profile/webapps/
+# Generate $(PROFILE_FOLDER)/webapps/
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
 # to accommodate Gecko builds without bug 757613. Should be removed someday.
 webapp-manifests: install-xulrunner-sdk
-	@mkdir -p profile/webapps
+	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-manifests)
-	@#cat profile/webapps/webapps.json
+	@#cat $(PROFILE_FOLDER)/webapps/webapps.json
 
-# Generate profile/webapps/APP/application.zip
+# Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
 webapp-zip: install-xulrunner-sdk
 ifneq ($(DEBUG),1)
-	@mkdir -p profile/webapps
+	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
 endif
 
@@ -313,20 +317,20 @@ offline-cache: webapp-manifests install-xulrunner-sdk
 	@echo "Done"
 
 # Get additional extensions
-profile/installed-extensions.json: build/additional-extensions.json $(wildcard .build/custom-extensions.json)
+$(PROFILE_FOLDER)/installed-extensions.json: build/additional-extensions.json $(wildcard .build/custom-extensions.json)
 ifeq ($(DESKTOP),1)
-	python build/additional-extensions.py --gaia-dir="$(CURDIR)"
+	python build/additional-extensions.py --gaia-dir="$(CURDIR)" --profile-dir="$(PROFILE_FOLDER)"
 else ifeq ($(DEBUG),1)
-	touch profile/installed-extensions.json
+	touch $(PROFILE_FOLDER)/installed-extensions.json
 endif
 
 # Copy preload contacts to profile
 contacts:
 ifdef CONTACTS_PATH
 	@echo "Copying preload contacts to profile"
-	@cp $(CONTACTS_PATH) profile
+	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)
 else
-	@rm -f profile/contacts.json
+	@rm -f $(PROFILE_FOLDER)/contacts.json
 endif
 
 # Create webapps
@@ -414,10 +418,12 @@ endif # USE_LOCAL_XULRUNNER_SDK
 define run-js-command
 	echo "run-js-command $1";                                                   \
 	JS_CONSTS='                                                                 \
-	const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)$(SEP)profile"; \
+	const GAIA_DIR = "$(CURDIR)";                                               \
+	const PROFILE_DIR = "$(CURDIR)$(SEP)$(PROFILE_FOLDER)";                     \
+	const PROFILE_FOLDER = "$(PROFILE_FOLDER)";                                 \
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
-	const DESKTOP = $(DESKTOP);                                           \
+	const DESKTOP = $(DESKTOP);                                                 \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
@@ -457,28 +463,28 @@ PARTNER_PREF_FILES = \
 
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
-	@test -d profile || mkdir -p profile
+	@test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
 	@$(call run-js-command, preferences)
 	@$(foreach prefs_file,$(addprefix build/,$(EXTENDED_PREF_FILES)),\
 	  if [ -f $(prefs_file) ]; then \
-	    cat $(prefs_file) >> profile/user.js; \
+	    cat $(prefs_file) git dif $(PROFILE_FOLDER)/user.js; \
 	  fi; \
 	)
-	@echo "" >> profile/user.js
+	@echo "" >> $(PROFILE_FOLDER)/user.js
 	@$(foreach prefs_file,$(addprefix $(GAIA_DISTRIBUTION_DIR)/,$(PARTNER_PREF_FILES)),\
 	  if [ -f $(prefs_file) ]; then \
-	    cat $(prefs_file) >> profile/user.js; \
+	    cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
 	  fi; \
 	)
 
 
-# Generate profile/
+# Generate $(PROFILE_FOLDER)/
 applications-data: install-xulrunner-sdk
-	test -d profile || mkdir -p profile
+	test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
 	@$(call run-js-command, applications-data)
 
-# Generate profile/extensions
-EXT_DIR=profile/extensions
+# Generate $(PROFILE_FOLDER)/extensions
+EXT_DIR=$(PROFILE_FOLDER)/extensions
 extensions:
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
@@ -542,7 +548,7 @@ tests: webapp-manifests offline
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
-	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/user.js"
+	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/$(PROFILE_FOLDER)/webapps --extra-profile-file=$(CURDIR)/$(PROFILE_FOLDER)/user.js"
 
 .PHONY: common-install
 common-install:
@@ -622,7 +628,7 @@ test-agent-server: common-install
 .PHONY: marionette
 marionette:
 #need the profile
-	test -d $(GAIA)/profile || $(MAKE) profile
+	test -d $(GAIA)/$(PROFILE_FOLDER) || $(MAKE) $(PROFILE_FOLDER)
 ifneq ($(PYTHON_MAJOR), 2)
 	@echo "Python 2.7.x is needed for the marionette client. You can set the PYTHON_27 variable to your python2.7 path." && exit 1
 endif
@@ -684,7 +690,7 @@ forward:
 TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 APP_NAME = $(shell cat *apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4 | cut -b 1-15)
 APP_PID = $(shell adb shell b2g-ps | grep '^${APP_NAME}' | sed 's/^${APP_NAME}\s*//' | awk '{ print $$2 }')
-install-gaia: profile
+install-gaia: $(PROFILE_FOLDER)
 	$(ADB) start-server
 	@echo 'Stopping b2g'
 ifeq ($(BUILD_APP_NAME),*)
@@ -701,12 +707,12 @@ ifeq ($(ADB_REMOUNT),1)
 endif
 
 ifeq ($(BUILD_APP_NAME),*)
-	python build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)"
+	python build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)" "$(PROFILE_FOLDER)"
 else
-	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
-	$(ADB) push profile/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
+	$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
+	$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
 endif
-	@echo "Installed gaia into profile/."
+	@echo "Installed gaia into $(PROFILE_FOLDER)/."
 	@echo 'Starting b2g'
 	$(ADB) shell start b2g
 
@@ -772,40 +778,40 @@ ifneq ($(TARGET_BUILD_VARIANT),user)
 SETTINGS_ARG += --console
 endif
 
-profile/settings.json:
+$(PROFILE_FOLDER)/settings.json:
 ifneq ($(GAIA_DEV_PIXELS_PER_PX),1)
-	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@$(GAIA_DEV_PIXELS_PER_PX)x.jpg --override $(SETTINGS_PATH) --output $@
+	python build/settings.py $(SETTINGS_ARG) --profile-folder $(PROFILE_FOLDER) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@$(GAIA_DEV_PIXELS_PER_PX)x.jpg --override $(SETTINGS_PATH) --output $(PROFILE_FOLDER)/settings.json
 else
-	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override $(SETTINGS_PATH) --output $@
+	python build/settings.py $(SETTINGS_ARG) --profile-folder $(PROFILE_FOLDER) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override $(SETTINGS_PATH) --output $(PROFILE_FOLDER)/settings.json
 endif
 
-# push profile/settings.json and profile/contacts.json (if CONTACTS_PATH defined) to the phone
-install-default-data: profile/settings.json contacts
+# push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
+install-default-data: $(PROFILE_FOLDER)/settings.json contacts
 	$(ADB) shell stop b2g
 	$(ADB) remount
-	$(ADB) push profile/settings.json /system/b2g/defaults/settings.json
+	$(ADB) push $(PROFILE_FOLDER)/settings.json /system/b2g/defaults/settings.json
 ifdef CONTACTS_PATH
-	$(ADB) push profile/contacts.json /system/b2g/defaults/contacts.json
+	$(ADB) push $(PROFILE_FOLDER)/contacts.json /system/b2g/defaults/contacts.json
 else
 	$(ADB) shell rm /system/b2g/defaults/contacts.json
 endif
 	$(ADB) shell start b2g
 
 # create default data, gonk-misc will copy this folder during B2G build time
-create-default-data: preferences profile/settings.json contacts
+create-default-data: preferences $(PROFILE_FOLDER)/settings.json contacts
 	# create a clean folder to store data for B2G, this folder will copy to b2g output folder.
-	rm -rf profile/defaults
-	mkdir -p profile/defaults/pref
+	rm -rf $(PROFILE_FOLDER)/defaults
+	mkdir -p $(PROFILE_FOLDER)/defaults/pref
 	# rename user_pref() to pref() in user.js
-	sed s/user_pref\(/pref\(/ profile/user.js > profile/defaults/pref/user.js
-	cp profile/settings.json profile/defaults/settings.json
+	sed s/user_pref\(/pref\(/ $(PROFILE_FOLDER)/user.js > $(PROFILE_FOLDER)/defaults/pref/user.js
+	cp $(PROFILE_FOLDER)/settings.json $(PROFILE_FOLDER)/defaults/settings.json
 ifdef CONTACTS_PATH
-	cp profile/contacts.json profile/defaults/contacts.json
+	cp $(PROFILE_FOLDER)/contacts.json $(PROFILE_FOLDER)/defaults/contacts.json
 endif
 
 # clean out build products
 clean:
-	rm -rf profile
+	rm -rf profile profile-debug $(PROFILE_FOLDER)
 
 # clean out build products
 really-clean: clean
