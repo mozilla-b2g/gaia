@@ -270,7 +270,7 @@ var CardsView = (function() {
         }
 
         // Handling cards in different orientations
-        var orientation = app.frame.dataset.orientation;
+        var orientation = app.currentOrientation;
         var isLandscape = false;
         if (orientation == 'landscape-primary' ||
             orientation == 'landscape-secondary') {
