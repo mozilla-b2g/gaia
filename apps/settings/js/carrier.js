@@ -114,7 +114,7 @@ navigator.mozL10n.ready(function carrierSettings() {
           rilData(usage, 'mmsport').value = item.mmsport || '';
         }
         var input = document.getElementById('ril-' + usage + '-authType');
-        input.value = item.authtype ? AUTH_TYPES[input.value] : 'notDefined';
+        input.value = AUTH_TYPES[item.authtype] || 'notDefined';
         var parent = input.parentElement;
         var button = input.previousElementSibling;
         var index = input.selectedIndex;
