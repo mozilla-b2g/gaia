@@ -302,6 +302,10 @@ body {
   opacity: 1;
 }
 
+#screen.switch-app > #windows > .appWindow.homescreen {
+  pointer-events: none;
+}
+
 #screen.switch-app > #windows.slow-transition > .appWindow.opening,
 #screen.switch-app > #windows.slow-transition > .appWindow.closing {
   transition: transform 5s ease;
