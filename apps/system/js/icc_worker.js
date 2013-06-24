@@ -32,7 +32,14 @@ var icc_worker = {
   //'0x14': function STK_CMD_SEND_DTMF(command, iccManager) {},
 
   // STK_CMD_LAUNCH_BROWSER
-  //'0x15': function STK_CMD_LAUNCH_BROWSER(command, iccManager) {},
+  '0x15': function STK_CMD_LAUNCH_BROWSER(command, iccManager) {
+    DUMP('STK_CMD_LAUNCH_BROWSER:', command.options);
+    var options = command.options;
+    iccManager.responseSTKCommand({
+      resultCode: iccManager._icc.STK_RESULT_OK
+    });
+    iccManager.showURL(options.url, options.confirmMessage);
+  },
 
   // STK_CMD_PLAY_TONE
   //'0x20': function STK_CMD_PLAY_TONE(command, iccManager) {},

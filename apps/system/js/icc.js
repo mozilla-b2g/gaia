@@ -6,10 +6,12 @@
 var icc = {
   _iccLastCommand: null,
   _displayTextTimeout: 40000,
+  _defaultURL: null,
 
   init: function icc_init() {
     this._icc = this.getICC();
     this.hideViews();
+    this.getIccInfo();
     var self = this;
     this.clearMenuCache(function() {
       window.navigator.mozSetMessageHandler('icc-stkcommand',
@@ -25,6 +27,21 @@ var icc = {
       this._displayTextTimeout =
         reqDisplayTimeout.result['icc.displayTextTimeout'];
     };
+  },
+
+  getIccInfo: function icc_getIccInfo() {
+    var self = this;
+    var xhr = new XMLHttpRequest();
+    xhr.onerror = function() {
+      DUMP('Failed to fetch file: ' + href, xhr.statusText);
+    };
+    xhr.onload = function() {
+      self._defaultURL = xhr.response.defaultURL;
+      DUMP('ICC default URL: ', self._defaultURL);
+    };
+    xhr.open('GET', '/resources/icc.json', true);
+    xhr.responseType = 'json';
+    xhr.send();
   },
 
   getICC: function icc_getICC() {
@@ -212,6 +229,69 @@ var icc = {
     this.icc_confirm_msg.textContent = message;
     this.icc_confirm.classList.add('visible');
     this.icc_view.classList.add('visible');
+  },
+
+  asyncConfirm: function(message, callback) {
+    if (typeof callback != 'function') {
+      callback = function() {};
+    }
+    if (!this.icc_asyncconfirm) {
+      this.icc_asyncconfirm =
+        document.getElementById('icc-asyncconfirm');
+      this.icc_asyncconfirm_msg =
+        document.getElementById('icc-asyncconfirm-msg');
+      this.icc_asyncconfirm_btn_no =
+        document.getElementById('icc-asyncconfirm-btn-no');
+      this.icc_asyncconfirm_btn_yes =
+        document.getElementById('icc-asyncconfirm-btn-yes');
+    }
+
+    var self = this;
+    this.icc_asyncconfirm_btn_no.onclick = function rejectConfirm() {
+      self.hideViews();
+      callback(false);
+    };
+    this.icc_asyncconfirm_btn_yes.onclick = function acceptConfirm() {
+      self.hideViews();
+      callback(true);
+    };
+
+    this.icc_asyncconfirm_msg.textContent = message;
+    this.icc_asyncconfirm.classList.add('visible');
+    this.icc_view.classList.add('visible');
+  },
+
+  /**
+   * Open URL
+   */
+  showURL: function(url, confirmMessage) {
+    function openURL(url) {
+      // Sanitise url just in case it doesn't start with http or https
+      // the web activity won't work, so add by default the http protocol
+      if (url.search('^https?://') == -1) {
+        // Our url doesn't contains the protocol
+        url = 'http://' + url;
+      }
+      new MozActivity({
+        name: 'view',
+        data: { type: 'url', url: url }
+      });
+    }
+    if (url == null || url.length == 0) {
+      url = this._defaultURL;
+    }
+    DUMP('Final URL to open: ' + url);
+    if (url != null || url.length != 0) {
+      if (confirmMessage) {
+        this.asyncConfirm(confirmMessage, function(res) {
+          if (res) {
+            openURL(url);
+          }
+        });
+      } else {
+        openURL(url);
+      }
+    }
   }
 };
 
