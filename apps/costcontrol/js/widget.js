@@ -180,8 +180,8 @@ var Widget = (function() {
 
     var className = 'widget-' + status;
     document.getElementById('fte-icon').classList.add(className);
-    fte.querySelector('p:first-child').textContent = _(className + '-heading');
-    fte.querySelector('p:last-child').textContent = _(className + '-meta');
+    Common.localize(fte.querySelector('p:first-child'), className + '-heading');
+    Common.localize(fte.querySelector('p:last-child'), className + '-meta');
   }
 
   function setupFte(provider, mode) {
@@ -203,9 +203,12 @@ var Widget = (function() {
     var simKey = keyLookup[mode];
 
     document.getElementById('fte-icon').className = 'icon ' + simKey;
-    fte.querySelector('p:first-child').textContent = _(simKey + '-heading',
-                                                     { provider: provider });
-    fte.querySelector('p:last-child').textContent = _(simKey + '-meta');
+    Common.localize(
+      fte.querySelector('p:first-child'),
+      simKey + '-heading',
+      {provider: provider}
+    );
+    Common.localize(fte.querySelector('p:last-child'), simKey + '-meta');
   }
 
   var hashMark = 0;
@@ -293,9 +296,15 @@ var Widget = (function() {
             value: limitText[0],
             unit: limitText[1]
           });
-          leftTag.textContent = limitTresspased ? _('limit-passed') : _('used');
+          Common.localize(
+            leftTag,
+            limitTresspased ? 'limit-passed' : 'used'
+          );
           leftValue.textContent = limitTresspased ? limitText : currentText;
-          rightTag.textContent = limitTresspased ? _('used') : _('limit');
+          Common.localize(
+            rightTag,
+            limitTresspased ? 'used' : 'limit'
+          );
           rightValue.textContent = limitTresspased ? currentText : limitText;
 
         } else {
