@@ -237,7 +237,30 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     };
     dom.player.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
     dom.player.onerror = function(evt) {
-      handleError(navigator.mozL10n.get('videoinvalid'));
+      var errorid = '';
+
+      switch (evt.target.error.code) {
+        case MediaError.MEDIA_ERR_ABORTED:
+          // This aborted error should be triggered by the user
+          // so we don't have to show any error messages
+          return;
+        case MediaError.MEDIA_ERR_NETWORK:
+          errorid = 'error-network';
+          break;
+        case MediaError.MEDIA_ERR_DECODE:
+        case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          // If users tap some video link in an offline page
+          // the error code will be MEDIA_ERR_SRC_NOT_SUPPORTED
+          // we also prompt the unsupported error message for it
+          errorid = 'error-unsupported';
+          break;
+        // Is it possible to be unknown errors?
+        default:
+          errorid = 'error-unknown';
+          break;
+      }
+
+      handleError(navigator.mozL10n.get(errorid));
     };
   }
 
