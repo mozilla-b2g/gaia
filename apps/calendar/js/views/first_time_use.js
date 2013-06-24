@@ -1,4 +1,4 @@
-Calendar.FirstTimeUse = (function(window) {
+Calendar.ns('Views').FirstTimeUse = (function() {
 
   /**
    * Default amount of time (in milliseconds) we will show the hint before 
@@ -19,7 +19,13 @@ Calendar.FirstTimeUse = (function(window) {
    * Currently this is limited to the 'swipe to navigate' hint.
    * 
    */
-  var FirstTimeUse = {
+  function FirstTimeUse(options) {
+    Calendar.View.apply(this, arguments);
+    this.store = this.app.store('Setting');
+  }
+
+  FirstTimeUse.prototype = {
+    __proto__: Calendar.View.prototype,
 
     /**
      * Determine whether or not we should be showing the first use
@@ -30,12 +36,10 @@ Calendar.FirstTimeUse = (function(window) {
      * 
      * @param {Object} calendarApp - The Calendar App Object
      */
-    doFirstTime: function(calendarApp) {
-      var self = this;
-
+    doFirstTime: function() {
       // Read from the Setting store to figure out if we should be
       // showing the hint or not.
-      calendarApp.store('Setting').getValue(SWIPE_TO_NAVIGATE_HINT_KEY, 
+      this.store.getValue(SWIPE_TO_NAVIGATE_HINT_KEY, 
         function(error, value) {
           // Bail on error.
           if(error !== null) {
@@ -45,11 +49,11 @@ Calendar.FirstTimeUse = (function(window) {
           // Should we show the swipe to navigate hint?
           if(value) {
             // Show the hint.
-            self._showSwipeToNavigateHint();
+            this._showSwipeToNavigateHint();
             // Remember to not show this hint again.
-            calendarApp.store('Setting').set(SWIPE_TO_NAVIGATE_HINT_KEY, false);
+            this.store.set(SWIPE_TO_NAVIGATE_HINT_KEY, false);
           }
-        });
+        }.bind(this));
     },
 
     /**
@@ -74,4 +78,4 @@ Calendar.FirstTimeUse = (function(window) {
 
   return FirstTimeUse;
 
-}(this));
+}());
