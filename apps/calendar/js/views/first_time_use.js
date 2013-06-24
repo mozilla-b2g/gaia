@@ -10,6 +10,11 @@ Calendar.ns('Views').FirstTimeUse = (function() {
    * Settings Store key used to determine whether we've shown the hint once.
    */
   const SWIPE_TO_NAVIGATE_HINT_KEY = 'showSwipeToNavigateHint';
+  
+  /**
+   * Hint root element id
+   */
+  const SWIPE_TO_NAVIGAGE_ELEMENT_ID = 'hint-swipe-to-navigate';
 
   /**
    * The First Time Use Object is used for any and all hints that should
@@ -27,6 +32,21 @@ Calendar.ns('Views').FirstTimeUse = (function() {
   FirstTimeUse.prototype = {
     __proto__: Calendar.View.prototype,
 
+    _swipeToNavigateElement: null,
+    _hintTimeout: null,
+
+    /**
+     * Lazy getter for 'swipe to navigate' hint root element.
+     */
+    get swipeToNavigateElement() {
+      if(!this._swipeToNavigateElement) {
+        this._swipeToNavigateElement = 
+          document.getElementById(SWIPE_TO_NAVIGAGE_ELEMENT_ID);
+      }
+      
+      return this._swipeToNavigateElement;
+    },
+
     /**
      * Determine whether or not we should be showing the first use
      * hint that teaches the user to swipe to navigate between
@@ -43,13 +63,17 @@ Calendar.ns('Views').FirstTimeUse = (function() {
         function(error, value) {
           // Bail on error.
           if(error !== null) {
+            console.error(
+              'Failed to read from Setting store with error %o', 
+              error
+            );
             return;
           }
 
           // Should we show the swipe to navigate hint?
           if(value) {
-            // Show the hint.
-            this._showSwipeToNavigateHint();
+            // Render the hint.
+            this.render();
             // Remember to not show this hint again.
             this.store.set(SWIPE_TO_NAVIGATE_HINT_KEY, false);
           }
@@ -57,22 +81,27 @@ Calendar.ns('Views').FirstTimeUse = (function() {
     },
 
     /**
-     * Handle showing and hiding the 'swipe to navigate' hint.
+     * Handle rendering the 'swipe to navigate' hint.
      */
-    _showSwipeToNavigateHint: function() {
-      var hint = window.document.getElementById('hint-swipe-to-navigate');
+    render: function() {
+      var hint = this.swipeToNavigateElement;
       hint.classList.remove('hide');
       hint.classList.add('show');
 
-      function hideHint() {
-        hint.classList.remove('show');
-        hint.classList.add('hide');
+      hint.onclick = this.destroy.bind(this);
+      this._hintTimeout = setTimeout(hint.onclick, DEFAULT_HINT_TIMEOUT);
+    },
+    
+    /**
+     * Handle dismissing the 'swipe to navigate' hint.
+     */
+    destroy: function() {
+      var hint = this.swipeToNavigateElement;
 
-        clearTimeout(hideHint.timeout);
-      }
+      hint.classList.remove('show');
+      hint.classList.add('hide');
 
-      hint.onclick = hideHint;
-      hideHint.timeout = setTimeout(hideHint, DEFAULT_HINT_TIMEOUT);
+      clearTimeout(this._hintTimeout);
     }
   };
 
