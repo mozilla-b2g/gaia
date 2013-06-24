@@ -1249,14 +1249,14 @@ var Browser = {
 
       // Save the blob to device storage.
       // Extract a filename from the URL, and to some sanitizing.
-      var name = url.split('/').reverse()[0].toLowerCase()
+      var name = url.split('/').reverse()[0].toLowerCase().split(/[&?#]/g)[0]
                     .replace(/[^a-z0-9\.]/g, '_');
 
       // If we have no file extension, use the content-type header to
       // add one.
-      if (name.split('.').length == 1) {
-        var contentType = xhr.getResponseHeader('content-type');
-        name += '.' + contentType.split('/')[1];
+      var ext = MimeMapper.guessExtensionFromType(xhr.response.type);
+      if (ext && name.indexOf(ext) === -1) {
+        name += '.' + ext;
       }
 
       storeBlob(xhr.response, name, 0);
