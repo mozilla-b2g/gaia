@@ -125,6 +125,45 @@ if (typeof window.importer === 'undefined') {
       return key;
     }
 
+    // Define a source adapter object to pass to contacts.Search.
+    //
+    // Since multiple, separate apps use contacts.Search its important for
+    // the search code to function independently.  This adapter object allows
+    // the search module to access the app's contacts without knowing anything
+    // about our DOM structure.
+    var searchSource = {
+      getNodes: function() {
+        return contactList.querySelectorAll('section > ol > li');
+      },
+      getFirstNode: function() {
+        return contactList.querySelector('section > ol > li');
+      },
+      getNextNode: function(contact) {
+        var out = contact.nextElementSibling;
+        var nextParent = contact.parentNode.parentNode.nextElementSibling;
+        while (!out && nextParent) {
+          out = nextParent.querySelector('ol > li:first-child');
+          nextParent = nextParent.nextElementSibling;
+        }
+        return out;
+      },
+      expectMoreNodes: function() {
+        // This app does not lazy load contacts into search via the
+        // appendNodes() function, so always return false.
+        return false;
+      },
+      clone: function(node) {
+        return node.cloneNode();
+      },
+      getNodeById: function(id) {
+        return contactsList.querySelector('[data-uuid="' + id + '"]');
+      },
+      getSearchText: function(node) {
+        return node.dataset.search;
+      },
+      click: onSearchResultCb
+    }; // searchSource
+
     UI.init = function() {
       var overlay = document.querySelector('nav[data-type="scrollbar"] p');
       var jumper = document.querySelector('nav[data-type="scrollbar"] ol');
@@ -146,8 +185,7 @@ if (typeof window.importer === 'undefined') {
       };
 
       utils.alphaScroll.init(params);
-      contacts.Search.init(document.getElementById('content'), null,
-                           onSearchResultCb, true);
+      contacts.Search.init(searchSource, true);
     };
 
     function notifyLogout() {

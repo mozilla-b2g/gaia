@@ -586,3 +586,13 @@ section[role="region"] > header .icon.icon-settings
 #importSources > li.importService {
   height: auto;
 }
+
+#groups-container-box {
+  width: 100%;
+  overflow: hidden;
+}
+
+#groups-container {
+  height: 100%;
+  overflow: scroll;
+}
