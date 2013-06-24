@@ -31,7 +31,13 @@ var icc_worker = {
   },
 
   // STK_CMD_SET_UP_EVENT_LIST
-  //'0x05': function STK_CMD_SET_UP_EVENT_LIST(command, iccManager) {},
+  '0x5': function STK_CMD_SET_UP_EVENT_LIST(command, iccManager) {
+    DUMP('STK_CMD_SET_UP_EVENT_LIST:', command.options);
+    icc_events.register(command.options.eventList);
+    iccManager.responseSTKCommand({
+      resultCode: iccManager._icc.STK_RESULT_OK
+    });
+  },
 
   // STK_CMD_SET_UP_CALL
   '0x10': function STK_CMD_SET_UP_CALL(command, iccManager) {
