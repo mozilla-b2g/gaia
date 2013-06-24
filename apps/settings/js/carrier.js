@@ -7,6 +7,7 @@
 var Carrier = (function newCarrier(window, document, undefined) {
   var APN_FILE = '/shared/resources/apn.json';
   var _ = window.navigator.mozL10n.get;
+  var restartingDataConnection = false;
   const AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
 
   /**
@@ -223,9 +224,43 @@ var Carrier = (function newCarrier(window, document, undefined) {
       storeCustomAPNSettingFields();
     };
 
+    /* XXX: This is a minimal and quick fix of bug 882059 for v1-train.
+     *      We should modify it after bug 842252 landed.
+     */
+    var apnSettingsChanged = false;
+    var apnRelatedInputs = Array.prototype.slice.call(
+      apnPanel.querySelectorAll('.apnSettings-list input[data-setting],' +
+                                '.apnSettings-advanced input[data-setting]'));
+    var onApnSettingsChanged = function() {
+      apnSettingsChanged = true;
+    };
+    apnRelatedInputs.forEach(function(input) {
+      var settingName = input.dataset.setting;
+      if (input.type === 'radio') {
+        input.addEventListener('change', onApnSettingsChanged);
+      } else {
+        input.addEventListener('input', onApnSettingsChanged);
+      }
+    });
+
+    function onSubmit() {
+      setTimeout(function() {
+        if (apnSettingsChanged) {
+          apnSettingsChanged = false;
+          restartDataConnection();
+        }
+      });
+    }
+
+    function onReset() {
+      apnSettingsChanged = false;
+    }
+
     // force data connection to restart if changes are validated
     var submitButton = apnPanel.querySelector('button[type=submit]');
-    submitButton.addEventListener('click', restartDataConnection);
+    var resetButton = apnPanel.querySelector('button[type=reset]');
+    submitButton.addEventListener('click', onSubmit);
+    resetButton.addEventListener('click', onReset);
   }
 
   // restart data connection by toggling it off and on again
@@ -234,6 +269,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
     if (!settings)
       return;
 
+    restartingDataConnection = true;
     var key = 'ril.data.enabled';
     function setDataState(state) {
       var cset = {};
@@ -246,6 +282,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
       if (request.result[key]) {
         setDataState(false);    // turn data off
         setTimeout(function() { // turn data back on
+          restartingDataConnection = false;
           setDataState(true);
         }, 2500); // restart data connection in 2.5s
       }
@@ -427,7 +464,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
       currentStateElement.textContent = messageElement.textContent;
       currentStateElement.dataset.l10nId = messageElement.dataset.l10nId;
       currentStateElement = messageElement;
-      localize(messageElement,'operator-status-connecting');
+      localize(messageElement, 'operator-status-connecting');
       req.onsuccess = function onsuccess() {
         localize(messageElement, 'operator-status-connected');
         updateSelectionMode(false);
