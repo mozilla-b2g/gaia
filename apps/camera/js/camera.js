@@ -615,7 +615,7 @@ var Camera = {
         var rootDirLength = absolutePath.length - dummyfilename.length;
         this._videoRootDir = absolutePath.substring(0, rootDirLength);
 
-        this._videoStorage.delete(dummyfilename); // No need to wait for success
+        this._videoStorage.delete(absolutePath); // No need to wait for success
         // Determine the number of bytes available on disk.
         var spaceReq = this._videoStorage.freeSpace();
         spaceReq.onerror = onerror;
