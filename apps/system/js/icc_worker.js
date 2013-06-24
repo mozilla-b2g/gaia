@@ -6,16 +6,22 @@
 var icc_worker = {
 
   // STK_CMD_REFRESH
-  //'0x01': function STK_CMD_REFRESH(command, iccManager) {},
+  //'0x1': function STK_CMD_REFRESH(command, iccManager) {},
 
   // STK_CMD_POLL_INTERVAL
-  //'0x03': function STK_CMD_POLL_INTERVAL(command, iccManager) {},
+  //'0x3': function STK_CMD_POLL_INTERVAL(command, iccManager) {},
 
   // STK_CMD_POLL_OFF
-  //'0x04': function STK_CMD_POLL_OFF(command, iccManager) {},
+  //'0x4': function STK_CMD_POLL_OFF(command, iccManager) {},
 
   // STK_CMD_SET_UP_EVENT_LIST
-  //'0x05': function STK_CMD_SET_UP_EVENT_LIST(command, iccManager) {},
+  '0x5': function STK_CMD_SET_UP_EVENT_LIST(command, iccManager) {
+    DUMP('STK_CMD_SET_UP_EVENT_LIST:', command.options);
+    icc_events.register(command.options.eventList);
+    iccManager.responseSTKCommand({
+      resultCode: iccManager._icc.STK_RESULT_OK
+    });
+  },
 
   // STK_CMD_SET_UP_CALL
   //'0x10': function STK_CMD_SET_UP_CALL(command, iccManager) {},
