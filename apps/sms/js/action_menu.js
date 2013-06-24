@@ -121,18 +121,24 @@ var OptionMenu = function(options) {
 
   menu.addEventListener('click', function(event) {
     var action = handlers.get(event.target);
-    var method = (action && action.method) || function() {};
+    var method;
 
     // Delegate operation to target method. This allows
-    // for a custom "Cancel" to be provided by calling program
-    if (action) {
-      method.apply(null, action.params || []);
-    }
-    // Hide action menu when click is received
-    this.hide();
+    // for a custom "Cancel" to be provided by calling program.
+    //
+    // Further operations should only be processed if
+    // an actual button was pressed.
+    if (typeof action !== 'undefined') {
+      method = action.method || function() {};
 
-    if (typeof options.complete === 'function' && !action.incomplete) {
-      options.complete();
+      method.apply(null, action.params || []);
+
+      // Hide action menu when click is received
+      this.hide();
+
+      if (typeof options.complete === 'function' && !action.incomplete) {
+        options.complete();
+      }
     }
   }.bind(this));
   // Appending the action menu to the form
