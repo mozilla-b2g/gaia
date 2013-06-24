@@ -246,14 +246,6 @@
         }
         break;
 
-      case icc.STK_CMD_SET_UP_IDLE_MODE_TEXT:
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        displayNotification(command);
-        break;
-
       case icc.STK_CMD_REFRESH:
         iccLastCommandProcessed = true;
         responseSTKCommand({
@@ -891,16 +883,6 @@
     }
 
     tonePlayer.play();
-  }
-
-  /**
-   * Display text on the notifications bar and Idle screen
-   */
-  function displayNotification(command) {
-    var options = command.options;
-    NotificationHelper.send('STK', options.text, '', function() {
-      alert(options.text);
-    });
   }
 
   /**
