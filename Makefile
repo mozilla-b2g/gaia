@@ -408,6 +408,12 @@ ifeq ($(DOGFOOD),1)
 EXTENDED_PREF_FILES += dogfood-prefs.js
 endif
 
+# Optional partner provided preference files. They will be added
+# after the ones on the EXTENDED_PREF_FILES and they will be read
+# from the GAIA_DISTRIBUTION_DIR directory
+PARTNER_PREF_FILES = \
+  partner-prefs.js\
+
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
 	@test -d profile || mkdir -p profile
@@ -417,6 +423,13 @@ preferences: install-xulrunner-sdk
 	    cat $(prefs_file) >> profile/user.js; \
 	  fi; \
 	)
+	@echo "" >> profile/user.js
+	@$(foreach prefs_file,$(addprefix $(GAIA_DISTRIBUTION_DIR)/,$(PARTNER_PREF_FILES)),\
+	  if [ -f $(prefs_file) ]; then \
+	    cat $(prefs_file) >> profile/user.js; \
+	  fi; \
+	)
+
 
 # Generate profile/
 applications-data: install-xulrunner-sdk
