@@ -312,7 +312,7 @@ var Calls = (function(window, document, undefined) {
           return;
         }
         mozMobileCFInfo['number'] = textInput.value;
-        mozMobileCFInfo['timeSecond'] =
+        mozMobileCFInfo['timeSeconds'] =
           mozMobileCFInfo['reason'] !=
             _cfReason.CALL_FORWARD_REASON_NO_REPLY ? 0 : 20;
 
