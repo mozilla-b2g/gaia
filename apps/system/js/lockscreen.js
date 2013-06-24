@@ -161,10 +161,15 @@ var LockScreen = {
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
       conn.addEventListener('voicechange', this);
-      conn.addEventListener('cardstatechange', this);
       conn.addEventListener('iccinfochange', this);
       this.updateConnState();
       this.connstate.hidden = false;
+    }
+
+    /* icc state on lock screen */
+    var icc = window.navigator.mozIccManager;
+    if (icc) {
+      icc.addEventListener('cardstatechange', this);
     }
 
     var self = this;
@@ -797,6 +802,10 @@ var LockScreen = {
     if (!conn)
       return;
 
+    var icc = window.navigator.mozIccManager;
+    if (!icc)
+      return;
+
     navigator.mozL10n.ready(function() {
       var connstateLine1 = this.connstate.firstElementChild;
       var connstateLine2 = this.connstate.lastElementChild;
@@ -851,7 +860,7 @@ var LockScreen = {
       if (voice.emergencyCallsOnly) {
         updateConnstateLine1('emergencyCallsOnly');
 
-        switch (conn.cardState) {
+        switch (icc.cardState) {
           case 'unknown':
             updateConnstateLine2('emergencyCallsOnly-unknownSIMState');
             break;

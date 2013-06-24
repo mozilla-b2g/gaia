@@ -863,16 +863,16 @@ window.addEventListener('load', function loadSettings() {
       }
     }
 
-    var mobileConnection = window.navigator.mozMobileConnection;
-    if (!mobileConnection) {
+    var iccManager = window.navigator.mozIccManager;
+    if (!iccManager) {
       disableSIMRelatedSubpanels(true);
     }
 
-    var cardState = mobileConnection.cardState;
+    var cardState = iccManager.cardState;
     disableSIMRelatedSubpanels(cardState !== 'ready');
 
-    mobileConnection.addEventListener('cardstatechange', function() {
-      var cardState = mobileConnection.cardState;
+    iccManager.addEventListener('cardstatechange', function() {
+      var cardState = iccManager.cardState;
       disableSIMRelatedSubpanels(cardState !== 'ready');
     });
   }

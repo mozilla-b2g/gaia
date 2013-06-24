@@ -7,9 +7,9 @@ var SimLock = {
   _duringCall: false,
 
   init: function sl_init() {
-    // Do not do anything if we can't have access to MobileConnection API
-    var conn = window.navigator.mozMobileConnection;
-    if (!conn)
+    // Do not do anything if we can't have access to IccMananger API
+    var icc = window.navigator.mozIccManager;
+    if (!icc)
       return;
 
     this.onClose = this.onClose.bind(this);
@@ -22,7 +22,7 @@ var SimLock = {
     window.addEventListener('unlock', this);
 
     // always monitor card state change
-    conn.addEventListener('cardstatechange', this.showIfLocked.bind(this));
+    icc.addEventListener('cardstatechange', this.showIfLocked.bind(this));
 
     // Listen to callscreenwillopen and callscreenwillclose event
     // to discard the cardstatechange event.
@@ -94,8 +94,8 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked() {
-    var conn = window.navigator.mozMobileConnection;
-    if (!conn)
+    var icc = window.navigator.mozIccManager;
+    if (!icc)
       return false;
 
     if (LockScreen.locked)
@@ -108,7 +108,7 @@ var SimLock = {
     if (this._duringCall)
       return false;
 
-    switch (conn.cardState) {
+    switch (icc.cardState) {
       // do nothing in either absent, unknown or null card states
       case null:
       case 'absent':

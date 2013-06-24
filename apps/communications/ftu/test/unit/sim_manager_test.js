@@ -19,7 +19,7 @@ suite('sim mgmt >', function() {
       realMozMobileConnection,
       realMozIccManager;
   var mocksHelper = mocksHelperForNavigation;
-  var conn, container;
+  var conn, icc, container;
 
   setup(function() {
     createDOM();
@@ -36,6 +36,7 @@ suite('sim mgmt >', function() {
     mocksHelper.setup();
     SimManager.init();
     conn = navigator.mozMobileConnection;
+    icc = navigator.mozIccManager;
   });
 
   teardown(function() {
@@ -86,7 +87,7 @@ suite('sim mgmt >', function() {
     });
 
     test('pinRequired shows PIN screen', function() {
-      conn.setProperty('cardState', 'pinRequired');
+      icc.setProperty('cardState', 'pinRequired');
       SimManager.handleCardState();
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
       assert.isFalse(UIManager.pinRetriesLeft.classList.contains('hidden'));
@@ -95,7 +96,7 @@ suite('sim mgmt >', function() {
     });
 
     test('pukRequired shows PUK screen', function() {
-      conn.setProperty('cardState', 'pukRequired');
+      icc.setProperty('cardState', 'pukRequired');
       SimManager.handleCardState();
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
       assert.isFalse(UIManager.pukRetriesLeft.classList.contains('hidden'));
@@ -104,7 +105,7 @@ suite('sim mgmt >', function() {
     });
 
     test('networkLocked shows XCK screen', function() {
-      conn.setProperty('cardState', 'networkLocked');
+      icc.setProperty('cardState', 'networkLocked');
       SimManager.handleCardState();
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
       assert.isFalse(UIManager.xckRetriesLeft.classList.contains('hidden'));
@@ -123,10 +124,10 @@ suite('sim mgmt >', function() {
 
     suite('PIN unlock ', function() {
       suiteSetup(function() {
-        conn.setProperty('cardState', 'pinRequired');
+        icc.setProperty('cardState', 'pinRequired');
       });
       suiteTeardown(function() {
-        conn.setProperty('cardState', null);
+        icc.setProperty('cardState', null);
       });
 
       test('too short PIN', function() {
@@ -156,10 +157,10 @@ suite('sim mgmt >', function() {
 
     suite('PUK unlock ', function() {
       suiteSetup(function() {
-        conn.setProperty('cardState', 'pukRequired');
+        icc.setProperty('cardState', 'pukRequired');
       });
       suiteTeardown(function() {
-        conn.setProperty('cardState', null);
+        icc.setProperty('cardState', null);
       });
 
       test('wrong length PUK', function() {
@@ -218,10 +219,10 @@ suite('sim mgmt >', function() {
 
     suite('XCK unlock ', function() {
       suiteSetup(function() {
-        conn.setProperty('cardState', 'networkLocked');
+        icc.setProperty('cardState', 'networkLocked');
       });
       suiteTeardown(function() {
-        conn.setProperty('cardState', null);
+        icc.setProperty('cardState', null);
       });
 
       test('too short XCK', function() {

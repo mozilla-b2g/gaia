@@ -10,6 +10,7 @@ requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_navigator_moz_mobile_connection.js');
+requireApp('system/test/unit/mock_navigator_moz_icc_manager.js');
 requireApp('system/test/unit/mock_activity.js');
 
 requireApp('system/js/quick_settings.js');

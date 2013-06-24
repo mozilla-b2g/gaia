@@ -2,30 +2,30 @@
 
 (function() {
 
-  var props = ['voice', 'iccInfo', 'data'];
+  var props = ['cardState'];
   var eventListeners = null;
 
-  function mnmmc_init() {
+  function mnmim_init() {
     props.forEach(function(prop) {
       Mock[prop] = null;
     });
-    eventListeners = {'iccinfochange': []};
+    eventListeners = {'cardstatechange': []};
   }
 
-  function mnmmc_addEventListener(type, callback) {
+  function mnmim_addEventListener(type, callback) {
     if (eventListeners[type]) {
       eventListeners[type][eventListeners[type].length] = callback;
     }
   }
 
-  function mnmmc_removeEventListener(type, callback) {
+  function mnmim_removeEventListener(type, callback) {
     if (eventListeners[type]) {
       var idx = eventListeners[type].indexOf(callback);
       eventListeners[type].splice(idx, 1);
     }
   }
 
-  function mnmmc_triggerEventListeners(type, evt) {
+  function mnmim_triggerEventListeners(type, evt) {
     if (!eventListeners[type]) {
       return;
     }
@@ -44,16 +44,16 @@
   }
 
   var Mock = {
-    addEventListener: mnmmc_addEventListener,
-    removeEventListener: mnmmc_removeEventListener,
-    triggerEventListeners: mnmmc_triggerEventListeners,
-    mTeardown: mnmmc_init,
+    addEventListener: mnmim_addEventListener,
+    removeEventListener: mnmim_removeEventListener,
+    triggerEventListeners: mnmim_triggerEventListeners,
+    mTeardown: mnmim_init,
     get mEventListeners() {
       return eventListeners;
     }
   };
 
-  mnmmc_init();
+  mnmim_init();
 
-  window.MockNavigatorMozMobileConnection = Mock;
+  window.MockNavigatorMozIccManager = Mock;
 })();

@@ -3,6 +3,7 @@ requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
+requireApp('communications/dialer/test/unit/mock_mozIccManager.js');
 
 
 if (!this.ConfirmDialog) {
@@ -24,6 +25,7 @@ suite('telephony helper', function() {
   var realLazyL10n;
   var realConfirmDialog;
   var realMozMobileConnection;
+  var realMozIccManager;
   var real_;
 
   suiteSetup(function() {
@@ -40,6 +42,9 @@ suite('telephony helper', function() {
 
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockMozMobileConnection;
+
+    realMozIccManager = navigator.mock_mozIccManager;
+    navigator.mozIccManager = MockMozIccManager;
 
     realConfirmDialog = window.ConfirmDialog;
     window.ConfirmDialog = window.MockConfirmDialog;
@@ -65,6 +70,7 @@ suite('telephony helper', function() {
     window.LazyL10n = realLazyL10n;
     window.ConfirmDialog = realConfirmDialog;
     navigator.mozMobileConnection = realMozMobileConnection;
+    navigator.mozIccManager = realMozIccManager;
     _ = real_;
   });
 });

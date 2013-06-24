@@ -41,9 +41,13 @@
   if (!mobileConnection)
     return;
 
+  var icc = window.navigator.mozIccManager;
+  if (!icc)
+    return;
+
   // Check the mcc/mnc information on the SIM card.
   function checkICCInfo() {
-    if (!mobileConnection.iccInfo || mobileConnection.cardState !== 'ready')
+    if (!mobileConnection.iccInfo || icc.cardState !== 'ready')
       return;
 
     // ensure that the iccSettings have been retrieved

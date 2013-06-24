@@ -69,7 +69,7 @@ var SimPinDialog = {
   handleCardState: function spl_handleCardState() {
     var _ = navigator.mozL10n.get;
 
-    var cardState = this.mobileConnection.cardState;
+    var cardState = this.icc.cardState;
     var lockType = this.lockTypeMap[cardState];
     var retryCount = this.mobileConnection.retryCount;
 

@@ -14,16 +14,17 @@
   var defaultLowLimitThreshold = DEFAULT_LOW_LIMIT_THRESHOLD;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
+    var icc = window.navigator.mozIccManager;
     var stepsLeft = 2;
 
     // No SIM
-    if (!mobileConnection || mobileConnection.cardState === 'absent') {
+    if (!mobileConnection || !icc || icc.cardState === 'absent') {
       hasSim = false;
       trySetup();
 
     // SIM is not ready
-    } else if (mobileConnection.cardState !== 'ready') {
-      debug('SIM not ready:', mobileConnection.cardState);
+    } else if (icc.cardState !== 'ready') {
+      debug('SIM not ready:', icc.cardState);
       mobileConnection.oniccinfochange = _onDOMReady;
 
     // SIM is ready

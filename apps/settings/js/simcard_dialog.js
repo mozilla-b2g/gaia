@@ -52,7 +52,7 @@ var SimPinDialog = {
   handleCardState: function spl_handleCardState() {
     var _ = navigator.mozL10n.get;
 
-    var cardState = this.mobileConnection.cardState;
+    var cardState = this.icc.cardState;
     switch (cardState) {
       case 'pinRequired':
         this.lockType = 'pin';

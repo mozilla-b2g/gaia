@@ -19,9 +19,10 @@ var Connectivity = (function(window, document, undefined) {
   var wifiManager = WifiHelper.getWifiManager();
   var bluetooth = getBluetooth();
   var mobileConnection = getMobileConnection();
+  var icc = getIccManager();
 
   mobileConnection.addEventListener('datachange', updateCarrier);
-  mobileConnection.addEventListener('cardstatechange', updateCallSettings);
+  icc.addEventListener('cardstatechange', updateCallSettings);
 
   // XXX if wifiManager implements addEventListener function
   // we can remove these listener lists.
@@ -192,11 +193,11 @@ var Connectivity = (function(window, document, undefined) {
       }
     };
 
-    if (!mobileConnection)
+    if (!mobileConnection || !icc)
       return setCarrierStatus({});
 
     // ensure the SIM card is present and unlocked
-    var cardState = mobileConnection.cardState || 'null';
+    var cardState = icc.cardState || 'null';
     var l10nId = kCardStateL10nId[cardState];
     if (l10nId) {
       return setCarrierStatus({ error: _(l10nId), l10nId: l10nId });
@@ -231,13 +232,13 @@ var Connectivity = (function(window, document, undefined) {
       return; // init will call updateCallSettings()
     }
 
-    var mobileConnection = getMobileConnection();
+    var icc = getIccManager();
 
-    if (!mobileConnection)
+    if (!icc)
       return;
 
     // update the current SIM card state
-    var cardState = mobileConnection.cardState || 'null';
+    var cardState = icc.cardState || 'null';
     localize(callDesc, kCardStateL10nId[cardState]);
   }
 
