@@ -87,7 +87,7 @@ var SuggestionBar = {
       self.bar.hidden = false;
 
       // Store contacts for constructing multiple suggestions.
-      self._contactList = contacts;
+      self._contactList = contacts.slice(0, self.MAX_ITEMS);
       // Create matching index table for reference
       self._allMatched = self._getAllMatched(self._contactList);
 
@@ -105,20 +105,13 @@ var SuggestionBar = {
       }
 
       var node = self.bar.querySelector('.suggestion-item');
-      var contact = contacts[0];
+      var contact = self._contactList[0];
       self._fillContacts(contact, self._allMatched.allMatches[0][0], node);
       self.bar.dataset.lastId = contact.id;
     });
   },
 
   _fillContacts: function sb_fillContacts(contact, matchLocal, node) {
-
-    if (!node) {
-      for (var i = 0; i < matchLocal.length; i++) {
-        this._fillContacts(contact, matchLocal[i], this._createItem());
-      }
-      return;
-    }
 
     // if first letter of query is '+' and first letter of matchedTel isn't '+'
     // we use query without country code instead of original query for
@@ -205,7 +198,11 @@ var SuggestionBar = {
       });
     });
     for (var i = 0; i < maxItems; i++) {
-      this._fillContacts(this._contactList[i], this._allMatched.allMatches[i]);
+      for (var j = 0; j < this._allMatched.allMatches[i].length; j++) {
+        var node = this._createItem();
+        this._fillContacts(this._contactList[i],
+          this._allMatched.allMatches[i][j], node);
+      }
     }
     this.overlay.classList.add('display');
   },
