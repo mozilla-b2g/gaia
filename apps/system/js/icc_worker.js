@@ -4,7 +4,6 @@
 'use strict';
 
 var icc_worker = {
-
   // STK_CMD_REFRESH
   //'0x01': function STK_CMD_REFRESH(command, iccManager) {},
 
@@ -39,7 +38,32 @@ var icc_worker = {
   //'0x20': function STK_CMD_PLAY_TONE(command, iccManager) {},
 
   // STK_CMD_DISPLAY_TEXT
-  //'0x21': function STK_CMD_DISPLAY_TEXT(command, iccManager) {},
+  '0x21': function STK_CMD_DISPLAY_TEXT(command, iccManager) {
+    DUMP('STK_CMD_DISPLAY_TEXT:', command.options);
+    var options = command.options;
+    if (options.responseNeeded) {
+      iccManager.responseSTKCommand({
+        resultCode: iccManager._icc.STK_RESULT_OK
+      });
+      iccManager.confirm(options.text, iccManager._displayTextTimeout, null);
+    } else {
+      iccManager.confirm(options.text, iccManager._displayTextTimeout,
+        function(userCleared) {
+          DUMP('STK_CMD_DISPLAY_TEXT callback for ', command);
+          if (options.userClear && !userCleared) {
+            DUMP('No response from user (Timeout)');
+            iccManager.responseSTKCommand({
+              resultCode: iccManager._icc.STK_RESULT_NO_RESPONSE_FROM_USER
+            });
+          } else {
+            DUMP('Alert closed');
+            iccManager.responseSTKCommand({
+              resultCode: iccManager._icc.STK_RESULT_OK
+            });
+          }
+        });
+    }
+  },
 
   // STK_CMD_GET_INKEY
   //'0x22': function STK_CMD_GET_INKEY(command, iccManager) {},
