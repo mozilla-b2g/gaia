@@ -467,7 +467,7 @@ preferences: install-xulrunner-sdk
 	@$(call run-js-command, preferences)
 	@$(foreach prefs_file,$(addprefix build/,$(EXTENDED_PREF_FILES)),\
 	  if [ -f $(prefs_file) ]; then \
-	    cat $(prefs_file) git dif $(PROFILE_FOLDER)/user.js; \
+	    cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
 	  fi; \
 	)
 	@echo "" >> $(PROFILE_FOLDER)/user.js
