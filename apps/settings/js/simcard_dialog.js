@@ -26,7 +26,6 @@ var SimPinDialog = {
   errorMsgBody: document.getElementById('messageBody'),
 
   mobileConnection: null,
-  icc: null,
 
   lockType: 'pin',
   action: 'unlock',
@@ -137,7 +136,7 @@ var SimPinDialog = {
 
   unlockCardLock: function spl_unlockCardLock(options) {
     var self = this;
-    var req = this.icc.unlockCardLock(options);
+    var req = IccHelper.unlockCardLock(options);
     req.onsuccess = function sp_unlockSuccess() {
       self.close();
       if (self.onsuccess)
@@ -180,7 +179,7 @@ var SimPinDialog = {
 
   setCardLock: function spl_setCardLock(options) {
     var self = this;
-    var req = this.icc.setCardLock(options);
+    var req = IccHelper.setCardLock(options);
     req.onsuccess = function spl_enableSuccess() {
       self.close();
       if (self.onsuccess)
@@ -292,11 +291,10 @@ var SimPinDialog = {
     if (!this.mobileConnection)
       return;
 
-    this.icc = window.navigator.mozIccManager;
-    if (!this.icc)
+    if (!IccHelper.enabled)
       return;
 
-    this.icc.addEventListener('icccardlockerror',
+    IccHelper.addEventListener('icccardlockerror',
       this.handleError.bind(this));
 
     this.dialogDone.onclick = this.verify.bind(this);
