@@ -390,7 +390,8 @@ var ActivityHandler = {
           if (!contact) {
             console.error('We got a null contact for sender:', sender);
           } else if (contact.length && contact[0].name) {
-            sender = Utils.escapeHTML(contact[0].name[0]);
+            var senderName = Utils.escapeHTML(contact[0].name[0]);
+            sender = senderName.length == 0 ? message.sender : senderName;
           }
 
           if (message.type === 'sms') {
