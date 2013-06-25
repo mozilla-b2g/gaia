@@ -7,7 +7,7 @@ suiteGroup('Views.FirstTimeUse', function() {
   var app,
       store,
       subject;
-  
+
   suiteSetup(function(done) {
     app = testSupport.calendar.app();
 
