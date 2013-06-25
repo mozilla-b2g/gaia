@@ -677,10 +677,14 @@ var ContactCache = exports.ContactCache = {
     }
     // known contact; unpack contact info
     else if (entry !== undefined) {
-      peep = new MailPeep(entry.name || addressPair.name || '', emailAddress,
-                          entry.id,
-                          (entry.photo && entry.photo.length) ?
-                            entry.photo[0] : null);
+      var name = addressPair.name || '';
+      if (entry.name && entry.name.length)
+        name = entry.name[0];
+      peep = new MailPeep(
+        name,
+        emailAddress,
+        entry.id,
+        (entry.photo && entry.photo.length) ? entry.photo[0] : null);
     }
     // not yet looked-up; assume it's a miss and we'll fix-up if it's a hit
     else {
