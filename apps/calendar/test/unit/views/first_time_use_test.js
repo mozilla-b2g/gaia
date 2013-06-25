@@ -4,7 +4,8 @@ requireLib('store/setting.js');
 requireLib('app.js');
 
 suiteGroup('Views.FirstTimeUse', function() {
-  var store,
+  var app,
+      store,
       subject;
   
   setup(function(done) {
@@ -18,18 +19,28 @@ suiteGroup('Views.FirstTimeUse', function() {
     document.body.appendChild(div);
 
     app = testSupport.calendar.app();
-    app.loadObject('Provider.Local', done);
 
     store = app.store('Setting');
     subject = new Calendar.Views.FirstTimeUse({ app: app });
+
+    app.db.open(done);
     
     // Force hint to show when render is called.
     store.set(subject.SWIPE_TO_NAVIGATE_HINT_KEY, true);
   });
   
-  teardown(function() {
+  teardown(function(done) {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
+    
+    testSupport.calendar.clearStore(
+      app.db,
+      ['settings'],
+      function() {
+        app.db.close();
+        done();
+      }
+    );
   });
   
   test('first time use', function() {
