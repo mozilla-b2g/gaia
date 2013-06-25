@@ -237,7 +237,7 @@ content = null;
 writeContent(init, getDistributionFileContent('support', content));
 
 // ICC / STK
-init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'icc.json');
+init = getFile(GAIA_DIR, 'apps', 'system', 'resources', 'icc.json');
 content = {
   "defaultURL": "http://www.mozilla.org/en-US/firefoxos/"
 }
