@@ -54,9 +54,11 @@ Calendar.ns('Views').FirstTimeUse = (function() {
      * 
      * Automatically saves state so that the hint is only shown once.
      * 
-     * @param {Object} calendarApp - The Calendar App Object
+     * @param {Object} renderCallback - An optional callback indicating 
+     *                                  whether or not the hint is showing 
+     *                                  or not.
      */
-    doFirstTime: function() {
+    doFirstTime: function(renderCallback) {
       // Read from the Setting store to figure out if we should be
       // showing the hint or not.
       this.store.getValue(SWIPE_TO_NAVIGATE_HINT_KEY, 
@@ -76,6 +78,11 @@ Calendar.ns('Views').FirstTimeUse = (function() {
             this.render();
             // Remember to not show this hint again.
             this.store.set(SWIPE_TO_NAVIGATE_HINT_KEY, false);
+          }
+          
+          // Trigger optional callback if present.
+          if(typeof renderCallback !== 'undefined') {
+            renderCallback(value);
           }
         }.bind(this));
     },

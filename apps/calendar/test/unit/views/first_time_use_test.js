@@ -8,7 +8,15 @@ suiteGroup('Views.FirstTimeUse', function() {
       store,
       subject;
   
-  setup(function(done) {
+  suiteSetup(function(done) {
+    app = testSupport.calendar.app();
+
+    store = app.store('Setting');
+
+    app.db.open(done);
+  });
+  
+  suiteSetup(function(done) {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
@@ -17,22 +25,18 @@ suiteGroup('Views.FirstTimeUse', function() {
     ].join('');
 
     document.body.appendChild(div);
-
-    app = testSupport.calendar.app();
-
-    store = app.store('Setting');
+    
     subject = new Calendar.Views.FirstTimeUse({ app: app });
 
-    app.db.open(done);
-    
     // Force hint to show when render is called.
-    store.set(subject.SWIPE_TO_NAVIGATE_HINT_KEY, true);
+    store.set('showSwipeToNavigateHint', true);
+    
+    done();
   });
   
-  teardown(function(done) {
+  suiteTeardown(function(done) {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
-    
     testSupport.calendar.clearStore(
       app.db,
       ['settings'],
@@ -43,24 +47,35 @@ suiteGroup('Views.FirstTimeUse', function() {
     );
   });
   
-  test('first time use', function() {
-    subject.render();
-    assert.isTrue(
-      subject.swipeToNavigateElement.classList.contains('show'),
-      'hint should be shown!'
-    );
-    
+  test('first time use should show', function(done) {
+    subject.doFirstTime(function(show) {
+      assert.isTrue(show, 'callback should have "show" set to true.')
+      assert.isTrue(
+        subject.swipeToNavigateElement.classList.contains('show'),
+        'hint should be shown!'
+      );
+
+      done();
+    });
+  });
+  
+  test('first time use should be dismissed', function() {
     subject.destroy();
     assert.isTrue(
       subject.swipeToNavigateElement.classList.contains('hide'),
       'hint should be hidden!'
     );
-    
-    subject.render();
-    assert.isFalse(
-      subject.swipeToNavigateElement.classList.contains('show'),
-      'hint should never show more than once!'
-    );
+  });
+  
+  test('first time use should _not_ be shown', function(done) {
+    subject.doFirstTime(function(show) {
+      assert.isFalse(show, 'callback should have "show" set to false.');
+      assert.isFalse(
+        subject.swipeToNavigateElement.classList.contains('show'),
+        'hint should never show more than once!'
+        );
+      done();
+    });
   });
   
 });
