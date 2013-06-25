@@ -152,7 +152,9 @@ var ThreadUI = global.ThreadUI = {
     this.participantsList.addEventListener(
       'click', this.onParticipantClick.bind(this)
     );
-
+    // Handling language change in header
+    window.addEventListener(
+      'localized', this.updateComposerHeader.bind(this));
 
     // Assimilations
     // -------------------------------------------------
@@ -430,6 +432,9 @@ var ThreadUI = global.ThreadUI = {
 
   // Method for updating the header when needed
   updateComposerHeader: function thui_updateComposerHeader() {
+    if (window.location.hash !== '#new') {
+      return;
+    }
     var recipientCount = this.recipients.length;
     if (recipientCount > 0) {
       this.contactPickButton.classList.add('disabled');
