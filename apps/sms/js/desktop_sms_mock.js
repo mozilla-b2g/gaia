@@ -263,6 +263,17 @@
         type: 'sms',
         timestamp: new Date(Date.now() - 600000)
        },
+      {
+        threadId: 4,
+        sender: null,
+        receiver: '197746797',
+        body: 'This message is intended to demonstrate natural line ' +
+          'wrapping. (delivery: sent ; deliveryStatus: success)',
+        delivery: 'sent',
+        deliveryStatus: 'success',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 550000)
+       },
        {
         threadId: 4,
         sender: '197746797',
@@ -302,6 +313,17 @@
         delivery: 'sent',
         type: 'sms',
         timestamp: new Date(Date.now() - 200000)
+      },
+      {
+        threadId: 4,
+        sender: null,
+        receiver: '197746797',
+        read: true,
+        body: 'short (delivery success)',
+        delivery: 'sent',
+        deliveryStatus: 'success',
+        type: 'sms',
+        timestamp: new Date(Date.now() - 150000)
       },
       {
         threadId: 4,

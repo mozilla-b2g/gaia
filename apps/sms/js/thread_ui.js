@@ -1006,6 +1006,7 @@ var ThreadUI = global.ThreadUI = {
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var bodyHTML = '';
     var delivery = message.delivery;
+    var isDelivered = message.deliveryStatus === 'success';
     var messageDOM = document.createElement('li');
 
     var classNames = ['message', message.type, delivery];
@@ -1016,6 +1017,10 @@ var ThreadUI = global.ThreadUI = {
       classNames.push('incoming');
     } else {
       classNames.push('outgoing');
+    }
+
+    if (delivery === 'sent' && isDelivered) {
+      classNames.push('delivered');
     }
 
     if (hidden) {
@@ -1391,6 +1396,16 @@ var ThreadUI = global.ThreadUI = {
     }
 
     this.ifRilDisabled(this.showAirplaneModeError);
+  },
+
+  onDeliverySuccess: function thui_onDeliverySuccess(message) {
+    var messageDOM = document.getElementById('message-' + message.id);
+
+    if (!messageDOM) {
+      return;
+    }
+    // Update class names to reflect message state
+    messageDOM.classList.add('delivered');
   },
 
   ifRilDisabled: function thui_ifRilDisabled(func) {
