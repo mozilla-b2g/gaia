@@ -811,9 +811,13 @@ var ThreadUI = global.ThreadUI = {
 
       // The carrier banner is meaningless and confusing in
       // group message mode.
-      if (thread.participants.length === 1 && details.carrier) {
-        carrierTag.textContent = details.carrier;
-        carrierTag.classList.remove('hide');
+      if (thread.participants.length === 1) {
+        if (contacts && contacts.length) {
+          carrierTag.textContent = Utils.getContactCarrier(
+            number, contacts[0].tel
+          );
+          carrierTag.classList.remove('hide');
+        }
       } else {
         carrierTag.classList.add('hide');
       }
@@ -993,7 +997,8 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (message.type && message.type === 'sms') {
-      bodyHTML = LinkHelper.searchAndLinkClickableData(message.body);
+      var escapedBody = Utils.escapeHTML(message.body || '');
+      bodyHTML = LinkHelper.searchAndLinkClickableData(escapedBody);
     }
 
     if (notDownloaded) {
@@ -1514,14 +1519,24 @@ var ThreadUI = global.ThreadUI = {
       var current = tels[i];
       var number = current.value;
       var title = details.title || number;
-      var type = current.type ? (current.type + ' |') : '';
+      var type = current.type && current.type.length ? current.type[0] : '';
+      var carrier = current.carrier ? (current.carrier + ', ') : '';
+      var separator = type || carrier ? ' | ' : '';
+
+      // Search results are highlighted; Don't display numbers in the
+      // search results list if they have already been added to the
+      // list of recipients.
+      if (isHighlighted && this.recipients.numbers.indexOf(number) > -1) {
+        continue;
+      }
 
       var li = document.createElement('li');
       var data = {
-        name: Utils.escapeHTML(title),
-        number: Utils.escapeHTML(number),
+        name: title,
+        number: number,
         type: type,
-        carrier: current.carrier || '',
+        carrier: carrier,
+        separator: separator,
         nameHTML: '',
         numberHTML: ''
       };

@@ -99,13 +99,11 @@
         </div>
         <div class="fld-nav-toolbar bottom-toolbar">
           <button class="fld-nav-settings-btn bottom-btn"></button>
-          <div class="fld-nav-last-synced">
-            <h3>
-              <span class="fld-nav-last-synced-label"
-                    data-l10n-id="account-last-synced-label"></span>
-              <span class="fld-nav-last-synced-value"></span>
-            </h3>
-          </div>
+          <h3 class="fld-nav-last-synced">
+            <span class="fld-nav-last-synced-label"
+                  data-l10n-id="account-last-synced-label"></span>
+            <span class="fld-nav-last-synced-value"></span>
+          </h3>
           <span class="fld-nav-account-problem icon collapsed">!</span>
         </div>
       </div>
@@ -192,8 +190,6 @@
             </ul>
           </header>
         </section>
-        <progress class="msg-list-progress hidden" value="0" total="1.0">
-        </progress>
         <!-- Scroll region -->
         <div class="msg-list-scrollouter">
           <!-- exists so we can force a minimum height -->
@@ -212,7 +208,6 @@
                  out of the way -->
             <div class="msg-messages-sync-container">
               <p class="msg-messages-syncing collapsed">
-                <progress class="small"></progress>
                 <span data-l10n-id="messages-syncing">Message loadinG</span>
               </p>
               <p class="msg-messages-sync-more collapsed">
@@ -229,7 +224,8 @@
         </div>
         <!-- Toolbar for non-multi-edit state -->
         <div class="msg-list-action-toolbar bottom-toolbar">
-          <button class="msg-refresh-btn bottom-btn msg-nonsearch-only"></button>
+          <button class="msg-refresh-btn bottom-btn msg-nonsearch-only"
+                  data-state="synchronized"></button>
           <button class="msg-search-btn bottom-btn msg-nonsearch-only"></button>
           <button class="msg-edit-btn bottom-btn"></button>
         </div>
@@ -1120,4 +1116,3 @@
 
 </body>
 </html>
-

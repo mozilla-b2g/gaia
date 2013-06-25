@@ -89,6 +89,7 @@ function displaySubject(subjectNode, message) {
  * XXX this class wants to be cleaned up, badly.  A lot of this may want to
  * happen via pushing more of the hiding/showing logic out onto CSS, taking
  * care to use efficient selectors.
+ *
  */
 function MessageListCard(domNode, mode, args) {
   this.domNode = domNode;
@@ -124,13 +125,6 @@ function MessageListCard(domNode, mode, args) {
     domNode.getElementsByClassName('msg-messages-sync-more')[0];
   this.syncMoreNode
     .addEventListener('click', this.onGetMoreMessages.bind(this), false);
-  this.progressNode =
-    domNode.getElementsByClassName('msg-list-progress')[0];
-  // The active timeout that will cause us to set the progressbar to
-  // indeterminate 'candybar' state when it fires.  Reset every time a new
-  // progress notification is received.
-  this.progressCandybarTimer = null;
-  this._bound_onCandybarTimeout = this.onCandybarTimeout.bind(this);
 
   // - header buttons: non-edit mode
   domNode.getElementsByClassName('msg-folder-list-btn')[0]
@@ -482,15 +476,7 @@ MessageListCard.prototype = {
         this.syncMoreNode.classList.add('collapsed');
         this.hideEmptyLayout();
 
-        this.progressNode.value = this.messagesSlice ?
-                                  this.messagesSlice.syncProgress : 0;
-        this.progressNode.classList.remove('pack-activity');
-        this.progressNode.classList.remove('hidden');
-        if (this.progressCandybarTimer)
-          window.clearTimeout(this.progressCandybarTimer);
-        this.progressCandybarTimer =
-          window.setTimeout(this._bound_onCandybarTimeout,
-                            this.PROGRESS_CANDYBAR_TIMEOUT_MS);
+        this.toolbar.refreshBtn.dataset.state = 'synchronizing';
         break;
       case 'syncfailed':
         // If there was a problem talking to the server, notify the user and
@@ -501,21 +487,9 @@ MessageListCard.prototype = {
 
         // Fall through...
       case 'synced':
+        this.toolbar.refreshBtn.dataset.state = 'synchronized';
         this.syncingNode.classList.add('collapsed');
-        this.progressNode.classList.remove('pack-activity');
-        this.progressNode.classList.add('hidden');
-        if (this.progressCandybarTimer) {
-          window.clearTimeout(this.progressCandybarTimer);
-          this.progressCandybarTimer = null;
-        }
         break;
-    }
-  },
-
-  onCandybarTimeout: function() {
-    if (this.progressCandybarTimer) {
-      this.progressNode.classList.add('pack-activity');
-      this.progressCandybarTimer = null;
     }
   },
 
@@ -1152,6 +1126,7 @@ var MAX_QUOTE_CLASS_NAME = 'msg-body-qmax';
 function MessageReaderCard(domNode, mode, args) {
   this.domNode = domNode;
   this.header = args.header.makeCopy();
+  this.hackMutationHeader = args.header;
   // The body elements for the (potentially multiple) iframes we created to hold
   // HTML email content.
   this.htmlBodyNodes = [];
@@ -1189,7 +1164,7 @@ function MessageReaderCard(domNode, mode, args) {
   if (!this.header.isRead)
     this.header.setRead(true);
 
-  if (this.header.isStarred)
+  if (this.hackMutationHeader.isStarred)
     domNode.getElementsByClassName('msg-star-btn')[0].classList
            .add('msg-btn-active');
 
@@ -1323,12 +1298,13 @@ MessageReaderCard.prototype = {
 
   onToggleStar: function() {
     var button = this.domNode.getElementsByClassName('msg-star-btn')[0];
-    if (!this.header.isStarred)
+    if (!this.hackMutationHeader.isStarred)
       button.classList.add('msg-btn-active');
     else
       button.classList.remove('msg-btn-active');
 
-    this.header.setStarred(!this.header.isStarred);
+    this.hackMutationHeader.isStarred = !this.hackMutationHeader.isStarred;
+    this.header.setStarred(this.hackMutationHeader.isStarred);
   },
 
   onMove: function() {
@@ -1833,4 +1809,3 @@ Cards.defineCardWithDefaultMode(
     { tray: false },
     MessageReaderCard
 );
-

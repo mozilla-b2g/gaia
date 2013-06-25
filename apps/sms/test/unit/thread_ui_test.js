@@ -1,8 +1,6 @@
 'use strict';
 
-// remove this when https://github.com/visionmedia/mocha/issues/819 is merged in
-// mocha and when we have that new mocha in test agent
-mocha.setup({ globals: ['alert', '0', '1'] });
+mocha.setup({ globals: ['alert'] });
 
 // For Desktop testing
 if (!navigator.mozContacts) {
@@ -24,6 +22,7 @@ requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_link_helper.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_recipients.js');
@@ -31,6 +30,7 @@ requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_activity_picker.js');
 requireApp('sms/test/unit/mock_action_menu.js');
 requireApp('sms/test/unit/mock_custom_dialog.js');
+requireApp('sms/test/unit/mock_smil.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -43,7 +43,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'ActivityPicker',
   'OptionMenu',
   'CustomDialog',
-  'Contacts'
+  'Contacts',
+  'SMIL'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -810,6 +811,36 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('buildMessageDOM >', function() {
+    setup(function() {
+      this.sinon.spy(MockUtils, 'escapeHTML');
+      this.sinon.stub(MockSMIL, 'parse');
+    });
+
+    function buildSMS(payload) {
+      return MockMessages.sms({ body: payload });
+    }
+
+    function buildMMS(payload) {
+      return MockMessages.mms({
+        attachments: [new Blob([payload], {type: 'text/plain'})]
+      });
+    }
+
+    test('escapes the body for SMS', function() {
+      var payload = 'hello <a href="world">world</a>';
+      ThreadUI.buildMessageDOM(buildSMS(payload));
+      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+    });
+
+    test('escapes all text for MMS', function() {
+      var payload = 'hello <a href="world">world</a>';
+      MockSMIL.parse.yields([{ text: payload }]);
+      ThreadUI.buildMessageDOM(buildMMS(payload));
+      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+    });
+  });
+
   suite('not-downloaded', function() {
     var ONE_DAY_TIME = 24 * 60 * 60 * 1000;
     var testMessages = [{
@@ -1356,7 +1387,7 @@ suite('thread_ui.js >', function() {
         isHighlighted: true
       });
       html = ul.firstElementChild.innerHTML;
-      assert.ok(html.contains('Pepito Grillo'));
+      assert.include(html, 'Pepito O\'Hare');
     });
 
     test('Rendered Contact highlighted "givenName familyName"', function() {
@@ -1366,7 +1397,48 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.renderContact({
         contact: contact,
-        input: 'Pepito Grillo',
+        input: 'Pepito O\'Hare',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.include(html, '<span class="highlight">Pepito</span>');
+      assert.include(html, '<span class="highlight">O\'Hare</span>');
+    });
+
+    test('Rendered Contact "number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      contact.tel[0].carrier = null;
+      contact.tel[0].type = null;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: 'foo',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(html.contains('+346578888888'));
+    });
+
+    test('Rendered Contact highlighted "number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      contact.tel[0].carrier = null;
+      contact.tel[0].type = null;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: '346578888888',
         target: ul,
         isContact: true,
         isHighlighted: true
@@ -1374,14 +1446,51 @@ suite('thread_ui.js >', function() {
       html = ul.firstElementChild.innerHTML;
 
       assert.ok(
-        html.contains('<span class="highlight">Pepito</span>')
-      );
-      assert.ok(
-        html.contains('<span class="highlight">Grillo</span>')
+        html.contains('+<span class="highlight">346578888888</span>')
       );
     });
 
     test('Rendered Contact "type | number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      contact.tel[0].carrier = null;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: 'foo',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(html.contains('Mobile | +346578888888'));
+    });
+
+    test('Rendered Contact highlighted "type | number"', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      contact.tel[0].carrier = null;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: '346578888888',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(
+        html.contains('Mobile | +<span class="highlight">346578888888</span>')
+      );
+    });
+
+    test('Rendered Contact "type | carrier, number"', function() {
       var ul = document.createElement('ul');
       var contact = new MockContact();
       var html;
@@ -1394,10 +1503,11 @@ suite('thread_ui.js >', function() {
         isHighlighted: true
       });
       html = ul.firstElementChild.innerHTML;
-      assert.ok(html.contains('Mobile | +346578888888'));
+
+      assert.ok(html.contains('Mobile | TEF, +346578888888'));
     });
 
-    test('Rendered Contact highlighted "type | number"', function() {
+    test('Rendered Contact highlighted "type | carrier, number"', function() {
       var ul = document.createElement('ul');
       var contact = new MockContact();
       var html;
@@ -1410,9 +1520,60 @@ suite('thread_ui.js >', function() {
         isHighlighted: true
       });
       html = ul.firstElementChild.innerHTML;
+
       assert.ok(
-        html.contains('Mobile | +<span class="highlight">346578888888</span>')
+        html.contains(
+          'Mobile | TEF, +<span class="highlight">346578888888</span>'
+        )
       );
+    });
+
+    test('Rendered Contact omits numbers in recipient list', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.recipients.add({
+        number: '+346578888888'
+      });
+
+      // This contact has two tel entries.
+      ThreadUI.renderContact({
+        contact: contact,
+        input: '+346578888888',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+
+      html = ul.innerHTML;
+
+      assert.ok(!html.contains('346578888888'));
+      assert.equal(ul.children.length, 1);
+    });
+
+    test('Rendered Contact omits numbers in recipient list', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.recipients.add({
+        number: '+346578888888'
+      });
+
+      // This contact has two tel entries.
+      ThreadUI.renderContact({
+        contact: contact,
+        input: '+346578888888',
+        target: ul,
+        isContact: true,
+        isHighlighted: true
+      });
+
+      html = ul.innerHTML;
+
+      assert.ok(!html.contains('346578888888'));
+      assert.equal(ul.children.length, 1);
     });
   });
 

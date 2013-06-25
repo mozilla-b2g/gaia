@@ -313,6 +313,8 @@ var ActivityHandler = {
         // We have to remove the SMS due to it does not have to be shown.
         MessageManager.deleteMessage(message.id, function() {
           app.launch();
+          Notification.ringtone();
+          Notification.vibrate();
           alert(number + '\n' + message.body);
           releaseWakeLock();
         });

@@ -18,8 +18,5 @@ var MockUtils = {
   escapeHTML: Utils.escapeHTML,
   escapeRegex: Utils.escapeRegex,
   params: Utils.params,
-  getContactDetails: Utils.getContactDetails,
-  Message: {
-    format: function(str) { return str; }
-  }
+  getContactDetails: Utils.getContactDetails
 };

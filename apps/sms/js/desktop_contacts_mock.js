@@ -348,6 +348,30 @@
     })
   );
 
+  ContactsDB.push(
+    new Contact({
+      familyName: 'O\'Hare',
+      givenName: 'Tom',
+      tel: {
+        value: '123456',
+        type: 'Mobile',
+        carrier: 'Nynex'
+      }
+    })
+  );
+
+  ContactsDB.push(
+    new Contact({
+      familyName: 'Carrier',
+      givenName: 'Igotno',
+      tel: {
+        value: '436797',
+        type: 'Mobile',
+        carrier: null
+      }
+    })
+  );
+
   // console.log( ContactsDB );
 
 

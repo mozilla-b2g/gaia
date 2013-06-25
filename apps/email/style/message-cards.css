@@ -384,6 +384,16 @@ input.msg-search-text-tease {
 .msg-refresh-btn {
   background: url("images/icons/refresh.png") no-repeat scroll center transparent !important;
 }
+.msg-refresh-btn[data-state="synchronizing"] {
+  animation: 0.9s msg-refresh-rotate infinite steps(30);
+}
+
+@keyframes msg-refresh-rotate {
+  from { transform: rotate(1deg); }
+  to   { transform: rotate(360deg); }
+}
+
+
 
 .msg-search-btn {
   background: url("images/icons/search.png") no-repeat scroll center transparent !important;
@@ -397,7 +407,7 @@ input.msg-search-text-tease {
   left: calc((100% - 6rem)/2);
 }
 
-.msg-btn-active {
+.bottom-toolbar .msg-btn-active {
   background-color: rgb(0, 138, 170) !important;
 }
 
@@ -491,17 +501,7 @@ input.msg-search-text-tease {
 .msg-messages-syncing,
 .msg-messages-sync-more {
   border-bottom: 0.1rem solid #bebebe;
-}
-
-.msg-messages-syncing > span {
-  display: inline-block;
-  vertical-align: middle;
-  line-height: normal;
-}
-
-.msg-messages-syncing > progress {
-  line-height: normal;
-  margin: 0 0.5rem 0 3rem !important;
+  text-align: center;
 }
 
 .msg-messages-sync-more {

@@ -9,7 +9,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 1.5rem 0 7rem;
+  padding: 2rem 0 7rem;
   color: #fff;
   font-size: 0;
   font-family: "MozTT", Sans-serif;
@@ -35,6 +35,8 @@
   padding: 0 1.5rem;
   vertical-align: middle;
   white-space: normal;  
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 [role="dialog"] h3 {

@@ -65,10 +65,8 @@
  *      conjunction with the layout data from setLayoutParams().
  *      The coordinates aren't passed for the Backspace key, however.
  *
- *    select(text, data):
+ *    select(word):
  *      Called when the user selects a displayed candidate or word suggestion.
- *      The two arguments are two versions of the candidate. The distinction
- *      is important for Asian IMs but I don't understand it.
  *
  *    setLayoutParams(params):
  *
@@ -1262,7 +1260,10 @@ function endPress(target, coords, touchId) {
   if (dataset.selection) {
 
     if (inputMethod.select) {
-      inputMethod.select(target.textContent, dataset.data);
+      // We use dataset.data instead of target.textContent because the
+      // text actually displayed to the user might have an ellipsis in it
+      // to make it fit.
+      inputMethod.select(dataset.data);
     }
 
     IMERender.highlightKey(target);

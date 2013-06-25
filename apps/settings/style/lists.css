@@ -41,7 +41,8 @@ ul li:not(.disabled) > a[href]:focus {
 }
 
 ul li.disabled > a {
-  color: gray;
+  color: #797e80;
+  opacity: 0.6;
   pointer-events: none;
 }
 

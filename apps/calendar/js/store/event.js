@@ -63,21 +63,6 @@
       });
     },
 
-    busytimeIdFor: function(event, start, end) {
-      if (!start)
-        start = event.remote.start;
-
-      if (!end)
-        end = event.remote.end;
-
-
-      var id = start.utc + '-' +
-               end.utc + '-' +
-               event._id;
-
-      return id;
-    },
-
     /**
      * Finds a list of events by id.
      *

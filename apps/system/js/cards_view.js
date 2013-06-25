@@ -318,7 +318,7 @@ var CardsView = (function() {
     }
   }
 
-  function runApp(e) {
+  function tap(e) {
     // Handle close events
     if (e.target.classList.contains('close-card')) {
       var element = e.target.parentNode;
@@ -509,10 +509,13 @@ var CardsView = (function() {
     prevCardStyle.opacity = nextCardStyle.opacity = SC_OPA;
   }
 
-  function alignCurrentCard() {
+  function alignCurrentCard(noTransition) {
     // We're going to release memory hiding card out of screen
-    deltaX < 0 ? prevCard.dispatchEvent(outViewPortEvent) :
-                 nextCard.dispatchEvent(outViewPortEvent);
+    if (deltaX < 0) {
+      prevCard && prevCard.dispatchEvent(outViewPortEvent);
+    } else {
+      nextCard && nextCard.dispatchEvent(outViewPortEvent);
+    }
 
     // Disable previous current card
     currentCardStyle.pointerEvents = 'none';
@@ -523,11 +526,19 @@ var CardsView = (function() {
                               currentCardStyle.MozTransition = CARD_TRANSITION;
 
     currentCard.addEventListener('transitionend', function transitionend() {
+      if (!currentCard) {
+        // removeCards method was called immediately without waiting
+        return;
+      }
       currentCard.removeEventListener('transitionend', transitionend);
       prevCardStyle.MozTransition = currentCardStyle.MozTransition =
       nextCardStyle.MozTransition = '';
       currentCardStyle.pointerEvents = 'auto';
     });
+
+    if (noTransition) {
+      currentCard.dispatchEvent(new Event('transitionend'));
+    }
   }
 
   function moveCards() {
@@ -695,7 +706,8 @@ var CardsView = (function() {
         }
         alignCurrentCard();
       } else {
-        alignCurrentCard();
+        alignCurrentCard(true);
+        tap(evt);
       }
 
       return;
@@ -824,7 +836,7 @@ var CardsView = (function() {
         break;
 
       case 'tap':
-        runApp(evt);
+        tap(evt);
         break;
 
       case 'home':

@@ -288,18 +288,53 @@ const IMERender = (function() {
           span.textContent = text;
           container.appendChild(span);
 
-          // This measurement only works if the span is display:inline
-          var textWidth = span.getBoundingClientRect().width;
-          var containerWidth = container.clientWidth;
+          // Measure the width of the element, and return the scale that
+          // we can use to make it fit in the container. The return values
+          // are restricted to a set that matches the standard font sizes
+          // we use in Gaia.
+          //
+          // Note that this only works if the element is display:inline
+          function getScale(element, container) {
+            var elementWidth = element.getBoundingClientRect().width;
+            var s = container.clientWidth / elementWidth;
+            if (s >= 1)
+              return 1;    // 10pt font "Body Large"
+            if (s >= .8)
+              return .8;   // 8pt font "Body"
+            if (s >= .7)
+              return .7;   // 7pt font "Body Medium"
+            if (s >= .65)
+              return .65;  // 6.5pt font "Body Small"
+            if (s >= .6)
+              return .6;   // 6pt font "Body Mini"
+            return s;      // Something smaller than 6pt.
+          }
 
-          // But the scaling and centering we do only works if the span
-          // is display:block (or inline-block), so we that style now.
+          var limit = .6;  // Dont use a scale smaller than this
+          var scale = getScale(span, container);
+
+          // If the text does not fit within the scaling limit,
+          // reduce the length of the text by replacing characters in
+          // the middle with ...
+          if (scale < limit) {
+            var charactersReplaced = text.length % 2;
+            while (scale < limit && charactersReplaced < text.length - 2) {
+              charactersReplaced += 2;
+              var halflen = (text.length - charactersReplaced) / 2;
+              span.textContent = text.substring(0, halflen) +
+                '…' +
+                text.substring(text.length - halflen);
+              scale = getScale(span, container);
+            }
+          }
+
+          // The scaling and centering we do only works if the span
+          // is display:block or inline-block
           span.style.display = 'inline-block';
-          if (textWidth > containerWidth) {
-            var scale = containerWidth / textWidth;
+          if (scale < 1) {
             span.style.width = (100 / scale) + '%';
             span.style.transformOrigin = 'left';
-            span.style.transform = 'scale(' + scale + ',1)';
+            span.style.transform = 'scale(' + scale + ')';
           }
           else {
             span.style.width = '100%';

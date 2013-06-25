@@ -1,6 +1,6 @@
 'use strict';
 
-mocha.globals(['alert']);
+mocha.globals(['alert', 'Notification']);
 
 requireApp(
   'sms/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -8,6 +8,7 @@ requireApp(
 requireApp('sms/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 requireApp('sms/shared/test/unit/mocks/mock_notification_helper.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
+requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_alert.js');
@@ -172,6 +173,46 @@ suite('ActivityHandler', function() {
         test('launches the app', function() {
           assert.ok(MockNavigatormozApps.mAppWasLaunched);
         });
+      });
+    });
+
+    suite('receive class-0 message', function() {
+      var realMozSettings;
+
+      suiteSetup(function(done) {
+        realMozSettings = navigator.mozSettings;
+        navigator.mozSettings = MockNavigatorSettings;
+        requireApp('sms/js/notification.js', done);
+      });
+
+      suiteTeardown(function() {
+        navigator.mozSettings = realMozSettings;
+      });
+
+      setup(function() {
+        sinon.stub(Notification, 'ringtone');
+        sinon.stub(Notification, 'vibrate');
+
+        message = MockMessages.sms({ messageClass: 'class-0' });
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      teardown(function() {
+        Notification.ringtone.restore();
+        Notification.vibrate.restore();
+      });
+
+      test('play ringtone', function() {
+        var spied = Notification.ringtone;
+        assert.ok(spied.called);
+        spied = Notification.vibrate;
+        assert.ok(spied.called);
+      });
+
+      test('vibrate', function() {
+        var spied = Notification.vibrate;
+        assert.ok(spied.called);
       });
     });
   });

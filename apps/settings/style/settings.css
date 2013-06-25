@@ -244,11 +244,6 @@ section li.password > p {
  * Call settings
  */
 
-.call-settings-disabled a {
-  opacity: 0.6;
-  color: #797e80;
-}
-
 /* three-state items: on|off|unknown */
 #menuItem-callWaiting .checkbox-label,
 #menuItem-callWaiting[data-state="on"] .checkbox-label,
@@ -289,11 +284,6 @@ section li.password > p {
 /******************************************************************************
  * Cellular and Data
  */
-
-.carrier-disabled a {
-  opacity: 0.6;
-  color: #797e80;
-}
 
 #carrier-dc-warning h1 > span:before,
 #carrier-dr-warning h1 > span:before {

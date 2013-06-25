@@ -31,6 +31,7 @@ var Security = {
       return;
 
     var simSecurityDesc = document.getElementById('simCardLock-desc');
+    simSecurityDesc.style.fontStyle = 'italic';
 
     switch (mobileConnection.cardState) {
       case null:
@@ -47,6 +48,7 @@ var Security = {
         return;
     }
 
+    simSecurityDesc.style.fontStyle = 'normal';
     // with SIM card, query its status
     var req = mobileConnection.getCardLock('pin');
     req.onsuccess = function spl_checkSuccess() {

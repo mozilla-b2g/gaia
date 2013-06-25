@@ -737,7 +737,7 @@
         <ul id="text-message-list">
           <li class="hint">
             <label>
-              <input type="checkbox" data-type="switch" data-setting="dom.sms.requestStatusReport"/>
+              <input type="checkbox" data-type="switch" data-setting="ril.sms.requestStatusReport.enabled"/>
               <span></span>
             </label>
             <a data-l10n-id="delivery-reports"> Delivery reports </a>
@@ -2845,7 +2845,7 @@
             <small id="phoneLock-desc" class="menu-item-desc"></small>
             <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
           </li>
-          <li>
+          <li id="simSecurity-settings">
             <small id="simCardLock-desc" class="menu-item-desc"></small>
             <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM Security</a>
           </li>
@@ -2868,7 +2868,7 @@
               <span></span>
             </label>
             <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
-            <a class="menu-item" data-l10n-id="enableUSBStorage">Enable USB storage</a>
+            <a id="menuItem-enableStorage" class="menu-item" data-l10n-id="enableUSBStorage">Enable USB storage</a>
           </li>
           <li>
             <small id="application-storage-desc" class="menu-item-desc"></small>

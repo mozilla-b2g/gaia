@@ -27,9 +27,7 @@
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
   var stkLastSelectedTest = null;
-  var displayTextTimeout = 40000;
   var inputTimeout = 40000;
-  var defaultURL = null;
   var goBackTimer = {
     timer: null,
     timeout: 1000
@@ -37,16 +35,6 @@
   var icc;
 
   init();
-
-  /**
-   * Recover application data
-   */
-  function getIccInfo() {
-    loadJSON('/resources/icc.json', function loadIccInfo(data) {
-      defaultURL = data.defaultURL;
-      debug('default URL: ', defaultURL);
-    });
-  }
 
   /**
    * Init STK UI
@@ -93,19 +81,11 @@
     // We should use Settings.settingsCache first
     var settings = Settings.mozSettings;
     var lock = settings.createLock();
-    // Update displayTextTimeout with settings parameter
-    var reqDisplayTimeout = lock.get('icc.displayTextTimeout');
-    reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
-      displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
-    };
-
     // Update inputTimeout with settings parameter
     var reqInputTimeout = lock.get('icc.inputTextTimeout');
     reqInputTimeout.onsuccess = function icc_getInputTimeout() {
       inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
     };
-
-    getIccInfo();
   }
 
   function stkResTerminate() {
@@ -216,105 +196,6 @@
         iccLastCommandProcessed = true;
         break;
 
-      case icc.STK_CMD_DISPLAY_TEXT:
-        debug(' STK:Show message: ', command);
-        if (options.responseNeeded) {
-          iccLastCommandProcessed = true;
-          responseSTKCommand({
-            resultCode: icc.STK_RESULT_OK
-          });
-          displayText(command, null);
-        } else {
-          displayText(command, function(userCleared) {
-            debug('Display Text, cb: ', command);
-            iccLastCommandProcessed = true;
-            if (command.options.userClear && !userCleared) {
-              debug('No response from user (Timeout)');
-              responseSTKCommand({
-                resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
-              });
-            } else {
-              debug('User closed the alert');
-              responseSTKCommand({
-                resultCode: icc.STK_RESULT_OK
-              });
-            }
-          });
-        }
-        break;
-
-      case icc.STK_CMD_SET_UP_IDLE_MODE_TEXT:
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        displayNotification(command);
-        break;
-
-      case icc.STK_CMD_REFRESH:
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        clearNotification();
-        break;
-
-      case icc.STK_CMD_SEND_SMS:
-      case icc.STK_CMD_SEND_SS:
-      case icc.STK_CMD_SEND_USSD:
-      case icc.STK_CMD_SEND_DTMF:
-        debug(' STK:Send message: ', command);
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        if (options.text) {
-          debug('display text' + options.text);
-          command.options.userClear = true;
-          displayText(command);
-        }
-        break;
-
-      case icc.STK_CMD_SET_UP_CALL:
-        debug(' STK:Setup Phone Call. Number: ' + options.address);
-        if (!options.confirmMessage) {
-          options.confirmMessage = _(
-            'operatorService-confirmCall-defaultmessage', {
-              'number': options.address
-            });
-        }
-        var confirmed = confirm(options.confirmMessage);
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          hasConfirmed: confirmed,
-          resultCode: icc.STK_RESULT_OK
-        });
-        if (options.callMessage) {
-          alert(options.callMessage);
-        }
-        break;
-
-      case icc.STK_CMD_LAUNCH_BROWSER:
-        debug(' STK:Setup Launch Browser. URL: ' + options.url);
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        showURL(options);
-        break;
-
-      case icc.STK_CMD_SET_UP_EVENT_LIST:
-        debug(' STK:SetUp Event List. Events list: ' + options.eventList);
-        processSTKEvents(options.eventList);
-        iccLastCommandProcessed = true;
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
-        break;
-
-      case icc.STK_CMD_PLAY_TONE:
-        debug(' STK:Play Tone: ', options);
-        playTone(options);
-        break;
-
       default:
         debug('STK Message not managed... response OK');
         iccLastCommandProcessed = true;
@@ -322,132 +203,6 @@
           resultCode: icc.STK_RESULT_OK
         });
     }
-  }
-
-  /**
-   * Process STK Events
-   */
-  function processSTKEvents(eventList) {
-    for (var evt in eventList) {
-      debug(' STK Registering event: ' + JSON.stringify(eventList[evt]));
-      switch (eventList[evt]) {
-      case icc.STK_EVENT_TYPE_MT_CALL:
-      case icc.STK_EVENT_TYPE_CALL_CONNECTED:
-      case icc.STK_EVENT_TYPE_CALL_DISCONNECTED:
-        debug(' STK: Registering to communications changes event');
-        var comm = window.navigator.mozTelephony;
-        comm.addEventListener('callschanged', handleCallsChangedEvent);
-        break;
-      case icc.STK_EVENT_TYPE_LOCATION_STATUS:
-        debug(' STK: Registering to location changes event');
-        var conn = window.navigator.mozMobileConnection;
-        conn.addEventListener('voicechange', handleLocationStatusEvent);
-        conn.addEventListener('datachange', handleLocationStatusEvent);
-        break;
-      case icc.STK_EVENT_TYPE_USER_ACTIVITY:
-      case icc.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
-      case icc.STK_EVENT_TYPE_CARD_READER_STATUS:
-      case icc.STK_EVENT_TYPE_LANGUAGE_SELECTION:
-      case icc.STK_EVENT_TYPE_BROWSER_TERMINATION:
-      case icc.STK_EVENT_TYPE_DATA_AVAILABLE:
-      case icc.STK_EVENT_TYPE_CHANNEL_STATUS:
-      case icc.STK_EVENT_TYPE_SINGLE_ACCESS_TECHNOLOGY_CHANGED:
-      case icc.STK_EVENT_TYPE_DISPLAY_PARAMETER_CHANGED:
-      case icc.STK_EVENT_TYPE_LOCAL_CONNECTION:
-      case icc.STK_EVENT_TYPE_NETWORK_SEARCH_MODE_CHANGED:
-      case icc.STK_EVENT_TYPE_BROWSING_STATUS:
-      case icc.STK_EVENT_TYPE_FRAMES_INFORMATION_CHANGED:
-        debug(' [DEBUG] STK TODO event: ', eventList[evt]);
-        break;
-      }
-    }
-  }
-
-  /**
-   * Handle Location change Events
-   */
-  function handleLocationStatusEvent(evt) {
-    if (evt.type != 'voicechange') {
-      return;
-    }
-    var conn = window.navigator.mozMobileConnection;
-    debug(' STK Location changed to MCC=' + conn.iccInfo.mcc +
-      ' MNC=' + conn.iccInfo.mnc +
-      ' LAC=' + conn.voice.cell.gsmLocationAreaCode +
-      ' CellId=' + conn.voice.cell.gsmCellId +
-      ' Status/Connected=' + conn.voice.connected +
-      ' Status/Emergency=' + conn.voice.emergencyCallsOnly);
-    var status = icc.STK_SERVICE_STATE_UNAVAILABLE;
-    if (conn.voice.connected) {
-      status = icc.STK_SERVICE_STATE_NORMAL;
-    } else if (conn.voice.emergencyCallsOnly) {
-      status = icc.STK_SERVICE_STATE_LIMITED;
-    }
-    // MozStkLocationEvent
-    icc.sendStkEventDownload({
-      eventType: STK_EVENT_TYPE_LOCATION_STATUS,
-      locationStatus: status,
-      locationInfo: {
-        mcc: conn.iccInfo.mcc,
-        mnc: conn.iccInfo.mnc,
-        gsmLocationAreaCode: conn.voice.cell.gsmLocationAreaCode,
-        gsmCellId: conn.voice.cell.gsmCellId
-      }
-    });
-  }
-
-  /**
-   * Handle Call Events
-   */
-  function handleCallsChangedEvent(evt) {
-    if (evt.type != 'callschanged') {
-      return;
-    }
-    debug(' STK Communication changed - ' + evt.type);
-    window.navigator.mozTelephony.calls.forEach(function callIterator(call) {
-      debug(' STK:CALLS State change: ' + call.state);
-      var outgoing = call.state == 'incoming';
-      if (call.state == 'incoming') {
-        // MozStkCallEvent
-        icc.sendStkEventDownload({
-          eventType: icc.STK_EVENT_TYPE_MT_CALL,
-          number: call.number,
-          isIssuedByRemote: outgoing,
-          error: null
-        });
-      }
-      call.addEventListener('error', function callError(err) {
-        // MozStkCallEvent
-        icc.sendStkEventDownload({
-          eventType: icc.STK_EVENT_TYPE_CALL_DISCONNECTED,
-          number: call.number,
-          error: err
-        });
-      });
-      call.addEventListener('statechange', function callStateChange() {
-        debug(' STK:CALL State Change: ' + call.state);
-        switch (call.state) {
-          case 'connected':
-            // MozStkCallEvent
-            icc.sendStkEventDownload({
-              eventType: icc.STK_EVENT_TYPE_CALL_CONNECTED,
-              number: call.number,
-              isIssuedByRemote: outgoing
-            });
-            break;
-          case 'disconnected':
-            call.removeEventListener('statechange', callStateChange);
-            // MozStkCallEvent
-            icc.sendStkEventDownload({
-              eventType: icc.STK_EVENT_TYPE_CALL_DISCONNECTED,
-              number: call.number,
-              isIssuedByRemote: outgoing,
-              error: null
-            });
-            break;
-        }
-      });
-    });
   }
 
   /**
@@ -723,182 +478,6 @@
    */
   function checkInputLengthValid(inputLen, minLen, maxLen) {
     return (inputLen >= minLen) && (inputLen <= maxLen);
-  }
-
-  /**
-   * Display text to the user
-   */
-  function displayText(command, cb) {
-    var options = command.options;
-    var timeoutId = setTimeout(function() {
-      alertbox.classList.add('hidden');
-      if (cb) {
-        cb(false);
-      }
-    }, displayTextTimeout);
-
-    alertbox_btn.onclick = function() {
-      clearTimeout(timeoutId);
-      alertbox.classList.add('hidden');
-      if (cb) {
-        cb(true);
-      }
-    };
-
-    alertbox_btnback.onclick = function() {
-      clearTimeout(timeoutId);
-      alertbox.classList.add('hidden');
-      stkResGoBack();
-    };
-
-    alertbox_btnclose.onclick = function() {
-      clearTimeout(timeoutId);
-      alertbox.classList.add('hidden');
-      stkResTerminate();
-    };
-
-    alertbox_msg.textContent = options.text;
-    alertbox.classList.remove('hidden');
-  }
-
-  /**
-   * Play tones
-   */
-  function playTone(options) {
-    function closeToneAlert() {
-      tonePlayer.pause();
-      alertbox.classList.add('hidden');
-    }
-
-    debug('playTone: ', options);
-
-    var tonePlayer = new Audio();
-    var selectedPhoneSound;
-    if (typeof options.tone == 'string') {
-      options.tone = options.tone.charCodeAt(0);
-    }
-    switch (options.tone) {
-      case icc.STK_TONE_TYPE_DIAL_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
-        selectedPhoneSound = 'resources/dtmf_tones/480Hz+620Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_CONGESTION:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_RADIO_PATH_ACK:
-      case icc.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_ERROR:
-        selectedPhoneSound =
-            'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_CALL_WAITING_TONE:
-      case icc.STK_TONE_TYPE_RINGING_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_GENERAL_BEEP:
-        selectedPhoneSound = 'resources/dtmf_tones/400Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_POSITIVE_ACK_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
-        break;
-      case icc.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms.ogg';
-        break;
-    }
-    tonePlayer.src = selectedPhoneSound;
-    tonePlayer.loop = true;
-
-    var timeout = 0;
-    if (options.duration &&
-        options.duration.timeUnit != undefined &&
-        options.duration.timeInterval != undefined) {
-      timeout = calculateDurationInMS(options.duration.timeUnit,
-        options.duration.timeInterval);
-    } else if (options.timeUnit != undefined &&
-        options.timeInterval != undefined) {
-      timeout = calculateDurationInMS(options.timUnit, options.timeInterval);
-    }
-    if (timeout) {
-      debug('Tone stop in (ms): ', timeout);
-      setTimeout(function() {
-        closeToneAlert();
-        iccLastCommandProcessed = true;
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
-      }, timeout);
-    }
-
-    if (options.isVibrate == true) {
-      window.navigator.vibrate([200]);
-    }
-
-    if (options.text) {
-      alertbox_btn.onclick = function() {
-        closeToneAlert();
-        iccLastCommandProcessed = true;
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
-      };
-      alertbox_btnback.onclick = function() {
-        closeToneAlert();
-        stkResGoBack();
-      };
-      alertbox_btnclose.onclick = function() {
-        closeToneAlert();
-        stkResTerminate();
-      };
-      alertbox_msg.textContent = options.text;
-      alertbox.classList.remove('hidden');
-    } else {
-      // If no dialog is showed, we answer the STK command
-      iccLastCommandProcessed = true;
-      responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
-    }
-
-    tonePlayer.play();
-  }
-
-  /**
-   * Display text on the notifications bar and Idle screen
-   */
-  function displayNotification(command) {
-    var options = command.options;
-    NotificationHelper.send('STK', options.text, '', function() {
-      alert(options.text);
-    });
-  }
-
-  /**
-   * Remove text on the notifications bar and Idle screen
-   */
-  function clearNotification() {
-    // TO-DO
-  }
-
-  /**
-   * Open URL
-   */
-  function showURL(options) {
-    var url = options.url;
-    if (url == null || url.length == 0) {
-      url = defaultURL;
-    }
-    debug('Final URL to open: ' + url);
-    if (url !== null && url.length !== 0) {
-      if (!options.confirmMessage || confirm(options.confirmMessage)) {
-        // Sanitise url just in case it doesn't start with http or https
-        // the web activity won't work, so add by default the http protocol
-        if (url.search('^https?://') == -1) {
-          // Our url doesn't contains the protocol
-          url = 'http://' + url;
-        }
-        openLink(url);
-      }
-    } else {
-      alert(_('operatorService-invalid-url'));
-    }
   }
 
   /**

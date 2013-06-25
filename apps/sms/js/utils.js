@@ -170,8 +170,8 @@
           // Convert the tel-type to string before tel-type comparison.
           // TODO : We might need to handle multiple tel type in the future.
           for (i = 0; i < length; i++) {
-            var telType = contact.tel[i].type.toString();
-            var phoneType = phone.type.toString();
+            var telType = contact.tel[i].type && contact.tel[i].type.toString();
+            var phoneType = phone.type && phone.type.toString();
             if (contact.tel[i].value !== phone.value &&
                 telType === phoneType &&
                 contact.tel[i].carrier === phone.carrier) {
@@ -213,6 +213,70 @@
       }
 
       return details;
+    },
+
+    getContactCarrier: function(input, tels) {
+      /**
+        1. If a phone number has carrier associated with it
+            the output will be:
+
+          Firstname Lastname
+          type | carrier
+
+        2. If there is no carrier associated with the phone number
+            the output will be:
+
+          Firstname Lastname
+          type | phonenumber
+
+        3. If for some reason a single contact has two phone numbers with
+            the same type and the same carrier the output will be:
+
+          Firstname Lastname
+          type | phonenumber
+
+      */
+
+      var length = tels.length;
+      var hasUniqueCarriers = true;
+      var hasUniqueTypes = true;
+      var found, tel, type, carrier, value;
+
+      for (var i = 0; i < length; i++) {
+        tel = tels[i];
+
+        // Based on...
+        //  - ITU-T E.123 (http://www.itu.int/rec/T-REC-E.123-200102-I/)
+        //  - ITU-T E.164 (http://www.itu.int/rec/T-REC-E.164-201011-I/)
+        //
+        // ...It would appear that a maximally-minimal
+        // 7 digit comparison is safe.
+        //
+        if (tel.value && tel.value.slice(-7) === input.slice(-7)) {
+          found = tel;
+        }
+
+        if (carrier && carrier === tel.carrier) {
+          hasUniqueCarriers = false;
+        }
+
+        if (type && type === tel.type[0]) {
+          hasUniqueTypes = false;
+        }
+
+        carrier = tel.carrier;
+        type = tel.type[0];
+      }
+
+      if (!found) {
+        return '';
+      }
+
+      type = found.type[0];
+      carrier = hasUniqueCarriers || hasUniqueTypes ? found.carrier : '';
+      value = carrier || found.value;
+
+      return type + ' | ' + (carrier || value);
     },
 
     getResizedImgBlob: function ut_getResizedImgBlob(blob, limit, callback) {

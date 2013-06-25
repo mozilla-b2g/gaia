@@ -24,7 +24,7 @@
   background-image: url(images/icons_sprite.gif);
 }
 
-.menu-item:active::before,
+li:active:not(.disabled) .menu-item::before,
 .menu-item:focus::before {
   background-image: url(images/icons_sprite_active.gif);
 }
@@ -111,6 +111,10 @@
 
 #menuItem-battery::before {
   background-position: -120px -90px;
+}
+
+#menuItem-enableStorage::before {
+  background-position: -6rem -15rem;
 }
 
 #menuItem-applicationStorage::before {

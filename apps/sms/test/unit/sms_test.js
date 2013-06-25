@@ -245,7 +245,7 @@ suite('SMS App Unit-Test', function() {
         var contactName =
           threadWithContact.getElementsByClassName('name')[0].innerHTML;
         assert.equal(
-          contactName, 'thread-header-text{"name":"Pepito Grillo","n":0}'
+          contactName, 'thread-header-text{"name":"Pepito O\'Hare","n":0}'
         );
       });
     });
