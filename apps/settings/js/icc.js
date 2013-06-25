@@ -206,14 +206,6 @@
         iccLastCommandProcessed = true;
         break;
 
-      case icc.STK_CMD_REFRESH:
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        clearNotification();
-        break;
-
       case icc.STK_CMD_SEND_SMS:
       case icc.STK_CMD_SEND_SS:
       case icc.STK_CMD_SEND_USSD:
@@ -834,13 +826,6 @@
     }
 
     tonePlayer.play();
-  }
-
-  /**
-   * Remove text on the notifications bar and Idle screen
-   */
-  function clearNotification() {
-    // TO-DO
   }
 
   /**
