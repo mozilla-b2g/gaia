@@ -1,7 +1,7 @@
 'use strict';
 requireApp('system/js/orientation_observer.js');
 
-suite('orientation logger >', function() {
+suite('orientation observer >', function() {
   var subject;
   var portraitPrimary = {
     beta: -90,
@@ -82,7 +82,7 @@ suite('orientation logger >', function() {
   test('orientation event handler', function() {
     for (var key in coordinate) {
       subject.handleEvent(makeOrientationEvent(coordinate[key]));
-      assert.equal(subject.phoneOrientation, key);
+      assert.equal(subject.deviceOrientation, key);
     }
   });
 
