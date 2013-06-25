@@ -18,6 +18,9 @@ Services.scriptloader.loadSubScript('file:///' + GAIA_DIR +
     '/build/jsmin.js?reload=' + new Date().getTime(), scope);
 const { JSMin } = scope;
 
+Services.scriptloader.loadSubScript('file:///' + GAIA_DIR +
+    '/build/clean.js?reload=' + new Date().getTime(), scope);
+const { CleanCSS } = scope;
 /**
  * Locale list -- by default, only the default one
  */
@@ -30,10 +33,21 @@ var l10nDictionary = {
 l10nDictionary.locales[GAIA_DEFAULT_LOCALE] = {};
 
 /**
- * whitelist by app name for javascript asset aggregation.
+ * blacklist by app name for javascript asset aggregation.
  */
 const JS_AGGREGATION_BLACKLIST = [
   // https://bugzilla.mozilla.org/show_bug.cgi?id=839574
+  'system'
+];
+
+/**
+ * blacklist by app name for css aggregation.
+ */
+const CSS_AGGREGATION_BLACKLIST = [
+  'communications',
+  'bluetooth',
+  'costcontrol',
+  'pdfjs',
   'system'
 ];
 
@@ -88,13 +102,13 @@ function optimize_getFileContent(webapp, htmlFile, relativePath) {
  *
  *
  * This function is somewhat conservative about what it will aggregate and will
- * only group scripts found the documents <head> section.
+ * only group scripts found in the documents <head> section.
  *
  * @param {HTMLDocument} doc DOM document of the file.
  * @param {Object} webapp details of current web app.
  * @param {NSFile} htmlFile filename/path of the document.
  */
-function optimize_aggregateJsResources(doc, webapp, htmlFile) {
+function optimize_aggregateJSResources(doc, webapp, htmlFile) {
   // Everyone should be putting their scripts in head with defer.
   // The best case is that only l10n.js is put into a normal.
   let scripts = Array.slice(
@@ -215,6 +229,127 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
   scripts.forEach(commentScript);
 }
 
+/**
+ * Aggregates CSS files by type to reduce the IO overhead.
+ * Depending on the style tags there are two files made:
+ *
+ * - normal styles :
+ *    $(Gaia.aggregatePrefix)_$(html_filename).js
+ *
+ * - share styles :
+ *    $(Gaia.aggregatePrefix)_share_$(html_filename).js
+ *
+ *
+ *
+ * This function is somewhat conservative about what it will aggregate and will
+ * only sheets found in the documents <head> section.
+ *
+ * @param {HTMLDocument} doc DOM document of the file.
+ * @param {Object} webapp details of current web app.
+ * @param {NSFile} htmlFile filename/path of the document.
+ */
+function optimize_aggregateCSSResources(doc, webapp, htmlFile) {
+  let styles = Array.slice(
+    doc.head.querySelectorAll('link[href][rel="stylesheet"]')
+  );
+
+  let css_style = {
+    prefix: '',
+    content: '',
+    lastNode: null
+  };
+
+  let css_shared = {
+    prefix: 'shared_',
+    content: '',
+    lastNode: null
+  };
+
+  styles.forEach(function(style, idx) {
+      let html = style.outerHTML;
+      // we inject the origin style file path into the comment for debugging.
+      let content = '/* "' + style.href + ' "*/\n\n';
+
+      // fetch the whole file append it to the comment.
+      content += optimize_getFileContent(webapp, htmlFile, style.href);
+
+      try {
+        let options = {};
+        options.keepSpecialComments = 0;
+        options.keepBreaks = false;
+        options.removeEmpty = true;
+        content = CleanCSS.process(content, options);
+      } catch (e) {
+        debug('Failed to minify content: ' + e);
+      }
+
+      let config = css_style;
+
+      if (style.href.indexOf('shared/style') >= 0) {
+          config = css_shared;
+      }
+
+      config.content += content;
+      config.lastNode = style;
+  });
+
+  // root name like index or oncall, etc...
+  let baseName = htmlFile.path.split('/').pop().split('.')[0];
+
+  // used as basis for aggregated scripts...
+  let rootDirectory = htmlFile.parent;
+
+  // find the absolute root of the app's html file.
+  let rootUrl = htmlFile.parent.path;
+  rootUrl = rootUrl.replace(webapp.manifestFile.parent.path, '') || '.';
+  // the above will yield something like: '', '/facebook/', '/contacts/', etc...
+
+  function writeAggregatedStyle(config) {
+    // skip if we don't have any content to write.
+    if (!config.content)
+      return;
+
+    // prefix the file we are about to write content to.
+    // style must within 'style/' folder because its relative to image resources
+    let styleBaseName = 'style/' +
+      Gaia.aggregatePrefix + config.prefix + baseName + '.css';
+    let target = rootDirectory.clone();
+    target.appendRelativePath(styleBaseName);
+
+    debug('writing aggregated style file: ' + target.path);
+
+    // write the contents of the aggregated style
+    writeContent(target, config.content);
+    let style = doc.createElement('link');
+    let lastStyle = config.lastNode;
+
+    style.href = rootUrl + '/' + styleBaseName;
+    style.rel = 'stylesheet';
+    style.type = 'text/css';
+
+    debug('writing to path="' + target.path + '" src="' + style.href + '"');
+
+    // insert after the last style node of this type...
+    let parent = lastStyle.parentNode;
+    parent.insertBefore(style, lastStyle.nextSibling);
+  }
+
+  /*
+   * TODO: move shared styles copy function from webapp-zip
+   */
+  // writeAggregatedScript(css_shared);
+  writeAggregatedStyle(css_style);
+
+  function commentStyle(style) {
+    // TODO: remove hack for not aggregate share styles
+    if (style.href.indexOf('shared/style') === -1) {
+        style.outerHTML = '<!-- ' + style.outerHTML + ' -->';
+    }
+  }
+  // comment out all styles
+  styles.forEach(commentStyle);
+}
+
 function optimize_embedl10nResources(doc, dictionary) {
   // remove all external l10n resource nodes
   var resources = doc.querySelectorAll('link[type="application/l10n"]');
@@ -325,9 +460,19 @@ function optimize_compile(webapp, file) {
 
       if (GAIA_OPTIMIZE == 1 &&
           JS_AGGREGATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) === -1) {
-        optimize_aggregateJsResources(win.document, webapp, newFile);
+        optimize_aggregateJSResources(win.document, webapp, newFile);
         dump(
-          '[optimize] aggregating javascript for : "' +
+          '[optimize] aggregating Javascript for : "' +
+          webapp.sourceDirectoryName + '" \n'
+        );
+      }
+
+      if (GAIA_OPTIMIZE == 1 &&
+          CSS_AGGREGATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) === -1)
+      {
+        optimize_aggregateCSSResources(win.document, webapp, newFile);
+        dump(
+          '[optimize] aggregating CSS for : "' +
           webapp.sourceDirectoryName + '" \n'
         );
       }
