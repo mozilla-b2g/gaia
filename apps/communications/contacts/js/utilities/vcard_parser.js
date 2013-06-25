@@ -114,8 +114,8 @@ VCFReader.nameParts = [
  * `vcardObj`.
  *
  * @param {Object} vcardObj
- * @param {mozContact} contactObj a mozContact to be filled with name fields.
- * @return {mozContact}
+ * @param {Object} contactObj a mozContact to be filled with name fields.
+ * @return {Object}
  */
 VCFReader.processName = function(vcardObj, contactObj) {
   var parts = VCFReader.nameParts;
@@ -139,7 +139,6 @@ VCFReader.processName = function(vcardObj, contactObj) {
       contactObj.name = [VCFReader.decodeQP(meta, values.join(' '))];
   }
   contactObj.givenName = contactObj.givenName || contactObj.name;
-
   return contactObj;
 };
 
@@ -152,8 +151,8 @@ VCFReader.addrParts = [null, null, 'streetAddress', 'locality', 'region',
  * `vcardObj`.
  *
  * @param {Object} vcardObj
- * @param {mozContact} contactObj a mozContact to be filled with name fields.
- * @return {mozContact}
+ * @param {Object} contactObj a mozContact to be filled with name fields.
+ * @return {Object}
  */
 VCFReader.processAddr = function(vcardObj, contactObj) {
   if (!vcardObj.adr) return contactObj;
@@ -162,7 +161,8 @@ VCFReader.processAddr = function(vcardObj, contactObj) {
   contactObj.adr = vcardObj.adr.map(function(adr) {
     var cur = {};
     if (adr.meta && adr.meta.type)
-      cur.type = adr.meta.type;
+      cur.type = [adr.meta.type];
+
     for (var i = 2; i < adr.value.length; i++) {
       cur[parts[i]] = VCFReader.decodeQP(adr.meta, adr.value[i]);
     }
@@ -178,8 +178,8 @@ VCFReader.processAddr = function(vcardObj, contactObj) {
  * inferred from `vcardObj`.
  *
  * @param {Object} vcardObj
- * @param {mozContact} contactObj a mozContact to be filled with name fields.
- * @return {mozContact}
+ * @param {Object} contactObj a mozContact to be filled with name fields.
+ * @return {Object}
  */
 VCFReader.processComm = function(vcardObj, contactObj) {
   contactObj.tel = [];
@@ -213,7 +213,7 @@ VCFReader.processComm = function(vcardObj, contactObj) {
 };
 
 VCFReader.processFields = function(vcardObj, contactObj) {
-  (['org', 'photo', 'title']).forEach(function(field) {
+  (['org', 'title']).forEach(function(field) {
     if (!vcardObj[field]) return;
 
     var v = vcardObj[field][0];
@@ -330,11 +330,14 @@ VCFReader.vcardToContact = function(vcard) {
   if (!vcard)
     return null;
 
+  var obj = {};
+  VCFReader.processName(vcard, obj);
+  VCFReader.processAddr(vcard, obj);
+  VCFReader.processComm(vcard, obj);
+  VCFReader.processFields(vcard, obj);
+
   var contact = new mozContact();
-  contact = VCFReader.processName(vcard, contact);
-  contact = VCFReader.processAddr(vcard, contact);
-  contact = VCFReader.processComm(vcard, contact);
-  contact = VCFReader.processFields(vcard, contact);
+  contact.init(obj);
 
   return contact;
 };
