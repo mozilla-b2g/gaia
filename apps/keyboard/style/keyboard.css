@@ -244,19 +244,36 @@ button::-moz-focus-inner {
 }
 
 /* Key states */
-/* Active */
+/* Active key, used for caps Lock key */
+.keyboard-key.kbr-key-active > .visual-wrapper {
+  background-color: #006a80;
+}
+
+.keyboard-key.kbr-key-active.highlighted > .visual-wrapper {
+  background-color: #2b8395;
+}
+
 .keyboard-key.kbr-key-active > .visual-wrapper > span {
-  color: #00acd1;
+  color: #fff;
+  border-color: rgba(255, 255, 255, .2);
+}
+
+.keyboard-key.kbr-key-active.highlighted > .visual-wrapper > span {
+  border-color: rgba(255,255,255, .2);
 }
 
 /* Hold */
 .keyboard-key.kbr-key-hold > .visual-wrapper {
-  background-color: #00acd1;
+  background-color: #00aac8;
 }
 
 .keyboard-key.kbr-key-hold > .visual-wrapper > span {
-  color: #343939;
+  color: #333;
   border-color: rgba(255,255,255, .3);
+}
+
+.keyboard-key.kbr-key-hold.highlighted > .visual-wrapper {
+  background-color: #2bb8d1;
 }
 
 .keyboard-key.kbr-key-hold.highlighted > .visual-wrapper > span {
