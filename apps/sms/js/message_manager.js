@@ -324,6 +324,8 @@ var MessageManager = {
         // Register all threads to the Threads object.
         Threads.set(this.result.id, this.result);
 
+        Contacts.request(this.result.participants);
+
         // If one of the requested threads is also the
         // currently displayed thread, update the header immediately
         if (this.result.id === Threads.currentId) {

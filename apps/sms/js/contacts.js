@@ -67,6 +67,8 @@
   }
 
   var rspaces = /\s+/;
+  var contacts = new Map();
+  var cursor;
 
   var Contacts = {
     findBy: function contacts_findBy(filter, callback) {
@@ -180,19 +182,167 @@
       };
     },
     findByString: function contacts_findBy(filterValue, callback) {
-      return this.findBy({
+      this.findBy({
         filterBy: ['tel', 'givenName', 'familyName'],
         filterOp: 'contains',
         filterValue: filterValue
       }, callback);
     },
     findByPhoneNumber: function contacts_findByPhone(filterValue, callback) {
-      return this.findBy({
+      if (Contacts.has(filterValue)) {
+        setTimeout(function() {
+          callback([Contacts.get(filterValue)]);
+        });
+        return;
+      }
+
+      this.findBy({
         filterBy: ['tel'],
         filterOp: 'match',
         filterValue: filterValue
       }, callback);
+    },
+
+    /**
+     * Contacts.get(phone)
+     *
+     * Get a contact record from the cache.
+     *
+     * @param {String} phone Phone number string.
+     * @return {Object} contact record.
+     */
+    get: function contacts_get(phone) {
+      var variants = SimplePhoneMatcher.generateVariants(phone);
+      var record;
+
+      for (var variant of variants) {
+        record = contacts.get(variant);
+        if (record) {
+          return record;
+        }
+      }
+      return;
+    },
+    /**
+     * Contacts.set(phone, record)
+     *
+     * Check if a contact is cached for this phone.
+     *
+     * @param {String} phone Phone number string.
+     * @param {Object} record Contact record.
+     */
+    set: function contacts_set(phone, record) {
+      var variants;
+
+      // Create a cache entry for phone variants
+      if (!Contacts.has(phone)) {
+        variants = SimplePhoneMatcher.generateVariants(phone);
+
+        for (var variant of variants) {
+          // If a variant already exists, that is fine
+          // as this will simply update that variant to
+          // share the same record
+          contacts.set(variant, record);
+        }
+        return;
+      }
+
+      contacts.set(String(phone), record);
+    },
+    /**
+     * Contacts.has(phone)
+     *
+     * Check if a contact is cached for this phone.
+     *
+     * @param  {String} phone Phone number string.
+     * @return {Boolean} true|false.
+     */
+    has: function contacts_has(phone) {
+      var variants = SimplePhoneMatcher.generateVariants(phone);
+      for (var variant of variants) {
+        return contacts.has(variant);
+      }
+      return false;
+    },
+    /**
+     * Contacts.delete(phone)
+     *
+     * Delete a cached contact for this phone.
+     *
+     * @param  {String} phone Phone number string.
+     * @return {Boolean} true|false.
+     */
+    delete: function contacts_delete(phone) {
+      return contacts.delete(String(phone));
+    },
+    /**
+     * Contacts.clear()
+     *
+     * Purge the entire cache.
+     *
+     * @param  {String} phone Phone number string.
+     * @return {Boolean} true|false.
+     */
+    clear: function contacts_clear(phone) {
+      if (typeof contacts.clear === 'function') {
+        contacts.clear();
+      } else {
+        contacts = new Map();
+      }
+    },
+    /**
+     * Contacts.request()
+     *
+     * Asynchronously request and set contact cache
+     * records for a list of recipients/participants.
+     *
+     * @param  {Array} participants List of phone numbers strings.
+     * @param  {String} participant Single phone number string.
+     *
+     * @param  {Function} oneach Call for each lookup result.
+     */
+    request: function contacts_request(list, oneach) {
+      if (!Array.isArray(list)) {
+        list = [list];
+      }
+      // Each participant contact will be cached locally (once per contact)
+      // By using the "participant" entry (ie. the number) we may have
+      // > 1 "participant" pointing to the same contact.
+      list.forEach(function(participant, i) {
+        if (!Contacts.has(participant)) {
+          Contacts.findByPhoneNumber(participant, function(records) {
+            var contact = (records && records.length && records[0]) || null;
+            // Don't cache unknown participants
+            if (contact) {
+              Contacts.set(participant, contact);
+            }
+
+            if (typeof oneach === 'function') {
+              oneach(participant, contact);
+            }
+          });
+        }
+      });
     }
+  };
+
+
+  // Cache updating
+  navigator.mozContacts.oncontactchange = function(event) {
+    var filter = {
+      filterBy: ['id'],
+      filterOp: 'equals',
+      filterValue: event.contactID
+    };
+    Contacts.findBy(filter, function(records) {
+      var contact = (records && records.length && records[0]) || null;
+      for (var tel of contact.tel) {
+        if (Contacts.has(tel.value)) {
+          Contacts.delete(tel.value);
+          Contacts.set(tel.value, contact);
+        }
+      }
+    });
   };
 
   exports.Contacts = Contacts;

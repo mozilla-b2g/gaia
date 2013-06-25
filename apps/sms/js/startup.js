@@ -9,6 +9,7 @@ var lazyLoadFiles = [
   'shared/js/custom_dialog.js',
   'shared/js/notification_helper.js',
   'shared/js/gesture_detector.js',
+  'shared/js/simple_phone_matcher.js',
   'js/blacklist.js',
   'js/contacts.js',
   'js/recipients.js',

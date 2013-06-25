@@ -311,7 +311,8 @@ section[role="region"].new > header:first-child form {
 }
 
 .article-list header,
-  .article-list[data-type="list"] .message.incoming .bubble {
+  .article-list[data-type="list"] .message.incoming .bubble,
+  .article-list[data-type="list"] .message.incoming .sender {
   padding-left: 4rem;
 }
 
@@ -326,6 +327,29 @@ section[role="region"].new > header:first-child form {
   border-bottom: none;
 
   transition: none;
+}
+
+.article-list[data-type="list"] .sender {
+  font-size: 1.4rem;
+  color: #000;
+}
+
+.article-list[data-type="list"] .sender .divider {
+  color: #FF4E00;
+}
+
+.article-list[data-type="list"] .sender time {
+  display: inline-block;
+  color: #4d4d4d;
+}
+
+/* The ".danger" element holds a checkbox which is intended to be vertically
+ * centered according to the message content in the ".bubble" container. When a
+ * ".sender" element is present, the ".danger" element should be explicitly
+ * offset to maintain this alignment.
+ */
+.article-list[data-type="list"] .sender + .danger {
+  top: 2.2rem;
 }
 
 /* hide download button via css on expired messages */
