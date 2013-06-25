@@ -31,24 +31,11 @@
     }
   }
 
-  function _unlockCardLock(options) {
-    var settingsRequest = {
-      result: {},
-      set onsuccess(callback) {
-        callback.call(this);
-      },
-      set onerror(callback) {}
-    };
-
-    return settingsRequest;
-  }
-
   var Mock = {
     mTeardown: _init,
     setProperty: _setProperty,
     addEventListener: _addEventListener,
-    removeEventListener: _removeEventListener,
-    unlockCardLock: _unlockCardLock
+    removeEventListener: _removeEventListener
   };
 
   _init();

@@ -29,7 +29,6 @@
   var stkLastSelectedTest = null;
   var displayTextTimeout = 40000;
   var inputTimeout = 40000;
-  var defaultURL = null;
   var goBackTimer = {
     timer: null,
     timeout: 1000
@@ -37,16 +36,6 @@
   var icc;
 
   init();
-
-  /**
-   * Recover application data
-   */
-  function getIccInfo() {
-    loadJSON('/resources/icc.json', function loadIccInfo(data) {
-      defaultURL = data.defaultURL;
-      debug('default URL: ', defaultURL);
-    });
-  }
 
   /**
    * Init STK UI
@@ -107,8 +96,6 @@
     reqInputTimeout.onsuccess = function icc_getInputTimeout() {
       inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
     };
-
-    getIccInfo();
   }
 
   function stkResTerminate() {
@@ -125,10 +112,7 @@
     });
     // We'll return to settings if no STK response received in a grace period
     goBackTimer.timer = setTimeout(function() {
-      var page = document.location.protocol + '//' +
-        document.location.host + '/index.html#root';
-      debug('page: ', page);
-      window.location.replace(page);
+      Settings.currentPanel = '#root';
     }, goBackTimer.timeout);
   };
 
@@ -222,41 +206,6 @@
         iccLastCommandProcessed = true;
         break;
 
-      case icc.STK_CMD_DISPLAY_TEXT:
-        debug(' STK:Show message: ', command);
-        if (options.responseNeeded) {
-          iccLastCommandProcessed = true;
-          responseSTKCommand({
-            resultCode: icc.STK_RESULT_OK
-          });
-          displayText(command, null);
-        } else {
-          displayText(command, function(userCleared) {
-            debug('Display Text, cb: ', command);
-            iccLastCommandProcessed = true;
-            if (command.options.userClear && !userCleared) {
-              debug('No response from user (Timeout)');
-              responseSTKCommand({
-                resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
-              });
-            } else {
-              debug('User closed the alert');
-              responseSTKCommand({
-                resultCode: icc.STK_RESULT_OK
-              });
-            }
-          });
-        }
-        break;
-
-      case icc.STK_CMD_SET_UP_IDLE_MODE_TEXT:
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        displayNotification(command);
-        break;
-
       case icc.STK_CMD_REFRESH:
         iccLastCommandProcessed = true;
         responseSTKCommand({
@@ -298,15 +247,6 @@
         if (options.callMessage) {
           alert(options.callMessage);
         }
-        break;
-
-      case icc.STK_CMD_LAUNCH_BROWSER:
-        debug(' STK:Setup Launch Browser. URL: ' + options.url);
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        showURL(options);
         break;
 
       case icc.STK_CMD_SET_UP_EVENT_LIST:
@@ -897,44 +837,10 @@
   }
 
   /**
-   * Display text on the notifications bar and Idle screen
-   */
-  function displayNotification(command) {
-    var options = command.options;
-    NotificationHelper.send('STK', options.text, '', function() {
-      alert(options.text);
-    });
-  }
-
-  /**
    * Remove text on the notifications bar and Idle screen
    */
   function clearNotification() {
     // TO-DO
-  }
-
-  /**
-   * Open URL
-   */
-  function showURL(options) {
-    var url = options.url;
-    if (url == null || url.length == 0) {
-      url = defaultURL;
-    }
-    debug('Final URL to open: ' + url);
-    if (url !== null && url.length !== 0) {
-      if (!options.confirmMessage || confirm(options.confirmMessage)) {
-        // Sanitise url just in case it doesn't start with http or https
-        // the web activity won't work, so add by default the http protocol
-        if (url.search('^https?://') == -1) {
-          // Our url doesn't contains the protocol
-          url = 'http://' + url;
-        }
-        openLink(url);
-      }
-    } else {
-      alert(_('operatorService-invalid-url'));
-    }
   }
 
   /**

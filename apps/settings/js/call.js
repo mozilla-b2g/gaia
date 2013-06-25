@@ -426,6 +426,34 @@ var Calls = (function(window, document, undefined) {
     });
   }
 
+  // The UI for cell broadcast indicates that it is enabled or not, whereas
+  // the setting used is 'disabled' so note that we switch the value when
+  // it is set or displayed
+  function initCellBroadcast() {
+    var CBS_KEY = 'ril.cellbroadcast.disabled';
+    var wrapper = document.getElementById('menuItem-cellBroadcast');
+    var input = wrapper.querySelector('input');
+    var init = false;
+
+    var cellBroadcastChanged = function(value) {
+      input.checked = !value;
+      if (!init) {
+        input.disabled = false;
+        wrapper.classList.remove('disabled');
+        init = true;
+      }
+    };
+
+    var inputChanged = function(event) {
+      var cbsset = {};
+      cbsset[CBS_KEY] = !input.checked;
+      settings.createLock().set(cbsset);
+    };
+
+    input.addEventListener('change', inputChanged);
+    SettingsListener.observe(CBS_KEY, false, cellBroadcastChanged);
+  }
+
   var callWaitingItemListener = function(evt) {
     var alertPanel = document.querySelector('#call .cw-alert');
     var confirmInput =
@@ -570,15 +598,21 @@ var Calls = (function(window, document, undefined) {
     settings.addObserver('ril.iccInfo.mbdn', function(event) {
       updateVoiceMailItemState();
     });
-    // We check if the voice mail (VM) API provides the VM number (it's
-    // stored in the SIM) and store that number in the setting database under
-    // the 'ril.iccInfo.mbdn' key.
-    var voicemail = navigator.mozVoicemail;
-    if (voicemail && voicemail.number) {
-      setToSettingsDB('ril.iccInfo.mbdn', voicemail.number, null);
-      return;
-    }
-    updateVoiceMailItemState();
+    var transaction = settings.createLock();
+    var request = transaction.get('ril.iccInfo.mbdn');
+    request.onsuccess = function() {
+      var number = request.result['ril.iccInfo.mbdn'];
+      var voicemail = navigator.mozVoicemail;
+      // If the voicemail number has not been stored into the database yet we
+      // check whether the number is provided by the mozVoicemail API. In that
+      // case we store it into the setting database.
+      if (!number && voicemail && voicemail.number) {
+        setToSettingsDB('ril.iccInfo.mbdn', voicemail.number, null);
+        return;
+      }
+      updateVoiceMailItemState();
+    };
+    request.onerror = function() {};
   }
 
   // Call subpanel navigation control.
@@ -606,6 +640,7 @@ var Calls = (function(window, document, undefined) {
       initVoiceMailSettings();
       initCallWaiting();
       initCallForwarding();
+      initCellBroadcast();
 
       setTimeout(initCallForwardingObservers, 500);
     }

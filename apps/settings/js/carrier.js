@@ -7,6 +7,7 @@
 navigator.mozL10n.ready(function carrierSettings() {
   var APN_FILE = '/shared/resources/apn.json';
   var _ = window.navigator.mozL10n.get;
+  var restartingDataConnection = false;
   const AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
 
   /**
@@ -223,9 +224,43 @@ navigator.mozL10n.ready(function carrierSettings() {
       storeCustomAPNSettingFields();
     };
 
+    /* XXX: This is a minimal and quick fix of bug 882059 for v1-train.
+     *      We should modify it after bug 842252 landed.
+     */
+    var apnSettingsChanged = false;
+    var apnRelatedInputs = Array.prototype.slice.call(
+      apnPanel.querySelectorAll('.apnSettings-list input[data-setting],' +
+                                '.apnSettings-advanced input[data-setting]'));
+    var onApnSettingsChanged = function() {
+      apnSettingsChanged = true;
+    };
+    apnRelatedInputs.forEach(function(input) {
+      var settingName = input.dataset.setting;
+      if (input.type === 'radio') {
+        input.addEventListener('change', onApnSettingsChanged);
+      } else {
+        input.addEventListener('input', onApnSettingsChanged);
+      }
+    });
+
+    function onSubmit() {
+      setTimeout(function() {
+        if (apnSettingsChanged) {
+          apnSettingsChanged = false;
+          restartDataConnection();
+        }
+      });
+    }
+
+    function onReset() {
+      apnSettingsChanged = false;
+    }
+
     // force data connection to restart if changes are validated
     var submitButton = apnPanel.querySelector('button[type=submit]');
-    submitButton.addEventListener('click', restartDataConnection);
+    var resetButton = apnPanel.querySelector('button[type=reset]');
+    submitButton.addEventListener('click', onSubmit);
+    resetButton.addEventListener('click', onReset);
   }
 
   // restart data connection by toggling it off and on again
@@ -234,6 +269,7 @@ navigator.mozL10n.ready(function carrierSettings() {
     if (!settings)
       return;
 
+    restartingDataConnection = true;
     var key = 'ril.data.enabled';
     function setDataState(state) {
       var cset = {};
@@ -246,6 +282,7 @@ navigator.mozL10n.ready(function carrierSettings() {
       if (request.result[key]) {
         setDataState(false);    // turn data off
         setTimeout(function() { // turn data back on
+          restartingDataConnection = false;
           setDataState(true);
         }, 2500); // restart data connection in 2.5s
       }
@@ -341,7 +378,7 @@ navigator.mozL10n.ready(function carrierSettings() {
       // Turn off data roaming automatically when users turn off data connection
       if (settings) {
         settings.addObserver('ril.data.enabled', function(event) {
-          if (!event.settingValue) {
+          if (!event.settingValue && !restartingDataConnection) {
             var cset = {};
             cset['ril.data.roaming_enabled'] = false;
             settings.createLock().set(cset);
@@ -401,6 +438,9 @@ navigator.mozL10n.ready(function carrierSettings() {
     li.appendChild(state);
     li.appendChild(name);
 
+    li.dataset.cachedState = network.state || 'unknown';
+    li.classList.add('operatorItem');
+
     // bind connection callback
     li.onclick = function() {
       callback(network, state);
@@ -416,7 +456,6 @@ navigator.mozL10n.ready(function carrierSettings() {
     var infoItem = list.querySelector('li[data-state="on"]');
     var scanItem = list.querySelector('li[data-state="ready"]');
     scanItem.onclick = scan;
-    var currentStateElement = null;
 
     // clear the list
     function clear() {
@@ -427,14 +466,30 @@ navigator.mozL10n.ready(function carrierSettings() {
       }
     }
 
+    function resetOperatorItemState() {
+      var operatorItems =
+        Array.prototype.slice.call(list.querySelectorAll('.operatorItem'));
+      operatorItems.forEach(function(operatorItem) {
+        var state = operatorItem.dataset.cachedState;
+        var messageElement = operatorItem.querySelector('small');
+
+        if (!state) {
+          state = 'unknown';
+        } else if (state === 'current') {
+          state = 'available';
+        }
+
+        localize(messageElement, 'state-' + state);
+      });
+    }
+
     // select operator
     function selectOperator(network, messageElement) {
-      var req = mobileConnection.selectNetwork(network);
       // update current network state as 'available' (the string display
       // on the network to connect)
-      currentStateElement.textContent = messageElement.textContent;
-      currentStateElement.dataset.l10nId = messageElement.dataset.l10nId;
-      currentStateElement = messageElement;
+      resetOperatorItemState();
+
+      var req = mobileConnection.selectNetwork(network);
       localize(messageElement, 'operator-status-connecting');
       req.onsuccess = function onsuccess() {
         localize(messageElement, 'operator-status-connected');
@@ -455,9 +510,6 @@ navigator.mozL10n.ready(function carrierSettings() {
         var networks = req.result;
         for (var i = 0; i < networks.length; i++) {
           var listItem = newListItem(networks[i], selectOperator);
-          if (networks[i].state === 'current') {
-            currentStateElement = listItem.querySelector('small');
-          }
           list.insertBefore(listItem, scanItem);
         }
         list.dataset.state = 'ready'; // "Search Again" button

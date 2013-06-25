@@ -22,6 +22,8 @@ var BASE_WIDTH = 320;
 var SCALE_RATIO = window.innerWidth / BASE_WIDTH;
 var MIN_ICON_SIZE = 52 * SCALE_RATIO;
 var MAX_ICON_SIZE = 60 * SCALE_RATIO;
+var ICON_PADDING_IN_CANVAS = 4;
+var ICONS_PER_ROW = 4;
 
 var DRAGGING_TRANSITION = '-moz-transform .3s';
 
@@ -72,7 +74,7 @@ Icon.prototype = {
    *
    * @param{Object} where the icon should be rendered
    *
-   * @param{Object} where the draggable element should be appened
+   * @param{Object} where the draggable element should be appended
    */
   render: function icon_render(target) {
     /*
@@ -111,8 +113,8 @@ Icon.prototype = {
     // Image
     var img = this.img = new Image();
     img.setAttribute('role', 'presentation');
-    img.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
-    img.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
+    img.width = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
+    img.height = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
     img.style.visibility = 'hidden';
     if (descriptor.renderedIcon) {
       this.displayRenderedIcon();
@@ -270,8 +272,8 @@ Icon.prototype = {
   renderImageForBookMark: function icon_renderImageForBookmark(img) {
     var self = this;
     var canvas = document.createElement('canvas');
-    canvas.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
-    canvas.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
+    canvas.width = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
+    canvas.height = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
     var ctx = canvas.getContext('2d');
 
     // Draw the background
@@ -300,8 +302,8 @@ Icon.prototype = {
     }
 
     var canvas = document.createElement('canvas');
-    canvas.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
-    canvas.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
+    canvas.width = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
+    canvas.height = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
 
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -315,8 +317,12 @@ Icon.prototype = {
     img.height =
         Math.min(MAX_ICON_SIZE, Math.max(img.height, MAX_ICON_SIZE));
 
-    var width = Math.min(img.width, canvas.width - 4 * SCALE_RATIO);
-    var height = Math.min(img.width, canvas.height - 4 * SCALE_RATIO);
+    var width =
+        Math.min(img.width, canvas.width - ICON_PADDING_IN_CANVAS *
+                 SCALE_RATIO);
+    var height =
+        Math.min(img.width, canvas.height - ICON_PADDING_IN_CANVAS *
+                 SCALE_RATIO);
     ctx.drawImage(img,
                   (canvas.width - width) / 2,
                   (canvas.height - height) / 2,
@@ -590,6 +596,7 @@ function Page(container, icons) {
   if (icons)
     this.render(icons);
   this.iconsWhileDragging = [];
+  this.maxIcons = GridManager.pageHelper.maxIconsPerPage;
 }
 
 Page.prototype = {
@@ -639,10 +646,10 @@ Page.prototype = {
   ready: true,
 
   setReady: function pg_setReady(value) {
+    this.ready = value;
     if (value) {
       this.container.dispatchEvent(new CustomEvent('onpageready'));
     }
-    this.ready = value;
   },
 
   /*
@@ -678,7 +685,7 @@ Page.prototype = {
     var draggableIndex = children.indexOf(draggableNode);
     var targetIndex = children.indexOf(targetNode);
 
-    if (draggableIndex === -1 || targetIndex === -1) {
+    if (draggableIndex < 0 || targetIndex < 0 || targetIndex >= this.maxIcons) {
       // Index is outside the bounds of the array, it doesn't make sense
       setTimeout(this.setReady.bind(this, true));
       return;
@@ -690,8 +697,8 @@ Page.prototype = {
     this.placeIcon(draggableNode, draggableIndex, targetIndex);
 
     var self = this;
-    targetNode.addEventListener('transitionend', function onTransitionEnd() {
-      targetNode.removeEventListener('transitionend', onTransitionEnd);
+    targetNode.addEventListener('transitionend', function onTransitionEnd(e) {
+      e.target.removeEventListener('transitionend', onTransitionEnd);
       children.splice(draggableIndex, 1);
       children.splice(targetIndex, 0, draggableNode);
       setTimeout(self.setReady.bind(self, true));
@@ -728,12 +735,20 @@ Page.prototype = {
     }
 
     if (!this.ready) {
-      var self = this;
-
-      self.container.addEventListener('onpageready', function onPageReady() {
-        self.container.removeEventListener('onpageready', onPageReady);
-        self.doDragLeave(callback, reflow);
+      var self = this, ensureCallbackID = null;
+      self.container.addEventListener('onpageready', function onPageReady(e) {
+        e.target.container.removeEventListener('onpageready', onPageReady);
+        if (ensureCallbackID !== null) {
+          window.clearTimeout(ensureCallbackID);
+          self.doDragLeave(callback, reflow);
+        }
       });
+
+      // We ensure that there is not a transitionend lost on dragging
+      var ensureCallbackID = window.setTimeout(function() {
+        ensureCallbackID = null;
+        self.doDragLeave(callback, reflow);
+      }, 300); // Dragging transition time
 
       return;
     }
@@ -746,9 +761,11 @@ Page.prototype = {
       return;
 
     var x = node.dataset.posX = parseInt(node.dataset.posX || 0) +
-                      ((Math.floor(to % 4) - Math.floor(from % 4)) * 100);
+                      ((Math.floor(to % ICONS_PER_ROW) -
+                        Math.floor(from % ICONS_PER_ROW)) * 100);
     var y = node.dataset.posY = parseInt(node.dataset.posY || 0) +
-                      ((Math.floor(to / 4) - Math.floor(from / 4)) * 100);
+                      ((Math.floor(to / ICONS_PER_ROW) -
+                        Math.floor(from / ICONS_PER_ROW)) * 100);
 
     window.mozRequestAnimationFrame(function() {
       node.style.MozTransform = 'translate(' + x + '%, ' + y + '%)';
@@ -887,7 +904,7 @@ Page.prototype = {
    * @param {Object} icon the icon to be added.
    */
   appendIconVisible: function pg_appendIconVisible(icon) {
-    if (this.getNumIcons() >= GridManager.pageHelper.maxIconsPerPage) {
+    if (this.getNumIcons() >= this.maxIcons) {
       this.insertBeforeLastIcon(icon);
     } else {
       this.appendIcon(icon);
@@ -975,6 +992,10 @@ dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
 
 dockProto.getLeft = function dk_getLeft() {
   return this.olist.getBoundingClientRect().left;
+};
+
+dockProto.getTransform = function dk_getTransform() {
+  return this.movableContainer.style.MozTransform;
 };
 
 /**

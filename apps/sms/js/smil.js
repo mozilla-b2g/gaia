@@ -7,6 +7,9 @@
 
 var runsafefilename = /[^a-zA-Z0-9.]/g;
 
+// This encoder is aimed for encoding the string by 'utf-8'.
+var encoder = new TextEncoder('UTF-8');
+
 // For utilizing sending/receiving DOM API, we need to handle 2 basic object
 // first: SMIL document and attachment. SMIL document is used for
 // representing the layout of the mms message, and attachment contains media
@@ -76,10 +79,12 @@ function SMIL_generateSlides(data, slide, slideIndex) {
     // Set text region.
     id = 'text_' + slideIndex + '.txt';
     text = '<text src="' + id + '" region="Text"/>';
+
+    // The text of the content blob should always be encoded by 'utf-8'.
     data.attachments.push({
       id: '<' + id + '>',
       location: id,
-      content: new Blob([slide.text], {type: 'text/plain'})
+      content: new Blob([encoder.encode(slide.text)], {type: 'text/plain'})
     });
   }
   data.parts.push('<par dur="' + DURATION + 'ms">' + media + text + '</par>');
@@ -145,7 +150,9 @@ var SMIL = window.SMIL = {
         callback(event, '');
       };
       activeReaders++;
-      textReader.readAsText(blob);
+
+      // The text blob must be encoded as 'utf-8' by Gecko.
+      textReader.readAsText(blob, 'UTF-8');
     }
 
     function exitPoint() {

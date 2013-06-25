@@ -2,7 +2,12 @@
 
 var MockMessageManager = {
   getMessages: function() {},
-  deleteMessage: function() {},
+  deleteMessage: function(messageId, callback) {
+    if (callback) {
+      callback();
+    }
+  },
+  onHashChange: function() {},
   sendSMS: function() {
     return {};
   },

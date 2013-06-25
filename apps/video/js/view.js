@@ -23,6 +23,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var title = data.title || '';
   var storage;       // A device storage object used by the save button
   var saved = false; // Did we save it?
+  var endedTimer;    // The workaround of bug 783512.
 
   initUI();
 
@@ -128,6 +129,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.player.addEventListener('playing', hideSpinner);
     dom.player.addEventListener('play', hideSpinner);
     dom.player.addEventListener('pause', hideSpinner);
+    dom.player.addEventListener('ended', playerEnded);
+    dom.player.addEventListener('canplaythrough', hideSpinner);
 
     // Set the 'lang' and 'dir' attributes to <html> when the page is translated
     window.addEventListener('localized', function showBody() {
@@ -234,7 +237,30 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     };
     dom.player.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
     dom.player.onerror = function(evt) {
-      handleError(navigator.mozL10n.get('videoinvalid'));
+      var errorid = '';
+
+      switch (evt.target.error.code) {
+        case MediaError.MEDIA_ERR_ABORTED:
+          // This aborted error should be triggered by the user
+          // so we don't have to show any error messages
+          return;
+        case MediaError.MEDIA_ERR_NETWORK:
+          errorid = 'error-network';
+          break;
+        case MediaError.MEDIA_ERR_DECODE:
+        case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          // If users tap some video link in an offline page
+          // the error code will be MEDIA_ERR_SRC_NOT_SUPPORTED
+          // we also prompt the unsupported error message for it
+          errorid = 'error-unsupported';
+          break;
+        // Is it possible to be unknown errors?
+        default:
+          errorid = 'error-unknown';
+          break;
+      }
+
+      handleError(navigator.mozL10n.get(errorid));
     };
   }
 
@@ -282,6 +308,35 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       if (!dragging)
         dom.playHead.style.left = percent;
     }
+
+    // Since we don't always get reliable 'ended' events, see if
+    // we've reached the end this way.
+    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
+    // If we're within 1 second of the end of the video, register
+    // a timeout a half a second after we'd expect an ended event.
+    if (!endedTimer) {
+      if (!dragging && dom.player.currentTime >= dom.player.duration - 1) {
+        var timeUntilEnd = (dom.player.duration - dom.player.currentTime + .5);
+        endedTimer = setTimeout(playerEnded, timeUntilEnd * 1000);
+      }
+    } else if (dragging && dom.player.currentTime < dom.player.duration - 1) {
+      // If there is a timer set and we drag away from the end, cancel the timer
+      clearTimeout(endedTimer);
+      endedTimer = null;
+    }
+  }
+
+  function playerEnded() {
+    if (dragging) {
+      return;
+    }
+    if (endedTimer) {
+      clearTimeout(endedTimer);
+      endedTimer = null;
+    }
+
+    dom.player.currentTime = 0;
+    pause();
   }
 
   // handle drags on the time slider
@@ -351,7 +406,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     if (minutes < 60) {
       return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
     }
-    return '';
+    var hours = Math.floor(minutes / 60);
+    minutes = Math.floor(minutes % 60);
+    return hours + ':' + padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
   }
 
   function showBanner(msg) {

@@ -29,6 +29,10 @@ var Settings = {
       hash = '#' + hash;
     }
 
+    if (hash == this._currentPanel) {
+      return;
+    }
+
     if (hash === '#wifi') {
       PerformanceTestingHelper.dispatch('start');
     }
@@ -835,7 +839,8 @@ window.addEventListener('load', function loadSettings() {
       'shared/js/wifi_helper.js',
       'js/connectivity.js',
       'js/security_privacy.js',
-      'js/icc_menu.js'
+      'js/icc_menu.js',
+      'shared/js/settings_listener.js'
   ]);
 
   function handleRadioAndCardState() {

@@ -120,6 +120,64 @@ var ActivityHandler = {
     };
   },
 
+  // The unsent confirmation dialog provides 2 options: edit and discard
+  // discard: clear the message user typed
+  // edit: continue to edit the unsent message and ignore the activity
+  displayUnsentConfirmation: function ah_displayUnsentConfirmtion() {
+    var _ = navigator.mozL10n.get;
+    var msgDiv = document.createElement('div');
+    msgDiv.innerHTML = '<h1>' + _('unsent-message-title') +
+                       '</h1><p>' + _('unsent-message-description') + '</p>';
+    var options = new OptionMenu({
+      type: 'confirm',
+      section: msgDiv,
+      items: [{
+        name: _('unsent-message-option-edit'),
+        method: function editOptionMethod() {
+          // it already in message app, we don't need to do anything but
+          // clearing activity variables in MessageManager.
+          MessageManager.activity.body = null;
+          MessageManager.activity.number = null;
+          MessageManager.activity.contact = null;
+        }
+      },
+      {
+        name: _('unsent-message-option-discard'),
+        method: function discardOptionMethod() {
+          if (window.location.hash === '#new') {
+            setTimeout(MessageManager.onHashChange.bind(MessageManager));
+          } else {
+            window.location.hash = '#new';
+          }
+        }
+      }]
+    });
+    options.show();
+  },
+  // prepare new message and show new message UI
+  triggerNewMessage: function ah_triggerNewMessage(body, number, contact) {
+    /**
+     * case 1: hash === #new
+     *         check compose is empty or show dialog, and call onHashChange
+     * case 2: hash starts with #thread
+     *         check compose is empty or show dialog, and change hash to #new
+     * case 3: others, change hash to #new
+     */
+    MessageManager.activity.body = body || null;
+    MessageManager.activity.number = number || null;
+    MessageManager.activity.contact = contact || null;
+
+    if (Compose.isEmpty()) {
+      if (location.hash === '#new') {
+        setTimeout(MessageManager.onHashChange.bind(MessageManager));
+      } else {
+        window.location.hash = '#new';
+      }
+    } else {
+      // ask user how should we do
+      ActivityHandler.displayUnsentConfirmation();
+    }
+  },
   // Deliver the user to the correct view
   // based on the params provided in the
   // "message" object.
@@ -158,12 +216,7 @@ var ActivityHandler = {
     var showAction = function act_action() {
       // If we only have a body, just trigger a new message.
       if (!threadId) {
-        MessageManager.activity.body = body || null;
-        MessageManager.activity.number = number || null;
-        MessageManager.activity.contact = contact || null;
-
-        // Move to new message
-        window.location.hash = '#new';
+        ActivityHandler.triggerNewMessage(body, number, contact);
         return;
       }
       var locationHash = window.location.hash;
@@ -258,6 +311,8 @@ var ActivityHandler = {
         // We have to remove the SMS due to it does not have to be shown.
         MessageManager.deleteMessage(message.id, function() {
           app.launch();
+          Notification.ringtone();
+          Notification.vibrate();
           alert(number + '\n' + message.body);
           releaseWakeLock();
         });

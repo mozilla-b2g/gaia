@@ -588,6 +588,11 @@ var Browser = {
   handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
     var input = this.urlInput.value;
 
+    if (input === '') {
+      this.setUrlButtonMode(null);
+      return;
+    }
+
     this.setUrlButtonMode(
       this.isNotURL(input) ? this.SEARCH : this.GO
     );
@@ -705,6 +710,11 @@ var Browser = {
     if (e) {
       e.preventDefault();
     }
+
+    if (this.urlButtonMode === null) {
+      return;
+    }
+
 
     if (this.urlButtonMode == this.REFRESH && this.currentTab.crashed) {
       this.setUrlBar(this.currentTab.url);
@@ -949,6 +959,15 @@ var Browser = {
 
   setUrlButtonMode: function browser_setUrlButtonMode(mode) {
     this.urlButtonMode = mode;
+
+    if (this.urlButtonMode === null) {
+      this.urlButton.style.backgroundImage = '';
+      this.urlButton.style.display = 'none';
+      return;
+    }
+
+    this.urlButton.style.display = 'block';
+
     switch (mode) {
       case this.GO:
         this.urlButton.style.backgroundImage = 'url(style/images/go.png)';
@@ -1351,14 +1370,14 @@ var Browser = {
 
       // Save the blob to device storage.
       // Extract a filename from the URL, and to some sanitizing.
-      var name = url.split('/').reverse()[0].toLowerCase()
+      var name = url.split('/').reverse()[0].toLowerCase().split(/[&?#]/g)[0]
                     .replace(/[^a-z0-9\.]/g, '_');
 
       // If we have no file extension, use the content-type header to
       // add one.
-      if (name.split('.').length == 1) {
-        var contentType = xhr.getResponseHeader('content-type');
-        name += '.' + contentType.split('/')[1];
+      var ext = MimeMapper.guessExtensionFromType(xhr.response.type);
+      if (ext && name.indexOf(ext) === -1) {
+        name += '.' + ext;
       }
 
       storeBlob(xhr.response, name, 0);
@@ -1515,6 +1534,8 @@ var Browser = {
     }
 
     this.setVisibleWrapper(tab, visible);
+    var fun = tab.loading ? 'add' : 'remove';
+    this.throbber.classList[fun]('loading');
     tab.dom.style.display = visible ? 'block' : 'none';
     tab.dom.style.top = '0px';
   },
@@ -1747,7 +1768,8 @@ var Browser = {
     }).bind(this);
     this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
-    this.setUrlButtonMode(this.GO);
+    var buttonMode = this.urlInput.value === '' ? null : this.GO;
+    this.setUrlButtonMode(buttonMode);
     this.showTopSitesTab();
   },
 
@@ -1766,7 +1788,7 @@ var Browser = {
       this.setUrlButtonMode(this.STOP);
       this.throbber.classList.add('loading');
     } else {
-      var urlButton = this.currentTab.url ? this.REFRESH : this.GO;
+      var urlButton = this.currentTab.url ? this.REFRESH : null;
       this.setUrlButtonMode(urlButton);
       this.throbber.classList.remove('loading');
     }

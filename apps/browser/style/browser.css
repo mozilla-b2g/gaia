@@ -295,7 +295,7 @@ input[type="image"] {
 
 #url-button {
   background-position: center;
-  display: block;
+  display: none;
   height: 3.2rem;
   width: 3.2rem;
   background-size: 3rem;
@@ -634,6 +634,10 @@ li[role="tab"] a {
   text-overflow: ellipsis;
   outline: none;
   overflow: hidden;
+}
+
+li[role="tab"] a:active {
+  background: none;
 }
 
 li[role="tab"]:first-child a {

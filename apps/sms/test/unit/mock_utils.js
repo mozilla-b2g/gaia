@@ -19,7 +19,6 @@ var MockUtils = {
   escapeRegex: Utils.escapeRegex,
   params: Utils.params,
   getContactDetails: Utils.getContactDetails,
-  Message: {
-    format: function(str) { return str; }
-  }
+  removeNonDialables: Utils.removeNonDialables,
+  compareDialables: Utils.compareDialables
 };

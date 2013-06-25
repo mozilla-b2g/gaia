@@ -1,6 +1,6 @@
 'use strict';
 
-mocha.globals(['alert']);
+mocha.globals(['alert', 'Notification']);
 
 requireApp(
   'sms/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -8,6 +8,7 @@ requireApp(
 requireApp('sms/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 requireApp('sms/shared/test/unit/mocks/mock_notification_helper.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
+requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_alert.js');
@@ -18,6 +19,7 @@ requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
+requireApp('sms/test/unit/mock_action_menu.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -31,6 +33,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Contacts',
   'MessageManager',
   'NotificationHelper',
+  'OptionMenu',
   'Threads',
   'Utils',
   'alert'
@@ -172,6 +175,46 @@ suite('ActivityHandler', function() {
         });
       });
     });
+
+    suite('receive class-0 message', function() {
+      var realMozSettings;
+
+      suiteSetup(function(done) {
+        realMozSettings = navigator.mozSettings;
+        navigator.mozSettings = MockNavigatorSettings;
+        requireApp('sms/js/notification.js', done);
+      });
+
+      suiteTeardown(function() {
+        navigator.mozSettings = realMozSettings;
+      });
+
+      setup(function() {
+        sinon.stub(Notification, 'ringtone');
+        sinon.stub(Notification, 'vibrate');
+
+        message = MockMessages.sms({ messageClass: 'class-0' });
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      teardown(function() {
+        Notification.ringtone.restore();
+        Notification.vibrate.restore();
+      });
+
+      test('play ringtone', function() {
+        var spied = Notification.ringtone;
+        assert.ok(spied.called);
+        spied = Notification.vibrate;
+        assert.ok(spied.called);
+      });
+
+      test('vibrate', function() {
+        var spied = Notification.vibrate;
+        assert.ok(spied.called);
+      });
+    });
   });
 
   suite('user clicked the notification', function() {
@@ -246,6 +289,7 @@ suite('ActivityHandler', function() {
     suiteTeardown(function() {
       navigator.mozL10n = realMozL10n;
     });
+
     test('new message to unknown contact', function(done) {
       window.onhashchange = function() {
         assert.equal(window.location.hash, '#new');
@@ -259,6 +303,96 @@ suite('ActivityHandler', function() {
         body: 'foo',
         number: '999'
       });
+    });
+
+    test('new message with empty msg', function(done) {
+      // change location hash to #new
+      window.location.hash = '#new';
+      // check for onHashChange is called.
+      this.sinon.stub(MessageManager, 'onHashChange', function() {
+        assert.equal(window.location.hash, '#new');
+        done();
+      });
+      // no message in the input field.
+      Compose.mEmpty = true;
+      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
+        assert.ok(false, 'confirmation dialog should not show');
+      });
+
+      ActivityHandler.toView({
+        body: 'foo',
+        number: '999'
+      });
+    });
+
+    test('new message with user input msg, discard it', function(done) {
+      // change location hash to #new
+      window.location.hash = '#new';
+      // check for onHashChange is called.
+      this.sinon.stub(MessageManager, 'onHashChange', function() {
+        assert.equal(MockOptionMenu.prototype.show.callCount, 1);
+        done();
+      });
+      // user typed message in the input field.
+      Compose.mEmpty = false;
+      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
+        assert.equal(MockOptionMenu.calls.length, 1);
+        assert.equal(MockOptionMenu.calls[0].type, 'confirm');
+
+        var items = MockOptionMenu.calls[0].items;
+        assert.isNotNull(items);
+        assert.equal(items.length, 2);
+        // discard is the second button
+        assert.isNotNull(items[1]);
+        assert.equal(typeof items[1].method, 'function');
+        // call discard.
+        items[1].method();
+      });
+
+      ActivityHandler.toView({
+        body: 'foo',
+        number: '999'
+      });
+    });
+
+    test('new message with user input msg, edit it', function(done) {
+      // change location hash to #new
+      window.location.hash = '#new';
+      // check for onHashChange is called.
+      this.sinon.stub(MessageManager, 'onHashChange', function() {
+        assert.ok(false, 'onHashChange should not be called');
+      });
+      // no message in the input field.
+      Compose.mEmpty = false;
+      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
+        assert.equal(MockOptionMenu.calls.length, 1);
+        assert.equal(MockOptionMenu.calls[0].type, 'confirm');
+
+        var items = MockOptionMenu.calls[0].items;
+        assert.isNotNull(items);
+        assert.equal(items.length, 2);
+        // edit is the first button
+        assert.isNotNull(items[0]);
+        assert.equal(typeof items[0].method, 'function');
+        // call edit.
+        items[0].method();
+      });
+
+      ActivityHandler.toView({
+        body: 'foo',
+        number: '999'
+      });
+      // wait 10ms to check if onHashChange is called.
+      setTimeout(function() {
+        assert.isFalse(MessageManager.onHashChange.called);
+        assert.equal(MockOptionMenu.prototype.show.callCount, 1);
+        // check if activity variables are cleared.
+        assert.equal(MessageManager.activity.body, null);
+        assert.equal(MessageManager.activity.number, null);
+        assert.equal(MessageManager.activity.contact, null);
+        done();
+      }, 10);
+
     });
   });
 });

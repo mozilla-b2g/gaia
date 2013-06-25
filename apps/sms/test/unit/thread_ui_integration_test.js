@@ -200,31 +200,32 @@ suite('ThreadUI Integration', function() {
       toField.click();
 
       // Simulate list growth
-      recipientsList.style.height = '50px';
+      recipientsList.style.height = '100px';
 
       // Listen for the pan event, simulated immediately following.
       toField.addEventListener('pan', function panTest() {
-        assert.isTrue(toField.classList.contains('multiline'));
+        done(function() {
+          assert.isTrue(toField.classList.contains('multiline'));
 
-        toField.removeEventListener('pan', panTest, false);
+          toField.removeEventListener('pan', panTest, false);
 
-        // Once the pan event has occured, the following steps
-        // will simulate the user actions necessary for testing
-        // the return to single line mode
+          // Once the pan event has occured, the following steps
+          // will simulate the user actions necessary for testing
+          // the return to single line mode
 
-        // 1. Enter text into the editable "placeholder"
-        children[2].textContent = '0';
+          // 1. Enter text into the editable "placeholder"
+          children[2].textContent = '0';
 
-        // 2. Trigger a "keyup" event
-        children[2].dispatchEvent(
-          new CustomEvent('keyup', {
-            bubbles: true
-          })
-        );
+          // 2. Trigger a "keyup" event
+          children[2].dispatchEvent(
+            new CustomEvent('keyup', {
+              bubbles: true
+            })
+          );
 
-        // toField should now be "singleline" again
-        assert.isTrue(toField.classList.contains('singleline'));
-        done();
+          // toField should now be "singleline" again
+          assert.isTrue(toField.classList.contains('singleline'));
+        });
       });
 
       // Simulate pan event
@@ -257,15 +258,16 @@ suite('ThreadUI Integration', function() {
       });
 
       // Simulate list growth
-      recipientsList.style.height = '50px';
+      recipientsList.style.height = '100px';
 
       // Listen for the pan event, simulated immediately following.
       toField.addEventListener('click', function clickTest() {
-        toField.removeEventListener('click', clickTest, false);
+        done(function() {
+          toField.removeEventListener('click', clickTest, false);
 
-        // toField should now be "singleline" again
-        assert.isTrue(toField.classList.contains('singleline'));
-        done();
+          // toField should now be "singleline" again
+          assert.isTrue(toField.classList.contains('singleline'));
+        });
       });
 
       // Artificially set the list to multiline view
@@ -560,7 +562,7 @@ suite('ThreadUI Integration', function() {
           input: '+99',
           target: ul,
           isContact: true,
-          isHighlighted: true
+          isSuggestion: true
         });
       });
 
@@ -580,7 +582,7 @@ suite('ThreadUI Integration', function() {
           input: '*67 [800]-555-1212',
           target: ul,
           isContact: true,
-          isHighlighted: true
+          isSuggestion: true
         });
       });
       assert.ok(Utils.getContactDetails.called);
@@ -600,7 +602,7 @@ suite('ThreadUI Integration', function() {
           input: '\\^$*+?.',
           target: ul,
           isContact: true,
-          isHighlighted: true
+          isSuggestion: true
         });
       });
       assert.ok(Utils.getContactDetails.called);
@@ -619,7 +621,7 @@ suite('ThreadUI Integration', function() {
         input: contact.tel[0].value,
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
 
       assert.isTrue(isRendered);
@@ -635,7 +637,7 @@ suite('ThreadUI Integration', function() {
         input: null,
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
 
       assert.isFalse(isNotRendered);

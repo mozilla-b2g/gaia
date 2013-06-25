@@ -102,9 +102,9 @@
       };
       img.onerror = function onBlobError() {
         callback({
-          width: 0,
-          height: 0,
-          data: ''
+          width: MIN_THUMBNAIL_WIDTH_HEIGHT,
+          height: MIN_THUMBNAIL_WIDTH_HEIGHT,
+          error: true
         });
       };
     },
@@ -124,12 +124,24 @@
       var type = this.type; // attachment type
       var self = this;
 
-      var setFrameSrc = function(type, imageURL) {
+      var setFrameSrc = function(thumbnail) {
+        thumbnail = thumbnail || {
+          width: MIN_THUMBNAIL_WIDTH_HEIGHT,
+          height: MIN_THUMBNAIL_WIDTH_HEIGHT,
+          data: '',
+          error: false
+        };
+
+        el.width = thumbnail.width;
+        el.height = thumbnail.height;
+
         var template = {
           type: type,
           draftClass: self.isDraft ? 'draft' : '',
-          inlineStyle: imageURL ?
-            'background: url(' + imageURL + ') no-repeat center center;' : '',
+          errorClass: thumbnail.error ? 'corrupted' : '',
+          inlineStyle: (thumbnail.data && !thumbnail.error) ?
+            'background: url(' + thumbnail.data + ') no-repeat center center;' :
+            '',
           baseURL: location.protocol + '//' + location.host,
           size: self.sizeForHumans
         };
@@ -156,23 +168,14 @@
       // currently falls through this path too, we should revisit this with
       // Bug 869244 - [MMS] 'Thumbnail'/'Poster' in video attachment is needed.
       if (type === 'img' && this.size < MAX_THUMBNAIL_GENERATION_SIZE) {
-        this.getThumbnail(function(thumbnail) {
-          // TODO: store this thumbnail data (indexedDB)
-          // Bug 876467 - [MMS] generate, store, and reuse image thumbnails
-
-          // display the thumbnail instead of the default 'Image' background
-          el.width = thumbnail.width;
-          el.height = thumbnail.height;
-          setFrameSrc(type, thumbnail.data);
-        });
+        // TODO: store this thumbnail data (indexedDB)
+        // Bug 876467 - [MMS] generate, store, and reuse image thumbnails
+        this.getThumbnail(setFrameSrc);
       } else {
         // Display the default attachment placeholder for the current type: img,
         // audio, video, other.  We have to be asynchronous to keep the
         // behaviour consistent with the thumbnail case.
-        setTimeout(function() {
-          el.width = el.height = MIN_THUMBNAIL_WIDTH_HEIGHT;
-          setFrameSrc(type);
-        });
+        setTimeout(setFrameSrc);
       }
 
       // Remember: the <iframe> content is created asynchrounously.
@@ -199,4 +202,3 @@
 
   exports.Attachment = Attachment;
 }(this));
-

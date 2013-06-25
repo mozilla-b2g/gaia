@@ -26,7 +26,6 @@ settings = {
  "bluetooth.enabled": False,
  "bluetooth.debugging.enabled": False,
  "bluetooth.suspended": False,
- "bootshutdown.sound.enabled": False,
  "camera.shutter.enabled": True,
  "clear.remote-windows.data": False,
  "debug.console.enabled": False,
@@ -37,6 +36,7 @@ settings = {
  "debug.log-animations.enabled": False,
  "debug.paint-flashing.enabled": False,
  "debug.peformancedata.shared": False,
+ "debug.gaia.enabled": False,
  "deviceinfo.firmware_revision": "",
  "deviceinfo.hardware": "",
  "deviceinfo.mac": "",
@@ -136,6 +136,7 @@ settings = {
  "screen.automatic-brightness": True,
  "screen.brightness": 1,
  "screen.timeout": 60,
+ "software-button.enabled": False,
  "telephony.speaker.enabled": False,
  "tethering.usb.enabled": False,
  "tethering.usb.ip": "192.168.0.1",
@@ -178,7 +179,7 @@ def main():
     parser.add_option("-v", "--verbose", help="increase output verbosity", action="store_true")
     parser.add_option(      "--noftu", help="bypass the ftu app", action="store_true")
     parser.add_option(      "--locale", help="specify the default locale to use")
-    parser.add_option(      "--hidpi", help="specify if the target device has hidpi screen")
+    parser.add_option(      "--profile-folder", help="specify a profile directory")
     parser.add_option(      "--enable-debugger", help="enable remote debugger (and ADB for VARIANT=user builds)", action="store_true")
     (options, args) = parser.parse_args(sys.argv[1:])
 
@@ -194,18 +195,20 @@ def main():
     else:
         ftu_url = "app://communications.gaiamobile.org/manifest.webapp"
 
+    if options.profile_folder:
+        profile_folder = options.profile_folder
+    else:
+        profile_folder = "profile"
+
     if options.output:
         settings_filename = options.output
     else:
-        settings_filename = "profile/settings.json"
+        settings_filename = profile_folder + "/settings.json"
 
-    if options.wallpaper:
+    if options.wallpaper and os.path.exists(options.wallpaper):
         wallpaper_filename = options.wallpaper
     else:
-        if options.hidpi:
-            wallpaper_filename = "build/wallpaper@2x.jpg"
-        else:
-            wallpaper_filename = "build/wallpaper.jpg"
+        wallpaper_filename = "build/wallpaper.jpg"
 
     enable_debugger = (options.enable_debugger == True)
 
@@ -216,6 +219,7 @@ def main():
         print "Setting Filename:",settings_filename
         print "Wallpaper Filename:", wallpaper_filename
         print "Enable Debugger:", enable_debugger
+        print "Profile Folder:", profile_folder
 
     # Set the default console output
     if options.console:
@@ -232,10 +236,13 @@ def main():
     if options.locale:
         settings["language.current"] = options.locale
         keyboard_layouts_name = "shared/resources/keyboard_layouts.json"
-        keyboard_layouts = json.load(open(keyboard_layouts_name))
+        keyboard_layouts_res = json.load(open(keyboard_layouts_name))
+        keyboard_layouts = keyboard_layouts_res["layout"]
+        keyboard_nonLatins = keyboard_layouts_res["nonLatin"]
         if options.locale in keyboard_layouts:
             default_layout = keyboard_layouts[options.locale]
-            settings["keyboard.layouts.english"] = False
+            if options.locale not in keyboard_nonLatins:
+                settings["keyboard.layouts.english"] = False
             settings["keyboard.layouts.{0}".format(default_layout)] = True
 
     settings["devtools.debugger.remote-enabled"] = enable_debugger

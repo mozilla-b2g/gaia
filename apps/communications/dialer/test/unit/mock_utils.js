@@ -29,6 +29,13 @@ var MockUtils = {
     return matchingTel.value % 2 == 0 ? matchingTel.value : undefined;
   },
 
+  addEllipsis: function ut_addEllipsis() {},
+
+  getNextFontSize: function ut_getNextFontSize(view, fakeView, maxFontSize,
+    minFontSize, fontStep) {
+    return maxFontSize;
+  },
+
   mTearDown: function tearDown() {
     this.mCalledPrettyDate = false;
     this.mCalledHeaderDate = false;

@@ -455,7 +455,7 @@
     }
     else if (punctuating && cursor >= 2 &&
              isWhiteSpace(inputText[cursor - 1]) &&
-             !isWhiteSpace(inputText[cursor - 2]))
+             !WORDSEP.test(inputText[cursor - 2]))
     {
       autoPunctuate(keycode);
     }
@@ -470,15 +470,18 @@
     // Get the word before the cursor
     var currentWord = wordBeforeCursor();
 
+    // The space or punctuation that triggered the autocorrect
+    var delimiter = String.fromCharCode(keycode);
+
     // Figure out the auto correction text
-    var newWord = autoCorrection + String.fromCharCode(keycode);
+    var newWord = autoCorrection + delimiter;
 
     // Make the correction
     replaceBeforeCursor(currentWord, newWord);
 
     // Remember the change we just made so we can revert it if the
     // user types backspace
-    revertTo = currentWord;
+    revertTo = currentWord + delimiter;
     revertFrom = newWord;
     justAutoCorrected = true;
   }
@@ -695,6 +698,13 @@
       var dx = (cx1 - cx2) / radius;
       var dy = (cy1 - cy2) / radius;
       var distanceSquared = dx * dx + dy * dy;
+
+      if (distanceSquared < 1) {
+        console.warn('Keys too close',
+                     JSON.stringify(key1), JSON.stringify(key2));
+        return 0;
+      }
+
       if (distanceSquared > 2.5 * 2.5)
         return 0;
       else
