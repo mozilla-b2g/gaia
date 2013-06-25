@@ -97,7 +97,79 @@ var icc_worker = {
   },
 
   // STK_CMD_PLAY_TONE
-  //'0x20': function STK_CMD_PLAY_TONE(command, iccManager) {},
+  '0x20': function STK_CMD_PLAY_TONE(command, iccManager) {
+    function getPhoneSound(toneCode) {
+      toneCode =
+        typeof(toneCode) == 'string' ? toneCode.charCodeAt(0) : toneCode;
+      switch (toneCode) {
+        case iccManager._icc.STK_TONE_TYPE_DIAL_TONE:
+          return 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
+        case iccManager._icc.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
+          return 'resources/dtmf_tones/480Hz+620Hz_200ms.ogg';
+        case iccManager._icc.STK_TONE_TYPE_CONGESTION:
+          return 'resources/dtmf_tones/425Hz_200ms.ogg';
+        case iccManager._icc.STK_TONE_TYPE_RADIO_PATH_ACK:
+        case iccManager._icc.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
+          return 'resources/dtmf_tones/425Hz_200ms.ogg';
+        case iccManager._icc.STK_TONE_TYPE_ERROR:
+          return 'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
+        case iccManager._icc.STK_TONE_TYPE_CALL_WAITING_TONE:
+        case iccManager._icc.STK_TONE_TYPE_RINGING_TONE:
+          return 'resources/dtmf_tones/425Hz_200ms.ogg';
+        case iccManager._icc.STK_TONE_TYPE_GENERAL_BEEP:
+          return 'resources/dtmf_tones/400Hz_200ms.ogg';
+        case iccManager._icc.STK_TONE_TYPE_POSITIVE_ACK_TONE:
+          return 'resources/dtmf_tones/425Hz_200ms.ogg';
+        case iccManager._icc.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
+          return 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms.ogg';
+        default:
+          return 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
+      }
+    }
+
+    DUMP('STK_CMD_PLAY_TONE:', command.options);
+    var options = command.options;
+
+    var tonePlayer = new Audio();
+    tonePlayer.src = getPhoneSound(options.tone);
+    tonePlayer.loop = true;
+
+    var timeout = 0;
+    if (options.duration &&
+        options.duration.timeUnit != undefined &&
+        options.duration.timeInterval != undefined) {
+      timeout = iccManager.calculateDurationInMS(options.duration.timeUnit,
+        options.duration.timeInterval);
+    } else if (options.timeUnit != undefined &&
+        options.timeInterval != undefined) {
+      timeout = iccManager.calculateDurationInMS(options.timUnit,
+        options.timeInterval);
+    }
+    timeout && DUMP('Tone stop in (ms): ', timeout);
+
+    if (options.text) {
+      iccManager.confirm(options.text, timeout, function(userCleared) {
+        tonePlayer.pause();
+        if (userCleared == null) {  // Back && Terminate
+          return;
+        }
+        iccManager.responseSTKCommand({
+          resultCode: iccManager._icc.STK_RESULT_OK
+        });
+      });
+    } else {
+      // If no dialog is showed, we answer the STK command
+      iccManager.responseSTKCommand({
+        resultCode: iccManager._icc.STK_RESULT_OK
+      });
+    }
+
+    if (options.isVibrate) {
+      window.navigator.vibrate([200]);
+    }
+
+    tonePlayer.play();
+  },
 
   // STK_CMD_DISPLAY_TEXT
   '0x21': function STK_CMD_DISPLAY_TEXT(command, iccManager) {
@@ -111,6 +183,9 @@ var icc_worker = {
     } else {
       iccManager.confirm(options.text, iccManager._displayTextTimeout,
         function(userCleared) {
+          if (userCleared == null) {
+            return;   // ICC Back or ICC Terminate
+          }
           DUMP('STK_CMD_DISPLAY_TEXT callback for ', command);
           if (options.userClear && !userCleared) {
             DUMP('No response from user (Timeout)');
