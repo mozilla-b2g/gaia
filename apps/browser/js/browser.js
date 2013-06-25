@@ -2088,9 +2088,14 @@ var Browser = {
     switch (activity.source.data.type) {
       case 'url':
         var url = this.getUrlFromInput(activity.source.data.url);
-        if (this.currentTab)
-          this.hideCurrentTab();
-        this.selectTab(this.createTab(url));
+        if (this.currentTab) {
+          if (this.currentTab.url) {
+            this.hideCurrentTab();
+            this.selectTab(this.createTab(url));
+          } else {
+            this.navigate(url);
+          }
+        }
         this.showPageScreen();
         break;
     }
