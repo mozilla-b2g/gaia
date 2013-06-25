@@ -5,6 +5,9 @@ var VoiceClipPlayer = {
 
   init: function vc_init() {
     this.player = document.getElementById('voiceclip');
+    // play first to force loading the voice clip
+    this.player.play();
+    this.player.pause();
   },
 
   AUDIO_MAP: {
