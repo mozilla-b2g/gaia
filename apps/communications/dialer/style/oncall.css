@@ -421,6 +421,7 @@ button[disabled] .icon-keypad-visibility {
 #calls > section.held {
   background-color: #1c1818;
   background-image: url('images/DialerIcon_35x35_paused.png');
+  background-size: 1.6rem;
   background-position: center right 1.5rem;
   background-repeat: no-repeat;
   opacity: 0.7;
@@ -429,6 +430,7 @@ button[disabled] .icon-keypad-visibility {
 #calls[data-count="1"] > section.held {
   background-color: #1c1818;
   background-image: url('images/DialerIcon_35x35_paused.png');
+  background-size: 1.6rem;
   background-position: top 2rem right 2rem;
   background-repeat: no-repeat;
   opacity: 0.7;
@@ -543,6 +545,7 @@ button[disabled] .icon-keypad-visibility {
 #incoming-answer > span {
   background: url('images/ActionIcon_40x40_pause.png'),
               -moz-linear-gradient(top, #00b3d9 1%, #00d3ff 100%);
+  background-size: 4rem, auto;
   background-position: center, center;
   background-repeat: no-repeat, repeat;
   opacity: 1.0;
@@ -552,6 +555,7 @@ button[disabled] .icon-keypad-visibility {
 #incoming-end > span {
   background: url('images/ActionIcon_40x40_hangup.png'),
               -moz-linear-gradient(top, #ff0000 1%, #ce0000 100%);
+  background-size: 4rem, auto;
   background-position: center, center;
   background-repeat: no-repeat, repeat;
   opacity: 1.0;
@@ -643,6 +647,7 @@ button[disabled] .icon-keypad-visibility {
   content: "";
   background-position: 100% -22rem;
   background-image: url("images/mask.png");
+  background-size: 100% 100%;
   position: absolute;
   top: 0;
   width: 100%;
