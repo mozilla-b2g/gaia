@@ -9,6 +9,7 @@ var GridManager = (function() {
   var DEVICE_HEIGHT = window.innerHeight;
   var SCALE_RATIO = window.innerWidth / BASE_WIDTH;
   var AVAILABLE_SPACE = DEVICE_HEIGHT - (BASE_HEIGHT * SCALE_RATIO);
+  var OPACITY_STEPS = 40; // opacity steps between [0,1]
 
   // Check if there is space for another row of icons
   if (AVAILABLE_SPACE > BASE_HEIGHT / 5) {
@@ -168,6 +169,13 @@ var GridManager = (function() {
 
   var removeActive = noop;
 
+  function opacityStepFunction(opacity) {
+      // This step function is used to reduce the number of
+      // opacity changes as the swipe transition occurs on
+      // the home screen. The goal is to improve performance.
+      return Math.round(opacity * OPACITY_STEPS) / OPACITY_STEPS;
+  }
+
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
@@ -288,13 +296,13 @@ var GridManager = (function() {
 
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10) / 10;
+              overlayStyle.opacity = opacityStepFunction(opacity);
             };
           } else if (currentPage === landingPage) {
             setOpacityToOverlay = function() {
               var opacity = (Math.abs(deltaX) / windowWidth) *
                             opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10) / 10;
+              overlayStyle.opacity = opacityStepFunction(opacity);
             };
           } else {
             setOpacityToOverlay = function() {
@@ -303,7 +311,7 @@ var GridManager = (function() {
 
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10) / 10;
+              overlayStyle.opacity = opacityStepFunction(opacity);
             };
           }
 
