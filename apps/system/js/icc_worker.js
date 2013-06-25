@@ -34,7 +34,27 @@ var icc_worker = {
   //'0x05': function STK_CMD_SET_UP_EVENT_LIST(command, iccManager) {},
 
   // STK_CMD_SET_UP_CALL
-  //'0x10': function STK_CMD_SET_UP_CALL(command, iccManager) {},
+  '0x10': function STK_CMD_SET_UP_CALL(command, iccManager) {
+    var _ = navigator.mozL10n.get;
+    DUMP('STK_CMD_SET_UP_CALL:', command.options);
+    var options = command.options;
+    DUMP(' STK:Setup Phone Call. Number: ' + options.address);
+    if (!options.confirmMessage) {
+      options.confirmMessage = _(
+        'icc-confirmCall-defaultmessage', {
+          'number': options.address
+        });
+    }
+    iccManager.asyncConfirm(options.confirmMessage, function(confirmed) {
+      iccManager.responseSTKCommand({
+        hasConfirmed: confirmed,
+        resultCode: iccManager._icc.STK_RESULT_OK
+      });
+      if (options.callMessage) {
+        iccManager.alert(options.callMessage);
+      }
+    });
+  },
 
   // STK_CMD_SEND_SS
   //'0x11': function STK_CMD_SEND_SS(command, iccManager) {},

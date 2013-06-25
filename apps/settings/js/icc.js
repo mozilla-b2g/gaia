@@ -222,25 +222,6 @@
         }
         break;
 
-      case icc.STK_CMD_SET_UP_CALL:
-        debug(' STK:Setup Phone Call. Number: ' + options.address);
-        if (!options.confirmMessage) {
-          options.confirmMessage = _(
-            'operatorService-confirmCall-defaultmessage', {
-              'number': options.address
-            });
-        }
-        var confirmed = confirm(options.confirmMessage);
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          hasConfirmed: confirmed,
-          resultCode: icc.STK_RESULT_OK
-        });
-        if (options.callMessage) {
-          alert(options.callMessage);
-        }
-        break;
-
       case icc.STK_CMD_SET_UP_EVENT_LIST:
         debug(' STK:SetUp Event List. Events list: ' + options.eventList);
         processSTKEvents(options.eventList);
