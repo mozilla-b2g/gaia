@@ -276,7 +276,7 @@ function optimize_aggregateCSSResources(doc, webapp, htmlFile) {
       try {
         let options = {};
         options.keepSpecialComments = 0;
-        options.keepBreaks = true;
+        options.keepBreaks = false;
         options.removeEmpty = true;
         content = CleanCSS.process(content, options);
       } catch (e) {
