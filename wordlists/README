@@ -1,0 +1,20 @@
+This directory contains wordlists and a script used to create the
+binary dictionary files used by the auto-correct feature of the Gaia
+virtual keyboard.
+
+The words2dict script is a Python program that generates a dictionary
+file from a word list. To regenerate all dictionaries, just type
+'make'.  To create a single dictionary use the dictionary name as the
+make target:
+
+  make fr.dict  # create a French dictionary.
+
+The dictionary files are created in this directory. After creating
+them, you must copy them manually into
+../apps/keyboard/js/imes/latin/dictionaries so that the keyboard can
+use them.
+
+The files in the android/ directory are open-source word lists from
+Android. They were taken from the master branch of the
+platform/packages/inputmethods/LatinIME repository available at
+https://android.googlesource.com/
