@@ -1,10 +1,13 @@
+requireLib('db.js');
+requireLib('store/abstract.js')
+requireLib('store/setting.js');
 requireLib('app.js');
 
 suiteGroup('Views.FirstTimeUse', function() {
   var store,
       subject;
   
-  setup(function() {
+  setup(function(done) {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
@@ -15,6 +18,8 @@ suiteGroup('Views.FirstTimeUse', function() {
     document.body.appendChild(div);
 
     app = testSupport.calendar.app();
+    app.loadObject('Provider.Local', done);
+
     store = app.store('Setting');
     subject = new Calendar.Views.FirstTimeUse({ app: app });
     
