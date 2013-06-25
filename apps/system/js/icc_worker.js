@@ -57,16 +57,34 @@ var icc_worker = {
   },
 
   // STK_CMD_SEND_SS
-  //'0x11': function STK_CMD_SEND_SS(command, iccManager) {},
+  '0x11': function STK_CMD_SEND_SS(command, iccManager) {
+    DUMP('STK_CMD_SEND_SS:', command.options);
+    this['0x13'](command, iccManager);
+  },
 
   // STK_CMD_SEND_USSD
-  //'0x12': function STK_CMD_SEND_USSD(command, iccManager) {},
+  '0x12': function STK_CMD_SEND_USSD(command, iccManager) {
+    DUMP('STK_CMD_SEND_USSD:', command.options);
+    this['0x13'](command, iccManager);
+  },
 
   // STK_CMD_SEND_SMS
-  //'0x13': function STK_CMD_SEND_SMS(command, iccManager) {},
+  '0x13': function STK_CMD_SEND_SMS(command, iccManager) {
+    DUMP('STK_CMD_SEND_SMS:', command.options);
+    var options = command.options;
+    iccManager.responseSTKCommand({
+      resultCode: iccManager._icc.STK_RESULT_OK
+    });
+    if (options.text) {
+      iccManager.confirm(options.text);
+    }
+  },
 
   // STK_CMD_SEND_DTMF
-  //'0x14': function STK_CMD_SEND_DTMF(command, iccManager) {},
+  '0x14': function STK_CMD_SEND_DTMF(command, iccManager) {
+    DUMP('STK_CMD_SEND_DTMF:', command.options);
+    this['0x13'](command, iccManager);
+  },
 
   // STK_CMD_LAUNCH_BROWSER
   '0x15': function STK_CMD_LAUNCH_BROWSER(command, iccManager) {
