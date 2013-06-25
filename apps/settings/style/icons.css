@@ -24,7 +24,7 @@
   background-image: url(images/icons_sprite.gif);
 }
 
-li:active .menu-item::before,
+li:active:not(.disabled) .menu-item::before,
 .menu-item:focus::before {
   background-image: url(images/icons_sprite_active.gif);
 }
