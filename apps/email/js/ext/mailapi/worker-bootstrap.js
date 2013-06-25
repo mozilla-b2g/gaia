@@ -7176,6 +7176,10 @@ FolderStorage.prototype = {
       this._curSyncSlice = slice;
     }.bind(this);
 
+    // The slice flags are not yet valid; we are primarily interested in having
+    // atTop be true when splice notifications for generated as headers are
+    // added.
+    slice._updateSliceFlags();
     this.folderSyncer.initialSync(
       slice, $sync.INITIAL_SYNC_DAYS,
       syncCallback, doneCallback, progressCallback);

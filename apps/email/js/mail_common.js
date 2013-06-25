@@ -1,55 +1,22 @@
 /**
  * UI infrastructure code and utility code for the gaia email app.
  **/
+/*jshint browser: true */
+/*global define, console, hookupInputAreaResetButtons */
+define(function(require, exports) {
 
-var mozL10n = navigator.mozL10n;
+var Cards, Toaster,
+    initialCardInsertion = true,
+    mozL10n = require('l10n!'),
+    toasterNode = require('tmpl!./cards/toaster.html'),
+    ValueSelector = require('value_selector');
 
-// Dependcy handling for Cards
-// We match the first section of each card type to the key
-// E.g., setup-progress, would load the 'setup' lazyCards.setup
-var lazyCards = {
-    compose: ['js/compose-cards.js', 'style/compose-cards.css'],
-    settings: ['js/setup-cards.js', 'style/setup-cards.css'],
-    setup: ['js/setup-cards.js', 'style/setup-cards.css']
-};
+// Does not return a module value, just need it to make globals
+require('input_areas');
 
 function dieOnFatalError(msg) {
   console.error('FATAL:', msg);
   throw new Error(msg);
-}
-
-var fldNodes, msgNodes, cmpNodes, supNodes, tngNodes;
-function processTemplNodes(prefix) {
-  var holder = document.getElementById('templ-' + prefix),
-      nodes = {},
-      node = holder.firstElementChild,
-      reInvariant = new RegExp('^' + prefix + '-');
-  while (node) {
-    var classes = node.classList, found = false;
-    for (var i = 0; i < classes.length; i++) {
-      if (reInvariant.test(classes[i])) {
-        var name = classes[i].substring(prefix.length + 1);
-        nodes[name] = node;
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      console.warn('Bad template node for prefix "' + prefix +
-                   '" for node with classes:', classes);
-    }
-
-    node = node.nextElementSibling;
-  }
-
-  return nodes;
-}
-function populateTemplateNodes() {
-  fldNodes = processTemplNodes('fld');
-  msgNodes = processTemplNodes('msg');
-  cmpNodes = processTemplNodes('cmp');
-  supNodes = processTemplNodes('sup');
-  tngNodes = processTemplNodes('tng');
 }
 
 function addClass(domNode, name) {
@@ -165,7 +132,7 @@ function bindContainerClickAndHold(containerNode, clickFunc, holdFunc) {
  * transitions.  We are cribbing from deuxdrop's mobile UI's cards.js
  * implementation created jrburke.
  */
-var Cards = {
+Cards = {
   /* @dictof[
    *   @key[name String]
    *   @value[@dict[
@@ -240,10 +207,6 @@ var Cards = {
    * is visible.
    */
   _cardsNode: null,
-  /**
-   * DOM template nodes for the cards.
-   */
-  _templateNodes: null,
 
   /**
    * The DOM nodes that should be removed from their parent when our current
@@ -290,7 +253,8 @@ var Cards = {
     this._rootNode = document.body;
     this._containerNode = document.getElementById('cardContainer');
     this._cardsNode = document.getElementById('cards');
-    this._templateNodes = processTemplNodes('card');
+
+    this._containerNode.appendChild(toasterNode);
 
     this._containerNode.addEventListener('click',
                                          this._onMaybeIntercept.bind(this),
@@ -383,11 +347,13 @@ var Cards = {
     }
   },
 
-  defineCardWithDefaultMode: function(name, defaultMode, constructor) {
+  defineCardWithDefaultMode: function(name, defaultMode, constructor,
+                                      templateNode) {
     var cardDef = {
       name: name,
       modes: {},
-      constructor: constructor
+      constructor: constructor,
+      templateNode: templateNode
     };
     cardDef.modes['default'] = defaultMode;
     this.defineCard(cardDef);
@@ -432,26 +398,57 @@ var Cards = {
     var cardDef = this._cardDefs[type];
     var typePrefix = type.split('-')[0];
 
-    if (!cardDef && lazyCards[typePrefix]) {
+    if (!cardDef) {
+      var cbArgs = Array.slice(arguments);
       this._pendingPush = [type, mode];
-      var saveArgs = Array.slice(arguments);
-      var callback = function() {
-        this.pushCard.apply(this, saveArgs);
-      };
-
       this.eatEventsUntilNextCard();
-      App.loader.load(lazyCards[typePrefix], callback.bind(this));
+      require(['cards/' + type], function() {
+        this.pushCard.apply(this, cbArgs);
+      }.bind(this));
       return;
-    } else if (!cardDef) {
-      throw new Error('No such card def type: ' + type);
     }
+
     this._pendingPush = null;
 
     var modeDef = cardDef.modes[mode];
     if (!modeDef)
       throw new Error('No such card mode: ' + mode);
 
-    var domNode = this._templateNodes[type].cloneNode(true);
+console.log('pushCard for type: ' + type);
+
+    var domNode = cardDef.templateNode.cloneNode(true);
+
+    var boundShowCard = (function() {
+      if (initialCardInsertion) {
+        initialCardInsertion = false;
+        this._cardsNode.innerHTML = '';
+      }
+
+      this._cardsNode.insertBefore(domNode, insertBuddy);
+
+      // If the card has any <button type="reset"> buttons,
+      // make them clear the field they're next to and not the entire form.
+      // See input_areas.js and shared/style/input_areas.css.
+      hookupInputAreaResetButtons(domNode);
+
+      if ('postInsert' in cardImpl)
+        cardImpl.postInsert();
+
+      if (showMethod !== 'none') {
+        // make sure the reflow sees the new node so that the animation
+        // later is smooth.
+        domNode.clientWidth;
+
+        this._showCard(cardIndex, showMethod, 'forward');
+      }
+
+      if (args.onPushed)
+        args.onPushed(cardImpl);
+    }).bind(this);
+
+    if (args.waitForData) {
+      args.onDataInserted = boundShowCard;
+    }
 
     var cardImpl = new cardDef.constructor(domNode, mode, args);
     var cardInst = {
@@ -480,22 +477,9 @@ var Cards = {
       domNode.classList.add('after');
     }
     this._cardStack.splice(cardIndex, 0, cardInst);
-    this._cardsNode.insertBefore(domNode, insertBuddy);
 
-    // If the card has any <button type="reset"> buttons,
-    // make them clear the field they're next to and not the entire form.
-    // See input_areas.js and shared/style/input_areas.css.
-    hookupInputAreaResetButtons(domNode);
-
-    if ('postInsert' in cardImpl)
-      cardImpl.postInsert();
-
-    if (showMethod !== 'none') {
-      // make sure the reflow sees the new node so that the animation
-      // later is smooth.
-      domNode.clientWidth;
-
-      this._showCard(cardIndex, showMethod, 'forward');
+    if (!args.waitForData) {
+      boundShowCard();
     }
   },
 
@@ -552,15 +536,13 @@ var Cards = {
   folderSelector: function(callback) {
     var self = this;
 
-    App.loader.load(
-      ['style/value_selector.css', 'js/value_selector.js'],
-      function() {
-        // XXX: Unified folders will require us to make sure we get
-        //      the folder list for the account the message originates from.
-        if (!self.folderPrompt) {
-          var selectorTitle = mozL10n.get('messages-folder-select');
-          self.folderPrompt = new ValueSelector(selectorTitle);
-        }
+    require(['value_selector'], function() {
+      // XXX: Unified folders will require us to make sure we get the folder
+      //      list for the account the message originates from.
+      if (!self.folderPrompt) {
+        var selectorTitle = mozL10n.get('messages-folder-select');
+        self.folderPrompt = new ValueSelector(selectorTitle);
+      }
 
         var folderCardObj =
           Cards.findCardObject(['folder-picker', 'navigation']);
@@ -857,6 +839,12 @@ var Cards = {
   },
 
   _onTransitionEnd: function(event) {
+    var activeCard = this._cardStack[this.activeCardIndex];
+    // If no current card, this could be initial setup from cache, no valid
+    // cards yet, so bail.
+    if (!activeCard)
+      return;
+
     // Multiple cards can animate, so there can be multiple transitionend
     // events. Only do the end work when all have finished animating.
     if (this._transitionCount > 0)
@@ -878,7 +866,7 @@ var Cards = {
 
       // If an vertical overlay transition was was disabled, if
       // current node index is an overlay, enable it again.
-      var endNode = this._cardStack[this.activeCardIndex].domNode;
+      var endNode = activeCard.domNode;
       if (endNode.classList.contains('disabled-anim-vertical')) {
         removeClass(endNode, 'disabled-anim-vertical');
         addClass(endNode, 'anim-vertical');
@@ -896,6 +884,19 @@ var Cards = {
         var afterTransitionAction = this._afterTransitionAction;
         this._afterTransitionAction = null;
         afterTransitionAction();
+      }
+
+      // If the card has next cards that can be preloaded, load them now.
+      // Use of nextCards should be balanced with startup performance.
+      // nextCards can result in smoother transitions to new cards on first
+      // navigation to that new card type, but loading the extra module may
+      // also compete with current card and data model performance.
+      var nextCards = activeCard.cardImpl.nextCards;
+      if (nextCards) {
+        console.log('Preloading cards: ' + nextCards);
+        require(nextCards.map(function(id) {
+          return 'cards/' + id;
+        }));
       }
     }
   },
@@ -943,7 +944,7 @@ var Cards = {
  * Central tracker of poptart messages; specifically, ongoing message sends,
  * failed sends, and recently performed undoable mutations.
  */
-var Toaster = {
+Toaster = {
   get body() {
     delete this.body;
     return this.body =
@@ -1255,3 +1256,37 @@ FormNavigation.prototype = {
     return null;
   }
 };
+
+/**
+ * Format the message subject appropriately.  This means ensuring that if the
+ * subject is empty, we use a placeholder string instead.
+ *
+ * @param {DOMElement} subjectNode the DOM node for the message's subject.
+ * @param {Object} message the message object.
+ */
+function displaySubject(subjectNode, message) {
+  var subject = message.subject && message.subject.trim();
+  if (subject) {
+    subjectNode.textContent = subject;
+    subjectNode.classList.remove('msg-no-subject');
+  }
+  else {
+    subjectNode.textContent = mozL10n.get('message-no-subject');
+    subjectNode.classList.add('msg-no-subject');
+  }
+}
+
+exports.Cards = Cards;
+exports.Toaster = Toaster;
+exports.ConfirmDialog = ConfirmDialog;
+exports.FormNavigation = FormNavigation;
+exports.prettyDate = prettyDate;
+exports.prettyFileSize = prettyFileSize;
+exports.batchAddClass = batchAddClass;
+exports.bindContainerClickAndHold = bindContainerClickAndHold;
+exports.bindContainerHandler = bindContainerHandler;
+exports.appendMatchItemTo = appendMatchItemTo;
+exports.bindContainerHandler = bindContainerHandler;
+exports.dieOnFatalError = dieOnFatalError;
+exports.displaySubject = displaySubject;
+});
