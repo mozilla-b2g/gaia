@@ -266,7 +266,6 @@ function optimize_compile(webapp, file) {
 
   let processedLocales = 0;
   let dictionary = l10nDictionary;
-  let commentsNodes = [];
 
   // catch console.[log|warn|info] calls and redirect them to `dump()'
   // XXX for some reason, this won't work if gDEBUG >= 2 in l10n.js
@@ -319,12 +318,6 @@ function optimize_compile(webapp, file) {
       docElt.dir = mozL10n.language.direction;
       docElt.lang = mozL10n.language.code;
 
-      // Copy the translations in the original comment
-      commentsNodes.forEach(function(node) {
-        node.nodeValue = node.forL10nNode.innerHTML;
-        node.forL10nNode.parentNode.removeChild(node.forL10nNode);
-      });
-
       // save localized document
       let newPath = file.path + '.' + GAIA_DEFAULT_LOCALE;
       let newFile = new FileUtils.File(newPath);
@@ -347,22 +340,6 @@ function optimize_compile(webapp, file) {
   let DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
   win.document = (new DOMParser()).
       parseFromString(getFileContent(file), 'text/html');
-
-  // To translate comments whose content is html, insert their content in
-  // elements being inserted at end of the document. These elements are then
-  // fetched and removed when the document is localized.
-  let nodeIterator = win.document.createNodeIterator(
-    win.document.body,
-    128 // NodeFilter.SHOW_COMMENT
-  );
-  let originalNode;
-  while (originalNode = nodeIterator.nextNode()) {
-    originalNode.forL10nNode = win.document.createElement('div');
-    originalNode.forL10nNode.innerHTML = originalNode.nodeValue;
-    win.document.body.appendChild(originalNode.forL10nNode);
-
-    commentsNodes.push(originalNode);
-  }
 
   // if this HTML document uses l10n.js, pre-localize it --
   // selecting a language triggers `XMLHttpRequest' and `dispatchEvent' above
