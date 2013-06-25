@@ -394,7 +394,7 @@ var Compose = (function() {
       var activity;
 
       if (Settings.mmsSizeLimitation) {
-        activityData.maxFileSize = Settings.mmsSizeLimitation;
+        activityData.maxFileSizeBytes = Settings.mmsSizeLimitation;
       }
 
       activity = new MozActivity({
