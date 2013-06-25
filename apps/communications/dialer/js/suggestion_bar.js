@@ -79,10 +79,18 @@ var SuggestionBar = {
       }
 
       self.bar.hidden = false;
+
+      // Store contacts for constructing multiple suggestions.
+      self._contactList = contacts.slice(0, self.MAX_ITEMS);
+      // Create matching index table for reference
+      self._allMatched = self._getAllMatched(self._contactList);
+
+      var totalMatchNum = self._allMatched.totalMatchNum;
+
       self.countTag.textContent =
-        (contacts.length < self.MAX_ITEMS) ?
-        contacts.length : (self.MAX_ITEMS + '+');
-      if (contacts.length > 1) {
+        (totalMatchNum < self.MAX_ITEMS) ?
+        totalMatchNum : (self.MAX_ITEMS + '+');
+      if (totalMatchNum > 1) {
         self.countTag.hidden = false;
         self.countTag.classList.add('more');
       } else {
@@ -90,38 +98,27 @@ var SuggestionBar = {
         self.countTag.classList.remove('more');
       }
 
-      // Store contacts for constructing multiple suggestions.
-      self._contactList = contacts;
-
       var node = self.bar.querySelector('.suggestion-item');
-      var contact = contacts[0];
-      self._fillContacts(node, contact);
+      var contact = self._contactList[0];
+      self._fillContacts(contact, self._allMatched.allMatches[0][0], node);
       self.bar.dataset.lastId = contact.id;
     });
   },
 
-  _fillContacts: function sb_fillContacts(node, contact) {
-    var tel = contact.tel;
-    // Find matched number from all numbers of the contact.
-    var variants = SimplePhoneMatcher.generateVariants(this._phoneNumber);
-    var matches = contact.tel.map(function getNumber(tel) {
-        return tel.value;
-      });
-    var matchResult = SimplePhoneMatcher.bestMatch(variants, [matches]);
-    // use first phone number if bestMatch can't give us localIndex
-    var matchedTel = (matchResult.localIndex != null) ?
-                 tel[matchResult.localIndex] : tel[0];
+  _fillContacts: function sb_fillContacts(contact, matchLocal, node) {
 
     // if first letter of query is '+' and first letter of matchedTel isn't '+'
     // we use query without country code instead of original query for
     // markedNumber.
+    var matchedTel = contact.tel[matchLocal];
+
     var query = this._phoneNumber.charAt(0) === '+' &&
                     matchedTel.value.charAt(0) !== '+' ?
                     variants[0] : this._phoneNumber;
 
     var markedNumber = this._markMatched(matchedTel.value, query);
     this._setItem(node, markedNumber, matchedTel.type,
-                  contact.name[0]);
+                    contact.name[0]);
   },
 
   _createItem: function sb_createItem() {
@@ -190,15 +187,30 @@ var SuggestionBar = {
     var self = this;
     LazyL10n.get(function localized(_) {
       title.textContent = _('suggestionMatches', {
-        n: maxItems,
+        n: self.countTag.textContent,
         matchNumber: self._phoneNumber
       });
     });
     for (var i = 0; i < maxItems; i++) {
-      var node = this._createItem();
-      this._fillContacts(node, this._contactList[i]);
+      for (var j = 0; j < this._allMatched.allMatches[i].length; j++) {
+        var node = this._createItem();
+        this._fillContacts(this._contactList[i],
+          this._allMatched.allMatches[i][j], node);
+      }
     }
     this.overlay.classList.add('display');
+  },
+
+  _getAllMatched: function sb_getAllMatched(contacts) {
+    var variants = SimplePhoneMatcher.generateVariants(this._phoneNumber);
+
+    var contactTels = contacts.map(function getTels(contact) {
+      return contact.tel.map(function getNumber(tel) {
+        return tel.value;
+      });
+    });
+
+    return SimplePhoneMatcher.bestMatch(variants, contactTels);
   },
 
   hideOverlay: function sb_hideOverlay() {
