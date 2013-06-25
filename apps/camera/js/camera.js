@@ -144,6 +144,11 @@ var Camera = {
   _previewPaused: false,
   _previewActive: false,
 
+  // We can recieve multiple FileSizeLimitReached events
+  // when recording, since we stop recording on this event
+  // only show one alert per recording
+  _sizeLimitAlertActive: false,
+
   FILMSTRIP_DURATION: 5000, // show filmstrip for 5s before fading
 
   _flashState: {
@@ -550,6 +555,7 @@ var Camera = {
   },
 
   startRecording: function camera_startRecording() {
+    this._sizeLimitAlertActive = false;
     var captureButton = this.captureButton;
     var switchButton = this.switchButton;
 
@@ -591,6 +597,12 @@ var Camera = {
         rotation: this._phoneOrientation,
         maxFileSizeBytes: freeBytes - this.RECORD_SPACE_PADDING
       };
+
+      if (this._pendingPick && this._pendingPick.source.data.maxFileSizeBytes) {
+        var maxFileSizeBytes = this._pendingPick.source.data.maxFileSizeBytes;
+        config.maxFileSizeBytes = Math.min(config.maxFileSizeBytes,
+                                           maxFileSizeBytes);
+      }
       this._cameraObj.startRecording(config,
                                      this._videoStorage, this._videoPath,
                                      onsuccess, onerror);
@@ -875,9 +887,12 @@ var Camera = {
   },
 
   recordingStateChanged: function(msg) {
-    if (msg === 'FileSizeLimitReached') {
+    if (msg === 'FileSizeLimitReached' && !this.sizeLimitAlertActive) {
       this.stopRecording();
-      alert(navigator.mozL10n.get('size-limit-reached'));
+      this.sizeLimitAlertActive = true;
+      var alertText = this._pendingPick ? 'activity-size-limit-reached' :
+        'size-limit-reached';
+      alert(navigator.mozL10n.get(alertText));
     }
   },
 
