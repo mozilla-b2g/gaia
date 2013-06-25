@@ -26,6 +26,10 @@ var FixedHeader = (function FixedHeader() {
 
   var refresh = function refresh() {
     headings = view.querySelectorAll(selector);
+    // We update the content
+    if (currentlyFixed) {
+      fixedContainer.textContent = currentlyFixed.textContent;
+    }
     // after setting up a new headings selection, check the scroll again
     // in case we removed the header we have currently fixed.
     scrolling();

@@ -30,6 +30,7 @@
     updateTimeHeaders: function ut_updateTimeHeaders() {
       var headers = document.querySelectorAll('header[data-time-update]'),
           length = headers.length,
+          forceUpdate = false,
           i, ts, header, headerDate, formattedHour, newHeader;
 
       if (length) {
@@ -54,7 +55,14 @@
 
           if (newHeader !== header.textContent) {
             header.textContent = newHeader;
+            if (!forceUpdate) {
+              forceUpdate = true;
+            }
           }
+        }
+        if (forceUpdate) {
+          // Refresh fixed header logic
+          FixedHeader.refresh();
         }
       }
     },
