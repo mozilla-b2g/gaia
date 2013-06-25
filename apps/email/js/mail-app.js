@@ -209,7 +209,8 @@ var queryURI = function _queryURI(uri) {
   function addressesToArray(addresses) {
     if (!addresses)
       return [''];
-    addresses = addresses.split(';');
+    // Addresses can be separated by ',' and ';'
+    addresses = addresses.split(/[,;]/);
     var addressesArray = addresses.filter(function notEmpty(addr) {
       return addr.trim() != '';
     });
