@@ -47,7 +47,18 @@ function handleOpenActivity(request) {
     });
   }
 
-  playBlob(blob);
+  if (data.filename) {
+    var getrequest = navigator.getDeviceStorage('music').get(data.filename);
+    getrequest.onsuccess = function() {
+      playBlob(getrequest.result); // this blob should have a valid size and type
+    };
+    getrequest.onerror = function() {
+      // if the file didn't exist, then try the blob
+      playBlob(blob);
+    };
+  } else {
+    playBlob(blob);
+  }
 
   function playBlob(blob) {
     PlayerView.init();
