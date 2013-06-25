@@ -103,8 +103,6 @@ var SpinDatePicker = (function SpinDatePicker() {
 
   /**
    * Get the order of date components.
-   *
-   * @param {String} date format.
    */
   function getDateComponentOrder() {
     var format = navigator.mozL10n.get('dateTimeFormat_%x');
