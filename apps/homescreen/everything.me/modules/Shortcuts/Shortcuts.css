@@ -39,7 +39,8 @@
         bottom: 0;
         left: 0;
         right: 0rem;
-        padding: 0 2rem 0 0;
+        margin: 0 2rem 0 0;
+        padding: 0;
     }
     #evmeContainer #shortcuts #shortcuts-list ul {
         padding: 0.5rem 0 0 0;
@@ -155,3 +156,4 @@
   0%   { -moz-transform: scale(1) translateZ(0); opacity: 1; }
   100% { -moz-transform: scale(1.1) translateZ(0); opacity: 0; }
 }
+
