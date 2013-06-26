@@ -198,9 +198,9 @@ VCFReader.processComm = function(vcardObj, contactObj) {
         });
 
         if (metaValues.indexOf('pref') > -1 || metaValues.indexOf('PREF') > -1)
-          cur.type = 'PREF';
+          cur.type = ['PREF'];
         else
-          cur.type = metaValues[0]; // Take only the first meta type
+          cur.type = [metaValues[0]]; // Take only the first meta type
       }
 
       if (!contactObj[field])
@@ -336,7 +336,7 @@ VCFReader.vcardToContact = function(vcard) {
   VCFReader.processComm(vcard, obj);
   VCFReader.processFields(vcard, obj);
 
-  var contact = new mozContact();
+  var contact = new navigator.mozContact();
   contact.init(obj);
 
   return contact;
