@@ -513,8 +513,16 @@ const IMERender = (function() {
 
     // Width calc
     if (layout) {
+      var keyboard = document.getElementById('keyboard');
+
+      // Remove inline styles on rotation
+      [].forEach.call(keyboard.querySelectorAll('.visual-wrapper[style]'),
+        function(item) {
+          item.style.width = '';
+        });
+
       layoutWidth = layout.width || 10;
-      var totalWidth = document.getElementById('keyboard').clientWidth;
+      var totalWidth = keyboard.clientWidth;
       var placeHolderWidth = totalWidth / layoutWidth;
 
       var ratio, keys, rows = document.querySelectorAll('.keyboard-row');
