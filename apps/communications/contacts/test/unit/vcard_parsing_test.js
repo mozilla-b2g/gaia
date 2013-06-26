@@ -1,4 +1,6 @@
 requireApp('communications/contacts/js/utilities/vcard_parser.js');
+requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_contact.js');
 
 var vcf1 = 'BEGIN:VCARD\n' +
   'VERSION:2.1\n' +
@@ -83,6 +85,10 @@ var vcfwrong1 = 'BEGIN:VCARD\n' +
   'akajslkfj\n' +
   'END:VCARD';
 
+if (!navigator.mozContact) {
+  navigator.mozContact = null;
+}
+
 suite('vCard parsing settings', function() {
   function stub(additionalCode, ret) {
     if (additionalCode && typeof additionalCode !== 'function')
@@ -100,22 +106,20 @@ suite('vCard parsing settings', function() {
     nfn.callCount = 0;
     return nfn;
   }
-
+  var realMozContact, realMozContacts;
   suite('SD Card import', function() {
     setup(function() {
-      navigator.mozContacts = {
-        save: function() {
-          var req = {};
-          setTimeout(function() {
-            if (req.onsuccess)
-              req.onsuccess();
-          }, 200);
-          return req;
-        }
-      };
+      realMozContacts = navigator.mozContacts;
+      navigator.mozContacts = MockMozContacts;
+
+      realMozContact = navigator.mozContact;
+      navigator.mozContact = MockMozContact;
     });
 
-    teardown(function() { });
+    teardown(function() {
+      navigator.mozContacts = realMozContacts;
+      navigator.mozContact = realMozContact;
+    });
 
     test('- should properly decode Quoted Printable texts ', function(done) {
       var str = 'áàéèíìóòúùäëïöü¡¡¡·=';
