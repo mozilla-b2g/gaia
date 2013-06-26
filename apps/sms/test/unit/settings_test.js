@@ -52,7 +52,7 @@ suite('Message App settings Unit-Test', function() {
 
         var req = lock.get.returnValues[0];
         req.result = {
-          'dom.mms.operatorSizeLimitation': 500
+          'dom.mms.operatorSizeLimitation': 512000
         };
         req.onsuccess();
 
