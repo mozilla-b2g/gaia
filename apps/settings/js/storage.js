@@ -178,9 +178,9 @@ var Storage = {
   lockMediaStorageMenu: function storage_setMediaMenuState(lock) {
     var mediaStorageSection = document.getElementById('media-storage-section');
     if (lock) {
-      mediaStorageSection.classList.add('disabled');
+      mediaStorageSection.setAttribute('aria-disabled', true);
     } else {
-      mediaStorageSection.classList.remove('disabled');
+      mediaStorageSection.removeAttribute('aria-disabled');
     }
   },
 
