@@ -292,6 +292,32 @@ var CallLog = {
     }
   },
 
+  // Method that generates the markup for each of the rows in the call log.
+  // Example:
+  // <li data-contact-id="4bfa5f07c5584d48a1af7931b976a223"
+  //  id="1369695600000-6136112351-dialing" data-type="dialing"
+  //  data-phone-number="6136112351" data-timestamp="1369731559902"
+  //  class="log-item">
+  //    <label class="call-log-selection danger">
+  //      <input value="1369695600000-6136112351-dialing" type="checkbox">
+  //      <span></span>
+  //    </label>
+  //    <aside class="pack-end">
+  //      <img src="" class="call-log-contact-photo">
+  //    </aside>
+  //    <a>
+  //      <aside class="icon call-type-icon icon icon-outgoing">
+  //      </aside>
+  //      <p class="primary-info">
+  //        <span class="primary-info-main">David R. Chichester</span>
+  //      </p>
+  //      <p class="call-additional-info">Mobile, O2</p>
+  //      <p>
+  //        <span class="call-time">9:59 AM </span>
+  //        <span class="retry-count">(1)</span>
+  //      </p>
+  //    </a>
+  // </li>
   createGroup: function cl_createGroup(group, updateContact) {
     var date = group.lastEntryDate;
     var number = group.number;
@@ -348,34 +374,25 @@ var CallLog = {
     primInfoMain.className = 'primary-info-main';
     primInfoMain.textContent = (number || this._('unknown'));
 
-    var manyContacts = document.createElement('span');
-    manyContacts.className = 'many-contacts';
-    var entryCount = document.createElement('span');
-    entryCount.className = 'entry-count';
-
-    if (group.retryCount && group.retryCount > 1) {
-      entryCount.innerHTML = '&#160;(' + group.retryCount + ')';
-    }
-
     primInfo.appendChild(primInfoMain);
-    primInfo.appendChild(manyContacts);
-    primInfo.appendChild(entryCount);
 
-    var secInfo = document.createElement('p');
-    secInfo.className = 'secondary-info';
-
+    var thirdInfo = document.createElement('p');
     var callTime = document.createElement('span');
     callTime.className = 'call-time';
     callTime.textContent = Utils.prettyDate(date) + ' ';
-    var additInfo = document.createElement('span');
-    additInfo.className = 'call-additional-info';
+    var retryCount = document.createElement('span');
+    retryCount.className = 'retry-count';
 
-    secInfo.appendChild(callTime);
-    secInfo.appendChild(additInfo);
+    if (group.retryCount && group.retryCount > 1) {
+      retryCount.textContent = '(' + group.retryCount + ')';
+    }
+
+    thirdInfo.appendChild(callTime);
+    thirdInfo.appendChild(retryCount);
 
     main.appendChild(icon);
     main.appendChild(primInfo);
-    main.appendChild(secInfo);
+    main.appendChild(thirdInfo);
 
     groupDOM.appendChild(label);
     groupDOM.appendChild(aside);
@@ -451,18 +468,28 @@ var CallLog = {
     if (!params.matchingTel && !el.dataset.contactId) {
       return;
     }
+
     var primInfoCont = el.getElementsByClassName('primary-info-main')[0];
-    var numContactsCont = el.getElementsByClassName('many-contacts')[0];
     var contactPhoto = el.querySelector('.call-log-contact-photo');
-    var additInfoCont = el.getElementsByClassName('call-additional-info')[0];
+    var additInfo = el.getElementsByClassName('call-additional-info');
+    var additInfoCont;
+    if (additInfo && additInfo[0]) {
+      additInfoCont = additInfo[0];
+    } else {
+      additInfoCont = document.createElement('p');
+      additInfoCont.className = 'call-additional-info';
+      var primElem = primInfoCont.parentNode;
+      var parent = primElem.parentNode;
+      parent.insertBefore(additInfoCont, primElem.nextElementSibling);
+    }
 
     if (!params.matchingTel && el.dataset.contactId) {
-        primInfoCont.textContent = el.dataset.phoneNumber;
-        numContactsCont.textContent = '';
-        additInfoCont.textContent = '';
-        contactPhoto.src = '';
-        delete el.dataset.contactId;
-        return;
+      primInfoCont.textContent = el.dataset.phoneNumber;
+      numContactsCont.textContent = '';
+      additInfoCont.textContent = '';
+      contactPhoto.src = '';
+      delete el.dataset.contactId;
+      return;
     }
     var primaryInfo =
       Utils.getPhoneNumberPrimaryInfo(params.matchingTel, params.contact);
@@ -473,13 +500,7 @@ var CallLog = {
         primInfoCont.textContent = _('unknown');
       });
     }
-    if (params.contactsWithSameNumber) {
-      numContactsCont.innerHTML =
-        '&#160;' + this._('contactNameWithOthersSuffix',
-          {n: params.contactsWithSameNumber});
-    } else {
-      numContactsCont.textContent = '';
-    }
+
     if (params.contact.photo && params.contact.photo[0]) {
       var image_url = params.contact.photo[0];
       var photoURL;
@@ -488,6 +509,7 @@ var CallLog = {
       el.classList.add('hasPhoto');
     } else {
       contactPhoto.src = '';
+      el.classList.remove('hasPhoto');
     }
 
     var tel = params.matchingTel;
@@ -499,7 +521,6 @@ var CallLog = {
     additInfoCont.textContent = phoneNumberAdditionalInfo;
     el.dataset.contactId = params.contact.id;
 
-    this.fitPrimaryInfoToSpace(el);
   },
 
   // Method that removes the contact information from every affected group.
@@ -679,40 +700,6 @@ var CallLog = {
     CallLogDBManager.deleteGroupList(logGroupsToDelete, function() {
       document.body.classList.remove('recents-edit');
     });
-  },
-
-  // This evil method causes synchronous reflows when checking
-  // width and height, but will be refactored at Bug 865079
-  fitPrimaryInfoToSpace: function re_fitPrimaryInfoToSpace(logItemNode) {
-    var logItemNodes;
-    if (logItemNode) {
-      logItemNodes = [];
-      logItemNodes.push(logItemNode);
-    } else {
-      logItemNodes = this.recentsContainer.
-        querySelectorAll('.log-item.isContact:not(.hide)');
-    }
-    for (var i = 0, l = logItemNodes.length; i < l; i++) {
-      var primaryInfoNode = logItemNodes[i].
-        querySelector('.primary-info');
-      var primaryInfoNodeWidth = primaryInfoNode.clientWidth;
-      var primaryInfoMainNode = logItemNodes[i].
-        querySelector('.primary-info-main');
-      primaryInfoMainNode.style.width = 'auto';
-      var primaryInfoMainNodeCS = window.getComputedStyle(primaryInfoMainNode);
-      var primaryInfoMainNodeWidth = parseInt(primaryInfoMainNodeCS.width);
-      var manyContactsNode = logItemNodes[i].querySelector('.many-contacts');
-      var manyContactsNodeCS = window.getComputedStyle(manyContactsNode);
-      var manyContactsNodeWidth = parseInt(manyContactsNodeCS.width);
-      var entryCountNode = logItemNodes[i].querySelector('.entry-count');
-      var entryCountNodeCS = window.getComputedStyle(entryCountNode);
-      var entryCountNodeWidth = parseInt(entryCountNodeCS.width);
-      if ((primaryInfoMainNodeWidth + manyContactsNodeWidth +
-          entryCountNodeWidth) > primaryInfoNodeWidth) {
-        primaryInfoMainNode.style.width = (primaryInfoNodeWidth -
-          manyContactsNodeWidth - entryCountNodeWidth) + 'px';
-      }
-    }
   }
 };
 
