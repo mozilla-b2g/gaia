@@ -83,13 +83,38 @@ var icc_worker = {
     });
     if (options.text) {
       iccManager.confirm(options.text);
+    } else if (options.text != undefined) {
+      iccManager.alert(_('icc-alertMessage-defaultmessage'));
     }
   },
 
   // STK_CMD_SEND_DTMF
   '0x14': function STK_CMD_SEND_DTMF(command, iccManager) {
     DUMP('STK_CMD_SEND_DTMF:', command.options);
-    this['0x13'](command, iccManager);
+    var _confirm = true;
+    if (options.text) {
+      iccManager.responseSTKCommand({
+        resultCode: iccManager._icc.STK_RESULT_OK
+      });
+      iccManager.confirm(options.text);
+      command.options.userClear = true;
+      iccManager.responseSTKCommand({
+        resultCode: icc.STK_RESULT_OK
+      });
+    } else {
+      iccManager.confirm(_('icc-confirmMessage-defaultmessage'), 0,
+        function(userCleared) {
+          if (userCleared) {
+            iccManager.responseSTKCommand({
+              resultCode: icc.STK_RESULT_OK
+            });
+          } else {
+            iccManager.responseSTKCommand({
+              resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+            });
+          }
+        });
+    }
   },
 
   // STK_CMD_LAUNCH_BROWSER
