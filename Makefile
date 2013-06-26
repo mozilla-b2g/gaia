@@ -361,7 +361,7 @@ reference-workload-heavy:
 reference-workload-x-heavy:
 	test_media/reference-workload/makeReferenceWorkload.sh x-heavy
 
-
+ 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
 XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2013/06/2013-06-11-03-11-40-mozilla-central/xulrunner-24.0a1.en-US.
