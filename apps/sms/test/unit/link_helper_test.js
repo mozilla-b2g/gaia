@@ -8,10 +8,6 @@ mocha.globals(['0', '6']);
 requireApp('sms/js/link_helper.js');
 
 suite('link_helper_test.js', function() {
-  suiteSetup(function() {
-  });
-  suiteTeardown(function() {
-  });
 
   suite('LinkHelper URL replacements', function() {
 
@@ -26,64 +22,106 @@ suite('link_helper_test.js', function() {
              ' data-action="url-link" >' + link + '</a>';
     }
 
-    function testURLOK(url, addprefix = false) {
-      var exp = url2msg(url, addprefix);
-      var res = LinkHelper.searchAndLinkUrl(url);
-      assert.equal(res, exp);
+    function testURLMatch(url, match, addprefix) {
+      var expected = url.replace(match, url2msg(match, addprefix));
+      var result = LinkHelper.searchAndLinkUrl(url);
+      assert.equal(result, expected);
+    }
+
+    function testURLOK(url, addprefix) {
+      var expected = url2msg(url, addprefix);
+      var result = LinkHelper.searchAndLinkUrl(url);
+      assert.equal(result, expected);
     }
 
     function testURLNOK(url) {
-      var res = LinkHelper.searchAndLinkUrl(url);
-      assert.equal(res, url);
+      var result = LinkHelper.searchAndLinkUrl(url);
+      assert.equal(result, url);
     }
 
-    test('Simple URL', function() {
-      testURLOK('http://www.mozilla.org/');
+    suite('Matches', function() {
+      test('Simple URL', function() {
+        testURLOK('http://www.mozilla.org/');
+      });
+      test('Simple URL .co.uk', function() {
+        testURLOK('http://www.mozilla.co.uk/');
+      });
+      test('Simple short URL', function() {
+        testURLOK('mzl.la', true);
+      });
+      test('Simple short URL with parens', function() {
+        testURLMatch('(mzl.la)', 'mzl.la', true);
+      });
+      test('Simple short URL with trailing dot', function() {
+        testURLMatch('mzl.la.', 'mzl.la', true);
+      });
+      test('Simple short URL with trailing dot and port', function() {
+        testURLMatch('mzl.la.:527', 'mzl.la', true);
+      });
+      test('Simple short URL with value', function() {
+        testURLOK('mzl.la/ac', true);
+      });
+      test('Simple URL https', function() {
+        testURLOK('https://www.mozilla.org');
+      });
+      test('Simple URL https without www.', function() {
+        testURLOK('https://mozilla.org');
+      });
+      test('Simple URL https with trailing dot on domain.', function() {
+        testURLOK('https://mozilla.org./blah');
+      });
+      test('Simple URL http with port', function() {
+        testURLOK('http://www.mozilla.org:8080/');
+      });
+      test('Simple URL http without www. and with port', function() {
+        testURLOK('http://mozilla.org:8080/');
+      });
+      test('Simple URL with IPv4', function() {
+        testURLOK('http://8.8.8.8/');
+      });
+      test('Trailing period', function() {
+        testURLMatch('Check out mozilla.org.', 'mozilla.org', true);
+      });
+      test('Trailing parens', function() {
+        testURLMatch('(Check out mozilla.org)', 'mozilla.org', true);
+      });
+      test('Trailing parens', function() {
+        testURLMatch('(Check out mzl.la/ac)', 'mzl.la/ac', true);
+      });
+      test('wiki link that has paren', function() {
+        testURLOK('http://en.wikipedia.org/wiki/Arete_(disambiguation)');
+      });
+      test('Crazy URL from #887146', function() {
+        testURLOK('http://sani.tiz.ed.com/wap/videos/files_mm/' +
+          '3GPP%20MPEG4%20-%20176×144_7fps_15kpbs_AACmono_8KHz_5kbps.3gp');
+      });
+      test('One letter second-level', function() {
+        testURLOK('http://x.com');
+      });
     });
-    test('Simple URL .co.uk', function() {
-      testURLOK('http://www.mozilla.co.uk/');
-    });
-    test('Simple short URL', function() {
-      testURLOK('mzl.la', true);
-    });
-    test('Simple short URL with value', function() {
-      testURLOK('mzl.la/ac', true);
-    });
-    test('Simple URL https', function() {
-      testURLOK('https://www.mozilla.org');
-    });
-    test('Simple URL https without www.', function() {
-      testURLOK('https://mozilla.org');
-    });
-    test('Simple URL http with port', function() {
-      testURLOK('http://www.mozilla.org:8080/');
-    });
-    test('Simple URL http without www. and with port', function() {
-      testURLOK('http://mozilla.org:8080/');
-    });
-    test('Simple invalid URL', function() {
-      testURLNOK('htt://www.mozilla.org');
-    });
-    test('Simple invalid URL with slashes', function() {
-      testURLNOK('http://www.a/b/d.com');
-    });
-    test('Simple invalid TLD URL', function() {
-      testURLNOK('http://www.mozilla.o');
-    });
-    test('Simple ellipse', function() {
-      testURLNOK('aaa...ccc');
-    });
-    test('Simple URL with username', function() {
-      testURLNOK('http://user@mozilla.org');
-    });
-    test('Simple URL with credentials', function() {
-      testURLNOK('http://user:pass@mozilla.org');
-    });
-    test('Simple URL with IPv4', function() {
-      testURLNOK('http://1.2.3.4/');
-    });
-    test('Simple URL with IPv6', function() {
-      testURLNOK('http://[::1]/');
+
+    suite('Failures', function() {
+      test('Simple invalid URL', function() {
+        testURLNOK('htt://www.mozilla.org');
+      });
+      test('Simple invalid URL with slashes', function() {
+        testURLNOK('http://www.a/b/d.com');
+      });
+      test('Simple invalid TLD URL', function() {
+        testURLNOK('http://www.mozilla.o');
+      });
+      test('Simple ellipse', function() {
+        testURLNOK('aaa...ccc');
+      });
+      test('Simple URL with username', function() {
+        testURLNOK('http://user@mozilla.org');
+      });
+      test('Simple URL with credentials', function() {
+        testURLNOK('http://user:pass@mozilla.org');
+      });
+      test('Simple URL with IPv6', function() {
+        testURLNOK('http://[::1]/');
+      });
     });
   });
 
