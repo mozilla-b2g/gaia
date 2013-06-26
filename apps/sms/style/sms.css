@@ -308,10 +308,17 @@ section.has-carrier .article-list header:first-child {
 }
 
 .article-list {
+  z-index: 5;
+
+  /* The bottom border is used to offset the messages as the Compose field
+   * grows and shrinks, preventing occlusion. (see "Bug 748518 - padding-bottom
+   * is ignored with overflow:auto;") */
+  border-bottom-color: transparent;
+  border-bottom-style: solid;
   -moz-box-sizing: border-box;
+
   background: none repeat scroll 0 0 #E4E4E4;
   text-align: left;
-  z-index: 5;
 }
 
 .article-list header {
@@ -326,7 +333,7 @@ section.has-carrier .article-list header:first-child {
 }
 
 .article-list[data-type="list"] > ul:last-child {
-  margin-bottom: 7rem;
+  margin-bottom: 0.5rem;
 }
 
 .article-list header,
@@ -600,7 +607,7 @@ form.bottom[role="search"].messages-compose-form {
   background-image: url(images/paperclip-button.png);
 }
 
-#messages-compose-form [contentEditable] {
+#messages-input {
   padding: 0.1rem 0.5rem;
   margin: 0.8rem 0.2rem;
   line-height: 2rem;
@@ -611,7 +618,8 @@ form.bottom[role="search"].messages-compose-form {
   text-align: left;
   font-size: 1.8rem;
 }
-#messages-compose-form .placeholder[contentEditable]:after {
+
+#messages-input.placeholder:after {
   color: #888;
   position: absolute;
   top: 0.8rem;
