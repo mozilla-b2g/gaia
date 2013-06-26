@@ -817,5 +817,6 @@ clean:
 really-clean: clean
 	rm -rf xulrunner-sdk .xulrunner-url
 
+.PHONY: install-git-hook
 install-git-hook:
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit || true
