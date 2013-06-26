@@ -355,15 +355,38 @@ suite('Utils', function() {
     });
   });
 
-  suite('Utils.getContactCarrier', function() {
+  suite('Utils.getCarrierTag', function() {
+    /**
+      1. If a phone number has carrier associated with it
+          the output will be:
 
+        type | carrier
+
+      2. If there is no carrier associated with the phone number
+          the output will be:
+
+        type | phonenumber
+
+      3. If for some reason a single contact has two phone numbers with
+          the same type and the same carrier the output will be:
+
+        type | phonenumber
+
+      4. If for some reason a single contact has no name and no carrier,
+          the output will be:
+
+        type
+
+      5. If for some reason a single contact has no name, no type
+          and no carrier, the output will be nothing.
+    */
     test('Single with carrier', function() {
       // ie. contact.tel [ ... ]
       var tel = [
         {value: '101', type: ['Mobile'], carrier: 'Nynex'}
       ];
 
-      var a = Utils.getContactCarrier('101', tel);
+      var a = Utils.getCarrierTag('101', tel);
 
       assert.equal(a, 'Mobile | Nynex');
     });
@@ -374,9 +397,42 @@ suite('Utils', function() {
         {value: '201', type: ['Mobile'], carrier: null}
       ];
 
-      var a = Utils.getContactCarrier('201', tel);
+      var a = Utils.getCarrierTag('201', tel);
 
       assert.equal(a, 'Mobile | 201');
+    });
+
+    test('Single no name', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '201', type: ['Mobile'], carrier: 'Telco'}
+      ];
+
+      var a = Utils.getCarrierTag('201', tel, { name: '' });
+
+      assert.equal(a, 'Mobile | Telco');
+    });
+
+    test('Single no name, no carrier', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '201', type: ['Mobile'], carrier: null}
+      ];
+
+      var a = Utils.getCarrierTag('201', tel, { name: '' });
+
+      assert.equal(a, 'Mobile');
+    });
+
+    test('Single no name, no carrier, no type', function() {
+      // ie. contact.tel [ ... ]
+      var tel = [
+        {value: '201', type: [], carrier: null}
+      ];
+
+      var a = Utils.getCarrierTag('201', tel, { name: '' });
+
+      assert.equal(a, '');
     });
 
     test('Multi different carrier & type, match both', function() {
@@ -386,8 +442,8 @@ suite('Utils', function() {
         {value: '302', type: ['Home'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getContactCarrier('301', tel);
-      var b = Utils.getContactCarrier('302', tel);
+      var a = Utils.getCarrierTag('301', tel);
+      var b = Utils.getCarrierTag('302', tel);
 
       assert.equal(a, 'Mobile | Nynex');
       assert.equal(b, 'Home | MCI');
@@ -400,7 +456,7 @@ suite('Utils', function() {
         {value: '402', type: ['Home'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getContactCarrier('401', tel);
+      var a = Utils.getCarrierTag('401', tel);
 
       assert.equal(a, 'Mobile | Nynex');
     });
@@ -412,7 +468,7 @@ suite('Utils', function() {
         {value: '502', type: ['Home'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getContactCarrier('502', tel);
+      var a = Utils.getCarrierTag('502', tel);
 
       assert.equal(a, 'Home | MCI');
     });
@@ -424,8 +480,8 @@ suite('Utils', function() {
         {value: '602', type: ['Mobile'], carrier: 'Nynex'}
       ];
 
-      var a = Utils.getContactCarrier('601', tel);
-      var b = Utils.getContactCarrier('602', tel);
+      var a = Utils.getCarrierTag('601', tel);
+      var b = Utils.getCarrierTag('602', tel);
 
       assert.equal(a, 'Mobile | 601');
       assert.equal(b, 'Mobile | 602');
@@ -438,8 +494,8 @@ suite('Utils', function() {
         {value: '702', type: ['Home'], carrier: 'Nynex'}
       ];
 
-      var a = Utils.getContactCarrier('701', tel);
-      var b = Utils.getContactCarrier('702', tel);
+      var a = Utils.getCarrierTag('701', tel);
+      var b = Utils.getCarrierTag('702', tel);
 
       assert.equal(a, 'Mobile | Nynex');
       assert.equal(b, 'Home | Nynex');
@@ -452,8 +508,8 @@ suite('Utils', function() {
         {value: '802', type: ['Mobile'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getContactCarrier('801', tel);
-      var b = Utils.getContactCarrier('802', tel);
+      var a = Utils.getCarrierTag('801', tel);
+      var b = Utils.getCarrierTag('802', tel);
 
       assert.equal(a, 'Mobile | Nynex');
       assert.equal(b, 'Mobile | MCI');
@@ -466,8 +522,8 @@ suite('Utils', function() {
         {value: '0987654321', type: ['Mobile'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getContactCarrier('+1234567890', tel);
-      var b = Utils.getContactCarrier('+0987654321', tel);
+      var a = Utils.getCarrierTag('+1234567890', tel);
+      var b = Utils.getCarrierTag('+0987654321', tel);
 
       assert.equal(a, 'Mobile | Nynex');
       assert.equal(b, 'Mobile | MCI');
@@ -480,8 +536,8 @@ suite('Utils', function() {
         {value: '0987654321', type: ['Mobile'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getContactCarrier('+9999999999', tel);
-      var b = Utils.getContactCarrier('+9999999999', tel);
+      var a = Utils.getCarrierTag('+9999999999', tel);
+      var b = Utils.getCarrierTag('+9999999999', tel);
 
       assert.equal(a, '');
       assert.equal(b, '');

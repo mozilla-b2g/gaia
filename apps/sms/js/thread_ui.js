@@ -821,15 +821,11 @@ var ThreadUI = global.ThreadUI = {
     //
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
-      /** If we have more than one contact sharing the same phone number
-       *  we show the title of contact detail with validate name/company
-       *  and how many other contacts share that same number. We think it's
-       *  user's responsability to correct this mess with the agenda.
-       */
       // Bug 867948: contacts null is a legitimate case, and
       // getContactDetails is okay with that.
       var details = Utils.getContactDetails(number, contacts);
       var contactName = details.title || number;
+      var carrierText;
 
       this.headerText.dataset.isContact = !!details.isContact;
       this.headerText.textContent = navigator.mozL10n.get(
@@ -840,14 +836,29 @@ var ThreadUI = global.ThreadUI = {
 
       // The carrier banner is meaningless and confusing in
       // group message mode.
-      if (thread.participants.length === 1) {
-        if (contacts && contacts.length) {
-          carrierTag.textContent = Utils.getContactCarrier(
-            number, contacts[0].tel
-          );
+      if (thread.participants.length === 1 &&
+          (contacts && contacts.length)) {
+
+
+        carrierText = Utils.getCarrierTag(
+          number, contacts[0].tel, details
+        );
+
+        // Known Contact with at least:
+        //
+        //  1. a name
+        //  2. a carrier
+        //  3. a type
+        //
+
+        if (carrierText) {
+          carrierTag.textContent = carrierText;
           carrierTag.classList.remove('hide');
+        } else {
+          carrierTag.classList.add('hide');
         }
       } else {
+        // Hide carrier tag in group message or unknown contact cases.
         carrierTag.classList.add('hide');
       }
 

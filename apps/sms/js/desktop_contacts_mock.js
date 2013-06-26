@@ -272,7 +272,8 @@
       familyName: 'Shannon',
       givenName: 'Claude',
       tel: {
-        value: '103'
+        value: '103',
+        type: 'Mobile'
       }
     })
   );
