@@ -75,6 +75,16 @@ var icc = {
 
   handleSTKCommand: function icc_handleSTKCommand(command) {
     DUMP('STK Proactive Command:', command);
+    if (FtuLauncher.isFtuRunning()) {
+      // Delay the stk command until FTU is done
+      var self = this;
+      window.addEventListener('ftudone', function ftudone() {
+        DUMP('FTU is done!... processing STK command:', command);
+        self.handleSTKCommand(command);
+      });
+      return DUMP('FTU is running, delaying STK...');
+    }
+
     this._iccLastCommand = command;
 
     var cmdId = '0x' + command.typeOfCommand.toString(16);
@@ -97,28 +107,16 @@ var icc = {
         return;   // If settings is opened, we don't manage it
       }
 
-      function launchSettings() {
-        DUMP('Locating settings . . .');
-        navigator.mozApps.mgmt.getAll().onsuccess =
-        function gotApps(evt) {
-          var apps = evt.target.result;
-          apps.forEach(function appIterator(app) {
-            if (app.origin != application)
-              return;
-            DUMP('Launching ', app.origin);
-            app.launch();
-          }, this);
-        };
-      }
-      if (FtuLauncher.isFtuRunning()) {
-        // Delay the stk command until FTU is done
-        window.addEventListener('ftudone', function ftudone() {
-          DUMP('ftu is done!');
-          launchSettings();
-        });
-      } else {
-        launchSettings();
-      }
+      DUMP('Locating settings . . .');
+      navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
+        var apps = evt.target.result;
+        apps.forEach(function appIterator(app) {
+          if (app.origin != application)
+            return;
+          DUMP('Launching ', app.origin);
+          app.launch();
+        }, this);
+      };
     };
   },
 
