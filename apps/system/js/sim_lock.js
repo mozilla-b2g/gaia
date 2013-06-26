@@ -101,6 +101,10 @@ var SimLock = {
     if (LockScreen.locked)
       return false;
 
+    // FTU has its specific SIM PIN UI
+    if (FtuLauncher.isFtuRunning())
+      return false;
+
     if (this._duringCall)
       return false;
 
