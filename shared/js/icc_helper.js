@@ -91,6 +91,24 @@ var IccHelper = (function() {
       return actor.unlockCardLock.apply(actor, arguments);
     },
 
+    getCardLockRetryCount: function
+      icch_getCardLockRetryCount(lockType, onresult) {
+      var mobileConn = navigator.mozMobileConnection;
+
+      if ('retryCount' in mobileConn) {
+        onresult(mobileConn.retryCount);
+      } else {
+        var iccManager = navigator.mozIccManager || mobileConn.icc;
+        var req = iccManager.getCardLockRetryCount(lockType);
+        req.onsuccess = function onsuccess() {
+          onresult(req.result.retryCount);
+        };
+        req.onerror = function onerror() {
+          onresult(0);
+        };
+      }
+    },
+
     get cardState() {
       var actor = actors['cardState'];
       return actor.cardState;
