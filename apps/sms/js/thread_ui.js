@@ -1343,9 +1343,6 @@ var ThreadUI = global.ThreadUI = {
 
     this.updateHeaderData();
 
-    // Hold onto the recipients until
-    MessageManager.activity.recipients = recipients;
-
     // Send the Message
     if (messageType === 'sms') {
       MessageManager.sendSMS(recipients, content[0]);
