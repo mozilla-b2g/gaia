@@ -38,22 +38,27 @@ section[role="region"] {
  */
 
 section[role="region"] {
+  visibility: hidden;
   transform: translateX(+100%);
-  transition: transform .4s ease;
+  transition: transform .4s ease, visibility .4s ease;
 }
 section[role="region"].peek {
+  visibility: visible;
   transition: transform 1ms linear;
   transform: translateX(+0.1%);
 }
 
 section[role="region"].previous {
+  visibility: hidden;
   transform: translateX(-100%);
 }
 section[role="region"].previous.peek {
+  visibility: visible;
   transform: translateX(-0.1%);
 }
 
 section[role="region"].current {
+  visibility: visible;
   transform: translateX(0);
 }
 section[role="region"].current.peek.forward {
