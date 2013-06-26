@@ -87,3 +87,21 @@ var IccHelper = (function() {
     }
   };
 })();
+
+IccHelper.getCardLockRetryCount =
+  function icc_getCardLockRetryCount(lockType, onresult) {
+    var mobileConn = navigator.mozMobileConnection;
+
+    if ('retryCount' in mobileConn) {
+      onresult(mobileConn.retryCount);
+    } else {
+      var iccManager = navigator.mozIccManager || mobileConn.icc;
+      var req = iccManager.getCardLockRetryCount(lockType);
+      req.onsuccess = function onsuccess() {
+        onresult(req.result.retryCount);
+      };
+      req.onerror = function onerror() {
+        onresult(0);
+      };
+    }
+  };
