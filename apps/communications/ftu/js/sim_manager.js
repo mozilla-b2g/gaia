@@ -247,6 +247,7 @@ var SimManager = {
       UIManager.pinError.textContent = _('pinValidation');
       UIManager.pinInput.classList.add('onerror');
       UIManager.pinError.classList.remove('hidden');
+      UIManager.pinInput.focus();
       return;
     } else {
       UIManager.pinInput.classList.remove('onerror');
@@ -329,6 +330,7 @@ var SimManager = {
       UIManager.xckInput.classList.add('onerror');
       UIManager.xckError.classList.remove('hidden');
       UIManager.xckError.textContent = _(lockType + 'Validation');
+      UIManager.xckInput.focus();
       return;
     } else {
       UIManager.pinInput.classList.remove('onerror');
