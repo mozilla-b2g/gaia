@@ -257,7 +257,7 @@ function getMetadata(videofile, callback) {
   // Derive the video title from its filename.
   function fileNameToVideoName(filename) {
     filename = filename.split('/').pop()
-      .replace(/\.(webm|ogv|mp4|3gp)$/, '')
+      .replace(/\.(webm|ogv|ogg|mp4|3gp)$/, '')
       .replace(/[_\.]/g, ' ');
     return filename.charAt(0).toUpperCase() + filename.slice(1);
   }
