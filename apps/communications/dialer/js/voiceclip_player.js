@@ -64,6 +64,9 @@ var VoiceClipPlayer = {
         rate = 1.0;
       }
       partial = this.AUDIO_MAP['d' + partialIndex];
+      // avoid playing case
+      this.player.pause();
+      // play
       this.player.currentTime = partial.start;
       this.player.play();
       duration = partial.duration / rate * 1000;
