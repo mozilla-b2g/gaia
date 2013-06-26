@@ -54,7 +54,8 @@
     },
     "share": {
       "filters": {
-        "type": ["image/*", "audio/*", "video/*"]
+        "type": ["image/*", "audio/*", "video/*"],
+        "number": 1
        },
       "disposition": "window",
       "returnValue": true
