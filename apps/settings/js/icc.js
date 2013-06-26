@@ -245,7 +245,7 @@
         iccStkList.appendChild(buildMenuEntry({
           id: 'stk-menuitem-' + menuItem.identifier,
           text: menuItem.text,
-          nai: menuItem.nai,
+          nai: _(menuItem.nai),
           onclick: onMainMenuItemClick,
           attributes: [['stk-menu-item-identifier', menuItem.identifier]]
         }));
@@ -325,7 +325,7 @@
       iccStkList.appendChild(buildMenuEntry({
         id: 'stk-menuitem-' + menuItem.identifier,
         text: menuItem.text,
-        nai: menuItem.nai,
+        nai: _(menuItem.nai),
         onclick: onSelectOptionClick.bind(null, command),
         attributes: [['stk-select-option-identifier', menuItem.identifier]]
       }));
