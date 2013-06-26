@@ -127,7 +127,9 @@ var MmiManager = {
       return;
     }
 
-    var message = {};
+    var message = {
+      type: 'mmi-success'
+    };
 
     if (mmiResult.serviceCode) {
       message.title = this._(mmiResult.serviceCode);
@@ -141,14 +143,12 @@ var MmiManager = {
           return;
         }
 
-        message.type = 'mmi-success';
         message.result = mmiResult.statusMessage;
         break;
       case 'scImei':
         // We always expect the IMEI, so if we got a .onsuccess event
         // without the IMEI value, we throw an error message.
         if (mmiResult.statusMessage) {
-          message.type = 'mmi-success';
           message.result = mmiResult.statusMessage;
         } else {
           message.type = 'mmi-error';
@@ -159,8 +159,9 @@ var MmiManager = {
       case 'scPin2':
       case 'scPuk':
       case 'scPuk2':
-        // TODO: Bug 874000. Use MMIResult for PIN/PIN2/PUK related
-        //       functionality.
+        if (mmiResult.statusMessage) {
+          message.result = this._(mmiResult.statusMessage);
+        }
         break;
       case 'scCallForwarding':
         // Call forwarding requests via MMI codes might return an array of
@@ -173,10 +174,8 @@ var MmiManager = {
       default:
         // This would allow carriers and others to implement custom MMI codes
         // with title and statusMessage only.
-        if (mmiResult.statusMessage) {
-          message.type = 'mmi-success';
-          message.result = mmiResult.statusMessage;
-        }
+        message.result = mmiResult.statusMessage ?
+                         mmiResult.statusMessage : null;
         break;
     }
 
@@ -196,6 +195,24 @@ var MmiManager = {
 
     message.error = mmiError.name ?
       this._(mmiError.name) : this._('GenericFailure');
+
+    switch (mmiError.serviceCode) {
+      case 'scPin':
+      case 'scPin2':
+      case 'scPuk':
+      case 'scPuk2':
+        // If the error is related with an incorrect old PIN, we get the
+        // number of remainings attempts.
+        if (mmiError.additionalInformation &&
+            (mmiError.name === 'emMmiErrorPasswordIncorrect' ||
+             mmiError.name === 'emMmiErrorBadPin' ||
+             mmiError.name === 'emMmiErrorBadPuk')) {
+          message.error += '\n' + this._('emMmiErrorPinPukAttempts', {
+            n: mmiError.additionalInformation
+          });
+        }
+        break;
+    }
 
     window.postMessage(message, this.COMMS_APP_ORIGIN);
   },
