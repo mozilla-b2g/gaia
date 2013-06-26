@@ -32,11 +32,42 @@ html, body {
 /* for the share activity */
 #preview {
   position: absolute;
+  top: 5rem;
+  bottom: 0;
   left: 0;
-  top: 0;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  -moz-user-select: none;
+}
+
+#previewImage {
+  top: 0;  /* javascript modifies this position with a transform */
+  left: 0;
+  position: relative;
+  border-width: 0;
+  padding: 0;
+  margin: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+  -moz-user-select: none;
+}
+
+#edit-crop-canvas {
+  position: absolute;
+  left: 0;
+  right: 0;
   width: 100%;
   height: 100%;
-  overflow:hidden;
+}
+
+#edit-preview-canvas {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: calc(100% - 2rem);  /* I can't do right: 1rem here. Bug? */
+  height: calc(100% - 2rem);  /* can't just set bottom: 1rem here */
 }
 
 #buttons {
@@ -60,3 +91,4 @@ html, body {
   width: 50%;
   height: 100%;
 }
+
