@@ -826,14 +826,12 @@ Page.prototype = {
    * @param{Object} icon object
    */
   prependIcon: function pg_prependIcon(icon) {
-    this.setReady(false);
     var olist = this.olist;
     if (olist.children.length > 0) {
       olist.insertBefore(icon.container, olist.firstChild);
     } else {
       olist.appendChild(icon.container);
     }
-    this.setReady(true);
   },
 
   /*
@@ -846,12 +844,10 @@ Page.prototype = {
   },
 
   insertBeforeLastIcon: function pg_insertBeforeLastIcon(icon) {
-    this.setReady(false);
     var olist = this.olist;
     if (olist.children.length > 0) {
       olist.insertBefore(icon.container, olist.lastChild);
     }
-    this.setReady(true);
   },
 
   /*
@@ -890,9 +886,7 @@ Page.prototype = {
       icon.render(this.olist, this.container);
       return;
     }
-    this.setReady(false);
     this.olist.appendChild(icon.container);
-    this.setReady(true);
   },
 
   /**
