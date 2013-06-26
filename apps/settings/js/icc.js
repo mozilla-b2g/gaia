@@ -245,6 +245,7 @@
         iccStkList.appendChild(buildMenuEntry({
           id: 'stk-menuitem-' + menuItem.identifier,
           text: menuItem.text,
+          nai: _(menuItem.nai),
           onclick: onMainMenuItemClick,
           attributes: [['stk-menu-item-identifier', menuItem.identifier]]
         }));
@@ -324,6 +325,7 @@
       iccStkList.appendChild(buildMenuEntry({
         id: 'stk-menuitem-' + menuItem.identifier,
         text: menuItem.text,
+        nai: _(menuItem.nai),
         onclick: onSelectOptionClick.bind(null, command),
         attributes: [['stk-select-option-identifier', menuItem.identifier]]
       }));
@@ -541,6 +543,13 @@
 
   function buildMenuEntry(entry) {
     var li = document.createElement('li');
+
+    if (entry.nai) {
+      var small = document.createElement('small');
+      small.textContent = entry.nai;
+      li.appendChild(small);
+    }
+
     var a = document.createElement('a');
     a.id = entry.id;
     entry.attributes.forEach(function attrIterator(attr) {
