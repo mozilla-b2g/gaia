@@ -14,6 +14,7 @@
     '\'': '&apos;'
   };
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
+  var rnondialablechars = /[^,#+\*\d]/g;
 
   var Utils = {
     date: {
@@ -245,14 +246,7 @@
       for (var i = 0; i < length; i++) {
         tel = tels[i];
 
-        // Based on...
-        //  - ITU-T E.123 (http://www.itu.int/rec/T-REC-E.123-200102-I/)
-        //  - ITU-T E.164 (http://www.itu.int/rec/T-REC-E.164-201011-I/)
-        //
-        // ...It would appear that a maximally-minimal
-        // 7 digit comparison is safe.
-        //
-        if (tel.value && tel.value.slice(-7) === input.slice(-7)) {
+        if (tel.value && Utils.compareDialables(tel.value, input)) {
           found = tel;
         }
 
@@ -279,14 +273,42 @@
       return type + ' | ' + (carrier || value);
     },
 
+    // Based on "non-dialables" in https://github.com/andreasgal/PhoneNumber.js
+    //
+    // @param {String} input Value to remove nondialiable chars from.
+    //
+    removeNonDialables: function ut_removeNonDialables(input) {
+      return input.replace(rnondialablechars, '');
+    },
+    // @param {String} a First number string to compare.
+    // @param {String} b Second number string to compare.
+    //
+    // Based on...
+    //  - ITU-T E.123 (http://www.itu.int/rec/T-REC-E.123-200102-I/)
+    //  - ITU-T E.164 (http://www.itu.int/rec/T-REC-E.164-201011-I/)
+    //
+    // ...It would appear that a maximally-minimal
+    // 7 digit comparison is safe.
+    compareDialables: function ut_compareDialables(a, b) {
+      a = Utils.removeNonDialables(a).slice(-7);
+      b = Utils.removeNonDialables(b).slice(-7);
+      return a === b;
+    },
+
     getResizedImgBlob: function ut_getResizedImgBlob(blob, limit, callback) {
-      // Default image size limitation is set to 300KB for MMS user story
+      // Default image size limitation is set to 300KB for MMS user story.
+      // If limit is not given or bigger than default 300KB, default value need
+      // to be appied here for size checking.
+      var defaultLimit = 300 * 1024;
       if (typeof limit === 'function') {
         callback = limit;
-        limit = 300 * 1024;
+        limit = defaultLimit;
       }
+      limit = limit === 0 ? defaultLimit : Math.min(limit, defaultLimit);
       if (blob.size < limit) {
-        callback(blob);
+        setTimeout(function blobCb() {
+          callback(blob);
+        });
       } else {
         var img = document.createElement('img');
         var url = URL.createObjectURL(blob);

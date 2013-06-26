@@ -488,6 +488,109 @@ suite('Utils', function() {
     });
   });
 
+  suite('Utils.removeNonDialables(number)', function() {
+    test('spaces', function() {
+      assert.equal(
+        Utils.removeNonDialables('888 999 5555'), '8889995555'
+      );
+    });
+
+    test('non-digit, common chars', function() {
+      assert.equal(
+        Utils.removeNonDialables('(1A)2B 3C'), '123'
+      );
+    });
+  });
+
+  suite('Utils.compareDialables(a, b)', function() {
+    test('spaces', function() {
+      assert.ok(
+        Utils.compareDialables('888 999 5555', '8889995555')
+      );
+    });
+
+    test('non-digit, common chars', function() {
+      assert.ok(
+        Utils.compareDialables('(1A)2B 3C', '123')
+      );
+    });
+
+    suite('Varied Cases', function() {
+      // Derived from
+      // /dom/phonenumberutils/tests/test_phonenumber.xul
+
+      [
+        {
+          name: 'US',
+          values: [
+            '9995551234', '+19995551234', '(999) 555-1234',
+            '1 (999) 555-1234', '+1 (999) 555-1234', '+1 999-555-1234'
+          ]
+        },
+        {
+          name: 'DE',
+          values: [
+            '01149451491934', '49451491934', '451491934',
+            '0451 491934', '+49 451 491934', '+49451491934'
+          ]
+        },
+        {
+          name: 'IT',
+          values: [
+            '0577-555-555', '0577555555', '05 7755 5555', '+39 05 7755 5555'
+          ]
+        },
+        {
+          name: 'ES',
+          values: [
+            '612123123', '612 12 31 23', '+34 612 12 31 23'
+          ]
+        },
+        {
+          name: 'BR',
+          values: [
+            '01187654321', '0411187654321', '551187654321',
+            '90411187654321', '+551187654321'
+          ]
+        },
+        {
+          name: 'CL',
+          values: [
+            '0997654321', '997654321', '(99) 765 4321', '+56 99 765 4321'
+          ]
+        },
+        {
+          name: 'CO',
+          values: [
+            '5712234567', '12234567', '(1) 2234567', '+57 1 2234567'
+          ]
+        },
+        {
+          name: 'FR',
+          values: [
+            '0123456789', '+33123456789', '0033123456789',
+            '01.23.45.67.89', '01 23 45 67 89', '01-23-45-67-89',
+            '+33 1 23 45 67 89'
+          ]
+        }
+      ].forEach(function(fixture) {
+
+        suite(fixture.name, function() {
+          var values = fixture.values;
+
+          values.forEach(function(value) {
+            values.forEach(function(versus) {
+              test(value + ' likely same as ' + versus, function() {
+                assert.ok(Utils.compareDialables(value, versus));
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+
   suite('Utils for MMS user story test', function() {
     test('Image rescaling to 300kB', function(done) {
       // Open test image for testing image resize ability
@@ -500,10 +603,10 @@ suite('Utils', function() {
           if (req.readyState === 4 && req.status === 200) {
             var blob = req.response;
             var limit = 300 * 1024;
-            Utils.getResizedImgBlob(blob, function(resizedBlob) {
+            Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
               assert.isTrue(resizedBlob.size < limit);
               done();
-            }, limit);
+            });
           }
         };
         req.send(null);

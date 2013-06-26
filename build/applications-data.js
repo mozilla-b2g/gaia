@@ -237,7 +237,7 @@ content = null;
 writeContent(init, getDistributionFileContent('support', content));
 
 // ICC / STK
-init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'icc.json');
+init = getFile(GAIA_DIR, 'apps', 'system', 'resources', 'icc.json');
 content = {
   "defaultURL": "http://www.mozilla.org/en-US/firefoxos/"
 }
@@ -370,6 +370,11 @@ content = {
       'https://accounts.google.com/Logout'
   }
 };
+
+// Bug 883344 Only use default facebook app id if is mozilla partner build
+if (OFFICIAL === '1') {
+  content.facebook.applicationId = '395559767228801';
+}
 
 writeContent(init, 'var oauthflow = this.oauthflow || {}; oauthflow.params = ' +
   getDistributionFileContent('communications_services', content) + ';');

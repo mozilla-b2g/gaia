@@ -45,6 +45,7 @@ var ThreadUI = global.ThreadUI = {
   CHUNK_SIZE: 10,
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
+  IMAGE_RESIZE_DURATION: 3000,
   recipients: null,
   // Set to |true| when in edit mode
   inEditMode: false,
@@ -66,7 +67,7 @@ var ThreadUI = global.ThreadUI = {
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
       'delete-button', 'cancel-button',
       'edit-icon', 'edit-mode', 'edit-form', 'tel-form',
-      'max-length-notice', 'convert-notice'
+      'max-length-notice', 'convert-notice', 'resize-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -326,6 +327,27 @@ var ThreadUI = global.ThreadUI = {
   messageComposerInputHandler: function thui_messageInputHandler(event) {
     this.updateInputHeight();
     this.enableSend();
+
+    if (Compose.isResizing) {
+      this.resizeNotice.classList.remove('hide');
+
+      if (this._resizeNoticeTimeout) {
+        clearTimeout(this._resizeNoticeTimeout);
+        this._resizeNoticeTimeout = null;
+      }
+    } else {
+      // Update counter after image resize complete
+      this.updateCounterForMms();
+      if (this.resizeNotice.classList.contains('hide') ||
+          this._resizeNoticeTimeout) {
+        return;
+      }
+
+      this._resizeNoticeTimeout = setTimeout(function hideResizeNotice() {
+        this.resizeNotice.classList.add('hide');
+        this._resizeNoticeTimeout = null;
+      }.bind(this), this.IMAGE_RESIZE_DURATION);
+    }
   },
 
   assimilateRecipients: function thui_assimilateRecipients() {
@@ -517,7 +539,7 @@ var ThreadUI = global.ThreadUI = {
     this.initSentAudio();
 
     // should disable if we have no message input
-    var disableSendMessage = Compose.isEmpty();
+    var disableSendMessage = Compose.isEmpty() || Compose.isResizing;
     var messageNotLong = this.updateCounter();
     var hasRecipients = this.recipients &&
       (this.recipients.length || !!this.recipients.inputValue);
@@ -588,6 +610,10 @@ var ThreadUI = global.ThreadUI = {
   updateCounterForMms: function thui_updateCounterForMms() {
     // always turn on the counter for mms, it just displays "MMS"
     this.sendButton.classList.add('has-counter');
+    // Counter should be updated when image resizing complete
+    if (Compose.isResizing) {
+      return false;
+    }
 
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {
@@ -1317,9 +1343,6 @@ var ThreadUI = global.ThreadUI = {
 
     this.updateHeaderData();
 
-    // Hold onto the recipients until
-    MessageManager.activity.recipients = recipients;
-
     // Send the Message
     if (messageType === 'sms') {
       MessageManager.sendSMS(recipients, content[0]);
@@ -1476,10 +1499,11 @@ var ThreadUI = global.ThreadUI = {
      *     |true| if rendering a contact from stored contacts
      *     |false| if rendering an unknown contact
      *
-     *   isHighlighted:
+     *   isSuggestion:
      *     |true| if the value params.input should be
-     *     highlighted in the rendered HTML
-     *
+     *     highlighted in the rendered HTML & all tel
+     *     entries should be rendered.
+     *     *
      * }
      */
 
@@ -1494,7 +1518,7 @@ var ThreadUI = global.ThreadUI = {
     var input = params.input.trim();
     var ul = params.target;
     var isContact = params.isContact;
-    var isHighlighted = params.isHighlighted;
+    var isSuggestion = params.isSuggestion;
 
     var escaped = Utils.escapeRegex(input);
     var escsubs = escaped.split(/\s+/);
@@ -1517,19 +1541,28 @@ var ThreadUI = global.ThreadUI = {
 
     for (var i = 0; i < telsLength; i++) {
       var current = tels[i];
+      // Only render a contact's tel value entry for the _specified_
+      // input value when not rendering a suggestion. If the tel
+      // record value _doesn't_ match, then continue.
+      //
+      if (!isSuggestion && !Utils.compareDialables(current.value, input)) {
+        continue;
+      }
+
+      // If rendering for contact search result suggestions, don't
+      // render contact tel records for values that are already
+      // selected as recipients. This comparison should be safe,
+      // as the value in this.recipients.numbers comes from the same
+      // source that current.value comes from.
+      if (isSuggestion && this.recipients.numbers.indexOf(current.value) > -1) {
+        continue;
+      }
+
       var number = current.value;
       var title = details.title || number;
       var type = current.type && current.type.length ? current.type[0] : '';
       var carrier = current.carrier ? (current.carrier + ', ') : '';
       var separator = type || carrier ? ' | ' : '';
-
-      // Search results are highlighted; Don't display numbers in the
-      // search results list if they have already been added to the
-      // list of recipients.
-      if (isHighlighted && this.recipients.numbers.indexOf(number) > -1) {
-        continue;
-      }
-
       var li = document.createElement('li');
       var data = {
         name: title,
@@ -1543,7 +1576,7 @@ var ThreadUI = global.ThreadUI = {
 
 
       ['name', 'number'].forEach(function(key) {
-        if (isHighlighted) {
+        if (isSuggestion) {
           data[key + 'HTML'] = data[key].replace(
             regexps[key], function(match) {
               return this.tmpl.highlight.interpolate({
@@ -1648,7 +1681,7 @@ var ThreadUI = global.ThreadUI = {
           input: filterValue,
           target: ul,
           isContact: true,
-          isHighlighted: true
+          isSuggestion: true
         });
       }, this);
     }.bind(this));
@@ -1698,7 +1731,7 @@ var ThreadUI = global.ThreadUI = {
         input: number,
         target: ul,
         isContact: isContact,
-        isHighlighted: false
+        isSuggestion: false
       });
 
       this.activateContact({
@@ -1732,7 +1765,7 @@ var ThreadUI = global.ThreadUI = {
           input: participant,
           target: ul,
           isContact: isContact,
-          isHighlighted: false
+          isSuggestion: false
         });
       }.bind(this));
     }.bind(this));

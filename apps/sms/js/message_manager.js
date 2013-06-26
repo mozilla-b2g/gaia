@@ -5,14 +5,7 @@
 
 var MessageManager = {
 
-  activity: {
-    body: null,
-    number: null,
-    contact: null,
-    recipients: null,
-    threadId: null,
-    isLocked: false
-  },
+  activity: null,
 
   init: function mm_init(callback) {
     if (this.initialized) {
@@ -32,7 +25,12 @@ var MessageManager = {
     window.addEventListener('hashchange', this.onHashChange.bind(this));
     document.addEventListener('mozvisibilitychange',
                               this.onVisibilityChange.bind(this));
-
+    // Initialize DOM elements which will be used in this code
+    [
+      'main-wrapper', 'thread-messages'
+    ].forEach(function(id) {
+      this[Utils.camelCase(id)] = document.getElementById(id);
+    }, this);
     // Callback if needed
     if (typeof callback === 'function') {
       callback();
@@ -165,29 +163,27 @@ var MessageManager = {
   },
 
   slide: function mm_slide(direction, callback) {
-    var mainWrapper = document.getElementById('main-wrapper');
-
     // If no sliding is necessary, schedule the callback to be invoked as soon
     // as possible (maintaining the asynchronous API of this method)
-    if (mainWrapper.dataset.position === direction) {
+    if (this.mainWrapper.dataset.position === direction) {
       setTimeout(callback);
       return;
     }
 
-    mainWrapper.classList.add('peek');
-    mainWrapper.dataset.position = direction;
-
+    this.mainWrapper.classList.add('peek');
+    this.mainWrapper.dataset.position = direction;
+    var self = this;
     // We have 2 panels, so we get 2 transitionend for each step
     var trEndCount = 0;
-    mainWrapper.addEventListener('transitionend', function trWait() {
+    this.mainWrapper.addEventListener('transitionend', function trWait() {
       trEndCount++;
 
       switch (trEndCount) {
         case 2:
-          mainWrapper.classList.remove('peek');
+          self.mainWrapper.classList.remove('peek');
           break;
         case 4:
-          mainWrapper.removeEventListener('transitionend', trWait);
+          self.mainWrapper.removeEventListener('transitionend', trWait);
           if (callback) {
             callback();
           }
@@ -196,11 +192,40 @@ var MessageManager = {
     });
   },
 
-  onHashChange: function mm_onHashChange(e) {
-    var mainWrapper = document.getElementById('main-wrapper');
-    var threadMessages = document.getElementById('thread-messages');
-    var recipient;
+  launchComposer: function mm_openComposer(activity) {
+    // Do we have to handle a pending activity?
+    ThreadUI.cleanFields(true);
+    Compose.clear();
+    this.threadMessages.classList.add('new');
 
+    var self = this;
+    MessageManager.slide('left', function() {
+      ThreadUI.initRecipients();
+      if (!activity) {
+        return;
+      }
+
+      if (activity.number || activity.contact) {
+        var recipient = activity.contact || {
+          number: activity.number,
+          source: 'manual'
+        };
+
+        ThreadUI.recipients.add(recipient);
+      }
+
+      // If the message has a body, use it to populate the input field.
+      if (activity.body) {
+        ThreadUI.setMessageBody(
+          activity.body
+        );
+      }
+      // Clean activity object
+      self.activity = null;
+    });
+  },
+
+  onHashChange: function mm_onHashChange(e) {
     // Group Participants should never persist any hash changes
     ThreadUI.groupView.reset();
 
@@ -211,60 +236,26 @@ var MessageManager = {
 
     switch (window.location.hash) {
       case '#new':
-
-        ThreadUI.cleanFields(true);
-        threadMessages.classList.add('new');
-
-        MessageManager.activity.recipients = null;
-
-        MessageManager.slide('left', function() {
-          ThreadUI.initRecipients();
-
-          if (MessageManager.activity.number ||
-              MessageManager.activity.contact) {
-
-            recipient = MessageManager.activity.contact || {
-              number: MessageManager.activity.number,
-              source: 'manual'
-            };
-
-            ThreadUI.recipients.add(recipient);
-
-            MessageManager.activity.number = null;
-            MessageManager.activity.contact = null;
-            // already have recipients, move focus to input
-            ThreadUI.input.focus();
-          }
-
-          // If the message has a body, use it to popuplate the input field.
-          if (MessageManager.activity.body) {
-            ThreadUI.setMessageBody(
-              MessageManager.activity.body
-            );
-            MessageManager.activity.body = null;
-          }
-        });
+        this.launchComposer(this.activity);
         break;
       case '#thread-list':
         ThreadUI.inThread = false;
-
+        var self = this;
         //Keep the  visible button the :last-child
         var editButton = document.getElementById('messages-edit-icon');
         editButton.parentNode.appendChild(editButton);
-        if (threadMessages.classList.contains('new')) {
+        if (this.threadMessages.classList.contains('new')) {
           MessageManager.slide('right', function() {
-            threadMessages.classList.remove('new');
+            self.threadMessages.classList.remove('new');
           });
         } else {
           // Clear it before sliding.
           ThreadUI.container.textContent = '';
-
+          var self = this;
           MessageManager.slide('right', function() {
-            if (MessageManager.activity.threadId) {
-              window.location.hash =
-                '#thread=' + MessageManager.activity.threadId;
-              MessageManager.activity.threadId = null;
-              MessageManager.activity.isLocked = false;
+            if (self.activity && self.activity.threadId) {
+              window.location.hash = '#thread=' + self.activity.threadId;
+              self.activity = null;
             }
           });
         }
@@ -280,10 +271,10 @@ var MessageManager = {
           filter = new MozSmsFilter();
           filter.threadId = threadId;
 
-          if (threadMessages.classList.contains('new')) {
+          if (this.threadMessages.classList.contains('new')) {
             // After a message is sent...
             //
-            threadMessages.classList.remove('new');
+            this.threadMessages.classList.remove('new');
 
             ThreadUI.updateHeaderData(function() {
               ThreadUI.renderMessages(filter);
