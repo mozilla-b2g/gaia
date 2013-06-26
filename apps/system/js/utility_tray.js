@@ -56,6 +56,14 @@ var UtilityTray = {
             evt.target !== this.statusbar)
           return;
 
+        // needed for bug 877192 - GeeksPhone Keon emits touchstart on 0,0
+        // when pressing home button
+        if (evt.touches.length &&
+              evt.touches[0].screenX === 0 && evt.touches[0].screenY === 0 &&
+              evt.touches[0].clientX === 0 && evt.touches[0].clientY === 0) {
+          return;
+        }
+
         this.active = true;
         // XXX: required for Mouse2Touch fake events to function
         evt.target.setCapture(true);
