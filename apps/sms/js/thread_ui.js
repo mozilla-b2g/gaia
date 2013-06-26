@@ -438,8 +438,10 @@ var ThreadUI = global.ThreadUI = {
 
   // Triggered when the onscreen keyboard appears/disappears.
   resizeHandler: function thui_resizeHandler() {
-    this.setInputMaxHeight();
-    this.updateInputHeight();
+    if (!this.inEditMode) {
+      this.setInputMaxHeight();
+      this.updateInputHeight();
+    }
 
     generateHeightRule();
 
@@ -514,11 +516,30 @@ var ThreadUI = global.ThreadUI = {
   // Limit the maximum height of the Compose input field such that it never
   // grows larger than the space available.
   setInputMaxHeight: function thui_setInputMaxHeight() {
-    var viewHeight = this.container.offsetHeight;
-    // Account for the vertical margin of the input field and the height of the
-    // absolutely-position sub-header element.
-    var adjustment = this.subheader.offsetHeight + this.INPUT_MARGIN;
+    var viewHeight;
+    var threadSliverHeight = 30;
+    // The max height should be constrained by the following factors:
+    var adjustment =
+      // The height of the absolutely-position sub-header element
+      this.subheader.offsetHeight +
+      // the vertical margin of the input field
+      this.INPUT_MARGIN;
 
+    // Further constrain the max height by an artificial spacing to prevent the
+    // input field from completely occluding the message thread (not necessary
+    // when creating a new thread).
+    if (window.location.hash !== '#new') {
+      adjustment += threadSliverHeight;
+    }
+
+    // when the border bottom is bigger than the available space, then
+    // offsetHeight is also too big, and as a result we can't calculate the max
+    // height. So we nullify the border bottom width before getting the offset
+    // height.
+    // TODO: we should find something better than that because this probably
+    // triggers a synchronous workflow (bug 891029).
+    this.container.style.borderBottomWidth = null;
+    viewHeight = this.container.offsetHeight;
     this.input.style.maxHeight = (viewHeight - adjustment) + 'px';
   },
 
@@ -662,58 +683,39 @@ var ThreadUI = global.ThreadUI = {
     return true;
   },
 
+  // TODO this function probably triggers synchronous workflows, we should
+  // remove them (Bug 891029)
   updateInputHeight: function thui_updateInputHeight() {
     // First of all we retrieve all CSS info which we need
-    var inputCss = window.getComputedStyle(this.input, null);
-    var inputMaxHeight = parseInt(inputCss.getPropertyValue('max-height'), 10);
     var verticalMargin = this.INPUT_MARGIN;
+    var inputMaxHeight = parseInt(this.input.style.maxHeight, 10);
     var buttonHeight = this.sendButton.offsetHeight;
-    var composeForm = this.composeForm;
-    var newHeight;
 
-    // We need to grow the input step by step
-    this.input.style.height = null;
+    // we need to set it back to auto so that we know its "natural size"
+    // this will trigger a sync reflow when we get its scrollHeight at the next
+    // line, so we should try to find something better
+    // maybe in Bug 888950
+    this.input.style.height = 'auto';
 
-    // Updating the height if scroll is bigger that height
-    // This is when we have reached the header (UX requirement)
-    if (this.input.scrollHeight > inputMaxHeight) {
-      // Calculate the new Compose form height taking the input's margin into
-      // account
-      newHeight = inputMaxHeight + verticalMargin;
-
-      // Modify the input's scroll position to counteract the change in
-      // vertical offset that would otherwise result from setting the Compose
-      // form's height
-      this.input.scrollTop += parseInt(composeForm.style.height, 10) -
-        newHeight;
-      composeForm.style.height = newHeight + 'px';
-
-      // We update the position of the button taking into account the
-      // new height
-      this.sendButton.style.marginTop = this.attachButton.style.marginTop =
-        (this.input.offsetHeight + verticalMargin - buttonHeight) + 'px';
-      return;
-    }
-
-    // If the scroll height is smaller than original offset height, we keep
-    // offset height to keep original height, otherwise we use scroll height
-    // with additional margin for preventing scroll bar.
-    this.input.style.height =
-      this.input.offsetHeight > this.input.scrollHeight ?
-      this.input.offsetHeight + 'px' :
-      this.input.scrollHeight + 'px';
-
-    // We calculate the current height of the input element (including margin)
-    newHeight = this.input.getBoundingClientRect().height + verticalMargin;
+    // the new height is different whether the current height is bigger than the
+    // max height
+    var newHeight = Math.min(this.input.scrollHeight, inputMaxHeight);
 
     // We calculate the height of the Compose form which contains the input
-    composeForm.style.height = newHeight + 'px';
+    // and we set the bottom border of the container so the Compose field does
+    // not occlude the messages. `padding-bottom` is not used because it is
+    // applied at the content edge, not after any overflow (see "Bug 748518 -
+    // padding-bottom is ignored with overflow:auto;")
+    this.input.style.height = newHeight + 'px';
+    this.composeForm.style.height =
+      this.container.style.borderBottomWidth =
+      newHeight + verticalMargin + 'px';
 
     // We set the buttons' top margin to ensure they render at the bottom of
     // the container
-    var buttonOffset = this.input.offsetHeight + verticalMargin - buttonHeight;
-    this.sendButton.style.marginTop = this.attachButton.style.marginTop =
-      buttonOffset + 'px';
+    var buttonOffset = newHeight + verticalMargin - buttonHeight;
+    this.sendButton.style.marginTop =
+      this.attachButton.style.marginTop = buttonOffset + 'px';
 
     this.scrollViewToBottom();
   },
@@ -1175,7 +1177,13 @@ var ThreadUI = global.ThreadUI = {
   startEdit: function thui_edit() {
     this.inEditMode = true;
     this.cleanForm();
+
     this.mainWrapper.classList.toggle('edit');
+
+    // Ensure the Edit Mode menu does not occlude the final messages in the
+    // thread.
+    this.container.style.borderBottomWidth =
+      this.editForm.querySelector('menu').offsetHeight + 'px';
   },
 
   delete: function thui_delete() {
@@ -1215,6 +1223,7 @@ var ThreadUI = global.ThreadUI = {
 
   cancelEdit: function thlui_cancelEdit() {
     this.inEditMode = false;
+    this.updateInputHeight();
     this.mainWrapper.classList.remove('edit');
   },
 
