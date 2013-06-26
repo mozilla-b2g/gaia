@@ -361,7 +361,7 @@ reference-workload-heavy:
 reference-workload-x-heavy:
 	test_media/reference-workload/makeReferenceWorkload.sh x-heavy
 
-
+ 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
 XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2013/06/2013-06-11-03-11-40-mozilla-central/xulrunner-24.0a1.en-US.
@@ -571,6 +571,10 @@ update-common: common-install
 	rm -f $(TEST_COMMON)/vendor/chai/*.js
 	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
 	rm -R tools/xpcwindow/vendor/
+	rm -Rf test_apps/test-agent/common/vendor/mocha/
+	mkdir test_apps/test-agent/common/vendor/mocha/
+	cp $(TEST_AGENT_DIR)/node_modules/mocha/mocha.js test_apps/test-agent/common/vendor/mocha/
+	cp $(TEST_AGENT_DIR)/node_modules/mocha/mocha.css test_apps/test-agent/common/vendor/mocha/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
