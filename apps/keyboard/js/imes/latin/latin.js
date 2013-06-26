@@ -50,7 +50,10 @@
     displaysCandidates: displaysCandidates,
     click: click,
     select: select,
-    setLayoutParams: setLayoutParams
+    setLanguage: setLanguage,
+    setLayoutParams: setLayoutParams,
+    setState: setState,
+    getState: getState
   };
 
   // This is the object that is passed to init().
@@ -62,8 +65,9 @@
 
   // These variables are the input method's state. Most of them are
   // passed to the activate() method or are derived in that method.
-  var language;           // The user's language
+  var language;           // The current keyboard layout language
   var inputMode;          // The inputmode we're using: see getInputMode()
+  var inputState;         // The input state from focuschange event
   var capitalizing;       // Are we auto-capitalizing for this activation?
   var suggesting;         // Are we offering suggestions for this activation?
   var correcting;         // Are we auto-correcting user input?
@@ -162,11 +166,12 @@
   // we need to provide useful typing assistance.
   function activate(lang, state, options) {
     language = lang;
-    inputMode = getInputMode(state.type, state.inputmode);
-    inputText = state.value;
-    cursor = state.selectionStart;
-    if (state.selectionEnd > state.selectionStart)
-      selection = state.selectionEnd;
+    inputState = state;
+    inputMode = getInputMode(inputState.type, inputState.inputmode);
+    inputText = inputState.value;
+    cursor = inputState.selectionStart;
+    if (inputState.selectionEnd > inputState.selectionStart)
+      selection = inputState.selectionEnd;
     else
       selection = 0;
 
@@ -197,6 +202,14 @@
       worker = null;
       idleTimer = null;
     }, workerTimeout);
+  }
+
+  function setState(state) {
+    inputState = state;
+  }
+
+  function getState() {
+    return inputState;
   }
 
   function displaysCandidates() {
@@ -628,6 +641,16 @@
 
     // And update the keyboard capitalization state, if necessary
     updateCapitalization();
+  }
+
+  function setLanguage(lang) {
+    language = lang;
+    // Set up the worker with the new language
+    // NOTE: checking if the worker is initialized and setting the language
+    //       are part of the process
+    setupSuggestionsWorker();
+
+    updateSuggestions();
   }
 
   function setLayoutParams(params) {

@@ -122,6 +122,8 @@ const InputMethods = {};
 //  a number of other methods
 const defaultInputMethod = {
   click: sendKey,
+  setState: function(state) { this._state = state; },
+  getState: function() { return this._state; },
   displaysCandidates: function() { return false; }
 };
 
@@ -225,6 +227,16 @@ const keyboardAlias = {
   'pt-BR': 'pt_BR'
 };
 
+// Define keyboard name aliases to correctly match the relevant language,
+// i.e. keyboard name -> relevant language code
+const languageAlias = {
+  'en': 'en-US',
+  'en-Dvorak': 'en-US',
+  'pt_BR': 'pt-BR',
+  'sr-Cyrl': 'sr',
+  'sr-Latn': 'sr'
+};
+
 // This is the default keyboard if none is selected in settings
 // XXX: switch this to pt-BR?
 // XXX: ideally, this should be based on the current language,
@@ -256,7 +268,6 @@ const specialCodes = [
 ];
 
 // These values are initialized with user settings
-var userLanguage;
 var currentKeyboardName;
 var suggestionsEnabled;
 var correctionsEnabled;
@@ -296,7 +307,6 @@ function getKeyboardSettings() {
   // value of all keyboard-related settings. These are the settings
   // we want to query, with the default values we'll use if the query fails
   var settingsQuery = {
-    'language.current': 'en-US',
     'keyboard.current': 'en',
     'keyboard.wordsuggestion': true,
     'keyboard.autocorrect': true,
@@ -313,7 +323,6 @@ function getKeyboardSettings() {
   getSettings(settingsQuery, function gotSettings(values) {
 
     // Copy settings values to the corresponding global variables.
-    userLanguage = values['language.current'];
     currentKeyboardName = values['keyboard.current'];
     suggestionsEnabled = values['keyboard.wordsuggestion'];
     correctionsEnabled = values['keyboard.autocorrect'];
@@ -341,13 +350,6 @@ function getKeyboardSettings() {
 
 function initKeyboard() {
   // First, register handlers to track settings changes
-  navigator.mozSettings.addObserver('language.current', function(e) {
-    // The keyboard won't be displayed when this setting changes, so we
-    // don't need to tell the keyboard about the new value right away.
-    // We pass the value to the input method when the keyboard is displayed.
-    userLanguage = e.settingValue;
-  });
-
   navigator.mozSettings.addObserver('keyboard.current', function(e) {
     // Switch to the language associated keyboard
     // everything.me also uses this setting to improve searches
@@ -464,8 +466,8 @@ function setKeyboardName(name) {
   keyboardName = name;
   if (keyboard.imEngine)
     inputMethod = InputMethods[keyboard.imEngine];
-
-  if (!inputMethod)
+  else
+    // If no imEngine is defined, use the default inputMethod
     inputMethod = defaultInputMethod;
 }
 
@@ -795,6 +797,7 @@ function renderKeyboard(keyboardName) {
   }
 
   candidatePanelEnabled = Keyboards[keyboardName].needsCandidatePanel;
+
 }
 
 function setUpperCase(upperCase, upperCaseLocked) {
@@ -1322,7 +1325,7 @@ function endPress(target, coords, touchId) {
 
     // Switch language (keyboard)
   case SWITCH_KEYBOARD:
-
+    var prevInputMethod = inputMethod;
     // If the user has specify a keyboard in the menu,
     // switch to that keyboard and update the setting.
     if (target.dataset.keyboard) {
@@ -1361,10 +1364,36 @@ function endPress(target, coords, touchId) {
      * lose focus and then refocus the input field.  In practice, I think
      * that asian keyboards have input methods that handle the latin case
      * so this probably isn't an issue.
-    if (inputMethod.activate) {
-      inputMethod.activate(userLanguage, suggestionsEnabled, currentInputType);
+     */
+
+    var lang = languageAlias[keyboardName] || keyboardName;
+    // If the input method is the same, the word prediction language can
+    // be updated by setting the keyboard language for the word suggestions
+    // engine, thus informing it to load the appropriate dictionary
+    if (inputMethod == prevInputMethod) {
+      if (inputMethod.setLanguage)
+        inputMethod.setLanguage(lang);
+    } else {
+      // If the input methods differ, get the previous input state and pass it
+      // to the new input method through activate
+      if (prevInputMethod.getState &&
+          (inputMethod.activate || inputMethod.setState)) {
+
+        var prevInputState = prevInputMethod.getState();
+        if (prevInputMethod.deactivate)
+          prevInputMethod.deactivate();
+
+        // Activate the new input method or pass on the input state
+        if (inputMethod.activate) {
+          inputMethod.activate(lang, prevInputState, {
+            suggest: suggestionsEnabled,
+            correct: correctionsEnabled
+          });
+        } else {
+          inputMethod.setState(prevInputState);
+        }
+      }
     }
-    */
     break;
 
     // Expand / shrink the candidate panel
@@ -1478,10 +1507,17 @@ function showKeyboard(state) {
   resetKeyboard();
 
   if (inputMethod.activate) {
-    inputMethod.activate(userLanguage, state, {
+    // Word suggestions should follow the keyboard language configuration
+    var lang = languageAlias[keyboardName] || keyboardName;
+
+    inputMethod.activate(lang, state, {
       suggest: suggestionsEnabled,
       correct: correctionsEnabled
     });
+  // If no activate method is present, the input method should have a setState
+  // method to save the current state of input
+  } else if (inputMethod.setState) {
+    inputMethod.setState(state);
   }
 
   // render the keyboard after activation, which will determine the state

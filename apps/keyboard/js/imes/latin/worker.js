@@ -44,12 +44,20 @@ function log(msg) {
   postMessage({cmd: 'log', message: msg});
 }
 
+// Send error messages back to the main thread with this method
+function error(msg) {
+  postMessage({cmd: 'error', message: msg});
+}
+
 // Track our current language so we don't load dictionaries more often
 // than we have to.
 var currentLanguage;
 
 // The prediction that is currently running, if any. So that it can be cancelled
 var pendingPrediction;
+
+// Track if the worker initialized the predictions engine properly
+var isInitialized = false;
 
 var Commands = {
   setLanguage: function setLanguage(language) {
@@ -63,23 +71,25 @@ var Commands = {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', dicturl, false);
       xhr.responseType = 'arraybuffer';
-      xhr.send();
-      //
-      // XXX
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=804395
-      // The app protocol doesn't seem to return a status code and
-      // we just get a zero-length array if the url is undefined
-      //
-      if (!xhr.response || xhr.response.byteLength === 0) {
-        log('error loading dictionary');
-        postMessage({ cmd: 'error', message: 'Unknown language: ' + language });
+      // Catch the exception thrown by the XMLHttpRequest object if the file
+      // at url cannot be loaded
+      try {
+        xhr.send();
       }
-      else {
+      catch (e) {
+        error('Unknown dictionary for ' + language + ': ' + dicturl);
+        isInitialized = false;
+        return;
+      }
+
+      if (xhr.status === 200) {
         try {
           Predictions.setDictionary(xhr.response);
+          isInitialized = true;
         }
         catch (e) {
-          postMessage({ cmd: 'error', message: e.message + ': ' + dicturl});
+          error(e.message + ': ' + dicturl);
+          isInitialized = false;
         }
       }
     }
@@ -90,12 +100,14 @@ var Commands = {
       Predictions.setNearbyKeys(nearbyKeys);
     }
     catch (e) {
-      postMessage({cmd: 'error',
-                   message: 'Predictions.setNearbyKeys(): ' + e.message});
+      error('Predictions.setNearbyKeys(): ' + e.message);
     }
   },
 
   predict: function predict(prefix) {
+    if (!isInitialized)
+      return;
+
     if (pendingPrediction)  // Make sure we're not still running a previous one
       pendingPrediction.abort();
 
@@ -103,7 +115,7 @@ var Commands = {
     // only words with an edit distance of 1 (i.e. make only one correction
     // per word)
     pendingPrediction = Predictions.predict(prefix, 3, 24, 1,
-                                            success, error);
+                                            success, onerror);
 
     function success(words) {
       if (words.length) {
@@ -119,12 +131,12 @@ var Commands = {
                                 postMessage({ cmd: 'predictions',
                                               input: prefix,
                                               suggestions: words });
-                              }, error);
+                              }, onerror);
       }
     }
 
-    function error(msg) {
-      log('Error in Predictions.predict(): ' + msg);
+    function onerror(msg) {
+      error('Error in Predictions.predict(): ' + msg);
     }
   }
 };
