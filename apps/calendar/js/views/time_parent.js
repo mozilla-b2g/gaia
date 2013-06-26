@@ -191,6 +191,11 @@ Calendar.ns('Views').TimeParent = (function() {
       cur.activate();
       cur.setScrollTop(prevScrollTop);
 
+      // scroll to the first event of the day
+      var firstEventRecord = cur.getFirstEventRecord();
+      if (firstEventRecord) {
+        firstEventRecord.scrollIntoView(true);
+      }
       // add next frame
       this.addFrame(next);
 
