@@ -23,10 +23,17 @@ suite('simcard dialog', function() {
 
   var MockIccHelper = (function() {
     var _cardState = null;
+    var _retryCount = 3;
     return {
       addEventListener: function(event, handler) {},
       setCardLock: function(options) {},
       unlockCardLock: function(options) {},
+      mSetCardLockRetryCount: function(retryCount) {
+        _retryCount = retryCount;
+      },
+      getCardLockRetryCount: function(lockType, onresult) {
+        onresult(_retryCount);
+      },
       get enabled() {
         return true;
       },
