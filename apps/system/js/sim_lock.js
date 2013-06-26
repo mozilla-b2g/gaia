@@ -4,8 +4,6 @@
 'use strict';
 
 var SimLock = {
-  //XXX: A hack to remember ftu state.
-  _ftuEnabled: null,
   _duringCall: false,
 
   init: function sl_init() {
@@ -23,17 +21,13 @@ var SimLock = {
     // To prevent keyboard being displayed behind it.
     window.addEventListener('unlock', this);
 
-    // always monitor card state change
-    conn.addEventListener('cardstatechange', this._bypassFTU.bind(this));
-
-    window.addEventListener('skipftu', function() {
-      this._ftuEnabled = false;
-    }.bind(this));
 
     // Listen to callscreenwillopen and callscreenwillclose event
     // to discard the cardstatechange event.
     window.addEventListener('callscreenwillopen', this);
     window.addEventListener('callscreenwillclose', this);
+    // always monitor card state change
+    conn.addEventListener('cardstatechange', this.showIfLocked.bind(this));
   },
 
   handleEvent: function sl_handleEvent(evt) {
@@ -51,7 +45,7 @@ var SimLock = {
         if (evt.detail && evt.detail.areaCamera)
           return;
 
-        this._bypassFTU();
+        this.showIfLocked();
         break;
       case 'appwillopen':
         // If an app needs 'telephony' or 'sms' permissions (i.e. mobile
@@ -97,28 +91,6 @@ var SimLock = {
 
         break;
     }
-  },
-
-  // XXX: This is a hack.
-  // Because FTU tries to disable lockscreen,
-  // and lockscreen fires 'unlock' event immediately.
-  // after the setting value is change and
-  // the device is rebooting.
-  _bypassFTU: function sl__bypassFTU() {
-    if (this._ftuEnabled === false) {
-      this.showIfLocked();
-    }
-
-    // Furthermore checking ftu.enabled state.
-
-    var showFunc = this.showIfLocked.bind(this);
-
-    window.asyncStorage.getItem('ftu.enabled',
-      function getItem(launchFTU) {
-        if (launchFTU === false) {
-          showFunc();
-        }
-      });
   },
 
   showIfLocked: function sl_showIfLocked() {

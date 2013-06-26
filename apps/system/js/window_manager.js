@@ -1295,6 +1295,14 @@ var WindowManager = (function() {
     if (requireFullscreen(origin)) {
       frame.classList.add('fullscreen-app');
     }
+<<<<<<< HEAD
+=======
+    if (origin === ftuURL) {
+      // Add a way to identify ftu app
+      // (Used by SimLock)
+      frame.classList.add('ftu');
+    }
+>>>>>>> parent of 5af655d... Bug 875646 - Bypass FTU sim lock checking
 
     numRunningApps++;
 
