@@ -18,11 +18,6 @@
   var iccStkList = document.getElementById('icc-stk-list');
   var iccStkHeader = document.getElementById('icc-stk-header');
   var iccStkSubheader = document.getElementById('icc-stk-subheader');
-  var alertbox = document.getElementById('icc-stk-alert');
-  var alertbox_btn = document.getElementById('icc-stk-alert-btn');
-  var alertbox_btnback = document.getElementById('icc-stk-alert-btn_back');
-  var alertbox_btnclose = document.getElementById('icc-stk-alert-btn_close');
-  var alertbox_msg = document.getElementById('icc-stk-alert-msg');
   var iccLastCommand = null;
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
@@ -61,9 +56,6 @@
       }, true);
     };
 
-    icc.addEventListener('stkcommand', function do_handleSTKCmd(event) {
-      handleSTKCommand(event.command);
-    });
     window.addEventListener('stkasynccommand',
       function do_handleAsyncSTKCmd(event) {
         handleSTKCommand(event.detail.command);
