@@ -310,7 +310,7 @@ var Camera = {
 
     // We lock the screen orientation and deal with rotating
     // the icons manually
-    var css = '#switch-button span, #capture-button span, ' +
+    var css = '#switch-button span, #capture-button span, #toggle-flash, ' +
       '#gallery-button span { -moz-transform: rotate(0deg); }';
     var insertId = this._styleSheet.cssRules.length - 1;
     this._orientationRule = this._styleSheet.insertRule(css, insertId);
