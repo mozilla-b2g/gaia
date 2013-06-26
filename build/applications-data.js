@@ -349,5 +349,10 @@ init = getFile(GAIA_DIR, 'apps', 'communications', 'contacts', 'oauth2', 'js',
 content = JSON.parse(getFileContent(getFile(GAIA_DIR, 'build',
                                        'communications_services.json')));
 
+// Bug 883344 Only use default facebook app id if is mozilla partner build
+if (OFFICIAL === '1') {
+  content.facebook.applicationId = '395559767228801';
+}
+
 writeContent(init, 'var oauthflow = this.oauthflow || {}; oauthflow.params = ' +
   getDistributionFileContent('communications_services', content) + ';');
