@@ -37,8 +37,9 @@ var ModalDialog = {
   },
 
   // Save the events returned by mozbrowsershowmodalprompt for later use.
-  // The events are stored according to webapp origin
-  // e.g., 'http://uitest.gaiamobile.org': evt
+  // The events are stored according to webapp origin and in the order in
+  // which they are received,
+  // e.g., 'http://uitest.gaiamobile.org': [evt1, evt2]
   currentEvents: {},
 
   init: function md_init() {
@@ -61,7 +62,11 @@ var ModalDialog = {
         if (this.boundToWindow && evt.target.dataset.frameType != 'window')
           return;
         evt.preventDefault();
-        this.currentEvents[origin] = evt;
+        if (this.originHasEvent(origin)) {
+          this.currentEvents[origin].push(evt);
+          break;
+        }
+        this.currentEvents[origin] = [evt];
 
         // Show modal dialog only if
         // the frame is currently displayed.
@@ -86,7 +91,7 @@ var ModalDialog = {
   // Show relative dialog and set message/input value well
   show: function md_show(origin) {
     this.currentOrigin = origin;
-    var evt = this.currentEvents[origin];
+    var evt = this.currentEvents[origin][0];
 
     var message = evt.detail.message;
     var elements = this.elements;
@@ -167,7 +172,7 @@ var ModalDialog = {
   },
 
   hide: function md_hide() {
-    var evt = this.currentEvents[this.currentOrigin];
+    var evt = this.currentEvents[this.currentOrigin][0];
     if (!evt)
       return;
     var type = evt.detail.promptType;
@@ -178,7 +183,7 @@ var ModalDialog = {
   confirmHandler: function md_confirmHandler(target) {
     var elements = this.elements;
 
-    var evt = this.currentEvents[this.currentOrigin];
+    var evt = this.currentEvents[this.currentOrigin][0];
     var type = evt.detail.promptType;
 
     switch (type) {
@@ -210,13 +215,13 @@ var ModalDialog = {
     if (evt.detail.unblock)
       evt.detail.unblock();
 
-    delete this.currentEvents[this.currentOrigin];
+    this.remove(this.currentOrigin);
   },
 
   // When user clicks cancel button on confirm/prompt or
   // when the user try to escape the dialog with the escape key
   cancelHandler: function md_cancelHandler() {
-    var evt = this.currentEvents[this.currentOrigin];
+    var evt = this.currentEvents[this.currentOrigin][0];
     var elements = this.elements;
     var type = evt.detail.promptType;
 
@@ -241,7 +246,7 @@ var ModalDialog = {
     if (evt.detail.unblock)
       evt.detail.unblock();
 
-    delete this.currentEvents[this.currentOrigin];
+    this.remove(this.currentOrigin);
   },
 
   originHasEvent: function(origin) {
@@ -251,5 +256,16 @@ var ModalDialog = {
   clear: function ad_clear(origin) {
     if (this.currentEvents[origin])
       delete this.currentEvents[origin];
+  },
+
+  remove: function(origin) {
+    if (this.currentEvents[origin]) {
+      this.currentEvents[origin].shift();
+      if (this.currentEvents[origin].length != 0) {
+        this.show(origin);
+        return;
+      }
+      delete this.currentEvents[origin];
+    }
   }
 };
