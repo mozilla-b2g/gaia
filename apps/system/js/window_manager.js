@@ -1181,6 +1181,7 @@ var WindowManager = (function() {
       setOrientationForApp(displayedApp);
       if (app && app.iframe) {
         app.iframe.focus();
+        app.setVisible(true);
         if ('wrapper' in app.frame.dataset) {
           wrapperFooter.classList.add('visible');
         }
@@ -1439,19 +1440,17 @@ var WindowManager = (function() {
         resetDeviceLockedTimer();
         break;
       case 'lock':
-        // XXX: We couldn't avoid to stop inline activities
-        // when screen is turned off and lockscreen is enabled
-        // to avoid two cameras iframes are competing resources
-        // if the user opens a app to call camera activity and
-        // at the same time open camera app from lockscreen.
-        if (inlineActivityFrames.length) {
-          stopInlineActivity(true);
-        }
-
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         if (!normalAudioChannelActive) {
-          runningApps[displayedApp].setVisible(false);
+          if (inlineActivityFrames.length) {
+            // XXX: With this, some inline activities may close
+            // themselves when visibility is true. but some may not.
+            // See bug 853759 and bug 846850.
+            setVisibilityForInlineActivity(false);
+          } else {
+            runningApps[displayedApp].setVisible(false);
+          }
         }
         resetDeviceLockedTimer();
         break;
