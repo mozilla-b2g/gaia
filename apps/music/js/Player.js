@@ -11,9 +11,6 @@ var REPEAT_OFF = 0;
 var REPEAT_LIST = 1;
 var REPEAT_SONG = 2;
 
-// Key for store options of repeat and shuffle
-var SETTINGS_OPTION_KEY = 'settings_option_key';
-
 // We get headphoneschange event when the headphones is plugged or unplugged
 // A related Bug 809106 in Bugzilla
 var acm = navigator.mozAudioChannelManager;
@@ -72,7 +69,7 @@ var PlayerView = {
     }
   },
 
-  init: function pv_init(needSettings) {
+  init: function pv_init() {
     this.artist = document.getElementById('player-cover-artist');
     this.album = document.getElementById('player-cover-album');
 
@@ -100,9 +97,6 @@ var PlayerView = {
     this.currentIndex = 0;
     this.backgroundIndex = 0;
     this.setSeekBar(0, 0, 0); // Set 0 to default seek position
-
-    if (needSettings)
-      asyncStorage.getItem(SETTINGS_OPTION_KEY, this.setOptions.bind(this));
 
     this.view.addEventListener('click', this);
 
