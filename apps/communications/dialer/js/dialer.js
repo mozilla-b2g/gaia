@@ -7,6 +7,7 @@ var CallHandler = (function callHandler() {
   var callScreenWindowReady = false;
   var btCommandsToForward = [];
   var currentActivity = null;
+  var FB_SYNC_ERROR_PARAM = 'isSyncError';
 
   /* === Settings === */
   var screenState = null;
@@ -64,10 +65,16 @@ var CallHandler = (function callHandler() {
       return;
     }
 
-    navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
-      var app = evt.target.result;
+    navigator.mozApps.getSelf().onsuccess = function gotSelf(selfEvt) {
+      var app = selfEvt.target.result;
       app.launch('dialer');
-      window.location.hash = '#recents-view';
+      var location = document.createElement('a');
+      location.href = evt.imageURL;
+      if (location.search.indexOf(FB_SYNC_ERROR_PARAM) !== -1) {
+        window.location.hash = '#contacts-view';
+      } else {
+        window.location.hash = '#call-log-view';
+      }
     };
   }
 

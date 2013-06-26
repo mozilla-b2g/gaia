@@ -18,6 +18,7 @@ fb.sync = Sync;
   // Delay in closing the window
   var CLOSE_DELAY = 5000;
   var FB_TRAY_ICON = '/contacts/style/images/f_logo.png';
+  var FB_SYNC_ERROR_PARAM = 'isSyncError';
 
   Alarm.init = function() {
     fb.init(function fb_alarm_init() {
@@ -72,7 +73,7 @@ fb.sync = Sync;
         showNotification({
           title: _('facebook'),
           body: _('notificationLogin'),
-          iconURL: FB_TRAY_ICON,
+          iconURL: FB_TRAY_ICON + '?' + FB_SYNC_ERROR_PARAM + '=1',
           callback: handleInvalidToken
         });
       break;
@@ -88,7 +89,7 @@ fb.sync = Sync;
         showNotification({
           title: _('facebook'),
           body: _('syncError'),
-          iconURL: FB_TRAY_ICON,
+          iconURL: FB_TRAY_ICON + '?' + FB_SYNC_ERROR_PARAM + '=1',
           callback: function() {
             scheduleAt(fb.syncPeriod, closeApp);
           }
