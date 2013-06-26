@@ -1,5 +1,4 @@
 [
   "calendar/test/unit/views/modify_event_test.js",
-  "gallery/test/unit/GestureDetector_test.js",
-  "homescreen/test/unit/dragdrop_test.js"
+  "gallery/test/unit/GestureDetector_test.js"
 ]
