@@ -22,6 +22,8 @@ var MessageManager = {
     this._mozMobileMessage.addEventListener('sending', this.onMessageSending);
     this._mozMobileMessage.addEventListener('sent', this.onMessageSent);
     this._mozMobileMessage.addEventListener('failed', this.onMessageFailed);
+    this._mozMobileMessage.addEventListener('deliverysuccess',
+                                            this.onDeliverySuccess);
     window.addEventListener('hashchange', this.onHashChange.bind(this));
     document.addEventListener('mozvisibilitychange',
                               this.onVisibilityChange.bind(this));
@@ -57,6 +59,10 @@ var MessageManager = {
 
   onMessageFailed: function mm_onMessageFailed(e) {
     ThreadUI.onMessageFailed(e.message);
+  },
+
+  onDeliverySuccess: function mm_onDeliverySuccess(e) {
+    ThreadUI.onDeliverySuccess(e.message);
   },
 
   onMessageSent: function mm_onMessageSent(e) {

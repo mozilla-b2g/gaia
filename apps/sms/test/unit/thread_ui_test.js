@@ -811,6 +811,13 @@ suite('thread_ui.js >', function() {
         });
       });
     });
+
+    suite('onDeliverySuccess >', function() {
+      test('adds the "delivered" class to the message element', function() {
+        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        assert.isTrue(this.container.classList.contains('delivered'));
+      });
+    });
   });
 
   suite('removeMessageDOM', function() {
