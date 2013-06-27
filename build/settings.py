@@ -107,7 +107,7 @@ settings = {
  "ril.mms.user": "",
  "ril.mms.retrieval_mode": "automatic-home",
  "ril.mms.authtype": "notDefined",
- "dom.mms.operatorSizeLimitation": 0,
+ "dom.mms.operatorSizeLimitation": 307200,
  "ril.radio.preferredNetworkType": "",
  "ril.radio.disabled": False,
  "ril.supl.apn": "",

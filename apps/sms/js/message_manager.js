@@ -22,6 +22,8 @@ var MessageManager = {
     this._mozMobileMessage.addEventListener('sending', this.onMessageSending);
     this._mozMobileMessage.addEventListener('sent', this.onMessageSent);
     this._mozMobileMessage.addEventListener('failed', this.onMessageFailed);
+    this._mozMobileMessage.addEventListener('deliverysuccess',
+                                            this.onDeliverySuccess);
     window.addEventListener('hashchange', this.onHashChange.bind(this));
     document.addEventListener('mozvisibilitychange',
                               this.onVisibilityChange.bind(this));
@@ -48,7 +50,7 @@ var MessageManager = {
     if (window.location.hash === '#new') {
       // If we are in 'new' we go to right to thread view
       window.location.hash = '#thread=' + threadId;
-    } else {
+    } else if (threadId === Threads.currentId) {
       ThreadUI.appendMessage(message);
       ThreadUI.scrollViewToBottom();
     }
@@ -57,6 +59,10 @@ var MessageManager = {
 
   onMessageFailed: function mm_onMessageFailed(e) {
     ThreadUI.onMessageFailed(e.message);
+  },
+
+  onDeliverySuccess: function mm_onDeliverySuccess(e) {
+    ThreadUI.onDeliverySuccess(e.message);
   },
 
   onMessageSent: function mm_onMessageSent(e) {
@@ -385,22 +391,25 @@ var MessageManager = {
 
   // consider splitting this method for the different use cases
   sendSMS: function mm_send(recipients, content, onsuccess, onerror) {
-    var request;
+    var requests;
 
     if (!Array.isArray(recipients)) {
       recipients = [recipients];
     }
 
-    request = this._mozMobileMessage.send(recipients, content);
+    // The returned value is not a DOM request!
+    // Instead, It's an array of DOM requests.
+    requests = this._mozMobileMessage.send(recipients, content);
+    requests.forEach(function(request) {
+      request.onsuccess = function onSuccess(event) {
+        onsuccess && onsuccess(event.result);
+      };
 
-    request.onsuccess = function onSuccess(event) {
-      onsuccess && onsuccess(event.result);
-    };
-
-    request.onerror = function onError(event) {
-      console.log('Error Sending: ' + JSON.stringify(event.error));
-      onerror && onerror();
-    };
+      request.onerror = function onError(event) {
+        console.log('Error Sending: ' + JSON.stringify(event.error));
+        onerror && onerror();
+      };
+    });
   },
 
   sendMMS: function mm_sendMMS(recipients, content, onsuccess, onerror) {

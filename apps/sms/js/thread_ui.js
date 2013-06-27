@@ -328,6 +328,10 @@ var ThreadUI = global.ThreadUI = {
     this.updateInputHeight();
     this.enableSend();
 
+    if (Compose.type === 'sms') {
+      return;
+    }
+
     if (Compose.isResizing) {
       this.resizeNotice.classList.remove('hide');
 
@@ -818,15 +822,11 @@ var ThreadUI = global.ThreadUI = {
     //
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
-      /** If we have more than one contact sharing the same phone number
-       *  we show the title of contact detail with validate name/company
-       *  and how many other contacts share that same number. We think it's
-       *  user's responsability to correct this mess with the agenda.
-       */
       // Bug 867948: contacts null is a legitimate case, and
       // getContactDetails is okay with that.
       var details = Utils.getContactDetails(number, contacts);
       var contactName = details.title || number;
+      var carrierText;
 
       this.headerText.dataset.isContact = !!details.isContact;
       this.headerText.textContent = navigator.mozL10n.get(
@@ -837,14 +837,29 @@ var ThreadUI = global.ThreadUI = {
 
       // The carrier banner is meaningless and confusing in
       // group message mode.
-      if (thread.participants.length === 1) {
-        if (contacts && contacts.length) {
-          carrierTag.textContent = Utils.getContactCarrier(
-            number, contacts[0].tel
-          );
+      if (thread.participants.length === 1 &&
+          (contacts && contacts.length)) {
+
+
+        carrierText = Utils.getCarrierTag(
+          number, contacts[0].tel, details
+        );
+
+        // Known Contact with at least:
+        //
+        //  1. a name
+        //  2. a carrier
+        //  3. a type
+        //
+
+        if (carrierText) {
+          carrierTag.textContent = carrierText;
           carrierTag.classList.remove('hide');
+        } else {
+          carrierTag.classList.add('hide');
         }
       } else {
+        // Hide carrier tag in group message or unknown contact cases.
         carrierTag.classList.add('hide');
       }
 
@@ -1006,6 +1021,7 @@ var ThreadUI = global.ThreadUI = {
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var bodyHTML = '';
     var delivery = message.delivery;
+    var isDelivered = message.deliveryStatus === 'success';
     var messageDOM = document.createElement('li');
 
     var classNames = ['message', message.type, delivery];
@@ -1016,6 +1032,10 @@ var ThreadUI = global.ThreadUI = {
       classNames.push('incoming');
     } else {
       classNames.push('outgoing');
+    }
+
+    if (delivery === 'sent' && isDelivered) {
+      classNames.push('delivered');
     }
 
     if (hidden) {
@@ -1393,6 +1413,16 @@ var ThreadUI = global.ThreadUI = {
     this.ifRilDisabled(this.showAirplaneModeError);
   },
 
+  onDeliverySuccess: function thui_onDeliverySuccess(message) {
+    var messageDOM = document.getElementById('message-' + message.id);
+
+    if (!messageDOM) {
+      return;
+    }
+    // Update class names to reflect message state
+    messageDOM.classList.add('delivered');
+  },
+
   ifRilDisabled: function thui_ifRilDisabled(func) {
     var settings = window.navigator.mozSettings;
     if (settings) {
@@ -1519,15 +1549,22 @@ var ThreadUI = global.ThreadUI = {
     var ul = params.target;
     var isContact = params.isContact;
     var isSuggestion = params.isSuggestion;
-
-    var escaped = Utils.escapeRegex(input);
-    var escsubs = escaped.split(/\s+/);
     var tels = contact.tel;
-    var regexps = {
-      name: new RegExp('(\\b' + escsubs.join(')|(\\b') + ')', 'gi'),
-      number: new RegExp(escaped, 'ig')
-    };
     var telsLength = tels.length;
+
+    // We search on the escaped HTML via a regular expression
+    var escaped = Utils.escapeRegex(Utils.escapeHTML(input));
+    var escsubs = escaped.split(/\s+/);
+    // Build a list of regexes used for highlighting suggestions
+    var regexps = {
+      name: escsubs.map(function(k) {
+        // String matches occur on the beginning of a "word" to
+        // maintain parity with the contact search algorithm which
+        // only considers left aligned exact matches on words
+        return new RegExp('^' + k, 'gi');
+      }),
+      number: [new RegExp(escaped, 'ig')]
+    };
 
     if (!telsLength) {
       return false;
@@ -1574,18 +1611,37 @@ var ThreadUI = global.ThreadUI = {
         numberHTML: ''
       };
 
-
       ['name', 'number'].forEach(function(key) {
+        var escapedData = Utils.escapeHTML(data[key]);
         if (isSuggestion) {
-          data[key + 'HTML'] = data[key].replace(
-            regexps[key], function(match) {
-              return this.tmpl.highlight.interpolate({
-                str: match
-              });
-            }.bind(this)
-          );
+          // When rendering a suggestion, we highlight the matched substring.
+          // The approach is to escape the html and the search string, and
+          // then replace on all "words" (whitespace bounded strings) with
+          // the substring run through the highlight template.
+          var splitData = escapedData.split(/\s+/);
+          var loopReplaceFn = (function(match) {
+            matchFound = true;
+            // The match is safe, because splitData[i] is derived from
+            // escapedData
+            return this.tmpl.highlight.interpolate({
+              str: match
+            }, {
+              safe: ['str']
+            });
+          }).bind(this);
+          // For each "word"
+          for (var i = 0; i < splitData.length; i++) {
+            var matchFound = false;
+            // Loop over search term regexes
+            for (var k = 0; !matchFound && k < regexps[key].length; k++) {
+              splitData[i] = splitData[i].replace(
+                regexps[key][k], loopReplaceFn);
+            }
+          }
+          data[key + 'HTML'] = splitData.join(' ');
         } else {
-          data[key + 'HTML'] = Utils.escapeHTML(data[key]);
+          // If we have no html template injection, simply escape the data
+          data[key + 'HTML'] = escapedData;
         }
       }, this);
 

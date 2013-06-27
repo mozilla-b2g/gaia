@@ -456,7 +456,8 @@ section[role="region"].new > header:first-child form {
   margin: 0 0.5rem 0 0;
 }
 
-.article-list[data-type="list"] .message.error .bubble > aside progress {
+.article-list[data-type="list"] .message.error .bubble > aside progress,
+.article-list[data-type="list"] .message.delivered .bubble > aside progress {
   display: none;
 }
 
@@ -464,6 +465,12 @@ section[role="region"].new > header:first-child form {
   display: block;
 
   background: url('images/icons/exclamation.png') no-repeat center center;
+  background-size: 2.2rem;
+}
+
+.article-list[data-type="list"] .message.delivered .bubble > aside {
+  display: block;
+  background: url('images/icons/deliveredtick.png') no-repeat center center;
   background-size: 2.2rem;
 }
 

@@ -92,32 +92,7 @@ var icc = {
       return icc_worker[cmdId](command, this);
     }
 
-    // Command not yet supported in system (Bug #875679)
-    // transferring to settings...
-    DUMP('STK -> Settings: ', command);
-    var application = document.location.protocol + '//' +
-      document.location.host.replace('system', 'settings');
-    DUMP('application: ', application);
-    var reqIccData = window.navigator.mozSettings.createLock().set({
-      'icc.data': JSON.stringify(command)
-    });
-    reqIccData.onsuccess = function icc_getIccData() {
-      if (WindowManager.getRunningApps()[application]) {
-        DUMP('Settings is running. Ignoring');
-        return;   // If settings is opened, we don't manage it
-      }
-
-      DUMP('Locating settings . . .');
-      navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
-        var apps = evt.target.result;
-        apps.forEach(function appIterator(app) {
-          if (app.origin != application)
-            return;
-          DUMP('Launching ', app.origin);
-          app.launch();
-        }, this);
-      };
-    };
+    DUMP('STK Command not recognized ! - ', command);
   },
 
 

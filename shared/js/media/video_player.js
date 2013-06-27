@@ -47,6 +47,7 @@ function VideoPlayer(container) {
   this.poster = poster;
   this.player = player;
   this.controls = controls;
+  this.playing = false;
 
   player.preload = 'metadata';
   player.mozAudioChannelType = 'content';
@@ -139,8 +140,10 @@ function VideoPlayer(container) {
 
   this.pause = function pause() {
     // Pause video playback
-    if (self.playerShowing)
+    if (self.playerShowing) {
+      this.playing = false;
       player.pause();
+    }
 
     // Hide the pause button and slider
     footer.classList.add('hidden');
@@ -163,6 +166,8 @@ function VideoPlayer(container) {
       showPlayer();
       return;
     }
+
+    this.playing = true;
 
     // Start playing the video
     player.play();
@@ -447,6 +452,16 @@ function VideoPlayer(container) {
       return hours + ':' + padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
     }
     return '';
+  }
+
+  // pause the video player if user unplugs headphone
+  var acm = navigator.mozAudioChannelManager;
+  if (acm) {
+    acm.addEventListener('headphoneschange', function onheadphoneschange() {
+      if (!acm.headphones && self.playing) {
+        self.pause();
+      }
+    });
   }
 }
 

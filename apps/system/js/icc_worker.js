@@ -41,31 +41,46 @@ var icc_worker = {
 
   // STK_CMD_SET_UP_CALL
   '0x10': function STK_CMD_SET_UP_CALL(command, iccManager) {
+    function stkSetupCall(confirmed, postMessage) {
+      iccManager.responseSTKCommand({
+        hasConfirmed: confirmed,
+        resultCode: iccManager._icc.STK_RESULT_OK
+      });
+      if (confirmed && postMessage) {
+        iccManager.alert(postMessage);
+      }
+    }
+
     var _ = navigator.mozL10n.get;
     DUMP('STK_CMD_SET_UP_CALL:', command.options);
     var options = command.options;
-    DUMP(' STK:Setup Phone Call. Number: ' + options.address);
-    if (!options.confirmMessage) {
+    if (options.confirmMessage == '') {
       options.confirmMessage = _(
         'icc-confirmCall-defaultmessage', {
           'number': options.address
         });
     }
-    iccManager.asyncConfirm(options.confirmMessage, function(confirmed) {
-      iccManager.responseSTKCommand({
-        hasConfirmed: confirmed,
-        resultCode: iccManager._icc.STK_RESULT_OK
+    if (options.confirmMessage) {
+      iccManager.asyncConfirm(options.confirmMessage, function(confirmed) {
+        stkSetupCall(confirmed, options.callMessage);
       });
-      if (options.callMessage) {
-        iccManager.alert(options.callMessage);
-      }
-    });
+    } else {
+      stkSetupCall(true, options.callMessage);
+    }
   },
 
   // STK_CMD_SEND_SS
   '0x11': function STK_CMD_SEND_SS(command, iccManager) {
     DUMP('STK_CMD_SEND_SS:', command.options);
-    this['0x13'](command, iccManager);
+    var options = command.options;
+    iccManager.responseSTKCommand({
+      resultCode: iccManager._icc.STK_RESULT_OK
+    });
+    if (!options.text) {
+      var _ = navigator.mozL10n.get;
+      options.text = _('icc-alertMessage-defaultmessage');
+    }
+    iccManager.alert(options.text);
   },
 
   // STK_CMD_SEND_USSD
@@ -83,13 +98,40 @@ var icc_worker = {
     });
     if (options.text) {
       iccManager.confirm(options.text);
+    } else if (options.text != undefined) {
+      var _ = navigator.mozL10n.get;
+      iccManager.alert(_('icc-alertMessage-defaultmessage'));
     }
   },
 
   // STK_CMD_SEND_DTMF
   '0x14': function STK_CMD_SEND_DTMF(command, iccManager) {
     DUMP('STK_CMD_SEND_DTMF:', command.options);
-    this['0x13'](command, iccManager);
+    var options = command.options;
+    if (options.text) {
+      iccManager.responseSTKCommand({
+        resultCode: iccManager._icc.STK_RESULT_OK
+      });
+      iccManager.alert(options.text);
+    } else if (options.text == '') {
+      var _ = navigator.mozL10n.get;
+      iccManager.confirm(_('icc-confirmMessage-defaultmessage'), 0,
+        function(userCleared) {
+          if (userCleared) {
+            iccManager.responseSTKCommand({
+              resultCode: iccManager._icc.STK_RESULT_OK
+            });
+          } else {
+            iccManager.responseSTKCommand({
+              resultCode: iccManager._icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+            });
+          }
+        });
+    } else {
+      iccManager.responseSTKCommand({
+        resultCode: iccManager._icc.STK_RESULT_OK
+      });
+    }
   },
 
   // STK_CMD_LAUNCH_BROWSER
@@ -215,7 +257,28 @@ var icc_worker = {
   //'0x23': function STK_CMD_GET_INPUT(command, iccManager) {},
 
   // STK_CMD_SELECT_ITEM
-  //'0x24': function STK_CMD_SELECT_ITEM(command, iccManager) {},
+  '0x24': function STK_CMD_SELECT_ITEM(command, iccManager) {
+    var application = document.location.protocol + '//' +
+      document.location.host.replace('system', 'settings');
+    DUMP('STK_CMD_SET_UP_MENU. Transferring to ' + application + ': ', command);
+    var reqIccData = window.navigator.mozSettings.createLock().set({
+      'icc.data': JSON.stringify(command)
+    });
+    reqIccData.onsuccess = function icc_getIccData() {
+      if (WindowManager.getRunningApps()[application]) {
+        return DUMP('Settings is running. Ignoring');
+      }
+      navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
+        var apps = evt.target.result;
+        apps.forEach(function appIterator(app) {
+          if (app.origin != application)
+            return;
+          DUMP('Launching ', app.origin);
+          app.launch();
+        }, this);
+      };
+    };
+  },
 
   // STK_CMD_SET_UP_MENU
   '0x25': function STK_CMD_SET_UP_MENU(command, iccManager) {

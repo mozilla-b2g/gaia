@@ -1766,6 +1766,8 @@ Evme.Brain = new function Evme_Brain() {
                         if (spelling.length > 0 || disambig.length > 1) {
                             Evme.Helper.hideTitle();
                             Evme.Helper.showSpelling();
+                        } else {
+                          Evme.Helper.showTitle();
                         }
                     } else {
                         Evme.Helper.showSuggestions(_query);

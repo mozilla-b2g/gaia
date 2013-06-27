@@ -34,6 +34,9 @@ var leastPlayedTitleL10nId = 'playlists-least-played';
 var musicdb;
 // Pick activity
 var pendingPick;
+// Key for store the player options of repeat and shuffle
+var SETTINGS_OPTION_KEY = 'settings_option_key';
+var playerSettings;
 
 // We get a localized event when the application is launched and when
 // the user switches languages.
@@ -86,6 +89,12 @@ window.addEventListener('localized', function onlocalized() {
     } else {
       TabBar.option = 'mix';
       ModeManager.start(MODE_TILES);
+
+      // The player options will be used later,
+      // so let's get them first before the player is loaded.
+      asyncStorage.getItem(SETTINGS_OPTION_KEY, function(settings) {
+        playerSettings = settings;
+      });
 
       // The done button must be removed when we are not in picker mode
       // because the rules of the header building blocks
@@ -536,8 +545,10 @@ var ModeManager = {
       // load Player.js then we can use the PlayerView object
       document.getElementById('views-player').classList.remove('hidden');
       LazyLoader.load('js/Player.js', function() {
-        if (!playerLoaded)
-          PlayerView.init(true);
+        if (!playerLoaded) {
+          PlayerView.init();
+          PlayerView.setOptions(playerSettings);
+        }
 
         if (callback)
           callback();
