@@ -13,32 +13,31 @@ var VCFReader = function(contents) {
 
 VCFReader.prototype.process = function(cb) {
   try {
-    this.rawContacts = this.contents
-      .split('END:VCARD')
-      .map(VCFReader.parseSingleEntry)
-      .filter(function(v) { return !!v; });
-    this.onread && this.onread(this.rawContacts.length);
+    var rawContacts = [];
+    this.contents = this.contents.split('END:VCARD');
+    this.contents.forEach(function(c) {
+      var parsed = VCFReader.parseSingleEntry(c);
+      if (parsed)
+        rawContacts.push(parsed);
+    });
+    this.contents = null;
+    this.onread && this.onread(rawContacts.length);
   } catch (e) {
     this.onerror && this.onerror(e);
     return;
   }
 
-  var allDone = false;
   var self = this;
-
-  var finalContacts = [];
-  this.validContacts = this.rawContacts.length;
-  this.rawContacts.forEach(function(ct) {
-    VCFReader.save(ct, onParsed);
-  });
+  var allDone = false;
+  this.totalContacts = rawContacts.length;
+  rawContacts.forEach(function(ct) { VCFReader.save(ct, onParsed); });
 
   function onParsed(err, ct) {
     self.onimported && self.onimported();
 
     self.processedContacts += 1;
-    finalContacts.push(ct);
     if (self.checkIfCompleted() && allDone === false) {
-      cb(finalContacts);
+      cb(rawContacts);
       allDone = true;
     }
   }
@@ -50,7 +49,7 @@ VCFReader.prototype.process = function(cb) {
  * @return {Boolean} return true if processed, false otherwise.
  */
 VCFReader.prototype.checkIfCompleted = function() {
-  return this.processedContacts === this.validContacts;
+  return this.processedContacts === this.totalContacts;
 };
 
 /**
@@ -121,8 +120,8 @@ VCFReader.processName = function(vcardObj, contactObj) {
   var parts = VCFReader.nameParts;
 
   // Set First Name right away as the 'name' property
-  if (vcardObj.fn)
-    contactObj.name = vcardObj.fn;
+  if (vcardObj.fn && vcardObj.fn.length)
+    contactObj.name = vcardObj.fn[0].value;
 
   if (vcardObj.n && vcardObj.n.length) {
     var values = vcardObj.n[0].value;
@@ -136,7 +135,7 @@ VCFReader.processName = function(vcardObj, contactObj) {
     // If we don't have a contact name at this point, make `name` be the
     // unification of all the name parts.
     if (!contactObj.name)
-      contactObj.name = [VCFReader.decodeQP(meta, values.join(' '))];
+      contactObj.name = [VCFReader.decodeQP(meta, values.join(' ').trim())];
   }
   contactObj.givenName = contactObj.givenName || contactObj.name;
   return contactObj;
@@ -198,9 +197,10 @@ VCFReader.processComm = function(vcardObj, contactObj) {
         });
 
         if (metaValues.indexOf('pref') > -1 || metaValues.indexOf('PREF') > -1)
-          cur.type = ['PREF'];
-        else
-          cur.type = [metaValues[0]]; // Take only the first meta type
+          cur.pref = true;
+
+        if (v.meta.type)
+          cur.type = [v.meta.type];
       }
 
       if (!contactObj[field])
@@ -232,26 +232,9 @@ VCFReader.processFields = function(vcardObj, contactObj) {
 };
 
 VCFReader.Re1 = /^\s*(version|fn|title|org)\s*:(.+)$/i;
-VCFReader.Re2 = /^([^:;]+);([^:]+):(.+)$/i;
+VCFReader.Re2 = /^([^:;]+);?([^:]+)?:(.+)$/i;
 VCFReader.ReKey = /item\d{1,2}\./;
 VCFReader.ReTuple = /([a-z]+)=(.*)/i;
-
-/**
- * Checks if a line is a 'simple' one, meaning that it has single
- * value. If it is, returns a record with a key:value structure like this:
- *
- * { key: 'fn', value: ['Johnny'] }
- *
- * @param {string} line Line in the VCF to be parsed.
- * @return {{key: string, value: Array}}
- * @private
- */
-VCFReader.parseSimpleLine_ = function(line) {
-  if (!VCFReader.Re1.test(line)) return null;
-  var results = line.match(VCFReader.Re1);
-  var key = results[1].toLowerCase().trim();
-  return {key: key, data: [results[2]]};
-};
 
 VCFReader._parseTuple = function(p, i) {
   var match = p.match(VCFReader.ReTuple);
@@ -266,16 +249,19 @@ VCFReader._parseTuple = function(p, i) {
  * @return {{key: string, data: {meta, value}}}
  * @private
  */
-VCFReader.parseComplexLine_ = function(line) {
+VCFReader.parseLine_ = function(line) {
   if (!VCFReader.Re2.test(line)) return null;
   var results = line.match(VCFReader.Re2);
   var key = results[1].replace(VCFReader.ReKey, '').toLowerCase().trim();
 
   var meta = {};
-  results[2].split(/(;|,)/).forEach(function(l, i) {
-    var p = VCFReader._parseTuple(l, i);
-    meta[p[0]] = p[1];
-  });
+  if (results[2]) {
+    results[2].split(/[;,]/).forEach(function(l, i) {
+      var p = VCFReader._parseTuple(l, i);
+      if (p)
+        meta[p[0]] = p[1];
+    });
+  }
 
   return {
     key: key,
@@ -302,13 +288,10 @@ VCFReader.parseSingleEntry = function(input) {
 
   var lines = input.split(/\r\n|\r|\n/);
   lines.forEach(function(line) {
-    var parsedLine = VCFReader.parseSimpleLine_(line);
-    if (parsedLine)
-      return fields[parsedLine.key] = parsedLine.data;
-
-    parsedLine = VCFReader.parseComplexLine_(line);
+    var parsedLine = VCFReader.parseLine_(line);
     if (parsedLine) {
-      if (!fields[parsedLine.key]) fields[parsedLine.key] = [];
+      if (!fields[parsedLine.key])
+        fields[parsedLine.key] = [];
 
       fields[parsedLine.key].push(parsedLine.data);
     }
@@ -336,7 +319,7 @@ VCFReader.vcardToContact = function(vcard) {
   VCFReader.processComm(vcard, obj);
   VCFReader.processFields(vcard, obj);
 
-  var contact = new navigator.mozContact();
+  var contact = new mozContact();
   contact.init(obj);
 
   return contact;
