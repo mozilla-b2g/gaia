@@ -16,7 +16,7 @@ else
 fi
 
 $DIR/../../test-agent/node_modules/b2g-scripts/bin/b2g-scripts server \
-  --port $GAIA_PORT --gaia $DIR/../../../ $(foreach dir, $(GAIA_ALL_APP_SRCDIRS), --dir $(dir))  &
+  --port $GAIA_PORT --gaia $DIR/../../../ &
 
 SERVER_PID=`jobs -p | tail -n 1`;
 echo $SERVER_PID > $PID_FILE;
