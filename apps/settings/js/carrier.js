@@ -422,8 +422,8 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // state
     var state = document.createElement('small');
-    state.textContent =
-      network.state ? _('state-' + network.state) : _('state-unknown');
+    localize(state,
+      network.state ? ('state-' + network.state) : 'state-unknown');
 
     // create list item
     var li = document.createElement('li');
@@ -432,7 +432,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // bind connection callback
     li.onclick = function() {
-      callback(network, state);
+      callback(network, true);
     };
     return li;
   }
@@ -445,10 +445,14 @@ var Carrier = (function newCarrier(window, document, undefined) {
     var infoItem = list.querySelector('li[data-state="on"]');
     var scanItem = list.querySelector('li[data-state="ready"]');
     scanItem.onclick = scan;
-    var currentStateElement = null;
+
+    var currentConnectedNetwork = null;
+    var connecting = false;
+    var operatorItemMap = {};
 
     // clear the list
     function clear() {
+      operatorItemMap = {};
       var operatorItems = list.querySelectorAll('li:not([data-state])');
       var len = operatorItems.length;
       for (var i = len - 1; i >= 0; i--) {
@@ -457,22 +461,48 @@ var Carrier = (function newCarrier(window, document, undefined) {
     }
 
     // select operator
-    function selectOperator(network, messageElement) {
-      var req = mobileConnection.selectNetwork(network);
+    function selectOperator(network, manuallySelect) {
+      if (connecting) {
+        return;
+      }
+
+      var listItem = operatorItemMap[network.mcc + '.' + network.mnc];
+      if (!listItem) {
+        return;
+      }
+
+      var messageElement = listItem.querySelector('small');
+
+      connecting = true;
       // update current network state as 'available' (the string display
       // on the network to connect)
-      currentStateElement.textContent = messageElement.textContent;
-      currentStateElement.dataset.l10nId = messageElement.dataset.l10nId;
-      currentStateElement = messageElement;
+      if (manuallySelect) {
+        resetOperatorItemState();
+      }
+
+      var req = mobileConnection.selectNetwork(network);
       localize(messageElement, 'operator-status-connecting');
       req.onsuccess = function onsuccess() {
+        currentConnectedNetwork = network;
         localize(messageElement, 'operator-status-connected');
         updateSelectionMode(false);
+        connecting = false;
       };
-      req.onerror = function onsuccess() {
+      req.onerror = function onerror() {
+        connecting = false;
         localize(messageElement, 'operator-status-connectingfailed');
-        updateSelectionMode(false);
+        if (currentConnectedNetwork) {
+          recoverAvailableOperator();
+        } else {
+          updateSelectionMode(false);
+        }
       };
+    }
+
+    function recoverAvailableOperator() {
+      if (currentConnectedNetwork) {
+        selectOperator(currentConnectedNetwork, false);
+      }
     }
 
     // scan available operators
@@ -483,11 +513,14 @@ var Carrier = (function newCarrier(window, document, undefined) {
       req.onsuccess = function onsuccess() {
         var networks = req.result;
         for (var i = 0; i < networks.length; i++) {
-          var listItem = newListItem(networks[i], selectOperator);
-          if (networks[i].state === 'current') {
-            currentStateElement = listItem.querySelector('small');
-          }
+          var network = networks[i];
+          var listItem = newListItem(network, selectOperator);
           list.insertBefore(listItem, scanItem);
+
+          operatorItemMap[network.mcc + '.' + network.mnc] = listItem;
+          if (network.state === 'current') {
+            currentConnectedNetwork = network;
+          }
         }
         list.dataset.state = 'ready'; // "Search Again" button
       };
