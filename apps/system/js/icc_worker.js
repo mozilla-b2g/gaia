@@ -98,29 +98,30 @@ var icc_worker = {
   // STK_CMD_SEND_DTMF
   '0x14': function STK_CMD_SEND_DTMF(command, iccManager) {
     DUMP('STK_CMD_SEND_DTMF:', command.options);
-    var _confirm = true;
+    var options = command.options;
     if (options.text) {
       iccManager.responseSTKCommand({
         resultCode: iccManager._icc.STK_RESULT_OK
       });
-      iccManager.confirm(options.text);
-      command.options.userClear = true;
-      iccManager.responseSTKCommand({
-        resultCode: icc.STK_RESULT_OK
-      });
-    } else {
+      iccManager.alert(options.text);
+    } else if (options.text == '') {
+      var _ = navigator.mozL10n.get;
       iccManager.confirm(_('icc-confirmMessage-defaultmessage'), 0,
         function(userCleared) {
           if (userCleared) {
             iccManager.responseSTKCommand({
-              resultCode: icc.STK_RESULT_OK
+              resultCode: iccManager._icc.STK_RESULT_OK
             });
           } else {
             iccManager.responseSTKCommand({
-              resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+              resultCode: iccManager._icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
             });
           }
         });
+    } else {
+      iccManager.responseSTKCommand({
+        resultCode: iccManager._icc.STK_RESULT_OK
+      });
     }
   },
 
