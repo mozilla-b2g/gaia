@@ -417,12 +417,7 @@
 
     // Loop and render each recipient as HTML view
     for (var i = 0; i < length; i++) {
-      html += template.interpolate(list[i], {
-        // Names from contacts don't need to be escaped.
-        // Doing so results in displayed name transformations,
-        // ie. "Mike O'Malley" => "Mike O&apos;Malley"
-        safe: list[i].source === 'contacts' ? ['name'] : []
-      });
+      html += template.interpolate(list[i]);
     }
 
     // An optionally provided "editable" object
