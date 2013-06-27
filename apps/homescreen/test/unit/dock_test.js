@@ -25,12 +25,35 @@ suite('dock.js >', function() {
   var tinyImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///' +
                   'ywAAAAAAQABAAACAUwAOw==';
 
+  var realInnerWidth, innerWidth;
+
+  function getInnerWidth() {
+    return innerWidth;
+  }
+
+  function setInnerWidth(value) {
+    innerWidth = value;
+  }
+
   suiteSetup(function() {
     mocksHelper.suiteSetup();
+
+    realInnerWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth');
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      get: getInnerWidth,
+      set: setInnerWidth
+    });
+
+    window.innerWidth = 320;
   });
 
   suiteTeardown(function() {
     mocksHelper.suiteTeardown();
+
+    if (realInnerWidth) {
+      Object.defineProperty(window, 'innerWidth', realInnerWidth);
+    }
   });
 
   setup(function() {
