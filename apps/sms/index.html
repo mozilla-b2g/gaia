@@ -33,7 +33,6 @@
     <!--
     <script defer src="shared/js/l10n_date.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
-    <script defer src="shared/js/custom_dialog.js"></script>
     <script defer src="shared/js/notification_helper.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
     -->
@@ -201,7 +200,7 @@
     <div id="messages-contact-tmpl" class="hide">
       <!--
       <a class="suggestion"
-        data-number="${number}" data-source="contacts" data-name="${name}">
+        data-number="${number}" data-source="contacts" data-name="${name}" data-display="${type}${separator}${carrier}${number}">
         <p class="name">${nameHTML}</p>
         <p>
           ${type}${separator}${carrier}${numberHTML}
@@ -271,7 +270,7 @@
       <!--
       <span class="recipient" x-inputmode="verbatim"
         contenteditable="${editable}"
-        data-number="${number}" data-source="${source}" data-name="${name}">
+        data-number="${number}" data-source="${source}" data-name="${name}" data-display="${display}">
         ${name}
       </span>
       -->

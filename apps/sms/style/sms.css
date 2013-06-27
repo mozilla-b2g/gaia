@@ -8,6 +8,20 @@ html, body {
   overflow-y: hidden !important;
 }
 
+
+/* 
+  Override BB. Some CSS tweaks for having a better confirm readability
+*/
+form[role="dialog"][data-type="confirm"] p {
+  margin-top: 0 !important;
+  border-bottom: 0.1rem solid #686868;
+}
+
+form[role="dialog"][data-type="confirm"] p small{
+  line-height: 2rem;
+}
+
+
 /* Override Building Block [Header] styles */
 section[role="region"] > header:first-child .icon.icon-clear {
   background-image: url(images/icons/clear.png);
