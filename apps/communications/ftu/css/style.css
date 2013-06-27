@@ -212,7 +212,7 @@ a {
   transition: all 1s ease;
   background-image: url(/shared/resources/branding/powered.png);
   background-size: cover;
-  background-position: center top;
+  background-position: center center;
 }
 
 #splash-screen.show {
@@ -506,11 +506,11 @@ aside.connecting {
 }
 
 #finish-screen .content {
-  background: url(images/icon_tour.png) no-repeat center 95%;
+  background: url(images/icon_tour.png) no-repeat center 95% / 16.9rem;
 }
 
 #tutorialFinish .content {
-  background: url(images/thumb_up.png) no-repeat center 70%;
+  background: url(images/thumb_up.png) no-repeat center 70% / 14.4rem;
 }
 
 #finish-screen .content, #tutorialFinish .content {
@@ -736,7 +736,7 @@ aside.connecting {
 
 
 #fb_after_import1 {
-  background: url('images/import_fb.png') no-repeat center left /3rem;
+  background: url('images/import_fb.png') no-repeat center left / 3rem;
 }
 
 #statusMsg.ftu {
@@ -770,8 +770,8 @@ aside.connecting {
   margin: 1rem 0;
 }
 
-#welcome_browser #browser_logo_horizontal img{
-  max-width: 100%;
+#welcome_browser #browser_logo_horizontal img {
+  width: 20rem;
 }
 
 #welcome_browser label {
@@ -926,20 +926,28 @@ i.hack-first-child {
 
 #about-your-privacy .privacy-menuitem {
   padding-left: 5.5rem;
-  background-repeat: no-repeat;
-  background-position: 1.4rem center;
 }
 
-.privacy-browserOS {
-  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 32, 32, 0);
+.privacy-menuitem:before {
+  content: ' ';
+  width: 3.2rem;
+  height: 3.2rem;
+  position: absolute;
+  left: 1.4rem;
+  top: calc(50% - 1.6rem);
+  background: url(/shared/resources/branding/privacy_sprite.png) no-repeat 0 0 / 9.6rem;
 }
 
-.privacy-everythingME {
-  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 64, 32, 32);
+.privacy-browserOS:before {
+  background-position: 0 0;
 }
 
-.privacy-marketPlace {
-  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 96, 32, 64);
+.privacy-everythingME:before {
+  background-position: -3.2rem 0;
+}
+
+.privacy-marketPlace:before {
+  background-position: -6.4rem 0;
 }
 
 #newsletter-form.hidden,
