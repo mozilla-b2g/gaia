@@ -22,7 +22,7 @@ suite('multilevel_visibility_monitor', function() {
       '}';
     document.head.appendChild(style);
 
-    notest('simpleContainerScroll', function(done) {
+    test('simpleContainerScroll', function(done) {
 
       var childHeight = 10;
       var containerHeight = 100;
@@ -105,7 +105,7 @@ suite('multilevel_visibility_monitor', function() {
     // testing adding / removing
     //===================
 
-    notest('addRemoveContainer', function(done) {
+    test('addRemoveContainer', function(done) {
 
       var childHeight = 10;
       var containerHeight = 100;
@@ -190,7 +190,52 @@ suite('multilevel_visibility_monitor', function() {
           'scroll 0',
           'rm 0,0,0',
           'addbefore 0,0,0 0,0,1',
-          'addRm'
+          'addRm',
+          'rm 1',
+          [
+            'rm 0,0,0',
+            'addbefore 0,0,0 0,0,1',
+            'rm 2'
+          ],
+          [ // rm from rm'd
+            'rm 0,0,0',
+            'addbefore 0,0,0 0,0,1',
+            'rm 0'
+          ],
+          [ // add to rm'd
+            'addbefore 2 3',
+            'rm 3,0',
+            'addbefore 3,0 3,1',
+            'addchild 3,0,0 3,0',
+            'addchild 3,0,1 3,0',
+            'addchild 3,0,2 3,0',
+            'addchild 3,0,0,0 3,0,0',
+            'rm 3,0'
+          ],
+          [ // leave remaining child with no siblings
+            'rm 2',
+            'rm 3',
+            'rm 4',
+            'rm 5',
+            'rm 6',
+            'rm 8',
+            'rm 9'
+          ],
+          [ // switch old child for new one
+            'rm 7',
+            'addroot 0'
+          ],
+          [ // give children to only child
+            'addchild 0,0 0',
+            'addchild 0,1 0',
+            'addchild 0,2 0'
+          ],
+          [ //adding past maxdepth
+            'addchild 0,0,0 0,0',
+            'addchild 0,0,0,0 0,0,0',
+            'addchild 0,0,0,0,0 0,0,0,0',
+            'rm 0,0,0,0,0'
+          ]
         ],
         function doneTesting(logger) {
 
@@ -224,11 +269,11 @@ suite('multilevel_visibility_monitor', function() {
                                              '2,1': 'on', '2,1,0': 'on',
                                              '2,1,0,0': 'on' });
 
-          assert.deepEqual(onSize(logger.data[5]), 52);
-          assert.deepEqual(offSize(logger.data[5]), 57);
+          assert.equal(onSize(logger.data[5]), 52);
+          assert.equal(offSize(logger.data[5]), 57);
 
-          assert.deepEqual(onSize(logger.data[6]), 52);
-          assert.deepEqual(offSize(logger.data[6]), 52);
+          assert.equal(onSize(logger.data[6]), 52);
+          assert.equal(offSize(logger.data[6]), 52);
 
           assert.deepEqual(logger.data[7], { '1,0,2,1': 'on', '1,0,2,2': 'on',
                                              '1,1': 'on', '1,1,0': 'on',
@@ -239,8 +284,52 @@ suite('multilevel_visibility_monitor', function() {
 
           assert.deepEqual(logger.data[9], undefined);
 
+          assert.deepEqual(logger.data[10], { '2': 'on', '2,0,0': 'on',
+            '2,0,0,0': 'on', '2,0,0,1': 'on', '2,0,0,2': 'on', '2,0,1': 'on',
+            '2,0,1,0': 'on', '2,0,1,1': 'on', '2,0,1,2': 'on', '2,0,2': 'on',
+            '2,0,2,0': 'on', '2,0,2,1': 'on', '2,0,2,2': 'on', '2,0': 'on'});
 
-          for (var i = 10; i < logger.data.length; i++) {
+          assert.deepEqual(logger.data[11], { '3': 'on', '0,0,0': 'on',
+            '3,0,0': 'on', '3,0,0,0': 'on', '3,0,0,1': 'on', '3,0,0,2': 'on',
+            '3,0,1': 'on', '3,0,1,0': 'on', '3,0,1,1': 'on', '3,0,1,2': 'on',
+            '3,0,2': 'on', '3,0,2,0': 'on', '3,0,2,1': 'on', '3,0,2,2': 'on',
+            '3,0': 'on'});
+
+          assert.deepEqual(logger.data[12], { '4': 'on', '3,1,0,0': 'on',
+            '3,1,0,1': 'on', '3,1,0,2': 'on', '3,1,1': 'on', '3,1,1,0': 'on',
+            '3,1,1,1': 'on', '3,1,1,2': 'on', '3,1,2': 'on', '3,1,2,0': 'on',
+            '3,1,2,1': 'on', '3,1,2,2': 'on', '3,2': 'on', '3,2,0': 'on',
+            '3,2,0,0': 'on', '3,2,0,1': 'on', '3,2,0,2': 'on', '3,2,1': 'on',
+            '3,2,1,0': 'on', '3,2,1,1': 'on', '3,2,1,2': 'on', '3,2,2': 'on',
+            '3,2,2,0': 'on', '3,2,2,1': 'on', '3,2,2,2': 'on', '4,0': 'on',
+            '4,0,0': 'on', '4,0,0,0': 'on', '4,0,0,1': 'on', '4,0,0,2': 'on',
+            '4,0,1': 'on', '4,0,1,0': 'on', '4,0,1,1': 'on', '4,0,1,2': 'on',
+            '4,0,2': 'on', '4,0,2,0': 'on', '3,1': 'on', '3,1,0': 'on'});
+
+          assert.deepEqual(logger.data[13], { '2': 'on', '4,0,2,1': 'on',
+            '4,0,2,2': 'on', '4,1': 'on', '4,1,0': 'on', '4,1,0,0': 'on',
+            '4,1,0,1': 'on', '4,1,0,2': 'on', '4,1,1': 'on', '4,1,1,0': 'on',
+            '4,1,1,1': 'on', '4,1,1,2': 'on'});
+
+          assert.deepEqual(logger.data[14], {'7,0,0,0': 'on', '7,0,0,1': 'on',
+            '7,0,0,2': 'on', '7,0,0': 'on', '7,0,1': 'on', '7,0,1,0': 'on',
+            '7,0,1,1': 'on', '7,0,1,2': 'on', '7,0,2': 'on', '7,0,2,0': 'on',
+            '7,0,2,1': 'on', '7,0,2,2': 'on', '7,0': 'on', '7,1': 'on',
+            '7,1,0': 'on', '7,1,0,0': 'on', '7,1,0,1': 'on', '7,1,0,2': 'on',
+            '7,1,1': 'on', '7,1,1,0': 'on', '7,1,1,1': 'on', '7,1,1,2': 'on',
+            '7,1,2': 'on', '7,1,2,0': 'on', '7,1,2,1': 'on', '7,1,2,2': 'on',
+            '7,2': 'on', '7,2,0': 'on', '7,2,0,0': 'on', '7,2,0,1': 'on',
+            '7,2,0,2': 'on', '7,2,1': 'on', '7,2,1,0': 'on', '7,2,1,1': 'on',
+            '7,2,1,2': 'on', '7,2,2': 'on', '7,2,2,0': 'on', '7,2,2,1': 'on',
+            '7,2,2,2': 'on'});
+          assert.deepEqual(logger.data[15], { '0': 'on' });
+
+          assert.deepEqual(logger.data[16], { '0,0': 'on', '0,1': 'on',
+            '0,2': 'on' });
+
+          assert.deepEqual(logger.data[17], { '0,0,0': 'on', '0,0,0,0': 'on' });
+
+          for (var i = 18; i < logger.data.length; i++) {
             console.log(i, logger.data[i]);
           }
 
@@ -332,9 +421,11 @@ suite('multilevel_visibility_monitor', function() {
       scrollDelta,
       monitorDepth,
       function onscreen(child) {
+        child.style.background = 'blue';
         logger.log(child.index, 'on');
       },
       function offscreen(child) {
+        child.style.background = 'red';
         logger.log(child.index, 'off');
       });
 
@@ -343,14 +434,14 @@ suite('multilevel_visibility_monitor', function() {
 
       var TimeForScrollAndVisibilityMonitorEvents = 0;
 
-      function runNext() {
-        if (i < tests.length) {
-          var test = tests[i];
+      function runTest(test) {
           var scrollMatch = test.match(/scroll (\d+)/);
           var rmMatch = test.match(/rm ([0-9,]+)/);
           var addAfterMatch = test.match(/addafter ([0-9,]+) ([0-9,]+)/);
           var addBeforeMatch = test.match(/addbefore ([0-9,]+) ([0-9,]+)/);
+          var addChildMatch = test.match(/addchild ([0-9,]+) ([0-9,]+)/);
           var addMatch = test.match(/add ([0-9,]+)/);
+          var addRootMatch = test.match(/addroot ([0-9,]+)/);
           if (scrollMatch) {
             container.scrollTop = scrollMatch[1];
           }
@@ -373,22 +464,36 @@ suite('multilevel_visibility_monitor', function() {
             child.index = '' + addBeforeMatch[1];
             prev.parentNode.insertBefore(child, prev);
           }
+          else if (addChildMatch) {
+            var parent = getChildByIndexProp(container, '' + addChildMatch[2]);
+            var child = document.createElement('div');
+            child.style.height = childHeight + 'px';
+            child.index = '' + addChildMatch[1];
+            parent.appendChild(child);
+          }
           else if (addMatch) {
             var child = document.createElement('div');
             child.style.height = childHeight + 'px';
             child.index = '' + addMatch[1];
             container.appendChild(child);
           }
-          else if (test === 'addRm') {
-              var child = document.createElement('div');
-              child.style.height = childHeight + 'px';
-              child.index = 'addRm';
-              container.appendChild(child);
-              var child2 = document.createElement('div');
-              child2.style.height = childHeight + 'px';
-              child2.index = 'addRm2';
-              child.appendChild(child2);
+          else if (addRootMatch) {
+            var child = document.createElement('div');
+            child.style.minHeight = childHeight + 'px';
+            child.index = '' + addRootMatch[1];
+            container.appendChild(child);
+          }
+      }
 
+      function runNext() {
+        if (i < tests.length) {
+          var test = tests[i];
+          if (test.push) {
+            for (var j = 0; j < test.length; j++)
+              runTest(test[j]);
+          }
+          else {
+            runTest(test);
           }
           logger.nextStep();
           i++;

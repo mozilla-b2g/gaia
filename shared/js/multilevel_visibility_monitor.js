@@ -215,15 +215,9 @@ function monitorMultilevelChildVisibility(
       return;
     }
 
-    var removedNodes = {};
-    for (var i = 0; i < mutations.length; i++) {
-      var mutation = mutations[i];
-      if (mutation.removedNodes) {
-        for (var j = 0; j < mutation.removedNodes.length; j++) {
-          var child = mutation.removedNodes[j];
-          removedNodes[child] = true;
-        }
-      }
+    if (container.firstElementChild === null) { //container empty
+      reset();
+      return;
     }
 
     // synchronize if necessary, we might have to manipulate the model outside
@@ -231,53 +225,94 @@ function monitorMultilevelChildVisibility(
     if (g.pendingCallCallbacksTimeoutId !== null)
       callCallbacks();
 
+    // there are times when we won't be able to use a removed node. We can't
+    // hash based on just the node, so instead we give the node a key and use
+    // that.
+    var removedNodes = {};
+    var removedNodeIndexKey = '__MultilevelVisibilityMonitorRemovedIndex__' +
+                              Math.random() + '__';
+    function constructRemovedNodes() {
+      var removedNodeIndex = 0;
+      for (var i = 0; i < mutations.length; i++) {
+        var mutation = mutations[i];
+        if (mutation.removedNodes) {
+          for (var j = 0; j < mutation.removedNodes.length; j++) {
+            var child = mutation.removedNodes[j];
+            child[removedNodeIndexKey] = removedNodeIndex;
+            removedNodes[removedNodeIndex] = mutation;
+            removedNodeIndex += 1;
+          }
+        }
+      }
+    }
+    constructRemovedNodes();
+
+    // returns whether a node was removed by looking at it and its parents
+    function getRemoved(child) {
+      var curr = child;
+      while (curr !== container) {
+        if (removedNodes[curr[removedNodeIndexKey]]) {
+          return removedNodes[curr[removedNodeIndexKey]];
+        }
+        curr = curr.parentNode;
+      }
+      return null;
+    }
+
+    // the point of this is to fix state - we might be keeping track of the
+    //  visible range using a node that's been deleted
+    for (var i = 0; i < mutations.length; i++) {
+      var mutation = mutations[i];
+      if (mutation.removedNodes) {
+        for (var j = 0; j < mutation.removedNodes.length; j++) {
+          var child = mutation.removedNodes[j];
+
+          if (child.nodeType !== Node.ELEMENT_NODE) {
+            continue;
+          }
+
+          var prev = mutation.previousSibling;
+          var next = mutation.nextSibling;
+
+          // we can't use a removed node in the childRemoved step, and prev
+          // might have been removed
+          while (prev !== null && getRemoved(prev) !== null) {
+            prev = getRemoved(prev).previousSibling;
+          }
+
+          // we can't use a removed node in the childRemoved step, and next
+          // might have been removed
+          while (next !== null && getRemoved(next) !== null) {
+            next = getRemoved(next).nextSibling;
+          }
+
+          childRemoved(child, next, prev);
+        }
+      }
+    }
+
+    // now that state's fixed we can recompute what's visible and notify
+    //  the client
+    recomputeFirstAndLastOnscreen();
+    callCallbacks();
+
+    //notify onscreen added children that they're onscreen
     for (var i = 0; i < mutations.length; i++) {
       var mutation = mutations[i];
       if (mutation.addedNodes) {
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           var child = mutation.addedNodes[j];
-          if (child.nodeType === Node.ELEMENT_NODE) {
-
-            // check if child or a parent of child was removed
-            var curr = child;
-            var removed = false;
-            while (curr !== container) {
-              if (removedNodes[curr]) {
-                removed = true;
-                break;
-              }
-              curr = curr.parentNode;
-            }
-            if (removed)
-              continue;
-
+          if (
+              child.nodeType === Node.ELEMENT_NODE &&
+              getRemoved(child) == null
+          ) {
             childAdded(child);
-          }
-        }
-      }
-      if (mutation.removedNodes) {
-        for (var j = 0; j < mutation.removedNodes.length; j++) {
-          var child = mutation.removedNodes[j];
-          if (child.nodeType === Node.ELEMENT_NODE) {
-            childRemoved(child,
-                         mutation.previousSibling,
-                         mutation.nextSibling);
           }
         }
       }
     }
   }
 
-  //---------------------------------------
-  //  childAdded
-  //    3 possibilities
-  //     1) new child below last visible elem
-  //         do nothing
-  //     2) new clild between first and last visible elems
-  //         notify that child is onscreen
-  //         recompute visibility
-  //     3) new child above first visible elem
-  //         recompute visibility
   function childAdded(child) {
     var firstPageHeight = container.clientHeight + scrollMargin;
     if (
@@ -289,54 +324,48 @@ function monitorMultilevelChildVisibility(
     }
     else if (
               g.deepestFirstOnscreen === null ||
+              g.firstOnscreen.indexOf(child) !== -1 ||
               after(child, g.deepestFirstOnscreen)
     ) {
-      safeOnscreenCallback(child, getDistance(container, child));
+      var depth = getDistance(container, child);
+      if (depth <= maxDepth) {
+        safeOnscreenCallback(child, depth);
+      }
     }
-    recomputeFirstAndLastOnscreen();
-    callCallbacks();
   }
 
-  //---------------------------------------
-  //  childRemoved
-  //    3 possibilities
-  //     1) container is now empty
-  //         reset back to initial state
-  //     2) removed child below last visible elem
-  //         do nothing
-  //     3) removed child was above last visible elem
-  //         if child was firstOnscreen or lastOnscreen
-  //           firstOnscreen or lastOnscreen now invalid, update it
-  //         recompute visibility
-  function childRemoved(child, prev, next) {
-    if (container.firstElementChild === null) {
-      reset();
-      return;
-    }
-    else if (
-      g.deepestLastOnscreen !== child &&
-      prev !== null && after(prev, g.deepestLastOnscreen)
-    ) { // after last onscreen child
-      return;
-    }
-    else {
-      var wasUpdate = false;
-      wasUpdate |= updateOnscreen(g.firstOnscreen, child, next || prev);
-      wasUpdate |= updateOnscreen(g.lastOnscreen, child, prev || next);
-      if (wasUpdate)
-        calcDeepestOnscreen();
-
-      wasUpdate = false;
-      wasUpdate |= updateOnscreen(g.last.firstOnscreen, child, next || prev);
-      wasUpdate |= updateOnscreen(g.last.lastOnscreen, child, prev || next);
-      if (wasUpdate)
-        calcDeepestLastOnscreen();
-
-      recomputeFirstAndLastOnscreen();
-      callCallbacks();
+  function childRemoved(child, next, prev) {
+    if (prev) {
+      while (
+             prev.lastElementChild !== null &&
+             getDistance(container, prev.lastElementChild) <= maxDepth
+      ) {
+        prev = prev.lastElementChild;
+      }
     }
 
+    if (next) {
+      while (
+             next.firstElementChild !== null &&
+             getDistance(container, next.firstElementChild) <= maxDepth
+      ) {
+        next = next.firstElementChild;
+      }
+    }
+
+    var wasUpdate = false;
+    wasUpdate |= updateOnscreen(g.firstOnscreen, child, next);
+    wasUpdate |= updateOnscreen(g.lastOnscreen, child, prev);
+    if (wasUpdate)
+      calcDeepestOnscreen();
+
+    wasUpdate = false;
+    wasUpdate |= updateOnscreen(g.last.firstOnscreen, child, next);
+    wasUpdate |= updateOnscreen(g.last.lastOnscreen, child, prev);
+    if (wasUpdate)
+      calcDeepestLastOnscreen();
   }
+
 
   function updateVisibility(callImmediately) {
     if (container.clientHeight === 0) {
@@ -529,7 +558,6 @@ function monitorMultilevelChildVisibility(
 
     calcDeepestOnscreen();
 
-
     if (g.deepestFirstOnscreen === null || g.deepestLastOnscreen === null) {
 
     }
@@ -672,11 +700,23 @@ function monitorMultilevelChildVisibility(
   }
 
   function before(a, b) {
-    return !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    if (!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+      return false;
+    }
+    if (getDistance(a, b) !== null || getDistance(b, a) !== null) {
+      return false;
+    }
+    return true;
   }
 
   function after(a, b) {
-    return !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING);
+    if (!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING)) {
+      return false;
+    }
+    if (getDistance(a, b) !== null || getDistance(b, a) !== null) {
+      return false;
+    }
+    return true;
   }
 
   function getDistance(parent, child) {
@@ -684,6 +724,9 @@ function monitorMultilevelChildVisibility(
     var curr = child;
     while (curr !== parent) {
       depth += 1;
+      if (curr == null) {
+        return null;
+      }
       curr = curr.parentNode;
     }
     return depth;
@@ -790,10 +833,23 @@ function monitorMultilevelChildVisibility(
   function updateOnscreen(onscreen, oldNode, newNode) {
     for (var i = 0; i < onscreen.length; i++) {
       if (onscreen[i] == oldNode) {
-        onscreen[i] = newNode;
-        for (var j = i + 1; j < onscreen.length; j++) {
-          onscreen[j] = null;
+
+        if (newNode === null) {
+          for (var j = i; j < onscreen.length; j++) {
+            onscreen[j] = null;
+          }
         }
+        else {
+          var index = getDistance(container, newNode) - 1;
+          for (var j = onscreen.length - 1; j > index; j--) {
+            onscreen[j] = null;
+          }
+          for (var j = index; j >= 0; j--) {
+            onscreen[j] = newNode;
+            newNode = newNode.parentNode;
+          }
+        }
+
         return true;
       }
     }
@@ -805,25 +861,25 @@ function monitorMultilevelChildVisibility(
   //====================================
 
   function safeOnscreenCallback(child, depth) {
-      try {
-        onscreenCallback(child, depth);
-      }
-      catch (e) {
-        console.warn('monitorMultilevelChildVisiblity: ' +
-                     'Exception in onscreenCallback:',
-                     e, e.stack);
-      }
+    try {
+      onscreenCallback(child, depth);
+    }
+    catch (e) {
+      console.warn('monitorMultilevelChildVisiblity: ' +
+                   'Exception in onscreenCallback:',
+                   e, e.stack);
+    }
   }
 
   function safeOffscreenCallback(child, depth) {
-      try {
-        offscreenCallback(child, depth);
-      }
-      catch (e) {
-        console.warn('monitorMultilevelChildVisiblity: ' +
-                     'Exception in onscreenCallback:',
-                     e, e.stack);
-      }
+    try {
+      offscreenCallback(child, depth);
+    }
+    catch (e) {
+      console.warn('monitorMultilevelChildVisiblity: ' +
+                   'Exception in onscreenCallback:',
+                   e, e.stack);
+    }
   }
 
   function reset() {
