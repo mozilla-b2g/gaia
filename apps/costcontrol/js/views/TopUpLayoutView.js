@@ -1,6 +1,6 @@
 'use strict';
 
-function TopUpLayoutController(ussdTopUpButton, codeTopUpButton) {
+function TopUpLayoutView(ussdTopUpButton, codeTopUpButton) {
 
   function setupLayout(topUpConfig) {
     var ussdTopUpDisabled = !topUpConfig || !topUpConfig.ussd_destination;
