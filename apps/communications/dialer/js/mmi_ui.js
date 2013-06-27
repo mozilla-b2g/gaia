@@ -5,7 +5,6 @@ var MmiUI = {
   COMMS_APP_ORIGIN: document.location.protocol + '//' +
     document.location.host,
   _: null,
-  _conn: null,
 
   get headerTitleNode() {
     delete this.headerTitleNode;
@@ -182,15 +181,12 @@ var MmiUI = {
   },
 
   handleError: function ph_handleError(data) {
-    if (!this._conn)
-      this._conn = window.navigator.mozMobileConnection;
     var error = data.error ? data.error : this._('mmi-error');
     switch (error) {
       case 'IncorrectPassword':
-        var retries = this._conn.retryCount;
         error = this._('pinError');
-        if (retries)
-          error += this._('inputCodeRetriesLeft', {n: retries});
+        if (data.retryCount)
+          error += this._('inputCodeRetriesLeft', {n: data.retryCount});
         break;
       case 'NEW_PIN_MISMATCH':
         error = this._('newpinConfirmation');

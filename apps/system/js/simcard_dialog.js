@@ -71,15 +71,15 @@ var SimPinDialog = {
 
     var cardState = this.mobileConnection.cardState;
     var lockType = this.lockTypeMap[cardState];
-    var retryCount = this.mobileConnection.retryCount;
-
-    if (!retryCount) {
-      this.triesLeftMsg.hidden = true;
-    } else {
-      var l10nArgs = { n: retryCount };
-      this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
-      this.triesLeftMsg.hidden = false;
-    }
+    IccHelper.getCardLockRetryCount(lockType, (function(retryCount) {
+      if (!retryCount) {
+        this.triesLeftMsg.hidden = true;
+      } else {
+        var l10nArgs = { n: retryCount };
+        this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
+        this.triesLeftMsg.hidden = false;
+      }
+    }).bind(this));
 
     switch (lockType) {
       case 'pin':
