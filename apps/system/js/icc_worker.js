@@ -46,7 +46,7 @@ var icc_worker = {
         hasConfirmed: confirmed,
         resultCode: iccManager._icc.STK_RESULT_OK
       });
-      if (postMessage) {
+      if (confirmed && postMessage) {
         iccManager.alert(postMessage);
       }
     }
