@@ -934,7 +934,7 @@
       // clear element content and data-l10n attributes
       element.removeAttribute('data-l10n-id');
       element.removeAttribute('data-l10n-args');
-      element[gProp] = '';
+      element[gTextProp] = '';
       return;
     }
 

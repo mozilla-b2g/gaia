@@ -742,7 +742,8 @@ var Settings = {
 
   updateLanguagePanel: function settings_updateLanguagePanel() {
     var panel = document.getElementById('languages');
-    if (panel) { // update the date and time samples in the 'languages' panel
+    // update the date and time samples in the 'languages' panel
+    if (panel.children.length) {
       var d = new Date();
       var f = new navigator.mozL10n.DateTimeFormat();
       var _ = navigator.mozL10n.get;
@@ -834,8 +835,8 @@ window.addEventListener('load', function loadSettings() {
   Settings.init();
   handleRadioAndCardState();
 
+  LazyLoader.load(['js/utils.js'], startupLocale);
   LazyLoader.load([
-      'js/utils.js',
       'js/airplane_mode.js',
       'js/battery.js',
       'shared/js/async_storage.js',
@@ -930,24 +931,34 @@ window.addEventListener('keydown', function handleSpecialKeys(event) {
 });
 
 // startup & language switching
-window.addEventListener('localized', function updateLocalized() {
+function startupLocale() {
+  navigator.mozL10n.ready(function startupLocale() {
+    initLocale();
+    // XXX this might call `initLocale()` twice until bug 882592 is fixed
+    window.addEventListener('localized', initLocale);
+  });
+}
+
+function initLocale() {
+  var lang = navigator.mozL10n.language.code;
+
   // set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.lang = lang;
   document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // display the current locale in the main panel
   Settings.getSupportedLanguages(function displayLang(languages) {
-    document.getElementById('language-desc').textContent =
-        languages[navigator.mozL10n.language.code];
+    document.getElementById('language-desc').textContent = languages[lang];
   });
+
   Settings.updateLanguagePanel();
 
   // update the enabled keyboards list with the language associated keyboard
   Settings.getSupportedKbLayouts(function updateEnabledKb(keyboards) {
-    var newKb = keyboards.layout[navigator.mozL10n.language.code];
+    var newKb = keyboards.layout[lang];
     var settingNewKeyboard = {};
     var settingNewKeyboardLayout = {};
-    settingNewKeyboard['keyboard.current'] = navigator.mozL10n.language.code;
+    settingNewKeyboard['keyboard.current'] = lang;
     settingNewKeyboardLayout['keyboard.layouts.' + newKb] = true;
 
     var settings = navigator.mozSettings;
@@ -972,7 +983,7 @@ window.addEventListener('localized', function updateLocalized() {
 
     Settings.updateKeyboardPanel();
   }
-});
+}
 
 // Do initialization work that doesn't depend on the DOM, as early as
 // possible in startup.
