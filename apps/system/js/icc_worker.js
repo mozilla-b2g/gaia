@@ -257,7 +257,28 @@ var icc_worker = {
   //'0x23': function STK_CMD_GET_INPUT(command, iccManager) {},
 
   // STK_CMD_SELECT_ITEM
-  //'0x24': function STK_CMD_SELECT_ITEM(command, iccManager) {},
+  '0x24': function STK_CMD_SELECT_ITEM(command, iccManager) {
+    var application = document.location.protocol + '//' +
+      document.location.host.replace('system', 'settings');
+    DUMP('STK_CMD_SET_UP_MENU. Transferring to ' + application + ': ', command);
+    var reqIccData = window.navigator.mozSettings.createLock().set({
+      'icc.data': JSON.stringify(command)
+    });
+    reqIccData.onsuccess = function icc_getIccData() {
+      if (WindowManager.getRunningApps()[application]) {
+        return DUMP('Settings is running. Ignoring');
+      }
+      navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
+        var apps = evt.target.result;
+        apps.forEach(function appIterator(app) {
+          if (app.origin != application)
+            return;
+          DUMP('Launching ', app.origin);
+          app.launch();
+        }, this);
+      };
+    };
+  },
 
   // STK_CMD_SET_UP_MENU
   '0x25': function STK_CMD_SET_UP_MENU(command, iccManager) {
