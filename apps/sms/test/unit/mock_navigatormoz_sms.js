@@ -5,6 +5,16 @@ var MockNavigatormozMobileMessage = {
     return this.mNextSegmentInfo || this.mDefaultSegmentInfo;
   },
 
+  getThreads: function() {
+    var cursor = {
+      result: null
+    };
+    setTimeout(function() {
+      cursor.onsuccess();
+    });
+    return cursor;
+  },
+
   mNextSegmentInfo: null,
 
   mDefaultSegmentInfo: {

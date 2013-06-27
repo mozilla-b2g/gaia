@@ -50,7 +50,7 @@ var MessageManager = {
     if (window.location.hash === '#new') {
       // If we are in 'new' we go to right to thread view
       window.location.hash = '#thread=' + threadId;
-    } else {
+    } else if (threadId === Threads.currentId) {
       ThreadUI.appendMessage(message);
       ThreadUI.scrollViewToBottom();
     }
