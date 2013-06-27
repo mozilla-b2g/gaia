@@ -283,8 +283,12 @@ var eventHandlers = {
   'touchstart': onTouchStart,
   'mousedown': onMouseDown,
   'mouseup': onMouseUp,
-  'mousemove': onMouseMove
+  'mousemove': onMouseMove,
+  'swipe': onSwipe
 };
+
+var gestureDetector = null;
+const SWIPE_TO_HIDE_THRESHOLD = 0.4;
 
 // The first thing we do when the keyboard app loads is query all the
 // keyboard-related settings. Only once we have the current settings values
@@ -397,8 +401,12 @@ function initKeyboard() {
                                       createLayoutCallback(settingName));
   }
 
+
   // Initialize the rendering module
   IMERender.init(getUpperCaseValue, isSpecialKeyObj);
+
+  // To support "swipe down" gesture to hide the keyboard
+  gestureDetector = new GestureDetector(IMERender.ime);
 
   // Attach event listeners to the element that does rendering
   for (var event in eventHandlers) {
@@ -1169,6 +1177,14 @@ function onMouseMove(evt) {
   movePress(evt.target, evt, null);
 }
 
+function onSwipe(evt) {
+  var detail = evt.detail;
+
+  if (detail.direction == 'down' && detail.vy >= SWIPE_TO_HIDE_THRESHOLD) {
+    window.navigator.mozKeyboard.removeFocus();
+  }
+}
+
 // [LOCKED_AREA] TODO:
 // This is an agnostic way to improve the usability of the alternatives.
 // It consists into compute an area where the user movement is redirected
@@ -1487,6 +1503,9 @@ function showKeyboard(state) {
   // render the keyboard after activation, which will determine the state
   // of uppercase/suggestion, etc.
   renderKeyboard(keyboardName);
+
+
+  gestureDetector.startDetecting();
 }
 
 // Hide keyboard
@@ -1498,6 +1517,8 @@ function hideKeyboard() {
   // reset the flag for candidate show/hide workaround
   candidatePanelEnabled = false;
   isKeyboardRendered = false;
+
+  gestureDetector.stopDetecting();
 }
 
 // Resize event handler
