@@ -1763,8 +1763,8 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
+    // Do nothing while in participants list view.
     if (!Threads.active && Threads.lastId) {
-      window.location.hash = '#thread=' + Threads.lastId;
       return;
     }
 
