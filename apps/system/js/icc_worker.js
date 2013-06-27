@@ -99,6 +99,7 @@ var icc_worker = {
     if (options.text) {
       iccManager.confirm(options.text);
     } else if (options.text != undefined) {
+      var _ = navigator.mozL10n.get;
       iccManager.alert(_('icc-alertMessage-defaultmessage'));
     }
   },
