@@ -502,10 +502,10 @@ window.addEventListener('load', function startup(evt) {
                       'confirmation-message',
                       'edit-mode'];
 
-    loader.load(lazyPanels.map(function toElement(id) {
-        return document.getElementById(id);
-      })
-    );
+    var lazyPanelsElements = lazyPanels.map(function toElement(id) {
+      return document.getElementById(id);
+    });
+    loader.load(lazyPanelsElements);
 
     CallHandler.init();
     LazyL10n.get(function loadLazyFilesSet() {
@@ -516,6 +516,7 @@ window.addEventListener('load', function startup(evt) {
                    '/dialer/js/newsletter_manager.js',
                    '/shared/style/edit_mode.css',
                    '/shared/style/headers.css']);
+      lazyPanelsElements.forEach(navigator.mozL10n.translate);
     });
   });
 });
