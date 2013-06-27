@@ -21,7 +21,7 @@ var Settings = {
     req.onsuccess = function mm_getSizeSuccess() {
       var size = req.result[key];
       if (size && !isNaN(size)) {
-        Settings.mmsSizeLimitation = size * 1024;
+        Settings.mmsSizeLimitation = size;
       }
     };
   }
