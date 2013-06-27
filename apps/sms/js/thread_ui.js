@@ -328,6 +328,10 @@ var ThreadUI = global.ThreadUI = {
     this.updateInputHeight();
     this.enableSend();
 
+    if (Compose.type === 'sms') {
+      return;
+    }
+
     if (Compose.isResizing) {
       this.resizeNotice.classList.remove('hide');
 
