@@ -39,7 +39,7 @@ var RingView = {
 
   init: function rv_init() {
     document.addEventListener('mozvisibilitychange', this);
-    this._onFireAlarm = window.opener.ActiveAlarmController.getOnFireAlarm();
+    this._onFireAlarm = window.opener.ActiveAlarm.getOnFireAlarm();
     var self = this;
     if (!document.mozHidden) {
       this.startAlarmNotification();
@@ -210,7 +210,7 @@ var RingView = {
       switch (input.id) {
       case 'ring-button-snooze':
         this.stopAlarmNotification();
-        window.opener.ActiveAlarmController.snoozeHandler();
+        window.opener.ActiveAlarm.snoozeHandler();
         window.close();
         break;
       case 'ring-button-close':
