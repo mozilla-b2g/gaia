@@ -6,9 +6,9 @@
 var lazyLoadFiles = [
   'shared/js/async_storage.js',
   'shared/js/l10n_date.js',
-  'shared/js/custom_dialog.js',
   'shared/js/notification_helper.js',
   'shared/js/gesture_detector.js',
+  'js/dialog.js',
   'js/blacklist.js',
   'js/contacts.js',
   'js/recipients.js',
@@ -34,7 +34,6 @@ var lazyLoadFiles = [
   'shared/style/switches.css',
   'shared/style/confirm.css',
   'shared/style_unstable/progress_activity.css',
-  'style/custom_dialog.css',
   'shared/style/action_menu.css',
   'shared/style/responsive.css',
   'style/notification.css'
