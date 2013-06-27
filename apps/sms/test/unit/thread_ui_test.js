@@ -1737,10 +1737,9 @@ suite('thread_ui.js >', function() {
 
             fn([new MockContact()]);
 
-            var carrierTag = document.getElementById('contact-carrier');
+            var threadMessages = document.getElementById('thread-messages');
 
-            assert.isFalse(carrierTag.classList.contains('hide'));
-
+            assert.isTrue(threadMessages.classList.contains('has-carrier'));
             done();
           });
 
@@ -1764,9 +1763,9 @@ suite('thread_ui.js >', function() {
 
             fn([new MockContact()]);
 
-            var carrierTag = document.getElementById('contact-carrier');
+            var threadMessages = document.getElementById('thread-messages');
 
-            assert.isTrue(carrierTag.classList.contains('hide'));
+            assert.isFalse(threadMessages.classList.contains('has-carrier'));
 
             done();
           });
@@ -1913,9 +1912,9 @@ suite('thread_ui.js >', function() {
           window.location.hash = '#thread=1';
           ThreadUI.updateHeaderData();
 
-          var carrierTag = document.getElementById('contact-carrier');
+          var threadMessages = document.getElementById('thread-messages');
 
-          assert.isTrue(carrierTag.classList.contains('hide'));
+          assert.isFalse(threadMessages.classList.contains('has-carrier'));
         });
 
       });
