@@ -145,30 +145,6 @@ suite('store/busytime', function() {
     });
   });
 
-  suite('#factory', function() {
-    test('using defaults', function() {
-      var event = Factory('event');
-      var result = subject.factory(event);
-
-      assert.deepEqual(result.start, event.remote.start);
-      assert.deepEqual(result.end, event.remote.end);
-      assert.equal(result.eventId, event._id);
-      assert.equal(result.calendarId, event.calendarId);
-    });
-
-    test('with start/end date', function() {
-      var event = Factory('event');
-
-      var start = Calendar.Calc.dateToTransport(new Date(2012, 0, 1));
-      var end = Calendar.Calc.dateToTransport(new Date(2012, 0, 2));
-
-      var result = subject.factory(event, start, end);
-
-      assert.deepEqual(result.start, start);
-      assert.deepEqual(result.end, end);
-    });
-  });
-
   suite('#loadSpan', function() {
     var list;
     var span;

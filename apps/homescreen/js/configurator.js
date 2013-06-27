@@ -1,7 +1,7 @@
 
 'use strict';
 
-const Configurator = (function() {
+var Configurator = (function() {
   var conf = {};
 
   var dummyProvider = {
@@ -14,47 +14,60 @@ const Configurator = (function() {
     }
   };
 
-  var xhr = new XMLHttpRequest();
-  xhr.overrideMimeType('application/json');
-  xhr.open('GET', 'js/init.json', true);
-  xhr.send(null);
+  function load(file) {
+    var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('application/json');
+    xhr.open('GET', file, true);
+    xhr.send(null);
 
-  xhr.onload = function _xhrOnLoad(evt) {
-    try {
-      conf = JSON.parse(xhr.responseText);
+    xhr.onload = function _xhrOnLoad(evt) {
+      try {
+        conf = JSON.parse(xhr.responseText);
 
-      var searchPage = conf.search_page;
-      if (searchPage) {
-        var provider = window[searchPage.provider] || dummyProvider;
-        if (searchPage.enabled) {
-          provider.init();
-          Homescreen.init(1);
-        } else {
-          startHomescreenByDefault();
-          setTimeout(provider.destroy, 0);
+        var searchPage = conf.search_page;
+        if (searchPage) {
+          var provider = window[searchPage.provider] || dummyProvider;
+          if (searchPage.enabled) {
+            provider.init();
+            Homescreen.init(1);
+          } else {
+            startHomescreenByDefault();
+            setTimeout(provider.destroy, 0);
+          }
         }
+      } catch (e) {
+        conf = {};
+        console.error('Failed parsing homescreen configuration file: ' + e);
+        startHomescreenByDefault();
       }
-    } catch (e) {
-      conf = {};
-      console.error('Failed parsing homescreen configuration file: ' + e);
-      startHomescreenByDefault();
-    }
-  };
+    };
 
-  xhr.onerror = function _xhrOnError(evt) {
-    console.error('File not found: js/init.json');
-    startHomescreenByDefault();
-  };
+    xhr.onerror = function _xhrOnError(evt) {
+      console.error('File not found: js/init.json');
+      startHomescreenByDefault();
+    };
+  }
 
   function startHomescreenByDefault() {
     var searchPage = document.querySelector('div[role="search-page"]');
-    searchPage.parentNode.removeChild(searchPage);
-    Homescreen.init(0);
+
+    if (searchPage) {
+      searchPage.parentNode.removeChild(searchPage);
+    }
+
+    if (Homescreen) {
+      Homescreen.init(0);
+    }
   }
+
+  // Auto-initializing
+  load('js/init.json');
 
   return {
     getSection: function(section) {
       return conf[section];
-    }
+    },
+
+    load: load
   };
 }());

@@ -6,6 +6,8 @@ function MockRecipients(setup) {
     add: [],
     remove: []
   };
+  this.numbers = [];
+  this.inputValue = '';
 }
 
 MockRecipients.prototype.add = function(contact) {
@@ -13,6 +15,7 @@ MockRecipients.prototype.add = function(contact) {
   span.textContent = contact.number;
   this.recipientsList.appendChild(span);
   this.length++;
+  this.numbers.push(contact.number);
   this.emit('add', this.length);
   return this;
 };
@@ -22,6 +25,10 @@ MockRecipients.prototype.render = function() {
 };
 
 MockRecipients.prototype.focus = function() {
+  return this;
+};
+
+MockRecipients.prototype.visible = function() {
   return this;
 };
 

@@ -18,6 +18,92 @@ var Settings = {
         settings : null;
   },
 
+  _currentPanel: '#root',
+
+  get currentPanel() {
+    return this._currentPanel;
+  },
+
+  set currentPanel(hash) {
+    if (!hash.startsWith('#')) {
+      hash = '#' + hash;
+    }
+
+    if (hash == this._currentPanel) {
+      return;
+    }
+
+    if (hash === '#wifi') {
+      PerformanceTestingHelper.dispatch('start');
+    }
+    var oldPanelHash = this._currentPanel;
+    var oldPanel = document.querySelector(this._currentPanel);
+    this._currentPanel = hash;
+    var newPanelHash = this._currentPanel;
+    var newPanel = document.querySelector(this._currentPanel);
+
+    // load panel (+ dependencies) if necessary -- this should be synchronous
+    this.lazyLoad(newPanel);
+
+    // switch previous/current/forward classes
+    // FIXME: The '.peek' is here to avoid an ugly white
+    // flickering when transitioning (gecko 18)
+    // the forward class helps us 'peek' in the right direction
+    oldPanel.className = newPanel.className ? 'peek' : 'peek previous forward';
+    newPanel.className = newPanel.className ?
+                           'current peek' : 'peek current forward';
+
+    /**
+     * Most browsers now scroll content into view taking CSS transforms into
+     * account.  That's not what we want when moving between <section>s,
+     * because the being-moved-to section is offscreen when we navigate to its
+     * #hash.  The transitions assume the viewport is always at document 0,0.
+     * So add a hack here to make that assumption true again.
+     * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
+     */
+    if ((window.scrollX !== 0) || (window.scrollY !== 0)) {
+      window.scrollTo(0, 0);
+    }
+
+    window.addEventListener('transitionend', function paintWait() {
+      window.removeEventListener('transitionend', paintWait);
+
+      // We need to wait for the next tick otherwise gecko gets confused
+      setTimeout(function nextTick() {
+        oldPanel.classList.remove('peek');
+        oldPanel.classList.remove('forward');
+        newPanel.classList.remove('peek');
+        newPanel.classList.remove('forward');
+
+        // Bug 818056 - When multiple visible panels are present,
+        // they are not painted correctly. This appears to fix the issue.
+        // Only do this after the first load
+        if (oldPanel.className === 'current')
+          return;
+
+        oldPanel.addEventListener('transitionend', function onTransitionEnd(e) {
+          oldPanel.removeEventListener('transitionend', onTransitionEnd);
+          var detail = {
+            previous: oldPanelHash,
+            current: newPanelHash
+          };
+          var event = new CustomEvent('panelready', {detail: detail});
+          window.dispatchEvent(event);
+          switch (newPanel.id) {
+            case 'about-licensing':
+              // Workaround for bug 825622, remove when fixed
+              var iframe = document.getElementById('os-license');
+              iframe.src = iframe.dataset.src;
+              break;
+            case 'wifi':
+              PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
+              break;
+          }
+        });
+      });
+    });
+  },
+
   // Early initialization of parts of the application that don't
   // depend on the DOM being loaded.
   preInit: function settings_preInit() {
@@ -166,6 +252,70 @@ var Settings = {
         };
       }
     }
+  },
+
+  lazyLoad: function settings_lazyLoad(panel) {
+    if (panel.children.length) { // already initialized
+      return;
+    }
+
+    // load the panel and its sub-panels (dependencies)
+    // (load the main panel last because it contains the scripts)
+    var selector = 'section[id^="' + panel.id + '-"]';
+    var subPanels = document.querySelectorAll(selector);
+    for (var i = 0, il = subPanels.length; i < il; i++) {
+      this.loadPanel(subPanels[i]);
+    }
+    this.loadPanel(panel);
+
+    // panel-specific initialization tasks
+    switch (panel.id) {
+      case 'display':             // <input type="range"> + brightness control
+        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
+        this.updateDisplayPanel();
+        break;
+      case 'sound':               // <input type="range">
+        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
+        break;
+      case 'languages':           // fill language selector
+        var langSel = document.querySelector('select[name="language.current"]');
+        langSel.innerHTML = '';
+        Settings.getSupportedLanguages(function fillLanguageList(languages) {
+          for (var lang in languages) {
+            var option = document.createElement('option');
+            option.value = lang;
+            // Right-to-Left (RTL) languages:
+            // (http://www.w3.org/International/questions/qa-scripts)
+            // Arabic, Hebrew, Farsi, Pashto, Urdu
+            var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+            // Use script direction control-characters to wrap the text labels
+            // since markup (i.e. <bdo>) does not work inside <option> tags
+            // http://www.w3.org/International/tutorials/bidi-xhtml/#nomarkup
+            var lEmbedBegin =
+                (rtlList.indexOf(lang) >= 0) ? '&#x202B;' : '&#x202A;';
+            var lEmbedEnd = '&#x202C;';
+            // The control-characters enforce the language-specific script
+            // direction to correctly display the text label (Bug #851457)
+            option.innerHTML = lEmbedBegin + languages[lang] + lEmbedEnd;
+            option.selected = (lang == document.documentElement.lang);
+            langSel.appendChild(option);
+          }
+        });
+        setTimeout(this.updateLanguagePanel);
+        break;
+      case 'keyboard':
+        Settings.updateKeyboardPanel();
+        break;
+      case 'battery':             // full battery status
+        Battery.update();
+        break;
+    }
+
+    // preset all inputs in the panel and subpanels.
+    for (var i = 0; i < subPanels.length; i++) {
+      this.presetPanel(subPanels[i]);
+    }
+    this.presetPanel(panel);
   },
 
   // Cache of all current settings values.  There's some large stuff
@@ -374,7 +524,7 @@ var Settings = {
 
         // Go to that section
         setTimeout(function settings_goToSection() {
-          document.location.hash = section;
+          Settings.currentPanel = section;
         });
         break;
     }
@@ -523,9 +673,9 @@ var Settings = {
     if (this._languages) {
       callback(this._languages);
     } else {
-      var LANGUAGES = 'languages.json';
       var self = this;
-      this.readSharedFile(LANGUAGES, function getLanguages(data) {
+      var LANGUAGES = '/shared/resources/languages.json';
+      loadJSON(LANGUAGES, function loadLanguages(data) {
         if (data) {
           self._languages = data;
           callback(self._languages);
@@ -541,9 +691,9 @@ var Settings = {
     if (this._kbLayoutList) {
       callback(this._kbLayoutList);
     } else {
-      var KEYBOARDS = 'keyboard_layouts.json';
       var self = this;
-      this.readSharedFile(KEYBOARDS, function getKeyboardLayouts(data) {
+      var KEYBOARDS = '/shared/resources/keyboard_layouts.json';
+      loadJSON(KEYBOARDS, function loadKeyboardLayouts(data) {
         if (data) {
           self._kbLayoutList = data;
           callback(self._kbLayoutList);
@@ -552,24 +702,37 @@ var Settings = {
     }
   },
 
-  readSharedFile: function settings_readSharedFile(file, callback) {
-    var URI = '/shared/resources/' + file;
-    if (!callback)
+  updateDisplayPanel: function settings_updateDisplayPanel() {
+    var panel = document.getElementById('display');
+    var settings = Settings.mozSettings;
+    if (!settings || !panel)
       return;
 
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function loadFile() {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 0 || xhr.status === 200) {
-          callback(xhr.response);
-        } else {
-          console.error('Failed to fetch file: ' + file, xhr.statusText);
-        }
+    var manualBrightness = panel.querySelector('#brightness-manual');
+    var autoBrightness = panel.querySelector('#brightness-auto');
+    var autoBrightnessSetting = 'screen.automatic-brightness';
+
+    // hide "Adjust automatically" if there's no ambient light sensor --
+    // until bug 876496 is fixed, we have to read the `sensors.json' file to
+    // be sure this ambient light sensor is enabled.
+    loadJSON('/resources/sensors.json', function loadSensors(activeSensors) {
+      if (activeSensors.ambientLight) { // I can haz ambient light sensor
+        autoBrightness.hidden = false;
+        settings.addObserver(autoBrightnessSetting, function(event) {
+          manualBrightness.hidden = event.settingValue;
+        });
+        var req = settings.createLock().get(autoBrightnessSetting);
+        req.onsuccess = function brightness_onsuccess() {
+          manualBrightness.hidden = req.result[autoBrightnessSetting];
+        };
+      } else { // no ambient light sensor: force manual brightness setting
+        autoBrightness.hidden = true;
+        manualBrightness.hidden = false;
+        var cset = {};
+        cset[autoBrightnessSetting] = false;
+        settings.createLock().set(cset);
       }
-    };
-    xhr.open('GET', URI, true); // async
-    xhr.responseType = 'json';
-    xhr.send();
+    });
   },
 
   updateLanguagePanel: function settings_updateLanguagePanel() {
@@ -603,6 +766,53 @@ var Settings = {
     function callback() {
       self._panelStylesheetsLoaded = true;
     });
+  },
+
+  updateKeyboardPanel: function settings_updateKeyboardPanel() {
+    var panel = document.getElementById('keyboard');
+    // Update the keyboard layouts list from the Keyboard panel
+    if (panel) {
+      this.getSupportedKbLayouts(function updateKbList(keyboards) {
+        var kbLayoutsList = document.getElementById('keyboard-layouts');
+        // Get pointers to the top list entry and its labels which are used to
+        // pin the language associated keyboard at the top of the keyboards list
+        var pinnedKb = document.getElementById('language-keyboard');
+        var pinnedKbLabel = pinnedKb.querySelector('a');
+        var pinnedKbSubLabel = pinnedKb.querySelector('small');
+        pinnedKbSubLabel.textContent = '';
+
+        // Get the current language and its associate keyboard layout
+        var currentLang = document.documentElement.lang;
+        var langKeyboard = keyboards.layout[currentLang];
+
+        var kbSelector = 'input[name="keyboard.layouts.' + langKeyboard + '"]';
+        var kbListQuery = kbLayoutsList.querySelector(kbSelector);
+
+        if (kbListQuery) {
+          // Remove the entry from the list since it will be pinned on top
+          // of the Keyboard Layouts list
+          var kbListEntry = kbListQuery.parentNode.parentNode;
+          kbListEntry.hidden = true;
+
+          var label = kbListEntry.querySelector('a');
+          var sub = kbListEntry.querySelector('small');
+          pinnedKbLabel.dataset.l10nId = label.dataset.l10nId;
+          pinnedKbLabel.textContent = label.textContent;
+          if (sub) {
+            pinnedKbSubLabel.dataset.l10nId = sub.dataset.l10nId;
+            pinnedKbSubLabel.textContent = sub.textContent;
+          }
+        } else {
+          // If the current language does not have an associated keyboard,
+          // fallback to the default keyboard: 'en'
+          // XXX update this if the list order in index.html changes
+          var englishEntry = kbLayoutsList.children[1];
+          englishEntry.hidden = true;
+          pinnedKbLabel.dataset.l10nId = 'english';
+          pinnedKbSubLabel.textContent = '';
+        }
+      });
+    }
   }
 };
 
@@ -627,222 +837,75 @@ window.addEventListener('load', function loadSettings() {
       'js/storage.js',
       'shared/js/mobile_operator.js',
       'shared/js/wifi_helper.js',
+      'shared/js/icc_helper.js',
       'js/connectivity.js',
       'js/security_privacy.js',
-      'js/icc_menu.js'
+      'js/icc_menu.js',
+      'shared/js/settings_listener.js'
   ]);
 
-  // panel lazy-loading
-  function lazyLoad(panel) {
-    if (panel.children.length) { // already initialized
-      return;
-    }
-
-    // load the panel and its sub-panels (dependencies)
-    // (load the main panel last because it contains the scripts)
-    var selector = 'section[id^="' + panel.id + '-"]';
-    var subPanels = document.querySelectorAll(selector);
-    for (var i = 0, il = subPanels.length; i < il; i++) {
-      Settings.loadPanel(subPanels[i]);
-    }
-    Settings.loadPanel(panel);
-
-    // panel-specific initialization tasks
-    switch (panel.id) {
-      case 'display':             // <input type="range"> + brightness control
-        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
-        var manualBrightness = panel.querySelector('#brightness-manual');
-        var autoBrightnessSetting = 'screen.automatic-brightness';
-        var settings = Settings.mozSettings;
-        if (!settings)
-          return;
-        settings.addObserver(autoBrightnessSetting, function(event) {
-          manualBrightness.hidden = event.settingValue;
-        });
-        var req = settings.createLock().get(autoBrightnessSetting);
-        req.onsuccess = function brightness_onsuccess() {
-          manualBrightness.hidden = req.result[autoBrightnessSetting];
-        };
-        break;
-      case 'sound':               // <input type="range">
-        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
-        break;
-      case 'languages':           // fill language selector
-        var langSel = document.querySelector('select[name="language.current"]');
-        langSel.innerHTML = '';
-        Settings.getSupportedLanguages(function fillLanguageList(languages) {
-          for (var lang in languages) {
-            var option = document.createElement('option');
-            option.value = lang;
-            // Right-to-Left (RTL) languages:
-            // (http://www.w3.org/International/questions/qa-scripts)
-            // Arabic, Hebrew, Farsi, Pashto, Urdu
-            var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
-            // Use script direction control-characters to wrap the text labels
-            // since markup (i.e. <bdo>) does not work inside <option> tags
-            // http://www.w3.org/International/tutorials/bidi-xhtml/#nomarkup
-            var lEmbedBegin =
-                (rtlList.indexOf(lang) >= 0) ? '&#x202B;' : '&#x202A;';
-            var lEmbedEnd = '&#x202C;';
-            // The control-characters enforce the language-specific script
-            // direction to correctly display the text label (Bug #851457)
-            option.innerHTML = lEmbedBegin + languages[lang] + lEmbedEnd;
-            option.selected = (lang == document.documentElement.lang);
-            langSel.appendChild(option);
-          }
-        });
-        setTimeout(Settings.updateLanguagePanel);
-        break;
-      case 'battery':             // full battery status
-        Battery.update();
-        break;
-    }
-
-    // preset all inputs in the panel and subpanels.
-    for (var i = 0; i < subPanels.length; i++) {
-      Settings.presetPanel(subPanels[i]);
-    }
-    Settings.presetPanel(panel);
-  }
-
-  // panel navigation
-  var oldHash = window.location.hash || '#root';
-  function showPanel() {
-    var hash = window.location.hash;
-
-    if (hash === '#wifi') {
-      PerformanceTestingHelper.dispatch('start');
-    }
-
-    var oldPanel = document.querySelector(oldHash);
-    var newPanel = document.querySelector(hash);
-
-    // load panel (+ dependencies) if necessary -- this should be synchronous
-    lazyLoad(newPanel);
-
-    // switch previous/current/forward classes
-    // FIXME: The '.peek' is here to avoid an ugly white
-    // flickering when transitioning (gecko 18)
-    // the forward class helps us 'peek' in the right direction
-    oldPanel.className = newPanel.className ? 'peek' : 'peek previous forward';
-    newPanel.className = newPanel.className ?
-                           'current peek' : 'peek current forward';
-    oldHash = hash;
-
-    /**
-     * Most browsers now scroll content into view taking CSS transforms into
-     * account.  That's not what we want when moving between <section>s,
-     * because the being-moved-to section is offscreen when we navigate to its
-     * #hash.  The transitions assume the viewport is always at document 0,0.
-     * So add a hack here to make that assumption true again.
-     * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
-     */
-    if ((window.scrollX !== 0) || (window.scrollY !== 0)) {
-      window.scrollTo(0, 0);
-    }
-
-    window.addEventListener('transitionend', function paintWait() {
-      window.removeEventListener('transitionend', paintWait);
-
-      // We need to wait for the next tick otherwise gecko gets confused
-      setTimeout(function nextTick() {
-        oldPanel.classList.remove('peek');
-        oldPanel.classList.remove('forward');
-        newPanel.classList.remove('peek');
-        newPanel.classList.remove('forward');
-
-        // Bug 818056 - When multiple visible panels are present,
-        // they are not painted correctly. This appears to fix the issue.
-        // Only do this after the first load
-        if (oldPanel.className === 'current')
-          return;
-
-        oldPanel.addEventListener('transitionend', function onTransitionEnd() {
-          oldPanel.removeEventListener('transitionend', onTransitionEnd);
-          switch (newPanel.id) {
-            case 'about-licensing':
-              // Workaround for bug 825622, remove when fixed
-              var iframe = document.getElementById('os-license');
-              iframe.src = iframe.dataset.src;
-              break;
-            case 'wifi':
-              PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
-              break;
-          }
-        });
-      });
-    });
-  }
-
   function handleRadioAndCardState() {
-    function updateDataSubpanelItem(disabled) {
-      var item = document.getElementById('data-connectivity');
-      var link = document.getElementById('menuItem-cellularAndData');
-      if (!item || !link)
-        return;
+    function disableSIMRelatedSubpanels(disable) {
+      const itemIds = ['call-settings',
+                       'data-connectivity',
+                       'simSecurity-settings'];
 
-      if (disabled) {
-        item.classList.add('carrier-disabled');
-        link.onclick = function() { return false; };
-      } else {
-        item.classList.remove('carrier-disabled');
-        link.onclick = null;
+      for (var id = 0; id < itemIds.length; id++) {
+        var item = document.getElementById(itemIds[id]);
+        if (!item) {
+          continue;
+        }
+
+        if (disable) {
+          item.classList.add('disabled');
+        } else {
+          item.classList.remove('disabled');
+        }
       }
     }
 
-    function updateCallSubpanelItem(disabled) {
-      var item = document.getElementById('call-settings');
-      var link = document.getElementById('menuItem-callSettings');
-      if (!item || !link)
-        return;
-
-      if (disabled) {
-        item.classList.add('call-settings-disabled');
-        link.onclick = function() { return false; };
-      } else {
-        item.classList.remove('call-settings-disabled');
-        link.onclick = null;
-      }
+    var mobileConnection = window.navigator.mozMobileConnection;
+    if (!mobileConnection) {
+      disableSIMRelatedSubpanels(true);
     }
 
-    var key = 'ril.radio.disabled';
+    var cardState = mobileConnection.cardState;
+    disableSIMRelatedSubpanels(cardState !== 'ready');
 
-    var settings = Settings.mozSettings;
-    if (!settings)
-      return;
-
-    var req = settings.createLock().get(key);
-    req.onsuccess = function() {
-      var value = req.result[key];
-      updateDataSubpanelItem(value);
-      updateCallSubpanelItem(value);
-    };
-    settings.addObserver(key, function(evt) {
-      updateDataSubpanelItem(evt.settingValue);
-      updateCallSubpanelItem(evt.settingValue);
+    mobileConnection.addEventListener('cardstatechange', function() {
+      var cardState = mobileConnection.cardState;
+      disableSIMRelatedSubpanels(cardState !== 'ready');
     });
   }
 
   // startup
-  window.addEventListener('hashchange', showPanel);
-  switch (window.location.hash) {
-    case '#root':
-      // Nothing to do here; default startup case.
-      break;
-    case '':
-      document.location.hash = 'root';
-      break;
-    default:
-      document.getElementById('root').className = 'previous';
-      showPanel();
-      break;
-  }
+  document.addEventListener('click', function settings_backButtonClick(e) {
+    var target = e.target;
+    if (target.classList.contains('icon-back')) {
+      Settings.currentPanel = target.parentNode.getAttribute('href');
+    }
+  });
+  document.addEventListener('click', function settings_sectionOpenClick(e) {
+    var target = e.target;
+    var nodeName = target.nodeName.toLowerCase();
+    if (nodeName != 'a') {
+      return;
+    }
+
+    var href = target.getAttribute('href');
+    if (!href || !href.startsWith('#')) {
+      return;
+    }
+
+    Settings.currentPanel = href;
+    e.preventDefault();
+  });
 });
 
 // back button = close dialog || back to the root page
 // + prevent the [Return] key to validate forms
 window.addEventListener('keydown', function handleSpecialKeys(event) {
-  if (document.location.hash != '#root' &&
+  if (Settings.currentPanel != '#root' &&
       event.keyCode === event.DOM_VK_ESCAPE) {
     event.preventDefault();
     event.stopPropagation();
@@ -852,7 +915,7 @@ window.addEventListener('keydown', function handleSpecialKeys(event) {
       dialog.classList.remove('active');
       document.body.classList.remove('dialog');
     } else {
-      document.location.hash = '#root';
+      Settings.currentPanel = '#root';
     }
   } else if (event.keyCode === event.DOM_VK_RETURN) {
     event.target.blur();
@@ -876,7 +939,7 @@ window.addEventListener('localized', function updateLocalized() {
 
   // update the enabled keyboards list with the language associated keyboard
   Settings.getSupportedKbLayouts(function updateEnabledKb(keyboards) {
-    var newKb = keyboards[navigator.mozL10n.language.code];
+    var newKb = keyboards.layout[navigator.mozL10n.language.code];
     var settingNewKeyboard = {};
     var settingNewKeyboardLayout = {};
     settingNewKeyboard['keyboard.current'] = navigator.mozL10n.language.code;
@@ -895,6 +958,15 @@ window.addEventListener('localized', function updateLocalized() {
     }
   });
 
+  // update the keyboard layouts list by resetting the top pinned element,
+  // since it displays the previous language setting
+  var kbLayoutsList = document.getElementById('keyboard-layouts');
+  if (kbLayoutsList) {
+    var prevKbLayout = kbLayoutsList.querySelector('li[hidden]');
+    prevKbLayout.hidden = false;
+
+    Settings.updateKeyboardPanel();
+  }
 });
 
 // Do initialization work that doesn't depend on the DOM, as early as

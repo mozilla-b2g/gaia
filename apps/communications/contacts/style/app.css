@@ -6,7 +6,7 @@
 
 
 /* Global */
-html, body {
+html {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -18,7 +18,8 @@ html, body {
 
 body {
   color: #fff;
-  font: 1.6rem/2.2rem MozTT, Sans-serif;
+  font-size: 1.6rem;
+  line-height: 2.2rem;
   text-align: center;
   vertical-align: middle;
 }
@@ -67,17 +68,16 @@ abbr, acronym {
 }
 
 strong {
-  font-family: MozTT, Sans-serif;
   font-weight: bold;
 }
 
 b {
-  font-family: MozTT, Sans-serif;
   font-weight: 600;
 }
 
 small {
-  font: 1.1rem/1rem MozTT, Sans-serif;
+  font-size: 1.1rem;
+  line-height: 1rem;
   color: #999;
 }
 
@@ -187,7 +187,6 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
   width: 100%;
   height: 100%;
   transform: translate(0, 0);
-  transition: transform 0.5s ease;
 }
 
 .view:not(.view-noscroll) {
@@ -309,6 +308,17 @@ form p + p {
 .view-body {
   position: relative;
   height: calc(100% - 5rem);
+}
+
+#view-screenshot.contact-list > header:first-child:after {
+  background-image: none;
+}
+
+#view-screenshot.contact-list > #view-screenshot-body {
+  position: relative;
+  height: calc(100% - 5rem);
+  background: -moz-element(#view-contacts-list);
+  background-position: 0 -5rem;
 }
 
 .view-body-inner {
@@ -644,5 +654,5 @@ nav[data-type="scrollbar"] p img {
   position: absolute;
   top: 25%;
   left: 25%;
-  width: auto;
+  width: 4.8rem;
 }

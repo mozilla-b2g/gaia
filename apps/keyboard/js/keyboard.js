@@ -65,10 +65,8 @@
  *      conjunction with the layout data from setLayoutParams().
  *      The coordinates aren't passed for the Backspace key, however.
  *
- *    select(text, data):
+ *    select(word):
  *      Called when the user selects a displayed candidate or word suggestion.
- *      The two arguments are two versions of the candidate. The distinction
- *      is important for Asian IMs but I don't understand it.
  *
  *    setLayoutParams(params):
  *
@@ -153,7 +151,7 @@ const LAYOUT_PAGE_SYMBOLS_II = 'Symbols_2';
 // Layout page: what set of symbols should the keyboard display?
 var layoutPage = LAYOUT_PAGE_DEFAULT;
 
-// This object is based on the keyboard layout form layout.js, but is
+// This object is based on the keyboard layout from layout.js, but is
 // modified (see modifyLayout()) to include keys for switching keyboards
 // and layouts, and type specific keys like ".com" for url keyboards.
 var currentLayout = null;
@@ -171,13 +169,15 @@ var currentInputType = null;
 var currentInputMode = null;
 var menuLockedArea = null;
 var candidatePanelEnabled = false;
+var isKeyboardRendered = false;
+var currentCandidates = [];
 const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
 const ACCENT_CHAR_MENU_TIMEOUT = 700;
 
 // Backspace repeat delay and repeat rate
-const REPEAT_RATE = 100;
+const REPEAT_RATE = 75;
 const REPEAT_TIMEOUT = 700;
 
 // How long to wait for more focuschange events before processing
@@ -201,9 +201,15 @@ const keyboardGroups = {
   'spanish' : ['es'],
   'portuguese' : ['pt_BR'],
   'polish' : ['pl'],
-  'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr'],
-  'cyrillic': ['ru', 'sr-Cyrl'],
-  'serbian-latin': ['sr-Latn'],
+  'catalan' : ['ca'],
+  'czech': ['cz'],
+  'french': ['fr'],
+  'german': ['de'],
+  'norwegian': ['nb'],
+  'slovak': ['sk'],
+  'turkish': ['tr'],
+  'russian': ['ru'],
+  'serbian': ['sr-Latn', 'sr-Cyrl'],
   'hebrew': ['he'],
   'zhuyin': ['zh-Hant-Zhuyin'],
   'pinyin': ['zh-Hans-Pinyin'],
@@ -261,26 +267,12 @@ var enabledKeyboardNames;
 var isSoundEnabled;
 
 // data URL for keyboard click sound
-const CLICK_SOUND = 'data:audio/x-wav;base64,' +
-  'UklGRiADAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YfwCAAAW/Fzsqe9O' +
-  'AONWB0Pt3Mf1hsS38mJcc0mq9mzpwsIwsChOBxay/ikHV6Tr8ioJNQa0ErvFzbXrw97j' +
-  '5C2LQII7aBg77Tr+I+wH0QWp/7xowHegIf0yD1UkhzRRIbUGoeOgJptCHVB+WZg5ehgs' +
-  'EcofKwKaAb7+cuzd9doICAx0FZEm+gEq+z//D/yJDtEJx/O73MHkifPK/BoLXwwuBt3p' +
-  '5eBq2h3YT/OR+MH/5xDGB7sHowyp9rrrL++06mnt/PpcALcI7RDSCz4GwwWaAXYNVhLw' +
-  'D20VYQsvCWUPxApJCVUH3P0jA54EIP0RBUYHVgtlD68KtQWI/9MB4f8Q/Fr4UvLz7nPq' +
-  'yOzV9AvzKfEB7azl/+ee6jbrSOw16mjpPepD7d3yT/hL/RIDBAXQAHcDIAZ1BVsPIhAZ' +
-  'CT4Ntwc2CJsQnhV+GlYcJR67GF0WaRK5CewGSQdSBboCfgWGBaQACP0e+8f3O/Y4+Yn1' +
-  '4e8l9Mf3lvns/eT75fbx9t359/lw+6L+XP+5AdsFSgZECK8LvQlVCWYJ1wetBD8AGALl' +
-  'AJUAVAbPBEkDpALfADn/Cv4c/+7+OP/jAAb/7vie+Xr7GvYa9g30rPBc9OL1wveo+3D+' +
-  '8/xG+Zn5tPsi/vX/xv4I/Oj5DPaL8mbxmfMM+80AXQbiCisNvhC8Dt4LGwwyDJkNlAxR' +
-  'CWYGswcHCn0KyA5cDsQKYgrZB+cFlATlAh4A3P5kAOsAOwLbA+ED8gLAAM/+h/vq+Lb5' +
-  'qPgY+GH5i/nE+SX6V/s9+gv69vl89nv33fhc+Zb6nvse/lEA4wMjBrQEugPc/4/8pvux' +
-  '+//9Kf9tAGcBXAFxAtgCuwMeBFQE6AQdA4gCGAJiADsAuwC7/53+a/4J/tv88fte+R74' +
-  'dPhd+HD5LPmf+If5VPsp/noASALRAbsB+wJ+Ak0CuQPiBAsFpwYTB5wFtgZ/DE4P8AuH' +
-  'B4kD3QKPBcAHhgaHBDAEngO6BBcFbwJ2/qD7rPtG/voBwQGU/pn9Lv3T/g==';
+const CLICK_SOUND = './resources/sounds/key.ogg';
+const SPECIAL_SOUND = './resources/sounds/special.ogg';
 
 // The audio element used to play the click sound
 var clicker;
+var specialClicker;
 
 // A MutationObserver we use to spy on the renderer module
 var dimensionsObserver;
@@ -454,8 +446,10 @@ function initKeyboard() {
 function handleKeyboardSound() {
   if (clickEnabled && isSoundEnabled) {
     clicker = new Audio(CLICK_SOUND);
+    specialClicker = new Audio(SPECIAL_SOUND);
   } else {
     clicker = null;
+    specialClicker = null;
   }
 }
 
@@ -502,6 +496,11 @@ function handleNewKeyboards() {
   // Now load each of these keyboards and their input methods
   for (var i = 0; i < enabledKeyboardNames.length; i++)
     loadKeyboard(enabledKeyboardNames[i]);
+
+  // If the keyboard has been disabled, reset keyboardName allowing it to be
+  // properly set when showing the keyboard
+  if (enabledKeyboardNames.indexOf(keyboardName) == -1)
+    keyboardName = null;
 }
 
 // Map the input type to another type
@@ -552,15 +551,31 @@ function modifyLayout(keyboardName) {
   }
 
   var altLayoutName;
-  if (currentInputType === 'tel')
-    altLayoutName = currentInputType + 'Layout';
-  else if (currentInputType === 'number')
-    altLayoutName =
-      currentInputMode === 'digits' ? 'pinLayout' : 'numberLayout';
-  else if (layoutPage === LAYOUT_PAGE_SYMBOLS_I)
+
+  switch (currentInputType) {
+    case 'tel':
+      altLayoutName = 'telLayout';
+      break;
+    case 'number':
+      altLayoutName = currentInputMode === 'digit' ?
+                                           'pinLayout' : 'numberLayout';
+      break;
+    // The matches when type="password", "text", or "search",
+    // see mapInputType() for details
+    case 'text':
+      if (currentInputMode === 'digit') {
+        altLayoutName = 'pinLayout';
+      } else if (currentInputMode === 'numeric') {
+        altLayoutName = 'numberLayout';
+      }
+      break;
+  }
+
+  if (layoutPage === LAYOUT_PAGE_SYMBOLS_I) {
     altLayoutName = 'alternateLayout';
-  else if (layoutPage === LAYOUT_PAGE_SYMBOLS_II)
+  } else if (layoutPage === LAYOUT_PAGE_SYMBOLS_II) {
     altLayoutName = 'symbolLayout';
+  }
 
   // Start with this base layout
   var layout;
@@ -758,6 +773,11 @@ function renderKeyboard(keyboardName) {
 
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
+
+    //restore the previous candidates
+    IMERender.showCandidates(currentCandidates);
+
+    isKeyboardRendered = true;
   }
 
   // XXX: if we are going to hide the candidatePanel, notify keyboard manager
@@ -790,6 +810,8 @@ function setUpperCase(upperCase, upperCaseLocked) {
   isUpperCaseLocked = upperCaseLocked;
   isUpperCase = upperCase;
 
+  if (!isKeyboardRendered)
+    return;
   // When case changes we have to re-render the keyboard.
   // But note that we don't have to relayout the keyboard, so
   // we call draw() directly instead of renderKeyboard()
@@ -800,6 +822,9 @@ function setUpperCase(upperCase, upperCaseLocked) {
   });
   // And make sure the caps lock key is highlighted correctly
   IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+
+  //restore the previous candidates
+  IMERender.showCandidates(currentCandidates);
 }
 
 function resetUpperCase() {
@@ -1099,13 +1124,14 @@ function startPress(target, coords, touchId) {
   if (!isNormalKey(target))
     return;
 
+  var keyCode = parseInt(target.dataset.keycode);
+
   // Feedback
-  triggerFeedback();
+  var isSpecialKey = specialCodes.indexOf(keyCode) >= 0 || keyCode < 0;
+  triggerFeedback(isSpecialKey);
   IMERender.highlightKey(target);
 
   setMenuTimeout(target, coords, touchId);
-
-  var keyCode = parseInt(target.dataset.keycode);
 
   // Special keys (such as delete) response when pressing (not releasing)
   // Furthermore, delete key has a repetition behavior
@@ -1229,7 +1255,10 @@ function endPress(target, coords, touchId) {
   if (dataset.selection) {
 
     if (inputMethod.select) {
-      inputMethod.select(target.textContent, dataset.data);
+      // We use dataset.data instead of target.textContent because the
+      // text actually displayed to the user might have an ellipsis in it
+      // to make it fit.
+      inputMethod.select(dataset.data);
     }
 
     IMERender.highlightKey(target);
@@ -1319,6 +1348,7 @@ function endPress(target, coords, touchId) {
     }
 
     resetKeyboard();
+    renderKeyboard(keyboardName);
 
     /*
      * XXX
@@ -1398,8 +1428,6 @@ function resetKeyboard() {
   isUpperCase = false;
   isUpperCaseLocked = false;
 
-  renderKeyboard(keyboardName);
-
   IMERender.setUpperCaseLock(isUpperCase);
 }
 
@@ -1424,16 +1452,22 @@ function sendKey(keyCode) {
 // The state argument is the data passed with that event, and includes
 // the input field type, its inputmode, its content, and the cursor position.
 function showKeyboard(state) {
+  var newKeyboardName = currentKeyboardName;
   // If the keyboard is not initialized or the layout has changed,
   // set the new keyboard
   if (keyboardName !== currentKeyboardName) {
     // Make sure that currentKeyboardName is enabled. If not, use
     // the first enabled keyboard as the default.
-    if (enabledKeyboardNames.indexOf(currentKeyboardName) == -1)
-      currentKeyboardName = enabledKeyboardNames[0];
+    if (enabledKeyboardNames.indexOf(currentKeyboardName) == -1) {
+      // Update the keyboard.current setting with the first enabled keyboard
+      navigator.mozSettings.createLock().set({
+        'keyboard.current': enabledKeyboardNames[0]
+      });
+      newKeyboardName = enabledKeyboardNames[0];
+    }
 
     // Now initialize that keyboard
-    setKeyboardName(currentKeyboardName);
+    setKeyboardName(newKeyboardName);
   }
 
   IMERender.showIME();
@@ -1450,6 +1484,9 @@ function showKeyboard(state) {
     });
   }
 
+  // render the keyboard after activation, which will determine the state
+  // of uppercase/suggestion, etc.
+  renderKeyboard(keyboardName);
 }
 
 // Hide keyboard
@@ -1460,6 +1497,7 @@ function hideKeyboard() {
 
   // reset the flag for candidate show/hide workaround
   candidatePanelEnabled = false;
+  isKeyboardRendered = false;
 }
 
 // Resize event handler
@@ -1501,6 +1539,7 @@ function loadIMEngine(name) {
   var glue = {
     path: sourceDir + imEngine,
     sendCandidates: function kc_glue_sendCandidates(candidates) {
+      currentCandidates = candidates;
       IMERender.showCandidates(candidates);
     },
     sendPendingSymbols:
@@ -1526,6 +1565,11 @@ function loadIMEngine(name) {
     setUpperCase: setUpperCase,
     resetUpperCase: resetUpperCase
   };
+
+  if (typeof navigator.mozKeyboard.replaceSurroundingText === 'function') {
+    glue.replaceSurroundingText =
+      navigator.mozKeyboard.replaceSurroundingText.bind(navigator.mozKeyboard);
+  }
 
   script.addEventListener('load', function IMEngineLoaded() {
     var engine = InputMethods[imEngine];
@@ -1554,7 +1598,7 @@ function updateLayoutParams() {
   }
 }
 
-function triggerFeedback() {
+function triggerFeedback(isSpecialKey) {
   if (vibrationEnabled) {
     try {
       navigator.vibrate(50);
@@ -1562,7 +1606,7 @@ function triggerFeedback() {
   }
 
   if (clickEnabled && isSoundEnabled) {
-    clicker.cloneNode(false).play();
+    (isSpecialKey ? specialClicker : clicker).cloneNode(false).play();
   }
 }
 

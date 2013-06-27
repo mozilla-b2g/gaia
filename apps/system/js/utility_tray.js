@@ -26,6 +26,7 @@ var UtilityTray = {
     }, this);
 
     window.addEventListener('screenchange', this);
+    window.addEventListener('emergencyalert', this);
     window.addEventListener('home', this);
     window.addEventListener('attentionscreenshow', this);
 
@@ -36,6 +37,7 @@ var UtilityTray = {
     switch (evt.type) {
       case 'attentionscreenshow':
       case 'home':
+      case 'emergencyalert':
         if (this.shown) {
           this.hide();
         }

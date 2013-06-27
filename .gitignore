@@ -6,7 +6,6 @@
 *~
 manifest.appcache
 
-/apps/settings/resources/gaia_commit.txt
 /apps/calendar/js/presets.js
 /apps/homescreen/js/init.json
 /apps/homescreen/js/hiddenapps.js
@@ -16,18 +15,22 @@ manifest.appcache
 /test_apps/test-agent/test/config.json
 /apps/dialer/contacts
 /apps/browser/js/init.json
+/apps/communications/contacts/config.json
+/apps/communications/contacts/oauth2/js/parameters.js
 
 /apps/*/test/unit/_sandbox.html
 /apps/*/test/unit/_proxy.html
 /apps/*/shared
 /apps/settings/resources/support.json
-/apps/settings/resources/icc.json
+/apps/settings/resources/sensors.json
+/apps/system/resources/icc.json
 /test_apps/*/test/unit/_sandbox.html
 /test_apps/*/test/unit/_proxy.html
 /showcase_apps/*/test/unit/_sandbox.html
 /showcase_apps/*/test/unit/_proxy.html
 
 /profile/
+/profile-debug/
 /profile.tar.gz
 /.xulrunner-url
 /xulrunner/
@@ -35,6 +38,7 @@ manifest.appcache
 /tools/test-agent/node_modules
 /test-output.xml
 /mocha-test-results.html
+/build/custom-extensions.json
 /build/custom-prefs.js
 /build/custom-settings.json
 /local.mk

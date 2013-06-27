@@ -4,6 +4,9 @@
 'use strict';
 
 var SimLock = {
+  _duringCall: false,
+  _showPrevented: false,
+
   init: function sl_init() {
     // Do not do anything if we can't have access to MobileConnection API
     var conn = window.navigator.mozMobileConnection;
@@ -21,10 +24,28 @@ var SimLock = {
 
     // always monitor card state change
     conn.addEventListener('cardstatechange', this.showIfLocked.bind(this));
+
+    // Listen to callscreenwillopen and callscreenwillclose event
+    // to discard the cardstatechange event.
+    window.addEventListener('callscreenwillopen', this);
+    window.addEventListener('callscreenwillclose', this);
   },
 
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
+      case 'callscreenwillopen':
+        this._duringCall = true;
+        break;
+      case 'callscreenwillclose':
+        this._duringCall = false;
+        if (this._showPrevented) {
+          this._showPrevented = false;
+
+          // We show the SIM dialog right away otherwise the user won't
+          // be able to receive calls.
+          this.showIfLocked();
+        }
+        break;
       case 'unlock':
         // Check whether the lock screen was unlocked from the camera or not.
         // If the former is true, the SIM PIN dialog should not displayed after
@@ -91,6 +112,11 @@ var SimLock = {
     // FTU has its specific SIM PIN UI
     if (FtuLauncher.isFtuRunning())
       return false;
+
+    if (this._duringCall) {
+      this._showPrevented = true;
+      return false;
+    }
 
     switch (conn.cardState) {
       // do nothing in either absent, unknown or null card states

@@ -7,7 +7,11 @@ var MockL10n = {
     }
     return key;
   },
-  DateTimeFormat: function() {}
+  DateTimeFormat: function() {
+    this.localeFormat = function(date, format) {
+      return date;
+    };
+  }
 };
 
 MockL10n.DateTimeFormat.prototype = {

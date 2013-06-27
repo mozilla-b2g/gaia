@@ -101,6 +101,18 @@ navigator.mozL10n.ready(function wifiSettings() {
 
   // Wi-Fi Protected Setup
   var gWpsInProgress = false;
+
+  function wpsStatusReset() {
+    // The WPS process is done (connected, cancelled or error):
+    //  - reset the title of the WPS item ("Connect with WPS") right now;
+    //  - leave the current status for a moment, then reset it to the default
+    //    message ("Automatic Wi-Fi setup").
+    localize(gWpsPbcLabelBlock, 'wpsMessage');
+    setTimeout(function resetWpsInfoBlock() {
+      localize(gWpsInfoBlock, 'wpsDescription2');
+    }, 1500);
+  }
+
   document.getElementById('wps-column').onclick = function() {
     if (gWpsInProgress) {
       var req = gWifiManager.wps({
@@ -108,10 +120,8 @@ navigator.mozL10n.ready(function wifiSettings() {
       });
       req.onsuccess = function() {
         gWpsInProgress = false;
-        gWpsPbcLabelBlock.textContent = _('wpsMessage');
-        gWpsPbcLabelBlock.dataset.l10nId = 'wpsMessage';
-        gWpsInfoBlock.textContent = _('fullStatus-wps-canceled');
-        gWpsInfoBlock.dataset.l10nId = 'fullStatus-wps-canceled';
+        localize(gWpsInfoBlock, 'fullStatus-wps-canceled');
+        wpsStatusReset();
       };
       req.onerror = function() {
         gWpsInfoBlock.textContent = _('wpsCancelFailedMessage') +
@@ -142,10 +152,8 @@ navigator.mozL10n.ready(function wifiSettings() {
           alert(_('wpsPinInput', { pin: req.result }));
         }
         gWpsInProgress = true;
-        gWpsPbcLabelBlock.textContent = _('wpsCancelMessage');
-        gWpsPbcLabelBlock.dataset.l10nId = 'wpsCancelMessage';
-        gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
-        gWpsInfoBlock.dataset.l10nId = 'fullStatus-wps-inprogress';
+        localize(gWpsPbcLabelBlock, 'wpsCancelMessage');
+        localize(gWpsInfoBlock, 'fullStatus-wps-inprogress');
       };
       req.onerror = function() {
         gWpsInfoBlock.textContent = _('fullStatus-wps-failed') +
@@ -219,10 +227,18 @@ navigator.mozL10n.ready(function wifiSettings() {
     /**
      * A Wi-Fi list item has the following HTML structure:
      *   <li>
+     *     <aside class="pack-end wifi-icon level-[?] [secured]"></aside>
      *     <small> Network Security </small>
-     *     <a [class="wifi-secure"]> Network SSID </a>
+     *     <a> Network SSID </a>
      *   </li>
      */
+
+    // icon
+    var icon = document.createElement('aside');
+    icon.classList.add('pack-end');
+    icon.classList.add('wifi-icon');
+    var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+    icon.classList.add('level-' + level);
 
     // ssid
     var ssid = document.createElement('a');
@@ -230,19 +246,27 @@ navigator.mozL10n.ready(function wifiSettings() {
 
     // supported authentication methods
     var small = document.createElement('small');
-    var keys = network.capabilities;
+    var keys = WifiHelper.getEncryptions(network);
     if (keys && keys.length) {
       small.textContent = _('securedBy', { capabilities: keys.join(', ') });
-      ssid.classList.add('wifi-secure');
+      icon.classList.add('secured');
     } else {
       small.textContent = _('securityOpen');
-      small.dataset.l10nId = 'securityOpen';
     }
 
     // create list item
     var li = document.createElement('li');
+    li.appendChild(icon);
     li.appendChild(small);
     li.appendChild(ssid);
+
+    // Show connection status
+    icon.classList.add('wifi-signal');
+    if (WifiHelper.isConnected(network)) {
+      small.textContent = _('shortStatus-connected');
+      icon.classList.add('connected');
+      li.classList.add('active');
+    }
 
     // bind connection callback
     li.onclick = function() {
@@ -296,6 +320,7 @@ navigator.mozL10n.ready(function wifiSettings() {
       // stop auto-scanning if wifi disabled or the app is hidden
       if (!gWifiManager.enabled || document.mozHidden) {
         scanning = false;
+        gScanPending = true;
         return;
       }
 
@@ -308,7 +333,8 @@ navigator.mozL10n.ready(function wifiSettings() {
         for (var i = 0; i < allNetworks.length; ++i) {
           var network = allNetworks[i];
           // use ssid + capabilities as a composited key
-          var key = network.ssid + '+' + network.capabilities.join('+');
+          var key = network.ssid + '+' +
+            WifiHelper.getEncryptions(network).join('+');
           // keep connected network first, or select the highest strength
           if (!networks[key] || network.connected) {
             networks[key] = network;
@@ -335,15 +361,8 @@ navigator.mozL10n.ready(function wifiSettings() {
             var network = networks[networkKeys[i]];
             var listItem = newListItem(network, toggleNetwork);
 
-            // signal is between 0 and 100, level should be between 0 and 4
-            var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-            listItem.querySelector('a').classList.add('wifi-signal' + level);
-
             // put connected network on top of list
-            if (isConnected(network)) {
-              listItem.classList.add('active');
-              listItem.querySelector('small').textContent =
-                  _('shortStatus-connected');
+            if (WifiHelper.isConnected(network)) {
               list.insertBefore(listItem, infoItem.nextSibling);
             } else {
               list.insertBefore(listItem, scanItem);
@@ -379,18 +398,32 @@ navigator.mozL10n.ready(function wifiSettings() {
     }
 
     // display a message on the network item matching the ssid
-    function display(network, message) {
-      var key = network.ssid + '+' + network.capabilities.join('+');
+    function display(network, networkStatus) {
+      if (!network) {
+        return;
+      }
+
+      var key = network.ssid + '+' +
+        WifiHelper.getEncryptions(network).join('+');
       var listItem = index[key];
       var active = list.querySelector('.active');
       if (active && active != listItem) {
         active.classList.remove('active');
         active.querySelector('small').textContent =
             _('shortStatus-disconnected');
+        active.querySelector('aside').classList.remove('connecting');
+        active.querySelector('aside').classList.remove('connected');
       }
       if (listItem) {
         listItem.classList.add('active');
-        listItem.querySelector('small').textContent = message;
+        listItem.querySelector('small').textContent =
+                                            _('shortStatus-' + networkStatus);
+        if (networkStatus === 'connecting') {
+          listItem.querySelector('aside').classList.add('connecting');
+        }
+        if (networkStatus === 'connected') {
+          listItem.querySelector('aside').classList.remove('connecting');
+        }
       }
     }
 
@@ -440,7 +473,8 @@ navigator.mozL10n.ready(function wifiSettings() {
         for (var i = 0; i < allNetworks.length; ++i) {
           var network = allNetworks[i];
           // use ssid + capabilities as a composited key
-          var key = network.ssid + '+' + network.capabilities.join('+');
+          var key = network.ssid + '+' +
+            WifiHelper.getEncryptions(network).join('+');
           networks[key] = network;
         }
         var networkKeys = Object.getOwnPropertyNames(networks);
@@ -481,35 +515,19 @@ navigator.mozL10n.ready(function wifiSettings() {
     toggleNetwork();
   };
 
-  function isConnected(network) {
-    /**
-     * XXX the API should expose a 'connected' property on 'network',
-     * and 'gWifiManager.connection.network' should be comparable to 'network'.
-     * Until this is properly implemented, we just compare SSIDs to tell wether
-     * the network is already connected or not.
-     */
-    var currentNetwork = gWifiManager.connection.network;
-    if (!currentNetwork)
-      return false;
-    var key = network.ssid + '+' + network.capabilities.join('+');
-    var curkey = currentNetwork.ssid + '+' +
-        currentNetwork.capabilities.join('+');
-    return (key == curkey);
-  }
-
   // UI to connect/disconnect
   function toggleNetwork(network) {
     if (!network) {
       // offline, hidden SSID
       network = {};
       wifiDialog('wifi-joinHidden', wifiConnect);
-    } else if (isConnected(network)) {
+    } else if (WifiHelper.isConnected(network)) {
       // online: show status + offer to disconnect
       wifiDialog('wifi-status', wifiDisconnect);
     } else if (network.password && (network.password == '*')) {
       // offline, known network (hence the '*' password value):
       // no further authentication required.
-      setPassword();
+      WifiHelper.setPassword(network);
       wifiConnect();
     } else {
       // offline, unknown network: propose to connect
@@ -529,31 +547,14 @@ navigator.mozL10n.ready(function wifiSettings() {
       gCurrentNetwork = network;
       gWifiManager.associate(network);
       settings.createLock().set({'wifi.connect_via_settings': true});
-      gNetworkList.display(network, _('shortStatus-connecting'));
     }
 
     function wifiDisconnect() {
       settings.createLock().set({'wifi.connect_via_settings': false});
       gWifiManager.forget(network);
-      gNetworkList.display(network, _('shortStatus-disconnected'));
       // get available network list
       gNetworkList.scan();
       gCurrentNetwork = null;
-    }
-
-    function setPassword(password, identity) {
-      var key = WifiHelper.getKeyManagement(network);
-      if (key == 'WEP') {
-        network.wep = password;
-      } else if (key == 'WPA-PSK') {
-        network.psk = password;
-      } else if (key == 'WPA-EAP') {
-        network.password = password;
-        if (identity && identity.length) {
-          network.identity = identity;
-        }
-      }
-      network.keyManagement = key;
     }
 
     // generic wifi property dialog
@@ -584,18 +585,8 @@ navigator.mozL10n.ready(function wifiSettings() {
       // disable the "OK" button if the password is too short
       if (password) {
         var checkPassword = function checkPassword() {
-          var disabled = false;
-          switch (key) {
-            case 'WPA-PSK':
-              disabled = disabled || (password && password.value.length < 8);
-              break;
-            case 'WPA-EAP':
-              disabled = disabled || (identity && identity.value.length < 1);
-            case 'WEP':
-              disabled = disabled || (password && password.value.length < 1);
-              break;
-          }
-          dialog.querySelector('button[type=submit]').disabled = disabled;
+          dialog.querySelector('button[type=submit]').disabled =
+            !WifiHelper.isValidInput(key, password.value, identity.value);
         };
         password.oninput = checkPassword;
         identity.oninput = checkPassword;
@@ -619,7 +610,7 @@ navigator.mozL10n.ready(function wifiSettings() {
 
         case 'wifi-auth':
           // network info -- #wifi-status and #wifi-auth
-          var keys = network.capabilities;
+          var keys = WifiHelper.getEncryptions(network);
           var security = (keys && keys.length) ? keys.join(', ') : '';
           var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
           dialog.querySelector('[data-ssid]').textContent = network.ssid;
@@ -634,7 +625,7 @@ navigator.mozL10n.ready(function wifiSettings() {
           var security = dialog.querySelector('select');
           var onSecurityChange = function() {
             key = security.selectedIndex ? security.value : '';
-            network.capabilities = [key];
+            WifiHelper.setEncryptions(network, [key]);
             dialog.dataset.security = key;
             checkPassword();
           };
@@ -661,7 +652,7 @@ navigator.mozL10n.ready(function wifiSettings() {
           network.ssid = dialog.querySelector('input[name=ssid]').value;
         }
         if (key) {
-          setPassword(password.value, identity.value);
+          WifiHelper.setPassword(network, password.value, identity.value);
         }
         if (callback) {
           callback();
@@ -683,6 +674,8 @@ navigator.mozL10n.ready(function wifiSettings() {
 
     // networkStatus has one of the following values:
     // connecting, associated, connected, connectingfailed, disconnected.
+    gNetworkList.display(gCurrentNetwork, networkStatus);
+
     gWifiInfoBlock.textContent =
         _('fullStatus-' + networkStatus, gWifiManager.connection.network);
 
@@ -691,8 +684,6 @@ navigator.mozL10n.ready(function wifiSettings() {
       // connection has failed, probably an authentication issue...
       delete(gCurrentNetwork.password);
       gWifiManager.forget(gCurrentNetwork); // force a new authentication dialog
-      gNetworkList.display(gCurrentNetwork,
-          _('shortStatus-connectingfailed'));
       gCurrentNetwork = null;
     }
 
@@ -705,8 +696,7 @@ navigator.mozL10n.ready(function wifiSettings() {
           networkStatus === 'wps-failed' ||
           networkStatus === 'wps-overlapped') {
         gWpsInProgress = false;
-        gWpsPbcLabelBlock.textContent = _('wpsMessage');
-        gWpsPbcLabelBlock.dataset.l10nId = 'wpsMessage';
+        wpsStatusReset();
       }
     }
   }

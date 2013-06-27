@@ -9,11 +9,12 @@
     width: 100%;
     background: transparent;
     background-size: 100% 100%;
-    font: normal 1.2rem 'MozTT', Sans-Serif;
+    font-weight: normal;
+    font-size: 1.2rem;
     text-align: left;
 }
 
-#evmeContainer div, #evmeContainer p:not(.building-block), #evmeContainer span,
+#evmeContainer div, #evmeContainer p:not(.noreset), #evmeContainer span,
 #evmeContainer h1, #evmeContainer h2, #evmeContainer h3, #evmeContainer h4,
 #evmeContainer a, #evmeContainer em, #evmeContainer img, #evmeContainer b,
 #evmeContainer ol, #evmeContainer ul, #evmeContainer li,
@@ -131,7 +132,6 @@
 
 #bgimage-overlay .content .close,
 .app-icon:after,
-#location-selector .close,
 #shortcuts .handle b:before,
 #shortcuts .done b:before,
 #shortcuts .add:before,
@@ -144,8 +144,4 @@
 {
     background-image: url('/everything.me/images/sprite.png');
     background-repeat: no-repeat;
-}
-#location-selector .options div:before,
-#dialog_location .content:before {
-    background-image: url('/everything.me/images/location/location_sprite.png');
 }

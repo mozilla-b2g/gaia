@@ -11,6 +11,14 @@ section[role="notification"] {
   text-align: left;
 }
 
+/* Render this container outside of the document flow so that it does not
+ * effect the height of the containing subheader, and therefore does not effect
+ * the height of the Compose field. */
+.subheader .overlay {
+  position: absolute;
+  width: 100%;
+}
+
 section[role="notification"] p {
   margin: 1rem 2rem;
   padding: 0;
@@ -19,3 +27,4 @@ section[role="notification"] p {
   font-size: 1.5rem;
   text-align: left;
 }
+

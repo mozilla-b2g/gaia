@@ -104,9 +104,7 @@ var scanningBigImages = false;
 
 // The localized event is the main entry point for the app.
 // We don't do anything until we receive it.
-window.addEventListener('localized', function showBody() {
-  window.removeEventListener('localized', showBody);
-
+navigator.mozL10n.ready(function showBody() {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
@@ -239,6 +237,18 @@ function initDB() {
   // We don't need one of these handlers for the video db, since both
   // will get the same event at more or less the same time.
   photodb.onunavailable = function(event) {
+    // If storage becomes unavailble (e.g. the user starts a USB Mass Storage
+    // session during a pick activity, just abort the pick.
+    if (pendingPick) {
+      cancelPick();
+      return;
+    }
+
+    // Switch back to the thumbnail view. If we were viewing or editing an image
+    // it might not be there anymore when the MediaDB becomes available again.
+    setView(thumbnailListView);
+
+    // Lock the user out of the app, and tell them why
     var why = event.detail;
     if (why === MediaDB.NOCARD)
       showOverlay('nocard');
@@ -271,6 +281,22 @@ function initDB() {
 
     // It is safe to zoom in now
     scanningBigImages = false;
+  };
+
+  // On devices with internal and external device storage, this handler is
+  // triggered when the user removes the sdcard. MediaDB remains usable
+  // and we'll get a bunch of deleted events for the files that are no longer
+  // available. But we need to listen to this event so we can switch back
+  // to the list of thumbnails. We don't want to be left viewing or editing
+  // a photo that is no longer available.
+  photodb.oncardremoved = function oncardremoved() {
+    // If the user pulls the sdcard while trying to pick an image, give up
+    if (pendingPick) {
+      cancelPick();
+      return;
+    }
+
+    setView(thumbnailListView);
   };
 
   // One or more files was created (or was just discovered by a scan)

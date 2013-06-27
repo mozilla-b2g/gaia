@@ -22,13 +22,17 @@ var Wifi = {
   _scanTimer: null,
 
   init: function wf_init() {
+    if (!window.navigator.mozSettings)
+      return;
+
+    if (!window.navigator.mozWifiManager)
+      return;
+
     window.addEventListener('screenchange', this);
 
     var battery = window.navigator.battery;
     battery.addEventListener('chargingchange', this);
 
-    if (!window.navigator.mozSettings)
-      return;
 
     // If wifi is turned off by us and phone got rebooted,
     // bring wifi back.
@@ -202,15 +206,39 @@ var Wifi = {
   // so we will turn it back on.
   sleep: function wifi_sleep() {
     var lock = SettingsListener.getSettingsLock();
+
     // Actually turn off the wifi
+
+    // The |sleep| might be triggered when an alarm comes.
+    // If the CPU is in suspend mode at this moment, alarm servcie would wake
+    // up the CPU to run the handler and turn it back to suspend immediately
+    // |sleep| is finished. In this case, we acquire a CPU wake lock to prevent
+    // the CPU goes to suspend mode before the switching is done.
+    var wakeLockForWifi = navigator.requestWakeLock('cpu');
     lock.set({ 'wifi.enabled': false });
+    window.addEventListener('wifi-disabled', function() {
+      if (wakeLockForWifi) {
+        wakeLockForWifi.unlock();
+        wakeLockForWifi = null;
+      }
+    });
+    window.setTimeout(function() {
+      if (wakeLockForWifi) {
+        wakeLockForWifi.unlock();
+        wakeLockForWifi = null;
+      }
+     }, 30000); //To prevent the CPU awake forever (if wifi cannot be disabled)
 
-    // Remember that it was turned off by us.
-    this.wifiDisabledByWakelock = true;
+     // Remember that it was turned off by us.
+     this.wifiDisabledByWakelock = true;
 
-    // Keep this value in disk so if the phone reboots we'll
-    // be able to turn the wifi back on.
-    lock.set({ 'wifi.disabled_by_wakelock': true });
+     // Keep this value in disk so if the phone reboots we'll
+     // be able to turn the wifi back on.
+     var wakeLockForSettings = navigator.requestWakeLock('cpu');
+     var request = lock.set({ 'wifi.disabled_by_wakelock': true });
+     request.onsuccess = function() { wakeLockForSettings.unlock() };
+     request.onerror = request.onsuccess;
+
   },
 
   // Register for handling system message,

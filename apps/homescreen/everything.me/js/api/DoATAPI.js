@@ -7,7 +7,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         deviceId = '',
         NUMBER_OF_RETRIES = 3,                          // number of retries before returning error
         RETRY_TIMEOUT = {"from": 1000, "to": 3000},     // timeout before retrying a failed request
-        MAX_REQUEST_TIME = 10000,                       // timeout before declaring a request as failed (if server isn't responding)
+        MAX_REQUEST_TIME = 20000,                       // timeout before declaring a request as failed (if server isn't responding)
         MAX_ITEMS_IN_CACHE = 20,                        // maximum number of calls to save in the user's cache
         CACHE_EXPIRATION_IN_MINUTES = 30,
         STORAGE_KEY_CREDS = "credentials",
@@ -72,10 +72,15 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         appVersion = options.appVersion || "";
         authCookieName = options.authCookieName;
         manualCampaignStats = options.manualCampaignStats;
-        
-        deviceId = getDeviceId();
-        manualCredentials = Evme.Storage.get(STORAGE_KEY_CREDS);
-        
+
+        getDeviceId(function deviceIdGot(value) {
+            deviceId = value;
+        });
+
+        Evme.Storage.get(STORAGE_KEY_CREDS, function storageGot(value) {
+            manualCredentials = value;
+        });
+
         // make sure our client info cookie is always updated according to phone ettings
         if (navigator.mozSettings) {
             navigator.mozSettings.addObserver('language.current', function onLanguageChange(e) {
@@ -88,7 +93,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                 self.setKeyboardLanguage(e.settingValue);
             });
         }
-        
+
         self.Session.init();
     };
     
@@ -97,17 +102,17 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         
         var params = {
             "query": options.query,
-            "experienceId": options.experienceId,
-            "typeHint": options.typeHint,
-            "feature": options.feature,
-            "cachedIcons": options.cachedIcons,
-            "exact": options.exact,
-            "spellcheck": options.spellcheck,
-            "suggest": options.suggest,
-            "first": options.first,
-            "limit": options.limit,
-            "idx": options.index,
-            "iconFormat": options.iconFormat,
+            "experienceId": options.experienceId || '',
+            "typeHint": options.typeHint || '',
+            "feature": options.feature || '',
+            "cachedIcons": options.cachedIcons || '',
+            "exact": !!options.exact,
+            "spellcheck": !!options.spellcheck,
+            "suggest": !!options.suggest,
+            "first": options.first || 0,
+            "limit": options.limit || 16,
+            "idx": options.index || '',
+            "iconFormat": options.iconFormat || 10,
             "prevQuery": (options.first === 0)? options.prevQuery || "" : ""
         };
         
@@ -185,14 +190,14 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
 
         var params = {
             "query": options.query,
-            "experienceId": options.experienceId,
-            "typeHint": options.typeHint,
-            "feature": options.feature,
-            "exact": options.exact,
-            "width": options.width,
-            "height": options.height,
-            "idx": options.index,
-            "prevQuery": options.prevQuery || ""
+            "experienceId": options.experienceId || '',
+            "typeHint": options.typeHint || '',
+            "feature": options.feature || '',
+            "exact": !!options.exact,
+            "width": options.width || 320,
+            "height": options.height || 460,
+            "idx": options.index || '',
+            "prevQuery": options.prevQuery || ''
         };
 
         return request({
@@ -218,24 +223,56 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         }, options._NOCACHE);
     };
     
+    this.shortcutsGet = function shortcutsGet(options, callback) {
+        !options && (options = {});
+
+        var params = {
+            "queries": options.queries || []
+        };
+
+        return request({
+            "methodNamespace": "Shortcuts",
+            "methodName": "get",
+            "params": params,
+            "callback": callback
+        }, options._NOCACHE);
+    };
+    
     this.Shortcuts = new function Shortcuts() {
         var self = this,
             STORAGE_KEY_SHORTCUTS = "localShortcuts",
             STORAGE_KEY_ICONS = "localShortcutsIcons",
-            queriesToAppIds = {};
+            queriesToAppIds = {},
+            didClear = false;
         
         this.get = function get(options, callback) {
-            var shortcuts = Evme.Storage.get(STORAGE_KEY_SHORTCUTS),
-                icons = Evme.Storage.get(STORAGE_KEY_ICONS);
-            
-            if (!shortcuts) {
-                shortcuts = Evme.__config["_" + STORAGE_KEY_SHORTCUTS];
-                icons = Evme.__config["_" + STORAGE_KEY_ICONS];
-            }
-            
-            saveAppIds(shortcuts);
-            
-            callback && callback(createResponse(shortcuts, icons));
+            Evme.Storage.get(STORAGE_KEY_SHORTCUTS, function storageShortcuts(shortcuts) {
+                Evme.Storage.get(STORAGE_KEY_ICONS, function storageIcons(icons) {
+                    if (!didClear && (!shortcuts || shortcuts.length === 0)) {
+                        Evme.Utils.log('No shortcuts, use default ones');
+
+                        shortcuts = Evme.__config['_' + STORAGE_KEY_SHORTCUTS];
+                        icons = Evme.__config['_' + STORAGE_KEY_ICONS];
+                    }
+
+                    didClear = false;
+
+                    saveAppIds(shortcuts);
+
+                    callback && callback(createResponse(shortcuts, icons));
+                });
+            });
+        };
+        
+        this.clear = function clear(callback) {
+            queriesToAppIds = {};
+            didClear = true;
+
+            Evme.Storage.remove(STORAGE_KEY_SHORTCUTS, function onShortcutsRemoved() {
+              Evme.Storage.remove(STORAGE_KEY_ICONS, function onIconsRemoved() {
+                callback && callback();
+              });
+            });
         };
         
         this.set = function set(options, callback) {
@@ -243,7 +280,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             
             var shortcuts = options.shortcuts || [],
                 icons = options.icons || {};
-                
+  
             for (var i=0,shortcut; shortcut=shortcuts[i++];) {
                 if (typeof shortcut === "string") {
                     shortcut = {
@@ -255,20 +292,29 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                 
                 shortcuts[i-1] = shortcut;
             }
-            
-            Evme.Storage.set(STORAGE_KEY_SHORTCUTS, shortcuts);
-            Evme.Storage.set(STORAGE_KEY_ICONS, icons);
-            
-            callback && callback();
+
+            Evme.Utils.log('Saving ' + shortcuts.length + ' shortcuts');
+
+            Evme.Storage.set(STORAGE_KEY_SHORTCUTS, shortcuts, function onShortcutsSet() {
+              Evme.Storage.set(STORAGE_KEY_ICONS, icons, function onIconsSet() {
+                callback && callback();
+              });
+            });
         };
         
         this.add = function add(options, callback) {
-            var shortcuts = (Array.isArray(options.shortcuts))? options.shortcuts : [options.shortcuts],
-                icons = options.icons;
+            var shortcuts = options.shortcuts || [],
+                icons = options.icons || {};
+
+            if (!Array.isArray(shortcuts)) {
+              shortcuts = [shortcuts];
+            }
 
             self.get(null, function onGetSuccess(data) {
                 var currentShortcuts = data.response.shortcuts || [],
                     currentIcons = data.response.icons || {};
+                
+                Evme.Utils.log('Got ' + currentShortcuts.length + ' current shortcut, adding ' + shortcuts.length + ' new ones');
                 
                 for (var i=0,shortcut; shortcut=shortcuts[i++];) {
                     if (contains(currentShortcuts, shortcut) === false) {
@@ -322,19 +368,23 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         
         this.remove = function remove(shortcutToRemove) {
             self.get({}, function onGetSuccess(data){
-                var shortcuts = data.response.shortcuts,
-                    icons = data.response.icons,
+                var shortcuts = data.response.shortcuts || [],
+                    icons = data.response.icons || {},
                     allAppIds = {},
                     shortcutIndex = contains(shortcuts, shortcutToRemove);
                     
                 if (shortcutIndex === false) {
+                    Evme.Utils.log('Warning: didn\'t find shortcut to remove');
                     return;
                 }
-                    
+                
+                Evme.Utils.log('Found shortcut at: ' + shortcutIndex);
+                
                 for (var i=0,shortcut; shortcut=shortcuts[i++];) {
                     var needToRemoveIcons = false;
                     
                     if (i-1 === shortcutIndex) {
+                        Evme.Utils.log('Found shortcut to remove at ' + (i-1));
                         shortcuts.splice(i-1, 1);
                         needToRemoveIcons = true;
                     }
@@ -359,6 +409,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                         delete icons[appId];
                     }
                 }
+                
+                Evme.Utils.log('Left with ' + shortcuts.length + ' shortcuts');
                 
                 self.set({
                     "shortcuts": shortcuts,
@@ -388,6 +440,10 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         // check if a list of shortcuts contain the given shortcut
         // not a simple indexOf since a shortcut is either a query or an experienceId
         function contains(shortcuts, shortcut) {
+            if (!shortcuts) {
+              return false;
+            }
+
             for (var i=0,shortcutToCheck; shortcutToCheck=shortcuts[i++];) {
                 var experienceId1 = shortcutToCheck.experienceId,
                     experienceId2 = shortcut.experienceId,
@@ -420,7 +476,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         
         function getAppIds(shortcut) {
             var value = (shortcut.experienceId || shortcut.query).toString().toLowerCase();
-            return queriesToAppIds[value] || [];
+            return shortcut.appIds || queriesToAppIds[value]  || [];
         }
         
         function createResponse(shortcuts, icons) {
@@ -667,28 +723,23 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         };
         
         this.init = function init() {
-            var sessionFromCache = Evme.Storage.get(_key),
-                createCause;
-                
-            if (sessionFromCache) {
-                try {
-                    sessionFromCache = JSON.parse(sessionFromCache);
-                    
+            Evme.Storage.get(_key, function storageGot(sessionFromCache) {
+                var createCause;
+
+                if (sessionFromCache) {
                     if (!self.expired(sessionFromCache)) {
                         _session = sessionFromCache;
                     } else {
                         createCause = self.INIT_CAUSE.EXPIRED;
                     }
-                } catch(ex) {
-                    createCause = self.INIT_CAUSE.CACHE_ERROR;
+                } else {
+                    createCause = self.INIT_CAUSE.NOT_IN_CACHE;
                 }
-            } else {
-                createCause = self.INIT_CAUSE.NOT_IN_CACHE;
-            }
-            
-            if (!_session) {
-                self.create(null, null, createCause);
-            }
+
+                if (!_session) {
+                    self.create(null, null, createCause);
+                }
+            });
         };
         
         this.shouldInit = function shouldInit() {
@@ -757,7 +808,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         function save() {
             _session["timeWritten"] = (new Date()).getTime();
             
-            Evme.Storage.add(_key, JSON.stringify(_session));
+            Evme.Storage.set(_key, _session);
         }
     };
     
@@ -829,76 +880,88 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             cacheKey = getCacheKey(methodNamespace, methodName, params);
             
             if (!ignoreCache) {
-                var fromCache = getFromCache(cacheKey);
-                if (fromCache) {
-                    saveParamFromRequest(methodNamespace + '.' + methodName, fromCache);
-                    callback && window.setTimeout(function() {
-                        callback(fromCache);
-                    }, 10);
-                    return true;
-                }
+                Evme.Storage.get(cacheKey, function storageGot(responseFromCache) {
+                    if (responseFromCache) {
+                      saveParamFromRequest(methodNamespace+"."+methodName, responseFromCache);
+                      
+                      callback && window.setTimeout(function() {
+                          responseFromCache && (responseFromCache._cache = true);
+                          callback(responseFromCache);
+                      }, 10);
+                      
+                      return true;
+                    } else {
+                      actualRequest();
+                    }
+                });
+                
+                return true;
             }
         }
         
-        // the following params WILL NOT BE ADDED TO THE CACHE KEY
-        params["apiKey"] = apiKey;
-        params["v"] = appVersion;
-        params["native"] = true;
+        function actualRequest() {
+            // the following params WILL NOT BE ADDED TO THE CACHE KEY
+            params["apiKey"] = apiKey;
+            params["v"] = appVersion;
+            params["native"] = true;
 
-        if (manualCredentials) {
-            params["credentials"] = manualCredentials;
-        }
-        if (manualCampaignStats) {
-            for (var k in manualCampaignStats){
-                params[k] = manualCampaignStats[k];
+            if (manualCredentials) {
+                params["credentials"] = manualCredentials;
             }
-        }
-        if (!noSession) {
-            params["sid"] = self.Session.get().id;
-        }
-        if (!params.stats) {
-            params.stats = {};
-        }
-        /* ---------------- */
-       
-        var _request = new Evme.Request();
-        _request.init({
-            "methodNamespace": methodNamespace,
-            "methodName": methodName,
-            "params": params,
-            "callback": callback,
-            "requestTimeout": MAX_REQUEST_TIME,
-            "retries": NUMBER_OF_RETRIES,
-            "retryCheck": shouldRetry,
-            "timeoutBetweenRetries": RETRY_TIMEOUT,
-            "request": cbRequest,
-            "error": cbError,
-            "success": cbSuccess,
-            "clientError": cbClientError,
-            "onAbort": cbRequestAbort,
-            "cacheKey": cacheKey,
-            "cacheTTL": (typeof useCache == "number")? useCache : CACHE_EXPIRATION_IN_MINUTES
-        });
-        
-        if (requestsThatDontNeedConnection[methodNamespace+"."+methodName]) {
-            _request.request();
-        } else {
-            Evme.Utils.isOnline(function isOnlineCallback(isOnline){
-                if (isOnline) {
-                    _request.request();
-                } else {
-                    requestsToPerformOnOnline.push(_request);
-                    
-                    Evme.EventHandler.trigger(NAME, "cantSendRequest", {
-                        "method": methodNamespace + '/' + methodName,
-                        "request": _request,
-                        "queue": requestsToPerformOnOnline
-                    });
+            if (manualCampaignStats) {
+                for (var k in manualCampaignStats){
+                    params[k] = manualCampaignStats[k];
                 }
+            }
+            if (!noSession) {
+                params["sid"] = self.Session.get().id;
+            }
+            if (!params.stats) {
+                params.stats = {};
+            }
+            /* ---------------- */
+           
+            var _request = new Evme.Request();
+            _request.init({
+                "methodNamespace": methodNamespace,
+                "methodName": methodName,
+                "params": params,
+                "callback": callback,
+                "requestTimeout": MAX_REQUEST_TIME,
+                "retries": NUMBER_OF_RETRIES,
+                "retryCheck": shouldRetry,
+                "timeoutBetweenRetries": RETRY_TIMEOUT,
+                "request": cbRequest,
+                "error": cbError,
+                "success": cbSuccess,
+                "clientError": cbClientError,
+                "onAbort": cbRequestAbort,
+                "cacheKey": cacheKey,
+                "cacheTTL": (typeof useCache == "number")? useCache : CACHE_EXPIRATION_IN_MINUTES
             });
+            
+            if (requestsThatDontNeedConnection[methodNamespace+"."+methodName]) {
+                _request.request();
+            } else {
+                Evme.Utils.isOnline(function isOnlineCallback(isOnline){
+                    if (isOnline) {
+                        _request.request();
+                    } else {
+                        requestsToPerformOnOnline.push(_request);
+                        
+                        Evme.EventHandler.trigger(NAME, "cantSendRequest", {
+                            "method": methodNamespace + '/' + methodName,
+                            "request": _request,
+                            "queue": requestsToPerformOnOnline
+                        });
+                    }
+                });
+            }
+            
+            return _request;
         }
-        
-        return _request;
+
+        return actualRequest();
     }
     
     function shouldRetry(data) {
@@ -909,19 +972,6 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     function getCacheKey(methodNamespace, methodName, params) {
         var sOptions = cacheCleanUpParams(params);
         return (methodNamespace + "." + methodName + "." + sOptions).toLowerCase();
-    }
-    
-    function getFromCache(cacheKey) {
-        var cached = Evme.Storage.get(cacheKey);
-        if (cached) {
-            try {
-                cached = JSON.parse(cached);
-            } catch(ex) {
-                cached = null;
-            }
-        }
-        
-        return cached;
     }
     
     this.insertToCache = function insertToCache(cacheKey, data, cacheTTL) {
@@ -957,25 +1007,30 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             }
         }
         
-        Evme.Storage.add(cacheKey, JSON.stringify(data), cacheTTL*60);
-        
-        var itemsCached = itemsCached? (Evme.Storage.get(itemsCached) || "").split("]][[") : [];
-        if (itemsCached.length == 1 && itemsCached[0] == "") {
-            itemsCached = [];
-        }
-        
-        itemsCached.push(cacheKey);
-        if (itemsCached.length > MAX_ITEMS_IN_CACHE) {
-            var itemToRemove = itemsCached[0];
-            itemsCached.splice(0, 1);
-            Evme.Storage.remove(itemToRemove);
-        }
-        
-        Evme.Storage.add("itemsCached", itemsCached.join("]][["));
+        // IndexDB stores in seconds and the cacheTTL is in minutes, so we multiply by 60 to conver it to seconds
+        Evme.Storage.set(cacheKey, data, cacheTTL*60);
+
+        Evme.Storage.get('itemsCached', function storageGot(itemsCached) {
+            itemsCached = itemsCached || [];
+            if (itemsCached.length == 1 && itemsCached[0] == "") {
+                itemsCached = [];
+            }
+
+            itemsCached.push(cacheKey);
+
+            if (itemsCached.length > MAX_ITEMS_IN_CACHE) {
+                var itemToRemove = itemsCached[0];
+                itemsCached.splice(0, 1);
+
+                Evme.Storage.remove(itemToRemove);
+            }
+
+            Evme.Storage.set('itemsCached', itemsCached, null);
+        });
         
         return true;
     };
-    
+
     this.removeFromCache = function removeFromCache(cacheKey) {
         Evme.Storage.remove(cacheKey);
     };
@@ -991,15 +1046,15 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         return retParams.join(",");
     }
     
-    function getDeviceId() {
-        var _deviceId = Evme.Storage.get("deviceId");
-        
-        if (!_deviceId) {
-            _deviceId = generateDeviceId();
-            Evme.Storage.add("deviceId", _deviceId);
-        }
-        
-        return _deviceId;
+    function getDeviceId(callback) {
+        Evme.Storage.get("deviceId", function storageGot(deviceId) {
+            if (!deviceId) {
+                deviceId = generateDeviceId();
+                Evme.Storage.set("deviceId", deviceId);
+            }
+
+            callback(deviceId);
+        });
     }
     
     this.getDeviceId = function getDeviceId(){

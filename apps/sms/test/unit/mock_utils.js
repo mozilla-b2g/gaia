@@ -17,7 +17,11 @@ var MockUtils = {
   typeFromMimeType: Utils.typeFromMimeType,
   escapeHTML: Utils.escapeHTML,
   escapeRegex: Utils.escapeRegex,
-  Message: {
-    format: function(str) { return str; }
-  }
+  params: Utils.params,
+  getContactDetails: Utils.getContactDetails,
+  getResizedImgBlob: Utils.getResizedImgBlob,
+  getCarrierTag: Utils.getCarrierTag,
+  removeNonDialables: Utils.removeNonDialables,
+  compareDialables: Utils.compareDialables,
+  getDisplayObject: Utils.getDisplayObject
 };

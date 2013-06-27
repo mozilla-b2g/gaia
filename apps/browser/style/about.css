@@ -11,13 +11,12 @@ html {
 }
 
 body {
-  font-family: 'MozTT', sans-serif;
   color: #3e4041;
 }
 
 #random-line {
   background: blue;
-  diplay: block;
+  display: block;
   width: 100%;
 }
 

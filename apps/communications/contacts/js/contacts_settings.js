@@ -24,13 +24,17 @@ contacts.Settings = (function() {
     fbPwdRenewMsg,
     fbImportedValue,
     newOrderByLastName = null,
-    ORDER_KEY = 'order.lastname';
+    ORDER_KEY = 'order.lastname',
+    PENDING_LOGOUT_KEY = 'pendingLogout',
+    importSources;
 
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
     // To listen to card state changes is needed for enabling import from SIM
     var mobileConn = navigator.mozMobileConnection;
-    mobileConn.oncardstatechange = Contacts.cardStateChanged;
+    if (mobileConn) {
+      mobileConn.oncardstatechange = Contacts.cardStateChanged;
+    }
     fb.init(function onFbInit() {
       initContainers();
     });
@@ -79,6 +83,8 @@ contacts.Settings = (function() {
 
     importLiveButton.onclick = Contacts.extServices.importLive;
     importGmailButton.onclick = Contacts.extServices.importGmail;
+
+    importSources = document.querySelectorAll('#importSources li[data-source]');
 
     if (fb.isEnabled) {
       fbImportOption = document.querySelector('#settingsFb');
@@ -389,6 +395,7 @@ contacts.Settings = (function() {
 
     importer.onfinish = function import_finish() {
       window.setTimeout(function onfinish_import() {
+        window.importUtils.setTimestamp('sim');
         resetWait(wakeLock);
         Contacts.navigation.home();
         Contacts.showStatus(_('simContacts-imported3',
@@ -461,6 +468,7 @@ contacts.Settings = (function() {
 
       importer.process(function import_finish() {
         window.setTimeout(function onfinish_import() {
+          window.importUtils.setTimestamp('sd');
           resetWait(wakeLock);
           Contacts.navigation.home();
           Contacts.showStatus(_('sdContacts-imported3', {
@@ -508,7 +516,8 @@ contacts.Settings = (function() {
     if (newOrderByLastName != null &&
       newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
-      contacts.List.load();
+      // Force the reset of the dom, we know that we changed the order
+      contacts.List.load(null, true);
       orderByLastName = newOrderByLastName;
     }
 
@@ -516,6 +525,9 @@ contacts.Settings = (function() {
   };
 
   var checkOnline = function() {
+    // Perform pending automatic logouts
+    window.setTimeout(automaticLogout, 0);
+
     // Facebook settings
     if (fb.isEnabled) {
       if (navigator.onLine === true) {
@@ -541,11 +553,77 @@ contacts.Settings = (function() {
     }
   };
 
+  function saveStatus(data) {
+    window.asyncStorage.setItem(PENDING_LOGOUT_KEY, data);
+  }
+
+  function automaticLogout() {
+    if (navigator.offLine === true) {
+      return;
+    }
+
+    LazyLoader.load(['/contacts/js/utilities/http_rest.js'], function() {
+      window.asyncStorage.getItem(PENDING_LOGOUT_KEY, function(data) {
+        if (!data) {
+          return;
+        }
+        var services = Object.keys(data);
+        var numResponses = 0;
+
+        services.forEach(function(service) {
+          var url = data[service];
+
+          var callbacks = {
+            success: function logout_success() {
+              numResponses++;
+              window.console.log('Successfully logged out: ', service);
+              delete data[service];
+              if (numResponses === services.length) {
+                saveStatus(data);
+              }
+            },
+            error: function logout_error() {
+              numResponses++;
+              if (numResponses === services.length) {
+                saveStatus(data);
+              }
+            },
+            timeout: function logout_timeout() {
+              numResponses++;
+              if (numResponses === services.length) {
+                saveStatus(data);
+              }
+            }
+          };
+          Rest.get(url, callbacks);
+        });
+      });
+    });
+  }
+
+  var updateTimestamps = function updateTimestamps() {
+    Array.prototype.forEach.call(importSources, function(node) {
+      window.importUtils.getTimestamp(node.dataset.source,
+                                      function(time) {
+        var spanID = 'notImported';
+        if (time) {
+          spanID = 'imported';
+          var timeElement = node.querySelector('p > time');
+          timeElement.setAttribute('datetime',
+                                             (new Date(time)).toLocaleString());
+          timeElement.textContent = utils.time.pretty(time);
+        }
+        node.querySelector('p > span').textContent = _(spanID);
+      });
+    });
+  };
+
   var refresh = function refresh() {
     getData();
     checkOnline();
     checkSIMCard();
     enableStorageImport(utils.sdcard.checkStorageCard());
+    updateTimestamps();
   };
 
   return {
@@ -553,6 +631,7 @@ contacts.Settings = (function() {
     'close': close,
     'refresh': refresh,
     'onLineChanged': checkOnline,
-    'cardStateChanged': checkSIMCard
+    'cardStateChanged': checkSIMCard,
+    'updateTimestamps': updateTimestamps
   };
 })();

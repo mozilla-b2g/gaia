@@ -129,20 +129,26 @@ var metadataParser = (function() {
     getImageSize(file, gotImageSize, gotImageSizeError);
 
     function gotImageSizeError(errmsg) {
-      // If the error message is anything other than unknown image type
-      // it means we've got a corrupt image file, or the image metdata parser
-      // can't handle the file for some reason. Log a warning but keep going
-      // in case the image is good and the metadata parser is buggy.
-      if (errmsg !== 'unknown image type') {
-        console.warn('getImageSize', errmsg, file.name);
-      }
-
       // The image is not a JPEG, PNG or GIF file. We may still be
       // able to decode and display it but we don't know the image
       // size, so we won't even try if the file is too big.
       if (file.size > MAX_UNKNOWN_IMAGE_FILE_SIZE) {
         metadataError('Ignoring large file ' + file.name);
         return;
+      }
+
+      // If the file is too small to be an image, ignore it
+      if (file.size < 32) {
+        metadataError('Ignoring small file ' + file.name);
+        return;
+      }
+
+      // If the error message is anything other than unknown image type
+      // it means we've got a corrupt image file, or the image metdata parser
+      // can't handle the file for some reason. Log a warning but keep going
+      // in case the image is good and the metadata parser is buggy.
+      if (errmsg !== 'unknown image type') {
+        console.warn('getImageSize', errmsg, file.name);
       }
 
       // If it is not too big create a preview and thumbnail.
@@ -306,7 +312,24 @@ var metadataParser = (function() {
 
         function savePreview(previewblob) {
           var storage = navigator.getDeviceStorage('pictures');
-          var filename = '.gallery/previews/' + file.name;
+          var filename;
+          if (file.name[0] === '/') {
+            // We expect file.name to be a fully qualified name (perhaps
+            // something like /sdcard/DCIM/100MZLLA/IMG_0001.jpg).
+            var slashIndex = file.name.indexOf('/', 1);
+            if (slashIndex < 0) {
+              error("savePreview: Bad filename: '" + file.name + "'");
+              return;
+            }
+            filename =
+              file.name.substring(0, slashIndex) + // storageName (i.e. /sdcard)
+              '/.gallery/previews' +
+              file.name.substring(slashIndex); // rest of path (i,e, /DCIM/...)
+          } else {
+            // On non-composite storage areas (e.g. desktop), file.name will be
+            // a relative path.
+            filename = '.gallery/previews/' + file.name;
+          }
 
           // Delete any existing preview by this name
           var delreq = storage.delete(filename);

@@ -5,7 +5,6 @@ requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/utilities/dom.js');
-requireApp('communications/contacts/js/utilities/normalizer.js');
 requireApp('communications/contacts/js/utilities/binary_search.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_linked_contacts.js');
@@ -39,10 +38,10 @@ suite('Link Friends Test Suite', function() {
     window.ImageLoader = MockImageLoader;
 
     realAsyncStorage = window.asyncStorage;
-    window.asyncStorage = MockAsyncStorage;
+    window.asyncStorage = MockasyncStorage;
 
     realFb = window.fb;
-    window.fb = MockFb;
+    window.fb = Mockfb;
     window.fb.link = realFb.link;
 
     document.body.innerHTML = MockLinkHtml;

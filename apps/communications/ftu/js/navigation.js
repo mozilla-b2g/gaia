@@ -25,15 +25,20 @@ var steps = {
   },
   5: {
     onlyForward: false,
-    hash: '#import_contacts',
+    hash: '#geolocation',
     requireSIM: false
   },
   6: {
     onlyForward: false,
-    hash: '#welcome_browser',
+    hash: '#import_contacts',
     requireSIM: false
   },
   7: {
+    onlyForward: false,
+    hash: '#welcome_browser',
+    requireSIM: false
+  },
+  8: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
@@ -42,7 +47,6 @@ var steps = {
 
 // Retrieve number of steps for navigation
 var numSteps = Object.keys(steps).length;
-var _;
 
 var Navigation = {
   currentStep: 1,
@@ -187,6 +191,9 @@ var Navigation = {
         }
         // Avoid refresh when connecting
         WifiManager.scan(WifiUI.renderNetworks);
+        break;
+      case '#geolocation':
+        UIManager.mainTitle.innerHTML = _('geolocation');
         break;
       case '#date_and_time':
         UIManager.mainTitle.innerHTML = _('dateAndTime');

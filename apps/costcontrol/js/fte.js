@@ -66,19 +66,11 @@
           configuration.credit.currency;
       }
 
-      var mode = costcontrol.getApplicationMode(settings);
+      var mode = ConfigManager.getApplicationMode();
 
-      // Handle welcome screen
-      var selectors = {
-          PREPAID: '.authed-sim',
-          POSTPAID: '.authed-sim',
-          DATA_USAGE_ONLY: '.nonauthed-sim'
-      };
-
-      var selector = hasSim ? selectors[mode] : '.no-sim';
-      wizard.querySelector(selector).setAttribute('aria-hidden', false);
       if (!hasSim) {
         wizard.querySelector('p.info').setAttribute('aria-hidden', true);
+        wizard.querySelector('.no-sim').setAttribute('aria-hidden', false);
       }
 
       if (mode === 'DATA_USAGE_ONLY') {
@@ -125,6 +117,22 @@
     localizeWeekdaySelector(document.getElementById('post2-select-weekday'));
     localizeWeekdaySelector(document.getElementById('non2-select-weekday'));
   });
+
+  if (window.location.hash) {
+    var wizard = document.getElementById('firsttime-view');
+
+    if (window.location.hash === '#PREPAID' ||
+        window.location.hash === '#POSTPAID') {
+      wizard.querySelector('.authed-sim').setAttribute('aria-hidden', false);
+    } else {
+      wizard.querySelector('.nonauthed-sim').setAttribute('aria-hidden', false);
+    }
+  }
+
+  parent.postMessage({
+    type: 'fte_ready',
+    data: ''
+  }, Common.COST_CONTROL_APP);
 
   // TRACK SETUP
 
@@ -229,7 +237,7 @@
       ConfigManager.setOption({ fte: false }, function _returnToApp() {
         updateNextReset(settings.trackingPeriod, settings.resetTime,
           function _returnToTheApplication() {
-            window.location = 'index.html';
+            Common.startApp();
           }
         );
       });

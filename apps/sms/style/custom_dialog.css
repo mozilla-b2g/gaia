@@ -17,7 +17,6 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type=
   background-size: auto auto, 100% 100%;
   bottom: 0;
   color: #FFFFFF;
-  font-family: "MozTT",Sans-serif;
   left: 0;
   overflow: auto;
   padding: 1.5rem 0 7rem;
@@ -45,9 +44,8 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]) > .inner {
 body[role="application"] [role="dialog"]:not([data-type="edit"]) h3 {
   border-bottom: 0.1rem solid #686868;
   color: #FFFFFF;
-  font-family: 'MozTT',Sans-serif;
   font-size: 1.6rem;
-  font-weight: normal;
+  font-weight: 400;
   line-height: 1em;
   margin: 0 0 1rem;
   padding-bottom: 1rem;
@@ -61,7 +59,6 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]) p:last-child {
 
 body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type="action"]) p {
   color: #FAFAFA;
-  font-family: 'MozTT',Sans-serif;
   font-size: 2.2rem;
   font-weight: lighter;
   margin: 0;
@@ -82,10 +79,6 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type=
   white-space: nowrap;
 }
 
-body[role="application"] [role="dialog"]:not([data-type="edit"]) menu[data-items="2"]:not([type="toolbar"]) button {
-  width: -moz-calc((100% - 1rem) / 2);
-}
-
 body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type="action"]) menu:not([type="toolbar"]) button {
   -moz-box-sizing: border-box;
   background: url("images/ui/default.png") repeat-x scroll left bottom #FAFAFA;
@@ -93,7 +86,6 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type=
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
   color: #333333;
   display: inline-block;
-  font-family: 'MozTT',Sans-serif;
   font-size: 1.6rem;
   font-weight: 600;
   height: 3.8rem;
@@ -107,7 +99,10 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type=
   text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
   vertical-align: middle;
   white-space: nowrap;
-  width: 100%;
+}
+
+body[role="application"] [role="dialog"]:not([data-type="edit"]) menu[data-items="2"]:not([type="toolbar"]) button {
+  width: -moz-calc((100% - 1rem) / 2);
 }
 
 body[role="application"] [role="dialog"]:not([data-type="edit"]) menu:not([type="toolbar"]):not([data-items="1"]) button:last-child {

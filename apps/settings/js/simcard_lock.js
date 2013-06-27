@@ -31,7 +31,7 @@ var SimPinLock = {
 
     // with SIM card, query its status
     var self = this;
-    var req = this.mobileConnection.getCardLock('pin');
+    var req = IccHelper.getCardLock('pin');
     req.onsuccess = function spl_checkSuccess() {
       var enabled = req.result.enabled;
       self.simSecurityDesc.textContent = (enabled) ?
@@ -47,6 +47,9 @@ var SimPinLock = {
   init: function spl_init() {
     this.mobileConnection = window.navigator.mozMobileConnection;
     if (!this.mobileConnection)
+      return;
+
+    if (!IccHelper.enabled)
       return;
 
     this.mobileConnection.addEventListener('cardstatechange',
@@ -67,7 +70,7 @@ var SimPinLock = {
               self.simPinCheckBox.checked = !enabled;
               self.updateSimCardStatus();
             },
-            document.location.hash
+            Settings.currentPanel
           );
           break;
         default:
@@ -80,13 +83,13 @@ var SimPinLock = {
               self.simPinCheckBox.checked = !enabled;
               self.updateSimCardStatus();
             },
-            document.location.hash
+            Settings.currentPanel
           );
           break;
       }
     };
     this.changeSimPinButton.onclick = function spl_changePin() {
-      SimPinDialog.show('changePin', null, null, document.location.hash);
+      SimPinDialog.show('changePin', null, null, Settings.currentPanel);
     };
 
     this.updateSimCardStatus();

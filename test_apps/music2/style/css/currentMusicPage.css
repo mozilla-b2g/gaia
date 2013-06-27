@@ -1,0 +1,142 @@
+#nowPlayingControls {
+  position: fixed;
+  height: 4rem;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  border-top: 1px solid #445;
+  background: rgba(0, 0, 0, .75);
+}
+
+#nowPlayingInfo { 
+  position: absolute;
+  left: 0;
+  right: 5rem;
+  top: 0;
+  bottom: 0;
+}
+
+#nowPlayingSourceImg {
+  position: absolute;
+  left: .5rem;
+  top: .5rem;
+  bottom: .5rem;
+  width: 3rem;
+  height: 3rem;
+}
+
+#nowPlayingSourceImg[src=''] {
+  display: none;
+}
+
+#nowPlayingText {
+  position: absolute;
+  left: 5rem;
+  right: 0rem;
+  top: .5rem;
+  bottom: .5rem;
+}
+
+#nowPlayingText > * {
+  display: none;
+}
+
+#nowPlayingText > *:first-child{
+  display: block;
+  font-size: 1.25rem;
+  line-height: 3rem;
+  color: white;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#nowPlayingTogglePlay {
+  position: absolute;
+  right: 0rem;
+  top: 0;
+  bottom: 0;
+  width: 5rem;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 60%;
+  background-image: url('../images/IconAction_Media_Play_30x30.png');
+}
+
+#nowPlayingTogglePlay.pause {
+  background-image: url('../images/IconAction_Media_Pause_30x30.png');
+}
+
+
+
+/*=====================================*/
+
+#toggleCurrentMusicPageView {
+  position: absolute;
+  bottom: 5.5em;
+  right: 1em;
+  width: 3em;
+  height: 3em;
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: auto 200%;
+  background-image: url('../images/iconaction_media_playlistfilter.png');
+}
+
+#toggleCurrentMusicPageView.switchSong {
+  background-image: url('../images/iconaction_media_albumfilter.png');
+}
+
+#currentSourceView {
+  position: absolute;
+  top: 0;
+  bottom: 4.5em;
+  left: 0;
+  right: 0;
+}
+
+#currentSourceInfo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  background: -moz-linear-gradient(center top, rgba(48, 48, 48, .8) -3em, rgba(0, 0, 0, .8) calc(480px - 3em)) repeat scroll 0 0 transparent; /* TODO: load actual height in js, set at init */
+  padding: 1em;
+}
+
+#currentSourceImg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
+#currentSourceImg[src=''] {
+  display: none;
+}
+
+#currentSourceInfo > * {
+  padding-left: 1em;
+}
+
+#currentSourceInfo > *:first-child {
+  font-size: 1.25em;
+  padding-left: 0;
+}
+
+
+#currentPlaylistView {
+  position: absolute;
+  top: 0;
+  bottom: 4.5em;
+  left: 0;
+  right: 0;
+  overflow-y: scroll;
+}
+
+

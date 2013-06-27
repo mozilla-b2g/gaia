@@ -40,36 +40,6 @@ function takeScreenshot() {
 }
 
 
-function HardwareButtons() {
-
-}
-
-HardwareButtons.prototype = {
-  home: function() {
-    hardware.wake();
-    sendEvent('home');
-  },
-  holdHome: function() {
-    sendEvent('holdhome');
-  },
-  volumeUp: function() {
-    sendEvent('volumeup');
-  },
-  volumeDown: function() {
-    sendEvent('volumedown');
-  },
-  sleep: function() {
-    sendEvent('sleep');
-  },
-  wake: function() {
-    sendEvent('wake');
-  },
-  holdSleep: function() {
-    sendEvent('holdsleep');
-  }
-};
-window.hardware = new HardwareButtons();
-
 function Emulation() {
 
 }

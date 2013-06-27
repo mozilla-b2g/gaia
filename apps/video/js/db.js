@@ -15,6 +15,15 @@ function initDB() {
 
     updateDialog();
   };
+
+  // On devices that have internal and external storage, we get this event
+  // when the user pulls the sdcard out. If we're playing a video when that
+  // happens, we need to stop or risk a crash.
+  videodb.oncardremoved = function() {
+    if (playerShowing)
+      hidePlayer(true);
+  };
+
   videodb.onready = function() {
     storageState = false;
     updateDialog();
@@ -120,6 +129,10 @@ function addVideo(videodata) {
     thumbnails[i].dataset.index = i;
   }
 
+  // If we just added the first video we need to hide the "no video" overlay
+  if (videos.length === 1)
+    updateDialog();
+
   // This comparison function is used for sorting arrays and doing binary
   // search on the resulting sorted arrays.
   function compareVideosByDate(a, b) {
@@ -181,5 +194,9 @@ function videoDeleted(filename) {
   }
 
   // If we just deleted the last video we need to display the "no video" overlay
-  updateDialog();
+  // and go back to thumbnail list view in case we were in thumbnail select view
+  if (videos.length === 0) {
+    updateDialog();
+    hideSelectView();
+  }
 }

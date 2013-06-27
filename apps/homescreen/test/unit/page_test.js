@@ -263,6 +263,128 @@ suite('page.js >', function() {
         });
       });
 
+      suite('removable and non-removable icons >', function() {
+        function createIcon(removable, done) {
+          var app = new MockApp();
+          var descriptor = {
+            manifestURL: app.manifestURL,
+            name: app.name,
+            removable: removable
+          };
+
+          icon = new Icon(descriptor, app);
+          renderIcon(done);
+
+          return icon;
+        }
+
+        test('icon should be removable', function(done) {
+          createIcon(true, function() {
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 1);
+            done();
+          });
+        });
+
+        test('icon should not be removable', function(done) {
+          createIcon(false, function() {
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 0);
+            done();
+          });
+        });
+
+        test('non removable icon will be removable after updating',
+             function(done) {
+          var icon = createIcon(false, function() {
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 0);
+            icon.update({
+              removable: true
+            });
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 1);
+            done();
+          });
+        });
+
+        test('removable icon will be non removable after updating',
+             function(done) {
+          var icon = createIcon(true, function() {
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 1);
+            icon.update({
+              removable: false
+            });
+            assert.equal(iconsContainer.querySelectorAll('li span.options').
+                         length, 0);
+            done();
+          });
+        });
+      });
+
+      suite('Offline ready apps >', function() {
+        function createIcon(data, done) {
+          var app = new MockApp();
+          var descriptor = {
+            manifestURL: app.manifestURL,
+            name: app.name
+          };
+
+          for (var key in data) {
+            descriptor[key] = data[key];
+          }
+
+          icon = new Icon(descriptor, app);
+          renderIcon(done);
+        }
+
+        function checkOfflineReady(value) {
+          assert.equal(iconsContainer.
+                              querySelector('li').dataset.offlineReady, value);
+        }
+
+        test('Hosted apps with appcache are offline ready apps ',
+             function(done) {
+          createIcon({
+            isHosted: true,
+            hasOfflineCache: true
+          }, function() {
+            checkOfflineReady('true');
+            done();
+          });
+        });
+
+        test('Non hosted apps are offline ready apps ', function(done) {
+          createIcon({
+            isHosted: false
+          }, function() {
+            checkOfflineReady('true');
+            done();
+          });
+        });
+
+        test('Hosted apps without appcache are not offline ready apps ',
+             function(done) {
+          createIcon({
+            isHosted: true,
+            hasOfflineCache: false
+          }, function() {
+            checkOfflineReady('false');
+            done();
+          });
+        });
+
+        test('Bookmarks are not offline ready apps ', function(done) {
+          createIcon({
+            isBookmark: true
+          }, function() {
+            checkOfflineReady('false');
+            done();
+          });
+        });
+
+      });
 
     });
 
