@@ -373,6 +373,7 @@ var Predictions = function() {
         status.state = 'aborted';
         return true;
       }
+      return false;
     }
 
     function getWords() {
