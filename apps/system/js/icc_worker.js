@@ -72,7 +72,15 @@ var icc_worker = {
   // STK_CMD_SEND_SS
   '0x11': function STK_CMD_SEND_SS(command, iccManager) {
     DUMP('STK_CMD_SEND_SS:', command.options);
-    this['0x13'](command, iccManager);
+    var options = command.options;
+    iccManager.responseSTKCommand({
+      resultCode: iccManager._icc.STK_RESULT_OK
+    });
+    if (!options.text) {
+      var _ = navigator.mozL10n.get;
+      options.text = _('icc-alertMessage-defaultmessage');
+    }
+    iccManager.alert(options.text);
   },
 
   // STK_CMD_SEND_USSD
