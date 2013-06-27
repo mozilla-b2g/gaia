@@ -48,9 +48,3 @@ manifest.appcache
 /outoftree_apps/
 
 /distribution/
-
-/external-apps/*/test/unit/_sandbox.html
-/external-apps/*/test/unit/_proxy.html
-
-/test_external_apps/*/test/unit/_sandbox.html
-/test_external_apps/*/test/unit/_proxy.html
