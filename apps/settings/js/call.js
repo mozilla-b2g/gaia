@@ -436,7 +436,7 @@ var Calls = (function(window, document, undefined) {
     var init = false;
 
     var cellBroadcastChanged = function(value) {
-      input.checked = !value;
+      input.checked = value;
       if (!init) {
         input.disabled = false;
         wrapper.classList.remove('disabled');
@@ -446,7 +446,7 @@ var Calls = (function(window, document, undefined) {
 
     var inputChanged = function(event) {
       var cbsset = {};
-      cbsset[CBS_KEY] = !input.checked;
+      cbsset[CBS_KEY] = input.checked;
       settings.createLock().set(cbsset);
     };
 
