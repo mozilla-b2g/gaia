@@ -1538,15 +1538,22 @@ var ThreadUI = global.ThreadUI = {
     var ul = params.target;
     var isContact = params.isContact;
     var isSuggestion = params.isSuggestion;
-
-    var escaped = Utils.escapeRegex(input);
-    var escsubs = escaped.split(/\s+/);
     var tels = contact.tel;
-    var regexps = {
-      name: new RegExp('(\\b' + escsubs.join(')|(\\b') + ')', 'gi'),
-      number: new RegExp(escaped, 'ig')
-    };
     var telsLength = tels.length;
+
+    // We search on the escaped HTML via a regular expression
+    var escaped = Utils.escapeRegex(Utils.escapeHTML(input));
+    var escsubs = escaped.split(/\s+/);
+    // Build a list of regexes used for highlighting suggestions
+    var regexps = {
+      name: escsubs.map(function(k) {
+        // String matches occur on the beginning of a "word" to
+        // maintain parity with the contact search algorithm which
+        // only considers left aligned exact matches on words
+        return new RegExp('^' + k, 'gi');
+      }),
+      number: [new RegExp(escaped, 'ig')]
+    };
 
     if (!telsLength) {
       return false;
@@ -1593,18 +1600,37 @@ var ThreadUI = global.ThreadUI = {
         numberHTML: ''
       };
 
-
       ['name', 'number'].forEach(function(key) {
+        var escapedData = Utils.escapeHTML(data[key]);
         if (isSuggestion) {
-          data[key + 'HTML'] = data[key].replace(
-            regexps[key], function(match) {
-              return this.tmpl.highlight.interpolate({
-                str: match
-              });
-            }.bind(this)
-          );
+          // When rendering a suggestion, we highlight the matched substring.
+          // The approach is to escape the html and the search string, and
+          // then replace on all "words" (whitespace bounded strings) with
+          // the substring run through the highlight template.
+          var splitData = escapedData.split(/\s+/);
+          var loopReplaceFn = (function(match) {
+            matchFound = true;
+            // The match is safe, because splitData[i] is derived from
+            // escapedData
+            return this.tmpl.highlight.interpolate({
+              str: match
+            }, {
+              safe: ['str']
+            });
+          }).bind(this);
+          // For each "word"
+          for (var i = 0; i < splitData.length; i++) {
+            var matchFound = false;
+            // Loop over search term regexes
+            for (var k = 0; !matchFound && k < regexps[key].length; k++) {
+              splitData[i] = splitData[i].replace(
+                regexps[key][k], loopReplaceFn);
+            }
+          }
+          data[key + 'HTML'] = splitData.join(' ');
         } else {
-          data[key + 'HTML'] = Utils.escapeHTML(data[key]);
+          // If we have no html template injection, simply escape the data
+          data[key + 'HTML'] = escapedData;
         }
       }, this);
 
