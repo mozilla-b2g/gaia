@@ -1,0 +1,6 @@
+apps/*
+test_apps/*
+showcase_apps/*
+test_external_apps/*
+external-apps/*
+outoftree_apps/*
