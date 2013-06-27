@@ -23,7 +23,5 @@ var MockUtils = {
   getCarrierTag: Utils.getCarrierTag,
   removeNonDialables: Utils.removeNonDialables,
   compareDialables: Utils.compareDialables,
-  Message: {
-    format: function(str) { return str; }
-  }
+  getDisplayObject: Utils.getDisplayObject
 };

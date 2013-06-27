@@ -22,6 +22,7 @@
     this.email = opts.email || '';
     this.editable = opts.editable || 'true';
     this.source = opts.source || 'manual';
+    this.display = opts.display || '';
   }
   /**
    * set
@@ -704,7 +705,12 @@
               //
               // 1.a Delete Mode
               //
-              Recipients.View.prompts.remove(target, function(result) {
+              var recipientWrapper = {
+                target: target,
+                recipient: recipient
+              };
+              Recipients.View.prompts.remove(recipientWrapper,
+                function(result) {
                 if (result.isConfirmed) {
                   owner.remove(
                     relation.get(target)
@@ -886,20 +892,47 @@
   };
 
   Recipients.View.prompts = {
-    remove: function(candidate, callback) {
+    remove: function(params, callback) {
       var response = {
         isConfirmed: false,
-        recipient: candidate
+        recipient: params.target
       };
-      var message = navigator.mozL10n.get('recipientRemoval', {
-        recipient: candidate.textContent.trim()
-      });
       // If it's a contact we should ask to remove
-      if (confirm(message)) {
-        response.isConfirmed = true;
-      }
-
-      callback(response);
+      var dialog = new Dialog(
+        {
+          title: {
+            value: params.recipient.name || params.recipient.number,
+            l10n: false
+          },
+          body: {
+            value: params.recipient.display,
+            l10n: false
+          },
+          options: {
+            cancel: {
+              text: {
+                value: 'cancel',
+                l10n: true
+              }
+            },
+            confirm: {
+              text: {
+                value: 'remove',
+                l10n: true
+              },
+              method: function(callback, response) {
+                if (response) {
+                  response.isConfirmed = true;
+                  if (callback && typeof callback === 'function') {
+                     callback(response);
+                  }
+                }
+              },
+              params: [callback, response]
+            }
+          }
+        });
+      dialog.show();
     }
   };
 
