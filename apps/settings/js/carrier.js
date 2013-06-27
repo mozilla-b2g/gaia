@@ -94,6 +94,11 @@ navigator.mozL10n.ready(function carrierSettings() {
     var advForm = apnPanel.querySelector('.apnSettings-advanced');
     var lastItem = apnList.querySelector('.apnSettings-custom');
 
+    var kUsageMapping = {'data': 'default',
+                         'mms': 'mms',
+                         'supl': 'supl'};
+    var currentType = kUsageMapping[usage];
+
     // create a button to apply <apn> data to the current fields
     function createAPNItem(item) {
       // create an <input type="radio"> element
@@ -149,6 +154,11 @@ navigator.mozL10n.ready(function carrierSettings() {
       apnList.insertBefore(createAPNItem(apnItems[i]), lastItem);
     }
 
+    var settings = Settings.mozSettings;
+    // maps for UI fields(current settings key) to new apn setting keys.
+    var kKeyMappings = {'passwd': 'password',
+                       'httpProxyHost': 'proxy',
+                       'httpProxyPort': 'port'};
     // helper
     function fillCustomAPNSettingFields() {
       var keys = ['apn', 'user', 'passwd', 'httpProxyHost', 'httpProxyPort'];
@@ -193,8 +203,78 @@ navigator.mozL10n.ready(function carrierSettings() {
       asyncStorage.setItem('ril.' + usage + '.custom.authtype', authType.value);
     }
 
-    // find the current APN, relying on the carrier name
-    var settings = Settings.mozSettings;
+    function buildNewApnSettingsValue(type, apnsForIccCards) {
+      var apnToBeMerged = {};
+
+      // Load the fields from the form into the apn to be merged.
+      var keys = ['apn', 'user', 'passwd', 'httpProxyHost', 'httpProxyPort'];
+      if (type === 'mms') {
+        keys.push('mmsc', 'mmsproxy', 'mmsport');
+      }
+      keys.forEach(function(key) {
+        apnToBeMerged[(kKeyMappings[key] || key)] = rilData(usage, key).value;
+      });
+      // fill authType field and push it to keys.
+      var authType = document.getElementById('ril-' + usage + '-authType');
+      apnToBeMerged['authType'] = authType.value;
+      keys.push('authType');
+
+      var newApnsForIccCards = [];
+      for (var iccCardIndex = 0;
+           iccCardIndex < apnsForIccCards.length;
+           iccCardIndex++) {
+
+        var newApnsForIccCard = [];
+        var apnsForIccCard = apnsForIccCards[iccCardIndex];
+        for (var apnIndex = 0; apnIndex < apnsForIccCard.length; apnIndex++) {
+
+          var apn = apnsForIccCard[apnIndex];
+          if (apn.types.indexOf(type) != -1) {
+            // Compare the existing apn to the apn to be merge.
+            var sameApn = true;
+            keys.forEach(function(key) {
+              if (apn[key] !== apnToBeMerged[key]) {
+                sameApn = false;
+              }
+            });
+            if (sameApn) {
+              newApnsForIccCard.push(apn);
+            } else {
+              // Add the apn to be merged.
+              var newType = [];
+              newType.push(type);
+              apnToBeMerged.types = newType;
+              newApnsForIccCard.push(apnToBeMerged);
+
+              // Delete the type from the existing apn and add that apn if the
+              // APN had other types.
+              apn.types.splice(apn.types.indexOf(type), 1);
+              if (apn.types.length !== 0) {
+                newApnsForIccCard.push(apn);
+              }
+            }
+          } else {
+            newApnsForIccCard.push(apn);
+          }
+        }
+        newApnsForIccCards.push(newApnsForIccCard);
+      }
+
+      settings.createLock().set({'ril.data.apnSettings': newApnsForIccCards});
+    }
+
+    // use new call setting architecture
+    function storeNewApnSettings() {
+      if (!currentType) {
+        return;
+      }
+      var reqOld = settings.createLock().get('ril.data.apnSettings');
+      reqOld.addEventListener('success', function handleAPNSettings() {
+        var oldAPNSettings = reqOld.result['ril.data.apnSettings'];
+        buildNewApnSettingsValue(currentType, oldAPNSettings);
+      });
+    }
+
     if (settings) {
       var radios = apnList.querySelectorAll('input[type="radio"]');
       var key = 'ril.' + usage + '.carrier';
@@ -244,6 +324,7 @@ navigator.mozL10n.ready(function carrierSettings() {
     });
 
     function onSubmit() {
+      storeNewApnSettings();
       setTimeout(function() {
         if (apnSettingsChanged) {
           apnSettingsChanged = false;
