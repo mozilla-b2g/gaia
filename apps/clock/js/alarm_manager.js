@@ -114,7 +114,13 @@ var AlarmManager = {
           callback(alarm);
       });
       self.updateAlarmStatusBar();
-      BannerView.setStatus(nextAlarmFireTime);
+      LazyLoader.load(
+      [
+        'js/banner.js'
+      ],
+      function() {
+        BannerView.setStatus(nextAlarmFireTime);
+      });
     };
     request.onerror = function(e) {
       console.log('onerror!!!!');
