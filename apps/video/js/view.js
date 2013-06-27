@@ -65,6 +65,13 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     });
   }
 
+  // Terminate video playback when visibility is changed.
+  window.addEventListener('mozvisibilitychange', function onVisibilityChanged() {
+    if (document.mozHidden) {
+      done();
+    }
+  });
+
   function handleYoutubeError(message) {
     // Start with a localized error message prefix
     var error = navigator.mozL10n.get('youtube-error-prefix');
