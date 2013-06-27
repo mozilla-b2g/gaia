@@ -266,7 +266,7 @@ function optimize_compile(webapp, file) {
 
   let processedLocales = 0;
   let dictionary = l10nDictionary;
-  let commentsNodes = [];
+  let commentNodes = [];
 
   // catch console.[log|warn|info] calls and redirect them to `dump()'
   // XXX for some reason, this won't work if gDEBUG >= 2 in l10n.js
@@ -319,8 +319,8 @@ function optimize_compile(webapp, file) {
       docElt.dir = mozL10n.language.direction;
       docElt.lang = mozL10n.language.code;
 
-      // Copy the translations in the original comment
-      commentsNodes.forEach(function(node) {
+      // replace comment nodes by their localized counterparts
+      commentNodes.forEach(function(node) {
         node.nodeValue = node.forL10nNode.innerHTML;
         node.forL10nNode.parentNode.removeChild(node.forL10nNode);
       });
@@ -357,11 +357,10 @@ function optimize_compile(webapp, file) {
   );
   let originalNode;
   while (originalNode = nodeIterator.nextNode()) {
-    originalNode.forL10nNode = win.document.createElement('div');
+    originalNode.forL10nNode = win.document.createElement('iframe');
     originalNode.forL10nNode.innerHTML = originalNode.nodeValue;
     win.document.body.appendChild(originalNode.forL10nNode);
-
-    commentsNodes.push(originalNode);
+    commentNodes.push(originalNode);
   }
 
   // if this HTML document uses l10n.js, pre-localize it --
