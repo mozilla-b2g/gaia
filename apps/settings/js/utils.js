@@ -4,26 +4,6 @@
 'use strict';
 
 /**
- * Constants
- */
-
-var DEBUG = false;
-
-/**
- * Debug method
- */
-
-function debug(msg, optObject) {
-  if (DEBUG) {
-    var output = '[DEBUG # Settings] ' + msg;
-    if (optObject) {
-      output += JSON.stringify(optObject);
-    }
-    console.log(output);
-  }
-}
-
-/**
  * Move settings to foreground
  */
 
