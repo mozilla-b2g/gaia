@@ -35,7 +35,6 @@ mocksHelperForGrid.init();
 
 suite('grid.js >', function() {
   var TAP_THRESHOLD = 10;
-  var TINY_TIMEOUT = 50;
   var SAVE_STATE_WAIT_TIMEOUT = 200;
 
   var wrapperNode, containerNode;
@@ -151,7 +150,9 @@ suite('grid.js >', function() {
           false, false, false, false, 0, null);
       }
 
-      test('should be able to pan', function(done) {
+      test('should be able to pan', function() {
+        this.sinon.useFakeTimers();
+
         var start = { x: 100, y: 100 };
         var move = { x: 200, y: 100 };
 
@@ -168,12 +169,11 @@ suite('grid.js >', function() {
 
         assert.equal(document.body.dataset.transitioning, 'true');
 
-        setTimeout(function() {
-          done(function() {
-            var currentPage = document.getElementById('landing-page');
-            assert.include(currentPage.style.MozTransform, 'translateX');
-          });
-        }, TINY_TIMEOUT);
+        this.sinon.clock.tick();
+        var currentPage = document.getElementById('landing-page');
+        assert.include(currentPage.style.MozTransform, 'translateX');
+        sendTouchEvent('touchend', containerNode, move);
+        sendMouseEvent('mouseup', containerNode, move);
       });
     });
   }
