@@ -391,22 +391,25 @@ var MessageManager = {
 
   // consider splitting this method for the different use cases
   sendSMS: function mm_send(recipients, content, onsuccess, onerror) {
-    var request;
+    var requests;
 
     if (!Array.isArray(recipients)) {
       recipients = [recipients];
     }
 
-    request = this._mozMobileMessage.send(recipients, content);
+    // The returned value is not a DOM request!
+    // Instead, It's an array of DOM requests.
+    requests = this._mozMobileMessage.send(recipients, content);
+    requests.forEach(function(request) {
+      request.onsuccess = function onSuccess(event) {
+        onsuccess && onsuccess(event.result);
+      };
 
-    request.onsuccess = function onSuccess(event) {
-      onsuccess && onsuccess(event.result);
-    };
-
-    request.onerror = function onError(event) {
-      console.log('Error Sending: ' + JSON.stringify(event.error));
-      onerror && onerror();
-    };
+      request.onerror = function onError(event) {
+        console.log('Error Sending: ' + JSON.stringify(event.error));
+        onerror && onerror();
+      };
+    });
   },
 
   sendMMS: function mm_sendMMS(recipients, content, onsuccess, onerror) {
