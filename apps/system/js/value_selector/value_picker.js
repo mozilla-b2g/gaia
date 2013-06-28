@@ -1,3 +1,6 @@
+/**
+ * base widget used in ValueSelector and SpinDatePicker widget
+ */
 var ValuePicker = (function() {
   //
   // Constructor
