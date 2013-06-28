@@ -150,6 +150,10 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   function setControlsVisibility(visible) {
     dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
     controlShowing = visible;
+    if (visible) {
+      // update elapsed time while showing.
+      dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
+    }
   }
 
   function playerMousedown(event) {
