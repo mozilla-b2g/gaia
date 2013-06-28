@@ -27,14 +27,13 @@ function monitorGrandchildWithTagVisibility(
     scrollMargin,
     scrollDelta,
     maxDepth,
+    true,
     tagName,
     function(elem, depth) {
-      if (depth == 2)
-        onscreenCallback(elem, depth);
+      onscreenCallback(elem, depth);
     },
     function(elem, depth) {
-      if (depth == 2)
-        offscreenCallback(elem, depth);
+      offscreenCallback(elem, depth);
     });
 }
 
@@ -43,6 +42,7 @@ function monitorChildWithTagVisibility(
   scrollMargin,
   scrollDelta,
   maxDepth,
+  notifyOnlyAtMaxDepth,
   tagName,
   onscreenCallback,
   offscreenCallback
@@ -53,6 +53,7 @@ function monitorChildWithTagVisibility(
     scrollMargin,
     scrollDelta,
     maxDepth,
+    notifyOnlyAtMaxDepth,
     function(elem, depth) {
       if (elem.tagName === tagName)
         onscreenCallback(elem, depth);
@@ -75,6 +76,7 @@ function monitorDirectChildVisibility(
                          scrollMargin,
                          scrollDelta,
                          1,
+                         true,
                          onscreenCallback,
                          offscreenCallback);
 }
@@ -86,6 +88,11 @@ function monitorDirectChildVisibility(
 
     ------------------------------------
 
+    terminology
+      - child: any descendent of a node
+
+    ------------------------------------
+
     arguments
       container,
       scrollMargin
@@ -94,12 +101,33 @@ function monitorDirectChildVisibility(
       scrollDelta,
         - how much the container needs to be scrolled before onscreen
           and offscreen are recalculated
+        - higher value means callbacks fired less frequently, but there
+          are more of them when they are fired
       maxDepth
         - max depth from container to monitor (1 === direct children)
+      notifyOnlyAtMaxDepth
+        - instead of giving events for each depth level, only notify at the
+          at the max depth level. Helps for performance and is useful for
+          filtering
       onscreenCallback,
-        - called with the element that is now onscreen
+        - called with
+            1) the element that is now onscreen
+            2) the depth of that element
       offscreenCallback
-        - called with the element that is now offscreen
+        - called with
+            1) the element that is now offscreen
+            2) the depth of that element
+
+    ------------------------------------
+
+    returns an object with the following properties:
+        pauseMonitoringMutations
+          - a function, that when called, disables mutation monitoring
+        resumeMonitoringMutations
+          - a function, that when called, enables mutation monitoring
+        stop
+          - a funtion, that when called, stops and cleans up the module instance
+          - performs full visibility update if first argument is true
 
     ------------------------------------
 
@@ -113,23 +141,28 @@ function monitorDirectChildVisibility(
 
     ------------------------------------
 
+    performance
+      - if you can, when adding a node to the dom, add children to the node
+        before adding the node to the dom.
+      - if you're certain a change won't change visibility, surround it with
+        calls to pause and resume monitoring mutations.
+
+    ------------------------------------
+
     high level overview of implementation
       more details can be found in comments closer to the implementation itself
 
       the central algorithm contains 2 stages
-        1) visibility computation
+        1) visibility computation (recomputeFirstAndLastOnscreen)
           - computing the first and last visible element
-        2) notification of offscreen / onscreen
-          - notifying elements between the old first element on screen and the
-            new first element on screen
-          - notifying elements between the old last element on screen and the
-            new last element on screen
+        2) notification of offscreen / onscreen (callCallbacks)
+          - notifying elements whose visibility has changed
 
         - the central algorithm is triggered whenever an event is received that
           suggests the visibility may have changed
             - onscroll
             - onresize
-            - mutation of any child element (mutation observer)
+            - mutation of any child (mutation observer)
 
 ====================================*/
 
@@ -138,20 +171,10 @@ function monitorMultilevelChildVisibility(
   scrollMargin,
   scrollDelta,
   maxDepth,
+  notifyOnlyAtMaxDepth,
   onscreenCallback,
   offscreenCallback
 ) {
-
-  // compatability mode if called with same arguments as monitorChildVisibility
-  if (offscreenCallback === undefined &&
-      typeof maxDepth === 'function') {
-    offscreenCallback = onscreenCallback;
-    onscreenCallback = maxDepth;
-    maxDepth = 1;
-    console.warn('MonitorMultilevelChildVisibility is using compatibility ' +
-                 'mode. See the new api at /shared/js/' +
-                 'multilevel_visibility_monitor.js');
-  }
 
   // we need offsetTop to work properly, which will only happen if the container
   // is not position: static
@@ -171,25 +194,18 @@ function monitorMultilevelChildVisibility(
   function init() {
     g.firstOnscreen = new Array(maxDepth);
     g.lastOnscreen = new Array(maxDepth);
-    g.deepestFirstOnscreen = null;
-    g.deepestLastOnscreen = null;
-    for (var i = 0; i < maxDepth; i++) {
-      g.firstOnscreen[i] = null;
-      g.lastOnscreen[i] = null;
-    }
     g.pendingCallCallbacksTimeoutId = null;
     g.stopped = false;
     g.last = {
-      scrollTop: -1,
-      firstOnscreen: g.firstOnscreen.slice(0),
-      lastOnscreen: g.lastOnscreen.slice(0),
-      deepestFirstOnscreen: null,
-      deepestLastOnscreen: null
+      scrollTop: -1
     };
+    g.last.firstOnscreen = new Array(maxDepth);
+    g.last.lastOnscreen = new Array(maxDepth);
+    reset();
 
     //add events that could trigger an element to go onscreen or offscreen
     container.addEventListener('scroll', scrollHandler);
-    window.addEventListener('resize', updateVisibility);
+    window.addEventListener('resize', onresize);
     g.observer = new MutationObserver(mutationHandler);
     g.observer.observe(container, { childList: true, subtree: true });
 
@@ -207,6 +223,10 @@ function monitorMultilevelChildVisibility(
     }
     g.last.scrollTop = scrollTop;
 
+    updateVisibility();
+  }
+
+  function onresize(event) {
     updateVisibility();
   }
 
@@ -354,14 +374,18 @@ function monitorMultilevelChildVisibility(
     }
 
     var wasUpdate = false;
-    wasUpdate |= updateOnscreen(g.firstOnscreen, child, next);
-    wasUpdate |= updateOnscreen(g.lastOnscreen, child, prev);
+    if (updateOnscreen(g.firstOnscreen, child, next))
+      wasUpdate = true;
+    if (updateOnscreen(g.lastOnscreen, child, prev))
+      wasUpdate = true;
     if (wasUpdate)
       calcDeepestOnscreen();
 
     wasUpdate = false;
-    wasUpdate |= updateOnscreen(g.last.firstOnscreen, child, next);
-    wasUpdate |= updateOnscreen(g.last.lastOnscreen, child, prev);
+    if (updateOnscreen(g.last.firstOnscreen, child, next))
+      wasUpdate = true;
+    if (updateOnscreen(g.last.lastOnscreen, child, prev))
+      wasUpdate = true;
     if (wasUpdate)
       calcDeepestLastOnscreen();
   }
@@ -399,8 +423,8 @@ function monitorMultilevelChildVisibility(
   //      does not match the guess, we invalidate all the guesses below it, and
   //      instead just take the first child of the element
   //
-  //    - this algorithm minimizes the number of dom nodes traversed, while
-  //      still finding the deepest first and last elements onscreen
+  //    - this algorithm tries to minimize the number of dom nodes traversed,
+  //      while still finding the deepest first and last elements onscreen
   function recomputeFirstAndLastOnscreen() {
     if (container.firstElementChild === null) { //container empty
       for (var i = 0; i < maxDepth; i++) {
@@ -418,10 +442,10 @@ function monitorMultilevelChildVisibility(
         if (g.firstOnscreen[i] === null)
           break;
       }
-      var nextFirstOnscreen = recomputeFirstOnscreenSibling(container,
-                                                            g.firstOnscreen[i]);
+      var nextFirstOnscreen = recomputeFirstOnscreenSibling(g.firstOnscreen[i]);
       if (nextFirstOnscreen !== g.firstOnscreen[i]) {
         g.firstOnscreen[i] = nextFirstOnscreen;
+        // invalidate guesses below this level
         for (var j = i + 1; j < maxDepth; j++) {
           g.firstOnscreen[j] = null;
         }
@@ -433,14 +457,19 @@ function monitorMultilevelChildVisibility(
     currentContainer = container;
     for (var i = 0; i < maxDepth; i++) {
       if (g.lastOnscreen[i] === null) {
-        g.lastOnscreen[i] = currentContainer.firstElementChild;
+        if (i == 0) {
+          g.lastOnscreen[i] = g.firstOnscreen[i];
+        }
+        else {
+          g.lastOnscreen[i] = currentContainer.firstElementChild;
+        }
         if (g.lastOnscreen[i] === null)
           break;
       }
-      var nextLastOnscreen = recomputeLastOnscreenSibling(container,
-                                                          g.lastOnscreen[i]);
+      var nextLastOnscreen = recomputeLastOnscreenSibling(g.lastOnscreen[i]);
       if (nextLastOnscreen !== g.lastOnscreen[i]) {
         g.lastOnscreen[i] = nextLastOnscreen;
+        // invalidate guesses below this level
         for (var j = i + 1; j < maxDepth; j++) {
           g.lastOnscreen[j] = null;
         }
@@ -449,17 +478,19 @@ function monitorMultilevelChildVisibility(
     }
   }
 
-  function recomputeFirstOnscreenSibling(container, guessOfFirstOnscreen) {
+  function recomputeFirstOnscreenSibling(guessOfFirstOnscreen) {
     var currentFirstOnscreen = guessOfFirstOnscreen;
     // move until we're past the target
-    while (visibilityPosition(container, currentFirstOnscreen) !== BEFORE) {
+    while (relativeVisibilityPosition(container,
+                                      currentFirstOnscreen) !== BEFORE) {
       var prev = currentFirstOnscreen.previousElementSibling;
       if (prev === null)
         break;
       currentFirstOnscreen = prev;
     }
     // move towards the target
-    while (visibilityPosition(container, currentFirstOnscreen) === BEFORE) {
+    while (relativeVisibilityPosition(container,
+                                      currentFirstOnscreen) === BEFORE) {
       var next = currentFirstOnscreen.nextElementSibling;
       if (next === null)
         break;
@@ -468,17 +499,19 @@ function monitorMultilevelChildVisibility(
     return currentFirstOnscreen;
   }
 
-  function recomputeLastOnscreenSibling(container, guessOfLastOnscreen) {
+  function recomputeLastOnscreenSibling(guessOfLastOnscreen) {
     var currentLastOnscreen = guessOfLastOnscreen;
     // move until we're past the target
-    while (visibilityPosition(container, currentLastOnscreen) !== AFTER) {
+    while (relativeVisibilityPosition(container,
+                                      currentLastOnscreen) !== AFTER) {
       var next = currentLastOnscreen.nextElementSibling;
       if (next === null)
         break;
       currentLastOnscreen = next;
     }
     // move towards the target
-    while (visibilityPosition(container, currentLastOnscreen) === AFTER) {
+    while (relativeVisibilityPosition(container,
+                                      currentLastOnscreen) === AFTER) {
       var prev = currentLastOnscreen.previousElementSibling;
       if (prev === null)
         break;
@@ -559,7 +592,7 @@ function monitorMultilevelChildVisibility(
     calcDeepestOnscreen();
 
     if (g.deepestFirstOnscreen === null || g.deepestLastOnscreen === null) {
-
+      // nothing on screen, nothing to do
     }
     else if (
               g.last.deepestFirstOnscreen === null ||
@@ -580,8 +613,8 @@ function monitorMultilevelChildVisibility(
       // onscreen at top
       if (before(g.deepestFirstOnscreen, g.last.deepestFirstOnscreen)) {
         var cousin = prevElementCousin(g.last.deepestFirstOnscreen);
-        if (cousin !== null) { //probably elem was first elem in container
-          notifyOnscreenInRange(g.deepestFirstOnscreen, cousin, BEFORE);
+        notifyOnscreenInRange(g.deepestFirstOnscreen, cousin, BEFORE);
+        if (!notifyOnlyAtMaxDepth) {
           var closestPrev = prevElement(g.last.deepestFirstOnscreen);
           if (closestPrev !== cousin)
             notifyOnscreenInRange(cousin, closestPrev, BEFORE);
@@ -590,8 +623,8 @@ function monitorMultilevelChildVisibility(
       // onscreen at bottom
       if (after(g.deepestLastOnscreen, g.last.deepestLastOnscreen)) {
         var cousin = nextElementCousin(g.last.deepestLastOnscreen);
-        if (cousin !== null) { //probably elem was first elem in container
-          notifyOnscreenInRange(cousin, g.deepestLastOnscreen, AFTER);
+        notifyOnscreenInRange(cousin, g.deepestLastOnscreen, AFTER);
+        if (!notifyOnlyAtMaxDepth) {
           var closestNext = nextElement(g.last.deepestLastOnscreen);
           if (closestNext !== cousin)
             notifyOnscreenInRange(closestNext, cousin, AFTER);
@@ -600,8 +633,8 @@ function monitorMultilevelChildVisibility(
       // offscreen at top
       if (after(g.deepestFirstOnscreen, g.last.deepestFirstOnscreen)) {
         var cousin = prevElementCousin(g.deepestFirstOnscreen);
-        if (cousin !== null) { //probably elem was first elem in container
-          notifyOffscreenInRange(g.last.deepestFirstOnscreen, cousin, BEFORE);
+        notifyOffscreenInRange(g.last.deepestFirstOnscreen, cousin, BEFORE);
+        if (!notifyOnlyAtMaxDepth) {
           var closestPrev = prevElement(g.deepestFirstOnscreen);
           if (closestPrev !== cousin)
             notifyOffscreenInRange(cousin, closestPrev, BEFORE);
@@ -610,8 +643,8 @@ function monitorMultilevelChildVisibility(
       // offscreen at bottom
       if (before(g.deepestLastOnscreen, g.last.deepestLastOnscreen)) {
         var cousin = nextElementCousin(g.deepestLastOnscreen);
-        if (cousin !== null) { //probably elem was first elem in container
-          notifyOffscreenInRange(cousin, g.last.deepestLastOnscreen, AFTER);
+        notifyOffscreenInRange(cousin, g.last.deepestLastOnscreen, AFTER);
+        if (!notifyOnlyAtMaxDepth) {
           var closestNext = nextElement(g.deepestLastOnscreen);
           if (closestNext !== cousin)
             notifyOffscreenInRange(closestNext, cousin, AFTER);
@@ -620,9 +653,8 @@ function monitorMultilevelChildVisibility(
 
     }
 
-    //slice(0) makes a shallow copy
-    g.last.firstOnscreen = g.firstOnscreen.slice(0);
-    g.last.lastOnscreen = g.lastOnscreen.slice(0);
+    g.last.firstOnscreen = copyArray(g.firstOnscreen);
+    g.last.lastOnscreen = copyArray(g.lastOnscreen);
     g.last.deepestFirstOnscreen = g.deepestFirstOnscreen;
     g.last.deepestLastOnscreen = g.deepestLastOnscreen;
   }
@@ -646,7 +678,9 @@ function monitorMultilevelChildVisibility(
     var currDepth = getDistance(container, curr);
     var justAscended = false;
 
-    var stopBottom = stop.offsetTop + stop.clientHeight;
+    var stopBottom = null;
+    if (boundDir === BEFORE)
+      stopBottom = stop.offsetTop + stop.clientHeight;
     while (curr !== stop) {
       var currBottom = curr.offsetTop + curr.clientHeight;
       if ((boundDir === BEFORE && currBottom <= stopBottom) ||
@@ -684,7 +718,7 @@ function monitorMultilevelChildVisibility(
   //====================================
 
   var BEFORE = -1, ON = 0, AFTER = 1;
-  function visibilityPosition(container, child) {
+  function relativeVisibilityPosition(container, child) {
 
     var scrollTop = container.scrollTop;
     var screenTop = scrollTop - scrollMargin;
@@ -752,6 +786,9 @@ function monitorMultilevelChildVisibility(
     return next;
   }
 
+  // while prevElement computes the closest element in terms of the dom,
+  //  prevElementCousin computes that element, then computes the closest
+  //  child of that element.
   function prevElementCousin(elem) {
     var curr = elem;
     var depth = 0;
@@ -777,6 +814,9 @@ function monitorMultilevelChildVisibility(
     return child;
   }
 
+  // while nextElement computes the closest element in terms of the dom,
+  //  nextElementCousin computes that element, then computes the closest
+  //  child of that element.
   function nextElementCousin(elem) {
     var curr = elem;
     var depth = 0;
@@ -860,7 +900,13 @@ function monitorMultilevelChildVisibility(
   //  helpers
   //====================================
 
+  function copyArray(array) {
+    return array.slice(0);
+  }
+
   function safeOnscreenCallback(child, depth) {
+    if (notifyOnlyAtMaxDepth && depth !== maxDepth)
+      return;
     try {
       onscreenCallback(child, depth);
     }
@@ -872,6 +918,8 @@ function monitorMultilevelChildVisibility(
   }
 
   function safeOffscreenCallback(child, depth) {
+    if (notifyOnlyAtMaxDepth && depth !== maxDepth)
+      return;
     try {
       offscreenCallback(child, depth);
     }
@@ -903,15 +951,20 @@ function monitorMultilevelChildVisibility(
     g.observer.disconnect();
   }
 
-  function resumeMonitoringMutations() {
+  function resumeMonitoringMutations(forceVisibilityUpdate) {
     if (g.stopped)
       return;
     g.observer.observe(container, { childList: true, subtree: true });
+
+    if (forceVisibilityUpdate) {
+      reset();
+      updateVisibility(true);
+    }
   }
 
   function stopMonitoring() {
     container.removeEventListener('scroll', scrollHandler);
-    window.removeEventListener('resize', updateVisibility);
+    window.removeEventListener('resize', onresize);
     g.observer.disconnect();
     g.stopped = true;
   }

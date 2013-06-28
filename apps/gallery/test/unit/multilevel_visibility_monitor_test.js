@@ -1,3 +1,36 @@
+/*====================================
+  MonitorMultilevelChildVisibility Tests
+
+  - implements and runs a DSL, monitoring changes that took place between
+    instructions
+
+  - DSL
+      - instructions are either a string, or an array of strings
+          - instructions are posted to the event loop and run consecutively
+          - if instruction is an array, subinstructions are run consecutively,
+            not posted to the event loop consecutively
+      - instructions access elements with identifiers composed of numbers and
+        commas
+      - %d will be used to represent a number
+      - %i and %j will be used to represent an identifier
+      - instructions:
+        scroll %d
+          sets container's scrolltop to %d
+        rm %i
+          removes element %i
+        addafter %i %j
+          add %i after %j (so %j's next sibling is %i)
+        addbefore %i %j
+          add %i before %j (so %j's prev sibling is %i)
+        addchild %i %j
+          add %i to %j (appendChild)
+        add %i
+          append %i to container
+        addroot %i
+          append %i to container, not setting its height
+
+====================================*/
+
 'use strict';
 
 require('/shared/js/multilevel_visibility_monitor.js');
@@ -21,6 +54,10 @@ suite('multilevel_visibility_monitor', function() {
       '  background: white;' +
       '}';
     document.head.appendChild(style);
+
+    //===================
+    // testing basic scrolling, rm, add
+    //===================
 
     test('simpleContainerScroll', function(done) {
 
@@ -190,7 +227,6 @@ suite('multilevel_visibility_monitor', function() {
           'scroll 0',
           'rm 0,0,0',
           'addbefore 0,0,0 0,0,1',
-          'addRm',
           'rm 1',
           [
             'rm 0,0,0',
@@ -282,20 +318,18 @@ suite('multilevel_visibility_monitor', function() {
           assert.deepEqual(logger.data[8], { '0,0,0': 'on', '1,1,0,0': 'off',
                                              '1,1': 'off', '1,1,0': 'off' });
 
-          assert.deepEqual(logger.data[9], undefined);
-
-          assert.deepEqual(logger.data[10], { '2': 'on', '2,0,0': 'on',
+          assert.deepEqual(logger.data[9], { '2': 'on', '2,0,0': 'on',
             '2,0,0,0': 'on', '2,0,0,1': 'on', '2,0,0,2': 'on', '2,0,1': 'on',
             '2,0,1,0': 'on', '2,0,1,1': 'on', '2,0,1,2': 'on', '2,0,2': 'on',
             '2,0,2,0': 'on', '2,0,2,1': 'on', '2,0,2,2': 'on', '2,0': 'on'});
 
-          assert.deepEqual(logger.data[11], { '3': 'on', '0,0,0': 'on',
+          assert.deepEqual(logger.data[10], { '3': 'on', '0,0,0': 'on',
             '3,0,0': 'on', '3,0,0,0': 'on', '3,0,0,1': 'on', '3,0,0,2': 'on',
             '3,0,1': 'on', '3,0,1,0': 'on', '3,0,1,1': 'on', '3,0,1,2': 'on',
             '3,0,2': 'on', '3,0,2,0': 'on', '3,0,2,1': 'on', '3,0,2,2': 'on',
             '3,0': 'on'});
 
-          assert.deepEqual(logger.data[12], { '4': 'on', '3,1,0,0': 'on',
+          assert.deepEqual(logger.data[11], { '4': 'on', '3,1,0,0': 'on',
             '3,1,0,1': 'on', '3,1,0,2': 'on', '3,1,1': 'on', '3,1,1,0': 'on',
             '3,1,1,1': 'on', '3,1,1,2': 'on', '3,1,2': 'on', '3,1,2,0': 'on',
             '3,1,2,1': 'on', '3,1,2,2': 'on', '3,2': 'on', '3,2,0': 'on',
@@ -306,12 +340,12 @@ suite('multilevel_visibility_monitor', function() {
             '4,0,1': 'on', '4,0,1,0': 'on', '4,0,1,1': 'on', '4,0,1,2': 'on',
             '4,0,2': 'on', '4,0,2,0': 'on', '3,1': 'on', '3,1,0': 'on'});
 
-          assert.deepEqual(logger.data[13], { '2': 'on', '4,0,2,1': 'on',
+          assert.deepEqual(logger.data[12], { '2': 'on', '4,0,2,1': 'on',
             '4,0,2,2': 'on', '4,1': 'on', '4,1,0': 'on', '4,1,0,0': 'on',
             '4,1,0,1': 'on', '4,1,0,2': 'on', '4,1,1': 'on', '4,1,1,0': 'on',
             '4,1,1,1': 'on', '4,1,1,2': 'on'});
 
-          assert.deepEqual(logger.data[14], {'7,0,0,0': 'on', '7,0,0,1': 'on',
+          assert.deepEqual(logger.data[13], {'7,0,0,0': 'on', '7,0,0,1': 'on',
             '7,0,0,2': 'on', '7,0,0': 'on', '7,0,1': 'on', '7,0,1,0': 'on',
             '7,0,1,1': 'on', '7,0,1,2': 'on', '7,0,2': 'on', '7,0,2,0': 'on',
             '7,0,2,1': 'on', '7,0,2,2': 'on', '7,0': 'on', '7,1': 'on',
@@ -322,14 +356,14 @@ suite('multilevel_visibility_monitor', function() {
             '7,2,0,2': 'on', '7,2,1': 'on', '7,2,1,0': 'on', '7,2,1,1': 'on',
             '7,2,1,2': 'on', '7,2,2': 'on', '7,2,2,0': 'on', '7,2,2,1': 'on',
             '7,2,2,2': 'on'});
-          assert.deepEqual(logger.data[15], { '0': 'on' });
+          assert.deepEqual(logger.data[14], { '0': 'on' });
 
-          assert.deepEqual(logger.data[16], { '0,0': 'on', '0,1': 'on',
+          assert.deepEqual(logger.data[15], { '0,0': 'on', '0,1': 'on',
             '0,2': 'on' });
 
-          assert.deepEqual(logger.data[17], { '0,0,0': 'on', '0,0,0,0': 'on' });
+          assert.deepEqual(logger.data[16], { '0,0,0': 'on', '0,0,0,0': 'on' });
 
-          for (var i = 18; i < logger.data.length; i++) {
+          for (var i = 17; i < logger.data.length; i++) {
             console.log(i, logger.data[i]);
           }
 
@@ -420,6 +454,7 @@ suite('multilevel_visibility_monitor', function() {
       0,
       scrollDelta,
       monitorDepth,
+      false,
       function onscreen(child) {
         child.style.background = 'blue';
         logger.log(child.index, 'on');

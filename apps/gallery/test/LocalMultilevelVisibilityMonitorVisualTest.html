@@ -50,29 +50,27 @@
         document.body.appendChild(container);
 
         var scrollDelta = 1;
-        var monitor = monitorMultilevelChildVisibility(container, -50, scrollDelta, 4,
+        var scrollMargin = -50; // so we can actually see offscreen nodes
+        var notifyOnlyAtMaxDepth = false;
+        var monitor = monitorMultilevelChildVisibility(container, scrollMargin, scrollDelta, 4, notifyOnlyAtMaxDepth,
           function(curr) {
-            clearInterval(curr.id);
-            var i = 1;
-            curr.style.background = 'rgb(' + i + ', ' + i + ',255)';
-            curr.id = setInterval(function() {
-              i += 10;
-              curr.style.background = 'rgb(' + i + ', ' + i + ',255)';
-              if (i >= 200)
-                clearInterval(curr.id);
-            }, 50);
+            fadeBackgroundColor(curr, 'rgb(i, i, 255');
           },
           function(curr) {
-            clearInterval(curr.id);
-            var i = 1;
-            curr.style.background = 'rgb(255, ' + i + ', ' + i + ')';
-            curr.id = setInterval(function() {
-              i += 10;
-              curr.style.background = 'rgb(255, ' + i + ', ' + i + ')';
-              if (i >= 200)
-                clearInterval(curr.id);
-            }, 50);
+            fadeBackgroundColor(curr, 'rgb(255, i, i)');
           });
+
+        function fadeBackgroundColor(elem, template){
+            clearInterval(elem.id);
+            var i = 1;
+            elem.style.background = template.replace(/i/g, i);
+            elem.id = setInterval(function() {
+              i += 10;
+              elem.style.background = template.replace(/i/g, i);
+              if (i >= 200)
+                clearInterval(elem.id);
+            }, 50);
+        }
 
     </script>
   </head>
