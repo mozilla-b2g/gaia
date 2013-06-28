@@ -276,13 +276,83 @@ body {
   visibility: hidden;
 }
 
-#screen.cards-view > #windows > .appWindow.closing {
+#windows > .appWindow.portrait-secondary {
+  transform: rotate(180deg);
+  margin-top: -2rem;
+  overflow: visible;
+}
+
+#windows > .appWindow.landscape-primary {
+  transform: rotate(90deg);
+  overflow: visible;
+}
+
+#windows > .appWindow.landscape-secondary {
+  transform: rotate(270deg);
+  margin-left: 2rem;
+  overflow: visible;
+}
+
+/* placeholder for status bar of previous orientation */
+#windows > .appWindow.landscape-primary:not(.fullscreen-app):after,
+#windows > .appWindow.landscape-secondary:not(.fullscreen-app):after,
+#windows > .appWindow.portrait-secondary:not(.fullscreen-app):after {
+  display: block;
+  height: 2rem;
+  width: 100%;
+  left: 0;
+  top: -2rem;
+  position: absolute;
+  content: ' ';
+  font-size: 1.8rem;
+  background: #000000;
+}
+
+#windows > .appWindow.fullscreen-app.portrait-secondary,
+#windows > .appWindow.fullscreen-app.landscape-primary,
+#windows > .appWindow.fullscreen-app.landscape-secondary {
+  margin: 0;
+}
+#windows > .appWindow.closing {
+  /* The animation takes .3 seconds so users cannot touch the app while the
+   * closing animation is performing */
+  pointer-events: none;
+}
+
+#screen.cards-view > #windows > .appWindow.closing.portrait-primary {
   transform: scale(0.8);
+}
+
+#screen.cards-view > #windows > .appWindow.closing.portrait-secondary {
+  transform: scale(0.8) rotate(180deg);
+}
+
+#screen.cards-view > #windows > .appWindow.closing.landscape-primary {
+  transform: scale(0.8) rotate(90deg);
+}
+
+#screen.cards-view > #windows > .appWindow.closing.landscape-secondary {
+  transform: scale(0.8) rotate(270deg);
 }
 
 #windows > .appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening) {
   opacity: 0;
   transform: scale(0.6);
+}
+
+#windows > .appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening).portrait-secondary {
+  opacity: 0;
+  transform: scale(0.6) rotate(180deg);
+}
+
+#windows > .appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening).landscape-primary {
+  opacity: 0;
+  transform: scale(0.6) rotate(90deg);
+}
+
+#windows > .appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening).landscape-secondary {
+  opacity: 0;
+  transform: scale(0.6) rotate(270deg);
 }
 
 #windows > .appWindow.opening {

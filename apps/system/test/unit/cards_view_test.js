@@ -66,22 +66,54 @@ suite('cards view >', function() {
 
     MockWindowManager.mRunningApps = {
       'http://sms.gaiamobile.org': {
-        launchTime: 2,
+        launchTime: 5,
         name: 'SMS',
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'portrait-primary'
-        }
+        },
+        currentOrientation: 'portrait-primary'
       },
       'http://game.gaiamobile.org': {
-        launchTime: 1,
+        launchTime: 4,
         name: 'GAME',
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'landscape-primary'
-        }
+        },
+        currentOrientation: 'landscape-primary'
+      },
+      'http://game2.gaiamobile.org': {
+        launchTime: 3,
+        name: 'GAME2',
+        frame: document.createElement('div'),
+        iframe: document.createElement('iframe'),
+        manifest: {
+          orientation: 'landscape-secondary'
+        },
+        currentOrientation: 'landscape-secondary'
+      },
+      'http://game3.gaiamobile.org': {
+        launchTime: 2,
+        name: 'GAME3',
+        frame: document.createElement('div'),
+        iframe: document.createElement('iframe'),
+        manifest: {
+          orientation: 'landscape'
+        },
+        currentOrientation: 'landscape-primary'
+      },
+      'http://game4.gaiamobile.org': {
+        launchTime: 1,
+        name: 'GAME4',
+        frame: document.createElement('div'),
+        iframe: document.createElement('iframe'),
+        manifest: {
+          orientation: 'portrait-secondary'
+        },
+        currentOrientation: 'portrait-secondary'
       }
     };
     MockWindowManager.mDisplayedApp = 'http://sms.gaiamobile.org';
@@ -152,17 +184,34 @@ suite('cards view >', function() {
       CardsView.hideCardSwitcher();
     });
 
-    test('cardsview defines a landscape app', function() {
-      assert.isTrue(cardsView.
-        querySelector('li[data-origin="http://game.gaiamobile.org"]').classList.
-        contains('landscape'));
+    var testCardOrientation = function(origin, orientation) {
+      var card = cardsView.querySelector('li[data-origin="' + origin + '"]');
+      card.dispatchEvent(new CustomEvent('onviewport'));
+      return card.querySelector('.screenshotView')
+          .classList.contains(orientation);
+    };
+
+    test('cardsview defines a landscape-primary app', function() {
+      assert.isTrue(testCardOrientation('http://game.gaiamobile.org',
+                                        'landscape-primary'));
+    });
+    test('cardsview defines a landscape-secondary app', function() {
+      assert.isTrue(testCardOrientation('http://game2.gaiamobile.org',
+                                        'landscape-secondary'));
+    });
+    test('cardsview defines a landscape app in landscape-primary', function() {
+      assert.isTrue(testCardOrientation('http://game3.gaiamobile.org',
+                                        'landscape-primary'));
+    });
+    test('cardsview defines a portrait app in portrait-primary', function() {
+      assert.isTrue(testCardOrientation('http://sms.gaiamobile.org',
+                                        'portrait-primary'));
+    });
+    test('cardsview defines a portrait-secondary app', function() {
+      assert.isTrue(testCardOrientation('http://game4.gaiamobile.org',
+                                        'portrait-secondary'));
     });
 
-    test('cardsview defines a portrait app', function() {
-      assert.isFalse(cardsView.
-        querySelector('li[data-origin="http://sms.gaiamobile.org"]').classList.
-        contains('landscape'));
-    });
   });
 });
 
