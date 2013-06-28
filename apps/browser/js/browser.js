@@ -1277,7 +1277,7 @@ var Browser = {
         return {
           label: _('open-in-new-tab'),
           callback: function() {
-            self.openInNewTab(item.data);
+            self.openInNewTab(item.data.uri);
           }
         };
       case 'IMG':
@@ -1289,11 +1289,14 @@ var Browser = {
           'AUDIO': 'audio'
         };
         var type = typeMap[item.nodeName];
+        if (item.nodeName === 'VIDEO' && !item.data.hasVideo) {
+          type = 'audio';
+        }
 
         return {
           label: _('save-' + type),
           callback: function() {
-            self.saveMedia(item.data, type);
+            self.saveMedia(item.data.uri, type);
           }
         };
       default:
