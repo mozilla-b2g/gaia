@@ -65,9 +65,16 @@
     return document.querySelectorAll('link[type="application/l10n"]');
   }
 
-  function getL10nDictionary() {
-    var script = document.querySelector('script[type="application/l10n"]');
-    // TODO: support multiple and external JSON dictionaries
+  function getL10nDictionary(lang) {
+    // a <script type="application/l10n"> dictionary with no 'lang' attribute
+    // is considered as the default/fallback dictionary.
+    var getDictionary = function(locale) {
+      var sel = 'script[type="application/l10n"]';
+      sel += locale ? '[lang="' + locale + '"]' : ':not([lang])';
+      return document.querySelector(sel);
+    }
+    // TODO: support multiple internal JSON dictionaries?
+    var script = getDictionary(lang) || getDictionary();
     return script ? JSON.parse(script.innerHTML) : null;
   }
 
@@ -251,7 +258,7 @@
           prop = key.substr(index + 1);
         } else { // no attribute: assuming text content by default
           id = key;
-          prop = gTextProp;
+          prop = '_';
         }
         if (!gL10nData[id]) {
           gL10nData[id] = {};
@@ -279,10 +286,8 @@
     var langCount = langLinks.length;
     if (langCount == 0) {
       // we might have a pre-compiled dictionary instead
-      var dict = getL10nDictionary();
-      if (dict && dict.locales && dict.default_locale) {
+      if (gL10nData = getL10nDictionary(lang)) {
         consoleLog('using the embedded JSON directory, early way out');
-        gL10nData = dict.locales[lang] || dict.locales[dict.default_locale];
         callback();
       } else {
         consoleLog('no resource to load, early way out');
@@ -308,24 +313,16 @@
     // load all resource files
     function l10nResourceLink(link) {
       var href = link.href;
-      var type = link.type;
       this.load = function(lang, callback) {
-        var applied = lang;
         parseResource(href, lang, callback, function() {
           consoleWarn(href + ' not found.');
-          applied = '';
         });
-        return applied; // return lang if found, an empty string if not found
       };
     }
 
     for (var i = 0; i < langCount; i++) {
       var resource = new l10nResourceLink(langLinks[i]);
-      var rv = resource.load(lang, onResourceLoaded);
-      if (rv != lang) { // lang not found, used default resource instead
-        consoleWarn('"' + lang + '" resource not found');
-        gLanguage = '';
-      }
+      resource.load(lang, onResourceLoaded);
     }
   }
 
@@ -756,7 +753,7 @@
       return str;
 
     // TODO: support other properties (l20n still doesn't...)
-    if (prop != gTextProp)
+    if (prop !== '_')
       return str;
 
     // initialize _pluralRules
@@ -847,7 +844,7 @@
       if (args && arg in args) {
         sub = args[arg];
       } else if (arg in gL10nData) {
-        sub = gL10nData[arg][gTextProp];
+        sub = gL10nData[arg]['_'];
       } else {
         consoleLog('argument {{' + arg + '}} for #' + key + ' is undefined.');
         return str;
@@ -875,9 +872,9 @@
     }
 
     // translate element (TODO: security checks?)
-    if (data[gTextProp]) { // XXX
+    if (data._) {
       if (element.children.length === 0) {
-        element[gTextProp] = data[gTextProp];
+        element[gTextProp] = data._;
       } else {
         // this element has element children: replace the content of the first
         // (non-empty) child textNode and clear other child textNodes
@@ -888,7 +885,7 @@
             if (found) {
               children[i].nodeValue = '';
             } else {
-              children[i].nodeValue = data[gTextProp];
+              children[i].nodeValue = data._;
               found = true;
             }
           }
@@ -896,11 +893,10 @@
         // if no (non-empty) textNode is found, insert a textNode before the
         // first element child.
         if (!found) {
-          var textNode = document.createTextNode(data[gTextProp]);
+          var textNode = document.createTextNode(data._);
           element.insertBefore(textNode, element.firstChild);
         }
       }
-      delete data[gTextProp];
     }
 
     for (var k in data) {
@@ -993,12 +989,8 @@
   // public API
   navigator.mozL10n = {
     // get a localized string
-    get: function l10n_get(key, args, fallback) {
-      var data = getL10nData(key, args) || fallback;
-      if (data) {
-        return 'textContent' in data ? data.textContent : '';
-      }
-      return '{{' + key + '}}';
+    get: function l10n_get(key, args) {
+      return getL10nData(key, args)._ || '';
     },
 
     // get|set the document language and direction
