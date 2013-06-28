@@ -27,7 +27,6 @@
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
   var stkLastSelectedTest = null;
-  var inputTimeout = 40000;
   var goBackTimer = {
     timer: null,
     timeout: 1000
@@ -76,16 +75,6 @@
 
     // Load STK apps
     updateMenu();
-
-    // XXX https://bugzilla.mozilla.org/show_bug.cgi?id=844727
-    // We should use Settings.settingsCache first
-    var settings = Settings.mozSettings;
-    var lock = settings.createLock();
-    // Update inputTimeout with settings parameter
-    var reqInputTimeout = lock.get('icc.inputTextTimeout');
-    reqInputTimeout.onsuccess = function icc_getInputTimeout() {
-      inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
-    };
   }
 
   function stkResTerminate() {
@@ -142,16 +131,6 @@
   }
 
   /**
-   * Send Terminal Response : UICC SESSION TERMINATED BY USER
-   */
-  function sendSessionEndTROnFocusLose() {
-    if (document.mozHidden)
-      responseSTKCommand({
-        resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
-      });
-  }
-
-  /**
    * Response ICC Command
    */
   function responseSTKCommand(response, force) {
@@ -187,12 +166,6 @@
       case icc.STK_CMD_SELECT_ITEM:
         updateSelection(command);
         openSTKApplication();
-        iccLastCommandProcessed = true;
-        break;
-
-      case icc.STK_CMD_GET_INKEY:
-      case icc.STK_CMD_GET_INPUT:
-        updateInput(command);
         iccLastCommandProcessed = true;
         break;
 
@@ -336,150 +309,6 @@
       itemIdentifier: identifier
     });
     stkLastSelectedTest = event.target.textContent;
-  }
-
-  function calculateDurationInMS(timeUnit, timeInterval) {
-    var timeout = timeInterval;
-    switch (timeUnit) {
-      case icc.STK_TIME_UNIT_MINUTE:
-        timeout *= 3600000;
-        break;
-      case icc.STK_TIME_UNIT_SECOND:
-        timeout *= 1000;
-        break;
-      case icc.STK_TIME_UNIT_TENTH_SECOND:
-        timeout *= 100;
-        break;
-    }
-    return timeout;
-  }
-
-  /**
-   * Show an INPUT box requiring data
-   * Command options like:
-   * { 'options': {
-   *   'text':'Caption String','minLength':3,'maxLength':15,'isAlphabet':true}}
-   */
-  function updateInput(command) {
-    var options = command.options;
-
-    DUMP('Showing STK input box');
-    clearList();
-    showTitle(stkLastSelectedTest);
-
-    DUMP('STK Input title: ' + options.text);
-
-    document.addEventListener('mozvisibilitychange',
-        sendSessionEndTROnFocusLose, true);
-    var li = document.createElement('li');
-    var p = document.createElement('p');
-    p.id = 'stk-item-title';
-    p.classList.add('multiline_title');
-    p.textContent = options.text;
-    li.appendChild(p);
-
-    var input = document.createElement('input');
-    input.id = 'stk-item-input';
-    input.maxLength = options.maxLength;
-    input.placeholder = options.text;
-    if (options.isAlphabet) {
-      input.type = 'text';
-    } else {
-      input.type = 'tel';
-    }
-    if (options.defaultText) {
-      input.value = options.defaultText;
-    }
-    if (options.isYesNoRequired) {
-      input.type = 'checkbox';
-    }
-    if (options.hideInput) {
-      input.type = 'password';
-    }
-    if (options.hidden) {
-      input.type = 'hidden';
-    }
-    li.appendChild(input);
-    iccStkList.appendChild(li);
-
-    var timeoutInUse = options.duration;
-    var inputTimeOutID = setTimeout(function() {
-      DUMP('No response from user (Timeout)');
-      responseSTKCommand({
-        resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
-      });
-    }, timeoutInUse ? calculateDurationInMS(options.duration) : inputTimeout);
-
-    li = document.createElement('li');
-    var label = document.createElement('label');
-    var button = document.createElement('button');
-    button.id = 'stk-item-ok';
-    button.textContent = 'Ok';
-    button.disabled = !checkInputLengthValid(input.value.length,
-                                              options.minLength,
-                                              options.maxLength);
-    button.onclick = function(event) {
-      if (inputTimeOutID) {
-        clearTimeout(inputTimeOutID);
-        inputTimeOutID = null;
-      }
-      var value = document.getElementById('stk-item-input').value;
-      responseSTKCommand({
-        resultCode: icc.STK_RESULT_OK,
-        input: value
-      });
-    };
-
-    input.onkeyup = function(event) {
-      if (inputTimeOutID) {
-        clearTimeout(inputTimeOutID);
-        inputTimeOutID = null;
-      }
-      if (input.type === 'tel') {
-        // Removing unauthorized characters
-        console.log('TEL keypad. Remove unauthorized characters: ' +
-          input.value);
-        input.value = input.value.replace(/[()-]/g,'');
-        console.log('TEL keypad. Final entry: ' + input.value);
-      }
-      button.disabled = !checkInputLengthValid(input.value.length,
-                                              options.minLength,
-                                              options.maxLength);
-    };
-
-    label.appendChild(button);
-    li.appendChild(label);
-    iccStkList.appendChild(li);
-    input.focus();
-
-    // Help
-    if (options.isHelpAvailable) {
-      li = document.createElement('li');
-      label = document.createElement('label');
-      var buttonHelp = document.createElement('button');
-      buttonHelp.id = 'stk-item-help';
-      buttonHelp.textContent = _('operatorServices-help');
-      buttonHelp.dataset.l10nId = 'operatorServices-help';
-      buttonHelp.onclick = function(event) {
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_HELP_INFO_REQUIRED
-        });
-      };
-      label.appendChild(buttonHelp);
-      li.appendChild(label);
-      iccStkList.appendChild(li);
-    }
-  }
-
-  /**
-   * Check if the length of the input is valid.
-   *
-   * @param {Integer} inputLen    The length of the input.
-   * @param {Integer} minLen      Minimum length required of the input.
-   * @param {Integer} maxLen      Maximum length required of the input.
-   */
-  function checkInputLengthValid(inputLen, minLen, maxLen) {
-    return (inputLen >= minLen) && (inputLen <= maxLen);
   }
 
   /**
