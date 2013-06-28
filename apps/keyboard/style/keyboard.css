@@ -420,6 +420,11 @@ bubble above the key when you tap and hold. */
   white-space: normal;
 }
 
+.menu-container {
+  max-height: 34rem;
+  overflow-y: auto;
+}
+
 /* Special key menu enabled */
 .keyboard-key.special-key.highlighted.kbr-menu-on {
   position: relative;
@@ -438,20 +443,21 @@ bubble above the key when you tap and hold. */
   top: 0;
 }
 
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key {
+#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key {
   padding: 0;
   display: block;
 }
 
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper {
+#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key > .visual-wrapper {
   -moz-box-sizing: border-box;
   border: none;
   border-bottom: 0.1rem solid #3c3c3c;
-  width: 10rem;
+  width: 15rem;
+  height: 100%;
 }
 
 
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span {
+#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key > .visual-wrapper > span {
   font-weight: 500;
   font-size: 1.8rem;
   line-height: 5rem;
@@ -459,17 +465,17 @@ bubble above the key when you tap and hold. */
 }
 
 /* Change the text color since the current selected (kbr-key-hold) keyboard will have the same background color*/
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > .visual-wrapper > span {
+#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key.highlighted > .visual-wrapper > span {
   color: #1a3f46;
 }
 
 #keyboard-accent-char-menu > .keyboard-key:last-child .visual-wrapper,
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key:last-child .visual-wrapper {
+#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key:last-child .visual-wrapper {
   border: none;
 }
 
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.kbr-key-hold > .visual-wrapper,
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > .visual-wrapper {
+#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key.kbr-key-hold > .visual-wrapper,
+#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key.highlighted > .visual-wrapper {
   background-color: #00acd1;
 }
 
