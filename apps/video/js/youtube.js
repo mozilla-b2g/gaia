@@ -18,23 +18,43 @@ function getYoutubeVideo(url, successCallback, errorCallback) {
   // only care about the pathname which is the Youtube ID of the video
   // we want to play
   var videoId = url.slice(15, url.indexOf('?'));
-  var query = 'http://www.youtube.com/get_video_info?&video_id=' + videoId;
+  // we need to load two text from youtube, for vevo videos.
+  var videoInfoText;
+  var videoPageText;
 
-  var request = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
-  request.open('GET', query);
-  request.onerror = function() {
-    console.error('error while querying', query);
-    errorCallback();
-  };
-  request.onload = function() {
-    if (request.status !== 200) {
-      console.error('Youtube query return status', request.status, query);
+  // helper function to download content, if page is true, loads responseText to
+  // videoPageText, otherwise to videoInfoText.
+  function downloadContent(url, page) {
+    var request = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
+    request.open('GET', url);
+    request.onload = function _onload() {
+      if (request.status !== 200) {
+        console.error('Youtube query return status', request.status, query);
+        errorCallback();
+        return;
+      }
+      if (page) {
+        videoPageText = request.responseText;
+      } else {
+        videoInfoText = request.responseText;
+      }
+      startToParse();
+    };
+    request.onerror = function downloadError() {
+      console.error('error while querying: ', url);
       errorCallback();
+    };
+    request.send();
+  }
+
+  function startToParse() {
+    // we need video info and video page to start parse
+    if (!videoInfoText || !videoPageText) {
       return;
     }
 
     try {
-      var info = parseYoutubeVideoInfo(request.responseText);
+      var info = parseYoutubeVideoInfo(videoInfoText, videoPageText);
     }
     catch (e) {
       console.error('error parsing youtube query response:', e);
@@ -52,18 +72,27 @@ function getYoutubeVideo(url, successCallback, errorCallback) {
 
     // Finally, if everything worked, pass the url and title to the callback
     successCallback(info.url, info.title);
-  };
-  request.send();
+  }
+
+  // download video info from youtube
+  var query = 'http://www.youtube.com/get_video_info?&video_id=' + videoId;
+  downloadContent(query, false);
+
+  // download web page from youtube, use nomobile=1 to get desktop version.
+  var queryToWebPage = 'http://www.youtube.com/watch?nomobile=1&v=' + videoId;
+  downloadContent(queryToWebPage, true);
 
   //
-  // Parse the response from a youtube get_video_info query.
+  // Parse the videoInfo and pageText from a youtube queries.
   //
-  // If youtube's response is a failure, this function returns an object
+  // If youtube's videoInfo is a failure, this function returns an object
   // with status, errorcode, type and reason properties. Otherwise, it returns
   // an object with status, url, and type properties, and optional
   // title, poster, and duration properties.
+  // If youtube's pageText contains vevo info, we use url_encoded_fmt_stream_map
+  // from pageText instead of videoInfo.
   //
-  function parseYoutubeVideoInfo(response) {
+  function parseYoutubeVideoInfo(videoInfo, pageText) {
     // Splits parameters in a query string.
     function extractParameters(q) {
       var params = q.split('&');
@@ -79,8 +108,77 @@ function getYoutubeVideo(url, successCallback, errorCallback) {
       }
       return result;
     }
+    // helper function to decrypt signature with length 87. We don't know how to
+    // decode others.
+    function decryptSignature(s) {
+      if (s.length == 88) {
+        return s.substring(48, 49) +
+               s.substring(68, 82).split('').reverse().join('') +
+               s.substring(82, 83) +
+               s.substring(63, 67).split('').reverse().join('') +
+               s.substring(85, 86) +
+               s.substring(49, 62).split('').reverse().join('') +
+               s.substring(67, 68) +
+               s.substring(13, 48).split('').reverse().join('') +
+               s.substring(3, 4) +
+               s.substring(4, 12).split('').reverse().join('') +
+               s.substring(2, 3) +
+               s.substring(12, 13);
+      } else if (s.length == 87) {
+        return s.substring(62, 63) +
+               s.substring(63, 83).split('').reverse().join('') +
+               s.substring(83, 84) +
+               s.substring(53, 62).split('').reverse().join('') +
+               s.substring(0, 1) +
+               s.substring(3, 52).split('').reverse().join('');
+      } else if (s.length == 86) {
+        return s.substring(2, 63) + s.substring(82, 83) + s.substring(64, 82) +
+               s.substring(63, 64);
+      } else if (s.length == 85) {
+        return s.substring(76, 77) +
+               s.substring(77, 83).split('').reverse().join('') +
+               s.substring(83, 84) +
+               s.substring(61, 76).split('').reverse().join('') +
+               s.substring(0, 1) +
+               s.substring(51, 60).split('').reverse().join('') +
+               s.substring(1, 2) +
+               s.substring(3, 50).split('').reverse().join('');
+      } else if (s.length == 84) {
+        return s.substring(37, 84).split('').reverse().join('') +
+               s.substring(2, 3) +
+               s.substring(27, 36).split('').reverse().join('') +
+               s.substring(3, 4) +
+               s.substring(4, 26).split('').reverse().join('') +
+               s.substring(26, 27);
+      } else if (s.length == 83) {
+        return s.substring(52, 53) +
+               s.substring(56, 82).split('').reverse().join('') +
+               s.substring(2, 3) +
+               s.substring(53, 55).split('').reverse().join('') +
+               s.substring(82, 83) +
+               s.substring(37, 52).split('').reverse().join('') +
+               s.substring(55, 56) +
+               s.substring(3, 36).split('').reverse().join('') +
+               s.substring(36, 37);
+      } else if (s.length == 82) {
+        return s.substring(36, 37) +
+               s.substring(68, 80).split('').reverse().join('') +
+               s.substring(81, 82) +
+               s.substring(41, 67).split('').reverse().join('') +
+               s.substring(33, 34) +
+               s.substring(37, 40).split('').reverse().join('') +
+               s.substring(40, 41) +
+               s.substring(35, 36) +
+               s.substring(0, 1) +
+               s.substring(67, 68) +
+               s.substring(1, 33).split('').reverse().join('') +
+               s.substring(34, 35);
+      } else {
+        throw Error('Unknown signature structure: ' + s);
+      }
+    }
 
-    var params = extractParameters(response);
+    var params = extractParameters(videoInfo);
 
     // If the request failed, return an object with an error code
     // and an error message
@@ -108,7 +206,17 @@ function getYoutubeVideo(url, successCallback, errorCallback) {
     };
 
     // Now parse the available streams
-    var streamsText = params.url_encoded_fmt_stream_map;
+    var streamsText;
+    var regexp = /;ytplayer\.config = ({.*?});/m;
+    var mobj = regexp.exec(pageText);
+    if (mobj && mobj.length > 1) {
+      var info = JSON.parse(mobj[1]);
+      streamsText = info.args.url_encoded_fmt_stream_map;
+    } else {
+      // use data from get_video_info
+      streamsText = params.url_encoded_fmt_stream_map;
+    }
+
     if (!streamsText)
       throw Error('No url_encoded_fmt_stream_map parameter');
     var streams = streamsText.split(',');
@@ -152,7 +260,9 @@ function getYoutubeVideo(url, successCallback, errorCallback) {
     if (formats.indexOf(bestStream.itag) === -1)
       throw Error('No supported video formats');
 
-    result.url = bestStream.url + '&signature=' + (bestStream.sig || '');
+    var sig = (bestStream.sig || decryptSignature(bestStream.s) || '');
+
+    result.url = bestStream.url + '&signature=' + sig;
     result.type = bestStream.type;
     // Strip codec information off of the mime type
     if (result.type && result.type.indexOf(';') !== -1) {
