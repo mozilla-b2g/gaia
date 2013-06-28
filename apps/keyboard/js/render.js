@@ -90,17 +90,9 @@ const IMERender = (function() {
 
     layout.upperCase = layout.upperCase || {};
 
-    var first = true;
 
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
-
-      var firstRow = '';
-      if (first) {
-        firstRow = ' first-row';
-        first = false;
-      }
-
-      content += '<div class="keyboard-row' + firstRow + '">';
+      content += '<div class="keyboard-row">';
       row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
         var keyChar = key.value;
@@ -346,14 +338,15 @@ const IMERender = (function() {
     }
   };
 
-  // Show keyboard alternatives
+  // Show keyboard layout alternatives
   var showKeyboardAlternatives = function(key, keyboards, current, switchCode) {
     var dataset, className, content = '';
+
+    content += '<div class="menu-container">';
     var menu = this.menu;
 
     var cssWidth = key.style.width;
     menu.classList.add('kbr-menu-lang');
-    key.classList.add('kbr-menu-on');
 
     var alreadyAdded = {};
     for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
@@ -376,6 +369,9 @@ const IMERender = (function() {
 
       alreadyAdded[kbr] = true;
     }
+    content += '</div>';
+
+
     menu.innerHTML = content;
 
     // Replace with the container
@@ -384,6 +380,7 @@ const IMERender = (function() {
     _altContainer.style.width = key.style.width;
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
+    _altContainer.classList.add('kbr-menu-on');
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 
@@ -400,11 +397,8 @@ const IMERender = (function() {
     var left = (window.innerWidth / 2 > key.offsetLeft);
 
     // Place the menu to the left
-    if (left) {
+    if (!left) {
       this.menu.classList.add('kbr-menu-left');
-    // Place menu on the right and reverse key order
-    } else {
-      this.menu.classList.add('kbr-menu-right');
       altChars = altChars.reverse();
     }
 

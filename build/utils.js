@@ -25,6 +25,7 @@ function getSubDirectories(directory) {
   return dirs;
 }
 
+
 /**
  * Returns an array of nsIFile's for a given directory
  *
@@ -216,3 +217,12 @@ function gaiaManifestURL(name) {
   return gaiaOriginURL(name) + '/manifest.webapp';
 }
 
+function getDistributionFileContent(name, defaultContent) {
+  if (Gaia.distributionDir) {
+    let distributionFile = getFile(Gaia.distributionDir, name + '.json');
+    if (distributionFile.exists()) {
+      return getFileContent(distributionFile);
+    }
+  }
+  return JSON.stringify(defaultContent, null, '  ');
+}

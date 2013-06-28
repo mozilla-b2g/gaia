@@ -32,6 +32,7 @@ var KeyboardManager = (function() {
   var previousHash = '';
 
   var urlparser = document.createElement('a');
+  var appClosing = false;
   keyboard.addEventListener('mozbrowserlocationchange', function(e) {
     urlparser.href = e.detail;
     if (previousHash == urlparser.hash)
@@ -41,6 +42,12 @@ var KeyboardManager = (function() {
     var type = urlparser.hash.split('=');
     switch (type[0]) {
       case '#show':
+        // If an app is closing, we should ignore any #show triggered by
+        // resize events which come from orientation change events.
+        if (appClosing) {
+          return;
+        }
+
         var updateHeight = function updateHeight() {
           container.removeEventListener('transitionend', updateHeight);
           if (container.classList.contains('hide')) {
@@ -87,7 +94,14 @@ var KeyboardManager = (function() {
     window.addEventListener(eventType, function closeKeyboard() {
       dispatchEvent(new CustomEvent('keyboardhide'));
       container.classList.add('hide');
+      if (eventType == 'appwillclose') {
+        appClosing = true;
+      }
     });
+  });
+
+  window.addEventListener('appclose', function appClose() {
+    appClosing = false;
   });
 })();
 

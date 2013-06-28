@@ -1826,6 +1826,10 @@ suite('thread_ui.js >', function() {
               assert.equal(
                 ThreadUI.headerText.textContent, 'participant{"n":2}'
               );
+              // View should not go back to thread view when header is
+              // activated in group-view
+              ThreadUI.onHeaderActivation();
+              assert.equal(window.location.hash, '#group-view');
               window.onhashchange = null;
               done();
             };

@@ -390,6 +390,19 @@
     })
   );
 
+  ContactsDB.push(
+    new Contact({
+      familyName: 'Taumatawhakatangihangakoauauota',
+      givenName: 'Mateapokaiwhenuakitanatahu',
+      tel: [
+        {
+          value: '+18001114321',
+          type: ['Mobile']
+        }
+      ]
+    })
+  );
+
   // console.log( ContactsDB );
 
 

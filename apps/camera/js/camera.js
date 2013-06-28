@@ -470,9 +470,6 @@ var Camera = {
   },
 
   cancelPick: function camera_cancelPick() {
-    if (this.cancelPickButton.hasAttribute('disabled'))
-      return;
-
     if (this._pendingPick) {
       this._pendingPick.postError('pick cancelled');
     }

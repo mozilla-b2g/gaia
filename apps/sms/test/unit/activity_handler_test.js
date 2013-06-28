@@ -145,6 +145,19 @@ suite('ActivityHandler', function() {
       assert.equal(wakeLock.topic, 'cpu');
     });
 
+    suite('contact retrieved (after getSelf)', function() {
+      var contactName = '<&>';
+      setup(function() {
+        this.sinon.stub(Contacts, 'findByPhoneNumber')
+          .callsArgWith(1, [{name: [contactName]}]);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      test('passes contact name in plain text', function() {
+        assert.equal(MockNotificationHelper.mTitle, contactName);
+      });
+    });
+
     suite('after getSelf', function() {
       setup(function() {
         MockNavigatormozApps.mTriggerLastRequestSuccess();
