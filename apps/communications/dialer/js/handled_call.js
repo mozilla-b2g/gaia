@@ -83,7 +83,9 @@ HandledCall.prototype.startTimer = function hc_startTimer() {
   this.durationNode.classList.add('isTimer');
   LazyL10n.get((function localized(_) {
     this._ticker = setInterval(function hc_updateTimer(self, startTime) {
-      var elapsed = new Date(Date.now() - startTime);
+      // Bug 834334: Ensure that 28.999 -> 29.000
+      var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
+      var elapsed = new Date(delta);
       var duration = {
         h: padNumber(elapsed.getUTCHours()),
         m: padNumber(elapsed.getUTCMinutes()),
