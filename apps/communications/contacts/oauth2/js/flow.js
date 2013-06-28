@@ -77,8 +77,7 @@ if (typeof fb.oauthflow === 'undefined') {
     function startOAuth(state) {
       var params = fb.oauthflow.params;
 
-      var redirect_uri = encodeURIComponent(params[OAUTH_REDIRECT] +
-                                            '#state=' + state);
+      var redirect_uri = encodeURIComponent(params[OAUTH_REDIRECT]);
 
       var scope = ['friends_about_me,friends_birthday,' ,
                     'friends_hometown,friends_location,friends_work_history,' ,

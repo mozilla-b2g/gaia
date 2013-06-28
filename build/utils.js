@@ -74,6 +74,18 @@ function getFileContent(file) {
   return content;
 }
 
+
+function getDistributionFileContent(name, defaultContent) {
+  if (Gaia.distributionDir) {
+    let distributionFile = getFile(Gaia.distributionDir, name + '.json');
+    if (distributionFile.exists()) {
+      return getFileContent(distributionFile);
+    }
+  }
+  return JSON.stringify(defaultContent, null, '  ');
+}
+
+
 function writeContent(file, content) {
   var fileStream = Cc['@mozilla.org/network/file-output-stream;1']
                      .createInstance(Ci.nsIFileOutputStream);
@@ -223,4 +235,3 @@ function gaiaOriginURL(name) {
 function gaiaManifestURL(name) {
   return gaiaOriginURL(name) + '/manifest.webapp';
 }
-

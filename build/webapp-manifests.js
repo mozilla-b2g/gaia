@@ -66,6 +66,46 @@ function checkOrigin(origin) {
   }
 }
 
+function fillCommsAppManifest(webapp, webappTargetDir) {
+  let manifestContent = getFileContent(webapp.manifestFile);
+  var manifestObject = JSON.parse(manifestContent);
+
+  let redirects = manifestObject.redirects;
+
+  let indexedRedirects = {};
+  redirects.forEach(function(aRedirect) {
+    indexedRedirects[aRedirect.from] = aRedirect.to;
+  });
+
+  let mappingParameters = {
+    'facebook': 'redirectURI',
+    'facebook_dialogs': 'redirectMsg',
+    'facebook_logout': 'redirectLogout'
+  };
+
+  let content = JSON.parse(getFileContent(getFile(GAIA_DIR, 'build',
+                                       'communications_services.json')));
+  let custom = getDistributionFileContent('communications_services', content);
+  let commsServices = JSON.parse(custom);
+
+  let newRedirects = [];
+  redirects.forEach(function(aRedirect) {
+    let from = aRedirect.from;
+    let service = commsServices[from.split('_')[0] || from] || commsServices;
+    newRedirects.push({
+      from: service[mappingParameters[from]],
+      to: indexedRedirects[from]
+    });
+  });
+
+  manifestObject.redirects = newRedirects;
+
+  debug(webappTargetDir.path);
+
+  let file = getFile(webappTargetDir.path, 'manifest.webapp');
+  writeContent(file, JSON.stringify(manifestObject));
+}
+
 Gaia.webapps.forEach(function (webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
@@ -78,6 +118,10 @@ Gaia.webapps.forEach(function (webapp) {
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
   webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
+
+  if (webapp.url.indexOf('communications.gaiamobile.org') !== -1) {
+    fillCommsAppManifest(webapp, webappTargetDir);
+  }
 
   // Add webapp's entry to the webapps global manifest.
   // appStatus == 3 means this is a certified app.
@@ -237,4 +281,3 @@ manifestFile.append('webapps.json');
 
 // stringify json with 2 spaces indentation
 writeContent(manifestFile, JSON.stringify(manifests, null, 2) + '\n');
-

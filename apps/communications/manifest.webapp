@@ -137,11 +137,11 @@
      { "ussd-received": "/dialer/index.html#keyboard-view" }
   ],
   "redirects": [
-    {"from": "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/flow.html",
+    {"from": "facebook",
     "to": "/redirects/redirect.html"},
-    {"from": "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/dialogs_end.html",
+    {"from": "facebook_dialogs",
     "to": "/redirects/dialogs_end.html"},
-    {"from": "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/logout.json",
+    {"from": "facebook_logout",
     "to": "/redirects/logout.json"}
    ]
 }
