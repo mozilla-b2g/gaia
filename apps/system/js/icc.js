@@ -7,6 +7,7 @@ var icc = {
   _iccLastCommand: null,
   _displayTextTimeout: 40000,
   _defaultURL: null,
+  _inputTimeout: 40000,
 
   init: function icc_init() {
     this._icc = this.getICC();
@@ -26,6 +27,12 @@ var icc = {
     reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
       this._displayTextTimeout =
         reqDisplayTimeout.result['icc.displayTextTimeout'];
+    };
+    // Update inputTimeout with settings parameter
+    var reqInputTimeout = window.navigator.mozSettings.createLock().get(
+      'icc.inputTextTimeout');
+    reqInputTimeout.onsuccess = function icc_getInputTimeout() {
+      this._inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
     };
   },
 
@@ -284,6 +291,108 @@ var icc = {
         openURL(url);
       }
     }
+  },
+
+  input: function(message, timeout, options, callback) {
+    /**
+     * Check if the length of the input is valid.
+     *
+     * @param {Integer} inputLen    The length of the input.
+     * @param {Integer} minLen      Minimum length required of the input.
+     * @param {Integer} maxLen      Maximum length required of the input.
+     */
+    function checkInputLengthValid(inputLen, minLen, maxLen) {
+      return (inputLen >= minLen) && (inputLen <= maxLen);
+    }
+
+    if (!this.icc_input) {
+      this.icc_input = document.getElementById('icc-input');
+      this.icc_input_msg = document.getElementById('icc-input-msg');
+      this.icc_input_box = document.getElementById('icc-input-box');
+      this.icc_input_btn = document.getElementById('icc-input-btn');
+      this.icc_input_btn_yes = document.getElementById('icc-input-btn_yes');
+      this.icc_input_btn_no = document.getElementById('icc-input-btn_no');
+      this.icc_input_btn_back = document.getElementById('icc-input-btn_back');
+      this.icc_input_btn_help = document.getElementById('icc-input-btn_help');
+    }
+
+    if (typeof callback != 'function') {
+      callback = function() {};
+    }
+    var self = this;
+    var timeoutId = null;
+
+    // Help
+    this.icc_input_btn_help.disabled = !options.isHelpAvailable;
+
+    if (!options.isYesNoRequired && !options.isYesNoRequested) {
+      this.icc_input.classList.remove('yesnomode');
+
+      this.icc_input_box.maxLength = options.maxLength;
+      this.icc_input_box.placeholder = message;
+      this.icc_input_box.type = options.isAlphabet ? 'text' : 'tel';
+      if (options.defaultText) {
+        this.icc_input_box.value = options.defaultText;
+      }
+      if (options.hideInput) {
+        this.icc_input_box.type = 'password';
+      }
+      if (options.hidden) {
+        this.icc_input_box.type = 'hidden';
+      }
+      this.icc_input_btn.disabled = !checkInputLengthValid(
+        this.icc_input_box.value.length, options.minLength, options.maxLength);
+      this.icc_input_box.onkeyup = function(event) {
+        clearTimeout(timeoutId);
+        if (self.icc_input_box.type === 'tel') {
+          // Removing unauthorized characters
+          self.icc_input_box.value =
+            self.icc_input_box.value.replace(/[()-]/g, '');
+        }
+        self.icc_input_btn.disabled = !checkInputLengthValid(
+          self.icc_input_box.value.length, options.minLength,
+          options.maxLength);
+      };
+      this.icc_input_btn.onclick = function() {
+        clearTimeout(timeoutId);
+        self.hideViews();
+        callback(true, self.icc_input_box.value);
+      };
+      this.icc_input_box.focus();
+    } else {
+      this.icc_input.classList.add('yesnomode');
+      this.icc_input_box.type = 'hidden';
+      this.icc_input_btn_yes.onclick = function(event) {
+        clearTimeout(timeoutId);
+        self.hideViews();
+        callback(true, 1);
+      };
+      this.icc_input_btn_no.onclick = function(event) {
+        clearTimeout(timeoutId);
+        self.hideViews();
+        callback(true, 0);
+      };
+    }
+
+    this.icc_input_msg.textContent = message;
+    this.icc_input.classList.add('visible');
+    this.icc_view.classList.add('visible');
+
+    // STK Default response (BACK and HELP)
+    this.icc_input_btn_back.onclick = function() {
+      clearTimeout(timeoutId);
+      self.hideViews();
+      self.backResponse();
+      callback(null);
+    };
+    this.icc_input_btn_help.onclick = function() {
+      clearTimeout(timeoutId);
+      self.hideViews();
+      self.responseSTKCommand({
+        resultCode: self._icc.STK_RESULT_HELP_INFO_REQUIRED
+      });
+      callback(null);
+    };
   }
 };
 
