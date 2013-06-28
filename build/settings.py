@@ -100,7 +100,7 @@ settings = {
  "ril.data.suspended": False,
  "ril.iccInfo.mbdn": "",
  "ril.sms.strict7BitEncoding.enabled": False,
- "ril.sms.requestStatusReport.enabled": False,
+ "ril.sms.requestStatusReport.enabled": True,
  "ril.cellbroadcast.searchlist": "",
  "ril.callwaiting.enabled": None,
  "ril.cf.enabled": False,
