@@ -361,6 +361,7 @@ Calendar.App = (function(window) {
 
        //lazy load recurring event expander so as not to impact initial load.
       this.loadObject('Controllers.RecurringEvents', function() {
+
         self.recurringEventsController =
           new Calendar.Controllers.RecurringEvents(self);
 
@@ -369,6 +370,16 @@ Calendar.App = (function(window) {
         );
 
         self.recurringEventsController.observe();
+      });
+      this.loadObject('Controllers.ActivityHandler',function() {
+
+        self.activityHandlerController = new Calendar.Controllers.ActivityHandler(self);
+
+        self.observePendingObject(
+          self.activityHandlerController
+        );
+
+        self.activityHandlerController.observe(window.navigator);
       });
     },
 
@@ -407,10 +418,12 @@ Calendar.App = (function(window) {
           next();
         });
       }
-
+      //window.megadb = this.db;
       this.db.load(function() {
         next();
       });
+
+
     },
 
     /**

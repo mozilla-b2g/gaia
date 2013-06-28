@@ -69,6 +69,27 @@ suiteGroup('Provider.Local', function() {
     });
   });
   */
+  suite('UrlImport',function()  {
+    var subject;
+
+    setup(function()  {
+      subject = Calendar.App.provider('Local');
+    });
+
+    suite('life-cycle-of-import',function() {
+       test('with true url', function() {
+          
+          var url = "http://www.webcal.fi/cal.php?id=38&format=ics&wd=-1&wrn=1&label=Week&wp=4&wf=26&color=%23000000&cntr=us&lang=en&rid=wc";  
+          subject.importFromUrl({},{},url,function(err,ical){assert.equal(ical,null);assert.equal(err,'calendar has no account');});
+       });
+       test('with fake url', function() {
+          
+          var url = '';  
+          subject.importFromUrl(Object.create(null),{},url,function(err,ical){assert.equal(ical,null);});
+       });
+    });
+
+  });
 
   suite('mutations', function() {
     var events;
