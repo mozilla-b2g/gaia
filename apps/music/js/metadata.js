@@ -497,9 +497,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       var atomHeader = readAtomHeader(header);
       readAtomBody(header, atomHeader, function(atom) {
         atom.advance(8); // Skip the atom's header
-        for (var i = 0; i < atomHeader.size - 16; i+=4) {
+        for (var i = 0; i < atomHeader.size - 8; i += 4) {
           var type = header.readASCIIText(4);
-          if (i === 1) {
+          if (i === 4) {
             // The second 4-byte block is the version of the major_brand
             continue;
           }
