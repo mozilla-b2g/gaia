@@ -239,7 +239,8 @@ var Contacts = (function() {
   };
 
   var dataPickHandler = function dataPickHandler() {
-    var type, dataSet, noDataStr, selectDataStr;
+    var type, dataSet, noDataStr, noDataTitle, selectDataStr,
+        noDataCallback = ConfirmDialog.hide;
     var theContact = currentFbContact || currentContact;
     // Add the new pick type here:
     switch (ActivityHandler.activityDataType) {
@@ -255,6 +256,11 @@ var Contacts = (function() {
         noDataStr = _('no_email');
         selectDataStr = _('select_email');
         break;
+      default:
+        noDataTitle = _('filetypeUnsupportedTitle');
+        noDataStr = _('filetypeUnsupportedMessage');
+        noDataCallback = ActivityHandler.postCancel;
+        break;
     }
 
     var hasData = dataSet && dataSet.length;
@@ -268,9 +274,9 @@ var Contacts = (function() {
         // If no required type of data
         var dismiss = {
           title: _('ok'),
-          callback: ConfirmDialog.hide
+          callback: noDataCallback
         };
-        ConfirmDialog.show(null, noDataStr, dismiss);
+        ConfirmDialog.show(noDataTitle, noDataStr, dismiss);
         break;
       case 1:
         // if one required type of data
