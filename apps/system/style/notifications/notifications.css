@@ -157,6 +157,8 @@ html, body {
   margin: 1.3rem 1.5rem 0 0;
   padding: 0;
   display: inline;
+  font-size: 1rem;
+  font-weight: bold;
   line-height: 1.6rem;
   overflow: hidden;
   text-overflow: ellipsis;
