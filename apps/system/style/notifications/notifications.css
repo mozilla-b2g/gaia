@@ -160,6 +160,8 @@ html, body {
   margin: 13px 15px 0 0;
   padding: 0;
   display: inline;
+  font-size: 1rem;
+  font-weight: bold;
   line-height: 16px;
   overflow: hidden;
   text-overflow: ellipsis;
