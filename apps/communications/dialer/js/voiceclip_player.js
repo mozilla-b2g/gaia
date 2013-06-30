@@ -5,12 +5,17 @@ var VoiceClipPlayer = {
 
   init: function vc_init() {
     this.player = document.getElementById('voiceclip');
+    this.player.src = 'style/audio/one-to-ten.ogg';
     // play first to force loading the voice clip
     this.player.play();
     this.player.pause();
   },
 
   AUDIO_MAP: {
+    d0: {
+      start: 9.52,
+      duration: 0.53
+    },
     d1: {
       start: 0.45,
       duration: 0.5
@@ -64,7 +69,7 @@ var VoiceClipPlayer = {
         rate = 1.0;
       }
       partial = this.AUDIO_MAP['d' + partialIndex];
-      // avoid playing case
+      // able to interrupt while playing
       this.player.pause();
       // play
       this.player.currentTime = partial.start;
