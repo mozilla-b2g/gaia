@@ -19,12 +19,16 @@ if (!this.FtuLauncher) {
   this.FtuLauncher = null;
 }
 
+if (!this.IccHelper) {
+  this.IccHelper = null;
+}
 
 suite('system/LockScreen >', function() {
   var subject;
   var realL10n;
   var realMobileOperator;
   var realMobileConnection;
+  var realIccHelper;
   var realClock;
   var realFtuLauncher;
   var domConnstate;
@@ -49,6 +53,8 @@ suite('system/LockScreen >', function() {
 
     realMobileConnection = window.navigator.mozMobileConnection;
 
+    realIccHelper = window.IccHelper;
+
     domConnstate = document.createElement('div');
     domConnstate.id = 'lockscreen-connstate';
     domConnstateL1 = document.createElement('div');
@@ -69,6 +75,7 @@ suite('system/LockScreen >', function() {
         type: 'gsm'
       }
     };
+    window.IccHelper = {enabled: true};
     subject.cellbroadcastLabel = DUMMYTEXT1;
     subject.updateConnState();
     assert.equal(domConnstateL2.textContent, DUMMYTEXT1);
@@ -82,6 +89,7 @@ suite('system/LockScreen >', function() {
         type: 'wcdma'
       }
     };
+    window.IccHelper = {enabled: true};
     var carrier = 'TIM';
     var region = 'SP';
     var exceptedText = 'TIM SP';
@@ -96,6 +104,7 @@ suite('system/LockScreen >', function() {
     navigator.mozL10n = realL10n;
     window.MobileOperator = realMobileOperator;
     window.navigator.mozMobileConnection = realMobileConnection;
+    window.IccHelper = realIccHelper;
     window.Clock = window.realClock;
     window.FtuLauncher = realFtuLauncher;
 

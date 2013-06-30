@@ -870,16 +870,15 @@ window.addEventListener('load', function loadSettings() {
       }
     }
 
-    var mobileConnection = window.navigator.mozMobileConnection;
-    if (!mobileConnection) {
+    if (!IccHelper.enabled) {
       disableSIMRelatedSubpanels(true);
     }
 
-    var cardState = mobileConnection.cardState;
+    var cardState = IccHelper.cardState;
     disableSIMRelatedSubpanels(cardState !== 'ready');
 
-    mobileConnection.addEventListener('cardstatechange', function() {
-      var cardState = mobileConnection.cardState;
+    IccHelper.addEventListener('cardstatechange', function() {
+      var cardState = IccHelper.cardState;
       disableSIMRelatedSubpanels(cardState !== 'ready');
     });
   }

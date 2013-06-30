@@ -30,13 +30,13 @@ var IccHelper = (function() {
 
     if ('cardState' in mobileConn) {
       actors['cardState'] = mobileConn;
-    } else if ('setCardLock' in iccManager) {
+    } else if ('cardState' in iccManager) {
       actors['cardState'] = iccManager;
     }
 
     if ('iccInfo' in mobileConn) {
       actors['iccInfo'] = mobileConn;
-    } else if ('setCardLock' in iccManager) {
+    } else if ('iccInfo' in iccManager) {
       actors['iccInfo'] = iccManager;
     }
   }
@@ -78,12 +78,12 @@ var IccHelper = (function() {
 
     get cardState() {
       var actor = actors['cardState'];
-      return actor.getCardLock.apply(actor, arguments);
+      return actor.cardState;
     },
 
     get iccInfo() {
       var actor = actors['iccInfo'];
-      return actor.getCardLock.apply(actor, arguments);
+      return actor.iccInfo;
     }
   };
 })();

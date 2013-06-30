@@ -3,6 +3,7 @@
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_navigator_moz_mobile_connection.js');
+requireApp('system/test/unit/mock_icc_helper.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/test/unit/mocks_helper.js');
 
@@ -21,7 +22,7 @@ suite('internet sharing > ', function() {
   var realSettings;
   var realMozMobileConnection;
 
-  var mocksHelper = new MocksHelper(['asyncStorage']);
+  var mocksHelper = new MocksHelper(['asyncStorage', 'IccHelper']);
   mocksHelper.init();
 
   suiteSetup(function(done) {
@@ -56,13 +57,12 @@ suite('internet sharing > ', function() {
   }
   // helper to change card state
   function changeCardState(state, iccid) {
-    MockNavigatorMozMobileConnection.cardState = state;
+    MockIccHelper.mProps['cardState'] = state;
     if (!MockNavigatorMozMobileConnection.iccInfo) {
       MockNavigatorMozMobileConnection.iccInfo = {};
     }
     MockNavigatorMozMobileConnection.iccInfo['iccid'] = iccid;
-    MockNavigatorMozMobileConnection.triggerEventListeners('cardstatechange',
-                                                           {});
+    MockIccHelper.mTriggerEventListeners('cardstatechange', {});
   }
   // helper to change single key-value of mozSettings
   function changeSettings(key, value) {
@@ -89,7 +89,7 @@ suite('internet sharing > ', function() {
     // fresh startup
     test('null sim no settings', function() {
       // empty start
-      var mEventListeners = MockNavigatorMozMobileConnection.mEventListeners;
+      var mEventListeners = IccHelper.mEventListeners;
       var mObservers = MockNavigatorSettings.mObservers;
 
       assert.ok(
@@ -104,7 +104,7 @@ suite('internet sharing > ', function() {
     // card state from null to unknown(sim found, but not initialized)
     test('unknown sim no settings', function() {
       changeCardState('unknown', null);
-      var mEventListeners = MockNavigatorMozMobileConnection.mEventListeners;
+      var mEventListeners = IccHelper.mEventListeners;
       var mObservers = MockNavigatorSettings.mObservers;
       assert.ok(
         mEventListeners['cardstatechange'].length > 0);
@@ -119,7 +119,7 @@ suite('internet sharing > ', function() {
     test('sim1 pinRequired no settings', function() {
       changeCardState('pinRequired', null);
 
-      var mEventListeners = MockNavigatorMozMobileConnection.mEventListeners;
+      var mEventListeners = IccHelper.mEventListeners;
       var mObservers = MockNavigatorSettings.mObservers;
       assert.ok(
         mEventListeners['cardstatechange'].length > 0);
@@ -173,9 +173,9 @@ suite('internet sharing > ', function() {
     // user remove sim 1
     test('sim1 removed', function() {
       changeCardState('absent', null);
-      MockNavigatorMozMobileConnection.cardState = 'absent';
+      IccHelper.mProps['cardState'] = 'absent';
       MockNavigatorMozMobileConnection.iccInfo['iccid'] = null;
-      MockNavigatorMozMobileConnection.triggerEventListeners('cardstatechange',
+      IccHelper.mTriggerEventListeners('cardstatechange',
                                                              {});
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];

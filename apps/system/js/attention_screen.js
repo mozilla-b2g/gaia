@@ -113,7 +113,7 @@ var AttentionScreen = {
 
       // This event is for SIM PIN lock module.
       // Because we don't need SIM PIN dialog during call
-      // but the mozMobileConnection cardstatechange event could
+      // but the IccHelper cardstatechange event could
       // be invoked by airplane mode toggle before the call is established.
       this.dispatchEvent('callscreenwillopen');
     } else {
@@ -180,7 +180,7 @@ var AttentionScreen = {
     if (app && this._hasTelephonyPermission(app)) {
       // This event is for SIM PIN lock module.
       // Because we don't need SIM PIN dialog during call
-      // but the mozMobileConnection cardstatechange event could
+      // but the IccHelper cardstatechange event could
       // be invoked by airplane mode toggle before the call is established.
       this.dispatchEvent('callscreenwillclose');
     }

@@ -129,8 +129,8 @@ var Calls = (function(window, document, undefined) {
       'absent' : _('noSimCard'),
       'null' : _('simCardNotReady')
     };
-    var simCardState = kSimCardStates[mobileConnection.cardState ?
-                                      mobileConnection.cardState :
+    var simCardState = kSimCardStates[IccHelper.cardState ?
+                                      IccHelper.cardState :
                                       'null'];
     displayInfoForAll(simCardState);
   };
@@ -287,7 +287,7 @@ var Calls = (function(window, document, undefined) {
           return;
         }
         // Bails out in case of airplane mode.
-        if (mobileConnection.cardState !== 'ready') {
+        if (IccHelper.cardState !== 'ready') {
           return;
         }
         var selector = 'input[data-setting="ril.cf.' + key + '.number"]';
@@ -403,19 +403,19 @@ var Calls = (function(window, document, undefined) {
 
   function initCallForwarding() {
     displayInfoForAll(_('callForwardingRequesting'));
-    if (!settings || !mobileConnection) {
+    if (!settings || !mobileConnection || !IccHelper.enabled) {
       displayInfoForAll(_('callForwardingQueryError'));
       return;
     }
 
-    if (mobileConnection.cardState != 'ready') {
+    if (IccHelper.cardState != 'ready') {
       displaySimCardStateInfo();
       return;
     }
 
     // Prevent sub panels from being selected while airplane mode.
-    mobileConnection.addEventListener('cardstatechange', function() {
-      enableTapOnCallForwardingItems(mobileConnection.cardState === 'ready');
+    IccHelper.addEventListener('cardstatechange', function() {
+      enableTapOnCallForwardingItems(IccHelper.cardState === 'ready');
     });
 
     // Initialize the call forwarding alert panel.
@@ -509,17 +509,17 @@ var Calls = (function(window, document, undefined) {
   }
 
   function initCallWaiting() {
-    if (!settings || !mobileConnection) {
+    if (!settings || !mobileConnection || !IccHelper.enabled) {
       return;
     }
 
-    if (mobileConnection.cardState != 'ready') {
+    if (IccHelper.cardState != 'ready') {
       return;
     }
 
     // Prevent the item from being changed while airplane mode.
-    mobileConnection.addEventListener('cardstatechange', function() {
-      enableTabOnCallWaitingItem(mobileConnection.cardState === 'ready');
+    IccHelper.addEventListener('cardstatechange', function() {
+      enableTabOnCallWaitingItem(IccHelper.cardState === 'ready');
     });
 
     var alertPanel = document.querySelector('#call .cw-alert');

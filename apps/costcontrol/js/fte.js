@@ -17,13 +17,13 @@
     var stepsLeft = 2;
 
     // No SIM
-    if (!mobileConnection || mobileConnection.cardState === 'absent') {
+    if (!IccHelper.enabled || IccHelper.cardState === 'absent') {
       hasSim = false;
       trySetup();
 
     // SIM is not ready
-    } else if (mobileConnection.cardState !== 'ready') {
-      debug('SIM not ready:', mobileConnection.cardState);
+    } else if (IccHelper.cardState !== 'ready') {
+      debug('SIM not ready:', IccHelper.cardState);
       mobileConnection.oniccinfochange = _onDOMReady;
 
     // SIM is ready
