@@ -108,6 +108,7 @@ var MmiManager = {
     }).bind(this);
 
     var mmiResult = evt.target.result;
+    var message = {};
 
     // We always expect an MMIResult object even for USSD requests.
     if (!mmiResult) {
@@ -120,9 +121,7 @@ var MmiManager = {
       return;
     }
 
-    var message = {
-      type: 'mmi-success'
-    };
+    message.type = 'mmi-success';
 
     if (mmiResult.serviceCode) {
       message.title = this._(mmiResult.serviceCode);
@@ -159,12 +158,18 @@ var MmiManager = {
         }
         break;
       case 'scCallForwarding':
-        // Call forwarding requests via MMI codes might return an array of
-        // nsIDOMMozMobileCFInfo objects. In that case we serialize that array
-        // into a single string that can be shown on the screen.
-
-        // TODO: Bug 884343. Use MMIResult for Call Forwarding related
-        //       functionality.
+        if (mmiResult.statusMessage) {
+          message.result = this._(mmiResult.statusMessage);
+          // Call forwarding requests via MMI codes might return an array of
+          // nsIDOMMozMobileCFInfo objects. In that case we serialize that array
+          // into a single string that can be shown on the screen.
+          if (mmiResult.additionalInformation) {
+            message.result = processCf(mmiResult.additionalInformation);
+          }
+        } else {
+          message.type = 'mmi-error';
+          message.error = this._('GenericFailure');
+        }
         break;
       case 'scCallBarring':
       case 'scCallWaiting':
