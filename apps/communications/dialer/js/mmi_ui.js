@@ -85,11 +85,16 @@ var MmiUI = {
     this.closeWindow();
   },
 
-  showMessage: function mui_showMessage(message) {
+  showMessage: function mui_showMessage(message, header) {
     this.showWindow();
     this.hideLoading();
     this.responseTextNode.removeAttribute('disabled');
     this.messageNode.textContent = message;
+    if (header && header.length) {
+      this.headerTitleNode.textContent = header;
+    } else {
+      this.headerTitleNode.textContent = '';
+    }
   },
 
   showLoading: function mui_showLoading() {
@@ -140,40 +145,34 @@ var MmiUI = {
     this.resetResponse();
   },
 
-  updateHeader: function mui_updateHeader(operator) {
-    this.headerTitleNode.textContent =
-      this._('ussd-services', {
-        operator: operator !== 'Unknown' ? operator : this._('USSD')
-      });
-  },
-
   handleEvent: function ph_handleEvent(evt) {
     if (evt.type !== 'message' || evt.origin !== this.COMMS_APP_ORIGIN ||
       !evt.data) {
       return;
     }
-    switch (evt.data.type) {
+
+    var data = evt.data;
+
+    switch (data.type) {
       case 'mmi-success':
         this.hideResponseForm();
-        this.showMessage(evt.data.result ?
-          evt.data.result : this._('mmi-successfully-sent'));
+        var msg = data.result ? data.result : this._('mmi-successfully-sent');
+        var header = data.title ? data.title : undefined;
+        this.showMessage(msg, header);
         break;
       case 'mmi-error':
-        this.handleError(evt.data);
+        this.handleError(data);
         break;
       case 'mmi-received-ui':
-        if (evt.data.sessionEnded) {
+        if (data.sessionEnded) {
           this.hideResponseForm();
-          if (evt.data.message == null) {
-            evt.data.message = this._('mmi-session-expired');
+          if (data.message == null) {
+            data.message = this._('mmi-session-expired');
           }
         } else {
           this.showResponseForm();
         }
-        this.showMessage(evt.data.message);
-        break;
-      case 'mmi-networkchange':
-        this.updateHeader(evt.data.operator);
+        this.showMessage(data.message, data.title);
         break;
       case 'mmi-loading':
         this.showLoading();
@@ -182,23 +181,13 @@ var MmiUI = {
   },
 
   handleError: function ph_handleError(data) {
-    if (!this._conn)
+    if (!this._conn) {
       this._conn = window.navigator.mozMobileConnection;
-    var error = data.error ? data.error : this._('mmi-error');
-    switch (error) {
-      case 'IncorrectPassword':
-        var retries = this._conn.retryCount;
-        error = this._('pinError');
-        if (retries)
-          error += this._('inputCodeRetriesLeft', {n: retries});
-        break;
-      case 'NEW_PIN_MISMATCH':
-        error = this._('newpinConfirmation');
-        break;
-      default:
-        break;
     }
-    this.showMessage(error);
+
+    var header = data.title ? data.title : undefined;
+    var error = data.error ? data.error : this._('mmi-error');
+    this.showMessage(error, header);
   }
 };
 
