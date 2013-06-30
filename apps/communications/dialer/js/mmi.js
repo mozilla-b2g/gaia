@@ -8,7 +8,7 @@ var MmiManager = {
   _conn: null,
   ready: false,
   _operator: null,
-  // In same cases, the RIL doesn't provide the expected order of events
+  // In some cases, the RIL doesn't provide the expected order of events
   // while sending an MMI that triggers an interactive USSD request (specially
   // while roaming), which should be DOMRequest.onsuccess (or .onerror) +
   // ussdreceived. If the first event received is the ussdreceived one, we take
@@ -133,6 +133,8 @@ var MmiManager = {
       message.title = this._(mmiResult.serviceCode);
     }
 
+    var additionalInformation = mmiResult.additionalInformation;
+
     switch (mmiResult.serviceCode) {
       case 'scUssd':
         // Bail out if there is nothing to show or if we got the .onsuccess
@@ -169,6 +171,19 @@ var MmiManager = {
 
         // TODO: Bug 884343. Use MMIResult for Call Forwarding related
         //       functionality.
+        break;
+      case 'scCallBarring':
+        // Call barring requests via MMI codes might return an array of
+        // strings indicating the service it is enabled for or just the
+        // disabled status message.
+        message.result = this._(mmiResult.statusMessage);
+        if (mmiResult.statusMessage === 'smServiceEnabledFor' &&
+            additionalInfo &&
+            Array.isArray(additionalInfo)) {
+          for (var i = 0, l = additionalInfo.length; i < l; i++) {
+            message.result += '\n' + this._(additionalInfo[i]);
+          }
+        }
         break;
       default:
         // This would allow carriers and others to implement custom MMI codes
