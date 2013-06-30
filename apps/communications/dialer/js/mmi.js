@@ -8,7 +8,7 @@ var MmiManager = {
   _conn: null,
   ready: false,
   _operator: null,
-  // In same cases, the RIL doesn't provide the expected order of events
+  // In some cases, the RIL doesn't provide the expected order of events
   // while sending an MMI that triggers an interactive USSD request (specially
   // while roaming), which should be DOMRequest.onsuccess (or .onerror) +
   // ussdreceived. If the first event received is the ussdreceived one, we take
@@ -20,14 +20,7 @@ var MmiManager = {
     this._conn = window.navigator.mozMobileConnection;
 
     if (this._conn.voice) {
-      this._conn.addEventListener('voicechange', this);
       this._operator = MobileOperator.userFacingInfo(this._conn).operator;
-      var message = {
-        type: 'mmi-networkchange',
-        operator: (this._operator ? this._operator : 'Unknown')
-      };
-
-      window.postMessage(message, this.COMMS_APP_ORIGIN);
     }
 
     if (this._conn) {
@@ -114,31 +107,127 @@ var MmiManager = {
       return msg;
     }).bind(this);
 
-    var result = evt.target.result;
-    if (this._pendingRequest === null &&
-        (!result || !result.length)) {
-      result = this._('mmi-session-expired');
+    var mmiResult = evt.target.result;
+    var message = {};
+
+    // We always expect an MMIResult object even for USSD requests.
+    if (!mmiResult) {
+      message = {
+        type: 'mmi-error',
+        error: this._('GenericFailure')
+      };
+
+      window.postMessage(message, this.COMMS_APP_ORIGIN);
+      return;
     }
 
-    // Call forwarding requests via MMI codes might return an array of
-    // nsIDOMMozMobileCFInfo objects. In that case we serialize that array
-    // into a single string that can be shown on the screen.
-    var msg = '';
-    Array.isArray(result) ? msg = processCf(result) : msg = result;
+    message.type = 'mmi-success';
 
-    var message = {
-      type: 'mmi-success',
-      result: msg
-    };
+    if (mmiResult.serviceCode) {
+      message.title = this._(mmiResult.serviceCode);
+    }
+
+    var additionalInformation = mmiResult.additionalInformation;
+
+    switch (mmiResult.serviceCode) {
+      case 'scUssd':
+        // Bail out if there is nothing to show or if we got the .onsuccess
+        // event after the .onussdevent.
+        if (!mmiResult.statusMessage || this._pendingRequest === null) {
+          return;
+        }
+
+        message.result = mmiResult.statusMessage;
+        break;
+      case 'scImei':
+        // We always expect the IMEI, so if we got a .onsuccess event
+        // without the IMEI value, we throw an error message.
+        if (mmiResult.statusMessage) {
+          message.result = mmiResult.statusMessage;
+        } else {
+          message.type = 'mmi-error';
+          message.error = this._('GenericFailure');
+        }
+        break;
+      case 'scPin':
+      case 'scPin2':
+      case 'scPuk':
+      case 'scPuk2':
+        if (mmiResult.statusMessage) {
+          message.result = this._(mmiResult.statusMessage);
+        }
+        break;
+      case 'scCallForwarding':
+        if (mmiResult.statusMessage) {
+          message.result = this._(mmiResult.statusMessage);
+          // Call forwarding requests via MMI codes might return an array of
+          // nsIDOMMozMobileCFInfo objects. In that case we serialize that array
+          // into a single string that can be shown on the screen.
+          if (mmiResult.additionalInformation) {
+            message.result = processCf(mmiResult.additionalInformation);
+          }
+        } else {
+          message.type = 'mmi-error';
+          message.error = this._('GenericFailure');
+        }
+        break;
+      case 'scCallBarring':
+      case 'scCallWaiting':
+        // Call barring and call waiting requests via MMI codes might return an
+        // array of strings indicating the service it is enabled for or just
+        // the disabled status message.
+        message.result = this._(mmiResult.statusMessage);
+        if (mmiResult.statusMessage === 'smServiceEnabledFor' &&
+            additionalInfo &&
+            Array.isArray(additionalInfo)) {
+          for (var i = 0, l = additionalInfo.length; i < l; i++) {
+            message.result += '\n' + this._(additionalInfo[i]);
+          }
+        }
+        break;
+      default:
+        // This would allow carriers and others to implement custom MMI codes
+        // with title and statusMessage only.
+        message.result = mmiResult.statusMessage ?
+                         mmiResult.statusMessage : null;
+        break;
+    }
 
     window.postMessage(message, this.COMMS_APP_ORIGIN);
   },
 
   notifyError: function mm_notifyError(evt) {
+    var mmiError = evt.target.error;
+
     var message = {
-      type: 'mmi-error',
-      error: evt.target.error.name
+      type: 'mmi-error'
     };
+
+    if (mmiError.serviceCode) {
+      message.title = this._(mmiError.serviceCode);
+    }
+
+    message.error = mmiError.name ?
+      this._(mmiError.name) : this._('GenericFailure');
+
+    switch (mmiError.serviceCode) {
+      case 'scPin':
+      case 'scPin2':
+      case 'scPuk':
+      case 'scPuk2':
+        // If the error is related with an incorrect old PIN, we get the
+        // number of remainings attempts.
+        if (mmiError.additionalInformation &&
+            (mmiError.name === 'emMmiErrorPasswordIncorrect' ||
+             mmiError.name === 'emMmiErrorBadPin' ||
+             mmiError.name === 'emMmiErrorBadPuk')) {
+          message.error += '\n' + this._('emMmiErrorPinPukAttempts', {
+            n: mmiError.additionalInformation
+          });
+        }
+        break;
+    }
+
     window.postMessage(message, this.COMMS_APP_ORIGIN);
   },
 
@@ -163,6 +252,7 @@ var MmiManager = {
     var data = {
       type: 'mmi-received-ui',
       message: message,
+      title: this._operator,
       sessionEnded: sessionEnded
     };
     window.postMessage(data, this.COMMS_APP_ORIGIN);
@@ -179,13 +269,6 @@ var MmiManager = {
 
     var message;
     switch (evt.type) {
-      case 'voicechange':
-        this._operator = MobileOperator.userFacingInfo(this._conn).operator;
-        message = {
-          type: 'mmi-networkchange',
-          operator: (this._operator ? this._operator : 'Unknown')
-        };
-        break;
       case 'message':
         if (evt.origin !== this.COMMS_APP_ORIGIN) {
           return;
