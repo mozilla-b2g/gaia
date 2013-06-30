@@ -20,14 +20,7 @@ var MmiManager = {
     this._conn = window.navigator.mozMobileConnection;
 
     if (this._conn.voice) {
-      this._conn.addEventListener('voicechange', this);
       this._operator = MobileOperator.userFacingInfo(this._conn).operator;
-      var message = {
-        type: 'mmi-networkchange',
-        operator: (this._operator ? this._operator : 'Unknown')
-      };
-
-      window.postMessage(message, this.COMMS_APP_ORIGIN);
     }
 
     if (this._conn) {
@@ -179,9 +172,10 @@ var MmiManager = {
         }
         break;
       case 'scCallBarring':
-        // Call barring requests via MMI codes might return an array of
-        // strings indicating the service it is enabled for or just the
-        // disabled status message.
+      case 'scCallWaiting':
+        // Call barring and call waiting requests via MMI codes might return an
+        // array of strings indicating the service it is enabled for or just
+        // the disabled status message.
         message.result = this._(mmiResult.statusMessage);
         if (mmiResult.statusMessage === 'smServiceEnabledFor' &&
             additionalInfo &&
