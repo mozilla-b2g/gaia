@@ -1,5 +1,7 @@
 #!/bin/sh
 
+LINTED_DIRECTORIES="apps shared"
+
 excluded_dirs_list="./build/lint-excluded-dirs.list"
 if [ ! -f $excluded_dirs_list ];
 then
@@ -19,7 +21,7 @@ for dir in $excluded_dirs; do
   grep_exclude="$grep_exclude -e $dir"
 done
 
-diff_with_exclude=`git diff --staged --name-only --diff-filter=ACMRT|grep -v $grep_exclude`
+diff_with_exclude=`git diff --staged --name-only --diff-filter=ACMRT -- ${LINTED_DIRECTORIES} | grep -v $grep_exclude`
 
 # --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
 # http://code.google.com/p/closure-linter/issues/detail?id=64
