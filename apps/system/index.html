@@ -355,8 +355,15 @@
         <div id="statusbar-call-forwarding" class="sb-icon sb-icon-call-forwarding" hidden></div>
 
         <!-- Activity -->
-        <canvas id="statusbar-system-downloads" hidden></canvas>
-        <canvas id="statusbar-network-activity" hidden></canvas>
+        <!-- HACK: We use images instead of divs to enforce allocation of a
+             dedicated layer just for this animated icons, remove after bug
+             717872 gets fixed -->
+        <img id="statusbar-system-downloads"
+             src="style/statusbar/images/system-downloads.png"
+             class="sb-icon-system-downloads" hidden>
+        <img id="statusbar-network-activity"
+             src="style/statusbar/images/network-activity.png"
+             class="sb-icon-network-activity" hidden>
       </div>
 
       <div id="utility-tray" data-z-index-level="utility-tray">
