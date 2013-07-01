@@ -300,17 +300,27 @@ contacts.List = (function() {
     return contactContainer;
   };
 
-  var getSearchString = function getSearchString(contact) {
+  var getStringValue = function getStringValue(contact, field) {
+    if (contact[field] && contact[field][0])
+      return String(contact[field][0]).trim();
+
+    return null;
+  };
+
+  var getSearchString = function getSearchString(contact, display) {
+    var display = display || contact;
     var searchInfo = [];
-    var searchable = ['givenName', 'familyName', 'org'];
+    var searchable = ['givenName', 'familyName'];
     searchable.forEach(function(field) {
-      if (contact[field] && contact[field][0]) {
-        var value = String(contact[field][0]).trim();
-        if (value.length > 0) {
-          searchInfo.push(value);
-        }
+      var value = getStringValue(display, field);
+      if (value) {
+        searchInfo.push(value);
       }
     });
+    var value = getStringValue(contact, 'org');
+    if (value) {
+      searchInfo.push(value);
+    }
     if (contact.tel && contact.tel.length) {
       for (var i = contact.tel.length - 1; i >= 0; i--) {
         var current = contact.tel[i];
@@ -468,12 +478,14 @@ contacts.List = (function() {
   };
 
   var addOrderOptions = function addOrderOptions(name, contact) {
-    var orderedString = getStringToBeOrdered(contact);
+    var display = getDisplayName(contact);
+    var orderedString = getStringToBeOrdered(contact, display);
     name.dataset['order'] = orderedString;
   };
 
   var addSearchOptions = function addSearchOptions(name, contact) {
-    name.dataset['search'] = getSearchString(contact);
+    var display = getDisplayName(contact);
+    name.dataset['search'] = getSearchString(contact, display);
   };
 
   var isFavorite = function isFavorite(contact) {
@@ -633,6 +645,7 @@ contacts.List = (function() {
     if (contacts) {
       if (!contacts.length) {
         toggleNoContactsScreen(true);
+        dispatchCustomEvent('listRendered');
         return;
       }
       toggleNoContactsScreen(false);
@@ -782,7 +795,8 @@ contacts.List = (function() {
 
   var addToGroup = function addToGroup(contact, list) {
     var newLi;
-    var cName = getStringToBeOrdered(contact);
+    var display = getDisplayName(contact);
+    var cName = getStringToBeOrdered(contact, display);
 
     var liElems = list.getElementsByTagName('li');
     var len = liElems.length;
@@ -840,17 +854,17 @@ contacts.List = (function() {
     toggleNoContactsScreen(showNoContacts);
   };
 
-  var getStringToBeOrdered = function getStringToBeOrdered(contact) {
+  var getStringToBeOrdered = function getStringToBeOrdered(contact, display) {
     var ret = [];
 
+    // If no display name is specified, then use the contact directly.  This
+    // is necessary so we can use the raw contact info when generating the
+    // group name.
+    display = display || contact;
     var familyName, givenName;
 
-    familyName = Array.isArray(contact.familyName) &&
-                                    typeof contact.familyName[0] === 'string' ?
-      contact.familyName[0].trim() : '';
-    givenName = Array.isArray(contact.givenName) &&
-                                    typeof contact.givenName[0] === 'string' ?
-      contact.givenName[0].trim() : '';
+    familyName = getStringValue(display, 'familyName') || '';
+    givenName = getStringValue(display, 'givenName') || '';
 
     var first = givenName, second = familyName;
     if (orderByLastName) {

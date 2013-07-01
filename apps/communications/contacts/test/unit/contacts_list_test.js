@@ -115,6 +115,10 @@ suite('Render contacts list', function() {
   function doLoad(list, values, callback) {
     var handler = function() {
       window.removeEventListener('listRendered', handler);
+
+      // Loading a new list removes some DOM nodes.  Update our references.
+      updateDomReferences();
+
       callback();
     };
     window.addEventListener('listRendered', handler);
@@ -279,6 +283,12 @@ suite('Render contacts list', function() {
     noResults = document.getElementById('no-result');
     noContacts = document.getElementById('no-contacts');
 
+    updateDomReferences();
+
+    window.asyncScriptsLoaded = true;
+  }
+
+  function updateDomReferences() {
     groupFav = container.querySelector('#group-favorites');
     containerFav = container.querySelector('#contacts-list-favorites');
     groupA = container.querySelector('#group-A');
@@ -289,8 +299,8 @@ suite('Render contacts list', function() {
     containerC = container.querySelector('#contacts-list-C');
     groupD = container.querySelector('#group-D');
     containerD = container.querySelector('#contacts-list-D');
-
-    window.asyncScriptsLoaded = true;
+    groupUnd = container.querySelector('#group-und');
+    containerUnd = container.querySelector('#contacts-list-und');
   }
 
   suiteSetup(function() {
@@ -398,19 +408,8 @@ suite('Render contacts list', function() {
     test('first time', function() {
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
-      groupFav = container.querySelector('#group-favorites');
-      containerFav = container.querySelector('#contacts-list-favorites');
-      groupA = container.querySelector('#group-A');
-      containerA = container.querySelector('#contacts-list-A');
-      groupB = container.querySelector('#group-B');
-      containerB = container.querySelector('#contacts-list-B');
-      groupC = container.querySelector('#group-C');
-      containerC = container.querySelector('#contacts-list-C');
-      groupD = container.querySelector('#group-D');
-      containerD = container.querySelector('#contacts-list-D');
 
-      groupUnd = container.querySelector('#group-und');
-      containerUnd = container.querySelector('#contacts-list-und');
+      updateDomReferences();
 
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
@@ -724,17 +723,53 @@ suite('Render contacts list', function() {
       assertNoGroup(groupFav, containerFav);
     });
 
-    test('reseting the dom of the contacts list', function() {
+    test('adding empty one to middle of favorites', function(done) {
+      var c1 = new MockContactAllFields();
+      c1.id = '1';
+      c1.familyName = ['mm'];
+      c1.category = ['favorite'];
+      var c2 = new MockContactAllFields();
+      c2.id = '2';
+      c2.familyName = ['oo'];
+      c2.category = ['favorite'];
+      var empty = new MockContactAllFields();
+      empty.id = '3';
+      empty.familyName = null;
+      empty.givenName = null;
+      empty.name = null;
+      empty.category = ['favorite'];
+      empty.tel = null;
+      empty.org = null;
+      empty.email = null;
+      subject.refresh(c1);
+      subject.refresh(c2);
+      subject.refresh(empty);
+      var favs = assertGroup(groupFav, containerFav, 3);
+      assert.notEqual(favs[0].querySelector('p').innerHTML.indexOf('mm'),
+                      -1);
+      assert.notEqual(favs[1].querySelector('p').innerHTML.indexOf('noName'),
+                      -1);
+      assert.notEqual(favs[2].querySelector('p').innerHTML.indexOf('oo'),
+                      -1);
+      done();
+    });
+
+    test('reseting the dom of the contacts list', function(done) {
       var newList = new MockContactsList();
       doLoad(subject, newList, function() {
-        subject.load(null, true);
-
-        assertNoGroup(groupFav, containerFav);
-        assertNoGroup(groupFav, containerFav);
+        doLoad(subject, null, function() {
+          assertNoGroup(groupA, containerA);
+          assertNoGroup(groupB, containerB);
+          assertNoGroup(groupC, containerC);
+          assertNoGroup(groupD, containerD);
+          assertNoGroup(groupFav, containerFav);
+          assertNoGroup(groupUnd, containerUnd);
+          done();
+        });
       });
     });
 
-    test('removing one contact', function() {
+    test('removing one contact', function(done) {
       var newList = new MockContactsList();
       doLoad(subject, newList, function() {
         var originalNumber = container.querySelectorAll('.contact-item').length;
@@ -750,16 +785,19 @@ suite('Render contacts list', function() {
 
         // There are contacts on the list so no contacts should be hidden
         assert.isTrue(noContacts.classList.contains('hide'));
+
+        done();
       });
     });
 
-    test('checking no contacts when coming from activity', function() {
+    test('checking no contacts when coming from activity', function(done) {
       MockActivities.currentlyHandling = true;
       doLoad(subject, [], function() {
         assert.isTrue(noContacts.classList.contains('hide'));
         assertNoGroup(groupFav, containerFav);
         assertTotal(0, 0);
         MockActivities.currentlyHandling = false;
+        done();
       });
     });
 
@@ -1015,6 +1053,32 @@ suite('Render contacts list', function() {
           contacts.Search.search(function search_finished() {
             assert.isTrue(noResults.classList.contains('hide'));
             assertContactFound(contact);
+            contacts.Search.invalidateCache();
+            done();
+          });
+        });
+      });
+    });
+
+    test('Search for empty contact', function(done) {
+      mockContacts = new MockContactsList();
+
+      doLoad(subject, mockContacts, function() {
+        var empty = new MockContactAllFields();
+        empty.id = '99';
+        empty.familyName = null;
+        empty.givenName = null;
+        empty.name = null;
+        empty.category = ['favorite'];
+        empty.tel = null;
+        empty.org = null;
+        empty.email = null;
+        subject.refresh(empty);
+        contacts.List.initSearch(function onInit() {
+          searchBox.value = 'noName';
+          contacts.Search.search(function search_finished() {
+            assert.isTrue(noResults.classList.contains('hide'));
+            assertContactFound(empty);
             contacts.Search.invalidateCache();
             done();
           });
