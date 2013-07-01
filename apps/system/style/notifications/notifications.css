@@ -203,3 +203,11 @@ html, body {
 #notifications-lockscreen-container .notification {
   background-color: transparent;
 }
+
+/* RTL */
+
+html[dir="rtl"] .notification > .timestamp {  
+  left: 0;
+  right:25rem;
+  margin: 13px 0 0 15px;
+}
