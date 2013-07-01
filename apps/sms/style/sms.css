@@ -615,7 +615,7 @@ form.bottom[role="search"].messages-compose-form {
   color: #888;
   position: absolute;
   top: 0.8rem;
-  content: attr(placeholder);
+  content: attr(data-placeholder);
   pointer-events: none;
 }
 
