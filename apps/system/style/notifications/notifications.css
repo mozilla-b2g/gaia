@@ -206,6 +206,15 @@ html, body {
 
 /* RTL */
 
+html[dir="rtl"] .notification > div:first-of-type {
+  
+  margin: 1rem 5rem 0 0;
+}
+
+html[dir="rtl"] .notification > div {
+  margin: 0 50px 0 0;
+}
+
 html[dir="rtl"] .notification > .timestamp {  
   left: 0;
   right:25rem;
