@@ -306,7 +306,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         enableMsg.hidden = true;
         openList.show(true);
         searchingItem.hidden = false;
-        document.addEventListener('mozvisibilitychange',
+        document.addEventListener('visibilitychange',
             stopDiscoveryWhenLeaveApp);
       } else {
         openList.show(false);
@@ -320,7 +320,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         // clear discoverTimeout
         clearTimeout(discoverTimeout);
         discoverTimeout = null;
-        document.removeEventListener('mozvisibilitychange',
+        document.removeEventListener('visibilitychange',
             stopDiscoveryWhenLeaveApp);
       }
     }
@@ -725,7 +725,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
     function stopDiscoveryWhenLeaveApp() {
       //only stop discovery when Settings app is hidden
-      if (!document.mozHidden)
+      if (!document.hidden)
         return;
       stopDiscovery();
     }

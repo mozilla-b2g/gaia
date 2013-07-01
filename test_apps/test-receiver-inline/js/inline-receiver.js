@@ -63,8 +63,8 @@ var promptButton = function promptButton() {
 
 // When the app is being closed or killed, we will cancel the pending
 // request.
-document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (!document.mozHidden || !activityRequest)
+document.addEventListener('visibilitychange', function visibility(e) {
+  if (!document.hidden || !activityRequest)
     return;
 
   activityRequest.postError('canceled');

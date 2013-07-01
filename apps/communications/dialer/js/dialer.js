@@ -535,8 +535,8 @@ window.onresize = function(e) {
 // issue in Gecko where the Audio Data API causes gfx performance problems,
 // in particular when scrolling the homescreen.
 // See: https://bugzilla.mozilla.org/show_bug.cgi?id=779914
-document.addEventListener('mozvisibilitychange', function visibilitychanged() {
-  if (!document.mozHidden) {
+document.addEventListener('visibilitychange', function visibilitychanged() {
+  if (!document.hidden) {
     TonePlayer.ensureAudio();
   } else {
     // Reset the audio stream. This ensures that the stream is shutdown

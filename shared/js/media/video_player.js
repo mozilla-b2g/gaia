@@ -274,10 +274,10 @@ function VideoPlayer(container) {
 
   // Pause and unload the video if we're hidden so that other apps
   // can use the video decoder hardware.
-  window.addEventListener('mozvisibilitychange', visibilityChanged);
+  window.addEventListener('visibilitychange', visibilityChanged);
 
   function visibilityChanged() {
-    if (document.mozHidden) {
+    if (document.hidden) {
       // If we're just showing the poster image when we're hidden
       // then we don't have to do anything special
       if (!self.playerShowing)

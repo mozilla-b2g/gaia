@@ -110,9 +110,9 @@ var Widget = (function() {
     );
 
     // Update UI when visible
-    document.addEventListener('mozvisibilitychange',
+    document.addEventListener('visibilitychange',
       function _onVisibilityChange(evt) {
-        if (!document.mozHidden && initialized &&
+        if (!document.hidden && initialized &&
             checkCardState() === 'ready') {
           updateUI();
         }

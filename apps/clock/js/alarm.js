@@ -45,7 +45,7 @@ var ClockView = {
   init: function cv_init() {
     this.container = document.getElementById('analog-clock-container');
 
-    document.addEventListener('mozvisibilitychange', this);
+    document.addEventListener('visibilitychange', this);
 
     this.updateDaydate();
     this.initClockface();
@@ -152,8 +152,8 @@ var ClockView = {
 
   handleEvent: function cv_handleEvent(evt) {
     switch (evt.type) {
-      case 'mozvisibilitychange':
-        if (document.mozHidden) {
+      case 'visibilitychange':
+        if (document.hidden) {
           if (this._updateDaydateTimeout) {
             window.clearTimeout(this._updateDaydateTimeout);
           }
@@ -164,7 +164,7 @@ var ClockView = {
             window.clearTimeout(this._updateAnalogClockTimeout);
           }
           return;
-        } else if (!document.mozHidden) {
+        } else if (!document.hidden) {
           // Refresh the view when app return to foreground.
           this.updateDaydate();
           if (this._clockMode === 'digital') {
