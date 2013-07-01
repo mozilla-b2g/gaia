@@ -1,5 +1,9 @@
 'use strict';
 
+var VELOCITY_SCROLL = 0.04; //Range 0.01 pixel/msec to 0.10 pixel/msec
+var DISTANCE_SCROLL = 1;    //Range 1 pixel to 10 pixels
+var PAGE_DELAY = 150;       //Range 0 msec to 600 msecs
+
 var GridManager = (function() {
   var MAX_ICONS_PER_PAGE = 4 * 4;
   var PREFERRED_ICON_SIZE = 60;
@@ -39,6 +43,10 @@ var GridManager = (function() {
 
   var startEvent, isPanning = false, startX, currentX, deltaX, removePanHandler,
       noop = function() {};
+
+  var velocity_fastswipe=0;
+  var fastswipe_distance=0;
+  var time_period_fastswipe=0;
 
   var isTouch = 'ontouchstart' in window;
   var touchstart = isTouch ? 'touchstart' : 'mousedown';
@@ -192,6 +200,10 @@ var GridManager = (function() {
         currentX = getX(evt);
         deltaX = panningResolver.getDeltaX(evt);
 
+        fastswipe_distance = Math.abs(currentX-startX);
+        time_period_fastswipe = Math.abs(evt.timeStamp - touchStartTimestamp);
+        velocity_fastswipe = fastswipe_distance / time_period_fastswipe;
+
         if (deltaX === 0)
           return;
 
@@ -208,6 +220,22 @@ var GridManager = (function() {
 
         // Since we're panning, the icon we're over shouldn't be active
         removeActive();
+        var velocity = panningResolver.getVelocity();
+        var distanceToTravel = 0.5 * Math.abs(velocity) * velocity / swipeFriction;
+        if((fastswipe_distance >DISTANCE_SCROLL &&
+            velocity_fastswipe > VELOCITY_SCROLL) ||
+            (Math.abs(deltaX + distanceToTravel) > swipeThreshold)) {
+            // Scroll detected early in 1st touchmove event
+            // Starting full page transition immediately
+            touchEndTimestamp = evt ? (evt.timeStamp) : Number.MAX_VALUE;
+            window.mozRequestAnimationFrame(function panTouchEnd() {
+              onTouchEnd(deltaX, evt, velocity_fastswipe,fastswipe_distance);
+            });
+        }
+        else {
+        // Pan detected in 1st touchmove event
+        // This will start partial page transition
+        // Full page transition will happen on touchend event
 
         var refresh;
 
@@ -333,7 +361,11 @@ var GridManager = (function() {
           });
         };
 
+        velocity_fastswipe=0;
+        fastswipe_distance=0;
+        time_period_fastswipe=0;
         window.addEventListener(touchend, removePanHandler, true);
+        }
         window.removeEventListener(touchend, handleEvent);
 
         break;
@@ -370,14 +402,16 @@ var GridManager = (function() {
     overlayStyle.opacity = index === landingPage ? 0 : opacityOnAppGridPageMax;
   }
 
-  function onTouchEnd(deltaX, evt) {
+  function onTouchEnd(deltaX, evt, velocity_fastswipe, fastswipe_distance) {
     var page = currentPage;
 
     var velocity = panningResolver.getVelocity();
     var distanceToTravel = 0.5 * Math.abs(velocity) * velocity / swipeFriction;
     // If the actual distance plus the coast distance is more than 40% the
     // screen, transition to the next page
-    if (Math.abs(deltaX + distanceToTravel) > swipeThreshold) {
+    if ((Math.abs(deltaX + distanceToTravel) > swipeThreshold) ||
+        (fastswipe_distance >DISTANCE_SCROLL &&
+         velocity_fastswipe > VELOCITY_SCROLL)) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
@@ -391,7 +425,7 @@ var GridManager = (function() {
       pageHelper.getCurrent().tap(evt.target);
     }
 
-    goToPage(page);
+    goToPage(page,false,true);
   }
 
   function attachEvents() {
@@ -472,18 +506,13 @@ var GridManager = (function() {
 
   var touchStartTimestamp = 0;
   var touchEndTimestamp = 0;
-  var lastGoingPageTimestamp = 0;
 
-  function goToPage(index, callback) {
+  function goToPage(index, callback, delayedflag) {
     document.location.hash = (index === landingPage ? 'root' : '');
     if (index < 0 || index >= pages.length)
       return;
 
-    var delay = touchEndTimestamp - lastGoingPageTimestamp ||
-                kPageTransitionDuration;
-    lastGoingPageTimestamp += delay;
-    var duration = delay < kPageTransitionDuration ?
-                   delay : kPageTransitionDuration;
+    var duration = kPageTransitionDuration;
 
     var previousPage = pages[currentPage];
     var newPage = pages[index];
@@ -515,10 +544,19 @@ var GridManager = (function() {
           pages[index + 1].moveByWithEffect(windowWidth, duration);
         }
 
-        container.addEventListener('transitionend', function transitionEnd(e) {
-          container.removeEventListener('transitionend', transitionEnd);
-          goToPageCallback(index, previousPage, newPage, false, callback);
-        });
+        if(delayedflag) {
+          // Delays additional paints at the end of scroll
+          // This avoids stutter on the last paint before the final page is drawn
+          container.addEventListener('transitionend', function transitionEnd(e) {
+            container.removeEventListener('transitionend', transitionEnd);
+            setTimeout(goToPageCallback, PAGE_DELAY, index, previousPage, newPage, true, callback);
+          });
+        } else {
+          container.addEventListener('transitionend', function transitionEnd(e) {
+            container.removeEventListener('transitionend', transitionEnd);
+            goToPageCallback(index, previousPage, newPage, false, callback);
+          });
+        }
       } else {
         // Swipe from rigth to left on the last page on the grid
         goToPageCallback(index, previousPage, newPage, false, callback);
@@ -534,10 +572,19 @@ var GridManager = (function() {
     previousPage.moveByWithEffect(-forward * windowWidth, duration);
     newPage.moveByWithEffect(0, duration);
 
-    container.addEventListener('transitionend', function transitionEnd(e) {
-      container.removeEventListener('transitionend', transitionEnd);
-      goToPageCallback(index, previousPage, newPage, true, callback);
-    });
+    if(delayedflag) {
+      // Delays additional paints at the end of scroll
+      // This avoids stutter on the last paint before the final page is drawn
+      container.addEventListener('transitionend', function transitionEnd(e) {
+        container.removeEventListener('transitionend', transitionEnd);
+        setTimeout(goToPageCallback, PAGE_DELAY, index, previousPage, newPage, true, callback);
+      });
+    } else {
+      container.addEventListener('transitionend', function transitionEnd(e) {
+        container.removeEventListener('transitionend', transitionEnd);
+        goToPageCallback(index, previousPage, newPage, true, callback);
+      });
+    }
   }
 
   function goToNextPage(callback) {
