@@ -91,7 +91,10 @@
   "activities": {
     "pick": {
       "filters": {
-        "type": ["webcontacts/contact","webcontacts/email"]
+        "type": {
+          "required": true,
+          "value": ["webcontacts/contact","webcontacts/email"]
+        }
        },
       "disposition": "inline",
       "href": "/contacts/index.html?pick",
