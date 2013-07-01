@@ -98,10 +98,10 @@ suite('Contacts settings', function() {
     '<p id="no-sim" data-l10n-id="noSimMsg"></p>\n' +
     '</li>\n' +
     '<li id="settingsStorage" data-source="sd">\n' +
-    '<button class="icon icon-gmail" data-l10n-id="importSd">\n' +
+    '<button class="icon icon-gmail" data-l10n-id="importMemoryCard">\n' +
     'Memory card\n' + '<p><span></span><time></time></p>\n' +
     '</button>\n' +
-    '<p id="no-sd" data-l10n-id="noSdMsg"></p>\n' +
+    '<p id="no-memorycard" data-l10n-id="noMemoryCardMsg"></p>\n' +
     '</li>\n' +
     '<li class="importService" data-source="gmail">\n' +
     '<button class="icon icon-gmail" data-l10n-id="importGmail">\n' +
@@ -162,7 +162,7 @@ suite('Contacts settings', function() {
       assert.equal(document.getElementById('settingsStorage')
         .firstElementChild.hasAttribute('disabled'), false);
 
-      assert.equal(document.querySelector('#no-sd')
+      assert.equal(document.querySelector('#no-memorycard')
         .classList.contains('hide'), true);
     });
 
@@ -175,7 +175,7 @@ suite('Contacts settings', function() {
       assert.equal(document.getElementById('settingsStorage')
         .firstElementChild.hasAttribute('disabled'), true);
 
-      assert.equal(document.querySelector('#no-sd')
+      assert.equal(document.querySelector('#no-memorycard')
         .classList.contains('hide'), false);
     });
 
@@ -184,7 +184,7 @@ suite('Contacts settings', function() {
       Contacts.hideOverlay = stub();
       Contacts.showStatus = stub();
 
-      document.querySelector('[data-l10n-id="importSd"]').click();
+      document.querySelector('[data-l10n-id="importMemoryCard"]').click();
 
       setTimeout(function() {
         assert.equal(Contacts.showOverlay.callCount, 1);
