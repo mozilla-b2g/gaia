@@ -399,6 +399,54 @@ var ThreadListUI = {
       ThreadListUI.container.appendChild(fragment);
     }
   },
+
+  // This method fills the gap while we wait for next 'getThreads' request,
+  // letting us rendering the new thread with a better performance.
+  createThreadMockup: function mm_createThreadMockup(message) {
+    // Given a message we create a thread as a mockup. This let us render the
+    // thread without requesting Gecko, so we increase the performance and we
+    // reduce Gecko requests.
+    return {
+      id: message.threadId,
+      participants: [message.sender],
+      body: message.body,
+      timestamp: message.timestamp,
+      unreadCount: 1,
+      lastMessageType: message.type || 'sms'
+    };
+  },
+
+  onMessageReceived: function thlui_onMessageReceived(message) {
+    var threadMockup = this.createThreadMockup(message);
+    var threadId = message.threadId;
+
+    if (!Threads.get(threadId)) {
+      Threads.set(threadId, threadMockup);
+      Threads.get(threadId).messages.push(message);
+    }
+
+    if (this.container.querySelector('ul')) {
+      var timestamp = threadMockup.timestamp.getTime();
+      var previousThread = document.getElementById('thread-' + threadId);
+      if (previousThread && previousThread.dataset.time > timestamp) {
+        // If the received SMS it's older that the latest one
+        // We need only to update the 'unread status'
+        this.mark(threadId, 'unread');
+        return;
+      }
+
+      // We remove the previous one in order to place the new one properly
+      if (previousThread) {
+        this.removeThread(threadId);
+      }
+
+      this.appendThread(threadMockup);
+      this.setEmpty(false);
+    } else {
+      this.renderThreads([threadMockup]);
+    }
+  },
+
   appendThread: function thlui_appendThread(thread) {
     var timestamp = thread.timestamp.getTime();
     // We create the DOM element of the thread

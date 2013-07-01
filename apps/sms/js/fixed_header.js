@@ -1,12 +1,12 @@
 'use strict';
 
 var FixedHeader = (function FixedHeader() {
-  var headings;
   var selector;
   var view;
   var fixedContainer;
   var currentlyFixed;
   var notApplyEffect;
+  var refreshTimeout;
 
   /**
    * Start listening scroll event, and applying the fixed header effect
@@ -20,18 +20,25 @@ var FixedHeader = (function FixedHeader() {
     view = document.querySelector(scrollView);
     fixedContainer = document.querySelector(container);
     refresh();
-    view.addEventListener('scroll', scrolling);
+    view.addEventListener('scroll', refresh);
     notApplyEffect = typeof noEffect === 'undefined' ? false : noEffect;
+    refreshTimeout = null;
   };
 
   var refresh = function refresh() {
-    headings = view.querySelectorAll(selector);
-    // after setting up a new headings selection, check the scroll again
-    // in case we removed the header we have currently fixed.
-    scrolling();
+    if (refreshTimeout === null) {
+      refreshTimeout = setTimeout(immediateRefresh);
+    }
   };
 
-  var scrolling = function scrolling() {
+  function immediateRefresh() {
+    if (refreshTimeout) {
+      clearTimeout(refreshTimeout);
+    }
+    refreshTimeout = null;
+
+    var headings = view.querySelectorAll(selector);
+
     var currentScroll = view.scrollTop;
     for (var i = headings.length - 1; i >= 0; i--) {
       var currentHeader = headings[i];
@@ -66,23 +73,15 @@ var FixedHeader = (function FixedHeader() {
     currentlyFixed = null;
     if (!notApplyEffect)
       fixedContainer.style.transform = 'translateY(-100%)';
-  };
+  }
 
   var stop = function stop() {
-    view.removeEventListener('scroll', scrolling);
-  };
-
-  var start = function start() {
-    var header = headings[0];
-    if (header) {
-      fixedContainer.textContent = header.textContent;
-    }
+    view.removeEventListener('scroll', refresh);
   };
 
   return {
     'init': init,
     'refresh': refresh,
-    'start': start,
     'stop': stop
   };
 })();
