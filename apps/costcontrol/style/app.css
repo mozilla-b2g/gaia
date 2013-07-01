@@ -12,7 +12,6 @@ a::-moz-focus-inner {
 
 html {
   font-size: 10px;
-  font-family: 'MozTT', sans-serif;
   color: #000;
 }
 
@@ -61,6 +60,7 @@ input.error {
   background-repeat: no-repeat;
   background-position: center center;
   background-image: url("/style/icons/cost-control.png");
+  background-size: 6rem;
 }
 
 
@@ -142,6 +142,7 @@ input.error {
 /* BB HEADER ICONS */
 body[role="application"] section[role="region"] > header .icon.config {
   background-image: url(images/app/icons/config.png);
+  background-size: 3rem;
 }
 
 body[role="application"] section[role="region"] > header button {
@@ -169,20 +170,24 @@ li button:after {
 
 li button.icon-reload:before {
   background-image: url(images/app/icons/reload.png);
+  background-size: 3rem;
 }
 
 li button.icon-topup:before {
   background-image: url(images/app/icons/topup.png);
+  background-size: 3rem;
 }
 
 li button.icon-topupcode:before  {
   background-image: url(images/app/icons/topupcode.png);
+  background-size: 3rem;
 }
 
 
 /* BB PROGRESS */
 body[role="application"] progress:not([value]) {
   background: url(images/app/icons/loader.png) no-repeat center center;
+  background-size: 3.1rem 3rem;
   width: 3rem;
   height: 3rem;
   animation: loader 0.8s linear infinite;

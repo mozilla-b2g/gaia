@@ -435,7 +435,8 @@ var DataUsageTab = (function() {
     var todayTag = dateFormatter.localeFormat(model.axis.X.today, dateFormat);
 
     // Render the text
-    ctx.font = '600 ' + TODAY_FONTSIZE + 'px MozTT';
+    ctx.fontWeight = '600';
+    ctx.fontSize = TODAY_FONTSIZE + 'px';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
@@ -462,7 +463,7 @@ var DataUsageTab = (function() {
     var step = model.axis.Y.step;
     var dataStep = model.axis.Y.upper - model.axis.Y.maxValue;
     var offsetX = model.originX - 4, marginBottom = 4;
-    ctx.font = FONTSIZE + 'px MozTT';
+    ctx.fontSize = FONTSIZE + 'px';
     ctx.textAlign = 'right';
     var displayLimit = mobileToggle.checked && model.limits.enabled;
     var lastUnit;
@@ -501,7 +502,8 @@ var DataUsageTab = (function() {
 
     // Left tag
     var leftTag = dateFormatter.localeFormat(model.axis.X.lower, dateFormat);
-    ctx.font = '600 ' + FONTSIZE + 'px MozTT';
+    ctx.fontWeight = '600';
+    ctx.fontSize = FONTSIZE + 'px';
     ctx.textBaseline = 'top';
     ctx.textAlign = 'start';
 
@@ -543,7 +545,8 @@ var DataUsageTab = (function() {
     var offsetY = set ? model.axis.Y.get(model.limits.value) :
                         FONTSIZE + 2 * marginTop;
 
-    ctx.font = '600 ' + FONTSIZE + 'px MozTT';
+    ctx.fontWeight = '600';
+    ctx.fontSize = FONTSIZE + 'px';
 
     // The dashed limit line
     var lineLength = 15;
