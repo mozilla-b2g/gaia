@@ -400,7 +400,8 @@ var MessageManager = {
   },
 
   // consider splitting this method for the different use cases
-  sendSMS: function mm_send(recipients, content, onsuccess, onerror) {
+  sendSMS: function mm_send(recipients, content,
+                            onsuccess, onerror, oncomplete) {
     var requests;
 
     if (!Array.isArray(recipients)) {
@@ -409,15 +410,32 @@ var MessageManager = {
 
     // The returned value is not a DOM request!
     // Instead, It's an array of DOM requests.
+    var i = 0;
+    var requestResult = { success: [], error: [] };
+
     requests = this._mozMobileMessage.send(recipients, content);
+    var numberOfRequests = requests.length;
+
     requests.forEach(function(request) {
       request.onsuccess = function onSuccess(event) {
-        onsuccess && onsuccess(event.result);
+        onsuccess && onsuccess(event.target.result);
+
+        requestResult.success.push(event.target.result);
+        if (i === numberOfRequests - 1) {
+          oncomplete && oncomplete(requestResult);
+        }
+        i++;
       };
 
       request.onerror = function onError(event) {
-        console.log('Error Sending: ' + JSON.stringify(event.error));
-        onerror && onerror();
+        console.log('Error Sending: ' + JSON.stringify(event.target.error));
+        onerror && onerror(event.target.error);
+
+        requestResult.error.push(event.target.error);
+        if (i === numberOfRequests - 1) {
+          oncomplete && oncomplete(requestResult);
+        }
+        i++;
       };
     });
   },
@@ -439,12 +457,11 @@ var MessageManager = {
     });
 
     request.onsuccess = function onSuccess(event) {
-      onsuccess && onsuccess(event.result);
+      onsuccess && onsuccess(event.target.result);
     };
 
     request.onerror = function onError(event) {
-      console.log('Error Sending: ' + JSON.stringify(event.error));
-      onerror && onerror();
+      onerror && onerror(event.target.error);
     };
   },
 

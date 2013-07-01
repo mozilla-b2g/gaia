@@ -29,7 +29,7 @@ requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_activity_picker.js');
 requireApp('sms/test/unit/mock_action_menu.js');
-requireApp('sms/test/unit/mock_custom_dialog.js');
+requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_smil.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
@@ -42,7 +42,7 @@ var mocksHelperForThreadUI = new MocksHelper([
   'MozActivity',
   'ActivityPicker',
   'OptionMenu',
-  'CustomDialog',
+  'Dialog',
   'Contacts',
   'SMIL'
 ]);
@@ -798,28 +798,67 @@ suite('thread_ui.js >', function() {
           assert.isTrue(this.container.classList.contains('sending'));
         });
       });
-      suite('send message in airplane mode >', function() {
-        var realMozSettings;
+      suite('show error message when send message unsuccessfully', function() {
         setup(function() {
-          MockNavigatorSettings.createLock().set({
-            'ril.radio.disabled' : true
-          });
+          MockDialog.mSetup();
         });
 
-        suiteSetup(function() {
-          realMozSettings = navigator.mozSettings;
-          navigator.mozSettings = MockNavigatorSettings;
-        });
-        suiteTeardown(function() {
-          navigator.mozSettings = realMozSettings;
+        teardown(function() {
+          MockDialog.mTeardown();
         });
 
-        test('airplane alert is visible', function(done) {
-          ThreadUI.onMessageFailed(this.fakeMessage);
-          setTimeout(function() {
-            assert.isTrue(MockCustomDialog.mShown);
-            done();
-          });
+        test('show general error for no signal error', function() {
+          ThreadUI.showSendMessageError('NoSignalError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendGeneralErrorTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendGeneralErrorBody');
+        });
+
+        test('show general error for not found error', function() {
+          ThreadUI.showSendMessageError('NotFoundError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendGeneralErrorTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendGeneralErrorBody');
+        });
+
+        test('show general error for unknown error', function() {
+          ThreadUI.showSendMessageError('UnknownError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendGeneralErrorTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendGeneralErrorBody');
+        });
+
+        test('show general error for internal error', function() {
+          ThreadUI.showSendMessageError('InternalError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendGeneralErrorTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendGeneralErrorBody');
+        });
+
+        test('show no SIM card', function() {
+          ThreadUI.showSendMessageError('NoSimCardError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendNoSimCardTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendNoSimCardBody');
+        });
+
+        test('show air plane mode', function() {
+          ThreadUI.showSendMessageError('RadioDisabledError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendAirplaneModeTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendAirplaneModeBody');
         });
       });
     });
@@ -1997,11 +2036,10 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.onSendClick();
 
+      var calledWith = MessageManager.sendSMS.calledWith;
       assert.ok(MessageManager.sendSMS.called);
-      assert.deepEqual(
-        MessageManager.sendSMS.calledWith,
-        [['999'], 'foo']
-      );
+      assert.deepEqual(calledWith[0], ['999']);
+      assert.deepEqual(calledWith[1], 'foo');
       assert.equal(window.location.hash, '#new');
     });
 
@@ -2038,11 +2076,10 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.onSendClick();
 
+      var calledWith = MessageManager.sendSMS.calledWith;
       assert.ok(MessageManager.sendSMS.called);
-      assert.deepEqual(
-        MessageManager.sendSMS.calledWith,
-        [['999', '888'], 'foo']
-      );
+      assert.deepEqual(calledWith[0], ['999', '888']);
+      assert.deepEqual(calledWith[1], 'foo');
     });
 
     test('MMS, >1 Recipient, stays in view', function() {
