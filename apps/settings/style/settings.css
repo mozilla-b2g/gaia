@@ -290,7 +290,7 @@ section li.password > p {
   content: "";
   position: relative;
   display: inline-block;
-  background: -moz-image-rect(url(images/icons_sprite.png), 0, 120, 30, 90) no-repeat scroll 0 50% transparent;
+  background: -moz-image-rect(url(images/icons_sprite.png), 0, 120, 30, 90) no-repeat scroll 0 50% / 3rem 3rem transparent;
   top: 0.9rem;
   margin: 0.5rem;
   width: 3rem;
@@ -324,7 +324,7 @@ section li.password > p {
 }
 
 #wallpaper-button {
-  background: url(images/wallpaper_edit.png) no-repeat 25rem 11.5rem;
+  background: url(images/wallpaper_edit.png) no-repeat 25rem 11.5rem / 4.5rem 4.5rem;
   position: absolute;
   border: none;
   height: 100%;
@@ -372,14 +372,14 @@ ul li > label .range-icons {
 
 ul li > label .range-icons.volume {
   background:
-    url(images/range_icons_volume_min.png) no-repeat 0 50%,
-    url(images/range_icons_volume_max.png) no-repeat 100% 50%;
+    url(images/range_icons_volume_min.png) no-repeat 0 50% / 3rem 3rem,
+    url(images/range_icons_volume_max.png) no-repeat 100% 50% / 3rem 3rem;
 }
 
 ul li > label .range-icons.brightness {
   background:
-    url(images/range_icons_brightness_min.png) no-repeat 0 50%,
-    url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
+    url(images/range_icons_brightness_min.png) no-repeat 0 50% / 3rem 3rem,
+    url(images/range_icons_brightness_max.png) no-repeat 100% 50% / 3rem 3rem;
   left: 2.5rem;
   right: auto;
 }
