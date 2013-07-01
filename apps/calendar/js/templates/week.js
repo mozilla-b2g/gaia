@@ -20,7 +20,8 @@
     },
 
     event: function() {
-      return '<li class="event" data-id="' + this.h('busytimeId') + '">' +
+      return '<li class="event ' + this.h('classes') + '" data-id="' +
+            this.h('busytimeId') + '">' +
           '<div class="container calendar-id-' + this.h('calendarId') + ' ' +
                       'calendar-display calendar-color">' +
             this.h('title') +

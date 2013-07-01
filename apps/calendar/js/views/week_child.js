@@ -30,13 +30,18 @@ Calendar.ns('Views').WeekChild = (function() {
     },
 
     _renderEvent: function(busytime, event) {
-      var render = template.event.render({
+      var classes;
+
+      if (event.remote.alarms && event.remote.alarms.length) {
+        classes = 'has-alarms';
+      }
+
+      return template.event.render({
+        classes: classes,
         calendarId: event.calendarId,
         busytimeId: busytime._id,
         title: event.remote.title
       });
-
-      return render;
     },
 
     /**
