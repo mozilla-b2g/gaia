@@ -947,9 +947,9 @@ function showAlternatives(key) {
   alternatives = altMap[value] || '';
 
   // If in uppercase, look for other alternatives or use default's
-  if (isUpperCase) {
+  if (isUpperCase || isUpperCaseLocked) {
     uppercaseValue = getUpperCaseValue(keyObj);
-    alternatives = altMap[uppercaseValue] || alternatives.toUpperCase();
+    alternatives = altMap[uppercaseValue] || alternatives.toLocaleUpperCase();
   }
 
   // Split alternatives
