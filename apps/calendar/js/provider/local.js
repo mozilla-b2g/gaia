@@ -87,9 +87,9 @@ Calendar.ns('Provider').Local = (function() {
           // persisted in the database.
        
           // assuming we are ready commit the changes
-          pull.commit(function(err) {
-            // all changes have been committed at this point.
-          });
+          pull.commitIncrementally(null,function(err){
+
+          },'start');
         });
       },null);
     },
@@ -135,9 +135,9 @@ Calendar.ns('Provider').Local = (function() {
           // persisted in the database.
        
           // assuming we are ready commit the changes
-          pull.commit(function(err) {
-          // all changes have been committed at this point.
-          });
+          pull.commitIncrementally(null,function(err){
+
+          },'start');
         });
       },null);
     },
@@ -177,9 +177,9 @@ Calendar.ns('Provider').Local = (function() {
              // persisted in the database.
        
              // assuming we are ready commit the changes
-             pull.commit(function(err) {
-               // all changes have been committed at this point.
-             });
+             pull.commitIncrementally(null,function(err){
+
+             },'start');
            });
 
         },null);
@@ -221,11 +221,9 @@ Calendar.ns('Provider').Local = (function() {
              // events can be made. They are flushed
              // to the cache where possible but not actually
              // persisted in the database.
-       
-             // assuming we are ready commit the changes
-             pull.commit(function(err) {
-               // all changes have been committed at this point.
-             });
+              pull.commitIncrementally(null,function(err){
+
+              },'start');
            });
 
         },null);

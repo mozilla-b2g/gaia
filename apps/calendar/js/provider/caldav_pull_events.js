@@ -67,6 +67,9 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
     this.busytimeQueue = [];
     this.alarmQueue = [];
 
+    // for commitIncrementally, used to groupd objects by similar eventIds
+    this.eventAllQueue = [];
+
     this._busytimeStore = this.app.store('Busytime');
 
     // Catch account events to watch for mid-sync removal
@@ -310,6 +313,129 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
           this.handleEventSync(event);
           break;
       }
+    },
+
+    /**
+     * Commit all pending records incrementally with objects grouped by eventIds.
+     *
+     *
+     * @param {IDBTransaction} [trans] optional transaction.
+     * @param {Function} callback fired when transaction completes.
+     * @param {String} type of call to this function can be 'start' or 'recurse'.
+     */
+    commitIncrementally: function(trans, callback, type) {
+      var eventStore = this.app.store('Event');
+      var icalComponentStore = this.app.store('IcalComponent');
+      var calendarStore = this.app.store('Calendar');
+      var busytimeStore = this.app.store('Busytime');
+      var alarmStore = this.app.store('Alarm'); 
+
+      if (trans === null) {
+        trans = calendarStore.db.transaction(
+          ['calendars', 'events', 'busytimes', 'alarms', 'icalComponents'],
+          'readwrite'
+        );
+      }
+
+      if (this._aborted) {
+        // Commit nothing, if sync was aborted.
+        return callback && callback(null);
+      }
+
+      var calendar = this.calendar;
+      var account = this.account;
+
+      // Stash a reference to the transaction, in case we still need to abort.
+      this._trans = trans;
+
+      var self = this;
+      
+      if (type === 'start' ) {
+        self.megaical = [];
+        for (var i = 0 ; i < self.eventQueue.length ; i++)  {
+          
+          var event = self.eventQueue[i];
+          var eventAll = [];
+          var id = event._id;
+          
+          var icalAll = [];
+          var busyAll = [];
+          var alarmAll = [];
+          for (var j = 0 ; j < self.icalQueue.length ; j++)  {
+            var ical = self.icalQueue[j];
+            if (ical.eventId === id) {
+              icalAll.push(ical);
+            }
+          }
+          for (var k = 0 ; k < self.busytimeQueue.length ; k++)  {
+              var busy = self.busytimeQueue[k];
+              if (busy.eventId === id) {
+                busyAll.push(busy);
+              }
+          }
+          for (var l = 0 ; l < self.alarmQueue.length ; l++)  {
+            var alarm = self.alarmQueue[l];
+            if (alarm.eventId === id) {
+              alarmAll.push(alarm);
+            }
+          }
+                      
+          eventAll.push(event);
+          eventAll.push(icalAll);
+          eventAll.push(busyAll);
+          eventAll.push(alarmAll);
+          self.eventAllQueue.push(eventAll);
+        }
+        self.commitIncrementally(null,callback,'recurse');
+      }
+      else if (type === 'recurse') {
+        var first = self.eventAllQueue.splice(0,1);
+        var second = self.eventAllQueue;
+        self.eventAllQueue = first;
+        var eventAll = self.eventAllQueue[0];
+        var mainevent = eventAll[0];
+        var icals = eventAll[1];
+        var busies = eventAll[2];
+        var alarms = eventAll[3];
+        debug('add event', mainevent);
+        eventStore.persist(mainevent, trans);
+        icals.forEach(function(ical) {
+          debug('add component', ical);
+          icalComponentStore.persist(ical, trans);
+        });
+        busies.forEach(function(busy){
+          debug('add busytime', busy);
+          busytimeStore.persist(busy, trans);
+        });
+        alarms.forEach(function(alarm){
+          debug('add alarm', alarm);
+          alarmStore.persist(alarm, trans);
+        })
+        self.eventAllQueue = second;
+      }
+      function handleError(e) {
+        if (e && e.type !== 'abort') {
+          console.error('Error persisting sync results', e);
+        }
+
+        // if we have an event preventDefault so we don't trigger window.onerror
+        if (e && e.preventDefault) {
+          e.preventDefault();
+        }
+
+        self._trans = null;
+        callback && callback(e);
+      }
+      trans.addEventListener('complete', function() {
+        self._trans = null;
+        if (self.eventAllQueue.length === 0 ) {
+          callback && callback(null);
+        }
+        else {
+          self.commitIncrementally(null,callback,'recurse');
+        }
+      });
+      return trans;
     },
 
     /**
