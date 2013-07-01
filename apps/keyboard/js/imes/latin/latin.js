@@ -392,24 +392,20 @@
   // content and cursor position.
   function replaceBeforeCursor(oldWord, newWord) {
     var oldWordLen = oldWord.length;
-    if (keyboard.replaceSurroundingText) {
-      keyboard.replaceSurroundingText(newWord, oldWordLen, 0);
-    }
-    else {
-      // Find the first character in currentWord and newWord that differs
-      // so we know how many backspaces we need to send.
-      for (var firstdiff = 0; firstdiff < oldWordLen; firstdiff++) {
-        if (oldWord[firstdiff] !== newWord[firstdiff])
-          break;
-      }
 
-      // Backspace as far as that first difference
-      for (var i = oldWordLen; i > firstdiff; i--)
-        keyboard.sendKey(BACKSPACE);
-
-      // And send the first different character and all that follow
-      keyboard.sendString(newWord.substring(firstdiff));
+    // Find the first character in currentWord and newWord that differs
+    // so we know how many backspaces we need to send.
+    for (var firstdiff = 0; firstdiff < oldWordLen; firstdiff++) {
+      if (oldWord[firstdiff] !== newWord[firstdiff])
+        break;
     }
+
+    // Backspace as far as that first difference
+    for (var i = oldWordLen; i > firstdiff; i--)
+      keyboard.sendKey(BACKSPACE);
+
+    // And send the first different character and all that follow
+    keyboard.sendString(newWord.substring(firstdiff));
 
     // Now update internal state
     inputText =
