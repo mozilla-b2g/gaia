@@ -116,6 +116,12 @@ form.search button[type="submit"] {
   z-index: 1;
 }
 
+#search-process {
+  z-index: 2; /* Above groups-list-search */
+  background-color: transparent!important;
+  pointer-events: none;
+}
+
 #search-list {
   height: 100%;
 }
