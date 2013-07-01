@@ -27,6 +27,66 @@ var DeviceStorageWatcher = {
 
     this._message = this._container.querySelector('.message');
     this._availableSpace = this._container.querySelector('.available-space');
+
+    var storages = navigator.getDeviceStorages('sdcard');
+    getStorageAvailability();
+
+    var sdcardAvailability = {};
+
+    function getStorageAvailability() {
+      var next = 0;
+      getNextAvailability();
+
+      function getNextAvailability() {
+        if (next >= storages.length) {
+          // We've gotten the availability of all storage areas, so
+          // move on to the next step.
+          setupHandlers();
+          return;
+        }
+        var s = storages[next++];
+        var name = s.storageName;
+        var req = s.available();
+
+        req.onsuccess = function(e) {
+          sdcardAvailability[name] = req.result;
+          getNextAvailability();
+        };
+        req.onerror = function(e) {
+          sdcardAvailability[name] = 'unavailable';
+          getNextAvailability();
+        };
+      }
+    }
+
+    function setupHandlers() {
+      for (var i = 0; i < storages.length; i++)
+        storages[i].addEventListener('change', changeHandler);
+    }
+
+    function changeHandler(evt) {
+      var storageName = evt.target.storageName;
+      if (sdcardAvailability[storageName] === evt.reason)
+        return;
+
+      var text = null;
+      var _ = navigator.mozL10n.get;
+      switch (evt.reason) {
+      case 'available':
+        text = _('sdcard-mount');
+        break;
+      case 'unavailable':
+        text = _('sdcard-unmount');
+        break;
+      default:
+        return;
+      }
+
+      if (text != null) {
+        sdcardAvailability[storageName] = evt.reason;
+        SystemBanner.show(text);
+      }
+    }
   },
 
   containerClicked: function dsw_containerClicked() {
