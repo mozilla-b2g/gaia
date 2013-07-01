@@ -1100,8 +1100,8 @@ var ThreadUI = global.ThreadUI = {
 
     // look for an old message and remove it first - prevent anything from ever
     // double rendering for now
-    var messageDOM = this.container.querySelector(
-      '[data-message-id="' + message.id + '"]');
+    var messageDOM = document.getElementById('message-' + message.id);
+
     if (messageDOM) {
       this.removeMessageDOM(messageDOM);
     }
@@ -1523,8 +1523,7 @@ var ThreadUI = global.ThreadUI = {
     var id = +messageId;
     var _ = navigator.mozL10n.get;
     var request = MessageManager.retrieveMMS(id);
-    var messageDOM = this.container.querySelector(
-      '[data-message-id="' + id + '"]');
+    var messageDOM = document.getElementById('message-' + id);
 
     messageDOM.classList.add('pending');
     messageDOM.classList.remove('error');
@@ -1554,8 +1553,7 @@ var ThreadUI = global.ThreadUI = {
         if (!success) {
           return;
         }
-        var messageDOM = this.container.querySelector(
-          '[data-message-id="' + id + '"]');
+        var messageDOM = document.getElementById('message-' + id);
 
         this.removeMessageDOM(messageDOM);
         MessageManager.resendMessage(message);
