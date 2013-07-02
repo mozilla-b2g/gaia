@@ -58,7 +58,6 @@ body[data-path^='/settings'] #time-views {
   padding: 0 3rem;
   border-bottom: 0.1rem solid #7E8C91;
   -moz-user-select: none;
-  user-select: none;
 }
 
 #settings .calendars li {
