@@ -78,6 +78,9 @@ suite('link_helper_test.js', function() {
       test('Simple URL with IPv4', function() {
         testURLOK('http://8.8.8.8/');
       });
+      test('Simple URL with IPv4 with zero', function() {
+        testURLOK('http://8.0.8.8/');
+      });
       test('Trailing period', function() {
         testURLMatch('Check out mozilla.org.', 'mozilla.org', true);
       });

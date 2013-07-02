@@ -17,8 +17,7 @@ function checkDomain(domain) {
 }
 
 // defines things that can match right before to be a "safe" link
-var safeStart = /(^|\s|\.|,|;|<br>|\()$/;
-var nonPhoneRE = /[^+\d]+/g;
+var safeStart = /(?:[\s.,;(]|<br>)$/;
 
 /**
  * For each category of links:
@@ -29,6 +28,20 @@ var nonPhoneRE = /[^+\d]+/g;
  *   transform: A function that converts the match data to a link string
  */
 var LINK_TYPES = {
+  phone: {
+    regexp: new RegExp([
+      '(\\+?1?[-.]?\\(?([0-9]{3})\\)?',
+      '[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?'
+      ].join(''), 'mg'),
+    transform: function phoneTransform(phone) {
+      return [
+        '<a data-phonenumber="',
+        '" data-action="phone-link">',
+        '</a>'
+      ].join(phone);
+     }
+  },
+
   url: {
     regexp: new RegExp([
       // must begin at start of string, after whitespace,
@@ -80,22 +93,10 @@ var LINK_TYPES = {
         '</a>'
       ].join(email);
     }
-  },
-
-  phone: {
-    regexp: new RegExp([
-      '(\\+?1?[-.]?\\(?([0-9]{3})\\)?',
-      '[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?'
-      ].join(''), 'mg'),
-    transform: function phoneTransform(phone) {
-      return [
-        '<a data-phonenumber="',
-        '" data-action="phone-link">',
-        '</a>'
-      ].join(phone);
-     }
   }
 };
+
+var LINK_TYPES_KEYS = Object.keys(LINK_TYPES);
 
 function searchForLinks(type, string) {
   var links = [];
@@ -139,7 +140,9 @@ function searchForLinks(type, string) {
 
 function linkSort(a, b) {
   // sort by starting position first, then by ending position reversed
-  return a.start - b.start || b.end - a.end;
+  return a.start - b.start || b.end - a.end ||
+  // then by the order of the type in the LINK_TYPES
+    LINK_TYPES_KEYS.indexOf(a.type) - LINK_TYPES_KEYS.indexOf(b.type);
 }
 
 function removeOverlapping(links) {
