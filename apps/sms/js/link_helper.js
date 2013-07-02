@@ -25,7 +25,7 @@ var safeStart = /(?:[\s.,;(]|<br>)$/;
  *   regexp: The regular expression to match potential links
  *   matchFilter: A function that takes the full string, followed by the match,
  *                should return a link object
- *   transform: A function that converts the match data to a link string
+ *   transform: A function that converts the match data to a html link string
  */
 var LINK_TYPES = {
   phone: {
@@ -51,32 +51,32 @@ var LINK_TYPES = {
       '((?:\\.?[-\\w]){1,256})',
       // {3} match a . followed by one or more domain valid chars
       '(\\.\\w{1,10})',
-      // {4} optional :port
-      '(:[0-9]{1,5})?',
-      // {5} start the "query" capture group by matching an optional dot then /
-      '(\\.?/',
+      // optional :port
+      '(?::[0-9]{1,5})?',
+      // start the "query" capture group by matching an optional dot then /
+      '(?:\\.?/',
         // anything other than a whitespace or dot or comma
         // or a dot or comma not followed by whitespace
         // match 0 - 2048 characters in the url
-        '([^\\s.,]|(?:\\.|,)(?!\\s|$)){0,2048}',
+        '(?:[^\\s.,]|(?:\\.|,)(?!\\s|$)){0,2048}',
       // end the "query" capture group (optional)
       ')?'
       ].join(''), 'mgi'),
-    matchFilter: function urlMatchFilter(url, link) {
-      var match = link.match;
+    matchFilter: function urlMatchFilter(url, linkSpec) {
+      var match = linkSpec.match;
       if (!checkDomain(match[2] + match[3])) {
         return false;
       }
 
       // strip a trailing ) if there isn't a ( in the url
       if (url.slice(-1) === ')' && url.indexOf('(') === -1) {
-        link.end--;
+        linkSpec.end--;
       }
-      return link;
+      return linkSpec;
     },
-    transform: function urlTransform(url, link) {
+    transform: function urlTransform(url, linkSpec) {
       var href = url;
-      if (!link.match[1]) {
+      if (!linkSpec.match[1]) {
         href = 'http://' + href;
       }
       return '<a data-url="' + href + '" data-action="url-link" >' + url +
@@ -99,26 +99,26 @@ var LINK_TYPES = {
 var LINK_TYPES_KEYS = Object.keys(LINK_TYPES);
 
 function searchForLinks(type, string) {
-  var links = [];
+  var linkSpecs = [];
   var spec = LINK_TYPES[type];
 
   if (!spec) {
-    return links;
+    return linkSpecs;
   }
 
   var regexp = spec.regexp;
   var matchFilter = spec.matchFilter;
-  var match, link;
+  var match, linkSpec;
 
   // while we match stuff...
   while (match = regexp.exec(string)) {
     // if the match isn't at the begining of the string, check for a safe
-    // character set before the match before we call it a link
+    // character set before the match before we call it a linkSpec
     if (match.index && !safeStart.exec(string.slice(0, match.index))) {
       continue;
     }
 
-    link = {
+    linkSpec = {
       type: type,
       start: match.index,
       length: match[0].length,
@@ -127,15 +127,15 @@ function searchForLinks(type, string) {
     };
 
     if (matchFilter) {
-      link = matchFilter(match[0], link);
+      linkSpec = matchFilter(match[0], linkSpec);
     }
 
-    if (link) {
-      links.push(link);
+    if (linkSpec) {
+      linkSpecs.push(linkSpec);
     }
   }
 
-  return links;
+  return linkSpecs;
 }
 
 function linkSort(a, b) {
@@ -145,14 +145,14 @@ function linkSort(a, b) {
     LINK_TYPES_KEYS.indexOf(a.type) - LINK_TYPES_KEYS.indexOf(b.type);
 }
 
-function removeOverlapping(links) {
-  links.sort(linkSort);
-  for (var x = 0; x < links.length - 1; x++) {
-    var end = links[x].end;
-    // while there are more links, and they start before we end remove the
+function removeOverlapping(linkSpecs) {
+  linkSpecs.sort(linkSort);
+  for (var x = 0; x < linkSpecs.length - 1; x++) {
+    var end = linkSpecs[x].end;
+    // while there are more linkSpecs, and they start before we end remove the
     // overlapping matches
-    while (links[x + 1] && links[x + 1].start < end) {
-      links.splice(x + 1, 1);
+    while (linkSpecs[x + 1] && linkSpecs[x + 1].start < end) {
+      linkSpecs.splice(x + 1, 1);
     }
   }
 }
@@ -174,20 +174,20 @@ var LinkHelper = window.LinkHelper = {
     // default is everything enabled
     mode = mode || LINK_TYPES;
 
-    var links = [];
+    var linkSpecs = [];
     var type;
 
     for (type in mode) {
       if (mode[type] && LINK_TYPES[type]) {
-        links = links.concat(searchForLinks(type, inputText));
+        linkSpecs = linkSpecs.concat(searchForLinks(type, inputText));
       }
     }
 
-    removeOverlapping(links);
+    removeOverlapping(linkSpecs);
 
     var result = inputText;
     var offset = 0;
-    links.forEach(function replaceLink(link) {
+    linkSpecs.forEach(function replaceLink(link) {
       var before = result.slice(0, link.start + offset);
       var replacing = result.slice(link.start + offset, link.end + offset);
       var after = result.slice(link.end + offset);
