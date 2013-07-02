@@ -47,7 +47,7 @@ body[data-path^='/settings'] #time-views {
 }
 
 #settings .calendars .error label {
-  background: transparent url('icons/accountwarning_30x30.png') no-repeat 2rem 0.5rem;
+  background: transparent url('icons/accountwarning.png') no-repeat 2rem 0.5rem;
   padding-left: 6rem;
 }
 
@@ -95,7 +95,7 @@ body[data-path^='/settings'] #time-views {
 #settings .settings {
   width: 5.5rem;
   height: 4rem;
-  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat center / 3rem;
+  background: transparent url('/style/icons/settings.png') no-repeat center / 3rem;
   font-size: 0;
   display: block;
 }

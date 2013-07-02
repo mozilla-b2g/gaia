@@ -21,7 +21,7 @@
 }
 
 .hint .hint-swipe-image {
-  background-image: url(/style/ui/swipe_left.png);
+  background: url("/style/ui/swipe_left.png") no-repeat scroll center center / 7.1rem auto transparent;
   width: 7.1rem;
   height: 5rem;
   position: absolute;

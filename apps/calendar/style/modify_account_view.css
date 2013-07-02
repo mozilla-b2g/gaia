@@ -89,7 +89,7 @@
 #modify-account-view .sync-errors p {
   margin: 0;
   height: 3rem;
-  background: transparent url('icons/accountwarning_30x30.png') no-repeat left top;
+  background: transparent url('icons/accountwarning.png') no-repeat left top;
   padding-left: 3.5rem;
   line-height: 3rem;
 }
