@@ -22,7 +22,6 @@ menu[type="toolbar"] a {
 ol.link-list label,
 ol.link-list a {
   display: block;
-  width: calc(100% - 3rem;)
   min-height: 5.5rem;
   line-height: 5.5rem;
   font-size: 1.7rem;
