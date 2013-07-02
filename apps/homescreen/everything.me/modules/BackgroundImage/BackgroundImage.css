@@ -29,7 +29,7 @@
     }
     #search-overlay .img {
         transition: opacity .3s linear;
-        -moz-transform: translate3d(0px, 0px, 0px) rotate(0deg) scale(1);
+        -moz-transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
     }
     #search-overlay .img.visible {
         opacity: 0.4;
@@ -75,9 +75,9 @@
         left: 0;
         right: 0;
         bottom: 0;
-        height: 42px;
-        line-height: 42px;
-        padding: 0 40px 0 10px;
+        height: 4.2rem;
+        line-height: 4.2rem;
+        padding: 0 4rem 0 1rem;
         z-index: 20;
         cursor: pointer;
         background: rgba(0, 0, 0, .8);
@@ -85,9 +85,9 @@
         #bgimage-overlay .content h2 {
             font-weight: 600;
             color: #b4dae7;
-            font-size: 15px;
-            height: 17px;
-            margin-top: 5px;
+            font-size: 1.5rem;
+            height: 1.7rem;
+            margin-top: 0.5rem;
             line-height: 100%;
             white-space: nowrap;
             overflow: hidden;
@@ -96,13 +96,13 @@
         }
         #bgimage-overlay.nosource .content h2 {
             margin-top: 0;
-            height: 43px;
-            line-height: 43px;
+            height: 4.3rem;
+            line-height: 4.3rem;
         }
         #bgimage-overlay .content .source {
             font-weight: 600;
             color: #fff;
-            font-size: 13px;
+            font-size: 1.3rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -111,14 +111,14 @@
                 text-decoration: underline;
             }
         #bgimage-overlay .content .close {
-            background: transparent url('../../images/imageclose.png') 50% 50% no-repeat;
+            background: url('../../images/imageclose.png') no-repeat 50% 50%/1.7rem;
             position: absolute;
             top: 50%;
-            right: 5px;
+            right: 0.5rem;
             z-index: 2;
-            width: 32px;
-            height: 32px;
-            margin-top: -16px;
+            width: 3.2rem;
+            height: 3.2rem;
+            margin-top: -1.6rem;
             cursor: pointer;
         }
 .fullscreen-bgimage #search-header {

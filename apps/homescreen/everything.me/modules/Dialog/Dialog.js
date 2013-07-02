@@ -46,7 +46,7 @@ Evme.Dialog = function Evme_Dialog(_id) {
     };
     
     this.center = function center() {
-        el.style.cssText += 'top: 50%; margin-top: ' + -el.offsetHeight/2 + 'px;';
+        el.style.cssText += 'top: 50%; margin-top: ' + -el.offsetHeight/20 + 'rem;';
     };
     
     this.getElement = function getElement() {

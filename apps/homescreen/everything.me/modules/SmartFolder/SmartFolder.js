@@ -131,7 +131,7 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
     };
     
     this.showLoading = function showLoading() {
-      elLoading.style.transform = 'translateY(' + self.getInstalledHeight()/2 + 'px)';
+      elLoading.style.transform = 'translateY(' + self.getInstalledHeight()/20 + 'rem)';
       elAppsContainer.classList.add(CLASS_WHEN_LOADING);
     };
     
@@ -145,7 +145,7 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         
         if (el.offsetHeight > MAX_HEIGHT) {
             el.classList.add(CLASS_WHEN_MAX_HEIGHT);
-            el.style.cssText += 'height: ' + MAX_HEIGHT + 'px; margin-top: ' + (-MAX_HEIGHT/2) + 'px;';
+            el.style.cssText += 'height: ' + MAX_HEIGHT / 10 + 'rem; margin-top: ' + (-MAX_HEIGHT/20) + 'rem;';
         }
         
         return self;

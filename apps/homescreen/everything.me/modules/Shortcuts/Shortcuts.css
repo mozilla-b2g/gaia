@@ -63,7 +63,7 @@
             z-index: 100;
             display: none;
             cursor: pointer;
-            background: transparent url('/resources/images/delete.png') no-repeat left top;
+            background: transparent url('/resources/images/delete.png') no-repeat left top/2.4rem;
         }
     #evmeContainer .shortcut.disabled {
         opacity: 0;

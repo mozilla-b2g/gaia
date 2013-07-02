@@ -57,7 +57,7 @@ Evme.Apps = new function Evme_Apps() {
         if (hasFixedPositioning){
             var headerHeight = options.elHeader.offsetHeight;            
             options.elHeader.style.cssText += 'position: fixed; top: 0; left: 0; width: 100%; zIndex: 100;';
-            el.style.cssText += 'top: 0; padding-top: ' + headerHeight + 'px;';
+            el.style.cssText += 'top: 0; padding-top: ' + headerHeight / 10 + 'rem;';
         } 
        
         scroll = new Scroll(el, {
@@ -233,7 +233,7 @@ Evme.Apps = new function Evme_Apps() {
     };
     
     this.showLoading = function showLoading() {
-      elLoading.style.transform = 'translateY(' + self.getInstalledHeight()/2 + 'px)';      
+      elLoading.style.transform = 'translateY(' + self.getInstalledHeight()/20 + 'rem)';
       el.classList.add(CLASS_WHEN_LOADING);
     };
     
@@ -665,12 +665,12 @@ Evme.IconGroup = new function Evme_IconGroup() {
       }
 
       html += '<span' + missingIcon + ' style="' +
-                  'top: ' + y + 'px;' +
-                  ' left: ' + x + 'px;' +
-                  ' width: ' + size + 'px;' +
-                  ' height: ' + size + 'px;' +
+                  'top: ' + y / 10 + 'rem;' +
+                  ' left: ' + x / 10 + 'rem;' +
+                  ' width: ' + size / 10 + 'rem;' +
+                  ' height: ' + size / 10 + 'rem;' +
                   (icon.rotate? ' transform: rotate(' + icon.rotate + 'deg);' : '') +
-                  ((icon.shadowOffset || icon.shadowBlur)? ' box-shadow: ' + (icon.shadowOffsetX || "0") + 'px ' + (icon.shadowOffset || "0") + 'px ' + (icon.shadowBlur || "0") + 'px 0 rgba(0, 0, 0, ' + icon.shadowOpacity + ');' : '') +
+                  ((icon.shadowOffset || icon.shadowBlur)? ' box-shadow: ' + (icon.shadowOffsetX  / 10 || "0") + 'rem ' + (icon.shadowOffset / 10 || "0") + 'rem ' + (icon.shadowBlur /10 || "0") + 'rem 0 rgba(0, 0, 0, ' + icon.shadowOpacity + ');' : '') +
                   (app.icon? ' background-image: url(' + app.icon + ');' : '') +
                   '">' +
                   (icon.darken? '<em style="opacity: ' + icon.darken + ';">&nbsp;</em>' : '') +
