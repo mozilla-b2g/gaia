@@ -17,7 +17,7 @@ function checkDomain(domain) {
 }
 
 // defines things that can match right before to be a "safe" link
-var safeStart = ' .,:;(>'.split('');
+var safeStart = '\n\t\r\f .,:;(>'.split('');
 
 /**
  * For each category of links:
