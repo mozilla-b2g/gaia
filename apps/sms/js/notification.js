@@ -33,9 +33,9 @@
 
   function vibrate() {
     // vibration only works when App is in the foreground
-    if (document.mozHidden) {
-      window.addEventListener('mozvisibilitychange', function waitOn() {
-        window.removeEventListener('mozvisibilitychange', waitOn);
+    if (document.hidden) {
+      window.addEventListener('visibilitychange', function waitOn() {
+        window.removeEventListener('visibilitychange', waitOn);
         navigator.vibrate([200, 200, 200, 200]);
       });
     } else {

@@ -20,7 +20,7 @@ var TonePlayer = {
   _sampleRate: 4000,
 
   init: function tp_init() {
-    document.addEventListener('mozvisibilitychange',
+    document.addEventListener('visibilitychange',
                               this.visibilityChange.bind(this));
     this.ensureAudio();
   },
@@ -60,7 +60,7 @@ var TonePlayer = {
   // in particular when scrolling the homescreen.
   // See: https://bugzilla.mozilla.org/show_bug.cgi?id=779914
   visibilityChange: function tp_visibilityChange(e) {
-    if (!document.mozHidden) {
+    if (!document.hidden) {
       this.ensureAudio();
     } else {
       // Reset the audio stream. This ensures that the stream is shutdown

@@ -257,14 +257,14 @@ var ActivityHandler = {
         showAction();
       });
     } else {
-      if (!document.mozHidden) {
+      if (!document.hidden) {
         // Case of calling from Notification
         showAction();
         return;
       }
-      document.addEventListener('mozvisibilitychange',
+      document.addEventListener('visibilitychange',
         function waitVisibility() {
-          document.removeEventListener('mozvisibilitychange', waitVisibility);
+          document.removeEventListener('visibilitychange', waitVisibility);
           showAction();
       });
     }
@@ -333,7 +333,7 @@ var ActivityHandler = {
 
     function dispatchNotification(needManualRetrieve) {
       // The SMS app is already displayed
-      if (!document.mozHidden) {
+      if (!document.hidden) {
         if (threadId === Threads.currentId) {
           navigator.vibrate([200, 200, 200]);
           releaseWakeLock();

@@ -68,7 +68,7 @@ var CallLog = {
           self.deselectAll.bind(self));
         self.deleteButton.addEventListener('click',
           self.deleteLogGroups.bind(self));
-        document.addEventListener('mozvisibilitychange', function() {
+        document.addEventListener('visibilitychange', function() {
           if (document.hidden) {
             self.pauseHeaders();
           } else {

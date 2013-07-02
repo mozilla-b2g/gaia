@@ -68,12 +68,12 @@ var Homescreen = (function() {
     GridManager.exitFromEditMode();
   }
 
-  document.addEventListener('mozvisibilitychange', function mozVisChange() {
-    if (document.mozHidden && Homescreen.isInEditMode()) {
+  document.addEventListener('visibilitychange', function mozVisChange() {
+    if (document.hidden && Homescreen.isInEditMode()) {
       exitFromEditMode();
     }
 
-    if (document.mozHidden == false) {
+    if (document.hidden == false) {
       setTimeout(function forceRepaint() {
         var helper = document.getElementById('repaint-helper');
         helper.classList.toggle('displayed');

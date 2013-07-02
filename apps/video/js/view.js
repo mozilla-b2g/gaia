@@ -66,9 +66,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   }
 
   // Terminate video playback when visibility is changed.
-  window.addEventListener('mozvisibilitychange',
+  window.addEventListener('visibilitychange',
     function onVisibilityChanged() {
-      if (document.mozHidden) {
+      if (document.hidden) {
         done();
       }
     });

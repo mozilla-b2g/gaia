@@ -1815,7 +1815,7 @@ var KeyboardMenuScroll = {
     function scroll(delta) {
 
       // Stop the scrolling if the user presses the power button or home button
-      if (document.mozHidden)
+      if (document.hidden)
         return false;
 
       var origScrollTop = keyboardMenu.scrollTop;

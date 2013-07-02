@@ -263,9 +263,9 @@ var icc_worker = {
 
     DUMP('STK Input title: ' + options.text);
 
-    document.addEventListener('mozvisibilitychange',
+    document.addEventListener('visibilitychange',
       function stkInputNoAttended() {
-        document.removeEventListener('mozvisibilitychange', stkInputNoAttended,
+        document.removeEventListener('visibilitychange', stkInputNoAttended,
           true);
         iccManager.responseSTKCommand({
           resultCode: iccManager._icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
