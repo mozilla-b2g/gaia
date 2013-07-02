@@ -843,7 +843,6 @@ var Camera = {
 
     var transform = 'rotate(90deg)';
     var width, height;
-    var translateX = 0;
 
     // The preview should be larger than the screen, shrink it so that as
     // much as possible is on screen.
@@ -855,17 +854,15 @@ var Camera = {
       height = screenHeight;
     }
 
-    if (this._camera == 1) {
+    if (camera == 1) {
       /* backwards-facing camera */
       transform += ' scale(-1, 1)';
-      translateX = width;
     }
 
     // Counter the position due to the rotation
     // This translation goes after the rotation so the element is shifted up
-    // (for back camera) - shifted up after it is rotated 90 degress clockwise.
-    // (for front camera) - shifted up-left after it is mirrored and rotated.
-    transform += ' translate(-' + translateX + 'px, -' + height + 'px)';
+    // before it is rotated 90 degress clockwise.
+    transform += ' translate(0, -' + height + 'px)';
 
     // Now add another translation at to center the viewfinder on the screen.
     // We put this at the start of the transform, which means it is applied

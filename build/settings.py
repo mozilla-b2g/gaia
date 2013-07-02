@@ -185,7 +185,7 @@ def main():
     else:
         settings_filename = "profile/settings.json"
 
-    if options.wallpaper and os.path.exists(options.wallpaper):
+    if options.wallpaper:
         wallpaper_filename = options.wallpaper
     else:
         wallpaper_filename = "build/wallpaper.jpg"

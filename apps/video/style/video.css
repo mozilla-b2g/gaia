@@ -17,7 +17,7 @@ body {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  padding-bottom: 5rem;
+  padding-bottom: 50px;
 }
 
 section {
@@ -42,7 +42,6 @@ section {
 
 ul {
   background: url(images/background.png);
-  background-size: 100% 100%;
   height: 45.9rem;
   padding: 0;
   margin: 0;
@@ -52,22 +51,22 @@ ul {
   background: linear-gradient(to bottom, #222 0%,#000 100%);
 }
 li {
-  height: 12rem;
+  height: 12.1rem;
   overflow: hidden;
   position: relative;
   list-style-type: none;
-  border-bottom: 0.1rem solid;
-  border-color:rgba(255,255,255, 0.1);
 }
 li .inner {
   height: 12rem;
   margin: 0 1.9rem 0 0;
+  border-bottom: 1px solid;
+  border-color:rgba(255,255,255, 0.1);
 }
 .unwatched {
-  background: url(images/unwatched.png) no-repeat center / 100%;
+  background: url(images/unwatched.png) no-repeat;
   position: absolute;
   bottom: 0;
-  width: 0.4rem;
+  width: 4px;
   top: 0;
 }
 li .img {
@@ -102,18 +101,18 @@ li .after {
 /* All of the main views fill the screen */
 #thumbnail-list-view, #thumbnail-select-view, #fullscreen-view {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 0px;
+  left: 0px;
   width: 100%;
   height: 100%;
-  padding: 0;
-  margin: 0;
+  padding: 0px;
+  margin: 0px;
   overflow: hidden;
   font-size: 2.1rem;
 }
 
 #delete-video-button {
-  background: transparent url(images/delete.png) no-repeat center center / 3rem;
+  background: transparent url(images/delete.png) no-repeat center center;
 }
 
 #delete-video-button:active {
@@ -147,13 +146,13 @@ li .after {
 /* thumbnails in thumbnail select view where there is a top bar */
 #thumbnails.select,
 #thumbnails.pick {
-  top: 5rem;
+  top: 50px;
   bottom: 0;
 }
 
 .thumbnail.selected {
-  outline: solid #00aacc 0.3rem;
-  outline-offset: -0.3rem;
+  outline: solid #00aacc 3px;
+  outline-offset: -3px;
 }
 
 /*
@@ -176,7 +175,7 @@ li .after {
  * get stuck hidden behind the overlaid toolbar.
  */
 .thumbnail:last-child {
-  margin-bottom: 4rem;
+  margin-bottom: 40px;
 }
 
 #player {
@@ -230,19 +229,19 @@ li .after {
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
-  padding: 11rem 2.5rem 0 2.5rem;
+  padding: 110px 25px 0px 25px;
 }
 
 #overlay-title {
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
-  margin: 0 0.5rem -1rem 0.5rem;
+  margin: 0 5px -10px 5px;
 }
 
 #overlay-text {
-  padding: 1rem 0.5rem 0 0.5rem;
-  border-top: 0.1rem solid #686868;	
+  padding: 10px 5px 0 5px;
+  border-top: 1px solid #686868;	
   font-weight: 300;
   font-size: 2.5rem;
   color: #ebebeb;
@@ -253,7 +252,7 @@ body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
 *[dir=rtl] li {
-  padding: 0 14.4rem 0 2rem;
+  padding: 0 144px 0 20px;
 }
 *[dir=rtl] li img {
   left: auto;
@@ -275,7 +274,6 @@ body.hidden *[data-l10n-id] {
 
 .icon.icon-done {
   background-image: url('images/iconaction_done_30x30.png') !important;
-  background-size: 3rem;
 }
 
 header {
@@ -285,14 +283,14 @@ header {
 header h1 {
   font-size: 2.5rem !important;
   line-height: 5rem !important;
-  margin: 0 0 0 3.4rem !important;
+  margin: 0px 0px 0px 3.4rem !important;
 }
 
 /* the indeterminate progress bar displayed while scanning */
 #throbber {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 0px;
+  left: 0px;
   width: 100%;
   height: 0.3rem;
   overflow: hidden;
@@ -300,9 +298,8 @@ header h1 {
 }
 
 #throbber > div {
-  height: 2.4rem;
+  height: 24px;
   background-image: url(images/progress.png);
-  background-size: auto 100%;
 }
 
 #throbber.throb > div {
@@ -311,10 +308,10 @@ header h1 {
 
 @keyframes throb {
   from {
-    transform: translateY(0);
+    transform: translateY(0px);
   }
   to {
-    transform: translateY(-2.1rem);
+    transform: translateY(-21px);
   }
 }
 
@@ -330,7 +327,7 @@ a.button {
   /* for buttons that display text */
   font-size: 1.4rem;
   text-align: center;
-  line-height: 4rem;
+  line-height: 40px;
 }
 
 a.button:active, a.button:focus {
@@ -344,13 +341,13 @@ a.button.disabled {
 
 footer {
   background: rgba(0, 0, 0, 0.75);
-  height: 4rem;
+  height: 40px;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 1;
-  box-shadow: 0 -0.2rem 0.5rem rgba(50, 50, 50, 0.75);
+  box-shadow: 0px -2px 5px rgba(50, 50, 50, 0.75);
 }
 
 #thumbnails-video-button {
@@ -359,7 +356,6 @@ footer {
   height: 100%;
   left: 0%;
   background-image: url('images/iconaction_video_30x30.png');
-  background-size: 3rem;
 }
 
 #thumbnails-select-button {
@@ -368,7 +364,6 @@ footer {
   height: 100%;
   left: 50%;
   background-image: url('images/iconaction_select_30x30.png');
-  background-size: 3rem;
 }
 
 #thumbnails-delete-button {
@@ -377,8 +372,7 @@ footer {
   height: 100%;
   left: 0;
   background-image: url('images/iconaction_delete_30x30.png');
-  background-size: 3rem;
-  border-right: 0.1rem solid #000;
+  border-right: 1px solid #000;
 }
 
 #thumbnails-share-button {
@@ -387,7 +381,6 @@ footer {
   height: 100%;
   left: 50%;
   background-image: url('images/iconaction_share_30x30.png');
-  background-size: 3rem;
 }
 
 #thumbnails-single-delete-button {
@@ -396,8 +389,7 @@ footer {
   height: 100%;
   left: 0;
   background-image: url('images/iconaction_delete_30x30.png');
-  background-size: 3rem;
-  border-right: 0.1rem solid #000;
+  border-right: 1px solid #000;
 }
 
 #thumbnails-single-share-button {
@@ -406,7 +398,6 @@ footer {
   height: 100%;
   left: 50%;
   background-image: url('images/iconaction_share_30x30.png');
-  background-size: 3rem;
 }
 
 header .icon:after {
@@ -430,7 +421,10 @@ header .icon:after {
 
 /* main control bar: play|pause, timeupdate, rwd|fwd */
 #videoBar {
-  background: url(images/scroll_bar_bg.png) rgba(0, 0, 0, 0.75) no-repeat 8.5rem center / 100% 2rem;
+  background-image: url(images/scroll_bar_bg.png);
+  background-color: rgba(0, 0, 0, 0.75);
+  background-position: center right;
+  background-repeat: no-repeat;
   position: absolute;
   overflow: hidden;
   left: 0;
@@ -452,7 +446,6 @@ header .icon:after {
 
 #play {
   background: url(images/button_bg_normal.png) no-repeat;
-  background-size: 8rem;
   position: absolute;
   border: none;
   padding: 0;
@@ -464,7 +457,6 @@ header .icon:after {
 
 #play:active {
   background: url(images/button_bg_pressed.png) no-repeat;
-  background-size: 8rem;
 }
 
 #play:after {
@@ -479,19 +471,17 @@ header .icon:after {
 /* play/pause button */
 #play:after {
   background-image: url("images/pause.png");
-  background-size: 3rem;
 }
 #play.paused:after {
   background-image: url("images/play.png");
-  background-size: 3rem;
 }
 
 /* time slider */
 #timeSlider {
   position: absolute;
   left: 8.5rem;
-  top: 0;
-  right: 0;
+  top: 0px;
+  right: 0px;
   height: 100%;
 }
 
@@ -512,7 +502,7 @@ header .icon:after {
 
 #slider-wrapper {
   position: absolute;
-  top: 0;
+  top: 0px;
   left: 7rem;
   right: 7rem;
   height: 100%;
@@ -524,14 +514,14 @@ header .icon:after {
 }
 
 .progress {
-  height: 0.4rem;
+  height: 4px;
   width: 0%;
   top: 50%;
-  margin-top: -0.2rem;
+  margin-top: -2px;
 }
 
 #elapsedTime {
-  background: url(images/timeline_filled.png) no-repeat left center / 100% 0.3rem;
+  background: url(images/timeline_filled.png) no-repeat left center;
   z-index: 30;
 }
 
@@ -541,14 +531,14 @@ header .icon:after {
 }
 
 #timeBackground {
-  background: url(images/timeline.png) no-repeat left top / 100% 0.3rem;
+  background: url(images/timeline.png);
   z-index: 10;
   width: 100%;
 }
 
 #playHead {
   -moz-transition: background 1s linear;
-  background: url(images/scrubber.png) no-repeat center center / 100%;
+  background: url(images/scrubber.png);
   margin: -1.1rem 0 0 -1.2rem;
   position: absolute;
   pointer-events: none;
@@ -561,30 +551,30 @@ header .icon:after {
 }
 
 #playHead.active {
-  background: url(images/scrubber_pressed.png) no-repeat center center / 100%;
+  background: url(images/scrubber_pressed.png);
   width: 8.1rem;
   height: 4.5rem;
   margin: -1rem 0 0 -3.93rem;
   top: 1rem;
 }
 
-@media screen and (orientation:landscape) {
+@media (width: 480px) {
   li .details {
     width: 24rem;
   }
 }
 
-@media screen and (orientation:portrait) {
+@media screen and (width: 320px) {
   #play, #play:after {
     width: 5.6rem;
   }
 
   #play {
-    background: url(images/portrait/button_bg_normal.png) no-repeat center center / 100%;
+    background-image: url(images/portrait/button_bg_normal.png);
   }
 
   #play:active {
-    background: url(images/portrait/button_bg_pressed.png) no-repeat center center / 100%;
+    background-image: url(images/portrait/button_bg_pressed.png);
   }
 
   #play:after {
@@ -597,7 +587,6 @@ header .icon:after {
 
   #videoBar {
     background-image: url(images/portrait/scroll_bar_bg.png);
-    background-size: 100% 2.1rem;
     background-position: 6rem center;
   }
 }
