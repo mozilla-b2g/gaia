@@ -67,7 +67,6 @@ if (DESKTOP) {
 
   // WebSettings
   prefs.push(["dom.mozSettings.enabled", true]);
-  prefs.push(["dom.navigator-property.disable.mozSettings", false]);
   prefs.push(["dom.mozPermissionSettings.enabled", true]);
 
   // Contacts
