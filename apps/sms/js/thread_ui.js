@@ -822,6 +822,7 @@ var ThreadUI = global.ThreadUI = {
     //
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
+      var threadMessages = document.getElementById('thread-messages');
       // Bug 867948: contacts null is a legitimate case, and
       // getContactDetails is okay with that.
       var details = Utils.getContactDetails(number, contacts);
@@ -854,13 +855,13 @@ var ThreadUI = global.ThreadUI = {
 
         if (carrierText) {
           carrierTag.textContent = carrierText;
-          carrierTag.classList.remove('hide');
+          threadMessages.classList.add('has-carrier');
         } else {
-          carrierTag.classList.add('hide');
+          threadMessages.classList.remove('has-carrier');
         }
       } else {
         // Hide carrier tag in group message or unknown contact cases.
-        carrierTag.classList.add('hide');
+        threadMessages.classList.remove('has-carrier');
       }
 
       if (callback) {

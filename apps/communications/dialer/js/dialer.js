@@ -509,12 +509,12 @@ window.addEventListener('load', function startup(evt) {
                       'confirmation-message',
                       'edit-mode'];
 
-    CallHandler.initMMI();
-    loader.load(lazyPanels.map(function toElement(id) {
-        return document.getElementById(id);
-      })
-    );
+    var lazyPanelsElements = lazyPanels.map(function toElement(id) {
+      return document.getElementById(id);
+    });
+    loader.load(lazyPanelsElements);
 
+    CallHandler.initMMI();
     LazyL10n.get(function loadLazyFilesSet() {
       loader.load(['/contacts/js/fb/fb_data.js',
                    '/contacts/js/fb/fb_contact_utils.js',
@@ -523,6 +523,7 @@ window.addEventListener('load', function startup(evt) {
                    '/dialer/js/newsletter_manager.js',
                    '/shared/style/edit_mode.css',
                    '/shared/style/headers.css']);
+      lazyPanelsElements.forEach(navigator.mozL10n.translate);
     });
   });
 });

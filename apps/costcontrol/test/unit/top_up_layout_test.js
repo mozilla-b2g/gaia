@@ -1,24 +1,23 @@
 'use strict';
 
-requireApp('costcontrol/js/views/TopUpLayoutController.js');
+requireApp('costcontrol/js/views/TopUpLayoutView.js');
 
 suite('Top Up layout attending to configuration >', function() {
 
   var ENABLED = true;
   var DISABLED = false;
-  var ussdTopUpButton, codeTopUpButton, layoutController;
+  var ussdTopUpButton, codeTopUpButton, layoutView;
 
   setup(function() {
     ussdTopUpButton = document.createElement('button');
     codeTopUpButton = document.createElement('button');
-    layoutController = new TopUpLayoutController(
+    layoutView = new TopUpLayoutView(
       ussdTopUpButton,
       codeTopUpButton
     );
   });
 
   function assertElementIs(element, state) {
-    console.dir(element);
     assert.equal(element.disabled, !state);
     assert.equal(
       element.getAttribute('aria-hidden'),
@@ -49,7 +48,7 @@ suite('Top Up layout attending to configuration >', function() {
   test(
     'All top up methods are disabled and hidden (no top up section)',
     function() {
-      layoutController.setupLayout(undefined);
+      layoutView.setupLayout(undefined);
       assertAllTopUpMethodsDisabled();
     }
   );
@@ -57,13 +56,13 @@ suite('Top Up layout attending to configuration >', function() {
   test(
     'All top up methods are disabled and hidden (empty top up section)',
     function() {
-      layoutController.setupLayout({});
+      layoutView.setupLayout({});
       assertAllTopUpMethodsDisabled();
     }
   );
 
   test('All top up methods are enabled and visible', function() {
-    layoutController.setupLayout({
+    layoutView.setupLayout({
       ussd_destination: '000',
       destination: '000'
     });
@@ -71,14 +70,14 @@ suite('Top Up layout attending to configuration >', function() {
   });
 
   test('Only USSD top up method is enabled and visible', function() {
-    layoutController.setupLayout({
+    layoutView.setupLayout({
       ussd_destination: '000'
     });
     assertOnlyUSSDTopUpMethodEnabled();
   });
 
   test('Only code top up method is enabled and visible', function() {
-    layoutController.setupLayout({
+    layoutView.setupLayout({
       destination: '000'
     });
     assertOnlyCodeTopUpMethodEnabled();

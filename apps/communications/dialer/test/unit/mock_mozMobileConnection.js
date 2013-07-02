@@ -53,75 +53,97 @@ var MockMozMobileConnection = {
 
     switch (message) {
       case SUCCESS_MMI_NO_MSG:
-        evt.target.result = null;
+        evt.target.result = {
+          statusMessage: null
+        };
         MmiManager.notifySuccess(evt);
         break;
       case SUCCESS_MMI_MSG:
-        evt.target.result = SUCCESS_MMI_MSG;
+        evt.target.result = {
+          statusMessage: SUCCESS_MMI_MSG
+        };
         MmiManager.notifySuccess(evt);
         break;
       case FAILED_MMI_NO_MSG:
-        evt.target.error.name = null;
+        evt.target.error = {
+          name: null
+        };
         MmiManager.notifyError(evt);
         break;
       case FAILED_MMI_MSG:
-        evt.target.error.name = FAILED_MMI_MSG;
+        evt.target.error = {
+          name: FAILED_MMI_MSG
+        };
         MmiManager.notifyError(evt);
         break;
       case MMI_CF_MSG_ACTIVE_VOICE:
-        evt.target.result = [{
-          active: true,
-          number: EXPECTED_PHONE,
-          serviceClass: this.ICC_SERVICE_CLASS_VOICE
-        }];
+        evt.target.result = {
+          additionalInformation: [{
+            active: true,
+            number: EXPECTED_PHONE,
+            serviceClass: this.ICC_SERVICE_CLASS_VOICE
+          }]
+        };
         MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_DATA:
-        evt.target.result = [{
-          active: true,
-          number: EXPECTED_PHONE,
-          serviceClass: this.ICC_SERVICE_CLASS_DATA
-        }];
+        evt.target.result = {
+          additionalInformation: [{
+            active: true,
+            number: EXPECTED_PHONE,
+            serviceClass: this.ICC_SERVICE_CLASS_DATA
+          }]
+        };
         MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_FAX:
-        evt.target.result = [{
-          active: true,
-          number: EXPECTED_PHONE,
-          serviceClass: this.ICC_SERVICE_CLASS_FAX
-        }];
+        evt.target.result = {
+          additionalInformation: [{
+            active: true,
+            number: EXPECTED_PHONE,
+            serviceClass: this.ICC_SERVICE_CLASS_FAX
+          }]
+        };
         MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_DATA_SYNC:
-        evt.target.result = [{
-          active: true,
-          number: EXPECTED_PHONE,
-          serviceClass: this.ICC_SERVICE_CLASS_DATA_SYNC
-        }];
+        evt.target.result = {
+          additionalInformation: [{
+            active: true,
+            number: EXPECTED_PHONE,
+            serviceClass: this.ICC_SERVICE_CLASS_DATA_SYNC
+          }]
+        };
         MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_DATA_ASYNC:
-        evt.target.result = [{
-          active: true,
-          number: EXPECTED_PHONE,
-          serviceClass: this.ICC_SERVICE_CLASS_DATA_ASYNC
-        }];
+        evt.target.result = {
+          additionalInformation: [{
+            active: true,
+            number: EXPECTED_PHONE,
+            serviceClass: this.ICC_SERVICE_CLASS_DATA_ASYNC
+          }]
+        };
         MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_PACKET:
-        evt.target.result = [{
-          active: true,
-          number: EXPECTED_PHONE,
-          serviceClass: this.ICC_SERVICE_CLASS_PACKET
-        }];
+        evt.target.result = {
+          additionalInformation: [{
+            active: true,
+            number: EXPECTED_PHONE,
+            serviceClass: this.ICC_SERVICE_CLASS_PACKET
+          }]
+        };
         MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ACTIVE_PAD:
-        evt.target.result = [{
-          active: true,
-          number: EXPECTED_PHONE,
-          serviceClass: this.ICC_SERVICE_CLASS_PAD
-        }];
+        evt.target.result = {
+          additionalInformation: [{
+            active: true,
+            number: EXPECTED_PHONE,
+            serviceClass: this.ICC_SERVICE_CLASS_PAD
+          }]
+        };
         MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_INVALID_SERVICE_CLASS:
@@ -133,21 +155,25 @@ var MockMozMobileConnection = {
         MmiManager.notifySuccess(evt);
         break;
      case MMI_CF_MSG_TWO_RULES:
-        evt.target.result = [{
-          active: true,
-          number: EXPECTED_PHONE,
-          serviceClass: this.ICC_SERVICE_CLASS_VOICE
-        },{
-          active: true,
-          number: EXPECTED_PHONE,
-          serviceClass: this.ICC_SERVICE_CLASS_DATA
-        }];
+        evt.target.result = {
+          additionalInformation: [{
+            active: true,
+            number: EXPECTED_PHONE,
+            serviceClass: this.ICC_SERVICE_CLASS_VOICE
+          },{
+            active: true,
+            number: EXPECTED_PHONE,
+            serviceClass: this.ICC_SERVICE_CLASS_DATA
+          }]
+        };
         MmiManager.notifySuccess(evt);
         break;
       case MMI_CF_MSG_ALL_INACTIVE:
-        evt.target.result = [{
-          active: false
-        }];
+        evt.target.result = {
+          additionalInformation: [{
+            active: false
+          }]
+        };
         MmiManager.notifySuccess(evt);
         break;
     }
@@ -159,7 +185,9 @@ var MockMozMobileConnection = {
   cancelMMI: function mmmc_cancelMMI() {
     MmiManager.notifySuccess({
       target: {
-        result: null
+        result: {
+          statusMessage: null
+        }
       }
     });
   },
