@@ -81,6 +81,18 @@ suite('link_helper_test.js', function() {
       test('Simple URL with IPv4 with zero', function() {
         testURLOK('http://8.0.8.8/');
       });
+      test('Trailing question mark', function() {
+        testURLMatch('OMG mozilla.org? it is cool!', 'mozilla.org', true);
+      });
+      test('Trailing colon', function() {
+        testURLMatch('OMG mozilla.org: it is cool!', 'mozilla.org', true);
+      });
+      test('Trailing semi-colon', function() {
+        testURLMatch('OMG mozilla.org; it is cool!', 'mozilla.org', true);
+      });
+      test('Trailing bang', function() {
+        testURLMatch('OMG mozilla.org! it is cool!', 'mozilla.org', true);
+      });
       test('Trailing period', function() {
         testURLMatch('Check out mozilla.org.', 'mozilla.org', true);
       });
@@ -89,6 +101,18 @@ suite('link_helper_test.js', function() {
       });
       test('Trailing parens', function() {
         testURLMatch('(Check out mozilla.org)', 'mozilla.org', true);
+      });
+      test('Trailing question mark on path', function() {
+        testURLMatch('OMG mzl.la/huh? it is cool!', 'mzl.la/huh', true);
+      });
+      test('Trailing colon on path', function() {
+        testURLMatch('OMG mzl.la/huh: it is cool!', 'mzl.la/huh', true);
+      });
+      test('Trailing semi-colon on path', function() {
+        testURLMatch('OMG mzl.la/huh; it is cool!', 'mzl.la/huh', true);
+      });
+      test('Trailing bang on path', function() {
+        testURLMatch('OMG mzl.la/huh! it is cool!', 'mzl.la/huh', true);
       });
       test('Trailing parens on path', function() {
         testURLMatch('(Check out mzl.la/ac)', 'mzl.la/ac', true);

@@ -55,10 +55,10 @@ var LINK_TYPES = {
       '(?::[0-9]{1,5})?',
       // start the "query" capture group by matching an optional dot then /
       '(?:\\.?/',
-        // anything other than a whitespace or dot or comma
-        // or a dot or comma not followed by whitespace
+        // anything other than a sentence ender
+        // a sentence ender not followed by whitespace
         // match 0 - 2048 characters in the url
-        '(?:[^\\s.,]|(?:\\.|,)(?!\\s|$)){0,2048}',
+        '(?:[^\\s.,?:;!]|[.,?:;!](?!\\s|$)){0,2048}',
       // end the "query" capture group (optional)
       ')?'
       ].join(''), 'mgi'),
