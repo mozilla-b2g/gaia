@@ -10,9 +10,9 @@
 function checkDomain(domain) {
   var parts = domain.split('.');
   // either the tld is more than one character or it is an IPv4
-  return parts.slice(-1)[0].length > 1 ||
+  return parts[parts.length - 1].length > 1 ||
     parts.length === 4 && parts.every(function(part) {
-      return part > 0 && part < 256;
+      return part >= 0 && part < 256;
     });
 }
 
@@ -167,16 +167,15 @@ var LinkHelper = window.LinkHelper = {
   //Invokes resepective functions to change URL
   //phone and email strings and make them active links
   searchAndLinkClickableData:
-    function lh_searchAndLinkClickableData(inputText, mode = {
-      email: true,
-      phone: true,
-      url: true
-  }) {
+    function lh_searchAndLinkClickableData(inputText, mode) {
+    // default is everything enabled
+    mode = mode || LINK_TYPES;
+
     var links = [];
     var type;
 
     for (type in mode) {
-      if (mode[type]) {
+      if (mode[type] && LINK_TYPES[type]) {
         links = links.concat(searchForLinks(type, inputText));
       }
     }
