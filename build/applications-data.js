@@ -324,6 +324,7 @@ content = JSON.parse(getFileContent(getFile(GAIA_DIR, 'build',
 // Bug 883344 Only use default facebook app id if is mozilla partner build
 if (OFFICIAL === '1') {
   content.facebook.applicationId = '395559767228801';
+  content.live.applicationId = '00000000440F8B08';
 }
 
 writeContent(init, 'var oauthflow = this.oauthflow || {}; oauthflow.params = ' +
