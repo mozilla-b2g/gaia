@@ -21,11 +21,11 @@
     "appOrigin":
       "app://communications.gaiamobile.org",
     "redirectURI":
-      "https://serene-cove-3587.herokuapp.com/liveowd/oauth2_new/flow_live.html",
+      "https://www.mozilla.org/",
     "loginPage":
       "https://login.live.com/oauth20_authorize.srf?",
     "applicationId":
-      "00000000480EABC6",
+      "123456",
     "scope":
       ["wl.basic", "wl.contacts_emails", "wl.contacts_phone_numbers",
        "wl.contacts_birthday", "wl.contacts_postal_addresses"],
