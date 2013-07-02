@@ -25,9 +25,11 @@ var safeStart = '\n\t\r\f .,:;(>'.split('');
  * order matters - defined first means higher priority if two matches equal
  *
  *   regexp: The regular expression to match potential links
- *   matchFilter: A function that takes the full string, followed by the match,
- *                should return a link object
+ *   matchFilter: (optional) A function that is passed the matched part, and
+ *                the linkSpec.
+ *                Should return the linkSpec, or false if not to be matched
  *   transform: A function that converts the match data to a html link string
+ *              Is passed the matched part and the linkSpec.
  */
 var LINK_TYPES = {
   phone: {
@@ -125,7 +127,7 @@ function searchForLinks(type, string) {
       start: match.index,
       length: match[0].length,
       end: match.index + match[0].length,
-      match: Array.prototype.slice.call(match, 0)
+      match: match
     };
 
     if (matchFilter) {
@@ -141,20 +143,22 @@ function searchForLinks(type, string) {
 }
 
 function linkSort(a, b) {
-  // sort by starting position first, then by ending position reversed
-  return a.start - b.start || b.end - a.end ||
+  // sort by starting position first
+  // then by ending position reversed
   // then by the order of the type in the LINK_TYPES
-    LINK_TYPES_KEYS.indexOf(a.type) - LINK_TYPES_KEYS.indexOf(b.type);
+  return (a.start - b.start) ||
+    (b.end - a.end) ||
+    (LINK_TYPES_KEYS.indexOf(a.type) - LINK_TYPES_KEYS.indexOf(b.type));
 }
 
 function removeOverlapping(linkSpecs) {
   linkSpecs.sort(linkSort);
-  for (var x = 0; x < linkSpecs.length - 1; x++) {
-    var end = linkSpecs[x].end;
+  for (var index = 0; index < linkSpecs.length - 1; index++) {
+    var end = linkSpecs[index].end;
     // while there are more linkSpecs, and they start before we end remove the
     // overlapping matches
-    while (linkSpecs[x + 1] && linkSpecs[x + 1].start < end) {
-      linkSpecs.splice(x + 1, 1);
+    while (linkSpecs[index + 1] && linkSpecs[index + 1].start < end) {
+      linkSpecs.splice(index + 1, 1);
     }
   }
 }
