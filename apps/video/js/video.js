@@ -797,8 +797,8 @@ function formatDuration(duration) {
 }
 
  // Pause on visibility change
-document.addEventListener('mozvisibilitychange', function visibilityChange() {
-  if (document.mozHidden) {
+document.addEventListener('visibilitychange', function visibilityChange() {
+  if (document.hidden) {
     stopParsingMetadata();
     if (playing)
       pause();

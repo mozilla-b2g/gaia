@@ -51,7 +51,7 @@ function startParsingMetadata() {
   // in the background we need to allow the foreground app to use the
   // video hardware. Also, if the video player is showing then we
   // can't parse metadata because we're already using the video hardware.
-  if (document.mozHidden || playerShowing) {
+  if (document.hidden || playerShowing) {
     return;
   }
 

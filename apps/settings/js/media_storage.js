@@ -212,9 +212,9 @@ var MediaStorage = {
 
     this.usmEnabledVolume = {};
     this.umsVolumeShareState = false;
-    // Use mozvisibilitychange so that we don't get notified of device
+    // Use visibilitychange so that we don't get notified of device
     // storage notifications when the settings app isn't visible.
-    document.addEventListener('mozvisibilitychange', this);
+    document.addEventListener('visibilitychange', this);
     this.umsEnabledCheckBox = document.getElementById('ums-switch');
     this.umsEnabledInfoBlock = document.getElementById('ums-desc');
     this.umsEnabledCheckBox.addEventListener('change', this);
@@ -336,7 +336,7 @@ var MediaStorage = {
       case 'click':
         this.changeDefaultStorage();
         break;
-      case 'mozvisibilitychange':
+      case 'visibilitychange':
         this.updateListeners(this.updateInfo.bind(this));
         break;
     }
@@ -400,7 +400,7 @@ var MediaStorage = {
 
   updateListeners: function ms_updateListeners(callback) {
     var self = this;
-    if (document.mozHidden) {
+    if (document.hidden) {
       // Settings is being hidden. Unregister our change listener so we won't
       // get notifications whenever files are added in another app.
       if (this.documentStorageListener) {

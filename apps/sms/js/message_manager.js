@@ -25,7 +25,7 @@ var MessageManager = {
     this._mozMobileMessage.addEventListener('deliverysuccess',
                                             this.onDeliverySuccess);
     window.addEventListener('hashchange', this.onHashChange.bind(this));
-    document.addEventListener('mozvisibilitychange',
+    document.addEventListener('visibilitychange',
                               this.onVisibilityChange.bind(this));
     // Initialize DOM elements which will be used in this code
     [

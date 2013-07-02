@@ -843,8 +843,8 @@ function cleanupPick() {
 // Remove this code when https://github.com/mozilla-b2g/gaia/issues/2916
 // is fixed and replace it with an onerror handler on the activity to
 // switch out of pickView.
-window.addEventListener('mozvisibilitychange', function() {
-  if (document.mozHidden && pendingPick)
+window.addEventListener('visibilitychange', function() {
+  if (document.hidden && pendingPick)
     cancelPick();
 });
 

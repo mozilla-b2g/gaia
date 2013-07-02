@@ -49,7 +49,7 @@ function ComposeCard(domNode, mode, args) {
   this.sendButton = domNode.getElementsByClassName('cmp-send-btn')[0];
   this.sendButton.addEventListener('click', this.onSend.bind(this), false);
   this._bound_onVisibilityChange = this.onVisibilityChange.bind(this);
-  document.addEventListener('mozvisibilitychange',
+  document.addEventListener('visibilitychange',
                             this._bound_onVisibilityChange);
 
   this.toNode = domNode.getElementsByClassName('cmp-to-text')[0];
@@ -569,7 +569,7 @@ ComposeCard.prototype = {
    * Save the draft if there's anything to it, close the card.
    */
   onVisibilityChange: function() {
-    if (document.mozHidden && this._saveNeeded()) {
+    if (document.hidden && this._saveNeeded()) {
       this._saveDraft();
     }
   },
@@ -678,7 +678,7 @@ ComposeCard.prototype = {
   },
 
   die: function() {
-    document.removeEventListener('mozvisibilitychange',
+    document.removeEventListener('visibilitychange',
                                  this._bound_onVisibilityChange);
     this.composer.die();
     this.composer = null;
