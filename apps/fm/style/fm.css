@@ -106,7 +106,7 @@ a:active {
 }
 
 #bookmark-button {
-  background: url("images/toggle-fav-star-off.png") no-repeat scroll center center transparent;
+  background: url("images/toggle-fav-star-off.png") no-repeat scroll center center / 4rem;
 }
 
 #bookmark-button:focus {
@@ -115,11 +115,11 @@ a:active {
 
 #bookmark-button:active,
 #bookmark-button[data-bookmarked="true"]:active {
-  background: url("images/toggle-fav-star-pressed.png") no-repeat scroll center center #00ABCD;
+  background: url("images/toggle-fav-star-pressed.png") #00ABCD no-repeat scroll center center / 4rem;
 }
 
 #bookmark-button[data-bookmarked="true"] {
-  background: url("images/toggle-fav-star-on.png") no-repeat scroll center center transparent;
+  background: url("images/toggle-fav-star-on.png") transparent no-repeat scroll center center / 4rem;
 }
 /*****  end  *****/
 
@@ -149,7 +149,7 @@ a:active {
   margin: 0.6rem 0 0 -0.8rem;
   position: absolute;
   z-index: 1;
-  background: url(images/selector.png) no-repeat center center transparent;
+  background: url(images/selector.png) no-repeat center center / 1.6rem;
   top: 0;
 }
 
@@ -168,7 +168,7 @@ div.animation-on > div {
 }
 
 #frequency-dialer .dialer-unit-mark-box {
-  background: url(images/dial-notches.png) no-repeat 0 3.4rem;
+  background: url(images/dial-notches.png) no-repeat 0 3.4rem / 32rem;
   overflow: hidden;
   height: 5.5rem;
 }
@@ -242,11 +242,11 @@ div#fav-list-container div.fav-list-remove-button {
   margin-left: 2rem;
   float: right;
   cursor: pointer;
-  background: url("images/fav-star.png") no-repeat scroll center center transparent;
+  background: url("images/fav-star.png") no-repeat scroll center center / 1.4rem;
 }
 
 div#fav-list-container div.selected div.fav-list-remove-button {
-  background: url("images/fav-star-selected.png") no-repeat scroll center center transparent;
+  background: url("images/fav-star-selected.png") no-repeat scroll center center / 1.4rem;
 }
 
 div#fav-list-container div.fav-list-frequency {
@@ -367,6 +367,7 @@ a#frequency-op-seekdown {
   background-repeat: no-repeat, no-repeat;
   background-color: transparent;
   background-position: center center;
+  background-size: 5.6rem;
 }
 
 a#frequency-op-seekdown:active {
@@ -381,6 +382,7 @@ a#frequency-op-seekup {
   background-repeat: no-repeat, no-repeat;
   background-color: transparent;
   background-position: center center;
+  background-size: 5.6rem;
 }
 
 a#frequency-op-seekup:active {
@@ -396,12 +398,7 @@ a#frequency-op-seekup:active {
   top: 0;
   left: 0;
   color: #FFF;
-  background: url(images/popup-texture.png) repeat 0 0 #272d32;
-}
-
-#antenna-warning > div:first-child {
-  height: 60%;
-  background: url(images/headset.png) no-repeat center center transparent;
+  background: url(images/popup-texture.png) transparent repeat 0 0 / 100% 100%;
 }
 
 .warning .warning-header {
