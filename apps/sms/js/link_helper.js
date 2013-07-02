@@ -1,3 +1,4 @@
+(function() {
 'use strict';
 /*
  The LinkHelper exposes functionality to apply the regexp
@@ -5,68 +6,208 @@
  anchor links for url, phone, email.
 */
 
-var LinkHelper = {
-  _urlRegex: new RegExp([
-      '(^|\\s|,|;|<br>)',             // right before
-      '(https?://)?',                 // protocol (if any)
-      '[-\\w%\\+.~#?&//=]{2,256}',    // server name
-      '\\.[a-z]{2,6}(:[0-9]{2,4})?',  // .domain[:port]
-      '(\\/[-\\w:%\\+.~#?;&//=]*)?'   // queries
-      ].join(''), 'mgi'),
-  _emailRegex: /([\w\.-]+)@([\w\.-]+)\.([a-z\.]{2,6})/mgi,
-  _phoneRegex: new RegExp(['(\\+?1?[-.]?\\(?([0-9]{3})\\)?',
-    '[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?'].
-    join(''), 'mg'),
-
-  searchAndLinkUrl:
-  function lh_searchAndLinkUrl(urltext) {
-    var result = urltext.replace(this._urlRegex,
-       function lh_processedUrl(url, delimiter) {
-      var linkText = '';
-
-      //check if url has http(s) in beginning,if not append
-      //http:// at beginning of the url
-      var httpPrefix = url.match(/\bhttps?:\/\//gi) ? '' : 'http://';
-
-      //Remove delimiters such as ' ', ',', ';' from beginning of the URL link
-      //to handle delimiter separated multiple links such as www.abc.com;df.com
-      url = url.replace(delimiter, '');
-
-      linkText = delimiter + '<a data-url="' + httpPrefix +
-                 url + '" data-action="url-link" >' +
-                 url + '</a>';
-      return linkText;
+// ensure that each part of the domain is long enough
+function checkDomain(domain) {
+  var parts = domain.split('.');
+  // either the tld is more than one character or it is an IPv4
+  return parts[parts.length - 1].length > 1 ||
+    parts.length === 4 && parts.every(function(part) {
+      return part >= 0 && part < 256;
     });
-    return result;
-  },
-  searchAndLinkEmail:
-  function lh_searchAndLinkEmail(body) {
-    return body.replace(this._emailRegex,
-      function lh_processedEmail(email) {
-        return [
-          '<a data-email="',
-          '" data-action="email-link">',
-          '</a>'
-        ].join(email);
-      });
-  },
-  searchAndLinkPhone:
-  function lh_searchAndLinkPhone(phonetext) {
-    return phonetext.replace(this._phoneRegex,
-    function lh_processedPhone(phone) {
+}
+
+// defines things that can match right before to be a "safe" link
+var safeStart = '\n\t\r\f .,:;(>'.split('');
+
+/**
+ * For each category of links:
+ * The key is the link type
+ * order matters - defined first means higher priority if two matches equal
+ *
+ *   regexp: The regular expression to match potential links
+ *   matchFilter: (optional) A function that is passed the matched part, and
+ *                the linkSpec.
+ *                Should return the linkSpec, or false if not to be matched
+ *   transform: A function that converts the match data to a html link string
+ *              Is passed the matched part and the linkSpec.
+ */
+var LINK_TYPES = {
+  phone: {
+    regexp: new RegExp([
+      '(\\+?1?[-.]?\\(?([0-9]{3})\\)?',
+      '[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?'
+      ].join(''), 'mg'),
+    transform: function phoneTransform(phone) {
       return [
         '<a data-phonenumber="',
         '" data-action="phone-link">',
         '</a>'
       ].join(phone);
-     });
+     }
   },
-  //Invokes resepective functions to change URL
-  //phone and email strings and make them active links
-  searchAndLinkClickableData:
-   function lh_searchAndLinkClickableData(inputText) {
-    inputText = this.searchAndLinkPhone(inputText);
-    inputText = this.searchAndLinkEmail(inputText);
-    return this.searchAndLinkUrl(inputText);
+
+  url: {
+    regexp: new RegExp([
+      // must begin at start of string, after whitespace,
+      // {1} match the protocol https?:// (optional)
+      '(https?://)?',
+      // {2} match "server name": . must be followed by at least one letter
+      '((?:\\.?[-\\w]){1,256})',
+      // {3} match a . followed by one or more domain valid chars
+      '(\\.\\w{1,10})',
+      // optional :port
+      '(?::[0-9]{1,5})?',
+      // start the "query" capture group by matching an optional dot then /
+      '(?:\\.?/',
+        // anything other than a sentence ender
+        // a sentence ender not followed by whitespace
+        // match 0 - 2048 characters in the url
+        '(?:[^\\s.,?:;!]|[.,?:;!](?!\\s|$)){0,2048}',
+      // end the "query" capture group (optional)
+      ')?'
+      ].join(''), 'mgi'),
+    matchFilter: function urlMatchFilter(url, linkSpec) {
+      var match = linkSpec.match;
+      if (!checkDomain(match[2] + match[3])) {
+        return false;
+      }
+
+      // strip a trailing ) if there isn't a ( in the url
+      if (url.slice(-1) === ')' && url.indexOf('(') === -1) {
+        linkSpec.end--;
+      }
+      return linkSpec;
+    },
+    transform: function urlTransform(url, linkSpec) {
+      var href = url;
+      if (!linkSpec.match[1]) {
+        href = 'http://' + href;
+      }
+      return '<a data-url="' + href + '" data-action="url-link" >' + url +
+             '</a>';
+    }
+  },
+
+  email: {
+    regexp: /[\w.+-]+@[\w.-]+\.[a-z.]{2,6}/mgi,
+    transform: function emailTransform(email) {
+      return [
+        '<a data-email="',
+        '" data-action="email-link">',
+        '</a>'
+      ].join(email);
+    }
   }
 };
+
+var LINK_TYPES_KEYS = Object.keys(LINK_TYPES);
+
+function searchForLinks(type, string) {
+  var linkSpecs = [];
+  var spec = LINK_TYPES[type];
+
+  if (!spec) {
+    return linkSpecs;
+  }
+
+  var regexp = spec.regexp;
+  var matchFilter = spec.matchFilter;
+  var match, linkSpec;
+
+  // while we match stuff...
+  while (match = regexp.exec(string)) {
+    // if the match isn't at the begining of the string, check for a safe
+    // character set before the match before we call it a linkSpec
+    if (match.index && safeStart.indexOf(string[match.index - 1]) === -1) {
+      continue;
+    }
+
+    linkSpec = {
+      type: type,
+      start: match.index,
+      length: match[0].length,
+      end: match.index + match[0].length,
+      match: match
+    };
+
+    if (matchFilter) {
+      linkSpec = matchFilter(match[0], linkSpec);
+    }
+
+    if (linkSpec) {
+      linkSpecs.push(linkSpec);
+    }
+  }
+
+  return linkSpecs;
+}
+
+function linkSort(a, b) {
+  // sort by starting position first
+  // then by ending position reversed
+  // then by the order of the type in the LINK_TYPES
+  return (a.start - b.start) ||
+    (b.end - a.end) ||
+    (LINK_TYPES_KEYS.indexOf(a.type) - LINK_TYPES_KEYS.indexOf(b.type));
+}
+
+function removeOverlapping(linkSpecs) {
+  linkSpecs.sort(linkSort);
+  for (var index = 0; index < linkSpecs.length - 1; index++) {
+    var end = linkSpecs[index].end;
+    // while there are more linkSpecs, and they start before we end remove the
+    // overlapping matches
+    while (linkSpecs[index + 1] && linkSpecs[index + 1].start < end) {
+      linkSpecs.splice(index + 1, 1);
+    }
+  }
+}
+
+var LinkHelper = window.LinkHelper = {
+  searchAndLinkUrl: function lh_searchAndLinkUrl(inputText) {
+    return LinkHelper.searchAndLinkClickableData(inputText, { url: true });
+  },
+  searchAndLinkEmail: function lh_searchAndLinkEmail(inputText) {
+    return LinkHelper.searchAndLinkClickableData(inputText, { email: true });
+  },
+  searchAndLinkPhone: function lh_searchAndLinkPhone(inputText) {
+    return LinkHelper.searchAndLinkClickableData(inputText, { phone: true });
+  },
+  // Invokes resepective functions to change url, phone and email strings
+  // and make them active links
+  // |inputText| should be already html escaped
+  searchAndLinkClickableData:
+    function lh_searchAndLinkClickableData(inputText, mode) {
+    // default is everything enabled
+    mode = mode || LINK_TYPES;
+
+    var linkSpecs = [];
+    var type;
+
+    for (type in mode) {
+      if (mode[type] && LINK_TYPES[type]) {
+        linkSpecs = linkSpecs.concat(searchForLinks(type, inputText));
+      }
+    }
+
+    removeOverlapping(linkSpecs);
+
+    var result = '';
+    var lastEnd = 0;
+
+    linkSpecs.forEach(function replaceLink(link) {
+      result += inputText.slice(lastEnd, link.start);
+
+      var replacing = inputText.slice(link.start, link.end);
+      var replaceWith = LINK_TYPES[link.type].transform(replacing, link);
+      result += replaceWith;
+      lastEnd = link.end;
+    });
+
+    result += inputText.slice(lastEnd);
+
+    return result;
+  }
+};
+
+})();
