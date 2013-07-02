@@ -25,7 +25,7 @@
     },
     "open": {
       "filters": {
-        "type": ["audio/mpeg", "audio/ogg", "audio/mp4"]
+        "type": ["audio/mpeg", "audio/ogg", "audio/mp4", "audio/amr"]
        },
       "disposition": "inline",
       "returnValue": true,

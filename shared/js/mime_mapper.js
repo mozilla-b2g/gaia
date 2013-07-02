@@ -30,6 +30,7 @@ var MimeMapper = {
     'audio/ogg': 'ogg',
     'audio/webm': 'webm',
     'audio/3gpp': '3gp',
+    'audio/amr': 'amr',
     // Video
     'video/mp4': 'mp4',
     'video/mpeg': 'mpg',
@@ -59,6 +60,7 @@ var MimeMapper = {
     'm4r': 'audio/mp4',
     'aac': 'audio/aac',
     'opus': 'audio/ogg',
+    'amr': 'audio/amr',
     // Video
     'mp4': 'video/mp4',
     'mpeg': 'video/mpeg',
