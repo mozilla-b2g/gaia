@@ -3,8 +3,6 @@
 */
 'use strict';
 
-mocha.globals(['0', '6']);
-
 requireApp('sms/js/link_helper.js');
 
 suite('link_helper_test.js', function() {
@@ -24,17 +22,18 @@ suite('link_helper_test.js', function() {
 
     function testURLMatch(url, match, addprefix) {
       var expected = url.replace(match, url2msg(match, addprefix));
-      var result = LinkHelper.searchAndLinkUrl(url);
+      var result = LinkHelper.searchAndLinkClickableData(url);
       assert.equal(result, expected);
     }
 
     function testURLOK(url, addprefix) {
       var expected = url2msg(url, addprefix);
-      var result = LinkHelper.searchAndLinkUrl(url);
+      var result = LinkHelper.searchAndLinkClickableData(url);
       assert.equal(result, expected);
     }
 
     function testURLNOK(url) {
+      // we only test url here to make sure it doesn't match
       var result = LinkHelper.searchAndLinkUrl(url);
       assert.equal(result, url);
     }
@@ -82,11 +81,20 @@ suite('link_helper_test.js', function() {
       test('Trailing period', function() {
         testURLMatch('Check out mozilla.org.', 'mozilla.org', true);
       });
+      test('Trailing comma', function() {
+        testURLMatch('Check out mozilla.org, or not', 'mozilla.org', true);
+      });
       test('Trailing parens', function() {
         testURLMatch('(Check out mozilla.org)', 'mozilla.org', true);
       });
-      test('Trailing parens', function() {
+      test('Trailing parens on path', function() {
         testURLMatch('(Check out mzl.la/ac)', 'mzl.la/ac', true);
+      });
+      test('Trailing period on path', function() {
+        testURLMatch('Check out mzl.la/ac.', 'mzl.la/ac', true);
+      });
+      test('Trailing comma on path', function() {
+        testURLMatch('Check out mzl.la/ac, or not', 'mzl.la/ac', true);
       });
       test('wiki link that has paren', function() {
         testURLOK('http://en.wikipedia.org/wiki/Arete_(disambiguation)');
@@ -97,6 +105,9 @@ suite('link_helper_test.js', function() {
       });
       test('One letter second-level', function() {
         testURLOK('http://x.com');
+      });
+      test('URL with phone number in the middle', function() {
+        testURLOK('http://somesite.com/q,12288296666/');
       });
     });
 
@@ -134,7 +145,7 @@ suite('link_helper_test.js', function() {
 
     function testEmailOK(email) {
       var exp = email2msg(email);
-      var res = LinkHelper.searchAndLinkEmail(email);
+      var res = LinkHelper.searchAndLinkClickableData(email);
       assert.equal(res, exp);
     }
 
@@ -169,7 +180,7 @@ suite('link_helper_test.js', function() {
 
     function testPhoneOK(phone) {
       var exp = phone2msg(phone);
-      var res = LinkHelper.searchAndLinkPhone(phone);
+      var res = LinkHelper.searchAndLinkClickableData(phone);
       assert.equal(res, exp);
     }
 
@@ -186,5 +197,20 @@ suite('link_helper_test.js', function() {
       testPhoneOK('+33612345678');
     });
 
+  });
+
+  suite('Multiple in the same string', function() {
+    test('Hits every case', function() {
+      var test = 'Hey, check out http://stackoverflow.com/q/12882966/ and ' +
+        'call me at +18155551212 or (e-mail user@hostname.tld)';
+      var expected = 'Hey, check out ' +
+        '<a data-url="http://stackoverflow.com/q/12882966/" ' +
+        'data-action="url-link" >http://stackoverflow.com/q/12882966/</a>' +
+        ' and call me at ' +
+        '<a data-phonenumber="+18155551212" data-action="phone-link">' +
+        '+18155551212</a> or (e-mail <a data-email="user@hostname.tld"' +
+        ' data-action="email-link">user@hostname.tld</a>)';
+      assert.equal(LinkHelper.searchAndLinkClickableData(test), expected);
+    });
   });
 });

@@ -16,93 +16,185 @@ function checkDomain(domain) {
     });
 }
 
-// these arguments should stay in sync with the regexp
-function urlReplacer(match, delimiter, proto, server, tld, port, query) {
-  if (!checkDomain(server + tld)) {
-    return match;
-  }
+// defines things that can match right before to be a "safe" link
+var safeStart = /(^|\s|\.|,|;|<br>|\()$/;
+var nonPhoneRE = /[^+\d]+/g;
 
-  // chop the first characters matched by delimiter out of the url
-  var trailing = '';
-  var url = match.substr(delimiter.length);
-
-  // only allow a ) at the end if there is a ( in the url
-  if (url.slice(-1) === ')' && url.indexOf('(') === -1) {
-    trailing = ')';
-    url = url.slice(0, -1);
-  }
-  var href = url;
-
-  // if there is no proto, add http:// to the href
-  if (!proto) {
-    href = 'http://' + href;
-  }
-
-  // add the delimiter back in because this is a replacer
-  return delimiter +
-    '<a data-url="' + href + '" data-action="url-link" >' + url + '</a>' +
-    trailing;
-}
-
-var LinkHelper = window.LinkHelper = {
-  _urlRegex: new RegExp([
+/**
+ * For each category of links:
+ * Key: link type
+ *   regexp: The regular expression to match potential links
+ *   matchFilter: A function that takes the full string, followed by the match,
+ *                should return a link object
+ *   transform: A function that converts the match data to a link string
+ */
+var LINK_TYPES = {
+  url: {
+    regexp: new RegExp([
       // must begin at start of string, after whitespace,
-      // comma, semicolon, br or (
-      '(^|\\s|,|;|<br>|\\()',
-      // match the protocol https?:// (optional)
+      // {1} match the protocol https?:// (optional)
       '(https?://)?',
-      // match "server name": . must be followed by at least one letter
+      // {2} match "server name": . must be followed by at least one letter
       '((?:\\.?[-\\w]){1,256})',
-      // match a . followed by one or more domain valid chars
+      // {3} match a . followed by one or more domain valid chars
       '(\\.\\w{1,10})',
-      // optional :port
+      // {4} optional :port
       '(:[0-9]{1,5})?',
-      // start the "query" capture group by matching an optional dot then /
+      // {5} start the "query" capture group by matching an optional dot then /
       '(\\.?/',
-        // anything other than a whitespace or dot
-        // or a . not followed by whitespace
-        '([^\\s.]|.(?!\\s))',
+        // anything other than a whitespace or dot or comma
+        // or a dot or comma not followed by whitespace
         // match 0 - 2048 characters in the url
-        '{0,2048}',
+        '([^\\s.,]|(?:\\.|,)(?!\\s|$)){0,2048}',
       // end the "query" capture group (optional)
       ')?'
       ].join(''), 'mgi'),
-  _emailRegex: /([\w\.\+-]+)@([\w\.-]+)\.([a-z\.]{2,6})/mgi,
-  _phoneRegex: new RegExp(['(\\+?1?[-.]?\\(?([0-9]{3})\\)?',
-    '[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?'].
-    join(''), 'mg'),
+    matchFilter: function urlMatchFilter(url, link) {
+      var match = link.match;
+      if (!checkDomain(match[2] + match[3])) {
+        return false;
+      }
 
-  searchAndLinkUrl: function lh_searchAndLinkUrl(urltext) {
-    return urltext.replace(this._urlRegex, urlReplacer);
+      // strip a trailing ) if there isn't a ( in the url
+      if (url.slice(-1) === ')' && url.indexOf('(') === -1) {
+        link.end--;
+      }
+      return link;
+    },
+    transform: function urlTransform(url, link) {
+      var href = url;
+      if (!link.match[1]) {
+        href = 'http://' + href;
+      }
+      return '<a data-url="' + href + '" data-action="url-link" >' + url +
+             '</a>';
+    }
   },
-  searchAndLinkEmail: function lh_searchAndLinkEmail(body) {
-    return body.replace(this._emailRegex,
-      function lh_processedEmail(email) {
-        return [
-          '<a data-email="',
-          '" data-action="email-link">',
-          '</a>'
-        ].join(email);
-      });
+
+  email: {
+    regexp: /([\w\.\+-]+)@([\w\.-]+)\.([a-z\.]{2,6})/mgi,
+    transform: function emailTransform(email) {
+      return [
+        '<a data-email="',
+        '" data-action="email-link">',
+        '</a>'
+      ].join(email);
+    }
   },
-  searchAndLinkPhone:
-  function lh_searchAndLinkPhone(phonetext) {
-    return phonetext.replace(this._phoneRegex,
-    function lh_processedPhone(phone) {
+
+  phone: {
+    regexp: new RegExp([
+      '(\\+?1?[-.]?\\(?([0-9]{3})\\)?',
+      '[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?'
+      ].join(''), 'mg'),
+    transform: function phoneTransform(phone) {
       return [
         '<a data-phonenumber="',
         '" data-action="phone-link">',
         '</a>'
       ].join(phone);
-     });
+     }
+  }
+};
+
+function searchForLinks(type, string) {
+  var links = [];
+  var spec = LINK_TYPES[type];
+
+  if (!spec) {
+    return links;
+  }
+
+  var regexp = spec.regexp;
+  var matchFilter = spec.matchFilter;
+  var match, link;
+
+  // while we match stuff...
+  while (match = regexp.exec(string)) {
+    // if the match isn't at the begining of the string, check for a safe
+    // character set before the match before we call it a link
+    if (match.index && !safeStart.exec(string.slice(0, match.index))) {
+      continue;
+    }
+
+    link = {
+      type: type,
+      start: match.index,
+      length: match[0].length,
+      end: match.index + match[0].length,
+      match: Array.prototype.slice.call(match, 0)
+    };
+
+    if (matchFilter) {
+      link = matchFilter(match[0], link);
+    }
+
+    if (link) {
+      links.push(link);
+    }
+  }
+
+  return links;
+}
+
+function linkSort(a, b) {
+  // sort by starting position first, then by ending position reversed
+  return a.start - b.start || b.end - a.end;
+}
+
+function removeOverlapping(links) {
+  links.sort(linkSort);
+  for (var x = 0; x < links.length - 1; x++) {
+    var end = links[x].end;
+    // while there are more links, and they start before we end remove the
+    // overlapping matches
+    while (links[x + 1] && links[x + 1].start < end) {
+      links.splice(x + 1, 1);
+    }
+  }
+}
+
+var LinkHelper = window.LinkHelper = {
+  searchAndLinkUrl: function lh_searchAndLinkUrl(inputText) {
+    return LinkHelper.searchAndLinkClickableData(inputText, { url: true });
+  },
+  searchAndLinkEmail: function lh_searchAndLinkEmail(inputText) {
+    return LinkHelper.searchAndLinkClickableData(inputText, { email: true });
+  },
+  searchAndLinkPhone: function lh_searchAndLinkPhone(inputText) {
+    return LinkHelper.searchAndLinkClickableData(inputText, { phone: true });
   },
   //Invokes resepective functions to change URL
   //phone and email strings and make them active links
   searchAndLinkClickableData:
-   function lh_searchAndLinkClickableData(inputText) {
-    inputText = this.searchAndLinkPhone(inputText);
-    inputText = this.searchAndLinkEmail(inputText);
-    return this.searchAndLinkUrl(inputText);
+    function lh_searchAndLinkClickableData(inputText, mode = {
+      email: true,
+      phone: true,
+      url: true
+  }) {
+    var links = [];
+    var type;
+
+    for (type in mode) {
+      if (mode[type]) {
+        links = links.concat(searchForLinks(type, inputText));
+      }
+    }
+
+    removeOverlapping(links);
+
+    var result = inputText;
+    var offset = 0;
+    links.forEach(function replaceLink(link) {
+      var before = result.slice(0, link.start + offset);
+      var replacing = result.slice(link.start + offset, link.end + offset);
+      var after = result.slice(link.end + offset);
+      var replaceWith = LINK_TYPES[link.type].transform(replacing, link);
+      offset += replaceWith.length - replacing.length;
+      result = before + replaceWith + after;
+    });
+
+    return result;
   }
 };
 
