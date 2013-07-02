@@ -936,9 +936,6 @@ var Browser = {
 
   urlFocus: function browser_urlFocus(e) {
     if (this.currentScreen === this.PAGE_SCREEN) {
-      // Hide modal dialog
-      ModalDialog.hide();
-      AuthenticationDialog.hide();
       this.urlInput.value = this.currentTab.url;
       this.sslIndicator.value = '';
       this.setUrlBar(this.currentTab.url);
