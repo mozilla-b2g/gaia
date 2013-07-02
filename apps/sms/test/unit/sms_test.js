@@ -690,7 +690,7 @@ suite('SMS App Unit-Test', function() {
       assert.equal(anchors.length, 3,
         '3 Contact handlers are attached for 3 phone numbers in DOM');
       assert.equal(anchors[0].dataset.phonenumber,
-        '408-746-9721', 'First number is 408-746-9721');
+        '408-746-9721', 'First number link is 408-746-9721');
       assert.equal(anchors[1].dataset.phonenumber,
         '4087469721', 'Second number is 4087469721');
       assert.equal(anchors[2].dataset.phonenumber,
@@ -700,7 +700,7 @@ suite('SMS App Unit-Test', function() {
     test('#complexTest with 7 digit numbers, ip, decimals', function() {
       var messageBody = '995-382-7369 futures to a 4458901 slight' +
         ' 789-7890 rebound +1-556-667-7789 on Wall Street 9953827369' +
-        ' on Wednesday, +12343454567 with 55.55.55 futures +919810137553' +
+        ' on Wednesday, +12343454567 with 55.55 futures +919810137553' +
         ' for the S&P 500 up 0.34 percent, Dow Jones futures up 0.12' +
         ' percent100 futures up 0.51 percent at 0921 GMT.';
       var id = '12346';
@@ -708,6 +708,7 @@ suite('SMS App Unit-Test', function() {
       Message.body = messageBody;
       var messageDOM = ThreadUI.buildMessageDOM(Message, false);
       var anchors = messageDOM.querySelectorAll('[data-phonenumber]');
+
       assert.equal(anchors.length, 7,
         '7 Contact handlers are attached for 7 phone numbers in DOM');
       assert.equal(anchors[0].dataset.phonenumber,
@@ -719,11 +720,11 @@ suite('SMS App Unit-Test', function() {
       assert.equal(anchors[3].dataset.phonenumber,
         '+1-556-667-7789', 'Fourth number is +1-556-667-7789');
       assert.equal(anchors[4].dataset.phonenumber,
-        '9953827369', 'Fourth number is 9953827369');
+        '9953827369', 'Fifth number is 9953827369');
       assert.equal(anchors[5].dataset.phonenumber,
-        '+12343454567', 'Fifth number is +12343454567');
+        '+12343454567', 'Sixth number is +12343454567');
       assert.equal(anchors[6].dataset.phonenumber,
-        '+919810137553', 'Sixth number is +919810137553');
+        '+919810137553', 'Seventh number is +919810137553');
       // The phone links generated shouldn have 'href'
       var anchorsLength = anchors.length;
       for (var i = 0; i < anchorsLength; i++) {

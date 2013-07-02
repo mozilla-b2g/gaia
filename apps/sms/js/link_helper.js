@@ -19,6 +19,8 @@ function checkDomain(domain) {
 // defines things that can match right before to be a "safe" link
 var safeStart = '\n\t\r\f .,:;(>'.split('');
 
+const MINIMUM_DIGITS_IN_PHONE_NUMBER = 6;
+
 /**
  * For each category of links:
  * The key is the link type
@@ -34,16 +36,23 @@ var safeStart = '\n\t\r\f .,:;(>'.split('');
 var LINK_TYPES = {
   phone: {
     regexp: new RegExp([
-      '(\\+?1?[-.]?\\(?([0-9]{3})\\)?',
-      '[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?'
+      // sddp: space, dot, dash or parens
+      '(?:\\+\\d{1,4}[\\s.()-]{0,3}|\\()?' +     // (\+<digits><sddp>|\()?
+      '(?:\\d{1,4}[\\s.()-]{0,3})?' +            // <digits><sdd>*
+      '(?:\\d[\\d\\s.()-]{0,100}\\d)'            // <digit><digit|sddp>*<digit>
       ].join(''), 'mg'),
-    transform: function phoneTransform(phone) {
-      return [
-        '<a data-phonenumber="',
-        '" data-action="phone-link">',
-        '</a>'
-      ].join(phone);
-     }
+    matchFilter: function phoneMatchFilter(phone, link) {
+      var onlyDigits = Utils.removeNonDialables(phone);
+
+      if (onlyDigits.length < MINIMUM_DIGITS_IN_PHONE_NUMBER) {
+        return false;
+      }
+      return link;
+    },
+    transform: function phoneTransform(phone, link) {
+      return '<a data-phonenumber="' + phone +
+        '" data-action="phone-link">' + phone + '</a>';
+    }
   },
 
   url: {
