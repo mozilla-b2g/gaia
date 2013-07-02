@@ -67,7 +67,6 @@ pref("general.useragent.override.deser.pl", "\\(Mobile#(Android; Mobile"); // bu
 pref("general.useragent.override.as.com", "\\(Mobile#(Android; Mobile"); // bug 828383
 pref("general.useragent.override.ebay.es", "\\(Mobile#(Android; Mobile"); // bug 828386
 pref("general.useragent.override.amazon.es", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 828388
-pref("general.useragent.override.20minutos.es", "\\(Mobile#(Android; Mobile"); // bug 828390
 pref("general.useragent.override.infojobs.net", "\\(Mobile#(Android; Mobile"); // bug 828392
 pref("general.useragent.override.vimeo.com", "\\(Mobile#(Android; Mobile"); // bug 828394
 pref("general.useragent.override.elconfidencial.com", "\\(Mobile#(Android; Mobile"); // bug 828397
