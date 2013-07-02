@@ -81,6 +81,9 @@ suite('link_helper_test.js', function() {
       test('Simple URL with IPv4 with zero', function() {
         testURLOK('http://8.0.8.8/');
       });
+      test('<br>prefix', function() {
+        testURLMatch('<br>mozilla.org', 'mozilla.org', true);
+      });
       test('Trailing question mark', function() {
         testURLMatch('OMG mozilla.org? it is cool!', 'mozilla.org', true);
       });

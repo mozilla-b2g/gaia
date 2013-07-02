@@ -17,11 +17,13 @@ function checkDomain(domain) {
 }
 
 // defines things that can match right before to be a "safe" link
-var safeStart = /(?:[\s.,;(]|<br>)$/;
+var safeStart = ' .,:;(>'.split('');
 
 /**
  * For each category of links:
- * Key: link type
+ * The key is the link type
+ * order matters - defined first means higher priority if two matches equal
+ *
  *   regexp: The regular expression to match potential links
  *   matchFilter: A function that takes the full string, followed by the match,
  *                should return a link object
@@ -85,7 +87,7 @@ var LINK_TYPES = {
   },
 
   email: {
-    regexp: /([\w\.\+-]+)@([\w\.-]+)\.([a-z\.]{2,6})/mgi,
+    regexp: /[\w.+-]+@[\w.-]+\.[a-z.]{2,6}/mgi,
     transform: function emailTransform(email) {
       return [
         '<a data-email="',
@@ -114,7 +116,7 @@ function searchForLinks(type, string) {
   while (match = regexp.exec(string)) {
     // if the match isn't at the begining of the string, check for a safe
     // character set before the match before we call it a linkSpec
-    if (match.index && !safeStart.exec(string.slice(0, match.index))) {
+    if (match.index && safeStart.indexOf(string[match.index - 1]) === -1) {
       continue;
     }
 
