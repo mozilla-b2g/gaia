@@ -82,7 +82,10 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var MP4Types = {
     'M4A ' : true,  // iTunes audio.  Note space in property name.
     'M4B ' : true,  // iTunes audio book. Note space.
-    'mp42' : true   // MP4 version 2
+    'mp41' : true,  // MP4 version 1
+    'mp42' : true,  // MP4 version 2
+    'isom' : true,  // ISO base media file format, version 1
+    'iso2' : true   // ISO base media file format, version 2
   };
 
   // Start off with some default metadata
@@ -111,7 +114,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     }
 
     try {
-      var magic = header.getASCIIText(0, 12);
+      var magic = header.getASCIIText(0, 8);
 
       if (magic.substring(0, 3) === 'ID3') {
         // parse ID3v2 tags in an MP3 file
@@ -122,20 +125,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         parseOggMetadata(header);
       }
       else if (magic.substring(4, 8) === 'ftyp') {
-        // This is an MP4 file
-        if (magic.substring(8, 12) in MP4Types) {
-          // It is a type of MP4 file that we support
-          parseMP4Metadata(header);
-        }
-        else {
-          // The MP4 file might be a video or it might be some
-          // kind of audio that we don't support. We used to treat
-          // files like these as unknown files and see (in the code below)
-          // whether the <audio> tag could play them. But we never parsed
-          // metadata from them, so even if playable, we didn't have a title.
-          // And, the <audio> tag was treating videos as playable.
-          errorCallback('Unknown MP4 file type');
-        }
+        // parse metadata from an MP4 file; note that we may bail out of this if
+        // we find a video track
+        parseMP4Metadata(header);
       }
       else if ((header.getUint16(0, false) & 0xFFFE) === 0xFFFA) {
         // If this looks like an MP3 file, then look for ID3v1 metadata
@@ -498,38 +490,74 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   // http://atomicparsley.sourceforge.net/mpeg-4files.html
   //
   function parseMP4Metadata(header) {
-    //
-    // XXX
-    // I think I could probably restructure this somehow. The atoms or "boxes"
-    // we're reading and parsing here for a tree that I need to traverse.
-    // Maybe nextBox() and firstChildBox() functions would be helpful.
-    // Or even make these methods of BlobView?  Not sure if it is worth
-    // the time to refactor, though... See also the approach in
-    // shared/js/get_video_rotation.js
-    //
 
-    findMoovAtom(header);
+    // First, we need to read the ftyp atom to make sure we recognize one of the
+    // brands (either major_brand or one of the compatible_brands).
+    try {
+      var atomHeader = readAtomHeader(header);
+      readAtomBody(header, atomHeader, function(atom) {
+        atom.advance(8); // Skip the atom's header
+        for (var i = 0; i < atomHeader.size - 8; i += 4) {
+          var type = header.readASCIIText(4);
+          if (i === 4) {
+            // The second 4-byte block is the version of the major_brand
+            continue;
+          }
+          if (type in MP4Types) {
+            nextAtom(atom, atomHeader, findMoovAtom);
+            return;
+          }
+        }
+
+        // Couldn't find a valid brand
+        errorCallback('Unknown MP4 file type');
+      });
+    }
+    catch (e) {
+      errorCallback(e);
+    }
+
+    function readAtomHeader(atom, callback) {
+      var offset = atom.sliceOffset + atom.viewOffset; // position in blob
+      var size = atom.readUnsignedInt();
+      var type = atom.readASCIIText(4);
+
+      if (size === 0) {
+        // A size of 0 means the rest of the file
+        size = atom.blob.size - offset;
+      }
+      else if (size === 1) {
+        // A size of 1 means the size is in bytes 8-15
+        size = atom.readUnsignedInt() * 4294967296 + atom.readUnsignedInt();
+      }
+
+      return {type: type, size: size, offsetStart: offset};
+    }
+
+    function readAtomBody(atom, atomHeader, callback) {
+      atom.getMore(atomHeader.offsetStart, atomHeader.size, callback);
+    }
+
+    function nextAtom(atom, atomHeader, callback) {
+      if (atomHeader.offsetStart + atomHeader.size + 16 <= atom.blob.size) {
+        atom.getMore(atomHeader.offsetStart + atomHeader.size, 16, callback);
+      }
+      else {
+        // If we've reached the end of the blob without finding
+        // anything, just call the metadata callback with no metadata
+        metadataCallback(metadata);
+      }
+    }
 
     function findMoovAtom(atom) {
       try {
-        var offset = atom.sliceOffset + atom.viewOffset; // position in blob
-        var size = atom.readUnsignedInt();
-        var type = atom.readASCIIText(4);
+        var atomHeader = readAtomHeader(atom);
 
-        if (size === 0) {
-          // A size of 0 means the rest of the file
-          size = atom.blob.size - offset;
-        }
-        else if (size === 1) {
-          // A size of 1 means the size is in bytes 8-15
-          size = atom.readUnsignedInt() * 4294967296 + atom.readUnsignedInt();
-        }
-
-        if (type === 'moov') {
+        if (atomHeader.type === 'moov') {
           // Get the full contents of this atom
-          atom.getMore(offset, size, function(moov) {
+          readAtomBody(atom, atomHeader, function(moov) {
             try {
-              parseMoovAtom(moov, size);
+              parseMoovAtom(moov, atomHeader.size);
               handleCoverArt(metadata);
               return;
             }
@@ -541,14 +569,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         else {
           // Otherwise, get the start of the next atom and recurse
           // to continue the search for the moov atom.
-          // If we're reached the end of the blob without finding
-          // anything, just call the metadata callback with no metadata
-          if (offset + size + 16 <= atom.blob.size) {
-            atom.getMore(offset + size, 16, findMoovAtom);
-          }
-          else {
-            metadataCallback(metadata);
-          }
+          nextAtom(atom, atomHeader, findMoovAtom);
         }
       }
       catch (e) {
