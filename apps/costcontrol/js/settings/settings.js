@@ -55,10 +55,11 @@ var Settings = (function() {
       reportsTitle = document.getElementById('phone-internet-settings');
 
       // Subviews
+      var balanceConfig = ConfigManager.configuration.balance;
       balanceView = new BalanceView(
         document.getElementById('balance'),
         document.querySelector('#balance + .meta'),
-        ConfigManager.configuration.balance.minimum_delay
+        balanceConfig ? balanceConfig.minimum_delay : undefined
       );
 
       // Autosettings
