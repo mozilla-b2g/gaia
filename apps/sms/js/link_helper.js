@@ -191,16 +191,19 @@ var LinkHelper = window.LinkHelper = {
 
     removeOverlapping(linkSpecs);
 
-    var result = inputText;
-    var offset = 0;
+    var result = '';
+    var lastEnd = 0;
+
     linkSpecs.forEach(function replaceLink(link) {
-      var before = result.slice(0, link.start + offset);
-      var replacing = result.slice(link.start + offset, link.end + offset);
-      var after = result.slice(link.end + offset);
+      result += inputText.slice(lastEnd, link.start);
+
+      var replacing = inputText.slice(link.start, link.end);
       var replaceWith = LINK_TYPES[link.type].transform(replacing, link);
-      offset += replaceWith.length - replacing.length;
-      result = before + replaceWith + after;
+      result += replaceWith;
+      lastEnd = link.end;
     });
+
+    result += inputText.slice(lastEnd);
 
     return result;
   }
