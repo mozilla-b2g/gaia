@@ -40,6 +40,15 @@ suite('Renderer', function() {
 
       _iw = Object.getOwnPropertyDescriptor(Window.prototype, 'innerWidth');
       _ih = Object.getOwnPropertyDescriptor(Window.prototype, 'innerHeight');
+
+      // we're testing layout stuff, so make sure to also have width/height
+      // in a headless browser
+      Object.defineProperty(Window.prototype, 'innerWidth',
+        makeDescriptor(300));
+      Object.defineProperty(ime, 'clientWidth',
+        makeDescriptor(300));
+      Object.defineProperty(Window.prototype, 'innerHeight',
+        makeDescriptor(400));
     });
 
     teardown(function() {
@@ -88,6 +97,7 @@ suite('Renderer', function() {
         function(el) {
           return el.clientWidth;
         });
+
       assert.notEqual(all[0], 0);
       assert.equal(all.every(function(el) {
         return el === all[0];
