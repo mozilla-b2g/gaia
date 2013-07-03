@@ -70,7 +70,7 @@ html, body {
   bottom: 0;
   background: url(images/attention_button_container.png);
   background-size: 100% 100%;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
   position: absolute;
 }
 
@@ -79,7 +79,7 @@ html, body {
   width: -moz-calc((100% - 4.06rem) / 2 );
   -moz-box-sizing: border-box;
   background: url("images/ring_button_snooze.png") repeat-x scroll left bottom #FAFAFA;
-  border: 1px solid #9F9F9F;
+  border: 0.1rem solid #9F9F9F;
   border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
   color: #333333;
   display: inline-block;
@@ -92,7 +92,7 @@ html, body {
   text-align: center;
   text-decoration: none;
   text-overflow: ellipsis;
-  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0.1rem 0.1rem 0 rgba(255, 255, 255, 0.3);
   vertical-align: middle;
   white-space: nowrap;
 }
@@ -109,7 +109,7 @@ html, body {
   -moz-box-sizing: border-box;
   background: url("images/ring_button_close.png") repeat-x scroll left bottom #FAFAFA;
   background-color: #00CAF2;
-  border: 1px solid #00ACCE;
+  border: 0.1rem solid #00ACCE;
   border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
   color: #333333;
   display: inline-block;
@@ -122,7 +122,7 @@ html, body {
   text-align: center;
   text-decoration: none;
   text-overflow: ellipsis;
-  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0.1rem 0.1rem 0 rgba(255, 255, 255, 0.3);
   vertical-align: middle;
   white-space: nowrap;
 }
@@ -152,47 +152,49 @@ html, body {
 /* Handling the status bar mode */
 @media screen and (max-height: 4em) {
   #ring-icon {
-    width: 40px;
-    height: 40px;
-    left: 0px;
-    top: 0px;
+    width: 4rem;
+    height: 4rem;
+    left: 0;
+    top: 0;
     background-image: url('images/attention_overlay_icon.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
     position: absolute;
   }
-  
+
   #ring-clock {
     text-align: left;
   }
-  
+
   #ring-clock-display {
     position: absolute;
-    bottom: 6px;
-    left: 40px;
+    bottom: 0.6rem;
+    left: 4.2rem;
     border-bottom: none;
   }
-  
+
   #ring-clock-time {
     font: bolder 1.38rem/1.38rem 'MozTT', sans-serif;
   }
-  
+
   #ring-clock-hour24-state {
     display: none;
   }
-  
+
   #ring-alarm-label {
     position: absolute;
     top: 0.46rem;
-    left: 4rem;
-    font: bolder 1.38rem/1.44rem 'MozTT',sans-serif;
+    left: 4.2rem;
+    font-weight: bolder;
+    font-size: 1.38rem;
+    line-height: 1.44rem;
     color: #00aac8;
     margin-top: 0;
     margin-left: 0;
     margin-right: 0;
     height: 1.5rem;
   }
-  
+
   #footer-button-container {
     display: none;
   }
