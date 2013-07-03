@@ -172,7 +172,7 @@ ol.link-list li:only-child a {
 }
 
 #advanced-settings-view .account-list .error a {
-  background: transparent url('icons/accountwarning_30x30.png') no-repeat left;
+  background: transparent url('icons/accountwarning.png') no-repeat left;
   padding-left: 3.5rem;
 }
 
