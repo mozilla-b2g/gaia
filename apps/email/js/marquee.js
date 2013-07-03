@@ -84,7 +84,7 @@ var Marquee = {
           var cssClass = marqueeCssClass + '-rtl';
           // Set the width of the marquee to match the text contents length
           var width = this._headerWrapper.scrollWidth;
-          titleText.style.width = width + 'px';
+          titleText.style.width = (width / 10)+ 'rem';
           // Start the marquee animation (aligned left with delay)
           titleText.classList.add(cssClass + '-start-' + timing);
           this._marqueeCssClassList.push(cssClass + '-start-' + timing);
@@ -94,7 +94,7 @@ var Marquee = {
             titleText.classList.remove(cssClass + '-start-' + timing);
             this._marqueeCssClassList.pop();
             // Correctly calculate the width of the marquee
-            var visibleWidth = self._headerWrapper.clientWidth + 'px';
+            var visibleWidth = (self._headerWrapper.clientWidth / 10) + 'rem';
             titleText.style.transform = 'translateX(' + visibleWidth + ')';
             // Enable the continuous marquee
             titleText.classList.add(cssClass);
@@ -106,7 +106,7 @@ var Marquee = {
           // Set the width of the marquee to match the text contents length
           var width =
               this._headerWrapper.scrollWidth - this._headerWrapper.clientWidth;
-          titleText.style.width = width + 'px';
+          titleText.style.width = (width / 10) + 'rem';
 
           // Start the marquee animation (aligned left with delay)
           titleText.classList.add(cssClass + timing);
