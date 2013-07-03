@@ -6,8 +6,10 @@
  'ext/ical',
  'ext/caldav',
  'ext/uuid',
+ 'service/mixins',
  'service/ical_recur_expansion',
- 'service/caldav','service/ical'].forEach(function(script) {
+ 'service/caldav',
+ 'service/ical'].forEach(function(script) {
    // ?time= is for cache busting in development...
    // there have been cases where nightly would not
    // clear the cache of the worker.

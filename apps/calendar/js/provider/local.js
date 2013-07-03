@@ -49,102 +49,6 @@ Calendar.ns('Provider').Local = (function() {
     /**
     * Import events to a calendar from the .ics file at the given url.
     *
-    * @param {Object} calendar object.
-    * @param {Object} account model.
-    * @param {String} url location of event.
-    * @param {Function} callback node style callback fired after event parsing.
-    */
-    importUrlSpecial: function(calendar,account,url,callback) {
-      var stream = this.service.stream(
-        'ical',
-        'importFromUrl',
-         account,
-         url
-      );
-      if ((calendar === {}) || (calendar === undefined) || (calendar === null)){
-        callback('no calendar',null);
-        return;
-      }
-      if ((calendar.accountId === undefined ) || (calendar.accountId === null ) || (calendar.accountId === '')) {
-        callback('calendar has no account',null);
-        return;
-      }
-      var preliminaryaccount = Calendar.App.store('Account');
-      preliminaryaccount.get(calendar.accountId,function(err,param){
-        var pulleventaccount = param;
-        if (param === undefined) {
-          callback('no account',null);
-          return;   
-        }
-        var pull = new Calendar.Provider.CaldavPullEvents(stream, {
-          calendar: calendar,
-          account: pulleventaccount
-        });
-        stream.request(function() {
-          // stream is complete here the audit of
-          // events can be made. They are flushed
-          // to the cache where possible but not actually
-          // persisted in the database.
-       
-          // assuming we are ready commit the changes
-          pull.commitIncrementally(null,function(err){
-
-          },'start');
-        });
-      },null);
-    },
-
-    /**
-    * Import events to a calendar from the .ics file represented by blob.
-    *
-    * @param {Object} calendar object.
-    * @param {Object} account model.
-    * @param {String} url location of event.
-    * @param {Function} callback node style callback fired after event parsing.
-    */
-    importBlobSpecial: function(calendar,account,blob,callback) {
-      var stream = this.service.stream(
-        'ical',
-        'importFromICS',
-         account,
-         blob
-      );
-      if ((calendar === {}) || (calendar === undefined) || (calendar === null)){
-        callback('no calendar',null);
-        return;
-      }
-      if ((calendar.accountId === undefined ) || (calendar.accountId === null ) || (calendar.accountId === '')) {
-        callback('calendar has no account',null);
-        return;
-      }
-      var preliminaryaccount = Calendar.App.store('Account');
-      preliminaryaccount.get(calendar.accountId,function(err,param){
-        var pulleventaccount = param;
-        if (param === undefined) {
-          callback('no account',null);
-          return;   
-        }
-        var pull = new Calendar.Provider.CaldavPullEvents(stream, {
-          calendar: calendar,
-          account: pulleventaccount
-        });
-        stream.request(function() {
-          // stream is complete here the audit of
-          // events can be made. They are flushed
-          // to the cache where possible but not actually
-          // persisted in the database.
-       
-          // assuming we are ready commit the changes
-          pull.commitIncrementally(null,function(err){
-
-          },'start');
-        });
-      },null);
-    },
-
-    /**
-    * Import events to a calendar from the .ics file at the given url.
-    *
     * @param {Object} account model.
     * @param {String} url location of event.
     * @param {Function} callback node style callback fired after event parsing.
@@ -159,13 +63,17 @@ Calendar.ns('Provider').Local = (function() {
       var calendar = Calendar.App.store('Calendar');
       calendar.get(Calendar.Provider.Local.calendarId,function(err,param){
         var pulleventcalendar = param;
-        if (param === undefined) {
+        if (!param) {
           callback('no calendar',null);
           return;   
         }
         var preliminaryaccount = Calendar.App.store('Account');
         preliminaryaccount.get(pulleventcalendar.accountId,function(err,param){
           var pulleventaccount = param;
+          if (!param) {
+            callback('no account',null);
+            return;   
+          }
           var pull = new Calendar.Provider.CaldavPullEvents(stream, {
              calendar: pulleventcalendar,
              account: pulleventaccount
@@ -173,13 +81,8 @@ Calendar.ns('Provider').Local = (function() {
            stream.request(function() {
              // stream is complete here the audit of
              // events can be made. They are flushed
-             // to the cache where possible but not actually
+             // to the cache where possible and incrementally
              // persisted in the database.
-       
-             // assuming we are ready commit the changes
-             pull.commitIncrementally(null,function(err){
-
-             },'start');
            });
 
         },null);
@@ -205,13 +108,17 @@ Calendar.ns('Provider').Local = (function() {
       var calendar = Calendar.App.store('Calendar');
       calendar.get(Calendar.Provider.Local.calendarId,function(err,param){
         var pulleventcalendar = param;
-        if (param === undefined) {
+        if (!param) {
           callback('no calendar',null);
           return;   
         }
         var preliminaryaccount = Calendar.App.store('Account');
         preliminaryaccount.get(pulleventcalendar.accountId,function(err,param){
           var pulleventaccount = param;
+          if (!param) {
+            callback('no account',null);
+            return;   
+          }
           var pull = new Calendar.Provider.CaldavPullEvents(stream, {
              calendar: pulleventcalendar,
              account: pulleventaccount
@@ -219,11 +126,8 @@ Calendar.ns('Provider').Local = (function() {
            stream.request(function() {
              // stream is complete here the audit of
              // events can be made. They are flushed
-             // to the cache where possible but not actually
+             // to the cache where possible and incrementally
              // persisted in the database.
-              pull.commitIncrementally(null,function(err){
-
-              },'start');
            });
 
         },null);

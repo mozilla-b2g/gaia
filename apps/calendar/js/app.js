@@ -379,7 +379,7 @@ Calendar.App = (function(window) {
           self.activityHandlerController
         );
 
-        self.activityHandlerController.observe(window.navigator);
+        self.activityHandlerController.observe();
       });
     },
 
@@ -418,7 +418,6 @@ Calendar.App = (function(window) {
           next();
         });
       }
-      //window.megadb = this.db;
       this.db.load(function() {
         next();
       });

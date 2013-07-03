@@ -1,6 +1,6 @@
 Calendar.ns('Controllers').ActivityHandler = (function() {
 
-  var debug = Calendar.debug('expand events');
+  var debug = Calendar.debug('web activites');
 
   function ActivityHandler(app) {
     this.app = app;
@@ -11,39 +11,41 @@ Calendar.ns('Controllers').ActivityHandler = (function() {
   ActivityHandler.prototype = {
     __proto__: Calendar.Responder.prototype,
 
-    observe: function(nav) {
+    //Begin observing MozActivities
+    observe: function() {
       var self = this;
-      nav.mozSetMessageHandler('activity', function(activityRequest) {
+      navigator.mozSetMessageHandler('activity', function(activityRequest) {
         var option = activityRequest.source;
-          if (option.name === "view") {
+          //case for a 'view' MozActivity, specifically imports from a url
+          if (option.name === 'view') {
             var url = option.data.url;
-            nav.mozApps.getSelf().onsuccess = function gotSelf(evt) {
-              var self = this;
+            navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
               var application = evt.target.result;
               
-              if (application !== null) {
+              if (application !== null && application !== undefined) {
                 application.launch();
               }
-              self.app.provider('Local').importFromUrl({},url,function(err,param){});
+              this.app.provider('Local').importFromUrl({},url,function(err,param){});
             }.bind(self);
           }
-          else if (option.name === "open")  {
+          //case for a 'view' MozActivity, specifically imports from a file
+          else if (option.name === 'open')  {
             var file = option.data.blob;
             var reader = new FileReader();
-            nav.mozApps.getSelf().onsuccess = function gotSelf(evt) {
-              var self = this;
+            navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
+              
               var application = evt.target.result;
 
-              if (application !== null) {
+              if (application !== null && application !== undefined) {
                 application.launch();
               }
-              reader.onloadend = function(arg) {
-                var blob = arg.target.result;
-                self.app.provider('Local').importFromICS({},blob,function(err,param){});
-              }
+              reader.onloadend = function(readfile) {
+                var blob = readfile.target.result;
+                this.app.provider('Local').importFromICS({},blob,function(err,param){});
+              }.bind(self);
               reader.readAsDataURL(file);
               
-            }.bind(self);
+            }
           }
         });
     }

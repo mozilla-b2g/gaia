@@ -82,7 +82,9 @@ Calendar.ns('Service').Ical = (function() {
                 });
               }
             });
+            //callback(null,'ical parsed');
           });
+
           callback(null,'ical parsed');
         },
 
@@ -157,24 +159,24 @@ Calendar.ns('Service').Ical = (function() {
                   break;
                 case 'vevent':
                     var event = new ICAL.Event(component);
-                    if (event.isRecurrenceException())  {
-                      exceptions.push(event);
-                    }
-                    else {
+                    //if (event.isRecurrenceException())  {
+                      //exceptions.push(event);
+                    //}
+                    //else {
                       //primaryEvent = event;
                       //if (!primaryEvent) {
-                      primaryEvent = event;
+                      //primaryEvent = event;
                       //}
                       //else {
                       callback(null,event);
                       //}
-                    }
+                    //}
                   break;
                 default:
                   continue;
               }
             }
-            exceptions.forEach(primaryEvent.relateException, primaryEvent);
+            //exceptions.forEach(primaryEvent.relateException, primaryEvent);
             //callback(null, primaryEvent);
 
             //XXX: ideally we should do a "nextTick" here
@@ -193,10 +195,12 @@ Calendar.ns('Service').Ical = (function() {
           }
         },
     }
+    
     // Add mixin functions
-    for (var i = 0 ; i < Calendar.MixIns.length;i++)  {
-      Service.prototype[Calendar.MixIns[i][0]] = Calendar.MixIns[i][1];
+    for (var i in Calendar.Service.Mixins) {
+      Service.prototype[i] = Calendar.Service.Mixins[i];
     }
+    
     return Service;
 
 }());

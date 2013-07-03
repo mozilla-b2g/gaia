@@ -228,21 +228,7 @@ Calendar.ns('Service').Caldav = (function() {
         callback(null, results);
       });
     },
-
     
-
-   
-
-    
-
-    
-
-    
-
-    
-
-    
-
     /**
      * Expands a list recurring events by their component.
      *
@@ -669,9 +655,10 @@ Calendar.ns('Service').Caldav = (function() {
     }
 
   };
+
   // Add mixin functions
-  for (var i = 0 ; i < Calendar.MixIns.length;i++)  {
-    Service.prototype[Calendar.MixIns[i][0]] = Calendar.MixIns[i][1];
+  for (var i in Calendar.Service.Mixins) {
+    Service.prototype[i] = Calendar.Service.Mixins[i];
   }
 
   return Service;
