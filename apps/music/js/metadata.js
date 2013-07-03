@@ -79,10 +79,15 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
   // These are 'ftyp' values that we recognize
   // See http://www.mp4ra.org/filetype.html
+  // Also see gecko code in /toolkit/components/mediasniffer/nsMediaSniffer.cpp
+  // Gaia will accept the supported compatible brands in gecko as well
   var MP4Types = {
     'M4A ' : true,  // iTunes audio.  Note space in property name.
     'M4B ' : true,  // iTunes audio book. Note space.
-    'mp42' : true   // MP4 version 2
+    'mp41' : true,  // MP4 version 1
+    'mp42' : true,  // MP4 version 2
+    'isom' : true,  // ISO base media file format, version 1
+    'iso2' : true   // ISO base media file format, version 2
   };
 
   // Start off with some default metadata
@@ -123,7 +128,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
       else if (magic.substring(4, 8) === 'ftyp') {
         // This is an MP4 file
-        if (magic.substring(8, 12) in MP4Types) {
+        if (checkMP4Type(header, MP4Types)) {
           // It is a type of MP4 file that we support
           parseMP4Metadata(header);
         }
@@ -490,6 +495,34 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     });
   }
 
+  // MP4 files use 'ftyp' to identify the type of encoding.
+  // 'ftyp' information
+  //   http://www.ftyps.com/what.html
+  function checkMP4Type(header, types) {
+    // The major brand is the four bytes right after 'ftyp'.
+    var majorbrand = header.getASCIIText(8, 4);
+
+    if (majorbrand in types) {
+      return true;
+    }
+    else {
+      // Check the rest part for the compatible brands,
+      // they are every four bytes after the version of major brand.
+      // Usually there are two optional compatible brands,
+      // but arbitrary number of other compatible brands are also acceptable,
+      // so we will check all the compatible brands until the header ends.
+      var index = 16;
+      var size = header.getUint32(0);
+
+      while (index < size) {
+        var compatiblebrand = header.getASCIIText(index, 4);
+        index += 4;
+        if (compatiblebrand in types)
+          return true;
+      }
+      return false;
+    }
+  }
   //
   // XXX: Need a special case for the track number atom?
   //
