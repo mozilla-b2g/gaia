@@ -75,23 +75,21 @@ Calendar.ns('Provider').Local = (function() {
             return;   
           }
           var pull = new Calendar.Provider.CaldavPullEvents(stream, {
-             calendar: pulleventcalendar,
-             account: pulleventaccount
-           });
-           stream.request(function() {
-             // stream is complete here the audit of
-             // events can be made. They are flushed
-             // to the cache where possible but not actually
-             // persisted in the database.
+            calendar: pulleventcalendar,
+            account: pulleventaccount
+          });
+          stream.request(function() {
+            // stream is complete here the audit of
+            // events can be made. They are flushed
+            // to the cache where possible but not actually
+            // persisted in the database.
 
-             // assuming we are ready commit the changes
+            // assuming we are ready commit the changes
             pull.commit(function(err) {
               // all changes have been committed at this point.
             });
-           });
-
+          });
         },null);
-
       },function(err,param){
       });
     },
@@ -123,19 +121,17 @@ Calendar.ns('Provider').Local = (function() {
              account: pulleventaccount
           });
           stream.request(function() {
-             // stream is complete here the audit of
-             // events can be made. They are flushed
-             // to the cache where possible but not actually
-             // persisted in the database.
+            // stream is complete here the audit of
+            // events can be made. They are flushed
+            // to the cache where possible but not actually
+            // persisted in the database.
 
             // assuming we are ready commit the changes
             pull.commit(function(err) {
               // all changes have been committed at this point.
             });
-           });
-
+          });
         },null);
-
       },function(err,param){
       });
     },
