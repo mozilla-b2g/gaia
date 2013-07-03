@@ -5,6 +5,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('service/ical_recur_expansion.js');
 
   // indirect dep we use this for testing only...
+  requireLib('service/mixins.js');
   requireLib('service/caldav.js');
 });
 

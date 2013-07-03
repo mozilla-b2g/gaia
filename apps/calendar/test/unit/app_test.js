@@ -1,6 +1,6 @@
 requireSupport('fake_page.js');
 requireSupport('mock_view.js');
-
+requireLib('controllers/activityhandler.js');
 requireLib('provider/abstract.js');
 requireLib('worker/manager.js');
 requireLib('controllers/service.js');
