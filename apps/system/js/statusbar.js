@@ -4,72 +4,6 @@
 'use strict';
 
 /**
- * Create an animated icon by using a canvas element coupled with a flat image
- * containing all the animation frames arranged as a vertical row. The delay
- * between each frame is fixed.
- */
-
-function AnimatedIcon(element, path, frames, delay) {
-  var scaleRatio = window.innerWidth / 320;
-  var baseSize = 16 * scaleRatio;
-
-  element.width = baseSize;
-  element.height = baseSize;
-
-  var context = element.getContext('2d');
-
-  this.frame = 1;
-  this.frames = frames;
-  this.timerId = null;
-  this._started = false;
-  var image;
-
-  // Load the image and paint the first frame
-  function init() {
-    image = new Image();
-    image.src = path;
-    image.onload = function() {
-      var w = image.width;
-      var h = image.height / frames;
-      context.drawImage(image, 0, 0, w, h, 0, 0, baseSize, baseSize);
-    };
-  }
-
-  this.start = function() {
-    var self = this;
-    // XXX: If we draw canvas during device start up,
-    // it will face following issue.
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=849736
-    if (!self._started) {
-      self._started = true;
-      init();
-    }
-
-    if (this.timerId == null) {
-      this.timerId = setInterval(function() {
-          var w = image.width;
-          var h = image.height / frames;
-          context.clearRect(0, 0, baseSize, baseSize);
-          context.drawImage(image, 0, self.frame * h, w, h, 0, 0,
-            baseSize, baseSize);
-          self.frame++;
-
-          if (self.frame == self.frames) {
-            self.frame = 0;
-          }
-      }, delay);
-    }
-  };
-
-  this.stop = function() {
-    if (this.timerId != null) {
-      clearInterval(this.timerId);
-      this.timerId = null;
-    }
-  };
-}
-
-/**
  * Creates an object used for refreshing the clock UI element. Handles all
  * related timer manipulation (start/stop/cancel).
  */
@@ -177,13 +111,6 @@ var StatusBar = {
   systemDownloadsCount: 0,
 
   /**
-   * Objects used to animate the system downloads and
-   * network activity canvas elements
-   */
-  networkActivityAnimation: null,
-  systemDownloadsAnimation: null,
-
-  /**
    * Object used for handling the clock UI element, wraps all related timers
    */
   clock: new Clock(),
@@ -261,14 +188,6 @@ var StatusBar = {
     window.addEventListener('lockpanelchange', this);
 
     this.systemDownloadsCount = 0;
-
-    // Create the objects used to animate the statusbar-network-activity and
-    // statusbar-system-downloads canvas elements
-    this.networkActivityAnimation = new AnimatedIcon(this.icons.networkActivity,
-      '/style/statusbar/images/network-activity-flat.png', 6, 200);
-    this.systemDownloadsAnimation = new AnimatedIcon(this.icons.systemDownloads,
-      '/style/statusbar/images/system-downloads-flat.png', 8, 130);
-
     this.setActive(true);
   },
 
@@ -503,14 +422,11 @@ var StatusBar = {
       // show up for 500ms.
 
       var icon = this.icons.networkActivity;
-      var animation = this.networkActivityAnimation;
 
       clearTimeout(this._networkActivityTimer);
       icon.hidden = false;
-      animation.start();
 
       this._networkActivityTimer = setTimeout(function hideNetActivityIcon() {
-        animation.stop();
         icon.hidden = true;
       }, 500);
     },
@@ -728,15 +644,7 @@ var StatusBar = {
 
     systemDownloads: function sb_updatesystemDownloads() {
       var icon = this.icons.systemDownloads;
-      var animation = this.systemDownloadsAnimation;
-
-      if (this.systemDownloadsCount > 0) {
-        icon.hidden = false;
-        animation.start();
-      } else {
-        animation.stop();
-        icon.hidden = true;
-      }
+      icon.hidden = (this.systemDownloadsCount === 0);
     },
 
     callForwarding: function sb_updateCallForwarding() {
