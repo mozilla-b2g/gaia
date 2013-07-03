@@ -1,22 +1,6 @@
-Calendar.Mixins = (function() {
+Calendar.ns('Service').Mixins = {
 
-  /**
-   * Global error handler / default handling for errors.
-   *
-   * @param {Calendar.App} app current application.
-   */
-  function Mixins() {
-    //Calendar.Responder.call(this);
-
-    //this.app = app;
-    //this._handlers = Object.create(null);
-  }
-
-  Mixins.prototype = {
-    //__proto__: Calendar.Responder.prototype,
-
-   MixIns: [
-    ['_formatTrigger',
+    
     /**
      * Formats an alarm trigger
      * Returns the relative time for that trigger
@@ -24,7 +8,7 @@ Calendar.Mixins = (function() {
      * @param {ICAL.Property} trigger property.
      * @param {ICAL.Date} start date.
      */
-     _formatTrigger= function(trigger, startDate) {
+     _formatTrigger: function(trigger, startDate) {
       var alarmTrigger;
       if (trigger.type == 'duration') {
         alarmTrigger = trigger.getFirstValue().toSeconds();
@@ -37,8 +21,8 @@ Calendar.Mixins = (function() {
       }
 
       return alarmTrigger;
-    }],
-    ['_formatEvent',
+    },
+    
     /**
      * Formats an already parsed ICAL.Event instance.
      * Expects event to already contain exceptions, etc..
@@ -48,7 +32,7 @@ Calendar.Mixins = (function() {
      * @param {String} ical raw ical string.
      * @param {ICAL.Event} event ical event.
      */
-     _formatEvent = function(etag, url, ical, event) {
+     _formatEvent: function(etag, url, ical, event) {
       var self = this;
       var exceptions = null;
       var key;
@@ -112,14 +96,13 @@ Calendar.Mixins = (function() {
       };
 
       return result;
-    }],
-    ['_displayAlarms',
+    },
     /**
      * Find and parse the display alarms for an event.
      *
      * @param {Object} details details for specific instance.
      */
-    _displayAlarms= function(details) {
+    _displayAlarms: function(details) {
       var event = details.item;
       var comp = event.component;
       var alarms = comp.getAllSubcomponents('valarm');
@@ -146,8 +129,7 @@ Calendar.Mixins = (function() {
       });
 
       return result;
-    }],
-    ['formatICALTime',
+    },
     /**
      * Takes an ICAL.Time object and converts it
      * into the storage format familiar to the calendar app.
@@ -174,7 +156,7 @@ Calendar.Mixins = (function() {
      *      tzid: ''
      *    };
      */
-    formatICALTime= function(time) {
+    formatICALTime: function(time) {
       var zone = time.zone;
       var offset = time.utcOffset() * 1000;
       var utc = time.toUnixTime() * 1000;
@@ -194,8 +176,7 @@ Calendar.Mixins = (function() {
       }
 
       return result;
-    }],
-    ['formatInputTime',
+    },
     /**
      * Formats a given time/date into a ICAL.Time instance.
      * Suitable for converting the output of formatICALTime back
@@ -207,7 +188,7 @@ Calendar.Mixins = (function() {
      * @param {ICAL.Time|Object} time formatted ical time
      *                                    or output of formatICALTime.
      */
-    formatInputTime = function(time) {
+    formatInputTime: function(time) {
       if (time instanceof ICAL.Time)
         return time;
 
@@ -231,8 +212,7 @@ Calendar.Mixins = (function() {
       }
 
       return result;
-    }],
-    ['parseEvent',
+    },
     /**
      * Parse an ical data/string into primary
      * event and exceptions.
@@ -243,7 +223,7 @@ Calendar.Mixins = (function() {
      * @param {Object|String|ICAL.Event} ical vcalendar chunk (and exceptions).
      * @param {Function} callback node style callback [err, primary event].
      */
-    parseEvent = function(ical, callback) {
+    parseEvent: function(ical, callback) {
       if (ical instanceof ICAL.Event) {
         callback(null, ical);
         return;
@@ -289,9 +269,8 @@ Calendar.Mixins = (function() {
       } catch (e) {
         callback(e);
       }
-    }],
-    ['_defaultMaxDate',
-    _defaultMaxDate= function() {
+    },
+    _defaultMaxDate: function() {
       var now = new Date();
 
       return new ICAL.Time({
@@ -301,8 +280,7 @@ Calendar.Mixins = (function() {
         month: now.getMonth() + 6,
         day: now.getDate()
       });
-    }],
-    ['expandRecurringEvent',
+    },
     /**
      * Options:
      *
@@ -325,7 +303,7 @@ Calendar.Mixins = (function() {
      *      //...
      *    ]
      */
-    expandRecurringEvent= function(component, options, stream, callback) {
+    expandRecurringEvent: function(component, options, stream, callback) {
       var self = this;
       var startDate = options.startDate;
 
@@ -417,13 +395,7 @@ Calendar.Mixins = (function() {
           event.uid
         );
       });
-    }]
+    }
+}
 
-    ]
 
-    
-  };
-
-  return Mixins;
-
-}());
