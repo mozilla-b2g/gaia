@@ -63,6 +63,7 @@ var ConfigManager = (function() {
   var configuration, configurationIndex, noConfigFound = false;
   function setConfig(newConfiguration) {
     configuration = newConfiguration;
+    configuration.balance = configuration.balance || {minimum_delay: 0};
     debug('Provider configuration done!');
   }
 
