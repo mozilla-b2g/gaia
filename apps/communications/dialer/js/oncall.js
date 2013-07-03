@@ -536,10 +536,10 @@ var OnCallHandler = (function onCallHandler() {
       case 'ATA':
         answer();
         break;
-      case 'CHUP+ATA':
+      case 'CHLD=1':
         endAndAnswer();
         break;
-      case 'CHLD+ATA':
+      case 'CHLD=2':
         if (telephony.calls.length === 1) {
           holdOrResumeSingleCall();
         } else {
