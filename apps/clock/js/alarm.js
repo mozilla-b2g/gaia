@@ -812,7 +812,7 @@ var AlarmEditView = {
   },
 
   focusMenu: function aev_focusMenu(menu) {
-    setTimeout(function() { menu.focus(); }, 10);
+    setTimeout(function() { menu.click(); }, 10);
   },
 
   getDefaultAlarm: function aev_getDefaultAlarm() {
