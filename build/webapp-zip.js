@@ -338,10 +338,9 @@ Gaia.webapps.forEach(function(webapp) {
     }
 
     // Add not only file itself but all its hidpi-suffixed versions.
-    let fileDir = getDir(file.path.substring(0, file.path.lastIndexOf('/')));
     let fileNameRegexp = new RegExp(
         '^' + file.leafName.replace(/(\.[a-z]+$)/, '@?.*x?\\$1') + '$');
-    ls(fileDir, false).forEach(function(listFile) {
+    ls(file.parent, false).forEach(function(listFile) {
       if (fileNameRegexp.test(listFile.leafName)) {
         addToZip(zip, '/shared/resources/' + path, listFile);
       }
