@@ -16,7 +16,7 @@ var WifiHelper = {
      * {
      *   ssid              : SSID string (human-readable name)
      *   bssid             : network identifier string
-     *   capabilities      : array of strings (supported authentication methods)
+     *   security          : array of strings (supported authentication methods)
      *   relSignalStrength : 0-100 signal level (integer)
      *   connected         : boolean state
      * }
@@ -26,28 +26,28 @@ var WifiHelper = {
       {
         ssid: 'Mozilla-G',
         bssid: 'xx:xx:xx:xx:xx:xx',
-        capabilities: ['WPA-EAP'],
+        security: ['WPA-EAP'],
         relSignalStrength: 67,
         connected: false
       },
       {
         ssid: 'Livebox 6752',
         bssid: 'xx:xx:xx:xx:xx:xx',
-        capabilities: ['WEP'],
+        security: ['WEP'],
         relSignalStrength: 32,
         connected: false
       },
       {
         ssid: 'Mozilla Guest',
         bssid: 'xx:xx:xx:xx:xx:xx',
-        capabilities: [],
+        security: [],
         relSignalStrength: 98,
         connected: false
       },
       {
         ssid: 'Freebox 8953',
         bssid: 'xx:xx:xx:xx:xx:xx',
-        capabilities: ['WPA2-PSK'],
+        security: ['WPA2-PSK'],
         relSignalStrength: 89,
         connected: false
       }
@@ -173,16 +173,28 @@ var WifiHelper = {
     network.keyManagement = encType;
   },
 
-  setEncryptions: function(network, encryptions) {
-    network.capabilities = encryptions;
+  setSecurity: function(network, encryptions) {
+    // Bug 791506: Code for backward compatibility. Modify after landed.
+    if (network.security === undefined) {
+      network.capabilities = encryptions;
+    } else {
+      network.security = encryptions;
+    }
   },
 
-  getEncryptions: function(network) {
-    return network.capabilities;
+  getSecurity: function(network) {
+    // Bug 791506: Code for backward compatibility. Modify after landed.
+    return network.security === undefined ?
+      network.capabilities : network.security;
+  },
+
+  getCapabilities: function(network) {
+    // Bug 791506: Code for backward compatibility. Modify after landed.
+    return network.security === undefined ? [] : network.capabilities;
   },
 
   getKeyManagement: function(network) {
-    var key = this.getEncryptions(network)[0];
+    var key = this.getSecurity(network)[0];
     if (/WEP$/.test(key))
       return 'WEP';
     if (/PSK$/.test(key))
@@ -202,9 +214,9 @@ var WifiHelper = {
     var currentNetwork = this.wifiManager.connection.network;
     if (!currentNetwork || !network)
       return false;
-    var key = network.ssid + '+' + this.getEncryptions(network).join('+');
+    var key = network.ssid + '+' + this.getSecurity(network).join('+');
     var curkey = currentNetwork.ssid + '+' +
-        this.getEncryptions(currentNetwork).join('+');
+        this.getSecurity(currentNetwork).join('+');
     return key === curkey;
   },
 
@@ -242,6 +254,16 @@ var WifiHelper = {
         break;
     }
     return true;
+  },
+
+  isWpsAvailable: function(network) {
+    var capabilities = this.getCapabilities(network);
+    for (var i = 0; i < capabilities.length; i++) {
+      if (/WPS/.test(capabilities[i])) {
+        return true;
+      }
+    }
+    return false;
   },
 
   isOpen: function(network) {
