@@ -15,7 +15,7 @@ Calendar.ns('Service').Ical = (function() {
 
     __proto__: Calendar.Responder.prototype,
 
-    importFromUrl: function(account,url,stream,callback) {
+    importFromUrl: function(account, url, stream, callback) {
       var xhr = new XMLHttpRequest({
             mozSystem: true
       });
@@ -23,13 +23,13 @@ Calendar.ns('Service').Ical = (function() {
       xhr.open('GET', url, true);
       xhr.onload = function() {
         var ical = xhr.responseText;
-        self.icalEventParser(ical,stream,url,callback); 
-      }
+        self.icalEventParser(ical, stream, url, callback);
+      };
       xhr.send();
     },
 
-    importFromICS: function(account,blob,stream,callback) {
-      this.icalEventParser(blob,stream,'',callback);
+    importFromICS: function(account, blob, stream, callback) {
+      this.icalEventParser(blob, stream, '', callback);
     },
 
   /**
@@ -40,12 +40,12 @@ Calendar.ns('Service').Ical = (function() {
    * @param {String} url location of event.
    * @param {Function} callback node style callback fired after event parsing.
    */
-    icalEventParser: function(ical,stream,url,callback) { 
+    icalEventParser: function(ical, stream, url, callback) {
       var self = this;
       self.parseEventIcal(ical, function(err, event) {
 
-        if (err){
-          callback('error in parse event',null);
+        if (err) {
+          callback('error in parse event', null);
           return;
         }
         var sequence = event.sequence;
@@ -61,7 +61,7 @@ Calendar.ns('Service').Ical = (function() {
                                   function(err, iter, lastRecurrenceId) {
 
           if (err)  {
-            callback('error in recurring event expansion',null);
+            callback('error in recurring event expansion', null);
             return;
           }
 
@@ -71,7 +71,7 @@ Calendar.ns('Service').Ical = (function() {
               isRecurring: false,
               ical: ical
             });
-          } 
+          }
           else {
             stream.emit('component', {
               eventId: result.id,
@@ -82,7 +82,7 @@ Calendar.ns('Service').Ical = (function() {
           }
         });
       });
-      callback(null,'ical parsed');
+      callback(null, 'ical parsed');
     },
 
   /**
@@ -123,8 +123,9 @@ Calendar.ns('Service').Ical = (function() {
      * @param {String|Object} ical string or parsed ical object.
      * @param {Function} callback node style callback [err, primary event].
      */
-      parser.processicalcomponents = function(ical,callback) {
-        //TODO: this is sync now in the future we will have a incremental parser.
+      parser.processicalcomponents = function(ical, callback) {
+        //TODO: this is sync now in the future we 
+        // will have a incremental parser.
         if (typeof(ical) === 'string') {
           ical = ICAL.parse(ical)[1];
         }
@@ -155,7 +156,7 @@ Calendar.ns('Service').Ical = (function() {
               break;
             case 'vevent':
               var event = new ICAL.Event(component);
-              callback(null,event);
+              callback(null, event);
               break;
             default:
               continue;
@@ -164,18 +165,18 @@ Calendar.ns('Service').Ical = (function() {
         //XXX: ideally we should do a "nextTick" here
         //     so in all cases this is actually async.
         //this.oncomplete();
-    }
+    };
       //XXX: Right now ICAL.js is all sync so we
       //     can catch the errors this way in the future
       //     onerror will replace this.
       try {
-        parser.processicalcomponents(ical,callback);
+        parser.processicalcomponents(ical, callback);
       } catch (e) {
-        callback(e,null);
+        callback(e, null);
         return;
       }
-    },
-  }
+    }
+  };
 
   // Add mixin functions
   for (var i in Calendar.Service.Mixins) {

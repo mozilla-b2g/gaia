@@ -370,9 +370,10 @@ Calendar.App = (function(window) {
 
         self.recurringEventsController.observe();
       });
-      this.loadObject('Controllers.ActivityHandler',function() {
+      this.loadObject('Controllers.ActivityHandler', function() {
 
-        self.activityHandlerController = new Calendar.Controllers.ActivityHandler(self);
+        self.activityHandlerController = 
+          new Calendar.Controllers.ActivityHandler(self);
 
         self.observePendingObject(
           self.activityHandlerController

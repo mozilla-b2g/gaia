@@ -53,25 +53,25 @@ Calendar.ns('Provider').Local = (function() {
     * @param {String} url location of event.
     * @param {Function} callback node style callback fired after event parsing.
     */
-    importFromUrl: function(account,url,callback) {
+    importFromUrl: function(account, url, callback) {
       var stream = this.service.stream(
         'ical',
         'importFromUrl',
          account,
          url
-      );      
+        );      
       var calendar = Calendar.App.store('Calendar');
-      calendar.get(Calendar.Provider.Local.calendarId,function(err,param){
+      calendar.get(Calendar.Provider.Local.calendarId,function(err, param){
         var pulleventcalendar = param;
         if (!param) {
-          callback('no calendar',null);
+          callback('no calendar', null);
           return;   
         }
         var preliminaryaccount = Calendar.App.store('Account');
-        preliminaryaccount.get(pulleventcalendar.accountId,function(err,param){
+        preliminaryaccount.get(pulleventcalendar.accountId,function(err, param){
           var pulleventaccount = param;
           if (!param) {
-            callback('no account',null);
+            callback('no account', null);
             return;   
           }
           var pull = new Calendar.Provider.CaldavPullEvents(stream, {
@@ -90,7 +90,7 @@ Calendar.ns('Provider').Local = (function() {
             });
           });
         },null);
-      },function(err,param){
+      },function(err, param){
       });
     },
 
@@ -101,21 +101,27 @@ Calendar.ns('Provider').Local = (function() {
     * @param {String} url location of event.
     * @param {Function} callback node style callback fired after event parsing.
     */
-    importFromICS: function(account,blob,callback) {
+    importFromICS: function(account, blob, callback) {
       var stream = this.service.stream(
         'ical',
         'importFromICS',
          account,
          blob
-      );      
+        );      
       var calendar = Calendar.App.store('Calendar');
-      calendar.get(Calendar.Provider.Local.calendarId,function(err,param){
+      calendar.get(Calendar.Provider.Local.calendarId,function(err, param){
         var pulleventcalendar = param;
-        
+        if (!param) {
+          callback('no calendar', null);
+          return;   
+        }
         var preliminaryaccount = Calendar.App.store('Account');
-        preliminaryaccount.get(pulleventcalendar.accountId,function(err,param){
+        preliminaryaccount.get(pulleventcalendar.accountId,function(err, param){
           var pulleventaccount = param;
-          
+          if (!param) {
+            callback('no account', null);
+            return;   
+          }
           var pull = new Calendar.Provider.CaldavPullEvents(stream, {
              calendar: pulleventcalendar,
              account: pulleventaccount
@@ -132,7 +138,7 @@ Calendar.ns('Provider').Local = (function() {
             });
           });
         },null);
-      },function(err,param){
+      },function(err, param){
       });
     },
 

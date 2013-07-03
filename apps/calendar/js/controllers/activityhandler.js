@@ -25,8 +25,9 @@ Calendar.ns('Controllers').ActivityHandler = (function() {
             if (application !== null && application !== undefined) {
               application.launch();
             }
-            self.app.provider('Local').importFromUrl({},url,function(err,param){});
-          }
+            self.app.provider('Local').importFromUrl({}, url,
+              function(err, param) {});
+          };
         }
         //case for a 'view' MozActivity, specifically imports from a file
         else if (option.name === 'open')  {
@@ -41,10 +42,11 @@ Calendar.ns('Controllers').ActivityHandler = (function() {
             }
             reader.onloadend = function(readfile) {
               var blob = readfile.target.result;
-              self.app.provider('Local').importFromICS({},blob,function(err,param){});
-            }
+              self.app.provider('Local').importFromICS({}, blob,
+                function(err, param) {});
+            };
             reader.readAsDataURL(file);
-          }
+          };
         }
       });
     }

@@ -228,7 +228,7 @@ Calendar.ns('Service').Caldav = (function() {
         callback(null, results);
       });
     },
-    
+
     /**
      * Expands a list recurring events by their component.
      *
@@ -289,16 +289,14 @@ Calendar.ns('Service').Caldav = (function() {
       }, this);
     },
 
-    
-
-    /**
-     * Handle a single caldav event response.
-     *
-     * @param {String} url location of event.
-     * @param {Object} response caldav response object.
-     * @param {Calendar.Responder} responder event emitter.
-     * @param {Function} callback node style callback fired after event parsing.
-     */
+  /**
+   * Handle a single caldav event response.
+   *
+   * @param {String} url location of event.
+   * @param {Object} response caldav response object.
+   * @param {Calendar.Responder} responder event emitter.
+   * @param {Function} callback node style callback fired after event parsing.
+   */
     _handleCaldavEvent: function(url, response, stream, callback) {
       var self = this;
       var etag = response['getetag'];
