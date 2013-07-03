@@ -17,7 +17,23 @@
     "alarms":{},
     "browser": {},
     "storage":{},
-    "desktop-notification":{}
+    "desktop-notification":{},
+    "webapps-manage":{},
+    "device-storage:apps":{ "access": "readwrite" },
+    "device-storage:sdcard":{ "access": "readwrite" },
+    "embed-apps":{}
+  },
+  "activities": {
+    "view": {
+      "filters": {
+        "type": "text/calendar"
+      }
+    },
+    "open": {
+      "filters": {
+        "type": "text/calendar"
+      }
+    }
   },
   "locales": {
     "ar": {
