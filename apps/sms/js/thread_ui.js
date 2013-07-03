@@ -2003,13 +2003,25 @@ function generateHeightRule() {
   occupied = generateHeightRule.occupied;
 
   if (occupied == null) {
-    computed = window.getComputedStyle(ThreadUI.recipientsList, null);
+    computed = {
+      list: window.getComputedStyle(
+        ThreadUI.recipientsList, null
+      ),
+      carrier: window.getComputedStyle(
+        document.getElementById('contact-carrier'), null
+      )
+    };
 
     occupied = generateHeightRule.occupied = [
+      // This magic number ensures no part of the input
+      // area "shifts" downward. Without this, the placeholder
+      // text in the input appears to move ever so slightly.
+      2,
       ThreadUI.INPUT_MARGIN,
       ThreadUI.subheader.scrollHeight,
       ThreadUI.sendButton.scrollHeight,
-      parseInt(computed.getPropertyValue('margin-bottom'), 10)
+      parseInt(computed.list.getPropertyValue('margin-bottom'), 10),
+      parseInt(computed.carrier.getPropertyValue('height'), 10)
     ].reduce(function(a, b) { return a + b; });
   }
 
