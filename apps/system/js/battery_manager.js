@@ -25,7 +25,7 @@ var BatteryManager = {
     if (!battery)
       return;
 
-    if (battery.level <= this.AUTO_SHUTDOWN_LEVEL)
+    if (battery.level <= this.AUTO_SHUTDOWN_LEVEL && !battery.charging)
       SleepMenu.startPowerOff(false);
   },
 
