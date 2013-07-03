@@ -415,8 +415,8 @@ contacts.List = (function() {
 
     counter[group]++;
     var list = headers[group];
-    var renderedContact = renderContact(contact);
-    list.appendChild(renderedContact);
+    addToGroup(contact, list);
+
     if (show && counter[group] === 1)
       showGroup(group, true);
   }
