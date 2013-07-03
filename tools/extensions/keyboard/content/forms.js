@@ -1,5 +1,5 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
- /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -15,12 +15,12 @@ let Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 XPCOMUtils.defineLazyServiceGetter(Services, "fm",
-  "@mozilla.org/focus-manager;1",
-  "nsIFocusManager");
+                                   "@mozilla.org/focus-manager;1",
+                                   "nsIFocusManager");
 
 XPCOMUtils.defineLazyGetter(this, "domWindowUtils", function () {
   return content.QueryInterface(Ci.nsIInterfaceRequestor)
-    .getInterface(Ci.nsIDOMWindowUtils);
+                .getInterface(Ci.nsIDOMWindowUtils);
 });
 
 const RESIZE_SCROLL_DELAY = 20;
@@ -154,8 +154,8 @@ let FormVisibility = {
     do {
       let frame = parent.frameElement;
       visible = visible &&
-        this.yAxisVisible(pos.top, pos.height, parent.innerHeight) &&
-        this.scrollablesVisible(element, pos);
+                this.yAxisVisible(pos.top, pos.height, parent.innerHeight) &&
+                this.scrollablesVisible(element, pos);
 
       // nothing we can do about this now...
       // In the future we can use this information to scroll
@@ -171,8 +171,8 @@ let FormVisibility = {
       }
     } while (
       (parent !== parent.parent) &&
-        (parent = parent.parent)
-      );
+      (parent = parent.parent)
+    );
 
     return visible;
   }
@@ -208,6 +208,7 @@ let FormAssistant = {
   _documentEncoder: null,
   _editor: null,
   _editing: false,
+  _ignoreEditActionOnce: false,
 
   get focusedElement() {
     if (this._focusedElement && Cu.isDeadWrapper(this._focusedElement))
@@ -268,7 +269,9 @@ let FormAssistant = {
   // current input field has changed.
   EditAction: function fa_editAction() {
     if (this._editing) {
-      this._editing = false;
+      return;
+    } else if (this._ignoreEditActionOnce) {
+      this._ignoreEditActionOnce = false;
       return;
     }
     this.sendKeyboardState(this.focusedElement);
@@ -307,7 +310,7 @@ let FormAssistant = {
         if (target && target != content.document) {
           break;
         }
-      // fall through
+        // fall through
       case "blur":
       case "submit":
         if (this.focusedElement) {
@@ -330,7 +333,7 @@ let FormAssistant = {
         // need to tell the keyboard about it
         range = getSelectionRange(this.focusedElement);
         if (range[0] !== this.selectionStart ||
-          range[1] !== this.selectionEnd) {
+            range[1] !== this.selectionEnd) {
           this.sendKeyboardState(this.focusedElement);
           this.updateSelection();
         }
@@ -364,7 +367,7 @@ let FormAssistant = {
 
       case "keydown":
         // Don't monitor the text change resulting from key event.
-        this._editing = true;
+        this._ignoreEditActionOnce = true;
 
         // We use 'setTimeout' to wait until the input element accomplishes the
         // change in selection range.
@@ -374,7 +377,7 @@ let FormAssistant = {
         break;
 
       case "keyup":
-        this._editing = false;
+        this._ignoreEditActionOnce = false;
         break;
     }
   },
@@ -441,7 +444,7 @@ let FormAssistant = {
         let beforeLength = json.beforeLength;
         let afterLength = json.afterLength;
         replaceSurroundingText(target, text, this.selectionStart, beforeLength,
-          afterLength);
+                               afterLength);
         break;
       }
     }
@@ -471,21 +474,21 @@ let FormAssistant = {
 
   isFocusableElement: function fa_isFocusableElement(element) {
     if (element instanceof HTMLSelectElement ||
-      element instanceof HTMLTextAreaElement)
+        element instanceof HTMLTextAreaElement)
       return true;
 
     if (element instanceof HTMLOptionElement &&
-      element.parentNode instanceof HTMLSelectElement)
+        element.parentNode instanceof HTMLSelectElement)
       return true;
 
     return (element instanceof HTMLInputElement &&
-      !this.ignoredInputTypes.has(element.type));
+            !this.ignoredInputTypes.has(element.type));
   },
 
   isTextInputElement: function fa_isTextInputElement(element) {
     return element instanceof HTMLInputElement ||
-      element instanceof HTMLTextAreaElement ||
-      isContentEditable(element);
+           element instanceof HTMLTextAreaElement ||
+           isContentEditable(element);
   },
 
   getTopLevelEditable: function fa_getTopLevelEditable(element) {
@@ -501,8 +504,8 @@ let FormAssistant = {
 
       // Return the container frame if we are into a nested editable frame
       if (element &&
-        element instanceof HTMLBodyElement &&
-        element.ownerDocument.defaultView != content.document.defaultView)
+          element instanceof HTMLBodyElement &&
+          element.ownerDocument.defaultView != content.document.defaultView)
         return element.ownerDocument.defaultView.frameElement;
     }
 
@@ -551,9 +554,9 @@ function isContentEditable(element) {
   // If a body element is editable and the body is the child of an
   // iframe we can assume this is an advanced HTML editor
   if (element instanceof HTMLIFrameElement &&
-    element.contentDocument &&
-    (element.contentDocument.body.isContentEditable ||
-      element.contentDocument.designMode == "on"))
+      element.contentDocument &&
+      (element.contentDocument.body.isContentEditable ||
+       element.contentDocument.designMode == "on"))
     return true;
 
   return element.ownerDocument && element.ownerDocument.designMode == "on";
@@ -668,11 +671,11 @@ function getListForElement(element) {
 // Create a plain text document encode from the focused element.
 function getDocumentEncoder(element) {
   let encoder = Cc["@mozilla.org/layout/documentEncoder;1?type=text/plain"]
-    .createInstance(Ci.nsIDocumentEncoder);
+                .createInstance(Ci.nsIDocumentEncoder);
   let flags = Ci.nsIDocumentEncoder.SkipInvisibleContent |
-    Ci.nsIDocumentEncoder.OutputRaw |
-    Ci.nsIDocumentEncoder.OutputLFLineBreak |
-    Ci.nsIDocumentEncoder.OutputDropInvisibleBreak;
+              Ci.nsIDocumentEncoder.OutputRaw |
+              Ci.nsIDocumentEncoder.OutputLFLineBreak |
+              Ci.nsIDocumentEncoder.OutputDropInvisibleBreak;
   encoder.init(element.ownerDocument, "text/plain", flags);
   return encoder;
 }
@@ -691,7 +694,7 @@ function getSelectionRange(element) {
   let start = 0;
   let end = 0;
   if (element instanceof HTMLInputElement ||
-    element instanceof HTMLTextAreaElement) {
+      element instanceof HTMLTextAreaElement) {
     // Get the selection range of <input> and <textarea> elements
     start = element.selectionStart;
     end = element.selectionEnd;
@@ -701,9 +704,9 @@ function getSelectionRange(element) {
     let sel = win.getSelection();
     start = getContentEditableSelectionStart(element, sel);
     end = start + getContentEditableSelectionLength(element, sel);
-  }
-  return [start, end];
-}
+   }
+   return [start, end];
+ }
 
 function getContentEditableSelectionStart(element, selection) {
   let doc = element.ownerDocument;
@@ -723,7 +726,7 @@ function getContentEditableSelectionLength(element, selection) {
 
 function setSelectionRange(element, start, end) {
   let isPlainTextField = element instanceof HTMLInputElement ||
-    element instanceof HTMLTextAreaElement;
+                        element instanceof HTMLTextAreaElement;
 
   // Check the parameters
 
@@ -780,16 +783,16 @@ function getPlaintextEditor(element) {
   let editor = null;
   // Get nsIEditor
   if (element instanceof HTMLInputElement ||
-    element instanceof HTMLTextAreaElement) {
+      element instanceof HTMLTextAreaElement) {
     // Get from the <input> and <textarea> elements
     editor = element.QueryInterface(Ci.nsIDOMNSEditableElement).editor;
   } else if (isContentEditable(element)) {
     // Get from content editable element
     let win = element.ownerDocument.defaultView;
     let editingSession = win.QueryInterface(Ci.nsIInterfaceRequestor)
-      .getInterface(Ci.nsIWebNavigation)
-      .QueryInterface(Ci.nsIInterfaceRequestor)
-      .getInterface(Ci.nsIEditingSession);
+                            .getInterface(Ci.nsIWebNavigation)
+                            .QueryInterface(Ci.nsIInterfaceRequestor)
+                            .getInterface(Ci.nsIEditingSession);
     if (editingSession) {
       editor = editingSession.getEditorForWindow(win);
     }
