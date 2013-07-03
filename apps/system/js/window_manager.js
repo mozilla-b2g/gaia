@@ -101,6 +101,10 @@ var WindowManager = (function() {
   // in order to restore its visibility.
   var deviceLockedTimer = 0;
 
+  if (LockScreen.locked) {
+    windows.setAttribute('aria-hidden', 'true');
+  }
+
   // Public function. Return the origin of the currently displayed app
   // or null if there is none.
   function getDisplayedApp() {
@@ -1432,6 +1436,7 @@ var WindowManager = (function() {
         if (LockScreen.locked)
           return;
 
+        windows.setAttribute('aria-hidden', 'false');
         if (inlineActivityFrames.length) {
           setVisibilityForInlineActivity(true);
         } else {
@@ -1440,6 +1445,7 @@ var WindowManager = (function() {
         resetDeviceLockedTimer();
         break;
       case 'lock':
+        windows.setAttribute('aria-hidden', 'true');
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         if (!normalAudioChannelActive) {
