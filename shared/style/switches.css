@@ -30,11 +30,11 @@ label:not([for]) input + span {
 }
 
 label:not([for]) input[type="checkbox"] + span {
-  background: url(switches/images/check/default.png) no-repeat center top;
+  background: url(switches/images/check/default.png) no-repeat center top / 2.2rem auto;
 }
 
 label:not([for]) input[type="radio"] + span {
-  background: url(switches/images/radio/default.png) no-repeat center top;
+  background: url(switches/images/radio/default.png) no-repeat center top / 2.2rem auto;
 }
 
 label:not([for]) input:checked + span {

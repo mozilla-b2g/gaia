@@ -93,7 +93,7 @@ form[role="dialog"][data-type="edit"] header menu button {
 }
 
 form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:last-child {
-  background: url(edit_mode/images/ui/separator.png) no-repeat left center;
+  background: url(edit_mode/images/ui/separator.png) no-repeat left center / auto 3.4rem;;
   margin-left: -0.2rem;
   z-index: 1;
 }
@@ -115,13 +115,13 @@ form[role="dialog"][data-type="edit"] header > button {
   left: 0;
   width: 4rem;
   height: 5rem;
-  background: url(edit_mode/images/ui/separator-large.png) no-repeat 2rem center;
+  background: url(edit_mode/images/ui/separator-large.png) no-repeat 2rem center / auto 4.8rem;
   overflow: hidden;
   text-align: center;
 }
 
 form[role="dialog"][data-type="edit"] header > button span {
-  background: url(edit_mode/images/icons/close.png) no-repeat center center;
+  background: url(edit_mode/images/icons/close.png) no-repeat center center / 3rem auto;
   overflow: visible;
   font: 0/0 a;
   position: static;
@@ -167,7 +167,7 @@ form[role="dialog"][data-type="edit"] menu button {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: #fafafa url(edit_mode/images/ui/default.png) repeat-x left bottom;
+  background: #fafafa url(edit_mode/images/ui/default.png) repeat-x left bottom/ auto 100%;
   border: 0.1rem solid #a6a6a6;
   border-radius: 0.3rem;
   font-size: 1.6rem;

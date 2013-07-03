@@ -27,6 +27,7 @@ section[role="region"] > header:first-child > a {
 
 section[role="region"] > header:first-child > a .icon.icon-menu {
   background-position: center center;
+  width: 4rem;
 }
 
 section[role="region"] > header:first-child > a .icon:after {
@@ -68,7 +69,7 @@ section[data-type="sidebar"] > header {
   z-index: 10;
   height: 5rem;
   color: #fff;
-  background: url(drawer/images/ui/header.png) repeat-x left top;
+  background: url(drawer/images/ui/header.png) repeat-x left bottom / 100% auto;
 }
 
 section[data-type="sidebar"] > header:after {
@@ -99,17 +100,17 @@ section[data-type="sidebar"] > header h1 em {
 
 /* Generic set of actions in toolbar */
 section[data-type="sidebar"] > header menu[type="toolbar"] {
-  height: 100%; 
+  height: 100%;
   float: right;
 }
 
-section[data-type="sidebar"] > header menu[type="toolbar"] a, 
-section[data-type="sidebar"] > header menu[type="toolbar"] button { 
-  height: 4.9rem; 
+section[data-type="sidebar"] > header menu[type="toolbar"] a,
+section[data-type="sidebar"] > header menu[type="toolbar"] button {
+  height: 4.9rem;
   line-height: 4.9rem;
-  float: left; 
-  background: none; 
-  padding: 0 1.75rem; 
+  float: left;
+  background: none;
+  padding: 0 1.75rem;
   -moz-box-sizing: border-box;
   min-width: 5rem;
   text-align: center;
@@ -117,7 +118,7 @@ section[data-type="sidebar"] > header menu[type="toolbar"] button {
 
 section[data-type="sidebar"] > header menu[type="toolbar"] a:last-child,
 section[data-type="sidebar"] > header menu[type="toolbar"] button:last-child {
-  background: url(drawer/images/ui/separator.png) no-repeat left center;
+  background: url(drawer/images/ui/separator.png) no-repeat left center / auto 3.1rem;
 }
 
 section[data-type="sidebar"] > header menu[type="toolbar"] {
@@ -146,14 +147,14 @@ section[data-type="sidebar"] > header .icon {
   width: 3rem;
   height: 3rem;
   margin: 0 -1rem;
-  background: transparent no-repeat center center;
+  background: transparent no-repeat center center / 100% auto;
   font-size: 0;
   overflow: hidden;
   position: relative;
   height: 4.9rem;
 }
 
-section[data-type="sidebar"]:after { 
+section[data-type="sidebar"]:after {
   content: "";
   width: 1rem;
   background: url(drawer/images/ui/shadow.png) right top repeat-y;
@@ -177,7 +178,7 @@ section[data-type="sidebar"] > nav > h2 {
   text-indent: 3rem;
   color: #fff;
   background: url(drawer/images/ui/pattern_subheader.png) repeat left top;
-  border-bottom: 1px solid #596068; 
+  border-bottom: 0.1rem solid #596068;
   margin: 0;
   padding-right: 0.8rem;
 }
@@ -186,28 +187,28 @@ section[data-type="sidebar"] [role="toolbar"] {
   position: absolute;
 }
 
-section[data-type="sidebar"] > nav > ul { 
+section[data-type="sidebar"] > nav > ul {
   width: 100%;
   margin: 0;
   padding: 0;
 }
 
-section[data-type="sidebar"] > nav > ul > li { 
+section[data-type="sidebar"] > nav > ul > li {
   color: #fff;
   list-style: none;
   transition: background 0.2s ease;
 }
 
 section[data-type="sidebar"] > nav > ul > li:active {
-  background: #00ABCC;  
+  background: #00ABCC;
 }
 
-section[data-type="sidebar"] > nav > ul > li > a { 
+section[data-type="sidebar"] > nav > ul > li > a {
   text-decoration: none;
   color: #fff;
   font-size: 1.6rem;
   line-height: 4.35rem;
-  border-bottom: 1px solid #596068; 
+  border-bottom: 0.1rem solid #596068;
   text-indent: 3rem;
   padding-right: 0.8rem;
   width: 100%;
