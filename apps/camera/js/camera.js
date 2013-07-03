@@ -890,6 +890,7 @@ var Camera = {
       var alertText = this._pendingPick ? 'activity-size-limit-reached' :
         'size-limit-reached';
       alert(navigator.mozL10n.get(alertText));
+      this.sizeLimitAlertActive = false;
     }
   },
 
