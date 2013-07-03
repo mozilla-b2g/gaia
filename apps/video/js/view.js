@@ -414,7 +414,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
 
     var minutes = Math.floor(duration / 60);
-    var seconds = Math.round(duration % 60);
+    var seconds = Math.floor(duration % 60);
     if (minutes < 60) {
       return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
     }
