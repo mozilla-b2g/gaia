@@ -113,17 +113,11 @@ Calendar.ns('Provider').Local = (function() {
       var calendar = Calendar.App.store('Calendar');
       calendar.get(Calendar.Provider.Local.calendarId,function(err,param){
         var pulleventcalendar = param;
-        if (!param) {
-          callback('no calendar',null);
-          return;   
-        }
+        
         var preliminaryaccount = Calendar.App.store('Account');
         preliminaryaccount.get(pulleventcalendar.accountId,function(err,param){
           var pulleventaccount = param;
-          if (!param) {
-            callback('no account',null);
-            return;   
-          }
+          
           var pull = new Calendar.Provider.CaldavPullEvents(stream, {
              calendar: pulleventcalendar,
              account: pulleventaccount
