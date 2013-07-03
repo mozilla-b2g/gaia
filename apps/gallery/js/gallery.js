@@ -301,6 +301,15 @@ function initDB() {
 
   // One or more files was created (or was just discovered by a scan)
   photodb.oncreated = function(event) {
+    // metadata parsing is an async task, we can confirm it is finished while
+    // oncreated is dispatched.
+    if (!photodb.scanning) {
+      // set scanningBigImages to false only when single photo is taken from
+      // camera. In that moment, gallery doesn't need to scan the whole storage,
+      // but just received an oncreated event from photodb.
+      scanningBigImages = false;
+    }
+
     event.detail.forEach(fileCreated);
   };
 
