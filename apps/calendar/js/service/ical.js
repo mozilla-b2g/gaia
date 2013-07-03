@@ -4,7 +4,6 @@ Calendar.ns('Service').Ical = (function() {
 
   /* TODO: ugly hack to enable system XHR fix upstream in Caldav lib */
 
-
   function Service(service) {
       Calendar.Responder.call(this);
       this.service = service;
@@ -42,50 +41,51 @@ Calendar.ns('Service').Ical = (function() {
    * @param {Function} callback node style callback fired after event parsing.
    */
     icalEventParser: function(ical,stream,url,callback) { 
-    var self = this;
-    self.parseEventIcal(ical, function(err, event) {
+      var self = this;
+      self.parseEventIcal(ical, function(err, event) {
 
-      if (err){
-        callback('error in parse event',null);
-        return;
-      }
-      var sequence = event.sequence;
-      var result = self._formatEvent(sequence, url, ical, event);
-      stream.emit('event', result);
-
-      var options = {
-        maxDate: self._defaultMaxDate(),
-        now: ICAL.Time.now()
-      };
-
-      self.expandRecurringEvent(event, options, stream,
-                                function(err, iter, lastRecurrenceId) {
-
-        if (err)  {
-          callback('error in recurring event expansion',null);
+        if (err){
+          callback('error in parse event',null);
           return;
         }
+        var sequence = event.sequence;
+        var result = self._formatEvent(sequence, url, ical, event);
+        stream.emit('event', result);
 
-        if (!event.isRecurring()) {
-          stream.emit('component', {
-            eventId: result.id,
-            isRecurring: false,
-            ical: ical
-          });
-        } else {
-          stream.emit('component', {
-            eventId: result.id,
-            lastRecurrenceId: lastRecurrenceId,
-            ical: ical,
-            iterator: iter
-          });
-        }
+        var options = {
+          maxDate: self._defaultMaxDate(),
+          now: ICAL.Time.now()
+        };
+
+        self.expandRecurringEvent(event, options, stream,
+                                  function(err, iter, lastRecurrenceId) {
+
+          if (err)  {
+            callback('error in recurring event expansion',null);
+            return;
+          }
+
+          if (!event.isRecurring()) {
+            stream.emit('component', {
+              eventId: result.id,
+              isRecurring: false,
+              ical: ical
+            });
+          } 
+          else {
+            stream.emit('component', {
+              eventId: result.id,
+              lastRecurrenceId: lastRecurrenceId,
+              ical: ical,
+              iterator: iter
+            });
+          }
+        });
       });
-    });
-    callback(null,'ical parsed');
-  },
+      callback(null,'ical parsed');
+    },
 
-    /**
+  /**
    * Parse an ical data/string into primary
    * event and exceptions.
    *
@@ -112,7 +112,6 @@ Calendar.ns('Service').Ical = (function() {
           ICAL.TimezoneService.register(id, zone);
         }
       };
-
 
     /**
      * Process a string or parse ical object.

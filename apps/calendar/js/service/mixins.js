@@ -402,5 +402,3 @@ Calendar.ns('Service').Mixins = {
     });
   }
 }
-
-
