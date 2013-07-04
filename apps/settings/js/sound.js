@@ -83,7 +83,7 @@
     if (type == 'notifications') {
       list +=
         '<li>' +
-        '  <label>' +
+        '  <label class="pack-radio">' +
         '    <input type="radio" name="notifications-option" data-ignore' +
         ' value="none" data-label="none" />' +
         '    <span></span>' +
@@ -95,7 +95,7 @@
       var text = navigator.mozL10n.get(sound.replace('.', '_')) || sound;
       list +=
         '<li>' +
-        '  <label>' +
+        '  <label class="pack-radio">' +
         '    <input type="radio" name="' + type + '-option" data-ignore ' +
         'value="' + sound + '" data-label="' + text + '" />' +
         '    <span></span>' +

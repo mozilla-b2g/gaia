@@ -161,8 +161,8 @@
           <ul>
             <li>
               <aside class="pack-end">
-                <label>
-                  <input type="checkbox" data-type="switch" id="data-connection-switch">
+                <label class="pack-switch">
+                  <input type="checkbox" id="data-connection-switch">
                   <span></span>
                 </label>
               </aside>
@@ -192,7 +192,7 @@
             <input type="text" id="wifi_user" data-l10n-id="identityInput" placeholder="User" x-inputmode="verbatim"></input>
             <label for="wifi_password" data-l10n-id="password">Password</label>
             <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value="" x-inputmode="verbatim"></input>
-            <label id="label_show_password">
+            <label class="pack-checkbox" id="label_show_password">
               <input type="checkbox" data-ignore name="show_password" />
               <span></span>
               <p id="wifi_show_password" data-l10n-id="showPassword">Show Password</p>
@@ -229,7 +229,7 @@
               Password
             </label>
             <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value=""/>
-            <label id="label_show_password">
+            <label class="pack-checkbox" id="label_show_password">
               <input type="checkbox" id="hidden-wifi-show-password">
               <span></span>
               <p data-l10n-id="showPassword">Show Password</p>
@@ -289,8 +289,8 @@
           <ul>
             <li>
               <aside class="pack-end">
-                <label>
-                  <input type="checkbox" data-type="switch" id="geolocation-switch" name="geolocation.enabled" checked>
+                <label class="pack-switch">
+                  <input type="checkbox" id="geolocation-switch" name="geolocation.enabled" checked>
                   <span></span>
                 </label>
               </aside>
@@ -490,7 +490,7 @@
           <a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy2">Your Privacy</a>
         </section>
         <section id="form_share_statistics">
-          <label>
+          <label class="pack-checkbox">
             <input type="checkbox" id="share-performance" name="debug.performance_data.shared"/>
             <span></span>
             <p data-l10n-id="collaborate">

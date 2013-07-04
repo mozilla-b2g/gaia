@@ -570,6 +570,7 @@ var ImageUploader = {
         input.id = 'flickr-' + e.id;
         var span = document.createElement('span');
 
+        label.classList.add('pack-checkbox');
         label.appendChild(input);
         label.appendChild(span);
 
@@ -737,7 +738,7 @@ var ImageUploader = {
     var img = document.createElement('img');
     img.src = service.urls['confirm-img'];
     var label = document.createElement('label');
-    label.className = 'check';
+    label.className = 'pack-checkbox check';
     var input = document.createElement('input');
     input.type = 'checkbox'
     input.name = service.id;

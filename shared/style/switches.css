@@ -2,7 +2,9 @@
  * CHECKBOXES / RADIOS
  * ---------------------------------- */
 
-label:not([for])  {
+label.pack-checkbox,
+label.pack-radio,
+label.pack-switch {
   display: inline-block;
   vertical-align: middle;
   width: 5rem;
@@ -11,8 +13,9 @@ label:not([for])  {
   background: none;
 }
 
-label:not([for]) input[type="checkbox"],
-label:not([for]) input[type="radio"] {
+label.pack-checkbox input,
+label.pack-radio input,
+label.pack-switch input {
   margin: 0;
   opacity: 0;
   position: absolute;
@@ -20,7 +23,8 @@ label:not([for]) input[type="radio"] {
   left: 0;
 }
 
-label:not([for]) input + span {
+label.pack-checkbox input + span,
+label.pack-radio input + span {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -30,25 +34,27 @@ label:not([for]) input + span {
   pointer-events: none;
 }
 
-label:not([for]) input[type="checkbox"] + span {
+label.pack-checkbox input + span {
   background: url(switches/images/check/default.png) no-repeat center top / 2.2rem auto;
 }
 
-label:not([for]) input[type="radio"] + span {
+label.pack-radio input + span {
   background: url(switches/images/radio/default.png) no-repeat center top / 2.2rem auto;
 }
 
-label:not([for]) input:checked + span {
+label.pack-checkbox input:checked + span,
+label.pack-radio input:checked + span,
+label.pack-switch input:checked + span {
   background-position: center bottom;
 }
 
 /* 'Dangerous' switches */
 
-label:not([for]).danger input[type="checkbox"] + span {
+label.pack-checkbox.danger input + span {
   background-image: url(switches/images/check/danger.png);
 }
 
-label:not([for]).danger input[type="radio"] + span {
+label.pack-radio.danger input + span {
   background-image: url(switches/images/radio/danger.png);
 }
 
@@ -57,7 +63,7 @@ label:not([for]).danger input[type="radio"] + span {
  * ON/OFF SWITCHES
  * ---------------------------------- */
 
-label input[type="checkbox"][data-type="switch"] + span {
+label.pack-switch input + span {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -73,16 +79,16 @@ label input[type="checkbox"][data-type="switch"] + span {
 }
 
 /* switch: 'ON' state */
-label input[type="checkbox"][data-type="switch"]:checked + span {
+label.pack-switch input:checked + span {
   background: #e6e6e6 url(switches/images/switch/background.png) no-repeat 0 0 / 8.3rem 2.1rem;
   border-color: #00abcd;
 }
 
 /* switch: disabled state */
-label input[data-type="switch"]:disabled + span {
+label.pack-switch input:disabled + span {
   opacity: 0.4;
 }
 
-label input[type="checkbox"][data-type="switch"].uninit + span {
+label.pack-switch input.uninit + span {
   transition: none;
 }

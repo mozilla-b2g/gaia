@@ -170,7 +170,9 @@
 }
 
 /* Checkable content */
-[data-type="list"] li > label {
+[data-type="list"] li > .pack-checkbox,
+[data-type="list"] li > .pack-radio,
+[data-type="list"] li > .pack-switch {
   pointer-events: none;
   position: absolute;
   top: -0.1rem;
@@ -183,7 +185,9 @@
   border-top: solid 0.1rem #dbd9d9;
 }
 
-[data-type="list"] li > label input + span {
+[data-type="list"] li > .pack-checkbox input + span,
+[data-type="list"] li > .pack-radio input + span,
+[data-type="list"] li > .pack-switch input + span {
   left: 0;
   margin-left: 0;
 }
@@ -194,7 +198,9 @@
   padding-left: 0;
 }
 
-[data-type="list"] [data-type="edit"] li > label {
+[data-type="list"] [data-type="edit"] li > .pack-checkbox,
+[data-type="list"] [data-type="edit"] li > .pack-radio,
+[data-type="list"] [data-type="edit"] li > .pack-switch {
   pointer-events: auto;
 }
 
