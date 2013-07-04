@@ -29,7 +29,7 @@
 #permission-remember-section {
   border-top: 0.1rem solid #686868;
   font-size: 1.6rem;
-  display: block;
+  display: none;
   padding: 1.5rem;
 }
 
@@ -42,6 +42,10 @@
   background-repeat: no-repeat;
   background-size: 6.4rem;
   background-position: 0 50%;
+}
+
+#permission-screen[data-type] #permission-remember-section {
+  display: block;
 }
 
 #permission-screen[data-type] #permission-icon {
