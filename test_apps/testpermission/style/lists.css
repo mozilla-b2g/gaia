@@ -109,7 +109,7 @@ ul li > label:not([for]) {
 }
 
 ul li > label:not([for]) > span,
-ul li > label:not([for]) > input[data-type="switch"] + span {
+ul li > label.pack-switch:not([for]) > input + span {
   left: auto;
   right: 2rem;
 }
@@ -322,7 +322,7 @@ html[dir="rtl"] ul li a[role="button"] {
 }
 
 html[dir="rtl"] ul li > label:not([for]) > span,
-html[dir="rtl"] ul li > label:not([for]) > input[data-type="switch"] + span {
+html[dir="rtl"] ul li > label.pack-switch:not([for]) > input + span {
   left: 4rem; /* XXX we use "right: 2rem" for LTR layouts... */
   right: inherit;
 }

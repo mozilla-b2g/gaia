@@ -57,7 +57,7 @@ function ValueSelector(title, list) {
     strPopup += '    <h3>No Title</h3>';
     strPopup += '    <ul>';
     strPopup += '      <li>';
-    strPopup += '        <label>';
+    strPopup += '        <label class="pack-radio">';
     strPopup += '          <input type="radio" name="option">';
     strPopup += '          <span>Dummy element</span>';
     strPopup += '        </label>';
@@ -116,6 +116,7 @@ function ValueSelector(title, list) {
 
       input.setAttribute('type', 'radio');
       input.setAttribute('name', 'option');
+      label.classList.add('pack-radio');
       label.appendChild(input);
       label.appendChild(span);
       label.appendChild(text);

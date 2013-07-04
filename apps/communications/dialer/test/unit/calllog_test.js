@@ -109,7 +109,7 @@ suite('dialer/call_log', function() {
     // Label.
     var label = groupDOM.querySelector('.call-log-selection.danger');
     assert.ok(label, 'Label ok');
-    assert.equal(label.className, 'call-log-selection danger');
+    assert.equal(label.className, 'pack-checkbox call-log-selection danger');
 
     // Input.
     var input = label.getElementsByTagName('input');

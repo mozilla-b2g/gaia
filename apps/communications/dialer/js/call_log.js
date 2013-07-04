@@ -429,7 +429,7 @@ var CallLog = {
     }
 
     var label = document.createElement('label');
-    label.className = 'call-log-selection danger';
+    label.className = 'pack-checkbox call-log-selection danger';
     var input = document.createElement('input');
     input.setAttribute('type', 'checkbox');
     input.value = group.id;
