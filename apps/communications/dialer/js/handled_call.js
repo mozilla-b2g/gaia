@@ -11,7 +11,9 @@ function HandledCall(aCall, aNode) {
   this.recentsEntry = {
     date: Date.now(),
     type: this.call.state,
-    number: this.call.number
+    number: this.call.number,
+    emergency: this.call.emergency || false,
+    voicemail: false
   };
 
   this._initialState = this.call.state;
@@ -283,7 +285,11 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
         entry.contactInfo.matchingTel = JSON.parse(tel);
       }
     }
-    OnCallHandler.addRecentEntry(entry);
+
+    Voicemail.check(entry.number, function(isVoicemailNumber) {
+      entry.voicemail = isVoicemailNumber;
+      OnCallHandler.addRecentEntry(entry);
+    });
   }
 
   if (!this.node)
