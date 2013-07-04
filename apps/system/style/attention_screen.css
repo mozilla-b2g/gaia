@@ -23,6 +23,10 @@
   transition: none;
 }
 
+#screen.attention.active-statusbar #statusbar {
+  display: none;
+}
+
 #attention-screen.status-mode > iframe {
   margin-top: 0;
   height: 100%;
