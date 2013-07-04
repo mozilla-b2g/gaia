@@ -59,7 +59,10 @@ suite('SMIL', function() {
       var messageData = {
         attachments: [
           {content: new Blob([text], {type: 'text/plain'})},
-          {content: testImageBlob, location: 'example.jpg'}
+          {
+            content: testImageBlob,
+            location: 'example.jpg'
+          }
         ]
       };
       SMIL.parse(messageData, function(output) {
@@ -272,13 +275,44 @@ suite('SMIL', function() {
       assert.equal(doc.querySelector('text').getAttribute('region'), 'Text');
       assert.equal(doc.querySelector('img').getAttribute('region'), 'Image');
     });
-    test('Message with duplicate filename', function() {
+
+    test('Message with path as filename', function() {
       var smilTest = [{
         text: 'Testing a caption',
+        name: 'SDCARD/DCIM/kitten-450.jpg',
+        blob: testImageBlob
+      }];
+      var output = SMIL.generate(smilTest);
+
+      assert.equal(output.attachments.length, 2);
+
+      assert.equal(output.attachments[0].location, 'kitten-450.jpg');
+    });
+
+    test('Message with same filename from different path', function() {
+      var smilTest = [{
+        text: 'Testing a caption',
+        name: 'SDCARD/DCIM/kitten-450.jpg',
+        blob: testImageBlob
+      }, {
+        text: 'Testing a caption',
+        name: 'SDCARD/DCIM23/kitten-450.jpg',
+        blob: testImageBlob
+      }];
+      var output = SMIL.generate(smilTest);
+      assert.equal(output.attachments.length, 4);
+      assert.equal(output.attachments[0].location, 'kitten-450.jpg');
+      assert.equal(output.attachments[2].location, 'kitten-450_2.jpg');
+    });
+
+    test('Message with duplicate filename', function() {
+      var smilTest = [{
         name: 'kitten-450.jpg',
         blob: testImageBlob
-      },{
-        text: 'Testing a caption',
+      }, {
+        name: 'kitten-450.jpg',
+        blob: testImageBlob
+      }, {
         name: 'kitten-450.jpg',
         blob: testImageBlob
       }];
@@ -287,21 +321,25 @@ suite('SMIL', function() {
                 .parseFromString(output.smil, 'application/xml')
                 .documentElement;
 
-      // two attachments (text and image)
-      assert.equal(output.attachments.length, 4);
+      assert.equal(output.attachments.length, 3);
+      var images = Array.prototype.slice.call(doc.querySelectorAll('img'));
+      assert.equal(images.length, 3);
 
-      // only one <par> tag
-      assert.equal(doc.querySelectorAll('par').length, 2);
+      // ensure the file names have been properly created
+      var filenames = [
+        'kitten-450.jpg',
+        'kitten-450_2.jpg',
+        'kitten-450_3.jpg'
+      ];
 
-      // the img is before the text
-      assert.equal(doc.querySelectorAll('img + text').length, 2);
+      assert.deepEqual(output.attachments.map(function(attachment) {
+        return attachment.location;
+      }), filenames, 'List of filenames matches attachments');
 
-      var ids = {};
-      // ensure all the ID's are unique
-      output.attachments.forEach(function(attachment) {
-        assert.equal(ids[attachment.location], undefined);
-        ids[attachment.location] = true;
-      });
+      assert.deepEqual(images.map(function(img) {
+        return img.getAttribute('src');
+      }), filenames, 'List of filenames matches <img> tags');
+
     });
   });
 
