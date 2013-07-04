@@ -41,10 +41,10 @@ MozKeyboard.prototype = {
   init: function mozKeyboardInit(win) {
     let principal = win.document.nodePrincipal;
     let perm = Services.perms
-      .testExactPermissionFromPrincipal(principal, "keyboard");
+               .testExactPermissionFromPrincipal(principal, "keyboard");
     if (perm != Ci.nsIPermissionManager.ALLOW_ACTION) {
       dump("No permission to use the keyboard API for " +
-        principal.origin + "\n");
+           principal.origin + "\n");
       return null;
     }
 
@@ -54,7 +54,7 @@ MozKeyboard.prototype = {
 
     this._window = win;
     this._utils = win.QueryInterface(Ci.nsIInterfaceRequestor)
-      .getInterface(Ci.nsIDOMWindowUtils);
+                     .getInterface(Ci.nsIDOMWindowUtils);
     this.innerWindowID = this._utils.currentInnerWindowID;
     this._focusHandler = null;
     this._selectionHandler = null;
@@ -81,7 +81,7 @@ MozKeyboard.prototype = {
 
     function send(type) {
       mainThread.dispatch(function() {
-        utils.sendKeyEvent(type, keyCode, charCode, null);
+	utils.sendKeyEvent(type, keyCode, charCode, null);
       }, mainThread.DISPATCH_NORMAL);
     }
 
@@ -154,14 +154,14 @@ MozKeyboard.prototype = {
 
   receiveMessage: function mozKeyboardReceiveMessage(msg) {
     if (msg.name == "Keyboard:FocusChange") {
-      let msgJson = msg.json;
-      if (msgJson.type != "blur") {
-        this._selectionStart = msgJson.selectionStart;
-        this._selectionEnd = msgJson.selectionEnd;
-      } else {
-        this._selectionStart = 0;
-        this._selectionEnd = 0;
-      }
+       let msgJson = msg.json;
+       if (msgJson.type != "blur") {
+         this._selectionStart = msgJson.selectionStart;
+         this._selectionEnd = msgJson.selectionEnd;
+       } else {
+         this._selectionStart = 0;
+         this._selectionEnd = 0;
+       }
 
       let handler = this._focusHandler;
       if (!handler || !(handler instanceof Ci.nsIDOMEventListener))
@@ -172,7 +172,7 @@ MozKeyboard.prototype = {
       };
 
       let evt = new this._window.CustomEvent("focuschanged",
-        ObjectWrapper.wrap(detail, this._window));
+          ObjectWrapper.wrap(detail, this._window));
       handler.handleEvent(evt);
     } else if (msg.name == "Keyboard:SelectionChange") {
       let msgJson = msg.json;
@@ -185,7 +185,7 @@ MozKeyboard.prototype = {
         return;
 
       let evt = new this._window.CustomEvent("selectionchange",
-        ObjectWrapper.wrap({}, this._window));
+          ObjectWrapper.wrap({}, this._window));
       handler.handleEvent(evt);
     }
   },
