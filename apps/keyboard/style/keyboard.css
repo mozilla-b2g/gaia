@@ -1,10 +1,3 @@
-/* Media definitions */
-@media screen and (max--moz-device-pixel-ratio: 1.5) {
-  html {
-    font-size: 15px;
-  }
-}
-
 @font-face {
   font-family: 'Keyboard Symbols';
   font-weight: 600;
