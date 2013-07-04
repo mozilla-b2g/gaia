@@ -22,7 +22,7 @@ a[role="button"],
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom;
+  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom / auto 100%;
   border: 0.1rem solid #a6a6a6;
   border-radius: 0.2rem;
   font: 500 1.6rem/3.8rem 'MozTT', Sans-serif;
@@ -40,6 +40,7 @@ button.recommend:active,
 a.recommend[role="button"]:active  {
   border-color: #008aaa;
   background: #008aaa;
+  background-size: auto 100%;
   color: #333;
 }
 
@@ -128,11 +129,11 @@ li a[role="button"]:after,
 li .button:after {
   content: "";
   position: absolute;
-  bottom: -0.3rem;
+  top: 100%;
   left: 0;
   right: 0;
   height: 0.2rem;
-  background: url( buttons/images/ui/shadow.png) repeat-x left bottom;
+  background: url( buttons/images/ui/shadow.png) repeat-x left bottom / auto 100%;
 }
 
 /* Press */

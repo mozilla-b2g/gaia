@@ -135,7 +135,7 @@ fieldset legend {
 }
 
 fieldset legend.action {
-  background: url(input_areas/images/icons/arrow.png) no-repeat 100% 100%;
+  background: url(input_areas/images/icons/arrow.png) no-repeat 100% 100% / 1.2rem;
 }
 
 fieldset legend:active {
@@ -177,7 +177,7 @@ fieldset section p:last-child {
 form[role="search"] {
   position: relative;
   height: 3.7rem;
-  background: #dbe3eb;
+  background: #e8e8e8 url(input_areas/images/ui/background.png) repeat-x left bottom / 100%;
 }
 
 form[role="search"].skin-dark {
@@ -216,6 +216,7 @@ form[role="search"]:after {
   left: 0;
   height: 0.4rem;
   background: url(input_areas/images/ui/shadow-search.png) repeat-x left top;
+  background-size: 100% 0.2rem;
   border-top: 0.1rem solid #fff;
 }
 
@@ -223,7 +224,8 @@ form[role="search"].bottom:after {
   content: "";
   position: absolute;
   top: -0.4rem;
-  background: url(input_areas/images/ui/shadow-invert.png) repeat-x 0 100%;
+  background: url(input_areas/images/ui/shadow-invert.png) repeat-x;
+  background-size: 100% 0.2rem;
   border-color: transparent;
 }
 form[role="search"].skin-dark:after {
@@ -256,7 +258,7 @@ form[role="search"] p input:focus {
   padding: 0 2rem 0 0;
 }
 
-form[role="search"] p input:invalid, 
+form[role="search"] p input:invalid,
 form[role="search"] p textarea:invalid {
   border: none;
 }
@@ -318,11 +320,14 @@ form[role="search"].bottom button[type="submit"] {
   color: #333;
   background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
               url(input_areas/images/ui/active.png) repeat-x 0 100%;
+  background-size: auto 100%;
+  border-radius: 0;
 }
 
 form[role="search"].skin-dark button[type="submit"] {
   color: #fff;
   background-image: url(input_areas/images/ui/separator-dark.png);
+  background-size: auto 100%;
 }
 
 form[role="search"] button[type="submit"] + p > textarea {
@@ -389,5 +394,5 @@ html[dir="rtl"] form[role="search"] p input:focus {
 }
 
 html[dir="rtl"] form[role="search"] button[type="submit"] + p > button {
-  left: 0;
+  left: 1rem;
 }

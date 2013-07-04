@@ -119,7 +119,7 @@
 [data-type="list"] aside.icon {
   width: 3rem;
   height: 6rem;
-  background: #fff no-repeat left center;
+  background: #fff no-repeat left center / 100% auto;
   font: 0/0 a;
   display: block;
   overflow: hidden;
