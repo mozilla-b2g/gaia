@@ -1,4 +1,11 @@
+/*jshint browser: true */
+/*global console, define */
+
+define(['shared/js/gesture_detector'], function() {
+
 'use strict';
+
+var GestureDetector = window.GestureDetector;
 
 /**
  * Some default styles to override the canonical HTML5 styling defaults that
@@ -418,3 +425,10 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
       }
     });
 }
+
+return {
+  createAndInsertIframeForContent: createAndInsertIframeForContent,
+  bindSanitizedClickHandler: bindSanitizedClickHandler
+};
+
+});

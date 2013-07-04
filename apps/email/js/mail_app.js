@@ -2,31 +2,49 @@
  * Application logic that isn't specific to cards, specifically entailing
  * startup and eventually notifications.
  **/
+/*jshint browser: true */
+/*global define, requirejs, console, confirm, TestUrlResolver */
 
-// MailAPI is a global, set up by main-frame-setup.
+// Set up loading of scripts, but only if not in tests, which set up
+// their own config.
+if (typeof TestUrlResolver === 'undefined') {
+  requirejs.config({
+    baseUrl: 'js',
+    paths: {
+      l10nbase: '../../../shared/js/l10n',
+      l10ndate: '../../../shared/js/l10n_date',
+      style: '../style',
+      shared: '../../../shared',
+
+      'mailapi/main-frame-setup': 'ext/mailapi/main-frame-setup',
+      'mailapi/main-frame-backend': 'ext/mailapi/main-frame-backend'
+    },
+    map: {
+      '*': {
+        'api': 'mailapi/main-frame-setup'
+      }
+    },
+    shim: {
+      l10ndate: ['l10nbase']
+    }
+  });
+}
+
+// Named module, so it is the same before and after build.
+define('mail_app', function(require) {
+
+var htmlCache = require('html_cache'),
+    common = require('mail_common'),
+    MailAPI = require('api'),
+    mozL10n = require('l10n!'),
+    queryURI = require('query_uri'),
+    Cards = common.Cards,
+    initialCardInsertion = true,
+    hasCardsPushed = false,
+    activityCallback = null;
 
 var App = {
   initialized: false,
-
-  loader: LazyLoader,
-
-  /**
-   * Preloads all remaining resources
-   */
-  preloadAll: function(cb) {
-    cb = cb || function() {};
-
-    App.loader.load(
-      ['style/value_selector.css',
-      'style/compose-cards.css',
-      'style/setup-cards.css',
-      'js/value_selector.js',
-      'js/iframe-shims.js',
-      'js/setup-cards.js',
-      'js/compose-cards.js'],
-      cb
-    );
-  },
 
   /**
    * Bind any global notifications, relay localizations to the back-end.
@@ -37,17 +55,17 @@ var App = {
     MailAPI.onbadlogin = function(account, problem) {
       switch (problem) {
         case 'bad-user-or-pass':
-          Cards.pushCard('setup-fix-password', 'default', 'animate',
+          Cards.pushCard('setup_fix_password', 'default', 'animate',
                     { account: account, restoreCard: Cards.activeCardIndex },
                     'right');
           break;
         case 'imap-disabled':
-          Cards.pushCard('setup-fix-gmail-imap', 'default', 'animate',
+          Cards.pushCard('setup_fix_gmail_imap', 'default', 'animate',
                     { account: account, restoreCard: Cards.activeCardIndex },
                     'right');
           break;
         case 'needs-app-pass':
-          Cards.pushCard('setup-fix-gmail-twofactor', 'default', 'animate',
+          Cards.pushCard('setup_fix_gmail_twofactor', 'default', 'animate',
                     { account: account, restoreCard: Cards.activeCardIndex },
                     'right');
           break;
@@ -86,6 +104,7 @@ var App = {
    */
   showMessageViewOrSetup: function(showLatest) {
     // Get the list of accounts including the unified account (if it exists)
+
     var acctsSlice = MailAPI.viewAccounts(false);
     acctsSlice.oncomplete = function() {
       // - we have accounts, show the message view!
@@ -102,58 +121,51 @@ var App = {
           var inboxFolder = foldersSlice.getFirstFolderWithType('inbox');
 
           if (!inboxFolder)
-            dieOnFatalError('We have an account without an inbox!',
+            common.dieOnFatalError('We have an account without an inbox!',
                 foldersSlice.items);
 
-          // Find out if a blank message-list card was already inserted, and
-          // if so, then just reuse it.
-          var hasMessageListCard = Cards.hasCard(['message-list', 'nonsearch']);
-
-          if (hasMessageListCard) {
-            // Just update existing card
-            Cards.tellCard(
-              ['message-list', 'nonsearch'],
-              { folder: inboxFolder }
-            );
-          } else {
-            // Clear out old cards, start fresh. This can happen for
-            // an incorrect fast path guess, and likely to happen for
-            // email apps that get upgraded from a version that did
-            // not have the cookie fast path.
+          if (!initialCardInsertion)
             Cards.removeAllCards();
 
-            // Push the message list card
-            Cards.pushCard(
-              'message-list', 'nonsearch', 'immediate',
-              {
-                folder: inboxFolder
-              });
-          }
-
-          // Add navigation, but before the message list.
+          // Push the message list card
           Cards.pushCard(
-            'folder-picker', 'navigation', 'none',
+            'message_list', 'nonsearch', 'immediate',
             {
-              acctsSlice: acctsSlice,
-              curAccount: account,
-              foldersSlice: foldersSlice,
-              curFolder: inboxFolder
-            },
-            // Place to left of message list
-            'left');
+              folder: inboxFolder,
+              cacheableFolderId: account === acctsSlice.defaultAccount ?
+                                 inboxFolder.id : null,
+              waitForData: initialCardInsertion,
+              onPushed: function() {
+                // Add navigation, but before the message list.
+                Cards.pushCard(
+                  'folder_picker', 'navigation', 'none',
+                  {
+                    acctsSlice: acctsSlice,
+                    curAccount: account,
+                    foldersSlice: foldersSlice,
+                    curFolder: inboxFolder,
+                    onPushed: function() {
+                      hasCardsPushed = true;
 
-          if (activityCallback) {
-            activityCallback();
-            activityCallback = null;
-          }
+                      if (activityCallback) {
+                        activityCallback();
+                        activityCallback = null;
+                      }
+                    }
+                  },
+                  // Place to left of message list
+                  'left');
+              }
+            });
+
+          initialCardInsertion = false;
         };
       } else {
         if (acctsSlice)
           acctsSlice.die();
 
         // - no accounts, show the setup page!
-        if (!Cards.hasCard(['setup-account-info', 'default'])) {
-
+        if (!Cards.hasCard(['setup_account_info', 'default'])) {
           if (activityCallback) {
             // Clear out activity callback, but do it
             // before calling activityCallback, in
@@ -166,117 +178,36 @@ var App = {
               return;
           }
 
-          // Could have bad state from an incorrect _fake fast path.
-          // Mostly likely when the email app is updated from one that
-          // did not have the fast path cookies set up.
-          Cards.removeAllCards();
+          if (initialCardInsertion) {
+            initialCardInsertion = false;
+          } else {
+            Cards.removeAllCards();
+          }
 
           Cards.pushCard(
-            'setup-account-info', 'default', 'immediate',
+            'setup_account_info', 'default', 'immediate',
             {
-              allowBack: false
+              allowBack: false,
+              onPushed: function(impl) {
+                hasCardsPushed = true;
+                htmlCache.delayedSaveFromNode(impl.domNode.cloneNode(true));
+              }
             });
         }
       }
-
-      if (MailAPI._fake) {
-        // Preload all resources after a timeout
-        setTimeout(function preloadTimeout() {
-          App.preloadAll();
-        }, 4000);
-      }
     };
-
-    acctsSlice.oncachereset = function() {
-      // Edge case cache error occurred, reset the UI.
-      acctsSlice.die();
-      App.showMessageViewOrSetup();
-    };
-
-    if (MailAPI._fake && MailAPI.hasAccounts) {
-      // Insert a fake card while loading finishes, to give the appearance
-      // of something loading, and to shorten the time the page is white.
-      Cards.assertNoCards();
-      Cards.pushCard(
-        'message-list', 'nonsearch', 'immediate',
-        { folder: null }
-      );
-    }
   }
 };
 
-var queryURI = function _queryURI(uri) {
-  function addressesToArray(addresses) {
-    if (!addresses)
-      return [''];
-    addresses = addresses.split(';');
-    var addressesArray = addresses.filter(function notEmpty(addr) {
-      return addr.trim() != '';
-    });
-    return addressesArray;
-  }
-  var mailtoReg = /^mailto:(.*)/i;
-
-  if (uri.match(mailtoReg)) {
-    uri = uri.match(mailtoReg)[1];
-    var parts = uri.split('?');
-    var subjectReg = /(?:^|&)subject=([^\&]*)/i,
-    bodyReg = /(?:^|&)body=([^\&]*)/i,
-    ccReg = /(?:^|&)cc=([^\&]*)/i,
-    bccReg = /(?:^|&)bcc=([^\&]*)/i;
-    var to = addressesToArray(decodeURIComponent(parts[0])),
-    subject,
-    body,
-    cc,
-    bcc;
-
-    if (parts.length == 2) {
-      var data = parts[1];
-      if (data.match(subjectReg))
-        subject = decodeURIComponent(data.match(subjectReg)[1]);
-      if (data.match(bodyReg))
-        body = decodeURIComponent(data.match(bodyReg)[1]);
-      if (data.match(ccReg))
-        cc = addressesToArray(decodeURIComponent(data.match(ccReg)[1]));
-      if (parts[1].match(bccReg))
-        bcc = addressesToArray(decodeURIComponent(data.match(bccReg)[1]));
-    }
-      return [to, subject, body, cc, bcc];
-
-  }
-
-};
-
-function hookStartup() {
-  var gotLocalized = (mozL10n.readyState === 'interactive') ||
-                     (mozL10n.readyState === 'complete');
-
-  function doInit() {
-    try {
-      populateTemplateNodes();
-      Cards._init();
-      App._init();
-      App.showMessageViewOrSetup();
-    }
-    catch (ex) {
-      console.error('Problem initializing', ex, '\n', ex.stack);
-    }
-  }
-
-  if (!gotLocalized) {
-    window.addEventListener('localized', function localized() {
-      console.log('got localized!');
-      gotLocalized = true;
-      window.removeEventListener('localized', localized);
-      doInit();
-    });
-  } else {
-    doInit();
-  }
+try {
+  Cards._init();
+  App._init();
+  App.showMessageViewOrSetup();
 }
-hookStartup();
+catch (ex) {
+  console.error('Problem initializing', ex, '\n', ex.stack);
+}
 
-var activityCallback = null;
 if ('mozSetMessageHandler' in window.navigator) {
   window.navigator.mozSetMessageHandler('activity',
                                         function actHandle(activity) {
@@ -302,7 +233,7 @@ if ('mozSetMessageHandler' in window.navigator) {
       var folderToUse;
       try {
         folderToUse = Cards._cardStack[Cards
-          ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
+          ._findCard(['folder_picker', 'navigation'])].cardImpl.curFolder;
       } catch (e) {
         console.log('no navigation found:', e);
         var req = confirm(mozL10n.get('setup-empty-account-prompt'));
@@ -344,11 +275,10 @@ if ('mozSetMessageHandler' in window.navigator) {
           Cards.pushCard('compose',
             'default', 'immediate', { composer: composer,
             activity: activity });
-          activityLock = false;
         });
     };
 
-    if (MailAPI && !MailAPI._fake) {
+    if (hasCardsPushed) {
       console.log('activity', activityName, 'triggering compose now');
       sendMail();
     } else {
@@ -360,3 +290,10 @@ if ('mozSetMessageHandler' in window.navigator) {
 else {
   console.warn('Activity support disabled!');
 }
+
+return App;
+
+});
+
+// Run the app module, bring in fancy logging
+requirejs(['console_hook', 'mail_app']);
