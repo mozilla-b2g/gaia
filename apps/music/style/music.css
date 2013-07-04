@@ -235,7 +235,7 @@ body.picker-mode #title-player {
 }
 
 #title-done > .icon-done {
-  background-image: url("./images/IconAction_done_30x30.png");
+  background-image: url("./images/IconAction_Done_30x30.png");
 }
 
 #title {
@@ -799,6 +799,7 @@ button::-moz-focus-inner {
   background-image: url("./images/scrubber.png");
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 2.7rem;
   background-color: transparent;
   border: solid 0.8rem transparent;
   transition: background-color 300ms ease,
