@@ -27,7 +27,7 @@ body[role="application"] section[role="region"] > header > a .icon:after {
 
 #groups-list.import-list label input + span,
 #search-list label input + span {
-  background-image: url(/contacts/style/images/fb-check.png);
+  background: url(/contacts/style/images/fb-check.png) no-repeat center center / 2.2rem;
 }
 
 

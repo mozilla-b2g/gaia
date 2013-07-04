@@ -299,7 +299,7 @@ li a[role="button"].activity > b{
 }
 
 .view-select-tag .selection-list li button.icon-selected:before {
-  background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center;
+  background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center / 2rem;
 }
 
 /* Input areas customization*/
@@ -426,56 +426,56 @@ span[role="button"].icon-grid {
 
 /* GENERIC BUTTONS */
 span[role="button"].icon-delete {
-  background-image: url(/contacts/style/gphx/bitmap/default/forms/delete.png);
+  background: url(/contacts/style/gphx/bitmap/default/forms/delete.png) no-repeat center center / 2.2rem;
   width: 2.2rem;
   height: 2.2rem;
 }
 
 span[role="button"].icon-addimage {
-  background-image: url(/contacts/style/gphx/bitmap/default/forms/add.png);
+  background: url(/contacts/style/gphx/bitmap/default/forms/add.png) no-repeat center center / 3rem;
   width: 3rem;
   height: 2.9rem;
 }
 
 li button.icon-call:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/call.png);
+  background: url(/contacts/style/gphx/bitmap/default/buttons/call.png) no-repeat center center / 3rem;
 }
 
 li button.icon-message:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/sms.png);
+  background: url(/contacts/style/gphx/bitmap/default/buttons/sms.png) no-repeat center center / 3rem;
 }
 
 li button.send-sms {
   width: 0;
 }
 li button.icon-email:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/mail.png);
+  background: url(/contacts/style/gphx/bitmap/default/buttons/mail.png) no-repeat center center / 3rem;
 }
 
 span[role="button"].icon-address {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/location.png);
+  background: url(/contacts/style/gphx/bitmap/default/buttons/location.png) no-repeat center center / 3rem;
 }
 
 li button.icon-link:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/link.png);
+  background: url(/contacts/style/gphx/bitmap/default/buttons/link.png) no-repeat center center / 3rem;
 }
 
 /* Extending icons */
 li button.icon-fav:before {
-  background-image: url(/contacts/style/images/icon-fav-button-off.png);
+  background: url(/contacts/style/images/icon-fav-button-off.png) no-repeat center center / 3rem;
   right: 0.5rem;
 }
 
 li button.icon-fav.on:before {
-  background-image: url(/contacts/style/images/icon-fav-button-on.png);
+  background: url(/contacts/style/images/icon-fav-button-on.png) no-repeat center center / 3rem;
 }
 
 li button.icon-fb-profile:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/fb_profile.png);
+  background: url(/contacts/style/gphx/bitmap/default/buttons/fb_profile.png) no-repeat center center / 3rem;
 }
 
 li button.icon-add:before {
-  background: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png) no-repeat center center;
+  background: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png) no-repeat center center / 2.8rem;
 }
 
 
@@ -644,5 +644,5 @@ nav[data-type="scrollbar"] p img {
   position: absolute;
   top: 25%;
   left: 25%;
-  width: auto;
+  width: 4.6rem;
 }

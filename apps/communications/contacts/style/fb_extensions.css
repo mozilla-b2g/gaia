@@ -61,11 +61,11 @@ p.facebook.removed input {
 }
 
 #settingsFb[data-state="renew-pwd"] > #fb-update-option > #import-fb:before {
-  background-image: url(/contacts/style/images/error_icon.png);
+  background: url(/contacts/style/images/error_icon.png) no-repeat center center / 3rem;
 }
 
 #settingsFb[data-state="logged-in"] > #fb-update-option > #import-fb:before {
-  background-image: url(/contacts/style/images/sync_icon.png);
+  background-image: url(/contacts/style/images/sync_icon.png) no-repeat center center / 3rem;
 }
 
 #no-connection {
