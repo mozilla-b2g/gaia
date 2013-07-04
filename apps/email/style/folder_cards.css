@@ -11,7 +11,7 @@
   display: block;
   line-height: 2.5rem;
   padding: 0.6rem 2rem;
-  border-bottom: 1px solid gray;
+  border-bottom: 0.1rem solid gray;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

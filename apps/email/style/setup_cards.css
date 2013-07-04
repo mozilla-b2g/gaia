@@ -132,7 +132,7 @@ input:focus:invalid {
 .tng-header-item, .tng-item {
   display: block;
   width: 100%;
-  border-bottom: 1px solid gray;
+  border-bottom: 0.1rem solid gray;
   padding: 0.6rem;
   margin: 0;
   font-size: 1.6rem;
@@ -179,7 +179,7 @@ li a:active {
 
 .list-value {
   position: absolute;
-  right: 0px;
+  right: 0;
   padding-right: 1.2rem;
   text-decoration: none;
   overflow: hidden;

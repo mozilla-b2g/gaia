@@ -19,18 +19,18 @@ var GestureDetector = window.GestureDetector;
 var DEFAULT_STYLE_TAG =
   '<style type="text/css">\n' +
   // ## blockquote
-  // blockquote per html5: before: 1em, after: 1em, start: 40px, end: 40px
+  // blockquote per html5: before: 1em, after: 1em, start: 4rem, end: 4rem
   'blockquote {' +
   'margin: 0; ' +
   // so, this is quoting styling, which makes less sense to have in here.
-  'border-left: 2px solid gray;' +
+  'border-left: 0.2rem solid gray;' +
   // padding-start isn't a thing yet, somehow.
-  'padding: 0; -moz-padding-start: 5px; ' +
+  'padding: 0; -moz-padding-start: 0.5rem; ' +
   '}\n' +
   // Give the layout engine an upper-bound on the width that's arguably
   // much wider than anyone should find reasonable, but might save us from
   // super pathological cases.
-  'html, body { max-width: 1200px; }\n' +
+  'html, body { max-width: 120rem; }\n' +
   // pre messes up wrapping very badly if left to its own devices
   'pre { white-space: pre-wrap; }\n' +
   '.moz-external-link { color: blue; cursor: pointer; }\n' +
@@ -204,12 +204,12 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
   iframe.setAttribute(
     'style',
     'position: absolute; ' +
-    'border-width: 0px;' +
+    'border-width: 0;' +
     'overflow: hidden;'
 //    'pointer-events: none; ' +
 //    '-moz-user-select: none; ' +
-//    'width: ' + scrollWidth + 'px; ' +
-//    'height: ' + viewportHeight + 'px;'
+//    'width: ' + (scrollWidth / 10) + 'rem; ' +
+//    'height: ' + (viewportHeight / 10) + 'rem;'
   );
   viewport.appendChild(iframe);
   parentNode.insertBefore(viewport, beforeNode);
@@ -241,8 +241,8 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
     'padding: 0; border-width: 0; margin: 0; ' +
     'position: relative; ' +
     'overflow: hidden;');
-  viewport.style.width = (scrollWidth * scale) + 'px';
-  viewport.style.height = (scrollHeight * scale) + 'px';
+  viewport.style.width = (scrollWidth * scale / 10) + 'rem';
+  viewport.style.height = (scrollHeight * scale / 10) + 'rem';
 
   // setting iframe.style.height is not sticky, so be heavy-handed.
   // Also, do not set overflow: hidden since we are already clipped by our
@@ -253,7 +253,7 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
     'padding: 0; border-width: 0; margin: 0; ' +
     'transform-origin: top left; ' +
     'pointer-events: none;');
-  iframe.style.width = scrollWidth + 'px';
+  iframe.style.width = (scrollWidth / 10) + 'rem';
 
   resizeFrame = function(updateHeight) {
     if (updateHeight) {
@@ -265,9 +265,9 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
     else
       iframe.style.transform = '';
     iframe.style.height =
-      ((scrollHeight * Math.max(1, scale)) + scrollPad) + 'px';
-    viewport.style.width = (scrollWidth * scale) + 'px';
-    viewport.style.height = ((scrollHeight * scale) + scrollPad) + 'px';
+      (((scrollHeight * Math.max(1, scale)) + scrollPad) / 10) + 'rem';
+    viewport.style.width = (scrollWidth * scale / 10) + 'rem';
+    viewport.style.height = (((scrollHeight * scale) + scrollPad) / 10) + 'rem';
   };
   resizeFrame(true);
 
