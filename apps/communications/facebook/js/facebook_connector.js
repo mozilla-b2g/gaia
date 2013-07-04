@@ -197,9 +197,16 @@ if (!window.FacebookConnector) {
       },
 
       adaptDataForShowing: function(source) {
+
+        var box = importUtils.getPreferredPictureBox();
+        var picWidth = box.width;
+        var picHeight = box.height;
+
         var out = fb.friend2mozContact(source);
         out.contactPictureUri = 'https://graph.facebook.com/' +
-                                          source.uid + '/picture?type=square';
+                                  source.uid + '/picture?type=square' +
+                                  '&width=' + picWidth +
+                                  '&height=' + picHeight;
         return out;
       },
 
@@ -268,7 +275,7 @@ if (!window.FacebookConnector) {
             else {
               callbacks.timeout();
             }
-          }, access_token);
+          }, access_token, importUtils.getPreferredPictureDetail());
       },
 
       oncontactsloaded: function(lfriends) {

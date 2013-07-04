@@ -5,8 +5,7 @@
 
 /* Fav star in header */
 section[role="region"] > header:first-child sup {
-  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center center;
-  background-size: 100% auto;
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center center / 1.2rem;
   width: 1.2rem;
   height: 3.2rem;
   vertical-align: text-top;
@@ -18,7 +17,7 @@ section[role="region"] > header:first-child sup {
 }
 
 section[role="region"] > header:first-child .icon.icon-edit-contact {
-  background: url(images/edit-contact.png) no-repeat center center;
+  background: url(images/edit-contact.png) no-repeat center center / 3rem;
 }
 
 .contact-header img {
@@ -90,7 +89,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 }
 
 .view-contact-profile .view-body-inner:not(.no-photo):after {
-  background: url(images/shadow_1px.png) repeat-x;
+  background: url(images/shadow_1px.png) repeat-x bottom / auto 0.8rem;
   content: "";
   display: block;
   height: 0.8rem;
@@ -116,7 +115,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 #contact-detail h1 {
   font: 1.4rem/1.5em MozTT, Sans-serif;
   font-weight: 600;
-  border-bottom: solid 1px #dbd9d9;
+  border-bottom: solid 0.1rem #dbd9d9;
   margin-bottom: 1rem;
   padding-bottom: 0.55rem;
   word-wrap: break-word;
@@ -130,7 +129,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 }
 
 #contact-detail li button {
-  margin: 0;
+  margin: 0.1rem 0;
 }
 
 #contact-detail .social-actions button {
@@ -236,7 +235,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 hr {
   background-color: #BCBCBC;
   border: 0;
-  height: 1px;
+  height: 0.1rem;
 }
 
 /* Overriding Input areas BB */
@@ -249,9 +248,8 @@ form p textarea + button[type="reset"].hide {
 
 /* Favorites handling */
 #group-favorites abbr, .fixed-title abbr {
-  background: url(gphx/bitmap/default/lists/favorites.png);
+  background: url(gphx/bitmap/default/lists/favorites.png) no-repeat center center / 2rem;
   display: block;
-  background-size: 100% auto;
   width: 2rem;
   height: 2rem;
 }
@@ -289,11 +287,11 @@ form p textarea + button[type="reset"].hide {
 }
 
 .icon-social.icon-fb {
-  background-image: url(images/f_logo.png) !important;
+  background: url(images/f_logo.png) no-repeat center center / 1.5rem !important;
 }
 
 .icon-social.icon-tw {
-  background-image: url(images/tw_logo2.png) !important;
+  background: url(images/tw_logo2.png) no-repeat center center / 20rem !important;
 }
 
 .icon-social.notorg {
@@ -322,12 +320,12 @@ form p textarea + button[type="reset"].hide {
 }
 
 .removed button span.icon-delete {
-  background-image: url("/contacts/style/gphx/bitmap/default/forms/undo.png");
+  background: url("/contacts/style/gphx/bitmap/default/forms/undo.png") no-repeat center center / 2.2rem;
 }
 
 .with-photo {
   padding-right: 5rem;
-  border:1px solid #C8C8C8;
+  border: 0.1rem solid #C8C8C8;
   background: none;
 }
 
@@ -352,8 +350,9 @@ form p textarea + button[type="reset"].hide {
 }
 
 /* SETTINGS */
-section[role="region"] > header .icon.icon-settings
-     { background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png); }
+section[role="region"] > header .icon.icon-settings{ 
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png) no-repeat center center / 3rem; 
+}
 
 #view-settings .view-body-inner {
   padding: 0;
@@ -381,7 +380,7 @@ section[role="region"] > header .icon.icon-settings
 }
 
 #view-settings [data-type="list"] .fb-item p:first-of-type {
-  background: url(/contacts/style/images/f_logo.png) no-repeat 0.5rem calc(50% + 0.5rem);
+  background: url(/contacts/style/images/f_logo.png) no-repeat 0.5rem calc(50% + 0.5rem) / 3rem;
 }
 
 #view-settings [data-type="list"] .fb-item aside {
@@ -441,18 +440,18 @@ section[role="region"] > header .icon.icon-settings
   background-size: 3rem;
 }
 #view-settings [data-type="list"] li button.icon-sim:before {
-  background-image: url(/contacts/style/images/import_SIM.png);
+  background: url(/contacts/style/images/import_SIM.png) no-repeat center center / 3rem;
 }
 #view-settings [data-type="list"] li button.icon-sd:before {
-  background-image: url(/contacts/style/images/import_sd.png);
+  background: url(/contacts/style/images/import_sd.png) no-repeat center center / 3rem;
 }
 
 #view-settings [data-type="list"] li button.icon-gmail:before {
-  background-image: url(/contacts/style/images/gmail_icon.png);
+  background: url(/contacts/style/images/gmail_icon.png) no-repeat center center / 3rem
 }
 
 #view-settings [data-type="list"] li button.icon-live:before {
-  background-image: url(/contacts/style/images/outlook_icon.png);
+  background: url(/contacts/style/images/outlook_icon.png) no-repeat center center / 3rem;
 }
 
 
@@ -476,7 +475,7 @@ section[role="region"] > header .icon.icon-settings
 /* No Contacts */
 
 #no-contacts {
-  background: url(/contacts/style/images/contact_big_icon.png) no-repeat center center #FFFFFF;
+  background: #FFF url(/contacts/style/images/contact_big_icon.png) no-repeat center center / 15.3rem;
   height: 100%;
   position: absolute;
   width: 100%;
@@ -486,7 +485,7 @@ section[role="region"] > header .icon.icon-settings
 }
 
 #no-contacts .info {
-  border-top: 1px solid rgba(96, 96, 96, 0.5);
+  border-top: 0.1rem solid rgba(96, 96, 96, 0.5);
   color: #606060;
   font-size: 2rem;
   font-weight: lighter;
@@ -508,11 +507,11 @@ section[role="region"] > header .icon.icon-settings
 }
 
 #no-contacts .small.arrow {
-  background: url("/contacts/style/images/arrow_small.png") no-repeat scroll 93% 0.5rem transparent;
+  background: url("/contacts/style/images/arrow_small.png") no-repeat 96% 0.5rem / 4.5rem;
 }
 
 #no-contacts .big.arrow {
-  background: url("/contacts/style/images/arrow_big.png") no-repeat scroll 93% 0.5rem transparent;
+  background: url("/contacts/style/images/arrow_big.png") no-repeat 93% 0.5rem / 6.5rem;
   height: 5rem;
   padding-top: 3.5rem;
 }

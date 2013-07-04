@@ -87,13 +87,15 @@ fb.utils.runQuery = function(query, callback, access_token) {
   *  Obtains a img DOM Element with the Contact's img
   *
   */
-fb.utils.getFriendPicture = function(uid, callback, access_token) {
+fb.utils.getFriendPicture = function(uid, callback, access_token,
+                                     targetPictureSize) {
    // Access token is necessary just in case the image is not public
    // When passing an access token to FB https must be used
+
   var imgSrc = 'https://graph.facebook.com/' + uid + '/picture?';
 
   var params = [
-    'type=large',
+    'width=' + targetPictureSize,
     'access_token' + '=' + access_token
   ];
 
