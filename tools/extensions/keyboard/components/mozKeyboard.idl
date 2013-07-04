@@ -1,7 +1,6 @@
-
 #include "domstubs.idl"
 
-[scriptable, uuid(53990d7a-ab2a-11e1-8543-7767e4cbcbff)]
+[scriptable, uuid(40ad96b2-9efa-41fb-84c7-fbcec9b153f0)]
 interface nsIB2GKeyboard : nsISupports
 {
   void sendKey(in long keyCode, in long charCode);
