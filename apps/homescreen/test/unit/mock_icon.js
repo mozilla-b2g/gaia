@@ -31,6 +31,13 @@ MockIcon.prototype = MockTemplateIcon.prototype = {
 
   getUID: function mi_getUID() {
     return '1';
+  },
+
+  render: function mi_render() {
+    var span = document.createElement('span');
+    span.dataset.isIcon = true;
+    span.style.width = span.style.height = '10px';
+    return span;
   }
 };
 
