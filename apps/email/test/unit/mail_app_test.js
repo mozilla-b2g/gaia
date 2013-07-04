@@ -1,8 +1,17 @@
-require('/shared/js/lazy_loader.js');
-requireApp('email/js/mail-app.js');
+requireApp('email/js/alameda.js');
+requireApp('email/test/config.js');
 
-suite('email/mail-app', function() {
+suite('email/mail_app', function() {
+  var queryURI;
 
+  setup(function(done) {
+    requirejs(['query_uri'], function(quri) {
+      queryURI = quri;
+      done();
+    }, function(err) {
+      done(err);
+    });
+  });
 
   test('#to', function() {
 

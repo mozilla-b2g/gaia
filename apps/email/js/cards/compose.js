@@ -4,6 +4,27 @@
  * web activity or shared code.
  **/
 
+/*jshint browser: true */
+/*global define, console, MozActivity, alert */
+define(function(require) {
+
+var templateNode = require('tmpl!./compose.html'),
+    cmpAttachmentItemNode = require('tmpl!./cmp/attachment_item.html'),
+    cmpContactMenuNode = require('tmpl!./cmp/contact_menu.html'),
+    cmpDraftMenuNode = require('tmpl!./cmp/draft_menu.html'),
+    cmpPeepBubbleNode = require('tmpl!./cmp/peep_bubble.html'),
+    cmpSendFailedConfirmNode = require('tmpl!./cmp/send_failed_confirm.html'),
+    cmpSendingContainerNode = require('tmpl!./cmp/sending_container.html'),
+    msgAttachConfirmNode = require('tmpl!./msg/attach_confirm.html'),
+    common = require('mail_common'),
+    iframeShims = require('iframe_shims'),
+    Marquee = require('marquee'),
+    mozL10n = require('l10n!'),
+
+    prettyFileSize = common.prettyFileSize,
+    Cards = common.Cards,
+    ConfirmDialog = common.ConfirmDialog;
+
 /**
  * Max composer attachment size is defined as 5120000 bytes.
  */
@@ -121,7 +142,7 @@ ComposeCard.prototype = {
   postInsert: function() {
     // the HTML bit needs us linked into the DOM so the iframe can be linked in,
     // hence this happens in postInsert.
-    App.loader.load('js/iframe-shims.js', function() {
+    require(['iframe_shims'], function() {
       this._loadStateFromComposer();
     }.bind(this));
   },
@@ -167,12 +188,12 @@ ComposeCard.prototype = {
       // it gets to live in an iframe.  Its read-only and the user needs to be
       // able to see what they are sending, so reusing the viewing functionality
       // is desirable.
-      var iframeShims = createAndInsertIframeForContent(
+      var ishims = iframeShims.createAndInsertIframeForContent(
         this.composer.body.html, this.scrollContainer,
         this.htmlBodyContainer, /* append */ null,
         'noninteractive',
         /* no click handler because no navigation desired */ null);
-      this.htmlIframeNode = iframeShims.iframe;
+      this.htmlIframeNode = ishims.iframe;
     }
   },
 
@@ -228,7 +249,7 @@ ComposeCard.prototype = {
   },
 
   createBubbleNode: function(name, address) {
-    var bubble = cmpNodes['peep-bubble'].cloneNode(true);
+    var bubble = cmpPeepBubbleNode.cloneNode(true);
     bubble.classList.add('peep-bubble');
     bubble.classList.add('msg-peep-bubble');
     bubble.setAttribute('data-address', address);
@@ -363,7 +384,7 @@ ComposeCard.prototype = {
     var target = evt.target;
     // Popup the context menu if clicked target is peer bubble.
     if (target.classList.contains('cmp-peep-bubble')) {
-      var contents = cmpNodes['contact-menu'].cloneNode(true);
+      var contents = cmpContactMenuNode.cloneNode(true);
       var email = target.querySelector('.cmp-peep-address').textContent;
       var headerNode = contents.getElementsByTagName('header')[0];
       // Setup the marquee structure
@@ -417,7 +438,7 @@ ComposeCard.prototype = {
       // Clean the container before we insert the new attachments
       attachmentsContainer.innerHTML = '';
 
-      var attTemplate = cmpNodes['attachment-item'],
+      var attTemplate = cmpAttachmentItemNode,
           filenameTemplate =
             attTemplate.getElementsByClassName('cmp-attachment-filename')[0],
           filesizeTemplate =
@@ -432,7 +453,7 @@ ComposeCard.prototype = {
           while (this.composer.attachments.length > i) {
             this.composer.removeAttachment(this.composer.attachments[i]);
           }
-          var dialog = msgNodes['attach-confirm'].cloneNode(true);
+          var dialog = msgAttachConfirmNode.cloneNode(true);
           var title = dialog.getElementsByTagName('h1')[0];
           var content = dialog.getElementsByTagName('p')[0];
 
@@ -544,7 +565,7 @@ ComposeCard.prototype = {
       return;
     }
 
-    var menu = cmpNodes['draft-menu'].cloneNode(true);
+    var menu = cmpDraftMenuNode.cloneNode(true);
     document.body.appendChild(menu);
     var formSubmit = (function(evt) {
       document.body.removeChild(menu);
@@ -582,7 +603,7 @@ ComposeCard.prototype = {
     var self = this;
     var activity = this.activity;
     var domNode = this.domNode;
-    var sendingTemplate = cmpNodes['sending-container'];
+    var sendingTemplate = cmpSendingContainerNode;
     domNode.appendChild(sendingTemplate);
 
     this.composer.finishCompositionSendMessage(
@@ -605,7 +626,7 @@ ComposeCard.prototype = {
         if (error) {
           // TODO: We don't have the resend now, so we use alert dialog
           //       before resend is enabled.
-          // var dialog = cmpNodes['send-failed-confirm'].cloneNode(true);
+          // var dialog = cmpSendFailedConfirmNode.cloneNode(true);
           // document.body.appendChild(dialog);
           // var formSubmit = function(evt) {
           //   document.body.removeChild(dialog);
@@ -684,5 +705,7 @@ ComposeCard.prototype = {
     this.composer = null;
   }
 };
-Cards.defineCardWithDefaultMode('compose', {}, ComposeCard);
+Cards.defineCardWithDefaultMode('compose', {}, ComposeCard, templateNode);
 
+return ComposeCard;
+});

@@ -5,7 +5,7 @@
  *     how many new emails they've received after a sync.
  */
 
-
+define(['l10n!'], function(mozL10n) {
 /**
  * @constructor
  * @param {Element} scrollContainer Element containing folder messages.
@@ -109,7 +109,7 @@ MessageListTopbar.prototype = {
 
     if (this._el !== null) {
       this._el.textContent =
-          navigator.mozL10n.get('new-emails', { n: this._newEmailCount });
+          mozL10n.get('new-emails', { n: this._newEmailCount });
     }
   },
 
@@ -162,3 +162,7 @@ MessageListTopbar.prototype = {
     return searchBar.offsetHeight;
   }
 };
+
+return MessageListTopbar;
+});
+
