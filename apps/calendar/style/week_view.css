@@ -10,8 +10,8 @@
   font-size: 1.3rem;
   height: 2rem;
   padding: 0.5rem 0.5rem;
-  border-right: 1px solid #131314;
-  border-left: 1px solid #515051;
+  border-right: 0.1rem solid #131314;
+  border-left: 0.1rem solid #515051;
   font-weight: normal;
   white-space: nowrap;
   overflow: hidden;
@@ -42,8 +42,8 @@
 
 #week-view .week-events > ol,
 #week-view .sticky .week-events {
-  border-bottom: 1px solid #ccc;
-  border-left: 1px solid #ccc;
+  border-bottom: 0.1rem solid #ccc;
+  border-left: 0.1rem solid #ccc;
   text-align: center;
   color: white;
   font-size: 120%;
@@ -78,10 +78,10 @@
 }
 
 #week-view .sticky {
-  border-bottom: 1px solid #2A2A2A;
+  border-bottom: 0.1rem solid #2A2A2A;
   height: 8rem;
   overflow: hidden;
-  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
+  box-shadow: 0 0.5rem 0.5rem 0 rgba(1, 1, 1, 0.2);
   position: relative;
   z-index: 11;
 }
@@ -136,7 +136,7 @@
 }
 
 #week-view .scroll {
-  height: calc(100% - 7.9rem);
+  height: calc(100% - 8.1rem);
   overflow-y: scroll;
 }
 

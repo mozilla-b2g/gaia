@@ -37,7 +37,7 @@
 #modify-event-view li.end-time,
 #modify-event-view li.start-time {
   text-align: center;
-  width: calc(40% - 1px);
+  width: calc(40% - 0.1rem);
   float: left
 }
 
