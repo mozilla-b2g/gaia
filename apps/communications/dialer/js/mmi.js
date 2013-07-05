@@ -3,7 +3,7 @@
 var MmiManager = {
 
   COMMS_APP_ORIGIN: document.location.protocol + '//' +
-    document.location.host,
+                    document.location.host,
   _: null,
   _conn: null,
   ready: false,
@@ -39,12 +39,15 @@ var MmiManager = {
       this.init();
     }
 
-    if (this._conn) {
-      var request = this._pendingRequest = this._conn.sendMMI(message);
-      request.onsuccess = this.notifySuccess.bind(this);
-      request.onerror = this.notifyError.bind(this);
-      this.openUI();
-    }
+    LazyL10n.get((function localized(_) {
+      this._ = _;
+      if (this._conn) {
+        var request = this._pendingRequest = this._conn.sendMMI(message);
+        request.onsuccess = this.notifySuccess.bind(this);
+        request.onerror = this.notifyError.bind(this);
+        this.openUI();
+      }
+    }).bind(this));
   },
 
   notifySuccess: function mm_notifySuccess(evt) {
@@ -188,8 +191,11 @@ var MmiManager = {
       default:
         // This would allow carriers and others to implement custom MMI codes
         // with title and statusMessage only.
-        message.result = mmiResult.statusMessage ?
-                         mmiResult.statusMessage : null;
+        if (mmiResult.statusMessage) {
+          message.result = this._(mmiResult.statusMessage) ?
+                           this._(mmiResult.statusMessage) :
+                           mmiResult.statusMessage;
+        }
         break;
     }
 
