@@ -62,7 +62,7 @@ section.valueselector [role="dialog"] h3 {
 
 section.valueselector [role="dialog"] ul {
   margin: -1rem -4rem 0;
-  max-height: 37rem;
+  max-height: 36rem;
   overflow: auto;
   padding: 0 4rem;
   position: relative;
