@@ -151,8 +151,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
     controlShowing = visible;
     if (visible) {
-      // update elapsed time while showing.
-      dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
+      // update elapsed time and slider while showing.
+      updateSlider();
     }
   }
 
@@ -309,16 +309,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
         return;
       }
 
-      var percent = (dom.player.currentTime / dom.player.duration) * 100;
-      if (isNaN(percent)) // this happens when we end the activity
-        return;
-      percent += '%';
-
-      dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
-      dom.elapsedTime.style.width = percent;
-      // Don't move the play head if the user is dragging it.
-      if (!dragging)
-        dom.playHead.style.left = percent;
+      updateSlider();
     }
 
     // Since we don't always get reliable 'ended' events, see if
@@ -349,6 +340,19 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     dom.player.currentTime = 0;
     pause();
+  }
+
+  function updateSlider() {
+    var percent = (dom.player.currentTime / dom.player.duration) * 100;
+    if (isNaN(percent)) // this happens when we end the activity
+      return;
+    percent += '%';
+
+    dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
+    dom.elapsedTime.style.width = percent;
+    // Don't move the play head if the user is dragging it.
+    if (!dragging)
+      dom.playHead.style.left = percent;
   }
 
   // handle drags on the time slider
