@@ -11,6 +11,10 @@ function debug(data) {
   dump('browser-helper: ' + data + '\n');
 }
 
+function isNativeFennec() {
+  return (Services.appinfo.ID == "{aa3c5121-dab2-40e2-81ca-7ea25febc110}");
+}
+
 function startup(data, reason) {
   Cu.import('resource://gre/modules/Services.jsm');
 
@@ -22,10 +26,13 @@ function startup(data, reason) {
     Cu.import('resource://gre/modules/ActivitiesService.jsm');
     Cu.import('resource://gre/modules/PermissionPromptHelper.jsm');
 
-    var mm = Cc['@mozilla.org/globalmessagemanager;1']
-               .getService(Ci.nsIMessageBroadcaster);
-    // Allow panning to work in the system app.
-    mm.loadFrameScript('chrome://global/content/BrowserElementPanning.js', true);
+
+    if (!isNativeFennec()) {
+      var mm = Cc['@mozilla.org/globalmessagemanager;1']
+                 .getService(Ci.nsIMessageBroadcaster);
+      // Allow panning to work in the system app.
+      mm.loadFrameScript('chrome://global/content/BrowserElementPanning.js', true);
+    }
 
     // Enable mozApps.getAll and app.launch to work.
     // By default on firefox, apps are consider as not launchable
@@ -53,21 +60,23 @@ function startup(data, reason) {
       let browserWindow = Services.wm.getMostRecentWindow('navigator:browser');
 
       // Automatically toggle responsive design mode
-      let args = {'width': 320, 'height': 480};
-      let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
-      mgr.handleGcliCommand(browserWindow,
-                            browserWindow.gBrowser.selectedTab,
-                            'resize to',
-                            args);
+      if (!isNativeFennec()) {
+        let args = {'width': 320, 'height': 480};
+        let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
+        mgr.handleGcliCommand(browserWindow,
+                              browserWindow.gBrowser.selectedTab,
+                              'resize to',
+                              args);
 
-      // And devtool panel while maximizing its size according to screen size
-      Services.prefs.setIntPref('devtools.toolbox.sidebar.width',
-                                browserWindow.screen.width - 550);
-      browserWindow.resizeTo(
-        browserWindow.screen.width,
-        browserWindow.outerHeight
-      );
-      gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser);
+        // And devtool panel while maximizing its size according to screen size
+        Services.prefs.setIntPref('devtools.toolbox.sidebar.width',
+                                  browserWindow.screen.width - 550);
+        browserWindow.resizeTo(
+          browserWindow.screen.width,
+          browserWindow.outerHeight
+        );
+        gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser);
+      }
 
       // XXX This code should be loaded by the keyboard/ extension
       try {
@@ -82,6 +91,9 @@ function startup(data, reason) {
 
     try {
       // Register a new devtool panel with various OS controls
+      if (isNativeFennec())
+        throw "Devtools aren't needed in Native Fennec";
+
       Cu.import('resource:///modules/devtools/gDevTools.jsm');
       gDevTools.registerTool({
         id: 'firefox-os-controls',

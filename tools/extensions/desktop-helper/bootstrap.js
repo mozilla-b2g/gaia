@@ -14,6 +14,10 @@ function debug(data) {
   dump('desktop-helper: ' + data + '\n');
 }
 
+function isNativeFennec() {
+  return (Services.appinfo.ID == "{aa3c5121-dab2-40e2-81ca-7ea25febc110}");
+}
+
 const kChromeRootPath = 'chrome://desktop-helper.js/content/data/';
 
 // XXX Scripts should be loaded based on the permissions of the apps not
@@ -69,8 +73,9 @@ function injectMocks() {
         addEventListener: function (type, fun, capture) frame.addEventListener(type, fun, capture),
         removeEventListener: function (type, fun) frame.removeEventListener(type, fun)
       };
-      Services.scriptloader.loadSubScript("chrome://desktop-helper.js/content/touch-events.js",
-                                          scope);
+      if (!isNativeFennec())
+        Services.scriptloader.loadSubScript("chrome://desktop-helper.js/content/touch-events.js",
+                                            scope);
     }
   }, 'document-element-inserted', false);
 }

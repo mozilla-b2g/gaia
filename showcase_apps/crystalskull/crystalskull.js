@@ -53,6 +53,7 @@ function setup(){
   engine.scene.add(model);
 
   document.onmousemove = onMouseMove;
+  document.ontouchmove = onTouchMove;
 
   draw();
 
@@ -67,6 +68,14 @@ function setup(){
 function onMouseMove(e) {
   mx = (e.clientX / window.innerWidth) * 2 - 1;
   my = (e.clientY / window.innerHeight) * 2 - 1;
+  if(isNaN(mx)) mx = 0;
+  if(isNaN(my)) my = 0;
+}
+
+function onTouchMove(e) {
+  e.preventDefault();
+  mx = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
+  my = (e.touches[0].clientY / window.innerHeight) * 2 - 1;
   if(isNaN(mx)) mx = 0;
   if(isNaN(my)) my = 0;
 }

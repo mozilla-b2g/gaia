@@ -136,6 +136,7 @@ var LockScreen = {
 
     /* Gesture */
     this.area.addEventListener('mousedown', this);
+    this.area.addEventListener("touchstart", this);
     this.areaCamera.addEventListener('click', this);
     this.altCameraButton.addEventListener('click', this);
     this.areaUnlock.addEventListener('click', this);
@@ -247,6 +248,44 @@ var LockScreen = {
     }
   },
 
+  down: function ls_down(evt, x, y) {
+    var leftTarget = this.areaCamera;
+    var rightTarget = this.areaUnlock;
+    var handle = this.areaHandle;
+    var overlay = this.overlay;
+    var target = evt.target;
+
+    // Reset timer when touch while overlay triggered
+    if (overlay.classList.contains('triggered')) {
+      clearTimeout(this.triggeredTimeoutId);
+      this.triggeredTimeoutId = setTimeout(this.unloadPanel.bind(this),
+                                           this.TRIGGERED_TIMEOUT);
+      return;
+    }
+
+    overlay.classList.remove('elastic');
+    this.setElasticEnabled(false);
+
+    this._touch = {
+      touched: false,
+      leftTarget: leftTarget,
+      rightTarget: rightTarget,
+      overlayWidth: this.overlay.offsetWidth,
+      handleWidth: this.areaHandle.offsetWidth,
+      maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
+        (handle.offsetWidth - rightTarget.offsetWidth) / 2
+    };
+    window.addEventListener('mouseup', this);
+    window.addEventListener('touchend', this);
+    window.addEventListener('mousemove', this);
+    window.addEventListener('touchmove', this);
+
+    this._touch.touched = true;
+    this._touch.initX = x;
+    this._touch.initY = y;
+    overlay.classList.add('touched');
+  },
+
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
       case 'screenchange':
@@ -311,52 +350,45 @@ var LockScreen = {
         this.handlePassCodeInput(evt.target.dataset.key);
         break;
 
+      case "touchstart":
+        if (evt.touches.length > 1)
+          return;
+        this.down(evt, evt.changedTouches[0].pageX, evt.changedTouches[0].pageY);
+        break;
       case 'mousedown':
-        var leftTarget = this.areaCamera;
-        var rightTarget = this.areaUnlock;
-        var handle = this.areaHandle;
-        var overlay = this.overlay;
-        var target = evt.target;
-
-        // Reset timer when touch while overlay triggered
-        if (overlay.classList.contains('triggered')) {
-          clearTimeout(this.triggeredTimeoutId);
-          this.triggeredTimeoutId = setTimeout(this.unloadPanel.bind(this),
-                                               this.TRIGGERED_TIMEOUT);
-          break;
-        }
-
-        overlay.classList.remove('elastic');
-        this.setElasticEnabled(false);
-
-        this._touch = {
-          touched: false,
-          leftTarget: leftTarget,
-          rightTarget: rightTarget,
-          overlayWidth: this.overlay.offsetWidth,
-          handleWidth: this.areaHandle.offsetWidth,
-          maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
-            (handle.offsetWidth - rightTarget.offsetWidth) / 2
-        };
-        window.addEventListener('mouseup', this);
-        window.addEventListener('mousemove', this);
-
-        this._touch.touched = true;
-        this._touch.initX = evt.pageX;
-        this._touch.initY = evt.pageY;
-        overlay.classList.add('touched');
+        this.down(evt, evt.pageX, evt.pageY);
         break;
 
+      case "touchmove":
+        if (evt.touches.length > 1)
+          return;
+        this.handleMove(evt.changedTouches[0].pageX, evt.changedTouches[0].pageY);
+        break;
       case 'mousemove':
         this.handleMove(evt.pageX, evt.pageY);
         break;
 
+      case "touchend":
+        if (evt.touches.length > 0)
+          return;
+        window.removeEventListener('mousemove', this);
+        window.removeEventListener('mouseup', this);
+        window.removeEventListener('touchmove', this);
+        window.removeEventListener('touchend', this);
+
+        this.handleMove(evt.changedTouches[0].pageX, evt.changedTouches[0].pageY);
+        this.handleGesture(evt.target);
+        delete this._touch;
+        this.overlay.classList.remove('touched');
+        break;
       case 'mouseup':
         window.removeEventListener('mousemove', this);
         window.removeEventListener('mouseup', this);
+        window.removeEventListener('touchmove', this);
+        window.removeEventListener('touchend', this);
 
         this.handleMove(evt.pageX, evt.pageY);
-        this.handleGesture();
+        this.handleGesture(null);
         delete this._touch;
         this.overlay.classList.remove('touched');
 
@@ -424,7 +456,7 @@ var LockScreen = {
       this.areaUnlock.style.opacity = opacity;
   },
 
-  handleGesture: function ls_handleGesture() {
+  handleGesture: function ls_handleGesture(clickTarget) {
     var touch = this._touch;
     if (touch.ty < -50) {
       this.areaHandle.style.transform =
