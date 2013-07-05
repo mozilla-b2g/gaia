@@ -92,7 +92,6 @@ suite('Render contacts list', function() {
       groupB,
       groupC,
       groupD,
-      groupJ,
       groupT,
       groupFav,
       groupUnd,
@@ -100,7 +99,6 @@ suite('Render contacts list', function() {
       containerB,
       containerC,
       containerD,
-      containerJ,
       containerT,
       containerFav,
       containerUnd,
@@ -301,8 +299,6 @@ suite('Render contacts list', function() {
     containerC = container.querySelector('#contacts-list-C');
     groupD = container.querySelector('#group-D');
     containerD = container.querySelector('#contacts-list-D');
-    groupJ = container.querySelector('#group-J');
-    containerJ = container.querySelector('#contacts-list-J');
     groupUnd = container.querySelector('#group-und');
     containerUnd = container.querySelector('#contacts-list-und');
   }
@@ -591,45 +587,6 @@ suite('Render contacts list', function() {
       assert.notEqual(undContacts[0].querySelector('p').innerHTML.
                       indexOf('noName'), -1);
       assertTotal(5, 5);
-    });
-
-    test('rendering order for contacts with accented characters', function() {
-      subject.setOrderByLastName(false);
-      var newContact1 = new MockContactAllFields();
-      newContact1.id = '4';
-      newContact1.familyName = ['Amigo'];
-      newContact1.givenName = ['Jörg'];
-      newContact1.name = [newContact1.givenName + ' ' + newContact1.familyName];
-      newContact1.category = null;
-      var newContact2 = new MockContactAllFields();
-      newContact2.id = '5';
-      newContact2.familyName = ['Schönwetter'];
-      newContact2.givenName = ['Julian'];
-      newContact2.name = [newContact2.givenName + ' ' + newContact2.familyName];
-      newContact2.category = null;
-      var newContact3 = new MockContactAllFields();
-      newContact3.id = '6';
-      newContact3.familyName = ['Prima'];
-      newContact3.givenName = ['Jana'];
-      newContact3.name = [newContact3.givenName + ' ' + newContact3.familyName];
-      newContact3.category = null;
-      subject.refresh(newContact1);
-      subject.refresh(newContact2);
-      subject.refresh(newContact3);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      var jContacts = assertGroup(groupJ, containerJ, 3);
-      assert.notEqual(
-        jContacts[0].querySelector('p').innerHTML.indexOf('Jana'), -1);
-      assert.notEqual(
-        jContacts[1].querySelector('p').innerHTML.indexOf('Jörg'), -1);
-      assert.notEqual(
-        jContacts[2].querySelector('p').innerHTML.indexOf('Julian'), -1);
-      assertTotal(4, 6);
-      // Cleanup
-      subject.remove('4');
-      subject.remove('5');
-      subject.remove('6');
-      subject.setOrderByLastName(true);
     });
 
     test('adding one in the middle of a group', function() {
