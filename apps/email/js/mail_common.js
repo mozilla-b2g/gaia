@@ -545,7 +545,7 @@ console.log('pushCard for type: ' + type);
       }
 
         var folderCardObj =
-          Cards.findCardObject(['folder-picker', 'navigation']);
+          Cards.findCardObject(['folder_picker', 'navigation']);
         var folderImpl = folderCardObj.cardImpl;
         var folders = folderImpl.foldersSlice.items;
         for (var i = 0; i < folders.length; i++) {
