@@ -547,6 +547,10 @@ var Camera = {
       this.stopRecording();
       return;
     }
+    // Hide the filmstrip to prevent the users from
+    // entering the preview mode after Camera starts recording button pressed
+    if (Filmstrip.isShown())
+      Filmstrip.hide();
 
     this.startRecording();
   },
@@ -564,11 +568,6 @@ var Camera = {
       captureButton.removeAttribute('disabled');
       this._recording = true;
       this.startRecordingTimer();
-
-      // Hide the filmstrip to prevent the users from
-      // entering the preview mode after Camera starts recording
-      if (Filmstrip.isShown())
-        Filmstrip.hide();
 
       // User closed app while recording was trying to start
       if (document.hidden) {
