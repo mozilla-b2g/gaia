@@ -243,7 +243,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           this.connectOpt.style.display = 'none';
           this.disconnectOpt.style.display = 'block';
           this.disconnectOpt.onclick = function() {
-            setDeviceDisconnect(this.device);
+            setDeviceDisconnect(self.device);
           };
         } else {
           this.connectOpt.style.display = 'block';
