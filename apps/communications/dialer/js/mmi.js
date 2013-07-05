@@ -163,8 +163,8 @@ var MmiManager = {
           // Call forwarding requests via MMI codes might return an array of
           // nsIDOMMozMobileCFInfo objects. In that case we serialize that array
           // into a single string that can be shown on the screen.
-          if (mmiResult.additionalInformation) {
-            message.result = processCf(mmiResult.additionalInformation);
+          if (additionalInformation) {
+            message.result = processCf(additionalInformation);
           }
         } else {
           message.type = 'mmi-error';
@@ -178,10 +178,10 @@ var MmiManager = {
         // the disabled status message.
         message.result = this._(mmiResult.statusMessage);
         if (mmiResult.statusMessage === 'smServiceEnabledFor' &&
-            additionalInfo &&
-            Array.isArray(additionalInfo)) {
-          for (var i = 0, l = additionalInfo.length; i < l; i++) {
-            message.result += '\n' + this._(additionalInfo[i]);
+            additionalInformation &&
+            Array.isArray(additionalInformation)) {
+          for (var i = 0, l = additionalInformation.length; i < l; i++) {
+            message.result += '\n' + this._(additionalInformation[i]);
           }
         }
         break;
