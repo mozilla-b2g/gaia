@@ -70,11 +70,15 @@ var BookmarkEditor = {
     this.oncancelled();
   },
 
-  save: function bookmarkEditor_save() {
+  save: function bookmarkEditor_save(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+
     // Only allow http(s): urls to be bookmarked.
     if (/^https?:/.test(this.bookmarkUrl.value) == false)
       return;
 
+    this.addButton.disabled = true;
     this.data.name = this.bookmarkTitle.value;
     this.data.bookmarkURL = this.bookmarkUrl.value;
 
