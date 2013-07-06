@@ -15,24 +15,32 @@ endif
 
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
-SHARED_SOURCES := $(call rwildcard,shared/,*)
+SHARED_SOURCES := $(call rwildcard,../../shared/,*)
+AUTOCONFIG_SOURCES := $(call rwildcard,autoconfig/,*)
 JS_SOURCES := $(call rwildcard,js/,*)
-CSS_SOURCES := $(call rwildcard,style/,*.css)
+LOCALES_SOURCES := $(call rwildcard,locales/,*)
+SOUNDS_SOURCES := $(call rwildcard,sounds/,*)
+STYLE_SOURCES := $(call rwildcard,style/,*)
+
+BUILD_DIR=../../build_stage/email
 
 .PHONY: all clean
 
-all: update_shared built/mail_app.js built/mail.css
-
+all: $(BUILD_DIR)/js/mail_app.js
 clean:
-	rm -rf ./shared
-	rm -rf ./built
+	rm -rf $(BUILD_DIR)
 
-update_shared: $(SHARED_SOURCES)
-	@rm -rf ./shared
-	@cp -rp ../../shared ./shared
-
-built/mail_app.js: $(JS_SOURCES)
+$(BUILD_DIR)/js/mail_app.js: manifest.webapp index.html $(AUTOCONFIG_SOURCES) $(JS_SOURCES) $(LOCALES_SOURCES) $(SOUNDS_SOURCES) $(STYLE_SOURCES) $(SHARED_SOURCES)
+	@rm -rf $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)
+	cp -rp ../../shared $(BUILD_DIR)/shared
 	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/email.build.js
-
-built/mail.css: $(CSS_SOURCES)
-	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o cssIn=style/mail.css out=built/mail.css cssPrefix=../style/
+	@rm -rf $(BUILD_DIR)/build
+	@rm $(BUILD_DIR)/gaia_build.json
+	@rm $(BUILD_DIR)/build.txt
+	@rm $(BUILD_DIR)/js/tmpl_builder.js
+	@rm $(BUILD_DIR)/js/text_builder.js
+	@rm -rf $(BUILD_DIR)/Makefile
+	@rm $(BUILD_DIR)/README.md
+	@rm -rf $(BUILD_DIR)/test
+	$(XULRUNNERSDK) $(XPCSHELLSDK) build/make_gaia_shared.js

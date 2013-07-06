@@ -3,6 +3,7 @@
    * Version number for cache, allows expiring
    */
   var CACHE_VERSION = '1';
+  var selfNode = document.querySelector('[data-loadsrc]');
 
   /**
    * Gets the HTML string from cache.
@@ -44,13 +45,22 @@
    * ASSUMES card node is available (DOMContentLoaded or execution of
    * module after DOM node is in doc)
    */
-  var cardsNode = document.getElementById('cards');
+  var cardsNode = document.getElementById(selfNode.dataset.targetid);
 
   cardsNode.innerHTML = retrieve();
 
   window.addEventListener('load', function(evt) {
-    var scriptNode = document.createElement('script');
-    scriptNode.src = 'built/mail_app.js';
+    var scriptNode = document.createElement('script'),
+        loader = selfNode.dataset.loader,
+        loadSrc = selfNode.dataset.loadsrc;
+
+    if (loader) {
+      scriptNode.setAttribute('data-main', loadSrc);
+      scriptNode.src = loader;
+    } else {
+      scriptNode.src = loadSrc;
+    }
+
     document.head.appendChild(scriptNode);
   }, false);
 }());
