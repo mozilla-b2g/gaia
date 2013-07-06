@@ -64,7 +64,7 @@ body {
   /* Show a sliver of the before card, to kickstart
   platform for a smooth, non-black transition: 828266.
   Otherwise, this would just be -100% */
-  transform: translateX(calc(-100% + 0.5px));
+  transform: translateX(calc(-100% + 0.05rem));
 }
 
 .card.before.anim-vertical {
@@ -75,7 +75,7 @@ body {
   /* Show a sliver of the after card, to kickstart
   platform for a smooth, non-black transition: 828266.
   Otherwise, this would just be 100% */
-  transform: translateX(calc(100% - 0.5px));
+  transform: translateX(calc(100% - 0.05rem));
 }
 
 .card.after.anim-vertical {
