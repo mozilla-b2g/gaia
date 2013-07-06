@@ -4,27 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1, maximum-scale=1">
   <title>Email</title>
-  <!-- Include our styles -->
-  <!-- Only listed here for the gaia build tooling around the shared directory,
-       but mail.css has the actual usage.
-<link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
-<link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
-<link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
-<link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
-<link rel="stylesheet" type="text/css" href="shared/style/status.css"/>
-<link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
-<link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
-<link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
-<link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css"/>
-  -->
-  <link rel="stylesheet" type="text/css" href="built/mail.css">
+  <link rel="stylesheet" type="text/css" href="style/mail.css">
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
-  <!-- Only listed here for the gaia build tooling around the shared directory
-  <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
-  <script type="text/javascript" defer src="shared/js/mime_mapper.js"></script>
-  -->
 </head>
 
 <body role="application">
@@ -35,6 +18,9 @@
   <div id="cardContainer">
     <div id="cards" style="left: 0px;"></div>
   </div>
-  <script src="js/html_cache_restore.js"></script>
+  <script data-targetid="cards"
+          data-loader="js/alameda.js"
+          data-loadsrc="js/mail_app.js"
+          src="js/html_cache_restore.js"></script>
 </body>
 </html>
