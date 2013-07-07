@@ -3,7 +3,7 @@
 function HandledCall(aCall, aNode) {
   this._ticker = null;
   this.photo = null;
-
+  this.state = null;
   this.call = aCall;
 
   aCall.addEventListener('statechange', this);
@@ -47,6 +47,7 @@ function HandledCall(aCall, aNode) {
 }
 
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
+  this.state = evt.call.state;
   switch (evt.call.state) {
     case 'connected':
       CallScreen.render('connected');
