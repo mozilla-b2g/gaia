@@ -119,9 +119,6 @@ navigator.mozL10n.ready(function showBody() {
 });
 
 function init() {
-  // We only need clicks and move event coordinates
-  MouseEventShim.trackMouseMoves = false;
-
   // Clicking on the select button goes to thumbnail select mode
   $('thumbnails-select-button').onclick =
     setView.bind(null, thumbnailSelectView);
@@ -381,7 +378,7 @@ function initThumbnails() {
 
 
   // Handle clicks on the thumbnails we're about to create
-  thumbnails.onclick = thumbnailClickHandler;
+  thumbnails.addEventListener('click', thumbnailClickHandler);
 
   // We need to enumerate both the photo and video dbs and interleave
   // the files they return so that everything is in chronological order
@@ -852,7 +849,6 @@ window.addEventListener('visibilitychange', function() {
 //
 // Event handlers
 //
-
 
 // Clicking on a thumbnail does different things depending on the view.
 // In thumbnail list mode, it displays the image. In thumbanilSelect mode
