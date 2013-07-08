@@ -16,13 +16,12 @@ suite('value selector/value picker', function() {
     // <div class="value-picker-month-wrapper">
     //     <div class="value-picker-month" class="animation-on"></div>
     // </div>
+    var testMarkup = '<div class="value-picker-month" ' +
+                     'class="animation-on"></div>';
     var div = document.createElement('div');
     div.id = 'test';
     div.className = 'value-picker-month-wrapper';
-    var subdiv = document.createElement('div');
-    subdiv.classList.add('value-picker-month');
-    subdiv.classList.add('animation-on');
-    div.appendChild(subdiv);
+    div.innerHTML = testMarkup;
     document.body.appendChild(div);
 
     // month value picker
