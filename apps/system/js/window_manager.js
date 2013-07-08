@@ -1161,6 +1161,19 @@ var WindowManager = (function() {
     frame.classList.remove('active');
   }
 
+  function restoreRunningApp() {
+    // Give back focus to the displayed app
+    var app = runningApps[displayedApp];
+    setOrientationForApp(displayedApp);
+    if (app && app.iframe) {
+      app.iframe.focus();
+      app.setVisible(true);
+      if ('wrapper' in app.frame.dataset) {
+        wrapperFooter.classList.add('visible');
+      }
+    }
+  }
+
   // If all is not specified,
   // remove the top most frame
   function stopInlineActivity(all) {
@@ -1180,17 +1193,12 @@ var WindowManager = (function() {
     }
 
     if (!inlineActivityFrames.length) {
-      // Give back focus to the displayed app
-      var app = runningApps[displayedApp];
-      setOrientationForApp(displayedApp);
-      if (app && app.iframe) {
-        app.iframe.focus();
-        app.setVisible(true);
-        if ('wrapper' in app.frame.dataset) {
-          wrapperFooter.classList.add('visible');
-        }
-      }
       screenElement.classList.remove('inline-activity');
+      // if attention screen is fully visible, we shouldn't restore the running
+      // app. It will be done when attention screen is closed.
+      if (!AttentionScreen.isFullyVisible()) {
+        restoreRunningApp();
+      }
     } else {
       setOrientationForInlineActivity(
         inlineActivityFrames[inlineActivityFrames.length - 1]);
