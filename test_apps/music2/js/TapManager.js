@@ -1,16 +1,18 @@
 function TapManager(dom){
   this.dom = dom;
 
-  Utils.setupPassEvent(this, 'down');
-  Utils.setupPassEvent(this, 'up');
-  Utils.setupPassEvent(this, 'tap');
-  Utils.setupPassEvent(this, 'long');
+  Utils.setupPassParent(this, 'down');
+  Utils.setupPassParent(this, 'up');
+  Utils.setupPassParent(this, 'tap');
+  Utils.setupPassParent(this, 'long');
+  Utils.setupPassParent(this, 'longTap');
 
   this.state = {
     startX: 0,
     startY: 0,
     lastX: 0,
     lastY: 0,
+    long: false,
     potentialTap: false,
   };
 
@@ -30,6 +32,7 @@ TapManager.prototype = {
     this.state.startY = y;
     this.state.lastX = x;
     this.state.lastY = y;
+    this.state.long = false;
     this.state.potentialTap = true;
     this.down(x, y);
     setTimeout(this.checkLong.bind(this), 500);
@@ -48,7 +51,10 @@ TapManager.prototype = {
   },
   pointerUp: function(){
     if (this.state.potentialTap){
-      this.tap(this.state.lastX, this.state.lastY);
+      if (this.state.long)
+        this.longTap(this.state.lastX, this.state.lastY);
+      else
+        this.tap(this.state.lastX, this.state.lastY);
       this.state.potentialTap = false;
       this.up();
     }
@@ -61,9 +67,8 @@ TapManager.prototype = {
   },
   checkLong: function(){
     if (this.state.potentialTap && this.onlong){
-      this.state.potentialTap = false;
       this.long(this.state.lastX, this.state.lastY);
-      this.up();
+      this.state.long = true;
     }
   },
 

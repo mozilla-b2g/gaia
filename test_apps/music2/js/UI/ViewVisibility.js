@@ -1,14 +1,8 @@
 function ViewVisibility() {
-  this.init();
-}
-
-ViewVisibility.prototype = {
-  init: function(){
-    this.dom = {};
-    var ids = [
-      'content',
-      'contentOverlay',
-      'metaDrawer',
+  Utils.loadDomIds(this, [
+      'selectPageContentOverlay',
+      'currentMusicContentOverlay',
+      'settingsDrawer',
       'sourcesMetaDrawer',
       'settingsMetaDrawer',
       'playlistDrawer',
@@ -25,22 +19,19 @@ ViewVisibility.prototype = {
 
       'toggleCurrentMusicPageView',
       'currentSourceView',
-      'currentPlaylistView'
-    ];
-    for (var i = 0; i < ids.length; i++){
-      var id = ids[i];
-      this.dom[id] = document.getElementById(id);
-    }
-    this.locked = false;
-  },
+      'currentPlaylistView',
+
+      'mediaLibraryPagePanelItems'
+  ]);
+}
+
+ViewVisibility.prototype = {
   showCurrentMusicPage: function(){
     if (this.locked)
       return;
     this.locked = true;
 
     var slide = function(){
-      this.dom.selectMusicPage.classList.add('hidden');
-      this.dom.contentOverlay.classList.add('hidden');
 
       this.dom.selectMusicPage.classList.remove('center');
       this.dom.selectMusicPage.classList.add('left');
@@ -48,24 +39,22 @@ ViewVisibility.prototype = {
       this.dom.currentMusicPage.classList.remove('right');
       this.dom.currentMusicPage.classList.add('center');
 
-      TransitionUtils.fadeIn(this.dom.gotoSelectMusicPage);
-      TransitionUtils.fadeIn(this.dom.currentMusicPageHeaderTitle);
-      TransitionUtils.fadeIn(this.dom.togglePlaylistDrawer, function(){
-        this.locked = false;
+      Utils.runEventOnce(this.dom.currentMusicPage, 'transitionend', function(){
+        if (this.dom.currentSourceView.classList.contains('hidden'))
+          this.dom.currentPlaylistView.classList.remove('hidden');
+        TransitionUtils.fadeOut(this.dom.currentMusicContentOverlay, function(){
+          this.locked = false;
+        }.bind(this));
       }.bind(this));
     }.bind(this);
 
-    var numTodo = 3;
-    var next = function(){
-      numTodo -= 1
-      if (numTodo === 0)
-        slide();
-    }.bind(this);
+    TransitionUtils.fadeIn(this.dom.selectPageContentOverlay, function(){
+      this.dom.currentMusicContentOverlay.classList.remove('hidden');
+      this.dom.mediaLibraryPagePanelItems.classList.add('hidden');
+      setTimeout(slide, 100);
+    }.bind(this));
 
-    this.dom.currentMusicPage.classList.remove('hidden');
-    TransitionUtils.fadeIn(this.dom.contentOverlay, next);
-    TransitionUtils.fadeOut(this.dom.toggleMetaDrawer, next);
-    TransitionUtils.fadeOut(this.dom.gotoCurrentMusicPage, next);
+
 
   },
   showSelectMusicPage: function(){
@@ -74,8 +63,6 @@ ViewVisibility.prototype = {
     this.locked = true;
 
     var slide = function(){
-      this.dom.currentMusicPage.classList.add('hidden');
-      this.dom.contentOverlay.classList.add('hidden');
 
       this.dom.selectMusicPage.classList.remove('left');
       this.dom.selectMusicPage.classList.add('center');
@@ -83,46 +70,40 @@ ViewVisibility.prototype = {
       this.dom.currentMusicPage.classList.remove('center');
       this.dom.currentMusicPage.classList.add('right');
 
-      TransitionUtils.fadeIn(this.dom.gotoCurrentMusicPage);
-      TransitionUtils.fadeIn(this.dom.toggleMetaDrawer);
-      Utils.runEventOnce(this.dom.toggleMetaDrawer, 'transitionend', function(){
-        this.locked = false;
+      Utils.runEventOnce(this.dom.selectMusicPage, 'transitionend', function(){
+        this.dom.mediaLibraryPagePanelItems.classList.remove('hidden');
+        TransitionUtils.fadeOut(this.dom.selectPageContentOverlay, function(){
+          this.locked = false;
+        }.bind(this));
       }.bind(this));
+
     }.bind(this);
 
-    this.dom.selectMusicPage.classList.remove('hidden');
+    TransitionUtils.fadeIn(this.dom.currentMusicContentOverlay, function(){
+      this.dom.selectPageContentOverlay.classList.remove('hidden');
+      this.dom.currentPlaylistView.classList.add('hidden');
+      setTimeout(slide, 100);
+    }.bind(this));
 
-    var numTodo = 4;
-    var next = function(){
-      numTodo -= 1
-      if (numTodo === 0)
-        slide();
-    }.bind(this);
-
-    TransitionUtils.fadeIn(this.dom.contentOverlay, next);
-    TransitionUtils.fadeOut(this.dom.togglePlaylistDrawer, next);
-    TransitionUtils.fadeOut(this.dom.gotoSelectMusicPage, next);
-    TransitionUtils.fadeOut(this.dom.currentMusicPageHeaderTitle, next);
   },
-  toggleMetaDrawer: function(){
+  toggleSettingsDrawer: function(){
     if (this.locked)
       return;
     this.locked = true;
 
-    var wasVisible = this.dom.content.classList.contains('partialRight');
+    var wasVisible = this.dom.selectMusicPage.classList.contains('partialRight');
 
     var slide = function(){
-      this.dom.metaDrawer.classList.toggle('in');
-      this.dom.metaDrawer.classList.toggle('out');
+      this.dom.settingsDrawer.classList.toggle('in');
+      this.dom.settingsDrawer.classList.toggle('out');
 
-      this.dom.content.classList.toggle('center');
-      this.dom.content.classList.toggle('partialRight');
+      this.dom.selectMusicPage.classList.toggle('center');
+      this.dom.selectMusicPage.classList.toggle('partialRight');
 
-      Utils.runEventOnce(this.dom.metaDrawer, 'transitionend', function(){
+      Utils.runEventOnce(this.dom.settingsDrawer, 'transitionend', function(){
         if (wasVisible){
-          this.dom.currentMusicPage.classList.remove('hidden');
-          this.dom.selectMusicPage.classList.remove('hidden');
-          TransitionUtils.fadeOut(this.dom.contentOverlay, function(){
+          this.dom.mediaLibraryPagePanelItems.classList.remove('hidden');
+          TransitionUtils.fadeOut(this.dom.selectPageContentOverlay, function(){
             this.locked = false;
           }.bind(this));
         }
@@ -131,43 +112,36 @@ ViewVisibility.prototype = {
         }
       }.bind(this));
     }.bind(this);
-
+    
     if (!wasVisible){
-      this.dom.currentMusicPage.classList.add('hidden');
-      TransitionUtils.fadeIn(this.dom.contentOverlay, function(){
-        this.dom.selectMusicPage.classList.add('hidden');
-        slide();
+      TransitionUtils.fadeIn(this.dom.selectPageContentOverlay, function(){
+        this.dom.mediaLibraryPagePanelItems.classList.add('hidden');
+        setTimeout(slide, 100);
       }.bind(this));
-
     }
     else {
-      slide(); 
+      slide();
     }
-
-  },
-  hideMetaDrawer: function(){
-    if (this.dom.content.classList.contains('partialRight'))
-      this.toggleMetaDrawer();
   },
   togglePlaylistDrawer: function(){
     if (this.locked)
       return;
     this.locked = true;
 
-    var wasVisible = this.dom.content.classList.contains('partialLeft');
+    var wasVisible = this.dom.currentMusicPage.classList.contains('partialLeft');
 
     var slide = function(){
       this.dom.playlistDrawer.classList.toggle('in');
       this.dom.playlistDrawer.classList.toggle('out');
 
-      this.dom.content.classList.toggle('center');
-      this.dom.content.classList.toggle('partialLeft');
+      this.dom.currentMusicPage.classList.toggle('center');
+      this.dom.currentMusicPage.classList.toggle('partialLeft');
 
       Utils.runEventOnce(this.dom.playlistDrawer, 'transitionend', function(){
         if (wasVisible){
-          this.dom.selectMusicPage.classList.remove('hidden');
-          this.dom.currentMusicPage.classList.remove('hidden');
-          TransitionUtils.fadeOut(this.dom.contentOverlay, function(){
+          if (this.dom.currentSourceView.classList.contains('hidden'))
+            this.dom.currentPlaylistView.classList.remove('hidden');
+          TransitionUtils.fadeOut(this.dom.currentMusicContentOverlay, function(){
             this.locked = false;
           }.bind(this));
         }
@@ -178,46 +152,15 @@ ViewVisibility.prototype = {
     }.bind(this);
 
     if (!wasVisible){
-      this.dom.selectMusicPage.classList.add('hidden');
-      TransitionUtils.fadeIn(this.dom.contentOverlay, function(){
-        this.dom.currentMusicPage.classList.add('hidden');
-        slide();
+      TransitionUtils.fadeIn(this.dom.currentMusicContentOverlay, function(){
+        this.dom.currentPlaylistView.classList.add('hidden');
+        setTimeout(slide, 100);
       }.bind(this));
     }
     else {
       slide();
     }
 
-  },
-  metaDrawerGotoSettings: function(){
-    if (this.locked)
-      return;
-    this.locked = true;
-
-    TransitionUtils.fadeOut(this.dom.gotoSettings, function(){
-      TransitionUtils.fadeIn(this.dom.gotoSources);
-    }.bind(this));
-    TransitionUtils.fadeOut(this.dom.sourcesMetaDrawer, function(){
-      TransitionUtils.fadeIn(this.dom.settingsMetaDrawer);
-      Utils.runEventOnce(this.dom.settingsMetaDrawer, 'transitionend', function(){
-        this.locked = false;
-      }.bind(this));
-    }.bind(this));
-  },
-  metaDrawerGotoSources: function(){
-    if (this.locked)
-      return;
-    this.locked = true;
-
-    TransitionUtils.fadeOut(this.dom.gotoSources, function(){
-      TransitionUtils.fadeIn(this.dom.gotoSettings);
-    }.bind(this));
-    TransitionUtils.fadeOut(this.dom.settingsMetaDrawer, function(){
-      TransitionUtils.fadeIn(this.dom.sourcesMetaDrawer);
-      Utils.runEventOnce(this.dom.sourcesMetaDrawer, 'transitionend', function(){
-        this.locked = false;
-      }.bind(this));
-    }.bind(this));
   },
   toggleCurrentMusicPageView: function(){
     if (this.locked)

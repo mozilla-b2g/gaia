@@ -10,9 +10,9 @@ var PlaylistView = function(list, hideAlbumArt){
 
   this.playlist.onelemMoved = this.onElemMoved.bind(this);
 
-  Utils.setupPassEvent(this, 'deleteItemFromPlaylist');
-  Utils.setupPassEvent(this, 'switchToPlaylistItem');
-  Utils.setupPassEvent(this, 'movePlaylistItemRelative');
+  Utils.setupPassParent(this, 'deleteItemFromPlaylist');
+  Utils.setupPassParent(this, 'switchToPlaylistItem');
+  Utils.setupPassParent(this, 'movePlaylistItemRelative');
 
   this.show = this.playlist.show.bind(this.playlist);
   this.hide = this.playlist.hide.bind(this.playlist);

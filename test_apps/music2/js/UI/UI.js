@@ -12,7 +12,6 @@ var UI = function() {
   this.viewVisibility = new ViewVisibility();
   this.viewEvents = new ViewEvents();
 
-  this.sourcesMetaDrawer = new SourcesMetaDrawer();
   this.playlistDrawer = new PlaylistDrawer();
   this.currentMusicPage = new CurrentMusicPage();
 
@@ -20,7 +19,7 @@ var UI = function() {
 
   this.viewEvents.onexitDrawer = function(){
     if (this.dom.content.classList.contains('partialRight'))
-      this.viewVisibility.toggleMetaDrawer();
+      this.viewVisibility.toggleSettingsDrawer();
     else if (this.dom.content.classList.contains('partialLeft'))
       this.viewVisibility.togglePlaylistDrawer();
   }.bind(this);
@@ -46,11 +45,8 @@ UI.prototype = {
       'ongotoCurrentMusicPage': 'showCurrentMusicPage',
       'ongotoSelectMusicPage': 'showSelectMusicPage',
 
-      'ontoggleMetaDrawer': 'toggleMetaDrawer',
+      'ontoggleSettingsDrawer': 'toggleSettingsDrawer',
       'ontogglePlaylistDrawer': 'togglePlaylistDrawer',
-
-      'ongotoSettings': 'metaDrawerGotoSettings',
-      'ongotoSources': 'metaDrawerGotoSources',
 
       'ontoggleCurrentMusicPageView': 'toggleCurrentMusicPageView'
     }
@@ -59,11 +55,5 @@ UI.prototype = {
       this.viewEvents[event] = this.viewVisibility[eventViewTable[event]].bind(this.viewVisibility);
     }
   },
-  addPage: function(page, onActivate, onDeactivate){
-    this.sourcesMetaDrawer.addSource(page.name, onActivate, onDeactivate);
-  },
-  activatePage: function(page){
-    this.sourcesMetaDrawer.activateSource(page.name);
-  }
 }
 

@@ -8,7 +8,7 @@ var SeekBar = function(){
       'seekRemaining'
   ]);
 
-  Utils.setupPassEvent(this, 'requestSetTime');
+  Utils.setupPassParent(this, 'requestSetTime');
 
   this.dom.seek.addEventListener('touchstart', this.touchstart.bind(this));
   this.dom.seek.addEventListener('touchend', this.touchend.bind(this));

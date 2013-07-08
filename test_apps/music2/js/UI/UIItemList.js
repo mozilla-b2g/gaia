@@ -7,7 +7,7 @@ var UIItemList = function(div){
 
   this.draggable = false;
 
-  Utils.setupPassEvent(this, 'elemMoved');
+  Utils.setupPassParent(this, 'elemMoved');
 }
 
 UIItemList.prototype = {
