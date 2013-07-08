@@ -370,16 +370,6 @@ section.has-carrier .article-list header:first-child {
   background: #fff;
 }
 
-.article-list[data-type="list"] .attachment[data-attachment-type='video'] {
-  width: 10.7rem;
-  height: 8rem;
-}
-
-.article-list[data-type="list"] .attachment[data-attachment-type='audio'] {
-  width: 6rem;
-  height: 6rem;
-}
-
 .article-list[data-type="list"] .message .attachment {
   display: block;
   margin: 1rem 0;
@@ -621,8 +611,10 @@ form.bottom[role="search"].messages-compose-form {
 
 .attachment {
   display: block;
-  max-width: 120px;
-  max-height: 120px;
+  width: 8rem;
+  height: 8rem;
+  max-width: 12rem;
+  max-height: 12rem;
   border: 1px solid #018eac;
   border-radius: 2px;
 
