@@ -1867,8 +1867,8 @@ Evme.Brain = new function Evme_Brain() {
                 "feature": source,
                 "exact": exact,
                 "prevQuery": lastQueryForImage,
-                "width": Evme.__config.bgImageSize[0] || screen.width,
-                "height": Evme.__config.bgImageSize[1] || screen.height
+                "width": Evme.__config.bgImageSize[0] * Evme.Utils.devicePixelRatio,
+                "height": Evme.__config.bgImageSize[1] * Evme.Utils.devicePixelRatio
             }, getBackgroundImageComplete);
         };
 
