@@ -140,10 +140,10 @@ var LockScreen = {
     document.addEventListener('visibilitychange', this);
 
     /* Gesture */
-    this.area.addEventListener('mousedown', this);
-    this.areaCamera.addEventListener('mousedown', this);
-    this.areaUnlock.addEventListener('mousedown', this);
-    this.iconContainer.addEventListener('mousedown', this);
+    this.area.addEventListener('touchstart', this);
+    this.areaCamera.addEventListener('touchstart', this);
+    this.areaUnlock.addEventListener('touchstart', this);
+    this.iconContainer.addEventListener('touchstart', this);
 
     /* Unlock & camera panel clean up */
     this.overlay.addEventListener('transitionend', this);
@@ -325,7 +325,7 @@ var LockScreen = {
         this.handlePassCodeInput(evt.target.dataset.key);
         break;
 
-      case 'mousedown':
+      case 'touchstart':
         if (evt.target === this.areaUnlock ||
            evt.target === this.areaCamera) {
           evt.preventDefault();
@@ -359,24 +359,31 @@ var LockScreen = {
           maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
             (handle.offsetWidth - rightTarget.offsetWidth) / 2
         };
-        window.addEventListener('mouseup', this);
-        window.addEventListener('mousemove', this);
+        window.addEventListener('touchend', this);
+        window.addEventListener('touchmove', this);
 
         this._touch.touched = true;
-        this._touch.initX = evt.pageX;
-        this._touch.initY = evt.pageY;
+        this._touch.initX = evt.touches[0].pageX;
+        this._touch.initY = evt.touches[0].pageY;
         overlay.classList.add('touched');
         break;
 
-      case 'mousemove':
-        this.handleMove(evt.pageX, evt.pageY);
+      case 'touchmove':
+        this.handleMove(
+          evt.touches[0].pageX,
+          evt.touches[0].pageY
+        );
         break;
 
-      case 'mouseup':
-        window.removeEventListener('mousemove', this);
-        window.removeEventListener('mouseup', this);
+      case 'touchend':
+        window.removeEventListener('touchmove', this);
+        window.removeEventListener('touchend', this);
 
-        this.handleMove(evt.pageX, evt.pageY);
+        this.handleMove(
+          evt.changedTouches[0].pageX,
+          evt.changedTouches[0].pageY
+        );
+
         this.handleGesture();
         delete this._touch;
         this.overlay.classList.remove('touched');
