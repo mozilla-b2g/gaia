@@ -1693,6 +1693,7 @@ var Browser = {
   },
 
   showStartscreen: function browser_showStartscreen() {
+    document.body.classList.add('start-page');
     this.startscreen.classList.remove('hidden');
     Places.getTopSites(this.MAX_TOP_SITES, null,
       function(places) {
@@ -1715,6 +1716,7 @@ var Browser = {
   },
 
   hideStartscreen: function browser_hideStartScreen() {
+    document.body.classList.remove('start-page');
     this.startscreen.classList.add('hidden');
     this.clearTopSiteThumbnails();
   },
