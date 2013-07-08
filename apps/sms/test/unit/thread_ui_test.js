@@ -14,6 +14,7 @@ requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
 
 requireApp('sms/test/unit/mock_alert.js');
+requireApp('sms/test/unit/mock_link_action_handler.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_l10n.js');
@@ -38,6 +39,7 @@ var mocksHelperForThreadUI = new MocksHelper([
   'Utils',
   'Settings',
   'Recipients',
+  'LinkActionHandler',
   'LinkHelper',
   'MozActivity',
   'ActivityPicker',
@@ -1337,6 +1339,75 @@ suite('thread_ui.js >', function() {
 
   // TODO: Move these tests to an integration test suite.
   // Bug 868056 - Clean up SMS test suite
+
+  suite('Actions on the links >', function() {
+    var messageId = 23, link, phone = '123123123';
+    setup(function() {
+      this.sinon.spy(LinkActionHandler, 'handleTapEvent');
+      this.sinon.spy(LinkActionHandler, 'handleLongPressEvent');
+
+      this.sinon.stub(LinkHelper, 'searchAndLinkClickableData', function() {
+        return '<a data-phonenumber="' + phone +
+        '" data-action="phone-link">' + phone + '</a>';
+      });
+
+      ThreadUI.appendMessage({
+        id: messageId,
+        type: 'sms',
+        body: 'This is a test with 123123123',
+        delivery: 'error',
+        timestamp: new Date()
+      });
+      // Retrieve DOM element for executing the event
+      var messageDOM = document.getElementById('message-' + messageId);
+      link = messageDOM.querySelector('a');
+    });
+
+    teardown(function() {
+      ThreadUI.container.innerHTML = '';
+      link = null;
+    });
+
+    test(' "click"', function() {
+      // In this case we are checking the 'click' action on a link
+      link.click();
+      // This 'click' was handled properly?
+      assert.ok(LinkActionHandler.handleTapEvent.called);
+      assert.isFalse(LinkActionHandler.handleLongPressEvent.called);
+    });
+
+    test(' "contextmenu"', function() {
+      var contextMenuEvent = new CustomEvent('contextmenu', {
+        'bubbles': true,
+        'cancelable': true
+      });
+      this.sinon.spy(contextMenuEvent, 'stopPropagation');
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      // Was the propagation stopped?
+      assert.ok(contextMenuEvent.stopPropagation.called);
+      assert.ok(contextMenuEvent.defaultPrevented);
+      // This 'context-menu' was handled properly?
+      assert.isFalse(LinkActionHandler.handleTapEvent.called);
+      assert.ok(LinkActionHandler.handleLongPressEvent.called);
+    });
+
+    test(' "contextmenu" after "click"', function() {
+      var contextMenuEvent = new CustomEvent('contextmenu', {
+        'bubbles': true,
+        'cancelable': true
+      });
+      // Clicking on the element
+      link.click();
+      // After clicking, we dispatch a context menu
+      link.dispatchEvent(contextMenuEvent);
+      // Are 'click' and 'contextmenu' working properly?
+      assert.ok(LinkActionHandler.handleTapEvent.called);
+      assert.ok(LinkActionHandler.handleLongPressEvent.called);
+    });
+  });
+
+
   suite('Message resending UI', function() {
     setup(function() {
       ThreadUI.appendMessage({

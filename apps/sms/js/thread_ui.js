@@ -1314,6 +1314,8 @@ var ThreadUI = global.ThreadUI = {
         }
         break;
       case 'contextmenu':
+        evt.preventDefault();
+        evt.stopPropagation();
         LinkActionHandler.handleLongPressEvent(evt);
         break;
       case 'submit':
