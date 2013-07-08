@@ -415,6 +415,7 @@ var Compose = (function() {
         case 'attachment-options-remove':
           attachments.delete(this.currentAttachmentDOM);
           dom.message.removeChild(this.currentAttachmentDOM);
+          state.size = null;
           composeCheck({type: 'input'});
           AttachmentMenu.close();
           break;
@@ -425,6 +426,7 @@ var Compose = (function() {
             attachments.set(el, newAttachment);
             dom.message.insertBefore(el, this.currentAttachmentDOM);
             dom.message.removeChild(this.currentAttachmentDOM);
+            state.size = null;
             composeCheck({type: 'input'});
             AttachmentMenu.close();
           }).bind(this);
