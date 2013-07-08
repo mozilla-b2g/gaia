@@ -15,6 +15,7 @@ var IccHelper = (function() {
 
   if (mobileConn) {
     iccManager = navigator.mozIccManager || mobileConn.icc;
+    iccManager = iccManager || {};
 
     var actors = {
       'cardLock': null,
