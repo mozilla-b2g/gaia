@@ -358,6 +358,7 @@ var MediaDB = (function() {
     this.autoscan = (options.autoscan !== undefined) ? options.autoscan : true;
     this.state = MediaDB.OPENING;
     this.scanning = false;  // becomes true while scanning
+    this.parsingBigFiles = false;
 
     // While scanning, we attempt to send change events in batches.
     // After finding a new or deleted file, we'll wait this long before
@@ -1338,6 +1339,7 @@ var MediaDB = (function() {
   function endscan(media) {
     if (media.scanning) {
       media.scanning = false;
+      media.parsingBigFiles = false;
       dispatchEvent(media, 'scanend');
     }
   }
@@ -1502,7 +1504,10 @@ var MediaDB = (function() {
         details.newestFileModTime = fileinfo.date;
 
       // Get metadata about the file
-      media.metadataParser(file, gotMetadata, metadataError);
+      media.metadataParser(file, gotMetadata, metadataError, parsingBigFile);
+      function parsingBigFile() {
+        media.parsingBigFiles = true;
+      }
       function metadataError(e) {
         console.warn('MediaDB: error parsing metadata for',
                      filename, ':', e);
@@ -1517,6 +1522,10 @@ var MediaDB = (function() {
       function gotMetadata(metadata) {
         fileinfo.metadata = metadata;
         storeRecord(fileinfo);
+        if (!media.scanning) {
+          // single file parsing.
+          media.parsingBigFiles = false;
+        }
       }
     }
 

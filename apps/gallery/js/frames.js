@@ -153,7 +153,7 @@ function doubletapOnPhoto(e) {
   // decodes the full-size version of the photo and that can cause OOM
   // errors if there is also metadata scanning going on with large images.
   // XXX: Remove this when bug 854795 is fixed.
-  if (scanningBigImages)
+  if (photodb.parsingBigFiles)
     return;
 
   var scale;
@@ -286,7 +286,7 @@ function transformHandler(e) {
   // decodes the full-size version of the photo and that can cause OOM
   // errors if there is also metadata scanning going on with large images.
   // XXX: Remove this when bug 854795 is fixed.
-  if (scanningBigImages)
+  if (photodb.parsingBigFiles)
     return;
 
   currentFrame.zoom(e.detail.relative.scale,
