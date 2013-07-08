@@ -817,7 +817,12 @@ window.addEventListener('load', function loadSettings() {
     }
 
     var href = target.getAttribute('href');
-    if (!href || !href.startsWith('#')) {
+    // skips the following case:
+    // 1. no href, which is not panel
+    // 2. href is not a hash which is not a panel
+    // 3. href equals # which is translated with loadPanel function, they are
+    //    external links.
+    if (!href || !href.startsWith('#') || href === '#') {
       return;
     }
 
