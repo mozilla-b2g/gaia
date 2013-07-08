@@ -690,8 +690,8 @@ var WindowManager = (function() {
 
   function toggleHomescreen(visible) {
     var homescreenFrame = ensureHomescreen();
-    if (homescreenFrame && 'setVisible' in homescreenFrame.firstChild)
-      homescreenFrame.firstChild.setVisible(visible);
+    if (homescreenFrame)
+      runningApps[homescreen].setVisible(visible);
   }
 
   // Switch to a different app
