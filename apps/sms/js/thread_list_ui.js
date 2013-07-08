@@ -214,29 +214,45 @@ var ThreadListUI = {
   },
 
   delete: function thlui_delete() {
-    var question = navigator.mozL10n.get('deleteThreads-confirmation2');
-    var messageIds = [];
-    var threadIds, threadId, filter, count;
 
-    function checkDone(threadId) {
-      Threads.delete(threadId);
-      // Cleanup the DOM
-      this.removeThread(threadId);
-
-      if (--count === 0) {
-        this.cancelEdit();
-        WaitingScreen.hide();
+    var messageIds = [], threadsToRemove = [], iterations,
+    // Creating the filter once, and updating in the following requests
+    // increase the performance drastically
+    filter = new MozSmsFilter();
+    function onThreadMessagesRetrieve(threadId) {
+      // TODO Handle if there was an error
+      // Bug 892447
+      threadsToRemove.push(threadId);
+      // If we have the entire list, we code delete all
+      if (--iterations === 0) {
+        // Delete all messages in one call
+        MessageManager.deleteMessages(messageIds, (function deletionDone() {
+          // We remove the DOM Elements
+          var numberOfThreads = threadsToRemove.length;
+          for (var i = numberOfThreads - 1; i >= 0; i--) {
+            // Cleaning the list
+            Threads.delete(threadsToRemove[i]);
+            // Cleanup the DOM
+            this.removeThread(threadsToRemove[i]);
+          }
+          // Restoring previous status
+          this.cancelEdit();
+          WaitingScreen.hide();
+        }).bind(this));
       }
     }
-
+    // Ask to the user
+    var question = navigator.mozL10n.get('deleteThreads-confirmation2');
     if (confirm(question)) {
+      // Show loading screen while deleting
       WaitingScreen.show();
-
-      threadIds = this.selectedInputs.map(function(input) {
+      // Retrieve the list of thread IDs
+      var threadId;
+      var threadIds = this.selectedInputs.map(function(input) {
         return input.value;
       });
-
-      count = threadIds.length;
+      // Take the number of iterations
+      iterations = threadIds.length;
 
       // Remove and coerce the threadId back to a number
       // MozSmsFilter and all other platform APIs
@@ -244,17 +260,18 @@ var ThreadListUI = {
       while (threadId = +threadIds.pop()) {
 
         // Filter and request all messages with this threadId
-        filter = new MozSmsFilter();
         filter.threadId = threadId;
-
+        // Per each thread
         MessageManager.getMessages({
           filter: filter,
           invert: true,
           each: function each(message) {
-            MessageManager.deleteMessage(message.id);
+            // TODO Add error management in the cursor
+            // Bug 892447
+            messageIds.push(message.id);
             return true;
           },
-          end: checkDone.bind(this, threadId)
+          end: onThreadMessagesRetrieve.bind(this, threadId)
         });
       }
     }

@@ -202,13 +202,14 @@ suite('thread_list_ui', function() {
 
   suite('delete', function() {
     setup(function() {
+      // We consider that we have 2 threads
       this.selectedInputs = [{value: 1}, {value: 2}];
       this.sinon.stub(ThreadListUI, 'getSelectedInputs', function() {
         return this.selectedInputs;
       }.bind(this));
       this.sinon.stub(MessageManager, 'getMessages');
     });
-    suite('confirm false', function() {
+    suite('confirm screen > cancel', function() {
       setup(function() {
         this.sinon.stub(window, 'confirm').returns(false);
         ThreadListUI.delete();
@@ -218,72 +219,47 @@ suite('thread_list_ui', function() {
           ['deleteThreads-confirmation2']);
       });
     });
-    suite('confirm true', function() {
+    suite('confirm screen > remove', function() {
       setup(function() {
+        this.sinon.stub(window, 'confirm').returns(true);
+        this.sinon.stub(ThreadListUI, 'removeThread');
+        MessageManager.getMessages.restore();
+        this.sinon.stub(MessageManager, 'getMessages', function(options) {
+          options.end();
+        });
+        this.sinon.spy(MessageManager, 'deleteMessages');
         this.sinon.stub(WaitingScreen, 'show');
         this.sinon.stub(WaitingScreen, 'hide');
-        this.sinon.stub(window, 'confirm').returns(true);
         ThreadListUI.delete();
       });
+
       test('shows WaitingScreen', function() {
         assert.ok(WaitingScreen.show.called);
       });
+
       test('called confirm with proper message', function() {
         assert.deepEqual(window.confirm.args[0],
           ['deleteThreads-confirmation2']);
       });
+
       test('called MessageManager.getMessages twice', function() {
+        // As we have 2 threads defined in the setup, we should
+        // have 2 request to getMessages
         assert.equal(MessageManager.getMessages.args.length, 2);
       });
-      suite('getMessages({ each: })', function() {
-        setup(function() {
-          this.sinon.stub(MessageManager, 'deleteMessage');
-          // call the "each" function passed to getMessages with fake message
-          MessageManager.getMessages.args[0][0].each({ id: 3 });
-        });
-        test('MessageManager.deleteMessage called', function() {
-          assert.ok(MessageManager.deleteMessage.calledWith(3));
-        });
+
+      test('called MessageManager.deleteMessages *only* once', function() {
+        // We need to ensure that we are calling only one time
+        // deleteMessages for getting best performance.
+        assert.equal(MessageManager.deleteMessages.callCount, 1);
       });
-      suite('first getMessages', function() {
-        setup(function() {
-          this.sinon.stub(Threads, 'delete');
-          this.sinon.stub(ThreadListUI, 'removeThread');
-          // call the "end" function passed to getMessages with fake message
-          MessageManager.getMessages.args[0][0].end();
-        });
-        test('is for the right thread', function() {
-          assert.equal(
-            MessageManager.getMessages.args[0][0].filter.threadId, 2);
-        });
-        test('end calls removeThread for correct thread', function() {
-          assert.equal(ThreadListUI.removeThread.args[0][0], 2);
-        });
-        test('end calls Threads.delete with correct thread', function() {
-          assert.equal(Threads.delete.args[0][0], 2);
-        });
-        test('end doesnt hide waiting screen (yet)', function() {
-          assert.isFalse(WaitingScreen.hide.called);
-        });
-        suite('sencond getMessages', function() {
-          setup(function() {
-            MessageManager.getMessages.args[1][0].end();
-          });
-          test('is for the right thread', function() {
-            assert.equal(
-              MessageManager.getMessages.args[1][0].filter.threadId, 1);
-          });
-          test('end calls removeThread for correct thread', function() {
-            assert.equal(ThreadListUI.removeThread.args[1][0], 1);
-          });
-          test('end calls Threads.delete with correct thread', function() {
-            assert.equal(Threads.delete.args[1][0], 1);
-          });
-          test('end calls hide waiting screen', function() {
-            assert.isTrue(WaitingScreen.hide.called);
-          });
-        });
+
+      test('called ThreadListUI.removeThread *only* twice', function() {
+        // As we have 2 threads in the UI, we need to call removeThread
+        // twice.
+        assert.equal(ThreadListUI.removeThread.callCount, 2);
       });
+
     });
   });
 
