@@ -41,9 +41,12 @@
   if (!mobileConnection)
     return;
 
+  if (!IccHelper.enabled)
+    return;
+
   // Check the mcc/mnc information on the SIM card.
   function checkICCInfo() {
-    if (!mobileConnection.iccInfo || mobileConnection.cardState !== 'ready')
+    if (!mobileConnection.iccInfo || IccHelper.cardState !== 'ready')
       return;
 
     // ensure that the iccSettings have been retrieved

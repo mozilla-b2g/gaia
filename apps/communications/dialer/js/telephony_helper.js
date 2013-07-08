@@ -21,7 +21,7 @@ var TelephonyHelper = (function() {
     var telephony = navigator.mozTelephony;
     if (telephony) {
       var conn = window.navigator.mozMobileConnection;
-      var cardState = conn.cardState;
+      var cardState = IccHelper.cardState;
       var emergencyOnly = conn.voice.emergencyCallsOnly;
       var call;
 
