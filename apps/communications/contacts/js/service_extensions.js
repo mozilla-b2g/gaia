@@ -70,7 +70,7 @@ if (typeof Contacts.extServices === 'undefined') {
           closeRequested = true;
         }
 
-        if (message) {
+        if (message && message.trim().length > 0) {
           Contacts.showStatus(message);
         }
       // Otherwise we do nothing as the sync process will finish sooner or later

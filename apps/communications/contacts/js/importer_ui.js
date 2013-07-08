@@ -45,6 +45,8 @@ if (typeof window.importer === 'undefined') {
     // Current network request to enable canceling
     var currentNetworkRequest = null;
 
+    var cancelled = false;
+
     var _ = navigator.mozL10n.get;
 
     // Indicates whether some friends have been imported or not
@@ -71,7 +73,8 @@ if (typeof window.importer === 'undefined') {
 
     var isOnLine = navigator.onLine;
     var ongoingImport = false;
-    var theImporter;
+    var ongoingClean = false;
+    var theImporter, theCleaner;
 
     window.addEventListener('online', onLineChanged);
     window.addEventListener('offline', onLineChanged);
@@ -307,7 +310,7 @@ if (typeof window.importer === 'undefined') {
       friendsImported = false;
       syncOngoing = false;
 
-      ongoingImport = false;
+      ongoingImport = ongoingClean = false;
 
       selectAllButton = document.getElementById('select-all');
       deSelectAllButton = document.getElementById('deselect-all');
@@ -581,6 +584,20 @@ if (typeof window.importer === 'undefined') {
       } // else
     };
 
+    function cancelImport() {
+      cancelled = true;
+
+      var cancelFunc = onUpdate;
+      if (ongoingImport) {
+        cancelFunc = theImporter.finish;
+      } else if (ongoingClean) {
+        cancelFunc = theCleaner.finish;
+      }
+
+      cancelFunc();
+      Curtain.show('message', 'canceling');
+    }
+
     function cancelCb() {
       if (currentNetworkRequest) {
          currentNetworkRequest.cancel();
@@ -678,7 +695,7 @@ if (typeof window.importer === 'undefined') {
         parent.postMessage({
           type: 'window_close',
           data: '',
-          message: _('friendsUpdated', {
+          message: cancelled ? '' : _('friendsUpdated', {
             numFriends: numFriends
           })
         }, targetApp);
@@ -714,6 +731,10 @@ if (typeof window.importer === 'undefined') {
     }
 
     function cleanContacts(onsuccess, progress) {
+      if (cancelled) {
+        return;
+      }
+
       var contacts = [];
       var unSelectedKeys = Object.keys(unSelectedContacts);
       // ContactsCleaner expects an Array object
@@ -729,13 +750,20 @@ if (typeof window.importer === 'undefined') {
       if (unSelectedKeys.length === existingContacts.length &&
           Object.keys(selectedContacts).length === 0) {
         mode = 'clear';
+        Curtain.hideMenu(); // User cannot cancel cleaning all the friends
       }
 
       serviceConnector.cleanContacts(contacts, mode,
           function gotCleaner(cleaner) {
             if (cleaner) {
+              theCleaner = cleaner;
+              ongoingClean = true;
               cleaner.oncleaned = progress.update;
-              cleaner.onsuccess = onsuccess;
+              cleaner.onsuccess = function() {
+                ongoingClean = false;
+                theCleaner = null;
+                onsuccess();
+              };
             }
             else {
               Importer.errorHandler();
@@ -762,10 +790,12 @@ if (typeof window.importer === 'undefined') {
       var unSelected = getTotalUnselected();
       var total = selected + unSelected;
 
+      cancelled = false;
       if (selected > 0) {
         var progress = Curtain.show('progress', 'import');
         progress.setTotal(total);
 
+        Curtain.oncancel = cancelImport;
         Importer.importAll(function on_all_imported(totalImported) {
           if (typeof serviceConnector.oncontactsimported === 'function') {
             // Check whether we need to set the last update and schedule next
@@ -788,6 +818,7 @@ if (typeof window.importer === 'undefined') {
       } else if (unSelected > 0) {
         var progress = Curtain.show('progress', 'update');
         progress.setTotal(total);
+        Curtain.oncancel = cancelImport;
         cleanContacts(function callback() {
           onUpdate(total);
         }, progress);
@@ -943,6 +974,10 @@ if (typeof window.importer === 'undefined') {
     }
 
     function doImportAll(importedCB, progress) {
+      if (cancelled) {
+        return;
+      }
+
       checkNodeList = null;
       var toBeImported = Object.keys(selectedContacts);
       var numFriends = toBeImported.length;

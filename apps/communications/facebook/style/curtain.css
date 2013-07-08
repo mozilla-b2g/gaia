@@ -19,7 +19,8 @@ form[role="dialog"][data-type="confirm"][data-state="wait"] #wait {
   display: inline-block;
 }
 
-form[role="dialog"][data-type="confirm"][data-state="wait"] #cancel {
+form[role="dialog"][data-type="confirm"][data-state="wait"] #cancel,
+form[role="dialog"][data-type="confirm"][data-state="progress"] #cancel {
   width: 100%;
 }
 
@@ -31,7 +32,8 @@ form[role="dialog"][data-type="confirm"][data-state="progress"] #progress {
   display: inline-block;
 }
 
-form[role="dialog"][data-type="confirm"][data-state="progress"] menu,
+form.no-menu[role="dialog"][data-type="confirm"] menu,
+form[role="dialog"][data-type="confirm"][data-state="progress"] menu #retry,
 form[role="dialog"][data-type="confirm"][data-state="message"] menu {
   display: none;
 }

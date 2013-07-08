@@ -38,6 +38,7 @@ var Curtain = (function() {
   }
 
   function doShow(type) {
+    form.classList.remove('no-menu');
     form.dataset.state = type;
     curtainFrame.classList.add('visible');
     curtainFrame.classList.remove('fade-out');
@@ -199,6 +200,13 @@ var Curtain = (function() {
      */
     get visible() {
       return curtainFrame.classList.contains('visible');
+    },
+
+    /**
+     *  Hides the menu
+     */
+    hideMenu: function c_hideMenu() {
+      form.classList.add('no-menu');
     }
   };
 
