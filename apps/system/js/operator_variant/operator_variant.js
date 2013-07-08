@@ -61,8 +61,17 @@
     mobileConnection.removeEventListener('iccinfochange', checkICCInfo);
 
     // same SIM card => do nothing
-    if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc))
+    if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc)) {
+      var apnSettingsKey = 'ril.data.apnSettings';
+      var apnRequest = settings.createLock().get(apnSettingsKey);
+      apnRequest.onsuccess = function() {
+        // no apnSettings, build it.
+        if (!apnRequest.result[apnSettingsKey]) {
+          retrieveOperatorVariantSettings(buildApnSettings);
+        }
+      };
       return;
+    }
 
     // new SIM card => cache iccInfo, load and apply new APN settings
     iccSettings.mcc = mcc;
@@ -174,10 +183,23 @@
         transaction.set(item);
       }
     }
+
+    buildApnSettings(result);
+
+    // store the current mcc/mnc info in the settings
+    transaction.set({
+      'operatorvariant.mcc': iccSettings.mcc,
+      'operatorvariant.mnc': iccSettings.mnc
+    });
+  }
+
+  // build settings for apnSettings.
+  function buildApnSettings(result) {
     // for new apn settings
     var apnSettings = [];
     var apnTypeCandidates = ['default', 'supl', 'mms'];
     var checkedType = [];
+    var transaction = settings.createLock();
     // converts apns to new format
     for (var i = 0; i < result.length; i++) {
       var sourceAPNItem = result[i];
@@ -204,14 +226,7 @@
       apnSettings.push(sourceAPNItem);
     }
     transaction.set({'ril.data.apnSettings': [apnSettings]});
-
-    // store the current mcc/mnc info in the settings
-    transaction.set({
-      'operatorvariant.mcc': iccSettings.mcc,
-      'operatorvariant.mnc': iccSettings.mnc
-    });
   }
-
 
   /**
    * Check the APN settings on startup and when the SIM card is changed.
