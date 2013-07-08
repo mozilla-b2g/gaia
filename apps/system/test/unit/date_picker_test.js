@@ -44,7 +44,7 @@ suite('date picker', function() {
       subject = DatePicker.Calc;
     });
 
-    suite('#isSameDate', function() {
+    suite('isSameDate', function() {
 
       test('same day', function() {
         assert.isTrue(subject.isSameDate(
@@ -61,7 +61,7 @@ suite('date picker', function() {
       });
     });
 
-    suite('#isToday', function() {
+    suite('isToday', function() {
       test('when given is today', function() {
         var result = subject.isToday(new Date());
 
@@ -77,7 +77,7 @@ suite('date picker', function() {
       });
     });
 
-    suite('#isPast', function() {
+    suite('isPast', function() {
       test('when date is passed', function() {
         var date = new Date();
         date.setTime(Date.now() - 1000);
@@ -97,7 +97,7 @@ suite('date picker', function() {
 
     });
 
-    suite('#isFuture', function() {
+    suite('isFuture', function() {
       test('when date is passed', function() {
         var date = new Date();
         date.setTime(Date.now() - 100);
@@ -115,7 +115,7 @@ suite('date picker', function() {
 
     });
 
-    suite('#dateFromId', function() {
+    suite('dateFromId', function() {
       var id;
       var result;
       var date = new Date(2012, 7, 3);
@@ -133,7 +133,7 @@ suite('date picker', function() {
 
     });
 
-    test('#getDayId', function() {
+    test('getDayId', function() {
       var result = subject.getDayId(
         new Date(2012, 3, 7)
       );
@@ -141,7 +141,7 @@ suite('date picker', function() {
       assert.equal(result, '2012-3-7');
     });
 
-    suite('#relativeState', function() {
+    suite('relativeState', function() {
 
       setup(function() {
         mock('isToday', false);
@@ -202,7 +202,7 @@ suite('date picker', function() {
 
   });
 
-  suite('#_daysIn', function() {
+  suite('_daysIn', function() {
     test('leap year', function() {
       var result = subject._daysInMonth(2012, 1);
       assert.equal(result, 29);
@@ -214,7 +214,7 @@ suite('date picker', function() {
     });
   });
 
-  suite('#_renderDay', function() {
+  suite('_renderDay', function() {
 
     test('simple', function() {
       var date = new Date(2012, 1, 27);
@@ -247,7 +247,7 @@ suite('date picker', function() {
     });
   });
 
-  suite('#_renderWeek', function() {
+  suite('_renderWeek', function() {
     var days = [
       new Date(2012, 0, 29),
       new Date(2012, 0, 30),
@@ -278,7 +278,7 @@ suite('date picker', function() {
 
   });
 
-  suite('#_renderMonth', function() {
+  suite('_renderMonth', function() {
 
     function weekHtml(start, end) {
       var range = Calc.daysBetween(start, end);
@@ -356,7 +356,7 @@ suite('date picker', function() {
       subject.display(2012, 2, 31);
     });
 
-    test('#next', function() {
+    test('next', function() {
       subject.next();
 
       // should be 2012/4/30
@@ -365,7 +365,7 @@ suite('date picker', function() {
       assert.equal(subject.date, 30);
     });
 
-    test('#previous', function() {
+    test('previous', function() {
       subject.previous();
 
       // should be 2012/2/29
@@ -376,7 +376,7 @@ suite('date picker', function() {
 
   });
 
-  suite('#display', function() {
+  suite('display', function() {
     var year = 2012;
     var month = 11;
     var date = 1;
@@ -421,7 +421,7 @@ suite('date picker', function() {
   });
 
   suite('setters', function() {
-    test('#value', function() {
+    test('value', function() {
       var calledWith;
       var date;
 
