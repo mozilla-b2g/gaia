@@ -190,7 +190,7 @@
       return this.findBy({
         filterBy: ['tel'],
         filterOp: 'match',
-        filterValue: filterValue
+        filterValue: filterValue.replace(/\s+/g, '')
       }, callback);
     }
   };

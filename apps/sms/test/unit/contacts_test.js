@@ -384,6 +384,20 @@ suite('Contacts', function(done) {
     });
   });
 
+  suite('Contacts.findByPhoneNumber', function() {
+
+    test('removes spaces', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByPhoneNumber('+33 1 23 45 67 89', function(contacts) {
+        assert.equal(
+          mozContacts.mHistory[0].filter.filterValue, '+33123456789'
+        );
+        done();
+      });
+    });
+  });
+
   suite('Contacts.findBy (success)', function() {
 
     test('(object, ...), Match', function(done) {
