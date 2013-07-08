@@ -16,9 +16,9 @@ var SimManager = {
     _ = navigator.mozL10n.get;
 
     IccHelper.addEventListener('icccardlockerror',
-                                  this.handleUnlockError.bind(this));
-    this.mobConn.addEventListener('cardstatechange',
-                                  this.handleCardState.bind(this));
+                               this.handleUnlockError.bind(this));
+    IccHelper.addEventListener('cardstatechange',
+                               this.handleCardState.bind(this));
 
     this.alreadyImported = false;
 
@@ -79,9 +79,9 @@ var SimManager = {
   },
 
   available: function sm_available() {
-    if (!this.mobConn)
+    if (!IccHelper.enabled)
       return false;
-    return (this.mobConn.cardState === 'ready');
+    return (IccHelper.cardState === 'ready');
   },
 
  /**
@@ -99,7 +99,7 @@ var SimManager = {
   handleCardState: function sm_handleCardState(callback) {
     SimManager.checkSIMButton();
     this.accessCallback = (typeof callback === 'function') ? callback : null;
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'pinRequired':
         this.showPinScreen();
         break;
@@ -113,7 +113,7 @@ var SimManager = {
         break;
       default:
         if (this.accessCallback) {
-          this.accessCallback(this.mobConn.cardState === 'ready');
+          this.accessCallback(IccHelper.cardState === 'ready');
         }
         break;
     }
@@ -191,7 +191,7 @@ var SimManager = {
     UIManager.pukcodeScreen.classList.remove('show');
     UIManager.xckcodeScreen.classList.add('show');
 
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'networkLocked':
         UIManager.unlockSimHeader.textContent = _('nckcode');
         UIManager.xckLabel.textContent = _('type_nck');
@@ -226,7 +226,7 @@ var SimManager = {
   unlock: function sm_unlock() {
     this._unlocked = false;
 
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'pinRequired':
         this.unlockPin();
         break;
@@ -315,7 +315,7 @@ var SimManager = {
   unlockXck: function sm_unlockXck() {
     var xck = UIManager.xckInput.value;
     var lockType;
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'networkLocked':
         lockType = 'nck';
         break;

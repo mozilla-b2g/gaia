@@ -27,7 +27,6 @@ var SimPinDialog = {
   errorMsgBody: document.getElementById('messageBody'),
 
   mobileConnection: null,
-  icc: null,
 
   lockType: 'pin',
   action: 'unlock',
@@ -69,7 +68,7 @@ var SimPinDialog = {
   handleCardState: function spl_handleCardState() {
     var _ = navigator.mozL10n.get;
 
-    var cardState = this.mobileConnection.cardState;
+    var cardState = IccHelper.cardState;
     var lockType = this.lockTypeMap[cardState];
     var retryCount = this.mobileConnection.retryCount;
 

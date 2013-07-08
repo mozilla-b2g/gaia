@@ -28,12 +28,15 @@
   if (!mobileConnection) {
     return;
   }
+  if (!IccHelper.enabled) {
+    return;
+  }
 
   // Initialize the icon based on the card state and whether
   // it is in airplane mode
   var _cfIconStateInitialized = false;
   function initCallForwardingIconState() {
-    var cardState = mobileConnection.cardState;
+    var cardState = IccHelper.cardState;
     if (_cfIconStateInitialized || cardState !== 'ready')
       return;
 
@@ -56,7 +59,7 @@
   settings.createLock().set({'ril.cf.enabled': false});
 
   initCallForwardingIconState();
-  mobileConnection.addEventListener('cardstatechange', function() {
+  IccHelper.addEventListener('cardstatechange', function() {
     initCallForwardingIconState();
   });
   mobileConnection.addEventListener('iccinfochange', function() {

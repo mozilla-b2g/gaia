@@ -20,8 +20,8 @@ var Widget = (function() {
 
     // SIM not ready
     if (cardState !== 'ready') {
-      debug('SIM not ready:', mobileConnection.cardState);
-      mobileConnection.oncardstatechange = onReady;
+      debug('SIM not ready:', IccHelper.cardState);
+      IccHelper.oncardstatechange = onReady;
 
     // SIM is ready, but ICC info is not ready yet
     } else if (!Common.isValidICCID(iccid)) {
@@ -31,7 +31,7 @@ var Widget = (function() {
     // All ready
     } else {
       debug('SIM ready. ICCID:', iccid);
-      mobileConnection.oncardstatechange = undefined;
+      IccHelper.oncardstatechange = undefined;
       mobileConnection.oniccinfochange = undefined;
       startWidget();
     }
@@ -40,9 +40,8 @@ var Widget = (function() {
   // Check the card status. Return 'ready' if all OK or take actions for
   // special situations such as 'pin/puk locked' or 'absent'.
   function checkCardState() {
-    var mobileConnection = window.navigator.mozMobileConnection;
     var state, cardState;
-    state = cardState = mobileConnection.cardState;
+    state = cardState = IccHelper.cardState;
 
     // SIM is absent
     if (cardState === 'absent') {

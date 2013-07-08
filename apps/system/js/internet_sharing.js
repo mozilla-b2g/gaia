@@ -44,7 +44,7 @@ var InternetSharing = (function() {
   }
 
   function checkCardAndInternetSharing() {
-    cardState = mobileConnection.cardState;
+    cardState = IccHelper.cardState;
     if (validCardState.indexOf(cardState) > -1) {
       // if it is known cardState, we need to load internet sharing state from
       // settings
@@ -122,11 +122,13 @@ var InternetSharing = (function() {
     if (!mobileConnection) {
       return;
     }
+    if (!IccHelper.enabled) {
+      return;
+    }
     observerHooked = false;
     checkCardAndInternetSharing();
     // listen cardstatechange event for ready, pin, puk, or network unlocking.
-    mobileConnection.addEventListener('cardstatechange',
-                                      checkCardAndInternetSharing);
+    IccHelper.addEventListener('cardstatechange', checkCardAndInternetSharing);
   }
   return {init: _init};
 })();

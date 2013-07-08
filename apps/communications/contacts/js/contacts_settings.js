@@ -31,9 +31,8 @@ contacts.Settings = (function() {
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
     // To listen to card state changes is needed for enabling import from SIM
-    var mobileConn = navigator.mozMobileConnection;
-    if (mobileConn) {
-      mobileConn.oncardstatechange = Contacts.cardStateChanged;
+    if (IccHelper.enabled) {
+      IccHelper.oncardstatechange = Contacts.cardStateChanged;
     }
     fb.init(function onFbInit() {
       initContainers();
@@ -119,14 +118,12 @@ contacts.Settings = (function() {
   };
 
   var checkSIMCard = function checkSIMCard() {
-    var conn = window.navigator.mozMobileConnection;
-
-    if (!conn) {
+    if (!IccHelper.enabled) {
       enableSIMImport(false);
       return;
     }
 
-    enableSIMImport(conn.cardState);
+    enableSIMImport(IccHelper.cardState);
   };
 
   // Disables/Enables the actions over the sim import functionality
