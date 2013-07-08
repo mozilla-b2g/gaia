@@ -252,7 +252,7 @@ var metadataParser = (function() {
       // XXX: When bug 854795 is fixed, we'll be able to create previews
       // for large images without using so much memory, and we can remove
       // this flag then.
-      if (iw * ih > 2 * 1024 * 1024)
+      if (iw * ih > 2 * 1024 * 1024 && photodb.scanning)
         scanningBigImages = true;
 
       // If the image was already thumbnail size, it is its own thumbnail
