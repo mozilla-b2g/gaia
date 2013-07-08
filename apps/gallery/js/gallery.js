@@ -94,14 +94,6 @@ var visibilityMonitor;
 
 var loader = LazyLoader;
 
-// This flag is set in MetadataParser.js if we encounter images larger
-// than 2 megapixels that do not have big enough embedded
-// previews. The flag is read in frames.js where it is used to prevent
-// the user from zooming in on images at the same time (to prevent OOM
-// crashes). And it is cleared below when the scanning process ends
-// XXX: When bug 854795 is fixed, we'll be able to remove this flag
-var scanningBigImages = false;
-
 // The localized event is the main entry point for the app.
 // We don't do anything until we receive it.
 navigator.mozL10n.ready(function showBody() {
@@ -216,15 +208,15 @@ function initDB() {
   videostorage = navigator.getDeviceStorage('videos');
 
   var loaded = false;
-  function metadataParserWrapper(file, onsuccess, onerror) {
+  function metadataParserWrapper(file, onsuccess, onerror, bigFile) {
     if (loaded) {
-      metadataParser(file, onsuccess, onerror);
+      metadataParser(file, onsuccess, onerror, bigFile);
       return;
     }
 
     loader.load('js/metadata_scripts.js', function() {
       loaded = true;
-      metadataParser(file, onsuccess, onerror);
+      metadataParser(file, onsuccess, onerror, bigFile);
     });
   }
 
@@ -275,9 +267,6 @@ function initDB() {
     // Hide the scanning indicator
     $('progress').classList.add('hidden');
     $('throbber').classList.remove('throb');
-
-    // It is safe to zoom in now
-    scanningBigImages = false;
   };
 
   // On devices with internal and external device storage, this handler is
