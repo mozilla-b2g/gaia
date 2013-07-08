@@ -1,12 +1,12 @@
 var AudioPlayer = function(){
   this.audioPlayer = document.getElementById('audioPlayer');
 
-  Utils.setupPassEvent(this, 'isPlaying');
-  Utils.setupPassEvent(this, 'isStopped');
-  Utils.setupPassEvent(this, 'isEnded');
-  Utils.setupPassEvent(this, 'isPaused');
-  Utils.setupPassEvent(this, 'setCurrentTime');
-  Utils.setupPassEvent(this, 'setTotalTime');
+  Utils.setupPassParent(this, 'isPlaying');
+  Utils.setupPassParent(this, 'isStopped');
+  Utils.setupPassParent(this, 'isEnded');
+  Utils.setupPassParent(this, 'isPaused');
+  Utils.setupPassParent(this, 'setCurrentTime');
+  Utils.setupPassParent(this, 'setTotalTime');
 
   this.audioPlayer.addEventListener('play', this.isPlaying);
   this.audioPlayer.addEventListener('pause', this.isPaused);

@@ -7,10 +7,10 @@ var MusicDB = function(){
     version: 2
   });
 
-  Utils.setupPassEvent(this, 'isReady');
-  Utils.setupPassEvent(this, 'musicChanged');
-  Utils.setupPassEvent(this, 'musicDeleted');
-  Utils.setupPassEvent(this, 'musicCreated');
+  Utils.setupPassParent(this, 'isReady');
+  Utils.setupPassParent(this, 'musicChanged');
+  Utils.setupPassParent(this, 'musicDeleted');
+  Utils.setupPassParent(this, 'musicCreated');
 
   this.getFile = this.mediaDB.getFile.bind(this.mediaDB);
 
@@ -71,11 +71,24 @@ MusicDB.prototype = {
           done(genres);
         }.bind(this));
   },
+  returnCache: function(key, done){
+    if (this.cache[key]){
+      var cached = this.cache[key];
+      setTimeout(function(){
+        done(cached);
+      }, 0);
+      return true;
+    }
+    return false;
+  },
   getArtists: function(genre, done){
     if (!this.ready){
       setTimeout(function(){ this.getArtists(genre, done); }.bind(this), 100);
       return;
     }
+    var cacheKey = '__artists<' + genre + '>';
+    if (this.returnCache(cacheKey, done))
+      return;
     this.mediaDB.enumerateAll('metadata.artist', null, 'nextunique', 
         function(items){
           var artists = [];
@@ -85,6 +98,7 @@ MusicDB.prototype = {
               artists.push(item);
             }
           }
+          this.cache[cacheKey] = artists;
           done(artists);
         }.bind(this));
   },
@@ -93,6 +107,9 @@ MusicDB.prototype = {
       setTimeout(function(){ this.getAlbums(genre, artist, done); }.bind(this), 100);
       return;
     }
+    var cacheKey = '__albums<' + genre + '><' + artist + '>';
+    if (this.returnCache(cacheKey, done))
+      return;
     this.mediaDB.enumerateAll('metadata.album', null, 'nextunique', 
         function(items){
           var albums = [];
@@ -105,6 +122,7 @@ MusicDB.prototype = {
               albums.push(item);
             }
           }
+          this.cache[cacheKey] = albums;
           done(albums);
         }.bind(this));
 
@@ -114,43 +132,63 @@ MusicDB.prototype = {
       setTimeout(function(){ this.getSongs(genre, artist, album, done); }.bind(this), 100);
       return;
     }
-    var cacheKey = window.escape(genre) + ' ' + window.escape(artist) + ' ' + window.escape(album);
-    var cached = this.cache[cacheKey];
-    if (cached !== undefined){
-      setTimeout(function(){
-        done(cached);
-      }, 0);
-      return;
+
+    var filter = {
+      genre: genre,
+      artist: artist,
+      album: album
     }
-    this.mediaDB.enumerateAll('metadata.title', null, 'nextunique', 
-        function(items){
-          var songs = [];
-          for (var i = 0; i < items.length; i++){
-            var item = items[i];
-            if (
-              (genre === '*' || item.metadata.genre === genre) &&
-              (artist === '*' || item.metadata.artist === artist) &&
-              (album === '*' || item.metadata.album === album)
-            ){
-              songs.push(item);
-            }
-          }
-          this.cache[cacheKey] = songs;
-          done(songs);
-        }.bind(this));
+
+    if (album !== '*'){
+      this.getWithFilter('metadata.album', album, filter, done);
+    }
+    else if (artist !== '*'){
+      this.getWithFilter('metadata.artist', artist, filter, done);
+    }
+    else if (genre !== '*'){
+      this.getWithFilter('metadata.genre', genre, filter, done);
+    }
+    else {
+      this.getWithFilter('metadata.title', null, filter, done);
+    }
   },
   getSong: function(title, done){
     if (!this.ready){
       setTimeout(function(){ this.getSong(title, done); }.bind(this), 100);
       return;
     }
+    this.getWithFilter('metadata.title', title, {}, function(results){
+      done(results[0]);
+    });
+  },
+  getWithFilter: function(index, key, filter, done){
+    var cacheKey = '__songs<' + index + '><' + key + '><' + JSON.stringify(filter) + '>';
+    if (this.returnCache(cacheKey, done))
+      return;
     var store = this.mediaDB.db.transaction('files').objectStore('files');
-    store = store.index('metadata.title');
-    var request = store.get(title);
-    request.onerror = this.logError.bind(this);
-    request.onsuccess = function(event) {
-      done(request.result);
-    };
+    store = store.index(index);
+    var range = undefined;
+    if (key !== null)
+      range = IDBKeyRange.only(key);
+    var results = [];
+    store.openCursor(range).onsuccess = function(event) {
+      var cursor = event.target.result;
+      if (cursor) {
+        for (prop in filter){
+          if (filter[prop] !== '*' &&
+              cursor.value.metadata[prop] !== filter[prop]){
+            cursor.continue();
+            return;
+          }
+        }
+        results.push(cursor.value);
+        cursor.continue();
+      }
+      else {
+        this.cache[cacheKey] = results;
+        done(results);
+      }
+    }.bind(this);
   },
   getAlbumArtAsURL: function(song, done){
     if (!this.ready){

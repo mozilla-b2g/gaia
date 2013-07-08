@@ -1,21 +1,5 @@
-#content {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
-}
 
-#content.partialRight {
-  transform: translateX(75%);
-}
-
-#content.partialLeft {
-  transform: translateX(-75%);
-}
-
-#contentOverlay {
+.contentOverlay {
   position: absolute;
   top: 3rem;
   bottom: 0;
@@ -27,7 +11,7 @@
 
 .page {
   position: absolute;
-  top: 3rem;
+  top: 0;
   bottom: 0;
   left: 0;
   right: 0;
@@ -41,12 +25,11 @@
   transform: translateX(100%);
 }
 
-.selectSourcePage {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+.page.partialLeft {
+  transform: translateX(-75%);
 }
 
+.page.partialRight {
+  transform: translateX(75%);
+}
 

@@ -1,6 +1,6 @@
 #nowPlayingControls {
   position: fixed;
-  height: 4rem;
+  height: 3.5rem;
   bottom: 0;
   left: 0;
   right: 0;
@@ -22,8 +22,8 @@
   left: .5rem;
   top: .5rem;
   bottom: .5rem;
-  width: 3rem;
-  height: 3rem;
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 #nowPlayingSourceImg[src=''] {
@@ -45,7 +45,7 @@
 #nowPlayingText > *:first-child{
   display: block;
   font-size: 1.25rem;
-  line-height: 3rem;
+  line-height: 2.5rem;
   color: white;
 
   overflow: hidden;
@@ -61,7 +61,7 @@
   width: 5rem;
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: auto 60%;
+  background-size: auto 70%;
   background-image: url('../images/IconAction_Media_Play_30x30.png');
 }
 
@@ -83,6 +83,8 @@
   background-position: center top;
   background-size: auto 200%;
   background-image: url('../images/iconaction_media_playlistfilter.png');
+  background-color: rgba(0, 0, 0, .5);
+  border-radius: .25rem;
 }
 
 #toggleCurrentMusicPageView.switchSong {
@@ -100,7 +102,7 @@
 #currentSourceInfo {
   position: absolute;
   left: 0;
-  top: 0;
+  top: 3rem;
   right: 0;
   z-index: 1;
   background: -moz-linear-gradient(center top, rgba(48, 48, 48, .8) -3em, rgba(0, 0, 0, .8) calc(480px - 3em)) repeat scroll 0 0 transparent; /* TODO: load actual height in js, set at init */
@@ -109,7 +111,7 @@
 
 #currentSourceImg {
   position: absolute;
-  top: 0;
+  top: 3rem;
   bottom: 0;
   left: 0;
   right: 0;
@@ -132,7 +134,7 @@
 
 #currentPlaylistView {
   position: absolute;
-  top: 0;
+  top: 3rem;
   bottom: 4.5em;
   left: 0;
   right: 0;

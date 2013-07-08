@@ -9,7 +9,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
+  top: 3.0rem;
   bottom: 0;
 }
 
@@ -28,7 +28,7 @@
 }
 
 #mediaLibraryPagePanelNotifications.up {
-  top: -4rem;
+  top: -3.0rem;
   opacity: 0;
 }
 
@@ -69,7 +69,7 @@
 
 #mediaLibraryPagePanelNotifications .no {
   left: 0;
-  background-image: url('../../up.png');
+  background-image: url('../up.png');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: auto 50%;
@@ -77,7 +77,7 @@
 
 #mediaLibraryPagePanelNotifications .yes {
   right: 0;
-  background-image: url('../../images/IconAction_Media_RepeatList_30x30.png');
+  background-image: url('../images/IconAction_Media_RepeatList_30x30.png');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: auto 80%;
@@ -91,18 +91,19 @@
   top: 0;
   left: 0;
   right: 0;
+  min-height: 4rem;
 }
 
 #mediaLibraryPagePanelTitleText {
-  min-height: 2em;
   margin-left: 2.5em;
-  padding-top: 1em;
-  padding-bottom: 1em;
+  padding-top: 1rem;
+  padding-bottom: .25rem;
 }
 
 #mediaLibraryPagePanelTitleText.right {
   margin-left: 8em;
   height: 2.5em;
+  padding-bottom: 1rem;
 }
 
 #mediaLibraryPagePanelTitleText > * {
@@ -141,7 +142,7 @@
   left: 0;
   top: 0;
   bottom: 0;
-  background-image: url('../../headers/images/icons/back.png');
+  background-image: url('../headers/images/icons/back.png');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 75% auto;
@@ -160,7 +161,7 @@
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 100% 80%;
-  background-image: url(../../headers/images/ui/dark/separator.png);
+  background-image: url(../headers/images/ui/dark/separator.png);
 }
 
 /*======================================*/
@@ -194,7 +195,7 @@
   height: 100%;
   float: left;
 
-  background-image: url('../../images/IconAction_Media_Play_30x30.png');
+  background-image: url('../images/IconAction_Media_Play_30x30.png');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: auto 70%;
@@ -205,18 +206,18 @@
   height: 100%;
   float: left;
 
-  background-image: url('../../add.png');
+  background-image: url('../add.png');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: auto 70%;
 }
 
 #mediaLibraryPagePanelControls.disabled #mediaLibraryPagePanelControlPlay {
-  background-image: url('../../play_disabled.png');
+  background-image: url('../play_disabled.png');
 }
 
 #mediaLibraryPagePanelControls.disabled #mediaLibraryPagePanelControlAdd {
-  background-image: url('../../add_disabled.png');
+  background-image: url('../add_disabled.png');
 }
 
 /*======================================*/
@@ -225,7 +226,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 4em;
+  top: 4.0rem;
   bottom: 0;
   overflow-y: auto;
 }
@@ -246,7 +247,7 @@
   height: 2rem;
   line-height: 2rem;
 
-  background-image: url('../../headers/images/icons/back-rtl.png');
+  background-image: url('../headers/images/icons/back-rtl.png');
   background-repeat: no-repeat;
   background-position: right .75em center;
   background-size: auto 60%;
@@ -280,7 +281,7 @@
 #mediaLibraryPagePanelItems .add {
   width: 100%;
   height: 100%;
-  background-image: url('../../add.png');
+  background-image: url('../add.png');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 50% auto;
@@ -316,12 +317,42 @@
   padding-bottom: .25em;
 }
 
+#mediaLibraryPagePanelItems .albumItem {
+  width: 50%;
+  float: left;
+}
+
+#mediaLibraryPagePanelItems .albumItem > .content {
+  padding: .5rem;
+}
+
+#mediaLibraryPagePanelItems .album {
+  position: relative;
+}
+
+#mediaLibraryPagePanelItems .album > img {
+  width: 100%;
+}
+
+#mediaLibraryPagePanelItems .text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: .25rem;
+  background: rgba(0, 0, 0, .5);
+}
+
+#mediaLibraryPagePanelItems .buttonDown .text {
+  background-color: #008aaa;
+}
+
 #mediaLibraryPagePanelItems > *:last-child {
   margin-bottom: 4rem;
 }
 
 #mediaLibraryPagePanelItems .gotoPanelButton {
-  background-image: url('../../headers/images/icons/back-rtl.png');
+  background-image: url('../headers/images/icons/back-rtl.png');
   background-repeat: no-repeat;
   background-position: right 1em center;
   background-size: 2em auto;
