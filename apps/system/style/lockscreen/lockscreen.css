@@ -231,6 +231,10 @@
   transition: opacity 0.5s ease;
 }
 
+.lockscreen-icon-area:active {
+  background: none;
+}
+
 .lockscreen-icon {
   margin-top: 2rem;
   border-radius: 3rem;
