@@ -20,6 +20,7 @@
 
 #swiper-area-hangup > div {
   background-image: url("images/hangup_icon.png");
+  background-size: 4.1rem;
   background-position: center;
   background-repeat: no-repeat;
   margin-left: 4.2rem;
@@ -80,6 +81,7 @@
   background-image: url("images/pickup_icon.png");
   background-position: center;
   background-repeat: no-repeat;
+  background-size: 3.2rem;
   margin-right: 4.2rem;
   margin-left: auto;
   transition: opacity 0.5s ease;
@@ -107,6 +109,7 @@
   background-image: url('images/handle.png');
   background-repeat: no-repeat;
   background-position: center;
+  background-size: 2rem;
   border-top: 1px solid transparent;
   top: 0;
   height: 0.9rem;
