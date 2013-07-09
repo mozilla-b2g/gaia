@@ -166,6 +166,12 @@ suite('link_helper_test.js', function() {
       test('Simple URL with IPv6', function() {
         testURLNOK('http://[::1]/');
       });
+      test('Bug 890342 1', function() {
+        testURLNOK('2.74');
+      });
+      test('Bug 890342 2', function() {
+        testURLNOK('21.72');
+      });
     });
   });
 
