@@ -1,5 +1,6 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/text_normalizer.js');
+require('/shared/js/tag_visibility_monitor.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/js/search.js');
 requireApp('communications/contacts/js/contacts_list.js');
@@ -119,10 +120,22 @@ suite('Render contacts list', function() {
       // Loading a new list removes some DOM nodes.  Update our references.
       updateDomReferences();
 
-      callback();
+      // Issue the callback via setTimeout() to appease the mocha gods.
+      // Exceptions and errors are properly reported from setTimeout() async
+      // context, but seem to be ignored from other DOM callbacks like
+      // we are using here.
+      window.setTimeout(callback);
     };
     window.addEventListener('listRendered', handler);
     list.load(values);
+  }
+
+  // Poor man's way of delaying until an element is onscreen as determined
+  // by the visibility monitor.
+  function doOnscreen(list, element, callback) {
+    element.scrollIntoView(true);
+    // XXX Replace this with a true callback from monitor or list
+    window.setTimeout(callback);
   }
 
   function assertNoGroup(title, container) {
@@ -346,7 +359,8 @@ suite('Render contacts list', function() {
     subject.setOrderByLastName(true);
     subject.init(list);
 
-    contacts.Search.init(document.getElementById('view-contacts-list'));
+    contacts.Search.load();
+    subject.initSearch();
   });
 
   suiteTeardown(function() {
@@ -808,26 +822,31 @@ suite('Render contacts list', function() {
         var selectorContact1 = 'li[data-uuid = "1"]';
         var contact = container.querySelector(selectorContact1);
 
-        var img = contact.querySelector('img');
+        doOnscreen(subject, contact, function() {
+          var img = contact.querySelector('img');
 
-        assert.equal(img.dataset.src, 'test.png',
-                      'At the begining contact 1 img === "test.png"');
-        var prevUpdated = contact.dataset.updated;
+          assert.equal(img.dataset.src, 'test.png',
+                        'At the begining contact 1 img === "test.png"');
+          var prevUpdated = contact.dataset.updated;
 
-        mockContacts[0].updated = new Date(); // This is the key!
-        mockContacts[0].photo = ['one.png'];
-        doLoad(subject, mockContacts, function() {
-          assertTotal(3, 3);
+          mockContacts[0].updated = new Date(); // This is the key!
+          mockContacts[0].photo = ['one.png'];
+          doLoad(subject, mockContacts, function() {
+            assertTotal(3, 3);
 
-          contact = container.querySelector(selectorContact1);
-          img = contact.querySelector('img');
+            contact = container.querySelector(selectorContact1);
 
-          assert.equal(img.dataset.src, 'one.png',
-                        'After updating contact 1 img === "one.png"');
+            doOnscreen(subject, contact, function() {
+              img = contact.querySelector('img');
 
-          assert.isTrue(prevUpdated < contact.dataset.updated,
-                        'Updated date is wrong. It should be changed!');
-          done();
+              assert.equal(img.dataset.src, 'one.png',
+                            'After updating contact 1 img === "one.png"');
+
+              assert.isTrue(prevUpdated < contact.dataset.updated,
+                            'Updated date is wrong. It should be changed!');
+              done();
+            });
+          });
         });
       });
     });
@@ -840,18 +859,23 @@ suite('Render contacts list', function() {
         var selectorContact1 = 'li[data-uuid = "1"]';
         var contact = container.querySelector(selectorContact1);
 
-        var img = contact.querySelector('img');
-        assert.equal(img.dataset.src, 'test.png',
-                      'At the begining contact 1 img === "test.png"');
-
-        doLoad(subject, mockContacts, function() {
-          assertTotal(3, 3);
-
-          contact = container.querySelector(selectorContact1);
-          img = contact.querySelector('img');
+        doOnscreen(subject, contact, function() {
+          var img = contact.querySelector('img');
           assert.equal(img.dataset.src, 'test.png',
                         'At the begining contact 1 img === "test.png"');
-          done();
+
+          doLoad(subject, mockContacts, function() {
+            assertTotal(3, 3);
+
+            contact = container.querySelector(selectorContact1);
+
+            doOnscreen(subject, contact, function() {
+              img = contact.querySelector('img');
+              assert.equal(img.dataset.src, 'test.png',
+                            'At the begining contact 1 img === "test.png"');
+              done();
+            });
+          });
         });
       });
     });
@@ -909,7 +933,6 @@ suite('Render contacts list', function() {
 
     test('check empty search', function(done) {
       mockContacts = new MockContactsList();
-      subject.resetSearch();
 
       doLoad(subject, mockContacts, function() {
         searchBox.value = 'YYY';
@@ -947,8 +970,6 @@ suite('Render contacts list', function() {
       var contactIndex = Math.floor(Math.random() * mockContacts.length);
       var contact = mockContacts[contactIndex];
 
-      subject.resetSearch();
-
       doLoad(subject, mockContacts, function() {
         searchBox.value = '(';
         contacts.Search.search(function search_finished() {
@@ -965,8 +986,6 @@ suite('Render contacts list', function() {
       var contact = mockContacts[contactIndex];
       mockContacts[contactIndex].givenName[0] =
         '(' + contact.givenName[0] + ')';
-
-      subject.resetSearch();
 
       doLoad(subject, mockContacts, function() {
         contacts.List.initSearch(function onInit() {
@@ -994,8 +1013,6 @@ suite('Render contacts list', function() {
       for (var i = 0, len = givenName.length; i < len; i++)
         accentedCharName +=
           inChars[outChars.indexOf(givenName[i])] || givenName[i];
-
-      subject.resetSearch();
 
       doLoad(subject, mockContacts, function() {
         contacts.List.initSearch(function onInit() {
@@ -1026,8 +1043,6 @@ suite('Render contacts list', function() {
           inChars[outChars.indexOf(givenName[i])] || givenName[i];
 
       mockContacts[contactIndex].givenName[0] = accentedCharName;
-
-      subject.resetSearch();
 
       doLoad(subject, mockContacts, function() {
         contacts.List.initSearch(function onInit() {
@@ -1092,15 +1107,17 @@ suite('Render contacts list', function() {
 
       mockContacts = new MockContactsList();
       doLoad(subject, mockContacts, function() {
-        var names = document.querySelectorAll('[data-order]');
+        var nodes = document.querySelectorAll('[data-order]');
 
-        assert.length(names, mockContacts.length);
-        for (var i = 0; i < names.length; i++) {
-          var printed = names[i];
+        assert.length(nodes, mockContacts.length);
+        for (var i = 0; i < nodes.length; i++) {
+          var node = nodes[i];
           var mockContact = mockContacts[i];
           var expected = getStringToBeOrdered(mockContact, true);
-          assert.equal(printed.dataset['order'],
+          assert.equal(node.dataset['order'],
             Normalizer.escapeHTML(expected, true));
+
+          var printed = node.querySelector('p');
 
           // Check as well the correct highlight
           // familyName to be in bold
@@ -1121,12 +1138,14 @@ suite('Render contacts list', function() {
       doLoad(subject, mockContacts, function() {
         // First one should be the last one from the list,
         // with the current names
-        var name = document.querySelector('[data-order]');
+        var node = document.querySelector('[data-order]');
         var mockContact = mockContacts[mockContacts.length - 1];
         var expected = getStringToBeOrdered(mockContact, false);
 
         assert.equal(
-          name.dataset['order'], Normalizer.escapeHTML(expected, true));
+          node.dataset['order'], Normalizer.escapeHTML(expected, true));
+
+        var name = node.querySelector('p');
 
         // Check highlight
         // Given name to be in bold
