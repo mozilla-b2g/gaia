@@ -5,7 +5,7 @@
     other/buttons/style.css
  * ---------------------------------- */
 
-body[role="application"] [role="dialog"] ul, 
+body[role="application"] [role="dialog"] ul,
 body[role="application"] [role="dialog"] ol {
 	position: relative;
 	padding: 0 4rem;
@@ -34,7 +34,6 @@ body[role="application"] [role="dialog"] [data-mode="scroll"] h3 {
 		border-bottom: 1px solid #666;
 		position: relative;
 		color: #fff;
-		font-family: 'MozTT', Sans-serif;
 		font-weight: lighter;
 		font-size: 2.2rem;
 		height: 5.9rem;
@@ -62,6 +61,7 @@ body[role="application"] [role="dialog"] [data-mode="scroll"] h3 {
 		padding-right: 0.5rem;
 		color: #00abcd;
 		background: url(images/icons/checked.png) content-box right center no-repeat;
+		background-size: 1.9rem;
 	}
 	
 	body[role="application"] [role="dialog"] li a,
