@@ -144,32 +144,28 @@
           </header>
           <ul class="settings">
             <li class="reset-entry">
-              <div class="end buttons-list">
-               <span class="button icon icon-dialog fake-select">
-                  <select class="settings-option" data-option="trackingPeriod">
-                    <option value="monthly" data-l10n-id="monthly">Monthly</option>
-                    <option value="weekly" data-l10n-id="weekly">Weekly</option>
-                    <option value="never" data-l10n-id="never">Never</option>
-                  </select>
-                </span>
-              </div>
               <p data-l10n-id="reset-report">Reset report</p>
+              <span class="button icon icon-dialog fake-select">
+                 <select class="settings-option" data-option="trackingPeriod">
+                   <option value="monthly" data-l10n-id="monthly">Monthly</option>
+                   <option value="weekly" data-l10n-id="weekly">Weekly</option>
+                   <option value="never" data-l10n-id="never">Never</option>
+                 </select>
+              </span>
             </li>
             <li class="reset-entry">
-              <div class="end buttons-list">
-                <span class="button icon icon-dialog fake-select">
-                  <select id="select-weekday" class="settings-option" data-option="resetTime" data-hide-on="trackingPeriod!=weekly" data-disable-on="trackingPeriod!=weekly">
-                    <option class="monday" value="1" data-l10n-id="monday">Monday</option>
-                    <option value="2" data-l10n-id="tuesday">Tuesday</option>
-                    <option value="3" data-l10n-id="wednesday">Wednesday</option>
-                    <option value="4" data-l10n-id="thursday">Thursday</option>
-                    <option value="5" data-l10n-id="friday">Friday</option>
-                    <option value="6" data-l10n-id="saturday">Saturday</option>
-                    <option class="sunday" value="0" data-l10n-id="sunday">Sunday</option>
-                  </select>
-                </span>
-              </div>
               <p data-l10n-id="starting-on">Starting on</p>
+              <span class="button icon icon-dialog fake-select">
+                <select id="select-weekday" class="settings-option" data-option="resetTime" data-hide-on="trackingPeriod!=weekly" data-disable-on="trackingPeriod!=weekly">
+                  <option class="monday" value="1" data-l10n-id="monday">Monday</option>
+                  <option value="2" data-l10n-id="tuesday">Tuesday</option>
+                  <option value="3" data-l10n-id="wednesday">Wednesday</option>
+                  <option value="4" data-l10n-id="thursday">Thursday</option>
+                  <option value="5" data-l10n-id="friday">Friday</option>
+                  <option value="6" data-l10n-id="saturday">Saturday</option>
+                  <option class="sunday" value="0" data-l10n-id="sunday">Sunday</option>
+                </select>
+              </span>
             </li>
             <li class="reset-entry">
               <div class="end buttons-list">
