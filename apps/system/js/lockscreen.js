@@ -145,6 +145,10 @@ var LockScreen = {
     this.areaUnlock.addEventListener('touchstart', this);
     this.iconContainer.addEventListener('touchstart', this);
 
+    /* For accessibility purposes */
+    this.areaCamera.addEventListener('click', this);
+    this.areaUnlock.addEventListener('click', this);
+
     /* Unlock & camera panel clean up */
     this.overlay.addEventListener('transitionend', this);
 
@@ -269,6 +273,8 @@ var LockScreen = {
   },
 
   handleEvent: function ls_handleEvent(evt) {
+    const MOZ_SOURCE_UNKNOWN = 0;
+
     switch (evt.type) {
       case 'screenchange':
         // XXX: If the screen is not turned off by ScreenManager
@@ -315,14 +321,19 @@ var LockScreen = {
       case 'cardstatechange':
       case 'iccinfochange':
         this.updateConnState();
+        break;
 
       case 'click':
-        if (!evt.target.dataset.key)
-          break;
-
-        // Cancel the default action of <a>
-        evt.preventDefault();
-        this.handlePassCodeInput(evt.target.dataset.key);
+        if (evt.target.dataset.key) {
+          // Cancel the default action of <a>
+          evt.preventDefault();
+          this.handlePassCodeInput(evt.target.dataset.key);
+        } else if ((evt.target === this.areaUnlock ||
+                    evt.target === this.areaCamera) &&
+                   evt.mozInputSource == MOZ_SOURCE_UNKNOWN) {
+          evt.preventDefault();
+          this.handleIconClick(evt.target);
+        }
         break;
 
       case 'touchstart':
