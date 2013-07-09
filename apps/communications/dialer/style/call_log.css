@@ -103,13 +103,6 @@ ol, ul {
   color: #373E45;
 }
 
-.icon-noresult {
-  width: 20rem;
-  height: 20rem;
-  margin: 0 auto;
-  background-image: url('images/ComLog_200x200_clock.png');
-}
-
 .icon-container {
   float: left;
   height: 100%;
@@ -118,14 +111,17 @@ ol, ul {
 
 [data-type="list"] aside.icon.icon-incoming {
   background-image: url('images/CallLog_30x30_incoming.png');
+  background-size: 3rem;
 }
 
 [data-type="list"] aside.icon.icon-outgoing {
   background-image: url('images/CallLog_30x30_outgoing.png');
+  background-size: 3rem;
 }
 
 [data-type="list"] aside.icon.icon-missed {
   background-image: url('images/CallLog_30x30_missed_grey.png');
+  background-size: 3rem;
 }
 
 .log-item * {
