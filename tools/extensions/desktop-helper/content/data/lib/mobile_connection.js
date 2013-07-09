@@ -11,7 +11,6 @@
     voice: {
       connected: false
     },
-    cardState: 'absent',
     addEventListener: function() {
       debug('addEventListener');
     },
