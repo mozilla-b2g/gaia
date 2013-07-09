@@ -94,12 +94,13 @@
         canvas.height = Math.round(img.height / ratio);
         var context = canvas.getContext('2d');
         context.drawImage(img, 0, 0, width, height);
-        var data = canvas.toDataURL(type);
 
-        callback({
-          width: width,
-          height: height,
-          data: data
+        canvas.toBlob(function(data) {
+          callback({
+            width: width,
+            height: height,
+            data: data
+            });
         });
       };
       img.onerror = function onBlobError() {
