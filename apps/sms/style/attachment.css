@@ -33,6 +33,7 @@ body {
   background-image: url('icons/attachments.png');
   background-repeat: no-repeat;
   background-position: left top;
+  background-size: 160px;
 }
 
 .placeholder:active,
@@ -74,4 +75,5 @@ body {
   background-image: url('icons/corrupted.png');
   background-repeat: no-repeat;
   background-position: center center;
+  background-size: 82px;
 }
