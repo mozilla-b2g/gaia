@@ -5,7 +5,7 @@
 }
 
 #telephony-tab li {
-  border-bottom: solid 1px #e0e0dd;
+  border-bottom: solid 0.1rem #e0e0dd;
   font-size: 1.6rem;
   line-height: 1.6rem;
   padding: 1.2rem 0 1.2rem 1.5rem;

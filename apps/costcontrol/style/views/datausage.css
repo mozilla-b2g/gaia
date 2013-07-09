@@ -8,7 +8,7 @@
   list-style: none;
   padding: 0;
   margin: 0 1.5rem;
-  border: solid 1px #adadad;
+  border: solid 0.1rem #adadad;
   border-right: none;
   border-left: none;
 }
@@ -51,7 +51,7 @@
   width: 1.5rem;
   height: 1.5rem;
   position: absolute;
-  border: solid 1px #979797;
+  border: solid 0.1rem #979797;
   left: 0.5rem;
   top: 50%;
   margin: -0.95rem 0 0;
