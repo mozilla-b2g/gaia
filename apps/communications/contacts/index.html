@@ -45,6 +45,10 @@
     <!-- IccHelper -->
     <script defer type="text/javascript" src="/shared/js/icc_helper.js"></script>
 
+    <!-- For the build system to include in zip:
+    <link href="/shared/js/tag_visibility_monitor.js">
+    -->
+
   </head>
 
   <body role="application" class="app-contacts">
@@ -89,17 +93,19 @@
               </li>
             </ol>
           </nav>
-          <div id="groups-container" class="view-body-inner">
-            <form id="search-container" class="search" role="search">
-              <p>
-                <label for="search" id="search-start">
-                  <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact">
-                </label>
-              </p>
-            </form>
-            <section id="groups-list" data-type="list">
-              <!-- Group template here -->
-            </section>
+          <div id="groups-container-box">
+            <div id="groups-container" class="view-body-inner">
+              <form id="search-container" class="search" role="search">
+                <p>
+                  <label for="search" id="search-start">
+                    <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact">
+                  </label>
+                </p>
+              </form>
+              <section id="groups-list" data-type="list">
+                <!-- Group template here -->
+              </section>
+            </div>
           </div>
         </article>
         <div id='fixed-container' class='fixed-title'></div>
