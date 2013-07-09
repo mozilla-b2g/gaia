@@ -542,6 +542,23 @@ MessageListCard.prototype = {
     this.toolbar.searchBtn.classList.remove('disabled');
   },
 
+  /**
+   * Play sound on new emails
+   */
+  playNewEmailSound: function() {
+    var get = function(key, cb) {
+      var request = navigator.mozSettings.createLock().get(key);
+      request.onsuccess = function() { cb(request.result[key]); };
+    };
+    get('mail.received-sound.enabled', function(doPlay) {
+      if (doPlay) {
+        get('notification.ringtone', function(ringtone) {
+          var sound = new Audio(ringtone);
+          sound.play();
+        });
+      }
+    });
+  },
 
   /**
    * @param {number=} newEmailCount Optional number of new messages.
@@ -564,6 +581,9 @@ MessageListCard.prototype = {
     if (newEmailCount && newEmailCount !== NaN && newEmailCount !== 0) {
       // Decorate or update the little notification bar that tells the user
       // how many new emails they've received after a sync.
+
+      this.playNewEmailSound();
+
       if (this._topbar && this._topbar.getElement() !== null) {
         // Update the existing status bar.
         this._topbar.updateNewEmailCount(newEmailCount);
