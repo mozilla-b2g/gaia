@@ -3,7 +3,7 @@ define(function() {
     function addressesToArray(addresses) {
       if (!addresses)
         return [''];
-      addresses = addresses.split(';');
+      addresses = addresses.split(/[,;]/);
       var addressesArray = addresses.filter(function notEmpty(addr) {
         return addr.trim() !== '';
       });
