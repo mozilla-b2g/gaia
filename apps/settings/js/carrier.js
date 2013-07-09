@@ -707,6 +707,10 @@ navigator.mozL10n.ready(function carrierSettings() {
 
     req.onerror = function() {
       console.warn('carrier: ' + req.error.name);
+      if (req.error.name === 'RequestNotSupported' ||
+          req.error.name === 'GenericFailure') {
+        document.getElementById('operator-roaming-preference').hidden = true;
+      }
     };
 
     selector.addEventListener('blur', function() {
@@ -718,7 +722,35 @@ navigator.mozL10n.ready(function carrierSettings() {
     });
   }
 
+  function initNetworkTypeSelector(types) {
+    Settings.getSettings(function(result) {
+      var setting = result['ril.radio.preferredNetworkType'];
+      if (setting) {
+        var selector = document.getElementById('preferredNetworkType');
+        types.forEach(function(type) {
+          var option = document.createElement('option');
+          option.value = type;
+          option.selected = (setting === type);
+          option.textContent = type;
+          selector.appendChild(option);
+        });
+
+        var evt = document.createEvent('Event');
+        evt.initEvent('change', true, true);
+        selector.dispatchEvent(evt);
+      } else {
+        console.warn('carrier: could not retrieve network type');
+      }
+    });
+  }
+
   function init(callback) {
+    /*
+     * Displaying all GSM and CDMA options by default for CDMA development.
+     * We should remove CDMA options after the development finished. Bug 881862
+     * is filed for tracking this.
+     */
+
     // get network type
     loadJSON('/resources/network.json', function loadNetwork(network) {
       var content = document.getElementById('carrier-operatorSettings-content');
@@ -730,6 +762,8 @@ navigator.mozL10n.ready(function carrierSettings() {
 
         supportGSM = (typesStr.indexOf('gsm') >= 0);
         supportCDMA = (typesStr.indexOf('cdma') >= 0);
+
+        initNetworkTypeSelector(network.types);
       }
 
       // init different selectors based on the network type.
