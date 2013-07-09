@@ -47,10 +47,11 @@ var BalanceTab = (function() {
 
       // Subviews
       topUpLayoutView = new TopUpLayoutView(topUpUSSD, topUp);
+      var balanceConfig = ConfigManager.configuration.balance;
       balanceView = new BalanceView(
         document.getElementById('balance-tab-credit'),
         document.getElementById('balance-tab-time'),
-        ConfigManager.configuration.balance.minimum_delay
+        balanceConfig ? balanceConfig.minimum_delay : undefined
       );
 
       window.addEventListener('localized', localize);
