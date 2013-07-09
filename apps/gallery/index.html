@@ -167,12 +167,16 @@
     </div>
 
     <!-- display messages like "No Photos" and "No SD Card" here -->
-    <div id="overlay" class="hidden">
-      <div id="overlay-content">
+    <form id="overlay" role="dialog" data-type="confirm" class="hidden">
+      <section id="overlay-content">
         <h1 id="overlay-title"></h1>
-        <p id="overlay-text"><p>
-      </div>
-    </div>
+        <p id="overlay-text"></p>
+      </section>
+      <menu id="overlay-menu" class="hidden">
+        <button type="button" id="storage-setting-button" class="full"
+                data-l10n-id="storage-setting-button">Media storage settings</button>
+      </menu>
+    </form>
 
     <form id="confirm-dialog" role="dialog" data-type="confirm" class="hidden">
       <section>
