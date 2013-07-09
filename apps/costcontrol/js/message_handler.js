@@ -454,8 +454,8 @@
             costcontrol.request({ type: 'balance' });
           }
 
-          var manager = window.navigator.mozSms;
-          var smsInfo = manager.getSegmentInfoForText(sms.body);
+          var mobileMessageManager = window.navigator.mozMobileMessage;
+          var smsInfo = mobileMessageManager.getSegmentInfoForText(sms.body);
           var realCount = smsInfo.segments;
           settings.lastTelephonyActivity.timestamp = new Date();
           settings.lastTelephonyActivity.smscount += realCount;
