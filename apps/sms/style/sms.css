@@ -311,6 +311,7 @@ section[role="region"].new > header:first-child form {
   width: 2rem;
 
   background-image: url(images/add_contact.png);
+  background-size: 2rem;
 }
 
 #messages-contact-pick-button .icon-user:active {
@@ -401,16 +402,6 @@ section.has-carrier .article-list header:first-child {
   padding: 1.5rem;
 
   background: #fff;
-}
-
-.article-list[data-type="list"] .attachment[data-attachment-type='video'] {
-  width: 10.7rem;
-  height: 8rem;
-}
-
-.article-list[data-type="list"] .attachment[data-attachment-type='audio'] {
-  width: 6rem;
-  height: 6rem;
 }
 
 .article-list[data-type="list"] .message .attachment {
@@ -631,6 +622,7 @@ form.bottom[role="search"].messages-compose-form {
 /* TODO: Move this into the shared building block */
 #messages-attach-button:before {
   background-image: url(images/paperclip-button.png);
+  background-size: 3rem;
 }
 
 #messages-input {
@@ -655,6 +647,8 @@ form.bottom[role="search"].messages-compose-form {
 
 .attachment {
   display: block;
+  width: 80px;
+  height: 80px;
   max-width: 120px;
   max-height: 120px;
   border: 1px solid #018eac;
