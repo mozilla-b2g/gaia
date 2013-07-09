@@ -60,6 +60,7 @@ input.error {
   background-repeat: no-repeat;
   background-position: center center;
   background-image: url("/style/icons/cost-control.png");
+  background-size: 6rem;
 }
 
 
@@ -141,6 +142,7 @@ input.error {
 /* BB HEADER ICONS */
 body[role="application"] section[role="region"] > header .icon.config {
   background-image: url(images/app/icons/config.png);
+  background-size: 3rem;
 }
 
 body[role="application"] section[role="region"] > header button {
@@ -168,14 +170,17 @@ li button:after {
 
 li button.icon-reload:before {
   background-image: url(images/app/icons/reload.png);
+  background-size: 3rem;
 }
 
 li button.icon-topup:before {
   background-image: url(images/app/icons/topup.png);
+  background-size: 3rem;
 }
 
 li button.icon-topupcode:before  {
   background-image: url(images/app/icons/topupcode.png);
+  background-size: 3rem;
 }
 
 /* CONTENT */
