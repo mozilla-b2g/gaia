@@ -23,7 +23,13 @@ suite('email/mail_app', function() {
     'mailto:Email.address1@mailto.com;Email.address2@mailto.com'),
     [['Email.address1@mailto.com', 'Email.address2@mailto.com'],
     undefined, undefined, undefined, undefined],
-    'to multi-addresses test fail');
+    'to multi-addresses test fail (separator ";")');
+
+    assert.deepEqual(queryURI(
+    'mailto:Email.address1@mailto.com,Email.address2@mailto.com'),
+    [['Email.address1@mailto.com', 'Email.address2@mailto.com'],
+    undefined, undefined, undefined, undefined],
+    'to multi-addresses test fail (separator ",")');
 
 
   });
