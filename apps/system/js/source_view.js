@@ -27,12 +27,12 @@ var SourceView = {
     if (!viewsource) {
       var style = '#appViewsource { ' +
                   '  position: absolute;' +
-                  '  top: -moz-calc(10%);' +
-                  '  left: -moz-calc(10%);' +
-                  '  width: -moz-calc(80% - 2 * 15px);' +
-                  '  height: -moz-calc(80% - 2 * 15px);' +
+                  '  top: calc(10%);' +
+                  '  left: calc(10%);' +
+                  '  width: calc(80% - 2 * 1.5rem);' +
+                  '  height: calc(80% - 2 * 1.5rem);' +
                   '  visibility: hidden;' +
-                  '  margin: 15px;' +
+                  '  margin: 1.5rem;' +
                   '  background-color: white;' +
                   '  opacity: 0.92;' +
                   '  color: black;' +
