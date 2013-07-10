@@ -50,7 +50,6 @@ pref("general.useragent.override.marca.com", "\\(Mobile#(Android; Mobile"); // b
 pref("general.useragent.override.wp.pl", "\\(Mobile#(Android; Mobile"); // bug 828351
 pref("general.useragent.override.gazeta.pl", "\\(Mobile#(Android; Mobile"); // bug 828354
 pref("general.useragent.override.o2.pl", "\\(Mobile#(Android; Mobile"); // bug 828356
-pref("general.useragent.override.ceneo.pl", "\\(Mobile#(Android; Mobile"); // bug 828358
 pref("general.useragent.override.sport.pl", "\\(Mobile#(Android; Mobile"); // bug 828360
 pref("general.useragent.override.tvn24.pl", "\\(Mobile#(Android; Mobile"); // bug 828362
 pref("general.useragent.override.nk.pl", "\\(Mobile#(Android; Mobile"); // bug 828364
