@@ -27,8 +27,8 @@
 
   border-top: solid 0.7rem;
   border-bottom: solid 0.7rem;
-  border-left:  1px solid #111;
-  border-right: 1px solid #111;
+  border-left:  0.1rem solid #111;
+  border-right: 0.1rem solid #111;
 
   position: absolute;
   top: 0;

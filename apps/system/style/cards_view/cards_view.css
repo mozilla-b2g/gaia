@@ -35,7 +35,7 @@
   vertical-align: top;
   display: none;
   width: 100%;
-  height: -moz-calc(100% - 20px);
+  height: calc(100% - 2rem);
   margin: 0;
   margin-top: 2rem;
   position: absolute;
@@ -87,13 +87,13 @@
 
 #cards-view .card > h1 {
   position: absolute;
-  top: -moz-calc(100% - 1.5rem);
+  top: calc(100% - 1.5rem);
   width: 100%;
 }
 
 #cards-view .card > p {
   position: absolute;
-  top: -moz-calc(100% + 1rem);
+  top: calc(100% + 1rem);
   width: 100%;
   font-size: 2rem;
 }

@@ -3,14 +3,14 @@
   top: 0;
   right: 0;
   display: block;
-  height: 22px;
-  width: 58px;
+  height: 2.2rem;
+  width: 5.8rem;
   background-color: darkgreen;
   pointer-events: none;
-  font-size: 20px;
-  line-height: 20px;
+  font-size: 2rem;
+  line-height: 2rem;
   text-align: right;
   font-weight: bold;
   overflow: hidden;
-  padding-right: 3px;
+  padding-right: 0.3rem;
 }

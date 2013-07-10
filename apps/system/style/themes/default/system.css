@@ -12,16 +12,17 @@ div.windowSprite {
 
 #cardsView li > a {
   background: url('images/tasks/close.png') no-repeat;
+  background-size: 6.4rem;
 }
 
 #cardsView li > a:active {
   background: url('images/tasks/close-active.png') no-repeat;
+  background-size: 6.4rem;
 }
 
 #cardsView li > h1 {
   text-align: center;
   color: #fff;
   font-size: 2em;
-  text-shadow: #000 0 2px 1px;
+  text-shadow: #000 0 0.2rem 0.1rem;
 }
-
