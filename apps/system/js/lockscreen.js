@@ -781,7 +781,7 @@ var LockScreen = {
     if (!this.locked)
       return;
 
-    var f = new navigator.mozL10n.DateTimeFormat();
+    var f = navigator.mozL10n.DateTimeFormat();
     var _ = navigator.mozL10n.get;
 
     var timeFormat = _('shortTimeFormat');
