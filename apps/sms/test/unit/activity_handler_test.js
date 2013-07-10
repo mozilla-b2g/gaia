@@ -158,6 +158,30 @@ suite('ActivityHandler', function() {
       });
     });
 
+    suite('contact without name (after getSelf)', function() {
+      var phoneNumber = '+1111111111';
+      var oldSender;
+      setup(function() {
+        oldSender = message.sender;
+        message.sender = phoneNumber;
+        this.sinon.stub(Contacts, 'findByPhoneNumber')
+          .callsArgWith(1, [{
+            name: [''],
+            tel: {'value': phoneNumber}
+          }]);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      suiteTeardown(function() {
+        message.sender = oldSender;
+      });
+
+
+      test('phone in notification title when contact without name', function() {
+        assert.equal(MockNotificationHelper.mTitle, phoneNumber);
+      });
+    });
+
     suite('after getSelf', function() {
       setup(function() {
         MockNavigatormozApps.mTriggerLastRequestSuccess();
