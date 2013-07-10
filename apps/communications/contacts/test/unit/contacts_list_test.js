@@ -1134,63 +1134,101 @@ suite('Render contacts list', function() {
       });
     });
 
+    test('Order string lazy calculated', function(done) {
+      mockContacts = new MockContactsList();
+      doLoad(subject, mockContacts, function() {
+        // The nodes are there
+        var nodes = list.querySelectorAll('li');
+        assert.length(nodes, 3);
+
+        // But no order strings are rendered initially.  This work is deferred
+        nodes = list.querySelectorAll('li[data-order]');
+        assert.length(nodes, 0);
+
+        // Adding a contact via refresh() should result in the order string
+        // being calculated.
+        var c = new MockContactAllFields();
+        c.id = 99;
+        c.familyName = ['AZ'];
+        c.category = [];
+        subject.refresh(c);
+
+        nodes = list.querySelectorAll('li');
+        assert.length(nodes, 4);
+
+        nodes = list.querySelectorAll('li[data-order]');
+        assert.length(nodes, 2);
+
+        done();
+      });
+    });
+
     test('Order by lastname', function(done) {
       resetDom(document);
       subject.init(list);
 
       mockContacts = new MockContactsList();
-      doLoad(subject, mockContacts, function() {
-        var nodes = document.querySelectorAll('[data-order]');
 
-        assert.length(nodes, mockContacts.length);
-        for (var i = 0; i < nodes.length; i++) {
-          var node = nodes[i];
-          var mockContact = mockContacts[i];
-          var expected = getStringToBeOrdered(mockContact, true);
-          assert.equal(node.dataset['order'],
-            Normalizer.escapeHTML(expected, true));
+      // Use refresh() to load list since it forces order strings to be
+      // calculated and used for sorting.
+      for (var i = 0; i < mockContacts.length; ++i) {
+        subject.refresh(mockContacts[i]);
+      }
 
-          var printed = node.querySelector('p');
+      var nodes = document.querySelectorAll('li[data-order]');
 
-          // Check as well the correct highlight
-          // familyName to be in bold
-          var highlight =
-            Normalizer.escapeHTML(mockContact.givenName[0], true) +
-            ' <strong>' +
-              Normalizer.escapeHTML(mockContact.familyName[0], true) +
-            '</strong>';
-          assert.isTrue(printed.innerHTML.indexOf(highlight) == 0);
-        }
-        done();
-      });
+      assert.length(nodes, mockContacts.length);
+      for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i];
+        var mockContact = mockContacts[i];
+        var expected = getStringToBeOrdered(mockContact, true);
+        assert.equal(node.dataset['order'],
+          Normalizer.escapeHTML(expected, true));
+
+        var printed = node.querySelector('p');
+
+        // Check as well the correct highlight
+        // familyName to be in bold
+        var highlight =
+          Normalizer.escapeHTML(mockContact.givenName[0], true) +
+          ' <strong>' +
+            Normalizer.escapeHTML(mockContact.familyName[0], true) +
+          '</strong>';
+        assert.isTrue(printed.innerHTML.indexOf(highlight) == 0);
+      }
+      done();
     });
 
     test('NOT order by lastname', function(done) {
       subject.setOrderByLastName(false);
 
-      doLoad(subject, mockContacts, function() {
-        // First one should be the last one from the list,
-        // with the current names
-        var node = document.querySelector('[data-order]');
-        var mockContact = mockContacts[mockContacts.length - 1];
-        var expected = getStringToBeOrdered(mockContact, false);
+      // Use refresh() to load list since it forces order strings to be
+      // calculated and used for sorting.
+      for (var i = 0; i < mockContacts.length; ++i) {
+        subject.refresh(mockContacts[i]);
+      }
 
-        assert.equal(
-          node.dataset['order'], Normalizer.escapeHTML(expected, true));
+      // First one should be the last one from the list,
+      // with the current names
+      var node = document.querySelector('[data-order]');
+      var mockContact = mockContacts[mockContacts.length - 1];
+      var expected = getStringToBeOrdered(mockContact, false);
 
-        var name = node.querySelector('p');
+      assert.equal(
+        node.dataset['order'], Normalizer.escapeHTML(expected, true));
 
-        // Check highlight
-        // Given name to be in bold
-        var highlight = '<strong>' +
-               Normalizer.escapeHTML(mockContact.givenName[0], true) +
-             '</strong> ' +
-             Normalizer.escapeHTML(mockContact.familyName[0], true);
-        assert.equal(name.innerHTML.indexOf(highlight), 0);
+      var name = node.querySelector('p');
 
-        subject.setOrderByLastName(true);
-        done();
-      });
+      // Check highlight
+      // Given name to be in bold
+      var highlight = '<strong>' +
+             Normalizer.escapeHTML(mockContact.givenName[0], true) +
+           '</strong> ' +
+           Normalizer.escapeHTML(mockContact.familyName[0], true);
+      assert.equal(name.innerHTML.indexOf(highlight), 0);
+
+      subject.setOrderByLastName(true);
+      done();
     });
   });
 });
