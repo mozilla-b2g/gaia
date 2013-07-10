@@ -1055,7 +1055,7 @@ var LockScreen = {
     // If the timer is already running, stop it.
     this.stopElasticTimer();
     // If the document is visible, go ahead and start the timer now.
-    if (value && !document.hidden && !this.screenReader) {
+    if (value && !document.hidden) {
       this.startElasticTimer();
     }
   },
@@ -1070,7 +1070,7 @@ var LockScreen = {
   },
 
   playElastic: function ls_playElastic() {
-    if (this._touch && this._touch.touched)
+    if ((this._touch && this._touch.touched) || this.screenReader)
       return;
 
     var overlay = this.overlay;
