@@ -23,8 +23,22 @@ var SdManager = {
     var importedContacts = 0;
 
     UIManager.navBar.setAttribute('aria-disabled', 'true');
+
+    var cancelled = false;
+    var importer = null;
+
     var progress = utils.overlay.show(
       _('memoryCardContacts-reading'), 'activityBar');
+    utils.overlay.showMenu();
+    utils.overlay.oncancel = function() {
+      cancelled = true;
+      if (importer) {
+        importer.finish();
+      } else {
+        UIManager.navBar.removeAttribute('aria-disabled');
+        utils.overlay.hide();
+      }
+    };
 
     var importButton = UIManager.sdImportButton;
     importButton.setAttribute('disabled', 'disabled');
@@ -38,6 +52,9 @@ var SdManager = {
       if (err)
         return import_error(err);
 
+      if (cancelled)
+        return;
+
       if (fileArray.length)
         utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
       else
@@ -48,7 +65,10 @@ var SdManager = {
       if (err)
         return import_error(err);
 
-      var importer = new VCFReader(text);
+      if (cancelled)
+        return;
+
+      importer = new VCFReader(text);
       if (!text || !importer)
         return import_error('No contacts were found.');
 

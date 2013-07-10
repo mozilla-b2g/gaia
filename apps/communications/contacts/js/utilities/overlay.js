@@ -9,7 +9,9 @@ var utils = this.utils || {};
       progressActivity = document.querySelector('#progress-activity'),
       progressTitle = document.querySelector('#progress-title'),
       progressElement = document.querySelector('#progress-element'),
-      progressMsg = document.querySelector('#progress-msg');
+      progressMsg = document.querySelector('#progress-msg'),
+      menu = document.querySelector('#loading-overlay menu'),
+      cancelButton = document.querySelector('#cancel-overlay');
 
   // Constructor for the progress element
   function ProgressBar(pMsgId, pClass) {
@@ -76,6 +78,7 @@ var utils = this.utils || {};
     // In the case of an spinner this object will not be really used
     out = new ProgressBar(textId, progressClass);
     setClass(progressClass);
+    utils.overlay.hideMenu(); // By default
     if (!utils.overlay.isAnimationPlaying) {
       utils.overlay._show(message, progressClass, textId);
       return out;
@@ -88,6 +91,26 @@ var utils = this.utils || {};
     );
     return out;
   };
+
+  utils.overlay.showMenu = function showMenu() {
+    menu.classList.add('showed');
+  };
+
+  utils.overlay.hideMenu = function hideMenu() {
+    menu.classList.remove('showed');
+  };
+
+  Object.defineProperty(utils.overlay, 'oncancel', {
+    set: function(cancelCb) {
+      if (typeof cancelCb === 'function') {
+        cancelButton.onclick = function on_cancel(e) {
+          delete cancelButton.onclick;
+          cancelCb();
+          return false;
+        };
+      }
+    }
+  });
 
   function setAsProgress() {
     statusContainer.classList.remove('loading-icon');

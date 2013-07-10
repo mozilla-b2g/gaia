@@ -9,6 +9,14 @@
 var VCFReader = function(contents) {
   this.contents = contents;
   this.processedContacts = 0;
+  this.finished = false;
+};
+
+// It defines the number of contacts that are processsed in parallel
+VCFReader.prototype.CHUNK_SIZE = 5;
+
+VCFReader.prototype.finish = function() {
+  this.finished = true;
 };
 
 VCFReader.prototype.process = function(cb) {
@@ -28,28 +36,28 @@ VCFReader.prototype.process = function(cb) {
   }
 
   var self = this;
-  var allDone = false;
-  this.totalContacts = rawContacts.length;
-  rawContacts.forEach(function(ct) { VCFReader.save(ct, onParsed); });
+  var total = rawContacts.length;
+
+  function importContacts(from) {
+    for (var i = from; i < from + self.CHUNK_SIZE && i < total; i++) {
+      VCFReader.save(rawContacts[i], onParsed);
+    }
+  }
+
+  importContacts(this.processedContacts);
 
   function onParsed(err, ct) {
     self.onimported && self.onimported();
-
     self.processedContacts += 1;
-    if (self.checkIfCompleted() && allDone === false) {
+
+    if (self.processedContacts < total &&
+        self.processedContacts % self.CHUNK_SIZE === 0) {
+      // Batch finishes, next one...
+      self.finished ? cb(rawContacts) : importContacts(self.processedContacts);
+    } else if (self.processedContacts === total) {
       cb(rawContacts);
-      allDone = true;
     }
   }
-};
-
-/**
- * Checks if all the contacts have been processed by comparing them to the
- * initial number of entries in the vCard
- * @return {Boolean} return true if processed, false otherwise.
- */
-VCFReader.prototype.checkIfCompleted = function() {
-  return this.processedContacts === this.totalContacts;
 };
 
 /**

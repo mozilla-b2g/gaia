@@ -57,6 +57,10 @@ suite('Contacts settings', function() {
         return date;
       }
     };
+    window.utils.overlay = {
+      show: function() {},
+      showMenu: function() {}
+    };
     window._ = stub('blah');
   });
 
