@@ -342,6 +342,16 @@ section li.password > p {
   padding-bottom: 1em;
 }
 
+/******************************************************************************
+ * Internet sharing (Wi-Fi HotSpot)
+ */
+
+#hotspot ul li > a span {
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /******************************************************************************
  * Wallpaper snapshot
