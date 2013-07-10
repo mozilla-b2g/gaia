@@ -287,6 +287,12 @@ var eventHandlers = {
   'mousemove': onMouseMove
 };
 
+// For "swipe down to hide" feature
+var touchStartCoordinate;
+var keyboardLaunchedBefore = true;
+const SWIPE_VELOCICTY_THRESHOLD = 0.4;
+const KEYBOARD_LAUNCHED_KEY = 'keyboard.launched';
+
 // The first thing we do when the keyboard app loads is query all the
 // keyboard-related settings. Only once we have the current settings values
 // do we initialize the rest of the keyboard
@@ -332,6 +338,11 @@ function getKeyboardSettings() {
     // And create an array of all enabled keyboard layouts from the set
     // of enabled groups
     handleNewKeyboards();
+
+    // To see if this is first time the user launches the keyboard
+    asyncStorage.getItem(KEYBOARD_LAUNCHED_KEY, function(launched) {
+      keyboardLaunchedBefore = launched;
+    });
 
     // We've got all the settings, so initialize the rest
     initKeyboard();
@@ -396,6 +407,33 @@ function initKeyboard() {
   for (var event in eventHandlers) {
     IMERender.ime.addEventListener(event, eventHandlers[event]);
   }
+
+  // Prevent focus being taken away by tip window
+  var tipWindow = document.getElementById('confirm-dialog');
+  function tipFocusHandler(evt) {
+    evt.preventDefault();
+  }
+
+  tipWindow.addEventListener('mousedown', tipFocusHandler);
+
+  var tipButton = document.getElementById('ftu-ok');
+  tipButton.addEventListener('click', function(evt) {
+    // Need to preventDefault or it will make the input lose the focus
+    evt.preventDefault();
+    tipWindow.hidden = true;
+  });
+
+  /* To simulate :active effect for button */
+  tipButton.addEventListener('mousedown', function mouseDownHandler(evt) {
+    tipButton.classList.add('active');
+  });
+
+  var inActiveHandlers = ['mouseup', 'mouseleave'];
+  inActiveHandlers.forEach(function addInActiveHandler(evtName) {
+    tipButton.addEventListener(evtName, function inActiveHandler(evt) {
+      tipButton.classList.remove('active');
+    });
+  });
 
   dimensionsObserver = new MutationObserver(function() {
     updateTargetWindowHeight();
@@ -1077,6 +1115,11 @@ function onTouchStart(evt) {
 
     touchedKeys[touchId] = { target: target, x: touch.pageX, y: touch.pageY };
     startPress(target, touch, touchId);
+
+    touchStartCoordinate = { touchId: touchId,
+                             pageX: touch.pageX,
+                             pageY: touch.pageY,
+                             timeStamp: evt.timeStamp };
   });
 }
 
@@ -1109,6 +1152,31 @@ function onTouchEnd(evt) {
   touchCount = evt.touches.length;
 
   handleTouches(evt, function handleTouchEnd(touch, touchId) {
+
+    // Swipe down can trigger hiding the keyboard
+    if (touchStartCoordinate && touchStartCoordinate.touchId == touchId) {
+      var dx = touch.pageX - touchStartCoordinate.pageX;
+      var dy = touch.pageY - touchStartCoordinate.pageY;
+      var dt = evt.timeStamp - touchStartCoordinate.timeStamp;
+      var vy = dy / dt;
+
+      var keyboardHeight = IMERender.ime.scrollHeight;
+
+      // hide the keyboard if:
+      // 1. swipe down
+      // 2. the distance is longer than half of the keyboard
+      if ((dy > keyboardHeight / 2 && dy > dx) &&
+          vy > SWIPE_VELOCICTY_THRESHOLD) {
+
+        // de-activate the highlighted effect
+        if (touchedKeys[touchId])
+          IMERender.unHighlightKey(touchedKeys[touchId].target);
+
+        window.navigator.mozKeyboard.removeFocus();
+        return;
+      }
+    }
+
     // Because of bug 822558, we sometimes get two touchend events,
     // so we should bail if we've already handled one touchend.
     if (!touchedKeys[touchId])
@@ -1565,6 +1633,13 @@ function showKeyboard(state) {
       suggest: suggestionsEnabled,
       correct: correctionsEnabled
     });
+  }
+
+  if (!keyboardLaunchedBefore) {
+    var dialog = document.getElementById('confirm-dialog');
+    dialog.hidden = false;
+    keyboardLaunchedBefore = true;
+    asyncStorage.setItem(KEYBOARD_LAUNCHED_KEY, true);
   }
 
   // render the keyboard after activation, which will determine the state
