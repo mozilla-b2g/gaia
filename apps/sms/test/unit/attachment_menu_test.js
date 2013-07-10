@@ -33,7 +33,7 @@ suite('attachment_menu_test.js', function() {
 
   suite('open', function() {
     setup(function() {
-      sinon.stub(AttachmentMenu.el, 'focus');
+      this.sinon.stub(AttachmentMenu.el, 'focus');
 
       document.querySelector('#attachment-options-menu').className = 'hide';
       // clear out a bunch of fields to make sure open uses localization
