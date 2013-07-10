@@ -416,6 +416,28 @@
   };
 
   /**
+   * Event prefix presents the object type
+   * when publishing an event from the element.
+   * Always 'app' for now.
+   *
+   * @type {String}
+   */
+  AppWindow.prototype.eventPrefix = 'app';
+
+  /**
+   * Publish an event.
+   *
+   * @param  {String} event  Event name, without object type prefix.
+   * @param  {Object} detail Parameters in JSON format.
+   */
+  AppWindow.prototype.publish = function(event, detail) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent(this.eventPrefix + event,
+                        true, false, detail || this.config);
+    this.frame.dispatchEvent(evt);
+  };
+
+  /**
    * We will rotate the app window during app transition per current screen
    * orientation and app's orientation. The width and height would be
    * temporarily changed during the transition in this function.
@@ -523,10 +545,7 @@
     this.frame.style.width = cssWidth;
     this.frame.style.height = cssHeight;
 
-    // We will call setInlineActivityFrameSize()
-    // if changeActivityFrame is not explicitly set to false.
-    dispatchEvent(new CustomEvent('appresize',
-        {changeActivityFrame: changeActivityFrame}));
+    this.publish('resize', {changeActivityFrame: changeActivityFrame});
   };
 
 }(this));
