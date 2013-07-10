@@ -311,6 +311,11 @@ section li.password > p {
   height: 2.7rem;
 }
 
+#call li.disabled .fake-select {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 
 /******************************************************************************
  * Cellular and Data

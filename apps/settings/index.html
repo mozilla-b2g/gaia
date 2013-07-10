@@ -551,6 +551,17 @@
             </label>
             <a data-l10n-id="callBroadcastService">Cell broadcast service</a>
           </li>
+          <li id="menuItem-callerId" class="disabled">
+            <a data-l10n-id="callerId">Caller ID</a>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select id="ril-callerId" data-setting="ril.callerId">
+                <option value="CLIR_DEFAULT" data-l10n-id="callerId-default">Network default</option>
+                <option value="CLIR_INVOCATION" data-l10n-id="callerId-hide">Hide number</option>
+                <option value="CLIR_SUPPRESSION" data-l10n-id="callerId-show">Show number</option>
+              </select>
+            </p>
+          </li>
         </ul>
 
         <header>

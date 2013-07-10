@@ -140,6 +140,7 @@ settings = {
  "ril.sms.strict7BitEncoding.enabled": False,
  "ril.cellbroadcast.disabled": False,
  "ril.data.apnSettings": "",
+ "ril.callerId": "CLIR_DEFAULT",
  "screen.automatic-brightness": True,
  "screen.brightness": 1,
  "screen.timeout": 60,
