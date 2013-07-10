@@ -54,7 +54,7 @@
 
 #sleep-menu-container li {
   -moz-transition: background 0.2s ease 0s;
-  border-bottom: 1px solid #666666;
+  border-bottom: 0.1rem solid #666666;
   color: #FFFFFF;
   font-family: 'MozTT',Sans-serif;
   font-size: 2.2rem;
@@ -63,7 +63,7 @@
   line-height: 5.9rem;
   list-style: none outside none;
   margin: 0;
-  padding-bottom: 1px;
+  padding-bottom: 0.1rem;
   position: relative;
   display: block;
   text-decoration: none;
@@ -76,7 +76,7 @@
 
 #sleep-menu menu {
   background: url("../themes/default/images/ui/pattern.png") repeat scroll left top #2D2D2D;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
   bottom: 0;
   display: block;
   left: 0;
@@ -96,7 +96,7 @@
 #sleep-menu menu button {
   -moz-box-sizing: border-box;
   background: url("../themes/default/images/ui/default.png") repeat-x scroll left bottom #FAFAFA;
-  border: 1px solid #9F9F9F;
+  border: 0.1rem solid #9F9F9F;
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
   color: #333333;
   display: inline-block;
@@ -112,7 +112,7 @@
   text-align: center;
   text-decoration: none;
   text-overflow: ellipsis;
-  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0.1rem 0.1rem 0 rgba(255, 255, 255, 0.3);
   vertical-align: middle;
   white-space: nowrap;
   width: 100%;
