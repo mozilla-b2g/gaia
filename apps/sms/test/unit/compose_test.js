@@ -425,7 +425,7 @@ suite('compose_test.js', function() {
               done();
             }
           }
-        };
+        }
         Compose.on('input', onInput);
         Compose.append(mockImgAttachment());
       });
@@ -434,22 +434,25 @@ suite('compose_test.js', function() {
     suite('Message Type Events', function() {
       var form;
       var expectType = 'sms';
+
       function typeChange(event) {
         assert.equal(Compose.type, expectType);
         typeChange.called++;
       }
-      suiteSetup(function() {
-        Compose.on('type', typeChange);
-      });
-      suiteTeardown(function() {
-        Compose.off('type', typeChange);
-      });
+
       setup(function() {
         expectType = 'sms';
         Compose.clear();
         typeChange.called = 0;
         form = document.getElementById('messages-compose-form');
+
+        Compose.on('type', typeChange);
       });
+
+      teardown(function() {
+        Compose.off('type', typeChange);
+      });
+
       test('Message switches type when adding/removing attachment',
         function() {
         // form must have the data-message-type set

@@ -211,6 +211,7 @@ var Compose = (function() {
         this.onAttachClick.bind(this));
 
       this.clear();
+      this.clearListeners();
 
       return this;
     },
@@ -230,6 +231,12 @@ var Compose = (function() {
         }
       }
       return this;
+    },
+
+    clearListeners: function() {
+      for (var type in handlers) {
+        handlers[type] = [];
+      }
     },
 
     getContent: function() {
