@@ -25,7 +25,10 @@ if (typeof TestUrlResolver === 'undefined') {
       }
     },
     shim: {
-      l10ndate: ['l10nbase']
+      l10ndate: ['l10nbase'],
+      'shared/js/mime_mapper': {
+        exports: 'MimeMapper'
+      }
     }
   });
 }

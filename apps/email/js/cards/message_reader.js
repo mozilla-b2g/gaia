@@ -664,7 +664,7 @@ MessageReaderCard.prototype = {
     if (body.attachments && body.attachments.length) {
       // We need MimeMapper to help us determining the downloadable attachments
       // but it might not be loaded yet, so load before use it
-      require(['shared/mime_mapper'], function(mapper) {
+      require(['shared/js/mime_mapper'], function(mapper) {
         if (!MimeMapper)
           MimeMapper = mapper;
 
