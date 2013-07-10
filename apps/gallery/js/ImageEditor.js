@@ -449,6 +449,7 @@ function ImageEditor(imageURL, container, edits, ready) {
   var self = this;
   this.original.onload = function() {
     // Initialize the crop region to the full size of the original image
+    $('crop-done-button').disabled = false;
     self.resetCropRegion();
     self.resetPreview();
 
