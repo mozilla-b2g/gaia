@@ -115,7 +115,6 @@ pref("general.useragent.override.virginatlantic.com", "\\(Mobile#(Android; Mobil
 pref("general.useragent.override.cheaptickets.com", "\\(Mobile#(Android; Mobile"); // bug 843168
 pref("general.useragent.override.etsy.com", "\\(Mobile#(Android; Mobile"); // bug 843170
 pref("general.useragent.override.zimbio.com", "\\(Mobile#(Android; Mobile"); // bug 843172
-pref("general.useragent.override.thinkgeek.com", "\\(Mobile#(Android; Mobile"); // bug 843174
 pref("general.useragent.override.tylted.com", "\\(Mobile#(Android; Mobile"); // bug 843176
 pref("general.useragent.override.txt2nite.com", "\\(Mobile#(Android; Mobile"); // bug 843178
 pref("general.useragent.override.slashgear.com", "\\(Mobile#(Android; Mobile"); // bug 843181
