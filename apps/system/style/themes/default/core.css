@@ -74,7 +74,7 @@
 
 [role="dialog"] menu:not([type="toolbar"])[data-items="2"] button,
 [role="dialog"] menu:not([type="toolbar"])[data-items="2"] a[role="button"] {
-  width: -moz-calc((100% - 1rem) / 2);
+  width: calc((100% - 1rem) / 2);
 }
 
 

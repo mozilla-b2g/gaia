@@ -26,9 +26,9 @@ form[role="dialog"][data-type="value-selector"]:before {
   content: "";
   display: inline-block;
   vertical-align: top;
-  width: 1px;
+  width: 0.1rem;
   height: 100%;
-  margin-left: -1px;
+  margin-left: -0.1rem;
 }
 
 form[role="dialog"][data-type="value-selector"] > section {
@@ -56,7 +56,7 @@ form[role="dialog"][data-type="value-selector"] menu {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  border-top: solid 1px rgba(255, 255, 255, 0.1);
+  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
   background: #2d2d2d url(value_selector/images/ui/pattern.png) repeat left top;
   display: block;
   overflow: hidden;
@@ -84,7 +84,7 @@ form[role="dialog"][data-type="value-selector"] menu button {
   font-weight: 600;
   line-height: 3.8rem;
   color: #fff;
-  text-shadow: -1px -1px 0 #830b0b;
+  text-shadow: -0.1rem -0.1rem 0 #830b0b;
   text-align: center;
   text-decoration: none;
 }
@@ -92,7 +92,7 @@ form[role="dialog"][data-type="value-selector"] menu button {
 /* Reset & submit defaults */
 form[role="dialog"][data-type="value-selector"] menu button[type="reset"],
 form[role="dialog"][data-type="value-selector"] menu button[type="submit"] {
-  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
   color: #333;
 }
 
@@ -100,20 +100,20 @@ form[role="dialog"][data-type="value-selector"] menu button[type="submit"] {
 form[role="dialog"][data-type="value-selector"] menu button[type="reset"] {
   background-image: url(value_selector/images/ui/button_reset.png);
   background-color: #fafafa;
-  border: solid 1px #9f9f9f;
+  border: solid 0.1rem #9f9f9f;
 }
 
 /* Submit */
 form[role="dialog"][data-type="value-selector"] menu button[type="submit"] {
   background-image: url(value_selector/images/ui/button_submit.png) ;
   background-color: #00caf2;
-  border: 1px solid #00acce;
+  border: 0.1rem solid #00acce;
 }
 
 /* Pressed state, reset & submit */
 form[role="dialog"][data-type="value-selector"] menu button[type="reset"]:active,
 form[role="dialog"][data-type="value-selector"] menu button[type="submit"]:active {
-  border: solid 1px #008aaa;
+  border: solid 0.1rem #008aaa;
   background: #008aaa;
   color: #333;
 }
@@ -125,7 +125,7 @@ form[role="dialog"][data-type="value-selector"] menu button[type="submit"][disab
   background-color: transparent;
   border: none;
   color: #4a4a4a;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-shadow: 0 0.1rem 0 rgba(255, 255, 255, 0.2);
 }
 
 form[role="dialog"][data-type="value-selector"] menu button:last-child {
@@ -138,7 +138,7 @@ form[role="dialog"][data-type="value-selector"] menu button:first-child {
 }
 
 form[role="dialog"][data-type="value-selector"] menu button {
-  width: -moz-calc((100% - 1rem) / 2);
+  width: calc((100% - 1rem) / 2);
 }
 
 form[role="dialog"][data-type="value-selector"] menu button.full {
@@ -169,11 +169,11 @@ form[role="dialog"][data-type="value-selector"] .scrollable:before {
 
 form[role="dialog"][data-type="value-selector"] [role="listbox"] li {
   margin: 0;
-  padding-bottom: 1px;
+  padding-bottom: 0.1rem;
   height: 5.9rem;
   list-style: none;
   position: relative;
-  border-bottom: 1px solid #666;
+  border-bottom: 0.1rem solid #666;
   font-weight: lighter;
   font-size: 2.2rem;
   line-height: 5.9rem;
@@ -208,7 +208,7 @@ form[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-checked
 
 form[role="dialog"][data-type="value-selector"] [role="listbox"] li a,
 form[role="dialog"][data-type="value-selector"] [role="listbox"] li label {
-  border-bottom: 1px solid #000;
+  border-bottom: 0.1rem solid #000;
   outline: none;
 }
 

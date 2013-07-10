@@ -287,7 +287,7 @@ body, html {
   /* HACK: This enforces allocation of a dedicated layer just for this animated
    * icon, remove after bug 717872 gets fixed. */
   display: block;
-  transform: perspective(1px);
+  transform: perspective(0.1rem);
 }
 
 .sb-icon-network-activity[hidden] {
@@ -415,7 +415,7 @@ body, html {
   /* HACK: This enforces allocation of a dedicated layer just for this animated
    * icon, remove after bug 717872 gets fixed. */
   display: block;
-  transform: perspective(1px);
+  transform: perspective(0.1rem);
 }
 
 .sb-icon-system-downloads[hidden] {
