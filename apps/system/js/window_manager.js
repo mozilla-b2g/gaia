@@ -1900,7 +1900,8 @@ var WindowManager = (function() {
         if (document.mozFullScreen)
           document.mozCancelFullScreen();
       }
-      runningApps[displayedApp].resize();
+      if (displayedApp)
+        runningApps[displayedApp].resize();
     });
   });
 
