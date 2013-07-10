@@ -150,7 +150,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       }
       self.formatPhoneNumber('end', true);
       self._cachedAdditionalInfo =
-        Utils.getPhoneNumberAdditionalInfo(matchingTel, contact, number);
+        Utils.getPhoneNumberAdditionalInfo(matchingTel);
       self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
       if (contact.photo && contact.photo.length > 0) {
         self.photo = contact.photo[0];

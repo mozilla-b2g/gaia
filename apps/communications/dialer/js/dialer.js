@@ -123,7 +123,7 @@ var CallHandler = (function callHandler() {
   /* === Recents support === */
   function handleRecentAddRequest(entry) {
     CallLogDBManager.add(entry, function(logGroup) {
-      CallLog.appendGroup(logGroup, entry.contactInfo);
+      CallLog.appendGroup(logGroup);
     });
   }
 
