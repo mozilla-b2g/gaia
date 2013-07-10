@@ -22,7 +22,8 @@ var CallLog = {
       '/shared/style_unstable/lists.css',
       '/dialer/js/phone_action_menu.js',
       '/dialer/js/fixed_header.js',
-      '/dialer/js/utils.js'
+      '/dialer/js/utils.js',
+      '/dialer/js/voicemail.js'
     ];
     var self = this;
     LazyLoader.load(lazyFiles, function resourcesLoaded() {
@@ -436,11 +437,21 @@ var CallLog = {
     var phoneNumber = phoneNumbers.shift();
     var self = this;
     var container = target || this.callLogContainer;
-    var callback = function(contact, matchingTel, sameNum) {
+    var contactsCallback = function(contact, matchingTel, sameNum) {
+      if (!contact) {
+        Voicemail.check(phoneNumber, function(isVoicemailNumber) {
+          finalCallback(contact, matchingTel, sameNum, isVoicemailNumber);
+        });
+      }
+      finalCallback(contact, matchingTel, sameNum);
+    };
+
+    var finalCallback = function(contact, matchingTel, sameNum,
+                                 isVoicemailNumber) {
       var selector = '[data-phone-number="' + phoneNumber + '"]';
       var logsToUpdate = container.querySelectorAll(selector);
       for (var j = 0, l = logsToUpdate.length; j < l; j++) {
-        if (contact && contact !== null) {
+        if (contact) {
           var infoToUpdate = {
             element: logsToUpdate[j],
             contact: contact,
@@ -449,7 +460,8 @@ var CallLog = {
           };
         } else {
           var infoToUpdate = {
-            element: logsToUpdate[j]
+            element: logsToUpdate[j],
+            isVoicemailNumber: isVoicemailNumber
           };
         }
 
@@ -459,13 +471,14 @@ var CallLog = {
         self.updateListWithContactInfo(phoneNumbers, target);
       }
     };
-    Contacts.findByNumber(phoneNumber, callback);
+    Contacts.findByNumber(phoneNumber, contactsCallback);
   },
 
   updateContactInfo: function cl_updateContactInfo(params) {
     var el = params.element;
     var contact = params.contact;
-    if (!params.matchingTel && !el.dataset.contactId) {
+    if (!params.matchingTel && !el.dataset.contactId &&
+        !params.isVoicemailNumber) {
       return;
     }
 
@@ -483,9 +496,19 @@ var CallLog = {
       parent.insertBefore(additInfoCont, primElem.nextElementSibling);
     }
 
+    // Call to voicemail without a contact stored for Voicemail
+    if (!params.matchingTel && params.isVoicemailNumber) {
+      LazyL10n.get(function gotL10n(_) {
+        primInfoCont.textContent = _('voiceMail');
+      });
+      additInfoCont.textContent = el.dataset.phoneNumber;
+      contactPhoto.src = '';
+      delete el.dataset.contactId;
+      return;
+    }
+
     if (!params.matchingTel && el.dataset.contactId) {
       primInfoCont.textContent = el.dataset.phoneNumber;
-      numContactsCont.textContent = '';
       additInfoCont.textContent = '';
       contactPhoto.src = '';
       delete el.dataset.contactId;
