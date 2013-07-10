@@ -659,7 +659,8 @@ if (typeof window.importer === 'undefined') {
 
       // To optimize if the user wishes to unselect all
       var mode = 'update';
-      if (unSelectedKeys.length === existingContacts.length) {
+      if (unSelectedKeys.length === existingContacts.length &&
+          Object.keys(selectedContacts).length === 0) {
         mode = 'clear';
       }
 
