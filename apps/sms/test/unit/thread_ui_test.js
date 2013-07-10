@@ -626,15 +626,12 @@ suite('thread_ui.js >', function() {
   });
 
   suite('message type conversion >', function() {
-    var convertBanner, convertBannerText, fakeTime, form;
+    var convertBanner, convertBannerText, form;
     setup(function() {
-      fakeTime = sinon.useFakeTimers();
+      this.sinon.useFakeTimers();
       convertBanner = document.getElementById('messages-convert-notice');
       convertBannerText = convertBanner.querySelector('p');
       form = document.getElementById('messages-compose-form');
-    });
-    teardown(function() {
-      fakeTime.restore();
     });
     test('sms to mms and back displays banner', function() {
       // cause a type switch event to happen
@@ -645,11 +642,11 @@ suite('thread_ui.js >', function() {
       assert.equal(convertBannerText.textContent, 'converted-to-mms',
         'conversion banner has mms message');
 
-      fakeTime.tick(2999);
+      this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for just shy of 3 seconds');
 
-      fakeTime.tick(1);
+      this.sinon.clock.tick(1);
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
@@ -661,11 +658,11 @@ suite('thread_ui.js >', function() {
       assert.equal(convertBannerText.textContent, 'converted-to-sms',
         'conversion banner has sms message');
 
-      fakeTime.tick(2999);
+      this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for just shy of 3 seconds');
 
-      fakeTime.tick(1);
+      this.sinon.clock.tick(1);
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
@@ -686,11 +683,11 @@ suite('thread_ui.js >', function() {
       assert.equal(convertBannerText.textContent, 'converted-to-mms',
         'conversion banner has mms message');
 
-      fakeTime.tick(2999);
+      this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for just shy of 3 seconds');
 
-      fakeTime.tick(1);
+      this.sinon.clock.tick(1);
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
@@ -702,11 +699,11 @@ suite('thread_ui.js >', function() {
       assert.equal(convertBannerText.textContent, 'converted-to-sms',
         'conversion banner has sms message');
 
-      fakeTime.tick(2999);
+      this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for just shy of 3 seconds');
 
-      fakeTime.tick(1);
+      this.sinon.clock.tick(1);
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
@@ -724,7 +721,7 @@ suite('thread_ui.js >', function() {
       assert.equal(convertBannerText.textContent, 'converted-to-mms',
         'conversion banner has mms message');
 
-      fakeTime.tick(1500);
+      this.sinon.clock.tick(1500);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is still shown');
 
@@ -737,11 +734,11 @@ suite('thread_ui.js >', function() {
         'conversion banner has sms message');
 
       // long enough to go past the previous timeout 1500 + 2000 > 3000
-      fakeTime.tick(2000);
+      this.sinon.clock.tick(2000);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is still shown');
 
-      fakeTime.tick(1000);
+      this.sinon.clock.tick(1000);
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
@@ -991,16 +988,12 @@ suite('thread_ui.js >', function() {
       expiryDate: new Date(Date.now() - ONE_DAY_TIME)
     }];
     setup(function() {
-      sinon.stub(Utils.date.format, 'localeFormat', function() {
+      this.sinon.stub(Utils.date.format, 'localeFormat', function() {
         return 'date_stub';
       });
-      sinon.stub(MessageManager, 'retrieveMMS', function() {
+      this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
-    });
-    teardown(function() {
-      Utils.date.format.localeFormat.restore();
-      MessageManager.retrieveMMS.restore();
     });
     suite('pending message', function() {
       var message = testMessages[0];
@@ -1297,15 +1290,10 @@ suite('thread_ui.js >', function() {
         1);
 
       this.getMessageReq = {};
-      sinon.stub(MessageManager, 'getMessage')
+      this.sinon.stub(MessageManager, 'getMessage')
         .returns(this.getMessageReq);
-      sinon.stub(MessageManager, 'deleteMessage').callsArgWith(1, true);
-      sinon.stub(MessageManager, 'resendMessage');
-    });
-    teardown(function() {
-      MessageManager.getMessage.restore();
-      MessageManager.deleteMessage.restore();
-      MessageManager.resendMessage.restore();
+      this.sinon.stub(MessageManager, 'deleteMessage').callsArgWith(1, true);
+      this.sinon.stub(MessageManager, 'resendMessage');
     });
 
     // TODO: Implement this functionality in a specialized method and update
@@ -1424,16 +1412,12 @@ suite('thread_ui.js >', function() {
         delivery: 'sent',
         timestamp: new Date()
       });
-      sinon.stub(window, 'confirm');
-      sinon.stub(ThreadUI, 'resendMessage');
+      this.sinon.stub(window, 'confirm');
+      this.sinon.stub(ThreadUI, 'resendMessage');
       this.elems = {
         errorMsg: ThreadUI.container.querySelector('.error'),
         sentMsg: ThreadUI.container.querySelector('.sent')
       };
-    });
-    teardown(function() {
-      window.confirm.restore();
-      ThreadUI.resendMessage.restore();
     });
     test('clicking on "pack-end" aside in an error message' +
       'triggers a confirmation dialog',

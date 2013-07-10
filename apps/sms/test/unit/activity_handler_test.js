@@ -117,7 +117,7 @@ suite('ActivityHandler', function() {
 
     test('Appends an attachment to the Compose field for each media file',
       function(done) {
-      Compose.append = sinon.spy(function(attachment) {
+      this.sinon.stub(Compose, 'append', function(attachment) {
 
         assert.instanceOf(attachment, Attachment);
         assert.ok(Compose.append.callCount < 3);
@@ -227,17 +227,12 @@ suite('ActivityHandler', function() {
       });
 
       setup(function() {
-        sinon.stub(Notification, 'ringtone');
-        sinon.stub(Notification, 'vibrate');
+        this.sinon.stub(Notification, 'ringtone');
+        this.sinon.stub(Notification, 'vibrate');
 
         message = MockMessages.sms({ messageClass: 'class-0' });
         MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
-      });
-
-      teardown(function() {
-        Notification.ringtone.restore();
-        Notification.vibrate.restore();
       });
 
       test('play ringtone', function() {
