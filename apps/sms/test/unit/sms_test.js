@@ -56,7 +56,6 @@ suite('SMS App Unit-Test', function() {
     return nfn;
   }
 
-  var findByString;
   var nativeMozL10n = navigator.mozL10n;
   var realMozMobileMessage;
   var boundOnHashChange;
@@ -97,45 +96,6 @@ suite('SMS App Unit-Test', function() {
 
   // Previous setup
   suiteSetup(function() {
-    findByString = Contacts.findByString;
-
-    // We mockup the method for retrieving the threads
-    MessageManager.getThreads = function(callback, extraArg) {
-      var threadsMockup = new MockThreadList();
-      callback(threadsMockup, extraArg);
-    };
-
-    MessageManager.getMessages = function(options, callback) {
-
-      var each = options.each, // CB which manage every message
-        filter = options.filter, // mozMessageFilter
-        invert = options.invert, // invert selection
-        end = options.end,   // CB when all messages retrieved
-        endArgs = options.endArgs; //Args for end
-
-      var messagesMockup = new MockThreadMessages();
-      for (var i = 0, l = messagesMockup.length; i < l; i++) {
-        each(messagesMockup[i]);
-      }
-      end(endArgs);
-    };
-
-    // We mockup the method for retrieving the info
-    // of a contact given a number
-    Contacts.findByString = function(tel, callback) {
-      // Get the contact
-      if (tel === '1977') {
-        callback(MockContact.list());
-      }
-    };
-
-    Contacts.findByPhoneNumber = function(tel, callback) {
-      // Get the contact
-      if (tel === '1977') {
-        callback(MockContact.list());
-      }
-    };
-
     // Create DOM structure
     loadBodyHTML('/index.html');
     // Clear if necessary...
@@ -156,10 +116,51 @@ suite('SMS App Unit-Test', function() {
 
   suiteTeardown(function() {
     ThreadUI._mozMobileMessage = realMozMobileMessage;
-    Contacts.findByString = findByString;
     // cleanup
     window.document.body.innerHTML = '';
     window.removeEventListener('hashchange', boundOnHashChange);
+  });
+
+  setup(function() {
+    // We mockup the method for retrieving the threads
+    this.sinon.stub(MessageManager, 'getThreads',
+      function(callback, extraArg) {
+        var threadsMockup = new MockThreadList();
+        callback(threadsMockup, extraArg);
+      });
+
+    this.sinon.stub(MessageManager, 'getMessages',
+      function(options, callback) {
+
+        var each = options.each, // CB which manage every message
+          filter = options.filter, // mozMessageFilter
+          invert = options.invert, // invert selection
+          end = options.end,   // CB when all messages retrieved
+          endArgs = options.endArgs; //Args for end
+
+        var messagesMockup = new MockThreadMessages();
+        for (var i = 0, l = messagesMockup.length; i < l; i++) {
+          each(messagesMockup[i]);
+        }
+        end(endArgs);
+      });
+
+    // We mockup the method for retrieving the info
+    // of a contact given a number
+    this.sinon.stub(Contacts, 'findByString', function(tel, callback) {
+      // Get the contact
+      if (tel === '1977') {
+        callback(MockContact.list());
+      }
+    });
+
+    this.sinon.stub(Contacts, 'findByPhoneNumber', function(tel, callback) {
+      // Get the contact
+      if (tel === '1977') {
+        callback(MockContact.list());
+      }
+    });
+
   });
 
   // Let's go with tests!
@@ -500,7 +501,8 @@ suite('SMS App Unit-Test', function() {
         }, 1500); // only the last one is slow. What is blocking?
 
         window.history.back = stub();
-        sinon.stub(MessageManager, 'getThreads').callsArg(1);
+        MessageManager.getThreads.restore();
+        this.sinon.stub(MessageManager, 'getThreads').callsArg(1);
         ThreadUI.delete();
       });
 

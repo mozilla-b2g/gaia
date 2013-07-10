@@ -39,11 +39,7 @@ suite('message_manager.js >', function() {
   suite('on message sent > ', function() {
 
     setup(function() {
-      sinon.spy(ThreadUI, 'appendMessage');
-    });
-
-    teardown(function() {
-      ThreadUI.appendMessage.restore();
+      this.sinon.spy(ThreadUI, 'appendMessage');
     });
 
     test('message is shown in the current thread if it belongs to the thread',

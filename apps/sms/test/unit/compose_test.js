@@ -505,6 +505,7 @@ suite('compose_test.js', function() {
       this.attachmentSize = Compose.size;
       this.sinon.stub(AttachmentMenu, 'open');
       this.sinon.stub(AttachmentMenu, 'close');
+
       // trigger a click on attachment
       this.attachment.mNextRender.click();
 
@@ -589,12 +590,8 @@ suite('compose_test.js', function() {
   });
   suite('Image attachment pre-send menu', function() {
     setup(function() {
-      sinon.stub(AttachmentMenu, 'open');
-      sinon.stub(AttachmentMenu, 'close');
-    });
-    teardown(function() {
-      AttachmentMenu.open.restore();
-      AttachmentMenu.close.restore();
+      this.sinon.stub(AttachmentMenu, 'open');
+      this.sinon.stub(AttachmentMenu, 'close');
     });
     test('click opens menu while resizing and resize complete', function(done) {
       Compose.clear();
