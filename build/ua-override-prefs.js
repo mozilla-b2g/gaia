@@ -27,7 +27,6 @@ pref("general.useragent.override.bancobrasil.com.br", "\\(Mobile#(Android; Mobil
 pref("general.useragent.override.techtudo.com.br", "\\(Mobile#(Android; Mobile"); // bug 826845
 pref("general.useragent.override.ebay.com", "\\(Mobile#(Android; Mobile");// bug 826958
 pref("general.useragent.override.bing.com", "\\(Mobile#(Android; Mobile"); // bug 827622
-pref("general.useragent.override.tam.com.br", "\\(Mobile#(Android; Mobile"); // bug 827623
 pref("general.useragent.override.pontofrio.com.br", "\\(Mobile#(Android; Mobile"); // bug 827624
 pref("general.useragent.override.pagseguro.uol.com.br", "\\(Mobile#(Android; Mobile"); // bug 827625
 pref("general.useragent.override.magazineluiza.com.br", "\\(Mobile#(Android; Mobile"); // bug 827626
