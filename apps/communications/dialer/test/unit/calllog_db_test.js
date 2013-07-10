@@ -124,6 +124,33 @@ suite('dialer/call_log_db', function() {
     });
   });
 
+  suite('Single call from hidden number', function() {
+    test('Add a call', function(done) {
+      var call = {
+        number: '',
+        type: 'incoming',
+        date: days[0]
+      };
+      CallLogDBManager.add(call, function(result) {
+        CallLogDBManager.getGroupList(function(groups) {
+          assert.equal(groups.length, 1);
+          checkGroup(groups[0], call, call.date, 1, result);
+          CallLogDBManager.getRecentList(function(recents) {
+            assert.length(recents, 1);
+            checkCall(recents[0], call);
+            done();
+          });
+        });
+      });
+    });
+
+    suiteTeardown(function(done) {
+      CallLogDBManager.deleteAll(function() {
+        done();
+      });
+    });
+  });
+
   suite('Two calls, same group, different hour', function() {
     var call = {
       number: numbers[0],
