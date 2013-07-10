@@ -768,6 +768,39 @@ suite('Render contacts list', function() {
       done();
     });
 
+    // This test verifies that we properly render contact list elements
+    // for both its main group and favorites group.  This requires the
+    // visibility monitor to fire an onscreen event for each group element
+    // separately.  See bug 891984 for a previous error in this logic.
+    test('load and render many favorites', function(done) {
+      var names = ['AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI'];
+      var list = [];
+      for (var i = 0; i < names.length; ++i) {
+        var name = names[i];
+        var c = new MockContactAllFields();
+        c.id = 'mock-' + i;
+        c.familyName = [name];
+        c.category = ['favorite'];
+        list.push(c);
+      }
+      doLoad(subject, list, function() {
+        var favList = assertGroup(groupFav, containerFav, names.length);
+        var lastFav = favList[favList.length - 1];
+        doOnscreen(subject, lastFav, function() {
+          assert.equal(lastFav.dataset.rendered, 'true',
+                       'contact should be rendered in "favorites" list');
+
+          var aList = assertGroup(groupA, containerA, names.length);
+          var lastA = aList[aList.length - 1];
+          doOnscreen(subject, lastA, function() {
+            assert.equal(lastA.dataset.rendered, 'true',
+                         'contact should be rendered in "A" list');
+            done();
+          });
+        });
+      });
+    });
+
     test('reseting the dom of the contacts list', function(done) {
       var newList = new MockContactsList();
       doLoad(subject, newList, function() {
