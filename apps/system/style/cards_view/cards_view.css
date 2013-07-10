@@ -99,13 +99,13 @@
 
 #cards-view .card > h1 {
   position: absolute;
-  top: -moz-calc(100% - 1.5rem);
+  top: calc(100% - 1.5rem);
   width: 100%;
 }
 
 #cards-view .card > p {
   position: absolute;
-  top: -moz-calc(100% + 1rem);
+  top: calc(100% + 1rem);
   width: 100%;
   font-size: 2rem;
 }

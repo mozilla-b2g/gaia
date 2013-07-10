@@ -5,7 +5,7 @@
  */
 
 .keypad-text {
-  font-size: -moz-calc(6*0.226rem);
+  font-size: 1.356rem;
   color: #96AAB4;
 }
 
@@ -22,7 +22,7 @@
 
 #phone-number-view-container {
   width: 100%;
-  height: -moz-calc(100% - 34.5rem);
+  height: calc(100% - 34.5rem);
   background: #242B36;
   text-align: center;
   display: table;
@@ -32,7 +32,7 @@
 }
 
 #phone-number-view-container.keypad-visible {
-  height: -moz-calc(100% - 35rem);
+  height: calc(100% - 35rem);
   visibility: hidden;
 }
 
@@ -70,7 +70,7 @@
 
 #keypad {
   background: -moz-linear-gradient(top, #191E25 0%, #080B0D 100%);
-  height: -moz-calc(100% - 10rem);
+  height: calc(100% - 10rem);
   width: 100%;
   display: table;
   table-layout: fixed;
@@ -78,8 +78,8 @@
 
 .keypad-cell {
   display: table-cell;
-  border-right: 1px solid #6F6F6F;
-  border-top: 1px solid #6F6F6F;;
+  border-right: 0.1rem solid #6F6F6F;
+  border-top: 0.1rem solid #6F6F6F;;
 }
 
 .keypad-cell:last-child {
@@ -88,7 +88,7 @@
 
 .keypad-key {
   border: 0;
-  border-bottom: 1px solid #6F6F6F;
+  border-bottom: 0.1rem solid #6F6F6F;
   height: 7rem;
   vertical-align: middle;
   position: relative;
@@ -278,7 +278,7 @@
 }
 
 #keypad-hidebar-hide-keypad-action > div {
-  margin: -moz-calc((4rem - 3rem)/2) auto;
+  margin: 0.5rem auto;
   background-image: url('images/ActionIcons_30x30_dismiss_keyboard.png');
   background-repeat: no-repeat;
   background-size: 3rem 3rem;
@@ -288,12 +288,12 @@
 }
 
 .phone-number-font {
-  font-size:-moz-calc(18*0.226rem);
+  font-size:4.068rem;
   color: white;
 }
 
 .keypad-number {
-  font-size: -moz-calc(25*0.226rem);
+  font-size: 5.65rem;
   color: white;
 }
 

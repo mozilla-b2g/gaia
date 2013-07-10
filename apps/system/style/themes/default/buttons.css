@@ -20,14 +20,14 @@
   white-space: nowrap;
   overflow: hidden;
   background: #fafafa url(images/ui/default.png) repeat-x left bottom;
-  border: 1px solid #9f9f9f;
+  border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
   font-size: 1.6rem;
   font-weight: 600;
   line-height: 3.8rem;
   color: #333;
   text-align: center;
-  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
   text-decoration: none;
   outline: none;
 }
@@ -56,7 +56,7 @@
   background-image: url(images/ui/negative.png);
   background-color: #b70404;
   color: #fff;
-  text-shadow: -1px -1px 0 #830b0b;
+  text-shadow: -0.1rem -0.1rem 0 #830b0b;
   border: none; 
 }
 
@@ -87,7 +87,7 @@
   background-color: transparent;
   border: none;
   color: #4a4a4a;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-shadow: 0 0.1rem 0 rgba(255, 255, 255, 0.2);
 }
 
 /* Negative disabled */
@@ -181,8 +181,8 @@
   right: 0;
   top: 100%;
   background: url(images/ui/shadow.png) repeat-x left bottom;
-  height: 2px;
-  margin-top: 1px;
+  height: 0.2rem;
+  margin-top: 0.1rem;
   pointer-events: none;
 }
 
@@ -217,7 +217,7 @@
 [role="dialog"] .buttons-list[data-mode="compact"] { margin-bottom: 1rem; }
 [role="dialog"] .buttons-list[data-mode="compact"] button,
 [role="dialog"] .buttons-list[data-mode="compact"] a[role="button"] {
-  margin: -1px 0;
+  margin: -0.1rem 0;
   border-radius: 0;
 }
 
