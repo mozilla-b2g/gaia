@@ -454,8 +454,10 @@ function ImageEditor(imageURL, container, edits, ready) {
 
     // Display an edited preview of it
     self.edit(function() {
-      if (ready)
+      if (ready) {
         ready();
+        $('crop-done-button').disabled = false;
+      }
     });
 
     // If the constructor had a ready callback argument, call it now

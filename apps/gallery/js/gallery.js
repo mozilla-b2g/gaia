@@ -130,6 +130,7 @@ function init() {
 
   // In crop view, the done button finishes the pick
   $('crop-done-button').onclick = cropAndEndPick;
+  $('crop-done-button').disabled = true;
 
   // The camera buttons should both launch the camera app
   $('fullscreen-camera-button').onclick = launchCameraApp;
