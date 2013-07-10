@@ -5,9 +5,6 @@ var editedPhotoURL; // The blob URL of the photo we're currently editing
 var editSettings;
 var imageEditor;
 
-var gestureDetector = new GestureDetector($('edit-view'));
-gestureDetector.startDetecting();
-
 var editOptionButtons =
   Array.slice($('edit-options').querySelectorAll('a.radio.button'), 0);
 
@@ -142,6 +139,10 @@ var exposureSlider = (function() {
   var slider = document.getElementById('exposure-slider');
   var bar = document.getElementById('sliderbar');
   var thumb = document.getElementById('sliderthumb');
+
+  // prepare gesture detector for slider
+  var gestureDetector = new GestureDetector(thumb);
+  gestureDetector.startDetecting();
 
   thumb.addEventListener('pan', sliderDrag);
   thumb.addEventListener('swipe', function(e) {
@@ -441,6 +442,10 @@ function ImageEditor(imageURL, container, edits, ready) {
   this.previewCanvas.height = this.previewCanvas.clientHeight;
   this.processor = new ImageProcessor(this.previewCanvas);
 
+  // prepare gesture detector for ImageEditor
+  this.gestureDetector = new GestureDetector(container);
+  this.gestureDetector.startDetecting();
+
   // preset the scale to something useful in case resize() gets called
   // before generateNewPreview()
   this.scale = 1.0;
@@ -522,6 +527,8 @@ ImageEditor.prototype.destroy = function() {
   this.container.removeChild(this.previewCanvas);
   this.previewCanvas = null;
   this.hideCropOverlay();
+  this.gestureDetector.stopDetecting();
+  this.gestureDetector = null;
 };
 
 // Preview the image with the specified edits applyed. If edits is omitted,
