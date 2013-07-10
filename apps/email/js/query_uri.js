@@ -2,7 +2,7 @@ define(function() {
   function queryURI(uri) {
     function addressesToArray(addresses) {
       if (!addresses)
-        return [''];
+        return [];
       addresses = addresses.split(/[,;]/);
       var addressesArray = addresses.filter(function notEmpty(addr) {
         return addr.trim() !== '';
@@ -18,7 +18,8 @@ define(function() {
       bodyReg = /(?:^|&)body=([^\&]*)/i,
       ccReg = /(?:^|&)cc=([^\&]*)/i,
       bccReg = /(?:^|&)bcc=([^\&]*)/i;
-      var to = addressesToArray(decodeURIComponent(parts[0])),
+      // Check if the 'to' field is set and properly decode it
+      var to = parts[0] ? addressesToArray(decodeURIComponent(parts[0])) : [],
       subject,
       body,
       cc,
