@@ -717,8 +717,8 @@ function startPick() {
   else {
     pickWidth = pickHeight = 0;
   }
-  // We need this for cropping the photo
-  loader.load('js/ImageEditor.js', function() {
+  // We need frame_scripts and ImageEditor for cropping the photo
+  loader.load(['js/frame_scripts.js', 'js/ImageEditor.js'], function() {
     setView(pickView);
   });
 }
