@@ -61,16 +61,18 @@ function SMIL_generateSlides(data, slide, slideIndex) {
   // each slide can have a piece of media and/or text
   var media = '';
   var text = '';
+  var name = '';
   if (slide.blob) {
     blobType = Utils.typeFromMimeType(slide.blob.type);
     if (blobType) {
-      // just to be safe, remove any non-standard characters from the filenam
-      id = slide.name.replace(runsafefilename, '');
-      id = SMIL_generateUniqueLocation(data, id);
-      media = '<' + blobType + ' src="' + id + '" region="Image"/>';
+      // just to be safe, remove any non-standard characters from the filename
+      name = Utils.escapeHTML(slide.name);
+      name = name.substr(name.lastIndexOf('/') + 1);
+      name = SMIL_generateUniqueLocation(data, name);
+      media = '<' + blobType + ' src="' + name + '" region="Image"/>';
       data.attachments.push({
-        id: '<' + id + '>',
-        location: id,
+        id: '<' + name + '>',
+        location: name,
         content: slide.blob
       });
     }
@@ -92,18 +94,28 @@ function SMIL_generateSlides(data, slide, slideIndex) {
 }
 
 function SMIL_generateUniqueLocation(data, location) {
+
+  // if the location is already being used by the attachment
   function SMIL_uniqueLocationMatches(attachment) {
-    return attachment.location === location;
+    return attachment.location === result;
   }
-  var index;
+
+  // we will add our number right before the '.' if it exists
+  var index = location.lastIndexOf('.');
+  if (index === -1) {
+    index = location.length;
+  }
+
+  // start with the location given to us
+  var result = location;
+  var dupIndex = 2;
+
+  // while any attachment already has this location:
   while (data.attachments.some(SMIL_uniqueLocationMatches)) {
-    index = location.lastIndexOf('.');
-    if (index === -1) {
-      index = location.length;
-    }
-    location = location.slice(0, index) + '_' + location.slice(index);
+    result = location.slice(0, index) +
+        '_' + (dupIndex++) + location.slice(index);
   }
-  return location;
+  return result;
 }
 
 var SMIL = window.SMIL = {
