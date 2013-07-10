@@ -149,7 +149,9 @@ var WindowManager = (function() {
   // We should maintain a link in appWindow to activity frame
   // so that appWindow can resize activity by itself.
   window.addEventListener('appresize', function appResized(evt) {
-    if (evt.detail.changeActivityFrame) {
+    // We will call setInlineActivityFrameSize()
+    // if changeActivityFrame is not explicitly set to false.
+    if (evt.detail.changeActivityFrame !== false) {
       setInlineActivityFrameSize();
     }
   });
@@ -223,10 +225,6 @@ var WindowManager = (function() {
   window.addEventListener('ftuskip', function skipFTU() {
     InitLogoHandler.animate();
     setDisplayedApp(homescreen);
-  });
-
-  window.addEventListener('appresize', function appResize() {
-    setInlineActivityFrameSize();
   });
 
   // Open and close app animations
