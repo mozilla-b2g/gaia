@@ -13,6 +13,7 @@
 
 #mmi-container {
   height: -moz-calc(100% - 5rem - 5rem);
+  overflow: auto;
 }
 
 #message {
@@ -20,7 +21,6 @@
   padding: 1rem;
   white-space: pre-line;
   word-wrap: break-word;
-  overflow: auto;
 }
 
 #response {
