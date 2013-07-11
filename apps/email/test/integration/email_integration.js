@@ -18,11 +18,14 @@ EmailIntegration.prototype = {
     // on.
     otherEmailChoice: 'li.sup-service-choice:nth-child(0n+3)',
 
-    setupInfoName: 'div.sup-form > .sup-info-name',
-    setupInfoEmail: 'div.sup-form > .sup-info-email',
-    setupInfoPassword: 'div.sup-form > .sup-info-password',
+    setupInfoName: 'div.sup-form input.sup-info-name',
+    setupInfoEmail: 'div.sup-form input.sup-info-email',
+    setupInfoPassword: 'div.sup-form input.sup-info-password',
     nextButton: 'button.sup-info-next-btn',
-    continueButton: 'button.sup-show-mail-btn'
+    continueButton: 'button.sup-show-mail-btn',
+
+    folderLabel: 'h1.msg-list-header-folder-label',
+    messagesSyncing: 'p.msg-messages-syncing'
   },
 
   /**
@@ -119,6 +122,35 @@ EmailIntegration.prototype = {
   },
 
   /**
+   * Returns the class name for an element.
+   */
+  getClassName: function getClassName(element, callback) {
+    this.task(function(app, next, done) {
+      yield element.scriptWith(
+        'return (function(elem) { return elem.className; }.apply(this, arguments));',
+        function(err, result) {
+          done(null, result);
+        });
+    }.bind(this), callback);
+  },
+
+  /**
+   * Waits until the specified element has the required class.
+   */
+  waitForClass: function waitForClass(element, classname, callback) {
+    this.waitFor(
+      function testFun(testCallback) {
+        this.task(function(app, next, done) {
+          yield app.getClassName(
+            element,
+            function(err, result) {
+              done(null, result.split(' ').indexOf(classname) >= 0);
+            });
+        }, testCallback);
+      }.bind(this), 20000, callback);
+  },
+
+  /**
    * Retrieve account credentials from specified filename.
    *
    * If the filename is not specified, it defaults to
@@ -159,23 +191,17 @@ EmailIntegration.prototype = {
    */
   createFirstAccount: function createFirstAccount(creds, callback) {
     this.task(function(app, next, done) {
-      yield app.waitForCard('setup-pick-service');
+      yield app.waitForCard('setup-account-info');
       yield app.waitForTransitionEnd();
-
-      // Click on "Other Email"
-      var otherEmailChoice = yield app.element('otherEmailChoice');
-      yield otherEmailChoice.click();
-
-      yield app.waitForTransitionEnd();
-
-      // We're on the setup account info card. Grab the next button
-      // so we can verify it's enabled/disabled state over the next
-      // few steps.
+      
+      // We're on the setup account info card. Grab the next button so
+      // we can verify it's enabled/disabled state over the next few
+      // steps.
       var nextButton = yield app.element('nextButton');
       assert.equal(false, yield nextButton.enabled());
 
-      // Get form input fields and verify values are empty. Then set the
-      // values and verify the nextButton is in the correct state.
+      // Get form input fields and verify values are empty. Then set
+      // the values and verify the nextButton is in the correct state.
       var setupInfoName = yield app.element('setupInfoName');
       assert.equal('', yield setupInfoName.text());
       yield app.updateInput(setupInfoName, creds.name);
@@ -201,6 +227,19 @@ EmailIntegration.prototype = {
 
       var continueButton = yield app.element('continueButton');
       yield continueButton.click();
+
+      // Wait for the message list to show up for Inbox.
+      yield app.waitForCard('message-list');
+      yield app.waitForTransitionEnd();
+
+      // Verify this is the Inbox.
+      // message-list -> msg-list-header-folder-label
+      var folderLabel = yield app.element('folderLabel');
+      assert.equal('Inbox', yield folderLabel.text());
+
+      // Wait until it's done the first sync and showing messages.
+      var messagesSyncing = yield app.element('messagesSyncing');
+      yield app.waitForClass(messagesSyncing, 'collapsed');
 
       done();
     }.bind(this), callback);
