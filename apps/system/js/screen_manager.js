@@ -204,7 +204,7 @@ var ScreenManager = {
 
       case 'userproximity':
         var telephony = window.navigator.mozTelephony;
-        if (Bluetooth.connected ||
+        if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) ||
             telephony.speakerEnabled ||
             StatusBar.headphonesActive)
             // XXX: Remove this hack in Bug 868348
