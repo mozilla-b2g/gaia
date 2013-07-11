@@ -8,6 +8,7 @@ var GridManager = (function() {
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
   var DEVICE_HEIGHT = window.innerHeight;
   var OPACITY_STEPS = 40; // opacity steps between [0,1]
+  var HIDDEN_ROLES = ['system', 'keyboard', 'homescreen'];
 
   var container;
 
@@ -960,18 +961,14 @@ var GridManager = (function() {
    * points, each one is represented as an icon.)
    */
   function processApp(app, callback) {
-    // Ignore system apps.
-    if (HIDDEN_APPS.indexOf(app.manifestURL) != -1)
-      return;
-
     appsByOrigin[app.origin] = app;
 
     var manifest = app.manifest ? app.manifest : app.updateManifest;
-    if (!manifest)
+    if (!manifest || HIDDEN_ROLES.indexOf(manifest.role) !== -1)
       return;
 
     var entryPoints = manifest.entry_points;
-    if (!entryPoints || manifest.type != 'certified') {
+    if (!entryPoints || manifest.type !== 'certified') {
       createOrUpdateIconForApp(app);
       return;
     }

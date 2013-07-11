@@ -3,6 +3,7 @@
   "description": "Gaia Homescreen",
   "launch_path": "/index.html#root",
   "type": "certified",
+  "role": "homescreen",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
