@@ -72,20 +72,20 @@ function IdentityTests() {
 
       't-get-allowUnverified': function() {
         navigator.mozId.get(gotAssertion, {
-          allowUnverified: getUnverifiedOk()
+          experimental_allowUnverified: getUnverifiedOk()
         });
       },
 
       't-get-forceIssuer': function() {
         navigator.mozId.get(gotAssertion, {
-          forceIssuer: getIssuerName()
+          experimental_forceIssuer: getIssuerName()
         });
       },
 
       't-get-forceIssuer-allowUnverified': function() {
         navigator.mozId.get(gotAssertion, {
-          allowUnverified: getUnverifiedOk(),
-          forceIssuer: getIssuerName()
+          experimental_allowUnverified: getUnverifiedOk(),
+          experimental_forceIssuer: getIssuerName()
         });
       }
     };

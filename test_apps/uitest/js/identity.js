@@ -52,7 +52,7 @@ function IdentityTests() {
     events.appendChild(li);
     this._eventNum += 1;
   };
-  
+
   this._setupCallbacks = function id__setupCallbacks() {
     if (this._running) return;
     var self = this;
@@ -96,20 +96,20 @@ function IdentityTests() {
 
       't-request-allowUnverified': function() {
         navigator.mozId.request({
-          allowUnverified: getUnverifiedOk()
+          experimental_allowUnverified: getUnverifiedOk()
         });
       },
 
       't-request-forceIssuer': function() {
         navigator.mozId.request({
-          forceIssuer: getIssuerName()
+          experimental_forceIssuer: getIssuerName()
         });
       },
 
       't-request-forceIssuer-allowUnverified': function() {
         navigator.mozId.request({
-          allowUnverified: getUnverifiedOk(),
-          forceIssuer: getIssuerName()
+          experimental_allowUnverified: getUnverifiedOk(),
+          experimental_forceIssuer: getIssuerName()
         });
       },
 
