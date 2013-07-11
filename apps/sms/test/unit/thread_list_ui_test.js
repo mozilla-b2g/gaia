@@ -334,6 +334,7 @@ suite('thread_list_ui', function() {
       this.sinon.stub(ThreadListUI, 'renderThreads');
       this.sinon.stub(ThreadListUI, 'mark');
       this.sinon.stub(ThreadListUI, 'setEmpty');
+      this.sinon.spy(FixedHeader, 'refresh');
     });
 
     teardown(function() {
@@ -381,6 +382,10 @@ suite('thread_list_ui', function() {
       test('no thread is removed', function() {
         assert.isFalse(ThreadListUI.removeThread.called);
       });
+
+      test('refresh the fixed header', function() {
+        assert.ok(FixedHeader.refresh.called);
+      });
     });
 
     suite('same thread exist, older', function() {
@@ -410,6 +415,10 @@ suite('thread_list_ui', function() {
         assert.ok(ThreadListUI.removeThread.called);
         var threadId = ThreadListUI.removeThread.args[0][0];
         assert.equal(threadId, message.threadId);
+      });
+
+      test('refresh the fixed header', function() {
+        assert.ok(FixedHeader.refresh.called);
       });
     });
 

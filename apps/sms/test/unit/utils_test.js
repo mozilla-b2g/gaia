@@ -1,11 +1,18 @@
 'use strict';
 
+requireApp('sms/test/unit/mock_fixed_header.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/js/utils.js');
 
+var mocksHelperForUtils = new MocksHelper([
+  'FixedHeader'
+]).init();
+
 suite('Utils', function() {
   var nativeMozL10n = navigator.mozL10n;
+
+  mocksHelperForUtils.attachTestHelpers();
 
   suiteSetup(function() {
     navigator.mozL10n = MockL10n;
@@ -625,11 +632,11 @@ suite('Utils', function() {
       'appplication/video': null
     };
 
-    for (testIndex in tests) {
+    Object.keys(tests).forEach(function(testIndex) {
       test(testIndex, function() {
         assert.equal(Utils.typeFromMimeType(testIndex), tests[testIndex]);
       });
-    }
+    });
 
     suite('Defensive', function() {
       test('long string', function() {
@@ -654,13 +661,82 @@ suite('Utils', function() {
       '?foo=bar&baz=1&quux=null': {foo: 'bar', baz: '1', quux: 'null'}
     };
 
-    for (testIndex in tests) {
+    Object.keys(tests).forEach(function(testIndex) {
       test(testIndex, function() {
         assert.deepEqual(Utils.params(testIndex), tests[testIndex]);
       });
-    }
+    });
   });
 
+  suite('Utils.updateTimeHeaders', function() {
+    var existingTitles;
+
+    setup(function() {
+      this.sinon.useFakeTimers(Date.parse('2013-01-01'));
+      this.sinon.spy(MockFixedHeader, 'updateHeaderContent');
+
+      var additionalDataset = [
+        'data-is-thread="true"',
+        'data-hour-only="true"',
+        ''
+      ];
+
+      var mockThreadListMarkup = '';
+
+      additionalDataset.forEach(function(dataset, i) {
+        dataset += ' data-time-update="true"' +
+          ' data-time="' + Date.now() + '"';
+
+        mockThreadListMarkup +=
+          '<header ' + dataset + '>header ' + i + '</header>' +
+          '<ul>' +
+            '<li>this is a thread</li>' +
+            '<li>this is another thread</li>' +
+          '</ul>';
+      });
+
+      document.body.innerHTML = mockThreadListMarkup;
+
+      Utils.updateTimeHeaders();
+
+
+      existingTitles = [];
+
+      var headers = document.querySelectorAll('header');
+      for (var i = 0, l = headers.length; i < l; i++) {
+        existingTitles[i] = headers[i].textContent;
+      }
+
+    });
+
+    teardown(function() {
+      document.body.innerHTML = '';
+    });
+
+    test('calling after one hour should not update time headers', function() {
+      this.sinon.clock.tick(60 * 60 * 1000);
+      Utils.updateTimeHeaders();
+
+      var headers = document.querySelectorAll('header');
+      for (var i = 0, l = headers.length; i < l; i++) {
+        assert.equal(headers[i].textContent, existingTitles[i]);
+      }
+    });
+
+    test('calling after one day should update all date headers', function() {
+      this.sinon.clock.tick(24 * 60 * 60 * 1000);
+      Utils.updateTimeHeaders();
+
+      var headers = document.querySelectorAll('header');
+      assert.notEqual(headers[0].textContent, existingTitles[0]);
+      assert.equal(headers[1].textContent, existingTitles[1]);
+      assert.notEqual(headers[2].textContent, existingTitles[2]);
+    });
+
+    test('should call FixedHeader.updateHeaderContent', function() {
+      assert.ok(MockFixedHeader.updateHeaderContent.called);
+    });
+  });
 });
 
 suite('Utils.Template', function() {

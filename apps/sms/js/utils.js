@@ -57,6 +57,8 @@
           }
         }
       }
+
+      FixedHeader.updateHeaderContent();
     },
     startTimeHeaderScheduler: function ut_startTimeHeaderScheduler() {
       this.updateTimeHeaders();

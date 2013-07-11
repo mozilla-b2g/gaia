@@ -326,10 +326,10 @@ var ThreadListUI = {
       };
 
       appendThreads(threads, function at_callback() {
-        // Refresh fixed header logic
-        FixedHeader.refresh();
         // clear up abort method
         delete thlui_renderThreads.abort;
+        // set the fixed header
+        FixedHeader.refresh();
         // Boot update of headers
         Utils.updateTimeHeaders();
         // Once the rendering it's done, callback if needed
@@ -441,6 +441,7 @@ var ThreadListUI = {
       }
 
       this.appendThread(threadMockup);
+      FixedHeader.refresh();
       this.setEmpty(false);
     } else {
       this.renderThreads([threadMockup]);
