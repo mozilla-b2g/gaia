@@ -6,6 +6,9 @@
 var ActivityHandler = {
   isLocked: false,
   init: function() {
+    if (!window.navigator.mozSetMessageHandler) {
+      return;
+    }
     window.navigator.mozSetMessageHandler('activity', this.global.bind(this));
 
     // We want to register the handler only when we're on the launch path

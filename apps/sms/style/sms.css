@@ -72,7 +72,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 
 /* Override Building Block [Lists] styles */
 [data-type="list"] {
-  padding: 0;
+  padding: 0.7rem 0 0 0;
   text-align: left;
 }
 
@@ -94,11 +94,6 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 
 [data-type="list"] header {
   margin: 0 1.5rem;
-  padding: 0.5rem 1.5rem;
-}
-
-[data-type="list"] header:first-child {
-  padding-top: 1.2rem;
 }
 
 #threads-container[data-type="list"] ul {
@@ -317,6 +312,7 @@ section.has-carrier .article-list header:first-child {
   border-bottom-color: transparent;
   border-bottom-style: solid;
   -moz-box-sizing: border-box;
+  padding: 0;
 
   background: none repeat scroll 0 0 #E4E4E4;
   text-align: left;
@@ -667,22 +663,28 @@ form.bottom[role="search"].messages-compose-form {
 */
 .fixed-title {
   position: absolute;
+  z-index: 4;
   top: 5rem;
-  width: calc(100% - 6rem);
-  padding: 1.5rem 1.5rem 0.5rem;
+
+  width: calc(100% - 5rem);
+  height: 1.8rem;
+  padding: 1.2rem 1rem 0.5rem;
   margin: 0 1.5rem;
   border-bottom: solid 0.1rem #ff4e00;
+
   background-repeat: no-repeat;
   background-color: #FFFFFF;
-  transform: translateY(-3rem);
+  color: #FF4E00;
   pointer-events: none;
   text-align: left;
   text-transform: uppercase;
   font-size: 1.6rem;
   font-weight: normal;
   line-height: 1.8rem;
-  color: #FF4E00;
-  z-index: 4;
+}
+
+.fixed-title.no-fixed-header {
+  transform: translateY(-100%);
 }
 
 /*
