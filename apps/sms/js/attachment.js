@@ -94,12 +94,16 @@
         canvas.height = Math.round(img.height / ratio);
         var context = canvas.getContext('2d');
         context.drawImage(img, 0, 0, width, height);
-        var data = canvas.toDataURL(type);
 
-        callback({
-          width: width,
-          height: height,
-          data: data
+        canvas.toBlob(function(data) {
+          data = window.URL.createObjectURL(data);
+
+          callback({
+            width: width,
+            height: height,
+            data: data,
+            type: type || "image/jpeg"
+          });
         });
       };
       img.onerror = function onBlobError() {
@@ -136,13 +140,16 @@
         el.width = thumbnail.width;
         el.height = thumbnail.height;
 
+        var img = document.createElement('img');
+        img.src = thumbnail.data;
+        img.onload(function thumbnailLoad(){
+          window.URL.revokeObjectURL(this.src);
+        });
+
         var template = {
           type: type,
           draftClass: this.isDraft ? 'draft' : '',
           errorClass: thumbnail.error ? 'corrupted' : '',
-          inlineStyle: (thumbnail.data && !thumbnail.error) ?
-            'background: url(' + thumbnail.data + ') no-repeat center center;' :
-            '',
           baseURL: location.protocol + '//' + location.host + '/',
           size: this.sizeForHumans
         };
@@ -153,6 +160,9 @@
         el.addEventListener('load', this.bubbleEvents.bind(this));
         el.src = 'data:text/html,' +
           Utils.Template('attachment-tmpl').interpolate(template);
+
+        //append img to iframe
+
         if (readyCallback) {
           readyCallback();
         }
