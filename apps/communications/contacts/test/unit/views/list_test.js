@@ -1184,6 +1184,28 @@ suite('Render contacts list', function() {
       });
     });
 
+    test('Search Facebook org', function(done) {
+      window.fb.setIsFbContact(true);
+      window.fb.isEnabled = true;
+
+      var deviceContact = new MockContactAllFields();
+      deviceContact.category.push('facebook');
+      deviceContact.familyName = ['Taylor'];
+      deviceContact.givenName = ['Bret'];
+
+      doLoad(subject, [deviceContact], function() {
+        contacts.List.initSearch(function onInit() {
+          searchBox.value = 'FB';
+          contacts.Search.search(function search_finished() {
+            assert.isTrue(noResults.classList.contains('hide'));
+            assertContactFound(deviceContact);
+            contacts.Search.invalidateCache();
+            done();
+          });
+        });
+      });
+    });
+
     test('Order string lazy calculated', function(done) {
       mockContacts = new MockContactsList();
       doLoad(subject, mockContacts, function() {

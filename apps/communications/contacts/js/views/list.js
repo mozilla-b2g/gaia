@@ -191,9 +191,11 @@ contacts.List = (function() {
     // The calculation of the search text is delayed until the full list item
     // is rendered.  Therefore, it may not be available yet.  If this is the
     // case then calculate the search text before returning the value.
-    getSearchText: function(node) {
-      renderSearchString(node);
-      return node.dataset.search;
+    getSearchText: function(node, callback) {
+      renderSearchString(node, null, null, function() {
+        if (typeof callback === 'function')
+          callback(node.dataset.search, node);
+      });
     },
 
     click: onClickHandler
@@ -348,21 +350,57 @@ contacts.List = (function() {
   // contact is not already known, try to look it up in our cache of loaded
   // contacts.  This is used to defer the computation of the search string
   // since profiling has shown it to be expensive.
-  var renderSearchString = function renderSearchString(node, contact) {
-    if (node.dataset.search)
+  //
+  // This function is asynchronous because we need to include possible
+  // facebook information in the search string.  Therefore, if you need
+  // to be sure the search string is rendered before proceeding, then wait
+  // for the callback.
+  //
+  // NOTE: The callback may be executed synchronously if the search string
+  //       is immediately available.  This is to avoid incurring the time
+  //       penalty of a setTimeout(cb, 0) for every cached string.
+  var renderSearchString = function(node, contact, enriched, callback) {
+    if (node.dataset.search) {
+      // Synchronous call because this is the hot path.  Adding the delay
+      // of setTimeout(cb, 0) here would slow things down for large numbers
+      // of contacts.
+      return callback();
+    }
+
+    var id = node.dataset.uuid;
+    var group = node.dataset.group;
+    contact = contact || loadedContacts[id][group];
+
+    if (!contact) {
+      setTimeout(callback);
       return;
+    }
 
-    contact = contact || loadedContacts[node.dataset.uuid][node.dataset.group];
-
-    if (!contact)
+    if (enriched) {
+      doRenderSearchString(node, enriched);
+      callback();
       return;
+    }
 
-    var display = getDisplayName(contact);
-    node.dataset.search = getSearchString(contact, display);
-
-    clearLoadedContact(node, contact.id, node.dataset.group);
+    getEnrichedContact(contact, function(enriched) {
+      contact = enriched || contact;
+      doRenderSearchString(node, contact);
+      callback();
+    });
   };
 
+  // Utility function that implements the final steps of renderSearchString().
+  // Do not call this function directly.  Use renderSearchString() instead.
+  function doRenderSearchString(node, contact) {
+    var display = getDisplayName(contact);
+    node.dataset.search = getSearchString(contact, display);
+    clearLoadedContact(node, contact.id, node.dataset.group);
+  }
+
+  // "Render" order string into node's data-order attribute.  If the
+  // contact is not already known, try to look it up in our cache of
+  // loaded contacts.  This is used to defer the computation of the order
+  // string since it is somewhat expensive.
   var renderOrderString = function renderOrderString(node, contact) {
     if (node.dataset.order)
       return;
@@ -385,7 +423,7 @@ contacts.List = (function() {
   var createPlaceholder = function createPlaceholder(contact, group) {
     var ph = document.createElement('li');
     ph.dataset.uuid = contact.id;
-    var group = group || getFastGroupName(contact);
+    group = group || getFastGroupName(contact);
     var order = null;
     if (!group) {
       order = getStringToBeOrdered(contact);
@@ -417,7 +455,7 @@ contacts.List = (function() {
   };
 
   var getSearchString = function getSearchString(contact, display) {
-    var display = display || contact;
+    display = display || contact;
     var searchInfo = [];
     var searchable = ['givenName', 'familyName'];
     searchable.forEach(function(field) {
@@ -824,22 +862,52 @@ contacts.List = (function() {
     request.onsuccess = function findCallback(e) {
       var result = e.target.result[0];
 
-      if (!fb.isFbContact(result)) {
-        successCb(result);
-        return;
-      }
-
-      var fbContact = new fb.Contact(result);
-      var fbReq = fbContact.getData();
-      fbReq.onsuccess = function() {
-        successCb(result, fbReq.result);
-      };
-      fbReq.onerror = successCb.bind(null, result);
+      getEnrichedContact(result, function(enriched) {
+        successCb(result, enriched);
+      });
     }; // request.onsuccess
 
     if (typeof errorCb === 'function') {
       request.onerror = errorCb;
     }
+  };
+
+  // Get the enriched version of the given contact if available.  Currently
+  // this means loading values from facebook.  The callback will be
+  // called with the newly enriched contact as the first parameter if
+  // successful.  If there was no enriched data to be found, then null is
+  // passed for the first argument.
+  var getEnrichedContact = function(contact, callback) {
+    // Since there are no side effects from this function besides passing
+    // the enriched contact to the callback, do nothing if the callback
+    // is not provided.
+    if (typeof callback !== 'function') {
+      return;
+    }
+
+    // This can be called prior to our main FB init at the end of the
+    // contact load.  The isFbContact() function below requires fb.init()
+    // to be called, however.  Therefore do this init here.  Since it is
+    // cached, the cost should be minimal after the first call.
+    fb.init(function() {
+      if (!fb.isEnabled) {
+        return callback(null, contact);
+      }
+
+      Contacts.loadFacebook(function() {
+        if (!fb.isFbContact(contact)) {
+          return callback(null, contact);
+        }
+
+        var fbContact = new fb.Contact(contact);
+        var fbReq = fbContact.getData();
+        fbReq.onsuccess = function() {
+          var enriched = fbContact.merge(fbReq.result);
+          callback(enriched, contact);
+        };
+        fbReq.onerror = callback.bind(null, null, contact);
+      });
+    });
   };
 
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
@@ -888,31 +956,34 @@ contacts.List = (function() {
     });
   };
 
-  var addToList = function addToList(contact) {
+  var addToList = function addToList(contact, enriched) {
     var renderedNode = renderContact(contact);
 
     // We must render all values here because the contact is not saved in
     // the loadedContacts hash when added one at a via refresh().  Therefore
     // we can not lazy render these values.
-    renderSearchString(renderedNode, contact);
-    renderOrderString(renderedNode, contact);
+    renderSearchString(renderedNode, contact, enriched, function() {
+      renderOrderString(renderedNode, contact);
 
-    if (updatePhoto(contact))
-      renderPhoto(renderedNode, contact.id);
-    var list = headers[renderedNode.dataset.group];
-    addToGroup(renderedNode, list);
+      if (updatePhoto(contact)) {
+        renderPhoto(renderedNode, contact.id);
+      }
+      var list = headers[renderedNode.dataset.group];
+      addToGroup(renderedNode, list);
 
-    // If is favorite add as well to the favorite group
-    if (isFavorite(contact)) {
-      list = headers['favorites'];
-      var cloned = renderedNode.cloneNode();
-      cloned.dataset.group = 'favorites';
-      addToGroup(cloned, list);
-    }
-    toggleNoContactsScreen(false);
-    FixedHeader.refresh();
-    if (imgLoader)
-      imgLoader.reload();
+      // If is favorite add as well to the favorite group
+      if (isFavorite(contact)) {
+        list = headers['favorites'];
+        var cloned = renderedNode.cloneNode();
+        cloned.dataset.group = 'favorites';
+        addToGroup(cloned, list);
+      }
+      toggleNoContactsScreen(false);
+      FixedHeader.refresh();
+      if (imgLoader) {
+        imgLoader.reload();
+      }
+    });
   };
 
   var hasName = function hasName(contact) {
