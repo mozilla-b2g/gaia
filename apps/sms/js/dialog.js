@@ -91,7 +91,6 @@ var Dialog = function(params) {
     cancelButton.dataset.l10nId = cancelOption.text.value;
   }
   handlers.set(cancelButton, cancelOption);
-  menu.appendChild(cancelButton);
 
   if (params.options.confirm) {
     var confirmOption = params.options.confirm;
@@ -99,7 +98,7 @@ var Dialog = function(params) {
     var confirm = !confirmOption.text.l10n ?
         confirmOption.text.value : _(confirmOption.text.value);
     confirmButton.textContent = confirm;
-    confirmButton.className = 'recommend';
+    cancelButton.className = 'recommend';
     if (confirmOption.text.l10n) {
       confirmButton.dataset.l10nId = confirmOption.text.value;
     }
@@ -109,7 +108,7 @@ var Dialog = function(params) {
     // If there is only one item, we take the 100% of the space available
     cancelButton.style.width = '100%';
   }
-
+  menu.appendChild(cancelButton);
   this.form.addEventListener('submit', function(event) {
     event.preventDefault();
   });
