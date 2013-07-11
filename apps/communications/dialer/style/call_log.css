@@ -93,16 +93,6 @@ ol, ul {
   height: 3.5rem;
 }
 
-.header-noresult {
-  padding-bottom: 4rem;
-}
-
-.header-text-noresult {
-  font-family: FontSemibold;
-  font-size: -moz-calc(7 * 0.226rem);
-  color: #373E45;
-}
-
 .icon-container {
   float: left;
   height: 100%;
