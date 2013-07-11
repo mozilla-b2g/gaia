@@ -215,7 +215,7 @@ function monitorTagVisibility(
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           var child = mutation.addedNodes[j];
           if (child.nodeType === Node.ELEMENT_NODE &&
-            child.tagName === tag);
+            child.tagName === tag)
             numNodesAdded += 1;
         }
       }
