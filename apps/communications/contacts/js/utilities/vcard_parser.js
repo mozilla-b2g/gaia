@@ -189,8 +189,10 @@ VCFReader.processComm = function(vcardObj, contactObj) {
       var cur = {};
 
       if (v.meta) {
-        if (v.value)
+        if (v.value) {
           cur.value = VCFReader.decodeQP(v.meta, v.value[0]);
+          cur.value = cur.value.replace(/^tel:/i, '');
+        }
 
         metaValues = Object.keys(v.meta).map(function(key) {
           return v.meta[key];
@@ -231,9 +233,7 @@ VCFReader.processFields = function(vcardObj, contactObj) {
   return contactObj;
 };
 
-VCFReader.Re1 = /^\s*(version|fn|title|org)\s*:(.+)$/i;
-VCFReader.Re2 = /^([^:;]+);?([^:]+)?:(.+)$/i;
-VCFReader.ReKey = /item\d{1,2}\./;
+VCFReader.ReBasic = /^([^:]+):(.+)$/i;
 VCFReader.ReTuple = /([a-z]+)=(.*)/i;
 
 VCFReader._parseTuple = function(p, i) {
@@ -250,26 +250,58 @@ VCFReader._parseTuple = function(p, i) {
  * @private
  */
 VCFReader.parseLine_ = function(line) {
-  if (!VCFReader.Re2.test(line)) return null;
-  var results = line.match(VCFReader.Re2);
-  var key = results[1].replace(VCFReader.ReKey, '').toLowerCase().trim();
+  if (!VCFReader.ReBasic.test(line)) return null;
 
+  var parsed = VCFReader.ReBasic.exec(line);
+  var tuples = parsed[1].split(/[;,]/);
+  var key = tuples.shift();
   var meta = {};
-  if (results[2]) {
-    results[2].split(/[;,]/).forEach(function(l, i) {
-      var p = VCFReader._parseTuple(l, i);
-      if (p)
-        meta[p[0]] = p[1];
-    });
-  }
+
+  tuples.forEach(function(l, i) {
+    var tuple = VCFReader._parseTuple(l, i);
+    meta[tuple[0]] = tuple[1];
+  });
 
   return {
-    key: key,
+    key: key.toLowerCase(),
     data: {
       meta: meta,
-      value: results[3].split(';')
+      value: parsed[2].split(';')
     }
   };
+};
+
+VCFReader.splitLines = function(vcf) {
+  var lines = [];
+  var currentStr = '';
+  var inLabel = false;
+  for (var i = 0, l = vcf.length; i < l; i++) {
+    if (vcf[i] === '"') {
+      inLabel = !inLabel;
+      currentStr += vcf[i];
+      continue;
+    }
+
+    if (inLabel || vcf[i] !== '\n') {
+      currentStr += vcf[i];
+      continue;
+    }
+
+    var sub = vcf.substring(i + 1, vcf.length - 1);
+    if (currentStr.toLowerCase().indexOf('label;') !== -1 &&
+      sub.search(/^[^\n]+:/) === -1) {
+      currentStr += vcf[i];
+      continue;
+    }
+
+    if (sub.search(/^[^\S\n\r]+/) !== -1) {
+      continue;
+    }
+
+    lines.push([currentStr]);
+    currentStr = '';
+  }
+  return lines;
 };
 
 /**
@@ -282,11 +314,7 @@ VCFReader.parseSingleEntry = function(input) {
   if (!input) return null;
 
   var fields = {};
-  // When a line starts with a whitespace it means it is a continuation of the
-  // previous line. We join them here.
-  input = input.replace(/(\r\n|\r|\n)[^\S\n\r]+/g, '');
-
-  var lines = input.split(/\r\n|\r|\n/);
+  var lines = VCFReader.splitLines(input);
   lines.forEach(function(line) {
     var parsedLine = VCFReader.parseLine_(line);
     if (parsedLine) {
@@ -318,7 +346,6 @@ VCFReader.vcardToContact = function(vcard) {
   VCFReader.processAddr(vcard, obj);
   VCFReader.processComm(vcard, obj);
   VCFReader.processFields(vcard, obj);
-
   var contact = new mozContact();
   contact.init(obj);
 
