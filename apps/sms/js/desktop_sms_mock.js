@@ -429,7 +429,7 @@
         participants: ['1977'],
         lastMessageType: 'sms',
         body: 'Alo, how are you today, my friend? :)',
-        timestamp: new Date(now - (60000 * 12)),
+        timestamp: new Date(now - 172800000),
         unreadCount: 0
       },
       {
@@ -444,7 +444,7 @@
         id: 4,
         participants: ['197746797'],
         body: 'short (delivery: received)',
-        timestamp: new Date(Date.now() - 100000),
+        timestamp: new Date(Date.now() - 172800000),
         lastMessageType: 'sms',
         unreadCount: 0
       },
@@ -453,14 +453,14 @@
         participants: ['14886783487'],
         lastMessageType: 'sms',
         body: 'Hello world!',
-        timestamp: new Date(Date.now() - 60000000),
+        timestamp: new Date(Date.now() - 600000000),
         unreadCount: 2
       },
       {
         id: 6,
         participants: ['052780'],
         lastMessageType: 'mms',
-        timestamp: new Date(now - (60000 * 10)),
+        timestamp: new Date(now - (60000000 * 10)),
         unreadCount: 0
       },
       {
@@ -474,21 +474,21 @@
         id: 8,
         participants: ['123456'],
         lastMessageType: 'mms',
-        timestamp: new Date(Date.now() - 150000),
+        timestamp: new Date(Date.now() - 150000000),
         unreadCount: 0
       },
       {
         id: 9,
         participants: participants,
         lastMessageType: 'mms',
-        timestamp: new Date(now),
+        timestamp: new Date(new Date(now) - 150000000),
         unreadCount: 0
       },
       {
         id: 10,
         participants: ['+12125551234', '+15551237890'],
         lastMessageType: 'mms',
-        timestamp: new Date(now),
+        timestamp: new Date(new Date(now) - 874554444444),
         unreadCount: 0
       }
     ]
