@@ -54,6 +54,15 @@ suite('FixedHeader >', function() {
       assert.equal(header.textContent, 'header 1');
     });
 
+    test('call updateHeaderContent, should have the new header', function() {
+      FixedHeader.refresh();
+      this.sinon.clock.tick();
+
+      view.querySelector('header').textContent = 'new header';
+      FixedHeader.updateHeaderContent();
+      assert.equal(header.textContent, 'new header');
+    });
+
     test('scroll then call refresh, should have a fixed header', function() {
       // we don't want to react to scroll events in that test
       view.removeEventListener('scroll', FixedHeader.refresh);
