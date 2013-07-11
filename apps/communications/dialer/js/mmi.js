@@ -3,7 +3,7 @@
 var MmiManager = {
 
   COMMS_APP_ORIGIN: document.location.protocol + '//' +
-    document.location.host,
+                    document.location.host,
   _: null,
   _conn: null,
   ready: false,
@@ -39,12 +39,15 @@ var MmiManager = {
       this.init();
     }
 
-    if (this._conn) {
-      var request = this._pendingRequest = this._conn.sendMMI(message);
-      request.onsuccess = this.notifySuccess.bind(this);
-      request.onerror = this.notifyError.bind(this);
-      this.openUI();
-    }
+    LazyL10n.get((function localized(_) {
+      this._ = _;
+      if (this._conn) {
+        var request = this._pendingRequest = this._conn.sendMMI(message);
+        request.onsuccess = this.notifySuccess.bind(this);
+        request.onerror = this.notifyError.bind(this);
+        this.openUI();
+      }
+    }).bind(this));
   },
 
   notifySuccess: function mm_notifySuccess(evt) {
@@ -163,8 +166,8 @@ var MmiManager = {
           // Call forwarding requests via MMI codes might return an array of
           // nsIDOMMozMobileCFInfo objects. In that case we serialize that array
           // into a single string that can be shown on the screen.
-          if (mmiResult.additionalInformation) {
-            message.result = processCf(mmiResult.additionalInformation);
+          if (additionalInformation) {
+            message.result = processCf(additionalInformation);
           }
         } else {
           message.type = 'mmi-error';
@@ -178,18 +181,21 @@ var MmiManager = {
         // the disabled status message.
         message.result = this._(mmiResult.statusMessage);
         if (mmiResult.statusMessage === 'smServiceEnabledFor' &&
-            additionalInfo &&
-            Array.isArray(additionalInfo)) {
-          for (var i = 0, l = additionalInfo.length; i < l; i++) {
-            message.result += '\n' + this._(additionalInfo[i]);
+            additionalInformation &&
+            Array.isArray(additionalInformation)) {
+          for (var i = 0, l = additionalInformation.length; i < l; i++) {
+            message.result += '\n' + this._(additionalInformation[i]);
           }
         }
         break;
       default:
         // This would allow carriers and others to implement custom MMI codes
         // with title and statusMessage only.
-        message.result = mmiResult.statusMessage ?
-                         mmiResult.statusMessage : null;
+        if (mmiResult.statusMessage) {
+          message.result = this._(mmiResult.statusMessage) ?
+                           this._(mmiResult.statusMessage) :
+                           mmiResult.statusMessage;
+        }
         break;
     }
 
