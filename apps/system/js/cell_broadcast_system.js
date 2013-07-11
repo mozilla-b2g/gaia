@@ -24,20 +24,24 @@ var CellBroadcastSystem = {
 
   settingsChangedHandler: function cbs_settingsChangedHandler(event) {
     this._settingsDisabled = event.settingValue;
+
+    if (this._settingsDisabled) {
+      LockScreen.setCellbroadcastLabel();
+    }
   },
 
   show: function cbs_show(event) {
     var conn = window.navigator.mozMobileConnection;
     var msg = event.message;
 
+    if (this._settingsDisabled) {
+      return;
+    }
+
     if (conn &&
         conn.voice.network.mcc === MobileOperator.BRAZIL_MCC &&
         msg.messageId === MobileOperator.BRAZIL_CELLBROADCAST_CHANNEL) {
       LockScreen.setCellbroadcastLabel(msg.body);
-      return;
-    }
-
-    if (this._settingsDisabled) {
       return;
     }
 
