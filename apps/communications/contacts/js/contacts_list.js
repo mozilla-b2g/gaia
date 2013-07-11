@@ -350,10 +350,10 @@ contacts.List = (function() {
   // visibile DOM elements will be rendered later via the visibility monitor.
   // This function ensures that necessary meta data is defined in the node
   // dataset.
-  var createPlaceholder = function createPlaceholder(contact) {
+  var createPlaceholder = function createPlaceholder(contact, group) {
     var ph = document.createElement('li');
     ph.dataset.uuid = contact.id;
-    var group = getFastGroupName(contact);
+    var group = group || getFastGroupName(contact);
     var order = null;
     if (!group) {
       order = getStringToBeOrdered(contact);
@@ -531,7 +531,7 @@ contacts.List = (function() {
 
   //Adds each contact to its group container
   function appendToList(contact, group, ph) {
-    ph = ph || createPlaceholder(contact);
+    ph = ph || createPlaceholder(contact, group);
     var list = headers[group];
 
     // If above the fold for list, render immediately
@@ -858,7 +858,9 @@ contacts.List = (function() {
     // If is favorite add as well to the favorite group
     if (isFavorite(contact)) {
       list = headers['favorites'];
-      addToGroup(renderedNode.cloneNode(), list);
+      var cloned = renderedNode.cloneNode();
+      cloned.dataset.group = 'favorites';
+      addToGroup(cloned, list);
     }
     toggleNoContactsScreen(false);
     FixedHeader.refresh();
