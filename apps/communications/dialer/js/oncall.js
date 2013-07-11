@@ -426,7 +426,13 @@ var OnCallHandler = (function onCallHandler() {
 
   function handleCallWaiting(call) {
     LazyL10n.get(function localized(_) {
-      var number = call.number || _('withheld-number');
+      var number = call.number;
+
+      if (!number) {
+        CallScreen.incomingNumber.textContent = _('withheld-number');
+        return;
+      }
+
       Contacts.findByNumber(number, function lookupContact(contact) {
         if (contact && contact.name) {
           CallScreen.incomingNumber.textContent = contact.name;
