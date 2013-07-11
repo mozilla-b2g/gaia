@@ -138,8 +138,8 @@ suite('Dialog', function() {
     var formOptions = dialogForm.getElementsByTagName('button');
     assert.equal(formOptions.length, 2);
     // We check localization
-    assert.equal(formOptions[0].dataset.l10nId, l10nCancel);
-    assert.equal(formOptions[1].dataset.l10nId, l10nConfirm);
+    assert.equal(formOptions[0].dataset.l10nId, l10nConfirm);
+    assert.equal(formOptions[1].dataset.l10nId, l10nCancel);
   });
 
 

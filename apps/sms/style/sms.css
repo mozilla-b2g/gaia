@@ -690,6 +690,10 @@ form.bottom[role="search"].messages-compose-form {
   height: 4rem;
 }
 
+#loading p {
+  border-bottom: none;
+}
+
 /*
   No result container
 */
