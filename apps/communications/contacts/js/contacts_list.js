@@ -63,13 +63,23 @@ contacts.List = (function() {
   var renderLoadedContact = function(el, id) {
     if (el.dataset.rendered)
       return;
-    var id = id || el.dataset.uuid;
+    id = id || el.dataset.uuid;
     var group = el.dataset.group;
     var contact = loadedContacts[id] ? loadedContacts[id][group] : null;
     if (!contact)
       return;
     renderContact(contact, el);
-    loadedContacts[id][group] = null;
+    clearLoadedContact(el, id, group);
+  };
+
+  var clearLoadedContact = function(el, id, group) {
+    if (!el.dataset.rendered || !el.dataset.order || !el.dataset.search)
+      return;
+
+    id = id || el.dataset.uuid;
+    group = group || el.dataset.group;
+    if (loadedContacts[id])
+      loadedContacts[id][group] = null;
   };
 
   var offscreen = function(el) {
@@ -309,9 +319,6 @@ contacts.List = (function() {
     container.appendChild(nameElement);
     renderOrg(contact, container, true);
 
-    renderSearchString(container, contact);
-    renderOrderString(container, contact);
-
     container.dataset.rendered = true;
     return container;
   };
@@ -331,6 +338,8 @@ contacts.List = (function() {
 
     var display = getDisplayName(contact);
     node.dataset.search = getSearchString(contact, display);
+
+    clearLoadedContact(node, contact.id, node.dataset.group);
   };
 
   var renderOrderString = function renderOrderString(node, contact) {
@@ -344,6 +353,8 @@ contacts.List = (function() {
 
     var display = getDisplayName(contact);
     node.dataset.order = getStringToBeOrdered(contact, display);
+
+    clearLoadedContact(node, contact.id, node.dataset.group);
   };
 
   // Create a mostly empty list item as a placeholder for the contact.  All
@@ -539,12 +550,12 @@ contacts.List = (function() {
       renderContact(contact, ph);
 
     // Otherwise save contact to render later
-    } else {
-      if (!loadedContacts[contact.id])
-        loadedContacts[contact.id] = {};
-
-      loadedContacts[contact.id][group] = contact;
     }
+
+    if (!loadedContacts[contact.id])
+      loadedContacts[contact.id] = {};
+
+    loadedContacts[contact.id][group] = contact;
 
     list.appendChild(ph);
     if (list.children.length === 1) {
@@ -850,6 +861,13 @@ contacts.List = (function() {
 
   var addToList = function addToList(contact) {
     var renderedNode = renderContact(contact);
+
+    // We must render all values here because the contact is not saved in
+    // the loadedContacts hash when added one at a via refresh().  Therefore
+    // we can not lazy render these values.
+    renderSearchString(renderedNode, contact);
+    renderOrderString(renderedNode, contact);
+
     if (updatePhoto(contact))
       renderPhoto(renderedNode, contact.id);
     var list = headers[renderedNode.dataset.group];
@@ -1081,6 +1099,7 @@ contacts.List = (function() {
       return;
     }
     utils.dom.removeChildNodes(groupsList);
+    loadedContacts = {};
     loaded = false;
 
     initHeaders();
