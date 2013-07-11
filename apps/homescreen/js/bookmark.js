@@ -57,7 +57,8 @@ var BookmarkEditor = {
     this.addButton = document.getElementById('button-bookmark-add');
 
     this.cancelButton.addEventListener('click', this.close.bind(this));
-    this.addButton.addEventListener('click', this.save.bind(this));
+    this.saveListener = this.save.bind(this);
+    this.addButton.addEventListener('click', this.saveListener);
 
     this.bookmarkTitle.value = this.data.name || '';
     this.bookmarkUrl.value = this.data.url || '';
@@ -71,14 +72,12 @@ var BookmarkEditor = {
   },
 
   save: function bookmarkEditor_save(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
+    this.addButton.removeEventListener('click', this.saveListener);
 
     // Only allow http(s): urls to be bookmarked.
     if (/^https?:/.test(this.bookmarkUrl.value) == false)
       return;
 
-    this.addButton.disabled = true;
     this.data.name = this.bookmarkTitle.value;
     this.data.bookmarkURL = this.bookmarkUrl.value;
 
