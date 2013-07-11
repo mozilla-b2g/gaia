@@ -352,16 +352,19 @@ navigator.mozL10n.ready(function wifiSettings() {
         var allNetworks = req.result;
         for (var i = 0; i < allNetworks.length; ++i) {
           var network = allNetworks[i];
-          // use ssid + capabilities as a composited key
+          // use ssid + security as a composited key
           var key = network.ssid + '+' +
             WifiHelper.getSecurity(network).join('+');
           // keep connected network first, or select the highest strength
           if (!networks[key] || network.connected) {
             networks[key] = network;
           } else {
-            if (!networks[key].connected &&
-                network.relSignalStrength > networks[key].relSignalStrength)
+            if (networks[key].connected) {
               networks[key] = network;
+            } else if (network.relSignalStrength >
+                       networks[key].relSignalStrength) {
+              networks[key] = network;
+            }
           }
         }
 
