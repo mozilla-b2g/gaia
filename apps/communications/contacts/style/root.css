@@ -41,7 +41,7 @@ button {
   background: none;
   border: none;
   outline: none;
-  font: 1.1rem/1.3rem 'Feura Sans', Sans-serif;
+  font: 1.1rem/1.3rem;
   color: #666;
   cursor: pointer;
 }
@@ -53,7 +53,7 @@ button::-moz-focus-inner {
 
 
 input[type="text"], textarea {
-  font: 1.3rem/4rem 'Feura Sans', Sans-serif;
+  font: 1.3rem/4rem;
   -moz-box-sizing: border-box;
   width: 100%;
 }
