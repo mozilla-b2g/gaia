@@ -77,6 +77,12 @@
       "description": "German layout",
       "types": ["url", "text"]
     },
+    "it": {
+      "launch_path": "/index.html#it",
+      "name": "Italian",
+      "description": "Italian layout",
+      "types": ["url", "text"]
+    },
     "nb": {
       "launch_path": "/index.html#nb",
       "name": "Norwegian Bokmal",

@@ -15,6 +15,7 @@ WHITELIST = \
  fr.dict \
  hr.dict \
  hu.dict \
+ it.dict \
  nl.dict \
  pl.dict \
  pt_br.dict \
