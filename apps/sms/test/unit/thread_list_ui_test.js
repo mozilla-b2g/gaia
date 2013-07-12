@@ -514,18 +514,4 @@ suite('thread_list_ui', function() {
       });
     });
   });
-
-  suite('renderThreads', function() {
-    setup(function() {
-      this.sinon.spy(FixedHeader, 'refresh');
-      this.sinon.spy(ThreadListUI, 'setEmpty');
-    });
-
-    test('Rendering an empty screen', function() {
-      ThreadListUI.renderThreads([]);
-      assert.ok(FixedHeader.refresh.called);
-      assert.ok(ThreadListUI.setEmpty.called);
-      assert.isTrue(ThreadListUI.setEmpty.args[0][0]);
-    });
-  });
 });

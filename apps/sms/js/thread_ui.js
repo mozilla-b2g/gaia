@@ -1559,15 +1559,16 @@ var ThreadUI = global.ThreadUI = {
 
     request.onsuccess = (function() {
       var message = request.result;
-      // Strategy:
-      // - Delete from the DOM
-      // - Resend (the resend will remove from the backend)
-      // - resend accepts a optional callback that follows with
-      // the result of the resending
-      var messageDOM = document.getElementById('message-' + id);
-      this.removeMessageDOM(messageDOM);
+      // delete from Gecko db as well
+      MessageManager.deleteMessage(id, function(success) {
+        if (!success) {
+          return;
+        }
+        var messageDOM = document.getElementById('message-' + id);
 
-      MessageManager.resendMessage(message);
+        this.removeMessageDOM(messageDOM);
+        MessageManager.resendMessage(message);
+      }.bind(this));
     }).bind(this);
   },
 
