@@ -601,10 +601,10 @@ var Cards = {
     function addMask(left, top, right, bottom) {
       var node = document.createElement('div');
       node.classList.add('popup-mask');
-      node.style.left = left + 'px';
-      node.style.top = top + 'px';
-      node.style.width = (right - left + 1) + 'px';
-      node.style.height = (bottom - top + 1) + 'px';
+      node.style.left = (left / 10) + 'rem';
+      node.style.top = (top / 10) + 'rem';
+      node.style.width = ((right - left + 1) / 10) + 'rem';
+      node.style.height = ((bottom - top + 1) / 10) + 'rem';
       cleanupDivs.push(node);
       anchorIn.appendChild(node);
     }
