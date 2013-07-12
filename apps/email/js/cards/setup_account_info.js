@@ -3,7 +3,7 @@ define(function(require) {
 
 var templateNode = require('tmpl!./setup_account_info.html'),
     common = require('mail_common'),
-    App = require('mail_app'),
+    model = require('model'),
     SETUP_ERROR_L10N_ID_MAP = require('./setup_l10n_map'),
     mozL10n = require('l10n!'),
     Cards = common.Cards,
@@ -56,7 +56,7 @@ SetupAccountInfoCard.prototype = {
     // without any accounts.
     if (Cards._cardStack.length === 1) {
       Cards.removeAllCards();
-      App.showMessageViewOrSetup();
+      model.init();
     }
     // Otherwise we were triggered from the settings UI and we can just pop
     // our way back to that UI.

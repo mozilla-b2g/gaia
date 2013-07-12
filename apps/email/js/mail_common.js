@@ -6,18 +6,12 @@
 define(function(require, exports) {
 
 var Cards, Toaster,
-    initialCardInsertion = true,
     mozL10n = require('l10n!'),
     toasterNode = require('tmpl!./cards/toaster.html'),
     ValueSelector = require('value_selector');
 
 // Does not return a module value, just need it to make globals
 require('input_areas');
-
-function dieOnFatalError(msg) {
-  console.error('FATAL:', msg);
-  throw new Error(msg);
-}
 
 function addClass(domNode, name) {
   if (domNode) {
@@ -331,6 +325,17 @@ Cards = {
     }
   },
 
+  /**
+   * Called whenever the default card for the app should be inserted.
+   * Override this method in the app. The app should call Card.pushCard
+   * with the card of its choosing, and call the onPushed function passed
+   * in to pushDefaultCard once the default card has been pushed. The
+   * default card should be pushed with showMethod of 'none' so that
+   * whatever the onPushed function does will work well with card nav.
+   * @param  {Function} onPushed pass as the onPushed arg to pushCard.
+   */
+  pushDefaultCard: function(onPushed) {},
+
   defineCard: function(cardDef) {
     if (!cardDef.name)
       throw new Error('The card type needs a name');
@@ -398,12 +403,16 @@ Cards = {
     var cardDef = this._cardDefs[type];
     var typePrefix = type.split('-')[0];
 
+    args = args || {};
+
     if (!cardDef) {
       var cbArgs = Array.slice(arguments);
       this._pendingPush = [type, mode];
+
       // Only eat clicks if the card will be visibly displayed.
       if (showMethod !== 'none')
         this.eatEventsUntilNextCard();
+
       require(['cards/' + type], function() {
         this.pushCard.apply(this, cbArgs);
       }.bind(this));
@@ -416,41 +425,13 @@ Cards = {
     if (!modeDef)
       throw new Error('No such card mode: ' + mode);
 
-console.log('pushCard for type: ' + type);
+    console.log('pushCard for type: ' + type);
 
-    var domNode = cardDef.templateNode.cloneNode(true);
+    var domNode = args.cachedNode ?
+                  args.cachedNode : cardDef.templateNode.cloneNode(true);
 
-    var boundShowCard = (function() {
-      if (initialCardInsertion) {
-        initialCardInsertion = false;
-        this._cardsNode.innerHTML = '';
-      }
-
-      this._cardsNode.insertBefore(domNode, insertBuddy);
-
-      // If the card has any <button type="reset"> buttons,
-      // make them clear the field they're next to and not the entire form.
-      // See input_areas.js and shared/style/input_areas.css.
-      hookupInputAreaResetButtons(domNode);
-
-      if ('postInsert' in cardImpl)
-        cardImpl.postInsert();
-
-      if (showMethod !== 'none') {
-        // make sure the reflow sees the new node so that the animation
-        // later is smooth.
-        domNode.clientWidth;
-
-        this._showCard(cardIndex, showMethod, 'forward');
-      }
-
-      if (args.onPushed)
-        args.onPushed(cardImpl);
-    }).bind(this);
-
-    if (args.waitForData) {
-      args.onDataInserted = boundShowCard;
-    }
+    domNode.setAttribute('data-type', type);
+    domNode.setAttribute('data-mode', mode);
 
     var cardImpl = new cardDef.constructor(domNode, mode, args);
     var cardInst = {
@@ -480,9 +461,28 @@ console.log('pushCard for type: ' + type);
     }
     this._cardStack.splice(cardIndex, 0, cardInst);
 
-    if (!args.waitForData) {
-      boundShowCard();
+    if (!args.cachedNode)
+      this._cardsNode.insertBefore(domNode, insertBuddy);
+
+    // If the card has any <button type="reset"> buttons,
+    // make them clear the field they're next to and not the entire form.
+    // See input_areas.js and shared/style/input_areas.css.
+    hookupInputAreaResetButtons(domNode);
+
+    if ('postInsert' in cardImpl)
+      cardImpl.postInsert();
+
+    if (showMethod !== 'none') {
+      // make sure the reflow sees the new node so that the animation
+      // later is smooth.
+      if (!args.cachedNode)
+        domNode.clientWidth;
+
+      this._showCard(cardIndex, showMethod, 'forward');
     }
+
+    if (args.onPushed)
+      args.onPushed(cardImpl);
   },
 
   _findCardUsingTypeAndMode: function(type, mode) {
@@ -538,7 +538,7 @@ console.log('pushCard for type: ' + type);
   folderSelector: function(callback) {
     var self = this;
 
-    require(['value_selector'], function() {
+    require(['model', 'value_selector'], function(model) {
       // XXX: Unified folders will require us to make sure we get the folder
       //      list for the account the message originates from.
       if (!self.folderPrompt) {
@@ -546,10 +546,8 @@ console.log('pushCard for type: ' + type);
         self.folderPrompt = new ValueSelector(selectorTitle);
       }
 
-        var folderCardObj =
-          Cards.findCardObject(['folder_picker', 'navigation']);
-        var folderImpl = folderCardObj.cardImpl;
-        var folders = folderImpl.foldersSlice.items;
+      model.latestOnce('foldersSlice', function(foldersSlice) {
+        var folders = foldersSlice.items;
         for (var i = 0; i < folders.length; i++) {
           var folder = folders[i];
           self.folderPrompt.addToList(folder.name, folder.depth,
@@ -557,12 +555,13 @@ console.log('pushCard for type: ' + type);
               return function() {
                 self.folderPrompt.hide();
                 callback(folder);
-              }
+              };
             }(folder));
 
         }
         self.folderPrompt.show();
       });
+    });
   },
 
   moveToCard: function(query, showMethod) {
@@ -616,7 +615,9 @@ console.log('pushCard for type: ' + type);
 
   /**
    * Remove the card identified by its DOM node and all the cards to its right.
-   * Pass null to remove all of the cards!
+   * Pass null to remove all of the cards! If cardDomNode passed, but there
+   * are no cards before it, Cards.getDefaultCard is called to set up a before
+   * card.
    */
   /* @args[
    *   @param[cardDomNode]{
@@ -650,6 +651,15 @@ console.log('pushCard for type: ' + type);
                                     nextCardSpec) {
     if (!this._cardStack.length)
       return;
+
+    if (cardDomNode && this._cardStack.length === 1) {
+      // No card to go to when done, so ask for a default
+      // card and continue work once it exists.
+      return Cards.pushDefaultCard(function() {
+        this.removeCardAndSuccessors(cardDomNode, showMethod, numCards,
+                                    nextCardSpec);
+      }.bind(this));
+    }
 
     var firstIndex, iCard, cardInst;
     if (cardDomNode === undefined) {
@@ -856,8 +866,9 @@ console.log('pushCard for type: ' + type);
       this._transitionCount -= 1;
 
     if (this._transitionCount === 0) {
-      if (this._eatingEventsUntilNextCard)
+      if (this._eatingEventsUntilNextCard) {
         this._eatingEventsUntilNextCard = false;
+      }
       if (this._animatingDeadDomNodes.length) {
         // Use a setTimeout to give the animation some space to settle.
         setTimeout(function() {
@@ -1292,6 +1303,5 @@ exports.bindContainerClickAndHold = bindContainerClickAndHold;
 exports.bindContainerHandler = bindContainerHandler;
 exports.appendMatchItemTo = appendMatchItemTo;
 exports.bindContainerHandler = bindContainerHandler;
-exports.dieOnFatalError = dieOnFatalError;
 exports.displaySubject = displaySubject;
 });

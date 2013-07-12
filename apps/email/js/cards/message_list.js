@@ -1,11 +1,12 @@
-/*global define, console, window, setTimeout */
+/*jshint browser: true */
+/*global define, console */
 define(function(require) {
 
 var templateNode = require('tmpl!./message_list.html'),
     msgHeaderItemNode = require('tmpl!./msg/header_item.html'),
     deleteConfirmMsgNode = require('tmpl!./msg/delete_confirm.html'),
     common = require('mail_common'),
-    MailAPI = require('api'),
+    model = require('model'),
     htmlCache = require('html_cache'),
     MessageListTopbar = require('message_list_topbar'),
     mozL10n = require('l10n!'),
@@ -52,25 +53,6 @@ var MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST = 6000;
 var MAXIMUM_BYTES_PER_MESSAGE_DURING_SCROLL = 4 * 1024;
 
 /**
- * Format the message subject appropriately.  This means ensuring that if the
- * subject is empty, we use a placeholder string instead.
- *
- * @param {DOMElement} subjectNode the DOM node for the message's subject.
- * @param {Object} message the message object.
- */
-function displaySubject(subjectNode, message) {
-  var subject = message.subject && message.subject.trim();
-  if (subject) {
-    subjectNode.textContent = subject;
-    subjectNode.classList.remove('msg-no-subject');
-  }
-  else {
-    subjectNode.textContent = mozL10n.get('message-no-subject');
-    subjectNode.classList.add('msg-no-subject');
-  }
-}
-
-/**
  * List messages for listing the contents of folders ('nonsearch' mode) and
  * searches ('search' mode).  Multi-editing is just a state of the card.
  *
@@ -79,6 +61,17 @@ function displaySubject(subjectNode, message) {
  * are not shared with 'msg-nonsearch-only' or 'msg-search-only'.  We add the
  * collapsed class to all of the nodes that are not applicable for a node at
  * startup.
+ *
+ * == Cache behavior ==
+ *
+ * This is a card that can be instantiated using the cached HTML stored by the
+ * html_cache. As such, it is constructed to allow clicks on message list items
+ * before the back end has loaded up, and to know how to refresh the cached
+ * state by looking at the use the usingCachedNode property. It also prevents
+ * clicks from button actions that need back end data to complete if the click
+ * would result in a card that cannot also handle delayed back end startup.
+ * It tracks if the back end has started up by checking curFolder, which is
+ * set to a data object sent from the back end.
  *
  * == Less-than-infinite scrolling ==
  *
@@ -207,13 +200,12 @@ function MessageListCard(domNode, mode, args) {
   this.messagesSlice = null;
   this.isIncomingFolder = true;
   this._boundSliceRequestComplete = this.onSliceRequestComplete.bind(this);
-  if (mode == 'nonsearch')
-    this.showFolder(args.folder);
-  else
-    this.showSearch(args.folder, args.phrase || '', args.filter || 'all');
 
-  this.cacheableFolderId = args.cacheableFolderId;
-  this._onDataInserted = args.onDataInserted;
+  this.usingCachedNode = !!args.cachedNode;
+
+  // Use the told entry point to set up folders, as it is the same work
+  // needed if this card is created before data is available.
+  this.told(args);
 }
 MessageListCard.prototype = {
   /**
@@ -240,6 +232,10 @@ MessageListCard.prototype = {
   },
 
   onSearchButton: function() {
+    // Do not bother if there is no current folder.
+    if (!this.curFolder)
+      return;
+
     Cards.pushCard(
       'message_list', 'search', 'animate',
       {
@@ -248,6 +244,11 @@ MessageListCard.prototype = {
   },
 
   setEditMode: function(editMode) {
+    // Do not bother if this is triggered before
+    // a folder has loaded.
+    if (!this.curFolder)
+      return;
+
     var domNode = this.domNode;
     // XXX the manual DOM play here is now a bit overkill; we should very
     // probably switch top having the CSS do this for us or at least invest
@@ -351,19 +352,60 @@ MessageListCard.prototype = {
     // scroll the search bit out of the way
     var searchBar =
       this.domNode.getElementsByClassName('msg-search-tease-bar')[0];
+
+    // Search bar could have been collapsed with a cache load, make sure
+    // it is visible
+    searchBar.classList.remove('collapsed');
+
     this.scrollNode.scrollTop = searchBar.offsetHeight;
   },
 
   onShowFolders: function() {
-    Cards.moveToCard(['folder_picker', 'navigation']);
+    var query = ['folder_picker', 'navigation'];
+    if (Cards.hasCard(query)) {
+      Cards.moveToCard(query);
+    } else {
+      var folderPickerInit = this.folderPickerInit;
+
+      if (!folderPickerInit) {
+        // Could be a click before we have data. If so, just
+        // ignore it.
+        return;
+      }
+
+      // Add navigation, but before the message list.
+      Cards.pushCard(
+        'folder_picker', 'navigation', 'none',
+        {
+          acctsSlice: folderPickerInit.acctsSlice,
+          curAccount: folderPickerInit.account,
+          foldersSlice: folderPickerInit.foldersSlice,
+          curFolder: this.curFolder,
+          onPushed: function() {
+            // No longer need init info
+            this.folderPickerInit = null;
+
+            setTimeout(function() {
+            // Do showCard here instead of using an 'animate'
+            // for the pushCard call, since the styling of
+            // the folder_picker uses new images that need to
+            // load, and if 'animate' is used, the banner
+            // gradient is not loaded during the transition.
+            // The setTimeout also gives the header image a
+            // chance to finish loading. Without it, there is
+            // still a white flash. Going lower than 25, not
+            // specifying a value, still resulted in white flash.
+            Cards.moveToCard(query);
+          }, 25);
+          }.bind(this)
+        },
+        // Place to left of message list
+        'left');
+    }
   },
 
   onCompose: function() {
-    var composer = MailAPI.beginMessageComposition(null, this.curFolder, null,
-      function composerReady() {
-        Cards.pushCard('compose', 'default', 'animate',
-                       { composer: composer });
-      });
+    Cards.pushCard('compose', 'default', 'animate');
   },
 
   /**
@@ -408,7 +450,7 @@ MessageListCard.prototype = {
 
     // We are creating a new slice, so any pending snippet requests are moot.
     this._snippetRequestPending = false;
-    this.messagesSlice = MailAPI.viewFolderMessages(folder);
+    this.messagesSlice = model.api.viewFolderMessages(folder);
     this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
     this.messagesSlice.onchange = this.onMessagesChange.bind(this);
     this.messagesSlice.onstatus = this.onStatusChange.bind(this);
@@ -441,7 +483,7 @@ MessageListCard.prototype = {
 
     // We are creating a new slice, so any pending snippet requests are moot.
     this._snippetRequestPending = false;
-    this.messagesSlice = MailAPI.searchFolderMessages(
+    this.messagesSlice = model.api.searchFolderMessages(
       folder, phrase,
       {
         author: filter === 'all' || filter === 'author',
@@ -480,6 +522,9 @@ MessageListCard.prototype = {
   },
 
   onGetMoreMessages: function() {
+    if (!this.messagesSlice)
+      return;
+
     this.messagesSlice.requestGrowth(1, true);
     // Provide instant feedback that they pressed the button by hiding the
     // button.  However, don't show 'synchronizing' because that might not
@@ -508,11 +553,6 @@ MessageListCard.prototype = {
       case 'synced':
         this.toolbar.refreshBtn.dataset.state = 'synchronized';
         this.syncingNode.classList.add('collapsed');
-        // Make sure if there was anything waiting for "data finally
-        // inserted into the card", it gets called. If there are
-        // no messages in the inbox, then _notifyDataInserted is
-        // not going to be called as part of onMessagesSpliced.
-        this._notifyDataInserted();
         break;
     }
   },
@@ -524,6 +564,9 @@ MessageListCard.prototype = {
   showEmptyLayout: function() {
     var text = this.domNode.
       getElementsByClassName('msg-list-empty-message-text')[0];
+
+    this._clearCachedMessages();
+
     text.textContent = this.mode == 'search' ?
       mozL10n.get('messages-search-empty') :
       mozL10n.get('messages-folder-empty');
@@ -781,17 +824,18 @@ MessageListCard.prototype = {
 
     var cacheNode = this.domNode.cloneNode(true);
 
-    // Remove search field as it will not operate and gets scrolled out
-    // of view anyway after real load.
+
+    // Hide search field as it will not operate and gets scrolled out
+    // of view after real load.
     var removableCacheNode = cacheNode.querySelector('.msg-search-tease-bar');
     if (removableCacheNode)
-      removableCacheNode.parentNode.removeChild(removableCacheNode);
+      removableCacheNode.classList.add('collapsed');
 
-    // Remove "new mail" topbar too
+    // Hide "new mail" topbar too
     removableCacheNode = cacheNode
                            .querySelector('.' + MessageListTopbar.CLASS_NAME);
     if (removableCacheNode)
-      removableCacheNode.parentNode.removeChild(removableCacheNode);
+      removableCacheNode.classList.add('collapsed');
 
     // Trim the message list to _cacheListLimit.
     if (this.messagesContainer.children.length > this._cacheListLimit) {
@@ -823,24 +867,36 @@ MessageListCard.prototype = {
         // if actually got a numeric index and
         (index || index === 0) &&
         // if it affects the data we cache
-        index < this._cacheListLimit) {
+        index < this._cacheListLimit &&
+        // is in non-search mode
+        this.mode === 'nonsearch') {
       this._cacheDomTimeoutId = setTimeout(this._cacheDom.bind(this), 600);
     }
   },
 
-  _notifyDataInserted: function() {
-    if (this._onDataInserted) {
-      var onDataInserted = this._onDataInserted;
-      this._onDataInserted = null;
-      onDataInserted();
+  /**
+   * Clears out the messages HTML in messageContainer from using the cached
+   * nodes that were picked up when the HTML cache of this list was used
+   * (which is indicated by usingCachedNode being true). The cached HTML
+   * needs to be purged when the real data is finally available and will
+   * replace the cached state. A more sophisticated approach would be to
+   * compare the cached HTML to what would be inserted in its place, and
+   * if no changes, skip this step, but that comparison operation could get
+   * tricky, and it is cleaner just to wipe it and start fresh. Once the
+   * cached HTML has been cleared, then usingCachedNode is set to false
+   * to indicate that the main piece of content in the card, the message
+   * list, is no longer from a cached node.
+   */
+  _clearCachedMessages: function() {
+    if (this.usingCachedNode) {
+      this.messagesContainer.innerHTML = '';
+      this.usingCachedNode = false;
     }
   },
 
   onMessagesSplice: function(index, howMany, addedItems,
                              requested, moreExpected, fake) {
-    // If no work to do, just skip it. This is particularly important during
-    // the fake to real transition, where an empty onMessagesSplice is sent.
-    // If this return is not done, there is a flicker in the message list
+    // If no work to do, just skip it.
     if (index === 0 && howMany === 0 && !addedItems.length)
       return;
 
@@ -854,7 +910,7 @@ MessageListCard.prototype = {
         // Plan to fixup the scroll position if we are deleting a message that
         // starts before the (visible) scrolled area.  (We add the container's
         // start offset because it is as big as the occluding header bar.)
-        var prevHeight = null;
+        prevHeight = null;
         if (this.messagesSlice.items[index].element.offsetTop <
             this.scrollContainer.scrollTop + this.messagesContainer.offsetTop) {
           prevHeight = this.messagesContainer.clientHeight;
@@ -877,6 +933,8 @@ MessageListCard.prototype = {
         }
       }
     }
+
+    this._clearCachedMessages();
 
     // - added/existing
     var insertBuddy, self = this;
@@ -921,11 +979,6 @@ MessageListCard.prototype = {
     if (addedItems.length || howMany) {
       this._considerCacheDom(index);
     }
-
-    if (this.messagesSlice.atTop) {
-      // Data is inserted now, notify any listener.
-      this._notifyDataInserted();
-    }
   },
 
   onMessagesChange: function(message, index) {
@@ -941,6 +994,14 @@ MessageListCard.prototype = {
 
   updateMessageDom: function(firstTime, message) {
     var msgNode = message.element;
+
+    // ID is stored as a data- attribute so that it can survive
+    // serialization to HTML for storing in the HTML cache, and
+    // be usable before the actual data from the backend has
+    // loaded, as clicks to the message list are allowed before
+    // the back end is available. For this reason, click
+    // handlers should use dataset.id when wanting the ID.
+    msgNode.dataset.id = message.id;
 
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
@@ -1004,6 +1065,12 @@ MessageListCard.prototype = {
     var msgNode = matchedHeader.element,
         matches = matchedHeader.matches,
         message = matchedHeader.header;
+
+    // Even though updateMatchedMessageDom is only used in searches,
+    // which likely will not be cached, the dataset.is is set to
+    // maintain parity withe updateMessageDom and so click handlers
+    // can always just use the dataset property.
+    msgNode.dataset.id = matchedHeader.id;
 
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
@@ -1081,7 +1148,7 @@ MessageListCard.prototype = {
       return;
     }
 
-    if (this.curFolder.type === 'localdrafts') {
+    if (this.curFolder && this.curFolder.type === 'localdrafts') {
       var composer = header.editAsDraft(function() {
         Cards.pushCard('compose', 'default', 'animate',
                        { composer: composer });
@@ -1092,15 +1159,28 @@ MessageListCard.prototype = {
     Cards.pushCard(
       'message_reader', 'default', 'animate',
       {
-        header: header
+        // The header here may be undefined here, since the click
+        // could be on a cached HTML node before the back end has
+        // started up. It is OK if header is not available as the
+        // message_reader knows how to wait for the back end to
+        // start up to get the header value later.
+        header: header,
+        // Use the property on the HTML, since the click could be
+        // from a cached HTML node and the real data object may not
+        // be available yet.
+        messageSuid: messageNode.dataset.id
       });
   },
 
   onHoldMessage: function(messageNode, event) {
-    this.setEditMode(true);
+    if (this.curFolder)
+      this.setEditMode(true);
   },
 
   onRefresh: function() {
+    if (!this.messagesSlice)
+      return;
+
     switch (this.messagesSlice.status) {
       // If we're still synchronizing, then the user is not well served by
       // queueing a refresh yet, let's just squash this.
@@ -1124,14 +1204,14 @@ MessageListCard.prototype = {
   },
 
   onStarMessages: function() {
-    var op = MailAPI.markMessagesStarred(this.selectedMessages,
+    var op = model.api.markMessagesStarred(this.selectedMessages,
                                          this.setAsStarred);
     this.setEditMode(false);
     Toaster.logMutation(op);
   },
 
   onMarkMessagesRead: function() {
-    var op = MailAPI.markMessagesRead(this.selectedMessages, this.setAsRead);
+    var op = model.api.markMessagesRead(this.selectedMessages, this.setAsRead);
     this.setEditMode(false);
     Toaster.logMutation(op);
   },
@@ -1151,7 +1231,7 @@ MessageListCard.prototype = {
       { // Confirm
         id: 'msg-delete-ok',
         handler: function() {
-          var op = MailAPI.deleteMessages(this.selectedMessages);
+          var op = model.api.deleteMessages(this.selectedMessages);
           Toaster.logMutation(op);
           this.setEditMode(false);
         }.bind(this)
@@ -1167,7 +1247,7 @@ MessageListCard.prototype = {
     // TODO: Batch move back-end mail api is not ready now.
     //       Please verify this function when api landed.
     Cards.folderSelector(function(folder) {
-      var op = MailAPI.moveMessages(this.selectedMessages, folder);
+      var op = model.api.moveMessages(this.selectedMessages, folder);
       Toaster.logMutation(op);
       this.setEditMode(false);
     }.bind(this));
@@ -1175,10 +1255,41 @@ MessageListCard.prototype = {
 
   /**
    * The folder picker is telling us to change the folder we are showing.
+   * Also called when setting up data connections after initial card creation.
    */
   told: function(args) {
-    if (this.showFolder(args.folder)) {
-      this._hideSearchBoxByScrolling();
+    var folder;
+
+    if (args.folderPickerInit) {
+      // Received folder_picker init info, and so derive the folder from
+      // that information. This info is set during app startup. In the
+      // startup case, the inbox is always the start point, with other
+      // folder choices triggered by user action. For instance, by selecting
+      // a folder in the folder_picker.
+      var foldersSlice = args.folderPickerInit.foldersSlice,
+          acctsSlice = args.folderPickerInit.acctsSlice,
+          account = args.folderPickerInit.account;
+
+      folder = foldersSlice.getFirstFolderWithType('inbox');
+
+      this.folderPickerInit = args.folderPickerInit;
+
+      this.cacheableFolderId = account === acctsSlice.defaultAccount ?
+                                                               folder.id : null;
+    } else {
+      // Folder is passed directly to the card. For example, once
+      // folder_picker exists and folder is selected from it.
+      folder = args.folder;
+    }
+
+    if (folder) {
+      if (this.mode == 'nonsearch') {
+        if (this.showFolder(folder)) {
+          this._hideSearchBoxByScrolling();
+        }
+      } else {
+        this.showSearch(folder, args.phrase || '', args.filter || 'all');
+      }
     }
   },
 
