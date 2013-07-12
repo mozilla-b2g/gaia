@@ -262,6 +262,21 @@ suite('link_helper_test.js', function() {
       });
     });
 
+    suite('Tricky Problems', function() {
+      test('Two 9 digit numbers separated by space (#892480)', function() {
+        var test = '123456789 987654321';
+        var expected = test.split(' ').map(phone2msg).join(' ');
+        var result = LinkHelper.searchAndLinkClickableData(test);
+        assert.equal(result, expected);
+      });
+      test('Two 6 digit numbers separated by newline (#892480)', function() {
+        var test = '222333\n333222';
+        var expected = test.split('\n').map(phone2msg).join('\n');
+        var result = LinkHelper.searchAndLinkClickableData(test);
+        assert.equal(result, expected);
+      });
+    });
+
   });
 
   suite('Multiple in the same string', function() {
