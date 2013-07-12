@@ -263,7 +263,7 @@ var ThreadListUI = {
   setEmpty: function thlui_setEmpty(empty) {
     var addWhenEmpty = empty ? 'add' : 'remove';
     var removeWhenEmpty = empty ? 'remove' : 'add';
-
+    FixedHeader.refresh();
     ThreadListUI.noMessages.classList[removeWhenEmpty]('hide');
     ThreadListUI.container.classList[addWhenEmpty]('hide');
     ThreadListUI.editIcon.classList[addWhenEmpty]('disabled');
