@@ -17,17 +17,17 @@
 .authentication-dialog-buttons {
   text-align: center;
   background: #f4f4f4;
-  height: 40px;
+  height: 4rem;
   position: relative;
 }
 
 .authentication-dialog-buttons h3 {
-  line-height: 40px;
+  line-height: 4rem;
 }
 
 .authentication-dialog-message-container {
   width: 100%;
-  height: -moz-calc(100% - 40px);
+  height: -moz-calc(100% - 4rem);
   padding: 0.5em;
 }
 
@@ -36,12 +36,12 @@
 }
 
 #authentication-dialog button {
-  height: 25px;
+  height: 2.5rem;
 }
 
 #authentication-dialog input {
   width: -moz-calc(100% - 2em);
-  height: 30px;
+  height: 3rem;
 }
 
 #authentication-dialog-http-authentication-ok {
