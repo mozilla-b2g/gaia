@@ -50,6 +50,7 @@ settings = {
  "keyboard.layouts.czech": False,
  "keyboard.layouts.french": False,
  "keyboard.layouts.german": False,
+ "keyboard.layouts.italian": False,
  "keyboard.layouts.norwegian": False,
  "keyboard.layouts.slovak": False,
  "keyboard.layouts.turkish": False,
