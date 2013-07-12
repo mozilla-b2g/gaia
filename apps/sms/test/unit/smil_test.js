@@ -5,6 +5,7 @@
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/js/wbmp.js');
 requireApp('sms/js/smil.js');
 
 var mocksHelperForSMIL = new MocksHelper([
@@ -17,6 +18,7 @@ suite('SMIL', function() {
   var testImageBlob;
   var testAudioBlob;
   var testVideoBlob;
+  var testWbmpBlob;
   suiteSetup(function smil_suiteSetup(done) {
     mocksHelperForSMIL.suiteSetup();
 
@@ -43,6 +45,9 @@ suite('SMIL', function() {
     });
     getAsset('/test/unit/media/video.ogv', function(blob) {
       testVideoBlob = blob;
+    });
+    getAsset('/test/unit/media/grid.wbmp', function(blob) {
+      testWbmpBlob = blob;
     });
   });
   suiteTeardown(function() {
@@ -314,6 +319,21 @@ suite('SMIL', function() {
       });
     });
 
+    test('Type of attachment is WBMP format', function(done) {
+      var message = {
+        smil: '<smil><body><par><img src="grid.wbmp"/>' +
+              '</par></body></smil>',
+        attachments: [{
+          location: 'grid.wbmp',
+          content: testWbmpBlob
+        }]
+      };
+      SMIL.parse(message, function(output) {
+        assert.equal(output[0].blob.type, 'image/png');
+        assert.equal(output[0].name, 'grid.png');
+        done();
+      });
+    });
   });
   suite('SMIL.generate', function() {
     test('Text only message', function(done) {
