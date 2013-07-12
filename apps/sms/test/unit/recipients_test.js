@@ -1,15 +1,17 @@
 'use strict';
 
 requireApp('system/test/unit/mock_gesture_detector.js');
-requireApp('sms/js/utils.js');
-requireApp('sms/test/unit/mock_utils.js');
 
 requireApp('sms/js/recipients.js');
+requireApp('sms/js/utils.js');
 
+requireApp('sms/test/unit/mock_dialog.js');
+requireApp('sms/test/unit/mock_utils.js');
 
 var mocksHelperForRecipients = new MocksHelper([
-  'Utils',
-  'GestureDetector'
+  'Dialog',
+  'GestureDetector',
+  'Utils'
 ]);
 
 mocksHelperForRecipients.init();
@@ -232,6 +234,14 @@ suite('Recipients', function() {
   });
 
   suite('Recipients.View', function() {
+
+    function getStyles(elem, prop) {
+      var styles = window.getComputedStyle(elem, null);
+
+      return typeof prop !== 'undefined' ?
+        styles[prop] : styles;
+    }
+
     var view = {
       inner: null
     };
@@ -254,6 +264,12 @@ suite('Recipients', function() {
       },
       editable: function(candidate) {
         return candidate.contentEditable === false;
+      },
+      narrow: function(elem) {
+        return elem.offsetWidth === 0;
+      },
+      wide: function(elem) {
+        return elem.offsetWidth > 0;
       }
     };
 
@@ -266,9 +282,28 @@ suite('Recipients', function() {
       assert.ok(Recipients.View.prototype.handleEvent);
     });
 
-    test('Recipients.View initialization creates placeholder ', function() {
+    test('initialization creates placeholder ', function() {
       var view = document.getElementById('messages-recipients-list');
       assert.ok(is.placeholder(view.firstElementChild));
+      assert.ok(is.narrow(view.firstElementChild));
+    });
+
+    test('editable placeholder expands ', function() {
+      var view = document.getElementById('messages-recipients-list');
+      view.firstElementChild.click();
+      view.firstElementChild.textContent = 'foo';
+      assert.ok(is.wide(view.firstElementChild));
+    });
+
+    test('editable placeholder contracts ', function() {
+      var view = document.getElementById('messages-recipients-list');
+      view.firstElementChild.click();
+      view.firstElementChild.textContent = 'foo';
+      assert.ok(is.wide(view.firstElementChild));
+
+      view.firstElementChild.textContent = '';
+      view.firstElementChild.blur();
+      assert.ok(is.narrow(view.firstElementChild));
     });
 
     test('recipients.add() 1, displays 1 recipient', function() {
@@ -428,6 +463,60 @@ suite('Recipients', function() {
       );
 
       assert.equal(view.firstElementChild, view.lastElementChild);
+    });
+  });
+
+  suite('Recipients.View.prompts', function() {
+
+    test('Recipients.View.prompts ', function() {
+      assert.ok(Recipients.View.prompts);
+    });
+
+    suite('Recipients.View.prompts.remove ', function() {
+      var recipient;
+
+      setup(function() {
+        // This simulates a recipient object
+        // as it would exist in the recipient data array.
+        //
+        // The values MUST be strings.
+        recipient = {
+          display: 'Mobile | Telco, 101',
+          editable: 'false',
+          email: '',
+          name: 'Alan Turing',
+          number: '101',
+          source: 'contacts'
+        };
+      });
+
+      test('Recipients.View.prompts.remove ', function() {
+        assert.ok(Recipients.View.prompts.remove);
+      });
+
+      test('cancel ', function(done) {
+
+        Recipients.View.prompts.remove(recipient, function(response) {
+          assert.ok(MockDialog.triggers.cancel.called);
+          assert.ok(!MockDialog.triggers.confirm.called);
+          assert.ok(!response.isConfirmed);
+          done();
+        });
+
+        MockDialog.triggers.cancel();
+      });
+
+      test('remove ', function(done) {
+
+        Recipients.View.prompts.remove(recipient, function(response) {
+          assert.ok(MockDialog.triggers.confirm.called);
+          assert.ok(!MockDialog.triggers.cancel.called);
+          assert.ok(response.isConfirmed);
+          done();
+        });
+
+        MockDialog.triggers.confirm();
+      });
     });
   });
 });
