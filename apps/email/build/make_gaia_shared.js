@@ -2,10 +2,19 @@
  * Scans the built directory's JS and CSS files looking for shared resources
  * to generate a gaia_shared.json
  */
-/*global load, requirejs */
+/*jshint moz: true */
+/*global load, requirejs, Components */
 
 var requirejsAsLib = true;
 load('../../build/r.js');
+
+var converter =
+      Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].
+      createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+converter.charset = "UTF-8";
+
+var secClass = Components.classes["@mozilla.org/security/hash;1"];
+var nsICryptoHash = Components.interfaces.nsICryptoHash;
 
 var shared = {
   js: [],
@@ -46,6 +55,25 @@ function stripCssComments(contents) {
   return result;
 }
 
+// Adapted from:
+// https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsICryptoHash#Computing_the_Hash_of_a_String
+// return the two-digit hexadecimal code for a byte
+function toHexString(charCode) {
+  return ("0" + charCode.toString(16)).slice(-2);
+}
+function getDigest(contents) {
+  var i,
+      result = {};
+
+  // data is an array of bytes
+  var data = converter.convertToByteArray(contents, result);
+  var ch = secClass.createInstance(nsICryptoHash);
+  ch.init(ch.SHA1);
+  ch.update(data, data.length);
+  var hash = ch.finish(false);
+  // convert the binary hash data to a hex string.
+  return [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");
+}
 
 requirejs.tools.useLib(function(require) {
   require(['env!env/file', 'parse'], function(file, parse) {
@@ -54,15 +82,26 @@ requirejs.tools.useLib(function(require) {
     file.saveFile(indexPath, file.readFile(indexPath)
                              .replace(/data-loader="[^"]+"/, ''));
 
-    // Find all the JS files and scan them for shared resources
-    var files = file.getFilteredFileList(buildDir + 'js', /\.js$/);
+    var digests = [],
+        jsExtRegExp = /\.js$/,
+        backendRegExp = /[\\\/]js[\\\/]ext[\\\/]/;
+
+    // Find all the HTML and JS files.
+    var files = file.getFilteredFileList(buildDir + 'js', /\.js$|\.html$/);
     files.forEach(function(fileName) {
-      var deps = parse.findDependencies(fileName, file.readFile(fileName));
-      deps.forEach(function (dep) {
-        if (dep.indexOf('shared/') === 0) {
-          shared.js.push(dep.replace(/shared\/js\//, '') + '.js');
-        }
-      });
+      var contents = file.readFile(fileName);
+
+      digests.push(getDigest(contents));
+
+      // If JS, scan for shared resources.
+      if (jsExtRegExp.test(fileName) && !backendRegExp.test(fileName)) {
+        var deps = parse.findDependencies(fileName, contents);
+        deps.forEach(function (dep) {
+          if (dep.indexOf('shared/') === 0) {
+            shared.js.push(dep.replace(/shared\/js\//, '') + '.js');
+          }
+        });
+      }
     });
 
     // Find CSS references. Use the source area, instead of the build
@@ -93,8 +132,23 @@ requirejs.tools.useLib(function(require) {
       }
     });
 
-    // Save the file
+    // Save the shared resources file.
     file.saveFile(buildDir + 'gaia_shared.json',
                   JSON.stringify(shared, null, '  '));
+
+    // Update the cache value based on digest values of all files.
+    var finalDigest = getDigest(digests.join(',')),
+        cacheRegExp = /var\s*CACHE_VERSION\s*=\s*'[^']+'/;
+
+    [
+      buildDir + 'js/html_cache_restore.js',
+      buildDir + 'js/mail_app.js'
+    ].forEach(function (fileName) {
+      var contents = file.readFile(fileName);
+      contents = contents.replace(cacheRegExp,
+                                 'var CACHE_VERSION = \'' + finalDigest + '\'');
+      file.saveFile(fileName, contents);
+    });
+
   });
 });

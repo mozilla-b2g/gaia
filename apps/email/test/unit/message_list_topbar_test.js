@@ -1,33 +1,44 @@
+/*global requireApp, suite, setup, testConfig, test, assert,
+  MockL10n, document, sinon, teardown, suiteSetup, suiteTeardown */
+
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
 requireApp('email/test/unit/mock_l10n.js');
 
 suite('MessageListTopbar', function() {
-  var subject, el, scrollContainer, newEmailCount, MessageListTopbar, mozL10n;
+  var subject, el, scrollContainer, newEmailCount,
+      MessageListTopbar, mozL10n;
 
-  setup(function(done) {
+  suiteSetup(function(done) {
+    testConfig(
+      {
+        suiteTeardown: suiteTeardown,
+        done: done,
+        defines: {
+          'l10n!': function() {
+            return MockL10n;
+          }
+        }
+      },
+      ['message_list_topbar', 'l10n!'],
+      function(mlt, l) {
+        MessageListTopbar = mlt;
+        mozL10n = l;
+      }
+    );
+  });
 
-    define('l10n!', function() {
-      return MockL10n;
-    });
+  setup(function() {
+    // Called before each of the suites below
+    //
+    // Mock the HTML
+    el = document.createElement('div');
+    el.classList.add(MessageListTopbar.CLASS_NAME);
+    el.classList.add('collapsed');
 
-    requirejs(['message_list_topbar', 'l10n!'], function(mlt, l10n) {
-      MessageListTopbar = mlt;
-      mozL10n = l10n;
-
-      // Mock the HTML
-      el = document.createElement('div');
-      el.classList.add(MessageListTopbar.CLASS_NAME);
-      el.classList.add('collapsed');
-
-      scrollContainer = {};
-      newEmailCount = 5;
-      subject = new MessageListTopbar(scrollContainer, newEmailCount);
-
-      done();
-    }, function(err) {
-      done(err);
-    });
+    scrollContainer = {};
+    newEmailCount = 5;
+    subject = new MessageListTopbar(scrollContainer, newEmailCount);
   });
 
   suite('#constructor', function() {

@@ -33,270 +33,260 @@ if (typeof TestUrlResolver === 'undefined') {
   });
 }
 
-// Named module, so it is the same before and after build.
+// Named module, so it is the same before and after build, and referenced
+// in the require at the end of this file.
 define('mail_app', function(require) {
 
 var htmlCache = require('html_cache'),
     common = require('mail_common'),
-    MailAPI = require('api'),
+    model = require('model'),
     mozL10n = require('l10n!'),
-    queryURI = require('query_uri'),
+    appMessages = require('app_messages'),
     Cards = common.Cards,
-    initialCardInsertion = true,
-    hasCardsPushed = false,
     activityCallback = null;
 
-var App = {
-  initialized: false,
+model.firstRun = function(MailAPI) {
+  // If our password is bad, we need to pop up a card to ask for the updated
+  // password.
+  MailAPI.onbadlogin = function(account, problem) {
+    switch (problem) {
+      case 'bad-user-or-pass':
+        Cards.pushCard('setup_fix_password', 'default', 'animate',
+                  { account: account, restoreCard: Cards.activeCardIndex },
+                  'right');
+        break;
+      case 'imap-disabled':
+        Cards.pushCard('setup_fix_gmail_imap', 'default', 'animate',
+                  { account: account, restoreCard: Cards.activeCardIndex },
+                  'right');
+        break;
+      case 'needs-app-pass':
+        Cards.pushCard('setup_fix_gmail_twofactor', 'default', 'animate',
+                  { account: account, restoreCard: Cards.activeCardIndex },
+                  'right');
+        break;
+    }
+  };
 
-  /**
-   * Bind any global notifications, relay localizations to the back-end.
-   */
-  _init: function() {
-    // If our password is bad, we need to pop up a card to ask for the updated
-    // password.
-    MailAPI.onbadlogin = function(account, problem) {
-      switch (problem) {
-        case 'bad-user-or-pass':
-          Cards.pushCard('setup_fix_password', 'default', 'animate',
-                    { account: account, restoreCard: Cards.activeCardIndex },
-                    'right');
-          break;
-        case 'imap-disabled':
-          Cards.pushCard('setup_fix_gmail_imap', 'default', 'animate',
-                    { account: account, restoreCard: Cards.activeCardIndex },
-                    'right');
-          break;
-        case 'needs-app-pass':
-          Cards.pushCard('setup_fix_gmail_twofactor', 'default', 'animate',
-                    { account: account, restoreCard: Cards.activeCardIndex },
-                    'right');
-          break;
-      }
-    };
-
-    MailAPI.useLocalizedStrings({
-      wrote: mozL10n.get('reply-quoting-wrote'),
-      originalMessage: mozL10n.get('forward-original-message'),
-      forwardHeaderLabels: {
-        subject: mozL10n.get('forward-header-subject'),
-        date: mozL10n.get('forward-header-date'),
-        from: mozL10n.get('forward-header-from'),
-        replyTo: mozL10n.get('forward-header-reply-to'),
-        to: mozL10n.get('forward-header-to'),
-        cc: mozL10n.get('forward-header-cc')
-      },
-      folderNames: {
-        inbox: mozL10n.get('folder-inbox'),
-        sent: mozL10n.get('folder-sent'),
-        drafts: mozL10n.get('folder-drafts'),
-        trash: mozL10n.get('folder-trash'),
-        queue: mozL10n.get('folder-queue'),
-        junk: mozL10n.get('folder-junk'),
-        archives: mozL10n.get('folder-archives'),
-        localdrafts: mozL10n.get('folder-localdrafts')
-      }
-    });
-
-    this.initialized = true;
-  },
-
-  /**
-   * Show the best inbox we have (unified if >1 account, just the inbox if 1) or
-   * start the setup process if we have no accounts.
-   */
-  showMessageViewOrSetup: function(showLatest) {
-    // Get the list of accounts including the unified account (if it exists)
-
-    var acctsSlice = MailAPI.viewAccounts(false);
-    acctsSlice.oncomplete = function() {
-      // - we have accounts, show the message view!
-      if (acctsSlice.items.length) {
-        // For now, just use the first one; we do attempt to put unified first
-        // so this should generally do the right thing.
-        // XXX: Because we don't have unified account now, we should switch to
-        //       the latest account which user just added.
-        var account = showLatest ? acctsSlice.items.slice(-1)[0] :
-                                   acctsSlice.defaultAccount;
-
-        var foldersSlice = MailAPI.viewFolders('account', account);
-        foldersSlice.oncomplete = function() {
-          var inboxFolder = foldersSlice.getFirstFolderWithType('inbox');
-
-          if (!inboxFolder)
-            common.dieOnFatalError('We have an account without an inbox!',
-                foldersSlice.items);
-
-          if (!initialCardInsertion)
-            Cards.removeAllCards();
-
-          // Push the message list card
-          Cards.pushCard(
-            'message_list', 'nonsearch', 'immediate',
-            {
-              folder: inboxFolder,
-              cacheableFolderId: account === acctsSlice.defaultAccount ?
-                                 inboxFolder.id : null,
-              waitForData: initialCardInsertion,
-              onPushed: function() {
-                // Add navigation, but before the message list.
-                Cards.pushCard(
-                  'folder_picker', 'navigation', 'none',
-                  {
-                    acctsSlice: acctsSlice,
-                    curAccount: account,
-                    foldersSlice: foldersSlice,
-                    curFolder: inboxFolder,
-                    onPushed: function() {
-                      hasCardsPushed = true;
-
-                      if (activityCallback) {
-                        activityCallback();
-                        activityCallback = null;
-                      }
-                    }
-                  },
-                  // Place to left of message list
-                  'left');
-              }
-            });
-
-          initialCardInsertion = false;
-        };
-      } else {
-        if (acctsSlice)
-          acctsSlice.die();
-
-        // - no accounts, show the setup page!
-        if (!Cards.hasCard(['setup_account_info', 'default'])) {
-          if (activityCallback) {
-            // Clear out activity callback, but do it
-            // before calling activityCallback, in
-            // case that code then needs to set a delayed
-            // activityCallback for later.
-            var activityCb = activityCallback;
-            activityCallback = null;
-            var result = activityCb();
-            if (!result)
-              return;
-          }
-
-          if (initialCardInsertion) {
-            initialCardInsertion = false;
-          } else {
-            Cards.removeAllCards();
-          }
-
-          Cards.pushCard(
-            'setup_account_info', 'default', 'immediate',
-            {
-              allowBack: false,
-              onPushed: function(impl) {
-                hasCardsPushed = true;
-                htmlCache.delayedSaveFromNode(impl.domNode.cloneNode(true));
-              }
-            });
-        }
-      }
-    };
-  }
+  MailAPI.useLocalizedStrings({
+    wrote: mozL10n.get('reply-quoting-wrote'),
+    originalMessage: mozL10n.get('forward-original-message'),
+    forwardHeaderLabels: {
+      subject: mozL10n.get('forward-header-subject'),
+      date: mozL10n.get('forward-header-date'),
+      from: mozL10n.get('forward-header-from'),
+      replyTo: mozL10n.get('forward-header-reply-to'),
+      to: mozL10n.get('forward-header-to'),
+      cc: mozL10n.get('forward-header-cc')
+    },
+    folderNames: {
+      inbox: mozL10n.get('folder-inbox'),
+      sent: mozL10n.get('folder-sent'),
+      drafts: mozL10n.get('folder-drafts'),
+      trash: mozL10n.get('folder-trash'),
+      queue: mozL10n.get('folder-queue'),
+      junk: mozL10n.get('folder-junk'),
+      archives: mozL10n.get('folder-archives'),
+      localdrafts: mozL10n.get('folder-localdrafts')
+    }
+  });
 };
 
-try {
-  Cards._init();
-  App._init();
-  App.showMessageViewOrSetup();
-}
-catch (ex) {
-  console.error('Problem initializing', ex, '\n', ex.stack);
+function makeFolderPickerInit() {
+  // Generates default folder picker init for a message_list. Assumes
+  // that the model is already populated with the correct data.
+  return {
+    account: model.account,
+    foldersSlice: model.foldersSlice,
+    acctsSlice: model.acctsSlice
+  };
 }
 
-if ('mozSetMessageHandler' in window.navigator) {
-  window.navigator.mozSetMessageHandler('activity',
-                                        function actHandle(activity) {
-    var activityName = activity.source.name;
-    // To assist in bug analysis, log the start of the activity here.
-    console.log('activity!', activityName);
-    if (activityName === 'share') {
-      var attachmentBlobs = activity.source.data.blobs,
-          attachmentNames = activity.source.data.filenames;
-    }
-    else if (activityName === 'new' ||
-             activityName === 'view') {
-      // new uses URI, view uses url
-      var parts = queryURI(activity.source.data.url ||
-                           activity.source.data.URI);
-      var to = parts[0];
-      var subject = parts[1];
-      var body = parts[2];
-      var cc = parts[3];
-      var bcc = parts[4];
-    }
-    var sendMail = function actHandleMail() {
-      var folderToUse;
-      try {
-        folderToUse = Cards._cardStack[Cards
-          ._findCard(['folder_picker', 'navigation'])].cardImpl.curFolder;
-      } catch (e) {
-        console.log('no navigation found:', e);
-        var req = confirm(mozL10n.get('setup-empty-account-prompt'));
-        if (!req) {
-          // We want to do the right thing, but currently this won't even dump
-          // us in the home-screen app.  This is because our activity has
-          // disposition: window rather than inline.
-          activity.postError('cancelled');
-          // So our workaround is to close our window.
-          window.close();
-          return false;
+// Handle cases where a default card is needed for back navigation
+// after a non-default entry point (like an activity) is triggered.
+Cards.pushDefaultCard = function(onPushed) {
+  model.latestOnce('foldersSlice', function() {
+    Cards.pushCard('message_list', 'nonsearch', 'none', {
+      folderPickerInit: makeFolderPickerInit(),
+      onPushed: onPushed
+    },
+    // Default to "before" placement.
+    'left');
+  });
+};
+
+Cards._init();
+
+var waitForActivity = false,
+    cachedNode = Cards._cardsNode.children[0],
+    startCardId = cachedNode && cachedNode.getAttribute('data-type');
+
+function pushStartCard(id, addedArgs) {
+  var startCardArgs = {
+    'setup_account_info': [
+      'setup_account_info', 'default', 'immediate',
+      {
+        cachedNode: cachedNode,
+        allowBack: false,
+        onPushed: function(impl) {
+          htmlCache.delayedSaveFromNode(impl.domNode.cloneNode(true));
         }
-        activityCallback = sendMail;
-        return true;
       }
-      var composer = MailAPI.beginMessageComposition(
-        null, folderToUse, null,
-        function() {
-          /* to/cc/bcc/subject/body all have default values that shouldn't be
-          clobbered if they are not specified in the URI*/
-          if (to)
-            composer.to = to;
-          if (subject)
-            composer.subject = subject;
-          if (body && typeof body === 'string')
-            composer.body = { text: body };
-          if (cc)
-            composer.cc = cc;
-          if (bcc)
-            composer.bcc = bcc;
+    ],
+    'message_list': [
+      'message_list', 'nonsearch', 'immediate',
+      {
+        cachedNode: cachedNode
+      }
+    ]
+  };
+
+  var args = startCardArgs[id];
+  if (!args)
+    throw new Error('Invalid start card: ' + id);
+
+  // Mix in addedArgs to the args object that is passed to pushCard.
+  if (addedArgs) {
+    Object.keys(addedArgs).forEach(function(key) {
+      args[3][key] = addedArgs[key];
+    });
+  }
+
+  return Cards.pushCard.apply(Cards, args);
+}
+
+if (appMessages.hasPending('activity')) {
+  // There is an activity, do not use the cache node, start fresh,
+  // and block normal first card selection, wait for activity.
+  cachedNode = null;
+  waitForActivity = true;
+} else if (cachedNode) {
+  // Wire up a card implementation to the cached node.
+  if (startCardId) {
+    pushStartCard(startCardId);
+  } else {
+    cachedNode = null;
+  }
+}
+
+function resetCards(cardId, args) {
+  // If this is the second pass through resetCards (so startCardId
+  // will be null) as a result of account switches, or if the cached
+  // startCardId did not match what was desired, clear the cards
+  // and push a new one.
+  if (!startCardId || cardId !== startCardId) {
+    startCardId = null;
+    cachedNode = null;
+    Cards.removeAllCards();
+    pushStartCard(cardId, args);
+    return true;
+  }
+  return false;
+}
+
+model.on('acctsSlice', function() {
+  if (!model.hasAccount()) {
+    resetCards('setup_account_info');
+  }
+});
+
+model.on('foldersSlice', function() {
+  // If started via an activity, hold off on regular card insertion.
+  if (waitForActivity) {
+    waitForActivity = false;
+    return;
+  }
+
+  // If an acctivity was waiting for an account, trigger it now.
+  if (activityCallback) {
+    var activityCb = activityCallback;
+    activityCallback = null;
+    return activityCb();
+  }
+
+  var args = {
+    folderPickerInit: makeFolderPickerInit()
+  };
+
+  if (!resetCards('message_list', args)) {
+    // There is an exising message_list, so just tell it the data.
+    Cards.tellCard(['message_list', 'nonsearch'], args);
+  }
+});
+
+appMessages.on('activity', function(type, data, rawActivity) {
+
+  function initComposer() {
+    Cards.pushCard('compose', 'default', 'immediate', {
+      activity: rawActivity,
+      composerData: {
+        onComposer: function(composer) {
+          var attachmentBlobs = data.attachmentBlobs;
+          /* to/cc/bcc/subject/body all have default values that shouldn't
+          be clobbered if they are not specified in the URI*/
+          if (data.to)
+            composer.to = data.to;
+          if (data.subject)
+            composer.subject = data.subject;
+          if (data.body)
+            composer.body = { text: data.body };
+          if (data.cc)
+            composer.cc = data.cc;
+          if (data.bcc)
+            composer.bcc = data.bcc;
           if (attachmentBlobs) {
             for (var iBlob = 0; iBlob < attachmentBlobs.length; iBlob++) {
               composer.addAttachment({
-                name: attachmentNames[iBlob],
+                name: data.attachmentNames[iBlob],
                 blob: attachmentBlobs[iBlob]
               });
             }
           }
-          Cards.pushCard('compose',
-            'default', 'immediate', { composer: composer,
-            activity: activity });
-        });
-    };
+        }
+      }
+    });
+  }
 
-    if (hasCardsPushed) {
-      console.log('activity', activityName, 'triggering compose now');
-      sendMail();
-    } else {
-      console.log('activity', activityName, 'waiting for callback');
-      activityCallback = sendMail;
+  function promptEmptyAccount() {
+    var req = confirm(mozL10n.get('setup-empty-account-prompt'));
+    if (!req) {
+      // We want to do the right thing, but currently this won't even dump
+      // us in the home-screen app.  This is because our activity has
+      // disposition: window rather than inline.
+      rawActivity.postError('cancelled');
+      // So our workaround is to close our window.
+      window.close();
     }
-  });
-}
-else {
-  console.warn('Activity support disabled!');
-}
 
-return App;
+    // No longer need to wait for the activity to complete, it needs
+    // normal card flow
+    waitForActivity = false;
 
+    activityCallback = initComposer;
+  }
+
+  if (model.inited) {
+    if (model.hasAccount()) {
+      initComposer();
+    } else {
+      promptEmptyAccount();
+    }
+  } else {
+    // Be optimistic and start rendering compose as soon as possible
+    // In the edge case that email is not configured, then the empty
+    // account prompt will be triggered quickly in the next section.
+    initComposer();
+
+    model.latestOnce('acctsSlice', function activityOnAccount() {
+      if (!model.hasAccount()) {
+        promptEmptyAccount();
+      }
+    });
+  }
+});
+
+model.init();
 });
 
 // Run the app module, bring in fancy logging
-requirejs(['console_hook', 'mail_app']);
+requirejs(['console_hook', 'cards/message_list', 'mail_app']);
