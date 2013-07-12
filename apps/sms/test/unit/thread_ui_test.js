@@ -1320,8 +1320,36 @@ suite('thread_ui.js >', function() {
       this.getMessageReq.result = this.targetMsg;
       this.getMessageReq.onsuccess();
 
-      assert.deepEqual(MessageManager.resendMessage.args[0],
-        [this.targetMsg]);
+      var args = MessageManager.resendMessage.args[0];
+      assert.deepEqual(args[0], this.targetMsg);
+    });
+  });
+
+  // Bug 890206 - Resending a message with delivery status
+  // error on a thread with just that message, should leave
+  // the thread with just one message.
+  suite('Message error resent in thread with 1 message', function() {
+    setup(function() {
+      ThreadUI.appendMessage({
+        id: 23,
+        type: 'sms',
+        body: 'This is a error sms',
+        delivery: 'error',
+        timestamp: new Date()
+      });
+      sinon.stub(window, 'confirm');
+      this.errorMsg = ThreadUI.container.querySelector('.error');
+    });
+    teardown(function() {
+      window.confirm.restore();
+    });
+
+    test('clicking on an error message bubble in a thread with 1 message ' +
+      'should try to resend and leave a thread with 1 message',
+      function() {
+      window.confirm.returns(true);
+      this.errorMsg.querySelector('.pack-end').click();
+      assert.equal(ThreadUI.container.querySelectorAll('li').length, 1);
     });
   });
 
