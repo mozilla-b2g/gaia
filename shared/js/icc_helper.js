@@ -84,6 +84,21 @@ var IccHelper = (function() {
     get iccInfo() {
       var actor = actors['iccInfo'];
       return actor.iccInfo;
+    },
+
+    set oncardstatechange(callback) {
+      var actor = actors['cardState'];
+      actor.oncardstatechange = callback;
+    },
+
+    set oniccinfochange(callback) {
+      var actor = actors['iccInfo'];
+      actor.oniccinfochange = callback;
+    },
+
+    set onicccardlockerror(callback) {
+      var actor = actors['cardLock'];
+      actor.onicccardlockerror = callback;
     }
   };
 })();

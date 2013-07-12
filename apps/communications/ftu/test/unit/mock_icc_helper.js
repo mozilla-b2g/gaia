@@ -1,7 +1,7 @@
 'use strict';
 
 var MockIccHelper = {
-  mProps: {'cardState': null},
+  mProps: {'cardState': null, 'iccInfo': {}},
 
   setProperty: function _setProperty(property, newState) {
     this.mProps[property] = newState;
@@ -19,6 +19,10 @@ var MockIccHelper = {
 
   get cardState() {
     return this.mProps['cardState'];
+  },
+
+  get iccInfo() {
+    return this.mProps['iccInfo'];
   },
 
   unlockCardLock: function() {

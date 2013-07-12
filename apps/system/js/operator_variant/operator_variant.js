@@ -37,16 +37,12 @@
    * and retrieve/apply APN settings if they differ.
    */
 
-  var mobileConnection = window.navigator.mozMobileConnection;
-  if (!mobileConnection)
-    return;
-
   if (!IccHelper.enabled)
     return;
 
   // Check the mcc/mnc information on the SIM card.
   function checkICCInfo() {
-    if (!mobileConnection.iccInfo || IccHelper.cardState !== 'ready')
+    if (!IccHelper.iccInfo || IccHelper.cardState !== 'ready')
       return;
 
     // ensure that the iccSettings have been retrieved
@@ -54,14 +50,14 @@
       return;
 
     // XXX sometimes we get 0/0 for mcc/mnc, even when cardState === 'ready'...
-    var mcc = mobileConnection.iccInfo.mcc || '0';
-    var mnc = mobileConnection.iccInfo.mnc || '0';
+    var mcc = IccHelper.iccInfo.mcc || '0';
+    var mnc = IccHelper.iccInfo.mnc || '0';
     if (mcc === '0')
       return;
 
     // avoid setting APN (and operator variant) settings if mcc/mnc codes
     // changes.
-    mobileConnection.removeEventListener('iccinfochange', checkICCInfo);
+    IccHelper.removeEventListener('iccinfochange', checkICCInfo);
 
     // same SIM card => do nothing
     if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc)) {
@@ -236,6 +232,6 @@
    */
 
   getICCSettings(checkICCInfo);
-  mobileConnection.addEventListener('iccinfochange', checkICCInfo);
+  IccHelper.addEventListener('iccinfochange', checkICCInfo);
 })();
 

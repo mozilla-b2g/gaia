@@ -40,10 +40,10 @@
     if (_cfIconStateInitialized || cardState !== 'ready')
       return;
 
-    if (!mobileConnection.iccInfo)
+    if (!IccHelper.iccInfo)
       return;
 
-    var iccid = mobileConnection.iccInfo.iccid;
+    var iccid = IccHelper.iccInfo.iccid;
     if (!iccid)
       return;
 
@@ -62,7 +62,7 @@
   IccHelper.addEventListener('cardstatechange', function() {
     initCallForwardingIconState();
   });
-  mobileConnection.addEventListener('iccinfochange', function() {
+  IccHelper.addEventListener('iccinfochange', function() {
     initCallForwardingIconState();
   });
 
@@ -76,7 +76,7 @@
         enabled = true;
       }
       settings.createLock().set({'ril.cf.enabled': enabled});
-      asyncStorage.setItem('ril.cf.enabled.' + mobileConnection.iccInfo.iccid,
+      asyncStorage.setItem('ril.cf.enabled.' + IccHelper.iccInfo.iccid,
         enabled);
     }
   });
@@ -84,7 +84,7 @@
   settings.addObserver('ril.cf.carrier.enabled', function(event) {
     var showIcon = event.settingValue;
     settings.createLock().set({'ril.cf.enabled': showIcon});
-    asyncStorage.setItem('ril.cf.enabled.' + mobileConnection.iccInfo.iccid,
+    asyncStorage.setItem('ril.cf.enabled.' + IccHelper.iccInfo.iccid,
     showIcon);
   });
 })();
