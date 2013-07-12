@@ -1,0 +1,119 @@
+#!/bin/bash
+
+SELF=`basename $0`
+SELF_DIR=`dirname $0`
+
+#
+# Run the gaia unit test agent server and with firefox.
+#
+# Basic usage:
+#
+#   gaia-test <gaia location> <firefox binary>
+#
+# The both parameters are optional.
+#
+# The gaia directory to test is found using the following heuristic:
+#   1) If the gaia location specified on the command line is a directory,
+#      then use it.
+#   2) If the gaia location is not specified, use the $GAIADIR environment
+#      variable.
+#   2) If the environment variable is not specified either, then use
+#      the scripts location to determine the gaia directory.  This assumes
+#      the script is found in gaia/bin.
+#
+# The firefox binary is found using the following heuristic:
+#   1) If the firefox binary is specified on the command line, then attempt
+#      to find it in the path if its relative or just use it if its absolute.
+#   2) If the firefox binary is not specified, then use the $FIREFOX
+#      environment variable to find the executable in the path.
+#   3) If the environment is not specified either, then look for 'firefox'
+#      in the path.
+#
+
+#
+# Configure gaia location
+#
+if [ ! -z "$1" ] ; then
+  GAIADIR="$1"
+fi
+
+if [ -z "$GAIADIR" ] ; then
+  GAIADIR="$SELF_DIR/.."
+fi
+
+if [ ! -d "$GAIADIR" ] ; then
+  echo "$SELF: '$GAIADIR' is not a directory!"
+  exit 1
+fi
+
+GAIADIR=$( cd "$GAIADIR"; pwd)
+
+#
+# Configure firefox test binary
+#
+if [ ! -z "$2" ] ; then
+  FIREFOX="$2"
+fi
+
+if [ -z "$FIREFOX" ] ; then
+  FIREFOX='firefox'
+fi
+
+BASE_FIREFOX="$FIREFOX"
+FIREFOX=`which $BASE_FIREFOX`
+if [ ! -x "$FIREFOX" ] ; then
+  echo "$SELF: Unable to find an executable '$BASE_FIREFOX' in path!"
+  exit 1
+fi
+
+#
+# Verify firefox version is new enough
+#
+VERSION=`$FIREFOX --version | awk '{print $3}'`
+REQ_VERSION='22'
+if expr "$VERSION" \< "$REQ_VERSION" >/dev/null ; then
+  echo "$SELF: Firefox is only version $VERSION; use $REQ_VERSION or newer."
+  exit 1
+fi
+
+echo "$SELF: Using gaia at '$GAIADIR'."
+echo "$SELF: Using Firefox $VERSION at '$FIREFOX'."
+
+#
+# Verify additional dependencies are installed
+#
+NODE=`which node`
+NPM=`which npm`
+if [ ! -x "$NODE" ] ; then
+  echo "$SELF: Unable to find node; please install node.js."
+  exit 1
+elif [ ! -x "$NPM" ] ; then
+  echo "$SELF: Unable to find npm; please install npm."
+  exit 1
+fi
+
+cd $GAIADIR
+
+#
+# Verify the profile is ready
+#
+PROFILE="$GAIADIR/profile-debug"
+if [ ! -d "$PROFILE" ] ; then
+  echo "$SELF: Building the debug profile."
+  DEBUG=1 make
+fi
+
+#
+# Launch firefox
+#
+$FIREFOX --no-remote -profile "$PROFILE" http://test-agent.gaiamobile.org:8080/ &
+cleanup() {
+  echo "$SELF: Stopping firefox on exit."
+  kill "%1"
+}
+trap cleanup EXIT
+
+#
+# Launch the test agent
+#
+make test-agent-server
