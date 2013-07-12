@@ -5,7 +5,7 @@ function MockAttachment(blob, options) {
   options = options || {};
   this.name = options.name;
   this.mNextRender = document.createElement('iframe');
-  this.mNextRender.className = 'attachment';
+  this.mNextRender.className = 'attachment-container';
 }
 
 MockAttachment.prototype = {
@@ -17,7 +17,7 @@ MockAttachment.prototype = {
   },
   render: function() {
     this.mNextRender = document.createElement('iframe');
-    this.mNextRender.className = 'attachment';
+    this.mNextRender.className = 'attachment-container';
     return this.mNextRender;
   },
   view: function() {}
