@@ -58,8 +58,8 @@ var DataMobile = {
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
         // TODO: read mcc and mnc codes from 'operatorvariant.{mcc, mnc}'.
-        var mcc = navigator.mozMobileConnection.iccInfo.mcc;
-        var mnc = navigator.mozMobileConnection.iccInfo.mnc;
+        var mcc = IccHelper.iccInfo.mcc;
+        var mnc = IccHelper.iccInfo.mnc;
         var apnList = xhr.response;
         var apns = apnList[mcc] ? (apnList[mcc][mnc] || []) : [];
         // Looks for a valid APN configuration for data calls.

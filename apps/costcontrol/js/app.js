@@ -41,9 +41,8 @@ var CostControlApp = (function() {
 
   var costcontrol, initialized = false;
   function onReady(callback) {
-    var mobileConnection = window.navigator.mozMobileConnection;
     var cardState = checkCardState();
-    var iccid = mobileConnection.iccInfo.iccid;
+    var iccid = IccHelper.iccInfo.iccid;
 
     // SIM not ready
     if (cardState !== 'ready') {
@@ -53,13 +52,13 @@ var CostControlApp = (function() {
     // SIM is ready, but ICC info is not ready yet
     } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
-      mobileConnection.oniccinfochange = onReady;
+      IccHelper.oniccinfochange = onReady;
 
     // All ready
     } else {
       debug('SIM ready. ICCID:', iccid);
       IccHelper.oncardstatechange = undefined;
-      mobileConnection.oniccinfochange = undefined;
+      IccHelper.oniccinfochange = undefined;
       startApp(callback);
     }
   }

@@ -6,7 +6,7 @@ var MobileOperator = {
 
   userFacingInfo: function mo_userFacingInfo(mobileConnection) {
     var network = mobileConnection.voice.network;
-    var iccInfo = mobileConnection.iccInfo;
+    var iccInfo = IccHelper.iccInfo;
     var operator = network.shortName || network.longName;
 
     if (iccInfo.isDisplaySpnRequired && iccInfo.spn &&

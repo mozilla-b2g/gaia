@@ -404,7 +404,7 @@ var CostControl = (function() {
           // Finally, store the result and continue
           mobileRequest.onsuccess = function _onMobileData() {
             var fakeTag = {
-              sim: connection.iccInfo.iccid,
+              sim: IccHelper.iccInfo.iccid,
               start: settings.lastDataReset,
               fixing: [[settings.lastDataReset, wifiFixing || 0]]
             };

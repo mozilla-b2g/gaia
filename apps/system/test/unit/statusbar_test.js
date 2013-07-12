@@ -135,7 +135,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'absent';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       StatusBar.update.signal.call(StatusBar);
 
@@ -156,7 +156,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'absent';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       StatusBar.update.signal.call(StatusBar);
 
@@ -177,7 +177,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'pinRequired';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       StatusBar.update.signal.call(StatusBar);
 
@@ -198,7 +198,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'ready';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       StatusBar.update.signal.call(StatusBar);
 
@@ -219,7 +219,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'absent';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       StatusBar.update.signal.call(StatusBar);
 
@@ -240,7 +240,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'pinRequired';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       StatusBar.update.signal.call(StatusBar);
 
@@ -261,7 +261,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'pinRequired';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       MockNavigatorMozTelephony.active = {
         state: 'connected'
@@ -286,7 +286,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'pinRequired';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       MockNavigatorMozTelephony.active = {
         state: 'dialing'
@@ -311,7 +311,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'pinRequired';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       StatusBar.update.signal.call(StatusBar);
 
@@ -342,7 +342,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'ready';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       StatusBar.update.signal.call(StatusBar);
 
@@ -363,7 +363,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'ready';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       StatusBar.update.signal.call(StatusBar);
 
@@ -384,7 +384,7 @@ suite('system/Statusbar', function() {
       };
 
       IccHelper.mProps['cardState'] = 'ready';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['iccInfo'] = {};
 
       StatusBar.update.signal.call(StatusBar);
 
@@ -404,8 +404,8 @@ suite('system/Statusbar', function() {
         network: {}
       };
 
-      MockNavigatorMozMobileConnection.cardState = 'pinRequired';
-      MockNavigatorMozMobileConnection.iccInfo = {};
+      IccHelper.mProps['cardState'] = 'pinRequired';
+      IccHelper.mProps['iccInfo'] = {};
 
       var mockTel = MockNavigatorMozTelephony;
 
@@ -437,7 +437,7 @@ suite('system/Statusbar', function() {
         }
       };
 
-      MockNavigatorMozMobileConnection.iccInfo = {
+      IccHelper.mProps['iccInfo'] = {
         isDisplaySpnRequired: false,
         spn: 'Fake SPN'
       };

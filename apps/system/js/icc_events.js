@@ -14,8 +14,8 @@ var icc_events = {
       return;
     }
     var conn = window.navigator.mozMobileConnection;
-    DUMP(' STK Location changed to MCC=' + conn.iccInfo.mcc +
-      ' MNC=' + conn.iccInfo.mnc +
+    DUMP(' STK Location changed to MCC=' + IccHelper.iccInfo.mcc +
+      ' MNC=' + IccHelper.iccInfo.mnc +
       ' LAC=' + conn.voice.cell.gsmLocationAreaCode +
       ' CellId=' + conn.voice.cell.gsmCellId +
       ' Status/Connected=' + conn.voice.connected +
@@ -30,8 +30,8 @@ var icc_events = {
       eventType: icc._icc.STK_EVENT_TYPE_LOCATION_STATUS,
       locationStatus: status,
       locationInfo: {
-        mcc: conn.iccInfo.mcc,
-        mnc: conn.iccInfo.mnc,
+        mcc: IccHelper.iccInfo.mcc,
+        mnc: IccHelper.iccInfo.mnc,
         gsmLocationAreaCode: conn.voice.cell.gsmLocationAreaCode,
         gsmCellId: conn.voice.cell.gsmCellId
       }

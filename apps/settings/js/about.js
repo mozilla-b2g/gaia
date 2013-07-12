@@ -96,7 +96,10 @@ var About = {
     if (!mobileConnection)
       return;
 
-    var info = mobileConnection.iccInfo;
+    if (!IccHelper.enabled)
+      return;
+
+    var info = IccHelper.iccInfo;
     document.getElementById('deviceInfo-iccid').textContent = info.iccid;
     document.getElementById('deviceInfo-msisdn').textContent = info.msisdn ||
       navigator.mozL10n.get('unknown-phoneNumber');

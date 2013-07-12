@@ -13,7 +13,6 @@
   var DEFAULT_LOW_LIMIT_THRESHOLD = 3;
   var defaultLowLimitThreshold = DEFAULT_LOW_LIMIT_THRESHOLD;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
-    var mobileConnection = window.navigator.mozMobileConnection;
     var stepsLeft = 2;
 
     // No SIM
@@ -24,11 +23,11 @@
     // SIM is not ready
     } else if (IccHelper.cardState !== 'ready') {
       debug('SIM not ready:', IccHelper.cardState);
-      mobileConnection.oniccinfochange = _onDOMReady;
+      IccHelper.oniccinfochange = _onDOMReady;
 
     // SIM is ready
     } else {
-      mobileConnection.oniccinfochange = undefined;
+      IccHelper.oniccinfochange = undefined;
       trySetup();
     }
 

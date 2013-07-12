@@ -5,9 +5,6 @@
   }
 
   FFOS_RUNTIME.makeNavigatorShim('mozMobileConnection', {
-    iccInfo: {
-      iccid: true
-    },
     voice: {
       connected: false
     },
