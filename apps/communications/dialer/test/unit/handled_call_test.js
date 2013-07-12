@@ -279,6 +279,10 @@ suite('dialer/handled_call', function() {
       mockCall._hold();
     });
 
+    test('disable keypad', function() {
+      assert.equal(MockOnCallHandler.mUpdateKeypadEnabledCalled, false);
+    });
+
     test('add the css class', function() {
       assert.equal(fakeNode.className, 'held');
     });
@@ -287,11 +291,16 @@ suite('dialer/handled_call', function() {
   suite('resuming', function() {
     setup(function() {
       MockCallScreen.mSyncSpeakerCalled = false;
+      MockOnCallHandler.mUpdateKeypadEnabledCalled = false;
       mockCall._resume();
     });
 
     test('remove the css class', function() {
       assert.equal(fakeNode.className, '');
+    });
+
+    test('enable keypad', function() {
+      assert.equal(MockOnCallHandler.mUpdateKeypadEnabledCalled, true);
     });
 
     test('sync speaker', function() {

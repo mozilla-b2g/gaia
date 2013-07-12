@@ -2,6 +2,9 @@ var MockCallScreen = {
   enableKeypad: function() {
     this.mEnableKeypadCalled = true;
   },
+  disableKeypad: function() {
+    this.mEnableKeypadCalled = false;
+  },
   syncSpeakerEnabled: function() {
     this.mSyncSpeakerCalled = true;
   },
