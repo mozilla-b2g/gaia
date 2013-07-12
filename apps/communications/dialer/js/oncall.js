@@ -764,14 +764,18 @@ var OnCallHandler = (function onCallHandler() {
   function activeCall() {
     var telephonyActiveCall = telephony.active;
     var activeCall = null;
+    var holdedCall = null;
     for (var i = 0; i < handledCalls.length; i++) {
       var handledCall = handledCalls[i];
       if (telephonyActiveCall === handledCall.call) {
         activeCall = handledCall;
         break;
       }
+      if (handledCall.state === 'held') {
+        holdedCall = handledCall;
+      }
     }
-    return activeCall;
+    return activeCall || holdedCall;
   }
 
   return {
