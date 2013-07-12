@@ -339,7 +339,6 @@ var ThreadListUI = {
       });
     } else {
       ThreadListUI.setEmpty(true);
-      FixedHeader.refresh();
 
       // Callback if exist
       if (renderCallback) {

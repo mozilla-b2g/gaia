@@ -48,7 +48,6 @@ input[type="image"] {
   background-position: center;
   background-repeat: no-repeat;
   background-color: transparent;
-  background-size: 2.7rem;
   display: none;
   position: absolute;
   right: 0;
@@ -320,7 +319,6 @@ input[type="image"] {
   text-indent: -1000em;
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 2.4rem;
 }
 
 #ssl-indicator[value=secure] {
@@ -447,9 +445,9 @@ input::-moz-focus-inner {
   padding: 0;
   height: 100%;
   width: 100%;
-  background: url('/shared/resources/branding/about_logo.png') no-repeat 16.5rem top, -moz-linear-gradient(#f8f8fa, #cadce6);
+  background-image: url('/shared/resources/branding/about_logo.png'), -moz-linear-gradient(#f8f8fa, #cadce6);
+  background-repeat: no-repeat, no-repeat;
   background-position: top right;
-  background-size: 16.5rem;
   overflow: hidden;
   color: #3e4041;
 }
@@ -523,7 +521,6 @@ input::-moz-focus-inner {
 #crashscreen {
   background-color: #4f4f4f;
   background-image: url('images/crashed-tab-background.png');
-  background-size: 100% auto;
   color: #fff;
   z-index: 59;
   text-align: center;
@@ -846,7 +843,6 @@ li[role="listitem"] small {
 
 #refresh a {
   background-image: url('images/refresh.png');
-  background-size: 3.2rem;
 }
 
 .hidden {

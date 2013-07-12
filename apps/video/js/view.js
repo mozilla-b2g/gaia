@@ -443,9 +443,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   }
 
   function showSpinner() {
-    if (!blob) {
-      dom.spinnerOverlay.classList.remove('hidden');
-    }
+    dom.spinnerOverlay.classList.remove('hidden');
   }
 
   function hideSpinner() {

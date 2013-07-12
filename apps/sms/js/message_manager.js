@@ -415,35 +415,18 @@ var MessageManager = {
   },
 
   // takes a formatted message in case you happen to have one
-  resendMessage: function mm_resendMessage(message, callback) {
-    var request;
+  resendMessage: function mm_resendMessage(message) {
     if (message.type === 'sms') {
-      request = this._mozMobileMessage.send(message.receiver, message.body);
+      return this._mozMobileMessage.send(message.receiver, message.body);
     }
     if (message.type === 'mms') {
-      request = this._mozMobileMessage.sendMMS({
+      return this._mozMobileMessage.sendMMS({
         receivers: message.receivers,
         subject: message.subject,
         smil: message.smil,
         attachments: message.attachments
       });
     }
-
-    request.onsuccess = function onSuccess(evt) {
-      MessageManager.deleteMessage(message.id);
-      if (callback) {
-        callback(null, evt.target.result);
-      }
-    };
-
-    request.onerror = function onError(evt) {
-      MessageManager.deleteMessage(message.id);
-      if (callback) {
-        callback(evt.target.error);
-      }
-    };
-
-    return request;
   },
 
   deleteMessage: function mm_deleteMessage(id, callback) {
