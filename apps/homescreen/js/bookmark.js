@@ -47,6 +47,21 @@ var BookmarkEditor = {
     this.data = options.data;
     this.onsaved = options.onsaved;
     this.oncancelled = options.oncancelled;
+    this.origin = document.location.protocol + '//homescreen.' +
+          document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');
+    if (document.readyState === 'complete' ||
+        document.readyState === 'interactive') {
+      this._init();
+    } else {
+      var self = this;
+      document.addEventListener('DOMContentLoaded', function loaded() {
+        document.removeEventListener('DOMContentLoaded', loaded);
+        self._init();
+      });
+    }
+  },
+
+  _init: function bookmarkEditor_init() {
     document.getElementById('bookmark-form').onsubmit = function() {
       return false;
     };
@@ -57,13 +72,12 @@ var BookmarkEditor = {
     this.addButton = document.getElementById('button-bookmark-add');
 
     this.cancelButton.addEventListener('click', this.close.bind(this));
-    this.addButton.addEventListener('click', this.save.bind(this));
+    this.saveListener = this.save.bind(this);
+    this.addButton.addEventListener('click', this.saveListener);
+    this.addButton.removeAttribute('disabled');
 
     this.bookmarkTitle.value = this.data.name || '';
     this.bookmarkUrl.value = this.data.url || '';
-
-    this.origin = document.location.protocol + '//homescreen.' +
-      document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');
   },
 
   close: function bookmarkEditor_close() {
@@ -71,14 +85,12 @@ var BookmarkEditor = {
   },
 
   save: function bookmarkEditor_save(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
+    this.addButton.removeEventListener('click', this.saveListener);
 
     // Only allow http(s): urls to be bookmarked.
     if (/^https?:/.test(this.bookmarkUrl.value) == false)
       return;
 
-    this.addButton.disabled = true;
     this.data.name = this.bookmarkTitle.value;
     this.data.bookmarkURL = this.bookmarkUrl.value;
 
