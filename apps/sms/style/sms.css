@@ -404,27 +404,9 @@ section.has-carrier .article-list header:first-child {
   background: #fff;
 }
 
-.article-list[data-type="list"] .message .attachment {
-  display: block;
-  margin: 1rem 0;
-}
-/* Attachments that occur at the bounds of an MMS message do not need
- * additional spacing. */
-#messages-container[data-type="list"] .message .attachment:first-child {
-  margin-top: 0;
-}
-#messages-container[data-type="list"] .message .attachment:last-child {
-  margin-bottom: 0;
-}
-
 #messages-container[data-type="list"] .message.mms .bubble img {
   height: auto;
   width: auto;
-}
-
-.article-list[data-type="list"] .message.outgoing .attachment {
-  margin-left: auto;
-  margin-right: 0;
 }
 
 .article-list[data-type="list"] .message.outgoing .bubble {
@@ -643,18 +625,6 @@ form.bottom[role="search"].messages-compose-form {
   top: 0.8rem;
   content: attr(data-placeholder);
   pointer-events: none;
-}
-
-.attachment {
-  display: block;
-  width: 80px;
-  height: 80px;
-  max-width: 120px;
-  max-height: 120px;
-  border: 1px solid #018eac;
-  border-radius: 2px;
-
-  background-color: rgba(0, 170, 205, 0.45);
 }
 
 #send-message-container {

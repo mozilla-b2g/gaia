@@ -73,12 +73,12 @@ suite('compose_test.js', function() {
       smallImageBlob = blob;
     });
   });
+
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
   });
 
   suite('Message Composition', function() {
-
     var message;
 
     setup(function() {
@@ -88,6 +88,7 @@ suite('compose_test.js', function() {
       // Compose.init('messages-compose-form');
       message = document.querySelector('[contenteditable]');
     });
+
     suite('Placeholder', function() {
       setup(function(done) {
         Compose.clear();
@@ -338,7 +339,7 @@ suite('compose_test.js', function() {
         Compose.clear();
       });
 
-      test('Attaching creates iframe.attachment', function() {
+      test('Attaching creates iframe.attachment-container', function() {
         var attachment = mockAttachment();
         Compose.append(attachment);
         var iframes = message.querySelectorAll('iframe');
@@ -347,7 +348,8 @@ suite('compose_test.js', function() {
         // get alarmed at window[0] pointing to the iframe
         Compose.clear();
         assert.equal(iframes.length, 1, 'One iframe');
-        assert.ok(iframes[0].classList.contains('attachment'), '.attachment');
+        assert.ok(iframes[0].classList.contains('attachment-container'),
+          '.attachment-container');
         assert.ok(txt[0] === attachment, 'iframe WeakMap\'d to attachment');
       });
     });
@@ -496,6 +498,7 @@ suite('compose_test.js', function() {
       });
     });
   });
+
   suite('Attachment pre-send menu', function() {
     setup(function() {
       this.attachment = mockImgAttachment();
@@ -507,7 +510,6 @@ suite('compose_test.js', function() {
 
       // trigger a click on attachment
       this.attachment.mNextRender.click();
-
     });
     test('click opens menu', function() {
       assert.isTrue(AttachmentMenu.open.called);
@@ -604,6 +606,7 @@ suite('compose_test.js', function() {
       });
     });
   });
+
   suite('Image attachment pre-send menu', function() {
     setup(function() {
       this.sinon.stub(AttachmentMenu, 'open');
@@ -628,3 +631,4 @@ suite('compose_test.js', function() {
     });
   });
 });
+

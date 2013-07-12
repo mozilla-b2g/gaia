@@ -10,6 +10,7 @@
  */
 var Compose = (function() {
   var placeholderClass = 'placeholder';
+  var attachmentClass = 'attachment-container';
 
   var slice = Array.prototype.slice;
   var attachments = new WeakMap();
@@ -401,7 +402,7 @@ var Compose = (function() {
     },
 
     onAttachmentClick: function thui_onAttachmentClick(event) {
-      if (event.target.className === 'attachment' && !state.resizing) {
+      if (event.target.classList.contains(attachmentClass) && !state.resizing) {
         this.currentAttachmentDOM = event.target;
         this.currentAttachment = attachments.get(event.target);
         AttachmentMenu.open(this.currentAttachment);
