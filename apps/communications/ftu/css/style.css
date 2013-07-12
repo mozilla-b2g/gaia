@@ -78,7 +78,7 @@ a {
 }
 
 [role=navigation] button {
-  width: calc((100% - 1rem) / 2);
+  width: calc((100% / 2) - 0.5rem);
   float: left;
   margin-right: 1rem;
   position: relative;
@@ -96,12 +96,12 @@ a {
   left: 0;
   position: absolute;
   pointer-events: none;
-  background: url(images/prev.png) no-repeat center center;
+  background: url(images/prev.png) no-repeat center center / 1.1rem;
 }
 
 [role=navigation] button.recommend span {
   left: calc(100% - 3rem);
-  background: url(images/next.png) no-repeat center center;
+  background-image: url(images/next.png);
 }
 
 [role=navigation] #wifi-join-button {
@@ -212,7 +212,8 @@ a {
   z-index: 3000;
   transition: all 1s ease;
   background-image: url(/shared/resources/branding/powered.png);
-  background-size: 100% auto;
+  background-size: cover;
+  background-position: center center;
 }
 
 #splash-screen.show {
@@ -338,7 +339,7 @@ a {
 
 #wifi #no-result-container {
   position: absolute;
-  background: url('images/wifi_icon.png') no-repeat fixed center;
+  background: url('images/wifi_icon.png') no-repeat fixed center / 23.6rem;
   height: 100%;
   width: 100%;
 }
@@ -364,6 +365,8 @@ aside.wifi-icon {
   background-repeat: no-repeat;
   background-position: 0 center;
   width: 3rem;
+  background-size: 16rem;
+  width: 3.2rem;
 }
 aside.wifi-signal       { background-image: url(images/wifi_disconnected_sprite.png);}
 aside.connected         { background-image: url(images/wifi_connected_sprite.png);}
@@ -473,17 +476,18 @@ aside.connecting {
 }
 
 #finish-screen .content {
-  background: url(images/icon_tour.png) no-repeat center 95%;
+  background: url(images/icon_tour.png) no-repeat center 95% / 16.9rem;
 }
 
 #tutorialFinish .content {
-  background: url(images/thumb_up.png) no-repeat center 70%;
+  background: url(images/thumb_up.png) no-repeat center 70% / 14.4rem;
 }
 
 #finish-screen .content, #tutorialFinish .content {
   height: calc(100% - 6rem);
   padding: 0 3rem;
   width: calc(100% - 6rem);
+  background-size: 17.6rem;
 }
 
 #finish-screen [role=navigation],#tutorialFinish [role=navigation] {
@@ -492,6 +496,10 @@ aside.connecting {
 
 #finish-screen [role=navigation] button,#tutorialFinish [role=navigation] button {
   text-align: center;
+}
+
+#step1Img, #step2Img, #step3Img, #step4Img, #step5Img {
+  width: 28.9rem;
 }
 
 /*
@@ -506,6 +514,7 @@ aside.connecting {
 #time_zone_overlay {
   background-position: bottom;
   background-repeat: no-repeat;
+  background-size: 100%;
   position: relative;
   position: absolute;
   z-index: 10;
@@ -560,6 +569,7 @@ aside.connecting {
   background-image: url('images/timezone/map.png') ;
   background-position: bottom;
   background-repeat: no-repeat;
+  background-size: 100%;
   position: relative;
   height: 21.5rem;
   width: 100%;
@@ -696,7 +706,7 @@ aside.connecting {
 
 
 #fb_after_import1 {
-  background: url('images/import_fb.png') center left no-repeat;
+  background: url('images/import_fb.png') no-repeat center left / 3rem;
 }
 
 #statusMsg.ftu {
@@ -727,6 +737,10 @@ aside.connecting {
 }
 #welcome_browser #browser_logo_horizontal {
   margin: 1rem 0;
+}
+
+#welcome_browser #browser_logo_horizontal img {
+  width: 20rem;
 }
 
 #welcome_browser label {
@@ -881,20 +895,28 @@ i.hack-first-child {
 
 #about-your-privacy .privacy-menuitem {
   padding-left: 5.5rem;
-  background-repeat: no-repeat;
-  background-position: 1.4rem center;
 }
 
-.privacy-browserOS {
-  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 32, 32, 0);
+.privacy-menuitem:before {
+  content: ' ';
+  width: 3.2rem;
+  height: 3.2rem;
+  position: absolute;
+  left: 1.4rem;
+  top: calc(50% - 1.6rem);
+  background: url(/shared/resources/branding/privacy_sprite.png) no-repeat 0 0 / 9.6rem;
 }
 
-.privacy-everythingME {
-  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 64, 32, 32);
+.privacy-browserOS:before {
+  background-position: 0 0;
 }
 
-.privacy-marketPlace {
-  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 96, 32, 64);
+.privacy-everythingME:before {
+  background-position: -3.2rem 0;
+}
+
+.privacy-marketPlace:before {
+  background-position: -6.4rem 0;
 }
 
 #newsletter-form.hidden,
@@ -975,7 +997,7 @@ i.hack-first-child {
 }
 
 [data-type="list"].pack-value-selector li label:not([for]) input:checked + span {
-  background: url("images/checked.png") no-repeat right center;
+  background: url("images/checked.png") no-repeat right center / 100%;
 }
 
 [data-type="list"].pack-value-selector li label:not([for]) input + span + p {
