@@ -51,6 +51,14 @@ on the filesystem and execute relevant tests when they change:
 
 Note: If you add new files, you will need to restart test-agent-server.
 
+As a convenience, you can also use the `gaia-test` script to launch the
+test-agent-server and open the Test Agent app in firefox:
+
+1. Add firefox to your `$PATH` or set `$FIREFOX` to your preferred
+   firefox/aurora/nightly binary.
+2. Run `./bin/gaia-test` to run the test-agent-server and launch firefox.
+3. Run `make test-agent-test` or modify files as described above.
+
 For more details on writing tests, see:
 https://developer.mozilla.org/en/Mozilla/Boot_to_Gecko/Gaia_Unit_Tests
 
