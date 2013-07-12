@@ -814,6 +814,16 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   font-size: 1.8rem;
 }
 
+.recipient[contenteditable=true]:empty {
+  margin: .8rem 0 -0.8rem 0;
+  padding: 0 0;
+}
+
+.recipient[contenteditable=true]:empty:focus {
+  margin: .8rem .5rem -0.8rem 0;
+  padding: 0 0.8rem;
+}
+
 .recipient:focus {
   /*border: dotted 1px red;*/
   font-size: 1.8rem;
