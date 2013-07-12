@@ -44,10 +44,11 @@ var LINK_TYPES = {
   phone: {
     regexp: new RegExp([
       // sddp: space, dot, dash or parens
-      '(?:\\+\\d{1,4}[\\s.()-]{0,3}|\\()?' +     // (\+<digits><sddp>|\()?
-      '(?:\\d{1,4}[\\s.()-]{0,3})?' +            // <digits><sdd>*
-      '(?:\\d[\\d\\s.()-]{0,100}\\d)'            // <digit><digit|sddp>*<digit>
-      ].join(''), 'mg'),
+      '(?:\\+\\d{1,4}[ \\t.()-]{0,3}|\\()?' +     // (\+<digits><sddp>|\()?
+      '(?:\\d{1,4}[ \\t.()-]{0,3})?' +            // <digits><sdd>*
+      '(?:\\d[\\d \\t.()-]{0,12}\\d)' +           // <digit><digit|sddp>*<digit>
+      '(?!\\d)' // the next character after can't be a digit
+      ].join(''), 'g'),
     matchFilter: function phoneMatchFilter(phone, link) {
       var onlyDigits = Utils.removeNonDialables(phone);
 
