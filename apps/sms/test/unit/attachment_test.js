@@ -21,6 +21,24 @@ suite('attachment_test.js', function() {
   var testAudioBlob;
   var testVideoBlob;
 
+  function assertThumbnailPreview(el) {
+    assert.ok(el.classList.contains('preview'));
+    assert.isFalse(el.classList.contains('nopreview'));
+    assert.isNull(el.querySelector('div.placeholder'));
+    var thumbnail = el.querySelector('div.thumbnail');
+    assert.ok(thumbnail);
+    assert.include(thumbnail.style.backgroundImage, 'data:image');
+  };
+
+  function assertThumbnailPlaceholder(el, type) {
+    assert.ok(el.classList.contains('nopreview'));
+    assert.isFalse(el.classList.contains('preview'));
+    assert.isNull(el.querySelector('div.thumbnail'));
+    var placeholder = el.querySelector('div.thumbnail-placeholder');
+    assert.ok(placeholder);
+    assert.ok(placeholder.classList.contains(type + '-placeholder'));
+  };
+
   suiteSetup(function(done) {
     // this sometimes takes longer because we fetch 4 assets via XHR
     this.timeout(5000);
@@ -80,11 +98,11 @@ suite('attachment_test.js', function() {
       name: 'Image attachment'
     });
     var el = attachment.render(function() {
-      assert.ok(el.src, 'src set');
-      assert.ok(el.classList.contains('attachment'));
+      assert.ok(el.classList.contains('attachment-container'));
       assert.equal(el.dataset.attachmentType, 'img');
-      // broken image => there should be a `corrupted' class
-      assert.include(el.src, 'corrupted');
+      // broken image => no thumbnail and `corrupted' class
+      assertThumbnailPlaceholder(el, 'img');
+      assert.ok(el.querySelector('div.corrupted'));
       done();
     });
   });
@@ -94,13 +112,11 @@ suite('attachment_test.js', function() {
       name: 'Image attachment'
     });
     var el = attachment.render(function() {
-      assert.ok(el.src, 'src set');
-      assert.ok(el.classList.contains('attachment'));
+      assert.ok(el.classList.contains('attachment-container'));
       assert.equal(el.dataset.attachmentType, 'img');
-      // image < message limit => there should be a dataURL thumbnail
-      assert.include(el.src, 'background');
-      assert.include(el.src, 'data:image');
-      assert.ok(el.src.indexOf('corrupted') < 0);
+      // image < message limit => dataURL thumbnail
+      assertThumbnailPreview(el);
+      assert.isNull(el.querySelector('div.corrupted'));
       done();
     });
   });
@@ -113,13 +129,11 @@ suite('attachment_test.js', function() {
       name: 'Image attachment'
     });
     var el = attachment.render(function() {
-      assert.ok(el.src, 'src set');
-      assert.ok(el.classList.contains('attachment'));
+      assert.ok(el.classList.contains('attachment-container'));
       assert.equal(el.dataset.attachmentType, 'img');
-      // ensure it's not using a thumbnail
-      assert.ok(el.src.indexOf('data:image') < 0);
-      // and it isn't "corrupted"
-      assert.ok(el.src.indexOf('corrupted') < 0);
+      // image > message limit => no thumbnail preview
+      assertThumbnailPlaceholder(el, 'img');
+      assert.isNull(el.querySelector('div.corrupted'));
       done();
     });
   });
@@ -129,13 +143,11 @@ suite('attachment_test.js', function() {
       name: 'Image attachment'
     });
     var el = attachment.render(function() {
-      assert.ok(el.src, 'src set');
-      assert.ok(el.classList.contains('attachment'));
+      assert.ok(el.classList.contains('attachment-container'));
       assert.equal(el.dataset.attachmentType, 'img');
-      // image < message limit => there should be a dataURL thumbnail
-      assert.include(el.src, 'background');
-      assert.include(el.src, 'data:image');
-      assert.ok(el.src.indexOf('corrupted') < 0);
+      // image < message limit => dataURL thumbnail
+      assertThumbnailPreview(el);
+      assert.isNull(el.querySelector('div.corrupted'));
       done();
     });
   });
@@ -145,10 +157,11 @@ suite('attachment_test.js', function() {
       name: 'Audio attachment'
     });
     var el = attachment.render(function() {
-      assert.ok(el.src, 'src set');
-      assert.ok(el.classList.contains('attachment'));
+      assert.ok(el.classList.contains('attachment-container'));
       assert.equal(el.dataset.attachmentType, 'audio');
-      assert.ok(el.src.indexOf('corrupted') < 0);
+      // not an image => no thumbnail preview
+      assertThumbnailPlaceholder(el, 'audio');
+      assert.isNull(el.querySelector('div.corrupted'));
       done();
     });
   });
@@ -158,12 +171,13 @@ suite('attachment_test.js', function() {
       name: 'Video attachment'
     });
     var el = attachment.render(function() {
-      assert.ok(el.src, 'src set');
-      assert.ok(el.classList.contains('attachment'));
+      assert.ok(el.classList.contains('attachment-container'));
       assert.equal(el.dataset.attachmentType, 'video');
-      assert.ok(el.src.indexOf('corrupted') < 0);
+      // not an image => no thumbnail preview
+      assertThumbnailPlaceholder(el, 'video');
+      assert.isNull(el.querySelector('div.corrupted'));
       done();
     });
   });
-
 });
+
