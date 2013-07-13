@@ -682,3 +682,18 @@ bubble above the key when you tap and hold. */
 .keyboard-key.float-key-last {
   text-align: left;
 }
+
+/* For FTU tip dialog */
+#confirm-dialog {
+  pointer-events: auto;
+}
+
+.tip-image {
+  width: 28.9rem;
+}
+
+#confirm-dialog button.recommend.active {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
