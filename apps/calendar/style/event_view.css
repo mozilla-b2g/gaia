@@ -30,7 +30,7 @@
 
 #event-view .start-date,
 #event-view .description {
-  border-top: 1px solid #ccc;
+  border-top: 0.1rem solid #ccc;
   margin-top: 0.8rem;
   padding-top: 0.8rem;
 }

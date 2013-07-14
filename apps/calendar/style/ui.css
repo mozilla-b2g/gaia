@@ -1,8 +1,3 @@
-/* Device Layouts */
-
-@media screen and (max-width: 480px) {
-}
-
 /* loading */
 
 body.loading {
@@ -31,7 +26,7 @@ ol.link-list a {
   line-height: 150%;
   font-size: 1.8rem;
   padding: 1.5rem 1rem;
-  border-bottom: 1px solid #C5C5C5;
+  border-bottom: 0.1rem solid #C5C5C5;
   text-decoration: none;
   color: #333;
   margin: 0 1.5rem 1rem;
@@ -42,7 +37,7 @@ ol.link-list li:last-child label {
 }
 
 ol.link-list a {
-  background: transparent url('icons/ActionIcons_30x30_forward_nav.png') no-repeat right;
+  background: url("icons/forward_nav.png") no-repeat scroll right center / 3rem transparent;
 }
 
 /* view management */
@@ -93,10 +88,10 @@ ol.link-list a {
 
 #progress-indicator {
   position: absolute;
-  top: 10%;
-  left: 0px;
+  top: 6.9rem;
+  left: 0;
   width: 100%;
-  height: 3px;
+  height: 0.3rem;
   border: none;
   overflow: hidden;
   z-index: 1000;
@@ -108,15 +103,17 @@ ol.link-list a {
 }
 
 #throbber {
+  height: 5.2rem;
+  background: url('ui/progress.png') repeat-x left bottom / 32rem !important;
   animation: .5s throb infinite steps(12);
 }
 
 @keyframes throb {
   from {
-    transform: translate(0px, 0px);
+    transform: translate(0, 0);
   }
   to {
-    transform: translate(0px, -48px);
+    transform: translate(0, -4.8rem);
   }
 }
 
@@ -160,7 +157,7 @@ ol.link-list a {
 }
 
 #advanced-settings-view .account-list .error a {
-  background: transparent url('icons/accountwarning_30x30.png') no-repeat left;
+  background: transparent url('icons/accountwarning.png') no-repeat left;
   padding-left: 3.5rem;
 }
 
@@ -190,7 +187,7 @@ ol.link-list a {
   /* completely override other views */
   background: #E6E6E0;
   position: absolute;
-  top: 0px;
+  top: 0;
   width: 100%;
   height: 100%
 }
@@ -233,8 +230,8 @@ ol.link-list a {
   text-transform: uppercase;
   font-size: 1.3rem;
   padding: 0.185rem 0;
-  border-right: 1px solid #131314;
-  border-left: 1px solid #515051;
+  border-right: 0.1rem solid #131314;
+  border-left: 0.1rem solid #515051;
 }
 
 #month-days li:first-child {
@@ -257,8 +254,8 @@ section.month {
   position: absolute;
   color: #484848;
   width: 100%;
-  border-left: 1px solid #AAA;
-  border-right: 1px solid #AAA;
+  border-left: 0.1rem solid #AAA;
+  border-right: 0.1rem solid #AAA;
   display: none;
 }
 
@@ -312,10 +309,10 @@ section.month li:last-child {
 section.month li {
   padding-top: 0.3%;
 
-  border-right: 1px solid #A4A4A4;
-  border-left: 1px solid #FDFDFD;
-  border-top: 1px solid white;
-  border-bottom: 1px solid #9D9D9D;
+  border-right: 0.1rem solid #A4A4A4;
+  border-left: 0.1rem solid #FDFDFD;
+  border-top: 0.1rem solid white;
+  border-bottom: 0.1rem solid #9D9D9D;
   height: 100%;
   position: relative;
   background-color: white;
@@ -332,7 +329,7 @@ section.month li.past {
 
 section.month li.present {
   background-color: #525963;
-  box-shadow: inset 1px 2px 3px 0px #333;
+  box-shadow: inset 0.1rem 0.2rem 0.3rem 0 #333;
   color: white;
   border-left: none;
   border-top: none;
@@ -368,7 +365,7 @@ section.month li .busy-indicator > span{
 section.month li .busy-indicator {
   overflow: hidden;
   clear: both;
-  bottom: 0px;
+  bottom: 0;
   position: absolute;
   width: 100%;
 }
@@ -379,7 +376,7 @@ section.month li .busy-indicator:before {
 }
 
 section.month li .busy-indicator > span {
-  top: 0px;
+  top: 0;
   position: absolute;
   text-indent: -1000em;
 }
@@ -437,8 +434,8 @@ Indicators are in units of 12
   padding: 1.2rem 1.2rem 0.7rem;
   text-transform: uppercase;
   color: #F93700;
-  border-bottom: 1px solid #F93700;
-  box-shadow: 0px 4px 5px -1px #888 inset;
+  border-bottom: 0.1rem solid #F93700;
+  box-shadow: 0 0.4rem 0.5rem -0.1rem #888 inset;
 }
 
 /** sub: view selector **/
@@ -449,13 +446,13 @@ Indicators are in units of 12
 }
 
 #view-selector {
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
   width: 100%;
   background: #949494;
   line-height: 2.1rem;
   overflow: hidden;
-  box-shadow: 0px 0 0.5px 0.5px #6F7070;
+  box-shadow: 0 0 0.05rem 0.05rem #6F7070;
 }
 
 #view-selector a {
@@ -475,16 +472,16 @@ Indicators are in units of 12
   width: 25%;
   height: 3.33rem;
   background-image: -moz-linear-gradient(#D9D9D9, #969696);
-  border-right: 1px solid black;
+  border-right: 0.1rem solid black;
 }
 
 .rtl #view-selector > li.today {
-  border-left: 1px solid #666;
+  border-left: 0.1rem solid #666;
 }
 
 
 .ltr #view-selector > li.today {
-  border-right: 1px solid #666;
+  border-right: 0.1rem solid #666;
 }
 
 #view-selector > li.time-selection {
@@ -545,18 +542,6 @@ section[role="status"].active {
   animation-name: fade-status;
   animation-delay: 2.5s;
   animation-duration: 1.5s;
-}
-
-@media screen and (min-width: 481px) {
-  html, body {
-    font-size: 12px;
-  }
-}
-
-@media screen and (max-width: 480px) {
-  html, body {
-    font-size: 10px;
-  }
 }
 
 /* Hide on initial render to prevent flashing */
