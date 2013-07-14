@@ -213,7 +213,8 @@ suiteGroup('Models.Event', function() {
       var event = new Calendar.Models.Event();
       event.startDate = new Date(2012, 0, 1);
       event.endDate = new Date(2012, 0, 2);
-
+      event.title = 'FxOS Event';
+      event.location = 'Universe';
       assert.ok(!event.validationErrors(), 'has no errors');
     });
 
@@ -232,13 +233,25 @@ suiteGroup('Models.Event', function() {
       var event = new Calendar.Models.Event();
       event.startDate = new Date(2020, 0, 2);
       event.endDate = new Date(2012, 0, 1);
-
+      event.title = 'FxOS Event';
+      event.location = 'Universe';
       // start date > end date
       hasError(event, 'start-after-end');
       // start date == end date
       event.startDate = new Date(event.endDate.valueOf());
       hasError(event, 'start-after-end');
     });
+
+    test('empty title & location', function() {
+      var event = new Calendar.Models.Event();
+      event.startDate = new Date(2020, 0, 2);
+      event.endDate = new Date(2032, 0, 1);
+      // title & location
+      event.title = '';
+      event.location = '';
+      hasError(event, 'input-title-location');
+    });
+
   });
 
   remoteSetter('syncToken');
