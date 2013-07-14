@@ -52,9 +52,9 @@ Calendar.ns('Views').WeekChild = (function() {
 
       // TODO: This is a magic calculation based on current CSS. Fix this so
       // that it can be dynamic based on CSS, or fix CSS to not need this.
-      var pxHeight = (hoursDuration * 2) - 5;
+      var remHeight = ((hoursDuration * 2) - 5) / 10;
 
-      element.style.height = 'calc(' + percHeight + '% + ' + pxHeight + 'px)';
+      element.style.height = 'calc(' + percHeight + '% + ' + remHeight + 'rem)';
     },
 
     create: function() {
