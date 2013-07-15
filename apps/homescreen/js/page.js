@@ -16,11 +16,21 @@ function Icon(descriptor, app) {
   this.updateAppStatus(app);
 }
 
+
+// Support rendering icons for different screens
+var BASE_WIDTH = 320;
+var SCALE_RATIO = window.devicePixelRatio;
+var MIN_ICON_SIZE = 52;
+var MAX_ICON_SIZE = 60;
+var ICON_PADDING_IN_CANVAS = 4;
+
 var DRAGGING_TRANSITION = '-moz-transform .3s';
 
 Icon.prototype = {
-  MIN_ICON_SIZE: 52,
-  MAX_ICON_SIZE: 60,
+
+  MAX_ICON_SIZE: MAX_ICON_SIZE,
+
+  MIN_ICON_SIZE: MIN_ICON_SIZE,
 
   DEFAULT_BOOKMARK_ICON_URL: window.location.protocol + '//' +
                     window.location.host + '/style/images/default_favicon.png',
@@ -69,6 +79,7 @@ Icon.prototype = {
      *   <span class="options"></span>
      * </li>
      */
+
     var container = this.container = document.createElement('li');
     container.className = 'icon';
     if (this.descriptor.hidden) {
@@ -94,8 +105,8 @@ Icon.prototype = {
     // Image
     var img = this.img = new Image();
     img.setAttribute('role', 'presentation');
-    img.width = 64;
-    img.height = 64;
+    img.width = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS;
+    img.height = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS;
     img.style.visibility = 'hidden';
     if (descriptor.renderedIcon) {
       this.displayRenderedIcon();
@@ -253,8 +264,8 @@ Icon.prototype = {
   renderImageForBookMark: function icon_renderImageForBookmark(img) {
     var self = this;
     var canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
+    canvas.width = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
+    canvas.height = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
     var ctx = canvas.getContext('2d');
 
     // Draw the background
@@ -264,12 +275,14 @@ Icon.prototype = {
       ctx.shadowColor = 'rgba(0,0,0,0.8)';
       ctx.shadowBlur = 2;
       ctx.shadowOffsetY = 2;
-      ctx.drawImage(background, 2, 2);
+      ctx.drawImage(background, 2 * SCALE_RATIO, 2 * SCALE_RATIO,
+                    MAX_ICON_SIZE * SCALE_RATIO, MAX_ICON_SIZE * SCALE_RATIO);
       // Disable smoothing on icon resize
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
       ctx.mozImageSmoothingEnabled = false;
-      ctx.drawImage(img, 16, 16, 32, 32);
+      ctx.drawImage(img, 16 * SCALE_RATIO, 16 * SCALE_RATIO,
+                    32 * SCALE_RATIO, 32 * SCALE_RATIO);
       canvas.toBlob(self.renderBlob.bind(self));
     };
   },
@@ -281,8 +294,8 @@ Icon.prototype = {
     }
 
     var canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
+    canvas.width = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
+    canvas.height = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
 
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -292,12 +305,14 @@ Icon.prototype = {
 
     // Deal with very small or very large icons
     img.width =
-        Math.min(this.MAX_ICON_SIZE, Math.max(img.width, this.MIN_ICON_SIZE));
+        Math.min(MAX_ICON_SIZE, Math.max(img.width, MAX_ICON_SIZE));
     img.height =
-        Math.min(this.MAX_ICON_SIZE, Math.max(img.height, this.MIN_ICON_SIZE));
+        Math.min(MAX_ICON_SIZE, Math.max(img.height, MAX_ICON_SIZE));
 
-    var width = Math.min(img.width, canvas.width - 4);
-    var height = Math.min(img.width, canvas.height - 4);
+    var width = Math.min(img.width * SCALE_RATIO,
+                         canvas.width - ICON_PADDING_IN_CANVAS * SCALE_RATIO);
+    var height = Math.min(img.width * SCALE_RATIO,
+                          canvas.height - ICON_PADDING_IN_CANVAS * SCALE_RATIO);
     ctx.drawImage(img,
                   (canvas.width - width) / 2,
                   (canvas.height - height) / 2,

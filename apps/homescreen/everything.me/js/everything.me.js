@@ -16,13 +16,13 @@ var EverythingME = {
                                                                       'visible';
 
       EverythingME.displayed = true;
-      footerStyle.MozTransform = "translateY(75px)";
+      footerStyle.MozTransform = "translateY(100%)";
 
       page.addEventListener('gridpageshowend', function onpageshowafterload() {
         if (EverythingME.displayed) return;
 
         EverythingME.displayed = true;
-        footerStyle.MozTransform = "translateY(75px)";
+        footerStyle.MozTransform = "translateY(100%)";
         EvmeFacade.onShow();
       });
 
