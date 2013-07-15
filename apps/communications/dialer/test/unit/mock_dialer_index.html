@@ -1,0 +1,103 @@
+      <article id="keyboard-view" role="tab">
+        <a id="option-keypad" href="#keyboard-view" class="icon icon-keypad">keypad</a>
+        <div role="tabpanel">
+          <div id="phone-number-view-container">
+            <div class="grid-cell grid-v-align">
+              <div class="grid-wrapper">
+                <input id="phone-number-view" type="text" class="phone-number-font font-light" readonly="readonly">
+                <div id="fake-phone-number-view"></div>
+              </div>
+            </div>
+            <div id="keypad-delete" class="grid-cell grid-v-align" data-value="delete">
+              <div>
+              </div>
+            </div>
+          </div>
+          <section id="suggestion-bar" hidden>
+            <div id="suggestion-count" class="more"></div>
+            <div class="suggestion-item">
+              <div class="name"></div>
+              <div>
+                <span class="tel-type"></span>
+                <span class="tel"><span class="matched"></span></span>
+              </div>
+            </div>
+          </section>
+          <form id="suggestion-overlay" role="dialog" data-type="action" hidden>
+            <header></header>
+            <menu>
+              <ul id="suggestion-list" role="listbox">
+              </ul>
+              <button id="suggestion-overlay-cancel" data-l10n-id='cancel'>Cancel</button>
+            </menu>
+          </form>
+          <!-- Template for cloning suggestion bar item. Will never be shown directly. -->
+          <ul hidden>
+            <li class="suggestion-item" id="suggestion-item-template" hidden>
+              <div class="name"></div>
+              <div>
+                <span class="tel-type"></span>
+                <span class="tel"><span class="matched"></span></span>
+              </div>
+            </li>
+          </ul>
+          <section id="dialer-message" hidden>
+            <span id="dialer-message-text" hidden> Message </span>
+          </section>
+          <article id="keyboard-container">
+            <section id="keypad">
+              <div class="keypad-cell">
+                <div class="keypad-key" data-value="1" data-voicemail="true">
+                  1<em class="keypad-subicon voicemail"></em>
+                </div>
+                <div class="keypad-key" data-value="4">
+                  4<em>GHI</em>
+                </div>
+                <div class="keypad-key" data-value="7">
+                  7<em>PQRS</em>
+                </div>
+                <div class="keypad-key keypad-key-centered" data-value="*">
+                  <div class="asterisk"></div>
+                </div>
+              </div>
+              <div class="keypad-cell">
+                <div class="keypad-key" data-value="2">
+                  2<em>ABC</em>
+                </div>
+                <div class="keypad-key" data-value="5">
+                  5<em>JKL</em>
+                </div>
+                <div class="keypad-key" data-value="8">
+                  8<em>TUV</em>
+                </div>
+                <div class="keypad-key" data-value="0">
+                  0<em class="font-size-plus">+</em>
+                </div>
+              </div>
+              <div class="keypad-cell">
+                <div class="keypad-key" data-value="3">
+                  3<em>DEF</em>
+                </div>
+                <div class="keypad-key" data-value="6">
+                  6<em>MNO</em>
+                </div>
+                <div class="keypad-key" data-value="9">
+                  9<em>WXYZ</em>
+                </div>
+                <div class="keypad-key keypad-key-centered" data-type="dial" data-value="#">
+                  <div class="sharp"></div>
+                </div>
+              </div>
+            </section>
+            <section id="keypad-callbar">
+              <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" class="disabled">
+                <div class="icon-add-contact"></div>
+              </span>
+              <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
+                <div>
+                </div>
+              </span>
+            </section>
+          </article>
+        </div>
+      </article>
