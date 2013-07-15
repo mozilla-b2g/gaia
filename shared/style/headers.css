@@ -102,7 +102,8 @@
 }
 
 .bb-header menu .action:last-child {
-  background: url(headers/images/ui/separator.png) no-repeat left center / auto 4.8rem;
+  background: url(headers/images/ui/separator.png) no-repeat left center;
+  background-size: auto 4.8rem;
   margin-left: -0.2rem;
   z-index: 1;
 }
@@ -130,7 +131,8 @@
   width: 3rem;
   height: 4.9rem;
   margin: 0 -1rem;
-  background: transparent no-repeat center center / 3rem auto;
+  background: transparent no-repeat center;
+  background-size: 3rem auto;
   font-size: 0;
   overflow: hidden;
 }
@@ -184,7 +186,8 @@
   left: 0;
   width: 5rem;
   height: 5rem;
-  background: url(headers/images/ui/separator-large.png) no-repeat 2rem top / 0.2rem 5rem;
+  background: url(headers/images/ui/separator-large.png) no-repeat 2rem top;
+  background-size: 0.2rem 5rem;
   overflow: hidden;
 }
 
@@ -250,11 +253,13 @@
 }
 
 .skin-dark .bb-header menu .action:last-child {
-  background: url(headers/images/ui/dark/separator.png) no-repeat left center / auto 4.8rem;
+  background: url(headers/images/ui/dark/separator.png) no-repeat left center;
+  background-size: auto 4.8rem;
 }
 
 .skin-dark .bb-header .action-secondary { /* Secondary actions (cancel, back, menu) */
-  background: url(headers/images/ui/dark/separator-large.png) no-repeat 2rem top / 0.2rem 4.8rem;
+  background: url(headers/images/ui/dark/separator-large.png) no-repeat 2rem top;
+  background-size: 0.2rem 4.8rem;
 }
 .skin-dark .bb-header .action-secondary .icon:after {
   background-image:  url(headers/images/ui/dark/negative.png);
@@ -272,20 +277,22 @@
  */
 
 .skin-organic .bb-header {
-  background-image: url(headers/images/ui/noise-pattern.png), url(headers/images/ui/organic/header.png);
+  background-image: url(headers/images/ui/organic/noise-pattern.png), url(headers/images/ui/organic/header.png);
   background-size: auto;
 }
 
 .skin-organic .bb-header menu .action:last-child {
-  background: url(headers/images/ui/organic/separator.png) no-repeat left center / auto 4.8rem;
+  background: url(headers/images/ui/organic/separator.png) no-repeat left center;
+  background-size: auto 4.8rem;
 }
 
 .skin-organic .bb-header .action-secondary { /* Secondary actions (cancel, back, menu) */
-  background: url(headers/images/ui/organic/separator-large.png) no-repeat 2rem top / 0.2rem 4.8rem;
+  background: url(headers/images/ui/organic/separator-large.png) no-repeat 2rem top;
+  background-size: 0.2rem 4.8rem;
 }
 
 .skin-organic .bb-header .action-secondary .icon:after {
-  background: #23292b url(headers/images/ui/noise-pattern.png);
+  background: #23292b url(headers/images/ui/organic/noise-pattern.png);
   background-size: auto;
 }
 
@@ -315,7 +322,8 @@ html[dir="rtl"] .bb-header menu .action:last-child { /* Remove last-child rules 
 }
 
 html[dir="rtl"] .bb-header menu .action:first-child { /* Last-child becomes first-child */
-  background: url(headers/images/ui/separator.png) no-repeat right center / auto 4.8rem;
+  background: url(headers/images/ui/separator.png) no-repeat right center;
+  background-size: auto 4.8rem;
   margin-right: -0.2rem;
   z-index: 1;
 }
