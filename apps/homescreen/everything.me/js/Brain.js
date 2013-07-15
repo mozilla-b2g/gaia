@@ -746,7 +746,7 @@ Evme.Brain = new function Evme_Brain() {
 
             newPos.top -= appBounds.height/4;
 
-            elPseudo.style.cssText += 'position: absolute; top: ' + oldPos.top + 'px; left: ' + oldPos.left + 'px; -moz-transform: translate3d(0,0,0);';
+            elPseudo.style.cssText += 'position: absolute; top: ' + Evme.Utils.rem(oldPos.top) + '; left: ' + Evme.Utils.rem(oldPos.left) + '; -moz-transform: translate3d(0,0,0);';
 
             Evme.$('b', elPseudo, function itemIteration(el) {
                 el.textContent = Evme.Utils.l10n('apps', 'loading-app');
@@ -759,7 +759,7 @@ Evme.Brain = new function Evme_Brain() {
                 var x = -Math.round(oldPos.left-newPos.left),
                     y = -Math.round(oldPos.top-newPos.top);
 
-                elPseudo.style.cssText += "; -moz-transform: translate3d(" + x + "px, " + y + "px, 0);";
+                elPseudo.style.cssText += "; -moz-transform: translate3d(" + Evme.Utils.rem(x) + ", " + Evme.Utils.rem(y) + ", 0);";
 
                 goToApp(loadingAppAnalyticsData);
             }, 10);
@@ -918,8 +918,8 @@ Evme.Brain = new function Evme_Brain() {
                 "experienceId": experienceId,
                 "feature": SEARCH_SOURCES.SHORTCUT_SMART_FOLDER,
                 "exact": true,
-                "width": screen.width,
-                "height": screen.height
+                "width": Evme.__config.bgImageSize[0],
+                "height": Evme.__config.bgImageSize[1]
             }, function onSuccess(data) {
                 currentFolder && currentFolder.setImage({
                     "image": Evme.Utils.formatImageData(data.response.image),
@@ -1868,8 +1868,8 @@ Evme.Brain = new function Evme_Brain() {
                 "feature": source,
                 "exact": exact,
                 "prevQuery": lastQueryForImage,
-                "width": Evme.__config.bgImageSize[0] * Evme.Utils.devicePixelRatio,
-                "height": Evme.__config.bgImageSize[1] * Evme.Utils.devicePixelRatio
+                "width": Evme.__config.bgImageSize[0],
+                "height": Evme.__config.bgImageSize[1]
             }, getBackgroundImageComplete);
         };
 

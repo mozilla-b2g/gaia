@@ -23,12 +23,12 @@ Evme.Apps = new function Evme_Apps() {
         CLASS_WHEN_LOADING = 'show-loading-apps',
         ftr = {};
         
-    this.APPS_SHADOW_OFFSET = 2 * Evme.Utils.devicePixelRatio;
-    this.APPS_SHADOW_BLUR = 2 * Evme.Utils.devicePixelRatio;
+    this.APPS_SHADOW_OFFSET = 2 * window.devicePixelRatio;
+    this.APPS_SHADOW_BLUR = 2 * window.devicePixelRatio;
     this.APPS_TEXT_HEIGHT = Evme.Utils.APPS_FONT_SIZE * 3;
-    this.APPS_TEXT_WIDTH = 72 * Evme.Utils.devicePixelRatio;
-    this.APPS_TEXT_MARGIN = 6 * Evme.Utils.devicePixelRatio;
-    MAX_SCROLL_FADE *= Evme.Utils.devicePixelRatio;
+    this.APPS_TEXT_WIDTH = 72 * window.devicePixelRatio;
+    this.APPS_TEXT_MARGIN = 6 * window.devicePixelRatio;
+    MAX_SCROLL_FADE *= window.devicePixelRatio;
 
     this.init = function init(options) {
         !options && (options = {});
@@ -59,7 +59,7 @@ Evme.Apps = new function Evme_Apps() {
         if (hasFixedPositioning){
             var headerHeight = options.elHeader.offsetHeight;            
             options.elHeader.style.cssText += 'position: fixed; top: 0; left: 0; width: 100%; zIndex: 100;';
-            el.style.cssText += 'top: 0; padding-top: ' + headerHeight + 'px;';
+            el.style.cssText += 'top: 0; padding-top: ' + Evme.Utils.rem(headerHeight) + ';';
         } 
        
         scroll = new Scroll(el, {
@@ -235,7 +235,7 @@ Evme.Apps = new function Evme_Apps() {
     };
     
     this.showLoading = function showLoading() {
-      elLoading.style.transform = 'translateY(' + self.getInstalledHeight()/2 + 'px)';      
+      elLoading.style.transform = 'translateY(' + Evme.Utils.rem(self.getInstalledHeight()/2) + ')';      
       el.classList.add(CLASS_WHEN_LOADING);
     };
     
@@ -506,10 +506,10 @@ Evme.IconGroup = new function Evme_IconGroup() {
       HEIGHT;
   
   this.init = function init(options) {
-    ICON_HEIGHT = 42 * Evme.Utils.devicePixelRatio,
+    ICON_HEIGHT = 42 * window.devicePixelRatio,
     TEXT_HEIGHT = Evme.Utils.APPS_FONT_SIZE * 3,
-    TEXT_MARGIN = 9 * Evme.Utils.devicePixelRatio,
-    WIDTH = 72 * Evme.Utils.devicePixelRatio,
+    TEXT_MARGIN = 9 * window.devicePixelRatio,
+    WIDTH = 72 * window.devicePixelRatio,
     HEIGHT = ICON_HEIGHT + TEXT_MARGIN + TEXT_HEIGHT;
   };
   
@@ -534,6 +534,10 @@ Evme.IconGroup = new function Evme_IconGroup() {
 
       elCanvas.width = WIDTH;
       elCanvas.height = HEIGHT;
+
+      elCanvas.style.width = Evme.Utils.rem(elCanvas.width / window.devicePixelRatio);
+      elCanvas.style.height = Evme.Utils.rem(elCanvas.height / window.devicePixelRatio);
+      
       context.imagesToLoad = icons.length;
       context.imagesLoaded = [];
 
@@ -579,7 +583,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
       var elImageCanvas = document.createElement('canvas'),
           imageContext = elImageCanvas.getContext('2d'),
           fixedImage = new Image(),
-          size = icon.size * Evme.Utils.devicePixelRatio;
+          size = icon.size * window.devicePixelRatio;
 
       elImageCanvas.width = elImageCanvas.height = size;
 
@@ -629,7 +633,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
       for (var i=0,obj; obj = context.imagesLoaded[i++];) {
         var image = obj.image,
             icon = obj.icon,
-            size = icon.size * Evme.Utils.devicePixelRatio;
+            size = icon.size * window.devicePixelRatio;
         
         if (!image) {
           continue;
@@ -643,7 +647,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
 
         // rotation
         context.save();
-        context.translate(icon.x * Evme.Utils.devicePixelRatio + size/2, icon.y * Evme.Utils.devicePixelRatio + size/2);
+        context.translate(icon.x * window.devicePixelRatio + size/2, icon.y * window.devicePixelRatio + size/2);
         context.rotate((icon.rotate || 0) * Math.PI/180);
         // draw the icon already!
         context.drawImage(image, -size/2, -size/2);
@@ -771,7 +775,7 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
           TEXT_HEIGHT = Evme.Apps.APPS_TEXT_HEIGHT,
           TEXT_WIDTH = Evme.Apps.APPS_TEXT_WIDTH,
           TEXT_MARGIN = Evme.Apps.APPS_TEXT_MARGIN,
-          SIZE = (cfg.installed? 58 : 44) * Evme.Utils.devicePixelRatio,
+          SIZE = (cfg.installed? 58 : 44) * window.devicePixelRatio,
           FULL_SIZE = SIZE + SHADOW_OFFSET + SHADOW_BLUR,
           canvas = Evme.$('canvas', el)[0],
           context = canvas.getContext('2d'),
@@ -780,6 +784,9 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
 
       canvas.width = TEXT_WIDTH;
       canvas.height = FULL_SIZE + TEXT_MARGIN + TEXT_HEIGHT - 1;
+
+      canvas.style.width = Evme.Utils.rem(canvas.width / window.devicePixelRatio);
+      canvas.style.height = Evme.Utils.rem(canvas.height / window.devicePixelRatio);
 
       Evme.Utils.writeTextToCanvas({
         "text": cfg.name,
