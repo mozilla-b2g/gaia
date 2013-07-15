@@ -11,7 +11,7 @@ Evme.Brain = new function Evme_Brain() {
         QUERIES_TO_NOT_CACHE = "",
         DEFAULT_NUMBER_OF_APPS_TO_LOAD = 16,
         NUMBER_OF_APPS_TO_LOAD_IN_FOLDER = 16,
-        NUMBER_OF_APPS_TO_LOAD = DEFAULT_NUMBER_OF_APPS_TO_LOAD,
+        NUMBER_OF_APPS_TO_LOAD = "FROM CONFIG",
         TIME_BEFORE_INVOKING_HASH_CHANGE = 200,
         TIMEOUT_BEFORE_ALLOWING_DIALOG_REMOVE = "FROM CONFIG",
         MINIMUM_LETTERS_TO_SEARCH = 2,
@@ -72,6 +72,8 @@ Evme.Brain = new function Evme_Brain() {
         // Tips
         TIPS = _config.tips;
         TIMEOUT_BEFORE_ALLOWING_DIALOG_REMOVE = _config.timeBeforeAllowingDialogsRemoval;
+        NUMBER_OF_APPS_TO_LOAD = _config.numberOfAppsToLoad || DEFAULT_NUMBER_OF_APPS_TO_LOAD;
+        NUMBER_OF_APPS_TO_LOAD_IN_FOLDER = _config.numberOfAppsToLoad || NUMBER_OF_APPS_TO_LOAD_IN_FOLDER;
 
         SEARCH_SOURCES = _config.searchSources;
         PAGEVIEW_SOURCES = _config.pageViewSources;
@@ -744,7 +746,7 @@ Evme.Brain = new function Evme_Brain() {
 
             newPos.top -= appBounds.height/4;
 
-            elPseudo.style.cssText += 'position: absolute; top: ' + oldPos.top + 'px; left: ' + oldPos.left + 'px; -moz-transform: translate3d(0,0,0);';
+            elPseudo.style.cssText += 'position: absolute; top: ' + Evme.Utils.rem(oldPos.top) + '; left: ' + Evme.Utils.rem(oldPos.left) + '; -moz-transform: translate3d(0,0,0);';
 
             Evme.$('b', elPseudo, function itemIteration(el) {
                 el.textContent = Evme.Utils.l10n('apps', 'loading-app');
@@ -757,7 +759,7 @@ Evme.Brain = new function Evme_Brain() {
                 var x = -Math.round(oldPos.left-newPos.left),
                     y = -Math.round(oldPos.top-newPos.top);
 
-                elPseudo.style.cssText += "; -moz-transform: translate3d(" + x + "px, " + y + "px, 0);";
+                elPseudo.style.cssText += "; -moz-transform: translate3d(" + Evme.Utils.rem(x) + ", " + Evme.Utils.rem(y) + ", 0);";
 
                 goToApp(loadingAppAnalyticsData);
             }, 10);
@@ -916,8 +918,8 @@ Evme.Brain = new function Evme_Brain() {
                 "experienceId": experienceId,
                 "feature": SEARCH_SOURCES.SHORTCUT_SMART_FOLDER,
                 "exact": true,
-                "width": screen.width,
-                "height": screen.height
+                "width": Evme.__config.bgImageSize[0],
+                "height": Evme.__config.bgImageSize[1]
             }, function onSuccess(data) {
                 currentFolder && currentFolder.setImage({
                     "image": Evme.Utils.formatImageData(data.response.image),
@@ -1651,7 +1653,6 @@ Evme.Brain = new function Evme_Brain() {
                         
                         getAppsComplete(data, options, installedApps);
                         requestSearch = null;
-                        NUMBER_OF_APPS_TO_LOAD = DEFAULT_NUMBER_OF_APPS_TO_LOAD;
                         
                         // only try to refresh location of it's a "real" search- with keyboard down
                         if (exact && appsCurrentOffset === 0 && !Evme.Utils.isKeyboardVisible) {
@@ -1867,8 +1868,8 @@ Evme.Brain = new function Evme_Brain() {
                 "feature": source,
                 "exact": exact,
                 "prevQuery": lastQueryForImage,
-                "width": Evme.__config.bgImageSize[0] || screen.width,
-                "height": Evme.__config.bgImageSize[1] || screen.height
+                "width": Evme.__config.bgImageSize[0],
+                "height": Evme.__config.bgImageSize[1]
             }, getBackgroundImageComplete);
         };
 
