@@ -737,6 +737,10 @@ function cropPickedImage(fileinfo) {
 
   setView(cropView);
 
+  // Before the picked image is loaded, the done button is disabled
+  // to avoid users picking a black/empty image.
+  $('crop-done-button').disabled = true;
+
   photodb.getFile(pickedFile.name, function(file) {
     cropURL = URL.createObjectURL(file);
     cropEditor = new ImageEditor(cropURL, $('crop-frame'), {}, function() {
@@ -757,6 +761,9 @@ function cropPickedImage(fileinfo) {
         cropEditor.setCropAspectRatio(pickWidth, pickHeight);
       else
         cropEditor.setCropAspectRatio(); // free form cropping
+
+      // Enable the done button so that users are able to finish picking image.
+      $('crop-done-button').disabled = false;
     });
   });
 }
