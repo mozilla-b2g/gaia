@@ -370,6 +370,16 @@ Calendar.App = (function(window) {
 
         self.recurringEventsController.observe();
       });
+      this.loadObject('Controllers.ActivityHandler', function() {
+
+        self.activityHandlerController = 
+          new Calendar.Controllers.ActivityHandler(self);
+
+        self.observePendingObject(
+          self.activityHandlerController
+        );
+
+        self.activityHandlerController.observe();
 
       // go ahead and show the first time use view if necessary
       this.view('FirstTimeUse', function(firstTimeUse) {

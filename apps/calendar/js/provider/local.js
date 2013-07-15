@@ -4,7 +4,7 @@ Calendar.ns('Provider').Local = (function() {
 
   function Local() {
     Calendar.Provider.Abstract.apply(this, arguments);
-
+    this.service = this.app.serviceController;
     this.events = this.app.store('Event');
     this.busytimes = this.app.store('Busytime');
     this.alarms = this.app.store('Alarm');
@@ -45,6 +45,102 @@ Calendar.ns('Provider').Local = (function() {
     __proto__: Calendar.Provider.Abstract.prototype,
 
     canExpandRecurringEvents: false,
+
+    /**
+    * Import events to a calendar from the .ics file at the given url.
+    *
+    * @param {Object} account model.
+    * @param {String} url location of event.
+    * @param {Function} callback node style callback fired after event parsing.
+    */
+    importFromUrl: function(account, url, callback) {
+      var stream = this.service.stream(
+        'ical',
+        'importFromUrl',
+         account,
+         url
+        );      
+      var calendar = Calendar.App.store('Calendar');
+      calendar.get(Calendar.Provider.Local.calendarId,function(err, param){
+        var pulleventcalendar = param;
+        if (!param) {
+          callback('no calendar', null);
+          return;   
+        }
+        var preliminaryaccount = Calendar.App.store('Account');
+        preliminaryaccount.get(pulleventcalendar.accountId,function(err, param){
+          var pulleventaccount = param;
+          if (!param) {
+            callback('no account', null);
+            return;   
+          }
+          var pull = new Calendar.Provider.CaldavPullEvents(stream, {
+            calendar: pulleventcalendar,
+            account: pulleventaccount
+          });
+          stream.request(function() {
+            // stream is complete here the audit of
+            // events can be made. They are flushed
+            // to the cache where possible but not actually
+            // persisted in the database.
+
+            // assuming we are ready commit the changes
+            pull.commit(function(err) {
+              // all changes have been committed at this point.
+            });
+          });
+        },null);
+      },function(err, param){
+      });
+    },
+
+    /**
+    * Import events to a calendar from the .ics file represented by blob.
+    *
+    * @param {Object} account model.
+    * @param {String} url location of event.
+    * @param {Function} callback node style callback fired after event parsing.
+    */
+    importFromICS: function(account, blob, callback) {
+      var stream = this.service.stream(
+        'ical',
+        'importFromICS',
+         account,
+         blob
+        );      
+      var calendar = Calendar.App.store('Calendar');
+      calendar.get(Calendar.Provider.Local.calendarId,function(err, param){
+        var pulleventcalendar = param;
+        if (!param) {
+          callback('no calendar', null);
+          return;   
+        }
+        var preliminaryaccount = Calendar.App.store('Account');
+        preliminaryaccount.get(pulleventcalendar.accountId,function(err, param){
+          var pulleventaccount = param;
+          if (!param) {
+            callback('no account', null);
+            return;   
+          }
+          var pull = new Calendar.Provider.CaldavPullEvents(stream, {
+             calendar: pulleventcalendar,
+             account: pulleventaccount
+          });
+          stream.request(function() {
+            // stream is complete here the audit of
+            // events can be made. They are flushed
+            // to the cache where possible but not actually
+            // persisted in the database.
+
+            // assuming we are ready commit the changes
+            pull.commit(function(err) {
+              // all changes have been committed at this point.
+            });
+          });
+        },null);
+      },function(err, param){
+      });
+    },
 
     getAccount: function(account, callback) {
       callback(null, {});
