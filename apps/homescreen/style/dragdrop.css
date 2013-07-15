@@ -22,8 +22,8 @@
 
 /* text label */
 .draggable > div > span > span {
-  font-size: -moz-calc(5.75 * 0.226rem);
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+  font-size: 1.3rem;
+  text-shadow: 0.1rem 0.1rem 0.3rem rgba(0,0,0,0.6);
   /* shift left edge of text half distance to left */
   margin-left: -106%;
 }
