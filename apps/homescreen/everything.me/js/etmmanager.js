@@ -41,7 +41,7 @@ var EvmeManager = (function EvmeManager() {
     }
 
     function menuHide() {
-        footerStyle.MozTransform = "translateY(75px)";
+        footerStyle.MozTransform = "translateY(100%)";
     }
 
     var footerStyle = document.getElementById("footer").style;
@@ -60,7 +60,7 @@ var EvmeManager = (function EvmeManager() {
         if (iconObject &&
                 'descriptor' in iconObject &&
                 'renderedIcon' in iconObject.descriptor) {
-            return iconObject.descriptor.renderedIcon;    
+            return iconObject.descriptor.renderedIcon;
         }
     }
 
