@@ -75,6 +75,7 @@ if (DESKTOP) {
   prefs.push(["dom.navigator-property.disable.mozContacts", false]);
   prefs.push(["dom.global-constructor.disable.mozContact", false]);
 
+  prefs.push(["dom.experimental_forms", true]);
   prefs.push(["dom.webapps.useCurrentProfile", true]);
 
   // Partial implementation of gonk fonts
