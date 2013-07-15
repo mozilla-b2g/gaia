@@ -56,6 +56,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       this.disconnected();
       break;
     case 'resuming':
+      OnCallHandler.updateKeypadEnabled();
       this.node.classList.remove('held');
       if (this.photo) {
         CallScreen.setCallerContactImage(this.photo, true, false);
@@ -63,6 +64,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       CallScreen.syncSpeakerEnabled();
       break;
     case 'held':
+      OnCallHandler.updateKeypadEnabled();
       this.node.classList.add('held');
       break;
     case 'busy':
