@@ -638,13 +638,21 @@
           name: 'mock send error'
         };
         if (typeof request.onerror === 'function') {
-          request.onerror();
+          request.onerror({
+            target: {
+              result: request
+            }
+          });
         }
         trigger('failed', sendInfo);
       } else {
         sendInfo.message.delivery = 'sent';
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess();
+          request.onsuccess({
+            target: {
+              result: request
+            }
+          });
         }
         trigger('sent', sendInfo);
 
@@ -675,7 +683,7 @@
 
     setTimeout(initiateSend, simulation.delay());
 
-    return request;
+    return [request];
   };
 
   function hasSameParticipants(a, b) {
@@ -754,13 +762,21 @@
           name: 'mock send error'
         };
         if (typeof request.onerror === 'function') {
-          request.onerror();
+          request.onerror({
+            target: {
+              result: request
+            }
+          });
         }
         trigger('failed', sendInfo);
       } else {
         sendInfo.message.delivery = 'sent';
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess();
+          request.onsuccess({
+            target: {
+              result: request
+            }
+          });
         }
         trigger('sent', sendInfo);
 
@@ -802,7 +818,7 @@
 
     setTimeout(initiateSend, simulation.delay());
 
-    return request;
+    return [request];
   };
 
   // getThreads
