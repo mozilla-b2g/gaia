@@ -125,6 +125,10 @@ body[data-path^='/settings'] #time-views {
   margin: 0;
 }
 
+#settings [role="toolbar"] {
+  width: 80% !important;
+}
+
 body[role="application"] [role="toolbar"] li button:active {
   background-color: #008aaa;
   background-size: 3rem auto;
