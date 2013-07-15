@@ -1780,13 +1780,124 @@ suite('thread_ui.js >', function() {
       MockActivityPicker.call.mTeardown();
       MockOptionMenu.mTeardown();
     });
-    // See: utils_test.js
-    // Utils.getCarrierTag
-    //
-    suite('Single participant', function() {
 
-      suite('Options', function() {
-        test('Contact Options (known)', function() {
+    suite('OptionMenu', function() {
+
+      suite('activateContact', function() {
+        test('Single known', function() {
+
+          Threads.set(1, {
+            participants: ['999']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.activateContact({
+            number: '999',
+            isContact: true
+          });
+
+          assert.equal(MockOptionMenu.calls.length, 0);
+          assert.ok(MockActivityPicker.call.called);
+          assert.equal(MockActivityPicker.call.calledWith, '999');
+        });
+
+        test('Single unknown', function() {
+
+          Threads.set(1, {
+            participants: ['999']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.activateContact({
+            number: '999',
+            isContact: false
+          });
+
+          var items = MockOptionMenu.calls[0].items;
+
+          assert.equal(MockOptionMenu.calls.length, 1);
+          assert.equal(items.length, 4);
+
+          // The first item is a "call" option
+          assert.equal(items[0].name, 'call');
+
+          // The second item is a "createNewContact" option
+          assert.equal(items[1].name, 'createNewContact');
+
+          // The third item is a "addToExistingContact" option
+          assert.equal(items[2].name, 'addToExistingContact');
+
+          // The fourth and last item is a "cancel" option
+          assert.equal(items[3].name, 'cancel');
+        });
+
+        test('Multiple known', function() {
+
+          Threads.set(1, {
+            participants: ['999', '888']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.activateContact({
+            number: '999',
+            isContact: true
+          });
+
+          var items = MockOptionMenu.calls[0].items;
+
+          assert.equal(MockOptionMenu.calls.length, 1);
+          assert.equal(items.length, 3);
+
+          // The first item is a "call" option
+          assert.equal(items[0].name, 'call');
+
+          // The second item is a "send message" option
+          assert.equal(items[1].name, 'sendMessage');
+
+          // The third and last item is a "cancel" option
+          assert.equal(items[2].name, 'cancel');
+        });
+
+        test('Multiple unknown', function() {
+
+          Threads.set(1, {
+            participants: ['999', '888']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.activateContact({
+            number: '999',
+            isContact: false
+          });
+
+          var items = MockOptionMenu.calls[0].items;
+
+          assert.equal(MockOptionMenu.calls.length, 1);
+          assert.equal(items.length, 5);
+
+          // The first item is a "call" option
+          assert.equal(items[0].name, 'call');
+
+          // The second item is a "sendMessage" option
+          assert.equal(items[1].name, 'sendMessage');
+
+          // The third item is a "createNewContact" option
+          assert.equal(items[2].name, 'createNewContact');
+
+          // The fourth item is a "addToExistingContact" option
+          assert.equal(items[3].name, 'addToExistingContact');
+
+          // The fifth and last item is a "cancel" option
+          assert.equal(items[4].name, 'cancel');
+        });
+      });
+
+      suite('onHeaderActivation', function() {
+        test('Single known', function() {
 
           Threads.set(1, {
             participants: ['999']
@@ -1801,13 +1912,14 @@ suite('thread_ui.js >', function() {
 
           var calls = MockOptionMenu.calls;
 
-          assert.equal(calls.length, 1);
-          assert.equal(calls[0].section, '999');
-          assert.equal(calls[0].items.length, 3);
-          assert.equal(typeof calls[0].complete, 'function');
+          // Does not initiate an OptionMenu
+          assert.equal(MockOptionMenu.calls.length, 0);
+
+          // Does initiate a "call" activity
+          assert.equal(MockActivityPicker.call.called, 1);
         });
 
-        test('Contact Options (unknown)', function() {
+        test('Single unknown', function() {
 
           Threads.set(1, {
             participants: ['777']
@@ -1824,10 +1936,16 @@ suite('thread_ui.js >', function() {
 
           assert.equal(calls.length, 1);
           assert.equal(calls[0].header, '777');
-          assert.equal(calls[0].items.length, 5);
+          assert.equal(calls[0].items.length, 4);
           assert.equal(typeof calls[0].complete, 'function');
         });
       });
+    });
+
+    // See: utils_test.js
+    // Utils.getCarrierTag
+    //
+    suite('Single participant', function() {
 
       suite('Carrier Tag', function() {
         test('Carrier Tag (non empty string)', function(done) {

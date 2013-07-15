@@ -1,5 +1,6 @@
 'use strict';
 
+requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/mock_messages.js');
 
@@ -8,6 +9,11 @@ requireApp('sms/test/unit/mock_thread_list_ui.js');
 requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_smil.js');
+requireApp('sms/test/unit/mock_recipients.js');
+requireApp('sms/test/unit/mock_compose.js');
+requireApp('sms/test/unit/mock_contact.js');
+requireApp('sms/test/unit/mock_contacts.js');
+requireApp('sms/test/unit/mock_utils.js');
 
 requireApp('sms/js/message_manager.js');
 
@@ -15,7 +21,11 @@ var mocksHelperForMessageManager = new MocksHelper([
   'ThreadUI',
   'ThreadListUI',
   'Threads',
-  'SMIL'
+  'SMIL',
+  'Recipients',
+  'Compose',
+  'Contacts',
+  'Utils'
 ]);
 
 mocksHelperForMessageManager.init();
@@ -186,6 +196,55 @@ suite('message_manager.js >', function() {
 
       MockNavigatormozMobileMessage.mTriggerMmsOnError();
       assert.equal(onErrorCalledTimes, 1);
+    });
+  });
+
+  suite('launchComposer() >', function() {
+    suiteSetup(function() {
+      loadBodyHTML('/index.html');
+      ThreadUI.initRecipients();
+    });
+
+    setup(function() {
+
+      ThreadUI.recipients.length = 0;
+
+      this.sinon.stub(
+        MessageManager, 'slide', function(direction, callback) {
+          callback();
+        }
+      );
+
+      this.sinon.stub(
+        Contacts, 'findByPhoneNumber', function(tel, callback) {
+          callback(MockContact.list());
+        }
+      );
+
+      MessageManager.threadMessages = document.createElement('div');
+    });
+
+    suiteTeardown(function() {
+      ThreadUI.recipients = null;
+    });
+
+    test('from activity with unknown contact', function() {
+      MessageManager.launchComposer({
+        number: '998',
+        contact: null
+      });
+
+      assert.equal(ThreadUI.recipients.numbers.length, 1);
+      assert.equal(ThreadUI.recipients.numbers[0], '998');
+    });
+
+    test('from activity with known contact', function() {
+      MessageManager.launchComposer({
+        contact: new MockContact()
+      });
+
+      assert.equal(ThreadUI.recipients.numbers.length, 1);
+      assert.equal(ThreadUI.recipients.numbers[0], '+346578888888');
     });
   });
 });
