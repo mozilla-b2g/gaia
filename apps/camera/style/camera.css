@@ -235,48 +235,16 @@ html, body {
   z-index: 100;
 }
 
-/*
- * The overlay content area holds the text of the overlay.
- * It has borders and a less transparent background so that
- * the overlay text shows up more clearly
- */
-#overlay-content {
-  background:
-  url(images/ui/pattern.png) repeat left top,
-  url(images/ui/gradient.png) no-repeat left top;
-  background-size: auto auto, 100% 100%;
-  /* We can't use shortand with background size because is not implemented yet:
-  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
-  overflow: hidden;
-  position: absolute;
-  z-index: 100;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  font-size: 0;
-  /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
-  created by white-spaces and break lines in the code betewen inline-block elements */
-  color: #fff;
-  padding: 11rem 2.5rem 0 2.5rem;
-}
-
-#overlay-title {
-  font-weight: normal;
-  font-size: 1.9rem;
-  color: #fff;
-  margin: 0 0.5rem -1rem 0.5rem;
-}
-
-#overlay-text {
-  padding: 1rem 0.5rem 0 0.5rem;
-  border-top: 0.1rem solid #686868;
-  font-weight: 300;
-  font-size: 2.5rem;
-  color: #ebebeb;
-}
-
 .hidden {
+  display: none;
+}
+
+/*
+ * Because the css selector specificity, if we use .hidden, we will not get the
+ * hidden menu whose display is set as "block" by confirm.css. This css rule
+ * overrides it as none.
+ */
+form[role="dialog"][data-type="confirm"] menu.hidden {
   display: none;
 }
 
