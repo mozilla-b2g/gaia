@@ -304,7 +304,7 @@ suite('db', function() {
         });
 
         test('should turn event str calendarId into int', function(done) {
-          subject.open(OLD_VERSION + 2, function() {
+          subject.open(OLD_VERSION + VERSION_CHANGE, function() {
             var trans = subject.transaction(['events'], 'readwrite');
             var store = trans.objectStore('events');
             store.get(EVENT_ONE_ID).onsuccess = function(evt) {
@@ -315,7 +315,7 @@ suite('db', function() {
         });
 
         test('should not modify event int calendarId', function(done) {
-          subject.open(OLD_VERSION + 2, function() {
+          subject.open(OLD_VERSION + VERSION_CHANGE, function() {
             var trans = subject.transaction(['events'], 'readwrite');
             var store = trans.objectStore('events');
             var get = store.get(EVENT_TWO_ID).onsuccess = function(evt) {
@@ -326,7 +326,7 @@ suite('db', function() {
         });
 
         test('should delete event if its calendar died', function(done) {
-          subject.open(OLD_VERSION + 2, function() {
+          subject.open(OLD_VERSION + VERSION_CHANGE, function() {
             var trans = subject.transaction(['events'], 'readwrite');
             var store = trans.objectStore('events');
             var get = store.get(EVENT_THREE_ID).onsuccess = function(evt) {
@@ -337,7 +337,7 @@ suite('db', function() {
         });
 
         test('should turn busytime str calendarId into int', function(done) {
-          subject.open(OLD_VERSION + 2, function() {
+          subject.open(OLD_VERSION + VERSION_CHANGE, function() {
             var trans = subject.transaction(['busytimes'], 'readwrite');
             var store = trans.objectStore('busytimes');
             var get = store.get(BUSYTIME_ONE_ID).onsuccess = function(evt) {
@@ -348,7 +348,7 @@ suite('db', function() {
         });
 
         test('should not modify busytime int calendarId', function(done) {
-          subject.open(OLD_VERSION + 2, function() {
+          subject.open(OLD_VERSION + VERSION_CHANGE, function() {
             var trans = subject.transaction(['busytimes'], 'readwrite');
             var store = trans.objectStore('busytimes');
             var get = store.get(BUSYTIME_TWO_ID).onsuccess = function(evt) {
@@ -359,7 +359,7 @@ suite('db', function() {
         });
 
         test('should delete busytime if its calendar died', function(done) {
-          subject.open(OLD_VERSION + 2, function() {
+          subject.open(OLD_VERSION + VERSION_CHANGE, function() {
             var trans = subject.transaction(['busytimes'], 'readwrite');
             var store = trans.objectStore('busytimes');
             var get = store.get(BUSYTIME_THREE_ID).onsuccess = function(evt) {
