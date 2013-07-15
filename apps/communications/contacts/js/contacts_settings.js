@@ -429,8 +429,15 @@ contacts.Settings = (function() {
   };
 
   var onSdImport = function onSdImport() {
+    var cancelled = false;
+    var importer = null;
     var progress = Contacts.showOverlay(
       _('memoryCardContacts-reading'), 'activityBar');
+    utils.overlay.showMenu();
+    utils.overlay.oncancel = function() {
+      cancelled = true;
+      importer ? importer.finish() : Contacts.hideOverlay();
+    };
     var wakeLock = navigator.requestWakeLock('cpu');
 
     var importedContacts = 0;
@@ -446,6 +453,9 @@ contacts.Settings = (function() {
       if (err)
         return import_error(err);
 
+      if (cancelled)
+        return;
+
       if (fileArray.length)
         utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
       else
@@ -456,7 +466,10 @@ contacts.Settings = (function() {
       if (err)
         return import_error(err);
 
-      var importer = new VCFReader(text);
+      if (cancelled)
+        return;
+
+      importer = new VCFReader(text);
       if (!text || !importer)
         return import_error('No contacts were found.');
 
