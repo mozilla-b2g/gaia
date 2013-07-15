@@ -356,10 +356,26 @@ var SimManager = {
     var importButton = UIManager.simImportButton;
     importButton.setAttribute('disabled', 'disabled');
 
+    var cancelled = false, contactsRead = false;
     var importer = new SimContactsImporter();
+    utils.overlay.showMenu();
+    utils.overlay.oncancel = function oncancel() {
+      cancelled = true;
+      importer.finish();
+      if (contactsRead) {
+        // A message about canceling will be displayed while the current chunk
+        // is being cooked
+        progress.setClass('activityBar');
+        utils.overlay.hideMenu();
+        progress.setHeaderMsg(_('messageCanceling'));
+      } else {
+        importer.onfinish(); // Early return while reading contacts
+      }
+    };
     var importedContacts = 0;
 
     importer.onread = function sim_import_read(n) {
+      contactsRead = true;
       progress.setClass('progressBar');
       progress.setHeaderMsg(_('simContacts-importing'));
       progress.setTotal(n);
@@ -367,17 +383,23 @@ var SimManager = {
 
     importer.onimported = function imported_contact() {
       importedContacts++;
-      progress.update();
+      if (!cancelled) {
+        progress.update();
+      }
     };
 
     importer.onfinish = function sim_import_finish() {
       window.setTimeout(function do_sim_import_finish() {
-        window.importUtils.setTimestamp('sim');
-        SimManager.alreadyImported = true;
         UIManager.navBar.removeAttribute('aria-disabled');
         utils.overlay.hide();
-        utils.status.show(_('simContacts-imported3', {n: importedContacts}));
+        if (importedContacts !== 0) {
+          window.importUtils.setTimestamp('sim');
+          SimManager.alreadyImported = true;
+          utils.status.show(_('simContacts-imported3', {n: importedContacts}));
+        }
       }, DELAY_FEEDBACK);
+
+      importer.onfinish = null;
     };
 
     importer.onerror = function sim_import_error() {
