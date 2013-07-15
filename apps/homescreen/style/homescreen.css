@@ -104,3 +104,10 @@ body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > span {
 body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > span {
   opacity: 0.5;
 }
+
+/* For WVGA (800 x 480), adjust the padding to make app icons fit in 4 x 5 grid */
+@media all and (min-device-width: 320px) and (max-device-width: 359px) and (max-aspect-ratio: 4 / 6) {
+  #paginationBar {
+      height: .2rem;
+  }
+}
