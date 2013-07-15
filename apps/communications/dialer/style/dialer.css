@@ -70,14 +70,17 @@ body.hidden *[data-l10n-id] {
 
 .icon-recents:after {
   background-image: url("images/recents.png") !important;
+  background-size: 3rem !important;
 }
 
 .icon-contacts:after {
   background-image: url("images/contacts.png") !important;
+  background-size: 3rem !important;
 }
 
 .icon-keypad:after {
   background-image: url("images/dialpad.png") !important;
+  background-size: 3rem !important;
 }
 
 .with-keyboard #views, .with-keyboard #contacts-view,

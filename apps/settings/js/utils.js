@@ -4,26 +4,6 @@
 'use strict';
 
 /**
- * Constants
- */
-
-var DEBUG = false;
-
-/**
- * Debug method
- */
-
-function debug(msg, optObject) {
-  if (DEBUG) {
-    var output = '[DEBUG # Settings] ' + msg;
-    if (optObject) {
-      output += JSON.stringify(optObject);
-    }
-    console.log(output);
-  }
-}
-
-/**
  * Move settings to foreground
  */
 
@@ -133,28 +113,7 @@ function loadJSON(href, callback) {
  * L10n helper
  */
 
-function localize(element, id, args) {
-  var mozL10n = navigator.mozL10n;
-  if (!element || !mozL10n)
-    return;
-
-  if (id) {
-    element.dataset.l10nId = id;
-  } else {
-    element.dataset.l10nId = '';
-    element.textContent = '';
-  }
-
-  if (args) {
-    element.dataset.l10nArgs = JSON.stringify(args);
-  } else {
-    element.dataset.l10nArgs = '';
-  }
-
-  mozL10n.ready(function l10nReady() {
-    mozL10n.translate(element);
-  });
-}
+var localize = navigator.mozL10n.localize;
 
 /**
  * Helper class for formatting file size strings
@@ -395,7 +354,6 @@ var getMobileConnection = function() {
     return navigator.mozMobileConnection;
 
   var initialized = false;
-  var fakeICCInfo = { shortName: 'Fake Free-Mobile', mcc: '208', mnc: '15' };
   var fakeNetwork = { shortName: 'Fake Orange F', mcc: '208', mnc: '1' };
   var fakeVoice = {
     state: 'notSearching',
@@ -417,7 +375,6 @@ var getMobileConnection = function() {
 
   return {
     addEventListener: fakeEventListener,
-    iccInfo: fakeICCInfo,
     get data() {
       return initialized ? { network: fakeNetwork } : null;
     },

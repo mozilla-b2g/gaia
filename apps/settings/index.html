@@ -5,8 +5,8 @@
     <meta http-equiv="pragma" content="no-cache"/>
     <title>Settings</title>
 
-    <!-- multi-resolution support -->
-    <link rel="stylesheet" href="/shared/style/responsive.css">
+    <!-- Debug/DUMP method support -->
+    <script defer src="/shared/js/dump.js"></script>
 
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
@@ -47,12 +47,16 @@
     <link rel="resource" type="application/l10n" href="shared/locales/tz.ini"/>
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/l10n_date.js"></script>
 
     <!-- For perf-measurement related utilities -->
     <script defer src="/shared/js/performance_testing_helper.js"></script>
 
     <!-- Lazy loader -->
     <script defer src="/shared/js/lazy_loader.js"></script>
+
+    <!-- IccHelper -->
+    <script defer src="/shared/js/icc_helper.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/settings.js"></script>
@@ -62,6 +66,8 @@
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
     <!--<script defer src="shared/js/async_storage.js"></script>-->
     <!--<script defer src="shared/js/wifi_helper.js"></script>-->
+    <!--<script defer src="shared/js/icc_helper.js"></script>-->
+    <!--<script defer src="/shared/js/settings_listener.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
@@ -252,6 +258,10 @@
           <li id="wifi-wps-pin-area">
             <p data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</p>
             <input type="text" />
+          </li>
+          <li id="wifi-wps-pin-aps">
+            <p data-l10n-id="wpsPinAps">Select an opposite device</p>
+            <select></select>
           </li>
         </ul>
       </div>
@@ -534,12 +544,12 @@
             </label>
             <a data-l10n-id="callWaiting">Call Waiting</a>
           </li>
-          <li id="menuItem-cellBroadcast">
+          <li id="menuItem-cellBroadcast" class="disabled">
             <label class="checkbox-label">
-              <input type="checkbox" data-type="switch" name="ril.cellbroadcast.disabled" />
+              <input type="checkbox" data-type="switch" data-ignore disabled />
               <span></span>
             </label>
-            <a data-l10n-id="cellBroadcast">Cell broadcast service</a>
+            <a data-l10n-id="callBroadcastService">Cell broadcast service</a>
           </li>
         </ul>
 
@@ -735,7 +745,7 @@
         <ul id="text-message-list">
           <li class="hint">
             <label>
-              <input type="checkbox" data-type="switch" data-setting="dom.sms.requestStatusReport"/>
+              <input type="checkbox" data-type="switch" data-setting="ril.sms.requestStatusReport.enabled"/>
               <span></span>
             </label>
             <a data-l10n-id="delivery-reports"> Delivery reports </a>
@@ -980,25 +990,25 @@
         <ul>
           <li>
             <label>
-              <button data-href="#carrier-operatorSettings"
+              <button class="icon icon-view" data-href="#carrier-operatorSettings"
                 data-l10n-id="networkOperator"> Network Operator </button>
             </label>
           </li>
           <li>
             <label>
-              <button data-href="#carrier-dataSettings"
+              <button class="icon icon-view" data-href="#carrier-dataSettings"
                 data-l10n-id="dataSettings">Data Settings</button>
             </label>
           </li>
           <li>
             <label>
-              <button data-href="#carrier-mmsSettings"
+              <button class="icon icon-view" data-href="#carrier-mmsSettings"
                 data-l10n-id="messageSettings">Message Settings</button>
             </label>
           </li>
           <li>
             <label>
-              <button data-href="#carrier-suplSettings"
+              <button class="icon icon-view" data-href="#carrier-suplSettings"
                 data-l10n-id="suplSettings">A-GPS Settings</button>
             </label>
           </li>
@@ -1073,6 +1083,17 @@
           <button data-l10n-id="device-option-disconnect" id="disconnect-option">Disconnect</button>
           <button data-l10n-id="device-option-unpair" id="unpair-option">Unpair</button>
           <button data-l10n-id="cancel">Cancel</button>
+        </menu>
+      </form>
+
+      <form role="dialog" data-type="confirm" id="unpair-device" hidden>
+        <section>
+          <h1>Confirmation</h1>
+          <p data-l10n-id="device-option-unpair-device">Unpair Device?</p>
+        </section>
+        <menu>
+          <button data-l10n-id="cancel">Cancel</button>
+          <button data-l10n-id="device-option-confirm" id="confirm-option" class="danger">Confirm</button>
         </menu>
       </form>
 
@@ -1162,8 +1183,8 @@
           </li>
           <li id="hotspot-settings-section">
             <label>
-              <button class="hotspot-wifiSettings-btn"
-                data-l10n-id="hotspotSettings">Hotspot Settings</button>
+              <button class="icon icon-view"
+              data-l10n-id="hotspotSettings">Hotspot Settings</button>
             </label>
           </li>
         </ul>
@@ -1266,7 +1287,7 @@
           <li>
             <p data-l10n-id="ringer">Ringer</p>
             <p class="fake-select">
-              <button id="call-tone-selection" class="tone-select" data-l10n-id="change"></button>
+              <button id="call-tone-selection" class="icon icon-view" data-l10n-id="change"></button>
             </p>
           </li>
         </ul>
@@ -1450,7 +1471,6 @@
         </ul>
       </div>
 
-      <script src="shared/js/l10n_date.js"></script>
       <script src="shared/js/tz_select.js"></script>
       <script src="js/date_time.js"></script>
       -->
@@ -1501,8 +1521,6 @@
           </li>
         </ul>
       </div>
-
-      <script src="shared/js/l10n_date.js"></script>
       -->
     </section>
 
@@ -1598,19 +1616,38 @@
           </li>
           <li>
             <label>
-              <input type="checkbox" name="keyboard.layouts.otherlatins"/>
+              <input type="checkbox" name="keyboard.layouts.czech"/>
               <span></span>
             </label>
-            <small data-l10n-id="latin-desc">French, German, Norwegian Bokmal, Slovak, Turkish</small>
-            <a data-l10n-id="latin">Other Latin scripts</a>
+            <a data-l10n-id="czech">Czech</a>
           </li>
           <li>
             <label>
-              <input type="checkbox" name="keyboard.layouts.cyrillic"/>
+              <input type="checkbox" name="keyboard.layouts.french"/>
               <span></span>
             </label>
-            <small data-l10n-id="cyrillic-desc">Russian, Serbian (Cyrillic)</small>
-            <a data-l10n-id="cyrillic">Cyrillic scripts</a>
+            <a data-l10n-id="french">French</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.german"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="german">German</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.norwegian"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="norwegian">Norwegian</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.russian"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="russian">Russian</a>
           </li>
           <li>
             <label>
@@ -1618,6 +1655,20 @@
               <span></span>
             </label>
             <a data-l10n-id="serbian">Serbian</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.slovak"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="slovak">Slovak</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.turkish"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="turkish">Turkish</a>
           </li>
           <li>
             <label>
@@ -2046,10 +2097,31 @@
           </li>
           <li>
             <label>
+              <input type="checkbox" name="dom.mozContacts.debugging.enabled" />
+              <span></span>
+            </label>
+            <a data-l10n-id="contacts-debugging">Contacts debugging output in adb</a>
+          </li>
+          <li>
+            <label>
               <input type="checkbox" name="debug.console.enabled"/>
               <span></span>
             </label>
             <a data-l10n-id="console-enabled">Console enabled</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="software-button.enabled"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="software-button-enabled">Software home button enabled</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="debug.gaia.enabled"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="debug-gaia-enabled">Gaia debug traces</a>
           </li>
           <li>
             <label>
@@ -2336,7 +2408,7 @@
           </li>
           <li>
             <label>
-              <button data-href="#about-moreInfo"
+              <button class="icon icon-view" data-href="#about-moreInfo"
                 data-l10n-id="more-info"> More Information </button>
             </label>
           </li>
@@ -2381,26 +2453,25 @@
           </li>
           <li>
             <label>
-              <button data-href="#about-yourRights"
+              <button class="icon icon-view" data-href="#about-yourRights"
                 data-l10n-id="your-rights"> Your Rights </button>
             </label>
           </li>
           <li>
             <label>
-              <button data-href="#about-yourPrivacy"
+              <button class="icon icon-view" data-href="#about-yourPrivacy"
                 data-l10n-id="your-privacy"> Your Privacy </button>
             </label>
           </li>
           <li>
             <label>
-              <button data-href="#about-legal"
+              <button class="icon icon-view" data-href="#about-legal"
                 data-l10n-id="about-legal-info"> Legal Information </button>
             </label>
           </li>
         </ul>
       </div>
 
-      <script src="shared/js/l10n_date.js"></script>
       <script src="js/about.js"></script>
       -->
     </section>
@@ -2534,7 +2605,7 @@
       </div>
       <form data-type="confirm" role="dialog" id="default-location-popup-container" hidden>
         <section>
-          <p>Changing the default media storage volume will effect where photos, videos, downloads and other media will be saved to by default. Existing data will remain in its current location.</p>
+          <p data-l10n-id="change-default-location-confirm">Changing the default media storage volume will effect where photos, videos, downloads and other media will be saved to by default. Existing data will remain in its current location.</p>
         </section>
         <menu>
           <button id="default-location-cancel-btn">Cancel</button>
@@ -2584,11 +2655,13 @@
 
       <div>
         <ul>
-          <li class="description" data-l10n-id="crash-reports-description-1"></li>
-          <li class="description" data-l10n-id="crash-reports-description-2"></li>
-          <li>
-            <p class="description">
-              <span data-l10n-id="crash-reports-description-3-start"></span><a href="https://www.mozilla.org/privacy/" data-l10n-id="crash-reports-description-3-privacy" class="link-text"></a><span data-l10n-id="crash-reports-description-3-end"></span>
+          <li class="description">
+            <p data-l10n-id="crash-reports-description-1"></p>
+            <p data-l10n-id="crash-reports-description-2"></p>
+            <p>
+              <span data-l10n-id="crash-reports-description-3-start"></span>
+              <a href="https://www.mozilla.org/privacy/" data-l10n-id="crash-reports-description-3-privacy" class="link-text"></a>
+              <span data-l10n-id="crash-reports-description-3-end"></span>
             </p>
           </li>
         </ul>
@@ -2731,20 +2804,6 @@
         </ul>
       </div>
 
-      <form role="dialog" data-type="confirm" id="icc-stk-alert" class="hidden">
-        <section>
-          <h1 data-l10n-id="message">Message</h1>
-          <p id="icc-stk-alert-msg">
-          </p>
-        </section>
-        <menu>
-          <button data-l10n-id="close" id="icc-stk-alert-btn_close">Close</button>
-          <button data-l10n-id="back" id="icc-stk-alert-btn_back">Back</button>
-          <button data-l10n-id="ok" id="icc-stk-alert-btn" class="recommend">Ok</button>
-        </menu>
-      </form>
-
-      <script src="/shared/js/notification_helper.js"></script>
       <script src="js/icc.js"></script>
       -->
     </section>
@@ -2872,7 +2931,7 @@
               <span></span>
             </label>
             <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
-            <a class="menu-item" data-l10n-id="enableUSBStorage">Enable USB storage</a>
+            <a id="menuItem-enableStorage" class="menu-item" data-l10n-id="enableUSBStorage">Enable USB storage</a>
           </li>
           <li>
             <small id="application-storage-desc" class="menu-item-desc"></small>

@@ -179,6 +179,7 @@ function startup(data, reason) {
         // Try to load a the keyboard if there is a keyboard addon.
         Cu.import('resource://keyboard.js/Keyboard.jsm');
         mm.addMessageListener('Forms:Input', Keyboard);
+        mm.addMessageListener('Forms:SelectionChange', Keyboard);
         mm.loadFrameScript('chrome://keyboard.js/content/forms.js', true);
       } catch(e) {
         debug('Can\'t load Keyboard.jsm. Likely because the keyboard addon is not here.');

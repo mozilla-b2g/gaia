@@ -63,57 +63,57 @@ suite('cards view >', function() {
 
   setup(function() {
     mocksHelper.setup();
-    var frameCreator = function(orientation) {
-      var frame = document.createElement('div');
-      frame.dataset.orientation = orientation;
-      return frame;
-    };
 
     MockWindowManager.mRunningApps = {
       'http://sms.gaiamobile.org': {
         launchTime: 5,
         name: 'SMS',
-        frame: frameCreator('portrait-primary'),
+        frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'portrait-primary'
-        }
+        },
+        currentOrientation: 'portrait-primary'
       },
       'http://game.gaiamobile.org': {
         launchTime: 4,
         name: 'GAME',
-        frame: frameCreator('landscape-primary'),
+        frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'landscape-primary'
-        }
+        },
+        currentOrientation: 'landscape-primary'
       },
       'http://game2.gaiamobile.org': {
         launchTime: 3,
         name: 'GAME2',
-        frame: frameCreator('landscape-secondary'),
+        frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'landscape-secondary'
-        }
+        },
+        currentOrientation: 'landscape-secondary'
       },
       'http://game3.gaiamobile.org': {
         launchTime: 2,
         name: 'GAME3',
-        frame: frameCreator('landscape-primary'),
+        frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'landscape'
-        }
+        },
+        currentOrientation: 'landscape-primary'
       },
       'http://game4.gaiamobile.org': {
         launchTime: 1,
         name: 'GAME4',
-        frame: frameCreator('portrait-secondary'),
+        frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
           orientation: 'portrait-secondary'
-        }
+        },
+        currentOrientation: 'portrait-secondary'
       }
     };
     MockWindowManager.mDisplayedApp = 'http://sms.gaiamobile.org';
@@ -216,3 +216,4 @@ suite('cards view >', function() {
 });
 
 mocha.setup({ignoreLeaks: false});
+

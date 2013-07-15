@@ -2,7 +2,13 @@
 
 var MockMessageManager = {
   getMessages: function() {},
-  deleteMessage: function() {},
+  deleteMessage: function(messageId, callback) {
+    if (callback) {
+      callback();
+    }
+  },
+  onHashChange: function() {},
+  launchComposer: function() {},
   sendSMS: function() {
     return {};
   },
@@ -15,14 +21,7 @@ MockMessageManager.mSetup = function() {
   sinon.spy(MockMessageManager, 'sendSMS');
   sinon.spy(MockMessageManager, 'sendMMS');
 
-  MockMessageManager.activity = {
-    body: null,
-    number: null,
-    contact: null,
-    recipients: null,
-    threadId: null,
-    isLocked: false
-  };
+  MockMessageManager.activity = null;
 };
 
 MockMessageManager.mTeardown = function() {

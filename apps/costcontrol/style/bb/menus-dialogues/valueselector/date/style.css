@@ -42,12 +42,14 @@ body[role="application"] [role="dialog"] .calendar {
 	body[role="application"] [role="dialog"] .calendar > a[role="button"]:first-of-type {
 		left: 0;
 		background-image: url(images/icons/prev.png);
+		background-size: 1.1rem;
 	}
 
 	body[role="application"] [role="dialog"] .calendar > button:last-of-type,
 	body[role="application"] [role="dialog"] .calendar > a[role="button"]:last-of-type {
 		right: 0;
 		background-image: url(images/icons/next.png);
+		background-size: 1.1rem;
 	}
 	
 	body[role="application"] [role="dialog"] .calendar table {

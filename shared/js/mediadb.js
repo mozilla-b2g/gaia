@@ -358,6 +358,7 @@ var MediaDB = (function() {
     this.autoscan = (options.autoscan !== undefined) ? options.autoscan : true;
     this.state = MediaDB.OPENING;
     this.scanning = false;  // becomes true while scanning
+    this.parsingBigFiles = false;
 
     // While scanning, we attempt to send change events in batches.
     // After finding a new or deleted file, we'll wait this long before
@@ -1093,8 +1094,11 @@ var MediaDB = (function() {
   // Test whether this filename is one we ignore.
   // This is a separate function because device storage change events
   // give us a name only, not the file object.
+  // Ignore files having directories beginning with .
+  // Bug https://bugzilla.mozilla.org/show_bug.cgi?id=838179
   function ignoreName(filename) {
-    return (filename[0] === '.' || filename.indexOf('/.') !== -1);
+    var path = filename.substring(0, filename.lastIndexOf('/') + 1);
+    return (path[0] === '.' || path.indexOf('/.') !== -1);
   }
 
   // Tell the db to start a manual scan. I think we don't do
@@ -1335,6 +1339,7 @@ var MediaDB = (function() {
   function endscan(media) {
     if (media.scanning) {
       media.scanning = false;
+      media.parsingBigFiles = false;
       dispatchEvent(media, 'scanend');
     }
   }
@@ -1499,7 +1504,10 @@ var MediaDB = (function() {
         details.newestFileModTime = fileinfo.date;
 
       // Get metadata about the file
-      media.metadataParser(file, gotMetadata, metadataError);
+      media.metadataParser(file, gotMetadata, metadataError, parsingBigFile);
+      function parsingBigFile() {
+        media.parsingBigFiles = true;
+      }
       function metadataError(e) {
         console.warn('MediaDB: error parsing metadata for',
                      filename, ':', e);
@@ -1514,6 +1522,10 @@ var MediaDB = (function() {
       function gotMetadata(metadata) {
         fileinfo.metadata = metadata;
         storeRecord(fileinfo);
+        if (!media.scanning) {
+          // single file parsing.
+          media.parsingBigFiles = false;
+        }
       }
     }
 

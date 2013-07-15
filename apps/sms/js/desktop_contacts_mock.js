@@ -272,7 +272,8 @@
       familyName: 'Shannon',
       givenName: 'Claude',
       tel: {
-        value: '103'
+        value: '103',
+        type: 'Mobile'
       }
     })
   );
@@ -369,6 +370,36 @@
         type: 'Mobile',
         carrier: null
       }
+    })
+  );
+
+  ContactsDB.push(
+    new Contact({
+      familyName: 'Jekyll',
+      givenName: 'Doctor',
+      tel: [
+        {
+          value: '+12125551234',
+          type: ['Mobile']
+        },
+        {
+          value: '+15551237890',
+          type: ['Home']
+        }
+      ]
+    })
+  );
+
+  ContactsDB.push(
+    new Contact({
+      familyName: 'Taumatawhakatangihangakoauauota',
+      givenName: 'Mateapokaiwhenuakitanatahu',
+      tel: [
+        {
+          value: '+18001114321',
+          type: ['Mobile']
+        }
+      ]
     })
   );
 

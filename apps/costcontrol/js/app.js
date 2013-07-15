@@ -41,25 +41,24 @@ var CostControlApp = (function() {
 
   var costcontrol, initialized = false;
   function onReady(callback) {
-    var mobileConnection = window.navigator.mozMobileConnection;
     var cardState = checkCardState();
-    var iccid = mobileConnection.iccInfo.iccid;
+    var iccid = IccHelper.iccInfo.iccid;
 
     // SIM not ready
     if (cardState !== 'ready') {
       debug('SIM not ready:', cardState);
-      mobileConnection.oncardstatechange = onReady;
+      IccHelper.oncardstatechange = onReady;
 
     // SIM is ready, but ICC info is not ready yet
     } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
-      mobileConnection.oniccinfochange = onReady;
+      IccHelper.oniccinfochange = onReady;
 
     // All ready
     } else {
       debug('SIM ready. ICCID:', iccid);
-      mobileConnection.oncardstatechange = undefined;
-      mobileConnection.oniccinfochange = undefined;
+      IccHelper.oncardstatechange = undefined;
+      IccHelper.oniccinfochange = undefined;
       startApp(callback);
     }
   }
@@ -67,9 +66,8 @@ var CostControlApp = (function() {
   // Check the card status. Return 'ready' if all OK or take actions for
   // special situations such as 'pin/puk locked' or 'absent'.
   function checkCardState() {
-    var mobileConnection = window.navigator.mozMobileConnection;
     var state, cardState;
-    state = cardState = mobileConnection.cardState;
+    state = cardState = IccHelper.cardState;
 
     // SIM is absent
     if (cardState === 'absent') {
@@ -266,9 +264,9 @@ var CostControlApp = (function() {
     );
 
     // Check card state when visible
-    document.addEventListener('mozvisibilitychange',
+    document.addEventListener('visibilitychange',
       function _onVisibilityChange(evt) {
-        if (!document.mozHidden && initialized) {
+        if (!document.hidden && initialized) {
           checkCardState();
         }
       }

@@ -1,0 +1,42 @@
+#software-buttons {
+  display: none;
+  height: 5rem;
+  width: 100%;
+  text-align: center;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  background: black;
+}
+
+#software-buttons.visible {
+  display: block;
+}
+
+#software-home-button,
+#fullscreen-software-home-button {
+  border: 0;
+  width: 4rem;
+  height: 4rem;
+  margin: 0.5rem;
+  background: transparent url(/shared/resources/branding/Browser.png) no-repeat center center;
+  background-size: 4rem 4rem;
+}
+
+#fullscreen-software-home-button {
+  position: absolute;
+  bottom: 0.5rem;
+  left: calc(50% - 2.5rem);
+  opacity: 0.5;
+  display: none;
+}
+
+#fullscreen-software-home-button.visible {
+  display: block;
+}
+
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) #software-buttons {
+    display: block;
+  }
+}

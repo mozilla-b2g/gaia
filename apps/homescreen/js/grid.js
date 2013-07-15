@@ -5,15 +5,9 @@ var GridManager = (function() {
   var PREFERRED_ICON_SIZE = 60;
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_WIDTH = 320;
-  var BASE_HEIGHT = 480;
+  var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
   var DEVICE_HEIGHT = window.innerHeight;
-  var SCALE_RATIO = window.innerWidth / BASE_WIDTH;
-  var AVAILABLE_SPACE = DEVICE_HEIGHT - (BASE_HEIGHT * SCALE_RATIO);
-
-  // Check if there is space for another row of icons
-  if (AVAILABLE_SPACE > BASE_HEIGHT / 5) {
-    var MAX_ICONS_PER_PAGE = 4 * 5;
-  }
+  var OPACITY_STEPS = 40; // opacity steps between [0,1]
 
   var container;
 
@@ -38,6 +32,14 @@ var GridManager = (function() {
     left: 0,
     right: 0
   };
+
+  // Check if there is space for another row of icons
+  // For WVGA, 800x480, we also want to show 4 x 5 grid on homescreen
+  // the homescreen size would be 770 x 480, and 770/480 ~= 1.6
+  if (DEVICE_HEIGHT - BASE_HEIGHT > BASE_HEIGHT / 5 ||
+      DEVICE_HEIGHT / windowWidth >= 1.6) {
+    MAX_ICONS_PER_PAGE = 4 * 5;
+  }
 
   var startEvent, isPanning = false, startX, currentX, deltaX, removePanHandler,
       noop = function() {};
@@ -157,6 +159,7 @@ var GridManager = (function() {
   function addActive(target) {
     if ('isIcon' in target.dataset) {
       target.classList.add('active');
+      removeActive !== noop && removeActive();
       removeActive = function _removeActive() {
         target.classList.remove('active');
         removeActive = noop;
@@ -167,6 +170,13 @@ var GridManager = (function() {
   }
 
   var removeActive = noop;
+
+  function opacityStepFunction(opacity) {
+      // This step function is used to reduce the number of
+      // opacity changes as the swipe transition occurs on
+      // the home screen. The goal is to improve performance.
+      return Math.round(opacity * OPACITY_STEPS) / OPACITY_STEPS;
+  }
 
   function handleEvent(evt) {
     switch (evt.type) {
@@ -288,13 +298,13 @@ var GridManager = (function() {
 
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10) / 10;
+              overlayStyle.opacity = opacityStepFunction(opacity);
             };
           } else if (currentPage === landingPage) {
             setOpacityToOverlay = function() {
               var opacity = (Math.abs(deltaX) / windowWidth) *
                             opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10) / 10;
+              overlayStyle.opacity = opacityStepFunction(opacity);
             };
           } else {
             setOpacityToOverlay = function() {
@@ -303,7 +313,7 @@ var GridManager = (function() {
 
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10) / 10;
+              overlayStyle.opacity = opacityStepFunction(opacity);
             };
           }
 

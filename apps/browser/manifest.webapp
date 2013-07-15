@@ -39,8 +39,7 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/shared/resources/branding/Browser.png",
-    "120": "/shared/resources/branding/Browser.png",
-    "320": "/style/icons/320/Browser.png"
+    "120": "/shared/resources/branding/Browser.png"
   },
   "activities": {
     "view": {

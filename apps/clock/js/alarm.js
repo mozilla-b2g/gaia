@@ -45,7 +45,7 @@ var ClockView = {
   init: function cv_init() {
     this.container = document.getElementById('analog-clock-container');
 
-    document.addEventListener('mozvisibilitychange', this);
+    document.addEventListener('visibilitychange', this);
 
     this.updateDaydate();
     this.initClockface();
@@ -152,8 +152,8 @@ var ClockView = {
 
   handleEvent: function cv_handleEvent(evt) {
     switch (evt.type) {
-      case 'mozvisibilitychange':
-        if (document.mozHidden) {
+      case 'visibilitychange':
+        if (document.hidden) {
           if (this._updateDaydateTimeout) {
             window.clearTimeout(this._updateDaydateTimeout);
           }
@@ -164,7 +164,7 @@ var ClockView = {
             window.clearTimeout(this._updateAnalogClockTimeout);
           }
           return;
-        } else if (!document.mozHidden) {
+        } else if (!document.hidden) {
           // Refresh the view when app return to foreground.
           this.updateDaydate();
           if (this._clockMode === 'digital') {
@@ -267,79 +267,6 @@ var ClockView = {
     }
   }
 
-};
-
-var BannerView = {
-
-  _remainHours: 0,
-  _remainMinutes: 0,
-
-  get bannerCountdown() {
-    delete this.bannerCountdown;
-    return this.bannerCountdown = document.getElementById('banner-countdown');
-  },
-
-  init: function BV_init() {
-    this.bannerCountdown.addEventListener('click', this);
-  },
-
-  handleEvent: function al_handleEvent(evt) {
-    this.hideBannerStatus();
-  },
-
-  calRemainTime: function BV_calRemainTime(targetTime) {
-    var now = new Date();
-    var remainTime = targetTime.getTime() - now.getTime();
-    this._remainHours = Math.floor(remainTime / (60 * 60 * 1000)); // per hour
-    this._remainMinutes = Math.floor((remainTime / (60 * 1000)) -
-                          (this._remainHours * 60)); // per minute
-  },
-
-  setStatus: function BV_setStatus(nextAlarmFireTime) {
-    this.calRemainTime(nextAlarmFireTime);
-
-    var innerHTML = '';
-    if (this._remainHours === 0) {
-      innerHTML = _('countdown-lessThanAnHour', {
-        minutes: _('nMinutes', { n: this._remainMinutes })
-      });
-    } else if (this._remainHours < 24) {
-      innerHTML = _('countdown-moreThanAnHour', {
-        hours: _('nHours', { n: this._remainHours }),
-        minutes: _('nRemainMinutes', { n: this._remainMinutes })
-      });
-    } else {
-      var remainDays = Math.floor(this._remainHours / 24);
-      var remainHours = this._remainHours - (remainDays * 24);
-      innerHTML = _('countdown-moreThanADay', {
-        days: _('nRemainDays', { n: remainDays }),
-        hours: _('nRemainHours', { n: remainHours })
-      });
-    }
-    this.bannerCountdown.innerHTML = '<p>' + innerHTML + '</p>';
-
-    this.showBannerStatus();
-    var self = this;
-    window.setTimeout(function cv_hideBannerTimeout() {
-      self.setBannerStatus(false);
-    }, 4000);
-  },
-
-  setBannerStatus: function BV_setBannerStatus(visible) {
-    if (visible) {
-      this.bannerCountdown.classList.add('visible');
-    } else {
-      this.bannerCountdown.classList.remove('visible');
-    }
-  },
-
-  showBannerStatus: function BV_showBannerStatus() {
-    this.setBannerStatus(true);
-  },
-
-  hideBannerStatus: function BV_hideBannerStatus() {
-    this.setBannerStatus(false);
-  }
 };
 
 var AlarmList = {
@@ -512,129 +439,6 @@ var AlarmList = {
     AlarmManager.delete(alarm, function al_deleted() {
       self.refresh();
     });
-  }
-
-};
-
-var ActiveAlarmController = {
-/*
- * We maintain an alarm's life cycle immediately when the alarm goes off.
- * If user click the snooze button when the alarm goes off,
- * we request a snooze alarm with snoozeAlarmId immediately.
- *
- * If multiple alarms goes off in a period of time(even if in the same time),
- * we always stop the previous notification and handle it by its setting.
- * Such as following case:
- *   An once alarm should be turned off.
- *   A repeat alarm should be requested its next alarm.
- *   A snooze alarm should be turned off.
- */
-
-  _onFireAlarm: {},
-  _onFireChildWindow: null,
-
-  init: function am_init() {
-    var self = this;
-    navigator.mozSetMessageHandler('alarm', function gotMessage(message) {
-      self.onAlarmFiredHandler(message);
-    });
-    AlarmManager.updateAlarmStatusBar();
-  },
-
-  onAlarmFiredHandler: function aac_onAlarmFiredHandler(message) {
-    // We have to ensure the CPU doesn't sleep during the process of
-    // handling alarm message, so that it can be handled on time.
-    var cpuWakeLock = navigator.requestWakeLock('cpu');
-
-    // Set a watchdog to avoid locking the CPU wake lock too long,
-    // because it'd exhaust the battery quickly which is very bad.
-    // This could probably happen if the app failed to launch or
-    // handle the alarm message due to any unexpected reasons.
-    var unlockCpuWakeLock = function unlockCpuWakeLock() {
-      if (cpuWakeLock) {
-        cpuWakeLock.unlock();
-        cpuWakeLock = null;
-      }
-    };
-    setTimeout(unlockCpuWakeLock, 30000);
-
-    // receive and parse the alarm id from the message
-    var id = message.data.id;
-    var type = message.data.type;
-    // clear the requested id of went off alarm to DB
-    var clearAlarmRequestId = function clearAlarmRequestId(alarm, callback) {
-      if (type === 'normal') {
-        alarm.normalAlarmId = '';
-      } else {
-        alarm.snoozeAlarmId = '';
-      }
-
-      AlarmManager.putAlarm(alarm, function aac_putAlarm(alarmFromDB) {
-        // Set the next repeat alarm when nornal alarm goes off.
-        if (type === 'normal' && alarmFromDB.repeat !== '0000000' && callback) {
-          alarmFromDB.enabled = false;
-          callback(alarmFromDB);
-        } else {
-          // Except repeat alarm, the active alarm should be turned off.
-          if (!alarmFromDB.normalAlarmId)
-            AlarmList.toggleAlarmEnableState(false, alarmFromDB);
-        }
-      });
-    };
-
-    // set the next repeat alarm
-    var setRepeatAlarm = function setRepeatAlarm(alarm) {
-      AlarmList.toggleAlarmEnableState(true, alarm);
-    };
-
-    // use the alarm id to query db
-    // find out which alarm is being fired.
-    var self = this;
-    AlarmManager.getAlarmById(id, function aac_gotAlarm(alarm) {
-      if (!alarm) {
-        unlockCpuWakeLock();
-        return;
-      }
-      // clear the requested id of went off alarm to DB
-      clearAlarmRequestId(alarm, setRepeatAlarm);
-
-      // If previous active alarm is showing,
-      // turn it off and stop its notification
-      if (self._onFireChildWindow !== null &&
-        typeof self._onFireChildWindow !== 'undefined' &&
-        !self._onFireChildWindow.closed) {
-          if (self._onFireChildWindow.RingView) {
-            self._onFireChildWindow.RingView.stopAlarmNotification();
-          }
-        }
-
-      // prepare to pop out attention screen, ring the ringtone, vibrate
-      self._onFireAlarm = alarm;
-      var protocol = window.location.protocol;
-      var host = window.location.host;
-      self._onFireChildWindow =
-        window.open(protocol + '//' + host + '/onring.html',
-                    'ring_screen', 'attention');
-      self._onFireChildWindow.onload = function childWindowLoaded() {
-        unlockCpuWakeLock();
-      };
-
-    });
-    AlarmManager.updateAlarmStatusBar();
-  },
-
-  snoozeHandler: function aac_snoozeHandler() {
-    var id = this._onFireAlarm.id;
-    AlarmManager.getAlarmById(id, function aac_gotAlarm(alarm) {
-      alarm.enabled = true;
-      AlarmManager.putAlarm(alarm, function aac_putAlarm(alarm) {
-        AlarmManager.set(alarm, true);  // set a snooze alarm
-      });
-    });
-  },
-
-  getOnFireAlarm: function aac_getOnFireAlarm() {
-    return this._onFireAlarm;
   }
 
 };

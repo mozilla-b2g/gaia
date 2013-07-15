@@ -236,7 +236,9 @@ var AlarmEdit = {
   },
 
   initTimeSelect: function aev_initTimeSelect() {
-    this.timeSelect.value = this.alarm.hour + ':' + this.alarm.minute;
+    // The format of input type="time" should be in HH:MM
+    this.timeSelect.value = (this.alarm.hour < 10 ? '0' : '') +
+                            this.alarm.hour + ':' + this.alarm.minute;
   },
 
   getTimeSelect: function aev_getTimeSelect() {

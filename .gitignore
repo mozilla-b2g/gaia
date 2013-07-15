@@ -7,6 +7,7 @@
 manifest.appcache
 
 /apps/calendar/js/presets.js
+/apps/email/built/
 /apps/homescreen/js/init.json
 /apps/homescreen/js/hiddenapps.js
 /apps/settings/js/hiddenapps.js
@@ -20,16 +21,21 @@ manifest.appcache
 
 /apps/*/test/unit/_sandbox.html
 /apps/*/test/unit/_proxy.html
+/apps/*/locales-obj
 /apps/*/shared
 /apps/settings/resources/support.json
 /apps/settings/resources/sensors.json
-/apps/settings/resources/icc.json
+/apps/system/resources/icc.json
 /test_apps/*/test/unit/_sandbox.html
 /test_apps/*/test/unit/_proxy.html
+/test_apps/*/locales-obj
+/test_external_apps/*/locales-obj
 /showcase_apps/*/test/unit/_sandbox.html
 /showcase_apps/*/test/unit/_proxy.html
+/showcase_apps/*/locales-obj
 
 /profile/
+/profile-debug/
 /profile.tar.gz
 /.xulrunner-url
 /xulrunner/
@@ -47,3 +53,8 @@ manifest.appcache
 /outoftree_apps/
 
 /distribution/
+
+/.cproject
+/.project
+/.settings
+

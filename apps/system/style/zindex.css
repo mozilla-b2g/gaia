@@ -36,6 +36,10 @@
   z-index: 65536;
 }
 
+#screen > [data-z-index-level="hardware-buttons"] {
+  z-index: 65536;
+}
+
 #screen > [data-z-index-level="sleep-menu"] {
   z-index: 65536;
 }
@@ -101,23 +105,27 @@
   z-index: 2048;
 }
 
-#screen > [data-z-index-level="lockscreen-camera"] {
+/* Permission screen is here because of the lockscreen camera. */
+#screen > [data-z-index-level="permission-screen"] {
   z-index: 2047;
 }
 
-#screen > [data-z-index-level="simpin-dialog"] {
+#screen > [data-z-index-level="lockscreen-camera"] {
   z-index: 2046;
+}
+
+#screen > [data-z-index-level="simpin-dialog"] {
+  z-index: 2045;
 }
 
 /* Keep keyboard under lockscreen when locked */
 #screen.locked > [data-z-index-level="keyboard-frame"] {
-  z-index: 2045;
+  z-index: 2044;
 }
 
 /* Level 7: Dialog Module */
 #screen > [data-z-index-level="dialog-overlay"],
 #screen > [data-z-index-level="value-selector"],
-#screen > [data-z-index-level="permission-screen"],
 #screen > [data-z-index-level="app-install-dialog"],
 #screen > [data-z-index-level="updates-download-dialog"],
 #screen > [data-z-index-level="updates-viaDataConnection-dialog"],
@@ -204,6 +212,7 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="cards-view"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="attention-screen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"] {
+#screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"] {
   z-index: 2147483647;
 }

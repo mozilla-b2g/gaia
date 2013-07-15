@@ -79,10 +79,6 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type=
   white-space: nowrap;
 }
 
-body[role="application"] [role="dialog"]:not([data-type="edit"]) menu[data-items="2"]:not([type="toolbar"]) button {
-  width: -moz-calc((100% - 1rem) / 2);
-}
-
 body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type="action"]) menu:not([type="toolbar"]) button {
   -moz-box-sizing: border-box;
   background: url("images/ui/default.png") repeat-x scroll left bottom #FAFAFA;
@@ -103,7 +99,10 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type=
   text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
   vertical-align: middle;
   white-space: nowrap;
-  width: 100%;
+}
+
+body[role="application"] [role="dialog"]:not([data-type="edit"]) menu[data-items="2"]:not([type="toolbar"]) button {
+  width: -moz-calc((100% - 1rem) / 2);
 }
 
 body[role="application"] [role="dialog"]:not([data-type="edit"]) menu:not([type="toolbar"]):not([data-items="1"]) button:last-child {

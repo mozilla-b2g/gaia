@@ -140,10 +140,10 @@ var LockScreen = {
     document.addEventListener('visibilitychange', this);
 
     /* Gesture */
-    this.area.addEventListener('mousedown', this);
-    this.areaCamera.addEventListener('mousedown', this);
-    this.areaUnlock.addEventListener('mousedown', this);
-    this.iconContainer.addEventListener('mousedown', this);
+    this.area.addEventListener('touchstart', this);
+    this.areaCamera.addEventListener('touchstart', this);
+    this.areaUnlock.addEventListener('touchstart', this);
+    this.iconContainer.addEventListener('touchstart', this);
 
     /* Unlock & camera panel clean up */
     this.overlay.addEventListener('transitionend', this);
@@ -161,10 +161,14 @@ var LockScreen = {
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
       conn.addEventListener('voicechange', this);
-      conn.addEventListener('cardstatechange', this);
-      conn.addEventListener('iccinfochange', this);
       this.updateConnState();
       this.connstate.hidden = false;
+    }
+
+    /* icc state on lock screen */
+    if (IccHelper.enabled) {
+      IccHelper.addEventListener('cardstatechange', this);
+      IccHelper.addEventListener('iccinfochange', this);
     }
 
     var self = this;
@@ -188,6 +192,19 @@ var LockScreen = {
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
       self.airplaneMode = value;
       self.updateConnState();
+    });
+
+    SettingsListener.observe('accessibility.screenreader', false,
+                             function(value) {
+      self.screenReader = value;
+      if (value) {
+        self.overlay.classList.add('triggered');
+        self.overlay.classList.remove('elastic');
+        self.setElasticEnabled(false);
+      } else {
+        self.overlay.classList.remove('triggered');
+        self.setElasticEnabled(true);
+      }
     });
 
     SettingsListener.observe('wallpaper.image',
@@ -282,7 +299,7 @@ var LockScreen = {
           this.clock.start(this.refreshClock.bind(this));
 
           // Show the unlock keypad immediately
-          if (this.passCodeEnabled) {
+          if (this.passCodeEnabled && this._passCodeTimeoutCheck) {
             this.switchPanel('passcode');
           }
         }
@@ -308,7 +325,7 @@ var LockScreen = {
         this.handlePassCodeInput(evt.target.dataset.key);
         break;
 
-      case 'mousedown':
+      case 'touchstart':
         if (evt.target === this.areaUnlock ||
            evt.target === this.areaCamera) {
           evt.preventDefault();
@@ -342,24 +359,31 @@ var LockScreen = {
           maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
             (handle.offsetWidth - rightTarget.offsetWidth) / 2
         };
-        window.addEventListener('mouseup', this);
-        window.addEventListener('mousemove', this);
+        window.addEventListener('touchend', this);
+        window.addEventListener('touchmove', this);
 
         this._touch.touched = true;
-        this._touch.initX = evt.pageX;
-        this._touch.initY = evt.pageY;
+        this._touch.initX = evt.touches[0].pageX;
+        this._touch.initY = evt.touches[0].pageY;
         overlay.classList.add('touched');
         break;
 
-      case 'mousemove':
-        this.handleMove(evt.pageX, evt.pageY);
+      case 'touchmove':
+        this.handleMove(
+          evt.touches[0].pageX,
+          evt.touches[0].pageY
+        );
         break;
 
-      case 'mouseup':
-        window.removeEventListener('mousemove', this);
-        window.removeEventListener('mouseup', this);
+      case 'touchend':
+        window.removeEventListener('touchmove', this);
+        window.removeEventListener('touchend', this);
 
-        this.handleMove(evt.pageX, evt.pageY);
+        this.handleMove(
+          evt.changedTouches[0].pageX,
+          evt.changedTouches[0].pageY
+        );
+
         this.handleGesture();
         delete this._touch;
         this.overlay.classList.remove('touched');
@@ -718,11 +742,8 @@ var LockScreen = {
             self.areaHandle.style.opacity =
             self.areaUnlock.style.opacity =
             self.areaCamera.style.opacity = '';
-          self.overlay.classList.remove('triggered');
-          self.areaHandle.classList.remove('triggered');
-          self.areaCamera.classList.remove('triggered');
-          self.areaUnlock.classList.remove('triggered');
-
+          if (!self.screenReader)
+            self.overlay.classList.remove('triggered');
           clearTimeout(self.triggeredTimeoutId);
           self.setElasticEnabled(false);
         };
@@ -797,6 +818,9 @@ var LockScreen = {
     if (!conn)
       return;
 
+    if (!IccHelper.enabled)
+      return;
+
     navigator.mozL10n.ready(function() {
       var connstateLine1 = this.connstate.firstElementChild;
       var connstateLine2 = this.connstate.lastElementChild;
@@ -851,7 +875,7 @@ var LockScreen = {
       if (voice.emergencyCallsOnly) {
         updateConnstateLine1('emergencyCallsOnly');
 
-        switch (conn.cardState) {
+        switch (IccHelper.cardState) {
           case 'unknown':
             updateConnstateLine2('emergencyCallsOnly-unknownSIMState');
             break;
@@ -1046,7 +1070,7 @@ var LockScreen = {
   },
 
   playElastic: function ls_playElastic() {
-    if (this._touch && this._touch.touched)
+    if ((this._touch && this._touch.touched) || this.screenReader)
       return;
 
     var overlay = this.overlay;

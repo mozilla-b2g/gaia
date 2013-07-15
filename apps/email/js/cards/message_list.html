@@ -1,0 +1,111 @@
+<!-- Lists the messages in a folder -->
+<div class="card-message-list card" data-tray-target>
+  <!-- Non-search header -->
+  <section class="msg-list-header msg-nonsearch-only" role="region">
+    <header>
+      <a href="#" class="msg-folder-list-btn">
+        <span class="icon icon-menu">menu</span>
+      </a>
+      <menu type="toolbar">
+        <a href="#" class="msg-compose-btn">
+          <span class="icon icon-compose">compose</span>
+        </a>
+      </menu>
+      <h1 class="msg-list-header-folder-label header-label"></h1>
+    </header>
+  </section>
+  <!-- Multi-edit state header -->
+  <section class="msg-listedit-header skin-dark collapsed" role="region">
+    <header>
+      <a href="#" class="msg-listedit-cancel-btn">
+        <span class="icon icon-close"></span>
+      </a>
+      <h1 class="msg-listedit-header-label"></h1>
+    </header>
+  </section>
+  <!-- Search header -->
+  <section role="region"
+           class="msg-search-header msg-search-only">
+    <header>
+      <a href="#" class="msg-search-cancel">
+        <span class="icon icon-close"
+              data-l10n-id="message-search-cancel-accessible"></span>
+      </a>
+      <form>
+        <input type="text" required="required" class="msg-search-text"
+               data-l10n-id="message-search-input" />
+        <button type="reset" data-l10n-id="form-clear-input"></button>
+      </form>
+    </header>
+    <!-- Search filter switcher -->
+    <header class="msg-search-controls-bar">
+      <ul role="tablist" class="filter" data-type="filter" data-items="5">
+        <li role="tab" class="msg-search-from msg-search-filter"
+            data-filter="author">
+          <a data-l10n-id="message-search-from">FroM</a></li>
+        <li role="tab" class="msg-search-to msg-search-filter"
+            data-filter="recipients">
+          <a data-l10n-id="message-search-to">tO</a></li>
+        <li role="tab" class="msg-search-subject msg-search-filter"
+             data-filter="subject">
+          <a data-l10n-id="message-search-subject">SubjecT</a>
+        </li>
+        <li role="tab" class="msg-search-body msg-search-filter"
+             data-filter="body">
+          <a data-l10n-id="message-search-body">BodY</a></li>
+        <li role="tab" class="msg-search-body msg-search-filter"
+            data-filter="all" aria-selected>
+          <a data-l10n-id="message-search-all">AlL</a></li>
+      </ul>
+    </header>
+  </section>
+  <!-- Scroll region -->
+  <div class="msg-list-scrollouter">
+    <!-- exists so we can force a minimum height -->
+    <div class="msg-list-scrollinner">
+      <!-- The search textbox hides under the lip of the messages.
+           As soon as any typing happens in it, we push the search
+           controls card. -->
+      <div class="msg-search-tease-bar msg-nonsearch-only">
+        <input class="msg-search-text-tease" type="text"
+               data-l10n-id="message-search-input" />
+      </div>
+      <div class="msg-messages-container">
+      </div>
+      <!-- maintain vertical space for the syncing/sync more div's
+           regardless of their displayed status so we don't scroll them
+           out of the way -->
+      <div class="msg-messages-sync-container">
+        <p class="msg-messages-syncing collapsed">
+          <span data-l10n-id="messages-syncing">Message loadinG</span>
+        </p>
+        <p class="msg-messages-sync-more collapsed">
+          <span data-l10n-id="messages-sync-more">SynC MorE</span>
+        </p>
+      </div>
+      <div class="bottom-toolbar-spacer"></div>
+    </div>
+  </div>
+  <!-- New email notification bar -->
+  <div class="msg-list-topbar collapsed"></div>
+  <!-- Conveys background send, plus undo-able recent actions -->
+  <div class="msg-activity-infobar hidden">
+  </div>
+  <!-- Toolbar for non-multi-edit state -->
+  <div class="msg-list-action-toolbar bottom-toolbar">
+    <button class="msg-refresh-btn bottom-btn msg-nonsearch-only"
+            data-state="synchronized"></button>
+    <button class="msg-search-btn bottom-btn msg-nonsearch-only"></button>
+    <button class="msg-edit-btn bottom-btn"></button>
+  </div>
+  <!-- Toolbar for multi-edit state -->
+  <div class="msg-listedit-action-toolbar bottom-edit-toolbar bottom-toolbar collapsed">
+    <button class="msg-delete-btn bottom-btn"></button>
+    <button class="msg-star-btn bottom-btn"></button>
+    <button class="msg-mark-read-btn bottom-btn"></button>
+    <button class="msg-move-btn bottom-btn"></button>
+  </div>
+  <div class="msg-list-empty-container collapsed">
+    <p class="msg-list-empty-message-text" data-l10n-id="messages-folder-empty">No messagE</p>
+  </div>
+</div>

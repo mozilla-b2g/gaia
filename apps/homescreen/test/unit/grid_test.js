@@ -36,7 +36,6 @@ mocksHelperForGrid.init();
 suite('grid.js >', function() {
   var TAP_THRESHOLD = 10;
   var SWIPE_THRESHOLD = 0.5;
-  var TINY_TIMEOUT = 50;
   var SAVE_STATE_WAIT_TIMEOUT = 200;
 
   var wrapperNode, containerNode;
@@ -118,6 +117,29 @@ suite('grid.js >', function() {
     wrapperNode.parentNode.removeChild(wrapperNode);
   });
 
+  function sendTouchEvent(type, node, coords) {
+    if (typeof document.createTouch === 'function') {
+      var touch = document.createTouch(window, node, 1,
+        coords.x, coords.y, coords.x, coords.y);
+      var touchList = document.createTouchList(touch);
+
+      var evt = document.createEvent('TouchEvent');
+      evt.initTouchEvent(type, true, true, window,
+        0, false, false, false, false,
+        touchList, touchList, touchList);
+      node.dispatchEvent(evt);
+    }
+  }
+
+  function sendMouseEvent(type, node, coords) {
+    var evt = document.createEvent('MouseEvent');
+
+    evt.initMouseEvent(type, true, true, window,
+      0, coords.x, coords.y, coords.x, coords.y,
+      false, false, false, false, 0, null);
+    containerNode.dispatchEvent(evt);
+  }
+
   function ensurePanningSuite() {
     suite('ensurePanning >', function() {
       var realRequestAnimationFrame;
@@ -141,28 +163,9 @@ suite('grid.js >', function() {
         realRequestAnimationFrame = null;
       });
 
-      function sendTouchEvent(type, node, coords) {
-        var touch = document.createTouch(window, node, 1,
-          coords.x, coords.y, coords.x, coords.y);
-        var touchList = document.createTouchList(touch);
+      test('should be able to pan', function() {
+        this.sinon.useFakeTimers();
 
-        var evt = document.createEvent('TouchEvent');
-        evt.initTouchEvent(type, true, true, window,
-          0, false, false, false, false,
-          touchList, touchList, touchList);
-        node.dispatchEvent(evt);
-      }
-
-      function sendMouseEvent(type, node, coords) {
-        var evt = document.createEvent('MouseEvent');
-
-        evt.initMouseEvent(type, true, true, window,
-          0, coords.x, coords.y, coords.x, coords.y,
-          false, false, false, false, 0, null);
-        containerNode.dispatchEvent(evt);
-      }
-
-      test('should be able to pan', function(done) {
         var start = { x: 100, y: 100 };
         var move = { x: 200, y: 100 };
 
@@ -179,18 +182,102 @@ suite('grid.js >', function() {
 
         assert.equal(document.body.dataset.transitioning, 'true');
 
-        setTimeout(function() {
-          var currentPage = document.getElementById('landing-page');
-          assert.include(currentPage.style.MozTransform, 'translateX');
-          sendTouchEvent('touchend', containerNode, move);
-          sendMouseEvent('mouseup', containerNode, move);
-          done();
-        }, TINY_TIMEOUT);
+        this.sinon.clock.tick();
+        var currentPage = document.getElementById('landing-page');
+        assert.include(currentPage.style.MozTransform, 'translateX');
+        sendTouchEvent('touchend', containerNode, move);
+        sendMouseEvent('mouseup', containerNode, move);
       });
     });
   }
 
   ensurePanningSuite();
+
+  suite('ensureTapping >', function() {
+    var page, icons = [];
+
+    function createIcons(num) {
+      for (var i = 0; i < num; i++) {
+        var icon = (new MockIcon()).render();
+        icons.push(icon);
+        page.appendChild(icon);
+      }
+    }
+
+    function removeIcons() {
+      icons.forEach(function(icon) {
+        page.removeChild(icon);
+      });
+    }
+
+    suiteSetup(function() {
+      page = wrapperNode.querySelector('.page');
+      createIcons(2);
+    });
+
+    suiteTeardown(function() {
+      removeIcons();
+    });
+
+    test('Clicking on an icon > it should be active ', function() {
+      this.sinon.useFakeTimers();
+
+      var icon = icons[0];
+      var rect = icon.getBoundingClientRect();
+      var point = { x: rect.left + 1, y: rect.top + 1 };
+
+      // Tap on icon
+      sendTouchEvent('touchstart', icon, point);
+      sendMouseEvent('mousedown', icon, point);
+
+      assert.isTrue(icon.classList.contains('active'));
+
+      this.sinon.clock.tick();
+
+      sendTouchEvent('touchend', containerNode, point);
+      sendMouseEvent('mouseup', containerNode, point);
+
+      // Icon lost the focus
+      assert.isFalse(icon.classList.contains('active'));
+    });
+
+    test('Clicking two icons at the same time > just one is active ',
+         function() {
+      this.sinon.useFakeTimers();
+
+      var icon1 = icons[0];
+      var icon2 = icons[1];
+
+      var rect = icon1.getBoundingClientRect();
+      var point1 = { x: rect.left + 1, y: rect.top + 1 };
+
+      // Tap on first icon
+      sendTouchEvent('touchstart', icon1, point1);
+      sendMouseEvent('mousedown', icon1, point1);
+
+      rect = icon2.getBoundingClientRect();
+      var point2 = { x: rect.left + 1, y: rect.top + 1 };
+
+      assert.isTrue(icon1.classList.contains('active'));
+
+      // Tap on second icon
+      sendTouchEvent('touchstart', icon2, point2);
+      sendMouseEvent('mousedown', icon2, point2);
+
+      assert.isFalse(icon1.classList.contains('active'));
+      assert.isTrue(icon2.classList.contains('active'));
+
+      this.sinon.clock.tick();
+
+      sendTouchEvent('touchend', containerNode, point2);
+      sendMouseEvent('mouseup', containerNode, point2);
+
+      // No one is active
+      assert.isFalse(icon1.classList.contains('active'));
+      assert.isFalse(icon2.classList.contains('active'));
+    });
+
+  });
 
   suite('onDragStart >', function() {
     setup(function() {

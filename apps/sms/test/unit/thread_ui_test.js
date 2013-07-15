@@ -1,8 +1,6 @@
 'use strict';
 
-// remove this when https://github.com/visionmedia/mocha/issues/819 is merged in
-// mocha and when we have that new mocha in test agent
-mocha.setup({ globals: ['alert', '0', '1'] });
+mocha.setup({ globals: ['alert'] });
 
 // For Desktop testing
 if (!navigator.mozContacts) {
@@ -16,6 +14,7 @@ requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
 
 requireApp('sms/test/unit/mock_alert.js');
+requireApp('sms/test/unit/mock_link_action_handler.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_l10n.js');
@@ -24,13 +23,15 @@ requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_link_helper.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_activity_picker.js');
 requireApp('sms/test/unit/mock_action_menu.js');
-requireApp('sms/test/unit/mock_custom_dialog.js');
+requireApp('sms/test/unit/mock_dialog.js');
+requireApp('sms/test/unit/mock_smil.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -38,12 +39,14 @@ var mocksHelperForThreadUI = new MocksHelper([
   'Utils',
   'Settings',
   'Recipients',
+  'LinkActionHandler',
   'LinkHelper',
   'MozActivity',
   'ActivityPicker',
   'OptionMenu',
-  'CustomDialog',
-  'Contacts'
+  'Dialog',
+  'Contacts',
+  'SMIL'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -59,14 +62,22 @@ suite('thread_ui.js >', function() {
 
   var mocksHelper = mocksHelperForThreadUI;
   var testImageBlob;
+  var oversizedImageBlob;
   var testAudioBlob;
   var testVideoBlob;
 
   function mockAttachment(size) {
     return new MockAttachment({
-      type: 'image/jpeg',
+      type: 'video/ogg',
       size: size
-    }, 'kitten-450.jpg');
+    }, 'video.ogv');
+  }
+
+  function mockImgAttachment(isOversized) {
+    var attachment = isOversized ?
+      new MockAttachment(oversizedImageBlob, 'testOversized.jpg') :
+      new MockAttachment(testImageBlob, 'test.jpg');
+    return attachment;
   }
 
   suiteSetup(function(done) {
@@ -92,6 +103,9 @@ suite('thread_ui.js >', function() {
     }
     getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
       testImageBlob = blob;
+    });
+    getAsset('/test/unit/media/IMG_0554.jpg', function(blob) {
+      oversizedImageBlob = blob;
     });
     getAsset('/test/unit/media/audio.oga', function(blob) {
       testAudioBlob = blob;
@@ -254,6 +268,38 @@ suite('thread_ui.js >', function() {
         assert.isFalse(sendButton.disabled);
         Compose.append('Hola');
 
+        assert.isTrue(sendButton.disabled);
+      });
+
+      test('When adding an image that is under the limitation, button ' +
+           'should be enabled right after appended',
+        function() {
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+        Compose.append(mockImgAttachment());
+        assert.isFalse(sendButton.disabled);
+      });
+
+      test('When adding an oversized image, button should be disabled while ' +
+           'resizing and enabled when resize complete',
+        function(done) {
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+        function onInput() {
+          if (!Compose.isResizing) {
+            Compose.off('input', onInput);
+            assert.isFalse(sendButton.disabled);
+            done();
+          }
+        };
+        Compose.on('input', onInput);
+        Compose.append(mockImgAttachment(true));
         assert.isTrue(sendButton.disabled);
       });
     });
@@ -580,15 +626,12 @@ suite('thread_ui.js >', function() {
   });
 
   suite('message type conversion >', function() {
-    var convertBanner, convertBannerText, fakeTime, form;
+    var convertBanner, convertBannerText, form;
     setup(function() {
-      fakeTime = sinon.useFakeTimers();
+      this.sinon.useFakeTimers();
       convertBanner = document.getElementById('messages-convert-notice');
       convertBannerText = convertBanner.querySelector('p');
       form = document.getElementById('messages-compose-form');
-    });
-    teardown(function() {
-      fakeTime.restore();
     });
     test('sms to mms and back displays banner', function() {
       // cause a type switch event to happen
@@ -599,11 +642,11 @@ suite('thread_ui.js >', function() {
       assert.equal(convertBannerText.textContent, 'converted-to-mms',
         'conversion banner has mms message');
 
-      fakeTime.tick(2999);
+      this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for just shy of 3 seconds');
 
-      fakeTime.tick(1);
+      this.sinon.clock.tick(1);
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
@@ -615,11 +658,11 @@ suite('thread_ui.js >', function() {
       assert.equal(convertBannerText.textContent, 'converted-to-sms',
         'conversion banner has sms message');
 
-      fakeTime.tick(2999);
+      this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for just shy of 3 seconds');
 
-      fakeTime.tick(1);
+      this.sinon.clock.tick(1);
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
@@ -640,11 +683,11 @@ suite('thread_ui.js >', function() {
       assert.equal(convertBannerText.textContent, 'converted-to-mms',
         'conversion banner has mms message');
 
-      fakeTime.tick(2999);
+      this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for just shy of 3 seconds');
 
-      fakeTime.tick(1);
+      this.sinon.clock.tick(1);
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
@@ -656,11 +699,11 @@ suite('thread_ui.js >', function() {
       assert.equal(convertBannerText.textContent, 'converted-to-sms',
         'conversion banner has sms message');
 
-      fakeTime.tick(2999);
+      this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for just shy of 3 seconds');
 
-      fakeTime.tick(1);
+      this.sinon.clock.tick(1);
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
@@ -678,7 +721,7 @@ suite('thread_ui.js >', function() {
       assert.equal(convertBannerText.textContent, 'converted-to-mms',
         'conversion banner has mms message');
 
-      fakeTime.tick(1500);
+      this.sinon.clock.tick(1500);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is still shown');
 
@@ -691,11 +734,11 @@ suite('thread_ui.js >', function() {
         'conversion banner has sms message');
 
       // long enough to go past the previous timeout 1500 + 2000 > 3000
-      fakeTime.tick(2000);
+      this.sinon.clock.tick(2000);
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is still shown');
 
-      fakeTime.tick(1000);
+      this.sinon.clock.tick(1000);
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
@@ -754,29 +797,75 @@ suite('thread_ui.js >', function() {
           assert.isTrue(this.container.classList.contains('sending'));
         });
       });
-      suite('send message in airplane mode >', function() {
-        var realMozSettings;
+      suite('show error message when send message unsuccessfully', function() {
         setup(function() {
-          MockNavigatorSettings.createLock().set({
-            'ril.radio.disabled' : true
-          });
+          MockDialog.mSetup();
         });
 
-        suiteSetup(function() {
-          realMozSettings = navigator.mozSettings;
-          navigator.mozSettings = MockNavigatorSettings;
-        });
-        suiteTeardown(function() {
-          navigator.mozSettings = realMozSettings;
+        teardown(function() {
+          MockDialog.mTeardown();
         });
 
-        test('airplane alert is visible', function(done) {
-          ThreadUI.onMessageFailed(this.fakeMessage);
-          setTimeout(function() {
-            assert.isTrue(MockCustomDialog.mShown);
-            done();
-          });
+        test('show general error for no signal error', function() {
+          ThreadUI.showSendMessageError('NoSignalError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendGeneralErrorTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendGeneralErrorBody');
         });
+
+        test('show general error for not found error', function() {
+          ThreadUI.showSendMessageError('NotFoundError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendGeneralErrorTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendGeneralErrorBody');
+        });
+
+        test('show general error for unknown error', function() {
+          ThreadUI.showSendMessageError('UnknownError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendGeneralErrorTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendGeneralErrorBody');
+        });
+
+        test('show general error for internal error', function() {
+          ThreadUI.showSendMessageError('InternalError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendGeneralErrorTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendGeneralErrorBody');
+        });
+
+        test('show no SIM card', function() {
+          ThreadUI.showSendMessageError('NoSimCardError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendNoSimCardTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendNoSimCardBody');
+        });
+
+        test('show air plane mode', function() {
+          ThreadUI.showSendMessageError('RadioDisabledError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendAirplaneModeTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendAirplaneModeBody');
+        });
+      });
+    });
+
+    suite('onDeliverySuccess >', function() {
+      test('adds the "delivered" class to the message element', function() {
+        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        assert.isTrue(this.container.classList.contains('delivered'));
       });
     });
   });
@@ -819,6 +908,36 @@ suite('thread_ui.js >', function() {
       var message = ThreadUI.container.querySelector(
         '[data-message-id="' + this.targetMsg.id + '"]');
       assert.notEqual(message, this.original);
+    });
+  });
+
+  suite('buildMessageDOM >', function() {
+    setup(function() {
+      this.sinon.spy(MockUtils, 'escapeHTML');
+      this.sinon.stub(MockSMIL, 'parse');
+    });
+
+    function buildSMS(payload) {
+      return MockMessages.sms({ body: payload });
+    }
+
+    function buildMMS(payload) {
+      return MockMessages.mms({
+        attachments: [new Blob([payload], {type: 'text/plain'})]
+      });
+    }
+
+    test('escapes the body for SMS', function() {
+      var payload = 'hello <a href="world">world</a>';
+      ThreadUI.buildMessageDOM(buildSMS(payload));
+      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+    });
+
+    test('escapes all text for MMS', function() {
+      var payload = 'hello <a href="world">world</a>';
+      MockSMIL.parse.yields([{ text: payload }]);
+      ThreadUI.buildMessageDOM(buildMMS(payload));
+      assert.ok(MockUtils.escapeHTML.calledWith(payload));
     });
   });
 
@@ -869,16 +988,12 @@ suite('thread_ui.js >', function() {
       expiryDate: new Date(Date.now() - ONE_DAY_TIME)
     }];
     setup(function() {
-      sinon.stub(Utils.date.format, 'localeFormat', function() {
+      this.sinon.stub(Utils.date.format, 'localeFormat', function() {
         return 'date_stub';
       });
-      sinon.stub(MessageManager, 'retrieveMMS', function() {
+      this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
-    });
-    teardown(function() {
-      Utils.date.format.localeFormat.restore();
-      MessageManager.retrieveMMS.restore();
     });
     suite('pending message', function() {
       var message = testMessages[0];
@@ -1175,15 +1290,10 @@ suite('thread_ui.js >', function() {
         1);
 
       this.getMessageReq = {};
-      sinon.stub(MessageManager, 'getMessage')
+      this.sinon.stub(MessageManager, 'getMessage')
         .returns(this.getMessageReq);
-      sinon.stub(MessageManager, 'deleteMessage').callsArgWith(1, true);
-      sinon.stub(MessageManager, 'resendMessage');
-    });
-    teardown(function() {
-      MessageManager.getMessage.restore();
-      MessageManager.deleteMessage.restore();
-      MessageManager.resendMessage.restore();
+      this.sinon.stub(MessageManager, 'deleteMessage').callsArgWith(1, true);
+      this.sinon.stub(MessageManager, 'resendMessage');
     });
 
     // TODO: Implement this functionality in a specialized method and update
@@ -1210,13 +1320,110 @@ suite('thread_ui.js >', function() {
       this.getMessageReq.result = this.targetMsg;
       this.getMessageReq.onsuccess();
 
-      assert.deepEqual(MessageManager.resendMessage.args[0],
-        [this.targetMsg]);
+      var args = MessageManager.resendMessage.args[0];
+      assert.deepEqual(args[0], this.targetMsg);
+    });
+  });
+
+  // Bug 890206 - Resending a message with delivery status
+  // error on a thread with just that message, should leave
+  // the thread with just one message.
+  suite('Message error resent in thread with 1 message', function() {
+    setup(function() {
+      ThreadUI.appendMessage({
+        id: 23,
+        type: 'sms',
+        body: 'This is a error sms',
+        delivery: 'error',
+        timestamp: new Date()
+      });
+      sinon.stub(window, 'confirm');
+      this.errorMsg = ThreadUI.container.querySelector('.error');
+    });
+    teardown(function() {
+      window.confirm.restore();
+    });
+
+    test('clicking on an error message bubble in a thread with 1 message ' +
+      'should try to resend and leave a thread with 1 message',
+      function() {
+      window.confirm.returns(true);
+      this.errorMsg.querySelector('.pack-end').click();
+      assert.equal(ThreadUI.container.querySelectorAll('li').length, 1);
     });
   });
 
   // TODO: Move these tests to an integration test suite.
   // Bug 868056 - Clean up SMS test suite
+
+  suite('Actions on the links >', function() {
+    var messageId = 23, link, phone = '123123123';
+    setup(function() {
+      this.sinon.spy(LinkActionHandler, 'handleTapEvent');
+      this.sinon.spy(LinkActionHandler, 'handleLongPressEvent');
+
+      this.sinon.stub(LinkHelper, 'searchAndLinkClickableData', function() {
+        return '<a data-phonenumber="' + phone +
+        '" data-action="phone-link">' + phone + '</a>';
+      });
+
+      ThreadUI.appendMessage({
+        id: messageId,
+        type: 'sms',
+        body: 'This is a test with 123123123',
+        delivery: 'error',
+        timestamp: new Date()
+      });
+      // Retrieve DOM element for executing the event
+      var messageDOM = document.getElementById('message-' + messageId);
+      link = messageDOM.querySelector('a');
+    });
+
+    teardown(function() {
+      ThreadUI.container.innerHTML = '';
+      link = null;
+    });
+
+    test(' "click"', function() {
+      // In this case we are checking the 'click' action on a link
+      link.click();
+      // This 'click' was handled properly?
+      assert.ok(LinkActionHandler.handleTapEvent.called);
+      assert.isFalse(LinkActionHandler.handleLongPressEvent.called);
+    });
+
+    test(' "contextmenu"', function() {
+      var contextMenuEvent = new CustomEvent('contextmenu', {
+        'bubbles': true,
+        'cancelable': true
+      });
+      this.sinon.spy(contextMenuEvent, 'stopPropagation');
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      // Was the propagation stopped?
+      assert.ok(contextMenuEvent.stopPropagation.called);
+      assert.ok(contextMenuEvent.defaultPrevented);
+      // This 'context-menu' was handled properly?
+      assert.isFalse(LinkActionHandler.handleTapEvent.called);
+      assert.ok(LinkActionHandler.handleLongPressEvent.called);
+    });
+
+    test(' "contextmenu" after "click"', function() {
+      var contextMenuEvent = new CustomEvent('contextmenu', {
+        'bubbles': true,
+        'cancelable': true
+      });
+      // Clicking on the element
+      link.click();
+      // After clicking, we dispatch a context menu
+      link.dispatchEvent(contextMenuEvent);
+      // Are 'click' and 'contextmenu' working properly?
+      assert.ok(LinkActionHandler.handleTapEvent.called);
+      assert.ok(LinkActionHandler.handleLongPressEvent.called);
+    });
+  });
+
+
   suite('Message resending UI', function() {
     setup(function() {
       ThreadUI.appendMessage({
@@ -1233,16 +1440,12 @@ suite('thread_ui.js >', function() {
         delivery: 'sent',
         timestamp: new Date()
       });
-      sinon.stub(window, 'confirm');
-      sinon.stub(ThreadUI, 'resendMessage');
+      this.sinon.stub(window, 'confirm');
+      this.sinon.stub(ThreadUI, 'resendMessage');
       this.elems = {
         errorMsg: ThreadUI.container.querySelector('.error'),
         sentMsg: ThreadUI.container.querySelector('.sent')
       };
-    });
-    teardown(function() {
-      window.confirm.restore();
-      ThreadUI.resendMessage.restore();
     });
     test('clicking on "pack-end" aside in an error message' +
       'triggers a confirmation dialog',
@@ -1334,7 +1537,7 @@ suite('thread_ui.js >', function() {
         name: 'imageTest.jpg',
         blob: testImageBlob
       }];
-      var viewSpy = sinon.spy(Attachment.prototype, 'view');
+      var viewSpy = this.sinon.spy(Attachment.prototype, 'view');
 
       // quick dirty creation of a thread with image:
       var output = ThreadUI.createMmsContent(inputArray);
@@ -1350,8 +1553,6 @@ suite('thread_ui.js >', function() {
 
       assert.equal(viewSpy.callCount, 1);
       assert.ok(viewSpy.calledWith, { allowSave: true });
-
-      viewSpy.reset();
     });
   });
 
@@ -1367,7 +1568,7 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
       assert.include(html, 'Pepito O\'Hare');
@@ -1383,7 +1584,7 @@ suite('thread_ui.js >', function() {
         input: 'Pepito O\'Hare',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1404,7 +1605,7 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1424,7 +1625,7 @@ suite('thread_ui.js >', function() {
         input: '346578888888',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1445,7 +1646,7 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1464,7 +1665,7 @@ suite('thread_ui.js >', function() {
         input: '346578888888',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1483,7 +1684,7 @@ suite('thread_ui.js >', function() {
         input: 'foo',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1500,7 +1701,7 @@ suite('thread_ui.js >', function() {
         input: '346578888888',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
 
@@ -1511,7 +1712,49 @@ suite('thread_ui.js >', function() {
       );
     });
 
-    test('Rendered Contact omits numbers in recipient list', function() {
+    test('Rendered Contact w/ multiple: one', function() {
+      var target = document.createElement('ul');
+
+      ThreadUI.renderContact({
+        contact: MockContact(),
+        input: '+12125559999',
+        target: target,
+        isContact: true,
+        isSuggestion: false
+      });
+
+      assert.equal(target.children.length, 1);
+    });
+
+    test('Rendered Contact w/ multiple: one w/ minimal match', function() {
+      var target = document.createElement('ul');
+
+      ThreadUI.renderContact({
+        contact: MockContact(),
+        input: '5559999',
+        target: target,
+        isContact: true,
+        isSuggestion: false
+      });
+
+      assert.equal(target.children.length, 1);
+    });
+
+    test('Rendered Contact w/ multiple: all (isSuggestion)', function() {
+      var target = document.createElement('ul');
+
+      ThreadUI.renderContact({
+        contact: MockContact(),
+        input: '+12125559999',
+        target: target,
+        isContact: true,
+        isSuggestion: true
+      });
+
+      assert.equal(target.children.length, 2);
+    });
+
+    test('Rendered Contact omit numbers already in recipient list', function() {
       var ul = document.createElement('ul');
       var contact = new MockContact();
       var html;
@@ -1526,7 +1769,7 @@ suite('thread_ui.js >', function() {
         input: '+346578888888',
         target: ul,
         isContact: true,
-        isHighlighted: true
+        isSuggestion: true
       });
 
       html = ul.innerHTML;
@@ -1536,7 +1779,7 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('Header Actions', function() {
+  suite('Header Actions/Display', function() {
     setup(function() {
       window.location.hash = '';
       MockActivityPicker.call.mSetup();
@@ -1550,116 +1793,377 @@ suite('thread_ui.js >', function() {
       MockOptionMenu.mTeardown();
     });
 
-    test('Single participant: Contact Options (known)', function() {
+    suite('OptionMenu', function() {
 
-      Threads.set(1, {
-        participants: ['999']
+      suite('activateContact', function() {
+        test('Single known', function() {
+
+          Threads.set(1, {
+            participants: ['999']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.activateContact({
+            number: '999',
+            isContact: true
+          });
+
+          assert.equal(MockOptionMenu.calls.length, 0);
+          assert.ok(MockActivityPicker.call.called);
+          assert.equal(MockActivityPicker.call.calledWith, '999');
+        });
+
+        test('Single unknown', function() {
+
+          Threads.set(1, {
+            participants: ['999']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.activateContact({
+            number: '999',
+            isContact: false
+          });
+
+          var items = MockOptionMenu.calls[0].items;
+
+          assert.equal(MockOptionMenu.calls.length, 1);
+          assert.equal(items.length, 4);
+
+          // The first item is a "call" option
+          assert.equal(items[0].name, 'call');
+
+          // The second item is a "createNewContact" option
+          assert.equal(items[1].name, 'createNewContact');
+
+          // The third item is a "addToExistingContact" option
+          assert.equal(items[2].name, 'addToExistingContact');
+
+          // The fourth and last item is a "cancel" option
+          assert.equal(items[3].name, 'cancel');
+        });
+
+        test('Multiple known', function() {
+
+          Threads.set(1, {
+            participants: ['999', '888']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.activateContact({
+            number: '999',
+            isContact: true
+          });
+
+          var items = MockOptionMenu.calls[0].items;
+
+          assert.equal(MockOptionMenu.calls.length, 1);
+          assert.equal(items.length, 3);
+
+          // The first item is a "call" option
+          assert.equal(items[0].name, 'call');
+
+          // The second item is a "send message" option
+          assert.equal(items[1].name, 'sendMessage');
+
+          // The third and last item is a "cancel" option
+          assert.equal(items[2].name, 'cancel');
+        });
+
+        test('Multiple unknown', function() {
+
+          Threads.set(1, {
+            participants: ['999', '888']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.activateContact({
+            number: '999',
+            isContact: false
+          });
+
+          var items = MockOptionMenu.calls[0].items;
+
+          assert.equal(MockOptionMenu.calls.length, 1);
+          assert.equal(items.length, 5);
+
+          // The first item is a "call" option
+          assert.equal(items[0].name, 'call');
+
+          // The second item is a "sendMessage" option
+          assert.equal(items[1].name, 'sendMessage');
+
+          // The third item is a "createNewContact" option
+          assert.equal(items[2].name, 'createNewContact');
+
+          // The fourth item is a "addToExistingContact" option
+          assert.equal(items[3].name, 'addToExistingContact');
+
+          // The fifth and last item is a "cancel" option
+          assert.equal(items[4].name, 'cancel');
+        });
       });
 
-      window.location.hash = '#thread=1';
+      suite('onHeaderActivation', function() {
+        test('Single known', function() {
 
-      ThreadUI.headerText.dataset.isContact = true;
-      ThreadUI.headerText.dataset.number = '999';
+          Threads.set(1, {
+            participants: ['999']
+          });
 
-      ThreadUI.onHeaderActivation();
+          window.location.hash = '#thread=1';
 
-      var calls = MockOptionMenu.calls;
+          ThreadUI.headerText.dataset.isContact = true;
+          ThreadUI.headerText.dataset.number = '999';
 
-      assert.equal(calls.length, 1);
-      assert.equal(calls[0].section, '999');
-      assert.equal(calls[0].items.length, 3);
-      assert.equal(typeof calls[0].complete, 'function');
+          ThreadUI.onHeaderActivation();
+
+          var calls = MockOptionMenu.calls;
+
+          // Does not initiate an OptionMenu
+          assert.equal(MockOptionMenu.calls.length, 0);
+
+          // Does initiate a "call" activity
+          assert.equal(MockActivityPicker.call.called, 1);
+        });
+
+        test('Single unknown', function() {
+
+          Threads.set(1, {
+            participants: ['777']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.headerText.dataset.isContact = false;
+          ThreadUI.headerText.dataset.number = '777';
+
+          ThreadUI.onHeaderActivation();
+
+          var calls = MockOptionMenu.calls;
+
+          assert.equal(calls.length, 1);
+          assert.equal(calls[0].header, '777');
+          assert.equal(calls[0].items.length, 4);
+          assert.equal(typeof calls[0].complete, 'function');
+        });
+      });
     });
 
-    test('Single participant: Contact Options (unknown)', function() {
+    // See: utils_test.js
+    // Utils.getCarrierTag
+    //
+    suite('Single participant', function() {
 
-      Threads.set(1, {
-        participants: ['777']
+      suite('Carrier Tag', function() {
+        test('Carrier Tag (non empty string)', function(done) {
+
+          Threads.set(1, {
+            participants: ['+12125559999']
+          });
+
+          window.location.hash = '#thread=1';
+
+          this.sinon.stub(MockUtils, 'getCarrierTag', function() {
+            return 'non empty string';
+          });
+
+          this.sinon.stub(
+            MockContacts, 'findByPhoneNumber', function(phone, fn) {
+
+            fn([new MockContact()]);
+
+            var threadMessages = document.getElementById('thread-messages');
+
+            assert.isTrue(threadMessages.classList.contains('has-carrier'));
+            done();
+          });
+
+          ThreadUI.updateHeaderData();
+        });
+
+        test('Carrier Tag (empty string)', function(done) {
+
+          Threads.set(1, {
+            participants: ['+12125559999']
+          });
+
+          window.location.hash = '#thread=1';
+
+          this.sinon.stub(MockUtils, 'getCarrierTag', function() {
+            return '';
+          });
+
+          this.sinon.stub(
+            MockContacts, 'findByPhoneNumber', function(phone, fn) {
+
+            fn([new MockContact()]);
+
+            var threadMessages = document.getElementById('thread-messages');
+
+            assert.isFalse(threadMessages.classList.contains('has-carrier'));
+
+            done();
+          });
+
+          ThreadUI.updateHeaderData();
+        });
+      });
+    });
+
+    suite('Multi participant', function() {
+      setup(function() {
+        window.location.hash = '';
+        MockActivityPicker.call.mSetup();
+        MockOptionMenu.mSetup();
       });
 
-      window.location.hash = '#thread=1';
-
-      ThreadUI.headerText.dataset.isContact = false;
-      ThreadUI.headerText.dataset.number = '777';
-
-      ThreadUI.onHeaderActivation();
-
-      var calls = MockOptionMenu.calls;
-
-      assert.equal(calls.length, 1);
-      assert.equal(calls[0].header, '777');
-      assert.equal(calls[0].items.length, 5);
-      assert.equal(typeof calls[0].complete, 'function');
-    });
-
-    test('Multi participant: DOES NOT Invoke Activities', function() {
-
-      Threads.set(1, {
-        participants: ['999', '888']
+      teardown(function() {
+        Threads.delete(1);
+        window.location.hash = '';
+        MockActivityPicker.call.mTeardown();
+        MockOptionMenu.mTeardown();
       });
 
-      window.location.hash = '#thread=1';
+      suite('Options', function() {
 
-      ThreadUI.headerText.dataset.isContact = true;
-      ThreadUI.headerText.dataset.number = '999';
+        test('DOES NOT Invoke Activities', function() {
 
-      ThreadUI.onHeaderActivation();
+          Threads.set(1, {
+            participants: ['999', '888']
+          });
 
-      assert.equal(MockActivityPicker.call.called, false);
-      assert.equal(MockActivityPicker.call.calledWith, null);
-    });
+          window.location.hash = '#thread=1';
 
-    test('Multi participant: DOES NOT Invoke Options', function() {
+          ThreadUI.headerText.dataset.isContact = true;
+          ThreadUI.headerText.dataset.number = '999';
 
-      Threads.set(1, {
-        participants: ['999', '888']
+          ThreadUI.onHeaderActivation();
+
+          assert.equal(MockActivityPicker.call.called, false);
+          assert.equal(MockActivityPicker.call.calledWith, null);
+        });
+
+        test('DOES NOT Invoke Options', function() {
+
+          Threads.set(1, {
+            participants: ['999', '888']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.headerText.dataset.isContact = true;
+          ThreadUI.headerText.dataset.number = '999';
+
+          ThreadUI.onHeaderActivation();
+
+          assert.equal(MockOptionMenu.calls.length, 0);
+        });
+
+        test('Moves to Group View', function(done) {
+          Threads.set(1, {
+            participants: ['999', '888']
+          });
+
+          // Change to #thread=n
+          window.onhashchange = function() {
+            // Change to #group-view (per ThreadUI.onHeaderActivation())
+            window.onhashchange = function() {
+              assert.equal(window.location.hash, '#group-view');
+              assert.equal(
+                ThreadUI.headerText.textContent, 'participant{"n":2}'
+              );
+              // View should not go back to thread view when header is
+              // activated in group-view
+              ThreadUI.onHeaderActivation();
+              assert.equal(window.location.hash, '#group-view');
+              window.onhashchange = null;
+              done();
+            };
+
+            ThreadUI.onHeaderActivation();
+            ThreadUI.groupView();
+          };
+
+          window.location.hash = '#thread=1';
+        });
+
+        test('Correctly Displayed', function() {
+          var contacts = {
+            a: new MockContact(),
+            b: new MockContact()
+          };
+
+          // Truncate the tel record arrays; there should
+          // only be one when renderContact does its
+          // loop and comparison of dialiables
+          contacts.a.tel.length = 1;
+          contacts.b.tel.length = 1;
+
+          // Set to our "participants"
+          contacts.a.tel[0].value = '999';
+          contacts.b.tel[0].value = '888';
+
+          // "input" value represents the participant entry value
+          // that would be provided in ThreadUI.groupView()
+          ThreadUI.renderContact({
+            contact: contacts.a,
+            input: '999',
+            target: ThreadUI.participantsList,
+            isContact: true,
+            isSuggestion: false
+          });
+
+          ThreadUI.renderContact({
+            contact: contacts.b,
+            input: '888',
+            target: ThreadUI.participantsList,
+            isContact: true,
+            isSuggestion: false
+          });
+
+          assert.equal(
+            ThreadUI.participantsList.children.length, 2
+          );
+        });
+
+        test('Reset Group View', function() {
+          var list = ThreadUI.participants.firstElementChild;
+
+          assert.equal(list.children.length, 0);
+
+          list.innerHTML = '<li></li><li></li><li></li>';
+
+          assert.equal(list.children.length, 3);
+
+          ThreadUI.groupView.reset();
+
+          assert.equal(list.children.length, 0);
+        });
       });
 
-      window.location.hash = '#thread=1';
+      suite('Carrier Tag', function() {
+        test('Carrier Tag (empty string)', function() {
 
-      ThreadUI.headerText.dataset.isContact = true;
-      ThreadUI.headerText.dataset.number = '999';
+          Threads.set(1, {
+            participants: ['999', '888']
+          });
 
-      ThreadUI.onHeaderActivation();
+          window.location.hash = '#thread=1';
+          ThreadUI.updateHeaderData();
 
-      assert.equal(MockOptionMenu.calls.length, 0);
-    });
+          var threadMessages = document.getElementById('thread-messages');
 
-    test('Multi participant: Moves to Group View', function(done) {
-      Threads.set(1, {
-        participants: ['999', '888']
+          assert.isFalse(threadMessages.classList.contains('has-carrier'));
+        });
+
       });
-
-      // Change to #thread=n
-      window.onhashchange = function() {
-        // Change to #group-view (per ThreadUI.onHeaderActivation())
-        window.onhashchange = function() {
-          assert.equal(window.location.hash, '#group-view');
-          assert.equal(ThreadUI.headerText.textContent, 'participant{"n":2}');
-          window.onhashchange = null;
-          done();
-        };
-
-        ThreadUI.onHeaderActivation();
-        ThreadUI.groupView();
-      };
-
-      window.location.hash = '#thread=1';
     });
 
-    test('Multi participant: Reset Group View', function() {
-      var list = ThreadUI.participants.firstElementChild;
-
-      assert.equal(list.children.length, 0);
-
-      list.innerHTML = '<li></li><li></li><li></li>';
-
-      assert.equal(list.children.length, 3);
-
-      ThreadUI.groupView.reset();
-
-      assert.equal(list.children.length, 0);
-    });
   });
 
   suite('Sending Behavior (onSendClick)', function() {
@@ -1733,11 +2237,10 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.onSendClick();
 
+      var calledWith = MessageManager.sendSMS.calledWith;
       assert.ok(MessageManager.sendSMS.called);
-      assert.deepEqual(
-        MessageManager.sendSMS.calledWith,
-        [['999'], 'foo']
-      );
+      assert.deepEqual(calledWith[0], ['999']);
+      assert.deepEqual(calledWith[1], 'foo');
       assert.equal(window.location.hash, '#new');
     });
 
@@ -1774,11 +2277,10 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.onSendClick();
 
+      var calledWith = MessageManager.sendSMS.calledWith;
       assert.ok(MessageManager.sendSMS.called);
-      assert.deepEqual(
-        MessageManager.sendSMS.calledWith,
-        [['999', '888'], 'foo']
-      );
+      assert.deepEqual(calledWith[0], ['999', '888']);
+      assert.deepEqual(calledWith[1], 'foo');
     });
 
     test('MMS, >1 Recipient, stays in view', function() {

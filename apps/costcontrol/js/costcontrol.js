@@ -42,10 +42,10 @@ var CostControl = (function() {
     ConfigManager.requestAll(setupCostControl);
   }
 
-  var sms, connection, telephony, statistics;
+  var mobileMessageManager, connection, telephony, statistics;
   function loadAPIs() {
-    if ('mozSms' in window.navigator) {
-      sms = window.navigator.mozSms;
+    if ('mozMobileMessage' in window.navigator) {
+      mobileMessageManager = window.navigator.mozMobileMessage;
     }
 
     if ('mozMobileConnection' in window.navigator) {
@@ -62,8 +62,8 @@ var CostControl = (function() {
   // OTHER LOGIC
 
   // Check if a SMS matches the form of a balance request
-  function isBalanceRequestSMS(sms, configuration) {
-    return sms.receiver === configuration.balance.destination;
+  function isBalanceRequestSMS(message, configuration) {
+    return message.receiver === configuration.balance.destination;
   }
 
   // Perform a request. They must be specified via a request object with:
@@ -245,7 +245,7 @@ var CostControl = (function() {
     result.data = settings.lastBalance;
 
     // Send request SMS
-    var newSMS = sms.send(
+    var newSMS = mobileMessageManager.send(
       configuration.balance.destination,
       configuration.balance.text
     );
@@ -302,7 +302,7 @@ var CostControl = (function() {
     debug('Requesting TopUp with code', code, '...');
 
     // TODO: Ensure is free
-    var newSMS = sms.send(
+    var newSMS = mobileMessageManager.send(
       configuration.topup.destination,
       configuration.topup.text.replace(/\&code/g, code)
     );
@@ -404,7 +404,7 @@ var CostControl = (function() {
           // Finally, store the result and continue
           mobileRequest.onsuccess = function _onMobileData() {
             var fakeTag = {
-              sim: connection.iccInfo.iccid,
+              sim: IccHelper.iccInfo.iccid,
               start: settings.lastDataReset,
               fixing: [[settings.lastDataReset, wifiFixing || 0]]
             };

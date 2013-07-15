@@ -62,28 +62,28 @@ function iconDescriptor(directory, app_name, entry_point) {
   // For external/3rd party apps that don't use the Gaia domain, we have an
   // 'metadata.json' file that specifies the URL.
   let metadataFile = dir.clone();
-  metadataFile.append("metadata.json");
+  metadataFile.append('metadata.json');
   if (metadataFile.exists()) {
     let metadata = getJSON(metadataFile);
     origin = metadata.origin.replace(/^\s+|\s+$/, '');
     manifestURL = metadata.manifestURL;
     if (manifestURL) {
       manifestURL = manifestURL.replace(/^\s+|\s+$/, '');
-    } else if (origin.slice(-1) == "/") {
-      manifestURL = origin + "manifest.webapp";
+    } else if (origin.slice(-1) == '/') {
+      manifestURL = origin + 'manifest.webapp';
     } else {
-      manifestURL = origin + "/manifest.webapp";
+      manifestURL = origin + '/manifest.webapp';
     }
   }
 
   let manifestFile = dir.clone();
-  manifestFile.append("manifest.webapp");
+  manifestFile.append('manifest.webapp');
   let manifest;
   if (manifestFile.exists()) {
     manifest = getJSON(manifestFile);
   } else {
     manifestFile = dir.clone();
-    manifestFile.append("update.webapp");
+    manifestFile.append('update.webapp');
     dump('Looking for packaged app: ' + manifestFile.path + '\n');
     manifest = getJSON(manifestFile);
   }
@@ -104,17 +104,6 @@ function iconDescriptor(directory, app_name, entry_point) {
     icon: icon
   };
 }
-
-function getDistributionFileContent(name, defaultContent) {
-  if (Gaia.distributionDir) {
-    let distributionFile = getFile(Gaia.distributionDir, name + '.json');
-    if (distributionFile.exists()) {
-      return getFileContent(distributionFile);
-    }
-  }
-  return JSON.stringify(defaultContent, null, '  ');
-}
-
 
 // zeroth grid page is the dock
 let customize = {'homescreens': [
@@ -210,7 +199,8 @@ let init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR,
 writeContent(init, JSON.stringify(content));
 
 // Apps that should never appear in settings > app permissions
-// bug 830659: We want homescreen to appear in order to remove e.me geolocation permission
+// bug 830659: We want homescreen to appear in order to remove e.me geolocation
+// permission
 let hidden_apps = [
   gaiaManifestURL('keyboard'),
   gaiaManifestURL('wallpaper'),
@@ -218,8 +208,9 @@ let hidden_apps = [
   gaiaManifestURL('pdfjs')
 ];
 
-init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'settings', 'js', 'hiddenapps.js');
-writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
+init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'settings', 'js',
+               'hiddenapps.js');
+writeContent(init, 'var HIDDEN_APPS = ' + JSON.stringify(hidden_apps));
 
 // Apps that should never appear as icons in the homescreen grid or dock
 hidden_apps = hidden_apps.concat([
@@ -227,30 +218,33 @@ hidden_apps = hidden_apps.concat([
   gaiaManifestURL('system')
 ]);
 
-init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'hiddenapps.js');
-writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
+init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js',
+               'hiddenapps.js');
+writeContent(init, 'var HIDDEN_APPS = ' + JSON.stringify(hidden_apps));
 
 // SMS
 init = getFile(GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
-content = ["4850", "7000"];
+content = ['4850', '7000'];
 
 writeContent(init, getDistributionFileContent('sms-blacklist', content));
 
 // Browser
 init = getFile(GAIA_DIR, 'apps', 'browser', 'js', 'init.json');
 
-// bind mcc, mnc pair as key from http://en.wikipedia.org/wiki/Mobile_country_code
+// bind mcc, mnc pair as key from
+// http://en.wikipedia.org/wiki/Mobile_country_code
 // the match sequence is Carrier + Nation > Carrier default > system default
 // key always with 6 digits, the default key is "000000"
 // mcc:3 digits
-// mnc:3 digits, fill with leading zeros, fill '000' in MNC to provide the carrier default bookmark
+// mnc:3 digits, fill with leading zeros, fill '000' in MNC to provide the
+// carrier default bookmark
 
 content = {
   '000000': {
     'bookmarks': [
     ]
   }
-}
+};
 
 writeContent(init, getDistributionFileContent('browser', content));
 
@@ -267,10 +261,10 @@ content = null;
 writeContent(init, getDistributionFileContent('support', content));
 
 // ICC / STK
-init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'icc.json');
+init = getFile(GAIA_DIR, 'apps', 'system', 'resources', 'icc.json');
 content = {
-  "defaultURL": "http://www.mozilla.org/en-US/firefoxos/"
-}
+  'defaultURL': 'http://www.mozilla.org/en-US/firefoxos/'
+};
 
 writeContent(init, getDistributionFileContent('icc', content));
 
@@ -334,7 +328,8 @@ content = {
   }
 };
 
-writeContent(init, 'Calendar.Presets = ' + getDistributionFileContent('calendar', content) + ';');
+writeContent(init, 'Calendar.Presets = ' +
+             getDistributionFileContent('calendar', content) + ';');
 
 // Communications config
 init = getFile(GAIA_DIR, 'apps', 'communications', 'contacts', 'config.json');
@@ -349,57 +344,16 @@ content = {
 writeContent(init, getDistributionFileContent('communications', content));
 
 // Communications External Services
-init = getFile(GAIA_DIR, 'apps', 'communications', 'contacts', 'oauth2', 'js', 'parameters.js');
-content = {
-  facebook: {
-    appOrigin:
-      'app://communications.gaiamobile.org',
-    redirectURI:
-      'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/flow.html',
-    loginPage:
-      'https://m.facebook.com/dialog/oauth/?',
-    applicationId:
-      '',
-    scope:
-      ['friends_about_me', 'friends_birthday', 'friends_hometown',
-       'friends_location', 'friends_work_history', 'read_stream'],
-    redirectMsg:
-    'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/dialogs_end.html',
-    redirectLogout:
-      'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/logout.json'
-  },
+init = getFile(GAIA_DIR, 'apps', 'communications', 'contacts', 'oauth2', 'js',
+               'parameters.js');
+content = JSON.parse(getFileContent(getFile(GAIA_DIR, 'build',
+                                       'communications_services.json')));
 
-  live: {
-    appOrigin:
-      'app://communications.gaiamobile.org',
-    redirectURI:
-      'https://serene-cove-3587.herokuapp.com/liveowd/oauth2_new/flow_live.html',
-    loginPage:
-      'https://login.live.com/oauth20_authorize.srf?',
-    applicationId:
-      '00000000480EABC6',
-    scope:
-      ['wl.basic', 'wl.contacts_emails', 'wl.contacts_phone_numbers',
-       'wl.contacts_birthday', 'wl.contacts_postal_addresses'],
-    logoutUrl:
-      'https://login.live.com/logout.srf'
-  },
-
-  gmail: {
-    appOrigin:
-      'app://communications.gaiamobile.org',
-    redirectURI:
-      'https://serene-cove-3587.herokuapp.com/liveowd/oauth2_new/flow_live.html',
-    loginPage:
-      'https://accounts.google.com/o/oauth2/auth?',
-    applicationId:
-      '664741361278.apps.googleusercontent.com',
-    scope:
-      ['https://www.google.com/m8/feeds/'],
-    logoutUrl:
-      'https://accounts.google.com/Logout'
-  }
-};
+// Bug 883344 Only use default facebook app id if is mozilla partner build
+if (OFFICIAL === '1') {
+  content.facebook.applicationId = '395559767228801';
+  content.live.applicationId = '00000000440F8B08';
+}
 
 writeContent(init, 'var oauthflow = this.oauthflow || {}; oauthflow.params = ' +
   getDistributionFileContent('communications_services', content) + ';');

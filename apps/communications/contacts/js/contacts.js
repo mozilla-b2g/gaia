@@ -834,13 +834,13 @@ var Contacts = (function() {
     window.addEventListener('online', Contacts.onLineChanged);
     window.addEventListener('offline', Contacts.onLineChanged);
 
-    document.addEventListener('mozvisibilitychange', function visibility(e) {
-      if (ActivityHandler.currentlyHandling && document.mozHidden) {
+    document.addEventListener('visibilitychange', function visibility(e) {
+      if (ActivityHandler.currentlyHandling && document.hidden) {
         ActivityHandler.postCancel();
         return;
       }
       Contacts.checkCancelableActivity();
-      if (document.mozHidden === false &&
+      if (document.hidden === false &&
                                 navigation.currentView() === 'view-settings') {
         contacts.Settings.updateTimestamps();
       }

@@ -14,7 +14,7 @@ var BalanceTab = (function() {
 
   var view, updateButton;
   var topUpUSSD, topUp, topUpDialog, topUpCodeInput, sendCode, countdownSpan;
-  var topUpLayoutController;
+  var balanceView, topUpLayoutView;
   var costcontrol, initialized;
 
   function showTopUpWithCode(evt) {
@@ -45,13 +45,19 @@ var BalanceTab = (function() {
       topUpCodeInput = document.getElementById('topup-code-input');
       countdownSpan = document.getElementById('top-up-countdown');
 
-      // Controllers
-      topUpLayoutController = new TopUpLayoutController(topUpUSSD, topUp);
+      // Subviews
+      topUpLayoutView = new TopUpLayoutView(topUpUSSD, topUp);
+      var balanceConfig = ConfigManager.configuration.balance;
+      balanceView = new BalanceView(
+        document.getElementById('balance-tab-credit'),
+        document.getElementById('balance-tab-time'),
+        balanceConfig ? balanceConfig.minimum_delay : undefined
+      );
 
       window.addEventListener('localized', localize);
 
       // Configure updates
-      document.addEventListener('mozvisibilitychange', updateWhenVisible);
+      document.addEventListener('visibilitychange', updateWhenVisible);
       updateButton.addEventListener('click', lockAndUpdateUI);
       ConfigManager.observe('lowLimit', toogleLimits, true);
       ConfigManager.observe('lowLimitThreshold', resetNotification, true);
@@ -83,7 +89,7 @@ var BalanceTab = (function() {
       return;
     }
 
-    document.removeEventListener('mozvisibilitychange', updateWhenVisible);
+    document.removeEventListener('visibilitychange', updateWhenVisible);
     updateButton.removeEventListener('click', lockAndUpdateUI);
     ConfigManager.removeObserver('lowLimit', toogleLimits);
     ConfigManager.removeObserver('lowLimitThreshold', resetNotification);
@@ -105,7 +111,7 @@ var BalanceTab = (function() {
 
   // On showing the application
   function updateWhenVisible() {
-    if (!document.mozHidden && initialized) {
+    if (!document.hidden && initialized) {
       updateUI();
     } else {
       clearInterval(topUpCountdown);
@@ -253,7 +259,7 @@ var BalanceTab = (function() {
     ConfigManager.requestAll(function _onSettings(configuration, settings) {
 
       if (!topUpLayoutSet) {
-        topUpLayoutController.setupLayout(configuration.topup);
+        topUpLayoutView.setupLayout(configuration.topup);
         topUpLayoutSet = true;
       }
 
@@ -267,10 +273,13 @@ var BalanceTab = (function() {
         updateButton.disabled = false;
         var status = result.status;
         var balance = result.data;
-        setBalanceMode(status === 'error' ? 'warning' : 'updating');
-        if (status === 'error') {
+        var isError = status === 'error' && result.details !== 'minimum_delay';
+        var isUpdating = status !== 'error';
+        if (isError) {
+          setBalanceMode('warning');
           setError(result.details);
         } else {
+          setBalanceMode(isUpdating ? 'updating' : 'default');
           setError();
         }
         updateBalance(balance,
@@ -282,30 +291,14 @@ var BalanceTab = (function() {
   // Update the balance in balance view
   function updateBalance(balance, limit) {
 
-    // Balance not available
     if (!balance) {
       debug('Balance not available');
-      document.getElementById('balance-tab-credit')
-        .textContent = _('not-available');
-      document.getElementById('balance-tab-time').innerHTML = '';
+      balanceView.update();
       return;
     }
 
-    // Balance available
-    document.getElementById('balance-tab-credit').textContent =
-      _('currency', {
-        value: balance.balance,
-        currency: ConfigManager.configuration.credit.currency
-      });
-
-    // Timestamp
-    var balanceTabTime = document.getElementById('balance-tab-time');
-    if (view.classList.contains('updating')) {
-      balanceTabTime.textContent = _('updating-ellipsis');
-    } else {
-      balanceTabTime.innerHTML = '';
-      balanceTabTime.appendChild(formatTimeHTML(balance.timestamp));
-    }
+    var isUpdating = view.classList.contains('updating');
+    balanceView.update(balance, isUpdating);
 
     // Limits: reaching zero / low limit
     if (balance.balance === 0) {
@@ -424,11 +417,11 @@ var BalanceTab = (function() {
   // Decide which error should be shown taking in count error priorities
   function setError(error) {
     // Ignore showing message if the message is not registered
-    if (!ERRORS[error]) {
+    if (error && !ERRORS[error]) {
       return;
     }
 
-    debug('Error mode:', error);
+    debug('Error mode:', error ? error : 'no error');
     var messageArea = document.getElementById('cost-control-message-area');
     var message = document.getElementById('error-message-placeholder');
 

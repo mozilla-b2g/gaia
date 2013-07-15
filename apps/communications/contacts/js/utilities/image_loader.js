@@ -125,8 +125,19 @@ if (!window.ImageLoader) {
       }
     } // update
 
+    function releaseImage(item) {
+      var image = item.querySelector('img[data-src]');
+      if (!image) {
+        return null;
+      }
+      image.src = '';
+      item.dataset.visited = 'false';
+      return image;
+    }
+
     this.reload = load;
     this.setResolver = setResolver;
     this.defaultLoad = defaultLoadImage;
+    this.releaseImage = releaseImage;
   };
 }

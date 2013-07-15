@@ -75,6 +75,9 @@ if (DESKTOP) {
   prefs.push(["dom.navigator-property.disable.mozContacts", false]);
   prefs.push(["dom.global-constructor.disable.mozContact", false]);
 
+  prefs.push(["dom.experimental_forms", true]);
+  prefs.push(["dom.webapps.useCurrentProfile", true]);
+
   // Partial implementation of gonk fonts
   // See: http://mxr.mozilla.org/mozilla-central/source/modules/libpref/src/init/all.js#3202
   prefs.push(["font.default.x-western", "sans-serif"]);
@@ -117,6 +120,11 @@ if (DEBUG) {
   prefs.push(["extensions.gaia.app_src_dirs", GAIA_APP_SRCDIRS]);
   prefs.push(["extensions.gaia.locales_debug_path", GAIA_LOCALES_PATH]);
   prefs.push(["extensions.gaia.official", Boolean(OFFICIAL)]);
+
+  let suffix = GAIA_DEV_PIXELS_PER_PX === '1' ?
+               '' : '@' + GAIA_DEV_PIXELS_PER_PX + 'x';
+  prefs.push(["extensions.gaia.device_pixel_suffix", suffix]);
+
   let appPathList = [];
   Gaia.webapps.forEach(function (webapp) {
     appPathList.push(webapp.sourceAppDirectoryName + '/' +
@@ -132,7 +140,7 @@ if (DEBUG || DESKTOP) {
 }
 
 function writePrefs() {
-  let userJs = getFile(GAIA_DIR, 'profile', 'user.js');
+  let userJs = getFile(GAIA_DIR, PROFILE_FOLDER, 'user.js');
   let content = prefs.map(function (entry) {
     return 'user_pref("' + entry[0] + '", ' + JSON.stringify(entry[1]) + ');';
   }).join('\n');

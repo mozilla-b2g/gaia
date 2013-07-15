@@ -2,7 +2,9 @@
 
 requireApp('homescreen/test/unit/mock_mozsetmessagehandler.js');
 requireApp('homescreen/test/unit/mock_bookmark_editor.js');
+requireApp('homescreen/test/unit/mock_l10n.js');
 
+requireApp('homescreen/js/components/status.js');
 requireApp('homescreen/js/save-bookmark.js');
 
 var mocksHelperForSaveBookmark = new MocksHelper([
@@ -14,10 +16,15 @@ mocksHelperForSaveBookmark.init();
 suite('save-bookmark.js >', function() {
 
   suiteSetup(function() {
+    utils.status.init();
+    // We change the duration of the status in order to avoid timeout
+    utils.status.setDuration(400);
     mocksHelperForSaveBookmark.suiteSetup();
   });
 
   suiteTeardown(function() {
+    utils.status.destroy();
+
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     msgHandler = null;
 
@@ -86,6 +93,27 @@ suite('save-bookmark.js >', function() {
         done();
       }
     });
+  });
+
+  test('The status is displayed when a bookmark has been added correctly ',
+       function(done) {
+    msgHandler({
+      source: createSource('save-bookmark', 'url'),
+      postResult: function() { }
+    });
+
+    window.addEventListener('status-showed', function showed() {
+      window.removeEventListener('status-showed', showed);
+      assert.isTrue(document.querySelectorAll('[role="status"] p').textContent.
+                                                                    length > 0);
+    });
+
+    window.addEventListener('status-hidden', function hidden() {
+      window.removeEventListener('status-hidden', hidden);
+      done();
+    });
+
+    BookmarkEditor.save();
   });
 
 });

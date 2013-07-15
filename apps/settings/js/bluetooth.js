@@ -234,31 +234,27 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       connectOpt: document.getElementById('connect-option'),
       disconnectOpt: document.getElementById('disconnect-option'),
       unpairOpt: document.getElementById('unpair-option'),
+      confirmDlg: document.getElementById('unpair-device'),
+      confirmOpt: document.getElementById('confirm-option'),
 
-      show: function showMenu(device) {
+      showActions: function showActions() {
         var self = this;
-        // we only support audio-card device to connect atm
-        if (device.icon === 'audio-card') {
-          if (connectedAddress && device.address === connectedAddress) {
-            this.connectOpt.style.display = 'none';
-            this.disconnectOpt.style.display = 'block';
-            this.disconnectOpt.onclick = function() {
-              setDeviceDisconnect(device);
-            };
-          } else {
-            this.connectOpt.style.display = 'block';
-            this.disconnectOpt.style.display = 'none';
-            this.connectOpt.onclick = function() {
-              stopDiscovery();
-              setDeviceConnect(device);
-            };
-          }
-        } else {
+        if (connectedAddress && this.device.address === connectedAddress) {
           this.connectOpt.style.display = 'none';
+          this.disconnectOpt.style.display = 'block';
+          this.disconnectOpt.onclick = function() {
+            setDeviceDisconnect(self.device);
+          };
+        } else {
+          this.connectOpt.style.display = 'block';
           this.disconnectOpt.style.display = 'none';
+          this.connectOpt.onclick = function() {
+            setDeviceConnect(self.device);
+            stopDiscovery();
+          };
         }
         this.unpairOpt.onclick = function() {
-          setDeviceUnpair(device);
+          setDeviceUnpair(self.device);
         };
         this.menu.onsubmit = function closeMenu() {
           return self.close();
@@ -266,8 +262,27 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         this.menu.hidden = false;
       },
 
+      showConfirm: function showConfirm() {
+        var self = this;
+        this.confirmDlg.onclick = function() {
+          return self.close();
+        };
+        this.confirmOpt.onclick = function() {
+          setDeviceUnpair(self.device);
+        };
+        this.confirmDlg.hidden = false;
+      },
+
+      show: function showMenu(device) {
+        this.device = device;
+        // we only support audio-card device to connect atm
+        this[this.device.icon === 'audio-card' ?
+          'showActions' : 'showConfirm']();
+      },
+
       close: function closeMenu() {
         this.menu.hidden = true;
+        this.confirmDlg.hidden = true;
         return false;
       }
     };
@@ -306,7 +321,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         enableMsg.hidden = true;
         openList.show(true);
         searchingItem.hidden = false;
-        document.addEventListener('mozvisibilitychange',
+        document.addEventListener('visibilitychange',
             stopDiscoveryWhenLeaveApp);
       } else {
         openList.show(false);
@@ -320,7 +335,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         // clear discoverTimeout
         clearTimeout(discoverTimeout);
         discoverTimeout = null;
-        document.removeEventListener('mozvisibilitychange',
+        document.removeEventListener('visibilitychange',
             stopDiscoveryWhenLeaveApp);
       }
     }
@@ -725,7 +740,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
     function stopDiscoveryWhenLeaveApp() {
       //only stop discovery when Settings app is hidden
-      if (!document.mozHidden)
+      if (!document.hidden)
         return;
       stopDiscovery();
     }

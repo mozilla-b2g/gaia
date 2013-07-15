@@ -164,7 +164,7 @@ function formatTimeHTML(timestampA, timestampB) {
 
   // No interval
   if (typeof timestampB === 'undefined') {
-    fragment.appendChild(timeElement(formatTime(timestampA)));
+    fragment.appendChild(timeElement(Formatting.formatTime(timestampA)));
     return fragment;
   }
 
@@ -180,10 +180,10 @@ function formatTimeHTML(timestampA, timestampB) {
 
   // Interval
   fragment.appendChild(
-    timeElement(formatTime(timestampA, _('short-date-format')))
+    timeElement(Formatting.formatTime(timestampA, _('short-date-format')))
   );
   fragment.appendChild(document.createTextNode(' – '));
-  fragment.appendChild(timeElement(formatTime(timestampB)));
+  fragment.appendChild(timeElement(Formatting.formatTime(timestampB)));
   return fragment;
 }
 
@@ -242,7 +242,7 @@ var Common = {
   // Checks for a SIM change
   checkSIMChange: function(callback, onerror) {
     asyncStorage.getItem('lastSIM', function _compareWithCurrent(lastSIM) {
-      var currentSIM = window.navigator.mozMobileConnection.iccInfo.iccid;
+      var currentSIM = IccHelper.iccInfo.iccid;
       if (currentSIM === null) {
         console.error('Impossible: or we don\'t have SIM (so this method ' +
                       'should not be called) or the RIL is returning null ' +
@@ -305,5 +305,9 @@ var Common = {
 
   modalAlert: function(message) {
     alert(message);
+  },
+
+  get localize() {
+    return navigator.mozL10n.localize;
   }
 };

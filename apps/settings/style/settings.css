@@ -96,16 +96,21 @@ section[role="region"] > div {
 .description {
   padding: 1rem 2rem 1rem 3rem;
   font-size: 1.7rem;
-  line-height: 23px;
+  line-height: 2.3rem;
   white-space: normal;
   -moz-hyphens: auto;
 }
 
 .description p {
   padding: 0 0 1rem;
-  font-size: 1.9rem;
+  font-size: 1.7rem;
+  line-height: 2.3rem;
   text-overflow: none;
   white-space: normal;
+}
+
+.description a {
+  font-size: 1.7rem;
 }
 
 .link-text, .tel-text a {
@@ -212,18 +217,18 @@ section li.password > p {
 
 #mediaStorage .space-stackedbar {
   background-color: #E7E7E7;
-  border: solid 1px #A6A6A6;
+  border: solid 0.1rem #A6A6A6;
   border-radius: 0.3rem;
   display: inline-block;
-  height: 30px;
+  height: 3rem;
   margin: 0.8rem 5%;
-  padding: 1px;
+  padding: 0.1rem;
   width: 90%;
 }
 
 #mediaStorage .space-stackedbar .stackedbar-item {
   display: inline-block;
-  height: 30px;
+  height: 3rem;
 }
 
 #mediaStorage .space-stackedbar .color-music,
@@ -247,7 +252,7 @@ section li.password > p {
 }
 
 #mediaStorage .color-free .stackedbar-color-label {
-  border: solid 1px #A6A6A6;
+  border: solid 0.1rem #A6A6A6;
 }
 
 #mediaStorage .color-music .stackedbar-color-label,
@@ -261,7 +266,7 @@ section li.password > p {
   display: inline-block;
   height: 2rem;
   left: 0.5rem;
-  padding: 0px;
+  padding: 0;
   position: absolute;
   top: 2.1rem;
   width: 2rem;
@@ -337,6 +342,16 @@ section li.password > p {
   padding-bottom: 1em;
 }
 
+/******************************************************************************
+ * Internet sharing (Wi-Fi HotSpot)
+ */
+
+#hotspot ul li > a span {
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /******************************************************************************
  * Wallpaper snapshot
@@ -429,26 +444,6 @@ ul li > label .range-icons.brightness {
 #icc .hidden {
   display: none;
 }
-
-#icc #icc-stk-alert {
-  position: fixed;
-}
-
-#icc #icc-stk-alert menu button:first-child {
-  margin: 0;
-}
-
-#icc #icc-stk-alert menu button {
-  width: calc((100% - 2rem) / 3);
-  margin-left: 1rem;
-}
-
-.multiline_title {
-  text-overflow: clip;
-  white-space: normal;
-  word-wrap: break-word;
-}
-
 
 /******************************************************************************
  * Date & Time

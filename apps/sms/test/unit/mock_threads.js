@@ -5,5 +5,9 @@ var MockThreads = {
 
   mTeardown: function mt_mTeardown() {
     this.currentId = null;
+  },
+
+  has: function() {
+    return false;
   }
 };

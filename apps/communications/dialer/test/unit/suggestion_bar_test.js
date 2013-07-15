@@ -55,6 +55,23 @@ suite('suggestion Bar', function() {
           value: '111122222' }]
     }];
 
+  var mockResult3 = [{
+      id: '000000',
+      name: ['John'],
+      tel: [
+        { type: 'mobile',
+          value: '12345678' },
+        { type: 'home',
+          value: '12343210' }]
+    },{
+      id: '000000',
+      name: ['George'],
+      tel: [
+        { type: 'mobile',
+          value: '12340000' }]
+
+    }];
+
   var triggerEvent = function(element, eventName) {
     var event = document.createEvent('HTMLEvents');
     event.initEvent(eventName, true, true);
@@ -160,7 +177,7 @@ suite('suggestion Bar', function() {
   test('#show overlay', function() {
     SuggestionBar._contactList = mockResult2;
     SuggestionBar._phoneNumber = '1111';
-
+    SuggestionBar._allMatched = SuggestionBar._getAllMatched(mockResult2);
     subject.showOverlay();
 
     assert.equal(
@@ -168,6 +185,20 @@ suite('suggestion Bar', function() {
         'should add 2 items into overlay list');
     assert.isTrue(subject.overlay.classList.contains('display'),
         'should show suggestion list');
+  });
+
+  test('#show overlay of all numbers of contact', function() {
+    SuggestionBar._contactList = mockResult3;
+    SuggestionBar._phoneNumber = '1234';
+    SuggestionBar._allMatched = SuggestionBar._getAllMatched(mockResult3);
+    subject.showOverlay();
+
+    assert.equal(
+        subject.overlay.querySelector('#suggestion-list').childElementCount, 3,
+        'should add 3 items into overlay list');
+    assert.isTrue(subject.overlay.classList.contains('display'),
+        'should show suggestion list');
+
   });
 
   test('#hide overlay', function() {

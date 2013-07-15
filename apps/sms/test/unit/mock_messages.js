@@ -11,7 +11,8 @@ var MockMessages = {
       body: 'body',
       delivery: 'received',
       type: 'sms',
-      timestamp: Date.now(),
+      messageClass: 'normal',
+      timestamp: new Date(),
       read: true
     };
 
@@ -25,6 +26,10 @@ var MockMessages = {
   },
 
   mms: function(opts = {}) {
+    var now = new Date();
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
     // default mms message
     var message = {
       id: 1,
@@ -33,12 +38,12 @@ var MockMessages = {
       receivers: ['receiver'],
       delivery: 'received',
       type: 'mms',
-      timestamp: Date.now(),
+      timestamp: now,
       read: true,
       subject: '',
       smil: null,
       attachments: [new Blob(['body'], {type: 'text/plain'})],
-      expiryDate: Date.now()
+      expiryDate: tomorrow
     };
 
     for (var key in message) {

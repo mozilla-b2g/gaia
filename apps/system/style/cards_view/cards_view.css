@@ -12,6 +12,18 @@
   background-color: rgba(0, 0, 0, 1);
 }
 
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) #cards-view {
+    height: calc(100% - 5rem);
+    bottom: 5rem;
+  }
+}
+
+#screen.software-button-enabled #cards-view {
+  height: calc(100% - 5rem);
+  bottom: 5rem;
+}
+
 #cards-view.active {
   visibility: inherit;
   opacity: 1;
@@ -87,13 +99,13 @@
 
 #cards-view .card > h1 {
   position: absolute;
-  top: -moz-calc(100% - 1.5rem);
+  top: calc(100% - 1.5rem);
   width: 100%;
 }
 
 #cards-view .card > p {
   position: absolute;
-  top: -moz-calc(100% + 1rem);
+  top: calc(100% + 1rem);
   width: 100%;
   font-size: 2rem;
 }

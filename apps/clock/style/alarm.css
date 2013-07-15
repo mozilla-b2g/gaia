@@ -14,13 +14,13 @@ ul, ol {
   position: absolute;
   background: url(images/add_alarm.png) no-repeat center / 3.2rem;
   background-size: 100% auto;
-  padding: 2.2rem 1.5rem;
   height: 2.5rem;
   width: 3.2rem;
   border: none;
-  margin: 0;
-  right: 0.48rem;
-  top: 0.1rem;
+  top: 0;
+  right: 0;
+  margin-top: 2.1rem;
+  margin-right: 1.5rem;
   transition:  height 0.1s, width 0.1s, top 0.1s, right 0.1s;
 }
 
@@ -173,7 +173,10 @@ a.alarm-item .period {
 a.alarm-item > .label {
   position: absolute;
   left: 12.5rem;
+  right: 4.5rem;
   top: 2.35rem;
+  white-space: nowrap;
+  overflow: hidden;
   text-overflow: ellipsis;
 }
 

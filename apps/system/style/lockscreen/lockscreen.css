@@ -224,11 +224,15 @@
 
 .lockscreen-icon-area {
   width: calc(50%);
-  height: 12rem;
+  height: 10rem;
   position: absolute;
   border-style: none;
   opacity: 0.1;
   transition: opacity 0.5s ease;
+}
+
+.lockscreen-icon-area:active {
+  background: none;
 }
 
 .lockscreen-icon {
@@ -248,24 +252,6 @@
 
 .touched .lockscreen-icon {
   transition: none;
-}
-
-.lockscreen-icon-a11y-button {
-  width: 100%;
-  height: 100%;
-  border-width: inherit;
-  border-radius: inherit;
-  z-index: -1;
-}
-
-.lockscreen-icon-a11y-button * {
-  display: none;
-}
-
-#lockscreen-icon-container .lockscreen-icon-a11y-button {
-  position: absolute;
-  top: 0;
-  left: 0;
 }
 
 .lockscreen-icon.triggered {
@@ -534,7 +520,7 @@ button::-moz-focus-inner {
   bottom: -8rem;
   height: 10rem;
   pointer-events: none;
-  border-top: 1px solid #989898;
+  border-top: 0.1rem solid #989898;
   background-image: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.2) 20%);
   transition:
     transform 0.5s ease,

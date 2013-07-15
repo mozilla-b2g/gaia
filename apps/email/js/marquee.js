@@ -1,5 +1,7 @@
 'use strict';
 
+define(function() {
+
 /**
  * HTML Marquee in JavaScript/CSS
  * - slow scrolling of text depending on `behavior' and `timingFunction'
@@ -123,3 +125,7 @@ var Marquee = {
     }
   }
 };
+
+return Marquee;
+
+});

@@ -159,7 +159,7 @@
 #day-view .day-events {
   overflow-y: scroll;
   overflow-x: hidden;
-  height: 80%;
+  height: calc(100% - 7.9rem);
 }
 
 #day-view .day-events.allday {

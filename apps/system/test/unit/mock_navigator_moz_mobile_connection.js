@@ -2,14 +2,14 @@
 
 (function() {
 
-  var props = ['voice', 'cardState', 'iccInfo', 'data'];
+  var props = ['voice', 'data'];
   var eventListeners = null;
 
   function mnmmc_init() {
     props.forEach(function(prop) {
       Mock[prop] = null;
     });
-    eventListeners = {'iccinfochange': [], 'cardstatechange': []};
+    eventListeners = {};
   }
 
   function mnmmc_addEventListener(type, callback) {

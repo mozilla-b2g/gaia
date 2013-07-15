@@ -1,7 +1,8 @@
-"""Usage: python %prog [ADB_PATH] [REMOTE_PATH]
+"""Usage: python %prog [ADB_PATH] [REMOTE_PATH] [PROFILE_FOLDER]
 
 ADB_PATH is the path to the |adb| executable we should run.
 REMOTE_PATH is the path to push the gaia webapps directory to.
+PROFILE_FOLDER is the name of the profile folder. defaults to `profile`
 
 Used by |make install-gaia| to push files to a device.  You shouldn't run
 this file directly.
@@ -128,7 +129,8 @@ def push_to_remote(local_hashes, remote_hashes):
         os.remove(tmpfilename)
 
 def install_gaia_fast():
-    os.chdir('profile')
+    global profile_folder
+    os.chdir(profile_folder)
     try:
         local_hashes = compute_local_hashes()
         remote_hashes = compute_remote_hashes()
@@ -138,15 +140,16 @@ def install_gaia_fast():
         os.chdir('..')
 
 def install_gaia_slow():
-    global adb_cmd, remote_path
+    global adb_cmd, remote_path, profile_folder
     webapps_path = remote_path + '/webapps'
     adb_shell("rm -r " + webapps_path, ignore_error=True)
     adb_shell("rm /data/local/user.js", ignore_error=True)
-    adb_push('profile/webapps', webapps_path)
-    adb_push('profile/user.js', '/data/local')
+    adb_push(profile_folder + '/webapps', webapps_path)
+    adb_push(profile_folder + '/user.js', '/data/local')
 
 def install_preload_data():
-    db_path = 'profile/indexedDB/'
+    global profile_folder
+    db_path = profile_folder + '/indexedDB/'
     if os.path.exists(db_path):
         adb_push(db_path, '/data/local/indexedDB')
 
@@ -166,17 +169,20 @@ def install_gaia():
     install_preload_data()
 
 if __name__ == '__main__':
-    if len(sys.argv) > 3:
+    if len(sys.argv) > 4:
         print >>sys.stderr, 'Too many arguments!\n'
         print >>sys.stderr, \
-            'Usage: python %s [ADB_PATH] [REMOTE_PATH]\n' % __FILE__
+            'Usage: python %s [ADB_PATH] [REMOTE_PATH] [PROFILE_FOLDER]\n' % __FILE__
         sys.exit(1)
 
     adb_cmd = 'adb'
     remote_path = '/data/local/webapps'
+    profile_folder = 'profile'
     if len(sys.argv) >= 2:
         adb_cmd = sys.argv[1]
     if len(sys.argv) >= 3:
         remote_path = sys.argv[2]
+    if len(sys.argv) >= 4:
+        profile_folder = sys.argv[3]
 
     install_gaia()

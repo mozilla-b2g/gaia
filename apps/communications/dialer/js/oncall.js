@@ -171,6 +171,10 @@ var CallScreen = {
 
   enableKeypad: function cs_enableKeypad() {
     this.keypadButton.removeAttribute('disabled');
+  },
+
+  disableKeypad: function cs_disableKeypad() {
+    this.keypadButton.setAttribute('disabled', 'disabled');
   }
 };
 
@@ -426,7 +430,13 @@ var OnCallHandler = (function onCallHandler() {
 
   function handleCallWaiting(call) {
     LazyL10n.get(function localized(_) {
-      var number = call.number || _('withheld-number');
+      var number = call.number;
+
+      if (!number) {
+        CallScreen.incomingNumber.textContent = _('withheld-number');
+        return;
+      }
+
       Contacts.findByNumber(number, function lookupContact(contact) {
         if (contact && contact.name) {
           CallScreen.incomingNumber.textContent = contact.name;
@@ -473,6 +483,14 @@ var OnCallHandler = (function onCallHandler() {
         closeWindow();
       }
     });
+  }
+
+  function updateKeypadEnabled() {
+    if (telephony.active) {
+      CallScreen.enableKeypad();
+    } else {
+      CallScreen.disableKeypad();
+    }
   }
 
   function exitCallScreen(animate) {
@@ -536,15 +554,18 @@ var OnCallHandler = (function onCallHandler() {
       case 'ATA':
         answer();
         break;
-      case 'CHUP+ATA':
+      case 'CHLD=1':
         endAndAnswer();
         break;
-      case 'CHLD+ATA':
+      case 'CHLD=2':
         if (telephony.calls.length === 1) {
           holdOrResumeSingleCall();
         } else {
           holdAndAnswer();
         }
+        break;
+      case 'CHLD=0':
+        hangupWaitingCalls();
         break;
       default:
         var partialCommand = message.substring(0, 3);
@@ -662,6 +683,17 @@ var OnCallHandler = (function onCallHandler() {
     }
   }
 
+  // Hang up the held call or the second incomming call
+  function hangupWaitingCalls() {
+    handledCalls.forEach(function(handledCall) {
+      var callState = handledCall.call.state;
+      if (callState === 'held' ||
+        (callState === 'incoming' && handledCalls.length > 1)) {
+        handledCall.call.hangUp();
+      }
+    });
+  }
+
   function ignore() {
     var ignoreIndex = handledCalls.length - 1;
     handledCalls[ignoreIndex].call.hangUp();
@@ -769,7 +801,7 @@ var OnCallHandler = (function onCallHandler() {
     toggleCalls: toggleCalls,
     ignore: ignore,
     end: end,
-
+    updateKeypadEnabled: updateKeypadEnabled,
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,
     unmute: unmute,

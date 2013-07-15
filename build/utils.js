@@ -13,7 +13,7 @@ function isSubjectToBranding(path) {
 /**
  * Return a File object representing the directory of a given name/path.
  *
- * @param {String} dirName The name of the directory in GAIA_DIR or a full path
+ * @param {String} dirName The name of the directory in GAIA_DIR or a full path.
  * @param {Boolean} maybeGaiaSubDir
  *        If true, try to locate the dir within GAIA_DIR.
  * @return {File} dir the File object.
@@ -272,3 +272,12 @@ function gaiaManifestURL(name) {
   return gaiaOriginURL(name) + '/manifest.webapp';
 }
 
+function getDistributionFileContent(name, defaultContent) {
+  if (Gaia.distributionDir) {
+    let distributionFile = getFile(Gaia.distributionDir, name + '.json');
+    if (distributionFile.exists()) {
+      return getFileContent(distributionFile);
+    }
+  }
+  return JSON.stringify(defaultContent, null, '  ');
+}

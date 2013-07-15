@@ -282,7 +282,7 @@ var WifiUI = {
           ssidp.textContent = network.ssid;
           li.dataset.ssid = network.ssid;
           // Show authentication method
-          var keys = WifiHelper.getEncryptions(network);
+          var keys = WifiHelper.getSecurity(network);
 
           li.dataset.security = keys;
 

@@ -13,6 +13,7 @@
 // display connectivity status on the main panel
 var Connectivity = (function(window, document, undefined) {
   var _initialized = false;
+  var _macAddress = '';
   var _ = navigator.mozL10n.get;
 
   // in util.js, we fake these device interfaces if they are not exist.
@@ -21,7 +22,7 @@ var Connectivity = (function(window, document, undefined) {
   var mobileConnection = getMobileConnection();
 
   mobileConnection.addEventListener('datachange', updateCarrier);
-  mobileConnection.addEventListener('cardstatechange', updateCallSettings);
+  IccHelper.addEventListener('cardstatechange', updateCallSettings);
 
   // XXX if wifiManager implements addEventListener function
   // we can remove these listener lists.
@@ -112,8 +113,20 @@ var Connectivity = (function(window, document, undefined) {
 
     // record the MAC address here because the "Device Information" panel
     // has to display it as well
-    if (settings) {
-      settings.createLock().set({ 'deviceinfo.mac': wifiManager.macAddress });
+    if (!_macAddress && settings) {
+      var req = settings.createLock().get('deviceinfo.mac');
+      req.onsuccess = function macAddr_onsuccess() {
+        _macAddress = req.result['deviceinfo.mac'];
+      };
+      req.onerror = function macAddr_onerror() {
+        // Check if the MAC address is set by the wifiManager and is valid
+        // XXX the wifiManager sets macAddress to the string 'undefined' when
+        //     it is not available
+        if (wifiManager.macAddress && wifiManager.macAddress != 'undefined') {
+          _macAddress = wifiManager.macAddress;
+          settings.createLock().set({ 'deviceinfo.mac': _macAddress });
+        }
+      };
     }
   }
 
@@ -192,11 +205,11 @@ var Connectivity = (function(window, document, undefined) {
       }
     };
 
-    if (!mobileConnection)
+    if (!mobileConnection || !IccHelper.enabled)
       return setCarrierStatus({});
 
     // ensure the SIM card is present and unlocked
-    var cardState = mobileConnection.cardState || 'null';
+    var cardState = IccHelper.cardState || 'null';
     var l10nId = kCardStateL10nId[cardState];
     if (l10nId) {
       return setCarrierStatus({ error: _(l10nId), l10nId: l10nId });
@@ -231,13 +244,11 @@ var Connectivity = (function(window, document, undefined) {
       return; // init will call updateCallSettings()
     }
 
-    var mobileConnection = getMobileConnection();
-
-    if (!mobileConnection)
+    if (!IccHelper.enabled)
       return;
 
     // update the current SIM card state
-    var cardState = mobileConnection.cardState || 'null';
+    var cardState = IccHelper.cardState || 'null';
     localize(callDesc, kCardStateL10nId[cardState]);
   }
 

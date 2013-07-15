@@ -8,6 +8,7 @@
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
     <script src="shared/js/idletimer.js"></script>
+    <script src="shared/js/dump.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
     <script defer src="shared/js/custom_dialog.js"></script>
@@ -15,10 +16,8 @@
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/mobile_operator.js"></script>
     <script defer src="shared/js/manifest_helper.js"></script>
+    <script defer src="shared/js/icc_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
-
-    <!-- multi-resolution support -->
-    <link rel="stylesheet" href="/shared/style/responsive.css">
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -31,6 +30,7 @@
 
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
 
@@ -41,6 +41,8 @@
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo.png"/>
     -->
 
+    <link rel="resource" type="image/png" href="shared/resources/branding/Browser.png"/>
+
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
@@ -49,7 +51,6 @@
     <script src="js/init_logo_handler.js"></script>
 
     <script defer src="js/screen_manager.js"></script>
-    <script defer src="js/mouse2touch.js"></script>
     <script defer src="js/activities.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
@@ -59,7 +60,6 @@
     <script defer src="js/hardware_buttons.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/system_dialog.js"></script>
-    <script defer src="js/icc_cache.js"></script>
 
     <!-- Grid View -->
     <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
@@ -102,6 +102,16 @@
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar.js"></script>
+
+    <!-- Software button -->
+    <link rel="stylesheet" type="text/css" href="style/software_button_manager/software_button_manager.css">
+    <script defer src="js/software_button_manager.js"></script>
+
+    <!-- ICC/STK -->
+    <link rel="stylesheet" type="text/css" href="style/icc.css">
+    <script defer src="js/icc_events.js"></script>
+    <script defer src="js/icc_worker.js"></script>
+    <script defer src="js/icc.js"></script>
 
     <!-- FTU launcher -->
     <script defer src="js/ftu_launcher.js"></script>
@@ -224,6 +234,7 @@
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
     <link rel="stylesheet" type="text/css" href="style/window.css">
+    <script defer src="js/orientation_observer.js"></script>
     <script defer src="js/window.js"></script>
     <script defer src="js/window_manager.js"></script>
 
@@ -343,8 +354,15 @@
         <div id="statusbar-call-forwarding" class="sb-icon sb-icon-call-forwarding" hidden></div>
 
         <!-- Activity -->
-        <canvas id="statusbar-system-downloads" hidden></canvas>
-        <canvas id="statusbar-network-activity" hidden></canvas>
+        <!-- HACK: We use images instead of divs to enforce allocation of a
+             dedicated layer just for this animated icons, remove after bug
+             717872 gets fixed -->
+        <img id="statusbar-system-downloads"
+             src="style/statusbar/images/system-downloads.png"
+             class="sb-icon-system-downloads" hidden>
+        <img id="statusbar-network-activity"
+             src="style/statusbar/images/network-activity.png"
+             class="sb-icon-network-activity" hidden>
       </div>
 
       <div id="utility-tray" data-z-index-level="utility-tray">
@@ -831,14 +849,16 @@
             <div id="lockscreen-area"></div>
             <div id="lockscreen-icon-container">
               <div id="lockscreen-area-handle"></div>
-              <div id="lockscreen-area-camera" class="lockscreen-icon-area lockscreen-icon-left">
+              <div id="lockscreen-area-camera"
+                   class="lockscreen-icon-area lockscreen-icon-left" role="button"
+                   data-l10n-id="camera-a11y-button" aria-label="Camera">
                 <div class="lockscreen-icon">
-                  <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
                 </div>
               </div>
-              <div id="lockscreen-area-unlock" class="lockscreen-icon-area lockscreen-icon-right">
+              <div id="lockscreen-area-unlock"
+                   class="lockscreen-icon-area lockscreen-icon-right" role="button"
+                   data-l10n-id="unlock-a11y-button" aria-label="Unlock">
                 <div class="lockscreen-icon">
-                    <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
                 </div>
               </div>
             </div>
@@ -897,6 +917,58 @@
         </ul>
       </div>
 
+      <!-- icc / stk -->
+      <div id="icc-view" data-z-index-level="icc-view">
+        <form role="dialog" data-type="confirm" id="icc-alert">
+          <section>
+            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <p id="icc-alert-msg"></p>
+          </section>
+          <menu>
+            <button type="button" data-l10n-id="ok" id="icc-alert-btn" class="recommend full">Ok</button>
+          </menu>
+        </form>
+        <form role="dialog" data-type="confirm" id="icc-confirm">
+          <section>
+            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <p id="icc-confirm-msg"></p>
+          </section>
+          <menu>
+              <button type="button" data-l10n-id="close" id="icc-confirm-btn_close">Close</button>
+              <button type="button" data-l10n-id="back" id="icc-confirm-btn_back">Back</button>
+              <button type="button" data-l10n-id="ok" id="icc-confirm-btn" class="recommend">Ok</button>
+          </menu>
+        </form>
+        <form role="dialog" data-type="confirm" id="icc-asyncconfirm">
+          <section>
+            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <p id="icc-asyncconfirm-msg"></p>
+          </section>
+          <menu>
+            <button type="button" data-l10n-id="no" id="icc-asyncconfirm-btn-no">No</button>
+            <button type="button" data-l10n-id="yes" id="icc-asyncconfirm-btn-yes" class="recommend">Yes</button>
+          </menu>
+        </form>
+        <form role="dialog" data-type="confirm" id="icc-input">
+          <section>
+            <h1 data-l10n-id="icc-inputtitle">STK Query</h1>
+            <p id="icc-input-msg"></p>
+            <input id="icc-input-box" required="" type="text">
+          </section>
+          <menu>
+              <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
+              <button type="button" data-l10n-id="back" id="icc-input-btn_back">Back</button>
+              <span class="yesnodisabled">
+                <button type="button" data-l10n-id="ok" id="icc-input-btn" class="recommend">Ok</button>
+              </span>
+              <span class="yesnoenabled">
+                <button type="button" data-l10n-id="no" id="icc-input-btn_no">No</button>
+                <button type="button" data-l10n-id="yes" id="icc-input-btn_yes" class="recommend">Yes</button>
+              </span>
+          </menu>
+        </form>
+      </div>
+
       <div id="sleep-menu" data-z-index-level="sleep-menu">
         <div id="sleep-menu-container">
           <h3 data-l10n-id="deviceMenu">Device menu</h3>
@@ -944,6 +1016,12 @@
           </section>
         </div>
       </div>
+
+      <div id="software-buttons" data-z-index-level="software-buttons">
+        <button id="software-home-button"></button>
+      </div>
+
+      <button id="fullscreen-software-home-button" data-z-index-level="fullscreen-software-home-button"></button>
 
     </div> <!-- end of #screen -->
   </body>

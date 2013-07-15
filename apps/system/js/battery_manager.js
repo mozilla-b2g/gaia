@@ -8,7 +8,7 @@ var BatteryManager = {
   TRANSITION_SPEED: 1.8,
   TRANSITION_FRACTION: 0.30,
 
-  AUTO_SHUTDOWN_LEVEL: 0.02,
+  AUTO_SHUTDOWN_LEVEL: 0.00,
   EMPTY_BATTERY_LEVEL: 0.1,
 
   _battery: window.navigator.battery,
@@ -25,7 +25,7 @@ var BatteryManager = {
     if (!battery)
       return;
 
-    if (battery.level <= this.AUTO_SHUTDOWN_LEVEL)
+    if (battery.level <= this.AUTO_SHUTDOWN_LEVEL && !battery.charging)
       SleepMenu.startPowerOff(false);
   },
 

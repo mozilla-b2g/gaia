@@ -240,6 +240,16 @@ body {
   background-position: center center;
 }
 
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) > #windows > .appWindow {
+    bottom: 5rem;
+  }
+}
+
+#screen.software-button-enabled #windows > .appWindow {
+  bottom: 5rem;
+}
+
 #windows > .appWindow:not(.homescreen) {
   background-color: black;
 }
@@ -266,27 +276,29 @@ body {
   background-color: #fff;
 }
 
-#screen.active-statusbar #windows > .appWindow {
+#screen.active-statusbar #windows > .appWindow,
+#screen.active-statusbar #windows > .appWindow.fullscreen-app {
   top: 4rem;
+  height: calc(100% - 4rem);
 }
 
 #windows > .appWindow.opening {
   pointer-events: auto;
 }
 
-#windows > .appWindow.opening[data-orientation='portrait-primary'] {
+#windows > .appWindow.opening.portrait-primary {
   animation: openApp-portrait-primary 0.3s forwards ease;
 }
 
-#windows > .appWindow.opening[data-orientation='portrait-secondary'] {
+#windows > .appWindow.opening.portrait-secondary {
   animation: openApp-portrait-secondary 0.3s forwards ease;
 }
 
-#windows > .appWindow.opening[data-orientation='landscape-primary'] {
+#windows > .appWindow.opening.landscape-primary {
   animation: openApp-landscape-primary 0.3s forwards ease;
 }
 
-#windows > .appWindow.opening[data-orientation='landscape-secondary'] {
+#windows > .appWindow.opening.landscape-secondary {
   animation: openApp-landscape-secondary 0.3s forwards ease;
 }
 
@@ -294,19 +306,19 @@ body {
   animation-duration: 3s;
 }
 
-#screen.cards-view > #windows > .appWindow.opening[data-orientation='portrait-primary'] {
+#screen.cards-view > #windows > .appWindow.opening.portrait-primary {
   animation: openAppFromCardView-portrait-primary 0.15s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.opening[data-orientation='portrait-secondary'] {
+#screen.cards-view > #windows > .appWindow.opening.portrait-secondary {
   animation: openAppFromCardView-portrait-secondary 0.15s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.opening[data-orientation='landscape-primary'] {
+#screen.cards-view > #windows > .appWindow.opening.landscape-primary {
   animation: openAppFromCardView-landscape-primary 0.15s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.opening[data-orientation='landscape-secondary'] {
+#screen.cards-view > #windows > .appWindow.opening.landscape-secondary {
   animation: openAppFromCardView-landscape-secondary 0.15s forwards ease;
 }
 
@@ -410,6 +422,10 @@ body {
   animation: invokingApp 0.6s forwards ease-out;
 }
 
+#screen.switch-app > #windows > .appWindow.homescreen {
+  pointer-events: none;
+}
+
 #screen.switch-app > #windows.slow-transition > .appWindow.opening,
 #screen.switch-app > #windows.slow-transition > .appWindow.closing {
   animation-duration: 6s;
@@ -435,33 +451,33 @@ body {
   pointer-events: none;
 }
 
-#windows > .appWindow[data-orientation='portrait-secondary'] {
+#windows > .appWindow.portrait-secondary {
   transform: rotate(180deg);
   margin-top: -2rem;
   overflow: visible;
 }
 
-#windows > .appWindow[data-orientation='landscape-primary'] {
+#windows > .appWindow.landscape-primary {
   transform: rotate(90deg);
   overflow: visible;
 }
 
-#windows > .appWindow[data-orientation='landscape-secondary'] {
+#windows > .appWindow.landscape-secondary {
   transform: rotate(270deg);
   margin-left: 2rem;
   overflow: visible;
 }
 
-#windows > .appWindow.fullscreen-app[data-orientation='portrait-secondary'],
-#windows > .appWindow.fullscreen-app[data-orientation='landscape-primary'],
-#windows > .appWindow.fullscreen-app[data-orientation='landscape-secondary'] {
+#windows > .appWindow.fullscreen-app.portrait-secondary,
+#windows > .appWindow.fullscreen-app.landscape-primary,
+#windows > .appWindow.fullscreen-app.landscape-secondary {
   margin: 0;
 }
 
 /* placeholder for status bar of previous orientation */
-#windows > .appWindow[data-orientation='landscape-primary']:not(.fullscreen-app):after,
-#windows > .appWindow[data-orientation='landscape-secondary']:not(.fullscreen-app):after,
-#windows > .appWindow[data-orientation='portrait-secondary']:not(.fullscreen-app):after {
+#windows > .appWindow.landscape-primary:not(.fullscreen-app):after,
+#windows > .appWindow.landscape-secondary:not(.fullscreen-app):after,
+#windows > .appWindow.portrait-secondary:not(.fullscreen-app):after {
   display: block;
   height: 2rem;
   width: 100%;
@@ -474,19 +490,19 @@ body {
 }
 
 
-#windows > .appWindow.closing[data-orientation='portrait-primary'] {
+#windows > .appWindow.closing.portrait-primary {
   animation: closeApp-portrait-primary 0.3s forwards ease;
 }
 
-#windows > .appWindow.closing[data-orientation='portrait-secondary'] {
+#windows > .appWindow.closing.portrait-secondary {
   animation: closeApp-portrait-secondary 0.3s forwards ease;
 }
 
-#windows > .appWindow.closing[data-orientation='landscape-primary'] {
+#windows > .appWindow.closing.landscape-primary {
   animation: closeApp-landscape-primary 0.3s forwards ease;
 }
 
-#windows > .appWindow.closing[data-orientation='landscape-secondary'] {
+#windows > .appWindow.closing.landscape-secondary {
   animation: closeApp-landscape-secondary 0.3s forwards ease;
 }
 
@@ -513,19 +529,19 @@ body {
   100% { transform: scale(1); }
 }
 
-#screen.cards-view > #windows > .appWindow.closing[data-orientation='portrait-primary'] {
+#screen.cards-view > #windows > .appWindow.closing.portrait-primary {
   animation: closeAppTowardsCardView-landscape-primary 0.15s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.closing[data-orientation='portrait-secondary'] {
+#screen.cards-view > #windows > .appWindow.closing.portrait-secondary {
   animation: closeAppTowardsCardView-landscape-secondary 0.15s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.closing[data-orientation='landscape-primary'] {
+#screen.cards-view > #windows > .appWindow.closing.landscape-primary {
   animation: closeAppTowardsCardView-portrait-primary 0.15s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.closing[data-orientation='landscape-secondary'] {
+#screen.cards-view > #windows > .appWindow.closing.landscape-secondary {
   animation: closeAppTowardsCardView-portrait-secondary 0.15s forwards ease;
 }
 
@@ -533,19 +549,19 @@ body {
   animation: closeAppTowardsCardView 1.5s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.closing[data-orientation='portrait-primary'] {
+#screen.cards-view > #windows > .appWindow.closing.portrait-primary {
   animation: closeAppTowardsCardView-portrait-primary 0.15s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.closing[data-orientation='portrait-secondary'] {
+#screen.cards-view > #windows > .appWindow.closing.portrait-secondary {
   animation: closeAppTowardsCardView-portrait-secondary 0.15s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.closing[data-orientation='landscape-primary'] {
+#screen.cards-view > #windows > .appWindow.closing.landscape-primary {
   animation: closeAppTowardsCardView-landscape-primary 0.15s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.closing[data-orientation='landscape-secondary'] {
+#screen.cards-view > #windows > .appWindow.closing.landscape-secondary {
   animation: closeAppTowardsCardView-landscape-secondary 0.15s forwards ease;
 }
 
@@ -618,11 +634,6 @@ body {
   top: 0;
 }
 
-#screen.attention > #windows > .appWindow.fullscreen-app {
-  height: calc(100% - 4rem);
-  top: 4rem;
-}
-
 .accessibility-invert {
   filter: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxmaWx0ZXIKICAgICAgaWQ9ImludmVydEZpbHRlciIKICAgICAgY29sb3ItaW50ZXJwb2xhdGlvbi1maWx0ZXJzPSJzUkdCIj4KICAgIDxmZUNvbG9yTWF0cml4CiAgICAgICAgdmFsdWVzPSItMSAwIDAgMCAxIDAgLTEgMCAwIDEgMCAwIC0xIDAgMSAwIDAgMCAxIDAgIiAvPgogIDwvZmlsdGVyPgo8L3N2Zz4K#invertFilter);
 }
@@ -635,6 +646,18 @@ body {
   height: calc(100% - 2rem);
   visibility: hidden;
   pointer-events: none;
+}
+
+@media not all and (-moz-physical-home-button) {
+  #dialog-overlay {
+    bottom: 5rem;
+    height: calc(100% - 2rem - 5rem);
+  }
+}
+
+#screen.software-button-enabled #windows > #dialog-overlay {
+  bottom: 5rem;
+  height: calc(100% - 2rem - 5rem);
 }
 
 #screen.active-statusbar #dialog-overlay {

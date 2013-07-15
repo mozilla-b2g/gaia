@@ -4,19 +4,20 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Camera</title>
-    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
-    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini" />
-    <!-- multi-resolution support -->
-    <link rel="stylesheet" type="text/css" href="shared/style/responsive.css">
-    <link rel="stylesheet" type="text/css" href="style/camera.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="resource" type="application/l10n" href="/locales/locales.ini">
+    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
 
-    <script defer src="/shared/js/l10n.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/camera.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+
     <!-- for perf-measurement related utilities -->
     <script defer src="/shared/js/performance_testing_helper.js"></script>
 
     <!-- The following scripts are lazy loaded but left here to ensure
          they get copied over from shared during the build -->
+    <!-- <script defer src="/shared/js/l10n.js"></script> -->
+    <!-- <script defer src="/shared/js/l10n_date.js"></script> -->
+    <!-- <script defer src="/shared/js/lazy_l10n.js"></script> -->
     <!-- <script defer src="/shared/js/async_storage.js"></script> -->
     <!-- <script defer src="/shared/js/blobview.js"></script> -->
     <!-- <script defer src="/shared/js/media/jpeg_metadata_parser.js"></script> -->
@@ -32,7 +33,7 @@
     <video id="viewfinder" autoplay></video>
 
     <div id="hud">
-      <a id="toggle-camera" class="hidden"></an>
+      <a id="toggle-camera" class="hidden"></a>
       <a id="toggle-flash" class="hidden"></a>
     </div>
 

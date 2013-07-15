@@ -1,11 +1,22 @@
 'use strict';
 
+requireApp('costcontrol/test/unit/mock_date.js');
 requireApp('costcontrol/js/config/vivo/config.js');
 
 suite('Custom VIVO configuration Test Suite >', function() {
   var VIVO_RESERVED_CHARACTER = '0';
   var VIVO_MAX_MESSAGE_LENGTH = 138;
   var VIVO_OPERATION_CHECK_BALANCE = '0102';
+  var realDate;
+
+  suiteSetup(function() {
+    realDate = window.Date;
+    window.Date = new MockDateFactory(new Date('2013-01-01T00:00:00.000Z'));
+  });
+
+  suiteTeardown(function() {
+    window.Date = realDate;
+  });
 
   function VivoRequestParser(message) {
     return {
@@ -56,9 +67,9 @@ suite('Custom VIVO configuration Test Suite >', function() {
     var hour = parseInt(timeString.slice(0, 2), 10);
     var minutes = parseInt(timeString.slice(2, 4), 10);
     var seconds = parseInt(timeString.slice(4, 6), 10);
-    assert.isTrue(0 < hour && hour <= 23);
-    assert.isTrue(0 < minutes && minutes <= 59);
-    assert.isTrue(0 < seconds && seconds <= 59);
+    assert.isTrue(0 <= hour && hour <= 23);
+    assert.isTrue(0 <= minutes && minutes <= 59);
+    assert.isTrue(0 <= seconds && seconds <= 59);
   }
 
   test('Balance requests have the proper length', function() {

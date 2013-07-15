@@ -61,27 +61,8 @@ window.addEventListener('localized', function() {
     // We'll enable it below in the open() function if needed.
     $('menu').hidden = true;
 
-    // When an image file is received via bluetooth, we're invoked
-    // by the system app. But the blob that is passed has a very large
-    // invalid size field. See bug 850941. As a workaround, we use
-    // the filename that is passed along with the blob and look the file
-    // up via device storage.  When bug 850941 is fixed, we can remove
-    // this code and replace it with open(blob);
     blob = activityData.blob;
-    var filename = activityData.filename;
-    if (filename && (!blob || blob.size > 25000000)) {
-      var getrequest = navigator.getDeviceStorage('pictures').get(filename);
-      getrequest.onsuccess = function() {
-        open(getrequest.result); // this blob should have a valid size and type
-      };
-      getrequest.onerror = function() {
-        // if the file didn't exist, then try the blob
-        open(blob);
-      };
-    }
-    else {
-      open(blob);
-    }
+    open(blob);
   }
 
   // Display the specified blob, unless it is too big to display

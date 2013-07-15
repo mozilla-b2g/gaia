@@ -10,6 +10,7 @@
  */
 var Compose = (function() {
   var placeholderClass = 'placeholder';
+  var attachmentClass = 'attachment-container';
 
   var slice = Array.prototype.slice;
   var attachments = new WeakMap();
@@ -32,13 +33,19 @@ var Compose = (function() {
     maxLength: null,
     size: null,
     lastScrollPosition: 0,
+    resizing: false,
 
     // 'sms' or 'mms'
     type: 'sms'
   };
 
-  // handler for 'input' in contentEditable
-  function composeCheck(e) {
+  // anytime content changes - takes a parameter to check for image resizing
+  function onContentChanged(duck) {
+
+    // if the duck is an image attachment, handle resizes
+    if (duck instanceof Attachment && duck.type === 'img') {
+      return imageAttachmentsHandling();
+    }
 
     var textLength = dom.message.textContent.length;
     var empty = !textLength;
@@ -64,13 +71,13 @@ var Compose = (function() {
       state.empty = true;
     }
 
-    trigger('input', e);
+    trigger('input', new CustomEvent('input'));
 
-    if (hasFrames && state.type == 'sms') {
+    if (hasFrames && state.type === 'sms') {
       compose.type = 'mms';
     }
 
-    if (!hasFrames && state.type == 'mms') {
+    if (!hasFrames && state.type === 'mms') {
       // this operation is cancelable
       compose.type = 'sms';
     }
@@ -128,6 +135,63 @@ var Compose = (function() {
     return fragment;
   }
 
+  function imageAttachmentsHandling() {
+    // There is need to resize image attachment if total compose
+    // size doen't exceed mms size limitation.
+    if (Compose.size < Settings.mmsSizeLimitation) {
+      onContentChanged();
+      return;
+    }
+
+    var nodes = dom.message.querySelectorAll('iframe');
+    var imgNodes = [];
+    var done = 0;
+    Array.prototype.forEach.call(nodes, function findImgNodes(node) {
+      var item = attachments.get(node);
+      if (item.type === 'img') {
+        imgNodes.push(node);
+      }
+    });
+
+    // Total number of images < 3
+    //   => Set max image size to 2/5 message size limitation.
+    // Total number of images >= 3
+    //   => Set max image size to 1/5 message size limitation.
+    var images = imgNodes.length;
+    var limit = images > 2 ? Settings.mmsSizeLimitation * 0.2 :
+                             Settings.mmsSizeLimitation * 0.4;
+
+    function imageSized() {
+      if (++done === images) {
+        state.resizing = false;
+        onContentChanged();
+      }
+    }
+
+    state.resizing = true;
+    imgNodes.forEach(function(node) {
+      var item = attachments.get(node);
+      if (item.blob.size < limit) {
+        imageSized();
+      } else {
+        Utils.getResizedImgBlob(item.blob, limit, function(resizedBlob) {
+          // trigger recalc when resized
+          state.size = null;
+
+          item.blob = resizedBlob;
+          var newNode = item.render();
+          attachments.set(newNode, item);
+          if (dom.message.contains(node)) {
+            dom.message.insertBefore(newNode, node);
+            dom.message.removeChild(node);
+          }
+          imageSized();
+        });
+      }
+    });
+    onContentChanged();
+  }
+
   var compose = {
     init: function composeInit(formId) {
       dom.form = document.getElementById(formId);
@@ -137,7 +201,7 @@ var Compose = (function() {
       dom.optionsMenu = document.getElementById('attachment-options-menu');
 
       // update the placeholder after input
-      dom.message.addEventListener('input', composeCheck);
+      dom.message.addEventListener('input', onContentChanged);
 
       // we need to bind to keydown & keypress because of #870120
       dom.message.addEventListener('keydown', composeKeyEvents);
@@ -153,6 +217,7 @@ var Compose = (function() {
         this.onAttachClick.bind(this));
 
       this.clear();
+      this.clearListeners();
 
       return this;
     },
@@ -172,6 +237,12 @@ var Compose = (function() {
         }
       }
       return this;
+    },
+
+    clearListeners: function() {
+      for (var type in handlers) {
+        handlers[type] = [];
+      }
     },
 
     getContent: function() {
@@ -293,7 +364,7 @@ var Compose = (function() {
         dom.message.insertBefore(fragment, dom.message.childNodes[0]);
       }
 
-      composeCheck();
+      onContentChanged(item);
       return this;
     },
 
@@ -314,15 +385,16 @@ var Compose = (function() {
         dom.message.insertBefore(fragment, dom.message.lastChild);
         this.scrollToTarget(dom.message.lastChild);
       }
-      composeCheck();
+      onContentChanged(item);
       return this;
     },
 
     clear: function() {
       dom.message.innerHTML = '<br>';
-      state.full = false;
+      state.resizing = state.full = false;
       state.size = 0;
-      composeCheck();
+      state.empty = true;
+      onContentChanged();
       return this;
     },
 
@@ -337,7 +409,7 @@ var Compose = (function() {
     },
 
     onAttachmentClick: function thui_onAttachmentClick(event) {
-      if (event.target.className === 'attachment') {
+      if (event.target.classList.contains(attachmentClass) && !state.resizing) {
         this.currentAttachmentDOM = event.target;
         this.currentAttachment = attachments.get(event.target);
         AttachmentMenu.open(this.currentAttachment);
@@ -353,17 +425,19 @@ var Compose = (function() {
         case 'attachment-options-remove':
           attachments.delete(this.currentAttachmentDOM);
           dom.message.removeChild(this.currentAttachmentDOM);
-          composeCheck({type: 'input'});
+          state.size = null;
+          onContentChanged();
           AttachmentMenu.close();
           break;
         case 'attachment-options-replace':
           var request = this.requestAttachment();
           request.onsuccess = (function replaceAttachmentWith(newAttachment) {
-            var el = newAttachment.render();
-            attachments.set(el, newAttachment);
-            dom.message.insertBefore(el, this.currentAttachmentDOM);
+            var fragment = insert(newAttachment);
+
+            dom.message.insertBefore(fragment, this.currentAttachmentDOM);
             dom.message.removeChild(this.currentAttachmentDOM);
-            composeCheck({type: 'input'});
+
+            onContentChanged(newAttachment);
             AttachmentMenu.close();
           }).bind(this);
           request.onerror = function(err) {
@@ -394,7 +468,7 @@ var Compose = (function() {
       var activity;
 
       if (Settings.mmsSizeLimitation) {
-        activityData.maxFileSize = Settings.mmsSizeLimitation;
+        activityData.maxFileSizeBytes = Settings.mmsSizeLimitation;
       }
 
       activity = new MozActivity({
@@ -406,7 +480,8 @@ var Compose = (function() {
         var result = activity.result;
 
         if (Settings.mmsSizeLimitation &&
-          result.blob.size > Settings.mmsSizeLimitation) {
+          result.blob.size > Settings.mmsSizeLimitation &&
+          Utils.typeFromMimeType(result.blob.type) !== 'img') {
           if (typeof requestProxy.onerror === 'function') {
             requestProxy.onerror('file too large');
           }
@@ -472,6 +547,12 @@ var Compose = (function() {
           return sum + content.size;
         }
       }, 0);
+    }
+  });
+
+  Object.defineProperty(compose, 'isResizing', {
+    get: function composeGetResizeState() {
+      return state.resizing;
     }
   });
 

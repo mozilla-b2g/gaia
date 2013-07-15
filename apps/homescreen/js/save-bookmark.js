@@ -5,7 +5,11 @@ if (navigator.mozSetMessageHandler) {
     switch (activity.source.name) {
       case 'save-bookmark':
         var bookmarkSaved = function sb_bookmarkSaved() {
-          activity.postResult('saved');
+          window.addEventListener('status-hidden', function hidden() {
+            window.removeEventListener('status-hidden', hidden);
+            activity.postResult('saved');
+          });
+          utils.status.show(navigator.mozL10n.get('added-to-home-screen'));
         };
         var addBookmarkCancelled = function sb_addBookmarkCancelled() {
           activity.postError('cancelled');
@@ -19,8 +23,8 @@ if (navigator.mozSetMessageHandler) {
             oncancelled: addBookmarkCancelled
           };
           BookmarkEditor.init(options);
-          document.addEventListener('mozvisibilitychange', function changed() {
-            if (document.mozHidden) {
+          document.addEventListener('visibilitychange', function changed() {
+            if (document.hidden) {
               BookmarkEditor.close();
             }
           });

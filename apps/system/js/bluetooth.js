@@ -17,6 +17,9 @@ var Bluetooth = {
     if (!window.navigator.mozSettings)
       return;
 
+    if (!window.navigator.mozBluetooth)
+      return;
+
     var bluetooth = window.navigator.mozBluetooth;
     var settings = window.navigator.mozSettings;
     var self = this;

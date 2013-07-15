@@ -103,13 +103,6 @@ ol, ul {
   color: #373E45;
 }
 
-.icon-noresult {
-  width: 20rem;
-  height: 20rem;
-  margin: 0 auto;
-  background-image: url('images/ComLog_200x200_clock.png');
-}
-
 .icon-container {
   float: left;
   height: 100%;

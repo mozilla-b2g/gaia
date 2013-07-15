@@ -49,6 +49,7 @@
 
 .settings li p:only-of-type {
   padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
   line-height: 2rem;
 }
 
@@ -63,7 +64,6 @@
   opacity: 0.7;
 }
 
-.settings li time,
 .settings li .meta {
   font-size: 1.4rem;
   color: #505859;

@@ -31,8 +31,8 @@ const LandingPage = (function() {
     evt.stopImmediatePropagation();
   });
 
-  document.addEventListener('mozvisibilitychange', function mozVisChange() {
-    if (document.mozHidden === false) {
+  document.addEventListener('visibilitychange', function mozVisChange() {
+    if (document.hidden === false) {
       startClock();
     } else {
       stopClock();

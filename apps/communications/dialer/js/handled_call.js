@@ -56,6 +56,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       this.disconnected();
       break;
     case 'resuming':
+      OnCallHandler.updateKeypadEnabled();
       this.node.classList.remove('held');
       if (this.photo) {
         CallScreen.setCallerContactImage(this.photo, true, false);
@@ -63,6 +64,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       CallScreen.syncSpeakerEnabled();
       break;
     case 'held':
+      OnCallHandler.updateKeypadEnabled();
       this.node.classList.add('held');
       break;
     case 'busy':
@@ -83,7 +85,9 @@ HandledCall.prototype.startTimer = function hc_startTimer() {
   this.durationNode.classList.add('isTimer');
   LazyL10n.get((function localized(_) {
     this._ticker = setInterval(function hc_updateTimer(self, startTime) {
-      var elapsed = new Date(Date.now() - startTime);
+      // Bug 834334: Ensure that 28.999 -> 29.000
+      var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
+      var elapsed = new Date(delta);
       var duration = {
         h: padNumber(elapsed.getUTCHours()),
         m: padNumber(elapsed.getUTCMinutes()),
@@ -115,62 +119,62 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     return;
   }
 
-  var voicemail = navigator.mozVoicemail;
-  if (voicemail) {
-    if (voicemail.number == number) {
-      node.textContent = voicemail.displayName ?
-        voicemail.displayName : number;
-      return;
-    }
-  }
-
   var self = this;
-  Contacts.findByNumber(number,
-    function lookupContact(contact, matchingTel, contactsWithSameNumber) {
-      if (contact) {
-        var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
-        var contactCopy = {
-          name: contact.name,
-          org: contact.org,
-          tel: contact.tel
-        };
-        if (primaryInfo) {
-          node.textContent = primaryInfo;
-          self._cachedInfo = primaryInfo;
-        } else {
-          LazyL10n.get(function gotL10n(_) {
-            self._cachedInfo = _('withheld-number');
-            node.textContent = self._cachedInfo;
-          });
-        }
-        self.formatPhoneNumber('end', true);
-        self._cachedAdditionalInfo =
-          Utils.getPhoneNumberAdditionalInfo(matchingTel, contact, number);
-        self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
-        if (contact.photo && contact.photo.length > 0) {
-          self.photo = contact.photo[0];
-          CallScreen.setCallerContactImage(self.photo, true, false);
-          if (typeof self.photo === 'string') {
-            contactCopy.photo = self.photo;
-          } else {
-            contactCopy.photo = [URL.createObjectURL(self.photo)];
-          }
-        }
+  Voicemail.check(number, function(isVoicemailNumber) {
+    if (isVoicemailNumber) {
+      LazyL10n.get(function localized(_) {
+        node.textContent = _('voiceMail');
+      });
+    } else {
+      Contacts.findByNumber(number, lookupContact);
+    }
+  });
 
-        self.recentsEntry.contactInfo = {
-          matchingTel: JSON.stringify(matchingTel),
-          contact: JSON.stringify(contactCopy),
-          contactsWithSameNumber: contactsWithSameNumber || 0
-        };
-        return;
+  function lookupContact(contact, matchingTel, contactsWithSameNumber) {
+    if (contact) {
+      var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
+      var contactCopy = {
+        id: contact.id,
+        name: contact.name,
+        org: contact.org,
+        tel: contact.tel
+      };
+      if (primaryInfo) {
+        node.textContent = primaryInfo;
+        self._cachedInfo = primaryInfo;
+      } else {
+        LazyL10n.get(function gotL10n(_) {
+          self._cachedInfo = _('withheld-number');
+          node.textContent = self._cachedInfo;
+        });
+      }
+      self.formatPhoneNumber('end', true);
+      self._cachedAdditionalInfo =
+        Utils.getPhoneNumberAdditionalInfo(matchingTel, contact, number);
+      self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+      if (contact.photo && contact.photo.length > 0) {
+        self.photo = contact.photo[0];
+        CallScreen.setCallerContactImage(self.photo, true, false);
+        if (typeof self.photo === 'string') {
+          contactCopy.photo = self.photo;
+        } else {
+          contactCopy.photo = [URL.createObjectURL(self.photo)];
+        }
       }
 
-      self._cachedInfo = number;
-      node.textContent = self._cachedInfo;
-      self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
-      self.formatPhoneNumber('end', true);
+      self.recentsEntry.contactInfo = {
+        matchingTel: JSON.stringify(matchingTel),
+        contact: JSON.stringify(contactCopy),
+        contactsWithSameNumber: contactsWithSameNumber || 0
+      };
+      return;
     }
-  );
+
+    self._cachedInfo = number;
+    node.textContent = self._cachedInfo;
+    self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+    self.formatPhoneNumber('end', true);
+  }
 };
 
 HandledCall.prototype.replaceAdditionalContactInfo =

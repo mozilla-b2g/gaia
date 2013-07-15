@@ -2,22 +2,22 @@
 
 requireApp(
   'communications/ftu/test/unit/mock_navigator_moz_mobile_connection.js');
-requireApp(
-  'communications/ftu/test/unit/mock_navigator_moz_icc_manager.js');
 requireApp('communications/ftu/test/unit/mock_ui_manager.js');
+requireApp('communications/ftu/test/unit/mock_icc_helper.js');
+requireApp('communications/ftu/test/unit/mock_l10n.js');
 
 requireApp('communications/ftu/js/sim_manager.js');
 
 var _;
 var mocksHelperForNavigation = new MocksHelper([
-  'UIManager'
+  'UIManager',
+  'IccHelper'
 ]);
 mocksHelperForNavigation.init();
 
 suite('sim mgmt >', function() {
   var realL10n,
-      realMozMobileConnection,
-      realMozIccManager;
+      realMozMobileConnection;
   var mocksHelper = mocksHelperForNavigation;
   var conn, container;
 
@@ -26,9 +26,6 @@ suite('sim mgmt >', function() {
 
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
-
-    realMozIccManager = navigator.mozIccManager;
-    navigator.mozIccManager = MockNavigatorMozIccManager;
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -41,9 +38,6 @@ suite('sim mgmt >', function() {
   teardown(function() {
     navigator.mozMobileConnection = realMozMobileConnection;
     realMozMobileConnection = null;
-
-    navigator.mozIccManager = realMozIccManager;
-    realMozIccManager = null;
 
     navigator.mozL10n = realL10n;
     realL10n = null;
@@ -86,7 +80,7 @@ suite('sim mgmt >', function() {
     });
 
     test('pinRequired shows PIN screen', function() {
-      conn.setProperty('cardState', 'pinRequired');
+      IccHelper.setProperty('cardState', 'pinRequired');
       SimManager.handleCardState();
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
       assert.isFalse(UIManager.pinRetriesLeft.classList.contains('hidden'));
@@ -95,7 +89,7 @@ suite('sim mgmt >', function() {
     });
 
     test('pukRequired shows PUK screen', function() {
-      conn.setProperty('cardState', 'pukRequired');
+      IccHelper.setProperty('cardState', 'pukRequired');
       SimManager.handleCardState();
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
       assert.isFalse(UIManager.pukRetriesLeft.classList.contains('hidden'));
@@ -104,7 +98,7 @@ suite('sim mgmt >', function() {
     });
 
     test('networkLocked shows XCK screen', function() {
-      conn.setProperty('cardState', 'networkLocked');
+      IccHelper.setProperty('cardState', 'networkLocked');
       SimManager.handleCardState();
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
       assert.isFalse(UIManager.xckRetriesLeft.classList.contains('hidden'));
@@ -123,10 +117,10 @@ suite('sim mgmt >', function() {
 
     suite('PIN unlock ', function() {
       suiteSetup(function() {
-        conn.setProperty('cardState', 'pinRequired');
+        IccHelper.setProperty('cardState', 'pinRequired');
       });
       suiteTeardown(function() {
-        conn.setProperty('cardState', null);
+        IccHelper.setProperty('cardState', null);
       });
 
       test('too short PIN', function() {
@@ -156,10 +150,10 @@ suite('sim mgmt >', function() {
 
     suite('PUK unlock ', function() {
       suiteSetup(function() {
-        conn.setProperty('cardState', 'pukRequired');
+        IccHelper.setProperty('cardState', 'pukRequired');
       });
       suiteTeardown(function() {
-        conn.setProperty('cardState', null);
+        IccHelper.setProperty('cardState', null);
       });
 
       test('wrong length PUK', function() {
@@ -218,10 +212,10 @@ suite('sim mgmt >', function() {
 
     suite('XCK unlock ', function() {
       suiteSetup(function() {
-        conn.setProperty('cardState', 'networkLocked');
+        IccHelper.setProperty('cardState', 'networkLocked');
       });
       suiteTeardown(function() {
-        conn.setProperty('cardState', null);
+        IccHelper.setProperty('cardState', null);
       });
 
       test('too short XCK', function() {

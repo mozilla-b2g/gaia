@@ -293,18 +293,53 @@ const IMERender = (function() {
           span.textContent = text;
           container.appendChild(span);
 
-          // This measurement only works if the span is display:inline
-          var textWidth = span.getBoundingClientRect().width;
-          var containerWidth = container.clientWidth;
+          // Measure the width of the element, and return the scale that
+          // we can use to make it fit in the container. The return values
+          // are restricted to a set that matches the standard font sizes
+          // we use in Gaia.
+          //
+          // Note that this only works if the element is display:inline
+          function getScale(element, container) {
+            var elementWidth = element.getBoundingClientRect().width;
+            var s = container.clientWidth / elementWidth;
+            if (s >= 1)
+              return 1;    // 10pt font "Body Large"
+            if (s >= .8)
+              return .8;   // 8pt font "Body"
+            if (s >= .7)
+              return .7;   // 7pt font "Body Medium"
+            if (s >= .65)
+              return .65;  // 6.5pt font "Body Small"
+            if (s >= .6)
+              return .6;   // 6pt font "Body Mini"
+            return s;      // Something smaller than 6pt.
+          }
 
-          // But the scaling and centering we do only works if the span
-          // is display:block (or inline-block), so we that style now.
+          var limit = .6;  // Dont use a scale smaller than this
+          var scale = getScale(span, container);
+
+          // If the text does not fit within the scaling limit,
+          // reduce the length of the text by replacing characters in
+          // the middle with ...
+          if (scale < limit) {
+            var charactersReplaced = text.length % 2;
+            while (scale < limit && charactersReplaced < text.length - 2) {
+              charactersReplaced += 2;
+              var halflen = (text.length - charactersReplaced) / 2;
+              span.textContent = text.substring(0, halflen) +
+                '…' +
+                text.substring(text.length - halflen);
+              scale = getScale(span, container);
+            }
+          }
+
+          // The scaling and centering we do only works if the span
+          // is display:block or inline-block
           span.style.display = 'inline-block';
-          if (textWidth > containerWidth) {
-            var scale = containerWidth / textWidth;
+          if (scale < 1) {
             span.style.width = (100 / scale) + '%';
             span.style.transformOrigin = 'left';
-            span.style.transform = 'scale(' + scale + ',1)';
+            span.style.transform = 'scale(' + scale + ')';
           }
           else {
             span.style.width = '100%';
@@ -316,15 +351,15 @@ const IMERender = (function() {
     }
   };
 
-  // Show keyboard alternatives
+  // Show keyboard layout alternatives
   var showKeyboardAlternatives = function(key, keyboards, current, switchCode) {
-    var content = document.createDocumentFragment();
+    var menuContainer = document.createElement('div');
+    menuContainer.classList.add('menu-container');
     var dataset, className;
     var menu = this.menu;
 
     var cssWidth = key.style.width;
     menu.classList.add('kbr-menu-lang');
-    key.classList.add('kbr-menu-on');
 
     var alreadyAdded = {};
     for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
@@ -340,7 +375,7 @@ const IMERender = (function() {
         {key: 'keycode', value: switchCode}
       ];
 
-      content.appendChild(buildKey(
+      menuContainer.appendChild(buildKey(
         Keyboards[kbr].menuLabel,
         className, cssWidth + 'px',
         dataset)
@@ -349,7 +384,7 @@ const IMERender = (function() {
       alreadyAdded[kbr] = true;
     }
     menu.innerHTML = '';
-    menu.appendChild(content);
+    menu.appendChild(menuContainer);
 
     // Replace with the container
     _altContainer = document.createElement('div');
@@ -357,6 +392,7 @@ const IMERender = (function() {
     _altContainer.style.width = key.style.width;
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
+    _altContainer.classList.add('kbr-menu-on');
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 
@@ -478,8 +514,16 @@ const IMERender = (function() {
 
     // Width calc
     if (layout) {
+      var keyboard = document.getElementById('keyboard');
+
+      // Remove inline styles on rotation
+      [].forEach.call(keyboard.querySelectorAll('.visual-wrapper[style]'),
+        function(item) {
+          item.style.width = '';
+        });
+
       layoutWidth = layout.width || 10;
-      var totalWidth = document.getElementById('keyboard').clientWidth;
+      var totalWidth = keyboard.clientWidth;
       var placeHolderWidth = totalWidth / layoutWidth;
 
       var ratio, keys, rows = document.querySelectorAll('.keyboard-row');
@@ -507,7 +551,13 @@ const IMERender = (function() {
             key.style.width = Math.floor(placeHolderWidth * newRatio) + 'px';
             key.classList.add('float-key-' + (k === 0 ? 'first' : 'last'));
           }
+        }
 
+        // Now that key sizes have been set and adjusted for the row,
+        // loop again and record the size and position of each. If we
+        // do this as part of the loop above, we get bad position data.
+        for (k = 0; key = keys[k]; k += 1) {
+          visualKey = key.querySelector('.visual-wrapper');
           _keyArray.push({
             code: key.dataset.keycode | 0,
             x: visualKey.offsetLeft,

@@ -62,7 +62,7 @@ var currentOverlay;
 var dragging = false;
 
 // Videos recorded by our own camera have filenames of this form
-var FROMCAMERA = /^DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
+var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
 function init() {
 
@@ -797,8 +797,8 @@ function formatDuration(duration) {
 }
 
  // Pause on visibility change
-document.addEventListener('mozvisibilitychange', function visibilityChange() {
-  if (document.mozHidden) {
+document.addEventListener('visibilitychange', function visibilityChange() {
+  if (document.hidden) {
     stopParsingMetadata();
     if (playing)
       pause();

@@ -9,6 +9,7 @@
  // Import global objects from parent window
  var ConfigManager = window.parent.ConfigManager;
  var CostControl = window.parent.CostControl;
+ var Formatting = window.parent.Formatting;
 
  // Import global functions from parent window
  var updateNextReset = window.parent.updateNextReset;
@@ -32,6 +33,7 @@ var Settings = (function() {
   var costcontrol, vmanager, autosettings, initialized;
   var plantypeSelector, phoneActivityTitle, phoneActivitySettings;
   var balanceTitle, balanceSettings, reportsTitle;
+  var balanceView;
 
   function configureUI() {
     CostControl.getInstance(function _onCostControl(instance) {
@@ -51,6 +53,14 @@ var Settings = (function() {
       balanceSettings =
         document.querySelector('#balance-settings + .settings');
       reportsTitle = document.getElementById('phone-internet-settings');
+
+      // Subviews
+      var balanceConfig = ConfigManager.configuration.balance;
+      balanceView = new BalanceView(
+        document.getElementById('balance'),
+        document.querySelector('#balance + .meta'),
+        balanceConfig ? balanceConfig.minimum_delay : undefined
+      );
 
       // Autosettings
       vmanager = new ViewManager();
@@ -261,20 +271,7 @@ var Settings = (function() {
   function updateBalance(lastBalance, currency) {
     var limitCurrency = document.getElementById('settings-low-limit-currency');
     limitCurrency.textContent = currency;
-
-    var balance = document.getElementById('balance');
-    if (!lastBalance) {
-      balance.textContent = _('not-available');
-      return;
-    }
-
-    var timestamp = document.querySelector('#balance + .meta');
-    balance.textContent = _('currency', {
-      value: lastBalance.balance,
-      currency: lastBalance.currency
-    });
-    timestamp.innerHTML = '';
-    timestamp.appendChild(formatTimeHTML(lastBalance.timestamp));
+    balanceView.update(lastBalance);
   }
 
   // Update telephony counters on settings

@@ -93,7 +93,6 @@ const DragDropManager = (function() {
       draggableIcon.addClassToDragElement('overDock');
       DragLeaveEventManager.send(pageHelper.getCurrent(), function end(done) {
         DockManager.page.appendIcon(draggableIcon);
-        overlapElem = document.elementFromPoint(cx, cy);
         drop(DockManager.page);
         done();
       });
@@ -115,6 +114,7 @@ const DragDropManager = (function() {
       draggableIcon.removeClassToDragElement('overDock');
       DragLeaveEventManager.send(DockManager.page, function end(done) {
         curPageObj.appendIconVisible(draggableIcon);
+        drop(pageHelper.getCurrent());
         done();
       });
     } else if (!isDisabledCheckingLimits) {
@@ -206,6 +206,11 @@ const DragDropManager = (function() {
   }
 
   function drop(page) {
+    overlapElem = document.elementFromPoint(cx, cy);
+    doDrop(page);
+  }
+
+  function doDrop(page) {
     if (!overlapElem) {
       return;
     }
@@ -310,7 +315,7 @@ const DragDropManager = (function() {
           }, REARRANGE_DELAY);
         }
       } else {
-        overlapingTimeout = setTimeout(drop, REARRANGE_DELAY, page);
+        overlapingTimeout = setTimeout(doDrop, REARRANGE_DELAY, page);
       }
     }
 
@@ -323,6 +328,7 @@ const DragDropManager = (function() {
     window.removeEventListener(touchend, onEnd);
     stop(function dg_stop() {
       DockManager.onDragStop(GridManager.onDragStop);
+      window.dispatchEvent(new CustomEvent('dragend'));
     });
   }
 

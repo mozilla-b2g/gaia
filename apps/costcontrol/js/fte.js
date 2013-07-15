@@ -13,22 +13,21 @@
   var DEFAULT_LOW_LIMIT_THRESHOLD = 3;
   var defaultLowLimitThreshold = DEFAULT_LOW_LIMIT_THRESHOLD;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
-    var mobileConnection = window.navigator.mozMobileConnection;
     var stepsLeft = 2;
 
     // No SIM
-    if (!mobileConnection || mobileConnection.cardState === 'absent') {
+    if (!IccHelper.enabled || IccHelper.cardState === 'absent') {
       hasSim = false;
       trySetup();
 
     // SIM is not ready
-    } else if (mobileConnection.cardState !== 'ready') {
-      debug('SIM not ready:', mobileConnection.cardState);
-      mobileConnection.oniccinfochange = _onDOMReady;
+    } else if (IccHelper.cardState !== 'ready') {
+      debug('SIM not ready:', IccHelper.cardState);
+      IccHelper.oniccinfochange = _onDOMReady;
 
     // SIM is ready
     } else {
-      mobileConnection.oniccinfochange = undefined;
+      IccHelper.oniccinfochange = undefined;
       trySetup();
     }
 

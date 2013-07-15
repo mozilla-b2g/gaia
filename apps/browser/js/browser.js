@@ -244,7 +244,7 @@ var Browser = {
          this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
      }, this);
 
-     document.addEventListener('mozvisibilitychange',
+     document.addEventListener('visibilitychange',
        this.handleVisibilityChange.bind(this));
 
      ModalDialog.init();
@@ -588,6 +588,11 @@ var Browser = {
   handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
     var input = this.urlInput.value;
 
+    if (input === '') {
+      this.setUrlButtonMode(null);
+      return;
+    }
+
     this.setUrlButtonMode(
       this.isNotURL(input) ? this.SEARCH : this.GO
     );
@@ -606,7 +611,7 @@ var Browser = {
   handleCrashedTab: function browser_handleCrashedTab(tab) {
     // No need to show the crash screen for background tabs,
     // they will be revived when selected
-    if (tab.id === this.currentTab.id && !document.mozHidden) {
+    if (tab.id === this.currentTab.id && !document.hidden) {
       this.showCrashScreen();
     }
     tab.loading = false;
@@ -620,12 +625,12 @@ var Browser = {
   },
 
   handleVisibilityChange: function browser_handleVisibilityChange() {
-    if (!document.mozHidden && this.currentTab.crashed)
+    if (!document.hidden && this.currentTab.crashed)
       this.reviveCrashedTab(this.currentTab);
 
     // Bug 845661 - Attention screen does not appears when
     // the url bar input is focused.
-    if (document.mozHidden) {
+    if (document.hidden) {
       this.urlInput.blur();
       this.currentTab.dom.blur();
     }
@@ -705,6 +710,11 @@ var Browser = {
     if (e) {
       e.preventDefault();
     }
+
+    if (this.urlButtonMode === null) {
+      return;
+    }
+
 
     if (this.urlButtonMode == this.REFRESH && this.currentTab.crashed) {
       this.setUrlBar(this.currentTab.url);
@@ -926,9 +936,6 @@ var Browser = {
 
   urlFocus: function browser_urlFocus(e) {
     if (this.currentScreen === this.PAGE_SCREEN) {
-      // Hide modal dialog
-      ModalDialog.hide();
-      AuthenticationDialog.hide();
       this.urlInput.value = this.currentTab.url;
       this.sslIndicator.value = '';
       this.setUrlBar(this.currentTab.url);
@@ -949,6 +956,15 @@ var Browser = {
 
   setUrlButtonMode: function browser_setUrlButtonMode(mode) {
     this.urlButtonMode = mode;
+
+    if (this.urlButtonMode === null) {
+      this.urlButton.style.backgroundImage = '';
+      this.urlButton.style.display = 'none';
+      return;
+    }
+
+    this.urlButton.style.display = 'block';
+
     switch (mode) {
       case this.GO:
         this.urlButton.style.backgroundImage = 'url(style/images/go.png)';
@@ -1351,14 +1367,14 @@ var Browser = {
 
       // Save the blob to device storage.
       // Extract a filename from the URL, and to some sanitizing.
-      var name = url.split('/').reverse()[0].toLowerCase()
+      var name = url.split('/').reverse()[0].toLowerCase().split(/[&?#]/g)[0]
                     .replace(/[^a-z0-9\.]/g, '_');
 
       // If we have no file extension, use the content-type header to
       // add one.
-      if (name.split('.').length == 1) {
-        var contentType = xhr.getResponseHeader('content-type');
-        name += '.' + contentType.split('/')[1];
+      var ext = MimeMapper.guessExtensionFromType(xhr.response.type);
+      if (ext && name.indexOf(ext) === -1) {
+        name += '.' + ext;
       }
 
       storeBlob(xhr.response, name, 0);
@@ -1379,7 +1395,7 @@ var Browser = {
         return {
           label: _('open-in-new-tab'),
           callback: function() {
-            self.openInNewTab(item.data);
+            self.openInNewTab(item.data.uri);
           }
         };
       case 'IMG':
@@ -1391,11 +1407,14 @@ var Browser = {
           'AUDIO': 'audio'
         };
         var type = typeMap[item.nodeName];
+        if (item.nodeName === 'VIDEO' && !item.data.hasVideo) {
+          type = 'audio';
+        }
 
         return {
           label: _('save-' + type),
           callback: function() {
-            self.saveMedia(item.data, type);
+            self.saveMedia(item.data.uri, type);
           }
         };
       default:
@@ -1515,6 +1534,8 @@ var Browser = {
     }
 
     this.setVisibleWrapper(tab, visible);
+    var fun = tab.loading ? 'add' : 'remove';
+    this.throbber.classList[fun]('loading');
     tab.dom.style.display = visible ? 'block' : 'none';
     tab.dom.style.top = '0px';
   },
@@ -1672,6 +1693,7 @@ var Browser = {
   },
 
   showStartscreen: function browser_showStartscreen() {
+    document.body.classList.add('start-page');
     this.startscreen.classList.remove('hidden');
     Places.getTopSites(this.MAX_TOP_SITES, null,
       function(places) {
@@ -1694,6 +1716,7 @@ var Browser = {
   },
 
   hideStartscreen: function browser_hideStartScreen() {
+    document.body.classList.remove('start-page');
     this.startscreen.classList.add('hidden');
     this.clearTopSiteThumbnails();
   },
@@ -1747,7 +1770,8 @@ var Browser = {
     }).bind(this);
     this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
-    this.setUrlButtonMode(this.GO);
+    var buttonMode = this.urlInput.value === '' ? null : this.GO;
+    this.setUrlButtonMode(buttonMode);
     this.showTopSitesTab();
   },
 
@@ -1766,7 +1790,7 @@ var Browser = {
       this.setUrlButtonMode(this.STOP);
       this.throbber.classList.add('loading');
     } else {
-      var urlButton = this.currentTab.url ? this.REFRESH : this.GO;
+      var urlButton = this.currentTab.url ? this.REFRESH : null;
       this.setUrlButtonMode(urlButton);
       this.throbber.classList.remove('loading');
     }
@@ -2066,9 +2090,14 @@ var Browser = {
     switch (activity.source.data.type) {
       case 'url':
         var url = this.getUrlFromInput(activity.source.data.url);
-        if (this.currentTab)
-          this.hideCurrentTab();
-        this.selectTab(this.createTab(url));
+        if (this.currentTab) {
+          if (this.currentTab.url) {
+            this.hideCurrentTab();
+            this.selectTab(this.createTab(url));
+          } else {
+            this.navigate(url);
+          }
+        }
         this.showPageScreen();
         break;
     }

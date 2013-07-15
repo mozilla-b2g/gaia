@@ -34,6 +34,9 @@ var leastPlayedTitleL10nId = 'playlists-least-played';
 var musicdb;
 // Pick activity
 var pendingPick;
+// Key for store the player options of repeat and shuffle
+var SETTINGS_OPTION_KEY = 'settings_option_key';
+var playerSettings;
 
 // We get a localized event when the application is launched and when
 // the user switches languages.
@@ -86,6 +89,12 @@ window.addEventListener('localized', function onlocalized() {
     } else {
       TabBar.option = 'mix';
       ModeManager.start(MODE_TILES);
+
+      // The player options will be used later,
+      // so let's get them first before the player is loaded.
+      asyncStorage.getItem(SETTINGS_OPTION_KEY, function(settings) {
+        playerSettings = settings;
+      });
 
       // The done button must be removed when we are not in picker mode
       // because the rules of the header building blocks
@@ -536,15 +545,25 @@ var ModeManager = {
       // load Player.js then we can use the PlayerView object
       document.getElementById('views-player').classList.remove('hidden');
       LazyLoader.load('js/Player.js', function() {
-        if (!playerLoaded)
-          PlayerView.init(true);
+        if (!playerLoaded) {
+          PlayerView.init();
+          PlayerView.setOptions(playerSettings);
+        }
 
         if (callback)
           callback();
       });
     } else {
-      if (mode === MODE_LIST || mode === MODE_PICKER)
+      if (mode === MODE_LIST || mode === MODE_PICKER) {
         document.getElementById('views-list').classList.remove('hidden');
+
+        // XXX Please see Bug 857674 and Bug 886254 for detail.
+        // There is some unwanted logic that will automatically adjust
+        // the input element(search box) while users input characters.
+        // So we need to hide sublist and player when we are in list mode.
+        document.getElementById('views-sublist').classList.add('hidden');
+        document.getElementById('views-player').classList.add('hidden');
+      }
       else if (mode === MODE_SUBLIST)
         document.getElementById('views-sublist').classList.remove('hidden');
       else if (mode === MODE_SEARCH_FROM_TILES ||

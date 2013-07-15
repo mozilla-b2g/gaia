@@ -11,6 +11,7 @@ requireApp('costcontrol/test/unit/mock_moz_l10n.js');
 requireApp('costcontrol/test/unit/mock_moz_mobile_connection.js');
 requireApp('costcontrol/shared/test/unit/mocks/' +
            'mock_navigator_moz_set_message_handler.js');
+requireApp('costcontrol/test/unit/mock_icc_helper.js');
 requireApp('costcontrol/test/unit/mock_cost_control.js');
 requireApp('costcontrol/test/unit/mock_config_manager.js');
 requireApp('costcontrol/js/utils/toolkit.js');
@@ -24,6 +25,7 @@ var realCommon,
     realMozL10n,
     realCostControl,
     realConfigManager,
+    realIccHelper,
     realMozSetMessageHandler;
 
 if (!this.Common) {
@@ -46,6 +48,10 @@ if (!this.ConfigManager) {
   this.ConfigManager = null;
 }
 
+if (!this.IccHelper) {
+  this.IccHelper = null;
+}
+
 if (!this.navigator.mozSetMessageHandler) {
   this.navigator.mozSetMessageHandler = null;
 }
@@ -64,6 +70,8 @@ suite('Application Startup Modes Test Suite >', function() {
 
     realConfigManager = window.ConfigManager;
 
+    realIccHelper = window.IccHelper;
+
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
     window.navigator.mozSetMessageHandler =
       window.MockNavigatormozSetMessageHandler;
@@ -81,6 +89,7 @@ suite('Application Startup Modes Test Suite >', function() {
     window.navigator.mozL10n = realMozL10n;
     window.CostControl = realCostControl;
     window.ConfigManager = realConfigManager;
+    window.IccHelper = realIccHelper;
     window.navigator.mozSetMessageHandler.mTeardown();
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
   });
@@ -166,9 +175,8 @@ suite('Application Startup Modes Test Suite >', function() {
   function setupCardState(cardState) {
     window.Common = new MockCommon({ isValidICCID: true });
     window.CostControl = new MockCostControl();
-    window.navigator.mozMobileConnection = new MockMozMobileConnection({
-      cardState: cardState
-    });
+    window.IccHelper = new MockIccHelper(cardState);
+    window.navigator.mozMobileConnection = new MockMozMobileConnection({});
   }
 
   test('SIM is not ready', function(done) {
@@ -256,13 +264,12 @@ suite('Application Startup Modes Test Suite >', function() {
     loadBodyHTML('/index.html');
     window.Common = new MockCommon({ isValidICCID: true });
     window.CostControl = new MockCostControl();
-    window.navigator.mozMobileConnection = new MockMozMobileConnection({
-      cardState: 'ready'
-    });
+    window.navigator.mozMobileConnection = new MockMozMobileConnection({});
     window.ConfigManager = new MockConfigManager({
       fakeSettings: { fte: false },
       applicationMode: applicationMode
     });
+    window.IccHelper = new MockIccHelper('ready');
   }
 
   test('Layout: Data Usage Only', function(done) {

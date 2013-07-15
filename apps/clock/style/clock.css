@@ -133,6 +133,7 @@ html, body {
 /*248x248*/
 #analog-clock-container.marks2 {
   background-image: url(images/analog_clock_marks2.png);
+  background-size: 24.8rem;
   width: 24.8rem; height: 24.8rem;
   margin-top: 6.9rem;
 }
@@ -143,6 +144,7 @@ html, body {
 /*198x198*/
 #analog-clock-container.marks3 {
   background-image: url(images/analog_clock_marks3.png);
+  background-size: 19.8rem;
   width: 19.8rem; height: 19.8rem;
   margin-top: 6.2rem;
 }
@@ -153,6 +155,7 @@ html, body {
 /*148x148*/
 #analog-clock-container.marks4 {
   background-image: url(images/analog_clock_marks4.png);
+  background-size: 14.8rem;
   width: 14.8rem; height: 14.8rem;
   margin-top: 5.8rem;
 }

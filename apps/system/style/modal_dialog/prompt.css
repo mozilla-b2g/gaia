@@ -42,3 +42,9 @@
   color: #cbcbcb;
   display: block;
 }
+
+/* Since considering 20px height of status bar,
+   overwrite padding top which is defined in shared/style/confirm.css*/
+form[role="dialog"][data-type="confirm"] {
+  padding: 2rem 0 7rem;
+}

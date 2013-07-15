@@ -6,7 +6,5 @@ window.addEventListener('localized', function localized() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
   ClockView.init();
   AlarmList.init();
-  BannerView.init();
-  ActiveAlarmController.init();
+  ActiveAlarm.init();
 });
-

@@ -56,31 +56,33 @@ var Commands = {
     if (language !== currentLanguage) {
       currentLanguage = language;
 
-      var dicturl = 'dictionaries/' +
-        language.replace('-', '_').toLowerCase() +
-        '.dict';
-
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', dicturl, false);
-      xhr.responseType = 'arraybuffer';
-      xhr.send();
-      //
-      // XXX
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=804395
-      // The app protocol doesn't seem to return a status code and
-      // we just get a zero-length array if the url is undefined
-      //
-      if (!xhr.response || xhr.response.byteLength === 0) {
-        log('error loading dictionary');
-        postMessage({ cmd: 'error', message: 'Unknown language: ' + language });
-      }
-      else {
-        try {
+      try {
+        var dicturl = 'dictionaries/' + language + '.dict';
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', dicturl, false);
+        xhr.responseType = 'arraybuffer';
+        xhr.send();
+        //
+        // XXX
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=804395
+        // The app protocol doesn't seem to return a status code and
+        // we just get a zero-length array if the url is undefined
+        //
+        if (xhr.response && xhr.response.byteLength) {
           Predictions.setDictionary(xhr.response);
         }
-        catch (e) {
-          postMessage({ cmd: 'error', message: e.message + ': ' + dicturl});
+        else {
+          postMessage({
+            cmd: 'error',
+            message: 'setLanguage: Unknown language: ' + language
+          });
         }
+      }
+      catch (e) {
+        postMessage({
+          cmd: 'error',
+          message: 'setLanguage: Unknown language: ' + language + ': ' + e
+        });
       }
     }
   },
@@ -90,8 +92,7 @@ var Commands = {
       Predictions.setNearbyKeys(nearbyKeys);
     }
     catch (e) {
-      postMessage({cmd: 'error',
-                   message: 'Predictions.setNearbyKeys(): ' + e.message});
+      postMessage({cmd: 'error', message: 'setNearbyKeys: ' + e.message});
     }
   },
 

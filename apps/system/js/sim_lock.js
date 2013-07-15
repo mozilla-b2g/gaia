@@ -5,11 +5,11 @@
 
 var SimLock = {
   _duringCall: false,
+  _showPrevented: false,
 
   init: function sl_init() {
-    // Do not do anything if we can't have access to MobileConnection API
-    var conn = window.navigator.mozMobileConnection;
-    if (!conn)
+    // Do not do anything if we can't have access to IccHelper API
+    if (!IccHelper.enabled)
       return;
 
     this.onClose = this.onClose.bind(this);
@@ -22,7 +22,7 @@ var SimLock = {
     window.addEventListener('unlock', this);
 
     // always monitor card state change
-    conn.addEventListener('cardstatechange', this.showIfLocked.bind(this));
+    IccHelper.addEventListener('cardstatechange', this.showIfLocked.bind(this));
 
     // Listen to callscreenwillopen and callscreenwillclose event
     // to discard the cardstatechange event.
@@ -37,6 +37,13 @@ var SimLock = {
         break;
       case 'callscreenwillclose':
         this._duringCall = false;
+        if (this._showPrevented) {
+          this._showPrevented = false;
+
+          // We show the SIM dialog right away otherwise the user won't
+          // be able to receive calls.
+          this.showIfLocked();
+        }
         break;
       case 'unlock':
         // Check whether the lock screen was unlocked from the camera or not.
@@ -94,8 +101,7 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked() {
-    var conn = window.navigator.mozMobileConnection;
-    if (!conn)
+    if (!IccHelper.enabled)
       return false;
 
     if (LockScreen.locked)
@@ -105,10 +111,12 @@ var SimLock = {
     if (FtuLauncher.isFtuRunning())
       return false;
 
-    if (this._duringCall)
+    if (this._duringCall) {
+      this._showPrevented = true;
       return false;
+    }
 
-    switch (conn.cardState) {
+    switch (IccHelper.cardState) {
       // do nothing in either absent, unknown or null card states
       case null:
       case 'absent':

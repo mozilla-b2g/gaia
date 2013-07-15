@@ -22,12 +22,6 @@
   float: right;
 }
 
-#balance-tab .overview time {
-  font-weight: normal;
-  font-size: 1.3rem;
-  color: #7a8080;
-}
-
 #balance-tab-credit {
   font-weight: bold;
 }
@@ -129,4 +123,3 @@ section.content .error-messages {
 #balance-tab.no-credit #balance-tab-currency {
   color: #a50606;
 }
-
