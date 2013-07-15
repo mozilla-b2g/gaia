@@ -90,6 +90,20 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     'iso2' : true   // ISO base media file format, version 2
   };
 
+  // MP4 and 3GP containers both use ISO base media file format.
+  // Also see what audio codecs/formats are supported in 3GPP specification.
+  // Format information:
+  //   https://en.wikipedia.org/wiki/ISO_base_media_file_format
+  //   http://tools.ietf.org/html/rfc6381
+  //   http://www.3gpp.org/ftp/Specs/html-info/26244.htm
+  //
+  var MP4Codecs = {
+    'mp4a' : true, // MPEG-4 audio
+    'samr' : true, // AMR narrow-band speech
+    'sawb' : true, // AMR wide-band speech
+    'sawp' : true  // Extended AMR wide-band audio
+  };
+
   // Start off with some default metadata
   var metadata = {};
   metadata[ARTIST] = metadata[ALBUM] = metadata[TITLE] = '';
@@ -614,14 +628,20 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           if (mdia) {
             var minf = findChildAtom(mdia, 'minf');
             if (minf) {
-              var stbl = findChildAtom(minf, 'stbl');
-              if (stbl) {
-                var stsd = findChildAtom(stbl, 'stsd');
-                if (stsd) {
-                  stsd.advance(20);
-                  var codec = stsd.readASCIIText(4);
-                  if (codec !== 'mp4a') {
-                    throw 'Unsupported format in MP4 container: ' + codec;
+              var vmhd = searchChildAtom(minf, 'vmhd');
+              if (vmhd)
+                throw 'Found video track in MP4 container';
+              var smhd = searchChildAtom(minf, 'smhd');
+              if (smhd) {
+                var stbl = findChildAtom(minf, 'stbl');
+                if (stbl) {
+                  var stsd = findChildAtom(stbl, 'stsd');
+                  if (stsd) {
+                    stsd.advance(20);
+                    var codec = stsd.readASCIIText(4);
+                    if (!(codec in MP4Codecs)) {
+                      throw 'Unsupported format in MP4 container: ' + codec;
+                    }
                   }
                 }
               }
@@ -653,6 +673,17 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
 
       return null;  // not found
+    }
+
+    // This function searches the child atom just like findChildAtom().
+    // But the internal pointer/index will be reset to the start
+    // after the searching finishes.
+    function searchChildAtom(data, atom) {
+      var start = data.index;
+      var target = findChildAtom(data, atom);
+      data.index = start;
+
+      return target;
     }
 
     function parseUdtaAtom(data, end) {
