@@ -1,4 +1,5 @@
 [
+  "calendar/test/unit/store/busytime_test.js",
   "calendar/test/unit/views/modify_event_test.js",
   "gallery/test/unit/GestureDetector_test.js",
   "homescreen/test/unit/dock_test.js",
