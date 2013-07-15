@@ -359,12 +359,13 @@ var icc = {
     if (!options.isYesNoRequired && !options.isYesNoRequested) {
       this.icc_input.classList.remove('yesnomode');
 
-      this.icc_input_box.maxLength = options.maxLength;
+      // Workaround. See bug #818270. Followup: #895314
+      setTimeout(function workaround_bug818270() {
+        self.icc_input_box.maxLength = options.maxLength;
+      });
       this.icc_input_box.placeholder = message;
       this.icc_input_box.type = options.isAlphabet ? 'text' : 'tel';
-      if (options.defaultText) {
-        this.icc_input_box.value = options.defaultText;
-      }
+      this.icc_input_box.value = options.defaultText || '';
       if (options.hideInput) {
         this.icc_input_box.type = 'password';
       }
@@ -383,6 +384,9 @@ var icc = {
         self.icc_input_btn.disabled = !checkInputLengthValid(
           self.icc_input_box.value.length, options.minLength,
           options.maxLength);
+        if (self.icc_input_box.value.length == options.maxLength) {
+          self.icc_input_btn.focus();
+        }
       };
       this.icc_input_btn.onclick = function() {
         clearTimeout(timeoutId);
