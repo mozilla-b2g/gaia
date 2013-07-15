@@ -383,6 +383,9 @@ var icc = {
         self.icc_input_btn.disabled = !checkInputLengthValid(
           self.icc_input_box.value.length, options.minLength,
           options.maxLength);
+        if (self.icc_input_box.value.length == options.maxLength) {
+          self.icc_input_btn.focus();
+        }
       };
       this.icc_input_btn.onclick = function() {
         clearTimeout(timeoutId);
