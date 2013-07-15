@@ -12,13 +12,12 @@ var MockThreadUI = {
     });
   },
 
-  cleanFields: function() {
-  },
+  // simple stubs
+  cleanFields: function() {},
+  appendMessage: function() {},
+  setMessageBody: function() {},
 
   isShowSendMessageErrorCalledTimes: 0,
-
-  appendMessage: function() {
-  },
 
   showSendMessageError: function() {
     this.isShowSendMessageErrorCalledTimes += 1;
@@ -32,3 +31,4 @@ var MockThreadUI = {
     this.isShowSendMessageErrorCalledTimes = 0;
   }
 };
+
