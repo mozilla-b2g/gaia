@@ -35,13 +35,13 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     // default to the SIM codes if necessary.
     var mcc, mnc;
     var conn = navigator.mozMobileConnection;
-    if (conn) {
+    if (conn && IccHelper.enabled) {
       if (conn.voice && conn.voice.network) {
         mcc = conn.voice.network.mcc;
         mnc = conn.voice.network.mnc;
-      } else if (conn.iccInfo) {
-        mcc = conn.iccInfo.mcc;
-        mnc = conn.iccInfo.mnc;
+      } else if (IccHelper.iccInfo) {
+        mcc = IccHelper.iccInfo.mcc;
+        mnc = IccHelper.iccInfo.mnc;
       }
     }
     if (!mcc) {

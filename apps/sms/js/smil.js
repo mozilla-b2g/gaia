@@ -61,16 +61,18 @@ function SMIL_generateSlides(data, slide, slideIndex) {
   // each slide can have a piece of media and/or text
   var media = '';
   var text = '';
+  var name = '';
   if (slide.blob) {
     blobType = Utils.typeFromMimeType(slide.blob.type);
     if (blobType) {
-      // just to be safe, remove any non-standard characters from the filenam
-      id = slide.name.replace(runsafefilename, '');
-      id = SMIL_generateUniqueLocation(data, id);
-      media = '<' + blobType + ' src="' + id + '" region="Image"/>';
+      // just to be safe, remove any non-standard characters from the filename
+      name = Utils.escapeHTML(slide.name);
+      name = name.substr(name.lastIndexOf('/') + 1);
+      name = SMIL_generateUniqueLocation(data, name);
+      media = '<' + blobType + ' src="' + name + '" region="Image"/>';
       data.attachments.push({
-        id: '<' + id + '>',
-        location: id,
+        id: '<' + name + '>',
+        location: name,
         content: slide.blob
       });
     }
@@ -92,18 +94,28 @@ function SMIL_generateSlides(data, slide, slideIndex) {
 }
 
 function SMIL_generateUniqueLocation(data, location) {
+
+  // if the location is already being used by the attachment
   function SMIL_uniqueLocationMatches(attachment) {
-    return attachment.location === location;
+    return attachment.location === result;
   }
-  var index;
+
+  // we will add our number right before the '.' if it exists
+  var index = location.lastIndexOf('.');
+  if (index === -1) {
+    index = location.length;
+  }
+
+  // start with the location given to us
+  var result = location;
+  var dupIndex = 2;
+
+  // while any attachment already has this location:
   while (data.attachments.some(SMIL_uniqueLocationMatches)) {
-    index = location.lastIndexOf('.');
-    if (index === -1) {
-      index = location.length;
-    }
-    location = location.slice(0, index) + '_' + location.slice(index);
+    result = location.slice(0, index) +
+        '_' + (dupIndex++) + location.slice(index);
   }
-  return location;
+  return result;
 }
 
 var SMIL = window.SMIL = {
@@ -223,27 +235,44 @@ var SMIL = window.SMIL = {
         return;
       }
 
-      var mediaElement = par.querySelector('img, video, audio');
+      var mediaElements = par.querySelectorAll('img, video, audio');
       var textElement = par.querySelector('text');
-      var slide = {};
-      var attachment;
-      var src;
+      var attachment, src;
 
-      slides.push(slide);
-      if (mediaElement) {
-        src = mediaElement.getAttribute('src');
+      Array.prototype.forEach.call(mediaElements, function setSlide(element) {
+        src = element.getAttribute('src');
         attachment = findAttachment(src);
         if (attachment) {
-          slide.name = attachment.location;
-          slide.blob = attachment.content;
+          // every media attachment starts its own slide in our format
+          slides.push({
+            name: attachment.location,
+            blob: attachment.content
+          });
         } else {
           attachmentsNotFound = true;
         }
-      }
+      });
+
       if (textElement) {
         src = textElement.getAttribute('src');
         attachment = findAttachment(src);
+
         if (attachment) {
+
+          // check for text on the last slide
+          var slide = slides[slides.length - 1];
+
+          // if the last slide doesn't exist, or the last slide has text
+          // already, we create a new slide to store the text
+          if (!slide || typeof slide.text !== 'undefined') {
+            slide = {};
+            slides.push(slide);
+          }
+          // Init slide text to avoid text replaced by later blob
+          slide.text = '';
+
+          // read the text blob, and store it in the "slide" this function
+          // will hold onto
           readTextBlob(attachment.content,
             function SMIL_parseSMILAttachmentRead(event, text) {
               slide.text = text;

@@ -244,7 +244,7 @@ var Browser = {
          this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
      }, this);
 
-     document.addEventListener('mozvisibilitychange',
+     document.addEventListener('visibilitychange',
        this.handleVisibilityChange.bind(this));
 
      ModalDialog.init();
@@ -611,7 +611,7 @@ var Browser = {
   handleCrashedTab: function browser_handleCrashedTab(tab) {
     // No need to show the crash screen for background tabs,
     // they will be revived when selected
-    if (tab.id === this.currentTab.id && !document.mozHidden) {
+    if (tab.id === this.currentTab.id && !document.hidden) {
       this.showCrashScreen();
     }
     tab.loading = false;
@@ -625,12 +625,12 @@ var Browser = {
   },
 
   handleVisibilityChange: function browser_handleVisibilityChange() {
-    if (!document.mozHidden && this.currentTab.crashed)
+    if (!document.hidden && this.currentTab.crashed)
       this.reviveCrashedTab(this.currentTab);
 
     // Bug 845661 - Attention screen does not appears when
     // the url bar input is focused.
-    if (document.mozHidden) {
+    if (document.hidden) {
       this.urlInput.blur();
       this.currentTab.dom.blur();
     }
@@ -936,9 +936,6 @@ var Browser = {
 
   urlFocus: function browser_urlFocus(e) {
     if (this.currentScreen === this.PAGE_SCREEN) {
-      // Hide modal dialog
-      ModalDialog.hide();
-      AuthenticationDialog.hide();
       this.urlInput.value = this.currentTab.url;
       this.sslIndicator.value = '';
       this.setUrlBar(this.currentTab.url);
@@ -1398,7 +1395,7 @@ var Browser = {
         return {
           label: _('open-in-new-tab'),
           callback: function() {
-            self.openInNewTab(item.data);
+            self.openInNewTab(item.data.uri);
           }
         };
       case 'IMG':
@@ -1410,11 +1407,14 @@ var Browser = {
           'AUDIO': 'audio'
         };
         var type = typeMap[item.nodeName];
+        if (item.nodeName === 'VIDEO' && !item.data.hasVideo) {
+          type = 'audio';
+        }
 
         return {
           label: _('save-' + type),
           callback: function() {
-            self.saveMedia(item.data, type);
+            self.saveMedia(item.data.uri, type);
           }
         };
       default:
@@ -1693,6 +1693,7 @@ var Browser = {
   },
 
   showStartscreen: function browser_showStartscreen() {
+    document.body.classList.add('start-page');
     this.startscreen.classList.remove('hidden');
     Places.getTopSites(this.MAX_TOP_SITES, null,
       function(places) {
@@ -1715,6 +1716,7 @@ var Browser = {
   },
 
   hideStartscreen: function browser_hideStartScreen() {
+    document.body.classList.remove('start-page');
     this.startscreen.classList.add('hidden');
     this.clearTopSiteThumbnails();
   },

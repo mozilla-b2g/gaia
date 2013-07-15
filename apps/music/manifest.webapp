@@ -25,7 +25,7 @@
     },
     "open": {
       "filters": {
-        "type": ["audio/mpeg", "audio/ogg", "audio/mp4"]
+        "type": ["audio/mpeg", "audio/ogg", "audio/mp4", "audio/amr"]
        },
       "disposition": "inline",
       "returnValue": true,
@@ -53,8 +53,7 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/style/icons/60/Music.png",
-    "120": "/style/icons/Music.png",
-    "320": "/style/icons/320/Music.png"
+    "120": "/style/icons/Music.png"
   },
   "orientation": "portrait-primary"
 }

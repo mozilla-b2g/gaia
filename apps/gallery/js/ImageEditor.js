@@ -140,33 +140,25 @@ var exposureSlider = (function() {
   var bar = document.getElementById('sliderbar');
   var thumb = document.getElementById('sliderthumb');
 
-  thumb.addEventListener('mousedown', sliderStartDrag);
+  // prepare gesture detector for slider
+  var gestureDetector = new GestureDetector(thumb);
+  gestureDetector.startDetecting();
 
-  var currentExposure;
-  var sliderStartPixel;
-  var sliderStartExposure;
-
-  function sliderStartDrag(e) {
-    document.addEventListener('mousemove', sliderDrag, true);
-    document.addEventListener('mouseup', sliderEndDrag, true);
-    sliderStartPixel = e.clientX;
+  thumb.addEventListener('pan', sliderDrag);
+  thumb.addEventListener('swipe', function(e) {
+    // when stopping we init the start to be at the current level
+    // this way we avoid a 'panstart' event
     sliderStartExposure = currentExposure;
     e.preventDefault();
-  }
+  });
+
+  var currentExposure; // will be set by the initial setExposure call
+  var sliderStartExposure = 0;
 
   function sliderDrag(e) {
-    var delta = e.clientX - sliderStartPixel;
-    var exposureDelta = delta / (parseInt(bar.clientWidth) * .8) * 6;
-    var oldExposure = currentExposure;
+    var delta = e.detail.absolute.dx;
+    var exposureDelta = delta / (parseInt(bar.clientWidth, 10) * .8) * 6;
     setExposure(sliderStartExposure + exposureDelta);
-    if (currentExposure !== oldExposure)
-      slider.dispatchEvent(new Event('change', {bubbles: true}));
-    e.preventDefault();
-  }
-
-  function sliderEndDrag(e) {
-    document.removeEventListener('mousemove', sliderDrag, true);
-    document.removeEventListener('mouseup', sliderEndDrag, true);
     e.preventDefault();
   }
 
@@ -192,8 +184,8 @@ var exposureSlider = (function() {
   }
 
   function forceSetExposure(exposure) {
-    var barWidth = parseInt(bar.clientWidth);
-    var thumbWidth = parseInt(thumb.clientWidth);
+    var barWidth = parseInt(bar.clientWidth, 10);
+    var thumbWidth = parseInt(thumb.clientWidth, 10);
 
     // Remember the new exposure value
     currentExposure = exposure;
@@ -212,6 +204,9 @@ var exposureSlider = (function() {
 
     // Display exposure value in thumb
     thumb.textContent = exposure;
+
+    // Dispatch an event to actually change the image
+    slider.dispatchEvent(new Event('change', {bubbles: true}));
   }
 
   return {
@@ -220,7 +215,7 @@ var exposureSlider = (function() {
     setExposure: setExposure,
     getExposure: function() { return currentExposure; }
   };
-}());
+})();
 
 $('exposure-slider').onchange = function() {
   var stops = exposureSlider.getExposure();
@@ -447,6 +442,10 @@ function ImageEditor(imageURL, container, edits, ready) {
   this.previewCanvas.height = this.previewCanvas.clientHeight;
   this.processor = new ImageProcessor(this.previewCanvas);
 
+  // prepare gesture detector for ImageEditor
+  this.gestureDetector = new GestureDetector(container);
+  this.gestureDetector.startDetecting();
+
   // preset the scale to something useful in case resize() gets called
   // before generateNewPreview()
   this.scale = 1.0;
@@ -528,6 +527,8 @@ ImageEditor.prototype.destroy = function() {
   this.container.removeChild(this.previewCanvas);
   this.previewCanvas = null;
   this.hideCropOverlay();
+  this.gestureDetector.stopDetecting();
+  this.gestureDetector = null;
 };
 
 // Preview the image with the specified edits applyed. If edits is omitted,
@@ -606,6 +607,8 @@ ImageEditor.prototype.hasBeenCropped = function() {
 // Display cropping controls
 // XXX: have to handle rotate/resize
 ImageEditor.prototype.showCropOverlay = function showCropOverlay(newRegion) {
+  var self = this;
+
   var canvas = this.cropCanvas = document.createElement('canvas');
   var context = this.cropContext = canvas.getContext('2d');
   canvas.id = 'edit-crop-canvas'; // for stylesheet
@@ -638,7 +641,16 @@ ImageEditor.prototype.showCropOverlay = function showCropOverlay(newRegion) {
 
   this.drawCropControls();
 
-  canvas.addEventListener('mousedown', this.cropStart.bind(this));
+  var isCropping = false;
+  this.cropCanvas.addEventListener('pan', function(ev) {
+    if (!isCropping) {
+      self.cropStart(ev);
+      isCropping = true;
+    }
+  });
+  this.cropCanvas.addEventListener('swipe', function() {
+    isCropping = false;
+  });
 };
 
 ImageEditor.prototype.hideCropOverlay = function hideCropOverlay() {
@@ -778,14 +790,14 @@ ImageEditor.prototype.drawCropControls = function(handle) {
   }
 };
 
-// Called on mousedown in the crop overlay canvas
-ImageEditor.prototype.cropStart = function(startEvent) {
+// Called when the first pan event comes in on the crop canvas
+ImageEditor.prototype.cropStart = function(ev) {
   var self = this;
   var region = this.cropRegion;
   var dest = this.dest;
   var rect = this.previewCanvas.getBoundingClientRect();
-  var x0 = startEvent.clientX - rect.left - dest.x;
-  var y0 = startEvent.clientY - rect.top - dest.y;
+  var x0 = ev.detail.position.screenX - rect.left - dest.x;
+  var y0 = ev.detail.position.screenY - rect.top - dest.y;
   var left = region.left;
   var top = region.top;
   var right = region.right;
@@ -826,14 +838,14 @@ ImageEditor.prototype.cropStart = function(startEvent) {
     drag(); // pan
 
   function drag(handle) {
-    window.addEventListener('mousemove', move, true);
-    window.addEventListener('mouseup', up, true);
+    window.addEventListener('pan', move, true);
+    window.addEventListener('swipe', up, true);
 
     self.drawCropControls(handle); // highlight drag handle
 
     function move(e) {
-      var dx = e.clientX - startEvent.clientX;
-      var dy = e.clientY - startEvent.clientY;
+      var dx = e.detail.absolute.dx;
+      var dy = e.detail.absolute.dy;
 
       var newleft = region.left;
       var newright = region.right;
@@ -956,9 +968,11 @@ ImageEditor.prototype.cropStart = function(startEvent) {
     }
 
     function up(e) {
-      window.removeEventListener('mousemove', move, true);
-      window.removeEventListener('mouseup', up, true);
+      window.removeEventListener('pan', move, true);
+      window.removeEventListener('swipe', up, true);
       self.drawCropControls(); // erase drag handle highlight
+
+      e.preventDefault();
     }
   }
 

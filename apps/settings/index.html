@@ -8,9 +8,6 @@
     <!-- Debug/DUMP method support -->
     <script defer src="/shared/js/dump.js"></script>
 
-    <!-- multi-resolution support -->
-    <link rel="stylesheet" href="/shared/style/responsive.css">
-
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
@@ -50,12 +47,16 @@
     <link rel="resource" type="application/l10n" href="shared/locales/tz.ini"/>
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/l10n_date.js"></script>
 
     <!-- For perf-measurement related utilities -->
     <script defer src="/shared/js/performance_testing_helper.js"></script>
 
     <!-- Lazy loader -->
     <script defer src="/shared/js/lazy_loader.js"></script>
+
+    <!-- IccHelper -->
+    <script defer src="/shared/js/icc_helper.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/settings.js"></script>
@@ -257,6 +258,10 @@
           <li id="wifi-wps-pin-area">
             <p data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</p>
             <input type="text" />
+          </li>
+          <li id="wifi-wps-pin-aps">
+            <p data-l10n-id="wpsPinAps">Select an opposite device</p>
+            <select></select>
           </li>
         </ul>
       </div>
@@ -1081,6 +1086,17 @@
         </menu>
       </form>
 
+      <form role="dialog" data-type="confirm" id="unpair-device" hidden>
+        <section>
+          <h1>Confirmation</h1>
+          <p data-l10n-id="device-option-unpair-device">Unpair Device?</p>
+        </section>
+        <menu>
+          <button data-l10n-id="cancel">Cancel</button>
+          <button data-l10n-id="device-option-confirm" id="confirm-option" class="danger">Confirm</button>
+        </menu>
+      </form>
+
       <script src="js/bluetooth.js"></script>
       -->
     </section>
@@ -1455,7 +1471,6 @@
         </ul>
       </div>
 
-      <script src="shared/js/l10n_date.js"></script>
       <script src="shared/js/tz_select.js"></script>
       <script src="js/date_time.js"></script>
       -->
@@ -1506,8 +1521,6 @@
           </li>
         </ul>
       </div>
-
-      <script src="shared/js/l10n_date.js"></script>
       -->
     </section>
 
@@ -2084,6 +2097,13 @@
           </li>
           <li>
             <label>
+              <input type="checkbox" name="dom.mozContacts.debugging.enabled" />
+              <span></span>
+            </label>
+            <a data-l10n-id="contacts-debugging">Contacts debugging output in adb</a>
+          </li>
+          <li>
+            <label>
               <input type="checkbox" name="debug.console.enabled"/>
               <span></span>
             </label>
@@ -2452,7 +2472,6 @@
         </ul>
       </div>
 
-      <script src="shared/js/l10n_date.js"></script>
       <script src="js/about.js"></script>
       -->
     </section>
@@ -2586,7 +2605,7 @@
       </div>
       <form data-type="confirm" role="dialog" id="default-location-popup-container" hidden>
         <section>
-          <p>Changing the default media storage volume will effect where photos, videos, downloads and other media will be saved to by default. Existing data will remain in its current location.</p>
+          <p data-l10n-id="change-default-location-confirm">Changing the default media storage volume will effect where photos, videos, downloads and other media will be saved to by default. Existing data will remain in its current location.</p>
         </section>
         <menu>
           <button id="default-location-cancel-btn">Cancel</button>
@@ -2785,20 +2804,6 @@
         </ul>
       </div>
 
-      <form role="dialog" data-type="confirm" id="icc-stk-alert" class="hidden">
-        <section>
-          <h1 data-l10n-id="message">Message</h1>
-          <p id="icc-stk-alert-msg">
-          </p>
-        </section>
-        <menu>
-          <button data-l10n-id="close" id="icc-stk-alert-btn_close">Close</button>
-          <button data-l10n-id="back" id="icc-stk-alert-btn_back">Back</button>
-          <button data-l10n-id="ok" id="icc-stk-alert-btn" class="recommend">Ok</button>
-        </menu>
-      </form>
-
-      <script src="/shared/js/notification_helper.js"></script>
       <script src="js/icc.js"></script>
       -->
     </section>

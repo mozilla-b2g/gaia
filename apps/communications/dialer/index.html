@@ -13,8 +13,6 @@
     <!-- Needed to not duplicate PIN/PUK management strings -->
     <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini">
 
-    <!-- multi-resolution support -->
-    <link rel="stylesheet" href="/shared/style/responsive.css">
     <!-- CSS -->
     <link rel="stylesheet" type="text/css" href="/contacts/style/animations.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/dialer.css">
@@ -31,6 +29,9 @@
 
     <!-- for perf-measurement related utilities -->
     <script defer src='/shared/js/performance_testing_helper.js'></script>
+
+    <!-- IccHelper -->
+    <script defer src='/shared/js/icc_helper.js'></script>
 
     <!-- Lazy load all the things:
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
@@ -55,7 +56,6 @@
     <script defer src="/dialer/js/contacts.js"></script>
     <script defer src="/dialer/js/contact_data_manager.js"></script>
     <script defer src="/dialer/js/suggestion_bar.js"></script>
-    <script defer src="/dialer/js/recents.js"></script>
     <script defer src="/dialer/js/telephony_helper.js"></script>
     <script defer src="/dialer/js/mmi.js"></script>
     <script defer src="/dialer/js/mmi_ui.js"></script>
@@ -212,8 +212,8 @@
         </header>
       </section>
       <menu>
-        <button id="deselect-all-threads" class="edit-button" disabled="disabled" data-l10n-id="deselectAll">Deselect all</button>
-        <button id="select-all-threads" class="edit-button" data-l10n-id="selectAll">Select all</button>
+        <button id="deselect-all-threads" class="edit-button" disabled="disabled" data-l10n-id="deselectAll">Deselect All</button>
+        <button id="select-all-threads" class="edit-button" data-l10n-id="selectAll">Select All</button>
       </menu>
       -->
     </form>

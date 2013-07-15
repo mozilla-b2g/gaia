@@ -3,7 +3,7 @@
   top: 2rem;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 2rem);
+  height: calc(100% - 2rem);
   background-color: rgba(0,0,0,0.4);
   -moz-transition: opacity 0.5s ease;
   pointer-events: none;
@@ -41,7 +41,7 @@
 }
 
 #screen.software-button-enabled #permission-screen {
-  height: -moz-calc(100% - 2rem - 5rem);
+  height: calc(100% - 2rem - 5rem);
 }
 
 #screen.software-button-enabled.attention #permission-screen {
@@ -56,7 +56,7 @@
 #permission-remember-section {
   border-top: 0.1rem solid #686868;
   font-size: 1.6rem;
-  display: block;
+  display: none;
   padding: 1.5rem;
 }
 
@@ -69,6 +69,10 @@
   background-repeat: no-repeat;
   background-size: 6.4rem;
   background-position: 0 50%;
+}
+
+#permission-screen[data-type] #permission-remember-section {
+  display: block;
 }
 
 #permission-screen[data-type] #permission-icon {

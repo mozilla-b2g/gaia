@@ -251,10 +251,50 @@ var icc_worker = {
   },
 
   // STK_CMD_GET_INKEY
-  //'0x22': function STK_CMD_GET_INKEY(command, iccManager) {},
+  '0x22': function STK_CMD_GET_INKEY(command, iccManager) {
+    DUMP('STK_CMD_GET_INKEY:', command.options);
+    this['0x23'](command, iccManager);
+  },
 
   // STK_CMD_GET_INPUT
-  //'0x23': function STK_CMD_GET_INPUT(command, iccManager) {},
+  '0x23': function STK_CMD_GET_INPUT(command, iccManager) {
+    DUMP('STK_CMD_GET_INPUT:', command.options);
+    var options = command.options;
+
+    DUMP('STK Input title: ' + options.text);
+
+    document.addEventListener('visibilitychange',
+      function stkInputNoAttended() {
+        document.removeEventListener('visibilitychange', stkInputNoAttended,
+          true);
+        iccManager.responseSTKCommand({
+          resultCode: iccManager._icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+        });
+        iccManager.hideViews();
+      }, true);
+
+    var timeout = options.duration ||
+      iccManager.calculateDurationInMS(options.duration) ||
+      iccManager._inputTimeout;
+    iccManager.input(options.text, timeout, options,
+      function(response, value) {
+        if (response == null) {
+          return;   // ICC Back or ICC Help
+        }
+        if (!response) {
+          DUMP('STK_CMD_GET_INPUT: No response from user (Timeout)');
+          iccManager.responseSTKCommand({
+            resultCode: iccManager._icc.STK_RESULT_NO_RESPONSE_FROM_USER
+          });
+        } else {
+          DUMP('STK_CMD_GET_INPUT: Response = ', value);
+          iccManager.responseSTKCommand({
+            resultCode: iccManager._icc.STK_RESULT_OK,
+            input: value
+          });
+        }
+      });
+  },
 
   // STK_CMD_SELECT_ITEM
   '0x24': function STK_CMD_SELECT_ITEM(command, iccManager) {

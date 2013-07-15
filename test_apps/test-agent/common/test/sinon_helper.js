@@ -5,6 +5,7 @@ window.requireCommon('vendor/sinon/sinon.js', function() {
   });
 
   teardown(function() {
-    this.sinon = sinon.sandbox.restore();
+    this.sinon.restore();
+    this.sinon = null;
   });
 });

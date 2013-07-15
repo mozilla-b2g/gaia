@@ -1,0 +1,59 @@
+<div class="card-message-reader card">
+  <section class="msg-reader-header" role="region">
+    <header>
+      <a href="#" class="msg-back-btn">
+        <span class="icon icon-back"></span>
+      </a>
+      <menu type="toolbar">
+        <a href="#" class="msg-reply-all-btn">
+          <span class="icon icon-reply-all"></span>
+        </a>
+        <a href="#" class="msg-reply-btn">
+          <span class="icon icon-reply"></span>
+        </a>
+      </menu>
+      <h1 class="msg-reader-header-label"
+        data-l10n-id="reader-header">ReaD</h1>
+    </header>
+  </section>
+  <div class="scrollregion-below-header scrollregion-horizontal-too">
+    <div class="msg-envelope-bar">
+      <div class="msg-envelope-from-line">
+        <span class="msg-envelope-key"
+               data-l10n-id="envelope-from">FroM</span>
+      </div>
+      <!-- the details starts out collapsed, but can be toggled -->
+      <div class="msg-envelope-details">
+        <div class="msg-envelope-to-line">
+          <span class="msg-envelope-key"
+                 data-l10n-id="envelope-to">tO</span>
+        </div>
+        <div class="msg-envelope-cc-line">
+          <span class="msg-envelope-key"
+                 data-l10n-id="envelope-cc">cC</span>
+        </div>
+        <div class="msg-envelope-bcc-line">
+          <span class="msg-envelope-key"
+                 data-l10n-id="envelope-bcc">BcC</span>
+        </div>
+      </div>
+      <div class="msg-envelope-subject-container">
+        <h3 class="msg-envelope-subject"></h3>
+        <span class="msg-envelope-date"></span>
+      </div>
+    </div>
+    <ul class="msg-attachments-container">
+    </ul>
+    <div class="msg-body-container"><progress></progress></div>
+    <div class="bottom-toolbar-spacer"></div>
+  </div>
+  <!-- Tells us about remote/not downloaded images, asks to show -->
+  <div class="msg-reader-load-infobar collapsed">
+  </div>
+  <div class="msg-reader-action-toolbar bottom-toolbar">
+    <button class="msg-delete-btn bottom-btn"></button>
+    <button class="msg-star-btn bottom-btn"></button>
+    <button class="msg-move-btn bottom-btn"></button>
+    <button class="msg-forward-btn bottom-btn"></button>
+  </div>
+</div>

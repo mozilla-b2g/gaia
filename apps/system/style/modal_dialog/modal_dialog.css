@@ -54,7 +54,7 @@
   padding: 0 1.5rem 0 1.5rem;
   position: absolute;
   left: 0;
-  bottom: -moz-calc(3.8rem + 3rem);
+  bottom: 6.8rem;
 }
 
 #modal-dialog-select-one h3 {
@@ -94,5 +94,5 @@
 #modal-dialog-select-one ul > li > button:active {
   background-color: #006f86;
   color: #333;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  text-shadow: 0 0.1rem 0 rgba(255, 255, 255, 0.25);
 }

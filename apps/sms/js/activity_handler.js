@@ -257,14 +257,14 @@ var ActivityHandler = {
         showAction();
       });
     } else {
-      if (!document.mozHidden) {
+      if (!document.hidden) {
         // Case of calling from Notification
         showAction();
         return;
       }
-      document.addEventListener('mozvisibilitychange',
+      document.addEventListener('visibilitychange',
         function waitVisibility() {
-          document.removeEventListener('mozvisibilitychange', waitVisibility);
+          document.removeEventListener('visibilitychange', waitVisibility);
           showAction();
       });
     }
@@ -333,7 +333,7 @@ var ActivityHandler = {
 
     function dispatchNotification(needManualRetrieve) {
       // The SMS app is already displayed
-      if (!document.mozHidden) {
+      if (!document.hidden) {
         if (threadId === Threads.currentId) {
           navigator.vibrate([200, 200, 200]);
           releaseWakeLock();
@@ -397,7 +397,9 @@ var ActivityHandler = {
           if (!contact) {
             console.error('We got a null contact for sender:', sender);
           } else if (contact.length && contact[0].name) {
-            sender = Utils.escapeHTML(contact[0].name[0]);
+            var senderName = Utils.escapeHTML(contact[0].name[0]);
+            sender = senderName.length == 0 ?
+              message.sender : contact[0].name[0];
           }
 
           if (message.type === 'sms') {

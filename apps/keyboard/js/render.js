@@ -351,15 +351,15 @@ const IMERender = (function() {
     }
   };
 
-  // Show keyboard alternatives
+  // Show keyboard layout alternatives
   var showKeyboardAlternatives = function(key, keyboards, current, switchCode) {
-    var content = document.createDocumentFragment();
+    var menuContainer = document.createElement('div');
+    menuContainer.classList.add('menu-container');
     var dataset, className;
     var menu = this.menu;
 
     var cssWidth = key.style.width;
     menu.classList.add('kbr-menu-lang');
-    key.classList.add('kbr-menu-on');
 
     var alreadyAdded = {};
     for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
@@ -375,7 +375,7 @@ const IMERender = (function() {
         {key: 'keycode', value: switchCode}
       ];
 
-      content.appendChild(buildKey(
+      menuContainer.appendChild(buildKey(
         Keyboards[kbr].menuLabel,
         className, cssWidth + 'px',
         dataset)
@@ -384,7 +384,7 @@ const IMERender = (function() {
       alreadyAdded[kbr] = true;
     }
     menu.innerHTML = '';
-    menu.appendChild(content);
+    menu.appendChild(menuContainer);
 
     // Replace with the container
     _altContainer = document.createElement('div');
@@ -392,6 +392,7 @@ const IMERender = (function() {
     _altContainer.style.width = key.style.width;
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
+    _altContainer.classList.add('kbr-menu-on');
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 

@@ -1,11 +1,89 @@
-html, body {
-  font-size: 10px;
+/**
+ * Attachment containers are either:
+ *  - <div> elements, in the message thread;
+ *  - <iframe> elements, in the Compose area (draft attachments).
+ * Both containers have an `attachment-container' class, but only <iframe>
+ * containers have an `attachment-draft' class.
+ */
+.attachment-container {
+  position: relative;
+
+  display: block;
+  border: none;
+  height: 82px; /* default size = 80 px + border */
+  width: 82px;
 }
 
-body {
-  font-family: 'Feura Sans', sans-serif;
+.attachment-draft {
   margin: 0;
   padding: 0;
+
+  font-family: sans-serif;
+}
+
+/* make sure all pointer events are sent to the main container */
+.attachment-draft *,
+.attachment-container * {
+  pointer-events: none;
+}
+
+.attachment-container.nopreview { /* 80x80 px placeholder + filename below */
+  height: calc(82px + 2.7rem); /* font-size = 1.7rem + 1rem margin */
+  width: 122px;
+}
+
+.attachment-container.preview { /* 80x80 px thumbnail, no filename shown */
+  /* thumbnail size is defined dynamically, extensible to 80x120 or 120x80 */
+}
+
+.article-list[data-type="list"] .message .attachment-container {
+  margin: 1rem 0;
+}
+
+.article-list[data-type="list"] .message.outgoing .attachment-container {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/**
+ * Attachments that occur at the bounds of an MMS message do not need
+ * additional spacing.
+ */
+#messages-container[data-type="list"] .message .attachment-container:first-child {
+  margin-top: 0;
+}
+#messages-container[data-type="list"] .message .attachment-container:last-child {
+  margin-bottom: 0;
+}
+
+.attachment {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 80px;
+  height: 80px;
+  border: 1px solid #018eac;
+  border-radius: 2px;
+}
+
+.outgoing .attachment {
+  left: auto;
+  right: 0;
+}
+
+.preview .attachment {
+  -moz-box-sizing: border-box;
+       box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+
+  background-color: rgba(0, 170, 205, 0.45);
+}
+
+.preview .attachment:active,
+.preview .attachment:hover {
+  background-color: rgba(0, 140, 170, 1);
 }
 
 .size-indicator {
@@ -22,49 +100,98 @@ body {
   font-size: 1.5rem;
 }
 
-.draft .size-indicator {
+.attachment-draft .size-indicator {
   display: block;
 }
 
-.placeholder {
+.file-name {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0;
+  left: 0;
+
+  height: 1.7rem;
+  display: none;
+
+  line-height: 1.7rem;
+  font-size: 1.7rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #474747;
+}
+
+.outgoing .file-name {
+  text-align: right;
+}
+
+.nopreview .file-name {
+  display: block;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 100%;
+
+  background-image: none;
+  background-repeat: no-repeat;
+  background-position: center center
+}
+
+.thumbnail-placeholder {
   width: 100%;
   height: 100%;
 
   background-image: url('icons/attachments.png');
   background-repeat: no-repeat;
   background-position: left top;
+  background-size: 160px;
 }
 
-.placeholder:active,
-.placeholder:hover {
+.attachment-container .thumbnail,
+.attachment-container .thumbnail-placeholder {
+  position: absolute;
+  top: 0
+}
+
+.attachment-draft:hover .thumbnail-placeholder,
+.attachment-draft:active .thumbnail-placeholder,
+.attachment-container:hover .thumbnail-placeholder,
+.attachment-container:active .thumbnail-placeholder {
   background-position: right top;
 }
 
 .img-placeholder {
-  background-position: left -82px;
+  background-position: left -80px;
 }
 
-.img-placeholder:active,
-.img-placeholder:hover {
-  background-position: right -82px;
+.attachment-draft:hover .img-placeholder,
+.attachment-draft:active .img-placeholder,
+.attachment-container:hover .img-placeholder,
+.attachment-container:active .img-placeholder {
+  background-position: right -80px;
 }
 
 .audio-placeholder {
-  background-position: left -164px;
+  background-position: left -160px;
 }
 
-.audio-placeholder:active,
-.audio-placeholder:hover {
-  background-position: right -164px;
+.attachment-draft:hover .audio-placeholder,
+.attachment-draft:active .audio-placeholder,
+.attachment-container:hover .audio-placeholder,
+.attachment-container:active .audio-placeholder {
+  background-position: right -160px;
 }
 
 .video-placeholder {
-  background-position: left -242px;
+  background-position: left -240px;
 }
 
-.video-placeholder:active,
-.video-placeholder:hover {
-  background-position: right -242px;
+.attachment-draft:hover .video-placeholder,
+.attachment-draft:active .video-placeholder,
+.attachment-container:hover .video-placeholder,
+.attachment-container:active .video-placeholder  {
+  background-position: right -240px;
 }
 
 .corrupted {
@@ -74,4 +201,6 @@ body {
   background-image: url('icons/corrupted.png');
   background-repeat: no-repeat;
   background-position: center center;
+  background-size: 82px;
 }
+

@@ -277,6 +277,12 @@ Calendar.LoadConfig = (function() {
         ]
       },
 
+      'Views.FirstTimeUse': {
+        js: [
+          'views/first_time_use'
+        ]
+      },
+
       'Templates.Week': {
         js: [
           'template',

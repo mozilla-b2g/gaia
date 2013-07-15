@@ -158,11 +158,19 @@ button.affirmative:active {
 }
 
 #value-selector li span {
-  padding: 1rem 2rem 1rem 1.5rem;
+  padding: 1rem 1.5rem;
+  line-height: 4rem;
+  word-wrap: break-word;
 }
 
 #value-selector li input:checked + span,
 #value-selector li[aria-checked="true"] span {
-  background: url("/bb/value_selector/images/icons/checked.png") no-repeat right center border-box transparent;
+  background: url("/style/bb/value_selector/images/icons/checked.png") no-repeat 100% 50%;
+  padding-right: 2.6rem;
+  margin-right: 1.2rem;
+  background-size: 1.9rem;
 }
 
+#icon {
+  width: 3rem;
+}

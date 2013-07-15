@@ -7,23 +7,25 @@ contacts.List = (function() {
       favoriteGroup,
       loaded = false,
       cancel,
-      conctactsListView,
+      contactsListView,
       fastScroll,
       scrollable,
       settingsView,
       noContacts,
-      imgLoader,
+      imgLoader = null,
       orderByLastName = null,
-      contactsPhoto = [],
       photoTemplate,
       headers = {},
-      contactsCache = {},
-      searchLoaded = false,
-      imagesLoaded = false,
-      contactsLoadFinished = false,
-      cachedContacts = [],
+      loadedContacts = {},
       viewHeight,
-      noScrollTimer;
+      renderTimer = null,
+      toRender = [],
+      releaseTimer = null,
+      toRelease = [],
+      monitor = null,
+      loading = false,
+      cancelLoadCB = null,
+      photosById = {};
 
   // Key on the async Storage
   var ORDER_KEY = 'order.lastname';
@@ -33,24 +35,87 @@ contacts.List = (function() {
   var ORDER_BY_FAMILY_NAME = 'familyName';
   var ORDER_BY_GIVEN_NAME = 'givenName';
 
-  // Time to wait for detecting that the user is not scrolling
-  var NO_SCROLL_TIME = 200;
-
   var NOP_FUNCTION = function() {};
-  var scrolling = false;
+
+  var onscreen = function(el) {
+    // Save the element reference to process in a batch from a timer callback.
+    toRender.push(el);
+
+    // Avoid rescheduling the timer if it has not run yet.
+    if (renderTimer)
+      return;
+
+    renderTimer = setTimeout(doRenderTimer);
+  };
+
+  var doRenderTimer = function doRenderTimer() {
+    renderTimer = null;
+    monitor.pauseMonitoringMutations();
+    while (toRender.length) {
+      var row = toRender.shift();
+      var id = row.dataset.uuid;
+      renderLoadedContact(row, id);
+      renderPhoto(row, id);
+    }
+    monitor.resumeMonitoringMutations(false);
+  };
+
+  var renderLoadedContact = function(el, id) {
+    if (el.dataset.rendered)
+      return;
+    id = id || el.dataset.uuid;
+    var group = el.dataset.group;
+    var contact = loadedContacts[id] ? loadedContacts[id][group] : null;
+    if (!contact)
+      return;
+    renderContact(contact, el);
+    clearLoadedContact(el, id, group);
+  };
+
+  var clearLoadedContact = function(el, id, group) {
+    if (!el.dataset.rendered || !el.dataset.order || !el.dataset.search)
+      return;
+
+    id = id || el.dataset.uuid;
+    group = group || el.dataset.group;
+    if (loadedContacts[id])
+      loadedContacts[id][group] = null;
+  };
+
+  var offscreen = function(el) {
+    // Save the element reference to process in a batch from a timer callback.
+    toRelease.push(el);
+
+    // Avoid rescheduling the timer if it has not run yet.
+    if (releaseTimer)
+      return;
+
+    releaseTimer = setTimeout(doReleaseTimer);
+  };
+
+  var doReleaseTimer = function doReleaseTimer() {
+    releaseTimer = null;
+    monitor.pauseMonitoringMutations();
+    while (toRelease.length) {
+      var row = toRelease.shift();
+      releasePhoto(row);
+    }
+    monitor.resumeMonitoringMutations(false);
+  };
 
   var init = function load(element) {
     _ = navigator.mozL10n.get;
 
     cancel = document.getElementById('cancel-search'),
-    conctactsListView = document.getElementById('view-contacts-list'),
+    contactsListView = document.getElementById('view-contacts-list'),
     fastScroll = document.querySelector('nav[data-type="scrollbar"]'),
     scrollable = document.querySelector('#groups-container');
-    scrollable.addEventListener('scroll', onScroll);
     settingsView = document.querySelector('#view-settings .view-body-inner');
     noContacts = document.querySelector('#no-contacts');
 
-    groupsList = element;
+    viewHeight = scrollable.getBoundingClientRect().height;
+
+    groupsList = document.getElementById('groups-list');
     groupsList.addEventListener('click', onClickHandler);
 
     initHeaders();
@@ -58,71 +123,76 @@ contacts.List = (function() {
     var selector = 'header:not(.hide)';
     FixedHeader.init('#groups-container', '#fixed-container', selector);
 
-    imgLoader = new ImageLoader('#groups-container', 'li');
-
     initOrder();
   };
 
-  var onNoScroll = function() {
-    scrolling = false;
-    if (toRender.length === 0) {
-      clearInterval(noScrollTimer);
-      return;
-    }
-    showNextGroup(false);
-  };
+  // Define a source adapter object to pass to contacts.Search.
+  //
+  // Since multiple, separate apps use contacts.Search its important for
+  // the search code to function independently.  This adapter object allows
+  // the search module to access the app's contacts without knowing anything
+  // about our DOM structure.
+  //
+  // Only provide access to non-favorite nodes.  If we include favorites then
+  // search may see out-of-order and duplicate values.
+  var NODE_SELECTOR = 'section:not(#section-group-favorites) > ol > li';
+  var searchSource = {
+    getNodes: function() {
+      var domNodes = contactsListView.querySelectorAll(NODE_SELECTOR);
+      return Array.prototype.slice.call(domNodes);
+    },
 
-  function onScroll(e) {
-    if (!scrolling)
-      FixedHeader.refresh();
-    clearInterval(noScrollTimer);
-    if (contactsLoadFinished) {
-      noScrollTimer = window.setInterval(onNoScroll, NO_SCROLL_TIME);
-      if (toRender.length === 0) {
-        scrollable.removeEventListener('scroll', onScroll);
-        return;
+    getFirstNode: function() {
+      return contactsListView.querySelector(NODE_SELECTOR);
+    },
+
+    getNextNode: function(contact) {
+      var out = contact.nextElementSibling;
+      var nextParent = contact.parentNode.parentNode.nextElementSibling;
+      while (!out && nextParent) {
+        out = nextParent.querySelector('ol > li:first-child');
+        nextParent = nextParent.nextElementSibling;
       }
-    }
+      return out;
+    },
 
-    viewHeight = viewHeight || conctactsListView.clientHeight;
-    var totalHeight = scrollable.scrollHeight;
-    var currentScroll = scrollable.scrollTop;
-    var diff = (totalHeight - currentScroll);
+    // While loading we expect to feed search more nodes via the
+    // contacts.Search.appendNodes() function.
+    expectMoreNodes: function() {
+      return loading;
+    },
 
-    // When the scroll is about to reach
-    // the end of the shown list, we show
-    // the next element
-    if (diff < (viewHeight + (viewHeight * 0.2))) {
-      showNextGroup(true);
-    }
-    scrolling = true;
-  };
+    // Contact nodes are not rendered until visible on screen.  To avoid
+    // cloning an empty placeholder try to render the node before calling
+    // cloneNode().
+    clone: function(node) {
+      var id = node.dataset.uuid;
+      renderLoadedContact(node, id);
+      renderPhoto(node, id);
+      return node.cloneNode();
+    },
 
-  var toRender = [];
-  var recentlyAdded = [];
-  function showNextGroup(forceShow) {
-    var recent = recentlyAdded.length ? recentlyAdded[0] : null;
-    var nextLetter = toRender.length ? toRender[0] : null;
-    if (recent && (!nextLetter || recent <= nextLetter)) {
-      var next = recentlyAdded.shift();
-      showGroup(next);
-      return;
-    }
+    getNodeById: function(id) {
+      return contactsListView.querySelector('[data-uuid="' + id + '"]');
+    },
 
-    if (toRender.length) {
-      var next = toRender.shift();
-      showGroup(next, forceShow);
-    }
-  }
+    // The calculation of the search text is delayed until the full list item
+    // is rendered.  Therefore, it may not be available yet.  If this is the
+    // case then calculate the search text before returning the value.
+    getSearchText: function(node) {
+      renderSearchString(node);
+      return node.dataset.search;
+    },
+
+    click: onClickHandler
+  }; // searchSource
 
   var initSearch = function initSearch(callback) {
-    contacts.Search.init(conctactsListView, favoriteGroup, onClickHandler);
+    contacts.Search.init(searchSource, true);
 
     if (callback) {
       callback();
     }
-
-    lazyLoadSearch();
   };
 
   var initAlphaScroll = function initAlphaScroll() {
@@ -140,11 +210,6 @@ contacts.List = (function() {
   };
 
   var scrollToCb = function scrollCb(domTarget, group) {
-    if (toRender.indexOf(group) != -1) {
-      while (toRender.indexOf(group) != -1) {
-        showNextGroup(true);
-      }
-    }
     if (domTarget.offsetTop > 0)
       scrollable.scrollTop = domTarget.offsetTop;
   };
@@ -154,13 +219,18 @@ contacts.List = (function() {
       console.log('ERROR Retrieving contacts');
     };
 
+    var complete = function complete() {
+      initOrder(function onInitOrder() {
+        getContactsByGroup(onError, contacts);
+      });
+    };
+
     if (loaded || forceReset) {
-      resetDom();
+      resetDom(complete);
+      return;
     }
 
-    initOrder(function onInitOrder() {
-      getContactsByGroup(onError, contacts);
-    });
+    complete();
   };
 
   function getFbUid(devContact) {
@@ -208,8 +278,9 @@ contacts.List = (function() {
     }
   };
 
-  var renderGroupHeader = function renderGroupHeader(group, letter, show) {
+  var renderGroupHeader = function renderGroupHeader(group, letter) {
     var letteredSection = document.createElement('section');
+    letteredSection.id = 'section-group-' + group;
     var title = document.createElement('header');
     title.id = 'group-' + group;
     title.className = 'hide';
@@ -224,93 +295,120 @@ contacts.List = (function() {
     contactsContainer.dataset.group = group;
     letteredSection.appendChild(title);
     letteredSection.appendChild(contactsContainer);
-    letteredSection.className = show ? '' : 'hide';
     groupsList.appendChild(letteredSection);
 
     headers[group] = contactsContainer;
   };
 
-  var renderFullContact = function renderFullContact(contact, fbContacts) {
-    var contactContainer = renderContact(contact);
-    var name = contactContainer.children[0];
-
-    addSearchOptions(name, contact);
-    addOrderOptions(name, contact);
-
-    // Label the contact concerning social networks
-    if (contact.category) {
-      var marks = buildSocialMarks(contact.category);
-      if (marks.length > 0) {
-        var meta;
-        if (!contact.org || contact.org.length === 0 ||
-          contact.org[0].length === 0) {
-            addOrgMarkup(contactContainer);
-            meta = contactContainer.children[1];
-            contactContainer.appendChild(meta);
-            marks[0].classList.add('notorg');
-        }
-        var metaFragment = document.createDocumentFragment();
-        marks.forEach(function(mark) {
-          metaFragment.appendChild(mark);
-        });
-        meta = contactContainer.children[1];
-        var org = meta.querySelector('span');
-        meta.insertBefore(metaFragment, org);
-      }
-    }
-
-    //Render photo if there is one
-    if (contact.photo && contact.photo.length > 0) {
-      renderPhoto(contact, contactContainer);
-    }
-
-    return contactContainer;
-  };
-
-  // This method returns the very essential information needed
-  // for rendering the contacts list
-  // Images, Facebook data and searcheable info will be lazy loaded
-  var renderContact = function renderContact(contact, fbContacts) {
-    contact = refillContactData(contact);
-    var contactContainer = document.createElement('li');
-    contactContainer.dataset.uuid = contact.id;
+  // Render basic DOM structure and text for the contact.  If a placeholder
+  // has already been created then it may be provided in the optional second
+  // argument.  Photos and social marks are lazy loaded.
+  var renderContact = function renderContact(contact, container) {
+    container = container || createPlaceholder(contact);
     var fbUid = getFbUid(contact);
     if (fbUid) {
-      contactContainer.dataset.fbUid = fbUid;
+      container.dataset.fbUid = fbUid;
     }
-    contactContainer.className = 'contact-item';
+    container.className = 'contact-item';
     var timestampDate = contact.updated || contact.published || new Date();
-    contactContainer.dataset.updated = timestampDate.getTime();
+    container.dataset.updated = timestampDate.getTime();
     // contactInner is a link with 3 p elements:
     // name, socaial marks and org
-    var nameElement = getHighlightedName(contact);
-    addOrderOptions(nameElement, contact);
-    contactContainer.appendChild(nameElement);
-    contactsCache[contact.id] = {
-      contact: contact,
-      container: contactContainer,
-      nameElement: nameElement
-    };
-    renderOrg(contact, contactContainer, true);
+    var display = getDisplayName(contact);
+    var nameElement = getHighlightedName(display);
+    container.appendChild(nameElement);
+    renderOrg(contact, container, true);
 
-    // Facebook data, favorites and images will be lazy loaded
-    if (contact.category || contact.photo) {
-      contactsPhoto.push(contact.id);
-    }
-    return contactContainer;
+    container.dataset.rendered = true;
+    return container;
   };
 
-  var getSearchString = function getSearchString(contact) {
+  // "Render" search string into node's data-search attribute.  If the
+  // contact is not already known, try to look it up in our cache of loaded
+  // contacts.  This is used to defer the computation of the search string
+  // since profiling has shown it to be expensive.
+  var renderSearchString = function renderSearchString(node, contact) {
+    if (node.dataset.search)
+      return;
+
+    contact = contact || loadedContacts[node.dataset.uuid][node.dataset.group];
+
+    if (!contact)
+      return;
+
+    var display = getDisplayName(contact);
+    node.dataset.search = getSearchString(contact, display);
+
+    clearLoadedContact(node, contact.id, node.dataset.group);
+  };
+
+  var renderOrderString = function renderOrderString(node, contact) {
+    if (node.dataset.order)
+      return;
+
+    contact = contact || loadedContacts[node.dataset.uuid][node.dataset.group];
+
+    if (!contact)
+      return;
+
+    var display = getDisplayName(contact);
+    node.dataset.order = getStringToBeOrdered(contact, display);
+
+    clearLoadedContact(node, contact.id, node.dataset.group);
+  };
+
+  // Create a mostly empty list item as a placeholder for the contact.  All
+  // visibile DOM elements will be rendered later via the visibility monitor.
+  // This function ensures that necessary meta data is defined in the node
+  // dataset.
+  var createPlaceholder = function createPlaceholder(contact, group) {
+    var ph = document.createElement('li');
+    ph.dataset.uuid = contact.id;
+    var group = group || getFastGroupName(contact);
+    var order = null;
+    if (!group) {
+      order = getStringToBeOrdered(contact);
+      group = getGroupNameByOrderString(order);
+    }
+    ph.dataset.group = group;
+
+    // NOTE: We want the group value above to be based on the raw data so that
+    //       we get the und group if there is no name.  But we want to display
+    //       "noName" if there is nothing reasonable to show.  So recalculate
+    //       the order value if we're missing a name.  In the common case,
+    //       though, avoid calculating the order string twice.
+
+    // If we didn't change the name at all during the refill and we already
+    // calculated the order string, then go ahead and save it instead of
+    // recalculating it later.
+    var display = getDisplayName(contact);
+    if (!display.modified && order)
+      ph.dataset.order = order;
+
+    return ph;
+  };
+
+  var getStringValue = function getStringValue(contact, field) {
+    if (contact[field] && contact[field][0])
+      return String(contact[field][0]).trim();
+
+    return null;
+  };
+
+  var getSearchString = function getSearchString(contact, display) {
+    var display = display || contact;
     var searchInfo = [];
-    var searchable = ['givenName', 'familyName', 'org'];
+    var searchable = ['givenName', 'familyName'];
     searchable.forEach(function(field) {
-      if (contact[field] && contact[field][0]) {
-        var value = String(contact[field][0]).trim();
-        if (value.length > 0) {
-          searchInfo.push(value);
-        }
+      var value = getStringValue(display, field);
+      if (value) {
+        searchInfo.push(value);
       }
     });
+    var value = getStringValue(contact, 'org');
+    if (value) {
+      searchInfo.push(value);
+    }
     if (contact.tel && contact.tel.length) {
       for (var i = contact.tel.length - 1; i >= 0; i--) {
         var current = contact.tel[i];
@@ -376,53 +474,106 @@ contacts.List = (function() {
     return ele;
   }
 
-  var renderedChunks = 0;
   var CHUNK_SIZE = 20;
-  function renderChunk(contacts) {
-    var isFirstChunk = (renderedChunks === 0);
-    for (var i = 0; i < contacts.length; i++) {
-      var contact = contacts[i];
-      appendToList(contact, isFirstChunk);
+  function loadChunk(chunk) {
+    var nodes = [];
+    for (var i = 0, n = chunk.length; i < n; ++i) {
+      if (i === rowsPerPage)
+        notifyAboveTheFold();
+
+      var newNodes = appendToLists(chunk[i]);
+      nodes.push.apply(nodes, newNodes);
     }
 
-    if (isFirstChunk) {
-      // Performance testing
-      PerformanceTestingHelper.dispatch('above-the-fold-ready');
+    if (i < rowsPerPage)
+      notifyAboveTheFold();
+
+    contacts.Search.appendNodes(nodes);
+  }
+
+  // Time until we show the first contacts "above the fold" is a very
+  // important usability metric.  Emit an event when as soon as we reach
+  // this point so tools can measure the time.
+  var notifiedAboveTheFold = false;
+  function notifyAboveTheFold() {
+    if (notifiedAboveTheFold)
+      return;
+
+    notifiedAboveTheFold = true;
+    PerformanceTestingHelper.dispatch('above-the-fold-ready');
+
+    // Don't bother loading the monitor until we have rendered our
+    // first screen of contacts.  This avoids the overhead of
+    // onscreen() calls when adding those first contacts.
+    var vm_file = '/shared/js/tag_visibility_monitor.js';
+    LazyLoader.load([vm_file], function() {
+      var scrollMargin = ~~(viewHeight * 1.5);
+      var scrollDelta = ~~(scrollMargin / 2);
+      var maxDepth = 4;
+      monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
+                                     scrollDelta, onscreen, offscreen);
+    });
+  };
+
+  // Default to infinite rows fitting on a page and then recalculate after
+  // the first row is added.
+  var MAX_INT = 0x7ffffff;
+  var rowsPerPage = MAX_INT;
+
+  // Utility function for appending a newly loaded contact to both its default
+  // group and, if necessary, the favorites list.
+  function appendToLists(contact) {
+    updatePhoto(contact);
+    var ph = createPlaceholder(contact);
+    var groups = [ph.dataset.group];
+    if (isFavorite(contact))
+      groups.push('favorites');
+
+    var nodes = [];
+
+    for (var i = 0, n = groups.length; i < n; ++i) {
+      ph = appendToList(contact, groups[i], ph);
+      nodes.push(ph);
+      ph = null;
     }
-    renderedChunks++;
+
+    return nodes;
   }
 
   //Adds each contact to its group container
-  var counter = {};
-  function appendToList(contact, show) {
-    var group = getGroupName(contact);
-    if (!counter[group]) {
-      counter[group] = 0;
-      if (!show) {
-        toRender.push(group);
-      }
+  function appendToList(contact, group, ph) {
+    ph = ph || createPlaceholder(contact, group);
+    var list = headers[group];
+
+    // If above the fold for list, render immediately
+    if (list.children.length < rowsPerPage) {
+      renderContact(contact, ph);
+
+    // Otherwise save contact to render later
     }
 
-    counter[group]++;
-    var list = headers[group];
-    var renderedContact = renderContact(contact);
-    list.appendChild(renderedContact);
-    if (show && counter[group] === 1)
-      showGroup(group, true);
+    if (!loadedContacts[contact.id])
+      loadedContacts[contact.id] = {};
+
+    loadedContacts[contact.id][group] = contact;
+
+    list.appendChild(ph);
+    if (list.children.length === 1) {
+      showGroupByList(list);
+    }
+
+    if (rowsPerPage === MAX_INT) {
+      var listHeight = list.getBoundingClientRect().height;
+      var rowHeight = listHeight / list.children.length;
+      rowsPerPage = Math.ceil(viewHeight / rowHeight);
+    }
+
+    return ph;
   }
 
   // Methods executed after rendering the list
   // by first time
   var onListRendered = function onListRendered() {
-    noScrollTimer = window.setInterval(onNoScroll, NO_SCROLL_TIME);
-    window.addEventListener('finishLazyLoading', function finishLazyLoading() {
-      if (searchLoaded && imagesLoaded) {
-        searchLoaded = false;
-        imagesLoaded = false;
-        window.removeEventListener('finishLazyLoading', finishLazyLoading);
-        contactsCache = {};
-      }
-    });
     FixedHeader.refresh();
 
     PerformanceTestingHelper.dispatch('startup-path-done');
@@ -435,79 +586,19 @@ contacts.List = (function() {
     });
   };
 
-  var searchLoading = false;
-
-  var lazyLoadSearch = function lazyLoadSearch() {
-    if (searchLoading || searchLoaded) {
-      return;
-    }
-
-    searchLoading = true;
-
-    if (!loaded) {
-      window.addEventListener('listRendered', function onRendered() {
-        window.removeEventListener('listRendered', onRendered);
-        doLazyLoadSearch();
-      });
-    } else if (!searchLoaded) {
-      doLazyLoadSearch();
-    }
-  };
-
-  // Method that fills non-visible datasets
-  // needed for searching and adding new elements
-  var doLazyLoadSearch = function doLazyLoadSearch() {
-    for (var id in contactsCache) {
-      var current = contactsCache[id];
-      addSearchOptions(current.nameElement, current.contact);
-    }
-    searchLoaded = true;
-    searchLoading = false;
-    contacts.Search.enableSearch();
-    dispatchCustomEvent('finishLazyLoading');
-  };
-
-  var addOrderOptions = function addOrderOptions(name, contact) {
-    var orderedString = getStringToBeOrdered(contact);
-    name.dataset['order'] = orderedString;
-  };
-
-  var addSearchOptions = function addSearchOptions(name, contact) {
-    name.dataset['search'] = getSearchString(contact);
-  };
-
   var isFavorite = function isFavorite(contact) {
     return contact.category && contact.category.indexOf('favorite') != -1;
   };
 
   var lazyLoadImages = function lazyLoadImages() {
-    if (!contactsPhoto || !Array.isArray(contactsPhoto)) {
-      return;
-    }
-    var favs = false;
-    for (var i = 0; i < contactsPhoto.length; i++) {
-      var id = contactsPhoto[i];
-      var current = contactsCache[id];
-      if (current) {
-        var contact = current.contact;
-        var link = current.container;
-        renderPhoto(contact, link);
-        if (isFavorite(contact)) {
-          favs = true;
-          addToFavoriteList(link.cloneNode(true));
-        }
+    LazyLoader.load(['/contacts/js/utilities/image_loader.js',
+                     '/contacts/js/fb_resolver.js'], function() {
+      if (!imgLoader) {
+        imgLoader = new ImageLoader('#groups-container', 'li');
+        imgLoader.setResolver(fb.resolver);
       }
-    }
-    if (favs)
-      showGroup('favorites', true);
-    contactsPhoto = [];
-    LazyLoader.load(['/contacts/js/fb_resolver.js'], function() {
-      imgLoader.setResolver(fb.resolver);
       imgLoader.reload();
     });
-
-    imagesLoaded = true;
-    dispatchCustomEvent('finishLazyLoading');
   };
 
   var dispatchCustomEvent = function dispatchCustomEvent(eventName) {
@@ -515,15 +606,39 @@ contacts.List = (function() {
     window.dispatchEvent(event);
   };
 
-  var renderPhoto = function renderPhoto(contact, link) {
-    if (!contact.photo || !contact.photo.length) {
+  // Update photo reference cache for given contact. This is used to render
+  // the photo when a contact row is on screen after we've thrown away the
+  // full contact object.
+  var updatePhoto = function updatePhoto(contact, id) {
+    id = id || contact.id;
+    var prevPhoto = photosById[id];
+    var newPhoto = Array.isArray(contact.photo) ? contact.photo[0] : null;
+
+    // Do nothing if photo did not change
+    if ((!prevPhoto && !newPhoto) || (prevPhoto === newPhoto))
+      return false;
+
+    if (newPhoto)
+      photosById[id] = newPhoto;
+    else
+      delete photosById[id];
+
+    return true;
+  };
+
+  // "Render" the photo by setting the img tag's dataset-src attribute to the
+  // value in our photo cache.  This in turn will allow the imgLoader to load
+  // the image once we have stopped scrolling.
+  var renderPhoto = function renderPhoto(link, id) {
+    id = id || link.dataset.uuid;
+    var photo = photosById[id];
+    if (!photo)
       return;
-    }
-    var photo = contact.photo;
-    if (link.children[0].tagName == 'ASIDE') {
-      var img = link.children[0].children[0];
+
+    var img = link.querySelector('aside > img');
+    if (img) {
       try {
-        img.dataset.src = window.URL.createObjectURL(contact.photo[0]);
+        img.dataset.src = window.URL.createObjectURL(photo);
       } catch (err) {
         img.dataset.src = '';
       }
@@ -539,7 +654,7 @@ contacts.List = (function() {
     var figure = photoTemplate.cloneNode(true);
     var img = figure.children[0];
     try {
-      img.dataset.src = window.URL.createObjectURL(contact.photo[0]);
+      img.dataset.src = window.URL.createObjectURL(photo);
     } catch (err) {
       img.dataset.src = '';
     }
@@ -548,13 +663,30 @@ contacts.List = (function() {
     return;
   };
 
+  // Remove the image for the given list item.  Leave the photo in our cache,
+  // however, so the image can be reloaded later.
+  var releasePhoto = function releasePhoto(el) {
+    // If the imgLoader isn't ready yet, we should have nothing to release
+    if (!imgLoader)
+      return;
+
+    var img = imgLoader.releaseImage(el);
+    if (!img)
+      return;
+
+    img.dataset.src = '';
+  };
+
   var renderOrg = function renderOrg(contact, link, add) {
     if (!contact.org || !contact.org.length ||
         contact.org[0] === '' || contact.org[0] === contact.givenName) {
       return;
     }
-    var meta = add ? addOrgMarkup(link) : link.lastElementChild;
-    var org = meta.querySelector('span.org');
+    if (add) {
+      addOrgMarkup(link, contact.org[0]);
+      return;
+    }
+    var org = link.lastElementChild.querySelector('span.org');
     org.textContent = contact.org[0];
   };
 
@@ -577,9 +709,14 @@ contacts.List = (function() {
   }
 
 
-  var addOrgMarkup = function addOrgMarkup(link) {
+  var addOrgMarkup = function addOrgMarkup(link, content) {
+    var span = document.createElement('span');
+    span.className = 'org';
+    if (content) {
+      span.textContent = content;
+    }
     var meta = document.createElement('p');
-    meta.innerHTML = '<span class="org"></span>';
+    meta.appendChild(span);
     link.appendChild(meta);
     return meta;
   };
@@ -616,6 +753,9 @@ contacts.List = (function() {
   function addToFavoriteList(favorite) {
     var container = headers['favorites'];
     container.appendChild(favorite);
+    if (container.children.length === 1) {
+      showGroupByList(container);
+    }
   }
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
@@ -628,21 +768,20 @@ contacts.List = (function() {
       });
       return;
     }
-    renderedChunks = 0;
-    counter = {};
+    notifiedAboveTheFold = false;
     if (contacts) {
       if (!contacts.length) {
         toggleNoContactsScreen(true);
+        dispatchCustomEvent('listRendered');
         return;
       }
       toggleNoContactsScreen(false);
-      renderChunk(contacts);
+      loadChunk(contacts);
       onListRendered();
       dispatchCustomEvent('listRendered');
-      contactsLoadFinished = true;
       return;
     }
-    getAllContacts(errorCb, renderChunk);
+    getAllContacts(errorCb, loadChunk);
   };
 
   var getContactById = function(contactID, successCb, errorCb) {
@@ -656,20 +795,17 @@ contacts.List = (function() {
     request.onsuccess = function findCallback(e) {
       var result = e.target.result[0];
 
-      if (fb.isFbContact(result)) {
-        // Fb data for the contact has to be obtained
-        var fbContact = new fb.Contact(result);
-        var fbReq = fbContact.getData();
-        fbReq.onsuccess = function() {
-          successCb(result, fbReq.result);
-        };
-        fbReq.onerror = function() {
-          successCb(result);
-        };
-      } else {
-          successCb(result);
+      if (!fb.isFbContact(result)) {
+        successCb(result);
+        return;
       }
 
+      var fbContact = new fb.Contact(result);
+      var fbReq = fbContact.getData();
+      fbReq.onsuccess = function() {
+        successCb(result, fbReq.result);
+      };
+      fbReq.onerror = successCb.bind(null, result);
     }; // request.onsuccess
 
     if (typeof errorCb === 'function') {
@@ -678,6 +814,7 @@ contacts.List = (function() {
   };
 
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
+    loading = true;
     initOrder(function onInitOrder() {
       var sortBy = (orderByLastName === true ? 'familyName' : 'givenName');
       var options = {
@@ -686,10 +823,19 @@ contacts.List = (function() {
       };
 
       var cursor = navigator.mozContacts.getAll(options);
-      var successCb = successCb || renderChunk;
+      var successCb = successCb || loadChunk;
       var num = 0;
       var chunk = [];
       cursor.onsuccess = function onsuccess(evt) {
+        // Cancel this load operation if requested
+        if (cancelLoadCB) {
+          // XXX: If bug 870125 is ever implemented, add a cancel/stop call
+          loading = false;
+          var cb = cancelLoadCB;
+          cancelLoadCB = null;
+          return cb();
+        }
+
         var contact = evt.target.result;
         if (contact) {
           chunk.push(contact);
@@ -706,52 +852,38 @@ contacts.List = (function() {
           var showNoContacs = (num === 0);
           toggleNoContactsScreen(showNoContacs);
           dispatchCustomEvent('listRendered');
-          contactsLoadFinished = true;
+          loading = false;
         }
       };
       cursor.onerror = errorCb;
     });
   };
 
-  /*
-    Two contacts are returned because the enrichedContact is readonly
-    and if the Contact is edited we need to prevent saving
-    FB data on the mozContacts DB.
-  */
-  var addToList = function addToList(contact, enrichedContact) {
-    var theContact = contact;
+  var addToList = function addToList(contact) {
+    var renderedNode = renderContact(contact);
 
-    if (enrichedContact) {
-      theContact = enrichedContact;
-    }
+    // We must render all values here because the contact is not saved in
+    // the loadedContacts hash when added one at a via refresh().  Therefore
+    // we can not lazy render these values.
+    renderSearchString(renderedNode, contact);
+    renderOrderString(renderedNode, contact);
 
-    var group = getGroupName(theContact);
-
-    var list = headers[group];
-
-    addToGroup(theContact, list);
-
-    if (list.children.length === 1) {
-      if (contactsLoadFinished && toRender.length === 0) {
-        showGroup(group);
-      } else {
-        recentlyAdded.push(group);
-        showNextGroup();
-      }
-    }
+    if (updatePhoto(contact))
+      renderPhoto(renderedNode, contact.id);
+    var list = headers[renderedNode.dataset.group];
+    addToGroup(renderedNode, list);
 
     // If is favorite add as well to the favorite group
-    if (isFavorite(theContact)) {
+    if (isFavorite(contact)) {
       list = headers['favorites'];
-      addToGroup(theContact, list);
-
-      if (list.children.length === 1) {
-        showGroup('favorites');
-      }
+      var cloned = renderedNode.cloneNode();
+      cloned.dataset.group = 'favorites';
+      addToGroup(cloned, list);
     }
     toggleNoContactsScreen(false);
     FixedHeader.refresh();
-    imgLoader.reload();
+    if (imgLoader)
+      imgLoader.reload();
   };
 
   var hasName = function hasName(contact) {
@@ -762,46 +894,53 @@ contacts.List = (function() {
   };
 
   // Fills the contact data to display if no givenName and familyName
-  var refillContactData = function refillContactData(contact) {
-    if (!hasName(contact)) {
-      contact.givenName = [];
-      if (contact.org && contact.org.length > 0) {
-        contact.givenName.push(contact.org[0]);
-      } else if (contact.tel && contact.tel.length > 0) {
-        contact.givenName.push(contact.tel[0].value);
-      } else if (contact.email && contact.email.length > 0) {
-        contact.givenName.push(contact.email[0].value);
-      } else {
-        contact.givenName.push(_('noName'));
-      }
+  var getDisplayName = function getDisplayName(contact) {
+    if (hasName(contact))
+      return { givenName: contact.givenName, familyName: contact.familyName };
+
+    var givenName = [];
+    if (contact.org && contact.org.length > 0) {
+      givenName.push(contact.org[0]);
+    } else if (contact.tel && contact.tel.length > 0) {
+      givenName.push(contact.tel[0].value);
+    } else if (contact.email && contact.email.length > 0) {
+      givenName.push(contact.email[0].value);
+    } else {
+      givenName.push(_('noName'));
     }
 
-    return contact;
+    return { givenName: givenName, modified: true };
   };
 
-  var addToGroup = function addToGroup(contact, list) {
-    var newLi;
-    var cName = getStringToBeOrdered(contact);
+  var addToGroup = function addToGroup(renderedNode, list) {
+    renderOrderString(renderedNode);
+    var newLi = renderedNode;
+    var cName = newLi.dataset.order;
 
     var liElems = list.getElementsByTagName('li');
     var len = liElems.length;
     for (var i = 0; i < len; i++) {
       var liElem = liElems[i];
-      var name = liElem.querySelector('p').dataset.order;
+
+      // This may just be a placeholder that has not been rendered yet.
+      // Therefore, make sure the order string has been rendered before
+      // trying to compare against it.
+      renderOrderString(liElem);
+
+      var name = liElem.dataset.order;
       if (name.localeCompare(cName) >= 0) {
-        newLi = renderFullContact(contact);
         list.insertBefore(newLi, liElem);
         break;
       }
     }
 
-    if (!newLi) {
-      newLi = renderFullContact(contact);
+    if (i === len) {
       list.appendChild(newLi);
     }
 
-    // Mark as loaded to avoid data duplication by the resolver
-    newLi.dataset.status = 'loaded';
+    if (list.children.length === 1) {
+      showGroupByList(list);
+    }
 
     return list.children.length;
   };
@@ -812,13 +951,10 @@ contacts.List = (function() {
     FixedHeader.refresh();
   };
 
-  var showGroup = function showGroup(group, refresh) {
-    var current = headers[group];
+  var showGroupByList = function showGroupByList(current) {
     var groupTitle = current.parentNode.children[0];
     groupTitle.classList.remove('hide');
-    current.parentNode.classList.remove('hide');
-    if (refresh)
-      FixedHeader.refresh();
+    FixedHeader.refresh();
   };
 
   var remove = function remove(id) {
@@ -828,28 +964,28 @@ contacts.List = (function() {
     Array.prototype.forEach.call(items, function removeItem(item) {
       var ol = item.parentNode;
       ol.removeChild(item);
-      if (ol.children.length === 0) {
-        // Only template
+      if (ol.children.length < 1) {
         hideGroup(ol.dataset.group);
       }
     });
+    delete photosById[id];
     var selector = 'section header:not(.hide)';
     var visibleElements = groupsList.querySelectorAll(selector);
     var showNoContacts = visibleElements.length === 0;
     toggleNoContactsScreen(showNoContacts);
   };
 
-  var getStringToBeOrdered = function getStringToBeOrdered(contact) {
+  var getStringToBeOrdered = function getStringToBeOrdered(contact, display) {
     var ret = [];
 
+    // If no display name is specified, then use the contact directly.  This
+    // is necessary so we can use the raw contact info when generating the
+    // group name.
+    display = display || contact;
     var familyName, givenName;
 
-    familyName = Array.isArray(contact.familyName) &&
-                                    typeof contact.familyName[0] === 'string' ?
-      contact.familyName[0].trim() : '';
-    givenName = Array.isArray(contact.givenName) &&
-                                    typeof contact.givenName[0] === 'string' ?
-      contact.givenName[0].trim() : '';
+    familyName = getStringValue(display, 'familyName') || '';
+    givenName = getStringValue(display, 'givenName') || '';
 
     var first = givenName, second = familyName;
     if (orderByLastName) {
@@ -872,10 +1008,31 @@ contacts.List = (function() {
     return Normalizer.toAscii(ret.join('')).trim();
   };
 
-  var getGroupName = function getGroupName(contact) {
-    var ret = getStringToBeOrdered(contact);
-    ret = ret.charAt(0).toUpperCase();
+  // Utility function to quickly guess the group name for the given contact.
+  // Since full name normalization is expensive, we use a stripped down
+  // algorithm here that catches the majority of cases; i.e. name exists and
+  // starts with A-Z.  If this is not the case, then return null and force
+  // the caller to use the more expensive approach.
+  var getFastGroupName = function getFastGroupName(contact) {
+    var field = 'givenName';
+    if (orderByLastName)
+      field = 'familyName';
 
+    var value = contact[field] ? contact[field][0] : null;
+
+    if (!value || !value.length)
+      return null;
+
+    var ret = value.charAt(0).toUpperCase();
+    var code = ret.charCodeAt(0);
+    if (code < 65 || code > 90)
+      return null;
+
+    return ret;
+  };
+
+  var getGroupNameByOrderString = function getGroupNameByOrderString(order) {
+    var ret = order.charAt(0).toUpperCase();
     var code = ret.charCodeAt(0);
     if (code < 65 || code > 90) {
       ret = 'und';
@@ -883,30 +1040,33 @@ contacts.List = (function() {
     return ret;
   };
 
-  // Perform contact refresh by id
-  var refresh = function refresh(id, callback, op) {
-    remove(id);
-    if (typeof(id) == 'string') {
-      getContactById(id, function(contact, fbData) {
-        var enrichedContact = null;
-        if (fb.isFbContact(contact)) {
-          var fbContact = new fb.Contact(contact);
-          enrichedContact = fbContact.merge(fbData);
-        }
-        addToList(contact, enrichedContact);
-        if (callback) {
-          callback(id);
-        }
-      });
-    } else {
-      var contact = id;
-      remove(contact.id);
-      // Add without looking for extras, just what we have as contact
-      addToList(contact);
-      if (callback) {
-        callback(contact.id);
-      }
+  // Perform contact refresh.  First arg may be either an ID or a contact
+  // object.  If an ID is passed then the contact is retrieved from the
+  // database.  Otherwise refresh the list based on the given contact
+  // object without looking up any information.
+  var refresh = function refresh(idOrContact, callback) {
+    // Passed a contact, not an ID
+    if (typeof(idOrContact) !== 'string') {
+      refreshContact(idOrContact, null, callback);
+      return;
     }
+
+    // Passed an ID, so look up contact
+    getContactById(idOrContact, function(contact, fbData) {
+      var enrichedContact = null;
+      if (fb.isFbContact(contact)) {
+        var fbContact = new fb.Contact(contact);
+        enrichedContact = fbContact.merge(fbData);
+      }
+      refreshContact(contact, enrichedContact, callback);
+    });
+  };
+
+  var refreshContact = function refreshContact(contact, enriched, callback) {
+    remove(contact.id);
+    addToList(contact, enriched);
+    if (callback)
+      callback(contact.id);
   };
 
   var callbacks = [];
@@ -933,24 +1093,31 @@ contacts.List = (function() {
   }
 
   // Reset the content of the list to 0
-  var resetDom = function resetDom() {
-    contactsPhoto = [];
+  var resetDom = function resetDom(cb) {
+    if (loading) {
+      cancelLoadCB = resetDom.bind(null, cb);
+      return;
+    }
     utils.dom.removeChildNodes(groupsList);
+    loadedContacts = {};
     loaded = false;
 
-    initHeaders(true);
+    initHeaders();
+    FixedHeader.refresh();
+    if (cb)
+      cb();
   };
 
   // Initialize group headers at the beginning or after a dom reset
-  var initHeaders = function initHeaders(show) {
+  var initHeaders = function initHeaders() {
     // Populating contacts by groups
     headers = {};
-    renderGroupHeader('favorites', '', show);
+    renderGroupHeader('favorites', '');
     for (var i = 65; i <= 90; i++) {
       var letter = String.fromCharCode(i);
-      renderGroupHeader(letter, letter, show);
+      renderGroupHeader(letter, letter);
     }
-    renderGroupHeader('und', '#', show);
+    renderGroupHeader('und', '#');
   };
 
   var setOrderByLastName = function setOrderByLastName(value) {
@@ -971,14 +1138,11 @@ contacts.List = (function() {
     'clearClickHandlers': clearClickHandlers,
     'setOrderByLastName': setOrderByLastName,
     'renderPhoto': renderPhoto,
+    'updatePhoto': updatePhoto,
     'renderFbData': renderFbData,
     'getHighlightedName': getHighlightedName,
     get chunkSize() {
       return CHUNK_SIZE;
-    },
-    // The purpose of this method is only for unit tests
-    'resetSearch': function resetSearch() {
-      searchLoaded = false;
     }
   };
 })();

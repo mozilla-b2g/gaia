@@ -370,6 +370,11 @@ Calendar.App = (function(window) {
 
         self.recurringEventsController.observe();
       });
+
+      // go ahead and show the first time use view if necessary
+      this.view('FirstTimeUse', function(firstTimeUse) {
+        firstTimeUse.doFirstTime();
+      });
     },
 
     /**

@@ -10,6 +10,7 @@
  */
 var Compose = (function() {
   var placeholderClass = 'placeholder';
+  var attachmentClass = 'attachment-container';
 
   var slice = Array.prototype.slice;
   var attachments = new WeakMap();
@@ -211,6 +212,7 @@ var Compose = (function() {
         this.onAttachClick.bind(this));
 
       this.clear();
+      this.clearListeners();
 
       return this;
     },
@@ -230,6 +232,12 @@ var Compose = (function() {
         }
       }
       return this;
+    },
+
+    clearListeners: function() {
+      for (var type in handlers) {
+        handlers[type] = [];
+      }
     },
 
     getContent: function() {
@@ -399,7 +407,7 @@ var Compose = (function() {
     },
 
     onAttachmentClick: function thui_onAttachmentClick(event) {
-      if (event.target.className === 'attachment' && !state.resizing) {
+      if (event.target.classList.contains(attachmentClass) && !state.resizing) {
         this.currentAttachmentDOM = event.target;
         this.currentAttachment = attachments.get(event.target);
         AttachmentMenu.open(this.currentAttachment);
@@ -415,6 +423,7 @@ var Compose = (function() {
         case 'attachment-options-remove':
           attachments.delete(this.currentAttachmentDOM);
           dom.message.removeChild(this.currentAttachmentDOM);
+          state.size = null;
           composeCheck({type: 'input'});
           AttachmentMenu.close();
           break;
@@ -425,6 +434,7 @@ var Compose = (function() {
             attachments.set(el, newAttachment);
             dom.message.insertBefore(el, this.currentAttachmentDOM);
             dom.message.removeChild(this.currentAttachmentDOM);
+            state.size = null;
             composeCheck({type: 'input'});
             AttachmentMenu.close();
           }).bind(this);

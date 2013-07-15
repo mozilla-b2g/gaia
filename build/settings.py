@@ -47,6 +47,7 @@ settings = {
  "deviceinfo.software": "",
  "deviceinfo.update_channel": "",
  "device.storage.writable.name": "sdcard",
+ "dom.mozContacts.debugging.enabled": False,
  "gaia.system.checkForUpdates": False,
  "geolocation.enabled": True,
  "geolocation.suspended": False,

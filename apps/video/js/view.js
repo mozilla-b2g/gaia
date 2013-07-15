@@ -65,6 +65,14 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     });
   }
 
+  // Terminate video playback when visibility is changed.
+  window.addEventListener('visibilitychange',
+    function onVisibilityChanged() {
+      if (document.hidden) {
+        done();
+      }
+    });
+
   function handleYoutubeError(message) {
     // Start with a localized error message prefix
     var error = navigator.mozL10n.get('youtube-error-prefix');
@@ -142,6 +150,10 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   function setControlsVisibility(visible) {
     dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
     controlShowing = visible;
+    if (visible) {
+      // update elapsed time and slider while showing.
+      updateSlider();
+    }
   }
 
   function playerMousedown(event) {
@@ -297,16 +309,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
         return;
       }
 
-      var percent = (dom.player.currentTime / dom.player.duration) * 100;
-      if (isNaN(percent)) // this happens when we end the activity
-        return;
-      percent += '%';
-
-      dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
-      dom.elapsedTime.style.width = percent;
-      // Don't move the play head if the user is dragging it.
-      if (!dragging)
-        dom.playHead.style.left = percent;
+      updateSlider();
     }
 
     // Since we don't always get reliable 'ended' events, see if
@@ -337,6 +340,19 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     dom.player.currentTime = 0;
     pause();
+  }
+
+  function updateSlider() {
+    var percent = (dom.player.currentTime / dom.player.duration) * 100;
+    if (isNaN(percent)) // this happens when we end the activity
+      return;
+    percent += '%';
+
+    dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
+    dom.elapsedTime.style.width = percent;
+    // Don't move the play head if the user is dragging it.
+    if (!dragging)
+      dom.playHead.style.left = percent;
   }
 
   // handle drags on the time slider
@@ -402,7 +418,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
 
     var minutes = Math.floor(duration / 60);
-    var seconds = Math.round(duration % 60);
+    var seconds = Math.floor(duration % 60);
     if (minutes < 60) {
       return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
     }
@@ -427,7 +443,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   }
 
   function showSpinner() {
-    dom.spinnerOverlay.classList.remove('hidden');
+    if (!blob) {
+      dom.spinnerOverlay.classList.remove('hidden');
+    }
   }
 
   function hideSpinner() {

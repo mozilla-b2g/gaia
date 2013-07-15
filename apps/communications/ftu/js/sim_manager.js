@@ -16,9 +16,9 @@ var SimManager = {
     _ = navigator.mozL10n.get;
 
     IccHelper.addEventListener('icccardlockerror',
-                                  this.handleUnlockError.bind(this));
-    this.mobConn.addEventListener('cardstatechange',
-                                  this.handleCardState.bind(this));
+                               this.handleUnlockError.bind(this));
+    IccHelper.addEventListener('cardstatechange',
+                               this.handleCardState.bind(this));
 
     this.alreadyImported = false;
 
@@ -79,9 +79,9 @@ var SimManager = {
   },
 
   available: function sm_available() {
-    if (!this.mobConn)
+    if (!IccHelper.enabled)
       return false;
-    return (this.mobConn.cardState === 'ready');
+    return (IccHelper.cardState === 'ready');
   },
 
  /**
@@ -99,7 +99,7 @@ var SimManager = {
   handleCardState: function sm_handleCardState(callback) {
     SimManager.checkSIMButton();
     this.accessCallback = (typeof callback === 'function') ? callback : null;
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'pinRequired':
         this.showPinScreen();
         break;
@@ -113,7 +113,7 @@ var SimManager = {
         break;
       default:
         if (this.accessCallback) {
-          this.accessCallback(this.mobConn.cardState === 'ready');
+          this.accessCallback(IccHelper.cardState === 'ready');
         }
         break;
     }
@@ -191,7 +191,7 @@ var SimManager = {
     UIManager.pukcodeScreen.classList.remove('show');
     UIManager.xckcodeScreen.classList.add('show');
 
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'networkLocked':
         UIManager.unlockSimHeader.textContent = _('nckcode');
         UIManager.xckLabel.textContent = _('type_nck');
@@ -226,7 +226,7 @@ var SimManager = {
   unlock: function sm_unlock() {
     this._unlocked = false;
 
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'pinRequired':
         this.unlockPin();
         break;
@@ -247,6 +247,7 @@ var SimManager = {
       UIManager.pinError.textContent = _('pinValidation');
       UIManager.pinInput.classList.add('onerror');
       UIManager.pinError.classList.remove('hidden');
+      UIManager.pinInput.focus();
       return;
     } else {
       UIManager.pinInput.classList.remove('onerror');
@@ -314,7 +315,7 @@ var SimManager = {
   unlockXck: function sm_unlockXck() {
     var xck = UIManager.xckInput.value;
     var lockType;
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'networkLocked':
         lockType = 'nck';
         break;
@@ -329,6 +330,7 @@ var SimManager = {
       UIManager.xckInput.classList.add('onerror');
       UIManager.xckError.classList.remove('hidden');
       UIManager.xckError.textContent = _(lockType + 'Validation');
+      UIManager.xckInput.focus();
       return;
     } else {
       UIManager.pinInput.classList.remove('onerror');
@@ -354,10 +356,26 @@ var SimManager = {
     var importButton = UIManager.simImportButton;
     importButton.setAttribute('disabled', 'disabled');
 
+    var cancelled = false, contactsRead = false;
     var importer = new SimContactsImporter();
+    utils.overlay.showMenu();
+    utils.overlay.oncancel = function oncancel() {
+      cancelled = true;
+      importer.finish();
+      if (contactsRead) {
+        // A message about canceling will be displayed while the current chunk
+        // is being cooked
+        progress.setClass('activityBar');
+        utils.overlay.hideMenu();
+        progress.setHeaderMsg(_('messageCanceling'));
+      } else {
+        importer.onfinish(); // Early return while reading contacts
+      }
+    };
     var importedContacts = 0;
 
     importer.onread = function sim_import_read(n) {
+      contactsRead = true;
       progress.setClass('progressBar');
       progress.setHeaderMsg(_('simContacts-importing'));
       progress.setTotal(n);
@@ -365,17 +383,23 @@ var SimManager = {
 
     importer.onimported = function imported_contact() {
       importedContacts++;
-      progress.update();
+      if (!cancelled) {
+        progress.update();
+      }
     };
 
     importer.onfinish = function sim_import_finish() {
       window.setTimeout(function do_sim_import_finish() {
-        window.importUtils.setTimestamp('sim');
-        SimManager.alreadyImported = true;
         UIManager.navBar.removeAttribute('aria-disabled');
         utils.overlay.hide();
-        utils.status.show(_('simContacts-imported3', {n: importedContacts}));
+        if (importedContacts !== 0) {
+          window.importUtils.setTimestamp('sim');
+          SimManager.alreadyImported = true;
+          utils.status.show(_('simContacts-imported3', {n: importedContacts}));
+        }
       }, DELAY_FEEDBACK);
+
+      importer.onfinish = null;
     };
 
     importer.onerror = function sim_import_error() {

@@ -14,25 +14,24 @@ var Widget = (function() {
 
   var costcontrol;
   function onReady() {
-    var mobileConnection = window.navigator.mozMobileConnection;
     var cardState = checkCardState();
-    var iccid = mobileConnection.iccInfo.iccid;
+    var iccid = IccHelper.iccInfo.iccid;
 
     // SIM not ready
     if (cardState !== 'ready') {
-      debug('SIM not ready:', mobileConnection.cardState);
-      mobileConnection.oncardstatechange = onReady;
+      debug('SIM not ready:', IccHelper.cardState);
+      IccHelper.oncardstatechange = onReady;
 
     // SIM is ready, but ICC info is not ready yet
     } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
-      mobileConnection.oniccinfochange = onReady;
+      IccHelper.oniccinfochange = onReady;
 
     // All ready
     } else {
       debug('SIM ready. ICCID:', iccid);
-      mobileConnection.oncardstatechange = undefined;
-      mobileConnection.oniccinfochange = undefined;
+      IccHelper.oncardstatechange = undefined;
+      IccHelper.oniccinfochange = undefined;
       startWidget();
     }
   };
@@ -40,9 +39,8 @@ var Widget = (function() {
   // Check the card status. Return 'ready' if all OK or take actions for
   // special situations such as 'pin/puk locked' or 'absent'.
   function checkCardState() {
-    var mobileConnection = window.navigator.mozMobileConnection;
     var state, cardState;
-    state = cardState = mobileConnection.cardState;
+    state = cardState = IccHelper.cardState;
 
     // SIM is absent
     if (cardState === 'absent') {
@@ -103,16 +101,17 @@ var Widget = (function() {
     ConfigManager.observe('lastTelephonyReset', onReset, true);
 
     // Subviews
+    var balanceConfig = ConfigManager.configuration.balance;
     balanceView = new BalanceView(
       document.getElementById('balance-credit'),
       document.querySelector('#balance-credit + .meta'),
-      ConfigManager.configuration.balance.minimum_delay
+      balanceConfig ? balanceConfig.minimum_delay : undefined
     );
 
     // Update UI when visible
-    document.addEventListener('mozvisibilitychange',
+    document.addEventListener('visibilitychange',
       function _onVisibilityChange(evt) {
-        if (!document.mozHidden && initialized &&
+        if (!document.hidden && initialized &&
             checkCardState() === 'ready') {
           updateUI();
         }

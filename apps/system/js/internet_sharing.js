@@ -17,7 +17,6 @@
 var InternetSharing = (function() {
 
   var settings;
-  var mobileConnection;
   // null or unknown state will change to one of the following state
   var validCardState = ['absent',
                         'pinRequired',
@@ -44,7 +43,7 @@ var InternetSharing = (function() {
   }
 
   function checkCardAndInternetSharing() {
-    cardState = mobileConnection.cardState;
+    cardState = IccHelper.cardState;
     if (validCardState.indexOf(cardState) > -1) {
       // if it is known cardState, we need to load internet sharing state from
       // settings
@@ -75,19 +74,19 @@ var InternetSharing = (function() {
       // once cardState is ready, we need to read iccid
       // if iccInfo.iccid is not ready, we need to listen change of iccinfo
       // change, until iccid is ready
-      if (!mobileConnection.iccInfo || !mobileConnection.iccInfo.iccid) {
-        mobileConnection.oniccinfochange = function handler() {
+      if (!IccHelper.iccInfo || !IccHelper.iccInfo.iccid) {
+        IccHelper.oniccinfochange = function handler() {
           // wait for iccid is filled.
-          if (mobileConnection.iccInfo.iccid) {
-            mobileConnection.oniccinfochange = null;
-            doRestore('usb', mobileConnection.iccInfo.iccid);
-            doRestore('wifi', mobileConnection.iccInfo.iccid);
+          if (IccHelper.iccInfo.iccid) {
+            IccHelper.oniccinfochange = null;
+            doRestore('usb', IccHelper.iccInfo.iccid);
+            doRestore('wifi', IccHelper.iccInfo.iccid);
           }
         };
       } else {
         // iccInfo is ready, just use it.
-        doRestore('usb', mobileConnection.iccInfo.iccid);
-        doRestore('wifi', mobileConnection.iccInfo.iccid);
+        doRestore('usb', IccHelper.iccInfo.iccid);
+        doRestore('wifi', IccHelper.iccInfo.iccid);
       }
     } else {
       // card is not ready, just use absent to restore the value.
@@ -103,7 +102,7 @@ var InternetSharing = (function() {
     }
     // link the iccid with current internet state for future restoring.
     var type = (evt.settingName.indexOf('wifi') > -1) ? 'wifi' : 'usb';
-    var cardId = mobileConnection.iccInfo.iccid || 'absent';
+    var cardId = IccHelper.iccInfo.iccid || 'absent';
     // wifi hotspot cannot be enabled without sim
     if ('wifi' === type && 'absent' === cardId && true === evt.settingValue) {
       settings.createLock().set({'tethering.wifi.enabled': false});
@@ -118,15 +117,13 @@ var InternetSharing = (function() {
     if (!settings) {
       return;
     }
-    mobileConnection = window.navigator.mozMobileConnection;
-    if (!mobileConnection) {
+    if (!IccHelper.enabled) {
       return;
     }
     observerHooked = false;
     checkCardAndInternetSharing();
     // listen cardstatechange event for ready, pin, puk, or network unlocking.
-    mobileConnection.addEventListener('cardstatechange',
-                                      checkCardAndInternetSharing);
+    IccHelper.addEventListener('cardstatechange', checkCardAndInternetSharing);
   }
   return {init: _init};
 })();

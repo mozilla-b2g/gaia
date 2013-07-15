@@ -5,7 +5,6 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_contact.js');
 var vcf1 = 'BEGIN:VCARD\n' +
   'VERSION:2.1\n' +
   'N;ENCODING=QUOTED-PRINTABLE;CHARSET=utf-8:Gump;F=C3=B3rrest\n' +
-//  'FN:Forrest Gump\n' +
   'ORG;ENCODING=QUOTED-PRINTABLE;CHARSET=utf-8:B=C3=B3bba Gump Shrimp Co.\n' +
   'TITLE;ENCODING=QUOTED-PRINTABLE;CHARSET=utf-8:Shr=C3=B3mp Man\n' +
   'PHOTO;GIF:http://www.example.com/dir_photos/my_photo.gif\n' +
@@ -54,13 +53,24 @@ var vcf3 = 'BEGIN:VCARD\n' +
   'TEL;TYPE=home,voice;VALUE=uri:tel:+1-404-555-1212\n' +
   'ADR;TYPE=work;LABEL="100 Waters Edge\nBaytown, ' +
   'LA 30314\nUnited States of America"\n' +
-  ':;;100 Waters Edge;Baytown;LA;30314;United States of America\n' +
+  '  :;;100 Waters Edge;Baytown;LA;30314;United States of America\n' +
   'ADR;TYPE=home;LABEL="42 Plantation St.\nBaytown, ' +
   'LA 30314\nUnited States of America"\n' +
-  ':;;42 Plantation St.;Baytown;LA;30314;United States of America\n' +
+  '  :;;42 Plantation St.;Baytown;LA;30314;United States of America\n' +
   'EMAIL:forrestgump@example.com\n' +
   'REV:20080424T195243Z\n' +
   'END:VCARD';
+
+var vcf4 = 'BEGIN:VCARD\n' +
+  'VERSION:3.0\n' +
+  'FN;CHARSET=UTF-8:Foo Bar\n' +
+  'N;CHARSET=UTF-8:Bar;Foo;;;\n' +
+  'BDAY;CHARSET=UTF-8:1975-05-20\n' +
+  'TEL;CHARSET=UTF-8;TYPE=CELL;PREF:(123) 456-7890\n' +
+  'TEL;CHARSET=UTF-8;TYPE=WORK:(123) 666-7890\n' +
+  'EMAIL;CHARSET=UTF-8;TYPE=HOME:example@example.org\n' +
+  'ORG;CHARSET=UTF-8:;\n' +
+  'END:VCARD\n';
 
 var vcfwrong1 = 'BEGIN:VCARD\n' +
   'VERSION:4.0\n' +
@@ -85,10 +95,6 @@ var vcfwrong1 = 'BEGIN:VCARD\n' +
   'akajslkfj\n' +
   'END:VCARD';
 
-if (!navigator.mozContact) {
-  navigator.mozContact = null;
-}
-
 suite('vCard parsing settings', function() {
   function stub(additionalCode, ret) {
     if (additionalCode && typeof additionalCode !== 'function')
@@ -106,19 +112,21 @@ suite('vCard parsing settings', function() {
     nfn.callCount = 0;
     return nfn;
   }
+
   var realMozContact, realMozContacts;
   suite('SD Card import', function() {
     setup(function() {
       realMozContacts = navigator.mozContacts;
       navigator.mozContacts = MockMozContacts;
 
-      realMozContact = navigator.mozContact;
-      navigator.mozContact = MockMozContact;
+      if (window.mozContact)
+        realMozContact = window.mozContact;
+      window.mozContact = MockMozContact;
     });
 
     teardown(function() {
       navigator.mozContacts = realMozContacts;
-      navigator.mozContact = realMozContact;
+      window.mozContact = realMozContact || null;
     });
 
     test('- should properly decode Quoted Printable texts ', function(done) {
@@ -134,7 +142,9 @@ suite('vCard parsing settings', function() {
     test('- test for processing name 1 ', function(done) {
       var contact = new mozContact();
       var data = {
-        fn: ['Johnny'],
+        fn: [
+          { meta: {}, value: ['Johnny'] }
+        ],
         n: [
           {
             value: [
@@ -222,8 +232,6 @@ suite('vCard parsing settings', function() {
         assert.strictEqual('Fórrest', contact.givenName[0]);
         assert.strictEqual('Bóbba Gump Shrimp Co.', contact.org[0]);
         assert.strictEqual('Shrómp Man', contact.jobTitle[0]);
-//        assert.strictEqual('http://www.example.com/dir_photos/my_photo.gif',
-//          contact.photo[0]);
 
         assert.strictEqual('WORK', contact.tel[0].type[0]);
         assert.strictEqual('(111) 555-1212', contact.tel[0].value);
@@ -270,11 +278,9 @@ suite('vCard parsing settings', function() {
         var contact = contacts[0];
 
         assert.strictEqual('Forrest Gump', contact.name[0]);
-        assert.strictEqual('Forrest Gump', contact.givenName[0]);
+        assert.strictEqual('Forrest', contact.givenName[0]);
         assert.strictEqual('Bubba Gump Shrimp Co.', contact.org[0]);
         assert.strictEqual('Shrimp Man', contact.jobTitle[0]);
-//        assert.strictEqual('http://www.example.com/dir_photos/my_photo.gif',
-//          contact.photo[0]);
 
         assert.strictEqual('WORK', contact.tel[0].type[0]);
         assert.strictEqual('(111) 555-1212', contact.tel[0].value);
@@ -300,8 +306,58 @@ suite('vCard parsing settings', function() {
         assert.strictEqual('forrestgump@example.com', contact.email[0].value);
         assert.strictEqual('PREF', contact.email[0].type[0]);
         done();
+
       });
     });
+
+    test('- should return a correct JSON object from VCF 4.0', function(done) {
+      var reader = new VCFReader(vcf3);
+
+      reader.onread = stub();
+      reader.onimported = stub();
+      reader.onerror = stub();
+
+      reader.process(function import_finish(contacts) {
+        assert.strictEqual(1, contacts.length);
+
+        assert.strictEqual(1, reader.onread.callCount);
+        assert.strictEqual(1, reader.onimported.callCount);
+        assert.strictEqual(0, reader.onerror.callCount);
+
+        var contact = contacts[0];
+
+        assert.strictEqual('Forrest Gump', contact.name[0]);
+        assert.strictEqual('Forrest', contact.givenName[0]);
+        assert.strictEqual('Bubba Gump Shrimp Co.', contact.org[0]);
+        assert.strictEqual('Shrimp Man', contact.jobTitle[0]);
+
+        assert.strictEqual('work', contact.tel[0].type[0]);
+        assert.strictEqual('+1-111-555-1212', contact.tel[0].value);
+        assert.strictEqual('home', contact.tel[1].type[0]);
+        assert.strictEqual('+1-404-555-1212', contact.tel[1].value);
+
+        assert.strictEqual('work', contact.adr[0].type[0]);
+
+        assert.strictEqual('100 Waters Edge', contact.adr[0].streetAddress);
+        assert.strictEqual('Baytown', contact.adr[0].locality);
+        assert.strictEqual('LA', contact.adr[0].region);
+        assert.strictEqual('30314', contact.adr[0].postalCode);
+        assert.strictEqual('United States of America',
+          contact.adr[0].countryName);
+        assert.strictEqual('home', contact.adr[1].type[0]);
+        assert.strictEqual('42 Plantation St.', contact.adr[1].streetAddress);
+        assert.strictEqual('Baytown', contact.adr[1].locality);
+        assert.strictEqual('LA', contact.adr[1].region);
+        assert.strictEqual('30314', contact.adr[1].postalCode);
+        assert.strictEqual('United States of America',
+          contact.adr[1].countryName);
+
+        assert.strictEqual('forrestgump@example.com', contact.email[0].value);
+        done();
+
+      });
+    });
+
     test('- should return a single entry', function(done) {
       var reader = new VCFReader(vcfwrong1);
       reader.onread = stub();
@@ -312,6 +368,39 @@ suite('vCard parsing settings', function() {
         assert.strictEqual(1, contacts.length);
         done();
       });
+    });
+    test('- Test for UTF8 charset', function(done) {
+      var reader = new VCFReader(vcf4);
+      reader.onread = stub();
+      reader.onimported = stub();
+      reader.onerror = stub();
+
+      reader.process(function import_finish(contacts) {
+        var contact = contacts[0];
+        assert.strictEqual('Foo Bar', contact.name[0]);
+        assert.strictEqual('Foo', contact.givenName[0]);
+        assert.strictEqual('CELL', contact.tel[0].type[0]);
+        assert.strictEqual('WORK', contact.tel[1].type[0]);
+        assert.strictEqual(true, contact.tel[0].pref);
+        assert.strictEqual('(123) 456-7890', contact.tel[0].value);
+        assert.strictEqual('(123) 666-7890', contact.tel[1].value);
+        assert.strictEqual('', contact.org[0]);
+        assert.strictEqual('HOME', contact.email[0].type[0]);
+        assert.strictEqual('example@example.org', contact.email[0].value);
+        done();
+      });
+    });
+    test('- Test for vcardToContact', function(done) {
+      VCFReader.processName = stub();
+      VCFReader.processAddr = stub();
+      VCFReader.processComm = stub();
+      VCFReader.processFields = function(vc, obj) {
+        obj.name = vc.name;
+      };
+
+      var ct = VCFReader.vcardToContact({ name: ['Sergi'] });
+      assert.strictEqual('Sergi', ct.name[0]);
+      done();
     });
   });
 });

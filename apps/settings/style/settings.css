@@ -342,6 +342,16 @@ section li.password > p {
   padding-bottom: 1em;
 }
 
+/******************************************************************************
+ * Internet sharing (Wi-Fi HotSpot)
+ */
+
+#hotspot ul li > a span {
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /******************************************************************************
  * Wallpaper snapshot
@@ -434,26 +444,6 @@ ul li > label .range-icons.brightness {
 #icc .hidden {
   display: none;
 }
-
-#icc #icc-stk-alert {
-  position: fixed;
-}
-
-#icc #icc-stk-alert menu button:first-child {
-  margin: 0;
-}
-
-#icc #icc-stk-alert menu button {
-  width: calc((100% - 2rem) / 3);
-  margin-left: 1rem;
-}
-
-.multiline_title {
-  text-overflow: clip;
-  white-space: normal;
-  word-wrap: break-word;
-}
-
 
 /******************************************************************************
  * Date & Time

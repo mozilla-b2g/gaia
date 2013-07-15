@@ -47,16 +47,17 @@ var BalanceTab = (function() {
 
       // Subviews
       topUpLayoutView = new TopUpLayoutView(topUpUSSD, topUp);
+      var balanceConfig = ConfigManager.configuration.balance;
       balanceView = new BalanceView(
         document.getElementById('balance-tab-credit'),
         document.getElementById('balance-tab-time'),
-        ConfigManager.configuration.balance.minimum_delay
+        balanceConfig ? balanceConfig.minimum_delay : undefined
       );
 
       window.addEventListener('localized', localize);
 
       // Configure updates
-      document.addEventListener('mozvisibilitychange', updateWhenVisible);
+      document.addEventListener('visibilitychange', updateWhenVisible);
       updateButton.addEventListener('click', lockAndUpdateUI);
       ConfigManager.observe('lowLimit', toogleLimits, true);
       ConfigManager.observe('lowLimitThreshold', resetNotification, true);
@@ -88,7 +89,7 @@ var BalanceTab = (function() {
       return;
     }
 
-    document.removeEventListener('mozvisibilitychange', updateWhenVisible);
+    document.removeEventListener('visibilitychange', updateWhenVisible);
     updateButton.removeEventListener('click', lockAndUpdateUI);
     ConfigManager.removeObserver('lowLimit', toogleLimits);
     ConfigManager.removeObserver('lowLimitThreshold', resetNotification);
@@ -110,7 +111,7 @@ var BalanceTab = (function() {
 
   // On showing the application
   function updateWhenVisible() {
-    if (!document.mozHidden && initialized) {
+    if (!document.hidden && initialized) {
       updateUI();
     } else {
       clearInterval(topUpCountdown);

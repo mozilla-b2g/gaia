@@ -276,8 +276,10 @@ body {
   background-color: #fff;
 }
 
-#screen.active-statusbar #windows > .appWindow {
+#screen.active-statusbar #windows > .appWindow,
+#screen.active-statusbar #windows > .appWindow.fullscreen-app {
   top: 4rem;
+  height: calc(100% - 4rem);
 }
 
 #windows > .appWindow.opening {
@@ -630,11 +632,6 @@ body {
 
 #screen > #windows > .appWindow.fullscreen-app {
   top: 0;
-}
-
-#screen.attention > #windows > .appWindow.fullscreen-app {
-  height: calc(100% - 4rem);
-  top: 4rem;
 }
 
 .accessibility-invert {

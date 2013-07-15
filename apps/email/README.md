@@ -1,3 +1,34 @@
+## Front-End Notes ##
+
+The email front end code dynamically loads each card implementation, and uses
+HTML cached in a document cookie as part of startup. The cached HTML is just
+for the first card the user will see when launching the app. By using the
+cached HTML, it allows for a quick display to the user while the rest of the
+UI and back-end (which runs in a web worker) starts up.
+
+Once real data is available from the back-end, the cached HTML is removed and
+the card with the real data is inserted.
+
+This means the index.html file is fairly sparse. It just contains one script
+tag to inject the cached HTML into the DOM, and that script triggers the load
+of the main app JS after injecting the cached HTML.
+
+The main app JS is built using the Makefile in the email directory. The email
+app uses a module loader plugins to load templates: the 'tmpl!...' dependencies,
+which in turn depend on 'text!...' dependencies. These loader plugins
+participate in the build by leveraging special "pluginBuilder" modules,
+tmpl_builder.js and text_builder.js respectively. Since those builder modules
+support a few JS build environments, they contain extra code in them, but
+they are not actually loaded during the runtime of application, just during the
+build process.
+
+Since it has its own custom build processes, the usual Gaia build processes
+do not result in much extra optimization. The Gaia build process for the
+localizations still occurs, and the full collection of JS strings for the
+translations are inlined, but the HTML DOM is not pre-localized, as each card
+HTML is stored in its own .html file that is loaded on demand when the card
+is needed.
+
 ## Back-End Code Location ##
 
 The e-mail back-end is not developed in this repository.  All of the code in

@@ -67,8 +67,7 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/style/icons/60/Settings.png",
-    "120": "/style/icons/Settings.png",
-    "320": "/style/icons/320/Settings.png"
+    "120": "/style/icons/Settings.png"
   },
   "orientation": "portrait-primary"
 }

@@ -59,9 +59,9 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
         self.close()
         self.runner.cleanup()
 
-        self.logger.info('Passed: %d' % self.passes)
-        self.logger.info('Failed: %d' % self.failures)
-        self.logger.info('Todo: 0')
+        self.logger.info('passed: %d' % self.passes)
+        self.logger.info('failed: %d' % self.failures)
+        self.logger.info('todo: 0')
 
         sys.exit(exitCode)
 

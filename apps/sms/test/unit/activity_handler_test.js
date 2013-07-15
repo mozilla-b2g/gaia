@@ -117,7 +117,7 @@ suite('ActivityHandler', function() {
 
     test('Appends an attachment to the Compose field for each media file',
       function(done) {
-      Compose.append = sinon.spy(function(attachment) {
+      this.sinon.stub(Compose, 'append', function(attachment) {
 
         assert.instanceOf(attachment, Attachment);
         assert.ok(Compose.append.callCount < 3);
@@ -143,6 +143,43 @@ suite('ActivityHandler', function() {
       var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
       assert.ok(wakeLock);
       assert.equal(wakeLock.topic, 'cpu');
+    });
+
+    suite('contact retrieved (after getSelf)', function() {
+      var contactName = '<&>';
+      setup(function() {
+        this.sinon.stub(Contacts, 'findByPhoneNumber')
+          .callsArgWith(1, [{name: [contactName]}]);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      test('passes contact name in plain text', function() {
+        assert.equal(MockNotificationHelper.mTitle, contactName);
+      });
+    });
+
+    suite('contact without name (after getSelf)', function() {
+      var phoneNumber = '+1111111111';
+      var oldSender;
+      setup(function() {
+        oldSender = message.sender;
+        message.sender = phoneNumber;
+        this.sinon.stub(Contacts, 'findByPhoneNumber')
+          .callsArgWith(1, [{
+            name: [''],
+            tel: {'value': phoneNumber}
+          }]);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      suiteTeardown(function() {
+        message.sender = oldSender;
+      });
+
+
+      test('phone in notification title when contact without name', function() {
+        assert.equal(MockNotificationHelper.mTitle, phoneNumber);
+      });
     });
 
     suite('after getSelf', function() {
@@ -190,17 +227,12 @@ suite('ActivityHandler', function() {
       });
 
       setup(function() {
-        sinon.stub(Notification, 'ringtone');
-        sinon.stub(Notification, 'vibrate');
+        this.sinon.stub(Notification, 'ringtone');
+        this.sinon.stub(Notification, 'vibrate');
 
         message = MockMessages.sms({ messageClass: 'class-0' });
         MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
-      });
-
-      teardown(function() {
-        Notification.ringtone.restore();
-        Notification.vibrate.restore();
       });
 
       test('play ringtone', function() {

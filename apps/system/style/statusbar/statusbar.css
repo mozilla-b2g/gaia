@@ -281,6 +281,19 @@ body, html {
   background-size: 31rem;
 }
 
+.sb-icon-network-activity {
+  width: 1.6rem;
+  height: 1.6rem;
+  /* HACK: This enforces allocation of a dedicated layer just for this animated
+   * icon, remove after bug 717872 gets fixed. */
+  display: block;
+  transform: perspective(0.1rem);
+}
+
+.sb-icon-network-activity[hidden] {
+  display: none;
+}
+
 .sb-icon-headphones {
   background-position: -18.9rem -4rem;
 }
@@ -394,6 +407,19 @@ body, html {
   width: 100%;
   text-align: center;
   font-size: 1.15rem; /*5pt  was 0.8rem */
+}
+
+.sb-icon-system-downloads {
+  width: 1.6rem;
+  height: 1.6rem;
+  /* HACK: This enforces allocation of a dedicated layer just for this animated
+   * icon, remove after bug 717872 gets fixed. */
+  display: block;
+  transform: perspective(0.1rem);
+}
+
+.sb-icon-system-downloads[hidden] {
+  display: none;
 }
 
 .sb-icon-call-forwarding {

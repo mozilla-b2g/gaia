@@ -9,48 +9,55 @@
 var VCFReader = function(contents) {
   this.contents = contents;
   this.processedContacts = 0;
+  this.finished = false;
+};
+
+// It defines the number of contacts that are processsed in parallel
+VCFReader.prototype.CHUNK_SIZE = 5;
+
+VCFReader.prototype.finish = function() {
+  this.finished = true;
 };
 
 VCFReader.prototype.process = function(cb) {
   try {
-    this.rawContacts = this.contents
-      .split('END:VCARD')
-      .map(VCFReader.parseSingleEntry)
-      .filter(function(v) { return !!v; });
-    this.onread && this.onread(this.rawContacts.length);
+    var rawContacts = [];
+    this.contents = this.contents.split('END:VCARD');
+    this.contents.forEach(function(c) {
+      var parsed = VCFReader.parseSingleEntry(c);
+      if (parsed)
+        rawContacts.push(parsed);
+    });
+    this.contents = null;
+    this.onread && this.onread(rawContacts.length);
   } catch (e) {
     this.onerror && this.onerror(e);
     return;
   }
 
-  var allDone = false;
   var self = this;
+  var total = rawContacts.length;
 
-  var finalContacts = [];
-  this.validContacts = this.rawContacts.length;
-  this.rawContacts.forEach(function(ct) {
-    VCFReader.save(ct, onParsed);
-  });
+  function importContacts(from) {
+    for (var i = from; i < from + self.CHUNK_SIZE && i < total; i++) {
+      VCFReader.save(rawContacts[i], onParsed);
+    }
+  }
+
+  importContacts(this.processedContacts);
 
   function onParsed(err, ct) {
     self.onimported && self.onimported();
-
     self.processedContacts += 1;
-    finalContacts.push(ct);
-    if (self.checkIfCompleted() && allDone === false) {
-      cb(finalContacts);
-      allDone = true;
+
+    if (self.processedContacts < total &&
+        self.processedContacts % self.CHUNK_SIZE === 0) {
+      // Batch finishes, next one...
+      self.finished ? cb(rawContacts) : importContacts(self.processedContacts);
+    } else if (self.processedContacts === total) {
+      cb(rawContacts);
     }
   }
-};
-
-/**
- * Checks if all the contacts have been processed by comparing them to the
- * initial number of entries in the vCard
- * @return {Boolean} return true if processed, false otherwise.
- */
-VCFReader.prototype.checkIfCompleted = function() {
-  return this.processedContacts === this.validContacts;
 };
 
 /**
@@ -121,8 +128,8 @@ VCFReader.processName = function(vcardObj, contactObj) {
   var parts = VCFReader.nameParts;
 
   // Set First Name right away as the 'name' property
-  if (vcardObj.fn)
-    contactObj.name = vcardObj.fn;
+  if (vcardObj.fn && vcardObj.fn.length)
+    contactObj.name = vcardObj.fn[0].value;
 
   if (vcardObj.n && vcardObj.n.length) {
     var values = vcardObj.n[0].value;
@@ -136,7 +143,7 @@ VCFReader.processName = function(vcardObj, contactObj) {
     // If we don't have a contact name at this point, make `name` be the
     // unification of all the name parts.
     if (!contactObj.name)
-      contactObj.name = [VCFReader.decodeQP(meta, values.join(' '))];
+      contactObj.name = [VCFReader.decodeQP(meta, values.join(' ').trim())];
   }
   contactObj.givenName = contactObj.givenName || contactObj.name;
   return contactObj;
@@ -190,17 +197,20 @@ VCFReader.processComm = function(vcardObj, contactObj) {
       var cur = {};
 
       if (v.meta) {
-        if (v.value)
+        if (v.value) {
           cur.value = VCFReader.decodeQP(v.meta, v.value[0]);
+          cur.value = cur.value.replace(/^tel:/i, '');
+        }
 
         metaValues = Object.keys(v.meta).map(function(key) {
           return v.meta[key];
         });
 
         if (metaValues.indexOf('pref') > -1 || metaValues.indexOf('PREF') > -1)
-          cur.type = ['PREF'];
-        else
-          cur.type = [metaValues[0]]; // Take only the first meta type
+          cur.pref = true;
+
+        if (v.meta.type)
+          cur.type = [v.meta.type];
       }
 
       if (!contactObj[field])
@@ -231,27 +241,8 @@ VCFReader.processFields = function(vcardObj, contactObj) {
   return contactObj;
 };
 
-VCFReader.Re1 = /^\s*(version|fn|title|org)\s*:(.+)$/i;
-VCFReader.Re2 = /^([^:;]+);([^:]+):(.+)$/i;
-VCFReader.ReKey = /item\d{1,2}\./;
+VCFReader.ReBasic = /^([^:]+):(.+)$/i;
 VCFReader.ReTuple = /([a-z]+)=(.*)/i;
-
-/**
- * Checks if a line is a 'simple' one, meaning that it has single
- * value. If it is, returns a record with a key:value structure like this:
- *
- * { key: 'fn', value: ['Johnny'] }
- *
- * @param {string} line Line in the VCF to be parsed.
- * @return {{key: string, value: Array}}
- * @private
- */
-VCFReader.parseSimpleLine_ = function(line) {
-  if (!VCFReader.Re1.test(line)) return null;
-  var results = line.match(VCFReader.Re1);
-  var key = results[1].toLowerCase().trim();
-  return {key: key, data: [results[2]]};
-};
 
 VCFReader._parseTuple = function(p, i) {
   var match = p.match(VCFReader.ReTuple);
@@ -266,24 +257,59 @@ VCFReader._parseTuple = function(p, i) {
  * @return {{key: string, data: {meta, value}}}
  * @private
  */
-VCFReader.parseComplexLine_ = function(line) {
-  if (!VCFReader.Re2.test(line)) return null;
-  var results = line.match(VCFReader.Re2);
-  var key = results[1].replace(VCFReader.ReKey, '').toLowerCase().trim();
+VCFReader.parseLine_ = function(line) {
+  if (!VCFReader.ReBasic.test(line)) return null;
 
+  var parsed = VCFReader.ReBasic.exec(line);
+  var tuples = parsed[1].split(/[;,]/);
+  var key = tuples.shift();
   var meta = {};
-  results[2].split(/(;|,)/).forEach(function(l, i) {
-    var p = VCFReader._parseTuple(l, i);
-    meta[p[0]] = p[1];
+
+  tuples.forEach(function(l, i) {
+    var tuple = VCFReader._parseTuple(l, i);
+    meta[tuple[0]] = tuple[1];
   });
 
   return {
-    key: key,
+    key: key.toLowerCase(),
     data: {
       meta: meta,
-      value: results[3].split(';')
+      value: parsed[2].split(';')
     }
   };
+};
+
+VCFReader.splitLines = function(vcf) {
+  var lines = [];
+  var currentStr = '';
+  var inLabel = false;
+  for (var i = 0, l = vcf.length; i < l; i++) {
+    if (vcf[i] === '"') {
+      inLabel = !inLabel;
+      currentStr += vcf[i];
+      continue;
+    }
+
+    if (inLabel || vcf[i] !== '\n') {
+      currentStr += vcf[i];
+      continue;
+    }
+
+    var sub = vcf.substring(i + 1, vcf.length - 1);
+    if (currentStr.toLowerCase().indexOf('label;') !== -1 &&
+      sub.search(/^[^\n]+:/) === -1) {
+      currentStr += vcf[i];
+      continue;
+    }
+
+    if (sub.search(/^[^\S\n\r]+/) !== -1) {
+      continue;
+    }
+
+    lines.push([currentStr]);
+    currentStr = '';
+  }
+  return lines;
 };
 
 /**
@@ -296,19 +322,12 @@ VCFReader.parseSingleEntry = function(input) {
   if (!input) return null;
 
   var fields = {};
-  // When a line starts with a whitespace it means it is a continuation of the
-  // previous line. We join them here.
-  input = input.replace(/(\r\n|\r|\n)[^\S\n\r]+/g, '');
-
-  var lines = input.split(/\r\n|\r|\n/);
+  var lines = VCFReader.splitLines(input);
   lines.forEach(function(line) {
-    var parsedLine = VCFReader.parseSimpleLine_(line);
-    if (parsedLine)
-      return fields[parsedLine.key] = parsedLine.data;
-
-    parsedLine = VCFReader.parseComplexLine_(line);
+    var parsedLine = VCFReader.parseLine_(line);
     if (parsedLine) {
-      if (!fields[parsedLine.key]) fields[parsedLine.key] = [];
+      if (!fields[parsedLine.key])
+        fields[parsedLine.key] = [];
 
       fields[parsedLine.key].push(parsedLine.data);
     }
@@ -335,8 +354,7 @@ VCFReader.vcardToContact = function(vcard) {
   VCFReader.processAddr(vcard, obj);
   VCFReader.processComm(vcard, obj);
   VCFReader.processFields(vcard, obj);
-
-  var contact = new navigator.mozContact();
+  var contact = new mozContact();
   contact.init(obj);
 
   return contact;

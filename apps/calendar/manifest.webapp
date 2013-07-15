@@ -40,8 +40,7 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/style/icons/60/Calendar.png",
-    "120": "/style/icons/Calendar.png",
-    "320": "/style/icons/320/Calendar.png"
+    "120": "/style/icons/Calendar.png"
   },
   "orientation": "portrait-primary"
 }

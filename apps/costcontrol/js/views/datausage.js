@@ -45,7 +45,7 @@ var DataUsageTab = (function() {
       window.addEventListener('localized', localize);
 
       // Update and chart visibility
-      document.addEventListener('mozvisibilitychange', updateWhenVisible);
+      document.addEventListener('visibilitychange', updateWhenVisible);
       wifiToggle.addEventListener('click', toggleWifi);
       mobileToggle.addEventListener('click', toggleMobile);
 
@@ -109,7 +109,7 @@ var DataUsageTab = (function() {
       return;
     }
 
-    document.removeEventListener('mozvisibilitychange', updateWhenVisible);
+    document.removeEventListener('visibilitychange', updateWhenVisible);
     wifiToggle.removeEventListener('click', toggleWifi);
     mobileToggle.removeEventListener('click', toggleMobile);
     ConfigManager.removeObserver('dataLimit', toggleDataLimit);
@@ -156,7 +156,7 @@ var DataUsageTab = (function() {
 
   // On visibility change
   function updateWhenVisible(evt) {
-    if (!document.mozHidden) {
+    if (!document.hidden) {
       requestDataUsage();
     }
   }

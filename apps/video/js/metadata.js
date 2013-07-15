@@ -51,7 +51,7 @@ function startParsingMetadata() {
   // in the background we need to allow the foreground app to use the
   // video hardware. Also, if the video player is showing then we
   // can't parse metadata because we're already using the video hardware.
-  if (document.mozHidden || playerShowing) {
+  if (document.hidden || playerShowing) {
     return;
   }
 
@@ -257,7 +257,7 @@ function getMetadata(videofile, callback) {
   // Derive the video title from its filename.
   function fileNameToVideoName(filename) {
     filename = filename.split('/').pop()
-      .replace(/\.(webm|ogv|mp4|3gp)$/, '')
+      .replace(/\.(webm|ogv|ogg|mp4|3gp)$/, '')
       .replace(/[_\.]/g, ' ');
     return filename.charAt(0).toUpperCase() + filename.slice(1);
   }

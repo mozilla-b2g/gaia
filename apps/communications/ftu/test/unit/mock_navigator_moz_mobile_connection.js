@@ -2,7 +2,7 @@
 
 (function() {
 
-  var props = ['voice', 'cardState', 'iccInfo', 'data', 'retryCount'];
+  var props = ['voice', 'data', 'retryCount'];
   var listeners;
 
   function _init() {

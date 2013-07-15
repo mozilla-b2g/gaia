@@ -38,22 +38,22 @@ var RingView = {
   },
 
   init: function rv_init() {
-    document.addEventListener('mozvisibilitychange', this);
-    this._onFireAlarm = window.opener.ActiveAlarmController.getOnFireAlarm();
+    document.addEventListener('visibilitychange', this);
+    this._onFireAlarm = window.opener.ActiveAlarm.getOnFireAlarm();
     var self = this;
-    if (!document.mozHidden) {
+    if (!document.hidden) {
       this.startAlarmNotification();
     } else {
       // The setTimeout() is used to workaround
       // https://bugzilla.mozilla.org/show_bug.cgi?id=810431
       // The workaround is used in screen off mode.
-      // mozHidden will be true in init() state.
-      window.setTimeout(function rv_checkMozHidden() {
-      // If mozHidden is true in init state,
+      // hidden will be true in init() state.
+      window.setTimeout(function rv_checkHidden() {
+      // If hidden is true in init state,
       // it means that the incoming call happens before the alarm.
       // We should just put a "silent" alarm screen
       // underneath the oncall screen
-        if (!document.mozHidden) {
+        if (!document.hidden) {
           self.startAlarmNotification();
         }
         // Our final chance is to rely on visibilitychange event handler.
@@ -187,10 +187,10 @@ var RingView = {
 
   handleEvent: function rv_handleEvent(evt) {
     switch (evt.type) {
-    case 'mozvisibilitychange':
-      // There's chance to miss the mozHidden state when inited,
+    case 'visibilitychange':
+      // There's chance to miss the hidden state when inited,
       // before setVisible take effects, there may be a latency.
-      if (!document.mozHidden) {
+      if (!document.hidden) {
         this.startAlarmNotification();
       }
       break;
@@ -210,7 +210,7 @@ var RingView = {
       switch (input.id) {
       case 'ring-button-snooze':
         this.stopAlarmNotification();
-        window.opener.ActiveAlarmController.snoozeHandler();
+        window.opener.ActiveAlarm.snoozeHandler();
         window.close();
         break;
       case 'ring-button-close':

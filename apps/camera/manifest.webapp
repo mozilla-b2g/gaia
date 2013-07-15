@@ -55,7 +55,6 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/style/icons/60/Camera.png",
-    "120": "/style/icons/Camera.png",
-    "320": "/style/icons/320/Camera.png"
+    "120": "/style/icons/Camera.png"
   }
 }

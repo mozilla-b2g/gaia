@@ -37,13 +37,12 @@
    * and retrieve/apply APN settings if they differ.
    */
 
-  var mobileConnection = window.navigator.mozMobileConnection;
-  if (!mobileConnection)
+  if (!IccHelper.enabled)
     return;
 
   // Check the mcc/mnc information on the SIM card.
   function checkICCInfo() {
-    if (!mobileConnection.iccInfo || mobileConnection.cardState !== 'ready')
+    if (!IccHelper.iccInfo || IccHelper.cardState !== 'ready')
       return;
 
     // ensure that the iccSettings have been retrieved
@@ -51,18 +50,27 @@
       return;
 
     // XXX sometimes we get 0/0 for mcc/mnc, even when cardState === 'ready'...
-    var mcc = mobileConnection.iccInfo.mcc || '0';
-    var mnc = mobileConnection.iccInfo.mnc || '0';
+    var mcc = IccHelper.iccInfo.mcc || '0';
+    var mnc = IccHelper.iccInfo.mnc || '0';
     if (mcc === '0')
       return;
 
     // avoid setting APN (and operator variant) settings if mcc/mnc codes
     // changes.
-    mobileConnection.removeEventListener('iccinfochange', checkICCInfo);
+    IccHelper.removeEventListener('iccinfochange', checkICCInfo);
 
     // same SIM card => do nothing
-    if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc))
+    if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc)) {
+      var apnSettingsKey = 'ril.data.apnSettings';
+      var apnRequest = settings.createLock().get(apnSettingsKey);
+      apnRequest.onsuccess = function() {
+        // no apnSettings, build it.
+        if (!apnRequest.result[apnSettingsKey]) {
+          retrieveOperatorVariantSettings(buildApnSettings);
+        }
+      };
       return;
+    }
 
     // new SIM card => cache iccInfo, load and apply new APN settings
     iccSettings.mcc = mcc;
@@ -174,10 +182,23 @@
         transaction.set(item);
       }
     }
+
+    buildApnSettings(result);
+
+    // store the current mcc/mnc info in the settings
+    transaction.set({
+      'operatorvariant.mcc': iccSettings.mcc,
+      'operatorvariant.mnc': iccSettings.mnc
+    });
+  }
+
+  // build settings for apnSettings.
+  function buildApnSettings(result) {
     // for new apn settings
     var apnSettings = [];
     var apnTypeCandidates = ['default', 'supl', 'mms'];
     var checkedType = [];
+    var transaction = settings.createLock();
     // converts apns to new format
     for (var i = 0; i < result.length; i++) {
       var sourceAPNItem = result[i];
@@ -204,20 +225,13 @@
       apnSettings.push(sourceAPNItem);
     }
     transaction.set({'ril.data.apnSettings': [apnSettings]});
-
-    // store the current mcc/mnc info in the settings
-    transaction.set({
-      'operatorvariant.mcc': iccSettings.mcc,
-      'operatorvariant.mnc': iccSettings.mnc
-    });
   }
-
 
   /**
    * Check the APN settings on startup and when the SIM card is changed.
    */
 
   getICCSettings(checkICCInfo);
-  mobileConnection.addEventListener('iccinfochange', checkICCInfo);
+  IccHelper.addEventListener('iccinfochange', checkICCInfo);
 })();
 

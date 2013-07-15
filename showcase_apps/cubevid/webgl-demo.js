@@ -315,8 +315,8 @@ function videoDone() {
 }
 
 // Pause and restart when visibility changes
-document.addEventListener('mozvisibilitychange', function visibilityChange() {
-  if (document.mozHidden) {
+document.addEventListener('visibilitychange', function visibilityChange() {
+  if (document.hidden) {
     videoElement.pause();
     // drawScene will stop when we become hidden
   }
@@ -403,7 +403,7 @@ function drawScene() {
   }
   
   lastCubeUpdateTime = currentTime;
-  if (!document.mozHidden) 
+  if (!document.hidden) 
     window.mozRequestAnimationFrame(drawScene, canvas);
 }
 

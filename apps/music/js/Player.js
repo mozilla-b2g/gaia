@@ -23,8 +23,8 @@ if (acm) {
   });
 }
 
-window.addEventListener('mozvisibilitychange', function() {
-  if (document.mozHidden) {
+window.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
     PlayerView.audio.removeEventListener('timeupdate', PlayerView);
   } else {
     PlayerView.audio.addEventListener('timeupdate', PlayerView);

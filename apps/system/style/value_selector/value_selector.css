@@ -14,7 +14,7 @@
 }
 
 #screen.active-statusbar #value-selector {
-  height: -moz-calc(100% - 4rem);
+  height: calc(100% - 4rem);
   top: 4rem;
 }
 

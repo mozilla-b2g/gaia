@@ -242,7 +242,7 @@ var Common = {
   // Checks for a SIM change
   checkSIMChange: function(callback, onerror) {
     asyncStorage.getItem('lastSIM', function _compareWithCurrent(lastSIM) {
-      var currentSIM = window.navigator.mozMobileConnection.iccInfo.iccid;
+      var currentSIM = IccHelper.iccInfo.iccid;
       if (currentSIM === null) {
         console.error('Impossible: or we don\'t have SIM (so this method ' +
                       'should not be called) or the RIL is returning null ' +
