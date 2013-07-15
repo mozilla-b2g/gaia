@@ -103,10 +103,12 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var number = this.call.number;
   var node = this.numberNode;
   var additionalInfoNode = this.additionalInfoNode;
+  var self = this;
 
   if (!number) {
     LazyL10n.get(function localized(_) {
       node.textContent = _('withheld-number');
+      self._cachedInfo = _('withheld-number');
     });
     return;
   }
@@ -115,15 +117,16 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   if (isEmergencyNumber) {
     LazyL10n.get(function localized(_) {
       node.textContent = _('emergencyNumber');
+      self._cachedInfo = _('emergencyNumber');
     });
     return;
   }
 
-  var self = this;
   Voicemail.check(number, function(isVoicemailNumber) {
     if (isVoicemailNumber) {
       LazyL10n.get(function localized(_) {
         node.textContent = _('voiceMail');
+        self._cachedInfo = _('voiceMail');
       });
     } else {
       Contacts.findByNumber(number, lookupContact);
