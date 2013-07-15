@@ -54,7 +54,10 @@ var MessageManager = {
       ThreadUI.appendMessage(message);
       ThreadUI.scrollViewToBottom();
     }
-    MessageManager.getThreads(ThreadListUI.renderThreads);
+    // Refresh the list of threads
+    setTimeout(function() {
+      MessageManager.getThreads(ThreadListUI.renderThreads);
+    });
   },
 
   onMessageFailed: function mm_onMessageFailed(e) {
