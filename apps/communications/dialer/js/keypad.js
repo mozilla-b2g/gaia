@@ -105,6 +105,12 @@ var KeypadManager = {
       document.getElementById('keypad-hidebar-hide-keypad-action');
   },
 
+  get dialerMessageText() {
+    delete this.dialerMessageText;
+    return this.dialerMessageText =
+      document.getElementById('dialer-message-text');
+  },
+
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
@@ -202,6 +208,7 @@ var KeypadManager = {
       this.deleteButton.classList.add('hide');
     } else {
       this.phoneNumberViewContainer.classList.remove('keypad-visible');
+
       if (this.callBar) {
         this.callBar.classList.remove('hide');
       }
@@ -218,7 +225,32 @@ var KeypadManager = {
     if (event)
       event.stopPropagation();
 
-    if (this._phoneNumber != '') {
+    if (this._phoneNumber === '') {
+      var self = this;
+      CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
+        function hk_ggap_callback(result) {
+          if (result && (typeof result === 'object')) {
+            if (result.number) {
+              self.updatePhoneNumber(result.number);
+              return;
+            }
+          }
+          LazyL10n.get(function localized(_) {
+            self.dialerMessageText.textContent = _('NoPreviousOutgoingCalls');
+            self.dialerMessageText.hidden = false;
+            if (self.dialerMessageTimer) {
+              window.clearTimeout(self.dialerMessageTimer);
+            }
+            self.dialerMessageTimer = window.setTimeout(
+              function hk_removeDialerMessage() {
+                self.dialerMessageText.hidden = true;
+              },
+              3000
+            );
+          });
+        }
+      );
+    } else {
       CallHandler.call(KeypadManager._phoneNumber);
     }
   },
@@ -281,6 +313,8 @@ var KeypadManager = {
     if (!key) {
       return;
     }
+
+    this.dialerMessageText.hidden = true;
 
     // Per certification requirement, we need to send an MMI request to
     // get the device's IMEI as soon as the user enters the last # key from
@@ -450,7 +484,6 @@ var KeypadManager = {
       var visibility;
       if (phoneNumber.length > 0) {
         visibility = 'visible';
-        this.callBarAddContact.classList.remove('disabled');
       } else {
         visibility = 'hidden';
         this.callBarAddContact.classList.add('disabled');

@@ -15,6 +15,10 @@ var MockUtils = {
 
   getDayDate: function re_getDayDate(timestamp) {
     this.mCalledGetDayDate = true;
+    var date = new Date(timestamp);
+    var startDate = new Date(date.getFullYear(),
+                             date.getMonth(), date.getDate());
+    return startDate.getTime();
   },
 
   getPhoneNumberAdditionalInfo: function getPhoneNumberAdditionalInfo(
