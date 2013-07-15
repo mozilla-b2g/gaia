@@ -214,8 +214,12 @@ suite('db', function() {
          */
         var OLD_VERSION;
 
+        var LOCAL_CALENDAR;
+
         setup(function(done) {
           OLD_VERSION = 13;
+
+          LOCAL_CALENDAR = 'local-first';
 
           // These need their calendarId fixed.
           EVENT_ONE_ID = 'evt1';
@@ -236,11 +240,11 @@ suite('db', function() {
 
           subject.open(OLD_VERSION, function() {
             calendarStore.persist(Factory('calendar',
-              { _id: 'local-first' }), trans);
+              { _id: LOCAL_CALENDAR }), trans);
 
             [
               Factory('event', {
-                calendarId: 'local-first',
+                calendarId: LOCAL_CALENDAR,
                 _id: EVENT_ONE_ID
               }),
               Factory('event', {
@@ -258,7 +262,7 @@ suite('db', function() {
             [
               Factory('busytime', {
                 eventId: EVENT_ONE_ID,
-                calendarId: 'local-first',
+                calendarId: LOCAL_CALENDAR,
                 _id: BUSYTIME_ONE_ID
               }),
               Factory('busytime', {
@@ -297,7 +301,7 @@ suite('db', function() {
             var trans = subject.transaction(['events'], 'readwrite');
             var store = trans.objectStore('events');
             store.get(EVENT_ONE_ID).onsuccess = function(evt) {
-              assert.strictEqual(evt.target.result.calendarId, 'local-first');
+              assert.strictEqual(evt.target.result.calendarId, LOCAL_CALENDAR);
               done();
             };
           });
@@ -330,7 +334,7 @@ suite('db', function() {
             var trans = subject.transaction(['busytimes'], 'readwrite');
             var store = trans.objectStore('busytimes');
             var get = store.get(BUSYTIME_ONE_ID).onsuccess = function(evt) {
-              assert.strictEqual(evt.target.result.calendarId, 'local-first');
+              assert.strictEqual(evt.target.result.calendarId, LOCAL_CALENDAR);
               done();
             };
           });
