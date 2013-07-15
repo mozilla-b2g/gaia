@@ -21,3 +21,15 @@
 .no-opacity {
   opacity: 0;
 }
+
+#loading-overlay menu {
+  display: none;
+}
+
+#loading-overlay menu.showed {
+  display: block;
+}
+
+#cancel-overlay {
+  width: 100%;
+}
