@@ -216,8 +216,15 @@ suite('db', function() {
 
         var LOCAL_CALENDAR;
 
+        var VERSION_CHANGE;
+
         setup(function(done) {
+
+          // 13 is the version for v1.0.1
           OLD_VERSION = 13;
+
+          // 15 is the version for v1.1
+          VERSION_CHANGE = 15 - OLD_VERSION;
 
           LOCAL_CALENDAR = 'local-first';
 
