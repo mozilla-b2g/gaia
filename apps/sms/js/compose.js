@@ -391,6 +391,11 @@ var Compose = (function() {
       return this;
     },
 
+    focus: function() {
+      dom.message.focus();
+      return this;
+    },
+
     onAttachClick: function thui_onAttachClick(event) {
       var request = this.requestAttachment();
       request.onsuccess = this.append.bind(this);

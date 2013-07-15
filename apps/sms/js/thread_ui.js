@@ -329,7 +329,10 @@ var ThreadUI = global.ThreadUI = {
   // Method for setting the body of a SMS/MMS from activity
   setMessageBody: function thui_setMessageBody(value) {
     Compose.clear();
-    Compose.append(value);
+    if (value) {
+      Compose.append(value);
+    }
+    Compose.focus();
   },
 
   messageComposerInputHandler: function thui_messageInputHandler(event) {

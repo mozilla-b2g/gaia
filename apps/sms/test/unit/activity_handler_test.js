@@ -313,6 +313,7 @@ suite('ActivityHandler', function() {
 
   suite('"new" activity', function() {
     var realMozL10n;
+
     // Mockup activity
     var newActivity = {
       source: {
@@ -323,14 +324,26 @@ suite('ActivityHandler', function() {
         }
       }
     };
+
+    var newActivity_empty = {
+      source: {
+        name: 'new',
+        data: {
+          number: '123'
+        }
+      }
+    };
+
     suiteSetup(function() {
       window.location.hash = '#new';
       realMozL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
     });
+
     suiteTeardown(function() {
       navigator.mozL10n = realMozL10n;
     });
+
     test('Activity lock should be released properly', function() {
       // Review the status after handling the activity
       this.sinon.stub(MessageManager, 'launchComposer', function(activity) {
@@ -352,6 +365,36 @@ suite('ActivityHandler', function() {
 
       // Call the activity. As we are in 'new' there is no hashchange.
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+    });
+
+    test('new message activity clears, fills and focuses the Compose area',
+      function() {
+      this.sinon.stub(Compose, 'clear', function() {
+        assert.ok(true, 'the Compose area is cleared');
+      });
+      this.sinon.stub(Compose, 'append', function() {
+        assert.ok(true, 'message body has been appended to the Compose area');
+      });
+      this.sinon.stub(Compose, 'focus', function() {
+        assert.ok(true, 'the Compose area is focused');
+      });
+
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+    });
+
+    test('do not fill the Compose area if the activity body is empty',
+      function() {
+      this.sinon.stub(Compose, 'clear', function() {
+        assert.ok(true, 'the Compose area is cleared');
+      });
+      this.sinon.stub(Compose, 'append', function() {
+        assert.ok(false, 'nothing has been appended to the Compose area');
+      });
+      this.sinon.stub(Compose, 'focus', function() {
+        assert.ok(true, 'the Compose area is focused');
+      });
+
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_empty);
     });
 
     test('new message with user input msg, discard it', function() {
