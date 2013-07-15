@@ -3,5 +3,6 @@
   "gallery/test/unit/GestureDetector_test.js",
   "homescreen/test/unit/dock_test.js",
   "homescreen/test/unit/dragdrop_test.js",
+  "homescreen/test/unit/grid_test.js",
   "keyboard/test/unit/render_test.js"
 ]
