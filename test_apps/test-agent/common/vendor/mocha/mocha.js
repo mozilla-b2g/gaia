@@ -4260,6 +4260,8 @@ Runner.prototype.run = function(fn){
 
 function filterLeaks(ok, globals) {
   return filter(globals, function(key){
+    // Firefox and Chrome expose iframes as indices inside the global object
+    if (/^\d+/.test(key)) return false;
     var matched = filter(ok, function(ok){
       if (~ok.indexOf('*')) return 0 == key.indexOf(ok.split('*')[0]);
       // Opera and IE expose global variables for HTML element IDs (issue #243)
