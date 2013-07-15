@@ -457,6 +457,7 @@ input.msg-search-text-tease {
   background-image: url('images/mail_watermark.png');
   background-repeat:no-repeat;
   background-position: 50% 40%;
+  background-size: 19rem 15.2rem;
   height: 20rem;
   width: 100%;
   position: absolute;
