@@ -19,9 +19,9 @@ function Icon(descriptor, app) {
 
 // Support rendering icons for different screens
 var BASE_WIDTH = 320;
-var SCALE_RATIO = window.innerWidth / BASE_WIDTH;
-var MIN_ICON_SIZE = 52 * SCALE_RATIO;
-var MAX_ICON_SIZE = 60 * SCALE_RATIO;
+var SCALE_RATIO = window.devicePixelRatio;
+var MIN_ICON_SIZE = 52;
+var MAX_ICON_SIZE = 60;
 var ICON_PADDING_IN_CANVAS = 4;
 var ICONS_PER_ROW = 4;
 
@@ -113,8 +113,8 @@ Icon.prototype = {
     // Image
     var img = this.img = new Image();
     img.setAttribute('role', 'presentation');
-    img.width = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
-    img.height = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
+    img.width = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS;
+    img.height = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS;
     img.style.visibility = 'hidden';
     if (descriptor.renderedIcon) {
       this.displayRenderedIcon();
@@ -272,8 +272,8 @@ Icon.prototype = {
   renderImageForBookMark: function icon_renderImageForBookmark(img) {
     var self = this;
     var canvas = document.createElement('canvas');
-    canvas.width = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
-    canvas.height = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
+    canvas.width = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
+    canvas.height = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
     var ctx = canvas.getContext('2d');
 
     // Draw the background
@@ -283,8 +283,8 @@ Icon.prototype = {
       ctx.shadowColor = 'rgba(0,0,0,0.8)';
       ctx.shadowBlur = 2;
       ctx.shadowOffsetY = 2;
-      ctx.drawImage(background, 2 * SCALE_RATIO,
-                    2 * SCALE_RATIO, MAX_ICON_SIZE, MAX_ICON_SIZE);
+      ctx.drawImage(background, 2 * SCALE_RATIO, 2 * SCALE_RATIO,
+                    MAX_ICON_SIZE * SCALE_RATIO, MAX_ICON_SIZE * SCALE_RATIO);
       // Disable smoothing on icon resize
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
@@ -302,8 +302,8 @@ Icon.prototype = {
     }
 
     var canvas = document.createElement('canvas');
-    canvas.width = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
-    canvas.height = MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS * SCALE_RATIO;
+    canvas.width = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
+    canvas.height = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
 
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -317,12 +317,10 @@ Icon.prototype = {
     img.height =
         Math.min(MAX_ICON_SIZE, Math.max(img.height, MAX_ICON_SIZE));
 
-    var width =
-        Math.min(img.width, canvas.width - ICON_PADDING_IN_CANVAS *
-                 SCALE_RATIO);
-    var height =
-        Math.min(img.width, canvas.height - ICON_PADDING_IN_CANVAS *
-                 SCALE_RATIO);
+    var width = Math.min(img.width * SCALE_RATIO,
+                         canvas.width - ICON_PADDING_IN_CANVAS * SCALE_RATIO);
+    var height = Math.min(img.width * SCALE_RATIO,
+                          canvas.height - ICON_PADDING_IN_CANVAS * SCALE_RATIO);
     ctx.drawImage(img,
                   (canvas.width - width) / 2,
                   (canvas.height - height) / 2,
