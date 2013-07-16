@@ -15,17 +15,16 @@
 
 .menu-item::before {
   position: absolute;
-  top: calc((6.2rem - 32px) / 2);
-  left: calc((5.5rem - 28px) / 2);
-  width: 30px;
-  height: 30px;
-
+  top: calc((6.2rem - 3.2rem) / 2);
+  left: calc((5.5rem - 2.8rem) / 2);
+  width: 3rem;
+  height: 3rem;
   content: '';
   background-image: url(images/icons_sprite.gif);
 }
 
 li:active:not(.disabled) .menu-item::before,
-.menu-item:focus::before {
+.menu-item:active::before {
   background-image: url(images/icons_sprite_active.gif);
 }
 
