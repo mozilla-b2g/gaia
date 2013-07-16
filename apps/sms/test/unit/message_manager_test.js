@@ -221,6 +221,8 @@ suite('message_manager.js >', function() {
         }
       );
 
+      this.sinon.stub(ThreadUI, 'setMessageBody');
+
       MessageManager.threadMessages = document.createElement('div');
     });
 
@@ -236,6 +238,7 @@ suite('message_manager.js >', function() {
 
       assert.equal(ThreadUI.recipients.numbers.length, 1);
       assert.equal(ThreadUI.recipients.numbers[0], '998');
+      assert.ok(ThreadUI.setMessageBody.calledWith());
     });
 
     test('from activity with known contact', function() {
@@ -245,6 +248,16 @@ suite('message_manager.js >', function() {
 
       assert.equal(ThreadUI.recipients.numbers.length, 1);
       assert.equal(ThreadUI.recipients.numbers[0], '+346578888888');
+      assert.ok(ThreadUI.setMessageBody.calledWith());
+    });
+
+    test('with message body', function() {
+      MessageManager.launchComposer({
+        number: '998',
+        contact: null,
+        body: 'test'
+      });
+      assert.ok(ThreadUI.setMessageBody.calledWith('test'));
     });
   });
 });
