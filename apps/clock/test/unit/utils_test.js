@@ -4,12 +4,13 @@ requireApp('clock/js/utils.js');
 suite('Time functions', function() {
 
   suite('#summarizeDaysOfWeek', function() {
-    var nativeMozL10n, _;
+    var nativeMozL10n, _, summarizeDaysOfWeek;
 
     before(function() {
       nativeMozL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
       _ = navigator.mozL10n.get;
+      summarizeDaysOfWeek = Utils.summarizeDaysOfWeek;
     });
 
     after(function() {
@@ -46,14 +47,15 @@ suite('Time functions', function() {
   });
 
   suite('#formatTime', function() {
-    var is12hStub;
+    var is12hStub, formatTime;
 
     setup(function() {
-      is12hStub = sinon.stub(window, 'is12hFormat');
+      formatTime = Utils.formatTime;
+      is12hStub = sinon.stub(Utils, 'is12hFormat');
     });
 
     teardown(function() {
-      is12hFormat.restore();
+      is12hStub.restore();
     });
 
     test('12:00am, with 12 hour clock settings', function() {
@@ -89,6 +91,12 @@ suite('Time functions', function() {
   });
 
   suite('#parseTime', function() {
+
+    var parseTime;
+
+    suiteSetup(function() {
+      parseTime = Utils.parseTime;
+    });
 
     test('12:10am', function() {
       var time = parseTime('12:10AM');
