@@ -181,23 +181,16 @@ var Settings = (function() {
   }
 
   // Add particular constrains to the "Done" button
+  var balanceLowLimitView;
   function addDoneConstrains() {
-    var lowLimit = document.getElementById('low-limit');
-    lowLimit.addEventListener('click', checkSettings);
-    var lowLimitInput = document.getElementById('low-limit-input');
-    lowLimitInput.addEventListener('input', checkSettings);
-  }
-
-  // Check settings and enable / disable done button
-  function checkSettings() {
-    var closeSettingsButton = document.getElementById('close-settings');
-    var lowLimit = document.getElementById('low-limit');
-    var lowLimitInput = document.getElementById('low-limit-input');
-    var lowLimitError = currentMode === 'PREPAID' && lowLimit.checked &&
-                        lowLimitInput.value.trim() === '';
-
-    lowLimitInput.classList[lowLimitError ? 'add' : 'remove']('error');
-    closeSettingsButton.disabled = lowLimitError;
+    var closeButton = document.getElementById('close-settings');
+    balanceLowLimitView = new BalanceLowLimitView(
+      document.getElementById('low-limit'),
+      document.getElementById('low-limit-input')
+    );
+    balanceLowLimitView.onvalidation = function(evt) {
+      closeButton.disabled = !evt.isValid;
+    };
   }
 
   window.addEventListener('localized', function _onLocalize() {
@@ -221,6 +214,7 @@ var Settings = (function() {
         var hideBalance = (mode !== 'PREPAID');
         var hideReportsTitle = (mode === 'PREPAID');
 
+        balanceLowLimitView.disabled = (mode !== 'PREPAID');
         plantypeSelector.setAttribute('aria-hidden', hidePlantypeSelector);
         phoneActivityTitle.setAttribute('aria-hidden', hidePhoneActivity);
         phoneActivitySettings.setAttribute('aria-hidden', hidePhoneActivity);
@@ -247,8 +241,6 @@ var Settings = (function() {
                           settings.lastTelephonyReset);
           break;
       }
-
-      checkSettings();
     });
   }
 
