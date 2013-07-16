@@ -1,6 +1,7 @@
 {
   "name": "System",
   "type": "certified",
+  "role": "system",
   "description": "Main System",
   "launch_path": "/index.html",
   "developer": {

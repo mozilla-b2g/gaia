@@ -120,9 +120,6 @@ var ApplicationsList = {
       var apps = evt.target.result;
 
       apps.forEach(function(app) {
-        if (HIDDEN_APPS.indexOf(app.manifestURL) != -1)
-          return;
-
         var manifest = app.manifest ? app.manifest : app.updateManifest;
         if (manifest.type != 'certified') {
           self._apps.push(app);
