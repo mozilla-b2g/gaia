@@ -38,6 +38,84 @@ suite('Time functions', function() {
 
   });
 
+  suite('#isAlarmPassToday', function() {
+
+    var isAlarmPassToday;
+
+    setup(function() {
+      var time = new Date();
+      time.setHours(6, 30);
+      this.clock = sinon.useFakeTimers(time.getTime());
+      isAlarmPassToday = Utils.isAlarmPassToday;
+    });
+
+    teardown(function() {
+      this.clock.restore();
+    });
+
+    test('prior hour, prior minute', function() {
+      assert.isTrue(isAlarmPassToday(5, 00));
+    });
+
+    test('prior hour, current minute', function() {
+      assert.isTrue(isAlarmPassToday(5, 30));
+    });
+
+    test('prior hour, later minute', function() {
+      assert.isTrue(isAlarmPassToday(5, 45));
+    });
+
+    test('current hour, prior minute', function() {
+      assert.isTrue(isAlarmPassToday(6, 29));
+    });
+
+    test('current hour, current minute', function() {
+      assert.isTrue(isAlarmPassToday(6, 30));
+    });
+
+    test('current hour, later minute', function() {
+      assert.isFalse(isAlarmPassToday(6, 31));
+    });
+
+    test('later hour, prior minute', function() {
+      assert.isFalse(isAlarmPassToday(7, 29));
+    });
+
+    test('later hour, current minute', function() {
+      assert.isFalse(isAlarmPassToday(7, 30));
+    });
+
+    test('later hour, later minute', function() {
+      assert.isFalse(isAlarmPassToday(7, 31));
+    });
+
+  });
+
+  suite('#changeSelectByValue', function() {
+
+    var changeSelectByValue, selectDOM;
+
+    setup(function() {
+      changeSelectByValue = Utils.changeSelectByValue;
+      selectDOM = document.createElement('select');
+      selectDOM.innerHTML = ['<option value="a">A</option>',
+        '<option value="b">B</option>',
+        '<option value="c" selected>C</option>'
+      ].join('');
+    });
+
+    test('correctly selects the specified element', function() {
+      changeSelectByValue(selectDOM, 'b');
+      assert.equal(selectDOM.selectedIndex, 1);
+    });
+
+    test('has no effect when specified element does not exist', function() {
+      changeSelectByValue(selectDOM, 'g');
+      assert.equal(selectDOM.selectedIndex, 2);
+    });
+
+  });
+
   suite('#formatTime', function() {
     var is12hStub, formatTime;
 
