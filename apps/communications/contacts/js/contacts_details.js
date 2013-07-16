@@ -16,6 +16,7 @@ contacts.Details = (function() {
       emailsTemplate,
       addressesTemplate,
       socialTemplate,
+      duplicateTemplate,
       notesTemplate,
       isFbContact,
       isFbLinked,
@@ -48,6 +49,7 @@ contacts.Details = (function() {
     emailsTemplate = dom.querySelector('#email-details-template-\\#i\\#');
     addressesTemplate = dom.querySelector('#address-details-template-\\#i\\#');
     socialTemplate = dom.querySelector('#social-template-\\#i\\#');
+    duplicateTemplate = dom.querySelector('#duplicate-contacts-template');
     editContactButton = dom.querySelector('#edit-contact-button');
     cover = dom.querySelector('#cover-img');
     detailsInner = dom.querySelector('#contact-detail-inner');
@@ -172,6 +174,7 @@ contacts.Details = (function() {
       renderSocial(contact);
     }
 
+    renderDuplicate(contact);
     renderPhoto(contact);
   };
 
@@ -456,6 +459,22 @@ contacts.Details = (function() {
       var template = utils.templates.render(addressesTemplate, addressField);
       listContainer.appendChild(template);
     }
+  };
+
+  var renderDuplicate = function cd_renderDuplicate(contact) {
+    var dupItem = utils.templates.render(duplicateTemplate, {});
+    var findMergeButton = dupItem.querySelector('#find-merge-button');
+    findMergeButton.disabled = true;
+
+    if (contacts.List.total > 1) {
+      // Only have this active if contact list has more than one entry
+      findMergeButton.disabled = false;
+      findMergeButton.addEventListener('click', function finding() {
+        Contacts.extServices.match(contact.id);
+      });
+    }
+
+    listContainer.appendChild(dupItem);
   };
 
   var renderNotes = function cd_rederNotes(contact) {

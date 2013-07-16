@@ -1,0 +1,59 @@
+.hide, *[data-template] {
+  display: none !important;
+}
+
+#main {
+  position: fixed;
+  top: 5rem;
+  height: calc(100% - 5rem);
+  width: calc(100% + 0.8rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#contacts-list-container {
+  width: calc(100% - 5rem - 0.8rem) !important;
+  margin: 0;
+  margin-left: 2.5rem;
+  padding: 0 !important;
+}
+
+#contacts-list-container label {
+  left: 0;
+  pointer-events: auto;
+}
+
+#contacts-list-container > ol > li[data-uuid] {
+  display: block;
+  padding-left: 4rem;
+  border-top: none !important;
+}
+
+#contacts-list-container > ol > li[data-uuid] input,
+#contacts-list-container > ol > li[data-uuid] aside {
+  pointer-events: none;
+}
+
+#contacts-list-container > ol > li[data-uuid]:last-child {
+  border-bottom: none !important;
+}
+
+#contacts-list-container > ol > li[data-disabled="true"] {
+  opacity: 0.4;
+}
+
+/* Suggested duplicate contacts for xxx */
+
+#duplicate-msg {
+  width: 100%;
+  z-index: 1;
+  border-bottom: 0.1rem solid #E6E6E6;
+  padding: 0.4rem 0;
+}
+
+#duplicate-msg > p {
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.8rem;
+  margin: 0 3rem;
+}

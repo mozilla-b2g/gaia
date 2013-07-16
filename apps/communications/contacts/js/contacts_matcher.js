@@ -1,3 +1,5 @@
+'use strict';
+
 var contacts = window.contacts || {};
 
 contacts.Matcher = (function() {
@@ -56,15 +58,10 @@ contacts.Matcher = (function() {
               matchingContact: aMatching
             };
           });
-        });
+        });  // matchings.forEach
 
-        if (Object.keys(finalMatchings).length > 0) {
-          notifyMatch(self, finalMatchings);
-        }
-        else {
-          notifyMismatch(self);
-        }
-      };
+        carryOn();
+      }; // onsuccess
 
       req.onerror = function(e) {
         window.console.error('Error while trying to do the matching',
@@ -124,7 +121,8 @@ contacts.Matcher = (function() {
     if (values.length > 0) {
       var matcher = new MultipleMatcher(values, {
         filterBy: [field],
-        filterOp: filterOper
+        filterOp: filterOper,
+        selfContactId: aContact.id
       });
       matcher.onmatch = callbacks.onmatch;
 
@@ -327,9 +325,22 @@ contacts.Matcher = (function() {
       return;
     }
 
+    var filterValue;
+    var filterBy;
+    if (isEmptyStr(aContact.familyName) && !isEmptyStr(aContact.name) &&
+        !isEmptyStr(aContact.givenName)) {
+      // SIM contacts has the name on the givenName field
+      filterValue = aContact.givenName[0].trim();
+      filterBy = ['givenName'];
+    }
+    else {
+      filterValue = aContact.familyName[0].trim();
+      filterBy = ['familyName'];
+    }
+
     var options = {
-      filterValue: aContact.familyName[0].trim(),
-      filterBy: ['familyName'],
+      filterValue: filterValue,
+      filterBy: filterBy,
       filterOp: 'equals'
     };
 
