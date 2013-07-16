@@ -80,7 +80,7 @@ var AlarmManager = {
       nextAlarmFireTime.setMinutes(nextAlarmFireTime.getMinutes() +
                                    alarm.snooze);
     } else {
-      nextAlarmFireTime = getNextAlarmFireTime(alarm);
+      nextAlarmFireTime = Utils.getNextAlarmFireTime(alarm);
     }
 
     if (!navigator.mozAlarms)
