@@ -358,7 +358,7 @@ var WindowManager = (function() {
       origin: displayedApp,
       isHomescreen: (manifestURL === homescreenManifestURL)
     });
-    frame.dispatchEvent(evt);
+    iframe.dispatchEvent(evt);
   }
 
   // Executes when app closing transition finishes.
