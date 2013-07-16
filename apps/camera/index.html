@@ -9,6 +9,7 @@
 
     <link rel="stylesheet" type="text/css" href="style/camera.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
 
     <!-- for perf-measurement related utilities -->
     <script defer src="/shared/js/performance_testing_helper.js"></script>
@@ -54,10 +55,15 @@
     </div>
 
     <div id="overlay" class="hidden">
-      <div id="overlay-content">
-        <h1 id="overlay-title"></h1>
-        <p id="overlay-text"><p>
-      </div>
+      <form role="dialog" data-type="confirm">
+         <section>
+          <h1 id="overlay-title"></h1>
+          <p id="overlay-text"><p>
+        </section>
+        <menu id="overlay-menu-group" class="hidden">
+          <button id="overlay-close-button" data-l10n-id="close-button" class="full">Close</button>
+        </menu>
+      </form>
     </div>
 
     <!-- see filmstrip.js and filmstrip.css for these elements -->
