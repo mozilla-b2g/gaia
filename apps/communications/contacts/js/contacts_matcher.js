@@ -4,6 +4,8 @@ contacts.Matcher = (function() {
   var selfContactId;
   var incomingContact;
 
+  var blankRegExp = /\s+/g;
+
   // Multiple matcher Object. It tries to find a set of Contacts that match at
   // least one of the targets passed as parameters
   // ptargets: They are the targets (telephone numbers, emails) we want to find
@@ -116,7 +118,9 @@ contacts.Matcher = (function() {
 
     if (Array.isArray(aContact[field])) {
       aContact[field].forEach(function(aField) {
-        values.push(aField.value);
+        if (typeof aField.value === 'string') {
+          values.push(aField.value.trim());
+        }
       });
     }
 
@@ -150,7 +154,7 @@ contacts.Matcher = (function() {
   // the matching process has finished
   function doMatch(aContact, mode, callbacks) {
     if (mode === 'passive') {
-      doMatchSilent(aContact, callbacks);
+      doMatchPassive(aContact, callbacks);
     }
     else if (mode === 'active') {
       doMatchActive(aContact, callbacks);
@@ -158,7 +162,7 @@ contacts.Matcher = (function() {
   }
 
   // Implements the active mode 'matching'
-  function doMatchActive(aContact, callbacks) {
+  function doMatchTelAndEmail(aContact, callbacks) {
     incomingContact = aContact;
     selfContactId = aContact.id;
 
@@ -194,7 +198,7 @@ contacts.Matcher = (function() {
   }
 
   // Implements the silent mode matching
-  function doMatchSilent(aContact, callbacks) {
+  function doMatchPassive(aContact, callbacks) {
     incomingContact = aContact;
     selfContactId = aContact.id;
 
@@ -205,12 +209,9 @@ contacts.Matcher = (function() {
 
     var matchingsFound = {};
 
-    var blankRegExp = /\s+/g;
-
     var localCbs = {
       onmatch: function(results) {
         // Results will contain contacts that match by tel or email
-        // Now a binary search is performed over givenName and lastName
         // Normalizing the strings
         var names = [];
         Object.keys(results).forEach(function(aResultId) {
@@ -261,7 +262,108 @@ contacts.Matcher = (function() {
     };
 
     // Matching by email and phone number, then match by names
-    doMatchActive(aContact, localCbs);
+    doMatchTelAndEmail(aContact, localCbs);
+  }
+
+  function doMatchActive(aContact, callbacks) {
+    incomingContact = aContact;
+    selfContactId = aContact.id;
+
+    var localCbs = {
+      onmatch: function(results) {
+        var cbsName = {
+          onmatch: function(nameResults) {
+            Object.keys(nameResults).forEach(function(aId) {
+              if (!results[aId]) {
+                results[aId] = nameResults[aId];
+              }
+            });
+
+            notifyMatch(callbacks, results);
+          },
+          onmismatch: function() {
+            notifyMatch(callbacks, results);
+          }
+        };
+
+        matchByName(aContact, cbsName);
+      },
+      onmismatch: function() {
+        matchByName(aContact, callbacks);
+      }
+    };
+
+    // Matching by email and phone number, then match by names
+    doMatchTelAndEmail(aContact, localCbs);
+  }
+
+  // Used for the active mode. Performs matching by familyName and givenName
+  function matchByName(aContact, callbacks) {
+    // First we try to find by familyName
+    // Afterwards we search by givenName
+    if (!hasName(aContact)) {
+      notifyMismatch(callbacks);
+      return;
+    }
+
+    var options = {
+      filterValue: aContact.familyName[0].trim(),
+      filterBy: ['familyName'],
+      filterOp: 'equals'
+    };
+
+    var req = navigator.mozContacts.find(options);
+
+    req.onsuccess = function() {
+      var results = req.result;
+
+      var givenNames = [];
+      var targetGN = Normalizer.toAscii(
+                          incomingContact.givenName[0].trim().toLowerCase()).
+                          replace(blankRegExp, '');
+      if (results.length > 0) {
+        results.forEach(function(mContact) {
+          if (mContact.id === selfContactId) {
+            return;
+          }
+          givenNames.push({
+            contact: mContact,
+            givenName: Normalizer.toAscii(
+                         mContact.givenName[0].trim().toLowerCase()).
+                          replace(blankRegExp, '')
+          });
+        });
+
+        var finalMatchings = givenNames.filter(function(x) {
+          var gn = x.givenName;
+          return (gn === targetGN || targetGN.startsWith(gn) ||
+                  gn.startsWith(targetGN));
+        });
+
+        if (finalMatchings.length === 0) {
+          notifyMismatch(callbacks);
+          return;
+        }
+
+        var result = {};
+        finalMatchings.forEach(function(aMatching) {
+          result[aMatching.contact.id] = {
+            matchingContact: aMatching.contact
+          };
+        });
+
+        notifyMatch(callbacks, result);
+      }
+      else {
+        notifyMismatch(callbacks);
+      }
+    };
+
+    req.onerror = function(e) {
+      window.console.error('Error while trying to find by familyName: ',
+                           e.target.error.name);
+      notifyMismatch(callbacks);
+    };
   }
 
   function isEmpty(collection) {
