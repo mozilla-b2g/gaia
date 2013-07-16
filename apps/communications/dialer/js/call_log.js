@@ -322,6 +322,8 @@ var CallLog = {
     var date = group.lastEntryDate;
     var number = group.number;
     var type = group.type;
+    var emergency = group.emergency;
+    var voicemail = group.voicemail;
     var status = group.status || '';
     var groupDOM = document.createElement('li');
     groupDOM.classList.add('log-item');
@@ -394,6 +396,29 @@ var CallLog = {
     main.appendChild(primInfo);
     main.appendChild(thirdInfo);
 
+    if (voicemail || emergency) {
+      var additInfoMain = document.createElement('p');
+      additInfoMain.className = 'call-additional-info';
+      additInfoMain.textContent = number;
+      var localizedString;
+
+      LazyL10n.get(function gotL10n(_) {
+        if (voicemail) {
+          localizedString = _('voiceMail');
+        }
+
+        if (emergency) {
+          localizedString = _('emergencyNumber');
+        }
+      });
+
+      primInfoMain.textContent = localizedString;
+
+      var primElem = primInfoMain.parentNode;
+      var parent = primElem.parentNode;
+      parent.insertBefore(additInfoMain, primElem.nextElementSibling);
+    }
+
     groupDOM.appendChild(label);
     groupDOM.appendChild(aside);
     groupDOM.appendChild(main);
@@ -440,7 +465,7 @@ var CallLog = {
       var selector = '[data-phone-number="' + phoneNumber + '"]';
       var logsToUpdate = container.querySelectorAll(selector);
       for (var j = 0, l = logsToUpdate.length; j < l; j++) {
-        if (contact && contact !== null) {
+        if (contact) {
           var infoToUpdate = {
             element: logsToUpdate[j],
             contact: contact,

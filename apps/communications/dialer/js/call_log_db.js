@@ -5,7 +5,7 @@ var CallLogDBManager = {
   _dbName: 'dialerRecents',
   _dbRecentsStore: 'dialerRecents',
   _dbGroupsStore: 'dialerGroups',
-  _dbVersion: 3,
+  _dbVersion: 4,
   _maxNumberOfGroups: 200,
   _numberOfGroupsToDelete: 30,
 
@@ -26,53 +26,58 @@ var CallLogDBManager = {
       return;
     }
 
-    try {
-      var indexedDB = window.indexedDB || window.webkitIndexedDB ||
-                      window.mozIndexedDB || window.msIndexedDB;
-      if (!indexedDB) {
-        callback('NO_INDEXED_DB_AVAILABLE', null);
-        return;
-      }
-
-      var request = indexedDB.open(this._dbName, this._dbVersion);
-      request.onsuccess = (function(event) {
-        this._db = event.target.result;
-        callback(null, this._db);
-      }).bind(this);
-
-      request.onerror = function(event) {
-        callback(event.target.errorCode, null);
-      };
-
-      request.onblocked = function() {
-        callback('DB_REQUEST_BLOCKED', null);
-      };
-
-      request.onupgradeneeded = (function(event) {
-        var db = event.target.result;
-        var txn = event.target.transaction;
-        var currentVersion = event.oldVersion;
-        while (currentVersion != event.newVersion) {
-          switch (currentVersion) {
-            case 0:
-              this._createSchema(db);
-              break;
-            case 1:
-              this._upgradeSchemaVersion2(db, txn);
-              break;
-            case 2:
-              this._upgradeSchemaVersion3(db, txn);
-              break;
-            default:
-              event.target.transaction.abort();
-              break;
-          }
-          currentVersion++;
+    LazyLoader.load('/dialer/js/voicemail.js', (function resourcesLoaded() {
+      try {
+        var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+                        window.mozIndexedDB || window.msIndexedDB;
+        if (!indexedDB) {
+          callback('NO_INDEXED_DB_AVAILABLE', null);
+          return;
         }
-      }).bind(this);
-    } catch (ex) {
-      callback(ex.message, null);
-    }
+
+        var request = indexedDB.open(this._dbName, this._dbVersion);
+        request.onsuccess = (function(event) {
+          this._db = event.target.result;
+          callback(null, this._db);
+        }).bind(this);
+
+        request.onerror = function(event) {
+          callback(event.target.errorCode, null);
+        };
+
+        request.onblocked = function() {
+          callback('DB_REQUEST_BLOCKED', null);
+        };
+
+        request.onupgradeneeded = (function(event) {
+          var db = event.target.result;
+          var txn = event.target.transaction;
+          var currentVersion = event.oldVersion;
+          while (currentVersion != event.newVersion) {
+            switch (currentVersion) {
+              case 0:
+                this._createSchema(db);
+                break;
+              case 1:
+                this._upgradeSchemaVersion2(db, txn);
+                break;
+              case 2:
+                this._upgradeSchemaVersion3(db, txn);
+                break;
+              case 3:
+                this._upgradeSchemaVersion4(db, txn);
+                break;
+              default:
+                event.target.transaction.abort();
+                break;
+            }
+            currentVersion++;
+          }
+        }).bind(this);
+      } catch (ex) {
+        callback(ex.message, null);
+      }
+    }).bind(this));
   },
   /**
    * Start a new database transaction.
@@ -264,6 +269,56 @@ var CallLogDBManager = {
     }).bind(this);
   },
   /**
+   * Upgrade schema to version 4. Add new 'emergency' and 'voicemail' bool
+   * fields, to store whether a call was made to an emergency number or
+   * to voicemail.
+   *
+   * param db
+   *        Database instance.
+   * param transaction
+   *        IDB transaction instance.
+   */
+  _upgradeSchemaVersion4: function upgradeSchemaVersion4(db, transaction) {
+    var self = this;
+    var recentsStore = transaction.objectStore(this._dbRecentsStore);
+    recentsStore.openCursor().onsuccess = (function(event) {
+      var cursor = event.target.result;
+      if (!cursor) {
+        return;
+      }
+
+      var record = cursor.value;
+      Voicemail.check(record.number, function(isVoicemail) {
+        self._newTxn('readwrite', [self._dbRecentsStore, self._dbGroupsStore],
+                     function(error, txn, stores) {
+          var updateGroup = function(groupId) {
+            stores[1].get(groupId).onsuccess = function() {
+              var group = this.result;
+              if (group) {
+                group.voicemail = isVoicemail;
+              }
+              stores[1].put(group);
+            };
+          };
+
+          stores[0].openCursor().onsuccess = (function(event) {
+            var storeCursor = event.target.result;
+            if (!storeCursor) {
+              return;
+            }
+
+            record.emergency = false;
+            record.voicemail = isVoicemail;
+            stores[0].put(record);
+            updateGroup(record.groupId);
+            storeCursor.continue();
+          }).bind(this);
+        });
+      });
+      cursor.continue();
+    }).bind(this);
+  },
+  /**
    * Helper function to get the day date from a full date.
    */
   _getDayDate: function rdbm_getDayDate(timestamp) {
@@ -290,7 +345,9 @@ var CallLogDBManager = {
    *
    * { id: [date<Date>, number<String>, type<String>, status<String>]
    *   lastEntryDate: <Date>,
-   *   retryCount: <Number> }
+   *   retryCount: <Number>,
+   *   emergency: <Bool>,
+   *   voicemail: <Bool> }
    *
    * but consumers might find this format hard to handle, so we unwrap the
    * data inside the 'id' field to create a more manageable object of this
@@ -303,7 +360,9 @@ var CallLogDBManager = {
    *   type: <String>,
    *   status: <String>,
    *   lastEntryDate: <Date>,
-   *   retryCount: <Number> }
+   *   retryCount: <Number>,
+   *   emergency: <Bool>,
+   *   voicemail: <Bool> }
    */
   _getGroupObject: function rdbm_getGroupObject(group) {
     if (!Array.isArray(group.id) || group.id.length < 3) {
@@ -317,7 +376,9 @@ var CallLogDBManager = {
       type: group.id[2],
       status: group.id[3] || undefined,
       lastEntryDate: group.lastEntryDate,
-      retryCount: group.retryCount
+      retryCount: group.retryCount,
+      emergency: group.emergency,
+      voicemail: group.voicemail
     };
   },
   /**
@@ -365,7 +426,9 @@ var CallLogDBManager = {
    *        { number: <String>,
    *          type: <String>,
    *          status: <String>,
-   *          date: <Date> }
+   *          date: <Date>,
+   *          emergency: <Bool>,
+   *          voicemail: <Bool> }
    *
    * param callback
    *        Function to be called when the transaction is done.
@@ -403,6 +466,8 @@ var CallLogDBManager = {
           // Groups should have the date of the newest call.
           if (group.lastEntryDate <= recentCall.date) {
             group.lastEntryDate = recentCall.date;
+            group.emergency = recentCall.emergency;
+            group.voicemail = recentCall.voicemail;
           }
           group.retryCount++;
           groupsStore.put(group);
@@ -410,7 +475,9 @@ var CallLogDBManager = {
           group = {
             id: groupId,
             lastEntryDate: recentCall.date,
-            retryCount: 1
+            retryCount: 1,
+            emergency: recentCall.emergency,
+            voicemail: recentCall.voicemail
           };
           groupsStore.add(group);
         }

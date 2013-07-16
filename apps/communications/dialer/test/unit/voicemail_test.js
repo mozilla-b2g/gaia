@@ -26,6 +26,7 @@ suite('dialer/voicemail', function() {
       MockNavigatorSettings.createLock().set(
         { 'ril.iccInfo.mbdn': '123' }
       );
+      Voicemail._reset();
     });
 
     teardown(function() {
@@ -55,6 +56,7 @@ suite('dialer/voicemail', function() {
       MockNavigatorSettings.createLock().set(
         { 'ril.iccInfo.mbdn': '123' }
       );
+      Voicemail._reset();
     });
 
     teardown(function() {
@@ -84,6 +86,7 @@ suite('dialer/voicemail', function() {
       MockNavigatorSettings.createLock().set(
         { 'ril.iccInfo.mbdn': '123' }
       );
+      Voicemail._reset();
     });
 
     teardown(function() {
@@ -112,6 +115,7 @@ suite('dialer/voicemail', function() {
       MockNavigatorSettings.createLock().set(
         { 'ril.iccInfo.mbdn': '' }
       );
+      Voicemail._reset();
     });
 
     teardown(function() {
@@ -133,4 +137,58 @@ suite('dialer/voicemail', function() {
       });
     });
   });
+
+  suite('calls to mozSettings are cached', function() {
+    setup(function() {
+      MockMozVoicemail.number = '';
+      MockNavigatorSettings.createLock().set(
+        { 'ril.iccInfo.mbdn': '123' }
+      );
+      Voicemail._reset();
+      this.sinon.spy(MockNavigatorSettings, 'createLock');
+    });
+
+    teardown(function() {
+      MockMozVoicemail.number = null;
+      MockNavigatorSettings.mTeardown();
+      MockNavigatorSettings.createLock.restore();
+    });
+
+    test('foo', function(done) {
+      Voicemail.check('123', function(isVoicemailNumber) {
+        Voicemail.check('123', function(isVoicemailNumber) {
+          assert.ok(MockNavigatorSettings.createLock.calledOnce);
+          done();
+        });
+      });
+    });
+  });
+
+  suite('number from mozSettings is updated', function() {
+    setup(function() {
+      MockMozVoicemail.number = '';
+      MockNavigatorSettings.createLock().set(
+        { 'ril.iccInfo.mbdn': '123' }
+      );
+      Voicemail._reset();
+    });
+
+    teardown(function() {
+      MockMozVoicemail.number = null;
+      MockNavigatorSettings.mTeardown();
+    });
+
+    test('foo', function(done) {
+      Voicemail.check('123', function(isVoicemailNumber) {
+        assert.ok(isVoicemailNumber);
+        MockNavigatorSettings.mTriggerObservers('ril.iccInfo.mbdn',
+                                                {settingValue: '456'});
+        Voicemail.check('456', function(isVoicemailNumber) {
+          assert.ok(isVoicemailNumber);
+          done();
+        });
+      });
+    });
+  });
+
 });

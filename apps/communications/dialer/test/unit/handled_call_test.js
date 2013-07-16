@@ -491,6 +491,38 @@ suite('dialer/handled_call', function() {
         assert.equal(contact.tel[0].type, MockContacts.mType);
       });
     });
+
+    suite('emergency bit', function() {
+      test('emergency bit is set', function() {
+        mockCall = new MockCall('112', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.equal(subject.recentsEntry.emergency, true);
+      });
+
+      test('emergency bit is not set', function() {
+        mockCall = new MockCall('111', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.equal(subject.recentsEntry.emergency, false);
+      });
+    });
+
+    suite('voicemail bit', function() {
+      test('voicemail bit is set', function() {
+        mockCall = new MockCall('123', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.equal(subject.recentsEntry.voicemail, true);
+      });
+
+      test('voicemail bit is not set', function() {
+        mockCall = new MockCall('111', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.equal(subject.recentsEntry.voicemail, false);
+      });
+    });
   });
 
   suite('without node', function() {
