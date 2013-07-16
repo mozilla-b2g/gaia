@@ -334,6 +334,11 @@ suite('ActivityHandler', function() {
       }
     };
 
+    setup(function() {
+      // find no contact in here
+      this.sinon.stub(Contacts, 'findByPhoneNumber').callsArgWith(1, []);
+    });
+
     suiteSetup(function() {
       window.location.hash = '#new';
       realMozL10n = navigator.mozL10n;
@@ -365,36 +370,6 @@ suite('ActivityHandler', function() {
 
       // Call the activity. As we are in 'new' there is no hashchange.
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-    });
-
-    test('new message activity clears, fills and focuses the Compose area',
-      function() {
-      this.sinon.stub(Compose, 'clear', function() {
-        assert.ok(true, 'the Compose area is cleared');
-      });
-      this.sinon.stub(Compose, 'append', function() {
-        assert.ok(true, 'message body has been appended to the Compose area');
-      });
-      this.sinon.stub(Compose, 'focus', function() {
-        assert.ok(true, 'the Compose area is focused');
-      });
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-    });
-
-    test('do not fill the Compose area if the activity body is empty',
-      function() {
-      this.sinon.stub(Compose, 'clear', function() {
-        assert.ok(true, 'the Compose area is cleared');
-      });
-      this.sinon.stub(Compose, 'append', function() {
-        assert.ok(false, 'nothing has been appended to the Compose area');
-      });
-      this.sinon.stub(Compose, 'focus', function() {
-        assert.ok(true, 'the Compose area is focused');
-      });
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_empty);
     });
 
     test('new message with user input msg, discard it', function() {
