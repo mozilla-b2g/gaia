@@ -7,7 +7,8 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini" />
     <link rel="stylesheet" type="text/css" href="style/camera.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
 
     <script defer src="/shared/js/l10n.js"></script>
     <!-- The following scripts are lazy loaded but left here to ensure
@@ -48,10 +49,15 @@
     </div>
 
     <div id="overlay" class="hidden">
-      <div id="overlay-content">
-        <h1 id="overlay-title"></h1>
-        <p id="overlay-text"><p>
-      </div>
+      <form role="dialog" data-type="confirm">
+         <section>
+          <h1 id="overlay-title"></h1>
+          <p id="overlay-text"><p>
+        </section>
+        <menu id="overlay-menu-group" class="hidden">
+          <button id="overlay-close-button" data-l10n-id="close-button" class="full">Close</button>
+        </menu>
+      </form>
     </div>
 
     <!-- see filmstrip.js and filmstrip.css for these elements -->
