@@ -77,6 +77,13 @@ var Curtain = (function() {
       total = ptotal;
       showMessage();
     };
+
+    /**
+     *  Returns the current value
+     */
+    this.getValue = function() {
+      return counter;
+    };
   }
 
   return {
