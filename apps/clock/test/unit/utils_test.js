@@ -38,6 +38,31 @@ suite('Time functions', function() {
 
   });
 
+  suite('#changeSelectByValue', function() {
+
+    var changeSelectByValue, selectDOM;
+
+    setup(function() {
+      changeSelectByValue = Utils.changeSelectByValue;
+      selectDOM = document.createElement('select');
+      selectDOM.innerHTML = ['<option value="a">A</option>',
+        '<option value="b">B</option>',
+        '<option value="c" selected>C</option>'
+      ].join('');
+    });
+
+    test('correctly selects the specified element', function() {
+      changeSelectByValue(selectDOM, 'b');
+      assert.equal(selectDOM.selectedIndex, 1);
+    });
+
+    test('has no effect when specified element does not exist', function() {
+      changeSelectByValue(selectDOM, 'g');
+      assert.equal(selectDOM.selectedIndex, 2);
+    });
+
+  });
+
   suite('#formatTime', function() {
     var is12hStub, formatTime;
 
