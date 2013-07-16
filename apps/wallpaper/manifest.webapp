@@ -2,6 +2,7 @@
   "name": "Wallpaper",
   "description": "Gaia Wallpaper Picker",
   "type": "certified",
+  "role": "system",
   "orientation": "portrait-primary",
   "developer": {
     "name": "The Gaia Team",
