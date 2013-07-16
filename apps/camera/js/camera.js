@@ -198,6 +198,10 @@ var Camera = {
   // An estimated JPEG file size is caluclated from 90% quality 24bit/pixel
   ESTIMATED_JPEG_FILE_SIZE: 300 * 1024,
 
+  MMS_PREVIEW_PROFILE: 'qcif',
+  MMS_PREVIEW_WIDTH: 176,
+  MMS_PREVIEW_HEIGHT: 144,
+
   get overlayTitle() {
     return document.getElementById('overlay-title');
   },
@@ -389,6 +393,9 @@ var Camera = {
     var mode = this.CAMERA;
 
     if (activity.source.name === 'pick') {
+      this._previewConfigVideo.profile= this.MMS_PREVIEW_PROFILE;
+      this._previewConfigVideo.width = this.MMS_PREVIEW_WIDTH;
+      this._previewConfigVideo.height = this.MMS_PREVIEW_HEIGHT;
       // When inside an activity the user cannot switch between
       // the gallery or video recording.
       this._pendingPick = activity;
