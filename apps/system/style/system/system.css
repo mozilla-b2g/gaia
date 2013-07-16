@@ -259,7 +259,7 @@ body {
 }
 
 #windows > .appWindow:not(.homescreen).default-background {
-  background: url('/shared/resources/branding/splash_screen_generic.png') no-repeat #fff center center / 32rem;
+  background: url('/shared/resources/branding/splash_screen_generic.png') no-repeat #000 center center / 32rem;
 }
 
 #windows > .appWindow:not(.active):not(.homescreen):not(.opening):not(.closing) {

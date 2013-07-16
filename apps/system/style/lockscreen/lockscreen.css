@@ -319,6 +319,7 @@ button::-moz-focus-inner {
   background-image: url('./images/icon-unlock.png');
   background-position: center;
   background-repeat: no-repeat;
+  background-size: 3rem;
 }
 
 #lockscreen-alt-camera > div,
@@ -326,6 +327,7 @@ button::-moz-focus-inner {
   background-image: url('./images/icon-camera.png');
   background-position: center;
   background-repeat: no-repeat;
+  background-size: 2.4rem;
 }
 
 #lockscreen-alt-camera {

@@ -62,6 +62,7 @@ var WindowManager = (function() {
   var inlineActivityFrames = [];
   var activityCallerOrigin = '';
 
+  var DEVICE_RATIO = window.devicePixelRatio || 1;
   // Keep a list of cached screenshot URLs for the card view
   var screenshots = {};
 
@@ -638,7 +639,8 @@ var WindowManager = (function() {
     }
 
     var iframe = frame.firstChild;
-    var req = iframe.getScreenshot(iframe.offsetWidth, iframe.offsetHeight);
+    var req = iframe.getScreenshot(iframe.offsetWidth * DEVICE_RATIO,
+      iframe.offsetHeight * DEVICE_RATIO);
 
     req.onsuccess = function gotScreenshotFromFrame(evt) {
       var result = evt.target.result;
