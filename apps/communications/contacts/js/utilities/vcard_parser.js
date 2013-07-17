@@ -290,7 +290,7 @@ VCFReader.splitLines = function(vcf) {
       continue;
     }
 
-    if (inLabel || vcf[i] !== '\n') {
+    if (inLabel || (vcf[i] !== '\n' && vcf[i] !== '\r')) {
       currentStr += vcf[i];
       continue;
     }
