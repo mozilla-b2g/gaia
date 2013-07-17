@@ -165,76 +165,58 @@ function getJSON(file) {
   }
 }
 
-function makeWebappsObject(dirs) {
+function makeWebappsObject(appdirs) {
   return {
     forEach: function(fun) {
-      let appSrcDirNames = dirs.split(' ');
-      appSrcDirNames.forEach(function parseDirectory(directoryName) {
+      appdirs.forEach(function(app) {
+        let appDir = getFile(app);
+        if (!appDir.exists()) {
+          throw new Error(' -*- build/utils.js: file not found (' + app + ')\n');
+        }
 
-        // Convert the dirName to a File object
-        let appSrcDir = getDir(directoryName, true);
+        let manifestFile = appDir.clone();
+        manifestFile.append('manifest.webapp');
 
-        let appDirs = getSubDirs(appSrcDir);
-        appDirs.forEach(function readManifests(appDir) {
-          let manifestFile = appDir.clone();
-          manifestFile.append('manifest.webapp');
+        let updateFile = appDir.clone();
+        updateFile.append('update.webapp');
 
-          let updateFile = appDir.clone();
-          updateFile.append('update.webapp');
+        // Ignore directories without manifest
+        if (!manifestFile.exists() && !updateFile.exists()) {
+          return;
+        }
 
-          // Ignore directories without manifest
-          if (!manifestFile.exists() && !updateFile.exists()) {
-            return;
-          }
+        let manifest = manifestFile.exists() ? manifestFile : updateFile;
 
-          let manifest = manifestFile.exists() ? manifestFile : updateFile;
+        // Use the folder name as the the domain name
+        let domain = appDir.leafName + '.' + GAIA_DOMAIN;
 
-          // Use the folder name as the the domain name
-          let domain = appDir.leafName + '.' + GAIA_DOMAIN;
+        let webapp = {
+          manifest: getJSON(manifest),
+          manifestFile: manifest,
+          url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
+          domain: domain,
+          sourceDirectoryFile: manifestFile.parent,
+          sourceDirectoryName: appDir.leafName,
+          sourceAppDirectoryName: appDir.parent.leafName
+        };
 
-          let webapp = {
-            manifest: getJSON(manifest),
-            manifestFile: manifest,
-            url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
-            domain: domain,
-            sourceDirectoryFile: manifestFile.parent,
-            sourceDirectoryName: appDir.leafName,
-            sourceAppDirectoryName: directoryName
-          };
+        // External webapps have a `metadata.json` file
+        let metaData = webapp.sourceDirectoryFile.clone();
+        metaData.append('metadata.json');
+        if (metaData.exists()) {
+          webapp.metaData = getJSON(metaData);
+        }
 
-          // External webapps have a `metadata.json` file
-          let metaData = webapp.sourceDirectoryFile.clone();
-          metaData.append('metadata.json');
-          if (metaData.exists()) {
-            webapp.metaData = getJSON(metaData);
-          }
-
-          fun(webapp);
-        });
+        fun(webapp);
       });
     }
   };
 }
 
-let additionalSrcDirNames = ['external-apps'];
-
-if (DOGFOOD === '0' && PRODUCTION === '0') {
-  additionalSrcDirNames.push('test_external_apps');
-}
-
-if (GAIA_DISTRIBUTION_DIR) {
-  let externalAppsDir = new FileUtils.File(GAIA_DISTRIBUTION_DIR);
-  externalAppsDir.append('external-apps');
-  if (externalAppsDir.exists()) {
-      additionalSrcDirNames.push(externalAppsDir.path);
-  }
-}
-
 const Gaia = {
   engine: GAIA_ENGINE,
   sharedFolder: getFile(GAIA_DIR, 'shared'),
-  webapps: makeWebappsObject(GAIA_APP_SRCDIRS + ' ' +
-                             additionalSrcDirNames.join(' ')),
+  webapps: makeWebappsObject(GAIA_APPDIRS.split(' ')),
   aggregatePrefix: 'gaia_build_',
   distributionDir: GAIA_DISTRIBUTION_DIR
 };

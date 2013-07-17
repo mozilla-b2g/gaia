@@ -1,0 +1,6 @@
+apps/*
+showcase_apps/*
+external-apps/*
+dogfood_apps/*
+external-dogfood-apps/*
+outoftree_apps/*
