@@ -1191,9 +1191,13 @@ var ListView = {
             ModeManager.push(MODE_PLAYER, function() {
               var targetIndex = parseInt(target.dataset.index);
 
-              PlayerView.setSourceType(TYPE_MIX);
-              PlayerView.dataSource = this.dataSource;
-              PlayerView.play(targetIndex);
+              if (pendingPick)
+                PlayerView.setSourceType(TYPE_SINGLE);
+              else
+                PlayerView.setSourceType(TYPE_MIX);
+
+                PlayerView.dataSource = this.dataSource;
+                PlayerView.play(targetIndex);
             }.bind(this));
           } else if (option) {
             var index = target.dataset.index;
@@ -1561,10 +1565,16 @@ var SearchView = {
     function sv_openResult(option, data, index, keyRange) {
       if (option === 'title') {
         ModeManager.push(MODE_PLAYER, function() {
-          PlayerView.setSourceType(TYPE_LIST);
-          PlayerView.dataSource = [data];
-          PlayerView.play(0, index % 10);
-        });
+          if (pendingPick) {
+            PlayerView.setSourceType(TYPE_SINGLE);
+            PlayerView.dataSource = this.dataSource;
+            PlayerView.play(index);
+          } else {
+            PlayerView.setSourceType(TYPE_LIST);
+            PlayerView.dataSource = [data];
+            PlayerView.play(0, index);
+          }
+        }.bind(this));
       } else {
         SubListView.activate(option, data, index, keyRange, 'next', function() {
           ModeManager.push(MODE_SUBLIST);
