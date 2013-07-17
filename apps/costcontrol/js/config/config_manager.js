@@ -67,6 +67,10 @@ var ConfigManager = (function() {
 
   // Load the operator configuration according to MCC_MNC pair
   function requestConfiguration(callback) {
+    if (!connection || !connection.iccInfo) {
+      console.error('No iccInfo available');
+      return;
+    }
 
     function returnConfiguration() {
       if (typeof callback === 'function') {
