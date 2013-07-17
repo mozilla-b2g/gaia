@@ -150,6 +150,10 @@ let swipe_threshold = 0.4;
 let swipe_friction = 0.1;
 // Page transition duration defined in ms (300 ms by default)
 let transition_duration = 300;
+// Range 0.01 pixel/msec to 0.10 pixel/msec
+let velocity = 0.019;
+// Range 1 pixel to 10 pixels
+let distance = 1;
 
 if (customize.swipe) {
   if (customize.swipe.threshold)
@@ -158,6 +162,10 @@ if (customize.swipe) {
     swipe_friction = customize.swipe.friction;
   if (customize.swipe.transition_duration)
     transition_duration = customize.swipe.transition_duration;
+  if (customize.swipe.velocity)
+    velocity = customize.swipe.velocity;
+  if (customize.swipe.distance)
+    distance = customize.swipe.distance;
 }
 
 let content = {
@@ -171,7 +179,9 @@ let content = {
   swipe: {
     threshold: swipe_threshold,
     friction: swipe_friction,
-    transition_duration: transition_duration
+    transition_duration: transition_duration,
+    velocity: velocity,
+    distance: distance
   },
 
   // This specifies whether we optimize homescreen panning by trying to
