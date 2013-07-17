@@ -99,4 +99,125 @@ describe('ClockView', function() {
 
   });
 
+  suite('updateAnalogClock', function() {
+
+    suiteSetup(function() {
+      this.secondHand = document.createElement('rect');
+      this.secondHand.id = 'secondhand';
+      document.body.appendChild(this.secondHand);
+      this.minuteHand = document.createElement('rect');
+      this.minuteHand.id = 'minutehand';
+      document.body.appendChild(this.minuteHand);
+      this.hourHand = document.createElement('rect');
+      this.hourHand.id = 'hourhand';
+      document.body.appendChild(this.hourHand);
+    });
+
+    setup(function() {
+      this.clock = sinon.useFakeTimers(1373968801200);
+    });
+
+    teardown(function() {
+      var attrs, rotate;
+
+      // The method under test caches the SVG `animateTransform` elements it
+      // creates, meaning that simply clearing the contents of the "-hand"
+      // elements will not prevent state leakage.
+      rotate = this.secondHand.childNodes[0];
+      attrs = Array.prototype.slice.call(rotate.attributes);
+      attrs.forEach(function(attr) {
+        rotate.removeAttribute(attr.nodeName);
+      });
+
+      rotate = this.minuteHand.childNodes[0];
+      attrs = Array.prototype.slice.call(rotate.attributes);
+      attrs.forEach(function(attr) {
+        rotate.removeAttribute(attr.nodeName);
+      });
+
+      rotate = this.hourHand.childNodes[0];
+      attrs = Array.prototype.slice.call(rotate.attributes);
+      attrs.forEach(function(attr) {
+        rotate.removeAttribute(attr.nodeName);
+      });
+
+      this.clock.restore();
+    });
+
+    suiteTeardown(function() {
+      this.secondHand.parentNode.removeChild(this.secondHand);
+      this.minuteHand.parentNode.removeChild(this.minuteHand);
+      this.hourHand.parentNode.removeChild(this.hourHand);
+    });
+
+    test('second-, minute-, and hour- hands are updated immediately',
+      function() {
+      var rotate;
+
+      ClockView.updateAnalogClock();
+
+      rotate = this.secondHand.childNodes[0];
+      assert.ok(rotate, 'Second hand rotation element exists');
+      assert.equal(rotate.getAttribute('from'), '0,135,135');
+      assert.equal(rotate.getAttribute('to'), '6,135,135');
+
+      rotate = this.minuteHand.childNodes[0];
+      assert.ok(rotate, 'Minute hand rotation element exists');
+      assert.equal(rotate.getAttribute('from'), '-186,135,135');
+      assert.equal(rotate.getAttribute('to'), '-180,135,135');
+
+      rotate = this.hourHand.childNodes[0];
+      assert.ok(rotate, 'Hour hand rotation element exists');
+      assert.equal(rotate.getAttribute('from'), '-30,135,135');
+      assert.equal(rotate.getAttribute('to'), '0,135,135');
+    });
+
+    test('second-, minute-, and hour- hands are not updated twice in the ' +
+      'same second', function() {
+      var rotate;
+
+      ClockView.updateAnalogClock();
+      this.clock.tick(799);
+
+      rotate = this.secondHand.childNodes[0];
+      assert.ok(rotate, 'Second hand rotation element exists');
+      assert.equal(rotate.getAttribute('from'), '0,135,135');
+      assert.equal(rotate.getAttribute('to'), '6,135,135');
+
+      rotate = this.minuteHand.childNodes[0];
+      assert.ok(rotate, 'Minute hand rotation element exists');
+      assert.equal(rotate.getAttribute('from'), '-186,135,135');
+      assert.equal(rotate.getAttribute('to'), '-180,135,135');
+
+      rotate = this.hourHand.childNodes[0];
+      assert.ok(rotate, 'Hour hand rotation element exists');
+      assert.equal(rotate.getAttribute('from'), '-30,135,135');
+      assert.equal(rotate.getAttribute('to'), '0,135,135');
+    });
+
+    test('second-, minute-, and hour- hands are updated each second',
+      function() {
+      var rotate;
+
+      ClockView.updateAnalogClock();
+      this.clock.tick(800);
+
+      rotate = this.secondHand.childNodes[0];
+      assert.ok(rotate, 'Second hand rotation element exists');
+      assert.equal(rotate.getAttribute('from'), '6,135,135');
+      assert.equal(rotate.getAttribute('to'), '12,135,135');
+
+      rotate = this.minuteHand.childNodes[0];
+      assert.ok(rotate, 'Minute hand rotation element exists');
+      assert.equal(rotate.getAttribute('from'), '-186,135,135');
+      assert.equal(rotate.getAttribute('to'), '-180,135,135');
+
+      rotate = this.hourHand.childNodes[0];
+      assert.ok(rotate, 'Hour hand rotation element exists');
+      assert.equal(rotate.getAttribute('from'), '-30,135,135');
+      assert.equal(rotate.getAttribute('to'), '0,135,135');
+    });
+
+  });
+
 });
