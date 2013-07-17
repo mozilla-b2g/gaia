@@ -189,9 +189,30 @@ var SMIL = window.SMIL = {
       return null;
     }
 
+    function convertWbmpToPng(slide) {
+      var reader;
+      slide.name = slide.name.slice(0, -5) + '.png';
+      reader = new FileReader();
+      reader.onload = function(event) {
+        WBMP.decode(event.target.result, function callback(blob) {
+          activeReaders--;
+          slide.blob = blob;
+          exitPoint();
+        });
+      };
+      reader.onerror = function(event) {
+        activeReaders--;
+        console.error('Error reading text blob');
+        exitPoint();
+      };
+      activeReaders++;
+      reader.readAsArrayBuffer(slide.blob);
+    };
+
     // handle mms messages without smil
     // aggregate all text attachments into last slide
     function SMIL_parseWithoutSMIL(attachment) {
+      var slide;
       var textIndex = workingText.length;
       var blob = attachment.content;
       if (!blob) {
@@ -222,10 +243,11 @@ var SMIL = window.SMIL = {
 
       // make sure the type was something we want, otherwise ignore it
       } else if (type) {
-        slides.push({
-          name: attachment.location,
-          blob: attachment.content
-        });
+        slide = { name: attachment.location, blob: attachment.content };
+        if (slide.name && slide.name.slice(-5) === '.wbmp') {
+          convertWbmpToPng(slide);
+        }
+        slides.push(slide);
       }
     }
 
@@ -240,14 +262,16 @@ var SMIL = window.SMIL = {
       var attachment, src;
 
       Array.prototype.forEach.call(mediaElements, function setSlide(element) {
+        var slide = {};
         src = element.getAttribute('src');
         attachment = findAttachment(src);
         if (attachment) {
           // every media attachment starts its own slide in our format
-          slides.push({
-            name: attachment.location,
-            blob: attachment.content
-          });
+          slide = { name: attachment.location, blob: attachment.content };
+          slides.push(slide);
+          if (slide.name && slide.name.slice(-5) === '.wbmp') {
+            convertWbmpToPng(slide);
+          }
         } else {
           attachmentsNotFound = true;
         }
