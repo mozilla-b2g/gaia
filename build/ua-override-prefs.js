@@ -38,7 +38,6 @@ pref("general.useragent.override.vagalume.com.br", "\\(Mobile#(Android; Mobile")
 pref("general.useragent.override.climatempo.com.br", "\\(Mobile#(Android; Mobile"); // bug 827631
 pref("general.useragent.override.tecmundo.com.br", "\\(Mobile#(Android; Mobile"); // bug 827632
 pref("general.useragent.override.hao123.com", "\\(Mobile#(Android; Mobile"); // bug 827633
-pref("general.useragent.override.imdb.com", "\\(Mobile#(Android; Mobile"); // bug 827634
 pref("general.useragent.override.lancenet.com.br", "\\(Mobile#(Android; Mobile"); // bug 827576
 pref("general.useragent.override.webmotors.com.br", "\\(Mobile#(Android; Mobile"); // bug 827573
 pref("general.useragent.override.mercadolibre.com.co", "\\(Mobile#(Android; Mobile"); // bug 827661
