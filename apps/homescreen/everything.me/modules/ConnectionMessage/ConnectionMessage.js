@@ -26,7 +26,7 @@ Evme.ConnectionMessage = new function Evme_ConnectionMessage() {
                 isCentered = elTop !== '0px' && elTop !== 'auto';
             
             if (isCentered) {
-                el.style.cssText = "margin-top: " + (-el.offsetHeight/2) + "px";
+                el.style.cssText = "margin-top: " + Evme.Utils.rem(-el.offsetHeight/2);
             }
             
             elParent.classList.add(CLASS_NO_CONNECTION);

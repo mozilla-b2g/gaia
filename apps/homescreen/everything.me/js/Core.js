@@ -15,8 +15,22 @@ window.Evme = new function Evme_Core() {
 
         TIMEOUT_BEFORE_INIT_SESSION = data.timeoutBeforeSessionInit;
 
+        // calculate the precise background image size loaded behind search results
+        // takes screen size and pixel density into account
+        data.bgImageSize = [
+            Math.floor(window.innerWidth * window.devicePixelRatio),
+            Math.floor(window.innerHeight * window.devicePixelRatio)
+        ];
+
+        // calculate number of apps to load on every search
+        // if the screen height permits it - add another row of apps
+        var numberOfAppsToLoad = data.numberOfAppsToLoad;
+        if (window.innerHeight/window.innerWidth > 1.66) {
+            numberOfAppsToLoad += data.apps.appsPerRow;
+        }
+
         Evme.Brain.init({
-            "numberOfAppsToLoad": data.numberOfAppsToLoad,
+            "numberOfAppsToLoad": numberOfAppsToLoad,
             "minimumLettersForSearch": data.minimumLettersForSearch,
             "timeBeforeAllowingDialogsRemoval": data.timeBeforeAllowingDialogsRemoval,
             "tips": data.tips,
@@ -122,6 +136,8 @@ window.Evme = new function Evme_Core() {
                 "landscape": 480
             }
         });
+
+        Evme.IconGroup.init({});
 
         Evme.BackgroundImage.init({
             "el": Evme.$("#search-overlay"),

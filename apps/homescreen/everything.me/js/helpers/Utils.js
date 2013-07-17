@@ -20,15 +20,12 @@ Evme.Utils = new function Evme_Utils() {
             "GET_APP_ICON": "get-app-icon",
             "GET_APP_NAME": "get-app-name"
         };
-    
-    
-    this.devicePixelRatio =  window.innerWidth / 320;
 
     this.isKeyboardVisible = false;
 
     this.EMPTY_IMAGE = "../../images/empty.gif";
 
-    this.APPS_FONT_SIZE = 13 * self.devicePixelRatio;
+    this.APPS_FONT_SIZE = 13 * window.devicePixelRatio;
 
     this.ICONS_FORMATS = {
         "Small": 10,
@@ -98,6 +95,10 @@ Evme.Utils = new function Evme_Utils() {
     
     this.uuid = function generateUUID() {
         return Evme.uuid();
+    };
+
+    this.rem = function(value) {
+        return value/10 + 'rem';
     };
     
     this.sendToOS = function sendToOS(type, data) {
@@ -210,7 +211,7 @@ Evme.Utils = new function Evme_Utils() {
 
           WIDTH = context.canvas.width,
           FONT_SIZE = self.APPS_FONT_SIZE,
-          LINE_HEIGHT = FONT_SIZE + 1 * self.devicePixelRatio;
+          LINE_HEIGHT = FONT_SIZE + 1 * window.devicePixelRatio;
 
       if (!context || !text) {
         return false;
@@ -223,11 +224,11 @@ Evme.Utils = new function Evme_Utils() {
       context.shadowOffsetY = 1;
       context.shadowBlur = 3;
       context.shadowColor = 'rgba(0, 0, 0, 0.6)';
-      context.font = 'bold ' + FONT_SIZE + 'px MozTT';
+      context.font = '300 ' + self.rem(FONT_SIZE) +' Feura Sans';
 
       for (var i=0,word; word=text[i++];) {
         // add 1 to the word with because of the space between words
-        var size = context.measureText(word).width + 1,
+        var size = context.measureText(word+' ').width,
             draw = false,
             pushed = false;
 
