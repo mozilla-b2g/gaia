@@ -37,6 +37,7 @@ settings = {
  "debug.paint-flashing.enabled": False,
  "debug.peformancedata.shared": False,
  "debug.gaia.enabled": False,
+ "debug.icc.faked": False,
  "deviceinfo.firmware_revision": "",
  "deviceinfo.hardware": "",
  "deviceinfo.mac": "",
