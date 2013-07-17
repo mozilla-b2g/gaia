@@ -169,10 +169,10 @@ var Camera = {
   },
 
   _previewConfigVideo: {
-    profile: 'cif',
+    profile: null,
     rotation: 0,
-    width: 352,
-    height: 288
+    width: 0,
+    height: 0
   },
 
   _shutterKey: 'camera.shutter.enabled',
@@ -797,6 +797,28 @@ var Camera = {
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
         this.pickPictureSize(camera.capabilities.pictureSizes);
+
+      var videoRecorderProfiles = camera.capabilities.recorderProfiles;
+      if (this._pendingPick) {
+        for (var key in videoRecorderProfiles) {
+          if (key === 'qcif') {
+            this._previewConfigVideo.profile = key;
+            this._previewConfigVideo.width = videoRecorderProfiles[key]['video']['width'];
+            this._previewConfigVideo.height = videoRecorderProfiles[key]['video']['height'];
+            break;
+          }
+        }
+      }
+      else {
+        for (var key in videoRecorderProfiles) {
+          if (key === 'cif') {
+            this._previewConfigVideo.profile = key;
+            this._previewConfigVideo.width = videoRecorderProfiles[key]['video']['width'];
+            this._previewConfigVideo.height = videoRecorderProfiles[key]['video']['height'];
+            break;
+          }
+        }
+      }
 
       this.setPreviewSize(camera);
       this.enableCameraFeatures(camera.capabilities);
