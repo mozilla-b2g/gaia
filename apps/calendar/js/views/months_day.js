@@ -9,6 +9,8 @@ Calendar.ns('Views').MonthsDay = (function() {
   MonthsDay.prototype = {
     __proto__: Parent.prototype,
 
+    renderAllHours: false,
+
     selectors: {
       element: '#months-day-view',
       events: '.day-events',
