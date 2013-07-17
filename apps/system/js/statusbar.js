@@ -136,9 +136,10 @@ var StatusBar = {
     // Refresh the time to reflect locale changes
     this.update.time.call(this, new Date());
 
-    // Hide clock when initializing since this is handled by the event
-    // listeners for 'lock', 'unlock', and 'lockpanelchange'
-    this.icons.time.hidden = true;
+    // If it is locked, hide clock when initializing since this is handled by
+    // the event listeners for 'lock', 'unlock', and 'lockpanelchange'. If not,
+    // shows the clock.
+    this.icons.time.hidden = this.screen.classList.contains('locked');
 
     var settings = {
       'ril.radio.disabled': ['signal', 'data'],
