@@ -28,12 +28,14 @@ var UtilityTray = {
     window.addEventListener('screenchange', this);
     window.addEventListener('emergencyalert', this);
     window.addEventListener('home', this);
+    window.addEventListener('attentionscreenshow', this);
 
     this.overlay.addEventListener('transitionend', this);
   },
 
   handleEvent: function ut_handleEvent(evt) {
     switch (evt.type) {
+      case 'attentionscreenshow':
       case 'home':
       case 'emergencyalert':
         if (this.shown) {
