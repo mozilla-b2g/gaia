@@ -213,15 +213,17 @@ suite('system/ScreenManager', function() {
         restoreProperty(navigator, 'mozTelephony', reals);
       });
 
-      test('if Bluetooth connected', function() {
-        stubBluetooth.connected = true;
+      test('if Bluetooth SCO connected', function() {
+        stubBluetooth.Profiles = {};
+        stubBluetooth.isProfileConnected = sinon.stub().returns(true);
         ScreenManager.handleEvent({'type': 'userproximity'});
         assert.isFalse(stubTurnOn.called);
         assert.isFalse(stubTurnOff.called);
       });
 
-      test('if Bluetooth disconnected', function() {
-        stubBluetooth.connected = false;
+      test('if Bluetooth SCO disconnected', function() {
+        stubBluetooth.Profiles = {};
+        stubBluetooth.isProfileConnected = sinon.stub().returns(false);
         stubTelephony.speakerEnabled = false;
         stubStatusBar.headponesActive = false;
 
@@ -232,6 +234,8 @@ suite('system/ScreenManager', function() {
       });
 
       test('if evt.near is yes', function() {
+        stubBluetooth.Profiles = {};
+        stubBluetooth.isProfileConnected = sinon.stub().returns(false);
         ScreenManager.handleEvent({'type': 'userproximity', 'near': 'yes'});
         assert.isFalse(stubTurnOn.called);
         assert.isTrue(stubTurnOff.calledWith(true));
