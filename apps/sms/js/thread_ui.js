@@ -1061,6 +1061,12 @@ var ThreadUI = global.ThreadUI = {
     var classNames = ['message', message.type, delivery];
 
     var notDownloaded = delivery === 'not-downloaded';
+    var attachments = message.attachments;
+    // Returning attachments would be different based on gecko version:
+    // null in b2g18 / empty array in master.
+    var noAttachment = (message.type === 'mms' && !notDownloaded &&
+      (attachments === null || attachments.length === 0));
+    var _ = navigator.mozL10n.get;
 
     if (delivery === 'received' || notDownloaded) {
       classNames.push('incoming');
@@ -1085,6 +1091,11 @@ var ThreadUI = global.ThreadUI = {
       bodyHTML = this._createNotDownloadedHTML(message, classNames);
     }
 
+    if (noAttachment) {
+      classNames = classNames.concat(['error', 'no-attachment']);
+      bodyHTML = Utils.escapeHTML(_('no-attachment-text'));
+    }
+
     messageDOM.className = classNames.join(' ');
     messageDOM.id = 'message-' + message.id;
     messageDOM.dataset.messageId = message.id;
@@ -1096,7 +1107,7 @@ var ThreadUI = global.ThreadUI = {
       safe: ['bodyHTML']
     });
 
-    if (message.type === 'mms' && !notDownloaded) { // MMS
+    if (message.type === 'mms' && !notDownloaded && !noAttachment) { // MMS
       var pElement = messageDOM.querySelector('p');
       SMIL.parse(message, function(slideArray) {
         pElement.appendChild(ThreadUI.createMmsContent(slideArray));
@@ -1299,6 +1310,12 @@ var ThreadUI = global.ThreadUI = {
         return;
       }
       this.retrieveMMS(elems.message.dataset.messageId);
+      return;
+    }
+
+    // Do nothing for no attachment error because it's not possible to
+    // retrieve message again in this edge case.
+    if (elems.message.classList.contains('no-attachment')) {
       return;
     }
 
