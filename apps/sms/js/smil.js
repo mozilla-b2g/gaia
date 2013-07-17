@@ -246,8 +246,6 @@ var SMIL = window.SMIL = {
         slide = { name: attachment.location, blob: attachment.content };
         if (slide.name && slide.name.slice(-5) === '.wbmp') {
           convertWbmpToPng(slide);
-        } else {
-          slide.blob = attachment.content;
         }
         slides.push(slide);
       }
@@ -273,8 +271,6 @@ var SMIL = window.SMIL = {
           slides.push(slide);
           if (slide.name && slide.name.slice(-5) === '.wbmp') {
             convertWbmpToPng(slide);
-          } else {
-            slide.blob = attachment.content;
           }
         } else {
           attachmentsNotFound = true;
