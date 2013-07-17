@@ -401,7 +401,9 @@ Cards = {
     if (!cardDef) {
       var cbArgs = Array.slice(arguments);
       this._pendingPush = [type, mode];
-      this.eatEventsUntilNextCard();
+      // Only eat clicks if the card will be visibly displayed.
+      if (showMethod !== 'none')
+        this.eatEventsUntilNextCard();
       require(['cards/' + type], function() {
         this.pushCard.apply(this, cbArgs);
       }.bind(this));
@@ -794,6 +796,9 @@ console.log('pushCard for type: ' + type);
       cardsNode.clientWidth;
       // explicitly clear since there will be no animation
       this._eatingEventsUntilNextCard = false;
+    }
+    else if (showMethod === 'none') {
+      // do not set _eatingEventsUntilNextCard, but don't clear it either.
     }
     else {
       this._transitionCount = (beginNode && endNode) ? 2 : 1;
