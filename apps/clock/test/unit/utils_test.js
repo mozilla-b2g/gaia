@@ -1,20 +1,12 @@
-requireApp('email/test/unit/mock_l10n.js');
 requireApp('clock/js/utils.js');
 
 suite('Time functions', function() {
 
   suite('#summarizeDaysOfWeek', function() {
-    var nativeMozL10n, _, summarizeDaysOfWeek;
+    var summarizeDaysOfWeek;
 
     before(function() {
-      nativeMozL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
-      _ = navigator.mozL10n.get;
       summarizeDaysOfWeek = Utils.summarizeDaysOfWeek;
-    });
-
-    after(function() {
-      navigator.mozL10n = nativeMozL10n;
     });
 
     test('should summarize everyday', function() {
