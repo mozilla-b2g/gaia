@@ -79,7 +79,6 @@ pref("general.useragent.override.mercadolibre.com.ve", "\\(Mobile#(Android; Mobi
 pref("general.useragent.override.olx.com.ve", "\\(Mobile#(Android; Mobile"); // bug 828433
 pref("general.useragent.override.rincondelvago.com", "\\(Mobile#(Android; Mobile"); // bug 828435
 pref("general.useragent.override.movistar.com.ve", "\\(Mobile#(Android; Mobile"); // bug 828439
-pref("general.useragent.override.despegar.com.ve", "\\(Mobile#(Android; Mobile"); // bug 828443
 pref("general.useragent.override.bumeran.com.ve", "\\(Mobile#(Android; Mobile"); // bug 828445
 pref("general.useragent.override.petardas.com", "\\(Mobile#(Android; Mobile"); // bug 828448
 pref("general.useragent.override.mail.google.com", "\\(Mobile#(Android; Mobile"); // bug 827869
