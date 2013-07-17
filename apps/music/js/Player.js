@@ -1,9 +1,10 @@
 'use strict';
 
-// We have three types of the playing sources
+// We have four types of the playing sources
 // These are for player to know which source type is playing
 var TYPE_MIX = 'mix';
 var TYPE_LIST = 'list';
+var TYPE_SINGLE = 'single';
 var TYPE_BLOB = 'blob';
 
 // Repeat option for player
@@ -58,14 +59,21 @@ var PlayerView = {
   set dataSource(source) {
     this._dataSource = source;
 
-    if (this.sourceType && this.sourceType != TYPE_BLOB) {
-      // Shuffle button is not necessary when an album only contains one song
-      // or playing a blob
-      this.shuffleButton.disabled = (this._dataSource.length < 2);
+    if (this.sourceType) {
+      if (this.sourceType === TYPE_MIX || this.sourceType === TYPE_LIST) {
+        // Shuffle button will be disabled if an album only contains one song
+        this.shuffleButton.disabled = (this._dataSource.length < 2);
 
-      // Also, show or hide the Now Playing button depending on
-      // whether content is queued
-      TitleBar.playerIcon.hidden = (this._dataSource.length < 1);
+        // Also, show or hide the Now Playing button depending on
+        // whether content is queued
+        TitleBar.playerIcon.hidden = (this._dataSource.length < 1);
+      } else {
+        // These buttons aren't necessary when playing a blob or a single track
+        this.shuffleButton.disabled = true;
+        this.repeatButton.disabled = true;
+        this.previousControl.disabled = true;
+        this.nextControl.disabled = true;
+      }
     }
   },
 
@@ -89,6 +97,8 @@ var PlayerView = {
     this.seekRemaining = document.getElementById('player-seek-remaining');
 
     this.playControl = document.getElementById('player-controls-play');
+    this.previousControl = document.getElementById('player-controls-previous');
+    this.nextControl = document.getElementById('player-controls-next');
 
     this.isPlaying = false;
     this.isSeeking = false;
@@ -149,6 +159,23 @@ var PlayerView = {
     );
   },
 
+  setInfo: function pv_setInfo(metadata) {
+    if (typeof ModeManager !== 'undefined') {
+      ModeManager.playerTitle = metadata.title;
+      ModeManager.updateTitle();
+    } else {
+      var titleBar = document.getElementById('title-text');
+
+      titleBar.textContent = metadata.title || unknownTitle;
+      titleBar.dataset.l10nId = metadata.title ? '' : unknownTitleL10nId;
+    }
+
+    this.artist.textContent = metadata.artist || unknownArtist;
+    this.artist.dataset.l10nId = metadata.artist ? '' : unknownArtistL10nId;
+    this.album.textContent = metadata.album || unknownAlbum;
+    this.album.dataset.l10nId = metadata.album ? '' : unknownAlbumL10nId;
+  },
+
   setCoverBackground: function pv_setCoverBackground(index) {
     var realIndex = index % 10;
 
@@ -157,7 +184,7 @@ var PlayerView = {
     this.backgroundIndex = realIndex;
   },
 
-  setCoverImage: function pv_setCoverImage(fileinfo) {
+  setCoverImage: function pv_setCoverImage(fileinfo, backgroundIndex) {
     // Reset the image to be ready for fade-in
     this.coverImage.src = '';
     this.coverImage.classList.remove('fadeIn');
@@ -172,6 +199,17 @@ var PlayerView = {
       evt.target.removeEventListener('load', pv_showImage);
       evt.target.classList.add('fadeIn');
     };
+
+    // backgroundIndex is from the index of sublistView
+    // for playerView to show same default album art (same index)
+    if (backgroundIndex || backgroundIndex === 0) {
+      this.setCoverBackground(backgroundIndex);
+    }
+
+    // We only update the default album art when source type is MIX or SINGLE
+    if (this.sourceType === TYPE_MIX || this.sourceType === TYPE_SINGLE) {
+      this.setCoverBackground(this.currentIndex);
+    }
   },
 
   setOptions: function pv_setOptions(settings) {
@@ -277,9 +315,9 @@ var PlayerView = {
     }
   },
 
-  setAudioSrc: function pv_setAudioSrc(file, playAfterSet) {
+  setAudioSrc: function pv_setAudioSrc(file) {
     var url = URL.createObjectURL(file);
-
+    this.playingBlob = file;
     // Reset src before we set a new source to the audio element
     this.audio.removeAttribute('src');
     this.audio.load();
@@ -288,8 +326,7 @@ var PlayerView = {
     this.audio.src = url;
     this.audio.load();
 
-    if (playAfterSet)
-      this.audio.play();
+    this.audio.play();
     // An object URL must be released by calling URL.revokeObjectURL()
     // when we no longer need them
     this.audio.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
@@ -317,28 +354,9 @@ var PlayerView = {
     if (arguments.length > 0) {
       var songData = this.dataSource[targetIndex];
 
-      ModeManager.playerTitle = songData.metadata.title;
-      ModeManager.updateTitle();
-      this.artist.textContent = songData.metadata.artist || unknownArtist;
-      this.artist.dataset.l10nId =
-        songData.metadata.artist ? '' : unknownArtistL10nId;
-      this.album.textContent = songData.metadata.album || unknownAlbum;
-      this.album.dataset.l10nId =
-        songData.metadata.album ? '' : unknownAlbumL10nId;
       this.currentIndex = targetIndex;
-
-      // backgroundIndex is from the index of sublistView
-      // for playerView to show same default album art (same index)
-      if (backgroundIndex || backgroundIndex === 0) {
-        this.setCoverBackground(backgroundIndex);
-      }
-
-      // We only update the default album art when source type is MIX
-      if (this.sourceType === TYPE_MIX) {
-        this.setCoverBackground(targetIndex);
-      }
-
-      this.setCoverImage(songData);
+      this.setInfo(songData.metadata);
+      this.setCoverImage(songData, backgroundIndex);
 
       // set ratings of the current song
       this.setRatings(songData.metadata.rated);
@@ -348,21 +366,17 @@ var PlayerView = {
       musicdb.updateMetadata(songData.name, songData.metadata);
 
       musicdb.getFile(songData.name, function(file) {
-        this.setAudioSrc(file, true);
-        this.playingBlob = file;
+        this.setAudioSrc(file);
+        // When we need to preview an audio like in picker mode,
+        // we will not autoplay the picked song unless the user taps to play
+        // And we just call pause right after play.
+        if (this.sourceType === TYPE_SINGLE)
+          this.pause();
       }.bind(this));
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
-      // if we reach here, that means we want to a blob
       // When we have to play a blob, we need to parse the metadata
       this.getMetadata(this.dataSource, function(metadata) {
-        var titleBar = document.getElementById('title-text');
-
-        titleBar.textContent = metadata.title || unknownTitle;
-        titleBar.dataset.l10nId = metadata.title ? '' : unknownTitleL10nId;
-        this.artist.textContent = metadata.artist || unknownArtist;
-        this.artist.dataset.l10nId = metadata.artist ? '' : unknownArtistL10nId;
-        this.album.textContent = metadata.album || unknownAlbum;
-        this.album.dataset.l10nId = metadata.album ? '' : unknownAlbumL10nId;
+        this.setInfo(metadata);
 
         // Add the blob from the dataSource to the fileinfo
         // because we want use the cover image which embedded in that blob
@@ -371,7 +385,7 @@ var PlayerView = {
                             name: this.dataSource.name,
                             blob: this.dataSource});
 
-        this.setAudioSrc(this.dataSource, true);
+        this.setAudioSrc(this.dataSource);
       }.bind(this));
     } else {
       // If we reach here, the player is paused so resume it
@@ -391,10 +405,10 @@ var PlayerView = {
   },
 
   next: function pv_next(isAutomatic) {
-    if (this.sourceType === TYPE_BLOB) {
+    if (this.sourceType === TYPE_BLOB || this.sourceType === TYPE_SINGLE) {
       // When the player ends, reassign src it if the dataSource is a blob
+      this.setAudioSrc(this.playingBlob);
       this.pause();
-      this.setAudioSrc(this.dataSource);
       return;
     }
     // We only repeat a song automatically. (when the song is ended)
