@@ -393,7 +393,7 @@ input::-moz-focus-inner {
 }
 
 #back-button[disabled] {
-  background-image: url("images/back-disabled.png");
+  opacity: 0.5;
 }
 
 #forward-button[disabled] {
@@ -407,6 +407,10 @@ input::-moz-focus-inner {
 
 #bookmark-button.bookmarked {
  background-image: url("images/bookmarked.png");
+}
+
+#bookmark-button[disabled] {
+  opacity: 0.5;
 }
 
 #frames {
