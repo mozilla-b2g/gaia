@@ -23,6 +23,7 @@ var lazyLoadFiles = [
   'js/utils.js',
   'js/fixed_header.js',
   'js/activity_picker.js',
+  'js/wbmp.js',
   'js/smil.js',
   'js/link_helper.js',
   'js/action_menu.js',
