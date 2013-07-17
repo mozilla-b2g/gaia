@@ -1476,24 +1476,37 @@ var ThreadUI = global.ThreadUI = {
     var buttonLabel = '';
 
     switch (errorName) {
-      case 'NoSignalError':
-      case 'NotFoundError':
-      case 'UnknownError':
-      case 'InternalError':
-        messageTitle = 'sendGeneralErrorTitle';
-        messageBody = 'sendGeneralErrorBody';
-        buttonLabel = 'sendGeneralErrorBtnOk';
-        break;
       case 'NoSimCardError':
-        messageTitle = 'sendNoSimCardTitle';
-        messageBody = 'sendNoSimCardBody';
+        messageTitle = 'sendNoSimCardTitle2';
+        messageBody = 'sendNoSimCardBody2';
         buttonLabel = 'sendNoSimCardBtnOk';
         break;
       case 'RadioDisabledError':
         messageTitle = 'sendAirplaneModeTitle';
-        messageBody = 'sendAirplaneModeBody';
+        messageBody = 'sendAirplaneModeBody2';
         buttonLabel = 'sendAirplaneModeBtnOk';
         break;
+      case 'InvalidAddressError':
+        messageTitle = 'sendInvalidAddressTitle';
+        messageBody = 'sendInvalidAddressBody';
+        buttonLabel = 'sendInvalidAddressBtnOk';
+        break;
+      case 'NotFoundError':
+        messageTitle = 'sendNotFoundTitle';
+        messageBody = 'sendNotFoundBody';
+        buttonLabel = 'sendNotFoundBtnOk';
+        break;
+      case 'NoSignalError':
+        messageTitle = 'sendNoSignalTitle';
+        messageBody = 'sendNoSignalBody';
+        buttonLabel = 'sendNoSignalBtnOk';
+        break;
+      case 'UnknownError':
+      case 'InternalError':
+      default:
+        messageTitle = 'sendGeneralErrorTitle2';
+        messageBody = 'sendGeneralErrorBody2';
+        buttonLabel = 'sendGeneralErrorBtnOk';
     }
 
     var dialog = new Dialog({
