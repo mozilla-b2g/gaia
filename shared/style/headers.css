@@ -248,25 +248,25 @@
  * Dark skin
  */
 
-.skin-dark .bb-header {
+.bb-dark .bb-header {
   background-image: url(headers/images/ui/dark/header.png);
 }
 
-.skin-dark .bb-header menu .action:last-child {
+.bb-dark .bb-header menu .action:last-child {
   background: url(headers/images/ui/dark/separator.png) no-repeat left center;
   background-size: auto 4.8rem;
 }
 
-.skin-dark .bb-header .action-secondary { /* Secondary actions (cancel, back, menu) */
+.bb-dark .bb-header .action-secondary { /* Secondary actions (cancel, back, menu) */
   background: url(headers/images/ui/dark/separator-large.png) no-repeat 2rem top;
   background-size: 0.2rem 4.8rem;
 }
-.skin-dark .bb-header .action-secondary .icon:after {
+.bb-dark .bb-header .action-secondary .icon:after {
   background-image:  url(headers/images/ui/dark/negative.png);
   background-color: transparent;
 }
 
-.skin-dark .bb-subheader h2 {
+.bb-dark .bb-subheader h2 {
   background: #2e3c3f url(headers/images/ui/organic/subheader.png);
   color: #fff;
   border: none;
@@ -276,27 +276,27 @@
  * Organic skin
  */
 
-.skin-organic .bb-header {
+.bb-organic .bb-header {
   background-image: url(headers/images/ui/organic/noise-pattern.png), url(headers/images/ui/organic/header.png);
   background-size: auto;
 }
 
-.skin-organic .bb-header menu .action:last-child {
+.bb-organic .bb-header menu .action:last-child {
   background: url(headers/images/ui/organic/separator.png) no-repeat left center;
   background-size: auto 4.8rem;
 }
 
-.skin-organic .bb-header .action-secondary { /* Secondary actions (cancel, back, menu) */
+.bb-organic .bb-header .action-secondary { /* Secondary actions (cancel, back, menu) */
   background: url(headers/images/ui/organic/separator-large.png) no-repeat 2rem top;
   background-size: 0.2rem 4.8rem;
 }
 
-.skin-organic .bb-header .action-secondary .icon:after {
+.bb-organic .bb-header .action-secondary .icon:after {
   background: #23292b url(headers/images/ui/organic/noise-pattern.png);
   background-size: auto;
 }
 
-.skin-organic .bb-subheader h2 {
+.bb-organic .bb-subheader h2 {
   background: #5c6a6d url(headers/images/ui/organic/subheader.png);
   color: #fff;
   border: none;
@@ -328,11 +328,11 @@ html[dir="rtl"] .bb-header menu .action:first-child { /* Last-child becomes firs
   z-index: 1;
 }
 
-html[dir="rtl"] .skin-dark .bb-header menu .action:first-child { /* Theme tweak */
+html[dir="rtl"] .bb-dark .bb-header menu .action:first-child { /* Theme tweak */
   background-image: url(headers/images/ui/dark/separator.png);
 }
 
-html[dir="rtl"] .skin-organic .bb-header menu .action:first-child { /* Theme tweak */
+html[dir="rtl"] .bb-organic .bb-header menu .action:first-child { /* Theme tweak */
   background-image: url(headers/images/ui/organic/separator.png);
 }
 
