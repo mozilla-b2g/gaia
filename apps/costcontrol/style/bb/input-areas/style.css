@@ -1,45 +1,46 @@
 /* ----------------------------------
  * INPUT AREAS
  * ---------------------------------- */
- body[role="application"] input:not([type="radio"]),
- body[role="application"] input:not([type="checkbox"]),
- body[role="application"] input:not([type="hidden"]) {
- 	width: 100%;
- 	height: 4rem;
- 	display: block;
- 	-moz-box-sizing: border-box;
- 	padding: 0 0.5rem;
- 	font: 1.4rem/4rem "MozTT", Sans-serif;
- 	border: solid 1px #d1d1d1;
- 	border-radius: 0.3rem;
- 	background: #fff url(images/ui/shadow.png) repeat-x left top;
- }
+body[role="application"] input:not([type="radio"]),
+body[role="application"] input:not([type="checkbox"]),
+body[role="application"] input:not([type="hidden"]) {
+	width: 100%;
+	height: 4rem;
+	display: block;
+	-moz-box-sizing: border-box;
+	padding: 0 0.5rem;
+	font-size: 1.4rem;
+	line-height: 4rem;
+	border: solid 1px #d1d1d1;
+	border-radius: 0.3rem;
+	background: #fff url(images/ui/shadow.png) repeat-x left top;
+}
 
- body[role="application"] input:not([type="radio"]):-moz-placeholder,
- body[role="application"] input:not([type="checkbox"]):-moz-placeholder,
- body[role="application"] input:not([type="hidden"]):-moz-placeholder {
- 	color: #666;
- }
+body[role="application"] input:not([type="radio"]):-moz-placeholder,
+body[role="application"] input:not([type="checkbox"]):-moz-placeholder,
+body[role="application"] input:not([type="hidden"]):-moz-placeholder {
+	color: #666;
+}
 
- body[role="application"] label {
-  	display: block;
-  	position: relative;
- }
+body[role="application"] label {
+	display: block;
+	position: relative;
+}
 
- body[role="application"] label .clear {
-  	width: 1.7rem;
-  	height: 1.7rem;
-  	padding: 0;
-  	margin: -0.8rem 0 0;
-  	font: 0/0 a;
-  	border: none;
-  	position: absolute;
-  	right: 0.5rem;
-  	top: 50%;
-  	background: url(images/icons/clear.png) no-repeat left top;
-  	opacity: 0;
-  	pointer-events: none;
- }
+body[role="application"] label .clear {
+	width: 1.7rem;
+	height: 1.7rem;
+	padding: 0;
+	margin: -0.8rem 0 0;
+	font: 0/0 a;
+	border: none;
+	position: absolute;
+	right: 0.5rem;
+	top: 50%;
+	background: url(images/icons/clear.png) no-repeat left top;
+	opacity: 0;
+	pointer-events: none;
+}
 
 body[role="application"] label .clear[data-state="active"] {
 	opacity: 1;
@@ -54,7 +55,8 @@ body[role="application"] .fieldbox {
      border-radius: 0.3rem;
      border: 1px solid #C8C8C8;
      overflow: hidden;
-     font: 1.4rem/1em "MozTT", Sans-serif;
+     font-size: 1.4rem;
+     line-height: 1em;
 }
 
 body[role="application"] .fieldbox dt {

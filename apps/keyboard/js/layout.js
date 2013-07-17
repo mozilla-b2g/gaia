@@ -54,6 +54,7 @@ const Keyboards = {
   },
   numberLayout: {
     width: 9,
+    keyClassName: 'big-key special-key',
     keys: [
       [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
       [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],
@@ -71,6 +72,7 @@ const Keyboards = {
   },
   pinLayout: {
     width: 9,
+    keyClassName: 'big-key special-key',
     keys: [
       [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
       [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],
@@ -84,6 +86,7 @@ const Keyboards = {
   },
   telLayout: {
     width: 9,
+    keyClassName: 'big-key special-key',
     keys: [
       [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
       [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],
@@ -105,7 +108,7 @@ const Keyboards = {
   en: {
     label: 'English',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    autoCorrectLanguage: 'en_us',
     menuLabel: 'English',
     alt: {
       a: 'áàâäåãāæ',
@@ -115,7 +118,7 @@ const Keyboards = {
       o: 'öóòôōœøɵ',
       u: 'üúùûū',
       s: 'ßśš$',
-      S: 'ŚŠŞ',
+      S: 'ŚŠ$',
       n: 'ñń',
       l: 'ł£',
       y: 'ÿ¥',
@@ -131,7 +134,7 @@ const Keyboards = {
       ], [
         { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
         { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
-        { value: 'l' }, { value: "'", keyCode: 39, hidden: ['email', 'url'] },
+        { value: 'l' },
         { value: ':', visible: ['url']}, { value: '_', visible: ['email']}
       ], [
         { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
@@ -185,7 +188,7 @@ const Keyboards = {
     label: 'Spanish',
     menuLabel: 'Español',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    autoCorrectLanguage: 'es',
     alt: {
       a: 'áªàâäåãāæ',
       c: 'ç',
@@ -284,7 +287,7 @@ const Keyboards = {
     label: 'Portuguese',
     menuLabel: 'Português',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    autoCorrectLanguage: 'pt_br',
     alt: {
       a: 'áãàâäåæª',
       e: 'éêèęėēëɛ',
@@ -380,6 +383,7 @@ const Keyboards = {
   cz: {
     label: 'Czech',
     menuLabel: 'Česká',
+    imEngine: 'latin',
     alt: {
       a: 'á',
       c: 'č',
@@ -419,7 +423,7 @@ const Keyboards = {
     label: 'French',
     menuLabel: 'Français',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    autoCorrectLanguage: 'fr',
     alt: {
       a: 'àâæáãäåā',
       c: 'çćč',
@@ -429,7 +433,8 @@ const Keyboards = {
       u: 'ùûüúū',
       s: 'śšşß',
       S: 'ŚŠŞ',
-      n: 'ńñň'
+      n: 'ńñň',
+      '.': ',?!-;:'
     },
     keys: [
       [
@@ -455,7 +460,7 @@ const Keyboards = {
     label: 'German',
     menuLabel: 'Deutsch',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    autoCorrectLanguage: 'de',
     alt: {
       a: 'äàáâãåāæ',
       c: 'çćč',
@@ -496,7 +501,7 @@ const Keyboards = {
     keys: [
       [
         { value: 'ק' }, { value: 'ר' }, { value: 'א' }, { value: 'ט' },
-        { value: 'ו' }, { value: 'ו' }, { value: 'ם' }, { value: 'פ' },
+        { value: 'ו' }, { value: 'ן' }, { value: 'ם' }, { value: 'פ' },
         { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: 'ש' }, { value: 'ד' }, { value: 'ג' }, { value: 'כ' },
@@ -515,6 +520,7 @@ const Keyboards = {
   nb: {
     label: 'Norwegian Bokmal',
     menuLabel: 'Norsk',
+    imEngine: 'latin',
     alt: {
       a: 'äáàâąã',
       e: 'éèêëę€',
@@ -557,6 +563,7 @@ const Keyboards = {
   ru: {
     label: 'Russian',
     menuLabel: 'Pусский',
+    imEngine: 'latin',
     alt: {
       // incomplete
     },
@@ -583,7 +590,8 @@ const Keyboards = {
   },
   'sr-Cyrl': {
     label: 'Serbian (Cyrillic)',
-    menuLabel: 'Cрпска ћирилица',
+    menuLabel: 'Српски (ћирилица)',
+    imEngine: 'latin',
     alt: {
       // incomplete
     },
@@ -610,7 +618,8 @@ const Keyboards = {
   },
   'sr-Latn': {
     label: 'Serbian (Latin)',
-    menuLabel: 'srpski',
+    menuLabel: 'Srpski',
+    imEngine: 'latin',
     alt: {
       c: 'čć',
       d: 'đ',
@@ -669,6 +678,7 @@ const Keyboards = {
   },
   sk: {
     label: 'Slovak',
+    imEngine: 'latin',
     menuLabel: 'Slovenčina',
     alt: {
       a: 'áàâąãäæ',
@@ -707,6 +717,7 @@ const Keyboards = {
   },
   tr: {
     label: 'Turkish',
+    imEngine: 'latin',
     menuLabel: 'Türkçe',
     upperCase: {
       'i': 'İ'
@@ -746,7 +757,7 @@ const Keyboards = {
     label: 'English - Dvorak',
     menuLabel: 'Dvorak',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
+    autoCorrectLanguage: 'en_us',
     alt: {
       a: 'àáâãäåāæ',
       c: 'çćč',
@@ -1050,6 +1061,7 @@ const Keyboards = {
   el: {
     label: 'Greek',
     menuLabel: 'Greek',
+    imEngine: 'latin',
     alt: {
       α: 'ά',
       ε: 'έ€',
@@ -1085,8 +1097,8 @@ const Keyboards = {
   pl: {
     label: 'Polish',
     imEngine: 'latin',
+    autoCorrectLanguage: 'pl',
     menuLabel: 'Polski',
-    needsCandidatePanel: true,
     alt: {
       a: 'ąáàâäåãāæ',
       c: 'ćčç',
@@ -1272,7 +1284,6 @@ const Keyboards = {
   ca: {
     label: 'Catalan',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
     menuLabel: 'català',
     alt: {
       a: 'àáâäåãāæª@',
@@ -1302,7 +1313,8 @@ const Keyboards = {
       ], [
         { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
         { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
-        { value: 'l' }, { value: 'ç' }, { value: "'", keyCode: 39, hidden: ['email', 'url'] },
+        { value: 'l' }, { value: 'ç' },
+        { value: "'", keyCode: 39, hidden: ['email', 'url'] },
         { value: ':', visible: ['url']}, { value: '_', visible: ['email']}
       ], [
         { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
@@ -1327,7 +1339,7 @@ const Keyboards = {
         '8': '8è 8a 8é',
         '9': '9è 9a 9é',
         '€': '$ £ ¥ R$',
-	'-': '—_',
+        '-': '—_',
         '?': '¿',
         '"': '«»',
         '.': ',;:·…',

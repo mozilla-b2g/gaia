@@ -90,13 +90,14 @@ var Contacts = {
         filterValue: number
       };
     } else {
-      // get the phone number variants
+      // get the phone number variants (for the Facebook lookup)
       variants = SimplePhoneMatcher.generateVariants(number);
+      var sanitizedNumber = SimplePhoneMatcher.sanitizedNumber(number);
 
       options = {
         filterBy: ['tel'],
         filterOp: 'match',
-        filterValue: variants[0] // matching the shortest variant
+        filterValue: sanitizedNumber
       };
     }
 

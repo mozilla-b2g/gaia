@@ -195,8 +195,12 @@ suite('lib/simple_phone_matcher', function() {
   suite('best match search', function() {
     var variants;
 
-    function testBestMatch(bestMatchIndex, localIndex, variants, matches) {
+    function testBestMatch(totalMatchNum, allMatches, 
+      bestMatchIndex, localIndex, 
+      variants, matches) {
       var result = {
+        totalMatchNum: totalMatchNum,
+        allMatches: allMatches,
         bestMatchIndex: bestMatchIndex,
         localIndex: localIndex
       };
@@ -209,21 +213,28 @@ suite('lib/simple_phone_matcher', function() {
 
     test('should return the index with the longest match', function() {
       var matches = [['1118876', '12333'], ['111', '8876'], ['0055971118876']];
-      testBestMatch(2, 0, variants, matches);
+      testBestMatch(4, [[0], [0, 1], [0]], 2, 0, variants, matches);
     });
 
     test('should sanitize matches', function() {
       var matches = [['1118876', '12333'], ['+55 (97) 111 8876']];
-      testBestMatch(1, 0, variants, matches);
+      testBestMatch(2 , [[0], [0]], 1, 0, variants, matches);
     });
 
     test('should be compatible with contains matches', function() {
       var matches = [['112233', '118876'], ['000']];
-      testBestMatch(0, 1, variants, matches);
+      testBestMatch(2 , [[1], [0]], 0, 1, variants, matches);
 
       variants = ['1118876', '0971118876'];
       matches = [['0055971118876', '12333'], ['000'], ['12345']];
-      testBestMatch(0, 0, variants, matches);
+      testBestMatch(3, [[0], [0], [0]], 0, 0, variants, matches);
+    });
+
+    test('should return the first element as best match in the worst case',
+    function() {
+      var variants = [];
+      var matches = [['112233', '118876'], ['000']];
+      testBestMatch(2, [[0], [0]], 0, 0, variants, matches);
     });
   });
 });

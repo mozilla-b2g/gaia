@@ -19,18 +19,21 @@ contacts.Settings = (function() {
     fbUpdateButton,
     fbOfflineMsg,
     noSimMsg,
-    noSdMsg,
+    noMemoryCardMsg,
     fbTotalsMsg,
     fbPwdRenewMsg,
     fbImportedValue,
     newOrderByLastName = null,
-    ORDER_KEY = 'order.lastname';
+    ORDER_KEY = 'order.lastname',
+    PENDING_LOGOUT_KEY = 'pendingLogout',
+    importSources;
 
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
     // To listen to card state changes is needed for enabling import from SIM
-    var mobileConn = navigator.mozMobileConnection;
-    mobileConn.oncardstatechange = Contacts.cardStateChanged;
+    if (IccHelper.enabled) {
+      IccHelper.oncardstatechange = Contacts.cardStateChanged;
+    }
     fb.init(function onFbInit() {
       initContainers();
     });
@@ -67,11 +70,11 @@ contacts.Settings = (function() {
 
     noSimMsg = document.querySelector('#no-sim');
 
-    sdImportLink = document.querySelector('[data-l10n-id="importSd"]');
+    sdImportLink = document.querySelector('[data-l10n-id="importMemoryCard"]');
     sdImportLink.addEventListener('click', function onSimImportHandler() {
       window.setTimeout(onSdImport, 0);
     });
-    noSdMsg = document.querySelector('#no-sd');
+    noMemoryCardMsg = document.querySelector('#no-memorycard');
 
     // Gmail & Hotmail import
     importLiveButton = document.querySelector('[data-l10n-id="importOutlook"]');
@@ -79,6 +82,8 @@ contacts.Settings = (function() {
 
     importLiveButton.onclick = Contacts.extServices.importLive;
     importGmailButton.onclick = Contacts.extServices.importGmail;
+
+    importSources = document.querySelectorAll('#importSources li[data-source]');
 
     if (fb.isEnabled) {
       fbImportOption = document.querySelector('#settingsFb');
@@ -113,14 +118,12 @@ contacts.Settings = (function() {
   };
 
   var checkSIMCard = function checkSIMCard() {
-    var conn = window.navigator.mozMobileConnection;
-
-    if (!conn) {
+    if (!IccHelper.enabled) {
       enableSIMImport(false);
       return;
     }
 
-    enableSIMImport(conn.cardState);
+    enableSIMImport(IccHelper.cardState);
   };
 
   // Disables/Enables the actions over the sim import functionality
@@ -148,12 +151,12 @@ contacts.Settings = (function() {
     if (cardState) {
       importStorage.classList.add('importService');
       importStorageButton.removeAttribute('disabled');
-      noSdMsg.classList.add('hide');
+      noMemoryCardMsg.classList.add('hide');
     }
     else {
       importStorage.classList.remove('importService');
       importStorageButton.setAttribute('disabled', 'disabled');
-      noSdMsg.classList.remove('hide');
+      noMemoryCardMsg.classList.remove('hide');
     }
   };
 
@@ -374,13 +377,29 @@ contacts.Settings = (function() {
 
     var wakeLock = navigator.requestWakeLock('cpu');
 
+    var cancelled = false, contactsRead = false;
     var importer = new SimContactsImporter();
+    utils.overlay.showMenu();
+    utils.overlay.oncancel = function oncancel() {
+      cancelled = true;
+      importer.finish();
+      if (contactsRead) {
+        // A message about canceling will be displayed while the current chunk
+        // is being cooked
+        progress.setClass('activityBar');
+        utils.overlay.hideMenu();
+        progress.setHeaderMsg(_('messageCanceling'));
+      } else {
+        importer.onfinish(); // Early return while reading contacts
+      }
+    };
     var totalContactsToImport;
     var importedContacts = 0;
     // Delay for showing feedback to the user after importing
     var DELAY_FEEDBACK = 200;
 
     importer.onread = function import_read(n) {
+      contactsRead = true;
       totalContactsToImport = n;
       progress.setClass('progressBar');
       progress.setHeaderMsg(_('simContacts-importing'));
@@ -391,14 +410,22 @@ contacts.Settings = (function() {
       window.setTimeout(function onfinish_import() {
         resetWait(wakeLock);
         Contacts.navigation.home();
-        Contacts.showStatus(_('simContacts-imported3',
-          {n: importedContacts}));
+        if (importedContacts !== 0) {
+          window.importUtils.setTimestamp('sim');
+          Contacts.showStatus(_('simContacts-imported3', {
+            n: importedContacts
+          }));
+        }
       }, DELAY_FEEDBACK);
+
+      importer.onfinish = null;
     };
 
     importer.onimported = function imported_contact() {
       importedContacts++;
-      progress.update();
+      if (!cancelled) {
+        progress.update();
+      }
     };
 
     importer.onerror = function import_error() {
@@ -425,7 +452,15 @@ contacts.Settings = (function() {
   };
 
   var onSdImport = function onSdImport() {
-    var progress = Contacts.showOverlay(_('sdContacts-reading'), 'activityBar');
+    var cancelled = false;
+    var importer = null;
+    var progress = Contacts.showOverlay(
+      _('memoryCardContacts-reading'), 'activityBar');
+    utils.overlay.showMenu();
+    utils.overlay.oncancel = function() {
+      cancelled = true;
+      importer ? importer.finish() : Contacts.hideOverlay();
+    };
     var wakeLock = navigator.requestWakeLock('cpu');
 
     var importedContacts = 0;
@@ -441,6 +476,9 @@ contacts.Settings = (function() {
       if (err)
         return import_error(err);
 
+      if (cancelled)
+        return;
+
       if (fileArray.length)
         utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
       else
@@ -451,7 +489,10 @@ contacts.Settings = (function() {
       if (err)
         return import_error(err);
 
-      var importer = new VCFReader(text);
+      if (cancelled)
+        return;
+
+      importer = new VCFReader(text);
       if (!text || !importer)
         return import_error('No contacts were found.');
 
@@ -461,9 +502,10 @@ contacts.Settings = (function() {
 
       importer.process(function import_finish() {
         window.setTimeout(function onfinish_import() {
+          window.importUtils.setTimestamp('sd');
           resetWait(wakeLock);
           Contacts.navigation.home();
-          Contacts.showStatus(_('sdContacts-imported3', {
+          Contacts.showStatus(_('memoryCardContacts-imported3', {
             n: importedContacts
           }));
         }, DELAY_FEEDBACK);
@@ -472,7 +514,7 @@ contacts.Settings = (function() {
 
     function import_read(n) {
       progress.setClass('progressBar');
-      progress.setHeaderMsg(_('sdContacts-importing'));
+      progress.setHeaderMsg(_('memoryCardContacts-importing'));
       progress.setTotal(n);
     }
 
@@ -498,7 +540,7 @@ contacts.Settings = (function() {
           sdImportLink.click();
         }
       };
-      ConfirmDialog.show(null, _('sdContacts-error'), cancel, retry);
+      ConfirmDialog.show(null, _('memoryCardContacts-error'), cancel, retry);
       Contacts.hideOverlay();
     }
   };
@@ -508,7 +550,8 @@ contacts.Settings = (function() {
     if (newOrderByLastName != null &&
       newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
-      contacts.List.load();
+      // Force the reset of the dom, we know that we changed the order
+      contacts.List.load(null, true);
       orderByLastName = newOrderByLastName;
     }
 
@@ -516,6 +559,9 @@ contacts.Settings = (function() {
   };
 
   var checkOnline = function() {
+    // Perform pending automatic logouts
+    window.setTimeout(automaticLogout, 0);
+
     // Facebook settings
     if (fb.isEnabled) {
       if (navigator.onLine === true) {
@@ -541,11 +587,77 @@ contacts.Settings = (function() {
     }
   };
 
+  function saveStatus(data) {
+    window.asyncStorage.setItem(PENDING_LOGOUT_KEY, data);
+  }
+
+  function automaticLogout() {
+    if (navigator.offLine === true) {
+      return;
+    }
+
+    LazyLoader.load(['/contacts/js/utilities/http_rest.js'], function() {
+      window.asyncStorage.getItem(PENDING_LOGOUT_KEY, function(data) {
+        if (!data) {
+          return;
+        }
+        var services = Object.keys(data);
+        var numResponses = 0;
+
+        services.forEach(function(service) {
+          var url = data[service];
+
+          var callbacks = {
+            success: function logout_success() {
+              numResponses++;
+              window.console.log('Successfully logged out: ', service);
+              delete data[service];
+              if (numResponses === services.length) {
+                saveStatus(data);
+              }
+            },
+            error: function logout_error() {
+              numResponses++;
+              if (numResponses === services.length) {
+                saveStatus(data);
+              }
+            },
+            timeout: function logout_timeout() {
+              numResponses++;
+              if (numResponses === services.length) {
+                saveStatus(data);
+              }
+            }
+          };
+          Rest.get(url, callbacks);
+        });
+      });
+    });
+  }
+
+  var updateTimestamps = function updateTimestamps() {
+    Array.prototype.forEach.call(importSources, function(node) {
+      window.importUtils.getTimestamp(node.dataset.source,
+                                      function(time) {
+        var spanID = 'notImported';
+        if (time) {
+          spanID = 'imported';
+          var timeElement = node.querySelector('p > time');
+          timeElement.setAttribute('datetime',
+                                             (new Date(time)).toLocaleString());
+          timeElement.textContent = utils.time.pretty(time);
+        }
+        node.querySelector('p > span').textContent = _(spanID);
+      });
+    });
+  };
+
   var refresh = function refresh() {
     getData();
     checkOnline();
     checkSIMCard();
     enableStorageImport(utils.sdcard.checkStorageCard());
+    updateTimestamps();
   };
 
   return {
@@ -553,6 +665,7 @@ contacts.Settings = (function() {
     'close': close,
     'refresh': refresh,
     'onLineChanged': checkOnline,
-    'cardStateChanged': checkSIMCard
+    'cardStateChanged': checkSIMCard,
+    'updateTimestamps': updateTimestamps
   };
 })();

@@ -76,20 +76,21 @@ Evme.SearchHistory = new function Evme_SearchHistory() {
             
         }
         
-        Evme.Storage.add(STORAGE_KEY, historyString);
+        Evme.Storage.set(STORAGE_KEY, historyString);
     }
     
     function populate() {
-        var fromStorage = Evme.Storage.get(STORAGE_KEY);
-        if (fromStorage) {
-            try {
-                history = JSON.parse(fromStorage);
-                trim();
-            } catch(ex) {
+        Evme.Storage.get(STORAGE_KEY, function storageGot(fromStorage) {
+            if (fromStorage) {
+                try {
+                    history = JSON.parse(fromStorage);
+                    trim();
+                } catch(ex) {
+                    history = [];
+                }
+            } else {
                 history = [];
             }
-        } else {
-            history = [];
-        }
+        });
     }
 }

@@ -3,32 +3,12 @@
   <head>
     <meta charset="utf-8">
     <title>Select test</title>
+    <script defer src="../js/select.js"></script>
     <style>
       body, input, select {
         font-size: 1.5em;
       }
     </style>
-
-    <script>
-      function changeTest(evt) {
-        console.log('++select++ onchange: ' + this.selectedIndex);
-      }
-
-      function blurTest(evt) {
-        console.log('++select++ onblur: ' + this.id);
-      }
-
-      window.onload = function onload() {
-	  var elementList = ['singleSel', 'multiSel', 'sizeSel'];
-	  elementList.forEach(function(elementId) {
-	      console.log('elementId: ' + elementId);
-	      document.getElementById(elementId).onchange = changeTest;
-	      document.getElementById(elementId).addEventListener('blur', blurTest);
-	  });
-      }
-
-
-    </script>
   </head>
   <body>
     <ul>

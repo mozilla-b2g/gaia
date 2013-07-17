@@ -221,6 +221,7 @@ suiteGroup('Views.Settings', function() {
     });
 
     test('remove', function() {
+      store.emit('preRemove', models.first._id);
       store.emit('remove', models.first._id);
       assert.equal(children.length, 0);
     });

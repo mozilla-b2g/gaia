@@ -14,6 +14,9 @@ Cu.import("resource://gre/modules/ObjectWrapper.jsm");
 XPCOMUtils.defineLazyServiceGetter(this, "cpmm",
   "@mozilla.org/childprocessmessagemanager;1", "nsIMessageSender");
 
+XPCOMUtils.defineLazyServiceGetter(this, "tm",
+  "@mozilla.org/thread-manager;1", "nsIThreadManager");
+
 // -----------------------------------------------------------------------
 // MozKeyboard
 // -----------------------------------------------------------------------
@@ -47,28 +50,44 @@ MozKeyboard.prototype = {
 
     Services.obs.addObserver(this, "inner-window-destroyed", false);
     cpmm.addMessageListener('Keyboard:FocusChange', this);
+    cpmm.addMessageListener('Keyboard:SelectionChange', this);
 
     this._window = win;
     this._utils = win.QueryInterface(Ci.nsIInterfaceRequestor)
                      .getInterface(Ci.nsIDOMWindowUtils);
     this.innerWindowID = this._utils.currentInnerWindowID;
     this._focusHandler = null;
+    this._selectionHandler = null;
+    this._selectionStart = -1;
+    this._selectionEnd = -1;
   },
 
   uninit: function mozKeyboardUninit() {
     Services.obs.removeObserver(this, "inner-window-destroyed");
     cpmm.removeMessageListener('Keyboard:FocusChange', this);
+    cpmm.removeMessageListener('Keyboard:SelectionChange', this);
 
     this._window = null;
     this._utils = null;
     this._focusHandler = null;
+    this._selectionHandler = null;
   },
 
   sendKey: function mozKeyboardSendKey(keyCode, charCode) {
     charCode = (charCode == undefined) ? keyCode : charCode;
-    ["keydown", "keypress", "keyup"].forEach((function sendKey(type) {
-      this._utils.sendKeyEvent(type, keyCode, charCode, null);
-    }).bind(this));
+
+    let mainThread = tm.mainThread;
+    let utils = this._utils;
+
+    function send(type) {
+      mainThread.dispatch(function() {
+	utils.sendKeyEvent(type, keyCode, charCode, null);
+      }, mainThread.DISPATCH_NORMAL);
+    }
+
+    send("keydown");
+    send("keypress");
+    send("keyup");
   },
 
   setSelectedOption: function mozKeyboardSetSelectedOption(index) {
@@ -89,6 +108,29 @@ MozKeyboard.prototype = {
     });
   },
 
+  set onselectionchange(val) {
+    this._selectionHandler = val;
+  },
+
+  get onselectionchange() {
+    return this._selectionHandler;
+  },
+
+  get selectionStart() {
+    return this._selectionStart;
+  },
+
+  get selectionEnd() {
+    return this._selectionEnd;
+  },
+
+  setSelectionRange: function mozKeyboardSetSelectionRange(start, end) {
+    cpmm.sendAsyncMessage('Keyboard:SetSelectionRange', {
+      'selectionStart': start,
+      'selectionEnd': end
+    });
+  },
+
   removeFocus: function mozKeyboardRemoveFocus() {
     cpmm.sendAsyncMessage('Keyboard:RemoveFocus', {});
   },
@@ -101,18 +143,51 @@ MozKeyboard.prototype = {
     return this._focusHandler;
   },
 
+  replaceSurroundingText: function mozKeyboardReplaceSurroundingText(
+    text, beforeLength, afterLength) {
+    cpmm.sendAsyncMessage('Keyboard:ReplaceSurroundingText', {
+      'text': text || '',
+      'beforeLength': (typeof beforeLength === 'number' ? beforeLength : 0),
+      'afterLength': (typeof afterLength === 'number' ? afterLength: 0)
+    });
+  },
+
   receiveMessage: function mozKeyboardReceiveMessage(msg) {
-    let handler = this._focusHandler;
-    if (!handler || !(handler instanceof Ci.nsIDOMEventListener))
-      return;
+    if (msg.name == "Keyboard:FocusChange") {
+       let msgJson = msg.json;
+       if (msgJson.type != "blur") {
+         this._selectionStart = msgJson.selectionStart;
+         this._selectionEnd = msgJson.selectionEnd;
+       } else {
+         this._selectionStart = 0;
+         this._selectionEnd = 0;
+       }
 
-    let detail = {
-      "detail": msg.json
-    };
+      let handler = this._focusHandler;
+      if (!handler || !(handler instanceof Ci.nsIDOMEventListener))
+        return;
 
-    let evt = new this._window.CustomEvent("focuschanged",
-                                           ObjectWrapper.wrap(detail, this._window));
-    handler.handleEvent(evt);
+      let detail = {
+        "detail": msgJson
+      };
+
+      let evt = new this._window.CustomEvent("focuschanged",
+          ObjectWrapper.wrap(detail, this._window));
+      handler.handleEvent(evt);
+    } else if (msg.name == "Keyboard:SelectionChange") {
+      let msgJson = msg.json;
+
+      this._selectionStart = msgJson.selectionStart;
+      this._selectionEnd = msgJson.selectionEnd;
+
+      let handler = this._selectionHandler;
+      if (!handler || !(handler instanceof Ci.nsIDOMEventListener))
+        return;
+
+      let evt = new this._window.CustomEvent("selectionchange",
+          ObjectWrapper.wrap({}, this._window));
+      handler.handleEvent(evt);
+    }
   },
 
   observe: function mozKeyboardObserve(subject, topic, data) {
@@ -123,4 +198,3 @@ MozKeyboard.prototype = {
 };
 
 this.NSGetFactory = XPCOMUtils.generateNSGetFactory([MozKeyboard]);
-

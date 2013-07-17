@@ -130,6 +130,18 @@ var mozFMRadio = navigator.mozFM || navigator.mozFMRadio || {
   }
 };
 
+// XXX fake mozSetting object for UI testing on PC
+var mozSettings = navigator.mozSettings || {
+  addObserver: function settings_addObserver(key, callback) {},
+  createLock: function settings_createLock() {
+    return {
+      get: function() {
+        return {};
+      }
+    };
+  }
+};
+
 function updateFreqUI() {
   historyList.add(mozFMRadio.frequency);
   frequencyDialer.setFrequency(mozFMRadio.frequency);
@@ -149,6 +161,10 @@ function updateAntennaUI() {
   $('antenna-warning').hidden = mozFMRadio.antennaAvailable;
 }
 
+function updateAirplaneModeUI() {
+  $('airplane-mode-warning').hidden = !rilDisabled;
+}
+
 var enabling = false;
 function updateFrequencyBarUI() {
   var frequencyBar = $('frequency-bar');
@@ -165,7 +181,11 @@ function updateEnablingState(enablingState) {
   updateFrequencyBarUI();
 }
 
+var rilDisabled = false;
 function enableFMRadio(frequency) {
+  if (rilDisabled)
+    return;
+
   var request = mozFMRadio.enable(frequency);
   // Request might fail, see bug862672
   request.onerror = function onerror_enableFMRadio(event) {
@@ -748,6 +768,13 @@ function init() {
     }
   };
 
+  // Disable the power button and the fav list when the airplane mode is on.
+  updateAirplaneModeUI();
+  mozSettings.addObserver('ril.radio.disabled', function(event) {
+    rilDisabled = event.settingValue;
+    updateAirplaneModeUI();
+  });
+
   historyList.init(function hl_ready() {
     if (mozFMRadio.antennaAvailable) {
       // Enable FM immediately
@@ -770,7 +797,14 @@ function init() {
 }
 
 window.addEventListener('load', function(e) {
-  init();
+  var req = mozSettings.createLock().get('ril.radio.disabled');
+  req.onsuccess = function() {
+    rilDisabled = req.result['ril.radio.disabled'];
+    init();
+  };
+  req.onerror = function() {
+    init();
+  };
 }, false);
 
 // Turn off radio immediately when window is unloaded.

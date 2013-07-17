@@ -13,7 +13,6 @@
  */
 
 var CostControl = (function() {
-
   'use strict';
 
   var costcontrol;
@@ -30,7 +29,6 @@ var CostControl = (function() {
       costcontrol = {
         request: request,
         isBalanceRequestSMS: isBalanceRequestSMS,
-        getApplicationMode: getApplicationMode,
         getDataUsageWarning: function _getDataUsageWarning() {
           return 0.8;
         }
@@ -44,10 +42,10 @@ var CostControl = (function() {
     ConfigManager.requestAll(setupCostControl);
   }
 
-  var sms, connection, telephony, statistics;
+  var mobileMessageManager, connection, telephony, statistics;
   function loadAPIs() {
-    if ('mozSms' in window.navigator) {
-      sms = window.navigator.mozSms;
+    if ('mozMobileMessage' in window.navigator) {
+      mobileMessageManager = window.navigator.mozMobileMessage;
     }
 
     if ('mozMobileConnection' in window.navigator) {
@@ -63,24 +61,9 @@ var CostControl = (function() {
 
   // OTHER LOGIC
 
-  // Get application mode based on the current SIM, OEM configuration and
-  // plantype. Can be: DATA_USAGE_ONLY, PREPAID and POSTPAID.
-  function getApplicationMode(settings) {
-    var simMCC = connection.iccInfo.mcc;
-    var simMNC = connection.iccInfo.mnc;
-    var enabledNetworks = ConfigManager.configuration.enable_on;
-    if (!(simMCC in enabledNetworks) ||
-        (enabledNetworks[simMCC].indexOf(simMNC) === -1)) {
-      return 'DATA_USAGE_ONLY';
-    }
-
-    return settings.plantype.toUpperCase();
-  }
-
   // Check if a SMS matches the form of a balance request
-  function isBalanceRequestSMS(sms, configuration) {
-    return sms.body === configuration.balance.text &&
-           sms.receiver === configuration.balance.destination;
+  function isBalanceRequestSMS(message, configuration) {
+    return message.receiver === configuration.balance.destination;
   }
 
   // Perform a request. They must be specified via a request object with:
@@ -103,8 +86,9 @@ var CostControl = (function() {
       switch (requestObj.type) {
         case 'balance':
           // Check service
-          var issues = getServiceIssues(settings);
-          if (issues) {
+          var issues = getServiceIssues(configuration, settings);
+          var canBeIgnoredByForcing = (issues === 'minimum_delay' && force);
+          if (issues && !canBeIgnoredByForcing) {
             result.status = 'error';
             result.details = issues;
             result.data = settings.lastBalance;
@@ -127,9 +111,9 @@ var CostControl = (function() {
 
           // Check in-progress
           var isWaiting = settings.waitingForBalance !== null;
-          var timeout = checkEnoughDelay(BALANCE_TIMEOUT,
-                                         settings.lastBalanceRequest);
-          if (isWaiting && !timeout && !force) {
+          var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
+                                                 settings.lastBalanceRequest);
+          if (isWaiting && !timeout) {
             result.status = 'in_progress';
             result.data = settings.lastBalance;
             if (callback) {
@@ -144,8 +128,8 @@ var CostControl = (function() {
 
         case 'topup':
           // Check service
-          var issues = getServiceIssues(settings);
-          if (issues) {
+          var issues = getServiceIssues(configuration, settings);
+          if (issues && issues !== 'minimum_delay') {
             result.status = 'error';
             result.details = issues;
             result.data = settings.lastDataUsage;
@@ -168,8 +152,8 @@ var CostControl = (function() {
 
           // Check in-progress
           var isWaiting = settings.waitingForTopUp !== null;
-          var timeout = checkEnoughDelay(BALANCE_TIMEOUT,
-                                         settings.lastTopUpRequest);
+          var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
+                                                 settings.lastTopUpRequest);
           if (isWaiting && !timeout && !force) {
             result.status = 'in_progress';
             result.data = settings.lastDataUsage;
@@ -202,15 +186,8 @@ var CostControl = (function() {
     });
   }
 
-  var airplaneMode = false;
-  SettingsListener.observe('ril.radio.disabled', false,
-    function _onValue(value) {
-      airplaneMode = value;
-    }
-  );
-
   // Check service status and return the most representative issue if there is
-  function getServiceIssues(settings) {
+  function getServiceIssues(configuration, settings) {
     if (airplaneMode) {
       return 'airplane_mode';
     }
@@ -219,7 +196,7 @@ var CostControl = (function() {
       return 'no_service';
     }
 
-    var mode = getApplicationMode(settings);
+    var mode = ConfigManager.getApplicationMode();
     if (mode !== 'PREPAID') {
       return 'no_service';
     }
@@ -232,6 +209,16 @@ var CostControl = (function() {
     var voice = connection.voice;
     if (voice.signalStrength === null) {
       return 'no_coverage';
+    }
+
+    if (configuration.balance.minimum_delay) {
+      var isMinimumDelayHonored = Toolkit.checkEnoughDelay(
+        configuration.balance.minimum_delay,
+        settings.lastBalanceRequest
+      );
+      if (!isMinimumDelayHonored) {
+        return 'minimum_delay';
+      }
     }
 
     return '';
@@ -258,7 +245,7 @@ var CostControl = (function() {
     result.data = settings.lastBalance;
 
     // Send request SMS
-    var newSMS = sms.send(
+    var newSMS = mobileMessageManager.send(
       configuration.balance.destination,
       configuration.balance.text
     );
@@ -315,7 +302,7 @@ var CostControl = (function() {
     debug('Requesting TopUp with code', code, '...');
 
     // TODO: Ensure is free
-    var newSMS = sms.send(
+    var newSMS = mobileMessageManager.send(
       configuration.topup.destination,
       configuration.topup.text.replace(/\&code/g, code)
     );
@@ -417,7 +404,7 @@ var CostControl = (function() {
           // Finally, store the result and continue
           mobileRequest.onsuccess = function _onMobileData() {
             var fakeTag = {
-              sim: connection.iccInfo.iccid,
+              sim: IccHelper.iccInfo.iccid,
               start: settings.lastDataReset,
               fixing: [[settings.lastDataReset, wifiFixing || 0]]
             };
@@ -493,6 +480,18 @@ var CostControl = (function() {
     return [output, accum];
   }
 
-  return { getInstance: getInstance };
+  var airplaneMode = false;
+  function init() {
+    SettingsListener.observe('ril.radio.disabled', false,
+      function _onValue(value) {
+        airplaneMode = value;
+      }
+    );
+  }
+
+  return {
+    init: init,
+    getInstance: getInstance
+  };
 
 }());

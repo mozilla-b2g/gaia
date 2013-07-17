@@ -3,6 +3,7 @@
   "description": "Gaia Homescreen",
   "launch_path": "/index.html#root",
   "type": "certified",
+  "role": "homescreen",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
@@ -14,7 +15,9 @@
     "device-storage:pictures":{ "access": "readonly" },
     "open-remote-window":{},
     "storage":{},
-    "geolocation": {}
+    "geolocation": {},
+    "alarms": {},
+    "power":{}
   },
   "locales": {
     "ar": {
@@ -49,5 +52,8 @@
       "href": "/save-bookmark.html",
       "returnValue": true
     }
-  }
+  },
+  "messages": [
+    { "alarm": "/index.html" }
+  ]
 }

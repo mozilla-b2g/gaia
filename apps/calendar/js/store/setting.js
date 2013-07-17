@@ -20,7 +20,8 @@ Calendar.ns('Store').Setting = (function() {
         alarmId: null,
         start: null,
         end: null
-      }
+      },
+      showSwipeToNavigateHint: true
     },
 
     /** disable caching */

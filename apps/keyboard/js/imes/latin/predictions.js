@@ -119,14 +119,7 @@
 'use strict';
 
 var Predictions = function() {
-  const maxSuggestions = 3; // max number of suggestions to be returned
-  const maxCorrections = 1; // max number of corrections to the user's typing
   const cacheSize = 255;    // how many suggestions to remember
-
-  // While searching we maintain a priority queue of candidates we want
-  // to search further. These constants specify how many candidates we
-  // retain in that queue.
-  const maxCandidates = maxSuggestions * 8;
 
   // Weights of various permutations we do when matching input
   const variantFormMultiplier = .99;          // slightly prefer exact match
@@ -326,7 +319,13 @@ var Predictions = function() {
   // Before calling this function you must call setDictionary() and
   // setNearbyKeys() to provide the data it needs to make predictions.
   //
-  function predict(input, callback, onerror) {
+  function predict(input,           // the user's input
+                   maxSuggestions,  // how many suggestions are requested
+                   maxCandidates,   // how many candidates to consider
+                   maxCorrections,  // how many corrections to allow per word
+                   callback,        // call this on success
+                   onerror)         // and call this on error
+  {
     if (!tree || !nearbyKeys)
       throw Error('not initialized');
 
@@ -340,6 +339,12 @@ var Predictions = function() {
     // This is where we store the best complete words we've found so far.
     var words = new BoundedPriorityQueue(maxSuggestions);
 
+    // If the first letter of the input is a capital letter, then we
+    // want to capitalize the first letter of all the suggested words.
+    // We do this here rather than in latin.js so that we can filter out
+    // repeated words that come in both upper and lowercase forms
+    var capitalize = (input[0] === input[0].toUpperCase());
+
     // This is the object we return. It allows the caller to abort a
     // prediction in progress.
     var status = {
@@ -349,6 +354,11 @@ var Predictions = function() {
           this.state = 'aborting';
       }
     };
+
+    var cacheKey = input +
+      ',' + maxSuggestions +
+      ',' + maxCandidates +
+      ',' + maxCorrections;
 
     // Start searching for words soon...
     setTimeout(getWords);
@@ -369,7 +379,7 @@ var Predictions = function() {
       try {
         // Check the cache. If we've seen this input recently we can return
         // suggestions right away.
-        var cached_suggestions = cache.get(input);
+        var cached_suggestions = cache.get(cacheKey);
         if (cached_suggestions) {
           status.state = 'done';
           status.suggestions = cached_suggestions;
@@ -444,6 +454,25 @@ var Predictions = function() {
     {
       var weight = frequency * multiplier;
 
+      // If no major corrections have been made to this candidate, then
+      // artificially increase its weight so that it appears in the
+      // candidates list before any corrected candidates. This should
+      // ensure that if the user is typing an infrequent word we don't
+      // bump the actual word off the list if there are lots of frequent
+      // words that have similar spellings. The artificial weight does
+      // not carry through to the list of words, so more frequent words may
+      // still be predicted instead of the user's input when the user is
+      // typing an infrequent word. But we shouldn't ever not be able to
+      // find the user's input as a valid word.  Adding letters to the
+      // end of partial input does not count as a correction so we also
+      // test the multiplier so that we don't boost the weight of every
+      // extension. But we do allow one letter to be added on and still
+      // get the extra weight.
+      if (corrections === 0 &&
+          multiplier > wordExtensionMultiplier * wordExtensionMultiplier) {
+        weight += 100;
+      }
+
       // If this candidate could never become a word, don't add it
       if (weight <= words.threshold)
         return;
@@ -460,6 +489,10 @@ var Predictions = function() {
 
     // Add a word to the priority queue of words
     function addWord(word, weight) {
+      // If the input was capitalized, capitalize the word
+      if (capitalize)
+        word = word[0].toUpperCase() + word.substring(1);
+
       // Make sure we don't already have the word in the queue
       for (var i = 0, n = words.items.length; i < n; i++) {
         if (words.items[i][0] === word) {
@@ -495,7 +528,7 @@ var Predictions = function() {
           if (!candidate || candidate.weight <= words.threshold) {
             status.state = 'done';
             status.suggestions = words.items; // the array in the word queue
-            cache.add(input, status.suggestions);
+            cache.add(cacheKey, status.suggestions);
             callback(status.suggestions);
             return;
           }
@@ -581,7 +614,10 @@ var Predictions = function() {
         // the list of candidates, we don't need to continue. None of the
         // nodes that follow in the next pointer linked list will have a
         // higher weight than this one.
-        if (weight <= candidates.threshold)
+        // Note however, that we only use this shortcut if we've already
+        // made at least one correction because uncorrected matches are given
+        // high weight by addCandidate.
+        if (corrections > 0 && weight <= candidates.threshold)
           break;
 
         // If we generate new candidates from this node, this is what
@@ -780,7 +816,7 @@ var Predictions = function() {
     var haschar = firstbyte & 0x80;
     var bigchar = firstbyte & 0x40;
     var hasnext = firstbyte & 0x20;
-    node.freq = firstbyte & 0x1F;
+    node.freq = (firstbyte & 0x1F) + 1;  // frequencies range from 1 to 32
 
     if (haschar) {
       node.ch = tree[offset++];

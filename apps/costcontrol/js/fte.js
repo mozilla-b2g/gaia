@@ -13,22 +13,21 @@
   var DEFAULT_LOW_LIMIT_THRESHOLD = 3;
   var defaultLowLimitThreshold = DEFAULT_LOW_LIMIT_THRESHOLD;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
-    var mobileConnection = window.navigator.mozMobileConnection;
     var stepsLeft = 2;
 
     // No SIM
-    if (!mobileConnection || mobileConnection.cardState === 'absent') {
+    if (!IccHelper.enabled || IccHelper.cardState === 'absent') {
       hasSim = false;
       trySetup();
 
     // SIM is not ready
-    } else if (mobileConnection.cardState !== 'ready') {
-      debug('SIM not ready:', mobileConnection.cardState);
-      mobileConnection.oniccinfochange = _onDOMReady;
+    } else if (IccHelper.cardState !== 'ready') {
+      debug('SIM not ready:', IccHelper.cardState);
+      IccHelper.oniccinfochange = _onDOMReady;
 
     // SIM is ready
     } else {
-      mobileConnection.oniccinfochange = undefined;
+      IccHelper.oniccinfochange = undefined;
       trySetup();
     }
 
@@ -66,19 +65,11 @@
           configuration.credit.currency;
       }
 
-      var mode = costcontrol.getApplicationMode(settings);
+      var mode = ConfigManager.getApplicationMode();
 
-      // Handle welcome screen
-      var selectors = {
-          PREPAID: '.authed-sim',
-          POSTPAID: '.authed-sim',
-          DATA_USAGE_ONLY: '.nonauthed-sim'
-      };
-
-      var selector = hasSim ? selectors[mode] : '.no-sim';
-      wizard.querySelector(selector).setAttribute('aria-hidden', false);
       if (!hasSim) {
         wizard.querySelector('p.info').setAttribute('aria-hidden', true);
+        wizard.querySelector('.no-sim').setAttribute('aria-hidden', false);
       }
 
       if (mode === 'DATA_USAGE_ONLY') {
@@ -100,6 +91,8 @@
           .addEventListener('click', selectTrack);
         document.getElementById('postpaid-plan')
           .addEventListener('click', selectTrack);
+
+        addLowLimitStepConstrains();
       }
 
       // Navigation
@@ -126,6 +119,22 @@
     localizeWeekdaySelector(document.getElementById('non2-select-weekday'));
   });
 
+  if (window.location.hash) {
+    var wizard = document.getElementById('firsttime-view');
+
+    if (window.location.hash === '#PREPAID' ||
+        window.location.hash === '#POSTPAID') {
+      wizard.querySelector('.authed-sim').setAttribute('aria-hidden', false);
+    } else {
+      wizard.querySelector('.nonauthed-sim').setAttribute('aria-hidden', false);
+    }
+  }
+
+  parent.postMessage({
+    type: 'fte_ready',
+    data: ''
+  }, Common.COST_CONTROL_APP);
+
   // TRACK SETUP
 
   var currentTrack = ['step-1', 'step-2'];
@@ -134,7 +143,7 @@
       currentTrack = ['step-1', 'step-2', 'prepaid-step-2', 'prepaid-step-3'];
       AutoSettings.initialize(ConfigManager, vmanager, '#prepaid-step-2');
       AutoSettings.initialize(ConfigManager, vmanager, '#prepaid-step-3');
-      addLowLimitStepConstrains();
+      balanceLowLimitView.disabled = false;
       ConfigManager.setOption({
         dataLimitValue: 40,
         dataLimitUnit: 'MB',
@@ -145,6 +154,7 @@
       currentTrack = ['step-1', 'step-2', 'postpaid-step-2', 'postpaid-step-3'];
       AutoSettings.initialize(ConfigManager, vmanager, '#postpaid-step-2');
       AutoSettings.initialize(ConfigManager, vmanager, '#postpaid-step-3');
+      balanceLowLimitView.disabled = true;
       ConfigManager.setOption({ dataLimitValue: 2, dataLimitUnit: 'GB' });
     }
 
@@ -199,6 +209,11 @@
     wizard.classList.add('step-' + (step + 2));
 
     step += 1;
+
+    // Validate when in step 2 in order to restore buttons and errors
+    if (step === 2) {
+      balanceLowLimitView.validate();
+    }
   }
 
   function onBack() {
@@ -229,7 +244,7 @@
       ConfigManager.setOption({ fte: false }, function _returnToApp() {
         updateNextReset(settings.trackingPeriod, settings.resetTime,
           function _returnToTheApplication() {
-            window.location = 'index.html';
+            Common.startApp();
           }
         );
       });
@@ -237,22 +252,16 @@
   }
 
   // Add particular constrains to the page where setting low limit button
+  var balanceLowLimitView;
   function addLowLimitStepConstrains() {
-    var lowLimit = document.getElementById('low-limit');
-    lowLimit.addEventListener('click', checkLowLimitStep);
-    var lowLimitInput = document.getElementById('low-limit-input');
-    lowLimitInput.addEventListener('input', checkLowLimitStep);
-  }
-
-  // Check settings and enable / disable done button
-  function checkLowLimitStep() {
-    var next = document.getElementById('low-limit-next-button');
-    var lowLimit = document.getElementById('low-limit');
-    var lowLimitInput = document.getElementById('low-limit-input');
-    var lowLimitError = lowLimit.checked && lowLimitInput.value.trim() === '';
-
-    lowLimitInput.classList[lowLimitError ? 'add' : 'remove']('error');
-    next.disabled = lowLimitError;
+    var nextButton = document.getElementById('low-limit-next-button');
+    balanceLowLimitView = new BalanceLowLimitView(
+      document.getElementById('low-limit'),
+      document.getElementById('low-limit-input')
+    );
+    balanceLowLimitView.onvalidation = function(evt) {
+      nextButton.disabled = !evt.isValid;
+    };
   }
 
 }());

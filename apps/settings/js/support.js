@@ -18,21 +18,10 @@ var Support = {
       return;
     }
     var self = this;
-    var SUPPORT_INFO = 'resources/support.json';
-    var xhr = new XMLHttpRequest();
-    xhr.onerror = function() {
-      console.error('Failed to fetch support.json: ',
-                    xhr.statusText);
-    };
-    xhr.onload = function loadSupportInfo() {
-      if (xhr.status === 0 || xhr.status === 200) {
-        self._supportInfo = xhr.response;
-        callback(self._supportInfo);
-      }
-    };
-    xhr.open('GET', SUPPORT_INFO, true); // async
-    xhr.responseType = 'json';
-    xhr.send();
+    loadJSON('/resources/support.json', function loadSupportInfo(data) {
+      self._supportInfo = data;
+      callback(self._supportInfo);
+    });
   },
 
   createLinkNode: function support_createLinkNode(data) {

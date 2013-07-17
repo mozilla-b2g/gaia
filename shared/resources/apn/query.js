@@ -130,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
                 operatorVariantSettings.voicemail = voicemail;
               }
             }
+
             var enableStrict7BitEncodingForSms =
               otherSettings['enableStrict7BitEncodingForSms'];
             if (enableStrict7BitEncodingForSms) {
@@ -141,6 +142,13 @@ document.addEventListener('DOMContentLoaded', function onload() {
             if (cellBroadcastSearchList) {
               operatorVariantSettings.cellBroadcastSearchList =
                 cellBroadcastSearchList;
+            }
+
+            var operatorSizeLimitation =
+              otherSettings['operatorSizeLimitation'];
+            if (operatorSizeLimitation) {
+              operatorVariantSettings.operatorSizeLimitation =
+                +operatorSizeLimitation;
             }
             var skipProxy = otherSettings['skipProxy'];
             if (skipProxy == 'true') {
@@ -169,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
             country[mnc].push(result[i]);
           } else {
             country[mnc] = [result[i]];
-            if (voicemail || otherSettings || cellBroadcastSearchList) {
+            if (voicemail || otherSettings) {
               operatorVariantSettings.type = [];
               operatorVariantSettings.type.push('operatorvariant');
               country[mnc].push(operatorVariantSettings);
@@ -196,7 +204,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.data.user': 'user',
       'ril.data.passwd': 'password',
       'ril.data.httpProxyHost': 'proxy',
-      'ril.data.httpProxyPort': 'port'
+      'ril.data.httpProxyPort': 'port',
+      'ril.data.authtype': 'authtype'
     },
     'supl': {
       'ril.supl.carrier': 'carrier',
@@ -204,7 +213,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.supl.user': 'user',
       'ril.supl.passwd': 'password',
       'ril.supl.httpProxyHost': 'proxy',
-      'ril.supl.httpProxyPort': 'port'
+      'ril.supl.httpProxyPort': 'port',
+      'ril.supl.authtype': 'authtype'
     },
     'mms': {
       'ril.mms.carrier': 'carrier',
@@ -215,12 +225,14 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.mms.httpProxyPort': 'port',
       'ril.mms.mmsc': 'mmsc',
       'ril.mms.mmsproxy': 'mmsproxy',
-      'ril.mms.mmsport': 'mmsport'
+      'ril.mms.mmsport': 'mmsport',
+      'ril.mms.authtype': 'authtype'
     },
     'operatorvariant': {
       'ril.iccInfo.mbdn': 'voicemail',
       'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms',
-      'ril.cellbroadcast.searchlist': 'cellBroadcastSearchList'
+      'ril.cellbroadcast.searchlist': 'cellBroadcastSearchList',
+      'dom.mms.operatorSizeLimitation': 'operatorSizeLimitation'
     }
   };
 

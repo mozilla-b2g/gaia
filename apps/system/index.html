@@ -8,6 +8,7 @@
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
     <script src="shared/js/idletimer.js"></script>
+    <script src="shared/js/dump.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
     <script defer src="shared/js/custom_dialog.js"></script>
@@ -15,6 +16,7 @@
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/mobile_operator.js"></script>
     <script defer src="shared/js/manifest_helper.js"></script>
+    <script defer src="shared/js/icc_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
 
     <!-- Wrapper -->
@@ -28,6 +30,7 @@
 
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
 
@@ -38,6 +41,8 @@
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo.png"/>
     -->
 
+    <link rel="resource" type="image/png" href="shared/resources/branding/Browser.png"/>
+
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
@@ -46,7 +51,6 @@
     <script src="js/init_logo_handler.js"></script>
 
     <script defer src="js/screen_manager.js"></script>
-    <script defer src="js/mouse2touch.js"></script>
     <script defer src="js/activities.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
@@ -56,7 +60,6 @@
     <script defer src="js/hardware_buttons.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/system_dialog.js"></script>
-    <script defer src="js/icc_cache.js"></script>
 
     <!-- Grid View -->
     <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
@@ -100,6 +103,16 @@
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar.js"></script>
 
+    <!-- Software button -->
+    <link rel="stylesheet" type="text/css" href="style/software_button_manager/software_button_manager.css">
+    <script defer src="js/software_button_manager.js"></script>
+
+    <!-- ICC/STK -->
+    <link rel="stylesheet" type="text/css" href="style/icc.css">
+    <script defer src="js/icc_events.js"></script>
+    <script defer src="js/icc_worker.js"></script>
+    <script defer src="js/icc.js"></script>
+
     <!-- FTU launcher -->
     <script defer src="js/ftu_launcher.js"></script>
 
@@ -122,6 +135,9 @@
 
     <!-- Authentication Dialog-->
     <script defer src="js/authentication_dialog.js"></script>
+
+    <!-- Cell Broadcast System -->
+    <script defer src="js/cell_broadcast_system.js"></script>
 
     <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
@@ -217,6 +233,8 @@
     <!-- Windows -->
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
+    <link rel="stylesheet" type="text/css" href="style/window.css">
+    <script defer src="js/orientation_observer.js"></script>
     <script defer src="js/window.js"></script>
     <script defer src="js/window_manager.js"></script>
 
@@ -230,11 +248,11 @@
     <!-- Call Forwarding  -->
     <script defer src="js/call_forwarding.js"></script>
 
+    <!-- Internet Sharing  -->
+    <script defer src="js/internet_sharing.js"></script>
+
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
-
-    <!-- Shared responsive -->
-    <link rel="stylesheet" href="shared/style/responsive.css">
 
     <!-- Device storage watcher -->
     <script defer src="js/storage_watcher.js"></script>
@@ -336,8 +354,15 @@
         <div id="statusbar-call-forwarding" class="sb-icon sb-icon-call-forwarding" hidden></div>
 
         <!-- Activity -->
-        <canvas id="statusbar-system-downloads" width="16" height="16" hidden></canvas>
-        <canvas id="statusbar-network-activity" width="16" height="16" hidden></canvas>
+        <!-- HACK: We use images instead of divs to enforce allocation of a
+             dedicated layer just for this animated icons, remove after bug
+             717872 gets fixed -->
+        <img id="statusbar-system-downloads"
+             src="style/statusbar/images/system-downloads.png"
+             class="sb-icon-system-downloads" hidden>
+        <img id="statusbar-network-activity"
+             src="style/statusbar/images/network-activity.png"
+             class="sb-icon-network-activity" hidden>
       </div>
 
       <div id="utility-tray" data-z-index-level="utility-tray">
@@ -438,16 +463,14 @@
               <div id="pinArea" hidden>
                 <div data-l10n-id="simPin">SIM PIN</div>
                 <div class="input-wrapper">
-                  <input name="simpin" type="number" x-inputmode="digits" size="8" maxlength="8" />
-                  <input name="simpinVis" type="text" size="8" maxlength="8" />
+                  <input name="simpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
                 </div>
               </div>
               <!-- sim puk input field -->
               <div id="pukArea" hidden>
                 <div data-l10n-id="pukCode">PUK Code</div>
                 <div class="input-wrapper">
-                  <input name="simpuk" type="number" x-inputmode="digits" size="8" maxlength="8" />
-                  <input name="simpukVis" type="text" size="8" maxlength="8" />
+                  <input name="simpuk" type="password" x-inputmode="digit" size="8" maxlength="8" />
                 </div>
               </div>
               <!-- sim nck/cck/spck input field -->
@@ -464,8 +487,7 @@
                   Create PIN (must contain 4 to 8 digits)
                 </div>
                 <div class="input-wrapper">
-                  <input name="newSimpin" type="number" x-inputmode="digits" size="8" maxlength="8" />
-                  <input name="newSimpinVis" type="text" size="8" maxlength="8" />
+                  <input name="newSimpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
                 </div>
               </div>
               <!-- confirm new sim pin input field -->
@@ -474,8 +496,7 @@
                   Confirm New PIN
                 </div>
                 <div class="input-wrapper">
-                  <input name="confirmNewSimpin" type="number" x-inputmode="digits" size="8" maxlength="8" />
-                  <input name="confirmNewSimpinVis" type="text" size="8" maxlength="8" />
+                  <input name="confirmNewSimpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
                 </div>
               </div>
             </div>
@@ -577,7 +598,7 @@
         </div>
 
         <div id="modal-dialog">
-          <div id="modal-dialog-alert" role="dialog">
+          <div id="modal-dialog-alert" role="dialog" tabindex="-1">
             <div class="modal-dialog-message-container inner">
               <h3 id="modal-dialog-alert-title"></h3>
               <p>
@@ -589,7 +610,7 @@
             </menu>
           </div>
 
-          <div id="modal-dialog-confirm" role="dialog">
+          <div id="modal-dialog-confirm" role="dialog" tabindex="-1">
             <div class="modal-dialog-message-container inner">
               <h3 id="modal-dialog-confirm-title"></h3>
               <p>
@@ -602,7 +623,7 @@
             </menu>
           </div>
 
-          <div id="modal-dialog-prompt" role="dialog">
+          <div id="modal-dialog-prompt" role="dialog" tabindex="-1">
             <div class="modal-dialog-message-container inner">
               <h3 id="modal-dialog-prompt-title"></h3>
               <p>
@@ -616,7 +637,7 @@
             </menu>
           </div>
 
-          <div id="modal-dialog-select-one" role="dialog">
+          <div id="modal-dialog-select-one" role="dialog" tabindex="-1">
             <div class="modal-dialog-message-container inner">
               <h3 id="modal-dialog-select-one-title"></h3>
               <ul id="modal-dialog-select-one-menu"></ul>
@@ -645,24 +666,21 @@
 
         <!-- Time Picker -->
         <div id="time-picker-popup" hidden>
-          <div class="table-wrapper">
-            <div class="table-cell">
-              <div id="picker-bar">
-                <h3 data-l10n-id="select-time">Select time</h3>
-                <div id="picker-container">
-                  <div id="value-indicator-bottom"></div>
-                  <div id="picker-bar-background"></div>
-                  <div id="left-picker-separator"></div>
-                  <div id="value-indicator-wrapper">
-                    <div id="value-indicator-hover-time">:</div>
-                    <div id="value-indicator-hover"></div>
-                  </div>
-                  <div id="value-picker-hours" class="value-picker animation-on"></div>
-                  <div id="value-picker-minutes" class="value-picker animation-on"></div>
-                  <div id="right-picker-separator"></div>
-                  <div id="value-picker-hour24-state" class="value-picker animation-on"></div>
-                  <div id="picker-bar-gradient"></div>
-                </div>
+          <h3 data-l10n-id="select-time">Select time</h3>
+          <div id="time-picker">
+            <div class="picker-container">
+              <div class="picker-bar-background"></div>
+              <div class="value-picker-hours-wrapper">
+                <div class="value-picker-hours" class="animation-on"></div>
+              </div>
+              <div class="value-picker-minutes-wrapper">
+                <div class="value-picker-minutes" class="animation-on"></div>
+              </div>
+              <div class="value-picker-hour24-wrapper">
+                <div class="value-picker-hour24-state" class="animation-on"></div>
+              </div>
+              <div class="value-indicator">
+                <div class="value-indicator-colon">:</div>
               </div>
             </div>
           </div>
@@ -674,30 +692,23 @@
 
         <!-- Spin Date Picker -->
         <div id="spin-date-picker-popup" hidden>
-          <div id="spin-date-picker" class="table-wrapper">
-            <div class="table-cell">
-              <div class="picker-bar">
-                <h3 data-l10n-id="select-day">Select day</h3>
-                <div class="picker-container">
-                  <div class="value-indicator-bottom"></div>
-                  <div class="picker-bar-background"></div>
-                  <div class="left-picker-separator"></div>
-                  <div class="right-picker-separator"></div>
-                  <div class="value-indicator-wrapper">
-                    <div class="value-indicator-hover"></div>
-                  </div>
-                  <div class="value-picker-date-wrapper">
-                    <div class="value-picker value-picker-date animation-on"></div>
-                  </div>
-                  <div class="value-picker-month-wrapper">
-                    <div class="value-picker value-picker-month" class="animation-on"></div>
-                  </div>
-                  <div class="value-picker-year-wrapper">
-                    <div class="value-picker value-picker-year" class="animation-on"></div>
-                  </div>
-                  <div class="picker-bar-gradient"></div>
-                </div>
+          <h3 data-l10n-id="select-day">Select day</h3>
+          <div id="spin-date-picker">
+            <div class="picker-container">
+              <div class="picker-bar-background"></div>
+              <div class="value-picker-date-wrapper">
+                <div class="value-picker-date animation-on"></div>
+                <div class="value-picker-date animation-on"></div>
+                <div class="value-picker-date animation-on"></div>
+                <div class="value-picker-date animation-on"></div>
               </div>
+              <div class="value-picker-month-wrapper">
+                <div class="value-picker-month" class="animation-on"></div>
+              </div>
+              <div class="value-picker-year-wrapper">
+                <div class="value-picker-year" class="animation-on"></div>
+              </div>
+              <div class="value-indicator"></div>
             </div>
           </div>
           <menu id="spin-date-picker-buttons" data-items="2">
@@ -838,21 +849,22 @@
             <div id="lockscreen-area"></div>
             <div id="lockscreen-icon-container">
               <div id="lockscreen-area-handle"></div>
-              <div id="lockscreen-area-camera" class="lockscreen-icon-area lockscreen-icon-left">
+              <div id="lockscreen-area-camera"
+                   class="lockscreen-icon-area lockscreen-icon-left" role="button"
+                   data-l10n-id="camera-a11y-button" aria-label="Camera">
                 <div class="lockscreen-icon">
-                  <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
                 </div>
               </div>
-              <div id="lockscreen-area-unlock" class="lockscreen-icon-area lockscreen-icon-right">
+              <div id="lockscreen-area-unlock"
+                   class="lockscreen-icon-area lockscreen-icon-right" role="button"
+                   data-l10n-id="unlock-a11y-button" aria-label="Unlock">
                 <div class="lockscreen-icon">
-                    <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
                 </div>
               </div>
             </div>
           </div>
 
           <div id="lockscreen-panel-passcode" class="lockscreen-panel">
-            <h2 id="lockscreen-passcode-status" data-l10n-id="enter-security-code">Enter Security&nbsp;Code</h2>
             <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
             <div id="lockscreen-passcode-pad">
               <a role="button" href="#" data-key="1">1<span>.<span></a>
@@ -905,6 +917,58 @@
         </ul>
       </div>
 
+      <!-- icc / stk -->
+      <div id="icc-view" data-z-index-level="icc-view">
+        <form role="dialog" data-type="confirm" id="icc-alert">
+          <section>
+            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <p id="icc-alert-msg"></p>
+          </section>
+          <menu>
+            <button type="button" data-l10n-id="ok" id="icc-alert-btn" class="recommend full">Ok</button>
+          </menu>
+        </form>
+        <form role="dialog" data-type="confirm" id="icc-confirm">
+          <section>
+            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <p id="icc-confirm-msg"></p>
+          </section>
+          <menu>
+              <button type="button" data-l10n-id="close" id="icc-confirm-btn_close">Close</button>
+              <button type="button" data-l10n-id="back" id="icc-confirm-btn_back">Back</button>
+              <button type="button" data-l10n-id="ok" id="icc-confirm-btn" class="recommend">Ok</button>
+          </menu>
+        </form>
+        <form role="dialog" data-type="confirm" id="icc-asyncconfirm">
+          <section>
+            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <p id="icc-asyncconfirm-msg"></p>
+          </section>
+          <menu>
+            <button type="button" data-l10n-id="no" id="icc-asyncconfirm-btn-no">No</button>
+            <button type="button" data-l10n-id="yes" id="icc-asyncconfirm-btn-yes" class="recommend">Yes</button>
+          </menu>
+        </form>
+        <form role="dialog" data-type="confirm" id="icc-input">
+          <section>
+            <h1 data-l10n-id="icc-inputtitle">STK Query</h1>
+            <p id="icc-input-msg"></p>
+            <input id="icc-input-box" required="" type="text">
+          </section>
+          <menu>
+              <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
+              <button type="button" data-l10n-id="back" id="icc-input-btn_back">Back</button>
+              <span class="yesnodisabled">
+                <button type="button" data-l10n-id="ok" id="icc-input-btn" class="recommend">Ok</button>
+              </span>
+              <span class="yesnoenabled">
+                <button type="button" data-l10n-id="no" id="icc-input-btn_no">No</button>
+                <button type="button" data-l10n-id="yes" id="icc-input-btn_yes" class="recommend">Yes</button>
+              </span>
+          </menu>
+        </form>
+      </div>
+
       <div id="sleep-menu" data-z-index-level="sleep-menu">
         <div id="sleep-menu-container">
           <h3 data-l10n-id="deviceMenu">Device menu</h3>
@@ -952,6 +1016,12 @@
           </section>
         </div>
       </div>
+
+      <div id="software-buttons" data-z-index-level="software-buttons">
+        <button id="software-home-button"></button>
+      </div>
+
+      <button id="fullscreen-software-home-button" data-z-index-level="fullscreen-software-home-button"></button>
 
     </div> <!-- end of #screen -->
   </body>

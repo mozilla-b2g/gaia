@@ -12,7 +12,7 @@
 }
 
 #simpin-dialog .container {
-  padding-left: 2rem;
+  padding: 0 2rem;
   font-size: 1.5rem;
 }
 
@@ -46,13 +46,7 @@
 #simpin-dialog .input-wrapper input {
   font-size: 3rem;
   display: block;
-}
-
-#simpin-dialog .input-wrapper input[type="text"] {
   width: auto;
-  pointer-events: none;
-  position: absolute;
-  top: 0;
 }
 
 #xckArea .input-wrapper input {

@@ -35,29 +35,24 @@ var CustomDialog = (function() {
     */
     show: function dialog_show(title, msg, cancel, confirm) {
       if (screen === null) {
-        screen = document.createElement('section');
-        screen.setAttribute('role', 'region');
+        screen = document.createElement('form');
+        screen.setAttribute('role', 'dialog');
+        screen.setAttribute('data-type', 'confirm');
         screen.id = 'dialog-screen';
 
-        dialog = document.createElement('div');
-        dialog.id = 'dialog-dialog';
-        dialog.setAttribute('role', 'dialog');
+        dialog = document.createElement('section');
         screen.appendChild(dialog);
 
-        var info = document.createElement('div');
-        info.className = 'inner';
-
         if (title && title != '') {
-          header = document.createElement('h3');
+          header = document.createElement('h1');
           header.id = 'dialog-title';
           header.textContent = title;
-          info.appendChild(header);
+          dialog.appendChild(header);
         }
 
         message = document.createElement('p');
         message.id = 'dialog-message';
-        info.appendChild(message);
-        dialog.appendChild(info);
+        dialog.appendChild(message);
 
         var menu = document.createElement('menu');
         menu.dataset['items'] = 1;
@@ -75,12 +70,16 @@ var CustomDialog = (function() {
           var yesText = document.createTextNode(confirm.title);
           yes.appendChild(yesText);
           yes.id = 'dialog-yes';
-          yes.className = 'negative';
+
+          //confirm can be with class "danger" or "recommend"
+          //the default is "danger"
+          yes.className = confirm.recommend ? 'recommend' : 'danger';
+
           yes.addEventListener('click', clickHandler);
           menu.appendChild(yes);
         }
 
-        dialog.appendChild(menu);
+        screen.appendChild(menu);
 
         document.body.appendChild(screen);
       }

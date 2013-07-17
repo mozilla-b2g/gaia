@@ -35,18 +35,11 @@ var ApplicationsList = {
     this.container.addEventListener('click', this);
 
     // load the permission table
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/resources/permissions_table.json', true);
-    xhr.responseType = 'json';
-    xhr.onreadystatechange = (function() {
-      if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
-        var table = xhr.response;
-        this._permissionsTable = table;
-
-        this.initExplicitPermissionsTable();
-      }
-    }).bind(this);
-    xhr.send();
+    var self = this;
+    loadJSON('/resources/permissions_table.json', function loadPermTable(data) {
+      self._permissionsTable = data;
+      self.initExplicitPermissionsTable();
+    });
 
     // Implement clear bookmarks apps button and its confirm dialog
     var confirmDialog = this.bookmarksClear.dialog;
@@ -127,9 +120,6 @@ var ApplicationsList = {
       var apps = evt.target.result;
 
       apps.forEach(function(app) {
-        if (HIDDEN_APPS.indexOf(app.manifestURL) != -1)
-          return;
-
         var manifest = app.manifest ? app.manifest : app.updateManifest;
         if (manifest.type != 'certified') {
           self._apps.push(app);
@@ -225,7 +215,7 @@ var ApplicationsList = {
     if (!app)
       return;
 
-    window.location.hash = '#appPermissions';
+    Settings.currentPanel = '#appPermissions';
 
     this._apps.splice(appIndex, 1);
 

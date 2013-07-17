@@ -86,11 +86,23 @@ var CrashReporter = (function() {
         label: _('crash-banner-report'),
         callback: function reportCrash() {
           submitCrash(crashID);
+        },
+        dismiss: function dismissCrash() {
+          deleteCrash(crashID);
         }
       };
     }
 
     SystemBanner.show(message, button);
+  }
+
+  function deleteCrash(crashID) {
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true, {
+      type: 'delete-crash',
+      crashID: crashID
+    });
+    window.dispatchEvent(event);
   }
 
   function submitCrash(crashID) {

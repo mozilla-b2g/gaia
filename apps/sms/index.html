@@ -18,12 +18,12 @@
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/responsive.css">
     -->
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/root.css">
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
+    <link rel="stylesheet" type="text/css" href="style/attachment.css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
@@ -32,13 +32,11 @@
     <!--
     <script defer src="shared/js/l10n_date.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
-    <script defer src="shared/js/custom_dialog.js"></script>
     <script defer src="shared/js/notification_helper.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
     -->
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="js/startup.js"></script>
-
   </head>
 
   <body role="application">
@@ -49,7 +47,7 @@
             <a href="#new" id="icon-add">
               <span class="icon icon-compose"></span>
             </a>
-            <a href="#edit" id="threads-edit-icon">
+            <a id="threads-edit-icon">
               <span class="icon icon-edit"></span>
             </a>
           </menu>
@@ -65,7 +63,6 @@
             <p data-l10n-id="noMessages-text">Start communicating now</p>
           </div>
         </div>
-
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
           <section>
@@ -96,46 +93,59 @@
             <span class="icon icon-back"></span>
           </a>
           <menu type="toolbar">
-            <a href="#edit" id="icon-edit">
+            <a id="messages-edit-icon">
               <span class="icon icon-edit"></span>
             </a>
           </menu>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
         </header>
-        <div class="subheader">
-          <menu type="toolbar">
-            <a id="messages-contact-pick-button">
-              <span class="icon icon-user"></span>
-            </a>
-          </menu>
+        <div id="messages-subheader" class="subheader">
           <section id="messages-to-field">
             <section data-l10n-id="to" id="to-label">
               To:
             </section>
-            <section id="messages-recipients-list">
+            <menu type="toolbar">
+              <a id="messages-contact-pick-button">
+                <span class="icon icon-user"></span>
+              </a>
+            </menu>
+            <section id="messages-recipients-list" class="singleline">
             </section>
           </section>
+          <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
+            Carrier unknown
+          </div>
           <section id="messages-max-length-notice"
                   role="notification"
                   class="hide">
             <p></p>
           </section>
-          <section id="messages-convert-notice"
-                  role="notification"
-                  class="hide">
-            <p></p>
-          </section>
-          <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
-            Carrier unknown
+          <!-- Notifications in this container will be rendered on top of the
+          Compose field. These notifications should be hidden automatically so
+          they do not prevent the user from inputting text. -->
+          <div class="overlay">
+            <section id="messages-convert-notice"
+                    role="notification"
+                    class="hide">
+              <p></p>
+            </section>
+            <section id="messages-resize-notice"
+                    role="notification"
+                    class="hide">
+              <p data-l10n-id="resize-image">Resizing the attached image</p>
+            </section>
           </div>
         </div>
-        <article id="messages-container" class="view-body" data-type="list">
+        <article id="messages-container" class="view-body article-list" data-type="list">
+        </article>
+        <article id="messages-participants" class="view-body article-list hide" data-type="list">
+          <ul id="messages-participants-list" class="contact-list"></ul>
         </article>
         <form role="search" id="messages-compose-form" class="bottom messages-compose-form" data-message-type="sms">
           <button id="messages-attach-button" class="icon icon-attachment">Attachment</button>
           <button id="messages-send-button" disabled data-l10n-id="send" type="submit">Send</button>
           <!-- The <br> is needed because of 414223, which is a WONTFIX. It's just because of how contentEditable works. https://bugzilla.mozilla.org/show_bug.cgi?id=414223 -->
-          <div id="messages-input" contentEditable="true" name="message" placeholder="Message" data-l10n-id="composeMessage"><br></div>
+          <div id="messages-input" contentEditable="true" name="message" data-l10n-id="composeMessage"><br></div>
         </form>
         <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit" >
           <section>
@@ -160,6 +170,7 @@
         </form>
       </section>
     </article>
+
     <article id="loading">
       <form role="dialog" data-type="confirm" class="loading-container">
         <section>
@@ -170,25 +181,58 @@
         </section>
       </form>
     </article>
+
+    <menu id="attachment-options-menu" class="hide" tabindex="-1">
+      <div>
+        <form id="attachment-options" role="dialog" data-type="action">
+          <header></header>
+          <menu>
+            <button id="attachment-options-view"></button>
+            <button id="attachment-options-remove"></button>
+            <button id="attachment-options-replace"></button>
+            <button id="attachment-options-cancel"></button>
+          </menu>
+        </form>
+      </div>
+    </menu>
+
+    <!--
+      -  Templates
+      -->
+
     <div id="messages-contact-tmpl" class="hide">
       <!--
       <a class="suggestion"
-        data-number="${number}" data-source="contacts" data-name="${name}">
-        <aside class="pack-end">
-          <img ${srcAttr}>
-        </aside>
+        data-number="${number}" data-source="contacts" data-name="${name}" data-display="${type}${separator}${carrier}${number}">
         <p class="name">${nameHTML}</p>
         <p>
-          ${type} ${numberHTML} ${carrier}
+          ${type}${separator}${carrier}${numberHTML}
         </p>
       </a>
       -->
     </div>
+
+    <div id="messages-number-tmpl" class="hide">
+      <!--
+      <a class="suggestion" data-number="${number}" data-source="manual" data-name="${number}">
+        <p class="name">${number}</p>
+      </a>
+      -->
+    </div>
+
+    <div id="messages-not-downloaded-tmpl" class="hide">
+      <!--
+      <span class="not-downloaded-message">${message}</span>
+      <form><button class="download">${download}</button></form>
+      -->
+    </div>
+
     <div id="messages-highlight-tmpl" class="hide">
       <!--
       <span class="highlight">${str}</span>
       -->
     </div>
+
     <div id="messages-message-tmpl" class="hide">
       <!--
       <label class="danger">
@@ -218,7 +262,8 @@
         <p class="name">${number}</p>
         <p>
           <time>${formattedDate}</time>
-          <span class="body-text">${body}</span>
+          <span class="mms-icon">MMS</span>
+          <span class="body-text">${bodyHTML}</span>
         </p>
       </a>
       -->
@@ -226,39 +271,58 @@
 
     <div id="messages-recipient-tmpl" class="hide">
       <!--
-      <span class="recipient" contenteditable="${editable}"
-        data-number="${number}" data-source="${source}" data-name="${name}">
+      <span class="recipient" x-inputmode="verbatim"
+        contenteditable="${editable}"
+        data-number="${number}" data-source="${source}" data-name="${name}" data-display="${display}">
         ${name}
       </span>
       -->
     </div>
 
-    <div id="attachment-tmpl" class="hide">
+    <div id="attachment-nopreview-tmpl" class="hide">
       <!--
-      <style>
-        body.attachment {
-          margin: 0;
-          font-size: 1.5rem;
-          font-family: 'MozTT', sans-serif;
-        }
-        body.attachment img {
-          width: 100%;
-          height: 100%;
-        }
-        body.attachment div {
-          position: absolute;
-          bottom: 0;
-          right: 0;
-          padding: 0.4rem 0.4rem 0 0.4rem;
-          background: rgba(0, 0, 0, 0.3);
-          border: 0.1rem solid rgba(255, 255, 255, 0.3);
-          border-radius: 1rem 0 0 0;
-          color: rgb(255, 255, 255);
-          font-size: 1rem;
-        }
-      </style>
-      <body class="attachment"><img src="${uri}">
-      <div>${size}</div>
+      <div class="attachment">
+        <div class="thumbnail-placeholder ${type}-placeholder">
+          <div class="${errorClass}"></div>
+        </div>
+        <div class="size-indicator">${size}</div>
+      </div>
+      <div class="file-name">${fileName}</div>
+      -->
+    </div>
+
+    <div id="attachment-preview-tmpl" class="hide">
+      <!--
+      <div class="attachment">
+        <div class="thumbnail" style="background-image: url(${imgData})"></div>
+        <div class="size-indicator">${size}</div>
+      </div>
+      <div class="file-name">${fileName}</div>
+      -->
+    </div>
+
+    <div id="attachment-draft-tmpl" class="hide">
+      <!--
+      <head>
+        <meta charset="utf-8">
+        <base href="${baseURL}">
+        <style type="text/css">
+          html, body { font-size: 10px; }
+        </style>
+        <link rel="stylesheet" type="text/css" href="style/attachment.css">
+      </head>
+      <body class="attachment-draft ${previewClass}">
+        ${attachmentHTML}
+      </body>
+      -->
+    </div>
+
+    <div id="height-rule-tmpl" class="hide">
+      <!--
+      #messages-recipients-list.multiline {
+        overflow-y: scroll;
+        height: ${height}px;
+      }
       -->
     </div>
   </body>

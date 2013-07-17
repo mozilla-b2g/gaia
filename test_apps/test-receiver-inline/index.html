@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Test Receiver</title>
+    <script src="js/inline-receiver.js" defer></script>
     <style>
     button {
       font-size: 30px;
@@ -17,80 +18,13 @@
       background-color: #e0e0e0;
     }
     </style>
-    <script>
-    var activityRequest;
-
-    var webActivityHandler = function (request) {
-      activityRequest = request;
-
-      document.getElementById('button').disabled = '';
-      document.getElementById('cancelButton').disabled = '';
-      document.getElementById('number').focus();
-
-    };
-
-    window.onload = function () {
-      // If the app is being loaded because a inline disposition web activity,
-      // it will came with a pending system message.
-      if (!navigator.mozHasPendingMessage('activity')) {
-        alert('This application is not intend to launch directly.');
-      } else {
-        // Register for activity system message handling.
-        // Do NOT register for message handling on the main app frame.
-        navigator.mozSetMessageHandler('activity', webActivityHandler);
-      }
-    };
-
-    var go = function go() {
-      if (!activityRequest) {
-        alert('There are no any pending activity request.');
-        return;
-      }
-
-      // Return the request
-      activityRequest.postResult({
-        type: 'inline',
-        text: 'Hello back!'
-      });
-      activityRequest = null;
-
-      // close app, currently useless,
-      // see https://bugzilla.mozilla.org/show_bug.cgi?id=789392
-      window.close();
-    };
-
-    var cancel = function cancel() {
-      if (!activityRequest) {
-        alert('There are no any pending activity request.');
-        return;
-      }
-
-      activityRequest.postError('canceled');
-      activityRequest = null;
-
-      // close app, currently useless,
-      // see https://bugzilla.mozilla.org/show_bug.cgi?id=789392
-      window.close();
-    };
-
-    // When the app is being closed or killed, we will cancel the pending
-    // request.
-    document.addEventListener('mozvisibilitychange', function visibility(e) {
-      if (!document.mozHidden || !activityRequest)
-        return;
-
-      activityRequest.postError('canceled');
-      activityRequest = null;
-    });
-
-    </script>
   </head>
   <body>
     <h1>Inline Web Activities receiver</h1>
-    <p><button onclick="go()" disabled id="button">Send "Hello Back!"</button></p>
+    <p><button disabled id="button">Send "Hello Back!"</button></p>
     <!-- add an input field to test keyboard work well -->
     <p><input type="number" id="number" size="4" /></p>
-    <p><button onclick="cancel()" disabled id="cancelButton">Cancel</button></p>
-    <p><button onclick="prompt('inline-activty prompt!');">Prompt</button></p>
+    <p><button disabled id="cancelButton">Cancel</button></p>
+    <p><button id="promptButton">Prompt</button></p>
   </body>
 </html>

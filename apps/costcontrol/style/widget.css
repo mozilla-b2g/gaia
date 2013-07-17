@@ -7,7 +7,6 @@
 
 html {
   font-size: 10px;
-  font-family: 'MozTT', sans-serif;
 }
 
 body {
@@ -86,6 +85,9 @@ p.meta {
 
 #fte-view p.meta {
   font-size:1.4em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 #fte-view p:not(.meta) {

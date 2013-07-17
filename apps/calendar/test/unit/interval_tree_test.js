@@ -535,4 +535,60 @@ suite('interval_tree', function() {
 
     });
   });
+
+  suite('#createIndex / #index', function() {
+    var one;
+    var two;
+    var three;
+    setup(function() {
+      one = Factory('busytime', { eventId: 'xxx' });
+      two = Factory('busytime', { eventId: 'xxx' });
+      three = Factory('busytime', { eventId: 'xxx' });
+
+      subject.createIndex('eventId');
+
+      subject.add(one);
+      subject.add(two);
+      subject.add(three);
+    });
+
+    test('add', function() {
+      assert.deepEqual(
+        subject.index('eventId', one.eventId),
+        [one, two, three]
+      );
+    });
+
+    test('remove middle', function() {
+      subject.remove(two);
+      assert.deepEqual(
+        subject.index('eventId', one.eventId),
+        [one, three]
+      );
+    });
+
+    test('remove start', function() {
+      subject.remove(one);
+      assert.deepEqual(
+        subject.index('eventId', one.eventId),
+        [two, three]
+      );
+    });
+
+    test('remove end', function() {
+      subject.remove(three);
+      assert.deepEqual(
+        subject.index('eventId', one.eventId),
+        [one, two]
+      );
+    });
+
+    test('remove all', function() {
+      subject.remove(one);
+      subject.remove(two);
+      subject.remove(three);
+
+      assert.ok(!subject.index('eventId', one.eventId));
+    });
+  });
 });

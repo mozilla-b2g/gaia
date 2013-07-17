@@ -10,19 +10,56 @@ function isSubjectToBranding(path) {
          /branding[\/\\]initlogo.png/.test(path);
 }
 
-function getSubDirectories(directory) {
-  let appsDir = new FileUtils.File(GAIA_DIR);
-  appsDir.append(directory);
+/**
+ * Return a File object representing the directory of a given name/path.
+ *
+ * @param {String} dirName The name of the directory in GAIA_DIR or a full path.
+ * @param {Boolean} maybeGaiaSubDir
+ *        If true, try to locate the dir within GAIA_DIR.
+ * @return {File} dir the File object.
+ */
+function getDir(dirName, maybeGaiaSubDir) {
 
-  let dirs = [];
-  let files = appsDir.directoryEntries;
+  let dir;
+
+  // Assume directory is a absolute path first:
+  try {
+    dir = new FileUtils.File(dirName);
+  } catch (e) {
+    //dump('-*- utils.js cannot find ' + dirName + '\n');
+  }
+
+  if (!maybeGaiaSubDir)
+    return dir;
+
+  if (!dir || !dir.exists()) {
+    // Assume directory is a subdirectory of GAIA_DIR
+    dir = new FileUtils.File(GAIA_DIR);
+    dirName.split('/').forEach(function(name) {
+      dir.append(name);
+    });
+  }
+
+  return dir;
+}
+
+/**
+ * Return an array of sub dir object with given dir object
+ *
+ * @param {File} dir The directory to search for sub directories.
+ * @return {Array} The list of all sub directories.
+ */
+function getSubDirs(dir) {
+  let subDirs = [];
+  let files = dir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
     if (file.isDirectory()) {
-      dirs.push(file.leafName);
+      subDirs.push(file);
     }
   }
-  return dirs;
+
+  return subDirs;
 }
 
 /**
@@ -94,11 +131,14 @@ function getFile() {
     let file = new FileUtils.File(arguments[0]);
     if (arguments.length > 1) {
       for (let i = 1; i < arguments.length; i++) {
-        file.append(arguments[i]);
+        let dir = arguments[i];
+        dir.split('/').forEach(function(name) {
+          file.append(name);
+        });
       }
     }
     return file;
-  } catch(e) {
+  } catch (e) {
     throw new Error(' -*- build/utils.js: Invalid file path (' +
                     Array.slice(arguments).join(', ') + ')\n' + e + '\n');
   }
@@ -125,60 +165,58 @@ function getJSON(file) {
   }
 }
 
-function makeWebappsObject(dirs) {
+function makeWebappsObject(appdirs) {
   return {
     forEach: function(fun) {
-      let appSrcDirs = dirs.split(' ');
-      appSrcDirs.forEach(function parseDirectory(directoryName) {
-        let directories = getSubDirectories(directoryName);
-        directories.forEach(function readManifests(dir) {
-          let manifestFile = getFile(GAIA_DIR, directoryName, dir,
-              'manifest.webapp');
-          let updateFile = getFile(GAIA_DIR, directoryName, dir,
-              'update.webapp');
-          // Ignore directories without manifest
-          if (!manifestFile.exists() && !updateFile.exists()) {
-            return;
-          }
+      appdirs.forEach(function(app) {
+        let appDir = getFile(app);
+        if (!appDir.exists()) {
+          throw new Error(' -*- build/utils.js: file not found (' + app + ')\n');
+        }
 
-          let manifest = manifestFile.exists() ? manifestFile : updateFile;
-          let domain = dir + '.' + GAIA_DOMAIN;
+        let manifestFile = appDir.clone();
+        manifestFile.append('manifest.webapp');
 
-          let webapp = {
-            manifest: getJSON(manifest),
-            manifestFile: manifest,
-            url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
-            domain: domain,
-            sourceDirectoryFile: manifestFile.parent,
-            sourceDirectoryName: dir,
-            sourceAppDirectoryName: directoryName
-          };
+        let updateFile = appDir.clone();
+        updateFile.append('update.webapp');
 
-          // External webapps have a `metadata.json` file
-          let metaData = webapp.sourceDirectoryFile.clone();
-          metaData.append('metadata.json');
-          if (metaData.exists()) {
-            webapp.metaData = getJSON(metaData);
-          }
+        // Ignore directories without manifest
+        if (!manifestFile.exists() && !updateFile.exists()) {
+          return;
+        }
 
-          fun(webapp);
-        });
+        let manifest = manifestFile.exists() ? manifestFile : updateFile;
+
+        // Use the folder name as the the domain name
+        let domain = appDir.leafName + '.' + GAIA_DOMAIN;
+
+        let webapp = {
+          manifest: getJSON(manifest),
+          manifestFile: manifest,
+          url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
+          domain: domain,
+          sourceDirectoryFile: manifestFile.parent,
+          sourceDirectoryName: appDir.leafName,
+          sourceAppDirectoryName: appDir.parent.leafName
+        };
+
+        // External webapps have a `metadata.json` file
+        let metaData = webapp.sourceDirectoryFile.clone();
+        metaData.append('metadata.json');
+        if (metaData.exists()) {
+          webapp.metaData = getJSON(metaData);
+        }
+
+        fun(webapp);
       });
     }
   };
 }
 
-let externalAppsDirs = ['external-apps'];
-
-if (DOGFOOD === '0' && PRODUCTION === '0') {
-  externalAppsDirs.push('test_external_apps');
-}
-
 const Gaia = {
   engine: GAIA_ENGINE,
   sharedFolder: getFile(GAIA_DIR, 'shared'),
-  webapps: makeWebappsObject(GAIA_APP_SRCDIRS),
-  externalWebapps: makeWebappsObject(externalAppsDirs.join(' ')),
+  webapps: makeWebappsObject(GAIA_APPDIRS.split(' ')),
   aggregatePrefix: 'gaia_build_',
   distributionDir: GAIA_DISTRIBUTION_DIR
 };
@@ -216,3 +254,12 @@ function gaiaManifestURL(name) {
   return gaiaOriginURL(name) + '/manifest.webapp';
 }
 
+function getDistributionFileContent(name, defaultContent) {
+  if (Gaia.distributionDir) {
+    let distributionFile = getFile(Gaia.distributionDir, name + '.json');
+    if (distributionFile.exists()) {
+      return getFileContent(distributionFile);
+    }
+  }
+  return JSON.stringify(defaultContent, null, '  ');
+}

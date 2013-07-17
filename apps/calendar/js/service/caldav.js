@@ -884,6 +884,29 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     /**
+     * Update absolute alarm times when the startDate changes.
+     *
+     * @param {ICAL.Time} originalDate of the event.
+     * @param {ICAL.Event} event to update.
+     */
+    adjustAbsoluteAlarms: function(originalDate, event) {
+      var newDate = event.startDate;
+      var alarms = event.component.getAllSubcomponents('valarm');
+
+      alarms.forEach(function(alarm) {
+        var trigger = alarm.getFirstProperty('trigger');
+        var value = trigger.getValues()[0].clone();
+
+        // absolute time
+        if (value instanceof ICAL.Time) {
+          // find absolute time difference
+          var diff = value.subtractDateTz(originalDate);
+          trigger.setValue(diff);
+        }
+      });
+    },
+
+    /**
      * Yahoo needs us to mirror all alarms as EMAIL alarms
      */
     mirrorAlarms: function(account) {
@@ -964,6 +987,7 @@ Calendar.ns('Service').Caldav = (function() {
 
         var target = icalEvent;
         var vcalendar = icalEvent.component.parent;
+        var originalStartDate = target.startDate;
 
         // find correct event
         if (event.recurrenceId) {
@@ -997,7 +1021,10 @@ Calendar.ns('Service').Caldav = (function() {
           event.end
         );
 
-        // alarms
+        // adjust absolute alarm time ( we do this before adding/changing our
+        // new alarm times )
+        self.adjustAbsoluteAlarms(originalStartDate, target);
+
         // We generally want to remove all 'DISPLAY' alarms
         // UNLESS we are dealing with a YAHOO account
         // Then we overwrite all alarms

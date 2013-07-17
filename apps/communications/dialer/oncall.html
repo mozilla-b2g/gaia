@@ -6,11 +6,10 @@
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="/dialer/style/oncall.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/responsive.css">
 
     <!-- Localization -->
     <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/lazy_l10n.js"></script>
+    <script defer type="application/javascript" src="/shared/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <!-- Making sure the shared resources will be copy into the zip
@@ -28,6 +27,7 @@
     <script defer type="application/javascript" src="/dialer/js/keypad.js"></script>
     <script defer type="application/javascript" src="/dialer/js/utils.js"></script>
     <script defer type="application/javascript" src="/dialer/js/oncall.js"></script>
+    <script defer type="application/javascript" src="/dialer/js/voicemail.js"></script>
     <script defer type="application/javascript" src="/dialer/js/handled_call.js"></script>
 
     <!-- Lazy load these:
@@ -43,7 +43,7 @@
     <article id="call-screen" data-layout>
       <div id="locked-contact-photo"></div>
       <article id="calls" data-count="0">
-        <section data-occupied="false">
+        <section class="call" data-occupied="false">
           <div class="numberWrapper">
             <div class="number font-light noAdditionalContactInfo"></div>
           </div>
@@ -59,7 +59,7 @@
             </div>
           </div>
         </section>
-        <section data-occupied="false" hidden>
+        <section class="call" data-occupied="false" hidden>
           <div class="numberWrapper">
             <div class="number font-light noAdditionalContactInfo">
             </div>

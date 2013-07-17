@@ -133,8 +133,10 @@ var emptyFn = function() {}, CRLF = '\r\n',
     reFetch = /^\* (\d+) FETCH [\s\S]+? \{(\d+)\}$/,
     reUid = /UID (\d+)/,
     reBodyPart = /BODY/,
-    reDate = /^(\d{2})-(.{3})-(\d{4})$/,
-    reDateTime = /^(\d{2})-(.{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}) ([+-]\d{4})$/,
+    // ( ?\d|\d{2}) = day number; technically it's either "SP DIGIT" or "2DIGIT"
+    // but there's no harm in us accepting a single digit without whitespace;
+    // it's conceivable the caller might have trimmed whitespace.
+    reDateTime = /^( ?\d|\d{2})-(.{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}) ([+-]\d{4})$/,
     HOUR_MILLIS = 60 * 60 * 1000, MINUTE_MILLIS = 60 * 1000;
 
 const CHARCODE_RBRACE = ('}').charCodeAt(0),
@@ -158,19 +160,6 @@ var gSendBuf = new Uint8Array(2000);
 
 function singleArgParseInt(x) {
   return parseInt(x, 10);
-}
-
-/**
- * Parses (UTC) IMAP dates into UTC timestamps. IMAP dates are DD-Mon-YYYY.
- */
-function parseImapDate(dstr) {
-  var match = reDate.exec(dstr);
-  if (!match)
-    throw new Error("Not a good IMAP date: " + dstr);
-  var day = parseInt(match[1], 10),
-      zeroMonth = MONTHS.indexOf(match[2]),
-      year = parseInt(match[3], 10);
-  return Date.UTC(year, zeroMonth, day);
 }
 
 /**
@@ -209,8 +198,23 @@ function decodeModifiedUtf7(encoded) {
 exports.decodeModifiedUtf7 = decodeModifiedUtf7;
 
 /**
- * Parses IMAP date-times into UTC timestamps.  IMAP date-times are
- * "DD-Mon-YYYY HH:MM:SS +ZZZZ"
+ * Parses IMAP "date-time" instances into UTC timestamps whose quotes have
+ * already been stripped.
+ *
+ * http://tools.ietf.org/html/rfc3501#page-84
+ *
+ * date-day        = 1*2DIGIT
+ *                    ; Day of month
+ * date-day-fixed  = (SP DIGIT) / 2DIGIT
+ *                    ; Fixed-format version of date-day
+ * date-month      = "Jan" / "Feb" / "Mar" / "Apr" / "May" / "Jun" /
+ *                   "Jul" / "Aug" / "Sep" / "Oct" / "Nov" / "Dec"
+ * date-year       = 4DIGIT
+ * time            = 2DIGIT ":" 2DIGIT ":" 2DIGIT
+ *                     ; Hours minutes seconds
+ * zone            = ("+" / "-") 4DIGIT
+ * date-time       = DQUOTE date-day-fixed "-" date-month "-" date-year
+ *                   SP time SP zone DQUOTE
  */
 function parseImapDateTime(dstr) {
   var match = reDateTime.exec(dstr);
@@ -237,6 +241,7 @@ function parseImapDateTime(dstr) {
 
   return timestamp;
 }
+exports.parseImapDateTime = parseImapDateTime;
 
 function formatImapDateTime(date) {
   var s;

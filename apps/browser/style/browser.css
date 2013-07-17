@@ -2,7 +2,6 @@ html, body {
   height: 100%;
   padding: 0;
   margin: 0;
-  font-family: 'MozTT', sans-serif;
   font-size: 10px;
   overflow: hidden;
 }
@@ -49,6 +48,7 @@ input[type="image"] {
   background-position: center;
   background-repeat: no-repeat;
   background-color: transparent;
+  background-size: 2.7rem;
   display: none;
   position: absolute;
   right: 0;
@@ -127,7 +127,6 @@ input[type="image"] {
   margin: 0;
   height: 8.5rem;
   border-bottom: 0.1rem solid #54575c;
-  font-family: 'MozTT', sans-serif;
   overflow: hidden;
   position: relative;
   width: 100%;
@@ -164,7 +163,6 @@ input[type="image"] {
 }
 
 #tabs-list .close {
-  font-family: 'MozTT', sans-serif;
   border: 0;
   position: absolute;
   right: 0;
@@ -181,7 +179,6 @@ input[type="image"] {
   margin: 0;
   width: 100%;
   height: 100%;
-  font-family: 'MozTT', sans-serif;
   z-index: 50;
   position: relative;
   left: 0;
@@ -206,7 +203,6 @@ input[type="image"] {
 }
 
 #tabs-badge {
-  font-family: 'MozTT', sans-serif;
   position: absolute;
   right: 0;
   top: 0;
@@ -284,6 +280,14 @@ input[type="image"] {
   display: block;
 }
 
+.start-page.page-screen #toolbar-end {
+  display: none;
+}
+
+.start-page.page-screen #frames {
+  bottom: 0;
+}
+
 #url-bar {
   display: -moz-box;
   -moz-box-orient: horizontal;
@@ -300,7 +304,7 @@ input[type="image"] {
 
 #url-button {
   background-position: center;
-  display: block;
+  display: none;
   height: 3.2rem;
   width: 3.2rem;
   background-size: 3rem;
@@ -316,6 +320,7 @@ input[type="image"] {
   text-indent: -1000em;
   background-repeat: no-repeat;
   background-position: center center;
+  background-size: 2.4rem;
 }
 
 #ssl-indicator[value=secure] {
@@ -331,7 +336,6 @@ input[type="image"] {
 }
 
 #url-input {
-  font-family: 'MozTT', sans-serif;
   font-size: 1.7rem;
   height: 3.4rem;
   -moz-box-flex: 1;
@@ -443,9 +447,9 @@ input::-moz-focus-inner {
   padding: 0;
   height: 100%;
   width: 100%;
-  background-image: url('/shared/resources/branding/about_logo.png'), -moz-linear-gradient(#f8f8fa, #cadce6);
-  background-repeat: no-repeat, no-repeat;
+  background: url('/shared/resources/branding/about_logo.png') no-repeat 16.5rem top, -moz-linear-gradient(#f8f8fa, #cadce6);
   background-position: top right;
+  background-size: 16.5rem;
   overflow: hidden;
   color: #3e4041;
 }
@@ -519,6 +523,7 @@ input::-moz-focus-inner {
 #crashscreen {
   background-color: #4f4f4f;
   background-image: url('images/crashed-tab-background.png');
+  background-size: 100% auto;
   color: #fff;
   z-index: 59;
   text-align: center;
@@ -565,7 +570,6 @@ input::-moz-focus-inner {
   border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
   font-size: 1.7rem;
-  font-family: 'MozTT', Sans-serif;
   line-height: 3.8rem;
   color: #333;
   text-align: center;
@@ -641,6 +645,10 @@ li[role="tab"] a {
   text-overflow: ellipsis;
   outline: none;
   overflow: hidden;
+}
+
+li[role="tab"] a:active {
+  background: none;
 }
 
 li[role="tab"]:first-child a {
@@ -838,6 +846,7 @@ li[role="listitem"] small {
 
 #refresh a {
   background-image: url('images/refresh.png');
+  background-size: 3.2rem;
 }
 
 .hidden {

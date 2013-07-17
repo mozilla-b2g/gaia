@@ -10,19 +10,17 @@ var SimManager = {
     if (!this.mobConn)
       return;
 
-    this.mobConn.addEventListener('icccardlockerror',
-                                  this.handleUnlockError.bind(this));
-    this.mobConn.addEventListener('cardstatechange',
-                                  this.handleCardState.bind(this));
+    if (!IccHelper.enabled)
+      return;
+
+    _ = navigator.mozL10n.get;
+
+    IccHelper.addEventListener('icccardlockerror',
+                               this.handleUnlockError.bind(this));
+    IccHelper.addEventListener('cardstatechange',
+                               this.handleCardState.bind(this));
 
     this.alreadyImported = false;
-
-    Object.defineProperty(this,
-                          'retryCount', {
-                            get: function() {
-                              return this.mobConn.retryCount;
-                            }
-                          });
   },
 
   handleUnlockError: function sm_handleUnlockError(data) {
@@ -30,7 +28,6 @@ var SimManager = {
     switch (data.lockType) {
       case 'pin':
         UIManager.pinInput.value = '';
-        UIManager.fakePinInput.value = '';
         UIManager.pinInput.classList.add('onerror');
         UIManager.pinError.textContent = _('pinError');
         UIManager.pinError.classList.remove('hidden');
@@ -43,7 +40,6 @@ var SimManager = {
         break;
       case 'puk':
         UIManager.pukInput.value = '';
-        UIManager.fakePukInput.value = '';
         UIManager.pukInput.classList.add('onerror');
         UIManager.pukError.textContent = _('pukError');
         UIManager.pukError.classList.remove('hidden');
@@ -60,7 +56,6 @@ var SimManager = {
       case 'cck':
       case 'spck':
         UIManager.xckInput.value = '';
-        UIManager.fakeXckInput.value = '';
         UIManager.xckInput.classList.add('onerror');
         UIManager.xckError.textContent = _('nckError');
         UIManager.xckError.classList.remove('hidden');
@@ -76,9 +71,9 @@ var SimManager = {
   },
 
   available: function sm_available() {
-    if (!this.mobConn)
+    if (!IccHelper.enabled)
       return false;
-    return (this.mobConn.cardState === 'ready');
+    return (IccHelper.cardState === 'ready');
   },
 
  /**
@@ -96,7 +91,7 @@ var SimManager = {
   handleCardState: function sm_handleCardState(callback) {
     SimManager.checkSIMButton();
     this.accessCallback = (typeof callback === 'function') ? callback : null;
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'pinRequired':
         this.showPinScreen();
         break;
@@ -110,7 +105,7 @@ var SimManager = {
         break;
       default:
         if (this.accessCallback) {
-          this.accessCallback(this.mobConn.cardState === 'ready');
+          this.accessCallback(IccHelper.cardState === 'ready');
         }
         break;
     }
@@ -134,61 +129,86 @@ var SimManager = {
     if (this._unlocked)
       return;
 
-    if (!this.retryCount || this.retryCount === 'undefined') {
-      UIManager.pinRetriesLeft.classList.add('hidden');
-    } else {
-      var l10nArgs = {n: this.retryCount};
-      UIManager.pinRetriesLeft.textContent = _('inputCodeRetriesLeft',
-                                               l10nArgs);
-      UIManager.pinRetriesLeft.classList.remove('hidden');
-    }
+    IccHelper.getCardLockRetryCount('pin', function(retryCount) {
+      if (!retryCount) {
+        UIManager.pinRetriesLeft.classList.add('hidden');
+      } else {
+        var l10nArgs = {n: retryCount};
+        UIManager.pinRetriesLeft.textContent = _('inputCodeRetriesLeft',
+                                                 l10nArgs);
+        UIManager.pinRetriesLeft.classList.remove('hidden');
+      }
+    });
+
     UIManager.activationScreen.classList.remove('show');
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.pincodeScreen.classList.add('show');
     UIManager.xckcodeScreen.classList.remove('show');
-    UIManager.fakePinInput.focus();
+    UIManager.pinInput.focus();
   },
 
   showPukScreen: function sm_showPukScreen() {
     if (this._unlocked)
       return;
 
-    if (!this.retryCount) {
-      UIManager.pukRetriesLeft.classList.add('hidden');
-    } else {
-      var l10nArgs = {n: this.retryCount};
-      UIManager.pukRetriesLeft.textContent = _('inputCodeRetriesLeft',
-                                               l10nArgs);
-      UIManager.pukRetriesLeft.classList.remove('hidden');
-    }
+    IccHelper.getCardLockRetryCount('puk', function(retryCount) {
+      if (!retryCount) {
+        UIManager.pukRetriesLeft.classList.add('hidden');
+      } else {
+        var l10nArgs = {n: retryCount};
+        UIManager.pukRetriesLeft.textContent = _('inputCodeRetriesLeft',
+                                                 l10nArgs);
+        UIManager.pukRetriesLeft.classList.remove('hidden');
+      }
+    });
+
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.activationScreen.classList.remove('show');
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.add('show');
     UIManager.xckcodeScreen.classList.remove('show');
     UIManager.unlockSimHeader.textContent = _('pukcode');
-    UIManager.fakePukInput.focus();
+    UIManager.pukInput.focus();
   },
 
   showXckScreen: function sm_showXckScreen() {
     if (this._unlocked)
       return;
 
-    if (!this.retryCount) {
-      UIManager.xckRetriesLeft.classList.add('hidden');
-    } else {
-      var l10nArgs = {n: this.retryCount};
-      UIManager.xckRetriesLeft.textContent = _('inputCodeRetriesLeft',
-                                               l10nArgs);
-      UIManager.xckRetriesLeft.classList.remove('hidden');
+    var lockType;
+
+    switch (IccHelper.cardState) {
+      case 'networkLocked':
+        lockType = 'nck';
+        break;
+      case 'corporateLocked':
+        lockType = 'cck';
+        break;
+      case 'serviceProviderLocked':
+        lockType = 'spck';
+        break;
+      default:
+        return; // We shouldn't be here.
     }
+
+    IccHelper.getCardLockRetryCount(lockType, function(retryCount) {
+      if (!retryCount) {
+        UIManager.xckRetriesLeft.classList.add('hidden');
+      } else {
+        var l10nArgs = {n: retryCount};
+        UIManager.xckRetriesLeft.textContent = _('inputCodeRetriesLeft',
+                                                 l10nArgs);
+        UIManager.xckRetriesLeft.classList.remove('hidden');
+      }
+    });
+
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.activationScreen.classList.remove('show');
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.remove('show');
     UIManager.xckcodeScreen.classList.add('show');
 
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'networkLocked':
         UIManager.unlockSimHeader.textContent = _('nckcode');
         UIManager.xckLabel.textContent = _('type_nck');
@@ -202,7 +222,7 @@ var SimManager = {
         UIManager.xckLabel.textContent = _('type_spck');
         break;
     }
-    UIManager.fakeXckInput.focus();
+    UIManager.xckInput.focus();
   },
 
   hideScreen: function sm_hideScreen() {
@@ -223,7 +243,7 @@ var SimManager = {
   unlock: function sm_unlock() {
     this._unlocked = false;
 
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'pinRequired':
         this.unlockPin();
         break;
@@ -244,6 +264,7 @@ var SimManager = {
       UIManager.pinError.textContent = _('pinValidation');
       UIManager.pinInput.classList.add('onerror');
       UIManager.pinError.classList.remove('hidden');
+      UIManager.pinInput.focus();
       return;
     } else {
       UIManager.pinInput.classList.remove('onerror');
@@ -252,7 +273,7 @@ var SimManager = {
 
     // Unlock SIM
     var options = {lockType: 'pin', pin: pin };
-    var req = this.mobConn.unlockCardLock(options);
+    var req = IccHelper.unlockCardLock(options);
     req.onsuccess = (function sm_unlockSuccess() {
       this._unlocked = true;
       this.hideScreen();
@@ -301,7 +322,7 @@ var SimManager = {
 
     // Unlock SIM with PUK and new PIN
     var options = {lockType: 'puk', puk: pukCode, newPin: newpinCode };
-    var req = this.mobConn.unlockCardLock(options);
+    var req = IccHelper.unlockCardLock(options);
     req.onsuccess = (function sm_unlockSuccess() {
       this._unlocked = true;
       this.hideScreen();
@@ -311,7 +332,7 @@ var SimManager = {
   unlockXck: function sm_unlockXck() {
     var xck = UIManager.xckInput.value;
     var lockType;
-    switch (this.mobConn.cardState) {
+    switch (IccHelper.cardState) {
       case 'networkLocked':
         lockType = 'nck';
         break;
@@ -326,6 +347,7 @@ var SimManager = {
       UIManager.xckInput.classList.add('onerror');
       UIManager.xckError.classList.remove('hidden');
       UIManager.xckError.textContent = _(lockType + 'Validation');
+      UIManager.xckInput.focus();
       return;
     } else {
       UIManager.pinInput.classList.remove('onerror');
@@ -334,7 +356,7 @@ var SimManager = {
 
     // Unlock SIM
     var options = {lockType: lockType, pin: xck };
-    var req = this.mobConn.unlockCardLock(options);
+    var req = IccHelper.unlockCardLock(options);
     req.onsuccess = (function sm_unlockSuccess() {
       this._unlocked = true;
       this.hideScreen();
@@ -351,10 +373,26 @@ var SimManager = {
     var importButton = UIManager.simImportButton;
     importButton.setAttribute('disabled', 'disabled');
 
+    var cancelled = false, contactsRead = false;
     var importer = new SimContactsImporter();
+    utils.overlay.showMenu();
+    utils.overlay.oncancel = function oncancel() {
+      cancelled = true;
+      importer.finish();
+      if (contactsRead) {
+        // A message about canceling will be displayed while the current chunk
+        // is being cooked
+        progress.setClass('activityBar');
+        utils.overlay.hideMenu();
+        progress.setHeaderMsg(_('messageCanceling'));
+      } else {
+        importer.onfinish(); // Early return while reading contacts
+      }
+    };
     var importedContacts = 0;
 
     importer.onread = function sim_import_read(n) {
+      contactsRead = true;
       progress.setClass('progressBar');
       progress.setHeaderMsg(_('simContacts-importing'));
       progress.setTotal(n);
@@ -362,16 +400,23 @@ var SimManager = {
 
     importer.onimported = function imported_contact() {
       importedContacts++;
-      progress.update();
+      if (!cancelled) {
+        progress.update();
+      }
     };
 
     importer.onfinish = function sim_import_finish() {
       window.setTimeout(function do_sim_import_finish() {
-        SimManager.alreadyImported = true;
         UIManager.navBar.removeAttribute('aria-disabled');
         utils.overlay.hide();
-        utils.status.show(_('simContacts-imported3', {n: importedContacts}));
+        if (importedContacts !== 0) {
+          window.importUtils.setTimestamp('sim');
+          SimManager.alreadyImported = true;
+          utils.status.show(_('simContacts-imported3', {n: importedContacts}));
+        }
       }, DELAY_FEEDBACK);
+
+      importer.onfinish = null;
     };
 
     importer.onerror = function sim_import_error() {

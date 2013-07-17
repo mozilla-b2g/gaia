@@ -36,6 +36,7 @@ var Browser = {
     '/about.html',
   UPPER_SCROLL_THRESHOLD: 50, // hide address bar
   LOWER_SCROLL_THRESHOLD: 5, // show address bar
+  MAX_URL_ITEM_CACHE: 50, // Max items cached for awesome bar predictions
   MAX_TOP_SITES: 4, // max number of top sites to display
   MAX_THUMBNAIL_WIDTH: 140,
   MAX_THUMBNAIL_HEIGHT: 100,
@@ -72,6 +73,10 @@ var Browser = {
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
 
+    // Template for the awesome list. When it is needed, this will be cloned.
+    this._awesomeListTemplate = document.createElement('ul');
+    this._awesomeListTemplate.setAttribute('role', 'listbox');
+
     // Load homepage once Places is initialised
     // (currently homepage is blank)
     Places.init((function(firstRun) {
@@ -89,8 +94,6 @@ var Browser = {
   },
 
   getAllElements: function browser_getAllElements() {
-
-
     var elementIDs = [
       'toolbar-start', 'url-bar', 'url-input', 'url-button', 'awesomescreen',
       'back-button', 'forward-button', 'bookmark-button', 'ssl-indicator',
@@ -241,7 +244,7 @@ var Browser = {
          this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
      }, this);
 
-     document.addEventListener('mozvisibilitychange',
+     document.addEventListener('visibilitychange',
        this.handleVisibilityChange.bind(this));
 
      ModalDialog.init();
@@ -585,6 +588,11 @@ var Browser = {
   handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
     var input = this.urlInput.value;
 
+    if (input === '') {
+      this.setUrlButtonMode(null);
+      return;
+    }
+
     this.setUrlButtonMode(
       this.isNotURL(input) ? this.SEARCH : this.GO
     );
@@ -603,7 +611,7 @@ var Browser = {
   handleCrashedTab: function browser_handleCrashedTab(tab) {
     // No need to show the crash screen for background tabs,
     // they will be revived when selected
-    if (tab.id === this.currentTab.id && !document.mozHidden) {
+    if (tab.id === this.currentTab.id && !document.hidden) {
       this.showCrashScreen();
     }
     tab.loading = false;
@@ -617,12 +625,12 @@ var Browser = {
   },
 
   handleVisibilityChange: function browser_handleVisibilityChange() {
-    if (!document.mozHidden && this.currentTab.crashed)
+    if (!document.hidden && this.currentTab.crashed)
       this.reviveCrashedTab(this.currentTab);
 
     // Bug 845661 - Attention screen does not appears when
     // the url bar input is focused.
-    if (document.mozHidden) {
+    if (document.hidden) {
       this.urlInput.blur();
       this.currentTab.dom.blur();
     }
@@ -702,6 +710,11 @@ var Browser = {
     if (e) {
       e.preventDefault();
     }
+
+    if (this.urlButtonMode === null) {
+      return;
+    }
+
 
     if (this.urlButtonMode == this.REFRESH && this.currentTab.crashed) {
       this.setUrlBar(this.currentTab.url);
@@ -923,9 +936,6 @@ var Browser = {
 
   urlFocus: function browser_urlFocus(e) {
     if (this.currentScreen === this.PAGE_SCREEN) {
-      // Hide modal dialog
-      ModalDialog.hide();
-      AuthenticationDialog.hide();
       this.urlInput.value = this.currentTab.url;
       this.sslIndicator.value = '';
       this.setUrlBar(this.currentTab.url);
@@ -946,6 +956,15 @@ var Browser = {
 
   setUrlButtonMode: function browser_setUrlButtonMode(mode) {
     this.urlButtonMode = mode;
+
+    if (this.urlButtonMode === null) {
+      this.urlButton.style.backgroundImage = '';
+      this.urlButton.style.display = 'none';
+      return;
+    }
+
+    this.urlButton.style.display = 'block';
+
     switch (mode) {
       case this.GO:
         this.urlButton.style.backgroundImage = 'url(style/images/go.png)';
@@ -981,14 +1000,16 @@ var Browser = {
     Places.getTopSites(20, filter, this.showResults.bind(this));
   },
 
+  /**
+   * Holds a DOM element for the default result in the awesome bar. Needed to
+   * avoid recreating it on every keystroke, causing flickering.
+   * @private
+   * @type {Node}
+   */
+  _defaultListItemTemplate: null,
+
   showResults: function browser_showResults(visited, filter) {
-    this.results.innerHTML = '';
-    var list = document.createElement('ul');
-    list.setAttribute('role', 'listbox');
-    this.results.appendChild(list);
-    visited.forEach(function browser_processResult(data) {
-      this.drawAwesomescreenListItem(list, data, filter);
-    }, this);
+    this._appendAwesomeScreenItems(this.results, visited);
     if (visited.length < 2 && filter) {
       var data = {
         title: this.DEFAULT_SEARCH_PROVIDER_TITLE,
@@ -997,7 +1018,16 @@ var Browser = {
         iconUri: this.DEFAULT_SEARCH_PROVIDER_ICON,
         description: _('search-for') + ' "' + filter + '"'
       };
-      this.drawAwesomescreenListItem(list, data);
+
+      if (!this._defaultListItemTemplate)
+        this._defaultListItemTemplate = this.drawAwesomescreenListItem(data);
+
+      var item = this._defaultListItemTemplate.cloneNode(true);
+      item.firstElementChild.href = data.uri;
+      item.firstElementChild.childNodes[1].innerHTML =
+        Utils.createHighlightHTML(data.description);
+
+      this.results.firstElementChild.appendChild(item);
     }
   },
 
@@ -1008,17 +1038,44 @@ var Browser = {
     Places.getTopSites(20, null, this.showTopSites.bind(this));
   },
 
-  showTopSites: function browser_showTopSites(topSites) {
-    this.topSites.innerHTML = '';
-    var list = document.createElement('ul');
-    list.setAttribute('role', 'listbox');
-    this.topSites.appendChild(list);
-    topSites.forEach(function browser_processTopSite(data) {
-      this.drawAwesomescreenListItem(list, data);
+
+  /**
+   * Replaces `parent` child nodes with new ones generated from the
+   * `itemList` array. This function is called exclusively to generate awesome
+   * bar results list fast and without flickering.
+   * @param {Node} parent
+   * @param {Array} itemList
+   * @return {Node}
+   * @private
+   */
+  _appendAwesomeScreenItems: function(parent, itemList) {
+    var newList = this._awesomeListTemplate.cloneNode();
+    itemList.forEach(function(data) {
+      if (!data) return;
+      newList.appendChild(this.drawAwesomescreenListItem(data));
     }, this);
+
+    var oldList = parent.firstElementChild;
+    if (oldList) {
+      parent.replaceChild(newList, oldList);
+    } else {
+      parent.appendChild(newList);
+    }
+
+    return parent;
+  },
+
+  showTopSites: function browser_showTopSites(topSites) {
+    this._appendAwesomeScreenItems(this.topSites, topSites);
   },
 
   showHistoryTab: function browser_showHistoryTab() {
+    // Do nothing if we are already in the history tab
+    if (this.historyTab.classList.contains('selected') &&
+      this.history.classList.contains('selected')) {
+      return;
+    }
+
     this.deselectAwesomescreenTabs();
     this.historyTab.classList.add('selected');
     this.history.classList.add('selected');
@@ -1041,6 +1098,7 @@ var Browser = {
     var year = null;
     var urls = []; // List of URLs under each heading for de-duplication
 
+    var fragment = document.createDocumentFragment();
     visits.forEach(function browser_processVisit(visit) {
       var timestamp = visit.timestamp;
       // Draw new heading if new threshold reached
@@ -1050,42 +1108,109 @@ var Browser = {
           thresholds);
         // Special case for month headings
         if (threshold != 5)
-          this.drawHistoryHeading(threshold);
+          this.drawHistoryHeading(fragment, threshold);
       }
-      if (threshold == 5) {
+      if (threshold === 5) {
         var timestampDate = new Date(timestamp);
         if (timestampDate.getMonth() != month ||
           timestampDate.getFullYear() != year) {
           urls = [];
           month = timestampDate.getMonth();
           year = timestampDate.getFullYear();
-          this.drawHistoryHeading(threshold, timestamp);
+          this.drawHistoryHeading(fragment, threshold, timestamp);
         }
       }
       // If not a duplicate, draw list item & add to list
       if (urls.indexOf(visit.uri) == -1) {
         urls.push(visit.uri);
-        this.drawAwesomescreenListItem(this.history.lastChild, visit);
+        fragment.appendChild(this.drawAwesomescreenListItem(visit));
       }
     }, this);
+
+    if (fragment.childNodes.length)
+      this.history.appendChild(fragment);
   },
 
   incrementHistoryThreshold: function browser_incrementHistoryThreshold(
     timestamp, currentThreshold, thresholds) {
     var newThreshold = currentThreshold += 1;
-    if (timestamp < thresholds[newThreshold])
+    if (timestamp < thresholds[newThreshold]) {
       return browser_incrementHistoryThreshold(timestamp, newThreshold,
         thresholds);
+    }
     return newThreshold;
   },
 
-  drawAwesomescreenListItem: function browser_drawAwesomescreenListItem(list,
-    data, filter, current_tab) {
-    var entry = document.createElement('li');
-    var link = document.createElement('a');
-    var title = document.createElement('h5');
-    var url = document.createElement('small');
-    entry.setAttribute('role', 'listitem');
+  /**
+   * Creates a template for awesome bar list items and returns a cloned node
+   * from it, ready to use.
+   * @return {Node}
+   * @private
+   */
+  _createListItemTemplate: function() {
+    if (!this._awesomeScreenItemTemplate) {
+      var entry = document.createElement('li');
+      var link = document.createElement('a');
+      var title = document.createElement('h5');
+      var url = document.createElement('small');
+      entry.setAttribute('role', 'listitem');
+
+      link.appendChild(title);
+      link.appendChild(url);
+      entry.appendChild(link);
+      this._awesomeScreenItemTemplate = entry;
+    }
+
+    return this._awesomeScreenItemTemplate.cloneNode(true);
+  },
+
+  /**
+   * Holds a DOM element list for the recently used items in the awesome bar.
+   * Needed to avoid needlessly recreating the list on every keystroke, causing
+   * flickering.
+   * @private
+   * @type {Object.<string, Node>}
+   */
+  _itemListCache: {},
+
+  /**
+   * Makes sure that we don't fill up too much memory caching list items for
+   * the awesome list.
+   * @private
+   */
+  _clearItemCache: function() {
+    // Avoid calling too many timeout listeners in case this gets called a lot.
+    if (this._itemListCacheTimeout)
+      clearTimeout(this._itemListCacheTimeout);
+
+    var cache = this._itemListCache;
+    this._itemListCacheTimeout = setTimeout(function() {
+      var keys = Object.keys(cache);
+      while (keys.length > this.MAX_URL_ITEM_CACHE) {
+        delete cache[keys.shift()];
+      }
+    }, 100);
+  },
+
+  drawAwesomescreenListItem: function browser_drawAwesomescreenListItem(data,
+    filter, current_tab) {
+
+    var entry;
+    var cache = this._itemListCache;
+    if (cache[data.uri]) {
+      entry = cache[data.uri].cloneNode(true);
+      this._clearItemCache();
+      return entry;
+    }
+    this._clearItemCache();
+
+    entry = this._createListItemTemplate();
+    cache[data.uri] = entry;
+
+    var link = entry.firstChild;
+    var title = link.firstChild;
+    var url = link.childNodes[1];
+
     link.href = data.uri;
     var titleText = data.title ? data.title : data.url;
     title.innerHTML = Utils.createHighlightHTML(titleText, filter);
@@ -1097,12 +1222,8 @@ var Browser = {
     } else {
       url.innerHTML = Utils.createHighlightHTML(data.uri, filter);
     }
-    link.appendChild(title);
-    link.appendChild(url);
-    entry.appendChild(link);
-    list.appendChild(entry);
 
-    // enable longpress manipulation in bookmark tab
+    // Enable longpress manipulation in bookmark tab
     if (current_tab === 'bookmark') {
       var that = this;
       link.addEventListener('contextmenu', function() {
@@ -1111,26 +1232,26 @@ var Browser = {
     }
 
     var underlay = ',url(./style/images/favicon-underlay.png)';
-
     if (!data.iconUri) {
-      link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')' +
-        underlay;
-      return;
+      link.style.backgroundImage =
+        'url(' + this.DEFAULT_FAVICON + ')' + underlay;
+      return entry;
     }
 
     Places.db.getIcon(data.iconUri, (function(icon) {
       if (icon && icon.failed != true && icon.data) {
         var imgUrl = window.URL.createObjectURL(icon.data);
-        link.style.backgroundImage = 'url(' + imgUrl + ')' +
-          underlay;
+        link.style.backgroundImage = 'url(' + imgUrl + ')' + underlay;
       } else {
-        link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')' +
-          underlay;
+        link.style.backgroundImage =
+          'url(' + this.DEFAULT_FAVICON + ')' + underlay;
       }
     }).bind(this));
+
+    return entry;
   },
 
-  drawHistoryHeading: function browser_drawHistoryHeading(threshold,
+  drawHistoryHeading: function browser_drawHistoryHeading(parent, threshold,
     timestamp) {
     var LABELS = [
       'future',
@@ -1143,7 +1264,6 @@ var Browser = {
     ];
 
     var text = '';
-    var h3 = document.createElement('h3');
 
     // Special case for month headings
     if (threshold == 5 && timestamp) {
@@ -1156,15 +1276,21 @@ var Browser = {
       text = _(LABELS[threshold]);
     }
 
+    var h3 = document.createElement('h3');
     var textNode = document.createTextNode(text);
-    var ul = document.createElement('ul');
-    ul.setAttribute('role', 'listbox');
+    var ul = this._awesomeListTemplate.cloneNode();
     h3.appendChild(textNode);
-    this.history.appendChild(h3);
-    this.history.appendChild(ul);
+    parent.appendChild(h3);
+    parent.appendChild(ul);
   },
 
   showBookmarksTab: function browser_showBookmarksTab() {
+    // Do nothing if we are already in the bookmarks tab
+    if (this.bookmarksTab.classList.contains('selected') &&
+      this.bookmarks.classList.contains('selected')) {
+      return;
+    }
+
     this.deselectAwesomescreenTabs();
     this.bookmarksTab.classList.add('selected');
     this.bookmarks.classList.add('selected');
@@ -1172,13 +1298,7 @@ var Browser = {
   },
 
   showBookmarks: function browser_showBookmarks(bookmarks) {
-    this.bookmarks.innerHTML = '';
-    var list = document.createElement('ul');
-    list.setAttribute('role', 'listbox');
-    this.bookmarks.appendChild(list);
-    bookmarks.forEach(function browser_processBookmark(data) {
-      this.drawAwesomescreenListItem(list, data, null, 'bookmark');
-    }, this);
+    this._appendAwesomeScreenItems(this.bookmarks, bookmarks);
   },
 
   openInNewTab: function browser_openInNewTab(url) {
@@ -1247,14 +1367,14 @@ var Browser = {
 
       // Save the blob to device storage.
       // Extract a filename from the URL, and to some sanitizing.
-      var name = url.split('/').reverse()[0].toLowerCase()
+      var name = url.split('/').reverse()[0].toLowerCase().split(/[&?#]/g)[0]
                     .replace(/[^a-z0-9\.]/g, '_');
 
       // If we have no file extension, use the content-type header to
       // add one.
-      if (name.split('.').length == 1) {
-        var contentType = xhr.getResponseHeader('content-type');
-        name += '.' + contentType.split('/')[1];
+      var ext = MimeMapper.guessExtensionFromType(xhr.response.type);
+      if (ext && name.indexOf(ext) === -1) {
+        name += '.' + ext;
       }
 
       storeBlob(xhr.response, name, 0);
@@ -1275,7 +1395,7 @@ var Browser = {
         return {
           label: _('open-in-new-tab'),
           callback: function() {
-            self.openInNewTab(item.data);
+            self.openInNewTab(item.data.uri);
           }
         };
       case 'IMG':
@@ -1287,11 +1407,14 @@ var Browser = {
           'AUDIO': 'audio'
         };
         var type = typeMap[item.nodeName];
+        if (item.nodeName === 'VIDEO' && !item.data.hasVideo) {
+          type = 'audio';
+        }
 
         return {
           label: _('save-' + type),
           callback: function() {
-            self.saveMedia(item.data, type);
+            self.saveMedia(item.data.uri, type);
           }
         };
       default:
@@ -1411,6 +1534,8 @@ var Browser = {
     }
 
     this.setVisibleWrapper(tab, visible);
+    var fun = tab.loading ? 'add' : 'remove';
+    this.throbber.classList[fun]('loading');
     tab.dom.style.display = visible ? 'block' : 'none';
     tab.dom.style.top = '0px';
   },
@@ -1568,6 +1693,7 @@ var Browser = {
   },
 
   showStartscreen: function browser_showStartscreen() {
+    document.body.classList.add('start-page');
     this.startscreen.classList.remove('hidden');
     Places.getTopSites(this.MAX_TOP_SITES, null,
       function(places) {
@@ -1590,6 +1716,7 @@ var Browser = {
   },
 
   hideStartscreen: function browser_hideStartScreen() {
+    document.body.classList.remove('start-page');
     this.startscreen.classList.add('hidden');
     this.clearTopSiteThumbnails();
   },
@@ -1643,7 +1770,8 @@ var Browser = {
     }).bind(this);
     this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
-    this.setUrlButtonMode(this.GO);
+    var buttonMode = this.urlInput.value === '' ? null : this.GO;
+    this.setUrlButtonMode(buttonMode);
     this.showTopSitesTab();
   },
 
@@ -1662,7 +1790,7 @@ var Browser = {
       this.setUrlButtonMode(this.STOP);
       this.throbber.classList.add('loading');
     } else {
-      var urlButton = this.currentTab.url ? this.REFRESH : this.GO;
+      var urlButton = this.currentTab.url ? this.REFRESH : null;
       this.setUrlButtonMode(urlButton);
       this.throbber.classList.remove('loading');
     }
@@ -1962,9 +2090,14 @@ var Browser = {
     switch (activity.source.data.type) {
       case 'url':
         var url = this.getUrlFromInput(activity.source.data.url);
-        if (this.currentTab)
-          this.hideCurrentTab();
-        this.selectTab(this.createTab(url));
+        if (this.currentTab) {
+          if (this.currentTab.url) {
+            this.hideCurrentTab();
+            this.selectTab(this.createTab(url));
+          } else {
+            this.navigate(url);
+          }
+        }
         this.showPageScreen();
         break;
     }

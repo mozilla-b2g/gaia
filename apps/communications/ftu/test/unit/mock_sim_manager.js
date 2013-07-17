@@ -1,6 +1,6 @@
 'use strict';
 
-var SimManager = {
+var MockSimManager = {
 
   handleCardState: function() {}
 

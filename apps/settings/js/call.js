@@ -91,11 +91,20 @@ var Calls = (function(window, document, undefined) {
                       'li-cfmb-desc',
                       'li-cfnrep-desc',
                       'li-cfnrea-desc'];
+    var isUnconditionalCFOn = (_cfReasonStates[0] === 1);
+
     elementIds.forEach(function(id) {
-      if (enable)
-        document.getElementById(id).classList.remove('disabled');
-      else
+      var element = document.getElementById(id);
+      if (enable) {
+        element.classList.remove('disabled');
+        // If unconditional call forwarding is on we keep disabled the other
+        // panels.
+        if (isUnconditionalCFOn && id !== 'li-cfu-desc') {
+          element.classList.add('disabled');
+        }
+      } else {
         document.getElementById(id).classList.add('disabled');
+      }
     });
   };
 
@@ -120,8 +129,8 @@ var Calls = (function(window, document, undefined) {
       'absent' : _('noSimCard'),
       'null' : _('simCardNotReady')
     };
-    var simCardState = kSimCardStates[mobileConnection.cardState ?
-                                      mobileConnection.cardState :
+    var simCardState = kSimCardStates[IccHelper.cardState ?
+                                      IccHelper.cardState :
                                       'null'];
     displayInfoForAll(simCardState);
   };
@@ -278,7 +287,7 @@ var Calls = (function(window, document, undefined) {
           return;
         }
         // Bails out in case of airplane mode.
-        if (mobileConnection.cardState !== 'ready') {
+        if (IccHelper.cardState !== 'ready') {
           return;
         }
         var selector = 'input[data-setting="ril.cf.' + key + '.number"]';
@@ -303,7 +312,7 @@ var Calls = (function(window, document, undefined) {
           return;
         }
         mozMobileCFInfo['number'] = textInput.value;
-        mozMobileCFInfo['timeSecond'] =
+        mozMobileCFInfo['timeSeconds'] =
           mozMobileCFInfo['reason'] !=
             _cfReason.CALL_FORWARD_REASON_NO_REPLY ? 0 : 20;
 
@@ -394,19 +403,19 @@ var Calls = (function(window, document, undefined) {
 
   function initCallForwarding() {
     displayInfoForAll(_('callForwardingRequesting'));
-    if (!settings || !mobileConnection) {
+    if (!settings || !mobileConnection || !IccHelper.enabled) {
       displayInfoForAll(_('callForwardingQueryError'));
       return;
     }
 
-    if (mobileConnection.cardState != 'ready') {
+    if (IccHelper.cardState != 'ready') {
       displaySimCardStateInfo();
       return;
     }
 
     // Prevent sub panels from being selected while airplane mode.
-    mobileConnection.addEventListener('cardstatechange', function() {
-      enableTapOnCallForwardingItems(mobileConnection.cardState === 'ready');
+    IccHelper.addEventListener('cardstatechange', function() {
+      enableTapOnCallForwardingItems(IccHelper.cardState === 'ready');
     });
 
     // Initialize the call forwarding alert panel.
@@ -415,6 +424,34 @@ var Calls = (function(window, document, undefined) {
     cfContinueBtn.addEventListener('click', function() {
       cfAlertPanel.hidden = true;
     });
+  }
+
+  // The UI for cell broadcast indicates that it is enabled or not, whereas
+  // the setting used is 'disabled' so note that we switch the value when
+  // it is set or displayed
+  function initCellBroadcast() {
+    var CBS_KEY = 'ril.cellbroadcast.disabled';
+    var wrapper = document.getElementById('menuItem-cellBroadcast');
+    var input = wrapper.querySelector('input');
+    var init = false;
+
+    var cellBroadcastChanged = function(value) {
+      input.checked = !value;
+      if (!init) {
+        input.disabled = false;
+        wrapper.classList.remove('disabled');
+        init = true;
+      }
+    };
+
+    var inputChanged = function(event) {
+      var cbsset = {};
+      cbsset[CBS_KEY] = !input.checked;
+      settings.createLock().set(cbsset);
+    };
+
+    input.addEventListener('change', inputChanged);
+    SettingsListener.observe(CBS_KEY, false, cellBroadcastChanged);
   }
 
   var callWaitingItemListener = function(evt) {
@@ -472,17 +509,17 @@ var Calls = (function(window, document, undefined) {
   }
 
   function initCallWaiting() {
-    if (!settings || !mobileConnection) {
+    if (!settings || !mobileConnection || !IccHelper.enabled) {
       return;
     }
 
-    if (mobileConnection.cardState != 'ready') {
+    if (IccHelper.cardState != 'ready') {
       return;
     }
 
     // Prevent the item from being changed while airplane mode.
-    mobileConnection.addEventListener('cardstatechange', function() {
-      enableTabOnCallWaitingItem(mobileConnection.cardState === 'ready');
+    IccHelper.addEventListener('cardstatechange', function() {
+      enableTabOnCallWaitingItem(IccHelper.cardState === 'ready');
     });
 
     var alertPanel = document.querySelector('#call .cw-alert');
@@ -532,35 +569,80 @@ var Calls = (function(window, document, undefined) {
     });
   }
 
-  // Call subpanel navigation control.
-  var oldHash = document.location.hash || '#root';
-  window.addEventListener('hashchange', function() {
-    // If navigation is from #root to #call panels then update UI always.
-    if (document.location.hash === '#call' &&
-        !oldHash.startsWith('#call-cf-')) {
-      if (!updatingInProgress) {
-        updateCallWaitingItemState(
-          function hashchange_updateCallWaitingItemState() {
-            updateCallForwardingSubpanels();
-        });
-      }
+  function updateVoiceMailItemState() {
+    var element = document.getElementById('voiceMail-desc');
+    if (!element) {
+      return;
     }
-    oldHash = document.location.hash;
+
+    var transaction = settings.createLock();
+    var request = transaction.get('ril.iccInfo.mbdn');
+    request.onsuccess = function() {
+       var number = request.result['ril.iccInfo.mbdn'];
+
+       if (number) {
+         element.textContent = number;
+         return;
+       }
+       var voicemail = navigator.mozVoicemail;
+       if (voicemail && voicemail.number) {
+         element.textContent = voicemail.number;
+         return;
+       }
+       element.textContent = _('voiceMail-number-notSet');
+    };
+    request.onerror = function() {};
+  }
+
+  function initVoiceMailSettings() {
+    settings.addObserver('ril.iccInfo.mbdn', function(event) {
+      updateVoiceMailItemState();
+    });
+    var transaction = settings.createLock();
+    var request = transaction.get('ril.iccInfo.mbdn');
+    request.onsuccess = function() {
+      var number = request.result['ril.iccInfo.mbdn'];
+      var voicemail = navigator.mozVoicemail;
+      // If the voicemail number has not been stored into the database yet we
+      // check whether the number is provided by the mozVoicemail API. In that
+      // case we store it into the setting database.
+      if (!number && voicemail && voicemail.number) {
+        setToSettingsDB('ril.iccInfo.mbdn', voicemail.number, null);
+        return;
+      }
+      updateVoiceMailItemState();
+    };
+    request.onerror = function() {};
+  }
+
+  // Call subpanel navigation control.
+  window.addEventListener('panelready', function(e) {
+    // If navigation is from #root to #call panels then update UI always.
+    if (e.detail.current !== '#call' ||
+        e.detail.previous.startsWith('#call-cf-') ||
+        e.detail.previous === '#call-voiceMailSettings') {
+      return;
+    }
+
+    if (!updatingInProgress) {
+      updateVoiceMailItemState();
+      updateCallWaitingItemState(
+        function hashchange_updateCallWaitingItemState() {
+          updateCallForwardingSubpanels();
+      });
+    }
   });
 
   // Public API.
   return {
     // Startup.
     init: function calls_init() {
+      initVoiceMailSettings();
       initCallWaiting();
       initCallForwarding();
+      initCellBroadcast();
 
-      updateCallWaitingItemState(
-        function init_updateCallWaitingItemState() {
-          updateCallForwardingSubpanels(
-            function init_updateCallForwardingSubpanels() {
-              setTimeout(initCallForwardingObservers, 500);
-      })});
+      setTimeout(initCallForwardingObservers, 500);
     }
   };
 })(this, document);

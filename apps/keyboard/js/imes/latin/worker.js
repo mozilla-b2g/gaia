@@ -56,31 +56,33 @@ var Commands = {
     if (language !== currentLanguage) {
       currentLanguage = language;
 
-      var dicturl = 'dictionaries/' +
-        language.replace('-', '_').toLowerCase() +
-        '.dict';
-
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', dicturl, false);
-      xhr.responseType = 'arraybuffer';
-      xhr.send();
-      //
-      // XXX
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=804395
-      // The app protocol doesn't seem to return a status code and
-      // we just get a zero-length array if the url is undefined
-      //
-      if (!xhr.response || xhr.response.byteLength === 0) {
-        log('error loading dictionary');
-        postMessage({ cmd: 'error', message: 'Unknown language: ' + language });
-      }
-      else {
-        try {
+      try {
+        var dicturl = 'dictionaries/' + language + '.dict';
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', dicturl, false);
+        xhr.responseType = 'arraybuffer';
+        xhr.send();
+        //
+        // XXX
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=804395
+        // The app protocol doesn't seem to return a status code and
+        // we just get a zero-length array if the url is undefined
+        //
+        if (xhr.response && xhr.response.byteLength) {
           Predictions.setDictionary(xhr.response);
         }
-        catch (e) {
-          postMessage({ cmd: 'error', message: e.message + ': ' + dicturl});
+        else {
+          postMessage({
+            cmd: 'error',
+            message: 'setLanguage: Unknown language: ' + language
+          });
         }
+      }
+      catch (e) {
+        postMessage({
+          cmd: 'error',
+          message: 'setLanguage: Unknown language: ' + language + ': ' + e
+        });
       }
     }
   },
@@ -90,8 +92,7 @@ var Commands = {
       Predictions.setNearbyKeys(nearbyKeys);
     }
     catch (e) {
-      postMessage({cmd: 'error',
-                   message: 'Predictions.setNearbyKeys(): ' + e.message});
+      postMessage({cmd: 'error', message: 'setNearbyKeys: ' + e.message});
     }
   },
 
@@ -99,13 +100,28 @@ var Commands = {
     if (pendingPrediction)  // Make sure we're not still running a previous one
       pendingPrediction.abort();
 
-    // var start = Date.now();
-    pendingPrediction = Predictions.predict(prefix, success, error);
+    // Ask for 3 predictions, considering 24 candidates that and considering
+    // only words with an edit distance of 1 (i.e. make only one correction
+    // per word)
+    pendingPrediction = Predictions.predict(prefix, 3, 24, 1,
+                                            success, error);
 
     function success(words) {
-      // log('suggestions for: ' + prefix + ' ' + JSON.stringify(words) + ' ' +
-      //     (Date.now() - start));
-      postMessage({ cmd: 'predictions', input: prefix, suggestions: words });
+      if (words.length) {
+        postMessage({ cmd: 'predictions', input: prefix, suggestions: words });
+        return;
+      }
+      else {
+        // If we didn't find anything, try more candidates and a larger
+        // edit distance to enlarge the search space.
+        pendingPrediction =
+          Predictions.predict(prefix, 3, 60, 2,
+                              function(words) {
+                                postMessage({ cmd: 'predictions',
+                                              input: prefix,
+                                              suggestions: words });
+                              }, error);
+      }
     }
 
     function error(msg) {

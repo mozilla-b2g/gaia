@@ -13,6 +13,9 @@ var PermissionManager = (function() {
         overlay.dataset.type = detail.permission;
         handlePermissionPrompt(detail);
         break;
+      case 'cancel-permission-prompt':
+        discardPermissionRequest();
+        break;
       case 'fullscreenoriginchange':
         delete overlay.dataset.type;
         handleFullscreenOriginChange(detail);

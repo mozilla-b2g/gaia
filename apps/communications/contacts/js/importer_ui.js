@@ -45,6 +45,8 @@ if (typeof window.importer === 'undefined') {
     // Current network request to enable canceling
     var currentNetworkRequest = null;
 
+    var cancelled = false;
+
     var _ = navigator.mozL10n.get;
 
     // Indicates whether some friends have been imported or not
@@ -71,7 +73,8 @@ if (typeof window.importer === 'undefined') {
 
     var isOnLine = navigator.onLine;
     var ongoingImport = false;
-    var theImporter;
+    var ongoingClean = false;
+    var theImporter, theCleaner;
 
     window.addEventListener('online', onLineChanged);
     window.addEventListener('offline', onLineChanged);
@@ -125,6 +128,45 @@ if (typeof window.importer === 'undefined') {
       return key;
     }
 
+    // Define a source adapter object to pass to contacts.Search.
+    //
+    // Since multiple, separate apps use contacts.Search its important for
+    // the search code to function independently.  This adapter object allows
+    // the search module to access the app's contacts without knowing anything
+    // about our DOM structure.
+    var searchSource = {
+      getNodes: function() {
+        return contactList.querySelectorAll('section > ol > li');
+      },
+      getFirstNode: function() {
+        return contactList.querySelector('section > ol > li');
+      },
+      getNextNode: function(contact) {
+        var out = contact.nextElementSibling;
+        var nextParent = contact.parentNode.parentNode.nextElementSibling;
+        while (!out && nextParent) {
+          out = nextParent.querySelector('ol > li:first-child');
+          nextParent = nextParent.nextElementSibling;
+        }
+        return out;
+      },
+      expectMoreNodes: function() {
+        // This app does not lazy load contacts into search via the
+        // appendNodes() function, so always return false.
+        return false;
+      },
+      clone: function(node) {
+        return node.cloneNode();
+      },
+      getNodeById: function(id) {
+        return contactsList.querySelector('[data-uuid="' + id + '"]');
+      },
+      getSearchText: function(node) {
+        return node.dataset.search;
+      },
+      click: onSearchResultCb
+    }; // searchSource
+
     UI.init = function() {
       var overlay = document.querySelector('nav[data-type="scrollbar"] p');
       var jumper = document.querySelector('nav[data-type="scrollbar"] ol');
@@ -146,9 +188,17 @@ if (typeof window.importer === 'undefined') {
       };
 
       utils.alphaScroll.init(params);
-      contacts.Search.init(document.getElementById('content'), null,
-                           onSearchResultCb, true);
+      contacts.Search.init(searchSource, true);
     };
+
+    function notifyLogout() {
+       // Simulating logout finished to enable seamless closing of the iframe
+      var msg = {
+        type: 'logout_finished',
+        data: ''
+      };
+      parent.postMessage(msg, targetApp);
+    }
 
     UI.end = function(event) {
       var msg = {
@@ -159,7 +209,61 @@ if (typeof window.importer === 'undefined') {
       parent.postMessage(msg, targetApp);
       // uncomment this to make it work on B2G-Desktop
       // parent.postMessage(msg, '*');
+
+      notifyLogout();
     };
+
+    function removeToken(cb) {
+      var theCb = (typeof cb === 'function') ? cb : function() {};
+      window.asyncStorage.removeItem(tokenKey, theCb, theCb);
+    }
+
+    function markPendingLogout(url, service, cb) {
+      var PENDING_LOGOUT_KEY = 'pendingLogout';
+      window.asyncStorage.getItem(PENDING_LOGOUT_KEY,
+          function(data) {
+            var obj = data || {};
+            obj[service] = url;
+            var theCb = (typeof cb === 'function') ? cb : function() {};
+            window.asyncStorage.setItem(PENDING_LOGOUT_KEY, obj, theCb, theCb);
+          });
+    }
+
+    function serviceLogout(cb) {
+      if (serviceConnector.automaticLogout) {
+        var serviceName = serviceConnector.name;
+        var logoutUrl = oauthflow.params[serviceName].logoutUrl;
+
+        var callbacks = {
+          error: function() {
+            window.console.warn('Error while logging out user ', logoutUrl);
+            removeToken();
+            markPendingLogout(logoutUrl, serviceName, cb);
+          },
+          timeout: function() {
+            window.console.warn('Timeout while logging out user ', url);
+            removeToken();
+            markPendingLogout(logoutUrl, serviceName, cb);
+          },
+          success: function() {
+            window.console.log('Successfully logged out');
+            removeToken(cb);
+          }
+        };
+
+        // Prevent false logout positives
+        if (navigator.onLine === true) {
+          Rest.get(logoutUrl, callbacks);
+        }
+        else {
+          removeToken();
+          markPendingLogout(logoutUrl, serviceName, cb);
+        }
+      }
+      else {
+        cb();
+      }
+    }
 
     function tokenExpired(error) {
       return (error.code === TOKEN_EXPIRED_CODE || error === TOKEN_EXPIRED_STR);
@@ -206,7 +310,7 @@ if (typeof window.importer === 'undefined') {
       friendsImported = false;
       syncOngoing = false;
 
-      ongoingImport = false;
+      ongoingImport = ongoingClean = false;
 
       selectAllButton = document.getElementById('select-all');
       deSelectAllButton = document.getElementById('deselect-all');
@@ -279,6 +383,14 @@ if (typeof window.importer === 'undefined') {
 
         serviceConnector.startSync(existingContacts, myFriendsByUid,
                                    syncSuccess);
+      }
+      else {
+        // Automatically notify sync finished
+        var msg = {
+          type: 'sync_finished',
+          data: 0
+        };
+        parent.postMessage(msg, targetApp);
       }
     }
 
@@ -472,6 +584,20 @@ if (typeof window.importer === 'undefined') {
       } // else
     };
 
+    function cancelImport() {
+      cancelled = true;
+
+      var cancelFunc = onUpdate;
+      if (ongoingImport) {
+        cancelFunc = theImporter.finish;
+      } else if (ongoingClean) {
+        cancelFunc = theCleaner.finish;
+      }
+
+      cancelFunc();
+      Curtain.show('message', 'canceling');
+    }
+
     function cancelCb() {
       if (currentNetworkRequest) {
          currentNetworkRequest.cancel();
@@ -569,11 +695,14 @@ if (typeof window.importer === 'undefined') {
         parent.postMessage({
           type: 'window_close',
           data: '',
-          message: _('friendsUpdated', {
+          message: cancelled ? '' : _('friendsUpdated', {
             numFriends: numFriends
           })
         }, targetApp);
       }
+
+      // If the service requires to do the logout it is done
+      serviceLogout(notifyLogout);
 
       if (Importer.getContext() === 'ftu') {
         Curtain.hide(function onhide() {
@@ -602,6 +731,10 @@ if (typeof window.importer === 'undefined') {
     }
 
     function cleanContacts(onsuccess, progress) {
+      if (cancelled) {
+        return;
+      }
+
       var contacts = [];
       var unSelectedKeys = Object.keys(unSelectedContacts);
       // ContactsCleaner expects an Array object
@@ -614,15 +747,23 @@ if (typeof window.importer === 'undefined') {
 
       // To optimize if the user wishes to unselect all
       var mode = 'update';
-      if (unSelectedKeys.length === existingContacts.length) {
+      if (unSelectedKeys.length === existingContacts.length &&
+          Object.keys(selectedContacts).length === 0) {
         mode = 'clear';
+        Curtain.hideMenu(); // User cannot cancel cleaning all the friends
       }
 
       serviceConnector.cleanContacts(contacts, mode,
           function gotCleaner(cleaner) {
             if (cleaner) {
+              theCleaner = cleaner;
+              ongoingClean = true;
               cleaner.oncleaned = progress.update;
-              cleaner.onsuccess = onsuccess;
+              cleaner.onsuccess = function() {
+                ongoingClean = false;
+                theCleaner = null;
+                onsuccess();
+              };
             }
             else {
               Importer.errorHandler();
@@ -649,10 +790,12 @@ if (typeof window.importer === 'undefined') {
       var unSelected = getTotalUnselected();
       var total = selected + unSelected;
 
+      cancelled = false;
       if (selected > 0) {
         var progress = Curtain.show('progress', 'import');
         progress.setTotal(total);
 
+        Curtain.oncancel = cancelImport;
         Importer.importAll(function on_all_imported(totalImported) {
           if (typeof serviceConnector.oncontactsimported === 'function') {
             // Check whether we need to set the last update and schedule next
@@ -675,6 +818,7 @@ if (typeof window.importer === 'undefined') {
       } else if (unSelected > 0) {
         var progress = Curtain.show('progress', 'update');
         progress.setTotal(total);
+        Curtain.oncancel = cancelImport;
         cleanContacts(function callback() {
           onUpdate(total);
         }, progress);
@@ -830,6 +974,10 @@ if (typeof window.importer === 'undefined') {
     }
 
     function doImportAll(importedCB, progress) {
+      if (cancelled) {
+        return;
+      }
+
       checkNodeList = null;
       var toBeImported = Object.keys(selectedContacts);
       var numFriends = toBeImported.length;
@@ -846,6 +994,7 @@ if (typeof window.importer === 'undefined') {
       theImporter.onsuccess = function(totalImported) {
         ongoingImport = false;
         window.setTimeout(function imported() {
+          window.importUtils.setTimestamp(serviceConnector.name);
           importedCB(totalImported);
         }, 0);
 

@@ -1,7 +1,6 @@
 'use strict';
 
 const Wallpaper = (function() {
-  var overlay = document.getElementById('icongrid');
 
   function onHomescreenContextmenu() {
     var a = new MozActivity({
@@ -12,6 +11,7 @@ const Wallpaper = (function() {
         height: 480
       }
     });
+
     a.onsuccess = function onWallpaperSuccess() {
       if (!a.result.blob)
         return;
@@ -22,8 +22,14 @@ const Wallpaper = (function() {
         navigator.mozSettings.createLock().set({
           'wallpaper.image': reader.result
         });
+        reader.onload = reader.onerror = null;
+      };
+      reader.onerror = function(e) {
+        console.error('Error reading the blob returned by the activity', e);
+        reader.onload = reader.onerror = null;
       };
     };
+
     a.onerror = function onWallpaperError() {
       console.warn('pick failed!');
     };
@@ -31,6 +37,7 @@ const Wallpaper = (function() {
 
   return {
     init: function init() {
+      var overlay = document.getElementById('icongrid');
       overlay.addEventListener('contextmenu', onHomescreenContextmenu);
     }
   };

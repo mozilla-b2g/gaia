@@ -328,6 +328,7 @@
       var req = store.delete(id);
 
       this._removeDependents(id, trans);
+      self.emit('preRemove', id);
 
       trans.addEventListener('error', function(event) {
         if (callback) {

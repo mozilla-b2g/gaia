@@ -1,0 +1,71 @@
+<div class="card-compose card">
+  <section class="cmp-compose-header" role="region">
+    <header>
+      <a href="#" class="cmp-back-btn">
+        <span class="icon icon-back">BacK</span>
+      </a>
+      <menu type="toolbar">
+        <a href="#" class="cmp-attachment-btn">
+          <span class="icon icon-attachment">AttachmenT</span>
+        </a>
+        <a href="#" class="cmp-send-btn">
+        <span class="icon icon-send">SenD</span>
+        </a>
+      </menu>
+      <h1 class="cmp-compose-header-label"
+        data-l10n-id="compose-header-short">ComposE MessagE</h1>
+    </header>
+  </section>
+  <div class="scrollregion-below-header">
+    <div class="cmp-envelope-bar">
+      <div class="cmp-envelope-line cmp-combo">
+        <span class="cmp-to-label cmp-addr-label"
+               data-l10n-id="compose-to">tO:</span>
+        <div class="cmp-to-container cmp-addr-container">
+          <div class="cmp-bubble-container">
+              <input class="cmp-to-text cmp-addr-text" type="email" />
+          </div>
+          <div class="cmp-to-add cmp-contact-add"></div>
+        </div>
+      </div>
+      <!-- XXX: spec calls for showing cc/bcc merged until selected,
+           but there is also the case where replying itself might need
+           to expand, so we are deferring that feature -->
+      <div class="cmp-envelope-line cmp-combo">
+        <span class="cmp-cc-label cmp-addr-label"
+               data-l10n-id="compose-cc">cC:</span>
+        <div class="cmp-cc-container cmp-addr-container">
+          <div class="cmp-bubble-container">
+            <input class="cmp-cc-text cmp-addr-text" type="email" />
+          </div>
+          <div class="cmp-cc-add cmp-contact-add"></div>
+        </div>
+      </div>
+      <div class="cmp-envelope-line cmp-combo">
+        <span class="cmp-bcc-label cmp-addr-label"
+               data-l10n-id="compose-bcc">BcC:</span>
+        <div class="cmp-bcc-container cmp-addr-container">
+          <div class="cmp-bubble-container">
+            <input class="cmp-bcc-text cmp-addr-text" type="email" />
+          </div>
+          <div class="cmp-bcc-add cmp-contact-add"></div>
+        </div>
+      </div>
+      <div class="cmp-envelope-line cmp-subject">
+        <span class="cmp-subject-label"
+               data-l10n-id="compose-subject">SubjecT:</span>
+        <input class="cmp-subject-text" type="text" />
+      </div>
+      <div class="cmp-envelope-line cmp-attachment-total collapsed">
+        <span class="cmp-attachment-label cmp-addr-label"
+               data-l10n-id="compose-attachments[zero]">AttachmentS:</span>
+        <span class="cmp-attachment-size"></span>
+      </div>
+      <ul class="cmp-attachment-container">
+      </ul>
+    </div>
+    <textarea class="cmp-body-text" rows="1"></textarea>
+    <div class="cmp-body-html">
+    </div>
+  </div>
+</div>

@@ -1,0 +1,65 @@
+
+#icc-view.visible,
+#icc-view .visible {
+  display: block;
+}
+
+#icc-view {
+  display: none;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+#icc-view > form {
+  display: none;
+}
+
+#icc-input {
+  padding: 2rem 0px 20rem;
+}
+
+#icc-input menu button:first-child,
+#icc-confirm menu button:first-child {
+  margin: 0;
+}
+#icc-input menu button,
+#icc-confirm menu button,
+#icc-input .yesnodisabled  {
+  width: calc((100% - 2rem) / 3);
+  margin-left: 1rem;
+}
+
+#icc-input .yesnoenabled {
+  display: none;
+}
+.yesnomode menu button {
+  width: calc((100% - 2rem) / 4);
+  margin-left: 1rem;
+}
+#icc-input.yesnomode .yesnoenabled {
+  display: inline-block;
+}
+
+#icc-input.yesnomode button,
+#icc-input.yesnomode menu span {
+  width: calc((100% - 3rem) /4);
+}
+#icc-input.yesnomode menu .yesnoenabled {
+  margin-left: 1rem;
+}
+#icc-input.yesnomode menu .yesnoenabled button {
+  width: 100%;
+}
+
+#icc-input.yesnomode .yesnodisabled {
+  display: none;
+}
+
+#icc-input .yesnodisabled button[disabled] {
+  background: none repeat scroll 0% 0% rgb(95, 95, 95);
+  color: rgb(77, 77, 77);
+  text-shadow: none;
+  border-color: rgb(77, 77, 77);
+  pointer-events: none;
+}

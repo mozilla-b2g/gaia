@@ -9,6 +9,7 @@
  // Import global objects from parent window
  var ConfigManager = window.parent.ConfigManager;
  var CostControl = window.parent.CostControl;
+ var Formatting = window.parent.Formatting;
 
  // Import global functions from parent window
  var updateNextReset = window.parent.updateNextReset;
@@ -32,6 +33,7 @@ var Settings = (function() {
   var costcontrol, vmanager, autosettings, initialized;
   var plantypeSelector, phoneActivityTitle, phoneActivitySettings;
   var balanceTitle, balanceSettings, reportsTitle;
+  var balanceView;
 
   function configureUI() {
     CostControl.getInstance(function _onCostControl(instance) {
@@ -51,6 +53,14 @@ var Settings = (function() {
       balanceSettings =
         document.querySelector('#balance-settings + .settings');
       reportsTitle = document.getElementById('phone-internet-settings');
+
+      // Subviews
+      var balanceConfig = ConfigManager.configuration.balance;
+      balanceView = new BalanceView(
+        document.getElementById('balance'),
+        document.querySelector('#balance + .meta'),
+        balanceConfig ? balanceConfig.minimum_delay : undefined
+      );
 
       // Autosettings
       vmanager = new ViewManager();
@@ -171,23 +181,16 @@ var Settings = (function() {
   }
 
   // Add particular constrains to the "Done" button
+  var balanceLowLimitView;
   function addDoneConstrains() {
-    var lowLimit = document.getElementById('low-limit');
-    lowLimit.addEventListener('click', checkSettings);
-    var lowLimitInput = document.getElementById('low-limit-input');
-    lowLimitInput.addEventListener('input', checkSettings);
-  }
-
-  // Check settings and enable / disable done button
-  function checkSettings() {
-    var closeSettingsButton = document.getElementById('close-settings');
-    var lowLimit = document.getElementById('low-limit');
-    var lowLimitInput = document.getElementById('low-limit-input');
-    var lowLimitError = currentMode === 'PREPAID' && lowLimit.checked &&
-                        lowLimitInput.value.trim() === '';
-
-    lowLimitInput.classList[lowLimitError ? 'add' : 'remove']('error');
-    closeSettingsButton.disabled = lowLimitError;
+    var closeButton = document.getElementById('close-settings');
+    balanceLowLimitView = new BalanceLowLimitView(
+      document.getElementById('low-limit'),
+      document.getElementById('low-limit-input')
+    );
+    balanceLowLimitView.onvalidation = function(evt) {
+      closeButton.disabled = !evt.isValid;
+    };
   }
 
   window.addEventListener('localized', function _onLocalize() {
@@ -203,7 +206,7 @@ var Settings = (function() {
       localizeWeekdaySelector(document.getElementById('select-weekday'));
 
       // Layout
-      var mode = costcontrol.getApplicationMode(settings);
+      var mode = ConfigManager.getApplicationMode();
       if (currentMode !== mode) {
         currentMode = mode;
         var hidePlantypeSelector = (mode === 'DATA_USAGE_ONLY');
@@ -211,6 +214,7 @@ var Settings = (function() {
         var hideBalance = (mode !== 'PREPAID');
         var hideReportsTitle = (mode === 'PREPAID');
 
+        balanceLowLimitView.disabled = (mode !== 'PREPAID');
         plantypeSelector.setAttribute('aria-hidden', hidePlantypeSelector);
         phoneActivityTitle.setAttribute('aria-hidden', hidePhoneActivity);
         phoneActivitySettings.setAttribute('aria-hidden', hidePhoneActivity);
@@ -237,8 +241,6 @@ var Settings = (function() {
                           settings.lastTelephonyReset);
           break;
       }
-
-      checkSettings();
     });
   }
 
@@ -261,20 +263,7 @@ var Settings = (function() {
   function updateBalance(lastBalance, currency) {
     var limitCurrency = document.getElementById('settings-low-limit-currency');
     limitCurrency.textContent = currency;
-
-    var balance = document.getElementById('balance');
-    if (!lastBalance) {
-      balance.textContent = _('not-available');
-      return;
-    }
-
-    var timestamp = document.querySelector('#balance + .meta');
-    balance.textContent = _('currency', {
-      value: lastBalance.balance,
-      currency: lastBalance.currency
-    });
-    timestamp.innerHTML = '';
-    timestamp.appendChild(formatTimeHTML(lastBalance.timestamp));
+    balanceView.update(lastBalance);
   }
 
   // Update telephony counters on settings

@@ -47,7 +47,7 @@ body[data-path^='/settings'] #time-views {
 }
 
 #settings .calendars .error label {
-  background: transparent url('icons/accountwarning_30x30.png') no-repeat 2rem 0.5rem;
+  background: transparent url('icons/accountwarning.png') no-repeat 2rem 0.5rem;
   padding-left: 6rem;
 }
 
@@ -58,7 +58,6 @@ body[data-path^='/settings'] #time-views {
   padding: 0 3rem;
   border-bottom: 0.1rem solid #7E8C91;
   -moz-user-select: none;
-  user-select: none;
 }
 
 #settings .calendars li {
@@ -95,7 +94,7 @@ body[data-path^='/settings'] #time-views {
 #settings .settings {
   width: 5.5rem;
   height: 4rem;
-  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat center / 3rem;
+  background: transparent url('/style/icons/settings.png') no-repeat center / 3rem;
   font-size: 0;
   display: block;
 }
@@ -124,6 +123,10 @@ body[data-path^='/settings'] #time-views {
   right: 1.3rem;
   background: none;
   margin: 0;
+}
+
+#settings [role="toolbar"] {
+  width: 80% !important;
 }
 
 body[role="application"] [role="toolbar"] li button:active {

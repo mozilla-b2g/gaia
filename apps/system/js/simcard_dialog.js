@@ -39,78 +39,46 @@ var SimPinDialog = {
     'serviceProviderLocked': 'spck'
   },
 
-  // Now we don't have a number-password type for input field
-  // mimic one by binding one number input and one text input
   getNumberPasswordInputField: function spl_wrapNumberInput(name) {
-    var valueEntered = '';
     var inputField = document.querySelector('input[name="' + name + '"]');
-    var displayField = document.querySelector('input[name="' + name + 'Vis"]');
-    var codeMaxLength = parseInt(inputField.getAttribute('maxlength'), 10);
     var self = this;
 
-    inputField.addEventListener('keypress', function(evt) {
+    inputField.addEventListener('input', function(evt) {
       if (evt.target !== inputField)
         return;
-      evt.preventDefault();
 
-      var code = evt.charCode;
-      if (code !== 0 && (code < 0x30 || code > 0x39))
-        return;
+      checkDialogDone();
+    });
 
-      if (code === 0) { // backspace
-        valueEntered = valueEntered.substr(0, valueEntered.length - 1);
-      } else {
-        if (valueEntered.length >= codeMaxLength)
-          return;
-        valueEntered += String.fromCharCode(code);
-      }
-      displayField.value = encryption(valueEntered);
-      if (displayField.value.length >= 4)
+    inputField.addEventListener('focus', function() {
+      checkDialogDone();
+    });
+
+    function checkDialogDone() {
+      if (inputField.value.length >= 4)
         self.dialogDone.disabled = false;
       else
         self.dialogDone.disabled = true;
-    });
-
-    function encryption(str) {
-      return (new Array(str.length + 1)).join('*');
     }
 
-    function setValue(value) {
-      valueEntered = value;
-      inputField.value = value;
-      displayField.value = encryption(valueEntered);
-    }
 
-    function setFocus() {
-      inputField.focus();
-    }
-
-    function blur() {
-      inputField.blur();
-    }
-
-    return {
-      get value() { return valueEntered; },
-      set value(value) { setValue(value) },
-      focus: setFocus,
-      blur: blur
-    };
+    return inputField;
   },
 
   handleCardState: function spl_handleCardState() {
     var _ = navigator.mozL10n.get;
 
-    var cardState = this.mobileConnection.cardState;
+    var cardState = IccHelper.cardState;
     var lockType = this.lockTypeMap[cardState];
-    var retryCount = this.mobileConnection.retryCount;
-
-    if (!retryCount) {
-      this.triesLeftMsg.hidden = true;
-    } else {
-      var l10nArgs = { n: retryCount };
-      this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
-      this.triesLeftMsg.hidden = false;
-    }
+    IccHelper.getCardLockRetryCount(lockType, (function(retryCount) {
+      if (!retryCount) {
+        this.triesLeftMsg.hidden = true;
+      } else {
+        var l10nArgs = { n: retryCount };
+        this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
+        this.triesLeftMsg.hidden = false;
+      }
+    }).bind(this));
 
     switch (lockType) {
       case 'pin':
@@ -216,7 +184,7 @@ var SimPinDialog = {
   },
 
   unlockCardLock: function spl_unlockCardLock(options) {
-    var req = this.mobileConnection.unlockCardLock(options);
+    var req = IccHelper.unlockCardLock(options);
     req.onsuccess = this.close.bind(this, 'success');
   },
 
@@ -252,7 +220,7 @@ var SimPinDialog = {
   },
 
   setCardLock: function spl_setCardLock(options) {
-    var req = this.mobileConnection.setCardLock(options);
+    var req = IccHelper.setCardLock(options);
     req.onsuccess = this.close.bind(this, 'success');
   },
   inputFieldControl: function spl_inputField(isPin, isPuk, isXck, isNewPin) {
@@ -318,7 +286,6 @@ var SimPinDialog = {
     UtilityTray.hide(true);
 
     this.systemDialog.show();
-    this.dialogDone.disabled = true;
     this.action = action;
     this.lockType = 'pin';
     switch (action) {
@@ -357,7 +324,10 @@ var SimPinDialog = {
     if (!this.mobileConnection)
       return;
 
-    this.mobileConnection.addEventListener('icccardlockerror',
+    if (!IccHelper.enabled)
+      return;
+
+    IccHelper.addEventListener('icccardlockerror',
       this.handleError.bind(this));
 
     this.dialogDone.onclick = this.verify.bind(this);

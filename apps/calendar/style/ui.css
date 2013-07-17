@@ -22,7 +22,6 @@ menu[type="toolbar"] a {
 ol.link-list label,
 ol.link-list a {
   display: block;
-  width: calc(100% - 3rem;)
   min-height: 5.5rem;
   line-height: 5.5rem;
   font-size: 1.7rem;
@@ -173,7 +172,7 @@ ol.link-list li:only-child a {
 }
 
 #advanced-settings-view .account-list .error a {
-  background: transparent url('icons/accountwarning_30x30.png') no-repeat left;
+  background: transparent url('icons/accountwarning.png') no-repeat left;
   padding-left: 3.5rem;
 }
 
@@ -209,7 +208,7 @@ ol.link-list li:only-child a {
   overflow: hidden;
   visibility: hidden;
   /* completely override other views */
-  background: #E6E6E0;
+  background-color: #f4f4f4;
   position: absolute;
   top: 0;
   width: 100%;

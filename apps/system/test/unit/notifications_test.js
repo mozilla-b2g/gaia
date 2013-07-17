@@ -1,5 +1,7 @@
 'use strict';
 
+mocha.globals(['ScreenManager']);
+
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('system/test/unit/mock_settings_listener.js');
@@ -77,7 +79,13 @@ suite('system/NotificationScreen >', function() {
   });
 
   suite('updateStatusBarIcon >', function() {
+    var realScreenManager;
     setup(function() {
+      realScreenManager = window.ScreenManager;
+      window.ScreenManager = {
+        screenEnabled: true,
+        turnScreenOn: sinon.stub()
+      };
       NotificationScreen.updateStatusBarIcon();
     });
 
@@ -135,6 +143,10 @@ suite('system/NotificationScreen >', function() {
         null,
         fakeLockScreenContainer.querySelector(
           '[data-notification-i-d="10000"]'));
+    });
+
+    teardown(function() {
+      window.ScreenManager = realScreenManager;
     });
   });
 

@@ -15,8 +15,6 @@
     <link href="/contacts/style/contacts.css" rel="stylesheet">
     <link href="/contacts/style/overlay.css" rel="stylesheet">
     <link href="/contacts/style/search.css" rel="stylesheet">
-    <!-- multi-resolution support -->
-    <link href="/shared/style/responsive.css" rel="stylesheet">
 
     <script defer src="/contacts/js/activities.js"></script>
     <script defer src="/shared/js/lazy_loader.js"></script>
@@ -44,6 +42,13 @@
     <!-- Loading FB indexedDB related stuff -->
     <script defer type="text/javascript" src="/contacts/js/fixed_header.js"></script>
 
+    <!-- IccHelper -->
+    <script defer type="text/javascript" src="/shared/js/icc_helper.js"></script>
+
+    <!-- For the build system to include in zip:
+    <link href="/shared/js/tag_visibility_monitor.js">
+    -->
+
   </head>
 
   <body role="application" class="app-contacts">
@@ -63,15 +68,15 @@
 
         <article class="view-body">
           <div id="no-contacts" class="hide">
-            <div class="arrow small">
-              <p class="small" data-l10n-id="create-new">Create a new contact</p>
-            </div>
-            <div class="arrow big">
-              <p class="small" data-l10n-id="import-now">Import your contacts from your SIM card or from Facebook</p>
-            </div>
             <div class="info">
               <p data-l10n-id="no-contacts">no contacts</p>
               <p data-l10n-id="start-adding">start adding them now </p>
+              <div class="icon create">
+                <p class="small" data-l10n-id="create-new">Create a new contact</p>
+              </div>
+              <div class="icon import">
+                <p class="small" data-l10n-id="import-now">Import your contacts from your SIM card or from Facebook</p>
+              </div>
             </div>
           </div>
           <nav data-type="scrollbar">
@@ -88,17 +93,19 @@
               </li>
             </ol>
           </nav>
-          <div id="groups-container" class="view-body-inner">
-            <form id="search-container" class="search" role="search">
-              <p>
-                <label for="search" id="search-start">
-                  <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact">
-                </label>
-              </p>
-            </form>
-            <section id="groups-list" data-type="list">
-              <!-- Group template here -->
-            </section>
+          <div id="groups-container-box">
+            <div id="groups-container" class="view-body-inner">
+              <form id="search-container" class="search" role="search">
+                <p>
+                  <label for="search" id="search-start">
+                    <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact">
+                  </label>
+                </p>
+              </form>
+              <section id="groups-list" data-type="list">
+                <!-- Group template here -->
+              </section>
+            </div>
           </div>
         </article>
         <div id='fixed-container' class='fixed-title'></div>
@@ -121,7 +128,7 @@
           </ol>
         </section>
 
-        <section>
+        <section id="search-process">
           <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
           <p id="search-progress" class="hidden" role="status">
             <progress  class="small"></progress>
@@ -129,6 +136,21 @@
         </section>
 
       </section>    <!-- Search view -->
+
+      <section id='view-screenshot' role="region" class="view hide">
+        <header>
+          <a href="#" class="hide">
+            <span class="icon icon-close" data-l10n-id="exit">Exit</span>
+          </a>
+          <menu type="toolbar">
+            <button role="menuitem"><span class="icon icon-add" data-l10n-id="add">add</span></button>
+            <button role="menuitem"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
+          </menu>
+          <h1 data-l10n-id="contacts">Contacts</h1>
+        </header>
+        <article id="view-screenshot-body">
+        </article>
+      </section>
 
       <!-- Contact Details Section -->
       <section id='view-contact-details' role="region" class="view view-right view-contact-profile">
@@ -461,26 +483,30 @@
               <h2 data-l10n-id="importContactsTitle">Import Contacts</h2>
             </header>
             <ul data-type="list" id="importSources">
-              <li id="settingsSIM">
+              <li id="settingsSIM" data-source="sim">
                 <button class="icon icon-sim" data-l10n-id="importSim2">
                   SIM card
+                  <p><span></span><time></time></p>
                 </button>
                 <p id="no-sim" data-l10n-id="noSimMsg"></p>
               </li>
-              <li id="settingsStorage">
-                <button class="icon icon-sd" data-l10n-id="importSd">
+              <li id="settingsStorage" data-source="sd">
+                <button class="icon icon-sd" data-l10n-id="importMemoryCard">
                   Memory card
+                  <p><span></span><time></time></p>
                 </button>
-                <p id="no-sd" data-l10n-id="noSdMsg"></p>
+                <p id="no-memorycard" data-l10n-id="noMemoryCardMsg"></p>
               </li>
-              <li class="importService">
+              <li class="importService" data-source="gmail">
                 <button class="icon icon-gmail" data-l10n-id="importGmail">
                   Gmail
+                  <p><span></span><time></time></p>
                 </button>
               </li>
-              <li class="importService">
+              <li class="importService" data-source="live">
                 <button class="icon icon-live" data-l10n-id="importOutlook">
                   Outlook
+                  <p><span></span><time></time></p>
                 </button>
               </li>
             </ul>
@@ -519,6 +545,9 @@
           <span id="progress-msg"></span>
           <progress id="progress-element" class="pack-activity" value="0" max="100"></progress>
         </p>
+        <menu>
+          <button data-l10n-id="cancel" id="cancel-overlay">Cancel</button>
+        </menu>
       </section>
     </form>
 

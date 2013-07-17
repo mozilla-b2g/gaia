@@ -60,7 +60,6 @@ section[data-type="sidebar"] {
   top: 0;
   left: 0;
   overflow: hidden;
-  font-family: "MozTT", Sans-serif;
 }
 
 /* Sidebar header */
@@ -84,7 +83,8 @@ section[data-type="sidebar"] > header:after {
 }
 
 section[data-type="sidebar"] > header h1 {
-  font: 2.2rem/4.8rem "MozTT", Sans-serif;
+  font-size: 2.2rem;
+  line-height: 4.8rem;
   text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -95,7 +95,9 @@ section[data-type="sidebar"] > header h1 {
 }
 
 section[data-type="sidebar"] > header h1 em {
-  font: bold 1.5rem/1em "MozTT", Sans-serif;
+  font-weight: bold;
+  font-size: 1.5rem;
+  line-height: 1em;
 }
 
 /* Generic set of actions in toolbar */
@@ -132,7 +134,9 @@ section[data-type="sidebar"] > header button {
   background: none;
   padding: 0;
   overflow: hidden;
-  font: 600 1.4rem/1.1em "MozTT", Sans-serif;
+  font-weight: 600;
+  font-size: 1.4rem;
+  line-height: 1.1em;
   color: #fff;
 }
 

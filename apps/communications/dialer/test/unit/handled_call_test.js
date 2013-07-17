@@ -1,4 +1,5 @@
 requireApp('communications/dialer/js/handled_call.js');
+requireApp('communications/dialer/js/voicemail.js');
 
 requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
@@ -29,6 +30,7 @@ if (!this.LazyL10n) {
 }
 
 suite('dialer/handled_call', function() {
+  const VOICEMAIL_NUMBER = '123';
   var subject;
   var mockCall;
   var fakeNode;
@@ -67,6 +69,14 @@ suite('dialer/handled_call', function() {
     window.Utils = MockUtils;
 
     phoneNumber = Math.floor(Math.random() * 10000);
+
+    sinon.stub(Voicemail, 'check', function(number, callback) {
+      var isVoicemailNumber = false;
+      if (number === VOICEMAIL_NUMBER) {
+        isVoicemailNumber = true;
+      }
+      callback(isVoicemailNumber);
+    });
   });
 
   suiteTeardown(function() {
@@ -76,6 +86,7 @@ suite('dialer/handled_call', function() {
     window.KeypadManager = realKeypadManager;
     window.LazyL10n = realLazyL10n;
     window.Utils = realUtils;
+    Voicemail.check.restore();
   });
 
   setup(function() {
@@ -239,14 +250,6 @@ suite('dialer/handled_call', function() {
       assert.equal(subject.recentsEntry, MockOnCallHandler.mLastEntryAdded);
     });
 
-    test('mute off after call', function() {
-      assert.isFalse(MockCallScreen.mMuteOn);
-    });
-
-    test('speaker off after call', function() {
-      assert.isFalse(MockCallScreen.mSpeakerOn);
-    });
-
     test('remove listener', function() {
       assert.isTrue(mockCall._listenerRemoved);
     });
@@ -276,6 +279,10 @@ suite('dialer/handled_call', function() {
       mockCall._hold();
     });
 
+    test('disable keypad', function() {
+      assert.equal(MockOnCallHandler.mUpdateKeypadEnabledCalled, false);
+    });
+
     test('add the css class', function() {
       assert.equal(fakeNode.className, 'held');
     });
@@ -284,11 +291,16 @@ suite('dialer/handled_call', function() {
   suite('resuming', function() {
     setup(function() {
       MockCallScreen.mSyncSpeakerCalled = false;
+      MockOnCallHandler.mUpdateKeypadEnabledCalled = false;
       mockCall._resume();
     });
 
     test('remove the css class', function() {
       assert.equal(fakeNode.className, '');
+    });
+
+    test('enable keypad', function() {
+      assert.equal(MockOnCallHandler.mUpdateKeypadEnabledCalled, true);
     });
 
     test('sync speaker', function() {
@@ -510,6 +522,14 @@ suite('dialer/handled_call', function() {
     });
   });
 
+  test('should display contact name', function() {
+    mockCall = new MockCall('888', 'incoming');
+    subject = new HandledCall(mockCall, fakeNode);
+
+    var numberNode = fakeNode.querySelector('.numberWrapper .number');
+    assert.equal(numberNode.textContent, 'test name');
+  });
+
   test('should display withheld-number l10n key', function() {
     mockCall = new MockCall('', 'incoming');
     subject = new HandledCall(mockCall, fakeNode);
@@ -518,20 +538,80 @@ suite('dialer/handled_call', function() {
     assert.equal(numberNode.textContent, 'withheld-number');
   });
 
+  test('should display emergency number label', function() {
+    mockCall = new MockCall('112', 'dialing');
+    mockCall.emergency = true;
+    subject = new HandledCall(mockCall, fakeNode);
+
+    var numberNode = fakeNode.querySelector('.numberWrapper .number');
+    assert.equal(numberNode.textContent, 'emergencyNumber');
+  });
+
+  test('should display voicemail label', function() {
+    mockCall = new MockCall('123', 'dialing');
+    subject = new HandledCall(mockCall, fakeNode);
+
+    var numberNode = fakeNode.querySelector('.numberWrapper .number');
+    assert.equal(numberNode.textContent, 'voiceMail');
+  });
+
   suite('additional information', function() {
+    var additionalInfoNode;
+
+    setup(function() {
+      additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
+    });
+
     test('check additional info updated', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall, fakeNode);
-
-      assert.isTrue(MockKeypadManager.mUpdateAdditionalContactInfo);
+      assert.equal(additionalInfoNode.textContent, '888');
     });
 
     test('check without additional info', function() {
       mockCall = new MockCall('999', 'incoming');
       subject = new HandledCall(mockCall, fakeNode);
-
-      var additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
       assert.equal('', additionalInfoNode.textContent);
+    });
+
+    test('check replace additional info', function() {
+      mockCall = new MockCall('888', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+      subject.replaceAdditionalContactInfo('test additional info');
+      assert.equal(additionalInfoNode.textContent, 'test additional info');
+    });
+
+    test('check restore additional info', function() {
+      mockCall = new MockCall('888', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+      subject.replaceAdditionalContactInfo('test additional info');
+      subject.restoreAdditionalContactInfo();
+      assert.equal(additionalInfoNode.textContent, '888');
+    });
+  });
+
+  suite('phone number', function() {
+    var numberNode;
+
+    setup(function() {
+      numberNode = fakeNode.querySelector('.numberWrapper .number');
+    });
+
+    test('check replace number', function() {
+      mockCall = new MockCall('888', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      subject.replacePhoneNumber('12345678');
+      assert.equal(numberNode.textContent, '12345678');
+    });
+
+    test('check restore number', function() {
+      mockCall = new MockCall('888', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      subject.replacePhoneNumber('12345678');
+      subject.restorePhoneNumber();
+      assert.equal(numberNode.textContent, 'test name');
     });
   });
 

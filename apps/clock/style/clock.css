@@ -73,13 +73,14 @@ html, body {
 
 #clock-time {
   letter-spacing: -0.5rem;
-  font: lighter 11rem 'MozTT', sans-serif;
+  font-weight: lighter;
+  font-size: 11rem;
   color: #CFE2E6;
   pointer-events: none;
 }
 
 #clock-hour24-state {
-  font: 3.7rem 'MozTT', sans-serif;
+  font-size: 3.7rem;
   color: #5C6466;
   text-transform: uppercase;
   pointer-events: none;
@@ -98,7 +99,8 @@ html, body {
 }
 
 #clock-day-date {
-  font: lighter normal 2.1rem 'MozTT', sans-serif;
+  font-weight: lighter;
+  font-size: 2.1rem;
   margin: 2.6rem 0 0 1.5rem;
   line-height: 1.7rem;
   position: absolute;
@@ -108,7 +110,6 @@ html, body {
 }
 
 #clock-day-date b {
-  font-family: MozTT;
   font-weight: normal;
 }
 
@@ -132,6 +133,7 @@ html, body {
 /*248x248*/
 #analog-clock-container.marks2 {
   background-image: url(images/analog_clock_marks2.png);
+  background-size: 24.8rem;
   width: 24.8rem; height: 24.8rem;
   margin-top: 6.9rem;
 }
@@ -142,6 +144,7 @@ html, body {
 /*198x198*/
 #analog-clock-container.marks3 {
   background-image: url(images/analog_clock_marks3.png);
+  background-size: 19.8rem;
   width: 19.8rem; height: 19.8rem;
   margin-top: 6.2rem;
 }
@@ -152,6 +155,7 @@ html, body {
 /*148x148*/
 #analog-clock-container.marks4 {
   background-image: url(images/analog_clock_marks4.png);
+  background-size: 14.8rem;
   width: 14.8rem; height: 14.8rem;
   margin-top: 5.8rem;
 }
@@ -181,11 +185,13 @@ html, body {
 #banner-countdown {
   z-index: -1;
   opacity: 0;
+  bottom: -2rem;
   -moz-transition: all 600ms ease;
 }
 #banner-countdown.visible {
   z-index: 1;
   opacity: 1;
+  bottom: 0;
   -moz-transition: all 600ms ease;
 }
 #banner-countdown > p > strong {

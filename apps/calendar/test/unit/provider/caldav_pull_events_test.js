@@ -1,4 +1,5 @@
 requireApp('calendar/test/unit/provider/mock_stream.js');
+requireApp('calendar/js/ext/uuid.js');
 requireApp('calendar/test/unit/service/helper.js');
 requireLib('ext/ical.js');
 requireLib('ext/caldav.js');
@@ -161,23 +162,6 @@ suiteGroup('Provider.CaldavPullEvents', function() {
 
   });
 
-  test('#busytimeIdFromRemote', function() {
-    var busytime = {
-      eventId: 'foo',
-      start: { utc: 100 },
-      end: { utc: 200 }
-    };
-
-    var id = '100-200-' + subject.eventIdFromRemote(
-      busytime
-    );
-
-    assert.deepEqual(
-      subject.busytimeIdFromRemote(busytime),
-      id
-    );
-  });
-
   suite('#formatEvent', function() {
 
     test('recurring event', function() {
@@ -298,19 +282,10 @@ suiteGroup('Provider.CaldavPullEvents', function() {
           time
         );
 
-        var id = subject.busytimeIdFromRemote(
-          time
-        );
-
         var result = subject.formatBusytime(time);
+        assert.ok(result._id, 'has id');
 
         assert.equal(result.calendarId, calendar._id);
-
-        assert.equal(
-          result._id,
-          id,
-          '_id'
-        );
 
         assert.include(
           result.eventId,
@@ -321,6 +296,98 @@ suiteGroup('Provider.CaldavPullEvents', function() {
         assert.equal(result.eventId, eventId);
       });
     });
+  });
+
+  suite('bug 809607', function() {
+
+    var accountStore;
+    var account;
+
+    setup(function(done) {
+      accountStore = app.store('Account');
+      account = Factory.create('account');
+      accountStore.persist(account, done);
+    });
+
+    var calendar;
+
+    setup(function(done) {
+      calendar = Factory.create('calendar');
+      calendar.accountId = account._id;
+      calendar.remote.syncToken = 'bug-809607';
+      calendar.syncToken = 'bug-809607';
+      app.store('Calendar').persist(calendar, done);
+    });
+
+    var subject;
+    var events;
+    var eventPersistCt;
+    var eventStore;
+
+    setup(function() {
+      subject = createSubject({account: account, calendar: calendar});
+
+      events = [];
+      for (var i = 0; i < 4; i++) {
+        events.push(serviceEvent('singleEvent'));
+      }
+
+      // Set up to count events persisted.
+      eventPersistCt = 0;
+      eventStore = app.store('Event');
+      eventStore.on('persist', function(id) {
+        eventPersistCt++;
+      });
+    });
+
+    test('account deletion during sync aborts processing', function(done) {
+      // Stream a couple of events before account removal
+      stream.emit('event', events[0]);
+      stream.emit('event', events[1]);
+
+      function afterRemove() {
+        // Stream a couple of events after account removal
+        stream.emit('event', events[2]);
+        stream.emit('event', events[3]);
+
+        // Attempt to commit the events
+        subject.commit(function() {
+          setTimeout(afterCommit, 0);
+        });
+      }
+
+      function afterCommit() {
+        // After account removal and commit, no events should have been saved.
+        assert.equal(eventPersistCt, 0);
+        done();
+      }
+
+      // Kick off the removal and subsequent steps...
+      accountStore.remove(account._id, function() {
+        setTimeout(afterRemove, 0);
+      });
+    });
+
+    test('abort during #commit also aborts transaction', function(done) {
+      // Stream some events...
+      for (var i = 0; i < events.length; i++) {
+        stream.emit('event', events[i]);
+      }
+
+      subject.commit(function() {
+        // No-op
+      });
+
+      // Detection of transaction abort is a test success.
+      subject._trans.onabort = function() {
+        // Restore the exception handler.
+        done();
+      };
+
+      // Queue up account removal...
+      accountStore.emit('remove', account._id);
+    });
+
   });
 
   suite('#commit', function() {
@@ -501,6 +568,10 @@ suiteGroup('Provider.CaldavPullEvents', function() {
 
       stream.emit('occurrence', times[0]);
       assert.length(subject.busytimeQueue, 1);
+
+      // ids are unique each time
+      expected._id = subject.busytimeQueue[0]._id;
+      assert.ok(expected._id, 'has id');
 
       assert.hasProperties(
         subject.busytimeQueue[0],

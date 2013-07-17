@@ -51,6 +51,14 @@ suite('Threads', function() {
   });
 
   suite('Operational', function() {
+    setup(function() {
+      window.location.hash = '';
+    });
+
+    teardown(function() {
+      Threads.delete(5);
+    });
+
     test('Threads.currentId', function() {
       window.location.hash = '#thread=5';
       assert.equal(Threads.currentId, 5);

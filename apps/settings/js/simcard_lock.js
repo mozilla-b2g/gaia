@@ -14,7 +14,7 @@ var SimPinLock = {
   updateSimCardStatus: function spl_updateSimStatus() {
     var _ = navigator.mozL10n.get;
 
-    var cardState = this.mobileConnection.cardState;
+    var cardState = IccHelper.cardState;
     var cardStateMapping = {
       'null': 'simCardNotReady',
       'unknown': 'unknownSimCardState',
@@ -31,7 +31,7 @@ var SimPinLock = {
 
     // with SIM card, query its status
     var self = this;
-    var req = this.mobileConnection.getCardLock('pin');
+    var req = IccHelper.getCardLock('pin');
     req.onsuccess = function spl_checkSuccess() {
       var enabled = req.result.enabled;
       self.simSecurityDesc.textContent = (enabled) ?
@@ -49,12 +49,15 @@ var SimPinLock = {
     if (!this.mobileConnection)
       return;
 
-    this.mobileConnection.addEventListener('cardstatechange',
+    if (!IccHelper.enabled)
+      return;
+
+    IccHelper.addEventListener('cardstatechange',
       this.updateSimCardStatus.bind(this));
 
     var self = this;
     this.simPinCheckBox.onchange = function spl_toggleSimPin() {
-      switch (self.mobileConnection.cardState) {
+      switch (IccHelper.cardState) {
         case 'pukRequired':
           var enabled = this.checked;
           SimPinDialog.show('unlock',
@@ -67,7 +70,7 @@ var SimPinLock = {
               self.simPinCheckBox.checked = !enabled;
               self.updateSimCardStatus();
             },
-            document.location.hash
+            Settings.currentPanel
           );
           break;
         default:
@@ -80,13 +83,13 @@ var SimPinLock = {
               self.simPinCheckBox.checked = !enabled;
               self.updateSimCardStatus();
             },
-            document.location.hash
+            Settings.currentPanel
           );
           break;
       }
     };
     this.changeSimPinButton.onclick = function spl_changePin() {
-      SimPinDialog.show('changePin', null, null, document.location.hash);
+      SimPinDialog.show('changePin', null, null, Settings.currentPanel);
     };
 
     this.updateSimCardStatus();

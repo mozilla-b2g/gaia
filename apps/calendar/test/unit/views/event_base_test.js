@@ -119,8 +119,15 @@ suiteGroup('Views.EventBase', function() {
     });
 
     test('normal', function(done) {
+      var isDone = false;
       subject.useModel(this.busytime, this.event, function() {
         done(function() {
+          assert.ok(isDone, 'not async');
+          assert.ok(
+            !subject.element.classList.contains(subject.LOADING),
+            'is not loading'
+          );
+
           assert.equal(
             subject.originalCalendar._id,
             this.event.calendarId
@@ -130,6 +137,12 @@ suiteGroup('Views.EventBase', function() {
           assert.isFalse(hasClass(subject.READONLY), 'is readonly');
         }.bind(this));
       }.bind(this));
+
+      assert.ok(
+        subject.element.classList.contains(subject.LOADING),
+        'is loading'
+      );
+      isDone = true;
     });
   });
 
@@ -197,6 +210,17 @@ suiteGroup('Views.EventBase', function() {
         subject.dispatch({
           params: { id: this.busytime._id }
         });
+
+        assert.ok(
+          subject.element.classList.contains(subject.LOADING),
+          'is loading'
+        );
+      });
+
+      test('is done loading', function() {
+        assert.ok(
+          !subject.element.classList.contains(subject.LOADING)
+        );
       });
 
       test('existing model', function() {

@@ -13,26 +13,23 @@
       'icc.data': null
     });
     reqIccData.onsuccess = function icc_getIccData() {
-      debug('ICC Cache cleared');
+      DUMP('ICC Cache cleared');
     };
 
     // Open ICC section
-    debug('ICC command to execute: ', iccCommand);
-    var page = document.location.protocol + '//' +
-      document.location.host + '/index.html#icc';
-    debug('page: ', page);
-    window.location.replace(page);
+    DUMP('ICC command to execute: ', iccCommand);
+    Settings.currentPanel = '#icc';
 
     setTimeout(function() {
       var event = new CustomEvent('stkasynccommand', {
         detail: { 'command': iccCommand }
       });
       window.dispatchEvent(event);
-    }, 1000);
+    }, 2000);
   }
 
   setTimeout(function updateStkMenu() {
-    debug('Showing STK main menu');
+    DUMP('Showing STK main menu');
     // XXX https://bugzilla.mozilla.org/show_bug.cgi?id=844727
     // We should use Settings.settingsCache first
     var settings = Settings.mozSettings;
@@ -44,14 +41,14 @@
       var menu = json && JSON.parse(json);
       if (!menu || !menu.items ||
         (menu.items.length == 1 && menu.items[0] === null)) {
-        debug('No STK available - exit');
+        DUMP('No STK available - exit');
         document.getElementById('icc-mainheader').hidden = true;
         document.getElementById('icc-mainentry').hidden = true;
         return;
       }
 
       // update and show the entry in settings
-      debug('STK Main App Menu title: ' + menu.title);
+      DUMP('STK Main App Menu title: ' + menu.title);
       document.getElementById('menuItem-icc').textContent = menu.title;
       document.getElementById('icc-mainheader').hidden = false;
       document.getElementById('icc-mainentry').hidden = false;
@@ -61,7 +58,7 @@
     reqIccData.onsuccess = function icc_getIccData() {
       var cmd = reqIccData.result['icc.data'];
       if (cmd) {
-        debug('ICC async command (launcher)');
+        DUMP('ICC async command (launcher)');
         executeICCCmd(JSON.parse(cmd));
       }
     };
@@ -69,7 +66,7 @@
     settings.addObserver('icc.data', function(event) {
       var value = event.settingValue;
       if (value) {
-        debug('ICC async command while settings running: ', value);
+        DUMP('ICC async command while settings running: ', value);
         executeICCCmd(JSON.parse(value));
       }
     });

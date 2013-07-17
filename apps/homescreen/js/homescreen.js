@@ -1,7 +1,7 @@
 
 'use strict';
 
-const Homescreen = (function() {
+var Homescreen = (function() {
   var mode = 'normal';
   var origin = document.location.protocol + '//homescreen.' +
     document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');
@@ -13,6 +13,7 @@ const Homescreen = (function() {
   });
 
   var initialized = false, landingPage;
+  onConnectionChange(navigator.onLine);
 
   function initialize(lPage) {
     if (initialized) {
@@ -67,12 +68,12 @@ const Homescreen = (function() {
     GridManager.exitFromEditMode();
   }
 
-  document.addEventListener('mozvisibilitychange', function mozVisChange() {
-    if (document.mozHidden && Homescreen.isInEditMode()) {
+  document.addEventListener('visibilitychange', function mozVisChange() {
+    if (document.hidden && Homescreen.isInEditMode()) {
       exitFromEditMode();
     }
 
-    if (document.mozHidden == false) {
+    if (document.hidden == false) {
       setTimeout(function forceRepaint() {
         var helper = document.getElementById('repaint-helper');
         helper.classList.toggle('displayed');
@@ -97,6 +98,19 @@ const Homescreen = (function() {
     document.documentElement.lang = navigator.mozL10n.language.code;
     document.documentElement.dir = navigator.mozL10n.language.direction;
   }
+
+  function onConnectionChange(isOnline) {
+    var mode = isOnline ? 'online' : 'offline';
+    document.body.dataset.online = mode;
+  }
+
+  window.addEventListener('online', function onOnline(evt) {
+    onConnectionChange(true);
+  });
+
+  window.addEventListener('offline', function onOnline(evt) {
+    onConnectionChange(false);
+  });
 
   return {
     /*

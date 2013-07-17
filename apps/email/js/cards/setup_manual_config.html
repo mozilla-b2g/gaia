@@ -1,0 +1,145 @@
+<section class="card-setup-manual-config form-card card skin-organic"
+         role="region">
+  <header class="sup-account-header">
+    <a href="#" class="sup-back-btn">
+      <span class="icon icon-back"></span>
+    </a>
+    <menu type="toolbar">
+      <button class="sup-manual-next-btn" disabled>
+        <span data-l10n-id="setup-info-next">NexT</span>
+      </button>
+    </menu>
+    <h1 class="sup-account-header-label header-label"
+        data-l10n-id="setup-manual-config-header">ManuaL SetuP</h1>
+  </header>
+  <div class="scrollregion-below-header">
+    <div class="sup-error-region collapsed">
+      <div class="sup-error-message"></div>
+      <div class="sup-error-code"></div>
+    </div>
+    <header class="collapsed"></header>
+    <form class="sup-manual-form">
+      <div class="sup-manual-common sup-form">
+        <p>
+          <!-- x-inputmode is a temporary v1 B2G stop-gap -->
+          <input class="sup-info-name" type="text"
+                 data-l10n-id="setup-info-name"
+                 x-inputmode="verbatim"
+                 inputmode="verbatim"
+                 required />
+          <button type="reset"></button>
+        </p>
+        <p>
+          <input class="sup-info-email" type="email"
+                 data-l10n-id="setup-info-email"
+                 required />
+          <button type="reset"></button>
+        </p>
+        <p>
+          <input class="sup-info-password" type="password"
+                 data-l10n-id="setup-info-password"
+                 required />
+          <button type="reset"></button>
+        </p>
+      </div>
+
+      <header>
+        <h2 data-l10n-id="setup-manual-account-type">AccounT TypE</h2>
+      </header>
+      <div class="sup-form sup-form-item">
+        <!-- These don't need L10N as they are protocol names. -->
+        <select class="sup-manual-account-type">
+          <option value="imap+smtp">IMAP+SMTP</option>
+          <option value="activesync">ActiveSync</option>
+        </select>
+      </div>
+
+      <section class="sup-manual-imap-smtp" role="region">
+        <header class="collapsed"></header>
+        <header>
+          <h2 data-l10n-id="setup-manual-imap-header">ImaP SettingS</h2>
+        </header>
+        <div class="sup-form">
+          <p>
+            <input class="sup-manual-imap-username" type="text"
+                   data-l10n-id="setup-manual-username"
+                   data-maybe-required />
+            <button type="reset"></button>
+          </p>
+          <p>
+            <input class="sup-manual-imap-hostname" type="text"
+                   data-l10n-id="setup-manual-hostname"
+                   data-maybe-required />
+            <button type="reset"></button>
+          </p>
+          <p>
+            <input class="sup-manual-imap-port" type="text"
+                   data-l10n-id="setup-manual-port" value="993"
+                   data-maybe-required />
+            <button type="reset"></button>
+          </p>
+          <p class="collapsed">
+            <span data-l10n-id="setup-manual-socket">SockeT TypE</span>
+            <select class="mail-select sup-manual-imap-socket">
+              <option value="SSL" data-l10n-id="setup-manual-socket-ssl">
+                SsL</option>
+            </select>
+          </p>
+        </div>
+
+        <header>
+          <h2 data-l10n-id="setup-manual-smtp-header">SmtP SettingS</h2>
+        </header>
+        <div class="sup-form">
+          <p>
+            <input class="sup-manual-smtp-username" type="text"
+                   data-l10n-id="setup-manual-username"
+                   data-maybe-required />
+            <button type="reset"></button>
+          </p>
+          <p>
+            <input class="sup-manual-smtp-hostname" type="text"
+                   data-l10n-id="setup-manual-hostname"
+                   data-maybe-required />
+            <button type="reset"></button>
+          </p>
+          <p>
+            <input class="sup-manual-smtp-port" type="text"
+                   data-l10n-id="setup-manual-port" value="465"
+                   data-maybe-required />
+            <button type="reset"></button>
+          </p>
+          <p class="collapsed">
+            <span data-l10n-id="setup-manual-socket">SockeT TypE</span>
+            <select class="mail-select sup-manual-smtp-socket">
+              <option value="SSL" data-l10n-id="setup-manual-socket-ssl">
+                SsL</option>
+            </select>
+          </p>
+        </div>
+      </section>
+
+      <section class="sup-manual-activesync collapsed" role="region">
+        <header class="collapsed"></header>
+        <header>
+          <h2 data-l10n-id="setup-manual-activesync-header">
+            ActivesynC SettingS</h2>
+        </header>
+        <div class="sup-form">
+          <p>
+            <input class="sup-manual-activesync-hostname" type="text"
+                   data-l10n-id="setup-manual-hostname"
+                   data-maybe-required />
+            <button type="reset"></button>
+          </p>
+          <p>
+            <input class="sup-manual-activesync-username" type="text"
+                   data-l10n-id="setup-manual-username"
+                   data-maybe-required />
+            <button type="reset"></button>
+          </p>
+        </div>
+      </section>
+    </form>
+  </div>
+</section>

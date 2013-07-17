@@ -38,10 +38,11 @@ var Curtain = (function() {
   }
 
   function doShow(type) {
+    form.classList.remove('no-menu');
     form.dataset.state = type;
     curtainFrame.classList.add('visible');
-    curtainFrame.classList.remove('fadeOut');
-    curtainFrame.classList.add('fadeIn');
+    curtainFrame.classList.remove('fade-out');
+    curtainFrame.classList.add('fade-in');
   }
 
   function capitalize(str) {
@@ -146,8 +147,8 @@ var Curtain = (function() {
       }
 
       delete form.dataset.state;
-      curtainFrame.classList.remove('fadeIn');
-      curtainFrame.classList.add('fadeOut');
+      curtainFrame.classList.remove('fade-in');
+      curtainFrame.classList.add('fade-out');
       curtainFrame.addEventListener('animationend', function cu_fadeOut(ev) {
         curtainFrame.removeEventListener('animationend', cu_fadeOut);
         curtainFrame.classList.remove('visible');
@@ -199,6 +200,13 @@ var Curtain = (function() {
      */
     get visible() {
       return curtainFrame.classList.contains('visible');
+    },
+
+    /**
+     *  Hides the menu
+     */
+    hideMenu: function c_hideMenu() {
+      form.classList.add('no-menu');
     }
   };
 

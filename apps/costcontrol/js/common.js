@@ -1,68 +1,11 @@
 
 'use strict';
 
-// Checks for a SIM change
-function checkSIMChange(callback, onerror) {
-  asyncStorage.getItem('lastSIM', function _compareWithCurrent(lastSIM) {
-    var currentSIM = window.navigator.mozMobileConnection.iccInfo.iccid;
-    if (currentSIM === null) {
-      console.error('Impossible: or we don\'t have SIM (so this method ' +
-                    'should not be called) or the RIL is returning null ' +
-                    'from time to time when checking ICCID.');
-
-      if (typeof onerror === 'function') {
-        onerror();
-      }
-      return;
-    }
-
-    if (lastSIM !== currentSIM) {
-      debug('SIM change!');
-      MindGap.updateTagList(currentSIM);
-    }
-    ConfigManager.requestSettings(function _onSettings(settings) {
-      if (settings.nextReset) {
-        setNextReset(settings.nextReset, callback);
-        return;
-      }
-
-      if (callback) {
-        callback();
-      }
-    });
-  });
-}
-
 function checkDataUsageNotification(settings, usage, callback) {
   var proxy = document.getElementById('message-handler').contentWindow;
   var f = proxy ? proxy.checkDataUsageNotification :
                   window.checkDataUsageNotification;
   return f(settings, usage, callback);
-}
-
-// Waits for DOMContentLoaded and messagehandlerready, then call the callback
-function waitForDOMAndMessageHandler(window, callback) {
-  var docState = document.readyState;
-  var DOMAlreadyLoaded = docState === 'complete' || docState === 'interactive';
-  var remainingSteps = DOMAlreadyLoaded ? 1 : 2;
-  debug('DOMAlreadyLoaded:', DOMAlreadyLoaded);
-  debug('Waiting for', remainingSteps, 'events to start!');
-
-  function checkReady(evt) {
-    debug(evt.type, 'event received!');
-    remainingSteps--;
-
-    // Once all events are received, execute the callback
-    if (!remainingSteps) {
-      window.removeEventListener('DOMContentLoaded', checkReady);
-      window.removeEventListener('messagehandlerready', checkReady);
-      debug('DOMContentLoaded and messagehandlerready received. Starting');
-      callback();
-    }
-  }
-
-  window.addEventListener('DOMContentLoaded', checkReady);
-  window.addEventListener('messagehandlerready', checkReady);
 }
 
 function addAlarmTimeout(type, delay) {
@@ -221,7 +164,7 @@ function formatTimeHTML(timestampA, timestampB) {
 
   // No interval
   if (typeof timestampB === 'undefined') {
-    fragment.appendChild(timeElement(formatTime(timestampA)));
+    fragment.appendChild(timeElement(Formatting.formatTime(timestampA)));
     return fragment;
   }
 
@@ -237,10 +180,10 @@ function formatTimeHTML(timestampA, timestampB) {
 
   // Interval
   fragment.appendChild(
-    timeElement(formatTime(timestampA, _('short-date-format')))
+    timeElement(Formatting.formatTime(timestampA, _('short-date-format')))
   );
   fragment.appendChild(document.createTextNode(' – '));
-  fragment.appendChild(timeElement(formatTime(timestampB)));
+  fragment.appendChild(timeElement(Formatting.formatTime(timestampB)));
   return fragment;
 }
 
@@ -261,3 +204,110 @@ function localizeWeekdaySelector(selector) {
     list.insertBefore(monday, sunday.nextSibling); // monday is the second
   }
 }
+
+var Common = {
+
+  COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
+
+  isValidICCID: function(iccid) {
+    return typeof iccid === 'string' && iccid.length;
+  },
+
+  // Waits for DOMContentLoaded and messagehandlerready, then call the callback
+  waitForDOMAndMessageHandler: function(window, callback) {
+    var docState = document.readyState;
+    var DOMAlreadyLoaded = docState === 'complete' ||
+                           docState === 'interactive';
+    var remainingSteps = DOMAlreadyLoaded ? 1 : 2;
+    debug('DOMAlreadyLoaded:', DOMAlreadyLoaded);
+    debug('Waiting for', remainingSteps, 'events to start!');
+
+    function checkReady(evt) {
+      debug(evt.type, 'event received!');
+      remainingSteps--;
+
+      // Once all events are received, execute the callback
+      if (!remainingSteps) {
+        window.removeEventListener('DOMContentLoaded', checkReady);
+        window.removeEventListener('messagehandlerready', checkReady);
+        debug('DOMContentLoaded and messagehandlerready received. Starting');
+        callback();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', checkReady);
+    window.addEventListener('messagehandlerready', checkReady);
+  },
+
+  // Checks for a SIM change
+  checkSIMChange: function(callback, onerror) {
+    asyncStorage.getItem('lastSIM', function _compareWithCurrent(lastSIM) {
+      var currentSIM = IccHelper.iccInfo.iccid;
+      if (currentSIM === null) {
+        console.error('Impossible: or we don\'t have SIM (so this method ' +
+                      'should not be called) or the RIL is returning null ' +
+                      'from time to time when checking ICCID.');
+
+        if (typeof onerror === 'function') {
+          onerror();
+        }
+        return;
+      }
+
+      if (lastSIM !== currentSIM) {
+        debug('SIM change!');
+        MindGap.updateTagList(currentSIM);
+      }
+      ConfigManager.requestSettings(function _onSettings(settings) {
+        if (settings.nextReset) {
+          setNextReset(settings.nextReset, callback);
+          return;
+        }
+
+        if (callback) {
+          callback();
+        }
+      });
+    });
+  },
+
+  startFTE: function(mode) {
+    var iframe = document.getElementById('fte_view');
+
+    window.addEventListener('message', function handler(e) {
+      if (e.origin !== Common.COST_CONTROL_APP) {
+        return;
+      }
+
+      if (e.data.type === 'fte_ready') {
+        window.removeEventListener('message', handler);
+
+        iframe.classList.remove('non-ready');
+      }
+    });
+
+    iframe.src = '/fte.html' + '#' + mode;
+  },
+
+  startApp: function() {
+    parent.postMessage({
+      type: 'fte_finished',
+      data: ''
+    }, Common.COST_CONTROL_APP);
+  },
+
+  closeApplication: function() {
+    return setTimeout(function _close() {
+      debug('Closing.');
+      window.close();
+    });
+  },
+
+  modalAlert: function(message) {
+    alert(message);
+  },
+
+  get localize() {
+    return navigator.mozL10n.localize;
+  }
+};

@@ -119,6 +119,10 @@ var PhoneLock = {
     this.passcodePanel.dataset.passcodeStatus = '';
   },
 
+  resetPasscodeStatus: function pl_resetPasscodeStatus() {
+    this.passcodePanel.dataset.passcodeStatus = '';
+  },
+
   enableButton: function pl_enableButton() {
     this.passcodePanel.dataset.passcodeStatus = 'success';
   },
@@ -127,8 +131,8 @@ var PhoneLock = {
     this.hideErrorMessage();
     this.MODE = mode;
     this.passcodePanel.dataset.mode = mode;
-    if (document.location.hash != 'phoneLock-passcode') {
-      document.location.hash = 'phoneLock-passcode'; // show dialog box
+    if (Settings.currentPanel != '#phoneLock-passcode') {
+      Settings.currentPanel = '#phoneLock-passcode'; // show dialog box
 
       // Open the keyboard after the UI transition. We can't listen for the
       // ontransitionend event because some of the passcode mode changes, such
@@ -163,8 +167,11 @@ var PhoneLock = {
           if (this._passcodeBuffer.length > 0) {
             this._passcodeBuffer = this._passcodeBuffer.substring(0,
                 this._passcodeBuffer.length - 1);
+            if (this.passcodePanel.dataset.passcodeStatus == 'success') {
+                this.resetPasscodeStatus();
+            }
           }
-        } else {
+        } else if (this._passcodeBuffer.length < 8) {
           this._passcodeBuffer += key;
         }
 
@@ -208,6 +215,7 @@ var PhoneLock = {
         }
         break;
       case this.passcodeEditButton:
+        this._passcodeBuffer = '';
         this.changeMode('edit');
         break;
       case this.createPasscodeButton:
@@ -256,7 +264,7 @@ var PhoneLock = {
   backToPhoneLock: function pl_backToPhoneLock() {
     this._passcodeBuffer = '';
     this.passcodeInput.blur();
-    document.location.hash = 'phoneLock';
+    Settings.currentPanel = '#phoneLock';
   }
 };
 

@@ -10,6 +10,7 @@
   var priv = new WeakMap();
   var data = new WeakMap();
   var events = new WeakMap();
+  var relation = new WeakMap();
 
   var rtrigger = /[a-zA-Z0-9\+\(\*]/;
 
@@ -21,6 +22,7 @@
     this.email = opts.email || '';
     this.editable = opts.editable || 'true';
     this.source = opts.source || 'manual';
+    this.display = opts.display || '';
   }
   /**
    * set
@@ -95,9 +97,17 @@
       },
       numbers: {
         get: function() {
-          return list.map(function(recipient) {
+          var unique = [];
+          var numbers = list.map(function(recipient) {
             return recipient.number || recipient.email;
           });
+
+          for (var number of numbers) {
+            if (unique.indexOf(number) === -1) {
+              unique.push(number);
+            }
+          }
+          return unique;
         }
       },
       inputValue: {
@@ -197,7 +207,6 @@
    */
   Recipients.prototype.add = function(entry) {
     var list = data.get(this);
-    var isSamePhoneNumber;
     /*
     Entry {
       name, number [, editable, source ]
@@ -219,15 +228,11 @@
       }
     });
 
-    isSamePhoneNumber = function(recipient) {
-      return recipient.number !== entry.number;
-    };
+    // Don't bother rejecting duplicates, always add every
+    // entry to the recipients list. For reference, see:
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=880628
+    list.push(new Recipient(entry));
 
-    // Check that this is not a duplicate, if not,
-    // push into the recipients list
-    if (list.every(isSamePhoneNumber)) {
-      list.push(new Recipient(entry));
-    }
     // XXX:Workaround for cleaning search result while duplicate
     //     Dispatch add event no matter duplicate or not
     this.emit('add', list.length);
@@ -312,8 +317,6 @@
       template: template,
       active: null,
       nodes: nodes,
-      relation: new WeakMap(),
-      gesture: new GestureDetector(outer),
       state: {
         isTransitioning: false,
         visible: 'singleline'
@@ -336,6 +339,8 @@
     // new "editable" placeholders, by cloning the
     // first child (element) node
     clone.innerHTML = template.interpolate(new Recipient());
+    // empty out the template so :empty matches on placeholders
+    clone.firstElementChild.innerHTML = '';
 
     Object.defineProperties(this, {
       last: {
@@ -347,13 +352,18 @@
         get: function() {
           var node = clone.firstElementChild.cloneNode();
           node.isPlaceholder = true;
-          node.setAttribute('x-inputmode', 'verbatim');
           return node;
         }
       }
     });
 
-    // Focus on the last "placeholder" element
+    ['click', 'keypress', 'keyup', 'blur', 'pan'].forEach(function(type) {
+      outer.addEventListener(type, this, false);
+    }, this);
+
+    new GestureDetector(outer).startDetecting();
+
+    // Set focus on the last "placeholder" element
     this.reset().focus();
   };
 
@@ -361,7 +371,7 @@
     // Clear any displayed text (not likely to exist)
     // Render each recipient in the Recipients object
     // Remove (if exist) and Add event listeners
-    this.clear().render().observe();
+    this.clear().render();
     return this;
   };
   /**
@@ -395,7 +405,6 @@
     var nodes = view.nodes;
     var inner = view.inner;
     var template = view.template;
-    var relation = view.relation;
     var list = view.owner.list;
     var length = list.length;
     var html = '';
@@ -411,12 +420,7 @@
 
     // Loop and render each recipient as HTML view
     for (var i = 0; i < length; i++) {
-      html += template.interpolate(list[i], {
-        // Names from contacts don't need to be escaped.
-        // Doing so results in displayed name transformations,
-        // ie. "Mike O'Malley" => "Mike O&apos;Malley"
-        safe: list[i].source === 'contacts' ? ['name'] : []
-      });
+      html += template.interpolate(list[i]);
     }
 
     // An optionally provided "editable" object
@@ -453,9 +457,16 @@
     // isn't a re-assignment to a fresh array)
     nodes.length = 0;
 
-    // .apply will convert inner.children to
-    // an array internally.
-    nodes.push.apply(nodes, inner.children);
+
+    // When there are no actual recipients in the list
+    // ignore elements beyond the first editable placeholder
+    if (!list.length) {
+      nodes.push.apply(nodes, inner.children[0]);
+    } else {
+      // .apply will convert inner.children to
+      // an array internally.
+      nodes.push.apply(nodes, inner.children);
+    }
 
     // Finalize the newly created nodes by registering
     // them with their recipient and updating their flags.
@@ -513,6 +524,8 @@
     selection.removeAllRanges();
     selection.addRange(range);
 
+    // scroll to the bottom of the inner view
+    view.inner.scrollTop = view.inner.scrollHeight;
     return this;
   };
 
@@ -585,7 +598,7 @@
       }
 
       state.isTransitioning = false;
-      view.outer.removeEventListener('transitionend', te, true);
+      view.outer.removeEventListener('transitionend', te, false);
     });
 
     // Commence the transition
@@ -606,73 +619,23 @@
   };
 
   /**
-   * observe
-   *
-   * Add and Remove all the listeners.
-   *
-   * @return {Recipients.View} Recipients.View instance.
-   */
-  Recipients.View.prototype.observe = function() {
-    var view = priv.get(this);
-    var outer = view.outer;
-    var gesture = view.gesture;
-
-    gesture.stopDetecting();
-
-    ['click', 'keypress', 'keyup', 'blur', 'pan'].forEach(function(type) {
-
-      // Bound handlers won't exist on the first run...
-      if (this.observe.handler) {
-        // Remove the old delegate to prevent zombie events
-        outer.parentNode.removeEventListener(
-          type, this.observe.handler, false
-        );
-      }
-
-      // Create a new bound delegation handler:
-      // |this| => Recipients.View.prototype.handleEvent
-      // (Only if one doesn't exist)
-      if (this.observe.handler === null) {
-        this.observe.handler = this.handleEvent.bind(this, priv);
-      }
-
-      // Register the bound delegation handler
-      outer.parentNode.addEventListener(
-        type, this.observe.handler, false
-      );
-    }, this);
-
-    gesture.startDetecting();
-
-    return this;
-  };
-
-  Recipients.View.prototype.observe.handler = null;
-
-  /**
    * handleEvent
    *
    * Single method for event handler delegation.
    *
    * @return {Undefined} void return.
    */
-  Recipients.View.prototype.handleEvent = function(proof, event) {
+  Recipients.View.prototype.handleEvent = function(event) {
     var view = priv.get(this);
-    var relation = view.relation;
     var owner = view.owner;
     var isPreventingDefault = false;
     var isAcceptedRecipient = false;
     var isEdittingRecipient = false;
+    var isDeletingRecipient = false;
     var target = event.target;
     var keyCode = event.keyCode;
     var editable = 'false';
     var typed, recipient, length, last, list, previous;
-
-    if (proof !== priv) {
-      throw new Error(
-        '`Recipients.View.prototype.handleEvent` cannot be called directly'
-      );
-    }
 
     // All keyboard events will need some information
     // about the input that the user typed.
@@ -695,10 +658,17 @@
     switch (event.type) {
 
       case 'pan':
-        // If there are recipients in the list and the
-        // pan event is "pulling down", then switch the
-        // view to multiline display
-        if (owner.length > 1) {
+        // Switch to multiline display when:
+        //
+        //  1. The recipients in the list have caused the
+        //      container to grow enough to require the
+        //      additional viewable area.
+        //      (>1 visible lines or 1.5x the original size)
+        //  2. The user is "pulling down" the recipient list.
+
+        // #1
+        if (view.inner.scrollHeight > (view.dims.inner.height * 1.5)) {
+          // #2
           if (event.detail.absolute.dy > 0) {
             this.visible('multiline');
           }
@@ -713,6 +683,14 @@
         // 1. Edit or Delete?
         // The target is a recipient view node
         if (target.parentNode === view.inner) {
+
+          // Could be one of:
+          //   - Adding new, in progress
+          //   - Editting recipient
+          //
+          if (target.isPlaceholder) {
+            return;
+          }
 
           // If Recipient is clicked while another is actively
           // being editted, save the in-edit recipient before
@@ -738,13 +716,37 @@
               //
               // 1.a Delete Mode
               //
-              Recipients.View.prompts.remove(target, function(result) {
-                if (result.isConfirmed) {
+              Recipients.View.prompts.remove(recipient, function(response) {
+                // When the editable placeholder is in "zero width" mode,
+                // it's possible to accidentally tap a recipient when the
+                // intention is to tap the to-field area around the recipient
+                // list, which will correctly prompt the user to remove the
+                // recipient. Since there is no way to unambiguously detect
+                // the user's intention, always handle "Remove" and "Cancel"
+                // in an intuitive way.
+                //
+                //   1. "Remove" will result in the removal of the
+                //      of the recipient from the list, and focus will
+                //      be automattically set on the editable placeholder.
+                //
+                //   2. "Cancel" will result in no removal, and focus will
+                //      be automattically set on the editable placeholder.
+                //
+                //   Both cases will result in the removal of the
+                //   "no-l-r-padding-margin" class from the editable
+                //   placeholder (via focus()).
+                //
+                // #1
+                if (response.isConfirmed) {
                   owner.remove(
                     relation.get(target)
                   );
-                  this.reset().focus();
+                  this.reset();
                 }
+
+                // #1 & #2
+                this.focus();
+
               }.bind(this));
 
             // If the target was added Manually, move to edit mode
@@ -768,6 +770,7 @@
             }
           }
         } else {
+          //
           // 2. Focus for fat fingering!
           //
           if (!view.inner.lastElementChild.isPlaceholder) {
@@ -776,7 +779,13 @@
             );
           }
 
-          this.focus();
+          if (view.state.visible !== 'singleline') {
+            this.visible('singleline', {
+              refocus: this
+            });
+          } else {
+            this.focus();
+          }
           return;
         }
 
@@ -800,8 +809,11 @@
         // When a single, non-semi-colon character is
         // typed into to the recipients list input,
         // slide the the list upward to "single line"
-        if (!isAcceptedRecipient && (typed && typed.length === 1)) {
-          this.visible('singleline');
+        // set focus to recipient
+        if (!isAcceptedRecipient && (typed && typed.length >= 1)) {
+          this.visible('singleline', {
+            refocus: target
+          });
         }
 
 
@@ -816,14 +828,25 @@
         // attempt to go back to the previous entry and edit that
         // recipient as if it were a newly added entry.
         if (keyCode === event.DOM_VK_BACK_SPACE) {
-          if (!typed) {
-            previous = target.previousSibling;
-            list = data.get(owner);
+          previous = target.previousSibling;
 
-            // Only manually typed entries may be editted directly
-            // in the recipients list view.
-            if (previous &&
-              (list.length && list[list.length - 1].source === 'manual')) {
+          if (!typed && previous) {
+            recipient = relation.get(previous);
+
+            // If the recipient to the immediate left is a
+            // known Contact, added either by Activity
+            // or via search contact results, remove it
+            // from the list
+            //
+            if (previous.dataset.source === 'contacts') {
+              isPreventingDefault = true;
+              isDeletingRecipient = true;
+
+              view.owner.remove(recipient);
+
+            } else if (previous.dataset.source === 'manual') {
+              // Only manually typed entries may be editted directly
+              // in the recipients list view.
 
               isEdittingRecipient = true;
               isPreventingDefault = true;
@@ -892,6 +915,10 @@
       }
     }
 
+    if (isDeletingRecipient) {
+      this.render().focus();
+    }
+
     if (isEdittingRecipient) {
       // Make the last added entry "editable"
       target.contentEditable = true;
@@ -905,20 +932,62 @@
   };
 
   Recipients.View.prompts = {
-    remove: function(candidate, callback) {
+    remove: function(recipient, callback) {
       var response = {
-        isConfirmed: false,
-        recipient: candidate
+        isConfirmed: false
       };
-      var message = navigator.mozL10n.get('recipientRemoval', {
-        recipient: candidate.textContent.trim()
-      });
-      // If it's a contact we should ask to remove
-      if (confirm(message)) {
-        response.isConfirmed = true;
-      }
 
-      callback(response);
+      var handler = function() {
+        // Create a closure reference to
+        // the response object. The `isConfirmed`
+        // property will be explicitly updated
+        // in the Dialog option handler if necessary.
+        //
+        // The _Cancel_ "method" may use this
+        // handler directly, because the default
+        // `isConfirmed` value is |false|.
+        //
+        // The _Remove_ "method" will explicitly update
+        // `isConfirmed` to |true| and then call this handler.
+        if (typeof callback === 'function') {
+          callback(response);
+        }
+      };
+
+      // Dialog will have a closure reference to the response
+      // object, therefore it's not necessary to pass it around
+      // as an explicit param list item.
+      var dialog = new Dialog(
+        {
+          title: {
+            value: recipient.name || recipient.number,
+            l10n: false
+          },
+          body: {
+            value: recipient.display,
+            l10n: false
+          },
+          options: {
+            cancel: {
+              text: {
+                value: 'cancel',
+                l10n: true
+              },
+              method: handler
+            },
+            confirm: {
+              text: {
+                value: 'remove',
+                l10n: true
+              },
+              method: function() {
+                response.isConfirmed = true;
+                handler();
+              }
+            }
+          }
+        });
+      dialog.show();
     }
   };
 

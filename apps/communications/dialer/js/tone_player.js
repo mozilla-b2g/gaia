@@ -9,8 +9,8 @@ var TonePlayer = {
   _intervalID: null, // id for the audio loop's setInterval
   _stopping: false,
 
-  init: function tp_init() {
-    this.ensureAudio();
+  init: function tp_init(channel) {
+    this.setChannel(channel);
   },
 
   ensureAudio: function tp_ensureAudio() {
@@ -139,5 +139,12 @@ var TonePlayer = {
       self.stop();
       self.playSequence(sequence, (index + 1));
     }, duration, this);
+  },
+
+  setChannel: function tp_setChannel(channel) {
+    this.ensureAudio();
+    if (channel && (this._audio.mozAudioChannelType !== channel)) {
+      this._audio.mozAudioChannelType = channel;
+    }
   }
 };

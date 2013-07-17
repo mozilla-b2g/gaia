@@ -12,6 +12,16 @@
   -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) #keyboard-frame {
+    bottom: 5rem;
+  }
+}
+
+#screen.software-button-enabled #keyboard-frame {
+  bottom: 5rem;
+}
+
 #keyboard-frame.hide {
   visibility: hidden;
 

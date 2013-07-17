@@ -116,7 +116,7 @@ var metadataParser = (function() {
 
   var VIDEOFILE = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.jpg/;
 
-  function metadataParser(file, metadataCallback, metadataError) {
+  function metadataParser(file, metadataCallback, metadataError, bigFile) {
     // If the file is a poster image for a video file, then we've want
     // video metadata, not image metadata
     if (VIDEOFILE.test(file.name)) {
@@ -152,7 +152,11 @@ var metadataParser = (function() {
       }
 
       // If it is not too big create a preview and thumbnail.
-      createThumbnailAndPreview(file, metadataCallback, metadataError);
+      createThumbnailAndPreview(file,
+                                metadataCallback,
+                                metadataError,
+                                false,
+                                bigFile);
     }
 
     function gotImageSize(metadata) {
@@ -176,13 +180,21 @@ var metadataParser = (function() {
       else {
         // If there wasn't a preview image, then generate a preview and
         // thumbnail from the full size image.
-        createThumbnailAndPreview(file, metadataCallback, metadataError);
+        createThumbnailAndPreview(file,
+                                  metadataCallback,
+                                  metadataError,
+                                  false,
+                                  bigFile);
       }
 
       function previewerror(msg) {
         // The preview isn't a valid jpeg file, so use the full image to
         // create a preview and a thumbnail
-        createThumbnailAndPreview(file, metadataCallback, metadataError);
+        createThumbnailAndPreview(file,
+                                  metadataCallback,
+                                  metadataError,
+                                  false,
+                                  bigFile);
       }
 
       function previewsuccess(previewmetadata) {
@@ -209,13 +221,20 @@ var metadataParser = (function() {
                                                    ' from preview:', errmsg);
                                       createThumbnailAndPreview(file,
                                                                metadataCallback,
-                                                               metadataError);
+                                                               metadataError,
+                                                               false,
+                                                               bigFile);
                                     },
-                                    true);
+                                    true,
+                                    bigFile);
         }
         else {
           // Preview isn't big enough so get one the hard way
-          createThumbnailAndPreview(file, metadataCallback, metadataError);
+          createThumbnailAndPreview(file,
+                                    metadataCallback,
+                                    metadataError,
+                                    false,
+                                    bigFile);
         }
       }
     }
@@ -226,7 +245,8 @@ var metadataParser = (function() {
   // a metadata object, and pass the object to the callback function.
   // If anything goes wrong, pass an error message to the error function.
   // If it is a large image, create and save a preview for it as well.
-  function createThumbnailAndPreview(file, callback, error, nopreview) {
+  function createThumbnailAndPreview(file, callback, error, nopreview,
+                                     bigFile) {
     var metadata = {};
     var url = URL.createObjectURL(file);
     offscreenImage.src = url;
@@ -252,8 +272,8 @@ var metadataParser = (function() {
       // XXX: When bug 854795 is fixed, we'll be able to create previews
       // for large images without using so much memory, and we can remove
       // this flag then.
-      if (iw * ih > 2 * 1024 * 1024)
-        scanningBigImages = true;
+      if (iw * ih > 2 * 1024 * 1024 && bigFile)
+        bigFile();
 
       // If the image was already thumbnail size, it is its own thumbnail
       // and it does not need a preview
@@ -312,7 +332,24 @@ var metadataParser = (function() {
 
         function savePreview(previewblob) {
           var storage = navigator.getDeviceStorage('pictures');
-          var filename = '.gallery/previews/' + file.name;
+          var filename;
+          if (file.name[0] === '/') {
+            // We expect file.name to be a fully qualified name (perhaps
+            // something like /sdcard/DCIM/100MZLLA/IMG_0001.jpg).
+            var slashIndex = file.name.indexOf('/', 1);
+            if (slashIndex < 0) {
+              error("savePreview: Bad filename: '" + file.name + "'");
+              return;
+            }
+            filename =
+              file.name.substring(0, slashIndex) + // storageName (i.e. /sdcard)
+              '/.gallery/previews' +
+              file.name.substring(slashIndex); // rest of path (i,e, /DCIM/...)
+          } else {
+            // On non-composite storage areas (e.g. desktop), file.name will be
+            // a relative path.
+            filename = '.gallery/previews/' + file.name;
+          }
 
           // Delete any existing preview by this name
           var delreq = storage.delete(filename);

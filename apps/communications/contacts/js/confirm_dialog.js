@@ -43,8 +43,8 @@ var ConfirmDialog = (function() {
       action2Node.textContent = '';
       action2Node.className = '';
       action2Node.onclick = null;
-      screen.classList.remove('fadeIn');
-      screen.classList.add('fadeOut');
+      screen.classList.remove('fade-in');
+      screen.classList.add('fade-out');
       isAnimationPlaying = true;
       screen.addEventListener('animationend', function cd_fadeOut(ev) {
         isAnimationPlaying = false;
@@ -124,8 +124,8 @@ var ConfirmDialog = (function() {
     }
 
     screen.classList.remove('hide');
-    screen.classList.remove('fadeOut');
-    screen.classList.add('fadeIn');
+    screen.classList.remove('fade-out');
+    screen.classList.add('fade-in');
     isAnimationPlaying = true;
     screen.addEventListener('animationend', function cd_fadeIn(ev) {
       isAnimationPlaying = false;

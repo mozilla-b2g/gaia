@@ -303,7 +303,11 @@ contacts.Form = (function() {
       var currentElem = fields[j];
       var def = (currentElem === 'type') ? default_type : '';
       var defObj = (typeof(obj) === 'string') ? obj : obj[currentElem];
-      var value = currField[currentElem] = defObj || def;
+      var value = '';
+
+      currField[currentElem] =
+      (typeof(defObj) === 'object') ? defObj.toString() : defObj;
+      value = currField[currentElem] || def;
       if (currentElem === 'type') {
         currField['type_value'] = value;
 
@@ -313,7 +317,7 @@ contacts.Form = (function() {
           value = _(value) || value;
         }
       }
-      currField[currentElem] = utils.text.escapeHTML(value, true);
+      currField[currentElem] = Normalizer.escapeHTML(value, true);
       if (!infoFromFB && value && nonEditableValues[value]) {
         infoFromFB = true;
       }
@@ -336,7 +340,7 @@ contacts.Form = (function() {
     // Add event listeners
     var boxTitle = rendered.querySelector('legend.action');
     if (boxTitle) {
-      boxTitle.addEventListener(touchstart, onGoToSelectTag);
+      boxTitle.addEventListener('click', onGoToSelectTag);
     }
 
     container.appendChild(rendered);
@@ -766,7 +770,8 @@ contacts.Form = (function() {
 
     activity.onsuccess = function success() {
       addRemoveIconToPhoto();
-      saveButton.removeAttribute('disabled');
+      if (!emptyForm())
+        saveButton.removeAttribute('disabled');
       // XXX
       // this.result.blob is valid now, but it won't stay valid
       // (see https://bugzilla.mozilla.org/show_bug.cgi?id=806503)

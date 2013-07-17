@@ -47,6 +47,7 @@ function VideoPlayer(container) {
   this.poster = poster;
   this.player = player;
   this.controls = controls;
+  this.playing = false;
 
   player.preload = 'metadata';
   player.mozAudioChannelType = 'content';
@@ -55,7 +56,6 @@ function VideoPlayer(container) {
   var controlsHidden = false;
   var dragging = false;
   var pausedBeforeDragging = false;
-  var screenLock; // keep the screen on when playing
   var endedTimer;
   var videourl;   // the url of the video to play
   var posterurl;  // the url of the poster image to display
@@ -140,8 +140,10 @@ function VideoPlayer(container) {
 
   this.pause = function pause() {
     // Pause video playback
-    if (self.playerShowing)
+    if (self.playerShowing) {
+      this.playing = false;
       player.pause();
+    }
 
     // Hide the pause button and slider
     footer.classList.add('hidden');
@@ -149,12 +151,6 @@ function VideoPlayer(container) {
 
     // Show the big central play button
     playbutton.classList.remove('hidden');
-
-    // Unlock the screen so it can sleep on idle
-    if (screenLock) {
-      screenLock.unlock();
-      screenLock = null;
-    }
 
     if (this.onpaused)
       this.onpaused();
@@ -171,6 +167,8 @@ function VideoPlayer(container) {
       return;
     }
 
+    this.playing = true;
+
     // Start playing the video
     player.play();
 
@@ -180,10 +178,6 @@ function VideoPlayer(container) {
     // Show the controls
     footer.classList.remove('hidden');
     controlsHidden = false;
-
-    // Don't let the screen go to sleep
-    if (!screenLock)
-      screenLock = navigator.requestWakeLock('screen');
 
     if (this.onplaying)
       this.onplaying();
@@ -280,10 +274,10 @@ function VideoPlayer(container) {
 
   // Pause and unload the video if we're hidden so that other apps
   // can use the video decoder hardware.
-  window.addEventListener('mozvisibilitychange', visibilityChanged);
+  window.addEventListener('visibilitychange', visibilityChanged);
 
   function visibilityChanged() {
-    if (document.mozHidden) {
+    if (document.hidden) {
       // If we're just showing the poster image when we're hidden
       // then we don't have to do anything special
       if (!self.playerShowing)
@@ -458,6 +452,16 @@ function VideoPlayer(container) {
       return hours + ':' + padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
     }
     return '';
+  }
+
+  // pause the video player if user unplugs headphone
+  var acm = navigator.mozAudioChannelManager;
+  if (acm) {
+    acm.addEventListener('headphoneschange', function onheadphoneschange() {
+      if (!acm.headphones && self.playing) {
+        self.pause();
+      }
+    });
   }
 }
 

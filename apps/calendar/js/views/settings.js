@@ -63,6 +63,7 @@
           break;
 
         // calendar removed
+        case 'preRemove':
         case 'remove':
           this._remove.apply(this, event.data);
           break;
@@ -83,6 +84,7 @@
       // calendar store events
       store.on('update', this);
       store.on('add', this);
+      store.on('preRemove', this);
       store.on('remove', this);
     },
 

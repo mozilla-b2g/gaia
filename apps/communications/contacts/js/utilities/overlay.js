@@ -9,7 +9,9 @@ var utils = this.utils || {};
       progressActivity = document.querySelector('#progress-activity'),
       progressTitle = document.querySelector('#progress-title'),
       progressElement = document.querySelector('#progress-element'),
-      progressMsg = document.querySelector('#progress-msg');
+      progressMsg = document.querySelector('#progress-msg'),
+      menu = document.querySelector('#loading-overlay menu'),
+      cancelButton = document.querySelector('#cancel-overlay');
 
   // Constructor for the progress element
   function ProgressBar(pMsgId, pClass) {
@@ -60,8 +62,8 @@ var utils = this.utils || {};
       return;
     }
     overlay.classList.remove('hide');
-    overlay.classList.remove('fadeOut');
-    overlay.classList.add('fadeIn');
+    overlay.classList.remove('fade-out');
+    overlay.classList.add('fade-in');
     utils.overlay.isAnimationPlaying = true;
     overlay.addEventListener('animationend', function ov_onFadeIn(ev) {
       utils.overlay.isAnimationPlaying = false;
@@ -76,6 +78,7 @@ var utils = this.utils || {};
     // In the case of an spinner this object will not be really used
     out = new ProgressBar(textId, progressClass);
     setClass(progressClass);
+    utils.overlay.hideMenu(); // By default
     if (!utils.overlay.isAnimationPlaying) {
       utils.overlay._show(message, progressClass, textId);
       return out;
@@ -88,6 +91,26 @@ var utils = this.utils || {};
     );
     return out;
   };
+
+  utils.overlay.showMenu = function showMenu() {
+    menu.classList.add('showed');
+  };
+
+  utils.overlay.hideMenu = function hideMenu() {
+    menu.classList.remove('showed');
+  };
+
+  Object.defineProperty(utils.overlay, 'oncancel', {
+    set: function(cancelCb) {
+      if (typeof cancelCb === 'function') {
+        cancelButton.onclick = function on_cancel(e) {
+          delete cancelButton.onclick;
+          cancelCb();
+          return false;
+        };
+      }
+    }
+  });
 
   function setAsProgress() {
     statusContainer.classList.remove('loading-icon');
@@ -119,8 +142,8 @@ var utils = this.utils || {};
     if (!utils.overlay.isShown) {
       return;
     }
-    overlay.classList.remove('fadeIn');
-    overlay.classList.add('fadeOut');
+    overlay.classList.remove('fade-in');
+    overlay.classList.add('fade-out');
     utils.overlay.isAnimationPlaying = true;
     overlay.addEventListener('animationend', function ov_onFadeOut(ev) {
       utils.overlay.isAnimationPlaying = false;

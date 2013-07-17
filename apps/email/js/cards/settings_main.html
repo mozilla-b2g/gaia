@@ -1,0 +1,79 @@
+<!-- Main settings menu, root of all (mail) settings -->
+<section class="card-settings-main card anim-vertical anim-overlay skin-organic" role="region">
+  <header class="tng-main-header">
+    <menu type="toolbar" class="tng-close-btn">
+      <button data-l10n-id="settings-done">Done</button>
+    </menu>
+    <h1 class="tng-main-header-label"
+        data-l10n-id="settings-main-header">MaiL SettingS</h1>
+  </header>
+  <section class="scrollregion-below-header skin-organic" role="region">
+    <header class="collapsed"></header>
+    <header class="tng-main-accounts-label">
+      <h2 data-l10n-id="settings-account-section">AccountS</h2>
+    </header>
+    <ul class="tng-accounts-container">
+      <li>
+        <button href="#" data-l10n-id="settings-account-add"
+          class="tng-account-add">AdD AccounT</button>
+      </li>
+    </ul>
+    <!-- Hide for v1: Hide general setting section to reduce effort-->
+    <header class="tng-main-about-label collapsed">
+      <h2 data-l10n-id="settings-general-section">GeneraL SettingS</h2>
+    </header>
+      <li class="collapsed">
+        <span data-l10n-id="settings-check-mail" class="list-text">
+          ChecK MaiL</span>
+        <em class="aside end">
+          <select class="tng-main-check-interval mail-select">
+            <option value="manual" data-l10n-id="settings-check-manual">
+              Manually</option>
+            <option value="3min" data-l10n-id="settings-check-3min">
+              3 Minutes</option>
+            <option value="5min" data-l10n-id="settings-check-5min">
+              5 Minutes</option>
+            <option value="10min" data-l10n-id="settings-check-10min">
+              10 Minutes</option>
+            <option value="15min" data-l10n-id="settings-check-15min">
+              15 Minutes</option>
+            <option value="30min" data-l10n-id="settings-check-30min">
+              30 Minutes</option>
+            <option value="60min" data-l10n-id="settings-check-60min">
+              60 Minutes</option>
+          </select>
+        </em>
+      </li>
+      <li class="collapsed">
+        <span data-l10n-id="settings-show-images" class="list-text">
+          AlwayS ShoW ImageS</span>
+        <em class="aside end">
+          <label >
+            <input type="checkbox" data-type="switch" checked="checked">
+            <span></span>
+          </label>
+        </em>
+      </li>
+      <li class="collapsed">
+        <span data-l10n-id="settings-download-attachments"
+          class="list-text">DownloaD AttachmentS</span>
+        <em class="aside end">
+          <label>
+            <input type="checkbox" data-type="switch" checked="checked">
+            <span></span>
+          </label>
+        </em>
+      </li>
+      <li class="collapsed">
+        <span data-l10n-id="settings-notify-mail" class="list-text">
+          NotifY ME OF NeW MaiL</span>
+        <em class="aside end">
+          <label>
+            <input type="checkbox" data-type="switch" checked="checked">
+            <span></span>
+          </label>
+        </em>
+      </li>
+    <a class="tng-email-lib-version list-text">v1</a>
+  </section>
+</section>

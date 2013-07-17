@@ -13,6 +13,7 @@ requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
+requireApp('sms/test/unit/mock_attachment_menu.js');
 
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/contacts.js');
@@ -31,9 +32,13 @@ requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/waiting_screen.js');
 requireApp('sms/js/startup.js');
 
-
+var MocksHelperForSmsUnitTest = new MocksHelper([
+  'AttachmentMenu'
+]).init();
 
 suite('SMS App Unit-Test', function() {
+  MocksHelperForSmsUnitTest.attachTestHelpers();
+
   function stub(additionalCode, ret) {
     if (additionalCode && typeof additionalCode !== 'function')
       ret = additionalCode;
@@ -51,7 +56,6 @@ suite('SMS App Unit-Test', function() {
     return nfn;
   }
 
-  var findByString;
   var nativeMozL10n = navigator.mozL10n;
   var realMozMobileMessage;
   var boundOnHashChange;
@@ -94,45 +98,6 @@ suite('SMS App Unit-Test', function() {
 
   // Previous setup
   suiteSetup(function() {
-    findByString = Contacts.findByString;
-
-    // We mockup the method for retrieving the threads
-    MessageManager.getThreads = function(callback, extraArg) {
-      var threadsMockup = new MockThreadList();
-      callback(threadsMockup, extraArg);
-    };
-
-    MessageManager.getMessages = function(options, callback) {
-
-      var each = options.each, // CB which manage every message
-        filter = options.filter, // mozMessageFilter
-        invert = options.invert, // invert selection
-        end = options.end,   // CB when all messages retrieved
-        endArgs = options.endArgs; //Args for end
-
-      var messagesMockup = new MockThreadMessages();
-      for (var i = 0, l = messagesMockup.length; i < l; i++) {
-        each(messagesMockup[i]);
-      }
-      end(endArgs);
-    };
-
-    // We mockup the method for retrieving the info
-    // of a contact given a number
-    Contacts.findByString = function(tel, callback) {
-      // Get the contact
-      if (tel === '1977') {
-        callback(MockContact.list());
-      }
-    };
-
-    Contacts.findByPhoneNumber = function(tel, callback) {
-      // Get the contact
-      if (tel === '1977') {
-        callback(MockContact.list());
-      }
-    };
-
     // Create DOM structure
     loadBodyHTML('/index.html');
     // Clear if necessary...
@@ -153,10 +118,51 @@ suite('SMS App Unit-Test', function() {
 
   suiteTeardown(function() {
     ThreadUI._mozMobileMessage = realMozMobileMessage;
-    Contacts.findByString = findByString;
     // cleanup
     window.document.body.innerHTML = '';
     window.removeEventListener('hashchange', boundOnHashChange);
+  });
+
+  setup(function() {
+    // We mockup the method for retrieving the threads
+    this.sinon.stub(MessageManager, 'getThreads',
+      function(callback, extraArg) {
+        var threadsMockup = new MockThreadList();
+        callback(threadsMockup, extraArg);
+      });
+
+    this.sinon.stub(MessageManager, 'getMessages',
+      function(options, callback) {
+
+        var each = options.each, // CB which manage every message
+          filter = options.filter, // mozMessageFilter
+          invert = options.invert, // invert selection
+          end = options.end,   // CB when all messages retrieved
+          endArgs = options.endArgs; //Args for end
+
+        var messagesMockup = new MockThreadMessages();
+        for (var i = 0, l = messagesMockup.length; i < l; i++) {
+          each(messagesMockup[i]);
+        }
+        end(endArgs);
+      });
+
+    // We mockup the method for retrieving the info
+    // of a contact given a number
+    this.sinon.stub(Contacts, 'findByString', function(tel, callback) {
+      // Get the contact
+      if (tel === '1977') {
+        callback(MockContact.list());
+      }
+    });
+
+    this.sinon.stub(Contacts, 'findByPhoneNumber', function(tel, callback) {
+      // Get the contact
+      if (tel === '1977') {
+        callback(MockContact.list());
+      }
+    });
+
   });
 
   // Let's go with tests!
@@ -241,8 +247,9 @@ suite('SMS App Unit-Test', function() {
         var threadWithContact = document.getElementById('thread-1');
         var contactName =
           threadWithContact.getElementsByClassName('name')[0].innerHTML;
-        assert.equal(contactName,
-                     'contact-title-text[zero]{"name":"Pepito Grillo","n":0}');
+        assert.equal(
+          contactName, 'thread-header-text{"name":"Pepito O\'Hare","n":0}'
+        );
       });
     });
 
@@ -256,7 +263,7 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select all/Deselect All buttons', function() {
-        document.getElementById('main-wrapper').classList.add('edit');
+        ThreadListUI.startEdit();
         // Retrieve all inputs
         var inputs = ThreadListUI.container.getElementsByTagName('input');
         // Activate all inputs
@@ -287,7 +294,7 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select all while receiving new thread', function(done) {
-        document.getElementById('main-wrapper').classList.add('edit');
+        ThreadListUI.startEdit();
         ThreadListUI.toggleCheckedAll(true);
 
         var checkboxes =
@@ -298,7 +305,6 @@ suite('SMS App Unit-Test', function() {
           }).length, 'All items should be checked');
 
         // now a new message comes in for a new thread...
-        ThreadListUI.counter++;
         ThreadListUI.appendThread({
           participants: ['287138'],
           body: 'Recibidas!',
@@ -312,7 +318,8 @@ suite('SMS App Unit-Test', function() {
           ThreadListUI.container.querySelectorAll('input[type=checkbox]');
 
         assert.equal(checkboxes.length, 6);
-        assert.equal(ThreadListUI.counter, 6, '.count should be in sync');
+        assert.equal(ThreadListUI.allInputs.length, 6,
+          '.allInputs should be in sync');
         assert.equal(checkboxes[4].checked, true);
         assert.equal(checkboxes[2].checked, true);
         // new checkbox should have been added
@@ -328,10 +335,9 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('checkInputs should fire in edit mode', function(done) {
-        document.getElementById('main-wrapper').classList.add('edit');
+        ThreadListUI.startEdit();
         ThreadListUI.checkInputs = stub();
 
-        ThreadListUI.counter++;
         ThreadListUI.appendThread({
           participants: ['287138'],
           body: 'Recibidas!',
@@ -346,10 +352,9 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('checkInputs should not fire in normal mode', function(done) {
-        document.getElementById('main-wrapper').classList.remove('edit');
+        ThreadListUI.cancelEdit();
         ThreadListUI.checkInputs = stub();
 
-        ThreadListUI.counter++;
         ThreadListUI.appendThread({
           participants: ['287138'],
           body: 'Recibidas!',
@@ -442,11 +447,12 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select all while receiving new message', function(done) {
-        document.getElementById('main-wrapper').classList.add('edit');
+        ThreadUI.startEdit();
         ThreadUI.toggleCheckedAll(true);
 
         var checkboxes =
           ThreadUI.container.querySelectorAll('input[type=checkbox]');
+        assert.equal(checkboxes.length, 5);
         assert.equal(checkboxes.length,
           [].slice.call(checkboxes).filter(function(i) {
             return i.checked;
@@ -487,20 +493,25 @@ suite('SMS App Unit-Test', function() {
           assert.equal(window.confirm.callCount, 1);
           assert.equal(MessageManager.deleteMessages.callCount, 1);
           assert.equal(MessageManager.deleteMessages.calledWith[0].length, 5);
-          assert.equal(ThreadUI.container.querySelectorAll('li').length, 1);
+          assert.equal(ThreadUI.container.querySelectorAll('li').length, 1,
+            'correct number of Thread li');
           assert.equal(
             ThreadUI.container.querySelector('#message-9999 p').textContent,
             'Recibidas!');
+          assert.isTrue(MessageManager.getThreads.called);
+          MessageManager.getThreads.restore();
 
           done();
         }, 1500); // only the last one is slow. What is blocking?
 
         window.history.back = stub();
+        MessageManager.getThreads.restore();
+        this.sinon.stub(MessageManager, 'getThreads').callsArg(1);
         ThreadUI.delete();
       });
 
       test('checkInputs should fire in edit mode', function(done) {
-        document.getElementById('main-wrapper').classList.add('edit');
+        ThreadUI.startEdit();
         ThreadUI.checkInputs = stub();
 
         // now a new message comes in...
@@ -518,7 +529,7 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('checkInputs should not fire in normal mode', function(done) {
-        document.getElementById('main-wrapper').classList.remove('edit');
+        ThreadUI.cancelEdit();
         ThreadUI.checkInputs = stub();
 
         // now a new message comes in...
@@ -553,21 +564,35 @@ suite('SMS App Unit-Test', function() {
     test('#Test URL in message', function() {
       var messageBody = 'For more details visit' +
       ' Yahoo.com, http://www.df.com' +
-      ' or visit faq mail.google.com/mail/help/intl/en/about.html';
+      ' or visit faq mail.google.com/mail/help/intl/en/about.html.' +
+      ' Also google.com/search?q=long+url+with+queries&sourceid=firefox' +
+      ' or \nhttps://secured.web:9080';
       var id = '123456';
       Message.id = id;
       Message.body = messageBody;
       var messageDOM = ThreadUI.buildMessageDOM(Message, false);
       var anchors = messageDOM.querySelectorAll('[data-url]');
-      assert.equal(anchors.length, 3,
-        '3 URLs are tappable in message');
+      assert.equal(anchors.length, 5,
+        '5 URLs are tappable in message');
       assert.equal(anchors[0].dataset.url,
         'http://Yahoo.com', 'First url is http://Yahoo.com');
       assert.equal(anchors[1].dataset.url,
         'http://www.df.com', 'Second url is http://www.df.com');
       assert.equal(anchors[2].dataset.url,
         'http://mail.google.com/mail/help/intl/en/about.html',
-         'Second url is http://mail.google.com/mail/help/intl/en/about.html');
+        'Third url is http://mail.google.com/mail/help/intl/en/about.html');
+      assert.equal(anchors[3].dataset.url,
+        'http://google.com/search?q=long+url+with+queries&sourceid=firefox',
+        'Fourth is google.com/search?q=long+url+with+queries&sourceid=firefox' +
+        ' and it comes with queries!');
+      assert.equal(anchors[4].dataset.url,
+        'https://secured.web:9080',
+        'Fifth is https://secured.web:9080, secured and after a line break');
+      // The links generated shouldn have 'href'
+      var anchorsLength = anchors.length;
+      for (var i = 0; i < anchorsLength; i++) {
+        assert.equal(anchors[i].href, '');
+      }
 
     });
 
@@ -587,6 +612,11 @@ suite('SMS App Unit-Test', function() {
          'First url is http://www.mozilla.org/en-US/firefox/fx/');
       assert.equal(anchors[1].dataset.url,
         'http://www.gmail.com', 'Second url is http://www.gmail.com');
+      // The links generated shouldn have 'href'
+      var anchorsLength = anchors.length;
+      for (var i = 0; i < anchorsLength; i++) {
+        assert.equal(anchors[i].href, '');
+      }
     });
   });
 
@@ -612,6 +642,11 @@ suite('SMS App Unit-Test', function() {
         'abc@gmail.com', 'First email is abc@gmail.com');
       assert.equal(anchors[1].dataset.email,
         'myself@my.com', 'Second email is myself@my.com');
+      // The email links generated shouldn have 'href'
+      var anchorsLength = anchors.length;
+      for (var i = 0; i < anchorsLength; i++) {
+        assert.equal(anchors[i].href, '');
+      }
     });
 
     test('#Test with phone numbers, url and email in a message', function() {
@@ -634,6 +669,11 @@ suite('SMS App Unit-Test', function() {
         'sup.port@efg.com', 'Third email is sup.port@efg.com');
       assert.equal(anchors[3].dataset.email,
         'cs@yahoo.co.in', 'Fourth email is cs@yahoo.co.in');
+      // The email links generated shouldn have 'href'
+      var anchorsLength = anchors.length;
+      for (var i = 0; i < anchorsLength; i++) {
+        assert.equal(anchors[i].href, '');
+      }
     });
   });
 
@@ -656,7 +696,7 @@ suite('SMS App Unit-Test', function() {
       assert.equal(anchors.length, 3,
         '3 Contact handlers are attached for 3 phone numbers in DOM');
       assert.equal(anchors[0].dataset.phonenumber,
-        '408-746-9721', 'First number is 408-746-9721');
+        '408-746-9721', 'First number link is 408-746-9721');
       assert.equal(anchors[1].dataset.phonenumber,
         '4087469721', 'Second number is 4087469721');
       assert.equal(anchors[2].dataset.phonenumber,
@@ -666,7 +706,7 @@ suite('SMS App Unit-Test', function() {
     test('#complexTest with 7 digit numbers, ip, decimals', function() {
       var messageBody = '995-382-7369 futures to a 4458901 slight' +
         ' 789-7890 rebound +1-556-667-7789 on Wall Street 9953827369' +
-        ' on Wednesday, +12343454567 with 55.55.55 futures +919810137553' +
+        ' on Wednesday, +12343454567 with 55.55 futures +919810137553' +
         ' for the S&P 500 up 0.34 percent, Dow Jones futures up 0.12' +
         ' percent100 futures up 0.51 percent at 0921 GMT.';
       var id = '12346';
@@ -674,6 +714,7 @@ suite('SMS App Unit-Test', function() {
       Message.body = messageBody;
       var messageDOM = ThreadUI.buildMessageDOM(Message, false);
       var anchors = messageDOM.querySelectorAll('[data-phonenumber]');
+
       assert.equal(anchors.length, 7,
         '7 Contact handlers are attached for 7 phone numbers in DOM');
       assert.equal(anchors[0].dataset.phonenumber,
@@ -685,11 +726,16 @@ suite('SMS App Unit-Test', function() {
       assert.equal(anchors[3].dataset.phonenumber,
         '+1-556-667-7789', 'Fourth number is +1-556-667-7789');
       assert.equal(anchors[4].dataset.phonenumber,
-        '9953827369', 'Fourth number is 9953827369');
+        '9953827369', 'Fifth number is 9953827369');
       assert.equal(anchors[5].dataset.phonenumber,
-        '+12343454567', 'Fifth number is +12343454567');
+        '+12343454567', 'Sixth number is +12343454567');
       assert.equal(anchors[6].dataset.phonenumber,
-        '+919810137553', 'Sixth number is +919810137553');
+        '+919810137553', 'Seventh number is +919810137553');
+      // The phone links generated shouldn have 'href'
+      var anchorsLength = anchors.length;
+      for (var i = 0; i < anchorsLength; i++) {
+        assert.equal(anchors[i].href, '');
+      }
     });
   });
 

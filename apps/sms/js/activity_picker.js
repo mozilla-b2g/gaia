@@ -69,5 +69,18 @@ var ActivityPicker = {
     } catch (e) {
         console.log('WebActivities unavailable? : ' + e);
     }
+  },
+  sendMessage: function ap_sendMessage(phone) {
+    try {
+      var activity = new MozActivity({
+        name: 'new',
+        data: {
+          type: 'websms/sms',
+          number: phone
+        }
+      });
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
   }
 };

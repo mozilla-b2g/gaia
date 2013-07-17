@@ -1819,6 +1819,15 @@ define('event-queue',['require'],function (require) {
 });
 
 define('microtime',['require'],function (require) {
+  // workers won't have this, of course...
+  if (window && window.performance && window.performance.now) {
+    return {
+      now: function () {
+        return window.performance.now() * 1000;
+      }
+    };
+  }
+
   return {
     now: function () {
       return Date.now() * 1000;
@@ -3151,7 +3160,7 @@ LoggestClassMaker.prototype = {
         throw new Error("Attempt to add expectations when already resolved!");
 
       var exp = [name];
-      for (var iArg = 0; iArg < numArgs; iArg++) {
+      for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION) {
           exp.push(arguments[iArg]);
         }
@@ -3284,7 +3293,7 @@ LoggestClassMaker.prototype = {
         throw new Error("Attempt to add expectations when already resolved!");
 
       var exp = [name_begin];
-      for (var iArg = 0; iArg < numArgs; iArg++) {
+      for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION)
           exp.push(arguments[iArg]);
       }
@@ -3301,7 +3310,7 @@ LoggestClassMaker.prototype = {
         throw new Error("Attempt to add expectations when already resolved!");
 
       var exp = [name_end];
-      for (var iArg = 0; iArg < numArgs; iArg++) {
+      for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION)
           exp.push(arguments[iArg]);
       }
@@ -3319,6 +3328,10 @@ LoggestClassMaker.prototype = {
       return true;
     };
   },
+  /**
+   * Call like: loggedCall(logArg1, ..., logArgN, useAsThis, func,
+   *                       callArg1, ... callArgN);
+   */
   addCall: function(name, logArgs, testOnlyLogArgs) {
     this._define(name, 'call');
 
@@ -3514,7 +3527,7 @@ LoggestClassMaker.prototype = {
         throw new Error("Attempt to add expectations when already resolved!");
 
       var exp = [name];
-      for (var iArg = 0; iArg < numArgs; iArg++) {
+      for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION)
           exp.push(arguments[iArg]);
       }
@@ -4605,12 +4618,17 @@ exports.INITIAL_SYNC_GROWTH_DAYS = 3;
 /**
  * What should be multiple the current number of sync days by when we perform
  * a sync and don't find any messages?  There are upper bounds in
- * `FolderStorage.onSyncCompleted` that cap this and there's more comments
- * there.
+ * `ImapFolderSyncer.onSyncCompleted` that cap this and there's more comments
+ * there.  Note that we keep moving our window back as we go.
+ *
+ * This was 1.6 for a while, but it was proving to be a bit slow when the first
+ * messages start a ways back.  Also, once we moved to just syncing headers
+ * without bodies, the cost of fetching more than strictly required went way
+ * down.
  *
  * IMAP only.
  */
-exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = 1.6;
+exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = 2;
 
 /**
  * What is the furthest back in time we are willing to go?  This is an
@@ -4625,6 +4643,23 @@ exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = 1.6;
 exports.OLDEST_SYNC_DATE = Date.UTC(1990, 0, 1);
 
 /**
+ * Don't bother with iterative deepening if a folder has less than this many
+ * messages; just sync the whole thing.  The trade-offs here are:
+ *
+ * - Not wanting to fetch more messages than we need.
+ * - Because header envelope fetches are done in a batch and IMAP servers like
+ *   to sort UIDs from low-to-high, we will get the oldest messages first.
+ *   This can be mitigated by having our sync logic use request windowing to
+ *   offset this.
+ * - The time required to fetch the headers versus the time required to
+ *   perform deepening.  Because of network and disk I/O, deepening can take
+ *   a very long time
+ *
+ * IMAP only.
+ */
+exports.SYNC_WHOLE_FOLDER_AT_N_MESSAGES = 40;
+
+/**
  * If we issued a search for a date range and we are getting told about more
  * than the following number of messages, we will try and reduce the date
  * range proportionately (assuming a linear distribution) so that we sync
@@ -4634,7 +4669,7 @@ exports.OLDEST_SYNC_DATE = Date.UTC(1990, 0, 1);
  *
  * IMAP only.
  */
-exports.BISECT_DATE_AT_N_MESSAGES = 50;
+exports.BISECT_DATE_AT_N_MESSAGES = 60;
 
 /**
  * What's the maximum number of messages we should ever handle in a go and
@@ -4762,6 +4797,10 @@ exports.SYNC_RANGE_ENUMS_TO_MS = {
  * Testing support to adjust the value we use for the number of initial sync
  * days.  The tests are written with a value in mind (7), but 7 turns out to
  * be too high an initial value for actual use, but is fine for tests.
+ *
+ * This started by taking human-friendly strings, but I changed to just using
+ * the constant names when I realized that consistency for grepping purposes
+ * would be a good thing.
  */
 exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
   if (syncValues.hasOwnProperty('fillSize'))
@@ -4771,6 +4810,9 @@ exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
   if (syncValues.hasOwnProperty('growDays'))
     exports.INITIAL_SYNC_GROWTH_DAYS = syncValues.growDays;
 
+  if (syncValues.hasOwnProperty('SYNC_WHOLE_FOLDER_AT_N_MESSAGES'))
+    exports.SYNC_WHOLE_FOLDER_AT_N_MESSAGES =
+      syncValues.SYNC_WHOLE_FOLDER_AT_N_MESSAGES;
   if (syncValues.hasOwnProperty('bisectThresh'))
     exports.BISECT_DATE_AT_N_MESSAGES = syncValues.bisectThresh;
   if (syncValues.hasOwnProperty('tooMany'))
@@ -5158,7 +5200,7 @@ MailSlice.prototype = {
   },
 
   setStatus: function(status, requested, moreExpected, flushAccumulated,
-                      progress) {
+                      progress, newEmailCount) {
     if (!this._bridgeHandle)
       return;
 
@@ -5181,14 +5223,16 @@ MailSlice.prototype = {
       // XXX remove concat() once our bridge sending makes rep sharing
       // impossible by dint of actual postMessage or JSON roundtripping.
       this._bridgeHandle.sendSplice(0, 0, this.headers.concat(),
-                                    requested, moreExpected);
+                                    requested, moreExpected,
+                                    newEmailCount);
       // If we're no longer synchronizing, we want to update desiredHeaders
       // to avoid accumulating extra 'desire'.
       if (status !== 'synchronizing')
         this.desiredHeaders = this.headers.length;
     }
     else {
-      this._bridgeHandle.sendStatus(status, requested, moreExpected, progress);
+      this._bridgeHandle.sendStatus(status, requested, moreExpected, progress,
+                                    newEmailCount);
     }
   },
 
@@ -5570,7 +5614,24 @@ MailSlice.prototype = {
  *   @key[flags @listof[String]]
  *   @key[hasAttachments Boolean]
  *   @key[subject String]
- *   @key[snippet String]
+ *   @key[snippet @oneof[
+ *     @case[null]{
+ *       We haven't tried to generate a snippet yet.
+ *     }
+ *     @case['']{
+ *       We tried to generate a snippet, but got nothing useful.  Note that we
+ *       may try and generate a snippet from a partial body fetch; this does not
+ *       indicate that we should avoid computing a better snippet.  Whenever the
+ *       snippet is falsey and we have retrieved more body data, we should
+ *       always try and derive a snippet.
+ *     }
+ *     @case[String]{
+ *       A non-empty string means we managed to produce some snippet data.  It
+ *        is still appropriate to regenerate the snippet if more body data is
+ *        fetched since our snippet may be a fallback where we chose quoted text
+ *        instead of authored text, etc.
+ *     }
+ *   ]]
  * ]]
  * @typedef[HeaderBlock @dict[
  *   @key[ids @listof[ID]]{
@@ -5846,6 +5907,13 @@ FolderStorage.prototype = {
   get hasActiveSlices() {
     return this._slices.length > 0;
   },
+
+  /**
+   * Function that we call with header whenever addMessageHeader gets called.
+   * @type {Function}
+   * @private
+   */
+  _onAddingHeader: null,
 
   /**
    * Reset all active slices.
@@ -6374,7 +6442,7 @@ FolderStorage.prototype = {
         // These variables let us detect if the deletion happened fully
         // synchronously and thereby avoid blowing up the stack.
         callActive = false, deleteTriggered = false;
-    var deleteNextHeader = function deleteNextHeader() {
+    var deleteNextHeader = function() {
       // if things are happening synchronously, bail out
       if (callActive) {
         deleteTriggered = true;
@@ -7032,16 +7100,19 @@ FolderStorage.prototype = {
     // other synchronizations already in progress.
     this._slices.push(slice);
 
-    var doneCallback = function doneSyncCallback(err, reportSyncStatusAs) {
+    var doneCallback = function doneSyncCallback(err, reportSyncStatusAs,
+                                                 moreExpected) {
       if (!reportSyncStatusAs) {
         if (err)
           reportSyncStatusAs = 'syncfailed';
         else
           reportSyncStatusAs = 'synced';
       }
+      if (moreExpected === undefined)
+        moreExpected = false;
 
       slice.waitingOnData = false;
-      slice.setStatus(reportSyncStatusAs, true, false, true);
+      slice.setStatus(reportSyncStatusAs, true, moreExpected, true);
       this._curSyncSlice = null;
 
       releaseMutex();
@@ -7087,7 +7158,7 @@ FolderStorage.prototype = {
     // blocked. We'll update it soon enough.
     if (!this.folderSyncer.syncable) {
       console.log('Synchronization is currently blocked; waiting...');
-      doneCallback(null, 'syncblocked');
+      doneCallback(null, 'syncblocked', true);
       return;
     }
 
@@ -7104,6 +7175,11 @@ FolderStorage.prototype = {
       }
       this._curSyncSlice = slice;
     }.bind(this);
+
+    // The slice flags are not yet valid; we are primarily interested in having
+    // atTop be true when splice notifications for generated as headers are
+    // added.
+    slice._updateSliceFlags();
     this.folderSyncer.initialSync(
       slice, $sync.INITIAL_SYNC_DAYS,
       syncCallback, doneCallback, progressCallback);
@@ -7346,7 +7422,8 @@ FolderStorage.prototype = {
       if (!this._account.universe.online ||
           !this.folderSyncer.canGrowSync ||
           !userRequestsGrowth) {
-        slice.sendEmptyCompletion();
+        if (this.folderSyncer.syncable)
+          slice.sendEmptyCompletion();
         releaseMutex();
         return;
       }
@@ -7430,13 +7507,33 @@ FolderStorage.prototype = {
         // In the event we grow the startTS to the dawn of time, then we want
         // to also provide the original startTS so that the bisection does not
         // need to scan through years of empty space.
-        origStartTS = null;
+        origStartTS = null,
+        // If we are refreshing through 'now', we will count the new messages we
+        // hear about and update this.newEmailCount once the sync completes.  If
+        // we are performing any othe sync, the value will not be updated.
+        newEmailCount = null;
 
     // - Grow endTS
     // If the endTS lines up with the most recent known message for the folder,
     // then remove the timestamp constraint so it goes all the way to now.
     // OR if we just have no known messages
     if (this.headerIsYoungestKnown(endTS, slice.endUID)) {
+      var prevTS = endTS;
+      newEmailCount = 0;
+
+      /**
+       * Increment our new email count if the following conditions are met:
+       * 1. This header is younger than the youngest one before sync
+       * 2. and this hasn't already been seen.
+       * @param {HeaderInfo} header The header being added.
+       */
+      this._onAddingHeader = function(header) {
+        if (SINCE(header.date, prevTS) &&
+            (!header.flags || header.flags.indexOf('\\Seen') === -1)) {
+          newEmailCount += 1;
+        }
+      }.bind(this);
+
       endTS = null;
     }
     else {
@@ -7467,6 +7564,8 @@ FolderStorage.prototype = {
 
     var doneCallback = function refreshDoneCallback(err, bisectInfo,
                                                     numMessages) {
+      this._onAddingHeader = null;
+
       var reportSyncStatusAs = 'synced';
       switch (err) {
         case 'aborted':
@@ -7477,7 +7576,8 @@ FolderStorage.prototype = {
 
       releaseMutex();
       slice.waitingOnData = false;
-      slice.setStatus(reportSyncStatusAs, true, false);
+      slice.setStatus(reportSyncStatusAs, true, false, false, null,
+                      newEmailCount);
       return undefined;
     }.bind(this);
 
@@ -8435,6 +8535,9 @@ FolderStorage.prototype = {
           slice.desiredHeaders++;
         }
 
+        if (this._onAddingHeader !== null) {
+          this._onAddingHeader(header);
+        }
         slice.onHeaderAdded(header, false, true);
       }
     }
@@ -9376,9 +9479,9 @@ BodyFilter.prototype = {
         matchQuotes = this.matchQuotes,
         idx;
 
-    for (var iBodyRep = 0; iBodyRep < body.bodyReps.length; iBodyRep += 2) {
-      var bodyType = body.bodyReps[iBodyRep],
-          bodyRep = body.bodyReps[iBodyRep + 1];
+    for (var iBodyRep = 0; iBodyRep < body.bodyReps.length; iBodyRep++) {
+      var bodyType = body.bodyReps[iBodyRep].type,
+          bodyRep = body.bodyReps[iBodyRep].content;
 
       if (bodyType === 'plain') {
         for (var iRep = 0; iRep < bodyRep.length && matches.length < stopAfter;
@@ -9948,7 +10051,7 @@ exports.local_do_modtags = function(op, doneCallback, undo) {
     function() {
       doneCallback(null, null, true);
     },
-    null,
+    null, // connection loss does not happen for local-only ops
     undo,
     'modtags');
 };
@@ -10060,7 +10163,7 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
     function() {
       doneCallback(null, null, true);
     },
-    null,
+    null, // connection loss does not happen for local-only ops
     false,
     'local move source');
 };
@@ -10145,11 +10248,11 @@ exports.do_download = function(op, callback) {
   function saveToStorage(blob, storage, filename, partInfo, isRetry) {
     pendingStorageWrites++;
 
-    var callback = function(success, error) {
+    var callback = function(success, error, savedFilename) {
       if (success) {
         self._LOG.savedAttachment(storage, blob.type, blob.size);
-        console.log('saved attachment to', storage, filename, 'type:', blob.type);
-        partInfo.file = [storage, filename];
+        console.log('saved attachment to', storage, savedFilename, 'type:', blob.type);
+        partInfo.file = [storage, savedFilename];
         if (--pendingStorageWrites === 0)
           done();
       } else {
@@ -10217,8 +10320,8 @@ exports.local_do_download = function(op, callback) {
 };
 
 exports.check_download = function(op, callback) {
-  // If we had download the file and persisted it successfully, this job would
-  // be marked done because of the atomicity guarantee on our commits.
+  // If we downloaded the file and persisted it successfully, this job would be
+  // marked done because of the atomicity guarantee on our commits.
   callback(null, 'coherent-notyet');
 };
 exports.local_undo_download = function(op, callback) {
@@ -10234,12 +10337,13 @@ exports.local_do_downloadBodies = function(op, callback) {
 };
 
 exports.do_downloadBodies = function(op, callback) {
-  var aggrErr;
+  var aggrErr, totalDownloaded = 0;
   this._partitionAndAccessFoldersSequentially(
     op.messages,
     true,
     function perFolder(folderConn, storage, headers, namers, callWhenDone) {
-      folderConn.downloadBodies(headers, op.options, function(err) {
+      folderConn.downloadBodies(headers, op.options, function(err, numDownloaded) {
+        totalDownloaded += numDownloaded;
         if (err && !aggrErr) {
           aggrErr = err;
         }
@@ -10247,7 +10351,9 @@ exports.do_downloadBodies = function(op, callback) {
       });
     },
     function allDone() {
-      callback(aggrErr, null, true);
+      callback(aggrErr, null,
+               // save if we might have done work.
+               totalDownloaded > 0);
     },
     function deadConn() {
       aggrErr = 'aborted-retry';
@@ -10258,6 +10364,21 @@ exports.do_downloadBodies = function(op, callback) {
   );
 };
 
+exports.check_downloadBodies = function(op, callback) {
+  // If we had downloaded the bodies and persisted them successfully, this job
+  // would be marked done because of the atomicity guarantee on our commits.  It
+  // is possible this request might only be partially serviced, in which case we
+  // will avoid redundant body fetches, but redundant folder selection is
+  // possible if this request spans multiple folders.
+  callback(null, 'coherent-notyet');
+};
+
+exports.check_downloadBodyReps = function(op, callback) {
+  // If we downloaded all of the body parts and persisted them successfully,
+  // this job would be marked done because of the atomicity guarantee on our
+  // commits.  But it's not, so there's more to do.
+  callback(null, 'coherent-notyet');
+};
 
 exports.do_downloadBodyReps = function(op, callback) {
   var self = this;
@@ -10278,8 +10399,10 @@ exports.do_downloadBodyReps = function(op, callback) {
 
   var gotHeader = function gotHeader(header) {
     // header may have been deleted by the time we get here...
-    if (!header)
-      return callback();
+    if (!header) {
+      callback();
+      return;
+    }
 
     folderConn.downloadBodyReps(header, onDownloadReps);
   };
@@ -10288,7 +10411,8 @@ exports.do_downloadBodyReps = function(op, callback) {
     if (err) {
       console.error('Error downloading reps', err);
       // fail we cannot download for some reason?
-      return callback('unknown');
+      callback('unknown');
+      return;
     }
 
     // success
@@ -10443,6 +10567,11 @@ exports.allJobsDone =  function() {
  * Its possible that entire folders will be skipped if no headers requested are
  * now present.
  *
+ * Connection loss by default causes this method to stop trying to traverse
+ * folders, calling callOnConnLoss and callWhenDone in that order.  If you want
+ * to do something more clever, extend this method so that you can return a
+ * sentinel value or promise or something and do your clever thing.
+ *
  * @args[
  *   @param[messageNamers @listof[MessageNamer]]
  *   @param[needConn Boolean]{
@@ -10463,8 +10592,19 @@ exports.allJobsDone =  function() {
  *       @param[callWhenDoneWithFolder Function]
  *     ]
  *   ]]
- *   @param[callWhenDone Function]
- *   @param[callOnConnLoss Function]
+ *   @param[callWhenDone @func[
+ *     @args[err @oneof[null 'connection-list']]
+ *   ]]{
+ *     The function to invoke when all of the folders have been processed or the
+ *     connection has been lost and we're giving up.  This will be invoked after
+ *     `callOnConnLoss` in the event of a conncetion loss.
+ *   }
+ *   @param[callOnConnLoss Function]{
+ *     This function we invoke when we lose a connection.  Traditionally, you would
+ *     use this to flag an error in your function that you would then return when
+ *     we invoke `callWhenDone`.  Then your check function will be invoked and you
+ *     can laboriously check what actually happened on the server, etc.
+ *   }
  *   @param[reverse #:optional Boolean]{
  *     Should we walk the partitions in reverse order?
  *   }
@@ -10488,13 +10628,20 @@ exports._partitionAndAccessFoldersSequentially = function(
   var partitions = $util.partitionMessagesByFolderId(allMessageNamers);
   var folderConn, storage, self = this,
       folderId = null, folderMessageNamers = null, serverIds = null,
-      iNextPartition = 0, curPartition = null, modsToGo = 0;
+      iNextPartition = 0, curPartition = null, modsToGo = 0,
+      // Set to true immediately before calling callWhenDone; causes us to
+      // immediately bail out of any of our callbacks in order to avoid
+      // continuing beyond the point when we should have stopped.
+      terminated = false;
 
   if (reverse)
     partitions.reverse();
 
   var openNextFolder = function openNextFolder() {
+    if (terminated)
+      return;
     if (iNextPartition >= partitions.length) {
+      terminated = true;
       callWhenDone(null);
       return;
     }
@@ -10516,10 +10663,26 @@ exports._partitionAndAccessFoldersSequentially = function(
     if (curPartition.folderId !== folderId) {
       folderId = curPartition.folderId;
       self._accessFolderForMutation(folderId, needConn, gotFolderConn,
-                                    callOnConnLoss, label);
+                                    connDied, label);
     }
   };
+  var connDied = function connDied() {
+    if (terminated)
+      return;
+    if (callOnConnLoss) {
+      try {
+        callOnConnLoss();
+      }
+      catch (ex) {
+        self._LOG.callbackErr(ex);
+      }
+    }
+    terminated = true;
+    callWhenDone('connection-lost');
+  };
   var gotFolderConn = function gotFolderConn(_folderConn, _storage) {
+    if (terminated)
+      return;
     folderConn = _folderConn;
     storage = _storage;
     // - Get headers or resolve current server id from name map
@@ -10557,6 +10720,8 @@ exports._partitionAndAccessFoldersSequentially = function(
     }
   };
   var gotNeededHeaders = function gotNeededHeaders(headers) {
+    if (terminated)
+      return;
     var iNextServerId = serverIds.indexOf(null);
     for (var i = 0; i < headers.length; i++) {
       var header = headers[i];
@@ -10580,7 +10745,8 @@ exports._partitionAndAccessFoldersSequentially = function(
     // skip entering this folder as the job cannot do anything with an empty
     // header.
     if (!serverIds.length) {
-      return openNextFolder();
+      openNextFolder();
+      return;
     }
 
     try {
@@ -10592,10 +10758,13 @@ exports._partitionAndAccessFoldersSequentially = function(
     }
   };
   var gotHeaders = function gotHeaders(headers) {
+    if (terminated)
+      return;
     // its unlikely but entirely possible that all pending headers have been
     // removed somehow between when the job was queued and now.
     if (!headers.length) {
-      return openNextFolder();
+      openNextFolder();
+      return;
     }
 
     // Sort the headers in ascending-by-date order so that slices hear about
@@ -11526,6 +11695,7 @@ define('mailapi/mailbridge',
     'rdcommon/log',
     './util',
     './mailchew-strings',
+    './date',
     'require',
     'module',
     'exports'
@@ -11534,6 +11704,7 @@ define('mailapi/mailbridge',
     $log,
     $imaputil,
     $mailchewStrings,
+    $date,
     require,
     $module,
     exports
@@ -11777,6 +11948,14 @@ MailBridge.prototype = {
 
         case 'syncRange':
           accountDef.syncRange = val;
+          break;
+
+        case 'setAsDefault':
+          // Weird things can happen if the device's clock goes back in time,
+          // but this way, at least the user can change their default if they
+          // cycle through their accounts.
+          if (val)
+            accountDef.defaultPriority = $date.NOW();
           break;
       }
     }
@@ -12378,7 +12557,8 @@ MailBridge.prototype = {
             handle: msg.handle,
             error: null,
             identity: identity,
-            subject: 'Fwd: ' + msg.refSubject,
+            subject: $composer.mailchew
+                       .generateForwardSubject(msg.refSubject),
             // blank lines at the top are baked in by the func
             body: $composer.mailchew.generateForwardMessage(
                     msg.refAuthor, msg.refDate, msg.refSubject,
@@ -12656,9 +12836,11 @@ function SliceBridgeProxy(bridge, ns, handle) {
 SliceBridgeProxy.prototype = {
   /**
    * Issue a splice to add and remove items.
+   * @param {number} newEmailCount Number of new emails synced during this
+   *     slice request.
    */
   sendSplice: function sbp_sendSplice(index, howMany, addItems, requested,
-                                      moreExpected) {
+                                      moreExpected, newEmailCount) {
     this._bridge.__sendMessage({
       type: 'sliceSplice',
       handle: this._handle,
@@ -12673,6 +12855,7 @@ SliceBridgeProxy.prototype = {
       atBottom: this.atBottom,
       userCanGrowUpwards: this.userCanGrowUpwards,
       userCanGrowDownwards: this.userCanGrowDownwards,
+      newEmailCount: newEmailCount,
     });
   },
 
@@ -12687,12 +12870,16 @@ SliceBridgeProxy.prototype = {
     });
   },
 
+  /**
+   * @param {number} newEmailCount Number of new emails synced during this
+   *     slice request.
+   */
   sendStatus: function sbp_sendStatus(status, requested, moreExpected,
-                                      progress) {
+                                      progress, newEmailCount) {
     this.status = status;
     if (progress != null)
       this.progress = progress;
-    this.sendSplice(0, 0, [], requested, moreExpected);
+    this.sendSplice(0, 0, [], requested, moreExpected, newEmailCount);
   },
 
   sendSyncProgress: function(progress) {
@@ -14455,9 +14642,9 @@ MailUniverse.prototype = {
                             endings: 'transparent'
                           });
       var filename = 'gem-log-' + Date.now() + '.json';
-      sendMessage('save', ['sdcard', blob, filename], function(success) {
+      sendMessage('save', ['sdcard', blob, filename], function(success, err, savedFile) {
         if (success)
-          console.log('saved log to "sdcard" devicestorage:', filename);
+          console.log('saved log to "sdcard" devicestorage:', savedFile);
         else
           console.error('failed to save log to', filename);
 
@@ -14701,6 +14888,12 @@ MailUniverse.prototype = {
 
   saveAccountDef: function(accountDef, folderInfo) {
     this._db.saveAccountDef(this.config, accountDef, folderInfo);
+    var account = this.getAccountForAccountId(accountDef.id);
+
+    // If account exists, notify of modification. However on first
+    // save, the account does not exist yet.
+    if (account)
+      this.__notifyModifiedAccount(account);
   },
 
   /**
@@ -15490,7 +15683,7 @@ MailUniverse.prototype = {
           type: 'downloadBodies',
           longtermId: 'session', // don't persist this job.
           lifecycle: 'do',
-          localStatus: null,
+          localStatus: 'done',
           serverStatus: null,
           tryCount: 0,
           humanOp: 'downloadBodies',

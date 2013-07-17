@@ -30,7 +30,7 @@ if (LOCAL_DOMAINS) {
   prefs.push(["network.dns.localDomains", domains.join(",")]);
 }
 
-if (BROWSER) {
+if (DESKTOP) {
   // Set system app as default firefox tab
   prefs.push(["browser.startup.homepage", homescreen]);
   prefs.push(["startup.homepage_welcome_url", ""]);
@@ -57,7 +57,6 @@ if (BROWSER) {
 
   // Enable apis use on the device
   prefs.push(["dom.sms.enabled", true]);
-  prefs.push(["dom.mozContacts.enabled", true]);
   prefs.push(["dom.mozTCPSocket.enabled", true]);
   prefs.push(["notification.feature.enabled", true]);
   prefs.push(["dom.sysmsg.enabled", true]);
@@ -70,6 +69,23 @@ if (BROWSER) {
   prefs.push(["dom.mozSettings.enabled", true]);
   prefs.push(["dom.navigator-property.disable.mozSettings", false]);
   prefs.push(["dom.mozPermissionSettings.enabled", true]);
+
+  // Contacts
+  prefs.push(["dom.mozContacts.enabled", true]);
+  prefs.push(["dom.navigator-property.disable.mozContacts", false]);
+  prefs.push(["dom.global-constructor.disable.mozContact", false]);
+
+  prefs.push(["dom.experimental_forms", true]);
+  prefs.push(["dom.webapps.useCurrentProfile", true]);
+
+  // Partial implementation of gonk fonts
+  // See: http://mxr.mozilla.org/mozilla-central/source/modules/libpref/src/init/all.js#3202
+  prefs.push(["font.default.x-western", "sans-serif"]);
+
+  prefs.push(["font.name.serif.x-western", "Charis SIL Compact"]);
+  prefs.push(["font.name.sans-serif.x-western", "Feura Sans"]);
+  prefs.push(["font.name.monospace.x-western", "Source Code Pro"]);
+  prefs.push(["font.name-list.sans-serif.x-western", "Feura Sans, Roboto"]);
 }
 
 if (DEBUG) {
@@ -101,9 +117,14 @@ if (DEBUG) {
   prefs.push(["extensions.gaia.dir", GAIA_DIR]);
   prefs.push(["extensions.gaia.domain", GAIA_DOMAIN]);
   prefs.push(["extensions.gaia.port", parseInt(GAIA_PORT.replace(/:/g, ""))]);
-  prefs.push(["extensions.gaia.app_src_dirs", GAIA_APP_SRCDIRS]);
+  prefs.push(["extensions.gaia.appdirs", GAIA_APPDIRS]);
   prefs.push(["extensions.gaia.locales_debug_path", GAIA_LOCALES_PATH]);
   prefs.push(["extensions.gaia.official", Boolean(OFFICIAL)]);
+
+  let suffix = GAIA_DEV_PIXELS_PER_PX === '1' ?
+               '' : '@' + GAIA_DEV_PIXELS_PER_PX + 'x';
+  prefs.push(["extensions.gaia.device_pixel_suffix", suffix]);
+
   let appPathList = [];
   Gaia.webapps.forEach(function (webapp) {
     appPathList.push(webapp.sourceAppDirectoryName + '/' +
@@ -114,12 +135,12 @@ if (DEBUG) {
 
 // We have to allow installing helper addons from profile extension folder
 // in both debug and browser compatibility modes
-if (DEBUG || BROWSER) {
+if (DEBUG || DESKTOP) {
   prefs.push(["extensions.autoDisableScopes", 0]);
 }
 
 function writePrefs() {
-  let userJs = getFile(GAIA_DIR, 'profile', 'user.js');
+  let userJs = getFile(GAIA_DIR, PROFILE_FOLDER, 'user.js');
   let content = prefs.map(function (entry) {
     return 'user_pref("' + entry[0] + '", ' + JSON.stringify(entry[1]) + ');';
   }).join('\n');

@@ -69,6 +69,10 @@
   display: none;
 }
 
+#remove-account-dialog p {
+  font-size: 2.2rem;
+}
+
 #modify-account-view.auth-oauth2.create .user,
 #modify-account-view .sync-errors,
 #modify-account-view .oauth2-sign-in {
@@ -85,7 +89,7 @@
 #modify-account-view .sync-errors p {
   margin: 0;
   height: 3rem;
-  background: transparent url('icons/accountwarning_30x30.png') no-repeat left top;
+  background: transparent url('icons/accountwarning.png') no-repeat left top;
   padding-left: 3.5rem;
   line-height: 3rem;
 }

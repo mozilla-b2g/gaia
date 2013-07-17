@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Identity Demo: get() API</title>
+
+    <link rel="stylesheet" type="text/css" href="style/style.css">
+  </head>
+
+  <body>
+    <div>
+      <p>Options</p>
+      <div><label for="issuer-name">Force Issuer:</label><input type="text" id="issuer-name" value=""/></div>
+      <div><label for="unverified-ok">Allow Unverified:</label><input type="checkbox" id="unverified-ok"/></div>
+    </div>
+
+    <div>
+      <p>Tests</p>
+      <ul>
+        <li><button id="t-get">Get</button> (Standard, verified email)</li>
+        <li><button id="t-get-allowUnverified">Get</button> (Unverified)</li>
+        <li><button id="t-get-forceIssuer">Get</button> (Force issuer)</li>
+        <li><button id="t-get-forceIssuer-allowUnverified">Get</button> (Force issuer; unverified)</li>
+      </ul>
+    </div>
+
+    <div>
+      <p>Events:</p>
+      <ul id="event-stream">
+        <li><span>0</span> Page render</li>
+      </ul>
+    </div>
+
+    <script type="text/javascript" src="../js/identity-get.js"></script>
+  </body>
+
+</html>

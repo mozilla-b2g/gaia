@@ -10,8 +10,8 @@ html {
 }
 
 body {
+  background-color: black;
   color: #fff;
-  font-family: "MozTT", sans-serif;
   font-size: 1rem;
   margin: 0;
   padding: 0;
@@ -82,7 +82,6 @@ section {
   left: 0;
   right: 0;
   bottom: 0;
-  font-family: "MozTT", Sans-serif;
   font-size: 0;
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
@@ -668,7 +667,7 @@ a.filter-faded {
 
 #edit-border-none {
   left: calc(0% + 0.3rem);
-  border: 0.2rem solid white;
+  border: 0;
 }
 #edit-border-thin-white {
   left: calc(20% + 0.3rem);

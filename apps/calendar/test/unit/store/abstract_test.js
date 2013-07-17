@@ -257,6 +257,7 @@ suite('store/abstract', function() {
     });
 
     setup(function(done) {
+      var preRemoveCalled = false;
       callbackCalled = false;
       removeDepsCalled = false;
 
@@ -264,9 +265,16 @@ suite('store/abstract', function() {
         removeDepsCalled = arguments;
       };
 
+      subject.once('preRemove', function(_id) {
+        assert.equal(id, _id, 'same id');
+        preRemoveCalled = true;
+      });
+
       subject.remove(id, function() {
         callbackCalled = true;
       });
+
+      assert.ok(preRemoveCalled, 'removes event');
 
       subject.once('remove', function() {
         removeEvent = arguments;

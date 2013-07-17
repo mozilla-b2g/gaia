@@ -4,65 +4,6 @@
 'use strict';
 
 /**
- * Create an animated icon by using a canvas element coupled with a flat image
- * containing all the animation frames arranged as a vertical row. The delay
- * between each frame is fixed.
- */
-
-function AnimatedIcon(element, path, frames, delay) {
-  var context = element.getContext('2d');
-
-  this.frame = 1;
-  this.frames = frames;
-  this.timerId = null;
-  this._started = false;
-  var image;
-
-  // Load the image and paint the first frame
-  function init() {
-    image = new Image();
-    image.src = path;
-    image.onload = function() {
-      var w = image.width;
-      var h = image.height / frames;
-      context.drawImage(image, 0, 0, w, h, 0, 0, w, h);
-    };
-  }
-
-  this.start = function() {
-    var self = this;
-    // XXX: If we draw canvas during device start up,
-    // it will face following issue.
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=849736
-    if (!self._started) {
-      self._started = true;
-      init();
-    }
-
-    if (this.timerId == null) {
-      this.timerId = setInterval(function() {
-          var w = image.width;
-          var h = image.height / frames;
-
-          context.drawImage(image, 0, self.frame * h, w, h, 0, 0, w, h);
-          self.frame++;
-
-          if (self.frame == self.frames) {
-            self.frame = 0;
-          }
-      }, delay);
-    }
-  };
-
-  this.stop = function() {
-    if (this.timerId != null) {
-      clearInterval(this.timerId);
-      this.timerId = null;
-    }
-  };
-}
-
-/**
  * Creates an object used for refreshing the clock UI element. Handles all
  * related timer manipulation (start/stop/cancel).
  */
@@ -161,18 +102,13 @@ var StatusBar = {
 
   headphonesActive: false,
 
+  listeningCallschanged: false,
+
   /**
    * this keeps how many current installs/updates we do
    * it triggers the icon "systemDownloads"
    */
   systemDownloadsCount: 0,
-
-  /**
-   * Objects used to animate the system downloads and
-   * network activity canvas elements
-   */
-  networkActivityAnimation: null,
-  systemDownloadsAnimation: null,
 
   /**
    * Object used for handling the clock UI element, wraps all related timers
@@ -181,11 +117,11 @@ var StatusBar = {
 
   /* For other modules to acquire */
   get height() {
-    if (this.screen.classList.contains('fullscreen-app') ||
+    if (this.screen.classList.contains('active-statusbar')) {
+      return this.attentionBar.offsetHeight;
+    } else if (this.screen.classList.contains('fullscreen-app') ||
         document.mozFullScreen) {
       return 0;
-    } else if (this.screen.classList.contains('active-statusbar')) {
-      return this.attentionBar.offsetHeight;
     } else {
       return this._cacheHeight ||
              (this._cacheHeight = this.element.getBoundingClientRect().height);
@@ -194,6 +130,8 @@ var StatusBar = {
 
   init: function sb_init() {
     this.getAllElements();
+
+    this.listeningCallschanged = false;
 
     // Refresh the time to reflect locale changes
     this.update.time.call(this, new Date());
@@ -229,7 +167,9 @@ var StatusBar = {
         self.settingValues[settingKey] = false;
       })(settingKey);
     }
-
+    // Listen to 'attentionscreenshow/hide' from attention_screen.js
+    window.addEventListener('attentionscreenshow', this);
+    window.addEventListener('attentionscreenhide', this);
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
@@ -250,14 +190,6 @@ var StatusBar = {
     window.addEventListener('lockpanelchange', this);
 
     this.systemDownloadsCount = 0;
-
-    // Create the objects used to animate the statusbar-network-activity and
-    // statusbar-system-downloads canvas elements
-    this.networkActivityAnimation = new AnimatedIcon(this.icons.networkActivity,
-      '/style/statusbar/images/network-activity-flat.png', 6, 200);
-    this.systemDownloadsAnimation = new AnimatedIcon(this.icons.systemDownloads,
-      '/style/statusbar/images/system-downloads-flat.png', 8, 130);
-
     this.setActive(true);
   },
 
@@ -266,13 +198,13 @@ var StatusBar = {
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
         break;
-
+      case 'attentionscreenhide':
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
         this.icons.time.hidden = true;
         this.clock.stop();
         break;
-
+      case 'attentionscreenshow':
       case 'unlock':
         // Display the clock in the statusbar when screen is unlocked
         this.icons.time.hidden = false;
@@ -327,8 +259,14 @@ var StatusBar = {
         break;
 
       case 'moztimechange':
-        navigator.mozL10n.ready(
-          this.clock.start.bind(this.clock, this.update.time.bind(this)));
+        navigator.mozL10n.ready((function _updateTime() {
+          // To stop clock for reseting the clock interval which runs every 60
+          // seconds. The reason to do this is that the time updated will be
+          // exactly aligned to minutes which means always getting 0 on seconds
+          // part.
+          this.clock.stop();
+          this.clock.start(this.update.time.bind(this));
+        }).bind(this));
         break;
 
       case 'mozChromeEvent':
@@ -377,10 +315,13 @@ var StatusBar = {
       var conn = window.navigator.mozMobileConnection;
       if (conn) {
         conn.addEventListener('voicechange', this);
-        conn.addEventListener('iccinfochange', this);
         conn.addEventListener('datachange', this);
         this.update.signal.call(this);
         this.update.data.call(this);
+      }
+
+      if (IccHelper.enabled) {
+        IccHelper.addEventListener('iccinfochange', this);
       }
 
       window.addEventListener('wifi-statuschange',
@@ -411,8 +352,11 @@ var StatusBar = {
       var conn = window.navigator.mozMobileConnection;
       if (conn) {
         conn.removeEventListener('voicechange', this);
-        conn.removeEventListener('iccinfochange', this);
         conn.removeEventListener('datachange', this);
+      }
+
+      if (IccHelper.enabled) {
+        IccHelper.removeEventListener('iccinfochange', this);
       }
 
       window.removeEventListener('moznetworkupload', this);
@@ -429,7 +373,7 @@ var StatusBar = {
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
 
-      if (!conn || !conn.voice || !conn.voice.connected ||
+      if (!IccHelper.enabled || !conn || !conn.voice || !conn.voice.connected ||
           conn.voice.emergencyCallsOnly) {
         delete l10nArgs.operator;
         label.dataset.l10nArgs = JSON.stringify(l10nArgs);
@@ -486,14 +430,11 @@ var StatusBar = {
       // show up for 500ms.
 
       var icon = this.icons.networkActivity;
-      var animation = this.networkActivityAnimation;
 
       clearTimeout(this._networkActivityTimer);
       icon.hidden = false;
-      animation.start();
 
       this._networkActivityTimer = setTimeout(function hideNetActivityIcon() {
-        animation.stop();
         icon.hidden = true;
       }, 500);
     },
@@ -501,6 +442,9 @@ var StatusBar = {
     signal: function sb_updateSignal() {
       var conn = window.navigator.mozMobileConnection;
       if (!conn || !conn.voice)
+        return;
+
+      if (!IccHelper.enabled)
         return;
 
       var voice = conn.voice;
@@ -518,7 +462,7 @@ var StatusBar = {
       flightModeIcon.hidden = true;
       icon.hidden = false;
 
-      if (conn.cardState === 'absent') {
+      if (IccHelper.cardState === 'absent') {
         // no SIM
         delete icon.dataset.level;
         delete icon.dataset.emergency;
@@ -711,15 +655,7 @@ var StatusBar = {
 
     systemDownloads: function sb_updatesystemDownloads() {
       var icon = this.icons.systemDownloads;
-      var animation = this.systemDownloadsAnimation;
-
-      if (this.systemDownloadsCount > 0) {
-        icon.hidden = false;
-        animation.start();
-      } else {
-        animation.stop();
-        icon.hidden = true;
-      }
+      icon.hidden = (this.systemDownloadsCount === 0);
     },
 
     callForwarding: function sb_updateCallForwarding() {
@@ -737,7 +673,8 @@ var StatusBar = {
 
   addCallListener: function sb_addCallListener() {
     var telephony = navigator.mozTelephony;
-    if (telephony) {
+    if (telephony && !this.listeningCallschanged) {
+      this.listeningCallschanged = true;
       telephony.addEventListener('callschanged', this);
     }
   },
@@ -745,6 +682,7 @@ var StatusBar = {
   removeCallListener: function sb_addCallListener() {
     var telephony = navigator.mozTelephony;
     if (telephony) {
+      this.listeningCallschanged = false;
       telephony.removeEventListener('callschanged', this);
     }
   },

@@ -16,16 +16,12 @@ var UtilityTray = {
 
   init: function ut_init() {
     var touchEvents = ['touchstart', 'touchmove', 'touchend'];
-
-    // XXX: Always use Mouse2Touch here.
-    // We cannot reliably detect touch support normally
-    // by evaluate (document instanceof DocumentTouch) on Desktop B2G.
     touchEvents.forEach(function bindEvents(name) {
-      // window.addEventListener(name, this);
-      Mouse2Touch.addEventHandler(window, name, this);
+      window.addEventListener(name, this);
     }, this);
 
     window.addEventListener('screenchange', this);
+    window.addEventListener('emergencyalert', this);
     window.addEventListener('home', this);
     window.addEventListener('attentionscreenshow', this);
 
@@ -36,6 +32,7 @@ var UtilityTray = {
     switch (evt.type) {
       case 'attentionscreenshow':
       case 'home':
+      case 'emergencyalert':
         if (this.shown) {
           this.hide();
         }
@@ -55,8 +52,6 @@ var UtilityTray = {
           return;
 
         this.active = true;
-        // XXX: required for Mouse2Touch fake events to function
-        evt.target.setCapture(true);
 
         this.onTouchStart(evt.touches[0]);
         break;
@@ -73,8 +68,6 @@ var UtilityTray = {
           return;
 
         this.active = false;
-        // XXX: required for Mouse2Touch fake events to function
-        document.releaseCapture();
 
         this.onTouchEnd(evt.changedTouches[0]);
         break;

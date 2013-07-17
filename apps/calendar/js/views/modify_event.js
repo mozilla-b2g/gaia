@@ -32,6 +32,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var calendars = this.app.store('Calendar');
 
       calendars.on('add', this._addCalendarId.bind(this));
+      calendars.on('preRemove', this._removeCalendarId.bind(this));
       calendars.on('remove', this._removeCalendarId.bind(this));
       calendars.on('update', this._updateCalendarId.bind(this));
 
@@ -161,6 +162,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
           option.text = calendar.remote.name;
         }
 
+
         if (this.oncalendarupdate) {
           this.oncalendarupdate(calendar);
         }
@@ -215,7 +217,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       var option = element.querySelector('[value="' + id + '"]');
       if (option) {
-        option.parentNode.remove(option);
+        element.removeChild(option);
       }
 
       if (this.onremovecalendar) {

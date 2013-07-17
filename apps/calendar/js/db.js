@@ -1,6 +1,6 @@
 (function(window) {
   var idb = window.indexedDB;
-  const VERSION = 14;
+  const VERSION = 15;
   var debug = Calendar.debug('database');
 
   var store = {
@@ -248,8 +248,127 @@
           calendarStore.createIndex(
             'accountId', 'accountId', { unique: false, multiEntry: false }
           );
+        } else if (curVersion === 14) {
+          // Bug 851003 - The database may have some busytimes and/or events
+          // which have their calendarId field as a string rather than an int.
+          // We need to fix the calendarIds and also remove any of the idb
+          // objects that have deleted calendars.
+          this.sanitizeEvents(transaction);
         }
       }
+    },
+
+    /**
+     * 1. Find all events with string calendar ids and index them.
+     * 2. Check for each of the events whether the calendar
+     *    they reference still exists.
+     * 3. Fix the events' calendarIds if the calendar still exists else
+     *    delete them.
+     * @param {IDBTransaction} trans The active idb transaction during db
+     *     upgrade.
+     */
+    sanitizeEvents: function(trans) {
+      /**
+       * Map from calendar ids to lists of event ids
+       * which we've fixed with that id.
+       * @type {Object.<number, Array.<number>>}
+       */
+      var badCalendarIdToEventIds = {};
+
+      var objectStore = trans.objectStore(store.events);
+      objectStore.openCursor().onsuccess = (function(evt) {
+        var cursor = evt.target.result;
+        if (!cursor) {
+          return this._updateXorDeleteEvents(badCalendarIdToEventIds, trans);
+        }
+
+        var calendarId = cursor.value.calendarId;
+        if (typeof(calendarId) === 'number') {
+          // Nothing to do here!
+          return cursor.continue();
+        }
+
+        // Record the bad reference.
+        var eventIds = badCalendarIdToEventIds[calendarId] || [];
+        eventIds.push(cursor.key);
+        badCalendarIdToEventIds[calendarId] = eventIds;
+        cursor.continue();
+      }).bind(this);
+    },
+
+    /**
+     * 1. Check for each of the events whether the calendar
+     *    they reference still exists.
+     * 2. Fix the events' calendarIds if the calendar still exists else
+     *    delete them.
+     *
+     * @param {Object.<number, Array.<number>>} badCalendarIdToEventIds Map
+     *     from calendar ids to lists of event ids which we've fixed with
+     *     that id.
+     * @param {IDBTransaction} trans The active idb transaction during db
+     *     upgrade.
+     * @private
+     */
+    _updateXorDeleteEvents: function(badCalendarIdToEventIds, trans) {
+      var calendarIds = Object.keys(badCalendarIdToEventIds);
+      calendarIds.forEach(function(calendarId) {
+        //Bug 887698 cases for calendarIds of types strings or integers
+        calendarId = Calendar.probablyParseInt(calendarId);
+        var eventIds = badCalendarIdToEventIds[calendarId];
+        var calendars = trans.objectStore(store.calendars);
+        calendars.get(calendarId).onsuccess = (function(evt) {
+          var result = evt.target.result;
+          if (result) {
+            this._updateEvents(eventIds, calendarId, trans);
+          } else {
+            this._deleteEvents(eventIds, trans);
+          }
+        }).bind(this);
+      }, this);
+    },
+
+    /**
+     * Update a collection of events and the busytimes that depend on them.
+     *
+     * @param {Array.<number>>} eventIds An array of event ids for the events.
+     * @param {number} calendarId A numerical id to set as calendarId.
+     * @param {IDBTransaction} trans The active idb transaction during db
+     *     upgrade.
+     * @private
+     */
+    _updateEvents: function(eventIds, calendarId, trans) {
+      var eventStore = trans.objectStore(store.events);
+      var busytimeStore = trans.objectStore(store.busytimes);
+      var busytimeStoreIndexedByEventId = busytimeStore.index('eventId');
+
+      eventIds.forEach(function(eventId) {
+        eventStore.get(eventId).onsuccess = function(evt) {
+          var result = evt.target.result;
+          result.calendarId = calendarId;
+          eventStore.put(result);
+        };
+
+        busytimeStoreIndexedByEventId.get(eventId).onsuccess = function(evt) {
+          var result = evt.target.result;
+          result.calendarId = calendarId;
+          busytimeStore.put(result);
+        };
+      });
+    },
+
+    /**
+     * Delete a collection of events and the busytimes that depend on them.
+     *
+     * @param {Array.<number>>} eventIds An array of event ids for the events.
+     * @param {IDBTransaction} trans The active idb transaction during db
+     *     upgrade.
+     * @private
+     */
+    _deleteEvents: function(eventIds, trans) {
+      var events = this.getStore('Event');
+      eventIds.forEach(function(eventId) {
+        events.remove(eventId, trans);
+      });
     },
 
     get store() {

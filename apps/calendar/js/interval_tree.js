@@ -207,6 +207,15 @@ Calendar.IntervalTree = (function() {
       this.items = list.concat([]);
     }
 
+    /**
+     * Properties to index by when fields are added.
+     */
+    this._indexes = Object.create(null);
+
+    // method aggregates
+    this._indexOnAdd = [];
+    this._indexOnRemove = [];
+
     this.byId = Object.create(null);
     this.synced = false;
   };
@@ -225,6 +234,61 @@ Calendar.IntervalTree = (function() {
 
     _getId: function(item) {
       return item._id;
+    },
+
+    /**
+     * Returns all values in the given index.
+     *
+     * @param {String} property name of index.
+     * @param {String} [value] to filter index on (optional).
+     * @return {Null|Array}
+     */
+    index: function(property, value) {
+      var items = this._indexes[property];
+
+      if (items && value)
+        return items[value];
+
+      return items;
+    },
+
+    /**
+     * Create index on property.
+     *
+     * @param {String} property to index on.
+     */
+    createIndex: function(property) {
+      var index = this._indexes[property] = {};
+
+      // remember this will be invoked later with the context
+      // of |this| always...
+      function addToIndex(object) {
+        var value = object[property];
+
+        // create array for index possibilities
+        if (!index[value])
+          index[value] = [];
+
+        // and push single object to index
+        index[value].push(object);
+      }
+
+      function removeFromIndex(object) {
+        // object given should always be same instance stored.
+        var value = object[property];
+        var valueGroup = index[value];
+
+        if (valueGroup) {
+          var idx = valueGroup.indexOf(object);
+          valueGroup.splice(idx, 1);
+          if (valueGroup.length === 0) {
+            delete index[value];
+          }
+        }
+      }
+
+      this._indexOnAdd.push(addToIndex);
+      this._indexOnRemove.push(removeFromIndex);
     },
 
     /**
@@ -263,6 +327,11 @@ Calendar.IntervalTree = (function() {
       this.items.splice(idx, 0, item);
       this.byId[id] = item;
       this.synced = false;
+
+      var len = this._indexOnAdd.length;
+      for (var i = 0; i < len; i++) {
+        this._indexOnAdd[i].call(this, item);
+      }
 
       return item;
     },
@@ -345,6 +414,11 @@ Calendar.IntervalTree = (function() {
       if (Array.isArray(item)) {
         item.forEach(this._removeIds, this);
       } else {
+        var len = this._indexOnRemove.length;
+        for (var i = 0; i < len; i++) {
+          this._indexOnRemove[i].call(this, item);
+        }
+
         var id = this._getId(item);
         delete this.byId[id];
       }

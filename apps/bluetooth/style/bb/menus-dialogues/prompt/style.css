@@ -6,7 +6,6 @@
  * ---------------------------------- */
  
 body[role="application"] [role="dialog"] p {
-	font-family: 'MozTT', Sans-serif;
 	font-weight: lighter;
 	font-size: 2.2rem;
 	color: #FAFAFA;
@@ -19,7 +18,6 @@ body[role="application"] [role="dialog"] p:last-child {
 }
 
 body[role="application"] [role="dialog"] .content {
-	font-family: 'MozTT', Sans-serif;
 	font-weight: lighter;
 	font-size: 2.2rem;
 	color: #fff;
@@ -27,17 +25,16 @@ body[role="application"] [role="dialog"] .content {
 	margin: 0;
 	padding: 2.5rem 0 2rem 0;
 }
-	body[role="application"] [role="dialog"] .content img {
-		float: left;
-		margin-right: 2rem;
-	}
-	body[role="application"] [role="dialog"] .content strong {
-		font-weight: lighter;
-	}
-	body[role="application"] [role="dialog"] .content small {
-		font-size: 1.4rem;
-		font-family: 'MozTT', Sans-serif;
-		font-weight: normal;
-		color: #cbcbcb;
-		display: block;
-	}
+body[role="application"] [role="dialog"] .content img {
+	float: left;
+	margin-right: 2rem;
+}
+body[role="application"] [role="dialog"] .content strong {
+	font-weight: lighter;
+}
+body[role="application"] [role="dialog"] .content small {
+	font-size: 1.4rem;
+	font-weight: normal;
+	color: #cbcbcb;
+	display: block;
+}

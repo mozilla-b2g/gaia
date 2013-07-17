@@ -32,6 +32,10 @@ var Activities = {
       // event are synchronous make sure to exit the event loop before
       // showing the list.
       setTimeout((function nextTick() {
+        // Bug 852785: force the keyboard to close before the activity menu
+        // shows
+        dispatchEvent(new CustomEvent('activitymenuwillopen'));
+
         var activityName = navigator.mozL10n.get('activity-' + detail.name);
         ListMenu.request(this._listItems(choices), activityName,
                          this.choose.bind(this), this.cancel.bind(this));

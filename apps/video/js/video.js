@@ -7,7 +7,7 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom',
            'thumbnail-select-view',
            'thumbnails-delete-button', 'thumbnails-share-button',
            'thumbnails-cancel-button', 'thumbnails-number-selected',
-           'fullscreen-view',
+           'fullscreen-view', 'crop-view',
            'thumbnails-single-delete-button', 'thumbnails-single-share-button',
            'player', 'overlay', 'overlay-title',
            'overlay-text', 'videoControls', 'videoBar', 'videoActionBar',
@@ -31,7 +31,6 @@ var playing = false;
 var playerShowing = false;
 
 // keep the screen on when playing
-var screenLock;
 var endedTimer;
 
 // same thing for the controls
@@ -50,8 +49,9 @@ var currentVideoBlob; // The blob for the currently playing video
 var videos = [];
 var firstScanEnded = false;
 
-var THUMBNAIL_WIDTH = 210;
-var THUMBNAIL_HEIGHT = 120;
+var scaleRatio = window.innerWidth / 320;
+var THUMBNAIL_WIDTH = 210 * scaleRatio;
+var THUMBNAIL_HEIGHT = 120 * scaleRatio;
 
 // Enumerating the readyState for html5 video api
 var HAVE_NOTHING = 0;
@@ -62,7 +62,7 @@ var currentOverlay;
 var dragging = false;
 
 // Videos recorded by our own camera have filenames of this form
-var FROMCAMERA = /^DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
+var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
 function init() {
 
@@ -376,20 +376,16 @@ function createThumbnailItem(videonum) {
 
 function detailsOverflowHandler(e) {
   var el = e.target;
-  var max = { portrait: 45, landscape: 175 };
   var title = el.firstElementChild;
-  var orientation = window.innerWidth > window.innerHeight ?
-    'landscape' : 'portrait';
-  var end = title.textContent.length > max[orientation] ?
-    max[orientation] : -4;
-  if (title.textContent.length >= 4) {
+  if (title.textContent.length > 5) {
+    var max = (window.innerWidth > window.innerHeight) ? 175 : 45;
+    var end = title.textContent.length > max ? max - 1 : -5;
     title.textContent = title.textContent.slice(0, end) + '\u2026';
+    // Force element to be repainted to enable 'overflow' event
+    // Can't repaint without the timeout maybe a gecko bug.
+    el.style.overflow = 'visible';
+    setTimeout(function() { el.style.overflow = 'hidden'; });
   }
-
-  // Force element to be repainted to enable 'overflow' event
-  // Can't repaint without the timeout maybe a gecko bug.
-  el.style.overflow = 'visible';
-  setTimeout(function() { el.style.overflow = 'hidden'; });
 }
 
 function thumbnailClickHandler() {
@@ -477,69 +473,12 @@ function playerMousedown(event) {
   }
 }
 
-// Make the video fit the container
+// Align vertically fullscreen view
 function setPlayerSize() {
-  var containerWidth = window.innerWidth;
-  var containerHeight = window.innerHeight;
-
-  // Don't do anything if we don't know our size.
-  // This could happen if we get a resize event before our metadata loads
-  if (!dom.player.videoWidth || !dom.player.videoHeight)
-    return;
-
-  var width, height; // The size the video will appear, after rotation
-  var rotation = 'metadata' in currentVideo ?
-    currentVideo.metadata.rotation : 0;
-
-  switch (rotation) {
-  case 0:
-  case 180:
-    width = dom.player.videoWidth;
-    height = dom.player.videoHeight;
-    break;
-  case 90:
-  case 270:
-    width = dom.player.videoHeight;
-    height = dom.player.videoWidth;
-  }
-
-  var xscale = containerWidth / width;
-  var yscale = containerHeight / height;
-  var scale = Math.min(xscale, yscale);
-
-  // scale large videos down and scale small videos up
-  // this might result in lower image quality for small videos
-  width *= scale;
-  height *= scale;
-
-  var left = ((containerWidth - width) / 2);
-  var top = ((containerHeight - height) / 2);
-
-  var transform;
-  switch (rotation) {
-  case 0:
-    transform = 'translate(' + left + 'px,' + top + 'px)';
-    break;
-  case 90:
-    transform =
-      'translate(' + (left + width) + 'px,' + top + 'px) ' +
-      'rotate(90deg)';
-    break;
-  case 180:
-    transform =
-      'translate(' + (left + width) + 'px,' + (top + height) + 'px) ' +
-      'rotate(180deg)';
-    break;
-  case 270:
-    transform =
-      'translate(' + left + 'px,' + (top + height) + 'px) ' +
-      'rotate(270deg)';
-    break;
-  }
-
-  transform += ' scale(' + scale + ')';
-
-  dom.player.style.transform = transform;
+  var containerHeight = (window.innerHeight > dom.player.offsetHeight) ?
+    window.innerHeight : dom.player.offsetHeight;
+  dom.cropView.style.marginTop = (containerHeight / 2) * -1 + 'px';
+  dom.cropView.style.height = containerHeight + 'px';
 }
 
 function setVideoUrl(player, video, callback) {
@@ -623,12 +562,6 @@ function hidePlayer(updateMetadata) {
   dom.player.pause();
 
   function completeHidingPlayer() {
-    // Allow the screen to blank now.
-    if (screenLock) {
-      screenLock.unlock();
-      screenLock = null;
-    }
-
     // switch to the video gallery view
     dom.fullscreenView.classList.add('hidden');
     dom.thumbnailSelectView.classList.add('hidden');
@@ -728,10 +661,6 @@ function play() {
   // Start playing
   dom.player.play();
   playing = true;
-
-  // Don't let the screen go to sleep
-  if (!screenLock)
-    screenLock = navigator.requestWakeLock('screen');
 }
 
 function pause() {
@@ -741,12 +670,6 @@ function pause() {
   // Stop playing the video
   dom.player.pause();
   playing = false;
-
-  // Let the screen go to sleep
-  if (screenLock) {
-    screenLock.unlock();
-    screenLock = null;
-  }
 }
 
 // Update the progress bar and play head as the video plays
@@ -874,8 +797,8 @@ function formatDuration(duration) {
 }
 
  // Pause on visibility change
-document.addEventListener('mozvisibilitychange', function visibilityChange() {
-  if (document.mozHidden) {
+document.addEventListener('visibilitychange', function visibilityChange() {
+  if (document.hidden) {
     stopParsingMetadata();
     if (playing)
       pause();
@@ -909,6 +832,7 @@ function releaseVideo() {
 // Call this when the app becomes visible again
 function restoreVideo() {
   setVideoUrl(dom.player, currentVideo, function() {
+    setPlayerSize();
     dom.player.currentTime = restoreTime;
   });
 }

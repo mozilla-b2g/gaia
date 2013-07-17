@@ -23,20 +23,20 @@ body[role="application"] p[role="status"][data-theme="dark"] progress:not([value
 
 body[role="application"] progress:not([value]).spinner {
 	background-image: url(images/ui/spinner.png);
- 	-moz-animation: 1s moveSpinner infinite steps(12);
- 	width: 1.6rem;
- 	height: 1.6rem;
+	-moz-animation: 1s moveSpinner infinite steps(12);
+	width: 1.6rem;
+	height: 1.6rem;
 }
 
 
 /* Progress bar */
 body[role="application"] progress[value] {
- 	width: 100%; 
- 	background: #838990;
- 	border: none;
- 	height: 0.5rem;
- 	display: block;
- }
+	width: 100%;
+	background: #838990;
+	border: none;
+	height: 0.5rem;
+	display: block;
+}
 
 body[role="application"] progress[value]::-moz-progress-bar {
  	background: #01c5ed;
@@ -45,7 +45,9 @@ body[role="application"] progress[value]::-moz-progress-bar {
 /* Labels */
 body[role="application"] p[role="status"] {
 	padding: 0.5rem;
-	font: 600 1.3rem/1em "MozTT", Sans-serif;
+	font-weight: 600;
+	font-size: 1.3rem;
+	line-height: 1em;
 }
 
 body[role="application"] p[role="status"] progress:not([value]) {

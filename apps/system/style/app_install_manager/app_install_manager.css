@@ -68,6 +68,7 @@
 
 #install-manager-notification-container progress:indeterminate::-moz-progress-bar {
   background: url(../shared/progress.gif) #f2aa56;
+  background-size: auto 0.3rem;
   border: none;
 }
 

@@ -61,7 +61,8 @@
   MockXMLHttpRequest.prototype = {
     open: mxhr_open,
     send: mxhr_send,
-    DONE: XMLHttpRequest.prototype.DONE
+    DONE: XMLHttpRequest.prototype.DONE,
+    overrideMimeType: function() {}
   };
 
   MockXMLHttpRequest.mThrowAtNextSend = mxhr_mThrowAtNextSend;

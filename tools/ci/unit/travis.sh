@@ -14,7 +14,7 @@ RED_COLOR=$(printf "\x1b[31;1m")
 GREEN_COLOR=$(printf "\x1b[32;1m")
 NORMAL_COLOR=$(printf "\x1b[0m")
 
-GJSLINT_PACKAGE_URL=http://closure-linter.googlecode.com/files/closure_linter-2.3.9.tar.gz
+GJSLINT_PACKAGE_URL=http://closure-linter.googlecode.com/files/closure_linter-latest.tar.gz
 
 function waiting_port {
   for i in $(seq 1 $RETRY); do
@@ -52,7 +52,7 @@ make test-agent-server &> /dev/null &
 waiting_port $TEST_AGENT_PORT
 
 echo 'Starting Firefox'
-firefox/firefox -profile `pwd`/profile "$TESTAGENT_URL" &> /dev/null &
+firefox/firefox -profile `pwd`/profile-debug "$TESTAGENT_URL" &> /dev/null &
 waiting_port 8080
 sleep 5
 

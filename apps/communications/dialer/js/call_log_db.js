@@ -6,6 +6,8 @@ var CallLogDBManager = {
   _dbRecentsStore: 'dialerRecents',
   _dbGroupsStore: 'dialerGroups',
   _dbVersion: 3,
+  _maxNumberOfGroups: 200,
+  _numberOfGroupsToDelete: 30,
 
   /*
    * Prepare the database. This may include opening the database and upgrading
@@ -251,7 +253,7 @@ var CallLogDBManager = {
         groups[key] = {
           id: id,
           lastEntryDate: this._getDayDate(record.date),
-          retryCount: record.retryCount
+          retryCount: 1
         };
       }
 
@@ -319,6 +321,43 @@ var CallLogDBManager = {
     };
   },
   /**
+   * Ensures that the DB size is not bigger than _maxNumberOfGroups. If the DB
+   * is fat enough, we delete the number of groups higher than
+   * _maxNumberOfGroups (most likely 1) plus _numberOfGroupsToDelete to make
+   * some extra space.
+   */
+  _keepDbPrettyAndFit: function _keepDbPrettyAndFit(callback) {
+    var self = this;
+    this._newTxn('readonly', this._dbGroupsStore, function(error, txn, store) {
+      if (error) {
+        return;
+      }
+
+      var req = store.count();
+      req.onsuccess = function() {
+        var groupsToDelete = req.result - self._maxNumberOfGroups;
+        if (groupsToDelete > 0) {
+          groupsToDelete += self._numberOfGroupsToDelete;
+          var cursorReq = store.index('lastEntryDate').openCursor();
+          cursorReq.onsuccess = function() {
+            var cursor = cursorReq.result;
+            if (!cursor || !groupsToDelete) {
+              if (callback && callback instanceof Function) {
+                callback();
+              }
+              return;
+            }
+            groupsToDelete--;
+            self.deleteGroup(null, cursor.value.id);
+            cursor.continue();
+          };
+        } else if (callback && callback instanceof Function) {
+          callback();
+        }
+      };
+    });
+  },
+  /**
    * Stores a new call in the database.
    *
    * param recentCall
@@ -378,7 +417,11 @@ var CallLogDBManager = {
         recentCall.groupId = groupId;
         recentsStore.put(recentCall).onsuccess = function() {
           if (callback && callback instanceof Function) {
-            callback(self._getGroupObject(group));
+            // Once the group has successfully been added, we check that the
+            // db size is below the max size set.
+            self._keepDbPrettyAndFit(function() {
+              callback(self._getGroupObject(group));
+            });
           }
         };
       };
@@ -389,18 +432,25 @@ var CallLogDBManager = {
    *
    * param group
    *        Group object to be deleted.
+   * param groupId
+   *        Identifier of the group to be deleted. We expect a group object or
+   *        its identifier.
    *
    * return (via callback) count of deleted calls or error if needed.
    */
-  deleteGroup: function rdbm_deleteGroup(group, callback) {
-    if (!group || typeof group !== 'object' || !group.date || !group.number ||
-        !group.type) {
+  deleteGroup: function rdbm_deleteGroup(group, groupId, callback) {
+    // Valid group doesn't need to contain number, we can receive
+    // calls from unknown or hidden numbers as well
+    if (!groupId &&
+        (!group || typeof group !== 'object' || !group.date || !group.type)) {
       callback('NOT_VALID_GROUP');
       return;
     }
 
+    var self = this;
+
     this._newTxn('readwrite', [this._dbGroupsStore, this._dbRecentsStore],
-                 (function(error, txn, stores) {
+                 function(error, txn, stores) {
       if (error) {
         if (callback && callback instanceof Function) {
           callback(error);
@@ -411,7 +461,9 @@ var CallLogDBManager = {
       var groupsStore = stores[0];
       var recentsStore = stores[1];
 
-      var groupId = this._getGroupId(group);
+      if (!groupId) {
+        groupId = self._getGroupId(group);
+      }
 
       // We delete the given group and all its corresponding calls.
       groupsStore.delete(groupId).onsuccess = function() {
@@ -430,26 +482,35 @@ var CallLogDBManager = {
           }
         };
       };
-    }).bind(this));
+    });
   },
   /**
    * Delete a list of groups of calls and all its belonging calls.
    *
    * param groupList
    *        Array of group objects to be deleted.
+   * param deletedCount
+   *        Accumulator of the number of deleted groups of calls.
    *
    * return (via callback) count of deleted calls or an error message if
    *                       needed.
    */
-  deleteGroupList: function rdbm_deleteGroupList(groupList, callback) {
-    var deleted = 0;
+  deleteGroupList: function rdbm_deleteGroupList(groupList, callback,
+                                                 deletedCount) {
+    if (!deletedCount) {
+      deletedCount = 0;
+    }
+
+    var self = this;
+
     if (groupList.length > 0) {
       var itemToDelete = groupList.pop();
       if (typeof itemToDelete !== 'object') {
         callback('INVALID_GROUP_IN_LIST');
         return;
       }
-      this.deleteGroup(itemToDelete, (function(result) {
+
+      var ondeleted = function ondeleted(result) {
         // We expect a number. Otherwise that means that we got an error
         // message.
         if (typeof result !== 'number') {
@@ -458,12 +519,14 @@ var CallLogDBManager = {
           }
           return;
         }
-        deleted += result;
-        this.deleteGroupList(groupList, callback);
-      }).bind(this));
+        deletedCount += result;
+        self.deleteGroupList(groupList, callback, deletedCount);
+      };
+
+      self.deleteGroup(itemToDelete, null, ondeleted);
     } else {
       if (callback && callback instanceof Function) {
-        callback(deleted);
+        callback(deletedCount);
       }
     }
   },
@@ -594,7 +657,7 @@ var CallLogDBManager = {
       };
       cursor.onerror = function(event) {
         if (callback && callback instanceof Function) {
-          callback(e.target.error.name);
+          callback(event.target.error.name);
         }
       };
     });
@@ -655,57 +718,76 @@ var CallLogDBManager = {
                   limit);
   },
   /**
-   * Get the group with the most recent date.
+   * Get the call group which is the nth group with matched type
    *
+   * param position
+   *        To indicate the nth group is requested, 1 means the last one
+   * param sortedBy
+   *        Field to sort by.
+   * param prev
+   *        Boolean flag to get the list in reverse order.
+   * param type
+   *        Type to indicate whether we want 'dialing' (outgoing)
+   *        or 'incoming' call groups.
+   *        If not specified, will match any types.
    * param callback
    *        Function to be called with the last group or an error message if
    *        needed.
-   * param sortedBy
-   *        Field to sort by.
-   *
-   * return (via callback) the last group or an error message if needed.
+   * return (via callback) the group or an error message if needed.
    */
-  getLastGroup: function rdbm_getLastGroup(callback, sortedBy) {
+  getGroupAtPosition: function rdbm_getGroupAtPosition(position, sortedBy, prev,
+                                                       type, callback) {
+    if (!callback) {
+      return;
+    }
+
     var self = this;
     this._newTxn('readonly', this._dbGroupsStore,
                  function(error, txn, store) {
       if (error) {
-        if (callback && callback instanceof Function) {
-          callback(error);
-        }
+        callback(error);
         return;
       }
 
       try {
         var request = null;
+        var direction = prev ? 'prev' : 'next';
         if (sortedBy && sortedBy !== null) {
-          request = store.index(sortedBy).openCursor(null, 'prev');
+          request = store.index(sortedBy).openCursor(null, direction);
         } else {
-          request = store.openCursor(null, 'prev');
+          request = store.openCursor(null, direction);
         }
+
+        var i = 0;
+
         request.onsuccess = function(event) {
-          if (callback && callback instanceof Function) {
-            var result = event.target.result;
-            if (result) {
-              callback(self._getGroupObject(result.value));
-            } else {
-              callback(null);
-            }
+          var cursor = event.target.result;
+          if (!cursor) {
+            callback(null);
+            return;
+          }
+
+          var recentGroup = self._getGroupObject(cursor.value);
+          var matched = !type || recentGroup.type.indexOf(type) != -1;
+          if (matched) {
+            i++;
+          }
+
+          if (matched && i == position) {
+            callback(recentGroup);
+          } else {
+            cursor.continue();
           }
         };
+
         request.onerror = function(event) {
-          if (callback && callback instanceof Function) {
-            callback(event.target.error.name);
-          }
+          callback(event.target.error.name);
         };
       } catch (e) {
-        if (callback && callback instanceof Function) {
-          callback(e);
-        }
+        callback(e);
       }
     });
   },
-
   //**************************************************************************
   // TODO: This methods are only kept as a temporary meassure for not breaking
   //       the call log until bug 847406 lands.

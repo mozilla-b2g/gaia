@@ -200,7 +200,7 @@ suiteGroup('Views.AdvancedSettings', function() {
         assert.equal(children.length, 2);
 
         // remove the old one
-        accountStore.emit('remove', object._id);
+        accountStore.emit('preRemove', object._id);
 
         assert.equal(children.length, 1);
 

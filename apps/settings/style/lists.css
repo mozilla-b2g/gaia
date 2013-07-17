@@ -43,7 +43,8 @@ ul li:not(.disabled) > a[href]:active {
 }
 
 ul li.disabled > a {
-  color: gray;
+  color: #797e80;
+  opacity: 0.6;
   pointer-events: none;
 }
 
@@ -91,7 +92,7 @@ ul li > small {
 }
 
 ul li > label:not([for]) + small {
-  right: 9rem; 
+  right: 9rem;
 }
 
 /* required for empty elements like Bluetooth */
@@ -158,6 +159,7 @@ ul li p + label:not([for]) {
 }
 
 ul li p + input[type="text"],
+ul li p + input[type="number"],
 ul li p + input[type="tel"],
 ul li p + input[type="password"] {
   width: calc(100% - 6rem);
@@ -373,7 +375,7 @@ section[role="region"] > ul > li > p + .fake-select {
  * Progress, Meter
  */
 
-ul > li progress {
+ul > li progress[value] {
   display: block;
   width: calc(100% - 6rem);
   height: 3rem;
@@ -383,7 +385,7 @@ ul > li progress {
   border-radius: 0.3rem;
 }
 
-ul > li progress::-moz-progress-bar {
+ul > li progress[value]::-moz-progress-bar {
   margin: 1px;
   height: calc(100% - 0.2rem);
   border-radius: 0.2rem;
@@ -464,4 +466,3 @@ html[dir="rtl"] ul li > span {
   padding-left: inherit;
   padding-right: 3rem;
 }
-

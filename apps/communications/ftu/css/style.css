@@ -5,9 +5,16 @@ html, body {
   padding: 0;
   overflow: hidden !important;
   font-size: 10px;
-  font-family: "MozTT","Moz",sans-serif;
   font-weight: 400;
   user-select: none;
+}
+
+a {
+  font-size: 1.35rem;
+  line-height: 1.8rem;
+  color: #000;
+  text-decoration: underline;
+  font-weight: 500;
 }
 
 /*
@@ -141,7 +148,7 @@ html, body {
 .step-state:before {
   content: "";
   height: 0.3rem;
-  width: calc(100% / 7);
+  width: calc(100% / 8);
   position: absolute;
   top: 50%;
   left: 0;
@@ -183,6 +190,10 @@ html, body {
   transform: translateX(600%);
 }
 
+.step-8.step-state:before {
+  transform: translateX(700%);
+}
+
 /*
   Header conditional button
 */
@@ -201,7 +212,7 @@ html, body {
   transition: all 1s ease;
   background-image: url(/shared/resources/branding/powered.png);
   background-size: cover;
-  background-position: center top;
+  background-position: center center;
 }
 
 #splash-screen.show {
@@ -251,13 +262,7 @@ html, body {
   padding-left: 1.5rem;
 }
 
-#unlock-sim-screen .fake-input {
-  margin-top: -4rem;
-  opacity: 0;
-
-}
-
-#unlock-sim-screen input[type="number"] {
+#unlock-sim-screen input[type="password"] {
     -moz-box-sizing: border-box;
     display: block;
     overflow: hidden;
@@ -265,11 +270,11 @@ html, body {
     height: 4rem;
     resize: none;
     padding: 0 0.8rem;
-    pointer-events: auto;
+    pointer-events: none;
 }
 
-#unlock-sim-screen input[type="password"] {
-  pointer-events: none;
+#hidden-wifi-authentication input[type="password"] {
+  pointer-events: auto;
 }
 
 /*
@@ -326,13 +331,21 @@ html, body {
 /*
   No result container
 */
-#networks {
+
+#wifi-wrapper {
   top: 0;
-  bottom: 0;
+  bottom: 5.5rem;
 }
 
 #networks-list:first-child {
   padding-top: 0;
+}
+
+#join-hidden-button {
+  bottom: 0;
+  margin-top: 1.5rem;
+  width: calc(100% - 3rem);
+  margin-left: 1.5rem;
 }
 
 #wifi #no-result-container {
@@ -340,6 +353,7 @@ html, body {
   background: url('images/wifi_icon.png') no-repeat fixed center / 23.6rem;
   height: 100%;
   width: 100%;
+  pointer-events: none;
 }
 
 #wifi #no-result-message {
@@ -396,16 +410,26 @@ aside.connecting {
   Wifi configuration
 */
 
+#hidden-wifi-authentication form,
 #configure_network_params form {
   padding: 1rem 1.5rem;
 }
 
+#hidden-wifi-authentication form label,
 #configure_network_params form label {
   display: block;
   padding: 1.5rem 1.5rem 0.5rem 1.5rem ;
   font-size: 1.5rem;
 }
 
+#hidden-wifi-authentication form select {
+  width: 100%;
+  padding: 0.5rem 1.5rem 0.5rem 1.5rem ;
+  font-size: 1.5rem;
+}
+
+#hidden-wifi-authentication form select,
+#hidden-wifi-authentication form input,
 #configure_network_params form input {
   padding-left: 1.5rem;
 }
@@ -421,10 +445,19 @@ aside.connecting {
   width: auto;
   height: auto;
 }
+
+#hidden-wifi-authentication label span,
 #configure_network_params label span {
   top: 2rem;
   left: 3rem;
 }
+
+#hidden-wifi-authentication label p {
+  width: 12rem;
+  bottom: 0.4rem;
+  left: 3rem;
+}
+
 #configure_network_params label p {
   width: auto;
   float: right;
@@ -473,11 +506,11 @@ aside.connecting {
 }
 
 #finish-screen .content {
-  background: url(images/icon_tour.png) no-repeat center 95%;
+  background: url(images/icon_tour.png) no-repeat center 95% / 16.9rem;
 }
 
 #tutorialFinish .content {
-  background: url(images/thumb_up.png) no-repeat center 70%;
+  background: url(images/thumb_up.png) no-repeat center 70% / 14.4rem;
 }
 
 #finish-screen .content, #tutorialFinish .content {
@@ -648,7 +681,7 @@ aside.connecting {
   background-color: #008aaa !important;
 }
 
-#no-sim, #no-sd, #no-network, #fb_after_import2 p {
+#no-sim, #no-memorycard, #no-network, #fb_after_import2 p {
   color: #5B5B5B;
   font-size: 1.5rem;
   line-height: 2rem;
@@ -703,7 +736,7 @@ aside.connecting {
 
 
 #fb_after_import1 {
-  background: url('images/import_fb.png') no-repeat center left /3rem;
+  background: url('images/import_fb.png') no-repeat center left / 3rem;
 }
 
 #statusMsg.ftu {
@@ -737,8 +770,8 @@ aside.connecting {
   margin: 1rem 0;
 }
 
-#welcome_browser #browser_logo_horizontal img{
-  max-width: 100%;
+#welcome_browser #browser_logo_horizontal img {
+  width: 20rem;
 }
 
 #welcome_browser label {
@@ -746,13 +779,6 @@ aside.connecting {
   margin: -1.5rem 0 0 -1.5rem;
 }
 
-#welcome_browser section a {
-  font-size: 1.35rem;
-  line-height: 1.8rem;
-  color: #000;
-  text-decoration: underline;
-  font-weight: 500;
-}
 #welcome_browser section p a {
   margin-left: 0.3rem;
 }
@@ -900,20 +926,28 @@ i.hack-first-child {
 
 #about-your-privacy .privacy-menuitem {
   padding-left: 5.5rem;
-  background-repeat: no-repeat;
-  background-position: 1.4rem center;
 }
 
-.privacy-browserOS {
-  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 32, 32, 0);
+.privacy-menuitem:before {
+  content: ' ';
+  width: 3.2rem;
+  height: 3.2rem;
+  position: absolute;
+  left: 1.4rem;
+  top: calc(50% - 1.6rem);
+  background: url(/shared/resources/branding/privacy_sprite.png) no-repeat 0 0 / 9.6rem;
 }
 
-.privacy-everythingME {
-  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 64, 32, 32);
+.privacy-browserOS:before {
+  background-position: 0 0;
 }
 
-.privacy-marketPlace {
-  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 96, 32, 64);
+.privacy-everythingME:before {
+  background-position: -3.2rem 0;
+}
+
+.privacy-marketPlace:before {
+  background-position: -6.4rem 0;
 }
 
 #newsletter-form.hidden,
@@ -1041,6 +1075,30 @@ i.hack-first-child {
 }
 
 #data_3g .content p {
+  font-size: 1.4rem;
+}
+
+[data-type="list"] aside {
+  margin: 0 0.5rem 0 0 !important;
+}
+
+/*
+  geolocation
+*/
+
+#geolocation [data-type="list"] li {
+  padding: 0 1.5rem;
+}
+
+#geolocation label:not([for]) {
+  width: 6rem;
+}
+
+#geolocation .content {
+  padding: 0 3rem 1rem 3rem;
+}
+
+#geolocation .content p {
   font-size: 1.4rem;
 }
 

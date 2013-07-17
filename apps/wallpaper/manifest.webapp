@@ -2,6 +2,8 @@
   "name": "Wallpaper",
   "description": "Gaia Wallpaper Picker",
   "type": "certified",
+  "role": "system",
+  "orientation": "portrait-primary",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"

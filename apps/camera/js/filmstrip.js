@@ -55,11 +55,11 @@ var Filmstrip = (function() {
     shareButton.parentNode.removeChild(shareButton);
 
   function isShown() {
-    return !filmstrip.classList.contains('hidden');
+    return !document.body.classList.contains('filmstriphidden');
   }
 
   function hide() {
-    filmstrip.classList.add('hidden');
+    document.body.classList.add('filmstriphidden');
     if (hideTimer) {
       clearTimeout(hideTimer);
       hideTimer = null;
@@ -76,7 +76,7 @@ var Filmstrip = (function() {
    * And it is also shown for 5 seconds after leaving preview mode.
    */
   function show(time) {
-    filmstrip.classList.remove('hidden');
+    document.body.classList.remove('filmstriphidden');
     if (hideTimer) {
       clearTimeout(hideTimer);
       hideTimer = null;

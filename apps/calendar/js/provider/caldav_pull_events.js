@@ -68,6 +68,13 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
     this.alarmQueue = [];
 
     this._busytimeStore = this.app.store('Busytime');
+
+    // Catch account events to watch for mid-sync removal
+    this._accountStore = this.app.store('Account');
+    this._accountStore.on('remove', this._onRemoveAccount.bind(this));
+
+    this._aborted = false;
+    this._trans = null;
   }
 
   PullEvents.prototype = {
@@ -141,8 +148,8 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
      * @param {Object} time service sent busytime.
      */
     formatBusytime: function(time) {
-      var id = this.busytimeIdFromRemote(time);
       var eventId = this.eventIdFromRemote(time, !time.isException);
+      var id = eventId + '-' + uuid.v4();
       var calendarId = this.calendar._id;
 
       time._id = id;
@@ -224,6 +231,8 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       // related to this event as we will be adding new
       // ones as part of the sync.
       this._busytimeStore.removeEvent(id);
+      // remove details of past cached events....
+      this.app.timeController.removeCachedEvent(event._id);
       this.app.timeController.cacheEvent(event);
 
       this.eventQueue.push(event);
@@ -247,8 +256,42 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       }
     },
 
+    /**
+     * Account removal event handler. Aborts the rest of sync processing, if
+     * the account deleted is the subject of the current sync.
+     *
+     * @param {String} database object id.
+     */
+    _onRemoveAccount: function(id) {
+      if (id === this.account._id) {
+        // This is our account, so abort the sync.
+        this.abort();
+      }
+    },
+
+    /**
+     * Abort the sync. After this, further events will be ignored and commit()
+     * will do nothing.
+     */
+    abort: function() {
+      if (this._aborted) {
+        // Bail, if already aborted.
+        return;
+      }
+      // Flag that the sync should be aborted.
+      this._aborted = true;
+      if (this._trans) {
+        // Attempt to abort the in-progress commit transaction
+        this._trans.abort();
+      }
+    },
 
     handleEvent: function(event) {
+      if (this._aborted) {
+        // Ignore all events, if the sync has been aborted.
+        return;
+      }
+
       var data = event.data;
 
       switch (event.type) {
@@ -283,9 +326,6 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       var busytimeStore = this.app.store('Busytime');
       var alarmStore = this.app.store('Alarm');
 
-      var calendar = this.calendar;
-      var account = this.account;
-
       if (typeof(trans) === 'function') {
         callback = trans;
         trans = calendarStore.db.transaction(
@@ -293,6 +333,17 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
           'readwrite'
         );
       }
+
+      if (this._aborted) {
+        // Commit nothing, if sync was aborted.
+        return callback && callback(null);
+      }
+
+      var calendar = this.calendar;
+      var account = this.account;
+
+      // Stash a reference to the transaction, in case we still need to abort.
+      this._trans = trans;
 
       var self = this;
 
@@ -322,15 +373,28 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
         });
       }
 
-      if (callback) {
-        trans.addEventListener('error', function(e) {
-          callback(e);
-        });
+      function handleError(e) {
+        if (e && e.type !== 'abort') {
+          console.error('Error persisting sync results', e);
+        }
 
-        trans.addEventListener('complete', function() {
-          callback(null);
-        });
+        // if we have an event preventDefault so we don't trigger window.onerror
+        if (e && e.preventDefault) {
+          e.preventDefault();
+        }
+
+        self._trans = null;
+        callback && callback(e);
       }
+
+      trans.addEventListener('error', handleError);
+      trans.addEventListener('abort', handleError);
+
+
+      trans.addEventListener('complete', function() {
+        self._trans = null;
+        callback && callback(null);
+      });
 
       return trans;
     }

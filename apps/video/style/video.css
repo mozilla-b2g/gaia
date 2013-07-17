@@ -1,5 +1,4 @@
 html, body {
-  font-family: "MozTT", sans-serif;
   margin: 0;
   padding: 0;
   font-size: 10px;
@@ -8,14 +7,13 @@ html, body {
 
 body {
   color: #fff;
-  font-family: "MozTT", sans-serif;
   font-size: 10px;
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
   overflow: hidden;
-  padding-bottom: 50px;
+  padding-bottom: 5rem;
 }
 
 section {
@@ -41,6 +39,7 @@ section {
 
 ul {
   background: url(images/background.png);
+  background-size: 100% 100%;
   height: 45.9rem;
   padding: 0;
   margin: 0;
@@ -50,19 +49,19 @@ ul {
   background: linear-gradient(to bottom, #222 0%,#000 100%);
 }
 li {
-  height: 12.1rem;
+  height: 12rem;
   overflow: hidden;
   position: relative;
   list-style-type: none;
+  border-bottom: 0.1rem solid;
+  border-color:rgba(255,255,255, 0.1);
 }
 li .inner {
   height: 12rem;
   margin: 0 1.9rem 0 0;
-  border-bottom: 0.1rem solid;
-  border-color:rgba(255,255,255, 0.1);
 }
 .unwatched {
-  background: url(images/unwatched.png) no-repeat;
+  background: url(images/unwatched.png) no-repeat center / 100%;
   position: absolute;
   bottom: 0;
   width: 0.4rem;
@@ -98,14 +97,14 @@ li .after {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view {
+#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #crop-view {
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
   overflow: hidden;
   font-size: 2.1rem;
 }
@@ -145,13 +144,13 @@ li .after {
 /* thumbnails in thumbnail select view where there is a top bar */
 #thumbnails.select,
 #thumbnails.pick {
-  top: 50px;
+  top: 5rem;
   bottom: 0;
 }
 
 .thumbnail.selected {
-  outline: solid #00aacc 3px;
-  outline-offset: -3px;
+  outline: solid #00aacc 0.3rem;
+  outline-offset: -0.3rem;
 }
 
 /*
@@ -174,16 +173,32 @@ li .after {
  * get stuck hidden behind the overlaid toolbar.
  */
 .thumbnail:last-child {
-  margin-bottom: 40px;
+  margin-bottom: 4rem;
+}
+
+/* Video align and size */
+#crop-view {
+  white-space: nowrap;
+  font-size: 0;
+  text-align: center;
+  top: 50%;
+}
+
+#crop-view:before {
+  content: "";
+  width: 0.1rem;
+  height: 100%;
+  margin-left: -0.1rem;
+  display: inline-block;
+  vertical-align: middle
 }
 
 #player {
   /* size and position are set in JS depending on*/
   /* video size and screen orientation */
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: 0 0;
+  display: inline-block;
+  vertical-align: middle;
+  width: 100%;
 }
 
 /*
@@ -223,7 +238,6 @@ li .after {
   left: 0;
   right: 0;
   bottom: 0;
-  font-family: "MozTT", Sans-serif;
   font-size: 0;
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
@@ -240,7 +254,7 @@ li .after {
 
 #overlay-text {
   padding: 1rem 0.5rem 0 0.5rem;
-  border-top: 1px solid #686868;
+  border-top: 0.1rem solid #686868;
   font-weight: 300;
   font-size: 2.5rem;
   color: #ebebeb;
@@ -273,6 +287,7 @@ body.hidden *[data-l10n-id] {
 
 .icon.icon-done {
   background-image: url('images/iconaction_done_30x30.png') !important;
+  background-size: 3rem;
 }
 
 header {
@@ -299,6 +314,7 @@ header h1 {
 #throbber > div {
   height: 2.4rem;
   background-image: url(images/progress.png);
+  background-size: auto 100%;
 }
 
 #throbber.throb > div {
@@ -326,7 +342,7 @@ a.button {
   /* for buttons that display text */
   font-size: 1.4rem;
   text-align: center;
-  line-height: 40px;
+  line-height: 4rem;
 }
 
 a.button:active, a.button:focus {
@@ -340,13 +356,13 @@ a.button.disabled {
 
 footer {
   background: rgba(0, 0, 0, 0.75);
-  height: 40px;
+  height: 4rem;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 1;
-  box-shadow: 0px -2px 5px rgba(50, 50, 50, 0.75);
+  box-shadow: 0 -0.2rem 0.5rem rgba(50, 50, 50, 0.75);
 }
 
 #thumbnails-video-button {
@@ -355,6 +371,7 @@ footer {
   height: 100%;
   left: 0%;
   background-image: url('images/iconaction_video_30x30.png');
+  background-size: 3rem;
 }
 
 #thumbnails-select-button {
@@ -363,6 +380,7 @@ footer {
   height: 100%;
   left: 50%;
   background-image: url('images/iconaction_select_30x30.png');
+  background-size: 3rem;
 }
 
 #thumbnails-delete-button {
@@ -371,7 +389,8 @@ footer {
   height: 100%;
   left: 0;
   background-image: url('images/iconaction_delete_30x30.png');
-  border-right: 1px solid #000;
+  background-size: 3rem;
+  border-right: 0.1rem solid #000;
 }
 
 #thumbnails-share-button {
@@ -380,6 +399,7 @@ footer {
   height: 100%;
   left: 50%;
   background-image: url('images/iconaction_share_30x30.png');
+  background-size: 3rem;
 }
 
 #thumbnails-single-delete-button {
@@ -388,7 +408,8 @@ footer {
   height: 100%;
   left: 0;
   background-image: url('images/iconaction_delete_30x30.png');
-  border-right: 1px solid #000;
+  background-size: 3rem;
+  border-right: 0.1rem solid #000;
 }
 
 #thumbnails-single-share-button {
@@ -397,6 +418,7 @@ footer {
   height: 100%;
   left: 50%;
   background-image: url('images/iconaction_share_30x30.png');
+  background-size: 3rem;
 }
 
 header .icon:after {
@@ -422,7 +444,7 @@ header .icon:after {
    For landscape mode here. Settings for portrait mode is written in
    media query at bottom */
 #videoBar {
-  background: url(images/scroll_bar_bg.png) rgba(0, 0, 0, 0.75) no-repeat 8.5rem center / auto 2rem;
+  background: url(images/scroll_bar_bg.png) rgba(0, 0, 0, 0.75) no-repeat 8.5rem center / 100% 2rem;
   position: absolute;
   overflow: hidden;
   left: 0;
@@ -455,9 +477,12 @@ header .icon:after {
 
 #play:active {
   background-image: url(images/button_bg_pressed.png);
+  background-size: 8rem;
 }
 
+/* play/pause button */
 #play:after {
+  background-image: url("images/pause.png");
   background-position: 2.3rem 0.8rem;
   background-repeat: no-repeat;
   background-size: 3rem;
@@ -467,12 +492,9 @@ header .icon:after {
   z-index: 10;
 }
 
-/* play/pause button */
-#play:after {
-  background-image: url("images/pause.png");
-}
 #play.paused:after {
   background-image: url("images/play.png");
+  background-size: 3rem;
 }
 
 /* time slider */
@@ -520,7 +542,7 @@ header .icon:after {
 }
 
 #elapsedTime {
-  background: url(images/timeline_filled.png) no-repeat left center / 25.5rem;
+  background: url(images/timeline_filled.png) no-repeat left center / 100% 0.3rem;
   z-index: 30;
 }
 
@@ -530,7 +552,7 @@ header .icon:after {
 }
 
 #timeBackground {
-  background: url(images/timeline.png) repeat-x left top / 25.5rem;
+  background: url(images/timeline.png) repeat-x left top / 100% 0.3rem;
   z-index: 10;
   width: 100%;
 }
@@ -573,6 +595,7 @@ header .icon:after {
 
   #play:active {
     background-image: url(images/portrait/button_bg_pressed.png);
+    background-size: 5.6rem;
   }
 
   #play:after {
@@ -586,7 +609,7 @@ header .icon:after {
   #videoBar {
     background-image: url(images/portrait/scroll_bar_bg.png);
     background-position: 6.1rem center;
-    background-size: auto 2.1rem;
+    background-size: 100% 2.1rem;
   }
 }
 

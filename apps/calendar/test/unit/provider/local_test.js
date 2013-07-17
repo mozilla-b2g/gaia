@@ -1,10 +1,3 @@
-/*
-requireLib('ext/uuid.js');
-requireLib('event_mutations.js');
-requireLib('provider/abstract.js');
-requireLib('provider/local.js');
-*/
-
 requireLib('timespan.js');
 
 var uuid;
@@ -139,7 +132,6 @@ suiteGroup('Provider.Local', function() {
           find(event._id, function(busytime, event) {
             done(function() {
               assert.deepEqual(event, event);
-              assert.deepEqual(busytimes.factory(event), busytime);
               assert.hasProperties(addTime, busytime);
             });
           });
@@ -196,7 +188,10 @@ suiteGroup('Provider.Local', function() {
         });
 
         test('busytime', function(done) {
-          assert.hasProperties(busytime, busytimes.factory(event));
+          assert.hasProperties(busytime, {
+            eventId: event._id, calendarId: event.calendarId
+          });
+
           busytimes.count(function(err, count) {
             done(function() {
               assert.equal(count, 1);

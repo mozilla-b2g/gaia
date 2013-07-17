@@ -2,7 +2,7 @@ requireApp('communications/dialer/js/call_log_db.js');
 requireApp('communications/dialer/js/utils.js');
 
 suite('dialer/call_log_db', function() {
-  var numbers = ['123', '456', '789'];
+  var numbers = ['123', '456', '789', '333'];
   var now = Date.now();
   var days = [// Day 1
               now,
@@ -103,6 +103,33 @@ suite('dialer/call_log_db', function() {
         type: 'incoming',
         date: days[0],
         status: 'connected'
+      };
+      CallLogDBManager.add(call, function(result) {
+        CallLogDBManager.getGroupList(function(groups) {
+          assert.equal(groups.length, 1);
+          checkGroup(groups[0], call, call.date, 1, result);
+          CallLogDBManager.getRecentList(function(recents) {
+            assert.length(recents, 1);
+            checkCall(recents[0], call);
+            done();
+          });
+        });
+      });
+    });
+
+    suiteTeardown(function(done) {
+      CallLogDBManager.deleteAll(function() {
+        done();
+      });
+    });
+  });
+
+  suite('Single call from hidden number', function() {
+    test('Add a call', function(done) {
+      var call = {
+        number: '',
+        type: 'incoming',
+        date: days[0]
       };
       CallLogDBManager.add(call, function(result) {
         CallLogDBManager.getGroupList(function(groups) {
@@ -389,7 +416,7 @@ suite('dialer/call_log_db', function() {
     });
   });
 
-  suite('Get last group', function() {
+  suite('Get last outgoing group', function() {
     var call = {
       number: numbers[1],
       type: 'incoming',
@@ -398,12 +425,12 @@ suite('dialer/call_log_db', function() {
     var call2 = {
       number: numbers[2],
       type: 'dialing',
-      date: days[4]
+      date: days[2]
     };
     var call3 = {
       number: numbers[0],
       type: 'incoming',
-      date: days[2]
+      date: days[4]
     };
     test('Add a call', function(done) {
       CallLogDBManager.add(call, function() { done(); });
@@ -415,10 +442,52 @@ suite('dialer/call_log_db', function() {
 
     test('Add another call', function(done) {
       CallLogDBManager.add(call3, function() {
-        CallLogDBManager.getLastGroup(function(group) {
-          checkGroup(group, call2, call2.date, 1);
-          done();
-        });
+        CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
+          function(group) {
+            checkGroup(group, call2, call2.date, 1);
+            done();
+          });
+      });
+    });
+
+    suiteTeardown(function(done) {
+      CallLogDBManager.deleteAll(function() {
+        done();
+      });
+    });
+  });
+
+  suite('Get a recent group at position', function() {
+    var call = {
+      number: numbers[1],
+      type: 'incoming',
+      date: days[0]
+    };
+    var call2 = {
+      number: numbers[2],
+      type: 'dialing',
+      date: days[2]
+    };
+    var call3 = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[4]
+    };
+    test('Add a call', function(done) {
+      CallLogDBManager.add(call, function() { done(); });
+    });
+
+    test('Add a call', function(done) {
+      CallLogDBManager.add(call2, function() { done(); });
+    });
+
+    test('Add another call', function(done) {
+      CallLogDBManager.add(call3, function() {
+        CallLogDBManager.getGroupAtPosition(3, 'lastEntryDate', true, null,
+          function(group) {
+            checkGroup(group, call, call.date, 1);
+            done();
+          });
       });
     });
 
@@ -602,7 +671,7 @@ suite('dialer/call_log_db', function() {
     test('Add a call', function(done) {
       CallLogDBManager.add(call, function(group) {
         checkGroup(group, call, call.date, 1);
-        CallLogDBManager.deleteGroup(group, function(result) {
+        CallLogDBManager.deleteGroup(group, null, function(result) {
           assert.equal(result, 1);
           done();
         });
@@ -629,11 +698,134 @@ suite('dialer/call_log_db', function() {
 
     test('Add another call', function(done) {
       CallLogDBManager.add(call2, function(group) {
-        CallLogDBManager.deleteGroup(group, function(result) {
+        CallLogDBManager.deleteGroup(group, null, function(result) {
           assert.equal(result, 2);
           done();
         });
       });
+    });
+  });
+
+  suite('Delete a list of groups of calls', function() {
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[0]
+    };
+
+    var call2 = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[2]
+    };
+
+    var groupList = [];
+
+    test('Add a call', function(done) {
+      CallLogDBManager.add(call, function(group) {
+        groupList.push(group);
+        done();
+      });
+    });
+
+    test('Add another call', function(done) {
+      CallLogDBManager.add(call2, function(group) {
+        groupList.push(group);
+        CallLogDBManager.deleteGroupList(groupList, function(result) {
+          assert.equal(result, 2);
+            CallLogDBManager.getGroupList(function(groups) {
+              assert.length(groups, 0);
+              done();
+            });
+        });
+      });
+    });
+  });
+
+  suite('deleteGroupList INVALID_GROUP_IN_LIST', function() {
+    test('deleteGroupList error', function(done) {
+      CallLogDBManager.deleteGroupList([11], function(result) {
+        assert.equal(typeof result, 'string');
+        assert.equal(result, 'INVALID_GROUP_IN_LIST');
+        done();
+      });
+    });
+  });
+
+  suite('Delete a group of hidden calls', function() {
+    var call = {
+      number: '',
+      type: 'incoming',
+      date: days[0]
+    };
+    test('Add a call', function(done) {
+      CallLogDBManager.add(call, function(group) {
+        checkGroup(group, call, call.date, 1);
+        CallLogDBManager.deleteGroup(group, null, function(result) {
+          assert.equal(result, 1);
+          done();
+        });
+      });
+    });
+  });
+
+  suite('Keep DB fit', function() {
+    var call = {
+      number: numbers[0],
+      type: 'incoming',
+      date: days[0]
+    };
+
+    var call2 = {
+      number: numbers[1],
+      type: 'incoming',
+      date: days[1]
+    };
+
+    var call3 = {
+      number: numbers[2],
+      type: 'incoming',
+      date: days[2]
+    };
+
+    var call4 = {
+      number: numbers[3],
+      type: 'incoming',
+      date: days[2]
+    };
+
+    var _maxNumberOfGroups;
+    var _numberOfGroupsToDelete;
+
+    suiteSetup(function() {
+      _maxNumberOfGroups = CallLogDBManager._maxNumberOfGroups;
+      _numberOfGroupsToDelete = CallLogDBManager._numberOfGroupsToDelete;
+      CallLogDBManager._maxNumberOfGroups = 3;
+      CallLogDBManager._numberOfGroupsToDelete = 2;
+    });
+
+    test('Add all calls', function(done) {
+      CallLogDBManager.add(call, function() {
+        CallLogDBManager.add(call2, function() {
+          CallLogDBManager.add(call3, function() {
+            CallLogDBManager.add(call4, function() {
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    test('Get count of groups', function(done) {
+      CallLogDBManager.getGroupList(function(groups) {
+        assert.length(groups, 1);
+        done();
+      });
+    });
+
+    suiteTeardown(function() {
+      CallLogDBManager._maxNumberOfGroups = _maxNumberOfGroups;
+      CallLogDBManager._numberOfGroupsToDelete = _numberOfGroupsToDelete;
     });
   });
 

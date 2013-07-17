@@ -38,8 +38,7 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/style/icons/60/Video.png",
-    "120": "/style/icons/Video.png",
-    "320": "/style/icons/320/Video.png"
+    "120": "/style/icons/Video.png"
   },
   "activities": {
     "pick": {
@@ -52,7 +51,7 @@
     },
     "view" : {
       "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube", "video/ogg"]
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/ogg"]
       },
       "href": "view.html",
       "disposition": "inline",
@@ -60,7 +59,7 @@
     },
     "open" : {
       "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube", "video/ogg"]
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/ogg"]
       },
       "href": "view.html",
       "disposition": "inline",

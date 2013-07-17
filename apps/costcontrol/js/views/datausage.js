@@ -45,9 +45,11 @@ var DataUsageTab = (function() {
       window.addEventListener('localized', localize);
 
       // Update and chart visibility
-      document.addEventListener('mozvisibilitychange', updateWhenVisible);
+      document.addEventListener('visibilitychange', updateWhenVisible);
       wifiToggle.addEventListener('click', toggleWifi);
       mobileToggle.addEventListener('click', toggleMobile);
+
+      resetButtonState();
 
       // Setup the model
       ConfigManager.requestSettings(function _onSettings(settings) {
@@ -107,7 +109,7 @@ var DataUsageTab = (function() {
       return;
     }
 
-    document.removeEventListener('mozvisibilitychange', updateWhenVisible);
+    document.removeEventListener('visibilitychange', updateWhenVisible);
     wifiToggle.removeEventListener('click', toggleWifi);
     mobileToggle.removeEventListener('click', toggleMobile);
     ConfigManager.removeObserver('dataLimit', toggleDataLimit);
@@ -116,6 +118,28 @@ var DataUsageTab = (function() {
     ConfigManager.removeObserver('nextReset', changeNextReset);
 
     initialized = false;
+  }
+
+  function resetButtonState() {
+    ConfigManager.requestSettings(function _onSettings(settings) {
+      var isMobileChartVisible = settings.isMobileChartVisible;
+      if (typeof isMobileChartVisible === 'undefined') {
+        isMobileChartVisible = true;
+      }
+      if (isMobileChartVisible !== mobileToggle.checked) {
+        mobileToggle.checked = isMobileChartVisible;
+        toggleMobile();
+      }
+
+      var isWifiChartVisible = settings.isWifiChartVisible;
+      if (typeof isWifiChartVisible === 'undefined') {
+        isWifiChartVisible = false;
+      }
+      if (isWifiChartVisible !== wifiToggle.checked) {
+        wifiToggle.checked = isWifiChartVisible;
+        toggleWifi();
+      }
+    });
   }
 
   function getLimitInBytes(settings) {
@@ -132,7 +156,7 @@ var DataUsageTab = (function() {
 
   // On visibility change
   function updateWhenVisible(evt) {
-    if (!document.mozHidden) {
+    if (!document.hidden) {
       requestDataUsage();
     }
   }
@@ -257,6 +281,8 @@ var DataUsageTab = (function() {
     var isChecked = wifiToggle.checked;
     wifiLayer.setAttribute('aria-hidden', !isChecked);
     wifiItem.setAttribute('aria-disabled', !isChecked);
+    // save wifi toggled state
+    ConfigManager.setOption({ isWifiChartVisible: isChecked });
   }
 
   // On tapping on mobile toggle
@@ -266,9 +292,14 @@ var DataUsageTab = (function() {
     warningLayer.setAttribute('aria-hidden', !isChecked);
     limitsLayer.setAttribute('aria-hidden', !isChecked);
     mobileItem.setAttribute('aria-disabled', !isChecked);
-    drawBackgroundLayer(model);
-    drawAxisLayer(model);
-    drawLimits(model);
+    // save wifi toggled state
+    ConfigManager.setOption({ isMobileChartVisible: isChecked });
+
+    if (model) {
+      drawBackgroundLayer(model);
+      drawAxisLayer(model);
+      drawLimits(model);
+    }
   }
 
   // Expand the model with some computed values
@@ -400,7 +431,8 @@ var DataUsageTab = (function() {
     var todayTag = formatChartDate(model.axis.X.today);
 
     // Render the text
-    ctx.font = '600 ' + TODAY_FONTSIZE + 'px MozTT';
+    ctx.fontWeight = '600';
+    ctx.fontSize = TODAY_FONTSIZE + 'px';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
@@ -434,7 +466,7 @@ var DataUsageTab = (function() {
     var step = model.axis.Y.step;
     var dataStep = model.axis.Y.upper - model.axis.Y.maxValue;
     var offsetX = model.originX - 4, marginBottom = 4;
-    ctx.font = FONTSIZE + 'px MozTT';
+    ctx.fontSize = FONTSIZE + 'px';
     ctx.textAlign = 'right';
     var displayLimit = mobileToggle.checked && model.limits.enabled;
     var lastUnit;
@@ -473,7 +505,8 @@ var DataUsageTab = (function() {
 
     // Left tag
     var leftTag = formatChartDate(model.axis.X.lower);
-    ctx.font = '600 ' + FONTSIZE + 'px MozTT';
+    ctx.fontWeight = '600';
+    ctx.fontSize = FONTSIZE + 'px';
     ctx.textBaseline = 'top';
     ctx.textAlign = 'start';
 
@@ -515,7 +548,8 @@ var DataUsageTab = (function() {
     var offsetY = set ? model.axis.Y.get(model.limits.value) :
                         FONTSIZE + 2 * marginTop;
 
-    ctx.font = '600 ' + FONTSIZE + 'px MozTT';
+    ctx.fontWeight = '600';
+    ctx.fontSize = FONTSIZE + 'px';
 
     // The dashed limit line
     var lineLength = 15;

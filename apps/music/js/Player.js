@@ -11,9 +11,6 @@ var REPEAT_OFF = 0;
 var REPEAT_LIST = 1;
 var REPEAT_SONG = 2;
 
-// Key for store options of repeat and shuffle
-var SETTINGS_OPTION_KEY = 'settings_option_key';
-
 // We get headphoneschange event when the headphones is plugged or unplugged
 // A related Bug 809106 in Bugzilla
 var acm = navigator.mozAudioChannelManager;
@@ -26,8 +23,8 @@ if (acm) {
   });
 }
 
-window.addEventListener('mozvisibilitychange', function() {
-  if (document.mozHidden) {
+window.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
     PlayerView.audio.removeEventListener('timeupdate', PlayerView);
   } else {
     PlayerView.audio.addEventListener('timeupdate', PlayerView);
@@ -72,7 +69,7 @@ var PlayerView = {
     }
   },
 
-  init: function pv_init(needSettings) {
+  init: function pv_init() {
     this.artist = document.getElementById('player-cover-artist');
     this.album = document.getElementById('player-cover-album');
 
@@ -100,9 +97,6 @@ var PlayerView = {
     this.currentIndex = 0;
     this.backgroundIndex = 0;
     this.setSeekBar(0, 0, 0); // Set 0 to default seek position
-
-    if (needSettings)
-      asyncStorage.getItem(SETTINGS_OPTION_KEY, this.setOptions.bind(this));
 
     this.view.addEventListener('click', this);
 
@@ -271,12 +265,14 @@ var PlayerView = {
   },
 
   getMetadata: function pv_getMetadata(blob, callback) {
-    parseAudioMetadata(blob, pv_gotMetadata, pv_metadataError);
+    parseAudioMetadata(blob, pv_gotMetadata, pv_metadataError.bind(this));
 
     function pv_gotMetadata(metadata) {
       callback(metadata);
     }
     function pv_metadataError(e) {
+      if (this.onerror)
+        this.onerror(e);
       console.warn('parseAudioMetadata: error parsing metadata - ', e);
     }
   },
@@ -297,6 +293,10 @@ var PlayerView = {
     // An object URL must be released by calling URL.revokeObjectURL()
     // when we no longer need them
     this.audio.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
+    this.audio.onerror = (function(evt) {
+      if (this.onerror)
+        this.onerror(evt);
+    }).bind(this);
     // when play a new song, reset the seekBar first
     // this can prevent showing wrong duration
     // due to b2g cannot get some mp3's duration
@@ -494,22 +494,12 @@ var PlayerView = {
     if (seekTime !== undefined)
       this.audio.currentTime = seekTime;
 
-    // mp3 returns in microseconds
-    // ogg returns in seconds
-    // note this may be a bug cause mp3 shows wrong duration in
-    // gecko's native audio player
-    // A related Bug 740124 in Bugzilla
     var startTime = this.audio.startTime;
 
-    var originalEndTime =
+    var endTime =
       (this.audio.duration && this.audio.duration != 'Infinity') ?
       this.audio.duration :
       this.audio.buffered.end(this.audio.buffered.length - 1);
-
-    // now mp3 returns in seconds, but keep this checking to prevent bugs
-    var endTime = (originalEndTime > 1000000) ?
-      Math.floor(originalEndTime / 1000000) :
-      Math.floor(originalEndTime);
 
     var currentTime = this.audio.currentTime;
 

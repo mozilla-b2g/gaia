@@ -442,7 +442,11 @@
         this.element.parentNode.removeChild(this.element);
         this.element = undefined;
       }
-    }
+    },
+
+    getScrollTop: function() {},
+
+    setScrollTop: function(scrollTop) {}
 
   };
 

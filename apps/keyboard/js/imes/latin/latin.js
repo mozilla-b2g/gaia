@@ -50,7 +50,8 @@
     displaysCandidates: displaysCandidates,
     click: click,
     select: select,
-    setLayoutParams: setLayoutParams
+    setLayoutParams: setLayoutParams,
+    setLanguage: setLanguage
   };
 
   // This is the object that is passed to init().
@@ -74,6 +75,7 @@
   var lastSpaceTimestamp; // If the last key was a space, this is the timestamp
   var layoutParams;       // Parameters passed to setLayoutParams
   var nearbyKeyMap;       // Map keys to nearby keys
+  var serializedNearbyKeyMap; // A stringified version of the above
   var idleTimer;          // Used by deactivate
   var suggestionsTimer;   // Used by updateSuggestions;
   var autoCorrection;     // Correction to make if next input is space
@@ -102,7 +104,7 @@
   const SEMICOLON = 59;
 
   const WS = /^\s+$/;                    // all whitespace characters
-  const PUNC = /^[.,?!;:]+$/;            // punctuation
+  const WORDSEP = /^[\s.,?!;:]+$/;       // word separator characters
 
   const DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
 
@@ -130,32 +132,36 @@
   //   'latin-prose': offer word suggestions and capitalization
   //
   function getInputMode(type, mode) {
-    // For text, textarea and search types, use the requested input
-    // mode if it is valid and supported. Otherwise default to latin
-    // for text and search and to latin-prose for textarea.  For all
-    // other form fields, use verbatim mode so we never alter input.
+    // For text, textarea and search types, use the requested inputmode
+    // if it is valid and supported except numeric/digit mode. For
+    // numeric/digit mode, we return verbatim since no typing assitance
+    // is required. Otherwise default to latin for text and search and to
+    // latin-prose for textarea. For all other form fields, use verbatim mode
+    // so we never alter input.
     switch (type) {
-    case 'text':
-    case 'textarea':
-    case 'search':
-      switch (mode) {
-      case 'verbatim':
-      case 'latin':
-      case 'latin-prose':
-        return mode;
-      default:
-        return (type === 'textarea') ? 'latin-prose' : 'latin';
-      }
+      case 'text':
+      case 'textarea':
+      case 'search':
+        switch (mode) {
+          case 'verbatim':
+          case 'latin':
+          case 'latin-prose':
+            return mode;
+          case 'numeric':
+          case 'digit':
+            return 'verbatim';
+          default:
+            return (type === 'textarea') ? 'latin-prose' : 'latin';
+        }
 
-    default:
-      return 'verbatim';
+      default:
+        return 'verbatim';
     }
   }
 
   // This gets called whenever the keyboard pops up to tell us everything
   // we need to provide useful typing assistance.
   function activate(lang, state, options) {
-    language = lang;
     inputMode = getInputMode(state.type, state.inputmode);
     inputText = state.value;
     cursor = state.selectionStart;
@@ -170,39 +176,57 @@
     suggesting = (options.suggest && inputMode !== 'verbatim');
     correcting = (options.correct && inputMode !== 'verbatim');
 
-    // If we are going to offer suggestions, set up the worker thread.
-    if (suggesting || correcting)
-      setupSuggestionsWorker();
-
     // Reset the double space flag
     lastSpaceTimestamp = 0;
 
-    // Start off with the correct capitalization and suggestions
+    // Start off with the correct capitalization
     updateCapitalization();
-    updateSuggestions();
+
+    // If we are going to offer suggestions, set up the worker thread.
+    // This will also request a first batch of suggestions.
+    if (suggesting || correcting)
+      setLanguage(lang);
   }
 
   function deactivate() {
     if (!worker || idleTimer)
       return;
-    idleTimer = setTimeout(function onIdleTimeout() {
-      // Let's terminate the worker.
+    idleTimer = setTimeout(terminateWorker, workerTimeout);
+  }
+
+  function terminateWorker() {
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
+    if (worker) {
       worker.terminate();
       worker = null;
-      idleTimer = null;
-    }, workerTimeout);
+      keyboard.sendCandidates([]); // Clear any displayed suggestions
+      autoCorrection = null;       // and forget any pending correction.
+    }
   }
 
-  function displaysCandidates() {
-    return suggesting;
-  }
-
-  function setupSuggestionsWorker() {
+  function setLanguage(newlang) {
+    // The keyboard isn't idle anymore, so clear the timer
     if (idleTimer) {
       clearTimeout(idleTimer);
       idleTimer = null;
     }
 
+    // If there is no worker and no language, or if there is a worker and
+    // the language has not changed, then there is nothing to do here.
+    if ((!worker && !newlang) || (worker && newlang === language))
+      return;
+
+    // If there is a worker, and no new language, then kill the worker
+    if (worker && !newlang) {
+      terminateWorker();
+      return;
+    }
+
+    // If we get here, then we have to create a worker and set its language
+    // or change the language of an existing worker.
     if (!worker) {
       // If we haven't created the worker before, do it now
       worker = new Worker('js/imes/latin/worker.js');
@@ -216,10 +240,15 @@
           break;
         case 'error':
           console.error(e.data.message);
+          // If the error was a result of our setLanguage call, then
+          // kill the worker because it can't do anything without
+          // a valid dictionary.
+          if (e.data.message.startsWith('setLanguage')) {
+            terminateWorker();
+          }
           break;
         case 'predictions':
-          // The worker is suggesting words. If the input is a word, it
-          // will be first.
+          // The worker is suggesting words: ask the keyboard to display them
           handleSuggestions(e.data.input, e.data.suggestions);
           break;
         }
@@ -228,7 +257,15 @@
 
     // Tell the worker what language we're using. They may cause it to
     // load or reload its dictionary.
+    language = newlang;  // Remember the new language
     worker.postMessage({ cmd: 'setLanguage', args: [language]});
+
+    // And now that we've changed the language, ask for new suggestions
+    updateSuggestions();
+  }
+
+  function displaysCandidates() {
+    return suggesting && worker;
   }
 
   /*
@@ -296,7 +333,7 @@
     }
     else {
       switch (keycode) {
-      case SPACE:
+      case SPACE:        // This list of characters matches the WORDSEP regexp
       case RETURN:
       case PERIOD:
       case QUESTION:
@@ -353,6 +390,12 @@
         cursor--;
         inputText = inputText.substring(0, cursor) +
           inputText.substring(cursor + 1);
+
+        // If we have temporarily disabled auto correction for the current word
+        // and we've just backspaced over the entire word, then we can
+        // re-enabled it again
+        if (correctionDisabled && !wordBeforeCursor())
+          correctionDisabled = false;
       }
     } else {
       if (selection) {
@@ -374,6 +417,39 @@
     keyboard.sendKey(keycode);
   }
 
+  // Assuming that the word before the cursor is oldWord, send a
+  // minimal number of key events to change it to newWord in the text
+  // field. Also update our internal state to match the new textfield
+  // content and cursor position.
+  function replaceBeforeCursor(oldWord, newWord) {
+    var oldWordLen = oldWord.length;
+    if (keyboard.replaceSurroundingText) {
+      keyboard.replaceSurroundingText(newWord, oldWordLen, 0);
+    }
+    else {
+      // Find the first character in currentWord and newWord that differs
+      // so we know how many backspaces we need to send.
+      for (var firstdiff = 0; firstdiff < oldWordLen; firstdiff++) {
+        if (oldWord[firstdiff] !== newWord[firstdiff])
+          break;
+      }
+
+      // Backspace as far as that first difference
+      for (var i = oldWordLen; i > firstdiff; i--)
+        keyboard.sendKey(BACKSPACE);
+
+      // And send the first different character and all that follow
+      keyboard.sendString(newWord.substring(firstdiff));
+    }
+
+    // Now update internal state
+    inputText =
+      inputText.substring(0, cursor - oldWordLen) +
+      newWord +
+      inputText.substring(cursor);
+    cursor += newWord.length - oldWordLen;
+  }
+
   // If we just did auto correction or auto punctuation, then backspace
   // should undo it. Otherwise it is just an ordinary backspace.
   function handleBackspace() {
@@ -384,16 +460,7 @@
         inputText.substring(cursor - len, cursor) === revertFrom) {
 
       // Revert the content of the text field
-      for (var i = 0; i < len; i++)
-        keyboard.sendKey(BACKSPACE);
-      keyboard.sendString(revertTo);
-
-      // Revert our internal state
-      inputText =
-        inputText.substring(0, cursor - len) +
-        revertTo +
-        inputText.substring(cursor);
-      cursor -= len - revertTo.length;
+      replaceBeforeCursor(revertFrom, revertTo);
 
       // If the change we just reverted was an auto-correction then
       // temporarily disable auto correction until the next space
@@ -413,12 +480,13 @@
   // character. It performs auto correction or auto punctuation or just
   // inserts the character.
   function handleCorrections(keycode) {
-    if (correcting && autoCorrection && !correctionDisabled && atWordEnd()) {
+    if (correcting && autoCorrection && !correctionDisabled && atWordEnd() &&
+        wordBeforeCursor() !== autoCorrection) {
       autoCorrect(keycode);
     }
     else if (punctuating && cursor >= 2 &&
              isWhiteSpace(inputText[cursor - 1]) &&
-             !isWhiteSpace(inputText[cursor - 2]))
+             !WORDSEP.test(inputText[cursor - 2]))
     {
       autoPunctuate(keycode);
     }
@@ -432,33 +500,19 @@
   function autoCorrect(keycode) {
     // Get the word before the cursor
     var currentWord = wordBeforeCursor();
-    var currentWordLength = currentWord.length;
+
+    // The space or punctuation that triggered the autocorrect
+    var delimiter = String.fromCharCode(keycode);
 
     // Figure out the auto correction text
-    var newWord = autoCorrection;                // Atart with suggested word
-    newWord += String.fromCharCode(keycode);     // and add the user's input.
-    if (keycode !== SPACE && keycode !== RETURN) // If not whitespace
-      newWord += ' ';                            // add a space.
+    var newWord = autoCorrection + delimiter;
 
-    // Backspace over the current word in the text field
-    for (var i = 0; i < currentWordLength; i++)
-      keyboard.sendKey(BACKSPACE);
-
-    // And send the correction to the textfield
-    keyboard.sendString(newWord);
-
-    // Now update our internal state to match.
-    inputText =
-      inputText.substring(0, cursor - currentWordLength) +
-      newWord +
-      inputText.substring(cursor);
-
-    // Update the cursor position, too.
-    cursor = cursor - currentWordLength + newWord.length;
+    // Make the correction
+    replaceBeforeCursor(currentWord, newWord);
 
     // Remember the change we just made so we can revert it if the
     // user types backspace
-    revertTo = currentWord;
+    revertTo = currentWord + delimiter;
     revertFrom = newWord;
     justAutoCorrected = true;
   }
@@ -513,36 +567,46 @@
   // When the worker thread sends us a batch of suggestions, deal
   // with them here.
   function handleSuggestions(input, suggestions) {
-    // Check that the word before the cursor has not changed since
-    // we requested these suggestions. If the user has typed faster
-    // than we could offer suggestions, ignore these.
-    if (wordBeforeCursor() !== input) {
+    // If we didn't get any suggestions just send the empty array to
+    // clear any suggestions that are currently displayed. Do the same
+    // if the word before the cursor has changed since we requested
+    // these suggestions. That is, if the user has typed faster than we could
+    // offer suggestions, ignore them.
+    if (suggestions.length === 0 || wordBeforeCursor() !== input) {
       keyboard.sendCandidates([]); // Clear any displayed suggestions
       return;
     }
 
-    // Loop through the suggestions discarding the weights, and capitalizing
-    // words if the user's input is capitalized.
+    // Loop through the suggestions discarding the weights
     var lcinput = input.toLowerCase();
-    var inputStartsWithCapital = (input[0] !== lcinput[0]);
     for (var i = 0; i < suggestions.length; i++) {
       suggestions[i] = suggestions[i][0];
-      if (inputStartsWithCapital)
-        suggestions[i] =
-          suggestions[i][0].toUpperCase() + suggestions[i].substring(1);
     }
 
     // Now figure out if the input is one of the suggestions
     var inputindex = suggestions.indexOf(input);
 
+    // If the input is just one character long then we never want to
+    // auto-correct to more than one character (because it makes it hard
+    // to type abbreviations and other single-characters uses).  So if the
+    // first suggestion is not also one-character, then make the input
+    // into the first suggestion.
+    if (input.length === 1 && suggestions[0].length !== 1) {
+      if (inputindex === -1)                // If the input is not a suggestion
+        suggestions.pop();                  // Remove the last suggestion
+      else                                  // Otherwise
+        suggestions.splice(inputindex, 1);  // Remove the input
+      suggestions.unshift(input);           // Then add it at the start
+      inputindex = 0;                       // Update inputindex
+    }
+
     switch (inputindex) {
     case -1:
-      // Input is not a word: show it second in the list, or first
-      // if there aren't any other suggestions
-      if (suggestions.length > 0)
+      // Input is not a word: show it second in the list
+      if (suggestions.length > 1)
         suggestions = [suggestions[0], input, suggestions[1]];
       else
-        suggestions = [input];
+        suggestions = [suggestions[0], input];
       break;
     case 0:
     case 1:
@@ -567,69 +631,6 @@
     keyboard.sendCandidates(suggestions);
   }
 
-
-/*
-  // When the worker thread sends us a batch of suggestions, deal
-  // with them here.
-  function handleSuggestions(input, suggestions) {
-    if (suggestions.length === 0) {         // If no suggestions
-      keyboard.sendCandidates(suggestions); // Clear any displayed suggestions
-      return;                               // We're done
-    }
-
-    // Check that the word before the cursor has not changed since
-    // we requested these suggestions. If the user has typed faster
-    // than we could offer suggestions, ignore these.
-    if (wordBeforeCursor() !== input) {
-      keyboard.sendCandidates([]); // Clear any displayed suggestions
-      return;
-    }
-
-    // Figure out if the first suggestion is good enough to offer as
-    // an autocorrection. We define "good enough" as significantly better
-    // than the second best suggestion. And significance is defined by
-    // a tuneable constant.
-    var significant =
-      suggestions.length === 1 ||
-      suggestions[0][1] / suggestions[1][1] > AUTO_CORRECT_THRESHOLD;
-
-    // Loop through the suggestions discarding the weights, and checking
-    // to see if the user's current input is one of the words. We don't
-    // want to autocorrect a valid word. Also, if the input begins with
-    // a capital letter, capitalize the suggestions
-    var lcinput = input.toLowerCase();
-    var inputStartsWithCapital = (input[0] !== lcinput[0]);
-    var inputIsWord = false;
-    for (var i = 0; i < suggestions.length; i++) {
-      suggestions[i] = suggestions[i][0];
-      if (lcinput === suggestions[i].toLowerCase())
-        inputIsWord = true;
-      if (inputStartsWithCapital)
-        suggestions[i] =
-          suggestions[i][0].toUpperCase() + suggestions[i].substring(1);
-    }
-
-    // If we're going to use the first suggestion as an auto-correction
-    // then we have to tell the renderer to highlight it and we have to
-    // ensure that the raw input is also listed as a suggestion. If the
-    // input is the same as the first suggestion, don't auto-correct it.
-    if (correcting && !correctionDisabled && significant && !inputIsWord) {
-      // Remember the word to use if the next character is a space.
-      autoCorrection = suggestions[0];
-      // Make sure the user also has their actual input as a choice
-      // XXX: should this be highlighted in some special way?
-      // XXX: or should we just have a x icon to dismiss the autocorrection?
-      if (suggestions.length === 3)
-        suggestions.pop();
-      suggestions.push(input);
-      // Mark the auto-correction so the renderer can highlight it
-      suggestions[0] = '*' + suggestions[0];
-    }
-
-    keyboard.sendCandidates(suggestions);
-  }
-*/
-
   // If the user selects one of the suggestions offered by this input method
   // the keyboard calls this method to tell us it has been selected.
   // We have to backspace over the current word, insert this new word, and
@@ -637,31 +638,21 @@
   function select(word) {
     var oldWord = wordBeforeCursor();
 
-    // Send backspaces
-    for (var i = 0, n = oldWord.length; i < n; i++)
-      keyboard.sendKey(BACKSPACE);
-
-    // Send the word
-    keyboard.sendString(word);
-
-    // Send a space
-    keyboard.sendKey(SPACE);
-
-    // Update internal state
-    inputText =
-      inputText.substring(0, cursor - oldWord.length) +
-      word +
-      ' ' +
-      inputText.substring(cursor);
-
-    cursor += word.length - oldWord.length + 1;
+    // Replace the current word with the selected suggestion plus space
+    word += ' ';
+    replaceBeforeCursor(oldWord, word);
 
     // Remember the change we just made so we can revert it if the
     // next key is a backspace. Note that it is not an autocorrection
     // so we don't need to disable corrections.
-    revertFrom = word + ' ';
+    revertFrom = word;
     revertTo = oldWord;
     justAutoCorrected = false;
+
+    // We inserted a space after the selected word, so we're beginning
+    // a new word here, which means that if auto-correction was disabled
+    // we can re-enable it now.
+    correctionDisabled = false;
 
     // Clear the suggestions
     keyboard.sendCandidates([]);
@@ -675,9 +666,22 @@
     // XXX We call nearbyKeys() every time the keyboard pops up.
     // Maybe it would be better to compute it once in keyboard.js and
     // cache it.
-    nearbyKeyMap = nearbyKeys(params);
-    if (worker)
+
+    // We get called every time the keyboard case changes. Don't bother
+    // passing this data to the prediction engine if nothing has changed.
+    var newmap = nearbyKeys(params);
+    var serialized = JSON.stringify(newmap);
+    if (serialized === serializedNearbyKeyMap)
+      return;
+
+    nearbyKeyMap = newmap;
+    serializedNearbyKeyMap = serialized;
+    if (worker) {
       worker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
+      // Ask for new suggestions since the new layout may affect them.
+      // (When switching from QWERTY to Dvorak, e.g.)
+      updateSuggestions();
+    }
   }
 
   function nearbyKeys(layout) {
@@ -685,6 +689,12 @@
     var keys = layout.keyArray;
     var keysize = Math.min(layout.keyWidth, layout.keyHeight) * 1.2;
     var threshold = keysize * keysize;
+
+    // Make sure that all the keycodes are lowercase, not uppercase
+    for (var n = 0; n < keys.length; ++n) {
+      keys[n].code =
+        String.fromCharCode(keys[n].code).toLowerCase().charCodeAt(0);
+    }
 
     // For each key, calculate the keys nearby.
     for (var n = 0; n < keys.length; ++n) {
@@ -723,6 +733,13 @@
       var dx = (cx1 - cx2) / radius;
       var dy = (cy1 - cy2) / radius;
       var distanceSquared = dx * dx + dy * dy;
+
+      if (distanceSquared < 1) {
+        console.warn('Keys too close',
+                     JSON.stringify(key1), JSON.stringify(key2));
+        return 0;
+      }
+
       if (distanceSquared > 2.5 * 2.5)
         return 0;
       else
@@ -752,6 +769,11 @@
     if (!suggesting && !correcting)
       return;
 
+    // If we don't have a worker (probably because no dictionary) then
+    // do nothing
+    if (!worker)
+      return;
+
     // If we deferred suggestions because of a key repeat, clear that timer
     if (suggestionsTimer) {
       clearTimeout(suggestionsTimer);
@@ -772,7 +794,10 @@
       return;
     }
 
-    worker.postMessage({cmd: 'predict', args: [wordBeforeCursor()]});
+    var word = wordBeforeCursor();
+    if (word) { // Defend against bug 879572 even though I can't reproduce it
+      worker.postMessage({cmd: 'predict', args: [word]});
+    }
   }
 
   function updateCapitalization() {
@@ -842,6 +867,7 @@
 
     // If we're not at the end of the line and the character after the
     // cursor is not whitespace, don't offer a suggestion
+    // Note that we purposely use WS here, not WORDSEP.
     if (cursor < inputText.length && !WS.test(inputText[cursor]))
       return false;
 
@@ -850,15 +876,15 @@
       return false;
 
     // We're at the end of a word if the character before the cursor is
-    // not whitespace or punctuation
+    // not a word separator character
     var c = inputText[cursor - 1];
-    return !WS.test(c) && !PUNC.test(c);
+    return !WORDSEP.test(c);
   }
 
   // Get the word before the cursor. Assumes that atWordEnd() is true
   function wordBeforeCursor() {
     for (var firstletter = cursor - 1; firstletter >= 0; firstletter--) {
-      if (WS.test(inputText[firstletter])) {
+      if (WORDSEP.test(inputText[firstletter])) {
         break;
       }
     }

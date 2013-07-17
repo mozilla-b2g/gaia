@@ -10,19 +10,18 @@
     <link rel="stylesheet" href="shared/style/input_areas.css" type="text/css">
     <link rel="stylesheet" href="shared/style/status.css" type="text/css">
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css"> -->
-    
+
     <!-- Specific style -->
     <link rel="stylesheet" href="style/browser.css" type="text/css">
-    <!-- Shared responsive -->
-    <link rel="stylesheet" href="shared/style/responsive.css" type="text/css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/mime_mapper.js"></script>
     <!-- <script defer src="shared/js/gesture_detector.js"></script> -->
-    
+
     <!-- Specific code -->
     <script defer src="js/places.js"></script>
     <script defer src="js/browser.js"></script>
@@ -32,14 +31,14 @@
     <link rel="resource" type="image/png" href="shared/resources/branding/about_logo.png"/>
   </head>
 
-  <body class="page-screen" role="application">
+  <body class="page-screen start-page" role="application">
 
     <div id="main-screen">
 
       <menu type="toolbar" id="toolbar-start">
         <form id="url-bar" novalidate>
           <input type="image" id="ssl-indicator" value="" />
-          <input type="text" id="url-input" placeholder="Enter Search or Address"
+          <input type="text" id="url-input" placeholder="Search or enter address"
                  data-l10n-id="enter-search-or-address" x-inputmode="verbatim"/>
           <input type="image" id="url-button" value="" />
         </form>
@@ -52,7 +51,7 @@
 
         <div id="startscreen" class="hidden">
           <h1 data-l10n-id="browser">Browser</h1>
-          <h2 data-l10n-id="top-sites">Top Sites</h2>
+          <h2 data-l10n-id="top-sites-startPage">Top Sites</h2>
           <div id="start-screen-top-sites">
             <ul id="top-site-thumbnails">
             </ul>
@@ -63,12 +62,12 @@
         </div>
 
         <div id="awesomescreen">
-        <!--           
+        <!--
           <nav data-role="tabs" id="tab-headers">
             <ul role="tablist">
               <li role="tab">
                 <a id="top-sites-tab" href="#" class="selected"
-                   data-l10n-id="top-sites">Top Sites</a>
+                   data-l10n-id="top-sites-tab">Top Sites</a>
               </li>
               <li role="tab">
                 <a id="bookmarks-tab" href="#"
@@ -89,12 +88,12 @@
             </section>
           </div>
           <section id="results" class="hidden">
-          </section> 
+          </section>
         -->
         </div>
 
         <div id="crashscreen">
-        <!-- 
+        <!--
           <h3 data-l10n-id="this-is-embarrassing">Well, this is embarrassing.</h3>
           <img src="style/images/crashed-tab-icon.png" />
           <p data-l10n-id="not-responding">
@@ -105,7 +104,7 @@
             <button data-l10n-id="reload-tab" id="try-reloading">
               Try Reloading
               </button>
-          </menu> 
+          </menu>
         -->
         </div>
 
@@ -122,19 +121,18 @@
     </menu>
 
     <div id="tray">
-      <!-- 
+      <!--
       <menu type="toolbar" id="tray-toolbar">
         <button type="button" id="new-tab-button"></button>
         <button type="button" id="settings-button"></button>
       </menu>
-      <div id="tabs-list"></div> 
+      <div id="tabs-list"></div>
       -->
     </div>
 
     <section id="bookmark-menu" role="dialog" class="hidden">
-    <!-- 
+    <!--
       <menu class="actions">
-        <h3 data-l10n-id="bookmarks">Bookmarks</h3>
         <ul>
           <li><button id="bookmark-menu-add" data-l10n-id="bookmark">Bookmark</button></li>
           <li><button id="bookmark-menu-remove" data-l10n-id="unbookmark">Unbookmark</button></li>
@@ -142,12 +140,12 @@
           <li><button id="bookmark-menu-add-home" data-l10n-id="add-to-home-screen">Add to Home Screen</button></li>
           <li><button id="bookmark-menu-cancel" data-l10n-id="cancel">Cancel</button></li>
         </ul>
-      </menu> 
+      </menu>
     -->
     </section>
 
     <section id="bookmark-entry-sheet" role="region" class="hidden skin-organic">
-    <!-- 
+    <!--
       <header>
         <button id="bookmark-entry-sheet-cancel">
           <span class="icon icon-close" data-l10n-id="cancel">Cancel</span>
@@ -163,12 +161,12 @@
       <label data-l10n-id="address">
         Address <input type="url" id="bookmark-url"></input>
       </label>
-      <input type="hidden" id="bookmark-previous-url"></input> 
+      <input type="hidden" id="bookmark-previous-url"></input>
     -->
     </section>
 
     <section id="http-authentication-dialog" role="region" class="hidden skin-organic">
-    <!-- 
+    <!--
       <header>
         <button id="http-authentication-cancel">
           <span class="icon icon-close">close</span>
@@ -176,7 +174,7 @@
         <menu type="toolbar">
           <button id="http-authentication-ok" data-l10n-id="login">Login</button>
         </menu>
-        <h1 l10n-id="login-to-a-website">Login to a website</h1>
+        <h1 data-l10n-id="login-to-a-website">Login to a website</h1>
       </header>
       <span id="http-authentication-message"></span>
       <label data-l10n-id="username">Username
@@ -184,11 +182,12 @@
       </label>
       <label data-l10n-id="password">Password
         <input id="http-authentication-password" type="password" />
-      </label> 
+      </label>
     -->
     </section>
 
-    <form role="dialog" id="modal-dialog-confirm" data-type="confirm" hidden>
+    <form role="dialog" id="modal-dialog-confirm" data-type="confirm"
+      tabindex="-1" hidden>
       <!-- <section>
              <p><span id="modal-dialog-confirm-message"></span></p>
            </section>
@@ -198,19 +197,21 @@
            </menu> -->
     </form>
 
-    <form role="dialog" id="modal-dialog-alert" data-type="confirm" hidden>
-    <!-- 
+    <form role="dialog" id="modal-dialog-alert" data-type="confirm"
+      tabindex="-1" hidden>
+    <!--
       <section>
         <p><span id="modal-dialog-alert-message"></span></p>
       </section>
       <menu>
         <button id="modal-dialog-alert-ok" class="full" data-l10n-id="ok">OK</button>
-      </menu> 
+      </menu>
     -->
     </form>
 
-    <form role="dialog" id="modal-dialog-prompt" data-type="confirm" hidden>
-    <!-- 
+    <form role="dialog" id="modal-dialog-prompt" data-type="confirm"
+      tabindex="-1" hidden>
+    <!--
       <section>
         <p>
           <span id="modal-dialog-prompt-message"></span>
@@ -222,12 +223,13 @@
           Cancel
         </button>
         <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
-      </menu> 
+      </menu>
     -->
     </form>
 
-    <form role="dialog" id="modal-dialog-custom-prompt" data-type="confirm" hidden>
-    <!-- 
+    <form role="dialog" id="modal-dialog-custom-prompt" data-type="confirm"
+      tabindex="-1" hidden>
+    <!--
       <section>
         <p><span id="modal-dialog-custom-prompt-message"></span></p>
         <label>
@@ -235,12 +237,12 @@
         <span></span>
         </label>
       </section>
-      <menu id="modal-dialog-custom-prompt-buttons"></menu> 
+      <menu id="modal-dialog-custom-prompt-buttons"></menu>
     -->
     </form>
 
     <section role="region" id="settings" class="skin-organic">
-    <!-- 
+    <!--
     <header id="settings-header">
       <button id="settings-done-button"><span class="icon icon-back"></span></button>
       <h1 data-l10n-id="browser-settings">Browser Settings</h1>
@@ -263,10 +265,10 @@
         <button id="clear-private-data-button"
         data-l10n-id="clear-cookies-and-stored-data">Clear cookies and stored data</button>
       </li>
-    </ul> 
+    </ul>
     -->
     </section>
-    
+
     <section id="save-media-status" role="status">
       <p> </p>
     </section>

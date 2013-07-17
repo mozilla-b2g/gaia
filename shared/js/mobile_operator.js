@@ -1,12 +1,12 @@
 'use strict';
 
 var MobileOperator = {
-  BRAZIL_MCC: 724,
+  BRAZIL_MCC: '724',
   BRAZIL_CELLBROADCAST_CHANNEL: 50,
 
   userFacingInfo: function mo_userFacingInfo(mobileConnection) {
     var network = mobileConnection.voice.network;
-    var iccInfo = mobileConnection.iccInfo;
+    var iccInfo = IccHelper.iccInfo;
     var operator = network.shortName || network.longName;
 
     if (iccInfo.isDisplaySpnRequired && iccInfo.spn &&
@@ -27,7 +27,7 @@ var MobileOperator = {
       var regions = MobileInfo.brazil.regions;
 
       carrier = carriers[network.mnc] ||
-                (this.BRAZIL_MCC.toString() + network.mnc);
+                (this.BRAZIL_MCC + network.mnc);
       region = (regions[lac] ? regions[lac] + ' ' + lac : '');
     }
 
@@ -40,7 +40,7 @@ var MobileOperator = {
 
   isBrazil: function mo_isBrazil(mobileConnection) {
     var cell = mobileConnection.voice.cell;
-    return mobileConnection.voice.network.mcc == this.BRAZIL_MCC &&
+    return mobileConnection.voice.network.mcc === this.BRAZIL_MCC &&
            cell && cell.gsmLocationAreaCode;
   }
 };

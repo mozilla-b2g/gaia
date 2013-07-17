@@ -9,7 +9,6 @@ html, body {
   width: 100%;
   height: 100%;
   font-size: 10px;
-  font-family: "MozTT", sans-serif;
   overflow: hidden;
 }
 
@@ -97,16 +96,20 @@ section[role="region"] > div {
 .description {
   padding: 1rem 2rem 1rem 3rem;
   font-size: 1.7rem;
-  line-height: 23px;
+  line-height: 2.3rem;
   white-space: normal;
   -moz-hyphens: auto;
 }
 
 .description p {
   padding: 0 0 1rem;
-  font-size: 1.9rem;
-  text-overflow: none;
+  font-size: 1.7rem;
+  line-height: 2.3rem;
   white-space: normal;
+}
+
+.description a {
+  font-size: 1.7rem;
 }
 
 .link-text, .tel-text a {
@@ -212,40 +215,57 @@ section li.password > p {
 */
 
 #mediaStorage .space-stackedbar {
-  border: solid 0px green;
+  background-color: #E7E7E7;
+  border: solid 0.1rem #A6A6A6;
+  border-radius: 0.3rem;
   display: inline-block;
-  height: 30px;
+  height: 3rem;
   margin: 0.8rem 5%;
-  padding: 0;
+  padding: 0.1rem;
   width: 90%;
 }
 
 #mediaStorage .space-stackedbar .stackedbar-item {
   display: inline-block;
-  height: 30px;
+  height: 3rem;
 }
 
-#mediaStorage .space-stackedbar .color-music, #mediaStorage .color-music .stackedbar-color-label {
-  background-color: #ff7517;
+#mediaStorage .space-stackedbar .color-music,
+#mediaStorage .color-music .stackedbar-color-label {
+  background-color: #82C72C;
 }
 
-#mediaStorage .space-stackedbar .color-pictures, #mediaStorage .color-pictures .stackedbar-color-label {
-  background-color: #5da31d;
+#mediaStorage .space-stackedbar .color-pictures,
+#mediaStorage .color-pictures .stackedbar-color-label {
+  background-color: #00CAF2;
 }
 
-#mediaStorage .space-stackedbar .color-videos, #mediaStorage .color-videos .stackedbar-color-label {
-  background-color: #5917ba;
+#mediaStorage .space-stackedbar .color-videos,
+#mediaStorage .color-videos .stackedbar-color-label {
+  background-color: #2295D3;
 }
 
-#mediaStorage .space-stackedbar .color-free, #mediaStorage .color-free .stackedbar-color-label {
-  background-color: #fff;
+#mediaStorage .space-stackedbar .color-free,
+#mediaStorage .color-free .stackedbar-color-label {
+  background-color: #E7E7E7;
+}
+
+#mediaStorage .color-free .stackedbar-color-label {
+  border: solid 0.1rem #A6A6A6;
+}
+
+#mediaStorage .color-music .stackedbar-color-label,
+#mediaStorage .color-pictures .stackedbar-color-label,
+#mediaStorage .color-videos .stackedbar-color-label,
+#mediaStorage .color-free .stackedbar-color-label {
+  border-radius: 0.3rem;
 }
 
 #mediaStorage .stackedbar-color-label {
   display: inline-block;
   height: 2rem;
   left: 0.5rem;
-  padding: 0px;
+  padding: 0;
   position: absolute;
   top: 2.1rem;
   width: 2rem;
@@ -254,11 +274,6 @@ section li.password > p {
 /******************************************************************************
  * Call settings
  */
-
-.call-settings-disabled a {
-  opacity: 0.6;
-  color: #797e80;
-}
 
 /* three-state items: on|off|unknown */
 #menuItem-callWaiting .checkbox-label,
@@ -301,11 +316,6 @@ section li.password > p {
  * Cellular and Data
  */
 
-.carrier-disabled a {
-  opacity: 0.6;
-  color: #797e80;
-}
-
 #carrier-dc-warning h1 > span:before,
 #carrier-dr-warning h1 > span:before {
   content: "";
@@ -331,6 +341,16 @@ section li.password > p {
   padding-bottom: 1em;
 }
 
+/******************************************************************************
+ * Internet sharing (Wi-Fi HotSpot)
+ */
+
+#hotspot ul li > a span {
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /******************************************************************************
  * Wallpaper snapshot
@@ -423,26 +443,6 @@ ul li > label .range-icons.brightness {
 #icc .hidden {
   display: none;
 }
-
-#icc #icc-stk-alert {
-  position: fixed;
-}
-
-#icc #icc-stk-alert menu button:first-child {
-  margin: 0;
-}
-
-#icc #icc-stk-alert menu button {
-  width: calc((100% - 2rem) / 3);
-  margin-left: 1rem;
-}
-
-.multiline_title {
-  text-overflow: clip;
-  white-space: normal;
-  word-wrap: break-word;
-}
-
 
 /******************************************************************************
  * Date & Time

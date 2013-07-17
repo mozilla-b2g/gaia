@@ -5,6 +5,9 @@
     <meta http-equiv="pragma" content="no-cache"/>
     <title>Settings</title>
 
+    <!-- Debug/DUMP method support -->
+    <script defer src="/shared/js/dump.js"></script>
+
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
@@ -13,8 +16,6 @@
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
     <link rel="stylesheet" type="text/css" href="style/icons.css"/>
     <link rel="stylesheet" type="text/css" href="style/settings.css"/>
-    <!-- High resolution device support -->
-    <link rel="stylesheet" type="text/css" href="shared/style/responsive.css"/>
 
     <!-- Panel Stylesheets
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
@@ -31,6 +32,7 @@
     <!-- Shared resources
     <link rel="resource" type="application/json" href="shared/resources/tz.json"/>
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
+    <link rel="resource" type="application/json" href="shared/resources/apn_tz.json"/>
     <link rel="resource" type="application/json" href="shared/resources/languages.json"/>
     <link rel="resource" type="application/json" href="shared/resources/keyboard_layouts.json"/>
     <link rel="resource" type="application/json" href="shared/resources/media/ringtones/"/>
@@ -45,12 +47,16 @@
     <link rel="resource" type="application/l10n" href="shared/locales/tz.ini"/>
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/l10n_date.js"></script>
 
     <!-- For perf-measurement related utilities -->
     <script defer src="/shared/js/performance_testing_helper.js"></script>
 
     <!-- Lazy loader -->
     <script defer src="/shared/js/lazy_loader.js"></script>
+
+    <!-- IccHelper -->
+    <script defer src="/shared/js/icc_helper.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/settings.js"></script>
@@ -60,6 +66,8 @@
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
     <!--<script defer src="shared/js/async_storage.js"></script>-->
     <!--<script defer src="shared/js/wifi_helper.js"></script>-->
+    <!--<script defer src="shared/js/icc_helper.js"></script>-->
+    <!--<script defer src="/shared/js/settings_listener.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
@@ -218,7 +226,7 @@
         <menu type="toolbar">
           <button type="submit"><span data-l10n-id="ok">OK</span></button>
         </menu>
-        <h1 data-l10n-id="wps"> Wi-Fi Protected Setup </h1>
+        <h1 data-l10n-id="wpsMessage"> Connect with WPS </h1>
       </header>
 
       <div>
@@ -250,6 +258,10 @@
           <li id="wifi-wps-pin-area">
             <p data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</p>
             <input type="text" />
+          </li>
+          <li id="wifi-wps-pin-aps">
+            <p data-l10n-id="wpsPinAps">Select an opposite device</p>
+            <select></select>
           </li>
         </ul>
       </div>
@@ -325,7 +337,7 @@
             <a data-l10n-id="networkNotification">Network notification</a>
           </li>
           <li id="wps-column">
-            <small data-l10n-id="wpsDescription">Automatic wireless network configuration</small>
+            <small data-l10n-id="wpsDescription2">Automatic Wi-Fi setup</small>
             <a data-l10n-id="wpsMessage">Connect with WPS</a>
           </li>
         </ul>
@@ -483,6 +495,28 @@
       -->
     </section>
 
+    <!-- Connectivity :: Call :: Voice Mail -->
+    <section role="region" id="call-voiceMailSettings">
+      <!--
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1 data-l10n-id="voiceMail"> Voicemail </h1>
+      </header>
+
+      <div>
+        <ul>
+          <li>
+            <p data-l10n-id="voiceMail-number">Voicemail Number</p>
+            <input type="tel" id="vm-number" data-setting="ril.iccInfo.mbdn"/>
+          </li>
+        </ul>
+      </div>
+      -->
+    </section>
+
     <!-- Connectivity :: Call -->
     <section role="region" id="call">
       <!--
@@ -493,6 +527,13 @@
 
       <div>
         <ul>
+          <li>
+            <small id="voiceMail-desc"></small>
+            <a data-href="#call-voiceMailSettings" data-l10n-id="voiceMail">Voicemail</a>
+          </li>
+        </ul>
+
+        <ul>
           <li id="menuItem-callWaiting" data-state="off">
             <label class="checkbox-label">
               <input type="checkbox" data-type="switch" data-ignore/>
@@ -502,6 +543,13 @@
               <span></span>
             </label>
             <a data-l10n-id="callWaiting">Call Waiting</a>
+          </li>
+          <li id="menuItem-cellBroadcast" class="disabled">
+            <label class="checkbox-label">
+              <input type="checkbox" data-type="switch" data-ignore disabled />
+              <span></span>
+            </label>
+            <a data-l10n-id="callBroadcastService">Cell broadcast service</a>
           </li>
         </ul>
 
@@ -661,6 +709,19 @@
             <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
             <input type="text" data-setting="ril.data.httpProxyPort" />
           </li>
+          <li>
+            <p data-l10n-id="apn-authType">Authentication</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select id="ril-data-authType" data-setting="ril.data.authtype">
+                <option value="notDefined" data-l10n-id="apn-authType-notDefined">Not defined</option>
+                <option value="none" data-l10n-id="apn-authType-none">None</option>
+                <option value="pap" data-l10n-id="apn-authType-pap">PAP</option>
+                <option value="chap" data-l10n-id="apn-authType-chap">CHAP</option>
+                <option value="papOrChap" data-l10n-id="apn-authType-papOrChap">PAP or CHAP</option>
+              </select>
+            </p>
+          </li>
         </ul>
       </div>
       -->
@@ -684,7 +745,7 @@
         <ul id="text-message-list">
           <li class="hint">
             <label>
-              <input type="checkbox" data-type="switch" data-setting="dom.sms.requestStatusReport"/>
+              <input type="checkbox" data-type="switch" data-setting="ril.sms.requestStatusReport.enabled"/>
               <span></span>
             </label>
             <a data-l10n-id="delivery-reports"> Delivery reports </a>
@@ -738,23 +799,36 @@
           </li>
           <li>
             <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
-            <input type="text" data-setting="ril.mms.httpProxyHost" />
+            <input type="text" x-inputmode="verbatim" data-setting="ril.mms.httpProxyHost" />
           </li>
           <li>
             <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
-            <input type="text" data-setting="ril.mms.httpProxyPort" />
+            <input type="number" x-inputmode="digits" data-setting="ril.mms.httpProxyPort" />
           </li>
           <li>
             <p data-l10n-id="mmsproxy">MMS Proxy</p>
-            <input type="text" data-setting="ril.mms.mmsproxy" />
+            <input type="text" x-inputmode="verbatim" data-setting="ril.mms.mmsproxy" />
           </li>
           <li>
             <p data-l10n-id="mmsport">MMS Port</p>
-            <input type="text" data-setting="ril.mms.mmsport" />
+            <input type="number" x-inputmode="digits" data-setting="ril.mms.mmsport" />
           </li>
           <li>
             <p data-l10n-id="mmsc">MMSC</p>
-            <input type="text" data-setting="ril.mms.mmsc" />
+            <input type="text" x-inputmode="verbatim" data-setting="ril.mms.mmsc" />
+          </li>
+          <li>
+            <p data-l10n-id="apn-authType">Authentication</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select id="ril-mms-authType" data-setting="ril.mms.authtype">
+                <option value="notDefined" data-l10n-id="apn-authType-notDefined">Not defined</option>
+                <option value="none" data-l10n-id="apn-authType-none">None</option>
+                <option value="pap" data-l10n-id="apn-authType-pap">PAP</option>
+                <option value="chap" data-l10n-id="apn-authType-chap">CHAP</option>
+                <option value="papOrChap" data-l10n-id="apn-authType-papOrChap">PAP or CHAP</option>
+              </select>
+            </p>
           </li>
         </ul>
       </div>
@@ -806,6 +880,19 @@
           <li>
             <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
             <input type="text" data-setting="ril.supl.httpProxyPort" />
+          </li>
+          <li>
+            <p data-l10n-id="apn-authType">Authentication</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select id="ril-supl-authType" data-setting="ril.supl.authtype">
+                <option value="notDefined" data-l10n-id="apn-authType-notDefined">Not defined</option>
+                <option value="none" data-l10n-id="apn-authType-none">None</option>
+                <option value="pap" data-l10n-id="apn-authType-pap">PAP</option>
+                <option value="chap" data-l10n-id="apn-authType-chap">CHAP</option>
+                <option value="papOrChap" data-l10n-id="apn-authType-papOrChap">PAP or CHAP</option>
+              </select>
+            </p>
           </li>
         </ul>
       </div>
@@ -903,25 +990,25 @@
         <ul>
           <li>
             <label>
-              <button data-href="#carrier-operatorSettings"
+              <button class="icon icon-view" data-href="#carrier-operatorSettings"
                 data-l10n-id="networkOperator"> Network Operator </button>
             </label>
           </li>
           <li>
             <label>
-              <button data-href="#carrier-dataSettings"
+              <button class="icon icon-view" data-href="#carrier-dataSettings"
                 data-l10n-id="dataSettings">Data Settings</button>
             </label>
           </li>
           <li>
             <label>
-              <button data-href="#carrier-mmsSettings"
+              <button class="icon icon-view" data-href="#carrier-mmsSettings"
                 data-l10n-id="messageSettings">Message Settings</button>
             </label>
           </li>
           <li>
             <label>
-              <button data-href="#carrier-suplSettings"
+              <button class="icon icon-view" data-href="#carrier-suplSettings"
                 data-l10n-id="suplSettings">A-GPS Settings</button>
             </label>
           </li>
@@ -996,6 +1083,17 @@
           <button data-l10n-id="device-option-disconnect" id="disconnect-option">Disconnect</button>
           <button data-l10n-id="device-option-unpair" id="unpair-option">Unpair</button>
           <button data-l10n-id="cancel">Cancel</button>
+        </menu>
+      </form>
+
+      <form role="dialog" data-type="confirm" id="unpair-device" hidden>
+        <section>
+          <h1>Confirmation</h1>
+          <p data-l10n-id="device-option-unpair-device">Unpair Device?</p>
+        </section>
+        <menu>
+          <button data-l10n-id="cancel">Cancel</button>
+          <button data-l10n-id="device-option-confirm" id="confirm-option" class="danger">Confirm</button>
         </menu>
       </form>
 
@@ -1085,8 +1183,8 @@
           </li>
           <li id="hotspot-settings-section">
             <label>
-              <button class="hotspot-wifiSettings-btn"
-                data-l10n-id="hotspotSettings">Hotspot Settings</button>
+              <button class="icon icon-view"
+              data-l10n-id="hotspotSettings">Hotspot Settings</button>
             </label>
           </li>
         </ul>
@@ -1189,7 +1287,7 @@
           <li>
             <p data-l10n-id="ringer">Ringer</p>
             <p class="fake-select">
-              <button id="call-tone-selection" class="tone-select" data-l10n-id="change"></button>
+              <button id="call-tone-selection" class="icon icon-view" data-l10n-id="change"></button>
             </p>
           </li>
         </ul>
@@ -1373,7 +1471,6 @@
         </ul>
       </div>
 
-      <script src="shared/js/l10n_date.js"></script>
       <script src="shared/js/tz_select.js"></script>
       <script src="js/date_time.js"></script>
       -->
@@ -1424,8 +1521,6 @@
           </li>
         </ul>
       </div>
-
-      <script src="shared/js/l10n_date.js"></script>
       -->
     </section>
 
@@ -1472,7 +1567,11 @@
         <header>
           <h2 data-l10n-id="keyboardLayouts">Layouts</h2>
         </header>
-        <ul>
+        <ul id="keyboard-layouts">
+          <li id="language-keyboard">
+            <small></small>
+            <a></a>
+          </li>
           <li>
             <label>
               <input type="checkbox" name="keyboard.layouts.english" checked />
@@ -1517,26 +1616,59 @@
           </li>
           <li>
             <label>
-              <input type="checkbox" name="keyboard.layouts.otherlatins"/>
+              <input type="checkbox" name="keyboard.layouts.czech"/>
               <span></span>
             </label>
-            <small data-l10n-id="latin-desc">French, German, Norwegian Bokmal, Slovak, Turkish</small>
-            <a data-l10n-id="latin">Other Latin scripts</a>
+            <a data-l10n-id="czech">Czech</a>
           </li>
           <li>
             <label>
-              <input type="checkbox" name="keyboard.layouts.cyrillic"/>
+              <input type="checkbox" name="keyboard.layouts.french"/>
               <span></span>
             </label>
-            <small data-l10n-id="cyrillic-desc">Russian, Serbian (Cyrillic)</small>
-            <a data-l10n-id="cyrillic">Cyrillic scripts</a>
+            <a data-l10n-id="french">French</a>
           </li>
           <li>
             <label>
-              <input type="checkbox" name="keyboard.layouts.serbian-latin"/>
+              <input type="checkbox" name="keyboard.layouts.german"/>
               <span></span>
             </label>
-            <a data-l10n-id="serbian-latin">Serbian (Latin)</a>
+            <a data-l10n-id="german">German</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.norwegian"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="norwegian">Norwegian</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.russian"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="russian">Russian</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.serbian"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="serbian">Serbian</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.slovak"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="slovak">Slovak</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="keyboard.layouts.turkish"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="turkish">Turkish</a>
           </li>
           <li>
             <label>
@@ -1582,7 +1714,7 @@
       </header>
 
       <div class="passcode-overlay">
-        <input type="number" x-inputmode="digits" id="passcode-input" />
+        <input type="number" x-inputmode="digit" id="passcode-input" />
         <div class="passcode-container" id="passcode-container">
           <div class="passcode" id="passcode-pseudo-input">
             <label data-l10n-id="passcode">Passcode</label>
@@ -1688,16 +1820,14 @@
           <div id="pinArea" class="sim-code-area">
             <div data-l10n-id="simPin">SIM PIN</div>
             <div class="input-wrapper">
-              <input type="number" x-inputmode="digits" name="simpin" size="8" maxlength="8" />
-              <input type="text" name="simpinVis" size="8" maxlength="8" />
+              <input type="password" x-inputmode="digit" name="simpin" size="8" maxlength="8" />
             </div>
           </div>
 
           <div id="pukArea" class="sim-code-area">
             <div data-l10n-id="pukCode">PUK Code</div>
             <div class="input-wrapper">
-              <input type="number" x-inputmode="digits" name="simpuk" size="8" maxlength="8" />
-              <input type="text" name="simpukVis" size="8" maxlength="8" />
+              <input type="password" x-inputmode="digit" name="simpuk" size="8" maxlength="8" />
             </div>
           </div>
 
@@ -1706,8 +1836,7 @@
               Create PIN (must contain 4 to 8 digits)
             </div>
             <div class="input-wrapper">
-              <input type="number" x-inputmode="digits" name="newSimpin" size="8" maxlength="8" />
-              <input type="text" name="newSimpinVis" size="8" maxlength="8" />
+              <input type="password" x-inputmode="digit" name="newSimpin" size="8" maxlength="8" />
             </div>
           </div>
 
@@ -1716,8 +1845,7 @@
               Confirm New PIN
             </div>
             <div class="input-wrapper">
-              <input type="number" x-inputmode="digits" name="confirmNewSimpin" size="8" maxlength="8" />
-              <input type="text" name="confirmNewSimpinVis" size="8" maxlength="8" />
+              <input type="password" x-inputmode="digit" name="confirmNewSimpin" size="8" maxlength="8" />
             </div>
           </div>
         </div>
@@ -1846,7 +1974,6 @@
       </form>
 
       <script type="application/javascript" src="shared/js/manifest_helper.js"></script>
-      <script src="js/hiddenapps.js"></script>
       <script src="js/apps.js"></script>
       -->
     </section>
@@ -1860,7 +1987,23 @@
       </header>
 
       <div>
+        <header>
+          <h2 data-l10n-id="doNotTrack-dt">How does Do Not Track work?</h2>
+        </header>
         <ul>
+          <li class="description">
+            <p data-l10n-id="doNotTrack-dd1">
+              When you turn on the Do Not Track feature, your device tells every
+              website and app (as well as advertisers and other content providers)
+              that you don’t want your behavior tracked.
+            </p>
+            <p data-l10n-id="doNotTrack-dd2">
+              Turning on Do Not Track won’t affect your ability to log into
+              websites, nor cause your device to forget your private information —
+              such as the contents of shopping carts, location information, or
+              log-in information.
+          </p>
+          </li>
           <li>
             <label>
               <input type="checkbox" name="privacy.donottrackheader.enabled" />
@@ -1869,23 +2012,6 @@
             <a data-l10n-id="doNotTrack">Do Not Track</a>
           </li>
         </ul>
-
-        <dl>
-          <dt data-l10n-id="doNotTrack-dt">
-            How does Do Not Track work?
-          </dt>
-          <dd data-l10n-id="doNotTrack-dd1">
-            When you turn on the Do Not Track feature, your device tells every
-            website and app (as well as advertisers and other content providers)
-            that you don’t want your behavior tracked.
-          </dd>
-          <dd data-l10n-id="doNotTrack-dd2">
-            Turning on Do Not Track won’t affect your ability to log into
-            websites, nor cause your device to forget your private information —
-            such as the contents of shopping carts, location information, or
-            log-in information.
-          </dd>
-        </dl>
       </div>
       -->
     </section>
@@ -1928,6 +2054,13 @@
           </li>
           <li>
             <label>
+              <input type="checkbox" name="layers.draw-borders"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="layers-draw-borders">Flash repainted area</a>
+          </li>
+          <li>
+            <label>
               <input type="checkbox" name="debug.log-animations.enabled"/>
               <span></span>
             </label>
@@ -1963,10 +2096,31 @@
           </li>
           <li>
             <label>
+              <input type="checkbox" name="dom.mozContacts.debugging.enabled" />
+              <span></span>
+            </label>
+            <a data-l10n-id="contacts-debugging">Contacts debugging output in adb</a>
+          </li>
+          <li>
+            <label>
               <input type="checkbox" name="debug.console.enabled"/>
               <span></span>
             </label>
             <a data-l10n-id="console-enabled">Console enabled</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="software-button.enabled"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="software-button-enabled">Software home button enabled</a>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" name="debug.gaia.enabled"/>
+              <span></span>
+            </label>
+            <a data-l10n-id="debug-gaia-enabled">Gaia debug traces</a>
           </li>
           <li>
             <label>
@@ -2253,7 +2407,7 @@
           </li>
           <li>
             <label>
-              <button data-href="#about-moreInfo"
+              <button class="icon icon-view" data-href="#about-moreInfo"
                 data-l10n-id="more-info"> More Information </button>
             </label>
           </li>
@@ -2298,26 +2452,25 @@
           </li>
           <li>
             <label>
-              <button data-href="#about-yourRights"
+              <button class="icon icon-view" data-href="#about-yourRights"
                 data-l10n-id="your-rights"> Your Rights </button>
             </label>
           </li>
           <li>
             <label>
-              <button data-href="#about-yourPrivacy"
+              <button class="icon icon-view" data-href="#about-yourPrivacy"
                 data-l10n-id="your-privacy"> Your Privacy </button>
             </label>
           </li>
           <li>
             <label>
-              <button data-href="#about-legal"
+              <button class="icon icon-view" data-href="#about-legal"
                 data-l10n-id="about-legal-info"> Legal Information </button>
             </label>
           </li>
         </ul>
       </div>
 
-      <script src="shared/js/l10n_date.js"></script>
       <script src="js/about.js"></script>
       -->
     </section>
@@ -2358,7 +2511,7 @@
                 <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
                 <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
                 <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
-                <option value="0" data-l10n-id="never">Never</option>
+                <option value="-1" data-l10n-id="never">Never</option>
               </select>
             </p>
           </li>
@@ -2451,7 +2604,7 @@
       </div>
       <form data-type="confirm" role="dialog" id="default-location-popup-container" hidden>
         <section>
-          <p>Changing the default media storage volume will effect where photos, videos, downloads and other media will be saved to by default. Existing data will remain in its current location.</p>
+          <p data-l10n-id="change-default-location-confirm">Changing the default media storage volume will effect where photos, videos, downloads and other media will be saved to by default. Existing data will remain in its current location.</p>
         </section>
         <menu>
           <button id="default-location-cancel-btn">Cancel</button>
@@ -2501,11 +2654,13 @@
 
       <div>
         <ul>
-          <li class="description" data-l10n-id="crash-reports-description-1"></li>
-          <li class="description" data-l10n-id="crash-reports-description-2"></li>
-          <li>
-            <p class="description">
-              <span data-l10n-id="crash-reports-description-3-start"></span><a href="https://www.mozilla.org/privacy/" data-l10n-id="crash-reports-description-3-privacy" class="link-text"></a><span data-l10n-id="crash-reports-description-3-end"></span>
+          <li class="description">
+            <p data-l10n-id="crash-reports-description-1"></p>
+            <p data-l10n-id="crash-reports-description-2"></p>
+            <p>
+              <span data-l10n-id="crash-reports-description-3-start"></span>
+              <a href="https://www.mozilla.org/privacy/" data-l10n-id="crash-reports-description-3-privacy" class="link-text"></a>
+              <span data-l10n-id="crash-reports-description-3-end"></span>
             </p>
           </li>
         </ul>
@@ -2648,20 +2803,6 @@
         </ul>
       </div>
 
-      <form role="dialog" data-type="confirm" id="icc-stk-alert" class="hidden">
-        <section>
-          <h1 data-l10n-id="message">Message</h1>
-          <p id="icc-stk-alert-msg">
-          </p>
-        </section>
-        <menu>
-          <button data-l10n-id="close" id="icc-stk-alert-btn_close">Close</button>
-          <button data-l10n-id="back" id="icc-stk-alert-btn_back">Back</button>
-          <button data-l10n-id="ok" id="icc-stk-alert-btn" class="recommend">Ok</button>
-        </menu>
-      </form>
-
-      <script src="/shared/js/notification_helper.js"></script>
       <script src="js/icc.js"></script>
       -->
     </section>
@@ -2693,7 +2834,7 @@
             <a id="menuItem-gps" class="menu-item" data-l10n-id="geolocation">Geolocation</a>
           </li>
           <li>
-            <small id="wifi-desc" class="menu-item-desc" data-l10n-id="fullStatus-disconnected">offline</small>
+            <small id="wifi-desc" class="menu-item-desc"></small>
             <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
           </li>
           <li id="call-settings">
@@ -2766,7 +2907,7 @@
             <small id="phoneLock-desc" class="menu-item-desc"></small>
             <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
           </li>
-          <li>
+          <li id="simSecurity-settings">
             <small id="simCardLock-desc" class="menu-item-desc"></small>
             <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM Security</a>
           </li>
@@ -2789,7 +2930,7 @@
               <span></span>
             </label>
             <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
-            <a class="menu-item" data-l10n-id="enableUSBStorage">Enable USB storage</a>
+            <a id="menuItem-enableStorage" class="menu-item" data-l10n-id="enableUSBStorage">Enable USB storage</a>
           </li>
           <li>
             <small id="application-storage-desc" class="menu-item-desc"></small>

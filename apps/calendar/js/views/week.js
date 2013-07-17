@@ -99,6 +99,17 @@ Calendar.ns('Views').Week = (function() {
       this.element = null;
     },
 
+    getScrollTop: function() {
+      var scroll = this.element.querySelector('.scroll');
+      var scrollTop = scroll.scrollTop;
+      return scrollTop;
+    },
+
+    setScrollTop: function(scrollTop) {
+      var scroll = this.element.querySelector('.scroll');
+      scroll.scrollTop = scrollTop;
+    },
+
     _appendSidebarHours: function() {
       var element = this.element.querySelector('.sidebar');
 

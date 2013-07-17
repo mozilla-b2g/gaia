@@ -4,10 +4,10 @@ var CallHandler = (function callHandler() {
   var COMMS_APP_ORIGIN = document.location.protocol + '//' +
     document.location.host;
   var callScreenWindow = null;
-  var callScreenWindowLoaded = false;
   var callScreenWindowReady = false;
   var btCommandsToForward = [];
   var currentActivity = null;
+  var FB_SYNC_ERROR_PARAM = 'isSyncError';
 
   /* === Settings === */
   var screenState = null;
@@ -65,49 +65,57 @@ var CallHandler = (function callHandler() {
       return;
     }
 
-    navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
-      var app = evt.target.result;
+    navigator.mozApps.getSelf().onsuccess = function gotSelf(selfEvt) {
+      var app = selfEvt.target.result;
       app.launch('dialer');
-      window.location.hash = '#recents-view';
+      var location = document.createElement('a');
+      location.href = evt.imageURL;
+      if (location.search.indexOf(FB_SYNC_ERROR_PARAM) !== -1) {
+        window.location.hash = '#contacts-view';
+      } else {
+        window.location.hash = '#call-log-view';
+      }
     };
   }
 
   function handleNotificationRequest(number) {
-    Contacts.findByNumber(number, function lookup(contact, matchingTel) {
-      LazyL10n.get(function localized(_) {
-        var title = _('missedCall');
+    loader.load('/dialer/js/utils.js', function() {
+      Contacts.findByNumber(number, function lookup(contact, matchingTel) {
+        LazyL10n.get(function localized(_) {
+          var title = _('missedCall');
 
-        var body;
-        if (!number) {
-          body = _('from-withheld-number');
-        } else if (contact) {
-          var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
-            contact);
-          if (primaryInfo) {
-            if (primaryInfo !== matchingTel.value) {
-              body = _('from-contact', {contact: primaryInfo});
+          var body;
+          if (!number) {
+            body = _('from-withheld-number');
+          } else if (contact) {
+            var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
+              contact);
+            if (primaryInfo) {
+              if (primaryInfo !== matchingTel.value) {
+                body = _('from-contact', {contact: primaryInfo});
+              } else {
+                body = _('from-number', {number: primaryInfo});
+              }
             } else {
-              body = _('from-number', {number: primaryInfo});
+              body = _('from-withheld-number');
             }
           } else {
-            body = _('from-withheld-number');
+            body = _('from-number', {number: number});
           }
-        } else {
-          body = _('from-number', {number: number});
-        }
 
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
+          navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+            var app = evt.target.result;
 
-          var iconURL = NotificationHelper.getIconURI(app, 'dialer');
+            var iconURL = NotificationHelper.getIconURI(app, 'dialer');
 
-          var clickCB = function() {
-            app.launch('dialer');
-            window.location.hash = '#call-log-view';
+            var clickCB = function() {
+              app.launch('dialer');
+              window.location.hash = '#call-log-view';
+            };
+
+            NotificationHelper.send(title, body, iconURL, clickCB);
           };
-
-          NotificationHelper.send(title, body, iconURL, clickCB);
-        };
+        });
       });
     });
   }
@@ -134,11 +142,12 @@ var CallHandler = (function callHandler() {
 
   /* === ALL calls === */
   function newCall() {
-    // We need to query mozTelephony a first time here
-    // see bug 823958
     var telephony = navigator.mozTelephony;
-
-    openCallScreen();
+    telephony.oncallschanged = function dialer_oncallschanged(evt) {
+      if (telephony.calls.length !== 0) {
+        openCallScreen();
+      }
+    };
   }
 
   /* === Bluetooth Support === */
@@ -146,17 +155,35 @@ var CallHandler = (function callHandler() {
     var command = message['command'];
     var partialCommand = command.substring(0, 3);
     if (command === 'BLDN') {
-      RecentsDBManager.init(function() {
-        RecentsDBManager.getLast(function(lastRecent) {
-          if (lastRecent.number) {
-            CallHandler.call(lastRecent.number);
+      CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
+        function(result) {
+          if (result && (typeof result === 'object') && result.number) {
+            CallHandler.call(result.number);
+          } else {
+            console.log('Could not get the last outgoing group ' + result);
           }
         });
-      });
       return;
     } else if (partialCommand === 'ATD') {
-      var phoneNumber = command.substring(3);
-      CallHandler.call(phoneNumber);
+
+      // Special prefix for call index.
+      // ATD>3 means we have to call the 3rd recent number.
+      if (command[3] === '>') {
+        var pos = parseInt(command.substring(4), 10);
+
+        CallLogDBManager.getGroupAtIndex(pos, 'lastEntryDate', true, null,
+          function(result) {
+            if (result && (typeof result === 'object') && result.number) {
+              CallHandler.call(result.number);
+            } else {
+              console.log('Could not get the group at: ' + pos +
+                          '. Error: ' + result);
+            }
+          });
+      } else {
+        var phoneNumber = command.substring(3);
+        CallHandler.call(phoneNumber);
+      }
       return;
     }
 
@@ -272,35 +299,26 @@ var CallHandler = (function callHandler() {
   // where we want to open a new call screen while the previous one is
   // animating out of the screen.
   var callScreenId = 0;
+  var openingWindow = false;
   function openCallScreen(openCallback) {
-    if (callScreenWindow)
+    if (callScreenWindow || openingWindow)
       return;
 
+    openingWindow = true;
     var host = document.location.host;
     var protocol = document.location.protocol;
     var urlBase = protocol + '//' + host + '/dialer/oncall.html';
 
     var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
     var openWindow = function dialer_openCallScreen(state) {
+      openingWindow = false;
       callScreenWindow = window.open(urlBase + '#' + state,
                   ('call_screen' + callScreenId++), 'attention');
 
       callScreenWindow.onload = function onload() {
         highPriorityWakeLock.unlock();
-        callScreenWindowLoaded = true;
         if (openCallback) {
           openCallback();
-        }
-      };
-
-      var telephony = navigator.mozTelephony;
-      telephony.oncallschanged = function dialer_oncallschanged(evt) {
-        if (callScreenWindowLoaded && telephony.calls.length === 0) {
-          // Calls might be ended before callscreen is comletedly loaded,
-          // so that callscreen will miss call-related events. We send a
-          // message to notify callscreen of exiting when we got notified
-          // there are no calls.
-          sendCommandToCallScreen('*', 'exitCallScreen');
         }
       };
     };
@@ -331,7 +349,6 @@ var CallHandler = (function callHandler() {
 
   function handleCallScreenClosing() {
     callScreenWindow = null;
-    callScreenWindowLoaded = false;
     callScreenWindowReady = false;
   }
 
@@ -488,10 +505,10 @@ window.addEventListener('load', function startup(evt) {
                       'confirmation-message',
                       'edit-mode'];
 
-    loader.load(lazyPanels.map(function toElement(id) {
-        return document.getElementById(id);
-      })
-    );
+    var lazyPanelsElements = lazyPanels.map(function toElement(id) {
+      return document.getElementById(id);
+    });
+    loader.load(lazyPanelsElements);
 
     CallHandler.init();
     LazyL10n.get(function loadLazyFilesSet() {
@@ -502,6 +519,7 @@ window.addEventListener('load', function startup(evt) {
                    '/dialer/js/newsletter_manager.js',
                    '/shared/style/edit_mode.css',
                    '/shared/style/headers.css']);
+      lazyPanelsElements.forEach(navigator.mozL10n.translate);
     });
   });
 });
@@ -520,8 +538,8 @@ window.onresize = function(e) {
 // issue in Gecko where the Audio Data API causes gfx performance problems,
 // in particular when scrolling the homescreen.
 // See: https://bugzilla.mozilla.org/show_bug.cgi?id=779914
-document.addEventListener('mozvisibilitychange', function visibilitychanged() {
-  if (!document.mozHidden) {
+document.addEventListener('visibilitychange', function visibilitychanged() {
+  if (!document.hidden) {
     TonePlayer.ensureAudio();
   } else {
     // Reset the audio stream. This ensures that the stream is shutdown

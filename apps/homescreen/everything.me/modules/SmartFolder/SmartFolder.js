@@ -150,9 +150,12 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         
         experienceId = newExperienceId;
         
+        Evme.Utils.log('Folder :: experienceId: ' + experienceId);
+        
         var l10nkey = 'id-' + Evme.Utils.shortcutIdToKey(experienceId),
             queryById = Evme.Utils.l10n('shortcut', l10nkey);
             
+        Evme.Utils.log('Folder :: queryById: ' + queryById);
         elTitle.innerHTML = '<em></em>' +
                             '<b ' + Evme.Utils.l10nAttr(NAME, 'title-prefix') + '></b> ' +
                             '<span ' + Evme.Utils.l10nAttr('shortcut', l10nkey) + '></span>';
@@ -172,6 +175,10 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         }
         
         query = newQuery;
+        
+        elTitle.innerHTML = '<em></em>' +
+                            '<b ' + Evme.Utils.l10nAttr(NAME, 'title-prefix') + '></b> ' +
+                            '<span>' + query  + '</span>';
         
         return self;
     };

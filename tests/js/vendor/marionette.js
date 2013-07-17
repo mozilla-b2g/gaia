@@ -1,13 +1,105 @@
-(function() {
-  'use strict';
+(function(global, module) {
 
-  var isNode = typeof(window) === 'undefined';
+  /**
+   * Define a list of paths
+   * this will only be used in the browser.
+   */
+  var paths = {};
 
-  if (!isNode) {
-    if (typeof(window.TestAgent) === 'undefined') {
-      window.TestAgent = {};
-    }
+
+  /**
+   * Exports object is a shim
+   * we use in the browser to
+   * create an object that will behave much
+   * like module.exports
+   */
+  function Exports(path) {
+    this.path = path;
   }
+
+  Exports.prototype = {
+
+    /**
+     * Unified require between browser/node.
+     * Path is relative to this file so you
+     * will want to use it like this from any depth.
+     *
+     *
+     *   var Leaf = ns.require('sub/leaf');
+     *
+     *
+     * @param {String} path path lookup relative to this file.
+     */
+    require: function exportRequire(path) {
+      if (typeof(window) === 'undefined') {
+        return require(require('path').join(__dirname, path));
+      } else {
+        return paths[path];
+      }
+    },
+
+    /**
+     * Maps exports to a file path.
+     */
+    set exports(val) {
+      return paths[this.path] = val;
+    },
+
+    get exports() {
+      return paths[this.path];
+    }
+  };
+
+  /**
+   * Module object constructor.
+   *
+   *
+   *    var module = Module('sub/leaf');
+   *    module.exports = function Leaf(){}
+   *
+   *
+   * @constructor
+   * @param {String} path file path.
+   */
+  function Module(path) {
+    return new Exports(path);
+  }
+
+  Module.require = Exports.prototype.require;
+  Module.exports = Module;
+  Module._paths = paths;
+
+
+  /**
+   * Reference self as exports
+   * which also happens to be the constructor
+   * so you can assign items to the namespace:
+   *
+   *    //assign to Module.X
+   *    //assume module.exports is Module
+   *    module.exports.X = Foo; //Module.X === Foo;
+   *    Module.exports('foo'); //creates module.exports object.
+   *
+   */
+  module.exports = Module;
+
+  /**
+   * In the browser assign
+   * to a global namespace
+   * obviously 'Module' would
+   * be whatever your global namespace is.
+   */
+  if (this.window)
+    window.Marionette = Module;
+
+}(
+  this,
+  (typeof(module) === 'undefined') ?
+    {} :
+    module
+));
+(function(module, ns) {
+  'use strict';
 
   /**
    * Constructor
@@ -206,291 +298,16 @@
 
   Responder.prototype.on = Responder.prototype.addEventListener;
 
-  if (isNode) {
-    module.exports = Responder;
-  } else {
-    window.TestAgent.Responder = Responder;
-  }
+  module.exports = Responder;
 
-}());
-
-//depends on TestAgent.Responder
-(function() {
-  'use strict';
-
-  var isNode = typeof(window) === 'undefined',
-      Responder;
-
-  if (!isNode) {
-    if (typeof(window.TestAgent) === 'undefined') {
-      window.TestAgent = {};
-    }
-
-    Responder = TestAgent.Responder;
-  } else {
-    Responder = require('./responder');
-  }
-
-  //end
-
-  /**
-   * Creates a websocket client handles custom
-   * events via responders and auto-reconnect.
-   *
-   * Basic Options:
-   *  - url: websocekt endpoint (for example: "ws://localhost:8888")
-   *
-   * Options for retries:
-   *
-   * @param {Object} options retry options.
-   * @param {Boolean} option.retry (false by default).
-   * @param {Numeric} option.retryLimit \
-   *  ( number of retries before error is thrown Infinity by default).
-   * @param {Numeric} option.retryTimeout \
-   * ( Time between retries 3000ms by default).
-   */
-  function Client(options) {
-    var key;
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
-    Responder.call(this);
-
-    this.proxyEvents = ['open', 'close', 'message'];
-    this._proxiedEvents = {};
-
-    if (isNode) {
-      this.Native = require('ws');
-    } else {
-      this.Native = (window.WebSocket || window.MozWebSocket);
-    }
-
-    this.on('open', this._setConnectionStatus.bind(this, true));
-    this.on('close', this._setConnectionStatus.bind(this, false));
-
-    this.on('close', this._incrementRetry.bind(this));
-    this.on('message', this._processMessage.bind(this));
-    this.on('open', this._clearRetries.bind(this));
-  };
-
-  Client.RetryError = function RetryError() {
-    Error.apply(this, arguments);
-  };
-
-  Client.RetryError.prototype = Object.create(Error.prototype);
-
-  Client.prototype = Object.create(Responder.prototype);
-
-  /**
-   * True when connection is opened.
-   * Used to ensure messages are not sent
-   * when connection to server is closed.
-   *
-   * @type Boolean
-   */
-  Client.prototype.connectionOpen = false;
-
-  //Retry
-  Client.prototype.retry = false;
-  Client.prototype.retries = 0;
-  Client.prototype.retryLimit = Infinity;
-  Client.prototype.retryTimeout = 3000;
-
-  Client.prototype.start = function start() {
-    var i, event, fn;
-
-    if (this.socket && this.socket.readyState < 2) {
-      // don't open a socket is one is already open.
-      return;
-    }
-
-    if (this.retry && this.retries >= this.retryLimit) {
-      throw new Client.RetryError(
-        'Retry limit has been reach retried ' + String(this.retries) + ' times'
-      );
-    }
-
-    if (this.socket) {
-      this.close();
-    }
-
-    this.socket = new this.Native(this.url);
-
-    for (i = 0; i < this.proxyEvents.length; i++) {
-      event = this.proxyEvents[i];
-      fn = this._proxiedEvents[event] = this._proxyEvent.bind(this, event);
-      this.socket.addEventListener(event, fn, false);
-    }
-
-    this.emit('start', this);
-  };
-
-  /**
-   * Sends Responder encoded event to the server.
-   *
-   * @param {String} event event to send.
-   * @param {String} data object to send to the server.
-   */
-  Client.prototype.send = function send(event, data) {
-    if (this.connectionOpen) {
-      this.socket.send(this.stringify(event, data));
-    }
-  };
-
-  /**
-   * Closes connection to the server
-   */
-  Client.prototype.close = function close(event, data) {
-    var event;
-
-    for (event in this._proxiedEvents) {
-      this.socket.removeEventListener(event, this._proxiedEvents[event], false);
-    }
-
-    this.socket.close();
-  };
-
-  Client.prototype._incrementRetry = function _incrementRetry() {
-    if (this.retry) {
-      this.retries++;
-      setTimeout(this.start.bind(this), this.retryTimeout);
-    }
-  };
-
-  Client.prototype._processMessage = function _processMessage(message) {
-    if (message.data) {
-      message = message.data;
-    }
-    this.respond(message, this);
-  };
-
-  Client.prototype._clearRetries = function _clearRetries() {
-    this.retries = 0;
-  };
-
-  Client.prototype._proxyEvent = function _proxyEvent() {
-    this.emit.apply(this, arguments);
-  };
-
-  /**
-   * Sets connectionOpen.
-   *
-   * @param {Boolean} type connection status.
-   */
-  Client.prototype._setConnectionStatus = _setConnectionStatus;
-  function _setConnectionStatus(type) {
-    this.connectionOpen = type;
-  }
-
-  if (isNode) {
-    module.exports = Client;
-  } else {
-    window.TestAgent.WebsocketClient = Client;
-  }
-
-}());
-(function(global, module) {
-
-  /**
-   * Define a list of paths
-   * this will only be used in the browser.
-   */
-  var paths = {};
-
-
-  /**
-   * Exports object is a shim
-   * we use in the browser to
-   * create an object that will behave much
-   * like module.exports
-   */
-  function Exports(path) {
-    this.path = path;
-  }
-
-  Exports.prototype = {
-
-    /**
-     * Unified require between browser/node.
-     * Path is relative to this file so you
-     * will want to use it like this from any depth.
-     *
-     *
-     *   var Leaf = ns.require('sub/leaf');
-     *
-     *
-     * @param {String} path path lookup relative to this file.
-     */
-    require: function exportRequire(path) {
-      if (typeof(window) === 'undefined') {
-        return require(require('path').join(__dirname, path));
-      } else {
-        return paths[path];
-      }
-    },
-
-    /**
-     * Maps exports to a file path.
-     */
-    set exports(val) {
-      return paths[this.path] = val;
-    },
-
-    get exports() {
-      return paths[this.path];
-    }
-  };
-
-  /**
-   * Module object constructor.
-   *
-   *
-   *    var module = Module('sub/leaf');
-   *    module.exports = function Leaf(){}
-   *
-   *
-   * @constructor
-   * @param {String} path file path.
-   */
-  function Module(path) {
-    return new Exports(path);
-  }
-
-  Module.require = Exports.prototype.require;
-  Module.exports = Module;
-  Module._paths = paths;
-
-
-  /**
-   * Reference self as exports
-   * which also happens to be the constructor
-   * so you can assign items to the namespace:
-   *
-   *    //assign to Module.X
-   *    //assume module.exports is Module
-   *    module.exports.X = Foo; //Module.X === Foo;
-   *    Module.exports('foo'); //creates module.exports object.
-   *
-   */
-  module.exports = Module;
-
-  /**
-   * In the browser assign
-   * to a global namespace
-   * obviously 'Module' would
-   * be whatever your global namespace is.
-   */
-  if (this.window)
-    window.Marionette = Module;
-
-}(
+}.apply(
   this,
-  (typeof(module) === 'undefined') ?
-    {} :
-    module
+  (this.Marionette) ?
+    [Marionette('responder'), Marionette] :
+    [module, require('../../lib/marionette/marionette')]
 ));
+
+
 (function(module, ns) {
 
   var code, errorCodes, Err = {};
@@ -722,17 +539,14 @@
 ));
 (function(module, ns) {
 
-  var debug = function() {},
-      Responder;
+  var debug = function() {};
+  var Responder = ns.require('responder');
 
   var isNode = typeof(window) === 'undefined';
   var isXpc = !isNode && (typeof(window.xpcModule) !== 'undefined');
 
   if (isNode) {
     debug = require('debug')('marionette:command-stream');
-    Responder = require('test-agent/lib/test-agent/responder');
-  } else {
-    Responder = TestAgent.Responder;
   }
 
   if (isXpc) {
@@ -1065,20 +879,6 @@
     },
 
     /**
-     * single taps element.
-     *
-     * @method singleTap
-     * @param {Function} callback boolean result.
-     * @return {Object} self.
-     */
-    singleTap: function singleTap(callback) {
-      var cmd = {
-        type: 'singleTap'
-      };
-      return this._sendCommand(cmd, 'ok', callback);
-    },
-
-    /**
      * Gets text of element
      *
      * @method text
@@ -1202,7 +1002,8 @@
    *
    *     // all drivers conform to this api
    *
-   *     var driver = new Marionette.Dirver.MozTcp({});
+   *     // var Marionette = require('marionette-client');
+   *     var driver = new Marionette.Drivers.Tcp({});
    *     var client;
    *
    *     driver.connect(function(err) {
@@ -1221,12 +1022,13 @@
    *       // by default commands run in a queue.
    *       // assuming there is not a fatal error each command
    *       // will execute sequentially.
-   *       client.startSession().
-   *              goUrl('http://google.com').
-   *              executeScript(function() {
-   *                alert(document.title);
-   *              });
-   *       }
+   *       client.startSession(function () {
+   *         client.goUrl('http://google.com')
+   *           .executeScript(function() {
+   *             alert(document.title);
+   *           })
+   *           .deleteSession();
+   *       });
    *     });
    *
    *
@@ -1388,6 +1190,7 @@
      * This is a combination of calling getMarionetteId and then newSession.
      *
      * @method startSession
+     * @non-chainable
      * @param {Function} callback executed when session is started.
      */
     startSession: function startSession(callback) {
@@ -2177,91 +1980,6 @@
     [module, require('../marionette')]
 ));
 (function(module, ns) {
-  var WebsocketClient,
-      Abstract = ns.require('drivers/abstract');
-
-  if (!this.TestAgent) {
-    WebsocketClient = require('test-agent/lib/test-agent/websocket-client');
-  } else {
-    WebsocketClient = TestAgent.WebsocketClient;
-  }
-
-  /**
-   * WebSocket interface for marionette.
-   * Generally {{#crossLink "Marionette.Drivers.Tcp"}}{{/crossLink}}
-   * will be faster and more reliable but WebSocket can expose devices
-   * over http instead of a pure socket.
-   *
-   *
-   * @extend Marionette.Drivers.Abstract
-   * @class Marionette.Drivers.Websocket
-   * @param {Object} options options for abstract/prototype.
-   */
-  function Websocket(options) {
-    Abstract.call(this, options);
-
-    this.client = new WebsocketClient(options);
-    this.client.on('device response', this._onDeviceResponse.bind(this));
-  }
-
-  Websocket.prototype = Object.create(Abstract.prototype);
-
-  /**
-   * Sends a command to the websocket server.
-   *
-   * @param {Object} command remote marionette command.
-   * @private
-   */
-  Websocket.prototype._sendCommand = function _sendCommand(cmd) {
-    this.client.send('device command', {
-      id: this.connectionId,
-      command: cmd
-    });
-  };
-
-  /**
-   * Opens a connection to the websocket server and creates
-   * a device connection.
-   *
-   * @param {Function} callback sent when initial response comes back.
-   */
-  Websocket.prototype._connect = function connect() {
-    var self = this;
-
-    this.client.start();
-
-    this.client.once('open', function wsOpen() {
-
-      //because I was lazy and did not implement once
-      function connected(data) {
-        self.connectionId = data.id;
-      }
-
-      self.client.once('device ready', connected);
-      self.client.send('device create');
-
-    });
-
-  };
-
-  /**
-   * Closes connection to marionette.
-   */
-  Websocket.prototype._close = function close() {
-    if (this.client && this.client.close) {
-      this.client.close();
-    }
-  };
-
-  module.exports = Websocket;
-
-}.apply(
-  this,
-  (this.Marionette) ?
-    [Marionette('drivers/websocket'), Marionette] :
-    [module, require('../marionette')]
-));
-(function(module, ns) {
 
   try {
     if (!window.navigator.mozTCPSocket) {
@@ -2273,7 +1991,7 @@
 
   var TCPSocket = navigator.mozTCPSocket;
 
-  var Responder = TestAgent.Responder;
+  var Responder = ns.require('responder');
   var ON_REGEX = /^on/;
 
  /**
@@ -2619,8 +2337,7 @@
 
   module.exports = {
     Abstract: ns.require('drivers/abstract'),
-    HttpdPolling: ns.require('drivers/httpd-polling'),
-    Websocket: ns.require('drivers/websocket')
+    HttpdPolling: ns.require('drivers/httpd-polling')
   };
 
   if (typeof(window) === 'undefined') {

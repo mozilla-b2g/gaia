@@ -175,14 +175,14 @@ var TrustedUIManager = {
   },
 
   _dispatchCloseEvent: function dispatchCloseEvent(eventId) {
-    var _ = navigator.mozL10n.get;
-    if (!eventId)
+    if (!eventId) {
       return;
+    }
     var event = document.createEvent('customEvent');
     var details = {
       id: eventId,
       type: 'cancel',
-      errorMsg: _('dialog-closed')
+      errorMsg: 'DIALOG_CLOSED_BY_USER'
     };
     event.initCustomEvent('mozContentEvent', true, true, details);
     window.dispatchEvent(event);

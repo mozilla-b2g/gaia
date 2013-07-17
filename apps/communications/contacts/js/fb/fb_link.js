@@ -247,7 +247,7 @@ if (!fb.link) {
                   var obj = {
                     originalIndex: index
                   };
-                  obj[field] = utils.text.normalize(word).toLowerCase();
+                  obj[field] = Normalizer.toAscii(word).toLowerCase();
                   searchAccentsArrays[field].push(obj);
                 });
               }
@@ -335,7 +335,7 @@ if (!fb.link) {
           var dataToSearch = fieldToSearch[0].trim().split(/[ ]+/);
 
           dataToSearch.forEach(function(aData) {
-            var targetString = utils.text.normalize(aData).toLowerCase();
+            var targetString = Normalizer.toAscii(aData).toLowerCase();
             var searchResult = utils.binarySearch(targetString, searchArray, {
               arrayField: searchField,
               compareFunction: compareItems

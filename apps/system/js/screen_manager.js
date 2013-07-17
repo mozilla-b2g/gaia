@@ -98,21 +98,9 @@ var ScreenManager = {
    */
   _cpuWakeLock: null,
 
-  /*
-   * Current state of the CPU Wake lock
-   */
-  _cpuState: null,
-
-  /*
-   * We track the audio status
-   */
-  _audioActive: false,
-  _audioCpuSleepTimerId: 0,
-
   init: function scm_init() {
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
-    window.addEventListener('mozChromeEvent', this);
 
     this.screen = document.getElementById('screen');
 
@@ -121,20 +109,16 @@ var ScreenManager = {
 
     if (power) {
       power.addWakeLockListener(function scm_handleWakeLock(topic, state) {
-        switch (topic) {
-          case 'screen':
-            self._screenWakeLocked = (state == 'locked-foreground');
+        if (topic == 'screen') {
+          self._screenWakeLocked = (state == 'locked-foreground');
 
-            if (self._screenWakeLocked)
-              // Turn screen on if wake lock is acquire
-              self.turnScreenOn();
-            self._reconfigScreenTimeout();
-            break;
-
-          case 'cpu':
-            self._cpuState = state;
-            self.refreshCpuSleepAllowed();
-            break;
+          if (self._screenWakeLocked)
+            // Turn screen on if wake lock is acquire
+            self.turnScreenOn();
+          self._reconfigScreenTimeout();
+        } else if (topic == 'cpu') {
+          power.cpuSleepAllowed = (state != 'locked-foreground' &&
+                                    state != 'locked-background');
         }
       });
     }
@@ -220,7 +204,7 @@ var ScreenManager = {
 
       case 'userproximity':
         var telephony = window.navigator.mozTelephony;
-        if (Bluetooth.connected ||
+        if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) ||
             telephony.speakerEnabled ||
             StatusBar.headphonesActive)
             // XXX: Remove this hack in Bug 868348
@@ -252,14 +236,11 @@ var ScreenManager = {
         }
 
         // If the _cpuWakeLock is already set we are in a multiple
-        // call setup, turning the screen on to let user see the
-        // notification.
+        // call setup, the user will be notified by a tone.
         if (this._cpuWakeLock) {
-          this.turnScreenOn();
           // In case of user making an extra call, the attention screen
           // may be hidden at top so we need to confirm it's shown again.
           AttentionScreen.show();
-
           break;
         }
 
@@ -282,33 +263,6 @@ var ScreenManager = {
 
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
         window.addEventListener('userproximity', this);
-        break;
-
-      case 'mozChromeEvent':
-        if (evt.detail.type == 'audio-channel-changed') {
-          var audioActive = (evt.detail.channel !== 'none' &&
-                             evt.detail.channel !== 'telephony');
-
-          if (this._audioCpuSleepTimerId) {
-            clearTimeout(this._audioCpuSleepTimerId);
-            this._audioCpuSleepTimerId = 0;
-          }
-
-          // If some audio channel is active we refresh the cpuSleepAllowed
-          // immediately, otherwise we just use a timer in order to prevert
-          // rapid stop/start.
-          if (audioActive) {
-            this._audioActive = true;
-            this.refreshCpuSleepAllowed();
-          } else {
-            var self = this;
-            this._audioCpuSleepTimerId = setTimeout(function cpuSleepTimer() {
-              self._audioActive = false;
-              self.refreshCpuSleepAllowed();
-              self._audioCpuSleepTimerId = 0;
-            }, 2000);
-          }
-        }
         break;
     }
   },
@@ -440,12 +394,12 @@ var ScreenManager = {
       this._setIdleTimeout(10, true);
       var self = this;
       var stopShortIdleTimeout = function scm_stopShortIdleTimeout() {
-        window.removeEventListener('unlock', stopShortIdleTimeout);
+        window.removeEventListener('will-unlock', stopShortIdleTimeout);
         window.removeEventListener('lockpanelchange', stopShortIdleTimeout);
         self._setIdleTimeout(self._idleTimeout, false);
       };
 
-      window.addEventListener('unlock', stopShortIdleTimeout);
+      window.addEventListener('will-unlock', stopShortIdleTimeout);
       window.addEventListener('lockpanelchange', stopShortIdleTimeout);
     } else {
       this._setIdleTimeout(this._idleTimeout, false);
@@ -550,13 +504,6 @@ var ScreenManager = {
       { bubbles: true, cancelable: false,
         detail: { screenEnabled: this.screenEnabled } });
     window.dispatchEvent(evt);
-  },
-
-  refreshCpuSleepAllowed: function scm_refreshCpuSleepAllowed() {
-    var power = navigator.mozPower;
-    power.cpuSleepAllowed = (this._cpuState != 'locked-foreground' &&
-                             this._cpuState != 'locked-background' &&
-                             !this._audioActive);
   }
 };
 

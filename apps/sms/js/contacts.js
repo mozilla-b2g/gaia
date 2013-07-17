@@ -189,8 +189,8 @@
     findByPhoneNumber: function contacts_findByPhone(filterValue, callback) {
       return this.findBy({
         filterBy: ['tel'],
-        filterOp: 'equals',
-        filterValue: filterValue
+        filterOp: 'match',
+        filterValue: filterValue.replace(/\s+/g, '')
       }, callback);
     }
   };

@@ -1,5 +1,5 @@
 require('/shared/js/lazy_loader.js');
-requireApp('communications/dialer/js/lazy_l10n.js');
+require('/shared/js/lazy_l10n.js');
 
 suite('LazyL10n', function() {
   var realL10n;

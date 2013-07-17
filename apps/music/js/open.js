@@ -54,6 +54,11 @@ function handleOpenActivity(request) {
     PlayerView.setSourceType(TYPE_BLOB);
     PlayerView.dataSource = blob;
     PlayerView.play(); // Do we need to play for users?
+
+    PlayerView.onerror = function invalid() {
+      alert(navigator.mozL10n.get('audioinvalid'));
+      done();
+    };
   }
 
   // Set up events for close/save in the single player

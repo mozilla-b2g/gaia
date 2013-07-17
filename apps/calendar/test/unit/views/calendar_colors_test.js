@@ -104,7 +104,8 @@ suiteGroup('Views.CalendarColors', function() {
     setup(function() {
       calls = {
         add: [],
-        remove: []
+        remove: [],
+        preremove: []
       };
 
       subject.updateRule = function(item) {
@@ -114,12 +115,21 @@ suiteGroup('Views.CalendarColors', function() {
       subject.removeRule = function(item) {
         calls.remove.push(item);
       };
+
+      subject.hideCalendar = function(item) {
+        calls.preremove.push(item);
+      };
     });
 
     test('type: persist', function() {
       store.emit('persist', model._id, model);
 
       assert.deepEqual(calls.add, [model]);
+    });
+
+    test('type: preremove', function() {
+      store.emit('preRemove', model._id);
+      assert.deepEqual(calls.preremove, [model._id]);
     });
 
     test('type: remove', function() {
@@ -166,6 +176,29 @@ suiteGroup('Views.CalendarColors', function() {
       assert.equal(rules.length, 2, 'should remove css rules');
     });
 
+  });
+
+  suite('#hideCalendar', function() {
+    setup(function() {
+      subject.hideCalendar(model._id);
+    });
+
+    test('hides display', function() {
+      // check that the actual style is flushed to the dom...
+      var bgRule = subject._styles.cssRules[0];
+
+      // it may do the RGB conversion so its not strictly equal...
+      assert.ok(
+        bgRule.style.backgroundColor,
+        'should have set background color'
+      );
+
+      var displayRule = subject._styles.cssRules[1];
+      assert.equal(
+        displayRule.style.display, 'none',
+        'should set display to none'
+      );
+    });
   });
 
   suite('#updateRule', function() {

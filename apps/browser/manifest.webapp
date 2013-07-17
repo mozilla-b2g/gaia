@@ -39,14 +39,13 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/shared/resources/branding/Browser.png",
-    "120": "/shared/resources/branding/Browser.png",
-    "320": "/style/icons/320/Browser.png"
+    "120": "/shared/resources/branding/Browser.png"
   },
   "activities": {
     "view": {
       "filters": {
         "type": "url",
-        "url": { "required":true, "regexp":"/^https?:.{1,16384}$/" }
+        "url": { "required":true, "regexp":"/^https?:.{1,16384}$/i" }
       }
     }
   }

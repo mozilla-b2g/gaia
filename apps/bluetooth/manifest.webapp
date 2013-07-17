@@ -1,6 +1,7 @@
 {
   "name": "Send To Bluetooth Device",
   "type": "certified",
+  "role": "system",
   "description": "Gaia Bluetooth Transfer",
   "launch_path": "/transfer.html",
   "developer": {
@@ -23,7 +24,7 @@
       "disposition": "inline",
       "returnValue": true,
       "href": "/transfer.html"
-    }   
+    }
   },
   "permissions": {
     "bluetooth":{},

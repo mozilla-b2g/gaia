@@ -45,7 +45,9 @@ body[role="application"] progress[value]::-moz-progress-bar {
 /* Labels */
 body[role="application"] p[role="status"] {
   padding: 0.5rem;
-  font: 600 1.3rem/1em "MozTT", Sans-serif;
+  font-weight: 600;
+  font-size: 1.3rem;
+  line-height: 1em;
 }
 
 body[role="application"] p[role="status"] progress:not([value]) {

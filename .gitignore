@@ -6,28 +6,34 @@
 *~
 manifest.appcache
 
-/apps/settings/resources/gaia_commit.txt
 /apps/calendar/js/presets.js
+/apps/email/built/
 /apps/homescreen/js/init.json
-/apps/homescreen/js/hiddenapps.js
-/apps/settings/js/hiddenapps.js
 /apps/costcontrol/js/config.json
 /apps/sms/js/blacklist.json
 /test_apps/test-agent/test/config.json
 /apps/dialer/contacts
 /apps/browser/js/init.json
+/apps/communications/contacts/config.json
+/apps/communications/contacts/oauth2/js/parameters.js
 
 /apps/*/test/unit/_sandbox.html
 /apps/*/test/unit/_proxy.html
+/apps/*/locales-obj
 /apps/*/shared
 /apps/settings/resources/support.json
-/apps/settings/resources/icc.json
+/apps/settings/resources/sensors.json
+/apps/system/resources/icc.json
 /test_apps/*/test/unit/_sandbox.html
 /test_apps/*/test/unit/_proxy.html
+/test_apps/*/locales-obj
+/test_external_apps/*/locales-obj
 /showcase_apps/*/test/unit/_sandbox.html
 /showcase_apps/*/test/unit/_proxy.html
+/showcase_apps/*/locales-obj
 
 /profile/
+/profile-debug/
 /profile.tar.gz
 /.xulrunner-url
 /xulrunner/
@@ -35,6 +41,7 @@ manifest.appcache
 /tools/test-agent/node_modules
 /test-output.xml
 /mocha-test-results.html
+/build/custom-extensions.json
 /build/custom-prefs.js
 /build/custom-settings.json
 /local.mk
@@ -44,3 +51,14 @@ manifest.appcache
 /outoftree_apps/
 
 /distribution/
+
+/.cproject
+/.project
+/.settings
+
+/external-apps/*/test/unit/_sandbox.html
+/external-apps/*/test/unit/_proxy.html
+
+/test_external_apps/*/test/unit/_sandbox.html
+/test_external_apps/*/test/unit/_proxy.html
+apps/*, external-apps/* & GAIA_DISTRIBUTION_DIR

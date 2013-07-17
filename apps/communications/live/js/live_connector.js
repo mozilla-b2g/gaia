@@ -176,6 +176,10 @@ if (!window.LiveConnector) {
         return 'live';
       },
 
+      get automaticLogout() {
+        return true;
+      },
+
       downloadContactPicture: function(contact, access_token, callbacks) {
         if (contact.user_id) {
           var uriElements = [LIVE_ENDPOINT, contact.user_id, PICTURE_RESOURCE,

@@ -3,7 +3,7 @@
 (function(exports) {
   'use strict';
   var rdashes = /-(.)/g;
-  var rmatcher = /\$\{([^{]+)\}/g;
+  var rmatcher = /\$\{([^}]+)\}/g;
   var rescape = /[.?*+^$[\]\\(){}|-]/g;
   var rentity = /[&<>"']/g;
   var rentities = {
@@ -13,11 +13,8 @@
     '"': '&quot;',
     '\'': '&apos;'
   };
-  var rformatting = {
-    br: /(\r\n|\n|\r)/gm,
-    nbsp: /\s\s/g
-  };
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
+  var rnondialablechars = /[^,#+\*\d]/g;
 
   var Utils = {
     date: {
@@ -60,15 +57,21 @@
           }
         }
       }
+
+      FixedHeader.updateHeaderContent();
     },
     startTimeHeaderScheduler: function ut_startTimeHeaderScheduler() {
-      this.updateTimeHeaders();
-      if (this.updateTimer) {
-        clearInterval(this.updateTimer);
-      }
-      this.updateTimer = setInterval(function(self) {
-        self.updateTimeHeaders();
-      }, 50000, this);
+      var updateFunction = (function() {
+        this.updateTimeHeaders();
+        var now = Date.now(),
+            nextTimeout = new Date(now + 60000);
+        nextTimeout.setSeconds(0);
+        nextTimeout.setMilliseconds(0);
+        clearTimeout(this.updateTimer);
+        this.updateTimer = setTimeout(updateFunction,
+          nextTimeout.getTime() - now);
+      }).bind(this);
+      updateFunction();
     },
     escapeRegex: function ut_escapeRegex(str) {
       if (typeof str !== 'string') {
@@ -128,8 +131,13 @@
 
     // We will apply createObjectURL for details.photoURL if contact image exist
     // Please remember to revoke the photoURL after utilizing it.
-    getContactDetails: function ut_getContactDetails(number, contacts) {
+    getContactDetails:
+      function ut_getContactDetails(number, contacts, include) {
+
       var details = {};
+
+      include = include || {};
+
       function updateDetails(contact) {
         var name, phone, carrier, i, length, subscriber, org;
         name = contact.name[0];
@@ -157,16 +165,22 @@
         details.isContact = true;
 
         // Add photo
-        if (contact.photo && contact.photo[0]) {
-          details.photoURL = URL.createObjectURL(contact.photo[0]);
+        if (include.photoURL) {
+          if (contact.photo && contact.photo[0]) {
+            details.photoURL = URL.createObjectURL(contact.photo[0]);
+          }
         }
 
         // Carrier logic
         if (name) {
           // Check if other phones with same type and carrier
+          // Convert the tel-type to string before tel-type comparison.
+          // TODO : We might need to handle multiple tel type in the future.
           for (i = 0; i < length; i++) {
+            var telType = contact.tel[i].type && contact.tel[i].type.toString();
+            var phoneType = phone.type && phone.type.toString();
             if (contact.tel[i].value !== phone.value &&
-                contact.tel[i].type === phone.type &&
+                telType === phoneType &&
                 contact.tel[i].carrier === phone.carrier) {
               carrier = phone.value;
             }
@@ -208,14 +222,109 @@
       return details;
     },
 
+    getCarrierTag: function ut_getCarrierTag(input, tels, details) {
+      /**
+        1. If a phone number has carrier associated with it
+            the output will be:
+
+          type | carrier
+
+        2. If there is no carrier associated with the phone number
+            the output will be:
+
+          type | phonenumber
+
+        3. If for some reason a single contact has two phone numbers with
+            the same type and the same carrier the output will be:
+
+          type | phonenumber
+
+        4. If for some reason a single contact has no name and no carrier,
+            the output will be:
+
+          type
+
+        5. If for some reason a single contact has no name, no type
+            and no carrier, the output will be nothing.
+      */
+      var length = tels.length;
+      var hasDetails = typeof details !== 'undefined';
+      var hasUniqueCarriers = true;
+      var hasUniqueTypes = true;
+      var name = hasDetails ? details.name : '';
+      var found, tel, type, carrier, value, ending;
+
+      for (var i = 0; i < length; i++) {
+        tel = tels[i];
+
+        if (tel.value && Utils.compareDialables(tel.value, input)) {
+          found = tel;
+        }
+
+        if (carrier && carrier === tel.carrier) {
+          hasUniqueCarriers = false;
+        }
+
+        if (type && type === tel.type[0]) {
+          hasUniqueTypes = false;
+        }
+
+        carrier = tel.carrier;
+        type = (tel.type && tel.type[0]) || '';
+      }
+
+      if (!found) {
+        return '';
+      }
+
+      type = (found.type && found.type[0]) || '';
+      carrier = (hasUniqueCarriers || hasUniqueTypes) ? found.carrier : '';
+      value = carrier || found.value;
+      ending = ' | ' + (carrier || value);
+
+      if (hasDetails && !name && !carrier) {
+        ending = '';
+      }
+
+      return type + ending;
+    },
+
+    // Based on "non-dialables" in https://github.com/andreasgal/PhoneNumber.js
+    //
+    // @param {String} input Value to remove nondialiable chars from.
+    //
+    removeNonDialables: function ut_removeNonDialables(input) {
+      return input.replace(rnondialablechars, '');
+    },
+    // @param {String} a First number string to compare.
+    // @param {String} b Second number string to compare.
+    //
+    // Based on...
+    //  - ITU-T E.123 (http://www.itu.int/rec/T-REC-E.123-200102-I/)
+    //  - ITU-T E.164 (http://www.itu.int/rec/T-REC-E.164-201011-I/)
+    //
+    // ...It would appear that a maximally-minimal
+    // 7 digit comparison is safe.
+    compareDialables: function ut_compareDialables(a, b) {
+      a = Utils.removeNonDialables(a).slice(-7);
+      b = Utils.removeNonDialables(b).slice(-7);
+      return a === b;
+    },
+
     getResizedImgBlob: function ut_getResizedImgBlob(blob, limit, callback) {
-      // Default image size limitation is set to 300KB for MMS user story
+      // Default image size limitation is set to 300KB for MMS user story.
+      // If limit is not given or bigger than default 300KB, default value need
+      // to be appied here for size checking.
+      var defaultLimit = 300 * 1024;
       if (typeof limit === 'function') {
         callback = limit;
-        limit = 300 * 1024;
+        limit = defaultLimit;
       }
+      limit = limit === 0 ? defaultLimit : Math.min(limit, defaultLimit);
       if (blob.size < limit) {
-        callback(blob);
+        setTimeout(function blobCb() {
+          callback(blob);
+        });
       } else {
         var img = document.createElement('img');
         var url = URL.createObjectURL(blob);
@@ -271,14 +380,76 @@
         parsed[$1] = $2;
       });
       return parsed;
-    }
-  };
+    },
+    /*
+      Using a contact resolver, a function that can looks for contacts,
+      get the format for the dissambiguation.
 
-  Utils.Message = {
-    format: function(str) {
-      var escaped = Utils.escapeHTML(str);
-      return escaped.replace(rformatting.br, '<br>')
-            .replace(rformatting.nbsp, ' &nbsp;');
+      Used mainly in activities since they need to pick a contact from just
+      the number.
+    */
+    getContactDisplayInfo: function(resolver, phoneNumber, callback) {
+      resolver(phoneNumber, function onContacts(contacts) {
+        var contact;
+        if (Array.isArray(contacts)) {
+          if (contacts.length == 0) {
+            callback(null);
+            return;
+          }
+          contact = contacts[0];
+        } else {
+          if (contacts === null) {
+            callback(null);
+            return;
+          }
+          contact = contacts;
+        }
+
+        var tel = null;
+        for (var i = 0; i < contact.tel.length && tel == null; i++) {
+          if (contact.tel[i].value === phoneNumber) {
+            tel = contact.tel[i];
+          }
+        }
+
+        // Get the title in the standar way
+        var details = Utils.getContactDetails(tel, contact);
+        var info = Utils.getDisplayObject(details.title || null, tel);
+        /*
+          XXX: We need to move this to use a single point for
+          formating:
+          ${type}${separator}${carrier}${numberHTML}
+        */
+        info.display = info.type +
+          info.separator +
+          info.carrier +
+          tel.value;
+
+        callback(info);
+      });
+    },
+    /*
+      Given a title for a contact, a the current information for
+      an specific phone, of that contact, creates an object with
+      all the information needed to display data.
+    */
+    getDisplayObject: function(theTitle, tel) {
+      var number = tel.value;
+      var title = theTitle || number;
+      var type = tel.type && tel.type.length ? tel.type[0] : '';
+      var carrier = tel.carrier ? (tel.carrier + ', ') : '';
+      var separator = type || carrier ? ' | ' : '';
+      var data = {
+        name: title,
+        number: number,
+        type: type,
+        carrier: carrier,
+        separator: separator,
+        nameHTML: '',
+        numberHTML: ''
+      };
+
+      return data;
     }
   };
 

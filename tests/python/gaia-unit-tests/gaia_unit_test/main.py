@@ -10,6 +10,7 @@ import tempfile
 import tornado.websocket
 import tornado.ioloop
 import tornado.httpserver
+import traceback
 
 import reporters
 
@@ -58,9 +59,9 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
         self.close()
         self.runner.cleanup()
 
-        self.logger.info('Passed: %d' % self.passes)
-        self.logger.info('Failed: %d' % self.failures)
-        self.logger.info('Todo: 0')
+        self.logger.info('passed: %d' % self.passes)
+        self.logger.info('failed: %d' % self.failures)
+        self.logger.info('todo: 0')
 
         sys.exit(exitCode)
 
@@ -160,12 +161,28 @@ def cli():
         parser.exit('--binary and --profile required')
 
     if not tests:
+        # Read in a list of tests to skip from disabled.json, if it exists;
+        # disabled.json should contain filenames with paths relative to the
+        # apps directory, e.g., "wallpaper/test/unit/pick_test.js".
+        disabled = []
+        disabled_file = os.path.join(os.path.dirname(__file__), 'disabled.json')
+        if os.access(disabled_file, os.F_OK):
+            with open(disabled_file, 'r') as f:
+                disabled_contents = f.read()
+                try:
+                    disabled = json.loads(disabled_contents)
+                except:
+                    traceback.print_exc()
+                    print "Error while decoding disabled.json; please make sure this file has valid JSON syntax."
+                    sys.exit(1)
+
         # build a list of tests
         appsdir = os.path.join(os.path.dirname(os.path.abspath(options.profile)), 'apps')
         for root, dirs, files in os.walk(appsdir):
             for file in files:
-                if file[-8:] == '_test.js':
-                    tests.append(os.path.relpath(os.path.join(root, file), appsdir))
+                full_path = os.path.relpath(os.path.join(root, file), appsdir)
+                if full_path[-8:] == '_test.js' and full_path not in disabled:
+                    tests.append(full_path)
 
     runner = GaiaUnitTestRunner(binary=options.binary,
                                 profile=options.profile)

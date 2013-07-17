@@ -25,7 +25,6 @@
 
 /* "Crash Reports" information page */
 #crash-dialog > section {
-  font-family: "MozTT", Sans-serif;
   background-color: #fff;
   color: #000;
   position: absolute;
