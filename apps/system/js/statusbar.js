@@ -167,7 +167,9 @@ var StatusBar = {
         self.settingValues[settingKey] = false;
       })(settingKey);
     }
-
+    // Listen to 'attentionscreenshow/hide' from attention_screen.js
+    window.addEventListener('attentionscreenshow', this);
+    window.addEventListener('attentionscreenhide', this);
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
@@ -196,13 +198,13 @@ var StatusBar = {
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
         break;
-
+      case 'attentionscreenhide':
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
         this.icons.time.hidden = true;
         this.clock.stop();
         break;
-
+      case 'attentionscreenshow':
       case 'unlock':
         // Display the clock in the statusbar when screen is unlocked
         this.icons.time.hidden = false;
