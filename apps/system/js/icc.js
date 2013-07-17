@@ -359,12 +359,11 @@ var icc = {
     if (!options.isYesNoRequired && !options.isYesNoRequested) {
       this.icc_input.classList.remove('yesnomode');
 
-      this.icc_input_box.maxLength = options.maxLength;
+      // Using setAttribute. See bug #818270
+      this.icc_input_box.setAttribute('maxlength', options.maxlength);
       this.icc_input_box.placeholder = message;
       this.icc_input_box.type = options.isAlphabet ? 'text' : 'tel';
-      if (options.defaultText) {
-        this.icc_input_box.value = options.defaultText;
-      }
+      this.icc_input_box.value = options.defaultText || '';
       if (options.hideInput) {
         this.icc_input_box.type = 'password';
       }
