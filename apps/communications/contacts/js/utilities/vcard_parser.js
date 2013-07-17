@@ -38,6 +38,12 @@ VCFReader.prototype.process = function(cb) {
   var self = this;
   var total = rawContacts.length;
 
+  if (total === 0) {
+    // Returning becasue there aren't contacts to import
+    cb(rawContacts);
+    return;
+  }
+
   function importContacts(from) {
     for (var i = from; i < from + self.CHUNK_SIZE && i < total; i++) {
       VCFReader.save(rawContacts[i], onParsed);
