@@ -4,10 +4,10 @@ Evme.Utils = new function Evme_Utils() {
         newUser = false, isTouch = false,
         parsedQuery = parseQuery(),
         elContainer = null,
-        
+
         CONTAINER_ID = "evmeContainer",
         COOKIE_NAME_CREDENTIALS = "credentials",
-        
+
         OSMessages = this.OSMessages = {
             "APP_CLICK": "open-in-app",
             "APP_INSTALL": "add-bookmark",
@@ -20,60 +20,57 @@ Evme.Utils = new function Evme_Utils() {
             "GET_APP_ICON": "get-app-icon",
             "GET_APP_NAME": "get-app-name"
         };
-    
-    
-    this.devicePixelRatio =  window.innerWidth / 320;
 
     this.isKeyboardVisible = false;
 
     this.EMPTY_IMAGE = "../../images/empty.gif";
 
-    this.APPS_FONT_SIZE = 13 * self.devicePixelRatio;
+    this.APPS_FONT_SIZE = 13 * window.devicePixelRatio;
 
     this.ICONS_FORMATS = {
         "Small": 10,
         "Large": 20
     };
-    
+
     this.init = function init() {
         userAgent = navigator.userAgent;
         cssPrefix = getCSSPrefix();
         connection = Connection.get();
         isTouch = window.hasOwnProperty("ontouchstart");
-        
+
         elContainer = document.getElementById(CONTAINER_ID);
     };
-    
+
     this.log = function log(message) {
         var t = new Date(),
             h = t.getHours(),
             m = t.getMinutes(),
             s = t.getSeconds(),
             ms = t.getMilliseconds();
-        
+
         h < 10 && (h = '0' + h);
         m < 10 && (m = '0' + m);
         s < 10 && (s = '0' + s);
         ms < 10 && (ms = '00' + ms) ||
         ms < 100 && (ms = '0' + ms);
-        
+
         console.log("[%s EVME]: %s", [h, m, s, ms].join(':'), message);
     };
-    
+
     this.l10n = function l10n(module, key, args) {
         return navigator.mozL10n.get(Evme.Utils.l10nKey(module, key), args);
     };
     this.l10nAttr = function l10nAttr(module, key, args) {
         var attr = 'data-l10n-id="' + Evme.Utils.l10nKey(module, key) + '"';
-        
+
         if (args) {
             try {
                 attr += ' data-l10n-args="' + JSON.stringify(args).replace(/"/g, '&quot;') + '"';
             } catch(ex) {
-                
+
             }
         }
-        
+
         return attr;
     };
     this.l10nKey = function l10nKey(module, key) {
@@ -83,23 +80,27 @@ Evme.Utils = new function Evme_Utils() {
         if (typeof text === "string") {
             return text;
         }
-        
+
         var firstLanguage = Object.keys(text)[0],
             currentLang = navigator.mozL10n.language.code || firstLanguage,
             translation = text[currentLang] || text[firstLanguage] || '';
-        
+
         return translation;
     };
-    
+
     this.shortcutIdToKey = function l10nShortcutKey(experienceId) {
         var map = Evme.__config.shortcutIdsToL10nKeys || {};
         return map[experienceId.toString()] || experienceId;
     };
-    
+
     this.uuid = function generateUUID() {
         return Evme.uuid();
     };
-    
+
+    this.rem = function(value) {
+        return value/10 + 'rem';
+    };
+
     this.sendToOS = function sendToOS(type, data) {
         switch (type) {
             case OSMessages.APP_CLICK:
@@ -132,19 +133,19 @@ Evme.Utils = new function Evme_Utils() {
     this.getID = function getID() {
         return CONTAINER_ID;
     };
-    
+
     this.getContainer = function getContainer() {
         return elContainer;
     };
-    
+
     this.cloneObject = function cloneObject(obj) {
         return JSON.parse(JSON.stringify(obj));
     };
-    
+
     // remove installed apps from clouds apps
     this.dedupInstalledApps = function dedupInstalledApps(apps, installedApps) {
       var dedupCloudAppsBy = [];
-      
+
       // first construct the data to filter by (an array of objects)
       // currently only the URL is relevant
       for (var i=0, appData; appData=installedApps[i++];) {
@@ -153,10 +154,10 @@ Evme.Utils = new function Evme_Utils() {
           'appUrl': appData.favUrl
         });
       }
-      
+
       return self.dedup(apps, dedupCloudAppsBy);
     };
-    
+
     // remove from arrayOrigin according to rulesToRemove
     // both arguments are arrays of objects
     this.dedup = function dedup(arrayOrigin, rulesToRemove) {
@@ -173,7 +174,7 @@ Evme.Utils = new function Evme_Utils() {
           }
         }
       }
-      
+
       return arrayOrigin;
     };
 
@@ -181,25 +182,25 @@ Evme.Utils = new function Evme_Utils() {
         var size = self.sendToOS(self.OSMessages.GET_ICON_SIZE) - 2,
             radius = size/2,
             img = new Image();
-        
+
         img.onload = function() {
             var canvas = document.createElement("canvas"),
                 ctx = canvas.getContext("2d");
-                
+
             canvas.width = size;
             canvas.height = size;
-            
+
             ctx.beginPath();
             ctx.arc(radius, radius, radius, 0, 2 * Math.PI, false);
             ctx.clip();
-            
+
             ctx.drawImage(img, 0, 0, size, size);
-            
+
             callback(canvas.toDataURL());
         };
         img.src = imageSrc;
     };
-    
+
     this.writeTextToCanvas = function writeTextToCanvas(options) {
       var context = options.context,
           text = options.text.split(' '),
@@ -210,7 +211,7 @@ Evme.Utils = new function Evme_Utils() {
 
           WIDTH = context.canvas.width,
           FONT_SIZE = self.APPS_FONT_SIZE,
-          LINE_HEIGHT = FONT_SIZE + 1 * self.devicePixelRatio;
+          LINE_HEIGHT = FONT_SIZE + 1 * window.devicePixelRatio;
 
       if (!context || !text) {
         return false;
@@ -223,11 +224,11 @@ Evme.Utils = new function Evme_Utils() {
       context.shadowOffsetY = 1;
       context.shadowBlur = 3;
       context.shadowColor = 'rgba(0, 0, 0, 0.6)';
-      context.font = 'bold ' + FONT_SIZE + 'px MozTT';
+      context.font = '300 ' + self.rem(FONT_SIZE) +' sans-serif';
 
       for (var i=0,word; word=text[i++];) {
         // add 1 to the word with because of the space between words
-        var size = context.measureText(word).width + 1,
+        var size = context.measureText(word+' ').width,
             draw = false,
             pushed = false;
 
@@ -255,27 +256,27 @@ Evme.Utils = new function Evme_Utils() {
       if (textToDraw.length > 0) {
         drawText(textToDraw, WIDTH/2, offset + currentLine*LINE_HEIGHT);
       }
-      
+
       function drawText(text, x, y) {
         var isSingleWord = text.length === 1,
             text = text.join(' '),
             size = context.measureText(text).width;
-        
+
         if (isSingleWord && size >= WIDTH) {
           while (size >= WIDTH) {
             text = text.substring(0, text.length-1);
             size = context.measureText(text + '…').width;
           }
-          
+
           text += '…';
         }
-        
+
         context.fillText(text, x, y);
       }
 
       return true;
     };
-    
+
     this.isNewUser = function isNewUser() {
         if (newUser === undefined) {
             Evme.Storage.get("counter-ALLTIME", function storageGot(value) {
@@ -284,7 +285,7 @@ Evme.Utils = new function Evme_Utils() {
         }
         return newUser;
     };
-    
+
     this.formatImageData = function formatImageData(image) {
         if (!image || typeof image !== "object") {
             return image;
@@ -330,9 +331,9 @@ Evme.Utils = new function Evme_Utils() {
 
     this.setKeyboardVisibility = function setKeyboardVisibility(value){
     	if (self.isKeyboardVisible === value) return;
-    	
+
         self.isKeyboardVisible = value;
-        
+
         if (self.isKeyboardVisible) {
             Evme.$("#" + CONTAINER_ID).classList.add("keyboard-visible");
         } else {
@@ -406,10 +407,10 @@ Evme.Utils = new function Evme_Utils() {
 
         return true;
     };
-    
+
     this.Apps = new function Apps() {
         var self = this;
-        
+
         this.print = function print(options) {
             var apps = options.apps,
                 numAppsOffset = options.numAppsOffset || 0,
@@ -535,7 +536,7 @@ Evme.Utils = new function Evme_Utils() {
     this.getCurrentSearchQuery = function getCurrentSearchQuery(){
         return Evme.Brain.Searcher.getDisplayedQuery();
     };
-    
+
     var Connection = new function Connection(){
         var self = this,
             currentIndex,
@@ -571,25 +572,25 @@ Evme.Utils = new function Evme_Utils() {
         this.init = function init() {
             window.addEventListener("online", self.setOnline);
             window.addEventListener("offline", self.setOffline);
-            
+
             self.set();
         };
-        
+
         this.setOnline = function setOnline() {
             Evme.EventHandler.trigger("Connection", "online");
         };
         this.setOffline = function setOffline() {
             Evme.EventHandler.trigger("Connection", "offline");
         };
-        
+
         this.online = function online(callback) {
             callback(window.location.href.match(/_offline=true/)? false : navigator.onLine);
         };
-        
+
         this.get = function get(){
             return getCurrent();
         };
-        
+
         this.set = function set(index){
              currentIndex = index || (navigator.connection && navigator.connection.type) || 0;
              return getCurrent();
@@ -618,19 +619,19 @@ Evme.Utils = new function Evme_Utils() {
 Evme.$ = function Evme_$(sSelector, elScope, iterationFunction) {
     var isById = sSelector.charAt(0) === '#',
         els = null;
-    
+
     if (isById) {
         els = [document.getElementById(sSelector.replace('#', ''))];
     } else {
         els = (elScope || Evme.Utils.getContainer()).querySelectorAll(sSelector);
     }
-    
+
     if (iterationFunction !== undefined) {
         for (var i=0, el=els[i]; el; el=els[++i]) {
             iterationFunction.call(el, el);
         }
     }
-    
+
     return isById? els[0] : els;
 };
 
@@ -651,17 +652,17 @@ Evme.$remove = function Evme_$remove(sSelector, scope) {
 
 Evme.$create = function Evme_$create(tagName, attributes, html) {
     var el = document.createElement(tagName);
-    
+
     if (attributes) {
         for (var key in attributes) {
             el.setAttribute(key, attributes[key]);
         }
     }
-    
+
     if (html) {
         el.innerHTML = html;
     }
-    
+
     return el;
 };
 
