@@ -808,22 +808,22 @@ suite('thread_ui.js >', function() {
           MockDialog.mTeardown();
         });
 
-        test('show general error for no signal error', function() {
+        test('show no signal error', function() {
           ThreadUI.showSendMessageError('NoSignalError');
           assert.isTrue(MockDialog.instances[0].show.called);
           assert.equal(MockDialog.calls[0].title.value,
-                      'sendGeneralErrorTitle');
+                      'sendNoSignalTitle');
           assert.equal(MockDialog.calls[0].body.value,
-                      'sendGeneralErrorBody');
+                      'sendNoSignalBody');
         });
 
-        test('show general error for not found error', function() {
+        test('show not found error', function() {
           ThreadUI.showSendMessageError('NotFoundError');
           assert.isTrue(MockDialog.instances[0].show.called);
           assert.equal(MockDialog.calls[0].title.value,
-                      'sendGeneralErrorTitle');
+                      'sendNotFoundTitle');
           assert.equal(MockDialog.calls[0].body.value,
-                      'sendGeneralErrorBody');
+                      'sendNotFoundBody');
         });
 
         test('show general error for unknown error', function() {
@@ -844,22 +844,31 @@ suite('thread_ui.js >', function() {
                       'sendGeneralErrorBody');
         });
 
-        test('show no SIM card', function() {
+        test('show no SIM card error', function() {
           ThreadUI.showSendMessageError('NoSimCardError');
           assert.isTrue(MockDialog.instances[0].show.called);
           assert.equal(MockDialog.calls[0].title.value,
-                      'sendNoSimCardTitle');
+                      'sendNoSimCardTitle2');
           assert.equal(MockDialog.calls[0].body.value,
-                      'sendNoSimCardBody');
+                      'sendNoSimCardBody2');
         });
 
-        test('show air plane mode', function() {
+        test('show air plane mode error', function() {
           ThreadUI.showSendMessageError('RadioDisabledError');
           assert.isTrue(MockDialog.instances[0].show.called);
           assert.equal(MockDialog.calls[0].title.value,
                       'sendAirplaneModeTitle');
           assert.equal(MockDialog.calls[0].body.value,
-                      'sendAirplaneModeBody');
+                      'sendAirplaneModeBody2');
+        });
+
+        test('show invalid address error', function() {
+          ThreadUI.showSendMessageError('InvalidAddressError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendInvalidAddressTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendInvalidAddressBody');
         });
       });
     });
