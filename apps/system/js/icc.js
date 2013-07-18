@@ -329,7 +329,7 @@ var icc = {
       this.icc_input.classList.remove('yesnomode');
 
       // Using setAttribute. See bug #818270
-      this.icc_input_box.setAttribute('maxlength', options.maxlength);
+      this.icc_input_box.setAttribute('maxlength', options.maxLength);
       this.icc_input_box.placeholder = message;
       this.icc_input_box.type = options.isAlphabet ? 'text' : 'tel';
       this.icc_input_box.value = options.defaultText || '';
