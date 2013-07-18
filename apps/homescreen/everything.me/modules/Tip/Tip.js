@@ -54,7 +54,7 @@ window.Evme.Tip = function Evme_Tip(_config, _onShow, _onHide) {
                     
                     Evme.Utils.getContainer().appendChild(el);
                     
-                    el.style.marginTop = -el.offsetHeight/2 + "px";
+                    el.style.marginTop = -el.offsetHeight/20 + "rem";
 
                     self.show();
                 }

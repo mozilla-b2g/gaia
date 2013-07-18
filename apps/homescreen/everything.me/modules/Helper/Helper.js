@@ -90,7 +90,7 @@ Evme.Helper = new function Evme_Helper() {
     this.animateLeft = function animateLeft(callback) {
         el.classList.add("animate");
         window.setTimeout(function onTimeout(){
-            el.style.cssText += "; -moz-transform: translateX(" + -el.offsetWidth + "px)";
+            el.style.cssText += "; -moz-transform: translateX(" + -el.offsetWidth / 10 + "rem)";
             window.setTimeout(function onTimeout(){
                 el.classList.remove("animate");
                 window.setTimeout(function onTimeout(){
@@ -102,7 +102,7 @@ Evme.Helper = new function Evme_Helper() {
     this.animateRight = function animateRight(callback) {
         el.classList.add("animate");
         window.setTimeout(function onTimeout(){
-            el.style.cssText += "; -moz-transform: translateX(" + el.offsetWidth + "px)";
+            el.style.cssText += "; -moz-transform: translateX(" + el.offsetWidth / 10+ "rem)";
             window.setTimeout(function onTimeout(){
                 el.classList.remove("animate");
                 window.setTimeout(function onTimeout(){
@@ -112,7 +112,7 @@ Evme.Helper = new function Evme_Helper() {
         }, 50);
     };
     this.animateFromRight = function animateFromRight() {
-        el.style.cssText += "; -moz-transform: translateX(" + el.offsetWidth + "px)";
+        el.style.cssText += "; -moz-transform: translateX(" + el.offsetWidth / 10 + "rem)";
         window.setTimeout(function onTimeout(){
             el.classList.add("animate");
             window.setTimeout(function onTimeout(){
@@ -124,7 +124,7 @@ Evme.Helper = new function Evme_Helper() {
         }, 20);
     };
     this.animateFromLeft = function animateFromLeft() {
-        el.style.cssText += "; -moz-transform: translateX(" + -el.offsetWidth + "px)";
+        el.style.cssText += "; -moz-transform: translateX(" + -el.offsetWidth / 10 + "rem)";
         window.setTimeout(function onTimeout(){
             el.classList.add("animate");
             window.setTimeout(function onTimeout(){

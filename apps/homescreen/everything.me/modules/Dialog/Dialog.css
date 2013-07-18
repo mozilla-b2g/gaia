@@ -1,20 +1,20 @@
 #evmeContainer .dialog {
     position: absolute;
-    top: 20px;
-    left: 11px;
-    width: 268px;
+    top: 2rem;
+    left: 1.1rem;
+    width: 26.8rem;
     z-index: 0;
-    padding: 7px 13px 13px 13px;
-    font-size: 17px;
+    padding: 0.7rem 1.3rem 1.3rem 1.3rem;
+    font-size: 1.7rem;
     color: #fff;
     opacity: 0;
-    border-radius: 6px;
-    box-shadow: 0 8px 18px 2px rgba(0, 0, 0, .6);
+    border-radius: 0.6rem;
+    box-shadow: 0 0.8rem 1.8rem 0.2rem rgba(0, 0, 0, .6);
 }
 #evmeContainer .dialog,
 #evmeContainer .dialog .tiparrow:before {
     background: rgba(0, 0, 0, .9);
-    border: 2px solid #4c4c4c;
+    border: 0.2rem solid #4c4c4c;
 }
 #evmeContainer .dialog-blackout {
     position: absolute;
@@ -40,9 +40,9 @@
     z-index: 790;
 }
     #evmeContainer .dialog h2 {
-        font-size: 21px;
+        font-size: 2.1rem;
         font-weight: 600;
-        padding: 5px 0;
+        padding: 0.5rem 0;
     }
     #evmeContainer .dialog h2 em {
         font-style: normal;
@@ -50,32 +50,32 @@
     }
     #evmeContainer .dialog .content {
         position: relative;
-        line-height: 20px;
+        line-height: 2rem;
     }
         #evmeContainer .dialog .content a {
             text-decoration: underline;
         }
         #evmeContainer .dialog .content .br {
-            height: 10px;
+            height: 1rem;
         }
     #evmeContainer .dialog .buttons {
-        padding-top: 12px;
+        padding-top: 1.2rem;
     }
         #evmeContainer .dialog .button,
         #evmeContainer .ptip .button {
             position: relative;
             display: inline-block;
-            font-size: 17px;
-            height: 39px;
-            line-height: 39px;
-            width: 128px;
+            font-size: 1.7rem;
+            height: 3.9rem;
+            line-height: 3.9rem;
+            width: 12.8rem;
             cursor: pointer;
             text-align: center;
             font-weight: 600;
             color: #1d2223;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, .6);
-            border: 1px solid #0c3e4d;
-            border-radius: 6px;
+            text-shadow: 0 0.1rem 0 rgba(255, 255, 255, .6);
+            border: 0.1rem solid #0c3e4d;
+            border-radius: 0.6rem;
             font-family: 'Helvetica Neue', 'Helvetica', Arial, Sans-Serif;
             background: #054b62;
             background: -moz-linear-gradient(center top, #d8ecf3 0%, #bfdee9 50%, #b4dae7 50%, #88c3d7 100%);
@@ -85,7 +85,7 @@
             opacity: .7;
         }
         #evmeContainer .dialog .button:last-child {
-            margin-left: 8px;
+            margin-left: 0.8rem;
         }
         #evmeContainer .dialog .button:first-child:last-child {
             display: block;
@@ -94,11 +94,11 @@
         }
     
     #evmeContainer .dialog .tiparrow {
-        width: 24px;
-        height: 12px;
+        width: 2.4rem;
+        height: 1.2rem;
         position: absolute;
-        top: -12px;
-        left: 15px;
+        top: -1.2rem;
+        left: 1.5rem;
         overflow: hidden;
     }
     #evmeContainer .dialog .tiparrow:before {
@@ -106,9 +106,9 @@
         position: absolute;
         top: 50%;
         left: 50%;
-        width: 20px;
-        height: 20px;
-        margin-left: -10px;
+        width: 2rem;
+        height: 2rem;
+        margin-left: -1rem;
         -moz-transform: rotate(45deg);
         transform: rotate(45deg);
     }
@@ -121,13 +121,13 @@
 #evmeContainer .ptip {
     font-family: 'MozTT';
     color: #fff;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, .5);
+    text-shadow: 0 -0.1rem 0 rgba(0, 0, 0, .5);
 }
 #evmeContainer .ptip,
 #evmeContainer .ptip .tiparrow:before {
     background: #833068 url('/everything.me/images/bgpattern.jpg') bottom left repeat;
-    background-size: 36px 36px;
-    border: 2px solid #a6528f;
+    background-size: 3.6rem 3.6rem;
+    border: 0.2rem solid #a6528f;
 }
 #evmeContainer .ptip .content em {
     font-style: normal;
@@ -135,16 +135,16 @@
 }
 
 #evmeContainer #dialog_searchpage-tip {
-    top: 38px;
-    left: 6px;
-    right: 6px;
+    top: 3.8rem;
+    left: 0.6rem;
+    right: 0.6rem;
     width: auto;
     padding: 0;
-    font-size: 19px;
+    font-size: 1.9rem;
     text-align: center;
 }
     #evmeContainer #dialog_searchpage-tip .content {
-        padding: 30px 20px 50px 20px;
+        padding: 3rem 2rem 5rem 2rem;
         line-height: 140%;
         overflow: hidden;
     }
@@ -155,31 +155,31 @@
     #evmeContainer #dialog_searchpage-tip .content:before {
         content: "";
         background: transparent url('/everything.me/images/temp/welcome-icons.jpg') bottom left no-repeat;
-        background-size: 256px 99px;
+        background-size: 25.6rem 9.9rem;
         position: absolute;
-        bottom: -30px;
-        left: -30px;
+        bottom: -3rem;
+        left: -3rem;
         z-index: 5;
-        width: 256px;
-        height: 99px;
+        width: 25.6rem;
+        height: 9.9rem;
         opacity: .99;
     }
     #evmeContainer #dialog_searchpage-tip .tiparrow {
-        left: 42px;
+        left: 4.2rem;
     }
     #evmeContainer .mode-edit #dialog_searchpage-tip .tiparrow {
-        left: 11px;
+        left: 1.1rem;
     }
     
 #evmeContainer #dialog_tip-first-exact {
     text-align: center;
-    font-size: 19px;
+    font-size: 1.9rem;
     line-height: 150%;
     right: auto;
     left: 50%;
-    width: 270px;
-    margin-left: -152px;
-    padding: 12px 15px 15px 15px;
+    width: 27rem;
+    margin-left: -15.2rem;
+    padding: 1.2rem 1.5rem 1.5rem 1.5rem;
 }
     #evmeContainer #dialog_tip-first-exact h2 {
         padding: 0;

@@ -223,7 +223,7 @@ Evme.Utils = new function Evme_Utils() {
       context.shadowOffsetY = 1;
       context.shadowBlur = 3;
       context.shadowColor = 'rgba(0, 0, 0, 0.6)';
-      context.font = 'bold ' + FONT_SIZE + 'px MozTT';
+      context.font = '300 ' + FONT_SIZE  / 10 + 'rem';
 
       for (var i=0,word; word=text[i++];) {
         // add 1 to the word with because of the space between words

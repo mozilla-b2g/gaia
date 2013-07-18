@@ -6,6 +6,7 @@
 #loading-overlay {
   z-index: 200;
   -moz-transition: opacity .3s ease;
+  pointer-events: none;
 }
 
 #loading-overlay > section {

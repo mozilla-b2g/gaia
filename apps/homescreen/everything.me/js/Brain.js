@@ -744,7 +744,7 @@ Evme.Brain = new function Evme_Brain() {
 
             newPos.top -= appBounds.height/4;
 
-            elPseudo.style.cssText += 'position: absolute; top: ' + oldPos.top + 'px; left: ' + oldPos.left + 'px; -moz-transform: translate3d(0,0,0);';
+            elPseudo.style.cssText += 'position: absolute; top: ' + oldPos.top / 10 + 'rem; left: ' + oldPos.left / 10 + 'rem; -moz-transform: translate3d(0,0,0);';
 
             Evme.$('b', elPseudo, function itemIteration(el) {
                 el.textContent = Evme.Utils.l10n('apps', 'loading-app');
@@ -757,7 +757,7 @@ Evme.Brain = new function Evme_Brain() {
                 var x = -Math.round(oldPos.left-newPos.left),
                     y = -Math.round(oldPos.top-newPos.top);
 
-                elPseudo.style.cssText += "; -moz-transform: translate3d(" + x + "px, " + y + "px, 0);";
+                elPseudo.style.cssText += "; -moz-transform: translate3d(" + x / 10 + "rem, " + y /10 + "rem, 0);";
 
                 goToApp(loadingAppAnalyticsData);
             }, 10);
@@ -1867,8 +1867,8 @@ Evme.Brain = new function Evme_Brain() {
                 "feature": source,
                 "exact": exact,
                 "prevQuery": lastQueryForImage,
-                "width": Evme.__config.bgImageSize[0] || screen.width,
-                "height": Evme.__config.bgImageSize[1] || screen.height
+                "width": Evme.__config.bgImageSize[0] * Evme.Utils.devicePixelRatio,
+                "height": Evme.__config.bgImageSize[1] * Evme.Utils.devicePixelRatio
             }, getBackgroundImageComplete);
         };
 
