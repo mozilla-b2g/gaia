@@ -69,6 +69,25 @@ var _FbDataSearcher = function(variants) {
 
 var Contacts = {
 
+  // The mozContact API stores a revision of its database that allow us to know
+  // if we have a proper and updated contact cache.
+  getRevision: function getRevision(callback) {
+    var mozContacts = navigator.mozContacts;
+    if (!mozContacts) {
+      callback(null);
+      return;
+    }
+
+    var req = mozContacts.getRevision();
+    req.onsuccess = function onsuccess(event) {
+      callback(event.target.result);
+    };
+    req.onerror = function onerror(event) {
+      console.log('Error ' + event.target.error);
+      callback(null);
+    };
+  },
+
   findByNumber: function findByNumber(number, callback) {
     loader.load(['/contacts/js/fb/fb_data.js',
                  '/contacts/js/fb/fb_contact_utils.js'],
@@ -107,7 +126,8 @@ var Contacts = {
 
     var request = mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      if (request.result.length === 0) {
+      var contacts = request.result;
+      if (contacts.length === 0) {
         // Checking if FB is enabled or not
         window.asyncStorage.getItem('tokenData', function(data) {
           if (!data || !data.access_token) {
@@ -129,7 +149,7 @@ var Contacts = {
       }
 
       // formatting the matches as an array (contacts) of arrays (phone numbers)
-      var matches = request.result.map(function getTels(contact) {
+      var matches = contacts.map(function getTels(contact) {
         return contact.tel.map(function getNumber(tel) {
           return tel.value;
         });
@@ -138,10 +158,10 @@ var Contacts = {
       // Finding the best match
       var matchResult = SimplePhoneMatcher.bestMatch(variants, matches);
 
-      var contact = request.result[matchResult.bestMatchIndex];
+      var contact = contacts[matchResult.bestMatchIndex];
       var contactsWithSameNumber;
-      if (request.result.length > 1) {
-        contactsWithSameNumber = request.result.length - 1;
+      if (contacts.length > 1) {
+        contactsWithSameNumber = contacts.length - 1;
       }
 
       var matchingTel = contact.tel[matchResult.localIndex];
@@ -166,12 +186,74 @@ var Contacts = {
     };
   },
 
-  findListByNumber: function findListByNumber(number, limit, callback) {
-    if (!navigator.mozContacts) {
+  _mergeFbContacts: function _mergeFbContacts(contacts, callback) {
+    if (!callback || !(callback instanceof Function)) {
+      return;
+    }
+
+    if (!contacts) {
+      callback(null);
+    }
+
+    loader.load(['/contacts/js/fb/fb_data.js',
+                 '/contacts/js/fb/fb_contact_utils.js'], function() {
+      for (var i = 0, length = contacts.length; i < length; i++) {
+        if (fb.isFbLinked(contacts[i])) {
+          var fbReq = fb.contacts.get(fb.getFriendUid(contacts[i]));
+          fbReq.onsuccess = function() {
+            contacts[i] = fb.mergeContact(contacts[i], fbReq.result);
+            if (i === (length - 1)) {
+              callback(contacts);
+            }
+          };
+          fbReq.onerror = function() {
+            console.error('Could not merge Facebook data');
+            callback(contacts);
+          };
+        } else if (i === (length - 1)) {
+          callback(contacts);
+        }
+      }
+    });
+  },
+
+  _findContacts: function _findContacts(options, callback) {
+    if (!callback || !(callback instanceof Function)) {
+      return;
+    }
+
+    if (!navigator.mozContacts || !options) {
       callback(null);
       return;
     }
 
+    var self = this;
+    var req = navigator.mozContacts.find(options);
+    req.onsuccess = function onsuccess() {
+      var contacts = req.result;
+      if (!contacts.length) {
+        callback(null);
+        return;
+      }
+
+      // If we have contacts data from Facebook, we need to merge it with the
+      // one from the Contacts API db.
+      window.asyncStorage.getItem('tokenData', function(data) {
+        if (data && data.access_token) {
+          self._mergeFbContacts(contacts, callback);
+        } else {
+          callback(contacts);
+        }
+      });
+    };
+
+    req.onerror = function onerror() {
+      console.error('Contact finding error. Error: ' + req.errorCode);
+      callback(null);
+    };
+  },
+
+  findListByNumber: function findListByNumber(number, limit, callback) {
     var self = this;
     asyncStorage.getItem('order.lastname', function(value) {
       var sortKey = value ? 'familyName' : 'givenName';
@@ -185,15 +267,7 @@ var Contacts = {
         filterLimit: limit
       };
 
-      var req = navigator.mozContacts.find(options);
-      req.onsuccess = function onsuccess() {
-        callback(req.result);
-      };
-
-      req.onerror = function onerror() {
-        var msg = 'Contact finding error. Error: ' + req.errorCode;
-        callback(null);
-      };
+      self._findContacts(options, callback);
     });
   }
 };
