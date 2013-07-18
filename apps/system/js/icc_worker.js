@@ -4,7 +4,7 @@
 'use strict';
 
 var icc_worker = {
-  dummy: function icc_worker_dummy() {
+  dummy: function icc_worker_dummy(iccManager) {
     DUMP('STK Command not implemented yet');
     iccManager.responseSTKCommand({
       resultCode: iccManager._icc.STK_RESULT_OK
@@ -15,19 +15,19 @@ var icc_worker = {
   '0x1': function STK_CMD_REFRESH(command, iccManager) {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=800271#c10
     DUMP('STK_CMD_REFRESH', command.options);
-    icc_worker.dummy();
+    icc_worker.dummy(iccManager);
   },
 
   // STK_CMD_POLL_INTERVAL
   '0x3': function STK_CMD_POLL_INTERVAL(command, iccManager) {
     DUMP('STK_CMD_POLL_INTERVAL', command.options);
-    icc_worker.dummy();
+    icc_worker.dummy(iccManager);
   },
 
   // STK_CMD_POLL_OFF
   '0x4': function STK_CMD_POLL_OFF(command, iccManager) {
     DUMP('STK_CMD_POLL_OFF', command.options);
-    icc_worker.dummy();
+    icc_worker.dummy(iccManager);
   },
 
   // STK_CMD_SET_UP_EVENT_LIST
@@ -338,14 +338,14 @@ var icc_worker = {
   '0x26': function STK_CMD_PROVIDE_LOCAL_INFO(command, iccManager) {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=817952
     DUMP('STK_CMD_PROVIDE_LOCAL_INFO', command.options);
-    icc_worker.dummy();
+    icc_worker.dummy(iccManager);
   },
 
   // STK_CMD_TIMER_MANAGEMENT
   '0x27': function STK_CMD_TIMER_MANAGEMENT(command, iccManager) {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=817954
     DUMP('STK_CMD_TIMER_MANAGEMENT', command.options);
-    icc_worker.dummy();
+    icc_worker.dummy(iccManager);
   },
 
   // STK_CMD_SET_UP_IDLE_MODE_TEXT
