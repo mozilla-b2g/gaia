@@ -487,6 +487,9 @@ var GridManager = (function() {
     current.MozTransition = '';
     current.MozTransform = 'translateX(0)';
 
+    delete fromPage.container.dataset.currentPage;
+    toPage.container.dataset.currentPage = 'true';
+
     togglePagesVisibility(index - 1, index + 1);
 
     if (callback) {
