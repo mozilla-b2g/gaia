@@ -78,10 +78,16 @@ var PhoneNumberActionMenu = (function() {
       _addToExistingContactMenuItem.classList.remove('hide');
     }
     if (contactId) {
-      window.location.hash = '#contacts-view';
-
+      var contactsIframe = document.getElementById('iframe-contacts');
+      if (!contactsIframe) {
+        window.location.hash = '#contacts-view';
+      }
       setTimeout(function nextTick() { /* we'll have the iframe by then */
-        var contactsIframe = document.getElementById('iframe-contacts');
+        if (!!contactsIframe) {
+          window.location.hash = '#contacts-view';
+        }else {
+          contactsIframe = document.getElementById('iframe-contacts');
+        }
         var src = '/contacts/index.html';
         src += '#view-contact-details?id=' + contactId;
         src += '&tel=' + phoneNumber;
