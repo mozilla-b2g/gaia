@@ -806,7 +806,7 @@ if (typeof window.importer === 'undefined') {
               friendsImported = true;
             });
           }
-          if (unSelected > 0) {
+          if (!cancelled && unSelected > 0) {
             progress.setFrom('update');
             cleanContacts(function callback() {
               onUpdate(progress.getValue());
