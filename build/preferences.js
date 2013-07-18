@@ -103,6 +103,11 @@ if (DEBUG) {
   prefs.push(["extensions.gaia.port", parseInt(GAIA_PORT.replace(/:/g, ""))]);
   prefs.push(["extensions.gaia.app_src_dirs", GAIA_APP_SRCDIRS]);
   prefs.push(["extensions.gaia.locales_debug_path", GAIA_LOCALES_PATH]);
+
+  let suffix = GAIA_DEV_PIXELS_PER_PX === '1' ?
+               '' : '@' + GAIA_DEV_PIXELS_PER_PX + 'x';
+  prefs.push(["extensions.gaia.device_pixel_suffix", suffix]);
+
   let appPathList = [];
   Gaia.webapps.forEach(function (webapp) {
     appPathList.push(webapp.sourceAppDirectoryName + '/' +

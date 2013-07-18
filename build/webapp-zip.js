@@ -38,6 +38,38 @@ function addEntryFileWithTime(zip, pathInZip, file, time) {
  * @param {nsIFile}      file      file xpcom to add.
  */
 function addToZip(zip, pathInZip, file) {
+  let suffix = '@' + GAIA_DEV_PIXELS_PER_PX + 'x';
+  if (file.isHidden())
+    return;
+
+  // If GAIA_DEV_PIXELS_PER_PX is not 1 and the file is a bitmap let's check
+  // if there is a bigger version in the directory. If so let's ignore the
+  // file in order to use the bigger version later.
+  let isBitmap = /\.(png|gif|jpg)$/.test(file.path);
+  if (isBitmap) {
+    let matchResult = /@([0-9]+\.?[0-9]*)x/.exec(file.path);
+    if ((GAIA_DEV_PIXELS_PER_PX === '1' && matchResult) ||
+        (matchResult && matchResult[1] !== GAIA_DEV_PIXELS_PER_PX)) {
+      return;
+    }
+
+    if (GAIA_DEV_PIXELS_PER_PX !== '1') {
+      if (matchResult && matchResult[1] === GAIA_DEV_PIXELS_PER_PX) {
+        // Save the hidpi file to the zip, strip the name to be more generic.
+        pathInZip = pathInZip.replace(suffix, '');
+      } else {
+        // Check if there a hidpi file. If yes, let's ignore this bitmap since
+        // it will be loaded later (or it has already been loaded, depending on
+        // how the OS organize files.
+        let hqfile = new FileUtils.File(
+            file.path.replace(/(\.[a-z]+$)/, suffix + '$1'));
+        if (hqfile.exists()) {
+          return;
+        }
+      }
+    }
+  }
+
   if (isSubjectToBranding(file.path)) {
     file.append((OFFICIAL == 1) ? 'official' : 'unofficial');
   }
