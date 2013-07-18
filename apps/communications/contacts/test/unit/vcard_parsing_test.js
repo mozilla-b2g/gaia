@@ -72,6 +72,17 @@ var vcf4 = 'BEGIN:VCARD\n' +
   'ORG;CHARSET=UTF-8:;\n' +
   'END:VCARD\n';
 
+var vcf5 = 'BEGIN:VCARD\r\n' +
+  'VERSION:3.0\r\n' +
+  'FN;CHARSET=UTF-8:Foo Bar\r\n' +
+  'N;CHARSET=UTF-8:Bar;Foo;;;\r\n' +
+  'BDAY;CHARSET=UTF-8:1975-05-20\r\n' +
+  'TEL;CHARSET=UTF-8;TYPE=CELL;PREF:(123) 456-7890\r\n' +
+  'TEL;CHARSET=UTF-8;TYPE=WORK:(123) 666-7890\r\n' +
+  'EMAIL;CHARSET=UTF-8;TYPE=HOME:example@example.org\r\n' +
+  'ORG;CHARSET=UTF-8:;\r\n' +
+  'END:VCARD\r\n';
+
 var vcfwrong1 = 'BEGIN:VCARD\n' +
   'VERSION:4.0\n' +
   'N:Gump;Forrest;;;\n' +
@@ -371,6 +382,27 @@ suite('vCard parsing settings', function() {
     });
     test('- Test for UTF8 charset', function(done) {
       var reader = new VCFReader(vcf4);
+      reader.onread = stub();
+      reader.onimported = stub();
+      reader.onerror = stub();
+
+      reader.process(function import_finish(contacts) {
+        var contact = contacts[0];
+        assert.strictEqual('Foo Bar', contact.name[0]);
+        assert.strictEqual('Foo', contact.givenName[0]);
+        assert.strictEqual('CELL', contact.tel[0].type[0]);
+        assert.strictEqual('WORK', contact.tel[1].type[0]);
+        assert.strictEqual(true, contact.tel[0].pref);
+        assert.strictEqual('(123) 456-7890', contact.tel[0].value);
+        assert.strictEqual('(123) 666-7890', contact.tel[1].value);
+        assert.strictEqual('', contact.org[0]);
+        assert.strictEqual('HOME', contact.email[0].type[0]);
+        assert.strictEqual('example@example.org', contact.email[0].value);
+        done();
+      });
+    });
+    test('- test for \\r\\n end-of-line termination', function(done) {
+      var reader = new VCFReader(vcf5);
       reader.onread = stub();
       reader.onimported = stub();
       reader.onerror = stub();
