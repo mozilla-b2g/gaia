@@ -103,10 +103,11 @@ var Widget = (function() {
     ConfigManager.observe('lastTelephonyReset', onReset, true);
 
     // Subviews
+    var balanceConfig = ConfigManager.configuration.balance;
     balanceView = new BalanceView(
       document.getElementById('balance-credit'),
       document.querySelector('#balance-credit + .meta'),
-      ConfigManager.configuration.balance.minimum_delay
+      balanceConfig ? balanceConfig.minimum_delay : undefined
     );
 
     // Update UI when visible

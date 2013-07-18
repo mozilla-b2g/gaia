@@ -146,6 +146,7 @@ var GridManager = (function() {
   function addActive(target) {
     if ('isIcon' in target.dataset) {
       target.classList.add('active');
+      removeActive !== noop && removeActive();
       removeActive = function _removeActive() {
         target.classList.remove('active');
         removeActive = noop;

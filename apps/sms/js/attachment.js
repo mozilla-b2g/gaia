@@ -111,21 +111,44 @@
       };
     },
 
-    bubbleEvents: function(event) {
-      // Bubble click events from inside the iframe
-      event.target.contentDocument.addEventListener('click',
-        event.target.click.bind(event.target));
+    getAttachmentSrc: function(thumbnail, tmplID) {
+      // interpolate the #attachment-[no]preview-tmpl template
+      thumbnail = thumbnail || {};
+      return Utils.Template(tmplID).interpolate({
+        type: this.type,
+        errorClass: thumbnail.error ? 'corrupted' : '',
+        imgData: thumbnail.data,
+        fileName: this.name.slice(this.name.lastIndexOf('/') + 1),
+        size: this.sizeForHumans
+      });
+    },
 
-      // Bubble the contextmenu(longpress) as a click
-      event.target.contentDocument.addEventListener('contextmenu',
-        event.target.click.bind(event.target));
+    bubbleEvents: function(event) {
+      // Bubble click events from inside the iframe.
+      var iframe = event.target;
+      var clickOnFrame = iframe.click.bind(iframe);
+      iframe.contentDocument.addEventListener('click', clickOnFrame);
+      iframe.contentDocument.addEventListener('contextmenu', clickOnFrame);
     },
 
     render: function(readyCallback) {
-      var el = document.createElement('iframe');
-      var type = this.type; // attachment type
+      /**
+       * A <div> container suits most of the cases where we want to display an
+       * MMS attachment (= icon + file name + file size). However, drafts are a
+       * specific case because they are inside an editable area.
+       *
+       * A <div contenteditable="false"> container would be fine for drafts but
+       * Gecko does not support it at the moment, see bug 685445:
+       * https://bugzilla.mozilla.org/show_bug.cgi?id=685445
+       *
+       * By using an <iframe> for drafts, we make sure that the attachment block
+       * is deletable but not editable; outside of the Compose area, a <div>
+       * container is still fine -- and it's *way* faster.
+       */
+      var container = document.createElement(this.isDraft ? 'iframe' : 'div');
 
-      var setFrameSrc = (function(thumbnail) {
+      // display the attachment in the iframe/div container
+      var setAttachmentContainerSrc = (function(thumbnail) {
         thumbnail = thumbnail || {
           width: MIN_THUMBNAIL_WIDTH_HEIGHT,
           height: MIN_THUMBNAIL_WIDTH_HEIGHT,
@@ -133,54 +156,62 @@
           error: false
         };
 
-        el.width = thumbnail.width;
-        el.height = thumbnail.height;
+        var hasPreview = (thumbnail.data && !thumbnail.error);
+        if (hasPreview) {
+          var borderWidth = 1; // px
+          container.style.width = (thumbnail.width + 2 * borderWidth) + 'px';
+          container.style.height = (thumbnail.height + 2 * borderWidth) + 'px';
+        }
 
-        var template = {
-          type: type,
-          draftClass: this.isDraft ? 'draft' : '',
-          errorClass: thumbnail.error ? 'corrupted' : '',
-          inlineStyle: (thumbnail.data && !thumbnail.error) ?
-            'background: url(' + thumbnail.data + ') no-repeat center center;' :
-            '',
-          baseURL: location.protocol + '//' + location.host + '/',
-          size: this.sizeForHumans
-        };
+        var previewClass = hasPreview ? 'preview' : 'nopreview';
+        var tmplID = 'attachment-' + previewClass + '-tmpl';
+        container.classList.add(previewClass);
 
-        // Attach click listeners and fire the callback when rendering is
-        // complete: we can't bind `readyCallback' to the `load' event
-        // listener because it would break our unit tests.
-        el.addEventListener('load', this.bubbleEvents.bind(this));
-        el.src = 'data:text/html,' +
-          Utils.Template('attachment-tmpl').interpolate(template);
+        if (this.isDraft) { // <iframe>
+          var tmplSrc = Utils.Template('attachment-draft-tmpl').interpolate({
+            previewClass: previewClass,
+            baseURL: location.protocol + '//' + location.host + '/',
+            attachmentHTML: this.getAttachmentSrc(thumbnail, tmplID)
+          }, { safe: ['attachmentHTML'] });
+
+          // The attachment's iFrame requires access to the parent document's
+          // context so that URIs for Blobs created in the parent may resolve as
+          // expected.
+          container.setAttribute('sandbox', 'allow-same-origin');
+
+          // Attach click listeners and fire the callback when rendering is
+          // complete: we can't bind `readyCallback' to the `load' event
+          // listener because it would break our unit tests.
+          container.addEventListener('load', this.bubbleEvents.bind(this));
+          container.src = 'data:text/html,' + tmplSrc;
+        } else { // <div>
+          container.innerHTML = this.getAttachmentSrc(thumbnail, tmplID);
+        }
+
         if (readyCallback) {
           readyCallback();
         }
       }).bind(this);
 
-      // The attachment's iFrame requires access to the parent document's
-      // context so that URIs for Blobs created in the parent may resolve as
-      // expected.
-      el.setAttribute('sandbox', 'allow-same-origin');
-      el.className = 'attachment';
-      el.dataset.attachmentType = type;
+      container.className = 'attachment-container';
+      container.dataset.attachmentType = this.type;
 
       // We special case audio to display an image of an audio attachment video
       // currently falls through this path too, we should revisit this with
       // Bug 869244 - [MMS] 'Thumbnail'/'Poster' in video attachment is needed.
-      if (type === 'img' && this.size < MAX_THUMBNAIL_GENERATION_SIZE) {
+      if (this.type === 'img' && this.size < MAX_THUMBNAIL_GENERATION_SIZE) {
         // TODO: store this thumbnail data (indexedDB)
         // Bug 876467 - [MMS] generate, store, and reuse image thumbnails
-        this.getThumbnail(setFrameSrc);
+        this.getThumbnail(setAttachmentContainerSrc);
       } else {
         // Display the default attachment placeholder for the current type: img,
         // audio, video, other.  We have to be asynchronous to keep the
         // behaviour consistent with the thumbnail case.
-        setTimeout(setFrameSrc);
+        setTimeout(setAttachmentContainerSrc);
       }
 
       // Remember: the <iframe> content is created asynchrounously.
-      return el;
+      return container;
     },
 
     view: function(options) {

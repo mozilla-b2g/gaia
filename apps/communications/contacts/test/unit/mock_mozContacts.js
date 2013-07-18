@@ -36,5 +36,18 @@ var MockMozContacts = {
 
       }
     };
+  },
+  save: function save(ct) {
+    return {
+      set onsuccess(callback) {
+        var self = this;
+        setTimeout(function() {
+          callback.call(self);
+        }, 10);
+      },
+      set onerror(callback) {
+
+      }
+    };
   }
 };

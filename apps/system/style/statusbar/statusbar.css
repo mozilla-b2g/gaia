@@ -278,8 +278,16 @@ body, html {
 }
 
 .sb-icon-network-activity {
-  background: url('images/network-activity.png') no-repeat;
-  background-position: 0 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  /* HACK: This enforces allocation of a dedicated layer just for this animated
+   * icon, remove after bug 717872 gets fixed. */
+  display: block;
+  transform: perspective(1px);
+}
+
+.sb-icon-network-activity[hidden] {
+  display: none;
 }
 
 .sb-icon-headphones {
@@ -397,13 +405,17 @@ body, html {
   font-size: 1.15rem; /*5pt  was 0.8rem */
 }
 
-/* JW: should we show how many current download we have
- * as in sb-icon-ms or sb-icon-notification ? */
 .sb-icon-system-downloads {
-  /* JW: waiting for the correct icon; in the mean time I made this one */
-  background: url('images/system-downloads.gif') no-repeat;
-  background-position: 0 0;
-  background-size: 1.6rem 1.6rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  /* HACK: This enforces allocation of a dedicated layer just for this animated
+   * icon, remove after bug 717872 gets fixed. */
+  display: block;
+  transform: perspective(1px);
+}
+
+.sb-icon-system-downloads[hidden] {
+  display: none;
 }
 
 .sb-icon-call-forwarding {

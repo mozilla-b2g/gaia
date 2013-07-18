@@ -171,6 +171,10 @@ var CallScreen = {
 
   enableKeypad: function cs_enableKeypad() {
     this.keypadButton.removeAttribute('disabled');
+  },
+
+  disableKeypad: function cs_disableKeypad() {
+    this.keypadButton.setAttribute('disabled', 'disabled');
   }
 };
 
@@ -473,6 +477,14 @@ var OnCallHandler = (function onCallHandler() {
         closeWindow();
       }
     });
+  }
+
+  function updateKeypadEnabled() {
+    if (telephony.active) {
+      CallScreen.enableKeypad();
+    } else {
+      CallScreen.disableKeypad();
+    }
   }
 
   function exitCallScreen(animate) {
@@ -783,7 +795,7 @@ var OnCallHandler = (function onCallHandler() {
     toggleCalls: toggleCalls,
     ignore: ignore,
     end: end,
-
+    updateKeypadEnabled: updateKeypadEnabled,
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,
     unmute: unmute,

@@ -23,6 +23,7 @@
     <link rel="stylesheet" type="text/css" href="style/root.css">
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
+    <link rel="stylesheet" type="text/css" href="style/attachment.css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
@@ -31,14 +32,11 @@
     <!--
     <script defer src="shared/js/l10n_date.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
-    <script defer src="shared/js/custom_dialog.js"></script>
-    <script defer src="shared/js/desktop.js"></script>
     <script defer src="shared/js/notification_helper.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
     -->
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="js/startup.js"></script>
-
   </head>
 
   <body role="application">
@@ -65,7 +63,6 @@
             <p data-l10n-id="noMessages-text">Start communicating now</p>
           </div>
         </div>
-
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
           <section>
@@ -148,7 +145,7 @@
           <button id="messages-attach-button" class="icon icon-attachment">Attachment</button>
           <button id="messages-send-button" disabled data-l10n-id="send" type="submit">Send</button>
           <!-- The <br> is needed because of 414223, which is a WONTFIX. It's just because of how contentEditable works. https://bugzilla.mozilla.org/show_bug.cgi?id=414223 -->
-          <div id="messages-input" contentEditable="true" name="message" placeholder="Message" data-l10n-id="composeMessage"><br></div>
+          <div id="messages-input" contentEditable="true" name="message" data-l10n-id="composeMessage"><br></div>
         </form>
         <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit" >
           <section>
@@ -173,6 +170,7 @@
         </form>
       </section>
     </article>
+
     <article id="loading">
       <form role="dialog" data-type="confirm" class="loading-container">
         <section>
@@ -183,6 +181,7 @@
         </section>
       </form>
     </article>
+
     <menu id="attachment-options-menu" class="hide" tabindex="-1">
       <div>
         <form id="attachment-options" role="dialog" data-type="action">
@@ -196,11 +195,15 @@
         </form>
       </div>
     </menu>
-    </div>
+
+    <!--
+      -  Templates
+      -->
+
     <div id="messages-contact-tmpl" class="hide">
       <!--
       <a class="suggestion"
-        data-number="${number}" data-source="contacts" data-name="${name}">
+        data-number="${number}" data-source="contacts" data-name="${name}" data-display="${type}${separator}${carrier}${number}">
         <p class="name">${nameHTML}</p>
         <p>
           ${type}${separator}${carrier}${numberHTML}
@@ -270,25 +273,56 @@
       <!--
       <span class="recipient" x-inputmode="verbatim"
         contenteditable="${editable}"
-        data-number="${number}" data-source="${source}" data-name="${name}">
+        data-number="${number}" data-source="${source}" data-name="${name}" data-display="${display}">
         ${name}
       </span>
       -->
     </div>
 
-    <div id="attachment-tmpl" class="hide">
+    <div id="attachment-nopreview-tmpl" class="hide">
+      <!--
+      <div class="attachment">
+        <div class="thumbnail-placeholder ${type}-placeholder">
+          <div class="${errorClass}"></div>
+        </div>
+        <div class="size-indicator">${size}</div>
+      </div>
+      <div class="file-name">${fileName}</div>
+      -->
+    </div>
+
+    <div id="attachment-preview-tmpl" class="hide">
+      <!--
+      <div class="attachment">
+        <div class="thumbnail" style="background-image: url(${imgData})"></div>
+        <div class="size-indicator">${size}</div>
+      </div>
+      <div class="file-name">${fileName}</div>
+      -->
+    </div>
+
+    <div id="attachment-draft-tmpl" class="hide">
       <!--
       <head>
         <meta charset="utf-8">
         <base href="${baseURL}">
+        <style type="text/css">
+          html, body { font-size: 10px; }
+        </style>
         <link rel="stylesheet" type="text/css" href="style/attachment.css">
       </head>
-      <body class="attachment ${draftClass}">
-        <div style="${inlineStyle}" class="placeholder ${type}-placeholder">
-          <div class="${errorClass}"></div>
-        </div>
-        <div class="size-indicator">${size}</div>
+      <body class="attachment-draft ${previewClass}">
+        ${attachmentHTML}
       </body>
+      -->
+    </div>
+
+    <div id="height-rule-tmpl" class="hide">
+      <!--
+      #messages-recipients-list.multiline {
+        overflow-y: scroll;
+        height: ${height}px;
+      }
       -->
     </div>
   </body>

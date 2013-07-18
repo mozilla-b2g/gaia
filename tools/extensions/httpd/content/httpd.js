@@ -45,7 +45,6 @@ Components.utils.import('resource://gre/modules/Services.jsm');
 const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
 const GAIA_APP_RELATIVEPATH = Services.prefs.getCharPref("extensions.gaia.app_relative_path");
 const GAIA_LOCALES_PATH = Services.prefs.getCharPref("extensions.gaia.locales_debug_path");
-const GAIA_DEVICE_PIXEL_SUFFIX = Services.prefs.getCharPref("extensions.gaia.device_pixel_suffix");
 // -GAIA
 
 /*
@@ -302,7 +301,7 @@ function toDateString(date)
   {
     var hrs = date.getUTCHours();
     var rv  = (hrs < 10) ? "0" + hrs : hrs;
-
+    
     var mins = date.getUTCMinutes();
     rv += ":";
     rv += (mins < 10) ? "0" + mins : mins;
@@ -826,7 +825,7 @@ const HOST_REGEX =
                // toplabel
                "[a-z](?:[a-z0-9-]*[a-z0-9])?" +
              "|" +
-               // IPv4 address
+               // IPv4 address 
                "\\d+\\.\\d+\\.\\d+\\.\\d+" +
              ")$",
              "i");
@@ -1037,7 +1036,7 @@ ServerIdentity.prototype =
       // Not the default primary location, nothing special to do here
       this.remove("http", "127.0.0.1", this._defaultPort);
     }
-
+    
     // This is a *very* tricky bit of reasoning here; make absolutely sure the
     // tests for this code pass before you commit changes to it.
     if (this._primaryScheme == "http" &&
@@ -1446,20 +1445,8 @@ RequestReader.prototype =
             }
             request._path = filePath + oldPath;
 
-            // Replace by high quality assets if available.
-            if (GAIA_DEVICE_PIXEL_SUFFIX && (oldPath.endsWith('.png') ||
-                oldPath.endsWith('.gif') || oldPath.endsWith('.jpg'))) {
-              var hidpiPath = filePath + oldPath.slice(0, -4) +
-                    GAIA_DEVICE_PIXEL_SUFFIX + oldPath.slice(-4);
-              var file =
-                    this._connection.server._handler._getFileForPath(hidpiPath);
-              if (file.exists() && file.isFile()) {
-                request._path = hidpiPath;
-              }
-            }
-
             // Handle localization files
-            if (oldPath.indexOf(".properties") !== -1 &&
+            if (oldPath.indexOf(".properties") !== -1 && 
                 oldPath.indexOf("en-US.properties") === -1) {
               request._path = this._findPropertiesPath(request._path);
             }
@@ -1481,8 +1468,8 @@ RequestReader.prototype =
 
   /**
    * Try to find out real path of apps,
-   * according to GAIA_APP_RELATIVEPATH provided by Makefile.
-   */
+   * according to GAIA_APP_RELATIVEPATH provided by Makefile. 
+   */ 
   _findRealPath: function(appName) {
     if (this._realPath) {
       return this._realPath[appName];
@@ -1505,7 +1492,7 @@ RequestReader.prototype =
 
   /**
    * Try finding the localization files in GAIA_LOCALES_PATH
-   */
+   */ 
   _findPropertiesPath: function(path) {
     // /apps/browser/locales/browser.fr.properties
     // /apps/calendar/../../shared/locales/date/date.fr.properties
@@ -1523,11 +1510,11 @@ RequestReader.prototype =
     var debugPath;
     if (component === "locales") {
       // /locales/fr/apps/browser/browser.properties
-      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/" + appDir +
+      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/" + appDir + 
                    "/" + appName + "/" + resourceName + ".properties");
     } else {
       // /locales/fr/shared/date/date.properties
-      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/shared" +
+      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/shared" + 
                    "/" + resourceName + ".properties");
     }
 
@@ -1575,7 +1562,7 @@ RequestReader.prototype =
         this._handleResponse();
         return true;
       }
-
+      
       return false;
     }
     catch (e)
@@ -2248,7 +2235,7 @@ function maybeAddHeaders(file, metadata, response)
         code = status.substring(0, space);
         description = status.substring(space + 1, status.length);
       }
-
+    
       response.setStatusLine(metadata.httpVersion, parseInt(code, 10), description);
 
       line.value = "";
@@ -2318,7 +2305,7 @@ function ServerHandler(server)
    * @see ServerHandler.prototype._defaultPaths
    */
   this._overridePaths = {};
-
+  
   /**
    * Custom request handlers for the error handlers in the server in which this
    * resides.  Path-handler pairs are stored as property-value pairs in this
@@ -3136,7 +3123,7 @@ ServerHandler.prototype =
     dumpn("*** error in request: " + errorCode);
 
     this._handleError(errorCode, new Request(connection.port), response);
-  },
+  }, 
 
   /**
    * Handles a request which generates the given error code, using the
@@ -3385,7 +3372,7 @@ ServerHandler.prototype =
 
       if (metadata.queryString)
         body +=  "?" + metadata.queryString;
-
+        
       body += " HTTP/" + metadata.httpVersion + "\r\n";
 
       var headEnum = metadata.headers;
@@ -4931,17 +4918,17 @@ nsHttpHeaders.prototype =
     var value = headerUtils.normalizeFieldValue(fieldValue);
 
     // The following three headers are stored as arrays because their real-world
-    // syntax prevents joining individual headers into a single header using
+    // syntax prevents joining individual headers into a single header using 
     // ",".  See also <http://hg.mozilla.org/mozilla-central/diff/9b2a99adc05e/netwerk/protocol/http/src/nsHttpHeaderArray.cpp#l77>
     if (merge && name in this._headers)
     {
       if (name === "www-authenticate" ||
           name === "proxy-authenticate" ||
-          name === "set-cookie")
+          name === "set-cookie") 
       {
         this._headers[name].push(value);
       }
-      else
+      else 
       {
         this._headers[name][0] += "," + value;
         NS_ASSERT(this._headers[name].length === 1,
@@ -4964,8 +4951,8 @@ nsHttpHeaders.prototype =
    * @returns string
    *   the field value for the given header, possibly with non-semantic changes
    *   (i.e., leading/trailing whitespace stripped, whitespace runs replaced
-   *   with spaces, etc.) at the option of the implementation; multiple
-   *   instances of the header will be combined with a comma, except for
+   *   with spaces, etc.) at the option of the implementation; multiple 
+   *   instances of the header will be combined with a comma, except for 
    *   the three headers noted in the description of getHeaderValues
    */
   getHeader: function(fieldName)
@@ -5227,7 +5214,7 @@ Request.prototype =
   //
   // see nsIPropertyBag.getProperty
   //
-  getProperty: function(name)
+  getProperty: function(name) 
   {
     this._ensurePropertyBag();
     return this._bag.getProperty(name);
@@ -5249,7 +5236,7 @@ Request.prototype =
 
 
   // PRIVATE IMPLEMENTATION
-
+  
   /** Ensures a property bag has been created for ad-hoc behaviors. */
   _ensurePropertyBag: function()
   {

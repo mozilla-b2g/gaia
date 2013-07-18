@@ -1,7 +1,7 @@
 #value-selector {
   width: 100%;
-  height: calc(100% - 2rem);
-  top: 2rem;
+  height: 100%;
+  top: 0;
   left: 0;
   position: absolute;
   transition: opacity 0.5s;
@@ -31,7 +31,8 @@
   white-space: nowrap;
   margin: 0;
   padding: 0;
-  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
+  border-top: 0.2rem solid;
+  -moz-border-top-colors: #000 rgba(255, 255, 255, 0.1);
   background: #2d2d2d url(../themes/default/images/ui/pattern.png) repeat left top;
   display: block;
   overflow: hidden;
@@ -44,17 +45,17 @@
 }
 
 #value-selector button:first-child {
-    margin-right: 0rem;
+    margin-right: 0;
 }
 
 #select-options-buttons button,
 #time-picker-buttons button,
-#spin-date-picker-buttons button{
+#spin-date-picker-buttons button {
   /* from building block - other/buttons/style.css*/
   width: calc((100% - 4.5rem) / 2);  /*overridden for 2 buttons*/
-
-  height: 3.8rem;
-  margin: 1.5rem;
+  -moz-box-sizing: border-box;
+  height: 4rem;
+  margin: 1.4rem 1.5rem;
   padding: 0 1.5rem;
   display: inline-block;
   vertical-align: middle;
@@ -65,7 +66,7 @@
   border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
   font-size: 1.6rem;
-  font-family: 'MozTT', Sans-serif;
+  font-family: Sans-serif;
   font-weight: 600;
   line-height: 3.8rem;
   color: #333;
@@ -83,19 +84,30 @@
 }
 
 #select-options-buttons button.full {
-    width: calc(100% - 4.5rem);
-    margin: 1.5rem;
+  width: calc(100% - 4.5rem);
+  margin: 1.5rem;
 }
 
-#value-selector button:active,
-button.affirmative:active {
+/*active class used to complement the "return false" in onmousedown effect */
+#value-selector button.active,
+button.affirmative.active {
   border-color: #008aaa;
   background: #008aaa;
   color: #333;
 }
 
+#value-selector-container li {
+  height: 4.6rem;
+  line-height: 4.6rem;
+}
+
 #value-selector-container li > label {
-    pointer-events: none;
+  pointer-events: none;
+}
+
+#value-selector-container li.active label span {
+  background: #00ABCC;
+  color: #fff !important;
 }
 
 #time-picker-popup,
@@ -114,33 +126,23 @@ button.affirmative:active {
   bottom: 0;
   white-space: nowrap;
   padding: 0 0 7rem;  /*remove the top padding*/
-  font-family: "MozTT", Sans-serif;
+  font-family: Sans-serif;
   color: #fff;
 }
 
 #time-picker-popup h3,
 #spin-date-picker-popup h3 {
-    font-family: 'MozTT', Sans-serif;
-    font-weight: normal;
-    font-size: 1.6rem;
-    line-height: 1em;
-    color: #fff;
-    border-bottom: 0.1rem solid #686868;
-    margin: 0 0 1.5rem;
-    padding-bottom: 1.5rem;
-}
-
-.table-wrapper {
-  display: table;
-  width:  100%;
-  height: 100%;
-}
-
-.table-cell {
-  display: table-cell;
-  vertical-align: middle;
-  width:  100%;
-  height: 100%;
+  height: 4.8rem;
+  margin: 0 0 1.5rem;
+  padding: 2rem 3rem 0;
+  color: #fff;
+  font-family: Sans-serif;
+  font-weight: 400;
+  font-size: 1.9rem;
+  line-height: 4.8rem;
+  border-bottom: 0.2rem solid;
+  -moz-border-bottom-colors: #000 rgba(255, 255, 255, 0.1);
+  background: rgba(0,0,0, .2);
 }
 
 .value-picker > *[data-disabled="true"] {

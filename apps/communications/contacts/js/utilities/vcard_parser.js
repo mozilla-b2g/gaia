@@ -13,29 +13,31 @@ var VCFReader = function(contents) {
 
 VCFReader.prototype.process = function(cb) {
   try {
-    this.rawContacts = this.contents
-      .split('END:VCARD')
-      .map(VCFReader.parseSingleEntry)
-      .filter(function(v) { return !!v; });
-    this.onread && this.onread(this.rawContacts.length);
+    var rawContacts = [];
+    this.contents = this.contents.split('END:VCARD');
+    this.contents.forEach(function(c) {
+      var parsed = VCFReader.parseSingleEntry(c);
+      if (parsed)
+        rawContacts.push(parsed);
+    });
+    this.contents = null;
+    this.onread && this.onread(rawContacts.length);
   } catch (e) {
     this.onerror && this.onerror(e);
     return;
   }
 
-  var allDone = false;
   var self = this;
+  var allDone = false;
+  this.totalContacts = rawContacts.length;
+  rawContacts.forEach(function(ct) { VCFReader.save(ct, onParsed); });
 
-  var finalContacts = [];
-  this.validContacts = this.rawContacts.length;
-  this.rawContacts.forEach(function(ct) { this.save(ct, onParsed); }, this);
   function onParsed(err, ct) {
     self.onimported && self.onimported();
 
     self.processedContacts += 1;
-    finalContacts.push(ct);
     if (self.checkIfCompleted() && allDone === false) {
-      cb(finalContacts);
+      cb(rawContacts);
       allDone = true;
     }
   }
@@ -47,7 +49,7 @@ VCFReader.prototype.process = function(cb) {
  * @return {Boolean} return true if processed, false otherwise.
  */
 VCFReader.prototype.checkIfCompleted = function() {
-  return this.processedContacts === this.validContacts;
+  return this.processedContacts === this.totalContacts;
 };
 
 /**
@@ -56,14 +58,11 @@ VCFReader.prototype.checkIfCompleted = function() {
  * @param {Object} item represents a single vCard entry.
  * @param {Function} cb Callback.
  */
-VCFReader.prototype.save = function(item, cb) {
+VCFReader.save = function(item, cb) {
   var req = navigator.mozContacts.save(item);
   req.onsuccess = function onsuccess() { cb(null, item); };
-  req.onerror = function onerror(e) {
-    cb('Error saving contact: ' + item.id);
-  };
+  req.onerror = cb;
 };
-
 
 /**
  * Matches Quoted-Printable characters in a string
@@ -100,92 +99,110 @@ VCFReader.decodeQP = function(metaObj, value) {
   return decoded;
 };
 
+VCFReader.nameParts = [
+  'familyName',
+  'givenName',
+  'additionalName',
+  'honorificPrefix',
+  'honorificSuffix'
+];
+
 /**
- * Converts a parsed vCard to a mozContact.
+ * Takes an object with vCard properties and a mozContact object and returns the
+ * latter with the computed name fields properly filled, inferred from
+ * `vcardObj`.
  *
- * @param {Object} vcard JSON representation of an vCard.
- * @return {Object, null} An object implementing mozContact interface.
+ * @param {Object} vcardObj
+ * @param {Object} contactObj a mozContact to be filled with name fields.
+ * @return {Object}
  */
-VCFReader.vcardToContact = function(vcard) {
-  if (!vcard)
-    return null;
+VCFReader.processName = function(vcardObj, contactObj) {
+  var parts = VCFReader.nameParts;
 
-  var contactObj = { adr: [], tel: [] };
   // Set First Name right away as the 'name' property
-  if (vcard.fn) {
-    contactObj.name = vcard.fn;
-  }
+  if (vcardObj.fn && vcardObj.fn.length)
+    contactObj.name = vcardObj.fn[0].value;
 
-  if (vcard.n) {
-    var nameStruct = vcard.n[0].value;
-    var nameConverter = [
-      'familyName',
-      'givenName',
-      'additionalName',
-      'honorificPrefix',
-      'honorificSuffix'
-    ];
+  if (vcardObj.n && vcardObj.n.length) {
+    var values = vcardObj.n[0].value;
+    var meta = vcardObj.n[0].meta;
 
-    nameStruct && nameStruct.forEach(function(namePart, i) {
-      if (namePart && nameConverter[i]) {
-        contactObj[nameConverter[i]] =
-          VCFReader.decodeQP(vcard.n[0].meta, namePart);
-      }
+    values.forEach(function(namePart, i) {
+      if (namePart && parts[i])
+        contactObj[parts[i]] = [VCFReader.decodeQP(meta, namePart)];
     });
 
-    if (!contactObj.name) {
-      var join = nameStruct.join(' ');
-      contactObj.name = VCFReader.decodeQP(vcard.n[0].meta, join);
-    }
+    // If we don't have a contact name at this point, make `name` be the
+    // unification of all the name parts.
+    if (!contactObj.name)
+      contactObj.name = [VCFReader.decodeQP(meta, values.join(' ').trim())];
   }
   contactObj.givenName = contactObj.givenName || contactObj.name;
+  return contactObj;
+};
 
-  (['org', 'photo', 'title']).forEach(function(field) {
-    if (vcard[field]) {
-      var v = vcard[field][0];
-      if (typeof v === 'object') {
-        contactObj[field] = v.value;
-      } else if (typeof v === 'string') {
-        if (field === 'title') field = 'jobTitle';
-        contactObj[field] = [v];
-      }
-    }
-  });
+VCFReader.addrParts = [null, null, 'streetAddress', 'locality', 'region',
+  'postalCode', 'countryName'];
 
-  // Convert Address field
-  var adrConverter = [null, null, 'streetAddress', 'locality',
-    'region', 'postalCode', 'countryName'];
+/**
+ * Takes an object with vCard properties and a mozContact object and returns the
+ * latter with the computed address fields properly filled, inferred from
+ * `vcardObj`.
+ *
+ * @param {Object} vcardObj
+ * @param {Object} contactObj a mozContact to be filled with name fields.
+ * @return {Object}
+ */
+VCFReader.processAddr = function(vcardObj, contactObj) {
+  if (!vcardObj.adr) return contactObj;
 
-  vcard.adr && vcard.adr.forEach(function(adr) {
+  var parts = VCFReader.addrParts;
+  contactObj.adr = vcardObj.adr.map(function(adr) {
     var cur = {};
-    if (adr.meta && adr.meta.type) cur.type = adr.meta.type;
+    if (adr.meta && adr.meta.type)
+      cur.type = [adr.meta.type];
 
     for (var i = 2; i < adr.value.length; i++) {
-      cur[adrConverter[i]] = adr.value[i];
-      cur[adrConverter[i]] = VCFReader.decodeQP(adr.meta, cur[adrConverter[i]]);
+      cur[parts[i]] = VCFReader.decodeQP(adr.meta, adr.value[i]);
     }
 
-    contactObj.adr.push(cur);
+    return cur;
   });
+  return contactObj;
+};
+
+/**
+ * Takes an object with vCard properties and a mozContact object and returns the
+ * latter with the computed phone, email and url fields properly filled,
+ * inferred from `vcardObj`.
+ *
+ * @param {Object} vcardObj
+ * @param {Object} contactObj a mozContact to be filled with name fields.
+ * @return {Object}
+ */
+VCFReader.processComm = function(vcardObj, contactObj) {
+  contactObj.tel = [];
 
   (['tel', 'email', 'url']).forEach(function field2field(field) {
-    vcard[field] && vcard[field].forEach(function(v) {
-      var metaKeys;
+    vcardObj[field] && vcardObj[field].forEach(function(v) {
+      var metaValues;
       var cur = {};
 
       if (v.meta) {
         if (v.value) {
           cur.value = VCFReader.decodeQP(v.meta, v.value[0]);
+          cur.value = cur.value.replace(/^tel:/i, '');
         }
 
-        metaKeys = Object.keys(v.meta).map(function(key) {
+        metaValues = Object.keys(v.meta).map(function(key) {
           return v.meta[key];
         });
 
-        if (metaKeys.indexOf('pref') > -1 || metaKeys.indexOf('PREF') > -1)
-          cur.type = 'PREF';
-        else
-          cur.type = metaKeys[0]; // Take only the first meta type
+        if (metaValues.indexOf('pref') > -1 || metaValues.indexOf('PREF') > -1)
+          cur.pref = true;
+
+        if (v.meta.type)
+          cur.type = [v.meta.type];
       }
 
       if (!contactObj[field])
@@ -194,15 +211,98 @@ VCFReader.vcardToContact = function(vcard) {
       contactObj[field].push(cur);
     });
   });
-
   return contactObj;
 };
 
+VCFReader.processFields = function(vcardObj, contactObj) {
+  (['org', 'title']).forEach(function(field) {
+    if (!vcardObj[field]) return;
 
-VCFReader.Re1 = /^\s*(version|fn|title|org)\s*:(.+)$/i;
-VCFReader.Re2 = /^([^:;]+);([^:]+):(.+)$/;
-VCFReader.ReKey = /item\d{1,2}\./;
+    var v = vcardObj[field][0];
+    if (field === 'title') field = 'jobTitle';
+
+    switch (typeof v) {
+      case 'object':
+        contactObj[field] = [VCFReader.decodeQP(v.meta, v.value[0])];
+        break;
+      case 'string':
+        contactObj[field] = [v];
+        break;
+    }
+  });
+  return contactObj;
+};
+
+VCFReader.ReBasic = /^([^:]+):(.+)$/i;
 VCFReader.ReTuple = /([a-z]+)=(.*)/i;
+
+VCFReader._parseTuple = function(p, i) {
+  var match = p.match(VCFReader.ReTuple);
+  return match ?
+    [match[1].toLowerCase(), match[2]] : ['type' + (i === 0 ? '' : i), p];
+};
+
+/**
+ * Checks if a line is a 'complex' one, meaning that it has multiple values and
+ * metadata.
+ * @param {string} line Line to be parsed from a VCF.
+ * @return {{key: string, data: {meta, value}}}
+ * @private
+ */
+VCFReader.parseLine_ = function(line) {
+  if (!VCFReader.ReBasic.test(line)) return null;
+
+  var parsed = VCFReader.ReBasic.exec(line);
+  var tuples = parsed[1].split(/[;,]/);
+  var key = tuples.shift();
+  var meta = {};
+
+  tuples.forEach(function(l, i) {
+    var tuple = VCFReader._parseTuple(l, i);
+    meta[tuple[0]] = tuple[1];
+  });
+
+  return {
+    key: key.toLowerCase(),
+    data: {
+      meta: meta,
+      value: parsed[2].split(';')
+    }
+  };
+};
+
+VCFReader.splitLines = function(vcf) {
+  var lines = [];
+  var currentStr = '';
+  var inLabel = false;
+  for (var i = 0, l = vcf.length; i < l; i++) {
+    if (vcf[i] === '"') {
+      inLabel = !inLabel;
+      currentStr += vcf[i];
+      continue;
+    }
+
+    if (inLabel || vcf[i] !== '\n') {
+      currentStr += vcf[i];
+      continue;
+    }
+
+    var sub = vcf.substring(i + 1, vcf.length - 1);
+    if (currentStr.toLowerCase().indexOf('label;') !== -1 &&
+      sub.search(/^[^\n]+:/) === -1) {
+      currentStr += vcf[i];
+      continue;
+    }
+
+    if (sub.search(/^[^\S\n\r]+/) !== -1) {
+      continue;
+    }
+
+    lines.push([currentStr]);
+    currentStr = '';
+  }
+  return lines;
+};
 
 /**
  * Parses a single vCard entry
@@ -213,49 +313,41 @@ VCFReader.ReTuple = /([a-z]+)=(.*)/i;
 VCFReader.parseSingleEntry = function(input) {
   if (!input) return null;
 
-  function parseTuple(p, i) {
-    var match = p.match(VCFReader.ReTuple);
-    return match ?
-      [match[1].toLowerCase(), match[2]] : ['type' + (i === 0 ? '' : i), p];
-  }
-
   var fields = {};
-  // When a line starts with a whitespace it means it is a continuation of the
-  // previous line. We join them here.
-  input = input.replace(/(\r\n|\r|\n)[^\S\n\r]+/g, '');
-
-  var lines = input.split(/\r\n|\r|\n/);
+  var lines = VCFReader.splitLines(input);
   lines.forEach(function(line) {
-    var results, key;
+    var parsedLine = VCFReader.parseLine_(line);
+    if (parsedLine) {
+      if (!fields[parsedLine.key])
+        fields[parsedLine.key] = [];
 
-    if (VCFReader.Re1.test(line)) {
-      results = line.match(VCFReader.Re1);
-      key = results[1].toLowerCase().trim();
-      fields[key] = [results[2]];
-    }
-    else if (VCFReader.Re2.test(line)) {
-      results = line.match(VCFReader.Re2);
-      key = results[1].replace(VCFReader.ReKey, '').toLowerCase().trim();
-
-      var meta = {};
-      results[2].split(/(;|,)/)
-        .map(parseTuple)
-        .forEach(function(p) { meta[p[0]] = p[1]; });
-
-      if (!fields[key])
-        fields[key] = [];
-
-      fields[key].push({
-        meta: meta,
-        value: results[3].split(';')
-      });
+      fields[parsedLine.key].push(parsedLine.data);
     }
   });
 
-  if (!fields.fn && !fields.n) {
+  if (!fields.fn && !fields.n)
     return null;
-  }
 
   return VCFReader.vcardToContact(fields);
 };
 
+/**
+ * Converts a parsed vCard to a mozContact.
+ *
+ * @param {Object} vcard JSON representation of an vCard.
+ * @return {Object, null} An object implementing mozContact interface.
+ */
+VCFReader.vcardToContact = function(vcard) {
+  if (!vcard)
+    return null;
+
+  var obj = {};
+  VCFReader.processName(vcard, obj);
+  VCFReader.processAddr(vcard, obj);
+  VCFReader.processComm(vcard, obj);
+  VCFReader.processFields(vcard, obj);
+  var contact = new mozContact();
+  contact.init(obj);
+
+  return contact;
+};

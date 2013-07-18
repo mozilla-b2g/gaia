@@ -60,7 +60,7 @@ suite('dialer/mmi', function() {
 
     test('Check empty request result', function(done) {
       setTimeout(function() {
-        assert.isNull(MmiManager._ui._messageReceived);
+        assert.isUndefined(MmiManager._ui._messageReceived);
         done();
       }, TINY_TIMEOUT);
     });

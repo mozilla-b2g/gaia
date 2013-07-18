@@ -10,6 +10,7 @@
  */
 var Compose = (function() {
   var placeholderClass = 'placeholder';
+  var attachmentClass = 'attachment-container';
 
   var slice = Array.prototype.slice;
   var attachments = new WeakMap();
@@ -38,8 +39,13 @@ var Compose = (function() {
     type: 'sms'
   };
 
-  // handler for 'input' in contentEditable
-  function composeCheck(e) {
+  // anytime content changes - takes a parameter to check for image resizing
+  function onContentChanged(duck) {
+
+    // if the duck is an image attachment, handle resizes
+    if (duck instanceof Attachment && duck.type === 'img') {
+      return imageAttachmentsHandling();
+    }
 
     var textLength = dom.message.textContent.length;
     var empty = !textLength;
@@ -65,13 +71,13 @@ var Compose = (function() {
       state.empty = true;
     }
 
-    trigger('input', e);
+    trigger('input', new CustomEvent('input'));
 
-    if (hasFrames && state.type == 'sms') {
+    if (hasFrames && state.type === 'sms') {
       compose.type = 'mms';
     }
 
-    if (!hasFrames && state.type == 'mms') {
+    if (!hasFrames && state.type === 'mms') {
       // this operation is cancelable
       compose.type = 'sms';
     }
@@ -133,7 +139,7 @@ var Compose = (function() {
     // There is need to resize image attachment if total compose
     // size doen't exceed mms size limitation.
     if (Compose.size < Settings.mmsSizeLimitation) {
-      composeCheck();
+      onContentChanged();
       return;
     }
 
@@ -158,7 +164,7 @@ var Compose = (function() {
     function imageSized() {
       if (++done === images) {
         state.resizing = false;
-        composeCheck();
+        onContentChanged();
       }
     }
 
@@ -183,7 +189,7 @@ var Compose = (function() {
         });
       }
     });
-    composeCheck();
+    onContentChanged();
   }
 
   var compose = {
@@ -195,7 +201,7 @@ var Compose = (function() {
       dom.optionsMenu = document.getElementById('attachment-options-menu');
 
       // update the placeholder after input
-      dom.message.addEventListener('input', composeCheck);
+      dom.message.addEventListener('input', onContentChanged);
 
       // we need to bind to keydown & keypress because of #870120
       dom.message.addEventListener('keydown', composeKeyEvents);
@@ -351,7 +357,7 @@ var Compose = (function() {
         dom.message.insertBefore(fragment, dom.message.childNodes[0]);
       }
 
-      composeCheck();
+      onContentChanged(item);
       return this;
     },
 
@@ -372,19 +378,21 @@ var Compose = (function() {
         dom.message.insertBefore(fragment, dom.message.lastChild);
         this.scrollToTarget(dom.message.lastChild);
       }
-      if (item.type === 'img') {
-        imageAttachmentsHandling();
-      } else {
-        composeCheck();
-      }
+      onContentChanged(item);
       return this;
     },
 
     clear: function() {
       dom.message.innerHTML = '<br>';
-      state.full = false;
+      state.resizing = state.full = false;
       state.size = 0;
-      composeCheck();
+      state.empty = true;
+      onContentChanged();
+      return this;
+    },
+
+    focus: function() {
+      dom.message.focus();
       return this;
     },
 
@@ -399,7 +407,7 @@ var Compose = (function() {
     },
 
     onAttachmentClick: function thui_onAttachmentClick(event) {
-      if (event.target.className === 'attachment' && !state.resizing) {
+      if (event.target.classList.contains(attachmentClass) && !state.resizing) {
         this.currentAttachmentDOM = event.target;
         this.currentAttachment = attachments.get(event.target);
         AttachmentMenu.open(this.currentAttachment);
@@ -415,17 +423,19 @@ var Compose = (function() {
         case 'attachment-options-remove':
           attachments.delete(this.currentAttachmentDOM);
           dom.message.removeChild(this.currentAttachmentDOM);
-          composeCheck({type: 'input'});
+          state.size = null;
+          onContentChanged();
           AttachmentMenu.close();
           break;
         case 'attachment-options-replace':
           var request = this.requestAttachment();
           request.onsuccess = (function replaceAttachmentWith(newAttachment) {
-            var el = newAttachment.render();
-            attachments.set(el, newAttachment);
-            dom.message.insertBefore(el, this.currentAttachmentDOM);
+            var fragment = insert(newAttachment);
+
+            dom.message.insertBefore(fragment, this.currentAttachmentDOM);
             dom.message.removeChild(this.currentAttachmentDOM);
-            composeCheck({type: 'input'});
+
+            onContentChanged(newAttachment);
             AttachmentMenu.close();
           }).bind(this);
           request.onerror = function(err) {

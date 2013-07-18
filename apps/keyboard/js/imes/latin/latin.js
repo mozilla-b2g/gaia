@@ -50,7 +50,8 @@
     displaysCandidates: displaysCandidates,
     click: click,
     select: select,
-    setLayoutParams: setLayoutParams
+    setLayoutParams: setLayoutParams,
+    setLanguage: setLanguage
   };
 
   // This is the object that is passed to init().
@@ -161,7 +162,6 @@
   // This gets called whenever the keyboard pops up to tell us everything
   // we need to provide useful typing assistance.
   function activate(lang, state, options) {
-    language = lang;
     inputMode = getInputMode(state.type, state.inputmode);
     inputText = state.value;
     cursor = state.selectionStart;
@@ -176,39 +176,57 @@
     suggesting = (options.suggest && inputMode !== 'verbatim');
     correcting = (options.correct && inputMode !== 'verbatim');
 
-    // If we are going to offer suggestions, set up the worker thread.
-    if (suggesting || correcting)
-      setupSuggestionsWorker();
-
     // Reset the double space flag
     lastSpaceTimestamp = 0;
 
-    // Start off with the correct capitalization and suggestions
+    // Start off with the correct capitalization
     updateCapitalization();
-    updateSuggestions();
+
+    // If we are going to offer suggestions, set up the worker thread.
+    // This will also request a first batch of suggestions.
+    if (suggesting || correcting)
+      setLanguage(lang);
   }
 
   function deactivate() {
     if (!worker || idleTimer)
       return;
-    idleTimer = setTimeout(function onIdleTimeout() {
-      // Let's terminate the worker.
+    idleTimer = setTimeout(terminateWorker, workerTimeout);
+  }
+
+  function terminateWorker() {
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
+    if (worker) {
       worker.terminate();
       worker = null;
-      idleTimer = null;
-    }, workerTimeout);
+      keyboard.sendCandidates([]); // Clear any displayed suggestions
+      autoCorrection = null;       // and forget any pending correction.
+    }
   }
 
-  function displaysCandidates() {
-    return suggesting;
-  }
-
-  function setupSuggestionsWorker() {
+  function setLanguage(newlang) {
+    // The keyboard isn't idle anymore, so clear the timer
     if (idleTimer) {
       clearTimeout(idleTimer);
       idleTimer = null;
     }
 
+    // If there is no worker and no language, or if there is a worker and
+    // the language has not changed, then there is nothing to do here.
+    if ((!worker && !newlang) || (worker && newlang === language))
+      return;
+
+    // If there is a worker, and no new language, then kill the worker
+    if (worker && !newlang) {
+      terminateWorker();
+      return;
+    }
+
+    // If we get here, then we have to create a worker and set its language
+    // or change the language of an existing worker.
     if (!worker) {
       // If we haven't created the worker before, do it now
       worker = new Worker('js/imes/latin/worker.js');
@@ -222,10 +240,15 @@
           break;
         case 'error':
           console.error(e.data.message);
+          // If the error was a result of our setLanguage call, then
+          // kill the worker because it can't do anything without
+          // a valid dictionary.
+          if (e.data.message.startsWith('setLanguage')) {
+            terminateWorker();
+          }
           break;
         case 'predictions':
-          // The worker is suggesting words. If the input is a word, it
-          // will be first.
+          // The worker is suggesting words: ask the keyboard to display them
           handleSuggestions(e.data.input, e.data.suggestions);
           break;
         }
@@ -234,7 +257,15 @@
 
     // Tell the worker what language we're using. They may cause it to
     // load or reload its dictionary.
+    language = newlang;  // Remember the new language
     worker.postMessage({ cmd: 'setLanguage', args: [language]});
+
+    // And now that we've changed the language, ask for new suggestions
+    updateSuggestions();
+  }
+
+  function displaysCandidates() {
+    return suggesting && worker;
   }
 
   /*
@@ -645,8 +676,12 @@
 
     nearbyKeyMap = newmap;
     serializedNearbyKeyMap = serialized;
-    if (worker)
+    if (worker) {
       worker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
+      // Ask for new suggestions since the new layout may affect them.
+      // (When switching from QWERTY to Dvorak, e.g.)
+      updateSuggestions();
+    }
   }
 
   function nearbyKeys(layout) {
@@ -725,6 +760,11 @@
     // If the user hasn't enabled suggestions, or if they're not appropriate
     // for this input type, or are turned off by the input mode, do nothing
     if (!suggesting && !correcting)
+      return;
+
+    // If we don't have a worker (probably because no dictionary) then
+    // do nothing
+    if (!worker)
       return;
 
     // If we deferred suggestions because of a key repeat, clear that timer

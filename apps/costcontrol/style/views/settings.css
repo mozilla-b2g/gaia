@@ -49,6 +49,7 @@
 
 .settings li p:only-of-type {
   padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
   line-height: 2rem;
 }
 

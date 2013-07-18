@@ -1,249 +1,149 @@
 /* ----------- SpinDateSelectorView ---------- */
-#spin-date-picker .picker-bar {
+#spin-date-picker .picker-container {
+  -moz-box-sizing: border-box;
   position: relative;
-  margin-left: auto;
-  margin-right: auto;
-  overflow: hidden;
-  width: 85%;
-  font-size: 0.8rem;
-}
-
-#spin-date-picker .picker-bar-gradient {
-  -moz-border-top-colors:
-    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
-    rgba(0, 0, 0, 0.05);
-
-  -moz-border-bottom-colors:
-    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
-    rgba(0, 0, 0, 0.05);
-
-  border-top: solid 0.7rem;
-  border-bottom: solid 0.7rem;
+  width: calc(100% - 5rem);
+  height: 22.5rem;
+  margin: 5.4rem auto 0;
+  padding-top: 8.8rem;
   border-left:  0.1rem solid #111;
   border-right: 0.1rem solid #111;
-
-  position: absolute;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  -moz-box-sizing: border-box;
-}
-
-#spin-date-picker .picker-container {
-  width: 100%;
-  position: relative;
-  padding-top: 8.5rem;
-  height: 16rem;
   overflow: hidden;
 }
 
-#spin-date-picker .value-indicator-wrapper {
-  -moz-border-top-colors:
-    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.3)  rgba(0, 0, 0, 0.4)
-    rgba(0, 0, 0, 0.5);
-
-  -moz-border-bottom-colors:
-    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.4)
-    rgba(0, 0, 0, 0.5);
-
-  border-top: solid 0.7rem;
-  border-bottom: solid 0.7rem;
+#spin-date-picker .picker-container:before {
+  content: '';
   position: absolute;
-  height: 6rem;
-  width: 100%;
-  pointer-events: none;
+  top: 0;
+  right: 0;
+  left: 0;
+  border-top: solid 0.7rem;
+  -moz-border-top-colors:
+    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.05);
+  z-index: 10;
 }
 
-#spin-date-picker .value-indicator-hover {
-  pointer-events: none;
-  background-color: #00A5C5;
+#spin-date-picker .picker-container:after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-bottom: solid 0.7rem;
+  -moz-border-bottom-colors:
+    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+#spin-date-picker .picker-bar-background {
+  position: absolute;
+  top: 0;
+  left: auto;
+  right: 0;
+  width: 7.4rem;
+  height: 100%;
+  background: url("../themes/default/images/ui/time_pattern.png");
+}
+
+#spin-date-picker .value-picker-date-wrapper,
+#spin-date-picker .value-picker-month-wrapper,
+#spin-date-picker .value-picker-year-wrapper {
+  -moz-box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5.4rem;
+  height: 100%;
+  padding-top: 8.3rem;
+  border-right: solid 0.2rem;
+  -moz-border-right-colors: #1d1d1d #4a4a4a;
+}
+
+#spin-date-picker .value-picker-month-wrapper {
+  left: 5.4rem;
+  width: 14rem;
+}
+
+#spin-date-picker .value-picker-year-wrapper {
+  left: auto;
+  right: 0;
+  width: 7.4rem;
+}
+
+/*DMY*/
+#spin-date-picker .DMY .value-picker-year-wrapper {
+  border: none;
+}
+
+/*YMD*/
+#spin-date-picker .YMD .value-picker-year-wrapper {
+  left: 0;
+  right: auto;
+}
+
+#spin-date-picker .YMD .value-picker-month-wrapper {
+  left: 7.4rem;
+}
+
+#spin-date-picker .YMD .value-picker-date-wrapper {
+  left: auto;
+  right: 0;
+  border: none;
+}
+
+#spin-date-picker .YMD .picker-bar-background {
+  right: auto;
+  left: 0;
+}
+
+/*MDY*/
+#spin-date-picker .MDY .value-picker-month-wrapper {
+  left: 0;
+}
+
+#spin-date-picker .MDY .value-picker-date-wrapper {
+  left: 14rem;
+}
+
+#spin-date-picker .MDY .value-picker-year-wrapper {
+  border: none;
+}
+
+#spin-date-picker .value-picker-date,
+#spin-date-picker .value-picker-month,
+#spin-date-picker .value-picker-year {
+  -moz-user-select: none;
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+#spin-date-picker .value-indicator {
   position: absolute;
   width: 100%;
-  height: 100%;
-  right:0;
+  height: 4.6rem;
+  background-color: #00A5C5;
+  box-shadow: 0 0 0.7rem rgba(0,0,0, .4);
+  opacity: .99;
+  pointer-events: none;
 }
 
 div.animation-on {
-  -moz-transition-duration: 0.5s;
-  -moz-transition-property: transform;
+  transition-duration: 0.5s;
+  transition-property: transform;
 }
 
 .picker-unit {
   position: relative;
-  font: 2.5rem/8rem 'MozTT',sans-serif;
-  color: #FFF;
+  font: 2.2rem/5.6rem sans-serif;
+  color: #fff;
   text-align: center;
   vertical-align: middle;
   width: 100%;
-  height: 6rem;
+  height: 5.6rem;
   pointer-events: none;
-}
-
-#spin-date-picker .picker-bar-background {
-  background: url("../themes/default/images/ui/time_pattern.png") repeat left top / 0.5rem;
-  position: absolute;
-  width: 7.3rem;
-  height: 100%;
-  right: 0;
-  top: 0;
-}
-
-#spin-date-picker .left-picker-separator {
-  position: absolute;
-  width: 0.2rem;
-  height: 100%;
-  top: 0;
-  left: 5.4rem;
-  background: -moz-linear-gradient(center left, #555 50%, #000 50%);
-  pointer-events: none;
-}
-
-#spin-date-picker .right-picker-separator {
-  position: absolute;
-  width: 0.2rem;
-  height: 100%;
-  top: 0;
-  right: 7.3rem;
-  background: -moz-linear-gradient(center left, #555 50%, #000 50%);
-  pointer-events: none;
-}
-
-#spin-date-picker .value-picker-date-wrapper {
-  position: absolute;
-  width: 5.4rem;
-  height: 100%;
-  top: 10em;
-  left: 0;
-}
-
-#spin-date-picker .value-picker-month-wrapper {
-  position: absolute;
-  width: calc(100% - 12.7rem);
-  height: 100%;
-  top: 10em;
-  left: 5.4rem;
-}
-
-#spin-date-picker .value-picker-year-wrapper {
-  position: absolute;
-  width: 7.3rem;
-  height: 100%;
-  top: 10em;
-  right: 0;
-}
-
-#spin-date-picker .value-picker-date {
-  position: relative;
-  -moz-user-select: none;
-  text-align: center;
-  width: 100%;
-}
-
-#spin-date-picker .value-picker-month {
-  position: relative;
-  -moz-user-select: none;
-  width: 100%;
-}
-
-#spin-date-picker .value-picker-year {
-  position: relative;
-  -moz-user-select: none;
-  width: 100%;
-}
-
-#spin-date-picker .picker-container.YMD .value-picker-year-wrapper {
-  right: auto;
-  left: 0;
-}
-
-#spin-date-picker .picker-container.YMD .value-picker-month-wrapper {
-  right: auto;
-  left: 7.3rem;
-}
-
-#spin-date-picker .picker-container.YMD .value-picker-date-wrapper {
-  right: 0;
-  left: auto;
-}
-
-#spin-date-picker .picker-container.YMD .left-picker-separator {
-  right: auto;
-  left: 7.3rem;
-}
-
-#spin-date-picker .picker-container.YMD .right-picker-separator {
-  right: 5.4rem;
-  left: auto;
-}
-
-#spin-date-picker .picker-container.YMD .picker-bar-background {
-  right: auto;
-  left: 0;
-}
-
-
-#spin-date-picker .picker-container.DMY .value-picker-year-wrapper {
-  right: 0;
-  left: auto;
-}
-
-#spin-date-picker .picker-container.DMY .value-picker-month-wrapper {
-  right: auto;
-  left: 5.4rem;
-}
-
-#spin-date-picker .picker-container.DMY .value-picker-date-wrapper {
-  right: auto;
-  left: 0;
-}
-
-#spin-date-picker .picker-container.DMY .left-picker-separator {
-  right: auto;
-  left: 5.4rem;
-}
-
-#spin-date-picker .picker-container.DMY .right-picker-separator {
-  right: 7.3rem;
-  left: auto;
-}
-
-#spin-date-picker .picker-container.DMY .picker-bar-background {
-  right: 0;
-  left: auto;
-}
-
-
-#spin-date-picker .picker-container.MDY .value-picker-year-wrapper {
-  right: 0;
-  left: auto;
-}
-
-#spin-date-picker .picker-container.MDY .value-picker-month-wrapper {
-  right: auto;
-  left: 0;
-}
-
-#spin-date-picker .picker-container.MDY .value-picker-date-wrapper {
-  right: auto;
-  left: calc(100% - 12.7rem);
-}
-
-#spin-date-picker .picker-container.MDY .left-picker-separator {
-  right: auto;
-  left: calc(100% - 12.7rem);
-}
-
-#spin-date-picker .picker-container.MDY .right-picker-separator {
-  right: 7.3rem;
-  left: auto;
-}
-
-#spin-date-picker .picker-container.MDY .picker-bar-background {
-  right: 0;
-  left: auto;
 }

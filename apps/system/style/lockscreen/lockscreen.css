@@ -125,10 +125,6 @@
   visibility: inherit;
 }
 
-[data-panel="main"] #lockscreen-alt-camera {
-  visibility: hidden;
-}
-
 [data-panel="emergency-call"] #lockscreen-panel-main {
   transform: translateX(-100%);
 }
@@ -255,7 +251,6 @@
   pointer-events: none;
 }
 
-#lockscreen-alt-camera.lockscreen-icon:active,
 .lockscreen-icon-area:active > .lockscreen-icon {
   background-color: rgb(0, 138, 170);
 }
@@ -322,17 +317,11 @@ button::-moz-focus-inner {
   background-size: 3rem;
 }
 
-#lockscreen-alt-camera > div,
 #lockscreen-area-camera > div {
   background-image: url('./images/icon-camera.png');
   background-position: center;
   background-repeat: no-repeat;
   background-size: 2.4rem;
-}
-
-#lockscreen-alt-camera {
-  float: right;
-  pointer-events: auto;
 }
 
 [data-panel="emergency-call"] #lockscreen-panel-passcode {

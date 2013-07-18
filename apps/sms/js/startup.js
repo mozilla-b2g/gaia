@@ -6,10 +6,9 @@
 var lazyLoadFiles = [
   'shared/js/async_storage.js',
   'shared/js/l10n_date.js',
-  'shared/js/custom_dialog.js',
-  'shared/js/desktop.js',
   'shared/js/notification_helper.js',
   'shared/js/gesture_detector.js',
+  'js/dialog.js',
   'js/blacklist.js',
   'js/contacts.js',
   'js/recipients.js',
@@ -24,6 +23,7 @@ var lazyLoadFiles = [
   'js/utils.js',
   'js/fixed_header.js',
   'js/activity_picker.js',
+  'js/wbmp.js',
   'js/smil.js',
   'js/link_helper.js',
   'js/action_menu.js',
@@ -35,7 +35,6 @@ var lazyLoadFiles = [
   'shared/style/switches.css',
   'shared/style/confirm.css',
   'shared/style_unstable/progress_activity.css',
-  'style/custom_dialog.css',
   'shared/style/action_menu.css',
   'style/notification.css'
 ];

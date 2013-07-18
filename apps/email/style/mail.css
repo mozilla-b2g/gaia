@@ -87,11 +87,11 @@ body {
 .card.center.card-folder-picker,
 .card.center.card-account-picker,
 .card.card-account-picker {
-  width: calc(100% - 4.3em);
+  width: calc(100% - 5em);
 }
 
 .card.center.card-folder-picker + .card.after {
-  transform: translateX(calc(100% - 4.3em));
+  transform: translateX(calc(100% - 5em));
 }
 
 .form-card {
@@ -266,4 +266,12 @@ section[role="status"] .toaster-banner-retry {
 section[role="status"][title="undo"] .toaster-banner-undo,
 section[role="status"][title="retry"] .toaster-banner-retry {
   display: inline;
+}
+
+.peep-bubble {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: -moz-available;
+  white-space: nowrap;
+  vertical-align: middle;
 }

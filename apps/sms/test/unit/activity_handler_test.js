@@ -117,7 +117,7 @@ suite('ActivityHandler', function() {
 
     test('Appends an attachment to the Compose field for each media file',
       function(done) {
-      Compose.append = sinon.spy(function(attachment) {
+      this.sinon.stub(Compose, 'append', function(attachment) {
 
         assert.instanceOf(attachment, Attachment);
         assert.ok(Compose.append.callCount < 3);
@@ -155,6 +155,30 @@ suite('ActivityHandler', function() {
 
       test('passes contact name in plain text', function() {
         assert.equal(MockNotificationHelper.mTitle, contactName);
+      });
+    });
+
+    suite('contact without name (after getSelf)', function() {
+      var phoneNumber = '+1111111111';
+      var oldSender;
+      setup(function() {
+        oldSender = message.sender;
+        message.sender = phoneNumber;
+        this.sinon.stub(Contacts, 'findByPhoneNumber')
+          .callsArgWith(1, [{
+            name: [''],
+            tel: {'value': phoneNumber}
+          }]);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      suiteTeardown(function() {
+        message.sender = oldSender;
+      });
+
+
+      test('phone in notification title when contact without name', function() {
+        assert.equal(MockNotificationHelper.mTitle, phoneNumber);
       });
     });
 
@@ -203,17 +227,12 @@ suite('ActivityHandler', function() {
       });
 
       setup(function() {
-        sinon.stub(Notification, 'ringtone');
-        sinon.stub(Notification, 'vibrate');
+        this.sinon.stub(Notification, 'ringtone');
+        this.sinon.stub(Notification, 'vibrate');
 
         message = MockMessages.sms({ messageClass: 'class-0' });
         MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
-      });
-
-      teardown(function() {
-        Notification.ringtone.restore();
-        Notification.vibrate.restore();
       });
 
       test('play ringtone', function() {
@@ -294,6 +313,7 @@ suite('ActivityHandler', function() {
 
   suite('"new" activity', function() {
     var realMozL10n;
+
     // Mockup activity
     var newActivity = {
       source: {
@@ -304,14 +324,31 @@ suite('ActivityHandler', function() {
         }
       }
     };
+
+    var newActivity_empty = {
+      source: {
+        name: 'new',
+        data: {
+          number: '123'
+        }
+      }
+    };
+
+    setup(function() {
+      // find no contact in here
+      this.sinon.stub(Contacts, 'findByPhoneNumber').callsArgWith(1, []);
+    });
+
     suiteSetup(function() {
       window.location.hash = '#new';
       realMozL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
     });
+
     suiteTeardown(function() {
       navigator.mozL10n = realMozL10n;
     });
+
     test('Activity lock should be released properly', function() {
       // Review the status after handling the activity
       this.sinon.stub(MessageManager, 'launchComposer', function(activity) {

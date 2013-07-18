@@ -1,12 +1,12 @@
 'use strict';
 
 var FixedHeader = (function FixedHeader() {
-  var headings;
   var selector;
   var view;
   var fixedContainer;
   var currentlyFixed;
   var notApplyEffect;
+  var refreshTimeout;
 
   /**
    * Start listening scroll event, and applying the fixed header effect
@@ -20,18 +20,30 @@ var FixedHeader = (function FixedHeader() {
     view = document.querySelector(scrollView);
     fixedContainer = document.querySelector(container);
     refresh();
-    view.addEventListener('scroll', scrolling);
+    view.addEventListener('scroll', refresh);
     notApplyEffect = typeof noEffect === 'undefined' ? false : noEffect;
+    refreshTimeout = null;
   };
 
   var refresh = function refresh() {
-    headings = view.querySelectorAll(selector);
-    // after setting up a new headings selection, check the scroll again
-    // in case we removed the header we have currently fixed.
-    scrolling();
+    if (refreshTimeout === null) {
+      refreshTimeout = setTimeout(immediateRefresh);
+    }
   };
 
-  var scrolling = function scrolling() {
+  function immediateRefresh() {
+    if (!view) {
+      // init was not called yet
+      return;
+    }
+
+    if (refreshTimeout) {
+      clearTimeout(refreshTimeout);
+    }
+    refreshTimeout = null;
+
+    var headings = view.querySelectorAll(selector);
+
     var currentScroll = view.scrollTop;
     for (var i = headings.length - 1; i >= 0; i--) {
       var currentHeader = headings[i];
@@ -39,6 +51,7 @@ var FixedHeader = (function FixedHeader() {
       var offset = headingPosition - currentScroll;
       var currentHeight = currentHeader.offsetHeight;
       var differentHeaders = currentlyFixed != currentHeader;
+
       // Effect
       if (!notApplyEffect && Math.abs(offset) < currentHeight &&
           differentHeaders) {
@@ -49,40 +62,45 @@ var FixedHeader = (function FixedHeader() {
         fixedContainer.style.transform = transform;
       }
 
-      // Switching Header
+      // Found a header
       if (offset <= 0) {
         if (differentHeaders) {
-          if (!notApplyEffect)
+          if (!notApplyEffect) {
             fixedContainer.style.transform = 'translateY(0)';
-          currentlyFixed = currentHeader;
-          fixedContainer.textContent = currentHeader.textContent;
-          if (currentHeader.id == 'group-favorites') {
-            fixedContainer.innerHTML = currentHeader.innerHTML;
           }
+
+          currentlyFixed = currentHeader;
+          updateHeaderContent();
         }
+
         return;
       }
     }
+
+    // guess no header is above the top of the view
     currentlyFixed = null;
-    if (!notApplyEffect)
+    if (!notApplyEffect) {
       fixedContainer.style.transform = 'translateY(-100%)';
-  };
+    }
+  }
+
+  function updateHeaderContent() {
+    if (fixedContainer && currentlyFixed) {
+      var newContent = currentlyFixed.textContent;
+      if (fixedContainer.textContent !== newContent) {
+        fixedContainer.textContent = newContent;
+      }
+    }
+  }
 
   var stop = function stop() {
-    view.removeEventListener('scroll', scrolling);
-  };
-
-  var start = function start() {
-    var header = headings[0];
-    if (header) {
-      fixedContainer.textContent = header.textContent;
-    }
+    view.removeEventListener('scroll', refresh);
   };
 
   return {
-    'init': init,
-    'refresh': refresh,
-    'start': start,
-    'stop': stop
+    init: init,
+    refresh: refresh,
+    updateHeaderContent: updateHeaderContent,
+    stop: stop
   };
 })();

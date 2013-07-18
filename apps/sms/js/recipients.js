@@ -22,6 +22,7 @@
     this.email = opts.email || '';
     this.editable = opts.editable || 'true';
     this.source = opts.source || 'manual';
+    this.display = opts.display || '';
   }
   /**
    * set
@@ -338,6 +339,8 @@
     // new "editable" placeholders, by cloning the
     // first child (element) node
     clone.innerHTML = template.interpolate(new Recipient());
+    // empty out the template so :empty matches on placeholders
+    clone.firstElementChild.innerHTML = '';
 
     Object.defineProperties(this, {
       last: {
@@ -454,9 +457,16 @@
     // isn't a re-assignment to a fresh array)
     nodes.length = 0;
 
-    // .apply will convert inner.children to
-    // an array internally.
-    nodes.push.apply(nodes, inner.children);
+
+    // When there are no actual recipients in the list
+    // ignore elements beyond the first editable placeholder
+    if (!list.length) {
+      nodes.push.apply(nodes, inner.children[0]);
+    } else {
+      // .apply will convert inner.children to
+      // an array internally.
+      nodes.push.apply(nodes, inner.children);
+    }
 
     // Finalize the newly created nodes by registering
     // them with their recipient and updating their flags.
@@ -514,6 +524,8 @@
     selection.removeAllRanges();
     selection.addRange(range);
 
+    // scroll to the bottom of the inner view
+    view.inner.scrollTop = view.inner.scrollHeight;
     return this;
   };
 
@@ -704,13 +716,37 @@
               //
               // 1.a Delete Mode
               //
-              Recipients.View.prompts.remove(target, function(result) {
-                if (result.isConfirmed) {
+              Recipients.View.prompts.remove(recipient, function(response) {
+                // When the editable placeholder is in "zero width" mode,
+                // it's possible to accidentally tap a recipient when the
+                // intention is to tap the to-field area around the recipient
+                // list, which will correctly prompt the user to remove the
+                // recipient. Since there is no way to unambiguously detect
+                // the user's intention, always handle "Remove" and "Cancel"
+                // in an intuitive way.
+                //
+                //   1. "Remove" will result in the removal of the
+                //      of the recipient from the list, and focus will
+                //      be automattically set on the editable placeholder.
+                //
+                //   2. "Cancel" will result in no removal, and focus will
+                //      be automattically set on the editable placeholder.
+                //
+                //   Both cases will result in the removal of the
+                //   "no-l-r-padding-margin" class from the editable
+                //   placeholder (via focus()).
+                //
+                // #1
+                if (response.isConfirmed) {
                   owner.remove(
                     relation.get(target)
                   );
-                  this.reset().focus();
+                  this.reset();
                 }
+
+                // #1 & #2
+                this.focus();
+
               }.bind(this));
 
             // If the target was added Manually, move to edit mode
@@ -886,20 +922,62 @@
   };
 
   Recipients.View.prompts = {
-    remove: function(candidate, callback) {
+    remove: function(recipient, callback) {
       var response = {
-        isConfirmed: false,
-        recipient: candidate
+        isConfirmed: false
       };
-      var message = navigator.mozL10n.get('recipientRemoval', {
-        recipient: candidate.textContent.trim()
-      });
-      // If it's a contact we should ask to remove
-      if (confirm(message)) {
-        response.isConfirmed = true;
-      }
 
-      callback(response);
+      var handler = function() {
+        // Create a closure reference to
+        // the response object. The `isConfirmed`
+        // property will be explicitly updated
+        // in the Dialog option handler if necessary.
+        //
+        // The _Cancel_ "method" may use this
+        // handler directly, because the default
+        // `isConfirmed` value is |false|.
+        //
+        // The _Remove_ "method" will explicitly update
+        // `isConfirmed` to |true| and then call this handler.
+        if (typeof callback === 'function') {
+          callback(response);
+        }
+      };
+
+      // Dialog will have a closure reference to the response
+      // object, therefore it's not necessary to pass it around
+      // as an explicit param list item.
+      var dialog = new Dialog(
+        {
+          title: {
+            value: recipient.name || recipient.number,
+            l10n: false
+          },
+          body: {
+            value: recipient.display,
+            l10n: false
+          },
+          options: {
+            cancel: {
+              text: {
+                value: 'cancel',
+                l10n: true
+              },
+              method: handler
+            },
+            confirm: {
+              text: {
+                value: 'remove',
+                l10n: true
+              },
+              method: function() {
+                response.isConfirmed = true;
+                handler();
+              }
+            }
+          }
+        });
+      dialog.show();
     }
   };
 

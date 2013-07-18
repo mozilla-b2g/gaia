@@ -322,7 +322,7 @@ var CallLog = {
     var date = group.lastEntryDate;
     var number = group.number;
     var type = group.type;
-    var status = group.status || null;
+    var status = group.status || '';
     var groupDOM = document.createElement('li');
     groupDOM.classList.add('log-item');
     groupDOM.dataset.timestamp = date;
@@ -552,6 +552,9 @@ var CallLog = {
   showEditMode: function cl_showEditMode() {
     this.headerEditModeText.textContent = this._('edit');
     this.deleteButton.classList.add('disabled');
+    this.selectAllThreads.removeAttribute('disabled');
+    this.selectAllThreads.textContent = this._('selectAll');
+    this.deselectAllThreads.setAttribute('disabled', 'disabled');
     document.body.classList.add('recents-edit');
   },
 
@@ -616,14 +619,19 @@ var CallLog = {
   },
 
   updateHeaderCount: function cl_updateHeaderCount() {
-    var selector = 'input[type="checkbox"]:checked';
-    var allSelector = 'input[type="checkbox"]';
+    var selector = this.callLogContainer.classList.contains('filter') ?
+      'li.missed-call input[type="checkbox"]:checked' :
+      'input[type="checkbox"]:checked';
+    var allSelector = this.callLogContainer.classList.contains('filter') ?
+      'li.missed-call input[type="checkbox"]' :
+      'input[type="checkbox"]';
     var selected = this.callLogContainer.querySelectorAll(selector).length;
     var allInputs = this.callLogContainer.querySelectorAll(allSelector).length;
 
     if (selected === 0) {
       this.headerEditModeText.textContent = this._('edit');
       this.selectAllThreads.removeAttribute('disabled');
+      this.selectAllThreads.textContent = this._('selectAll');
       this.deselectAllThreads.setAttribute('disabled', 'disabled');
       this.deleteButton.classList.add('disabled');
       return;
@@ -636,12 +644,15 @@ var CallLog = {
       this.selectAllThreads.setAttribute('disabled', 'disabled');
     } else {
       this.selectAllThreads.removeAttribute('disabled');
+      this.selectAllThreads.textContent = this._('selectAll');
       this.deselectAllThreads.removeAttribute('disabled');
     }
   },
 
   selectAll: function cl_selectAll() {
-    var selector = 'input[type="checkbox"]:not(:checked)';
+    var selector = this.callLogContainer.classList.contains('filter') ?
+      'li.missed-call input[type="checkbox"]:not(:checked)' :
+      'input[type="checkbox"]:not(:checked)';
     var inputs =
             this.callLogContainer.querySelectorAll(selector);
     for (var i = 0, l = inputs.length; i < l; i++) {
@@ -687,7 +698,7 @@ var CallLog = {
       var dataset = logGroup.dataset;
       var toDelete = {
         date: parseInt(dataset.timestamp),
-        number: dataset.phoneNumber,
+        number: dataset.phoneNumber === null ? '' : dataset.phoneNumber,
         type: dataset.type
       };
       if (dataset.status) {

@@ -199,6 +199,8 @@ var Camera = {
 
   // Maximum image resolution for still photos taken with camera
   MAX_IMAGE_RES: 1600 * 1200, // Just under 2 megapixels
+  // An estimated JPEG file size is caluclated from 90% quality 24bit/pixel
+  ESTIMATED_JPEG_FILE_SIZE: 300 * 1024,
 
   get overlayTitle() {
     return document.getElementById('overlay-title');
@@ -309,8 +311,8 @@ var Camera = {
 
     // We lock the screen orientation and deal with rotating
     // the icons manually
-    var css = '#switch-button span, #capture-button span, ' +
-      '#gallery-button span { -moz-transform: rotate(0deg); }';
+    var css = '#switch-button span, #capture-button span, #toggle-flash, ' +
+      '#toggle-camera, #gallery-button span { -moz-transform: rotate(0deg); }';
     var insertId = this._styleSheet.cssRules.length - 1;
     this._orientationRule = this._styleSheet.insertRule(css, insertId);
     window.addEventListener('deviceorientation', this.orientChange.bind(this));
@@ -545,6 +547,10 @@ var Camera = {
       this.stopRecording();
       return;
     }
+    // Hide the filmstrip to prevent the users from
+    // entering the preview mode after Camera starts recording button pressed
+    if (Filmstrip.isShown())
+      Filmstrip.hide();
 
     this.startRecording();
   },
@@ -562,11 +568,6 @@ var Camera = {
       captureButton.removeAttribute('disabled');
       this._recording = true;
       this.startRecordingTimer();
-
-      // Hide the filmstrip to prevent the users from
-      // entering the preview mode after Camera starts recording
-      if (Filmstrip.isShown())
-        Filmstrip.hide();
 
       // User closed app while recording was trying to start
       if (document.mozHidden) {
@@ -843,7 +844,6 @@ var Camera = {
 
     var transform = 'rotate(90deg)';
     var width, height;
-    var translateX = 0;
 
     // The preview should be larger than the screen, shrink it so that as
     // much as possible is on screen.
@@ -855,17 +855,15 @@ var Camera = {
       height = screenHeight;
     }
 
-    if (this._camera == 1) {
+    if (camera == 1) {
       /* backwards-facing camera */
       transform += ' scale(-1, 1)';
-      translateX = width;
     }
 
     // Counter the position due to the rotation
     // This translation goes after the rotation so the element is shifted up
-    // (for back camera) - shifted up after it is rotated 90 degress clockwise.
-    // (for front camera) - shifted up-left after it is mirrored and rotated.
-    transform += ' translate(-' + translateX + 'px, -' + height + 'px)';
+    // before it is rotated 90 degress clockwise.
+    transform += ' translate(0, -' + height + 'px)';
 
     // Now add another translation at to center the viewfinder on the screen.
     // We put this at the start of the transform, which means it is applied
@@ -886,6 +884,7 @@ var Camera = {
       var alertText = this._pendingPick ? 'activity-size-limit-reached' :
         'size-limit-reached';
       alert(navigator.mozL10n.get(alertText));
+      this.sizeLimitAlertActive = false;
     }
   },
 
@@ -1220,10 +1219,48 @@ var Camera = {
   },
 
   pickPictureSize: function camera_pickPictureSize(pictureSizes) {
+    var targetSize = null;
+    var targetFileSize = 0;
+    if (this._pendingPick && this._pendingPick.source.data.maxFileSizeBytes) {
+      // we use worse case of all compression method: gif, jpg, png
+      targetFileSize = this._pendingPick.source.data.maxFileSizeBytes;
+    }
+    if (this._pendingPick && this._pendingPick.source.data.width &&
+        this._pendingPick.source.data.height) {
+      // if we have pendingPick with width and height, set it as target size.
+      targetSize = {'width': this._pendingPick.source.data.width,
+                    'height': this._pendingPick.source.data.height};
+    }
     var maxRes = this.MAX_IMAGE_RES;
+    var estimatedJpgSize = this.ESTIMATED_JPEG_FILE_SIZE;
     var size = pictureSizes.reduce(function(acc, size) {
       var mp = size.width * size.height;
-      return (mp > acc.width * acc.height && mp <= maxRes) ? size : acc;
+      // we don't need the resolution larger than maxRes
+      if (mp > maxRes) {
+        return acc;
+      }
+      // We assume the relationship between MP to file size is linear.
+      // This may be inaccurate on all cases.
+      var estimatedFileSize = mp * estimatedJpgSize / maxRes;
+      if (targetFileSize > 0 && estimatedFileSize > targetFileSize) {
+        return acc;
+      }
+
+      if (targetSize) {
+        // find a resolution both width and height are large than pick size
+        if (size.width < targetSize.width || size.height < targetSize.height) {
+          return acc;
+        }
+        // it's first pictureSize.
+        if (!acc.width || acc.height) {
+          return size;
+        }
+        // find large enough but as small as possible.
+        return (mp < acc.width * acc.height) ? size : acc;
+      } else {
+        // no target size, find as large as possible.
+        return (mp > acc.width * acc.height && mp <= maxRes) ? size : acc;
+      }
     }, {width: 0, height: 0});
 
     if (size.width === 0 && size.height === 0) {

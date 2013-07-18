@@ -1,11 +1,18 @@
 'use strict';
 
+requireApp('sms/test/unit/mock_fixed_header.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/js/utils.js');
 
+var mocksHelperForUtils = new MocksHelper([
+  'FixedHeader'
+]).init();
+
 suite('Utils', function() {
   var nativeMozL10n = navigator.mozL10n;
+
+  mocksHelperForUtils.attachTestHelpers();
 
   suiteSetup(function() {
     navigator.mozL10n = MockL10n;
@@ -151,6 +158,50 @@ suite('Utils', function() {
       test('(epoch [String|Number])', function() {
       });
     */
+  });
+
+  suite('Utils.startTimeHeaderScheduler', function() {
+
+    setup(function() {
+      this.callTimes = [];
+      this.sinon.useFakeTimers();
+      this.updateStub = this.sinon.stub(Utils, 'updateTimeHeaders',
+        function() {
+          this.callTimes.push(Date.now());
+        }.bind(this));
+    });
+
+    teardown(function() {
+      Utils.updateTimeHeaders.restore();
+    });
+
+    test('timeout on minute boundary', function() {
+      // "Fri Jul 12 2013 16:01:54 GMT-0400 (EDT)"
+      var start = 1373659314572;
+      var callTimes = [];
+
+      this.sinon.clock.tick(start);
+      Utils.startTimeHeaderScheduler();
+      this.sinon.clock.tick(100 * 1000);
+
+      // we are called on start
+      assert.equal(this.callTimes[0], start);
+      // Fri Jul 12 2013 16:02:00 GMT-0400 (EDT)
+      assert.equal(this.callTimes[1], 1373659320000);
+      // Fri Jul 12 2013 16:03:00 GMT-0400 (EDT)
+      assert.equal(this.callTimes[2], 1373659380000);
+    });
+
+    test('multiple calls converge', function() {
+      this.updateStub.reset();
+
+      for (var i = 0; i < 100; i++) {
+        Utils.startTimeHeaderScheduler();
+      }
+      this.sinon.clock.tick(60 * 1000);
+      assert.equal(this.updateStub.callCount, 101);
+    });
+
   });
 
   suite('Utils.getContactDetails', function() {
@@ -572,65 +623,7 @@ suite('Utils', function() {
     });
 
     suite('Varied Cases', function() {
-      // Derived from
-      // /dom/phonenumberutils/tests/test_phonenumber.xul
-
-      [
-        {
-          name: 'US',
-          values: [
-            '9995551234', '+19995551234', '(999) 555-1234',
-            '1 (999) 555-1234', '+1 (999) 555-1234', '+1 999-555-1234'
-          ]
-        },
-        {
-          name: 'DE',
-          values: [
-            '01149451491934', '49451491934', '451491934',
-            '0451 491934', '+49 451 491934', '+49451491934'
-          ]
-        },
-        {
-          name: 'IT',
-          values: [
-            '0577-555-555', '0577555555', '05 7755 5555', '+39 05 7755 5555'
-          ]
-        },
-        {
-          name: 'ES',
-          values: [
-            '612123123', '612 12 31 23', '+34 612 12 31 23'
-          ]
-        },
-        {
-          name: 'BR',
-          values: [
-            '01187654321', '0411187654321', '551187654321',
-            '90411187654321', '+551187654321'
-          ]
-        },
-        {
-          name: 'CL',
-          values: [
-            '0997654321', '997654321', '(99) 765 4321', '+56 99 765 4321'
-          ]
-        },
-        {
-          name: 'CO',
-          values: [
-            '5712234567', '12234567', '(1) 2234567', '+57 1 2234567'
-          ]
-        },
-        {
-          name: 'FR',
-          values: [
-            '0123456789', '+33123456789', '0033123456789',
-            '01.23.45.67.89', '01 23 45 67 89', '01-23-45-67-89',
-            '+33 1 23 45 67 89'
-          ]
-        }
-      ].forEach(function(fixture) {
-
+      FixturePhones.forEach(function(fixture) {
         suite(fixture.name, function() {
           var values = fixture.values;
 
@@ -683,11 +676,11 @@ suite('Utils', function() {
       'appplication/video': null
     };
 
-    for (testIndex in tests) {
+    Object.keys(tests).forEach(function(testIndex) {
       test(testIndex, function() {
         assert.equal(Utils.typeFromMimeType(testIndex), tests[testIndex]);
       });
-    }
+    });
 
     suite('Defensive', function() {
       test('long string', function() {
@@ -712,13 +705,82 @@ suite('Utils', function() {
       '?foo=bar&baz=1&quux=null': {foo: 'bar', baz: '1', quux: 'null'}
     };
 
-    for (testIndex in tests) {
+    Object.keys(tests).forEach(function(testIndex) {
       test(testIndex, function() {
         assert.deepEqual(Utils.params(testIndex), tests[testIndex]);
       });
-    }
+    });
   });
 
+  suite('Utils.updateTimeHeaders', function() {
+    var existingTitles;
+
+    setup(function() {
+      this.sinon.useFakeTimers(Date.parse('2013-01-01'));
+      this.sinon.spy(MockFixedHeader, 'updateHeaderContent');
+
+      var additionalDataset = [
+        'data-is-thread="true"',
+        'data-hour-only="true"',
+        ''
+      ];
+
+      var mockThreadListMarkup = '';
+
+      additionalDataset.forEach(function(dataset, i) {
+        dataset += ' data-time-update="true"' +
+          ' data-time="' + Date.now() + '"';
+
+        mockThreadListMarkup +=
+          '<header ' + dataset + '>header ' + i + '</header>' +
+          '<ul>' +
+            '<li>this is a thread</li>' +
+            '<li>this is another thread</li>' +
+          '</ul>';
+      });
+
+      document.body.innerHTML = mockThreadListMarkup;
+
+      Utils.updateTimeHeaders();
+
+
+      existingTitles = [];
+
+      var headers = document.querySelectorAll('header');
+      for (var i = 0, l = headers.length; i < l; i++) {
+        existingTitles[i] = headers[i].textContent;
+      }
+
+    });
+
+    teardown(function() {
+      document.body.innerHTML = '';
+    });
+
+    test('calling after one hour should not update time headers', function() {
+      this.sinon.clock.tick(60 * 60 * 1000);
+      Utils.updateTimeHeaders();
+
+      var headers = document.querySelectorAll('header');
+      for (var i = 0, l = headers.length; i < l; i++) {
+        assert.equal(headers[i].textContent, existingTitles[i]);
+      }
+    });
+
+    test('calling after one day should update all date headers', function() {
+      this.sinon.clock.tick(24 * 60 * 60 * 1000);
+      Utils.updateTimeHeaders();
+
+      var headers = document.querySelectorAll('header');
+      assert.notEqual(headers[0].textContent, existingTitles[0]);
+      assert.equal(headers[1].textContent, existingTitles[1]);
+      assert.notEqual(headers[2].textContent, existingTitles[2]);
+    });
+
+    test('should call FixedHeader.updateHeaderContent', function() {
+      assert.ok(MockFixedHeader.updateHeaderContent.called);
+    });
+  });
 });
 
 suite('Utils.Template', function() {
@@ -777,16 +839,27 @@ suite('Utils.Template', function() {
   });
 
   suite('interpolate', function() {
-    var node = document.createElement('div');
-    node.appendChild(document.createComment('<span>${str}</span>'));
+    var html = document.createElement('div');
+    var css = document.createElement('div');
+    html.appendChild(document.createComment('<span>${str}</span>'));
+    css.appendChild(document.createComment('#foo { height: ${height}px; }'));
 
-    test('interpolate(data)', function() {
-      var tmpl = Utils.Template(node);
+    test('interpolate(data) => html', function() {
+      var tmpl = Utils.Template(html);
       var interpolated = tmpl.interpolate({
         str: 'test'
       });
       assert.equal(typeof interpolated, 'string');
       assert.equal(interpolated, '<span>test</span>');
+    });
+
+    test('interpolate(data) => css', function() {
+      var tmpl = Utils.Template(css);
+      var interpolated = tmpl.interpolate({
+        height: '100'
+      });
+      assert.equal(typeof interpolated, 'string');
+      assert.equal(interpolated, '#foo { height: 100px; }');
     });
   });
 
@@ -885,5 +958,76 @@ suite('Utils.Template', function() {
         '&lt;script&gt;alert(&quot;hi!&quot;)&lt;/script&gt;<p>this is ok</p>'
       );
     });
+  });
+});
+
+suite('getDisplayObject', function() {
+
+  test('Tel object with carrier title and type', function() {
+    var myTitle = 'My title';
+    var type = 'Mobile';
+    var carrier = 'Carrier';
+    var value = 111111;
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value,
+      'carrier': carrier,
+      'type': [type]
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.separator, ' | ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, carrier + ', ');
+    assert.equal(data.number, value);
+  });
+
+  test('Tel object without title and type', function() {
+    var myTitle = 'My title';
+    var type = 'Mobile';
+    var value = 111111;
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value,
+      'carrier': null,
+      'type': [type]
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.separator, ' | ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+  });
+
+  test('Tel object with NO carrier title and NO type', function() {
+    var myTitle = 'My title';
+    var type = 'Mobile';
+    var value = 111111;
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.separator, '');
+    assert.equal(data.type, '');
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+  });
+
+  test('Tel object with carrier title and type and NO title', function() {
+    var myTitle = 'My title';
+    var type = 'Mobile';
+    var carrier = 'Carrier';
+    var value = 111111;
+    var data = Utils.getDisplayObject(null, {
+      'value': value,
+      'carrier': carrier,
+      'type': [type]
+    });
+
+    assert.equal(data.name, value);
+    assert.equal(data.separator, ' | ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, carrier + ', ');
+    assert.equal(data.number, value);
   });
 });

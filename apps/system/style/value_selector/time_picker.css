@@ -1,212 +1,143 @@
 /* ----------- TimeSelectorView ---------- */
-#picker-bar {
+#time-picker .picker-container {
+  -moz-box-sizing: border-box;
   position: relative;
-  margin-left: auto;
-  margin-right: auto;
-  overflow: hidden;
-}
-
-#picker-bar.format12h {
-  width: 85%;
-}
-
-#picker-bar.format24h {
-  width: 60%;
-}
-
-#picker-bar-gradient {
-  -moz-border-top-colors:
-    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
-    rgba(0, 0, 0, 0.05);
-
-  -moz-border-bottom-colors:
-    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
-    rgba(0, 0, 0, 0.05);
-
-  border-top: solid 0.7rem;
-  border-bottom: solid 0.7rem;
+  width: calc(100% - 5rem);
+  height: 22.5rem;
+  margin: 5.4rem auto 0;
+  padding-top: 8.8rem;
   border-left:  0.1rem solid #111;
   border-right: 0.1rem solid #111;
-
-  position: absolute;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  -moz-box-sizing: border-box;
-}
-
-#picker-container {
-  width: 100%;
-  position: relative;
-  padding-top: 8.5rem;
-  height: 16rem;
   overflow: hidden;
 }
 
-#value-indicator-wrapper {
-  -moz-border-top-colors:
-    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.3)  rgba(0, 0, 0, 0.4)
-    rgba(0, 0, 0, 0.5);
-
-  -moz-border-bottom-colors:
-    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.4)
-    rgba(0, 0, 0, 0.5);
-
+#time-picker .picker-container:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
   border-top: solid 0.7rem;
+  -moz-border-top-colors:
+    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+#time-picker .picker-container:after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
   border-bottom: solid 0.7rem;
+  -moz-border-bottom-colors:
+    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+#time-picker .picker-bar-background {
   position: absolute;
-  height: 6rem;
+  top: 0;
+  right: 0;
+  width: calc(100% / 3);
+  height: 100%;
+  background: url("../themes/default/images/ui/time_pattern.png");
+}
+
+#time-picker.format24h .picker-bar-background {
+  display: none;
+}
+
+#time-picker .value-picker-hours-wrapper,
+#time-picker .value-picker-minutes-wrapper,
+#time-picker .value-picker-hour24-wrapper {
+  -moz-box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% / 3);
+  height: 100%;
+  padding-top: 8.3rem;
+  border-right: solid 0.2rem;
+  -moz-border-right-colors: #1d1d1d #4a4a4a;
+}
+
+#time-picker .format12h .value-picker-minutes-wrapper {
+  left: calc(100% / 3);
+}
+
+#time-picker .format12h .value-picker-hour24-wrapper {
+  left: auto;
+  right: 0;
+  border: none;
+}
+
+#time-picker .format24h .value-picker-hours-wrapper,
+#time-picker .format24h .value-picker-minutes-wrapper,
+#time-picker .format24h .picker-bar-background {
+  width: 50%;
+}
+
+#time-picker .format24h .value-picker-minutes-wrapper {
+  left: auto;
+  right: 0;
+  border: none;
+}
+
+#time-picker .format24h .value-picker-hour24-wrapper {
+  display: none;
+}
+
+#time-picker .value-picker-hours,
+#time-picker .value-picker-minutes,
+#time-picker .value-picker-hour24-state {
+  -moz-user-select: none;
+  position: relative;
   width: 100%;
+  z-index: 1;
+}
+
+#time-picker .value-indicator {
+  position: absolute;
+  width: 100%;
+  height: 4.6rem;
+  background-color: #00A5C5;
+  box-shadow: 0 0 0.7rem rgba(0,0,0, .4);
+  opacity: .99;
   pointer-events: none;
 }
 
-#value-indicator-hover-time {
-  pointer-events: none;
-  background-color: #00A5C5;
+#time-picker .value-indicator > .value-indicator-colon {
   position: absolute;
+  width: calc(100% - (100% / 3));
   height: 100%;
-  font: 3rem/6rem 'MozTT',sans-serif;
+  font: 2.2rem/4.4rem sans-serif;
   text-align: center;
-}
-
-#picker-bar.format12h #value-indicator-hover-time {
-  width: 66%;
-}
-
-#picker-bar.format24h #value-indicator-hover-time {
-  width: 100%;
-}
-
-#value-indicator-hover {
-  pointer-events: none;
   background-color: #00A5C5;
-  position: absolute;
-  width: 33%;
-  height: 100%;
-  right:0;
+  pointer-events: none;
 }
 
-#picker-bar.format12h #value-indicator-hover {
-  display: block;
-}
-
-#picker-bar.format24h #value-indicator-hover {
+#time-picker .format24h .value-indicator-colon {
   display: none;
 }
 
 div.animation-on {
-  -moz-transition-duration: 0.5s;
-  -moz-transition-property: top, left;
-}
-
-#value-picker-hours {
-  position: relative;
-  -moz-user-select: none;
-  float: left;
-  text-align: center;
-}
-
-#picker-bar.format12h #value-picker-hours {
-  width: 33%;
-}
-
-#picker-bar.format24h #value-picker-hours {
-  width: 50%;
-}
-
-#value-picker-minutes {
-  position: relative;
-  -moz-user-select: none;
-  float: left;
-}
-
-#picker-bar.format12h #value-picker-minutes {
-  width: 34%;
-}
-
-#picker-bar.format24h #value-picker-minutes {
-  width: 50%;
-}
-
-#value-picker-hour24-state {
-  position: relative;
-  -moz-user-select: none;
-  width: 33%;
-  float: left;
-}
-
-#picker-bar.format12h #value-picker-hour24-state {
-  display: block;
-}
-
-#picker-bar.format24h #value-picker-hour24-state {
-  display: none;
+  transition-duration: 0.5s;
+  transition-property: top, left;
 }
 
 .picker-unit {
   position: relative;
-  font: 3rem/8rem 'MozTT',sans-serif;
-  color: #FFF;
+  font: 2.2rem/5.6rem sans-serif;
+  color: #fff;
   text-align: center;
   vertical-align: middle;
   width: 100%;
-  height: 6rem;
+  height: 5.6rem;
   pointer-events: none;
 }
 
-#picker-bar-background {
-  background: url("../themes/default/images/ui/time_pattern.png") repeat scroll left top transparent;
-  position: absolute;
-  width: 33%;
-  height: 100%;
-  right: 0;
-  top: 0;
-}
-
-#picker-bar.format12h #picker-bar-background {
-  display: block;
-}
-
-#picker-bar.format24h #picker-bar-background {
-  display: none;
-}
-
-#left-picker-separator {
-  position: absolute;
-  width: 0.2rem;
-  height: 100%;
-  top: 0;
-  background: -moz-linear-gradient(center left, #555 50%, #000 50%);
-  pointer-events: none;
-}
-
-#picker-bar.format12h #left-picker-separator {
-  left: 33%;
-}
-
-#picker-bar.format24h #left-picker-separator {
-  left: 49.5%;
-}
-
-#right-picker-separator {
-  position: absolute;
-  width: 0.2rem;
-  height: 100%;
-  top: 0;
-  left: 66%;
-  background: -moz-linear-gradient(center left, #555 50%, #000 50%);
-  pointer-events: none;
-}
-
-#picker-bar.format12h #right-picker-separator {
-  display: block;
-}
-
-#picker-bar.format24h #right-picker-separator {
-  display: none;
-}

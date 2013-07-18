@@ -26,6 +26,7 @@
   padding: 0 2.5rem 0 2rem;
   vertical-align: middle;
   white-space: normal;
+  word-wrap: break-word;
   width: 100%;
 }
 
@@ -59,11 +60,10 @@
   font-family: 'MozTT',Sans-serif;
   font-size: 2.2rem;
   font-weight: lighter;
-  height: 5.9rem;
-  line-height: 5.9rem;
+  line-height: 3.3rem;
   list-style: none outside none;
   margin: 0;
-  padding-bottom: 0.1rem;
+  padding: 1.3rem 0;
   position: relative;
   display: block;
   text-decoration: none;

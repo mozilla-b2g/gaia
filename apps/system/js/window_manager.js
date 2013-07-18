@@ -147,7 +147,9 @@ var WindowManager = (function() {
   // We should maintain a link in appWindow to activity frame
   // so that appWindow can resize activity by itself.
   window.addEventListener('appresize', function appResized(evt) {
-    if (evt.detail.changeActivityFrame) {
+    // We will call setInlineActivityFrameSize()
+    // if changeActivityFrame is not explicitly set to false.
+    if (evt.detail.changeActivityFrame !== false) {
       setInlineActivityFrameSize();
     }
   });
@@ -331,6 +333,9 @@ var WindowManager = (function() {
 
         if ('wrapper' in frame.dataset)
           wrapperFooter.classList.add('visible');
+
+        // XXX: A simple hack to gurantee the app has active class.
+        frame.classList.add('active');
 
         iframe.addEventListener('mozbrowserloadend', function on(e) {
           iframe.removeEventListener('mozbrowserloadend', on);
@@ -952,8 +957,8 @@ var WindowManager = (function() {
 
   function toggleHomescreen(visible) {
     var homescreenFrame = ensureHomescreen();
-    if (homescreenFrame && 'setVisible' in homescreenFrame.firstChild)
-      homescreenFrame.firstChild.setVisible(visible);
+    if (homescreenFrame)
+      runningApps[homescreen].setVisible(visible);
   }
 
   // Switch to a different app
@@ -1044,10 +1049,16 @@ var WindowManager = (function() {
         type = 'appopen';
       }
 
-      app.frame.addEventListener(type, function apploaded(e) {
+      // Be careful about what you reference from within the closure below (or
+      // any other closures in this function), or you might leak
+      // homescreenFrame.  For example, referencing |document| causes this
+      // leak; that's why we pull the document off e.target.  See bug 894135,
+      // and if in doubt, ask one of the people referenced in that bug.
+      app.iframe.addEventListener(type, function apploaded(e) {
+        var doc = e.target.ownerDocument;
         e.target.removeEventListener(e.type, apploaded, true);
 
-        var evt = document.createEvent('CustomEvent');
+        var evt = doc.createEvent('CustomEvent');
         evt.initCustomEvent('apploadtime', true, false, {
           time: parseInt(Date.now() - iframe.dataset.start),
           type: (e.type == 'appopen') ? 'w' : 'c'
@@ -1368,6 +1379,19 @@ var WindowManager = (function() {
     frame.classList.remove('active');
   }
 
+  function restoreRunningApp() {
+    // Give back focus to the displayed app
+    var app = runningApps[displayedApp];
+    setOrientationForApp(displayedApp);
+    if (app && app.iframe) {
+      app.iframe.focus();
+      app.setVisible(true);
+      if ('wrapper' in app.frame.dataset) {
+        wrapperFooter.classList.add('visible');
+      }
+    }
+  }
+
   // If all is not specified,
   // remove the top most frame
   function stopInlineActivity(all) {
@@ -1387,17 +1411,12 @@ var WindowManager = (function() {
     }
 
     if (!inlineActivityFrames.length) {
-      // Give back focus to the displayed app
-      var app = runningApps[displayedApp];
-      setOrientationForApp(displayedApp);
-      if (app && app.iframe) {
-        app.iframe.focus();
-        app.setVisible(true);
-        if ('wrapper' in app.frame.dataset) {
-          wrapperFooter.classList.add('visible');
-        }
-      }
       screenElement.classList.remove('inline-activity');
+      // if attention screen is fully visible, we shouldn't restore the running
+      // app. It will be done when attention screen is closed.
+      if (!AttentionScreen.isFullyVisible()) {
+        restoreRunningApp();
+      }
     } else {
       setOrientationForInlineActivity(
         inlineActivityFrames[inlineActivityFrames.length - 1]);

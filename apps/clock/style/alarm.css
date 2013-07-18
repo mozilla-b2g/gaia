@@ -173,7 +173,10 @@ a.alarm-item .period {
 a.alarm-item > .label {
   position: absolute;
   left: 12.5rem;
+  right: 4.5rem;
   top: 2.35rem;
+  white-space: nowrap;
+  overflow: hidden;
   text-overflow: ellipsis;
 }
 

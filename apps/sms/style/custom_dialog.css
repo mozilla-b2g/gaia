@@ -103,7 +103,6 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]):not([data-type=
   text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
   vertical-align: middle;
   white-space: nowrap;
-  width: 100%;
 }
 
 body[role="application"] [role="dialog"]:not([data-type="edit"]) menu[data-items="2"]:not([type="toolbar"]) button {

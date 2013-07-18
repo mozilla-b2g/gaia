@@ -28,8 +28,8 @@
 
 #permission-remember-section {
   border-top: 0.1rem solid #686868;
-  font-size: 1.4rem;
-  display: block;
+  font-size: 1.6rem;
+  display: none;
   padding: 1.5rem;
 }
 
@@ -43,6 +43,10 @@
   background-size: 6.4rem auto;
   background-position: 0 50%;
   white-space: normal;
+}
+
+#permission-screen[data-type] #permission-remember-section {
+  display: block;
 }
 
 #permission-screen[data-type] #permission-icon {

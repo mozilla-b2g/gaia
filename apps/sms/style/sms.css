@@ -36,6 +36,20 @@ html, body {
   font-family: 'MozTT', sans-serif;
 }
 
+
+/* 
+  Override BB. Some CSS tweaks for having a better confirm readability
+*/
+form[role="dialog"][data-type="confirm"] p {
+  margin-top: 0 !important;
+  border-bottom: 0.1rem solid #686868;
+}
+
+form[role="dialog"][data-type="confirm"] p small{
+  line-height: 2rem;
+}
+
+
 /* Override Building Block [Header] styles */
 section[role="region"] > header:first-child .icon.icon-clear {
   background-image: url(images/icons/clear.png);
@@ -323,10 +337,17 @@ section.has-carrier .article-list header:first-child {
 }
 
 .article-list {
+  z-index: 5;
+
+  /* The bottom border is used to offset the messages as the Compose field
+   * grows and shrinks, preventing occlusion. (see "Bug 748518 - padding-bottom
+   * is ignored with overflow:auto;") */
+  border-bottom-color: transparent;
+  border-bottom-style: solid;
   -moz-box-sizing: border-box;
+
   background: none repeat scroll 0 0 #E4E4E4;
   text-align: left;
-  z-index: 5;
 }
 
 .article-list header {
@@ -341,7 +362,7 @@ section.has-carrier .article-list header:first-child {
 }
 
 .article-list[data-type="list"] > ul:last-child {
-  margin-bottom: 7rem;
+  margin-bottom: 0.5rem;
 }
 
 .article-list header,
@@ -385,27 +406,9 @@ section.has-carrier .article-list header:first-child {
   background: #fff;
 }
 
-.article-list[data-type="list"] .message .attachment {
-  display: block;
-  margin: 1rem 0;
-}
-/* Attachments that occur at the bounds of an MMS message do not need
- * additional spacing. */
-#messages-container[data-type="list"] .message .attachment:first-child {
-  margin-top: 0;
-}
-#messages-container[data-type="list"] .message .attachment:last-child {
-  margin-bottom: 0;
-}
-
 #messages-container[data-type="list"] .message.mms .bubble img {
   height: auto;
   width: auto;
-}
-
-.article-list[data-type="list"] .message.outgoing .attachment {
-  margin-left: auto;
-  margin-right: 0;
 }
 
 .article-list[data-type="list"] .message.outgoing .bubble {
@@ -606,7 +609,7 @@ form.bottom[role="search"].messages-compose-form {
   background-size: 3rem;
 }
 
-#messages-compose-form [contentEditable] {
+#messages-input {
   padding: 0.1rem 0.5rem;
   margin: 0.8rem 0.2rem;
   line-height: 2rem;
@@ -617,24 +620,13 @@ form.bottom[role="search"].messages-compose-form {
   text-align: left;
   font-size: 1.8rem;
 }
-#messages-compose-form .placeholder[contentEditable]:after {
+
+#messages-input.placeholder:after {
   color: #888;
   position: absolute;
   top: 0.8rem;
-  content: attr(placeholder);
+  content: attr(data-placeholder);
   pointer-events: none;
-}
-
-.attachment {
-  display: block;
-  width: 80px;
-  height: 80px;
-  max-width: 120px;
-  max-height: 120px;
-  border: 1px solid #018eac;
-  border-radius: 2px;
-
-  background-color: rgba(0, 170, 205, 0.45);
 }
 
 #send-message-container {
@@ -662,6 +654,10 @@ form.bottom[role="search"].messages-compose-form {
 #loading [role="status"] {
   text-align: center;
   height: 4rem;
+}
+
+#loading p {
+  border-bottom: none;
 }
 
 /*
@@ -782,11 +778,13 @@ section[role="region"].new #messages-to-field {
 /*
 Used by Recipients.View to display multi or single line.
 Do not remove.
-*/
+
+generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 #messages-recipients-list.multiline {
   overflow-y: scroll;
-  height: 8.8rem;
+  height: {max available height}px;
 }
+*/
 #messages-recipients-list.singleline {
   overflow-y: hidden;
   height: 2.4rem;
@@ -816,6 +814,16 @@ Do not remove.
   text-overflow: normal;
   color: black;
   font-size: 1.8rem;
+}
+
+.recipient[contenteditable=true]:empty {
+  margin: .8rem 0 -0.8rem 0;
+  padding: 0 0;
+}
+
+.recipient[contenteditable=true]:empty:focus {
+  margin: .8rem .5rem -0.8rem 0;
+  padding: 0 0.8rem;
 }
 
 .recipient:focus {

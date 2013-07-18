@@ -131,15 +131,17 @@ suite('grid.js >', function() {
       });
 
       function sendTouchEvent(type, node, coords) {
-        var touch = document.createTouch(window, node, 1,
-          coords.x, coords.y, coords.x, coords.y);
-        var touchList = document.createTouchList(touch);
+        if (typeof document.createTouch === 'function') {
+          var touch = document.createTouch(window, node, 1,
+            coords.x, coords.y, coords.x, coords.y);
+          var touchList = document.createTouchList(touch);
 
-        var evt = document.createEvent('TouchEvent');
-        evt.initTouchEvent(type, true, true, window,
-          0, false, false, false, false,
-          touchList, touchList, touchList);
-        node.dispatchEvent(evt);
+          var evt = document.createEvent('TouchEvent');
+          evt.initTouchEvent(type, true, true, window,
+            0, false, false, false, false,
+            touchList, touchList, touchList);
+          node.dispatchEvent(evt);
+        }
       }
 
       function sendMouseEvent(type, node, coords) {

@@ -98,19 +98,22 @@ var ValueSelector = {
     this._buttons['date'] = document.getElementById('spin-date-picker-buttons');
     this._buttons['date'].addEventListener('click', this);
 
-    this._containers['time'] = document.getElementById('picker-bar');
+    this._context = document.getElementById('time-picker');
+
+    this._containers['time'] = this._context.querySelector('.picker-container');
     this._containers['date'] = document.getElementById('spin-date-picker');
 
     // Prevent focus being taken away by us for time picker.
     // The event listener on outer box will not be triggered cause
     // there is a evt.stopPropagation() in value_picker.js
-    var pickerElements = ['value-picker-hours', 'value-picker-minutes',
-                         'value-picker-hour24-state'];
 
-    pickerElements.forEach((function pickerElements_forEach(id) {
-      var element = document.getElementById(id);
-      element.addEventListener('mousedown', this);
-    }).bind(this));
+    var pickerElements = ['.value-picker-hours', '.value-picker-minutes',
+                         '.value-picker-hour24-state'];
+
+    pickerElements.forEach(function(className) {
+      this._context.querySelector(className)
+        .addEventListener('mousedown', this);
+    }, this);
 
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
@@ -475,19 +478,19 @@ var TimePicker = {
   get hourSelector() {
     delete this.hourSelector;
     return this.hourSelector =
-      document.getElementById('value-picker-hours');
+      ValueSelector._context.querySelector('.value-picker-hours');
   },
 
   get minuteSelector() {
     delete this.minuteSelector;
     return this.minuteSelector =
-      document.getElementById('value-picker-minutes');
+      ValueSelector._context.querySelector('.value-picker-minutes');
   },
 
   get hour24StateSelector() {
     delete this.hour24StateSelector;
     return this.hour24StateSelector =
-      document.getElementById('value-picker-hour24-state');
+      ValueSelector._context.querySelector('.value-picker-hour24-state');
   },
 
   initTimePicker: function tp_initTimePicker() {
@@ -533,7 +536,8 @@ var TimePicker = {
 
   setTimePickerStyle: function tp_setTimePickerStyle() {
     var style = (this.timePicker.is12hFormat) ? 'format12h' : 'format24h';
-    document.getElementById('picker-bar').classList.add(style);
+    ValueSelector._context.querySelector('.picker-container')
+      .classList.add(style);
   },
 
   getHour: function tp_getHours() {

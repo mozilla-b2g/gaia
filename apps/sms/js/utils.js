@@ -3,7 +3,7 @@
 (function(exports) {
   'use strict';
   var rdashes = /-(.)/g;
-  var rmatcher = /\$\{([^{]+)\}/g;
+  var rmatcher = /\$\{([^}]+)\}/g;
   var rescape = /[.?*+^$[\]\\(){}|-]/g;
   var rentity = /[&<>"']/g;
   var rentities = {
@@ -57,15 +57,21 @@
           }
         }
       }
+
+      FixedHeader.updateHeaderContent();
     },
     startTimeHeaderScheduler: function ut_startTimeHeaderScheduler() {
-      this.updateTimeHeaders();
-      if (this.updateTimer) {
-        clearInterval(this.updateTimer);
-      }
-      this.updateTimer = setInterval(function(self) {
-        self.updateTimeHeaders();
-      }, 50000, this);
+      var updateFunction = (function() {
+        this.updateTimeHeaders();
+        var now = Date.now(),
+            nextTimeout = new Date(now + 60000);
+        nextTimeout.setSeconds(0);
+        nextTimeout.setMilliseconds(0);
+        clearTimeout(this.updateTimer);
+        this.updateTimer = setTimeout(updateFunction,
+          nextTimeout.getTime() - now);
+      }).bind(this);
+      updateFunction();
     },
     escapeRegex: function ut_escapeRegex(str) {
       if (typeof str !== 'string') {
@@ -374,6 +380,76 @@
         parsed[$1] = $2;
       });
       return parsed;
+    },
+    /*
+      Using a contact resolver, a function that can looks for contacts,
+      get the format for the dissambiguation.
+
+      Used mainly in activities since they need to pick a contact from just
+      the number.
+    */
+    getContactDisplayInfo: function(resolver, phoneNumber, callback) {
+      resolver(phoneNumber, function onContacts(contacts) {
+        var contact;
+        if (Array.isArray(contacts)) {
+          if (contacts.length == 0) {
+            callback(null);
+            return;
+          }
+          contact = contacts[0];
+        } else {
+          if (contacts === null) {
+            callback(null);
+            return;
+          }
+          contact = contacts;
+        }
+
+        var tel = null;
+        for (var i = 0; i < contact.tel.length && tel == null; i++) {
+          if (contact.tel[i].value === phoneNumber) {
+            tel = contact.tel[i];
+          }
+        }
+
+        // Get the title in the standar way
+        var details = Utils.getContactDetails(tel, contact);
+        var info = Utils.getDisplayObject(details.title || null, tel);
+        /*
+          XXX: We need to move this to use a single point for
+          formating:
+          ${type}${separator}${carrier}${numberHTML}
+        */
+        info.display = info.type +
+          info.separator +
+          info.carrier +
+          tel.value;
+
+        callback(info);
+      });
+    },
+    /*
+      Given a title for a contact, a the current information for
+      an specific phone, of that contact, creates an object with
+      all the information needed to display data.
+    */
+    getDisplayObject: function(theTitle, tel) {
+      var number = tel.value;
+      var title = theTitle || number;
+      var type = tel.type && tel.type.length ? tel.type[0] : '';
+      var carrier = tel.carrier ? (tel.carrier + ', ') : '';
+      var separator = type || carrier ? ' | ' : '';
+      var data = {
+        name: title,
+        number: number,
+        type: type,
+        carrier: carrier,
+        separator: separator,
+        nameHTML: '',
+        numberHTML: ''
+      };
+
+      return data;
     }
   };
 

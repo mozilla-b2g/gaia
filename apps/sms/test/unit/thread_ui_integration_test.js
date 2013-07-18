@@ -425,9 +425,9 @@ suite('ThreadUI Integration', function() {
 
       // Ensure that the "unaccepted" recipient was assimilated
       // and included in the recipients list when message was sent
-      assert.deepEqual(
-        MessageManager.sendSMS.args[0], [['999', '000'], 'foo']
-      );
+      var calledWith = MessageManager.sendSMS.args[0];
+      assert.deepEqual(calledWith[0], ['999', '000']);
+      assert.deepEqual(calledWith[1], 'foo');
     });
 
     test('Lone ";" are not recipients', function() {
@@ -446,6 +446,12 @@ suite('ThreadUI Integration', function() {
       assert.equal(recipients.length, 0);
       // And one displayed child...
       assert.equal(children.length, 1);
+
+      // The the ";" has been removed from the
+      // recipients list
+      assert.equal(
+        ThreadUI.recipientsList.children[0].textContent, ''
+      );
     });
 
 
