@@ -1283,8 +1283,7 @@ const Keyboards = {
   ca: {
     label: 'Catalan',
     imEngine: 'latin',
-    needsCandidatePanel: 'true',
-    menuLabel: 'català',
+    menuLabel: 'Català',
     alt: {
       a: 'àáâäåãāæª@',
       c: 'çćč',
