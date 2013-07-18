@@ -119,7 +119,6 @@ suite('Time functions', function() {
       this.sixAm = 1373954400000;
       // Set clock so calls to new Date() and Date.now() will not vary
       // across test locales
-      this.clock = sinon.useFakeTimers(this.sixAm);
       this.dat = new Date(this.sixAm + 15120000);
       this.allNeg = {
         hours: -4,
@@ -142,8 +141,8 @@ suite('Time functions', function() {
       };
     });
 
-    suiteTeardown(function() {
-      this.clock.restore();
+    setup(function() {
+      this.clock = this.sinon.useFakeTimers(this.sixAm);
     });
 
     suite('toMS', function() {
@@ -229,6 +228,214 @@ suite('Time functions', function() {
     });
   });
 
+  suite('data tests', function() {
+    suite('compare tests', function() {
+      test('numbers', function() {
+        assert.equal(Utils.data.defaultCompare(42, 42), 0);
+        assert.equal(Utils.data.defaultCompare(0, 0), 0);
+        assert.equal(Utils.data.defaultCompare(0, 1), -1);
+        assert.equal(Utils.data.defaultCompare(1, 0), 1);
+        var e1, e2;
+        try {
+          Utils.data.defaultCompare(1, {});
+        } catch (err) {
+          e1 = err;
+        }
+        assert.ok(e1);
+        try {
+          Utils.data.defaultCompare({}, 1);
+        } catch (err) {
+          e2 = err;
+        }
+        assert.ok(e2);
+      });
+      test('strings', function() {
+        assert.equal(Utils.data.defaultCompare('abc', 'abc'), 0);
+        assert.equal(Utils.data.defaultCompare('abc', 'abd'), -1);
+        assert.equal(Utils.data.defaultCompare('abc', 'abb'), 1);
+        assert.equal(Utils.data.defaultCompare('abc', 'abcd'), -1);
+        assert.equal(Utils.data.defaultCompare('abc', 'ab'), 1);
+        var e;
+        try {
+          Utils.data.defaultCompare('abc', 1);
+        } catch (err) {
+          e = err;
+        }
+        assert.ok(e);
+      });
+      test('arrays', function() {
+        assert.equal(Utils.data.defaultCompare([1, 2, 3], [1, 2, 3]), 0);
+        assert.equal(Utils.data.defaultCompare([1, 2, 3], [1, 2, 4]), -1);
+        assert.equal(Utils.data.defaultCompare([1, 2, 3], [1, 2, 2]), 1);
+        var e;
+        try {
+          Utils.data.defaultCompare('abc', 1);
+        } catch (err) {
+          e = err;
+        }
+        assert.ok(e);
+      });
+    });
+
+    suite('binarySearch', function() {
+
+      var genMatchTest = function(arr, search, idx) {
+        test('length ' + arr.length + ', match for ' + JSON.stringify(search),
+          function() {
+          var res = Utils.data.binarySearch({ value: search }, arr,
+            Utils.data.keyedCompare('value'));
+          assert.deepEqual(res, {
+            match: true,
+            index: idx,
+            value: arr[idx]
+          });
+        });
+      };
+
+      var genNoMatchTest = function(arr, search, idx) {
+        test('length ' + arr.length + ', no match for ' +
+          JSON.stringify(search),
+          function() {
+          var res = Utils.data.binarySearch({ value: search }, arr,
+            Utils.data.keyedCompare('value'));
+          assert.deepEqual(res, {
+            match: false,
+            index: idx
+          });
+        });
+      };
+
+      var array14 = [
+        {value: 1}, {value: 11}, {value: 25},
+        {value: 28}, {value: 30}, {value: 36},
+        {value: 48}, {value: 54}, {value: 54},
+        {value: 59}, {value: 61}, {value: 82},
+        {value: 82}, {value: 85}
+      ];
+
+      var array15 = [
+        {value: 1}, {value: 11}, {value: 25},
+        {value: 28}, {value: 30}, {value: 36},
+        {value: 48}, {value: 54}, {value: 54},
+        {value: 59}, {value: 61}, {value: 82},
+        {value: 82}, {value: 85}, {value: 98}
+      ];
+
+      test('zero length', function() {
+        var res = Utils.data.binarySearch(34, []);
+        assert.deepEqual(res, { match: false, index: 0 });
+      });
+
+      test('length one, no match', function() {
+        var res = Utils.data.binarySearch(34, [5]);
+        assert.deepEqual(res, { match: false, index: 1 });
+      });
+
+      test('length one, match', function() {
+        var res = Utils.data.binarySearch(34, [34]);
+        assert.deepEqual(res, {
+          match: true,
+          index: 0,
+          value: 34
+        });
+      });
+
+      genMatchTest(array14, 1, 0);
+      genMatchTest(array14, 85, 13);
+      genNoMatchTest(array14, -1, 0);
+      genNoMatchTest(array14, 52, 7);
+      genNoMatchTest(array14, 101, 14);
+
+      genMatchTest(array15, 1, 0);
+      genMatchTest(array15, 98, 14);
+      genNoMatchTest(array15, -1, 0);
+      genNoMatchTest(array15, 52, 7);
+      genNoMatchTest(array15, 101, 15);
+    });
+
+    suite('sortedInsert', function() {
+      var array = [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82, 91];
+      test('zero length insert', function() {
+        var x = [];
+        var res = Utils.data.sortedInsert(3, x);
+        assert.deepEqual(x, [3]);
+        assert.equal(res, 0);
+      });
+      test('beginning insert', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedInsert(-10, x);
+        assert.equal(x[0], -10);
+        assert.equal(x.length, array.length + 1);
+        assert.equal(res, 0);
+      });
+      test('middle insert', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedInsert(43, x);
+        assert.equal(x[6], 43);
+        assert.equal(x.length, array.length + 1);
+        assert.equal(res, 6);
+      });
+      test('end insert', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedInsert(99, x);
+        assert.equal(x[x.length - 1], 99);
+        assert.equal(x.length, array.length + 1);
+        assert.equal(res, array.length);
+      });
+    });
+
+    suite('sortedRemove', function() {
+      var array = [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82, 91];
+      test('zero length remove', function() {
+        var x = [];
+        var res = Utils.data.sortedRemove(3, x);
+        assert.equal(res, false);
+      });
+      test('length one remove', function() {
+        var x = [3];
+        var res = Utils.data.sortedRemove(3, x);
+        assert.deepEqual(x, []);
+        assert.equal(res, true);
+      });
+      test('beginning remove', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedRemove(1, x);
+        assert.deepEqual(x, [8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82, 91]);
+        assert.equal(res, true);
+      });
+      test('middle remove', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedRemove(58, x);
+        assert.deepEqual(x, [1, 8, 9, 19, 38, 42, 44, 56, 64, 74, 82, 91]);
+        assert.equal(res, true);
+      });
+      test('end remove', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedRemove(91, x);
+        assert.deepEqual(x, [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82]);
+        assert.equal(res, true);
+      });
+      test('beginning multi remove', function() {
+        var x = [3, 3, 3, 3, 3, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82];
+        var res = Utils.data.sortedRemove(3, x, undefined, true);
+        assert.deepEqual(x, [8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82]);
+        assert.equal(res, true);
+      });
+      test('middle multi remove', function() {
+        var x = [1, 8, 9, 19, 21, 21, 21, 21, 38, 42, 44, 56, 58, 64, 74, 82];
+        var res = Utils.data.sortedRemove(21, x, undefined, true);
+        assert.deepEqual(x, [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82]);
+        assert.equal(res, true);
+      });
+      test('end multi remove', function() {
+        var x = [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82, 99, 99, 99];
+        var res = Utils.data.sortedRemove(99, x, undefined, true);
+        assert.deepEqual(x, [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82]);
+        assert.equal(res, true);
+      });
+
+    });
+  });
 
   suite('extend tests', function() {
 

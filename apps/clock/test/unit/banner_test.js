@@ -15,7 +15,6 @@ suite('Banner', function() {
     // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
     // system's time zone
     this.sixAm = 1373954400000 + offset;
-    this.clock = sinon.useFakeTimers(this.sixAm);
 
     // The timestamp for "Tue Jul 16 2013 16:12:00" according to the local
     // system's time zone
@@ -25,6 +24,10 @@ suite('Banner', function() {
     // Instantiate the Banner once with an element
     this.noteElem = document.createElement('div');
     this.banner = new Banner(this.noteElem);
+  });
+
+  setup(function() {
+    this.clock = this.sinon.useFakeTimers(this.sixAm);
   });
 
   suiteTeardown(function() {
