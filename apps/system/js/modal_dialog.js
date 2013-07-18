@@ -184,6 +184,7 @@ var ModalDialog = {
     var evt = this.eventForCurrentOrigin;
 
     var message = evt.detail.message || '';
+    var title = evt.detail.title || '';
     var elements = this.elements;
     this.screen.classList.add('modal-dialog');
 
@@ -205,7 +206,7 @@ var ModalDialog = {
       case 'alert':
         elements.alertMessage.innerHTML = message;
         elements.alert.classList.add('visible');
-        this.setTitle('alert', '');
+        this.setTitle('alert', title);
         elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.alert.focus();
         break;
@@ -448,6 +449,7 @@ var ModalDialog = {
       }
     };
 
+    pseudoEvt.detail.title = config.title;
     pseudoEvt.detail.message = config.text;
     pseudoEvt.callback = config.callback;
     pseudoEvt.detail.promptType = config.type;
@@ -465,8 +467,6 @@ var ModalDialog = {
     }
     this.currentEvents['system'].push(pseudoEvt);
     this.show(null, 'system');
-    if (config.title)
-      this.setTitle(config.type, config.title);
   },
 
   isVisible: function md_isVisible() {
