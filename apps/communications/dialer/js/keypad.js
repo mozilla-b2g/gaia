@@ -106,6 +106,11 @@ var KeypadManager = {
   },
 
   init: function kh_init(oncall) {
+
+    this.isTouch = 'ontouchstart' in window;
+    this.touchstart = this.isTouch ? 'touchstart' : 'mousedown';
+    this.touchend = this.isTouch ? 'touchend' : 'mouseup';
+
     this._onCall = !!oncall;
 
     // Update the minimum phone number phone size.
@@ -126,11 +131,10 @@ var KeypadManager = {
     this._phoneNumber = '';
 
     var keyHandler = this.keyHandler.bind(this);
-    this.keypad.addEventListener('mousedown', keyHandler, true);
-    this.keypad.addEventListener('mouseup', keyHandler, true);
-    this.keypad.addEventListener('mouseleave', keyHandler, true);
-    this.deleteButton.addEventListener('mousedown', keyHandler);
-    this.deleteButton.addEventListener('mouseup', keyHandler);
+    this.keypad.addEventListener(this.touchstart, keyHandler, true);
+    this.keypad.addEventListener(this.touchend, keyHandler, true);
+    this.deleteButton.addEventListener(this.touchstart, keyHandler);
+    this.deleteButton.addEventListener(this.touchend, keyHandler);
 
     // The keypad add contact bar is only included in the normal version of
     // the keypad.
@@ -296,7 +300,7 @@ var KeypadManager = {
     var telephony = navigator.mozTelephony;
 
     event.stopPropagation();
-    if (event.type == 'mousedown' || event.type == 'touchstart') {
+    if (event.type == this.touchstart) {
       this._longPress = false;
       this._keyPressStart = Date.now();
       this._lastPressedKey = key;
@@ -350,16 +354,11 @@ var KeypadManager = {
         this._phoneNumber += key;
       }
       this._updatePhoneNumberView('begin', false);
-    } else if (event.type == 'mouseleave') {
-        if (key !== 'delete' && key === this._lastPressedKey) {
-          this._keyPressStart = null;
-          this._lastPressedKey = null;
-        }
-    } else if (event.type == 'mouseup') {
+    } else if (event.type == this.touchend) {
       // Stop playing the DTMF/tone after a small delay
       // or right away if this is a long press
 
-      // Sending the DTMF tone if on a call on mouseup or mouseleave
+      // Sending the DTMF tone if on a call on touchend or touchleave
       // to prevent sending unwanted tones (BUG #829406);
       if (key !== 'delete' && key === this._lastPressedKey) {
         var keyPressStop = Date.now(),
