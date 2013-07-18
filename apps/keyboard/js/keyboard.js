@@ -209,7 +209,7 @@ const keyboardGroups = {
   'german': ['de'],
   'norwegian': ['nb'],
   'slovak': ['sk'],
-  'turkish': ['tr'],
+  'turkish': ['tr-Q', 'tr-F'],
   'russian': ['ru'],
   'serbian': ['sr-Latn', 'sr-Cyrl'],
   'hebrew': ['he'],
