@@ -670,5 +670,61 @@ suite('Database Test', function() {
         });
       });
     });
+
+    test('Wrap indexedDB version mod 2^53', function(done) {
+      this.slow(3000);
+      this.timeout(5000);
+      createSchema();
+      var versionCheck = function(err) {
+        if (err) {
+          done(err);
+        }
+        db.getLatestVersion(db.name, function(err, version, effective) {
+          assert.ok(!err);
+          assert.ok(version < Math.pow(2, 25));
+          assert.equal(effective, 2);
+          done();
+        });
+      };
+      populateV1DB(function() {
+        var loopAround = function() {
+          db.version = 2;
+          db.connect(function(err, conn) {
+            assert.deepEqual(Array.prototype.slice.call(conn.objectStoreNames)
+              .sort(),
+              [db.effectiveVersionName, 'objA', 'objC'].sort());
+            var extract = extractValues(conn, function(err, value) {
+              assert.ok(!err);
+              assert.deepEqual(value[db.effectiveVersionName].get(0), {
+                number: 2
+              });
+              assert.deepEqual(value['objA'].get(1), {
+                id: 1, a: 3, str: 'two'
+              });
+              assert.deepEqual(value['objA'].get(2), {
+                id: 2, a: 5, str: 'four'
+              });
+              assert.deepEqual(value['objA'].get(3), {
+                id: 3, a: 7, str: 'six'
+              });
+              assert.deepEqual(value['objC'].get(1), { c: 42 });
+              assert.deepEqual(value['objC'].get(2), { c: 96 });
+              assert.deepEqual(value['objC'].get(3), { c: 112 });
+              conn.close();
+              versionCheck(err);
+            });
+          });
+        };
+
+        var req = indexedDB.open('testDB', Math.pow(2, 53) - 1);
+        req.onsuccess = function(ev) {
+          req.result.close();
+          loopAround();
+        };
+        req.onerror = function(ev) {
+          done(req.error);
+        };
+      });
+    });
   });
 });
