@@ -508,20 +508,34 @@ var ThreadUI = global.ThreadUI = {
     this.enableSend();
   },
 
+  // scroll position is considered as "manual" if the view is not completely
+  // scrolled to the bottom
+  isScrolledManually: false,
+
   // We define an edge for showing the following chunk of elements
   manageScroll: function thui_manageScroll(oEvent) {
+    var scrollTop = this.container.scrollTop;
+    var scrollHeight = this.container.scrollHeight;
+    var clientHeight = this.container.clientHeight;
+
+    this.isScrolledManually = ((scrollTop + clientHeight) < scrollHeight);
+
     // kEdge will be the limit (in pixels) for showing the next chunk
     var kEdge = 30;
-    var currentScroll = this.container.scrollTop;
-    if (currentScroll < kEdge) {
-      var previous = this.container.scrollHeight;
+    if (scrollTop < kEdge) {
       this.showChunkOfMessages(this.CHUNK_SIZE);
       // We update the scroll to the previous position
       // taking into account the previous offset to top
       // and the current height due to we have added a new
       // chunk of visible messages
       this.container.scrollTop =
-        (this.container.scrollHeight - previous) + currentScroll;
+        (this.container.scrollHeight - scrollHeight) + scrollTop;
+    }
+  },
+
+  scrollViewToBottom: function thui_scrollViewToBottom() {
+    if (!this.isScrolledManually) {
+      this.container.scrollTop = this.container.scrollHeight;
     }
   },
 
@@ -612,10 +626,6 @@ var ThreadUI = global.ThreadUI = {
       (window.location.hash == '#new' && !hasRecipients);
 
     this.sendButton.disabled = disableSendMessage;
-  },
-
-  scrollViewToBottom: function thui_scrollViewToBottom() {
-    this.container.scrollTop = this.container.scrollHeight;
   },
 
   // updates the counter for sms segments when in text only mode
@@ -939,6 +949,8 @@ var ThreadUI = global.ThreadUI = {
 
   createMmsContent: function thui_createMmsContent(dataArray) {
     var container = document.createDocumentFragment();
+    var scrollViewToBottom = ThreadUI.scrollViewToBottom.bind(ThreadUI);
+
     dataArray.forEach(function(messageData) {
       var mediaElement, textElement;
 
@@ -946,7 +958,7 @@ var ThreadUI = global.ThreadUI = {
         var attachment = new Attachment(messageData.blob, {
           name: messageData.name
         });
-        var mediaElement = attachment.render();
+        var mediaElement = attachment.render(scrollViewToBottom);
         container.appendChild(mediaElement);
         attachmentMap.set(mediaElement, attachment);
       }
@@ -1020,7 +1032,6 @@ var ThreadUI = global.ThreadUI = {
   // the classNames array also passed in, returns an HTML string
   _createNotDownloadedHTML:
   function thui_createNotDownloadedHTML(message, classNames) {
-
     var _ = navigator.mozL10n.get;
 
     // default strings:
@@ -1332,7 +1343,6 @@ var ThreadUI = global.ThreadUI = {
       }
       return;
     }
-
   },
 
   handleEvent: function thui_handleEvent(evt) {
@@ -2051,7 +2061,6 @@ var ThreadUI = global.ThreadUI = {
     var options = new OptionMenu(params);
     options.show();
   },
-
 
   onCreateContact: function thui_onCreateContact() {
     ThreadListUI.updateContactsInfo();
