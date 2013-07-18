@@ -59,10 +59,6 @@ var Browser = {
     this.getAllElements();
 
     // Add event listeners
-    this.backButton.addEventListener('click', this.goBack.bind(this));
-    this.forwardButton.addEventListener('click', this.goForward.bind(this));
-    this.bookmarkButton.addEventListener('click',
-      this.showBookmarkMenu.bind(this));
     this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
@@ -96,10 +92,10 @@ var Browser = {
   getAllElements: function browser_getAllElements() {
     var elementIDs = [
       'toolbar-start', 'url-bar', 'url-input', 'url-button', 'awesomescreen',
-      'back-button', 'forward-button', 'bookmark-button', 'ssl-indicator',
-      'tabs-badge', 'throbber', 'frames', 'main-screen', 'crashscreen',
-      'bookmark-menu', 'bookmark-entry-sheet', 'awesomescreen-cancel-button',
-      'startscreen', 'top-site-thumbnails', 'no-top-sites', 'tray'];
+      'ssl-indicator', 'tabs-badge', 'throbber', 'frames', 'main-screen',
+      'crashscreen', 'bookmark-menu', 'bookmark-entry-sheet',
+      'awesomescreen-cancel-button', 'startscreen', 'top-site-thumbnails',
+      'no-top-sites', 'tray'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -639,7 +635,7 @@ var Browser = {
   reviveCrashedTab: function browser_reviveCrashedTab(tab) {
     this.createTab(null, null, tab);
     this.setTabVisibility(tab, true);
-    this.refreshButtons();
+    Toolbar.refreshButtons();
     this.navigate(tab.url);
     tab.crashed = false;
     this.hideCrashScreen();
@@ -765,7 +761,7 @@ var Browser = {
     if (!this.currentTab.url)
       return;
     Places.addBookmark(this.currentTab.url, this.currentTab.title,
-      this.refreshBookmarkButton.bind(this));
+      Toolbar.refreshBookmarkButton.bind(Toolbar));
     this.hideBookmarkMenu();
   },
 
@@ -775,7 +771,7 @@ var Browser = {
       return;
 
     Places.removeBookmark(this.bookmarkMenuRemove.dataset.url,
-      this.refreshBookmarkButton.bind(this));
+      Toolbar.refreshBookmarkButton.bind(Toolbar));
     this.hideBookmarkMenu();
     // refresh bookmark tab
     this.showBookmarksTab();
@@ -836,18 +832,6 @@ var Browser = {
     this.bookmarkMenu.classList.add('hidden');
   },
 
-  refreshBookmarkButton: function browser_refreshBookmarkButton() {
-    if (!this.currentTab.url)
-      return;
-    Places.getBookmark(this.currentTab.url, (function(bookmark) {
-      if (bookmark) {
-        this.bookmarkButton.classList.add('bookmarked');
-      } else {
-        this.bookmarkButton.classList.remove('bookmarked');
-      }
-    }).bind(this));
-  },
-
   showBookmarkEntrySheet: function browser_showBookmarkEntrySheet() {
     if (!this.currentTab.url)
       return;
@@ -876,7 +860,8 @@ var Browser = {
     var title = this.bookmarkTitle.value;
     var previousUrl = this.bookmarkPreviousUrl.value;
     if (url != previousUrl) {
-      Places.removeBookmark(previousUrl, this.refreshBookmarkButton.bind(this));
+      Places.removeBookmark(previousUrl,
+        Toolbar.refreshBookmarkButton.bind(Toolbar));
       Places.updateBookmark(url, title);
     } else {
       Places.updateBookmark(url, title);
@@ -903,24 +888,9 @@ var Browser = {
     this.hideBookmarkMenu();
   },
 
-  refreshButtons: function browser_refreshButtons() {
-    // When handling window.open we may hit this code
-    // before canGoBack etc has been applied to the frame
-    if (!this.currentTab.dom.getCanGoBack)
-      return;
-
-    this.currentTab.dom.getCanGoBack().onsuccess = (function(e) {
-      this.backButton.disabled = !e.target.result;
-    }).bind(this);
-    this.currentTab.dom.getCanGoForward().onsuccess = (function(e) {
-      this.forwardButton.disabled = !e.target.result;
-    }).bind(this);
-    this.refreshBookmarkButton();
-  },
-
   updateHistory: function browser_updateHistory(url) {
     Places.addVisit(url);
-    this.refreshButtons();
+    Toolbar.refreshButtons();
   },
 
   shouldFocus: false,
@@ -1671,7 +1641,7 @@ var Browser = {
     // that was positioned off screen
     this.setUrlBar(this.currentTab.title);
     this.updateSecurityIcon();
-    this.refreshButtons();
+    Toolbar.refreshButtons();
     // Show start screen if the tab hasn't been navigated
     if (this.currentTab.url == null) {
       this.showStartscreen();
@@ -1700,7 +1670,7 @@ var Browser = {
       this.showTopSiteThumbnails(places);
       this.loadRemaining();
     }.bind(this));
-    this.bookmarkButton.classList.remove('bookmarked');
+    Toolbar.bookmarkButton.classList.remove('bookmarked');
   },
 
   _topSiteThumbnailObjectURLs: [],
@@ -1904,7 +1874,7 @@ var Browser = {
           if (tab.dom.purgeHistory) {
             tab.dom.purgeHistory().onsuccess = function(e) {
               if (tab == self.currentTab) {
-                self.refreshButtons();
+                Toolbar.refreshButtons();
               }
             };
           }
