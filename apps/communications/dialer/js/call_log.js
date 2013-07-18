@@ -248,20 +248,30 @@ var CallLog = {
     }
   },
 
-  renderEmptyCallLog: function cl_renderEmptyCallLog() {
+  renderEmptyCallLog: function cl_renderEmptyCallLog(isEmptyMissedCallsGroup) {
     this.disableEditMode();
-    this._empty = true;
-    this.callLogContainer.innerHTML =
-      '<div id="no-result-container">' +
-        '<div id="no-result-message">' +
-          '<p data-l10n-id="no-logs-msg-1">' +
-            this._('no-logs-msg-1') +
-          '</p>' +
-          '<p data-l10n-id="no-logs-msg-2">' +
-            this._('no-logs-msg-2') +
-          '</p>' +
-        '</div>' +
-      '</div>';
+    // If rendering the empty call log for all calls (i.e. the
+    // isEmptyMissedCallsGroup not set), set the _empty parameter to true
+    if (!isEmptyMissedCallsGroup)
+      this._empty = true;
+
+    var noResultContainer = document.getElementById('no-result-container');
+    noResultContainer.hidden = false;
+    // Get pointers to the empty call log messages
+    var allCallsMsg1 = document.getElementById('no-result-msg1');
+    var allCallsMsg2 = document.getElementById('no-result-msg2');
+    var noMissedCallsMsg = document.getElementById('no-result-msg3');
+    // Set the visibility of the appropriate messages
+    allCallsMsg1.hidden = isEmptyMissedCallsGroup || false;
+    allCallsMsg2.hidden = isEmptyMissedCallsGroup || false;
+    noMissedCallsMsg.hidden = !isEmptyMissedCallsGroup;
+    // If the whole call log is cleared, remove any stale call log nodes from
+    // the call log container
+    if (!isEmptyMissedCallsGroup) {
+      var noResultContainerClone = noResultContainer.cloneNode(true);
+      this.callLogContainer.innerHTML = '';
+      this.callLogContainer.appendChild(noResultContainerClone);
+    }
   },
 
   // Method for appending a new group in the list.
@@ -271,6 +281,9 @@ var CallLog = {
     if (!this._initialized) {
       return;
     }
+
+    // Switch to all calls tab to avoid erroneous call filtering
+    this.unfilter();
 
     this.enableEditMode();
 
@@ -320,8 +333,14 @@ var CallLog = {
       container.insertBefore(callLogSection, referenceSection);
     } else {
       if (this._empty) {
+        // Create a copy of the empty call log message div in order to add it
+        // back in the empty container
+        var noResultContainer =
+            document.getElementById('no-result-container').cloneNode(true);
         container.innerHTML = '';
-        this.empty = false;
+        noResultContainer.hidden = true;
+        container.appendChild(noResultContainer);
+        this._empty = false;
       }
       container.appendChild(callLogSection);
     }
@@ -574,11 +593,22 @@ var CallLog = {
     this.missedFilter.setAttribute('aria-selected', 'true');
 
     var containers = this.callLogContainer.getElementsByTagName('ol');
+    var totalMissedCalls = 0;
     for (var i = 0, l = containers.length; i < l; i++) {
       var noMissedCalls = containers[i].getElementsByClassName('missed-call');
       if (noMissedCalls.length === 0) {
         containers[i].parentNode.classList.add('groupFiltered');
       }
+      totalMissedCalls += noMissedCalls.length;
+    }
+    // If there are no missed calls to display, show appropriate empty call log,
+    // otherwise hide the empty call log message and enable edit mode
+    if (totalMissedCalls === 0) {
+      this.renderEmptyCallLog(true);
+    } else {
+      var noResultContainer = document.getElementById('no-result-container');
+      noResultContainer.hidden = true;
+      this.enableEditMode();
     }
   },
 
@@ -586,6 +616,16 @@ var CallLog = {
     if (document.body.classList.contains('recents-edit')) {
       return;
     }
+    // If the call log is empty display the appropriate message, otherwise hide
+    // the empty call log message and enable edit mode
+    if (this._empty) {
+      this.renderEmptyCallLog();
+    } else {
+      var noResultContainer = document.getElementById('no-result-container');
+      noResultContainer.hidden = true;
+      this.enableEditMode();
+    }
+
     this.callLogContainer.classList.remove('filter');
     this.allFilter.setAttribute('aria-selected', 'true');
     this.missedFilter.setAttribute('aria-selected', 'false');
@@ -656,7 +696,9 @@ var CallLog = {
     if (inputsNotSelected.length === 0) {
       var self = this;
       CallLogDBManager.deleteAll(function onDeleteAll() {
-        self.renderEmptyCallLog();
+        var emptyMissCalls = self.callLogContainer.classList.contains('filter');
+        self.renderEmptyCallLog(emptyMissCalls);
+        self._empty = true;
         document.body.classList.remove('recents-edit');
       });
       return;
@@ -665,13 +707,21 @@ var CallLog = {
     var inputsSelected =
             this.callLogContainer.querySelectorAll(selector);
     var logGroupsToDelete = [];
+    var missedCallsShown = this.callLogContainer.classList.contains('filter');
     for (var i = 0, l = inputsSelected.length; i < l; i++) {
       var logGroup = inputsSelected[i].parentNode.parentNode;
       var olContainer = logGroup.parentNode;
       olContainer.removeChild(logGroup);
+      var missedCallsInGroup =
+              olContainer.getElementsByClassName('missed-call').length;
       if (olContainer.children.length === 0) {
         var section = olContainer.parentNode;
         this.callLogContainer.removeChild(section);
+      } else if (missedCallsShown && missedCallsInGroup === 0) {
+        // Hide day header groups that have no missed calls when deleting them
+        // from the "Missed" tab (Note: regular calls might still reside under
+        // the hidden group, which will be shown when the "All" tab is selected)
+        olContainer.parentNode.classList.add('groupFiltered');
       }
       var dataset = logGroup.dataset;
       var toDelete = {
@@ -687,6 +737,20 @@ var CallLog = {
 
     var self = this;
     CallLogDBManager.deleteGroupList(logGroupsToDelete, function() {
+      // Check for remaining missed calls in order to show the relevant empty
+      // call log page if all missed calls are deleted
+      if (self.callLogContainer.classList.contains('filter')) {
+        var containers = self.callLogContainer.getElementsByTagName('ol');
+        var hasMissedCalls = false;
+        for (var i = 0, l = containers.length; i < l && !hasMissedCalls; i++) {
+          hasMissedCalls =
+              (containers[i].getElementsByClassName('missed-call').length > 0);
+        }
+        if (!hasMissedCalls) {
+          self.renderEmptyCallLog(true);
+        }
+      }
+
       document.body.classList.remove('recents-edit');
     });
   },
