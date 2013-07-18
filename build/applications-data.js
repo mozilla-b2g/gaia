@@ -240,6 +240,12 @@ content = {
 
 writeContent(init, getDistributionFileContent('icc', content));
 
+// WAP UA profile url
+init = getFile(GAIA_DIR, 'apps', 'system', 'resources', 'wapuaprof.json');
+content = {};
+
+writeContent(init, getDistributionFileContent('wapuaprof.json', content));
+
 // Calendar Config
 init = getFile(GAIA_DIR, 'apps', 'calendar', 'js', 'presets.js');
 content = {

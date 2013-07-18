@@ -61,13 +61,18 @@
     mobileConnection.removeEventListener('iccinfochange', checkICCInfo);
 
     // same SIM card => do nothing
-    if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc))
+    if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc)) {
+      // check and build user profile if it upgrades from v1.0.1.
+      checkWAPUserAgentProfileEmpty();
       return;
+    }
 
     // new SIM card => cache iccInfo, load and apply new APN settings
     iccSettings.mcc = mcc;
     iccSettings.mnc = mnc;
     retrieveOperatorVariantSettings(applyOperatorVariantSettings);
+    // use mcc, mnc to load and apply WAP user agent profile url
+    retrieveWAPUserAgentProfileSettings(applyWAPUAProfileUrl);
   };
 
   // Load and query APN database, then trigger callback on results.
@@ -182,6 +187,60 @@
     });
   }
 
+
+  // check if the wap.UAProf.url is empty, if yes, rebuilt it.
+  // This will happen when a device use upgrade service to upgrade it.
+  function checkWAPUserAgentProfileEmpty() {
+    var wapUAProfKey = 'wap.UAProf.url';
+    var wapRequest = settings.createLock().get(wapUAProfKey);
+    wapRequest.onsuccess = function() {
+      // no wap ua profile url, try to build it.
+      if (!wapRequest.result[wapUAProfKey]) {
+        retrieveWAPUserAgentProfileSettings(applyWAPUAProfileUrl);
+      }
+    };
+  }
+
+  // load from /resources/wapuaprof.json and find out the UA url for current
+  // mcc and mnc.
+  function retrieveWAPUserAgentProfileSettings(callback) {
+    var WAP_UA_PROFILE_FILE = '/resources/wapuaprof.json';
+    var DEFAULT_KEY = '000000';
+
+    function padLeft(num, length) {
+      var r = String(num);
+      while (r.length < length) {
+        r = '0' + r;
+      }
+      return r;
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', WAP_UA_PROFILE_FILE, true);
+    xhr.responseType = 'json';
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
+        var uaprof = xhr.response;
+        // normalize mcc, mnc as zero padding string.
+        var mcc = padLeft(iccSettings.mcc, 3);
+        var mnc = padLeft(iccSettings.mnc, 3);
+
+        // Get the ua profile url with mcc/mnc. Fallback to default if no
+        // record found. If still not found, we use undefined as the default
+        // value
+        var uaProfile = uaprof[mcc + mnc] || uaprof[DEFAULT_KEY];
+        callback(uaProfile);
+      }
+    };
+    xhr.send();
+  }
+
+  // apply the user agent profile to mozsettings.
+  function applyWAPUAProfileUrl(uaProfile) {
+    var transaction = settings.createLock();
+    var urlValue = uaProfile ? uaProfile.url : undefined;
+    transaction.set({'wap.UAProf.url': urlValue});
+  }
 
   /**
    * Check the APN settings on startup and when the SIM card is changed.
