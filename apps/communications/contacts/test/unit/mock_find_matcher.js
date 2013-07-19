@@ -29,6 +29,28 @@ var MockFindMatcher = {
     };
   },
 
+  save: function() {
+    return {
+      set onsuccess(cb) {
+        cb();
+      },
+      set onerror(cb) {
+
+      }
+    };
+  },
+
+  remove: function() {
+    return {
+      set onsuccess(cb) {
+        cb();
+      },
+      set onerror(cb) {
+
+      }
+    };
+  },
+
   setData: function(data) {
     this.data = data;
   }
