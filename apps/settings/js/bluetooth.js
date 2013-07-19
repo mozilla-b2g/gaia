@@ -22,6 +22,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
   }
 
   var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');
+  var gVisibleCheckBox = document.querySelector('#device-visible input');
 
   // display Bluetooth power state
   function updateBluetoothState(value) {
@@ -64,16 +65,17 @@ navigator.mozL10n.ready(function bluetoothSettings() {
   var gMyDeviceInfo = (function deviceInfo() {
     var visibleItem = document.getElementById('device-visible');
     var visibleName = document.getElementById('bluetooth-device-name');
-    var visibleCheckBox = document.querySelector('#device-visible input');
     var bluetoothRename = document.getElementById('bluetooth-rename');
     var renameButton = document.getElementById('rename-device');
 
-    var visibleTimeout = null;
-    var visibleTimeoutTime = 120000;  // visibility will timeout after 2 minutes
     var myName = '';
 
-    visibleCheckBox.onchange = function changeDiscoverable() {
-      setDiscoverable(this.checked);
+    gVisibleCheckBox.onchange = function changeDiscoverable() {
+      if (!bluetooth.enabled || !defaultAdapter ||
+        this.checked === defaultAdapter.discoverable)
+        return;
+
+      settings.createLock().set({'bluetooth.visible': this.checked});
     };
 
     renameButton.onclick = function renameBtnClicked() {
@@ -108,63 +110,19 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     // immediatly UI update, DOM element manipulation.
     function updateDeviceInfo(show) {
       bluetoothRename.hidden = !show;
-      if (show) {
-        visibleItem.hidden = false;
-        // get last user setting for device visible
-        var req = settings.createLock().get('bluetooth.visible');
-        req.onsuccess = function bt_getVisibleSuccess() {
-          var visible = req.result['bluetooth.visible'];
-          if (typeof visible === 'undefined') {
-            visible = true;
-          }
-          setDiscoverable(visible);
-        };
-        req.onerror = function bt_getVisibleError() {
-          visibleCheckBox.checked = true;
-        };
-      } else {
-        visibleItem.hidden = true;
-        renameButton.disabled = true;
-        if (visibleTimeout) {
-          clearTimeout(visibleTimeout);
-          visibleTimeout = null;
-        }
-      }
+      visibleItem.hidden = !show;
+      renameButton.disabled = show ? renameButton.disabled : true;
     }
 
     // initial this device information and do default actions
     // when DefaultAdapter is ready.
     function initial() {
-      visibleCheckBox.checked = defaultAdapter.discoverable;
-      setDiscoverable(visibleCheckBox.checked);
+      gVisibleCheckBox.checked = defaultAdapter.discoverable;
       // we can't get device name immediately, wait a while
       setTimeout(function() {
         myName = visibleName.textContent = defaultAdapter.name;
         renameButton.disabled = false;
       }, 1000);
-    }
-
-    function setDiscoverable(visible) {
-      if (!bluetooth.enabled || !defaultAdapter)
-        return;
-
-      settings.createLock().set({'bluetooth.visible': visible});
-
-      defaultAdapter.setDiscoverable(visible);
-      // Visibility will time out after 2 mins.
-      if (visible) {
-        if (!visibleTimeout) {
-          visibleTimeout = setTimeout(function() {
-              setDiscoverable(false);
-            }, visibleTimeoutTime);
-        }
-      } else {
-        if (visibleTimeout) {
-          clearTimeout(visibleTimeout);
-          visibleTimeout = null;
-        }
-      }
-      visibleCheckBox.checked = visible;
     }
 
     // API
@@ -817,7 +775,10 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     // clear defaultAdapter, we have to acquire it again when enabled.
     if (!enabled)
       defaultAdapter = null;
+  });
 
+  settings.addObserver('bluetooth.visible', function(event) {
+    gVisibleCheckBox.checked = event.settingValue;
   });
 
   // startup, update status
