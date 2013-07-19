@@ -1704,7 +1704,7 @@ var WindowManager = (function() {
             deviceLockedTimer = setTimeout(function setVisibility() {
               // XXX: Check FTU status again to avoid the power-on video
               // is too short.
-              if (isRunningFirstRunApp)
+              if (FtuLauncher.isFtuRunning())
                 return;
               runningApps[displayedApp].setVisible(false);
             }, 3000);
