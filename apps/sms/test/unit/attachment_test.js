@@ -24,16 +24,15 @@ suite('attachment_test.js', function() {
   function assertThumbnailPreview(el) {
     assert.ok(el.classList.contains('preview'));
     assert.isFalse(el.classList.contains('nopreview'));
-    assert.isNull(el.querySelector('div.placeholder'));
-    var thumbnail = el.querySelector('div.thumbnail');
+    assert.isNull(el.querySelector('div.thumbnail-placeholder'));
+    var thumbnail = el.querySelector('img.thumbnail');
     assert.ok(thumbnail);
-    assert.include(thumbnail.style.backgroundImage, 'data:image');
   };
 
   function assertThumbnailPlaceholder(el, type) {
     assert.ok(el.classList.contains('nopreview'));
     assert.isFalse(el.classList.contains('preview'));
-    assert.isNull(el.querySelector('div.thumbnail'));
+    assert.isNull(el.querySelector('img.thumbnail'));
     var placeholder = el.querySelector('div.thumbnail-placeholder');
     assert.ok(placeholder);
     assert.ok(placeholder.classList.contains(type + '-placeholder'));
