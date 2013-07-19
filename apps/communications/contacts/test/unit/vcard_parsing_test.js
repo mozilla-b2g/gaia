@@ -95,6 +95,21 @@ var vcfwrong1 = 'BEGIN:VCARD\n' +
   'akajslkfj\n' +
   'END:VCARD';
 
+var vcf5 = 'BEGIN:VCARD\n' +
+  'VERSION:2.1\n' +
+  'N:Tanzbein;Tanja;;;\n' +
+  'FN:Tanja Tanzbein\n' +
+  'TEL;WORK:+3434269362248\n' +
+  'END:VCARD\n' +
+  'BEGIN:VCARD\n' +
+  'VERSION:2.1\n' +
+  'N;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:' +
+  '=52=C3=BC=63=6B=65=72;=54=68=6F=6D=61=73;;;\n' +
+  'FN;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:\n' +
+  '=54=68=6F=6D=61=73=20=52=C3=BC=63=6B=65=72\n' +
+  'TEL;CELL:+72682252873\n' +
+  'END:VCARD';
+
 suite('vCard parsing settings', function() {
   function stub(additionalCode, ret) {
     if (additionalCode && typeof additionalCode !== 'function')
@@ -354,6 +369,38 @@ suite('vCard parsing settings', function() {
         assert.strictEqual('forrestgump@example.com', contact.email[0].value);
         done();
 
+      });
+    });
+
+    test('- should return a correct JSON object from weird encoding',
+         function(done) {
+      var reader = new VCFReader(vcf5);
+
+      reader.onread = stub();
+      reader.onimported = stub();
+      reader.onerror = stub();
+
+      reader.process(function import_finish(contacts) {
+        assert.strictEqual(2, contacts.length);
+
+        assert.strictEqual(1, reader.onread.callCount);
+        assert.strictEqual(2, reader.onimported.callCount);
+        assert.strictEqual(0, reader.onerror.callCount);
+
+        var contact = contacts[0];
+
+        assert.strictEqual('Tanja Tanzbein', contact.name[0]);
+        assert.strictEqual('Tanja', contact.givenName[0]);
+        assert.strictEqual('WORK', contact.tel[0].type[0]);
+        assert.strictEqual('+3434269362248', contact.tel[0].value);
+
+        var contact2 = contacts[1];
+        assert.strictEqual('Thomas Rücker', contact2.name[0]);
+        assert.strictEqual('Thomas', contact2.givenName[0]);
+        assert.strictEqual('CELL', contact2.tel[0].type[0]);
+        assert.strictEqual('+72682252873', contact2.tel[0].value);
+
+        done();
       });
     });
 
