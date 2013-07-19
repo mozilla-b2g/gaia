@@ -287,7 +287,7 @@ var PowerSaveHandler = (function PowerSaveHandler() {
           return;
         }
 
-        if (value != -1 && battery.level > value && _powerSaveEnabled) {
+        if (battery.level > value && _powerSaveEnabled) {
           setMozSettings({'powersave.enabled' : false});
           return;
         }
