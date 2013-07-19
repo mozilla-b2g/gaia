@@ -5,6 +5,12 @@
 function initDB() {
   videodb = new MediaDB('videos');
 
+  videodb.onupgrading = function(evt) {
+    // show dialog in upgradestart, when it finished, it will turned to ready.
+    storageState = MediaDB.UPGRADING;
+    updateDialog();
+  };
+
   videodb.onunavailable = function(event) {
     storageState = event.detail;
     // If player is playing, we need to hide the player which pauses the player
