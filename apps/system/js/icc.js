@@ -10,15 +10,24 @@ var icc = {
   _inputTimeout: 40000,
 
   init: function icc_init() {
-    this._icc = this.getICC();
     this.hideViews();
-    this.getIccInfo();
     var self = this;
-    this.clearMenuCache(function() {
-      window.navigator.mozSetMessageHandler('icc-stkcommand',
-        function callHandleSTKCommand(message) {
-          self.handleSTKCommand(message);
-        });
+    this.clearMenuCache(function onClearedSTKMenuCache() {
+      self.getICC(function onGetICC(iccObject, mocked) {
+        self._icc = iccObject;
+        self.getIccInfo();
+        if (!mocked) {
+          navigator.mozSetMessageHandler('icc-stkcommand',
+            function callHandleSTKCommand(message) {
+              self.handleSTKCommand(message);
+            });
+        } else {
+          window.addEventListener('_stkcommand',
+            function callHandleFakedSTKCommand(evt) {
+              self.handleSTKCommand(evt.detail.command);
+            });
+        }
+      });
     });
 
     // Update displayTextTimeout with settings parameter
@@ -51,19 +60,28 @@ var icc = {
     xhr.send();
   },
 
-  getICC: function icc_getICC() {
-    if (!window.navigator.mozMobileConnection) {
-      return;
+  getICC: function icc_getICC(callback) {
+    if (typeof callback != 'function') {
+      callback = function() {};
     }
+    icc_mock_loader.load(function iccMockLoaderFinished(iccObject) {
+      if (iccObject) {
+        return callback(iccObject, true);
+      }
 
-    // See bug 859712
-    // To have the backward compatibility for bug 859220.
-    // If we could not get iccManager from navigator,
-    // try to get it from mozMobileConnection.
-    // 'window.navigator.mozMobileConnection.icc' can be dropped
-    // after bug 859220 is landed.
-    return window.navigator.mozIccManager ||
-           window.navigator.mozMobileConnection.icc;
+      if (!window.navigator.mozMobileConnection) {
+        return callback(null);
+      }
+
+      // See bug 859712
+      // To have the backward compatibility for bug 859220.
+      // If we could not get iccManager from navigator,
+      // try to get it from mozMobileConnection.
+      // 'window.navigator.mozMobileConnection.icc' can be dropped
+      // after bug 859220 is landed.
+      callback(navigator.mozIccManager || navigator.mozMobileConnection.icc,
+        false);
+    });
   },
 
   clearMenuCache: function icc_clearMenuCache(callback) {

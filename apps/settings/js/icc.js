@@ -31,18 +31,66 @@
   init();
 
   /**
+   * This method loads an ICC object (Real or mocked)
+   */
+  function loadIccObject(callback) {
+    if (typeof callback !== 'function') {
+      callback = function() {};
+    }
+    DUMP('ICC Loading ...');
+
+    var reqIccFake = window.navigator.mozSettings.createLock().get(
+      'debug.icc.faked');
+    reqIccFake.onsuccess = function iccFaked() {
+      // If it's running in a non-B2G gecko or faked forced by settings
+      if (!((window.navigator.mozMobileConnection &&
+          window.navigator.mozMobileConnection.icc) ||
+          window.navigator.mozIccManager) ||
+          reqIccFake.result['debug.icc.faked']) {
+
+        DUMP('Faking ICC object - lazy loading mock');
+        LazyLoader.load('/js/icc_mock.js', function() {
+          DUMP('ICC Mock object loaded');
+          icc = icc_mock;
+          icc.init(function() {
+            callback(true);
+          });
+        });
+      } else {
+        DUMP('Using real ICC obj.: Registering icc-stkcommand System Message');
+
+        // See bug 859712
+        // To have the backward compatibility for bug 859220.
+        // If we could not get iccManager from navigator,
+        // try to get it from mozMobileConnection.
+        // 'window.navigator.mozMobileConnection.icc' can be dropped
+        // after bug 859220 is landed.
+        icc = window.navigator.mozIccManager ||
+              window.navigator.mozMobileConnection.icc;
+        callback(false);
+      }
+    };
+  }
+
+  /**
    * Init STK UI
    */
   function init() {
-    // See bug 859712
-    // To have the backward compatibility for bug 859220.
-    // If we could not get iccManager from navigator,
-    // try to get it from mozMobileConnection.
-    // 'window.navigator.mozMobileConnection.icc' can be dropped
-    // after bug 859220 is landed.
-    icc = window.navigator.mozIccManager ||
-          window.navigator.mozMobileConnection.icc;
+    loadIccObject(function(mocked) {
+      if (mocked) {
+        window.addEventListener('_stkcommand', function(cmd) {
+          handleSTKCommand(cmd.detail.command);
+        });
+      } else {
+        icc.addEventListener('stkcommand', function do_handleSTKCmd(event) {
+          handleSTKCommand(event.command);
+        });
+      }
+      load();
+    });
+  }
 
+  function load() {
     icc.onstksessionend = function handleSTKSessionEnd(event) {
       updateMenu();
     };

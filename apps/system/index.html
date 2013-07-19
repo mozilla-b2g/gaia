@@ -107,6 +107,12 @@
     <link rel="stylesheet" type="text/css" href="style/software_button_manager/software_button_manager.css">
     <script defer src="js/software_button_manager.js"></script>
 
+    <!-- ICC Mock support -->
+    <script defer src="/shared/js/lazy_loader.js"></script>
+    <!-- The following scripts are lazy loaded but left here to ensure
+         they get copied over from shared during the build -->
+    <!-- <link rel="resource" type="application/json" href="shared/resources/icc_consts.json"/> -->
+    <script defer src="js/icc_mock_loader.js"></script>
     <!-- ICC/STK -->
     <link rel="stylesheet" type="text/css" href="style/icc.css">
     <script defer src="js/icc_events.js"></script>
