@@ -19,6 +19,7 @@ function SimContactsImporter() {
   var self = this;
   var _ = navigator.mozL10n.get;
   var mustFinish = false;
+  var loadedMatch = false;
 
   function notifyFinish() {
     if (typeof self.onfinish === 'function') {
@@ -60,6 +61,15 @@ function SimContactsImporter() {
       return;
     }
 
+    LazyLoader.load([
+      '/contacts/js/contacts_matcher.js',
+      '/contacts/js/contacts_merger.js',
+      '/contacts/js/merger_adapter.js'
+    ], function loaded() {
+      loadedMatch = true;
+      document.dispatchEvent(new CustomEvent('matchLoaded'));
+    });
+
     // See bug 870237
     // To have the backward compatibility for bug 859220.
     // If we could not get iccManager from navigator,
@@ -96,7 +106,16 @@ function SimContactsImporter() {
         // This way the total number can be known by the caller
         self.onread(self.items.length);
       }
-      startMigration();
+
+      if (loadedMatch) {
+        startMigration();
+      }
+      else {
+        document.addEventListener('matchLoaded', function mloaded() {
+          document.removeEventListener('matchLoaded', mloaded);
+          startMigration();
+        });
+      }
     };
 
     request.onerror = function error() {
@@ -122,9 +141,33 @@ function SimContactsImporter() {
       var item = self.items[i];
       item.givenName = item.name;
       for (var j = 0; j < item.tel.length; j++) {
-        item.tel[j].type = _('mobile');
+        item.tel[j].type = 'mobile';
       }
-      var req = window.navigator.mozContacts.save(item);
+
+      var cbs = {
+        onmatch: function(results) {
+          var mergeCbs = {
+            success: continueCb,
+            error: function(e) {
+              window.console.error('Error while merging: ', e);
+              continueCb();
+            }
+          };
+
+          contacts.adaptAndMerge(this, results, mergeCbs);
+        }.bind(item),
+        onmismatch: function() {
+          saveContact(this);
+        }.bind(item)
+      };
+
+      contacts.Matcher.match(item, 'passive', cbs);
+    }
+  } // importSlice
+
+
+  function saveContact(item) {
+    var req = window.navigator.mozContacts.save(item);
       req.onsuccess = function saveSuccess() {
         continueCb();
       };
@@ -132,6 +175,5 @@ function SimContactsImporter() {
         console.error('SIM Import: Error importing ', item.id);
         continueCb();
       };
-    }
-  } // importSlice
+  }
 }
