@@ -98,6 +98,30 @@ suite('Test Contacts Matcher', function() {
       testMatch(myObj, 'passive', done);
     });
 
+    test('Matching by name and phone number. Name defined in the name prop',
+      function(done) {
+        var myObj = Object.create(contact);
+
+        myObj.id = '1A';
+        myObj.email = [];
+        myObj.familyName = [];
+        myObj.givenName = ['Carlos Alvarez del Río'];
+        myObj.name = ['Carlos Alvarez del Río'];
+
+        var saveGN = contact.givenName;
+        var saveFN = contact.familyName;
+        contact.givenName = ['Carlos Alvarez del Río'];
+        contact.familyName = ['  '];
+        contact.name = ['Carlos Álvarez del rio'];
+
+        testMatch(myObj, 'passive', function() {
+          contact.givenName = saveGN;
+          contact.familyName = saveFN;
+          contact.name = null;
+          done();
+        });
+    });
+
     test('Matching by name and e-mail', function(done) {
       var myObj = Object.create(contact);
       myObj.id = '1A';
