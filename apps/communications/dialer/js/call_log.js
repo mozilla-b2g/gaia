@@ -298,7 +298,7 @@ var CallLog = {
   //  id="1369695600000-6136112351-dialing" data-type="dialing"
   //  data-phone-number="6136112351" data-timestamp="1369731559902"
   //  class="log-item">
-  //    <label class="call-log-selection danger">
+  //    <label class="pack-checkbox call-log-selection danger">
   //      <input value="1369695600000-6136112351-dialing" type="checkbox">
   //      <span></span>
   //    </label>
@@ -347,7 +347,7 @@ var CallLog = {
     }
 
     var label = document.createElement('label');
-    label.className = 'call-log-selection danger';
+    label.className = 'pack-checkbox call-log-selection danger';
     var input = document.createElement('input');
     input.setAttribute('type', 'checkbox');
     input.value = group.id;

@@ -128,6 +128,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
       // include the radio button element in a list item
       var span = document.createElement('span');
       var label = document.createElement('label');
+      label.classList.add('pack-radio');
       label.appendChild(input);
       label.appendChild(span);
       var a = document.createElement('a');
