@@ -626,7 +626,7 @@ var DataUsageTab = (function() {
 
   // Check if the segment of the graph is inside chart area. If so, draw it
   function clipAndDrawSegment(ctx, model, x0, y0, x1, y1) {
-    if (x0 >= model.originX && x1 < model.endX) {
+    if (x0 >= model.originX && x1 <= model.endX) {
       var x0Fixed = Math.floor(x0) - 0.5;
       var x1Fixed = Math.floor(x1) + 0.5;
 
