@@ -130,6 +130,11 @@ function init() {
     });
   }
 
+  // show dialog in upgradestart, when it finished, it will turned to ready.
+  musicdb.onupgrading = function() {
+    showOverlay('upgrade');
+  };
+
   // This is called when DeviceStorage becomes unavailable because the
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
@@ -173,7 +178,8 @@ function init() {
 
   musicdb.onready = function() {
     // Hide the nocard or pluggedin overlay if it is displayed
-    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
+    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin' ||
+        currentOverlay === 'upgrade')
       showOverlay(null);
 
     // Display music that we already know about
