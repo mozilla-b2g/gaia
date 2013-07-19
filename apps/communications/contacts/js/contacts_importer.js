@@ -113,7 +113,20 @@
 
     // This method might be overritten
     this.persist = function(contactData, successCb, errorCb) {
-      saveMozContact(contactData, successCb, errorCb);
+      var cbs = {
+        onmatch: function(matches) {
+          contacts.adaptAndMerge(this, matches, {
+            success: successCb,
+            error: errorCb
+          });
+        }.bind(contactData),
+        onmismatch: function() {
+          saveMozContact(this, successCb, errorCb);
+        }.bind(contactData)
+      };
+
+      // Try to match and if so merge is performed
+      contacts.Matcher.match(contactData, 'passive', cbs);
     };
 
     // This method might be overwritten
