@@ -14,6 +14,7 @@ var GridManager = (function() {
 
   var windowWidth = window.innerWidth;
   var swipeThreshold, swipeFriction, tapThreshold;
+  var swipeVelocity, swipeDistance, firstMoveVelocity, firstMoveDistance;
 
   var dragging = false;
 
@@ -208,6 +209,8 @@ var GridManager = (function() {
         if (deltaX === 0)
           return;
 
+        firstMoveDistance = Math.abs(currentX - startX);
+        firstMoveVelocity = Math.abs(panningResolver.getVelocity());
         document.body.dataset.transitioning = 'true';
 
         // Panning time! Stop listening here to enter into a dedicated
@@ -215,6 +218,22 @@ var GridManager = (function() {
         // direction of the inputs. The code here is carefully written
         // to avoid as much as possible allocations while panning.
         window.removeEventListener(touchmove, handleEvent);
+
+        if (firstMoveDistance > swipeDistance &&
+            firstMoveVelocity > swipeVelocity) {
+          // Full page transition detected early in 1st touchmove event
+          touchEndTimestamp = evt ? evt.timeStamp : Number.MAX_VALUE;
+          window.mozRequestAnimationFrame(function panTouchEnd() {
+            onTouchEnd((deltaX > 0) ? windowWidth * 0.4 :
+                      -windowWidth * 0.4, evt);
+          });
+          window.removeEventListener(touchend, handleEvent);
+          break;
+        }
+
+        // Pan detected in 1st touchmove event
+        // This will start partial page transition
+        // Full page transition will happen on touchend event
 
         var current = pages[currentPage].container.style;
         var forward = deltaX < 0;
@@ -1175,6 +1194,8 @@ var GridManager = (function() {
     swipeThreshold = windowWidth * options.swipeThreshold;
     swipeFriction = options.swipeFriction || defaults.swipeFriction; // Not zero
     kPageTransitionDuration = options.swipeTransitionDuration;
+    swipeVelocity = options.swipeVelocity;
+    swipeDistance = options.swipeDistance;
     overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
 
     window.addEventListener('hashchange', hashchange);

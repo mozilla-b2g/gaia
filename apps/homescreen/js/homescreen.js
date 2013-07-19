@@ -34,7 +34,9 @@ var Homescreen = (function() {
       // in the range 0.0 to 1.0, both included, representing the screen width
       swipeThreshold: swipeSection.threshold,
       swipeFriction: swipeSection.friction,
-      swipeTransitionDuration: swipeSection.transition_duration
+      swipeTransitionDuration: swipeSection.transition_duration,
+      swipeVelocity: swipeSection.velocity,
+      swipeDistance: swipeSection.distance
     };
 
     GridManager.init(options, function gm_init() {
