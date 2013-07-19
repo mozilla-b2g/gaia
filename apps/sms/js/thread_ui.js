@@ -1482,14 +1482,6 @@ var ThreadUI = global.ThreadUI = {
     var buttonLabel = '';
 
     switch (errorName) {
-      case 'NoSignalError':
-      case 'NotFoundError':
-      case 'UnknownError':
-      case 'InternalError':
-        messageTitle = 'sendGeneralErrorTitle';
-        messageBody = 'sendGeneralErrorBody';
-        buttonLabel = 'sendGeneralErrorBtnOk';
-        break;
       case 'NoSimCardError':
         messageTitle = 'sendNoSimCardTitle';
         messageBody = 'sendNoSimCardBody';
@@ -1499,6 +1491,16 @@ var ThreadUI = global.ThreadUI = {
         messageTitle = 'sendAirplaneModeTitle';
         messageBody = 'sendAirplaneModeBody';
         buttonLabel = 'sendAirplaneModeBtnOk';
+        break;
+      case 'NoSignalError':
+      case 'NotFoundError':
+      case 'UnknownError':
+      case 'InternalError':
+      case 'InvalidAddressError'
+      default:
+        messageTitle = 'sendGeneralErrorTitle';
+        messageBody = 'sendGeneralErrorBody';
+        buttonLabel = 'sendGeneralErrorBtnOk';
         break;
     }
 
