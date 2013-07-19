@@ -133,6 +133,7 @@ navigator.mozL10n.ready(function carrierSettings() {
       // include the radio button element in a list item
       var span = document.createElement('span');
       var label = document.createElement('label');
+      label.classList.add('pack-radio');
       label.appendChild(input);
       label.appendChild(span);
       var a = document.createElement('a');
