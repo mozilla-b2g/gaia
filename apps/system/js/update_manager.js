@@ -240,6 +240,7 @@ var UpdateManager = {
 
         var span = document.createElement('span');
 
+        checkContainer.classList.add('pack-checkbox');
         checkContainer.appendChild(checkbox);
         checkContainer.appendChild(span);
       }
