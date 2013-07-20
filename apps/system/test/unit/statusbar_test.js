@@ -128,25 +128,35 @@ suite('system/Statusbar', function() {
     teardown(function() {
       StatusBar.screen = null;
     });
+    test('first launch', function() {
+      MockLockScreen.locked = true;
+      StatusBar.init();
+      assert.equal(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, true);
+    });
     test('lock', function() {
       var evt = new CustomEvent('lock');
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('unlock', function() {
       var evt = new CustomEvent('unlock');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('attentionscreen show', function() {
       var evt = new CustomEvent('attentionscreenshow');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('attentionsceen hide', function() {
       var evt = new CustomEvent('attentionscreenhide');
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('emergency call when locked', function() {
       var evt = new CustomEvent('lockpanelchange', {
@@ -157,11 +167,13 @@ suite('system/Statusbar', function() {
       StatusBar.screen.classList.add('locked');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('moztime change', function() {
       var evt = new CustomEvent('moztimechange');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('screen enable but screen is unlocked', function() {
       var evt = new CustomEvent('screenchange', {
@@ -172,6 +184,7 @@ suite('system/Statusbar', function() {
       MockLockScreen.locked = false;
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('screen enable and screen is locked', function() {
       var evt = new CustomEvent('screenchange', {
@@ -182,6 +195,7 @@ suite('system/Statusbar', function() {
       MockLockScreen.locked = true;
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('screen disable', function() {
       var evt = new CustomEvent('screenchange', {
@@ -191,6 +205,7 @@ suite('system/Statusbar', function() {
       });
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, true);
     });
   });
 
