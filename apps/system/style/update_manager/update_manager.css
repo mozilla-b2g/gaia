@@ -144,7 +144,7 @@ html, body {
   padding-left: 2.8rem;
   height: 2.4rem;
   line-height: 2.4rem;
-  background: url('images/iconindicator_download_24x24.png') no-repeat scroll 0 50% transparent / 2.4rem;
+  background: url('images/iconindicator_download_24x24.png') transparent no-repeat scroll 0 50% / 2.4rem;
   border: none;
 }
 
