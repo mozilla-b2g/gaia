@@ -2415,4 +2415,9 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('initSentAudio', function() {
+    test('calling function does not throw uncaught exception ', function() {
+      assert.doesNotThrow(ThreadUI.initSentAudio);
+    });
+  });
 });
