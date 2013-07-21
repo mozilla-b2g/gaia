@@ -13,9 +13,10 @@ var GridManager = (function() {
   var container;
 
   var windowWidth = window.innerWidth;
-  var swipeThreshold, swipeFriction, tapThreshold;
+  var swipeThreshold, swipeFriction, tapThreshold, swipeVelocity, swipeDistance;
 
   var dragging = false;
+  var earlySwipe = true;
 
   var defaultAppIcon, defaultBookmarkIcon;
 
@@ -205,7 +206,7 @@ var GridManager = (function() {
         currentX = getX(evt);
         deltaX = panningResolver.getDeltaX(evt);
 
-        if (deltaX === 0)
+        if (deltaX === 0 || isNaN(deltaX))
           return;
 
         document.body.dataset.transitioning = 'true';
@@ -221,6 +222,45 @@ var GridManager = (function() {
 
         // Since we're panning, the icon we're over shouldn't be active
         removeActive();
+
+        if (earlySwipe && Math.abs(currentX - startX) > swipeDistance &&
+            Math.abs(panningResolver.getVelocity()) > swipeVelocity) {
+          // Full page transition detected early in 1st touchmove event
+          window.removeEventListener(touchend, handleEvent);
+          touchEndTimestamp = evt ? evt.timeStamp : Number.MAX_VALUE;
+          window.mozRequestAnimationFrame(function panTouchEnd() {
+            onTouchEnd((deltaX > 0) ? swipeThreshold :
+                      -swipeThreshold, evt);
+          });
+          var pan = function pan(e) {
+            window.removeEventListener(touchmove, pan, true);
+            window.removeEventListener(touchend, removePanHandler, true);
+            touchStartTimestamp = e.timeStamp;
+            startEvent = e.touches[0];
+            deltaX = 0;
+            attachEvents();
+            removePanHandler = noop;
+            isPanning = false;
+            panningResolver.reset();
+            earlySwipe = false;
+            };
+          removePanHandler = function removePanHandler(e) {
+              window.removeEventListener(touchmove, pan, true);
+              window.removeEventListener(touchend, removePanHandler, true);
+            };
+          container.addEventListener('transitionend', function transitionEnd(e)
+          {
+            container.removeEventListener('transitionend', transitionEnd, true);
+            window.addEventListener(touchmove, pan, true);
+          }, true);
+          window.addEventListener(touchend, removePanHandler, true);
+          return;
+        }
+        earlySwipe = true;
+
+        // Pan detected in 1st touchmove event
+        // This will start partial page transition
+        // Full page transition will happen on touchend event
 
         var refresh;
 
@@ -332,14 +372,13 @@ var GridManager = (function() {
           };
         }
 
-        var container = pages[currentPage].container;
-        container.addEventListener(touchmove, pan, true);
+        window.addEventListener(touchmove, pan, true);
 
         removePanHandler = function removePanHandler(e) {
           touchEndTimestamp = e ? e.timeStamp : Number.MAX_VALUE;
           window.removeEventListener(touchend, removePanHandler, true);
 
-          container.removeEventListener(touchmove, pan, true);
+          window.removeEventListener(touchmove, pan, true);
 
           window.mozRequestAnimationFrame(function panTouchEnd() {
             onTouchEnd(deltaX, e);
@@ -1175,6 +1214,8 @@ var GridManager = (function() {
     swipeThreshold = windowWidth * options.swipeThreshold;
     swipeFriction = options.swipeFriction || defaults.swipeFriction; // Not zero
     kPageTransitionDuration = options.swipeTransitionDuration;
+    swipeVelocity = options.swipeVelocity;
+    swipeDistance = options.swipeDistance;
     overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
 
     window.addEventListener('hashchange', hashchange);
