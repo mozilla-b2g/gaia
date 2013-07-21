@@ -300,14 +300,18 @@ var ThreadUI = global.ThreadUI = {
 
     // navigator.mozSettings may not be defined in all environments
     if (navigator.mozSettings) {
-      var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
-      req.onsuccess = (function onsuccess() {
-        this.sentAudioEnabled = req.result[this.sentAudioKey];
-      }).bind(this);
+      try {
+        var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
+        req.onsuccess = (function onsuccess() {
+          this.sentAudioEnabled = req.result[this.sentAudioKey];
+        }).bind(this);
 
-      navigator.mozSettings.addObserver(this.sentAudioKey, (function(e) {
-        this.sentAudioEnabled = e.settingValue;
-      }).bind(this));
+        navigator.mozSettings.addObserver(this.sentAudioKey, (function(e) {
+          this.sentAudioEnabled = e.settingValue;
+        }).bind(this));
+      } catch (e) {
+        this.sentAudioEnabled = false;
+      }
     }
   },
 
