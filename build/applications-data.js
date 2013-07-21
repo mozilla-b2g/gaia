@@ -150,6 +150,12 @@ let swipe_threshold = 0.4;
 let swipe_friction = 0.1;
 // Page transition duration defined in ms (300 ms by default)
 let transition_duration = 300;
+// It defines velocity threshold between touchstart and touchmove as 0.019
+// px/ms. We use this to trigger early swipe after touchmove event
+let swipe_velocity_threshold = 0.019;
+// It defines distance threshold between touchstart and touchmove as 1 px. We
+// use this to trigger early swipe after touchmove event
+let swipe_distance_threshold = 1;
 
 if (customize.swipe) {
   if (customize.swipe.threshold)
@@ -158,6 +164,10 @@ if (customize.swipe) {
     swipe_friction = customize.swipe.friction;
   if (customize.swipe.transition_duration)
     transition_duration = customize.swipe.transition_duration;
+  if (customize.swipe.velocity_threshold)
+    swipe_velocity_threshold = customize.swipe.velocity_threshold;
+  if (customize.swipe.distance_threshold)
+    swipe_distance_threshold = customize.swipe.distance_threshold;
 }
 
 let content = {
@@ -171,7 +181,9 @@ let content = {
   swipe: {
     threshold: swipe_threshold,
     friction: swipe_friction,
-    transition_duration: transition_duration
+    transition_duration: transition_duration,
+    velocity_threshold: swipe_velocity_threshold,
+    distance_threshold: swipe_distance_threshold
   },
 
   // This specifies whether we optimize homescreen panning by trying to
