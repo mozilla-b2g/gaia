@@ -104,6 +104,11 @@ body.hidden *[data-l10n-id] {
 
 #iframe-contacts-container {
   overflow: hidden;
+  display: none;
+}
+
+:target #iframe-contacts-container {
+  display: block;
 }
 
 #recents-view.hidden [role="tabpanel"] section {
