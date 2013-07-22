@@ -130,7 +130,7 @@ contacts.Merger = (function() {
 
     }); // matchingResults
 
-    var name = [(Array.isArray(recGivenName) ? recGivenName[0] : '') +
+    mergedContact.name = [(Array.isArray(recGivenName) ? recGivenName[0] : '') +
                           ' ' +
                 (Array.isArray(recFamilyName) ? recFamilyName[0] : '')];
 
