@@ -1243,18 +1243,10 @@ function movePress(target, coords, touchId) {
 
   var keyCode = parseInt(target.dataset.keycode);
 
-  // Ignore if moving over delete key
-  if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
-    // Set currentKey to null so that no key is entered in this case.
-    // Except when the current key is actually backspace itself. Then we
-    // need to leave currentKey alone, so that autorepeat works correctly.
-    if (parseInt(oldTarget.dataset.keycode) !== keyCode)
-      setCurrentKey(null, touchId);
-    return;
-  }
+  // Update highlight: add to the new (Ignore if moving over delete key)
+  if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
+    IMERender.highlightKey(target);
 
-  // Update highlight: add to the new
-  IMERender.highlightKey(target);
   setCurrentKey(target, touchId);
 
   clearTimeout(deleteTimeout);
