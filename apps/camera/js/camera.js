@@ -949,6 +949,7 @@ var Camera = {
     if (this._recording) {
       this.stopRecording();
     }
+    this.hideFocusRing();
     this.disableButtons();
     this.viewfinder.pause();
     this._previewActive = false;
