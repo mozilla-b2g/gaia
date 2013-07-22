@@ -21,6 +21,11 @@
 ###############################################################################
 -include local.mk
 
+# .b2g.mk recorded the make flags from Android.mk
+# This ensures |./flash.sh gaia| follows |./build.sh gaia| will pick up the same
+# flags.
+-include .b2g.mk
+
 # Headless bot does not need the full output of wget
 # and it can cause crashes in bot.io option is here so
 # -nv can be passed and turn off verbose output.
