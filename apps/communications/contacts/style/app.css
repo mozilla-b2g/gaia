@@ -301,7 +301,7 @@ li a[role="button"].activity > b{
 }
 
 .view-select-tag .selection-list li button.icon-selected:before {
-  background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center;
+  background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center / 2rem;
 }
 
 /* Input areas customization*/
