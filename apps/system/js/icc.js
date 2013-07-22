@@ -12,6 +12,7 @@ var icc = {
   init: function icc_init() {
     this._icc = this.getICC();
     this.hideViews();
+    this.protectForms();
     this.getIccInfo();
     var self = this;
     this.clearMenuCache(function() {
@@ -127,6 +128,36 @@ var icc = {
     this.responseSTKCommand({
       resultCode: this._icc.STK_RESULT_BACKWARD_MOVE_BY_USER
     });
+  },
+
+  /**
+   * Protect forms from reloading system app
+   */
+  protectForms: function() {
+    var protect = function(event) {
+      if (!event) {
+        return;
+      }
+
+      event.preventDefault();
+    };
+
+    // Prevents from reloading the system app when
+    // the user taps on the Enter key
+    var iccView = document.getElementById('icc-view');
+    if (!iccView) {
+      return;
+    }
+
+    var forms = iccView.getElementsByTagName('form');
+    if (!forms) {
+      return;
+    }
+
+    for (var i = 0; i < forms.length; i++) {
+      var form = forms[i];
+      form.onsubmit = protect;
+    }
   },
 
   /******************************************
