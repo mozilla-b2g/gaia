@@ -9,8 +9,8 @@ var CurrentMusicPageSource = function(){
   ]);
   window.router.on('setInfo', this.setInfo.bind(this));
 
-  Utils.setupPassEvent(this, 'hideCurrentSourceView');
-  Utils.setupPassEvent(this, 'showCurrentSourceView');
+  Utils.setupPassParent(this, 'hideCurrentSourceView');
+  Utils.setupPassParent(this, 'showCurrentSourceView');
 
   var imgTapManager = new TapManager(this.dom.currentSourceImg);
 
