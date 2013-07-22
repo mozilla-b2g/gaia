@@ -51,7 +51,7 @@
     },
     "view" : {
       "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube", "video/ogg"]
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/ogg"]
       },
       "href": "view.html",
       "disposition": "inline",
@@ -59,7 +59,7 @@
     },
     "open" : {
       "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube", "video/ogg"]
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/ogg"]
       },
       "href": "view.html",
       "disposition": "inline",

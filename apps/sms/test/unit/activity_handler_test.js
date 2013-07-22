@@ -313,6 +313,7 @@ suite('ActivityHandler', function() {
 
   suite('"new" activity', function() {
     var realMozL10n;
+
     // Mockup activity
     var newActivity = {
       source: {
@@ -323,14 +324,31 @@ suite('ActivityHandler', function() {
         }
       }
     };
+
+    var newActivity_empty = {
+      source: {
+        name: 'new',
+        data: {
+          number: '123'
+        }
+      }
+    };
+
+    setup(function() {
+      // find no contact in here
+      this.sinon.stub(Contacts, 'findByPhoneNumber').callsArgWith(1, []);
+    });
+
     suiteSetup(function() {
       window.location.hash = '#new';
       realMozL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
     });
+
     suiteTeardown(function() {
       navigator.mozL10n = realMozL10n;
     });
+
     test('Activity lock should be released properly', function() {
       // Review the status after handling the activity
       this.sinon.stub(MessageManager, 'launchComposer', function(activity) {

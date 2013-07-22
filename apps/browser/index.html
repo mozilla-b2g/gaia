@@ -13,6 +13,7 @@
 
     <!-- Specific style -->
     <link rel="stylesheet" href="style/browser.css" type="text/css">
+    <link rel="stylesheet" href="style/toolbar.css" type="text/css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -25,6 +26,7 @@
     <!-- Specific code -->
     <script defer src="js/places.js"></script>
     <script defer src="js/browser.js"></script>
+    <script defer src="js/toolbar.js"></script>
 
     <!-- Resources -->
     <link rel="resource" type="image/png" href="shared/resources/branding/Browser.png"/>
@@ -117,6 +119,8 @@
       <button type="button" value="" id="forward-button" alt="Forward"
               title="" disabled="true"></button>
       <button type="button" value="" id="bookmark-button" alt="Bookmark"
+              title=""></button>
+      <button type="button" value="" id="share-button" alt="Share"
               title=""></button>
     </menu>
 
@@ -232,9 +236,9 @@
     <!--
       <section>
         <p><span id="modal-dialog-custom-prompt-message"></span></p>
-        <label>
+        <label class="pack-checkbox">
           <input id="modal-dialog-custom-prompt-checkbox" type="checkbox" />
-        <span></span>
+          <span></span>
         </label>
       </section>
       <menu id="modal-dialog-custom-prompt-buttons"></menu>

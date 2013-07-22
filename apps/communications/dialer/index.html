@@ -9,6 +9,7 @@
     <script defer src="/shared/js/lazy_loader.js"></script>
     <script defer src="/shared/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
+    <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <!-- Needed to not duplicate PIN/PUK management strings -->
     <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini">
@@ -86,10 +87,25 @@
             <div class="view-body">
               <div id="fixed-container" class="fixed-title"></div>
               <article id="call-log-container" class="view-body-inner" data-type="list">
+                <div id="no-result-container" hidden>
+                  <div id="no-result-message">
+                    <p id="no-result-msg1" data-l10n-id="no-logs-msg-1"></p>
+                    <p id="no-result-msg2" data-l10n-id="no-logs-msg-2"></p>
+                    <p id="no-result-msg3" data-l10n-id="no-logs-msg-3" hidden></p>
+                  </div>
+                </div>
               </article>
             </div>
           </section>
         </div>
+        <form role="dialog" data-type="confirm" id="call-log-upgrading" class="hide">
+          <section>
+            <div role="status">
+              <span id="call-log-upgrade-percent" class="loading-header">0%</span>
+              <progress id="call-log-upgrade-progress" class="pack-activity" value="0" max="100"></progress>
+            </div>
+          </section>
+        </form>
       </article>
       <article class="view" role="tab" id="contacts-view">
         <a id="option-contacts" href="#contacts-view" class="icon icon-contacts">contacts</a>

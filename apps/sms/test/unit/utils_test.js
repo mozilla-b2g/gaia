@@ -160,6 +160,50 @@ suite('Utils', function() {
     */
   });
 
+  suite('Utils.startTimeHeaderScheduler', function() {
+
+    setup(function() {
+      this.callTimes = [];
+      this.sinon.useFakeTimers();
+      this.updateStub = this.sinon.stub(Utils, 'updateTimeHeaders',
+        function() {
+          this.callTimes.push(Date.now());
+        }.bind(this));
+    });
+
+    teardown(function() {
+      Utils.updateTimeHeaders.restore();
+    });
+
+    test('timeout on minute boundary', function() {
+      // "Fri Jul 12 2013 16:01:54 GMT-0400 (EDT)"
+      var start = 1373659314572;
+      var callTimes = [];
+
+      this.sinon.clock.tick(start);
+      Utils.startTimeHeaderScheduler();
+      this.sinon.clock.tick(100 * 1000);
+
+      // we are called on start
+      assert.equal(this.callTimes[0], start);
+      // Fri Jul 12 2013 16:02:00 GMT-0400 (EDT)
+      assert.equal(this.callTimes[1], 1373659320000);
+      // Fri Jul 12 2013 16:03:00 GMT-0400 (EDT)
+      assert.equal(this.callTimes[2], 1373659380000);
+    });
+
+    test('multiple calls converge', function() {
+      this.updateStub.reset();
+
+      for (var i = 0; i < 100; i++) {
+        Utils.startTimeHeaderScheduler();
+      }
+      this.sinon.clock.tick(60 * 1000);
+      assert.equal(this.updateStub.callCount, 101);
+    });
+
+  });
+
   suite('Utils.getContactDetails', function() {
     test('(number, contact)', function() {
       var contact = new MockContact();

@@ -9,8 +9,6 @@ manifest.appcache
 /apps/calendar/js/presets.js
 /apps/email/built/
 /apps/homescreen/js/init.json
-/apps/homescreen/js/hiddenapps.js
-/apps/settings/js/hiddenapps.js
 /apps/costcontrol/js/config.json
 /apps/sms/js/blacklist.json
 /test_apps/test-agent/test/config.json
@@ -26,6 +24,7 @@ manifest.appcache
 /apps/settings/resources/support.json
 /apps/settings/resources/sensors.json
 /apps/system/resources/icc.json
+/apps/system/resources/wapuaprof.json
 /test_apps/*/test/unit/_sandbox.html
 /test_apps/*/test/unit/_proxy.html
 /test_apps/*/locales-obj
@@ -47,6 +46,7 @@ manifest.appcache
 /build/custom-prefs.js
 /build/custom-settings.json
 /local.mk
+/.b2g.mk
 
 /tools/xpcwindow/vendor/
 
@@ -58,3 +58,9 @@ manifest.appcache
 /.project
 /.settings
 
+/external-apps/*/test/unit/_sandbox.html
+/external-apps/*/test/unit/_proxy.html
+
+/test_external_apps/*/test/unit/_sandbox.html
+/test_external_apps/*/test/unit/_proxy.html
+apps/*, external-apps/* & GAIA_DISTRIBUTION_DIR

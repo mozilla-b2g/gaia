@@ -17,6 +17,9 @@
     <script type="text/javascript" src="oauth2/js/parameters.js"></script>
     <script type="text/javascript" src="/facebook/js/curtain.js"></script>
 
+    <script defer type="text/javascript" src="/contacts/js/contacts_matcher.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts_merger.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/merger_adapter.js"></script>
     <script defer type="text/javascript" src="/contacts/js/import_utils.js"></script>
     <script defer type="text/javascript" src="/contacts/js/confirm_dialog.js"></script>
     <script defer type="text/javascript" src="js/utilities/templates.js"></script>
@@ -89,7 +92,7 @@
               <header>#group#</header>
               <ol id="contacts-list-#group#">
                 <li data-template data-uuid="#uid#" data-search="#search#" aria-disabled="false" class="block-item">
-                  <label>
+                  <label class="pack-checkbox">
                     <input type="checkbox" name="#uid#"></input>
                     <span></span>
                   </label>

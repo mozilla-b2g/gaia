@@ -33,18 +33,17 @@
   window.AppError = function AppError(app) {
     var self = this;
     this.app = app;
-    this.app.frame.addEventListener('mozbrowsererror', function(evt) {
+    this.app.iframe.addEventListener('mozbrowsererror', function(evt) {
       if (evt.detail.type != 'other')
         return;
 
       console.warn(
         'app of [' + self.app.origin + '] got a mozbrowsererror event.');
 
-      if (self.injected) {
-        self.update();
-      } else {
+      if (!self.injected) {
         self.render();
       }
+      self.update();
       self.show();
       self.injected = true;
     });
@@ -116,11 +115,9 @@
     return '<div id="' + this.id() + '" class="' +
         AppError.className + ' visible" role="dialog">' +
       '<div class="modal-dialog-message-container inner">' +
-        '<h3 data-l10n-id="error-title" class="title">' +
-          this.getTitle() + '</h3>' +
+        '<h3 data-l10n-id="error-title" class="title"></h3>' +
         '<p>' +
-         '<span data-l10n-id="error-message" class="message">' +
-            this.getMessage() + '</span>' +
+         '<span data-l10n-id="error-message" class="message"></span>' +
         '</p>' +
       '</div>' +
       '<menu data-items="2">' +

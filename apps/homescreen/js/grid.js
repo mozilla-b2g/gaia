@@ -5,16 +5,10 @@ var GridManager = (function() {
   var PREFERRED_ICON_SIZE = 60;
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_WIDTH = 320;
-  var BASE_HEIGHT = 480;
+  var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
   var DEVICE_HEIGHT = window.innerHeight;
-  var SCALE_RATIO = window.innerWidth / BASE_WIDTH;
-  var AVAILABLE_SPACE = DEVICE_HEIGHT - (BASE_HEIGHT * SCALE_RATIO);
   var OPACITY_STEPS = 40; // opacity steps between [0,1]
-
-  // Check if there is space for another row of icons
-  if (AVAILABLE_SPACE > BASE_HEIGHT / 5) {
-    var MAX_ICONS_PER_PAGE = 4 * 5;
-  }
+  var HIDDEN_ROLES = ['system', 'keyboard', 'homescreen'];
 
   var container;
 
@@ -39,6 +33,14 @@ var GridManager = (function() {
     left: 0,
     right: 0
   };
+
+  // Check if there is space for another row of icons
+  // For WVGA, 800x480, we also want to show 4 x 5 grid on homescreen
+  // the homescreen size would be 770 x 480, and 770/480 ~= 1.6
+  if (DEVICE_HEIGHT - BASE_HEIGHT > BASE_HEIGHT / 5 ||
+      DEVICE_HEIGHT / windowWidth >= 1.6) {
+    MAX_ICONS_PER_PAGE = 4 * 5;
+  }
 
   var startEvent, isPanning = false, startX, currentX, deltaX, removePanHandler,
       noop = function() {};
@@ -484,6 +486,9 @@ var GridManager = (function() {
     var current = toPage.container.style;
     current.MozTransition = '';
     current.MozTransform = 'translateX(0)';
+
+    delete fromPage.container.dataset.currentPage;
+    toPage.container.dataset.currentPage = 'true';
 
     togglePagesVisibility(index - 1, index + 1);
 
@@ -959,18 +964,14 @@ var GridManager = (function() {
    * points, each one is represented as an icon.)
    */
   function processApp(app, callback) {
-    // Ignore system apps.
-    if (HIDDEN_APPS.indexOf(app.manifestURL) != -1)
-      return;
-
     appsByOrigin[app.origin] = app;
 
     var manifest = app.manifest ? app.manifest : app.updateManifest;
-    if (!manifest)
+    if (!manifest || HIDDEN_ROLES.indexOf(manifest.role) !== -1)
       return;
 
     var entryPoints = manifest.entry_points;
-    if (!entryPoints || manifest.type != 'certified') {
+    if (!entryPoints || manifest.type !== 'certified') {
       createOrUpdateIconForApp(app);
       return;
     }

@@ -695,7 +695,7 @@ if (typeof window.importer === 'undefined') {
         parent.postMessage({
           type: 'window_close',
           data: '',
-          message: cancelled ? '' : _('friendsUpdated', {
+          message: _('friendsUpdated', {
             numFriends: numFriends
           })
         }, targetApp);
@@ -806,13 +806,13 @@ if (typeof window.importer === 'undefined') {
               friendsImported = true;
             });
           }
-          if (unSelected > 0) {
+          if (!cancelled && unSelected > 0) {
             progress.setFrom('update');
             cleanContacts(function callback() {
-              onUpdate(totalImported + unSelected);
+              onUpdate(progress.getValue());
             }, progress);
           } else {
-            onUpdate(totalImported);
+            onUpdate(progress.getValue());
           }
         }, progress);
       } else if (unSelected > 0) {
@@ -820,7 +820,7 @@ if (typeof window.importer === 'undefined') {
         progress.setTotal(total);
         Curtain.oncancel = cancelImport;
         cleanContacts(function callback() {
-          onUpdate(total);
+          onUpdate(progress.getValue());
         }, progress);
       }
     };

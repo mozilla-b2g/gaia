@@ -32,6 +32,8 @@ requireApp('sms/test/unit/mock_activity_picker.js');
 requireApp('sms/test/unit/mock_action_menu.js');
 requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_smil.js');
+requireApp('sms/test/unit/mock_custom_dialog.js');
+requireApp('sms/test/unit/mock_url.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -835,6 +837,15 @@ suite('thread_ui.js >', function() {
 
         test('show general error for internal error', function() {
           ThreadUI.showSendMessageError('InternalError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendGeneralErrorTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendGeneralErrorBody');
+        });
+
+        test('show general error for invalid address error', function() {
+          ThreadUI.showSendMessageError('InvalidAddressError');
           assert.isTrue(MockDialog.instances[0].show.called);
           assert.equal(MockDialog.calls[0].title.value,
                       'sendGeneralErrorTitle');
@@ -1777,6 +1788,63 @@ suite('thread_ui.js >', function() {
       assert.ok(!html.contains('346578888888'));
       assert.equal(ul.children.length, 1);
     });
+
+    test('Render contact does not include photo by default', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: 'foo',
+        target: ul,
+        isContact: true,
+        isSuggestion: true,
+        renderPhoto: false
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.isFalse(html.contains('img'));
+    });
+    test('Render contact without photo keeps avatar invisible', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+      contact.photo = testImageBlob;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: 'foo',
+        target: ul,
+        isContact: true,
+        isSuggestion: true,
+        renderPhoto: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(html.contains('img'));
+      assert.equal(ul.querySelector('img').style.opacity, 0);
+
+    });
+    test('Render contact with photo shows the image', function() {
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      var html;
+      contact.photo = testImageBlob;
+
+      ThreadUI.renderContact({
+        contact: contact,
+        input: 'foo',
+        target: ul,
+        isContact: true,
+        isSuggestion: true,
+        renderPhoto: true
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(html.contains('img'));
+      assert.equal(ul.querySelector('img').style.opacity, '');
+    });
   });
 
   suite('Header Actions/Display', function() {
@@ -2298,6 +2366,58 @@ suite('thread_ui.js >', function() {
       assert.ok(MessageManager.sendMMS.called);
       assert.deepEqual(MessageManager.sendMMS.calledWith[0], ['999', '888']);
       assert.equal(window.location.hash, '#new');
+    });
+  });
+
+  suite('setMessageBody', function() {
+    setup(function() {
+      this.sinon.stub(Compose, 'clear');
+      this.sinon.stub(Compose, 'append');
+      this.sinon.stub(Compose, 'focus');
+    });
+
+    suite('with data', function() {
+      var testText = 'testing';
+      setup(function() {
+        ThreadUI.setMessageBody(testText);
+      });
+
+      test('calls clear', function() {
+        assert.ok(Compose.clear.called);
+      });
+
+      test('calls append with correct data', function() {
+        assert.ok(Compose.append.calledWith(testText));
+      });
+
+      test('calls focus', function() {
+        assert.ok(Compose.focus.called);
+      });
+    });
+
+    suite('without data', function() {
+      var testText = '';
+      setup(function() {
+        ThreadUI.setMessageBody(testText);
+      });
+
+      test('calls clear', function() {
+        assert.ok(Compose.clear.called);
+      });
+
+      test('does not call append with empty data', function() {
+        assert.isFalse(Compose.append.called);
+      });
+
+      test('calls focus', function() {
+        assert.ok(Compose.focus.called);
+      });
+    });
+  });
+
+  suite('initSentAudio', function() {
+    test('calling function does not throw uncaught exception ', function() {
+      assert.doesNotThrow(ThreadUI.initSentAudio);
     });
   });
 });

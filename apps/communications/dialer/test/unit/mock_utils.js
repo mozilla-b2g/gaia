@@ -17,13 +17,8 @@ var MockUtils = {
     this.mCalledGetDayDate = true;
   },
 
-  getPhoneNumberPrimaryInfo: function getPhoneNumberPrimaryInfo(matchingTel,
-    contact) {
-    this.mCalledGetPhoneNumberPrimaryInfo = true;
-  },
-
   getPhoneNumberAdditionalInfo: function getPhoneNumberAdditionalInfo(
-    matchingTel, associatedContact) {
+                                                                matchingTel) {
     this.mCalledGetPhoneNumberAdditionalInfo = true;
 
     return matchingTel.value % 2 == 0 ? matchingTel.value : undefined;
@@ -45,7 +40,7 @@ var MockUtils = {
   },
 
   getPhoneNumberPrimaryInfo: function ut_getPhoneNumberPrimaryInfo(matchingTel,
-    contact) {
+                                                                   contact) {
     this.mCalledGetPhoneNumberPrimaryInfo = true;
     if (contact) {
       if (contact.name && String(contact.name) !== '') {

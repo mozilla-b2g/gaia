@@ -61,13 +61,17 @@
       FixedHeader.updateHeaderContent();
     },
     startTimeHeaderScheduler: function ut_startTimeHeaderScheduler() {
-      this.updateTimeHeaders();
-      if (this.updateTimer) {
-        clearInterval(this.updateTimer);
-      }
-      this.updateTimer = setInterval(function(self) {
-        self.updateTimeHeaders();
-      }, 50000, this);
+      var updateFunction = (function() {
+        this.updateTimeHeaders();
+        var now = Date.now(),
+            nextTimeout = new Date(now + 60000);
+        nextTimeout.setSeconds(0);
+        nextTimeout.setMilliseconds(0);
+        clearTimeout(this.updateTimer);
+        this.updateTimer = setTimeout(updateFunction,
+          nextTimeout.getTime() - now);
+      }).bind(this);
+      updateFunction();
     },
     escapeRegex: function ut_escapeRegex(str) {
       if (typeof str !== 'string') {

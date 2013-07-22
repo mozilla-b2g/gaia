@@ -170,7 +170,6 @@ var currentInputType = null;
 var currentInputMode = null;
 var menuLockedArea = null;
 var layoutMenuLockedArea = null;
-var candidatePanelEnabled = false;
 var isKeyboardRendered = false;
 var currentCandidates = [];
 const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
@@ -193,6 +192,7 @@ const CAPS_LOCK_TIMEOUT = 450;
 var deleteTimeout = 0;
 var deleteInterval = 0;
 var menuTimeout = 0;
+var redrawTimeout = 0;
 
 // This object has one property for each keyboard layout setting.
 // If the user turns on that setting in the settings app, the value of
@@ -785,25 +785,29 @@ function renderKeyboard(keyboardName) {
     isKeyboardRendered = true;
   }
 
+  clearTimeout(redrawTimeout);
+
   // Does this new keyboard use the candidate panel?
   var showsCandidates = needsCandidatePanel();
 
-  // If it doesn't and the last one did, then notify the keyboard manager
-  // update the app window size before redrawing the keyboard.
-  if (!showsCandidates && candidatePanelEnabled) {
+  // If it doesn't and the keyboard has be shown, then notify the keyboard
+  // manager update the app window size before redrawing the keyboard.
+  // XXX: for Bug 893755 - we would always do the delay of keyboard redrawing
+  // without regard to whether candidate panel was enabled or not last time.
+  if (!showsCandidates && isKeyboardRendered) {
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
     var candidatePanelHeight = (candidatePanel) ?
                                candidatePanel.scrollHeight : 0;
     document.location.hash = 'show=' +
       (IMERender.ime.scrollHeight - candidatePanelHeight);
 
-    window.setTimeout(drawKeyboard, CANDIDATE_PANEL_SWITCH_TIMEOUT);
+    redrawTimeout = window.setTimeout(drawKeyboard,
+                                      CANDIDATE_PANEL_SWITCH_TIMEOUT);
   } else {
     drawKeyboard();
   }
 
   // Remember whether the candidate panel is shown or not
-  candidatePanelEnabled = showsCandidates;
 }
 
 function setUpperCase(upperCase, upperCaseLocked) {
@@ -1239,18 +1243,10 @@ function movePress(target, coords, touchId) {
 
   var keyCode = parseInt(target.dataset.keycode);
 
-  // Ignore if moving over delete key
-  if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
-    // Set currentKey to null so that no key is entered in this case.
-    // Except when the current key is actually backspace itself. Then we
-    // need to leave currentKey alone, so that autorepeat works correctly.
-    if (parseInt(oldTarget.dataset.keycode) !== keyCode)
-      setCurrentKey(null, touchId);
-    return;
-  }
+  // Update highlight: add to the new (Ignore if moving over delete key)
+  if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
+    IMERender.highlightKey(target);
 
-  // Update highlight: add to the new
-  IMERender.highlightKey(target);
   setCurrentKey(target, touchId);
 
   clearTimeout(deleteTimeout);
@@ -1505,13 +1501,13 @@ function switchKeyboard(target) {
 
 // Turn to default values
 function resetKeyboard() {
-  // Don't call setLayoutPage because we call renderKeyboard() below
+  // Don't call setLayoutPage because renderKeyboard() should be invoked
+  // separately after this function
   layoutPage = LAYOUT_PAGE_DEFAULT;
-  // Don't call setUpperCase because we call renderKeyboard() below
+  // Don't call setUpperCase because renderKeyboard() should be invoked
+  // separately after this function
   isUpperCase = false;
   isUpperCaseLocked = false;
-
-  IMERender.setUpperCaseLock(isUpperCase);
 }
 
 // This is a wrapper around mozKeyboard.sendKey()
@@ -1578,8 +1574,6 @@ function hideKeyboard() {
   if (inputMethod.deactivate)
     inputMethod.deactivate();
 
-  // reset the flag for candidate show/hide workaround
-  candidatePanelEnabled = false;
   isKeyboardRendered = false;
 }
 
@@ -1779,7 +1773,7 @@ function getSettings(settings, callback) {
 
 // To determine if the candidate panel for word suggestion is needed
 function needsCandidatePanel() {
-  return ((Keyboards[keyboardName].autoCorrectLanguage ||
+  return !!((Keyboards[keyboardName].autoCorrectLanguage ||
            Keyboards[keyboardName].needsCandidatePanel) &&
           (!inputMethod.displaysCandidates ||
            inputMethod.displaysCandidates()));

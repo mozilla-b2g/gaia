@@ -997,7 +997,7 @@ contacts.List = (function() {
     ret.push(second);
 
     if (first != '' || second != '')
-      return Normalizer.toAscii(ret.join('')).trim();
+      return Normalizer.toAscii(ret.join('')).toUpperCase().trim();
     ret.push(contact.org);
     ret.push(contact.tel && contact.tel.length > 0 ?
       contact.tel[0].value.trim() : '');
@@ -1005,7 +1005,7 @@ contacts.List = (function() {
       contact.email[0].value.trim() : '');
     ret.push('#');
 
-    return Normalizer.toAscii(ret.join('')).trim();
+    return Normalizer.toAscii(ret.join('')).toUpperCase().trim();
   };
 
   // Utility function to quickly guess the group name for the given contact.
@@ -1032,7 +1032,7 @@ contacts.List = (function() {
   };
 
   var getGroupNameByOrderString = function getGroupNameByOrderString(order) {
-    var ret = order.charAt(0).toUpperCase();
+    var ret = order.charAt(0);  // order string is already forced to upper case
     var code = ret.charCodeAt(0);
     if (code < 65 || code > 90) {
       ret = 'und';

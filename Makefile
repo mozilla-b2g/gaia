@@ -15,10 +15,16 @@
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
-# GAIA_APP_SRCDIRS : list of directories to search for web apps               #
+# GAIA_APP_CONFIG : The app.list file representing applications to include in #
+#                   Gaia                                                      #
 #                                                                             #
 ###############################################################################
 -include local.mk
+
+# .b2g.mk recorded the make flags from Android.mk
+# This ensures |./flash.sh gaia| follows |./build.sh gaia| will pick up the same
+# flags.
+-include .b2g.mk
 
 # Headless bot does not need the full output of wget
 # and it can cause crashes in bot.io option is here so
@@ -32,6 +38,7 @@ GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 DOGFOOD?=0
 TEST_AGENT_PORT?=8789
+GAIA_APP_TARGET?=engineering
 
 # Enable compatibility to run in Firefox Desktop
 DESKTOP?=$(DEBUG)
@@ -70,15 +77,12 @@ endif
 
 REPORTER?=Spec
 
-GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
 GAIA_INSTALL_PARENT?=/data/local
 ADB_REMOUNT?=0
 
-GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
-
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
-GAIA_APP_SRCDIRS=apps showcase_apps
+GAIA_APP_TARGET=demo
 else ifeq ($(MAKECMDGOALS), dogfood)
 DOGFOOD=1
 else ifeq ($(MAKECMDGOALS), production)
@@ -93,32 +97,17 @@ endif
 ifeq ($(PRODUCTION), 1)
 GAIA_OPTIMIZE=1
 B2G_SYSTEM_APPS=1
-GAIA_APP_SRCDIRS=apps
+GAIA_APP_TARGET=production
 ADB_REMOUNT=1
 endif
 
 ifeq ($(DOGFOOD), 1)
-GAIA_APP_SRCDIRS+=dogfood_apps
+GAIA_APP_TARGET=dogfood
 endif
 
 ifeq ($(B2G_SYSTEM_APPS), 1)
 GAIA_INSTALL_PARENT=/system/b2g
 endif
-
-ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
-  $(shell mkdir -p outoftree_apps \
-    $(foreach dir,$(GAIA_OUTOFTREE_APP_SRCDIRS),\
-      $(foreach appdir,$(wildcard $(dir)/*),\
-        && ln -sf $(appdir) outoftree_apps/)))
-  GAIA_APP_SRCDIRS += outoftree_apps
-endif
-
-GAIA_LOCALES_PATH?=locales
-LOCALES_FILE?=shared/resources/languages.json
-GAIA_LOCALE_SRCDIRS=shared $(GAIA_APP_SRCDIRS)
-GAIA_DEFAULT_LOCALE?=en-US
-GAIA_INLINE_LOCALES?=1
-GAIA_CONCAT_LOCALES?=1
 
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
@@ -161,20 +150,25 @@ ifeq (${SYS}/${ARCH},Darwin/i386)
 ARCH=x86_64
 endif
 SEP=/
+SEP_FOR_SED=/
 ifneq (,$(findstring MINGW32_,$(SYS)))
 CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
 SEP=\\
+SEP_FOR_SED=\\\\
 # Mingw mangle path and append c:\mozilla-build\msys\data in front of paths
 MSYS_FIX=/
+endif
+
+ifndef GAIA_APP_CONFIG
+GAIA_APP_CONFIG=build$(SEP)apps-$(GAIA_APP_TARGET).list
 endif
 
 ifndef GAIA_DISTRIBUTION_DIR
   GAIA_DISTRIBUTION_DIR := $(CURDIR)$(SEP)distribution
 else
 	ifneq (,$(findstring MINGW32_,$(SYS)))
-		GAIA_DISTRIBUTION_DIR := $(join \
-			$(filter %:,$(subst :,: ,$GAIA_DISTRIBUTION_DIR)),\
-			$(realpath $(filter-out %:,$(subst :,: ,$GAIA_DISTRIBUTION_DIR))))
+		GAIA_DISTRIBUTION_DIR := $(shell pushd $(GAIA_DISTRIBUTION_DIR) > /dev/null; \
+			pwd -W | sed 's|/|\\\\|g'; popd > /dev/null;)
 	else
 		GAIA_DISTRIBUTION_DIR := $(realpath $(GAIA_DISTRIBUTION_DIR))
 	endif
@@ -184,21 +178,63 @@ SETTINGS_PATH := build/custom-settings.json
 ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)settings.json
 	DISTRIBUTION_CONTACTS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)contacts.json
+	DISTRIBUTION_APP_CONFIG := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)apps.list
 	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
 		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
 	ifneq ($(wildcard $(DISTRIBUTION_CONTACTS)),)
 		CONTACTS_PATH := $(DISTRIBUTION_CONTACTS)
 	endif
+	ifneq ($(wildcard $(DISTRIBUTION_APP_CONFIG)),)
+		GAIA_APP_CONFIG := $(DISTRIBUTION_APP_CONFIG)
+	endif
 endif
 
-# Add apps from customization package
-ifdef GAIA_DISTRIBUTION_DIR
-  DISTRIBUTION_APPS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)apps
-  ifneq ($(wildcard $(DISTRIBUTION_APPS)),)
-      GAIA_APP_SRCDIRS += $(DISTRIBUTION_APPS)
-  endif
+# Read the file specified in $GAIA_APP_CONFIG and turn them into $GAIA_APPDIRS,
+# i.e., absolute path of each app.
+# Path ending in wildcard (*) will be expanded, non-absolute path in the list will be matched against
+# $GAIA_DISTRIBUTION_DIR and $GAIA_DIR.
+# See MDN for more information.
+#
+# explain shell magic here:
+# "$${LINE\#$${LINE%?}}": get last character
+# sed 's/.\{2\}$$//': remove last two character
+
+ifdef GAIA_APP_SRCDIRS
+$(shell printf "`echo $(GAIA_APP_SRCDIRS) | sed 's| |/*\\\n|g'`/*\n" > /tmp/gaia-apps-temp.list)
+GAIA_APP_CONFIG := /tmp/gaia-apps-temp.list
+$(warning GAIA_APP_SRCDIRS is deprecated, please use GAIA_APP_CONFIG)
 endif
+
+GAIA_APPDIRS=$(shell while read LINE; do \
+	if [ "$${LINE\#$${LINE%?}}" = "*" ]; then \
+		srcdir="`echo "$$LINE" | sed 's/.\{2\}$$//'`"; \
+		[ -d $(CURDIR)$(SEP)$$srcdir ] && find $(CURDIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+		[ -d $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir ] && find $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+	else \
+    if [ -d "$(GAIA_DISTRIBUTION_DIR)$(SEP)$$LINE" ]; then \
+      echo "$(GAIA_DISTRIBUTION_DIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+    elif [ -d "$(CURDIR)$(SEP)$$LINE" ]; then \
+		  echo "$(CURDIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+    elif [ -d "$$LINE" ]; then \
+      echo "$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+    fi \
+	fi \
+done < $(GAIA_APP_CONFIG))
+
+ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
+  $(shell mkdir -p outoftree_apps \
+    $(foreach dir,$(GAIA_OUTOFTREE_APP_SRCDIRS),\
+      $(foreach appdir,$(wildcard $(dir)/*),\
+        && ln -sf $(appdir) outoftree_apps/)))
+endif
+
+GAIA_LOCALES_PATH?=locales
+LOCALES_FILE?=shared/resources/languages.json
+GAIA_LOCALE_SRCDIRS=shared $(GAIA_APPDIRS)
+GAIA_DEFAULT_LOCALE?=en-US
+GAIA_INLINE_LOCALES?=1
+GAIA_CONCAT_LOCALES?=1
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -280,9 +316,9 @@ endif
 endif
 
 app-makefiles:
-	@for d in ${GAIA_APP_SRCDIRS}; \
+	@for d in ${GAIA_APPDIRS}; \
 	do \
-		for mfile in `find $$d -mindepth 2 -maxdepth 2 -name "Makefile"` ;\
+		for mfile in `find $$d -mindepth 1 -maxdepth 1 -name "Makefile"` ;\
 		do \
 			make -C `dirname $$mfile`; \
 		done; \
@@ -426,7 +462,6 @@ define run-js-command
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
 	const DESKTOP = $(DESKTOP);                                                 \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
-	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
 	const LOCALES_FILE = "$(subst \,\\,$(LOCALES_FILE))";                       \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
@@ -440,6 +475,7 @@ define run-js-command
 	const GAIA_CONCAT_LOCALES = "$(GAIA_CONCAT_LOCALES)";                       \
 	const GAIA_ENGINE = "xpcshell";                                             \
 	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";                   \
+	const GAIA_APPDIRS = "$(GAIA_APPDIRS)";                                     \
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
@@ -584,9 +620,11 @@ test-agent-config: test-agent-bootstrap-apps
 	@touch $(TEST_AGENT_CONFIG)
 	@rm -f /tmp/test-agent-config;
 	@# Build json array of all test files
-	@for d in ${GAIA_APP_SRCDIRS}; \
+	@for d in ${GAIA_APPDIRS}; \
 	do \
-		find $$d -name '*_test.js' | sed "s:$$d/::g"  >> /tmp/test-agent-config; \
+		parent="`dirname $$d`"; \
+		pathlen=`expr $${#parent} + 2`; \
+		find "$$d" -name '*_test.js' | awk '{print substr($$0,'$${pathlen}')}' >> /tmp/test-agent-config; \
 	done;
 	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
 	@cat /tmp/test-agent-config |  \
@@ -599,12 +637,17 @@ test-agent-config: test-agent-bootstrap-apps
 
 .PHONY: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
-	@for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	@for d in ${GAIA_APPDIRS} ;\
 	do \
-		mkdir -p $$d/test/unit ; \
-		mkdir -p $$d/test/integration ; \
-		cp -f $(TEST_COMMON)/test/boilerplate/_proxy.html $$d/test/unit/_proxy.html; \
-		cp -f $(TEST_COMMON)/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
+		if [[ "$(SYS)" != *MINGW32_* ]]; then \
+			mkdir -p $$d$(SEP)test$(SEP)unit ; \
+			mkdir -p $$d$(SEP)test$(SEP)integration ; \
+		else \
+			mkdir -p `echo "$$d" | sed 's|^\(\w\):|/\1|g' | sed 's|\\\\|/|g'`/test/unit ; \
+			mkdir -p `echo "$$d" | sed 's|^\(\w\):|/\1|g' | sed 's|\\\\|/|g'`/test/integration ; \
+		fi; \
+		cp -f $(TEST_COMMON)$(SEP)test$(SEP)boilerplate$(SEP)_proxy.html $$d$(SEP)test$(SEP)unit$(SEP)_proxy.html; \
+		cp -f $(TEST_COMMON)$(SEP)test$(SEP)boilerplate$(SEP)_sandbox.html $$d$(SEP)test$(SEP)unit$(SEP)_sandbox.html; \
 	done
 	@echo "Finished: bootstrapping test proxies/sandboxes";
 

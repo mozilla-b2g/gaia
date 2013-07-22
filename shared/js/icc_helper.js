@@ -13,14 +13,14 @@ var IccHelper = (function() {
   var mobileConn = navigator.mozMobileConnection;
   var iccManager = null;
 
+  var actors = {
+    'cardLock': null,
+    'cardState': null,
+    'iccInfo': null
+  };
+
   if (mobileConn) {
     iccManager = navigator.mozIccManager || mobileConn.icc;
-
-    var actors = {
-      'cardLock': null,
-      'cardState': null,
-      'iccInfo': null
-    };
 
     if ('setCardLock' in mobileConn) {
       actors['cardLock'] = mobileConn;
@@ -51,13 +51,13 @@ var IccHelper = (function() {
       switch (eventName) {
         case 'cardstatechange':
           var actor = actors['cardState'];
-          return actor.addEventListener.apply(actor, arguments);
+          return actor && actor.addEventListener.apply(actor, arguments);
         case 'iccinfochange':
           var actor = actors['iccInfo'];
-          return actor.addEventListener.apply(actor, arguments);
+          return actor && actor.addEventListener.apply(actor, arguments);
         case 'icccardlockerror':
           var actor = actors['cardLock'];
-          return actor.addEventListener.apply(actor, arguments);
+          return actor && actor.addEventListener.apply(actor, arguments);
       }
     },
 
@@ -78,42 +78,66 @@ var IccHelper = (function() {
 
     getCardLock: function icch_getCardLock() {
       var actor = actors['cardLock'];
-      return actor.getCardLock.apply(actor, arguments);
+      return actor && actor.getCardLock.apply(actor, arguments);
     },
 
     setCardLock: function icch_setCardLock() {
       var actor = actors['cardLock'];
-      return actor.setCardLock.apply(actor, arguments);
+      return actor && actor.setCardLock.apply(actor, arguments);
     },
 
     unlockCardLock: function icch_unlockCardLock() {
       var actor = actors['cardLock'];
-      return actor.unlockCardLock.apply(actor, arguments);
+      return actor && actor.unlockCardLock.apply(actor, arguments);
+    },
+
+    getCardLockRetryCount: function
+      icch_getCardLockRetryCount(lockType, onresult) {
+      var mobileConn = navigator.mozMobileConnection;
+
+      if ('retryCount' in mobileConn) {
+        onresult(mobileConn.retryCount);
+      } else {
+        var iccManager = navigator.mozIccManager || mobileConn.icc;
+        var req = iccManager.getCardLockRetryCount(lockType);
+        req.onsuccess = function onsuccess() {
+          onresult(req.result.retryCount);
+        };
+        req.onerror = function onerror() {
+          onresult(0);
+        };
+      }
     },
 
     get cardState() {
       var actor = actors['cardState'];
-      return actor.cardState;
+      return actor && actor.cardState;
     },
 
     get iccInfo() {
       var actor = actors['iccInfo'];
-      return actor.iccInfo;
+      return actor && actor.iccInfo;
     },
 
     set oncardstatechange(callback) {
       var actor = actors['cardState'];
-      actor.oncardstatechange = callback;
+      if (actor) {
+        actor.oncardstatechange = callback;
+      }
     },
 
     set oniccinfochange(callback) {
       var actor = actors['iccInfo'];
-      actor.oniccinfochange = callback;
+      if (actor) {
+        actor.oniccinfochange = callback;
+      }
     },
 
     set onicccardlockerror(callback) {
       var actor = actors['cardLock'];
-      actor.onicccardlockerror = callback;
+      if (actor) {
+        actor.onicccardlockerror = callback;
+      }
     }
   };
 })();

@@ -12,11 +12,21 @@
   text-align: center;
   margin: 0 auto;
   display: none;
-    /*
+  /*
    * We use this rule to make gecko think that they're visible so they are
    * painted.
    */
   border-bottom: 0.01px solid rgba(0,0,0,0.01);
+
+  visibility: hidden;
+}
+
+.apps > div[data-current-page] {
+  visibility: visible;
+}
+
+body[data-transitioning] .apps > div {
+  visibility: visible;
 }
 
 /* Here users can view the clock while grid is loading -> better experience */
@@ -47,16 +57,16 @@
 }
 
 /* Adds 1 row of icons */
-@media all and (min-device-width: 480px) and (min-device-height: 960px ) {
+@media all and (min-device-width: 320px) and (min-device-height: 640px) {
   .apps ol > li:nth-child(17) {
     display: inline-block;
   }
-/* Maximum 20 icons for page */
+
+   /* Maximum 20 icons for page */
   .apps ol > li:nth-child(21) {
     display: none;
   }
 }
-
 
 /* Option to delete apps */
 .apps ol > li span.options {
@@ -76,6 +86,7 @@
 	margin-top: .5rem;
 	margin-bottom: .5rem;
   pointer-events: none; /* NO touchable area */
+  font-size: 0; /* To remove the gap between the icon and the label, which is adjustable by .labelWrapper */
 }
 
 /* Handling the case where the status bar is double size */
@@ -103,7 +114,7 @@ ol:not([disabled]) li.active > div > img {
 
 /* text label */
 .apps ol > li > div > span > span {
-  font-size: 1.2rem; /* was 5pt */
+  font-size: 1.2rem;
   text-shadow: 0.1rem 0.1rem 0.3rem rgba(0,0,0,0.6);
 }
 
@@ -127,7 +138,7 @@ ol:not([disabled]) li.active > div > img {
   width: 94%; /* At least 6% of margin between labels of different apps */
   position: relative;
   height: 1.6rem; /* 15px in otoro */
-  margin: 0 auto;
+  margin: 0.3rem auto 0;
   font-weight: 500;
   letter-spacing: -0.025rem;
 }
@@ -171,5 +182,26 @@ body[data-transitioning] .loading:after {
   }
   to {
     transform: rotate(360deg)
+  }
+}
+
+/* For WVGA (800 x 480), adjust the padding to make app icons fit in 4 x 5 grid */
+/* The width here is described as CSS pixel, so it would be 320px while dppx = 1.5 */
+@media all and (min-device-width: 320px) and (max-device-width: 359px) and (max-aspect-ratio: 4 / 6) {
+  .apps ol > li > div {
+    margin-top: 0;
+  }
+
+  .labelWrapper {
+    margin-top: 0.2rem;
+  }
+
+  .apps ol > li:nth-child(17) {
+    display: inline-block;
+  }
+
+  /* Maximum 20 icons for page */
+  .apps ol > li:nth-child(21) {
+    display: none;
   }
 }

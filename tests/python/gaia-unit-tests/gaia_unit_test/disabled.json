@@ -1,7 +1,10 @@
 [
+  "calendar/test/unit/store/busytime_test.js",
   "calendar/test/unit/views/modify_event_test.js",
   "gallery/test/unit/GestureDetector_test.js",
   "homescreen/test/unit/dock_test.js",
   "homescreen/test/unit/dragdrop_test.js",
-  "keyboard/test/unit/render_test.js"
+  "homescreen/test/unit/grid_test.js",
+  "keyboard/test/unit/render_test.js",
+  "system/test/unit/cards_view_test.js"
 ]

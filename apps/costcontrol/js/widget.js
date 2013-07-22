@@ -14,6 +14,11 @@ var Widget = (function() {
 
   var costcontrol;
   function onReady() {
+    var mobileConnection = window.navigator.mozMobileConnection;
+    if (!mobileConnection) {
+      console.error('No mozMobileConnection available');
+      return;
+    }
     var cardState = checkCardState();
     var iccid = IccHelper.iccInfo.iccid;
 

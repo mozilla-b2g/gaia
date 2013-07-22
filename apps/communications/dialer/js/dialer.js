@@ -123,7 +123,7 @@ var CallHandler = (function callHandler() {
   /* === Recents support === */
   function handleRecentAddRequest(entry) {
     CallLogDBManager.add(entry, function(logGroup) {
-      CallLog.appendGroup(logGroup, entry.contactInfo);
+      CallLog.appendGroup(logGroup);
     });
   }
 
@@ -299,16 +299,19 @@ var CallHandler = (function callHandler() {
   // where we want to open a new call screen while the previous one is
   // animating out of the screen.
   var callScreenId = 0;
+  var openingWindow = false;
   function openCallScreen(openCallback) {
-    if (callScreenWindow)
+    if (callScreenWindow || openingWindow)
       return;
 
+    openingWindow = true;
     var host = document.location.host;
     var protocol = document.location.protocol;
     var urlBase = protocol + '//' + host + '/dialer/oncall.html';
 
     var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
     var openWindow = function dialer_openCallScreen(state) {
+      openingWindow = false;
       callScreenWindow = window.open(urlBase + '#' + state,
                   ('call_screen' + callScreenId++), 'attention');
 

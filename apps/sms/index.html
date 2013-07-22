@@ -204,11 +204,20 @@
       <!--
       <a class="suggestion"
         data-number="${number}" data-source="contacts" data-name="${name}" data-display="${type}${separator}${carrier}${number}">
+        ${photoHTML}
         <p class="name">${nameHTML}</p>
         <p>
           ${type}${separator}${carrier}${numberHTML}
         </p>
       </a>
+      -->
+    </div>
+
+    <div id="messages-contact-photo-tmpl" class="hide">
+      <!--
+      <aside class="pack-end">
+        <img src="${photoURL}">
+      </aside>
       -->
     </div>
 
@@ -235,7 +244,7 @@
 
     <div id="messages-message-tmpl" class="hide">
       <!--
-      <label class="danger">
+      <label class="pack-checkbox danger">
         <input type="checkbox" value="${id}">
         <span></span>
       </label>
@@ -250,7 +259,7 @@
 
     <div id="messages-thread-tmpl" class="hide">
       <!--
-      <label class="danger">
+      <label class="pack-checkbox danger">
         <input type="checkbox" value="${id}">
         <span></span>
       </label>

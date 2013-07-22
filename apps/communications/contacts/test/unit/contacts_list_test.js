@@ -209,7 +209,7 @@ suite('Render contacts list', function() {
     ret.push(second);
 
     if (first != '' || second != '')
-      return Normalizer.toAscii(ret.join('')).trim();
+      return Normalizer.toAscii(ret.join('')).toUpperCase().trim();
     ret.push(contact.org);
     ret.push(contact.tel && contact.tel.length > 0 ?
       contact.tel[0].value : '');
@@ -217,7 +217,7 @@ suite('Render contacts list', function() {
       contact.email[0].value : '');
     ret.push('#');
 
-    return Normalizer.toAscii(ret.join('')).trim();
+    return Normalizer.toAscii(ret.join('')).toUpperCase().trim();
   }
 
   function resetDom(document) {
@@ -386,7 +386,7 @@ suite('Render contacts list', function() {
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
-        var toCheck = container.innerHTML.contains('givenName ' + i);
+        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
       }
     });
@@ -397,7 +397,7 @@ suite('Render contacts list', function() {
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
-        var toCheck = container.innerHTML.contains('givenName ' + i);
+        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
       }
     });
@@ -408,7 +408,7 @@ suite('Render contacts list', function() {
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
-        var toCheck = container.innerHTML.contains('givenName ' + i);
+        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
       }
     });
@@ -765,6 +765,34 @@ suite('Render contacts list', function() {
                       -1);
       assert.notEqual(favs[2].querySelector('p').innerHTML.indexOf('oo'),
                       -1);
+      done();
+    });
+
+    // Setup contacts with names that expose sort case sensitivity issues.
+    // Contacts should be ordered like:
+    //
+    //    Aa, AB, Ac
+    //
+    // If the sorting is case-sensitive (bug 895149) then we will see:
+    //
+    //    AB, Aa, Ac
+    //
+    // NOTE: This test depends on the language settings in use.  It will
+    //       incorrectly pass for legacty code if LANG=en_US.UTF-8, but fail
+    //       with LANG=en_US.  The fix in bug 895149 should allow it to pass
+    //       in either case.
+    test('sorting should be case-insensitive', function(done) {
+      var names = ['Ac', 'AB', 'Aa'];
+      for (var i = 0; i < names.length; ++i) {
+        var c = new MockContactAllFields();
+        c.id = i + 1;
+        c.familyName = [names[i]];
+        subject.refresh(c);
+      }
+      var list = assertGroup(groupA, containerA, 3);
+      assert.isTrue(list[0].innerHTML.contains('Aa'), 'order of Aa');
+      assert.isTrue(list[1].innerHTML.contains('AB'), 'order of AB');
+      assert.isTrue(list[2].innerHTML.contains('Ac'), 'order of Ac');
       done();
     });
 

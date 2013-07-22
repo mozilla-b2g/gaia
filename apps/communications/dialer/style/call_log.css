@@ -93,16 +93,6 @@ ol, ul {
   height: 3.5rem;
 }
 
-.header-noresult {
-  padding-bottom: 4rem;
-}
-
-.header-text-noresult {
-  font-family: FontSemibold;
-  font-size: -moz-calc(7 * 0.226rem);
-  color: #373E45;
-}
-
 .icon-container {
   float: left;
   height: 100%;
@@ -177,7 +167,7 @@ ol, ul {
   transform: translateY(0);
 }
 
-.recents-edit label:not([for]).call-log-selection {
+.recents-edit .pack-checkbox.call-log-selection {
   transform: translateX(4rem);
   transition: transform 0.3s ease;
 }
@@ -200,7 +190,7 @@ ol, ul {
   pointer-events: none;
 }
 
-.recents-edit .log-item label {
+.recents-edit .log-item .pack-checkbox {
   pointer-events: auto;
 }
 
