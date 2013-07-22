@@ -1,0 +1,10 @@
+#settingsDrawer {
+  background-color: #222;
+}
+
+#settings > * {
+  padding-left: 1em;
+  padding-right: 1em;
+  padding-top: .5em;
+  padding-bottom: .5em;
+}

@@ -18,16 +18,15 @@
   <link rel="stylesheet" type="text/css" href="style/css/itemList.css"></link>
 
   <link rel="stylesheet" type="text/css" href="style/css/playlistView.css"></link>
+  <link rel="stylesheet" type="text/css" href="style/css/playlistsView.css"></link>
 
   <link rel="stylesheet" type="text/css" href="style/css/currentMusicPage.css"></link>
   <link rel="stylesheet" type="text/css" href="style/css/currentMusicPageControls.css"></link>
 
-  <link rel="stylesheet" type="text/css" href="style/css/metaDrawer.css"></link>
+  <link rel="stylesheet" type="text/css" href="style/css/settingsDrawer.css"></link>
   <link rel="stylesheet" type="text/css" href="style/css/playlistDrawer.css"></link>
 
-  <link rel="stylesheet" type="text/css" href="style/css/selectPages/mediaLibraryPage.css"></link>
-  <link rel="stylesheet" type="text/css" href="style/css/selectPages/fmRadioPage.css"></link>
-  <link rel="stylesheet" type="text/css" href="style/css/selectPages/internetRadioPage.css"></link>
+  <link rel="stylesheet" type="text/css" href="style/css/mediaLibraryPage.css"></link>
 
   <!-- =====================
       SCRIPTS
@@ -38,7 +37,6 @@
     <script src="js/TapManager.js"></script>
     <script src="js/Router.js"></script>
     <script src="js/TransitionUtils.js"></script>
-
 
   <!--==================  UI ================== -->
     <script src="js/UI/ViewEvents.js"></script>
@@ -52,9 +50,9 @@
     <script src="js/UI/CurrentMusicPageControls.js"></script>
     <script src="js/UI/CurrentMusicPageSource.js"></script>
     <script src="js/UI/PlaylistView.js"></script>
+    <script src="js/UI/PlaylistsView.js"></script>
     <script src="js/UI/CurrentMusicPage.js"></script>
 
-    <script src="js/UI/SourcesMetaDrawer.js"></script>
     <script src="js/UI/PlaylistDrawer.js"></script>
 
     <script src="js/UI/UI.js"></script>
@@ -64,57 +62,61 @@
     <!--==================  pages ================== -->
       <script src="shared/js/mediadb.js"></script>
       <script src="shared/js/async_storage.js"></script>
-      <script src="js/selectPages/MediaLibraryPage/FileAudioSource.js"></script>
-      <script src="js/selectPages/MediaLibraryPage/metadata_scripts.js"></script>
-      <script src="js/selectPages/MediaLibraryPage/MusicDB.js"></script>
-      <script src="js/selectPages/MediaLibraryPage/MediaLibraryPageNotifications.js"></script>
-      <script src="js/selectPages/MediaLibraryPage/MediaLibraryPagePanel.js"></script>
-      <script src="js/selectPages/MediaLibraryPage/MediaLibraryPagePanelView.js"></script>
-      <script src="js/selectPages/MediaLibraryPage/MediaLibraryPagePanelManager.js"></script>
-      <script src="js/selectPages/MediaLibraryPage/MediaLibraryPage.js"></script>
-
-      <script src="js/selectPages/FMRadioPage.js"></script>
-
-      <script src="js/selectPages/InternetRadioPage/InternetAudioSource.js"></script>
-      <script src="js/selectPages/InternetRadioPage/IcecastStationSearch.js"></script>
-      <script src="js/selectPages/InternetRadioPage/InternetRadioPage.js"></script>
-
+      <script src="js/MediaLibraryPage/FileAudioSource.js"></script>
+      <script src="js/MediaLibraryPage/metadata_scripts.js"></script>
+      <script src="js/MediaLibraryPage/MusicDB.js"></script>
+      <script src="js/MediaLibraryPage/MediaLibraryPageNotifications.js"></script>
+      <script src="js/MediaLibraryPage/MediaLibraryPagePanel.js"></script>
+      <script src="js/MediaLibraryPage/MediaLibraryPagePanelView.js"></script>
+      <script src="js/MediaLibraryPage/MediaLibraryPagePanelManager.js"></script>
+      <script src="js/MediaLibraryPage/MediaLibraryPage.js"></script>
 
   <!--==================  app ================== -->
     <script src="js/AudioPlayer.js"></script>
     <script src="js/Playlist.js"></script>
+    <script src="js/PlaylistStorage.js"></script>
+    <script src="js/UI/PlaylistUI.js"></script>
     <script src="js/PlaylistManager.js"></script>
 
     <script src="js/Music.js"></script> 
 </head>
 <body>
-
-  <div id="content" class="center fastTransition">
-    <div id="contentOverlay" class="hidden faded fastTransition"></div>
-
-    <!-- =====================
-        HEADER
-    ====================== -->
-
-    <div class="header">
-      <div class="leftHeaderElem">
-        <div id="gotoSelectMusicPage" class="hidden faded fastTransition"></div>
-        <div id="toggleMetaDrawer" class="fastTransition"></div>
-      </div>
-      <div id="currentMusicPageHeaderTitle" class="headerTitle center hidden faded fastTransition"></div>
-      <div class="rightHeaderElem">
-        <div id="gotoCurrentMusicPage" class="fastTransition"></div>
-        <div id="togglePlaylistDrawer" class="hidden faded fastTransition"></div>
-
-      </div>
-    </div>
-
     <!-- =====================
         PAGES
     ====================== -->
     
       <div id="selectMusicPage" class="page center fastTransition">
+        <div id="selectPageContentOverlay" class="contentOverlay hidden fastTransition"></div>
 
+        <div class="header">
+          <div class="leftHeaderElem">
+            <div id="toggleSettingsDrawer"></div>
+          </div>
+          <div class="rightHeaderElem">
+            <div id="gotoCurrentMusicPage"></div>
+          </div>
+        </div>
+
+        <div id="mediaLibraryPage" class="selectSourcePage">
+          <div id="mediaLibraryPagePanel">
+            <div id="mediaLibraryPagePanelNotifications" class="fastTransition up">
+            
+            </div>
+            <div id="mediaLibraryPagePanelTitle">
+              <div id="mediaLibraryPagePanelPop" class="hidden"></div>
+              <img src = "" id="mediaLibraryPagePanelAlbum" class="hidden"></img>
+              <div id="mediaLibraryPagePanelTitleText"></div>
+              <div id="mediaLibraryPagePanelControls" class="hidden">
+                <div id="mediaLibraryPagePanelControlPlay"></div>
+                <div id="mediaLibraryPagePanelControlAdd"></div>
+              </div>
+            </div>
+            <div id="mediaLibraryPagePanelList">
+              <div id="mediaLibraryPagePanelSubCategories"></div>
+              <div id="mediaLibraryPagePanelItems"></div>
+            </div>
+          </div>
+        </div>
         <div id="nowPlayingControls" class="hidden">
             <div id="nowPlayingInfo">
               <img src = "" id="nowPlayingSourceImg"></img>
@@ -125,6 +127,19 @@
       </div>
 
       <div id="currentMusicPage" class="page right fastTransition">
+      <div id="currentMusicContentOverlay" class="contentOverlay hidden fastTransition"></div>
+
+        <div class="header">
+          <div class="leftHeaderElem">
+            <div id="gotoSelectMusicPage"></div>
+          </div>
+          <div id="currentMusicPageHeaderTitle" class="headerTitle center"></div>
+          <div class="rightHeaderElem">
+            <div id="togglePlaylistDrawer"></div>
+
+          </div>
+        </div>
+
         <audio id="audioPlayer" class="hidden"></audio>
         <div id="currentSourceView">
           <div id="currentSourceInfo" class="fastTransition"></div>
@@ -150,29 +165,17 @@
           </div>
         </div>
       </div>
-  </div>
 
   <!-- =====================
       META DRAWER
   ====================== -->
-  <div id="metaDrawer" class="drawer left out fastTransition">
+  <div id="settingsDrawer" class="drawer left out fastTransition">
     <div class="header">
-      <div class="leftHeaderElem">
-        <div id="gotoSettings" class="fastTransition"></div>
-        <div id="gotoSources" class="hidden faded fastTransition"></div>
-      </div>
+      <div class="headerTitle left"> Settings </div>
     </div>
 
-    <div id="sourcesMetaDrawer" class="fastTransition">
-
-    </div>
-
-    <div id="settingsMetaDrawer" class="hidden faded fastTransition">
-      <div class="normalize"> normalize audio <input id="normalize" type="checkbox"></div>
-      <div class="version"> version: 0.0.1 </div>
-      <div class="info"> 
-        This is a prototype version, with the goal of proposing a design that encompasses multiple features desirable in a music player. This app was built from the ground up in 2 weeks. As such, while the features and ux are there, music db perf can still be optimized. Performance was found to be a bit laggy at ~4500 songs (32gb).
-      </div>
+    <div id="settings">
+      <div class="version"> version: 0.1.1 </div>
     </div>
 
   </div>
@@ -187,7 +190,7 @@
     <div id="playlistDrawerTitle" class="hidden">
       <div id="playlistDrawerTitleBack"></div>
       <div id="playlistDrawerTitleContent"></div>
-      <div id="playlistDrawerTitleRename"></div>
+      <div id="playlistDrawerTitleEdit"></div>
       <div id="playlistDrawerTitleDel"></div>
     </div>
     <div id="playlistDrawerPlaylists">
@@ -196,44 +199,10 @@
     <div id="playlistDrawerPlaylistItems" class="hidden">
 
     </div>
-  </div>
-</div>
-
-  <!-- =====================
-      SELECT SOURCE PAGES
-  ====================== -->
-
-  <div id="selectSourcePages" class="hidden">
-
-    <div id="mediaLibraryPage" class="selectSourcePage">
-      <div id="mediaLibraryPagePanel">
-        <div id="mediaLibraryPagePanelNotifications" class="fastTransition up">
-        
-        </div>
-        <div id="mediaLibraryPagePanelTitle">
-          <div id="mediaLibraryPagePanelPop" class="hidden"></div>
-          <img src = "" id="mediaLibraryPagePanelAlbum" class="hidden"></img>
-          <div id="mediaLibraryPagePanelTitleText"></div>
-          <div id="mediaLibraryPagePanelControls" class="hidden">
-            <div id="mediaLibraryPagePanelControlPlay"></div>
-            <div id="mediaLibraryPagePanelControlAdd"></div>
-          </div>
-        </div>
-        <div id="mediaLibraryPagePanelList">
-          <div id="mediaLibraryPagePanelSubCategories"></div>
-          <div id="mediaLibraryPagePanelItems"></div>
-        </div>
-      </div>
-    </div>
-
-    <div id="FMRadioPage" class="selectSourcePage">
-      FM Radio Not Implemented Yet
-    </div>
-
-    <div id="internetRadioPage" class="selectSourcePage">
-      <div id="internetRadioSearch"> search internet radio </div>
-      <div id="internetRadioStations"></div>
+    <div id="playlistDrawerNewPlaylist">
+      new playlist
     </div>
   </div>
+
 </body>
 </html>
