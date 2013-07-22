@@ -141,7 +141,7 @@ var TouchEventHandler = (function touchEventHandler() {
       let content = evt.target.ownerDocument.defaultView;
       var utils = content.QueryInterface(Ci.nsIInterfaceRequestor)
                          .getInterface(Ci.nsIDOMWindowUtils);
-      utils.sendMouseEvent(type, evt.pageX, evt.pageY, 0, 1, 0, true);
+      utils.sendMouseEvent(type, evt.clientX, evt.clientY, 0, 1, 0, true);
     },
     sendContextMenu: function teh_sendContextMenu(target, x, y, delay) {
       let doc = target.ownerDocument;
