@@ -218,11 +218,19 @@ Calendar.ns('Models').Event = (function() {
     validationErrors: function() {
       var end = this.endDate.valueOf();
       var start = this.startDate.valueOf();
+      var title = this.remote.title.valueOf();
+      var location = this.remote.location.valueOf();
       var errors = [];
 
       if (start >= end) {
         errors.push({
           name: 'start-after-end'
+        });
+      }
+
+      if (title === '' && location === '') {
+        errors.push({
+          name: 'input-title-location'
         });
       }
 
