@@ -42,6 +42,7 @@ manifest.appcache
 /build/custom-prefs.js
 /build/custom-settings.json
 /local.mk
+/.b2g.mk
 
 /tools/xpcwindow/vendor/
 
