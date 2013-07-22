@@ -811,10 +811,19 @@ var CallLogDBManager = {
       callback('NO_INDEXEDDB_AVAILABLE');
       return;
     }
-    indexedDB.deleteDatabase(this._dbName, this._dbVersion)
-             .onsuccess = (function onsuccess() {
-      this._asyncReturn(callback);
-    }).bind(this);
+    // We need to close the DB before deleting it.
+    if (this._db) {
+      this._db.close();
+    }
+
+    var self = this;
+    var req = indexedDB.deleteDatabase(this._dbName);
+    req.onsuccess = function onsuccess() {
+      self._asyncReturn(callback);
+    };
+    req.onerror = function onerror() {
+      self._asyncReturn(callback, req.error.name);
+    };
   },
   /**
    * Helper for getting a list of all the records stored in a given object
