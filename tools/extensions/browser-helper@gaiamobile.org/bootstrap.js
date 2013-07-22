@@ -27,6 +27,8 @@ function startup(data, reason) {
     // Allow panning to work in the system app.
     mm.loadFrameScript('chrome://global/content/BrowserElementPanning.js', true);
 
+    Services.scriptloader.loadSubScript('chrome://browser-helper.js/content/permissions.js'); 
+
     // Enable mozApps.getAll and app.launch to work.
     // By default on firefox, apps are consider as not launchable
     // and only launchable apps appear in getAll().
