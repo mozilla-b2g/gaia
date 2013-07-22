@@ -19,7 +19,7 @@
 
     // Check widget is there
     widgetFrame = widgetContainer.querySelector('iframe');
-    if (widgetFrame && !widgetFrame.dataset.killed)
+    if (widgetFrame)
       return;
 
     // Create the widget
@@ -31,7 +31,6 @@
 
     widgetFrame.dataset.frameType = 'widget';
     widgetFrame.dataset.frameOrigin = origin;
-    delete widgetFrame.dataset.killed;
 
     widgetFrame.setAttribute('mozbrowser', true);
     widgetFrame.setAttribute('remote', 'true');
@@ -45,7 +44,8 @@
   }
 
   function _onError(e) {
-    e.target.dataset.killed = true;
+    widgetContainer.removeChild(widgetFrame);
+    widgetFrame = null;
   }
 
   function _attachNetworkEvents() {
