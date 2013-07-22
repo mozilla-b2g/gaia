@@ -844,6 +844,15 @@ suite('thread_ui.js >', function() {
                       'sendGeneralErrorBody');
         });
 
+        test('show general error for invalid address error', function() {
+          ThreadUI.showSendMessageError('InvalidAddressError');
+          assert.isTrue(MockDialog.instances[0].show.called);
+          assert.equal(MockDialog.calls[0].title.value,
+                      'sendGeneralErrorTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'sendGeneralErrorBody');
+        });
+
         test('show no SIM card', function() {
           ThreadUI.showSendMessageError('NoSimCardError');
           assert.isTrue(MockDialog.instances[0].show.called);
