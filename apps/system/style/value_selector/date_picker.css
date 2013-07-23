@@ -39,7 +39,7 @@
   width: 7.5rem;
   height: 4.5rem;
   border: none;
-  background: transparent no-repeat center center;
+  background: transparent no-repeat center center / 1.1rem;
 }
 
 #date-picker-controls {
