@@ -1,20 +1,31 @@
 (function() {
 
-  function SmartFolderIcon(result, query) {
+  function SmartFolderIcon(result) {
+
+    this._descriptorIdentifiers = ['query'];
+
     this.imageSrc = result.icon;
 
     this.descriptor = {
-        name: result.title.substring(0, 10),
-        query: query,
-        uri: result.uri,
+        name: result.title,
+        query: result.query,
         renderedIcon: true
     };
+
+    if (result.uri) {
+      this.descriptor.uri = result.uri;
+      this._descriptorIdentifiers.push('uri');
+    }
+
+    if (result.type) {
+      this.descriptor.type = result.type;
+      this._descriptorIdentifiers.push('type');
+    }
+
     this.app = {};
   }
 
   SmartFolderIcon.prototype = {
-
-    _descriptorIdentifiers: ['query', 'uri'],
 
     isOfflineReady: function() {
       return false;
@@ -25,6 +36,10 @@
     displayRenderedIcon: function() {
       this.img.src = this.imageSrc;
       this.img.style.visibility = 'visible';
+    },
+
+    render: function(target) {
+      Icon.prototype.render.call(this, target);
     }
   };
 
@@ -35,28 +50,28 @@
   var gd = new GestureDetector(folder);
   gd.startDetecting();
 
-  function SmartFolder(icon) {
-    this.icon = icon;
-    this.query = this.icon.descriptor.query;
+  function SmartFolder(elem) {
+    this.data = elem.dataset;
+    this.query = this.data.query;
   }
 
   SmartFolder.prototype = {
     show: function() {
 
       folder.classList.add('open');
-      folderTitle.innerHTML = this.icon.descriptor.name;
+      folderTitle.innerHTML = this.data.query;
       folderIcons.innerHTML = '';
 
       OpenSearchPlugins.getSuggestions(
         'EverythingMe',
-        this.icon.descriptor.query,
+        this.data.query,
         12,
         this.renderSuggestions.bind(this)
       );
 
       OpenSearchPlugins.getSuggestions(
         'Marketplace',
-        this.icon.descriptor.query,
+        this.data.query,
         12,
         this.renderSuggestions.bind(this)
       );
@@ -79,7 +94,8 @@
     renderSuggestions: function(results) {
       results.forEach(function(result) {
 
-        var folderIcon = new SmartFolderIcon(result, this.query);
+        result.query = this.query;
+        var folderIcon = new SmartFolderIcon(result);
 
         Icon.prototype.render.call(folderIcon, folderIcons);
       }, this);
@@ -94,5 +110,6 @@
   };
 
   window.SmartFolder = SmartFolder;
+  window.SmartFolderIcon = SmartFolderIcon;
 
 }());

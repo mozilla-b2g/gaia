@@ -239,15 +239,9 @@ Page.prototype = {
                !this.olist.getAttribute('disabled')) {
       var icon = GridManager.getIcon(elem.dataset);
 
-      // Temporary hack to show a smartfolder when we click on marketplace.
-      if (icon.descriptor && icon.descriptor.name === 'Marketplace') {
-        icon.descriptor.type = 'smartfolder';
-        icon.descriptor.query = 'game';
-      }
-
-      if (icon.descriptor && icon.descriptor.type === 'smartfolder') {
-        var folder = new SmartFolder(icon);
-        folder.show(icon);
+      if (!icon && elem.dataset.type === 'smartfolder') {
+        var folder = new SmartFolder(elem);
+        folder.show();
         return;
       }
 
