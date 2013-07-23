@@ -1,19 +1,11 @@
 # After building a dictionary here, move the resulting .dict file to
 # apps/keyboard/js/imes/latin/dictionaries/ and check it in.
-#
-# Available:
-# cs.dict, de.dict, en_gb.dict, en_us.dict, es.dict, fr.dict,
-# hr.dict, it.dict, nb.dict, pt_pt.dict, pt_br.dict
 
-WHITELIST = \
- de.dict \
- en_us.dict \
- pl.dict \
- pt_br.dict \
- fr.dict \
- es.dict
+XMLS = $(shell ls *_wordlist.xml.gz)
+DICTS = $(patsubst %_wordlist.xml.gz,%.dict,$(XMLS))
 
-%.dict: %_wordlist.xml xml2dict.py
-	python3 xml2dict.py -o $@ $<
+%.dict: %_wordlist.xml.gz xml2dict.py
+	gzcat $< | python xml2dict.py -o $@ /dev/stdin
 
-all: $(WHITELIST)
+all: $(DICTS)
+
