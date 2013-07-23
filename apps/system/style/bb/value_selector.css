@@ -203,7 +203,7 @@ form[role="dialog"][data-type="value-selector"] [role="listbox"] li input:checke
 form[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-checked="true"] span {
   color: #00abcd;
   background: url(value_selector/images/icons/checked.png) content-box right center no-repeat;
-  background-size: 1.9rem;
+  background-size: 2.1rem;
 }
 
 form[role="dialog"][data-type="value-selector"] [role="listbox"] li a,
