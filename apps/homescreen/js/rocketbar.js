@@ -8,19 +8,22 @@ var Rocketbar = {
 
   DOM: {},
   installedApps: {},
-  
+
   init: function rocketbar_init() {
     this.getInstalledApps();
-    
+
     this.nodeNames.forEach(function(name) {
       this.DOM[this.toCamelCase(name)] =
         document.getElementById('rocketbar-' + name);
     }, this);
 
-    this.DOM.activationIcon.addEventListener('click', this.show.bind(this, true));
-    this.DOM.overlay.addEventListener('click', this.hide.bind(this));
+    this.DOM.activationIcon.addEventListener('click',
+      this.show.bind(this, true)
+    );
+    this.DOM.overlay.addEventListener('click', this.handleClick.bind(this));
     this.DOM.input.addEventListener('click', this.inputFocus);
     this.DOM.input.addEventListener('keyup', this.inputKeyUp.bind(this));
+    window.addEventListener('hashchange', this.handleHashChange.bind(this));
   },
 
   getInstalledApps: function() {
@@ -30,19 +33,34 @@ var Rocketbar = {
       apps.forEach(function(app) {
         self.installedApps[app.manifestURL] = app;
       });
-    }
+    };
   },
-  
+
   toCamelCase: function toCamelCase(str) {
      return str.replace(/\-(.)/g, function replacer(str, p1) {
        return p1.toUpperCase();
      });
   },
 
+  handleClick: function(evt) {
+    var target = evt.target;
+     var manifestURL = target.getAttribute('data-manifest-url');
+     if (manifestURL && this.installedApps[manifestURL]) {
+       this.installedApps[manifestURL].launch();
+     }
+     this.hide();
+  },
+
+  handleHashChange: function(evt) {
+    if (document.location.hash === '#root') {
+      this.hide();
+    }
+  },
+
   inputFocus: function(evt) {
     evt.stopPropagation();
   },
-  
+
   inputKeyUp: function(evt) {
     var results = [];
 
@@ -64,7 +82,7 @@ var Rocketbar = {
     }, this);
     this.showAppResults(results);
   },
-    
+
   showAppResults: function rocketbar_showAppResults(results) {
     this.DOM.results.innerHTML = '';
     if (results.length == 0)
@@ -79,19 +97,24 @@ var Rocketbar = {
       this.DOM.results.appendChild(li);
     }, this);
   },
-    
+
   show: function(focus) {
     this.DOM.overlay.classList.add('active');
     if (focus) {
       this.DOM.input.focus();
     }
+    document.location.hash = '';
   },
 
   hide: function() {
     this.DOM.input.blur();
-    this.DOM.overlay.classList.remove('active');
+    setTimeout(function() {
+      this.DOM.overlay.classList.remove('active');
+      this.DOM.input.value = '';
+      this.showAppResults([]);
+    }.bind(this), 200);
   },
-  
+
   HIDDEN_APPS: ['app://keyboard.gaiamobile.org/manifest.webapp',
       'app://wallpaper.gaiamobile.org/manifest.webapp',
       'app://bluetooth.gaiamobile.org/manifest.webapp',
