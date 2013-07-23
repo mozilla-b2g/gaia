@@ -163,7 +163,7 @@ var ListMenu = {
         if (!value) {
           return;
         }
-
+        value = parseInt(value);
         this.hide(this.onreturn.bind(this, value));
         break;
 
