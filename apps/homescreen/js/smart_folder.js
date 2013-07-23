@@ -1,11 +1,11 @@
 (function() {
 
-  function SmartFolderIcon(result) {
-
+  function SmartFolderIcon(result, query) {
     this.imageSrc = result.icon;
 
     this.descriptor = {
         name: result.title.substring(0, 10),
+        query: query,
         uri: result.uri,
         renderedIcon: true
     };
@@ -14,7 +14,7 @@
 
   SmartFolderIcon.prototype = {
 
-    _descriptorIdentifiers: [],
+    _descriptorIdentifiers: ['query', 'uri'],
 
     isOfflineReady: function() {
       return false;
@@ -37,6 +37,7 @@
 
   function SmartFolder(icon) {
     this.icon = icon;
+    this.query = this.icon.descriptor.query;
   }
 
   SmartFolder.prototype = {
@@ -50,14 +51,14 @@
         'EverythingMe',
         this.icon.descriptor.query,
         12,
-        this.renderSuggestions
+        this.renderSuggestions.bind(this)
       );
 
       OpenSearchPlugins.getSuggestions(
         'Marketplace',
         this.icon.descriptor.query,
         12,
-        this.renderSuggestions
+        this.renderSuggestions.bind(this)
       );
 
       // Set a listener to close the smart folder
@@ -78,9 +79,16 @@
     renderSuggestions: function(results) {
       results.forEach(function(result) {
 
-        var folderIcon = new SmartFolderIcon(result);
+        var folderIcon = new SmartFolderIcon(result, this.query);
 
         Icon.prototype.render.call(folderIcon, folderIcons);
+      }, this);
+
+      folderIcons.addEventListener('click', function(e) {
+        if (e.target.dataset.query) {
+          new MozActivity({ name: 'view',
+                          data: { type: 'url', url: e.target.dataset.uri }});
+        }
       });
     }
   };

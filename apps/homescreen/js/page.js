@@ -242,7 +242,7 @@ Page.prototype = {
       // Temporary hack to show a smartfolder when we click on marketplace.
       if (icon.descriptor && icon.descriptor.name === 'Marketplace') {
         icon.descriptor.type = 'smartfolder';
-        icon.descriptor.query = 'productivity';
+        icon.descriptor.query = 'game';
       }
 
       if (icon.descriptor && icon.descriptor.type === 'smartfolder') {

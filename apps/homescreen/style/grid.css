@@ -52,6 +52,10 @@ body[data-transitioning] .apps > div {
   text-align: center;
 }
 
+.icon-list .icon * {
+  pointer-events: none;
+}
+
 /* Maximum 16 icons for page */
 .apps ol > li:nth-child(17) {
   display: none;
