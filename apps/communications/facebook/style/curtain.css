@@ -15,8 +15,10 @@ form[role="dialog"][data-type="confirm"] > section {
   display: none;
 }
 
-form[role="dialog"][data-type="confirm"][data-state="wait"] #wait {
+form[role="dialog"][data-type="confirm"][data-state="alert"] menu #ok {
+  margin-left: 0;
   display: inline-block;
+  width: 100%;
 }
 
 form[role="dialog"][data-type="confirm"][data-state="wait"] #cancel,
@@ -34,8 +36,22 @@ form[role="dialog"][data-type="confirm"][data-state="progress"] #progress {
 
 form.no-menu[role="dialog"][data-type="confirm"] menu,
 form[role="dialog"][data-type="confirm"][data-state="progress"] menu #retry,
+form[role="dialog"][data-type="confirm"][data-state="alert"] menu #retry,
+form[role="dialog"][data-type="confirm"][data-state="alert"] menu #cancel,
+form[role="dialog"][data-type="confirm"]:not([data-state="alert"]) menu #ok,
 form[role="dialog"][data-type="confirm"][data-state="message"] menu {
   display: none;
+}
+
+form[role="dialog"][data-type="confirm"][data-state="error"] menu #retry,
+form[role="dialog"][data-type="confirm"][data-state="timeout"] menu #retry {
+  margin-left: 1rem;
+}
+
+/* Sections */
+
+form[role="dialog"][data-type="confirm"][data-state="wait"] #wait {
+  display: inline-block;
 }
 
 form[role="dialog"][data-type="confirm"][data-state="message"] #message {
@@ -47,6 +63,10 @@ form[role="dialog"][data-type="confirm"][data-state="error"] #error {
 }
 
 form[role="dialog"][data-type="confirm"][data-state="timeout"] #timeout {
+  display: inline-block;
+}
+
+form[role="dialog"][data-type="confirm"][data-state="alert"] #alert {
   display: inline-block;
 }
 
