@@ -4,16 +4,6 @@
 var Configurator = (function() {
   var conf = {};
 
-  var dummyProvider = {
-    init: function() {
-      // Do nothing
-    },
-
-    destroy: function() {
-      // Do nothing
-    }
-  };
-
   function load(file) {
     var xhr = new XMLHttpRequest();
     xhr.overrideMimeType('application/json');
@@ -23,18 +13,7 @@ var Configurator = (function() {
     xhr.onload = function _xhrOnLoad(evt) {
       try {
         conf = JSON.parse(xhr.responseText);
-
-        var searchPage = conf.search_page;
-        if (searchPage) {
-          var provider = window[searchPage.provider] || dummyProvider;
-          if (searchPage.enabled) {
-            provider.init();
-            Homescreen.init(1);
-          } else {
-            startHomescreenByDefault();
-            setTimeout(provider.destroy, 0);
-          }
-        }
+        startHomescreenByDefault();
       } catch (e) {
         conf = {};
         console.error('Failed parsing homescreen configuration file: ' + e);
