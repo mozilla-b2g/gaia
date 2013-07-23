@@ -16,7 +16,6 @@ pref("general.useragent.override.tumblr.com", "\\(Mobile#(Android; Mobile"); // 
 pref("general.useragent.override.4shared.com", "\\(Mobile#(Android; Mobile"); // bug 826502
 pref("general.useragent.override.orkut.com.br", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 826504
 pref("general.useragent.override.r7.com", "\\(Mobile#(Android; Mobile"); // bug 826510
-pref("general.useragent.override.amazon.com", "\\(Mobile#(Android; Mobile"); // bug 826512
 pref("general.useragent.override.estadao.com.br", "\\(Mobile#(Android; Mobile"); // bug 826514
 pref("general.useragent.override.letras.mus.br", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 826517
 pref("general.useragent.override.bb.com.br", "\\(Mobile#(Android; Mobile"); // bug 826711
@@ -61,15 +60,12 @@ pref("general.useragent.override.wyborcza.pl", "\\(Mobile#(Android; Mobile"); //
 pref("general.useragent.override.deser.pl", "\\(Mobile#(Android; Mobile"); // bug 828380
 pref("general.useragent.override.as.com", "\\(Mobile#(Android; Mobile"); // bug 828383
 pref("general.useragent.override.ebay.es", "\\(Mobile#(Android; Mobile"); // bug 828386
-pref("general.useragent.override.amazon.es", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 828388
 pref("general.useragent.override.infojobs.net", "\\(Mobile#(Android; Mobile"); // bug 828392
-pref("general.useragent.override.vimeo.com", "\\(Mobile#(Android; Mobile"); // bug 828394
 pref("general.useragent.override.elconfidencial.com", "\\(Mobile#(Android; Mobile"); // bug 828397
 pref("general.useragent.override.antena3.com", "\\(Mobile#(Android; Mobile"); // bug 828399
 pref("general.useragent.override.ingdirect.es", "\\(Mobile#(Android; Mobile"); // bug 828401
 pref("general.useragent.override.fotocasa.es", "\\(Mobile#(Android; Mobile"); // bug 828403
 pref("general.useragent.override.orange.es", "\\(Mobile#(Android; Mobile"); // bug 828406
-pref("general.useragent.override.amazon.co.uk", "\\(Mobile#(Android; Mobile"); // bug 828412
 pref("general.useragent.override.paginasamarillas.es", "\\(Mobile#(Android; Mobile"); // bug 828414
 pref("general.useragent.override.loteriasyapuestas.es", "\\(Mobile#(Android; Mobile"); // bug 828416
 pref("general.useragent.override.bbva.es", "\\(Mobile#(Android; Mobile"); // bug 828418
@@ -98,7 +94,6 @@ pref("general.useragent.override.deviantart.com", "\\(Mobile#(Android; Mobile");
 pref("general.useragent.override.nytimes.com", "\\(Mobile#(Android; Mobile"); // bug 843137
 pref("general.useragent.override.consumersearch.com", "\\(Mobile#(Android; Mobile"); // bug 843139
 pref("general.useragent.override.foodily.com", "\\(Mobile#(Android; Mobile"); // bug 843141
-pref("general.useragent.override.foxnewsinsider.com", "\\(Mobile#(Android; Mobile"); // bug 843143
 pref("general.useragent.override.edmunds.com", "\\(Mobile#(Android; Mobile"); // bug 843146
 pref("general.useragent.override.icanhas.cheezburger.com", "\\(Mobile#(Android; Mobile"); // bug 843197
 pref("general.useragent.override.arstechnica.com", "\\(Mobile#(Android; Mobile"); // bug 843149
