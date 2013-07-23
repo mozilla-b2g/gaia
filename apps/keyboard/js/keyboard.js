@@ -342,7 +342,6 @@ function initKeyboard() {
   // First, register handlers to track settings changes
   navigator.mozSettings.addObserver('keyboard.current', function(e) {
     // Switch to the language associated keyboard
-    // everything.me also uses this setting to improve searches
     currentKeyboardName = e.settingValue;
   });
 

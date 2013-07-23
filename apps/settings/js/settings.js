@@ -970,7 +970,7 @@ function initLocale() {
       var lock = settings.createLock();
       // Enable the language specific keyboard layout group
       lock.set(settingNewKeyboardLayout);
-      // Activate the language associated keyboard, everything.me also uses
+      // Activate the language associated keyboard, also uses
       // this setting to improve searches
       lock.set(settingNewKeyboard);
     } catch (ex) {

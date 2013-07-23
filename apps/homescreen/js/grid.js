@@ -722,7 +722,7 @@ var GridManager = (function() {
       // If the new page is situated right after the current displayed page,
       // makes it visible and move it to the right place.
       if (currentPage == pages.length - 2) {
-        goToPage(currentPage);
+        //goToPage(currentPage);
       }
 
       updatePaginationBar();
@@ -835,17 +835,6 @@ var GridManager = (function() {
 
   function getIconForBookmark(bookmarkURL) {
     return bookmarkIcons[bookmarkURL];
-  }
-
-  // Ways to enumerate installed apps & bookmarks and find out whether
-  // a certain "origin" is available as an existing installed app or
-  // bookmark. Only used by Everything.me at this point.
-  function getApps() {
-    var apps = [];
-    for (var origin in appsByOrigin) {
-      apps.push(appsByOrigin[origin]);
-    }
-    return apps;
   }
 
   function getAppByOrigin(url) {
@@ -1292,8 +1281,6 @@ var GridManager = (function() {
     getIconsForApp: getIconsForApp,
 
     getIconForBookmark: getIconForBookmark,
-
-    getApps: getApps,
 
     getAppByOrigin: getAppByOrigin,
 
