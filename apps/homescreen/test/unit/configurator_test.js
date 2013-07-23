@@ -30,14 +30,12 @@ suite('configurator.js >', function() {
     mocksHelper.setup();
 
     containerNode = document.createElement('div');
-    containerNode.innerHTML = '<div role="search-page"></div>';
-    document.body.appendChild(containerNode);
 
     Configurator.load();
 
     // We set up a wrong landing page index in order to check what its value
     // will be 0 or 1 depending on different situations dealt by this suite
-    Homescreen.landingPage = -1;
+    Homescreen.landingPage = 0;
   });
 
   teardown(function() {

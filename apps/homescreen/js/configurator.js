@@ -28,12 +28,6 @@ var Configurator = (function() {
   }
 
   function startHomescreenByDefault() {
-    var searchPage = document.querySelector('div[role="search-page"]');
-
-    if (searchPage) {
-      searchPage.parentNode.removeChild(searchPage);
-    }
-
     if (Homescreen) {
       Homescreen.init(0);
     }
