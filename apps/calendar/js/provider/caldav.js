@@ -359,7 +359,7 @@ Calendar.ns('Provider').Caldav = (function() {
       // or we have matching tokens
       if ((calendar.lastEventSyncToken &&
            calendar.lastEventSyncToken === calendar.remote.syncToken)) {
-        callback(null);
+        Calendar.nextTick(callback);
         return;
       }
 
