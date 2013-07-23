@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="style/dragdrop.css">
     <link rel="stylesheet" type="text/css" href="style/dock.css">
     <link rel="stylesheet" type="text/css" href="style/landing.css">
+    <link rel="stylesheet" type="text/css" href="style/rocketbar.css">
 
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
@@ -39,6 +40,7 @@
     <script type="text/javascript" defer src="js/homescreen.js"></script>
     <script type="text/javascript" defer src="js/configurator.js"></script>
     <script type="text/javascript" defer src="js/wallpaper.js"></script>
+    <script type="text/javascript" defer src="js/rocketbar.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
@@ -68,12 +70,17 @@
       </form>
     </section>
 
+    <section id="rocketbar-overlay">
+      
+    </section>
+
     <header id="paginationBar">
       <div class="paginationScroller" role="slider" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0" aria-controls="icongrid"></div>
     </header>
 
     <div id="icongrid" class="apps" role="main">
       <div id="landing-page" data-current-page="true">
+        <div id="rocketbar-activation-icon"></div>
         <div id="landing-time">
           <p id="landing-clock">
             <span class="numbers"></span>

@@ -1,0 +1,23 @@
+#rocketbar-overlay {
+  width: 100%;
+  height:100%;
+  background-color: #f0f;
+  opacity: 0;
+  position: absolute;
+  z-index: 20000;
+  transition: opacity 0.5s, transform 0.5s;
+  transform: scale(0);
+}
+
+#rocketbar-overlay.active {
+  opacity: 0.9;
+  transform: scale(1);
+}
+
+#rocketbar-activation-icon {
+  width: 28em;
+  height: 3.1em;
+  background-image: url('images/rocketbar.png');
+  background-size: cover;
+  margin: 2em auto;
+}
