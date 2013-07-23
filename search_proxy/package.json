@@ -1,0 +1,14 @@
+{
+  "name": "proxy",
+  "description": "Proxy for FirefoxOS.",
+  "version": "0.0.1",
+  "homepage": "https://github.com/kevingrandon/",
+  "author": {
+    "name": "Kevin Grandon",
+    "email": "kevingrandon@yahoo.com"
+  },
+  "dependencies": {
+    "express": "*"
+  },
+  "keywords": []
+}
