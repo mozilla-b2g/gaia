@@ -86,8 +86,7 @@
 
       folderIcons.addEventListener('click', function(e) {
         if (e.target.dataset.query) {
-          new MozActivity({ name: 'view',
-                          data: { type: 'url', url: e.target.dataset.uri }});
+          window.open(e.target.dataset.uri);
         }
       });
     }
