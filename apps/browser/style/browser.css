@@ -64,6 +64,7 @@ input[type="image"] {
 
 .settings-screen #settings {
   display: block;
+  transform: translateY(0%);
 }
 
 .current {
@@ -857,7 +858,8 @@ li[role="listitem"] small {
   width: 100%;
   height: 100%;
   z-index: 150;
-  display: none;
+  transition: 0.5s ease-in-out;
+  transform: translateY(100%);
 }
 
 #danger-dialog {

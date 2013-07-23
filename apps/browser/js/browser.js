@@ -199,7 +199,7 @@ var Browser = {
        this.showSettingsScreen.bind(this));
      this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
      this.settingsDoneButton.addEventListener('click',
-       this.showPageScreen.bind(this));
+       this.hideSettingsScreen.bind(this));
      this.aboutBrowserButton.addEventListener('click',
        this.showAboutPage.bind(this));
      this.clearHistoryButton.addEventListener('click',
@@ -1857,9 +1857,13 @@ var Browser = {
   },
 
   showSettingsScreen: function browser_showSettingsScreen() {
-    this.switchScreen(this.SETTINGS_SCREEN);
+    document.body.classList.add(this.SETTINGS_SCREEN);
     this.clearHistoryButton.disabled = false;
     this.clearPrivateDataButton.disabled = false;
+  },
+
+  hideSettingsScreen: function browser_showSettingsScreen() {
+    document.body.classList.remove(this.SETTINGS_SCREEN);
   },
 
   showAboutPage: function browser_showAboutPage() {
@@ -1868,6 +1872,7 @@ var Browser = {
     this.selectTab(tab);
     this.setTabVisibility(this.currentTab, true);
     this.updateTabsCount();
+    this.hideSettingsScreen();
     this.showPageScreen();
   },
 
