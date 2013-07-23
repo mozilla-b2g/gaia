@@ -2,7 +2,7 @@
 
   function SmartFolderIcon(result) {
 
-    this._descriptorIdentifiers = ['query'];
+    this._descriptorIdentifiers = ['query', 'name'];
 
     this.imageSrc = result.icon;
 
@@ -59,7 +59,7 @@
     show: function() {
 
       folder.classList.add('open');
-      folderTitle.innerHTML = this.data.query;
+      folderTitle.innerHTML = this.data.name;
       folderIcons.innerHTML = '';
 
       OpenSearchPlugins.getSuggestions(
