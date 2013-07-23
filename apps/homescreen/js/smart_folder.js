@@ -1,5 +1,33 @@
 (function() {
 
+  function SmartFolderIcon(result) {
+
+    this.imageSrc = result.icon;
+
+    this.descriptor = {
+        name: result.title.substring(0, 10),
+        uri: result.uri,
+        renderedIcon: true
+    };
+    this.app = {};
+  }
+
+  SmartFolderIcon.prototype = {
+
+    _descriptorIdentifiers: [],
+
+    isOfflineReady: function() {
+      return false;
+    },
+
+    applyOverflowTextMask: Icon.prototype.applyOverflowTextMask,
+
+    displayRenderedIcon: function() {
+      this.img.src = this.imageSrc;
+      this.img.style.visibility = 'visible';
+    }
+  };
+
   var folder = document.getElementById('smartfolder');
   var folderIcons = folder.querySelector('.icon-list');
   var folderTitle = folder.querySelector('.title');
@@ -50,16 +78,9 @@
     renderSuggestions: function(results) {
       results.forEach(function(result) {
 
-        var customContext = {
-          name: result.title.substring(0, 10),
-          uri: result.uri,
-          icon: result.icon,
+        var folderIcon = new SmartFolderIcon(result);
 
-          // Mock icon methods
-          isOfflineReady: function() { return true; }
-        };
-
-        Icon.render.apply(customContext, folderIcons);
+        Icon.prototype.render.call(folderIcon, folderIcons);
       });
     }
   };
