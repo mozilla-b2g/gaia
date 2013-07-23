@@ -1,79 +1,90 @@
 var PlaylistManager = function(currentPageUI, playlistDrawerUI){
-  this.ui = currentPageUI;
-  this.ui.playlists = playlistDrawerUI;
+
+  this.ui = new PlaylistUI(currentPageUI, playlistDrawerUI);
 
   this.audioPlayer = new AudioPlayer();
 
   this.playlists = {};
   
-  this.loadPlaylists();
+  this.storage = new PlaylistStorage();
+  this.storage.load(this);
 
   this.currentPlaylistId = null;
 
   if (this.numPlaylists === 0){
-    //this.createPlaylist("new playlist");
-    this.ui.playlists.setPlaylists(this.playlists);
+    this.ui.refreshPlaylists(this.playlists);
     this.setCurrentPlaylist(null);
   }
   else {
-    this.ui.playlists.setPlaylists(this.playlists);
+    this.ui.refreshPlaylists(this.playlists);
     for (var id in this.playlists){
       this.setCurrentPlaylist(id);
       break;
     }
   }
 
-  this.ui.controls.onplayPrev = this.playPrev.bind(this);
-  this.ui.controls.onplayNext = this.playNext.bind(this);
-  this.ui.controls.onplay = this.play.bind(this);
-  this.ui.controls.onpause = this.pause.bind(this);
-  this.ui.controls.seekBar.onrequestSetTime = this.setTime.bind(this);
+  this.ui.onplayPrev = this.playPrev.bind(this);
+  this.ui.onplayNext = this.playNext.bind(this);
+  this.ui.onplay = this.play.bind(this);
+  this.ui.onpause = this.pause.bind(this);
+  this.ui.onrequestSetTime = this.setTime.bind(this);
 
-  this.ui.playlist.ondeleteItemFromPlaylist = this.deleteItemFromPlaylist.bind(this);
-  this.ui.playlist.onswitchToPlaylistItem = this.switchToPlaylistItem.bind(this);
-  this.ui.playlist.onmovePlaylistItemRelative = this.movePlaylistItemRelative.bind(this);
+  this.ui.ondeleteItemFromPlaylist = this.deleteItemFromPlaylist.bind(this);
+  this.ui.onswitchToPlaylistItem = this.switchToPlaylistItem.bind(this);
+  this.ui.onmovePlaylistItemRelative = this.movePlaylistItemRelative.bind(this);
 
-  this.ui.playlists.oncreatePlaylist = this.createPlaylist.bind(this);
-  this.ui.playlists.ondeletePlaylist = this.deletePlaylist.bind(this);
-  this.ui.playlists.onrenamePlaylist = this.renamePlaylist.bind(this);
-  this.ui.playlists.onswitchPlaylist = this.setCurrentPlaylist.bind(this);
+  this.ui.oncreatePlaylist = this.createPlaylist.bind(this);
+  this.ui.ondeletePlaylist = this.deletePlaylist.bind(this);
+  this.ui.onrenamePlaylist = this.renamePlaylist.bind(this);
+  this.ui.onshufflePlaylist = this.shufflePlaylist.bind(this);
+  this.ui.onsetCurrentPlaylist = this.setCurrentPlaylist.bind(this);
+  this.ui.oncopyPlaylist = this.copyPlaylist.bind(this);
+  this.ui.onappendAudioSourcesToPlaylist = this.appendAudioSourcesToPlaylist.bind(this);
 
-  this.ui.playlists.playlist.ondeleteItemFromPlaylist = this.deleteItemFromPlaylist.bind(this);
-  this.ui.playlists.playlist.onswitchToPlaylistItem = this.switchToPlaylistItem.bind(this);
-  this.ui.playlists.playlist.onmovePlaylistItemRelative = this.movePlaylistItemRelative.bind(this);
+  this.ui.ongetPlaylists = function(){ return this.playlists; }.bind(this);
 
   this.audioPlayer.onisEnded = this.currentEnded.bind(this);
-  this.audioPlayer.onisPaused = this.ui.controls.setPaused.bind(this.ui.controls);
-  this.audioPlayer.onisPlaying = this.ui.controls.setPlaying.bind(this.ui.controls);
-  this.audioPlayer.onisStopped = this.ui.controls.seekBar.disable.bind(this.ui.controls.seekBar);
-  this.audioPlayer.onsetTotalTime = this.ui.controls.seekBar.setTotalTime.bind(this.ui.controls.seekBar);
-  this.audioPlayer.onsetCurrentTime = this.ui.controls.seekBar.setCurrentTime.bind(this.ui.controls.seekBar);
 
-  this.ui.source.setInfo(null);
-  this.ui.controls.seekBar.disable();
+  this.audioPlayer.onisPaused = this.ui.setPaused.bind(this.ui);
+  this.audioPlayer.onisPlaying = this.ui.setPlaying.bind(this.ui);
+  this.audioPlayer.onisStopped = this.ui.setStopped.bind(this.ui);
+  this.audioPlayer.onsetTotalTime = this.ui.setTotalTime.bind(this.ui);
+  this.audioPlayer.onsetCurrentTime = this.ui.setCurrentTime.bind(this.ui);
+
+  this.ui.setSong(null);
 }
 
 PlaylistManager.prototype = {
   appendAudioSourcesToCurrent: function(title, sources){
     if (this.currentPlaylistId === null){
       var playlistId = this.createPlaylist(title);
-      if (this.currentPlaylistId === null){
-        this.setCurrentPlaylist(playlistId);
-      }
     }
     var playlist = this.playlists[this.currentPlaylistId];
-    if (playlist.list.length === 0)
-      this.ui.controls.enable();
     if (playlist.temporary){
       playlist.temporary = false;
-      this.ui.playlists.setPlaylists(this.playlists);
-      this.ui.playlists.setCurrentPlaylist(this.currentPlaylistId, 'stop');
+      this.ui.refreshPlaylists(this.playlists);
     }
     for (var i = 0; i < sources.length; i++){
       playlist.appendAudioSource(sources[i]);
     }
-    this.ui.playlist.setPlaylist(playlist, this.currentPlaylistId);
+    this.ui.refreshCurrentPlaylist(playlist, this.currentPlaylistId);
     this.savePlaylists();
+  },
+  appendAudioSourcesToPlaylist: function(playlistId, sources){
+    if (playlistId === '' + this.currentPlaylistId){
+      this.appendAudioSourcesToCurrent(null, sources);
+    }
+    else {
+      var playlist = this.playlists[playlistId];
+      if (playlist.temporary){
+        playlist.temporary = false;
+        this.ui.refreshPlaylists(this.playlists);
+      }
+      for (var i = 0; i < sources.length; i++){
+        playlist.appendAudioSource(sources[i]);
+      }
+      this.savePlaylists();
+    }
   },
   createTemporaryPlaylistFromSources: function(title, sources){
     var playlistId = this.createPlaylist(title, true);
@@ -83,20 +94,15 @@ PlaylistManager.prototype = {
     for (var i = 0; i < sources.length; i++){
       playlist.appendAudioSource(sources[i]);
     }
-    if (sources.length > 0){
-      this.ui.controls.enable();
-    }
-    this.ui.playlist.setPlaylist(playlist, this.currentPlaylistId);
-    this.ui.playlists.setCurrentPlaylist(this.currentPlaylistId, 'stop');
+    this.ui.refreshCurrentPlaylist(playlist, this.currentPlaylistId);
     this.play();
   },
   stop: function(){
-    this.ui.source.setInfo(null);
+    this.ui.setSong(null);
     if (this.currentPlaylistId === null)
       return;
     var playlist = this.playlists[this.currentPlaylistId];
     playlist.stop(this.audioPlayer);
-    this.ui.playlists.setCurrentPlaylist(this.currentPlaylistId, 'stop');
   },
   togglePlaying: function(){
     if (this.currentPlaylistId === null)
@@ -112,17 +118,16 @@ PlaylistManager.prototype = {
       return;
     var playlist = this.playlists[this.currentPlaylistId];
     playlist.play(this.audioPlayer);
-    this.ui.source.setInfo(playlist.getCurrentSource());
-    this.ui.playlist.setPlaylist(playlist, this.currentPlaylistId);
-    this.ui.playlists.setCurrentPlaylist(this.currentPlaylistId, 'play');
+    this.ui.setSong(playlist.getCurrentSource());
+    //this.ui.setPlaylistSongState(playlist.getCurrentSource());
+    this.ui.refreshCurrentPlaylist(playlist, this.currentPlaylistId);
   },
   pause: function(){
     if (this.currentPlaylistId === null)
       return;
     var playlist = this.playlists[this.currentPlaylistId];
     playlist.pause(this.audioPlayer);
-    this.ui.playlist.setPlaylist(playlist, this.currentPlaylistId);
-    this.ui.playlists.setCurrentPlaylist(this.currentPlaylistId, 'pause');
+    this.ui.refreshCurrentPlaylist(playlist, this.currentPlaylistId);
   },
   setTime: function(time){
     this.audioPlayer.setTime(time);
@@ -137,9 +142,9 @@ PlaylistManager.prototype = {
       this.play();
     }
     else {
-      this.ui.controls.setPaused();
+      this.ui.setPaused();
     }
-    this.ui.playlist.setPlaylist(playlist, this.currentPlaylistId);
+    this.ui.refreshCurrentPlaylist(playlist, this.currentPlaylistId);
   },
   playPrev: function(){
     if (this.currentPlaylistId === null)
@@ -150,7 +155,7 @@ PlaylistManager.prototype = {
     if (!playlist.atBegin()){
       this.play();
     }
-    this.ui.playlist.setPlaylist(playlist, this.currentPlaylistId);
+    this.ui.refreshCurrentPlaylist(playlist, this.currentPlaylistId);
   },
   currentEnded: function(){
     this.playNext();
@@ -158,7 +163,7 @@ PlaylistManager.prototype = {
   deleteItemFromPlaylist: function(source, playlistId){
     var playlist = this.playlists[playlistId];
     if (this.currentPlaylistId !== null &&
-        playlist === this.currentPlaylistId &&
+        playlistId === this.currentPlaylistId &&
         source === playlist.getCurrentSource()
     ){
       var wasPlaying = source.state === 'play';
@@ -168,11 +173,8 @@ PlaylistManager.prototype = {
       }
     }
     playlist.deleteSource(source);
-    if (playlist.list.length === 0){
-      this.ui.controls.disable();
-    }
-    this.ui.source.setInfo(playlist.getCurrentSource());
-    this.ui.playlist.setPlaylist(playlist, this.currentPlaylistId);
+    this.ui.setSong(playlist.getCurrentSource());
+    this.ui.refreshCurrentPlaylist(playlist, this.currentPlaylistId);
     this.savePlaylists();
   },
   movePlaylistItemRelative: function(playlist, source, relativeSource, relativeDir){
@@ -184,9 +186,9 @@ PlaylistManager.prototype = {
     }
 
     if (this.playlists[this.currentPlaylistId] === playlist){
-      this.ui.playlist.setPlaylist(playlist, this.currentPlaylistId);
+      this.ui.refreshCurrentPlaylist(playlist, this.currentPlaylistId);
     }
-    this.ui.playlists.setPlaylists(this.playlists);
+    this.ui.refreshPlaylists(this.playlists);
     this.savePlaylists();
 
   },
@@ -202,7 +204,6 @@ PlaylistManager.prototype = {
         currentPlaylist.setCurrentSource(source);
         this.play();
       }
-      this.ui.playlists.playlist.setPlaylist(currentPlaylist, this.currentPlaylistId);
     }
     else {
       this.stop();
@@ -210,21 +211,12 @@ PlaylistManager.prototype = {
       var currentPlaylist = this.playlists[this.currentPlaylistId];
       currentPlaylist.setCurrentSource(source);
       this.play();
-      this.ui.playlists.playlist.setPlaylist(currentPlaylist, this.currentPlaylistId);
     }
   },
-  loadPlaylists: function(){
-    this.playlists = {}; 
-    this.nextPlaylistId = 0;
-    this.numPlaylists = 0;
-    if (window.localStorage.playlists === undefined)
-      return;
-    var serializedPlaylists = JSON.parse(window.localStorage.playlists);
-    for (var id in serializedPlaylists){
-      this.numPlaylists += 1;
-      this.playlists[id] = Playlist.unserialize(serializedPlaylists[id]);
-    }
-    this.nextPlaylistId = parseInt(window.localStorage.nextPlaylistId);
+  copyPlaylist: function(title, srcPlaylistId){
+    var playlistId = this.createPlaylist(title);
+    this.playlists[playlistId].list = Utils.copyArray(this.playlists[srcPlaylistId].list);
+    this.savePlaylists();
   },
   createPlaylist: function(title, temporary){
     if (!temporary)
@@ -234,10 +226,13 @@ PlaylistManager.prototype = {
     this.playlists[playlistId] = playlist;
     this.nextPlaylistId++;
     this.numPlaylists += 1;
-    this.ui.playlists.setPlaylists(this.playlists);
+    this.ui.refreshPlaylists(this.playlists);
     if (!playlist.temporary)
       this.savePlaylists();
     if (this.numPlaylists === 1){
+      this.setCurrentPlaylist(playlistId);
+    }
+    if (this.currentPlaylistId === null){
       this.setCurrentPlaylist(playlistId);
     }
     return playlistId;
@@ -251,7 +246,7 @@ PlaylistManager.prototype = {
     }
     delete this.playlists[playlistId];
     this.numPlaylists -= 1;
-    this.ui.playlists.setPlaylists(this.playlists);
+    this.ui.refreshPlaylists(this.playlists);
     this.savePlaylists();
   },
   renamePlaylist: function(playlistId, title){
@@ -261,37 +256,27 @@ PlaylistManager.prototype = {
       playlist.temporary = false;
     }
 
-    this.ui.playlists.setPlaylists(this.playlists);
+    this.ui.refreshPlaylists(this.playlists);
+    if ('' + playlistId === '' + this.currentPlaylistId)
+      this.ui.refreshCurrentPlaylist(playlist, playlistId);
+    this.savePlaylists();
+  },
+  shufflePlaylist: function(playlistId){
+    var playlist = this.playlists[playlistId];
+    Utils.shuffleArray(playlist.list);
+    this.ui.refreshPlaylists(this.playlists);
+    if ('' + playlistId === '' + this.currentPlaylistId){
+      this.ui.refreshCurrentPlaylist(playlist, playlistId);
+    }
     this.savePlaylists();
   },
   setCurrentPlaylist: function(playlistId){
     this.stop();
     this.currentPlaylistId = playlistId;
     var currentPlaylist = this.playlists[this.currentPlaylistId];
-    this.ui.playlist.setPlaylist(currentPlaylist, this.currentPlaylistId);
-    this.ui.playlists.setCurrentPlaylist(playlistId);
-    if (playlistId === null || currentPlaylist.list.length === 0){
-      this.ui.controls.disable();
-    }
-    else {
-      this.ui.controls.enable();
-    }
-    if (playlistId === null){
-      this.ui.setTitle('');
-    }
-    else {
-      this.ui.setTitle(currentPlaylist.title);
-    }
+    this.ui.switchCurrentPlaylist(currentPlaylist, this.currentPlaylistId);
   },
   savePlaylists: function(){
-    var serializedPlaylists = {};
-    for (var id in this.playlists){
-      var playlist = this.playlists[id];
-      if (playlist.temporary)
-        continue;
-      serializedPlaylists[id] = playlist.serialize();
-    }
-    window.localStorage.playlists = JSON.stringify(serializedPlaylists);
-    window.localStorage.nextPlaylistId = this.nextPlaylistId;
+    this.storage.save(this.playlists, this.nextPlaylistId);
   }
 }

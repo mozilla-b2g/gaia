@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <title>Merge duplicates</title>
+
+    <link rel="resource" type="application/l10n" href="locales/matcher/locales.ini">
+    <script type="text/javascript" src="/shared/js/l10n.js"></script>
+
+    <script type="text/javascript" src="/shared/js/lazy_loader.js"></script>
+    <script type="text/javascript" src="/facebook/js/curtain.js"></script>
+    <script type="text/javascript" src="/contacts/js/contacts_matching_controller.js"></script>
+
+    <!-- Building Blocks -->
+    <link href="/shared/style/headers.css" rel="stylesheet">
+    <link href="/shared/style/switches.css" rel="stylesheet">
+    <link href="/shared/style_unstable/lists.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="style/root.css">
+    <link rel="stylesheet" href="style/matching_contacts.css">
+  </head>
+
+  <body role="application">
+    <section role="region">
+
+      <header>
+        <a href="#" id="merge-close">
+          <span class="icon icon-close" data-l10n-id="close">close</span>
+        </a>
+        <menu type="toolbar">
+          <button id="merge-action" data-l10n-id="merge" disabled>
+            Merge
+          </button>
+        </menu>
+        <h1 data-l10n-id="mergeDuplicateTitle">Merge duplicates</h1>
+      </header>
+
+      <section id="main">
+        <section id="duplicate-msg">
+          <p></p>
+        </section>
+        <!-- Contacts List Section -->
+        <section id="contacts-list-container" data-type="list">
+          <ol>
+            <li data-template data-uuid="#id#" class="block-item">
+              <label class="pack-checkbox">
+                <input type="checkbox" checked></input>
+                <span></span>
+              </label>
+              <aside class="pack-end">
+                <img data-src="#photo1#"></img>
+              </aside>
+              <p><strong>#givenName#</strong> #familyName#</p>
+              <p>#email1#</p>
+            </li>
+          </ol>
+        </section> <!-- contacts-list-container -->
+      </section> <!-- main -->
+
+    </section> <!-- role="region" -->
+  </body>
+</html>

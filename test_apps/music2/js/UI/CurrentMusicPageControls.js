@@ -8,8 +8,8 @@ var CurrentMusicPageControls = function(){
   ]);
   this.seekBar = new SeekBar();
 
-  Utils.setupPassEvent(this, 'playPrev');
-  Utils.setupPassEvent(this, 'playNext');
+  Utils.setupPassParent(this, 'playPrev');
+  Utils.setupPassParent(this, 'playNext');
 
   Utils.onButtonTap(this.dom.playPrev, this.playPrev);
   Utils.onButtonTap(this.dom.playNext, this.playNext);

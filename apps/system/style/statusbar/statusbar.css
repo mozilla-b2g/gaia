@@ -231,7 +231,7 @@ body, html {
 .sb-icon-signal[data-level="-1"][data-searching="true"] {
   background: url('images/signal-searching.png') no-repeat;
   background-position: 0 0;
-  background-size: 1.6rem 1.6rem;
+  background-size: 1.6rem;
 }
 
 .sb-icon-signal[data-level="-1"] {

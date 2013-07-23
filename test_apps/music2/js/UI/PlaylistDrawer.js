@@ -5,9 +5,10 @@ var PlaylistDrawer = function(){
       "playlistDrawerTitleContent",
       "playlistDrawerTitleBack",
       "playlistDrawerTitleDel",
-      "playlistDrawerTitleRename",
+      "playlistDrawerTitleEdit",
       "playlistDrawerPlaylists",
       "playlistDrawerPlaylistItems",
+      "playlistDrawerNewPlaylist"
   ]);
 
   this.dom.title = this.dom.playlistDrawerTitle
@@ -15,91 +16,57 @@ var PlaylistDrawer = function(){
 
   var hideAlbumArt = true;
   this.playlist = new PlaylistView(this.dom.playlistDrawerPlaylistItems, hideAlbumArt);
-  this.playlistList = new UIItemList(this.dom.playlistDrawerPlaylists);
-
-  this.lastCurrentPlaylist = null;
-  this.lastCurrentPlaylistId = null;
+  var allowDrag = true;
+  this.playlists = new PlaylistsView(this.dom.playlistDrawerPlaylists, allowDrag);
 
   this.selectedPlaylistId = null;
 
-  Utils.setupPassEvent(this, 'createPlaylist');
-  Utils.setupPassEvent(this, 'deletePlaylist');
-  Utils.setupPassEvent(this, 'renamePlaylist');
-  Utils.setupPassEvent(this, 'switchPlaylist');
+  Utils.setupPassParent(this, 'createPlaylist');
+  Utils.setupPassParent(this, 'copyPlaylist');
+  Utils.setupPassParent(this, 'deletePlaylist');
+  Utils.setupPassParent(this, 'renamePlaylist');
+  Utils.setupPassParent(this, 'shufflePlaylist');
+  Utils.setupPassParent(this, 'switchPlaylist');
 
   Utils.onButtonTap(this.dom.playlistDrawerTitleBack, this.switchToPlaylistView.bind(this));
   Utils.onButtonTap(this.dom.playlistDrawerTitleDel, this.deleteCurrentPlaylist.bind(this));
 
-  Utils.onButtonTap(this.dom.playlistDrawerTitleRename, this.renameCurrentPlaylist.bind(this));
+  Utils.onButtonTap(this.dom.playlistDrawerTitleEdit, this.editCurrentPlaylist.bind(this));
+
+  Utils.onButtonTap(this.dom.playlistDrawerNewPlaylist, this.newPlaylist.bind(this));
+
+  this.playlists.ontapPlaylist = this.switchPlaylist.bind(this);
+  this.playlists.ongotoPlaylist = this.switchToPlaylistItemView.bind(this);
+
+  this.currentPlaylists = {};
 
 }
 
 PlaylistDrawer.prototype = {
+  name: 'playlistDrawer',
   setPlaylists: function(playlists){
-    this.playlistListItems = {};
-    this.playlistList.empty();
+    this.currentPlaylists = playlists;
+    this.playlists.setPlaylists(playlists);
+
     for (var playlistId in playlists){
-      var playlist = playlists[playlistId];
       if (playlistId === this.selectedPlaylistId){
+        var playlist = playlists[playlistId];
         this.playlist.setPlaylist(playlist, playlistId);
         this.dom.titleContent.innerHTML = playlist.title;
       }
-      var item = this.uiItemFromPlaylist(playlist, playlistId);
-      this.playlistListItems[playlistId] = item;
-      this.playlistList.append(item);
     }
-    if (Utils.size(playlists) === 0){
-      var text = Utils.classDiv('text');
-      text.innerHTML = 'no playlists';
-      this.dom.playlistDrawerPlaylists.appendChild(text);
-    }
-    var newPlaylistItem = this.uiItemNewPlaylist();
-    this.playlistList.append(newPlaylistItem);
-    newPlaylistItem.dom.div.classList.add('newPlaylist');
-    this.setCurrentPlaylist(this.lastCurrentPlaylistId);
+  },
+  switchPlaylist: function(currentPlaylistId){
+    this.setCurrentPlaylist(currentPlaylistId);
   },
   setCurrentPlaylist: function(currentPlaylistId){
-    var item = this.playlistListItems[currentPlaylistId];
-    if (this.lastCurrentPlaylist !== null){
-      this.lastCurrentPlaylist.setIcon(null);
-    }
-    if (item === undefined){
-      this.lastCurrentPlaylist = null;
-      return;
-    }
-    item.setIcon('currentPlaylist');
-    this.lastCurrentPlaylist = item;
-    this.lastCurrentPlaylistId = currentPlaylistId;
-  },
-  uiItemFromPlaylist: function(playlist, id){
-
-    var content = document.createElement('div');
-    content.classList.add('playlistTitle');
-    content.innerHTML = playlist.title;
-    Utils.onButtonTap(content, function(){
-      this.switchPlaylist(id);
-    }.bind(this));
-
-
-    var gotoPlaylistButton = document.createElement('div');
-    gotoPlaylistButton.classList.add('gotoPlaylistButton');
-
-    if (playlist.temporary){
-      gotoPlaylistButton.classList.add('temporary');
-      content.classList.add('temporary');
-    }
-
-    Utils.onButtonTap(gotoPlaylistButton, function(){
-      this.switchToPlaylistItemView(playlist, id);
-    }.bind(this));
-
-    var item = new UIItem(null, content, null, gotoPlaylistButton);
-
-    return item;
+    this.playlists.setCurrentPlaylist(currentPlaylistId);
+    this.playlist.setPlaylist(this.currentPlaylists[currentPlaylistId], currentPlaylistId);
   },
   switchToPlaylistItemView: function(playlist, playlistId){
     this.playlist.show();
-    this.playlistList.hide();
+    this.playlists.hide();
+    this.dom.playlistDrawerNewPlaylist.classList.add('hidden');
 
     this.dom.titleContent.innerHTML = playlist.title;
     this.dom.title.classList.remove('hidden');
@@ -110,7 +77,8 @@ PlaylistDrawer.prototype = {
 
   },
   switchToPlaylistView: function(){
-    this.playlistList.show();
+    this.playlists.show();
+    this.dom.playlistDrawerNewPlaylist.classList.remove('hidden');
     this.playlist.hide();
 
     this.dom.title.classList.add('hidden');
@@ -122,23 +90,54 @@ PlaylistDrawer.prototype = {
     this.switchToPlaylistView();
     this.deletePlaylist(playlist);
   },
+  editCurrentPlaylist: function(){
+    var options = {
+      'rename playlist': 'renameCurrentPlaylist',
+      'shuffle playlist': 'shuffleCurrentPlaylist',
+      'cancel': { 'value': '__cancel', 'default': true }
+    };
+
+    Utils.select(options, function(choice){
+      if (choice !== '__cancel')
+        this[choice]();
+    }.bind(this));
+  },
   renameCurrentPlaylist: function(){
-      var title = prompt("Playlist Name:");
+    var title = prompt("Playlist Name:");
+    if (title !== null && title !== '')
       this.renamePlaylist(this.selectedPlaylistId, title);
   },
-  uiItemNewPlaylist: function(){
-    var content = document.createElement('div');
-    content.classList.add('playlistTitle');
-    content.innerHTML = 'create playlist';
+  shuffleCurrentPlaylist: function(){
+    this.shufflePlaylist(this.selectedPlaylistId);
+  },
+  newPlaylist: function(){
 
-    Utils.onButtonTap(content, function(){
-      var title = prompt("Playlist Name:");
-      if (title === null || title === '')
-        return;
-      this.createPlaylist(title);
+    var options ={
+      'create empty playlist': '__empty'
+    };
+
+    for (var playlistId in this.currentPlaylists){
+      var playlist = this.currentPlaylists[playlistId];
+      options['copy ' + playlist.title] = playlistId;
+    }
+
+    options['cancel'] = { 'value': '__cancel', 'default': true };
+
+    Utils.select(options, function(choice){
+      var title;
+      if (choice === '__cancel'){
+
+      }
+      else if (choice === '__empty'){
+        title = prompt("Playlist Name:");
+        if (title !== null && title !== '')
+          this.createPlaylist(title);
+      }
+      else {
+        title = prompt("Playlist Name:", 'copy of ' + this.currentPlaylists[choice].title);
+        if (title !== null && title !== '')
+          this.copyPlaylist(title, choice);
+      }
     }.bind(this));
-    
-    var item = new UIItem('noicon', content, null, null);
-    return item;
   }
 }

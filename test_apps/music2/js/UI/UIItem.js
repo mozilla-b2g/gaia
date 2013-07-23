@@ -55,16 +55,16 @@ UIItem.prototype = {
       }.bind(this));
     }
 
-    var primaryButton = document.createElement('div');
-    primaryButton.classList.add('primaryButton');
-    if (this.primaryButton)
-      primaryButton.appendChild(this.primaryButton);
-    if (this.more === null){
-      primaryButton.classList.add('full');
+    if (this.primaryButton){
+        var primaryButton = document.createElement('div');
+        primaryButton.classList.add('primaryButton');
+        primaryButton.appendChild(this.primaryButton);
+        if (this.more === null){
+          primaryButton.classList.add('full');
+        }
+        div.appendChild(primaryButton);
     }
-    div.appendChild(primaryButton);
-
-    if (this.primaryButton === null){
+    else {
       content.classList.add('noButtons');
     }
 

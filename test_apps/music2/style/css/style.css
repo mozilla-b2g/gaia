@@ -1,7 +1,16 @@
+
+html {
+    height: 100%;
+}
+
 body {
   overflow-x: hidden;
   font-family: Lato,Helvetica,Arial,sans-serif;
   color: #cce;
+
+  height: 100%;
+  margin: 0;
+  background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
 }
 
 * {
@@ -16,7 +25,6 @@ body {
     opacity: 0;
 }
 
-/* TODO transform property */
 .fastTransition {
   -moz-transition: all .2s ease-in-out 0s;
 }
@@ -26,6 +34,11 @@ body {
 }
 
 .buttonDown {
-  background: #008aaa;
+  background-color: #008aaa !important;
+  -moz-transition-duration: 0s;
+}
+
+.buttonLong {
+  background-color: #22accc !important;
   -moz-transition-duration: 0s;
 }

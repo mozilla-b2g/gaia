@@ -22,7 +22,9 @@ var MediaLibraryPage = function(pageBridge){
 
   this.musicDB.onisReady = function(){
     this.startPanel = new MediaLibraryPagePanel();
-    this.panelManager.pushPanel(this.startPanel);
+    this.panelManager.panels.push(this.startPanel); 
+    var discoverPanel = this.startPanel.getSubcategoryPanel('Discover');
+    this.panelManager.pushPanel(discoverPanel);
     this.notifications.alert('scanning sd card', 2000);
   }.bind(this);
 
@@ -70,12 +72,4 @@ MediaLibraryPage.prototype = {
   unserialize: function(serializedSource){
     return new FileAudioSource(this.musicDB, serializedSource);
   },
-  activate: function(){
-    this.dom.selectSourcePages.removeChild(this.dom.page);
-    this.pageBridge.setPageDiv(this.dom.page);
-  },
-  deactivate: function(){
-    this.dom.page.parentNode.removeChild(this.dom.page);
-    this.dom.selectSourcePages.appendChild(this.dom.page);
-  }
 }

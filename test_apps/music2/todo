@@ -1,5 +1,6 @@
 
-*priority
+* priority
+? low priority / questionable
 
 =====================
 core
@@ -10,78 +11,41 @@ core
 
 *    more performant playlist manipulation
     show tracknumber if doesn't match playlist number
-    show info about buffering
-    autoresume after wait and canplay
-    possibly inconsistant album art
-    showing sources as unavailable
+?    possibly inconsistant album art
+?    show source as unavailable
 
   ===================== enhancements =====================
 
 *    add animation for switch playlist/source
-    save inactive pages to canvas, use canvas for transitions
-    edit playlist view w/out switching
-**    create playlist from template
-
-    apply your * -> html script for faster loading
-
-    replace trash can with item signifying remove, not delete
-    change playlist list playlist order
+?    edit playlist view w/out switching
+?    replace trash can with item signifying remove, not delete
+    option to change playlist list order
+    don't just hide content in transitions
 
   ===================== maintainability =====================
 
-    refactor playlistManager into manager/saving
+  remove router
 
 =====================
 music library
 =====================
   ==================== features =====================
 
-    favoriting
-    search
-    proper sorting
-
-  ===================== bugs =====================
-
-*    better queries for performance
-    show source as unavailable
-
-  ===================== enhancements =====================
-
-    panel loading indicator
-    way to hide musicdb notifications
-    panel switch transitions
-
-    A-Z view for songs (with skip to letter)
-
-  ===================== maintainability =====================
-
-=====================
-internet radio
-=====================
-  ==================== features =====================
-    
-    custom urls
-    search besides icecast
-**    categories
+?    favoriting
+        drag to side of screen?
+*    search
 
   ===================== bugs =====================
 
   ===================== enhancements =====================
 
-  ===================== maintainability =====================
+*    panel loading indicator
+?    way to hide musicdb notifications
+    panel switch transitions (fade)
 
-=====================
-FM Radio
-=====================
-  ==================== features =====================
-    
-    implement
-    
-  ===================== bugs =====================
-    
-    notify on silent fails (ex. unknown audio format such as .aac)
-
-  ===================== enhancements =====================
+    A-Z view (with skip to letter)
+    better queries for performance
 
   ===================== maintainability =====================
+
 

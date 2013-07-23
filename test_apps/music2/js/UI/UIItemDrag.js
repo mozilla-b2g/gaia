@@ -11,7 +11,7 @@ var UIItemDrag = function(div, list){
     currentDropDir: 'above'
   };
 
-  Utils.setupPassEvent(this, 'moved');
+  Utils.setupPassParent(this, 'moved');
 
   this.tapManager.onlong = this.start.bind(this);
 

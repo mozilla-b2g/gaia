@@ -282,7 +282,7 @@ VCFReader.parseLine_ = function(line) {
     key: key.toLowerCase(),
     data: {
       meta: meta,
-      value: parsed[2].split(';')
+      value: parsed[2].split(';').map(function(v) { return v.trim(); })
     }
   };
 };
@@ -298,12 +298,15 @@ VCFReader.splitLines = function(vcf) {
       continue;
     }
 
+    // If we are inside a label or the char is not a newline, add char
     if (inLabel || !(/(\n|\r)/.test(vcf[i]))) {
       currentStr += vcf[i];
       continue;
     }
 
     var sub = vcf.substring(i + 1, vcf.length - 1);
+    // If metadata contains a label attribute and there are no newlines until
+    // the ':' separator, add char
     if (currentStr.toLowerCase().indexOf('label;') !== -1 &&
       sub.search(/^[^\n\r]+:/) === -1) {
       currentStr += vcf[i];
@@ -313,7 +316,6 @@ VCFReader.splitLines = function(vcf) {
     if (sub.search(/^[^\S\n\r]+/) !== -1) {
       continue;
     }
-
     lines.push([currentStr]);
     currentStr = '';
   }

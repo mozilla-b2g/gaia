@@ -385,12 +385,21 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
 function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
   var eventType, node;
   // Variables that only valid for HTML type mail.
-  var root, title, header, titleHeight, headerHeight, iframeDoc;
+  var root, title, header, attachmentsContainer, msgBodyContainer,
+      titleHeight, headerHeight, attachmentsHeight,
+      msgBodyMarginTop, msgBodyMarginLeft, attachmentsMarginTop,
+      iframeDoc, inputStyle;
   // Tap gesture event for HTML type mail and click event for plain text mail
   if (iframe) {
     root = document.getElementsByClassName('scrollregion-horizontal-too')[0];
     title = document.getElementsByClassName('msg-reader-header')[0];
     header = document.getElementsByClassName('msg-envelope-bar')[0];
+    attachmentsContainer =
+      document.getElementsByClassName('msg-attachments-container')[0];
+    msgBodyContainer = document.getElementsByClassName('msg-body-container')[0];
+    inputStyle = window.getComputedStyle(msgBodyContainer);
+    msgBodyMarginTop = parseInt(inputStyle.marginTop);
+    msgBodyMarginLeft = parseInt(inputStyle.marginLeft);
     titleHeight = title.clientHeight;
     headerHeight = header.clientHeight;
     eventType = 'tap';
@@ -402,11 +411,19 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
     eventType,
     function clicked(event) {
       if (iframe) {
+        // Because the attachments are updating late,
+        // get the client height while clicking iframe.
+        attachmentsHeight = attachmentsContainer.clientHeight;
+        inputStyle = window.getComputedStyle(attachmentsContainer);
+        attachmentsMarginTop =
+          (attachmentsHeight) ? parseInt(inputStyle.marginTop) : 0;
         var dx, dy;
         var transform = iframe.style.transform || 'scale(1)';
         var scale = transform.match(/(\d|\.)+/g)[0];
-        dx = event.detail.clientX + root.scrollLeft;
-        dy = event.detail.clientY + root.scrollTop - titleHeight - headerHeight;
+        dx = event.detail.clientX + root.scrollLeft - msgBodyMarginLeft;
+        dy = event.detail.clientY + root.scrollTop -
+             titleHeight - headerHeight -
+             attachmentsHeight - attachmentsMarginTop - msgBodyMarginTop;
         node = iframeDoc.elementFromPoint(dx / scale, dy / scale);
       } else {
         node = event.originalTarget;
