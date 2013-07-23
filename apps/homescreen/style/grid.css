@@ -43,12 +43,17 @@ body[data-transitioning] .apps > div {
 	margin-top: .3rem;
 }
 
-.apps ol > li {
+.apps ol > li,
+.icon-list .icon {
   position: relative;
   width: 25%;
   display: inline-block;
   float: left;
   text-align: center;
+}
+
+.icon-list .icon * {
+  pointer-events: none;
 }
 
 /* Maximum 16 icons for page */

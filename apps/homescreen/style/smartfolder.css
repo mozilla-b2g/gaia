@@ -1,0 +1,30 @@
+#smartfolder {
+	position: absolute;
+	top: 0;
+	transform: translate(0, 100%);
+	transition: transform 0.25s;
+	margin-top: 10rem;
+	background: #000;
+	border-top: 0.1rem solid #fff;
+	height: calc(100% - 10rem);
+	width: 100%;
+	z-index: 10000;
+	color: #fff;
+}
+
+#smartfolder.open {
+	transform: translate(0, 0);
+}
+
+#smartfolder h2 {
+	padding: 0px 2rem 1rem;
+	border-bottom: 0.1rem solid #ccc;
+	margin-bottom: 1.5rem;
+}
+
+#smartfolder .icon-list {
+	width: 100%;
+	height: calc(100% - 5.5rem);
+	padding: 0;
+	overflow-y: auto;
+}

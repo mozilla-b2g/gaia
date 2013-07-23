@@ -907,6 +907,21 @@ var GridManager = (function() {
         processApp(app);
       });
 
+      // Hack to add in smart folders
+      pages[1].appendIcon(new SmartFolderIcon({
+        icon: '///' + window.location.host + '/style/icons/smartfolder.png',
+        type: 'smartfolder',
+        title: 'Games',
+        query: 'game'
+      }));
+
+      pages[1].appendIcon(new SmartFolderIcon({
+        icon: '///' + window.location.host + '/style/icons/smartfolder.png',
+        type: 'smartfolder',
+        title: 'Productivity',
+        query: 'productivity'
+      }));
+
       for (var origin in bookmarksByOrigin) {
         appsByOrigin[origin] = bookmarksByOrigin[origin];
       }
