@@ -94,7 +94,9 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 
 [data-type="list"] header {
   margin: 0 1.5rem;
-  padding: 0.5rem 1.5rem;
+  padding: 1rem 1.5rem;
+  -moz-box-sizing: border-box;
+  height: 3.2rem;
 }
 
 [data-type="list"] header:first-child {
@@ -666,15 +668,16 @@ form.bottom[role="search"].messages-compose-form {
   Fixed headers
 */
 .fixed-title {
+  height: 3.2rem;
   position: absolute;
   top: 5rem;
-  width: calc(100% - 6rem);
-  padding: 1.5rem 1.5rem 0.5rem;
+  width: calc(100% - 3rem);
+  -moz-box-sizing: border-box;
+  padding: 1rem 1.5rem;
   margin: 0 1.5rem;
   border-bottom: solid 0.1rem #ff4e00;
   background-repeat: no-repeat;
   background-color: #FFFFFF;
-  transform: translateY(-3rem);
   pointer-events: none;
   text-align: left;
   text-transform: uppercase;

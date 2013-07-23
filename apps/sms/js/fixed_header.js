@@ -4,6 +4,7 @@ var FixedHeader = (function FixedHeader() {
   var selector;
   var view;
   var fixedContainer;
+  var fixedContainerHeight;
   var currentlyFixed;
   var notApplyEffect;
   var refreshTimeout;
@@ -19,6 +20,8 @@ var FixedHeader = (function FixedHeader() {
     selector = select;
     view = document.querySelector(scrollView);
     fixedContainer = document.querySelector(container);
+    fixedContainerHeight = fixedContainer.offsetHeight;
+
     refresh();
     view.addEventListener('scroll', refresh);
     notApplyEffect = typeof noEffect === 'undefined' ? false : noEffect;
@@ -49,17 +52,15 @@ var FixedHeader = (function FixedHeader() {
       var currentHeader = headings[i];
       var headingPosition = currentHeader.offsetTop - view.offsetTop;
       var offset = headingPosition - currentScroll;
-      var currentHeight = currentHeader.offsetHeight;
       var differentHeaders = currentlyFixed != currentHeader;
-
       // Effect
-      if (!notApplyEffect && Math.abs(offset) < currentHeight &&
+      if (!notApplyEffect && Math.abs(offset) < fixedContainerHeight &&
           differentHeaders) {
-        var toMove = Math.abs(offset) - currentHeight;
-        var inEffect = toMove <= 0;
-        var translateTop = 'translateY(' + toMove + 'px)';
-        var transform = inEffect ? translateTop : null;
-        fixedContainer.style.transform = transform;
+        var toMove = Math.abs(offset) - fixedContainerHeight;
+        if (toMove > 0) {
+          toMove = 0;
+        }
+        fixedContainer.style.transform = 'translateY(' + toMove + 'px)';
       }
 
       // Found a header
