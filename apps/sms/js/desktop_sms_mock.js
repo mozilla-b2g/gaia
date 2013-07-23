@@ -409,6 +409,18 @@
         subject: 'Error download',
         timestamp: new Date(Date.now() - 150000),
         expiryDate: new Date(Date.now() - ONE_DAY_TIME)
+      },
+      {
+        threadId: 8,
+        sender: '123456',
+        type: 'mms',
+        delivery: 'received',
+        deliveryStatus: ['success'],
+        subject: 'No attachment error',
+        smil: '<smil><body><par><text src="text1"/></par></body></smil>',
+        attachments: null,
+        timestamp: new Date(Date.now() - 150000),
+        expiryDate: new Date(Date.now() + ONE_DAY_TIME)
       }
     ],
     threads: [
