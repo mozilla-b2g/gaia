@@ -20,7 +20,7 @@ var Swiper = {
   init: function ls_init() {
     this.getAllElements();
 
-    this.area.addEventListener('mousedown', this);
+    this.area.addEventListener('touchstart', this);
     this.areaHangup.addEventListener('click', this);
     this.areaPickup.addEventListener('click', this);
     this.overlay.addEventListener('transitionend', this);
@@ -30,12 +30,8 @@ var Swiper = {
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
-      case 'mousedown':
-        var leftTarget = this.areaHangup;
-        var rightTarget = this.areaPickup;
-        var handle = this.areaHandle;
+      case 'touchstart':
         var overlay = this.overlay;
-        var target = evt.target;
 
         if (overlay.classList.contains('triggered')) {
           clearTimeout(this.triggeredTimeoutId);
@@ -47,25 +43,24 @@ var Swiper = {
         this.setElasticEnabled(false);
 
         this._touch = {};
-        window.addEventListener('mouseup', this);
-        window.addEventListener('mousemove', this);
+        window.addEventListener('touchend', this);
+        window.addEventListener('touchmove', this);
 
         this._touch.touched = true;
-        this._touch.initX = evt.pageX;
-        this._touch.initY = evt.pageY;
+        this._touch.initX = evt.touches[0].pageX;
+        this._touch.initY = evt.touches[0].pageY;
+
+        this.handleMove(this._touch.initX, this._touch.initY);
         overlay.classList.add('touched');
         break;
 
-      case 'mousemove':
-        this.handleMove(evt.pageX, evt.pageY);
+      case 'touchmove':
+        this.handleMove(evt.touches[0].pageX, evt.touches[0].pageY);
         break;
 
-      case 'mouseup':
-        var handle = this.areaHandle;
-        window.removeEventListener('mousemove', this);
-        window.removeEventListener('mouseup', this);
-
-        this.handleMove(evt.pageX, evt.pageY);
+      case 'touchend':
+        window.removeEventListener('touchmove', this);
+        window.removeEventListener('touchend', this);
         this.handleGesture();
         delete this._touch;
         this.overlay.classList.remove('touched');
@@ -154,7 +149,6 @@ var Swiper = {
     this.iconPickup = document.querySelector('#swiper-area-pickup > div');
     this.iconHangup = document.querySelector('#swiper-area-hangup > div');
   },
-
   setElasticEnabled: function ls_setElasticEnabled(value) {
     if (value)
       this.overlay.classList.add('elastic');
