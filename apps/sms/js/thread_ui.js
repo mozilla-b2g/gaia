@@ -1521,6 +1521,16 @@ var ThreadUI = global.ThreadUI = {
         messageBody = 'sendAirplaneModeBody';
         buttonLabel = 'sendAirplaneModeBtnOk';
         break;
+      case 'NoSignalError':
+      case 'NotFoundError':
+      case 'UnknownError':
+      case 'InternalError':
+      case 'InvalidAddressError':
+      default:
+        messageTitle = 'sendGeneralErrorTitle';
+        messageBody = 'sendGeneralErrorBody';
+        buttonLabel = 'sendGeneralErrorBtnOk';
+        break;
     }
 
     var dialog = new Dialog({
