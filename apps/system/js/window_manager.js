@@ -1078,7 +1078,7 @@ var WindowManager = (function() {
     // Case 2: null --> app
     else if (FtuLauncher.isFtuRunning() && newApp !== homescreen) {
       openWindow(newApp, function windowOpened() {
-        InitLogoHandler.animate();
+        InitLogoHandler.animate(callback);
       });
     }
     // Case 3: null->homescreen || homescreen->app
