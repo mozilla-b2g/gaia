@@ -23,18 +23,18 @@ function formatData(dataArray) {
 function roundData(value, positions) {
   positions = (typeof positions === 'undefined') ? 2 : positions;
   if (value < 1000) {
-    return [value.toFixed(positions), 'B'];
+    return [value.toFixed(positions), _('B')];
   }
 
   if (value < 1000000) {
-    return [(value / 1000).toFixed(positions), 'KB'];
+    return [(value / 1000).toFixed(positions), _('KB')];
   }
 
   if (value < 1000000000) {
-    return [(value / 1000000).toFixed(positions), 'MB'];
+    return [(value / 1000000).toFixed(positions), _('MB')];
   }
 
-  return [(value / 1000000000).toFixed(positions), 'GB'];
+  return [(value / 1000000000).toFixed(positions), _('GB')];
 }
 
 function getPositions(value) {
@@ -53,21 +53,21 @@ function getPositions(value) {
 function smartRound(value) {
   var positions;
   if (value < 1000) {
-    return [value.toFixed(getPositions(value)), 'B'];
+    return [value.toFixed(getPositions(value)), _('B')];
   }
 
   if (value < 1000000) {
     var kbytes = value / 1000;
-    return [kbytes.toFixed(getPositions(kbytes)), 'KB'];
+    return [kbytes.toFixed(getPositions(kbytes)), _('KB')];
   }
 
   if (value < 1000000000) {
     var mbytes = value / 1000000;
-    return [mbytes.toFixed(getPositions(mbytes)), 'MB'];
+    return [mbytes.toFixed(getPositions(mbytes)), _('MB')];
   }
 
   var gbytes = value / 1000000000;
-  return [gbytes.toFixed(getPositions(gbytes)), 'GB'];
+  return [gbytes.toFixed(getPositions(gbytes)), _('GB')];
 }
 
 // Return a padded data value in MG/GB
