@@ -1500,7 +1500,7 @@ var ThreadUI = global.ThreadUI = {
       case 'NotFoundError':
       case 'UnknownError':
       case 'InternalError':
-      case 'InvalidAddressError'
+      case 'InvalidAddressError':
       default:
         messageTitle = 'sendGeneralErrorTitle';
         messageBody = 'sendGeneralErrorBody';
