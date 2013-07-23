@@ -37,7 +37,7 @@
         function closeSmartFolder(e) {
           window.removeEventListener('tap', closeSmartFolder);
           folderIcons.removeEventListener('tap', checkFolderIcons);
-          smartFolder.classList.remove('open');
+          folder.classList.remove('open');
         }
         function checkFolderIcons(e) {
           e.stopPropagation();
@@ -45,7 +45,6 @@
         window.addEventListener('tap', closeSmartFolder);
         folderIcons.addEventListener('tap', checkFolderIcons);
       }, 0);
-
     },
 
     renderSuggestions: function(results) {
