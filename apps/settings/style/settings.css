@@ -409,6 +409,7 @@ ul li > label .range-icons {
   margin: 0 auto;
   width: calc(100% - 5.4rem);
   height: 3rem;
+  pointer-events: none;
 }
 
 ul li > label .range-icons.brightness {
