@@ -7,7 +7,7 @@
     this.imageSrc = result.icon;
 
     this.descriptor = {
-        name: result.title,
+        name: result.title.substring(0, 12),
         query: result.query,
         renderedIcon: true
     };
