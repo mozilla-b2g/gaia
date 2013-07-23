@@ -1143,6 +1143,12 @@ contacts.List = (function() {
     'getHighlightedName': getHighlightedName,
     get chunkSize() {
       return CHUNK_SIZE;
+    },
+    /*
+     * Returns the number of contacts loaded in the list
+     */
+    get total() {
+      return groupsList.querySelectorAll('li[data-uuid]').length;
     }
   };
 })();

@@ -14,7 +14,7 @@ conflicts = {
     'CD': 'Africa/Kinshasa',
     'ML': 'Africa/Bamako',
     'AR': 'America/Argentina/Buenos_Aires', # This is weird in tz.json I guess
-    'BR': 'America/Sau_Paulo',
+    'BR': 'America/Sao_Paulo',
     'CA': 'America/Toronto',
     'CL': 'America/Santiago',
     'GL': 'America/Godthab',

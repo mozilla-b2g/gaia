@@ -38,6 +38,12 @@ if (typeof Contacts.extServices === 'undefined') {
       loadService('live');
     };
 
+    extServices.match = function(contactId) {
+      closeRequested = canClose = false;
+      extensionFrame.src = currentURI = 'matching_contacts.html?contactId=' +
+                                         contactId;
+    };
+
     function loadService(serviceName) {
       closeRequested = false;
       canClose = false;

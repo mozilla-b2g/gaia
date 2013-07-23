@@ -24,23 +24,23 @@ function Clock() {
    *        tick, should accept a date object as its only argument.
    */
   this.start = function cl_start(refresh) {
-      var date = new Date();
-      var self = this;
+    var date = new Date();
+    var self = this;
 
-      refresh(date);
+    refresh(date);
 
-      if (this.timeoutID == null) {
-        this.timeoutID = window.setTimeout(function cl_setClockInterval() {
-          refresh(new Date());
+    if (this.timeoutID == null) {
+      this.timeoutID = window.setTimeout(function cl_setClockInterval() {
+        refresh(new Date());
 
-          if (self.timerID == null) {
-            self.timerID = window.setInterval(function cl_clockInterval() {
-              refresh(new Date());
-            }, 60000);
-          }
-        }, (60 - date.getSeconds()) * 1000);
-      }
-    };
+        if (self.timerID == null) {
+          self.timerID = window.setInterval(function cl_clockInterval() {
+            refresh(new Date());
+          }, 60000);
+        }
+      }, (60 - date.getSeconds()) * 1000);
+    }
+  };
 
   /**
    * Stops the timer used to refresh the clock
@@ -134,7 +134,7 @@ var StatusBar = {
     this.listeningCallschanged = false;
 
     // Refresh the time to reflect locale changes
-    this.update.time.call(this, new Date());
+    this.toggleTimeLabel(true);
 
     var settings = {
       'ril.radio.disabled': ['signal', 'data'],
@@ -201,27 +201,19 @@ var StatusBar = {
       case 'attentionscreenhide':
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
-        this.icons.time.hidden = true;
-        this.clock.stop();
+        this.toggleTimeLabel(false);
         break;
       case 'attentionscreenshow':
       case 'unlock':
         // Display the clock in the statusbar when screen is unlocked
-        this.icons.time.hidden = false;
-        this.clock.start(this.update.time.bind(this));
+        this.toggleTimeLabel(true);
         break;
 
       case 'lockpanelchange':
         if (this.screen.classList.contains('locked')) {
           // Display the clock in the statusbar if on Emergency Call screen
           var isHidden = (evt.detail.panel == 'emergency-call') ? false : true;
-          this.icons.time.hidden = isHidden;
-
-          if (isHidden) {
-            this.clock.stop();
-          } else {
-            this.clock.start(this.update.time.bind(this));
-          }
+          this.toggleTimeLabel(!isHidden);
         }
         break;
 
@@ -264,8 +256,8 @@ var StatusBar = {
           // seconds. The reason to do this is that the time updated will be
           // exactly aligned to minutes which means always getting 0 on seconds
           // part.
-          this.clock.stop();
-          this.clock.start(this.update.time.bind(this));
+          this.toggleTimeLabel(false);
+          this.toggleTimeLabel(true);
         }).bind(this));
         break;
 
@@ -336,11 +328,7 @@ var StatusBar = {
 
       window.addEventListener('moznetworkupload', this);
       window.addEventListener('moznetworkdownload', this);
-
-      if (!LockScreen.locked) {
-        // Start refreshing the clock only if it's visible
-        this.clock.start(this.update.time.bind(this));
-      }
+      this.toggleTimeLabel(!LockScreen.locked);
     } else {
       var battery = window.navigator.battery;
       if (battery) {
@@ -363,7 +351,7 @@ var StatusBar = {
       window.removeEventListener('moznetworkdownload', this);
 
       // Always prevent the clock from refreshing itself when the screen is off
-      this.clock.stop();
+      this.toggleTimeLabel(false);
     }
   },
 
@@ -685,6 +673,16 @@ var StatusBar = {
       this.listeningCallschanged = false;
       telephony.removeEventListener('callschanged', this);
     }
+  },
+
+  toggleTimeLabel: function sb_toggleTimeLabel(enable) {
+    var icon = this.icons.time;
+    if (enable) {
+      this.clock.start(this.update.time.bind(this));
+    } else {
+      this.clock.stop();
+    }
+    icon.hidden = !enable;
   },
 
   updateNotification: function sb_updateNotification(count) {

@@ -7,10 +7,10 @@ var Curtain = (function() {
   var curtainFrame = parent.document.querySelector('#fb-curtain');
   var doc = curtainFrame.contentDocument;
 
-  var cpuWakeLock, cancelButton, retryButton, progressElement, form,
+  var cpuWakeLock, cancelButton, retryButton, okButton, progressElement, form,
       progressTitle;
   var messages = [];
-  var elements = ['error', 'timeout', 'wait', 'message', 'progress'];
+  var elements = ['error', 'timeout', 'wait', 'message', 'progress', 'alert'];
 
   if (doc.readyState === 'complete') {
     init();
@@ -25,6 +25,7 @@ var Curtain = (function() {
   function init() {
     cancelButton = doc.querySelector('#cancel');
     retryButton = doc.querySelector('#retry');
+    okButton = doc.querySelector('#ok');
 
     progressElement = doc.querySelector('#progressElement');
 
@@ -124,6 +125,7 @@ var Curtain = (function() {
           });
         break;
 
+        case 'alert':
         case 'message':
           messages[type].textContent = _(type + from);
         break;
@@ -153,12 +155,12 @@ var Curtain = (function() {
         cpuWakeLock = null;
       }
 
-      delete form.dataset.state;
       curtainFrame.classList.remove('fade-in');
       curtainFrame.classList.add('fade-out');
       curtainFrame.addEventListener('animationend', function cu_fadeOut(ev) {
         curtainFrame.removeEventListener('animationend', cu_fadeOut);
         curtainFrame.classList.remove('visible');
+        delete form.dataset.state;
         if (typeof hiddenCB === 'function') {
           hiddenCB();
         }
@@ -194,6 +196,23 @@ var Curtain = (function() {
         retryButton.onclick = function on_retry(e) {
           delete retryButton.onclick;
           retryCb();
+          return false;
+        };
+      }
+    },
+
+    /**
+     *  Allows to set a event handler that will be invoked when the user
+     *  clicks on ok button
+     *
+     *  @param {Function} okCb . Event handler.
+     *
+     */
+    set onok(okCb) {
+      if (typeof okCb === 'function') {
+        okButton.onclick = function on_ok(e) {
+          delete okButton.onclick;
+          okCb();
           return false;
         };
       }

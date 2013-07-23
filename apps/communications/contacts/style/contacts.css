@@ -147,6 +147,9 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   margin-bottom: 1rem;
 }
 
+#contact-detail .duplicate-actions button {
+  margin-bottom: 1rem;
+}
 
 #contact-detail h2 {
   text-transform: uppercase;
