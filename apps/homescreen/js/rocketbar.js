@@ -75,7 +75,7 @@ var Rocketbar = {
     var manifestURLs = Object.keys(this.installedApps);
     manifestURLs.forEach(function(manifestURL) {
       var appName = this.installedApps[manifestURL].manifest.name.toLowerCase();
-      if (appName.indexOf(query) != -1 &&
+      if (appName.indexOf(query.toLowerCase()) != -1 &&
           this.HIDDEN_APPS.indexOf(manifestURL) == -1) {
         results.push(manifestURL);
       }
@@ -92,8 +92,10 @@ var Rocketbar = {
       var li = document.createElement('li');
       li.textContent = app.manifest.name;
       li.setAttribute('data-manifest-url', manifestURL);
-      li.style.backgroundImage = 'url(' + app.origin +
-        app.manifest.icons['60'] + ')';
+      if (app.manifest.icons) {
+        li.style.backgroundImage = 'url(' + app.origin +
+          app.manifest.icons['60'] + ')';
+      }
       this.DOM.results.appendChild(li);
     }, this);
   },
