@@ -110,7 +110,7 @@ suite('page.js >', function() {
           };
 
           console.log('no icon suite');
-          icon = new Icon(descriptor, app);
+          icon = new AppIcon(descriptor, app);
           renderIcon(done);
         });
 
@@ -164,7 +164,7 @@ suite('page.js >', function() {
             icon: defaultIconAsDataUri
           };
 
-          icon = new Icon(descriptor, app);
+          icon = new AppIcon(descriptor, app);
           renderIcon(done);
           MockXMLHttpRequest.mSendReadyState({ response: createImageBlob() });
         });
@@ -188,7 +188,7 @@ suite('page.js >', function() {
             icon: anIconAsHttpUrl
           };
 
-          icon = new Icon(descriptor, app);
+          icon = new AppIcon(descriptor, app);
         });
 
         suite('XHR works fine >', function() {
@@ -232,7 +232,7 @@ suite('page.js >', function() {
             oldRenderedIcon: undefined
           };
 
-          icon = new Icon(descriptor, app);
+          icon = new AppIcon(descriptor, app);
         });
 
         suite('XHR works fine >', function() {
@@ -272,7 +272,7 @@ suite('page.js >', function() {
             removable: removable
           };
 
-          icon = new Icon(descriptor, app);
+          icon = new AppIcon(descriptor, app);
           renderIcon(done);
 
           return icon;
@@ -335,7 +335,7 @@ suite('page.js >', function() {
             descriptor[key] = data[key];
           }
 
-          icon = new Icon(descriptor, app);
+          icon = new AppIcon(descriptor, app);
           renderIcon(done);
         }
 
@@ -401,7 +401,7 @@ suite('page.js >', function() {
           name: app.name
         };
 
-        icon = new Icon(descriptor, app);
+        icon = new AppIcon(descriptor, app);
         renderIcon(done);
       });
 

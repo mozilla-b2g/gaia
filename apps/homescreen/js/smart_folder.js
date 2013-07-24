@@ -1,48 +1,5 @@
 (function() {
 
-  function SmartFolderIcon(result) {
-
-    this._descriptorIdentifiers = ['query', 'name'];
-
-    this.imageSrc = result.icon;
-
-    this.descriptor = {
-        name: result.title.substring(0, 12),
-        query: result.query,
-        renderedIcon: true
-    };
-
-    if (result.uri) {
-      this.descriptor.uri = result.uri;
-      this._descriptorIdentifiers.push('uri');
-    }
-
-    if (result.type) {
-      this.descriptor.type = result.type;
-      this._descriptorIdentifiers.push('type');
-    }
-
-    this.app = {};
-  }
-
-  SmartFolderIcon.prototype = {
-
-    isOfflineReady: function() {
-      return false;
-    },
-
-    applyOverflowTextMask: Icon.prototype.applyOverflowTextMask,
-
-    displayRenderedIcon: function() {
-      this.img.src = this.imageSrc;
-      this.img.style.visibility = 'visible';
-    },
-
-    render: function(target) {
-      Icon.prototype.render.call(this, target);
-    }
-  };
-
   var folder = document.getElementById('smartfolder');
   var folderIcons = folder.querySelector('.icon-list');
   var folderTitle = folder.querySelector('.title');
@@ -95,7 +52,7 @@
       results.forEach(function(result) {
 
         result.query = this.query;
-        var folderIcon = new SmartFolderIcon(result);
+        var folderIcon = new FolderIcon(result);
 
         Icon.prototype.render.call(folderIcon, folderIcons);
       }, this);
@@ -110,6 +67,5 @@
   };
 
   window.SmartFolder = SmartFolder;
-  window.SmartFolderIcon = SmartFolderIcon;
 
 }());

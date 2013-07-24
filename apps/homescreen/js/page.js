@@ -1,35 +1,13 @@
 'use strict';
 
-function TemplateIcon(isBookmark) {
-  var descriptor = {
-    name: 'templateIcon',
-    hidden: true,
-    renderedIcon: null
-  };
+// Support rendering icons for different screens
+var SCALE_RATIO = window.devicePixelRatio;
+var MIN_ICON_SIZE = 52;
+var MAX_ICON_SIZE = 60;
+var ICON_PADDING_IN_CANVAS = 4;
+var ICONS_PER_ROW = 4;
 
-  var app = {};
-  if (isBookmark) {
-    app.iconable = true;
-  }
-
-  Icon.call(this, descriptor, app);
-}
-
-TemplateIcon.prototype = {
-  __proto__: Icon.prototype,
-  loadDefaultIcon: function ticon_loadDefaultIcon() {
-    var image = new Image();
-    var self = this;
-    image.src = getDefaultIcon(self.app);
-    image.onload = function icon_defaultIconLoadSucess() {
-      image.onload = null;
-      self.renderImage(image);
-    };
-  },
-  renderBlob: function ticon_renderBlob(blob) {
-    this.descriptor.renderedIcon = blob;
-  }
-};
+var DRAGGING_TRANSITION = '-moz-transform .3s';
 
 /*
  * Page constructor
@@ -397,9 +375,9 @@ Page.prototype = {
 
 function getDefaultIcon(app) {
   if (app && app.iconable) {
-    return Icon.prototype.DEFAULT_BOOKMARK_ICON_URL;
+    return AppIcon.prototype.DEFAULT_BOOKMARK_ICON_URL;
   } else {
-    return Icon.prototype.DEFAULT_ICON_URL;
+    return AppIcon.prototype.DEFAULT_ICON_URL;
   }
 }
 

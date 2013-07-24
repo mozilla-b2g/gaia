@@ -908,7 +908,7 @@ var GridManager = (function() {
       });
 
       // Hack to add in smart folders
-      pages[1].appendIcon(new SmartFolderIcon({
+      pages[1].appendIcon(new FolderIcon({
         icon: window.location.protocol + '//' + window.location.host +
           '/style/icons/smartfolder.png',
         type: 'smartfolder',
@@ -916,7 +916,7 @@ var GridManager = (function() {
         query: 'game'
       }));
 
-      pages[1].appendIcon(new SmartFolderIcon({
+      pages[1].appendIcon(new FolderIcon({
         icon: window.location.protocol + '//' + window.location.host +
           '/style/icons/smartfolder.png',
         type: 'smartfolder',
@@ -957,7 +957,7 @@ var GridManager = (function() {
         bookmarksByOrigin[app.origin] = app;
       }
 
-      var icon = icons[i] = new Icon(descriptor, app);
+      var icon = icons[i] = new AppIcon(descriptor, app);
       rememberIcon(icon);
     }
     return icons;
@@ -1050,7 +1050,7 @@ var GridManager = (function() {
       return;
     }
 
-    var icon = new Icon(descriptor, app);
+    var icon = new AppIcon(descriptor, app);
     rememberIcon(icon);
 
     var index = getFirstPageWithEmptySpace();
@@ -1106,8 +1106,8 @@ var GridManager = (function() {
   function bestMatchingIcon(app, manifest) {
     if (app.installState === 'pending') {
       return app.downloading ?
-        Icon.prototype.DOWNLOAD_ICON_URL :
-        Icon.prototype.CANCELED_ICON_URL;
+        AppIcon.prototype.DOWNLOAD_ICON_URL :
+        AppIcon.prototype.CANCELED_ICON_URL;
     }
     var icons = manifest.icons;
     if (!icons) {
