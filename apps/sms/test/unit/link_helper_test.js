@@ -247,8 +247,11 @@ suite('link_helper_test.js', function() {
         testPhoneOK('+5511 98907-6047');
       });
 
-      test('Phone proceding trailing number', function() {
+      test('word before trailing number', function() {
         testPhoneMatch('Test1 600123123', '600123123');
+      });
+      test('word after preceding number', function() {
+        testPhoneMatch('600123123 1Test', '600123123');
       });
     });
 
