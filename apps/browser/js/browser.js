@@ -95,7 +95,7 @@ var Browser = {
       'ssl-indicator', 'tabs-badge', 'throbber', 'frames', 'main-screen',
       'crashscreen', 'bookmark-menu', 'bookmark-entry-sheet',
       'awesomescreen-cancel-button', 'startscreen', 'top-site-thumbnails',
-      'no-top-sites', 'tray'];
+      'no-top-sites', 'tray', 'danger-dialog'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -120,7 +120,8 @@ var Browser = {
       document.getElementById('modal-dialog-prompt'),
       document.getElementById('modal-dialog-confirm'),
       document.getElementById('modal-dialog-custom-prompt'),
-      document.getElementById('http-authentication-dialog')
+      document.getElementById('http-authentication-dialog'),
+      document.getElementById('danger-dialog')
     ];
 
     var filesToLoad = [
@@ -154,7 +155,10 @@ var Browser = {
       'bookmark-entry-sheet-cancel', 'bookmark-entry-sheet-done',
       'bookmark-title', 'bookmark-url', 'bookmark-previous-url',
       'bookmark-menu-add-home', 'new-tab-button',
-      'clear-private-data-button', 'results', 'tab-panels'
+      'clear-private-data-button', 'results', 'tab-panels',
+      'danger-dialog-message',
+      'danger-dialog-cancel',
+      'danger-dialog-ok'
     ];
 
     var loadBrowserFiles = function() {
@@ -198,7 +202,7 @@ var Browser = {
      this.aboutBrowserButton.addEventListener('click',
        this.showAboutPage.bind(this));
      this.clearHistoryButton.addEventListener('click',
-       this.handleClearHistory.bind(this));
+       this.clearHistoryPressed.bind(this));
      this.closeTab.addEventListener('click',
        this.handleCloseTab.bind(this));
      this.tryReloading.addEventListener('click',
@@ -222,7 +226,7 @@ var Browser = {
      this.topSiteThumbnails.addEventListener('click',
        this.followLink.bind(this));
      this.clearPrivateDataButton.addEventListener('click',
-       this.clearPrivateData.bind(this));
+       this.clearPrivateDataPressed.bind(this));
 
     this.tabsSwipeMngr.browser = this;
      ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -1861,43 +1865,73 @@ var Browser = {
     this.showPageScreen();
   },
 
-  handleClearHistory: function browser_handleClearHistory() {
-    var msg = navigator.mozL10n.get('confirm-clear-browsing-history');
-    if (confirm(msg)) {
-      Places.clearHistory((function() {
+  showDangerDialog: function browser_showDangerDialog(title, btn, callback) {
+    var self = this;
+    var msg = navigator.mozL10n.get(title);
 
-        this.clearHistoryButton.setAttribute('disabled', 'disabled');
+    var ok = function(e) {
+      e.preventDefault();
+      removeEventListeners();
+      btn.setAttribute('disabled', 'disabled');
+      self.dangerDialog.hidden = true;
+      callback();
+    };
 
-        Places.getTopSites(this.MAX_TOP_SITES, null,
-          this.showTopSiteThumbnails.bind(this));
+    var cancel = function(e) {
+      e.preventDefault();
+      removeEventListeners();
+      self.dangerDialogCancel.removeEventListener('click', cancel);
+      self.dangerDialog.hidden = true;
+    };
 
-        var self = this;
-        var tabIds = Object.keys(this.tabs);
-        tabIds.forEach(function(tabId) {
-          var tab = self.tabs[tabId];
-          if (tab.dom.purgeHistory) {
-            tab.dom.purgeHistory().onsuccess = function(e) {
-              if (tab == self.currentTab) {
-                Toolbar.refreshButtons();
-              }
-            };
-          }
-        });
-      }).bind(this));
+    var removeEventListeners = function() {
+      self.dangerDialogOk.removeEventListener('click', ok);
+      self.dangerDialogCancel.removeEventListener('click', cancel);
+    };
 
-      this.history.innerHTML = '';
-    }
+    this.dangerDialogMessage.textContent = msg;
+    this.dangerDialog.hidden = false;
+
+    this.dangerDialogOk.addEventListener('click', ok);
+    this.dangerDialogCancel.addEventListener('click', cancel);
+  },
+
+  clearHistoryPressed: function browser_clearHistoryPressed() {
+    this.showDangerDialog('confirm-clear-browsing-history',
+                     this.clearHistoryButton,
+                     this.clearHistory.bind(this));
+  },
+
+  clearPrivateDataPressed: function browser_clearPrivateDataPressed() {
+    this.showDangerDialog('confirm-clear-cookies-and-stored-data',
+                          this.clearPrivateDataButton,
+                          this.clearPrivateData.bind(this));
+  },
+
+  clearHistory: function browser_clearHistory() {
+    var self = this;
+    Places.clearHistory(function() {
+      Places.getTopSites(self.MAX_TOP_SITES, null,
+                         self.showTopSiteThumbnails.bind(self));
+      var tabIds = Object.keys(self.tabs);
+      tabIds.forEach(function(tabId) {
+        var tab = self.tabs[tabId];
+        if (tab.dom.purgeHistory) {
+          tab.dom.purgeHistory().onsuccess = function(e) {
+            if (tab == self.currentTab) {
+              Toolbar.refreshButtons();
+            }
+          };
+        }
+      });
+    });
   },
 
   clearPrivateData: function browser_clearPrivateData() {
-    var msg = navigator.mozL10n.get('confirm-clear-cookies-and-stored-data');
-    if (confirm(msg)) {
-      var request = navigator.mozApps.getSelf();
-      request.onsuccess = (function() {
-        request.result.clearBrowserData();
-        this.clearPrivateDataButton.setAttribute('disabled', 'disabled');
-      }).bind(this);
-    }
+    var request = navigator.mozApps.getSelf();
+    request.onsuccess = function() {
+      request.result.clearBrowserData();
+    };
   },
 
   screenSwipeMngr: {

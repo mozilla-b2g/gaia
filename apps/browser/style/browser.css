@@ -837,6 +837,10 @@ li[role="listitem"] small {
   display: none;
 }
 
+#danger-dialog {
+  z-index: 200;
+}
+
 #settings ul {
   margin: 0;
   padding: 0;
