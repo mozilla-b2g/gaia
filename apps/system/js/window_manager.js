@@ -1342,7 +1342,12 @@ var WindowManager = (function() {
             var iframe = getAppFrame(origin).firstChild;
 
             // If the app is opened and it is loaded to the correct page,
-            // then there is nothing to do.
+            // then there is nothing to do, unless it's an activity
+            // In that case, reload it to ensure it works the same way
+            // on all cases
+            if (e.detail.isActivity) {
+              iframe.src = 'about:blank';
+            }
             if (iframe.src !== e.detail.url) {
               // Rewrite the URL of the app frame to the requested URL.
               // XXX: We could ended opening URls not for the app frame
