@@ -320,23 +320,13 @@ contacts.Matcher = (function() {
   function matchByName(aContact, callbacks) {
     // First we try to find by familyName
     // Afterwards we search by givenName
-    if (!hasName(aContact)) {
+    if (isEmptyStr(aContact.familyName) || isEmptyStr(aContact.givenName)) {
       notifyMismatch(callbacks);
       return;
     }
 
-    var filterValue;
-    var filterBy;
-    if (isEmptyStr(aContact.familyName) && !isEmptyStr(aContact.name) &&
-        !isEmptyStr(aContact.givenName)) {
-      // SIM contacts has the name on the givenName field
-      filterValue = aContact.givenName[0].trim();
-      filterBy = ['givenName'];
-    }
-    else {
-      filterValue = aContact.familyName[0].trim();
-      filterBy = ['familyName'];
-    }
+    var filterValue = aContact.familyName[0].trim();
+    var filterBy = filterBy = ['familyName'];
 
     var options = {
       filterValue: filterValue,
