@@ -920,6 +920,20 @@ MailHeader.prototype = {
   /**
    * Request the `MailBody` instance for this message, passing it to the
    * provided callback function once retrieved.
+   *
+   * @args[
+   *   @param[options @dict[
+   *     @key[downloadBodyReps #:default false]{
+   *       Asynchronously initiate download of the body reps.  The body may
+   *       be returned before the body parts are downloaded, but they will
+   *       eventually show up.  Use the 'onchange' event to hear as the body
+   *       parts get added.
+   *     }
+   *     @key[withBodyReps #:default false]{
+   *       Don't return until the body parts are fully downloaded.
+   *     }
+   *   ]]
+   * ]
    */
   getBody: function(options, callback) {
     if (typeof(options) === 'function') {
@@ -2263,10 +2277,13 @@ MailAPI.prototype = {
 
   _getBodyForMessage: function(header, options, callback) {
 
-    var downloadBodyReps = false;
+    var downloadBodyReps = false, withBodyReps = false;
 
     if (options && options.downloadBodyReps) {
       downloadBodyReps = options.downloadBodyReps;
+    }
+    if (options && options.withBodyReps) {
+      withBodyReps = options.withBodyReps;
     }
 
     var handle = this._nextHandle++;
@@ -2280,7 +2297,8 @@ MailAPI.prototype = {
       handle: handle,
       suid: header.id,
       date: header.date.valueOf(),
-      downloadBodyReps: downloadBodyReps
+      downloadBodyReps: downloadBodyReps,
+      withBodyReps: withBodyReps
     });
   },
 
@@ -3540,7 +3558,10 @@ define('mailapi/worker-support/maildb-main',[],function() {
     args.push(function() {
       self.sendMessage(uid, cmd, Array.prototype.slice.call(arguments));
     });
-    db[cmd].apply(db, args);
+    if (!db._db)
+      console.warn('trying to call', cmd, 'on apparently dead db. skipping.');
+    else
+      db[cmd].apply(db, args);
   }
 
   var self = {
@@ -3930,7 +3951,7 @@ MailDB.prototype = {
     trans.objectStore(TBL_FOLDER_INFO).put(folderInfo, accountId);
 
     var headerStore = trans.objectStore(TBL_HEADER_BLOCKS),
-        bodyStore = trans.objectStore(TBL_BODY_BLOCKS), 
+        bodyStore = trans.objectStore(TBL_BODY_BLOCKS),
         i;
 
     /**

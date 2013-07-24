@@ -5309,7 +5309,6 @@ MailSlice.prototype = {
       return;
 
     var idx = bsearchForInsert(this.headers, header, cmpHeaderYoungToOld);
-
     var hlen = this.headers.length;
     // Don't append the header if it would expand us beyond our requested amount
     // and there is no subsequent step, like accumulate flushing, that would get
@@ -8506,7 +8505,11 @@ FolderStorage.prototype = {
         if (slice === this._curSyncSlice)
           continue;
 
-        // (if the slice is empty, it cares about any header!)
+        // Note: the following control flow is to decide when to bail; if we
+        // make it through the conditionals, the header gets reported to the
+        // slice.
+
+        // (if the slice is empty, it cares about any header, so keep going)
         if (slice.startTS !== null) {
           // We never automatically grow a slice into the past if we are full,
           // but we do allow it if not full.
@@ -8514,7 +8517,8 @@ FolderStorage.prototype = {
             if (slice.headers.length >= slice.desiredHeaders)
               continue;
           }
-          // We do grow a slice into the present if it's already up-to-date...
+          // We do grow a slice into the present if it's already up-to-date.
+          // We do count messages from the same second as our
           else if (SINCE(date, slice.endTS)) {
             // !(covers most recently known message)
             if(!(this._headerBlockInfos.length &&
@@ -10872,6 +10876,14 @@ exports.getFirstFolderWithType = function(type) {
   }
  return null;
 };
+exports.getFolderByPath = function(folderPath) {
+  var folders = this.folders;
+  for (var iFolder = 0; iFolder < folders.length; iFolder++) {
+    if (folders[iFolder].path === folderPath)
+      return folders[iFolder];
+  }
+ return null;
+};
 
 }); // end define
 ;
@@ -12309,7 +12321,7 @@ MailBridge.prototype = {
 
     this._observedBodies[msg.suid][msg.handle] = catchPending;
 
-    folderStorage.getMessageBody(msg.suid, msg.date, function(bodyInfo) {
+    var handler = function(bodyInfo) {
       self.__sendMessage({
         type: 'gotBody',
         handle: msg.handle,
@@ -12337,7 +12349,12 @@ MailBridge.prototype = {
       // revert to default handler. Note! this is intentionally
       // set to null and not deleted if deleted the observer is removed.
       self._observedBodies[msg.suid][msg.handle] = null;
-    });
+    };
+
+    if (msg.withBodyReps)
+      folderStorage.getMessageBodyWithReps(msg.suid, msg.date, handler);
+    else
+      folderStorage.getMessageBody(msg.suid, msg.date, handler);
   },
 
   _cmd_killBody: function(msg) {
@@ -12528,8 +12545,12 @@ MailBridge.prototype = {
                               .map(function(x) { return '<' + x + '>'; })
                               .join(' ');
           }
-          else {
+          else if (msg.refGuid) {
             referencesStr = '<' + msg.refGuid + '>';
+          }
+          // ActiveSync does not thread so good
+          else {
+            referencesStr = '';
           }
           req.active = null;
           self.__sendMessage({
@@ -13613,6 +13634,21 @@ var autoconfigByDomain = exports._autoconfigByDomain = {
       username: '%EMAILLOCALPART%',
     },
   },
+  'fakeimaphost': {
+    type: 'imap+smtp',
+    incoming: {
+      hostname: 'localhost',
+      port: 0,
+      socketType: 'plain',
+      username: '%EMAILLOCALPART%',
+    },
+    outgoing: {
+      hostname: 'localhost',
+      port: 0,
+      socketType: 'plain',
+      username: '%EMAILLOCALPART%',
+    },
+  },
   'slocalhost': {
     type: 'imap+smtp',
     incoming: {
@@ -13628,12 +13664,12 @@ var autoconfigByDomain = exports._autoconfigByDomain = {
       username: '%EMAILLOCALPART%',
     },
   },
-  'aslocalhost': {
+  'fakeashost': {
     type: 'activesync',
     displayName: 'Test',
     incoming: {
-      // This string may be clobbered with the correct port number when
-      // running as a unit test.
+      // This string will be clobbered with the correct port number when running
+      // as a unit test.
       server: 'http://localhost:8880',
       username: '%EMAILADDRESS%',
     },
@@ -14432,7 +14468,7 @@ var MAX_LOG_BACKLOG = 30;
  *   }
  * ]]
  */
-function MailUniverse(callAfterBigBang, testOptions) {
+function MailUniverse(callAfterBigBang, online, testOptions) {
   /** @listof[Account] */
   this.accounts = [];
   this._accountsById = {};
@@ -14488,7 +14524,7 @@ function MailUniverse(callAfterBigBang, testOptions) {
   // Events for online/offline are now pushed into us externally.  They need
   // to be bridged from the main thread anyways, so no point faking the event
   // listener.
-  this._onConnectionChange();
+  this._onConnectionChange(online);
 
   /**
    * A setTimeout handle for when we next dump deferred operations back onto
@@ -15069,7 +15105,7 @@ MailUniverse.prototype = {
 
     for (var iAcct = 0; iAcct < this.accounts.length; iAcct++) {
       var account = this.accounts[iAcct];
-      curTrans = account.saveAccountState(curTrans);
+      curTrans = account.saveAccountState(curTrans, null, 'saveUniverse');
     }
   },
 
@@ -15277,7 +15313,7 @@ MailUniverse.prototype = {
       // This is a suggestion; in the event of high-throughput on operations,
       // we probably don't want to save the account every tick, etc.
       if (accountSaveSuggested)
-        account.saveAccountState();
+        account.saveAccountState(null, null, 'localOp');
     }
 
     if (removeFromServerQueue) {
@@ -15506,7 +15542,7 @@ MailUniverse.prototype = {
       // This is a suggestion; in the event of high-throughput on operations,
       // we probably don't want to save the account every tick, etc.
       if (accountSaveSuggested)
-        account.saveAccountState();
+        account.saveAccountState(null, null, 'serverOp');
     }
 
     if (localQueue.length) {
@@ -16049,8 +16085,7 @@ var sendControl = $router.registerSimple('control', function(data) {
     case 'hello':
       navigator.hasPendingAlarm = args[1];
 
-      universe = new $mailuniverse.MailUniverse(onUniverse);
-      universe._onConnectionChange(args[0]);
+      universe = new $mailuniverse.MailUniverse(onUniverse, args[0]);
       break;
 
     case 'online':
