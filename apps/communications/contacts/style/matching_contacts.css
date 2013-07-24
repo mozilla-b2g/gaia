@@ -29,8 +29,9 @@
   border-top: none !important;
 }
 
-#contacts-list-container > ol > li[data-uuid] input,
-#contacts-list-container > ol > li[data-uuid] aside {
+#contacts-list-container > ol > li[data-uuid] aside,
+#contacts-list-container > ol > li[data-uuid] label,
+#contacts-list-container > ol > li[data-uuid] p {
   pointer-events: none;
 }
 
