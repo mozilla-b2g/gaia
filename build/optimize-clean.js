@@ -13,7 +13,7 @@ Gaia.webapps.forEach(function(webapp) {
   debug(webapp.sourceDirectoryName);
 
   let re = new RegExp('\\.html\\.' + GAIA_DEFAULT_LOCALE + '$');
-  let files = ls(webapp.sourceDirectoryFile, true);
+  let files = ls(webapp.buildDirectoryFile, true);
   files.forEach(function(file) {
     if (
       re.test(file.leafName) ||

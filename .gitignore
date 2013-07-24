@@ -7,7 +7,6 @@
 manifest.appcache
 
 /apps/calendar/js/presets.js
-/apps/email/built/
 /apps/homescreen/js/init.json
 /apps/costcontrol/js/config.json
 /apps/sms/js/blacklist.json
@@ -45,6 +44,7 @@ manifest.appcache
 /build/custom-extensions.json
 /build/custom-prefs.js
 /build/custom-settings.json
+/build_stage/
 /local.mk
 /.b2g.mk
 
