@@ -909,14 +909,16 @@ var GridManager = (function() {
 
       // Hack to add in smart folders
       pages[1].appendIcon(new SmartFolderIcon({
-        icon: '///' + window.location.host + '/style/icons/smartfolder.png',
+        icon: window.location.protocol + '//' + window.location.host +
+          '/style/icons/smartfolder.png',
         type: 'smartfolder',
         title: 'Games',
         query: 'game'
       }));
 
       pages[1].appendIcon(new SmartFolderIcon({
-        icon: '///' + window.location.host + '/style/icons/smartfolder.png',
+        icon: window.location.protocol + '//' + window.location.host +
+          '/style/icons/smartfolder.png',
         type: 'smartfolder',
         title: 'Productivity',
         query: 'productivity'

@@ -16,7 +16,6 @@ mocksHelperForConfigurator.init();
 suite('configurator.js >', function() {
 
   var mocksHelper = mocksHelperForConfigurator;
-  var containerNode;
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
@@ -28,9 +27,6 @@ suite('configurator.js >', function() {
 
   setup(function() {
     mocksHelper.setup();
-
-    containerNode = document.createElement('div');
-
     Configurator.load();
 
     // We set up a wrong landing page index in order to check what its value
@@ -40,7 +36,6 @@ suite('configurator.js >', function() {
 
   teardown(function() {
     mocksHelper.teardown();
-    document.body.removeChild(containerNode);
   });
 
   function sendResponseText(text) {
