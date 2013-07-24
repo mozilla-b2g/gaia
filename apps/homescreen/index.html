@@ -79,8 +79,13 @@
     </section>
 
     <section id="rocketbar-overlay">
-      <input id="rocketbar-input" type="text" placeholder="Search..."/>
-      <div id="rocketbar-results"></div>
+      <input id="rocketbar-input" x-inputmode="verbatim" type="text" placeholder="Search..."/>
+      <div id="rocketbar-tabs">
+        <a data-tab-id="searchResults" class="active">Search</a>
+        <a data-tab-id="appsResults">Apps</a>
+      </div>
+      <div role="tabpanel" id="rocketbar-search-results" class="active"></div>
+      <div role="tabpanel" id="rocketbar-apps-results"></div>
     </section>
 
     <header id="paginationBar">

@@ -10,7 +10,7 @@
   color: #fff;
 }
 
-#rocketbar-overlay.active {
+#rocketbar-overlay.visible{
   opacity: 1;
   transform: scale(1);
 }
@@ -27,17 +27,20 @@
    border-radius: 0;
 }
 
-#rocketbar-results {
+#rocketbar-apps-results,
+#rocketbar-search-results {
   overflow: scroll;
   position: absolute;
   width: 100%;
-  height: calc(100% - 6.7em);
+  height: calc(100% - 9.6rem);
+  top: 9.6rem;
   list-style-type: none;
   font-size: 1.4rem;
   background-color: rgba(0, 0, 0, 0.9);
 }
 
-#rocketbar-results li {
+#rocketbar-apps-results li,
+#rocketbar-search-results li {
   border-bottom: 1px solid rgb(68, 68, 68);
   margin: 0;
   padding: 1.5rem 1.5rem 1.5rem 5rem;
@@ -47,15 +50,18 @@
   background-size: 3rem;
 }
 
-#rocketbar-results li * {
+#rocketbar-apps-results li *,
+#rocketbar-search-results li * {
   pointer-events: none;
 }
 
-#rocketbar-results li:last-child {
+#rocketbar-apps-results li:last-child,
+#rocketbar-search-results li:last-child {
   border-bottom: none;
 }
 
-#rocketbar-results li h3 {
+#rocketbar-apps-results li h3,
+#rocketbar-search-results li h3 {
   display: block;
   height: 1.2em;
   overflow: hidden;
@@ -67,7 +73,8 @@
   padding: 0;
 }
 
-#rocketbar-results li small {
+#rocketbar-apps-results li small,
+#rocketbar-search-results li small {
   display: block;
   height: 1.2em;
   overflow: hidden;
@@ -79,10 +86,68 @@
   padding: 0;
 }
 
+#rocketbar-apps-results li small.suggestion,
+#rocketbar-search-results li small.suggestion {
+  display: inline-block;
+  border-radius: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  margin: 0.4rem 0.5rem 0.2rem;
+  background: #999;
+  color: #fff;
+  pointer-events: auto;
+  line-height: 1.7rem;
+}
+
+#rocketbar-apps-results li.visual {
+  padding-left: 0.5rem;
+}
+
+#rocketbar-apps-results li.visual small.suggestion {
+  width: 60px;
+  height: 64px;
+  margin: 0 0.5rem 0 0;
+  text-align: center;
+  background: none;
+}
+
+#rocketbar-apps-results li.visual small.suggestion img {
+  display: block;
+  margin: 0 auto;
+}
+
 #rocketbar-activation-icon {
   width: 28em;
   height: 3.1em;
   background-image: url('images/rocketbar.png');
   background-size: cover;
   margin: 2em auto;
+}
+
+div[role='tabpanel'] {
+  display: none;
+}
+
+div.active[role="tabpanel"] {
+  display: block;
+}
+
+#tabpanel {
+  height: calc(100% - 5.6rem);
+  margin-top: 3.6rem;
+}
+
+#rocketbar-tabs > a {
+  float: left;
+  font-size: 1.5rem;
+  width: 50%;
+  margin: 0;
+  padding:0;
+  text-align: center;
+  height: 3rem;
+  line-height: 3rem;
+  border-top: 4px solid #000;
+}
+
+#rocketbar-tabs > a.active {
+  border-top: 4px solid #ccc;
 }
