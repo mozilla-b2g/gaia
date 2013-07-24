@@ -58,7 +58,6 @@ suite('Test Contacts Matcher', function() {
       id: '1B',
       givenName: ['Carlos'],
       familyName: ['Álvarez del Río'],
-      name: ['Carlos Álvarez del Río'],
       tel: [{
         type: ['home'],
         value: '676767671'
@@ -180,19 +179,59 @@ suite('Test Contacts Matcher', function() {
       testMismatch(myObj, 'passive', done);
     });
 
-    test('No name defined then mismatch', function(done) {
-      var myObj = Object.create(contact);
+    test('First name is null only in incoming, lastName matches. Then mismatch',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = 'abcde';
+        myObj.givenName = [];
 
-      myObj.givenName = [];
-
-      testMismatch(myObj, 'passive', done);
+        testMismatch(myObj, 'passive', done);
     });
 
-    test('No name defined in matching contact then mismatch', function(done) {
-      contact.givenName = [];
-      var myObj = Object.create(contact);
+    test('first name is null only in existing contact. Then mismatch',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = 'wvy';
+        myObj.givenName = ['Carlos'];
 
-      testMismatch(myObj, 'passive', done);
+        var saveGN = contact.givenName;
+        contact.givenName = null;
+
+        testMismatch(myObj, 'passive', function() {
+          contact.givenName = saveGN;
+          done();
+        });
+    });
+
+    test('First name is null, in both. LastName matches. Then match',
+      function(done) {
+        var myObj = Object.create(contact);
+
+        myObj.id = 'zx1';
+
+        myObj.givenName = [];
+        var saveGN = contact.givenName;
+        contact.givenName = [];
+
+        testMatch(myObj, 'passive', function() {
+          contact.givenName = saveGN;
+          done();
+        });
+    });
+
+    test('Last name is null, in both. First name matches. Then match',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = 'zx1';
+
+        myObj.familyName = [];
+        var saveFN = contact.familyName;
+        contact.familyName = [];
+
+        testMatch(myObj, 'passive', function() {
+          contact.familyName = saveFN;
+          done();
+        });
     });
   });
 
@@ -263,7 +302,7 @@ suite('Test Contacts Matcher', function() {
       testMatch(myObj, 'active', done);
     });
 
-    test('familyName matches but givenName not', function(done) {
+    test('familyName matches but givenName not. Mismatch', function(done) {
       var myObj = Object.create(contact);
       myObj.id = '1A';
       myObj.email = [];
@@ -273,31 +312,34 @@ suite('Test Contacts Matcher', function() {
       testMismatch(myObj, 'active', done);
     });
 
-    test('familyName is empty. GivenName matches', function(done) {
-      var myObj = Object.create(contact);
-      myObj.id = '1A';
-      myObj.email = [];
-      myObj.tel = null;
-      myObj.familyName = null;
-      myObj.name = ['Carlos'];
-
-      testMismatch(myObj, 'active', done);
-    });
-
-    test('givenName is empty. familyName matches', function(done) {
-      var myObj = Object.create(contact);
-      myObj.id = '1A';
-      myObj.email = [];
-      myObj.tel = null;
-      myObj.name = ['Álvarez del Río'];
-      myObj.givenName = null;
-
-      testMismatch(myObj, 'active', done);
-    });
-
-    test('family Name of existing Contact is empty. givenName Matches',
+    test('familyName of incoming is empty. GivenName matches. Mismatch',
       function(done) {
         var myObj = Object.create(contact);
+        myObj.id = '1A';
+        myObj.email = [];
+        myObj.tel = null;
+        myObj.familyName = null;
+
+        testMismatch(myObj, 'active', done);
+    });
+
+    test('givenName of incoming is empty. familyName matches. Mismatch',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = '1A';
+        myObj.email = [];
+        myObj.tel = null;
+        myObj.givenName = null;
+
+        testMismatch(myObj, 'active', done);
+    });
+
+    test('family Name of existing is empty. givenName Matches. Mismatch',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = 'zxy';
+        myObj.email = null;
+        myObj.tel = null;
         myObj.familyName = contact.familyName;
 
         contact.familyName = [];
@@ -308,15 +350,48 @@ suite('Test Contacts Matcher', function() {
         });
     });
 
-    test('given Name of existing Contact is empty. family Name Matches',
+    test('given Name of existing is empty. family Name Matches. Mismatch',
       function(done) {
         var myObj = Object.create(contact);
+        myObj.id = 'zxy';
+        myObj.email = null;
+        myObj.tel = null;
         myObj.givenName = contact.givenName;
 
         contact.givenName = null;
 
         testMismatch(myObj, 'active', function() {
           contact.givenName = myObj.givenName;
+          done();
+        });
+    });
+
+    test('Both familyNames are empty. Given names match. Mismatch',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = 'zxy';
+        myObj.email = null;
+        myObj.tel = null;
+        var saveFN = contact.familyName;
+        myObj.familyName = contact.familyName = [null];
+
+        testMismatch(myObj, 'active', function() {
+          contact.familyName = saveFN;
+          done();
+        });
+    });
+
+    test('Both givenNames are empty. Family names match. Mismatch',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = 'zxy';
+        myObj.email = null;
+        myObj.tel = null;
+        var saveGN = contact.givenName;
+        myObj.givenName = contact.givenName = [''];
+
+        testMismatch(myObj, 'active', function() {
+          contact.givenName = saveGN;
           done();
         });
     });
