@@ -10,7 +10,7 @@ body {
 }
 
 body > iframe {
-  visibility: hidden;
+  /*visibility: hidden; for watching blanekt result in iframe*/
 }
 
 #test-agent-ui {
