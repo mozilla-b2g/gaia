@@ -10,7 +10,7 @@ body {
 }
 
 body > iframe {
-  visibility: hidden;
+  display: none;
 }
 
 #test-agent-ui {

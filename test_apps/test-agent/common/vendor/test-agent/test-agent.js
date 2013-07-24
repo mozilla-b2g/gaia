@@ -829,9 +829,9 @@
      * @param {String} url location to load script from.
      * @param {String} callback callback when script loading is complete.
      */
-    require: function(url, callback) {
+    require: function(url, callback, options) {
       this._queue.push(
-        this._require.bind(this, url, callback)
+        this._require.bind(this, url, callback, options)
       );
 
       if (this._queue.length === 1) {
@@ -846,11 +846,12 @@
      *
      * @private
      */
-    _require: function require(url, callback) {
+    _require: function require(url, callback, options) {
       var prefix = this.prefix,
           suffix = '',
           self = this,
           element,
+          key,
           document = this.targetWindow.document;
 
       if (url in this._cached) {
@@ -866,13 +867,19 @@
 
       this._cached[url] = true;
 
-      var args = arguments;
-
       url = prefix + url + suffix;
       element = document.createElement('script');
       element.src = url;
       element.async = false;
       element.type = this.type;
+
+      if (options) {
+        for (key in options) {
+          if (options.hasOwnProperty(key)) {
+            element.setAttribute(key, options[key]);
+          }
+        }
+      };
 
       function oncomplete() {
         if (callback) {
@@ -2269,6 +2276,30 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   }
 
 }());
+
+(function() {
+
+  function Blanket(options) {
+
+  }
+
+  Blanket.prototype = {
+
+    enhance: function enhance(worker) {
+      window.addEventListener('message', function(event) {
+        var data = event.data;
+        if (/coverage info/.test(data)) {
+          worker.send('coverage data', data);
+        }
+      });
+    }
+
+  };
+
+  TestAgent.Common.BlanketCoverEvents = Blanket;
+
+})();
+
 (function(window) {
   'use strict';
 
@@ -2398,6 +2429,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     this.createSandbox(function createSandbox() {
       self.testRunner(self, self._processTests(tests), done);
+      self.coverageRunner(self);
     });
   };
 
@@ -2943,12 +2975,50 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         });
       });
     }
-
   };
 
   window.TestAgent.BrowserWorker.MochaDriver = MochaDriver;
 
 }(this));
+
+(function(window) {
+  'use strict';
+
+  function BlanketDriver(options) {
+    var key;
+
+    if (typeof(options) === 'undefined') {
+      options = {};
+    }
+
+    for (key in options) {
+      if (options.hasOwnProperty(key)) {
+        this[key] = options[key];
+      }
+    }
+  }
+
+  BlanketDriver.prototype = {
+    /**
+     * Location of the blanket runtime.
+     */
+    blanketUrl: './vendor/blanket/blanket.js',
+
+    enhance: function enhance(worker) {
+      this.worker = worker;
+      worker.coverageRunner = this._coverageRunner.bind(this);
+    },
+
+    _coverageRunner: function _coverageRunner(worker) {
+      var box = worker.sandbox.getWindow();
+      box.require(this.blanketUrl, null, {'data-cover-only': 'js/'});
+    }
+  };
+
+  window.TestAgent.BrowserWorker.BlanketDriver = BlanketDriver;
+
+}(this));
+
 (function(window) {
   'use strict';
 
