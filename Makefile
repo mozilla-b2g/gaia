@@ -301,7 +301,7 @@ endif
 multilocale-clean:
 	@echo "Cleaning l10n bits..."
 ifeq ($(wildcard .hg),.hg)
-  @hg revert -a --no-backup
+	@hg revert -a --no-backup
 	@hg status -n $(GAIA_LOCALE_SRCDIRS) | grep '\.properties' | xargs rm -rf
 else
 	@git ls-files --other --exclude-standard $(GAIA_LOCALE_SRCDIRS) | grep '\.properties' | xargs rm -f
