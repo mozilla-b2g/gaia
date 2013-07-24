@@ -1,5 +1,5 @@
 /**
- * @license r.js 2.1.6+ Sat, 29 Jun 2013 05:37:15 GMT Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
+ * @license r.js 2.1.8+ Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/requirejs for details
  */
@@ -20,7 +20,7 @@ var requirejs, require, define, xpcUtil;
 (function (console, args, readFileFunc) {
     var fileName, env, fs, vm, path, exec, rhinoContext, dir, nodeRequire,
         nodeDefine, exists, reqMain, loadedOptimizedLib, existsForNode, Cc, Ci,
-        version = '2.1.6+ Sat, 29 Jun 2013 05:37:15 GMT',
+        version = '2.1.8+',
         jsSuffixRegExp = /\.js$/,
         commandOption = '',
         useLibLoaded = {},
@@ -136,6 +136,7 @@ var requirejs, require, define, xpcUtil;
         }
 
         xpcUtil = {
+            isWindows: ('@mozilla.org/windows-registry-key;1' in Cc),
             cwd: function () {
                 return FileUtils.getFile("CurWorkD", []).path;
             },
@@ -169,10 +170,15 @@ var requirejs, require, define, xpcUtil;
             },
 
             xpfile: function (path) {
+                var fullPath;
                 try {
-                    return new FileUtils.File(xpcUtil.normalize(path));
+                    fullPath = xpcUtil.normalize(path);
+                    if (xpcUtil.isWindows) {
+                        fullPath = fullPath.replace(/\//g, '\\');
+                    }
+                    return new FileUtils.File(fullPath);
                 } catch (e) {
-                    throw new Error(path + ' failed: ' + e);
+                    throw new Error((fullPath || path) + ' failed: ' + e);
                 }
             },
 
@@ -232,7 +238,7 @@ var requirejs, require, define, xpcUtil;
     }
 
     /** vim: et:ts=4:sw=4:sts=4
- * @license RequireJS 2.1.6 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
+ * @license RequireJS 2.1.8 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/requirejs for details
  */
@@ -245,7 +251,7 @@ var requirejs, require, define, xpcUtil;
 (function (global) {
     var req, s, head, baseElement, dataMain, src,
         interactiveScript, currentlyAddingScript, mainScript, subPath,
-        version = '2.1.6',
+        version = '2.1.8',
         commentRegExp = /(\/\*([\s\S]*?)\*\/|([^:]|^)\/\/(.*)$)/mg,
         cjsRequireRegExp = /[^.]\s*require\s*\(\s*["']([^'"\s]+)["']\s*\)/g,
         jsSuffixRegExp = /\.js$/,
@@ -2028,6 +2034,19 @@ var requirejs, require, define, xpcUtil;
     req.onError = defaultOnError;
 
     /**
+     * Creates the node for the load command. Only used in browser envs.
+     */
+    req.createNode = function (config, moduleName, url) {
+        var node = config.xhtml ?
+                document.createElementNS('http://www.w3.org/1999/xhtml', 'html:script') :
+                document.createElement('script');
+        node.type = config.scriptType || 'text/javascript';
+        node.charset = 'utf-8';
+        node.async = true;
+        return node;
+    };
+
+    /**
      * Does the request to load a module for the browser case.
      * Make this a separate function to allow other environments
      * to override it.
@@ -2041,12 +2060,7 @@ var requirejs, require, define, xpcUtil;
             node;
         if (isBrowser) {
             //In the browser so use a script tag
-            node = config.xhtml ?
-                    document.createElementNS('http://www.w3.org/1999/xhtml', 'html:script') :
-                    document.createElement('script');
-            node.type = config.scriptType || 'text/javascript';
-            node.charset = 'utf-8';
-            node.async = true;
+            node = req.createNode(config, moduleName, url);
 
             node.setAttribute('data-requirecontext', context.contextName);
             node.setAttribute('data-requiremodule', moduleName);
@@ -2443,10 +2457,11 @@ var requirejs, require, define, xpcUtil;
     };
 
     req.load = function (context, moduleName, url) {
-        var contents, err;
+        var contents, err,
+            config = context.config;
 
-        if (context.config.shim[moduleName]) {
-            throw new Error('Shim config not supported in Node: detected ' +
+        if (config.shim[moduleName] && (!config.suppress || !config.suppress.nodeShim)) {
+            console.warn('Shim config not supported in Node, may or may not work. Detected ' +
                             'for module: ' + moduleName);
         }
 
@@ -13795,9 +13810,9 @@ define('source-map/source-map-consumer', function (require, exports, module) {
     };
 
   /**
-   * Returns the original source content. The only argument is
-   * the url of the original source file. Returns null if no
-   * original source content is availible.
+   * Returns the original source content. The only argument is the url of the
+   * original source file. Returns null if no original source content is
+   * availible.
    */
   SourceMapConsumer.prototype.sourceContentFor =
     function SourceMapConsumer_sourceContentFor(aSource) {
@@ -13806,15 +13821,30 @@ define('source-map/source-map-consumer', function (require, exports, module) {
       }
 
       if (this.sourceRoot) {
-        // Try to remove the sourceRoot
-        var relativeUrl = util.relative(this.sourceRoot, aSource);
-        if (this._sources.has(relativeUrl)) {
-          return this.sourcesContent[this._sources.indexOf(relativeUrl)];
-        }
+        aSource = util.relative(this.sourceRoot, aSource);
       }
 
       if (this._sources.has(aSource)) {
         return this.sourcesContent[this._sources.indexOf(aSource)];
+      }
+
+      var url;
+      if (this.sourceRoot
+          && (url = util.urlParse(this.sourceRoot))) {
+        // XXX: file:// URIs and absolute paths lead to unexpected behavior for
+        // many users. We can help them out when they expect file:// URIs to
+        // behave like it would if they were running a local HTTP server. See
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=885597.
+        var fileUriAbsPath = aSource.replace(/^file:\/\//, "");
+        if (url.scheme == "file"
+            && this._sources.has(fileUriAbsPath)) {
+          return this.sourcesContent[this._sources.indexOf(fileUriAbsPath)]
+        }
+
+        if ((!url.path || url.path == "/")
+            && this._sources.has("/" + aSource)) {
+          return this.sourcesContent[this._sources.indexOf("/" + aSource)];
+        }
       }
 
       throw new Error('"' + aSource + '" is not in the SourceMap.');
@@ -14205,7 +14235,7 @@ define('source-map/source-map-generator', function (require, exports, module) {
       var result = '';
       var mapping;
 
-      // The mappings must be guarenteed to be in sorted order before we start
+      // The mappings must be guaranteed to be in sorted order before we start
       // serializing them or else the generated line numbers (which are defined
       // via the ';' separators) will be all messed up. Note: it might be more
       // performant to maintain the sorting as we insert them, rather than as we
@@ -14696,6 +14726,25 @@ define('source-map/util', function (require, exports, module) {
       path: match[7]
     };
   }
+  exports.urlParse = urlParse;
+
+  function urlGenerate(aParsedUrl) {
+    var url = aParsedUrl.scheme + "://";
+    if (aParsedUrl.auth) {
+      url += aParsedUrl.auth + "@"
+    }
+    if (aParsedUrl.host) {
+      url += aParsedUrl.host;
+    }
+    if (aParsedUrl.port) {
+      url += ":" + aParsedUrl.port
+    }
+    if (aParsedUrl.path) {
+      url += aParsedUrl.path;
+    }
+    return url;
+  }
+  exports.urlGenerate = urlGenerate;
 
   function join(aRoot, aPath) {
     var url;
@@ -14705,7 +14754,8 @@ define('source-map/util', function (require, exports, module) {
     }
 
     if (aPath.charAt(0) === '/' && (url = urlParse(aRoot))) {
-      return aRoot.replace(url.path, '') + aPath;
+      url.path = aPath;
+      return urlGenerate(url);
     }
 
     return aRoot.replace(/\/$/, '') + '/' + aPath;
@@ -14733,6 +14783,12 @@ define('source-map/util', function (require, exports, module) {
 
   function relative(aRoot, aPath) {
     aRoot = aRoot.replace(/\/$/, '');
+
+    var url = urlParse(aRoot);
+    if (aPath.charAt(0) == "/" && url && url.path == "/") {
+      return aPath.slice(1);
+    }
+
     return aPath.indexOf(aRoot + '/') === 0
       ? aPath.substr(aRoot.length + 1)
       : aPath;
@@ -14938,6 +14994,10 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
             compareTo(words);
         }
         return new Function("str", f);
+    }
+    function all(array, predicate) {
+        for (var i = array.length; --i >= 0; ) if (!predicate(array[i])) return false;
+        return true;
     }
     function Dictionary() {
         this._values = Object.create(null);
@@ -15810,7 +15870,7 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
     var RE_OCT_NUMBER = /^0[0-7]+$/;
     var RE_DEC_NUMBER = /^\d*\.?\d*(?:e[+-]?\d*(?:\d\.?|\.?\d)\d*)?$/i;
     var OPERATORS = makePredicate([ "in", "instanceof", "typeof", "new", "void", "delete", "++", "--", "+", "-", "!", "~", "&", "|", "^", "*", "/", "%", ">>", "<<", ">>>", "<", ">", "<=", ">=", "==", "===", "!=", "!==", "?", "=", "+=", "-=", "/=", "*=", "%=", ">>=", "<<=", ">>>=", "|=", "^=", "&=", "&&", "||" ]);
-    var WHITESPACE_CHARS = makePredicate(characters("  \n\r	\f​᠎             　"));
+    var WHITESPACE_CHARS = makePredicate(characters(" \u00a0\n\r\t\f\u000b\u200b\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000"));
     var PUNC_BEFORE_EXPRESSION = makePredicate(characters("[{(,.;:"));
     var PUNC_CHARS = makePredicate(characters("[]{}(),;:"));
     var REGEXP_MODIFIERS = makePredicate(characters("gmsiy"));
@@ -15848,6 +15908,7 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
     function is_identifier_string(str) {
         var i = str.length;
         if (i == 0) return false;
+        if (is_digit(str.charCodeAt(0))) return false;
         while (--i >= 0) {
             if (!is_identifier_char(str.charAt(i))) return false;
         }
@@ -16208,7 +16269,8 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
         options = defaults(options, {
             strict: false,
             filename: null,
-            toplevel: null
+            toplevel: null,
+            expression: false
         });
         var S = {
             input: typeof $TEXT == "string" ? tokenizer($TEXT, options.filename) : $TEXT,
@@ -16342,7 +16404,7 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
                   case "do":
                     return new AST_Do({
                         body: in_loop(statement),
-                        condition: (expect_token("keyword", "while"), tmp = parenthesised(), semicolon(), 
+                        condition: (expect_token("keyword", "while"), tmp = parenthesised(), semicolon(),
                         tmp)
                     });
 
@@ -16364,7 +16426,7 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
                   case "return":
                     if (S.in_function == 0) croak("'return' outside of function");
                     return new AST_Return({
-                        value: is("punc", ";") ? (next(), null) : can_insert_semicolon() ? null : (tmp = expression(true), 
+                        value: is("punc", ";") ? (next(), null) : can_insert_semicolon() ? null : (tmp = expression(true),
                         semicolon(), tmp)
                     });
 
@@ -16972,6 +17034,9 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
             --S.in_loop;
             return ret;
         }
+        if (options.expression) {
+            return expression(true);
+        }
         return function() {
             var start = S.token;
             var body = [];
@@ -17243,6 +17308,7 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
                     } else {
                         g = new SymbolDef(self, globals.size(), node);
                         g.undeclared = true;
+                        g.global = true;
                         globals.set(name, g);
                     }
                     node.thedef = g;
@@ -17542,7 +17608,8 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
             bracketize: false,
             semicolons: true,
             comments: false,
-            preserve_line: false
+            preserve_line: false,
+            negate_iife: !(options && options.beautify)
         }, true);
         var indentation = 0;
         var current_col = 0;
@@ -17829,7 +17896,7 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
             var self = this, generator = self._codegen;
             stream.push_node(self);
             var needs_parens = self.needs_parens(stream);
-            var fc = self instanceof AST_Function && !stream.option("beautify");
+            var fc = self instanceof AST_Function && stream.option("negate_iife");
             if (force_parens || needs_parens && !fc) {
                 stream.with_parens(function() {
                     self.add_comments(stream);
@@ -18443,7 +18510,7 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
             var a = output.stack(), i = a.length, node = a[--i], p = a[--i];
             while (i > 0) {
                 if (p instanceof AST_Statement && p.body === node) return true;
-                if (p instanceof AST_Seq && p.car === node || p instanceof AST_Call && p.expression === node || p instanceof AST_Dot && p.expression === node || p instanceof AST_Sub && p.expression === node || p instanceof AST_Conditional && p.condition === node || p instanceof AST_Binary && p.left === node || p instanceof AST_UnaryPostfix && p.expression === node) {
+                if (p instanceof AST_Seq && p.car === node || p instanceof AST_Call && p.expression === node && !(p instanceof AST_New) || p instanceof AST_Dot && p.expression === node || p instanceof AST_Sub && p.expression === node || p instanceof AST_Conditional && p.condition === node || p instanceof AST_Binary && p.left === node || p instanceof AST_UnaryPostfix && p.expression === node) {
                     node = p;
                     p = a[--i];
                 } else {
@@ -19970,6 +20037,45 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
                                 value: ""
                             })
                         });
+
+                      case "Function":
+                        if (all(self.args, function(x) {
+                            return x instanceof AST_String;
+                        })) {
+                            try {
+                                var code = "(function(" + self.args.slice(0, -1).map(function(arg) {
+                                    return arg.value;
+                                }).join(",") + "){" + self.args[self.args.length - 1].value + "})()";
+                                var ast = parse(code);
+                                ast.figure_out_scope();
+                                var comp = new Compressor(compressor.options);
+                                ast = ast.transform(comp);
+                                ast.figure_out_scope();
+                                ast.mangle_names();
+                                var fun = ast.body[0].body.expression;
+                                var args = fun.argnames.map(function(arg, i) {
+                                    return make_node(AST_String, self.args[i], {
+                                        value: arg.print_to_string()
+                                    });
+                                });
+                                var code = OutputStream();
+                                AST_BlockStatement.prototype._codegen.call(fun, fun, code);
+                                code = code.toString().replace(/^\{|\}$/g, "");
+                                args.push(make_node(AST_String, self.args[self.args.length - 1], {
+                                    value: code
+                                }));
+                                self.args = args;
+                                return self;
+                            } catch (ex) {
+                                if (ex instanceof JS_Parse_Error) {
+                                    compressor.warn("Error parsing code passed to new Function [{file}:{line},{col}]", self.args[self.args.length - 1].start);
+                                    compressor.warn(ex.toString());
+                                } else {
+                                    console.log(ex);
+                                }
+                            }
+                        }
+                        break;
                     }
                 } else if (exp instanceof AST_Dot && exp.property == "toString" && self.args.length == 0) {
                     return make_node(AST_Binary, self, {
@@ -20573,6 +20679,7 @@ define('uglifyjs2', ['exports', 'source-map', 'logger', 'env!env/file'], functio
     exports["set_difference"] = set_difference;
     exports["set_intersection"] = set_intersection;
     exports["makePredicate"] = makePredicate;
+    exports["all"] = all;
     exports["Dictionary"] = Dictionary;
     exports["DEFNODE"] = DEFNODE;
     exports["AST_Token"] = AST_Token;
@@ -21356,6 +21463,15 @@ define('parse', ['./esprimaAdapter', 'lang'], function (esprima, lang) {
             node.left.property && node.left.property.name === 'amd';
     };
 
+    //define.amd reference, as in: if (define.amd)
+    parse.refsDefineAmd = function (node) {
+        return node && node.type === 'MemberExpression' &&
+        node.object && node.object.name === 'define' &&
+        node.object.type === 'Identifier' &&
+        node.property && node.property.name === 'amd' &&
+        node.property.type === 'Identifier';
+    };
+
     //require(), requirejs(), require.config() and requirejs.config()
     parse.hasRequire = function (node) {
         var callName,
@@ -21459,7 +21575,7 @@ define('parse', ['./esprimaAdapter', 'lang'], function (esprima, lang) {
 
         traverse(esprima.parse(fileContents), function (node) {
             var type,
-                exp = node.expression;
+                exp = node.expression || node.init;
 
             if (node.type === 'Identifier' &&
                     (node.name === '__dirname' || node.name === '__filename')) {
@@ -21533,7 +21649,7 @@ define('parse', ['./esprimaAdapter', 'lang'], function (esprima, lang) {
      * Otherwise null.
      */
     parse.parseNode = function (node, onMatch) {
-        var name, deps, cjsDeps, arg, factory,
+        var name, deps, cjsDeps, arg, factory, exp, refsDefine, bodyNode,
             args = node && node[argPropName],
             callName = parse.hasRequire(node);
 
@@ -21606,6 +21722,36 @@ define('parse', ['./esprimaAdapter', 'lang'], function (esprima, lang) {
             }
 
             return onMatch("define", null, name, deps, node);
+        } else if (node.type === 'CallExpression' && node.callee &&
+                   node.callee.type === 'FunctionExpression' &&
+                   node.callee.body && node.callee.body.body &&
+                   node.callee.body.body.length === 1 &&
+                   node.callee.body.body[0].type === 'IfStatement') {
+            bodyNode = node.callee.body.body[0];
+            //Look for a define(Identifier) case, but only if inside an
+            //if that has a define.amd test
+            if (bodyNode.consequent && bodyNode.consequent.body) {
+                exp = bodyNode.consequent.body[0];
+                if (exp.type === 'ExpressionStatement' && exp.expression &&
+                    parse.hasDefine(exp.expression) &&
+                    exp.expression.arguments &&
+                    exp.expression.arguments.length === 1 &&
+                    exp.expression.arguments[0].type === 'Identifier') {
+
+                    //Calls define(Identifier) as first statement in body.
+                    //Confirm the if test references define.amd
+                    traverse(bodyNode.test, function (node) {
+                        if (parse.refsDefineAmd(node)) {
+                            refsDefine = true;
+                            return false;
+                        }
+                    });
+
+                    if (refsDefine) {
+                        return onMatch("define", null, null, null, exp.expression);
+                    }
+                }
+            }
         }
     };
 
@@ -21620,7 +21766,10 @@ define('parse', ['./esprimaAdapter', 'lang'], function (esprima, lang) {
     parse.nodeToString = function (contents, node) {
         var loc = node.loc,
             lines = contents.split('\n'),
-            preamble = lines.slice(0, loc.start.line - 1).join('\n') + '\n' +
+            firstLine = loc.start.line > 1 ?
+                        lines.slice(0, loc.start.line - 1).join('\n') + '\n' :
+                        '',
+            preamble = firstLine +
                        lines[loc.start.line - 1].substring(0, loc.start.column),
             extracted =  lines[loc.start.line - 1].substring(loc.start.column) +
                      '\n' +
@@ -21960,7 +22109,7 @@ function (esprima, parse, logger, lang) {
 
             if (options.useSourceUrl) {
                 contents = 'eval("' + lang.jsEscape(contents) +
-                    '\\n//@ sourceURL=' + (path.indexOf('/') === 0 ? '' : '/') +
+                    '\\n//# sourceURL=' + (path.indexOf('/') === 0 ? '' : '/') +
                     path +
                     '");\n';
             }
@@ -22075,7 +22224,7 @@ function (esprima, parse, logger, lang) {
                 value = 'null';
             } else if (obj === undefined) {
                 value = 'undefined';
-            } else if (typeof obj === 'number') {
+            } else if (typeof obj === 'number' || typeof obj === 'boolean') {
                 value = obj;
             } else if (typeof obj === 'string') {
                 //Use double quotes in case the config may also work as JSON.
@@ -22126,7 +22275,8 @@ function (esprima, parse, logger, lang) {
     };
 
     return transform;
-});/**
+});
+/**
  * @license Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/requirejs for details
@@ -22557,7 +22707,7 @@ define('rhino/optimize', ['logger', 'env!env/file'], function (logger, file) {
                     file.saveFile(outFileNameMap,
                         file.readFile(outFileNameMap).replace(mapRegExp, '"file":"' + baseName + '"'));
 
-                    fileContents = optimized + "\n//@ sourceMappingURL=" + outBaseName + ".map";
+                    fileContents = optimized + "\n//# sourceMappingURL=" + outBaseName + ".map";
                 } else {
                     fileContents = optimized;
                 }
@@ -23011,7 +23161,7 @@ function (lang,   logger,   envOptimize,        file,           parse,
                 logger.trace("Uglify2 file: " + fileName);
 
                 try {
-                    //var tempContents = fileContents.replace(/\/\/\@ sourceMappingURL=.*$/, '');
+                    //var tempContents = fileContents.replace(/\/\/\# sourceMappingURL=.*$/, '');
                     result = uglify2.minify(fileContents, uconfig, baseName + '.src.js');
                     if (uconfig.outSourceMap && result.map) {
                         resultMap = result.map;
@@ -23024,7 +23174,7 @@ function (lang,   logger,   envOptimize,        file,           parse,
                             file.saveFile(outFileName + '.src.js', fileContents);
                         }
                         file.saveFile(outFileName + '.map', resultMap);
-                        fileContents = result.code + "\n//@ sourceMappingURL=" + baseName + ".map";
+                        fileContents = result.code + "\n//# sourceMappingURL=" + baseName + ".map";
                     } else {
                         fileContents = result.code;
                     }
@@ -23920,9 +24070,11 @@ define('build', function (require) {
                         module._sourcePath = buildContext.nameToUrl(module.name);
                         //If the module does not exist, and this is not a "new" module layer,
                         //as indicated by a true "create" property on the module, and
-                        //it is not a plugin-loaded resource, then throw an error.
+                        //it is not a plugin-loaded resource, and there is no
+                        //'rawText' containing the module's source then throw an error.
                         if (!file.exists(module._sourcePath) && !module.create &&
-                                module.name.indexOf('!') === -1) {
+                                module.name.indexOf('!') === -1 &&
+                                (!config.rawText || !lang.hasProp(config.rawText, module.name))) {
                             throw new Error("ERROR: module path does not exist: " +
                                             module._sourcePath + " for module named: " + module.name +
                                             ". Path is relative to: " + file.absPath('.'));
@@ -24061,7 +24213,7 @@ define('build', function (require) {
                                 if (builtModule.sourceMap) {
                                     baseName = module._buildPath.split('/');
                                     baseName = baseName.pop();
-                                    finalText += '\n//@ sourceMappingURL=' + baseName + '.map';
+                                    finalText += '\n//# sourceMappingURL=' + baseName + '.map';
                                     file.saveUtf8File(module._buildPath + '.map', builtModule.sourceMap);
                                 }
                                 file.saveUtf8File(module._buildPath + '-temp', finalText);
@@ -24617,7 +24769,8 @@ define('build', function (require) {
                         ' correctly while running in the optimizer. Try only' +
                         ' using a config that is also valid JSON, or do not use' +
                         ' mainConfigFile and instead copy the config values needed' +
-                        ' into a build file or command line arguments given to the optimizer.');
+                        ' into a build file or command line arguments given to the optimizer.\n' +
+                        'Source error from parsing: ' + mainConfigFile + ': ' + configError);
             }
             if (mainConfig) {
                 mainConfigPath = mainConfigFile.substring(0, mainConfigFile.lastIndexOf('/'));
@@ -24712,10 +24865,21 @@ define('build', function (require) {
                             ' for optimization, and "dir" if you want the appDir' +
                             ' or baseUrl directories optimized.');
         }
-        if (config.dir && config.appDir && config.dir === config.appDir) {
-            throw new Error('"dir" and "appDir" set to the same directory.' +
-                            ' This could result in the deletion of appDir.' +
-                            ' Stopping.');
+
+        if (config.dir) {
+            // Make sure the output dir is not set to a parent of the
+            // source dir or the same dir, as it will result in source
+            // code deletion.
+            if (config.dir === config.baseUrl ||
+                config.dir === config.appDir ||
+                (config.baseUrl && build.makeRelativeFilePath(config.dir,
+                                           config.baseUrl).indexOf('..') !== 0) ||
+                (config.appDir &&
+                    build.makeRelativeFilePath(config.dir, config.appDir).indexOf('..') !== 0)) {
+                throw new Error('"dir" is set to a parent or same directory as' +
+                                ' "appDir" or "baseUrl". This can result in' +
+                                ' the deletion of source code. Stopping.');
+            }
         }
 
         if (config.insertRequire && !lang.isArray(config.insertRequire)) {
@@ -25556,7 +25720,7 @@ function (args, quit, logger, build) {
     } else if (commandOption === 'v') {
         console.log('r.js: ' + version +
                     ', RequireJS: ' + this.requirejsVars.require.version +
-                    ', UglifyJS2: 2.3.2, UglifyJS: 1.3.4');
+                    ', UglifyJS2: 2.3.6, UglifyJS: 1.3.4');
     } else if (commandOption === 'convert') {
         loadLib();
 
