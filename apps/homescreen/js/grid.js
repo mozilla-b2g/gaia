@@ -380,6 +380,19 @@ var GridManager = (function() {
         }
 
         break;
+
+      case 'wheel':
+        if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaX) {
+          // XXX: Scroll one page at a time
+          if (evt.deltaX > 0 && currentPage < pages.length - 1) {
+            GridManager.goToNextPage();
+          } else if (evt.deltaX < 0 && currentPage > 0) {
+            GridManager.goToPreviousPage();
+          }
+          evt.stopPropagation();
+          evt.preventDefault();
+        }
+        break;
     }
   }
 
@@ -867,6 +880,7 @@ var GridManager = (function() {
 
     container = document.querySelector(selector);
     container.addEventListener('contextmenu', handleEvent);
+    container.addEventListener('wheel', handleEvent);
     ensurePanning();
 
     limits.left = container.offsetWidth * 0.05;
