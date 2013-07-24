@@ -664,7 +664,10 @@ var OnCallHandler = (function onCallHandler() {
     }
 
     if (handledCalls.length < 2) {
-      holdOrResumeSingleCall();
+      // Putting a call on Hold when there are no other
+      // calls in progress has been disabled until a less
+      // accidental user-interface is implemented.
+      // See bug 894232 and bug 882056 for more background. 
       return;
     }
 
