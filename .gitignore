@@ -26,6 +26,7 @@ manifest.appcache
 /apps/settings/resources/support.json
 /apps/settings/resources/sensors.json
 /apps/system/resources/icc.json
+/apps/system/resources/wapuaprof.json
 /test_apps/*/test/unit/_sandbox.html
 /test_apps/*/test/unit/_proxy.html
 /showcase_apps/*/test/unit/_sandbox.html

@@ -33,20 +33,20 @@ var CallScreen = {
   lockedContactPhoto: document.getElementById('locked-contact-photo'),
 
   init: function cs_init() {
-    this.muteButton.addEventListener('mouseup', this.toggleMute.bind(this));
-    this.keypadButton.addEventListener('mouseup', this.showKeypad.bind(this));
-    this.speakerButton.addEventListener('mouseup',
+    this.muteButton.addEventListener('click', this.toggleMute.bind(this));
+    this.keypadButton.addEventListener('click', this.showKeypad.bind(this));
+    this.speakerButton.addEventListener('click',
                                     this.toggleSpeaker.bind(this));
-    this.answerButton.addEventListener('mouseup',
+    this.answerButton.addEventListener('click',
                                     OnCallHandler.answer.bind(OnCallHandler));
-    this.rejectButton.addEventListener('mouseup',
+    this.rejectButton.addEventListener('click',
                                     OnCallHandler.end);
 
-    this.incomingAnswer.addEventListener('mouseup',
+    this.incomingAnswer.addEventListener('click',
                               OnCallHandler.holdAndAnswer);
-    this.incomingEnd.addEventListener('mouseup',
+    this.incomingEnd.addEventListener('click',
                               OnCallHandler.endAndAnswer);
-    this.incomingIgnore.addEventListener('mouseup',
+    this.incomingIgnore.addEventListener('click',
                                     OnCallHandler.ignore);
 
     this.calls.addEventListener('click',

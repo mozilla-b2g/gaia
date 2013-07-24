@@ -139,6 +139,7 @@ var LanguageManager = {
         p.textContent = languages[lang];
 
         var label = document.createElement('label');
+        label.classList.add('pack-radio');
         label.appendChild(input);
         label.appendChild(span);
         label.appendChild(p);

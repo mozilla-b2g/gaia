@@ -9,6 +9,7 @@
     <script defer src="/shared/js/lazy_loader.js"></script>
     <script defer src="/dialer/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
+    <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <!-- Needed to not duplicate PIN/PUK management strings -->
     <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini">
@@ -21,7 +22,6 @@
     <link rel="stylesheet" type="text/css" href="/shared/style_unstable/tabs.css">
 
     <!-- JS -->
-    <script defer src="/shared/js/mouse_event_shim.js"></script>
     <script defer src="/dialer/js/utils.js"></script>
     <script defer src="/dialer/js/tone_player.js"></script>
     <script defer src="/dialer/js/keypad.js"></script>
@@ -54,7 +54,6 @@
     <script defer src="/dialer/js/contacts.js"></script>
     <script defer src="/dialer/js/contact_data_manager.js"></script>
     <script defer src="/dialer/js/suggestion_bar.js"></script>
-    <script defer src="/dialer/js/recents.js"></script>
     <script defer src="/dialer/js/telephony_helper.js"></script>
     <script defer src="/dialer/js/mmi.js"></script>
     <script defer src="/dialer/js/mmi_ui.js"></script>
@@ -89,6 +88,14 @@
             </div>
           </section>
         </div>
+        <form role="dialog" data-type="confirm" id="call-log-upgrading" class="hide">
+          <section>
+            <div role="status">
+              <span id="call-log-upgrade-percent" class="loading-header">0%</span>
+              <progress id="call-log-upgrade-progress" class="pack-activity" value="0" max="100"></progress>
+            </div>
+          </section>
+        </form>
       </article>
       <article class="view" role="tab" id="contacts-view">
         <a id="option-contacts" href="#contacts-view" class="icon icon-contacts">contacts</a>

@@ -26,14 +26,14 @@ var Utils = {
   },
 
   getDayDate: function re_getDayDate(timestamp) {
-    var date = new Date(timestamp),
-      startDate = new Date(date.getFullYear(),
+    var date = new Date(timestamp);
+    var startDate = new Date(date.getFullYear(),
                              date.getMonth(), date.getDate());
     return startDate.getTime();
   },
 
   getPhoneNumberPrimaryInfo: function ut_getPhoneNumberPrimaryInfo(matchingTel,
-    contact) {
+                                                                   contact) {
     if (contact) {
       if (contact.name && contact.name.length && contact.name[0] !== '') {
         return contact.name;
@@ -53,46 +53,41 @@ var Utils = {
     });
   },
 
-  // XXX: this is way too complex for the task accomplished
-  getPhoneNumberAdditionalInfo: function ut_getPhoneNumberAdditionalInfo(
-    matchingTel, associatedContact, inputNumber) {
-    var additionalInfo, phoneType, phoneCarrier,
-        contactPhoneEntry, contactPhoneNumber, contactPhoneType,
-        contactPhoneCarrier, multipleNumbersSameCarrier,
-        length = associatedContact.tel.length;
-
-    // Phone type is a mandatory field.
-    contactPhoneNumber = inputNumber;
-    additionalInfo = matchingTel.type;
-    phoneType = matchingTel.type;
-    if (matchingTel.carrier) {
-      phoneCarrier = matchingTel.carrier;
+  /**
+   * In case of a call linked to a contact, the additional information of the
+   * phone number subject of the call consists in the type and carrier
+   * associated with this phone number.
+   *
+   * Each call is associated with an *unique number* and this phone number can
+   * belong to n specific contact(s). We don't care about the contact having
+   * more than one phone number, as we are only interested in the additional
+   * information of the current call that is associated with *one and only one*
+   * phone number.
+   *
+   * The type of the phone number must be a localizable string.
+   */
+  getPhoneNumberAdditionalInfo:
+    function ut_getPhoneNumberAdditionalInfo(matchingTel) {
+    var number = matchingTel.number || matchingTel.value;
+    if (!number) {
+      return;
+    }
+    var carrier = matchingTel.carrier;
+    // In case that there is no stored type for this number, we default to
+    // "Mobile".
+    var type = matchingTel.type;
+    if (Array.isArray(type)) {
+      type = type[0];
+    }
+    var _ = navigator.mozL10n.get;
+    var result = type ? _(type) : _('mobile');
+    if (carrier) {
+      result += ', ' + carrier;
     } else {
-      additionalInfo = additionalInfo + ', ' + contactPhoneNumber;
+      result += ', ' + number;
     }
 
-    if (phoneType && phoneCarrier) {
-      var multipleNumbersSameCarrier = false;
-      for (var j = 0; j < length; j++) {
-        contactPhoneEntry = associatedContact.tel[j];
-        contactPhoneType = contactPhoneEntry.type;
-        contactPhoneCarrier = contactPhoneEntry.carrier;
-
-        if ((contactPhoneEntry.value != contactPhoneNumber) &&
-            (phoneType == contactPhoneType) &&
-            (phoneCarrier == contactPhoneCarrier)) {
-          multipleNumbersSameCarrier = true;
-          break;
-        }
-      }
-
-      if (multipleNumbersSameCarrier) {
-        additionalInfo = additionalInfo + ', ' + contactPhoneNumber;
-      } else {
-        additionalInfo = additionalInfo + ', ' + phoneCarrier;
-      }
-    }
-    return additionalInfo;
+    return result;
   },
 
   addEllipsis: function ut_addEllipsis(view, fakeView, ellipsisSide) {

@@ -1080,7 +1080,7 @@ var WindowManager = (function() {
     // Case 2: null --> app
     else if (FtuLauncher.isFtuRunning() && newApp !== homescreen) {
       openWindow(newApp, function windowOpened() {
-        InitLogoHandler.animate();
+        InitLogoHandler.animate(callback);
       });
     }
     // Case 3: null->homescreen || homescreen->app
@@ -1706,7 +1706,7 @@ var WindowManager = (function() {
             deviceLockedTimer = setTimeout(function setVisibility() {
               // XXX: Check FTU status again to avoid the power-on video
               // is too short.
-              if (isRunningFirstRunApp)
+              if (FtuLauncher.isFtuRunning())
                 return;
               runningApps[displayedApp].setVisible(false);
             }, 3000);

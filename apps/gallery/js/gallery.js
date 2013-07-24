@@ -744,6 +744,8 @@ function cropPickedImage(fileinfo) {
   photodb.getFile(pickedFile.name, function(file) {
     cropURL = URL.createObjectURL(file);
     cropEditor = new ImageEditor(cropURL, $('crop-frame'), {}, function() {
+      // Enable the done button so that users are able to finish picking image.
+      $('crop-done-button').disabled = false;
       // If the initiating app doesn't want to allow the user to crop
       // the image, we don't display the crop overlay. But we still use
       // this image editor to preview the image.
@@ -761,9 +763,6 @@ function cropPickedImage(fileinfo) {
         cropEditor.setCropAspectRatio(pickWidth, pickHeight);
       else
         cropEditor.setCropAspectRatio(); // free form cropping
-
-      // Enable the done button so that users are able to finish picking image.
-      $('crop-done-button').disabled = false;
     });
   });
 }

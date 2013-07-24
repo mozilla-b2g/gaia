@@ -72,8 +72,8 @@ suite('Contacts settings', function() {
     '<ul data-type="list">\n' +
     '<li id="settingsOrder">\n' +
     '<aside class="pack-end">\n' +
-    '<label>\n' +
-    '<input type="checkbox" data-type="switch" name="order.lastname" />\n' +
+    '<label class="pack-switch">\n' +
+    '<input type="checkbox" name="order.lastname" />\n' +
     '<span></span>\n' +
     '</label>\n' +
     '</aside>\n' +
@@ -114,8 +114,8 @@ suite('Contacts settings', function() {
     '<ul id="settingsFb" data-type="list" data-state="logged-out">\n' +
     '<li class="fb-item">\n' +
     '<aside class="pack-end">\n' +
-    '<label>\n' +
-    '<input type="checkbox" data-type="switch" name="fb.imported">\n' +
+    '<label class="pack-switch">\n' +
+    '<input type="checkbox" name="fb.imported">\n' +
     '<span id="span-check-fb"></span>\n' +
     '</label>\n' +
     '</aside>\n' +
