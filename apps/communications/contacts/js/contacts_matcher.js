@@ -225,16 +225,8 @@ contacts.Matcher = (function() {
                           replace(blankRegExp, '');
           }
 
-          var targetName = null;
-          if (!isEmptyStr(aContact.name)) {
-            targetName = Normalizer.toAscii(
-                          aContact.name[0].trim().toLowerCase()).
-                          replace(blankRegExp, '');
-          }
-
           var mFamilyName = null;
           var mGivenName = null;
-          var mName = null;
 
           if (!isEmptyStr(mContact.familyName)) {
             mFamilyName = Normalizer.toAscii(
@@ -248,23 +240,14 @@ contacts.Matcher = (function() {
                           replace(blankRegExp, '');
           }
 
-          if (!isEmptyStr(mContact.name)) {
-            mName = Normalizer.toAscii(
-                                    mContact.name[0].trim().toLowerCase()).
-                          replace(blankRegExp, '');
-          }
-
           names.push({
             contact: mContact,
             familyName: mFamilyName,
-            givenName: mGivenName,
-            name: mName
+            givenName: mGivenName
           });
 
           var matchingList = names.filter(function(x) {
-            return (((x.familyName && x.familyName === targetFN) &&
-            (x.givenName && x.givenName === targetGN)) ||
-            (x.name && x.name === targetName));
+            return (x.familyName === targetFN && x.givenName === targetGN);
           });
 
           matchingList.forEach(function(aMatching) {
@@ -345,7 +328,7 @@ contacts.Matcher = (function() {
                           replace(blankRegExp, '');
       if (results.length > 0) {
         results.forEach(function(mContact) {
-          if (mContact.id === aContact.id) {
+          if (mContact.id === aContact.id || isEmptyStr(mContact.givenName)) {
             return;
           }
           givenNames.push({
@@ -399,11 +382,8 @@ contacts.Matcher = (function() {
   }
 
   function hasName(aContact) {
-    return ((Array.isArray(aContact.familyName) &&
-      Array.isArray(aContact.givenName) && aContact.familyName[0] &&
-      aContact.familyName[0].trim() && aContact.givenName[0] &&
-      aContact.givenName[0].trim()) || (Array.isArray(aContact.name) &&
-      aContact.name[0] && aContact.name[0].trim()));
+    return (!isEmptyStr(aContact.givenName) ||
+            !isEmptyStr(aContact.familyName));
   }
 
   function reconcileResults(incomingContact, nameMatches, phoneMailMatches,
