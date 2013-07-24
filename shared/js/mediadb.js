@@ -378,7 +378,7 @@ var MediaDB = (function() {
       // This maps event type -> array of listeners
       // See addEventListener and removeEventListener
       eventListeners: {},
-
+      pendingScans: 0,
       // Properties for queuing up db insertions and deletions and also
       // for queueing up notifications to be sent
       pendingInsertions: [],   // Array of filenames to insert
@@ -1125,6 +1125,11 @@ var MediaDB = (function() {
   // to see if any files have been deleted.
   //
   function scan(media) {
+    if (media.scanning) {
+      media.details.pendingScans++;
+      return;
+    }
+
     media.scanning = true;
     dispatchEvent(media, 'scanstart');
 
@@ -1160,6 +1165,7 @@ var MediaDB = (function() {
         if (file) {
           if (!ignore(media, file))
             insertRecord(media, file);
+
           cursor.continue();
         }
         else {
@@ -1208,13 +1214,14 @@ var MediaDB = (function() {
       var dsfiles = [];
       var cursor = media.storage.enumerate('');
       cursor.onsuccess = function() {
-        if (!media.scanning)  // Abort if scanning has been cancelled
+        if (!media.scanning) // Abort if scanning has been cancelled
           return;
+
         var file = cursor.result;
         if (file) {
-          if (!ignore(media, file)) {
+          if (!ignore(media, file))
             dsfiles.push(file);
-          }
+
           cursor.continue();
         }
         else {
@@ -1339,8 +1346,13 @@ var MediaDB = (function() {
   function endscan(media) {
     if (media.scanning) {
       media.scanning = false;
-      media.parsingBigFiles = false;
-      dispatchEvent(media, 'scanend');
+      if (media.details.pendingScans > 0) {
+        media.details.pendingScans--;
+        scan(media);
+      } else {
+        media.parsingBigFiles = false;
+        dispatchEvent(media, 'scanend');
+      }
     }
   }
 
