@@ -68,7 +68,7 @@ window.Evme = new function Evme_Core() {
             }
         }
 
-        Evme.Brain.Searchbar.blur();
+        Evme.Searchbar.blur();
         return false; // allow navigation to homescreen
     };
 
