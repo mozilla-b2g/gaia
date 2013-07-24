@@ -1612,6 +1612,15 @@ ActiveSyncFolderConn.prototype = {
   _updateBody: function(header, bodyInfo, bodyContent, snippetOnly, callback) {
     var bodyRep = bodyInfo.bodyReps[0];
 
+    // XXX We don't want a trailing newline, primarily for unit test reasons
+    // right now... This might be a problem on our compose-side for activesync.
+    if (bodyContent.length && bodyContent[bodyContent.length - 1] === '\n')
+      bodyContent = bodyContent.slice(0, -1);
+
+    // We neither need to store or want to deal with \r in the processing of
+    // the body.
+    bodyContent = bodyContent.replace(/\r/g, '');
+
     var type = snippetOnly ? 'plain' : bodyRep.type;
     var data = $mailchew.processMessageContent(bodyContent, type, !snippetOnly,
                                                true, this._LOG);
@@ -1629,7 +1638,7 @@ ActiveSyncFolderConn.prototype = {
 
     this._storage.updateMessageHeader(header.date, header.id, false, header);
     this._storage.updateMessageBody(header, bodyInfo, event);
-    this._storage.runAfterDeferredCalls(callback);
+    this._storage.runAfterDeferredCalls(callback.bind(null, null, bodyInfo));
   },
 
   sync: lazyConnection(1, function asfc_sync(accuracyStamp, doneCallback,
@@ -3287,6 +3296,9 @@ ActiveSyncAccount.prototype = {
         var cm = $ComposeMail.Tags;
         var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
         w.stag(cm.SendMail)
+           // The ClientId is defined to be for duplicate messages suppression
+           // and does not need to have any uniqueness constraints apart from
+           // not being similar to (recently sent) messages by this client.
            .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
            .tag(cm.SaveInSentItems)
            .stag(cm.Mime)
@@ -3366,6 +3378,7 @@ ActiveSyncAccount.prototype = {
 
   runOp: $acctmixins.runOp,
   getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
+  getFolderByPath: $acctmixins.getFolderByPath,
 };
 
 var LOGFAB = exports.LOGFAB = $log.register($module, {
