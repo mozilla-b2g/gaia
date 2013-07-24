@@ -82,7 +82,7 @@
       var text = navigator.mozL10n.get(sound.replace('.', '_')) || sound;
       list +=
         '<li>' +
-        '  <label>' +
+        '  <label class="pack-radio">' +
         '    <input type="radio" name="' + type + '-option" data-ignore ' +
         'value="' + sound + '" data-label="' + text + '" />' +
         '    <span></span>' +

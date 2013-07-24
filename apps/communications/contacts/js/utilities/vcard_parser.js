@@ -30,6 +30,13 @@ VCFReader.prototype.process = function(cb) {
   var self = this;
   var allDone = false;
   this.totalContacts = rawContacts.length;
+
+  if (this.totalContacts === 0) {
+    // Returning becasue there aren't contacts to import
+    cb(rawContacts);
+    return;
+  }
+
   rawContacts.forEach(function(ct) { VCFReader.save(ct, onParsed); });
 
   function onParsed(err, ct) {

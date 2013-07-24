@@ -740,11 +740,14 @@ suiteGroup('Provider.Caldav', function() {
       });
 
       test('result', function(done) {
+        var isAsync = false;
         // tokens match should not sync!
         subject.syncEvents(account, calendar, function() {
           assert.ok(!calledWith);
+          assert.ok(isAsync, 'should be async');
           done();
         });
+        isAsync = true;
       });
 
       test('offline handling', function(done) {

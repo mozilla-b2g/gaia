@@ -312,7 +312,8 @@
     _updateXorDeleteEvents: function(badCalendarIdToEventIds, trans) {
       var calendarIds = Object.keys(badCalendarIdToEventIds);
       calendarIds.forEach(function(calendarId) {
-        calendarId = parseInt(calendarId, 10);
+        //Bug 887698 cases for calendarIds of types strings or integers
+        calendarId = Calendar.probablyParseInt(calendarId);
         var eventIds = badCalendarIdToEventIds[calendarId];
         var calendars = trans.objectStore(store.calendars);
         calendars.get(calendarId).onsuccess = (function(evt) {

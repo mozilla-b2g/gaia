@@ -16,6 +16,7 @@ var MockContacts = {
       type: this.mType
     };
     var contact = {
+      id: this.mId,
       name: [this.mName],
       tel: [tel],
       photo: [this.mPhoto]
@@ -39,6 +40,7 @@ var MockContacts = {
   findListByNumber: function cm_getContactData(number, maxitems, callback) {
     callback(this.mResult);
   },
+  mId: 'id',
   mPhoto: null,
   mName: null,
   mCalledWith: null,

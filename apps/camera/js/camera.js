@@ -258,6 +258,14 @@ var Camera = {
     return document.getElementById('select-button');
   },
 
+  get overlayCloseButton() {
+    return document.getElementById('overlay-close-button');
+  },
+
+  get overlayMenuGroup() {
+    return document.getElementById('overlay-menu-group');
+  },
+
   // We have seperated init and delayedInit as we want to make sure
   // that on first launch we dont interfere and load the camera
   // previewStream as fast as possible, once the previewStream is
@@ -333,6 +341,8 @@ var Camera = {
       .addEventListener('click', this.retakePressed.bind(this));
     this.selectButton
       .addEventListener('click', this.selectPressed.bind(this));
+    this.overlayCloseButton
+      .addEventListener('click', this.cancelPick.bind(this));
 
     if (!navigator.mozCameras) {
       this.captureButton.setAttribute('disabled', 'disabled');
@@ -939,6 +949,7 @@ var Camera = {
     if (this._recording) {
       this.stopRecording();
     }
+    this.hideFocusRing();
     this.disableButtons();
     this.viewfinder.pause();
     this._previewActive = false;
@@ -1211,6 +1222,12 @@ var Camera = {
     if (id === null) {
       this.overlay.classList.add('hidden');
       return;
+    }
+
+    if (this._pendingPick) {
+      this.overlayMenuGroup.classList.remove('hidden');
+    } else {
+      this.overlayMenuGroup.classList.add('hidden');
     }
 
     this.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');

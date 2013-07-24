@@ -574,7 +574,7 @@ var Recents = {
       '  data-num="' + recent.number + '"' +
       '  data-date="' + recent.date + '"' +
       '  data-type="' + recent.type + '">' +
-      '  <label class="call-log-selection danger">' +
+      '  <label class="pack-checkbox call-log-selection danger">' +
       '    <input type="checkbox" />' +
       '    <span></span>' +
       '  </label>' +

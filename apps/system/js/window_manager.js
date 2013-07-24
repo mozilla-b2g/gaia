@@ -1047,10 +1047,16 @@ var WindowManager = (function() {
         type = 'appopen';
       }
 
-      app.frame.addEventListener(type, function apploaded(e) {
+      // Be careful about what you reference from within the closure below (or
+      // any other closures in this function), or you might leak
+      // homescreenFrame.  For example, referencing |document| causes this
+      // leak; that's why we pull the document off e.target.  See bug 894135,
+      // and if in doubt, ask one of the people referenced in that bug.
+      app.iframe.addEventListener(type, function apploaded(e) {
+        var doc = e.target.ownerDocument;
         e.target.removeEventListener(e.type, apploaded, true);
 
-        var evt = document.createEvent('CustomEvent');
+        var evt = doc.createEvent('CustomEvent');
         evt.initCustomEvent('apploadtime', true, false, {
           time: parseInt(Date.now() - iframe.dataset.start),
           type: (e.type == 'appopen') ? 'w' : 'c'
@@ -1072,7 +1078,7 @@ var WindowManager = (function() {
     // Case 2: null --> app
     else if (FtuLauncher.isFtuRunning() && newApp !== homescreen) {
       openWindow(newApp, function windowOpened() {
-        InitLogoHandler.animate();
+        InitLogoHandler.animate(callback);
       });
     }
     // Case 3: null->homescreen || homescreen->app
@@ -1698,7 +1704,7 @@ var WindowManager = (function() {
             deviceLockedTimer = setTimeout(function setVisibility() {
               // XXX: Check FTU status again to avoid the power-on video
               // is too short.
-              if (isRunningFirstRunApp)
+              if (FtuLauncher.isFtuRunning())
                 return;
               runningApps[displayedApp].setVisible(false);
             }, 3000);

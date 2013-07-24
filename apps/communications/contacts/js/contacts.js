@@ -341,8 +341,6 @@ var Contacts = (function() {
       if (fromUpdateActivity)
         hash += '&fromUpdateActivity=1';
       window.location.hash = hash;
-      contactsList.clearClickHandlers();
-      contactsList.handleClick(contactListClickHandler);
     });
   };
 
@@ -782,7 +780,8 @@ var Contacts = (function() {
       var event = new CustomEvent('asyncScriptsLoaded');
       window.dispatchEvent(event);
       var handling = ActivityHandler.currentlyHandling;
-      if (!handling || ActivityHandler.activityName === 'pick') {
+      if (!handling || ActivityHandler.activityName === 'pick' ||
+                       ActivityHandler.activityName === 'update') {
         initContactsList();
         checkUrl();
       } else {
