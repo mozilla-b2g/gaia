@@ -18,6 +18,7 @@ function AppUpdatable(app) {
 
   var manifest = app.manifest ? app.manifest : app.updateManifest;
   this.name = new ManifestHelper(manifest).name;
+  this.nameL10nId = '';
 
   this.size = app.downloadSize;
   this.progress = null;
@@ -131,6 +132,7 @@ AppUpdatable.prototype.progressCallBack = function() {
 function SystemUpdatable() {
   var _ = navigator.mozL10n.get;
   this.name = _('systemUpdate');
+  this.nameL10nId = 'systemUpdate';
   this.size = 0;
   this.downloading = false;
   this.paused = false;

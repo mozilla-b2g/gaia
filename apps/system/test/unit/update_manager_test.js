@@ -1074,9 +1074,11 @@ suite('system/UpdateManager', function() {
         systemUpdatable.size = 5296345;
         var appUpdatable = new MockAppUpdatable(new MockApp());
         appUpdatable.name = 'Angry birds';
+        appUpdatable.nameID = '';
         appUpdatable.size = '423459';
         var hostedAppUpdatable = new MockAppUpdatable(new MockApp());
         hostedAppUpdatable.name = 'Twitter';
+        hostedAppUpdatable.nameID = '';
         UpdateManager.updatesQueue = [hostedAppUpdatable, appUpdatable,
                                       systemUpdatable];
         UpdateManager.containerClicked();
@@ -1108,18 +1110,22 @@ suite('system/UpdateManager', function() {
           test('should render system update item first with required',
           function() {
             var item = UpdateManager.downloadDialogList.children[0];
-
-            assert.include(item.textContent, 'systemUpdate');
             assert.include(item.textContent, '5.05 MB');
             assert.include(item.textContent, 'required');
+
+            var name = item.querySelector('div.name');
+            assert.equal(name.textContent, 'System Update');
+            assert.equal(name.dataset.l10nId, 'systemUpdate');
           });
 
           test('should render packaged app items alphabetically with checkbox',
-            function() {
+          function() {
             var item = UpdateManager.downloadDialogList.children[1];
-
-            assert.include(item.textContent, 'Angry birds');
             assert.include(item.textContent, '413.53 kB');
+
+            var name = item.querySelector('div.name');
+            assert.equal(name.textContent, 'Angry birds');
+            assert.isUndefined(name.dataset.l10nId);
 
             var checkbox = item.querySelector('input');
             assert.equal(checkbox.type, 'checkbox');
@@ -1131,7 +1137,9 @@ suite('system/UpdateManager', function() {
           function() {
             var item = UpdateManager.downloadDialogList.children[2];
 
-            assert.include(item.textContent, 'Twitter');
+            var name = item.querySelector('div.name');
+            assert.equal(name.textContent, 'Twitter');
+            assert.isUndefined(name.dataset.l10nId);
 
             var checkbox = item.querySelector('input');
             assert.equal(checkbox.type, 'checkbox');
