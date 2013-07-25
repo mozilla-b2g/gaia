@@ -8,8 +8,11 @@
     "url": "https://github.com/lissyx/gaia-geoloc"
   },
   "permissions": {
-    "geolocation":{},
-    "device-storage:sdcard":{ "access": "readonly" }
+    "geolocation":{ "description": "Needed to navigate you" },
+    "device-storage:sdcard":{
+      "description": "Needed to read the maps",
+      "access": "readonly"
+    }
   },
   "locales": {
     "en-US": {
