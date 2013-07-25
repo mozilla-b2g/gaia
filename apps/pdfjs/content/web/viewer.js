@@ -14,10 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* globals URL*/
-/* globals PDFJS, PDFBug, FirefoxCom, Stats, Cache, PDFFindBar */
-/* globals PDFFindController, ProgressBar, getFileName, CustomStyle */
-/* globals getOutputScale, TextLayerBuilder */
+/* globals PDFJS, PDFBug, FirefoxCom, Stats, Cache, PDFFindBar, CustomStyle,
+           PDFFindController, ProgressBar, TextLayerBuilder, DownloadManager,
+           getFileName, getOutputScale, scrollIntoView, getPDFFileNameFromURL */
 
 'use strict';
 
@@ -128,6 +127,61 @@ function getOutputScale() {
   };
 }
 
+/**
+ * Scrolls specified element into view of its parent.
+ * element {Object} The element to be visible.
+ * spot {Object} The object with the top property -- offset from the top edge.
+ */
+function scrollIntoView(element, spot) {
+  // Assuming offsetParent is available (it's not available when viewer is in
+  // hidden iframe or object). We have to scroll: if the offsetParent is not set
+  // producing the error. See also animationStartedClosure.
+  var parent = element.offsetParent;
+  var offsetY = element.offsetTop + element.clientTop;
+  if (!parent) {
+    console.error('offsetParent is not set -- cannot scroll');
+    return;
+  }
+  while (parent.clientHeight == parent.scrollHeight) {
+    offsetY += parent.offsetTop;
+    parent = parent.offsetParent;
+    if (!parent)
+      return; // no need to scroll
+  }
+  if (spot)
+    offsetY += spot.top;
+  parent.scrollTop = offsetY;
+}
+
+/**
+ * Returns the filename or guessed filename from the url (see issue 3455).
+ * url {String} The original PDF location.
+ * @return {String} Guessed PDF file name.
+ */
+function getPDFFileNameFromURL(url) {
+  var reURI = /^(?:([^:]+:)?\/\/[^\/]+)?([^?#]*)(\?[^#]*)?(#.*)?$/;
+  //            SCHEME      HOST         1.PATH  2.QUERY   3.REF
+  // Pattern to get last matching NAME.pdf
+  var reFilename = /[^\/?#=]+\.pdf\b(?!.*\.pdf\b)/i;
+  var splitURI = reURI.exec(url);
+  var suggestedFilename = reFilename.exec(splitURI[1]) ||
+                           reFilename.exec(splitURI[2]) ||
+                           reFilename.exec(splitURI[3]);
+  if (suggestedFilename) {
+    suggestedFilename = suggestedFilename[0];
+    if (suggestedFilename.indexOf('%') != -1) {
+      // URL-encoded %2Fpath%2Fto%2Ffile.pdf should be file.pdf
+      try {
+        suggestedFilename =
+          reFilename.exec(decodeURIComponent(suggestedFilename))[0];
+      } catch(e) { // Possible (extremely rare) errors:
+        // URIError "Malformed URI", e.g. for "%AA.pdf"
+        // TypeError "null has no properties", e.g. for "%2F.pdf"
+      }
+    }
+  }
+  return suggestedFilename || 'document.pdf';
+}
 
 var ProgressBar = (function ProgressBarClosure() {
 
@@ -190,28 +244,6 @@ var Cache = function cacheCache(size) {
   };
 };
 
-
-
-function scrollIntoView(element, spot) {
-  // Assuming offsetParent is available (it's not available when viewer is in
-  // hidden iframe or object). We have to scroll: if the offsetParent is not set
-  // producing the error. See also animationStartedClosure.
-  var parent = element.offsetParent;
-  var offsetY = element.offsetTop + element.clientTop;
-  if (!parent) {
-    console.error('offsetParent is not set -- cannot scroll');
-    return;
-  }
-  while (parent.clientHeight == parent.scrollHeight) {
-    offsetY += parent.offsetTop;
-    parent = parent.offsetParent;
-    if (!parent)
-      return; // no need to scroll
-  }
-  if (spot)
-    offsetY += spot.top;
-  parent.scrollTop = offsetY;
-}
 
 
 
@@ -804,7 +836,7 @@ var PDFHistory = {
 
     var state = window.history.state;
     if (this._isStateObjectDefined(state)) {
-      // This case corresponds to navigating back to the document
+      // This corresponds to navigating back to the document
       // from another page in the browser history.
       if (state.target.dest) {
         this.initialDestination = state.target.dest;
@@ -815,7 +847,7 @@ var PDFHistory = {
       this.uid = state.uid + 1;
       this.current = state.target;
     } else {
-      // This case corresponds to the loading of a new document.
+      // This corresponds to the loading of a new document.
       if (state && state.fingerprint &&
           this.fingerprint !== state.fingerprint) {
         // Reinitialize the browsing history when a new document
@@ -839,10 +871,14 @@ var PDFHistory = {
       } else {
         // Handle the user modifying the hash of a loaded document.
         self.previousHash = window.location.hash.substring(1);
+
+        // If the history is empty when the hash changes,
+        // update the previous entry in the browser history.
         if (self.uid === 0) {
           var previousParams = (self.previousHash && self.currentBookmark &&
                                 self.previousHash !== self.currentBookmark) ?
-            { hash: self.currentBookmark } : { page: 1 };
+            { hash: self.currentBookmark, page: self.currentPage } :
+            { page: 1 };
           self.historyUnlocked = false;
           self.allowHashChange = false;
           window.history.back();
@@ -851,23 +887,29 @@ var PDFHistory = {
           self.historyUnlocked = true;
         }
         self._pushToHistory({ hash: self.previousHash }, false, true);
-        if (self.currentBookmark) {
-          self.previousBookmark = self.currentBookmark;
-        }
+        self._updatePreviousBookmark();
       }
     }, false);
 
-    window.addEventListener('beforeunload',
-                            function pdfHistoryBeforeunload(evt) {
+    function pdfHistoryBeforeUnload() {
       var previousParams = self._getPreviousParams(null, true);
       if (previousParams) {
-        self._pushToHistory(previousParams, false);
+        var replacePrevious = (!self.current.dest &&
+                               self.current.hash !== self.previousHash);
+        self._pushToHistory(previousParams, false, replacePrevious);
+        self._updatePreviousBookmark();
       }
-      if (PDFView.isPresentationMode) {
-        // Prevent the user from accidentally navigating away from
-        // the document when presentation mode is active.
-        evt.preventDefault();
-      }
+      // Remove the event listener when navigating away from the document,
+      // since 'beforeunload' prevents Firefox from caching the document.
+      window.removeEventListener('beforeunload', pdfHistoryBeforeUnload, false);
+    }
+    window.addEventListener('beforeunload', pdfHistoryBeforeUnload, false);
+
+    window.addEventListener('pageshow', function pdfHistoryPageShow(evt) {
+      // If the entire viewer (including the PDF file) is cached in the browser,
+      // we need to reattach the 'beforeunload' event listener since
+      // the 'DOMContentLoaded' event is not fired on 'pageshow'.
+      window.addEventListener('beforeunload', pdfHistoryBeforeUnload, false);
     }, false);
   },
 
@@ -896,16 +938,21 @@ var PDFHistory = {
     return temp;
   },
 
+  _updatePreviousBookmark: function pdfHistory_updatePreviousBookmark() {
+    if (this.updatePreviousBookmark &&
+        this.currentBookmark && this.currentPage) {
+      this.previousBookmark = this.currentBookmark;
+      this.previousPage = this.currentPage;
+      this.updatePreviousBookmark = false;
+    }
+  },
+
   updateCurrentBookmark: function pdfHistoryUpdateCurrentBookmark(bookmark,
                                                                   pageNum) {
     if (this.initialized) {
       this.currentBookmark = bookmark.substring(1);
       this.currentPage = pageNum | 0;
-      if (this.updatePreviousBookmark) {
-        this.previousBookmark = this.currentBookmark;
-        this.previousPage = this.currentPage;
-        this.updatePreviousBookmark = false;
-      }
+      this._updatePreviousBookmark();
     }
   },
 
@@ -928,10 +975,20 @@ var PDFHistory = {
     if (params.page) {
       params.page |= 0;
     }
-    if (isInitialBookmark && this.uid === 0) {
-      this._pushToHistory(params, false);
-      this.previousHash = window.location.hash.substring(1);
+    if (isInitialBookmark) {
+      var target = window.history.state.target;
+      if (!target) {
+        // Invoked when the user specifies an initial bookmark,
+        // thus setting PDFView.initialBookmark, when the document is loaded.
+        this._pushToHistory(params, false);
+        this.previousHash = window.location.hash.substring(1);
+      }
       this.updatePreviousBookmark = this.nextHashParam ? false : true;
+      if (target) {
+        // If the current document is reloaded,
+        // avoid creating duplicate entries in the history.
+        this._updatePreviousBookmark();
+      }
       return;
     }
     if (this.nextHashParam && this.nextHashParam === params.hash) {
@@ -944,8 +1001,11 @@ var PDFHistory = {
       if (this.current.hash) {
         if (this.current.hash !== params.hash) {
           this._pushToHistory(params, true);
-        } else if (!this.current.page && params.page) {
-          this._pushToHistory(params, false, true);
+        } else {
+          if (!this.current.page && params.page) {
+            this._pushToHistory(params, false, true);
+          }
+          this.updatePreviousBookmark = true;
         }
       } else {
         this._pushToHistory(params, true);
@@ -994,7 +1054,8 @@ var PDFHistory = {
     if (addPrevious && !overwrite) {
       var previousParams = this._getPreviousParams();
       if (previousParams) {
-        this._pushToHistory(previousParams, false);
+        var replacePrevious = (this.current.hash !== this.previousHash);
+        this._pushToHistory(previousParams, false, replacePrevious);
       }
     }
     if (overwrite || this.uid === 0) {
@@ -1486,83 +1547,28 @@ var PDFView = {
   },
 
   download: function pdfViewDownload() {
-    var url = this.url.split('#')[0];
-    function getPDFFileNameFromURL(url) {
-      var reURI = /^(?:([^:]+:)?\/\/[^\/]+)?([^?#]*)(\?[^#]*)?(#.*)?$/;
-      //            SCHEME      HOST         1.PATH  2.QUERY   3.REF
-      // Pattern to get last matching NAME.pdf
-      var reFilename = /[^\/?#=]+\.pdf\b(?!.*\.pdf\b)/i;
-      var splitURI = reURI.exec(url);
-      var suggestedFilename = reFilename.exec(splitURI[1]) ||
-                               reFilename.exec(splitURI[2]) ||
-                               reFilename.exec(splitURI[3]);
-      if (suggestedFilename) {
-        suggestedFilename = suggestedFilename[0];
-        if (suggestedFilename.indexOf('%') != -1) {
-          // URL-encoded %2Fpath%2Fto%2Ffile.pdf should be file.pdf
-          try {
-            suggestedFilename =
-              reFilename.exec(decodeURIComponent(suggestedFilename))[0];
-          } catch(e) { // Possible (extremely rare) errors:
-            // URIError "Malformed URI", e.g. for "%AA.pdf"
-            // TypeError "null has no properties", e.g. for "%2F.pdf"
-          }
-        }
-      }
-      return suggestedFilename || 'document.pdf';
-    }
     function noData() {
-      triggerSaveAs(url + '#pdfjs.action=download');
+      downloadManager.downloadUrl(url, filename);
     }
-    function triggerSaveAs(url, blobUrl) {
-      // If blobUrl is not specified, fall back to non-blob url.
-      if (!blobUrl) blobUrl = url;
 
-      var a = document.createElement('a');
-      if (a.click) {
-        // Use a.click() if available. Otherwise, Chrome might show
-        // "Unsafe JavaScript attempt to initiate a navigation change
-        //  for frame with URL" and not open the PDF at all.
-        // Supported by (not mentioned = untested):
-        // - Firefox 6 - 19 (4- does not support a.click, 5 ignores a.click)
-        // - Chrome 19 - 26 (18- does not support a.click)
-        // - Opera 9 - 12.15
-        // - Internet Explorer 6 - 10
-        // - Safari 6 (5.1- does not support a.click)
-        a.href = blobUrl;
-        a.target = '_parent';
-        // Use a.download if available. This increases the likelihood that
-        // the file is downloaded instead of opened by another PDF plugin.
-        if ('download' in a) {
-          a.download = getPDFFileNameFromURL(url);
-        }
-        // <a> must be in the document for IE and recent Firefox versions.
-        // (otherwise .click() is ignored)
-        (document.body || document.documentElement).appendChild(a);
-        a.click();
-        a.parentNode.removeChild(a);
-      } else {
-        if (window.top === window &&
-            blobUrl.split('#')[0] === window.location.href.split('#')[0]) {
-          // If _parent == self, then opening an identical URL with different
-          // location hash will only cause a navigation, not a download.
-          var padCharacter = blobUrl.indexOf('?') === -1 ? '?' : '&';
-          blobUrl = blobUrl.replace(/#|$/, padCharacter + '$&');
-        }
-        window.open(blobUrl, '_parent');
-      }
+    var url = this.url.split('#')[0];
+    var filename = getPDFFileNameFromURL(url);
+    var downloadManager = new DownloadManager();
+    downloadManager.onerror = function (err) {
+      // This error won't really be helpful because it's likely the
+      // fallback won't work either (or is already open).
+      PDFView.error('PDF failed to download.');
+    };
+
+    if (!this.pdfDocument) { // the PDF is not ready yet
+      noData();
+      return;
     }
-    // If the PDF is not ready yet, or if URL.createObjectURL is not supported,
-    // just try to download with the url.
-    if (!this.pdfDocument || !URL) {
-        noData();
-        return;
-    }
+
     this.pdfDocument.getData().then(
       function getDataSuccess(data) {
         var blob = PDFJS.createBlob(data.buffer, 'application/pdf');
-        var blobUrl = URL.createObjectURL(blob);
-        triggerSaveAs(url, blobUrl);
+        downloadManager.download(blob, url, filename);
       },
       noData // Error occurred try downloading with just the url.
     ).then(null, noData);
@@ -1573,19 +1579,12 @@ var PDFView = {
   },
 
   navigateTo: function pdfViewNavigateTo(dest) {
+    var destString = '';
     var self = this;
-    PDFJS.Promise.all([this.pagesPromise,
-                       this.destinationsPromise]).then(function() {
-      var destString = '';
-      if (typeof dest === 'string') {
-        destString = dest;
-        dest = self.destinations[dest];
-      }
-      if (!(dest instanceof Array)) {
-        return; // invalid destination
-      }
+
+    var goToDestination = function(destRef) {
+      self.pendingRefStr = null;
       // dest array looks like that: <page-ref> </XYZ|FitXXX> <args..>
-      var destRef = dest[0];
       var pageNumber = destRef instanceof Object ?
         self.pagesRefMap[destRef.num + ' ' + destRef.gen + ' R'] :
         (destRef + 1);
@@ -1598,7 +1597,24 @@ var PDFView = {
 
         // Update the browsing history.
         PDFHistory.push({ dest: dest, hash: destString, page: pageNumber });
+      } else {
+        self.pendingRefStrLoaded = new PDFJS.Promise();
+        self.pendingRefStr = destRef.num + ' ' + destRef.gen + ' R';
+        self.pendingRefStrLoaded.then(function() {
+          goToDestination(destRef);
+        });
       }
+    };
+
+    this.destinationsPromise.then(function() {
+      if (typeof dest === 'string') {
+        destString = dest;
+        dest = self.destinations[dest];
+      }
+      if (!(dest instanceof Array)) {
+        return; // invalid destination
+      }
+      goToDestination(dest[0]);
     });
   },
 
@@ -1811,6 +1827,10 @@ var PDFView = {
           var pageRef = pdfPage.ref;
           var refStr = pageRef.num + ' ' + pageRef.gen + ' R';
           pagesRefMap[refStr] = pdfPage.pageNumber;
+
+          if (self.pendingRefStr && self.pendingRefStr === refStr) {
+            self.pendingRefStrLoaded.resolve();
+          }
         });
         pagePromises.push(pagePromise);
       }
