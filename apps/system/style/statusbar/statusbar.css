@@ -80,7 +80,6 @@ body, html {
   color: #fff;
   font-size: 1.49rem; /* 6.5pt */
   position: relative;
-  bottom: 0.2rem;
 }
 
 #statusbar-time span {
@@ -226,8 +225,9 @@ body, html {
 }
 
 .sb-icon-signal[data-level="-1"][data-searching="true"] {
-  background: url('images/signal-searching.png') no-repeat;
+  background: url('images/signal-searching.gif') no-repeat;
   background-position: 0 0;
+  background-size: 1.6rem;
 }
 
 .sb-icon-signal[data-level="-1"] {
