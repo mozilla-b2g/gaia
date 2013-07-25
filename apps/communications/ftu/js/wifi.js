@@ -248,7 +248,7 @@ var WifiUI = {
     if (!networks) {
       var noResult = '<div id="no-result-container">' +
                      '  <div id="no-result-message">' +
-                     '    <p>' + _('noWifiFound2') + '</p>' +
+                     '    <p>' + _('noWifiFound3') + '</p>' +
                      '  </div>' +
                      '</div>';
       networksDOM.innerHTML = noResult;
