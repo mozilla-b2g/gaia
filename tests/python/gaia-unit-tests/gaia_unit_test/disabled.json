@@ -3,6 +3,7 @@
   "calendar/test/unit/views/modify_event_test.js",
   "communications/dialer/test/unit/handled_call_test.js",
   "communications/dialer/test/unit/suggestion_bar_test.js",
+  "communications/dialer/test/unit/utils_test.js",
   "gallery/test/unit/GestureDetector_test.js",
   "homescreen/test/unit/dock_test.js",
   "homescreen/test/unit/dragdrop_test.js",
