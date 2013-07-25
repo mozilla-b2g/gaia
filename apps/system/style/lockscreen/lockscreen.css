@@ -184,11 +184,11 @@
   height: 4rem;
   margin-top: 3.5rem;
 
-  background: transparent url('./images/mute.png') center center no-repeat;
+  background: transparent url('./images/mute.png') no-repeat center center / 5rem;
 }
 
 #lockscreen-mute.vibration {
-  background: transparent url('./images/vibration.png') center center no-repeat;
+  background: transparent url('./images/vibration.png') no-repeat center center / 10rem;
 }
 
 .lockscreen-clock {
@@ -505,7 +505,7 @@ button::-moz-focus-inner {
   background-repeat: no-repeat;
   background-position: center;
   background-size: 2rem;
-  border-top: 1px solid transparent;
+  border-top: 0.1rem solid transparent;
   top: -2rem;
   height: 0.9rem;
   width: 100%;
