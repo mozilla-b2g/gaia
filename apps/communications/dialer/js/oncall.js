@@ -24,6 +24,7 @@ var CallScreen = {
 
   answerButton: document.getElementById('callbar-answer'),
   rejectButton: document.getElementById('callbar-hang-up'),
+  holdButton: document.getElementById('callbar-hold'),
 
   incomingContainer: document.getElementById('incoming-container'),
   incomingNumber: document.getElementById('incoming-number'),
@@ -41,6 +42,7 @@ var CallScreen = {
                                     OnCallHandler.answer.bind(OnCallHandler));
     this.rejectButton.addEventListener('click',
                                     OnCallHandler.end);
+    this.holdButton.addEventListener('mouseup', OnCallHandler.toggleCalls);
 
     this.incomingAnswer.addEventListener('click',
                               OnCallHandler.holdAndAnswer);
@@ -664,10 +666,15 @@ var OnCallHandler = (function onCallHandler() {
     }
 
     if (handledCalls.length < 2) {
+
       // Putting a call on Hold when there are no other
       // calls in progress has been disabled until a less
       // accidental user-interface is implemented.
-      // See bug 894232 and bug 882056 for more background. 
+      // See bug 894232 and bug 882056 for more background.
+      // We can now hold a call only from BT devices.
+      if (!telephony.active) {
+        holdOrResumeSingleCall();
+      }
       return;
     }
 
@@ -681,8 +688,10 @@ var OnCallHandler = (function onCallHandler() {
 
     if (telephony.active) {
       telephony.active.hold();
+      CallScreen.render('connected-hold');
     } else {
       telephony.calls[0].resume();
+      CallScreen.render('connected');
     }
   }
 
