@@ -387,7 +387,7 @@ var StatusBar = {
 
     time: function sb_updateTime(now) {
       var _ = navigator.mozL10n.get;
-      var f = new navigator.mozL10n.DateTimeFormat();
+      var f = navigator.mozL10n.DateTimeFormat();
       var sec = now.getSeconds();
 
       var formated = f.localeFormat(now, _('shortTimeFormat'));
