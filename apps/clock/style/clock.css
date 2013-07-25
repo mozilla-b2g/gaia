@@ -52,7 +52,7 @@ html, body {
 #digital-clock-background.visible {
   height: 22.1rem; /* 48%; */
   display: block;
-  background: url(images/digital_bk.png) repeat-x left bottom / auto 100%;
+  background: url(images/digital_clock_background.png) repeat-x left bottom / auto 100%;
 }
 
 #digital-clock {
