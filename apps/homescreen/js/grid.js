@@ -2,7 +2,12 @@
 
 var GridManager = (function() {
   var MAX_ICONS_PER_PAGE = 4 * 4;
-  var PREFERRED_ICON_SIZE = 60;
+
+  // Be aware that the current manifest icon description syntax does
+  // not distinguish between 60@1.5x and 90@1x, so we would have to use
+  // the latter as the former.
+  var PREFERRED_ICON_SIZE = 60 * (window.devicePixelRatio || 1);
+
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_WIDTH = 320;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
