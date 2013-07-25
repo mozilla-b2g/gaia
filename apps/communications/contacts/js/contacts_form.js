@@ -17,6 +17,7 @@ contacts.Form = (function() {
       thumb,
       thumbAction,
       saveButton,
+      cancelButton,
       formTitle,
       currentContactId,
       givenName,
@@ -25,6 +26,10 @@ contacts.Form = (function() {
       configs,
       _,
       formView,
+      throbber,
+      mode,
+      cancelHandler,
+      mergeHandler,
       nonEditableValues,
       deviceContact,
       fbContact,
@@ -70,12 +75,14 @@ contacts.Form = (function() {
     thumb.onclick = pickImage;
     thumbAction = dom.querySelector('#thumbnail-action');
     saveButton = dom.querySelector('#save-button');
+    cancelButton = dom.querySelector('#cancel-edit');
     formTitle = dom.getElementById('contact-form-title');
     currentContactId = dom.getElementById('contact-form-id');
     givenName = dom.getElementById('givenName');
     company = dom.getElementById('org');
     familyName = dom.getElementById('familyName');
     formView = dom.getElementById('view-contact-form');
+    throbber = dom.getElementById('throbber');
     var phonesContainer = dom.getElementById('contacts-form-phones');
     var emailContainer = dom.getElementById('contacts-form-emails');
     var addressContainer = dom.getElementById('contacts-form-addresses');
@@ -174,6 +181,7 @@ contacts.Form = (function() {
   };
 
   var showEdit = function showEdit(contact, fromUpdateActivity) {
+    mode = 'edit';
     if (!contact || !contact.id) {
       return;
     }
@@ -237,6 +245,7 @@ contacts.Form = (function() {
   };
 
   var showAdd = function showAdd(params) {
+    mode = 'add';
     formView.classList.remove('skin-organic');
     if (!params || params == -1 || !('id' in params)) {
       currentContact = {};
@@ -405,12 +414,16 @@ contacts.Form = (function() {
   }
 
   var saveContact = function saveContact() {
+    saveButton.setAttribute('disabled', 'disabled');
+    if (mode === 'add') {
+      showThrobber();
+    }
+
     currentContact = currentContact || {};
     currentContact = deviceContact || currentContact;
     var deviceGivenName = currentContact.givenName;
     var deviceFamilyName = currentContact.familyName;
 
-    saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
       id: document.getElementById('contact-form-id').value,
       additionalName: '',
@@ -492,19 +505,158 @@ contacts.Form = (function() {
     }
 
     updateCategoryForImported(contact);
+
+    if (mode === 'edit') {
+      // We just implement the matching feature for addding contacts right now
+      doSave(contact);
+      return;
+    }
+
+    var callbacks = cookMatchingCallbacks(contact);
+    cancelHandler = doCancel.bind(callbacks);
+    cancelButton.addEventListener('click', cancelHandler);
+    doMatch(contact, callbacks);
+  };
+
+  var cookMatchingCallbacks = function cookMatchingCallbacks(contact) {
+    return {
+      onmatch: function(results) {
+        Contacts.extServices.showDuplicateContacts();
+
+        mergeHandler = function mergeHandler(e) {
+          if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
+            return;
+          }
+
+          var data = e.data;
+          switch (data.type) {
+            case 'duplicate_contacts_loaded':
+              // UI ready, passing duplicate contacts
+              var duplicateContacts = {};
+              Object.keys(results).forEach(function(id) {
+                duplicateContacts[id] = id;
+              });
+
+              window.postMessage({
+                type: 'show_duplicate_contacts',
+                data: {
+                  name: Array.isArray(contact.name) ? contact.name[0] : '',
+                  duplicateContacts: duplicateContacts
+                }
+              }, fb.CONTACTS_APP_ORIGIN);
+
+            break;
+
+            case 'merge_duplicate_contacts':
+              window.removeEventListener('message', mergeHandler);
+
+              // List of duplicate contacts to merge (identifiers)
+              var list = [];
+              Object.keys(data.data).forEach(function(id) {
+                list.push(results[id]);
+              });
+
+              doMerge(contact, list, function finished() {
+                // Contacts merged goes to contact list automatically without
+                // saving, the merger does the live better to us
+                if (ActivityHandler.currentlyHandling) {
+                  ActivityHandler.postNewSuccess(contact);
+                }
+
+                window.postMessage({
+                  type: 'duplicate_contacts_merged',
+                  data: ''
+                }, fb.CONTACTS_APP_ORIGIN);
+              });
+
+            break;
+
+            case 'ready':
+              // The list of duplicate contacts has been loaded
+              cancelButton.removeEventListener('click', cancelHandler);
+              hideThrobber();
+              setTimeout(Contacts.cancel, 300);
+
+            break;
+
+            case 'window_close':
+              // If user igonores duplicate contacts we save the contact
+              window.removeEventListener('message', mergeHandler);
+              doSave(contact, true);
+
+            break;
+          }
+        };
+
+        window.addEventListener('message', mergeHandler);
+      },
+      onmismatch: function() {
+        // Saving because there aren't duplicate contacts
+        doSave(contact);
+        cancelButton.removeEventListener('click', cancelHandler);
+      }
+    };
+  };
+
+  var doMerge = function doMerge(contact, list, cb) {
+    var callbacks = {
+      success: cb,
+      error: function(e) {
+        console.error('Failed merging duplicate contacts: ', e.name);
+        cb();
+      }
+    };
+
+    LazyLoader.load(['/contacts/js/contacts_merger.js',
+                     '/contacts/js/merger_adapter.js'], function() {
+      contacts.adaptAndMerge(contact, list, callbacks);
+    });
+  };
+
+  var doCancel = function doCancel() {
+    cancelButton.removeEventListener('click', cancelHandler);
+    window.removeEventListener('message', mergeHandler);
+    this.onmatch = this.onmismatch = null;
+    window.postMessage({
+      type: 'abort',
+      data: ''
+    }, fb.CONTACTS_APP_ORIGIN);
+    hideThrobber();
+  };
+
+  var doMatch = function doMatch(contact, callbacks) {
+    LazyLoader.load(['/shared/js/text_normalizer.js',
+                     '/contacts/js/contacts_matcher.js'], function() {
+      contacts.Matcher.match(contact, 'active', callbacks);
+    });
+  };
+
+  var doSave = function doSave(contact, noTransition) {
     var request = navigator.mozContacts.save(contact);
 
     request.onsuccess = function onsuccess() {
+      hideThrobber();
       // Reloading contact, as it only allows to be updated once
       if (ActivityHandler.currentlyHandling) {
         ActivityHandler.postNewSuccess(contact);
       }
-      Contacts.cancel();
+      if (!noTransition) {
+        Contacts.cancel();
+      }
     };
 
     request.onerror = function onerror() {
+      hideThrobber();
       console.error('Error saving contact', request.error.name);
     };
+  };
+
+  var showThrobber = function showThrobber() {
+    throbber.classList.add('saving');
+  };
+
+  var hideThrobber = function hideThrobber() {
+    throbber.classList.remove('saving');
   };
 
   var createName = function createName(myContact) {

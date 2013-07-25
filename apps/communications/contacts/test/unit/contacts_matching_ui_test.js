@@ -110,7 +110,8 @@ suite('Matching duplicate contacts UI Test Suite', function() {
   });
 
   test('The UI is initialized correctly ', function(done) {
-    contacts.MatchingUI.load(masterContact, dupContacts, function() {
+    contacts.MatchingUI.load('matching', masterContact, dupContacts,
+                             function() {
       // The merge button is initially enabled because there are some duplicate
       // contacts
       assert.isFalse(mergeAction.disabled);
