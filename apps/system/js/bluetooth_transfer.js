@@ -444,7 +444,8 @@ var BluetoothTransfer = {
         // Cannot identify MIMETYPE
         // So, show cannot open file dialog with unknow media type
         UtilityTray.hide();
-        self.showUnknownMediaPrompt(fileName);
+        if (a.error.name === 'NO_PROVIDER')
+          self.showUnknownMediaPrompt(fileName);
       };
       a.onsuccess = function(e) {
         var msg = 'open activity onsuccess';
