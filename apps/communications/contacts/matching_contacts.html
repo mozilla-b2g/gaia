@@ -18,6 +18,7 @@
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/switches.css" rel="stylesheet">
     <link href="/shared/style_unstable/lists.css" rel="stylesheet">
+    <link href="/shared/style/confirm.css" rel="stylesheet">
 
     <link rel="stylesheet" href="style/root.css">
     <link rel="stylesheet" href="style/matching_contacts.css">
@@ -35,7 +36,7 @@
             Merge
           </button>
         </menu>
-        <h1 data-l10n-id="mergeDuplicateTitle">Merge duplicates</h1>
+        <h1 id="title" data-l10n-id="mergeDuplicateTitle">Merge duplicates</h1>
       </header>
 
       <section id="main">
@@ -58,6 +59,16 @@
             </li>
           </ol>
         </section> <!-- contacts-list-container -->
+        <form id="footer" role="dialog" data-type="confirm">
+          <menu id="select-all-wrapper">
+            <button id="merge-ignore" data-l10n-id="close">
+              Ignore
+            </button>
+            <button id="merge-action-2" class="danger" data-l10n-id="merge">
+              Merge
+            </button>
+          </menu>
+        </form>
       </section> <!-- main -->
 
     </section> <!-- role="region" -->
