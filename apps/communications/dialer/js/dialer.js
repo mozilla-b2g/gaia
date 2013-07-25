@@ -16,15 +16,15 @@ var CallHandler = (function callHandler() {
   window.addEventListener('load', function getSettingsListener() {
     window.removeEventListener('load', getSettingsListener);
 
-    loader.load('/shared/js/settings_listener.js', function() {
-      SettingsListener.observe('lockscreen.locked', null, function(value) {
-        if (value) {
-          screenState = 'locked';
-        } else {
-          screenState = 'unlocked';
-        }
+      loader.load('/shared/js/settings_listener.js', function() {
+        SettingsListener.observe('lockscreen.locked', null, function(value) {
+          if (value) {
+            screenState = 'locked';
+          } else {
+            screenState = 'unlocked';
+          }
+        });
       });
-    });
   });
 
   /* === WebActivity === */

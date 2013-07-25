@@ -30,6 +30,24 @@ suite('LazyL10n', function() {
   });
 
   suite('get', function() {
+    var checkLinkedScripts = function(scripts) {
+      if (!scripts) {
+        return true;
+      }
+      var foundScripts = [];
+      var headChildNodes = document.head.childNodes;
+      for (var j = 0; j < scripts.length; j++) {
+        for (var i = 0; i < headChildNodes.length; i++) {
+          if (headChildNodes[i].tagName === 'SCRIPT' &&
+            headChildNodes[i].getAttribute('src') === scripts[j]) {
+            foundScripts.push(scripts[j]);
+            break;
+          }
+        }
+      }
+      return (foundScripts.length == scripts.length);
+    };
+
     test('should call the callback directly if loaded', function(done) {
       LazyL10n._loaded = true;
 
@@ -62,10 +80,9 @@ suite('LazyL10n', function() {
       var headCount = document.head.childNodes.length;
 
       var callback = function() {
-        // l10n.js and l10n_date.js were inserted
         assert.isTrue(LazyL10n._inDOM);
-        assert.equal(headCount + 2, document.head.childNodes.length);
-
+        assert.isTrue(checkLinkedScripts(['/shared/js/l10n.js',
+          '/shared/js/l10n_date.js']));
         done();
       };
 
