@@ -387,26 +387,32 @@
 
       Used mainly in activities since they need to pick a contact from just
       the number.
+
+      In order to workaround facebook contact issue(bug 895817), it should be
+      able to hanle the case about phone number without matched contact.
     */
     getContactDisplayInfo: function(resolver, phoneNumber, callback) {
       resolver(phoneNumber, function onContacts(contacts) {
         var contact;
         if (Array.isArray(contacts)) {
-          if (contacts.length == 0) {
-            callback(null);
-            return;
+          if (contacts.length > 0) {
+            contact = contacts[0];
           }
-          contact = contacts[0];
-        } else {
-          if (contacts === null) {
-            callback(null);
-            return;
-          }
+        } else if (contacts !== null) {
           contact = contacts;
         }
 
-        var tel = null;
-        for (var i = 0; i < contact.tel.length && tel == null; i++) {
+        // Only exit when no contact and no phone number case.
+        if (!contact && !phoneNumber) {
+          callback(null);
+          return;
+        }
+
+        var telLength = (contact && contact.tel) ? contact.tel.length : 0;
+        var tel = (telLength > 0) ? null :
+          {type: [''], value: phoneNumber, carrier: ''};
+
+        for (var i = 0; i < telLength && tel == null; i++) {
           if (contact.tel[i].value === phoneNumber) {
             tel = contact.tel[i];
           }
