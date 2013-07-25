@@ -114,6 +114,20 @@ var Filmstrip = (function() {
       frame.displayVideo(item.blob, item.poster,
                          item.width, item.height,
                          item.rotation);
+
+        // fix for MMS Video issue-changing the values of videoPoster
+		// and videoPlayer elements for the video pick activity confirmation
+        if (Camera._pendingPick) {
+          var videoPoster = document.getElementsByClassName('videoPoster')[0];
+          videoPoster.style.top = '28%';
+          videoPoster.style.left = '23%';
+          var videoPlayer = document.getElementsByClassName('videoPlayer')[0];
+          videoPlayer.style.top = '28%';
+          videoPlayer.style.left = '23%';
+          var videoPlayerControls =
+                document.getElementsByClassName('videoPlayerControls')[0];
+          videoPlayerControls.style.bottom = '15px';
+        }
     }
 
     preview.classList.remove('offscreen');
@@ -663,6 +677,7 @@ var Filmstrip = (function() {
     addVideo: addVideo,
     deleteItem: deleteItem,
     clear: clear,
-    setOrientation: setOrientation
+    setOrientation: setOrientation,
+    previewItem: previewItem
   };
 }());
