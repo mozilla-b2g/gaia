@@ -983,6 +983,12 @@ var WindowManager = (function() {
 
     iframe.setAttribute('mozapp', manifestURL);
     iframe.src = url;
+
+    // Add minimal chrome if the app needs it.
+    if (manifest.enable_navigation_ui) {
+      frame.setAttribute('data-wrapper', 'true');
+    }
+
     return frame;
   }
 
