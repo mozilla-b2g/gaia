@@ -467,3 +467,20 @@ article:not(:target) #keypad-delete {
   padding: 0 2rem 0 2rem;
   list-style: none outside none;
 }
+
+#dialer-message {
+  position: absolute;
+  top: 0;
+  height: -moz-calc(100% - 30rem);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  font-size: 18pt;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+#dialer-message > span {
+  width: 100%;
+}
