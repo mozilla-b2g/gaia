@@ -1,11 +1,9 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/tag_visibility_monitor.js');
-require('/shared/js/zero_timeout.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/js/search.js');
 requireApp('communications/contacts/js/contacts_list.js');
-requireApp('communications/contacts/js/contacts_list_queue.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
@@ -115,52 +113,29 @@ suite('Render contacts list', function() {
       asyncStorage,
       realMozContacts;
 
-  function doLoad(contactList, values, callback) {
+  function doLoad(list, values, callback) {
     var handler = function() {
       window.removeEventListener('listRendered', handler);
 
       // Loading a new list removes some DOM nodes.  Update our references.
       updateDomReferences();
 
-      // Ensure that all contacts have been flushed to a DOM <li> element
-      contactList.flushToDom();
-
-      // Scroll to each element to complete rendering of each item.
-      doAllOnscreen(function() {
-        // Issue the callback via setTimeout() to appease the mocha gods.
-        // Exceptions and errors are properly reported from setTimeout() async
-        // context, but seem to be ignored from other DOM callbacks like
-        // we are using here.
-        window.setTimeout(callback);
-      });
+      // Issue the callback via setTimeout() to appease the mocha gods.
+      // Exceptions and errors are properly reported from setTimeout() async
+      // context, but seem to be ignored from other DOM callbacks like
+      // we are using here.
+      window.setTimeout(callback);
     };
     window.addEventListener('listRendered', handler);
-    contactList.load(values);
-  }
-
-  function doGetAll(contactList, callback) {
-    doLoad(contactList, null, callback);
+    list.load(values);
   }
 
   // Poor man's way of delaying until an element is onscreen as determined
   // by the visibility monitor.
-  function doOnscreen(element, callback) {
+  function doOnscreen(list, element, callback) {
     element.scrollIntoView(true);
     // XXX Replace this with a true callback from monitor or list
-    window.setZeroTimeout(callback);
-  }
-
-  // Attempt to scroll to every item in the list one-by-one.  This is useful
-  // during tests where you would like to just assume that all nodes have
-  // been rendered.
-  function doAllOnscreen(callback, nodes) {
-    nodes = nodes || Array.prototype.slice.call(list.querySelectorAll('li'));
-
-    if (!nodes.length)
-      return callback();
-
-    var node = nodes.shift();
-    doOnscreen(node, doAllOnscreen.bind(null, callback, nodes));
+    window.setTimeout(callback);
   }
 
   function assertNoGroup(title, container) {
@@ -341,7 +316,7 @@ suite('Render contacts list', function() {
     containerUnd = container.querySelector('#contacts-list-und');
   }
 
-  suiteSetup(function(done) {
+  suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
       get: function get(key) {
@@ -386,13 +361,6 @@ suite('Render contacts list', function() {
 
     contacts.Search.load();
     subject.initSearch();
-
-    // Pre-load files using lazy load to maintain consistent timing within
-    // test cases.
-    var files = [
-      '/contacts/js/contacts_list_queue.js'
-    ];
-    LazyLoader.load(files, done);
   });
 
   suiteTeardown(function() {
@@ -412,43 +380,37 @@ suite('Render contacts list', function() {
       window.fb.isEnabled = false;
     });
 
-    test('get less than 1 chunk contacts', function(done) {
+    test('get less than 1 chunk contacts', function() {
       var limit = subject.chunkSize - 1;
       MockMozContacts.limit = limit;
-      doGetAll(subject, function() {
-        assert.isTrue(noContacts.classList.contains('hide'));
-        for (var i = 0; i <= limit; i++) {
-          var toCheck = container.innerHTML.contains('givenName ' + i);
-          assert.isTrue(toCheck, 'contains ' + i);
-        }
-        done();
-      });
+      subject.getAllContacts();
+      assert.isTrue(noContacts.classList.contains('hide'));
+      for (var i = 0; i <= limit; i++) {
+        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
+        assert.isTrue(toCheck, 'contains ' + i);
+      }
     });
 
-    test('get exactly 1 chunk contacts', function(done) {
+    test('get exactly 1 chunk contacts', function() {
       var limit = subject.chunkSize;
       MockMozContacts.limit = limit;
-      doGetAll(subject, function() {
-        assert.isTrue(noContacts.classList.contains('hide'));
-        for (var i = 0; i <= limit; i++) {
-          var toCheck = container.innerHTML.contains('givenName ' + i);
-          assert.isTrue(toCheck, 'contains ' + i);
-        }
-        done();
-      });
+      subject.getAllContacts();
+      assert.isTrue(noContacts.classList.contains('hide'));
+      for (var i = 0; i <= limit; i++) {
+        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
+        assert.isTrue(toCheck, 'contains ' + i);
+      }
     });
 
-    test('get more than 1 chunk contacts', function(done) {
+    test('get more than 1 chunk contacts', function() {
       var limit = subject.chunkSize + 1;
       MockMozContacts.limit = limit;
-      doGetAll(subject, function() {
-        assert.isTrue(noContacts.classList.contains('hide'));
-        for (var i = 0; i <= limit; i++) {
-          var toCheck = container.innerHTML.contains('givenName ' + i);
-          assert.isTrue(toCheck, 'contains ' + i);
-        }
-        done();
-      });
+      subject.getAllContacts();
+      assert.isTrue(noContacts.classList.contains('hide'));
+      for (var i = 0; i <= limit; i++) {
+        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
+        assert.isTrue(toCheck, 'contains ' + i);
+      }
     });
   });
 
@@ -852,14 +814,18 @@ suite('Render contacts list', function() {
       doLoad(subject, list, function() {
         var favList = assertGroup(groupFav, containerFav, names.length);
         var lastFav = favList[favList.length - 1];
-        assert.equal(lastFav.dataset.rendered, 'true',
-                     'contact should be rendered in "favorites" list');
+        doOnscreen(subject, lastFav, function() {
+          assert.equal(lastFav.dataset.rendered, 'true',
+                       'contact should be rendered in "favorites" list');
 
-        var aList = assertGroup(groupA, containerA, names.length);
-        var lastA = aList[aList.length - 1];
-        assert.equal(lastA.dataset.rendered, 'true',
-                     'contact should be rendered in "A" list');
-        done();
+          var aList = assertGroup(groupA, containerA, names.length);
+          var lastA = aList[aList.length - 1];
+          doOnscreen(subject, lastA, function() {
+            assert.equal(lastA.dataset.rendered, 'true',
+                         'contact should be rendered in "A" list');
+            done();
+          });
+        });
       });
     });
 
@@ -917,27 +883,31 @@ suite('Render contacts list', function() {
         var selectorContact1 = 'li[data-uuid = "1"]';
         var contact = container.querySelector(selectorContact1);
 
-        var img = contact.querySelector('img');
+        doOnscreen(subject, contact, function() {
+          var img = contact.querySelector('img');
 
-        assert.equal(img.dataset.src, 'test.png',
-                      'At the begining contact 1 img === "test.png"');
-        var prevUpdated = contact.dataset.updated;
+          assert.equal(img.dataset.src, 'test.png',
+                        'At the begining contact 1 img === "test.png"');
+          var prevUpdated = contact.dataset.updated;
 
-        mockContacts[0].updated = new Date(); // This is the key!
-        mockContacts[0].photo = ['one.png'];
-        doLoad(subject, mockContacts, function() {
-          assertTotal(3, 3);
+          mockContacts[0].updated = new Date(); // This is the key!
+          mockContacts[0].photo = ['one.png'];
+          doLoad(subject, mockContacts, function() {
+            assertTotal(3, 3);
 
-          contact = container.querySelector(selectorContact1);
+            contact = container.querySelector(selectorContact1);
 
-          img = contact.querySelector('img');
+            doOnscreen(subject, contact, function() {
+              img = contact.querySelector('img');
 
-          assert.equal(img.dataset.src, 'one.png',
-                        'After updating contact 1 img === "one.png"');
+              assert.equal(img.dataset.src, 'one.png',
+                            'After updating contact 1 img === "one.png"');
 
-          assert.isTrue(prevUpdated < contact.dataset.updated,
-                        'Updated date is wrong. It should be changed!');
-          done();
+              assert.isTrue(prevUpdated < contact.dataset.updated,
+                            'Updated date is wrong. It should be changed!');
+              done();
+            });
+          });
         });
       });
     });
@@ -950,19 +920,23 @@ suite('Render contacts list', function() {
         var selectorContact1 = 'li[data-uuid = "1"]';
         var contact = container.querySelector(selectorContact1);
 
-        var img = contact.querySelector('img');
-        assert.equal(img.dataset.src, 'test.png',
-                      'At the begining contact 1 img === "test.png"');
-
-        doLoad(subject, mockContacts, function() {
-          assertTotal(3, 3);
-
-          contact = container.querySelector(selectorContact1);
-
-          img = contact.querySelector('img');
+        doOnscreen(subject, contact, function() {
+          var img = contact.querySelector('img');
           assert.equal(img.dataset.src, 'test.png',
                         'At the begining contact 1 img === "test.png"');
-          done();
+
+          doLoad(subject, mockContacts, function() {
+            assertTotal(3, 3);
+
+            contact = container.querySelector(selectorContact1);
+
+            doOnscreen(subject, contact, function() {
+              img = contact.querySelector('img');
+              assert.equal(img.dataset.src, 'test.png',
+                            'At the begining contact 1 img === "test.png"');
+              done();
+            });
+          });
         });
       });
     });
