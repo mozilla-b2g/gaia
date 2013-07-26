@@ -985,7 +985,7 @@ var WindowManager = (function() {
     iframe.src = url;
 
     // Add minimal chrome if the app needs it.
-    if (manifest.enable_navigation_ui) {
+    if (manifest.chrome && manifest.chrome.navigation === true) {
       frame.setAttribute('data-wrapper', 'true');
     }
 
