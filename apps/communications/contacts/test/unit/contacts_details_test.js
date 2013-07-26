@@ -2,13 +2,13 @@
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
 
 require('/shared/js/text_normalizer.js');
+require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 
 requireApp('communications/contacts/js/contacts_details.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
-requireApp('communications/contacts/test/unit/mock_contact_all_fields.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 
