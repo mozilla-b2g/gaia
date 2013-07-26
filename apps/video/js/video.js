@@ -305,7 +305,10 @@ function updateDialog() {
     showOverlay(null);
     return;
   }
-  if (storageState === MediaDB.NOCARD) {
+
+  if (storageState === MediaDB.UPGRADING) {
+    showOverlay('upgrade');
+  } else if (storageState === MediaDB.NOCARD) {
     showOverlay('nocard');
   } else if (storageState === MediaDB.UNMOUNTED) {
     showOverlay('pluggedin');
