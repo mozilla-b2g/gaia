@@ -64,7 +64,7 @@ var StatusBar = {
     'battery', 'wifi', 'data', 'flight-mode', 'signal', 'network-activity',
     'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
     'recording', 'sms', 'geolocation', 'usb', 'label', 'system-downloads',
-    'call-forwarding'],
+    'call-forwarding', 'playing'],
 
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 60 * 1000,
@@ -103,6 +103,8 @@ var StatusBar = {
   headphonesActive: false,
 
   listeningCallschanged: false,
+
+  playingActive: false,
 
   /**
    * this keeps how many current installs/updates we do
@@ -281,6 +283,11 @@ var StatusBar = {
           case 'headphones-status-changed':
             this.headphonesActive = (evt.detail.state != 'off');
             this.update.headphones.call(this);
+            break;
+
+          case 'audio-channel-changed':
+            this.playingActive = (evt.detail.channel === 'content');
+            this.update.playing.call(this);
             break;
         }
 
@@ -655,6 +662,11 @@ var StatusBar = {
     callForwarding: function sb_updateCallForwarding() {
       var icon = this.icons.callForwarding;
       icon.hidden = !this.settingValues['ril.cf.enabled'];
+    },
+
+    playing: function sb_updatePlaying() {
+      var icon = this.icons.playing;
+      icon.hidden = !this.playingActive;
     }
   },
 
