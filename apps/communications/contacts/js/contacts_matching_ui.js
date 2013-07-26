@@ -5,6 +5,8 @@ var contacts = window.contacts || {};
 if (!contacts.MatchingUI) {
   contacts.MatchingUI = (function() {
 
+    var _ = navigator.mozL10n.get;
+
     var CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
 
     // Counter for checked list items
@@ -13,7 +15,7 @@ if (!contacts.MatchingUI) {
     // Hash contains identifiers of checked contacts
     var checkedContacts = {};
 
-    var mergeButton, contactsList, duplicateMessage;
+    var mergeButton, merge2Button, contactsList, duplicateMessage, title;
 
     function init() {
       mergeButton = document.getElementById('merge-action');
@@ -21,20 +23,33 @@ if (!contacts.MatchingUI) {
         return;
       }
 
+      merge2Button = document.getElementById('merge-action-2');
       duplicateMessage = document.querySelector('#duplicate-msg > p');
       contactsList = document.querySelector('#contacts-list-container > ol');
+      title = document.getElementById('title');
 
       document.getElementById('merge-close').addEventListener('click', onClose);
+      document.getElementById('merge-ignore').
+                                             addEventListener('click', onClose);
       contactsList.addEventListener('click', onClick);
       mergeButton.addEventListener('click', onMerge);
+      merge2Button.addEventListener('click', onMerge);
     }
 
-    function load(contact, results, cb) {
-      // This is the message: "Suggested duplicate contacts for xxx"
-      duplicateMessage.textContent =
-        navigator.mozL10n.get('suggestedDuplicateContacts', {
+    function load(type, contact, results, cb) {
+      document.body.dataset.mode = type;
+      if (type === 'matching') {
+        // "Suggested duplicate contacts for xxx"
+        duplicateMessage.textContent = _('suggestedDuplicateContacts', {
           name: contact.name ? contact.name[0] : ''
         });
+      } else {
+        title.textContent = _('duplicatesFoundTitle');
+        // "xxx duplicates information in the following contacts"
+        duplicateMessage.textContent = _('duplicatesFoundMessage', {
+          name: contact.name ? contact.name[0] : ''
+        });
+      }
 
       // Rendering the duplicate contacts list
       renderList(results, cb);
@@ -59,7 +74,7 @@ if (!contacts.MatchingUI) {
         });
 
         checked = contactsKeys.length;
-        mergeButton.disabled = checked === 0 ? true : false;
+        checkMerging();
 
         // The template is deleted from the list
         contactsList.removeChild(contactsList.firstElementChild);
@@ -103,6 +118,9 @@ if (!contacts.MatchingUI) {
     }
 
     function onClose(e) {
+      e.stopPropagation();
+      e.preventDefault();
+
       parent.postMessage({
         type: 'window_close',
         data: ''
@@ -116,8 +134,13 @@ if (!contacts.MatchingUI) {
         var uuid = target.dataset.uuid;
         var checkbox = target.querySelector('input[type="checkbox"]');
         setChecked(target, checkbox, !checkbox.checked, uuid);
-        mergeButton.disabled = checked === 0 ? true : false;
+        checkMerging();
       }
+    }
+
+    function checkMerging() {
+      mergeButton.disabled = merge2Button.disabled =
+                                                   checked === 0 ? true : false;
     }
 
     function setChecked(item, element, value, uuid) {
@@ -137,6 +160,9 @@ if (!contacts.MatchingUI) {
     }
 
     function onMerge(e) {
+      e.stopPropagation();
+      e.preventDefault();
+
       contacts.MatchingController.merge(checkedContacts);
     }
 
