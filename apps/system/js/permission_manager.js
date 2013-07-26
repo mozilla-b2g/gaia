@@ -50,7 +50,8 @@ var PermissionManager = (function() {
 
     var permissionID = 'perm-' + detail.permission.replace(':', '-');
     if (detail.isApp) { // App
-      str = _(permissionID + '-appRequest', { 'app': detail.appName }) + detail.permDescription;//Added to show permissions description
+      str = _(permissionID + '-appRequest', { 'app': detail.appName }) + detail.permDescription;
+      //Added + detail.permDescription to show permissions description
     } else { // Web content
       str = _(permissionID + '-webRequest', { 'site': detail.origin });
     }
