@@ -228,6 +228,7 @@ input[type=range]::-moz-range-thumb {
   transition: border 0.15s ease;
   -moz-box-sizing: border-box;
   background: url(images/range_thumb.png) no-repeat 50% 50%;
+  background-size: 2.8rem 2.8rem;
 }
 
 input[type=range]:active::-moz-range-thumb {
@@ -316,6 +317,7 @@ ul li > label.bug344618_polyfill div span:last-child {
   -moz-outline-radius: 3rem;
   transition: outline 0.15s ease;
   background: url(images/range_thumb.png) no-repeat 50% 50%;
+  background-size: 2.8rem 2.8rem;
 }
 
 ul li > label.bug344618_polyfill div span:last-child:active {
