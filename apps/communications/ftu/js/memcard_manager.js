@@ -83,8 +83,10 @@ var SdManager = {
 
           UIManager.navBar.removeAttribute('aria-disabled');
           utils.overlay.hide();
-          utils.status.show(
-            _('memoryCardContacts-imported3', {n: importedContacts}));
+          if (!cancelled) {
+            utils.status.show(
+              _('memoryCardContacts-imported3', {n: importedContacts}));
+          }
 
         }, DELAY_FEEDBACK);
       });
