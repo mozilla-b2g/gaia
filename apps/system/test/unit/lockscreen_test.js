@@ -1,8 +1,14 @@
 'use strict';
+requireApp('system/test/unit/mock_clock.js', function() {
+  window.realClock = window.Clock;
+  window.Clock = MockClock;
+  requireApp('system/js/lockscreen.js');
+});
 
 requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mocks_helper.js');
 requireApp('system/test/unit/mock_l10n.js');
+requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 
 requireApp('system/js/lockscreen.js');
 
@@ -15,6 +21,8 @@ mocksForStatusBar.forEach(function(mockName) {
 });
 
 suite('lockscreen', function() {
+  var subject;
+
   var mocksHelper;
 
   var realSettingsListener, realMozL10n;
@@ -22,6 +30,10 @@ suite('lockscreen', function() {
   var fakeLockscreenPanel;
 
   var red_png, green_png;
+
+  var realMozTelephony;
+  var domPasscodePad;
+  var domEmergencyCallBtn;
 
   suiteSetup(function() {
     mocksHelper = new MocksHelper(mocksForStatusBar);
@@ -41,16 +53,33 @@ suite('lockscreen', function() {
   });
 
   setup(function() {
+    subject = window.LockScreen;
+
+    realMozTelephony = navigator.mozTelephony;
+    navigator.mozTelephony = window.MockNavigatorMozTelephony;
+
     fakeLockscreenPanel = document.createElement('div');
     fakeLockscreenPanel.classList.add('lockscreen-panel');
     fakeLockscreenPanel.setAttribute('data-wallpaper', '');
     document.body.appendChild(fakeLockscreenPanel);
+
+    domPasscodePad = document.createElement('div');
+    domPasscodePad.id = 'lockscreen-passcode-pad';
+    domEmergencyCallBtn = document.createElement('a');
+    domEmergencyCallBtn.dataset.key = 'e';
+    domPasscodePad.appendChild(domEmergencyCallBtn);
+    document.body.appendChild(domPasscodePad);
+    subject.passcodePad = domPasscodePad;
 
     mocksHelper.setup();
   });
 
   teardown(function() {
     fakeLockscreenPanel.parentNode.removeChild(fakeLockscreenPanel);
+    navigator.mozTelephony = realMozTelephony;
+    document.body.removeChild(domPasscodePad);
+    LockScreen.passcodePad = null;
+
     mocksHelper.teardown();
   });
 
@@ -123,6 +152,21 @@ suite('lockscreen', function() {
         done();
       });
     });
+  });
 
+  test('Emergency call: should disable emergency-call button',
+  function() {
+    navigator.mozTelephony.calls = {length: 1};
+    var evt = {type: 'callschanged'};
+    subject.handleEvent(evt);
+    assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
+  });
+
+  test('Emergency call: should enable emergency-call button',
+  function() {
+    navigator.mozTelephony.calls = {length: 0};
+    var evt = {type: 'callschanged'};
+    subject.handleEvent(evt);
+    assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
   });
 });
