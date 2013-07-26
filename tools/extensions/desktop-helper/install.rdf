@@ -14,6 +14,13 @@
        <em:maxVersion>32.0.*</em:maxVersion>
      </Description>
     </em:targetApplication>
+    <em:targetApplication>
+      <Description>
+       <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
+       <em:minVersion>6.0</em:minVersion>
+       <em:maxVersion>25.*</em:maxVersion>
+     </Description>
+    </em:targetApplication>
     <em:unpack>true</em:unpack>
     <em:bootstrap>true</em:bootstrap>
     <em:creator>Kevin Grandon</em:creator>
