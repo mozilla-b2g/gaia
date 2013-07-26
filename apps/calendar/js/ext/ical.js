@@ -1139,6 +1139,7 @@ ICAL.parse = (function() {
   var PARAM_DELIMITER = ';';
   var PARAM_NAME_DELIMITER = '=';
   var DEFAULT_TYPE = 'text';
+  var IGNORE_DELIMITER = '"';
 
   var design = ICAL.design;
   var helpers = ICAL.helpers;
@@ -1194,9 +1195,50 @@ ICAL.parse = (function() {
   }
 
   parser._handleContentLine = function(line, state) {
+
+    /**
+     * returns all indices of searchStr in str in the form of an array,
+     * where each element is an index of occurrence of searchStr in str.
+     *
+     * @param {String} searchStr is a substring to search for in str.
+     *
+     * @param {String} str is a string to be searched over for the
+     * occurrence of searchStr.
+     *
+     * @param {Boolean} caseSensitive boolean that determines whether
+     * we ignore case or not during search.
+     *
+     * @return {Array} array where each element is an index of occurrence
+     * of searchStr in str.
+     */
+    function getIndicesOf(searchStr, str, caseSensitive) {
+      var startIndex = 0, searchStrLen = searchStr.length;
+      var index, indices = [];
+      if (!caseSensitive) {
+          str = str.toLowerCase();
+          searchStr = searchStr.toLowerCase();
+      }
+      while ((index = str.indexOf(searchStr, startIndex)) > -1) {
+          indices.push(index);
+          startIndex = index + searchStrLen;
+      }
+      return indices;
+    }
     // break up the parts of the line
     var valuePos = line.indexOf(VALUE_DELIMITER);
     var paramPos = line.indexOf(PARAM_DELIMITER);
+
+    var ignorePosIndices = getIndicesOf(IGNORE_DELIMITER, line, false);
+    // get all indices of IGNORE_DELIMITER
+    var allValuePos = getIndicesOf(VALUE_DELIMITER , line, false);
+    var i = 0;
+    // check if valuePos is between double quotes
+    while (valuePos > ignorePosIndices[0] &&
+      valuePos < ignorePosIndices[ignorePosIndices.length - 1] &&
+      ignorePosIndices.length > 1) {
+      i++
+      valuePos = allValuePos[i];
+    }
 
     var nextPos = 0;
     // name of property or begin/end
