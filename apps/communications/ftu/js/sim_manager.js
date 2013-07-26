@@ -412,7 +412,10 @@ var SimManager = {
         if (importedContacts !== 0) {
           window.importUtils.setTimestamp('sim');
           SimManager.alreadyImported = true;
-          utils.status.show(_('simContacts-imported3', {n: importedContacts}));
+          if (!cancelled) {
+            utils.status.show(_('simContacts-imported3',
+                                {n: importedContacts}));
+          }
         }
       }, DELAY_FEEDBACK);
 
