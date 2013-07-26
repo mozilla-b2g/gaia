@@ -21,6 +21,12 @@ var MockFindMatcher = {
         this.result = [this.data];
       }
     }
+    else if (options.filterBy.indexOf('name') !== -1) {
+      var value = options.filterValue;
+      if (this.data.name && this.data.name[0] === value) {
+        this.result = [this.data];
+      }
+    }
     return {
       result: this.result,
       set onsuccess(cb) {
