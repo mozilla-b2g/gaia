@@ -220,6 +220,11 @@ function initDB() {
     });
   }
 
+  // show dialog in upgradestart, when it finished, it will turned to ready.
+  photodb.onupgrading = function(evt) {
+    showOverlay('upgrade');
+  };
+
   // This is called when DeviceStorage becomes unavailable because the
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
@@ -247,7 +252,8 @@ function initDB() {
 
   photodb.onready = function() {
     // Hide the nocard or pluggedin overlay if it is displayed
-    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
+    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin' ||
+        currentOverlay === 'upgrade')
       showOverlay(null);
 
     initThumbnails();
@@ -1142,6 +1148,9 @@ function showOverlay(id) {
     case 'emptygallery':
       title = navigator.mozL10n.get('emptygallery2-title');
       text = navigator.mozL10n.get('emptygallery2-text');
+    case 'upgrade':
+      title = navigator.mozL10n.get('upgrade-title');
+      text = navigator.mozL10n.get('upgrade-text');
       break;
     default:
       console.warn('Reference to undefined overlay', currentOverlay);
