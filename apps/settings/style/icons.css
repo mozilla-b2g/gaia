@@ -19,13 +19,14 @@
   left: calc((5.5rem - 2.8rem) / 2);
   width: 3rem;
   height: 3rem;
+
   content: '';
   background-image: url(images/icons_sprite.gif);
   background-size: 15rem;
 }
 
 li:active:not(.disabled) .menu-item::before,
-.menu-item:active::before {
+.menu-item:focus::before {
   background-image: url(images/icons_sprite_active.gif);
 }
 
