@@ -1,21 +1,11 @@
 'use strict';
 
-// extend function from Angus Crolls article about mixins
-function extend(destination, source) {
-  for (var k in source) {
-    if (source.hasOwnProperty(k)) {
-      destination[k] = source[k];
-    }
-  }
-  return destination;
-}
-
 var BaseIndexDB = function(objectStoreOptions) {
   this.query = function ad_query(dbName, storeName, func, callback, data) {
     var indexedDB = window.indexedDB || window.webkitIndexedDB ||
         window.mozIndexedDB || window.msIndexedDB;
 
-    var request = indexedDB.open(dbName, 5);
+    var request = indexedDB.open(dbName, 6);
 
     request.onsuccess = function(event) {
       func(request.result, storeName, callback, data);
@@ -39,77 +29,80 @@ var BaseIndexDB = function(objectStoreOptions) {
   this.put = function ad_put(database, storeName, callback, item) {
     var txn = database.transaction(storeName, 'readwrite');
     var store = txn.objectStore(storeName);
-
     var putreq = store.put(item);
 
     putreq.onsuccess = function(event) {
       item.id = event.target.result;
-      if (typeof callback === 'function')
-        callback(item);
+      callback && callback(null, item);
     };
 
     putreq.onerror = function(e) {
-      console.error('Add operation failure: ', database.name,
-        storeName, e.message, putreq.errorCode);
+      callback && callback({
+        database: database,
+        store: storeName,
+        message: e.message,
+        code: putreq.errorCode
+      });
     };
   };
 
   this.load = function ad_load(database, storeName, callback) {
-    if (typeof callback !== 'function')
-      callback = function() {};
-
     var alarms = [];
-
     var txn = database.transaction(storeName);
     var store = txn.objectStore(storeName);
-
     var cursor = store.openCursor(null, 'prev');
+
     cursor.onsuccess = function(event) {
       var item = event.target.result;
       if (item) {
         alarms.push(item.value);
         item.continue();
       } else {
-        callback(alarms);
+        callback && callback(null, alarms);
       }
     };
 
     cursor.onerror = function(event) {
-      callback([]);
+      callback && callback(event);
     };
   };
 
   this.get = function ad_get(database, storeName, callback, key) {
-    if (typeof callback !== 'function')
-      callback = function() {};
-
     var txn = database.transaction(storeName);
     var store = txn.objectStore(storeName);
     var request = store.get(key);
 
     request.onsuccess = function(event) {
-      callback(request.result);
+      callback && callback(null, request.result);
     };
 
     request.onerror = function(event) {
-      console.error('Get operation failure: ', database.name,
-        storeName, event.message, request.errorCode);
+      callback && callback({
+        database: database,
+        store: storeName,
+        message: event.message,
+        code: request.errorCode
+      });
     };
   };
 
   this.delete = function ad_delete(database, storeName, callback, key) {
-    if (typeof callback !== 'function')
-      callback = function() {};
 
     var txn = database.transaction(storeName, 'readwrite');
     var store = txn.objectStore(storeName);
     var request = store.delete(key);
 
-    request.onsuccess = callback;
+    request.onsuccess = function(e) {
+      callback && callback(null, e);
+    };
 
     request.onerror = function(e) {
-      console.error('Delete operation failure: ', database.name,
-        storeName, e.message, request.errorCode);
+      callback && callback({
+        database: database,
+        store: storeName,
+        message: event.message,
+        code: request.errorCode
+      });
     };
   };
 };
@@ -120,15 +113,24 @@ var AlarmsDB = {
 
   // Database methods
   getAlarmList: function ad_getAlarmList(callback) {
-    this.query(this.DBNAME, this.STORENAME, this.load, callback);
+    function getAlarmList_mapper(err, list) {
+      callback(err, (list || []).map(function(x) {
+        return new Alarm(x);
+      }));
+    }
+    this.query(this.DBNAME, this.STORENAME, this.load, getAlarmList_mapper);
   },
 
   putAlarm: function ad_putAlarm(alarm, callback) {
-    this.query(this.DBNAME, this.STORENAME, this.put, callback, alarm);
+    this.query(this.DBNAME, this.STORENAME, this.put, callback,
+      alarm.toSerializable());
   },
 
   getAlarm: function ad_getAlarm(key, callback) {
-    this.query(this.DBNAME, this.STORENAME, this.get, callback, key);
+    this.query(this.DBNAME, this.STORENAME, this.get,
+      function(err, result) {
+        callback(err, new Alarm(result));
+      }, key);
   },
 
   deleteAlarm: function ad_deleteAlarm(key, callback) {
@@ -136,4 +138,4 @@ var AlarmsDB = {
   }
 };
 
-extend(AlarmsDB, new BaseIndexDB({keyPath: 'id', autoIncrement: true}));
+Utils.extend(AlarmsDB, new BaseIndexDB({keyPath: 'id', autoIncrement: true}));
