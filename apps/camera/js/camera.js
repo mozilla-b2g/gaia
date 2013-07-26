@@ -464,17 +464,29 @@ var Camera = {
     }
   },
 
-  showConfirmation: function camera_showConfirmation(show) {
+  showConfirmation: function camera_showConfirmation(show, isVideo) {
     var controls = document.getElementById('controls');
     var confirmation = document.getElementById('confirmation');
+    var previewControls = document.getElementById('preview-controls');
 
     if (show) {
       controls.classList.add('hidden');
       confirmation.classList.remove('hidden');
+      // video player control for video pick confirmation only
+      previewControls.classList.add('hidden');
+      this.toggleFlashBtn.classList.add('hidden');
+      this.toggleButton.classList.add('hidden');
+
+      if(isVideo)
+        preview.classList.remove('offscreen');
     }
     else {
       controls.classList.remove('hidden');
       confirmation.classList.add('hidden');
+      previewControls.classList.remove('hidden');
+      preview.classList.add('offscreen');
+      this.toggleFlashBtn.classList.remove('hidden');
+      this.toggleButton.classList.remove('hidden');
     }
   },
 
@@ -671,7 +683,10 @@ var Camera = {
             Filmstrip.addVideo(videofile);
             self._savedMedia = videofile;
             self.stopPreview();
-            self.showConfirmation(true);
+            setTimeout(function() {
+              Filmstrip.previewItem(0);
+              self.showConfirmation(true, true);
+            },500);
           } else {
             Filmstrip.addVideo(videofile);
             Filmstrip.show(Camera.FILMSTRIP_DURATION);
@@ -743,6 +758,9 @@ var Camera = {
       rule.style.MozTransform = 'rotate(' + -(orientation + 1) + 'deg)';
       this._phoneOrientation = orientation;
 
+      // disable rotation of filmstrip preview during pick activity
+      if (this._pendingPick)
+        return;
       Filmstrip.setOrientation(orientation);
     }
   },
@@ -978,7 +996,7 @@ var Camera = {
     this.hideFocusRing();
 
     if (this._pendingPick) {
-      this.showConfirmation(true);
+      this.showConfirmation(true, false);
 
       // Just save the blob temporarily until the user presses "Retake" or
       // "Select".
@@ -996,7 +1014,7 @@ var Camera = {
 
   retakePressed: function camera_retakePressed() {
     this._savedMedia = null;
-    this.showConfirmation(false);
+    this.showConfirmation(false,false);
     this.cancelPickButton.removeAttribute('disabled');
     if (this._captureMode === this.CAMERA) {
       this.resumePreview();
@@ -1009,7 +1027,7 @@ var Camera = {
     var self = this;
     var media = this._savedMedia;
     this._savedMedia = null;
-    this.showConfirmation(false);
+    this.showConfirmation(false, false);
     if (this._captureMode === this.CAMERA) {
       this._addPictureToStorage(media, function(name, absolutePath) {
         this._resizeBlobIfNeeded(media, function(resized_blob) {

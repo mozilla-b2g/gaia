@@ -33,7 +33,7 @@ html, body {
   right: 0;
   left: 0;
   padding: 1.5rem;
-  z-index: 50;
+  z-index: 110;
   background-color: rgba(0, 0, 0, 0.8);
   overflow: hidden;
   white-space: nowrap;
@@ -293,6 +293,14 @@ form[role="dialog"][data-type="confirm"] menu.hidden {
 
 #toggle-flash {
   left: 2rem;
+}
+
+#toggle-camera.hidden {
+  display:none;
+}
+
+#toggle-camera.hidden {
+  display:none;
 }
 
 #toggle-camera[data-mode=back]:after {
