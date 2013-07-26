@@ -64,15 +64,17 @@ var AlarmList = {
   },
 
   refresh: function al_refresh() {
-    var self = this;
-    AlarmManager.getAlarmList(function al_gotAlarmList(list) {
-      self.fillList(list);
-    });
+    AlarmsDB.getAlarmList(function al_gotAlarmList(err, list) {
+      if (!err) {
+        this.fillList(list);
+      }
+    }.bind(this));
   },
 
   buildAlarmContent: function al_buildAlarmContent(alarm) {
-    var summaryRepeat = (alarm.repeat === '0000000') ?
-      '' : Utils.summarizeDaysOfWeek(alarm.repeat);
+    var repeat = alarm.getRepeat();
+    var summaryRepeat = (Object.keys(repeat).length === 0) ?
+      '' : alarm.summarizeDaysOfWeek();
     var isChecked = alarm.enabled ? ' checked="true"' : '';
     var d = new Date();
     d.setHours(alarm.hour);
@@ -95,34 +97,42 @@ var AlarmList = {
            '</a>';
   },
 
+  createItem: function al_createItem(alarm, appendTarget) {
+    var li = document.createElement('li');
+    li.className = 'alarm-cell';
+    li.innerHTML = this.buildAlarmContent(alarm);
+    if (appendTarget) {
+      appendTarget.appendChild(li);
+      if (this._previousAlarmCount !== this.getAlarmCount()) {
+        this._previousAlarmCount = this.getAlarmCount();
+        ClockView.resizeAnalogClock();
+      }
+    }
+    return li;
+  },
 
   refreshItem: function al_refreshItem(alarm) {
-    this.setAlarmFromList(alarm.id, alarm);
-    var id = 'a[data-id="' + alarm.id + '"]';
-    var alarmItem = this.alarms.querySelector(id);
-    alarmItem.parentNode.innerHTML = this.buildAlarmContent(alarm);
-    // clear the refreshing alarm's flag
-    var index = this.refreshingAlarms.indexOf(alarm.id);
-    this.refreshingAlarms.splice(index, 1);
+    if (!this.getAlarmFromList(alarm.id)) {
+      this.alarmList.push(alarm);
+      this.createItem(alarm, this.alarms);
+    } else {
+      this.setAlarmFromList(alarm.id, alarm);
+      var id = 'a[data-id="' + alarm.id + '"]';
+      var alarmItem = this.alarms.querySelector(id);
+      alarmItem.parentNode.innerHTML = this.buildAlarmContent(alarm);
+      // clear the refreshing alarm's flag
+      var index = this.refreshingAlarms.indexOf(alarm.id);
+      this.refreshingAlarms.splice(index, 1);
+    }
   },
 
   fillList: function al_fillList(alarmDataList) {
     this.alarmList = alarmDataList;
     var content = '';
-
     this.alarms.innerHTML = '';
     alarmDataList.forEach(function al_fillEachList(alarm) {
-      var li = document.createElement('li');
-      li.className = 'alarm-cell';
-      li.innerHTML = this.buildAlarmContent(alarm);
-      this.alarms.appendChild(li);
+      this.createItem(alarm, this.alarms);
     }.bind(this));
-
-    if (this._previousAlarmCount !== this.getAlarmCount()) {
-      this._previousAlarmCount = this.getAlarmCount();
-      ClockView.resizeAnalogClock();
-    }
-
   },
 
   getAlarmFromList: function al_getAlarmFromList(id) {
@@ -147,32 +157,22 @@ var AlarmList = {
   },
 
   toggleAlarmEnableState: function al_toggleAlarmEnableState(enabled, alarm) {
+    // Todo: queue actions instead of dropping them
     if (this.refreshingAlarms.indexOf(alarm.id) !== -1) {
       return;
     }
-
-    if (alarm.enabled === enabled)
-      return;
-
-    alarm.enabled = enabled;
-    this.refreshingAlarms.push(alarm.id);
-
-    var self = this;
-    AlarmManager.putAlarm(alarm, function al_putAlarm(alarm) {
-      if (!alarm.enabled && !alarm.normalAlarmId && !alarm.snoozeAlarmId) {
-        self.refreshItem(alarm);
-      } else {
-        AlarmManager.toggleAlarm(alarm, alarm.enabled);
-      }
-    });
-  },
-
-  deleteCurrent: function al_deleteCurrent(id) {
-    var alarm = this.getAlarmFromList(id);
-    var self = this;
-    AlarmManager.delete(alarm, function al_deleted() {
-      self.refresh();
-    });
+    if (alarm.enabled !== enabled) {
+      this.refreshingAlarms.push(alarm.id);
+      alarm.setEnabled(!alarm.enabled, function al_putAlarm(err, alarm) {
+        if (alarm.enabled) {
+          AlarmManager.renderBannerBar(alarm.getNextAlarmFireTime());
+        }
+        this.refreshItem(alarm);
+        AlarmManager.updateAlarmStatusBar();
+      }.bind(this));
+    } else {
+      AlarmManager.updateAlarmStatusBar();
+    }
   }
 
 };

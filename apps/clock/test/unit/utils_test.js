@@ -2,91 +2,27 @@ requireApp('clock/js/utils.js');
 
 suite('Time functions', function() {
 
-  suite('#summarizeDaysOfWeek', function() {
-    var summarizeDaysOfWeek;
+  suite('#changeSelectByValue', function() {
 
-    before(function() {
-      summarizeDaysOfWeek = Utils.summarizeDaysOfWeek;
-    });
-
-    test('should summarize everyday', function() {
-      assert.equal(summarizeDaysOfWeek('1111111'), _('everyday'));
-    });
-
-    test('should summarize weekdays', function() {
-      assert.equal(summarizeDaysOfWeek('1111100'), _('weekdays'));
-    });
-
-    test('should summarize weekends', function() {
-      assert.equal(summarizeDaysOfWeek('0000011'), _('weekends'));
-    });
-
-    test('should summarize never', function() {
-      assert.equal(summarizeDaysOfWeek('0000000'), _('never'));
-    });
-
-    test('should summarize a single day', function() {
-      assert.equal(summarizeDaysOfWeek('1000000'), _('weekday-1-short'));
-    });
-
-    test('should summarize a single day', function() {
-      var monTueWed = _('weekday-1-short') + ', ' +
-                      _('weekday-2-short') + ', ' +
-                      _('weekday-3-short');
-      assert.equal(summarizeDaysOfWeek('1110000'), monTueWed);
-    });
-
-  });
-
-  suite('#isAlarmPassToday', function() {
-
-    var isAlarmPassToday;
+    var changeSelectByValue, selectDOM;
 
     setup(function() {
-      var time = new Date();
-      time.setHours(6, 30);
-      this.clock = sinon.useFakeTimers(time.getTime());
-      isAlarmPassToday = Utils.isAlarmPassToday;
+      changeSelectByValue = Utils.changeSelectByValue;
+      selectDOM = document.createElement('select');
+      selectDOM.innerHTML = ['<option value="a">A</option>',
+        '<option value="b">B</option>',
+        '<option value="c" selected>C</option>'
+      ].join('');
     });
 
-    teardown(function() {
-      this.clock.restore();
+    test('correctly selects the specified element', function() {
+      changeSelectByValue(selectDOM, 'b');
+      assert.equal(selectDOM.selectedIndex, 1);
     });
 
-    test('prior hour, prior minute', function() {
-      assert.isTrue(isAlarmPassToday(5, 00));
-    });
-
-    test('prior hour, current minute', function() {
-      assert.isTrue(isAlarmPassToday(5, 30));
-    });
-
-    test('prior hour, later minute', function() {
-      assert.isTrue(isAlarmPassToday(5, 45));
-    });
-
-    test('current hour, prior minute', function() {
-      assert.isTrue(isAlarmPassToday(6, 29));
-    });
-
-    test('current hour, current minute', function() {
-      assert.isTrue(isAlarmPassToday(6, 30));
-    });
-
-    test('current hour, later minute', function() {
-      assert.isFalse(isAlarmPassToday(6, 31));
-    });
-
-    test('later hour, prior minute', function() {
-      assert.isFalse(isAlarmPassToday(7, 29));
-    });
-
-    test('later hour, current minute', function() {
-      assert.isFalse(isAlarmPassToday(7, 30));
-    });
-
-    test('later hour, later minute', function() {
-      assert.isFalse(isAlarmPassToday(7, 31));
+    test('has no effect when specified element does not exist', function() {
+      changeSelectByValue(selectDOM, 'g');
+      assert.equal(selectDOM.selectedIndex, 2);
     });
 
   });
