@@ -412,9 +412,11 @@ contacts.Settings = (function() {
         Contacts.navigation.home();
         if (importedContacts !== 0) {
           window.importUtils.setTimestamp('sim');
-          Contacts.showStatus(_('simContacts-imported3', {
-            n: importedContacts
-          }));
+          if (!cancelled) {
+            Contacts.showStatus(_('simContacts-imported3', {
+              n: importedContacts
+            }));
+          }
         }
       }, DELAY_FEEDBACK);
 
@@ -505,9 +507,11 @@ contacts.Settings = (function() {
           window.importUtils.setTimestamp('sd');
           resetWait(wakeLock);
           Contacts.navigation.home();
-          Contacts.showStatus(_('memoryCardContacts-imported3', {
-            n: importedContacts
-          }));
+          if (!cancelled) {
+            Contacts.showStatus(_('memoryCardContacts-imported3', {
+              n: importedContacts
+            }));
+          }
         }, DELAY_FEEDBACK);
       });
     }
