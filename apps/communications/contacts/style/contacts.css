@@ -161,6 +161,14 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 }
 
 /* Edit contact section */
+#throbber {
+  visibility: hidden;
+}
+
+#throbber.saving {
+  visibility: visible;
+}
+
 .view-edit-contact .tail-actions {
   padding-top: 0.7rem;
   margin: 1rem 0 2rem;

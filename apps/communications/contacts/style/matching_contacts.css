@@ -58,3 +58,25 @@
   line-height: 1.8rem;
   margin: 0 3rem;
 }
+
+#footer {
+  background: none;
+  pointer-events: none;
+  position: fixed;
+}
+
+#footer button {
+  pointer-events: auto;
+}
+
+body[data-mode="matching"] #footer {
+  display: none;
+}
+
+body[data-mode="listing"] #merge-close, body[data-mode="listing"] #merge-action {
+  display: none;
+}
+
+body[data-mode="listing"] #main {
+  height: calc(100% - 11.9rem); /* Header + footer */
+}
