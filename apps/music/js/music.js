@@ -562,6 +562,8 @@ var ModeManager = {
     } else {
       if (mode === MODE_LIST || mode === MODE_PICKER)
         document.getElementById('views-list').classList.remove('hidden');
+      else if (mode === MODE_TILES)
+        document.getElementById('views-list').classList.add('hidden');
       else if (mode === MODE_SUBLIST)
         document.getElementById('views-sublist').classList.remove('hidden');
       else if (mode === MODE_SEARCH_FROM_TILES ||
