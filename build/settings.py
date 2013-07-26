@@ -56,6 +56,8 @@ settings = {
  "icc.data": None,
  "icc.displayTextTimeout": 40000,
  "icc.inputTextTimeout": 40000,
+ "icc.goBackTimeout": 1000,
+ "icc.selectTimeout": 150000,
  "keyboard.layouts.english": True,
  "keyboard.layouts.dvorak": False,
  "keyboard.layouts.czech": False,
