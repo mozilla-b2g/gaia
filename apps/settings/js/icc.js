@@ -24,7 +24,11 @@
   var stkLastSelectedTest = null;
   var goBackTimer = {
     timer: null,
-    timeout: 1000
+    timeout: 0
+  };
+  var selectTimer = {
+    timer: null,
+    timeout: 0
   };
   var icc;
 
@@ -85,15 +89,39 @@
       resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
     });
     // We'll return to settings if no STK response received in a grace period
-    goBackTimer.timer = setTimeout(function() {
-      Settings.currentPanel = '#root';
-    }, goBackTimer.timeout);
+    var reqTimerGoBack =
+      window.navigator.mozSettings.createLock().get('icc.goBackTimeout');
+    reqTimerGoBack.onsuccess = function icc_getTimerGoBackSuccess() {
+      goBackTimer.timeout = reqTimerGoBack.result['icc.goBackTimeout'];
+      goBackTimer.timer = setTimeout(function() {
+        Settings.currentPanel = '#root';
+      }, goBackTimer.timeout);
+    };
+  };
+
+  function stkResNoResponse() {
+    var reqTimerSelect =
+      window.navigator.mozSettings.createLock().get('icc.selectTimeout');
+    reqTimerSelect.onsuccess = function icc_getTimerSelectSuccess() {
+      selectTimer.timeout = reqTimerSelect.result['icc.selectTimeout'];
+      selectTimer.timer = setTimeout(function() {
+        iccLastCommandProcessed = true;
+        responseSTKCommand({
+         resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+        }, true);
+        stkResGoBack();
+      }, selectTimer.timeout);
+    };
   };
 
   function stkCancelGoBack() {
     if (goBackTimer.timer) {
       window.clearTimeout(goBackTimer.timer);
       goBackTimer.timer = null;
+    }
+    if (selectTimer.timer) {
+      window.clearTimeout(selectTimer.timer);
+      selectTimer.timer = null;
     }
   }
 
@@ -226,6 +254,8 @@
         }));
       }
     };
+
+    stkResNoResponse();
   }
 
   function onMainMenuItemClick(event) {
@@ -295,6 +325,8 @@
         attributes: [['stk-select-option-identifier', menuItem.identifier]]
       }));
     });
+
+    stkResNoResponse();
   }
 
   function onSelectOptionClick(command, event) {
