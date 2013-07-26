@@ -41,7 +41,9 @@ ul li > span {
 
 ul li.active,
 ul li:not(.disabled) > small + a:active,
-ul li:not(.disabled) > a[href]:active {
+ul li:not(.disabled) > a[href]:active,
+ul li:not(.disabled) > small + a:focus,
+ul li:not(.disabled) > a[href]:focus {
   background-color: #b2f2ff;
   color: #222;
 }
