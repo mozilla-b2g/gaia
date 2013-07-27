@@ -7,14 +7,16 @@ var MockL10n = {
     }
     return key;
   },
-  DateTimeFormat: function() {},
+  DateTimeFormat: function() {
+    var localeFormat = function mockLocaleFormat(time, strFormat) {
+      return '' + time;
+    };
+    // support navigator.mozL10n.DateTimeFormat() without new the object
+    return {
+        localeFormat: localeFormat
+    };
+  },
   ready: function(callback) {
     callback();
-  }
-};
-
-MockL10n.DateTimeFormat.prototype = {
-  localeFormat: function mockLocaleFormat(time, strFormat) {
-    return '' + time;
   }
 };
