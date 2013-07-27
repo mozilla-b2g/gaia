@@ -1,6 +1,6 @@
 requireApp('system/js/value_selector/date_picker.js');
 
-suite('date picker', function() {
+suite('value selector/date picker', function() {
   var subject;
   var Calc;
   var triggerEvent;
