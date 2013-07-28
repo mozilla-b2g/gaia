@@ -27,30 +27,6 @@ html, body {
   overflow: hidden;
 }
 
-#confirmation {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  padding: 1.5rem;
-  z-index: 50;
-  background-color: rgba(0, 0, 0, 0.8);
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-#confirmation > button {
-  margin: 0;
-}
-
-#confirmation > button:not(:first-child) {
-  margin-left: 1rem;
-}
-
-#retake-button, #select-button {
-  width: calc((100% - 1rem) / 2);
-}
-
 #switch-button, #capture-button, #misc-button {
   position: absolute;
 }
@@ -232,7 +208,7 @@ html, body {
 
   /* almost transparent gray */
   background-color: rgba(0, 0, 0, 0.4);
-  z-index: 100;
+  z-index: 110;
 }
 
 .hidden {
