@@ -183,7 +183,9 @@
       var reComment = /^\s*#|^\s*$/;
       var reSection = /^\s*\[(.*)\]\s*$/;
       var reImport = /^\s*@import\s+url\((.*)\)\s*$/i;
-      var reSplit = /^([^=\s]*)\s*=\s*(.+)$/; // TODO: escape EOLs with '\'
+      var reSplit = /^([^=\s]*)\s*=\s*(.+)$/;
+      var reUnicode = /\\u([0-9a-fA-F]{1,4})/g;
+      var reMultiline = /[^\\]\\$/;
 
       // parse the *.properties file into an associative array
       function parseRawLines(rawText, extendedSyntax) {
@@ -199,6 +201,12 @@
           // comment or blank line?
           if (reComment.test(line))
             continue;
+
+          // multi-line?
+          while (reMultiline.test(line) && i < entries.length) {
+            line = line.slice(0, line.length - 1) +
+              entries[++i].replace(reBlank, '');
+          }
 
           // the extended syntax supports [lang] sections and @import rules
           if (extendedSyntax) {
@@ -220,7 +228,11 @@
           // key-value pair
           var tmp = line.match(reSplit);
           if (tmp && tmp.length == 3) {
-            dictionary[tmp[1]] = evalString(tmp[2]);
+            // unescape unicode char codes if needed (e.g. '\u00a0')
+            var val = tmp[2].replace(reUnicode, function(match, token) {
+              return unescape('%u' + '0000'.slice(token.length) + token);
+            });
+            dictionary[tmp[1]] = evalString(val);
           }
         }
       }

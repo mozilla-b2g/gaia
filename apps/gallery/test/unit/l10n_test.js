@@ -18,11 +18,21 @@ suite('L10n', function() {
     'prop-test.prop            = this is a property',
     'dot.prop-test.prop        = this is another property',
     'dataset-test.dataset.prop = this is a data attribute',
-    'style-test.style.padding  = 10px'
+    'style-test.style.padding  = 10px',
+    'euroSign                  = price: 10\\u20ac to 20\\u20ac',
+    'leadingSpaces             = \\u0020\\u020\\u20%2F',
+    'trailingBackslash         = backslash\\\\',
+    'multiLine                 = foo \\',
+    '                            bar \\',
+    '                            baz'
   ].join('\n');
 
   var key_cropImage = 'cropimage';
   var key_delete = 'delete-n-items';
+  var key_euroSign = 'euroSign';
+  var key_leadingSpaces = 'leadingSpaces';
+  var key_multiLine = 'multiLine';
+  var key_backslash = 'trailingBackslash';
 
   // Do not begin tests until the test locale has been loaded.
   suiteSetup(function(done) {
@@ -66,9 +76,20 @@ suite('L10n', function() {
       test('n=2', function() {
         assert.strictEqual(_(key_delete, { n: 2 }), 'Delete 2 items?');
       });
-
     });
 
+    test('unescape utf8 char codes', function() {
+      assert.strictEqual(_(key_euroSign), 'price: 10€ to 20€');
+      assert.strictEqual(_(key_leadingSpaces), '   %2F');
+    });
+
+    test('multiline string', function() {
+      assert.strictEqual(_(key_multiLine), 'foo bar baz');
+    });
+
+    test('escaped trailing backslash', function() {
+      assert.strictEqual(_(key_backslash), 'backslash\\');
+    });
   });
 
   suite('translate', function() {
