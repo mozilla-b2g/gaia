@@ -27,25 +27,20 @@ var Filmstrip = (function() {
   var shareButton = document.getElementById('share-button');
   var deleteButton = document.getElementById('delete-button');
 
-  // Offscreen elements for generating thumbnails with
+  // Offscreen image for generating thumbnails
   var offscreenImage = new Image();
-  var offscreenVideo = document.createElement('video');
 
   // Set up event handlers
   cameraButton.onclick = returnToCameraMode;
   deleteButton.onclick = deleteCurrentItem;
   shareButton.onclick = shareCurrentItem;
-  mediaFrame.addEventListener('dbltap', handleDoubleTap);
-  mediaFrame.addEventListener('transform', handleTransform);
-  mediaFrame.addEventListener('pan', handlePan);
   mediaFrame.addEventListener('swipe', handleSwipe);
-
-  // Generate gesture events
-  var gestureDetector = new GestureDetector(mediaFrame);
-  gestureDetector.startDetecting();
 
   // Create the MediaFrame for previews
   var frame = new MediaFrame(mediaFrame);
+
+  // Enable panning and zooming for images
+  addPanAndZoomHandlers(frame);
 
   // Start off with it positioned correctly.
   setOrientation(Camera._phoneOrientation);
@@ -230,84 +225,6 @@ var Filmstrip = (function() {
     };
   }
 
-  function handleDoubleTap(e) {
-    if (!items[currentItemIndex].isImage)
-      return;
-
-    var scale;
-    if (frame.fit.scale > frame.fit.baseScale)
-      scale = frame.fit.baseScale / frame.fit.scale;
-    else
-      scale = 2;
-
-    // If the phone orientation is 0 (unrotated) then the gesture detector's
-    // event coordinates match what's on the screen, and we use them to
-    // specify a point to zoom in or out on. For other orientations we could
-    // calculate the correct point, but instead just use the midpoint.
-    var x, y;
-    if (Camera._phoneOrientation === 0) {
-      x = e.detail.clientX;
-      y = e.detail.clientY;
-    }
-    else {
-      x = mediaFrame.offsetWidth / 2;
-      y = mediaFrame.offsetHeight / 2;
-    }
-
-    frame.zoom(scale, x, y, 200);
-  }
-
-  function handleTransform(e) {
-    if (!items[currentItemIndex].isImage)
-      return;
-
-    // If the phone orientation is 0 (unrotated) then the gesture detector's
-    // event coordinates match what's on the screen, and we use them to
-    // specify a point to zoom in or out on. For other orientations we could
-    // calculate the correct point, but instead just use the midpoint.
-    var x, y;
-    if (Camera._phoneOrientation === 0) {
-      x = e.detail.midpoint.clientX;
-      y = e.detail.midpoint.clientY;
-    }
-    else {
-      x = mediaFrame.offsetWidth / 2;
-      y = mediaFrame.offsetHeight / 2;
-    }
-
-    frame.zoom(e.detail.relative.scale, x, y);
-  }
-
-  function handlePan(e) {
-    if (!items[currentItemIndex].isImage)
-      return;
-
-    // The gesture detector event does not take our CSS rotation into
-    // account, so we have to pan by a dx and dy that depend on how
-    // the MediaFrame is rotated
-    var dx, dy;
-    switch (Camera._phoneOrientation) {
-    case 0:
-      dx = e.detail.relative.dx;
-      dy = e.detail.relative.dy;
-      break;
-    case 90:
-      dx = -e.detail.relative.dy;
-      dy = e.detail.relative.dx;
-      break;
-    case 180:
-      dx = -e.detail.relative.dx;
-      dy = -e.detail.relative.dy;
-      break;
-    case 270:
-      dx = e.detail.relative.dy;
-      dy = -e.detail.relative.dx;
-      break;
-    }
-
-    frame.pan(dx, dy);
-  }
-
   function handleSwipe(e) {
     // Because the stuff around the media frame does not change position
     // when the phone is rotated, we don't alter these directions based
@@ -358,57 +275,20 @@ var Filmstrip = (function() {
     }, function logerr(msg) { console.warn(msg); });
   }
 
-  function addVideo(filename) {
-    var request = Camera._videoStorage.get(filename);
-    request.onerror = function() {
-      console.warn('addVideo:', filename, request.error.name);
-    };
-    request.onsuccess = function() {
-      var blob = request.result;
-      getVideoRotation(blob, function(rotation) {
-        if (typeof rotation !== 'number') {
-          console.warn('Unexpected rotation:', rotation);
-          rotation = 0;
-        }
-
-        var url = URL.createObjectURL(blob);
-
-        offscreenVideo.preload = 'metadata';
-        offscreenVideo.style.width = THUMBNAIL_WIDTH + 'px';
-        offscreenVideo.style.height = THUMBNAIL_HEIGHT + 'px';
-        offscreenVideo.src = url;
-
-        offscreenVideo.onerror = function() {
-          URL.revokeObjectURL(url);
-          offscreenVideo.onerror = null;
-          offscreenVideo.onloadedmetadata = null;
-          offscreenVideo.removeAttribute('src');
-          offscreenVideo.load();
-          console.warn('not a video file', filename);
-        };
-
-        offscreenVideo.onloadedmetadata = function() {
-          createThumbnailFromVideo(offscreenVideo, rotation, filename,
-                                   function(thumbnail, poster) {
-                                     addItem({
-                                       isVideo: true,
-                                       filename: filename,
-                                       thumbnail: thumbnail,
-                                       poster: poster,
-                                       blob: blob,
-                                       width: offscreenVideo.videoWidth,
-                                       height: offscreenVideo.videoHeight,
-                                       rotation: rotation
-                                     });
-                                   });
-          URL.revokeObjectURL(url);
-          offscreenVideo.onerror = null;
-          offscreenVideo.onloadedmetadata = null;
-          offscreenVideo.removeAttribute('src');
-          offscreenVideo.load();
-        };
-      });
-    };
+  function addVideo(filename, blob, poster, width, height, rotation) {
+    createThumbnailFromPoster(poster, width, height, rotation,
+                              function(thumbnail) {
+                                addItem({
+                                  isVideo: true,
+                                  filename: filename,
+                                  thumbnail: thumbnail,
+                                  poster: poster,
+                                  blob: blob,
+                                  width: width,
+                                  height: height,
+                                  rotation: rotation
+                                });
+                              });
   }
 
   // Add a thumbnail to the filmstrip.
@@ -524,103 +404,97 @@ var Filmstrip = (function() {
   // Create a thumbnail size canvas, copy the <img> or <video> into it
   // cropping the edges as needed to make it fit, and then extract the
   // thumbnail image as a blob and pass it to the callback.
-  function createThumbnailFromVideo(video, rotation, filename, callback) {
-    var videowidth = video.videoWidth;
-    var videoheight = video.videoHeight;
+  function createThumbnailFromPoster(poster, width, height, rotation, callback)
+  {
+    // Load the poster image into an offscreen image
+    offscreenImage.src = URL.createObjectURL(poster);
+    // And when it loads, create a thumbnail from it
+    offscreenImage.onload = function() {
 
-    // First, create a full-size unrotated poster image
-    var postercanvas = document.createElement('canvas');
-    var postercontext = postercanvas.getContext('2d');
-    postercanvas.width = videowidth;
-    postercanvas.height = videoheight;
-    postercontext.drawImage(video, 0, 0);
+      // Now create a thumbnail
+      var thumbnailcanvas = document.createElement('canvas');
+      var thumbnailcontext = thumbnailcanvas.getContext('2d');
+      thumbnailcanvas.width = THUMBNAIL_WIDTH;
+      thumbnailcanvas.height = THUMBNAIL_HEIGHT;
 
-    // Now create a thumbnail
-    var thumbnailcanvas = document.createElement('canvas');
-    var thumbnailcontext = thumbnailcanvas.getContext('2d');
-    thumbnailcanvas.width = THUMBNAIL_WIDTH;
-    thumbnailcanvas.height = THUMBNAIL_HEIGHT;
+      var scalex = THUMBNAIL_WIDTH / width;
+      var scaley = THUMBNAIL_HEIGHT / height;
 
-    var scalex = THUMBNAIL_WIDTH / videowidth;
-    var scaley = THUMBNAIL_HEIGHT / videoheight;
+      // Take the larger of the two scales: we crop the image to the thumbnail
+      var scale = Math.max(scalex, scaley);
 
-    // Take the larger of the two scales: we crop the image to the thumbnail
-    var scale = Math.max(scalex, scaley);
+      // Calculate the region of the image that will be copied to the
+      // canvas to create the thumbnail
+      var w = Math.round(THUMBNAIL_WIDTH / scale);
+      var h = Math.round(THUMBNAIL_HEIGHT / scale);
+      var x = Math.round((width - w) / 2);
+      var y = Math.round((height - h) / 2);
 
-    // Calculate the region of the image that will be copied to the
-    // canvas to create the thumbnail
-    var w = Math.round(THUMBNAIL_WIDTH / scale);
-    var h = Math.round(THUMBNAIL_HEIGHT / scale);
-    var x = Math.round((videowidth - w) / 2);
-    var y = Math.round((videoheight - h) / 2);
-
-    // If a rotation is specified, rotate the canvas context
-    if (rotation) {
-      thumbnailcontext.save();
-      switch (rotation) {
-      case 90:
-        thumbnailcontext.translate(THUMBNAIL_WIDTH, 0);
-        thumbnailcontext.rotate(Math.PI / 2);
-        break;
-      case 180:
-        thumbnailcontext.translate(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-        thumbnailcontext.rotate(Math.PI);
-        break;
-      case 270:
-        thumbnailcontext.translate(0, THUMBNAIL_HEIGHT);
-        thumbnailcontext.rotate(-Math.PI / 2);
-        break;
+      // If a rotation is specified, rotate the canvas context
+      if (rotation) {
+        thumbnailcontext.save();
+        switch (rotation) {
+        case 90:
+          thumbnailcontext.translate(THUMBNAIL_WIDTH, 0);
+          thumbnailcontext.rotate(Math.PI / 2);
+          break;
+        case 180:
+          thumbnailcontext.translate(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+          thumbnailcontext.rotate(Math.PI);
+          break;
+        case 270:
+          thumbnailcontext.translate(0, THUMBNAIL_HEIGHT);
+          thumbnailcontext.rotate(-Math.PI / 2);
+          break;
+        }
       }
-    }
 
-    // Draw that region of the poster into the thumbnail, scaling it down
-    thumbnailcontext.drawImage(postercanvas, x, y, w, h,
-                               0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+      // Draw that region of the poster into the thumbnail, scaling it down
+      thumbnailcontext.drawImage(offscreenImage, x, y, w, h,
+                                 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
 
-    // Restore the default rotation so the play arrow comes out correctly
-    if (rotation) {
-      thumbnailcontext.restore();
-    }
+      // We're done with the offscreen image now
+      URL.revokeObjectURL(offscreenImage.src);
+      offscreenImage.onload = null;
+      offscreenImage.src = null;
 
-    // If this is a video, superimpose a translucent play button over
-    // the captured video frame to distinguish it from a still photo
-    // thumbnail. First draw a transparent gray circle
-    thumbnailcontext.fillStyle = 'rgba(0, 0, 0, .3)';
-    thumbnailcontext.beginPath();
-    thumbnailcontext.arc(THUMBNAIL_WIDTH / 2, THUMBNAIL_HEIGHT / 2,
-                         THUMBNAIL_HEIGHT / 3, 0, 2 * Math.PI, false);
-    thumbnailcontext.fill();
+      // Restore the default rotation so the play arrow comes out correctly
+      if (rotation) {
+        thumbnailcontext.restore();
+      }
 
-    // Now outline the circle in white
-    thumbnailcontext.strokeStyle = 'rgba(255,255,255,.6)';
-    thumbnailcontext.lineWidth = 2;
-    thumbnailcontext.stroke();
+      // Superimpose a translucent play button over
+      // the thumbnail to distinguish it from a still photo
+      // thumbnail. First draw a transparent gray circle.
+      thumbnailcontext.fillStyle = 'rgba(0, 0, 0, .3)';
+      thumbnailcontext.beginPath();
+      thumbnailcontext.arc(THUMBNAIL_WIDTH / 2, THUMBNAIL_HEIGHT / 2,
+                           THUMBNAIL_HEIGHT / 3, 0, 2 * Math.PI, false);
+      thumbnailcontext.fill();
 
-    // And add a white play arrow.
-    thumbnailcontext.beginPath();
-    thumbnailcontext.fillStyle = 'rgba(255,255,255,.6)';
-    // The height of an equilateral triangle is sqrt(3)/2 times the side
-    var side = THUMBNAIL_HEIGHT / 3;
-    var triangle_height = side * Math.sqrt(3) / 2;
-    thumbnailcontext.moveTo(THUMBNAIL_WIDTH / 2 + triangle_height * 2 / 3,
-                            THUMBNAIL_HEIGHT / 2);
-    thumbnailcontext.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
-                            THUMBNAIL_HEIGHT / 2 - side / 2);
-    thumbnailcontext.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
-                            THUMBNAIL_HEIGHT / 2 + side / 2);
-    thumbnailcontext.closePath();
-    thumbnailcontext.fill();
+      // Now outline the circle in white
+      thumbnailcontext.strokeStyle = 'rgba(255,255,255,.6)';
+      thumbnailcontext.lineWidth = 2;
+      thumbnailcontext.stroke();
 
-    // Save the poster image to storage, then call the callback
-    postercanvas.toBlob(savePosterImage, 'image/jpeg');
+      // And add a white play arrow.
+      thumbnailcontext.beginPath();
+      thumbnailcontext.fillStyle = 'rgba(255,255,255,.6)';
+      // The height of an equilateral triangle is sqrt(3)/2 times the side
+      var side = THUMBNAIL_HEIGHT / 3;
+      var triangle_height = side * Math.sqrt(3) / 2;
+      thumbnailcontext.moveTo(THUMBNAIL_WIDTH / 2 + triangle_height * 2 / 3,
+                              THUMBNAIL_HEIGHT / 2);
+      thumbnailcontext.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
+                              THUMBNAIL_HEIGHT / 2 - side / 2);
+      thumbnailcontext.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
+                              THUMBNAIL_HEIGHT / 2 + side / 2);
+      thumbnailcontext.closePath();
+      thumbnailcontext.fill();
 
-    // The Gallery app depends on this poster image being saved here
-    function savePosterImage(poster) {
-      Camera._pictureStorage.addNamed(poster, filename.replace('.3gp', '.jpg'));
-      thumbnailcanvas.toBlob(function(thumbnail) {
-        callback(thumbnail, poster);
-      }, 'image/jpeg');
-    }
+      // Get the thumbnail image as a blob and pass it to the callback
+      thumbnailcanvas.toBlob(callback, 'image/jpeg');
+    };
   }
 
   function setOrientation(orientation) {

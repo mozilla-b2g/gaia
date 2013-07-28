@@ -48,12 +48,6 @@
       </div>
     </div>
 
-    <div id="confirmation" class="hidden">
-      <button id="retake-button" data-l10n-id="retake-button"></button>
-      <button id="select-button" class="recommend"
-              data-l10n-id="select-button"></button>
-    </div>
-
     <div id="overlay" class="hidden">
       <form role="dialog" data-type="confirm">
          <section>
@@ -77,6 +71,16 @@
         <a id="camera-button" class="button"></a>
         <a id="delete-button" class="button"></a>
         <a id="share-button" class="button"></a>
+      </footer>
+    </div>
+
+    <!-- see confirm.js and confirm.css for these elements -->
+    <div id="confirm" hidden>
+      <div id="confirm-media-frame"></div> <!-- image or video here -->
+      <footer id="confirm-controls">
+        <button id="retake-button" data-l10n-id="retake-button"></button>
+        <button id="select-button" class="recommend"
+                data-l10n-id="select-button"></button>
       </footer>
     </div>
 

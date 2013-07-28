@@ -241,14 +241,6 @@ var Camera = {
     return document.getElementById('cancel-pick');
   },
 
-  get retakeButton() {
-    return document.getElementById('retake-button');
-  },
-
-  get selectButton() {
-    return document.getElementById('select-button');
-  },
-
   get overlayCloseButton() {
     return document.getElementById('overlay-close-button');
   },
@@ -282,6 +274,7 @@ var Camera = {
       PerformanceTestingHelper.dispatch('camera-preview-loaded');
       var files = [
         'style/filmstrip.css',
+        'style/confirm.css',
         'style/VideoPlayer.css',
         '/shared/js/async_storage.js',
         '/shared/js/blobview.js',
@@ -291,7 +284,9 @@ var Camera = {
         '/shared/js/media/media_frame.js',
         '/shared/js/gesture_detector.js',
         '/shared/js/lazy_l10n.js',
-        'js/filmstrip.js'
+        'js/panzoom.js',
+        'js/filmstrip.js',
+        'js/confirm.js'
       ];
       loader.load(files, function() {
         LazyL10n.get(function localized() {
@@ -333,10 +328,6 @@ var Camera = {
       .addEventListener('click', this.galleryBtnPressed.bind(this));
     this.cancelPickButton
       .addEventListener('click', this.cancelPick.bind(this));
-    this.retakeButton
-      .addEventListener('click', this.retakePressed.bind(this));
-    this.selectButton
-      .addEventListener('click', this.selectPressed.bind(this));
     this.overlayCloseButton
       .addEventListener('click', this.cancelPick.bind(this));
 
@@ -461,20 +452,6 @@ var Camera = {
 
     if (this._pendingPick) {
       this.cancelPickButton.setAttribute('disabled', 'disabled');
-    }
-  },
-
-  showConfirmation: function camera_showConfirmation(show) {
-    var controls = document.getElementById('controls');
-    var confirmation = document.getElementById('confirmation');
-
-    if (show) {
-      controls.classList.add('hidden');
-      confirmation.classList.remove('hidden');
-    }
-    else {
-      controls.classList.remove('hidden');
-      confirmation.classList.add('hidden');
     }
   },
 
@@ -673,16 +650,27 @@ var Camera = {
         if (e.reason === 'modified' && e.path === videofile) {
           // Un-register the listener itself
           videoStorage.removeEventListener('change', changeHandler);
-          if (self._pendingPick) {
-            // call Filmstrip.addVideo to generate poster image for gallery
-            Filmstrip.addVideo(videofile);
-            self._savedMedia = videofile;
-            self.stopPreview();
-            self.showConfirmation(true);
-          } else {
-            Filmstrip.addVideo(videofile);
-            Filmstrip.show(Camera.FILMSTRIP_DURATION);
-          }
+
+          // Now that the video file has been saved, save a poster
+          // image to match it. The Gallery app depends on this.
+          self.saveVideoPosterImage(videofile, function(video, poster, data) {
+
+            if (self._pendingPick) {
+              self._savedMedia = {
+                video: video,
+                poster: poster
+              };
+              ConfirmDialog.confirmVideo(video, poster,
+                                         data.width, data.height, data.rotation,
+                                         self.selectPressed.bind(self),
+                                         self.retakePressed.bind(self));
+
+            } else {
+              Filmstrip.addVideo(videofile, video, poster,
+                                 data.width, data.height, data.rotation);
+              Filmstrip.show(Camera.FILMSTRIP_DURATION);
+            }
+          });
         }
       });
     })(this._videoStorage, this._videoRootDir + this._videoPath);
@@ -690,6 +678,68 @@ var Camera = {
     window.clearInterval(this._videoTimer);
     this.enableButtons();
     document.body.classList.remove('capturing');
+  },
+
+  saveVideoPosterImage: function saveVideoPosterImage(filename, callback) {
+    // Given the filename of a newly recorded video, create a poster
+    // image for it, and save that poster as a jpeg file. When done,
+    // pass the video blob and the poster blob to  the callback function
+    // along with the video dimensions and rotation.
+    var getreq = this._videoStorage.get(filename);
+    getreq.onerror = function() {
+      console.warn('saveVideoPosterImage:', filename, request.error.name);
+    };
+    getreq.onsuccess = function() {
+      var videoblob = getreq.result;
+      getVideoRotation(videoblob, function(rotation) {
+        if (typeof rotation !== 'number') {
+          console.warn('Unexpected rotation:', rotation);
+          rotation = 0;
+        }
+
+        var offscreenVideo = document.createElement('video');
+        var url = URL.createObjectURL(videoblob);
+
+        offscreenVideo.preload = 'metadata';
+        offscreenVideo.src = url;
+
+        offscreenVideo.onerror = function() {
+          URL.revokeObjectURL(url);
+          offscreenVideo.removeAttribute('src');
+          offscreenVideo.load();
+          console.warn('not a video file', filename);
+        };
+
+        offscreenVideo.onloadedmetadata = function() {
+          var videowidth = offscreenVideo.videoWidth;
+          var videoheight = offscreenVideo.videoHeight;
+
+          // First, create a full-size unrotated poster image
+          var postercanvas = document.createElement('canvas');
+          var postercontext = postercanvas.getContext('2d');
+          postercanvas.width = videowidth;
+          postercanvas.height = videoheight;
+          postercontext.drawImage(offscreenVideo, 0, 0);
+
+          // We're done with the offscreen video element now
+          URL.revokeObjectURL(url);
+          offscreenVideo.removeAttribute('src');
+          offscreenVideo.load();
+
+          // Save the poster image to storage, then call the callback
+          // The Gallery app depends on this poster image being saved here
+          postercanvas.toBlob(function savePoster(poster) {
+            var posterfile = filename.replace('.3gp', '.jpg');
+            Camera._pictureStorage.addNamed(poster, posterfile);
+            callback(videoblob, poster, {
+              width: videowidth,
+              height: videoheight,
+              rotation: rotation
+            });
+          }, 'image/jpeg');
+        };
+      });
+    };
   },
 
   formatTimer: function camera_formatTimer(time) {
@@ -984,16 +1034,25 @@ var Camera = {
     this._manuallyFocused = false;
     this.hideFocusRing();
 
+
     if (this._pendingPick) {
-      this.showConfirmation(true);
+      // If we're doing a Pick, ask the user to confirm the image
+      ConfirmDialog.confirmImage(blob,
+                                 this.selectPressed.bind(this),
+                                 this.retakePressed.bind(this));
 
       // Just save the blob temporarily until the user presses "Retake" or
       // "Select".
-      this._savedMedia = blob;
-      return;
+      this._savedMedia = {
+        blob: blob
+      };
+    }
+    else {
+      // Otherwise (this is the normal case) start the viewfinder again
+      this.resumePreview();
     }
 
-    this.resumePreview();
+    // In either case, save the photo to device storage
     this._addPictureToStorage(blob, function(name, absolutePath) {
       Filmstrip.addImage(absolutePath, blob);
       Filmstrip.show(Camera.FILMSTRIP_DURATION);
@@ -1003,8 +1062,6 @@ var Camera = {
 
   retakePressed: function camera_retakePressed() {
     this._savedMedia = null;
-    this.showConfirmation(false);
-    this.cancelPickButton.removeAttribute('disabled');
     if (this._captureMode === this.CAMERA) {
       this.resumePreview();
     } else {
@@ -1016,32 +1073,21 @@ var Camera = {
     var self = this;
     var media = this._savedMedia;
     this._savedMedia = null;
-    this.showConfirmation(false);
     if (this._captureMode === this.CAMERA) {
-      this._addPictureToStorage(media, function(name, absolutePath) {
-        this._resizeBlobIfNeeded(media, function(resized_blob) {
-          this._pendingPick.postResult({
-            type: 'image/jpeg',
-            blob: resized_blob,
-            name: name
-          });
-          this._pendingPick = null;
-        }.bind(this));
+      this._resizeBlobIfNeeded(media.blob, function(resized_blob) {
+        this._pendingPick.postResult({
+          type: 'image/jpeg',
+          blob: resized_blob
+        });
+        this._pendingPick = null;
       }.bind(this));
     } else {
-      var request = Camera._videoStorage.get(media);
-      request.onerror = function() {
-        console.warn('addVideo:', media, request.error.name);
-      };
-      request.onsuccess = function() {
-        var blob = request.result;
-        self._pendingPick.postResult({
-          type: 'video/3gpp',
-          blob: blob,
-          name: media
-        });
-        self._pendingPick = null;
-      };
+      this._pendingPick.postResult({
+        type: 'video/3gpp',
+        blob: media.video,
+        poster: media.poster
+      });
+      this._pendingPick = null;
     }
   },
 
