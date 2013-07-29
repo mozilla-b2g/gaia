@@ -1,7 +1,7 @@
 'use strict';
 
 var MockLinkActionHandler = {
-  resetActivityInProgress: function() {},
-  handleLongPressEvent: function() {},
-  handleTapEvent: function() {}
+  reset: function() {},
+  onContextMenu: function() {},
+  onClick: function() {}
 };

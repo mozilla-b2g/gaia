@@ -23,6 +23,10 @@ var MockThreadUI = {
     this.isShowSendMessageErrorCalledTimes += 1;
   },
 
+  activateContact: function() {
+
+  },
+
   mSetup: function() {
     this.isShowSendMessageErrorCalledTimes = 0;
   },
@@ -31,4 +35,3 @@ var MockThreadUI = {
     this.isShowSendMessageErrorCalledTimes = 0;
   }
 };
-

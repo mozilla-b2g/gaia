@@ -578,11 +578,17 @@
     attachments: [{
       location: 'text1',
       content: new Blob(
-        ['one contact with two numbers'], { type: 'text/plain' }
+        ['one contact with two numbers.\n\n ' +
+         'This matches a contact:  +12125551234\n\n' +
+         'This does not:  +14327659801\n\n' +
+         'A URL:  http://mozilla.com\n\n' +
+         'An email address:  a@b.com'],
+         { type: 'text/plain' }
       )
     }],
     timestamp: new Date()
   });
+
 
   // Internal publisher/subscriber implementation
   var allHandlers = {};
