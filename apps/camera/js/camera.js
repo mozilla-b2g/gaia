@@ -563,6 +563,7 @@ var Camera = {
   },
 
   startRecording: function camera_startRecording() {
+    this.toggleButton.classList.add('hidden');
     this._sizeLimitAlertActive = false;
     var captureButton = this.captureButton;
     var switchButton = this.switchButton;
@@ -655,6 +656,7 @@ var Camera = {
   },
 
   stopRecording: function camera_stopRecording() {
+    this.toggleButton.classList.remove('hidden');
     var self = this;
     this._cameraObj.stopRecording();
     this._recording = false;
