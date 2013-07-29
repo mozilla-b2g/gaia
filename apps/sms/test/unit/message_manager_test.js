@@ -259,5 +259,15 @@ suite('message_manager.js >', function() {
       });
       assert.ok(ThreadUI.setMessageBody.calledWith('test'));
     });
+
+    test('No contact and no number', function() {
+      MessageManager.launchComposer({
+        number: null,
+        contact: null,
+        body: 'Youtube url'
+      });
+      assert.equal(ThreadUI.recipients.numbers.length, 0);
+      assert.ok(ThreadUI.setMessageBody.calledWith('Youtube url'));
+    });
   });
 });
