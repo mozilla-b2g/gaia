@@ -235,19 +235,21 @@ var KeypadManager = {
               return;
             }
           }
-          LazyL10n.get(function localized(_) {
-            self.dialerMessageText.textContent = _('NoPreviousOutgoingCalls');
-            self.dialerMessageText.hidden = false;
-            if (self.dialerMessageTimer) {
-              window.clearTimeout(self.dialerMessageTimer);
-            }
-            self.dialerMessageTimer = window.setTimeout(
-              function hk_removeDialerMessage() {
-                self.dialerMessageText.hidden = true;
-              },
-              3000
-            );
-          });
+          if (self.dialerMessageText) {
+            LazyL10n.get(function localized(_) {
+              self.dialerMessageText.textContent = _('NoPreviousOutgoingCalls');
+              self.dialerMessageText.hidden = false;
+              if (self.dialerMessageTimer) {
+                window.clearTimeout(self.dialerMessageTimer);
+              }
+              self.dialerMessageTimer = window.setTimeout(
+                function hk_removeDialerMessage() {
+                  self.dialerMessageText.hidden = true;
+                },
+                3000
+              );
+            });
+          }
         }
       );
     } else {
@@ -314,7 +316,9 @@ var KeypadManager = {
       return;
     }
 
-    this.dialerMessageText.hidden = true;
+    if (this.dialerMessageText) {
+      this.dialerMessageText.hidden = true;
+    }
 
     // Per certification requirement, we need to send an MMI request to
     // get the device's IMEI as soon as the user enters the last # key from
