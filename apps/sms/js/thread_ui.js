@@ -1341,7 +1341,7 @@ var ThreadUI = global.ThreadUI = {
           // if the click wasn't on an attachment check for other clicks
           if (!thui_mmsAttachmentClick(evt.target)) {
             this.handleMessageClick(evt);
-            LinkActionHandler.handleTapEvent(evt);
+            LinkActionHandler.onClick(evt);
           }
           return;
         }
@@ -1353,9 +1353,7 @@ var ThreadUI = global.ThreadUI = {
         }
         break;
       case 'contextmenu':
-        evt.preventDefault();
-        evt.stopPropagation();
-        LinkActionHandler.handleLongPressEvent(evt);
+        LinkActionHandler.onContextMenu(evt);
         break;
       case 'submit':
         evt.preventDefault();
@@ -1945,12 +1943,16 @@ var ThreadUI = global.ThreadUI = {
     var number = opt.number;
     var name = opt.name || number;
     var isContact = opt.isContact || false;
+    var inMessage = opt.inMessage || false;
     var items = [];
     var params;
 
-    // An activation for a single, known recipient contact
+    // Multi-participant activation for for a single, known
+    // recipient contact, that is not triggered from a message,
     // will initiate a call to that recipient contact.
-    if (isContact && thread.participants.length === 1) {
+    if ((thread && thread.participants.length === 1) &&
+        isContact && !inMessage) {
+
       ActivityPicker.call(number);
       return;
     }
@@ -1964,9 +1966,9 @@ var ThreadUI = global.ThreadUI = {
       params: [number]
     });
 
-    // Multi-participant activations will also see
-    // a "Send Message" option
-    if (thread.participants.length > 1) {
+    // Multi-participant activations or in-message numbers
+    // will include a "Send Message" option in the menu
+    if ((thread && thread.participants.length > 1) || inMessage) {
       items.push({
         name: _('sendMessage'),
         method: function oCall(param) {
