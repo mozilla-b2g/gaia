@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="style/dock.css">
     <link rel="stylesheet" type="text/css" href="style/landing.css">
     <link rel="stylesheet" type="text/css" href="everything.me/css/everything.me.css">
+    <link rel="stylesheet" type="text/css" href="style/rocketbar.css">
 
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
@@ -17,6 +18,7 @@
     <script type="text/javascript" defer src="shared/js/manifest_helper.js"></script>
     <script type="text/javascript" src="shared/js/settings_listener.js"></script>
     <script type="text/javascript" defer src="shared/js/async_storage.js"></script>
+    <script type="text/javascript" defer src="shared/js/opensearch.js"></script>
 
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
@@ -41,6 +43,7 @@
     <script type="text/javascript" defer src="js/homescreen.js"></script>
     <script type="text/javascript" defer src="js/configurator.js"></script>
     <script type="text/javascript" defer src="js/wallpaper.js"></script>
+    <script type="text/javascript" defer src="js/rocketbar.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
@@ -68,6 +71,11 @@
           <button id="confirm-dialog-confirm-button" class="danger"></button>
         </menu>
       </form>
+    </section>
+
+    <section id="rocketbar-overlay">
+      <input id="rocketbar-input" data-l10n-id="rocketbar-search" x-inputmode="verbatim" type="text" placeholder="Search..."/>
+      <ul id="rocketbar-search-results"></ul>
     </section>
 
     <header id="paginationBar">
@@ -124,6 +132,7 @@
           </div>
       </div>
       <div id="landing-page" data-current-page="true">
+        <div id="rocketbar-activation-icon"></div>
         <div id="landing-time">
           <p id="landing-clock">
             <span class="numbers"></span>
