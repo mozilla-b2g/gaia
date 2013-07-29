@@ -377,7 +377,8 @@ ComposeCard.prototype = {
     }
     this.stringContainer.style.display = 'inline-block';
     this.stringContainer.textContent = node.value;
-    node.style.width = (this.stringContainer.clientWidth + 2) + 'px';
+    node.style.width =
+      (this.stringContainer.clientWidth + 2) + 'px';
   },
 
   onContainerClick: function(evt) {

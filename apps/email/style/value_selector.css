@@ -17,7 +17,7 @@ section.valueselector [role="dialog"]:before {
   display: inline-block;
   height: 100%;
   vertical-align: middle;
-  width: 1px;
+  width: 0.1rem;
 }
 
 section.valueselector [role="dialog"] {
@@ -69,7 +69,7 @@ section.valueselector [role="dialog"] ul {
 }
 
 section.valueselector [role="dialog"] li {
-  border-bottom: 1px solid #666666;
+  border-bottom: 0.1rem solid #666666;
   color: #FFFFFF;
   font-size: 2.2rem;
   font-weight: lighter;
@@ -77,7 +77,7 @@ section.valueselector [role="dialog"] li {
   line-height: 5.9rem;
   list-style: none outside none;
   margin: 0;
-  padding-bottom: 1px;
+  padding-bottom: 0.1rem;
   position: relative;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -118,7 +118,7 @@ section.valueselector [role="dialog"] li label span {
 
 section.valueselector menu:not([type="toolbar"]) {
   background: url("images/pattern.png") repeat scroll left top #2D2D2D;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
   bottom: 0;
   display: block;
   left: 0;
@@ -133,7 +133,7 @@ section.valueselector menu:not([type="toolbar"]) {
 section.valueselector button {
   -moz-box-sizing: border-box;
   background: url("images/default.png") repeat-x scroll left bottom #FAFAFA;
-  border: 1px solid #9F9F9F;
+  border: 0.1rem solid #9F9F9F;
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
   color: #333333;
   display: inline-block;
@@ -147,7 +147,7 @@ section.valueselector button {
   text-align: center;
   text-decoration: none;
   text-overflow: ellipsis;
-  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0.1rem 0.1rem 0 rgba(255, 255, 255, 0.3);
   vertical-align: middle;
   white-space: nowrap;
   width: 100%;
