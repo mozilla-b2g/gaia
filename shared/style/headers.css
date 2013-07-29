@@ -1,7 +1,13 @@
-/* ----------------------------------
- * HEADERS: default
- * ---------------------------------- */
-section[role="region"] > header:first-child {
+/**
+ * Defaults & name spaces definition
+ */
+
+.bb-header,
+.bb-subheader {
+  font-family: sans-serif;
+}
+
+.bb-header {
   position: relative;
   z-index: 10;
   padding: 0;
@@ -12,7 +18,7 @@ section[role="region"] > header:first-child {
   border: none;
 }
 
-section[role="region"] > header:first-child:after {
+.bb-header:after {
   content: "";
   display: block;
   height: 0.3rem;
@@ -24,7 +30,7 @@ section[role="region"] > header:first-child:after {
   background-size: auto 100%;
 }
 
-section[role="region"] > header:first-child h1 {
+.bb-header h1 {
   font-size: 2.5rem;
   line-height: 4.8rem;
   text-align: left;
@@ -39,246 +45,200 @@ section[role="region"] > header:first-child h1 {
   font-weight: normal;
 }
 
-section[role="region"] > header:first-child h1 em {
+.bb-header h1 em {
   font-weight: 400;
   font-size: 1.5rem;
   line-height: 1em;
   font-style: normal;
 }
 
-section[role="region"] > header:first-child form {
-  display: block;
-  overflow: hidden;
-  position: relative;
-  padding: 1rem 1rem 0 0.5rem ;
-  margin-left: 2.5rem;
-}
+/**
+ * Default actions style
+ */
 
-section[role="region"] > header:first-child input[type="text"] {
-  width: 100%;
-  height: 3rem;
-  -moz-box-sizing: border-box;
-  padding: 0 0.8rem;
-  border: solid 0.1rem #9d4123;
-  border-top-color: #a6501e;
-  border-radius: 0.3rem;
-  background: #fff url(headers/images/ui/shadow.png) repeat-x left -0.1rem;
-  font-size: 1.5rem;
-  line-height: 3em;
-  box-shadow: none;
-}
-
-section[role="region"] > header:first-child form button[type="reset"] {
-  font-size: 0;
-  overflow: hidden;
-  position: absolute;
-  right: 1rem;
-  top: 1rem;
-  bottom: 0;
-  width: 3rem;
-  height: auto;
-  margin: 0;
-  display: none;
+.bb-header .action {
+  background: none;
   border: none;
-  background: url(headers/images/icons/clear.png) no-repeat center center / 1.7rem auto;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  color: #fff;
+  text-align: center;
+  border-radius: 0;
+  text-decoration: none;
+  text-shadow: none;
 }
 
-section[role="region"] > header:first-child input[type="text"]:valid + button[type="reset"] {
-  display: block;
+.bb-header .action::-moz-focus-inner,
+.bb-header .action:active,
+.bb-header .action:focus { /* Pressed state */
+  outline: none !important;
+  border: none !important;
 }
 
-/* Generic set of actions in toolbar */
-section[role="region"] > header:first-child menu[type="toolbar"] {
+/**
+ * Actions inside toolbar
+ */
+
+.bb-header menu {
   height: 100%;
   float: right;
+  padding: 0;
+  margin: 0;
 }
 
-section[role="region"] > header:first-child menu[type="toolbar"] a,
-section[role="region"] > header:first-child menu[type="toolbar"] button {
+.bb-header menu .action {
   -moz-box-sizing: border-box;
   position: relative;
   float: left;
   width: auto;
   min-width: 5rem;
   height: 5rem;
-  margin-bottom: 0;
   padding: 0 1rem;
-  border-radius: 0;
+  font-weight: 400;
+  font-size: 1.5rem;
   line-height: 5rem;
-  background: none;
-  text-align: center;
-  text-shadow: none;
   z-index: 5;
 }
 
-section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
-section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
-  background: url(headers/images/ui/separator.png) no-repeat left center / auto 4.8rem;
+.bb-header menu .action:last-child {
+  background: url(headers/images/ui/separator.png) no-repeat left center;
+  background-size: auto 4.8rem;
   margin-left: -0.2rem;
   z-index: 1;
 }
 
-section[role="region"] > header:first-child menu[type="toolbar"] {
-  padding: 0;
-  margin: 0;
+.bb-header menu:active .action { /* Prevent mess active colors with image borders */
+  background-image: none!important;
 }
 
-section[role="region"] > header:first-child a,
-section[role="region"] > header:first-child button {
-  border: none;
-  padding: 0;
-  overflow: hidden;
-  font-weight: 400;
-  font-size: 1.5rem;
-  line-height: 1.1em;
-  color: #fff;
-  border-radius: 0;
-  text-decoration: none;
-}
-
-
-/* Pressed state */
-section[role="region"] > header:first-child a::-moz-focus-inner,
-section[role="region"] > header:first-child button::-moz-focus-inner,
-section[role="region"] > header:first-child a:active,
-section[role="region"] > header:first-child button:active,
-section[role="region"] > header:first-child a:focus,
-section[role="region"] > header:first-child button:focus {
-  outline: none !important;
-  border: none !important;
-}
-
-section[role="region"] > header:first-child a:not([aria-disabled="true"]):active .icon:after,
-section[role="region"] > header:first-child button:not(:disabled):active .icon:after,
-section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
-section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active  {
+.bb-header .action-secondary:active:after,
+.bb-header menu .action:active  { /* Pressed state */
   background: #008aaa !important;
   transition: background 0.2s ease;
 }
 
-/* Disabled state */
-section[role="region"] > header:first-child menu[type="toolbar"] a[aria-disabled="true"],
-section[role="region"] > header:first-child menu[type="toolbar"] button[disabled]  {
+.bb-header menu .action[aria-disabled]  { /* Disabled state */
   opacity: 0.5;
+  pointer-events: none;
 }
 
-section[role="region"] > header:first-child a:first-letter,
-section[role="region"] > header:first-child button:first-letter {
-  text-transform: uppercase;
-}
+/**
+ * Icon definitions
+ */
 
-/* Icon definitions */
-section[role="region"] > header:first-child .icon {
-  position: relative;
-  float: none;
-  display: inline-block;
-  vertical-align: top;
-  width: 3rem;
-  height: 4.9rem;
-  margin: 0 -1rem;
-  background: transparent no-repeat center center / 3rem auto;
+.bb-header .icon,
+.bb-header menu .icon {
   font-size: 0;
-  overflow: hidden;
-}
+ }
 
-section[role="region"] > header:first-child .icon.icon-add {
-  background-image: url(headers/images/icons/add.png);
-}
-
-section[role="region"] > header:first-child .icon.icon-compose {
-  background-image: url(headers/images/icons/compose.png);
-}
-
-section[role="region"] > header:first-child .icon.icon-edit {
-  background-image: url(headers/images/icons/edit.png);
-}
-
-section[role="region"] > header:first-child .icon.icon-send {
-  background-image: url(headers/images/icons/send.png);
-}
-
-section[role="region"] > header:first-child .icon.icon-close {
-  background-image: url(headers/images/icons/close.png);
-}
-
-section[role="region"] > header:first-child .icon.icon-back {
-  background-image: url(headers/images/icons/back.png);
-}
-
-section[role="region"] > header:first-child .icon.icon-menu {
-  background-image: url(headers/images/icons/menu.png);
-}
-
-section[role="region"] > header:first-child .icon.icon-user {
-  background-image: url(headers/images/icons/user.png);
-}
-
-section[role="region"] > header:first-child .icon.icon-reply {
-  background-image: url(headers/images/icons/reply.png);
-}
-
-section[role="region"] > header:first-child .icon.icon-reply-all {
-  background-image: url(headers/images/icons/reply-all.png);
-}
-
-/* Navigation links (back, cancel, etc) */
-section[role="region"] > header:first-child > button,
-section[role="region"] > header:first-child > a {
-  position: absolute;
-  left: 0;
-  width: 5rem;
-  height: 5rem;
-  background: url(headers/images/ui/separator-large.png) no-repeat 2rem top / 0.2rem 5rem;
-  overflow: hidden;
-}
-
-section[role="region"] > header:first-child > button::-moz-focus-inner {
-  border: 0;
-  padding: 0;
-}
-
-section[role="region"] > header:first-child > button .icon,
-section[role="region"] > header:first-child > a .icon {
-  position: static;
-  display: block;
-  width: 2rem;
-  height: 4.9rem;
-  margin: 0;
-  overflow: visible;
-  font-size: 0;
-}
-
-section[role="region"] > header:first-child > button .icon:after,
-section[role="region"] > header:first-child > a .icon:after {
+ .bb-header .icon:before {
   content: "";
   position: absolute;
   left: 0;
   top: 0;
-  z-index: -1;
+  width: 100%;
+  height: 100%;
+  background: transparent no-repeat center;
+  background-size: 3rem auto;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bb-header .icon-add:before {
+  background-image: url(headers/images/icons/add.png);
+}
+
+.bb-header .icon-compose:before {
+  background-image: url(headers/images/icons/compose.png);
+}
+
+.bb-header .icon-edit:before {
+  background-image: url(headers/images/icons/edit.png);
+}
+
+.bb-header .icon-send:before {
+  background-image: url(headers/images/icons/send.png);
+}
+
+.bb-header .icon-close:before {
+  background-image: url(headers/images/icons/close.png);
+}
+
+.bb-header .icon-back:before {
+  background-image: url(headers/images/icons/back.png);
+}
+
+.bb-header .icon-menu:before {
+  background-image: url(headers/images/icons/menu.png);
+}
+
+.bb-header .icon-user:before {
+  background-image: url(headers/images/icons/user.png);
+}
+
+.bb-header .icon-reply:before {
+  background-image: url(headers/images/icons/reply.png);
+}
+
+.bb-header .icon-reply-all:before {
+  background-image: url(headers/images/icons/reply-all.png);
+}
+
+/**
+ * Secondary actions (cancel, back, menu)
+ */
+
+.bb-header .action-secondary {
+  position: absolute;
+  left: 0;
+  width: 5rem;
+  height: 5rem;
+  background: url(headers/images/ui/separator-large.png) no-repeat 2rem top;
+  background-size: 0.2rem 5rem;
+  overflow: hidden;
+}
+
+.bb-header .action-secondary::-moz-focus-inner { /* Fixes extra spaces on Firefox */
+  border: 0;
+  padding: 0;
+}
+
+.bb-header .action-secondary:after { /* Extra background-image for skins */
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
   width: 2rem;
-  height: 4.9rem;
+  height: 5rem;
   background-color: #a03f25;
 }
 
-section[role="region"] > header > a .icon.icon-menu,
-section[role="region"] > header > button .icon.icon-menu {
+.bb-header .action-secondary.icon:before { /* Icon redifinition */
+  width: 2rem;
+  height: 4.9rem;
+  z-index: 2;
+}
+
+.bb-header .action-secondary.icon-menu:before { /* Cut the icon by left side */
   background-position: -1.1rem center;
 }
 
-/* ----------------------------------
- * HEADERS: subheader
- * ---------------------------------- */
+/**
+ * Subheader
+ */
 
-section[role="region"] > header {
+.bb-subheader {
   z-index: 0;
   height: auto;
 }
 
-section[role="region"] > header:after {
+.bb-subheader:after {
   display: none;
 }
 
-section[role="region"] header h2 {
+.bb-subheader h2 {
   margin: 0;
   padding: 0.8rem 3rem;
   color: #424242;
@@ -288,112 +248,110 @@ section[role="region"] header h2 {
   border-bottom: solid 0.1rem #e6e6e6;
 }
 
-/* ----------------------------------
- * HEADERS: dark
- * ---------------------------------- */
-section[role="region"].skin-dark > header:first-child,
-.skin-dark section[role="region"] > header:first-child {
+/**
+ * Dark skin
+ */
+
+.bb-dark .bb-header {
   background-image: url(headers/images/ui/dark/header.png);
 }
 
-section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:last-child,
-.skin-dark section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
-section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:last-child,
-.skin-dark section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
-  background: url(headers/images/ui/dark/separator.png) no-repeat left center / auto 4.8rem;
+.bb-dark .bb-header menu .action:last-child {
+  background: url(headers/images/ui/dark/separator.png) no-repeat left center;
+  background-size: auto 4.8rem;
 }
 
-/* Navigation links (back, cancel, etc) */
-section[role="region"].skin-dark > header:first-child > a .icon:after,
-.skin-dark section[role="region"] > header:first-child > a .icon:after,
-section[role="region"].skin-dark > header:first-child > button .icon:after,
-.skin-dark section[role="region"] > header:first-child > button .icon:after {
+.bb-dark .bb-header .action-secondary { /* Secondary actions (cancel, back, menu) */
+  background: url(headers/images/ui/dark/separator-large.png) no-repeat 2rem top;
+  background-size: 0.2rem 4.8rem;
+}
+
+.bb-dark .bb-header .action-secondary:after {
   background-image:  url(headers/images/ui/dark/negative.png);
   background-color: transparent;
 }
 
-section[role="region"].skin-dark > header:first-child a,
-.skin-dark section[role="region"] > header:first-child a,
-section[role="region"].skin-dark > header:first-child button,
-.skin-dark section[role="region"] > header:first-child button {
-  background: url(headers/images/ui/dark/separator-large.png) no-repeat 2rem top / 0.2rem 4.8rem;
-}
-
-section[role="region"].skin-dark header h2,
-.skin-dark section[role="region"] header h2 {
+.bb-dark .bb-subheader h2 {
   background: #2e3c3f url(headers/images/ui/organic/subheader.png);
   color: #fff;
   border: none;
 }
 
-/* ----------------------------------
- * HEADERS: organic
- * ---------------------------------- */
+/**
+ * Organic skin
+ */
 
-section[role="region"].skin-organic > header:first-child,
-.skin-organic section[role="region"] > header:first-child {
-  background-image: url(headers/images/ui/noise-pattern.png), url(headers/images/ui/organic/header.png);
+.bb-organic .bb-header {
+  background-image: url(headers/images/ui/organic/noise-pattern.png), url(headers/images/ui/organic/header.png);
   background-size: auto;
 }
 
-section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:last-child,
-.skin-organic section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
-section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:last-child,
-.skin-organic section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
-  background: url(headers/images/ui/organic/separator.png) no-repeat left center / auto 4.8rem;
+.bb-organic .bb-header menu .action:last-child {
+  background: url(headers/images/ui/organic/separator.png) no-repeat left center;
+  background-size: auto 4.8rem;
 }
 
-/* Navigation links (back, cancel, etc) */
-section[role="region"].skin-organic > header:first-child > a .icon:after,
-.skin-organic section[role="region"] > header:first-child > a .icon:after,
-section[role="region"].skin-organic > header:first-child > button .icon:after,
-.skin-organic section[role="region"] > header > button .icon:after {
-  background: #23292b url(headers/images/ui/noise-pattern.png);
+.bb-organic .bb-header .action-secondary { /* Secondary actions (cancel, back, menu) */
+  background: url(headers/images/ui/organic/separator-large.png) no-repeat 2rem top;
+  background-size: 0.2rem 4.8rem;
+}
+
+.bb-organic .bb-header .action-secondary:after {
+  background: #23292b url(headers/images/ui/organic/noise-pattern.png);
   background-size: auto;
 }
 
-section[role="region"].skin-organic > header:first-child a,
-.skin-organic section[role="region"] > header:first-child a,
-section[role="region"].skin-organic > header:first-child button,
-.skin-organic section[role="region"] > header:first-child button {
-  background: url(headers/images/ui/organic/separator-large.png) no-repeat 2rem top / 0.2rem 4.8rem;
-}
-
-section[role="region"].skin-organic header h2,
-.skin-organic section[role="region"] header h2 {
+.bb-organic .bb-subheader h2 {
   background: #5c6a6d url(headers/images/ui/organic/subheader.png);
   color: #fff;
   border: none;
 }
 
-/* ----------------------------------
- * HEADERS: right-to-left tweaks
- * ---------------------------------- */
+/**
+ * Right to left tweaks
+ */
 
-html[dir="rtl"] section[role="region"] > header:first-child h1 {
+html[dir="rtl"] .bb-header h1 {
   text-align: right;
   margin: 0 3rem 0 0;
 }
 
-html[dir="rtl"] section[role="region"] > header:first-child button,
-html[dir="rtl"] section[role="region"] > header:first-child a {
+html[dir="rtl"] .bb-header menu {
+  float: left;
+}
+
+html[dir="rtl"] .bb-header menu .action:last-child { /* Remove last-child rules */
+  background: none;
+  margin: 0;
+  z-index: inherit;
+}
+
+html[dir="rtl"] .bb-header menu .action:first-child { /* Last-child becomes first-child */
+  background: url(headers/images/ui/separator.png) no-repeat right center;
+  background-size: auto 4.8rem;
+  margin-right: -0.2rem;
+  z-index: 1;
+}
+
+html[dir="rtl"] .bb-dark .bb-header menu .action:first-child { /* Theme tweak */
+  background-image: url(headers/images/ui/dark/separator.png);
+}
+
+html[dir="rtl"] .bb-organic .bb-header menu .action:first-child { /* Theme tweak */
+  background-image: url(headers/images/ui/organic/separator.png);
+}
+
+html[dir="rtl"] .bb-header .action-secondary {
+  left: inherit;
+  right: 0;
+  background-position: 2.9rem top;
+}
+
+html[dir="rtl"] .bb-header .action-secondary:after {
   left: inherit;
   right: 0;
 }
 
-html[dir="rtl"] section[role="region"] > header:first-child > button .icon,
-html[dir="rtl"] section[role="region"] > header:first-child > a .icon {
-  margin-left: 0;
-  margin-right: -2rem;
-}
-
-html[dir="rtl"] section[role="region"] > header:first-child > button .icon:after,
-html[dir="rtl"] section[role="region"] > header:first-child > a .icon:after {
-  left: inherit;
-  right: 0;
-}
-
-html[dir="rtl"] section[role="region"] > header:first-child .icon.icon-back {
+html[dir="rtl"] .bb-header .icon-back:before {
   background-image: url(headers/images/icons/back-rtl.png);
 }
-
