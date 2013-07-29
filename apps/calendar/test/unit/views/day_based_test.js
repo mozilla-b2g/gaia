@@ -303,6 +303,14 @@ suiteGroup('Views.DayBased', function() {
       subject._createRecord(intialHour, busytime, event);
     });
 
+    test('first event hour record of the day ', function() {
+        //verify its first event record of a day
+        var hour = subject.getFirstEventRecord();
+        assert.ok(hour, 'has hour record.');
+        var hour2 = subject.hours.get(intialHour);
+        assert.equal(hour,hour2, 'found first event record');
+    });
+    
     test('first instance event', function() {
       var id = busytime._id;
       // find the hour
