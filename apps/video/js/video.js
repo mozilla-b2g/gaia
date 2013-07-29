@@ -49,7 +49,9 @@ var currentVideoBlob; // The blob for the currently playing video
 var videos = [];
 var firstScanEnded = false;
 
-var scaleRatio = window.innerWidth / 320;
+// use devicePixelRatio as the scale ratio for thumbnail creation.
+var scaleRatio = (window.devicePixelRatio || 1);
+
 var THUMBNAIL_WIDTH = 210 * scaleRatio;
 var THUMBNAIL_HEIGHT = 120 * scaleRatio;
 
