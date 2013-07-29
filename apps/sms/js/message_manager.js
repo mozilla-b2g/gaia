@@ -185,12 +185,14 @@ var MessageManager = {
           }
         );
       } else {
-        // If the activity delivered the number of an unknown recipient,
-        // create a recipient directly.
-        ThreadUI.recipients.add({
-          number: activity.number,
-          source: 'manual'
-        });
+        if (number) {
+          // If the activity delivered the number of an unknown recipient,
+          // create a recipient directly.
+          ThreadUI.recipients.add({
+            number: number,
+            source: 'manual'
+          });
+        }
         ThreadUI.setMessageBody(activity.body);
       }
 
