@@ -58,7 +58,7 @@ li {
 }
 li .inner {
   height: 12rem;
-  margin: 0 1.9rem 0 0;
+  padding: 0 1.9rem 0 0;
 }
 .unwatched {
   background: url(images/unwatched.png) no-repeat center / 100%;
@@ -148,9 +148,9 @@ li .after {
   bottom: 0;
 }
 
-.thumbnail.selected {
+.thumbnail.selected > .inner {
   outline: solid #00aacc 0.3rem;
-  outline-offset: -0.3rem;
+  outline-offset: -0.2rem;
 }
 
 /*
