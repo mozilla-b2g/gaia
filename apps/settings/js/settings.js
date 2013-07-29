@@ -852,9 +852,14 @@ window.addEventListener('load', function loadSettings() {
 
   function handleRadioAndCardState() {
     function disableSIMRelatedSubpanels(disable) {
-      const itemIds = ['call-settings',
-                       'data-connectivity',
-                       'simSecurity-settings'];
+      var itemIds = ['call-settings',
+                     'data-connectivity'];
+
+      // Disable SIM security item only in case of SIM absent.
+      var cardState = IccHelper.cardState;
+      if (cardState && cardState === 'absent') {
+        itemIds.push('simSecurity-settings');
+      }
 
       for (var id = 0; id < itemIds.length; id++) {
         var item = document.getElementById(itemIds[id]);
