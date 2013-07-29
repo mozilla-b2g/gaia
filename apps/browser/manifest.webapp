@@ -45,7 +45,7 @@
     "view": {
       "filters": {
         "type": "url",
-        "url": { "required":true, "regexp":"/^https?:.{1,16384}$/i" }
+        "url": { "required":true, "pattern":"https?:.{1,16384}" }
       }
     }
   }
