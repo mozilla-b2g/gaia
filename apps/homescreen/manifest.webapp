@@ -46,7 +46,7 @@
     "save-bookmark": {
       "filters": {
         "type": "url",
-        "url": { "required":true, "regexp":"/^https?:/" }
+        "url": { "required":true, "pattern":"https?:.{1,16384}" }
       },
       "disposition": "inline",
       "href": "/save-bookmark.html",
