@@ -1,6 +1,7 @@
 var AlarmEdit = {
 
-  alarm: {},
+  alarm: null,
+  alarmRef: null,
   timePicker: {
     hour: null,
     minute: null,
@@ -125,10 +126,13 @@ var AlarmEdit = {
         break;
       case this.doneButton:
         ClockView.show();
-        if (!this.save()) {
-          evt.preventDefault();
-          return;
-        }
+        this.save(function aev_saveCallback(err, alarm) {
+          if (err) {
+            evt.preventDefault();
+            return;
+          }
+          AlarmList.refreshItem(alarm);
+        });
         break;
       case this.timeMenu:
         this.focusMenu(this.timeSelect);
@@ -180,22 +184,7 @@ var AlarmEdit = {
   },
 
   getDefaultAlarm: function aev_getDefaultAlarm() {
-    // Reset the required message with default value
-    var now = new Date();
-    return {
-      id: '', // for Alarm APP indexedDB id
-      normalAlarmId: '', // for request AlarmAPI id (once, repeat)
-      snoozeAlarmId: '', // for request AlarmAPI id (snooze)
-      label: '',
-      hour: now.getHours(), // use current hour
-      minute: now.getMinutes(), // use current minute
-      enabled: true,
-      repeat: '0000000', // flags for days of week, init to false
-      sound: 'ac_classic_clock_alarm.opus',
-      vibrate: 1,
-      snooze: 5,
-      color: 'Darkorange'
-    };
+    return new Alarm();
   },
 
   load: function aev_load(alarm) {
@@ -212,12 +201,12 @@ var AlarmEdit = {
     if (!alarm) {
       this.element.classList.add('new');
       this.alarmTitle.textContent = _('newAlarm');
-      alarm = this.getDefaultAlarm();
+      alarm = new Alarm();
     } else {
       this.element.classList.remove('new');
       this.alarmTitle.textContent = _('editAlarm');
     }
-    this.alarm = alarm;
+    this.alarm = new Alarm(alarm);
 
     this.element.dataset.id = alarm.id;
     this.labelInput.value = alarm.label;
@@ -242,44 +231,51 @@ var AlarmEdit = {
   },
 
   getTimeSelect: function aev_getTimeSelect() {
-    return parseTime(this.timeSelect.value);
+    return Utils.parseTime(this.timeSelect.value);
   },
 
   refreshTimeMenu: function aev_refreshTimeMenu(time) {
     if (!time) {
       time = this.alarm;
     }
-    this.timeMenu.textContent = formatTime(time.hour, time.minute);
+    this.timeMenu.textContent = Utils.formatTime(time.hour, time.minute);
   },
 
   initRepeatSelect: function aev_initRepeatSelect() {
-    var daysOfWeek = this.alarm.repeat;
+    var daysOfWeek = this.alarm.getRepeat();
     var options = this.repeatSelect.options;
     for (var i = 0; i < options.length; i++) {
-      options[i].selected = (daysOfWeek.substr(i, 1) === '1') ? true : false;
+      options[i].selected = daysOfWeek[this.alarm._days[i]] === true;
     }
+    this.refreshRepeatMenu(null);
   },
 
   getRepeatSelect: function aev_getRepeatSelect() {
-    var daysOfWeek = '';
+    var daysOfWeek = {};
     var options = this.repeatSelect.options;
     for (var i = 0; i < options.length; i++) {
-      daysOfWeek += (options[i].selected) ? '1' : '0';
+      if (options[i].selected) {
+        daysOfWeek[this.alarm._days[i]] = true;
+      }
     }
     return daysOfWeek;
   },
 
   refreshRepeatMenu: function aev_refreshRepeatMenu(repeatOpts) {
-    var daysOfWeek = (repeatOpts) ? repeatOpts : this.alarm.repeat;
-    this.repeatMenu.textContent = summarizeDaysOfWeek(daysOfWeek);
+    var daysOfWeek;
+    if (repeatOpts) {
+      this.alarm.setRepeat(this.getRepeatSelect());
+    }
+    daysOfWeek = this.alarm.getRepeat();
+    this.repeatMenu.textContent = this.alarm.summarizeDaysOfWeek(daysOfWeek);
   },
 
   initSoundSelect: function aev_initSoundSelect() {
-    changeSelectByValue(this.soundSelect, this.alarm.sound);
+    Utils.changeSelectByValue(this.soundSelect, this.alarm.sound);
   },
 
   getSoundSelect: function aev_getSoundSelect() {
-    return getSelectedValue(this.soundSelect);
+    return Utils.getSelectedValue(this.soundSelect);
   },
 
   refreshSoundMenu: function aev_refreshSoundMenu(sound) {
@@ -313,11 +309,11 @@ var AlarmEdit = {
   },
 
   initVibrateSelect: function aev_initVibrateSelect() {
-    changeSelectByValue(this.vibrateSelect, this.alarm.vibrate);
+    Utils.changeSelectByValue(this.vibrateSelect, this.alarm.vibrate);
   },
 
   getVibrateSelect: function aev_getVibrateSelect() {
-    return getSelectedValue(this.vibrateSelect);
+    return Utils.getSelectedValue(this.vibrateSelect);
   },
 
   refreshVibrateMenu: function aev_refreshVibrateMenu(vibrate) {
@@ -329,11 +325,11 @@ var AlarmEdit = {
   },
 
   initSnoozeSelect: function aev_initSnoozeSelect() {
-    changeSelectByValue(this.snoozeSelect, this.alarm.snooze);
+    Utils.changeSelectByValue(this.snoozeSelect, this.alarm.snooze);
   },
 
   getSnoozeSelect: function aev_getSnoozeSelect() {
-    return getSelectedValue(this.snoozeSelect);
+    return Utils.getSelectedValue(this.snoozeSelect);
   },
 
   refreshSnoozeMenu: function aev_refreshSnoozeMenu(snooze) {
@@ -350,22 +346,42 @@ var AlarmEdit = {
     var error = false;
 
     this.alarm.label = this.labelInput.value;
-    this.alarm.enabled = true;
 
     var time = this.getTimeSelect();
-    this.alarm.hour = time.hour;
-    this.alarm.minute = time.minute;
-    this.alarm.repeat = this.getRepeatSelect();
+    this.alarm.setTime(time.hour, time.minute);
+    this.alarm.setRepeat(this.getRepeatSelect());
     this.alarm.sound = this.getSoundSelect();
     this.alarm.vibrate = this.getVibrateSelect();
     this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
 
     if (!error) {
-      AlarmManager.putAlarm(this.alarm, function al_putAlarmList(alarm) {
-        AlarmManager.toggleAlarm(alarm, alarm.enabled);
-        AlarmList.refresh();
-        callback && callback(alarm);
-      });
+      var al_save = (function(err, alarm) {
+        if (err) {
+          callback && callback(err, alarm);
+          return;
+        }
+        this.alarm.setEnabled(true, function al_enableAlarm(err, alarm) {
+          AlarmList.refreshItem(alarm);
+          AlarmManager.renderBannerBar(alarm.getNextAlarmFireTime());
+          AlarmManager.updateAlarmStatusBar();
+          callback && callback(null, alarm);
+        }.bind(this));
+      }).bind(this);
+      if (this.alarm.id) {
+        al_save(null, this.alarm);
+      } else {
+        // we don't have an Alarm id yet
+        // save will give us one from the autoincremented
+        // indexedDB key
+        this.alarm.save(function al_initialSave(err, alarm) {
+          al_save(err, alarm);
+        }.bind(this));
+      }
+    } else {
+      // error
+      if (callback) {
+        callback(error);
+      }
     }
 
     return !error;
@@ -376,9 +392,10 @@ var AlarmEdit = {
       return;
 
     var alarm = this.alarm;
-    AlarmManager.delete(alarm, function aev_delete() {
+    this.alarm.deleteAlarm(function aev_delete(err, alarm) {
       AlarmList.refresh();
-      callback && callback(alarm);
+      AlarmManager.updateAlarmStatusBar();
+      callback && callback(err, alarm);
     });
   }
 

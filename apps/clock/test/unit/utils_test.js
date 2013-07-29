@@ -1,59 +1,67 @@
-requireApp('email/test/unit/mock_l10n.js');
 requireApp('clock/js/utils.js');
 
 suite('Time functions', function() {
 
-  suite('#summarizeDaysOfWeek', function() {
-    var nativeMozL10n, _;
+  suite('#changeSelectByValue', function() {
 
-    before(function() {
-      nativeMozL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
-      _ = navigator.mozL10n.get;
+    var changeSelectByValue, selectDOM;
+
+    setup(function() {
+      changeSelectByValue = Utils.changeSelectByValue;
+      selectDOM = document.createElement('select');
+      selectDOM.innerHTML = ['<option value="a">A</option>',
+        '<option value="b">B</option>',
+        '<option value="c" selected>C</option>'
+      ].join('');
     });
 
-    after(function() {
-      navigator.mozL10n = nativeMozL10n;
+    test('correctly selects the specified element', function() {
+      changeSelectByValue(selectDOM, 'b');
+      assert.equal(selectDOM.selectedIndex, 1);
     });
 
-    test('should summarize everyday', function() {
-      assert.equal(summarizeDaysOfWeek('1111111'), _('everyday'));
+    test('has no effect when specified element does not exist', function() {
+      changeSelectByValue(selectDOM, 'g');
+      assert.equal(selectDOM.selectedIndex, 2);
     });
 
-    test('should summarize weekdays', function() {
-      assert.equal(summarizeDaysOfWeek('1111100'), _('weekdays'));
+  });
+
+  suite('#changeSelectByValue', function() {
+
+    var changeSelectByValue, selectDOM;
+
+    setup(function() {
+      changeSelectByValue = Utils.changeSelectByValue;
+      selectDOM = document.createElement('select');
+      selectDOM.innerHTML = ['<option value="a">A</option>',
+        '<option value="b">B</option>',
+        '<option value="c" selected>C</option>'
+      ].join('');
     });
 
-    test('should summarize weekends', function() {
-      assert.equal(summarizeDaysOfWeek('0000011'), _('weekends'));
+    test('correctly selects the specified element', function() {
+      changeSelectByValue(selectDOM, 'b');
+      assert.equal(selectDOM.selectedIndex, 1);
     });
 
-    test('should summarize never', function() {
-      assert.equal(summarizeDaysOfWeek('0000000'), _('never'));
-    });
-
-    test('should summarize a single day', function() {
-      assert.equal(summarizeDaysOfWeek('1000000'), _('weekday-1-short'));
-    });
-
-    test('should summarize a single day', function() {
-      var monTueWed = _('weekday-1-short') + ', ' +
-                      _('weekday-2-short') + ', ' +
-                      _('weekday-3-short');
-      assert.equal(summarizeDaysOfWeek('1110000'), monTueWed);
+    test('has no effect when specified element does not exist', function() {
+      changeSelectByValue(selectDOM, 'g');
+      assert.equal(selectDOM.selectedIndex, 2);
     });
 
   });
 
   suite('#formatTime', function() {
-    var is12hStub;
+    var is12hStub, formatTime;
 
     setup(function() {
-      is12hStub = sinon.stub(window, 'is12hFormat');
+      formatTime = Utils.formatTime;
+      is12hStub = sinon.stub(Utils, 'is12hFormat');
     });
 
     teardown(function() {
-      is12hFormat.restore();
+      is12hStub.restore();
     });
 
     test('12:00am, with 12 hour clock settings', function() {
@@ -89,6 +97,12 @@ suite('Time functions', function() {
   });
 
   suite('#parseTime', function() {
+
+    var parseTime;
+
+    suiteSetup(function() {
+      parseTime = Utils.parseTime;
+    });
 
     test('12:10am', function() {
       var time = parseTime('12:10AM');

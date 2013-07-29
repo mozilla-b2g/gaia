@@ -1,444 +1,317 @@
-'use strict';
+(function(exports) {
 
-var _ = navigator.mozL10n.get;
-var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
+  'use strict';
 
-var ClockView = {
-  _clockMode: null, /* is read from settings */
+  // ---------------------------------------------------------
+  // Constants
 
-  get digitalClock() {
-    delete this.digitalClock;
-    return this.digitalClock = document.getElementById('digital-clock');
-  },
+  var DAYS = ['monday', 'tuesday', 'wednesday',
+              'thursday', 'friday', 'saturday',
+              'sunday'];
 
-  get analogClock() {
-    delete this.analogClock;
-    return this.analogClock = document.getElementById('analog-clock');
-  },
+  var RDAYS = DAYS.map(function(_, n) {
+    return n;
+  });
 
-  get time() {
-    delete this.time;
-    return this.time = document.getElementById('clock-time');
-  },
+  var WEEKDAYS = [0, 1, 2, 3, 4].map(function(x) {
+    return DAYS[x];
+  });
 
-  get hourState() {
-    delete this.hourState;
-    return this.hourState = document.getElementById('clock-hour24-state');
-  },
+  var WEEKENDS = [5, 6].map(function(x) {
+    return DAYS[x];
+  });
 
-  get dayDate() {
-    delete this.dayDate;
-    return this.dayDate = document.getElementById('clock-day-date');
-  },
+  // ---------------------------------------------------------
+  // Alarm Object
 
-  get alarmNewBtn() {
-    delete this.alarmNewBtn;
-    return this.alarmNewBtn = document.getElementById('alarm-new');
-  },
-
-  get digitalClockBackground() {
-    delete this.digitalClockBackground;
-    return this.digitalClockBackground =
-      document.getElementById('digital-clock-background');
-  },
-
-  init: function cv_init() {
-    this.container = document.getElementById('analog-clock-container');
-
-    document.addEventListener('visibilitychange', this);
-
-    this.updateDaydate();
-    this.initClockface();
-  },
-
-  initClockface: function cv_initClockface() {
-    var self = this;
-
-    this.analogClock.addEventListener('touchstart', this);
-    this.digitalClock.addEventListener('touchstart', this);
-
-    asyncStorage.getItem(SETTINGS_CLOCKMODE, function(mode) {
-      switch (mode) {
-        case 'digital':
-          self.showDigitalClock();
-          break;
-        default:
-          self.showAnalogClock();
-          break;
-      }
-    });
-  },
-
-  updateDaydate: function cv_updateDaydate() {
-    var d = new Date();
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var format = navigator.mozL10n.get('dateFormat');
-    var formated = f.localeFormat(d, format);
-    this.dayDate.innerHTML = formated.replace(/([0-9]+)/, '<b>$1</b>');
-
-    var self = this;
-    var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
-                            d.getMinutes() * 60 * 1000 -
-                            d.getMilliseconds();
-    this._updateDaydateTimeout =
-    window.setTimeout(function cv_updateDaydateTimeout() {
-      self.updateDaydate();
-    }, remainMillisecond);
-  },
-
-  updateDigitalClock: function cv_updateDigitalClock() {
-    var d = new Date();
-    var time = getLocaleTime(d);
-    this.time.textContent = time.t;
-    this.hourState.textContent = time.p || '  '; // 2 non-break spaces
-
-    var self = this;
-    this._updateDigitalClockTimeout =
-    window.setTimeout(function cv_updateDigitalClockTimeout() {
-      self.updateDigitalClock();
-    }, (59 - d.getSeconds()) * 1000);
-  },
-
-  updateAnalogClock: function cv_updateAnalogClock() {
-    // Update the SVG clock graphic to show current time
-    var now = new Date(); // Current time
-    var sec = now.getSeconds(); // Seconds
-    var min = now.getMinutes(); // Minutes
-    var hour = (now.getHours() % 12) + min / 60; // Fractional hours
-    var lastHour = (now.getHours() - 1 % 12) + min / 60;
-    // 6 degrees per second
-    this.setTransform('secondhand', sec * 6, (sec - 1) * 6);
-    // Inverse angle 180 degrees for rect hands
-    // 6 degrees per minute
-    this.setTransform('minutehand', min * 6 - 180, (min - 1) * 6 - 180);
-    // 30 degrees per hour
-    this.setTransform('hourhand', hour * 30 - 180, (lastHour) * 30 - 180);
-
-    // Update the clock again in 1 minute
-    var self = this;
-    this._updateAnalogClockTimeout =
-    window.setTimeout(function cv_updateAnalogClockTimeout() {
-      self.updateAnalogClock();
-    }, (1000 - now.getMilliseconds()));
-  },
-
-  setTransform: function cv_setTransform(id, angle, from) {
-    !this.rotation && (this.rotation = {});
-    // Get SVG elements for the hands of the clock
-    var hand = document.getElementById(id);
-    // Set an SVG attribute on them to move them around the clock face
-    if (!this.rotation[id]) {
-      this.rotation[id] =
-        document.createElementNS('http://www.w3.org/2000/svg',
-                                 'animateTransform');
-    }
-    if (!hand) { return; }
-
-    // In order to repaint once see, i use this trick. See Bug 817993
-    var rotate = this.rotation[id];
-    // don't repaint unless hand has changed
-    if (rotate.getAttribute('to') == angle + ',135,135')
-      return;
-
-    rotate.setAttribute('attributeName', 'transform');
-    rotate.setAttribute('attributeType', 'xml');
-    rotate.setAttribute('type', 'rotate');
-    rotate.setAttribute('from', from + ',135,135');
-    rotate.setAttribute('to', angle + ',135,135');
-    rotate.setAttribute('dur', '0.001s');
-    rotate.setAttribute('fill', 'freeze');
-    hand.appendChild(rotate);
-  },
-
-  handleEvent: function cv_handleEvent(evt) {
-    switch (evt.type) {
-      case 'visibilitychange':
-        if (document.hidden) {
-          if (this._updateDaydateTimeout) {
-            window.clearTimeout(this._updateDaydateTimeout);
-          }
-          if (this._updateDigitalClockTimeout) {
-            window.clearTimeout(this._updateDigitalClockTimeout);
-          }
-          if (this._updateAnalogClockTimeout) {
-            window.clearTimeout(this._updateAnalogClockTimeout);
-          }
-          return;
-        } else if (!document.hidden) {
-          // Refresh the view when app return to foreground.
-          this.updateDaydate();
-          if (this._clockMode === 'digital') {
-            this.updateDigitalClock();
-          } else if (this._clockMode === 'analog') {
-            this.updateAnalogClock();
-          }
-        }
-        break;
-
-      case 'touchstart':
-        var input = evt.target;
-        if (!input)
-          return;
-
-        switch (input.id) {
-          case 'digital-clock-display':
-            this.showAnalogClock();
-            break;
-
-          case 'analog-clock-svg':
-            this.showDigitalClock();
-            break;
-        }
-        break;
-    }
-  },
-
-  showAnalogClock: function cv_showAnalogClock() {
-    if (this._clockMode !== 'analog')
-      asyncStorage.setItem(SETTINGS_CLOCKMODE, 'analog');
-
-    if (this._updateDigitalClockTimeout) {
-      window.clearTimeout(this._updateDigitalClockTimeout);
-    }
-    this.digitalClock.classList.remove('visible');
-    this.digitalClockBackground.classList.remove('visible');
-    this.resizeAnalogClock();
-    this.updateAnalogClock();
-    this._clockMode = 'analog';
-    this.analogClock.classList.add('visible');
-  },
-
-  showDigitalClock: function cv_showDigitalClock() {
-    if (this._clockMode !== 'digital')
-      asyncStorage.setItem(SETTINGS_CLOCKMODE, 'digital');
-
-    if (this._updateDigitalClockTimeout) {
-      window.clearTimeout(this._updateAnalogClockTimeout);
-    }
-    this.analogClock.classList.remove('visible');
-    this.updateDigitalClock();
-    this._clockMode = 'digital';
-    this.digitalClock.classList.add('visible');
-    this.digitalClockBackground.classList.add('visible');
-  },
-
-  calAnalogClockType: function cv_calAnalogClockType(count) {
-    if (count <= 1) {
-      count = 1;
-    } else if (count >= 4) {
-      count = 4;
-    }
-    return count;
-  },
-
-  resizeAnalogClock: function cv_resizeAnalogClock() {
-    var type = this.calAnalogClockType(AlarmList.getAlarmCount());
-    this.container.className = 'marks' + type;
-    document.getElementById('alarms').className = 'count' + type;
-  },
-
-  showHideAlarmSetIndicator: function cv_showHideAlarmSetIndicator(enabled) {
-    if (enabled) {
-      this.hourState.classList.add('alarm-set-indicator');
-    } else {
-      this.hourState.classList.remove('alarm-set-indicator');
-    }
-  },
-
-  hide: function cv_hide() {
-    var self = this;
-    // Set a time out to add a delay so the clock is hidden
-    // after the edit mode is shown
-    setTimeout(function() {
-      self.digitalClock.className = '';
-      self.analogClock.className = '';
-    }, 500);
-  },
-
-  show: function cv_show() {
-    window.location.hash = 'alarm-view';
-    var self = this;
-    self.digitalClock.className = '';
-    self.analogClock.className = '';
-    if (self._clockMode === 'analog') {
-      self.analogClock.className = 'visible';
-    } else {
-      self.digitalClock.className = 'visible';
-    }
+  function Alarm(config) {
+    this.init(config || {});
   }
 
-};
+  Alarm.prototype = {
 
-var AlarmList = {
+    // ---------------------------------------------------------
+    // Constant Objects
 
-  alarmList: [],
-  refreshingAlarms: [],
-  _previousAlarmCount: 0,
+    _days: DAYS,
+    _rdays: RDAYS,
+    _weekdays: WEEKDAYS,
+    _weekends: WEEKENDS,
 
-  get alarms() {
-    delete this.alarms;
-    return this.alarms = document.getElementById('alarms');
-  },
+    _default: function() {
+      var now = new Date();
+      return {
+        // Use accessors for these
+        id: '', // do not change
+        osAlarms: {}, // set -> this.schedule & this.cancel
+        repeat: {}, // set -> this.setRepeat
+        hour: now.getHours(), // use -> this.setTime
+        minute: now.getMinutes(), // use -> this.setTime
+        enabled: true, // -> this.setEnabled
 
-  get title() {
-    delete this.title;
-    return this.title = document.getElementById('alarms-title');
-  },
+        // Raw Fields
+        label: '',
+        sound: 'ac_classic_clock_alarm.opus',
+        vibrate: 1,
+        snooze: 5,
+        color: 'Darkorange'
+      };
+    },
 
-  get newAlarmButton() {
-    delete this.newAlarmButton;
-    return this.newAlarmButton = document.getElementById('alarm-new');
-  },
+    // ---------------------------------------------------------
+    // Object Setup
 
-  handleEvent: function al_handleEvent(evt) {
+    init: function alarm_init(config) {
+      var el, defaultObject = this._default();
+      // set defaulted properties
+      Utils.extend(this, this._default(), config);
+      // normalize data
+      this.setRepeat(this.repeat);
+    },
 
-    var link = evt.target;
-    if (!link)
-      return;
+    // ---------------------------------------------------------
+    // Getters and Setters
 
-    if (link === this.newAlarmButton) {
-      ClockView.hide();
-      this.alarmEditView();
-    } else if (link.classList.contains('input-enable')) {
-      this.toggleAlarmEnableState(link.checked,
-        this.getAlarmFromList(parseInt(link.dataset.id, 10)));
-    } else if (link.classList.contains('alarm-item')) {
-      ClockView.hide();
-      this.alarmEditView(this.getAlarmFromList(
-        parseInt(link.dataset.id, 10)));
-    }
-  },
+    setTime: function alarm_setTime(hour, minute) {
+      // destructure passed array
+      if (hour && !minute && hour instanceof Array) {
+        minute = hour[1];
+        hour = hour[0];
+      }
+      this.hour = hour;
+      this.minute = minute;
+    },
 
-  alarmEditView: function(alarm) {
-    LazyLoader.load(
-      [
-        document.getElementById('alarm'),
-        'js/alarm_edit.js',
-        'shared/style/input_areas.css',
-        'shared/style/buttons.css',
-        'shared/style/edit_mode.css'
-      ],
-      function() {
-        AlarmEdit.load(alarm);
-    });
-  },
+    getTime: function alarm_getTime() {
+      return [this.hour, this.minute];
+    },
 
-  init: function al_init() {
-    this.newAlarmButton.addEventListener('click', this);
-    this.alarms.addEventListener('click', this);
-    this.refresh();
-    AlarmManager.regUpdateAlarmEnableState(this.refreshItem.bind(this));
-  },
+    setRepeat: function alarm_setRepeat(days) {
+      var repeat = {};
+      if ((days.constructor === String) && (days.length === 7)) {
+        // Support legacy "1111100" style repeat representation
+        // Todo: remove
+        for (var i = 0; i < days.length; i++) {
+          var dayName = this._days[i];
+          // repeat[{dayName}] = true/false
+          if (days[i] === '1') {
+            repeat[dayName] = true;
+          }
+        }
+      } else {
+        // Expect an object like {monday:true,saturday:true}
+        for (var i = 0; i < this._days.length; i++) {
+          var dayName = this._days[i];
+          if (days.hasOwnProperty(dayName)) {
+            repeat[dayName] = days[dayName];
+          }
+        }
+      }
+      this.repeat = repeat;
+    },
 
-  refresh: function al_refresh() {
-    var self = this;
-    AlarmManager.getAlarmList(function al_gotAlarmList(list) {
-      self.fillList(list);
-    });
-  },
+    getRepeat: function alarm_getRepeat() {
+      return this.repeat;
+    },
 
-  buildAlarmContent: function al_buildAlarmContent(alarm) {
-    var summaryRepeat =
-      (alarm.repeat === '0000000') ? '' : summarizeDaysOfWeek(alarm.repeat);
-    var isChecked = alarm.enabled ? ' checked="true"' : '';
-    var d = new Date();
-    d.setHours(alarm.hour);
-    d.setMinutes(alarm.minute);
-    var time = getLocaleTime(d);
-    var label = (alarm.label === '') ? _('alarm') : escapeHTML(alarm.label);
-    return '<label class="alarmList alarmEnable">' +
-           '  <input class="input-enable"' +
-                 '" data-id="' + alarm.id +
-                 '" type="checkbox"' + isChecked + '>' +
-           '  <span></span>' +
-           '</label>' +
-           '<a href="#alarm" class="alarm-item" data-id="' + alarm.id + '">' +
-           '  <span class="time">' +
-                time.t + '<span class="period">' + time.p + '</span>' +
-           '  </span>' +
-           '  <span class="label">' + label + '</span>' +
-           '  <span class="repeat">' + summaryRepeat + '</span>' +
-           '</a>';
-  },
+    // ---------------------------------------------------------
+    // Time Handling
 
+    summarizeDaysOfWeek: function alarm_summarizeRepeat() {
+      var _ = navigator.mozL10n.get;
+      // Build a bitset
+      var value = 0;
+      for (var i = 0; i < this._days.length; i++) {
+        var dayName = this._days[i];
+        if (this.repeat[dayName] === true) {
+          value |= (1 << i);
+        }
+      }
+      var summary;
+      if (value === 127) { // 127 = 0b1111111
+        summary = _('everyday');
+      } else if (value === 31) { // 31 = 0b0011111
+        summary = _('weekdays');
+      } else if (value === 96) { // 96 = 0b1100000
+        summary = _('weekends');
+      } else if (value !== 0) { // any day was true
+        var weekdays = [];
+        for (var i = 0; i < this._days.length; i++) {
+          var dayName = this._days[i];
+          if (this.repeat[dayName]) {
+            // Note: here, Monday is the first day of the week
+            // whereas in JS Date(), it's Sunday -- hence the (+1) here.
+            weekdays.push(_('weekday-' + ((i + 1) % 7) + '-short'));
+          }
+          summary = weekdays.join(', ');
+        }
+      } else { // no day was true
+        summary = _('never');
+      }
+      return summary;
+    },
 
-  refreshItem: function al_refreshItem(alarm) {
-    this.setAlarmFromList(alarm.id, alarm);
-    var id = 'a[data-id="' + alarm.id + '"]';
-    var alarmItem = this.alarms.querySelector(id);
-    alarmItem.parentNode.innerHTML = this.buildAlarmContent(alarm);
-    // clear the refreshing alarm's flag
-    var index = this.refreshingAlarms.indexOf(alarm.id);
-    this.refreshingAlarms.splice(index, 1);
-  },
+    isAlarmPassedToday: function alarm_isAlarmPassedToday() {
+      var now = new Date();
+      if (this.hour > now.getHours() ||
+           (this.hour == now.getHours() &&
+            this.minute > now.getMinutes())) {
+        return false;
+      }
+      return true;
+    },
 
-  fillList: function al_fillList(alarmDataList) {
-    this.alarmList = alarmDataList;
-    var content = '';
+    _dateInRepeat: function alarm_dateInRepeat(date, repeat) {
+      // return true if repeat contains date
+      var day = this._days[(date.getDay() + 6) % 7];
+      return repeat[day];
+    },
 
-    this.alarms.innerHTML = '';
-    alarmDataList.forEach(function al_fillEachList(alarm) {
-      var li = document.createElement('li');
-      li.className = 'alarm-cell';
-      li.innerHTML = this.buildAlarmContent(alarm);
-      this.alarms.appendChild(li);
-    }.bind(this));
+    _emptyRepeat: function alarm_emptyRepeat() {
+      for (var i in this.repeat) {
+        if (this.repeat[i]) {
+          return false;
+        }
+      }
+      return true;
+    },
 
-    if (this._previousAlarmCount !== this.getAlarmCount()) {
-      this._previousAlarmCount = this.getAlarmCount();
-      ClockView.resizeAnalogClock();
-    }
+    getNextAlarmFireTime: function alarm_getNextAlarmFireTime() {
+      var now = new Date(), alarm = new Date();
+      alarm.setHours(this.hour, this.minute, 0, 0);
+      while (alarm < now ||
+              !(this._emptyRepeat() ||
+                this._dateInRepeat(alarm, this.repeat))) {
+        alarm.setDate(alarm.getDate() + 1);
+      }
+      return alarm;
+    },
 
-  },
+    getNextSnoozeFireTime: function alarm_getNextSnoozeFireTime() {
+      if (this.snooze && (typeof this.snooze) === 'number') {
+        var now = new Date();
+        now.setMinutes(now.getMinutes() + this.snooze);
+        return now;
+      }
+      return null;
+    },
 
-  getAlarmFromList: function al_getAlarmFromList(id) {
-    for (var i = 0; i < this.alarmList.length; i++) {
-      if (this.alarmList[i].id === id)
-        return this.alarmList[i];
-    }
-    return null;
-  },
+    // ---------------------------------------------------------
+    // Wholistic methods (Alarm API and Database)
 
-  setAlarmFromList: function al_setAlarmFromList(id, alarm) {
-    for (var i = 0; i < this.alarmList.length; i++) {
-      if (this.alarmList[i].id === id) {
-        this.alarmList[i] = alarm;
+    setEnabled: function alarm_setEnabled(value, callback) {
+      if (value) {
+        this.enabled = true;
+        this.schedule(true, this.saveCallback(callback));
+      } else if (!value && this.enabled) {
+        this.enabled = false;
+        this.cancel();
+        this.save(callback);
+      } else if (callback) {
+        callback(null, this);
+      }
+    },
+
+    deleteAlarm: function alarm_deleteAlarm(callback) {
+      this.cancel();
+      AlarmsDB.deleteAlarm(this.id,
+        function alarm_innerDeleteAlarm(err, alarm) {
+        callback(err, this);
+      }.bind(this));
+    },
+
+    // ---------------------------------------------------------
+    // Database Integration
+
+    refresh: function alarm_refresh(callback) {
+      AlarmsDB.getAlarm(this.id, function(err, alarmObj) {
+        if (!err) {
+          Utils.extend(this, alarmObj);
+        }
+        callback && callback(err, this);
+      }.bind(this));
+    },
+
+    saveCallback: function alarm_saveCallback(callback) {
+      return function(err, value) {
+        if (!err) {
+          this.save(callback);
+        } else {
+          if (callback) {
+            callback(err, value);
+          }
+        }
+      }.bind(this);
+    },
+
+    save: function alarm_save(callback) {
+      AlarmsDB.putAlarm(this, function(err, alarm) {
+        callback && callback(err, this);
+      }.bind(this));
+    },
+
+    // ---------------------------------------------------------
+    // Alarm API
+
+    _scheduleHelper: function alarm_scheduleHelper(type, date, callback) {
+      var data = {
+        id: this.id,
+        type: type
+      };
+      var request = navigator.mozAlarms.add(
+        date, 'ignoreTimezone', data);
+      request.onsuccess = (function(ev) {
+        var result = ev.target.result;
+        this.osAlarms[type] = result;
+        if (callback) {
+          callback(null, this);
+        }
+      }).bind(this);
+      request.onerror = function(ev) {
+        if (callback) {
+          callback(ev.target.error);
+        }
+      };
+    },
+
+    schedule: function alarm_schedule(firstTime, callback) {
+      // Schedule the alarm
+      if (!firstTime && (!this.enabled || this._emptyRepeat())) {
+        this.enabled = false;
+        this.cancel('normal');
+        callback(null, this);
         return;
       }
-    }
-  },
+      this.cancel('normal');
+      this._scheduleHelper('normal', this.getNextAlarmFireTime(), callback);
+    },
 
-  getAlarmCount: function al_getAlarmCount() {
-    return this.alarmList.length;
-  },
+    scheduleSnooze: function alarm_scheduleSnooze(callback) {
+      this.cancel('snooze');
+      this._scheduleHelper('snooze', this.getNextSnoozeFireTime(), callback);
+    },
 
-  toggleAlarmEnableState: function al_toggleAlarmEnableState(enabled, alarm) {
-    if (this.refreshingAlarms.indexOf(alarm.id) !== -1) {
-      return;
-    }
-
-    if (alarm.enabled === enabled)
-      return;
-
-    alarm.enabled = enabled;
-    this.refreshingAlarms.push(alarm.id);
-
-    var self = this;
-    AlarmManager.putAlarm(alarm, function al_putAlarm(alarm) {
-      if (!alarm.enabled && !alarm.normalAlarmId && !alarm.snoozeAlarmId) {
-        self.refreshItem(alarm);
-      } else {
-        AlarmManager.toggleAlarm(alarm, alarm.enabled);
+    cancel: function alarm_cancel(cancelType) {
+      // cancel an alarm type ('normal' or 'snooze')
+      // type == false to cancel all
+      function removeAlarm(type, id) {
+        navigator.mozAlarms.remove(id);
+        delete this.osAlarms[type];
       }
-    });
-  },
+      if (!cancelType) {
+        for (var type in this.osAlarms) {
+          removeAlarm.call(this, type, this.osAlarms[type]);
+        }
+      } else {
+        removeAlarm.call(this, cancelType, this.osAlarms[cancelType]);
+      }
+    }
 
-  deleteCurrent: function al_deleteCurrent(id) {
-    var alarm = this.getAlarmFromList(id);
-    var self = this;
-    AlarmManager.delete(alarm, function al_deleted() {
-      self.refresh();
-    });
-  }
+  };
 
-};
+  // ---------------------------------------------------------
+  // Export
+
+  exports.Alarm = Alarm;
+
+})(this);

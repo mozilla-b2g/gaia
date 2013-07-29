@@ -1,119 +1,56 @@
+(function(exports) {
 'use strict';
 
-function escapeHTML(str, escapeQuotes) {
+var Utils = {};
+
+Utils.extend = function(initialObject, extensions) {
+  // extend({}, a, b, c ... d) -> {...}
+  // rightmost properties (on 'd') take precedence
+  var set = {};
+  extensions = Array.prototype.slice.call(arguments, 1);
+  // reverse order
+  for (var i = extensions.length - 1; i >= 0; i--) {
+    var extender = extensions[i];
+    for (var j in extender) {
+      if (extender.hasOwnProperty(j) &&
+          !set.hasOwnProperty(j)) {
+        // hasOwnProperty on extension object,
+        // and we have not been overriden by an
+        // object to our right
+
+        initialObject[j] = extender[j];
+        set[j] = true;
+      }
+    }
+  }
+  return initialObject;
+};
+
+Utils.escapeHTML = function(str, escapeQuotes) {
   var span = document.createElement('span');
   span.textContent = str;
 
   if (escapeQuotes)
     return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
   return span.innerHTML;
-}
+};
 
-function summarizeDaysOfWeek(bitStr) {
-  var _ = navigator.mozL10n.get;
-
-  if (bitStr == '')
-    return _('never');
-
-  // Format bits: 0123456(0000000)
-  // Case: Everyday:  1111111
-  // Case: Weekdays:  1111100
-  // Case: Weekends:  0000011
-  // Case: Never:     0000000
-  // Case: Specific:  other case  (Mon, Tue, Thu)
-
-  var summary = '';
-  switch (bitStr) {
-  case '1111111':
-    summary = _('everyday');
-    break;
-  case '1111100':
-    summary = _('weekdays');
-    break;
-  case '0000011':
-    summary = _('weekends');
-    break;
-  case '0000000':
-    summary = _('never');
-    break;
-  default:
-    var weekdays = [];
-    for (var i = 0; i < bitStr.length; i++) {
-      if (bitStr.substr(i, 1) == '1') {
-        // Note: here, Monday is the first day of the week
-        // whereas in JS Date(), it's Sunday -- hence the (+1) here.
-        weekdays.push(_('weekday-' + ((i + 1) % 7) + '-short'));
-      }
-    }
-    summary = weekdays.join(', ');
-  }
-  return summary;
-}
-
-function is12hFormat() {
+Utils.is12hFormat = function() {
   var localeTimeFormat = navigator.mozL10n.get('dateTimeFormat_%X');
   var is12h = (localeTimeFormat.indexOf('%p') >= 0);
   return is12h;
-}
+};
 
-function getLocaleTime(d) {
+Utils.getLocaleTime = function(d) {
   var f = new navigator.mozL10n.DateTimeFormat();
-  var is12h = is12hFormat();
+  var is12h = Utils.is12hFormat();
   return {
     t: f.localeFormat(d, (is12h ? '%I:%M' : '%H:%M')).replace(/^0/, ''),
     p: is12h ? f.localeFormat(d, '%p') : ''
   };
-}
+};
 
-function isAlarmPassToday(hour, minute) { // check alarm has passed or not
-  var now = new Date();
-  if (hour > now.getHours() ||
-      (hour == now.getHours() && minute > now.getMinutes())) {
-    return false;
-  }
-  return true;
-}
-
-function getNextAlarmFireTime(alarm) { // get the next alarm fire time
-  var repeat = alarm.repeat;
-  var hour = alarm.hour;
-  var minute = alarm.minute;
-  var now = new Date();
-  var nextAlarmFireTime = new Date();
-  var diffDays = 0; // calculate the diff days from now
-  if (repeat == '0000000') { // one time only and alarm within 24 hours
-    if (isAlarmPassToday(hour, minute)) // if alarm has passed already
-      diffDays = 1; // alarm tomorrow
-  } else { // find out the first alarm day from the repeat info.
-    var weekDayFormatRepeat =
-      repeat.slice(-1).concat(repeat.slice(0, repeat.length - 1));
-    var weekDayOfToday = now.getDay();
-    var index = 0;
-    for (var i = 0; i < weekDayFormatRepeat.length; i++) {
-      index = (i + weekDayOfToday) % 7;
-      if (weekDayFormatRepeat.charAt(index) == '1') {
-        if (diffDays == 0) {
-          if (!isAlarmPassToday(hour, minute)) // if alarm has passed already
-            break;
-
-          diffDays++;
-          continue;
-        }
-        break;
-      }
-      diffDays++;
-    }
-  }
-
-  nextAlarmFireTime.setDate(nextAlarmFireTime.getDate() + diffDays);
-  nextAlarmFireTime.setHours(hour);
-  nextAlarmFireTime.setMinutes(minute);
-  nextAlarmFireTime.setSeconds(0, 0);
-
-  return nextAlarmFireTime;
-}
-
-function changeSelectByValue(selectElement, value) {
+Utils.changeSelectByValue = function(selectElement, value) {
   var options = selectElement.options;
   for (var i = 0; i < options.length; i++) {
     if (options[i].value == value) {
@@ -123,15 +60,15 @@ function changeSelectByValue(selectElement, value) {
       break;
     }
   }
-}
+};
 
-function getSelectedValue(selectElement) {
+Utils.getSelectedValue = function(selectElement) {
   return selectElement.options[selectElement.selectedIndex].value;
-}
+};
 
-function formatTime(hour, minute) {
+Utils.formatTime = function(hour, minute) {
   var period = '';
-  if (is12hFormat()) {
+  if (Utils.is12hFormat()) {
     period = hour < 12 ? 'AM' : 'PM';
     hour = hour % 12;
     hour = (hour == 0) ? 12 : hour;
@@ -146,9 +83,9 @@ function formatTime(hour, minute) {
   }
 
   return hour + ':' + minute + period;
-}
+};
 
-function parseTime(time) {
+Utils.parseTime = function(time) {
   var parsed = time.split(':');
   var hour = +parsed[0]; // cast hour to int, but not minute yet
   var minute = parsed[1];
@@ -165,5 +102,66 @@ function parseTime(time) {
     hour: hour,
     minute: +minute // now cast minute to int
   };
-}
+};
 
+Utils.safeCpuLock = function(timeoutMs, fn) {
+  var cpuWakeLock;
+  var unlockFn = function() {
+    if (cpuWakeLock) {
+      cpuWakeLock.unlock();
+      cpuWakeLock = null;
+    }
+  };
+  setTimeout(unlockFn, timeoutMs);
+  try {
+    cpuWakeLock = navigator.requestWakeLock('cpu');
+    fn(unlockFn);
+  } catch (err) {
+    unlockFn();
+    throw err;
+  }
+};
+
+Utils.asyncGenerator = function(callback) {
+  var tracker = new Map();
+  var size = 0;
+  var disabled = false;
+  var testFn = function(err) {
+    var mapSize;
+    if (!disabled) {
+      var trackerSize;
+      if ((typeof tracker.size) === 'function') {
+        trackerSize = tracker.size();
+      } else {
+        trackerSize = tracker.size;
+      }
+      if (err || trackerSize === size) {
+        disabled = true;
+        callback && callback(null);
+      }
+    }
+  };
+  var builder = function() {
+    return (function(i) {
+      var i = size++;
+      return function() {
+        tracker.set(i, true);
+        testFn();
+      };
+    })();
+  };
+  return builder;
+};
+
+Utils.asyncNamedParallel = function(names, callback) {
+  var generator = Utils.asyncGenerator(callback);
+  var ret = {};
+  for (var i = 0; i < names.length; i++) {
+    ret[names[i]] = generator();
+  }
+  return ret;
+};
+
+exports.Utils = Utils;
+
+}(this));
