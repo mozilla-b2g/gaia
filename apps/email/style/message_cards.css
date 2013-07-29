@@ -442,23 +442,23 @@ input.msg-search-text-tease {
 }
 
 .msg-star-btn {
-  background: url("images/icons/star.png") no-repeat scroll transparent center center / 3rem !important;
+  background-image: url("images/icons/star.png") !important;
 }
 
 .msg-mark-read-btn {
-  background: url("images/icons/mark.png") no-repeat scroll transparent center center / 3rem !important;
+  background-image: url("images/icons/mark.png") !important;
 }
 
 .msg-delete-btn {
-  background: url("images/icons/delete.png") no-repeat scroll transparent center center / 3rem !important;
+  background-image: url("images/icons/delete.png") !important;
 }
 
 .msg-move-btn {
-  background: url("images/icons/move.png") no-repeat scroll transparent center center / 3rem !important;
+  background-image: url("images/icons/move.png") !important;
 }
 
 .msg-forward-btn {
-  background: url("images/icons/forward.png") no-repeat scroll transparent center center / 3rem !important;
+  background-image: url("images/icons/forward.png") !important;
 }
 
 /* Message list edit mode layout control */
