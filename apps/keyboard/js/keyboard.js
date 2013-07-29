@@ -940,7 +940,7 @@ function setMenuTimeout(target, coords, touchId) {
 // Show alternatives for the HTML node key
 function showAlternatives(key) {
   // Get the key object from layout
-  var alternatives, altMap, value, keyObj, uppercaseValue;
+  var alternatives, altMap, value, keyObj, uppercaseValue, needsCapitalization;
   var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
   if (r < 0 || c < 0 || r === undefined || c === undefined)
     return;
@@ -957,21 +957,46 @@ function showAlternatives(key) {
   value = keyObj.value;
   alternatives = altMap[value] || '';
 
-  // If in uppercase, look for other alternatives or use default's
+  // If in uppercase, look for uppercase alternatives. If we don't find any
+  // then set a flag so we can manually capitalize the alternatives below.
   if (isUpperCase || isUpperCaseLocked) {
     uppercaseValue = getUpperCaseValue(keyObj);
-    alternatives = altMap[uppercaseValue] || alternatives.toLocaleUpperCase();
+    if (altMap[uppercaseValue]) {
+      alternatives = altMap[uppercaseValue];
+    }
+    else {
+      needsCapitalization = true;
+    }
   }
 
   // Split alternatives
+  // If the alternatives are delimited by spaces, it means that one or more
+  // of them is more than a single character long.
   if (alternatives.indexOf(' ') != -1) {
     alternatives = alternatives.split(' ');
 
-    // Check just one item
+    // If there is just a single multi-character alternative, it will have
+    // trailing whitespace which we have to discard here.
     if (alternatives.length === 2 && alternatives[1] === '')
       alternatives.pop();
 
+    if (needsCapitalization) {
+      for (var i = 0; i < alternatives.length; i++) {
+        if (isUpperCaseLocked) {
+          // Caps lock is on, so capitalize all the characters
+          alternatives[i] = alternatives[i].toLocaleUpperCase();
+        }
+        else {
+          // We're in uppercase, but not locked, so just capitalize 1st char.
+          alternatives[i] = alternatives[i][0].toLocaleUpperCase() +
+            alternatives[i].substring(1);
+        }
+      }
+    }
   } else {
+    // No spaces, so all of the alternatives are single characters
+    if (needsCapitalization) // Capitalize them all at once before splitting
+      alternatives = alternatives.toLocaleUpperCase();
     alternatives = alternatives.split('');
   }
 
@@ -1332,19 +1357,6 @@ function endPress(target, coords, touchId) {
   if (keyCode != KeyEvent.DOM_VK_SPACE)
     isContinousSpacePressed = false;
 
-  // Handle composite key (key that sends more than one code)
-  var sendCompositeKey = function sendCompositeKey(compositeKey) {
-    compositeKey.split('').forEach(function sendEachKey(key) {
-      window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
-    });
-  };
-
-  var compositeKey = target.dataset.compositekey;
-  if (compositeKey) {
-    sendCompositeKey(compositeKey);
-    return;
-  }
-
   // Handle normal key
   switch (keyCode) {
 
@@ -1413,7 +1425,17 @@ function endPress(target, coords, touchId) {
 
     // Normal key
   default:
-    inputMethod.click(keyCode);
+    if (target.dataset.compositekey) {
+      // Keys with this attribute set send more than a single character
+      // Like ".com" or "2nd" or (in Catalan) "l·l".
+      var compositeKey = target.dataset.compositekey;
+      for (var i = 0; i < compositeKey.length; i++) {
+        inputMethod.click(compositeKey.charCodeAt(i));
+      }
+    }
+    else {
+      inputMethod.click(keyCode);
+    }
     break;
   }
 }
