@@ -615,15 +615,22 @@ contacts.List = (function() {
     var newPhoto = Array.isArray(contact.photo) ? contact.photo[0] : null;
 
     // Do nothing if photo did not change
-    if ((!prevPhoto && !newPhoto) || (prevPhoto === newPhoto))
+    if ((!prevPhoto && !newPhoto) || (prevPhoto === newPhoto)) {
       return false;
+    }
 
-    if (newPhoto)
+    if (newPhoto) {
       photosById[id] = newPhoto;
-    else
+    }
+    else {
       delete photosById[id];
+    }
 
     return true;
+  };
+
+  var hasPhoto = function hasPhoto(id) {
+    return !!photosById[id];
   };
 
   // "Render" the photo by setting the img tag's dataset-src attribute to the
@@ -1139,6 +1146,7 @@ contacts.List = (function() {
     'setOrderByLastName': setOrderByLastName,
     'renderPhoto': renderPhoto,
     'updatePhoto': updatePhoto,
+    'hasPhoto' : hasPhoto,
     'renderFbData': renderFbData,
     'getHighlightedName': getHighlightedName,
     get chunkSize() {
