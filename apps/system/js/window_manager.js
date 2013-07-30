@@ -221,9 +221,8 @@ var WindowManager = (function() {
   // to the current closeFrame (before overwriting the reference)
   function setCloseFrame(frame) {
     if (closeFrame) {
+      windowClosed(closeFrame);
       removeFrameClasses(closeFrame);
-      // closeFrame should not be set to active
-      closeFrame.classList.remove('active');
     }
 
     closeFrame = frame;
