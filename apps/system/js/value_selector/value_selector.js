@@ -27,14 +27,13 @@ var ValueSelector = {
       var typeToHandle = ['select-one', 'select-multiple', 'date',
         'time', 'datetime', 'datetime-local', 'blur'];
 
-      var type = evt.detail.type;
+      var currentInputType = evt.detail.type;
       // handle the <select> element and inputs with type of date/time
       // in system app for now
-      if (typeToHandle.indexOf(type) == -1)
+      if (typeToHandle.indexOf(currentInputType) == -1)
         return;
 
       var currentValue = evt.detail.value;
-      var currentInputType = evt.detail.type;
       self._currentDatetimeValue = currentValue;
       self._currentInputType = currentInputType;
 
