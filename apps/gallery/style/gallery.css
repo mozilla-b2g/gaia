@@ -153,8 +153,8 @@ section {
 }
 
 .thumbnail {
-  margin-right: 1px;
-  margin-bottom: 1px;
+  margin-right: 0.1rem;
+  margin-bottom: 0.1rem;
   padding: 0;
   /* default to left-to-right, but overridden for rtl languages below */
   float: left;
@@ -181,9 +181,9 @@ section {
    * Padding-bottom is used here in order to set div height with respect
    * to device width.
    */
-  width: calc((100% - 2px) / 3 );
+  width: calc((100% - 0.2rem) / 3 );
   height: 0;
-  padding-bottom: calc((100% - 3px) / 3 );
+  padding-bottom: calc((100% - 0.3rem) / 3 );
 }
 
 .thumbnail:nth-child(3n) {
@@ -192,7 +192,7 @@ section {
 
 .thumbnail.selected {
   outline: solid #00aacc 0.3rem;
-  outline-offset: -0.3rem;
+  outline-offset: -0.2rem;
 }
 
 /*
@@ -206,12 +206,12 @@ section {
 @media (orientation: landscape) {
   /* 4 thumbnails for each row in landscape mode. */
   .thumbnail {
-    width: calc((100% - 3px) / 4 );
-    padding-bottom: calc((100% - 3px) / 4 );
+    width: calc((100% - 0.3rem) / 4 );
+    padding-bottom: calc((100% - 0.3rem) / 4 );
   }
 
   .thumbnail:nth-child(3n) {
-    margin-right: 1px;
+    margin-right: 0.1rem;
   }
 
   .thumbnail:nth-child(4n) {
@@ -495,8 +495,8 @@ footer {
 
 #edit-preview-canvas {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 1rem;
+  left: 1rem;
   width: calc(100% - 2rem);  /* I can't do right: 1rem here. Bug? */
   height: calc(100% - 2rem);  /* can't just set bottom: 1rem here */
 }
