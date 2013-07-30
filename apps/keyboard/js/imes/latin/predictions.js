@@ -360,6 +360,10 @@ var Predictions = function() {
       ',' + maxCandidates +
       ',' + maxCorrections;
 
+    if (capitalize) {
+      input = input[0].toLowerCase() + input.substring(1);
+    }
+
     // Start searching for words soon...
     setTimeout(getWords);
 
