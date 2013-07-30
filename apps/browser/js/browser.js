@@ -61,6 +61,7 @@ var Browser = {
     // Add event listeners
     this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
+    this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
     this.urlInput.addEventListener('keyup',
       this.handleUrlInputKeypress.bind(this));
@@ -911,6 +912,7 @@ var Browser = {
   },
 
   urlFocus: function browser_urlFocus(e) {
+    this.urlBar.classList.add('focus');
     if (this.currentScreen === this.PAGE_SCREEN) {
       this.urlInput.value = this.currentTab.url;
       this.sslIndicator.value = '';
@@ -920,6 +922,10 @@ var Browser = {
     } else if (this.currentScreen === this.AWESOME_SCREEN) {
       this.shouldFocus = true;
     }
+  },
+
+  urlBlur: function browser_urlBlur() {
+    this.urlBar.classList.remove('focus');
   },
 
   setUrlBar: function browser_setUrlBar(data) {
