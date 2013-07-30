@@ -2876,7 +2876,7 @@
       // Build the URL parameters.
       var params = [
         ['Cmd', aCommand],
-        ['User', this._email],
+        ['User', this._username],
         ['DeviceId', this._deviceId],
         ['DeviceType', this._deviceType]
       ];
