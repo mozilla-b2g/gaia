@@ -540,7 +540,7 @@ var ContactCache = exports.ContactCache = {
   },
 
   resolvePeeps: function(addressPairs) {
-    if (addressPairs === null)
+    if (addressPairs == null)
       return null;
     var resolved = [];
     for (var i = 0; i < addressPairs.length; i++) {
