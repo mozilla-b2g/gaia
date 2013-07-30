@@ -481,6 +481,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       page.advance(vendor_string_length); // skip libvorbis vendor string
 
       var num_comments = page.readUnsignedInt(true);
+      // |metadata| already has some of its values filled in (namely the title
+      // field). To make sure we overwrite the pre-filled metadata, but also
+      // append any repeated fields from the file, we keep track of the fields
+      // we've seen in the file separately.
+      var seen_fields = {};
       for (var i = 0; i < num_comments; i++) {
         var comment_length = page.readUnsignedInt(true);
         var comment = page.readUTF8Text(comment_length);
@@ -490,11 +495,14 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           var propname = OGGTAGS[tag];
           if (propname) { // Do we care about this tag?
             var value = comment.substring(equal + 1);
-            if (propname in metadata) {          // Do we already have a value?
-              metadata[propname] += ' ' + value; // Then append this new one.
+            if (seen_fields.hasOwnProperty(propname)) {
+              // If we already have a value, append this new one.
+              metadata[propname] += ' ' + value;
             }
-            else {                               // Otherwise
-              metadata[propname] = value;        // just save the single value.
+            else {
+              // Otherwise, just save the single value.
+              metadata[propname] = value;
+              seen_fields[propname] = true;
             }
           }
           // XXX
