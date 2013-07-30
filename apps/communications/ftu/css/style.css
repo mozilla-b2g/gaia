@@ -300,6 +300,10 @@ a {
  * Wifi
  */
 
+#wifi {
+  top: 1.5rem;
+}
+
 #wifi [data-type="list"] li > p {
   pointer-events: none;
 }
@@ -333,7 +337,7 @@ a {
 */
 
 #wifi-wrapper {
-  top: 0;
+  top: -1rem;
   bottom: 5.5rem;
 }
 
