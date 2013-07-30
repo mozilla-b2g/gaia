@@ -68,6 +68,7 @@ UIItem.prototype = {
       content.classList.add('noButtons');
     }
 
+
     this.dom.div = div;
     this.dom.content = content;
     this.dom.more = more;
