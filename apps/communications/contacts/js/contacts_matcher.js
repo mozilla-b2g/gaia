@@ -224,6 +224,8 @@ contacts.Matcher = (function() {
                           aContact.givenName[0].trim().toLowerCase()).
                           replace(blankRegExp, '');
           }
+          // To support seamless matching of SIM contacts
+          var targetName = (targetGN || '') + (targetFN || '');
 
           var mFamilyName = null;
           var mGivenName = null;
@@ -239,15 +241,19 @@ contacts.Matcher = (function() {
                                     mContact.givenName[0].trim().toLowerCase()).
                           replace(blankRegExp, '');
           }
+          // To support seamless matching of SIM contacts
+          var mName = (mGivenName || '') + (mFamilyName || '');
 
           names.push({
             contact: mContact,
             familyName: mFamilyName,
-            givenName: mGivenName
+            givenName: mGivenName,
+            name: mName
           });
 
           var matchingList = names.filter(function(x) {
-            return (x.familyName === targetFN && x.givenName === targetGN);
+            return (x.familyName === targetFN && x.givenName === targetGN) ||
+                    (x.name && x.name === targetName);
           });
 
           matchingList.forEach(function(aMatching) {
@@ -299,34 +305,71 @@ contacts.Matcher = (function() {
     doMatchTelAndEmail(aContact, localCbs);
   }
 
+  function notifyFindNameReady() {
+    document.dispatchEvent(new CustomEvent('by_name_ready'));
+  }
+
   // Used for the active mode. Performs matching by familyName and givenName
   function matchByName(aContact, callbacks) {
     // First we try to find by familyName
     // Afterwards we search by givenName
-    if (isEmptyStr(aContact.familyName) || isEmptyStr(aContact.givenName)) {
+    var isSimContact = (Array.isArray(aContact.category) &&
+                        aContact.category.indexOf('sim') !== -1);
+
+    if ((isEmptyStr(aContact.familyName) || isEmptyStr(aContact.givenName)) &&
+       !isSimContact) {
       notifyMismatch(callbacks);
       return;
     }
 
-    var filterValue = aContact.familyName[0].trim();
-    var filterBy = filterBy = ['familyName'];
+    var finalResult = {};
 
-    var options = {
-      filterValue: filterValue,
-      filterBy: filterBy,
-      filterOp: 'equals'
-    };
+    var resultsByName = null;
+    if (!isEmptyStr(aContact.name)) {
+      var reqName = navigator.mozContacts.find({
+        filterValue: aContact.name[0].trim(),
+        filterBy: ['name'],
+        filterOp: 'equals'
+      });
 
-    var req = navigator.mozContacts.find(options);
+      reqName.onsuccess = function() {
+        resultsByName = reqName.result;
+        notifyFindNameReady();
+        if (isEmptyStr(aContact.familyName)) {
+          processByNameEnd(finalResult, resultsByName, callbacks);
+        }
+      };
 
-    req.onsuccess = function() {
-      var results = req.result;
+      reqName.onerror = function(e) {
+        window.console.error('Error while trying to find by name: ',
+                                e.target.error.name);
+        resultsByName = [];
+        notifyFindNameReady();
+        if (isEmptyStr(aContact.familyName)) {
+          processByNameEnd(finalResult, resultsByName, callbacks);
+        }
+      };
+    }
+    else {
+      resultsByName = [];
+      notifyFindNameReady();
+    }
 
-      var givenNames = [];
-      var targetGN = Normalizer.toAscii(
-                          aContact.givenName[0].trim().toLowerCase()).
-                          replace(blankRegExp, '');
-      if (results.length > 0) {
+    if (!isEmptyStr(aContact.familyName)) {
+      var reqFamilyName = navigator.mozContacts.find({
+        filterValue: aContact.familyName[0].trim(),
+        filterBy: ['familyName'],
+        filterOp: 'equals'
+      });
+
+      reqFamilyName.onsuccess = function() {
+        var results = reqFamilyName.result;
+
+        var givenNames = [];
+        var targetGN = Normalizer.toAscii(
+                            aContact.givenName[0].trim().toLowerCase()).
+                            replace(blankRegExp, '');
+
         results.forEach(function(mContact) {
           if (mContact.id === aContact.id || isEmptyStr(mContact.givenName)) {
             return;
@@ -345,30 +388,46 @@ contacts.Matcher = (function() {
                   gn.startsWith(targetGN));
         });
 
-        if (finalMatchings.length === 0) {
-          notifyMismatch(callbacks);
-          return;
-        }
-
-        var result = {};
         finalMatchings.forEach(function(aMatching) {
-          result[aMatching.contact.id] = {
+          finalResult[aMatching.contact.id] = {
             matchingContact: aMatching.contact
           };
         });
 
-        notifyMatch(callbacks, result);
-      }
-      else {
-        notifyMismatch(callbacks);
-      }
-    };
+        if (resultsByName) {
+          processByNameEnd(finalResult, resultsByName, callbacks);
+        }
+        else {
+          document.addEventListener('by_name_ready', function nameReady() {
+            document.removeEventListener('by_name_ready', nameReady);
+            processByNameEnd(finalResult, resultsByName, callbacks);
+          });
+        }
+      };
 
-    req.onerror = function(e) {
-      window.console.error('Error while trying to find by familyName: ',
-                           e.target.error.name);
+      reqFamilyName.onerror = function(e) {
+        window.console.error('Error while trying to find by familyName: ',
+                             e.target.error.name);
+        notifyMismatch(callbacks);
+      };
+    }
+  }
+
+  function processByNameEnd(finalResult, resultsByName, callbacks) {
+    resultsByName.forEach(function(aResult) {
+      if (!finalResult[aResult.id]) {
+        finalResult[aResult.id] = {
+          matchingContact: aResult
+        };
+      }
+    });
+
+    if (Object.keys(finalResult).length > 0) {
+      notifyMatch(callbacks, finalResult);
+    }
+    else {
       notifyMismatch(callbacks);
-    };
+    }
   }
 
   function isEmpty(collection) {
