@@ -45,8 +45,7 @@
       "filters": {
         "type": "websms/sms",
         "number": {
-          "pattern":"[\\w\\s+#*().-]{0,50}",
-          "regexp":"/^[\\w\\s+#*().-]{0,50}$/"
+          "pattern":"[\\w\\s+#*().-]{0,50}"
         }
        },
       "disposition": "window"

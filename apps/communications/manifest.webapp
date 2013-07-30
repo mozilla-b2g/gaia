@@ -125,7 +125,7 @@
     "dial": {
       "filters": {
         "type": "webtelephony/number",
-        "number": { "regexp":"/^[\\d\\s+#*().-]{0,50}$/" }
+        "number": { "pattern":"[\\d\\s+#*().-]{0,50}" }
       },
       "href": "/dialer/index.html#keyboard-view",
       "disposition": "window"
