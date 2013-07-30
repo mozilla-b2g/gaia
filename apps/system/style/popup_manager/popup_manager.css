@@ -91,6 +91,7 @@
   display: none;
   background-color: black;
   background-image: url(../modal_dialog/images/error_bk.png);
+  background-size: 32rem;
 }
 
 #frame-container > iframe {

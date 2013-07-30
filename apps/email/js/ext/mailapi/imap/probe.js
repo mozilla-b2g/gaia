@@ -2617,6 +2617,17 @@ var normalizeError = exports.normalizeError = function normalizeError(err) {
         errName = 'bad-user-or-pass';
     }
     break;
+  // It's an ill-behaved server that reports BAD on bad credentials; the fake
+  // IMAP server was doing this and has now been fixed.  However, it raises a
+  // good point that on login it's probably best if we interpret BAD as a
+  // credentials problem, at least until we start using other forms of
+  // authentication.
+  case 'BAD':
+  case 'bad':
+    errName = 'bad-user-or-pass';
+    reportProblem = true;
+    retry = false;
+    break;
   case 'server-maintenance':
     errName = err.type;
     reachable = true;

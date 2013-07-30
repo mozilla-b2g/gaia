@@ -1,0 +1,69 @@
+
+.playlistsView {
+  position: relative;
+  width: 100%;
+  max-height: calc(100% - 6rem);
+  overflow-y: auto;
+}
+
+.playlistsView > .text {
+  width: 100%;
+  -moz-box-sizing: border-box;
+  padding: 1em;
+  text-align: center;
+  font-size: 1.5em;
+}
+
+.playlistsView .noicon {
+  display: none;
+}
+
+.playlistsView .icon {
+  background-size: 60% auto;
+  background-image: url('../radio-unchecked.png');
+}
+
+.playlistsView .currentPlaylist {
+  background-image: url('../radio-checked.png');
+}
+
+.playlistsView .playlistTitle {
+  font-size: 1.25em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  padding-top: .75em;
+  padding-bottom: .75em;
+}
+
+.playlistsView .playlistTitle.temporary {
+  padding-right: 2rem;
+}
+
+.playlistsView .gotoPlaylistButton {
+  background-image: url('../headers/images/icons/back-rtl.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 80% auto;
+  width: 100%;
+  height: 100%;
+}
+
+.playlistsView .gotoPlaylistButton.temporary {
+  position: relative;
+}
+
+.playlistsView .gotoPlaylistButton.temporary:after {
+  content: "";
+  position: absolute;
+  top: 0em;
+  bottom: 0em;
+  right: 3em;
+
+  background-image: url('../nosave.png'); /*Cris Dobbins, from The Noun Project*/
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 80% auto;
+  width: 2em;
+}

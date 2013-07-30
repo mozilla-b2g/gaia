@@ -33,6 +33,9 @@ Icon.prototype = {
 
   MIN_ICON_SIZE: MIN_ICON_SIZE,
 
+  // It defines the time (in ms) to ensure that the onDragStop method finishes
+  FALLBACK_DRAG_STOP_DELAY: 1000,
+
   DEFAULT_BOOKMARK_ICON_URL: window.location.protocol + '//' +
                     window.location.host + '/style/images/default_favicon.png',
   DEFAULT_ICON_URL: window.location.protocol + '//' + window.location.host +
@@ -524,15 +527,31 @@ Icon.prototype = {
     var style = draggableElem.style;
     style.MozTransition = '-moz-transform .4s';
     style.MozTransform = 'translate(' + x + 'px,' + y + 'px)';
-    draggableElem.querySelector('div').style.MozTransform = 'scale(1)';
 
-    draggableElem.addEventListener('transitionend', function draggableEnd(e) {
-      draggableElem.removeEventListener('transitionend', draggableEnd);
+    var finishDrag = function() {
       delete container.dataset.dragging;
-      document.body.removeChild(draggableElem);
-      var img = draggableElem.querySelector('img');
-      window.URL.revokeObjectURL(img.src);
+      if (draggableElem) {
+        var img = draggableElem.querySelector('img');
+        window.URL.revokeObjectURL(img.src);
+        draggableElem.parentNode.removeChild(draggableElem);
+      }
       callback();
+    };
+
+    // We ensure that there is not an icon lost on the grid
+    var fallbackID = window.setTimeout(function() {
+      fallbackID = null;
+      finishDrag();
+    }, this.FALLBACK_DRAG_STOP_DELAY);
+
+    var content = draggableElem.querySelector('div');
+    content.style.MozTransform = 'scale(1)';
+    content.addEventListener('transitionend', function tEnd(e) {
+      e.target.removeEventListener('transitionend', tEnd);
+      if (fallbackID !== null) {
+        window.clearTimeout(fallbackID);
+        finishDrag();
+      }
     });
   },
 
@@ -602,6 +621,8 @@ Page.prototype = {
   // After launching an app we disable the page during <this time> in order to
   // prevent multiple open-app animations
   DISABLE_TAP_EVENT_DELAY: 600,
+
+  FALLBACK_READY_EVENT_DELAY: 1000,
 
   /*
    * Renders a page for a list of apps
@@ -733,9 +754,10 @@ Page.prototype = {
     }
 
     if (!this.ready) {
-      var self = this, ensureCallbackID = null;
+      var self = this;
+      var ensureCallbackID = null;
       self.container.addEventListener('onpageready', function onPageReady(e) {
-        e.target.container.removeEventListener('onpageready', onPageReady);
+        e.target.removeEventListener('onpageready', onPageReady);
         if (ensureCallbackID !== null) {
           window.clearTimeout(ensureCallbackID);
           self.doDragLeave(callback, reflow);
@@ -743,10 +765,11 @@ Page.prototype = {
       });
 
       // We ensure that there is not a transitionend lost on dragging
-      var ensureCallbackID = window.setTimeout(function() {
+      ensureCallbackID = window.setTimeout(function() {
         ensureCallbackID = null;
+        self.container.removeEventListener('onpageready', onPageReady);
         self.doDragLeave(callback, reflow);
-      }, 300); // Dragging transition time
+      }, this.FALLBACK_READY_EVENT_DELAY);
 
       return;
     }

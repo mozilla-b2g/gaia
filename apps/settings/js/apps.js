@@ -147,26 +147,11 @@ var ApplicationsList = {
 
     var listFragment = document.createDocumentFragment();
     this._apps.forEach(function appIterator(app, index) {
-      var icon = null;
+      var icon = document.createElement('img');
       var manifest = new ManifestHelper(app.manifest ?
           app.manifest : app.updateManifest);
-      if (manifest.icons &&
-          Object.keys(manifest.icons).length) {
 
-        var key = Object.keys(manifest.icons)[0];
-        var iconURL = manifest.icons[key];
-
-        // Adding origin if it is a relative URL
-        if (!(/^(http|https|data):/.test(iconURL))) {
-          iconURL = app.origin + '/' + iconURL;
-        }
-
-        icon = document.createElement('img');
-        icon.src = iconURL;
-      } else {
-        icon = document.createElement('img');
-        icon.src = '../style/images/default.png';
-      }
+      icon.src = this._getBestIconURL(app, manifest.icons);
 
       var item = document.createElement('li');
 
@@ -393,6 +378,42 @@ var ApplicationsList = {
         otherApp.manifest : otherApp.updateManifest);
       return manifest.name > otherManifest.name;
     });
+  },
+
+  _getBestIconURL: function al_getBestIconURL(app, icons) {
+    if (!icons || !Object.keys(icons).length) {
+      return '../style/images/default.png';
+    }
+
+    // The preferred size is 30 by the default. If we use HDPI device, we may
+    // use the image larger than 30 * 1.5 = 45 pixels.
+    var preferredIconSize = 30 * (window.devicePixelRatio || 1);
+    var preferredSize = Number.MAX_VALUE;
+    var max = 0;
+
+    for (var size in icons) {
+      size = parseInt(size, 10);
+      if (size > max) {
+        max = size;
+      }
+
+      if (size >= preferredIconSize && size < preferredSize) {
+        preferredSize = size;
+      }
+    }
+    // If there is an icon matching the preferred size, we return the result,
+    // if there isn't, we will return the maximum available size.
+    if (preferredSize === Number.MAX_VALUE) {
+      preferredSize = max;
+    }
+
+    var url = icons[preferredSize];
+
+    if (url) {
+      return !(/^(http|https|data):/.test(url)) ? app.origin + url : url;
+    } else {
+      return '../style/images/default.png';
+    }
   }
 };
 

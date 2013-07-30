@@ -48,10 +48,14 @@
       </header>
       <div class="sup-form sup-form-item">
         <!-- These don't need L10N as they are protocol names. -->
-        <select class="sup-manual-account-type">
-          <option value="imap+smtp">IMAP+SMTP</option>
-          <option value="activesync">ActiveSync</option>
-        </select>
+        <li class="sup-manual-account-type-container">
+          <span class="button icon icon-dialog">
+            <select class="mail-select sup-manual-account-type">
+              <option value="imap+smtp">IMAP+SMTP</option>
+              <option value="activesync">ActiveSync</option>
+            </select>
+          </span>
+        </li>
       </div>
 
       <section class="sup-manual-imap-smtp" role="region">

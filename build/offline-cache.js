@@ -85,7 +85,7 @@ Gaia.externalWebapps.forEach(function (webapp) {
   let appcachePath = 'cache/' + originDomain + webapp.manifest.appcache_path;
   let appcacheURL = webapp.origin +
                     webapp.manifest.appcache_path.replace(/^\//, '');
-  let appcacheFile = webapp.sourceDirectoryFile.clone();
+  let appcacheFile = webapp.buildDirectoryFile.clone();
   appcachePath.split('/').forEach(function (name) {
     appcacheFile.append(name);
   });
@@ -117,7 +117,7 @@ Gaia.externalWebapps.forEach(function (webapp) {
   urls.forEach(function appendFile(url) {
     // Get this nsIFile out of its relative path
     let path = url.replace(/https?:\/\//, '');
-    let file = webapp.sourceDirectoryFile.clone();
+    let file = webapp.buildDirectoryFile.clone();
     file.append('cache');
     let paths = path.split('/');
     for (let i = 0; i < paths.length; i++) {

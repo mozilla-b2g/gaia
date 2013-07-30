@@ -268,6 +268,12 @@ button[disabled] .icon-keypad-visibility {
   width: 50%;
 }
 
+#callbar-hold {
+  height: 6.5rem;
+  width: 50%;
+  display: none;
+}
+
 .callbar-button {
   height: 4rem;
   border:0;
@@ -313,6 +319,22 @@ button[disabled] .icon-keypad-visibility {
   background-position: center;
   width: 4rem;
   height: 4rem;
+}
+
+#callbar-hold-action {
+  background: url("images/btn_resume.png") repeat-x;
+  background-size: auto 100%;
+  margin: 1rem 1.5rem 1.5rem .5rem;
+  line-height: 4rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  color: #333;
+}
+
+#callbar-hold-action:active {
+  background: #00aacc;
 }
 
 /* Multiple call handling */
@@ -428,7 +450,6 @@ button[disabled] .icon-keypad-visibility {
 }
 
 #calls[data-count="1"] > section.held {
-  background-color: #1c1818;
   background-image: url('images/DialerIcon_35x35_paused.png');
   background-size: 1.6rem;
   background-position: top 2rem right 2rem;
@@ -436,7 +457,11 @@ button[disabled] .icon-keypad-visibility {
   opacity: 0.7;
 }
 
-#calls[data-count="1"] > section.held .numberWrapper,
+#calls[data-count="1"] > section.held .numberWrapper {
+  background-color: #1c1818;
+}
+
+#calls[data-count="1"] > section.held,
 #calls[data-count="1"] > section.held .duration,
 #calls[data-count="1"] > section.held .additionalContactInfo {
   background: none;
@@ -493,6 +518,9 @@ button[disabled] .icon-keypad-visibility {
   background-image: url('images/outgoing_icon.png');
 }
 
+#calls[data-count="1"] > section.held .duration > .direction > div {
+  background-image: url('images/hold_icon.png');
+}
 
 #incoming-container {
   position: absolute;
@@ -530,7 +558,7 @@ button[disabled] .icon-keypad-visibility {
   border-radius:.3rem;
   display: block;
   text-align: center;
-  font-size: 1.5em;
+  font-size: 1.8rem;
   line-height: 4rem;
   font-weight: 700;
 }
@@ -542,29 +570,28 @@ button[disabled] .icon-keypad-visibility {
   font-size: 0.9em;
 }
 
-#incoming-answer > span {
-  background: url('images/ActionIcon_40x40_pause.png'),
-              -moz-linear-gradient(top, #00b3d9 1%, #00d3ff 100%);
-  background-size: 4rem, auto;
-  background-position: center, center;
-  background-repeat: no-repeat, repeat;
+#incoming-answer > span[role="button"] {
+  background: url('images/btn_resume.png') repeat-x center / auto 100%;
+  line-height: 4rem;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  color: #333;
   opacity: 1.0;
   margin: 1rem 1rem 1rem 0.5rem;
 }
 
-#incoming-end > span {
+#incoming-end > span[role="button"] {
   background: url('images/ActionIcon_40x40_hangup.png'),
-              -moz-linear-gradient(top, #ff0000 1%, #ce0000 100%);
-  background-size: 4rem, auto;
+              url('images/btn_hang_up.png');
+  background-size: 4rem, auto 100%;
   background-position: center, center;
-  background-repeat: no-repeat, repeat;
+  background-repeat: no-repeat, repeat-x;
   opacity: 1.0;
   margin: 1rem 0.5rem 1rem 1rem;
 }
 
 #incoming-info > span {
   display: block;
-  font-size: 1.8em;
+  font-size: 1.8rem;
   font-weight: 300;
   line-height: 6rem;
   margin: 0 1.5rem;
@@ -663,8 +690,14 @@ button[disabled] .icon-keypad-visibility {
 #call-screen[data-layout="incoming-locked"] .duration,
 #call-screen[data-layout="connected"] #swiper-wrapper,
 #call-screen[data-layout="connected"] #callbar-answer,
+#call-screen[data-layout="connected-hold"] #swiper-wrapper,
+#call-screen[data-layout="connected-hold"] #callbar-answer,
 #call-screen:not([data-layout="incoming-locked"]) #locked-contact-photo {
   display: none;
+}
+
+#call-screen[data-layout="connected-hold"] #callbar-hold {
+  display: block;
 }
 
 #call-screen[data-layout="dialing"] #callbar-hang-up,
@@ -680,6 +713,11 @@ button[disabled] .icon-keypad-visibility {
 #call-screen[data-layout="incoming"] #co-advanced,
 #call-screen[data-layout="incoming-locked"] #co-advanced {
   visibility: hidden;
+}
+
+#call-screen[data-layout="connected-hold"] #co-advanced {
+  pointer-events: none;
+  opacity: 0.4;
 }
 
 #call-screen[data-layout="incoming"] #main-container,

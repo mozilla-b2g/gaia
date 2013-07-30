@@ -196,6 +196,7 @@ function makeWebappsObject(appdirs) {
           url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
           domain: domain,
           sourceDirectoryFile: manifestFile.parent,
+          buildDirectoryFile: manifestFile.parent,
           sourceDirectoryName: appDir.leafName,
           sourceAppDirectoryName: appDir.parent.leafName
         };
@@ -205,6 +206,25 @@ function makeWebappsObject(appdirs) {
         metaData.append('metadata.json');
         if (metaData.exists()) {
           webapp.metaData = getJSON(metaData);
+        }
+
+        // Some webapps control their own build
+        let buildMetaData = webapp.sourceDirectoryFile.clone();
+        buildMetaData.append('gaia_build.json');
+        if (buildMetaData.exists()) {
+          webapp.build = getJSON(buildMetaData);
+
+          if (webapp.build.dir) {
+            let buildDirectoryFile = webapp.sourceDirectoryFile.clone();
+            webapp.build.dir.split('/').forEach(function(segment) {
+              if (segment == "..")
+                buildDirectoryFile = buildDirectoryFile.parent;
+              else
+                buildDirectoryFile.append(segment);
+            });
+
+            webapp.buildDirectoryFile = buildDirectoryFile;
+          }
         }
 
         fun(webapp);

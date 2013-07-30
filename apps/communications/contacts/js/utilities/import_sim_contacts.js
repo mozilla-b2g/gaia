@@ -144,6 +144,8 @@ function SimContactsImporter() {
         item.tel[j].type = 'mobile';
       }
 
+      item.category = ['sim'];
+
       var cbs = {
         onmatch: function(results) {
           var mergeCbs = {

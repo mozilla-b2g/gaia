@@ -695,7 +695,7 @@ if (typeof window.importer === 'undefined') {
         parent.postMessage({
           type: 'window_close',
           data: '',
-          message: _('friendsUpdated', {
+          message: cancelled ? '' : _('friendsUpdated', {
             numFriends: numFriends
           })
         }, targetApp);

@@ -837,8 +837,10 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
       });
 
       // we may not have any requests bail early if so.
-      if (!requests.length)
-        callback(); // no requests === success
+      if (!requests.length) {
+        callback(null, bodyInfo); // no requests === success
+        return;
+      }
 
       var fetch = new $imapbodyfetcher.BodyFetcher(
         self._conn,
@@ -935,7 +937,8 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
   },
 
   /**
-   * Download snippets for a set of headers.
+   * The actual work of downloadBodies, lazily replaces downloadBodies once
+   * module deps are loaded.
    */
   _lazyDownloadBodies: function(headers, options, callback) {
     var pending = 1, downloadsNeeded = 0;
@@ -977,6 +980,9 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
     window.setZeroTimeout(next);
   },
 
+  /**
+   * Download snippets or entire bodies for a set of headers.
+   */
   downloadBodies: function() {
     var args = Array.slice(arguments);
     var self = this;
@@ -3068,7 +3074,7 @@ ImapAccount.prototype = {
    * want to consider persisting our state.
    */
   __checkpointSyncCompleted: function() {
-    this.saveAccountState();
+    this.saveAccountState(null, null, 'checkpointSync');
   },
 
   /**
@@ -3806,6 +3812,7 @@ ImapAccount.prototype = {
 
   runOp: $acctmixins.runOp,
   getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
+  getFolderByPath: $acctmixins.getFolderByPath,
 };
 
 /**
@@ -4251,8 +4258,8 @@ CompositeAccount.prototype = {
     this._enabled = this._receivePiece.enabled = val;
   },
 
-  saveAccountState: function(reuseTrans) {
-    return this._receivePiece.saveAccountState(reuseTrans);
+  saveAccountState: function(reuseTrans, callback, reason) {
+    return this._receivePiece.saveAccountState(reuseTrans, callback, reason);
   },
 
   /**

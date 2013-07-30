@@ -168,12 +168,7 @@ var Camera = {
     fileFormat: 'jpeg'
   },
 
-  _previewConfigVideo: {
-    profile: 'cif',
-    rotation: 0,
-    width: 352,
-    height: 288
-  },
+  _videoProfile: {},
 
   _shutterKey: 'camera.shutter.enabled',
   _shutterSound: null,
@@ -514,14 +509,18 @@ var Camera = {
       this._cameraObj.getPreviewStream(this._previewConfig,
                                        gotPreviewStream.bind(this));
     } else {
-      this._previewConfigVideo.rotation = this._phoneOrientation;
-      this._cameraObj.getPreviewStreamVideoMode(this._previewConfigVideo,
+      this._videoProfile.rotation = this._phoneOrientation;
+      this._cameraObj.getPreviewStreamVideoMode(this._videoProfile,
                                                 gotPreviewStream.bind(this));
     }
   },
 
   toggleCamera: function camera_toggleCamera() {
     this._camera = 1 - this._camera;
+    // turn off flash light before switch to front camera
+    var flash = this._flashState[this._captureMode];
+    flash.currentMode = 0;
+    this.updateFlashUI();
     this.loadCameraPreview(this._camera, this.enableButtons.bind(this));
     this.setToggleCameraStyle();
   },
@@ -568,6 +567,7 @@ var Camera = {
   },
 
   startRecording: function camera_startRecording() {
+    this.toggleButton.classList.add('hidden');
     this._sizeLimitAlertActive = false;
     var captureButton = this.captureButton;
     var switchButton = this.switchButton;
@@ -660,6 +660,7 @@ var Camera = {
   },
 
   stopRecording: function camera_stopRecording() {
+    this.toggleButton.classList.remove('hidden');
     var self = this;
     this._cameraObj.stopRecording();
     this._recording = false;
@@ -797,6 +798,8 @@ var Camera = {
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
         this.pickPictureSize(camera.capabilities.pictureSizes);
+      this._videoProfile =
+        this.pickVideoProfile(camera.capabilities.recorderProfiles);
 
       this.setPreviewSize(camera);
       this.enableCameraFeatures(camera.capabilities);
@@ -811,8 +814,8 @@ var Camera = {
         camera.getPreviewStream(this._previewConfig,
                                 gotPreviewScreen.bind(this));
       } else {
-        this._previewConfigVideo.rotation = this._phoneOrientation;
-        this._cameraObj.getPreviewStreamVideoMode(this._previewConfigVideo,
+        this._videoProfile.rotation = this._phoneOrientation;
+        this._cameraObj.getPreviewStreamVideoMode(this._videoProfile,
                                                   gotPreviewScreen.bind(this));
       }
     }
@@ -1287,6 +1290,28 @@ var Camera = {
     } else {
       return size;
     }
+  },
+
+  pickVideoProfile: function camera_pickVideoProfile(profiles) {
+    var profileName;
+    // Attempt to find low resolution profile if accessed via pick activity
+    if (this._pendingPick && this._pendingPick.source.data.maxFileSizeBytes &&
+        'qcif' in profiles) {
+      profileName = 'qcif';
+    // Default to cif profile
+    } else if ('cif' in profiles) {
+      profileName = 'cif';
+    // Fallback to first valid profile if none found
+    } else {
+      profileName = Object.keys(profiles)[0];
+    }
+
+    return {
+      profile: profileName,
+      rotation: 0,
+      width: profiles[profileName].video.width,
+      height: profiles[profileName].video.height
+    };
   },
 
   initPositionUpdate: function camera_initPositionUpdate() {

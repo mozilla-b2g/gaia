@@ -229,6 +229,11 @@ li a[role="button"].activity {
   padding: 0 1rem 0 0;
 }
 
+li button.activity.no-icon,
+li a[role="button"].activity.no-icon {
+  padding-left: 1.5rem;
+}
+
 li button.activity:active,
 li a[role="button"].activity:active {
   background-color: #008AAA;
@@ -296,7 +301,7 @@ li a[role="button"].activity > b{
 }
 
 .view-select-tag .selection-list li button.icon-selected:before {
-  background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center;
+  background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center / 2rem;
 }
 
 /* Input areas customization*/

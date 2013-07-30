@@ -29,7 +29,8 @@ MockAppUpdatable.prototype.cancelDownload = function() {
 
 function MockSystemUpdatable() {
   this.size = null;
-  this.name = 'systemUpdate';
+  this.name = 'System Update';
+  this.nameL10nId = 'systemUpdate';
 
   this.mDownloadCalled = false;
   this.mCancelCalled = false;

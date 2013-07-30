@@ -63,7 +63,7 @@ function optimize_getFileContent(webapp, htmlFile, relativePath) {
   // get starting directory: webapp root, HTML file or /shared/
   if (/^\//.test(relativePath)) {
     paths.shift();
-    file = webapp.sourceDirectoryFile.clone();
+    file = webapp.buildDirectoryFile.clone();
   } else {
     file = htmlFile.parent.clone();
   }
@@ -491,7 +491,7 @@ Gaia.webapps.forEach(function(webapp) {
     // create one concatenated l10n file per locale for all HTML documents
 
     // create the /locales-obj directory if necessary
-    let localeDir = webapp.sourceDirectoryFile.clone();
+    let localeDir = webapp.buildDirectoryFile.clone();
     localeDir.append('locales-obj');
     ensureFolderExists(localeDir);
 
@@ -504,7 +504,7 @@ Gaia.webapps.forEach(function(webapp) {
   }
 
   // optimize all HTML documents in the webapp
-  let files = ls(webapp.sourceDirectoryFile, true, /^(shared|tests?)$/);
+  let files = ls(webapp.buildDirectoryFile, true, /^(shared|tests?)$/);
   files.forEach(function(file) {
     if (/\.html$/.test(file.leafName)) {
       filesToProcess.push(file);

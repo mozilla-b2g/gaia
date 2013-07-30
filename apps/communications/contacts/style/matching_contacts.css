@@ -1,0 +1,82 @@
+.hide, *[data-template] {
+  display: none !important;
+}
+
+#main {
+  position: fixed;
+  top: 5rem;
+  height: calc(100% - 5rem);
+  width: calc(100% + 0.8rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#contacts-list-container {
+  width: calc(100% - 5rem - 0.8rem) !important;
+  margin: 0;
+  margin-left: 2.5rem;
+  padding: 0 !important;
+}
+
+#contacts-list-container label {
+  left: 0;
+  pointer-events: auto;
+}
+
+#contacts-list-container > ol > li[data-uuid] {
+  display: block;
+  padding-left: 4rem;
+  border-top: none !important;
+}
+
+#contacts-list-container > ol > li[data-uuid] aside,
+#contacts-list-container > ol > li[data-uuid] label,
+#contacts-list-container > ol > li[data-uuid] p {
+  pointer-events: none;
+}
+
+#contacts-list-container > ol > li[data-uuid]:last-child {
+  border-bottom: none !important;
+}
+
+#contacts-list-container > ol > li[data-disabled="true"] {
+  opacity: 0.4;
+}
+
+/* Suggested duplicate contacts for xxx */
+
+#duplicate-msg {
+  width: 100%;
+  z-index: 1;
+  border-bottom: 0.1rem solid #E6E6E6;
+  padding: 0.4rem 0;
+}
+
+#duplicate-msg > p {
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.8rem;
+  margin: 0 3rem;
+}
+
+#footer {
+  background: none;
+  pointer-events: none;
+  position: fixed;
+}
+
+#footer button {
+  pointer-events: auto;
+}
+
+body[data-mode="matching"] #footer {
+  display: none;
+}
+
+body[data-mode="listing"] #merge-close, body[data-mode="listing"] #merge-action {
+  display: none;
+}
+
+body[data-mode="listing"] #main {
+  height: calc(100% - 11.9rem); /* Header + footer */
+}

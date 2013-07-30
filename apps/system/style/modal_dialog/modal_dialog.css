@@ -33,6 +33,7 @@
 #modal-dialog-error {
   background-color: black;
   background-image: url(images/error_bk.png);
+  background-size: 32rem;
 }
 
 #modal-dialog-sad-face {

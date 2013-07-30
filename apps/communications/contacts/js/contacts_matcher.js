@@ -1,3 +1,5 @@
+'use strict';
+
 var contacts = window.contacts || {};
 
 contacts.Matcher = (function() {
@@ -56,15 +58,10 @@ contacts.Matcher = (function() {
               matchingContact: aMatching
             };
           });
-        });
+        });  // matchings.forEach
 
-        if (Object.keys(finalMatchings).length > 0) {
-          notifyMatch(self, finalMatchings);
-        }
-        else {
-          notifyMismatch(self);
-        }
-      };
+        carryOn();
+      }; // onsuccess
 
       req.onerror = function(e) {
         window.console.error('Error while trying to do the matching',
@@ -124,7 +121,8 @@ contacts.Matcher = (function() {
     if (values.length > 0) {
       var matcher = new MultipleMatcher(values, {
         filterBy: [field],
-        filterOp: filterOper
+        filterOp: filterOper,
+        selfContactId: aContact.id
       });
       matcher.onmatch = callbacks.onmatch;
 
@@ -226,17 +224,11 @@ contacts.Matcher = (function() {
                           aContact.givenName[0].trim().toLowerCase()).
                           replace(blankRegExp, '');
           }
-
-          var targetName = null;
-          if (!isEmptyStr(aContact.name)) {
-            targetName = Normalizer.toAscii(
-                          aContact.name[0].trim().toLowerCase()).
-                          replace(blankRegExp, '');
-          }
+          // To support seamless matching of SIM contacts
+          var targetName = (targetGN || '') + (targetFN || '');
 
           var mFamilyName = null;
           var mGivenName = null;
-          var mName = null;
 
           if (!isEmptyStr(mContact.familyName)) {
             mFamilyName = Normalizer.toAscii(
@@ -249,12 +241,8 @@ contacts.Matcher = (function() {
                                     mContact.givenName[0].trim().toLowerCase()).
                           replace(blankRegExp, '');
           }
-
-          if (!isEmptyStr(mContact.name)) {
-            mName = Normalizer.toAscii(
-                                    mContact.name[0].trim().toLowerCase()).
-                          replace(blankRegExp, '');
-          }
+          // To support seamless matching of SIM contacts
+          var mName = (mGivenName || '') + (mFamilyName || '');
 
           names.push({
             contact: mContact,
@@ -264,9 +252,8 @@ contacts.Matcher = (function() {
           });
 
           var matchingList = names.filter(function(x) {
-            return (((x.familyName && x.familyName === targetFN) &&
-            (x.givenName && x.givenName === targetGN)) ||
-            (x.name && x.name === targetName));
+            return (x.familyName === targetFN && x.givenName === targetGN) ||
+                    (x.name && x.name === targetName);
           });
 
           matchingList.forEach(function(aMatching) {
@@ -318,33 +305,73 @@ contacts.Matcher = (function() {
     doMatchTelAndEmail(aContact, localCbs);
   }
 
+  function notifyFindNameReady() {
+    document.dispatchEvent(new CustomEvent('by_name_ready'));
+  }
+
   // Used for the active mode. Performs matching by familyName and givenName
   function matchByName(aContact, callbacks) {
     // First we try to find by familyName
     // Afterwards we search by givenName
-    if (!hasName(aContact)) {
+    var isSimContact = (Array.isArray(aContact.category) &&
+                        aContact.category.indexOf('sim') !== -1);
+
+    if ((isEmptyStr(aContact.familyName) || isEmptyStr(aContact.givenName)) &&
+       !isSimContact) {
       notifyMismatch(callbacks);
       return;
     }
 
-    var options = {
-      filterValue: aContact.familyName[0].trim(),
-      filterBy: ['familyName'],
-      filterOp: 'equals'
-    };
+    var finalResult = {};
 
-    var req = navigator.mozContacts.find(options);
+    var resultsByName = null;
+    if (!isEmptyStr(aContact.name)) {
+      var reqName = navigator.mozContacts.find({
+        filterValue: aContact.name[0].trim(),
+        filterBy: ['name'],
+        filterOp: 'equals'
+      });
 
-    req.onsuccess = function() {
-      var results = req.result;
+      reqName.onsuccess = function() {
+        resultsByName = reqName.result;
+        notifyFindNameReady();
+        if (isEmptyStr(aContact.familyName)) {
+          processByNameEnd(finalResult, resultsByName, callbacks);
+        }
+      };
 
-      var givenNames = [];
-      var targetGN = Normalizer.toAscii(
-                          aContact.givenName[0].trim().toLowerCase()).
-                          replace(blankRegExp, '');
-      if (results.length > 0) {
+      reqName.onerror = function(e) {
+        window.console.error('Error while trying to find by name: ',
+                                e.target.error.name);
+        resultsByName = [];
+        notifyFindNameReady();
+        if (isEmptyStr(aContact.familyName)) {
+          processByNameEnd(finalResult, resultsByName, callbacks);
+        }
+      };
+    }
+    else {
+      resultsByName = [];
+      notifyFindNameReady();
+    }
+
+    if (!isEmptyStr(aContact.familyName)) {
+      var reqFamilyName = navigator.mozContacts.find({
+        filterValue: aContact.familyName[0].trim(),
+        filterBy: ['familyName'],
+        filterOp: 'equals'
+      });
+
+      reqFamilyName.onsuccess = function() {
+        var results = reqFamilyName.result;
+
+        var givenNames = [];
+        var targetGN = Normalizer.toAscii(
+                            aContact.givenName[0].trim().toLowerCase()).
+                            replace(blankRegExp, '');
+
         results.forEach(function(mContact) {
-          if (mContact.id === aContact.id) {
+          if (mContact.id === aContact.id || isEmptyStr(mContact.givenName)) {
             return;
           }
           givenNames.push({
@@ -361,30 +388,46 @@ contacts.Matcher = (function() {
                   gn.startsWith(targetGN));
         });
 
-        if (finalMatchings.length === 0) {
-          notifyMismatch(callbacks);
-          return;
-        }
-
-        var result = {};
         finalMatchings.forEach(function(aMatching) {
-          result[aMatching.contact.id] = {
+          finalResult[aMatching.contact.id] = {
             matchingContact: aMatching.contact
           };
         });
 
-        notifyMatch(callbacks, result);
-      }
-      else {
-        notifyMismatch(callbacks);
-      }
-    };
+        if (resultsByName) {
+          processByNameEnd(finalResult, resultsByName, callbacks);
+        }
+        else {
+          document.addEventListener('by_name_ready', function nameReady() {
+            document.removeEventListener('by_name_ready', nameReady);
+            processByNameEnd(finalResult, resultsByName, callbacks);
+          });
+        }
+      };
 
-    req.onerror = function(e) {
-      window.console.error('Error while trying to find by familyName: ',
-                           e.target.error.name);
+      reqFamilyName.onerror = function(e) {
+        window.console.error('Error while trying to find by familyName: ',
+                             e.target.error.name);
+        notifyMismatch(callbacks);
+      };
+    }
+  }
+
+  function processByNameEnd(finalResult, resultsByName, callbacks) {
+    resultsByName.forEach(function(aResult) {
+      if (!finalResult[aResult.id]) {
+        finalResult[aResult.id] = {
+          matchingContact: aResult
+        };
+      }
+    });
+
+    if (Object.keys(finalResult).length > 0) {
+      notifyMatch(callbacks, finalResult);
+    }
+    else {
       notifyMismatch(callbacks);
-    };
+    }
   }
 
   function isEmpty(collection) {
@@ -398,11 +441,8 @@ contacts.Matcher = (function() {
   }
 
   function hasName(aContact) {
-    return ((Array.isArray(aContact.familyName) &&
-      Array.isArray(aContact.givenName) && aContact.familyName[0] &&
-      aContact.familyName[0].trim() && aContact.givenName[0] &&
-      aContact.givenName[0].trim()) || (Array.isArray(aContact.name) &&
-      aContact.name[0] && aContact.name[0].trim()));
+    return (!isEmptyStr(aContact.givenName) ||
+            !isEmptyStr(aContact.familyName));
   }
 
   function reconcileResults(incomingContact, nameMatches, phoneMailMatches,

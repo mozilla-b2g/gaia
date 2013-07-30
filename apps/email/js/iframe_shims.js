@@ -19,18 +19,18 @@ var GestureDetector = window.GestureDetector;
 var DEFAULT_STYLE_TAG =
   '<style type="text/css">\n' +
   // ## blockquote
-  // blockquote per html5: before: 1em, after: 1em, start: 40px, end: 40px
+  // blockquote per html5: before: 1em, after: 1em, start: 4rem, end: 4rem
   'blockquote {' +
   'margin: 0; ' +
   // so, this is quoting styling, which makes less sense to have in here.
-  'border-left: 2px solid gray;' +
+  'border-left: 0.2rem solid gray;' +
   // padding-start isn't a thing yet, somehow.
-  'padding: 0; -moz-padding-start: 5px; ' +
+  'padding: 0; -moz-padding-start: 0.5rem; ' +
   '}\n' +
   // Give the layout engine an upper-bound on the width that's arguably
   // much wider than anyone should find reasonable, but might save us from
   // super pathological cases.
-  'html, body { max-width: 1200px; }\n' +
+  'html, body { max-width: 120rem; }\n' +
   // pre messes up wrapping very badly if left to its own devices
   'pre { white-space: pre-wrap; }\n' +
   '.moz-external-link { color: blue; cursor: pointer; }\n' +
@@ -93,7 +93,7 @@ var DEFAULT_STYLE_TAG =
  * 2) Newsletter style e-mails which are structured and may have multiple
  *    columns, grids of images and stuff like that.
  *
- * Newsletters tend to assume a screen width of around 600px.  They also help
+ * Newsletters tend to assume a screen width of around 60rem.  They also help
  * us out by usually explicitly sizing (parts) of themselves with that big
  * number, but usually a few levels of DOM in.  We could try and look for
  * explicit 'width' style directives (or attributes for tables), possibly
@@ -199,17 +199,17 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
   // - no visible border
   // - we want to approximate seamless, so turn off overflow and we'll resize
   //   things below.
-  // - 600px wide; this is approximately the standard expected width for HTML
+  // - 60rem wide; this is approximately the standard expected width for HTML
   //   emails.
   iframe.setAttribute(
     'style',
     'position: absolute; ' +
-    'border-width: 0px;' +
+    'border-width: 0;' +
     'overflow: hidden;'
 //    'pointer-events: none; ' +
 //    '-moz-user-select: none; ' +
-//    'width: ' + scrollWidth + 'px; ' +
-//    'height: ' + viewportHeight + 'px;'
+//    'width: ' + (scrollWidth) + 'px; ' +
+//    'height: ' + (viewportHeight) + 'px;'
   );
   viewport.appendChild(iframe);
   parentNode.insertBefore(viewport, beforeNode);
@@ -385,12 +385,21 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
 function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
   var eventType, node;
   // Variables that only valid for HTML type mail.
-  var root, title, header, titleHeight, headerHeight, iframeDoc;
+  var root, title, header, attachmentsContainer, msgBodyContainer,
+      titleHeight, headerHeight, attachmentsHeight,
+      msgBodyMarginTop, msgBodyMarginLeft, attachmentsMarginTop,
+      iframeDoc, inputStyle;
   // Tap gesture event for HTML type mail and click event for plain text mail
   if (iframe) {
     root = document.getElementsByClassName('scrollregion-horizontal-too')[0];
     title = document.getElementsByClassName('msg-reader-header')[0];
     header = document.getElementsByClassName('msg-envelope-bar')[0];
+    attachmentsContainer =
+      document.getElementsByClassName('msg-attachments-container')[0];
+    msgBodyContainer = document.getElementsByClassName('msg-body-container')[0];
+    inputStyle = window.getComputedStyle(msgBodyContainer);
+    msgBodyMarginTop = parseInt(inputStyle.marginTop);
+    msgBodyMarginLeft = parseInt(inputStyle.marginLeft);
     titleHeight = title.clientHeight;
     headerHeight = header.clientHeight;
     eventType = 'tap';
@@ -402,11 +411,19 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
     eventType,
     function clicked(event) {
       if (iframe) {
+        // Because the attachments are updating late,
+        // get the client height while clicking iframe.
+        attachmentsHeight = attachmentsContainer.clientHeight;
+        inputStyle = window.getComputedStyle(attachmentsContainer);
+        attachmentsMarginTop =
+          (attachmentsHeight) ? parseInt(inputStyle.marginTop) : 0;
         var dx, dy;
         var transform = iframe.style.transform || 'scale(1)';
         var scale = transform.match(/(\d|\.)+/g)[0];
-        dx = event.detail.clientX + root.scrollLeft;
-        dy = event.detail.clientY + root.scrollTop - titleHeight - headerHeight;
+        dx = event.detail.clientX + root.scrollLeft - msgBodyMarginLeft;
+        dy = event.detail.clientY + root.scrollTop -
+             titleHeight - headerHeight -
+             attachmentsHeight - attachmentsMarginTop - msgBodyMarginTop;
         node = iframeDoc.elementFromPoint(dx / scale, dy / scale);
       } else {
         node = event.originalTarget;

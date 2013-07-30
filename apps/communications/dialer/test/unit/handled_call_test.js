@@ -613,6 +613,31 @@ suite('dialer/handled_call', function() {
       subject.restorePhoneNumber();
       assert.equal(numberNode.textContent, 'test name');
     });
+
+    test('check restore withheld-number', function() {
+      mockCall = new MockCall('', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      subject.restorePhoneNumber();
+      assert.equal(numberNode.textContent, 'withheld-number');
+    });
+
+   test('check restore voicemail number', function() {
+      mockCall = new MockCall('123', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      subject.restorePhoneNumber();
+      assert.equal(numberNode.textContent, 'voiceMail');
+    });
+
+   test('check restore emergency number', function() {
+      mockCall = new MockCall('112', 'incoming');
+      mockCall.emergency = true;
+      subject = new HandledCall(mockCall, fakeNode);
+
+      subject.restorePhoneNumber();
+      assert.equal(numberNode.textContent, 'emergencyNumber');
+    });
   });
 
   suite('explicit visibility', function() {

@@ -1,5 +1,7 @@
 {
-  baseUrl: '../js',
+  appDir: '..',
+  baseUrl: 'js',
+  dir: '../../../build_stage/email',
   mainConfigFile: '../js/mail_app.js',
   /*
   wrap: {
@@ -7,22 +9,27 @@
     end: 'plog("@@@FINISHED EVAL");'
   },
   */
+  modules: [
+    {
+      name: 'mail_app',
+      include: [
+        'alameda',
+        'l10nbase',
+        'l10ndate',
+        'tmpl',
+        'text',
+        'value_selector',
+        'folder_depth_classes',
 
-  include: [
-    'alameda',
-    'l10nbase',
-    'l10ndate',
-    'tmpl',
-    'text',
-    'value_selector',
-    'folder_depth_classes',
-
-    // Bundle most likely, frequently used cards
-    'cards/message_list',
-    'cards/folder_picker',
-
-    'mail_app'
+        // Bundle most likely, frequently used cards
+        'cards/message_list',
+        'cards/folder_picker'
+      ]
+    }
   ],
   optimize: 'none',
-  out: '../built/mail_app.js'
+  // Keeping build dir since Makefile cleans it up and
+  // preps build dir with the shared directory
+  keepBuildDir: true,
+  removeCombined: true
 }

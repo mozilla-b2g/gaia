@@ -212,6 +212,12 @@ suite('link_helper_test.js', function() {
 
   suite('LinkHelper Phone replacements', function() {
 
+    function testPhoneMatch(text, match) {
+      var expected = text.replace(match, phone2msg(match));
+      var result = LinkHelper.searchAndLinkClickableData(text);
+      assert.equal(result, expected);
+    }
+
     function phone2msg(phone) {
       return '<a data-phonenumber="' + phone + '"' +
              ' data-action="phone-link">' + phone + '</a>';
@@ -239,6 +245,13 @@ suite('link_helper_test.js', function() {
 
       test('Phone from #887737', function() {
         testPhoneOK('+5511 98907-6047');
+      });
+
+      test('word before trailing number', function() {
+        testPhoneMatch('Test1 600123123', '600123123');
+      });
+      test('word after preceding number', function() {
+        testPhoneMatch('600123123 1Test', '600123123');
       });
     });
 

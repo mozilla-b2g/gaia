@@ -1,4 +1,4 @@
-  requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
+requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 requireApp('communications/contacts/js/navigation.js');
 
 suite('contacts/navigation', function() {

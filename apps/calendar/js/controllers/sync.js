@@ -45,6 +45,10 @@ Calendar.ns('Controllers').Sync = (function() {
       if (!(--this.pending)) {
         this.emit('syncComplete');
       }
+
+      if (this.pending < 0) {
+        dump('\n\n Error calendar sync .pending is < 0 \n\n');
+      }
     },
 
     /**

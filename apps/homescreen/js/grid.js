@@ -2,7 +2,12 @@
 
 var GridManager = (function() {
   var MAX_ICONS_PER_PAGE = 4 * 4;
-  var PREFERRED_ICON_SIZE = 60;
+
+  // Be aware that the current manifest icon description syntax does
+  // not distinguish between 60@1.5x and 90@1x, so we would have to use
+  // the latter as the former.
+  var PREFERRED_ICON_SIZE = 60 * (window.devicePixelRatio || 1);
+
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_WIDTH = 320;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
@@ -374,6 +379,19 @@ var GridManager = (function() {
           });
         }
 
+        break;
+
+      case 'wheel':
+        if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaX) {
+          // XXX: Scroll one page at a time
+          if (evt.deltaX > 0 && currentPage < pages.length - 1) {
+            GridManager.goToNextPage();
+          } else if (evt.deltaX < 0 && currentPage > 0) {
+            GridManager.goToPreviousPage();
+          }
+          evt.stopPropagation();
+          evt.preventDefault();
+        }
         break;
     }
   }
@@ -862,6 +880,7 @@ var GridManager = (function() {
 
     container = document.querySelector(selector);
     container.addEventListener('contextmenu', handleEvent);
+    container.addEventListener('wheel', handleEvent);
     ensurePanning();
 
     limits.left = container.offsetWidth * 0.05;

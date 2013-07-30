@@ -959,16 +959,4 @@ suite('dialer/call_log_db', function() {
     });
   });
 
-  suite('Clean up', function() {
-    test('delete_db', function(done) {
-      // Closing and deleting may take some time. So we better be safe here.
-      this.timeout(8000);
-      CallLogDBManager.deleteDb(function(error) {
-        assert.isUndefined(error);
-        assert.ok(true, 'Recents DB deleted');
-        done();
-      });
-    });
-  });
-
 });

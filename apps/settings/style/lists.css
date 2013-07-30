@@ -41,7 +41,9 @@ ul li > span {
 
 ul li.active,
 ul li:not(.disabled) > small + a:active,
-ul li:not(.disabled) > a[href]:active {
+ul li:not(.disabled) > a[href]:active,
+ul li:not(.disabled) > small + a:focus,
+ul li:not(.disabled) > a[href]:focus {
   background-color: #b2f2ff;
   color: #222;
 }
@@ -228,6 +230,7 @@ input[type=range]::-moz-range-thumb {
   transition: border 0.15s ease;
   -moz-box-sizing: border-box;
   background: url(images/range_thumb.png) no-repeat 50% 50%;
+  background-size: 2.8rem 2.8rem;
 }
 
 input[type=range]:active::-moz-range-thumb {
@@ -316,6 +319,7 @@ ul li > label.bug344618_polyfill div span:last-child {
   -moz-outline-radius: 3rem;
   transition: outline 0.15s ease;
   background: url(images/range_thumb.png) no-repeat 50% 50%;
+  background-size: 2.8rem 2.8rem;
 }
 
 ul li > label.bug344618_polyfill div span:last-child:active {

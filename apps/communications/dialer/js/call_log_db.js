@@ -268,6 +268,11 @@ var CallLogDBManager = {
         return;
       }
 
+      if (groupCount == 0) {
+        self._notifyObservers('upgradedone');
+        return;
+      }
+
       // Once we built all the group of calls we can push them to the
       // groups object store and notify the UI about it.
       self._newTxn('readwrite', [self._dbGroupsStore],

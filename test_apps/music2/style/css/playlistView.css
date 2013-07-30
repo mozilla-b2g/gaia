@@ -17,7 +17,7 @@
   width: 5em;
   top: calc(50% - 2.5em);
   bottom: 0;
-  moz-box-sizing: border-box;
+  -moz-box-sizing: border-box;
 }
 
 .playlistViewItem .content .albumCover[src=''] {

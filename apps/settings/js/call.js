@@ -28,6 +28,12 @@ var Calls = (function(window, document, undefined) {
     CALL_FORWARD_ACTION_ERASURE: 4
   };
 
+  var _clirConstantsMapping = {
+    'CLIR_DEFAULT': 0,
+    'CLIR_INVOCATION': 1,
+    'CLIR_SUPPRESSION': 2
+  };
+
   var mobileConnection = getMobileConnection();
   var settings = window.navigator.mozSettings;
   var _voiceServiceClassMask = mobileConnection.ICC_SERVICE_CLASS_VOICE;
@@ -306,6 +312,7 @@ var Calls = (function(window, document, undefined) {
             _('callForwardingInvalidNumberError');
           var cfAlertPanel = document.querySelector('#call .cf-alert');
           cfAlertPanel.hidden = false;
+          enableTabOnCallerIdItem(false);
           enableTabOnCallWaitingItem(false);
           enableTapOnCallForwardingItems(false);
           updateCallForwardingSubpanels();
@@ -318,9 +325,10 @@ var Calls = (function(window, document, undefined) {
 
         var req = mobileConnection.setCallForwardingOption(mozMobileCFInfo);
 
+        enableTabOnCallerIdItem(false);
         enableTabOnCallWaitingItem(false);
         enableTapOnCallForwardingItems(false);
-        displayInfoForAll(_('callForwardingRequesting'));
+        displayInfoForAll(_('callSettingsQuery'));
 
         req.onsuccess = function() {
           updateCallForwardingSubpanels(null,
@@ -365,7 +373,7 @@ var Calls = (function(window, document, undefined) {
                                          action) {
     updatingInProgress = true;
 
-    displayInfoForAll(_('callForwardingRequesting'));
+    displayInfoForAll(_('callSettingsQuery'));
     enableTapOnCallForwardingItems(false);
     getCallForwardingOption(function got_cfOption(cfOptions) {
       if (cfOptions) {
@@ -384,12 +392,14 @@ var Calls = (function(window, document, undefined) {
         displayRule(cfOptions['noreply'], 'cfnrep-desc', 'noreply');
         displayRule(cfOptions['notreachable'], 'cfnrea-desc', 'notreachable');
         getCallForwardingOptionSuccess = true;
+        enableTabOnCallerIdItem(true);
         enableTabOnCallWaitingItem(true);
         //  If the query is a success enable call forwarding items.
         enableTapOnCallForwardingItems(getCallForwardingOptionSuccess);
       } else {
-        displayInfoForAll(_('callForwardingQueryError'));
+        displayInfoForAll(_('callSettingsQueryError'));
         getCallForwardingOptionSuccess = false;
+        enableTabOnCallerIdItem(true);
         enableTabOnCallWaitingItem(true);
         //  If the query is an error disable call forwarding items.
         enableTapOnCallForwardingItems(getCallForwardingOptionSuccess);
@@ -402,9 +412,9 @@ var Calls = (function(window, document, undefined) {
   }
 
   function initCallForwarding() {
-    displayInfoForAll(_('callForwardingRequesting'));
+    displayInfoForAll(_('callSettingsQuery'));
     if (!settings || !mobileConnection || !IccHelper.enabled) {
-      displayInfoForAll(_('callForwardingQueryError'));
+      displayInfoForAll(_('callSettingsQueryError'));
       return;
     }
 
@@ -423,6 +433,95 @@ var Calls = (function(window, document, undefined) {
     var cfContinueBtn = cfAlertPanel.querySelector('.cf-alert-continue');
     cfContinueBtn.addEventListener('click', function() {
       cfAlertPanel.hidden = true;
+    });
+  }
+
+  function enableTabOnCallerIdItem(enable) {
+    var element = document.getElementById('menuItem-callerId');
+    if (enable) {
+      element.classList.remove('disabled');
+    } else {
+      element.classList.add('disabled');
+    }
+  }
+
+  function updateCallerIdItemState(callback) {
+    enableTabOnCallerIdItem(false);
+    enableTabOnCallWaitingItem(false);
+    enableTapOnCallForwardingItems(false);
+
+    var req = mobileConnection.getCallingLineIdRestriction();
+    req.onsuccess = req.onerror = function() {
+      var input = document.getElementById('ril-callerId');
+
+      var value = 'CLIR_DEFAULT';
+      switch (req.result['m']) {
+        case 1: // Permanently provisioned
+        case 3: // Temporary presentation disallowed
+        case 4: // Temporary presentation allowed
+          switch (req.result['n']) {
+            case 1: // CLIR invoked
+              value = 'CLIR_INVOCATION';
+              break;
+            case 2: // CLIR suppressed
+              value = 'CLIR_SUPPRESSION';
+              break;
+            case 0: // Network default
+            default:
+              value = 'CLIR_DEFAULT';
+              break;
+          }
+          break;
+        case 0: // Not Provisioned
+        case 2: // Unknown (network error, etc)
+        default:
+          value = 'CLIR_DEFAULT';
+          break;
+      }
+
+      input.value = value;
+      var parent = input.parentElement;
+      var button = input.previousElementSibling;
+      var index = input.selectedIndex;
+      if (index >= 0) {
+        var selection = input.options[index];
+        button.textContent = selection.textContent;
+        button.dataset.l10nId = selection.dataset.l10nId;
+      }
+
+      if (callback) {
+        callback(null);
+      }
+    };
+  }
+
+  function initCallerId() {
+    if (!settings || !mobileConnection || !IccHelper.enabled) {
+      return;
+    }
+
+    if (IccHelper.cardState != 'ready') {
+      return;
+    }
+
+    // Prevent sub panels from being selected while airplane mode.
+    IccHelper.addEventListener('cardstatechange', function() {
+      enableTapOnCallerIdItem(IccHelper.cardState === 'ready');
+    });
+
+    var element = document.getElementById('ril-callerId');
+    // We listen for blur events so that way we set the CLIR mode once the user
+    // clicks on the OK button.
+    element.addEventListener('blur', function(event) {
+      var clirMode = _clirConstantsMapping[element.value];
+      var req = mobileConnection.setCallingLineIdRestriction(clirMode);
+      req.onsuccess = req.onerror = function() {
+        updateCallerIdItemState(function() {
+          enableTabOnCallerIdItem(true);
+          enableTabOnCallWaitingItem(true);
+          enableTapOnCallForwardingItems(true);
+        });
+      };
     });
   }
 
@@ -481,9 +580,6 @@ var Calls = (function(window, document, undefined) {
   }
 
   function updateCallWaitingItemState(callback) {
-    enableTabOnCallWaitingItem(false);
-    enableTapOnCallForwardingItems(false);
-
     var menuItem = document.querySelector('#menuItem-callWaiting');
     var input = menuItem.querySelector('.checkbox-label input');
 
@@ -533,12 +629,14 @@ var Calls = (function(window, document, undefined) {
     setBtn.addEventListener('click', function cs_alertSetClicked(event) {
       var handleSetCallWaiting = function cs_handleSetCallWaiting() {
         updateCallWaitingItemState(function() {
+          enableTabOnCallerIdItem(true);
           enableTabOnCallWaitingItem(true);
           // Keep the state of call forwarding items.
           enableTapOnCallForwardingItems(getCallForwardingOptionSuccess);
         });
         alertPanel.hidden = true;
       };
+      enableTabOnCallerIdItem(false);
       enableTabOnCallWaitingItem(false);
       enableTapOnCallForwardingItems(false);
       var confirmInput =
@@ -557,11 +655,13 @@ var Calls = (function(window, document, undefined) {
     input.addEventListener('change', function cs_cwInputChanged(event) {
       var handleSetCallWaiting = function cs_handleSetCallWaiting() {
         updateCallWaitingItemState(function() {
+          enableTabOnCallerIdItem(true);
           enableTabOnCallWaitingItem(true);
           // Keep the state of call forwarding items.
           enableTapOnCallForwardingItems(getCallForwardingOptionSuccess);
         });
       };
+      enableTabOnCallerIdItem(false);
       enableTabOnCallWaitingItem(false);
       enableTapOnCallForwardingItems(false);
       var req = mobileConnection.setCallWaitingOption(input.checked);
@@ -626,9 +726,12 @@ var Calls = (function(window, document, undefined) {
 
     if (!updatingInProgress) {
       updateVoiceMailItemState();
-      updateCallWaitingItemState(
-        function hashchange_updateCallWaitingItemState() {
-          updateCallForwardingSubpanels();
+      updateCallerIdItemState(
+        function panelready_updateCallerIdItemState() {
+          updateCallWaitingItemState(
+            function panelready_updateCallWaitingItemState() {
+              updateCallForwardingSubpanels();
+          });
       });
     }
   });
@@ -639,8 +742,9 @@ var Calls = (function(window, document, undefined) {
     init: function calls_init() {
       initVoiceMailSettings();
       initCallWaiting();
-      initCallForwarding();
       initCellBroadcast();
+      initCallerId();
+      initCallForwarding();
 
       setTimeout(initCallForwardingObservers, 500);
     }

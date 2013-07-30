@@ -11,7 +11,8 @@ var Hotspot = {
 
   initHotspotPanel: function() {
     var settings = window.navigator.mozSettings;
-    var hotspotSettingBtn = document.querySelector('.hotspot-wifiSettings-btn');
+    var hotspotSettingBtn =
+      document.querySelector('#hotspot-settings-section button');
     var passwordItem = document.querySelector('#hotspot .password-item');
 
     function setHotspotSettingsEnabled(enabled) {

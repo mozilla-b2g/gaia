@@ -202,9 +202,8 @@ var WindowManager = (function() {
   // to the current closeFrame (before overwriting the reference)
   function setCloseFrame(frame) {
     if (closeFrame) {
+      windowClosed(closeFrame);
       removeFrameClasses(closeFrame);
-      // closeFrame should not be set to active
-      closeFrame.classList.remove('active');
     }
 
     closeFrame = frame;
@@ -593,8 +592,11 @@ var WindowManager = (function() {
       }
 
       // We have been canceled by another transition.
-      if (!closeFrame || transitionCloseCallback != startClosingTransition)
+      if (!closeFrame || transitionCloseCallback != startClosingTransition) {
+        setTimeout(closeCallback);
+        closeCallback = null;
         return;
+      }
 
       // Make sure we're not called twice.
       transitionCloseCallback = null;
@@ -827,7 +829,7 @@ var WindowManager = (function() {
     // Case 2: null --> app
     else if (FtuLauncher.isFtuRunning() && newApp !== homescreen) {
       openWindow(newApp, function windowOpened() {
-        InitLogoHandler.animate();
+        InitLogoHandler.animate(callback);
       });
     }
     // Case 3: null->homescreen
@@ -980,6 +982,12 @@ var WindowManager = (function() {
 
     iframe.setAttribute('mozapp', manifestURL);
     iframe.src = url;
+
+    // Add minimal chrome if the app needs it.
+    if (manifest.chrome && manifest.chrome.navigation === true) {
+      frame.setAttribute('data-wrapper', 'true');
+    }
+
     return frame;
   }
 
@@ -1335,41 +1343,46 @@ var WindowManager = (function() {
           return;
         }
 
-        if (isRunning(origin)) {
-          // If the app is in foreground, it's too risky to change it's
-          // URL. We'll ignore this request.
-          if (displayedApp !== origin) {
-            var iframe = getAppFrame(origin).firstChild;
+        // If the message specifies we only have to show the app,
+        // then we don't have to do anything here
+        if (!e.detail.onlyShowApp) {
+          if (isRunning(origin)) {
+            // If the app is in foreground, it's too risky to change it's
+            // URL. We'll ignore this request.
+            if (displayedApp !== origin) {
+              var iframe = getAppFrame(origin).firstChild;
 
-            // If the app is opened and it is loaded to the correct page,
-            // then there is nothing to do.
-            if (iframe.src !== e.detail.url) {
-              // Rewrite the URL of the app frame to the requested URL.
-              // XXX: We could ended opening URls not for the app frame
-              // in the app frame. But we don't care.
-              iframe.src = e.detail.url;
+              // If the app is opened and it is loaded to the correct page,
+              // then there is nothing to do.
+              if (iframe.src !== e.detail.url) {
+                // Rewrite the URL of the app frame to the requested URL.
+                // XXX: We could ended opening URls not for the app frame
+                // in the app frame. But we don't care.
+                iframe.src = e.detail.url;
+              }
             }
-          }
-        } else if (origin !== homescreen) {
-          // XXX: We could ended opening URls not for the app frame
-          // in the app frame. But we don't care.
-          var app = appendFrame(null, origin, e.detail.url,
-                      name, manifest, app.manifestURL,
-                      /* expectingSystemMessage */ true);
+          } else if (origin !== homescreen) {
+            // XXX: We could ended opening URls not for the app frame
+            // in the app frame. But we don't care.
+            var app = appendFrame(null, origin, e.detail.url,
+                                  name, manifest, app.manifestURL,
+                                  /* expectingSystemMessage */ true);
 
-          // set the size of the iframe
-          // so Cards View will get a correct screenshot of the frame
-          if (!e.detail.isActivity) {
-            app.resize(false);
-            if ('setVisible' in app.iframe)
-              app.iframe.setVisible(false);
+            // set the size of the iframe
+            // so Cards View will get a correct screenshot of the frame
+            if (!e.detail.isActivity) {
+              app.resize(false);
+              if ('setVisible' in app.iframe)
+                app.iframe.setVisible(false);
+            }
+          } else {
+            ensureHomescreen();
           }
-        } else {
-          ensureHomescreen();
         }
 
-        // We will only bring web activity handling apps to the foreground
-        if (!e.detail.isActivity)
+        // We will only bring apps to the foreground when the message
+        // specifically requests it.
+        if (!e.detail.showApp)
           return;
 
         // XXX: the correct way would be for UtilityTray to close itself

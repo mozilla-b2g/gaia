@@ -148,6 +148,10 @@ input[type="image"] {
   margin-right: 1rem;
 }
 
+.preview.crashed {
+  background-image: url(images/tab-icon-crashedtab.png);
+}
+
 #tabs-list span {
   pointer-events: none;
   display: block;
@@ -552,11 +556,6 @@ a.recommend[role="button"]:active  {
   z-index: 61;
 }
 
-#sad-face {
-  font-size: 7.2rem;
-  line-height: 15rem;
-}
-
 nav[data-role="tabs"] {
   display: block;
   background-color: #CCD6DF;
@@ -836,6 +835,10 @@ li[role="listitem"] small {
   height: 100%;
   z-index: 150;
   display: none;
+}
+
+#danger-dialog {
+  z-index: 200;
 }
 
 #settings ul {

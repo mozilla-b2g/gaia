@@ -334,14 +334,14 @@ var Contacts = (function() {
         data['tel'] = [{
           'value': phoneNumber,
           'carrier': null,
-          'type': TAG_OPTIONS['phone-type'][0].value
+          'type': TAG_OPTIONS['phone-type'][0].type
         }];
       }
       if (params.hasOwnProperty('email')) {
         var email = params['email'];
         data['email'] = [{
           'value': email,
-          'type': TAG_OPTIONS['email-type'][0].value
+          'type': TAG_OPTIONS['email-type'][0].type
         }];
       }
       var hash = '#view-contact-form?extras=' +

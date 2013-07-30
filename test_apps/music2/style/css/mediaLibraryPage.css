@@ -1,0 +1,389 @@
+
+#mediaLibraryPage {
+
+}
+
+
+
+#mediaLibraryPagePanel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 3.0rem;
+  bottom: 0;
+}
+
+/*======================================*/
+
+#mediaLibraryPagePanelNotifications {
+  position: absolute;
+  top: 0rem;
+  height: 3.5rem;
+  left: 1rem;
+  right: 1rem;
+  border: 1px solid #445;
+  border-top: none;
+  background: rgba(0, 0, 0, .75);
+  z-index: 3;
+}
+
+#mediaLibraryPagePanelNotifications.up {
+  top: -3.0rem;
+  opacity: 0;
+}
+
+#mediaLibraryPagePanelNotifications .text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  text-align: center;
+  line-height: 3.5rem;
+  font-size: 1.333333em;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#mediaLibraryPagePanelNotifications .question {
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  bottom: 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+#mediaLibraryPagePanelNotifications .no,
+#mediaLibraryPagePanelNotifications .yes {
+  position: absolute;
+  top: 0;
+  width: 20%;
+  bottom: 0;
+}
+
+
+#mediaLibraryPagePanelNotifications .no {
+  left: 0;
+  background-image: url('../up.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 50%;
+}
+
+#mediaLibraryPagePanelNotifications .yes {
+  right: 0;
+  background-image: url('../images/IconAction_Media_RepeatList_30x30.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 80%;
+}
+
+/*======================================*/
+
+#mediaLibraryPagePanelTitle {
+  border-bottom: 1px solid #aac;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 4rem;
+}
+
+#mediaLibraryPagePanelTitleText {
+  margin-left: 2.5em;
+  padding-top: 1rem;
+  padding-bottom: .25rem;
+}
+
+#mediaLibraryPagePanelTitleText.right {
+  margin-left: 8em;
+  height: 2.5em;
+  padding-bottom: 1rem;
+}
+
+#mediaLibraryPagePanelTitleText > * {
+  padding-left: .5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#mediaLibraryPagePanelTitleText > *:first-child {
+  font-size: 1.75em;
+  padding-left: 0;
+  color: white;
+}
+
+#mediaLibraryPagePanelTitleText.right > *:first-child {
+  font-size: 1.5em;
+}
+
+#mediaLibraryPagePanelTitleText.songTitle {
+  height: auto;
+}
+
+#mediaLibraryPagePanelTitleText.songTitle > * {
+  white-space: normal;
+}
+
+#mediaLibraryPagePanelTitleText.songTitle > *:first-child {
+  font-size: 1.25em;
+}
+
+/*======================================*/
+
+#mediaLibraryPagePanelPop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background-image: url('../headers/images/icons/back.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 75% auto;
+  width: 2em;
+}
+
+#mediaLibraryPagePanelPop:after {
+  position: absolute;
+  content: "";
+  display: block;
+  left: 100%;
+  top: 0;
+  bottom: 0;
+  width: 0.25rem;
+  margin-left: -.125rem;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 100% 80%;
+  background-image: url(../headers/images/ui/dark/separator.png);
+}
+
+/*======================================*/
+
+#mediaLibraryPagePanelAlbum {
+  position: absolute;
+  top: 0;
+  left: 2.5em;
+  height: 5em;
+  width: 5em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+#mediaLibraryPagePanelAlbum[src=''] {
+  display: none;
+}
+
+#mediaLibraryPagePanelControls {
+  padding-left: 2.5em;
+  -moz-box-sizing: border-box;
+  height: 2.5em;
+}
+
+#mediaLibraryPagePanelControls.right {
+  padding-left: 7.5em;
+}
+
+#mediaLibraryPagePanelControlPlay {
+  width: 50%;
+  height: 100%;
+  float: left;
+
+  background-image: url('../images/IconAction_Media_Play_30x30.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 70%;
+}
+
+#mediaLibraryPagePanelControlAdd {
+  width: 50%;
+  height: 100%;
+  float: left;
+
+  background-image: url('../add.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 70%;
+}
+
+#mediaLibraryPagePanelControls.disabled #mediaLibraryPagePanelControlPlay {
+  background-image: url('../play_disabled.png');
+}
+
+#mediaLibraryPagePanelControls.disabled #mediaLibraryPagePanelControlAdd {
+  background-image: url('../add_disabled.png');
+}
+
+/*======================================*/
+
+#mediaLibraryPagePanelList {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4.0rem;
+  bottom: 0;
+  overflow-y: auto;
+}
+
+
+#mediaLibraryPagePanelSubCategories {
+  font-size: 1.5em;
+
+}
+
+#mediaLibraryPagePanelSubCategories > * {
+  position: relative;
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+  padding-right: 1.5rem;
+  padding-left: 4rem;
+  color: white;
+  height: 2rem;
+  line-height: 2rem;
+
+  background-image: url('../headers/images/icons/back-rtl.png');
+  background-repeat: no-repeat;
+  background-position: right .75em center;
+  background-size: auto 60%;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#mediaLibraryPagePanelSubCategories > *.hasAlbumCover {
+  min-height: 3rem;
+  line-height: 3rem;
+}
+
+
+#mediaLibraryPagePanelSubCategories .albumCover {
+  position: absolute;
+  left: .5rem;
+  top: .5rem;
+  height: 3rem;
+  width: 3rem;
+}
+
+#mediaLibraryPagePanelSubCategories .albumCover[src=''] {
+  display: none;
+}
+
+
+/*======================================*/
+
+#mediaLibraryPagePanelItems .add {
+  width: 100%;
+  height: 100%;
+  background-image: url('../add.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 50% auto;
+}
+
+#mediaLibraryPagePanelItems {
+  border-top: 1px solid #aac;
+}
+
+#mediaLibraryPagePanelItems .fields {
+  padding-top: .75em;
+  padding-bottom: .75em;
+}
+
+#mediaLibraryPagePanelItems .content.right {
+  padding-left: 4rem;
+}
+
+#mediaLibraryPagePanelItems .fields > * {
+  padding-left: .5em;
+  color: #aac;
+  padding-bottom: .125em;
+}
+
+#mediaLibraryPagePanelItems .fields > *:nth-child(2) {
+  color: #ddf;
+}
+
+#mediaLibraryPagePanelItems .fields > *:first-child {
+  font-size: 1.25em;
+  padding-left: 0;
+  color: white;
+  padding-bottom: .25em;
+}
+
+#mediaLibraryPagePanelItems .albumItem {
+  width: 50%;
+  float: left;
+}
+
+#mediaLibraryPagePanelItems .albumItem > .content {
+  padding: .5rem;
+}
+
+#mediaLibraryPagePanelItems .album {
+  position: relative;
+}
+
+#mediaLibraryPagePanelItems .album > img {
+  width: 100%;
+}
+
+#mediaLibraryPagePanelItems .text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: .25rem;
+  background: rgba(0, 0, 0, .5);
+}
+
+#mediaLibraryPagePanelItems .buttonDown .text {
+  background-color: #008aaa;
+}
+
+#mediaLibraryPagePanelItems > *:last-child {
+  margin-bottom: 4rem;
+}
+
+#mediaLibraryPagePanelItems .gotoPanelButton {
+  background-image: url('../headers/images/icons/back-rtl.png');
+  background-repeat: no-repeat;
+  background-position: right 1em center;
+  background-size: 2em auto;
+  padding-right: 3.5em;
+}
+
+#mediaLibraryPagePanelItems .gotoPanelButton .fields {
+  min-height: 0em;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+
+#mediaLibraryPagePanelItems .track {
+  position: absolute;
+  left: .25em;
+  top: .75em;
+  font-size: 1em;
+  padding-left: 0;
+}
+
+#mediaLibraryPagePanelItems .albumCover {
+  position: absolute;
+  left: .5em;
+  top: .5em;
+  height: 3em;
+  width: 3em;
+}
+
+#mediaLibraryPagePanelItems .albumCover[src=''] {
+  display: none;
+}

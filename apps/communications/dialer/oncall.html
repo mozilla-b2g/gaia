@@ -19,7 +19,6 @@
 
     <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
     <script defer type="application/javascript" src="/shared/js/async_storage.js"></script>
-    <script defer type="application/javascript" src="/shared/js/mouse_event_shim.js"></script>
 
     <script defer type="application/javascript" src="/shared/js/simple_phone_matcher.js"></script>
     <script defer type="application/javascript" src="/dialer/js/contacts.js"></script>
@@ -130,6 +129,11 @@
                   </div>
                 </span>
               </div>
+              <div id="callbar-hold">
+                <span role="button" id="callbar-hold-action" class="callbar-button" data-l10n-id="resume">
+                  Resume
+                </span>
+              </div>
             </footer>
           </footer>
         </div>
@@ -142,7 +146,8 @@
           </span>
         </div>
         <div id="incoming-answer">
-          <span role="button">
+          <span role="button" data-l10n-id="hold">
+            Hold
           </span>
         </div>
       </header>
