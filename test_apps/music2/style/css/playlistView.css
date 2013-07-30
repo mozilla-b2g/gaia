@@ -11,6 +11,10 @@
   position: relative;
 }
 
+.playlistViewItem:last-child {
+  margin-bottom: 4rem;
+}
+
 .playlistViewItem .content .albumCover {
   position: absolute;
   left: 2em;
@@ -55,19 +59,19 @@
 .playlistViewItem .playlistItemDelete {
   width: 100%;
   height: 100%;
-  background-image: url('../iconaction_delete_30x30.png');
+  background-image: url('../images/delete.png');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 60% auto;
 }
 
 .playlistViewItem .beingPlayedIcon {
-  background-image: url('../images/IconAction_Media_Play_30x30.png');
+  background-image: url('../images/controls/play.png');
   background-size: 80% auto;
 }
 
 .playlistViewItem .beingPausedIcon {
-  background-image: url('../images/IconAction_Media_Pause_30x30.png');
+  background-image: url('../images/controls/pause.png');
   background-size: 80% auto;
 }
 

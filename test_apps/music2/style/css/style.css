@@ -5,6 +5,7 @@ html {
 
 body {
   overflow-x: hidden;
+  overflow-y: hidden;
   font-family: sans-serif;
   color: #cce;
 

@@ -2,7 +2,7 @@
   position: relative;
   width: 100%;
   height: 3rem;
-  background: url(../headers/images/ui/dark/header.png) repeat-x 0 0;
+  background: url(../images/header/bg.png) repeat-x 0 0;
   background-size: auto 100%;
   z-index: 100;
 }
@@ -15,7 +15,7 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: url(../headers/images/ui/shadow.png) repeat-x 0 0;
+  background: url(../images/header/shadow.png) repeat-x 0 0;
   background-size: auto 100%;
 }
 
@@ -44,6 +44,12 @@
   text-align: center;
 }
 
+.header .headerTitle.centerRight {
+  left: 4rem;
+  right: 0rem;
+  text-align: left;
+}
+
 .leftHeaderElem,
 .rightHeaderElem {
   height: 100%;
@@ -61,14 +67,15 @@
   right: 0;
 }
 
+
 .rightHeaderElem:after {
   right: 100%;
-  background-image: url(../headers/images/ui/dark/separator.png);
+  background-image: url(../images/header/separator.png);
 }
 
 .leftHeaderElem:after {
   left: 100%;
-  background-image: url(../headers/images/ui/dark/separator.png);
+  background-image: url(../images/header/separator.png);
   margin-left: -.25rem;
 }
 
@@ -96,44 +103,58 @@
   width: 100%;
 }
 
-#toggleSettingsDrawer {
-  background-image: url('../headers/images/icons/menu.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto 60%;
-}
-
-#gotoCurrentMusicPage {
-  background-image: url('../images/now_playing.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto 60%;
-}
-
 #gotoSelectMusicPage {
-  background-image: url('../headers/images/icons/back.png');
+  background-image: url('../images/header/down.png');
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto 60%;
+  background-position: center center;
+  background-size: auto 40%;
 }
 
-#togglePlaylistDrawer {
-  background-image: url('../iconaction_media_playlist.png');
-  background-repeat: no-repeat;
-  background-position: center top;
-  background-size: auto 200%;
+#playingPlaylistButtons {
+  width: 3rem;
 }
 
-#gotoSettings {
-  background-image: url('../settings.png'); /*Clément Thorez, from The Noun Project*/
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto 60%;
+#playingPlaylistButtons.big {
+  width: 9rem;
 }
 
-#gotoSources {
-  background-image: url('../sources.png'); /*Nicola Felaco, from The Noun Project*/
+#playingPlaylistButtons > * {
+  float: left;
+  border: none !important;
+  margin: none !important;
+  -moz-box-sizing: border-box;
+  height: 100%;
+}
+
+#playingPlaylistButtons.big > * {
+  width: 33.3333% !important;
+}
+
+#playingPlaylistButtons + .headerTitle {
+  right: 3.5rem;
+}
+
+#playingPlaylistButtons.big + .headerTitle {
+  right: 9.5rem;
+}
+
+#playlistOptionsButton {
+  background-image: url('../images/header/menu.png');
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto 60%;
+  background-position: center center;
+  background-size: auto 50%;
+}
+
+#savePlaylist {
+  background-image: url('../images/save.png'); /*Cris Dobbins, from The Noun Project*/
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 50%;
+}
+
+#deletePlaylist {
+  background-image: url('../images/delete.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 50%;
 }
