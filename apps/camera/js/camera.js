@@ -517,6 +517,10 @@ var Camera = {
 
   toggleCamera: function camera_toggleCamera() {
     this._camera = 1 - this._camera;
+    // turn off flash light before switch to front camera
+    var flash = this._flashState[this._captureMode];
+    flash.currentMode = 0;
+    this.updateFlashUI();
     this.loadCameraPreview(this._camera, this.enableButtons.bind(this));
     this.setToggleCameraStyle();
   },
