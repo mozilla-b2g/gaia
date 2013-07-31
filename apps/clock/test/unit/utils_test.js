@@ -1,19 +1,12 @@
-requireApp('email/test/unit/mock_l10n.js');
 requireApp('clock/js/utils.js');
 
 suite('Time functions', function() {
 
   suite('#summarizeDaysOfWeek', function() {
-    var nativeMozL10n, _;
+    var summarizeDaysOfWeek;
 
     before(function() {
-      nativeMozL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
-      _ = navigator.mozL10n.get;
-    });
-
-    after(function() {
-      navigator.mozL10n = nativeMozL10n;
+      summarizeDaysOfWeek = Utils.summarizeDaysOfWeek;
     });
 
     test('should summarize everyday', function() {
@@ -45,15 +38,94 @@ suite('Time functions', function() {
 
   });
 
-  suite('#formatTime', function() {
-    var is12hStub;
+  suite('#isAlarmPassToday', function() {
+
+    var isAlarmPassToday;
 
     setup(function() {
-      is12hStub = sinon.stub(window, 'is12hFormat');
+      var time = new Date();
+      time.setHours(6, 30);
+      this.clock = sinon.useFakeTimers(time.getTime());
+      isAlarmPassToday = Utils.isAlarmPassToday;
     });
 
     teardown(function() {
-      is12hFormat.restore();
+      this.clock.restore();
+    });
+
+    test('prior hour, prior minute', function() {
+      assert.isTrue(isAlarmPassToday(5, 00));
+    });
+
+    test('prior hour, current minute', function() {
+      assert.isTrue(isAlarmPassToday(5, 30));
+    });
+
+    test('prior hour, later minute', function() {
+      assert.isTrue(isAlarmPassToday(5, 45));
+    });
+
+    test('current hour, prior minute', function() {
+      assert.isTrue(isAlarmPassToday(6, 29));
+    });
+
+    test('current hour, current minute', function() {
+      assert.isTrue(isAlarmPassToday(6, 30));
+    });
+
+    test('current hour, later minute', function() {
+      assert.isFalse(isAlarmPassToday(6, 31));
+    });
+
+    test('later hour, prior minute', function() {
+      assert.isFalse(isAlarmPassToday(7, 29));
+    });
+
+    test('later hour, current minute', function() {
+      assert.isFalse(isAlarmPassToday(7, 30));
+    });
+
+    test('later hour, later minute', function() {
+      assert.isFalse(isAlarmPassToday(7, 31));
+    });
+
+  });
+
+  suite('#changeSelectByValue', function() {
+
+    var changeSelectByValue, selectDOM;
+
+    setup(function() {
+      changeSelectByValue = Utils.changeSelectByValue;
+      selectDOM = document.createElement('select');
+      selectDOM.innerHTML = ['<option value="a">A</option>',
+        '<option value="b">B</option>',
+        '<option value="c" selected>C</option>'
+      ].join('');
+    });
+
+    test('correctly selects the specified element', function() {
+      changeSelectByValue(selectDOM, 'b');
+      assert.equal(selectDOM.selectedIndex, 1);
+    });
+
+    test('has no effect when specified element does not exist', function() {
+      changeSelectByValue(selectDOM, 'g');
+      assert.equal(selectDOM.selectedIndex, 2);
+    });
+
+  });
+
+  suite('#formatTime', function() {
+    var is12hStub, formatTime;
+
+    setup(function() {
+      formatTime = Utils.formatTime;
+      is12hStub = sinon.stub(Utils, 'is12hFormat');
+    });
+
+    teardown(function() {
+      is12hStub.restore();
     });
 
     test('12:00am, with 12 hour clock settings', function() {
@@ -89,6 +161,12 @@ suite('Time functions', function() {
   });
 
   suite('#parseTime', function() {
+
+    var parseTime;
+
+    suiteSetup(function() {
+      parseTime = Utils.parseTime;
+    });
 
     test('12:10am', function() {
       var time = parseTime('12:10AM');

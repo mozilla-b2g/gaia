@@ -2,7 +2,8 @@
  * Application Permissions
  */
 
-#appPermissions ul li img {
+#appPermissions ul li img,
+#homescreen ul li img {
   float: left;
   margin-top: calc(3rem - 1.5rem);
   margin-right: 1.4rem;
