@@ -553,14 +553,17 @@ ifndef APPS
 	endif
 endif
 
+node_modules:
+	npm install
+
+b2g: node_modules
+	./node_modules/.bin/mozilla-download --verbose --product b2g $@
+
 .PHONY: test-integration
 test-integration:
-	adb forward tcp:2828 tcp:2828
-	for app in ${APPS}; \
-	do \
-		FILES_INTEGRATION=`test -d apps/$$app/test/integration && find apps/$$app/test/integration -name "*_test.js" -type f`; \
-		./tests/js/bin/runner $$app $${FILES_INTEGRATION}; \
-	done;
+	# override existing profile-test folder.
+	PROFILE_FOLDER=profile-test make
+	./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js")
 
 .PHONY: test-perf
 test-perf:
