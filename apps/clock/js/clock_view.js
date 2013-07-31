@@ -95,7 +95,7 @@ var ClockView = {
     this._updateDigitalClockTimeout =
     window.setTimeout(function cv_updateDigitalClockTimeout() {
       self.updateDigitalClock();
-    }, (59 - d.getSeconds()) * 1000);
+    }, (60 - d.getSeconds()) * 1000);
   },
 
   updateAnalogClock: function cv_updateAnalogClock() {
