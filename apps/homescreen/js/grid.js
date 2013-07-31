@@ -1223,6 +1223,9 @@ var GridManager = (function() {
   }
 
   return {
+
+    hiddenRoles: HIDDEN_ROLES,
+
     /*
      * Initializes the grid manager
      *
