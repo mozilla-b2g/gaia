@@ -171,9 +171,9 @@ var OpenSearch = {
     asyncStorage.getItem(KEY, function(value) {
       if (!value) {
         this.plugins = defaults;
-        asyncStorage.setItem(KEY, JSON.stringify(this.plugins));
+        asyncStorage.setItem(KEY, this.plugins);
       } else {
-        this.plugins = JSON.parse(value);
+        this.plugins = value;
       }
       callback();
     }.bind(this));
@@ -331,7 +331,7 @@ var OpenSearch = {
    */
   persist: function(provider, callback) {
     this.plugins[provider.shortname] = provider;
-    asyncStorage.setItem(KEY, JSON.stringify(this.plugins), callback);
+    asyncStorage.setItem(KEY, this.plugins, callback);
   }
 };
 
