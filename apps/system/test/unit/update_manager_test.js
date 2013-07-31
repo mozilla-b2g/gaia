@@ -391,7 +391,6 @@ suite('system/UpdateManager', function() {
           assert.isUndefined(UpdateManager.systemUpdatable.mKnownUpdate);
       });
     });
-
   });
 
   suite('UI', function() {
@@ -486,7 +485,7 @@ suite('system/UpdateManager', function() {
       });
 
       test('downloadedBytes should be reset when stopping the download',
-          function() {
+      function() {
 
         UpdateManager.removeFromDownloadsQueue(uAppWithDownloadAvailable);
         UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
@@ -510,7 +509,6 @@ suite('system/UpdateManager', function() {
       test('should display the notification', function() {
         assert.isTrue(fakeNode.classList.contains('displayed'));
       });
-
     });
 
     suite('uncompress display', function() {

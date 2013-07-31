@@ -291,8 +291,8 @@
         for (var key in data) {
           var id, prop, nestedProp, index = key.lastIndexOf('.');
           if (index > 0) { // a property name has been specified
-            id = key.substring(0, index);
-            prop = key.substr(index + 1);
+            id = key.slice(0, index);
+            prop = key.slice(index + 1);
             index = id.lastIndexOf('.');
             if (index > 0) { // a nested property may have been specified
               nestedProp = id.substr(index + 1);
@@ -302,8 +302,14 @@
               }
             }
           } else { // no property name: assuming text content by default
-            id = key;
-            prop = '_';
+            index = key.lastIndexOf('[');
+            if (index > 0) { // we have a macro index
+              id = key.slice(0, index);
+              prop = '_' + key.slice(index);
+            } else {
+              id = key;
+              prop = '_';
+            }
           }
           if (!gL10nData[id]) {
             gL10nData[id] = {};
@@ -832,8 +838,8 @@
     if (isNaN(n))
       return str;
 
-    // TODO: support other properties (l20n still doesn't...)
-    if (prop !== '_')
+    var data = gL10nData[key];
+    if (!data)
       return str;
 
     // initialize _pluralRules
@@ -842,17 +848,17 @@
     }
     var index = '[' + gMacros._pluralRules(n) + ']';
 
-    // try to find a [zero|one|two] key if it's defined
-    if (n === 0 && (key + '[zero]') in gL10nData) {
-      str = gL10nData[key + '[zero]'][prop];
-    } else if (n == 1 && (key + '[one]') in gL10nData) {
-      str = gL10nData[key + '[one]'][prop];
-    } else if (n == 2 && (key + '[two]') in gL10nData) {
-      str = gL10nData[key + '[two]'][prop];
-    } else if ((key + index) in gL10nData) {
-      str = gL10nData[key + index][prop];
-    } else if ((key + '[other]') in gL10nData) {
-      str = gL10nData[key + '[other]'][prop];
+    // try to find a [zero|one|two] form if it's defined
+    if (n === 0 && (prop + '[zero]') in data) {
+      str = data[prop + '[zero]'];
+    } else if (n == 1 && (prop + '[one]') in data) {
+      str = data[prop + '[one]'];
+    } else if (n == 2 && (prop + '[two]') in data) {
+      str = data[prop + '[two]'];
+    } else if ((prop + index) in data) {
+      str = data[prop + index];
+    } else if ((prop + '[other]') in data) {
+      str = data[prop + '[other]'];
     }
 
     return str;
