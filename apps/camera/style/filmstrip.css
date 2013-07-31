@@ -87,19 +87,6 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   -moz-user-select: none;
 }
 
-/*
- * these styes apply when we're swapping out a preview image to replace
- * it with a full-resolution image, but the full image isn't ready yet.
- * This happens when the user starts to zoom in on the image. We need
- * some sort of simple visual effect to fill ~500ms of dead time so the
- * user doesn't think the app has frozen up
- */
-#media-frame > img.swapping {
-  opacity: 0.8;
-  outline: dashed #0ac 0.4rem;
-  outline-offset: -0.4rem;
-}
-
 #media-frame > video {
   transform-origin: 0 0;
 }
