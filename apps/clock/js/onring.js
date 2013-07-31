@@ -87,7 +87,7 @@ var RingView = {
 
   setAlarmTime: function rv_setAlarmTime() {
     var alarmTime = this.getAlarmTime();
-    var time = getLocaleTime(alarmTime);
+    var time = Utils.getLocaleTime(alarmTime);
     this.time.textContent = time.t;
     this.hourState.textContent = time.p;
   },
