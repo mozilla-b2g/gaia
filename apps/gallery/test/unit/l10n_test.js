@@ -8,6 +8,9 @@ require('/shared/js/l10n.js');
 suite('L10n', function() {
 
   var _;
+  var _translate;
+  var _localize;
+
   var l10props = [
     'cropimage                 = Crop',
     'delete-n-items            = {[ plural(n) ]}',
@@ -24,7 +27,13 @@ suite('L10n', function() {
     'trailingBackslash         = backslash\\\\',
     'multiLine                 = foo \\',
     '                            bar \\',
-    '                            baz'
+    '                            baz',
+    'update.innerHTML          = {[ plural(n) ]}',
+    'update.innerHTML[zero]    = <strong>No updates.</strong>',
+    'update.innerHTML[one]     = <strong>{{n}} update available.</strong> \\',
+    '                            <span>Tap for more info.</span>',
+    'update.innerHTML[other]   = <strong>{{n}} updates available.</strong> \\',
+    '                            <span>Tap for more info.</span>'
   ].join('\n');
 
   var key_cropImage = 'cropimage';
@@ -45,6 +54,8 @@ suite('L10n', function() {
     };
 
     _ = navigator.mozL10n.get;
+    _translate = navigator.mozL10n.translate;
+    _localize = navigator.mozL10n.localize;
 
     navigator.mozL10n.language.code = 'en-US';
 
@@ -52,7 +63,6 @@ suite('L10n', function() {
       xhr.restore();
       done();
     });
-
   });
 
   suite('get', function() {
@@ -93,41 +103,85 @@ suite('L10n', function() {
   });
 
   suite('translate', function() {
-    var translate = navigator.mozL10n.translate;
     var elem;
-
     setup(function() {
       elem = document.createElement('div');
     });
 
     test('text content', function() {
       elem.dataset.l10nId = 'textcontent-test';
-      translate(elem);
+      _translate(elem);
       assert.equal(elem.textContent, 'this is text content');
     });
 
     test('properties', function() {
       elem.dataset.l10nId = 'prop-test';
-      translate(elem);
+      _translate(elem);
       assert.equal(elem.prop, 'this is a property');
     });
 
     test('properties using final period', function() {
       elem.dataset.l10nId = 'dot.prop-test';
-      translate(elem);
+      _translate(elem);
       assert.equal(elem.prop, 'this is another property');
     });
 
     test('data-* attributes', function() {
       elem.dataset.l10nId = 'dataset-test';
-      translate(elem);
+      _translate(elem);
       assert.equal(elem.dataset.prop, 'this is a data attribute');
     });
 
     test('style attributes', function() {
       elem.dataset.l10nId = 'style-test';
-      translate(elem);
+      _translate(elem);
       assert.equal(elem.style.padding, '10px');
+    });
+  });
+
+  suite('localize', function() {
+    var elem;
+    setup(function() {
+      elem = document.createElement('div');
+    });
+
+    test('text content', function() {
+      _localize(elem, 'textcontent-test');
+      assert.equal(elem.textContent, 'this is text content');
+    });
+
+    test('properties', function() {
+      _localize(elem, 'prop-test');
+      assert.equal(elem.prop, 'this is a property');
+    });
+
+    suite('properties + pluralization', function() {
+      test('n=0', function() {
+        _localize(elem, 'update', { n: 0 });
+        var info = elem.querySelector('strong');
+        var span = elem.querySelector('span');
+        assert.ok(info);
+        assert.isNull(span);
+        assert.equal(info.textContent, 'No updates.');
+      });
+
+      test('n=1', function() {
+        _localize(elem, 'update', { n: 1 });
+        var info = elem.querySelector('strong');
+        var span = elem.querySelector('span');
+        assert.ok(info);
+        assert.ok(span);
+        assert.equal(info.textContent, '1 update available.');
+      });
+
+      test('n=2', function() {
+        _localize(elem, 'update', { n: 2 });
+        var info = elem.querySelector('strong');
+        var span = elem.querySelector('span');
+        assert.ok(info);
+        assert.ok(span);
+        assert.equal(info.textContent, '2 updates available.');
+      });
     });
   });
 
