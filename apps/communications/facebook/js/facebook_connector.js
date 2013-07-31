@@ -20,9 +20,14 @@ if (!window.FacebookConnector) {
       return out;
     }
 
-    function persistFbData(data, successCb, errorCb) {
+    function persistFbData(data, successCb, errorCb, options) {
       var saveCbs = {
         success: function(e) {
+          if (options === 'not_match') {
+            successCb();
+            return;
+          }
+
           var cbs = {
             onmatch: function(matches) {
               // For each of the matching contacts link with the just imported
@@ -60,7 +65,6 @@ if (!window.FacebookConnector) {
             },
             onmismatch: successCb
           };
-
           // Try to match and if so merge is performed
           contacts.Matcher.match(data, 'passive', cbs);
         },
@@ -132,7 +136,7 @@ if (!window.FacebookConnector) {
 
     var friendsQueryStr = FRIENDS_QUERY.join('');
 
-    function contactDataLoaded(response) {
+    function contactDataLoaded(options, response) {
       if (!response.error) {
         // Just in case this is the first contact imported
         nextUpdateTime = Date.now();
@@ -155,7 +159,7 @@ if (!window.FacebookConnector) {
                                         uid: friend.uid,
                                         url: friend.pic_big
                                       });
-                                }, this.error);
+                                }, this.error, options);
 
             // If there is no an alarm set it has to be set
             window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
@@ -212,11 +216,11 @@ if (!window.FacebookConnector) {
       },
 
       // Imports a Contact to FB indexedDB private database
-      importContact: function(uid, access_token, callbacks) {
+      importContact: function(uid, access_token, callbacks, options) {
         acc_tk = access_token;
         var oneFriendQuery = buildFriendQuery(uid);
         var auxCallbacks = {
-          success: contactDataLoaded.bind(callbacks),
+          success: contactDataLoaded.bind(callbacks, options),
           error: callbacks.error,
           timeout: callbacks.timeout
         };

@@ -567,7 +567,7 @@ if (!fb.link) {
           };
 
           FacebookConnector.importContact(friendUidToLink, access_token,
-                                          callbacks);
+                                          callbacks, 'not_match');
         }
       };
 
