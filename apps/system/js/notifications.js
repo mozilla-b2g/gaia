@@ -83,9 +83,11 @@ var NotificationScreen = {
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
+    this.ringtoneURL = new SettingsURL();
+
     var self = this;
     SettingsListener.observe('notification.ringtone', '', function(value) {
-      self._sound = value;
+      self._sound = self.ringtoneURL.set(value);
     });
   },
 

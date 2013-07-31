@@ -207,10 +207,12 @@ var LockScreen = {
       }
     });
 
+    var wallpaperURL = new SettingsURL();
+
     SettingsListener.observe('wallpaper.image',
                              'resources/images/backgrounds/default.png',
                              function(value) {
-                               self.updateBackground(value);
+                               self.updateBackground(wallpaperURL.set(value));
                                self.overlay.classList.remove('uninit');
                              });
 

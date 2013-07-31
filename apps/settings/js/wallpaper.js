@@ -10,6 +10,7 @@ var Wallpaper = {
   },
 
   init: function wallpaper_init() {
+    this.wallpaperURL = new SettingsURL();
     this.getAllElements();
     this.loadCurrentWallpaper();
     this.bindEvent();
@@ -20,13 +21,13 @@ var Wallpaper = {
     var settings = navigator.mozSettings;
     settings.addObserver('wallpaper.image',
       function onHomescreenChange(event) {
-        self.preview.src = event.settingValue;
+        self.preview.src = self.wallpaperURL.set(event.settingValue);
     });
 
     var lock = settings.createLock();
     var reqWallpaper = lock.get('wallpaper.image');
     reqWallpaper.onsuccess = function wallpaper_getWallpaperSuccess() {
-      self.preview.src = reqWallpaper.result['wallpaper.image'];
+      self.preview.src = self.wallpaperURL.set(this.result['wallpaper.image']);
     };
   },
 
@@ -47,14 +48,9 @@ var Wallpaper = {
         if (!a.result.blob)
           return;
 
-        var reader = new FileReader();
-        reader.readAsDataURL(a.result.blob);
-        reader.onload = function() {
-          self.preview.src = reader.result;
-          navigator.mozSettings.createLock().set({
-            'wallpaper.image': reader.result
-          });
-        };
+        navigator.mozSettings.createLock().set({
+          'wallpaper.image': a.result.blob
+        });
       };
       a.onerror = function onPickError() {
         console.warn('pick failed!');
