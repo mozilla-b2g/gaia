@@ -98,7 +98,8 @@
               <form id="search-container" class="search" role="search">
                 <p>
                   <label for="search" id="search-start">
-                    <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact">
+                    <input type="search" name="search" class="textfield" x-inputmode="verbatim"
+                           placeholder="Search" data-l10n-id="search-contact">
                   </label>
                 </p>
               </form>
@@ -113,11 +114,11 @@
 
       <section id="search-view" class="view">
         <form id="searchview-container" class="search" role="search">
-          <button id='cancel-search' data-l10n-id="cancel" type="submit">Cancel</button>
+          <button id="cancel-search" data-l10n-id="cancel" type="submit">Cancel</button>
           <p>
             <label for="search-contact">
-              <input type="search" name="search" class="textfield" placeholder="Search"
-                     id="search-contact" data-l10n-id="search-contact">
+              <input type="search" name="search" class="textfield" x-inputmode="verbatim"
+                     id="search-contact" placeholder="Search" data-l10n-id="search-contact">
               <button type="reset">Clear</button>
             </label>
           </p>
@@ -134,7 +135,6 @@
             <progress  class="small"></progress>
           </p>
         </section>
-
       </section>    <!-- Search view -->
 
       <section id='view-screenshot' role="region" class="view hide">
@@ -267,7 +267,6 @@
             </section>
         </article>
       </section>
-
 
       <!-- Edit Section -->
       <section id='view-contact-form' role="region" class="view view-bottom view-edit-contact">
