@@ -287,7 +287,8 @@ suite('system/AppInstallManager >', function() {
           });
 
           AppInstallManager.handleAppInstallPrompt(evt.detail);
-          assert.equal('unknown', AppInstallManager.authorName.textContent);
+          assert.equal('author-unknown',
+            AppInstallManager.authorName.textContent);
           assert.equal('', AppInstallManager.authorUrl.textContent);
         });
 
@@ -305,7 +306,8 @@ suite('system/AppInstallManager >', function() {
           });
 
           AppInstallManager.handleAppInstallPrompt(evt.detail);
-          assert.equal('unknown', AppInstallManager.authorName.textContent);
+          assert.equal('author-unknown',
+            AppInstallManager.authorName.textContent);
           assert.equal('', AppInstallManager.authorUrl.textContent);
         });
 
@@ -325,7 +327,8 @@ suite('system/AppInstallManager >', function() {
           });
 
           AppInstallManager.handleAppInstallPrompt(evt.detail);
-          assert.equal('unknown', AppInstallManager.authorName.textContent);
+          assert.equal('author-unknown',
+            AppInstallManager.authorName.textContent);
           assert.equal('http://example.com',
             AppInstallManager.authorUrl.textContent);
         });
@@ -372,7 +375,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           AppInstallManager.handleAppInstallPrompt(evt.detail);
-          assert.equal('unknown', AppInstallManager.size.textContent);
+          assert.equal('size-unknown', AppInstallManager.size.textContent);
         });
       });
 
