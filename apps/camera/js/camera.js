@@ -499,6 +499,7 @@ var Camera = {
     this.disableButtons();
     this.setCaptureMode(mode);
     this.updateFlashUI();
+    this.enableCameraFeatures(this._cameraObj.capabilities);
 
     function gotPreviewStream(stream) {
       this.viewfinder.mozSrcObject = stream;
