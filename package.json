@@ -1,0 +1,16 @@
+{
+  "name": "gaia",
+  "private": true,
+  "version": "0.0.1",
+  "description": "A bundle of components which Gaia needs in order to leverage marionette-js-runner",
+  "author": "Gareth Aye <gaye@mozilla.com>",
+  "devDependencies": {
+    "debug": "*",
+    "marionette-profile-builder": "0.0.1",
+    "marionette-apps": "0.3.0",
+    "marionette-client": "~0.12.0",
+    "marionette-js-runner": "~0.0.1",
+    "mocha": "1.12.0",
+    "mozilla-download": "~0.2.1"
+  }
+}

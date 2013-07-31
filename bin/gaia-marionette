@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Find the source of this file
+SOURCE="${BASH_SOURCE[0]}"
+# Make it an absolute path
+DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
+
+# where all gaia specific customizations for mocha-marionette live.
+SHARED=$DIR/../shared/test/integration/
+
+# download b2g-desktop (if its not present)
+make -C $DIR/../ b2g
+
+# tests can timeout without the profile-test folder so build it here.
+if [ ! -d $DIR/../profile-test ]; then
+  PROFILE_FOLDER=profile-test make -C $DIR/../
+fi
+
+# wrap marionette-mocha with gaia's defaults.
+$DIR/../node_modules/.bin/marionette-mocha \
+  --timeout 10s \
+  --ui tdd \
+  --profile-builder $SHARED/profile_builder.js \
+  --profile-base $SHARED/profile.js \
+  $SHARED/setup.js \
+  $@
