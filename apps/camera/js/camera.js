@@ -144,6 +144,9 @@ var Camera = {
   _previewPaused: false,
   _previewActive: false,
 
+  // Debuncing to avoid quickly toggling camera between front and back end. 
+  _toggleDebuncing: false,
+
   // We can recieve multiple FileSizeLimitReached events
   // when recording, since we stop recording on this event
   // only show one alert per recording
@@ -516,6 +519,11 @@ var Camera = {
   },
 
   toggleCamera: function camera_toggleCamera() {
+    if (this._toggleDebuncing == true) {
+      return;
+    }
+    // Activate the debouncing. Bypass any toggling before dismissing debouncing.
+    this._toggleDebuncing = true;
     this._camera = 1 - this._camera;
     // turn off flash light before switch to front camera
     var flash = this._flashState[this._captureMode];
@@ -818,6 +826,8 @@ var Camera = {
         this._cameraObj.getPreviewStreamVideoMode(this._videoProfile,
                                                   gotPreviewScreen.bind(this));
       }
+      // Dismiss the debouncing and start accepting toggling.
+      this._toggleDebuncing = false;
     }
 
     // If there is already a camera, we would have to release it first.
