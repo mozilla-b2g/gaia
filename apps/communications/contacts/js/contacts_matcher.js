@@ -252,8 +252,10 @@ contacts.Matcher = (function() {
           });
 
           var matchingList = names.filter(function(x) {
-            return (x.familyName === targetFN && x.givenName === targetGN) ||
-                    (x.name && x.name === targetName);
+            return ((x.familyName === targetFN && x.givenName === targetGN) ||
+                    (x.name && x.name === targetName) && (
+                    !Array.isArray(x.contact.category) ||
+                    x.contact.category.indexOf('facebook') === -1));
           });
 
           matchingList.forEach(function(aMatching) {
