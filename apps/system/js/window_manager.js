@@ -694,6 +694,36 @@ var WindowManager = (function() {
       runningApps[homescreen].setVisible(visible);
   }
 
+  // This is an event listener which listens to an iframe's 'mozbrowserloadend'
+  // and 'appopen' events.  We don't declare it inside another function so as
+  // to ensure that it doesn't accidentally keep anything alive.
+  function appLoadedHandler(e)
+  {
+    if (e.type != 'appopen' && e.type != 'mozbrowserloadend') {
+      return;
+    }
+
+    var iframe = e.target;
+    if (iframe.dataset.enableAppLoaded != e.type) {
+      return;
+    }
+
+    iframe.dataset.enableAppLoaded = undefined;
+
+    // * type == 'w' indicates a warm start (the app was already running; we
+    //   just transitioned to it)
+    // * type == 'c' indicates a cold start (the app process wasn't already
+    //   running)
+
+    var doc = e.target.ownerDocument;
+    var evt = doc.createEvent('CustomEvent');
+    evt.initCustomEvent('apploadtime', true, false, {
+      time: parseInt(Date.now() - iframe.dataset.start),
+      type: (e.type == 'appopen') ? 'w' : 'c'
+    });
+    iframe.dispatchEvent(evt);
+  }
+
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
     var currentApp = displayedApp, newApp = origin || homescreen;
@@ -768,46 +798,24 @@ var WindowManager = (function() {
 
       var iframe = app.iframe;
 
-      // unloaded means that the app is cold booting
-      // if it is, we're going to listen for Browser API's loadend event
-      // which indicates that the iframe's document load is complete
+      // Set iframe.dataset.enableAppLoaded so that the iframe's
+      // mozbrowserloadend or appopen event listener (appLoadedHandler) can
+      // run.
       //
-      // if the app is not cold booting (is in memory) we will listen
-      // to appopen event, which is fired when the transition to the
-      // app window is complete
+      // |unpainted in iframe.dataset| means that the app is cold booting.  If
+      // it is, we listen for Browser API's loadend event, which is fired when
+      // the iframe's document load finishes.
       //
-      // we listen to the event on the capturing phase in order to ignore
-      // any system-level work done once the app is launched, we're only timing
-      // the app here
-      //
-      // [w] - warm boot (app is in memory, just transition to it)
-      // [c] - cold boot (app has to be booted, we show it's document load
-      // time)
-      var type;
+      // If the app is not cold booting (its process is alive), we listen to
+      // the appopen event, which is fired when the transition to the app
+      // window completes.
+
       if ('unloaded' in iframe.dataset) {
-        type = 'mozbrowserloadend';
+        iframe.dataset.enableAppLoaded = 'mozbrowserloadend';
       } else {
         iframe.dataset.start = Date.now();
-        type = 'appopen';
+        iframe.dataset.enableAppLoaded = 'appopen';
       }
-
-      // Be careful about what you reference from within the closure below (or
-      // any other closures in this function), or you might leak
-      // homescreenFrame.  For example, referencing |document| causes this
-      // leak; that's why we pull the document off e.target.  See bug 894135,
-      // and if in doubt, ask one of the people referenced in that bug.
-      app.iframe.addEventListener(type, function apploaded(e) {
-        var doc = e.target.ownerDocument;
-        e.target.removeEventListener(e.type, apploaded, true);
-
-        var evt = doc.createEvent('CustomEvent');
-        evt.initCustomEvent('apploadtime', true, false, {
-          time: parseInt(Date.now() - iframe.dataset.start),
-          type: (e.type == 'appopen') ? 'w' : 'c',
-          src: iframe.src
-        });
-        iframe.dispatchEvent(evt);
-      }, true);
     }
 
     // Case 1: the app is already displayed
@@ -1028,6 +1036,23 @@ var WindowManager = (function() {
                           'expecting-system-message');
     }
     maybeSetFrameIsCritical(iframe, origin);
+
+    // Register appLoadedHandler as a capturing listener for the
+    // 'mozbrowserloadend' and 'appopen' events on this iframe.  This event
+    // listener will only do something if iframe.dataset.enableAppLoaded is set
+    // to 'mozbrowserloadend' or 'appopen'.
+    //
+    // If appropriate, appLoadedHandler fires an apploadtime event, which helps
+    // us time how long the app took to load.
+    //
+    // We use a capturing listener in order to ignore any systel-level work
+    // done once the app is launched; we're only interested in timing the app
+    // itself.
+
+    iframe.addEventListener('mozbrowserloadend', appLoadedHandler,
+                            /* capturing */ true);
+    iframe.addEventListener('appopen', appLoadedHandler,
+                            /* capturing */ true);
 
     // Add the iframe to the document
     windows.appendChild(frame);

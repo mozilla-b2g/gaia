@@ -1,9 +1,12 @@
 'use strict';
 
-var MockMozActivity = function(activity) {
+function MockMozActivity(activity) {
   MockMozActivity.calls.push(activity);
   MockMozActivity.instances.push(this);
-};
+
+  this.onsuccess = function() {};
+  this.onerror = function() {};
+}
 
 // create an array to hold any calls to this function to test them
 MockMozActivity.mSetup = function() {

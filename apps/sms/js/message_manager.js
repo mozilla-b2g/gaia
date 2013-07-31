@@ -105,7 +105,7 @@ var MessageManager = {
   },
 
   onVisibilityChange: function mm_onVisibilityChange(e) {
-    LinkActionHandler.resetActivityInProgress();
+    LinkActionHandler.reset();
     ThreadListUI.updateContactsInfo();
     ThreadUI.updateHeaderData();
     Utils.updateTimeHeaders();
