@@ -616,6 +616,20 @@ navigator.mozL10n.ready(function wifiSettings() {
 
       if (dialogID === 'wifi-joinHidden') {
         network.hidden = true;
+
+        // Make sure ssid length is less then 32 bytes.
+        var ssid = dialog.querySelector('input[name=ssid]');
+        ssid.oninput = function() {
+          var ssidStr = ssid.value;
+          // Non-ASCII chars in SSID will be encoded by UTF-8, and length of
+          // each char might be longer than 1 byte.
+          // Use encodeURIComponent() to encode ssid, then calculate correct
+          // length.
+          if (encodeURIComponent(ssidStr).replace(/%[\w\d]{2}/g, '1')
+                .length > 32) {
+            ssid.value = ssidStr.substring(0, ssidStr.length - 1);
+          }
+        };
       }
 
       // disable the "OK" button if the password is too short
