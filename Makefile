@@ -540,6 +540,7 @@ endif
 # Tests                                                                       #
 ###############################################################################
 
+MARIONETTE_DIR = "$(PWD)/shared/test/integration"
 MOZ_TESTS = "$(MOZ_OBJDIR)/_tests/testing/mochitest"
 INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
@@ -555,12 +556,10 @@ endif
 
 .PHONY: test-integration
 test-integration:
-	adb forward tcp:2828 tcp:2828
-	for app in ${APPS}; \
-	do \
-		FILES_INTEGRATION=`test -d apps/$$app/test/integration && find apps/$$app/test/integration -name "*_test.js" -type f`; \
-		./tests/js/bin/runner $$app $${FILES_INTEGRATION}; \
-	done;
+	cd $(MARIONETTE_DIR) && npm install
+	cd $(MARIONETTE_DIR) && ./node_modules/.bin/marionette-mocha \
+		--profile-builder gaia-profile-builder \
+		$(shell find apps/*/test/marionette -name "*_test.js")
 
 .PHONY: test-perf
 test-perf:

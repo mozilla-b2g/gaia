@@ -32,6 +32,8 @@ manifest.appcache
 /showcase_apps/*/test/unit/_proxy.html
 /showcase_apps/*/locales-obj
 
+/shared/test/integration/node_modules
+
 /profile/
 /profile-debug/
 /profile.tar.gz
