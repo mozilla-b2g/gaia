@@ -95,14 +95,10 @@ var NotificationScreen = {
     switch (evt.type) {
       case 'mozChromeEvent':
         var detail = evt.detail;
-        switch (detail.type) {
-          case 'desktop-notification-show':
-            this.addNotification(detail);
-            break;
-          case 'desktop-notification-close':
-            this.removeNotification(detail.id);
-            break;
-        }
+        if (detail.type !== 'desktop-notification')
+          return;
+
+        this.addNotification(detail);
         break;
       case 'tap':
         var target = evt.target;
@@ -140,7 +136,7 @@ var NotificationScreen = {
 
   // Swipe handling
   mousedown: function ns_mousedown(evt) {
-    if (!evt.target.dataset.notificationId)
+    if (!evt.target.dataset.notificationID)
       return;
 
     evt.preventDefault();
@@ -196,16 +192,16 @@ var NotificationScreen = {
   },
 
   tap: function ns_tap(notificationNode) {
-    var notificationId = notificationNode.dataset.notificationId;
+    var notificationID = notificationNode.dataset.notificationID;
 
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentEvent', true, true, {
       type: 'desktop-notification-click',
-      id: notificationId
+      id: notificationID
     });
     window.dispatchEvent(event);
 
-    this.removeNotification(notificationNode.dataset.notificationId, false);
+    this.removeNotification(notificationNode.dataset.notificationID, false);
 
     if (notificationNode == this.toaster) {
       this.toaster.classList.remove('displayed');
@@ -239,8 +235,7 @@ var NotificationScreen = {
     var notificationNode = document.createElement('div');
     notificationNode.className = 'notification';
 
-    notificationNode.dataset.notificationId = detail.id;
-    notificationNode.dataset.type = 'desktop-notification';
+    notificationNode.dataset.notificationID = detail.id;
     notificationNode.dataset.manifestURL = detail.manifestURL;
 
     if (detail.icon) {
@@ -260,46 +255,21 @@ var NotificationScreen = {
     time.textContent = this.prettyDate(timestamp);
     notificationNode.appendChild(time);
 
-    var dir = (detail.bidi === 'ltr' || detail.bidi === 'rtl') ?
-      detail.bidi : '';
-
     var title = document.createElement('div');
     title.textContent = detail.title;
     notificationNode.appendChild(title);
-    title.lang = detail.lang;
-    title.dir = dir;
 
     this.toasterTitle.textContent = detail.title;
-    this.toasterTitle.lang = detail.lang;
-    this.toasterTitle.dir = dir;
 
     var message = document.createElement('div');
     message.classList.add('detail');
     message.textContent = detail.text;
     notificationNode.appendChild(message);
-    message.lang = detail.lang;
-    message.dir = dir;
 
     this.toasterDetail.textContent = detail.text;
-    this.toasterDetail.lang = detail.lang;
-    this.toasterDetail.dir = dir;
 
-    var notifSelector = '[data-notification-id="' + detail.id + '"]';
-    var oldNotification = this.container.querySelector(notifSelector);
-    if (oldNotification) {
-      this.container.replaceChild(notificationNode, oldNotification);
-    } else {
-      this.container.insertBefore(notificationNode,
-          this.container.firstElementChild);
-    }
-
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
-      type: 'desktop-notification-show',
-      id: detail.id
-    });
-    window.dispatchEvent(event);
-
+    this.container.insertBefore(notificationNode,
+      this.container.firstElementChild);
     new GestureDetector(notificationNode).startDetecting();
 
     // We turn the screen on if needed in order to let
@@ -313,7 +283,7 @@ var NotificationScreen = {
 
     // Notification toaster
     if (this.lockscreenPreview || !LockScreen.locked) {
-      this.toaster.dataset.notificationId = detail.id;
+      this.toaster.dataset.notificationID = detail.id;
 
       this.toaster.classList.add('displayed');
       this._toasterGD.startDetecting();
@@ -363,19 +333,20 @@ var NotificationScreen = {
   },
 
   closeNotification: function ns_closeNotification(notificationNode) {
-    var notificationId = notificationNode.dataset.notificationId;
-    this.removeNotification(notificationNode.dataset.notificationId);
-  },
+    var notificationID = notificationNode.dataset.notificationID;
 
-  removeNotification: function ns_removeNotification(notificationId) {
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentEvent', true, true, {
       type: 'desktop-notification-close',
-      id: notificationId
+      id: notificationID
     });
     window.dispatchEvent(event);
 
-    var notifSelector = '[data-notification-id="' + notificationId + '"]';
+    this.removeNotification(notificationNode.dataset.notificationID);
+  },
+
+  removeNotification: function ns_removeNotification(notificationID) {
+    var notifSelector = '[data-notification-i-d="' + notificationID + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
     var lockScreenNotificationNode =
       this.lockScreenContainer.querySelector(notifSelector);
@@ -400,13 +371,6 @@ var NotificationScreen = {
       var element = this.lockScreenContainer.firstElementChild;
       this.lockScreenContainer.removeChild(element);
     }
-
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
-      type: 'desktop-notification-close',
-      id: notificationNode.dataset.notificationId
-    });
-    window.dispatchEvent(event);
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {
