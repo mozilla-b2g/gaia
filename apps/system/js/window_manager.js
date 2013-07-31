@@ -659,6 +659,13 @@ var WindowManager = (function() {
     return runningApps[homescreen].frame;
   }
 
+  navigator.mozSettings.addObserver('homescreen.manifestURL', function(event) {
+    kill(homescreen);
+    retrieveHomescreen(function() {
+      setDisplayedApp(homescreen);
+    });
+  });
+
   function retrieveHomescreen(callback) {
     var lock = navigator.mozSettings.createLock();
     var setting = lock.get('homescreen.manifestURL');
