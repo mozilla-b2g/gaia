@@ -13,6 +13,8 @@
     [
       {
         name: 'Lorem ipsum',
+        l10nId: 'lorem',
+        l10nArgs: 'ipsum',
         method: function optionMethod(param1, param2) {
           // Method and params if needed
         },
@@ -26,6 +28,7 @@
       This is because it's recommended to use as a 'Cancel' option
       {
         name: 'Cancel',
+        l10nId: 'Cancel'
         method: function optionMethod(param) {
           // Method and param if needed
         },
@@ -103,16 +106,21 @@ var OptionMenu = function(options) {
 
   // For each option, we append the item and listener
   items.forEach(function renderOption(item) {
-    if (item.name && item.name.length > 0) {
-      var button = document.createElement('button');
-      button.textContent = item.name;
-      menu.appendChild(button);
-      // Add a mapping from the button object
-      // directly to its options item.
-      item.incomplete = item.incomplete || false;
-
-      handlers.set(button, item);
+    var button = document.createElement('button');
+    if (item.l10nId) {
+      navigator.mozL10n.localize(button, item.l10nId, item.l10nArgs);
+    } else if (item.name && item.name.length) {
+      button.textContent = item.name || '';
+    } else {
+      // no l10n or name, just empty item, don't add to the menu
+      return;
     }
+    menu.appendChild(button);
+    // Add a mapping from the button object
+    // directly to its options item.
+    item.incomplete = item.incomplete || false;
+
+    handlers.set(button, item);
   });
 
   this.form.addEventListener('submit', function(event) {
@@ -149,6 +157,7 @@ var OptionMenu = function(options) {
 OptionMenu.prototype.show = function() {
   // We append the element to body
   document.body.appendChild(this.form);
+  navigator.mozL10n.translate(this.form);
 };
 
 OptionMenu.prototype.hide = function() {
