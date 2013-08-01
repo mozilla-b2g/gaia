@@ -105,7 +105,8 @@ var Rocketbar = {
       appListing.push(manifest);
 
       appListing.forEach(function(manifest) {
-        if (manifest.name.toLowerCase().indexOf(query.toLowerCase()) != -1) {
+        if (manifest.name.toLowerCase().indexOf(query.toLowerCase()) != -1 &&
+            !manifest.entry_points) {
           results.push({
             manifestURL: manifestURL,
             app: app,
