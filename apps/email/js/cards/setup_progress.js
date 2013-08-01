@@ -3,6 +3,7 @@ define(function(require) {
 
 var templateNode = require('tmpl!./setup_progress.html'),
     common = require('mail_common'),
+    model = require('model'),
     MailAPI = require('api'),
     Cards = common.Cards;
 
@@ -27,12 +28,12 @@ function SetupProgressCard(domNode, mode, args) {
       password: args.password
     },
     args.domainInfo || null,
-    function(err, errDetails) {
+    function(err, errDetails, account) {
       self.creationInProcess = false;
       if (err)
         self.onCreationError(err, errDetails);
       else
-        self.onCreationSuccess();
+        self.onCreationSuccess(account);
     });
 }
 SetupProgressCard.prototype = {
@@ -52,12 +53,11 @@ SetupProgressCard.prototype = {
     Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
   },
 
-  onCreationSuccess: function() {
-    // nuke the current card stack, replace them with the done card.
-    Cards.removeAllCards();
-    Cards.pushCard(
-      'setup_done', 'default', 'immediate',
-      {});
+  onCreationSuccess: function(account) {
+    Cards.pushCard('setup_account_prefs', 'default', 'animate',
+    {
+      account: account
+    });
   },
 
   die: function() {

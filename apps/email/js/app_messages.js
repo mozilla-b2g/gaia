@@ -2,24 +2,34 @@
 /*global define, console */
 define(function(require) {
 
-var evt = require('evt'),
+var appSelf = require('app_self'),
+    evt = require('evt'),
     queryURI = require('query_uri'),
-    appMessages = evt.mix({});
+    queryString = require('query_string'),
+    appMessages = evt.mix({}),
+    pending = {},
+    // htmlCacheRestorePendingMessage defined in html_cache_restore,
+    // see comment for it.
+    cachedList = (window.htmlCacheRestorePendingMessage &&
+              window.htmlCacheRestorePendingMessage.length) ?
+              window.htmlCacheRestorePendingMessage : [];
+
+// Convert the cached list to named properties on pending.
+cachedList.forEach(function(type) {
+  pending[type] = true;
+});
 
 appMessages.hasPending = function(type) {
-  // htmlCacheRestoreDetectedActivity defined in html_cache_restore,
-  // see comment for it.
-  return (type === 'activity' && window.htmlCacheRestoreDetectedActivity) ||
-         (navigator.mozHasPendingMessage &&
-          navigator.mozHasPendingMessage(type));
+  return pending.hasOwnProperty(type) || (navigator.mozHasPendingMessage &&
+                                          navigator.mozHasPendingMessage(type));
 };
 
 if ('mozSetMessageHandler' in navigator) {
-  navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-    var activityName = activity.source.name,
-        attachmentBlobs = activity.source.data.blobs,
-        attachmentNames = activity.source.data.filenames,
-        url = activity.source.data.url || activity.source.data.URI,
+  navigator.mozSetMessageHandler('activity', function onActivity(message) {
+    var activityName = message.source.name,
+        attachmentBlobs = message.source.data.blobs,
+        attachmentNames = message.source.data.filenames,
+        url = message.source.data.url || message.source.data.URI,
         urlParts = url ? queryURI(url) : [];
 
     // To assist in bug analysis, log the start of the activity here.
@@ -36,8 +46,28 @@ if ('mozSetMessageHandler' in navigator) {
     };
 
     appMessages.emitWhenListener('activity',
-                                 activityName, composeData, activity);
+                                 activityName, composeData, message);
   });
+
+  navigator.mozSetMessageHandler('notification', function(msg) {
+    if (!msg.clicked)
+      return;
+
+    appSelf.latest('self', function(app) {
+      if (document.hidden)
+        app.launch();
+    });
+
+    console.log('email got notification click: ' + msg);
+    console.log(JSON.stringify(msg, null, '  '));
+
+    // icon url parsing is a cray cray way to pass day day
+    var data = queryString.toObject((msg.imageURL || '').split('#')[1]);
+    appMessages.emitWhenListener('notification', data);
+  });
+
+  // Do not listen for navigator.mozSetMessageHandler('alarm') type, that is
+  // only done in the back end's cronsync for now.
 }
 else {
   console.warn('Activity support disabled!');

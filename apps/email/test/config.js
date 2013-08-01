@@ -20,8 +20,17 @@
       }
     },
     shim: {
-      l10ndate: ['l10nbase']
-    }
+      l10ndate: ['l10nbase'],
+
+      'shared/js/mime_mapper': {
+        exports: 'MimeMapper'
+      },
+
+      'shared/js/notification_helper': {
+        exports: 'NotificationHelper'
+      }
+    },
+    definePrim: 'prim'
   };
 
   global.testConfig = function(obj, ids, callback) {

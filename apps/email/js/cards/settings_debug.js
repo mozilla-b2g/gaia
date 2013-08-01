@@ -1,4 +1,5 @@
 /*global define*/
+var _secretDebug;
 define(function(require) {
 
 var templateNode = require('tmpl!./settings_debug.html'),
@@ -6,6 +7,8 @@ var templateNode = require('tmpl!./settings_debug.html'),
     MailAPI = require('api'),
     Cards = common.Cards;
 
+if (!_secretDebug)
+  _secretDebug = {};
 
 /**
  * Quasi-secret card for troubleshooting/debugging support.  Not part of the
@@ -35,6 +38,9 @@ function SettingsDebugCard(domNode, mode, args) {
   this.dangerousLoggingButton.addEventListener(
     'click', this.cycleLogging.bind(this, true, 'dangerous'), false);
   this.cycleLogging(false);
+
+  domNode.querySelector('.tng-dbg-fastsync')
+         .addEventListener('click', this.fastSync.bind(this), true);
 
   // - hookup
 }
@@ -77,6 +83,10 @@ SettingsDebugCard.prototype = {
     }
     this.loggingButton.textContent = label;
     this.dangerousLoggingButton.textContent = dangerLabel;
+  },
+
+  fastSync: function() {
+    _secretDebug.fastSync = [20000, 60000];
   },
 
   die: function() {

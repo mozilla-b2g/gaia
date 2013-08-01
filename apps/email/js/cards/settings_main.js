@@ -19,13 +19,6 @@ function SettingsMainCard(domNode, mode, args) {
   domNode.getElementsByClassName('tng-close-btn')[0]
     .addEventListener('click', this.onClose.bind(this), false);
 
-  var checkIntervalNode =
-    domNode.getElementsByClassName('tng-main-check-interval')[0];
-console.log('  CONFIG CURRENTLY:', JSON.stringify(MailAPI.config));//HACK
-  checkIntervalNode.value = MailAPI.config.syncCheckIntervalEnum;
-  checkIntervalNode.addEventListener(
-    'change', this.onChangeSyncInterval.bind(this), false);
-
   this.accountsContainer =
     domNode.getElementsByClassName('tng-accounts-container')[0];
 
@@ -80,12 +73,6 @@ SettingsMainCard.prototype = {
       accountLabel.addEventListener('click',
         this.onClickEnterAccount.bind(this, account), false);
     }
-  },
-
-  onChangeSyncInterval: function(event) {
-    console.log('sync interval changed to', event.target.value);
-    MailAPI.modifyConfig({
-      syncCheckIntervalEnum: event.target.value });
   },
 
   onClickAddAccount: function() {
