@@ -1,0 +1,28 @@
+{
+  "name": "gaia-integration",
+  "version": "0.0.1",
+  "description": "A bundle of components which Gaia needs in order to leverage marionette-js-runner",
+  "author": "Gareth Aye <gaye@mozilla.com>",
+
+  "dependencies": {
+    "gaia-profile-builder": "0.0.1",
+    "marionette-apps": "0.3.0",
+    "marionette-client": "0.12.0-alpha",
+    "marionette-js-logger": "",
+    "marionette-js-runner": "0.0.1-alpha.3",
+    "mocha": "1.12.0"
+  },
+
+  "keywords": [
+    "firefox",
+    "firefox",
+    "os",
+    "gaia",
+    "integration",
+    "marionette",
+    "marionette-js-runner",
+    "test"
+  ],
+
+  "license": "MIT"
+}
