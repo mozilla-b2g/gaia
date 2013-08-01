@@ -66,3 +66,14 @@ function telephonyAddCall(mockCall, opt) {
 
   return handledCall;
 }
+
+/* Should be called in the context of a suite after one call has already been
+ * added via telephonyAddCall(). */
+function telephonyAddCdmaCall(number, opt) {
+  MockMozTelephony.calls[0].secondNumber = number;
+  MockMozTelephony.calls[0].state = 'connected';
+
+  if (opt && opt.trigger) {
+    MockMozTelephony.mTriggerCallsChanged();
+  }
+}

@@ -524,6 +524,14 @@ suite('dialer/handled_call', function() {
     assert.equal(subject.numberNode.textContent, 'withheld-number');
   });
 
+  test('should display switch-calls l10n key', function() {
+    mockCall = new MockCall('12345', 'connected');
+    mockCall.secondNumber = '67890';
+    subject = new HandledCall(mockCall);
+
+    assert.equal(subject.numberNode.textContent, 'switch-calls');
+  });
+
   test('should display emergency number label', function() {
     mockCall = new MockCall('112', 'dialing');
     mockCall.emergency = true;

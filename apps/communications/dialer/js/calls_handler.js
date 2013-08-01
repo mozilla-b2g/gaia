@@ -8,6 +8,7 @@ var CallsHandler = (function callsHandler() {
   var CALLS_LIMIT = 2;
 
   var handledCalls = [];
+  var toneInterval = null; // Timer used to play the waiting tone
   var telephony = window.navigator.mozTelephony;
   telephony.oncallschanged = onCallsChanged;
 
@@ -112,6 +113,10 @@ var CallsHandler = (function callsHandler() {
       if (!stillHere) {
         removeCall(index);
       }
+    }
+
+    if (cdmaCallWaiting()) {
+      handleCallWaiting(telephony.calls[0]);
     }
 
     if (handledCalls.length === 0) {
@@ -266,7 +271,7 @@ var CallsHandler = (function callsHandler() {
 
   function handleCallWaiting(call) {
     LazyL10n.get(function localized(_) {
-      var number = call.number;
+      var number = (call.secondNumber ? call.secondNumber : call.number);
 
       if (!number) {
         CallScreen.incomingNumber.textContent = _('withheld-number');
@@ -284,20 +289,7 @@ var CallsHandler = (function callsHandler() {
     });
 
     CallScreen.showIncoming();
-
-    // ANSI call waiting tone for a 10 sec window
-    var sequence = [[440, 440, 100],
-                    [0, 0, 100],
-                    [440, 440, 100]];
-    var toneInterval = window.setInterval(function playTone() {
-      TonePlayer.playSequence(sequence);
-    }, 10000);
-    TonePlayer.playSequence(sequence);
-
-    call.addEventListener('statechange', function callStateChange() {
-      call.removeEventListener('statechange', callStateChange);
-      window.clearInterval(toneInterval);
-    });
+    playWaitingTone(call);
   }
 
   /* === Call Screen === */
@@ -388,7 +380,7 @@ var CallsHandler = (function callsHandler() {
         break;
       case 'CHLD=1':
         // End the active call and answer the other one
-        if (handledCalls.length === 1) {
+        if ((handledCalls.length === 1) && !cdmaCallWaiting()) {
           end();
         } else {
           endAndAnswer();
@@ -396,7 +388,7 @@ var CallsHandler = (function callsHandler() {
         break;
       case 'CHLD=2':
         // Hold the active call and answer the other one
-        if (handledCalls.length === 1) {
+        if ((handledCalls.length === 1) && !cdmaCallWaiting()) {
           holdOrResumeSingleCall();
         } else {
           holdAndAnswer();
@@ -438,7 +430,7 @@ var CallsHandler = (function callsHandler() {
 
     if (telephony.active) {
       end();
-    } else if (handledCalls.length > 1) {
+    } else if ((handledCalls.length > 1) || cdmaCallWaiting()) {
       holdAndAnswer();
     } else {
       answer();
@@ -475,24 +467,37 @@ var CallsHandler = (function callsHandler() {
   }
 
   function holdAndAnswer() {
-    if (handledCalls.length < 2) {
+    if ((handledCalls.length < 2) && !cdmaCallWaiting()) {
       return;
     }
 
     if (telephony.active) {
       // connected, incoming
       telephony.active.hold(); // the incoming call is answered by gecko
-    } else {
+    } else if (handledCalls.length >= 2) {
       // held, incoming
       var lastCall = handledCalls[handledCalls.length - 1].call;
       lastCall.answer(); // the previous call is held by gecko
+    } else {
+      // Held call in CDMA mode, hold to answer to the second call
+      handledCalls[0].call.hold();
     }
 
     CallScreen.hideIncoming();
+
+    if (cdmaCallWaiting()) {
+      /* In CDMA mode we need to update the displayed call to reflect the fact
+       * that we're not aware anymore to which number we're connected. We also
+       * need to stop the call waiting tone as the call state doesn't change
+       * after answering and thus doesn't trigger the stop callback. */
+      handledCalls[0].updateCallNumber();
+      CallScreen.cdmaCallWaiting = true;
+      stopWaitingTone();
+    }
   }
 
   function endAndAnswer() {
-    if (handledCalls.length < 2) {
+    if ((handledCalls.length < 2) && !cdmaCallWaiting()) {
       return;
     }
 
@@ -502,22 +507,42 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
-    var callToEnd = telephony.active ||           // connected, incoming
-      handledCalls[handledCalls.length - 2].call; // held, incoming
+    if (cdmaCallWaiting()) {
+      /* We're in CDMA mode, there's no way to hang the existing call nor to
+       * know if we're connected to the second call hence we treat this as an
+       * hold-and-answer scenario. */
+      handledCalls[0].call.hold();
+      stopWaitingTone();
+    } else {
+      var callToEnd = telephony.active ||           // connected, incoming
+        handledCalls[handledCalls.length - 2].call; // held, incoming
 
-    if (callToEnd) {
-      callToEnd.hangUp(); // the incoming call is answered by gecko
+      if (callToEnd) {
+        callToEnd.hangUp(); // the incoming call is answered by gecko
+      }
     }
 
     CallScreen.hideIncoming();
+
+    if (cdmaCallWaiting()) {
+      /* In CDMA mode we need to update the displayed call to reflect the fact
+       * that we're not aware anymore to which number we're connected. We also
+       * need to stop the call waiting tone as the call state doesn't change
+       * after answering and thus doesn't trigger the stop callback. */
+      handledCalls[0].updateCallNumber();
+      CallScreen.cdmaCallWaiting = true;
+    }
   }
 
   function toggleCalls() {
-    if (CallScreen.incomingContainer.classList.contains('displayed')) {
+    if (CallScreen.incomingContainer.classList.contains('displayed') &&
+        !cdmaCallWaiting()) {
+      /* In CDMA call waiting mode only one call is displayed but we can still
+       * switch between calls if a second one is present. */
       return;
     }
 
-    if (handledCalls.length < 2) {
+    if ((handledCalls.length < 2) && !cdmaCallWaiting()) {
 
       // Putting a call on Hold when there are no other
       // calls in progress has been disabled until a less
@@ -559,8 +584,14 @@ var CallsHandler = (function callsHandler() {
   }
 
   function ignore() {
-    var ignoreIndex = handledCalls.length - 1;
-    handledCalls[ignoreIndex].call.hangUp();
+    /* On CDMA there's no way to hangup an incoming call so we just skip this
+     * step and hide the incoming call. */
+    if (cdmaCallWaiting()) {
+      stopWaitingTone();
+    } else {
+      var ignoreIndex = handledCalls.length - 1;
+      handledCalls[ignoreIndex].call.hangUp();
+    }
 
     CallScreen.hideIncoming();
   }
@@ -636,6 +667,35 @@ var CallsHandler = (function callsHandler() {
     postToMainWindow(message);
   }
 
+  /**
+   * Plays the ANSI call waiting tone for a 10 seconds window
+   *
+   * @param {Object} call The call object to which the wait tone is referred to
+   */
+  function playWaitingTone(call) {
+    // ANSI call waiting tone for a 10 sec window
+    var sequence = [[440, 440, 100],
+                    [0, 0, 100],
+                    [440, 440, 100]];
+
+    toneInterval = window.setInterval(function playTone() {
+      TonePlayer.playSequence(sequence);
+    }, 10000);
+    TonePlayer.playSequence(sequence);
+
+    call.addEventListener('statechange', function callStateChange() {
+      call.removeEventListener('statechange', callStateChange);
+      window.clearInterval(toneInterval);
+    });
+  }
+
+  /**
+   * Stops playing the waiting tone
+   */
+  function stopWaitingTone() {
+    window.clearInterval(toneInterval);
+  }
+
   function activeCall() {
     var telephonyActiveCall = telephony.active;
     var activeCall = null;
@@ -647,6 +707,17 @@ var CallsHandler = (function callsHandler() {
       }
     }
     return activeCall;
+  }
+
+  /**
+   * Detects if we're in CDMA call waiting mode
+   *
+   * @return {Boolean} Returns true if we're in CDMA call waiting mode
+   */
+  function cdmaCallWaiting() {
+    return ((telephony.calls.length == 1) &&
+            (telephony.calls[0].state == 'connected') &&
+            telephony.calls[0].secondNumber);
   }
 
   return {

@@ -109,9 +109,20 @@ HandledCall.prototype.startTimer = function hc_startTimer() {
 
 HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var number = this.call.number;
+  var secondNumber = this.call.secondNumber;
   var node = this.numberNode;
   var additionalInfoNode = this.additionalInfoNode;
   var self = this;
+
+  /* If we have a second call waiting in CDMA mode then we don't know which
+   * number is currently active */
+  if (secondNumber) {
+    LazyL10n.get(function localized(_) {
+      node.textContent = _('switch-calls');
+      self._cachedInfo = _('switch-calls');
+    });
+    return;
+  }
 
   if (!number) {
     LazyL10n.get(function localized(_) {

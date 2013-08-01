@@ -45,6 +45,11 @@ var MockCallScreen = {
   },
   mBigDuration: null,
 
+  set cdmaCallWaiting(enabled) {
+    this.mCdmaCallWaiting = enabled;
+  },
+  mCdmaCallWaiting: null,
+
   // Fake dom
   calls: document.createElement('div'),
   screen: document.createElement('div'),

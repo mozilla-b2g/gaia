@@ -83,13 +83,19 @@ suite('call screen', function() {
   });
 
   suite('calls', function() {
-    suite('bigDuration setter', function() {
-      test('should toggle the class', function() {
+    suite('setters', function() {
+      test('bigDuration should toggle the class', function() {
         assert.isFalse(calls.classList.contains('big-duration'));
         CallScreen.bigDuration = true;
         assert.isTrue(calls.classList.contains('big-duration'));
         CallScreen.bigDuration = false;
         assert.isFalse(calls.classList.contains('big-duration'));
+      });
+
+      test('cdmaCallWaiting should update the dataset', function() {
+        assert.isUndefined(calls.dataset.cdmaCallWaiting);
+        CallScreen.cdmaCallWaiting = true;
+        assert.equal(calls.dataset.cdmaCallWaiting, 'true');
       });
     });
 
