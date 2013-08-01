@@ -12,7 +12,8 @@ WHITELIST = \
  pt_br.dict \
  fr.dict \
  es.dict \
- ca.dict
+ ca.dict \
+ nb.dict
 
 %.dict: %_wordlist.xml xml2dict.py
 	python3 xml2dict.py -o $@ $<
