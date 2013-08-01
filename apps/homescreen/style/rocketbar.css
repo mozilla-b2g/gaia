@@ -1,7 +1,7 @@
 #rocketbar-overlay {
   width: 100%;
   height:100%;
-  background-color: #000;
+  background-color: #262422;
   opacity: 0;
   position: absolute;
   z-index: 20000;
@@ -17,35 +17,36 @@
 
 #rocketbar-input {
   border: none;
-  margin: 0;
+  margin: 1rem;
   padding: 1.5rem;
-  width: calc(100% - 3rem);
+  width: calc(100% - 5rem);
 
   color: #fff;
   font-size: 1.6rem;
-  background: rgb(34, 34, 34);
-  border-radius: 0;
+  background: #333;
+  border-radius: 0.5rem;
 }
 
 #rocketbar-search-results {
   overflow: scroll;
   width: 100%;
-  height: calc(100% - 3.6rem);
+  height: calc(100% - 6.8rem);
   list-style-type: none;
   font-size: 1.4rem;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: #262422;
   padding: 0;
   margin: 0;
 }
 
 #rocketbar-search-results li {
-  border-bottom: 0.1rem solid rgb(68, 68, 68);
+  border-bottom: 0.1rem solid #3c3a39;
   margin: 0;
   padding: 1.5rem 1.5rem 1.5rem 5rem;
   background-origin: border-box;
   background-repeat: no-repeat;
   background-position: 1.5rem center;
   background-size: 3rem;
+  font-size: 1.5rem;
 }
 
 #rocketbar-search-results li * {
@@ -70,41 +71,44 @@
 
 #rocketbar-search-results li h3 {
   display: block;
-  height: 1.2rem;
+  height: 1.4rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: normal;
-  margin: 0;
-  padding: 0 0 0 0.5rem;
+  margin: 0 0 0.8rem;
+  padding: 2rem 0 1rem 1rem;
+  background: #343738;
 }
 
 #rocketbar-search-results li small.suggestion {
   display: inline-block;
   border-radius: 0.4rem;
-  padding: 0.3rem 0.5rem;
-  margin: 0.4rem 0.5rem 0.2rem;
-  background: #999;
+  padding: 0.7rem 0.8rem;
+  margin: 0.4rem 0.3rem 0 0;
+  background: #343738;
   color: #fff;
   pointer-events: auto;
 }
 
 #rocketbar-search-results li.visual {
-  padding-left: 0.5rem;
+  padding: 0 0 0.8rem;
+  background: #2b2d2e;
 }
 
 #rocketbar-search-results li.visual small.suggestion {
   width: 6rem;
   height: 6.4rem;
-  margin: 0 0.5rem 0 0;
+  margin: 0 0.2rem 0;
   text-align: center;
   background: none;
+  font-size: 1.3rem;
 }
 
 #rocketbar-search-results li.visual small.suggestion img {
   display: block;
-  margin: 0 auto;
+  margin: 0 auto 0.4rem;
 }
 
 #rocketbar-activation-icon {
