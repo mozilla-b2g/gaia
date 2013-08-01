@@ -62,7 +62,7 @@ nav[data-type="scrollbar"] li .pack-icon-favorites {
   height: 1.2rem;
   font-size: 0;
   vertical-align: middle;
-  background: transparent no-repeat center center / 100% auto;
+  background: transparent no-repeat center center / 1rem 1rem;
 }
 nav[data-type="scrollbar"] li span:not([hidden]) {
   display: inline-block;
