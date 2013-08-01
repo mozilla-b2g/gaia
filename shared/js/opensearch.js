@@ -97,7 +97,7 @@ var process = {
     var results = [];
     var keywords = json[1];
     var urls = json[2] || [];
-    var images = json[3] || [];
+    var images = json[4] || [];
 
     var limit = Math.min(count || keywords.length);
     for (var i = 0; i < limit; i++) {
