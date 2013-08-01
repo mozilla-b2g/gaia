@@ -10,56 +10,30 @@
     onClick: function lah_onClick(event) {
       var dataset = event.target.dataset;
       var action = dataset.action;
-      var options;
+      var type;
 
-      // Return if there is an active MozActivity.
+      if (!action) {
+        return;
+      }
+
+      // To avoid activity pile up, return immediately if the
+      // last activity is still in progress.
       if (inProgress) {
         return;
       }
 
-      if (action) {
-        switch (action) {
-          case 'url-link':
-            options = {
-              name: 'view',
-              data: {
-                type: 'url',
-                url: dataset.url
-              }
-            };
-            inProgress = true;
-            break;
-          case 'email-link':
-            options = {
-              name: 'new',
-              data: {
-                type: 'mail',
-                URI: 'mailto:' + dataset.email
-              }
-            };
-            inProgress = true;
-            break;
-          case 'phone-link':
-            options = {
-              name: 'dial',
-              data: {
-                type: 'webtelephony/number',
-                number: dataset.phonenumber
-              }
-            };
-            inProgress = true;
-            break;
-        }
-        if (options && MozActivity) {
-          try {
-            var activity = new MozActivity(options);
-            activity.onsuccess = activity.onerror = this.reset;
-          }
-          catch (e) {
-            console.log('WebActivities unavailable? : ' + e);
-          }
-        }
-      }
+      inProgress = true;
+
+      type = action.replace('-link', '');
+
+      // Use `LinkActionHandler.reset` (this.reset) as BOTH the
+      // success and error callback. This ensure that any
+      // activities will be freed regardless of their
+      // resulting state.
+
+      ActivityPicker[type](
+        dataset[type], this.reset, this.reset
+      );
     },
 
     onContextMenu: function lah_onContextMenu(event) {
@@ -70,27 +44,36 @@
       var action = dataset.action;
       var number;
 
-      if (action) {
-        if (action === 'phone-link') {
-          number = dataset.phonenumber;
+      if (!action) {
+        return;
+      }
 
-          Contacts.findByPhoneNumber(number, function(contacts) {
-            var isContact = contacts && contacts.length > 0;
-            var details = Utils.getContactDetails(number, contacts);
+      if (action === 'email-link') {
+        ThreadUI.activateContact({
+          email: dataset.email,
+          inMessage: true
+        });
+      }
 
-            ThreadUI.activateContact({
-              name: details.title || details.name,
-              number: number,
-              isContact: isContact,
-              inMessage: true
-            });
+      if (action === 'dial-link') {
+        number = dataset.dial;
+
+        Contacts.findByPhoneNumber(number, function(contacts) {
+          var isContact = contacts && contacts.length > 0;
+          var details = Utils.getContactDetails(number, contacts);
+
+          ThreadUI.activateContact({
+            name: details.title || details.name,
+            number: number,
+            isContact: isContact,
+            inMessage: true
           });
+        });
+      }
 
-          return;
-        }
-
-        // Delegate to the common case (click) handler for
-        // 'url-link' and 'email-link' actions
+      if (action === 'url-link') {
+        // 'url-link' currently doesn't offer any special context
+        // menu options. Delegate directly to the click event handler.
         this.onClick(event);
       }
     },
