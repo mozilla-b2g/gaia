@@ -19,7 +19,11 @@ fb.resolver = function(item, loader) {
         var fbData = fbReq.result;
         if (fbData) {
           var id = item.dataset.uuid;
-          if (contacts.List.updatePhoto(fbData, id)) {
+
+          if (contacts.List.hasPhoto(id)) {
+            loader.defaultLoad(item);
+          }
+          else if (contacts.List.updatePhoto(fbData, id)) {
             contacts.List.renderPhoto(item, id);
             item.dataset.status = 'loaded';
             document.dispatchEvent(new CustomEvent('onupdate'));
