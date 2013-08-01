@@ -10,7 +10,7 @@ html, body {
 }
 
 body {
-  background: url("images/app-texture.png") repeat scroll 0 0 #272D32;
+  background: url("images/app-texture.png") repeat scroll 0 0 / 3.2rem #272D32;
 }
 
 a {
