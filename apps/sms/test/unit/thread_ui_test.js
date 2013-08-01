@@ -1474,8 +1474,8 @@ suite('thread_ui.js >', function() {
       this.sinon.spy(LinkActionHandler, 'onContextMenu');
 
       this.sinon.stub(LinkHelper, 'searchAndLinkClickableData', function() {
-        return '<a data-phonenumber="' + phone +
-        '" data-action="phone-link">' + phone + '</a>';
+        return '<a data-dial="' + phone +
+        '" data-action="dial-link">' + phone + '</a>';
       });
 
       ThreadUI.appendMessage({
@@ -1947,15 +1947,16 @@ suite('thread_ui.js >', function() {
 
   suite('Header Actions/Display', function() {
     setup(function() {
+      Threads.delete(1);
       window.location.hash = '';
-      MockActivityPicker.call.mSetup();
+      MockActivityPicker.dial.mSetup();
       MockOptionMenu.mSetup();
     });
 
     teardown(function() {
       Threads.delete(1);
       window.location.hash = '';
-      MockActivityPicker.call.mTeardown();
+      MockActivityPicker.dial.mTeardown();
       MockOptionMenu.mTeardown();
     });
 
@@ -1976,8 +1977,8 @@ suite('thread_ui.js >', function() {
           });
 
           assert.equal(MockOptionMenu.calls.length, 0);
-          assert.ok(MockActivityPicker.call.called);
-          assert.equal(MockActivityPicker.call.calledWith, '999');
+          assert.ok(MockActivityPicker.dial.called);
+          assert.equal(MockActivityPicker.dial.calledWith, '999');
         });
 
         test('Single unknown', function() {
@@ -2094,7 +2095,7 @@ suite('thread_ui.js >', function() {
           assert.equal(MockOptionMenu.calls.length, 0);
 
           // Does initiate a "call" activity
-          assert.equal(MockActivityPicker.call.called, 1);
+          assert.equal(MockActivityPicker.dial.called, 1);
         });
 
         test('Single unknown', function() {
@@ -2184,14 +2185,14 @@ suite('thread_ui.js >', function() {
     suite('Multi participant', function() {
       setup(function() {
         window.location.hash = '';
-        MockActivityPicker.call.mSetup();
+        MockActivityPicker.dial.mSetup();
         MockOptionMenu.mSetup();
       });
 
       teardown(function() {
         Threads.delete(1);
         window.location.hash = '';
-        MockActivityPicker.call.mTeardown();
+        MockActivityPicker.dial.mTeardown();
         MockOptionMenu.mTeardown();
       });
 
@@ -2210,8 +2211,8 @@ suite('thread_ui.js >', function() {
 
           ThreadUI.onHeaderActivation();
 
-          assert.equal(MockActivityPicker.call.called, false);
-          assert.equal(MockActivityPicker.call.calledWith, null);
+          assert.equal(MockActivityPicker.dial.called, false);
+          assert.equal(MockActivityPicker.dial.calledWith, null);
         });
 
         test('DOES NOT Invoke Options', function() {

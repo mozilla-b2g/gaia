@@ -4,6 +4,7 @@ requireApp('sms/js/link_action_handler.js');
 requireApp('sms/js/utils.js');
 
 requireApp('sms/test/unit/mock_action_menu.js');
+requireApp('sms/test/unit/mock_activity_picker.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
@@ -11,6 +12,7 @@ requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_utils.js');
 
 var mocksHelperLAH = new MocksHelper([
+  'ActivityPicker',
   'Contacts',
   'MozActivity',
   'OptionMenu',
@@ -30,8 +32,8 @@ suite('LinkActionHandler', function() {
       phone: {
         target: {
           dataset: {
-            action: 'phone-link',
-            phonenumber: '999'
+            action: 'dial-link',
+            dial: '999'
           }
         }
       },
@@ -47,7 +49,7 @@ suite('LinkActionHandler', function() {
         target: {
           dataset: {
             action: 'url-link',
-            url: 'http://google.com'
+            url: 'http://mozilla.com'
           }
         }
       }
@@ -87,38 +89,22 @@ suite('LinkActionHandler', function() {
     test('url-link ', function() {
       LinkActionHandler.onClick(events.url);
 
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'view',
-        data: {
-          type: 'url',
-          url: 'http://google.com'
-        }
-      });
+      assert.ok(ActivityPicker.url.called);
+      assert.equal(ActivityPicker.url.calledWith[0], 'http://mozilla.com');
     });
 
     test('email-link ', function() {
       LinkActionHandler.onClick(events.email);
 
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'new',
-        data: {
-          type: 'mail',
-          URI: 'mailto:a@b.com'
-        }
-      });
+      assert.ok(ActivityPicker.email.called);
+      assert.equal(ActivityPicker.email.calledWith[0], 'a@b.com');
     });
 
-    test('phone-link ', function() {
+    test('dial-link ', function() {
       LinkActionHandler.onClick(events.phone);
 
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'dial',
-        data: {
-          type: 'webtelephony/number',
-          number: '999'
-        }
-      });
+      assert.ok(ActivityPicker.dial.called);
+      assert.equal(ActivityPicker.dial.calledWith[0], '999');
     });
   });
 
@@ -132,7 +118,7 @@ suite('LinkActionHandler', function() {
       mocksHelperLAH.teardown();
     });
 
-    test('phone-link: (known) delegates to activateContact ', function() {
+    test('dial-link: (known) delegates to activateContact ', function() {
       this.sinon.stub(ThreadUI, 'activateContact');
       this.sinon.stub(Contacts, 'findByPhoneNumber')
         .callsArgWith(1, [{
@@ -155,7 +141,7 @@ suite('LinkActionHandler', function() {
       assert.ok(events.phone.stopPropagation.called);
     });
 
-    test('phone-link: (unknown) delegates to activateContact ', function() {
+    test('dial-link: (unknown) delegates to activateContact ', function() {
       this.sinon.stub(ThreadUI, 'activateContact');
       this.sinon.stub(Contacts, 'findByPhoneNumber')
         .callsArgWith(1, []);
@@ -173,24 +159,16 @@ suite('LinkActionHandler', function() {
       assert.ok(events.phone.stopPropagation.called);
     });
 
-    test('email-link: delegates to onClick ', function() {
-      this.sinon.stub(LinkActionHandler, 'onClick');
+    test('email-link: delegates to activateContact ', function() {
+      this.sinon.stub(ThreadUI, 'activateContact');
 
       LinkActionHandler.onContextMenu(events.email);
 
-      assert.deepEqual(LinkActionHandler.onClick.args[0][0].target, {
-        dataset: {
-          action: 'email-link',
-          email: 'a@b.com'
-        }
+      assert.ok(ThreadUI.activateContact.called);
+      assert.deepEqual(ThreadUI.activateContact.args[0][0], {
+        email: 'a@b.com',
+        inMessage: true
       });
-
-      // Ensures that the _ACTUAL_ event object (whatever that may be)
-      // is the object that is sent to LinkActionHandler.onClick
-      assert.equal(LinkActionHandler.onClick.args[0][0], events.email);
-
-      assert.ok(events.email.preventDefault.called);
-      assert.ok(events.email.stopPropagation.called);
     });
 
     test('url-link: delegates to onClick ', function() {
@@ -201,7 +179,7 @@ suite('LinkActionHandler', function() {
       assert.deepEqual(LinkActionHandler.onClick.args[0][0].target, {
         dataset: {
           action: 'url-link',
-          url: 'http://google.com'
+          url: 'http://mozilla.com'
         }
       });
 
