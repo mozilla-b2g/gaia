@@ -267,7 +267,9 @@ var SimPinDialog = {
     this.xckInput.value = '';
     this.xckInput.blur();
     this.newPinInput.value = '';
+    this.newPinInput.blur();
     this.confirmPinInput.value = '';
+    this.confirmPinInput.blur();
   },
 
   onclose: null,
