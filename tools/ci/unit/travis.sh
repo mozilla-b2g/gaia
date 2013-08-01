@@ -62,6 +62,16 @@ make lint
 LINT_RESULT_STATUS=$?
 echo
 
+section_echo 'Integration Tests (make test-integration)'
+# download b2g-desktop (here to avoid spam).
+make b2g &> /dev/null
+# build profile folder ahead of time (also here to avoid spam).
+PROFILE_FOLDER=profile-test make &> /dev/null
+# make test-integration will also download b2g but its alot of spam
+make test-integration
+INTEGRATION_TEST_RESULT_STATUS=$?
+echo
+
 section_echo 'make test-agent-test'
 make test-agent-test REPORTER=Min
 TEST_RESULT_STATUS=$?
@@ -70,4 +80,4 @@ echo
 [ $LINT_RESULT_STATUS -ne 0 ] &&\
 echo ${RED_COLOR}Lint error. Scroll up to see the output.${NORMAL_COLOR}
 
-exit `expr $LINT_RESULT_STATUS + $TEST_RESULT_STATUS`;
+exit `expr $LINT_RESULT_STATUS + $TEST_RESULT_STATUS + $INTEGRATION_TEST_RESULT_STATUS`;
