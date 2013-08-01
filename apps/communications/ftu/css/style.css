@@ -894,15 +894,6 @@ aside.connecting {
   font-weight: 500;
 }
 
-/* external url loader */
-iframe.external {
-  width: 100%;
-  height: 100%;
-  /* using position absolute makes the container not overflowing */
-  position: absolute;
-  border: none;
-}
-
 /* your privacy */
 /* see Bug 819886 */
 i.hack-first-child {

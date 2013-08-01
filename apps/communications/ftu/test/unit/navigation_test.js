@@ -10,17 +10,13 @@ requireApp('communications/ftu/test/unit/mock_wifi_manager.js');
 requireApp('communications/ftu/test/unit/mock_utils.js');
 requireApp('communications/ftu/js/navigation.js');
 
-// When adding an iframe there's always a leak, so for this test we
-// disable the leak detection
-mocha.setup({globals: ['ignore_leaks']});
-
-// window[0] is created when we create the external url loader frame
-mocha.globals(['0']);
+mocha.globals(['open']);
 
 var _;
 var mocksHelperForNavigation = new MocksHelper([
   'UIManager',
-  'SimManager'
+  'SimManager',
+  'DataMobile'
 ]);
 mocksHelperForNavigation.init();
 
@@ -30,16 +26,15 @@ suite('navigation >', function() {
   var container, progressBar;
   var realOnLine,
       realL10n,
-      realMozMobileConnection,
-      realDataMobile;
+      realMozMobileConnection;
 
   function navigatorOnLine() {
     return isOnLine;
-  };
+  }
 
   function setNavigatorOnLine(value) {
     isOnLine = value;
-  };
+  }
 
   function createDOM() {
     var markup =
@@ -68,18 +63,18 @@ suite('navigation >', function() {
     '     Join' +
     '   </button>' +
     ' </menu>' +
+    ' <a href="https://www.mozilla.org/privacy/firefox-os/"' +
+    '    class="external" title="URL title">url text</a>' +
     '</section>' +
     '<section id="finish-screen" role="region">' +
     '</section>' +
     '<section id="tutorial-screen" role="region">' +
-    '</section>' +
-    '<section role="region" id="external-url-loader" class="external">' +
     '</section>';
 
     container = document.createElement('div');
     container.insertAdjacentHTML('beforeend', markup);
     document.body.appendChild(container);
-  };
+  }
 
   setup(function() {
     createDOM();
@@ -96,9 +91,6 @@ suite('navigation >', function() {
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-
-    realDataMobile = navigator.DataMobile;
-    navigator.DataMobile = MockDataMobile;
 
     mocksHelper.setup();
     Navigation.init();
@@ -117,7 +109,6 @@ suite('navigation >', function() {
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);
     }
-    navigator.DataMobile = realDataMobile;
   });
 
   suiteSetup(function() {
@@ -158,40 +149,35 @@ suite('navigation >', function() {
   });
 
   suite('external-url-loader >', function() {
-    setup(function(done) {
-      progressBar = container.querySelector('#progress-bar');
-      document.location.hash = Navigation.externalUrlLoaderSelector;
-      setTimeout(done.bind(null, undefined), 100);
-    });
+    var link;
 
-    test('progress bar is hidden', function() {
-      assert.equal(progressBar.className, 'hidden');
-    });
+    setup(function() {
+      this.sinon.stub(window, 'open');
+      this.sinon.spy(UIManager, 'displayOfflineDialog');
 
-    test('handles external links', function() {
       Navigation.currentStep = 2;
       window.location.hash = steps[Navigation.currentStep].hash;
-      var href = 'https://www.mozilla.org/privacy/firefox-os/';
-      var title = 'URL Title';
-      var link = document.createElement('a');
-      link.href = href;
-      link.title = title;
-      link.classList.add('external');
-      link.textContent = 'link text';
-      var mock_event = {
-        target: link,
-        preventDefault: function() {}
-      };
-      navigator.onLine = true;
-      Navigation.handleExternalLinksClick(mock_event);
-      assert.include(Navigation.externalIframe.src, href);
-      assert.equal(window.location.hash, '#external-url-loader');
 
-      // Test failing due to history.back()
-      // Navigation.back();
-      // assert.equal(Navigation.currentStep, 2);
-      // assert.equal(Navigation.externalIframe.src, 'about:blank');
-      // assert.equal(window.location.hash, steps[Navigation.currentStep].hash);
+      link = document.querySelector('a.external');
+    });
+
+    test('handles external links when online', function() {
+      navigator.onLine = true;
+      link.click();
+
+      assert.ok(window.open.calledWith(link.href));
+    });
+
+    test('shows an error when offline', function() {
+      navigator.onLine = false;
+      link.click();
+
+      assert.isFalse(window.open.called);
+
+      var title = link.title,
+          href = link.href;
+
+      assert.ok(UIManager.displayOfflineDialog.calledWith(href, title));
     });
   });
 });
