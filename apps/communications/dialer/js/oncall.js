@@ -206,11 +206,11 @@ var OnCallHandler = (function onCallHandler() {
     }
   });
 
-  var phoneSoundURL = new SettingsURL();
-
+  var selectedPhoneSound = '';
   SettingsListener.observe('dialer.ringtone', '', function(value) {
+    selectedPhoneSound = value;
     ringtonePlayer.pause();
-    ringtonePlayer.src = phoneSoundURL.set(value);
+    ringtonePlayer.src = value;
 
     if (ringing && activePhoneSound) {
       ringtonePlayer.play();
@@ -225,7 +225,7 @@ var OnCallHandler = (function onCallHandler() {
 
   var ringtonePlayer = new Audio();
   ringtonePlayer.mozAudioChannelType = 'ringer';
-  ringtonePlayer.src = phoneSoundURL.get();
+  ringtonePlayer.src = selectedPhoneSound;
   ringtonePlayer.loop = true;
 
   var activateVibration = null;
