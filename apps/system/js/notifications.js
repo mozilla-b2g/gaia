@@ -342,7 +342,18 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
 
-    this.removeNotification(notificationNode.dataset.notificationID);
+    if (notificationNode.dataset.notificationID === 'undefined')
+      this.removeNotificationByNode(notificationNode);
+    else
+      this.removeNotification(notificationNode.dataset.notificationID);
+  },
+
+  removeNotificationByNode: function ns_removeNotificationByNode(
+      notificationNode) {
+    if (notificationNode) {
+      notificationNode.parentNode.removeChild(notificationNode);
+      this.updateStatusBarIcon();
+    }
   },
 
   removeNotification: function ns_removeNotification(notificationID) {
