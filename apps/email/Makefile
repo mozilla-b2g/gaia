@@ -21,6 +21,7 @@ JS_SOURCES := $(call rwildcard,js/,*)
 LOCALES_SOURCES := $(call rwildcard,locales/,*)
 SOUNDS_SOURCES := $(call rwildcard,sounds/,*)
 STYLE_SOURCES := $(call rwildcard,style/,*)
+BUILD_SOURCES := $(call rwildcard,build/,*)
 
 BUILD_DIR=../../build_stage/email
 
@@ -30,7 +31,7 @@ all: $(BUILD_DIR)/js/mail_app.js
 clean:
 	rm -rf $(BUILD_DIR)
 
-$(BUILD_DIR)/js/mail_app.js: manifest.webapp index.html $(AUTOCONFIG_SOURCES) $(JS_SOURCES) $(LOCALES_SOURCES) $(SOUNDS_SOURCES) $(STYLE_SOURCES) $(SHARED_SOURCES)
+$(BUILD_DIR)/js/mail_app.js: manifest.webapp index.html $(AUTOCONFIG_SOURCES) $(JS_SOURCES) $(LOCALES_SOURCES) $(SOUNDS_SOURCES) $(STYLE_SOURCES) $(SHARED_SOURCES) $(BUILD_SOURCES)
 	@rm -rf $(BUILD_DIR)
 	@mkdir -p $(BUILD_DIR)
 	cp -rp ../../shared $(BUILD_DIR)/shared
@@ -39,7 +40,6 @@ $(BUILD_DIR)/js/mail_app.js: manifest.webapp index.html $(AUTOCONFIG_SOURCES) $(
 	@rm $(BUILD_DIR)/gaia_build.json
 	@rm $(BUILD_DIR)/build.txt
 	@rm $(BUILD_DIR)/js/tmpl_builder.js
-	@rm $(BUILD_DIR)/js/text_builder.js
 	@rm -rf $(BUILD_DIR)/Makefile
 	@rm $(BUILD_DIR)/README.md
 	@rm -rf $(BUILD_DIR)/test

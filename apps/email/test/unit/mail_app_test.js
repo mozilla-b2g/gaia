@@ -1,22 +1,30 @@
+/*global requireApp, suite, suiteSetup, testConfig, test,
+  assert, suiteTeardown */
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
+
 
 suite('email/mail_app', function() {
   var queryURI;
 
-  setup(function(done) {
-    requirejs(['query_uri'], function(quri) {
-      queryURI = quri;
-      done();
-    }, function(err) {
-      done(err);
-    });
+  suiteSetup(function(done) {
+    testConfig(
+      {
+        suiteTeardown: suiteTeardown,
+        done: done
+      },
+      ['query_uri'],
+      function(quri) {
+        queryURI = quri;
+      }
+    );
   });
 
   test('#to', function() {
 
     assert.deepEqual(queryURI('mailto:Email.address1@mailto.com'),
-    [['Email.address1@mailto.com'], undefined, undefined, undefined, undefined],
+    [['Email.address1@mailto.com'],
+    undefined, undefined, undefined, undefined],
     'to single address test fail');
 
     assert.deepEqual(queryURI(
@@ -35,9 +43,7 @@ suite('email/mail_app', function() {
     [[], undefined, undefined, undefined, undefined],
     'no to address test fail');
 
-
   });
-
 
   test('#cc', function() {
 
@@ -56,7 +62,7 @@ suite('email/mail_app', function() {
   });
 
 
- test('#bcc', function() {
+  test('#bcc', function() {
 
     assert.deepEqual(queryURI('mailto:?bcc=EmailBcc.address@mailto.com'),
     [[], undefined, undefined, undefined, ['EmailBcc.address@mailto.com']],
@@ -68,31 +74,28 @@ suite('email/mail_app', function() {
     'EmailBcc.address2@mailto.com',
     'EmailBcc.address3@mailto.com']], 'bcc multi-addresses test fail');
 
-
   });
 
 
- test('#subject', function() {
+  test('#subject', function() {
 
     assert.deepEqual(queryURI('mailto:?subject=This is the subject line'),
     [[], 'This is the subject line', undefined, undefined, undefined],
     'subject test fail');
 
-
   });
 
 
- test('#body', function() {
+  test('#body', function() {
 
     assert.deepEqual(queryURI('mailto:?body=This is the body'),
     [[], undefined, 'This is the body', undefined, undefined],
     'body test fail');
 
-
   });
 
 
- test('#complex tests', function() {
+  test('#complex tests', function() {
 
     assert.deepEqual(queryURI(
     'mailto:Email.address1@mailto.com;Email.address2@mailto.com?' +
@@ -114,8 +117,7 @@ suite('email/mail_app', function() {
     ['EmailBCc1.address@mailto.com']],
     'complex 2 test fail');
 
-
-
   });
 });
+
 

@@ -3,7 +3,7 @@ define(function(require) {
 
 var templateNode = require('tmpl!./setup_done.html'),
     common = require('mail_common'),
-    App = require('mail_app'),
+    model = require('model'),
     Cards = common.Cards;
 
 
@@ -31,7 +31,7 @@ SetupDoneCard.prototype = {
     // Nuke this card
     Cards.removeAllCards();
     // Trigger the startup logic again; this should show the inbox this time.
-    App.showMessageViewOrSetup(true);
+    model.init(true);
   },
 
   die: function() {

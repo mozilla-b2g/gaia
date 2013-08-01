@@ -11,7 +11,8 @@ var MimeMapper,
     msgAttachmentDisabledConfirmNode =
                          require('tmpl!./msg/attachment_disabled_confirm.html'),
     common = require('mail_common'),
-    MailAPI = require('api'),
+    model = require('model'),
+    evt = require('evt'),
     iframeShims = require('iframe_shims'),
     Marquee = require('marquee'),
     mozL10n = require('l10n!'),
@@ -47,53 +48,58 @@ var CONTENT_QUOTE_CLASS_NAMES = [
 var MAX_QUOTE_CLASS_NAME = 'msg-body-qmax';
 
 function MessageReaderCard(domNode, mode, args) {
+  // Set up instance-specific storage for events
+  evt.Emitter.call(this);
+
   this.domNode = domNode;
-  this.header = args.header.makeCopy();
-  this.hackMutationHeader = args.header;
+  this.messageSuid = args.messageSuid;
+
+  if (args.header) {
+    this._setHeader(args.header);
+  } else {
+    // TODO: This assumes latest folder is the one of interest.
+    // Later, for direct linking from a notification, this may
+    // not be true. But this is good for now, and probably
+    // need MailAPI changes to just fetch a single message.
+    model.latestOnce('folder', function(folder) {
+      var messagesSlice = model.api.viewFolderMessages(folder);
+      messagesSlice.onsplice = (function(index, howMany, addedItems,
+                                         requested, moreExpected) {
+
+        if (!this.header && addedItems && addedItems.length) {
+          addedItems.some(function(item) {
+              if (item.id === this.messageSuid) {
+                this._setHeader(item);
+                messagesSlice.die();
+                messagesSlice = null;
+                return true;
+              }
+          }.bind(this));
+        }
+
+      }).bind(this);
+    }.bind(this));
+  }
+
   // The body elements for the (potentially multiple) iframes we created to hold
   // HTML email content.
   this.htmlBodyNodes = [];
 
-  domNode.getElementsByClassName('msg-back-btn')[0]
-    .addEventListener('click', this.onBack.bind(this, false));
-  domNode.getElementsByClassName('msg-reply-btn')[0]
-    .addEventListener('click', this.onReply.bind(this, false));
-  domNode.getElementsByClassName('msg-reply-all-btn')[0]
-    .addEventListener('click', this.onReplyAll.bind(this, false));
-
-  domNode.getElementsByClassName('msg-delete-btn')[0]
-    .addEventListener('click', this.onDelete.bind(this), false);
-  domNode.getElementsByClassName('msg-star-btn')[0]
-    .addEventListener('click', this.onToggleStar.bind(this), false);
-  domNode.getElementsByClassName('msg-move-btn')[0]
-    .addEventListener('click', this.onMove.bind(this), false);
-  domNode.getElementsByClassName('msg-forward-btn')[0]
-    .addEventListener('click', this.onForward.bind(this), false);
+  this._on('msg-back-btn', 'click', 'onBack', true);
+  this._on('msg-reply-btn', 'click', 'onReply');
+  this._on('msg-reply-all-btn', 'click', 'onReplyAll');
+  this._on('msg-delete-btn', 'click', 'onDelete');
+  this._on('msg-star-btn', 'click', 'onToggleStar');
+  this._on('msg-move-btn', 'click', 'onMove');
+  this._on('msg-forward-btn', 'click', 'onForward');
+  this._on('msg-envelope-bar', 'click', 'onEnvelopeClick');
+  this._on('msg-reader-load-infobar', 'click', 'onLoadBarClick');
 
   this.scrollContainer =
     domNode.getElementsByClassName('scrollregion-below-header')[0];
 
-  this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
-  this.envelopeNode
-    .addEventListener('click', this.onEnvelopeClick.bind(this), false);
-
-  this.envelopeDetailsNode =
-    domNode.getElementsByClassName('msg-envelope-details')[0];
-
-  domNode.getElementsByClassName('msg-reader-load-infobar')[0]
-    .addEventListener('click', this.onLoadBarClick.bind(this), false);
-
-  // - mark message read (if it is not already)
-  if (!this.header.isRead)
-    this.header.setRead(true);
-
-  if (this.hackMutationHeader.isStarred)
-    domNode.getElementsByClassName('msg-star-btn')[0].classList
-           .add('msg-btn-active');
-
   // event handler for body change events...
   this.handleBodyChange = this.handleBodyChange.bind(this);
-
 }
 MessageReaderCard.prototype = {
   _contextMenuType: {
@@ -104,26 +110,53 @@ MessageReaderCard.prototype = {
     NEW_MESSAGE: 16
   },
 
+  // Method to help bind event listeners to method names, and ensures
+  // a header object before activating the method, to protect the buttons
+  // from being activated while the model is still loading.
+  _on: function(className, eventName, method, skipProtection) {
+    this.domNode.getElementsByClassName(className)[0]
+    .addEventListener(eventName, function(evt) {
+      if (this.header || skipProtection)
+        return this[method](evt);
+    }.bind(this), false);
+  },
+
+  _setHeader: function(header) {
+    this.header = header.makeCopy();
+    this.hackMutationHeader = header;
+
+    // - mark message read (if it is not already)
+    if (!this.header.isRead)
+      this.header.setRead(true);
+
+    if (this.hackMutationHeader.isStarred)
+      this.domNode.getElementsByClassName('msg-star-btn')[0].classList
+             .add('msg-btn-active');
+
+    this.emit('header');
+  },
+
   postInsert: function() {
-    // iframes need to be linked into the DOM tree before their contentDocument
-    // can be instantiated.
-    this.buildHeaderDom(this.domNode);
+    this.latestOnce('header', function() {
+      // iframes need to be linked into the DOM tree before their
+      // contentDocument can be instantiated.
+      this.buildHeaderDom(this.domNode);
 
-    var self = this;
-    this.header.getBody({ downloadBodyReps: true }, function(body) {
-      self.body = body;
+      this.header.getBody({ downloadBodyReps: true }, function(body) {
+        this.body = body;
 
-      // always attach the change listener.
-      body.onchange = self.handleBodyChange;
+        // always attach the change listener.
+        body.onchange = this.handleBodyChange;
 
-      // if the body reps are downloaded show the message immediately.
-      if (body.bodyRepsDownloaded) {
-        self.buildBodyDom();
-      }
+        // if the body reps are downloaded show the message immediately.
+        if (body.bodyRepsDownloaded) {
+          this.buildBodyDom();
+        }
 
-      // XXX trigger spinner
-      //
-    });
+        // XXX trigger spinner
+        //
+      }.bind(this));
+    }.bind(this));
   },
 
   handleBodyChange: function(evt) {
@@ -261,16 +294,17 @@ MessageReaderCard.prototype = {
         // All of these mutations are immediately reflected, easily observed
         // and easily undone, so we don't show them as toaster actions.
         case 'msg-contact-menu-new':
-          var composer =
-            MailAPI.beginMessageComposition(this.header, null, null,
-            function composerReady() {
-              composer.to = [{
-                address: peep.address,
-                name: peep.name
-              }];
-              Cards.pushCard('compose', 'default', 'animate',
-                             { composer: composer });
-            });
+          Cards.pushCard('compose', 'default', 'animate', {
+            composerData: {
+              message: this.header,
+              onComposer: function(composer) {
+                composer.to = [{
+                  address: peep.address,
+                  name: peep.name
+                }];
+              }
+            }
+          });
           break;
         case 'msg-contact-menu-view':
           var activity = new MozActivity({
@@ -289,7 +323,7 @@ MessageReaderCard.prototype = {
           };
 
           if (peep.name)
-            params['givenName'] = peep.name;
+            params.givenName = peep.name;
 
           var activity = new MozActivity({
             name: 'new',
@@ -515,7 +549,7 @@ MessageReaderCard.prototype = {
       if (cname)
         node.setAttribute('class', cname);
 
-      var subnodes = MailAPI.utils.linkifyPlain(rep[i + 1], document);
+      var subnodes = model.api.utils.linkifyPlain(rep[i + 1], document);
       for (var iNode = 0; iNode < subnodes.length; iNode++) {
         node.appendChild(subnodes[iNode]);
       }
@@ -615,7 +649,7 @@ MessageReaderCard.prototype = {
         var iframe = iframeShim.iframe;
         var bodyNode = iframe.contentDocument.body;
         this.iframeResizeHandler = iframeShim.resizeHandler;
-        MailAPI.utils.linkifyHTML(iframe.contentDocument);
+        model.api.utils.linkifyHTML(iframe.contentDocument);
         this.htmlBodyNodes.push(bodyNode);
 
         if (body.checkForExternalImages(bodyNode))
@@ -721,6 +755,9 @@ MessageReaderCard.prototype = {
     this.domNode = null;
   }
 };
+
+evt.mix(MessageReaderCard.prototype);
+
 Cards.defineCardWithDefaultMode(
     'message_reader',
     { tray: false },

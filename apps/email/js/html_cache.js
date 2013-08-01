@@ -3,7 +3,9 @@
 define(function(require, exports) {
 
 /**
- * Version number for cache, allows expiring
+ * Version number for cache, allows expiring cache.
+ * Set by build process, value must match the value
+ * in html_cache_restore.js.
  */
 var CACHE_VERSION = '1';
 
@@ -71,15 +73,6 @@ exports.saveFromNode = function saveFromNode(node) {
   cl.remove('before');
   cl.remove('after');
   cl.add('center');
-
-  // Make sure input nodes are disabled since this is just
-  // a pretty picture, a visual cache, not usable.
-  var nodes = node.querySelectorAll('input');
-  if (nodes) {
-    Array.forEach(nodes, function(node) {
-      node.disabled = true;
-    });
-  }
 
   var html = node.outerHTML;
   exports.save(html);
