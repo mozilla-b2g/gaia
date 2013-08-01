@@ -179,9 +179,10 @@ var KeypadManager = {
                  '/dialer/js/suggestion_bar.js']);
   },
 
-  moveCaretToEnd: function hk_util_moveCaretToEnd(el) {
+  moveCaret: function hk_util_moveCaret(el, pos) {
     if (typeof el.selectionStart == 'number') {
-      el.selectionStart = el.selectionEnd = el.value.length;
+      el.selectionStart = el.selectionEnd =
+        (pos === undefined) ? el.value.length : pos;
     } else if (typeof el.createTextRange != 'undefined') {
       el.focus();
       var range = el.createTextRange();
@@ -371,9 +372,14 @@ var KeypadManager = {
             self._callVoicemail();
           }, 1500, this);
         }
+        var startpos = this.phoneNumberView.selectionStart;
+        var endPos = this.phoneNumberView.selectionEnd;
+        var caretPos;
 
         if (key == 'delete') {
-          this._phoneNumber = this._phoneNumber.slice(0, -1);
+          this._phoneNumber = this._phoneNumber.substring(0, startpos - 1) +
+            this._phoneNumber.substring(endPos);
+          caretPos = endPos - 1;
         } else if (this.phoneNumberViewContainer.classList.
             contains('keypad-visible')) {
           if (!this._isKeypadClicked) {
@@ -384,9 +390,11 @@ var KeypadManager = {
             this._phoneNumber += key;
           }
         } else {
-          this._phoneNumber += key;
+          this._phoneNumber = this._phoneNumber.substring(0, startpos) +
+            key + this._phoneNumber.substring(endPos);
+          caretPos = endPos + 1;
         }
-        this._updatePhoneNumberView('begin', false);
+        this._updatePhoneNumberView('begin', false, caretPos);
         break;
       case 'touchmove':
         var target = document.elementFromPoint(
@@ -473,7 +481,7 @@ var KeypadManager = {
   },
 
   _updatePhoneNumberView: function kh_updatePhoneNumberview(ellipsisSide,
-    maxFontSize) {
+    maxFontSize, caretPos) {
     var phoneNumber = this._phoneNumber;
 
     // If there are digits in the phone number, show the delete button
@@ -491,8 +499,7 @@ var KeypadManager = {
       this.deleteButton.style.visibility = visibility;
 
       this.phoneNumberView.value = phoneNumber;
-      this.moveCaretToEnd(this.phoneNumberView);
-
+      this.moveCaret(this.phoneNumberView, caretPos);
       this.formatPhoneNumber(ellipsisSide, maxFontSize);
     }
 
