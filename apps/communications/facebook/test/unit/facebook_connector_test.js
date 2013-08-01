@@ -6,8 +6,10 @@ requireApp('communications/facebook/js/facebook_connector.js');
 requireApp('communications/facebook/test/unit/mock_fb_graph_data.js');
 requireApp('communications/facebook/test/unit/mock_fb_query.js');
 requireApp('communications/contacts/js/import_utils.js');
+requireApp('communications/contacts/test/unit/mock_oauthflow.js');
 
 var realFbUtils,
+    realOauthflow,
     subject;
 
 if (!this.FacebookConnector) {
@@ -18,11 +20,19 @@ if (!this.fb) {
   this.fb = null;
 }
 
+if (!this.oauthflow) {
+  this.oauthflow = null;
+}
+
 suite('Facebook Connector Tests', function() {
   suiteSetup(function() {
     realFbUtils = window.fb.utils;
     window.fb.utils = MockFbQuery;
+
     subject = window.FacebookConnector;
+
+    realOauthflow = window.oauthflow;
+    window.oauthflow = MockOauthflow;
   });
 
 
@@ -80,5 +90,6 @@ suite('Facebook Connector Tests', function() {
 
   suiteTeardown(function() {
     window.fb.utils = realFbUtils;
+    window.oauthflow = realOauthflow;
   });
 });

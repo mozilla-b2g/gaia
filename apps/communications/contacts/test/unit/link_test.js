@@ -9,11 +9,13 @@ requireApp('communications/contacts/js/utilities/binary_search.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_linked_contacts.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_oauthflow.js');
 requireApp('communications/contacts/js/fb/fb_link.js');
 
 var realImageLoader,
     realAsyncStorage,
     realFb,
+    realOauthflow,
     linkProposal,
     linkProposalChild;
 
@@ -30,6 +32,9 @@ if (!this.fb) {
   this.fb = null;
 }
 
+if (!this.oauthflow) {
+  this.oauthflow = null;
+}
 
 suite('Link Friends Test Suite', function() {
 
@@ -43,6 +48,9 @@ suite('Link Friends Test Suite', function() {
     realFb = window.fb;
     window.fb = Mockfb;
     window.fb.link = realFb.link;
+
+    realOauthflow = window.oauthflow;
+    window.oauthflow = MockOauthflow;
 
     document.body.innerHTML = MockLinkHtml;
 
@@ -192,6 +200,7 @@ suite('Link Friends Test Suite', function() {
     window.asyncStorage = realAsyncStorage;
     window.navigator.mozL10n = realL10n;
     window.fb = realFb;
+    window.oauthflow = realOauthflow;
   });
 
 });
