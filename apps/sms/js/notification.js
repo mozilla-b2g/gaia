@@ -3,8 +3,6 @@
 
   var settings = {};
   var mozSettings = navigator.mozSettings;
-  var ringtoneURL = new SettingsURL();
-
   [
     'audio.volume.notification',
     'notification.ringtone',
@@ -13,21 +11,11 @@
     if (mozSettings) {
       var request = mozSettings.createLock().get(key);
       request.onsuccess = function() {
-        if (key == 'notification.ringtone') {
-          ringtoneURL.set(request.result[key]);
-          settings[key] = true;
-        } else {
-          settings[key] = request.result[key];
-        }
+        settings[key] = request.result[key];
       };
 
       mozSettings.addObserver(key, function(event) {
-        if (key == 'notification.ringtone') {
-          ringtoneURL.set(event.settingValue);
-          settings[key] = true;
-        } else {
-          settings[key] = event.settingValue;
-        }
+        settings[key] = event.settingValue;
       });
     }
   });
@@ -59,7 +47,7 @@
     ringtone: function notification_ringtone() {
       if (settings['audio.volume.notification'] &&
           settings['notification.ringtone']) {
-        ringtone(ringtoneURL.get());
+        ringtone(settings['notification.ringtone']);
       }
     },
 
