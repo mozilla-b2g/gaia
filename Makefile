@@ -33,6 +33,7 @@ WGET_OPTS?=-c
 GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
+DEVICE_DEBUG?=0
 PRODUCTION?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
@@ -461,6 +462,7 @@ define run-js-command
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
 	const DESKTOP = $(DESKTOP);                                                 \
+	const DEVICE_DEBUG = $(DEVICE_DEBUG);                                       \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
 	const LOCALES_FILE = "$(subst \,\\,$(LOCALES_FILE))";                       \
@@ -837,9 +839,9 @@ endif
 install-default-data: $(PROFILE_FOLDER)/settings.json contacts
 	$(ADB) shell stop b2g
 	$(ADB) remount
-	$(ADB) push $(PROFILE_FOLDER)/settings.json /system/b2g/defaults/settings.json
+	$(ADB) push $(PROFILE_FOLDER)/settings.json $(MSYS_FIX)/system/b2g/defaults/settings.json
 ifdef CONTACTS_PATH
-	$(ADB) push $(PROFILE_FOLDER)/contacts.json /system/b2g/defaults/contacts.json
+	$(ADB) push $(PROFILE_FOLDER)/contacts.json $(MSYS_FIX)/system/b2g/defaults/contacts.json
 else
 	$(ADB) shell rm /system/b2g/defaults/contacts.json
 endif
