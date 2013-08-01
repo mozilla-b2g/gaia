@@ -100,7 +100,7 @@ var returnToCamera = true;
 var Camera = {
   _initialised: false,
   _cameras: null,
-  _camera: 0,
+  _cameraNumber: 0,
   _captureMode: null,
   _recording: false,
 
@@ -270,7 +270,7 @@ var Camera = {
       this.setCaptureMode(this.CAMERA);
     }
 
-    this.loadCameraPreview(this._camera, function() {
+    this.loadCameraPreview(this._cameraNumber, function() {
       PerformanceTestingHelper.dispatch('camera-preview-loaded');
       var files = [
         'style/filmstrip.css',
@@ -481,8 +481,19 @@ var Camera = {
     function gotPreviewStream(stream) {
       this.viewfinder.mozSrcObject = stream;
       this.viewfinder.play();
-      this.enableButtons();
     }
+    Camera._cameraObj.onPreviewStateChange = function(state) {
+      // We disabled the buttons above. Now we wait for the preview
+      // stream to actually start up before we enable them again. If we
+      // do this in the getPreviewStream() callback it might be too early
+      // and we can still cause deadlock in the camera hardware.
+      // See Bug 890427.
+      if (state === 'started') {
+        Camera.enableButtons();
+        // Only do this once
+        Camera._cameraObj.onPreviewStateChange = null;
+      }
+    };
     if (this._captureMode === this.CAMERA) {
       this._cameraObj.getPreviewStream(this._previewConfig,
                                        gotPreviewStream.bind(this));
@@ -494,17 +505,19 @@ var Camera = {
   },
 
   toggleCamera: function camera_toggleCamera() {
-    this._camera = 1 - this._camera;
+    this._cameraNumber = 1 - this._cameraNumber;
     // turn off flash light before switch to front camera
     var flash = this._flashState[this._captureMode];
     flash.currentMode = 0;
     this.updateFlashUI();
-    this.loadCameraPreview(this._camera, this.enableButtons.bind(this));
+    // Disable the buttons so the user can't use them while we're switching.
+    this.disableButtons();
+    this.loadCameraPreview(this._cameraNumber, this.enableButtons.bind(this));
     this.setToggleCameraStyle();
   },
 
   setToggleCameraStyle: function camera_setToggleCameraStyle() {
-    var modeName = this._camera === 0 ? 'back' : 'front';
+    var modeName = this._cameraNumber === 0 ? 'back' : 'front';
     this.toggleButton.setAttribute('data-mode', modeName);
   },
 
@@ -825,22 +838,31 @@ var Camera = {
       Filmstrip.show();
   },
 
-  loadCameraPreview: function camera_loadCameraPreview(camera, callback) {
+  loadCameraPreview: function camera_loadCameraPreview(cameraNumber, callback) {
 
     this.viewfinder.mozSrcObject = null;
     this._timeoutId = 0;
     this._cameras = navigator.mozCameras.getListOfCameras();
-    var options = {camera: this._cameras[this._camera]};
+    var options = {camera: this._cameras[cameraNumber]};
 
     function gotPreviewScreen(stream) {
       this.viewfinder.mozSrcObject = stream;
       this.viewfinder.play();
+      this._previewActive = true;
 
       if (callback) {
-        callback();
+        // Even though we have the stream now, the camera hardware hasn't
+        // started displaying it yet. We need to wait until the preview
+        // has actually started displaying before calling the callback.
+        // See Bug 890427.
+        Camera._cameraObj.onPreviewStateChange = function(state) {
+          if (state === 'started') {
+            Camera._cameraObj.onPreviewStateChange = null;
+            callback();
+          }
+        };
       }
 
-      this._previewActive = true;
     }
 
     function gotCamera(camera) {
@@ -924,7 +946,7 @@ var Camera = {
       height = screenHeight;
     }
 
-    if (this._camera == 1) {
+    if (this._cameraNumber == 1) {
       /* backwards-facing camera */
       transform += ' scale(-1, 1)';
       translateX = width;
@@ -994,7 +1016,7 @@ var Camera = {
   startPreview: function camera_startPreview() {
     this.screenWakeLock();
     this.viewfinder.play();
-    this.loadCameraPreview(this._camera, this.previewEnabled.bind(this));
+    this.loadCameraPreview(this._cameraNumber, this.previewEnabled.bind(this));
     this._previewActive = true;
   },
 
