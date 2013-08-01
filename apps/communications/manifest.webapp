@@ -80,7 +80,6 @@
     "time": {},
     "audio-channel-telephony":{},
     "audio-channel-ringer":{},
-    "browser":{},
     "idle":{},
     "storage": {},
     "device-storage:sdcard": { "access": "readcreate" }

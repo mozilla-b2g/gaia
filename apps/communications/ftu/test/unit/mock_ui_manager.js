@@ -59,7 +59,8 @@ var MockUIManager = {
   },
 
   sendNewsletter: function() { return true;},
-  updateDataConnectionStatus: function(status) {return DataMobile.getStatus()}
+  updateDataConnectionStatus: function(status) {return DataMobile.getStatus()},
+  displayOfflineDialog: function() {}
 };
 
 function toCamelCase(str) {
