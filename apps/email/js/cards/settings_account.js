@@ -7,7 +7,7 @@ var templateNode = require('tmpl!./settings_account.html'),
     tngAccountDeleteConfirmNode =
                               require('tmpl!./tng/account_delete_confirm.html'),
     common = require('mail_common'),
-    App = require('mail_app'),
+    model = require('model'),
     mozL10n = require('l10n!'),
     Cards = common.Cards,
     ConfirmDialog = common.ConfirmDialog;
@@ -128,7 +128,7 @@ SettingsAccountCard.prototype = {
         handler: function() {
           account.deleteAccount();
           Cards.removeAllCards();
-          App.showMessageViewOrSetup();
+          model.init();
         }
       },
       { // Cancel

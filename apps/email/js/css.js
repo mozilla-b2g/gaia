@@ -10,7 +10,7 @@ define({
     style.type = 'text/css';
     style.rel = 'stylesheet';
     style.href = require.toUrl(id + '.css');
+    style.addEventListener('load', onload, false);
     document.head.appendChild(style);
-    onload();
   }
 });

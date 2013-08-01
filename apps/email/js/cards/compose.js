@@ -17,6 +17,7 @@ var templateNode = require('tmpl!./compose.html'),
     cmpSendingContainerNode = require('tmpl!./cmp/sending_container.html'),
     msgAttachConfirmNode = require('tmpl!./msg/attach_confirm.html'),
     common = require('mail_common'),
+    model = require('model'),
     iframeShims = require('iframe_shims'),
     Marquee = require('marquee'),
     mozL10n = require('l10n!'),
@@ -63,6 +64,7 @@ function focusInputAndPositionCursorFromContainerClick(event, input) {
 function ComposeCard(domNode, mode, args) {
   this.domNode = domNode;
   this.composer = args.composer;
+  this.composerData = args.composerData || {};
   this.activity = args.activity;
 
   domNode.getElementsByClassName('cmp-back-btn')[0]
@@ -140,10 +142,25 @@ function ComposeCard(domNode, mode, args) {
 }
 ComposeCard.prototype = {
   postInsert: function() {
-    // the HTML bit needs us linked into the DOM so the iframe can be linked in,
-    // hence this happens in postInsert.
+    // the HTML bit needs us linked into the DOM so the iframe can be
+    // linked in, hence this happens in postInsert.
     require(['iframe_shims'], function() {
-      this._loadStateFromComposer();
+      if (this.composer) {
+        this._loadStateFromComposer();
+      } else {
+        var data = this.composerData;
+        model.latestOnce('folder', function(folder) {
+          this.composer = model.api.beginMessageComposition(data.message,
+                                                            folder,
+                                                            data.options,
+                                                            function() {
+            if (data.onComposer)
+              data.onComposer(this.composer);
+
+            this._loadStateFromComposer();
+          }.bind(this));
+        }.bind(this));
+      }
     }.bind(this));
   },
 
@@ -232,7 +249,7 @@ ComposeCard.prototype = {
     var self = this;
     var checkAddressEmpty = function() {
       var bubbles = self.domNode.querySelectorAll('.cmp-peep-bubble');
-      if (bubbles.length == 0 && !self.toNode.value && !self.ccNode.value &&
+      if (bubbles.length === 0 && !self.toNode.value && !self.ccNode.value &&
           !self.bccNode.value)
         return true;
       else
@@ -297,7 +314,7 @@ ComposeCard.prototype = {
     var inputSet = this.toNode.value + this.ccNode.value + this.bccNode.value;
     var addrBar = this.domNode.getElementsByClassName('cmp-envelope-bar')[0];
     var bubbles = addrBar.querySelectorAll('.cmp-peep-bubble');
-    if (!inputSet.replace(/\s/g, '') && bubbles.length == 0) {
+    if (!inputSet.replace(/\s/g, '') && bubbles.length === 0) {
       return true;
     }
     return false;
@@ -310,7 +327,7 @@ ComposeCard.prototype = {
     var node = evt.target;
     var container = evt.target.parentNode;
 
-    if (evt.keyCode == 8 && node.value == '') {
+    if (evt.keyCode === 8 && node.value === '') {
       //delete bubble
       var previousBubble = node.previousElementSibling;
       this.deleteBubble(previousBubble);
@@ -702,8 +719,10 @@ ComposeCard.prototype = {
   die: function() {
     document.removeEventListener('visibilitychange',
                                  this._bound_onVisibilityChange);
-    this.composer.die();
-    this.composer = null;
+    if (this.composer) {
+      this.composer.die();
+      this.composer = null;
+    }
   }
 };
 Cards.defineCardWithDefaultMode('compose', {}, ComposeCard, templateNode);
