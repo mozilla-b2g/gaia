@@ -692,14 +692,14 @@ suite('SMS App Unit-Test', function() {
       Message.id = id;
       Message.body = messageBody;
       var messageDOM = ThreadUI.buildMessageDOM(Message, false);
-      var anchors = messageDOM.querySelectorAll('[data-phonenumber]');
+      var anchors = messageDOM.querySelectorAll('[data-dial]');
       assert.equal(anchors.length, 3,
         '3 Contact handlers are attached for 3 phone numbers in DOM');
-      assert.equal(anchors[0].dataset.phonenumber,
+      assert.equal(anchors[0].dataset.dial,
         '408-746-9721', 'First number link is 408-746-9721');
-      assert.equal(anchors[1].dataset.phonenumber,
+      assert.equal(anchors[1].dataset.dial,
         '4087469721', 'Second number is 4087469721');
-      assert.equal(anchors[2].dataset.phonenumber,
+      assert.equal(anchors[2].dataset.dial,
         '7469721', 'Third number is 7469721');
     });
 
@@ -713,23 +713,23 @@ suite('SMS App Unit-Test', function() {
       Message.id = id;
       Message.body = messageBody;
       var messageDOM = ThreadUI.buildMessageDOM(Message, false);
-      var anchors = messageDOM.querySelectorAll('[data-phonenumber]');
+      var anchors = messageDOM.querySelectorAll('[data-dial]');
 
       assert.equal(anchors.length, 7,
         '7 Contact handlers are attached for 7 phone numbers in DOM');
-      assert.equal(anchors[0].dataset.phonenumber,
+      assert.equal(anchors[0].dataset.dial,
         '995-382-7369', 'First number is 995-382-7369');
-      assert.equal(anchors[1].dataset.phonenumber,
+      assert.equal(anchors[1].dataset.dial,
         '4458901', 'Second number is 4458901');
-      assert.equal(anchors[2].dataset.phonenumber,
+      assert.equal(anchors[2].dataset.dial,
         '789-7890', 'Third number is 789-7890');
-      assert.equal(anchors[3].dataset.phonenumber,
+      assert.equal(anchors[3].dataset.dial,
         '+1-556-667-7789', 'Fourth number is +1-556-667-7789');
-      assert.equal(anchors[4].dataset.phonenumber,
+      assert.equal(anchors[4].dataset.dial,
         '9953827369', 'Fifth number is 9953827369');
-      assert.equal(anchors[5].dataset.phonenumber,
+      assert.equal(anchors[5].dataset.dial,
         '+12343454567', 'Sixth number is +12343454567');
-      assert.equal(anchors[6].dataset.phonenumber,
+      assert.equal(anchors[6].dataset.dial,
         '+919810137553', 'Seventh number is +919810137553');
       // The phone links generated shouldn have 'href'
       var anchorsLength = anchors.length;
