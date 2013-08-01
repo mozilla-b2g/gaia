@@ -338,7 +338,10 @@
       if (dict) {
         gL10nData = dict;
         translateFragment();
-        translationRequired = false;
+
+        // NOTE: We must leave translationRequired as true here.  There may
+        //       be items on the page that need translation that are only
+        //       defined in the full resource loaded below.
       }
     }
 
