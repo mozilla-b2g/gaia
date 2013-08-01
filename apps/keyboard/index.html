@@ -3,10 +3,18 @@
 <head>
   <meta charset="utf-8">
   <title>Keyboard Service</title>
+  <!-- Shared code -->
+  <script defer src="shared/js/l10n.js"></script>
+
   <script type="text/javascript" src="js/layout.js"></script>
   <script type="text/javascript" src="js/render.js"></script>
   <script type="text/javascript" src="js/keyboard.js"></script>
-  <link rel="stylesheet" type="text/css" href="style/keyboard.css">
+
+  <!-- Localization -->
+  <link rel="resource" type="application/l10n" href="locales/locales.ini">
+
+  <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
+  <link rel="stylesheet" type="text/css" href="style/keyboard.css" />
 </head>
 <body>
   <div id="keyboard" class="hide" data-hidden="true"></div>
@@ -17,5 +25,15 @@
     <button class="keyboard-key special-key"><span class="visual-wrapper"><span>C</span></span></button>
     <button class="keyboard-key special-key kbr-key-hold"><span class="visual-wrapper"><span>C</span></span></button>
   </div>
+
+  <form id="confirm-dialog" role="dialog" data-type="confirm" hidden>
+      <section class="tip-section">
+        <img class="tip-image" src="style/images/ftu_keyboard.png"></img>
+      </section>
+      <menu>
+        <button id="ftu-ok" class="full recommend" data-l10n-id="ok">OK</button>
+      </menu>
+  </form>
+
 </body>
 </html>
