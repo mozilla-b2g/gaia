@@ -139,6 +139,14 @@ if (DEBUG || DESKTOP) {
   prefs.push(["extensions.autoDisableScopes", 0]);
 }
 
+if (DEVICE_DEBUG) {
+  // Bug 832000: Until unix domain socket are implemented, force enable content
+  // actor
+  prefs.push(["devtools.debugger.enable-content-actors", true]);
+  prefs.push(["devtools.debugger.prompt-connection", false]);
+  prefs.push(["devtools.debugger.remote-enabled", true]);
+}
+
 function writePrefs() {
   let userJs = getFile(GAIA_DIR, PROFILE_FOLDER, 'user.js');
   let content = prefs.map(function (entry) {
