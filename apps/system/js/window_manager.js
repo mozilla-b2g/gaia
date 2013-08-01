@@ -408,8 +408,6 @@ var WindowManager = (function() {
       };
     }
 
-    screenElement.classList.remove('fullscreen-app');
-
     // Inform keyboardmanager that we've finished the transition
     dispatchEvent(new CustomEvent('appclose'));
   }
