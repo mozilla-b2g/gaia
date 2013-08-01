@@ -460,6 +460,7 @@ var KeypadManager = {
       var visibility;
       if (phoneNumber.length > 0) {
         visibility = 'visible';
+        this.callBarAddContact.classList.remove('disabled');
       } else {
         visibility = 'hidden';
         this.callBarAddContact.classList.add('disabled');
