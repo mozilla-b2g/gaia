@@ -4,7 +4,9 @@ var MockCallLogDBManager = {
     this._calls.push(recentCall);
     var group = new Object();
     group.number = recentCall.number;
-    callback(group);
+    if (callback) {
+      callback(group);
+    }
   },
   getGroupAtPosition: function getGroupAtPosition(
     position, sortedBy, prev, type, callback) {
@@ -18,7 +20,7 @@ var MockCallLogDBManager = {
         return false;
       }
     });
-    if (!found) {
+    if (!found && callback) {
       callback();
     }
   },

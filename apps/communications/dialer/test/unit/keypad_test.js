@@ -74,12 +74,7 @@ suite('dialer/keypad', function() {
     document.body.innerHTML = previousBody;
   });
 
-  setup(function() {
-    subject.dialerMessageText.hidden = true;
-  });
-
   teardown(function(done) {
-    subject.dialerMessageText.textContent = '';
     CallLogDBManager.deleteAll(done);
   });
 
@@ -132,64 +127,37 @@ suite('dialer/keypad', function() {
       assert.equal(CallHandler._lastCall, mmi);
     });
 
-    test('Call button pressed with no calls in Call Log', function(done) {
-      var dialerMessageTextObserver = new MutationObserver(function() {
-        dialerMessageTextObserver.disconnect();
-        assert.isFalse(subject.dialerMessageText.hidden);
-        assert.equal(subject.dialerMessageText.textContent,
-          'NoPreviousOutgoingCalls');
-        done();
-      });
-      var config = { childList: true };
-      dialerMessageTextObserver.observe(subject.dialerMessageText, config);
+    test('Call button pressed with no calls in Call Log', function() {
       subject._phoneNumber = '';
       subject.makeCall();
+      assert.equal(subject._phoneNumber, '');
     });
 
     test('Call button pressed with an incoming call and no outgoing calls ' +
-      'in Call Log',
-      function(done) {
-        var recentCall = {
-          number: '666666666',
-          type: 'incoming',
-          date: Date.now(),
-          status: 'connected'
-        };
-        CallLogDBManager.add(recentCall, function(result) {
-          var dialerMessageTextObserver = new MutationObserver(function() {
-            dialerMessageTextObserver.disconnect();
-            assert.isFalse(subject.dialerMessageText.hidden);
-            assert.equal(subject.dialerMessageText.textContent,
-              'NoPreviousOutgoingCalls');
-            done();
-          });
-          var config = { childList: true };
-          dialerMessageTextObserver.observe(subject.dialerMessageText, config);
-          subject._phoneNumber = '';
-          subject.makeCall();
-        });
-      }
-    );
+      'in Call Log', function() {
+      var recentCall = {
+        number: '666666666',
+        type: 'incoming',
+        date: Date.now(),
+        status: 'connected'
+      };
+      CallLogDBManager.add(recentCall, function(result) {
+        subject._phoneNumber = '';
+        subject.makeCall();
+        assert.equal(subject._phoneNumber, '');
+      });
+    });
 
-    test('Call button pressed with outgoing call in Call Log',
-      function(done) {
-        var recentCall = {
-          number: '666666666',
-          type: 'dialing',
-          date: Date.now()
-        };
-        CallLogDBManager.add(recentCall, function(result) {
-          subject.watch('_phoneNumber', function(id, oldValue, newValue) {
-            subject.unwatch('_phoneNumber');
-            assert.isTrue(subject.dialerMessageText.hidden);
-            assert.equal(newValue,
-              result.number);
-            done();
-            return newValue;
-          });
-          subject.makeCall();
-        });
-      }
-    );
+    test('Call button pressed with outgoing call in Call Log', function() {
+      var recentCall = {
+        number: '666666666',
+        type: 'dialing',
+        date: Date.now()
+      };
+      subject._phoneNumber = '';
+      CallLogDBManager.add(recentCall);
+      subject.makeCall();
+      assert.equal(subject._phoneNumber, recentCall.number);
+    });
   });
 });
