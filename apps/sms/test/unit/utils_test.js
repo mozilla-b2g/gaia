@@ -1078,6 +1078,15 @@ suite('Utils.Template', function() {
 });
 
 suite('getDisplayObject', function() {
+  var nativeMozL10n = navigator.mozL10n;
+  setup(function() {
+    navigator.mozL10n = MockL10n;
+    this.sinon.spy(navigator.mozL10n, 'get');
+  });
+
+  teardown(function() {
+    navigator.mozL10n = nativeMozL10n;
+  });
 
   test('Tel object with carrier title and type', function() {
     var myTitle = 'My title';
@@ -1092,6 +1101,8 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, myTitle);
     assert.equal(data.separator, ' | ');
+    assert.ok(navigator.mozL10n.get.called);
+    assert.equal(navigator.mozL10n.get.args[0][0], type);
     assert.equal(data.type, type);
     assert.equal(data.carrier, carrier + ', ');
     assert.equal(data.number, value);
@@ -1109,6 +1120,8 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, myTitle);
     assert.equal(data.separator, ' | ');
+    assert.ok(navigator.mozL10n.get.called);
+    assert.equal(navigator.mozL10n.get.args[0][0], type);
     assert.equal(data.type, type);
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
@@ -1124,6 +1137,7 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, myTitle);
     assert.equal(data.separator, '');
+    assert.isFalse(navigator.mozL10n.get.called);
     assert.equal(data.type, '');
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
@@ -1142,6 +1156,8 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, value);
     assert.equal(data.separator, ' | ');
+    assert.ok(navigator.mozL10n.get.called);
+    assert.equal(navigator.mozL10n.get.args[0][0], type);
     assert.equal(data.type, type);
     assert.equal(data.carrier, carrier + ', ');
     assert.equal(data.number, value);
@@ -1149,12 +1165,16 @@ suite('getDisplayObject', function() {
 });
 
 suite('getContactDisplayInfo', function() {
+  var nativeMozL10n = navigator.mozL10n;
+
   setup(function() {
+    navigator.mozL10n = MockL10n;
     this.sinon.spy(Utils, 'getContactDetails');
     this.sinon.spy(Utils, 'getDisplayObject');
   });
 
   teardown(function() {
+    navigator.mozL10n = nativeMozL10n;
     Utils.getContactDetails.reset();
     Utils.getDisplayObject.reset();
   });

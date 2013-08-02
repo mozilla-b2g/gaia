@@ -499,7 +499,8 @@
     getDisplayObject: function(theTitle, tel) {
       var number = tel.value;
       var title = theTitle || number;
-      var type = tel.type && tel.type.length ? tel.type[0] : '';
+      var type = tel.type && tel.type.length ?
+        navigator.mozL10n.get(tel.type[0]) : '';
       var carrier = tel.carrier ? (tel.carrier + ', ') : '';
       var separator = type || carrier ? ' | ' : '';
       var data = {
