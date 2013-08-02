@@ -12,6 +12,14 @@ var win = { navigator: {} };
 Services.scriptloader.loadSubScript('file:///' + GAIA_DIR +
     '/shared/js/l10n.js?reload=' + new Date().getTime(), win);
 
+/**
+ * whitelist by app name for l10n optimization.
+ */
+const L10N_OPTIMIZATION_BLACKLIST = [
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=898408
+  'pdfjs'
+];
+
 
 let scope = {};
 Services.scriptloader.loadSubScript('file:///' + GAIA_DIR +
@@ -341,9 +349,13 @@ function optimize_compile(webapp, file) {
   win.document = (new DOMParser()).
       parseFromString(getFileContent(file), 'text/html');
 
-  // if this HTML document uses l10n.js, pre-localize it --
-  // selecting a language triggers `XMLHttpRequest' and `dispatchEvent' above
-  if (win.document.querySelector('script[src$="l10n.js"]')) {
+  // If this HTML document uses l10n.js, pre-localize it --
+  //   note: a document can use l10n.js by including either l10n.js or
+  //   application/l10n resource link elements (see /shared/js/lazy_l10n.js).
+  if ((win.document.querySelector('script[src$="l10n.js"]') ||
+      win.document.querySelector('link[type$="application/l10n"]')) &&
+      L10N_OPTIMIZATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) < 0) {
+    // selecting a language triggers `XMLHttpRequest' and `dispatchEvent' above
     debug('localizing: ' + file.path);
     mozL10n.language.code = l10nLocales[processedLocales];
   }
