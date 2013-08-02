@@ -173,10 +173,15 @@ Gaia.webapps.forEach(function(webapp) {
   debug('# Create zip for: ' + webapp.domain);
   let files = ls(webapp.sourceDirectoryFile);
   files.forEach(function(file) {
-      // Ignore l10n files if they have been inlined
-      if (GAIA_INLINE_LOCALES &&
+      // Ignore l10n files if they have been inlined or concatenated
+      if ((GAIA_INLINE_LOCALES === '1' || GAIA_CONCAT_LOCALES === '1') &&
           (file.leafName === 'locales' || file.leafName === 'locales.ini'))
         return;
+
+      // Ignore concatenated l10n files if GAIA_CONCAT_LOCALES is not set
+      if (file.leafName === 'locales-obj' && GAIA_CONCAT_LOCALES !== '1')
+        return;
+
       // Ignore files from /shared directory (these files were created by
       // Makefile code). Also ignore files in the /test directory.
       if (file.leafName !== 'shared' && file.leafName !== 'test')
@@ -228,7 +233,7 @@ Gaia.webapps.forEach(function(webapp) {
               used.js.push(path);
             break;
           case 'locales':
-            if (!GAIA_INLINE_LOCALES) {
+            if (GAIA_INLINE_LOCALES !== '1') {
               let localeName = path.substr(0, path.lastIndexOf('.'));
               if (used.locales.indexOf(localeName) == -1) {
                 used.locales.push(localeName);
