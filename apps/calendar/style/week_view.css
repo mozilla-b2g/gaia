@@ -178,7 +178,13 @@
   padding: 0.2rem;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
   position: relative;
+}
+
+#week-view .week-events .has-alarms .container:before{
+  content: url("/style/icons/alarm.png");
+  float: right;
 }
 
 /* overlap */
