@@ -216,7 +216,8 @@ div#fav-list-container > div {
   font-size: 2.3rem;
   font-weight: 300;
   height: 4.4rem;
-  margin: 0 2rem 0.2rem 2rem;
+  margin: 0 2rem 0 2rem;
+  padding-bottom: 0.2rem;
   clear: both;
   border-top: .1rem solid #3D4045;
 }
@@ -395,7 +396,7 @@ a#frequency-op-seekup:active {
   top: 0;
   left: 0;
   color: #FFF;
-  background-color: #272d32;
+  background: url(images/popup-texture.png) transparent repeat 0 0 / 100% 100%;
 }
 
 .warning .warning-header {
