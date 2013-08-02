@@ -521,6 +521,7 @@ const Keyboards = {
     label: 'Norwegian Bokmal',
     menuLabel: 'Norsk',
     imEngine: 'latin',
+    autoCorrectLanguage: 'nb',
     alt: {
       a: 'äáàâąã',
       e: 'éèêëę€',
