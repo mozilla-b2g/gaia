@@ -70,6 +70,7 @@ suite('Render contacts list', function() {
   var subject,
       container,
       containerSection,
+      selectSection,
       searchList,
       realL10n,
       realContacts,
@@ -233,8 +234,18 @@ suite('Render contacts list', function() {
       document.body.removeChild(searchSection);
     }
 
+    if (selectSection) {
+      document.body.removeChild(selectSection);
+    }
+
     containerSection = document.createElement('section');
     containerSection.id = 'view-contacts-list';
+    containerSection.innerHTML = '<a id="cancel_activity" class="hide"></a>';
+    containerSection.innerHTML += '<menu type="toolbar">' +
+      '<button id="add-contact-button"><span></span></button>' +
+      '<button id="settings-button"><span></span></button>' +
+      '<button id="select-action" class="hide"><span></span></button>' +
+      '</menu>';
     document.body.appendChild(containerSection);
 
     container = document.createElement('div');
@@ -290,6 +301,16 @@ suite('Render contacts list', function() {
     searchSection.innerHTML += '</section>';
 
     document.body.appendChild(searchSection);
+
+    selectSection = document.createElement('form');
+    selectSection.id = 'selectable-form';
+    selectSection.innerHTML = '<menu id="select-all-wrapper">' +
+      '<button id="deselect-all" disabled="disabled"></button>' +
+      '<button id="select-all"></button>' +
+      '</menu>';
+
+    document.body.appendChild(selectSection);
+
 
     searchBox = document.getElementById('search-contact');
     searchList = document.getElementById('search-list');
@@ -1257,6 +1278,167 @@ suite('Render contacts list', function() {
 
       subject.setOrderByLastName(true);
       done();
+    });
+  });
+
+  suite('Select mode', function() {
+    var elements = {
+      'addButton': {
+        'id': 'add-contact-button',
+        'selectMode': 'hide',
+        'normalMode': 'show'
+      },
+      'settingsButton': {
+        'id': 'settings-button',
+        'selectMode': 'hide',
+        'normalMode': 'show'
+      },
+      'closeButton': {
+        'id': 'cancel_activity',
+        'selectMode': 'show',
+        'normalMode': 'hide'
+      },
+      'selectActionButton': {
+        'id': 'select-action',
+        'selectMode': 'show',
+        'normalMode': 'hide'
+      },
+      'selectionForm': {
+        'id': 'selectable-form',
+        'selectMode': 'show',
+        'normalMode': 'hide'
+      },
+      'selectAllButton': {
+        'id': 'select-all',
+        'selectMode': 'show',
+        'normalMode': 'show' // We don't care, the form will be hide
+      },
+      'deselectAllButton': {
+        'id': 'deselect-all',
+        'selectMode': 'show',
+        'normalMode': 'show' // We don't care, the form will be hide
+      }
+    };
+    suiteSetup(function(done) {
+      window.fb.isEnabled = false;
+      //resetDom(document);
+      mockContacts = new MockContactsList();
+      doLoad(subject, mockContacts, function() {
+        done();
+      });
+    });
+
+    test('enter select mode', function(done) {
+      var selectActionTitle = 'title';
+      subject.selectFromList(selectActionTitle, null, function onSelectMode() {
+        // Check visibility
+
+        for (var i in elements) {
+          var element = elements[i];
+
+          if (typeof element != 'object') {
+            return;
+          }
+          var node = document.getElementById(element.id);
+          if (element.selectMode == 'show') {
+            assert.isFalse(node.classList.contains('hide'));
+          } else {
+            assert.isTrue(node.classList.contains('hide'));
+          }
+        }
+
+        assert.isTrue(list.classList.contains('selecting'));
+        assert.isTrue(searchList.classList.contains('selecting'));
+
+        var selectActionButton = document.getElementById(
+          elements['selectActionButton'].id);
+        assert.equal(selectActionTitle, selectActionButton.textContent);
+
+        done();
+      });
+    });
+
+    suite('Selection checks', function() {
+      suiteSetup(function(done) {
+        mockContacts = new MockContactsList();
+        doLoad(subject, mockContacts, function() {
+          subject.selectFromList('', null, function() {
+            done();
+          });
+        });
+      });
+
+      test('all rows have input for selecting with correct id', function() {
+        var contactsRows = list.querySelectorAll('li');
+        var uuids = [];
+        for (var contact of contactsRows) {
+          uuids.push(contact.dataset.uuid);
+        }
+        var checks = list.querySelectorAll('input[type="checkbox"]');
+        assert.equal(contactsRows.length, checks.length);
+        for (var check of checks) {
+          assert.include(uuids, check.value);
+        }
+      });
+    });
+
+    suite('Exit select mode', function() {
+      suiteSetup(function(done) {
+        mockContacts = new MockContactsList();
+        doLoad(subject, mockContacts, function() {
+          subject.selectFromList('', null, function() {
+            // Simulate the click to close
+            var close = document.querySelector('#cancel_activity');
+            close.click();
+            done();
+          });
+        });
+      });
+
+      test('check visibility of components', function() {
+        // Buttons visibility
+        for (var i in elements) {
+          var element = elements[i];
+
+          if (typeof element != 'object') {
+            return;
+          }
+          var node = document.getElementById(element.id);
+          if (element.normalMode == 'show') {
+            assert.isFalse(node.classList.contains('hide'));
+          } else {
+            assert.isTrue(node.classList.contains('hide'));
+          }
+        }
+
+        // We still have the check boxes, but they are hidden
+        assert.isFalse(list.classList.contains('selecting'));
+        assert.isFalse(searchList.classList.contains('selecting'));
+      });
+    });
+
+    suite('Multiple select mode', function() {
+      suiteSetup(function(done) {
+        mockContacts = new MockContactsList();
+        subject.load(mockContacts);
+        doLoad(subject, mockContacts, function() {
+          subject.selectFromList('', null, function() {
+            var close = document.querySelector('#cancel_activity');
+            close.click();
+            done();
+          });
+        });
+
+      });
+      test('check elements after 2nd enter in select mode', function(done) {
+        subject.selectFromList('title', null, function onSelectMode() {
+          // Check we have the correct amount of checkboxes (or labels)
+          var contactsRows = list.querySelectorAll('li');
+          var checks = list.querySelectorAll('input[type="checkbox"]');
+          assert.equal(contactsRows.length, checks.length);
+          done();
+        });
+      });
     });
   });
 });

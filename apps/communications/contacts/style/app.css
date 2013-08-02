@@ -661,3 +661,37 @@ nav[data-type="scrollbar"] p img {
   left: 25%;
   width: 4.8rem;
 }
+
+#groups-list.selecting label.pack-checkbox {
+  display: block !important;
+}
+
+#groups-container.selecting {
+  height: -moz-calc(100% - 7rem);
+}
+
+#groups-list label.pack-checkbox {
+  display: none !important;
+}
+
+.selecting li label {
+  left: -1rem !important;
+}
+
+.selecting li p {
+  padding-left: 2rem !important;
+}
+
+form[role="dialog"].no-overlay {
+  background: none;
+  pointer-events: none;
+  position: fixed;
+}
+
+form[role="dialog"].no-overlay button {
+  pointer-events: auto;
+}
+
+#selectable-form {
+  background: none;
+}
