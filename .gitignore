@@ -22,6 +22,7 @@ manifest.appcache
 
 /apps/*/test/unit/_sandbox.html
 /apps/*/test/unit/_proxy.html
+/apps/*/locales-obj
 /apps/*/shared
 /apps/settings/resources/support.json
 /apps/settings/resources/sensors.json
@@ -29,8 +30,11 @@ manifest.appcache
 /apps/system/resources/wapuaprof.json
 /test_apps/*/test/unit/_sandbox.html
 /test_apps/*/test/unit/_proxy.html
+/test_apps/*/locales-obj
+/test_external_apps/*/locales-obj
 /showcase_apps/*/test/unit/_sandbox.html
 /showcase_apps/*/test/unit/_proxy.html
+/showcase_apps/*/locales-obj
 
 /profile/
 /profile.tar.gz
