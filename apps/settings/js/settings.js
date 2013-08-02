@@ -760,11 +760,11 @@ var Settings = {
       return;
     }
 
-    LazyLoader.load(['shared/style/action_menu.css',
-                     'shared/style/buttons.css',
-                     'shared/style/confirm.css',
-                     'shared/style/input_areas.css',
-                     'shared/style_unstable/progress_activity.css',
+    LazyLoader.load(['shared/style/v1/action_menu.css',
+                     'shared/style/v1/buttons.css',
+                     'shared/style/v1/confirm.css',
+                     'shared/style/v1/input_areas.css',
+                     'shared/style/v1/unstable/progress_activity.css',
                      'style/apps.css',
                      'style/phone_lock.css',
                      'style/simcard.css',

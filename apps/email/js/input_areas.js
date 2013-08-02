@@ -1,5 +1,5 @@
 /*
- * This file goes along with shared/style/input_areas.css
+ * This file goes along with shared/style/v1/input_areas.css
  * and is required to make the <button type="reset"> buttons work to clear
  * the form fields they are associated with.
  *
@@ -7,7 +7,7 @@
  * to a shared JS file, so this file won't be in the email app for long.
  */
 function hookupInputAreaResetButtons(e) {
-  // This selector is from shared/style/input_areas.css
+  // This selector is from shared/style/v1/input_areas.css
   var selector = 'form p input + button[type="reset"],' +
     'form p textarea + button[type="reset"]';
   var resetButtons = e.querySelectorAll(selector);

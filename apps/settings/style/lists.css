@@ -125,7 +125,7 @@ ul li a[role="button"] {
   width: calc(100% - 6rem);
 }
 
-/* custom styles for boolean inputs (see /shared/style/switches.css) */
+/* custom styles for boolean inputs (see /shared/style/v1/switches.css) */
 ul li label {
   text-transform: none;
 }

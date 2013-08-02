@@ -63,7 +63,7 @@ suite('load_config', function() {
     config.jsRoot = root + 'js/';
     config.styleRoot = root + 'style/';
     config.sharedJsRoot = root + 'shared/js/';
-    config.sharedStyleRoot = root + 'shared/style/';
+    config.sharedStyleRoot = root + 'shared/style/v1/';
 
     config.group = {
       'FromLoaderTest': {

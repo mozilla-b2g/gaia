@@ -95,8 +95,8 @@ body.hidden *[data-l10n-id] {
 /* Making lazy loading look nice */
 #contacts-view [role="tabpanel"],
 #recents-view.hidden [role="tabpanel"] {
-  background-image: url(/shared/style/headers/images/ui/header.png),
-                    url(/shared/style/headers/images/ui/shadow.png);
+  background-image: url(/shared/style/v1/headers/images/ui/header.png),
+                    url(/shared/style/v1/headers/images/ui/shadow.png);
   background-repeat: repeat-x;
   background-position: 0 0, 0 5rem;
   background-size: 100% 5rem, 100% 0.3rem;

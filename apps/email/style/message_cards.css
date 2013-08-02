@@ -409,7 +409,7 @@ input.msg-search-text-tease {
 .msg-reply-all-btn {
 }
 
-/* We need to use !important on the buttons because shared/style/buttons.css definesa more specific
+/* We need to use !important on the buttons because shared/style/v1/buttons.css definesa more specific
    selector than ours for :active, so we can't just reorder the files to fix the problem. */
 .msg-refresh-btn {
   background-image: url("images/icons/refresh.png") !important;

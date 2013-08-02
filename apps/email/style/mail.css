@@ -1,12 +1,12 @@
-@import url('../shared/style/input_areas.css');
-@import url('../shared/style/headers.css');
-@import url('../shared/style/switches.css');
-@import url('../shared/style/buttons.css');
-@import url('../shared/style/status.css');
-@import url('../shared/style/confirm.css');
-@import url('../shared/style/action_menu.css');
-@import url('../shared/style_unstable/progress_activity.css');
-@import url('../shared/style_unstable/tabs.css');
+@import url('../shared/style/v1/input_areas.css');
+@import url('../shared/style/v1/headers.css');
+@import url('../shared/style/v1/switches.css');
+@import url('../shared/style/v1/buttons.css');
+@import url('../shared/style/v1/status.css');
+@import url('../shared/style/v1/confirm.css');
+@import url('../shared/style/v1/action_menu.css');
+@import url('../shared/style/v1/unstable/progress_activity.css');
+@import url('../shared/style/v1/unstable/tabs.css');
 
 @import url('common.css');
 @import url('compose_cards.css');

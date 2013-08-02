@@ -367,9 +367,9 @@ var CallHandler = (function callHandler() {
     loader.load(['/shared/js/mobile_operator.js',
                  '/dialer/js/mmi.js',
                  '/dialer/js/mmi_ui.js',
-                 '/shared/style/headers.css',
-                 '/shared/style/input_areas.css',
-                 '/shared/style_unstable/progress_activity.css',
+                 '/shared/style/v1/headers.css',
+                 '/shared/style/v1/input_areas.css',
+                 '/shared/style/v1/unstable/progress_activity.css',
                  '/dialer/style/mmi.css'], function() {
 
       if (window.navigator.mozSetMessageHandler) {
@@ -514,11 +514,11 @@ window.addEventListener('load', function startup(evt) {
     LazyL10n.get(function loadLazyFilesSet() {
       loader.load(['/contacts/js/fb/fb_data.js',
                    '/contacts/js/fb/fb_contact_utils.js',
-                   '/shared/style/confirm.css',
+                   '/shared/style/v1/confirm.css',
                    '/contacts/js/confirm_dialog.js',
                    '/dialer/js/newsletter_manager.js',
-                   '/shared/style/edit_mode.css',
-                   '/shared/style/headers.css']);
+                   '/shared/style/v1/edit_mode.css',
+                   '/shared/style/v1/headers.css']);
       lazyPanelsElements.forEach(navigator.mozL10n.translate);
     });
   });
