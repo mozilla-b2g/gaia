@@ -95,9 +95,11 @@ Calendar.ns('Views').EventBase = (function() {
         endDate.getMinutes() === 0
       ) {
         // since this is only called when allDay is modified or true,
-        //we calibrate endate with startDate to give the user a better
-        // idea of which dates the event spans, as endDate = endDate + 1
-        //when allDay is checked
+        // we calibrate enDate with startDate to give the user a better
+        // idea of which dates the event spans, as endDate.getDate() =
+        // endDate.getDate() + 1 when allDay is checked. It's not a good
+        // idea to simply subtract from endDate, because the subtraction
+        // will keep happening if the user keeps toggling allDay
         endDate = new Date(
           startDate.getFullYear(),
           startDate.getMonth(),
