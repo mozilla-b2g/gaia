@@ -86,9 +86,10 @@ Calendar.ns('Views').EventBase = (function() {
     /**
      * When the event is something like this:
      * 2012-01-02 and we detect this is an all day event
-     * we want to display the end date like this 2012-01-02.
+     * we want to display the end date to correspond
+     * to the start date.
      */
-    formatEndDate: function(endDate, startDate) {
+    calibrateEndToStartDate: function(startDate, endDate) {
       if (
         endDate.getHours() === 0 &&
         endDate.getSeconds() === 0 &&

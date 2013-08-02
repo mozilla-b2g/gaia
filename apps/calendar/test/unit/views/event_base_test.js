@@ -146,6 +146,48 @@ suiteGroup('Views.EventBase', function() {
     });
   });
 
+  suite('Bug 893596', function() {
+    var startDate;
+    var endDate1;
+    var endDate2;
+
+    setup(function()  {
+      startDate = new Date();
+      startDate.setHours(0);
+      startDate.setSeconds(0);
+      startDate.setMinutes(0);
+
+      endDate1 = new Date();
+      endDate1.setHours(0);
+      endDate1.setSeconds(0);
+      endDate1.setMinutes(0);
+      endDate1.setDate(startDate.getDate() + 1);
+
+      endDate2 = new Date();
+      endDate2.setHours(0);
+      endDate2.setSeconds(0);
+      endDate2.setMinutes(1);
+      endDate2.setDate(startDate.getDate() + 1);
+    });
+
+    test('calibrate end date', function(done) {
+      assert.notEqual(startDate.getDate(), endDate1.getDate());
+      var newEndDate1 = subject.calibrateEndToStartDate(startDate, endDate1);
+      assert.equal(startDate.getDate(), newEndDate1.getDate());
+      assert.equal(startDate.getMonth(), newEndDate1.getMonth());
+      assert.equal(startDate.getFullYear(), newEndDate1.getFullYear());
+      done();
+    });
+
+    test('do not calibrate end date', function(done) {
+      assert.notEqual(startDate.getDate(), endDate2.getDate());
+      var newEndDate2 = subject.calibrateEndToStartDate(startDate, endDate2);
+      assert.notEqual(startDate.getDate(), newEndDate2.getDate());
+      done();
+    });
+
+  });
+
   suite('#dispatch', function() {
     var classList;
 

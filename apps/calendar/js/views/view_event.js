@@ -115,7 +115,7 @@ Calendar.ns('Views').ViewEvent = (function() {
       // update the allday status of the view
       if (model.isAllDay) {
 
-        endDate = this.formatEndDate(endDate, startDate);
+        endDate = this.calibrateEndToStartDate(startDate, endDate);
 
         // Do not display times in the UI for all day events
         startTime = null;
