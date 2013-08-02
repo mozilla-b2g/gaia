@@ -1148,6 +1148,7 @@ function showOverlay(id) {
     case 'emptygallery':
       title = navigator.mozL10n.get('emptygallery2-title');
       text = navigator.mozL10n.get('emptygallery2-text');
+      break;
     case 'upgrade':
       title = navigator.mozL10n.get('upgrade-title');
       text = navigator.mozL10n.get('upgrade-text');
