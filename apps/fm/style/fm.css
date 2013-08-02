@@ -219,7 +219,8 @@ div#fav-list-container > div {
   font-size: 2.3rem;
   font-weight: 300;
   height: 4.4rem;
-  margin: 0 2rem 0.2rem 2rem;
+  margin: 0 2rem 0 2rem;
+  padding-bottom: 0.2rem;
   clear: both;
   border-top: 1px solid #3D4045;
 }
