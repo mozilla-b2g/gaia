@@ -88,18 +88,20 @@ Calendar.ns('Views').EventBase = (function() {
      * 2012-01-02 and we detect this is an all day event
      * we want to display the end date like this 2012-01-02.
      */
-    formatEndDate: function(endDate) {
+    formatEndDate: function(endDate, startDate) {
       if (
         endDate.getHours() === 0 &&
         endDate.getSeconds() === 0 &&
         endDate.getMinutes() === 0
       ) {
-        // subtract the date to give the user a better
-        // idea of which dates the event spans...
+        // since this is only called when allDay is modified or true,
+        //we calibrate endate with startDate to give the user a better
+        // idea of which dates the event spans, as endDate = endDate + 1
+        //when allDay is checked
         endDate = new Date(
-          endDate.getFullYear(),
-          endDate.getMonth(),
-          endDate.getDate() - 1
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate()
         );
       }
 

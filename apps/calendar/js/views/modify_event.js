@@ -568,7 +568,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var allday = this.getEl('allday');
       if (allday && (allday.checked = model.isAllDay)) {
         this._toggleAllDay();
-        endDate = this.formatEndDate(endDate);
+        endDate = this.formatEndDate(endDate, startDate);
       }
 
       this.getEl('startDate').value =
