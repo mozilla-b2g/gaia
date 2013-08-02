@@ -25,7 +25,17 @@ contacts.List = (function() {
       monitor = null,
       loading = false,
       cancelLoadCB = null,
-      photosById = {};
+      photosById = {},
+      clonableSelectCheck = null,
+      deselectAll = null,
+      selectAll = null,
+      selectAllChecked = false,
+      inSelectMode = false,
+      selectForm = null,
+      selectActionButton = null,
+      groupList = null,
+      searchList = null,
+      selectedCount = 0;
 
   // Key on the async Storage
   var ORDER_KEY = 'order.lastname';
@@ -305,6 +315,14 @@ contacts.List = (function() {
   // argument.  Photos and social marks are lazy loaded.
   var renderContact = function renderContact(contact, container) {
     container = container || createPlaceholder(contact);
+    if (inSelectMode && container.querySelector('label') == null) {
+      // Append the extra dom required for the check list
+      var check = getSelectCheck(contact.id);
+      if (selectAllChecked) {
+        check.checked = true;
+      }
+      container.insertBefore(check, container.firstChildElement);
+    }
     var fbUid = getFbUid(contact);
     if (fbUid) {
       container.dataset.fbUid = fbUid;
@@ -1131,6 +1149,253 @@ contacts.List = (function() {
     orderByLastName = value;
   };
 
+  /*
+    In charge of providing the dom structure to create a checkbox
+    for each contact row, creates it and clone a copy of a generated
+    template.
+  */
+  var getSelectCheck = function getSelectCheck(uuid) {
+    /*
+      If we have our template, clone and add the uuid value,
+      otherwise create the template and return a cloned modified
+      value.
+      http://jsperf.com/create-node-several-times-vs-clone
+    */
+    if (clonableSelectCheck === null) {
+      clonableSelectCheck = buildSelectCheck();
+    }
+
+    var result = clonableSelectCheck.cloneNode(true);
+    result.firstChild.setAttribute('value', uuid);
+    return result;
+  };
+
+  /*
+    Generates the dom structure for the selectable check:
+
+    <label class="pack-checkbox">
+      <input type="checkbox" name="selectIds[]" value="#uid#"></input>
+      <span></span>
+    </label>
+  */
+  var buildSelectCheck = function buildSelectCheck() {
+    var label = document.createElement('label');
+    label.classList.add('pack-checkbox');
+    var input = document.createElement('input');
+    input.name = 'selectIds[]';
+    input.type = 'checkbox';
+    label.appendChild(input);
+    var span = document.createElement('span');
+    label.appendChild(span);
+
+    return label;
+  };
+
+  /*
+    Grab the selected items, if selected, and perform
+    the action specified when we entered in select mode
+  */
+  var selectAction = function selectAction(action) {
+    if (action == null) {
+      exitSelectMode();
+    }
+
+    var selected = document.querySelectorAll('[name="selectIds[]"]:checked');
+
+    if (selected.length == 0) {
+      return;
+    }
+
+    var ids = [];
+    selected = Array.prototype.slice.call(selected, 0);
+    selected.forEach(function onSelected(contact) {
+      ids.push(contact.value);
+    });
+
+    action(ids);
+  };
+
+  /*
+    Controls the buttons for select all and deselect all
+    when in select mode, when we click in a row or in the
+    mass selection buttons.
+
+    Second parameter is a boolean that indicates if a row was
+    selected or unselected
+  */
+  var handleSelection = function handleSelection(evt, selected) {
+    var action = null;
+    if (evt) {
+      evt.preventDefault();
+      action = evt.target.id;
+    }
+
+    selectAllChecked = false;
+
+    var selected = document.querySelectorAll('[name="selectIds[]"]:checked');
+    var countSelected = selected.length;
+    var selectAllDisabled = false;
+    var deselectAllDisabled = false;
+
+    switch (action) {
+      case 'deselect-all':
+        selected = Array.prototype.slice.call(selected, 0);
+        [].forEach.call(selected, function onSelected(check) {
+          check.checked = false;
+        });
+
+        selectedCount = 0;
+
+        deselectAllDisabled = true;
+        break;
+      case 'select-all':
+        selectAllChecked = true;
+        var all = document.querySelectorAll('[name="selectIds[]"]');
+        [].forEach.call(all, function onAll(check) {
+          check.checked = true;
+        });
+
+        selectedCount = contacts.List.total;
+
+        selectAllDisabled = true;
+        break;
+      default:
+        if (selected) {
+          selectedCount++;
+        } else {
+          selectedCount--;
+        }
+
+        // We checked in a row, check the mass selection/deselection buttons
+        selectAllDisabled = countSelected == contacts.List.total;
+        deselectAllDisabled = countSelected == 0;
+        break;
+    }
+
+    selectAll.disabled = selectAllDisabled;
+    deselectAll.disabled = deselectAllDisabled;
+  };
+
+  /*
+    Set the list in select mode, allowing you to configure an action to
+    be executed when the user does the selection as well as a title to
+    identify such action.
+
+    Also provide a callback to be invoqued when we enter in select mode.
+  */
+  var enterSelectMode = function enterSelectMode(title, action, callback) {
+    selectedCount = 0;
+    inSelectMode = true;
+
+    if (selectForm === null) {
+      selectForm = document.getElementById('selectable-form');
+
+      selectActionButton = document.getElementById('select-action');
+      selectActionButton.addEventListener('click', function onSelected(evt) {
+        selectAction(action);
+      });
+      selectAll = document.getElementById('select-all');
+      selectAll.addEventListener('click', handleSelection);
+      deselectAll = document.getElementById('deselect-all');
+      deselectAll.addEventListener('click', handleSelection);
+    }
+
+    // Menus
+    var menus = document.querySelectorAll(
+      '#view-contacts-list menu[type="toolbar"] button');
+    menus = Array.prototype.slice.call(menus, 0);
+    menus.forEach(function onMenu(button) {
+      button.classList.add('hide');
+    });
+
+    selectActionButton.classList.remove('hide');
+    selectActionButton.textContent = title;
+
+    // Show the select all/ deselecta ll butons
+    selectForm.classList.remove('hide');
+
+    // Setup the list in selecting mode (the search one as well)
+    if (groupList == null) {
+      groupList = document.getElementById('groups-list');
+    }
+    groupList.classList.add('selecting');
+    if (searchList == null) {
+      searchList = document.getElementById('search-list');
+    }
+    searchList.classList.add('selecting');
+
+    // Append the checkboxes if necessary
+    var domNodes = contactsListView.querySelectorAll(NODE_SELECTOR);
+    domNodes = Array.prototype.slice.call(domNodes, 0);
+    domNodes.forEach(function onNode(node) {
+      if (node.querySelector('label') != null) {
+        return;
+      }
+      var label = getSelectCheck(node.getAttribute('data-uuid'));
+      node.insertBefore(label, node.firstChild);
+    });
+
+    // Setup cancel select mode
+    var close = document.getElementById('cancel_activity');
+    close.removeEventListener('click', Contacts.cancel);
+    close.addEventListener('click', selectAction.bind(null, null));
+    close.classList.remove('hide');
+
+    clearClickHandlers();
+    handleClick(function handleSelectClick(id) {
+      var check = document.querySelector('input[value="' + id + '"]');
+      if (!check) {
+        return;
+      }
+
+      check.checked = !check.checked;
+
+      handleSelection(null, check.checked);
+    });
+
+    if (callback) {
+      callback();
+    }
+  };
+
+  var exitSelectMode = function exitSelectMode(canceling) {
+    inSelectMode = false;
+
+    // TODO: clean up the mess ;)
+
+    // Hide and show buttons
+    selectForm.classList.add('hide');
+    var menus = document.querySelectorAll(
+      '#view-contacts-list menu[type="toolbar"] button');
+    menus = Array.prototype.slice.call(menus, 0);
+    menus.forEach(function onMenu(button) {
+      button.classList.remove('hide');
+    });
+
+    selectActionButton.classList.add('hide');
+
+    // Clean the checks
+    var all = document.querySelectorAll('[name="selectIds[]"]:checked');
+    all = Array.prototype.slice.call(all, 0);
+    all.forEach(function onAll(check) {
+      check.checked = false;
+    });
+
+    // Not in select mode
+    groupList.classList.remove('selecting');
+    searchList.classList.remove('selecting');
+
+    // Restore contact list default click handler
+    clearClickHandlers();
+    handleClick(Contacts.showContactDetail);
+
+    // Restore close button
+    var close = document.getElementById('cancel_activity');
+    close.removeEventListener('click', selectAction);
+    close.addEventListener('click', Contacts.cancel);
+    close.classList.add('hide');
+  };
+
   return {
     'init': init,
     'load': load,
@@ -1149,6 +1414,8 @@ contacts.List = (function() {
     'hasPhoto' : hasPhoto,
     'renderFbData': renderFbData,
     'getHighlightedName': getHighlightedName,
+    'enterSelectMode': enterSelectMode,
+    'exitSelectMode': exitSelectMode,
     get chunkSize() {
       return CHUNK_SIZE;
     },
