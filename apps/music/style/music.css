@@ -678,10 +678,7 @@ body.picker-mode #title-player {
   background-image: url("./images/IconAction_Media_ShuffleOff_30x30.png");
 }
 
-#player-album-shuffle:disabled {
-  background-image: url("./images/IconAction_Media_ShuffleOn_30x30.png");
-}
-
+#player-album-shuffle:disabled,
 #player-album-shuffle.shuffle-on {
   background-image: url("./images/IconAction_Media_ShuffleOn_30x30.png");
 }
@@ -690,6 +687,7 @@ body.picker-mode #title-player {
   background-image: url("./images/IconAction_Media_RepeatOff_30x30.png");
 }
 
+#player-album-repeat:disabled,
 #player-album-repeat.repeat-list {
   background-image: url("./images/IconAction_Media_RepeatList_30x30.png");
 }

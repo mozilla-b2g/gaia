@@ -400,7 +400,7 @@ function thumbnailClickHandler() {
     // video player. Otherwise, we'll have contention for the video hardware
     var index = parseInt(this.dataset.index);
     stopParsingMetadata(function() {
-      showPlayer(index, true);
+      showPlayer(index, !pendingPick);
     });
   }
   else if (currentView === dom.thumbnailSelectView) {
@@ -527,6 +527,8 @@ function showPlayer(videonum, autoPlay) {
 
     if (autoPlay) {
       play();
+    } else {
+      pause();
     }
   }
 
@@ -654,7 +656,12 @@ function playerEnded() {
   }
 
   dom.player.currentTime = 0;
-  hidePlayer(true);
+
+  if (pendingPick) {
+    pause();
+  } else {
+    hidePlayer(true);
+  }
 }
 
 function play() {
