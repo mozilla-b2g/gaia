@@ -24,6 +24,7 @@ var ListMenu = {
     window.addEventListener('screenchange', this, true);
     window.addEventListener('home', this);
     window.addEventListener('holdhome', this);
+    this.oncancel = function() {};
   },
 
   // Pass an array of list items and handler for clicking on the items
