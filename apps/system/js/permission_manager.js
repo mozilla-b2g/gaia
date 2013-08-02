@@ -3,6 +3,8 @@
 
 'use strict';
 
+const Ci = Components.interfaces;
+
 var PermissionManager = (function() {
   var _ = navigator.mozL10n.get;
 
@@ -49,8 +51,17 @@ var PermissionManager = (function() {
     var str = '';
 
     var permissionID = 'perm-' + detail.permission.replace(':', '-');
-    if (detail.isApp) { // App
-      str = _(permissionID + '-appRequest', { 'app': detail.appName });
+    // The app is certified o priviledged
+    if ((detail.appType == Ci.nsIPrincipal.APP_STATUS_PRIVILEGED) ||
+       (detail.appType ==  Ci.nsIPrincipal.APP_STATUS_CERTIFIED)) { 
+      str = _(permissionID + '-appRequest', { 'app': detail.appName })
+            + detail.description;//Added to show permissions description
+    // The app is webapp
+    } else if (detail.appType == Ci.nsIPrincipal.APP_STATUS_INSTALLED) {
+      //Added to show permissions description with a warning about its origin
+      //Comment next two lines if don't want to show description for webapps
+      str = _(permissionID + '-appRequest', { 'app': detail.appName })
+            + "Provided by developer: " + detail.description;
     } else { // Web content
       str = _(permissionID + '-webRequest', { 'site': detail.origin });
     }
