@@ -6,12 +6,6 @@
   // Scale ratio for different devices
   var SCALE_RATIO = window.innerWidth / 320;
 
-  // Minimum size in px for profile detail image
-  var IMG_DETAIL_WIDTH = 200;
-
-  // Minimum size in px for profile thumbnail image
-  var IMG_THUMB_SIZE = 120;
-
   var LAST_IMPORT_TIMESTAMP_SUFFIX = '_last_import_timestamp';
 
   function scale(size) {
@@ -19,8 +13,9 @@
   }
 
   importUtils.getPreferredPictureBox = function() {
+    var imgThumbSize = oauthflow.params['facebook'].imgThumbSize;
     var out = {
-      width: scale(IMG_THUMB_SIZE)
+      width: scale(imgThumbSize)
     };
 
     out.height = out.width;
@@ -29,7 +24,8 @@
   };
 
   importUtils.getPreferredPictureDetail = function() {
-    return scale(IMG_DETAIL_WIDTH);
+    var imgDetailWidth = oauthflow.params['facebook'].imgDetailWidth;
+    return scale(imgDetailWidth);
   };
 
   importUtils.setTimestamp = function(type, callback) {
