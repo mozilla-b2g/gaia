@@ -6,7 +6,6 @@
 require('/shared/js/l10n.js');
 
 suite('L10n', function() {
-
   var _;
   var _translate;
   var _localize;
@@ -33,8 +32,13 @@ suite('L10n', function() {
     'update.innerHTML[one]     = <strong>{{n}} update available.</strong> \\',
     '                            <span>Tap for more info.</span>',
     'update.innerHTML[other]   = <strong>{{n}} updates available.</strong> \\',
-    '                            <span>Tap for more info.</span>'
+    '                            <span>Tap for more info.</span>',
+    'inline-translation-test   = static content provided by inlined JSON'
   ].join('\n');
+
+  var inlineL10Props = {
+    'inline-translation-test': {'_': 'static content provided by inlined JSON'}
+  };
 
   var key_cropImage = 'cropimage';
   var key_delete = 'delete-n-items';
@@ -57,8 +61,15 @@ suite('L10n', function() {
     _translate = navigator.mozL10n.translate;
     _localize = navigator.mozL10n.localize;
 
-    navigator.mozL10n.language.code = 'en-US';
+    var lang = 'en-US';
 
+    var inline = document.createElement('script');
+    inline.setAttribute('type', 'application/l10n');
+    inline.setAttribute('lang', lang);
+    inline.textContent = JSON.stringify(inlineL10Props);
+    document.head.appendChild(inline);
+
+    navigator.mozL10n.language.code = lang;
     navigator.mozL10n.ready(function() {
       xhr.restore();
       done();
@@ -185,4 +196,48 @@ suite('L10n', function() {
     });
   });
 
+  suite('translate existing', function() {
+    function setLang(lang, done, callback) {
+      window.addEventListener('localized', function onLocalized() {
+        window.removeEventListener('localized', onLocalized);
+        try {
+          callback();
+        } catch (e) {
+          done(e);
+        }
+      });
+      navigator.mozL10n.language.code = lang;
+    }
+
+    var elem;
+
+    setup(function() {
+      elem = document.createElement('div');
+      document.body.appendChild(elem);
+    });
+
+    teardown(function() {
+      document.body.removeChild(elem);
+    });
+
+    test('inline translation', function(done) {
+      elem.dataset.l10nId = 'inline-translation-test';
+      assert.equal(elem.textContent, '');
+      setLang('en-US', done, function() {
+        assert.equal(elem.textContent,
+            'static content provided by inlined JSON');
+        done();
+      });
+    });
+
+    test('downloaded translation', function(done) {
+      elem.dataset.l10nId = 'cropimage';
+      assert.equal(elem.textContent, '');
+      setLang('en-US', done, function() {
+        assert.equal(elem.textContent, 'Crop');
+        done();
+      });
+    });
+  });
 });
+
