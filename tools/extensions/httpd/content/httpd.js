@@ -3276,7 +3276,7 @@ ServerHandler.prototype =
                     <body>\
                       <h1>404 Not Found</h1>\
                       <p>\
-                        <span style='font-family: monospace;'>" +
+                        <span style='font-family: sans-serif;'>" +
                           htmlEscape(metadata.path) +
                        "</span> was not found.\
                       </p>\

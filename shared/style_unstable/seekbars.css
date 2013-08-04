@@ -34,7 +34,7 @@ div[role="slider"] progress::-moz-progress-bar {
 div[role="slider"] > label {
   font-size: 1.5rem;
   line-height: 3.8rem;
-  font-family: "Open Sans", Sans-serif;
+  font-family: sans-serif;
   color: #00aacb;
   float: right;
   padding: 0 0 0 1rem;
