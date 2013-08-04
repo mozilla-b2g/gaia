@@ -9,7 +9,7 @@
 }
 
 #fake-phone-number-view {
-  font-size: 4rem;
+  font-size: 3rem;
   position: absolute;
   line-height: 0;
   visibility: hidden;
@@ -335,8 +335,8 @@ article:not(:target) #keypad-delete {
 }
 
 .phone-number-font {
-  font-size: 4rem;
-  color: #00CAF4;
+  font-size: 3rem;
+  color: #fff;
 }
 
 /* Suggestion bar */
