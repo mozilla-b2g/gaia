@@ -650,7 +650,7 @@ var WindowManager = (function() {
         'setVisible' in runningApps[homescreen].iframe)
         runningApps[homescreen].iframe.setVisible(false);
     } else if (reset) {
-      runningApps[homescreen].iframe.src = homescreenURL;
+      runningApps[homescreen].iframe.src = homescreenURL + Date.now();
       runningApps[homescreen].resize();
     }
 

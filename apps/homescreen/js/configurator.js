@@ -29,7 +29,7 @@ var Configurator = (function() {
           var provider = window[searchPage.provider] || dummyProvider;
           if (searchPage.enabled) {
             provider.init();
-            Homescreen.init(1);
+            Homescreen.init(searchPage.separate_page? 1 : 0);
           } else {
             startHomescreenByDefault();
             setTimeout(provider.destroy, 0);
