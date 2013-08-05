@@ -147,6 +147,29 @@ suite('Utils', function() {
       assert.equal(Utils.getHeaderDate(fixtures.date), expect);
     });
 
+    test('between 2 and 5 days ago', function() {
+      var spy = this.sinon.spy(MockL10n.DateTimeFormat.prototype,
+        'localeFormat');
+      for (var days = 2; days <= 5; days++) {
+        var date = Date.now() - 86400000 * days;
+        Utils.getHeaderDate(date);
+        assert.ok(spy.called);
+        assert.equal(+spy.args[0][0], +date);
+        assert.equal(spy.args[0][1], '%A');
+        spy.reset();
+      }
+    });
+
+    test('more than 6 days ago', function() {
+      var spy = this.sinon.spy(MockL10n.DateTimeFormat.prototype,
+        'localeFormat');
+      var date = Date.now() - 86400000 * 6;
+      Utils.getHeaderDate(date);
+      assert.ok(spy.called);
+      assert.equal(+spy.args[0][0], +date);
+      assert.equal(spy.args[0][1], '%x');
+    });
+
     /*
       Related to:
       Bug 847975 - [MMS][SMS] remove use of "dtf" alias from SMS
@@ -828,6 +851,44 @@ suite('Utils', function() {
     });
   });
 
+  suite('Utils.updateTimeHeader', function() {
+    var subject, formattedTime, formattedDate;
+
+    setup(function() {
+      subject = document.createElement('header');
+      subject.dataset.timeUpdate = 'true';
+      var time = Date.parse('2013-01-01');
+      subject.dataset.time = time;
+      formattedTime = Utils.getFormattedHour(time);
+      formattedDate = Utils.getHeaderDate(time);
+    });
+
+    test('date and time header', function() {
+      Utils.updateTimeHeader(subject);
+      var content = subject.textContent;
+      assert.include(content, formattedTime);
+      assert.include(content, formattedDate);
+    });
+
+    test('date header', function() {
+      subject.dataset.isThread = 'true';
+      Utils.updateTimeHeader(subject);
+
+      var content = subject.textContent;
+      assert.isTrue(content.indexOf(formattedTime) === -1);
+      assert.include(content, formattedDate);
+    });
+
+    test('time header', function() {
+      subject.dataset.timeOnly = 'true';
+      Utils.updateTimeHeader(subject);
+
+      var content = subject.textContent;
+      assert.include(content, formattedTime);
+      assert.isTrue(content.indexOf(formattedDate) === -1);
+    });
+  });
+
   suite('Utils.updateTimeHeaders', function() {
     var existingTitles;
 
@@ -883,14 +944,23 @@ suite('Utils', function() {
       }
     });
 
-    test('calling after one day should update all date headers', function() {
-      this.sinon.clock.tick(24 * 60 * 60 * 1000);
-      Utils.updateTimeHeaders();
+    suite('calling after one day', function() {
+      setup(function() {
+        this.sinon.clock.tick(24 * 60 * 60 * 1000);
+        this.sinon.spy(Utils, 'updateTimeHeader');
+        Utils.updateTimeHeaders();
+      });
 
-      var headers = document.querySelectorAll('header');
-      assert.notEqual(headers[0].textContent, existingTitles[0]);
-      assert.equal(headers[1].textContent, existingTitles[1]);
-      assert.notEqual(headers[2].textContent, existingTitles[2]);
+      test('should update all date headers', function() {
+        var headers = document.querySelectorAll('header');
+        for (var i = 0, l = headers.length; i < l; i++) {
+          assert.notEqual(headers[i].textContent, existingTitles[i]);
+        }
+      });
+
+      test('should call updateTimeHeader 3 times', function() {
+        assert.equal(Utils.updateTimeHeader.callCount, 3);
+      });
     });
 
     test('should call FixedHeader.updateHeaderContent', function() {
