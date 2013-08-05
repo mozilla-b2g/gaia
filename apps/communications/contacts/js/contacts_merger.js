@@ -107,6 +107,7 @@ contacts.Merger = (function() {
           if (matchedValIdx !== -1) {
             matchedValue = aResult.matchedValues[matchedValIdx];
           }
+          aResult.target = aResult.target || '';
           if (!telsHash[aTel.value] && !telsHash[aResult.target]) {
             var theValue = aResult.target.length > matchedValue.length ?
                               aResult.target : matchedValue;
