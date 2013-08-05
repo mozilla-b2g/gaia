@@ -115,6 +115,7 @@ pref("general.useragent.override.3g.qq.com", "\\(Mobile#(Android; Mobile"); // b
 pref("general.useragent.override.aprod.hu", "\\(Mobile#(Android; Mobile"); // bug 878220
 pref("general.useragent.override.arukereso.hu", "\\(Mobile#(Android; Mobile"); // bug 878222
 pref("general.useragent.override.badoo.com", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 878224
+pref("general.useragent.override.bet365.com", "\\(Mobile#(Android; Mobile"); // bug 878226
 pref("general.useragent.override.blikk.hu", "\\(Mobile#(Android; Mobile"); // bug 878228
 pref("general.useragent.override.citromail.hu", "\\(Mobile#(Android; Mobile"); // bug 878230
 pref("general.useragent.override.hazipatika.com", "\\(Mobile#(Android; Mobile"); // bug 878232
