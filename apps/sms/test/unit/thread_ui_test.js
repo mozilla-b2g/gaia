@@ -2090,17 +2090,16 @@ suite('thread_ui.js >', function() {
         test('Single known', function() {
 
           Threads.set(1, {
-            participants: ['999']
+            participants: ['+12125559999']
           });
 
           window.location.hash = '#thread=1';
 
-          ThreadUI.headerText.dataset.isContact = true;
-          ThreadUI.headerText.dataset.number = '999';
+
+          ThreadUI.headerText.dataset.isContact = 'true';
+          ThreadUI.headerText.dataset.number = '+12125559999';
 
           ThreadUI.onHeaderActivation();
-
-          var calls = MockOptionMenu.calls;
 
           // Does not initiate an OptionMenu
           assert.equal(MockOptionMenu.calls.length, 0);
