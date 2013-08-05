@@ -162,11 +162,6 @@ section[role="region"] > header:first-child menu[type="toolbar"] button[disabled
   opacity: 0.5;
 }
 
-section[role="region"] > header:first-child a:first-letter,
-section[role="region"] > header:first-child button:first-letter {
-  text-transform: uppercase;
-}
-
 /* Icon definitions */
 section[role="region"] > header:first-child .icon {
   position: relative;
