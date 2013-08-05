@@ -44,14 +44,19 @@
       return this.blob.size;
     },
 
-    get sizeForHumans() { // blob size with unit (KB or MB)
-      var _ = navigator.mozL10n.get;
+    get sizeForL10n() { // blob size with unit (KB or MB)
       var sizeKB = this.blob.size / 1024;
       var sizeMB = sizeKB / 1024;
       if (sizeKB < 1000) {
-        return _('attachmentSize', { n: sizeKB.toFixed(1) });
+        return {
+          l10nId: 'attachmentSize',
+          l10nArgs: { n: sizeKB.toFixed(1) }
+        };
       } else {
-        return _('attachmentSizeMB', { n: sizeMB.toFixed(1) });
+        return {
+          l10nId: 'attachmentSizeMB',
+          l10nArgs: { n: sizeMB.toFixed(1) }
+        };
       }
     },
 
@@ -114,19 +119,22 @@
     getAttachmentSrc: function(thumbnail, tmplID) {
       // interpolate the #attachment-[no]preview-tmpl template
       thumbnail = thumbnail || {};
+      var sizeL10n = this.sizeForL10n;
       return Utils.Template(tmplID).interpolate({
         type: this.type,
         errorClass: thumbnail.error ? 'corrupted' : '',
         imgData: thumbnail.data,
         fileName: this.name.slice(this.name.lastIndexOf('/') + 1),
-        size: this.sizeForHumans
+        sizeL10nId: sizeL10n.l10nId,
+        sizeL10nArgs: JSON.stringify(sizeL10n.l10nArgs)
       });
     },
 
-    bubbleEvents: function(event) {
+    iframeLoad: function(event) {
       // Bubble click events from inside the iframe.
       var iframe = event.target;
       var clickOnFrame = iframe.click.bind(iframe);
+      navigator.mozL10n.translate(iframe.contentDocument.body);
       iframe.contentDocument.addEventListener('click', clickOnFrame);
       iframe.contentDocument.addEventListener('contextmenu', clickOnFrame);
     },
@@ -182,7 +190,7 @@
           // Attach click listeners and fire the callback when rendering is
           // complete: we can't bind `readyCallback' to the `load' event
           // listener because it would break our unit tests.
-          container.addEventListener('load', this.bubbleEvents.bind(this));
+          container.addEventListener('load', this.iframeLoad.bind(this));
           container.src = 'data:text/html,' + tmplSrc;
         } else { // <div>
           container.innerHTML = this.getAttachmentSrc(thumbnail, tmplID);

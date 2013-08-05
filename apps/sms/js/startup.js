@@ -44,6 +44,16 @@ window.addEventListener('localized', function showBody() {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // look for any iframes and localize them - mozL10n doesn't do this
+  Array.prototype.forEach.call(document.querySelectorAll('iframe'),
+    function forEachIframe(iframe) {
+      var doc = iframe.contentDocument;
+      doc.documentElement.lang = navigator.mozL10n.language.code;
+      doc.documentElement.dir = navigator.mozL10n.language.direction;
+      navigator.mozL10n.translate(doc.body);
+    }
+  );
 });
 
 window.addEventListener('load', function() {
