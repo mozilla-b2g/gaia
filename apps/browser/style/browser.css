@@ -264,13 +264,14 @@ input[type="image"] {
                     url('./images/tabs-badge-background.png');
   background-repeat: no-repeat, no-repeat;
   background-position: top right, right;
-  background-size: auto 5rem;
+  background-size: 5rem, auto 5rem;
   padding-right: 6.5rem;
 }
 
 .tabs-screen #toolbar-start:active {
   background-image: url('./images/iconaction_back_50x50.png'),
                     url('./images/tab-pressed-bg.png');
+  background-size: 5rem, auto 5rem;
 }
 
 .tabs-screen #frames {
@@ -823,6 +824,7 @@ li[role="listitem"] small {
 
 #settings-button {
   background: url('images/iconaction_settings_30x30.png') center center no-repeat;
+  background-size: 3rem;
   float: right;
   height: 5rem;
 }
@@ -835,6 +837,7 @@ li[role="listitem"] small {
 #new-tab-button {
   background: url('images/iconaction_new_30x30.png') center center no-repeat,
               url('images/header-divider.png') left center no-repeat;
+  background-size: 3rem, auto;
   float: right;
   height: 5rem;
 }
