@@ -20,8 +20,8 @@ var CallLog = {
 
     var lazyFiles = [
       '/dialer/style/fixed_header.css',
-      '/shared/style/switches.css',
-      '/shared/style_unstable/lists.css',
+      '/shared/style/v1/switches.css',
+      '/shared/style/v1/unstable/lists.css',
       '/dialer/js/phone_action_menu.js',
       '/dialer/js/fixed_header.js',
       '/dialer/js/utils.js'

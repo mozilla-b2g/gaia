@@ -964,7 +964,7 @@ function deleteSelectedItems() {
 
 // show a confirm dialog
 function showConfirmDialog(options, onConfirm, onCancel) {
-  LazyLoader.load('shared/style/confirm.css', function() {
+  LazyLoader.load('shared/style/v1/confirm.css', function() {
     var dialog = $('confirm-dialog');
     var msgEle = $('confirm-msg');
     var cancelButton = $('confirm-cancel');

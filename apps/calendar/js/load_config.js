@@ -42,7 +42,7 @@ Calendar.LoadConfig = (function() {
     jsRoot: '/js/',
     styleRoot: '/style/',
     sharedJsRoot: '/shared/js/',
-    sharedStyleRoot: '/shared/style/',
+    sharedStyleRoot: '/shared/style/v1/',
     storeRoot: 'store/',
 
     plugins: {

@@ -89,7 +89,7 @@ body {
 
 /*
  * spinner animation styles copied from
- * shared/style_unstable/progress_activity.css
+ * shared/style/v1/unstable/progress_activity.css
  */
 #spinner {
   position: absolute;
@@ -1105,11 +1105,11 @@ li.list-item a:active {
 }
 
 form[role="search"] {
-  background: url(/shared/style/headers/images/ui/dark/subheader.png);
+  background: url(/shared/style/v1/headers/images/ui/dark/subheader.png);
 }
 
 form[role="search"] button {
-  background: url(/shared/style/headers/images/ui/dark/separator.png) no-repeat scroll 2rem center transparent;
+  background: url(/shared/style/v1/headers/images/ui/dark/separator.png) no-repeat scroll 2rem center transparent;
   border: none;
   border-radius: 0;
   padding: 0;

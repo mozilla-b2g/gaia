@@ -31,11 +31,11 @@ var lazyLoadFiles = [
   'js/settings.js',
   'js/notification.js',
   'js/activity_handler.js',
-  'shared/style/input_areas.css',
-  'shared/style/switches.css',
-  'shared/style/confirm.css',
-  'shared/style_unstable/progress_activity.css',
-  'shared/style/action_menu.css',
+  'shared/style/v1/input_areas.css',
+  'shared/style/v1/switches.css',
+  'shared/style/v1/confirm.css',
+  'shared/style/v1/unstable/progress_activity.css',
+  'shared/style/v1/action_menu.css',
   'style/notification.css'
 ];
 

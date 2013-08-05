@@ -95,7 +95,7 @@ ul li a[role="button"] {
   height: calc(100% - 2rem);
 }
 
-/* custom styles for boolean inputs (see /shared/style/switches.css) */
+/* custom styles for boolean inputs (see /shared/style/v1/switches.css) */
 ul li label {
   text-transform: none;
 }

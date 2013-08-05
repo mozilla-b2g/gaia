@@ -47,9 +47,9 @@ var AlarmList = {
       [
         document.getElementById('alarm'),
         'js/alarm_edit.js',
-        'shared/style/input_areas.css',
-        'shared/style/buttons.css',
-        'shared/style/edit_mode.css'
+        'shared/style/v1/input_areas.css',
+        'shared/style/v1/buttons.css',
+        'shared/style/v1/edit_mode.css'
       ],
       function() {
         AlarmEdit.load(alarm);

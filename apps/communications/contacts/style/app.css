@@ -291,7 +291,7 @@ li a[role="button"].activity > b{
 
 
 
-/* Selection tag extended from shared/style/buttons.css */
+/* Selection tag extended from shared/style/v1/buttons.css */
 .view-select-tag .selection-list li button {
   background-color: #fff;
 }

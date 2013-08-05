@@ -127,11 +127,11 @@ var Browser = {
 
     var filesToLoad = [
       // css files
-      'shared/style/headers.css',
-      'shared/style/buttons.css',
-      'shared/style/input_areas.css',
-      'shared/style/status.css',
-      'shared/style/confirm.css',
+      'shared/style/v1/headers.css',
+      'shared/style/v1/buttons.css',
+      'shared/style/v1/input_areas.css',
+      'shared/style/v1/status.css',
+      'shared/style/v1/confirm.css',
       'style/action_menu.css',
       'style/authentication_dialog.css',
 

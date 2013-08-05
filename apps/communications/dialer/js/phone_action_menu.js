@@ -124,7 +124,7 @@ var PhoneNumberActionMenu = (function() {
     */
     show: function show(contactId, phoneNumber, options) {
       LazyLoader.load([
-        '/shared/style/action_menu.css',
+        '/shared/style/v1/action_menu.css',
         '/dialer/style/phone_action_menu.css'
       ], function pnam_show() {
         _init();

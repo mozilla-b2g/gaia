@@ -169,7 +169,7 @@ var KeypadManager = {
     TonePlayer.init(this._onCall ? 'telephony' : 'normal');
 
     this.render();
-    loader.load(['/shared/style/action_menu.css',
+    loader.load(['/shared/style/v1/action_menu.css',
                  '/dialer/js/suggestion_bar.js']);
   },
 
