@@ -104,7 +104,6 @@ pref("general.useragent.override.ehow.com", "\\(Mobile#(Android; Mobile"); // bu
 pref("general.useragent.override.urbanspoon.com", "\\(Mobile#(Android; Mobile"); // bug 843162
 pref("general.useragent.override.virginatlantic.com", "\\(Mobile#(Android; Mobile"); // bug 843165
 pref("general.useragent.override.cheaptickets.com", "\\(Mobile#(Android; Mobile"); // bug 843168
-pref("general.useragent.override.etsy.com", "\\(Mobile#(Android; Mobile"); // bug 843170
 pref("general.useragent.override.zimbio.com", "\\(Mobile#(Android; Mobile"); // bug 843172
 pref("general.useragent.override.tylted.com", "\\(Mobile#(Android; Mobile"); // bug 843176
 pref("general.useragent.override.txt2nite.com", "\\(Mobile#(Android; Mobile"); // bug 843178
