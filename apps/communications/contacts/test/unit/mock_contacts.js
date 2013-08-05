@@ -47,5 +47,6 @@ var MockContacts = {
   },
   navigation: {
     home: function() {}
-  }
+  },
+  checkCancelableActivity: function() {}
 };

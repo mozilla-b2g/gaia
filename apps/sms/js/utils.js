@@ -451,7 +451,7 @@
       the number.
 
       In order to workaround facebook contact issue(bug 895817), it should be
-      able to hanle the case about phone number without matched contact.
+      able to handle the case about phone number without matched contact.
     */
     getContactDisplayInfo: function(resolver, phoneNumber, callback) {
       resolver(phoneNumber, function onContacts(contacts) {
@@ -480,7 +480,7 @@
           }
         }
 
-        // Get the title in the standar way
+        // Get the title in the standard way
         var details = Utils.getContactDetails(tel, contact);
         var info = Utils.getDisplayObject(details.title || null, tel);
         /*
