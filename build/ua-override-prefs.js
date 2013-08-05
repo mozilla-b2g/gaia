@@ -152,6 +152,5 @@ pref("general.useragent.override.mercadolibre.com.mx", "\\(Mobile#(Android; Mobi
 pref("general.useragent.override.olx.com.mx", "\\(Mobile#(Android; Mobile"); // bug 878645
 pref("general.useragent.override.sat.gob.mx", "\\(Mobile#(Android; Mobile"); // bug 878647
 pref("general.useragent.override.univision.com", "\\(Mobile#(Android; Mobile"); // bug 878649
-pref("general.useragent.override.b92.net", "\\(Mobile#(Android; Mobile"); // bug 878651
 pref("general.useragent.override.redstarbelgrade.info", "\\(Mobile#(Android; Mobile"); // bug 878653
 pref("general.useragent.override.vesti-online.com", "\\(Mobile#(Android; Mobile"); // bug 878655
