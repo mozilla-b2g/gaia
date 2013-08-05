@@ -351,6 +351,7 @@ section.has-carrier .article-list header:first-child {
 
   color: #606060;
   font-size: 1.3rem;
+  min-height: 1.8rem;
   text-align: left;
   text-transform: uppercase;
 }
