@@ -227,6 +227,9 @@
       activity.onerror = function() {
         var _ = navigator.mozL10n.get;
         console.error('error with open activity', this.error.name);
+        if (this.error.name === 'ActivityCanceled') {
+          return;
+        }
         alert(_('attachmentOpenError'));
       };
     }
