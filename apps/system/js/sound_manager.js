@@ -140,7 +140,6 @@
         var okfn = function() {
           changeVolume(1);
           startAccumulator();
-          CustomDialog.hide();
         };
         resetToCEMaxVolume(okfn);
       } else {
@@ -153,28 +152,34 @@
   }
 
   function showCEWarningDialog(okfn) {
-    // show dialog
-    var cancel = {};
-    var confirm = {};
+    // Show dialog.
     var agreement = false;
-    cancel.title = navigator.mozL10n.get('cancel');
-    confirm.title = navigator.mozL10n.get('continue');
-    cancel.callback = function() {
-      CustomDialog.hide();
+    var _ = navigator.mozL10n.get;
+
+    var ceTitle = {
+      'icon': '/style/sound_manager/images/icon_Volumewarning.png',
+      'title': _('ceWarningtitle')
+    };
+    var ceMsg = _('ceWarningcontent');
+
+    var cancel = {
+      'title': _('ok')
     };
 
     if (okfn instanceof Function) {
-      confirm.callback = okfn;
+      cancel.callback = function onCancel() {
+        okfn();
+        CustomDialog.hide();
+      };
     } else {
-      confirm.callback = function() {
+      cancel.callback = function onCancel() {
         startAccumulator();
         CustomDialog.hide();
       };
     }
-    var ceTitle = navigator.mozL10n.get('ceWarningtitle');
-    var ceMsg = navigator.mozL10n.get('ceWarningcontent');
-    CustomDialog.show(ceTitle, ceMsg, cancel, confirm);
-   }
+
+    CustomDialog.show(ceTitle, ceMsg, cancel);
+  }
 
   function startAccumulator() {
     if (CEAccumulatorID == null) {
@@ -595,5 +600,6 @@
       pendingRequestCount--;
     };
   }
+
 })();
 
