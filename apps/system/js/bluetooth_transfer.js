@@ -402,8 +402,9 @@ var BluetoothTransfer = {
 
   openReceivedFile: function bt_openReceivedFile(evt) {
     // Launch the gallery with an open activity to view this specific photo
-    // XXX: The prefix file path should be refined when API is ready to provide
-    var filePath = 'downloads/bluetooth/' + evt.fileName;
+    // XXX: Bug 897434 - Save received/downloaded files in one specific folder
+    // with meaningful path and filename
+    var filePath = 'Download/Bluetooth/' + evt.fileName;
     var contentType = evt.contentType;
     var storageType = 'sdcard';
     var self = this;
