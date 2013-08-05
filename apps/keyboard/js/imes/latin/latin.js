@@ -184,8 +184,13 @@
 
     // If we are going to offer suggestions, set up the worker thread.
     // This will also request a first batch of suggestions.
-    if (suggesting || correcting)
-      setLanguage(lang);
+    if (suggesting || correcting) {
+      if (language != lang) {
+        setLanguage(lang);
+      } else {
+        updateSuggestions();
+      }
+    }
   }
 
   function deactivate() {
