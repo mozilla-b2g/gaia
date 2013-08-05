@@ -405,6 +405,7 @@ var icc = {
       };
     }
 
+    this.icc_input_box.value = '';
     this.icc_input_msg.textContent = message;
     this.icc_input.classList.add('visible');
     this.icc_view.classList.add('visible');
