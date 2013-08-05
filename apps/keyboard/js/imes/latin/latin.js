@@ -160,7 +160,10 @@
   }
 
   // This gets called whenever the keyboard pops up to tell us everything
-  // we need to provide useful typing assistance.
+  // we need to provide useful typing assistance. It also gets called whenever
+  // the user taps on an input field to move the cursor. That means that there
+  // may be multiple calls to activate() without calls to deactivate between
+  // them.
   function activate(lang, state, options) {
     inputMode = getInputMode(state.type, state.inputmode);
     inputText = state.value;
@@ -176,16 +179,31 @@
     suggesting = (options.suggest && inputMode !== 'verbatim');
     correcting = (options.correct && inputMode !== 'verbatim');
 
-    // Reset the double space flag
+    // Reset our state
     lastSpaceTimestamp = 0;
+    autoCorrection = null;
+    revertTo = revertFrom = '';
+    justAutoCorrected = false;
+    correctionDisabled = false;
+
+    // The keyboard isn't idle anymore, so clear the timer
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
 
     // Start off with the correct capitalization
     updateCapitalization();
 
-    // If we are going to offer suggestions, set up the worker thread.
-    // This will also request a first batch of suggestions.
-    if (suggesting || correcting)
-      setLanguage(lang);
+    // If we are going to offer suggestions, ensure that there is a worker
+    // thread created and that it knows what language we're using, and then
+    // start things off by requesting a first batch of suggestions.
+    if (suggesting || correcting) {
+      if (!worker || lang !== language)
+        setLanguage(lang);  // This calls updateSuggestions
+      else
+        updateSuggestions();
+    }
   }
 
   function deactivate() {
@@ -208,12 +226,6 @@
   }
 
   function setLanguage(newlang) {
-    // The keyboard isn't idle anymore, so clear the timer
-    if (idleTimer) {
-      clearTimeout(idleTimer);
-      idleTimer = null;
-    }
-
     // If there is no worker and no language, or if there is a worker and
     // the language has not changed, then there is nothing to do here.
     if ((!worker && !newlang) || (worker && newlang === language))
