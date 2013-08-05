@@ -97,7 +97,6 @@ pref("general.useragent.override.edmunds.com", "\\(Mobile#(Android; Mobile"); //
 pref("general.useragent.override.icanhas.cheezburger.com", "\\(Mobile#(Android; Mobile"); // bug 843197
 pref("general.useragent.override.citibank.com", "\\(Mobile#(Android; Mobile"); // bug 843151
 pref("general.useragent.override.games.com", "\\(Mobile#(Android; Mobile"); // bug 843153
-pref("general.useragent.override.nba.com", "\\(Mobile#(Android; Mobile"); // bug 843154
 pref("general.useragent.override.orbitz.com", "\\(Mobile#(Android; Mobile"); // bug 843156
 pref("general.useragent.override.starwoodhotels.com", "\\(Mobile#(Android; Mobile"); // bug 843158
 pref("general.useragent.override.ehow.com", "\\(Mobile#(Android; Mobile"); // bug 843160
