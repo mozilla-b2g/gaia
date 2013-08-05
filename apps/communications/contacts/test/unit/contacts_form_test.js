@@ -230,12 +230,12 @@ suite('Render contact form', function() {
       fbContact.getDataAndValues().onsuccess = function() {
         this.result[0].tel[1] = {
           'value': '+34616885989',
-          'type': 'Mobile',
+          'type': ['Mobile'],
           'carrier': 'NTT'
         };
 
         this.result[0].email[1] = {
-          'type': 'work',
+          'type': ['work'],
           'value': 'workwithme@tid.es'
         };
         subject.render(mockContact, null, this.result);
@@ -303,7 +303,7 @@ suite('Render contact form', function() {
     var typePhone = document.querySelector('#tel_type_' + c).textContent;
     var carrierPhone = document.querySelector('#carrier_' + c).value;
     assert.isTrue(valuePhone === data.tel[c].value);
-    assert.isTrue(typePhone === data.tel[c].type);
+    assert.isTrue(typePhone === data.tel[c].type[0]);
     assert.isTrue(carrierPhone === data.tel[c].carrier);
   }
 
@@ -313,7 +313,7 @@ suite('Render contact form', function() {
     var valueEmail = document.querySelector('#email_' + c).value;
     var typeEmail = document.querySelector('#email_type_' + c).textContent;
     assert.isTrue(valueEmail === data.email[c].value);
-    assert.isTrue(typeEmail === data.email[c].type);
+    assert.isTrue(typeEmail === data.email[c].type[0]);
   }
 
   function assertAddressData(c, addrData) {
