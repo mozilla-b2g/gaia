@@ -91,7 +91,7 @@ var icc_events = {
       DUMP(' STK Language selection = ' + evt.settingValue);
       this.downloadEvent({
         eventType: icc._icc.STK_EVENT_TYPE_LANGUAGE_SELECTION,
-        language: evt.settingValue
+        language: evt.settingValue.substring(0, 2)
       });
   },
 
