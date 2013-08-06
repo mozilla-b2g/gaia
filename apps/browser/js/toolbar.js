@@ -29,7 +29,7 @@ var Toolbar = {
       this.bookmarkButton.classList.remove('bookmarked');
       return;
     }
-    Places.getBookmark(Browser.currentTab.url, (function(bookmark) {
+    BrowserDB.getBookmark(Browser.currentTab.url, (function(bookmark) {
       if (bookmark) {
         this.bookmarkButton.classList.add('bookmarked');
       } else {

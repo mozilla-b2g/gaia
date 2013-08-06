@@ -4,24 +4,78 @@
 var idb = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
 
-var Places = {
+var BrowserDB = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
   MAX_ICON_SIZE: 102400, // 100kB
   TOP_SITE_SCREENSHOTS: 4, // Number of top sites to keep screenshots for
 
-  init: function places_init(callback) {
+  init: function browserDB_init(callback) {
     this.db.open(callback);
   },
 
-  addPlace: function places_addPlace(uri, callback) {
+  /**
+   * Populate browser database with configuration data specified at build time.
+   *
+   * @param {Integer} upgradeFrom Version of database being upgraded from.
+   */
+  populate: function browserDB_populate(upgradeFrom) {
+    console.log('Populating browser database.');
+
+    Browser.getOperatorVariant((function(variant) {
+      Browser.getConfigurationData(variant, (function(data) {
+
+        // Populate bookmarks if upgrading from version 0 or below
+        if (upgradeFrom < 1 && data.bookmarks) {
+          data.bookmarks.forEach(function(bookmark) {
+            if (!bookmark.uri || !bookmark.title)
+              return;
+            this.addBookmark(bookmark.uri, bookmark.title);
+            if (bookmark.iconUri)
+              this.setAndLoadIconForPage(bookmark.uri, bookmark.iconUri);
+          }, this);
+        }
+
+        // Populate search engines & settings if upgrading from below version 6
+        if (upgradeFrom < 6 && data.searchEngines && data.settings) {
+          var defaultSearchEngine = data.settings.defaultSearchEngine;
+          if (defaultSearchEngine) {
+            this.updateSetting(defaultSearchEngine,
+              'defaultSearchEngine');
+          }
+
+          data.searchEngines.forEach(function(searchEngine) {
+            if (!searchEngine.uri || !searchEngine.title ||
+              !searchEngine.iconUri)
+              return;
+            this.addSearchEngine(searchEngine.uri, searchEngine.title,
+              searchEngine.iconUri);
+            if (searchEngine.uri == defaultSearchEngine) {
+              Browser.DEFAULT_SEARCH_PROVIDER_URL = searchEngine.uri;
+              Browser.DEFAULT_SEARCH_PROVIDER_TITLE = searchEngine.title;
+              Browser.DEFAULT_SEARCH_PROVIDER_ICON = searchEngine.iconUri;
+            }
+          }, this);
+
+          if (Browser.DEFAULT_SEARCH_PROVIDER_URL &&
+              Browser.DEFAULT_SEARCH_PROVIDER_ICON) {
+            this.setAndLoadIconForPage(Browser.DEFAULT_SEARCH_PROVIDER_URL,
+              Browser.DEFAULT_SEARCH_PROVIDER_ICON);
+          }
+        }
+
+      }).bind(BrowserDB));
+    }).bind(Browser));
+  },
+
+  addPlace: function browserDB_addPlace(uri, callback) {
     this.db.createPlace(uri, callback);
   },
 
-  getPlace: function places_getPlace(uri, callback) {
+  getPlace: function browserDB_getPlace(uri, callback) {
     this.db.getPlace(uri, callback);
   },
 
-  addVisit: function places_addVisit(uri, callback) {
+  addVisit: function browserDB_addVisit(uri, callback) {
     var visit = {
       uri: uri,
       timestamp: new Date().getTime()
@@ -33,7 +87,7 @@ var Places = {
     }).bind(this));
   },
 
-  updateFrecency: function places_updateFrecency(uri, callback) {
+  updateFrecency: function browserDB_updateFrecency(uri, callback) {
     this.db.updatePlaceFrecency(uri, callback);
   },
 
@@ -57,7 +111,7 @@ var Places = {
     }).bind(this));
   },
 
-  addBookmark: function places_addBookmark(uri, title, callback) {
+  addBookmark: function browserDB_addBookmark(uri, title, callback) {
     if (!title)
       title = uri;
     var bookmark = {
@@ -70,19 +124,19 @@ var Places = {
     }).bind(this));
   },
 
-  getBookmark: function places_getBookmark(uri, callback) {
+  getBookmark: function browserDB_getBookmark(uri, callback) {
     this.db.getBookmark(uri, callback);
   },
 
-  getBookmarks: function places_getBookmarks(callback) {
+  getBookmarks: function browserDB_getBookmarks(callback) {
     this.db.getAllBookmarks(callback);
   },
 
-  removeBookmark: function places_removeBookmark(uri, callback) {
+  removeBookmark: function browserDB_removeBookmark(uri, callback) {
     this.db.deleteBookmark(uri, callback);
   },
 
-  updateBookmark: function places_updateBookmark(uri, title, callback) {
+  updateBookmark: function browserDB_updateBookmark(uri, title, callback) {
     this.db.getBookmark(uri, (function(bookmark) {
       if (bookmark) {
         bookmark.title = title;
@@ -93,15 +147,15 @@ var Places = {
     }).bind(this));
   },
 
-  setPageTitle: function places_setPageTitle(uri, title, callback) {
+  setPageTitle: function browserDB_setPageTitle(uri, title, callback) {
     this.db.updatePlaceTitle(uri, title, callback);
   },
 
-  setPageIconUri: function places_setPageIconUri(uri, iconUri, callback) {
+  setPageIconUri: function browserDB_setPageIconUri(uri, iconUri, callback) {
     this.db.updatePlaceIconUri(uri, iconUri, callback);
   },
 
-  setIconData: function places_setIconData(iconUri, data, callback, failed) {
+  setIconData: function browserDB_setIconData(iconUri, data, callback, failed) {
     var now = new Date().valueOf();
     var iconEntry = {
       uri: iconUri,
@@ -112,7 +166,7 @@ var Places = {
     this.db.saveIcon(iconEntry, callback);
   },
 
-  setAndLoadIconForPage: function places_setAndLoadIconForPage(uri,
+  setAndLoadIconForPage: function browserDB_setAndLoadIconForPage(uri,
     iconUri, callback) {
     this.setPageIconUri(uri, iconUri);
     // If icon is not already cached or has expired, load it
@@ -168,46 +222,74 @@ var Places = {
     }).bind(this));
   },
 
-  getTopSites: function places_getTopSites(maximum, filter, callback) {
+  getTopSites: function browserDB_getTopSites(maximum, filter, callback) {
     // Get the top 20 sites
     this.db.getPlacesByFrecency(maximum, filter, callback);
   },
 
-  getHistory: function places_getHistory(callback) {
+  getHistory: function browserDB_getHistory(callback) {
     // Just get the most recent 20 for now
     this.db.getHistory(20, callback);
   },
 
-  clearHistory: function places_clearHistory(callback) {
+  clearHistory: function browserDB_clearHistory(callback) {
     // Get a list of bookmarks
     this.db.getAllBookmarkUris((function(bookmarks) {
       this.db.clearHistoryExcluding(bookmarks, callback);
     }).bind(this));
+  },
+
+  addSearchEngine: function browserDB_addSearchEngine(uri, title, iconUri,
+    callback) {
+    if (!uri || !title)
+      return;
+
+    var search_engine = {
+      uri: uri,
+      title: title,
+      iconUri: iconUri
+    };
+
+    this.db.saveSearchEngine(search_engine, callback);
+  },
+
+  getSearchEngine: function browserDB_getSearchEngine(uri, callback) {
+    this.db.getSearchEngine(uri, callback);
+  },
+
+  updateSetting: function browserDB_updateSetting(key, value, callback) {
+    this.db.updateSetting(key, value, callback);
+  },
+
+  getSetting: function browserDB_getSetting(key, callback) {
+    this.db.getSetting(key, callback);
   }
 
 };
 
-Places.db = {
+BrowserDB.db = {
   _db: null,
-  firstRun: false,
   START_PAGE_URI: document.location.protocol + '//' + document.location.host +
     '/start.html',
+  upgradeFrom: -1,
 
   open: function db_open(callback) {
-    const DB_VERSION = 5;
+    const DB_VERSION = 6;
     const DB_NAME = 'browser';
     var request = idb.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = (function onUpgradeNeeded(e) {
-      this.firstRun = true;
       console.log('Browser database upgrade needed, upgrading.');
+      this.upgradeFrom = e.oldVersion;
       this._db = e.target.result;
-      this._initializeDB();
+      this.upgrade();
     }).bind(this);
 
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
-      callback(this.firstRun);
+      callback();
+      if (this.upgradeFrom != -1)
+        BrowserDB.populate(this.upgradeFrom);
     }).bind(this);
 
     request.onerror = (function onDatabaseError(e) {
@@ -215,37 +297,26 @@ Places.db = {
     }).bind(this);
   },
 
-  _initializeDB: function db_initializeDB() {
+  upgrade: function db_upgrade() {
     var db = this._db;
+    var upgradeFrom = this.upgradeFrom;
 
-    // Create or overwrite places object store
-    if (db.objectStoreNames.contains('places'))
-      db.deleteObjectStore('places');
-    var placesStore = db.createObjectStore('places', { keyPath: 'uri' });
-
-    // Index places by frecency
-    placesStore.createIndex('frecency', 'frecency', { unique: false });
-
-    // Create or overwrite visits object store
-    if (db.objectStoreNames.contains('visits'))
-      db.deleteObjectStore('visits');
-    var visitStore = db.createObjectStore('visits', { autoIncrement: true });
-
-    // Index visits by timestamp
-    visitStore.createIndex('timestamp', 'timestamp', { unique: false });
-
-    // Create or overwrite icon cache
-    if (db.objectStoreNames.contains('icons'))
-      db.deleteObjectStore('icons');
-    db.createObjectStore('icons', { keyPath: 'uri' });
-
-    // Create or overwrite bookmarks object store
-    if (db.objectStoreNames.contains('bookmarks'))
-      db.deleteObjectStore('bookmarks');
-    var bookmarkStore = db.createObjectStore('bookmarks', { keyPath: 'uri' });
-
-    // Index bookmarks by timestamp
-    bookmarkStore.createIndex('timestamp', 'timestamp', { unique: false });
+    if (upgradeFrom < 1) {
+      var placesStore = db.createObjectStore('places', { keyPath: 'uri' });
+      // Index places by frecency
+      placesStore.createIndex('frecency', 'frecency', { unique: false });
+      var visitStore = db.createObjectStore('visits', { autoIncrement: true });
+      // Index visits by timestamp
+      visitStore.createIndex('timestamp', 'timestamp', { unique: false });
+      db.createObjectStore('icons', { keyPath: 'uri' });
+      var bookmarkStore = db.createObjectStore('bookmarks', { keyPath: 'uri' });
+      // Index bookmarks by timestamp
+      bookmarkStore.createIndex('timestamp', 'timestamp', { unique: false });
+    }
+    if (upgradeFrom < 6) {
+      db.createObjectStore('settings');
+      db.createObjectStore('search_engines', { keyPath: 'uri' });
+    }
   },
 
   createPlace: function db_createPlace(uri, callback) {
@@ -416,7 +487,7 @@ Places.db = {
   },
 
   clearPlaces: function db_clearPlaces(callback) {
-    var db = Places.db._db;
+    var db = BrowserDB.db._db;
     var transaction = db.transaction('places', 'readwrite');
     transaction.onerror = function dbTransactionError(e) {
       console.log('Transaction error while trying to clear places');
@@ -432,7 +503,7 @@ Places.db = {
   },
 
   clearVisits: function db_clearVisits(callback) {
-    var db = Places.db._db;
+    var db = BrowserDB.db._db;
     var transaction = db.transaction('visits', 'readwrite');
     transaction.onerror = function dbTransactionError(e) {
       console.log('Transaction error while trying to clear visits');
@@ -449,7 +520,7 @@ Places.db = {
   },
 
   clearIcons: function db_clearIcons(callback) {
-    var db = Places.db._db;
+    var db = BrowserDB.db._db;
     var transaction = db.transaction('icons', 'readwrite');
     transaction.onerror = function dbTransactionError(e) {
       console.log('Transaction error while trying to clear icons');
@@ -465,7 +536,7 @@ Places.db = {
   },
 
   clearBookmarks: function db_clearBookmarks(callback) {
-    var db = Places.db._db;
+    var db = BrowserDB.db._db;
     var transaction = db.transaction('bookmarks', 'readwrite');
     transaction.onerror = function dbTransactionError(e) {
       console.log('Transaction error while trying to clear bookmarks');
@@ -826,7 +897,7 @@ Places.db = {
           }
         } else {
           // For exceptions, just reset frecency
-          Places.db.resetPlaceFrecency(place.uri);
+          BrowserDB.db.resetPlaceFrecency(place.uri);
         }
         cursor.continue();
       }
@@ -836,6 +907,109 @@ Places.db = {
         callback();
     };
 
+  },
+
+  saveSearchEngine: function db_saveSearchEngine(search_engine, callback) {
+    var transaction = this._db.transaction(['search_engines'], 'readwrite');
+    var objectStore = transaction.objectStore('search_engines');
+    var request = objectStore.put(search_engine);
+
+    transaction.oncomplete = function onComplete(e) {
+      if (callback)
+        callback();
+    };
+
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to save search engine');
+    };
+
+    request.onerror = function onError(e) {
+      console.log('Error while saving search engine');
+    };
+  },
+
+  getSearchEngine: function db_getSearchEngine(uri, callback) {
+    var transaction = this._db.transaction('search_engines');
+    var request = transaction.objectStore('search_engines').get(uri);
+
+    request.onsuccess = function onSuccess(event) {
+      callback(event.target.result);
+    };
+
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to get search engine');
+    };
+
+    request.onerror = function onError(event) {
+      if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
+        callback();
+    };
+  },
+
+  clearSearchEngines: function db_clearSearchEngines(callback) {
+    var db = BrowserDB.db._db;
+    var transaction = db.transaction('search_engines', 'readwrite');
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to clear search engines');
+    };
+    var objectStore = transaction.objectStore('search_engines');
+    var request = objectStore.clear();
+    request.onsuccess = function onSuccess() {
+      callback();
+    };
+    request.onerror = function onError(e) {
+      console.log('Error clearing search engines object store');
+    };
+  },
+
+  updateSetting: function db_updateSetting(value, key, callback) {
+    var transaction = this._db.transaction(['settings'], 'readwrite');
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to update setting');
+    };
+
+    var objectStore = transaction.objectStore('settings');
+
+    var request = objectStore.put(value, key);
+
+    request.onsuccess = function onSuccess(e) {
+      if (callback)
+        callback();
+    };
+
+    request.onerror = function onError(e) {
+      console.log('Error while updating setting');
+    };
+  },
+
+ getSetting: function db_getSetting(key, callback) {
+    var request = this._db.transaction('settings').
+      objectStore('settings').get(key);
+
+    request.onsuccess = function onSuccess(event) {
+      callback(event.target.result);
+    };
+
+    request.onerror = function onError(event) {
+      if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
+        callback();
+    };
+  },
+
+  clearSettings: function db_clearSettings(callback) {
+    var db = BrowserDB.db._db;
+    var transaction = db.transaction('settings', 'readwrite');
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to clear settings');
+    };
+    var objectStore = transaction.objectStore('settings');
+    var request = objectStore.clear();
+    request.onsuccess = function onSuccess() {
+      callback();
+    };
+    request.onerror = function onError(e) {
+      console.log('Error clearing settings object store');
+    };
   }
 
 };
