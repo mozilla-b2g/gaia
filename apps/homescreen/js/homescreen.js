@@ -164,7 +164,7 @@ var Homescreen = (function() {
     },
 
     didEvmePreventHomeButton: function() {
-      var evme = ("EvmeFacade" in window) && window.EvmeFacade;
+      var evme = ('EvmeFacade' in window) && window.EvmeFacade;
       return evme.onHomeButtonPress && evme.onHomeButtonPress();
     },
 

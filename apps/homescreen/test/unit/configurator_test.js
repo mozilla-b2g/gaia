@@ -85,14 +85,6 @@ suite('configurator.js >', function() {
   });
 
   /*
-   * It checks the conditions when there is a search provider
-   */
-  test('Search provider enabled >', function() {
-    sendResponseText('{ "search_page":{ "provider": "xx","enabled": true } }');
-    assertHomescreen(1);
-  });
-
-  /*
    * It checks the conditions when there is NOT a search provider
    */
   test('Search provider disabled >', function() {
