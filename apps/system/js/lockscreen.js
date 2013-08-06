@@ -139,6 +139,9 @@ var LockScreen = {
     window.addEventListener('screenchange', this);
     document.addEventListener('visibilitychange', this);
 
+    /* Telephony changes */
+    navigator.mozTelephony.addEventListener('callschanged', this);
+
     /* Gesture */
     this.area.addEventListener('touchstart', this);
     this.areaCamera.addEventListener('touchstart', this);
@@ -420,6 +423,15 @@ var LockScreen = {
 
         evt.stopImmediatePropagation();
         evt.stopPropagation();
+        break;
+
+      case 'callschanged':
+        var emergencyCallBtn = this.passcodePad.querySelector('a[data-key=e]');
+        if (!!navigator.mozTelephony.calls.length) {
+          emergencyCallBtn.classList.add('disabled');
+        } else {
+          emergencyCallBtn.classList.remove('disabled');
+        }
         break;
     }
   },
