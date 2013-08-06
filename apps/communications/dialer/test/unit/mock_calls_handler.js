@@ -1,4 +1,4 @@
-var MockOnCallHandler = {
+var MockCallsHandler = {
   mLastEntryAdded: null,
   mNotifyBusyLineCalled: false,
   mUpdateKeypadEnabledCalled: true,
