@@ -2,6 +2,7 @@
 
 requireApp('system/js/utility_tray.js');
 
+
 var LockScreen = { locked: false };
 
 suite('system/UtilityTray', function() {
