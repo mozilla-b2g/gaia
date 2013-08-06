@@ -53,10 +53,10 @@ var PopupManager = {
 
     this.title.textContent = this.getTitleFromUrl(frame.dataset.url);
 
+    this._currentPopup[origin] = frame;
+
     // Reset overlay height
     this.setHeight(window.innerHeight - StatusBar.height);
-
-    this._currentPopup[origin] = frame;
 
     var popup = this._currentPopup[origin];
     var dataset = popup.dataset;
