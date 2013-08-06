@@ -2701,7 +2701,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      */
     removeIframe: function(iframe) {
       if (iframe && iframe.parentNode) {
-        //iframe.parentNode.removeChild(iframe);
+        iframe.parentNode.removeChild(iframe);
       }
     },
 
