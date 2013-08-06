@@ -1256,7 +1256,9 @@ var MediaDB = (function() {
     };
 
     function enumerateNextStorage() {
-      ds_cursor = storages[storageIndex].enumerate(dir, options);
+      // The || {} on the next line is required to make enumerate work properly
+      // on v1-train.
+      ds_cursor = storages[storageIndex].enumerate(dir, options || {});
       ds_cursor.onsuccess = onsuccess;
       ds_cursor.onerror = onerror;
     };
