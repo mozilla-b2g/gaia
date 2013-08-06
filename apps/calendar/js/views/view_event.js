@@ -138,13 +138,16 @@ Calendar.ns('Views').ViewEvent = (function() {
         var alarmDescription = Calendar.Templates.Alarm.description;
 
         for (var i = 0, alarm; alarm = this.event.alarms[i]; i++) {
-          alarmContent += '<div>' +
-            alarmDescription.render({
-              trigger: alarm.trigger,
-              layout: this.event.isAllDay ? 'allday' : 'standard'
-            }) +
-          '</div>';
+          if (alarm.trigger != 'none') {
+            alarmContent += '<div>' +
+              alarmDescription.render({
+                trigger: alarm.trigger,
+                layout: this.event.isAllDay ? 'allday' : 'standard'
+              }) +
+            '</div>';
+          }
         }
+
       }
 
       this.setContent('alarms', alarmContent, 'innerHTML');

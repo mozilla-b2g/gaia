@@ -193,21 +193,17 @@ Calendar.ns('Models').Event = (function() {
     },
 
     get alarms() {
-      console.log('in get alarms', this.remote.alarms);
       if (this.remote.alarms) {
-        console.log(this.remote.alarms[0]);
+        if (this.remote.alarms.length === 0) {
+          return [{
+            trigger: 'none'
+          }];
+        }
       }
       return this.remote.alarms || [];
     },
 
     set alarms(value) {
-      console.log('in set alarms', value[0]);
-      if (value === undefined || value[0] === undefined) {
-        return this.remote.alarms = [{
-          action: 'DISPLAY',
-          trigger: 'none'
-        }];
-      }
       return this.remote.alarms = value;
     },
 
