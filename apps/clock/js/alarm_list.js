@@ -23,6 +23,33 @@ var AlarmList = {
     return this.newAlarmButton = document.getElementById('alarm-new');
   },
 
+  showHideScrollIndicators: function al_showHideScrollIndicators() {
+    var threshold = 10; // hide indicators when scroll is close enough to an end
+    var element = this.alarms;
+    var hasTop = element.classList.contains('scroll-up');
+    var hasDown = element.classList.contains('scroll-down');
+
+    if (element.scrollTop < threshold) {
+      if (hasTop) {
+        element.classList.remove('scroll-up');
+      }
+    } else {
+      if (!hasTop) {
+        element.classList.add('scroll-up');
+      }
+    }
+
+    if (element.scrollTop > element.scrollTopMax - threshold) {
+      if (hasDown) {
+        element.classList.remove('scroll-down');
+      }
+    } else {
+      if (!hasDown) {
+        element.classList.add('scroll-down');
+      }
+    }
+  },
+
   handleEvent: function al_handleEvent(evt) {
 
     var link = evt.target;
@@ -59,6 +86,8 @@ var AlarmList = {
   init: function al_init() {
     this.newAlarmButton.addEventListener('click', this);
     this.alarms.addEventListener('click', this);
+    this.alarms.addEventListener('scroll',
+      this.showHideScrollIndicators.bind(this));
     this.refresh();
     AlarmManager.regUpdateAlarmEnableState(this.refreshItem.bind(this));
   },
@@ -123,6 +152,7 @@ var AlarmList = {
       ClockView.resizeAnalogClock();
     }
 
+    this.showHideScrollIndicators();
   },
 
   getAlarmFromList: function al_getAlarmFromList(id) {
