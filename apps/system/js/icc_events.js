@@ -95,6 +95,13 @@ var icc_events = {
       });
   },
 
+  handleDataAvailableEvent: function icc_events_handleDataAvailableEvent() {
+    DUMP(' STK Data available');
+    this.downloadEvent({
+      eventType: icc._icc.STK_EVENT_TYPE_DATA_AVAILABLE
+    });
+  },
+
   register: function icc_events_register(eventList) {
     DUMP('icc_events_register - Events list:', eventList);
     for (var evt in eventList) {
@@ -132,7 +139,15 @@ var icc_events = {
           });
         break;
       case icc._icc.STK_EVENT_TYPE_BROWSER_TERMINATION:
+        DUMP('icc_events_register - TODO event: ', eventList[evt]);
+        break;
       case icc._icc.STK_EVENT_TYPE_DATA_AVAILABLE:
+        DUMP('icc_events_register - Data available event');
+        document.addEventListener('online',
+          function icc_events_dataAvailable() {
+            icc_events.handleDataAvailableEvent();
+          });
+        break;
       case icc._icc.STK_EVENT_TYPE_CHANNEL_STATUS:
       case icc._icc.STK_EVENT_TYPE_SINGLE_ACCESS_TECHNOLOGY_CHANGED:
       case icc._icc.STK_EVENT_TYPE_DISPLAY_PARAMETER_CHANGED:
