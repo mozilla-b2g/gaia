@@ -294,29 +294,18 @@ var Connectivity = (function(window, document, undefined) {
 
   function initSystemMessageHandler() {
     // XXX this is not a good way to interact with bluetooth.js
-    var handlePairingRequest = function(message, method) {
+    var handlePairingRequest = function(message) {
       Settings.currentPanel = '#bluetooth';
       setTimeout(function() {
-        gDeviceList.onRequestPairing(message, method);
+        dispatchEvent(new CustomEvent('bluetooth-pairing-request', {
+          detail: message
+        }));
       }, 1500);
     };
-
     // Bind message handler for incoming pairing requests
-    navigator.mozSetMessageHandler('bluetooth-requestconfirmation',
-      function bt_gotConfirmationMessage(message) {
-        handlePairingRequest(message, 'confirmation');
-      }
-    );
-
-    navigator.mozSetMessageHandler('bluetooth-requestpincode',
-      function bt_gotPincodeMessage(message) {
-        handlePairingRequest(message, 'pincode');
-      }
-    );
-
-    navigator.mozSetMessageHandler('bluetooth-requestpasskey',
-      function bt_gotPasskeyMessage(message) {
-        handlePairingRequest(message, 'passkey');
+    navigator.mozSetMessageHandler('bluetooth-pairing-request',
+      function bt_gotPairingRequestMessage(message) {
+        handlePairingRequest(message);
       }
     );
   }
