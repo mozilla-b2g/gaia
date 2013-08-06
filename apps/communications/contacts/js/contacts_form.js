@@ -652,11 +652,11 @@ contacts.Form = (function() {
   };
 
   var showThrobber = function showThrobber() {
-    throbber.classList.add('saving');
+    throbber.classList.remove('hide');
   };
 
   var hideThrobber = function hideThrobber() {
-    throbber.classList.remove('saving');
+    throbber.classList.add('hide');
   };
 
   var createName = function createName(myContact) {
