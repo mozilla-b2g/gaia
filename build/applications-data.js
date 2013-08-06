@@ -237,6 +237,15 @@ content = null;
 
 writeContent(init, getDistributionFileContent('support', content));
 
+// Network Types
+init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'network.json');
+content = {
+  'types': ['wcdma/gsm', 'gsm', 'wcdma', 'wcdma/gsm-auto', 'cdma/evdo',
+            'cdma', 'evdo', 'wcdma/gsm/cdma/evdo']
+};
+
+writeContent(init, getDistributionFileContent('network', content));
+
 // ICC / STK
 init = getFile(GAIA_DIR, 'apps', 'system', 'resources', 'icc.json');
 content = {

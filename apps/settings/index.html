@@ -631,7 +631,7 @@
         <h1 data-l10n-id="networkOperator"> Network Operator </h1>
       </header>
 
-      <div>
+      <div id="carrier-operatorSettings-content">
         <ul>
           <li>
             <p data-l10n-id="operator-networkType">Network Type</p>
@@ -641,6 +641,17 @@
                 <option data-l10n-id="operator-networkType-auto" value="wcdma/gsm">Automatic</option>
                 <option data-l10n-id="operator-networkType-2G" value="gsm">2G only</option>
                 <option data-l10n-id="operator-networkType-3G" value="wcdma">3G only</option>
+              </select>
+            </p>
+          </li>
+          <li id="operator-roaming-preference">
+            <p data-l10n-id="operator-roamingPreference">Roaming preference</p>
+            <p class="fake-select">
+              <button class="icon icon-dialog">empty</button>
+              <select id="operator-roaming-preference-selector">
+                <option data-l10n-id="operator-roamingPreference-home" value="home">Home</option>
+                <option data-l10n-id="operator-roamingPreference-any" value="any">Any</option>
+                <option data-l10n-id="operator-roamingPreference-affiliated" value="affiliated">Affiliated</option>
               </select>
             </p>
           </li>
@@ -654,7 +665,7 @@
           </li>
         </ul>
 
-        <header>
+        <header id="availableOperatorsHeader">
           <h2 data-l10n-id="availableOperators"> Network Operators in the Area </h2>
         </header>
         <ul id="availableOperators" data-state="off">
