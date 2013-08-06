@@ -112,6 +112,14 @@ var icc_events = {
       navigator.removeIdleObserver(idleObserverObject);
     },
 
+  handleIdleScreenAvailableEvent:
+    function icc_events_handleIdleScreenAvailableEvent() {
+      DUMP(' STK IDLE screen available');
+      this.downloadEvent({
+        eventType: icc._icc.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE
+      });
+  },
+
   register: function icc_events_register(eventList) {
     DUMP('icc_events_register - Events list:', eventList);
     for (var evt in eventList) {
@@ -150,6 +158,13 @@ var icc_events = {
         navigator.addIdleObserver(stkUserActivity);
         break;
       case icc._icc.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
+        DUMP('icc_events_register - Idle screen available event');
+        window.addEventListener('lock',
+          function register_icc_event_idlescreen() {
+            icc_events.handleIdleScreenAvailableEvent();
+            window.removeEventListener('lock', register_icc_event_idlescreen);
+          });
+        break;
       case icc._icc.STK_EVENT_TYPE_CARD_READER_STATUS:
         DUMP('icc_events_register - TODO event: ', eventList[evt]);
         break;
