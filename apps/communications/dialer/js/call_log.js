@@ -20,8 +20,10 @@ var CallLog = {
 
     var lazyFiles = [
       '/dialer/style/fixed_header.css',
+      '/shared/style/confirm.css',
       '/shared/style/switches.css',
       '/shared/style_unstable/lists.css',
+      '/contacts/js/confirm_dialog.js',
       '/dialer/js/phone_action_menu.js',
       '/dialer/js/fixed_header.js',
       '/dialer/js/utils.js'
@@ -690,70 +692,68 @@ var CallLog = {
   },
 
   deleteLogGroups: function cl_deleteLogGroups() {
-    var disabledSelector = 'input[type="checkbox"]:not(:checked)';
-    var inputsNotSelected =
-            this.callLogContainer.querySelectorAll(disabledSelector);
-    if (inputsNotSelected.length === 0) {
-      var self = this;
-      CallLogDBManager.deleteAll(function onDeleteAll() {
-        var emptyMissCalls = self.callLogContainer.classList.contains('filter');
-        self.renderEmptyCallLog(emptyMissCalls);
-        self._empty = true;
-        document.body.classList.remove('recents-edit');
-      });
-      return;
-    }
     var selector = 'input[type="checkbox"]:checked';
     var inputsSelected =
-            this.callLogContainer.querySelectorAll(selector);
-    var logGroupsToDelete = [];
-    var missedCallsShown = this.callLogContainer.classList.contains('filter');
-    for (var i = 0, l = inputsSelected.length; i < l; i++) {
-      var logGroup = inputsSelected[i].parentNode.parentNode;
-      var olContainer = logGroup.parentNode;
-      olContainer.removeChild(logGroup);
-      var missedCallsInGroup =
-              olContainer.getElementsByClassName('missed-call').length;
-      if (olContainer.children.length === 0) {
-        var section = olContainer.parentNode;
-        this.callLogContainer.removeChild(section);
-      } else if (missedCallsShown && missedCallsInGroup === 0) {
-        // Hide day header groups that have no missed calls when deleting them
-        // from the "Missed" tab (Note: regular calls might still reside under
-        // the hidden group, which will be shown when the "All" tab is selected)
-        olContainer.parentNode.classList.add('groupFiltered');
-      }
-      var dataset = logGroup.dataset;
-      var toDelete = {
-        date: parseInt(dataset.timestamp),
-        number: dataset.phoneNumber === null ? '' : dataset.phoneNumber,
-        type: dataset.type
-      };
-      if (dataset.status) {
-        toDelete.status = dataset.status;
-      }
-      logGroupsToDelete.push(toDelete);
-    }
+          this.callLogContainer.querySelectorAll(selector);
 
     var self = this;
-    CallLogDBManager.deleteGroupList(logGroupsToDelete, function() {
-      // Check for remaining missed calls in order to show the relevant empty
-      // call log page if all missed calls are deleted
-      if (self.callLogContainer.classList.contains('filter')) {
-        var containers = self.callLogContainer.getElementsByTagName('ol');
-        var hasMissedCalls = false;
-        for (var i = 0, l = containers.length; i < l && !hasMissedCalls; i++) {
-          hasMissedCalls =
-              (containers[i].getElementsByClassName('missed-call').length > 0);
-        }
-        if (!hasMissedCalls) {
-          self.renderEmptyCallLog(true);
-        }
-      }
+    var msg = this._('delete-n-log?',
+      {n: inputsSelected.length});
+    var yesObject = {
+      title: this._('delete'),
+      isDanger: true,
+      callback: function deleteLogGroup() {
 
-      document.body.classList.remove('recents-edit');
-    });
+        ConfirmDialog.hide();
+        var disabledSelector = 'input[type="checkbox"]:not(:checked)';
+        var inputsNotSelected =
+            self.callLogContainer.querySelectorAll(disabledSelector);
+
+        if (inputsNotSelected.length === 0) {
+          CallLogDBManager.deleteAll(function onDeleteAll() {
+            self.renderEmptyCallLog();
+            document.body.classList.remove('recents-edit');
+          });
+          return;
+        }
+        var logGroupsToDelete = [];
+        for (var i = 0, l = inputsSelected.length; i < l; i++) {
+          var logGroup = inputsSelected[i].parentNode.parentNode;
+          var olContainer = logGroup.parentNode;
+          olContainer.removeChild(logGroup);
+          if (olContainer.children.length === 0) {
+            var section = olContainer.parentNode;
+            self.callLogContainer.removeChild(section);
+          }
+          var dataset = logGroup.dataset;
+          var toDelete = {
+            date: parseInt(dataset.timestamp),
+            number: dataset.phoneNumber === null ? '' : dataset.phoneNumber,
+            type: dataset.type
+          };
+          if (dataset.status) {
+            toDelete.status = dataset.status;
+          }
+          logGroupsToDelete.push(toDelete);
+        }
+
+        CallLogDBManager.deleteGroupList(logGroupsToDelete, function() {
+          document.body.classList.remove('recents-edit');
+        });
+      }
+    };
+
+    var noObject = {
+      title: this._('cancel'),
+      callback: function onCancel() {
+        ConfirmDialog.hide();
+      }
+    };
+
+
+    ConfirmDialog.show(null, msg, noObject, yesObject);
   },
+
 
   /**************************
    * Contacts related methods.
