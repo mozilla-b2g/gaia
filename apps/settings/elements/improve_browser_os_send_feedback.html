@@ -1,0 +1,72 @@
+<element name="improveBrowserOS-sendFeedback" extends="section">
+  <template>
+
+  	<header>
+      <a href="#improveBrowserOS-chooseFeedback" id="feedback-back-button"><span class="icon icon-back">Back</span></a>
+      <h1 id="feedback-title"></h1>
+    </header>
+    <div>
+    <ul>
+      <li>
+        <p class="description">
+          <span data-l10n-id="feedback-mood-explain">
+            Please tell us in detail.
+          </span>
+        </p>
+        <p>
+          <textarea id="feedback-description" name="description" x-inputmode="latin-prose"></textarea>
+        </p>
+        <p class="description" data-l10n-id="feedback-public-description">
+          The content of your feedback will be public, so please be sure not to include any personal information.
+        </p>
+      </li>
+      <li class="email-enable">
+        <label class="pack-checkbox">
+          <input id="email-enable" type="checkbox" />
+          <span class="checkbox-span"></span>
+          <p class="description checkbox-description" data-l10n-id="feedback-contactyou">
+            Check here to let us contact you with your email.
+          </p>
+        </label>
+      </li>
+      <li id="feedback-emailbar" hidden="false">
+        <p class="description" data-l10n-id="email-address">
+          Email address :
+        </p>
+        <p>
+          <input id="feedback-email" type="email" />
+        </p>
+        <p class="description" data-l10n-id="email-keepprivate">
+          Don't worry. Your email will always be kept private.
+        </p>
+      </li>
+      <li>
+        <label>
+          <button id="feedback-send-btn" data-l10n-id="feedback-sendbtn">Send Feedback</button>
+        </label>
+      </li>
+    </ul>
+    </div>
+    <form role="dialog" data-type="confirm" hidden id="feedback-alert">
+      <section>
+        <p>
+          <strong id="feedback-alert-msg">The device is currently unable to communicate with the carrier. Try setting the preference again.</strong>
+        </p>
+      </section>
+      <menu>
+        <button class="full" id="feedback-alert-btn" data-l10n-id="ok">OK</button>
+      </menu>
+    </form>
+    <form role="dialog" data-type="confirm" hidden id="feedback-done">
+      <section>
+        <p>
+          <strong data-l10n-id="feedback-done-msg">Thanks for the feedback! We will use it to help us create a better experience in future releases of Firefox OS.</strong>
+        </p>
+      </section>
+      <menu>
+        <button id="feedback-done-btn" class="full" data-l10n-id="done">Done</button>
+      </menu>
+    </form>
+
+  </template>
+</element>

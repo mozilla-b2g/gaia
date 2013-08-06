@@ -20,6 +20,7 @@
     "webapps-manage":{},
     "open-remote-window":{},
     "permissions":{},
+    "systemXHR": {},
     "settings":{ "access": "readwrite" },
     "wifi-manage":{},
     "attention":{},
