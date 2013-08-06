@@ -91,6 +91,7 @@ var CallLogDBManager = {
           return;
         }
 
+        var self = this;
         var request = indexedDB.open(this._dbName, this._dbVersion);
         request.onsuccess = (function onsuccess(event) {
           this._db = event.target.result;
@@ -105,26 +106,34 @@ var CallLogDBManager = {
           callback('DB_REQUEST_BLOCKED', null);
         };
 
-        request.onupgradeneeded = (function onupgradeneeded(event) {
+        request.onupgradeneeded = function onupgradeneeded(event) {
           // Notify the UI about the need to upgrade the database.
-          this._notifyObservers('upgradeneeded');
+          self._notifyObservers('upgradeneeded');
 
           var db = event.target.result;
           var txn = event.target.transaction;
           var currentVersion = event.oldVersion;
-          while (currentVersion != event.newVersion) {
+
+          function update(currentVersion) {
+            var next = update.bind(self, currentVersion + 1);
+
             switch (currentVersion) {
               case 0:
-                this._createSchema(db);
+                self._createSchema(db, next);
                 break;
               case 1:
-                this._upgradeSchemaVersion2(db, txn);
+                self._upgradeSchemaVersion2(db, txn, next);
                 break;
               case 2:
-                this._upgradeSchemaVersion3();
+                self._upgradeSchemaVersion3(next);
                 break;
               case 3:
-                this._upgradeSchemaVersion4(db, txn);
+                self._upgradeSchemaVersion4(db, txn, next);
+                break;
+              case 4:
+                // we have finished the upgrades. please keep this
+                // in sync for future upgrades, since otherwise it
+                // will call the default: and abort the transaction :(
                 break;
               default:
                 event.target.transaction.abort();
@@ -132,7 +141,9 @@ var CallLogDBManager = {
             }
             currentVersion++;
           }
-        }).bind(this);
+
+          update(currentVersion);
+        };
       } catch (ex) {
         callback(ex.message, null);
       }
@@ -187,7 +198,7 @@ var CallLogDBManager = {
    * param db
    *        Database instance.
    */
-  _createSchema: function createSchema(db) {
+  _createSchema: function createSchema(db, next) {
     // The object store hosting the recents calls will contain entries like:
     // { date: <Date> (primary key),
     //   number: <String>,
@@ -196,6 +207,8 @@ var CallLogDBManager = {
     var objStore = db.createObjectStore(this._dbRecentsStore,
                                         { keyPath: 'date' });
     objStore.createIndex('number', 'number');
+
+    next();
   },
   /**
    * Upgrade schema to version 2. Create an object store to host groups of
@@ -207,7 +220,8 @@ var CallLogDBManager = {
    * param transaction
    *        IDB transaction instance.
    */
-  _upgradeSchemaVersion2: function upgradeSchemaVersion2(db, transaction) {
+  _upgradeSchemaVersion2:
+    function upgradeSchemaVersion2(db, transaction, next) {
     // This object store can be used to quickly construct a group view of the
     // recent calls database. Each entry looks like this:
     //
@@ -229,12 +243,15 @@ var CallLogDBManager = {
     // actual calls. Each call belongs to a group indexed by id.
     var recentsStore = transaction.objectStore(this._dbRecentsStore);
     recentsStore.createIndex('groupId', 'groupId');
+
+    next();
   },
   /**
    * All the required changes for v3 are done while upgrading to v4.
    */
-  _upgradeSchemaVersion3: function upgradeSchemaVersion3() {
+  _upgradeSchemaVersion3: function upgradeSchemaVersion3(next) {
     // Do nothing.
+    next();
   },
   /**
    * Upgrade schema to version 4. Recreate the object store to host groups of
@@ -252,7 +269,8 @@ var CallLogDBManager = {
    * param transaction
    *        IDB transaction instance.
    */
-  _upgradeSchemaVersion4: function upgradeSchemaVersion4(db, transaction) {
+  _upgradeSchemaVersion4:
+    function upgradeSchemaVersion4(db, transaction, next) {
 
     var self = this;
 
@@ -287,6 +305,7 @@ var CallLogDBManager = {
             groupCount--;
             if (groupCount == 0) {
               self._notifyObservers('upgradedone');
+              next();
             }
           };
           delete groups[group];
