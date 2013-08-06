@@ -5,6 +5,7 @@
   "communications/dialer/test/unit/suggestion_bar_test.js",
   "communications/dialer/test/unit/utils_test.js",
   "gallery/test/unit/GestureDetector_test.js",
+  "gallery/test/unit/tag_visibility_monitor_test.js",
   "homescreen/test/unit/dock_test.js",
   "homescreen/test/unit/dragdrop_test.js",
   "homescreen/test/unit/grid_test.js",
