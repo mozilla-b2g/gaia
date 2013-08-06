@@ -174,7 +174,10 @@ contacts.Details = (function() {
       renderSocial(contact);
     }
 
-    renderDuplicate(contact);
+    if (!fb.isFbContact(contact) || fb.isFbLinked(contact)) {
+      renderDuplicate(contact);
+    }
+
     renderPhoto(contact);
   };
 
