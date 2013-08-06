@@ -70,11 +70,11 @@ var Swiper = {
         clearTimeout(this.triggeredTimeoutId);
         switch (evt.target) {
           case this.areaHangup:
-            OnCallHandler.end();
+            CallsHandler.end();
             break;
 
           case this.areaPickup:
-            OnCallHandler.answer();
+            CallsHandler.answer();
             break;
         }
         break;

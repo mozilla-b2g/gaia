@@ -1,187 +1,8 @@
 'use strict';
 
-var CallScreen = {
-  _ticker: null,
-  _screenLock: null,
-  _typedNumber: '',
-
-  body: document.body,
-  screen: document.getElementById('call-screen'),
-  views: document.getElementById('views'),
-
-  calls: document.getElementById('calls'),
-
-  get activeCall() {
-    return OnCallHandler.activeCall();
-  },
-
-  mainContainer: document.getElementById('main-container'),
-  callToolbar: document.getElementById('co-advanced'),
-
-  muteButton: document.getElementById('mute'),
-  speakerButton: document.getElementById('speaker'),
-  keypadButton: document.getElementById('keypad-visibility'),
-
-  answerButton: document.getElementById('callbar-answer'),
-  rejectButton: document.getElementById('callbar-hang-up'),
-  holdButton: document.getElementById('callbar-hold'),
-
-  incomingContainer: document.getElementById('incoming-container'),
-  incomingNumber: document.getElementById('incoming-number'),
-  incomingAnswer: document.getElementById('incoming-answer'),
-  incomingEnd: document.getElementById('incoming-end'),
-  incomingIgnore: document.getElementById('incoming-ignore'),
-  lockedContactPhoto: document.getElementById('locked-contact-photo'),
-
-  init: function cs_init() {
-    this.muteButton.addEventListener('click', this.toggleMute.bind(this));
-    this.keypadButton.addEventListener('click', this.showKeypad.bind(this));
-    this.speakerButton.addEventListener('click',
-                                    this.toggleSpeaker.bind(this));
-    this.answerButton.addEventListener('click',
-                                    OnCallHandler.answer.bind(OnCallHandler));
-    this.rejectButton.addEventListener('click',
-                                    OnCallHandler.end);
-    this.holdButton.addEventListener('mouseup', OnCallHandler.toggleCalls);
-
-    this.incomingAnswer.addEventListener('click',
-                              OnCallHandler.holdAndAnswer);
-    this.incomingEnd.addEventListener('click',
-                              OnCallHandler.endAndAnswer);
-    this.incomingIgnore.addEventListener('click',
-                                    OnCallHandler.ignore);
-
-    this.calls.addEventListener('click',
-                                OnCallHandler.toggleCalls);
-
-    // If the phone is locked, show as an locked-style at very first.
-    if ((window.location.hash === '#locked') && !this.screen.dataset.layout) {
-      CallScreen.render('incoming-locked');
-    }
-    if (navigator.mozSettings) {
-      var req = navigator.mozSettings.createLock().get('wallpaper.image');
-      req.onsuccess = function cs_wi_onsuccess() {
-        CallScreen.setCallerContactImage(
-          req.result['wallpaper.image'], false, true);
-      };
-    }
-
-    // Handle resize events
-    window.addEventListener('resize', this.resizeHandler.bind(this));
-  },
-
-  resizeHandler: function cs_resizeHandler() {
-    // Handle attention screen switches between full screen/status bar mode.
-    // If a user is typing keypad during calling,
-    // we don't show the typed number in status bar mode.
-    if (window.innerHeight <= 40) {
-      if (this.body.classList.contains('showKeypad')) {
-        this._typedNumber = KeypadManager._phoneNumber;
-        KeypadManager.restorePhoneNumber();
-      }
-    } else if (this.body.classList.contains('showKeypad')) {
-      KeypadManager.updatePhoneNumber(this._typedNumber, 'begin', true);
-    }
-  },
-
-  setCallerContactImage: function cs_setContactImage(image_url, force, mask) {
-    var photoURL;
-    var isString = (typeof image_url == 'string');
-    var isLocked = (this.screen.dataset.layout === 'incoming-locked');
-    var target = isLocked ? this.lockedContactPhoto : this.mainContainer;
-    photoURL = isString ? image_url : URL.createObjectURL(image_url);
-    if (!target.style.backgroundImage || force) {
-      target.style.backgroundImage = 'url(' + photoURL + ')';
-      if (mask) {
-        target.classList.add('masked');
-      } else {
-        target.classList.remove('masked');
-      }
-    }
-  },
-
-  toggleMute: function cs_toggleMute() {
-    this.muteButton.classList.toggle('mute');
-    OnCallHandler.toggleMute();
-  },
-
-  unmute: function cs_unmute() {
-    this.muteButton.classList.remove('mute');
-    OnCallHandler.unmute();
-  },
-
-  toggleSpeaker: function cs_toggleSpeaker() {
-    this.speakerButton.classList.toggle('speak');
-    OnCallHandler.toggleSpeaker();
-  },
-
-  turnSpeakerOn: function cs_turnSpeakerOn() {
-    this.speakerButton.classList.add('speak');
-    OnCallHandler.turnSpeakerOn();
-  },
-
-  turnSpeakerOff: function cs_turnSpeakerOff() {
-    this.speakerButton.classList.remove('speak');
-    OnCallHandler.turnSpeakerOff();
-  },
-
-  showKeypad: function cs_showKeypad() {
-    KeypadManager.render('oncall');
-    this.body.classList.add('showKeypad');
-  },
-
-  hideKeypad: function cs_hideKeypad() {
-    KeypadManager.restorePhoneNumber();
-    KeypadManager.restoreAdditionalContactInfo();
-    this.body.classList.remove('showKeypad');
-  },
-
-  render: function cs_render(layout_type) {
-    this.screen.dataset.layout = layout_type;
-    if (layout_type !== 'connected') {
-      this.keypadButton.setAttribute('disabled', 'disabled');
-    }
-  },
-
-  showIncoming: function cs_showIncoming() {
-    // Hiding the keypad
-    this.body.classList.remove('showKeypad');
-
-    this.callToolbar.classList.add('transparent');
-    this.incomingContainer.classList.add('displayed');
-
-    this._screenLock = navigator.requestWakeLock('screen');
-  },
-
-  hideIncoming: function cs_hideIncoming() {
-    this.callToolbar.classList.remove('transparent');
-    this.incomingContainer.classList.remove('displayed');
-
-    if (this._screenLock) {
-      this._screenLock.unlock();
-      this._screenLock = null;
-    }
-  },
-
-  syncSpeakerEnabled: function cs_syncSpeakerEnabled() {
-    if (navigator.mozTelephony.speakerEnabled) {
-      this.speakerButton.classList.add('speak');
-    } else {
-      this.speakerButton.classList.remove('speak');
-    }
-  },
-
-  enableKeypad: function cs_enableKeypad() {
-    this.keypadButton.removeAttribute('disabled');
-  },
-
-  disableKeypad: function cs_disableKeypad() {
-    this.keypadButton.setAttribute('disabled', 'disabled');
-  }
-};
-
-var OnCallHandler = (function onCallHandler() {
+var CallsHandler = (function callsHandler() {
   var COMMS_APP_ORIGIN = 'app://communications.gaiamobile.org';
+
   // Changing this will probably require markup changes
   var CALLS_LIMIT = 2;
 
@@ -246,7 +67,9 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function postToMainWindow(data) {
-    window.opener.postMessage(data, COMMS_APP_ORIGIN);
+    if (window.opener) {
+      window.opener.postMessage(data, COMMS_APP_ORIGIN);
+    }
   }
 
   /* === Handled calls === */
@@ -288,7 +111,7 @@ var OnCallHandler = (function onCallHandler() {
     if (handledCalls.length === 0) {
       exitCallScreen(false);
     } else {
-      CallScreen.calls.dataset.count = handledCalls.length;
+      CallScreen.callsCount = handledCalls.length;
       if (!displayed && !closing) {
         toggleScreen();
       }
@@ -837,8 +660,7 @@ var OnCallHandler = (function onCallHandler() {
 window.addEventListener('load', function callSetup(evt) {
   window.removeEventListener('load', callSetup);
 
-  OnCallHandler.setup();
+  CallsHandler.setup();
   CallScreen.init();
-  CallScreen.syncSpeakerEnabled();
   KeypadManager.init(true);
 });
