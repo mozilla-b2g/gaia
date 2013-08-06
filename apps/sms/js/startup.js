@@ -54,6 +54,27 @@ window.addEventListener('localized', function showBody() {
       navigator.mozL10n.translate(doc.body);
     }
   );
+
+  // also update time headers
+  Utils.updateTimeHeaders();
+
+  // also look for elements with data-l10n-date-format and localize them
+  Array.prototype.forEach.call(
+    document.querySelectorAll('[data-l10n-date-format]'),
+    function(element) {
+      if (!(element.dataset.l10nArgs && element.dataset.l10nId &&
+            element.dataset.l10nDate)) {
+        return;
+      }
+      var args = JSON.parse(element.dataset.l10nArgs);
+      var format = navigator.mozL10n.get(element.dataset.l10nDateFormat);
+      var date = new Date(element.dataset.l10nDate);
+      args.date = Utils.date.format.localeFormat(date, format);
+
+      navigator.mozL10n.localize(element, element.dataset.l10nId, args);
+    }
+  );
+
 });
 
 window.addEventListener('load', function() {

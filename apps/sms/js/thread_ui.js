@@ -1110,6 +1110,8 @@ var ThreadUI = global.ThreadUI = {
     return this.tmpl.notDownloaded.interpolate({
       messageL10nId: messageL10nId,
       messageL10nArgs: JSON.stringify({ date: expireFormatted }),
+      messageL10nDate: message.expiryDate.toString(),
+      messageL10nDateFormat: 'dateTimeFormat_%x',
       downloadL10nId: downloadL10nId
     });
   },
