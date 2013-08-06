@@ -8,9 +8,7 @@
     <link rel="stylesheet" type="text/css" href="style/grid.css">
     <link rel="stylesheet" type="text/css" href="style/dragdrop.css">
     <link rel="stylesheet" type="text/css" href="style/dock.css">
-    <link rel="stylesheet" type="text/css" href="style/landing.css">
     <link rel="stylesheet" type="text/css" href="everything.me/css/everything.me.css">
-    <link rel="stylesheet" type="text/css" href="style/rocketbar.css">
 
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
@@ -18,7 +16,6 @@
     <script type="text/javascript" defer src="shared/js/manifest_helper.js"></script>
     <script type="text/javascript" src="shared/js/settings_listener.js"></script>
     <script type="text/javascript" defer src="shared/js/async_storage.js"></script>
-    <script type="text/javascript" defer src="shared/js/opensearch.js"></script>
 
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
@@ -29,7 +26,6 @@
 
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/message.js"></script>
-    <script type="text/javascript" defer src="js/landing.js"></script>
     <script type="text/javascript" defer src="js/request.js"></script>
     <script type="text/javascript" defer src="js/bookmark.js"></script>
     <script type="text/javascript" defer src="js/state.js"></script>
@@ -43,7 +39,6 @@
     <script type="text/javascript" defer src="js/homescreen.js"></script>
     <script type="text/javascript" defer src="js/configurator.js"></script>
     <script type="text/javascript" defer src="js/wallpaper.js"></script>
-    <script type="text/javascript" defer src="js/rocketbar.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
@@ -73,53 +68,41 @@
       </form>
     </section>
 
-    <section id="rocketbar-overlay">
-      <input id="rocketbar-input" data-l10n-id="rocketbar-search" x-inputmode="verbatim" type="text" placeholder="Search..."/>
-      <ul id="rocketbar-search-results"></ul>
-    </section>
-
     <header id="paginationBar">
       <div class="paginationScroller" role="slider" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0" aria-controls="icongrid"></div>
     </header>
 
     <div id="icongrid" class="apps" role="main">
-      <div class="page" id="evmePage" role="search-page">
-          <form id="loading-overlay" role="dialog" data-type="confirm">
-            <section>
-              <h1 data-l10n-id="loadingEvme2">Loading&hellip;</h1>
-              <p role="status">
-                <span>0%</span>
-                <progress value="0" max="100"></progress>
-              </p>
-            </section>
-          </form>
+      <div id="landing-page" data-current-page="true">
+        <div id="evme-activation-icon"></div>
+        
           <div id="evmeContainer">
             <div id="search" class="active">
-                <div id="search-header">
-                    <form action="/#!/search" id="search-rapper">
-                        <fieldset>
-                            <div id="search-q-bg">
-                                <input type="text" id="search-q" name="search-q" maxlength="128" autocorrect="off" autocapitalize="off" />
-                                <span id="default-text" data-l10n-id="evme-searchbar-default"></span>
-                            </div>
-                            <div id="helper-tip"><b></b></div>
-                        </fieldset>
-                    </form>
-                    <b id="button-clear" data-l10n-id="evme-searchbar-clear"></b>
-                </div>
-                <div id="header">
-                    <div id="helper-header">
-                        <h1 id="search-title"></h1>
-                        <div id="helper-rapper">
-                            <div id="helper">
-                                <ul></ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="evmeApps" class="evme-apps">
-                    <ul id="evmeAppsList"></ul>
-                </div>
+              <div id="search-header">
+                  <form action="/#!/search" id="search-rapper">
+                      <fieldset>
+                          <div id="search-q-bg">
+                              <input type="text" id="search-q" name="search-q" maxlength="128" autocorrect="off" autocapitalize="off" x-inputmode="verbatim" />
+                              <span id="default-text" data-l10n-id="evme-searchbar-default2"></span>
+                          </div>
+                          <div id="helper-tip"><b></b></div>
+                      </fieldset>
+                  </form>
+                  <b id="button-clear" data-l10n-id="evme-searchbar-clear"></b>
+              </div>
+              <div id="header">
+                  <div id="helper-header">
+                      <h1 id="search-title"></h1>
+                      <div id="helper-rapper">
+                          <div id="helper">
+                              <ul></ul>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <div id="evmeApps" class="evme-apps">
+                  <ul id="evmeAppsList"></ul>
+              </div>
             </div>
 
             <div id="shortcuts">
@@ -130,16 +113,6 @@
             </div>
             <section id="evmeBanner" role="status" class="noreset"></section>
           </div>
-      </div>
-      <div id="landing-page" data-current-page="true">
-        <div id="rocketbar-activation-icon"></div>
-        <div id="landing-time">
-          <p id="landing-clock">
-            <span class="numbers"></span>
-            <span class="meridiem"></span>
-          </p>
-          <p id="landing-date"></p>
-        </div>
       </div>
     </div>
 

@@ -187,7 +187,7 @@ var GridManager = (function() {
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
-        if (currentPage || numberOfSpecialPages === 1)
+        if (currentPage)
           evt.stopPropagation();
         touchStartTimestamp = evt.timeStamp;
         startEvent = isTouch ? evt.touches[0] : evt;
@@ -308,6 +308,9 @@ var GridManager = (function() {
             };
           } else if (currentPage === landingPage) {
             setOpacityToOverlay = function() {
+              if (!forward)
+                return;
+
               var opacity = (Math.abs(deltaX) / windowWidth) *
                             opacityOnAppGridPageMax;
               overlayStyle.opacity = opacityStepFunction(opacity);
@@ -412,9 +415,7 @@ var GridManager = (function() {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
-      } else if (!forward && page > 0 &&
-                 (page === landingPage || page >= nextLandingPage + 1 ||
-                    (page === nextLandingPage && !Homescreen.isInEditMode()))) {
+      } else if (!forward && page > 0) {
         page = page - 1;
       }
     } else if (!isPanning && evt) {
@@ -465,17 +466,6 @@ var GridManager = (function() {
     }
   }
 
-  var captureHashchange = false;
-
-  function hashchange(evt) {
-    if (!captureHashchange) {
-      return;
-    }
-
-    captureHashchange = false;
-    evt.stopImmediatePropagation();
-  }
-
   function goToPageCallback(index, fromPage, toPage, dispatchEvents, callback) {
     delete document.body.dataset.transitioning;
 
@@ -522,14 +512,6 @@ var GridManager = (function() {
   function goToPage(index, callback) {
     if (index < 0 || index >= pages.length)
       return;
-
-    if (index === landingPage) {
-      // Homescreen won't call to this method due to stop the propagation
-      captureHashchange = true;
-      document.location.hash = 'root';
-    } else {
-      document.location.hash = '';
-    }
 
     var delay = touchEndTimestamp - lastGoingPageTimestamp ||
                 kPageTransitionDuration;
@@ -894,6 +876,7 @@ var GridManager = (function() {
     // See also pageHelper.saveAll().
     numberOfSpecialPages = container.children.length;
     landingPage = numberOfSpecialPages - 1;
+    currentPage = numberOfSpecialPages - 1;
     prevLandingPage = landingPage - 1;
     nextLandingPage = landingPage + 1;
     for (var i = 0; i < container.children.length; i++) {
@@ -1196,7 +1179,6 @@ var GridManager = (function() {
     kPageTransitionDuration = options.swipeTransitionDuration;
     overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
 
-    window.addEventListener('hashchange', hashchange);
     IconRetriever.init();
 
     // Initialize the grid from the state saved in IndexedDB.

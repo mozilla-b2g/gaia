@@ -13,8 +13,7 @@
     right: 0;
     bottom: 0;
     z-index: 100;
-    opacity: 0;
-    pointer-events: none;
+    display: none;
     overflow: hidden;
     -moz-transition: opacity .2s linear;
     transition: opacity .2s linear;
@@ -119,9 +118,8 @@
             transform: scale(.7) !important;
         }
 
-#evmeContainer.empty-query:not(.keyboard-visible) #shortcuts {
-    opacity: 1;
-    pointer-events: inherit;
+.evme-display-shortcuts #evmeContainer #shortcuts {
+    display: block;
 }
 
 #evmeContainer #shortcuts-customize {
