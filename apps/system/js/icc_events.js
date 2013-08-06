@@ -95,6 +95,14 @@ var icc_events = {
       });
   },
 
+  handleBrowserTerminationEvent:
+    function icc_events_handleBrowserTerminationEvent(evt) {
+      DUMP(' STK Browser termination');
+      this.downloadEvent({
+        eventType: icc._icc.STK_EVENT_TYPE_BROWSER_TERMINATION
+      });
+  },
+
   register: function icc_events_register(eventList) {
     DUMP('icc_events_register - Events list:', eventList);
     for (var evt in eventList) {
@@ -132,6 +140,19 @@ var icc_events = {
           });
         break;
       case icc._icc.STK_EVENT_TYPE_BROWSER_TERMINATION:
+        DUMP('icc_events_register - Browser termination event');
+        window.addEventListener('appterminated',
+          function icc_events_browsertermination(e) {
+            var app = Applications.getByManifestURL(e.detail.origin +
+              '/manifest.webapp');
+            if (!app) {
+              return;
+            }
+            if (app.manifest.permissions.browser) {
+              self.handleBrowserTerminationEvent(e);
+            }
+          });
+        break;
       case icc._icc.STK_EVENT_TYPE_DATA_AVAILABLE:
       case icc._icc.STK_EVENT_TYPE_CHANNEL_STATUS:
       case icc._icc.STK_EVENT_TYPE_SINGLE_ACCESS_TECHNOLOGY_CHANGED:
