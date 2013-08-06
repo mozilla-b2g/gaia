@@ -481,6 +481,14 @@ button::-moz-focus-inner {
   vertical-align: middle;
 }
 
+#lockscreen-passcode-pad > a.disabled {
+  pointer-events: none;
+}
+
+#lockscreen-passcode-pad > a.disabled > span {
+  color: #4d4d4d;
+}
+
 #lockscreen-panel-emergency-call {
   transform: translateX(100%);
 }
