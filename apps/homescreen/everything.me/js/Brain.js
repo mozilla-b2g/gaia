@@ -26,6 +26,10 @@ Evme.Brain = new function Evme_Brain() {
         TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH = 800,
         TIMEOUT_BEFORE_AUTO_RENDERING_MORE_APPS = 200,
         TIMEOUT_BEFORE_SHOWING_APPS_LOADING = 800,
+        
+        CLASS_WHEN_LOADED = 'evme-loaded',
+        CLASS_WHEN_HAS_RESULTS = 'evme-has-results',
+        CLASS_WHEN_SHOWING_SHORTCUTS = 'evme-display-shortcuts',
 
         L10N_SYSTEM_ALERT="alert",
 
@@ -41,13 +45,22 @@ Evme.Brain = new function Evme_Brain() {
         DISPLAY_INSTALLED_APPS = "FROM_CONFIG",
 
         INSTALLED_APPS_TO_TYPE = {
-            "music": ["FM Radio", "Music", "Video"],
-            "games": ["Marketplace", "CrystalSkull", "PenguinPop", "TowerJelly"],
-            "maps": ["Maps"],
+            "productivity": ["Calendar", "Clock"],
+            "utilities": ["Calendar", "Clock", "Browser", "Settings", "Marketplace"],
             "email": ["E-mail"],
+            "internet": ["Browser", "Settings"],
+            "photography": ["Gallery", "Camera"],
             "images": ["Gallery", "Camera"],
+            "music": ["FM Radio", "Music", "Video"],
+            "radio": ["FM Radio", "Music"],
             "video": ["Video", "Camera"],
-            "local": ["Maps", "FM Radio"]
+            "social": ["Messages"],
+            "personal communication": ["Messages"],
+            "tv": ["Video"],
+            "funny": ["Video"],
+            "games": ["Marketplace", "CrystalSkull", "PenguinPop", "TowerJelly"],
+            "maps": ["Here Maps"],
+            "local": ["Here Maps"]
         },
 
         timeoutSetUrlAsActive = null,
@@ -131,6 +144,8 @@ Evme.Brain = new function Evme_Brain() {
             Brain.Searchbar.setEmptyClass();
 
             Evme.Shortcuts.show();
+            
+            document.body.classList.add(CLASS_WHEN_LOADED);
         };
     };
 
@@ -150,16 +165,16 @@ Evme.Brain = new function Evme_Brain() {
                 Evme.Helper.showSuggestions();
             } else {
                 Brain.Helper.showDefault();
+                document.body.classList.add(CLASS_WHEN_SHOWING_SHORTCUTS);
             }
         };
 
         // Searchbar blurred. Keyboard hides.
         this.blur = function blur(data) {
             // Gaia bug workaround because of this http://b2g.everything.me/tests/input-blur.html
-            if (data && data.e) {
+            if (data && data.e && data.e.stopPropagation) {
                 data.e.stopPropagation();
             }
-
 
             var didClickApp = false,
                 elClicked = data && data.e && data.e.explicitOriginalTarget;
@@ -212,6 +227,8 @@ Evme.Brain = new function Evme_Brain() {
             Evme.Apps.clear();
             Evme.Helper.setTitle();
             Brain.Helper.showDefault();
+            document.body.classList.remove(CLASS_WHEN_HAS_RESULTS);
+            document.body.classList.add(CLASS_WHEN_SHOWING_SHORTCUTS);
         };
 
         // Keyboard action key ("search") pressed
@@ -226,8 +243,12 @@ Evme.Brain = new function Evme_Brain() {
 
             if (!query) {
                 elContainer.classList.add("empty-query");
+                document.body.classList.remove(CLASS_WHEN_HAS_RESULTS);
+                document.body.classList.add(CLASS_WHEN_SHOWING_SHORTCUTS);
             } else {
                 elContainer.classList.remove("empty-query");
+                document.body.classList.add(CLASS_WHEN_HAS_RESULTS);
+                document.body.classList.remove(CLASS_WHEN_SHOWING_SHORTCUTS);
             }
         };
 
@@ -271,6 +292,15 @@ Evme.Brain = new function Evme_Brain() {
             if (typedQuery === suggestionsQuery) {
                 Searcher.searchExactAsYouType(firstSuggestion, typedQuery);
             }
+        };
+    };
+    
+    // modules/SearchHistory/
+    this.SearchHistory = new function SearchHistory() {
+      
+        // items were loaded from the cache
+        this.populate = function populate() {
+            Evme.Brain.Helper.showDefault();
         };
     };
     
@@ -1236,13 +1266,17 @@ Evme.Brain = new function Evme_Brain() {
         // item clicked
         this.click = function click(data) {
             if(!Evme.Shortcuts.isEditing && !Evme.Shortcuts.isSwiping()) {
-                new Evme.SmartFolder({
-                    "query": data.shortcut.getQuery(),
-                    "experienceId": data.shortcut.getExperience(),
-                    "bgImage": (Evme.BackgroundImage.get() || {}).image,
-                    "elParent": elContainer,
-                    "onScrollEnd": Evme.Brain.SmartFolder.loadMoreApps
-                }).show();
+              // get the shortcut's query
+              var query = data.shortcut.getQuery(),
+                  experienceId = data.shortcut.getExperience();
+
+              // if there isn't a query - translate the experienceId to a query
+              if (!query) {
+                query = Evme.Utils.l10n('shortcut', 'id-' + Evme.Utils.shortcutIdToKey(experienceId));
+              }
+
+              // now set the query in the searchbar and perform the exact search
+              Searcher.searchExactFromOutside(query, SEARCH_SOURCES.SHORTCUT_SMART_FOLDER);
             }
         };
 
@@ -1948,6 +1982,7 @@ Evme.Brain = new function Evme_Brain() {
         this.empty = function empty(){
             Searcher.cancelRequests();
             Evme.Apps.clear();
+            Evme.BackgroundImage.loadDefault();
             resetLastSearch();
             lastQueryForImage = "";
 

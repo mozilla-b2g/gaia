@@ -111,3 +111,25 @@ body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > span {
       height: .2rem;
   }
 }
+
+/* This is a dirty hack to hide the bottom toolbar while
+ * the keyboard is active, than device-height - 40px
+ * (for status bar/mini attention screen),
+ * then the keyboard is likely activated
+ */
+/* For the Otoro, 320x480 */
+@media (device-height: 480px) and (max-height: 430px),
+       (device-height: 320px) and (max-height: 270px) {
+  footer { display: none !important; }
+}
+/* For the Galaxy SII, 640x480 */
+@media (device-height: 480px) and (max-height: 430px),
+       (device-height: 640px) and (max-height: 590px) {
+  footer { display: none !important; }
+}
+
+/* For the Twist , 960x540 */
+@media (device-height: 540px) and (max-height: 490px),
+       (device-height: 960px) and (max-height: 910px) {
+  footer { display: none !important; }
+}
