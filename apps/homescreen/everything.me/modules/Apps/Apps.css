@@ -148,6 +148,16 @@ body:not(.istouch) .evme-apps {
 body:not(.istouch) .evme-apps ul {
     overflow: hidden;
 }
+
+body:not(.istouch) .evme-apps ul li {
+    /* The above outline is a hack to force Gecko to create only one big
+     * big Thebes layer for shorcuts results instead of trying it to be
+     * smart and result into a lot of layers creation/destruction.
+     */
+    outline: 1px solid transparent;
+    outline-offset: 1px;
+}
+
 body:not(.istouch) .evme-apps ul li:nth-child(4n+1) {
     clear: both;
 }
