@@ -11,33 +11,25 @@ requireApp('system/test/unit/mock_window_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_popup_manager.js');
-requireApp('system/test/unit/mocks_helper.js');
 
-var mocksForCardsView = ['GestureDetector',
-                         'TrustedUIManager',
-                         'UtilityTray',
-                         'WindowManager',
-                         'LockScreen',
-                         'SleepMenu',
-                         'PopupManager'];
-
-mocksForCardsView.forEach(function(mockName) {
-  if (! window[mockName]) {
-    window[mockName] = null;
-  }
-});
+var mocksForCardsView = new MocksHelper([
+  'GestureDetector',
+  'TrustedUIManager',
+  'UtilityTray',
+  'WindowManager',
+  'LockScreen',
+  'SleepMenu',
+  'PopupManager'
+]).init();
 
 suite('cards view >', function() {
-  var mocksHelper;
   var subject;
 
   var screenNode;
   var cardsView;
 
+  mocksForCardsView.attachTestHelpers();
   suiteSetup(function(done) {
-    mocksHelper = new MocksHelper(mocksForCardsView);
-    mocksHelper.suiteSetup();
-
     screenNode = document.createElement('div');
     screenNode.id = 'screen';
     cardsView = document.createElement('div');
@@ -52,18 +44,14 @@ suite('cards view >', function() {
   });
 
   suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
     screenNode.parentNode.removeChild(screenNode);
   });
 
   teardown(function() {
-    mocksHelper.teardown();
     cardsView.firstElementChild.innerHTML = '';
   });
 
   setup(function() {
-    mocksHelper.setup();
-
     MockWindowManager.mRunningApps = {
       'http://sms.gaiamobile.org': {
         launchTime: 5,

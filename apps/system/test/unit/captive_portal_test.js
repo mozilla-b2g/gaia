@@ -1,8 +1,6 @@
 // Captive Portal Test
 
 'use strict';
-// Ignore leak, otherwise an error would occur when using MockMozActivity.
-mocha.setup({ignoreLeaks: true});
 
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_app.js');
@@ -20,14 +18,11 @@ requireApp('system/js/entry_sheet.js');
 requireApp('system/js/captive_portal.js');
 requireApp('system/js/ftu_launcher.js');
 
-var mocksForCaptivePortal =
-  ['SettingsListener', 'NotificationScreen', 'WindowManager'];
-
-mocksForCaptivePortal.forEach(function(mockName) {
-  if (! window[mockName]) {
-    window[mockName] = null;
-  }
-});
+var mocksForCaptivePortal = new MocksHelper([
+  'SettingsListener',
+  'NotificationScreen',
+  'WindowManager'
+]).init();
 
 suite('captive portal > ', function() {
   var realWifiManager;
@@ -41,9 +36,8 @@ suite('captive portal > ', function() {
   var event;
   var fakeScreenNode;
 
+  mocksForCaptivePortal.attachTestHelpers();
   suiteSetup(function() {
-    mocksHelper = new MocksHelper(mocksForCaptivePortal);
-    mocksHelper.suiteSetup();
     realWifiManager = navigator.mozWifiManager;
     navigator.mozWifiManager = MockWifiManager;
     realSettings = navigator.mozSettings;
@@ -63,7 +57,6 @@ suite('captive portal > ', function() {
   });
 
   suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
     navigator.mozWifiManager = realWifiManager;
     window.SettingsListener = realSettingsListener;
     try {
@@ -77,7 +70,6 @@ suite('captive portal > ', function() {
   });
 
   setup(function() {
-    mocksHelper.setup();
     event = new MockChromeEvent({
       type: 'captive-portal-login',
       url: 'http://developer.mozilla.org'
@@ -108,7 +100,3 @@ suite('captive portal > ', function() {
     FtuLauncher._isRunningFirstTime = false;
   });
 });
-
-
-mocha.setup({ignoreLeaks: false});
-
