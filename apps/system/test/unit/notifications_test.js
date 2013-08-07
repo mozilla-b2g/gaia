@@ -5,35 +5,20 @@ mocha.globals(['ScreenManager']);
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('system/test/unit/mock_settings_listener.js');
-requireApp('system/test/unit/mocks_helper.js');
 
 requireApp('system/js/notifications.js');
 
-var mocksForNotificationScreen = ['StatusBar', 'GestureDetector',
-                                  'SettingsListener'];
-
-mocksForNotificationScreen.forEach(function(mockName) {
-  if (! window[mockName]) {
-    window[mockName] = null;
-  }
-});
-
+var mocksForNotificationScreen = new MocksHelper([
+  'StatusBar',
+  'GestureDetector',
+  'SettingsListener'
+]).init();
 
 suite('system/NotificationScreen >', function() {
   var fakeNotifContainer, fakeLockScreenContainer, fakeToaster,
     fakeButton, fakeToasterIcon, fakeToasterTitle, fakeToasterDetail;
 
-  var mocksHelper;
-
-  suiteSetup(function() {
-    mocksHelper = new MocksHelper(mocksForNotificationScreen);
-    mocksHelper.suiteSetup();
-  });
-
-  suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
-  });
-
+  mocksForNotificationScreen.attachTestHelpers();
   setup(function() {
     fakeNotifContainer = document.createElement('div');
     fakeNotifContainer.id = 'desktop-notifications-container';
@@ -64,8 +49,6 @@ suite('system/NotificationScreen >', function() {
     document.body.appendChild(fakeToasterTitle);
     document.body.appendChild(fakeToasterDetail);
 
-    mocksHelper.setup();
-
     NotificationScreen.init();
   });
 
@@ -74,8 +57,6 @@ suite('system/NotificationScreen >', function() {
     fakeLockScreenContainer.parentNode.removeChild(fakeLockScreenContainer);
     fakeToaster.parentNode.removeChild(fakeToaster);
     fakeButton.parentNode.removeChild(fakeButton);
-
-    mocksHelper.teardown();
   });
 
   suite('chrome events >', function() {
