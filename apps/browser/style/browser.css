@@ -266,7 +266,7 @@ input[type="image"] {
   background-image: url('./images/iconaction_back_50x50.png'), url('./images/tabs-badge-background.png');
   background-repeat: no-repeat, no-repeat;
   background-position: top right, right;
-  background-size: auto 5rem;
+  background-size: 5rem, auto 5rem;
   padding-right: 6.5rem;
 }
 
