@@ -2,11 +2,11 @@ var EverythingME = {
 
   displayed: false,
 
-  pageHideBySwipe: false,
-
   init: function EverythingME_init() {
-    var footerStyle = document.querySelector('#footer').style;
-    footerStyle.MozTransition = '-moz-transform .3s ease';
+    var footer = document.querySelector('#footer');
+    if (footer) {
+      footer.style.MozTransition = '-moz-transform .3s ease';
+    }
     
     var self = this,
         page = document.getElementById('landing-page'),
