@@ -334,7 +334,7 @@ webapp-manifests: install-xulrunner-sdk
 	@#cat $(PROFILE_FOLDER)/webapps/webapps.json
 
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: install-xulrunner-sdk
+webapp-zip: webapp-optimize install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
