@@ -43,8 +43,10 @@ navigator.mozL10n.ready(function wifiSettings() {
 
   // toggle wifi on/off
   gWifiCheckBox.onchange = function toggleWifi() {
+    // 'wifi.suspended' is always false if users toggle wifi manually.
     settings.createLock().set({
-      'wifi.enabled': this.checked
+      'wifi.enabled': this.checked,
+      'wifi.suspended': false
     }).onerror = function() {
       // Fail to write mozSettings, return toggle control to the user.
       gWifiCheckBox.disabled = false;
