@@ -417,9 +417,14 @@ var DataUsageTab = (function() {
     ctx.restore();
   }
 
+  function makeCSSFontString(fontSize, fontWeight) {
+    return fontWeight + ' ' + fontSize + 'px sans-serif';
+  }
+
   var todayLabel = {};
-  var FONTSIZE = 12;
-  var TODAY_FONTSIZE = 14;
+  var FONTSIZE = toDevicePixels(13);
+  var TODAY_FONTSIZE = toDevicePixels(15);
+  var FONTWEIGHT = '600';
   function drawTodayLayer(model) {
     var canvas = document.getElementById('today-layer');
     var height = canvas.height = model.height;
@@ -435,8 +440,7 @@ var DataUsageTab = (function() {
     var todayTag = dateFormatter.localeFormat(model.axis.X.today, dateFormat);
 
     // Render the text
-    ctx.fontWeight = '600';
-    ctx.fontSize = TODAY_FONTSIZE + 'px';
+    ctx.font = makeCSSFontString(TODAY_FONTSIZE, FONTWEIGHT);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
@@ -463,7 +467,7 @@ var DataUsageTab = (function() {
     var step = model.axis.Y.step;
     var dataStep = model.axis.Y.upper - model.axis.Y.maxValue;
     var offsetX = model.originX - 4, marginBottom = 4;
-    ctx.fontSize = FONTSIZE + 'px';
+    ctx.font = makeCSSFontString(FONTSIZE, FONTWEIGHT);
     ctx.textAlign = 'right';
     var displayLimit = mobileToggle.checked && model.limits.enabled;
     var lastUnit;
@@ -502,8 +506,7 @@ var DataUsageTab = (function() {
 
     // Left tag
     var leftTag = dateFormatter.localeFormat(model.axis.X.lower, dateFormat);
-    ctx.fontWeight = '600';
-    ctx.fontSize = FONTSIZE + 'px';
+    ctx.font = makeCSSFontString(FONTSIZE, FONTWEIGHT);
     ctx.textBaseline = 'top';
     ctx.textAlign = 'start';
 
@@ -545,8 +548,7 @@ var DataUsageTab = (function() {
     var offsetY = set ? model.axis.Y.get(model.limits.value) :
                         FONTSIZE + 2 * marginTop;
 
-    ctx.fontWeight = '600';
-    ctx.fontSize = FONTSIZE + 'px';
+    ctx.font = makeCSSFontString(FONTSIZE, FONTWEIGHT);
 
     // The dashed limit line
     var lineLength = 15;
