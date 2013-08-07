@@ -203,14 +203,12 @@ article:not(:target) #keypad-delete {
   width: 9rem;
   background: url("images/btn_generic.png") repeat-x;
   background-size: auto 100%;
-  border: .1rem solid #242B36;
   border-radius: .2rem;
   vertical-align: middle;
 }
 
 #keypad-callbar-add-contact.disabled {
   opacity: 0.2;
-  border: .1rem solid #2d292a;
 }
 
 
@@ -248,7 +246,7 @@ article:not(:target) #keypad-delete {
 .icon-add-contact {
   margin: auto;
   width: 4rem;
-  height: 4rem;
+  height: 4.2rem;
   background-image: url("images/ActionIcon_40x40_addcontact.png");
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
