@@ -197,6 +197,10 @@ var MockMozMobileConnection = {
     MmiManager.handleMMIReceived(message, sessionEnded);
   },
 
-  teardown: function mmmc_teardown() {
+  mTeardown: function mmmc_mTeardown() {
+    // Back to the initial state
+    this.voice = {
+      network: 'Fake voice network'
+    };
   }
 };
