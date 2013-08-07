@@ -2,7 +2,7 @@
 
 mocha.globals(['ScreenManager']);
 
-require('/shared/js/settings_url.js');
+requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('system/test/unit/mock_settings_listener.js');
@@ -11,7 +11,7 @@ requireApp('system/test/unit/mocks_helper.js');
 requireApp('system/js/notifications.js');
 
 var mocksForNotificationScreen = ['StatusBar', 'GestureDetector',
-                                  'SettingsListener'];
+                                  'SettingsListener', 'SettingsURL'];
 
 mocksForNotificationScreen.forEach(function(mockName) {
   if (! window[mockName]) {
