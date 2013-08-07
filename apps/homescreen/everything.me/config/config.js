@@ -166,6 +166,7 @@ Evme.__config = {
         "142": "music",
         "355": "new-apps",
         "245": "news",
+        "349": "photography",
         "270": "recipes",
         "220": "restaurants",
         "238": "shopping",
@@ -175,6 +176,7 @@ Evme.__config = {
         "352": "top-apps",
         "306": "travel",
         "213": "tv",
+        "357": "utilities",
         "211": "video",
         "249": "weather"
     }

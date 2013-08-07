@@ -156,7 +156,7 @@ var GridManager = (function() {
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
-        if (currentPage || numberOfSpecialPages === 1)
+        if (currentPage)
           evt.stopPropagation();
         touchStartTimestamp = evt.timeStamp;
         startEvent = isTouch ? evt.touches[0] : evt;
@@ -276,6 +276,9 @@ var GridManager = (function() {
             };
           } else if (currentPage === landingPage) {
             setOpacityToOverlay = function() {
+              if (!forward)
+                return;
+
               var opacity = (Math.abs(deltaX) / windowWidth) *
                             opacityOnAppGridPageMax;
               overlayStyle.opacity = opacityStepFunction(opacity);
@@ -366,9 +369,7 @@ var GridManager = (function() {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
-      } else if (!forward && page > 0 &&
-                 (page === landingPage || page >= nextLandingPage + 1 ||
-                    (page === nextLandingPage && !Homescreen.isInEditMode()))) {
+      } else if (!forward && page > 0) {
         page = page - 1;
       }
     } else if (!isPanning && evt) {
@@ -819,6 +820,7 @@ var GridManager = (function() {
     // See also pageHelper.saveAll().
     numberOfSpecialPages = container.children.length;
     landingPage = numberOfSpecialPages - 1;
+    currentPage = numberOfSpecialPages - 1;
     prevLandingPage = landingPage - 1;
     nextLandingPage = landingPage + 1;
     for (var i = 0; i < container.children.length; i++) {

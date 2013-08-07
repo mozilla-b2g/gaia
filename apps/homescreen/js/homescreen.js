@@ -26,11 +26,14 @@ const Homescreen = (function() {
     landingPage = lPage;
 
     window.addEventListener('hashchange', function() {
-      if (document.location.hash != '#root')
+      if (!window.location.hash.replace('#', '')) {
         return;
+      }
 
       // this happens when the user presses the 'home' button
-      if (Homescreen.isInEditMode()) {
+      if (Homescreen.didEvmePreventHomeButton()) {
+        // nothing to do here, just prevent any other actions
+      } else if (Homescreen.isInEditMode()) {
         exitFromEditMode();
       } else {
         GridManager.goToPage(landingPage);
@@ -138,6 +141,11 @@ const Homescreen = (function() {
 
     isInEditMode: function() {
       return mode === 'edit';
+    },
+
+    didEvmePreventHomeButton: function() {
+      var evme = ("EvmeFacade" in window) && window.EvmeFacade;
+      return evme.onHomeButtonPress && evme.onHomeButtonPress();
     },
 
     init: initialize,
