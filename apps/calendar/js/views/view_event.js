@@ -133,11 +133,11 @@ Calendar.ns('Views').ViewEvent = (function() {
       // Handle alarm display
       var alarmContent = '';
 
-      if (this.event.alarmsDefault && this.event.alarmsDefault.length) {
+      if (this.event.alarms && this.event.alarms.length) {
 
         var alarmDescription = Calendar.Templates.Alarm.description;
 
-        for (var i = 0, alarm; alarm = this.event.alarmsDefault[i]; i++) {
+        for (var i = 0, alarm; alarm = this.event.alarms[i]; i++) {
           if (alarm.trigger !== 'none') {
             alarmContent += '<div>' +
               alarmDescription.render({

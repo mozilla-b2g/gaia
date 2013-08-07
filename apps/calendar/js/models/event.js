@@ -193,10 +193,6 @@ Calendar.ns('Models').Event = (function() {
     },
 
     get alarms() {
-      return this.remote.alarms || [];
-    },
-
-    get alarmsDefault() {
       // if get alarms returns an empty array then in edit
       // event view no reminder option will display when default
       // setting sets alarms of either all-day or standard event
