@@ -10,7 +10,6 @@
 
 (function(window) {
   var gL10nData = {};
-  var gTextProp = 'textContent';
   var gLanguage = '';
   var gMacros = {};
   var gReadyState = 'loading';
@@ -143,6 +142,34 @@
     return { id: l10nId, args: args };
   }
 
+  function setTextContent(element, text) {
+    // standard case: no element children
+    if (!element.firstElementChild) {
+      element.textContent = text;
+      return;
+    }
+
+    // this element has element children: replace the content of the first
+    // (non-blank) child textNode and clear other child textNodes
+    var found = false;
+    var reNotBlank = /\S/;
+    for (var child = element.firstChild; child; child = child.nextSibling) {
+      if (child.nodeType === 3 && reNotBlank.test(child.nodeValue)) {
+        if (found) {
+          child.nodeValue = '';
+        } else {
+          child.nodeValue = text;
+          found = true;
+        }
+      }
+    }
+    // if no (non-empty) textNode is found, insert a textNode before the
+    // element's first child.
+    if (!found) {
+      element.insertBefore(document.createTextNode(text), element.firstChild);
+    }
+  }
+
   function fireL10nReadyEvent() {
     var evtObject = document.createEvent('Event');
     evtObject.initEvent('localized', false, false);
@@ -171,7 +198,7 @@
    *    triggered when the an error has occured.
    *
    * @return {void}
-   *    uses the following global variables: gL10nData, gTextProp.
+   *    fills gL10nData.
    */
 
   function parseResource(href, lang, successCallback, failureCallback) {
@@ -378,8 +405,10 @@
         }
       }
       // tell the rest of the world we're done
-      fireL10nReadyEvent(lang);
+      // -- note that `gReadyState' must be set before the `localized' event is
+      //    fired for `localizeElement()' to work as expected
       gReadyState = 'complete';
+      fireL10nReadyEvent(lang);
       consoleWarn_missingKeys(untranslatedElements, lang);
     }
 
@@ -1047,43 +1076,19 @@
     }
 
     // translate element (TODO: security checks?)
-    if (data._) {
-      if (element.children.length === 0) {
-        element[gTextProp] = data._;
-      } else {
-        // this element has element children: replace the content of the first
-        // (non-empty) child textNode and clear other child textNodes
-        var children = element.childNodes;
-        var found = false;
-        for (var i = 0, l = children.length; i < l; i++) {
-          if (children[i].nodeType === 3 && /\S/.test(children[i].nodeValue)) {
-            if (found) {
-              children[i].nodeValue = '';
-            } else {
-              children[i].nodeValue = data._;
-              found = true;
-            }
-          }
-        }
-        // if no (non-empty) textNode is found, insert a textNode before the
-        // element's first child.
-        if (!found) {
-          var textNode = document.createTextNode(data._);
-          element.insertBefore(textNode, element.firstChild);
-        }
-      }
-    }
-
     for (var k in data) {
-      var idx = k.lastIndexOf('.');
-      var nestedProp = k.substr(0, idx);
-      if (gNestedProps.indexOf(nestedProp) > -1) {
-        element[nestedProp][k.substr(idx + 1)] = data[k];
+      if (k === '_') {
+        setTextContent(element, data._);
       } else {
-        element[k] = data[k];
+        var idx = k.lastIndexOf('.');
+        var nestedProp = k.substr(0, idx);
+        if (gNestedProps.indexOf(nestedProp) > -1) {
+          element[nestedProp][k.substr(idx + 1)] = data[k];
+        } else {
+          element[k] = data[k];
+        }
       }
     }
-
     return true;
   }
 
@@ -1112,20 +1117,12 @@
 
   // localize an element as soon as mozL10n is ready
   function localizeElement(element, id, args) {
-    if (!element) {
+    if (!element || !id) {
       return;
     }
 
-    if (id) {
-      element.setAttribute('data-l10n-id', id);
-    } else {
-      // clear element content and data-l10n attributes
-      element.removeAttribute('data-l10n-id');
-      element.removeAttribute('data-l10n-args');
-      element[gTextProp] = '';
-      return;
-    }
-
+    // set the data-l10n-[id|args] attributes
+    element.setAttribute('data-l10n-id', id);
     if (args) {
       element.setAttribute('data-l10n-args', JSON.stringify(args));
     } else {
