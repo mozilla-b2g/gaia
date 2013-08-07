@@ -1,6 +1,7 @@
 [
   "calendar/test/unit/store/busytime_test.js",
   "calendar/test/unit/views/modify_event_test.js",
+  "communications/contacts/test/unit/contacts_list_test.js",
   "communications/dialer/test/unit/handled_call_test.js",
   "communications/dialer/test/unit/suggestion_bar_test.js",
   "communications/dialer/test/unit/utils_test.js",
