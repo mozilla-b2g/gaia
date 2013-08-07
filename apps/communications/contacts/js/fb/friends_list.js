@@ -92,7 +92,7 @@ var FriendListRenderer = (function() {
       if (!friend.search || friend.search.length === 0)
         return;
 
-      friend.search = utils.text.normalize(friend.search);
+      friend.search = Normalizer.toAscii(friend.search);
 
       // New friend appended
       utils.templates.append(list, friend);

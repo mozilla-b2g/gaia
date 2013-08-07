@@ -318,17 +318,17 @@ contacts.List = (function() {
         searchInfo.push(current.value);
       }
     }
-    var escapedValue = utils.text.escapeHTML(searchInfo.join(' '), true);
-    return utils.text.normalize(escapedValue);
+    var escapedValue = Normalizer.escapeHTML(searchInfo.join(' '), true);
+    return Normalizer.toAscii(escapedValue);
   };
 
   var getHighlightedName = function getHighlightedName(contact) {
     var givenName = '';
     var familyName = '';
     if (contact.givenName && contact.givenName.length)
-      givenName = utils.text.escapeHTML(contact.givenName[0]);
+      givenName = Normalizer.escapeHTML(contact.givenName[0]);
     if (contact.familyName && contact.familyName.length)
-      familyName = utils.text.escapeHTML(contact.familyName[0]);
+      familyName = Normalizer.escapeHTML(contact.familyName[0]);
 
     if (orderByLastName) {
       return givenName + ' <strong>' + familyName + '</strong>';
@@ -854,7 +854,7 @@ contacts.List = (function() {
     ret.push(second);
 
     if (first != '' || second != '')
-      return utils.text.normalize(ret.join('')).trim();
+      return Normalizer.toAscii(ret.join('')).trim();
     ret.push(contact.org);
     ret.push(contact.tel && contact.tel.length > 0 ?
       contact.tel[0].value.trim() : '');
@@ -862,7 +862,7 @@ contacts.List = (function() {
       contact.email[0].value.trim() : '');
     ret.push('#');
 
-    return utils.text.normalize(ret.join('')).trim();
+    return Normalizer.toAscii(ret.join('')).trim();
   };
 
   var getGroupName = function getGroupName(contact) {

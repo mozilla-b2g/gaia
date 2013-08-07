@@ -2,7 +2,6 @@
 requireApp('communications/contacts/test/unit/mock_form_dom.js.html');
 
 requireApp('communications/contacts/js/contacts_form.js');
-requireApp('communications/contacts/js/utilities/normalizer.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
