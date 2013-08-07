@@ -52,6 +52,13 @@
         width: 25%;
         height: 8rem;
         text-align: center;
+
+        /* The above outline is a hack to force Gecko to create only one big
+         * big Thebes layer for shorcuts results instead of trying it to be
+         * smart and result into a lot of layers creation/destruction.
+         */
+        outline: 1px solid transparent;
+        outline-offset: 1px;
     }
         #evmeContainer .shortcut .remove {
             position: absolute;
