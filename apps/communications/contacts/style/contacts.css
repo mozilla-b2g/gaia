@@ -359,8 +359,18 @@ form p textarea + button[type="reset"].hide {
 }
 
 /* SETTINGS */
+
+#import-settings ul {
+  padding: 0;
+}
+
 section[role="region"] > header .icon.icon-settings
      { background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png); }
+
+#view-settings .view-body-inner {
+  padding: 0;
+  background: #e6e7e2;
+}
 
 #view-settings .view-body-inner {
   padding: 0;
@@ -389,6 +399,8 @@ section[role="region"] > header .icon.icon-settings
 
 #view-settings [data-type="list"] .fb-item p:first-of-type {
   background: url(/contacts/style/images/f_logo.png) no-repeat 0.5rem calc(50% + 0.5rem) / 3rem;
+  height: 3rem;
+  line-height: 3rem;
 }
 
 #view-settings [data-type="list"] .fb-item aside {
@@ -419,12 +431,41 @@ section[role="region"] > header .icon.icon-settings
   margin: 1rem 0;
 }
 
-/* Extending BB lists components*/
-#view-settings [data-type="list"] li aside {
+/* We are going to update the panels with conditional css */
+#import-settings.export #import-options{
+  display: none;
+}
+
+#import-settings.import #export-options{
+  display: none;
+}
+
+#import-settings [data-type="list"] li {
+  border-bottom: none;
+  height: auto;
+}
+
+#import-settings [data-type="list"] li .error-message {
+  display: none;
+}
+
+#import-settings [data-type="list"] li.error .error-message {
+  display: block;
+  line-height: 2rem;
+  margin-top: -1.5rem;
+  color: #5B5B5B;
+  font-size: 1.5rem;
+  height: auto;
+  white-space: normal;
+}
+
+/* Extending BB styles */
+
+#import-settings [data-type="list"] li aside {
   pointer-events: auto;
 }
 
-#view-settings [data-type="list"] li aside label {
+#import-settings [data-type="list"] li aside label {
   height: 100%;
   width: 6.5rem;
 }
@@ -443,31 +484,51 @@ section[role="region"] > header .icon.icon-settings
   opacity: 0.2;
 }
 
-/* Extending icon types*/
-#view-settings [data-type="list"] li button.icon:before {
-  background-size: 3rem;
+#import-settings [data-type="list"] li button.icon {
+  padding: 0 1rem 0 4rem;
 }
-#view-settings [data-type="list"] li button.icon-sim:before {
+
+#import-settings [data-type="list"] li button.icon:before {
+  right: auto;
+  left: 0.5rem;
+}
+
+#import-settings [data-type="list"] li button.icon[disabled="disabled"]:before {
+  opacity: 0.2;
+}
+
+/* Extending icon types for view settings & import-settings*/
+#view-settings [data-type="list"] li button.icon-import:before {
   background-image: url(/contacts/style/images/import_SIM.png);
 }
-#view-settings [data-type="list"] li button.icon-sd:before {
+#view-settings [data-type="list"] li button.icon-export:before {
   background-image: url(/contacts/style/images/import_sd.png);
 }
 
-#view-settings [data-type="list"] li button.icon-gmail:before {
+#import-settings [data-type="list"] li button.icon:before {
+  background-size: 3rem;
+}
+#import-settings [data-type="list"] li button.icon-sim:before {
+  background-image: url(/contacts/style/images/import_SIM.png);
+}
+#import-settings [data-type="list"] li button.icon-sd:before {
+  background-image: url(/contacts/style/images/import_sd.png);
+}
+
+#import-settings [data-type="list"] li button.icon-gmail:before {
   background-image: url(/contacts/style/images/gmail_icon.png);
 }
 
-#view-settings [data-type="list"] li button.icon-live:before {
+#import-settings [data-type="list"] li button.icon-live:before {
   background-image: url(/contacts/style/images/outlook_icon.png);
 }
 
-#importSources li button {
+#view-settings li button {
   height: 5.5rem;
   line-height: 1.9rem;
 }
 
-#importSources button p {
+#view-settings button p {
   display: block;
   font-size: 1.3rem;
   line-height: 1.9rem;
@@ -475,11 +536,34 @@ section[role="region"] > header .icon.icon-settings
   padding: 0;
 }
 
-#importSources button p span {
+#view-settings button p span {
   font-size: 1.3rem;
 }
 
-#importSources button p time {
+#view-settings button p time {
+  font-size: 1.3rem;
+  display: inline-block;
+  margin: 0 0 0 0.5rem;
+}
+
+#import-settings li button {
+  height: 5.5rem;
+  line-height: 1.9rem;
+}
+
+#import-settings button p {
+  display: block;
+  font-size: 1.3rem;
+  line-height: 1.9rem;
+  color: #858585;
+  padding: 0;
+}
+
+#import-settings button p span {
+  font-size: 1.3rem;
+}
+
+#import-settings button p time {
   font-size: 1.3rem;
   display: inline-block;
   margin: 0 0 0 0.5rem;
@@ -566,29 +650,12 @@ section[role="region"] > header .icon.icon-settings
   opacity: 0;
 }
 
-#no-sim, #no-memorycard {
-  color: #5B5B5B;
-  font-size: 1.5rem;
-  line-height: 2rem;
-  margin: -0.5rem 0 1.5rem 0;
-  padding: 0;
-  white-space: normal;
-}
-
-#settingsSIM, #settingsStorage {
-  height: auto;
-}
-
-#importSources {
+#sources {
   margin-top: 1rem;
 }
 
-#importSources > li {
+#sources > li {
   border-bottom: none;
-}
-
-#importSources > li.importService {
-  height: auto;
 }
 
 #groups-container-box {
