@@ -11,6 +11,7 @@
   border: solid 0.1rem #adadad;
   border-right: none;
   border-left: none;
+  border-bottom: none;
 }
 
 #datausage-tab .toggle-data li {
