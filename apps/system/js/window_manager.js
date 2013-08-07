@@ -222,9 +222,8 @@ var WindowManager = (function() {
   // to the current closeFrame (before overwriting the reference)
   function setCloseFrame(frame) {
     if (closeFrame) {
+      windowClosed(closeFrame);
       removeFrameClasses(closeFrame);
-      // closeFrame should not be set to active
-      closeFrame.classList.remove('active');
     }
 
     closeFrame = frame;
@@ -404,7 +403,7 @@ var WindowManager = (function() {
       origin: displayedApp,
       isHomescreen: (manifestURL === homescreenManifestURL)
     });
-    frame.dispatchEvent(evt);
+    iframe.dispatchEvent(evt);
   }
 
   // Executes when app closing transition finishes.
@@ -830,8 +829,11 @@ var WindowManager = (function() {
       }
 
       // We have been canceled by another transition.
-      if (!closeFrame || transitionCloseCallback != startClosingTransition)
+      if (!closeFrame || transitionCloseCallback != startClosingTransition) {
+        setTimeout(closeCallback);
+        closeCallback = null;
         return;
+      }
 
       // Make sure we're not called twice.
       transitionCloseCallback = null;
@@ -961,6 +963,36 @@ var WindowManager = (function() {
       runningApps[homescreen].setVisible(visible);
   }
 
+  // This is an event listener which listens to an iframe's 'mozbrowserloadend'
+  // and 'appopen' events.  We don't declare it inside another function so as
+  // to ensure that it doesn't accidentally keep anything alive.
+  function appLoadedHandler(e)
+  {
+    if (e.type != 'appopen' && e.type != 'mozbrowserloadend') {
+      return;
+    }
+
+    var iframe = e.target;
+    if (iframe.dataset.enableAppLoaded != e.type) {
+      return;
+    }
+
+    iframe.dataset.enableAppLoaded = undefined;
+
+    // * type == 'w' indicates a warm start (the app was already running; we just
+    //   transitioned to it)
+    // * type == 'c' indicates a cold start (the app process wasn't already
+    //   running)
+
+    var doc = e.target.ownerDocument;
+    var evt = doc.createEvent('CustomEvent');
+    evt.initCustomEvent('apploadtime', true, false, {
+      time: parseInt(Date.now() - iframe.dataset.start),
+      type: (e.type == 'appopen') ? 'w' : 'c'
+    });
+    iframe.dispatchEvent(evt);
+  }
+
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
     var currentApp = displayedApp, newApp = origin || homescreen;
@@ -1026,45 +1058,24 @@ var WindowManager = (function() {
 
       var iframe = app.iframe;
 
-      // unpainted means that the app is cold booting
-      // if it is, we're going to listen for Browser API's loadend event
-      // which indicates that the iframe's document load is complete
+      // Set iframe.dataset.enableAppLoaded so that the iframe's
+      // mozbrowserloadend or appopen event listener (appLoadedHandler) can
+      // run.
       //
-      // if the app is not cold booting (is in memory) we will listen
-      // to appopen event, which is fired when the transition to the
-      // app window is complete
+      // |unpainted in iframe.dataset| means that the app is cold booting.  If
+      // it is, we listen for Browser API's loadend event, which is fired when
+      // the iframe's document load finishes.
       //
-      // we listen to the event on the capturing phase in order to ignore
-      // any system-level work done once the app is launched, we're only timing
-      // the app here
-      //
-      // [w] - warm boot (app is in memory, just transition to it)
-      // [c] - cold boot (app has to be booted, we show it's document load
-      // time)
-      var type;
+      // If the app is not cold booting (its process is alive), we listen to
+      // the appopen event, which is fired when the transition to the app
+      // window completes.
+
       if ('unpainted' in iframe.dataset) {
-        type = 'mozbrowserloadend';
+        iframe.dataset.enableAppLoaded = 'mozbrowserloadend';
       } else {
         iframe.dataset.start = Date.now();
-        type = 'appopen';
+        iframe.dataset.enableAppLoaded = 'appopen';
       }
-
-      // Be careful about what you reference from within the closure below (or
-      // any other closures in this function), or you might leak
-      // homescreenFrame.  For example, referencing |document| causes this
-      // leak; that's why we pull the document off e.target.  See bug 894135,
-      // and if in doubt, ask one of the people referenced in that bug.
-      app.iframe.addEventListener(type, function apploaded(e) {
-        var doc = e.target.ownerDocument;
-        e.target.removeEventListener(e.type, apploaded, true);
-
-        var evt = doc.createEvent('CustomEvent');
-        evt.initCustomEvent('apploadtime', true, false, {
-          time: parseInt(Date.now() - iframe.dataset.start),
-          type: (e.type == 'appopen') ? 'w' : 'c'
-        });
-        iframe.dispatchEvent(evt);
-      }, true);
     }
 
     // Case 1: the app is already displayed
@@ -1207,6 +1218,12 @@ var WindowManager = (function() {
 
     iframe.setAttribute('mozapp', manifestURL);
     iframe.src = url;
+
+    // Add minimal chrome if the app needs it.
+    if (manifest.chrome && manifest.chrome.navigation === true) {
+      frame.setAttribute('data-wrapper', 'true');
+    }
+
     return frame;
   }
 
@@ -1246,6 +1263,23 @@ var WindowManager = (function() {
                           'expecting-system-message');
     }
     maybeSetFrameIsCritical(iframe, origin);
+
+    // Register appLoadedHandler as a capturing listener for the
+    // 'mozbrowserloadend' and 'appopen' events on this iframe.  This event
+    // listener will only do something if iframe.dataset.enableAppLoaded is set
+    // to 'mozbrowserloadend' or 'appopen'.
+    //
+    // If appropriate, appLoadedHandler fires an apploadtime event, which helps
+    // us time how long the app took to load.
+    //
+    // We use a capturing listener in order to ignore any systel-level work
+    // done once the app is launched; we're only interested in timing the app
+    // itself.
+
+    iframe.addEventListener('mozbrowserloadend', appLoadedHandler,
+                            /* capturing */ true);
+    iframe.addEventListener('appopen', appLoadedHandler,
+                            /* capturing */ true);
 
     // Add the iframe to the document
     windows.appendChild(frame);
@@ -1512,41 +1546,46 @@ var WindowManager = (function() {
           return;
         }
 
-        if (isRunning(origin)) {
-          // If the app is in foreground, it's too risky to change it's
-          // URL. We'll ignore this request.
-          if (displayedApp !== origin) {
-            var iframe = getAppFrame(origin).firstChild;
+        // If the message specifies we only have to show the app,
+        // then we don't have to do anything here
+        if (!e.detail.onlyShowApp) {
+          if (isRunning(origin)) {
+            // If the app is in foreground, it's too risky to change it's
+            // URL. We'll ignore this request.
+            if (displayedApp !== origin) {
+              var iframe = getAppFrame(origin).firstChild;
 
-            // If the app is opened and it is loaded to the correct page,
-            // then there is nothing to do.
-            if (iframe.src !== e.detail.url) {
-              // Rewrite the URL of the app frame to the requested URL.
-              // XXX: We could ended opening URls not for the app frame
-              // in the app frame. But we don't care.
-              iframe.src = e.detail.url;
+              // If the app is opened and it is loaded to the correct page,
+              // then there is nothing to do.
+              if (iframe.src !== e.detail.url) {
+                // Rewrite the URL of the app frame to the requested URL.
+                // XXX: We could ended opening URls not for the app frame
+                // in the app frame. But we don't care.
+                iframe.src = e.detail.url;
+              }
             }
-          }
-        } else if (origin !== homescreen) {
-          // XXX: We could ended opening URls not for the app frame
-          // in the app frame. But we don't care.
-          var app = appendFrame(null, origin, e.detail.url,
-                      name, manifest, app.manifestURL,
-                      /* expectingSystemMessage */ true);
+          } else if (origin !== homescreen) {
+            // XXX: We could ended opening URls not for the app frame
+            // in the app frame. But we don't care.
+            var app = appendFrame(null, origin, e.detail.url,
+                                  name, manifest, app.manifestURL,
+                                  /* expectingSystemMessage */ true);
 
-          // set the size of the iframe
-          // so Cards View will get a correct screenshot of the frame
-          if (!e.detail.isActivity) {
-            app.resize(false);
-            if ('setVisible' in app.iframe)
-              app.iframe.setVisible(false);
+            // set the size of the iframe
+            // so Cards View will get a correct screenshot of the frame
+            if (!e.detail.isActivity) {
+              app.resize(false);
+              if ('setVisible' in app.iframe)
+                app.iframe.setVisible(false);
+            }
+          } else {
+            ensureHomescreen();
           }
-        } else {
-          ensureHomescreen();
         }
 
-        // We will only bring web activity handling apps to the foreground
-        if (!e.detail.isActivity)
+        // We will only bring apps to the foreground when the message
+        // specifically requests it.
+        if (!e.detail.showApp)
           return;
 
         // XXX: the correct way would be for UtilityTray to close itself

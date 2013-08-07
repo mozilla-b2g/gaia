@@ -58,6 +58,7 @@ settings = {
  "keyboard.layouts.portuguese": False,
  "keyboard.layouts.serbian": False,
  "keyboard.layouts.spanish": False,
+ "keyboard.layouts.catalan": False,
  "keyboard.vibration": False,
  "keyboard.clicksound": False,
  "keyboard.autocorrect": True,

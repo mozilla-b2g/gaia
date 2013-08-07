@@ -14,6 +14,7 @@ requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_l10n.js');
 
 requireApp('sms/js/message_manager.js');
 
@@ -200,7 +201,9 @@ suite('message_manager.js >', function() {
   });
 
   suite('launchComposer() >', function() {
+    var nativeMozL10n = navigator.mozL10n;
     suiteSetup(function() {
+      navigator.mozL10n = MockL10n;
       loadBodyHTML('/index.html');
       ThreadUI.initRecipients();
     });
@@ -227,6 +230,7 @@ suite('message_manager.js >', function() {
     });
 
     suiteTeardown(function() {
+      navigator.mozL10n = nativeMozL10n;
       ThreadUI.recipients = null;
     });
 
@@ -258,6 +262,16 @@ suite('message_manager.js >', function() {
         body: 'test'
       });
       assert.ok(ThreadUI.setMessageBody.calledWith('test'));
+    });
+
+    test('No contact and no number', function() {
+      MessageManager.launchComposer({
+        number: null,
+        contact: null,
+        body: 'Youtube url'
+      });
+      assert.equal(ThreadUI.recipients.numbers.length, 0);
+      assert.ok(ThreadUI.setMessageBody.calledWith('Youtube url'));
     });
   });
 });

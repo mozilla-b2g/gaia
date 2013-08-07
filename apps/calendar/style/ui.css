@@ -138,11 +138,6 @@ ol.link-list a {
   padding-left: 1.5rem;
 }
 
-#advanced-settings-view .account-list {
-  height: calc(50% - 2.5rem);
-  overflow-y: scroll;
-}
-
 #advanced-settings-view .settings-list label,
 #advanced-settings-view .account-list a {
   text-transform: none;
@@ -167,6 +162,14 @@ ol.link-list a {
 
 #advanced-settings-view .user {
   width: 50%;
+}
+
+#advanced-settings-view header.account-list-header.active {
+  display: block;
+}
+
+#advanced-settings-view header.account-list-header {
+  display: none;
 }
 
 /* create account view */

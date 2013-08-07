@@ -1,0 +1,69 @@
+/* this is where we display image and video previews */
+#confirm {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: 0;
+  bottom: 0;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  background: #000; /* opaque */
+  z-index: 100;     /* on top of all the camera stuff */
+  transition: transform 0.5s linear;
+  overflow: hidden;
+  transform-origin: 0 0;
+}
+
+#confirm-media-frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  bottom: 5rem;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  -moz-user-select: none;
+}
+
+#confirm-media-frame > img {
+  top: 0;  /* javascript modifies this position with a transform */
+  left: 0;
+  position: absolute;
+  border-width: 0;
+  padding: 0;
+  margin: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+  -moz-user-select: none;
+}
+
+#confirm-media-frame > video {
+  transform-origin: 0 0;
+}
+
+#confirm-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5rem;
+  z-index: 100; /* above the dynamically inserted frame elements */
+}
+
+#retake-button {
+  position: absolute;
+  width: calc((100% - 3rem) / 2);
+  left: 1rem;
+  top: .6rem;
+  height: 3.8rem;
+}
+
+#select-button {
+  position: absolute;
+  width: calc((100% - 3rem) / 2);
+  right: 1rem;
+  top: .6rem;
+  height: 3.8rem;
+}

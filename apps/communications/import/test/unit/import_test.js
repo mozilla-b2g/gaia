@@ -2,6 +2,9 @@ requireApp('communications/import/test/unit/mock_import.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_search.js');
+requireApp('communications/contacts/test/unit/mock_oauthflow.js');
+requireApp('communications/contacts/js/import_utils.js');
+requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/fb/friends_list.js');
 requireApp('communications/contacts/js/utilities/normalizer.js');
 requireApp('communications/contacts/js/utilities/templates.js');
@@ -17,7 +20,9 @@ var realContacts,
     realFixedHeader,
     realImageLoader,
     realAlphaScroll,
-    realAsyncStorage;
+    realAsyncStorage,
+    realOauthflow,
+    groupsListChild, groupsList;
 
 if (!this.FixedHeader) {
   this.FixedHeader = null;
@@ -39,6 +44,14 @@ if (!this.onrendered) {
   this.onrendered = true;
 }
 
+if (!this.oauthflow) {
+  this.oauthflow = null;
+}
+
+setup(function() {
+  importer.reset();
+});
+
 suite('Import Friends Test Suite', function() {
 
   suiteSetup(function() {
@@ -54,6 +67,9 @@ suite('Import Friends Test Suite', function() {
     realContacts = window.contacts;
     window.contacts = {};
     window.contacts.Search = MockSearch;
+
+    realOauthflow = window.oauthflow;
+    window.oauthflow = MockOauthflow;
 
     document.body.innerHTML = MockImportHtml;
 
@@ -97,6 +113,8 @@ suite('Import Friends Test Suite', function() {
     window.ImageLoader = realImageLoader;
     window.contacts = realContacts;
     window.asyncStorage = realAsyncStorage;
+    window.oauthflow = realOauthflow;
+  });
 
     document.body.innerHTML = '';
   });

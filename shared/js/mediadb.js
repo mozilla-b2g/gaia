@@ -74,6 +74,13 @@
  *          When batching changes, don't allow the batches to exceed this
  *          amount. The default is 0 which means no maximum batch size.
  *
+ *       updateRecord:
+ *          When upgrading database, MediaDB uses this function to ask client
+ *          app to update the metadata record of specified file. The return
+ *          value of this function is the updated metadata. If client app does
+ *          not update any metadata, client app still needs to return
+ *          file.metadata.
+ *
  * MediaDB STATE
  *
  * A MediaDB object must asynchronously open a connection to its database, and
@@ -103,6 +110,7 @@
  *   Value        Constant           Meaning
  *   ----------------------------------------------------------------------
  *   'opening'    MediaDB.OPENING    MediaDB is initializing itself
+ *   'upgrading'  MediaDB.UPGRADING  MediaDB is upgrading database
  *   'ready'      MediaDB.READY      MediaDB is available and ready for use
  *   'nocard'     MediaDB.NOCARD     Unavailable because there is no sd card
  *   'unmounted'  MediaDB.UNMOUNTED  Unavailable because the card is unmounted
@@ -359,6 +367,7 @@ var MediaDB = (function() {
     this.state = MediaDB.OPENING;
     this.scanning = false;  // becomes true while scanning
     this.parsingBigFiles = false;
+    this.updateRecord = options.updateRecord; // for data upgrade from client.
 
     // While scanning, we attempt to send change events in batches.
     // After finding a new or deleted file, we'll wait this long before
@@ -406,8 +415,11 @@ var MediaDB = (function() {
 
     // Open the database
     // Note that the user can upgrade the version and we can upgrade the version
+    // DB Version is a 32bits unsigned short: upper 16bits is client app db
+    // number, lower 16bits is MediaDB version number.
+    var dbVersion = (0xFFFF & this.version) << 16 | (0xFFFF & MediaDB.VERSION);
     var openRequest = indexedDB.open(this.dbname,
-                                     this.version * MediaDB.VERSION);
+                                     dbVersion);
 
     // This should never happen for Gaia apps
     openRequest.onerror = function(e) {
@@ -422,27 +434,30 @@ var MediaDB = (function() {
     // This is where we create (or delete and recreate) the database
     openRequest.onupgradeneeded = function(e) {
       var db = openRequest.result;
+      // read transaction from event for data manipulation (read/write).
+      var transaction = e.target.transaction;
+      var oldVersion = e.oldVersion;
+      // translate to db version and client version.
+      var oldDbVersion = 0xFFFF & oldVersion;
+      var oldClientVersion = 0xFFFF & (oldVersion >> 16);
 
-      // If there are already existing object stores, delete them all
-      // If the version number changes we just want to start over.
-      var existingStoreNames = db.objectStoreNames;
-      for (var i = 0; i < existingStoreNames.length; i++) {
-        db.deleteObjectStore(existingStoreNames[i]);
+      // if client version is 0, oldVersion is the version number prior to
+      // bug 891797. The MediaDB.VERSION may be 2, and other parts is client
+      // version.
+      if (oldClientVersion === 0) {
+        oldDbVersion = 2;
+        oldClientVersion = oldVersion / oldDbVersion;
       }
 
-      // Now build the database
-      var filestore = db.createObjectStore('files', { keyPath: 'name' });
-      // Always index the files by modification date
-      filestore.createIndex('date', 'date');
-      // And index them by any other file properties or metadata properties
-      // passed to the constructor
-      media.indexes.forEach(function(indexName)  {
-        // Don't recreate indexes we've already got
-        if (indexName === 'name' || indexName === 'date')
-          return;
-        // the index name is also the keypath
-        filestore.createIndex(indexName, indexName);
-      });
+      if (0 == db.objectStoreNames.length) {
+        // No objectstore found. It is the first time use MediaDB, we need to
+        // create it.
+        createObjectStores(db);
+      } else {
+        // ObjectStore found, we need to upgrade data for both client upgrade
+        // and mediadb upgrade.
+        handleUpgrade(db, transaction, oldDbVersion, oldClientVersion);
+      }
     };
 
     // This is called when we've got the database open and ready.
@@ -483,13 +498,128 @@ var MediaDB = (function() {
       };
     };
 
+    // helper function to create all indexes
+    function createObjectStores(db) {
+      // Now build the database
+      var filestore = db.createObjectStore('files', { keyPath: 'name' });
+      // Always index the files by modification date
+      filestore.createIndex('date', 'date');
+      // And index them by any other file properties or metadata properties
+      // passed to the constructor
+      media.indexes.forEach(function(indexName)  {
+        // Don't recreate indexes we've already got
+        if (indexName === 'name' || indexName === 'date')
+          return;
+        // the index name is also the keypath
+        filestore.createIndex(indexName, indexName);
+      });
+    }
+
+    // helper function to list all files and invoke callback with db, trans,
+    // dbfiles, db version, client version as arguments.
+    function enumerateOldFiles(store, callback) {
+      var openCursorReq = store.openCursor();
+
+      openCursorReq.onsuccess = function() {
+        var cursor = openCursorReq.result;
+        if (cursor) {
+          callback(cursor.value);
+          cursor.continue();
+        }
+      };
+    }
+
+    function handleUpgrade(db, trans, oldDbVersion, oldClientVersion) {
+      // change state to upgrading that client apps may use it.
+      media.state = MediaDB.UPGRADING;
+
+      var evtDetail = {'oldMediaDBVersion': oldDbVersion,
+                       'oldClientVersion': oldClientVersion,
+                       'newMediaDBVersion': MediaDB.VERSION,
+                       'newClientVersion': media.version};
+      // send upgrading event
+      dispatchEvent(media, 'upgrading', evtDetail);
+
+      // The upgrade contains upgrading indexes and upgrading data.
+      var store = trans.objectStore('files');
+
+      // Part 1: upgrading indexes
+      if (media.version != oldClientVersion) {
+        // upgrade indexes changes from client app.
+        upgradeIndexesChanges(store);
+      }
+
+      var clientUpgradeNeeded = (media.version != oldClientVersion) &&
+                                media.updateRecord;
+
+      // checking if we need to enumerate all files. This may improve the
+      // performance of only changing indexes. If client app changes indexes,
+      // they may not need to update records. In this case, we don't need to
+      // enumerate all files.
+      if ((2 != oldDbVersion || 3 != MediaDB.VERSION) && !clientUpgradeNeeded) {
+        return;
+      }
+
+      // Part 2: upgrading data
+      enumerateOldFiles(store, function doUpgrade(dbfile) {
+        // handle mediadb upgrade from 2 to 3
+        if (2 == oldDbVersion && 3 == MediaDB.VERSION) {
+          upgradeDBVer2to3(store, dbfile);
+        }
+        // handle client upgrade
+        if (clientUpgradeNeeded) {
+          handleClientUpgrade(store, dbfile, oldClientVersion);
+        }
+      });
+    }
+
+    function upgradeIndexesChanges(store) {
+      var dbIndexes = store.indexNames; // note: it is DOMStringList not array.
+      var clientIndexes = media.indexes;
+      var clientIndex;
+
+      for (var i = 0; i < dbIndexes.length; i++) {
+        // indexes provided by mediadb, can't remove it.
+        if ('name' === dbIndexes[i] || 'date' === dbIndexes[i]) {
+          continue;
+        }
+
+        if (clientIndexes.indexOf(dbIndexes[i]) < 0) {
+          store.deleteIndex(dbIndexes[i]);
+        }
+      }
+
+      for (i = 0; i < clientIndexes.length; i++) {
+        if (!dbIndexes.contains(clientIndexes[i])) {
+          store.createIndex(clientIndexes[i], clientIndexes[i]);
+        }
+      }
+    }
+
+    function upgradeDBVer2to3(store, dbfile) {
+      // if record is already starting with '/', don't update them.
+      if (dbfile.name[0] === '/') {
+        return;
+      }
+      store.delete(dbfile.name);
+      dbfile.name = '/sdcard/' + dbfile.name;
+      store.add(dbfile);
+    }
+
+    function handleClientUpgrade(store, dbfile, oldClientVersion) {
+      try {
+        dbfile.metadata = media.updateRecord(dbfile, oldClientVersion,
+                                             media.version);
+        store.put(dbfile);
+      } catch (ex) {
+        // discard client upgrade error, client app should handle it.
+        console.warn('client app updates record, ' + dbfile.name +
+                     ', failed: ' + ex.message);
+      }
+    }
+
     function initDeviceStorage() {
       var details = media.details;
-
-      // Get the composite storage object that agregates all files of the
-      // specified media type. We use this object when scanning and when
-      // retrieving files using their fully-qualifed names.
-      media.storage = navigator.getDeviceStorage(mediaType);
 
       // Get the individual device storage objects, so that we can listen
       // for events on the different volumes separately.
@@ -750,7 +880,8 @@ var MediaDB = (function() {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
-      var getRequest = this.storage.get(filename);
+      var storage = navigator.getDeviceStorage(this.mediaType);
+      var getRequest = storage.get(filename);
       getRequest.onsuccess = function() {
         callback(getRequest.result);
       };
@@ -771,7 +902,8 @@ var MediaDB = (function() {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
-      this.storage.delete(filename).onerror = function(e) {
+      var storage = navigator.getDeviceStorage(this.mediaType);
+      storage.delete(filename).onerror = function(e) {
         console.error('MediaDB.deleteFile(): Failed to delete', filename,
                       'from DeviceStorage:', e.target.error);
       };
@@ -788,13 +920,16 @@ var MediaDB = (function() {
         throw Error('MediaDB is not ready. State: ' + this.state);
 
       var media = this;
+      // Refetch the default storage area, since the user can change it
+      // in the settings app.
+      var storage = navigator.getDeviceStorage(media.mediaType);
 
       // Delete any existing file by this name, then save the file.
-      var deletereq = media.storage.delete(filename);
+      var deletereq = storage.delete(filename);
       deletereq.onsuccess = deletereq.onerror = save;
 
       function save() {
-        var request = media.storage.addNamed(file, filename);
+        var request = storage.addNamed(file, filename);
         request.onerror = function() {
           console.error('MediaDB: Failed to store', filename,
                         'in DeviceStorage:', storeRequest.error);
@@ -1044,7 +1179,8 @@ var MediaDB = (function() {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
-      var freereq = this.storage.freeSpace();
+      var storage = navigator.getDeviceStorage(this.mediaType);
+      var freereq = storage.freeSpace();
       freereq.onsuccess = function() {
         callback(freereq.result);
       };
@@ -1057,14 +1193,19 @@ var MediaDB = (function() {
   // upgrade the version number with an option to the MediaDB constructor.
   // The final indexedDB version number we use is the product of our version
   // and the user's version.
-  // This is version 2 because we modified the default schema to include
-  // an index for file modification date.
-  MediaDB.VERSION = 2;
+  // Version 2: We modified the default schema to include an index for file
+  //            modification date.
+  // Version 3: DeviceStorage had changed the file path from relative path(v1)
+  //            to full qualified name(v1.1). We changed the code to handle the
+  //            full qualified name and the upgrade from relative path to full
+  //            qualified name.
+  MediaDB.VERSION = 3;
 
   // These are the values of the state property of a MediaDB object
   // The NOCARD, UNMOUNTED, and CLOSED values are also used as the detail
   // property of 'unavailable' events
   MediaDB.OPENING = 'opening';     // MediaDB is initializing itself
+  MediaDB.UPGRADING = 'upgrading'; // MediaDB is upgrading database
   MediaDB.READY = 'ready';         // MediaDB is available and ready for use
   MediaDB.NOCARD = 'nocard';       // Unavailable because there is no sd card
   MediaDB.UNMOUNTED = 'unmounted'; // Unavailable because card unmounted
@@ -1096,6 +1237,62 @@ var MediaDB = (function() {
   // give us a name only, not the file object.
   function ignoreName(filename) {
     return (filename[0] === '.' || filename.indexOf('/.') !== -1);
+  }
+
+  // With the removal of composite storage, this function emulates
+  // the composite storage enumeration (i.e. return files from
+  // all of the storage areas).
+  function enumerateAll(storages, dir, options) {
+    var storageIndex = 0;
+    var ds_cursor = null;
+
+    var cursor = {
+      continue: function cursor_continue() {
+        ds_cursor.continue();
+      }
+    };
+
+    function enumerateNextStorage() {
+      // The || {} on the next line is required to make enumerate work properly
+      // on v1-train.
+      ds_cursor = storages[storageIndex].enumerate(dir, options || {});
+      ds_cursor.onsuccess = onsuccess;
+      ds_cursor.onerror = onerror;
+    };
+
+    function onsuccess(e) {
+      cursor.result = e.target.result;
+      if (!cursor.result) {
+        storageIndex++;
+        if (storageIndex < storages.length) {
+          enumerateNextStorage();
+          return;
+        }
+        // If we've run out of storages, then we fall through and call
+        // onsuccess with the null result.
+      }
+      if (cursor.onsuccess) {
+        try {
+          cursor.onsuccess(e);
+        } catch (err) {
+          console.warn('enumerateAll onsuccess threw', err);
+        }
+      }
+    };
+
+    function onerror(e) {
+      cursor.error = e.target.error;
+      if (cursor.onerror) {
+        try {
+          cursor.onerror(e);
+        } catch (err) {
+          console.warn('enumerateAll onerror threw', err);
+        }
+      }
+    };
+
+    enumerateNextStorage();
+    return cursor;
   }
 
   // Tell the db to start a manual scan. I think we don't do
@@ -1136,7 +1333,7 @@ var MediaDB = (function() {
       var cursor;
       if (timestamp > 0) {
         media.details.firstscan = false;
-        cursor = media.storage.enumerate('', {
+        cursor = enumerateAll(media.details.storages, '', {
           // add 1 so we don't find the same newest file again
           since: new Date(timestamp + 1)
         });
@@ -1147,7 +1344,7 @@ var MediaDB = (function() {
         // allows important optimizations during the scanning process
         media.details.firstscan = true;
         media.details.records = [];
-        cursor = media.storage.enumerate('');
+        cursor = enumerateAll(media.details.storages, '');
       }
 
       cursor.onsuccess = function() {
@@ -1203,7 +1400,7 @@ var MediaDB = (function() {
       // were found during the quick scan.  So we'll start off by
       // enumerating all files in device storage
       var dsfiles = [];
-      var cursor = media.storage.enumerate('');
+      var cursor = enumerateAll(media.details.storages, '');
       cursor.onsuccess = function() {
         if (!media.scanning)  // Abort if scanning has been cancelled
           return;
@@ -1455,7 +1652,11 @@ var MediaDB = (function() {
 
       // If we got a filename, look up the file in device storage
       if (typeof f === 'string') {
-        var getreq = media.storage.get(f);
+        // Note: Even though we're using the default storage area, if the
+        //       filename is fully qualified, it will get redirected to the
+        //       appropriate storage area.
+        var storage = navigator.getDeviceStorage(media.mediaType);
+        var getreq = storage.get(f);
         getreq.onerror = function() {
           console.warn('MediaDB: Unknown file in insertRecord:',
                        f, getreq.error);

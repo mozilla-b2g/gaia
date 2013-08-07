@@ -2,6 +2,7 @@
 
 requireApp('sms/test/unit/mock_fixed_header.js');
 requireApp('sms/test/unit/mock_contact.js');
+requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/js/utils.js');
 
@@ -640,27 +641,142 @@ suite('Utils', function() {
   });
 
 
-  suite('Utils for MMS user story test', function() {
-    test('Image rescaling to 300kB', function(done) {
-      // Open test image for testing image resize ability
-      function resizeTest(name) {
+  suite('Utils.getResizedImgBlob', function() {
+    // a list of files in /test/unit/media/ to test resizing on
+    var typeTestData = {
+      'IMG_0554.bmp': null,
+      'IMG_0554.gif': null,
+      'IMG_0554.png': null,
+      'IMG_0554.jpg': null
+    };
+    var qualityTestData = {
+      'low_quality.jpg': null,
+      'low_quality_resized.jpg': null,
+      'default_quality_resized.jpg': null
+    };
+
+    suiteSetup(function(done) {
+      this.timeout(5000);
+      // load test blobs for image resize testing
+      var assetsNeeded = 0;
+
+      function loadBlob(filename) {
+        assetsNeeded++;
+
         var req = new XMLHttpRequest();
-        req.open('GET' , '/test/unit/media/' + name, true);
+        var testData = this;
+        req.open('GET', '/test/unit/media/' + filename, true);
         req.responseType = 'blob';
 
-        req.onreadystatechange = function() {
-          if (req.readyState === 4 && req.status === 200) {
-            var blob = req.response;
-            var limit = 300 * 1024;
-            Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
-              assert.isTrue(resizedBlob.size < limit);
-              done();
-            });
+        req.onload = function() {
+          testData[filename] = req.response;
+          if (--assetsNeeded === 0) {
+            done();
           }
         };
-        req.send(null);
+        req.send();
       }
-      resizeTest('IMG_0554.jpg');
+
+      // load the images
+      Object.keys(typeTestData).forEach(loadBlob, typeTestData);
+      Object.keys(qualityTestData).forEach(loadBlob, qualityTestData);
+    });
+
+    Object.keys(typeTestData).forEach(function(filename) {
+      test(filename, function(done) {
+        var blob = typeTestData[filename];
+        // half the image size, or 100k, whichever is smaller
+        var limit = Math.min(100000, (blob.size / 2));
+
+        Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
+          assert.isTrue(resizedBlob.size < limit,
+            'resizedBlob is smaller than ' + limit);
+          done();
+        });
+      });
+    });
+
+    test('Image size is smaller than limit', function(done) {
+      var blob = qualityTestData['low_quality.jpg'];
+      var limit = blob.size * 2;
+      this.sinon.spy(Utils, 'resizeImageBlobWithRatio');
+      var resizeSpy = Utils.resizeImageBlobWithRatio;
+
+      Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
+        assert.isTrue(resizedBlob === blob,
+          'resizedBlob and blob should be the same');
+        assert.equal(resizeSpy.callCount, 0);
+        done();
+      });
+    });
+
+    test('Resize low quality image', function(done) {
+      var blob = qualityTestData['low_quality.jpg'];
+      var resizedBlob = qualityTestData['low_quality_resized.jpg'];
+      var defaultBlob = qualityTestData['default_quality_resized.jpg'];
+      var limit = blob.size / 2;
+
+      this.sinon.stub(HTMLCanvasElement.prototype,
+        'toBlob', function(callback, type, quality) {
+          if (quality) {
+            callback(resizedBlob);
+          } else {
+            callback(defaultBlob);
+          }
+      });
+
+      Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
+        var toBlobSpy = HTMLCanvasElement.prototype.toBlob;
+        assert.isTrue(resizedBlob.size < limit,
+          'resizedBlob is smaller than ' + limit);
+        assert.equal(toBlobSpy.callCount, 2);
+        assert.equal(toBlobSpy.args[0][2], undefined);
+        assert.equal(toBlobSpy.args[1][2], 0.75);
+        done();
+      });
+    });
+
+    test('Decrease image quality not working', function(done) {
+      var blob = qualityTestData['low_quality.jpg'];
+      var resizedBlob = qualityTestData['low_quality_resized.jpg'];
+      var defaultBlob = qualityTestData['default_quality_resized.jpg'];
+      var limit = blob.size / 2;
+
+      this.sinon.spy(Utils, 'resizeImageBlobWithRatio');
+      var resizeSpy = Utils.resizeImageBlobWithRatio;
+
+      this.sinon.stub(HTMLCanvasElement.prototype,
+        'toBlob', function(callback, type, quality) {
+          var firstRatio = resizeSpy.firstCall.args[0].ratio;
+          var lastRatio = resizeSpy.lastCall.args[0].ratio;
+          if (lastRatio > firstRatio) {
+            callback(resizedBlob);
+          } else {
+            callback(defaultBlob);
+          }
+      });
+
+      Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
+        assert.isTrue(resizedBlob.size < limit,
+          'resizedBlob is smaller than ' + limit);
+        var toBlobSpy = HTMLCanvasElement.prototype.toBlob;
+
+        // Image quality testing should go down 3 qulity level first
+        // than force the image rescale to smaller size.
+        assert.equal(toBlobSpy.callCount, 5);
+        assert.equal(toBlobSpy.args[0][2], undefined);
+        assert.equal(toBlobSpy.args[1][2], 0.75);
+        assert.equal(toBlobSpy.args[2][2], 0.5);
+        assert.equal(toBlobSpy.args[3][2], 0.25);
+        assert.equal(toBlobSpy.args[4][2], undefined);
+
+        // Verify getResizedImgBlob is called twice and resizeRatio
+        // parameter is set in sencond calls
+        assert.equal(resizeSpy.callCount, 2);
+        assert.ok(resizeSpy.firstCall.args[0].ratio <
+          resizeSpy.lastCall.args[0].ratio);
+        done();
+      });
     });
   });
 
@@ -962,6 +1078,15 @@ suite('Utils.Template', function() {
 });
 
 suite('getDisplayObject', function() {
+  var nativeMozL10n = navigator.mozL10n;
+  setup(function() {
+    navigator.mozL10n = MockL10n;
+    this.sinon.spy(navigator.mozL10n, 'get');
+  });
+
+  teardown(function() {
+    navigator.mozL10n = nativeMozL10n;
+  });
 
   test('Tel object with carrier title and type', function() {
     var myTitle = 'My title';
@@ -976,6 +1101,8 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, myTitle);
     assert.equal(data.separator, ' | ');
+    assert.ok(navigator.mozL10n.get.called);
+    assert.equal(navigator.mozL10n.get.args[0][0], type);
     assert.equal(data.type, type);
     assert.equal(data.carrier, carrier + ', ');
     assert.equal(data.number, value);
@@ -993,6 +1120,8 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, myTitle);
     assert.equal(data.separator, ' | ');
+    assert.ok(navigator.mozL10n.get.called);
+    assert.equal(navigator.mozL10n.get.args[0][0], type);
     assert.equal(data.type, type);
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
@@ -1008,6 +1137,7 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, myTitle);
     assert.equal(data.separator, '');
+    assert.isFalse(navigator.mozL10n.get.called);
     assert.equal(data.type, '');
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
@@ -1026,8 +1156,104 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, value);
     assert.equal(data.separator, ' | ');
+    assert.ok(navigator.mozL10n.get.called);
+    assert.equal(navigator.mozL10n.get.args[0][0], type);
     assert.equal(data.type, type);
     assert.equal(data.carrier, carrier + ', ');
     assert.equal(data.number, value);
+  });
+});
+
+suite('getContactDisplayInfo', function() {
+  var nativeMozL10n = navigator.mozL10n;
+
+  setup(function() {
+    navigator.mozL10n = MockL10n;
+    this.sinon.spy(Utils, 'getContactDetails');
+    this.sinon.spy(Utils, 'getDisplayObject');
+  });
+
+  teardown(function() {
+    navigator.mozL10n = nativeMozL10n;
+    Utils.getContactDetails.reset();
+    Utils.getDisplayObject.reset();
+  });
+
+  test('Valid contact with phonenumber', function(done) {
+    Utils.getContactDisplayInfo(
+      MockContacts.findByPhoneNumber.bind(MockContacts),
+      '+346578888888',
+      function onData(data) {
+        var tel = MockContact.list()[0].tel[0];
+        assert.ok(Utils.getContactDetails.called);
+        assert.deepEqual(Utils.getContactDetails.args[0][0], tel);
+        assert.ok(Utils.getDisplayObject.called);
+        assert.deepEqual(Utils.getDisplayObject.args[0][1], tel);
+        done();
+      }
+    );
+  });
+
+  test('Empty contact with phonenumber', function(done) {
+    this.sinon.stub(MockContact, 'list', function() {
+      return [];
+    });
+    Utils.getContactDisplayInfo(
+      MockContacts.findByPhoneNumber.bind(MockContacts),
+      '+348888888888',
+      function onData(data) {
+        var tel = {
+          'value': '+348888888888',
+          'type': [''],
+          'carrier': ''
+        };
+        assert.ok(Utils.getContactDetails.called);
+        assert.deepEqual(Utils.getContactDetails.args[0][0], tel);
+        assert.ok(Utils.getDisplayObject.called);
+        assert.deepEqual(Utils.getDisplayObject.args[0][1], tel);
+        MockContact.list.restore();
+        done();
+      }
+    );
+  });
+
+  test('Null contact with phonenumber', function(done) {
+    this.sinon.stub(MockContact, 'list', function() {
+      return null;
+    });
+    Utils.getContactDisplayInfo(
+      MockContacts.findByPhoneNumber.bind(MockContacts),
+      '+348888888888',
+      function onData(data) {
+        var tel = {
+          'value': '+348888888888',
+          'type': [''],
+          'carrier': ''
+        };
+        assert.ok(Utils.getContactDetails.called);
+        assert.deepEqual(Utils.getContactDetails.args[0][0], tel);
+        assert.ok(Utils.getDisplayObject.called);
+        assert.deepEqual(Utils.getDisplayObject.args[0][1], tel);
+        MockContact.list.restore();
+        done();
+      }
+    );
+  });
+
+  test('No contact and no phonenumber', function(done) {
+    this.sinon.stub(MockContact, 'list', function() {
+      return [];
+    });
+    Utils.getContactDisplayInfo(
+      MockContacts.findByPhoneNumber.bind(MockContacts),
+      '',
+      function onData(data) {
+        assert.isFalse(Utils.getContactDetails.called);
+        assert.isFalse(Utils.getDisplayObject.called);
+        assert.equal(data, null);
+        MockContact.list.restore();
+        done();
+      }
+    );
   });
 });

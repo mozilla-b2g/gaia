@@ -96,14 +96,13 @@ VCFReader._decodeQuoted = function(str) {
  * @return {string}
  */
 VCFReader.decodeQP = function(metaObj, value) {
-  var decoded = value;
-  var isQP = metaObj && metaObj['encoding'] &&
-    metaObj['encoding'].toLowerCase() === 'quoted-printable';
+  var isQP = metaObj && metaObj.encoding &&
+    metaObj.encoding.toLowerCase() === 'quoted-printable';
 
   if (isQP)
-    decoded = VCFReader._decodeQuoted(decoded);
+    value = VCFReader._decodeQuoted(value);
 
-  return decoded;
+  return value;
 };
 
 VCFReader.nameParts = [
@@ -127,8 +126,11 @@ VCFReader.processName = function(vcardObj, contactObj) {
   var parts = VCFReader.nameParts;
 
   // Set First Name right away as the 'name' property
-  if (vcardObj.fn && vcardObj.fn.length)
-    contactObj.name = vcardObj.fn[0].value;
+  if (vcardObj.fn && vcardObj.fn.length) {
+    var fnMeta = vcardObj.fn[0].meta;
+    var fnValue = vcardObj.fn[0].value[0];
+    contactObj.name = [VCFReader.decodeQP(fnMeta, fnValue)];
+  }
 
   if (vcardObj.n && vcardObj.n.length) {
     var values = vcardObj.n[0].value;
@@ -289,14 +291,14 @@ VCFReader.splitLines = function(vcf) {
       continue;
     }
 
-    if (inLabel || vcf[i] !== '\n') {
+    if (inLabel || !(/(\n|\r)/.test(vcf[i]))) {
       currentStr += vcf[i];
       continue;
     }
 
     var sub = vcf.substring(i + 1, vcf.length - 1);
     if (currentStr.toLowerCase().indexOf('label;') !== -1 &&
-      sub.search(/^[^\n]+:/) === -1) {
+      sub.search(/^[^\n\r]+:/) === -1) {
       currentStr += vcf[i];
       continue;
     }

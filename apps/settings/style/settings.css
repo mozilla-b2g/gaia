@@ -368,6 +368,7 @@ ul li > label .range-icons {
   margin: 0 auto;
   width: calc(100% - 5.4rem);
   height: 3rem;
+  pointer-events: none;
 }
 
 ul li > label .range-icons.volume {
@@ -407,26 +408,6 @@ ul li > label .range-icons.brightness {
 #icc .hidden {
   display: none;
 }
-
-#icc #icc-stk-alert {
-  position: fixed;
-}
-
-#icc #icc-stk-alert menu button:first-child {
-  margin: 0;
-}
-
-#icc #icc-stk-alert menu button {
-  width: calc((100% - 2rem) / 3);
-  margin-left: 1rem;
-}
-
-.multiline_title {
-  text-overflow: clip;
-  white-space: normal;
-  word-wrap: break-word;
-}
-
 
 /******************************************************************************
  * Date & Time

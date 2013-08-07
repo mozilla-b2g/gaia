@@ -130,6 +130,11 @@ function init() {
     });
   }
 
+  // show dialog in upgradestart, when it finished, it will turned to ready.
+  musicdb.onupgrading = function() {
+    showOverlay('upgrade');
+  };
+
   // This is called when DeviceStorage becomes unavailable because the
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
@@ -173,7 +178,8 @@ function init() {
 
   musicdb.onready = function() {
     // Hide the nocard or pluggedin overlay if it is displayed
-    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
+    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin' ||
+        currentOverlay === 'upgrade')
       showOverlay(null);
 
     // Display music that we already know about
@@ -1185,9 +1191,13 @@ var ListView = {
             ModeManager.push(MODE_PLAYER, function() {
               var targetIndex = parseInt(target.dataset.index);
 
-              PlayerView.setSourceType(TYPE_MIX);
-              PlayerView.dataSource = this.dataSource;
-              PlayerView.play(targetIndex);
+              if (pendingPick)
+                PlayerView.setSourceType(TYPE_SINGLE);
+              else
+                PlayerView.setSourceType(TYPE_MIX);
+
+                PlayerView.dataSource = this.dataSource;
+                PlayerView.play(targetIndex);
             }.bind(this));
           } else if (option) {
             var index = target.dataset.index;
@@ -1555,10 +1565,16 @@ var SearchView = {
     function sv_openResult(option, data, index, keyRange) {
       if (option === 'title') {
         ModeManager.push(MODE_PLAYER, function() {
-          PlayerView.setSourceType(TYPE_LIST);
-          PlayerView.dataSource = [data];
-          PlayerView.play(0, index % 10);
-        });
+          if (pendingPick) {
+            PlayerView.setSourceType(TYPE_SINGLE);
+            PlayerView.dataSource = this.dataSource;
+            PlayerView.play(index);
+          } else {
+            PlayerView.setSourceType(TYPE_LIST);
+            PlayerView.dataSource = [data];
+            PlayerView.play(0, index);
+          }
+        }.bind(this));
       } else {
         SubListView.activate(option, data, index, keyRange, 'next', function() {
           ModeManager.push(MODE_SUBLIST);
