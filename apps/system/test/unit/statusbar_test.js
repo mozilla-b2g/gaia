@@ -2,37 +2,31 @@
 
 requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_navigator_moz_mobile_connection.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
-requireApp('system/test/unit/mock_icc_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/test/unit/mock_mobile_operator.js');
-requireApp('system/test/unit/mocks_helper.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 
 requireApp('system/js/statusbar.js');
 requireApp('system/js/lockscreen.js');
 
-var mocksForStatusBar = ['SettingsListener', 'MobileOperator',
-                         'IccHelper', 'LockScreen'];
-
-mocksForStatusBar.forEach(function(mockName) {
-  if (!window[mockName]) {
-    window[mockName] = null;
-  }
-});
-
+var mocksForStatusBar = new MocksHelper([
+  'SettingsListener',
+  'MobileOperator',
+  'IccHelper',
+  'LockScreen'
+]).init();
 
 suite('system/Statusbar', function() {
   var fakeStatusBarNode;
-  var mocksHelper;
 
   var realSettingsListener, realMozL10n, realMozMobileConnection,
       realMozTelephony, realMobileOperator,
       fakeIcons = [];
 
+  mocksForStatusBar.attachTestHelpers();
   suiteSetup(function() {
-    mocksHelper = new MocksHelper(mocksForStatusBar);
-    mocksHelper.suiteSetup();
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     realMozMobileConnection = navigator.mozMobileConnection;
@@ -42,14 +36,12 @@ suite('system/Statusbar', function() {
   });
 
   suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnection = realMozMobileConnection;
     navigator.mozTelephony = realMozTelephony;
   });
 
   setup(function() {
-    mocksHelper.setup();
     fakeStatusBarNode = document.createElement('div');
     fakeStatusBarNode.id = 'statusbar';
     document.body.appendChild(fakeStatusBarNode);
@@ -72,7 +64,6 @@ suite('system/Statusbar', function() {
     StatusBar.init();
   });
   teardown(function() {
-    mocksHelper.teardown();
     fakeStatusBarNode.parentNode.removeChild(fakeStatusBarNode);
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozMobileConnection.mTeardown();

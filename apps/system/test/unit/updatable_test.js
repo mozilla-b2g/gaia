@@ -11,7 +11,6 @@ requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_manifest_helper.js');
-requireApp('system/test/unit/mocks_helper.js');
 
 
 var mocksHelperForUpdatable = new MocksHelper([
@@ -21,9 +20,7 @@ var mocksHelperForUpdatable = new MocksHelper([
   'UtilityTray',
   'ManifestHelper',
   'asyncStorage'
-]);
-
-mocksHelperForUpdatable.init();
+]).init();
 
 suite('system/Updatable', function() {
   var subject;
@@ -33,11 +30,10 @@ suite('system/Updatable', function() {
   var realL10n;
   var realMozApps;
 
-  var mocksHelper = mocksHelperForUpdatable;
-
   var lastDispatchedEvent = null;
   var fakeDispatchEvent;
 
+  mocksHelperForUpdatable.attachTestHelpers();
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
@@ -50,14 +46,11 @@ suite('system/Updatable', function() {
     // but now, this seems to work and feels cleaner
     realMozApps = navigator.mozApps;
     navigator.mozApps = { mgmt: MockAppsMgmt };
-
-    mocksHelper.suiteSetup();
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     navigator.mozApps = realMozApps;
-    mocksHelper.suiteTeardown();
   });
 
   setup(function() {
@@ -71,13 +64,10 @@ suite('system/Updatable', function() {
       };
     };
     subject._dispatchEvent = fakeDispatchEvent;
-
-    mocksHelper.setup();
   });
 
   teardown(function() {
     MockAppsMgmt.mTeardown();
-    mocksHelper.teardown();
 
     subject._dispatchEvent = realDispatchEvent;
     lastDispatchedEvent = null;

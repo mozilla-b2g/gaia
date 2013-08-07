@@ -2,10 +2,14 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('system/test/unit/mock_navigator_moz_mobile_connection.js');
-requireApp('system/test/unit/mock_icc_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
+requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
-requireApp('system/test/unit/mocks_helper.js');
+
+var mocksForInternetSharing = new MocksHelper([
+  'asyncStorage',
+  'IccHelper'
+]).init();
 
 suite('internet sharing > ', function() {
   // keys for settings
@@ -21,11 +25,10 @@ suite('internet sharing > ', function() {
 
   var realSettings;
 
-  var mocksHelper = new MocksHelper(['asyncStorage', 'IccHelper']);
-  mocksHelper.init();
-
   suiteSetup(function(done) {
-    mocksHelper.suiteSetup();
+    // Unfortunately, for asyncStorage scoping reasons, we can't simply
+    // use 'attachTestHelpers' anywhere in the internet sharing tests.
+    mocksForInternetSharing.suiteSetup();
 
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
@@ -33,7 +36,7 @@ suite('internet sharing > ', function() {
   });
 
   suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
+    mocksForInternetSharing.suiteTeardown();
     navigator.mozSettings = realSettings;
   });
   // helper function for batch assertion of asyncStorage
@@ -47,7 +50,7 @@ suite('internet sharing > ', function() {
   // helper function for batch assertion of mozSettings
   function assertSettingsEquals(testSet) {
     var mSettings = MockNavigatorSettings.mSettings;
-   testSet.forEach(function(item) {
+    testSet.forEach(function(item) {
       assert.equal(mSettings[item.key], item.result);
     });
   }
@@ -71,14 +74,13 @@ suite('internet sharing > ', function() {
   suite('from null sim to sim 1 >>', function() {
 
     suiteSetup(function() {
-      // we need to keep the value of asyncStorage under this suite.
-      mocksHelper.setup();
+      mocksForInternetSharing.setup();
     });
 
     suiteTeardown(function() {
-      // we need to keep the value of asyncStorage under this suite.
-      mocksHelper.teardown();
+      mocksForInternetSharing.teardown();
     });
+
     // fresh startup
     test('null sim no settings', function() {
       // empty start
@@ -199,7 +201,7 @@ suite('internet sharing > ', function() {
   suite('switch between sim1, sim2, and null >>', function() {
     suiteSetup(function() {
       // we need to keep asyncStorage under this suite.
-      mocksHelper.setup();
+      mocksForInternetSharing.setup();
       // setting up:
       // absent, pinRequired, pukRequired...(non-ready): usb enabled
       // sim1: wifi hotspot enabled
@@ -219,7 +221,7 @@ suite('internet sharing > ', function() {
 
     suiteTeardown(function() {
       // we need to keep asyncStorage under this suite.
-      mocksHelper.teardown();
+      mocksForInternetSharing.teardown();
     });
     // test initial state
     test('test asyncStorage', function() {
