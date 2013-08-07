@@ -24,6 +24,7 @@ MocksHelper.prototype = {
   },
 
   attachTestHelpers: function mh_attachTestHelpers() {
+    // these functions are already bound to this in the constructor
     suiteSetup(this.suiteSetup);
     suiteTeardown(this.suiteTeardown);
     setup(this.setup);
