@@ -42,22 +42,15 @@ html, body {
   display: block;
 }
 
-#digital-clock-background {
-  height: 100%;
+#digital-clock-container {
   overflow: hidden;
-  background-image: none;
-  display: none;
-}
-
-#digital-clock-background.visible {
-  height: 22.1rem; /* 48%; */
-  display: block;
-  background: url(images/digital_clock_background.png) repeat-x left bottom / auto 100%;
+  height: 11rem;
 }
 
 #digital-clock {
-  margin-top: 6.50rem;
   display: none;
+  margin-top: 6.50rem;
+  height: 100%;
 }
 
 #digital-clock.visible {
@@ -65,7 +58,7 @@ html, body {
 }
 
 #digital-clock-display {
- text-align: center;
+  text-align: center;
   position: absolute;
   width: 100%;
   margin: auto;
