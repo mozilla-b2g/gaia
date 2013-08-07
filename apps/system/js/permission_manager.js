@@ -36,7 +36,7 @@ var PermissionManager = (function() {
       // The message to be displayed on the approval UI.
       var message =
         _('fullscreen-request', { 'origin': detail.fullscreenorigin });
-      fullscreenRequest = requestPermission(message,
+      fullscreenRequest = requestPermission(message, '',
                                             /* yesCallback */ null,
                                             /* noCallback */ function() {
                                               document.mozCancelFullScreen();
@@ -55,7 +55,9 @@ var PermissionManager = (function() {
       str = _(permissionID + '-webRequest', { 'site': detail.origin });
     }
 
-    requestPermission(str, function pm_permYesCB() {
+    var moreInfoText = _(permissionID + '-more-info');
+
+    requestPermission(str, moreInfoText, function pm_permYesCB() {
       dispatchResponse(detail.id, 'permission-allow', remember.checked);
     }, function pm_permNoCB() {
       dispatchResponse(detail.id, 'permission-deny', remember.checked);
@@ -82,6 +84,9 @@ var PermissionManager = (function() {
   var overlay = document.getElementById('permission-screen');
   var dialog = document.getElementById('permission-dialog');
   var message = document.getElementById('permission-message');
+  var moreInfo = document.getElementById('permission-more-info');
+  var moreInfoLink = document.getElementById('permission-more-info-link');
+  var moreInfoBox = document.getElementById('permission-more-info-box');
 
   // "Yes"/"No" buttons on the permission UI.
   var yes = document.getElementById('permission-yes');
@@ -107,6 +112,9 @@ var PermissionManager = (function() {
     yes.callback = null;
     no.removeEventListener('click', clickHandler);
     no.callback = null;
+
+    moreInfoLink.removeEventListener('click', clickHandler);
+    moreInfo.classList.add('hidden');
   };
 
   // Show the next request, if we have one.
@@ -116,6 +124,7 @@ var PermissionManager = (function() {
     var request = pending.shift();
     showPermissionPrompt(request.id,
                          request.message,
+                         request.moreInfoText,
                          request.yescallback,
                          request.nocallback);
   };
@@ -127,6 +136,9 @@ var PermissionManager = (function() {
       callback = yes.callback;
     } else if (evt.target === no && no.callback) {
       callback = no.callback;
+    } else if (evt.target === moreInfoLink) {
+      moreInfoBox.classList.toggle('hidden');
+      return;
     }
     hidePermissionPrompt();
 
@@ -137,7 +149,7 @@ var PermissionManager = (function() {
     showNextPendingRequest();
   };
 
-  var requestPermission = function(msg,
+  var requestPermission = function(msg, moreInfoText,
                                    yescallback, nocallback) {
     var id = nextRequestID;
     nextRequestID = (nextRequestID + 1) % 1000000;
@@ -147,23 +159,31 @@ var PermissionManager = (function() {
       pending.push({
         id: id,
         message: msg,
+        moreInfoText: moreInfoText,
         yescallback: yescallback,
         nocallback: nocallback
       });
       return id;
     }
 
-    showPermissionPrompt(id, msg, yescallback, nocallback);
+    showPermissionPrompt(id, msg, moreInfoText, yescallback, nocallback);
 
     return id;
   };
 
-  var showPermissionPrompt = function(id, msg,
+  var showPermissionPrompt = function(id, msg, moreInfoText,
                                       yescallback, nocallback) {
     // Put the message in the dialog.
     // Note plain text since this may include text from
     // untrusted app manifests, for example.
     message.textContent = msg;
+
+    if (moreInfoText) {
+      // Show the "More info… " link.
+      moreInfo.classList.remove('hidden');
+      moreInfoLink.addEventListener('click', clickHandler);
+      moreInfoBox.textContent = moreInfoText;
+    }
 
     currentRequestId = id;
 

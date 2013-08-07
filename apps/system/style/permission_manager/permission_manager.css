@@ -71,6 +71,34 @@
   background-position: 0 50%;
 }
 
+#permission-more-info {
+  margin: 1rem;
+  padding-top: 1.2rem;
+  padding-bottom: 0.8rem;
+  min-height: 4.4rem;
+  font-size: 1.6rem;
+}
+
+#permission-more-info.hidden {
+  display: none;
+}
+
+#permission-more-info a {
+  padding-bottom: 2rem;
+  color: white;
+  outline: none;
+}
+
+#permission-more-info-box {
+  padding: 1.5rem;
+  max-height: 13rem; /* XXX: use magic calc(); expression instead */
+  overflow-y: scroll;
+}
+
+#permission-more-info-box.hidden {
+  display: none;
+}
+
 #permission-screen[data-type] #permission-remember-section {
   display: block;
 }
