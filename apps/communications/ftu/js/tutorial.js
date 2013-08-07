@@ -8,25 +8,22 @@ var tutorialSteps = {
     key: 'tutorial-step1',
     image: 'css/images/tutorial/1.png'
   },
+  // On bug 901041 we erased the real second step, but didn't change the strings
+  // To be solved on bug 902487
   2: {
     hash: '#step2',
-    key: 'tutorial-step2',
+    key: 'tutorial-step3',
     image: 'css/images/tutorial/2.png'
   },
   3: {
     hash: '#step3',
-    key: 'tutorial-step3',
+    key: 'tutorial-step4',
     image: 'css/images/tutorial/3.png'
   },
   4: {
     hash: '#step4',
-    key: 'tutorial-step4',
-    image: 'css/images/tutorial/4.png'
-  },
-  5: {
-    hash: '#step5',
     key: 'tutorial-step5',
-    image: 'css/images/tutorial/5.png'
+    image: 'css/images/tutorial/4.png'
   }
 };
 
