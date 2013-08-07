@@ -1,8 +1,8 @@
 require('/shared/js/lazy_loader.js');
+require('/shared/js/text_normalizer.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/js/search.js');
 requireApp('communications/contacts/js/contacts_list.js');
-requireApp('communications/contacts/js/utilities/normalizer.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contact_all_fields.js');
@@ -182,7 +182,7 @@ suite('Render contacts list', function() {
     ret.push(second);
 
     if (first != '' || second != '')
-      return window.utils.text.normalize(ret.join('')).trim();
+      return Normalizer.toAscii(ret.join('')).trim();
     ret.push(contact.org);
     ret.push(contact.tel && contact.tel.length > 0 ?
       contact.tel[0].value : '');
@@ -190,7 +190,7 @@ suite('Render contacts list', function() {
       contact.email[0].value : '');
     ret.push('#');
 
-    return window.utils.text.normalize(ret.join('')).trim();
+    return Normalizer.toAscii(ret.join('')).trim();
   }
 
   function resetDom(document) {
@@ -932,6 +932,69 @@ suite('Render contacts list', function() {
       }, 100);
     });
 
+    test('Search non-ASCII (accented characters) with ASCII results',
+        function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+
+      var accentedCharName = '';
+      var givenName = contact.givenName[0];
+      var inChars = 'äçêìñõșțüÿÀÇÊÎÑÒȘȚÚÝ';
+      var outChars = 'aceinostuyACEINOSTUY';
+      for (var i = 0, len = givenName.length; i < len; i++)
+        accentedCharName +=
+          inChars[outChars.indexOf(givenName[i])] || givenName[i];
+
+      subject.resetSearch();
+      subject.load(mockContacts);
+
+      window.setTimeout(function() {
+        contacts.List.initSearch(function onInit() {
+          searchBox.value = accentedCharName + ' ' + contact.familyName[0];
+          contacts.Search.search(function search_finished() {
+            assert.isTrue(noResults.classList.contains('hide'));
+            assertContactFound(contact);
+            contacts.Search.invalidateCache();
+            done();
+          });
+        });
+      }, 100);
+    });
+
+    test('Search ASCII (non-accented characters) with non-ASCII results',
+        function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+
+      var accentedCharName = '';
+      var givenName = contact.givenName[0];
+      var familyName = contact.familyName[0];
+      var inChars = 'äçêìñõșțüÿÀÇÊÎÑÒȘȚÚÝ';
+      var outChars = 'aceinostuyACEINOSTUY';
+      for (var i = 0, len = givenName.length; i < len; i++)
+        accentedCharName +=
+          inChars[outChars.indexOf(givenName[i])] || givenName[i];
+
+      mockContacts[contactIndex].givenName[0] = accentedCharName;
+
+      subject.resetSearch();
+      subject.load(mockContacts);
+
+      window.setTimeout(function() {
+        contacts.List.initSearch(function onInit() {
+          searchBox.value = givenName + ' ' + familyName;
+          contacts.Search.search(function search_finished() {
+            assert.isTrue(noResults.classList.contains('hide'));
+            assertContactFound(contact);
+            contacts.Search.invalidateCache();
+            done();
+          });
+        });
+      }, 100);
+    });
+
     test('Search phone number', function(done) {
       mockContacts = new MockContactsList();
       var contactIndex = Math.floor(Math.random() * mockContacts.length);
@@ -967,14 +1030,14 @@ suite('Render contacts list', function() {
           var mockContact = mockContacts[i];
           var expected = getStringToBeOrdered(mockContact, true);
           assert.equal(printed.dataset['order'],
-            window.utils.text.escapeHTML(expected, true));
+            Normalizer.escapeHTML(expected, true));
 
           // Check as well the correct highlight
           // familyName to be in bold
           var highlight =
-            window.utils.text.escapeHTML(mockContact.givenName[0], true) +
+            Normalizer.escapeHTML(mockContact.givenName[0], true) +
             ' <strong>' +
-              window.utils.text.escapeHTML(mockContact.familyName[0], true) +
+              Normalizer.escapeHTML(mockContact.familyName[0], true) +
             '</strong>';
           assert.isTrue(printed.innerHTML.indexOf(highlight) == 0);
         }
@@ -994,14 +1057,14 @@ suite('Render contacts list', function() {
         var expected = getStringToBeOrdered(mockContact, false);
 
         assert.equal(
-          name.dataset['order'], window.utils.text.escapeHTML(expected, true));
+          name.dataset['order'], Normalizer.escapeHTML(expected, true));
 
         // Check highlight
         // Given name to be in bold
         var highlight = '<strong>' +
-               window.utils.text.escapeHTML(mockContact.givenName[0], true) +
+               Normalizer.escapeHTML(mockContact.givenName[0], true) +
              '</strong> ' +
-             window.utils.text.escapeHTML(mockContact.familyName[0], true);
+             Normalizer.escapeHTML(mockContact.familyName[0], true);
         assert.equal(name.innerHTML.indexOf(highlight), 0);
 
         subject.setOrderByLastName(true);
