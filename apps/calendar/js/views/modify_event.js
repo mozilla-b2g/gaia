@@ -473,13 +473,17 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var alarms = this.element.querySelectorAll('[name="alarm[]"]');
       fields.alarms = [];
       for (var i = 0, alarm; alarm = alarms[i]; i++) {
-        if (alarm.value == 'none') { continue; }
-
-        fields.alarms.push({
-          action: 'DISPLAY',
-          trigger: parseInt(alarm.value, 10)
-        });
-
+        if (alarm.value == 'none') {
+          fields.alarms.push({
+            action: 'DISPLAY',
+            trigger: alarm.value
+          });
+        } else {
+          fields.alarms.push({
+            action: 'DISPLAY',
+            trigger: parseInt(alarm.value, 10)
+          });
+        }
       }
 
       return fields;

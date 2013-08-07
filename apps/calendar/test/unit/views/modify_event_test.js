@@ -692,7 +692,7 @@ suiteGroup('Views.ModifyEvent', function() {
             assert.equal(updated._id, event._id, 'updates correcet event');
 
             var data = subject.formData();
-            data.alarms = [{ trigger: 'none' }];
+            data.alarms = [];
             assert.hasProperties(subject.event, data, 'updated model');
             assert.isTrue(list.contains(subject.PROGRESS));
 
@@ -738,7 +738,7 @@ suiteGroup('Views.ModifyEvent', function() {
           done(function() {
             var data = subject.formData();
 
-            data.alarms = [{ trigger: 'none' }];
+            data.alarms = [];
 
             assert.hasProperties(subject.event, data, 'updated model');
             assert.isTrue(list.contains(subject.PROGRESS));
@@ -986,7 +986,7 @@ suiteGroup('Views.ModifyEvent', function() {
       subject.updateAlarms(true, function() {
         var allAlarms = subject.alarmList.querySelectorAll('select');
         assert.equal(allAlarms.length, 2);
-        assert.equal(allAlarms[0].value, 'none');
+        assert.equal(allAlarms[0].value, defaultAllDayAlarm);
         assert.equal(allAlarms[1].value, 'none');
         done();
       });
@@ -1012,7 +1012,7 @@ suiteGroup('Views.ModifyEvent', function() {
       };
       subject.updateAlarms(true, function() {
         var allAlarms = subject.alarmList.querySelectorAll('select');
-        assert.equal(allAlarms.length, 2);
+        assert.equal(allAlarms.length, 1);
         assert.equal(allAlarms[0].value, 'none');
         done();
       });
