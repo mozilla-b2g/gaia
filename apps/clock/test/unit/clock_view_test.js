@@ -1,49 +1,65 @@
+requireApp('clock/js/alarm_list.js');
 requireApp('clock/js/clock_view.js');
 requireApp('clock/js/utils.js');
 
+requireApp('clock/test/unit/mocks/mock_alarm_list.js');
+requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
+
 suite('ClockView', function() {
+  var al;
 
   suiteSetup(function() {
+
+    // Load before clock_view to ensure elements are initialized properly.
+    loadBodyHTML('/index.html');
+
+    al = AlarmList;
+    AlarmList = MockAlarmList;
+
+    ClockView.init();
+
     // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
     // system's time zone
     this.sixAm = 1373954400000 + (new Date()).getTimezoneOffset() * 60 * 1000;
-    loadBodyHTML('/index.html');
   });
 
-  suite('updateDaydate', function() {
+  suiteTeardown(function() {
+    AlarmList = al;
+  });
+
+  test('ClockView.isInitialized ', function() {
+    assert.ok(ClockView.isInitialized);
+  });
+
+  suite('updateDayDate', function() {
 
     suiteSetup(function() {
-      this.dayDateElem = document.getElementById('clock-day-date');
+      ClockView.dayDate = document.getElementById('clock-day-date');
     });
 
     setup(function() {
-      this.clock = sinon.useFakeTimers(this.sixAm);
+      this.clock = this.sinon.useFakeTimers(this.sixAm);
     });
 
     teardown(function() {
-      this.dayDateElem.innerHTML = '';
-      this.clock.restore();
-    });
-
-    suiteTeardown(function() {
-      this.dayDateElem.parentNode.removeChild(this.dayDateElem);
+      ClockView.dayDate.innerHTML = '';
     });
 
     test('date element is updated with the current time', function() {
-      ClockView.updateDaydate();
-      assert.equal(Date.parse(this.dayDateElem.textContent), this.sixAm);
+      ClockView.updateDayDate();
+      assert.equal(Date.parse(ClockView.dayDate.textContent), this.sixAm);
     });
 
     test('date element is not updated twice in the same day', function() {
-      ClockView.updateDaydate();
+      ClockView.updateDayDate();
       this.clock.tick(18 * 60 * 60 * 1000 - 1);
-      assert.equal(Date.parse(this.dayDateElem.textContent), this.sixAm);
+      assert.equal(Date.parse(ClockView.dayDate.textContent), this.sixAm);
     });
 
     test('date element is updated each day', function() {
-      ClockView.updateDaydate();
+      ClockView.updateDayDate();
       this.clock.tick(18 * 60 * 60 * 1000);
-      assert.equal(Date.parse(this.dayDateElem.textContent),
+      assert.equal(Date.parse(ClockView.dayDate.textContent),
         this.sixAm + 18 * 60 * 60 * 1000);
     });
 
@@ -51,47 +67,37 @@ suite('ClockView', function() {
 
   suite('updateDigitalClock', function() {
 
-    suiteSetup(function() {
-      this.timeElem = document.getElementById('clock-time');
-      this.hourStateElem = document.getElementById('clock-hour24-state');
-    });
-
     setup(function() {
       this.clock = sinon.useFakeTimers(this.sixAm + 1000);
     });
 
     teardown(function() {
-      this.timeElem.innerHTML = '';
-      this.hourStateElem.innerHTML = '';
+      ClockView.time.innerHTML = '';
+      ClockView.hourState.innerHTML = '';
       this.clock.restore();
-    });
-
-    suiteTeardown(function() {
-      this.timeElem.parentNode.removeChild(this.timeElem);
-      this.hourStateElem.parentNode.removeChild(this.hourStateElem);
     });
 
     test('time and hourState elements are updated immediately',
       function() {
       ClockView.updateDigitalClock();
-      assert.equal(Date.parse(this.timeElem.innerHTML), this.sixAm + 1000);
-      assert.equal(this.hourStateElem.innerHTML, '&nbsp;&nbsp;');
+      assert.equal(Date.parse(ClockView.time.innerHTML), this.sixAm + 1000);
+      assert.equal(ClockView.hourState.innerHTML, '&nbsp;&nbsp;');
     });
 
     test('time and hourState elements are not updated twice in the same ' +
       'minute', function() {
       ClockView.updateDigitalClock();
       this.clock.tick(59 * 1000 - 1);
-      assert.equal(Date.parse(this.timeElem.innerHTML), this.sixAm + 1000);
-      assert.equal(this.hourStateElem.innerHTML, '&nbsp;&nbsp;');
+      assert.equal(Date.parse(ClockView.time.innerHTML), this.sixAm + 1000);
+      assert.equal(ClockView.hourState.innerHTML, '&nbsp;&nbsp;');
     });
 
     test('time and hourState elements are updated each minute', function() {
       ClockView.updateDigitalClock();
       this.clock.tick(59 * 1000);
-      assert.equal(Date.parse(this.timeElem.innerHTML),
+      assert.equal(Date.parse(ClockView.time.innerHTML),
         this.sixAm + 60 * 1000);
-      assert.equal(this.hourStateElem.innerHTML, '&nbsp;&nbsp;');
+      assert.equal(ClockView.hourState.innerHTML, '&nbsp;&nbsp;');
     });
 
   });
@@ -109,36 +115,16 @@ suite('ClockView', function() {
     });
 
     teardown(function() {
-      var attrs, rotate;
-
       // The method under test caches the SVG `animateTransform` elements it
       // creates, meaning that simply clearing the contents of the "-hand"
       // elements will not prevent state leakage.
-      rotate = this.secondHand.childNodes[0];
-      attrs = Array.prototype.slice.call(rotate.attributes);
-      attrs.forEach(function(attr) {
-        rotate.removeAttribute(attr.nodeName);
-      });
+      ['secondHand', 'minuteHand', 'hourHand'].forEach(function(hand) {
+        var node = this[hand].childNodes[0];
 
-      rotate = this.minuteHand.childNodes[0];
-      attrs = Array.prototype.slice.call(rotate.attributes);
-      attrs.forEach(function(attr) {
-        rotate.removeAttribute(attr.nodeName);
-      });
-
-      rotate = this.hourHand.childNodes[0];
-      attrs = Array.prototype.slice.call(rotate.attributes);
-      attrs.forEach(function(attr) {
-        rotate.removeAttribute(attr.nodeName);
-      });
-
-      this.clock.restore();
-    });
-
-    suiteTeardown(function() {
-      this.secondHand.parentNode.removeChild(this.secondHand);
-      this.minuteHand.parentNode.removeChild(this.minuteHand);
-      this.hourHand.parentNode.removeChild(this.hourHand);
+        [].forEach.call(node.attributes, function(attr) {
+          node.removeAttribute(attr.nodeName);
+        });
+      }, this);
     });
 
     test('second-, minute-, and hour- hands are updated immediately',
@@ -211,4 +197,181 @@ suite('ClockView', function() {
 
   });
 
+  suite('show', function() {
+    var as;
+
+    suiteSetup(function() {
+      as = asyncStorage;
+      asyncStorage = MockAsyncStorage;
+    });
+
+    suiteTeardown(function() {
+      asyncStorage = as;
+    });
+
+    setup(function() {
+      ClockView.mode = 'analog';
+      window.location.hash = 'alarm-view';
+    });
+
+    teardown(function() {
+      ClockView.mode = 'analog';
+    });
+
+    test('show() [no mode, no settings, defer to default] ', function() {
+      this.sinon.spy(asyncStorage, 'setItem');
+      this.sinon.stub(asyncStorage, 'getItem', function() {
+        return null;
+      });
+
+      // Clear the locally stored "mode"
+      ClockView.mode = null;
+
+      ClockView.show();
+
+      // null => analog (default), asyncStorage.setItem should be called
+      assert.ok(asyncStorage.setItem.called);
+
+      // analog is the default, analog is visible
+      assert.ok(
+        ClockView.analog.classList.contains('visible')
+      );
+
+      // analog is the default, digital is not visible
+      assert.isFalse(
+        ClockView.digital.classList.contains('visible')
+      );
+    });
+
+    test('show() [no mode, defer to settings] ', function() {
+      this.sinon.spy(asyncStorage, 'setItem');
+
+      ClockView.show();
+
+      // Nothing changed, asyncStorage.setItem should not be called
+      assert.isFalse(asyncStorage.setItem.called);
+
+      // Nothing changed, analog is still visible
+      assert.ok(
+        ClockView.analog.classList.contains('visible')
+      );
+
+      // Nothing changed, digital is NOT visible
+      assert.isFalse(
+        ClockView.digital.classList.contains('visible')
+      );
+    });
+
+    test('show(analog) [no mode, defer to settings] ', function() {
+      this.sinon.spy(asyncStorage, 'setItem');
+
+      ClockView.show('analog');
+
+      // Nothing changed, asyncStorage.setItem should not be called
+      assert.isFalse(asyncStorage.setItem.called);
+
+      // Nothing changed, analog is still visible
+      assert.ok(
+        ClockView.analog.classList.contains('visible')
+      );
+
+      // Nothing changed, digital is NOT visible
+      assert.isFalse(
+        ClockView.digital.classList.contains('visible')
+      );
+    });
+
+    test('show(analog) ', function() {
+      ClockView.mode = 'digital';
+
+      this.sinon.spy(asyncStorage, 'setItem');
+
+      ClockView.show('analog');
+
+      // Nothing changed, asyncStorage.setItem should not be called
+      assert.ok(asyncStorage.setItem.called);
+
+      assert.equal(
+        asyncStorage.setItem.args[0][0],
+        'settings_clockoptions_mode'
+      );
+
+      assert.equal(
+        asyncStorage.setItem.args[0][1],
+        'analog'
+      );
+
+      // Nothing changed, analog is still visible
+      assert.ok(
+        ClockView.analog.classList.contains('visible')
+      );
+
+      // Nothing changed, digital is NOT visible
+      assert.isFalse(
+        ClockView.digital.classList.contains('visible')
+      );
+    });
+
+    test('show(digital) ', function() {
+      ClockView.mode = 'analog';
+
+      this.sinon.spy(asyncStorage, 'setItem');
+
+      ClockView.show('digital');
+
+      // Updated, asyncStorage.setItem IS called
+      assert.ok(asyncStorage.setItem.called);
+
+      assert.equal(
+        asyncStorage.setItem.args[0][0],
+        'settings_clockoptions_mode'
+      );
+
+      assert.equal(
+        asyncStorage.setItem.args[0][1],
+        'digital'
+      );
+
+      // Updated, analog is NOT visible
+      assert.isFalse(
+        ClockView.analog.classList.contains('visible')
+      );
+
+      // Updated, digital IS visible
+      assert.ok(
+        ClockView.digital.classList.contains('visible')
+      );
+    });
+
+
+    test('ClockView.analog.click() shows digital ', function(done) {
+      this.sinon.spy(asyncStorage, 'setItem');
+
+      this.sinon.stub(ClockView, 'show', function(mode) {
+        ClockView.show.restore();
+
+        assert.equal(mode, 'digital');
+
+        done();
+      });
+
+      ClockView.analog.click();
+    });
+
+    test('ClockView.digital.click() shows analog ', function(done) {
+      ClockView.mode = 'digital';
+
+      this.sinon.spy(asyncStorage, 'setItem');
+
+      this.sinon.stub(ClockView, 'show', function(mode) {
+        ClockView.show.restore();
+
+        assert.equal(mode, 'analog');
+
+        done();
+      });
+
+      ClockView.digital.click();
+    });
+  });
 });
