@@ -273,13 +273,11 @@ Calendar.ns('Views').ModifyEvent = (function() {
     _persistEvent: function(method, capability) {
       // create model data
       var data = this.formData();
+      var errors;
 
-      for (var field in data) {
-        this.event[field] = data[field];
-      }
-
-      var errors = this.event.validationErrors();
-      if (errors) {
+      // we check explicitly for true, because the alternative
+      // is an error object.
+      if ((errors = this.event.updateAttributes(data)) !== true) {
         this.showErrors(errors);
         return;
       }
