@@ -1,18 +1,63 @@
+(function(exports) {
 'use strict';
 
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
+var viewMode = null;
+
+// Retrieve stored view mode data as early as possible.
+asyncStorage.getItem(SETTINGS_CLOCKMODE, function(value) {
+
+  // If no value has been stored, don't update
+  // the viewMode closure.
+  if (value === null) {
+    return;
+  }
+  // If the ClockView hasn't initialized yet,
+  // and the stored value is different from
+  // the arbitrarily chosen default view (analog)
+  // then update the viewMode closure.
+  if (!ClockView.isInitialized && viewMode !== value) {
+    viewMode = value;
+  }
+});
 
 var ClockView = {
-  _clockMode: null, /* is read from settings */
-
-  get digitalClock() {
-    delete this.digitalClock;
-    return this.digitalClock = document.getElementById('digital-clock');
+  get mode() {
+    // Closure value, stored in settings,
+    // or the default (analog)
+    return viewMode;
   },
 
-  get analogClock() {
-    delete this.analogClock;
-    return this.analogClock = document.getElementById('analog-clock');
+  set mode(value) {
+    // If the `mode` is being updated to a new value:
+    //
+    //    - Update the viewMode closure
+    //    - Store the new value in persistent data storage
+    //
+    // Always return `value`
+    if (viewMode !== value) {
+      viewMode = value;
+      asyncStorage.setItem(
+        SETTINGS_CLOCKMODE, value
+      );
+    }
+    return viewMode;
+  },
+
+  timeouts: {
+    analog: null,
+    dayDate: null,
+    digital: null
+  },
+
+  get digital() {
+    delete this.digital;
+    return this.digital = document.getElementById('digital-clock');
+  },
+
+  get analog() {
+    delete this.analog;
+    return this.analog = document.getElementById('analog-clock');
   },
 
   get time() {
@@ -35,70 +80,86 @@ var ClockView = {
     return this.alarmNewBtn = document.getElementById('alarm-new');
   },
 
-  get digitalClockBackground() {
-    delete this.digitalClockBackground;
-    return this.digitalClockBackground =
-      document.getElementById('digital-clock-background');
+  get container() {
+    delete this.container;
+    return this.container =
+      document.getElementById('analog-clock-container');
   },
+  isInitialized: false,
 
   init: function cv_init() {
-    this.container = document.getElementById('analog-clock-container');
+    var handler = this.handleEvent.bind(this);
 
-    document.addEventListener('visibilitychange', this);
+    document.addEventListener('visibilitychange', handler);
 
-    this.updateDaydate();
-    this.initClockface();
+    this.analog.addEventListener('click', handler, false);
+    this.digital.addEventListener('click', handler, false);
+
+    // Kick off the day date display (upper left string)
+    this.updateDayDate();
+
+    // If the attempt to request and set the viewMode
+    // closure early has failed to respond before the
+    // call to ClockView.init(), make an async request,
+    // passing the response value as an argument to this.show()
+    if (this.mode === null) {
+      asyncStorage.getItem(
+        SETTINGS_CLOCKMODE, this.show.bind(this)
+      );
+    } else {
+      // Display the clock face
+      this.show();
+    }
+
+    this.isInitialized = true;
   },
 
-  initClockface: function cv_initClockface() {
-    var self = this;
-
-    this.analogClock.addEventListener('touchstart', this);
-    this.digitalClock.addEventListener('touchstart', this);
-
-    asyncStorage.getItem(SETTINGS_CLOCKMODE, function(mode) {
-      switch (mode) {
-        case 'digital':
-          self.showDigitalClock();
-          break;
-        default:
-          self.showAnalogClock();
-          break;
-      }
-    });
-  },
-
-  updateDaydate: function cv_updateDaydate() {
+  updateDayDate: function cv_updateDayDate() {
     var d = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
     var format = navigator.mozL10n.get('dateFormat');
     var formated = f.localeFormat(d, format);
-    this.dayDate.innerHTML = formated.replace(/([0-9]+)/, '<b>$1</b>');
-
-    var self = this;
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
                             d.getMinutes() * 60 * 1000 -
                             d.getMilliseconds();
-    this._updateDaydateTimeout =
-    window.setTimeout(function cv_updateDaydateTimeout() {
-      self.updateDaydate();
-    }, remainMillisecond);
+
+    this.dayDate.innerHTML = formated.replace(/([0-9]+)/, '<b>$1</b>');
+
+    this.timeouts.dayDate = setTimeout(
+      this.updateDayDate.bind(this), remainMillisecond
+    );
   },
 
-  updateDigitalClock: function cv_updateDigitalClock() {
+  update: function cv_update(opts) {
+    opts = opts || {};
+
+    if (this.mode === 'digital') {
+      this.updateDigitalClock(opts);
+    } else {
+      this.updateAnalogClock(opts);
+    }
+  },
+
+  updateDigitalClock: function cv_updateDigitalClock(opts) {
+    opts = opts || {};
+
     var d = new Date();
     var time = Utils.getLocaleTime(d);
     this.time.textContent = time.t;
     this.hourState.textContent = time.p || '  '; // 2 non-break spaces
 
-    var self = this;
-    this._updateDigitalClockTimeout =
-    window.setTimeout(function cv_updateDigitalClockTimeout() {
-      self.updateDigitalClock();
-    }, (60 - d.getSeconds()) * 1000);
+    this.timeouts.digital = setTimeout(
+      this.updateDigitalClock.bind(this), (60 - d.getSeconds()) * 1000
+    );
   },
 
-  updateAnalogClock: function cv_updateAnalogClock() {
+  updateAnalogClock: function cv_updateAnalogClock(opts) {
+    opts = opts || {};
+
+    if (opts.needsResize) {
+      this.resizeAnalogClock();
+    }
+
     // Update the SVG clock graphic to show current time
     var now = new Date(); // Current time
     var sec = now.getSeconds(); // Seconds
@@ -113,12 +174,9 @@ var ClockView = {
     // 30 degrees per hour
     this.setTransform('hourhand', hour * 30 - 180, (lastHour) * 30 - 180);
 
-    // Update the clock again in 1 minute
-    var self = this;
-    this._updateAnalogClockTimeout =
-    window.setTimeout(function cv_updateAnalogClockTimeout() {
-      self.updateAnalogClock();
-    }, (1000 - now.getMilliseconds()));
+    this.timeouts.analog = setTimeout(
+      this.updateAnalogClock.bind(this), 1000 - now.getMilliseconds()
+    );
   },
 
   setTransform: function cv_setTransform(id, angle, from) {
@@ -149,76 +207,59 @@ var ClockView = {
     hand.appendChild(rotate);
   },
 
-  handleEvent: function cv_handleEvent(evt) {
-    switch (evt.type) {
+  handleEvent: function cv_handleEvent(event) {
+    var newMode, target;
+
+    switch (event.type) {
       case 'visibilitychange':
         if (document.hidden) {
-          if (this._updateDaydateTimeout) {
-            window.clearTimeout(this._updateDaydateTimeout);
+          if (this.timeouts.dayDate) {
+            clearTimeout(this.timeouts.dayDate);
           }
-          if (this._updateDigitalClockTimeout) {
-            window.clearTimeout(this._updateDigitalClockTimeout);
+          if (this.timeouts.digital) {
+            clearTimeout(this.timeouts.digital);
           }
-          if (this._updateAnalogClockTimeout) {
-            window.clearTimeout(this._updateAnalogClockTimeout);
+          if (this.timeouts.analog) {
+            clearTimeout(this.timeouts.analog);
           }
           return;
         } else if (!document.hidden) {
           // Refresh the view when app return to foreground.
-          this.updateDaydate();
-          if (this._clockMode === 'digital') {
+          this.updateDayDate();
+
+          if (this.mode === 'digital') {
             this.updateDigitalClock();
-          } else if (this._clockMode === 'analog') {
+          } else if (this.mode === 'analog') {
             this.updateAnalogClock();
           }
         }
         break;
 
-      case 'touchstart':
-        var input = evt.target;
-        if (!input)
+      case 'click':
+        target = event.target;
+
+        if (!target) {
           return;
-
-        switch (input.id) {
-          case 'digital-clock-display':
-            this.showAnalogClock();
-            break;
-
-          case 'analog-clock-svg':
-            this.showDigitalClock();
-            break;
         }
+
+        if (this.digital.contains(target) ||
+            target.id === 'digital-clock') {
+
+          newMode = 'analog';
+        }
+
+        if (this.analog.contains(target) ||
+            target.id === 'analog-clock') {
+
+          newMode = 'digital';
+        }
+
+        if (newMode) {
+          this.show(newMode);
+        }
+
         break;
     }
-  },
-
-  showAnalogClock: function cv_showAnalogClock() {
-    if (this._clockMode !== 'analog')
-      asyncStorage.setItem(SETTINGS_CLOCKMODE, 'analog');
-
-    if (this._updateDigitalClockTimeout) {
-      window.clearTimeout(this._updateDigitalClockTimeout);
-    }
-    this.digitalClock.classList.remove('visible');
-    this.digitalClockBackground.classList.remove('visible');
-    this.resizeAnalogClock();
-    this.updateAnalogClock();
-    this._clockMode = 'analog';
-    this.analogClock.classList.add('visible');
-  },
-
-  showDigitalClock: function cv_showDigitalClock() {
-    if (this._clockMode !== 'digital')
-      asyncStorage.setItem(SETTINGS_CLOCKMODE, 'digital');
-
-    if (this._updateDigitalClockTimeout) {
-      window.clearTimeout(this._updateAnalogClockTimeout);
-    }
-    this.analogClock.classList.remove('visible');
-    this.updateDigitalClock();
-    this._clockMode = 'digital';
-    this.digitalClock.classList.add('visible');
-    this.digitalClockBackground.classList.add('visible');
   },
 
   calAnalogClockType: function cv_calAnalogClockType(count) {
@@ -245,26 +286,57 @@ var ClockView = {
   },
 
   hide: function cv_hide() {
-    var self = this;
-    // Set a time out to add a delay so the clock is hidden
-    // after the edit mode is shown
     setTimeout(function() {
-      self.digitalClock.className = '';
-      self.analogClock.className = '';
-    }, 500);
+      this.digital.className = '';
+      this.analog.className = '';
+    }.bind(this), 500);
   },
 
-  show: function cv_show() {
-    window.location.hash = 'alarm-view';
-    var self = this;
-    self.digitalClock.className = '';
-    self.analogClock.className = '';
-    if (self._clockMode === 'analog') {
-      self.analogClock.className = 'visible';
-    } else {
-      self.digitalClock.className = 'visible';
-    }
-  }
+  show: function cv_show(mode) {
+    var isAnalog = false;
+    var previous, hiding, showing;
 
+    if (window.location.hash !== 'alarm-view') {
+      window.location.hash = 'alarm-view';
+    }
+
+    // The clock display mode is either
+    //
+    //    - Explicitly passed as the mode param
+    //    - Set as a property of ClockView
+    //    - Default to "analog"
+    //
+    mode = mode || this.mode || 'analog';
+
+    isAnalog = mode === 'analog';
+
+    // Determine what to hide and what to show
+    previous = isAnalog ? 'digital' : 'analog';
+    hiding = isAnalog ? this.digital : this.analog;
+    showing = isAnalog ? this.analog : this.digital;
+
+    // Clear any previously created timeouts.
+    if (this.timeouts[previous]) {
+      clearTimeout(
+        this.timeouts[previous]
+      );
+    }
+
+    hiding.classList.remove('visible');
+    showing.classList.add('visible');
+
+    // Update the locally stored `mode`.
+    this.mode = mode;
+
+    // This MUST be called after this.mode is set
+    // to ensure that the correct mode is used for
+    // updating the clockface
+    this.update({
+      needsResize: true
+    });
+  }
 };
 
+exports.ClockView = ClockView;
+
+}(this));

@@ -187,6 +187,6 @@ a.alarm-item > .repeat {
   text-overflow: ellipsis;
 }
 
-#digital-clock-background.visible ~ #alarms.count4 li:first-child {
+#digital-clock.visible ~ #alarms.count4 li:first-child {
   background: none;
 }
