@@ -194,6 +194,13 @@ suite('L10n', function() {
         assert.equal(info.textContent, '2 updates available.');
       });
     });
+
+    test('element with child', function() {
+      elem.innerHTML = 'here is a button <button>(foo)</button>';
+      _localize(elem, 'textcontent-test');
+      assert.equal(elem.textContent, 'this is text content(foo)');
+      assert.ok(elem.querySelector('button'));
+    });
   });
 
   suite('translate existing', function() {
