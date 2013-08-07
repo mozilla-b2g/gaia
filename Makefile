@@ -48,6 +48,10 @@ NOFTU?=0
 # Automatically enable remote debugger
 REMOTE_DEBUGGER?=0
 
+ifeq ($(DEVICE_DEBUG), 1)
+REMOTE_DEBUGGER=1
+endif
+
 # We also disable FTU when running in Firefox or in debug mode
 ifeq ($(DEBUG),1)
 NOFTU=1
