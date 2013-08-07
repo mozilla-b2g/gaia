@@ -887,6 +887,8 @@ suiteGroup('Views.ModifyEvent', function() {
 
     var defaultAllDayAlarm;
     var defaultEventAlarm;
+    var morning = 3600 * 9;
+    var oneHour = 3600;
 
     setup(function(done) {
       var pending = 3;
@@ -1017,6 +1019,88 @@ suiteGroup('Views.ModifyEvent', function() {
         done();
       });
     });
+
+    function testDefaultAlarms(isAllDay, defaultValue, done) {
+      settingStore.getValue('alldayAlarmDefault', function(err, value) {
+        var defaultAlarm = value;
+        var defaultAlarmKey;
+        if (isAllDay === true) {
+          defaultAlarmKey = 'alldayAlarmDefault';
+        } else {
+          defaultAlarmKey = 'standardAlarmDefault';
+        }
+        settingStore.set(defaultAlarmKey, defaultValue, function(err, value) {
+          provider.createEvent = function(event, callback) {
+            var data = subject.formData();
+
+            callback();
+
+            if (defaultValue === 'none') {
+              assert.deepEqual(
+                data.alarms[0].trigger,
+                123,
+                'alarms'
+              );
+            } else {
+              assert.deepEqual(
+                data.alarms[0].trigger,
+                defaultValue,
+                'alarms'
+              );
+            }
+            settingStore.set(defaultAlarmKey, defaultAlarm,
+              function(err, value) {
+                done();
+              }
+            );
+          };
+          var allday = subject.getEl('allday');
+          allday.checked = isAllDay;
+          subject.event.isAllDay = isAllDay;
+          subject.updateAlarms(isAllDay, function() {
+            var allAlarms = subject.alarmList.querySelectorAll('select');
+            var firstSelect = allAlarms[0];
+            assert.ok(firstSelect);
+            if (defaultValue === 'none') {
+              assert.equal(allAlarms.length, 1);
+              var newOption = document.createElement('option');
+              newOption.value = '123';
+              firstSelect.appendChild(newOption);
+              firstSelect.value = '123';
+            } else {
+              assert.equal(allAlarms.length, 2);
+            }
+            subject.primary();
+          });
+        });
+      });
+    }
+
+    test('Bug 898242 - when allday alarm default is none', function(done) {
+      var isAllDay = true;
+      var defaultValue = 'none';
+      testDefaultAlarms(isAllDay, defaultValue, done);
+    });
+
+    test('Bug 898242 - when allday alarm default is not none', function(done) {
+      var isAllDay = true;
+      var defaultValue = morning;
+      testDefaultAlarms(isAllDay, defaultValue, done);
+    });
+
+    test('Bug 898242 - when standard alarm default is none', function(done) {
+      var isAllDay = false;
+      var defaultValue = 'none';
+      testDefaultAlarms(isAllDay, defaultValue, done);
+    });
+
+    test('Bug 898242 - when standard alarm default is not none',
+      function(done) {
+        var isAllDay = false;
+        var defaultValue = oneHour;
+        testDefaultAlarms(isAllDay, defaultValue, done);
+      }
+    );
   });
 
   suite('#returnTo', function() {
