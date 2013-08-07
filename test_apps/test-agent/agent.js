@@ -26,6 +26,7 @@ CommonResourceLoader
 CommonResourceLoader
   .script('/common/vendor/mocha/mocha.js')
   .script('/common/vendor/sinon/sinon.js')
+  .script('/common/vendor/blanket/blanket.js')
   .script('/common/vendor/test-agent/test-agent.js')
   .script('/common/test/test_url_resolver.js')
   .script('/common/test/agent.js');
