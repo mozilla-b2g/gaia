@@ -6,28 +6,20 @@ requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_navigator_get_device_storage.js');
 
-requireApp('system/test/unit/mocks_helper.js');
-
-var mocksForStorageWatcher = [
+var mocksForStorageWatcher = new MocksHelper([
   'SystemBanner',
   'NotificationScreen'
-];
-
-mocksForStorageWatcher.forEach(function(mockName) {
-  if (!window[mockName]) {
-    window[mockName] = null;
-  }
-});
+]).init();
 
 suite('system/DeviceStorageWatcher >', function() {
   var realL10n;
   var realNavigatorGetDeviceStorage;
   var fakeNotif;
-  var mocksHelper;
   var tinyTimeout = 25;
   var lastL10nParams = [];
   var lastL10nKeys = [];
 
+  mocksForStorageWatcher.attachTestHelpers();
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
@@ -45,17 +37,12 @@ suite('system/DeviceStorageWatcher >', function() {
     realNavigatorGetDeviceStorage = navigator.getDeviceStorage;
     navigator.getDeviceStorage = MockNavigatorGetDeviceStorage;
 
-    mocksHelper = new MocksHelper(mocksForStorageWatcher);
-    mocksHelper.suiteSetup();
-
     done();
   });
 
   suiteTeardown(function(done) {
     navigator.mozL10n = realL10n;
     navigator.getDeviceStorage = realNavigatorGetDeviceStorage;
-
-    mocksHelper.suiteTeardown();
 
     done();
   });
@@ -72,16 +59,12 @@ suite('system/DeviceStorageWatcher >', function() {
 
     document.body.appendChild(fakeNotif);
 
-    mocksHelper.setup();
-
     done();
   });
 
   teardown(function(done) {
     setTimeout(function() {
       DeviceStorageWatcher._container = null;
-
-      mocksHelper.teardown();
 
       fakeNotif.parentNode.removeChild(fakeNotif);
 

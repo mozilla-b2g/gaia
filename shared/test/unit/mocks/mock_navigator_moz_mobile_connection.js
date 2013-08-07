@@ -9,7 +9,7 @@
     props.forEach(function(prop) {
       Mock[prop] = null;
     });
-    eventListeners = {};
+    eventListeners = { 'iccinfochange': [] };
   }
 
   function mnmmc_addEventListener(type, callback) {

@@ -5,34 +5,23 @@ requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mocks_helper.js');
 requireApp('system/js/battery_manager.js');
 
-var mocksForBatteryManager = [
+var mocksForBatteryManager = new MocksHelper([
   'SettingsListener',
   'SleepMenu',
   'GestureDetector'
-];
-
-mocksForBatteryManager.forEach(function(mockName) {
-  if (! window[mockName]) {
-    window[mockName] = null;
-  }
-});
-
+]).init();
 
 suite('battery manager >', function() {
   var realBattery;
   var screenNode, notifNode, overlayNode;
-  var mocksHelper;
   var tinyTimeout = 10;
 
   var realL10n;
 
+  mocksForBatteryManager.attachTestHelpers();
   suiteSetup(function() {
-    mocksHelper = new MocksHelper(mocksForBatteryManager);
-    mocksHelper.suiteSetup();
-
     realBattery = BatteryManager._battery;
     BatteryManager._battery = MockNavigatorBattery;
 
@@ -45,8 +34,6 @@ suite('battery manager >', function() {
   });
 
   suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
-
     BatteryManager._battery = realBattery;
     realBattery = null;
 
@@ -54,8 +41,6 @@ suite('battery manager >', function() {
   });
 
   setup(function() {
-    mocksHelper.setup();
-
     var batteryNotificationMarkup =
       '<div id="system-overlay" data-z-index-level="system-overlay">' +
         '<div id="battery">' +
@@ -80,8 +65,6 @@ suite('battery manager >', function() {
   });
 
   teardown(function() {
-    mocksHelper.teardown();
-
     screenNode.parentNode.removeChild(screenNode);
   });
 
