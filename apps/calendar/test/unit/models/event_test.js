@@ -166,6 +166,14 @@ suiteGroup('Models.Event', function() {
     });
   });
 
+  test('Bug 898242', function() {
+    subject.alarms = [];
+    assert.equal(subject.alarms.length, 1);
+    assert.equal(subject.alarms[0].trigger, 'none');
+    // now to make sure that the none alarm isn't saved.
+    assert.equal(subject.remote.alarms.length, 0);
+  });
+
   test('#isAllDay', function() {
     subject.isAllDay = true;
 

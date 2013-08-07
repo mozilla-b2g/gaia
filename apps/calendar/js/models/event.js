@@ -193,12 +193,15 @@ Calendar.ns('Models').Event = (function() {
     },
 
     get alarms() {
-      if (this.remote.alarms) {
-        if (this.remote.alarms.length === 0) {
-          return [{
-            trigger: 'none'
-          }];
-        }
+      // if get alarms returns an empty array then in edit
+      // event view no reminder option will display when default
+      // setting sets alarms of either all-day or standard event
+      // or both to none. This change doesn't affect alarm display
+      // in view_event so "Remind Me" will still never say "None".
+      if (this.remote.alarms && this.remote.alarms.length === 0) {
+        return [{
+          trigger: 'none'
+        }];
       }
       return this.remote.alarms || [];
     },

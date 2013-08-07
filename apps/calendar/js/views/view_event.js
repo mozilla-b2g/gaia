@@ -138,7 +138,7 @@ Calendar.ns('Views').ViewEvent = (function() {
         var alarmDescription = Calendar.Templates.Alarm.description;
 
         for (var i = 0, alarm; alarm = this.event.alarms[i]; i++) {
-          if (alarm.trigger != 'none') {
+          if (alarm.trigger !== 'none') {
             alarmContent += '<div>' +
               alarmDescription.render({
                 trigger: alarm.trigger,
