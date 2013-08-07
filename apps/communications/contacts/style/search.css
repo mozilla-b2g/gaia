@@ -131,3 +131,11 @@ form.search button[type="submit"] {
 .import #search-list > li[data-uuid] *:not(input) {
   pointer-events: none;
 }
+
+#search-list.selecting label.pack-checkbox {
+  display: block !important;
+}
+
+#search-list label.pack-checkbox {
+  display: none !important;
+}
