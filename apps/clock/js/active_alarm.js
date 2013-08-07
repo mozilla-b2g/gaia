@@ -53,7 +53,9 @@ var ActiveAlarm = {
 
       AlarmManager.putAlarm(alarm, function aac_putAlarm(alarmFromDB) {
         // Set the next repeat alarm when nornal alarm goes off.
-        if (type === 'normal' && alarmFromDB.repeat !== '0000000' && callback) {
+        if (type === 'normal' &&
+            !Utils.isEmptyRepeat(alarmFromDB.repeat) &&
+            callback) {
           alarmFromDB.enabled = false;
           callback(alarmFromDB);
         } else {
