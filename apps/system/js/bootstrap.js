@@ -80,3 +80,23 @@ SettingsListener.observe(
       'url(' + value + ')';
   }
 );
+
+
+/* === XXX Bug 900512 === */
+// On some devices touching the hardware home button triggers
+// touch events at position 0,0. In order to make sure those does
+// not trigger unexpected behaviors those are captured here.
+function cancelHomeTouchstart(e) {
+  if (e.touches[0].pageX === 0 && e.touches[0].pageY === 0) {
+    e.stopImmediatePropagation();
+  }
+}
+
+function cancelHomeTouchend(e) {
+  if (e.touches[0].pageX === 0 && e.touches[0].pageY === 0) {
+    e.stopImmediatePropagation();
+  }
+}
+
+window.addEventListener('touchstart', cancelHomeTouchstart, true);
+window.addEventListener('touchstart', cancelHomeTouchend, true);

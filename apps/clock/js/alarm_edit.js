@@ -242,14 +242,14 @@ var AlarmEdit = {
   },
 
   getTimeSelect: function aev_getTimeSelect() {
-    return parseTime(this.timeSelect.value);
+    return Utils.parseTime(this.timeSelect.value);
   },
 
   refreshTimeMenu: function aev_refreshTimeMenu(time) {
     if (!time) {
       time = this.alarm;
     }
-    this.timeMenu.textContent = formatTime(time.hour, time.minute);
+    this.timeMenu.textContent = Utils.formatTime(time.hour, time.minute);
   },
 
   initRepeatSelect: function aev_initRepeatSelect() {
@@ -271,15 +271,15 @@ var AlarmEdit = {
 
   refreshRepeatMenu: function aev_refreshRepeatMenu(repeatOpts) {
     var daysOfWeek = (repeatOpts) ? repeatOpts : this.alarm.repeat;
-    this.repeatMenu.textContent = summarizeDaysOfWeek(daysOfWeek);
+    this.repeatMenu.textContent = Utils.summarizeDaysOfWeek(daysOfWeek);
   },
 
   initSoundSelect: function aev_initSoundSelect() {
-    changeSelectByValue(this.soundSelect, this.alarm.sound);
+    Utils.changeSelectByValue(this.soundSelect, this.alarm.sound);
   },
 
   getSoundSelect: function aev_getSoundSelect() {
-    return getSelectedValue(this.soundSelect);
+    return Utils.getSelectedValue(this.soundSelect);
   },
 
   refreshSoundMenu: function aev_refreshSoundMenu(sound) {
@@ -313,11 +313,11 @@ var AlarmEdit = {
   },
 
   initVibrateSelect: function aev_initVibrateSelect() {
-    changeSelectByValue(this.vibrateSelect, this.alarm.vibrate);
+    Utils.changeSelectByValue(this.vibrateSelect, this.alarm.vibrate);
   },
 
   getVibrateSelect: function aev_getVibrateSelect() {
-    return getSelectedValue(this.vibrateSelect);
+    return Utils.getSelectedValue(this.vibrateSelect);
   },
 
   refreshVibrateMenu: function aev_refreshVibrateMenu(vibrate) {
@@ -329,11 +329,11 @@ var AlarmEdit = {
   },
 
   initSnoozeSelect: function aev_initSnoozeSelect() {
-    changeSelectByValue(this.snoozeSelect, this.alarm.snooze);
+    Utils.changeSelectByValue(this.snoozeSelect, this.alarm.snooze);
   },
 
   getSnoozeSelect: function aev_getSnoozeSelect() {
-    return getSelectedValue(this.snoozeSelect);
+    return Utils.getSelectedValue(this.snoozeSelect);
   },
 
   refreshSnoozeMenu: function aev_refreshSnoozeMenu(snooze) {

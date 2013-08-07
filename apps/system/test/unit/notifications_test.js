@@ -78,6 +78,40 @@ suite('system/NotificationScreen >', function() {
     mocksHelper.teardown();
   });
 
+  suite('chrome events >', function() {
+    setup(function() {
+      this.sinon.stub(NotificationScreen, 'addNotification');
+      this.sinon.stub(NotificationScreen, 'removeNotification');
+    });
+
+    function sendChromeEvent(detail) {
+      var event = new CustomEvent('mozChromeEvent', {
+        detail: detail
+      });
+
+      window.dispatchEvent(event);
+    }
+
+    test('showing a notification', function() {
+      sendChromeEvent({
+        type: 'desktop-notification',
+        id: 1
+      });
+
+      assert.ok(NotificationScreen.addNotification.called);
+      assert.equal(NotificationScreen.addNotification.args[0][0].id, 1);
+    });
+
+    test('closing a notification', function() {
+      sendChromeEvent({
+        type: 'desktop-notification-close',
+        id: 1
+      });
+      assert.ok(NotificationScreen.removeNotification.called);
+      assert.equal(NotificationScreen.removeNotification.args[0][0], 1);
+    });
+  });
+
   suite('updateStatusBarIcon >', function() {
     var realScreenManager;
     setup(function() {

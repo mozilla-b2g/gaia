@@ -87,7 +87,7 @@ var ClockView = {
 
   updateDigitalClock: function cv_updateDigitalClock() {
     var d = new Date();
-    var time = getLocaleTime(d);
+    var time = Utils.getLocaleTime(d);
     this.time.textContent = time.t;
     this.hourState.textContent = time.p || '  '; // 2 non-break spaces
 
@@ -95,7 +95,7 @@ var ClockView = {
     this._updateDigitalClockTimeout =
     window.setTimeout(function cv_updateDigitalClockTimeout() {
       self.updateDigitalClock();
-    }, (59 - d.getSeconds()) * 1000);
+    }, (60 - d.getSeconds()) * 1000);
   },
 
   updateAnalogClock: function cv_updateAnalogClock() {

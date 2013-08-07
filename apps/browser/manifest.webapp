@@ -45,7 +45,9 @@
     "view": {
       "filters": {
         "type": "url",
-        "url": { "required":true, "pattern":"https?:.{1,16384}" }
+        "url": {
+          "required":true, "pattern":"https?:.{1,16384}", "patternFlags":"i"
+        }
       }
     }
   }

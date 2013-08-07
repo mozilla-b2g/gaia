@@ -61,6 +61,7 @@ var Browser = {
     // Add event listeners
     this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
+    this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
     this.urlInput.addEventListener('keyup',
       this.handleUrlInputKeypress.bind(this));
@@ -198,7 +199,7 @@ var Browser = {
        this.showSettingsScreen.bind(this));
      this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
      this.settingsDoneButton.addEventListener('click',
-       this.showPageScreen.bind(this));
+       this.hideSettingsScreen.bind(this));
      this.aboutBrowserButton.addEventListener('click',
        this.showAboutPage.bind(this));
      this.clearHistoryButton.addEventListener('click',
@@ -911,6 +912,7 @@ var Browser = {
   },
 
   urlFocus: function browser_urlFocus(e) {
+    this.urlBar.classList.add('focus');
     if (this.currentScreen === this.PAGE_SCREEN) {
       this.urlInput.value = this.currentTab.url;
       this.sslIndicator.value = '';
@@ -920,6 +922,10 @@ var Browser = {
     } else if (this.currentScreen === this.AWESOME_SCREEN) {
       this.shouldFocus = true;
     }
+  },
+
+  urlBlur: function browser_urlBlur() {
+    this.urlBar.classList.remove('focus');
   },
 
   setUrlBar: function browser_setUrlBar(data) {
@@ -1851,9 +1857,13 @@ var Browser = {
   },
 
   showSettingsScreen: function browser_showSettingsScreen() {
-    this.switchScreen(this.SETTINGS_SCREEN);
+    document.body.classList.add(this.SETTINGS_SCREEN);
     this.clearHistoryButton.disabled = false;
     this.clearPrivateDataButton.disabled = false;
+  },
+
+  hideSettingsScreen: function browser_showSettingsScreen() {
+    document.body.classList.remove(this.SETTINGS_SCREEN);
   },
 
   showAboutPage: function browser_showAboutPage() {
@@ -1862,6 +1872,7 @@ var Browser = {
     this.selectTab(tab);
     this.setTabVisibility(this.currentTab, true);
     this.updateTabsCount();
+    this.hideSettingsScreen();
     this.showPageScreen();
   },
 

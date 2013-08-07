@@ -80,6 +80,7 @@ settings = {
  "keyboard.autocorrect": True,
  "keyboard.wordsuggestion": True,
  "keyboard.current": "en",
+ "keyboard.ftu.enabled": True,
  "language.current": "en-US",
  "layers.draw-borders": False,
  "lockscreen.passcode-lock.code": "0000",

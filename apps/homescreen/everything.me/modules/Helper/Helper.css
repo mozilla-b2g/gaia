@@ -54,16 +54,13 @@
 
 #helper-rapper {
     position: absolute;
-    background: #fff;
     top: 0.4rem;
     left: 0.6rem;
     right: 0.6rem;
     height: 2.8rem;
-    line-height: 2.2rem;
-    color: #000;
+    line-height: 2.6rem;
+    color: #fff;
     font-size: 1.5rem;
-    border-radius: 0.2rem;
-    border: 0.1rem solid #1f1f1f;
     z-index: 55;
     overflow: hidden;
     transform-origin: 50% 50%;
@@ -103,20 +100,6 @@
         transform: rotate(45deg);
         box-shadow: -0.4rem -0.4rem 0.4rem -0.2rem rgba(0, 0, 0, .4);
     }
-    
-    
-#helper-rapper.flash {
-    -moz-animation: flash 4s linear 1 alternate;
-}
-#helper-tip.flash b {
-    -moz-animation: flash 4s linear 1 alternate;
-}
-@-moz-keyframes flash {
-    0% { background: #fff; }
-    2% { background: #ffe57f; }
-    50% { background: #ffe57f; }
-    100% { background: #fff; }
-}
 
 #helper {
     position: absolute;
@@ -162,16 +145,20 @@
         #helper ul li:after {
             content: "";
             position: absolute;
-            top: 1.1rem;
+            top: 1.3rem;
             left: -0.3rem;
             width: 0.4rem;
             height: 0.4rem;
-            background: #000;
+            background: #fff;
             border-radius: 0.2rem;
         }
         #helper ul li:first-child {
             font-weight: 600;
-            color: #0485af;
+            color: #00e4ff;
+            padding-left: 0.5rem;
+        }
+        #helper ul li:last-child {
+            padding-right: 0;
         }
         #helper ul li:first-child b {
             font-weight: 600;
@@ -196,15 +183,15 @@
         }
         #helper ul.text li.label {
             font-style: normal;
-            color: #aaaaaa;
+            color: #888;
         }
         #helper ul li.text {
-            color: #000;
+            color: #fff;
             cursor: default;
             text-transform: none;
         }
         #helper ul.didyoumean li.label {
-            color: #f00;
+            color: #ff1f1f;
         }
         #helper ul li.label + li {
             padding-left: 0.5rem;
@@ -214,7 +201,7 @@
             padding-left: 0;
         }
         #helper ul li.link {
-            color: #0485af !important;
+            color: #00e4ff !important;
             font-weight: normal;
             cursor: pointer;
             text-transform: none;

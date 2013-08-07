@@ -64,42 +64,53 @@ https://developer.mozilla.org/en/Mozilla/Boot_to_Gecko/Gaia_Unit_Tests
 
 ### Integration Tests
 
-Integration tests for an app are located in
-`apps/<APP>/test/integration/`.
+Gaia uses
+[marionette-js-runner](https://github.com/mozilla-b2g/marionette-js-runner)
+to run the tests with a custom builder for gaia. Tests should live with the rest of your apps code (in apps/my_app/test/marionette) and
+test files should end in _test.js.
 
-Prerequisites:
+All integration tests run under a node environment. You need node >= 0.8
+for this to work predictably.
 
-1. adb
-2. FirefoxOS Device / Emulator / B2G Desktop
+Shared code for tests lives under shared/test/integration.
 
-To run integration tests:
+#### Invoking a test
 
-1. In your gaia/ directory, run `make` to build the profile
-2. Run B2G Desktop
+```sh
+./bin/gaia-marionette <test> [test...]
+```
 
-   or forward port 2828 from your device / emulator using
-   `adb forward tcp:2828 tcp:2828`
+All options are passed to `./node_modules/.bin/marionette-mocha` so
+you can also use mocha commands like `--grep`, `--timeout` see `--help`
+for more options.
 
-3. Run `make test-integration` from the gaia/ directory
+#### Invoking all the tests
 
-   or `make test-integration APP=<APP>` to run unit tests for a
-   specified app
+NOTE: unless you tests end in _test.js they will not be
+automatically picked up by `make test-integration`.
 
-   or `make test-integration TESTS=<PATH/TO/TESTFILE.js>` to run unit
-   tests in a specific file
+```sh
+make test-integration
+```
 
-   or `make test-integration REPORTER=<REPORTER>` to run integration
-   tests with the specified reporter, for example `XUnit`
+#### Where to find documentation
+  - [Node.js](http://nodejs.org)
 
-   or `make test-integration TESTVARS=<PATH/TO/TESTVARS.json>` to run
-   tests with variables in the testvars file (this defaults to
-   testvars.json)
+  - [MDN: for high level overview](https://developer.mozilla.org/en-US/docs/Marionette/Marionette_JavaScript_Tools)
+  - [mocha: which is wrapped by marionette-js-runner](http://visionmedia.github.io/mocha/)
+  - [marionette-js-runner: for the test framework](https://github.com/mozilla-b2g/marionette-js-runner)
+  - [marionette-client: for anything to do with client.X](http://lightsofapollo.github.io/marionette_js_client/api-docs/classes/Marionette.Client.html)
+ 
 
-Note: If you're using a FirefoxOS Device, it must have been flashed
-with a build with marionette enabled. If it doesn't have marionette
-enabled, then running `make test-integration` will time out.
+#### Gotchas
 
-The testvars file is a JSON file that maps app names to objects
-holding key/values as required by that app's integration tests.  See
-that app's integration test code and/or README for which key/values
-are required.
+- For performance reasons we don't run `make profile` for each test
+  run this means you need to manually remove the `profile-test`
+  folder when you make changes to your apps.
+
+- If you don't have a b2g folder one will be downloaded for you.
+  This can be problematic if you're offline. You can symlink a
+  b2g-desktop directory to b2g/ in gaia to avoid the download.
+
+- If you have some weird node errors, try removing node_modules since
+  things may be stale.

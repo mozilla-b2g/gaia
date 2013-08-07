@@ -408,8 +408,6 @@ var WindowManager = (function() {
       };
     }
 
-    screenElement.classList.remove('fullscreen-app');
-
     // Inform keyboardmanager that we've finished the transition
     dispatchEvent(new CustomEvent('appclose'));
   }
@@ -652,12 +650,19 @@ var WindowManager = (function() {
         'setVisible' in runningApps[homescreen].iframe)
         runningApps[homescreen].iframe.setVisible(false);
     } else if (reset) {
-      runningApps[homescreen].iframe.src = homescreenURL;
+      runningApps[homescreen].iframe.src = homescreenURL + Date.now();
       runningApps[homescreen].resize();
     }
 
     return runningApps[homescreen].frame;
   }
+
+  navigator.mozSettings.addObserver('homescreen.manifestURL', function(event) {
+    kill(homescreen);
+    retrieveHomescreen(function() {
+      setDisplayedApp(homescreen);
+    });
+  });
 
   function retrieveHomescreen(callback) {
     var lock = navigator.mozSettings.createLock();

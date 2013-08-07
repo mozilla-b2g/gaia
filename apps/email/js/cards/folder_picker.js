@@ -10,6 +10,8 @@ var templateNode = require('tmpl!./folder_picker.html'),
     Cards = common.Cards,
     bindContainerHandler = common.bindContainerHandler;
 
+require('css!style/folder_cards');
+
 function FolderPickerCard(domNode, mode, args) {
   this.domNode = domNode;
 

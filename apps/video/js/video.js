@@ -49,7 +49,9 @@ var currentVideoBlob; // The blob for the currently playing video
 var videos = [];
 var firstScanEnded = false;
 
-var scaleRatio = window.innerWidth / 320;
+// use devicePixelRatio as the scale ratio for thumbnail creation.
+var scaleRatio = (window.devicePixelRatio || 1);
+
 var THUMBNAIL_WIDTH = 210 * scaleRatio;
 var THUMBNAIL_HEIGHT = 120 * scaleRatio;
 
@@ -400,7 +402,7 @@ function thumbnailClickHandler() {
     // video player. Otherwise, we'll have contention for the video hardware
     var index = parseInt(this.dataset.index);
     stopParsingMetadata(function() {
-      showPlayer(index, true);
+      showPlayer(index, !pendingPick);
     });
   }
   else if (currentView === dom.thumbnailSelectView) {
@@ -527,6 +529,8 @@ function showPlayer(videonum, autoPlay) {
 
     if (autoPlay) {
       play();
+    } else {
+      pause();
     }
   }
 
@@ -654,7 +658,12 @@ function playerEnded() {
   }
 
   dom.player.currentTime = 0;
-  hidePlayer(true);
+
+  if (pendingPick) {
+    pause();
+  } else {
+    hidePlayer(true);
+  }
 }
 
 function play() {

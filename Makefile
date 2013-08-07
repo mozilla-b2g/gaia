@@ -33,6 +33,7 @@ WGET_OPTS?=-c
 GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
+DEVICE_DEBUG?=0
 PRODUCTION?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
@@ -461,6 +462,7 @@ define run-js-command
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
 	const DESKTOP = $(DESKTOP);                                                 \
+	const DEVICE_DEBUG = $(DEVICE_DEBUG);                                       \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
 	const LOCALES_FILE = "$(subst \,\\,$(LOCALES_FILE))";                       \
@@ -553,14 +555,17 @@ ifndef APPS
 	endif
 endif
 
+node_modules:
+	npm install
+
+b2g: node_modules
+	./node_modules/.bin/mozilla-download --verbose --product b2g $@
+
 .PHONY: test-integration
 test-integration:
-	adb forward tcp:2828 tcp:2828
-	for app in ${APPS}; \
-	do \
-		FILES_INTEGRATION=`test -d apps/$$app/test/integration && find apps/$$app/test/integration -name "*_test.js" -type f`; \
-		./tests/js/bin/runner $$app $${FILES_INTEGRATION}; \
-	done;
+	# override existing profile-test folder.
+	PROFILE_FOLDER=profile-test make
+	./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js")
 
 .PHONY: test-perf
 test-perf:
@@ -834,9 +839,9 @@ endif
 install-default-data: $(PROFILE_FOLDER)/settings.json contacts
 	$(ADB) shell stop b2g
 	$(ADB) remount
-	$(ADB) push $(PROFILE_FOLDER)/settings.json /system/b2g/defaults/settings.json
+	$(ADB) push $(PROFILE_FOLDER)/settings.json $(MSYS_FIX)/system/b2g/defaults/settings.json
 ifdef CONTACTS_PATH
-	$(ADB) push $(PROFILE_FOLDER)/contacts.json /system/b2g/defaults/contacts.json
+	$(ADB) push $(PROFILE_FOLDER)/contacts.json $(MSYS_FIX)/system/b2g/defaults/contacts.json
 else
 	$(ADB) shell rm /system/b2g/defaults/contacts.json
 endif

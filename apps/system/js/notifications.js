@@ -94,7 +94,7 @@ var NotificationScreen = {
       case 'mozChromeEvent':
         var detail = evt.detail;
         switch (detail.type) {
-          case 'desktop-notification-show':
+          case 'desktop-notification':
             this.addNotification(detail);
             break;
           case 'desktop-notification-close':
@@ -398,13 +398,6 @@ var NotificationScreen = {
       var element = this.lockScreenContainer.firstElementChild;
       this.lockScreenContainer.removeChild(element);
     }
-
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
-      type: 'desktop-notification-close',
-      id: notificationNode.dataset.notificationId
-    });
-    window.dispatchEvent(event);
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {

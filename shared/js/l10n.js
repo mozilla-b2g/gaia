@@ -81,6 +81,24 @@
     }
   };
 
+  function consoleWarn_missingKeys(untranslatedElements, lang) {
+    var len = untranslatedElements.length;
+    if (!len || !gDEBUG) {
+      return;
+    }
+
+    var missingIDs = [];
+    for (var i = 0; i < len; i++) {
+      var l10nId = untranslatedElements[i].getAttribute('data-l10n-id');
+      if (missingIDs.indexOf(l10nId) < 0) {
+        missingIDs.push(l10nId);
+      }
+    }
+    console.warn('[l10n] ' +
+        missingIDs.length + ' missing key(s) for [' + lang + ']: ' +
+        missingIDs.join(', '));
+  }
+
 
   /**
    * DOM helpers for the so-called "HTML API".
@@ -108,8 +126,9 @@
   }
 
   function getL10nAttributes(element) {
-    if (!element)
+    if (!element) {
       return {};
+    }
 
     var l10nId = element.getAttribute('data-l10n-id');
     var l10nArgs = element.getAttribute('data-l10n-args');
@@ -160,8 +179,9 @@
 
     // handle escaped characters (backslashes) in a string
     function evalString(text) {
-      if (text.lastIndexOf('\\') < 0)
+      if (text.lastIndexOf('\\') < 0) {
         return text;
+      }
       return text.replace(/\\\\/g, '\\')
                  .replace(/\\n/g, '\n')
                  .replace(/\\r/g, '\r')
@@ -199,8 +219,9 @@
           var line = entries[i];
 
           // comment or blank line?
-          if (reComment.test(line))
+          if (reComment.test(line)) {
             continue;
+          }
 
           // multi-line?
           while (reMultiline.test(line) && i < entries.length) {
@@ -331,41 +352,36 @@
     gReadyState = 'loading';
     gLanguage = lang;
 
-    // if we have an inline / pre-compiled dictionary, we can translate the
-    // current HTML document right now
-    if (translationRequired) {
-      var dict = getL10nDictionary(lang);
-      if (dict) {
-        gL10nData = dict;
-        translateFragment();
-        translationRequired = false;
+    var untranslatedElements = [];
+
+    // if there is an inline / pre-compiled dictionary,
+    // the current HTML document can be translated right now
+    var inlineDict = getL10nDictionary(lang);
+    if (inlineDict) {
+      gL10nData = inlineDict;
+      if (translationRequired) {
+        untranslatedElements = translateFragment();
       }
     }
 
-    // check all <link type="application/l10n" href="..." /> nodes
-    // and load the resource files
-    var langLinks = getL10nResourceLinks();
-    var langCount = langLinks.length;
-    if (langCount == 0) {
-      consoleLog('no resource to load, early way out');
+    // translate the document if required and fire a `localized' event
+    function finish() {
+      if (translationRequired) {
+        if (!inlineDict) {
+          // no inline dictionary has been used: translate the whole document
+          untranslatedElements = translateFragment();
+        } else if (untranslatedElements.length) {
+          // the document should have been already translated but the inline
+          // dictionary didn't include all necessary l10n keys:
+          // try to translate all remaining elements now
+          untranslatedElements = translateElements(untranslatedElements);
+        }
+      }
+      // tell the rest of the world we're done
       fireL10nReadyEvent(lang);
       gReadyState = 'complete';
-      return;
+      consoleWarn_missingKeys(untranslatedElements, lang);
     }
-
-    // translate the HTML document when all resources are loaded
-    var onResourceLoaded = null;
-    var gResourceCount = 0;
-    onResourceLoaded = function() {
-      gResourceCount++;
-      if (gResourceCount >= langCount) {
-        if (translationRequired) {
-          translateFragment();
-        }
-        fireL10nReadyEvent(lang);
-        gReadyState = 'complete';
-      }
-    };
 
     // l10n resource loader
     function l10nResourceLink(link) {
@@ -403,10 +419,24 @@
       };
     }
 
-    // load all resource files
-    for (var i = 0; i < langCount; i++) {
-      var resource = new l10nResourceLink(langLinks[i]);
-      resource.load(lang, onResourceLoaded);
+    // check all <link type="application/l10n" href="..." /> nodes
+    // and load the resource files
+    var resourceLinks = getL10nResourceLinks();
+    var resourceCount = resourceLinks.length;
+    if (!resourceCount) {
+      consoleLog('no resource to load, early way out');
+      translationRequired = false;
+      finish();
+    } else {
+      var onResourceCallback = function() {
+        if (--resourceCount <= 0) { // <=> all resources have been XHR'ed
+          finish();
+        }
+      };
+      for (var i = 0, l = resourceCount; i < l; i++) {
+        var resource = new l10nResourceLink(resourceLinks[i]);
+        resource.load(lang, onResourceCallback, onResourceCallback);
+      }
     }
   }
 
@@ -835,12 +865,14 @@
   // pre-defined 'plural' macro
   gMacros.plural = function(str, param, key, prop) {
     var n = parseFloat(param);
-    if (isNaN(n))
+    if (isNaN(n)) {
       return str;
+    }
 
     var data = gL10nData[key];
-    if (!data)
+    if (!data) {
       return str;
+    }
 
     // initialize _pluralRules
     if (!gMacros._pluralRules) {
@@ -876,7 +908,7 @@
   function getL10nData(key, args) {
     var data = gL10nData[key];
     if (!data) {
-      consoleWarn('#' + key + ' is undefined.');
+      return null;
     }
 
     /**
@@ -912,8 +944,9 @@
 
   // return a sub-dictionary sufficient to translate a given fragment
   function getSubDictionary(fragment) {
-    if (!fragment) // by default, return a clone of the whole dictionary
+    if (!fragment) { // by default, return a clone of the whole dictionary
       return JSON.parse(JSON.stringify(gL10nData));
+    }
 
     var dict = {};
     var elements = getTranslatableChildren(fragment);
@@ -928,11 +961,12 @@
       }
     }
 
-    for (var i = 0; i < elements.length; i++) {
+    for (var i = 0, l = elements.length; i < l; i++) {
       var id = getL10nAttributes(elements[i]).id;
       var data = gL10nData[id];
-      if (!id || !data)
+      if (!id || !data) {
         continue;
+      }
 
       dict[id] = data;
       for (var prop in data) {
@@ -957,8 +991,9 @@
   // replace {[macros]} with their values
   function substIndexes(str, args, key, prop) {
     var reMatch = reIndex.exec(str);
-    if (!reMatch || !reMatch.length)
+    if (!reMatch || !reMatch.length) {
       return str;
+    }
 
     // an index/macro has been found
     // Note: at the moment, only one parameter is supported
@@ -998,16 +1033,17 @@
   }
 
   // translate an HTML element
+  // -- returns true if the element could be translated, false otherwise
   function translateElement(element) {
     var l10n = getL10nAttributes(element);
-    if (!l10n.id)
-      return;
+    if (!l10n.id) {
+      return true;
+    }
 
     // get the related l10n object
     var data = getL10nData(l10n.id, l10n.args);
     if (!data) {
-      consoleWarn('#' + l10n.id + ' is undefined.');
-      return;
+      return false;
     }
 
     // translate element (TODO: security checks?)
@@ -1030,7 +1066,7 @@
           }
         }
         // if no (non-empty) textNode is found, insert a textNode before the
-        // first element child.
+        // element's first child.
         if (!found) {
           var textNode = document.createTextNode(data._);
           element.insertBefore(textNode, element.firstChild);
@@ -1047,27 +1083,38 @@
         element[k] = data[k];
       }
     }
+
+    return true;
+  }
+
+  // translate an array of HTML elements
+  // -- returns an array of elements that could not be translated
+  function translateElements(elements) {
+    var untranslated = [];
+    for (var i = 0, l = elements.length; i < l; i++) {
+      if (!translateElement(elements[i])) {
+        untranslated.push(elements[i]);
+      }
+    }
+    return untranslated;
   }
 
   // translate an HTML subtree
+  // -- returns an array of elements that could not be translated
   function translateFragment(element) {
     element = element || document.documentElement;
-
-    // check all translatable children (= w/ a `data-l10n-id' attribute)
-    var children = getTranslatableChildren(element);
-    var elementCount = children.length;
-    for (var i = 0; i < elementCount; i++) {
-      translateElement(children[i]);
+    var untranslated = translateElements(getTranslatableChildren(element));
+    if (!translateElement(element)) {
+      untranslated.push(element);
     }
-
-    // translate element itself if necessary
-    translateElement(element);
+    return untranslated;
   }
 
   // localize an element as soon as mozL10n is ready
   function localizeElement(element, id, args) {
-    if (!element)
+    if (!element) {
       return;
+    }
 
     if (id) {
       element.setAttribute('data-l10n-id', id);
@@ -1134,7 +1181,13 @@
   navigator.mozL10n = {
     // get a localized string
     get: function l10n_get(key, args) {
-      return getL10nData(key, args)._ || '';
+      var data = getL10nData(key, args);
+      if (!data) {
+        consoleWarn('#' + key + ' is undefined.');
+        return '';
+      } else {
+        return data._;
+      }
     },
 
     // get|set the document language and direction
@@ -1166,9 +1219,9 @@
     // this can be used to prevent race conditions
     get readyState() { return gReadyState; },
     ready: function l10n_ready(callback) {
-      if (!callback)
+      if (!callback) {
         return;
-
+      }
       if (gReadyState == 'complete') {
         window.setTimeout(callback);
       } else {
