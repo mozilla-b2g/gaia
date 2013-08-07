@@ -65,7 +65,7 @@
 #evmeContainer .evme-apps:not(.has-installed) .has-installed-visible {
     display: none;
 }
-    #evmeContainer .evme-apps ul li canvas {
+    #evmeContainer .evme-apps ul li img {
         transition: transform .2s linear;
     }
 #evmeContainer .evme-apps ul #button-more {
@@ -89,7 +89,7 @@
 #evmeContainer .evme-apps ul li:nth-child(4n+1) {
     clear: both;
 }
-#evmeContainer .evme-apps ul li.new:not(.installed) canvas {
+#evmeContainer .evme-apps ul li.new:not(.installed) img {
     transform: scale(0);
 }
 
