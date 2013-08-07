@@ -8,8 +8,13 @@
     opacity: 0;
     transition: opacity .3s linear;
 }
-.evme-displayed #search-overlay {
+.evme-keyboard-visible #search-overlay,
+.evme-has-results #search-overlay,
+.evme-display-shortcuts #search-overlay {
     opacity: 1;
+}
+body:not(.evme-displayed) #search-overlay {
+  opacity: 0;
 }
 #evmeContainer #search-header.animate,
 #evmeContainer #header.animate,
