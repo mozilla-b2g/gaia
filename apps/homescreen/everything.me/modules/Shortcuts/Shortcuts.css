@@ -52,14 +52,19 @@
         width: 25%;
         height: 8rem;
         text-align: center;
+    }
 
+    #evmeContainer:not(.shortcuts-customizing) .shortcut {
         /* The above outline is a hack to force Gecko to create only one big
          * big Thebes layer for shorcuts results instead of trying it to be
          * smart and result into a lot of layers creation/destruction.
+         *
+         * Do not merge them while editing, it ends up beeing too expensive
+         * and generate additional repaints.
          */
         outline: 1px solid transparent;
-        outline-offset: 1px;
     }
+
         #evmeContainer .shortcut .remove {
             position: absolute;
             top: -0.5rem;
@@ -149,13 +154,13 @@
 }
 
 @-moz-keyframes shake {
-  0%   { -moz-transform: scale(1) translateZ(0); }
-  25%  { -moz-transform: scale(1.05) translateZ(0); }
-  50%  { -moz-transform: scale(1) translateZ(0); }
-  75%  { -moz-transform: scale(0.95) translateZ(0); }
-  100% { -moz-transform: scale(1) translateZ(0); }
+  0%   { -moz-transform: scale(1); }
+  25%  { -moz-transform: scale(1.05); }
+  50%  { -moz-transform: scale(1); }
+  75%  { -moz-transform: scale(0.95); }
+  100% { -moz-transform: scale(1); }
 }
 @-moz-keyframes remove {
-  0%   { -moz-transform: scale(1) translateZ(0); opacity: 1; }
-  100% { -moz-transform: scale(1.1) translateZ(0); opacity: 0; }
+  0%   { -moz-transform: scale(1); opacity: 1; }
+  100% { -moz-transform: scale(1.1); opacity: 0; }
 }
