@@ -399,6 +399,8 @@ var CallLog = {
     var date = group.lastEntryDate;
     var number = group.number;
     var type = group.type;
+    var emergency = group.emergency;
+    var voicemail = group.voicemail;
     var status = group.status || '';
     var contact = group.contact;
     var groupDOM = document.createElement('li');
@@ -467,14 +469,23 @@ var CallLog = {
 
     primInfo.appendChild(primInfoMain);
 
+    var phoneNumberAdditionalInfo = '';
+    var phoneNumberTypeLocalized = '';
     if (contact && contact.matchingTel) {
-      var phoneNumberAdditionalInfo =
+      phoneNumberAdditionalInfo =
         Utils.getPhoneNumberAdditionalInfo(contact.matchingTel);
-      if (phoneNumberAdditionalInfo && phoneNumberAdditionalInfo.length) {
-        var addInfo = document.createElement('p');
-        addInfo.className = 'call-additional-info';
-        addInfo.textContent = phoneNumberAdditionalInfo;
-      }
+    } else if (voicemail || emergency) {
+      phoneNumberAdditionalInfo = number;
+      phoneNumberTypeLocalized =
+        voicemail ? this._('voiceMail') :
+          (emergency ? this._('emergencyNumber') : '');
+    }
+
+    var addInfo;
+    if (phoneNumberAdditionalInfo && phoneNumberAdditionalInfo.length) {
+      addInfo = document.createElement('p');
+      addInfo.className = 'call-additional-info';
+      addInfo.textContent = phoneNumberAdditionalInfo;
     }
 
     var thirdInfo = document.createElement('p');
@@ -497,6 +508,14 @@ var CallLog = {
       main.appendChild(addInfo);
     }
     main.appendChild(thirdInfo);
+
+    if (addInfo && phoneNumberTypeLocalized &&
+        phoneNumberTypeLocalized.length) {
+      primInfoMain.textContent = phoneNumberTypeLocalized;
+      var primElem = primInfoMain.parentNode;
+      var parent = primElem.parentNode;
+      parent.insertBefore(addInfo, primElem.nextElementSibling);
+    }
 
     groupDOM.appendChild(label);
     groupDOM.appendChild(aside);

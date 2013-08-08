@@ -5,7 +5,7 @@ var CallLogDBManager = {
   _dbName: 'dialerRecents',
   _dbRecentsStore: 'dialerRecents',
   _dbGroupsStore: 'dialerGroups',
-  _dbVersion: 4,
+  _dbVersion: 5,
   _maxNumberOfGroups: 200,
   _numberOfGroupsToDelete: 30,
 
@@ -131,6 +131,9 @@ var CallLogDBManager = {
                 self._upgradeSchemaVersion4(db, txn, next);
                 break;
               case 4:
+                self._upgradeSchemaVersion5(txn, next);
+                break;
+              case 5:
                 // we have finished the upgrades. please keep this
                 // in sync for future upgrades, since otherwise it
                 // will call the default: and abort the transaction :(
@@ -287,7 +290,6 @@ var CallLogDBManager = {
       }
 
       if (groupCount == 0) {
-        self._notifyObservers('upgradedone');
         return;
       }
 
@@ -483,6 +485,58 @@ var CallLogDBManager = {
     };
   },
   /**
+   * Upgrade schema to version 5. Add new 'emergency' and 'voicemail' bool
+   * fields, to store whether a call was made to an emergency number or
+   * to voicemail.
+   *
+   * param db
+   *        Database instance.
+   * param transaction
+   *        IDB transaction instance.
+   */
+  _upgradeSchemaVersion5: function upgradeSchemaVersion5(transaction, next) {
+    this._newTxn('readwrite', [this._dbGroupsStore],
+                 (function(error, txn, store) {
+        if (error) {
+          console.log('Error upgrading the database ' + error);
+          return;
+        }
+
+        var groupsCount = 0;
+        var groupsTotalCount = 0;
+        var groupsProgress = 0;
+
+        var groupsStore = txn.objectStore(this._dbGroupsStore);
+        var performGroupsUpgrade = (function() {
+          groupsStore.openCursor().onsuccess = (function(event) {
+            var cursorGroups = event.target.result;
+            if (!cursorGroups) {
+              this._notifyObservers('upgradedone');
+              next();
+              return;
+            }
+
+            var record = cursorGroups.value;
+            record.emergency = false;
+            record.voicemail = false;
+            groupsStore.put(record);
+            cursorGroups.continue();
+
+            groupsCount += 1;
+            groupsProgress =
+              Math.round(((groupsCount / groupsTotalCount) * 100));
+            this._notifyObservers('upgradeprogress', groupsProgress);
+          }).bind(this);
+        }).bind(this);
+
+        groupsStore.count().onsuccess = function(event) {
+          groupsTotalCount = event.target.result;
+          performGroupsUpgrade();
+        };
+      }).bind(this)
+    );
+  },
+  /**
    * Helper function to get the group ID from a recent call object.
    */
   _getGroupId: function getGroupId(recentCall) {
@@ -506,7 +560,9 @@ var CallLogDBManager = {
    *   contactPrimaryInfo: <String>,
    *   contactMatchingTelType: <String>,
    *   contactMatchingTelCarrier: <String>,
-   *   contactPhoto: <Blob> }
+   *   contactPhoto: <Blob>,
+   *   emergency: <Bool>,
+   *   voicemail: <Bool> }
    *
    * but consumers might find this format hard to handle, so we unwrap the
    * data inside the 'id' and contact related fields to create a more
@@ -529,7 +585,9 @@ var CallLogDBManager = {
    *      carrier: <String>
    *    },
    *    photo: <Blob>
-   *   }
+   *   },
+   *   emergency: <Bool>,
+   *   voicemail: <Bool>
    * }
    */
   _getGroupObject: function getGroupObject(group) {
@@ -559,7 +617,9 @@ var CallLogDBManager = {
       status: group.id[3] || undefined,
       lastEntryDate: group.lastEntryDate,
       retryCount: group.retryCount,
-      contact: contact
+      contact: contact,
+      emergency: group.emergency,
+      voicemail: group.voicemail
     };
   },
   /**
@@ -607,7 +667,9 @@ var CallLogDBManager = {
    *        { number: <String>,
    *          type: <String>,
    *          status: <String>,
-   *          date: <Date> }
+   *          date: <Date>,
+   *          emergency: <Bool>,
+   *          voicemail: <Bool> }
    *
    * param callback
    *        Function to be called when the transaction is done.
@@ -643,6 +705,8 @@ var CallLogDBManager = {
           // Groups should have the date of the newest call.
           if (group.lastEntryDate <= recentCall.date) {
             group.lastEntryDate = recentCall.date;
+            group.emergency = recentCall.emergency;
+            group.voicemail = recentCall.voicemail;
           }
           group.retryCount++;
           groupsStore.put(group).onsuccess = function onsuccess() {
@@ -653,7 +717,9 @@ var CallLogDBManager = {
             id: groupId,
             number: recentCall.number,
             lastEntryDate: recentCall.date,
-            retryCount: 1
+            retryCount: 1,
+            emergency: recentCall.emergency,
+            voicemail: recentCall.voicemail
           };
           Contacts.findByNumber(recentCall.number,
                                 function(contact, matchingTel) {
