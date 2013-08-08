@@ -8,6 +8,7 @@ Evme.Brain = new function Evme_Brain() {
         Brain = this,
         _config = {},
         elContainer = null,
+        isActive = false,
         QUERIES_TO_NOT_CACHE = "",
         DEFAULT_NUMBER_OF_APPS_TO_LOAD = 16,
         NUMBER_OF_APPS_TO_LOAD_IN_FOLDER = 16,
@@ -48,15 +49,15 @@ Evme.Brain = new function Evme_Brain() {
 
         INSTALLED_APPS_TO_TYPE = {
             "productivity": ["Calendar", "Clock"],
-            "utilities": ["Calendar", "Clock", "Browser", "Settings", "Marketplace"],
+            "utilities": ["Calendar", "Clock", "Browser", "Settings", "Marketplace", "Usage", "Notes", "Calculator"],
             "email": ["E-mail"],
             "internet": ["Browser", "Settings"],
             "photography": ["Gallery", "Camera"],
             "images": ["Gallery", "Camera"],
             "music": ["FM Radio", "Music", "Video"],
-            "radio": ["FM Radio", "Music"],
+            "radio": ["Music", "FM Radio"],
             "video": ["Video", "Camera"],
-            "social": ["Messages"],
+            "social": ["E-mail", "Messages", "Facebook"],
             "personal communication": ["Messages"],
             "tv": ["Video"],
             "funny": ["Video"],
@@ -79,6 +80,7 @@ Evme.Brain = new function Evme_Brain() {
         elContainer = Evme.Utils.getContainer();
         
         initL10nObserver();
+        initActiveObserver();
 
         _config = options;
 
@@ -117,6 +119,33 @@ Evme.Brain = new function Evme_Brain() {
             }
         }
     }
+
+    function initActiveObserver() {
+        new MutationObserver(Evme.Brain.activeMutationObserver)
+            .observe(document.body, {
+                attributes: true,
+                attributeFilter: ['class'],
+                childList: false
+            });
+    }
+
+    this.activeMutationObserver = function onBodyAttributeChanges(mutations) {
+        var newIsActive = Evme.Utils.isKeyboardVisible;
+
+        // separate condition for perf optimization (classList)
+        if (!newIsActive) {
+            var classes = document.body.classList;
+            newIsActive = classes.contains(CLASS_WHEN_SHOWING_SHORTCUTS) ||
+                            classes.contains(CLASS_WHEN_HAS_RESULTS);
+        }
+        
+        if (newIsActive !== isActive) {
+            isActive = newIsActive;
+            Evme.Utils.sendToOS(Evme.Utils.OSMessages.EVME_OPEN, {
+                isVisible: isActive
+            });
+        }
+    };
 
     /**
      * main event handling method that catches all the events from the different modules,
@@ -216,7 +245,9 @@ Evme.Brain = new function Evme_Brain() {
 
             if (!didClickApp && Evme.shouldSearchOnInputBlur){
                 window.clearTimeout(timeoutBlur);
-                timeoutBlur = window.setTimeout(self.returnPressed, TIMEOUT_BEFORE_RUNNING_BLUR);
+                timeoutBlur = window.setTimeout(function autoReturn() {
+                  self.returnPressed(true);
+                }, TIMEOUT_BEFORE_RUNNING_BLUR);
             }
         };
 
@@ -230,6 +261,9 @@ Evme.Brain = new function Evme_Brain() {
             Searcher.empty();
 
             self.setEmptyClass();
+            if (Evme.Searchbar.isFocused()) {
+              document.body.classList.add(CLASS_WHEN_SHOWING_SHORTCUTS);
+            }
 
             Evme.DoATAPI.cancelQueue();
             Evme.ConnectionMessage.hide();
@@ -241,33 +275,31 @@ Evme.Brain = new function Evme_Brain() {
             Evme.Apps.clear();
             Evme.Helper.setTitle();
             Brain.Helper.showDefault();
-            document.body.classList.remove(CLASS_WHEN_HAS_RESULTS);
-            document.body.classList.add(CLASS_WHEN_SHOWING_SHORTCUTS);
+            document.body.classList.add(CLASS_WHEN_HAS_RESULTS);
         };
 
         // Keyboard action key ("search") pressed
-        this.returnPressed = function returnPressed(data) {
-            if (Brain.Dialog.isActive()) {
-                data && data.e && data.e.preventDefault();
-                return;
+        this.returnPressed = function returnPressed(isFromBlur) {
+            var isFromBlur = isFromBlur === true,
+                query = Evme.Searchbar.getValue();
+            
+            if (query) {
+              Searcher.searchExactFromOutside(query, SEARCH_SOURCES.RETURN_KEY);
+            } else if (!isFromBlur) {
+              document.body.classList.add(CLASS_WHEN_SHOWING_SHORTCUTS);
             }
-
-            var query = Evme.Searchbar.getValue();
-            Searcher.searchExactFromOutside(query, SEARCH_SOURCES.RETURN_KEY);
         };
 
         // toggle classname when searchbar is empty
         this.setEmptyClass = function setEmptyClass() {
             var query = Evme.Searchbar.getValue();
 
-            if (!query) {
-                elContainer.classList.add("empty-query");
-                document.body.classList.remove(CLASS_WHEN_HAS_RESULTS);
-                document.body.classList.add(CLASS_WHEN_SHOWING_SHORTCUTS);
-            } else {
+            if (query) {
                 elContainer.classList.remove("empty-query");
                 document.body.classList.add(CLASS_WHEN_HAS_RESULTS);
-                document.body.classList.remove(CLASS_WHEN_SHOWING_SHORTCUTS);
+            } else {
+                elContainer.classList.add("empty-query");
+                document.body.classList.remove(CLASS_WHEN_HAS_RESULTS);
             }
         };
 
@@ -288,6 +320,7 @@ Evme.Brain = new function Evme_Brain() {
 
             if (data.value) {
                 Searcher.searchAsYouType(data.value, SEARCH_SOURCES.TYPING);
+                document.body.classList.remove(CLASS_WHEN_SHOWING_SHORTCUTS);
             }
 
             self.setEmptyClass();
@@ -1024,7 +1057,7 @@ Evme.Brain = new function Evme_Brain() {
                         "offset": currentFolder.appsPaging.offset
                     });
                     
-                    updateShortcutIcons(experienceId || query, apps);
+                    self.updateShortcutIcons(experienceId || query, apps);
 
                     requestSmartFolderApps = null;
                     
@@ -1085,14 +1118,19 @@ Evme.Brain = new function Evme_Brain() {
             });
         };
         
-        function updateShortcutIcons(key, apps) {
+        this.updateShortcutIcons = function updateShortcutIcons(key, apps) {
+          !apps && (apps = []);
+
           var shortcutsToUpdate = {},
               icons = {},
               numberOfIconsInShortcut = (Evme.Utils.getIconGroup() || []).length;
               
           for (var i=0,app; i<numberOfIconsInShortcut; i++) {
             app = apps[i];
-            icons[app.id] = app.icon;
+            if (app) {
+              icons[app.id] = app.icon;
+              shortcutsToUpdate[key].push(app.id);
+            }
           }
           shortcutsToUpdate[key] = Object.keys(icons);
           
@@ -1192,7 +1230,8 @@ Evme.Brain = new function Evme_Brain() {
             if(!Evme.Shortcuts.isEditing && !Evme.Shortcuts.isSwiping()) {
               // get the shortcut's query
               var query = data.shortcut.getQuery(),
-                  experienceId = data.shortcut.getExperience();
+                  experienceId = data.shortcut.getExperience(),
+                  feature = SEARCH_SOURCES.SHORTCUT_SMART_FOLDER;
 
               // if there isn't a query - translate the experienceId to a query
               if (!query) {
@@ -1200,7 +1239,9 @@ Evme.Brain = new function Evme_Brain() {
               }
 
               // now set the query in the searchbar and perform the exact search
-              Searcher.searchExactFromOutside(query, SEARCH_SOURCES.SHORTCUT_SMART_FOLDER);
+              Searcher.searchExactFromOutside(query, feature, null, null, function onComplete(apps) {
+                Evme.Brain.SmartFolder.updateShortcutIcons(experienceId || query, apps);
+              });
             }
         };
 
@@ -1592,7 +1633,8 @@ Evme.Brain = new function Evme_Brain() {
                 exact = options.exact || false,
                 iconsFormat = options.iconsFormat,
                 offset = options.offset,
-                onlyDidYouMean = options.onlyDidYouMean;
+                onlyDidYouMean = options.onlyDidYouMean,
+                callback = options.callback || function(){};
 
             Evme.Searchbar.startRequest();
 
@@ -1684,7 +1726,7 @@ Evme.Brain = new function Evme_Brain() {
                         window.clearTimeout(timeoutShowAppsLoading);
                         Evme.Apps.hideLoading();
                         
-                        getAppsComplete(data, options, installedApps);
+                        getAppsComplete(data, options, installedApps, callback);
                         requestSearch = null;
                         NUMBER_OF_APPS_TO_LOAD = DEFAULT_NUMBER_OF_APPS_TO_LOAD;
                         
@@ -1742,7 +1784,7 @@ Evme.Brain = new function Evme_Brain() {
             return apps;
         };
 
-        function getAppsComplete(data, options, installedApps) {
+        function getAppsComplete(data, options, installedApps, callback) {
             if (data.errorCode !== Evme.DoATAPI.ERROR_CODES.SUCCESS) {
                 return false;
             }
@@ -1770,7 +1812,9 @@ Evme.Brain = new function Evme_Brain() {
                 apps = searchResults.apps || [],
                 spelling = searchResults.spellingCorrection || [],
                 isMore = (appsCurrentOffset > 0),
-                bSameQuery = (lastSearch.query === query);
+                bSameQuery = (lastSearch.query === query),
+                
+                onComplete = callback || function() {};
             
             var tipShownOnHelper = false;
             
@@ -1835,6 +1879,8 @@ Evme.Brain = new function Evme_Brain() {
                         "iconsFormat": iconsFormat,
                         "clear": !hasInstalledApps && appsCurrentOffset == 0
                     });
+                    
+                    onComplete(apps);
 
                     if (iconsResponse) {
                         iconsCachedFromLastRequest = iconsResponse.cached;
@@ -2059,9 +2105,8 @@ Evme.Brain = new function Evme_Brain() {
             }
         };
 
-        this.searchExactFromOutside = function searchExactFromOutside(query, source, index, type, offset, isGetAllAppsForPage) {
-            !type && (type = "");
-            !offset && (offset = 0);
+        this.searchExactFromOutside = function searchExactFromOutside(query, source, index, type, callback) {
+            !type && (type = '');
 
             if (query) {
                 Evme.Helper.reset();
@@ -2070,12 +2115,7 @@ Evme.Brain = new function Evme_Brain() {
                 if (lastSearch.query != query || lastSearch.type != type || !lastSearch.exact) {
                     resetLastSearch();
 
-                    if (isGetAllAppsForPage && offset) {
-                        NUMBER_OF_APPS_TO_LOAD = offset*1;
-                        offset = 0;
-                    }
-
-                    Searcher.searchExact(query, source, index, type, offset);
+                    Searcher.searchExact(query, source, index, type, 0, false, callback);
                 } else {
                     Evme.Helper.enableCloseAnimation();
 
@@ -2092,7 +2132,7 @@ Evme.Brain = new function Evme_Brain() {
             Brain.Searchbar.setEmptyClass();
         };
 
-        this.searchExact = function searchExact(query, source, index, type, offset, automaticSearch) {
+        this.searchExact = function searchExact(query, source, index, type, offset, automaticSearch, callback) {
             Searcher.cancelRequests();
             appsCurrentOffset = 0;
 
@@ -2108,8 +2148,11 @@ Evme.Brain = new function Evme_Brain() {
                 "index": index,
                 "exact": true,
                 "offset": offset,
-                "automaticSearch": automaticSearch
+                "automaticSearch": automaticSearch,
+                "callback": callback
             };
+
+            document.body.classList.remove(CLASS_WHEN_SHOWING_SHORTCUTS);
             
             Evme.Features.startTimingFeature('typingApps', Evme.Features.ENABLE);
             Searcher.getApps(options);

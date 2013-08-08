@@ -54,6 +54,10 @@ Evme.Searchbar = new function Evme_Searchbar() {
         return value;
     };
     
+    this.isFocused = function getIsFocused() {
+        return isFocused;
+    };
+    
     this.setValue = function setValue(newValue, bPerformSearch, bDontBlur) {
         if (newValue !== "") {
             self.showClearButton();
