@@ -62,6 +62,7 @@
           <menu type="toolbar">
             <button role="menuitem" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>
             <button role="menuitem" id="settings-button"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
+            <button  id="select-action" class="hide"></button>
           </menu>
           <h1 data-l10n-id="contacts">Contacts</h1>
         </header>
@@ -108,6 +109,16 @@
               </section>
             </div>
           </div>
+          <form id="selectable-form" role="dialog" data-type="confirm" class="hide no-overlay">
+            <menu id="select-all-wrapper">
+             <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll" disabled>
+                Deselect all
+              </button>
+              <button id="select-all" class="edit-button" data-l10n-id="selectAll">
+                Select all
+              </button>
+            </menu>
+          </form>
         </article>
         <div id='fixed-container' class='fixed-title'></div>
       </section>
