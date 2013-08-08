@@ -313,7 +313,7 @@ contacts.Form = (function() {
           value = _(value) || value;
         }
       }
-      currField[currentElem] = utils.text.escapeHTML(value, true);
+      currField[currentElem] = Normalizer.escapeHTML(value, true);
       if (!infoFromFB && value && nonEditableValues[value]) {
         infoFromFB = true;
       }

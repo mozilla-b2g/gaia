@@ -1937,11 +1937,12 @@ var ThreadUI = global.ThreadUI = {
     var _ = navigator.mozL10n.get;
     var thread = Threads.get(Threads.lastId || Threads.currentId);
     var number = opt.number;
-    var name = opt.name || number;
+    var email = opt.email;
+    var name = opt.name || number || email;
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
     var items = [];
-    var params;
+    var params, props;
 
     // Multi-participant activation for for a single, known
     // recipient contact, that is not triggered from a message,
@@ -1949,30 +1950,42 @@ var ThreadUI = global.ThreadUI = {
     if ((thread && thread.participants.length === 1) &&
         isContact && !inMessage) {
 
-      ActivityPicker.call(number);
+      ActivityPicker.dial(number);
       return;
     }
 
-    // All activations will see a "Call" option
-    items.push({
-      name: _('call'),
-      method: function oCall(param) {
-        ActivityPicker.call(param);
-      },
-      params: [number]
-    });
-
-    // Multi-participant activations or in-message numbers
-    // will include a "Send Message" option in the menu
-    if ((thread && thread.participants.length > 1) || inMessage) {
+    // All non-email activations will see a "Call" option
+    if (email) {
       items.push({
-        name: _('sendMessage'),
+        name: _('sendEmail'),
         method: function oCall(param) {
-          ActivityPicker.sendMessage(param);
+          ActivityPicker.dial(param);
+        },
+        params: [email]
+      });
+    } else {
+      items.push({
+        name: _('call'),
+        method: function oCall(param) {
+          ActivityPicker.dial(param);
         },
         params: [number]
       });
+
+
+      // Multi-participant activations or in-message numbers
+      // will include a "Send Message" option in the menu
+      if ((thread && thread.participants.length > 1) || inMessage) {
+        items.push({
+          name: _('sendMessage'),
+          method: function oCall(param) {
+            ActivityPicker.sendMessage(param);
+          },
+          params: [number]
+        });
+      }
     }
+
 
     // Combine the items and complete callback into
     // a single params object.
@@ -1989,6 +2002,10 @@ var ThreadUI = global.ThreadUI = {
 
     } else {
 
+      props = [
+        number ? {tel: number} : {email: email}
+      ];
+
       params.header = number;
       params.items.push({
           name: _('createNewContact'),
@@ -1997,7 +2014,7 @@ var ThreadUI = global.ThreadUI = {
               param, ThreadUI.onCreateContact
             );
           },
-          params: [{'tel': number}]
+          params: props
         },
         {
           name: _('addToExistingContact'),
@@ -2006,7 +2023,7 @@ var ThreadUI = global.ThreadUI = {
               param, ThreadUI.onCreateContact
             );
           },
-          params: [{'tel': number}]
+          params: props
         }
       );
     }

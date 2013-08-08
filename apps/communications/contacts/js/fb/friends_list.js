@@ -92,12 +92,7 @@ var FriendListRenderer = (function() {
       if (!friend.search || friend.search.length === 0)
         return;
 
-      // Set the picture size
-      var box = importUtils.getPreferredPictureBox();
-      friend.picwidth = box.width;
-      friend.picheight = box.height;
-
-      friend.search = utils.text.normalize(friend.search);
+      friend.search = Normalizer.toAscii(friend.search);
 
       // New friend appended
       utils.templates.append(list, friend);

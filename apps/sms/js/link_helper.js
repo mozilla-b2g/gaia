@@ -58,8 +58,8 @@ var LINK_TYPES = {
       return link;
     },
     transform: function phoneTransform(phone, link) {
-      return '<a data-phonenumber="' + phone +
-        '" data-action="phone-link">' + phone + '</a>';
+      return '<a data-dial="' + phone +
+        '" data-action="dial-link">' + phone + '</a>';
     }
   },
 

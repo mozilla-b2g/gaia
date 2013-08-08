@@ -64,7 +64,7 @@ Evme.Helper = new function Evme_Helper() {
     };
     
     this.empty = function empty() {
-        elList.innerHTML = '<li class="label" ' + Evme.Utils.l10nAttr(NAME, 'default') + '></li>';
+        elList.innerHTML = '<li class="label" ' + Evme.Utils.l10nAttr(NAME, 'default2') + '></li>';
         elList.classList.remove("default");
     };
     
