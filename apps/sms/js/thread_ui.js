@@ -528,8 +528,8 @@ var ThreadUI = global.ThreadUI = {
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom() {
-    if (!this.isScrolledManually) {
-      this.container.scrollTop = this.container.scrollHeight;
+    if (!this.isScrolledManually && this.container.lastElementChild) {
+      this.container.lastElementChild.scrollIntoView(false);
     }
   },
 

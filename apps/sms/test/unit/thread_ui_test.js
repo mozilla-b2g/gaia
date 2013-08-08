@@ -163,6 +163,8 @@ suite('thread_ui.js >', function() {
         });
       }
       container.innerHTML = innerHTML;
+      // This crudely emulates the CSS styles applied to the message list
+      container.lastElementChild.style.paddingBottom = '16px';
     });
 
     test('scroll 100px, should be detected as a manual scroll', function(done) {
@@ -179,9 +181,12 @@ suite('thread_ui.js >', function() {
       container.addEventListener('scroll', function onscroll() {
         container.removeEventListener('scroll', onscroll);
         assert.isFalse(ThreadUI.isScrolledManually);
+        assert.ok((container.scrollTop + container.clientHeight) ==
+                  container.scrollHeight);
         done();
       });
-      container.scrollTop = container.scrollHeight;
+      ThreadUI.isScrolledManually = false;
+      ThreadUI.scrollViewToBottom();
     });
   });
 
