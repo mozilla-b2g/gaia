@@ -71,21 +71,22 @@ function openDialog(dialogID, onSubmit, onReset) {
  * First click = play, second click = pause.
  */
 
-function audioPreview(element, type) {
+function audioPreview(filename, type, channel) {
   var audio = document.querySelector('#sound-selection audio');
   var source = audio.src;
   var playing = !audio.paused;
 
-  // Both ringer and notification are using notification channel
-  audio.mozAudioChannelType = 'notification';
+  // Both ringer and notification are using the specified channel
+  audio.mozAudioChannelType = channel;
 
-  var url = '/shared/resources/media/' + type + '/' +
-            element.querySelector('input').value;
+  var url = '/shared/resources/media/' + type + '/' + filename;
   audio.src = url;
   if (source === audio.src && playing) {
+    console.warn('sound pausing');
     audio.pause();
     audio.src = '';
   } else {
+    console.warn('sound playing');
     audio.play();
   }
 }

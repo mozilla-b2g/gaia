@@ -144,10 +144,11 @@
 
           list.element.onclick = function onListClick(evt) {
             if (evt.target.tagName == 'LABEL') {
-              if (evt.target.querySelector('input').value == 'none')
+              var file = evt.target.querySelector('input').value;
+              if (file == 'none')
                 stopAudioPreview();
               else
-                audioPreview(evt.target, key);
+                audioPreview(file, key, 'notification');
             }
           };
         });
@@ -205,9 +206,32 @@
     }
   }
 
+  var previewSoundLevel = function sound_PreviewSoundLevel(event, channel) {
+    var value = event.settingValue;
+    stopAudioPreview();
+
+    var sound = 'notifications';
+    var element = lists[sound].element;
+    var key = lists[sound].settingName + '.name';
+    var request = navigator.mozSettings.createLock().get(key);
+    request.onsuccess = function successGetCurrentSound() {
+      var filename = request.result[key];
+      debug('success get current sound: ' + key + ' = ' + filename);
+      audioPreview(filename, sound, channel);
+    };
+  };
+
+  function prepareSoundPreview() {
+    navigator.mozSettings.addObserver('audio.volume.notification',
+      previewSoundLevel.bind(this, {}, 'notification'));
+    navigator.mozSettings.addObserver('audio.volume.alarm',
+      previewSoundLevel.bind(this, {}, 'alarm'));
+  }
+
   // main
   generateSoundsLists();
   assignButtonsActions();
+  prepareSoundPreview();
 
   var button = document.getElementById('call-tone-selection');
   button.onclick = function() {

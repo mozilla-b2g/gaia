@@ -27,7 +27,8 @@
     "power":{},
     "idle":{},
     "telephony":{},
-    "audio-channel-notification":{}
+    "audio-channel-notification":{},
+    "audio-channel-alarm":{}
   },
   "activities": {
     "configure": {
