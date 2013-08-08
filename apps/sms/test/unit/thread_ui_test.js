@@ -2013,7 +2013,7 @@ suite('thread_ui.js >', function() {
 
     suite('OptionMenu', function() {
 
-      suite('activateContact', function() {
+      suite('prompt', function() {
         test('Single known', function() {
 
           Threads.set(1, {
@@ -2022,7 +2022,7 @@ suite('thread_ui.js >', function() {
 
           window.location.hash = '#thread=1';
 
-          ThreadUI.activateContact({
+          ThreadUI.prompt({
             number: '999',
             isContact: true
           });
@@ -2032,7 +2032,7 @@ suite('thread_ui.js >', function() {
           assert.equal(MockActivityPicker.dial.calledWith, '999');
         });
 
-        test('Single unknown', function() {
+        test('Single unknown (phone)', function() {
 
           Threads.set(1, {
             participants: ['999']
@@ -2040,14 +2040,20 @@ suite('thread_ui.js >', function() {
 
           window.location.hash = '#thread=1';
 
-          ThreadUI.activateContact({
+          ThreadUI.prompt({
             number: '999',
             isContact: false
           });
 
-          var items = MockOptionMenu.calls[0].items;
-
           assert.equal(MockOptionMenu.calls.length, 1);
+
+          var call = MockOptionMenu.calls[0];
+          var items = call.items;
+
+          // Ensures that the OptionMenu was given
+          // the phone number to diplay
+          assert.equal(call.section, '999');
+
           assert.equal(items.length, 4);
 
           // The first item is a "call" option
@@ -2063,6 +2069,42 @@ suite('thread_ui.js >', function() {
           assert.equal(items[3].name, 'cancel');
         });
 
+        test('Single unknown (email)', function() {
+
+          Threads.set(1, {
+            participants: ['999']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.prompt({
+            email: 'a@b.com',
+            isContact: false
+          });
+
+          assert.equal(MockOptionMenu.calls.length, 1);
+
+          var call = MockOptionMenu.calls[0];
+          var items = call.items;
+
+          // Ensures that the OptionMenu was given
+          // the phone number to diplay
+          assert.equal(call.section, 'a@b.com');
+
+          assert.equal(items.length, 4);
+
+          // The first item is a "call" option
+          assert.equal(items[0].name, 'sendEmail');
+
+          // The second item is a "createNewContact" option
+          assert.equal(items[1].name, 'createNewContact');
+
+          // The third item is a "addToExistingContact" option
+          assert.equal(items[2].name, 'addToExistingContact');
+
+          // The fourth and last item is a "cancel" option
+          assert.equal(items[3].name, 'cancel');
+        });
         test('Multiple known', function() {
 
           Threads.set(1, {
@@ -2071,14 +2113,20 @@ suite('thread_ui.js >', function() {
 
           window.location.hash = '#thread=1';
 
-          ThreadUI.activateContact({
+          ThreadUI.prompt({
             number: '999',
             isContact: true
           });
 
-          var items = MockOptionMenu.calls[0].items;
-
           assert.equal(MockOptionMenu.calls.length, 1);
+
+          var call = MockOptionMenu.calls[0];
+          var items = call.items;
+
+          // Ensures that the OptionMenu was given
+          // the phone number to diplay
+          assert.equal(call.section, '999');
+
           assert.equal(items.length, 3);
 
           // The first item is a "call" option
@@ -2099,14 +2147,20 @@ suite('thread_ui.js >', function() {
 
           window.location.hash = '#thread=1';
 
-          ThreadUI.activateContact({
+          ThreadUI.prompt({
             number: '999',
             isContact: false
           });
 
-          var items = MockOptionMenu.calls[0].items;
-
           assert.equal(MockOptionMenu.calls.length, 1);
+
+          var call = MockOptionMenu.calls[0];
+          var items = call.items;
+
+          // Ensures that the OptionMenu was given
+          // the phone number to diplay
+          assert.equal(call.section, '999');
+
           assert.equal(items.length, 5);
 
           // The first item is a "call" option
@@ -2136,7 +2190,7 @@ suite('thread_ui.js >', function() {
           window.location.hash = '#thread=1';
 
 
-          ThreadUI.headerText.dataset.isContact = 'true';
+          ThreadUI.headerText.dataset.isContact = true;
           ThreadUI.headerText.dataset.number = '+12125559999';
 
           ThreadUI.onHeaderActivation();
