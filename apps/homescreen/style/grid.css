@@ -8,9 +8,10 @@
 .apps > div {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 7.6rem);
   text-align: center;
   margin: 0 auto;
+  overflow: hidden;
   display: none;
   /*
    * We use this rule to make gecko think that they're visible so they are
