@@ -1,6 +1,6 @@
 Evme.BackgroundImage = new function Evme_BackgroundImage() {
     var NAME = "BackgroundImage", self = this,
-        el = null, elFullScreen = null, elementsToFade = null, elDefault = null, elStyle = null,
+        el = null, elFullScreen = null, elementsToFade = null, elStyle = null,
         currentImage = null, elCurrentImage = null, active = false, changeOpacityTransitionCallback = null,
         defaultImage = "",
         TIMEOUT_BEFORE_REMOVING_OLD_IMAGE = 1500;
@@ -12,12 +12,6 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
         el = options.el;
         elementsToFade = options.elementsToFade;
         elStyle = el.style;
-        
-        elDefault = Evme.$create('div',  {'class': 'img default-image visible'});
-        if (defaultImage) {
-            elDefault.style.backgroundImage = defaultImage;
-        }
-        el.appendChild(elDefault);
 
         Evme.EventHandler.trigger(NAME, "init");
     };

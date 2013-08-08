@@ -316,7 +316,7 @@ Evme.Apps = new function Evme_Apps() {
     
     function touchMove(e) {
         var y = scroll.y;
-        if (shouldFadeBG) {
+        if (shouldFadeBG && !Evme.Utils.isKeyboardVisible) {
             var _fadeBy = scroll.distY/MAX_SCROLL_FADE;
             
             if (_fadeBy < fadeBy) {
@@ -332,7 +332,8 @@ Evme.Apps = new function Evme_Apps() {
     }
     
     function touchEnd(data) {
-        if (shouldFadeBG && scroll.distY >= FULLSCREEN_THRESHOLD*MAX_SCROLL_FADE) {
+        if (shouldFadeBG && !Evme.Utils.isKeyboardVisible &&
+            scroll.distY >= FULLSCREEN_THRESHOLD*MAX_SCROLL_FADE) {
             showingFullScreen = true;
             cbScrolledToTop();
             window.setTimeout(function onTimeout(){
