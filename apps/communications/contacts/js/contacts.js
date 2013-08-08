@@ -225,7 +225,7 @@ var Contacts = (function() {
       addButton.classList.add('hide');
       settingsButton.classList.add('hide');
       appTitleElement.textContent = _('selectContact');
-    } else {
+    } else if (contactsList && !contactsList.isSelecting) {
       cancelButton.classList.add('hide');
       addButton.classList.remove('hide');
       settingsButton.classList.remove('hide');
