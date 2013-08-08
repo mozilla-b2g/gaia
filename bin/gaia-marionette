@@ -19,8 +19,9 @@ if [ ! -d $DIR/../profile-test ]; then
   PROFILE_FOLDER=profile-test make -C $DIR/../
 fi
 
-# wrap marionette-mocha with gaia's defaults.
-$DIR/../node_modules/.bin/marionette-mocha \
+# wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
+# xpcshell in available for email fake servers.
+PATH=$DIR/../xulrunner-sdk/bin/XUL.framework/Versions/Current:$PATH $DIR/../node_modules/.bin/marionette-mocha \
   --timeout 10s \
   --ui tdd \
   --profile-builder $SHARED/profile_builder.js \
