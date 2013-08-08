@@ -639,23 +639,31 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function holdAndAnswer() {
-    var lastCallIndex = handledCalls.length - 1;
+    var callToAnswerIndex = handledCalls.length - 1;
+    var callToHoldIndex = callToAnswerIndex - 1;
+    var callToAnswer = handledCalls[callToAnswerIndex].call;
 
-    telephony.active.hold();
-    handledCalls[lastCallIndex].call.answer();
+    if (handledCalls[callToHoldIndex]) {
+      handledCalls[callToHoldIndex].call.hold();
+    }
+    callToAnswer.answer();
 
     CallScreen.hideIncoming();
   }
 
   function endAndAnswer() {
-    var callToEnd = telephony.active;
-    var callToAnswer = handledCalls[handledCalls.length - 1].call;
+    var callToAnswerIndex = handledCalls.length - 1;
+    var callToEndIndex = callToAnswerIndex - 1;
+    var callToAnswer = handledCalls[callToAnswerIndex].call;
 
-    callToEnd.addEventListener('disconnected', function disconnected() {
-      callToEnd.removeEventListener('disconnected', disconnected);
-      callToAnswer.answer();
-    });
-    callToEnd.hangUp();
+    if (handledCalls[callToEndIndex]) {
+      var callToEnd = handledCalls[callToEndIndex].call;
+      callToEnd.addEventListener('disconnected', function disconnected() {
+        callToEnd.removeEventListener('disconnected', disconnected);
+        callToAnswer.answer();
+      });
+      callToEnd.hangUp();
+    }
 
     CallScreen.hideIncoming();
   }
