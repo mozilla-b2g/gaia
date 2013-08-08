@@ -1,15 +1,6 @@
 'use strict';
 
-function MockAudio() {
-  MockAudio.isPlayed = false;
-}
+function MockAudio() {}
 
-MockAudio.prototype.play = function() {
-  MockAudio.isPlayed = true;
-};
-
+MockAudio.prototype.play = function() {};
 MockAudio.prototype.pause = function() {};
-
-MockAudio.mTeardown = function() {
-  MockAudio.isPlayed = false;
-};
