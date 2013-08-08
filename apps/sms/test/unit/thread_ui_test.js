@@ -54,8 +54,9 @@ var mocksHelperForThreadUI = new MocksHelper([
 mocksHelperForThreadUI.init();
 
 suite('thread_ui.js >', function() {
-  var sendButton;
   var input;
+  var container;
+  var sendButton;
   var composeForm;
   var recipient;
 
@@ -126,8 +127,9 @@ suite('thread_ui.js >', function() {
     mocksHelper.setup();
     loadBodyHTML('/index.html');
 
-    sendButton = document.getElementById('messages-send-button');
     input = document.getElementById('messages-input');
+    container = document.getElementById('messages-container');
+    sendButton = document.getElementById('messages-send-button');
     composeForm = document.getElementById('messages-compose-form');
 
     ThreadUI.recipients = null;
@@ -142,6 +144,45 @@ suite('thread_ui.js >', function() {
     MockNavigatormozMobileMessage.mTeardown();
     mocksHelper.teardown();
     ThreadUI._mozMobileMessage = realMozMobileMessage;
+  });
+
+  suite('scrolling', function() {
+    teardown(function() {
+      container.innerHTML = '';
+    });
+    setup(function() {
+      // we don't have CSS so we must force the scroll here
+      container.style.overflow = 'scroll';
+      container.style.height = '50px';
+      // fake content
+      var innerHTML = '';
+      for (var i = 0; i < 99; i++) {
+        innerHTML += ThreadUI.tmpl.message.interpolate({
+          id: String(i),
+          bodyHTML: 'test #' + i
+        });
+      }
+      container.innerHTML = innerHTML;
+    });
+
+    test('scroll 100px, should be detected as a manual scroll', function(done) {
+      container.addEventListener('scroll', function onscroll() {
+        container.removeEventListener('scroll', onscroll);
+        assert.ok(ThreadUI.isScrolledManually);
+        done();
+      });
+      container.scrollTop = 100;
+    });
+
+    test('scroll to bottom, should be detected as an automatic scroll',
+    function(done) {
+      container.addEventListener('scroll', function onscroll() {
+        container.removeEventListener('scroll', onscroll);
+        assert.isFalse(ThreadUI.isScrolledManually);
+        done();
+      });
+      container.scrollTop = container.scrollHeight;
+    });
   });
 
   suite('Search', function() {
@@ -1544,7 +1585,6 @@ suite('thread_ui.js >', function() {
     });
   });
 
-
   suite('Message resending UI', function() {
     setup(function() {
       ThreadUI.appendMessage({
@@ -1678,7 +1718,6 @@ suite('thread_ui.js >', function() {
   });
 
   suite('Render Contact', function() {
-
     test('Rendered Contact "givenName familyName"', function() {
       var ul = document.createElement('ul');
       var contact = new MockContact();
@@ -2341,7 +2380,6 @@ suite('thread_ui.js >', function() {
 
       });
     });
-
   });
 
   suite('Sending Behavior (onSendClick)', function() {
