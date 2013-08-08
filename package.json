@@ -11,6 +11,8 @@
     "marionette-client": "~0.12.0",
     "marionette-js-runner": "~0.0.1",
     "mocha": "1.12.0",
-    "mozilla-download": "~0.2.1"
+    "mozilla-download": "~0.2.1",
+    "grunt": "~0.4.1",
+    "grunt-gjslint": "~0.1.1"
   }
 }
