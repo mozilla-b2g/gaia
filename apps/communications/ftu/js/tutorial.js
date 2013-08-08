@@ -55,7 +55,6 @@ var Tutorial = {
       window.close();
     });
     window.addEventListener('hashchange', this);
-    window.location.hash = tutorialSteps[this.currentStep].hash;
   },
   back: function n_back(event) {
     this.currentStep--;
