@@ -22,18 +22,19 @@ var icc = {
         });
     });
 
+    var self = this;
     // Update displayTextTimeout with settings parameter
     var reqDisplayTimeout = window.navigator.mozSettings.createLock().get(
       'icc.displayTextTimeout');
     reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
-      this._displayTextTimeout =
+      self._displayTextTimeout =
         reqDisplayTimeout.result['icc.displayTextTimeout'];
     };
     // Update inputTimeout with settings parameter
     var reqInputTimeout = window.navigator.mozSettings.createLock().get(
       'icc.inputTextTimeout');
     reqInputTimeout.onsuccess = function icc_getInputTimeout() {
-      this._inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
+      self._inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
     };
   },
 
@@ -352,6 +353,14 @@ var icc = {
     }
     var self = this;
     var timeoutId = null;
+
+    // User acceptance
+    if (timeout) {
+      var timeoutId = setTimeout(function() {
+        self.hideViews();
+        callback(false);
+      }, timeout);
+    }
 
     // Help
     this.icc_input_btn_help.disabled = !options.isHelpAvailable;
