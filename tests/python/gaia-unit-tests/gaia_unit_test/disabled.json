@@ -12,5 +12,6 @@
   "homescreen/test/unit/grid_test.js",
   "homescreen/test/unit/save_bookmark_test.js",
   "keyboard/test/unit/render_test.js",
+  "sms/test/unit/notification_test.js",
   "system/test/unit/cards_view_test.js"
 ]
