@@ -375,15 +375,15 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           case 'TP1':
           case 'TALB':
           case 'TAL':
-            tagvalue = readText(tagblob, tagsize);
+            tagvalue = readTextFrame(tagblob, tagsize);
             break;
           case 'TRCK':
           case 'TRK':
-            tagvalue = parseInt(readText(tagblob, tagsize), 10);
+            tagvalue = parseInt(readTextFrame(tagblob, tagsize), 10);
             break;
           case 'APIC':
           case 'PIC':
-            tagvalue = readPic(tagblob, tagsize, tagid);
+            tagvalue = readPicFrame(tagblob, tagsize, tagid);
             break;
           }
 
@@ -418,7 +418,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
                                   view.littleEndian);
     }
 
-    function readPic(view, size, id) {
+    function readPicFrame(view, size, id) {
       var start = view.index;
       var encoding = view.readUnsignedByte();
       var mimetype;
@@ -436,7 +436,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
       // We ignore these next two fields
       var kind = view.readUnsignedByte();
-      var desc = readText(view, size - (view.index - start), encoding);
+      var desc = readEncodedText(view, size - (view.index - start), encoding);
 
       var picstart = view.sliceOffset + view.viewOffset + view.index;
       var piclength = size - (view.index - start);
@@ -450,18 +450,48 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       };
     }
 
-    function readText(view, size, encoding) {
+    function readTextFrame(view, size, encoding) {
       if (encoding === undefined) {
         encoding = view.readUnsignedByte();
         size = size - 1;
       }
+      if (id3version === 4) {
+        // In id3v2.4, all text frames can have multiple values, separated by
+        // the null character. For now, we join them together to make one big
+        // string.
+        var end = size + view.index, values = [];
+
+        if (encoding === 1) { // UTF-16
+          // Handle the UTF-16 BOM reading here, since we'll be doing multiple
+          // reads and want to remember the BOM.
+          var bom = view.readUnsignedShort();
+          encoding = bom === 0xFEFF ? 'utf16be' : 'utf16le';
+        }
+        while (view.index < end) {
+          values.push(readEncodedText(view, end - view.index, encoding));
+        }
+        return values.join(' / ');
+      }
+      else {
+        // In id3v2.3, some text frames can have multiple values, separated by
+        // '/', so we don't need to do anything special here. In fact, even if
+        // we start treating multi-value text frames as an array, we probably
+        // shouldn't do anything, since '/' is a bad delimiter.
+        return readEncodedText(view, size, encoding);
+      }
+    }
+
+    function readEncodedText(view, size, encoding) {
       switch (encoding) {
       case 0:
         return view.readNullTerminatedLatin1Text(size);
       case 1:
         return view.readNullTerminatedUTF16Text(size, undefined);
       case 2:
+      case 'utf16be':
         return view.readNullTerminatedUTF16Text(size, false);
+      case 'utf16le':
+        return view.readNullTerminatedUTF16Text(size, true);
       case 3:
         return view.readNullTerminatedUTF8Text(size);
       default:
@@ -545,7 +575,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
             var value = comment.substring(equal + 1);
             if (seen_fields.hasOwnProperty(propname)) {
               // If we already have a value, append this new one.
-              metadata[propname] += ' ' + value;
+              metadata[propname] += ' / ' + value;
             }
             else {
               // Otherwise, just save the single value.
