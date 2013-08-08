@@ -14,6 +14,7 @@ requireApp('homescreen/test/unit/mock_hidden_apps.js');
 requireApp('homescreen/test/unit/mock_manifest_helper.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
 
+require('/shared/js/screen_layout.js');
 requireApp('homescreen/js/grid.js');
 
 var mocksHelperForGrid = new MocksHelper([

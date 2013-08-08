@@ -9,7 +9,6 @@ var GridManager = (function() {
   var PREFERRED_ICON_SIZE = 60 * (window.devicePixelRatio || 1);
 
   var SAVE_STATE_TIMEOUT = 100;
-  var BASE_WIDTH = 320;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
   var DEVICE_HEIGHT = window.innerHeight;
   var OPACITY_STEPS = 40; // opacity steps between [0,1]
@@ -46,6 +45,11 @@ var GridManager = (function() {
   if (DEVICE_HEIGHT - BASE_HEIGHT > BASE_HEIGHT / 5 ||
       DEVICE_HEIGHT / windowWidth >= 1.6) {
     MAX_ICONS_PER_PAGE = 4 * 5;
+  }
+
+  // tablet+ devices are stricted to 5 x 3 grid
+  if (ScreenLayout.getCurrentLayout() !== 'tiny') {
+    MAX_ICONS_PER_PAGE = 5 * 3;
   }
 
   var startEvent, isPanning = false, startX, currentX, deltaX, removePanHandler,
