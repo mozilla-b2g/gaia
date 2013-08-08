@@ -44,3 +44,8 @@
 body:not(.evme-displayed) #footer {
   display: block;
 }
+
+body.evme-displayed #landing-page {
+  height: 100%;
+}
+
