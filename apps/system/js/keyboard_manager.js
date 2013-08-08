@@ -105,7 +105,7 @@ var KeyboardManager = {
     // when an inline activity goes away.
     window.addEventListener('appwillclose', this);
     window.addEventListener('activitywillclose', this);
-    window.addEventListener('applicationinstall', this);
+    window.addEventListener('applicationinstallsuccess', this);
     window.addEventListener('applicationuninstall', this);
     window.addEventListener('keyboardsrefresh', this);
 
@@ -340,7 +340,7 @@ var KeyboardManager = {
         var origin = evt.target.dataset.frameOrigin;
         this.removeKeyboard(origin);
         break;
-      case 'applicationinstall': //app installed
+      case 'applicationinstallsuccess': //app installed
         this.updateLayoutSettings();
         break;
       case 'applicationuninstall': //app uninstalled
