@@ -44,7 +44,7 @@
           window.navigator.mozMobileConnection.icc;
 
     icc.onstksessionend = function handleSTKSessionEnd(event) {
-      updateMenu();
+      Settings.currentPanel = '#root';
     };
 
     document.getElementById('icc-stk-app-back').onclick = stkResGoBack;
