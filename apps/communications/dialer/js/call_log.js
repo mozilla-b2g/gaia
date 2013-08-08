@@ -466,7 +466,7 @@ var CallLog = {
     if (contact && contact.primaryInfo) {
       primInfoMain.textContent = contact.primaryInfo;
     } else {
-      primInfoMain.textContent = number || this._('unknown');
+      primInfoMain.textContent = number || this._('withheld-number');
     }
 
     primInfo.appendChild(primInfoMain);
@@ -930,10 +930,6 @@ var CallLog = {
       Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
     if (primaryInfo) {
       primInfoCont.textContent = primaryInfo;
-    } else {
-      LazyL10n.get(function gotL10n(_) {
-        primInfoCont.textContent = _('unknown');
-      });
     }
 
     if (contact && contact.photo && contact.photo[0]) {
