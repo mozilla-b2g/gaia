@@ -1,5 +1,6 @@
 'use strict';
 
+requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('sms/test/unit/mock_audio.js');
 requireApp('sms/test/unit/mock_navigator_vibrate.js');
@@ -9,7 +10,11 @@ suite('check the ringtone and vibrate function', function() {
   var realMozSettings;
   var realVibrate;
 
+  var mocksHelper = new MocksHelper(['SettingsURL']).init();
+  mocksHelper.attachTestHelpers();
+
   suiteSetup(function(done) {
+
     // Stash references to the original objects
     realAudio = Audio;
     realMozSettings = navigator.mozSettings;
@@ -28,6 +33,7 @@ suite('check the ringtone and vibrate function', function() {
     Audio = realAudio;
     navigator.mozSettings = realMozSettings;
     navigator.vibrate = realVibrate;
+    mocksHelper.suiteTeardown;
   });
 
   setup(function() {
