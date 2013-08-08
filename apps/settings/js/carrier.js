@@ -482,204 +482,282 @@ navigator.mozL10n.ready(function carrierSettings() {
   }
 
   // network operator selection: auto/manual
-  var opAutoSelect = document.getElementById('operator-autoSelect');
-  var opAutoSelectInput = opAutoSelect.querySelector('input');
-  var opAutoSelectState = opAutoSelect.querySelector('small');
+  function initOperatorSelector() {
+    if (!mobileConnection) {
+      return;
+    }
 
-  function updateSelectionMode(scan) {
-    var mode = mobileConnection.networkSelectionMode;
-    // we're assuming the auto-selection is ON by default.
-    var auto = !mode || (mode === 'automatic');
-    opAutoSelectInput.checked = auto;
-    if (auto) {
-      localize(opAutoSelectState, 'operator-networkSelect-auto');
-    } else {
-      opAutoSelectState.dataset.l10nId = '';
-      opAutoSelectState.textContent = mode;
-      if (scan) {
+    var opAutoSelect = document.getElementById('operator-autoSelect');
+    var opAutoSelectInput = opAutoSelect.querySelector('input');
+    var opAutoSelectState = opAutoSelect.querySelector('small');
+
+    function updateSelectionMode(scan) {
+      var mode = mobileConnection.networkSelectionMode;
+      // we're assuming the auto-selection is ON by default.
+      var auto = !mode || (mode === 'automatic');
+      opAutoSelectInput.checked = auto;
+      if (auto) {
+        localize(opAutoSelectState, 'operator-networkSelect-auto');
+      } else {
+        opAutoSelectState.dataset.l10nId = '';
+        opAutoSelectState.textContent = mode;
+        if (scan) {
+          gOperatorNetworkList.scan();
+        }
+      }
+    }
+
+    // toggle autoselection
+    opAutoSelectInput.onchange = function() {
+      if (opAutoSelectInput.checked) {
+        gOperatorNetworkList.state = 'off';
+        gOperatorNetworkList.clear();
+        var req = mobileConnection.selectNetworkAutomatically();
+        req.onsuccess = function() {
+          updateSelectionMode(false);
+        };
+      } else {
         gOperatorNetworkList.scan();
       }
-    }
-  }
-
-  // create a network operator list item
-  function newListItem(network, callback) {
-    /**
-     * A network list item has the following HTML structure:
-     *   <li>
-     *     <small> Network State </small>
-     *     <a> Network Name </a>
-     *   </li>
-     */
-
-    // name
-    var name = document.createElement('a');
-    name.textContent = network.shortName || network.longName;
-
-    // state
-    var state = document.createElement('small');
-    localize(state,
-      network.state ? ('state-' + network.state) : 'state-unknown');
-
-    // create list item
-    var li = document.createElement('li');
-    li.appendChild(state);
-    li.appendChild(name);
-
-    li.dataset.cachedState = network.state || 'unknown';
-    li.classList.add('operatorItem');
-
-    // bind connection callback
-    li.onclick = function() {
-      callback(network, true);
     };
-    return li;
-  }
 
-  // operator network list
-  // XXX note: scanning takes a while, and most of the time it never succeeds
-  // (doesn't raise any error either) but I swear I've seen it working.
-  var gOperatorNetworkList = (function operatorNetworkList(list) {
-    // get the "Searching..." and "Search Again" items, respectively
-    var infoItem = list.querySelector('li[data-state="on"]');
-    var scanItem = list.querySelector('li[data-state="ready"]');
-    scanItem.onclick = scan;
+    // create a network operator list item
+    function newListItem(network, callback) {
+      /**
+       * A network list item has the following HTML structure:
+       *   <li>
+       *     <small> Network State </small>
+       *     <a> Network Name </a>
+       *   </li>
+       */
 
-    var currentConnectedNetwork = null;
-    var connecting = false;
-    var operatorItemMap = {};
+      // name
+      var name = document.createElement('a');
+      name.textContent = network.shortName || network.longName;
 
-    // clear the list
-    function clear() {
-      operatorItemMap = {};
-      var operatorItems = list.querySelectorAll('li:not([data-state])');
-      var len = operatorItems.length;
-      for (var i = len - 1; i >= 0; i--) {
-        list.removeChild(operatorItems[i]);
-      }
-    }
+      // state
+      var state = document.createElement('small');
+      localize(state,
+        network.state ? ('state-' + network.state) : 'state-unknown');
 
-    function resetOperatorItemState() {
-      var operatorItems =
-        Array.prototype.slice.call(list.querySelectorAll('.operatorItem'));
-      operatorItems.forEach(function(operatorItem) {
-        var state = operatorItem.dataset.cachedState;
-        var messageElement = operatorItem.querySelector('small');
+      // create list item
+      var li = document.createElement('li');
+      li.appendChild(state);
+      li.appendChild(name);
 
-        if (!state) {
-          state = 'unknown';
-        } else if (state === 'current') {
-          state = 'available';
-        }
+      li.dataset.cachedState = network.state || 'unknown';
+      li.classList.add('operatorItem');
 
-        localize(messageElement, 'state-' + state);
-      });
-    }
-
-    // select operator
-    function selectOperator(network, manuallySelect) {
-      if (connecting) {
-        return;
-      }
-
-      var listItem = operatorItemMap[network.mcc + '.' + network.mnc];
-      if (!listItem) {
-        return;
-      }
-
-      var messageElement = listItem.querySelector('small');
-
-      connecting = true;
-      // update current network state as 'available' (the string display
-      // on the network to connect)
-      if (manuallySelect) {
-        resetOperatorItemState();
-      }
-
-      var req = mobileConnection.selectNetwork(network);
-      localize(messageElement, 'operator-status-connecting');
-      req.onsuccess = function onsuccess() {
-        currentConnectedNetwork = network;
-        localize(messageElement, 'operator-status-connected');
-        updateSelectionMode(false);
-        connecting = false;
+      // bind connection callback
+      li.onclick = function() {
+        callback(network, true);
       };
-      req.onerror = function onerror() {
-        connecting = false;
-        localize(messageElement, 'operator-status-connectingfailed');
-        if (currentConnectedNetwork) {
-          recoverAvailableOperator();
-        } else {
-          updateSelectionMode(false);
+      return li;
+    }
+
+    // operator network list
+    // XXX note: scanning takes a while, and most of the time it never succeeds
+    // (doesn't raise any error either) but I swear I've seen it working.
+    var gOperatorNetworkList = (function operatorNetworkList(list) {
+      // get the "Searching..." and "Search Again" items, respectively
+      var infoItem = list.querySelector('li[data-state="on"]');
+      var scanItem = list.querySelector('li[data-state="ready"]');
+      scanItem.onclick = scan;
+
+      var currentConnectedNetwork = null;
+      var connecting = false;
+      var operatorItemMap = {};
+
+      // clear the list
+      function clear() {
+        operatorItemMap = {};
+        var operatorItems = list.querySelectorAll('li:not([data-state])');
+        var len = operatorItems.length;
+        for (var i = len - 1; i >= 0; i--) {
+          list.removeChild(operatorItems[i]);
         }
-      };
-    }
-
-    function recoverAvailableOperator() {
-      if (currentConnectedNetwork) {
-        selectOperator(currentConnectedNetwork, false);
       }
-    }
 
-    // scan available operators
-    function scan() {
-      clear();
-      list.dataset.state = 'on'; // "Searching..."
-      var req = mobileConnection.getNetworks();
-      req.onsuccess = function onsuccess() {
-        var networks = req.result;
-        for (var i = 0; i < networks.length; i++) {
-          var network = networks[i];
-          var listItem = newListItem(network, selectOperator);
-          list.insertBefore(listItem, scanItem);
+      function resetOperatorItemState() {
+        var operatorItems =
+          Array.prototype.slice.call(list.querySelectorAll('.operatorItem'));
+        operatorItems.forEach(function(operatorItem) {
+          var state = operatorItem.dataset.cachedState;
+          var messageElement = operatorItem.querySelector('small');
 
-          operatorItemMap[network.mcc + '.' + network.mnc] = listItem;
-          if (network.state === 'current') {
-            currentConnectedNetwork = network;
+          if (!state) {
+            state = 'unknown';
+          } else if (state === 'current') {
+            state = 'available';
           }
+
+          localize(messageElement, 'state-' + state);
+        });
+      }
+
+      // select operator
+      function selectOperator(network, manuallySelect) {
+        if (connecting) {
+          return;
         }
-        list.dataset.state = 'ready'; // "Search Again" button
-      };
 
-      req.onerror = function onScanError(error) {
-        console.warn('carrier: could not retrieve any network operator. ');
-        list.dataset.state = 'ready'; // "Search Again" button
+        var listItem = operatorItemMap[network.mcc + '.' + network.mnc];
+        if (!listItem) {
+          return;
+        }
+
+        var messageElement = listItem.querySelector('small');
+
+        connecting = true;
+        // update current network state as 'available' (the string display
+        // on the network to connect)
+        if (manuallySelect) {
+          resetOperatorItemState();
+        }
+
+        var req = mobileConnection.selectNetwork(network);
+        localize(messageElement, 'operator-status-connecting');
+        req.onsuccess = function onsuccess() {
+          currentConnectedNetwork = network;
+          localize(messageElement, 'operator-status-connected');
+          updateSelectionMode(false);
+          connecting = false;
+        };
+        req.onerror = function onerror() {
+          connecting = false;
+          localize(messageElement, 'operator-status-connectingfailed');
+          if (currentConnectedNetwork) {
+            recoverAvailableOperator();
+          } else {
+            updateSelectionMode(false);
+          }
+        };
+      }
+
+      function recoverAvailableOperator() {
+        if (currentConnectedNetwork) {
+          selectOperator(currentConnectedNetwork, false);
+        }
+      }
+
+      // scan available operators
+      function scan() {
+        clear();
+        list.dataset.state = 'on'; // "Searching..."
+        var req = mobileConnection.getNetworks();
+        req.onsuccess = function onsuccess() {
+          var networks = req.result;
+          for (var i = 0; i < networks.length; i++) {
+            var network = networks[i];
+            var listItem = newListItem(network, selectOperator);
+            list.insertBefore(listItem, scanItem);
+
+            operatorItemMap[network.mcc + '.' + network.mnc] = listItem;
+            if (network.state === 'current') {
+              currentConnectedNetwork = network;
+            }
+          }
+          list.dataset.state = 'ready'; // "Search Again" button
+        };
+
+        req.onerror = function onScanError(error) {
+          console.warn('carrier: could not retrieve any network operator. ');
+          list.dataset.state = 'ready'; // "Search Again" button
+        };
+      }
+
+      // API
+      return {
+        get state() { return list.dataset.state; },
+        set state(value) { list.dataset.state = value; },
+        clear: clear,
+        scan: scan
       };
+    })(document.getElementById('availableOperators'));
+
+    updateSelectionMode(true);
+  }
+
+  function initRoamingPreferenceSelector() {
+    if (!mobileConnection) {
+      return;
     }
 
-    // API
-    return {
-      get state() { return list.dataset.state; },
-      set state(value) { list.dataset.state = value; },
-      clear: clear,
-      scan: scan
+    if (!mobileConnection.getRoamingPreference) {
+      document.getElementById('operator-roaming-preference').hidden = true;
+      return;
+    }
+
+    var selector =
+      document.getElementById('operator-roaming-preference-selector');
+    var req = mobileConnection.getRoamingPreference();
+    req.onsuccess = function() {
+      for (var i = 0; i < selector.options.length; i++) {
+        var selection = selector.options[i];
+        if (selection.value === req.result) {
+          selection.selected = true;
+
+          var evt = document.createEvent('Event');
+          evt.initEvent('change', true, true);
+          selector.dispatchEvent(evt);
+          break;
+        }
+      }
     };
-  })(document.getElementById('availableOperators'));
 
-  // toggle autoselection
-  opAutoSelectInput.onchange = function() {
-    if (opAutoSelectInput.checked) {
-      gOperatorNetworkList.state = 'off';
-      gOperatorNetworkList.clear();
-      var req = mobileConnection.selectNetworkAutomatically();
-      req.onsuccess = function() {
-        updateSelectionMode(false);
-      };
-    } else {
-      gOperatorNetworkList.scan();
-    }
-  };
+    req.onerror = function() {
+      console.warn('carrier: ' + req.error.name);
+    };
+
+    selector.addEventListener('blur', function() {
+      var index = this.selectedIndex;
+      if (index >= 0) {
+        var selection = this.options[index];
+        mobileConnection.setRoamingPreference(selection.value);
+      }
+    });
+  }
+
+  function init(callback) {
+    // get network type
+    loadJSON('/resources/network.json', function loadNetwork(network) {
+      var content = document.getElementById('carrier-operatorSettings-content');
+      var supportGSM = false;
+      var supportCDMA = false;
+
+      if (network.types) {
+        var typesStr = network.types.join();
+
+        supportGSM = (typesStr.indexOf('gsm') >= 0);
+        supportCDMA = (typesStr.indexOf('cdma') >= 0);
+      }
+
+      // init different selectors based on the network type.
+      if (supportGSM) {
+        initOperatorSelector();
+        content.classList.add('gsm');
+      }
+      if (supportCDMA) {
+        initRoamingPreferenceSelector();
+        content.classList.add('cdma');
+      }
+
+      if (callback) {
+        callback();
+      }
+    });
+  }
 
   // startup
-  Connectivity.updateCarrier(); // see connectivity.js
-  updateSelectionMode(true);
-  initDataConnectionAndRoamingWarnings();
+  init(function() {
+    Connectivity.updateCarrier(); // see connectivity.js
+    initDataConnectionAndRoamingWarnings();
 
-  // XXX this should be done later
-  getMccMncCodes(function() {
-    queryAPN(updateAPNList, 'data');
-    queryAPN(updateAPNList, 'mms');
-    queryAPN(updateAPNList, 'supl');
+    // XXX this should be done later
+    getMccMncCodes(function() {
+      queryAPN(updateAPNList, 'data');
+      queryAPN(updateAPNList, 'mms');
+      queryAPN(updateAPNList, 'supl');
+    });
   });
 });
-

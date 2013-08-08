@@ -321,6 +321,13 @@ section li.password > p {
  * Cellular and Data
  */
 
+#carrier-operatorSettings-content:not(.cdma) #operator-roaming-preference,
+#carrier-operatorSettings-content:not(.gsm) #operator-autoSelect,
+#carrier-operatorSettings-content:not(.gsm) #availableOperatorsHeader,
+#carrier-operatorSettings-content:not(.gsm) #availableOperators {
+  display: none;
+} 
+
 #carrier-dc-warning h1 > span:before,
 #carrier-dr-warning h1 > span:before {
   content: "";
