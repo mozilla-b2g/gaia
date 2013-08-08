@@ -16,15 +16,13 @@ var MockThreadUI = {
   cleanFields: function() {},
   appendMessage: function() {},
   setMessageBody: function() {},
+  prompt: function() {},
+  promptContact: function() {},
 
   isShowSendMessageErrorCalledTimes: 0,
 
   showSendMessageError: function() {
     this.isShowSendMessageErrorCalledTimes += 1;
-  },
-
-  activateContact: function() {
-
   },
 
   mSetup: function() {

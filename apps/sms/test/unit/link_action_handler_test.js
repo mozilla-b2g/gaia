@@ -118,8 +118,8 @@ suite('LinkActionHandler', function() {
       mocksHelperLAH.teardown();
     });
 
-    test('dial-link: (known) delegates to activateContact ', function() {
-      this.sinon.stub(ThreadUI, 'activateContact');
+    test('dial-link: (known) delegates to promptContact ', function() {
+      this.sinon.stub(ThreadUI, 'promptContact');
       this.sinon.stub(Contacts, 'findByPhoneNumber')
         .callsArgWith(1, [{
           name: ['Huey'],
@@ -130,10 +130,8 @@ suite('LinkActionHandler', function() {
 
       LinkActionHandler.onContextMenu(events.phone);
 
-      assert.deepEqual(ThreadUI.activateContact.args[0][0], {
-        name: 'Huey',
+      assert.deepEqual(ThreadUI.promptContact.args[0][0], {
         number: '999',
-        isContact: true,
         inMessage: true
       });
 
@@ -141,17 +139,15 @@ suite('LinkActionHandler', function() {
       assert.ok(events.phone.stopPropagation.called);
     });
 
-    test('dial-link: (unknown) delegates to activateContact ', function() {
-      this.sinon.stub(ThreadUI, 'activateContact');
+    test('dial-link: (unknown) delegates to promptContact ', function() {
+      this.sinon.stub(ThreadUI, 'promptContact');
       this.sinon.stub(Contacts, 'findByPhoneNumber')
         .callsArgWith(1, []);
 
       LinkActionHandler.onContextMenu(events.phone);
 
-      assert.deepEqual(ThreadUI.activateContact.args[0][0], {
-        name: undefined,
+      assert.deepEqual(ThreadUI.promptContact.args[0][0], {
         number: '999',
-        isContact: false,
         inMessage: true
       });
 
@@ -159,13 +155,13 @@ suite('LinkActionHandler', function() {
       assert.ok(events.phone.stopPropagation.called);
     });
 
-    test('email-link: delegates to activateContact ', function() {
-      this.sinon.stub(ThreadUI, 'activateContact');
+    test('email-link: delegates to prompt ', function() {
+      this.sinon.stub(ThreadUI, 'prompt');
 
       LinkActionHandler.onContextMenu(events.email);
 
-      assert.ok(ThreadUI.activateContact.called);
-      assert.deepEqual(ThreadUI.activateContact.args[0][0], {
+      assert.ok(ThreadUI.prompt.called);
+      assert.deepEqual(ThreadUI.prompt.args[0][0], {
         email: 'a@b.com',
         inMessage: true
       });

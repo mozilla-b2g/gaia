@@ -1860,13 +1860,15 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    var isContact = this.headerText.dataset.isContact;
     var number = this.headerText.dataset.number;
-    if (isContact === 'true') {
-      this.genPrompt(isContact, number);
+
+    if (this.headerText.dataset.isContact === 'true') {
+      this.promptContact({
+        number: number
+      });
     } else {
-      this.activateContact({
-        number: this.headerText.dataset.number,
+      this.prompt({
+        number: number,
         isContact: false
       });
     }
@@ -1877,16 +1879,21 @@ var ThreadUI = global.ThreadUI = {
     event.preventDefault();
 
     var target = event.target;
-    var isContact, number;
 
-    isContact = target.dataset.source === 'contacts' ? true : false;
-    number = target.dataset.number;
-    this.genPrompt(isContact, number);
+    this.promptContact({
+      number: target.dataset.number
+    });
   },
 
-  genPrompt: function thui_genPrompt(isContact, number) {
+  promptContact: function thui_promptContact(opts) {
+    opts = opts || {};
+
+    var inMessage = opts.inMessage || false;
+    var number = opts.number || '';
+
     Contacts.findByPhoneNumber(number, function(results) {
       var ul = document.createElement('ul');
+      var isContact = results && results.length;
       var contact = isContact ? results[0] : {
         tel: [{ value: number }]
       };
@@ -1901,10 +1908,11 @@ var ThreadUI = global.ThreadUI = {
         isSuggestion: false
       });
 
-      this.activateContact({
+      this.prompt({
         name: name,
         number: number,
         isContact: isContact,
+        inMessage: inMessage,
         body: ul
       });
     }.bind(this));
@@ -1953,15 +1961,15 @@ var ThreadUI = global.ThreadUI = {
     });
   },
 
-  activateContact: function thui_activateContact(opt) {
+  prompt: function thui_prompt(opt) {
     function complete() {
       window.location.href = '#thread=' + Threads.lastId;
     }
 
     var _ = navigator.mozL10n.get;
     var thread = Threads.get(Threads.lastId || Threads.currentId);
-    var number = opt.number;
-    var email = opt.email;
+    var number = opt.number || '';
+    var email = opt.email || '';
     var name = opt.name || number || email;
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
@@ -2020,11 +2028,9 @@ var ThreadUI = global.ThreadUI = {
 
     // If this is a known contact, display an option menu
     // with buttons for "Call" and "Cancel"
-    if (isContact) {
+    params.section = typeof opt.body !== 'undefined' ? opt.body : name;
 
-      params.section = typeof opt.body !== 'undefined' ? opt.body : name;
-
-    } else {
+    if (!isContact) {
 
       props = [
         number ? {tel: number} : {email: email}

@@ -49,25 +49,16 @@
       }
 
       if (action === 'email-link') {
-        ThreadUI.activateContact({
+        ThreadUI.prompt({
           email: dataset.email,
           inMessage: true
         });
       }
 
       if (action === 'dial-link') {
-        number = dataset.dial;
-
-        Contacts.findByPhoneNumber(number, function(contacts) {
-          var isContact = contacts && contacts.length > 0;
-          var details = Utils.getContactDetails(number, contacts);
-
-          ThreadUI.activateContact({
-            name: details.title || details.name,
-            number: number,
-            isContact: isContact,
-            inMessage: true
-          });
+        ThreadUI.promptContact({
+          number: dataset.dial,
+          inMessage: true
         });
       }
 
