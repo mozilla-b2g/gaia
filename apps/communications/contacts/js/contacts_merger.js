@@ -100,29 +100,34 @@ contacts.Merger = (function() {
       populateEmails(aDeviceContact.email, emailsHash, mergedContact.email);
 
       if (Array.isArray(aDeviceContact.tel)) {
-        aResult.matchedValues = aResult.matchedValues || [];
+        var telMatchings = aResult.matchings['tel'];
         aDeviceContact.tel.forEach(function(aTel) {
-          var matchedValIdx = aResult.matchedValues.indexOf(aTel.value);
-          var matchedValue = aTel.value;
-          if (matchedValIdx !== -1) {
-            matchedValue = aResult.matchedValues[matchedValIdx];
+          var theValue = aTel.value;
+          var target = theValue, matchedValue = '';
+          if (telMatchings) {
+            var matchedFrom = telMatchings.filter(function(x) {
+              return (x.target === theValue || x.matchedValue === theValue);
+            });
+            if (matchedFrom[0]) {
+              target = matchedFrom[0].target;
+              matchedValue = matchedFrom[0].matchedValue;
+            }
           }
-          aResult.target = aResult.target || '';
-          if (!telsHash[aTel.value] && !telsHash[aResult.target]) {
-            aResult.target = aResult.target || '';
-            var theValue = aResult.target.length > matchedValue.length ?
-                              aResult.target : matchedValue;
+
+          if (!telsHash[aTel.value] && !telsHash[target]) {
+            theValue = target.length > matchedValue.length ?
+                              target : matchedValue;
             mergedContact.tel.push({
               type: aTel.type || [DEFAULT_TEL_TYPE],
               value: theValue,
               carrier: aTel.carrier,
               pref: aTel.pref
             });
-            telsHash[aResult.target] = true;
+            telsHash[target] = true;
             telsHash[matchedValue] = true;
           }
-        });
-      }
+      });
+    }
 
       if (!isDefined(mergedContact.photo) && isDefined(aDeviceContact.photo)) {
         mergedContact.photo.push(aDeviceContact.photo[0]);

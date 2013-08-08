@@ -48,7 +48,6 @@ contacts.Matcher = (function() {
           var matchedValue;
 
           values.forEach(function(aValue) {
-            var type = aValue.type;
             var value = aValue.value;
 
             if (value === target || value.indexOf(target) !== -1 ||
@@ -56,12 +55,24 @@ contacts.Matcher = (function() {
               matchedValue = value;
             }
 
-            finalMatchings[aMatching.id] = {
-              target: target,
-              fields: filterBy,
-              matchedValues: [matchedValue],
-              matchingContact: aMatching
-            };
+            var matchings, matchingObj;
+            if (!finalMatchings[aMatching.id]) {
+              matchingObj = {
+                matchings: {},
+                matchingContact: aMatching
+              };
+              finalMatchings[aMatching.id] = matchingObj;
+              matchingObj.matchings[filterBy[0]] = [];
+            }
+            else {
+              matchingObj = finalMatchings[aMatching.id];
+            }
+
+            matchings = matchingObj.matchings[filterBy[0]];
+            matchings.push({
+              'target': target,
+              'matchedValue': matchedValue
+            });
           });
         });  // matchings.forEach
 
@@ -176,9 +187,8 @@ contacts.Matcher = (function() {
                 allMatches[aMatch] = mailMatches[aMatch];
               }
               else {
-                allMatches[aMatch].fields.push('email');
-                allMatches[aMatch].matchedValues.push(
-                                        mailMatches[aMatch].matchedValues[0]);
+                allMatches[aMatch].matchings['email'] =
+                                        mailMatches[aMatch].matchings['email'];
               }
             });
             notifyMatch(callbacks, allMatches);
@@ -300,6 +310,10 @@ contacts.Matcher = (function() {
               if (!results[aId]) {
                 results[aId] = nameResults[aId];
               }
+              else {
+                results[aId].matchings['name']  =
+                                          nameResults[aId].matchings['name'];
+              }
             });
 
             notifyMatch(callbacks, results);
@@ -408,6 +422,12 @@ contacts.Matcher = (function() {
 
         finalMatchings.forEach(function(aMatching) {
           finalResult[aMatching.contact.id] = {
+            matchings: {
+              'name': [{
+                target: '',
+                matchedValue: ''
+              }]
+            },
             matchingContact: aMatching.contact
           };
         });
@@ -469,8 +489,8 @@ contacts.Matcher = (function() {
       }
       // It is only allowed to match one linked contact or various but all of
       // them linked to the same FB friend
-      else if (!targetUid && Object.keys(linkedMatched).length === 0 &&
-                !linkedMatched[linkedTo]) {
+      else if ((Object.keys(linkedMatched).length === 0 ||
+               linkedMatched[linkedTo]) && !targetUid) {
         linkedMatched[linkedTo] = linkedTo;
         out = true;
       }
@@ -481,10 +501,22 @@ contacts.Matcher = (function() {
 
   function processByNameEnd(finalResult, resultsByName, callbacks) {
     resultsByName.forEach(function(aResult) {
+      var matchingObj = {
+        matchings: {
+          'name': [{
+            // If target is the empty string then target === matchedValue
+            target: '',
+            matchedValue: aResult.name[0]
+          }]
+        },
+        matchingContact: aResult
+      };
+
       if (!finalResult[aResult.id]) {
-        finalResult[aResult.id] = {
-          matchingContact: aResult
-        };
+        finalResult[aResult.id] = matchingObj;
+      }
+      else {
+        finalResult[aResult.id].matchings['name'] = matchingObj;
       }
     });
 
@@ -519,10 +551,10 @@ contacts.Matcher = (function() {
     Object.keys(nameMatches).forEach(function(aNameMatching) {
       var matchingContact = nameMatches[aNameMatching].matchingContact;
 
-      var isPhoneMatching = phoneMailMatches[aNameMatching].
-                                          fields.indexOf('tel') !== -1;
-      var isMailMatching = phoneMailMatches[aNameMatching].
-                                          fields.indexOf('email') !== -1;
+      var isPhoneMatching = Array.isArray(phoneMailMatches[aNameMatching].
+                                          matchings['tel']);
+      var isMailMatching = Array.isArray(phoneMailMatches[aNameMatching].
+                                          matchings['email']);
 
       // Three cases under which a matching is considered
       if (isPhoneMatching && isMailMatching) {
