@@ -5,122 +5,134 @@ requireApp('sms/test/unit/mock_audio.js');
 requireApp('sms/test/unit/mock_navigator_vibrate.js');
 
 suite('check the ringtone and vibrate function', function() {
-  var realMozSettings;
   var realAudio;
+  var realMozSettings;
   var realVibrate;
 
   suiteSetup(function(done) {
-    realMozSettings = navigator.mozSettings;
-    navigator.mozSettings = MockNavigatorSettings;
-    realVibrate = navigator.vibrate;
-    navigator.vibrate = MockVibrate;
+    // Stash references to the original objects
     realAudio = Audio;
+    realMozSettings = navigator.mozSettings;
+    realVibrate = navigator.vibrate;
+
+    // Reassign with mocks
     Audio = MockAudio;
+    navigator.mozSettings = MockNavigatorSettings;
+    navigator.vibrate = MockVibrate;
+
     requireApp('sms/js/notification.js', done);
   });
 
   suiteTeardown(function() {
-    navigator.mozSettings = realMozSettings;
+    // Restore all the original objects
     Audio = realAudio;
+    navigator.mozSettings = realMozSettings;
     navigator.vibrate = realVibrate;
+  });
+
+  setup(function() {
+    // Spy on the mocks
+    this.sinon.spy(Audio.prototype, 'play');
+    this.sinon.spy(navigator, 'vibrate');
+    this.sinon.spy(window, 'Audio');
+  });
+
+  teardown(function() {
+    Audio.prototype.play.restore();
+    navigator.vibrate.restore();
+    window.Audio.restore();
   });
 
   function triggerObservers(settings) {
     for (var key in settings) {
-      MockNavigatorSettings.mTriggerObservers(key,
-        {
-          'settingName': key,
-          'settingValue': settings[key]
-        }
-      );
+      navigator.mozSettings.mTriggerObservers(key, {
+        settingName: key,
+        settingValue: settings[key]
+      });
     }
   }
 
   suite('volume is 1 and vibration is enabled', function() {
-    suiteTeardown(function() {
-      MockAudio.mTeardown();
-      MockVibrate.mTeardown();
-    });
-
     test('play ringtone and vibrate', function() {
       var settings = {
         'audio.volume.notification': 1,
         'notification.ringtone': 'ringtone',
         'vibration.enabled': true
       };
-      MockNavigatorSettings.createLock().set(settings);
+      navigator.mozSettings.createLock().set(settings);
       triggerObservers(settings);
 
       Notification.ringtone();
-      assert.ok(MockAudio.isPlayed);
       Notification.vibrate();
-      assert.ok(MockVibrate.isVibrated);
+
+      assert.ok(Audio.prototype.play.called);
+      assert.ok(navigator.vibrate.called);
+
+      assert.ok(Audio.called);
+      assert.deepEqual(navigator.vibrate.args[0][0], [200, 200, 200, 200]);
     });
   });
 
   suite('volume is 1 and vibration is disabled', function() {
-    suiteTeardown(function() {
-      MockAudio.mTeardown();
-      MockVibrate.mTeardown();
-    });
-
     test('play ringtone and do not vibrate', function() {
       var settings = {
         'audio.volume.notification': 1,
         'notification.ringtone': 'ringtone',
         'vibration.enabled': false
       };
-      MockNavigatorSettings.createLock().set(settings);
+      navigator.mozSettings.createLock().set(settings);
       triggerObservers(settings);
 
       Notification.ringtone();
-      assert.ok(MockAudio.isPlayed);
       Notification.vibrate();
-      assert.isFalse(MockVibrate.isVibrated);
+
+      assert.ok(Audio.prototype.play.called);
+      assert.ok(!navigator.vibrate.called);
+
+      assert.ok(Audio.called);
+      assert.equal(navigator.vibrate.args.length, 0);
     });
   });
 
   suite('volume is 0 and vibration is enabled', function() {
-    suiteTeardown(function() {
-      MockAudio.mTeardown();
-      MockVibrate.mTeardown();
-    });
-
     test('do not play ringtone and vibrate', function() {
       var settings = {
         'audio.volume.notification': 0,
         'notification.ringtone': 'ringtone',
         'vibration.enabled': true
       };
-      MockNavigatorSettings.createLock().set(settings);
+      navigator.mozSettings.createLock().set(settings);
       triggerObservers(settings);
 
       Notification.ringtone();
-      assert.isFalse(MockAudio.isPlayed);
       Notification.vibrate();
-      assert.ok(MockVibrate.isVibrated);
+
+      assert.ok(!Audio.prototype.play.called);
+      assert.ok(navigator.vibrate.called);
+
+      assert.ok(!Audio.called);
+      assert.deepEqual(navigator.vibrate.args[0][0], [200, 200, 200, 200]);
     });
   });
 
   suite('volume is 0 and vibration is disabled', function() {
-    suiteTeardown(function() {
-      MockAudio.mTeardown();
-      MockVibrate.mTeardown();
-    });
-
     test('play ringtone and do not vibrate', function() {
       var settings = {
         'audio.volume.notification': 0,
         'notification.ringtone': 'ringtone',
         'vibration.enabled': false
       };
-      MockNavigatorSettings.createLock().set(settings);
+      navigator.mozSettings.createLock().set(settings);
       triggerObservers(settings);
 
       Notification.ringtone();
-      assert.isFalse(MockAudio.isPlayed);
       Notification.vibrate();
-      assert.isFalse(MockVibrate.isVibrated);
+
+      assert.ok(!Audio.prototype.play.called);
+      assert.ok(!navigator.vibrate.called);
+
+      assert.ok(!Audio.called);
+      assert.equal(navigator.vibrate.args.length, 0);
     });
   });
 });
