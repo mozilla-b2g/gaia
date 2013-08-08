@@ -3,19 +3,33 @@
 
   var settings = {};
   var mozSettings = navigator.mozSettings;
-  [
+
+  var urls = {
+    'notification.ringtone': new SettingsURL()
+  };
+
+  function entry(key, value) {
+    if (urls[key]) {
+      urls[key].set(value);
+      settings[key] = true;
+    } else {
+      settings[key] = value;
+    }
+  }
+
+  ([
     'audio.volume.notification',
     'notification.ringtone',
     'vibration.enabled'
-  ].forEach(function(key) {
+  ]).forEach(function(key) {
     if (mozSettings) {
       var request = mozSettings.createLock().get(key);
       request.onsuccess = function() {
-        settings[key] = request.result[key];
+        entry(key, request.result[key]);
       };
 
       mozSettings.addObserver(key, function(event) {
-        settings[key] = event.settingValue;
+        entry(key, event.settingValue);
       });
     }
   });

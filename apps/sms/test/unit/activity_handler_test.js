@@ -9,6 +9,7 @@ requireApp('sms/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 requireApp('sms/shared/test/unit/mocks/mock_notification_helper.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_alert.js');
@@ -34,6 +35,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'MessageManager',
   'NotificationHelper',
   'OptionMenu',
+  'SettingsURL',
   'Threads',
   'Utils',
   'alert'
