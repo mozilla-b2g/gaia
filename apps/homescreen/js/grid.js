@@ -256,6 +256,9 @@ var GridManager = (function() {
         // Generate a function accordingly to the current page position.
         if (currentPage > nextLandingPage || Homescreen.isInEditMode()) {
           var pan = function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
             currentX = getX(e);
             deltaX = getDeltaX(e);
 
@@ -289,6 +292,9 @@ var GridManager = (function() {
           }
 
           var pan = function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
             currentX = getX(e);
             deltaX = getDeltaX(e);
 
