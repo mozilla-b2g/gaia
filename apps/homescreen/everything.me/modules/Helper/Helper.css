@@ -174,7 +174,7 @@
             font-weight: 600;
         }
         #helper ul li.label {
-            color: #888;
+            color: rgb(160,160,160);
             font-style: italic;
             font-weight: normal;
             padding-right: 0.2rem;
