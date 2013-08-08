@@ -12,45 +12,47 @@ Utils.escapeHTML = function(str, escapeQuotes) {
   return span.innerHTML;
 };
 
-Utils.summarizeDaysOfWeek = function(bitStr) {
+Utils.summarizeDaysOfWeek = function(repeat) {
   var _ = navigator.mozL10n.get;
-
-  if (bitStr == '')
-    return _('never');
-
-  // Format bits: 0123456(0000000)
-  // Case: Everyday:  1111111
-  // Case: Weekdays:  1111100
-  // Case: Weekends:  0000011
-  // Case: Never:     0000000
-  // Case: Specific:  other case  (Mon, Tue, Thu)
-
-  var summary = '';
-  switch (bitStr) {
-  case '1111111':
+  // Build a bitset
+  var value = 0;
+  for (var i = 0; i < DAYS.length; i++) {
+    var dayName = DAYS[i];
+    if (repeat[dayName] === true) {
+      value |= (1 << i);
+    }
+  }
+  var summary;
+  if (value === 127) { // 127 = 0b1111111
     summary = _('everyday');
-    break;
-  case '1111100':
+  } else if (value === 31) { // 31 = 0b0011111
     summary = _('weekdays');
-    break;
-  case '0000011':
+  } else if (value === 96) { // 96 = 0b1100000
     summary = _('weekends');
-    break;
-  case '0000000':
-    summary = _('never');
-    break;
-  default:
+  } else if (value !== 0) { // any day was true
     var weekdays = [];
-    for (var i = 0; i < bitStr.length; i++) {
-      if (bitStr.substr(i, 1) == '1') {
+    for (var i = 0; i < DAYS.length; i++) {
+      var dayName = DAYS[i];
+      if (repeat[dayName]) {
         // Note: here, Monday is the first day of the week
         // whereas in JS Date(), it's Sunday -- hence the (+1) here.
         weekdays.push(_('weekday-' + ((i + 1) % 7) + '-short'));
       }
+      summary = weekdays.join(', ');
     }
-    summary = weekdays.join(', ');
+  } else { // no day was true
+    summary = _('never');
   }
   return summary;
+};
+
+Utils.isEmptyRepeat = function(repeat) {
+  for (var i in repeat) {
+    if (repeat[i] === true) {
+      return false;
+    }
+  }
+  return true;
 };
 
 Utils.is12hFormat = function() {
@@ -79,44 +81,31 @@ Utils.isAlarmPassToday = function(hour, minute) {
 };
 
 // get the next alarm fire time
-Utils.getNextAlarmFireTime = function(alarm) {
-  var repeat = alarm.repeat;
-  var hour = alarm.hour;
-  var minute = alarm.minute;
-  var now = new Date();
-  var nextAlarmFireTime = new Date();
-  var diffDays = 0; // calculate the diff days from now
-  if (repeat == '0000000') { // one time only and alarm within 24 hours
-    if (Utils.isAlarmPassToday(hour, minute)) // if alarm has passed already
-      diffDays = 1; // alarm tomorrow
-  } else { // find out the first alarm day from the repeat info.
-    var weekDayFormatRepeat =
-      repeat.slice(-1).concat(repeat.slice(0, repeat.length - 1));
-    var weekDayOfToday = now.getDay();
-    var index = 0;
-    for (var i = 0; i < weekDayFormatRepeat.length; i++) {
-      index = (i + weekDayOfToday) % 7;
-      if (weekDayFormatRepeat.charAt(index) == '1') {
-        if (diffDays == 0) {
-          // if alarm has passed already
-          if (!Utils.isAlarmPassToday(hour, minute))
-            break;
+Utils.isDateInRepeat = function alarm_isDateInRepeat(repeat, date) {
+  // return true if repeat contains date
+  var day = DAYS[(date.getDay() + 6) % 7];
+  return !!repeat[day];
+};
 
-          diffDays++;
-          continue;
-        }
-        break;
-      }
-      diffDays++;
+Utils.repeatDays = function alarm_repeatDays(repeat) {
+  var count = 0;
+  for (var i in repeat) {
+    if (repeat[i]) {
+      count++;
     }
   }
+  return count;
+};
 
-  nextAlarmFireTime.setDate(nextAlarmFireTime.getDate() + diffDays);
-  nextAlarmFireTime.setHours(hour);
-  nextAlarmFireTime.setMinutes(minute);
-  nextAlarmFireTime.setSeconds(0, 0);
-
-  return nextAlarmFireTime;
+Utils.getNextAlarmFireTime = function(alarm) {
+  var now = new Date(), next = new Date();
+  next.setHours(alarm.hour, alarm.minute, 0, 0);
+  while (next < now ||
+          !(Utils.repeatDays(alarm.repeat) === 0 ||
+            Utils.isDateInRepeat(alarm.repeat, next))) {
+    next.setDate(next.getDate() + 1);
+  }
+  return next;
 };
 
 Utils.changeSelectByValue = function(selectElement, value) {

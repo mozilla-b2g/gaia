@@ -190,7 +190,7 @@ var AlarmEdit = {
       hour: now.getHours(), // use current hour
       minute: now.getMinutes(), // use current minute
       enabled: true,
-      repeat: '0000000', // flags for days of week, init to false
+      repeat: {},
       sound: 'ac_classic_clock_alarm.opus',
       vibrate: 1,
       snooze: 5,
@@ -256,15 +256,18 @@ var AlarmEdit = {
     var daysOfWeek = this.alarm.repeat;
     var options = this.repeatSelect.options;
     for (var i = 0; i < options.length; i++) {
-      options[i].selected = (daysOfWeek.substr(i, 1) === '1') ? true : false;
+      options[i].selected = daysOfWeek[DAYS[i]] === true;
     }
+    this.refreshRepeatMenu(null);
   },
 
   getRepeatSelect: function aev_getRepeatSelect() {
-    var daysOfWeek = '';
+    var daysOfWeek = {};
     var options = this.repeatSelect.options;
     for (var i = 0; i < options.length; i++) {
-      daysOfWeek += (options[i].selected) ? '1' : '0';
+      if (options[i].selected) {
+        daysOfWeek[DAYS[i]] = true;
+      }
     }
     return daysOfWeek;
   },
