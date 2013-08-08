@@ -9,9 +9,10 @@
     "marionette-profile-builder": "0.0.2",
     "marionette-apps": "0.3.0",
     "marionette-client": "~0.13.0",
-    "marionette-js-helper": "~0.0.1",
+    "marionette-helper": "0.0.3",
     "marionette-js-runner": "~0.1.0",
     "mocha": "1.12.0",
-    "mozilla-download": "~0.2.1"
+    "mozilla-download": "~0.2.1",
+    "mail-fakeservers": "~0.0.3"
   }
 }
